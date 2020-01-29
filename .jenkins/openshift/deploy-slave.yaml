@@ -4,6 +4,16 @@ metadata:
   creationTimestamp: null
   name: jenkins
 objects:
+  - apiVersion: v1
+  kind: ImageStream
+  metadata:
+    creationTimestamp: null
+    labels:
+      shared: "true"
+    name: "${NAME}-${SLAVE_NAME}"
+  spec:
+    lookupPolicy:
+      local: false
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
