@@ -46,8 +46,8 @@ objects:
         RUN fix_permission(){ while [[ $# > 0 ]] ; do chgrp -R 0 "$1" && chmod -R g=u "$1"; shift; done } && \
             set -x && \
             mkdir /opt/flywaydb && \
-            curl -sSL https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/5.2.4/flyway-commandline-5.2.4-linux-x64.tar.gz | tar xvz --strip-components=1 -C /opt/flywaydb && \
-            ln -s /opt/flywaydb/flyway /usr/local/bin && \
+            # curl -sSL https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/5.2.4/flyway-commandline-5.2.4-linux-x64.tar.gz | tar xvz --strip-components=1 -C /opt/flywaydb && \
+            # ln -s /opt/flywaydb/flyway /usr/local/bin && \
             mkdir /opt/liquibase && \
             curl -sSL https://github.com/liquibase/liquibase/releases/download/liquibase-parent-3.6.3/liquibase-3.6.3-bin.tar.gz | tar xvz -C /opt/liquibase --exclude=sdk --exclude=liquibase.bat && \
             ln -s /opt/liquibase/liquibase /usr/local/bin && \
