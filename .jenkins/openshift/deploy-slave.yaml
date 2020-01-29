@@ -10,7 +10,7 @@ objects:
     creationTimestamp: null
     labels:
       shared: "true"
-    name: "${NAME}-${SLAVE_NAME}"
+      name: ${NAME}-slave-${SLAVE_NAME}
   spec:
     lookupPolicy:
       local: false
@@ -18,12 +18,12 @@ objects:
   kind: DeploymentConfig
   metadata:
     creationTimestamp: null
-    name: ${NAME}-${SLAVE_NAME}${SUFFIX}
+    name: ${NAME}-slave-${SLAVE_NAME}${SUFFIX}
   spec:
     replicas: "${{REPLICAS}}"
     revisionHistoryLimit: 10
     selector:
-      deploymentconfig: ${NAME}-${SLAVE_NAME}${SUFFIX}
+      deploymentconfig: ${NAME}-slave-${SLAVE_NAME}${SUFFIX}
     strategy:
       activeDeadlineSeconds: 21600
       recreateParams:
@@ -34,7 +34,7 @@ objects:
       metadata:
         creationTimestamp: null
         labels:
-          deploymentconfig: ${NAME}-${SLAVE_NAME}${SUFFIX}
+          deploymentconfig: ${NAME}-slave-${SLAVE_NAME}${SUFFIX}
       spec:
         initContainers:
           - name: init
@@ -138,7 +138,7 @@ objects:
           - init
         from:
           kind: ImageStreamTag
-          name: ${NAME}-${SLAVE_NAME}:${VERSION}
+          name: ${NAME}-slave-${SLAVE_NAME}:${VERSION}
       type: ImageChange
     - type: ConfigChange
 parameters:
