@@ -1,0 +1,30 @@
+{
+  "generator-bcdk": {
+    "promptValues": {
+      "modules": {
+        "jenkins": {
+          "path": ".jenkins",
+          "name": "jenkins",
+          "namespace": "auzhsi-tools",
+          "version": "1.0.0",
+          "environments": {
+            "build": {
+              "namespace": "auzhsi-tools"
+            },
+            "dev": {
+              "namespace": "auzhsi-tools"
+            },
+            "prod": {
+              "namespace": "auzhsi-tools"
+            }
+          },
+          "jenkinsJobName": "_jenkins",
+          "github_owner": "bcgov",
+          "github_repo": "wps",
+          "jenkinsFilePath": ".jenkins/Jenkinsfile",
+          "uuid": "8e40a08b-d1bf-472b-963d-437e7972aaed"
+        }
+      }
+    }
+  }
+}
