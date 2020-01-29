@@ -128,7 +128,7 @@ objects:
           - init
         from:
           kind: ImageStreamTag
-          name: ${NAME}:${VERSION}
+          name: ${NAME}-${SLAVE_NAME}:${VERSION}
       type: ImageChange
     - type: ConfigChange
 parameters:
