@@ -1,8 +1,8 @@
 ---
-name: Task request
-about: Suggest a task for this project
-title: "[TASK]"
-labels: ''
+name: Data fix
+about: Create a correction for a data error
+title: "[DATA]"
+labels: data
 assignees: ''
 
 ---
@@ -10,7 +10,7 @@ assignees: ''
 **Describe the task**
 A clear and concise description of what the task is.
 
-**Expected behavior**
+**Expected behaviour**
 A clear and concise description of what you expected to happen.
 
 **Screenshots**
