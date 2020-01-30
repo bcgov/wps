@@ -1,8 +1,8 @@
 ---
-name: Task request
-about: Suggest a task for this project
-title: "[TASK]"
-labels: ''
+name: Devops
+about: Suggest a devops enhancement
+title: "[DEVOPS]"
+labels: devops
 assignees: ''
 
 ---
@@ -10,7 +10,7 @@ assignees: ''
 **Describe the task**
 A clear and concise description of what the task is.
 
-**Expected behavior**
+**Expected behaviour**
 A clear and concise description of what you expected to happen.
 
 **Screenshots**
