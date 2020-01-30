@@ -1,7 +1,7 @@
 ---
 name: Devops
 about: Suggest a devops enhancement
-title: "[DEVOPS]"
+title: "[DEVOPS] "
 labels: devops
 assignees: ''
 

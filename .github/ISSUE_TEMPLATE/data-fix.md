@@ -1,7 +1,7 @@
 ---
 name: Data fix
 about: Create a correction for a data error
-title: "[DATA]"
+title: "[DATA] "
 labels: data
 assignees: ''
 
