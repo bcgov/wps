@@ -63,41 +63,4 @@ Inspiration, code snippets, etc.
 Template copied from
 * [DomPizzie](https://gist.github.com/DomPizzie/7a5ff55ffa9081f2de27c315f5018afc)
 
-## Glossary
-
-BCWS: British Columbia Wildfire Services
-
-BUI : [Buildup Index](https://cwfis.cfs.nrcan.gc.ca/background/summary/fwi) "The Buildup Index (BUI) is a numeric rating of the total amount of fuel available for combustion. It combines the DMC and the DC."
-
-DC: [Drought Code](https://cwfis.cfs.nrcan.gc.ca/background/summary/fwi) "The Drought Code (DC) is a numeric rating of the average moisture content of deep, compact organic layers. This code is a useful indicator of seasonal drought effects on forest fuels and the amount of smoldering in deep duff layers and large logs."
-
-CFFDRS: [Canadian Forest Fire Danger Rating System (CFFDRS)](https://cwfis.cfs.nrcan.gc.ca/background/summary/fdr)
-
-EMBC: [Emergency Management British Columbia](https://www2.gov.bc.ca/gov/content/safety/emergency-preparedness-response-recovery/emergency-management-bc)
-
-EMTC:
-
-FBAN: fire behaviour analyst
-
-FBP: [Canadian Forets Fire Behaviour Prediction (FBP) System](https://cwfis.cfs.nrcan.gc.ca/background/summary/fbp)
-
-FDI: Fire Danger Index
-
-FFMC: [Fine Fuel Moisture Code](https://cwfis.cfs.nrcan.gc.ca/background/summary/fwi)
-
-FTL: fuel type layer
-
-FWI: [Canadian Forest Fire Weather Index](https://cwfis.cfs.nrcan.gc.ca/background/summary/fwi)
-
-FWN: Fire Weather Network
-
-HFI : Head Fire Intensity
-
-PSU: predictive services unit
-PS: predictive services
-
-PWCC: [Provincial Wildfire Coordination Centre](https://www2.gov.bc.ca/gov/content/safety/wildfire-status/about-bcws/wildfire-response/fire-centres#pwcc)
-
-PWCC Wx:
-
-VRI: Vegatation Resource Inventory
+## [Glossary](https://github.com/bcgov/wps/wiki/Glossary)
