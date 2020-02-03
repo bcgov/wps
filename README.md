@@ -63,4 +63,6 @@ Inspiration, code snippets, etc.
 Template copied from
 * [DomPizzie](https://gist.github.com/DomPizzie/7a5ff55ffa9081f2de27c315f5018afc)
 
-## [Glossary](https://github.com/bcgov/wps/wiki/Glossary)
+## [Glossary]
+
+A glossary of terms relating to Wildfire that are relevant to Predictive Services can be found at the (Predictive Wildfire Wiki Glossary Page)[https://github.com/bcgov/wps/wiki/Glossary]
