@@ -49,7 +49,7 @@ ex. [@Human Person #1](https://github.com/humanpersonnumberone)
 
 ## License
 
-This project is licensed under the [NAME HERE] License - see the LICENSE.md file for details
+This project is licensed under the [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) License - see the LICENSE.md file for details
 
 ## Acknowledgments
 
@@ -62,3 +62,42 @@ Inspiration, code snippets, etc.
 
 Template copied from
 * [DomPizzie](https://gist.github.com/DomPizzie/7a5ff55ffa9081f2de27c315f5018afc)
+
+## Glossary
+
+BCWS: British Columbia Wildfire Services
+
+BUI/DC:
+
+CFFDRS: [Canadian Forest Fire Danger Rating System (CFFDRS)](https://cwfis.cfs.nrcan.gc.ca/background/summary/fdr)
+
+EMBC: [Emergency Management British Columbia](https://www2.gov.bc.ca/gov/content/safety/emergency-preparedness-response-recovery/emergency-management-bc)
+
+EMTC:
+
+FBAN: fire behaviour analyst
+
+FBP: [Canadian Forets Fire Behaviour Prediction (FBP) System](https://cwfis.cfs.nrcan.gc.ca/background/summary/fbp)
+
+FDI: Fire Danger Index
+
+FFMC: [Fine Fuel Moisture Code](https://cwfis.cfs.nrcan.gc.ca/background/summary/fwi)
+
+FTL: fuel type layer
+
+FWI: [Canadian Forest Fire Weather Index](https://cwfis.cfs.nrcan.gc.ca/background/summary/fwi)
+
+FWN: Fire Weather Network
+
+FWI: Canadian Fire Weather Index
+
+HFI : Head Fire Intensity
+
+PSU: predictive services unit
+PS: predictive services
+
+PWCC: [Provincial Wildfire Coordination Centre](https://www2.gov.bc.ca/gov/content/safety/wildfire-status/about-bcws/wildfire-response/fire-centres#pwcc)
+
+PWCC Wx:
+
+VRI: Vegatation Resource Inventory
