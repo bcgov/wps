@@ -89,8 +89,6 @@ FWI: [Canadian Forest Fire Weather Index](https://cwfis.cfs.nrcan.gc.ca/backgrou
 
 FWN: Fire Weather Network
 
-FWI: Canadian Fire Weather Index
-
 HFI : Head Fire Intensity
 
 PSU: predictive services unit
