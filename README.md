@@ -67,7 +67,9 @@ Template copied from
 
 BCWS: British Columbia Wildfire Services
 
-BUI/DC:
+BUI : [Buildup Index](https://cwfis.cfs.nrcan.gc.ca/background/summary/fwi) "The Buildup Index (BUI) is a numeric rating of the total amount of fuel available for combustion. It combines the DMC and the DC."
+
+DC: [Drought Code](https://cwfis.cfs.nrcan.gc.ca/background/summary/fwi) "The Drought Code (DC) is a numeric rating of the average moisture content of deep, compact organic layers. This code is a useful indicator of seasonal drought effects on forest fuels and the amount of smoldering in deep duff layers and large logs."
 
 CFFDRS: [Canadian Forest Fire Danger Rating System (CFFDRS)](https://cwfis.cfs.nrcan.gc.ca/background/summary/fdr)
 
