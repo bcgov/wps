@@ -51,6 +51,25 @@
           "github_repo": "wps",
           "jenkinsFilePath": ".jenkins/Jenkinsfile",
           "uuid": "ed2a2c96-461f-4ebb-a0fe-1fc8155037e7"
+        },
+        ".": {
+          "name": "wps",
+          "version": "1.0.0",
+          "path": ".",
+          "environments": {
+            "build": {
+              "namespace": "auzhsi-tools"
+            },
+            "dev": {
+              "namespace": "auzhsi-dev"
+            },
+            "test": {
+              "namespace": "auzhsi-test"
+            },
+            "prod": {
+              "namespace": "auzhsi-prod"
+            }
+          }
         }
       }
     }
