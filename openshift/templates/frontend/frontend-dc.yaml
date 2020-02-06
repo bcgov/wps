@@ -1,0 +1,213 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  creationTimestamp: null
+  name: frontend-dc
+parameters:
+  - name: NAME
+    displayName:
+    description: the module name entered when run yo bcdk:pipeline
+    required: true
+  - name: SUFFIX
+    displayName:
+    description: sample is -pr-0
+    required: true
+  - name: VERSION
+    displayName:
+    description:  image tag name for output
+    required: true
+  - name: ENV_NAME
+    value: dev
+    displayName: Environment name
+    description: Environment name, dev, test and prod
+    required: true
+  - name: DASH_ENV_NAME
+    value: dev
+    displayName: Environment name
+    description: Environment name, -dev, -test and empty for prod
+    required: true
+  - name: CPU_REQUEST
+    displayName: Requested CPU
+    description: Requested CPU
+    required: true
+  - name: CPU_LIMIT
+    displayName: CPU upper limit
+    description: CPU upper limit
+    required: true
+  - name: MEMORY_REQUEST
+    displayName: Requested memory
+    description: Requested memory
+    required: true
+  - name: MEMORY_LIMIT
+    displayName: Memory upper limit
+    description: Memory upper limit
+    required: true
+objects:
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    annotations:
+      description: Keeps track of changes in the client / front end image
+    labels:
+      shared: "true"
+    creationTimestamp: null
+    name: ${NAME}-frontend
+  spec:
+    lookupPolicy:
+      local: false
+  status:
+    dockerImageRepository: ""
+- apiVersion: v1
+  kind: Service
+  metadata:
+    creationTimestamp: null
+    name: ${NAME}-frontend${SUFFIX}
+    labels:
+      name: frontend
+      app: ${NAME}
+      role: frontend
+      env: ${ENV_NAME}
+  spec:
+    ports:
+    - name: web
+      port: 5001
+      protocol: TCP
+      targetPort: 5001
+    - name: websocket-notifications
+      port: 5002
+      protocol: TCP
+      targetPort: 5002
+    selector:
+      name: ${NAME}-frontend${SUFFIX}
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: route.openshift.io/v1
+  kind: Route
+  metadata:
+    creationTimestamp: null
+    labels:
+      name: frontend
+      app: ${NAME}
+      role: frontend
+      env: ${ENV_NAME}
+    name: ${NAME}-frontend${SUFFIX}
+  spec:
+    host: ${NAME}${SUFFIX}.pathfinder.gov.bc.ca
+    port:
+      targetPort: http-in
+    tls:
+      insecureEdgeTerminationPolicy: Redirect
+      termination: edge
+    to:
+      kind: Service
+      name: ${NAME}-envoy${SUFFIX}
+      weight: 100
+    wildcardPolicy: None
+- apiVersion: apps.openshift.io/v1
+  kind: DeploymentConfig
+  metadata:
+    name: ${NAME}-frontend${SUFFIX}
+    labels:
+      name: frontend
+      app: ${NAME}
+      role: frontend
+      env: ${ENV_NAME}
+    annotations:
+      description: Defines how to deploy the frontend application
+    creationTimestamp: null
+  spec:
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      name: ${NAME}-frontend${SUFFIX}
+    strategy:
+      activeDeadlineSeconds: 21600
+      recreateParams:
+        timeoutSeconds: 600
+      resources: {}
+      type: Recreate
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          name: ${NAME}-frontend${SUFFIX}
+      spec:
+        containers:
+        - env:
+            - name: KEYCLOAK_CERTS_URL
+              value: "https://sso${DASH_ENV_NAME}.pathfinder.gov.bc.ca/auth/realms/rzh2zkjq/protocol/openid-connect/certs"
+            - name: KEYCLOAK_REALM
+              value: "https://sso${DASH_ENV_NAME}.pathfinder.gov.bc.ca/auth/realms/rzh2zkjq"
+            - name: KEYCLOAK_AUTHORITY
+              value: "https://sso${DASH_ENV_NAME}.pathfinder.gov.bc.ca/auth/realms/rzh2zkjq"
+            - name: KEYCLOAK_ISSUER
+              value: "https://sso${DASH_ENV_NAME}.pathfinder.gov.bc.ca/auth/realms/rzh2zkjq"
+            - name: KEYCLOAK_URL
+              value: "https://sso${DASH_ENV_NAME}.pathfinder.gov.bc.ca/auth"
+            - name: KEYCLOAK_AUDIENCE
+              value: 'rzh2zkjq'
+            - name: KEYCLOAK_CLIENT_ID
+              value: 'rzh2zkjq'
+            - name: RABBITMQ_ENABLED
+              value: 'False'
+          image:
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 40
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 5001
+            timeoutSeconds: 3
+          name: frontend
+          ports:
+          - containerPort: 5001
+            protocol: TCP
+          - containerPort: 5002
+            protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 5001
+            timeoutSeconds: 3
+          resources:
+            limits:
+              cpu: ${CPU_LIMIT}
+              memory: ${MEMORY_LIMIT}
+            requests:
+              cpu: ${CPU_REQUEST}
+              memory: ${MEMORY_REQUEST}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+    test: false
+    triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - frontend
+        from:
+          kind: ImageStreamTag
+          name: ${NAME}-frontend:${VERSION}
+        lastTriggeredImage:
+      type: ImageChange
+    - type: ConfigChange
+  status:
+    availableReplicas: 0
+    latestVersion: 0
+    observedGeneration: 0
+    replicas: 0
+    unavailableReplicas: 0
+    updatedReplicas: 0
