@@ -26,5 +26,30 @@
         }
       }
     }
+  },
+  "@bcgov/generator-bcdk": {
+    "promptValues": {
+      "modules": {
+        ".": {
+          "name": "wps",
+          "version": "1.0.0",
+          "path": ".",
+          "environments": {
+            "build": {
+              "namespace": "auzhsi-tools"
+            },
+            "dev": {
+              "namespace": "auzhsi-dev"
+            },
+            "test": {
+              "namespace": "auzhsi-test"
+            },
+            "prod": {
+              "namespace": "auzhsi-prod"
+            }
+          }
+        }
+      }
+    }
   }
 }
