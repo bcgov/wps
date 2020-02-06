@@ -1,32 +1,4 @@
 {
-  "generator-bcdk": {
-    "promptValues": {
-      "modules": {
-        "jenkins": {
-          "path": ".jenkins",
-          "name": "jenkins",
-          "namespace": "auzhsi-tools",
-          "version": "1.0.0",
-          "environments": {
-            "build": {
-              "namespace": "auzhsi-tools"
-            },
-            "dev": {
-              "namespace": "auzhsi-tools"
-            },
-            "prod": {
-              "namespace": "auzhsi-tools"
-            }
-          },
-          "jenkinsJobName": "_jenkins",
-          "github_owner": "bcgov",
-          "github_repo": "wps",
-          "jenkinsFilePath": ".jenkins/Jenkinsfile",
-          "uuid": "8e40a08b-d1bf-472b-963d-437e7972aaed"
-        }
-      }
-    }
-  },
   "@bcgov/generator-bcdk": {
     "promptValues": {
       "modules": {
@@ -50,7 +22,7 @@
           "github_owner": "bcgov",
           "github_repo": "wps",
           "jenkinsFilePath": ".jenkins/Jenkinsfile",
-          "uuid": "ed2a2c96-461f-4ebb-a0fe-1fc8155037e7"
+          "uuid": "d42d633a-8df7-4b0c-9a9a-d127d91c6ee5"
         },
         ".": {
           "name": "wps",
