@@ -1,20 +1,18 @@
 ---
 name: User Story
-about: A User Story
+about: a value driven statement from the perspective of the user
 title: ''
 labels: User Story
 assignees: ''
 
 ---
 
-**Describe the task**
-A clear and concise description of what the task is.
+**As a** *(User Type/Persona)* **I want** *(Feature/enhancement)* **So That** *(Value, why is this wanted, what is the user trying to accomplish)*
 
-**Expected behaviour**
-A clear and concise description of what you expected to happen.
+**Additional Context**
+- enter text here
+- enter text here
 
-**Screenshots**
-If applicable, add screenshots to help explain your request.
-
-**Additional context**
-Add any other context about the task here.
+**Acceptance Criteria**
+- [ ] Given (Context), When (action carried out), Then (expected outcome)
+- [ ] Given (Context), When (action carried out), Then (expected outcome)
