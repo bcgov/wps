@@ -1,8 +1,8 @@
 ---
-name: Data fix
-about: Create a correction for a data error
-title: "[DATA] "
-labels: data
+name: User Story
+about: A User Story
+title: ''
+labels: User Story
 assignees: ''
 
 ---
