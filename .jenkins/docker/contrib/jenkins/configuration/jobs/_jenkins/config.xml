@@ -29,7 +29,7 @@
     <data>
       <jenkins.branch.BranchSource>
         <source class="org.jenkinsci.plugins.github_branch_source.GitHubSCMSource" plugin="github-branch-source@2.3.6">
-          <id>8e40a08b-d1bf-472b-963d-437e7972aaed</id>
+          <id>b547cf09-7e3d-427b-9770-64ec08e2d8de</id>
           <credentialsId>github-account</credentialsId>
           <repoOwner>bcgov</repoOwner>
           <repository>wps</repository>

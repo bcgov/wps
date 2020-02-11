@@ -57,13 +57,10 @@ static Map exec(List args, File workingDirectory=null, Appendable stdout=null, A
                     println exec(['git', 'remote', 'add', 'origin', payload.repository.clone_url], gitWorkDir)
                     println exec(['git', 'fetch', '--no-tags', payload.repository.clone_url, "+${sourceBranch}:PR-${payload.number}"], gitWorkDir)
                     println exec(['git', 'checkout', "PR-${payload.number}"] , gitWorkDir)
-                    
-                    def pipelines = new FileNameFinder().getFileNames(gitWorkDir.getAbsolutePath(), '**/.pipeline/package.json')
-                    pipelines.each {
-                        def pipelineWorkDir = new File(it).getParentFile()
-                        println exec(['./npmw', 'ci'], pipelineWorkDir)
-                        println exec(['./npmw', 'run', 'clean' ,'--' ,"--pr=${payload.number}", '--env=transient'], pipelineWorkDir)
-                    }
+
+                    File pipelineWorkDir = new File("${gitWorkDir.getAbsolutePath()}/.pipeline")
+                    println exec(['./npmw', 'ci'], pipelineWorkDir)
+                    println exec(['./npmw', 'run', 'clean' ,'--' ,"--pr=${payload.number}", '--env=transient'], pipelineWorkDir)
                 }
             }else if ("issue_comment" == ghEventType){
                 def payload = new JsonSlurper().parseText(ghPayload)
