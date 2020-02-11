@@ -26,5 +26,33 @@
         }
       }
     }
+  },
+  "@bcgov/generator-bcdk": {
+    "promptValues": {
+      "modules": {
+        "jenkins": {
+          "path": ".jenkins",
+          "name": "jenkins",
+          "namespace": "auzhsi-tools",
+          "version": "1.0.0",
+          "environments": {
+            "build": {
+              "namespace": "auzhsi-tools"
+            },
+            "dev": {
+              "namespace": "auzhsi-tools"
+            },
+            "prod": {
+              "namespace": "auzhsi-tools"
+            }
+          },
+          "jenkinsJobName": "_jenkins",
+          "github_owner": "bcgov",
+          "github_repo": "wps",
+          "jenkinsFilePath": ".jenkins/Jenkinsfile",
+          "uuid": "b547cf09-7e3d-427b-9770-64ec08e2d8de"
+        }
+      }
+    }
   }
 }
