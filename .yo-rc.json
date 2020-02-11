@@ -51,6 +51,13 @@
           "github_repo": "wps",
           "jenkinsFilePath": ".jenkins/Jenkinsfile",
           "uuid": "b547cf09-7e3d-427b-9770-64ec08e2d8de"
+        },
+        "_web": {
+          "jenkinsJobName": "_web",
+          "github_owner": "bcgov",
+          "github_repo": "wps",
+          "jenkinsFilePath": "Jenkinsfile",
+          "uuid": "52e06f47-f038-47ae-8ad9-bc668d13c9b9"
         }
       }
     }
