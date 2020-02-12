@@ -1,0 +1,79 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  creationTimestamp: null
+  name: frontend
+parameters:
+  - name: NAME
+    displayName:
+    description: the module name entered when run yo bcdk:pipeline, which is zeva
+    required: true
+  - name: SUFFIX
+    displayName:
+    description: sample is -pr-0
+    required: true
+  - name: VERSION
+    displayName:
+    description:  image tag name for output
+    required: true
+  - name: GIT_URL
+    displayName:
+    description: zeva repo
+    required: true
+  - name: GIT_REF
+    displayName:
+    description: zeva branch name of the pr
+    required: true
+objects:
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    annotations:
+      description: Keeps track of changes in the client / front end image
+    labels:
+      shared: "true"
+    creationTimestamp: null
+    generation: 643
+    name: ${NAME}-frontend
+  spec:
+    lookupPolicy:
+      local: false
+  status:
+    dockerImageRepository: ""
+- apiVersion: build.openshift.io/v1
+  kind: BuildConfig
+  metadata:
+    creationTimestamp: null
+    name: ${NAME}-frontend${SUFFIX}
+  spec:
+    failedBuildsHistoryLimit: 5
+    nodeSelector: null
+    output:
+      to:
+        kind: ImageStreamTag
+        name: ${NAME}-frontend:${VERSION}
+    postCommit: {}
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 2G
+      requests:
+        cpu: 500m
+        memory: 200M
+    runPolicy: Serial
+    source:
+      git:
+        ref: ${GIT_REF}
+        uri: ${GIT_URL}
+      type: Git
+      contextDir: frontend
+    strategy:
+      dockerStrategy:
+        forcePull: false
+        noCache: true
+        imageOptimizationPolicy: SkipLayers
+      type: Docker
+    successfulBuildsHistoryLimit: 5
+    triggers: []
+  status:
+    lastVersion: 0

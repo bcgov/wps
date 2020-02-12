@@ -22,7 +22,8 @@ pipeline {
                 }
                 echo "BRANCH_NAME:${env.BRANCH_NAME}\nCHANGE_ID:${env.CHANGE_ID}\nCHANGE_TARGET:${env.CHANGE_TARGET}"
                 echo "Building ..."
-                sh "cd .jenkins/.pipeline && ./npmw ci && ./npmw run build -- --pr=${CHANGE_ID}"
+                //sh "cd .jenkins/.pipeline && ./npmw ci && ./npmw run build -- --pr=${CHANGE_ID}"
+                sh "oc -n auzhsi-tools process -f openshift/templates/frontend/frontend-bc.yaml -p NAME=wps-test -p SUFFIX=dev -p VERSION=0.0.1 -p GIT_URL=https://github.com/bcgov/wps.git -p GIT_REF=master | oc -n auzhsi-tools apply -f -"
             }
         }
         stage('Deploy (DEV)') {
