@@ -30,7 +30,6 @@ pipeline {
         stage('Build') {
             agent { label 'build' }
             steps {
-                // echo "BRANCH_NAME:${env.BRANCH_NAME}\nCHANGE_ID:${env.CHANGE_ID}\nCHANGE_TARGET:${env.CHANGE_TARGET}"
                 echo "Building ..."
                 script{
                     def buildTemplate = sh(
@@ -59,7 +58,6 @@ pipeline {
             agent { label 'deploy' }
             steps {
                 echo "Deploying ..."
-                // sh "oc -n auzhsi-tools process -f openshift/templates/frontend/frontend-dc.yaml -p NAME=wps-test -p SUFFIX=dev -p VERSION=0.0.1 -p CPU_REQUEST=500m -p CPU_LIMIT=500m -p MEMORY_REQUEST=1Gi -p MEMORY_LIMIT=1Gi | oc -n auzhsi-dev apply -f -"
                 script{
                     def deployTemplate = sh(
                         script: "oc -n auzhsi-tools process -f openshift/templates/frontend/frontend-dc.yaml \

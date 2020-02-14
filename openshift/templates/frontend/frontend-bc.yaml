@@ -2,28 +2,33 @@ apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
   creationTimestamp: null
-  name: frontend
+  name: wps
 parameters:
   - name: NAME
     displayName:
-    description: the module name entered when run yo bcdk:pipeline, which is zeva
+    description: Module name
     required: true
+    value: wps
   - name: SUFFIX
     displayName:
-    description: sample is -pr-0
+    description: Deployment suffix, e.g. pr-###
     required: true
+    value: pr-000
   - name: VERSION
     displayName:
-    description:  image tag name for output
+    description:  Version or release number
     required: true
+    value: "0"
   - name: GIT_URL
     displayName:
-    description: zeva repo
+    description: Git repository
     required: true
+    value: https://github.com/bcgov/wps.git
   - name: GIT_REF
     displayName:
-    description: zeva branch name of the pr
+    description: PR branch
     required: true
+    value: master
 objects:
 - apiVersion: image.openshift.io/v1
   kind: ImageStream
@@ -33,7 +38,6 @@ objects:
     labels:
       shared: "true"
     creationTimestamp: null
-    generation: 643
     name: ${NAME}-frontend
   spec:
     lookupPolicy:
@@ -44,7 +48,7 @@ objects:
   kind: BuildConfig
   metadata:
     creationTimestamp: null
-    name: ${NAME}-frontend${SUFFIX}
+    name: ${NAME}-${SUFFIX}
   spec:
     failedBuildsHistoryLimit: 5
     nodeSelector: null
