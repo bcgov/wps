@@ -18,7 +18,7 @@ parameters:
     displayName:
     description:  Version or release number
     required: true
-    value: "0"
+    value: "0.0.0"
   - name: GIT_URL
     displayName:
     description: Git repository

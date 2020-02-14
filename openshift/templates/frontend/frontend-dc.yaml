@@ -2,46 +2,48 @@ apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
   creationTimestamp: null
-  name: frontend-dc
+  name: wps
 parameters:
   - name: NAME
     displayName:
-    description: the module name entered when run yo bcdk:pipeline, which is zeva
+    description: Module name
     required: true
+    value: wps
   - name: SUFFIX
     displayName:
-    description: sample is -pr-0
+    description: Deployment suffix, e.g. pr-###
     required: true
+    value: pr-000
   - name: VERSION
     displayName:
-    description:  image tag name for output
+    description:  Version or release number
     required: true
+    value: "0.0.0"
   - name: ENV_NAME
-    value: dev
-    displayName: Environment name
+    displayName: 
     description: Environment name, dev, test and prod
     required: true
-  - name: DASH_ENV_NAME
     value: dev
-    displayName: Environment name
-    description: Environment name, -dev, -test and empty for prod
-    required: true
   - name: CPU_REQUEST
-    displayName: Requested CPU
+    displayName: 
     description: Requested CPU
     required: true
+    value: 500m
   - name: CPU_LIMIT
-    displayName: CPU upper limit
+    displayName: 
     description: CPU upper limit
     required: true
+    value: 500m
   - name: MEMORY_REQUEST
-    displayName: Requested memory
+    displayName: 
     description: Requested memory
     required: true
+    value: 1Gi
   - name: MEMORY_LIMIT
-    displayName: Memory upper limit
+    displayName: 
     description: Memory upper limit
     required: true
+    value: 1Gi
 objects:
 - apiVersion: image.openshift.io/v1
   kind: ImageStream
@@ -51,7 +53,7 @@ objects:
     labels:
       shared: "true"
     creationTimestamp: null
-    name: ${NAME}-frontend
+    name: ${NAME}
   spec:
     lookupPolicy:
       local: false
@@ -61,11 +63,11 @@ objects:
   kind: Service
   metadata:
     creationTimestamp: null
-    name: ${NAME}-frontend${SUFFIX}
+    name: ${NAME}-${SUFFIX}
     labels:
-      name: frontend
-      app: zeva
-      role: frontend
+      name: ${NAME}
+      app: ${NAME}
+      role: ${NAME}
       env: ${ENV_NAME}
   spec:
     ports:
@@ -78,7 +80,7 @@ objects:
       protocol: TCP
       targetPort: 5002
     selector:
-      name: ${NAME}-frontend${SUFFIX}
+      name: ${NAME}-${SUFFIX}
     sessionAffinity: None
     type: ClusterIP
   status:
@@ -88,13 +90,13 @@ objects:
   metadata:
     creationTimestamp: null
     labels:
-      name: frontend
-      app: zeva
-      role: frontend
+      name: ${NAME}
+      app: ${NAME}
+      role: ${NAME}
       env: ${ENV_NAME}
-    name: ${NAME}-frontend${SUFFIX}
+    name: ${NAME}-${SUFFIX}
   spec:
-    host: ${NAME}${SUFFIX}.pathfinder.gov.bc.ca
+    host: ${NAME}-${SUFFIX}.pathfinder.gov.bc.ca
     port:
       targetPort: http-in
     tls:
@@ -102,26 +104,26 @@ objects:
       termination: edge
     to:
       kind: Service
-      name: ${NAME}-envoy${SUFFIX}
+      name: ${NAME}-${SUFFIX}
       weight: 100
     wildcardPolicy: None
 - apiVersion: apps.openshift.io/v1
   kind: DeploymentConfig
   metadata:
-    name: ${NAME}-frontend${SUFFIX}
+    name: ${NAME}-${SUFFIX}
     labels:
-      name: frontend
-      app: zeva
-      role: frontend
+      name: ${NAME}
+      app: ${NAME}
+      role: ${NAME}
       env: ${ENV_NAME}
     annotations:
-      description: Defines how to deploy the frontend application
+      description: Defines how to deploy the application
     creationTimestamp: null
   spec:
     replicas: 1
     revisionHistoryLimit: 10
     selector:
-      name: ${NAME}-frontend${SUFFIX}
+      name: ${NAME}-${SUFFIX}
     strategy:
       activeDeadlineSeconds: 21600
       recreateParams:
@@ -132,27 +134,10 @@ objects:
       metadata:
         creationTimestamp: null
         labels:
-          name: ${NAME}-frontend${SUFFIX}
+          name: ${NAME}-${SUFFIX}
       spec:
         containers:
-        - env:
-            - name: KEYCLOAK_CERTS_URL
-              value: "https://sso${DASH_ENV_NAME}.pathfinder.gov.bc.ca/auth/realms/rzh2zkjq/protocol/openid-connect/certs"
-            - name: KEYCLOAK_REALM
-              value: "https://sso${DASH_ENV_NAME}.pathfinder.gov.bc.ca/auth/realms/rzh2zkjq"
-            - name: KEYCLOAK_AUTHORITY
-              value: "https://sso${DASH_ENV_NAME}.pathfinder.gov.bc.ca/auth/realms/rzh2zkjq"
-            - name: KEYCLOAK_ISSUER
-              value: "https://sso${DASH_ENV_NAME}.pathfinder.gov.bc.ca/auth/realms/rzh2zkjq"
-            - name: KEYCLOAK_URL
-              value: "https://sso${DASH_ENV_NAME}.pathfinder.gov.bc.ca/auth"
-            - name: KEYCLOAK_AUDIENCE
-              value: 'rzh2zkjq'
-            - name: KEYCLOAK_CLIENT_ID
-              value: 'rzh2zkjq'
-            - name: RABBITMQ_ENABLED
-              value: 'False'
-          image:
+        - image:
           imagePullPolicy: IfNotPresent
           livenessProbe:
             failureThreshold: 3
@@ -162,7 +147,7 @@ objects:
             tcpSocket:
               port: 5001
             timeoutSeconds: 3
-          name: frontend
+          name: ${NAME}
           ports:
           - containerPort: 5001
             protocol: TCP
@@ -197,10 +182,10 @@ objects:
     - imageChangeParams:
         automatic: true
         containerNames:
-        - frontend
+        - ${NAME}
         from:
           kind: ImageStreamTag
-          name: ${NAME}-frontend:${VERSION}
+          name: ${NAME}:${VERSION}
         lastTriggeredImage:
       type: ImageChange
     - type: ConfigChange
