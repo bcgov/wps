@@ -1,5 +1,13 @@
 pipeline {
     agent none
+    environment {
+        // Pipeline-wide vars
+        name =  "wps-test"
+        ver = "0.0.1"
+        projTools = "auzhsi-tools"
+        projDev = "auzhsi-dev"
+        suffix = "pr-${env.CHANGE_ID}"
+    }
     options {
         disableResume()
     }
@@ -29,23 +37,27 @@ pipeline {
         }
         stage('Build') {
             agent { label 'build' }
+            environment {
+                repo = "${env.GIT_URL}".toLowerCase()
+                branch = "${env.CHANGE_BRANCH}"
+            }
             steps {
                 echo "Building ..."
-                script{
+                script {
                     def buildTemplate = sh(
-                        script: "oc -n auzhsi-tools process -f openshift/templates/frontend/frontend-bc.yaml \
-                            -p NAME=wps-test -p SUFFIX=dev -p VERSION=0.0.1 \
-                            -p GIT_URL=https://github.com/bcgov/wps.git -p GIT_REF=master \
+                        script: "oc -n ${projTools} process -f openshift/templates/frontend/frontend-bc.yaml \
+                            -p NAME=${name} -p SUFFIX=${suffix} -p VERSION=${ver} \
+                            -p GIT_URL=${repo} -p GIT_REF=${branch} \
                         ",
                         returnStatus: false,
                         returnStdout: true
                     ).trim()
                     echo "TEMPLATE: \n${buildTemplate}"
                     def buildResult = sh(
-                        script: "oc -n auzhsi-tools process -f openshift/templates/frontend/frontend-bc.yaml \
-                            -p NAME=wps-test -p SUFFIX=dev -p VERSION=0.0.1 \
-                            -p GIT_URL=https://github.com/bcgov/wps.git -p GIT_REF=master \
-                            | oc -n auzhsi-tools apply -f - \
+                        script: "oc -n ${projTools} process -f openshift/templates/frontend/frontend-bc.yaml \
+                            -p NAME=${name} -p SUFFIX=${suffix} -p VERSION=${ver} \
+                            -p GIT_URL=${repo} -p GIT_REF=${branch} \
+                            | oc -n ${projTools} apply -f - \
                         ",
                         returnStatus: false,
                         returnStdout: true
@@ -60,19 +72,19 @@ pipeline {
                 echo "Deploying ..."
                 script{
                     def deployTemplate = sh(
-                        script: "oc -n auzhsi-tools process -f openshift/templates/frontend/frontend-dc.yaml \
-                            -p NAME=wps-test -p SUFFIX=dev -p VERSION=0.0.1 -p CPU_REQUEST=500m \
-                            -p CPU_LIMIT=500m -p MEMORY_REQUEST=1Gi -p MEMORY_LIMIT=1Gi \
+                        script: "oc -n ${projTools} process -f openshift/templates/frontend/frontend-dc.yaml \
+                            -p NAME=${name} -p SUFFIX=${suffix} -p VERSION=${ver} \
+                            -p CPU_REQUEST=500m -p CPU_LIMIT=500m -p MEMORY_REQUEST=1Gi -p MEMORY_LIMIT=1Gi \
                         ",
                         returnStatus: false,
                         returnStdout: true
                     ).trim()
                     echo "TEMPLATE: \n${deployTemplate}"
                     def deployResult = sh(
-                        script: "oc -n auzhsi-tools process -f openshift/templates/frontend/frontend-dc.yaml \
-                            -p NAME=wps-test -p SUFFIX=dev -p VERSION=0.0.1 -p CPU_REQUEST=500m \
-                            -p CPU_LIMIT=500m -p MEMORY_REQUEST=1Gi -p MEMORY_LIMIT=1Gi \
-                            | oc -n auzhsi-dev apply -f - --dry-run\
+                        script: "oc -n ${projTools} process -f openshift/templates/frontend/frontend-dc.yaml \
+                            -p NAME=${name} -p SUFFIX=${suffix} -p VERSION=${ver} \
+                            -p CPU_REQUEST=500m -p CPU_LIMIT=500m -p MEMORY_REQUEST=1Gi -p MEMORY_LIMIT=1Gi \
+                            | oc -n ${projDev} apply -f - \
                         ",
                         returnStatus: false,
                         returnStdout: true
@@ -90,7 +102,7 @@ pipeline {
             }
             steps {
                 echo "Deploying ..."
-                sh "cd .jenkins/.pipeline && ./npmw ci && ./npmw run deploy -- --pr=${CHANGE_ID} --env=prod"
+                // sh "cd .jenkins/.pipeline && ./npmw ci && ./npmw run deploy -- --pr=${CHANGE_ID} --env=prod"
             }
         }
         stage('Acceptance') {
