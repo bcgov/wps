@@ -5,44 +5,26 @@ metadata:
   name: wps
 parameters:
   - name: NAME
-    displayName:
     description: Module name
-    required: true
     value: wps
   - name: SUFFIX
-    displayName:
     description: Deployment suffix, e.g. pr-###
     required: true
-    value: pr-000
   - name: VERSION
-    displayName:
     description:  Version or release number
     required: true
     value: "0.0.0"
-  - name: ENV_NAME
-    displayName: 
-    description: Environment name, dev, test and prod
-    required: true
-    value: dev
   - name: CPU_REQUEST
-    displayName: 
     description: Requested CPU
     required: true
-    value: 500m
   - name: CPU_LIMIT
-    displayName: 
     description: CPU upper limit
-    required: true
     value: 500m
   - name: MEMORY_REQUEST
-    displayName: 
     description: Requested memory
-    required: true
     value: 1Gi
   - name: MEMORY_LIMIT
-    displayName: 
     description: Memory upper limit
-    required: true
     value: 1Gi
 objects:
 - apiVersion: image.openshift.io/v1
@@ -68,7 +50,6 @@ objects:
       name: ${NAME}
       app: ${NAME}
       role: ${NAME}
-      env: ${ENV_NAME}
   spec:
     ports:
     - name: web
@@ -115,7 +96,6 @@ objects:
       name: ${NAME}
       app: ${NAME}
       role: ${NAME}
-      env: ${ENV_NAME}
     annotations:
       description: Defines how to deploy the application
     creationTimestamp: null

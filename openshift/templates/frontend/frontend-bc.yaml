@@ -5,30 +5,20 @@ metadata:
   name: wps
 parameters:
   - name: NAME
-    displayName:
     description: Module name
-    required: true
     value: wps
   - name: SUFFIX
-    displayName:
     description: Deployment suffix, e.g. pr-###
     required: true
-    value: pr-000
   - name: VERSION
-    displayName:
     description:  Version or release number
     required: true
-    value: "0.0.0"
   - name: GIT_URL
-    displayName:
     description: Git repository
-    required: true
     value: https://github.com/bcgov/wps.git
   - name: GIT_REF
-    displayName:
     description: PR branch
     required: true
-    value: master
 objects:
 - apiVersion: image.openshift.io/v1
   kind: ImageStream
@@ -38,7 +28,7 @@ objects:
     labels:
       shared: "true"
     creationTimestamp: null
-    name: ${NAME}-frontend
+    name: ${NAME}
   spec:
     lookupPolicy:
       local: false
@@ -55,7 +45,7 @@ objects:
     output:
       to:
         kind: ImageStreamTag
-        name: ${NAME}-frontend:${VERSION}
+        name: ${NAME}:${VERSION}
     postCommit: {}
     resources:
       limits:
