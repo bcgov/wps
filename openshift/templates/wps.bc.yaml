@@ -10,9 +10,6 @@ parameters:
   - name: SUFFIX
     description: Deployment suffix, e.g. pr-###
     required: true
-  - name: VERSION
-    description:  Version or release number
-    required: true
   - name: GIT_URL
     description: Git repository
     value: https://github.com/bcgov/wps.git
@@ -45,7 +42,7 @@ objects:
     output:
       to:
         kind: ImageStreamTag
-        name: ${NAME}:${VERSION}
+        name: ${NAME}:${SUFFIX}
     postCommit: {}
     resources:
       limits:
