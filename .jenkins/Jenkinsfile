@@ -4,11 +4,16 @@ pipeline {
         disableResume()
     }
     stages {
-        stage('Build') {
+        stage('Startup') {
             agent { label 'build' }
             steps {
                 script {
-                    def filesInThisCommitAsString = sh(script:"git diff --name-only HEAD~1..HEAD | grep '^.jenkins/' || echo -n ''", returnStatus: false, returnStdout: true).trim()
+                    sh "printenv | sort"
+                    def filesInThisCommitAsString = sh(
+                        script:"git diff --name-only HEAD~1..HEAD | grep '^.jenkins/' || echo -n ''",
+                        returnStatus: false,
+                        returnStdout: true
+                    ).trim()
                     def hasChangesInPath = (filesInThisCommitAsString.length() > 0)
                     echo "${filesInThisCommitAsString}"
                     if (!currentBuild.rawBuild.getCauses()[0].toString().contains('UserIdCause') && !hasChangesInPath){
@@ -20,17 +25,63 @@ pipeline {
                 script {
                     abortAllPreviousBuildInProgress(currentBuild)
                 }
-                echo "BRANCH_NAME:${env.BRANCH_NAME}\nCHANGE_ID:${env.CHANGE_ID}\nCHANGE_TARGET:${env.CHANGE_TARGET}"
+            }
+        }
+        stage('Build') {
+            agent { label 'build' }
+            steps {
+                // echo "BRANCH_NAME:${env.BRANCH_NAME}\nCHANGE_ID:${env.CHANGE_ID}\nCHANGE_TARGET:${env.CHANGE_TARGET}"
                 echo "Building ..."
-                //sh "cd .jenkins/.pipeline && ./npmw ci && ./npmw run build -- --pr=${CHANGE_ID}"
-                sh "oc -n auzhsi-tools process -f openshift/templates/frontend/frontend-bc.yaml -p NAME=wps-test -p SUFFIX=dev -p VERSION=0.0.1 -p GIT_URL=https://github.com/bcgov/wps.git -p GIT_REF=master | oc -n auzhsi-tools apply -f -"
+                script{
+                    def buildTemplate = sh(
+                        script: "oc -n auzhsi-tools process -f openshift/templates/frontend/frontend-bc.yaml \
+                            -p NAME=wps-test -p SUFFIX=dev -p VERSION=0.0.1 \
+                            -p GIT_URL=https://github.com/bcgov/wps.git -p GIT_REF=master \
+                        ",
+                        returnStatus: false,
+                        returnStdout: true
+                    ).trim()
+                    echo "TEMPLATE: \n${buildTemplate}"
+                    def buildResult = sh(
+                        script: "oc -n auzhsi-tools process -f openshift/templates/frontend/frontend-bc.yaml \
+                            -p NAME=wps-test -p SUFFIX=dev -p VERSION=0.0.1 \
+                            -p GIT_URL=https://github.com/bcgov/wps.git -p GIT_REF=master \
+                            | oc -n auzhsi-tools apply -f - \
+                        ",
+                        returnStatus: false,
+                        returnStdout: true
+                    ).trim()
+                    echo "TEMPLATE_RESULT: \n${buildResult}"
+                }
             }
         }
         stage('Deploy (DEV)') {
             agent { label 'deploy' }
             steps {
                 echo "Deploying ..."
-                sh "cd .jenkins/.pipeline && ./npmw ci && DEBUG=info* ./npmw run deploy -- --pr=${CHANGE_ID} --env=dev"
+                // sh "oc -n auzhsi-tools process -f openshift/templates/frontend/frontend-dc.yaml -p NAME=wps-test -p SUFFIX=dev -p VERSION=0.0.1 -p CPU_REQUEST=500m -p CPU_LIMIT=500m -p MEMORY_REQUEST=1Gi -p MEMORY_LIMIT=1Gi | oc -n auzhsi-dev apply -f -"
+                script{
+                    def deployTemplate = sh(
+                        script: "oc -n auzhsi-tools process -f openshift/templates/frontend/frontend-dc.yaml \
+                            -p NAME=wps-test -p SUFFIX=dev -p VERSION=0.0.1 -p CPU_REQUEST=500m \
+                            -p CPU_LIMIT=500m -p MEMORY_REQUEST=1Gi -p MEMORY_LIMIT=1Gi \
+                        ",
+                        returnStatus: false,
+                        returnStdout: true
+                    ).trim()
+                    echo "TEMPLATE: \n${deployTemplate}"
+                    def deployResult = sh(
+                        script: "oc -n auzhsi-tools process -f openshift/templates/frontend/frontend-dc.yaml \
+                            -p NAME=wps-test -p SUFFIX=dev -p VERSION=0.0.1 -p CPU_REQUEST=500m \
+                            -p CPU_LIMIT=500m -p MEMORY_REQUEST=1Gi -p MEMORY_LIMIT=1Gi \
+                            | oc -n auzhsi-dev apply -f - --dry-run\
+                        ",
+                        returnStatus: false,
+                        returnStdout: true
+                    ).trim()
+                    echo "TEMPLATE_RESULT: \n${deployResult}"
+                }
+
             }
         }
         stage('Deploy (PROD)') {
