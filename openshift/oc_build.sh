@@ -23,7 +23,7 @@ GIT_BRANCH=${GIT_BRANCH:-$(git rev-parse --abbrev-ref HEAD)}
 if [ "${#}" -lt 1 ]
 then
 	echo
-	echo "OC Template Builder"
+	echo "OC Builder"
 	echo
 	echo "Provide a pull request number."
 	echo " './$(basename $0) <PR_NUMBER>'"
@@ -35,14 +35,12 @@ then
 fi
 
 
-# Function for oc command
-ocBuild() {
+# Process, test and consume template
+#
+TEMPLATE=$(
     oc -n "${PROJECT}" process -f $(dirname $0)/"${PATH_BC}" -p NAME="${NAME}" -p SUFFIX=pr-"${PR_NO}" \
         -p GIT_URL="${GIT_URL}" -p GIT_REF="${GIT_BRANCH}"
-}
-TEMPLATE=$(ocBuild)
-echo "Template: ---"
-echo "${TEMPLATE}"
+)
 echo "${TEMPLATE}" | oc -n "${PROJECT}" apply -f - --dry-run
 set -x
-ocBuild | oc -n "${PROJECT}" apply -f -
+echo "${TEMPLATE}" | oc -n "${PROJECT}" apply -f -
