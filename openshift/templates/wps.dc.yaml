@@ -16,7 +16,7 @@ parameters:
     value: "0.0.0"
   - name: CPU_REQUEST
     description: Requested CPU
-    required: true
+    value: 500m
   - name: CPU_LIMIT
     description: CPU upper limit
     value: 500m
