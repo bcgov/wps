@@ -74,7 +74,6 @@ objects:
       name: ${NAME}
       app: ${NAME}
       role: ${NAME}
-      env: ${ENV_NAME}
     name: ${NAME}-${SUFFIX}
   spec:
     host: ${NAME}-${SUFFIX}.pathfinder.gov.bc.ca
