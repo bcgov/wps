@@ -49,28 +49,9 @@ pipeline {
             agent { label 'deploy' }
             steps {
                 echo "Deploying ..."
-                script{
-                    def deployTemplate = sh(
-                        script: "oc -n ${projTools} process -f openshift/templates/wps.dc.yaml \
-                            -p NAME=${name} -p SUFFIX=${suffix} -p VERSION=${ver} \
-                            -p CPU_REQUEST=500m -p CPU_LIMIT=500m -p MEMORY_REQUEST=1Gi -p MEMORY_LIMIT=1Gi \
-                        ",
-                        returnStatus: false,
-                        returnStdout: true
-                    ).trim()
-                    echo "TEMPLATE: \n${deployTemplate}"
-                    def deployResult = sh(
-                        script: "oc -n ${projTools} process -f openshift/templates/wps.dc.yaml \
-                            -p NAME=${name} -p SUFFIX=${suffix} -p VERSION=${ver} \
-                            -p CPU_REQUEST=500m -p CPU_LIMIT=500m -p MEMORY_REQUEST=1Gi -p MEMORY_LIMIT=1Gi \
-                            | oc -n ${projDev} apply -f - \
-                        ",
-                        returnStatus: false,
-                        returnStdout: true
-                    ).trim()
-                    echo "TEMPLATE_RESULT: \n${deployResult}"
+                script {
+                    sh "./openshift/oc_deploy.sh ${env.CHANGE_ID}"
                 }
-
             }
         }
         stage('Deploy (PROD)') {
