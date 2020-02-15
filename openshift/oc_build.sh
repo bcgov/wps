@@ -13,7 +13,7 @@ PR_NO=${1:-}
 #
 NAME=${APPLICATION_NAME:-wps}
 PROJECT=${PROJECT:-auzhsi-tools}
-PATH_BC=${PATH_BC:-templates/wps.bc.yaml}
+PATH_BC=${PATH_BC:-$(dirname $0)/templates/wps.bc.yaml}
 GIT_URL=${GIT_URL:-$(git remote get-url origin)}
 GIT_BRANCH=${GIT_BRANCH:-$(git rev-parse --abbrev-ref HEAD)}
 
@@ -35,12 +35,16 @@ then
 fi
 
 
-# Process, test and consume template
+# Function for processing the template
 #
-TEMPLATE=$(
-    oc -n "${PROJECT}" process -f $(dirname $0)/"${PATH_BC}" -p NAME="${NAME}" -p SUFFIX=pr-"${PR_NO}" \
+ocProcess() {
+    oc -n "${PROJECT}" process -f "${PATH_BC}" -p NAME="${NAME}" -p SUFFIX=pr-"${PR_NO}" \
         -p GIT_URL="${GIT_URL}" -p GIT_REF="${GIT_BRANCH}"
-)
-echo "${TEMPLATE}" | oc -n "${PROJECT}" apply -f - --dry-run
-set -x
-echo "${TEMPLATE}" | oc -n "${PROJECT}" apply -f -
+}
+
+
+# Echo and apply the template
+#
+ocProcess
+set -x 
+ocProcess | oc -n "${PROJECT}" apply -f -
