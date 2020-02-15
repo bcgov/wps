@@ -37,12 +37,12 @@ fi
 
 # Function for oc command
 ocBuild() {
-    oc -n "${PROJECT}" process -f "${PATH_BC}" -p NAME="${NAME}" -p SUFFIX=pr-"${PR_NO}" \
+    oc -n "${PROJECT}" process -f $(dirname $0)/"${PATH_BC}" -p NAME="${NAME}" -p SUFFIX=pr-"${PR_NO}" \
         -p GIT_URL="${GIT_URL}" -p GIT_REF="${GIT_BRANCH}"
 }
 TEMPLATE=$(ocBuild)
 echo "Template: ---"
-echo "${TEMPLATE}\n\n"
+echo "${TEMPLATE}"
 echo "${TEMPLATE}" | oc -n "${PROJECT}" apply -f - --dry-run
 set -x
 ocBuild | oc -n "${PROJECT}" apply -f -

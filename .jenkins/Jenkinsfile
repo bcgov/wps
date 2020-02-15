@@ -37,18 +37,11 @@ pipeline {
         }
         stage('Build') {
             agent { label 'build' }
-            environment {
-                repo = "${env.GIT_URL}".toLowerCase()
-                branch = "${env.CHANGE_BRANCH}"
-            }
+
             steps {
                 echo "Building ..."
                 script {
-                    sh """
-                        ls -la
-                        cd openshift
-                        ./oc_build "${env.CHANGE_ID}"
-                    """
+                    sh "GIT_REF=${env.CHANGE_BRANCH} ./openshift/oc_build.sh ${env.CHANGE_ID}"
                 }
             }
         }
