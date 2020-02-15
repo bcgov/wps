@@ -16,7 +16,7 @@ pipeline {
             agent { label 'build' }
             steps {
                 script {
-                    sh "printenv | sort"
+                    // sh "printenv | sort"
                     def filesInThisCommitAsString = sh(
                         script:"git diff --name-only HEAD~1..HEAD | grep '^.jenkins/' || echo -n ''",
                         returnStatus: false,
@@ -44,25 +44,11 @@ pipeline {
             steps {
                 echo "Building ..."
                 script {
-                    def buildTemplate = sh(
-                        script: "oc -n ${projTools} process -f openshift/templates/frontend/frontend-bc.yaml \
-                            -p NAME=${name} -p SUFFIX=${suffix} -p VERSION=${ver} \
-                            -p GIT_URL=${repo} -p GIT_REF=${branch} \
-                        ",
-                        returnStatus: false,
-                        returnStdout: true
-                    ).trim()
-                    echo "TEMPLATE: \n${buildTemplate}"
-                    def buildResult = sh(
-                        script: "oc -n ${projTools} process -f openshift/templates/frontend/frontend-bc.yaml \
-                            -p NAME=${name} -p SUFFIX=${suffix} -p VERSION=${ver} \
-                            -p GIT_URL=${repo} -p GIT_REF=${branch} \
-                            | oc -n ${projTools} apply -f - \
-                        ",
-                        returnStatus: false,
-                        returnStdout: true
-                    ).trim()
-                    echo "TEMPLATE_RESULT: \n${buildResult}"
+                    sh """
+                        ls -la
+                        cd openshift
+                        ./oc_build "${env.CHANGE_ID}"
+                    """
                 }
             }
         }
@@ -72,7 +58,7 @@ pipeline {
                 echo "Deploying ..."
                 script{
                     def deployTemplate = sh(
-                        script: "oc -n ${projTools} process -f openshift/templates/frontend/frontend-dc.yaml \
+                        script: "oc -n ${projTools} process -f openshift/templates/wps.dc.yaml \
                             -p NAME=${name} -p SUFFIX=${suffix} -p VERSION=${ver} \
                             -p CPU_REQUEST=500m -p CPU_LIMIT=500m -p MEMORY_REQUEST=1Gi -p MEMORY_LIMIT=1Gi \
                         ",
@@ -81,7 +67,7 @@ pipeline {
                     ).trim()
                     echo "TEMPLATE: \n${deployTemplate}"
                     def deployResult = sh(
-                        script: "oc -n ${projTools} process -f openshift/templates/frontend/frontend-dc.yaml \
+                        script: "oc -n ${projTools} process -f openshift/templates/wps.dc.yaml \
                             -p NAME=${name} -p SUFFIX=${suffix} -p VERSION=${ver} \
                             -p CPU_REQUEST=500m -p CPU_LIMIT=500m -p MEMORY_REQUEST=1Gi -p MEMORY_LIMIT=1Gi \
                             | oc -n ${projDev} apply -f - \
