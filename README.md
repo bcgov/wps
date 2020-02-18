@@ -1,64 +1,97 @@
-# Wildfire Predictive Services
+# Wildfire Predictive Services FWI Percentile Calculator API
 
 ## Description
 
-Wildfire Predictive Services to support decision making in prevention, preparedness, response and recovery.
-
+Wildfire Predictive Services support decision making in prevention, preparedness, response and recovery.
 
 ## Getting Started
 
 ### Dependencies
 
-* Describe any prerequisites, libraries, OS version, etc., needed before installing program.
-* ex. Windows 10
+* docker
 
 ### Installing
 
-* How/where to download your program
-* Any modifications needed to be made to files/folders
+```
+cd code
+docker-compose build
+```
+
+#### On your local MacOS
+
+Do so at your own risk!
+
+Install system dependancies:
+```
+brew install pyenv
+pyenv install 3.6.10
+brew install pipenv
+```
+
+Install project requirements:
+```
+cd wps-api
+pipenv install --dev
+```
+If you have trouble getting pipenv to resolve python 3.8.1, you can also try:
+```
+pipenv install --python /Users/<your user>/.pyenv/versions/3.6.10/bin/python3.6 --dev
+```
 
 ### Executing program
 
-* How to run the program
-* Step-by-step bullets
+Running the web service in docker:
 ```
-code blocks for commands
+docker-compose up
 ```
-
-## Help
-
-Any advise for common problems or issues.
+Running unit tests in docker:
 ```
-command to run if program contains helper info
+docker-compose run web python -m unittest
 ```
 
-## Authors
+#### Local machine, running mac os
 
-Contributors names and contact info
+Run it:
+```
+pipenv run uvicorn main:app --reload
+```
+or
+```
+make run
+```
 
-ex. Human Person #1
-ex. [@Human Person #1](https://github.com/humanpersonnumberone)
+Run tests:
+```
+pipenv run python -m unittest
+```
+or
+```
+make test
+```
 
-## Version History
+Running jupyter notebooks:
+```
+pipenv run jupyter notebook
+```
+or
+```
+make notebook
+```
 
-* 0.2
-    * Various bug fixes and optimizations
-    * See [commit change]() or See [release history]()
-* 0.1
-    * Initial Release
+Shell:
+```
+pipenv shell
+```
+
+## Architecture
+
+![FWI calculator container diagram](container_diagram.png)
 
 ## License
 
-This project is licensed under the [NAME HERE] License - see the LICENSE.md file for details
+This project is licensed under the [Apache License, Version 2.0](https://github.com/bcgov/wps-api/blob/master/LICENSE).
 
 ## Acknowledgments
-
-Inspiration, code snippets, etc.
-* [awesome-readme](https://github.com/matiassingers/awesome-readme)
-* [PurpleBooth](https://gist.github.com/PurpleBooth/109311bb0361f32d87a2)
-* [dbader](https://github.com/dbader/readme-template)
-* [zenorocha](https://gist.github.com/zenorocha/4526327)
-* [fvcproductions](https://gist.github.com/fvcproductions/1bfc2d4aecb01a834b46)
 
 Template copied from
 * [DomPizzie](https://gist.github.com/DomPizzie/7a5ff55ffa9081f2de27c315f5018afc)
