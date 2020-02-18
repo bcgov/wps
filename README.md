@@ -1,4 +1,4 @@
-# Wildfire Predictive Services
+# Wildfire Predictive Services Web Application
 
 ## Description
 
@@ -9,56 +9,51 @@ Wildfire Predictive Services to support decision making in prevention, preparedn
 
 ### Dependencies
 
-* Describe any prerequisites, libraries, OS version, etc., needed before installing program.
-* ex. Windows 10
+* [Node.js](https://nodejs.org/en/) - You’ll need to have 10.16.0 or later version on your local development machine. You can use [nvm](https://github.com/nvm-sh/nvm#installation) (macOS/Linux) or [nvm-windows](https://github.com/coreybutler/nvm-windows#node-version-manager-nvm-for-windows) to switch Node versions between different projects.
 
 ### Installing
+In the project directory, run:
 
-* How/where to download your program
-* Any modifications needed to be made to files/folders
+#### `npm install`
+
+Installs all dependencies in the node_modules folder.
 
 ### Executing program
 
-* How to run the program
-* Step-by-step bullets
-```
-code blocks for commands
-```
+In the project directory, you can run:
 
-## Help
+#### `npm start`
 
-Any advise for common problems or issues.
-```
-command to run if program contains helper info
-```
+Runs the app in the development mode.
+The page will reload if you make edits. You will also see any lint errors in the console.
+
+#### `npm test`
+
+Launches the test runner in the interactive watch mode.
+
+#### `npm run build`
+
+Builds the app for production to the `build` folder.
+It correctly bundles React in production mode and optimizes the build for the best performance.
+
 
 ## Authors
 
-Contributors names and contact info
+Contributors names in alphabetical order
 
-ex. Human Person #1
-ex. [@Human Person #1](https://github.com/humanpersonnumberone)
+[Andrea Williams](https://github.com/andrea-williams), [Derek Roberts](https://github.com/DerekRoberts), [Kyubin Han](https://github.com/Kyubinhan), [Nithin Kuruba](https://github.com/Nkuruba), [Sybrand Strauss](https://github.com/Sybrand)
 
-## Version History
-
-* 0.2
-    * Various bug fixes and optimizations
-    * See [commit change]() or See [release history]()
-* 0.1
-    * Initial Release
 
 ## License
 
-This project is licensed under the [NAME HERE] License - see the LICENSE.md file for details
+This project is licensed under the [Apache License, Version 2.0](https://github.com/bcgov/wps-web/blob/master/LICENSE).
+
 
 ## Acknowledgments
 
 Inspiration, code snippets, etc.
-* [awesome-readme](https://github.com/matiassingers/awesome-readme)
-* [PurpleBooth](https://gist.github.com/PurpleBooth/109311bb0361f32d87a2)
-* [dbader](https://github.com/dbader/readme-template)
-* [zenorocha](https://gist.github.com/zenorocha/4526327)
-* [fvcproductions](https://gist.github.com/fvcproductions/1bfc2d4aecb01a834b46)
+* [Create React App](https://github.com/facebook/create-react-app)
+* [Redux Toolkit - advanced tutorial](https://redux-toolkit.js.org/tutorials/advanced-tutorial/)
 
 Template copied from
 * [DomPizzie](https://gist.github.com/DomPizzie/7a5ff55ffa9081f2de27c315f5018afc)
