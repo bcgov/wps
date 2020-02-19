@@ -10,7 +10,9 @@
   "env": {
     "browser": true,
     "jasmine": true,
-    "jest": true
+    "jest": true,
+    "node": true,
+    "commonjs": true
   },
   "rules": {
     "prettier/prettier": ["error", { "singleQuote": true, "semi": false }],
