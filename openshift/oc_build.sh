@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-# Halt on errors/unsets, change fail returns, change field separator
+# Halt on errors, unsets and non-zeros exit (pipe fail); change field separator
 #
 set -euo pipefail
 IFS=$'\n\t'
@@ -10,6 +10,7 @@ IFS=$'\n\t'
 # Parameters and defaults
 #
 PR_NO=${1:-}
+APPLY=${2:-"dry-run"}
 #
 NAME=${APPLICATION_NAME:-wps}
 PROJECT=${PROJECT:-auzhsi-tools}
@@ -23,28 +24,33 @@ GIT_BRANCH=${GIT_BRANCH:-$(git rev-parse --abbrev-ref HEAD)}
 if [ "${#}" -lt 1 ]
 then
 	echo
-	echo "OC Builder"
+	echo "OC Guide: Builder"
 	echo
-	echo "Provide a pull request number."
-	echo " './$(basename $0) <PR_NUMBER>'"
+	echo "Provide a pull request number.  Default behaviour is a dry run."
+	echo "  ./$(basename $0) <PR_NUMBER>"
+	echo
+	echo "Deploy with 'apply'."
+	echo "  ./$(basename $0) <PR_NUMBER> apply"
 	echo
 	echo "Override variables at runtime.  E.g.:"
-	echo " 'VERBOSE=true GIT_BRANCH=master ./$(basename $0) <...>'"
+	echo "  GIT_BRANCH=master ./$(basename $0) ..."
 	echo
 	exit
 fi
 
 
-# Function for processing the template
+# Commands for creating and consuming (applying) templates
 #
-ocProcess() {
-    oc -n "${PROJECT}" process -f "${PATH_BC}" -p NAME="${NAME}" -p SUFFIX=pr-"${PR_NO}" \
-        -p GIT_URL="${GIT_URL}" -p GIT_REF="${GIT_BRANCH}"
-}
+OC_PROCESS="oc -n ${PROJECT} process -f ${PATH_BC} -p NAME=${NAME} -p SUFFIX=pr-${PR_NO} -p GIT_URL=${GIT_URL} -p GIT_REF=${GIT_BRANCH}"
+OC_APPLY="oc -n "${PROJECT}" apply -f -"
 
 
-# Echo and apply the template
+# Process and either dry-run or apply
 #
-ocProcess
-set -x 
-ocProcess | oc -n "${PROJECT}" apply -f -
+if [ "${APPLY}" == "apply" ]
+then
+	eval "${OC_PROCESS} | ${OC_APPLY}"
+else
+	eval "${OC_PROCESS}"
+	eval "${OC_PROCESS} | ${OC_APPLY} --dry-run"
+fi
