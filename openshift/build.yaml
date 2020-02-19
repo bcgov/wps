@@ -20,7 +20,7 @@ objects:
       openshift.io/generated-by: OpenShiftNewBuild
     creationTimestamp: null
     labels:
-      app: wps-web
+      app: ${NAME}${SUFFIX}
     name: wps-web
   spec:
     lookupPolicy:
@@ -34,7 +34,7 @@ objects:
       openshift.io/generated-by: OpenShiftNewBuild
     creationTimestamp: null
     labels:
-      app: wps-web
+      app: ${NAME}${SUFFIX}
     name: wps-web-build
   spec:
     lookupPolicy:
@@ -48,7 +48,7 @@ objects:
       openshift.io/generated-by: OpenShiftNewBuild
     creationTimestamp: null
     labels:
-      app: wps-web
+      app: ${NAME}${SUFFIX}
     name: wps-web-build${SUFFIX}
   spec:
     nodeSelector: null
@@ -98,7 +98,7 @@ objects:
       openshift.io/generated-by: OpenShiftNewBuild
     creationTimestamp: null
     labels:
-      app: wps-web
+      app: ${NAME}${SUFFIX}
     name: wps-web${SUFFIX}
   spec:
     nodeSelector: null
@@ -123,7 +123,7 @@ objects:
       images:
         - from:
             kind: ImageStreamTag
-            name: wps-web-build:latest
+            name: wps-web-build:${TAG}
           paths:
             - destinationDir: './'
               sourcePath: /opt/app-root/src/build

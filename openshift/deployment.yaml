@@ -8,22 +8,22 @@ parameters:
   - name: TAG
     value: latest
     description: The output image tag beig deployed
-#  - name: DOCKER_REGISTRY
-#    required: true
+  - name: DOCKER_REGISTRY
+    required: true
 objects:
-# - apiVersion: v1
-#   data:
-#     Caddyfile: |
-#       0.0.0.0:8080
-#       root /var/www/html
-#       log stdout
-#       errors stdout    
-#   kind: ConfigMap
-#   metadata:
-#     creationTimestamp: null
-#     name: caddyfile-${NAME}${SUFFIX}
-#     labels:
-#       app: ${NAME}${SUFFIX}
+- apiVersion: v1
+  data:
+    Caddyfile: |
+      0.0.0.0:8080
+      root /var/www/html
+      log stdout
+      errors stdout    
+  kind: ConfigMap
+  metadata:
+    creationTimestamp: null
+    name: caddyfile-${NAME}${SUFFIX}
+    labels:
+      app: ${NAME}${SUFFIX}
 - apiVersion: image.openshift.io/v1
   kind: ImageStream
   metadata:
@@ -31,7 +31,7 @@ objects:
       openshift.io/generated-by: OpenShiftNewBuild
     creationTimestamp: null
     labels:
-      app: wps-web
+      app: ${NAME}${SUFFIX}
     name: ${NAME}
   spec:
     lookupPolicy:
@@ -48,7 +48,7 @@ objects:
     replicas: 1
     selector:
       matchLabels:
-        app: wps-web
+        app: ${NAME}${SUFFIX}
     template:
       metadata:
         labels:
@@ -56,7 +56,8 @@ objects:
       spec:
         automountServiceAccountToken: false
         containers:
-          - image: docker-registry.default.svc:5000/auzhsi-tools/wps-web:latest
+          #- image: docker-registry.default.svc:5000/auzhsi-tools/wps-web:latest
+          - image: ${DOCKER_REGISTRY}/${NAME}:${TAG}
             imagePullPolicy: Always
             name: wps-web
             args:
