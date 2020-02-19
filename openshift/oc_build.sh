@@ -39,6 +39,15 @@ then
 fi
 
 
+# Verify login
+#
+if !(oc whoami &>/dev/null)
+then
+	echo "Please verify oc login"
+	exit
+fi
+
+
 # Commands for creating and consuming (applying) templates
 #
 OC_PROCESS="oc -n ${PROJECT} process -f ${PATH_BC} -p NAME=${NAME} -p SUFFIX=pr-${PR_NO} -p GIT_URL=${GIT_URL} -p GIT_REF=${GIT_BRANCH}"
