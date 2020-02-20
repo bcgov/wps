@@ -1,0 +1,17 @@
+{
+    "weather_stations":
+    [
+        {
+            "code": 331,
+            "name": "ASHNOLA"
+        },
+        {
+            "code" : 334,
+            "name" : "MCCUDDY"
+        },
+        {
+            "code": 328,
+            "name": "PENTICTON RS"
+        }
+    ]
+}
