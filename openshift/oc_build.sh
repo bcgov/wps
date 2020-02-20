@@ -1,4 +1,24 @@
 #!/bin/bash
+#%
+#% OpenShift Build Helper
+#%
+#%   Intended for use with a pull request-based pipeline.
+#%
+#% Usage:
+#%
+#%   ${THIS_FILE} [PR_NUMBER] [apply]
+#%
+#% Examples:
+#%
+#%   Provide a PR number. Defaults to is a dry-run.
+#%   ${THIS_FILE} 0
+#%
+#%   Apply when satisfied.
+#%   ${THIS_FILE} 0 apply
+#%
+#%   Override variables at runtime.
+#%   GIT_BRANCH=branch PROJECT=project PATH_BC=./bc.yaml ${THIS_FILE} 0 apply
+#%
 
 
 # Halt on errors, unsets and non-zeros exit (pipe fail); change field separator
@@ -9,8 +29,9 @@ IFS=$'\n\t'
 
 # Parameters and defaults
 #
+THIS_FILE="./$(basename ${0})"
 PR_NO=${1:-}
-APPLY=${2:-"dry-run"}
+APPLY=${2:-}
 #
 NAME=${APPLICATION_NAME:-wps}
 PROJECT=${PROJECT:-auzhsi-tools}
@@ -19,56 +40,32 @@ GIT_URL=${GIT_URL:-$(git remote get-url origin)}
 GIT_BRANCH=${GIT_BRANCH:-$(git rev-parse --abbrev-ref HEAD)}
 
 
-# Show message if no params
+# Show help if no params
 #
-if [ "${#}" -lt 1 ]
-then
-	echo
-	echo "OC Guide: Builder"
-	echo
-	echo "Provide a pull request number.  Default behaviour is a dry run."
-	echo "Eg. ./$(basename $0) 10000000000"
-	echo "  > ./$(basename $0) <PR_NUMBER>"
-	echo
-	echo "Deploy with 'apply'."
-	echo "Eg. ./$(basename $0) 10000000000 apply"
-	echo "  > ./$(basename $0) <PR_NUMBER> apply"
-	echo
-	echo "Override variables at runtime.  E.g.:"
-	echo "Eg. GIT_BRANCH=test ./$(basename $0) 10000000000"
-	echo "  > GIT_BRANCH=<...> PROJECT=<...> PATH_BC=<...> ./$(basename $0) <...>"
-	echo
+[ "${#}" -gt 0 ]||{
+	cat ${THIS_FILE} | grep "^#%" | sed -e "s|^#%||g" -e "s|\${THIS_FILE}|${THIS_FILE}|g"
 	exit
-fi
+}
 
 
 # Verify login
 #
-if !(oc whoami &>/dev/null)
-then
+$( oc whoami &>/dev/null ) ||{
 	echo "Please verify oc login"
 	exit
-fi
+}
 
 
-# Commands for creating and consuming (applying) templates
+# Process commands
 #
 OC_PROCESS="oc -n ${PROJECT} process -f ${PATH_BC} -p NAME=${NAME} -p SUFFIX=pr-${PR_NO} -p GIT_URL=${GIT_URL} -p GIT_REF=${GIT_BRANCH}"
 OC_APPLY="oc -n "${PROJECT}" apply -f -"
-
-
-# Process and either dry-run or apply
+OC_COMMAND="${OC_PROCESS} | ${OC_APPLY}"
 #
-if [ "${APPLY}" == "apply" ]
-then
-	eval "${OC_PROCESS} | ${OC_APPLY}"
-	echo
-	echo "  > ${OC_PROCESS} | ${OC_APPLY}"
-else
+[ "${APPLY}" == "apply" ]||{
+	OC_COMMAND+=" --dry-run"
 	eval "${OC_PROCESS}"
-	eval "${OC_PROCESS} | ${OC_APPLY} --dry-run"
-	echo
-	echo "  > ${OC_PROCESS} | ${OC_APPLY} --dry-run"
-	echo
-	echo "  * This is a dry run.  Use 'apply' to deploy."
-fi
+	echo -e "\n*** This is a dry run.  Use 'apply' to deploy. ***\n"
+}
+eval "${OC_COMMAND}"
+echo -e "\n${OC_COMMAND}\n"
