@@ -27,13 +27,16 @@ then
 	echo "OC Guide: Builder"
 	echo
 	echo "Provide a pull request number.  Default behaviour is a dry run."
-	echo "> ./$(basename $0) <PR_NUMBER>"
+	echo "Eg. ./$(basename $0) 10000000000"
+	echo "  > ./$(basename $0) <PR_NUMBER>"
 	echo
 	echo "Deploy with 'apply'."
-	echo "> ./$(basename $0) <PR_NUMBER> apply"
+	echo "Eg. ./$(basename $0) 10000000000 apply"
+	echo "  > ./$(basename $0) <PR_NUMBER> apply"
 	echo
 	echo "Override variables at runtime.  E.g.:"
-	echo "> GIT_BRANCH=master ./$(basename $0) ..."
+	echo "Eg. GIT_BRANCH=test ./$(basename $0) 10000000000"
+	echo "  > GIT_BRANCH=<...> PROJECT=<...> PATH_BC=<...> ./$(basename $0) <...>"
 	echo
 	exit
 fi
@@ -60,12 +63,12 @@ if [ "${APPLY}" == "apply" ]
 then
 	eval "${OC_PROCESS} | ${OC_APPLY}"
 	echo
-	echo "> ${OC_PROCESS} | ${OC_APPLY}"
+	echo "  > ${OC_PROCESS} | ${OC_APPLY}"
 else
 	eval "${OC_PROCESS}"
 	eval "${OC_PROCESS} | ${OC_APPLY} --dry-run"
 	echo
-	echo "> ${OC_PROCESS} | ${OC_APPLY} --dry-run"
+	echo "  > ${OC_PROCESS} | ${OC_APPLY} --dry-run"
 	echo
-	echo "* This is a dry run.  Use 'apply' to deploy."
+	echo "  * This is a dry run.  Use 'apply' to deploy."
 fi
