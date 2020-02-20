@@ -1,7 +1,7 @@
 from os import getenv
 from statistics import mean
 import json
-from typing import List
+from typing import List, Dict
 
 from pydantic import BaseModel
 from starlette.middleware.cors import CORSMiddleware
@@ -20,21 +20,32 @@ class YearRange(BaseModel):
     end: int
 
 
+class PercentileRequest(BaseModel):
+    stations: List[str]
+    percentile: int
+    year_range: YearRange
+
+
 class StationSummary(BaseModel):
     FFMC: float
     ISI: float
     BUI: float
     season: Season
     year_range: YearRange
+    station_name: str
 
 
-class CalculatedResponse(BaseModel):
-    percentile: int
-    stations: List[StationSummary] = []
+class MeanValues(BaseModel):
     FFMC: float = None
     ISI: float = None
     BUI: float = None
+
+
+class CalculatedResponse(BaseModel):
+    stations: Dict[int, StationSummary] = {}
+    mean_values: MeanValues = None
     year_range: YearRange
+    percentile: int
 
 
 class WeatherStation(BaseModel):
@@ -71,8 +82,7 @@ async def get_stations():
 
 
 @app.post('/percentiles/', response_model=CalculatedResponse)
-async def get_percentiles(*, stations: List[str] = Form(...), percentile: int = Form(...),
-                          start_year: int = Form(...), end_year: int = Form(...)):
+async def get_percentiles(request: PercentileRequest):
     """ Return 90% FFMC, 90% ISI, 90% BUI etc. for a given set of fire stations for a given period of time.
     """
     # NOTE: percentile, start_year and end_year input is ignored, all responses overriden to match
@@ -81,13 +91,14 @@ async def get_percentiles(*, stations: List[str] = Form(...), percentile: int = 
     bui = []
     isi = []
     ffmc = []
-    for station in stations[0].split(','):
+    for station in request.stations:
         summary = StationSummary.parse_file('data/{}.json'.format(station))
         bui.append(summary.BUI)
         isi.append(summary.ISI)
         ffmc.append(summary.FFMC)
-        response.stations.append(summary)
-    response.BUI = mean(bui)
-    response.ISI = mean(isi)
-    response.FFMC = mean(ffmc)
+        response.stations[station] = summary
+    response.mean_values = MeanValues()
+    response.mean_values.BUI = mean(bui)
+    response.mean_values.ISI = mean(isi)
+    response.mean_values.FFMC = mean(ffmc)
     return response
