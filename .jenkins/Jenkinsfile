@@ -16,7 +16,6 @@ pipeline {
             agent { label 'build' }
             steps {
                 script {
-                    // sh "printenv | sort"
                     def filesInThisCommitAsString = sh(
                         script:"git diff --name-only HEAD~1..HEAD | grep '^.jenkins/' || echo -n ''",
                         returnStatus: false,
@@ -37,7 +36,6 @@ pipeline {
         }
         stage('Build') {
             agent { label 'build' }
-
             steps {
                 echo "Building ..."
                 script {
@@ -54,18 +52,76 @@ pipeline {
                 }
             }
         }
-        stage('Deploy (PROD)') {
+        stage('Tests (DEV)') {
+            agent { label 'deploy' }
+            steps {
+                echo "Testing ..."
+                script {
+                    sh "echo UNIT TESTS"
+                    sh "echo SMOKE TESTS"
+                    sh "echo API TESTS"
+                }
+            }
+        }
+        stage('Deploy (TEST)') {
             agent { label 'deploy' }
             input {
-                message "Should we continue with deployment to PROD?"
+                message "Should we continue with deployment to TEST?"
                 ok "Yes!"
             }
             steps {
                 echo "Deploying ..."
-                // sh "cd .jenkins/.pipeline && ./npmw ci && ./npmw run deploy -- --pr=${CHANGE_ID} --env=prod"
             }
         }
-        stage('Acceptance') {
+        stage('Tests (TEST)') {
+            agent { label 'deploy' }
+            steps {
+                echo "Testing ..."
+                script {
+                    sh "echo UNIT TESTS"
+                    sh "echo SMOKE TESTS"
+                    sh "echo ZAP TESTS"
+                }
+            }
+        }
+        stage('Promote (PROD)') {
+            agent { label 'deploy' }
+            input {
+                message "Should we promote this deployment to PRODUCTION?"
+                ok "Yes!"
+            }
+            steps {
+                echo "Promote ..."
+            }
+        }
+        stage('Backups (PROD)') {
+            agent { label 'deploy' }
+            steps {
+                echo "Tag known good prod images, backup databases, backup settings, ..."
+                script {
+                    sh "echo Backup procedures"
+                }
+            }
+        }
+        stage('Update routes (PROD)') {
+            agent { label 'deploy' }
+            steps {
+                echo "Testing ..."
+                script {
+                    sh "echo SMOKE TESTS"
+                }
+            }
+        }
+        stage('Smoke tests (PROD)') {
+            agent { label 'deploy' }
+            steps {
+                echo "Testing ..."
+                script {
+                    sh "echo SMOKE TESTS"
+                }
+            }
+        }
+        stage('Cleanup') {
             agent { label 'deploy' }
             input {
                 message "Should we continue with cleanup?"
