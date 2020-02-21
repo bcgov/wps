@@ -20,12 +20,10 @@
 #%   GIT_BRANCH=branch PROJECT=project PATH_BC=./bc.yaml ${THIS_FILE} 0 apply
 #%
 
-
 # Halt on errors, unsets and non-zeros exit (pipe fail); change field separator
 #
 set -euo pipefail
 IFS=$'\n\t'
-
 
 # Parameters and defaults
 #
@@ -39,22 +37,19 @@ PATH_BC=${PATH_BC:-$(dirname $0)/templates/wps.bc.yaml}
 GIT_URL=${GIT_URL:-$(git remote get-url origin)}
 GIT_BRANCH=${GIT_BRANCH:-$(git rev-parse --abbrev-ref HEAD)}
 
-
 # Show help if no params
 #
-[ "${#}" -gt 0 ]||{
+[ "${#}" -gt 0 ] || {
 	cat ${THIS_FILE} | grep "^#%" | sed -e "s|^#%||g" -e "s|\${THIS_FILE}|${THIS_FILE}|g"
 	exit
 }
 
-
 # Verify login
 #
-$( oc whoami &>/dev/null ) ||{
+$(oc whoami &>/dev/null) || {
 	echo "Please verify oc login"
 	exit
 }
-
 
 # Process commands
 #
@@ -62,7 +57,7 @@ OC_PROCESS="oc -n ${PROJECT} process -f ${PATH_BC} -p NAME=${NAME} -p SUFFIX=pr-
 OC_APPLY="oc -n "${PROJECT}" apply -f -"
 OC_COMMAND="${OC_PROCESS} | ${OC_APPLY}"
 #
-[ "${APPLY}" == "apply" ]||{
+[ "${APPLY}" == "apply" ] || {
 	OC_COMMAND+=" --dry-run"
 	eval "${OC_PROCESS}"
 	echo -e "\n*** This is a dry run.  Use 'apply' to deploy. ***\n"

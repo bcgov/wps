@@ -20,12 +20,10 @@
 #%   NAME=name PROJECT=project PATH_DC=./dc.yaml ${THIS_FILE} 0 apply
 #%
 
-
 # Halt on errors, unsets and non-zeros exit (pipe fail); change field separator
 #
 set -euo pipefail
 IFS=$'\n\t'
-
 
 # Parameters and defaults
 #
@@ -38,22 +36,19 @@ PROJ_TOOLS=${PROJ_TOOLS:-auzhsi-tools}
 PROJ_DEPLOY=${PROJ_DEPLOY:-auzhsi-dev}
 PATH_DC=${PATH_DC:-$(dirname $0)/templates/wps.dc.yaml}
 
-
 # Show help if no params
 #
-[ "${#}" -gt 0 ]||{
+[ "${#}" -gt 0 ] || {
 	cat ${THIS_FILE} | grep "^#%" | sed -e "s|^#%||g" -e "s|\${THIS_FILE}|${THIS_FILE}|g"
 	exit
 }
 
-
 # Verify login
 #
-$( oc whoami &>/dev/null ) ||{
+$(oc whoami &>/dev/null) || {
 	echo "Please verify oc login"
 	exit
 }
-
 
 # Process commands
 #
@@ -61,7 +56,7 @@ OC_PROCESS="oc -n ${PROJ_TOOLS} process -f ${PATH_DC} -p NAME=${NAME} -p SUFFIX=
 OC_APPLY="oc -n ${PROJ_DEPLOY} apply -f -"
 OC_COMMAND="${OC_PROCESS} | ${OC_APPLY}"
 #
-[ "${APPLY}" == "apply" ]||{
+[ "${APPLY}" == "apply" ] || {
 	OC_COMMAND+=" --dry-run"
 	eval "${OC_PROCESS}"
 	echo -e "\n*** This is a dry run.  Use 'apply' to deploy. ***\n"
