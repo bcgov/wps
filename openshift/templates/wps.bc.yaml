@@ -1,0 +1,70 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  creationTimestamp: null
+  name: wps
+parameters:
+  - name: NAME
+    description: Module name
+    value: wps
+  - name: SUFFIX
+    description: Deployment suffix, e.g. pr-###
+    required: true
+  - name: GIT_URL
+    description: Git repository
+    value: https://github.com/bcgov/wps.git
+  - name: GIT_REF
+    description: PR branch
+    required: true
+objects:
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    annotations:
+      description: Keeps track of changes in the client / front end image
+    labels:
+      shared: "true"
+    creationTimestamp: null
+    name: ${NAME}
+  spec:
+    lookupPolicy:
+      local: false
+  status:
+    dockerImageRepository: ""
+- apiVersion: build.openshift.io/v1
+  kind: BuildConfig
+  metadata:
+    creationTimestamp: null
+    name: ${NAME}-${SUFFIX}
+  spec:
+    failedBuildsHistoryLimit: 5
+    nodeSelector: null
+    output:
+      to:
+        kind: ImageStreamTag
+        name: ${NAME}:${SUFFIX}
+    postCommit: {}
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 2G
+      requests:
+        cpu: 500m
+        memory: 200M
+    runPolicy: Serial
+    source:
+      git:
+        ref: ${GIT_REF}
+        uri: ${GIT_URL}
+      type: Git
+      contextDir: frontend
+    strategy:
+      dockerStrategy:
+        forcePull: false
+        noCache: true
+        imageOptimizationPolicy: SkipLayers
+      type: Docker
+    successfulBuildsHistoryLimit: 5
+    triggers: []
+  status:
+    lastVersion: 0

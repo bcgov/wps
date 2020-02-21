@@ -1,0 +1,177 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  creationTimestamp: null
+  name: wps
+parameters:
+  - name: NAME
+    description: Module name
+    value: wps
+  - name: SUFFIX
+    description: Deployment suffix, e.g. pr-###
+    required: true
+  - name: VERSION
+    description:  Version or release number
+    required: true
+    value: "0.0.0"
+  - name: CPU_REQUEST
+    description: Requested CPU
+    value: 500m
+  - name: CPU_LIMIT
+    description: CPU upper limit
+    value: 500m
+  - name: MEMORY_REQUEST
+    description: Requested memory
+    value: 1Gi
+  - name: MEMORY_LIMIT
+    description: Memory upper limit
+    value: 1Gi
+objects:
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    annotations:
+      description: Keeps track of changes in the client / front end image
+    labels:
+      shared: "true"
+    creationTimestamp: null
+    name: ${NAME}
+  spec:
+    lookupPolicy:
+      local: false
+  status:
+    dockerImageRepository: ""
+- apiVersion: v1
+  kind: Service
+  metadata:
+    creationTimestamp: null
+    name: ${NAME}-${SUFFIX}
+    labels:
+      name: ${NAME}
+      app: ${NAME}
+      role: ${NAME}
+  spec:
+    ports:
+    - name: web
+      port: 5001
+      protocol: TCP
+      targetPort: 5001
+    - name: websocket-notifications
+      port: 5002
+      protocol: TCP
+      targetPort: 5002
+    selector:
+      name: ${NAME}-${SUFFIX}
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: route.openshift.io/v1
+  kind: Route
+  metadata:
+    creationTimestamp: null
+    labels:
+      name: ${NAME}
+      app: ${NAME}
+      role: ${NAME}
+    name: ${NAME}-${SUFFIX}
+  spec:
+    host: ${NAME}-${SUFFIX}.pathfinder.gov.bc.ca
+    port:
+      targetPort: http-in
+    tls:
+      insecureEdgeTerminationPolicy: Redirect
+      termination: edge
+    to:
+      kind: Service
+      name: ${NAME}-${SUFFIX}
+      weight: 100
+    wildcardPolicy: None
+- apiVersion: apps.openshift.io/v1
+  kind: DeploymentConfig
+  metadata:
+    name: ${NAME}-${SUFFIX}
+    labels:
+      name: ${NAME}
+      app: ${NAME}
+      role: ${NAME}
+    annotations:
+      description: Defines how to deploy the application
+    creationTimestamp: null
+  spec:
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      name: ${NAME}-${SUFFIX}
+    strategy:
+      activeDeadlineSeconds: 21600
+      recreateParams:
+        timeoutSeconds: 600
+      resources: {}
+      type: Recreate
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          name: ${NAME}-${SUFFIX}
+      spec:
+        containers:
+        - image:
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 40
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 5001
+            timeoutSeconds: 3
+          name: ${NAME}
+          ports:
+          - containerPort: 5001
+            protocol: TCP
+          - containerPort: 5002
+            protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 5001
+            timeoutSeconds: 3
+          resources:
+            limits:
+              cpu: ${CPU_LIMIT}
+              memory: ${MEMORY_LIMIT}
+            requests:
+              cpu: ${CPU_REQUEST}
+              memory: ${MEMORY_REQUEST}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+    test: false
+    triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - ${NAME}
+        from:
+          kind: ImageStreamTag
+          name: ${NAME}:${VERSION}
+        lastTriggeredImage:
+      type: ImageChange
+    - type: ConfigChange
+  status:
+    availableReplicas: 0
+    latestVersion: 0
+    observedGeneration: 0
+    replicas: 0
+    unavailableReplicas: 0
+    updatedReplicas: 0

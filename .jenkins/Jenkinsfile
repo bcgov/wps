@@ -1,14 +1,26 @@
 pipeline {
     agent none
+    environment {
+        // Pipeline-wide vars
+        name =  "wps-test"
+        ver = "0.0.1"
+        projTools = "auzhsi-tools"
+        projDev = "auzhsi-dev"
+        suffix = "pr-${env.CHANGE_ID}"
+    }
     options {
         disableResume()
     }
     stages {
-        stage('Build') {
+        stage('Startup') {
             agent { label 'build' }
             steps {
                 script {
-                    def filesInThisCommitAsString = sh(script:"git diff --name-only HEAD~1..HEAD | grep '^.jenkins/' || echo -n ''", returnStatus: false, returnStdout: true).trim()
+                    def filesInThisCommitAsString = sh(
+                        script:"git diff --name-only HEAD~1..HEAD | grep '^.jenkins/' || echo -n ''",
+                        returnStatus: false,
+                        returnStdout: true
+                    ).trim()
                     def hasChangesInPath = (filesInThisCommitAsString.length() > 0)
                     echo "${filesInThisCommitAsString}"
                     if (!currentBuild.rawBuild.getCauses()[0].toString().contains('UserIdCause') && !hasChangesInPath){
@@ -20,30 +32,96 @@ pipeline {
                 script {
                     abortAllPreviousBuildInProgress(currentBuild)
                 }
-                echo "BRANCH_NAME:${env.BRANCH_NAME}\nCHANGE_ID:${env.CHANGE_ID}\nCHANGE_TARGET:${env.CHANGE_TARGET}"
+            }
+        }
+        stage('Build') {
+            agent { label 'build' }
+            steps {
                 echo "Building ..."
-                sh "cd .jenkins/.pipeline && ./npmw ci && ./npmw run build -- --pr=${CHANGE_ID}"
+                script {
+                    sh "GIT_REF=${env.CHANGE_BRANCH} ./openshift/oc_build.sh ${env.CHANGE_ID}"
+                }
             }
         }
         stage('Deploy (DEV)') {
             agent { label 'deploy' }
             steps {
                 echo "Deploying ..."
-                sh "cd .jenkins/.pipeline && ./npmw ci && DEBUG=info* ./npmw run deploy -- --pr=${CHANGE_ID} --env=dev"
+                script {
+                    sh "./openshift/oc_deploy.sh ${env.CHANGE_ID}"
+                }
             }
         }
-        stage('Deploy (PROD)') {
+        stage('Tests (DEV)') {
+            agent { label 'deploy' }
+            steps {
+                echo "Testing ..."
+                script {
+                    sh "echo UNIT TESTS"
+                    sh "echo SMOKE TESTS"
+                    sh "echo API TESTS"
+                }
+            }
+        }
+        stage('Deploy (TEST)') {
             agent { label 'deploy' }
             input {
-                message "Should we continue with deployment to PROD?"
+                message "Should we continue with deployment to TEST?"
                 ok "Yes!"
             }
             steps {
                 echo "Deploying ..."
-                sh "cd .jenkins/.pipeline && ./npmw ci && ./npmw run deploy -- --pr=${CHANGE_ID} --env=prod"
             }
         }
-        stage('Acceptance') {
+        stage('Tests (TEST)') {
+            agent { label 'deploy' }
+            steps {
+                echo "Testing ..."
+                script {
+                    sh "echo UNIT TESTS"
+                    sh "echo SMOKE TESTS"
+                    sh "echo ZAP TESTS"
+                }
+            }
+        }
+        stage('Promote (PROD)') {
+            agent { label 'deploy' }
+            input {
+                message "Should we promote this deployment to PRODUCTION?"
+                ok "Yes!"
+            }
+            steps {
+                echo "Promote ..."
+            }
+        }
+        stage('Backups (PROD)') {
+            agent { label 'deploy' }
+            steps {
+                echo "Tag known good prod images, backup databases, backup settings, ..."
+                script {
+                    sh "echo Backup procedures"
+                }
+            }
+        }
+        stage('Update routes (PROD)') {
+            agent { label 'deploy' }
+            steps {
+                echo "Testing ..."
+                script {
+                    sh "echo SMOKE TESTS"
+                }
+            }
+        }
+        stage('Smoke tests (PROD)') {
+            agent { label 'deploy' }
+            steps {
+                echo "Testing ..."
+                script {
+                    sh "echo SMOKE TESTS"
+                }
+            }
+        }
+        stage('Cleanup') {
             agent { label 'deploy' }
             input {
                 message "Should we continue with cleanup?"
