@@ -1,0 +1,16 @@
+{
+    "FFMC": 94.12702178955078,
+    "ISI": 14.947553730010988,
+    "BUI": 157.15555114746093,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "year_range": {
+        "start": 2010,
+        "end": 2019
+    },
+    "station_name": "RISKE CREEK"
+}

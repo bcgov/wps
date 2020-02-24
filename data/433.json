@@ -1,0 +1,16 @@
+{
+    "FFMC": 90.42293090820313,
+    "ISI": 8.31458044052124,
+    "BUI": 79.56267547607422,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "year_range": {
+        "start": 2010,
+        "end": 2019
+    },
+    "station_name": "CRANBERRY"
+}

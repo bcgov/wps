@@ -1,0 +1,16 @@
+{
+    "FFMC": 92.51930389404298,
+    "ISI": 9.785612678527832,
+    "BUI": 92.28543701171876,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "year_range": {
+        "start": 2010,
+        "end": 2019
+    },
+    "station_name": "LIKELY RS"
+}

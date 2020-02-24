@@ -1,0 +1,16 @@
+{
+    "FFMC": 90.64799346923829,
+    "ISI": 9.994596672058107,
+    "BUI": 26.431361770629888,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "year_range": {
+        "start": 2010,
+        "end": 2019
+    },
+    "station_name": "PHILIP"
+}

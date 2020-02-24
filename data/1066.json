@@ -1,0 +1,16 @@
+{
+    "FFMC": 89.82987976074219,
+    "ISI": 5.59512825012207,
+    "BUI": 91.15953521728517,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "year_range": {
+        "start": 2010,
+        "end": 2019
+    },
+    "station_name": "TS MCNABB"
+}

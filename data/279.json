@@ -1,0 +1,16 @@
+{
+    "FFMC": 93.64853515625,
+    "ISI": 13.236207771301268,
+    "BUI": 147.4445709228516,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "year_range": {
+        "start": 2010,
+        "end": 2019
+    },
+    "station_name": "THYNNE"
+}

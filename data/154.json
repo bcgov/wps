@@ -1,0 +1,16 @@
+{
+    "FFMC": 92.09812469482422,
+    "ISI": 10.977827453613283,
+    "BUI": 89.45475158691409,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "year_range": {
+        "start": 2010,
+        "end": 2019
+    },
+    "station_name": "WITCH"
+}

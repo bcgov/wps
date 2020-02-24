@@ -1,0 +1,16 @@
+{
+    "FFMC": 92.95146789550782,
+    "ISI": 11.84792366027832,
+    "BUI": 133.3150177001953,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "year_range": {
+        "start": 2010,
+        "end": 2019
+    },
+    "station_name": "ZZ CRESTON"
+}

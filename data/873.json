@@ -1,0 +1,16 @@
+{
+    "FFMC": 93.62176971435545,
+    "ISI": 11.552572250366213,
+    "BUI": 106.7472686767578,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "year_range": {
+        "start": 2010,
+        "end": 2019
+    },
+    "station_name": "CRAWFORD"
+}

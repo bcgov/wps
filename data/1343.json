@@ -1,0 +1,16 @@
+{
+    "FFMC": 83.31208953857421,
+    "ISI": 2.5609118938446045,
+    "BUI": 105.3779067993164,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "year_range": {
+        "start": 2010,
+        "end": 2019
+    },
+    "station_name": "ZZ OLD TOM CREEK 670 QD"
+}

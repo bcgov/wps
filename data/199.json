@@ -1,0 +1,16 @@
+{
+    "FFMC": 91.72493286132813,
+    "ISI": 7.441157817840576,
+    "BUI": 54.96702575683594,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "year_range": {
+        "start": 2010,
+        "end": 2019
+    },
+    "station_name": "CATFISH"
+}

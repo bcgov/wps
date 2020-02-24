@@ -1,0 +1,16 @@
+{
+    "FFMC": 91.4142822265625,
+    "ISI": 8.133113670349122,
+    "BUI": 120.00887145996094,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "year_range": {
+        "start": 2010,
+        "end": 2019
+    },
+    "station_name": "WOSS CAMP"
+}

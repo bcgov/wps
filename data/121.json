@@ -1,0 +1,16 @@
+{
+    "FFMC": 92.4531639099121,
+    "ISI": 10.250178146362305,
+    "BUI": 84.56691360473633,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "year_range": {
+        "start": 2010,
+        "end": 2019
+    },
+    "station_name": "PADDY"
+}

@@ -1,16 +1,16 @@
 {
-    "FFMC": 94.07827400000001,
-    "ISI": 13.709858000000008,
-    "BUI": 137.72865000000002,
+    "FFMC": 94.2855453491211,
+    "ISI": 14.173633861541756,
+    "BUI": 142.34047546386728,
     "season": {
         "start_month": 5,
-        "end_month": 9,
         "start_day": 1,
-        "end_day": 15
+        "end_month": 8,
+        "end_day": 31
     },
     "year_range": {
-        "start": "2009",
-        "end": "2019"
+        "start": 2010,
+        "end": 2019
     },
     "station_name": "ASHNOLA"
 }

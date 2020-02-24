@@ -1,16 +1,16 @@
 {
-    "FFMC": 94.707348,
-    "ISI": 14.511330000000001,
-    "BUI": 188.19975,
+    "FFMC": 94.80382843017578,
+    "ISI": 14.741975021362304,
+    "BUI": 175.0281799316406,
     "season": {
         "start_month": 5,
         "start_day": 1,
-        "end_month": 9,
-        "end_day": 15
+        "end_month": 8,
+        "end_day": 31
     },
     "year_range": {
-        "start": "2009",
-        "end": "2019"
+        "start": 2010,
+        "end": 2019
     },
     "station_name": "MCCUDDY"
 }

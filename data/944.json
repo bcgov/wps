@@ -1,0 +1,16 @@
+{
+    "FFMC": 89.46892700195312,
+    "ISI": 6.180210590362549,
+    "BUI": 96.86211013793945,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "year_range": {
+        "start": 2010,
+        "end": 2019
+    },
+    "station_name": "TS SAN JUAN"
+}

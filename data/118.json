@@ -1,0 +1,16 @@
+{
+    "FFMC": 92.29737091064452,
+    "ISI": 13.216984939575196,
+    "BUI": 86.88302612304689,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "year_range": {
+        "start": 2010,
+        "end": 2019
+    },
+    "station_name": "HELMUT"
+}

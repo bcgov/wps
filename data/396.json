@@ -1,0 +1,16 @@
+{
+    "FFMC": 93.29288024902344,
+    "ISI": 11.212794780731201,
+    "BUI": 98.35911560058594,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "year_range": {
+        "start": 2010,
+        "end": 2019
+    },
+    "station_name": "OCTOPUS CREEK"
+}

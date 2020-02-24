@@ -1,0 +1,16 @@
+{
+    "FFMC": 92.52543563842774,
+    "ISI": 11.066638946533203,
+    "BUI": 119.68586273193361,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "year_range": {
+        "start": 2010,
+        "end": 2019
+    },
+    "station_name": "ZZ MOOSECAMP"
+}

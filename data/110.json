@@ -1,0 +1,16 @@
+{
+    "FFMC": 90.73582229614257,
+    "ISI": 9.724873733520509,
+    "BUI": 161.24291076660157,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "year_range": {
+        "start": 2010,
+        "end": 2019
+    },
+    "station_name": "TELEGRAPH CREEK"
+}

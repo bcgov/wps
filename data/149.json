@@ -1,0 +1,16 @@
+{
+    "FFMC": 92.6165771484375,
+    "ISI": 10.543050765991213,
+    "BUI": 99.93021392822266,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "year_range": {
+        "start": 2010,
+        "end": 2019
+    },
+    "station_name": "BEAR LAKE"
+}

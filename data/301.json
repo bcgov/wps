@@ -1,0 +1,16 @@
+{
+    "FFMC": 93.48978881835937,
+    "ISI": 9.182936763763427,
+    "BUI": 164.9443420410156,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "year_range": {
+        "start": 2010,
+        "end": 2019
+    },
+    "station_name": "PEMBERTON BASE"
+}

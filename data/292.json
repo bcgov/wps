@@ -1,0 +1,16 @@
+{
+    "FFMC": 95.02022247314453,
+    "ISI": 12.998310470581055,
+    "BUI": 201.77117309570312,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "year_range": {
+        "start": 2010,
+        "end": 2019
+    },
+    "station_name": "D'ARCY"
+}
