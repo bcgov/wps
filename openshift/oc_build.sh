@@ -20,10 +20,11 @@
 #%   GIT_BRANCH=branch PROJECT=project PATH_BC=./bc.yaml ${THIS_FILE} 0 apply
 #%
 
-# Halt on errors, unsets and non-zeros exit (pipe fail); change field separator
+# Halt conditions (errors, unsets, non-zero pipes), field separator and verbosity
 #
 set -euo pipefail
 IFS=$'\n\t'
+[ ! "${VERBOSE:-}" == "true" ] || set -x
 
 # Parameters and defaults
 #

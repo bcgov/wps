@@ -20,10 +20,11 @@
 #%   NAME=name PROJECT=project PATH_DC=./dc.yaml ${THIS_FILE} 0 apply
 #%
 
-# Halt on errors, unsets and non-zeros exit (pipe fail); change field separator
+# Halt conditions (errors, unsets, non-zero pipes), field separator and verbosity
 #
 set -euo pipefail
 IFS=$'\n\t'
+[ ! "${VERBOSE:-}" == "true" ] || set -x
 
 # Parameters and defaults
 #
