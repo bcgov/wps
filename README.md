@@ -12,6 +12,8 @@ Wildfire Predictive Services support decision making in prevention, preparedness
 
 ### Installing
 
+You will need a .env file, see sample.env. For local development, you can copy sample.env to .env
+
 ```
 cd code
 docker-compose build

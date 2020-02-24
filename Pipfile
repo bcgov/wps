@@ -7,7 +7,9 @@ verify_ssl = true
 jupyter = "*"
 notebook = "*"
 pycodestyle = "*"
+pyodbc = "*"
 autopep8 = "*"
+pytest = "*"
 
 [packages]
 fastapi = "*"
