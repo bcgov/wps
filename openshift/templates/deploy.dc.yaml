@@ -13,6 +13,18 @@ parameters:
     value: docker-registry.default.svc:5000
   - name: PROJECT_TOOLS
     value: auzhsi-tools
+  - name: CPU_REQUEST
+    description: Requested CPU
+    value: 500m
+  - name: CPU_LIMIT
+    description: CPU upper limit
+    value: 500m
+  - name: MEMORY_REQUEST
+    description: Requested memory
+    value: 1Gi
+  - name: MEMORY_LIMIT
+    description: Memory upper limit
+    value: 1Gi
 objects:
   - apiVersion: v1
     data:
@@ -68,30 +80,30 @@ objects:
                 - containerPort: 8080
               resources:
                 limits:
-                  cpu: 500m
-                  memory: 1Gi
+                  cpu: ${CPU_LIMIT}
+                  memory: ${MEMORY_LIMIT}
                 requests:
-                  cpu: 100m
-                  memory: 256Mi
+                  cpu: ${CPU_REQUEST}
+                  memory: ${MEMORY_REQUEST}
               volumeMounts:
-                - name: caddy-${NAME}${SUFFIX}
+                - name: caddy-${NAME}-${SUFFIX}
                   mountPath: /etc/Caddyfile
                   readOnly: true
                   subPath: Caddyfile
           volumes:
-            - name: caddy-${NAME}${SUFFIX}
+            - name: caddy-${NAME}-${SUFFIX}
               configMap:
                 defaultMode: 420
-                name: caddyfile-${NAME}${SUFFIX}
+                name: caddyfile-${NAME}-${SUFFIX}
   - apiVersion: v1
     kind: Service
     metadata:
       labels:
-        app: ${NAME}${SUFFIX}
-      name: ${NAME}${SUFFIX}
+        app: ${NAME}-${SUFFIX}
+      name: ${NAME}-${SUFFIX}
     spec:
       selector:
-        app: ${NAME}${SUFFIX}
+        app: ${NAME}-${SUFFIX}
       ports:
         - name: 8080-tcp
           protocol: TCP
@@ -105,28 +117,28 @@ objects:
     kind: Ingress
     metadata:
       labels:
-        app: ${NAME}${SUFFIX}
-      name: ${NAME}${SUFFIX}
+        app: ${NAME}-${SUFFIX}
+      name: ${NAME}-${SUFFIX}
     spec:
       rules:
-        - host: ${NAME}${SUFFIX}-auzhsi.pathfinder.gov.bc.ca
+        - host: ${NAME}-${SUFFIX}-auzhsi.pathfinder.gov.bc.ca
           http:
             paths:
               - backend:
-                  serviceName: ${NAME}${SUFFIX}
+                  serviceName: ${NAME}-${SUFFIX}
                   servicePort: 80
   - apiVersion: route.openshift.io/v1
     kind: Route
     metadata:
       labels:
-        app: ${NAME}${SUFFIX}
-      name: ${NAME}${SUFFIX}-secure
+        app: ${NAME}-${SUFFIX}
+      name: ${NAME}-${SUFFIX}-secure
     spec:
-      host: ${NAME}${SUFFIX}-secure-auzhsi.pathfinder.gov.bc.ca
+      host: ${NAME}-${SUFFIX}-secure-auzhsi.pathfinder.gov.bc.ca
       port:
         targetPort: 8080-tcp
       to:
         kind: Service
-        name: ${NAME}${SUFFIX}
+        name: ${NAME}-${SUFFIX}
       tls:
         termination: edge
