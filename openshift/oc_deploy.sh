@@ -28,14 +28,14 @@ IFS=$'\n\t'
 
 # Parameters and defaults
 #
-THIS_FILE="./$(basename ${0})"
+THIS_FILE="$(dirname ${0})/$(basename ${0})"
 PR_NO=${1:-}
 APPLY=${2:-}
 #
 NAME=${APPLICATION_NAME:-wps}
 PROJ_TOOLS=${PROJ_TOOLS:-auzhsi-tools}
 PROJ_DEPLOY=${PROJ_DEPLOY:-auzhsi-dev}
-PATH_DC=${PATH_DC:-$(dirname $0)/templates/deploy.dc.yaml}
+PATH_DC=${PATH_DC:-$(dirname ${0})/templates/deploy.dc.yaml}
 
 # Show help if no params
 #

@@ -28,13 +28,13 @@ IFS=$'\n\t'
 
 # Parameters and defaults
 #
-THIS_FILE="./$(basename ${0})"
+THIS_FILE="$(dirname ${0})/$(basename ${0})"
 PR_NO=${1:-}
 APPLY=${2:-}
 #
 NAME=${APPLICATION_NAME:-wps}
 PROJECT=${PROJECT:-auzhsi-tools}
-PATH_BC=${PATH_BC:-$(dirname $0)/templates/build.bc.yaml}
+PATH_BC=${PATH_BC:-$(dirname ${0})/templates/build.bc.yaml}
 GIT_URL=${GIT_URL:-$(git remote get-url origin)}
 GIT_BRANCH=${GIT_BRANCH:-$(git rev-parse --abbrev-ref HEAD)}
 
