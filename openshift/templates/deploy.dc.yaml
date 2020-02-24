@@ -1,15 +1,18 @@
 apiVersion: v1
 kind: Template
-metadata: {}
+metadata:
+  name: ${NAME}
 parameters:
   - name: NAME
+    description: Module name
     value: wps-web
   - name: SUFFIX
-  - name: TAG
-    value: latest
-    description: The output image tag beig deployed
-  - name: DOCKER_REGISTRY
+    description: Deployment suffix, e.g. pr-###
     required: true
+  - name: DOCKER_REGISTRY
+    value: docker-registry.default.svc:5000
+  - name: PROJECT_TOOLS
+    value: auzhsi-tools
 objects:
   - apiVersion: v1
     data:
@@ -21,9 +24,9 @@ objects:
     kind: ConfigMap
     metadata:
       creationTimestamp: null
-      name: caddyfile-${NAME}${SUFFIX}
+      name: caddyfile-${NAME}-${SUFFIX}
       labels:
-        app: ${NAME}${SUFFIX}
+        app: ${NAME}-${SUFFIX}
   - apiVersion: image.openshift.io/v1
     kind: ImageStream
     metadata:
@@ -31,7 +34,7 @@ objects:
         openshift.io/generated-by: OpenShiftNewBuild
       creationTimestamp: null
       labels:
-        app: ${NAME}${SUFFIX}
+        app: ${NAME}-${SUFFIX}
       name: ${NAME}
     spec:
       lookupPolicy:
@@ -42,24 +45,23 @@ objects:
     kind: Deployment
     metadata:
       labels:
-        app: ${NAME}${SUFFIX}
-      name: ${NAME}${SUFFIX}
+        app: ${NAME}-${SUFFIX}
+      name: ${NAME}-${SUFFIX}
     spec:
       replicas: 1
       selector:
         matchLabels:
-          app: ${NAME}${SUFFIX}
+          app: ${NAME}-${SUFFIX}
       template:
         metadata:
           labels:
-            app: ${NAME}${SUFFIX}
+            app: ${NAME}-${SUFFIX}
         spec:
           automountServiceAccountToken: false
           containers:
-            #- image: docker-registry.default.svc:5000/auzhsi-tools/wps-web:latest
-            - image: ${DOCKER_REGISTRY}/${NAME}:${TAG}
+            - image: ${DOCKER_REGISTRY}/${PROJECT_TOOLS}/${NAME}:${SUFFIX}
               imagePullPolicy: Always
-              name: wps-web
+              name: ${NAME}
               args:
                 - /tmp/scripts/run
               ports:
