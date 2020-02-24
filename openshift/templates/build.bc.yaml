@@ -16,126 +16,101 @@ parameters:
 labels:
   app.kubernetes.io/part-of: "wps-web"
 objects:
-- apiVersion: image.openshift.io/v1
-  kind: ImageStream
-  metadata:
-    annotations:
-      openshift.io/generated-by: OpenShiftNewBuild
-    creationTimestamp: null
-    labels:
-      app: ${NAME}${SUFFIX}
-    name: wps-web
-  spec:
-    lookupPolicy:
-      local: false
-  status:
-    dockerImageRepository: ""
-- apiVersion: image.openshift.io/v1
-  kind: ImageStream
-  metadata:
-    annotations:
-      openshift.io/generated-by: OpenShiftNewBuild
-    creationTimestamp: null
-    labels:
-      app: ${NAME}${SUFFIX}
-    name: wps-web-build
-  spec:
-    lookupPolicy:
-      local: false
-  status:
-    dockerImageRepository: ""
-- apiVersion: build.openshift.io/v1
-  kind: BuildConfig
-  metadata:
-    annotations:
-      openshift.io/generated-by: OpenShiftNewBuild
-    creationTimestamp: null
-    labels:
-      app: ${NAME}${SUFFIX}
-    name: wps-web-build${SUFFIX}
-  spec:
-    nodeSelector: null
-    runPolicy: Parallel
-    completionDeadlineSeconds: 1200 # 20 minutes
-    output:
-      to:
-        kind: ImageStreamTag
-        name: wps-web-build:${SUFFIX}
-    postCommit: {}
-    resources:
-      limits:
-        cpu: '2'
-        memory: 5Gi
-      requests:
-        cpu: '1'
-        memory: 1Gi
-    source:
-      git:
-        uri: ${GIT_URL}
-        ref: ${GIT_REF}
-      type: Git
-    strategy:
-      sourceStrategy:
-        env:
-          - name: PORT
-            value: '8080'
-          - name: REACT_APP_API_BASE_URL
-            value: 'https://wps-api-secure-auzhsi.pathfinder.gov.bc.ca'
-          - name: BUILD_LOGLEVEL
-            value: '5'
-        from:
+  - apiVersion: image.openshift.io/v1
+    kind: ImageStream
+    metadata:
+      annotations:
+        openshift.io/generated-by: OpenShiftNewBuild
+      creationTimestamp: null
+      labels:
+        app: ${NAME}${SUFFIX}
+      name: wps-web
+    spec:
+      lookupPolicy:
+        local: false
+    status:
+      dockerImageRepository: ""
+  - apiVersion: image.openshift.io/v1
+    kind: ImageStream
+    metadata:
+      annotations:
+        openshift.io/generated-by: OpenShiftNewBuild
+      creationTimestamp: null
+      labels:
+        app: ${NAME}${SUFFIX}
+      name: wps-web-build
+    spec:
+      lookupPolicy:
+        local: false
+    status:
+      dockerImageRepository: ""
+  - apiVersion: build.openshift.io/v1
+    kind: BuildConfig
+    metadata:
+      annotations:
+        openshift.io/generated-by: OpenShiftNewBuild
+      creationTimestamp: null
+      labels:
+        app: ${NAME}${SUFFIX}
+      name: wps-web-build${SUFFIX}
+    spec:
+      nodeSelector: null
+      runPolicy: Parallel
+      completionDeadlineSeconds: 1200 # 20 minutes
+      output:
+        to:
           kind: ImageStreamTag
-          name: nodejs:10
-          namespace: openshift
-      type: Source
-    triggers:
-    - type: ConfigChange
-    - imageChange: {}
-      type: ImageChange
-  status:
-    lastVersion: 0
-- apiVersion: build.openshift.io/v1
-  kind: BuildConfig
-  metadata:
-    annotations:
-      openshift.io/generated-by: OpenShiftNewBuild
-    creationTimestamp: null
-    labels:
-      app: ${NAME}${SUFFIX}
-    name: wps-web${SUFFIX}
-  spec:
-    nodeSelector: null
-    runPolicy: SerialLatestOnly
-    completionDeadlineSeconds: 600 # 10 minutes
-    output:
-      to:
-        kind: ImageStreamTag
-        name: wps-web:${SUFFIX}
-    postCommit: {}
-    resources:
-      limits:
-        cpu: '2'
-        memory: 5Gi
-      requests:
-        cpu: '1'
-        memory: 1Gi
-    source:
-      dockerfile: |-
-        FROM bcgov-s2i-caddy
-        COPY build /var/www/html/
-      images:
-        - from:
+          name: wps-web-build:${SUFFIX}
+      postCommit: {}
+      resources:
+        limits:
+          cpu: "2"
+          memory: 5Gi
+        requests:
+          cpu: "1"
+          memory: 1Gi
+      source:
+        git:
+          uri: ${GIT_URL}
+          ref: ${GIT_REF}
+        type: Git
+      strategy:
+        sourceStrategy:
+          env:
+            - name: PORT
+              value: "8080"
+            - name: REACT_APP_API_BASE_URL
+              value: "https://wps-api-secure-auzhsi.pathfinder.gov.bc.ca"
+            - name: BUILD_LOGLEVEL
+              value: "5"
+          from:
             kind: ImageStreamTag
-            name: wps-web-build:${SUFFIX}
-          paths:
-            - destinationDir: './'
-              sourcePath: /opt/app-root/src/build
-      type: Dockerfile
-    strategy:
-      dockerStrategy:
-        from:
+            name: nodejs:10
+            namespace: openshift
+        type: Source
+      triggers:
+        - type: ConfigChange
+        - imageChange: {}
+          type: ImageChange
+    status:
+      lastVersion: 0
+  - apiVersion: build.openshift.io/v1
+    kind: BuildConfig
+    metadata:
+      annotations:
+        openshift.io/generated-by: OpenShiftNewBuild
+      creationTimestamp: null
+      labels:
+        app: ${NAME}${SUFFIX}
+      name: wps-web${SUFFIX}
+    spec:
+      nodeSelector: null
+      runPolicy: SerialLatestOnly
+      completionDeadlineSeconds: 600 # 10 minutes
+      output:
+        to:
           kind: ImageStreamTag
-          name: wps-web:${TAG}
+          name: wps-web:${SUFFIX}
       postCommit: {}
       resources:
         limits:
@@ -151,7 +126,7 @@ objects:
         images:
           - from:
               kind: ImageStreamTag
-              name: wps-web-build:${TAG}
+              name: wps-web-build:${SUFFIX}
             paths:
               - destinationDir: "./"
                 sourcePath: /opt/app-root/src/build
