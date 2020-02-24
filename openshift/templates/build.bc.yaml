@@ -1,6 +1,7 @@
 apiVersion: v1
 kind: Template
-metadata: {}
+metadata:
+  name: ${NAME}
 parameters:
   - name: NAME
     description: Module name
@@ -14,7 +15,7 @@ parameters:
     description: PR branch
     required: true
 labels:
-  app.kubernetes.io/part-of: "wps-web"
+  app.kubernetes.io/part-of: "${NAME}"
 objects:
   - apiVersion: image.openshift.io/v1
     kind: ImageStream
@@ -23,8 +24,8 @@ objects:
         openshift.io/generated-by: OpenShiftNewBuild
       creationTimestamp: null
       labels:
-        app: ${NAME}${SUFFIX}
-      name: wps-web
+        app: ${NAME}-${SUFFIX}
+      name: ${NAME}
     spec:
       lookupPolicy:
         local: false
@@ -37,8 +38,8 @@ objects:
         openshift.io/generated-by: OpenShiftNewBuild
       creationTimestamp: null
       labels:
-        app: ${NAME}${SUFFIX}
-      name: wps-web-build
+        app: ${NAME}-${SUFFIX}
+      name: ${NAME}-build
     spec:
       lookupPolicy:
         local: false
@@ -51,8 +52,8 @@ objects:
         openshift.io/generated-by: OpenShiftNewBuild
       creationTimestamp: null
       labels:
-        app: ${NAME}${SUFFIX}
-      name: wps-web-build${SUFFIX}
+        app: ${NAME}-${SUFFIX}
+      name: ${NAME}-build-${SUFFIX}
     spec:
       nodeSelector: null
       runPolicy: Parallel
@@ -60,7 +61,7 @@ objects:
       output:
         to:
           kind: ImageStreamTag
-          name: wps-web-build:${SUFFIX}
+          name: ${NAME}-build:${SUFFIX}
       postCommit: {}
       resources:
         limits:
@@ -101,8 +102,8 @@ objects:
         openshift.io/generated-by: OpenShiftNewBuild
       creationTimestamp: null
       labels:
-        app: ${NAME}${SUFFIX}
-      name: wps-web${SUFFIX}
+        app: ${NAME}-${SUFFIX}
+      name: ${NAME}-${SUFFIX}
     spec:
       nodeSelector: null
       runPolicy: SerialLatestOnly
@@ -110,7 +111,7 @@ objects:
       output:
         to:
           kind: ImageStreamTag
-          name: wps-web:${SUFFIX}
+          name: ${NAME}:${SUFFIX}
       postCommit: {}
       resources:
         limits:
@@ -126,7 +127,7 @@ objects:
         images:
           - from:
               kind: ImageStreamTag
-              name: wps-web-build:${SUFFIX}
+              name: ${NAME}-build:${SUFFIX}
             paths:
               - destinationDir: "./"
                 sourcePath: /opt/app-root/src/build
