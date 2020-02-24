@@ -114,3 +114,8 @@ __pycache__/
 
 # Apple
 .DS_store
+
+# Access
+*.accdb
+*.laccdb
+*.mdb
