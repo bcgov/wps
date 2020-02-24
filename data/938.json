@@ -1,0 +1,16 @@
+{
+    "FFMC": 89.93682250976562,
+    "ISI": 8.062157154083252,
+    "BUI": 80.67532348632812,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "year_range": {
+        "start": 2010,
+        "end": 2019
+    },
+    "station_name": "PINE CREEK"
+}

@@ -1,0 +1,16 @@
+{
+    "FFMC": 92.99276733398438,
+    "ISI": 12.018947029113772,
+    "BUI": 107.74739227294926,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "year_range": {
+        "start": 2010,
+        "end": 2019
+    },
+    "station_name": "NEGRO CREEK"
+}

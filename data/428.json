@@ -1,0 +1,16 @@
+{
+    "FFMC": 90.94967346191406,
+    "ISI": 7.304631042480471,
+    "BUI": 71.53864898681644,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "year_range": {
+        "start": 2010,
+        "end": 2019
+    },
+    "station_name": "KISPIOX HUB"
+}

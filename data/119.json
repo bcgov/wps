@@ -1,0 +1,16 @@
+{
+    "FFMC": 92.6530258178711,
+    "ISI": 9.686961746215822,
+    "BUI": 87.07822570800784,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "year_range": {
+        "start": 2010,
+        "end": 2019
+    },
+    "station_name": "NELSON FORKS"
+}

@@ -1,0 +1,16 @@
+{
+    "FFMC": 93.12527160644532,
+    "ISI": 9.577497100830078,
+    "BUI": 57.41620559692382,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "year_range": {
+        "start": 2010,
+        "end": 2019
+    },
+    "station_name": "HOLMES"
+}

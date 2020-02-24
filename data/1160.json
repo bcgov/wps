@@ -1,0 +1,16 @@
+{
+    "FFMC": 88.50166320800781,
+    "ISI": 4.802366495132446,
+    "BUI": 166.1188507080078,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "year_range": {
+        "start": 2010,
+        "end": 2019
+    },
+    "station_name": "ZZ ORFORD RIVER TEMP"
+}

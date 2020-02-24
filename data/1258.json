@@ -1,0 +1,16 @@
+{
+    "FFMC": 91.24308395385742,
+    "ISI": 10.605563163757324,
+    "BUI": 77.57243347167969,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "year_range": {
+        "start": 2010,
+        "end": 2019
+    },
+    "station_name": "TEEPEE CREEK TEMP"
+}

@@ -1,0 +1,16 @@
+{
+    "FFMC": 93.68705978393554,
+    "ISI": 11.005441665649414,
+    "BUI": 136.7296585083008,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "year_range": {
+        "start": 2010,
+        "end": 2019
+    },
+    "station_name": "SALMON ARM"
+}

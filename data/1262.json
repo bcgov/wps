@@ -1,0 +1,16 @@
+{
+    "FFMC": 94.23435974121094,
+    "ISI": 11.378503417968748,
+    "BUI": 120.23848571777343,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "year_range": {
+        "start": 2010,
+        "end": 2019
+    },
+    "station_name": "CARIBOU CORNER"
+}

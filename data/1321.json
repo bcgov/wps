@@ -1,0 +1,16 @@
+{
+    "FFMC": 90.91305465698244,
+    "ISI": 8.394823265075683,
+    "BUI": 44.250293731689446,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "year_range": {
+        "start": 2010,
+        "end": 2019
+    },
+    "station_name": "KEEN 3 QD"
+}

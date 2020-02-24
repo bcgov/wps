@@ -1,0 +1,16 @@
+{
+    "FFMC": 93.74272308349609,
+    "ISI": 14.019582748413086,
+    "BUI": 124.03836212158205,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "year_range": {
+        "start": 2010,
+        "end": 2019
+    },
+    "station_name": "FRENCH BAR"
+}

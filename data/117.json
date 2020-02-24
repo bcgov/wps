@@ -1,0 +1,16 @@
+{
+    "FFMC": 92.22337799072265,
+    "ISI": 11.346865272521974,
+    "BUI": 90.29749298095703,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "year_range": {
+        "start": 2010,
+        "end": 2019
+    },
+    "station_name": "SIERRA"
+}

@@ -1,0 +1,16 @@
+{
+    "FFMC": 93.69169998168945,
+    "ISI": 12.97339849472046,
+    "BUI": 119.92665786743164,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "year_range": {
+        "start": 2010,
+        "end": 2019
+    },
+    "station_name": "YOUNG LAKE"
+}

@@ -1,0 +1,16 @@
+{
+    "FFMC": 94.895011138916,
+    "ISI": 16.129862022399905,
+    "BUI": 225.4913070678712,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "year_range": {
+        "start": 2010,
+        "end": 2019
+    },
+    "station_name": "MIDDLE LAKE"
+}

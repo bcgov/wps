@@ -1,0 +1,16 @@
+{
+    "FFMC": 91.90694808959961,
+    "ISI": 8.98386859893799,
+    "BUI": 71.378173828125,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "year_range": {
+        "start": 2010,
+        "end": 2019
+    },
+    "station_name": "NILKITKWA"
+}

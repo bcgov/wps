@@ -1,0 +1,16 @@
+{
+    "FFMC": 94.04960632324219,
+    "ISI": 12.842853546142578,
+    "BUI": 122.90150451660156,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "year_range": {
+        "start": 2010,
+        "end": 2019
+    },
+    "station_name": "FLATHEAD 2"
+}

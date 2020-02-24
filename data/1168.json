@@ -1,0 +1,16 @@
+{
+    "FFMC": 92.3927391052246,
+    "ISI": 12.075351238250734,
+    "BUI": 74.98083572387695,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "year_range": {
+        "start": 2010,
+        "end": 2019
+    },
+    "station_name": "ZZ HAYLEMORE CREEK QD"
+}

@@ -1,0 +1,16 @@
+{
+    "FFMC": 89.64522933959961,
+    "ISI": 6.215364265441894,
+    "BUI": 47.47869338989258,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "year_range": {
+        "start": 2010,
+        "end": 2019
+    },
+    "station_name": "ZZ TISIGAR NW QD"
+}

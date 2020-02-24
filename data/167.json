@@ -1,0 +1,16 @@
+{
+    "FFMC": 92.36929779052736,
+    "ISI": 9.730294990539551,
+    "BUI": 101.07913665771484,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "year_range": {
+        "start": 2010,
+        "end": 2019
+    },
+    "station_name": "AUGIER LAKE"
+}

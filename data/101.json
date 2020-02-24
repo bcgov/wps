@@ -1,0 +1,16 @@
+{
+    "FFMC": 91.77231216430664,
+    "ISI": 8.110464286804197,
+    "BUI": 91.23553314208985,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "year_range": {
+        "start": 2010,
+        "end": 2019
+    },
+    "station_name": "MACHMELL"
+}

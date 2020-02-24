@@ -1,0 +1,16 @@
+{
+    "FFMC": 90.87335205078125,
+    "ISI": 13.168379020690917,
+    "BUI": 78.42664489746093,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "year_range": {
+        "start": 2010,
+        "end": 2019
+    },
+    "station_name": "ZZ TISIGAR QD"
+}

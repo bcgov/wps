@@ -1,0 +1,16 @@
+{
+    "FFMC": 92.11455993652343,
+    "ISI": 10.054479598999025,
+    "BUI": 90.9908935546875,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "year_range": {
+        "start": 2010,
+        "end": 2019
+    },
+    "station_name": "BIG MOUTH 2"
+}
