@@ -11,6 +11,8 @@ parameters:
     required: true
   - name: DOCKER_REGISTRY
     value: docker-registry.default.svc:5000
+  - name: PROJECT_DEPLOY
+    value: auzhsi-dev
   - name: PROJECT_TOOLS
     value: auzhsi-tools
   - name: CPU_REQUEST
@@ -121,7 +123,7 @@ objects:
       name: ${NAME}-${SUFFIX}
     spec:
       rules:
-        - host: ${NAME}-${SUFFIX}-auzhsi.pathfinder.gov.bc.ca
+        - host: ${NAME}-${SUFFIX}-${PROJECT_DEPLOY}.pathfinder.gov.bc.ca
           http:
             paths:
               - backend:
@@ -132,9 +134,9 @@ objects:
     metadata:
       labels:
         app: ${NAME}-${SUFFIX}
-      name: ${NAME}-${SUFFIX}-secure
+      name: ${NAME}-${SUFFIX}
     spec:
-      host: ${NAME}-${SUFFIX}-secure-auzhsi.pathfinder.gov.bc.ca
+      # host: ${NAME}-${SUFFIX}-${PROJECT_DEPLOY}.pathfinder.gov.bc.ca
       port:
         targetPort: 8080-tcp
       to:
