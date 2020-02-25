@@ -32,7 +32,7 @@ THIS_FILE="$(dirname ${0})/$(basename ${0})"
 PR_NO=${1:-}
 APPLY=${2:-}
 #
-NAME=${APPLICATION_NAME:-wps}
+NAME=${APPLICATION_NAME:-wps-web}
 PROJECT=${PROJECT:-auzhsi-tools}
 PATH_BC=${PATH_BC:-$(dirname ${0})/templates/build.bc.yaml}
 GIT_URL=${GIT_URL:-$(git remote get-url origin)}
