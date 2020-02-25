@@ -39,7 +39,7 @@ pipeline {
             steps {
                 echo "Building ..."
                 script {
-                    sh "GIT_REF=${env.CHANGE_BRANCH} ./openshift/oc_build.sh ${env.CHANGE_ID} apply"
+                    sh "GIT_BRANCH=${env.CHANGE_BRANCH} ./openshift/oc_build.sh ${env.CHANGE_ID} apply"
                 }
             }
         }

@@ -54,7 +54,7 @@ $(oc whoami &>/dev/null) || {
 
 # Process commands
 #
-OC_PROCESS="oc -n ${PROJECT} process -f ${PATH_BC} -p NAME=${NAME} -p SUFFIX=pr-${PR_NO} -p GIT_URL=${GIT_URL} -p GIT_REF=${GIT_BRANCH}"
+OC_PROCESS="oc -n ${PROJECT} process -f ${PATH_BC} -p NAME=${NAME} -p SUFFIX=pr-${PR_NO} -p GIT_URL=${GIT_URL} -p GIT_BRANCH=${GIT_BRANCH}"
 OC_APPLY="oc -n "${PROJECT}" apply -f -"
 OC_COMMAND="${OC_PROCESS} | ${OC_APPLY}"
 #
