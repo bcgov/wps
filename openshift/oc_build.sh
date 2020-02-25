@@ -54,7 +54,7 @@ $(oc whoami &>/dev/null) || {
 
 # Process commands
 #
-OC_PROCESS="oc -n ${PROJECT} process -f ${PATH_BC} -p NAME=${NAME} -p SUFFIX=pr-${PR_NO} -p GIT_URL=${GIT_URL} -p GIT_REF=${GIT_BRANCH}"
+OC_PROCESS="oc -n ${PROJECT} process -f ${PATH_BC} -p NAME=${NAME} -p SUFFIX=pr-${PR_NO} -p GIT_URL=${GIT_URL} -p GIT_BRANCH=${GIT_BRANCH}"
 OC_APPLY="oc -n "${PROJECT}" apply -f -"
 OC_COMMAND="${OC_PROCESS} | ${OC_APPLY}"
 #
@@ -64,4 +64,16 @@ OC_COMMAND="${OC_PROCESS} | ${OC_APPLY}"
 	echo -e "\n*** This is a dry run.  Use 'apply' to deploy. ***\n"
 }
 eval "${OC_COMMAND}"
+
+# Follow builds
+#
+[ "${APPLY}" != "apply" ] || {
+	POD_NODE=$(oc get bc -n ${PROJECT} -o name -l app=${NAME}-pr-${PR_NO} | grep source)
+	oc logs -n ${PROJECT} --follow ${POD_NODE}
+	POD_NODE=$(oc get bc -n ${PROJECT} -o name -l app=${NAME}-pr-${PR_NO} | grep -v source)
+	oc logs -n ${PROJECT} --follow ${POD_NODE}
+}
+
+# Echo command
+#
 echo -e "\n${OC_COMMAND}\n"
