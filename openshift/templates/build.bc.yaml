@@ -11,7 +11,7 @@ parameters:
     required: true
   - name: GIT_URL
     value: https://github.com/bcgov/wps-web.git
-  - name: GIT_REF
+  - name: GIT_BRANCH
     description: PR branch
     required: true
 labels:
@@ -73,7 +73,7 @@ objects:
       source:
         git:
           uri: ${GIT_URL}
-          ref: ${GIT_REF}
+          ref: ${GIT_BRANCH}
         type: Git
       strategy:
         sourceStrategy:

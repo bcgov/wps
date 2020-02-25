@@ -21,7 +21,7 @@ module.exports = settings => {
         SUFFIX: phases[phase].suffix,
         TAG: phases[phase].tag,
         GIT_URL: oc.git.http_url,
-        GIT_REF: oc.git.branch.merge
+        GIT_BRANCH: oc.git.branch.merge
       }
     })
   );

@@ -37,7 +37,7 @@ objects:
     source:
 #      contextDir: ${SOURCE_CONTEXT_DIR}
 #      git:
-#        ref: ${SOURCE_GIT_REF}
+#        ref: ${SOURCE_GIT_BRANCH}
 #        uri: ${SOURCE_GIT_URL}
 #      type: Git
       dockerfile: |
@@ -102,7 +102,7 @@ parameters:
 - name: SOURCE_GIT_URL
   required: true
   value: https://github.com/cvarjao-o/hello-world.git
-- name: SOURCE_GIT_REF
+- name: SOURCE_GIT_BRANCH
   required: true
   value: master
 - name: SOURCE_CONTEXT_DIR
