@@ -26,20 +26,16 @@ set -euo pipefail
 IFS=$'\n\t'
 [ ! "${VERBOSE:-}" == "true" ] || set -x
 
-# Parameters and defaults
+# Parameters and environment vars
 #
-THIS_FILE="$(dirname ${0})/$(basename ${0})"
 PR_NO=${1:-}
 APPLY=${2:-}
-#
-NAME=${APPLICATION_NAME:-wps-web}
-PROJ_TOOLS=${PROJ_TOOLS:-auzhsi-tools}
-PROJ_DEPLOY=${PROJ_DEPLOY:-auzhsi-dev}
-PATH_DC=${PATH_DC:-$(dirname ${0})/templates/deploy.dc.yaml}
+source "$(dirname ${0})/envars"
 
 # Show help if no params
 #
 [ "${#}" -gt 0 ] || {
+	THIS_FILE="$(dirname ${0})/$(basename ${0})"
 	cat ${THIS_FILE} | grep "^#%" | sed -e "s|^#%||g" -e "s|\${THIS_FILE}|${THIS_FILE}|g"
 	exit
 }
