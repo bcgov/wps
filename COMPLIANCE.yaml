@@ -5,7 +5,7 @@ description: |
 spec:
   - name: PIA
     status: in-progress
-    last-updated: '2020-02-18T21:04:23.917Z'
+    last-updated: "2020-02-18T21:04:23.917Z"
   - name: STRA
     status: in-progress
-    last-updated: '2020-02-18T21:04:23.917Z'
+    last-updated: "2020-02-18T21:04:23.917Z"
