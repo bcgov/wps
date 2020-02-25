@@ -39,7 +39,7 @@ objects:
       creationTimestamp: null
       labels:
         app: ${NAME}-${SUFFIX}
-      name: ${NAME}-build
+      name: ${NAME}-source
     spec:
       lookupPolicy:
         local: false
@@ -53,7 +53,7 @@ objects:
       creationTimestamp: null
       labels:
         app: ${NAME}-${SUFFIX}
-      name: ${NAME}-build-${SUFFIX}
+      name: ${NAME}-source-${SUFFIX}
     spec:
       nodeSelector: null
       runPolicy: Parallel
@@ -61,7 +61,7 @@ objects:
       output:
         to:
           kind: ImageStreamTag
-          name: ${NAME}-build:${SUFFIX}
+          name: ${NAME}-source:${SUFFIX}
       postCommit: {}
       resources:
         limits:
@@ -103,7 +103,7 @@ objects:
       creationTimestamp: null
       labels:
         app: ${NAME}-${SUFFIX}
-      name: ${NAME}-${SUFFIX}
+      name: ${NAME}-caddy-${SUFFIX}
     spec:
       nodeSelector: null
       runPolicy: SerialLatestOnly
@@ -127,7 +127,7 @@ objects:
         images:
           - from:
               kind: ImageStreamTag
-              name: ${NAME}-build:${SUFFIX}
+              name: ${NAME}-source:${SUFFIX}
             paths:
               - destinationDir: "./"
                 sourcePath: /opt/app-root/src/build
