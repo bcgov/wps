@@ -46,6 +46,9 @@ it('renders FWI calculator page', async () => {
   //const timeRange1 = await waitForElement(() => getByText(timeRangeOptions[0]))
 
   //fireEvent.click(timeRange1)
+
+  //Percentile textfield test
+  expect(getByTestId('percentile-textfield')).toBeInTheDocument()
 })
 
 it('renders error message when fetching stations failed', async () => {

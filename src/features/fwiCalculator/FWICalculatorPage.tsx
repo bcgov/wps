@@ -7,6 +7,7 @@ import { Station } from 'api/stationAPI'
 import { PageTitle } from 'components/PageTitle'
 import { Container } from 'components/Container'
 import { TimeRangeOptionsDropdown } from './components/TimeRangeDropdown'
+import { PercentileTextfield } from './components/percentileTextfield'
 
 export const FWICalculatorPage = () => {
   const dispatch = useDispatch()
@@ -26,6 +27,8 @@ export const FWICalculatorPage = () => {
         <WeatherStationsDropdown onStationChange={onStationChange} />
         <br />
         <TimeRangeOptionsDropdown />
+        <br />
+        <PercentileTextfield />
       </Container>
     </>
   )
