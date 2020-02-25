@@ -134,9 +134,9 @@ objects:
     metadata:
       labels:
         app: ${NAME}-${SUFFIX}
-      name: ${NAME}-${SUFFIX}-secure
+      name: ${NAME}-${SUFFIX}-source
     spec:
-      host: ${NAME}-${SUFFIX}-secure-${PROJECT_DEPLOY}.pathfinder.gov.bc.ca
+      host: ${NAME}-${SUFFIX}-source-${PROJECT_DEPLOY}.pathfinder.gov.bc.ca
       port:
         targetPort: 8080-tcp
       to:
