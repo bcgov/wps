@@ -6,6 +6,7 @@ import axios from 'api/axios'
 import App from 'app/App'
 import { selectStationsReducer } from 'app/rootReducer'
 import { renderWithRedux } from 'utils/testUtils'
+import { timeRangeOptions } from 'features/fwiCalculator/components/TimeRangeDropdown'
 
 const mockAxios = new MockAdapter(axios)
 const mockStations = [
@@ -26,6 +27,8 @@ it('renders FWI calculator page', async () => {
   expect(pageTitle).toBeInTheDocument()
   expect(selectStationsReducer(store.getState()).stations).toEqual([])
 
+  expect(getByTestId('weather-station-dropdown')).toBeInTheDocument()
+
   fireEvent.click(getByTestId('weather-station-dropdown'))
   const [station1] = await waitForElement(() => [
     getByText('Station 1(1)'),
@@ -34,6 +37,15 @@ it('renders FWI calculator page', async () => {
   fireEvent.click(station1)
 
   expect(selectStationsReducer(store.getState()).stations).toEqual(mockStations)
+
+  //Time range dropdown test
+  expect(getByTestId('time-range-dropdown')).toBeInTheDocument()
+
+  //fireEvent.click(getByTestId('time-range-dropdown'))
+
+  //const timeRange1 = await waitForElement(() => getByText(timeRangeOptions[0]))
+
+  //fireEvent.click(timeRange1)
 })
 
 it('renders error message when fetching stations failed', async () => {
