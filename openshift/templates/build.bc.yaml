@@ -103,7 +103,7 @@ objects:
       creationTimestamp: null
       labels:
         app: ${NAME}-${SUFFIX}
-      name: ${NAME}-caddy-${SUFFIX}
+      name: ${NAME}-docker-${SUFFIX}
     spec:
       nodeSelector: null
       runPolicy: SerialLatestOnly

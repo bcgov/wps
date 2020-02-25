@@ -65,14 +65,13 @@ OC_COMMAND="${OC_PROCESS} | ${OC_APPLY}"
 }
 eval "${OC_COMMAND}"
 
-# Follow builds
+# Follow source to image build (build source, provide artifact to docker)
 #
 [ "${APPLY}" != "apply" ] || {
-	POD_NODES=$(oc get bc -n ${PROJECT} -o name -l app=${NAME}-pr-${PR_NO} | grep source)
-	for p in "${POD_NODES}"
-	do
-		oc logs -n ${PROJECT} --follow ${p}
-	done
+	POD_SOURCE=$(oc get bc -n ${PROJECT} -o name -l app=${NAME}-pr-${PR_NO} | grep "source")
+	POD_DOCKER=$(oc get bc -n ${PROJECT} -o name -l app=${NAME}-pr-${PR_NO} | grep "docker")
+	oc logs -n ${PROJECT} --follow ${POD_SOURCE}
+	oc logs -n ${PROJECT} --follow ${POD_DOCKER}
 }
 
 # Echo command
