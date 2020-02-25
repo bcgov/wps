@@ -68,10 +68,11 @@ eval "${OC_COMMAND}"
 # Follow builds
 #
 [ "${APPLY}" != "apply" ] || {
-	POD_NODE=$(oc get bc -n ${PROJECT} -o name -l app=${NAME}-pr-${PR_NO} | grep source)
-	oc logs -n ${PROJECT} --follow ${POD_NODE}
-	POD_NODE=$(oc get bc -n ${PROJECT} -o name -l app=${NAME}-pr-${PR_NO} | grep -v source)
-	oc logs -n ${PROJECT} --follow ${POD_NODE}
+	POD_NODES=$(oc get bc -n ${PROJECT} -o name -l app=${NAME}-pr-${PR_NO} | grep source)
+	for p in "${POD_NODES}"
+	do
+		oc logs -n ${PROJECT} --follow ${p}
+	done
 }
 
 # Echo command
