@@ -12,11 +12,14 @@
     "jasmine": true,
     "jest": true,
     "node": true,
-    "commonjs": true
+    "commonjs": true,
+    "es6": true
   },
   "rules": {
     "prettier/prettier": ["error", { "singleQuote": true, "semi": false }],
-    "@typescript-eslint/explicit-function-return-type": "off"
+    "@typescript-eslint/explicit-function-return-type": "off",
+    "no-useless-catch": "off",
+    "@typescript-eslint/camelcase": "off"
   },
   "settings": {
     "react": {

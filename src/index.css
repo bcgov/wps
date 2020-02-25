@@ -1,34 +1,32 @@
 @font-face {
-  src: url('./fonts/BCSans-Regular.woff2') format('woff2'),
-    url('./fonts/BCSans-Regular.woff') format('woff');
+  src: url("./fonts/BCSans-Regular.woff2") format("woff2"),
+    url("./fonts/BCSans-Regular.woff") format("woff");
   font-weight: 400;
   font-style: normal;
-  font-family: 'BC Sans';
+  font-family: "BC Sans";
 }
 @font-face {
-  src: url('./fonts/BCSans-BoldItalic.woff2') format('woff2'),
-    url('./fonts/BCSans-BoldItalic.woff') format('woff');
+  src: url("./fonts/BCSans-BoldItalic.woff2") format("woff2"),
+    url("./fonts/BCSans-BoldItalic.woff") format("woff");
   font-weight: 700;
   font-style: italic;
-  font-family: 'BC Sans';
+  font-family: "BC Sans";
 }
 @font-face {
-  src: url('./fonts/BCSans-Italic.woff2') format('woff2'),
-    url('./fonts/BCSans-Italic.woff') format('woff');
+  src: url("./fonts/BCSans-Italic.woff2") format("woff2"),
+    url("./fonts/BCSans-Italic.woff") format("woff");
   font-weight: 400;
   font-style: italic;
-  font-family: 'BC Sans';
+  font-family: "BC Sans";
 }
 @font-face {
-  src: url('./fonts/BCSans-Bold.woff2') format('woff2'),
-    url('./fonts/BCSans-Bold.woff') format('woff');
+  src: url("./fonts/BCSans-Bold.woff2") format("woff2"),
+    url("./fonts/BCSans-Bold.woff") format("woff");
   font-weight: 700;
   font-style: normal;
-  font-family: 'BC Sans';
+  font-family: "BC Sans";
 }
 
-body {
-  margin: 0;
-  padding: 0;
-  font-family: 'BC Sans', 'Noto Sans', Verdana, Arial, sans-serif;
+* {
+  font-family: "BC Sans", "Noto Sans", Verdana, Arial, sans-serif !important;
 }
