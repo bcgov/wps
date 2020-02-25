@@ -6,6 +6,7 @@ import { WeatherStationsDropdown } from './components/StationsDropdown'
 import { Station } from 'api/stationAPI'
 import { PageTitle } from 'components/PageTitle'
 import { Container } from 'components/Container'
+import { TimeRangeOptionsDropdown } from './components/TimeRangeDropdown'
 
 export const FWICalculatorPage = () => {
   const dispatch = useDispatch()
@@ -23,6 +24,8 @@ export const FWICalculatorPage = () => {
       <PageTitle title="FWI Calculator" />
       <Container>
         <WeatherStationsDropdown onStationChange={onStationChange} />
+        <br />
+        <TimeRangeOptionsDropdown />
       </Container>
     </>
   )
