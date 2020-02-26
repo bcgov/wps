@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 import reducer, {
   stationsInitialState,
   getStationsSuccess
@@ -6,7 +5,7 @@ import reducer, {
 
 describe('Stations Slice', () => {
   it('Should return initial state on first run', () => {
-    const result = reducer(undefined, { type: '' })
+    const result = reducer(undefined, { type: 'someAction' })
     expect(result).toEqual(stationsInitialState)
   })
 

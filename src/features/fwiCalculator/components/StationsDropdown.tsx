@@ -1,28 +1,26 @@
-import React, { ChangeEvent } from 'react'
+import React from 'react'
 import { useSelector } from 'react-redux'
 import Autocomplete from '@material-ui/lab/Autocomplete'
 import { TextField } from '@material-ui/core'
+import { makeStyles } from '@material-ui/core/styles'
 
 import { Station } from 'api/stationAPI'
 import { selectStationsReducer } from 'app/rootReducer'
-import { makeStyles } from '@material-ui/core/styles'
 
 const useStyles = makeStyles({
   root: {
-    width: 300
+    width: 600
   }
 })
 
 interface Props {
-  onStationChange: (station: Station | null) => void
+  stations: Station[]
+  onStationsChange: (stations: Station[]) => void
 }
 
 export const WeatherStationsDropdown = (props: Props) => {
   const classes = useStyles()
   const { stations, error } = useSelector(selectStationsReducer)
-  const onChange = (e: ChangeEvent<{}>, s: Station | null) => {
-    props.onStationChange(s)
-  }
 
   return (
     <>
@@ -30,14 +28,19 @@ export const WeatherStationsDropdown = (props: Props) => {
         className={classes.root}
         data-testid="weather-station-dropdown"
         options={stations}
-        getOptionLabel={option => `${option.name}(${option.code})`}
-        onChange={onChange}
+        getOptionLabel={option => `${option.name} (${option.code})`}
+        onChange={(_, stations) => {
+          props.onStationsChange(stations)
+        }}
+        multiple
+        value={props.stations}
         renderInput={params => (
           <TextField
             {...params}
             label="Weather Stations"
             variant="outlined"
             fullWidth
+            size="small"
           />
         )}
       />

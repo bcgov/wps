@@ -7,7 +7,7 @@ interface SeasonResponse {
   end_day: number
 }
 
-interface YearRange {
+export interface YearRange {
   start: number
   end: number
 }
@@ -27,7 +27,7 @@ interface MeanValues {
   BUI: number
 }
 
-interface PercentilesResponse {
+export interface PercentilesResponse {
   stations: {
     [code: number]: StationSummaryResponse
   }
@@ -39,7 +39,7 @@ interface PercentilesResponse {
 export async function getPercentiles(
   stations: number[],
   percentile: number,
-  year_range: YearRange
+  yearRange: YearRange
 ): Promise<PercentilesResponse> {
   const url = '/percentiles'
 
@@ -47,7 +47,7 @@ export async function getPercentiles(
     const { data } = await axios.post(url, {
       stations,
       percentile,
-      year_range
+      year_range: yearRange
     })
     return data
   } catch (err) {
