@@ -9,7 +9,7 @@ parameters:
   - name: GIT_URL
     value: https://github.com/bcgov/wps-api.git
   - name: GIT_REF
-    value: prototype
+    value: master
 labels:
   app.kubernetes.io/part-of: 'wps-api'
 objects:
@@ -20,7 +20,7 @@ objects:
       openshift.io/generated-by: OpenShiftNewBuild
     creationTimestamp: null
     labels:
-      app: wps-api
+      app: ${NAME}${SUFFIX}
     name: wps-api
   spec:
     lookupPolicy:
@@ -34,7 +34,7 @@ objects:
       openshift.io/generated-by: OpenShiftNewBuild
     creationTimestamp: null
     labels:
-      app: wps-api
+      app: ${NAME}${SUFFIX}
     name: wps-api${SUFFIX}
   spec:
     nodeSelector: null
@@ -61,8 +61,6 @@ objects:
     strategy:
       dockerStrategy:
         env:
-          #- name: UPGRADE_PIP_TO_LATEST
-            #value: 'true'
           - name: ENABLE_PIPENV
             value: 'true'
         from:
