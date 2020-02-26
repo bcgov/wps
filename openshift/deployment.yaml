@@ -8,9 +8,20 @@ parameters:
   - name: TAG
     value: latest
     description: The output image tag being deployed
-#  - name: DOCKER_REGISTRY
-#    required: true
+  - name: DOCKER_REGISTRY
+    required: true
 objects:
+- apiVersion: v1
+  data:
+    env.origins: |
+      'wps-web-dev-7-secure-auzhsi.pathfinder.gov.bc.ca',
+      'wps-web-dev-7-auzhsi.pathfinder.gov.bc.ca'
+  kind: ConfigMap
+  metadata:
+    creationTimestamp: null
+    name: ${NAME}${SUFFIX}-props
+    labels:
+      app: ${NAME}${SUFFIX}
 - apiVersion: image.openshift.io/v1
   kind: ImageStream
   metadata:
@@ -18,7 +29,7 @@ objects:
       openshift.io/generated-by: OpenShiftNewBuild
     creationTimestamp: null
     labels:
-      app: wps-api
+      app: ${NAME}${SUFFIX}
     name: ${NAME}
   spec:
     lookupPolicy:
@@ -35,7 +46,7 @@ objects:
     replicas: 1
     selector:
       matchLabels:
-        app: wps-api
+        app: ${NAME}${SUFFIX}
     template:
       metadata:
         labels:
@@ -43,9 +54,15 @@ objects:
       spec:
         automountServiceAccountToken: false
         containers:
-          - image: docker-registry.default.svc:5000/auzhsi-tools/wps-api:latest
+          - image: ${DOCKER_REGISTRY}/${NAME}:${TAG}
             imagePullPolicy: Always
             name: wps-api
+            env: 
+              - name: ORIGINS
+                valueFrom:
+                  configMapKeyRef:
+                    name: ${NAME}${SUFFIX}-props
+                    key: env.origins
             ports:
               - containerPort: 8080
             resources:
