@@ -8,10 +8,11 @@ import MapIcon from '@material-ui/icons/Map'
 import IconButton from '@material-ui/core/IconButton'
 import { Station } from 'api/stationAPI'
 import { selectStationsReducer } from 'app/rootReducer'
+import { WEATHER_STATION_MAP_LINK } from 'utils/constants'
 
 const useStyles = makeStyles({
   root: {
-    width: 600
+    width: 700
   },
   mapIcon: {
     padding: 10
@@ -31,10 +32,7 @@ export const WeatherStationsDropdown = (props: Props) => {
   const { stations, error } = useSelector(selectStationsReducer)
 
   const onMapIconClick = () => {
-    window.open(
-      'https://governmentofbc.maps.arcgis.com/apps/webappviewer/index.html?id=c36baf74b74a46978cf517579a9ee332',
-      '_blank'
-    )
+    window.open(WEATHER_STATION_MAP_LINK, '_blank')
   }
 
   return (
@@ -62,8 +60,9 @@ export const WeatherStationsDropdown = (props: Props) => {
         />
         <Tooltip title="Navigate to Weather Stations Map">
           <IconButton
-            color="primary"
+            data-testid="map-icon"
             className={classes.mapIcon}
+            color="primary"
             aria-label="directions"
             onClick={onMapIconClick}
           >

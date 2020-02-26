@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { makeStyles } from '@material-ui/core/styles'
 
 import { Station } from 'api/stationAPI'
 import { selectPercentilesReducer } from 'app/rootReducer'
@@ -8,14 +9,22 @@ import { Container } from 'components/Container'
 import { fetchStations } from 'features/fwiCalculator/slices/stationsSlice'
 import { WeatherStationsDropdown } from 'features/fwiCalculator/components/StationsDropdown'
 import { ActionButtons } from 'features/fwiCalculator/components/ActionButtons'
-import { TimeRangeOptionsDropdown } from 'features/fwiCalculator/components/TimeRangeDropdown'
-import { PercentileTextfield } from 'features/fwiCalculator/components/percentileTextfield'
+import { TimeRangeTextfield } from 'features/fwiCalculator/components/TimeRangeTextfield'
+import { PercentileTextfield } from 'features/fwiCalculator/components/PercentileTextfield'
 import {
   fetchPercentiles,
   resetPercentilesResult
 } from 'features/fwiCalculator/slices/percentilesSlice'
+import { PercentileResultTable } from 'features/fwiCalculator/components/PercentileResultTable'
+
+const useStyles = makeStyles({
+  resultTables: {
+    display: 'flex'
+  }
+})
 
 export const FWICalculatorPage = () => {
+  const classes = useStyles()
   const dispatch = useDispatch()
   const [stations, setStations] = useState<Station[]>([])
   const { result } = useSelector(selectPercentilesReducer)
@@ -52,7 +61,7 @@ export const FWICalculatorPage = () => {
           onStationsChange={onStationsChange}
         />
 
-        <TimeRangeOptionsDropdown />
+        <TimeRangeTextfield />
 
         <PercentileTextfield />
 
@@ -62,7 +71,20 @@ export const FWICalculatorPage = () => {
           onResetClick={onResetClick}
         />
 
-        {result && <pre>{JSON.stringify(result, null, 2)}</pre>}
+        <div className={classes.resultTables}>
+          {stations.map(station => {
+            const stationResult = result?.stations[station.code]
+            if (!stationResult) return null
+
+            return (
+              <PercentileResultTable
+                key={station.code}
+                station={station}
+                stationResponse={stationResult}
+              />
+            )
+          })}
+        </div>
       </Container>
     </>
   )

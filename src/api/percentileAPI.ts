@@ -12,7 +12,7 @@ export interface YearRange {
   end: number
 }
 
-interface StationSummaryResponse {
+export interface StationSummaryResponse {
   FFMC: number
   ISI: number
   BUI: number
