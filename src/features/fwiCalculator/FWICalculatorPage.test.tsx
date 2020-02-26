@@ -31,8 +31,8 @@ it('renders FWI calculator page', async () => {
 
   fireEvent.click(getByTestId('weather-station-dropdown'))
   const [station1] = await waitForElement(() => [
-    getByText('Station 1(1)'),
-    getByText('Station 2(2)')
+    getByText('Station 1 (1)'),
+    getByText('Station 2 (2)')
   ])
   fireEvent.click(station1)
 

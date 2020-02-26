@@ -21,7 +21,7 @@ const stations = createSlice({
     getStationsStart(state: StationsState) {
       state.isLoading = true
     },
-    getStationsError(state: StationsState, action: PayloadAction<string>) {
+    getStationsFailed(state: StationsState, action: PayloadAction<string>) {
       state.isLoading = false
       state.error = action.payload
     },
@@ -35,7 +35,7 @@ const stations = createSlice({
 
 export const {
   getStationsStart,
-  getStationsError,
+  getStationsFailed,
   getStationsSuccess
 } = stations.actions
 
@@ -47,6 +47,6 @@ export const fetchStations = (): AppThunk => async dispatch => {
     const stations = await getStations()
     dispatch(getStationsSuccess(stations))
   } catch (err) {
-    dispatch(getStationsError(err.toString()))
+    dispatch(getStationsFailed(err.toString()))
   }
 }

@@ -22,6 +22,11 @@ const theme = createMuiTheme({
     warning: { main: '#FE7921' },
     contrastThreshold: 3,
     tonalOffset: 0.1
+  },
+  typography: {
+    button: {
+      textTransform: 'none'
+    }
   }
 })
 

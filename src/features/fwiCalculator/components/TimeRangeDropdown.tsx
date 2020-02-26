@@ -5,6 +5,7 @@ import { makeStyles } from '@material-ui/core/styles'
 
 const useStyles = makeStyles({
   root: {
+    marginTop: 15,
     width: 300
   }
 })
@@ -13,14 +14,15 @@ export const timeRangeOptions = ['10']
 
 export const TimeRangeOptionsDropdown = () => {
   const classes = useStyles()
+
   return (
     <>
       <Autocomplete
-        disabled
+        className={classes.root}
         data-testid="time-range-dropdown"
+        disabled
         defaultValue={timeRangeOptions[0]}
         options={timeRangeOptions}
-        className={classes.root}
         renderInput={params => (
           <TextField
             {...params}
