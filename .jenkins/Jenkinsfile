@@ -52,38 +52,38 @@ pipeline {
                 }
             }
         }
-        stage('Tests (DEV)') {
-            agent { label 'deploy' }
-            steps {
-                echo "Testing ..."
-                script {
-                    sh "echo UNIT TESTS"
-                    sh "echo SMOKE TESTS"
-                    sh "echo API TESTS"
-                }
-            }
-        }
-        stage('Deploy (TEST)') {
-            agent { label 'deploy' }
-            input {
-                message "Should we continue with deployment to TEST?"
-                ok "Yes!"
-            }
-            steps {
-                echo "Deploying ..."
-            }
-        }
-        stage('Tests (TEST)') {
-            agent { label 'deploy' }
-            steps {
-                echo "Testing ..."
-                script {
-                    sh "echo UNIT TESTS"
-                    sh "echo SMOKE TESTS"
-                    sh "echo ZAP TESTS"
-                }
-            }
-        }
+        // stage('Tests (DEV)') {
+        //     agent { label 'deploy' }
+        //     steps {
+        //         echo "Testing ..."
+        //         script {
+        //             sh "echo UNIT TESTS"
+        //             sh "echo SMOKE TESTS"
+        //             sh "echo API TESTS"
+        //         }
+        //     }
+        // }
+        // stage('Deploy (TEST)') {
+        //     agent { label 'deploy' }
+        //     // input {
+        //     //     message "Should we continue with deployment to TEST?"
+        //     //     ok "Yes!"
+        //     // }
+        //     steps {
+        //         echo "Deploying ..."
+        //     }
+        // }
+        // stage('Tests (TEST)') {
+        //     agent { label 'deploy' }
+        //     steps {
+        //         echo "Testing ..."
+        //         script {
+        //             sh "echo UNIT TESTS"
+        //             sh "echo SMOKE TESTS"
+        //             sh "echo ZAP TESTS"
+        //         }
+        //     }
+        // }
         stage('Promote (PROD)') {
             agent { label 'deploy' }
             input {
