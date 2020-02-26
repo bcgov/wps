@@ -50,7 +50,7 @@ This project is licensed under the [Apache License, Version 2.0](https://github.
 
 Inspiration, code snippets, etc.
 
-- [Create React App](https://github.com/facebook/create-react-app)
+- [Create React App](https://github.com/facebook/create-react-app/)
 - [Redux Toolkit - advanced tutorial](https://redux-toolkit.js.org/tutorials/advanced-tutorial/)
 
 Template copied from
