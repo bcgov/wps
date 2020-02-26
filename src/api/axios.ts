@@ -5,6 +5,8 @@ const isBuilt = process.env.NODE_ENV === 'production'
 // const baseURL = isBuilt ? '{{.Env.API_BASE_URL}}' : local
 const baseURL = isBuilt ? process.env.REACT_APP_API_BASE_URL : local
 
-const instance = axios.create({ baseURL })
+const instance = axios.create({
+  baseURL: 'https://wps-api-dev-13-secure-auzhsi.pathfinder.gov.bc.ca'
+})
 
 export default instance
