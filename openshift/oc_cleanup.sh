@@ -1,6 +1,6 @@
 #!/bin/bash
 #%
-#% OpenShift Deploy Helper
+#% OpenShift Cleanup Helper
 #%
 #%   Intended for use with a pull request-based pipeline.
 #%
@@ -10,14 +10,14 @@
 #%
 #% Examples:
 #%
-#%   Provide a PR number. Defaults to a dry-run.
+#%   Provide a PR number. Default only returns object names.
 #%   ${THIS_FILE} 0
 #%
 #%   Apply when satisfied.
 #%   ${THIS_FILE} 0 apply
 #%
 #%   Override variables at runtime.
-#%   NAME=name PROJECT=project PATH_DC=./dc.yaml ${THIS_FILE} 0 apply
+#%   PROJ_TOOLS=tools PROJ_DEPLOY=dev ${THIS_FILE} 0 apply
 #%
 
 # Specify halt conditions (errors, unsets, non-zero pipes), field separator and verbosity
@@ -52,19 +52,23 @@ $(oc whoami &>/dev/null) || {
 	exit
 }
 
-# Process commands
+# Set and process commands
 #
-OC_PROCESS="oc -n ${PROJ_TOOLS} process -f ${PATH_DC} -p NAME=${NAME} -p SUFFIX=pr-${PR_NO}"
-OC_APPLY="oc -n ${PROJ_DEPLOY} apply -f -"
-OC_COMMAND="${OC_PROCESS} | ${OC_APPLY}"
-#
-[ "${APPLY}" == "apply" ] || {
-	OC_COMMAND+=" --dry-run"
-	eval "${OC_PROCESS}"
-	echo -e "\n*** This is a dry run.  Use 'apply' to deploy. ***\n"
-}
-eval "${OC_COMMAND}"
+APP_LABEL="${NAME}-pr-${PR_NO}"
+if [ "${APPLY}" == "apply" ]; then
+	OC_CLEAN_DEPLOY="oc -n ${PROJ_DEPLOY} delete all -o name -l app=${APP_LABEL}"
+	OC_CLEAN_TOOLS="oc -n ${PROJ_TOOLS} delete all -o name -l app=${APP_LABEL}"
+else
+	OC_CLEAN_DEPLOY="oc -n ${PROJ_DEPLOY} get all -o name -l app=${APP_LABEL}"
+	OC_CLEAN_TOOLS="oc -n ${PROJ_TOOLS} get all -o name -l app=${APP_LABEL}"
+	echo -e "\n*** This only a listing.  Use 'apply' to delete. ***"
+fi
+echo -e "\n${PROJ_DEPLOY}:"
+eval "${OC_CLEAN_DEPLOY}"
+echo -e "\n${PROJ_TOOLS}:"
+eval "${OC_CLEAN_TOOLS}"
 
 # Provide oc command instruction
 #
-echo -e "\n${OC_COMMAND}\n"
+echo -e "\n${OC_CLEAN_DEPLOY}"
+echo -e "\n${OC_CLEAN_TOOLS}\n"
