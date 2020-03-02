@@ -69,7 +69,7 @@ eval "${OC_COMMAND}"
 #
 [ "${APPLY}" != "apply" ] || {
 	POD_SOURCE=$(oc get bc -n ${PROJ_TOOLS} -o name -l app=${NAME}-pr-${PR_NO} | grep "source")
-	POD_DOCKER=$(oc get bc -n ${PROJ_TOOLS} -o name -l app=${NAME}-pr-${PR_NO} | grep "docker")
+	POD_DOCKER=$(oc get bc -n ${PROJ_TOOLS} -o name -l app=${NAME}-pr-${PR_NO} | grep -v "source")
 	oc logs -n ${PROJ_TOOLS} --follow ${POD_SOURCE}
 	oc logs -n ${PROJ_TOOLS} --follow ${POD_DOCKER}
 }

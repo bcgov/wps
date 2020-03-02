@@ -1,6 +1,7 @@
 NAME=wps-web
 PROJ_TOOLS=auzhsi-tools
-PROJ_DEPLOY=auzhsi-dev
+PROJ_DEV=auzhsi-dev
+PROJ_PROD=auzhsi-prod
 GIT_URL=${GIT_URL:-$(git remote get-url origin)}
 GIT_BRANCH=${GIT_BRANCH:-$(git rev-parse --abbrev-ref HEAD)}
 PATH_BC=${PATH_BC:-$(dirname ${0})/templates/build.bc.yaml}

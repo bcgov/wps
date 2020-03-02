@@ -26,7 +26,8 @@ objects:
         openshift.io/generated-by: OpenShiftNewBuild
       creationTimestamp: null
       labels:
-        app: ${NAME}-${SUFFIX}
+        app: ${NAME}
+        common: "true"
       name: ${NAME}
     spec:
       lookupPolicy:
@@ -105,7 +106,7 @@ objects:
       creationTimestamp: null
       labels:
         app: ${NAME}-${SUFFIX}
-      name: ${NAME}-docker-${SUFFIX}
+      name: ${NAME}-${SUFFIX}
     spec:
       nodeSelector: null
       runPolicy: SerialLatestOnly
