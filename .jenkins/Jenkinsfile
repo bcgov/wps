@@ -6,7 +6,9 @@ pipeline {
         ver = "0.0.1"
         projTools = "auzhsi-tools"
         projDev = "auzhsi-dev"
+        projProd = "auzhsi-prod"
         suffix = "pr-${env.CHANGE_ID}"
+        rcToken="https://chat.pathfinder.gov.bc.ca/hooks/7A8RwSpZPDAqc6uXS/z8nRXX43oifYWELkwJKeLj4e86rtyfvtJdqdvjSE3XoK2sri"
     }
     options {
         disableResume()
@@ -50,35 +52,6 @@ pipeline {
                 }
             }
         }
-        // stage('Tests (DEV)') {
-        //     agent { label 'deploy' }
-        //     steps {
-        //         script {
-        //             sh "echo UNIT TESTS"
-        //             sh "echo SMOKE TESTS"
-        //             sh "echo API TESTS"
-        //         }
-        //     }
-        // }
-        // stage('Deploy (TEST)') {
-        //     agent { label 'deploy' }
-        //     // input {
-        //     //     message "Should we continue with deployment to TEST?"
-        //     //     ok "Yes!"
-        //     // }
-        //     steps {
-        //     }
-        // }
-        // stage('Tests (TEST)') {
-        //     agent { label 'deploy' }
-        //     steps {
-        //         script {
-        //             sh "echo UNIT TESTS"
-        //             sh "echo SMOKE TESTS"
-        //             sh "echo ZAP TESTS"
-        //         }
-        //     }
-        // }
         stage('Promote (PROD)') {
             agent { label 'deploy' }
             input {
@@ -86,39 +59,25 @@ pipeline {
                 ok "Yes!"
             }
             steps {
-                sh "echo Promote to prod"
-            }
-        }
-        stage('Backups (PROD)') {
-            agent { label 'deploy' }
-            steps {
                 script {
-                    sh "echo Tag known good prod images, backup databases, backup settings"
+                    sh "./openshift/oc_promote.sh ${env.CHANGE_ID} apply"
                 }
             }
         }
-        stage('Update routes (PROD)') {
+        stage('Post-promote (PROD)') {
             agent { label 'deploy' }
             steps {
                 script {
-                    sh "echo SMOKE TESTS"
-                }
-            }
-        }
-        stage('Smoke tests (PROD)') {
-            agent { label 'deploy' }
-            steps {
-                script {
-                    sh "echo SMOKE TESTS"
+                    sh """
+                        echo "TO DO: echo Tag known good prod images, backup databases, backup settings"
+                        echo "Update on Rocket.Chat dev channel"
+                        curl -X POST -H "Content-Type: application/json" ${rcToken} -d '{"text":"${SUFFIX} deployed to ${projProd}."}' --connect-timeout 30 --max-time 30
+                    """
                 }
             }
         }
         stage('Cleanup') {
             agent { label 'deploy' }
-            input {
-                message "Should we continue with cleanup?"
-                ok "Yes!"
-            }
             steps {
                 script {
                     sh "./openshift/oc_cleanup.sh ${env.CHANGE_ID} apply"

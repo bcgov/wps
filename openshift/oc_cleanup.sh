@@ -17,7 +17,7 @@
 #%   ${THIS_FILE} 0 apply
 #%
 #%   Override variables at runtime.
-#%   PROJ_TOOLS=tools PROJ_DEPLOY=dev ${THIS_FILE} 0 apply
+#%   PROJ_TOOLS=tools PROJ_DEV=dev ${THIS_FILE} 0 apply
 #%
 
 # Specify halt conditions (errors, unsets, non-zero pipes), field separator and verbosity
@@ -56,14 +56,14 @@ $(oc whoami &>/dev/null) || {
 #
 APP_LABEL="${NAME}-pr-${PR_NO}"
 if [ "${APPLY}" == "apply" ]; then
-	OC_CLEAN_DEPLOY="oc -n ${PROJ_DEPLOY} delete all -o name -l app=${APP_LABEL}"
+	OC_CLEAN_DEPLOY="oc -n ${PROJ_DEV} delete all -o name -l app=${APP_LABEL}"
 	OC_CLEAN_TOOLS="oc -n ${PROJ_TOOLS} delete all -o name -l app=${APP_LABEL}"
 else
-	OC_CLEAN_DEPLOY="oc -n ${PROJ_DEPLOY} get all -o name -l app=${APP_LABEL}"
+	OC_CLEAN_DEPLOY="oc -n ${PROJ_DEV} get all -o name -l app=${APP_LABEL}"
 	OC_CLEAN_TOOLS="oc -n ${PROJ_TOOLS} get all -o name -l app=${APP_LABEL}"
 	echo -e "\n*** This only a listing.  Use 'apply' to delete. ***"
 fi
-echo -e "\n${PROJ_DEPLOY}:"
+echo -e "\n${PROJ_DEV}:"
 eval "${OC_CLEAN_DEPLOY}"
 echo -e "\n${PROJ_TOOLS}:"
 eval "${OC_CLEAN_TOOLS}"

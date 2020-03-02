@@ -41,20 +41,6 @@ objects:
       name: caddyfile-${NAME}-${SUFFIX}
       labels:
         app: ${NAME}-${SUFFIX}
-  - apiVersion: image.openshift.io/v1
-    kind: ImageStream
-    metadata:
-      annotations:
-        openshift.io/generated-by: OpenShiftNewBuild
-      creationTimestamp: null
-      labels:
-        app: ${NAME}-${SUFFIX}
-      name: ${NAME}
-    spec:
-      lookupPolicy:
-        local: false
-    status:
-      dockerImageRepository: ""
   - apiVersion: apps/v1
     kind: Deployment
     metadata:
@@ -136,7 +122,7 @@ objects:
         app: ${NAME}-${SUFFIX}
       name: ${NAME}-${SUFFIX}-source
     spec:
-      host: ${NAME}-${SUFFIX}-source-${PROJECT_DEPLOY}.pathfinder.gov.bc.ca
+      host: ${NAME}-${SUFFIX}.pathfinder.gov.bc.ca
       port:
         targetPort: 8080-tcp
       to:

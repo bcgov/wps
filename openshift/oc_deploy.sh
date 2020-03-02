@@ -55,7 +55,7 @@ $(oc whoami &>/dev/null) || {
 # Process commands
 #
 OC_PROCESS="oc -n ${PROJ_TOOLS} process -f ${PATH_DC} -p NAME=${NAME} -p SUFFIX=pr-${PR_NO}"
-OC_APPLY="oc -n ${PROJ_DEPLOY} apply -f -"
+OC_APPLY="oc -n ${PROJ_DEV} apply -f -"
 OC_COMMAND="${OC_PROCESS} | ${OC_APPLY}"
 #
 [ "${APPLY}" == "apply" ] || {
