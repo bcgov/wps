@@ -17,11 +17,11 @@ export interface StationSummaryResponse {
   ISI: number
   BUI: number
   season: SeasonResponse
-  year_range: YearRange
+  years: number[]
   station_name: string
 }
 
-interface MeanValues {
+export interface MeanValues {
   FFMC: number
   ISI: number
   BUI: number

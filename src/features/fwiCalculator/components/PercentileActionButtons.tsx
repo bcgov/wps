@@ -19,7 +19,7 @@ interface Props {
   onResetClick: () => void
 }
 
-export const ActionButtons = ({
+export const PercentileActionButtons = ({
   stations,
   onCalculateClick,
   onResetClick
@@ -34,6 +34,7 @@ export const ActionButtons = ({
 
       <Button
         className={classes.calculateBtn}
+        data-testid="calculate-percentiles-button"
         disabled={stations.length === 0}
         variant="contained"
         color="primary"
