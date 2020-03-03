@@ -8,7 +8,13 @@ Wildfire Predictive Services support decision making in prevention, preparedness
 
 ### Dependencies
 
-* docker
+* Docker [Mac](https://hub.docker.com/editions/community/docker-ce-desktop-mac/), [Win](https://hub.docker.com/editions/community/docker-ce-desktop-windows/), [Ubuntu](https://docs.docker.com/install/linux/docker-ce/ubuntu/), [Fedora](https://docs.docker.com/install/linux/docker-ce/fedora/)
+
+* Docker Compose
+
+```
+brew install docker-compose
+```
 
 ### Installing
 
@@ -37,7 +43,7 @@ pipenv install --dev
 ```
 If you have trouble getting pipenv to resolve python 3.8.1, you can also try:
 ```
-pipenv install --python /Users/<your user>/.pyenv/versions/3.6.10/bin/python3.6 --dev
+pipenv install --python ~/.pyenv/versions/3.6.10/bin/python3.6 --dev
 ```
 
 ### Executing program
