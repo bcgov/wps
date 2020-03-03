@@ -8,9 +8,8 @@
         "end_month": 8,
         "end_day": 31
     },
-    "year_range": {
-        "start": 2010,
-        "end": 2019
-    },
+    "years": [
+        2015
+    ],
     "station_name": "ZZ CLENDINNING 2 QD"
 }
