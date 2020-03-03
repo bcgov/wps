@@ -1,33 +1,23 @@
 import React, { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { makeStyles } from '@material-ui/core/styles'
+import { useDispatch } from 'react-redux'
 
 import { Station } from 'api/stationAPI'
-import { selectPercentilesReducer } from 'app/rootReducer'
 import { PageTitle } from 'components/PageTitle'
 import { Container } from 'components/Container'
 import { fetchStations } from 'features/fwiCalculator/slices/stationsSlice'
-import { WeatherStationsDropdown } from 'features/fwiCalculator/components/StationsDropdown'
-import { ActionButtons } from 'features/fwiCalculator/components/ActionButtons'
-import { TimeRangeTextfield } from 'features/fwiCalculator/components/TimeRangeTextfield'
-import { PercentileTextfield } from 'features/fwiCalculator/components/PercentileTextfield'
 import {
   fetchPercentiles,
   resetPercentilesResult
 } from 'features/fwiCalculator/slices/percentilesSlice'
-import { PercentileResultTable } from 'features/fwiCalculator/components/PercentileResultTable'
-
-const useStyles = makeStyles({
-  resultTables: {
-    display: 'flex'
-  }
-})
+import { WeatherStationsDropdown } from 'features/fwiCalculator/components/StationsDropdown'
+import { PercentileActionButtons } from 'features/fwiCalculator/components/PercentileActionButtons'
+import { TimeRangeTextfield } from 'features/fwiCalculator/components/TimeRangeTextfield'
+import { PercentileTextfield } from 'features/fwiCalculator/components/PercentileTextfield'
+import { FWICalculatorResults } from 'features/fwiCalculator/FWICalculatorResults'
 
 export const FWICalculatorPage = () => {
-  const classes = useStyles()
   const dispatch = useDispatch()
   const [stations, setStations] = useState<Station[]>([])
-  const { result } = useSelector(selectPercentilesReducer)
 
   useEffect(() => {
     dispatch(fetchStations())
@@ -65,26 +55,13 @@ export const FWICalculatorPage = () => {
 
         <PercentileTextfield />
 
-        <ActionButtons
+        <PercentileActionButtons
           stations={stations}
           onCalculateClick={onCalculateClick}
           onResetClick={onResetClick}
         />
 
-        <div className={classes.resultTables}>
-          {stations.map(station => {
-            const stationResult = result?.stations[station.code]
-            if (!stationResult) return null
-
-            return (
-              <PercentileResultTable
-                key={station.code}
-                station={station}
-                stationResponse={stationResult}
-              />
-            )
-          })}
-        </div>
+        <FWICalculatorResults />
       </Container>
     </>
   )

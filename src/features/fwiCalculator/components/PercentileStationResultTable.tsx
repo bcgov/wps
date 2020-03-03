@@ -10,7 +10,6 @@ import {
 } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 import { StationSummaryResponse } from 'api/percentileAPI'
-import { Station } from 'api/stationAPI'
 
 const useStyles = makeStyles({
   root: {
@@ -21,24 +20,27 @@ const useStyles = makeStyles({
 })
 
 interface Props {
-  station: Station
+  stationCode: string
   stationResponse: StationSummaryResponse
 }
 
-export const PercentileResultTable = ({ station, stationResponse }: Props) => {
+export const PercentileStationResultTable = ({
+  stationCode,
+  stationResponse
+}: Props) => {
   const classes = useStyles()
-  const { season, FFMC, BUI, ISI, year_range } = stationResponse
+  const { season, FFMC, BUI, ISI, years, station_name } = stationResponse
   const seasonRange = `${season.start_month}/${season.start_day} ~ ${season.end_month}/${season.end_day}`
-  const yearRange = `${year_range.start} ~ ${year_range.end}`
+  const yearRange = years.join(', ')
 
   return (
     <TableContainer component={Paper} className={classes.root}>
       <Table aria-label="simple table">
         <TableHead>
           <TableRow>
-            <TableCell>Station Name (Code)</TableCell>
+            <TableCell>Station Name</TableCell>
             <TableCell>
-              {station.name} ({station.code})
+              {station_name} ({stationCode})
             </TableCell>
           </TableRow>
         </TableHead>
@@ -48,19 +50,20 @@ export const PercentileResultTable = ({ station, stationResponse }: Props) => {
             <TableCell>{FFMC.toFixed(1)}</TableCell>
           </TableRow>
           <TableRow>
-            <TableCell>ISI</TableCell>
-            <TableCell>{ISI.toFixed(1)}</TableCell>
-          </TableRow>
-          <TableRow>
             <TableCell>BUI</TableCell>
             <TableCell>{BUI.toFixed(1)}</TableCell>
           </TableRow>
+          <TableRow>
+            <TableCell>ISI</TableCell>
+            <TableCell>{ISI.toFixed(1)}</TableCell>
+          </TableRow>
+
           <TableRow>
             <TableCell>Season (mm/dd)</TableCell>
             <TableCell>{seasonRange}</TableCell>
           </TableRow>
           <TableRow>
-            <TableCell>Time Range</TableCell>
+            <TableCell>Years</TableCell>
             <TableCell>{yearRange}</TableCell>
           </TableRow>
           <TableRow>

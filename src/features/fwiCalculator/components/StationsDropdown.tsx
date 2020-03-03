@@ -9,6 +9,7 @@ import IconButton from '@material-ui/core/IconButton'
 import { Station } from 'api/stationAPI'
 import { selectStationsReducer } from 'app/rootReducer'
 import { WEATHER_STATION_MAP_LINK } from 'utils/constants'
+import { ErrorMessage } from 'components/ErrorMessage'
 
 const useStyles = makeStyles({
   root: {
@@ -70,7 +71,9 @@ export const WeatherStationsDropdown = (props: Props) => {
           </IconButton>
         </Tooltip>
       </div>
-      {error && <div>{error} (while fetching weather stations) </div>}
+      {error && (
+        <ErrorMessage message={error} when="while fetching weather stations" />
+      )}
     </>
   )
 }
