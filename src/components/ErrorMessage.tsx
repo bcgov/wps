@@ -1,7 +1,7 @@
 import React from 'react'
-import { makeStyles, Theme } from '@material-ui/core/styles'
+import { makeStyles } from '@material-ui/core/styles'
 
-const useStyles = makeStyles<Theme>(theme => ({
+const useStyles = makeStyles(theme => ({
   root: {
     color: theme.palette.error.main,
     marginTop: (props: any) => props.marginTop // eslint-disable-line @typescript-eslint/no-explicit-any
