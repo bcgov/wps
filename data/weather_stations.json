@@ -1,1016 +1,1015 @@
 {
- "weather_stations": [
-  {
-   "code": "322",
-   "name": "AFTON"
-  },
-  {
-   "code": "838",
-   "name": "AKOKLI CREEK"
-  },
-  {
-   "code": "209",
-   "name": "ALEXIS CREEK"
-  },
-  {
-   "code": "317",
-   "name": "ALLISON PASS"
-  },
-  {
-   "code": "213",
-   "name": "ANAHIM LAKE HUB"
-  },
-  {
-   "code": "977",
-   "name": "ANDERSON CREEK"
-  },
-  {
-   "code": "1275",
-   "name": "APE LAKE"
-  },
-  {
-   "code": "331",
-   "name": "ASHNOLA"
-  },
-  {
-   "code": "302",
-   "name": "ASPEN GROVE"
-  },
-  {
-   "code": "111",
-   "name": "ATLIN"
-  },
-  {
-   "code": "167",
-   "name": "AUGIER LAKE"
-  },
-  {
-   "code": "836",
-   "name": "AUGUST LAKE"
-  },
-  {
-   "code": "503",
-   "name": "BAKER EAST/WEST HUB"
-  },
-  {
-   "code": "221",
-   "name": "BALDFACE"
-  },
-  {
-   "code": "149",
-   "name": "BEAR LAKE"
-  },
-  {
-   "code": "37",
-   "name": "BEAVER CREEK"
-  },
-  {
-   "code": "390",
-   "name": "BEAVERDELL"
-  },
-  {
-   "code": "175",
-   "name": "BEDNESTI"
-  },
-  {
-   "code": "509",
-   "name": "BEGBIE SF"
-  },
-  {
-   "code": "432",
-   "name": "BELL-IRVING"
-  },
-  {
-   "code": "228",
-   "name": "BENSON"
-  },
-  {
-   "code": "267",
-   "name": "BERRY"
-  },
-  {
-   "code": "868",
-   "name": "BIG MOUTH 2"
-  },
-  {
-   "code": "1040",
-   "name": "BIG SILVER 2"
-  },
-  {
-   "code": "262",
-   "name": "BIG VALLEY"
-  },
-  {
-   "code": "148",
-   "name": "BLACKPINE"
-  },
-  {
-   "code": "866",
-   "name": "BLAEBERRY"
-  },
-  {
-   "code": "1108",
-   "name": "BLUE RIVER 2"
-  },
-  {
-   "code": "113",
-   "name": "BOB QUINN LAKE"
-  },
-  {
-   "code": "193",
-   "name": "BOWRON HAGGEN"
-  },
-  {
-   "code": "56",
-   "name": "BOWSER"
-  },
-  {
-   "code": "445",
-   "name": "BOYA LAKE"
-  },
-  {
-   "code": "283",
-   "name": "BRENDA MINES"
-  },
-  {
-   "code": "865",
-   "name": "BRISCO"
-  },
-  {
-   "code": "181",
-   "name": "BURNS LAKE 850M"
-  },
-  {
-   "code": "253",
-   "name": "CAHILTY"
-  },
-  {
-   "code": "793",
-   "name": "CARIBOO CREEK"
-  },
-  {
-   "code": "199",
-   "name": "CATFISH"
-  },
-  {
-   "code": "59",
-   "name": "CEDAR"
-  },
-  {
-   "code": "429",
-   "name": "CEDARVALE"
-  },
-  {
-   "code": "1283",
-   "name": "CHEAKAMUS"
-  },
-  {
-   "code": "791",
-   "name": "CHERRY LAKE"
-  },
-  {
-   "code": "189",
-   "name": "CHILAKO"
-  },
-  {
-   "code": "832",
-   "name": "CHURN CREEK"
-  },
-  {
-   "code": "239",
-   "name": "CLEARWATER HUB"
-  },
-  {
-   "code": "232",
-   "name": "COLDSCAUR LAKE"
-  },
-  {
-   "code": "433",
-   "name": "CRANBERRY"
-  },
-  {
-   "code": "426",
-   "name": "CRANBROOK FS"
-  },
-  {
-   "code": "873",
-   "name": "CRAWFORD"
-  },
-  {
-   "code": "352",
-   "name": "CURWEN CREEK"
-  },
-  {
-   "code": "292",
-   "name": "D'ARCY"
-  },
-  {
-   "code": "1203",
-   "name": "DARKWOODS"
-  },
-  {
-   "code": "108",
-   "name": "DEASE LAKE FS"
-  },
-  {
-   "code": "251",
-   "name": "DECEPTION"
-  },
-  {
-   "code": "421",
-   "name": "DEWAR CREEK"
-  },
-  {
-   "code": "905",
-   "name": "DOWNIE"
-  },
-  {
-   "code": "385",
-   "name": "DUNCAN"
-  },
-  {
-   "code": "243",
-   "name": "EAST BARRIERE"
-  },
-  {
-   "code": "170",
-   "name": "EAST OOTSA"
-  },
-  {
-   "code": "391",
-   "name": "EIGHT MILE"
-  },
-  {
-   "code": "438",
-   "name": "ELK MOUNTAIN"
-  },
-  {
-   "code": "412",
-   "name": "ELKO"
-  },
-  {
-   "code": "425",
-   "name": "EMILY CREEK"
-  },
-  {
-   "code": "383",
-   "name": "FALLS CREEK"
-  },
-  {
-   "code": "298",
-   "name": "FINTRY"
-  },
-  {
-   "code": "440",
-   "name": "FIRESIDE"
-  },
-  {
-   "code": "1029",
-   "name": "FIVE MILE"
-  },
-  {
-   "code": "418",
-   "name": "FLATHEAD 2"
-  },
-  {
-   "code": "1144",
-   "name": "FORD MOUNTAIN"
-  },
-  {
-   "code": "599",
-   "name": "FORT NELSON FS"
-  },
-  {
-   "code": "146",
-   "name": "FORT ST JAMES"
-  },
-  {
-   "code": "306",
-   "name": "FRENCH BAR"
-  },
-  {
-   "code": "474",
-   "name": "FROTH  (WIND)"
-  },
-  {
-   "code": "182",
-   "name": "GANOKWA"
-  },
-  {
-   "code": "222",
-   "name": "GASPARD"
-  },
-  {
-   "code": "227",
-   "name": "GAVIN"
-  },
-  {
-   "code": "291",
-   "name": "GLIMPSE"
-  },
-  {
-   "code": "401",
-   "name": "GOATFELL"
-  },
-  {
-   "code": "886",
-   "name": "GOATHAVEN"
-  },
-  {
-   "code": "379",
-   "name": "GOLD HILL"
-  },
-  {
-   "code": "919",
-   "name": "GOLDSTREAM 2"
-  },
-  {
-   "code": "270",
-   "name": "GOSNEL"
-  },
-  {
-   "code": "124",
-   "name": "GRAHAM"
-  },
-  {
-   "code": "392",
-   "name": "GRAND FORKS"
-  },
-  {
-   "code": "161",
-   "name": "GRASSY PLAINS HUB"
-  },
-  {
-   "code": "321",
-   "name": "GREENSTONE HUB"
-  },
-  {
-   "code": "1332",
-   "name": "GRIZZLY EXT"
-  },
-  {
-   "code": "309",
-   "name": "GWYNETH LAKE"
-  },
-  {
-   "code": "904",
-   "name": "HAGENSBORG 2"
-  },
-  {
-   "code": "67",
-   "name": "HAIG CAMP"
-  },
-  {
-   "code": "250",
-   "name": "HARBOUR LAKE"
-  },
-  {
-   "code": "118",
-   "name": "HELMUT"
-  },
-  {
-   "code": "187",
-   "name": "HIXON"
-  },
-  {
-   "code": "201",
-   "name": "HOLMES"
-  },
-  {
-   "code": "654",
-   "name": "HOLY CROSS 2"
-  },
-  {
-   "code": "1349",
-   "name": "HOMATHKO"
-  },
-  {
-   "code": "93",
-   "name": "HONNA"
-  },
-  {
-   "code": "230",
-   "name": "HORSEFLY"
-  },
-  {
-   "code": "162",
-   "name": "HOUSTON(DUNGATE)"
-  },
-  {
-   "code": "343",
-   "name": "HOWARD"
-  },
-  {
-   "code": "132",
-   "name": "HUDSON HOPE"
-  },
-  {
-   "code": "876",
-   "name": "IDABEL LAKE 3"
-  },
-  {
-   "code": "145",
-   "name": "INGENIKA POINT"
-  },
-  {
-   "code": "1331",
-   "name": "INKANEEP EXT"
-  },
-  {
-   "code": "112",
-   "name": "ISKUT"
-  },
-  {
-   "code": "190",
-   "name": "JERRY"
-  },
-  {
-   "code": "419",
-   "name": "JOHNSON LAKE"
-  },
-  {
-   "code": "444",
-   "name": "KETCHIKA"
-  },
-  {
-   "code": "388",
-   "name": "KETTLE 2"
-  },
-  {
-   "code": "428",
-   "name": "KISPIOX HUB"
-  },
-  {
-   "code": "106",
-   "name": "KITPARK"
-  },
-  {
-   "code": "1348",
-   "name": "KLINAKLINI"
-  },
-  {
-   "code": "166",
-   "name": "KLUSKUS"
-  },
-  {
-   "code": "225",
-   "name": "KNIFE"
-  },
-  {
-   "code": "1075",
-   "name": "KOOCANUSA"
-  },
-  {
-   "code": "1323",
-   "name": "LARCH HILLS WEST"
-  },
-  {
-   "code": "307",
-   "name": "LEIGHTON LAKE"
-  },
-  {
-   "code": "140",
-   "name": "LEMORAY"
-  },
-  {
-   "code": "171",
-   "name": "LEO CREEK"
-  },
-  {
-   "code": "255",
-   "name": "LIKELY RS"
-  },
-  {
-   "code": "280",
-   "name": "LILLOOET"
-  },
-  {
-   "code": "1330",
-   "name": "LODESTONE EXT"
-  },
-  {
-   "code": "218",
-   "name": "LONE BUTTE"
-  },
-  {
-   "code": "163",
-   "name": "LOVELL COVE"
-  },
-  {
-   "code": "1350",
-   "name": "LOWER CAIN"
-  },
-  {
-   "code": "362",
-   "name": "MABEL LAKE 2"
-  },
-  {
-   "code": "101",
-   "name": "MACHMELL"
-  },
-  {
-   "code": "1276",
-   "name": "MACHMELL KLINIKLINI"
-  },
-  {
-   "code": "155",
-   "name": "MACKENZIE FS"
-  },
-  {
-   "code": "141",
-   "name": "MANSON"
-  },
-  {
-   "code": "367",
-   "name": "MARION"
-  },
-  {
-   "code": "263",
-   "name": "MATHEW"
-  },
-  {
-   "code": "1082",
-   "name": "MAYSON"
-  },
-  {
-   "code": "195",
-   "name": "MCBRIDE"
-  },
-  {
-   "code": "180",
-   "name": "MCBRIDE LAKE"
-  },
-  {
-   "code": "334",
-   "name": "MCCUDDY"
-  },
-  {
-   "code": "192",
-   "name": "MCGREGOR 2"
-  },
-  {
-   "code": "311",
-   "name": "MCLEAN LAKE"
-  },
-  {
-   "code": "153",
-   "name": "MCLEOD LAKE"
-  },
-  {
-   "code": "236",
-   "name": "MEADOW LAKE"
-  },
-  {
-   "code": "1083",
-   "name": "MEAGER CREEK"
-  },
-  {
-   "code": "19",
-   "name": "MENZIES CAMP"
-  },
-  {
-   "code": "294",
-   "name": "MERRITT HUB"
-  },
-  {
-   "code": "934",
-   "name": "MESACHIE 2"
-  },
-  {
-   "code": "226",
-   "name": "MIDDLE LAKE"
-  },
-  {
-   "code": "165",
-   "name": "MOOSE LAKE"
-  },
-  {
-   "code": "1176",
-   "name": "MUDPIT"
-  },
-  {
-   "code": "131",
-   "name": "MUSKWA"
-  },
-  {
-   "code": "151",
-   "name": "NABESHE"
-  },
-  {
-   "code": "179",
-   "name": "NADINA"
-  },
-  {
-   "code": "316",
-   "name": "NAHATLATCH"
-  },
-  {
-   "code": "407",
-   "name": "NANCY GREEN"
-  },
-  {
-   "code": "1251",
-   "name": "NARROWS INLET"
-  },
-  {
-   "code": "427",
-   "name": "NASS CAMP"
-  },
-  {
-   "code": "505",
-   "name": "NATAL SF"
-  },
-  {
-   "code": "211",
-   "name": "NAZKO"
-  },
-  {
-   "code": "789",
-   "name": "NEGRO CREEK"
-  },
-  {
-   "code": "119",
-   "name": "NELSON FORKS"
-  },
-  {
-   "code": "216",
-   "name": "NEMIAH"
-  },
-  {
-   "code": "393",
-   "name": "NICOLL"
-  },
-  {
-   "code": "172",
-   "name": "NILKITKWA"
-  },
-  {
-   "code": "437",
-   "name": "NOEL"
-  },
-  {
-   "code": "408",
-   "name": "NORNS (WIND)"
-  },
-  {
-   "code": "173",
-   "name": "NORTH BABINE"
-  },
-  {
-   "code": "159",
-   "name": "NORTH CHILCO"
-  },
-  {
-   "code": "1181",
-   "name": "NORTH SLOQUET"
-  },
-  {
-   "code": "396",
-   "name": "OCTOPUS CREEK"
-  },
-  {
-   "code": "1270",
-   "name": "OLD FADDY"
-  },
-  {
-   "code": "1045",
-   "name": "OSBORN"
-  },
-  {
-   "code": "121",
-   "name": "PADDY"
-  },
-  {
-   "code": "411",
-   "name": "PALLISER"
-  },
-  {
-   "code": "183",
-   "name": "PARROTT"
-  },
-  {
-   "code": "326",
-   "name": "PASKA LAKE"
-  },
-  {
-   "code": "178",
-   "name": "PEDEN"
-  },
-  {
-   "code": "301",
-   "name": "PEMBERTON BASE"
-  },
-  {
-   "code": "402",
-   "name": "PENDOREILLE"
-  },
-  {
-   "code": "328",
-   "name": "PENTICTON RS"
-  },
-  {
-   "code": "1347",
-   "name": "PERSEVERANCE"
-  },
-  {
-   "code": "1248",
-   "name": "PG CENTRAL"
-  },
-  {
-   "code": "938",
-   "name": "PINE CREEK"
-  },
-  {
-   "code": "129",
-   "name": "PINK MOUNTAIN"
-  },
-  {
-   "code": "212",
-   "name": "PLACE LAKE"
-  },
-  {
-   "code": "380",
-   "name": "POWDER CREEK"
-  },
-  {
-   "code": "1218",
-   "name": "POWELL RIVER WEST LAKE"
-  },
-  {
-   "code": "264",
-   "name": "PRAIRIE CREEK"
-  },
-  {
-   "code": "1093",
-   "name": "QUINSAM BASE FWX (TRIAL)"
-  },
-  {
-   "code": "138",
-   "name": "RED DEER"
-  },
-  {
-   "code": "363",
-   "name": "REVELSTOKE"
-  },
-  {
-   "code": "210",
-   "name": "RISKE CREEK"
-  },
-  {
-   "code": "394",
-   "name": "ROCK CREEK"
-  },
-  {
-   "code": "1092",
-   "name": "RORY CREEK"
-  },
-  {
-   "code": "105",
-   "name": "ROSSWOOD"
-  },
-  {
-   "code": "788",
-   "name": "ROUND PRAIRIE"
-  },
-  {
-   "code": "346",
-   "name": "SALMON ARM"
-  },
-  {
-   "code": "45",
-   "name": "SALTSPRING 2"
-  },
-  {
-   "code": "1345",
-   "name": "SAWTOOTH"
-  },
-  {
-   "code": "82",
-   "name": "SCAR CREEK"
-  },
-  {
-   "code": "1165",
-   "name": "SEVEREID"
-  },
-  {
-   "code": "344",
-   "name": "SEYMOUR ARM"
-  },
-  {
-   "code": "882",
-   "name": "SICAMOUS"
-  },
-  {
-   "code": "117",
-   "name": "SIERRA"
-  },
-  {
-   "code": "152",
-   "name": "SIFTON"
-  },
-  {
-   "code": "120",
-   "name": "SILVER"
-  },
-  {
-   "code": "1024",
-   "name": "SKOONKA"
-  },
-  {
-   "code": "406",
-   "name": "SLOCAN"
-  },
-  {
-   "code": "404",
-   "name": "SMALLWOOD"
-  },
-  {
-   "code": "305",
-   "name": "SPARKS LAKE"
-  },
-  {
-   "code": "1055",
-   "name": "SPLINTLUM"
-  },
-  {
-   "code": "374",
-   "name": "SUCCOUR CREEK"
-  },
-  {
-   "code": "11",
-   "name": "SUMMIT"
-  },
-  {
-   "code": "156",
-   "name": "SUSTUT"
-  },
-  {
-   "code": "376",
-   "name": "TABERNACLE  (WIND)"
-  },
-  {
-   "code": "144",
-   "name": "TABLE RIVER"
-  },
-  {
-   "code": "233",
-   "name": "TALCHAKO"
-  },
-  {
-   "code": "208",
-   "name": "TATLA LAKE HUB"
-  },
-  {
-   "code": "206",
-   "name": "TAUTRI"
-  },
-  {
-   "code": "110",
-   "name": "TELEGRAPH CREEK"
-  },
-  {
-   "code": "1198",
-   "name": "THUNDER SF"
-  },
-  {
-   "code": "279",
-   "name": "THYNNE"
-  },
-  {
-   "code": "234",
-   "name": "TIMOTHY"
-  },
-  {
-   "code": "126",
-   "name": "TOAD RIVER"
-  },
-  {
-   "code": "75",
-   "name": "TOBA CAMP"
-  },
-  {
-   "code": "417",
-   "name": "TOBY HUB"
-  },
-  {
-   "code": "387",
-   "name": "TROUT LAKE"
-  },
-  {
-   "code": "995",
-   "name": "TS ARTLISH"
-  },
-  {
-   "code": "956",
-   "name": "TS EFFINGHAM"
-  },
-  {
-   "code": "1002",
-   "name": "TS ELPHINSTONE"
-  },
-  {
-   "code": "1056",
-   "name": "TS MAURELLE"
-  },
-  {
-   "code": "1066",
-   "name": "TS MCNABB"
-  },
-  {
-   "code": "945",
-   "name": "TS NAKA CREEK"
-  },
-  {
-   "code": "944",
-   "name": "TS SAN JUAN"
-  },
-  {
-   "code": "1025",
-   "name": "TS THEODOSIA"
-  },
-  {
-   "code": "361",
-   "name": "TSAR CREEK"
-  },
-  {
-   "code": "127",
-   "name": "TUMBLER(DENISON) HUB"
-  },
-  {
-   "code": "286",
-   "name": "TURTLE"
-  },
-  {
-   "code": "72",
-   "name": "UBC RESEARCH"
-  },
-  {
-   "code": "169",
-   "name": "UPPER FULTON"
-  },
-  {
-   "code": "431",
-   "name": "UPPER KISPIOX"
-  },
-  {
-   "code": "200",
-   "name": "VALEMOUNT 2"
-  },
-  {
-   "code": "1268",
-   "name": "VALEMOUNT AIRPORT"
-  },
-  {
-   "code": "430",
-   "name": "VAN DYKE"
-  },
-  {
-   "code": "158",
-   "name": "VANDERHOOF HUB"
-  },
-  {
-   "code": "447",
-   "name": "WATSON LAKE FS"
-  },
-  {
-   "code": "266",
-   "name": "WELLS GRAY"
-  },
-  {
-   "code": "1277",
-   "name": "WEST KELOWNA"
-  },
-  {
-   "code": "366",
-   "name": "WHISKEY"
-  },
-  {
-   "code": "790",
-   "name": "WHITE RIVER"
-  },
-  {
-   "code": "1326",
-   "name": "WILLIS EXT"
-  },
-  {
-   "code": "244",
-   "name": "WINDY MOUNTAIN"
-  },
-  {
-   "code": "154",
-   "name": "WITCH"
-  },
-  {
-   "code": "136",
-   "name": "WONOWON"
-  },
-  {
-   "code": "21",
-   "name": "WOSS CAMP"
-  },
-  {
-   "code": "235",
-   "name": "YOUNG LAKE"
-  }
- ]
+    "weather_stations": [{
+            "code": "322",
+            "name": "AFTON"
+        },
+        {
+            "code": "838",
+            "name": "AKOKLI CREEK"
+        },
+        {
+            "code": "209",
+            "name": "ALEXIS CREEK"
+        },
+        {
+            "code": "317",
+            "name": "ALLISON PASS"
+        },
+        {
+            "code": "213",
+            "name": "ANAHIM LAKE HUB"
+        },
+        {
+            "code": "977",
+            "name": "ANDERSON CREEK"
+        },
+        {
+            "code": "1275",
+            "name": "APE LAKE"
+        },
+        {
+            "code": "331",
+            "name": "ASHNOLA"
+        },
+        {
+            "code": "302",
+            "name": "ASPEN GROVE"
+        },
+        {
+            "code": "111",
+            "name": "ATLIN"
+        },
+        {
+            "code": "167",
+            "name": "AUGIER LAKE"
+        },
+        {
+            "code": "836",
+            "name": "AUGUST LAKE"
+        },
+        {
+            "code": "503",
+            "name": "BAKER EAST/WEST HUB"
+        },
+        {
+            "code": "221",
+            "name": "BALDFACE"
+        },
+        {
+            "code": "149",
+            "name": "BEAR LAKE"
+        },
+        {
+            "code": "37",
+            "name": "BEAVER CREEK"
+        },
+        {
+            "code": "390",
+            "name": "BEAVERDELL"
+        },
+        {
+            "code": "175",
+            "name": "BEDNESTI"
+        },
+        {
+            "code": "509",
+            "name": "BEGBIE SF"
+        },
+        {
+            "code": "432",
+            "name": "BELL-IRVING"
+        },
+        {
+            "code": "228",
+            "name": "BENSON"
+        },
+        {
+            "code": "267",
+            "name": "BERRY"
+        },
+        {
+            "code": "868",
+            "name": "BIG MOUTH 2"
+        },
+        {
+            "code": "1040",
+            "name": "BIG SILVER 2"
+        },
+        {
+            "code": "262",
+            "name": "BIG VALLEY"
+        },
+        {
+            "code": "148",
+            "name": "BLACKPINE"
+        },
+        {
+            "code": "866",
+            "name": "BLAEBERRY"
+        },
+        {
+            "code": "1108",
+            "name": "BLUE RIVER 2"
+        },
+        {
+            "code": "113",
+            "name": "BOB QUINN LAKE"
+        },
+        {
+            "code": "193",
+            "name": "BOWRON HAGGEN"
+        },
+        {
+            "code": "56",
+            "name": "BOWSER"
+        },
+        {
+            "code": "445",
+            "name": "BOYA LAKE"
+        },
+        {
+            "code": "283",
+            "name": "BRENDA MINES"
+        },
+        {
+            "code": "865",
+            "name": "BRISCO"
+        },
+        {
+            "code": "181",
+            "name": "BURNS LAKE 850M"
+        },
+        {
+            "code": "253",
+            "name": "CAHILTY"
+        },
+        {
+            "code": "793",
+            "name": "CARIBOO CREEK"
+        },
+        {
+            "code": "199",
+            "name": "CATFISH"
+        },
+        {
+            "code": "59",
+            "name": "CEDAR"
+        },
+        {
+            "code": "429",
+            "name": "CEDARVALE"
+        },
+        {
+            "code": "1283",
+            "name": "CHEAKAMUS"
+        },
+        {
+            "code": "791",
+            "name": "CHERRY LAKE"
+        },
+        {
+            "code": "189",
+            "name": "CHILAKO"
+        },
+        {
+            "code": "832",
+            "name": "CHURN CREEK"
+        },
+        {
+            "code": "239",
+            "name": "CLEARWATER HUB"
+        },
+        {
+            "code": "232",
+            "name": "COLDSCAUR LAKE"
+        },
+        {
+            "code": "433",
+            "name": "CRANBERRY"
+        },
+        {
+            "code": "426",
+            "name": "CRANBROOK FS"
+        },
+        {
+            "code": "873",
+            "name": "CRAWFORD"
+        },
+        {
+            "code": "352",
+            "name": "CURWEN CREEK"
+        },
+        {
+            "code": "292",
+            "name": "D'ARCY"
+        },
+        {
+            "code": "1203",
+            "name": "DARKWOODS"
+        },
+        {
+            "code": "108",
+            "name": "DEASE LAKE FS"
+        },
+        {
+            "code": "251",
+            "name": "DECEPTION"
+        },
+        {
+            "code": "421",
+            "name": "DEWAR CREEK"
+        },
+        {
+            "code": "905",
+            "name": "DOWNIE"
+        },
+        {
+            "code": "385",
+            "name": "DUNCAN"
+        },
+        {
+            "code": "243",
+            "name": "EAST BARRIERE"
+        },
+        {
+            "code": "170",
+            "name": "EAST OOTSA"
+        },
+        {
+            "code": "391",
+            "name": "EIGHT MILE"
+        },
+        {
+            "code": "438",
+            "name": "ELK MOUNTAIN"
+        },
+        {
+            "code": "412",
+            "name": "ELKO"
+        },
+        {
+            "code": "425",
+            "name": "EMILY CREEK"
+        },
+        {
+            "code": "383",
+            "name": "FALLS CREEK"
+        },
+        {
+            "code": "298",
+            "name": "FINTRY"
+        },
+        {
+            "code": "440",
+            "name": "FIRESIDE"
+        },
+        {
+            "code": "1029",
+            "name": "FIVE MILE"
+        },
+        {
+            "code": "418",
+            "name": "FLATHEAD 2"
+        },
+        {
+            "code": "1144",
+            "name": "FORD MOUNTAIN"
+        },
+        {
+            "code": "599",
+            "name": "FORT NELSON FS"
+        },
+        {
+            "code": "146",
+            "name": "FORT ST JAMES"
+        },
+        {
+            "code": "306",
+            "name": "FRENCH BAR"
+        },
+        {
+            "code": "474",
+            "name": "FROTH  (WIND)"
+        },
+        {
+            "code": "182",
+            "name": "GANOKWA"
+        },
+        {
+            "code": "222",
+            "name": "GASPARD"
+        },
+        {
+            "code": "227",
+            "name": "GAVIN"
+        },
+        {
+            "code": "291",
+            "name": "GLIMPSE"
+        },
+        {
+            "code": "401",
+            "name": "GOATFELL"
+        },
+        {
+            "code": "886",
+            "name": "GOATHAVEN"
+        },
+        {
+            "code": "379",
+            "name": "GOLD HILL"
+        },
+        {
+            "code": "919",
+            "name": "GOLDSTREAM 2"
+        },
+        {
+            "code": "270",
+            "name": "GOSNEL"
+        },
+        {
+            "code": "124",
+            "name": "GRAHAM"
+        },
+        {
+            "code": "392",
+            "name": "GRAND FORKS"
+        },
+        {
+            "code": "161",
+            "name": "GRASSY PLAINS HUB"
+        },
+        {
+            "code": "321",
+            "name": "GREENSTONE HUB"
+        },
+        {
+            "code": "1332",
+            "name": "GRIZZLY EXT"
+        },
+        {
+            "code": "309",
+            "name": "GWYNETH LAKE"
+        },
+        {
+            "code": "904",
+            "name": "HAGENSBORG 2"
+        },
+        {
+            "code": "67",
+            "name": "HAIG CAMP"
+        },
+        {
+            "code": "250",
+            "name": "HARBOUR LAKE"
+        },
+        {
+            "code": "118",
+            "name": "HELMUT"
+        },
+        {
+            "code": "187",
+            "name": "HIXON"
+        },
+        {
+            "code": "201",
+            "name": "HOLMES"
+        },
+        {
+            "code": "654",
+            "name": "HOLY CROSS 2"
+        },
+        {
+            "code": "1349",
+            "name": "HOMATHKO"
+        },
+        {
+            "code": "93",
+            "name": "HONNA"
+        },
+        {
+            "code": "230",
+            "name": "HORSEFLY"
+        },
+        {
+            "code": "162",
+            "name": "HOUSTON(DUNGATE)"
+        },
+        {
+            "code": "343",
+            "name": "HOWARD"
+        },
+        {
+            "code": "132",
+            "name": "HUDSON HOPE"
+        },
+        {
+            "code": "876",
+            "name": "IDABEL LAKE 3"
+        },
+        {
+            "code": "145",
+            "name": "INGENIKA POINT"
+        },
+        {
+            "code": "1331",
+            "name": "INKANEEP EXT"
+        },
+        {
+            "code": "112",
+            "name": "ISKUT"
+        },
+        {
+            "code": "190",
+            "name": "JERRY"
+        },
+        {
+            "code": "419",
+            "name": "JOHNSON LAKE"
+        },
+        {
+            "code": "444",
+            "name": "KETCHIKA"
+        },
+        {
+            "code": "388",
+            "name": "KETTLE 2"
+        },
+        {
+            "code": "428",
+            "name": "KISPIOX HUB"
+        },
+        {
+            "code": "106",
+            "name": "KITPARK"
+        },
+        {
+            "code": "1348",
+            "name": "KLINAKLINI"
+        },
+        {
+            "code": "166",
+            "name": "KLUSKUS"
+        },
+        {
+            "code": "225",
+            "name": "KNIFE"
+        },
+        {
+            "code": "1075",
+            "name": "KOOCANUSA"
+        },
+        {
+            "code": "1323",
+            "name": "LARCH HILLS WEST"
+        },
+        {
+            "code": "307",
+            "name": "LEIGHTON LAKE"
+        },
+        {
+            "code": "140",
+            "name": "LEMORAY"
+        },
+        {
+            "code": "171",
+            "name": "LEO CREEK"
+        },
+        {
+            "code": "255",
+            "name": "LIKELY RS"
+        },
+        {
+            "code": "280",
+            "name": "LILLOOET"
+        },
+        {
+            "code": "1330",
+            "name": "LODESTONE EXT"
+        },
+        {
+            "code": "218",
+            "name": "LONE BUTTE"
+        },
+        {
+            "code": "163",
+            "name": "LOVELL COVE"
+        },
+        {
+            "code": "1350",
+            "name": "LOWER CAIN"
+        },
+        {
+            "code": "362",
+            "name": "MABEL LAKE 2"
+        },
+        {
+            "code": "101",
+            "name": "MACHMELL"
+        },
+        {
+            "code": "1276",
+            "name": "MACHMELL KLINIKLINI"
+        },
+        {
+            "code": "155",
+            "name": "MACKENZIE FS"
+        },
+        {
+            "code": "141",
+            "name": "MANSON"
+        },
+        {
+            "code": "367",
+            "name": "MARION"
+        },
+        {
+            "code": "263",
+            "name": "MATHEW"
+        },
+        {
+            "code": "1082",
+            "name": "MAYSON"
+        },
+        {
+            "code": "195",
+            "name": "MCBRIDE"
+        },
+        {
+            "code": "180",
+            "name": "MCBRIDE LAKE"
+        },
+        {
+            "code": "334",
+            "name": "MCCUDDY"
+        },
+        {
+            "code": "192",
+            "name": "MCGREGOR 2"
+        },
+        {
+            "code": "311",
+            "name": "MCLEAN LAKE"
+        },
+        {
+            "code": "153",
+            "name": "MCLEOD LAKE"
+        },
+        {
+            "code": "236",
+            "name": "MEADOW LAKE"
+        },
+        {
+            "code": "1083",
+            "name": "MEAGER CREEK"
+        },
+        {
+            "code": "19",
+            "name": "MENZIES CAMP"
+        },
+        {
+            "code": "294",
+            "name": "MERRITT HUB"
+        },
+        {
+            "code": "934",
+            "name": "MESACHIE 2"
+        },
+        {
+            "code": "226",
+            "name": "MIDDLE LAKE"
+        },
+        {
+            "code": "165",
+            "name": "MOOSE LAKE"
+        },
+        {
+            "code": "1176",
+            "name": "MUDPIT"
+        },
+        {
+            "code": "131",
+            "name": "MUSKWA"
+        },
+        {
+            "code": "151",
+            "name": "NABESHE"
+        },
+        {
+            "code": "179",
+            "name": "NADINA"
+        },
+        {
+            "code": "316",
+            "name": "NAHATLATCH"
+        },
+        {
+            "code": "407",
+            "name": "NANCY GREEN"
+        },
+        {
+            "code": "1251",
+            "name": "NARROWS INLET"
+        },
+        {
+            "code": "427",
+            "name": "NASS CAMP"
+        },
+        {
+            "code": "505",
+            "name": "NATAL SF"
+        },
+        {
+            "code": "211",
+            "name": "NAZKO"
+        },
+        {
+            "code": "789",
+            "name": "NEGRO CREEK"
+        },
+        {
+            "code": "119",
+            "name": "NELSON FORKS"
+        },
+        {
+            "code": "216",
+            "name": "NEMIAH"
+        },
+        {
+            "code": "393",
+            "name": "NICOLL"
+        },
+        {
+            "code": "172",
+            "name": "NILKITKWA"
+        },
+        {
+            "code": "437",
+            "name": "NOEL"
+        },
+        {
+            "code": "408",
+            "name": "NORNS (WIND)"
+        },
+        {
+            "code": "173",
+            "name": "NORTH BABINE"
+        },
+        {
+            "code": "159",
+            "name": "NORTH CHILCO"
+        },
+        {
+            "code": "1181",
+            "name": "NORTH SLOQUET"
+        },
+        {
+            "code": "396",
+            "name": "OCTOPUS CREEK"
+        },
+        {
+            "code": "1270",
+            "name": "OLD FADDY"
+        },
+        {
+            "code": "1045",
+            "name": "OSBORN"
+        },
+        {
+            "code": "121",
+            "name": "PADDY"
+        },
+        {
+            "code": "411",
+            "name": "PALLISER"
+        },
+        {
+            "code": "183",
+            "name": "PARROTT"
+        },
+        {
+            "code": "326",
+            "name": "PASKA LAKE"
+        },
+        {
+            "code": "178",
+            "name": "PEDEN"
+        },
+        {
+            "code": "301",
+            "name": "PEMBERTON BASE"
+        },
+        {
+            "code": "402",
+            "name": "PENDOREILLE"
+        },
+        {
+            "code": "328",
+            "name": "PENTICTON RS"
+        },
+        {
+            "code": "1347",
+            "name": "PERSEVERANCE"
+        },
+        {
+            "code": "1248",
+            "name": "PG CENTRAL"
+        },
+        {
+            "code": "938",
+            "name": "PINE CREEK"
+        },
+        {
+            "code": "129",
+            "name": "PINK MOUNTAIN"
+        },
+        {
+            "code": "212",
+            "name": "PLACE LAKE"
+        },
+        {
+            "code": "380",
+            "name": "POWDER CREEK"
+        },
+        {
+            "code": "1218",
+            "name": "POWELL RIVER WEST LAKE"
+        },
+        {
+            "code": "264",
+            "name": "PRAIRIE CREEK"
+        },
+        {
+            "code": "1093",
+            "name": "QUINSAM BASE FWX (TRIAL)"
+        },
+        {
+            "code": "138",
+            "name": "RED DEER"
+        },
+        {
+            "code": "363",
+            "name": "REVELSTOKE"
+        },
+        {
+            "code": "210",
+            "name": "RISKE CREEK"
+        },
+        {
+            "code": "394",
+            "name": "ROCK CREEK"
+        },
+        {
+            "code": "1092",
+            "name": "RORY CREEK"
+        },
+        {
+            "code": "105",
+            "name": "ROSSWOOD"
+        },
+        {
+            "code": "788",
+            "name": "ROUND PRAIRIE"
+        },
+        {
+            "code": "346",
+            "name": "SALMON ARM"
+        },
+        {
+            "code": "45",
+            "name": "SALTSPRING 2"
+        },
+        {
+            "code": "1345",
+            "name": "SAWTOOTH"
+        },
+        {
+            "code": "82",
+            "name": "SCAR CREEK"
+        },
+        {
+            "code": "1165",
+            "name": "SEVEREID"
+        },
+        {
+            "code": "344",
+            "name": "SEYMOUR ARM"
+        },
+        {
+            "code": "882",
+            "name": "SICAMOUS"
+        },
+        {
+            "code": "117",
+            "name": "SIERRA"
+        },
+        {
+            "code": "152",
+            "name": "SIFTON"
+        },
+        {
+            "code": "120",
+            "name": "SILVER"
+        },
+        {
+            "code": "1024",
+            "name": "SKOONKA"
+        },
+        {
+            "code": "406",
+            "name": "SLOCAN"
+        },
+        {
+            "code": "404",
+            "name": "SMALLWOOD"
+        },
+        {
+            "code": "305",
+            "name": "SPARKS LAKE"
+        },
+        {
+            "code": "1055",
+            "name": "SPLINTLUM"
+        },
+        {
+            "code": "374",
+            "name": "SUCCOUR CREEK"
+        },
+        {
+            "code": "11",
+            "name": "SUMMIT"
+        },
+        {
+            "code": "156",
+            "name": "SUSTUT"
+        },
+        {
+            "code": "376",
+            "name": "TABERNACLE  (WIND)"
+        },
+        {
+            "code": "144",
+            "name": "TABLE RIVER"
+        },
+        {
+            "code": "233",
+            "name": "TALCHAKO"
+        },
+        {
+            "code": "208",
+            "name": "TATLA LAKE HUB"
+        },
+        {
+            "code": "206",
+            "name": "TAUTRI"
+        },
+        {
+            "code": "110",
+            "name": "TELEGRAPH CREEK"
+        },
+        {
+            "code": "1198",
+            "name": "THUNDER SF"
+        },
+        {
+            "code": "279",
+            "name": "THYNNE"
+        },
+        {
+            "code": "234",
+            "name": "TIMOTHY"
+        },
+        {
+            "code": "126",
+            "name": "TOAD RIVER"
+        },
+        {
+            "code": "75",
+            "name": "TOBA CAMP"
+        },
+        {
+            "code": "417",
+            "name": "TOBY HUB"
+        },
+        {
+            "code": "387",
+            "name": "TROUT LAKE"
+        },
+        {
+            "code": "995",
+            "name": "TS ARTLISH"
+        },
+        {
+            "code": "956",
+            "name": "TS EFFINGHAM"
+        },
+        {
+            "code": "1002",
+            "name": "TS ELPHINSTONE"
+        },
+        {
+            "code": "1056",
+            "name": "TS MAURELLE"
+        },
+        {
+            "code": "1066",
+            "name": "TS MCNABB"
+        },
+        {
+            "code": "945",
+            "name": "TS NAKA CREEK"
+        },
+        {
+            "code": "944",
+            "name": "TS SAN JUAN"
+        },
+        {
+            "code": "1025",
+            "name": "TS THEODOSIA"
+        },
+        {
+            "code": "361",
+            "name": "TSAR CREEK"
+        },
+        {
+            "code": "127",
+            "name": "TUMBLER(DENISON) HUB"
+        },
+        {
+            "code": "286",
+            "name": "TURTLE"
+        },
+        {
+            "code": "72",
+            "name": "UBC RESEARCH"
+        },
+        {
+            "code": "169",
+            "name": "UPPER FULTON"
+        },
+        {
+            "code": "431",
+            "name": "UPPER KISPIOX"
+        },
+        {
+            "code": "200",
+            "name": "VALEMOUNT 2"
+        },
+        {
+            "code": "1268",
+            "name": "VALEMOUNT AIRPORT"
+        },
+        {
+            "code": "430",
+            "name": "VAN DYKE"
+        },
+        {
+            "code": "158",
+            "name": "VANDERHOOF HUB"
+        },
+        {
+            "code": "447",
+            "name": "WATSON LAKE FS"
+        },
+        {
+            "code": "266",
+            "name": "WELLS GRAY"
+        },
+        {
+            "code": "1277",
+            "name": "WEST KELOWNA"
+        },
+        {
+            "code": "366",
+            "name": "WHISKEY"
+        },
+        {
+            "code": "790",
+            "name": "WHITE RIVER"
+        },
+        {
+            "code": "1326",
+            "name": "WILLIS EXT"
+        },
+        {
+            "code": "244",
+            "name": "WINDY MOUNTAIN"
+        },
+        {
+            "code": "154",
+            "name": "WITCH"
+        },
+        {
+            "code": "136",
+            "name": "WONOWON"
+        },
+        {
+            "code": "21",
+            "name": "WOSS CAMP"
+        },
+        {
+            "code": "235",
+            "name": "YOUNG LAKE"
+        }
+    ]
 }
