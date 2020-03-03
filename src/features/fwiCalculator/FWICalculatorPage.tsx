@@ -5,19 +5,23 @@ import { Station } from 'api/stationAPI'
 import { PageTitle } from 'components/PageTitle'
 import { Container } from 'components/Container'
 import { fetchStations } from 'features/fwiCalculator/slices/stationsSlice'
+import { WeatherStationsDropdown } from 'features/fwiCalculator/components/StationsDropdown'
+import { PercentileTextfield } from 'features/fwiCalculator/components/PercentileTextfield'
 import {
   fetchPercentiles,
   resetPercentilesResult
 } from 'features/fwiCalculator/slices/percentilesSlice'
-import { WeatherStationsDropdown } from 'features/fwiCalculator/components/StationsDropdown'
 import { PercentileActionButtons } from 'features/fwiCalculator/components/PercentileActionButtons'
-import { TimeRangeTextfield } from 'features/fwiCalculator/components/TimeRangeTextfield'
-import { PercentileTextfield } from 'features/fwiCalculator/components/PercentileTextfield'
 import { FWICalculatorResults } from 'features/fwiCalculator/FWICalculatorResults'
+import { TimeRangeSlider } from './components/TimeRangeSlider'
+
+const defaultTimeRange = 10
 
 export const FWICalculatorPage = () => {
   const dispatch = useDispatch()
+
   const [stations, setStations] = useState<Station[]>([])
+  const [timeRange, setTimeRange] = useState<number>(defaultTimeRange)
 
   useEffect(() => {
     dispatch(fetchStations())
@@ -30,16 +34,26 @@ export const FWICalculatorPage = () => {
     setStations(s)
   }
 
+  const onYearRangeChange = (timeRange: number) => {
+    setTimeRange(timeRange)
+  }
+
   const onCalculateClick = () => {
     const stationCodes = stations.map(s => s.code)
     const percentile = 90
-    const yearRange = { start: 2010, end: 2019 }
+    const currYear = new Date().getFullYear()
+    const yearRange = {
+      start: currYear - timeRange,
+      end: currYear - 1
+    }
+
     dispatch(fetchPercentiles(stationCodes, percentile, yearRange))
   }
 
   const onResetClick = () => {
     setStations([])
     dispatch(resetPercentilesResult())
+    setTimeRange(defaultTimeRange)
   }
 
   return (
@@ -51,7 +65,10 @@ export const FWICalculatorPage = () => {
           onStationsChange={onStationsChange}
         />
 
-        <TimeRangeTextfield />
+        <TimeRangeSlider
+          timeRange={timeRange}
+          onYearRangeChange={onYearRangeChange}
+        />
 
         <PercentileTextfield />
 
