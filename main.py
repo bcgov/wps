@@ -31,7 +31,7 @@ class StationSummary(BaseModel):
     ISI: float
     BUI: float
     season: Season
-    year_range: YearRange
+    years: List[int]
     station_name: str
 
 

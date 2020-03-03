@@ -10,6 +10,9 @@ pycodestyle = "*"
 pyodbc = "*"
 autopep8 = "*"
 pytest = "*"
+pep8 = "*"
+pytest-pep8 = "*"
+pandas = "*"
 
 [packages]
 fastapi = "*"
