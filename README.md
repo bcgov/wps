@@ -8,7 +8,7 @@ Wildfire Predictive Services to support decision making in prevention, preparedn
 
 ### Dependencies
 
-- [Node.js](https://nodejs.org/en/) - You’ll need to have 10.16.0 or later version on your local development machine. You can use [nvm](https://github.com/nvm-sh/nvm#installation) (macOS/Linux) or [nvm-windows](https://github.com/coreybutler/nvm-windows#node-version-manager-nvm-for-windows) to switch Node versions between different projects.
+- [Node.js](https://nodejs.org/en/) - You’ll need to have Node >= 8.10 and npm >= 5.6 on your machine. You can use [nvm](https://github.com/nvm-sh/nvm#installation) (macOS/Linux) or [nvm-windows](https://github.com/coreybutler/nvm-windows#node-version-manager-nvm-for-windows) to switch Node versions between different projects.
 
 ### Installing
 
@@ -36,11 +36,11 @@ Launches the test runner in the interactive watch mode.
 Builds the app for production to the `build` folder.
 It correctly bundles React in production mode and optimizes the build for the best performance.
 
-## Authors
+##### Running the application in docker:
+1. Create `.env` file at root using `.env.example` as a sample
+2. Run `docker-compose build` and then `docker-compose up`
+3. Open [http://localhost:8080](http://localhost:8080) to view it in the browser.
 
-Contributors names in alphabetical order
-
-[Andrea Williams](https://github.com/andrea-williams), [Derek Roberts](https://github.com/DerekRoberts), [Kyubin Han](https://github.com/Kyubinhan), [Nithin Kuruba](https://github.com/Nkuruba), [Sybrand Strauss](https://github.com/Sybrand)
 
 ## License
 
