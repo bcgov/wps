@@ -20,7 +20,7 @@ Installs all dependencies in the node_modules folder.
 
 ### Executing program
 
-In the project directory, you can run:
+In the project directory, create `.env` file at root using `.env.example` as a sample, then you can run:
 
 #### `npm start`
 
@@ -39,7 +39,7 @@ It correctly bundles React in production mode and optimizes the build for the be
 ##### Running the application in docker:
 1. Create `.env` file at root using `.env.example` as a sample
 2. Run `docker-compose build` and then `docker-compose up`
-3. Open [http://localhost:8080](http://localhost:8080) to view it in the browser.
+3. Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
 
 ## License

@@ -18,6 +18,6 @@ COPY . .
 # Use generic non-root user
 USER 1001
 
-EXPOSE 8080
+EXPOSE 3000
 
 CMD ["npm", "run", "start"]
