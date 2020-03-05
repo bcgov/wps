@@ -1,0 +1,15 @@
+{
+    "FFMC": 76.74332275390626,
+    "ISI": 1.709042870998383,
+    "BUI": 5.7091676235199,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        2000
+    ],
+    "station_name": "ZZ COPPER CANYON (NEC)"
+}

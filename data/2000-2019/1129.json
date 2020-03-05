@@ -1,0 +1,15 @@
+{
+    "FFMC": 93.6486213684082,
+    "ISI": 10.978193664550783,
+    "BUI": 106.50868225097658,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        2012
+    ],
+    "station_name": "ZZ LARCH HILLS TEMP"
+}

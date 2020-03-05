@@ -2,11 +2,10 @@ from os import getenv
 from statistics import mean
 import json
 from typing import List, Dict
-
 from pydantic import BaseModel
 from starlette.middleware.cors import CORSMiddleware
-from fastapi import FastAPI, Form
-
+from fastapi import FastAPI, Form, status, HTTPException
+import os
 
 class Season(BaseModel):
     start_month: int
@@ -85,14 +84,24 @@ async def get_stations():
 async def get_percentiles(request: PercentileRequest):
     """ Return 90% FFMC, 90% ISI, 90% BUI etc. for a given set of fire stations for a given period of time.
     """
-    # NOTE: percentile, start_year and end_year input is ignored, all responses overriden to match
-    # pre-calculated values; 90th percentile, start year 2010, end year 2019
-    response = CalculatedResponse(percentile=90, year_range=YearRange(start=2010, end=2019))
+    # NOTE: percentile is ignored, all responses overriden to match
+    # pre-calculated values; 90th percentile
+    year_range_start = request.year_range.start
+    year_range_end = request.year_range.end
+	
+	# Error Code: 400 (Bad request)
+    if len(request.stations) == 0 or request.stations is None:
+        raise HTTPException(status_code=400)
+
+    if not os.path.exists('data/{}-{}'.format(year_range_start, year_range_end)):
+        raise HTTPException(status_code=400)
+
+    response = CalculatedResponse(percentile=90, year_range=YearRange(start=year_range_start, end=year_range_end))
     bui = []
     isi = []
     ffmc = []
     for station in request.stations:
-        summary = StationSummary.parse_file('data/{}.json'.format(station))
+        summary = StationSummary.parse_file('data/{}-{}/{}.json'.format(year_range_start, year_range_end, station))
         bui.append(summary.BUI)
         isi.append(summary.ISI)
         ffmc.append(summary.FFMC)

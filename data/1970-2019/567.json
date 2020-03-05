@@ -1,0 +1,16 @@
+{
+    "FFMC": 84.97000045776367,
+    "ISI": 2.170000004768372,
+    "BUI": 41.539999389648436,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        1991,
+        1993
+    ],
+    "station_name": "ZZ WINDSOR CREEK"
+}

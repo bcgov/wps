@@ -1,0 +1,16 @@
+{
+    "FFMC": 93.16462860107421,
+    "ISI": 7.257310009002687,
+    "BUI": 64.94522247314455,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        2004,
+        2005
+    ],
+    "station_name": "ZZ MUD LAKE"
+}

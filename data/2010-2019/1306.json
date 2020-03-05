@@ -1,0 +1,15 @@
+{
+    "FFMC": 95.16731109619141,
+    "ISI": 11.889028167724609,
+    "BUI": 194.34783325195312,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        2017
+    ],
+    "station_name": "GRAVE CREEK QD"
+}

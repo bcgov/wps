@@ -1,0 +1,15 @@
+{
+    "FFMC": 95.46744842529296,
+    "ISI": 14.628664016723633,
+    "BUI": 156.44316864013672,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        2015
+    ],
+    "station_name": "ZZ BOULDER QD"
+}

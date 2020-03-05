@@ -1,0 +1,19 @@
+{
+    "FFMC": 86.19999694824219,
+    "ISI": 3.7999999523162837,
+    "BUI": 48.19000053405762,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        1992,
+        1993,
+        1994,
+        1995,
+        1996
+    ],
+    "station_name": "ZZ BUCKLEY M&B BB80"
+}

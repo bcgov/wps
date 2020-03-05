@@ -1,0 +1,19 @@
+{
+    "FFMC": 87.28000030517579,
+    "ISI": 3.5999999046325684,
+    "BUI": 47.58000106811524,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        1991,
+        1992,
+        1993,
+        1994,
+        1995
+    ],
+    "station_name": "ZZ MOOYAH BAY"
+}

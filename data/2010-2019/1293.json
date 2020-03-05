@@ -1,0 +1,15 @@
+{
+    "FFMC": 93.74024505615236,
+    "ISI": 13.504837989807127,
+    "BUI": 159.602783203125,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        2017
+    ],
+    "station_name": "ZZ PARK MTN TEMP"
+}

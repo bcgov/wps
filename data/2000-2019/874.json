@@ -1,0 +1,15 @@
+{
+    "FFMC": 93.02782669067383,
+    "ISI": 14.475361251831055,
+    "BUI": 213.44978637695314,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        2004
+    ],
+    "station_name": "ZZ MINER LAKE"
+}

@@ -1,0 +1,19 @@
+{
+    "FFMC": 91.61999816894532,
+    "ISI": 9.640000152587895,
+    "BUI": 88.4000015258789,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        1993,
+        1994,
+        1995,
+        1998,
+        1999
+    ],
+    "station_name": "ZZ GARRETT CR"
+}

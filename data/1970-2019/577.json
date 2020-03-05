@@ -1,0 +1,15 @@
+{
+    "FFMC": 83.23999710083008,
+    "ISI": 2.200000047683716,
+    "BUI": 19.750000762939457,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        1994
+    ],
+    "station_name": "ZZ STANFORTH PT"
+}

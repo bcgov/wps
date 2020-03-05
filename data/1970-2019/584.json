@@ -1,0 +1,20 @@
+{
+    "FFMC": 91.5999984741211,
+    "ISI": 7.380000114440925,
+    "BUI": 86.78000183105469,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        1990,
+        1991,
+        1992,
+        1993,
+        1994,
+        1995
+    ],
+    "station_name": "ZZ KIMSQUIT"
+}

@@ -1,0 +1,21 @@
+{
+    "FFMC": 89.5999984741211,
+    "ISI": 5.920000076293951,
+    "BUI": 108.63999938964844,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        1981,
+        1982,
+        1983,
+        1984,
+        1985,
+        1986,
+        1987
+    ],
+    "station_name": "ZZ LILLOOET LAKE"
+}

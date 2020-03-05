@@ -1,0 +1,16 @@
+{
+    "FFMC": 85.14168930053711,
+    "ISI": 4.225267601013185,
+    "BUI": 57.656219482421875,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        2000,
+        2001
+    ],
+    "station_name": "ZZ VIEW"
+}

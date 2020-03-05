@@ -1,0 +1,17 @@
+{
+    "FFMC": 91.56238708496093,
+    "ISI": 6.639049673080446,
+    "BUI": 43.621639251708984,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        2017,
+        2018,
+        2019
+    ],
+    "station_name": "MACHMELL KLINIKLINI"
+}
