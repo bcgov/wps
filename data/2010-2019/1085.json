@@ -1,0 +1,15 @@
+{
+    "FFMC": 93.21400527954101,
+    "ISI": 11.105029296875003,
+    "BUI": 147.95953063964845,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        2010
+    ],
+    "station_name": "ZZ JADE QD"
+}

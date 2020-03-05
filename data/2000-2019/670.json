@@ -1,0 +1,16 @@
+{
+    "FFMC": 93.35052642822266,
+    "ISI": 8.866224670410157,
+    "BUI": 122.91483001708986,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        2002,
+        2003
+    ],
+    "station_name": "ZZ FARWELL BURN"
+}

@@ -1,0 +1,18 @@
+{
+    "FFMC": 90.70999755859377,
+    "ISI": 6.0999999046325675,
+    "BUI": 79.16999893188478,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        1989,
+        1990,
+        1991,
+        1992
+    ],
+    "station_name": "ZZ EAST SIDE"
+}

@@ -1,0 +1,16 @@
+{
+    "FFMC": 92.8000030517578,
+    "ISI": 8.660000324249268,
+    "BUI": 77.02999954223631,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        1989,
+        1990
+    ],
+    "station_name": "ZZ FOWLER LAKE"
+}

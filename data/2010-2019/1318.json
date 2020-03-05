@@ -1,0 +1,15 @@
+{
+    "FFMC": 94.63714218139648,
+    "ISI": 14.684263801574707,
+    "BUI": 84.31201477050782,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        2018
+    ],
+    "station_name": "ROCKINGHAM QD"
+}

@@ -1,0 +1,15 @@
+{
+    "FFMC": 93.24066162109376,
+    "ISI": 14.995475769042969,
+    "BUI": 171.95724487304688,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        2007
+    ],
+    "station_name": "ZZ NEEDLES 2"
+}

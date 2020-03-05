@@ -1,0 +1,15 @@
+{
+    "FFMC": 94.3907241821289,
+    "ISI": 14.578557968139648,
+    "BUI": 210.43099365234374,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        2017
+    ],
+    "station_name": "ZZ MCLEAN QD"
+}

@@ -1,0 +1,16 @@
+{
+    "FFMC": 82.71000213623047,
+    "ISI": 1.8699999690055849,
+    "BUI": 61.7,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        1989,
+        1994
+    ],
+    "station_name": "ZZ JENNIS BAY"
+}

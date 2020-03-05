@@ -1,0 +1,15 @@
+{
+    "FFMC": 95.03541107177733,
+    "ISI": 13.992089080810546,
+    "BUI": 177.49882965087892,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        2017
+    ],
+    "station_name": "ZZ LITTLE FORT TEMP"
+}

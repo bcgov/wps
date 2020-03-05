@@ -1,0 +1,18 @@
+{
+    "FFMC": 91.93695449829102,
+    "ISI": 6.803226709365845,
+    "BUI": 46.75221824645996,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        1997,
+        1998,
+        2000,
+        2001
+    ],
+    "station_name": "ZZ BLUEWATER 2"
+}

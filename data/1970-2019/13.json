@@ -1,0 +1,20 @@
+{
+    "FFMC": 88.27000122070314,
+    "ISI": 6.539999961853036,
+    "BUI": 58.99000053405765,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        1989,
+        1990,
+        1991,
+        1992,
+        1993,
+        1994
+    ],
+    "station_name": "ZZ KLANAWA"
+}

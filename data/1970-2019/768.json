@@ -1,0 +1,21 @@
+{
+    "FFMC": 90.39000167846679,
+    "ISI": 5.589999914169309,
+    "BUI": 83.170002746582,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        1990,
+        1991,
+        1992,
+        1993,
+        1994,
+        1995,
+        1996
+    ],
+    "station_name": "ZZ SULLIVAN CAMP"
+}

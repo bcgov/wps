@@ -1,0 +1,21 @@
+{
+    "FFMC": 92.4000015258789,
+    "ISI": 8.64000015258789,
+    "BUI": 64.19999694824219,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        1991,
+        1992,
+        1993,
+        1994,
+        1995,
+        1996,
+        1997
+    ],
+    "station_name": "ZZ TUM TUM  LAKE"
+}

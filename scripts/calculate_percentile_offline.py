@@ -1,5 +1,6 @@
 import pandas as pd
 import json
+import os
 
 # --------- INPUT PARAMETERS -----------------
 # fire season start and end dates (month and day in numeric format) for location
@@ -10,9 +11,10 @@ FIRE_SEASON_END_MONTH = 8
 FIRE_SEASON_END_DATE = 31
 
 # time range start and end years
+# start of 1970 fire season to end of 2019 fire season is 50 years
+# start of 2000 fire season to end of 2019 fire season is 20 years
 # start of 2010 fire season to end of 2019 fire season is 10 years
-START_YEAR = 2010
-END_YEAR = 2019
+RANGES = ["1970-2019", "2000-2019", "2010-2019"]
 
 # percentile to report out (in decimal format)
 PERCENTILE = 0.9
@@ -37,13 +39,14 @@ season = {
 
 # the algorithm
 def main():
-    parse_weather_dates()
-    remove_data_outside_date_range()
-    remove_data_outside_fire_season()
-    sort_by_weather_station()
-    calculate_percentile_per_station()
-    list_years_per_station()
-    write_output_to_json()
+    for item in range(len(RANGES)):
+        parse_weather_dates()
+        remove_data_outside_date_range(RANGES[item])
+        remove_data_outside_fire_season()
+        sort_by_weather_station()
+        calculate_percentile_per_station()
+        list_years_per_station()
+        write_output_to_json(RANGES[item])
 
 
 def parse_weather_dates():
@@ -60,15 +63,15 @@ def parse_weather_dates():
     return
 
 
-def remove_data_outside_date_range():
+def remove_data_outside_date_range(date_range):
     print('remove_data_outside_date_range...')
     # remove data recorded before START_YEAR
     indexNames = daily_weather_data[daily_weather_data['year']
-                                    < START_YEAR].index
+                                    < int(date_range[0:4])].index
     daily_weather_data.drop(indexNames, inplace=True)
     # remove data recorded after END_YEAR
     indexNames = daily_weather_data[daily_weather_data['year']
-                                    > END_YEAR].index
+                                    > int(date_range[5:9])].index
     daily_weather_data.drop(indexNames, inplace=True)
     return
 
@@ -119,7 +122,7 @@ def list_years_per_station():
     data_years.apply(lambda x: x.sort())
 
 
-def write_output_to_json():
+def write_output_to_json(date_range):
     print('write_output_to_json...')
     global season, year_range, station_summary_dict
     for index, value in ffmc_percentiles.items():
@@ -133,7 +136,10 @@ def write_output_to_json():
                 daily_weather_data.loc[daily_weather_data['station_code']
                                        == index, 'station_name'].iloc[0]
         }
-        output_filename = "../data/" + str(index) + ".json"
+        output_folder = "../data/" + date_range
+        if not os.path.exists(output_folder):
+            os.mkdir(output_folder)
+        output_filename = output_folder + "/" + str(index) + ".json"
         with open(output_filename, 'w+') as json_file:
             json.dump(station_summary, json_file, indent=4)
 

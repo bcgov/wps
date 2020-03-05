@@ -1,0 +1,19 @@
+{
+    "FFMC": 93.7590835571289,
+    "ISI": 12.53959617614746,
+    "BUI": 129.1815002441406,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        2000,
+        2001,
+        2002,
+        2003,
+        2004
+    ],
+    "station_name": "ZZ BULL"
+}

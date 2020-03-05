@@ -1,0 +1,16 @@
+{
+    "FFMC": 92.21510467529296,
+    "ISI": 11.453540802001955,
+    "BUI": 97.67786178588868,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        2004,
+        2005
+    ],
+    "station_name": "ZZ HAT CREEK"
+}

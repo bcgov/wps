@@ -1,0 +1,16 @@
+{
+    "FFMC": 91.68678970336914,
+    "ISI": 7.046605014801027,
+    "BUI": 173.1380584716797,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        2010,
+        2012
+    ],
+    "station_name": "ZZ BATNUNI QD"
+}

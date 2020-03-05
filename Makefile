@@ -8,7 +8,7 @@ docker-test:
 	docker-compose run web python -m unittest
 
 run:
-	pipenv run uvicorn main:app --reload --port 8080
+	pipenv run python -m unittest | pipenv run uvicorn main:app --reload --port 8080
 
 notebook:
 	pipenv run jupyter notebook
