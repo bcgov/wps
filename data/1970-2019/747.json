@@ -1,0 +1,17 @@
+{
+    "FFMC": 94.8000030517578,
+    "ISI": 12.25,
+    "BUI": 124.6182975769043,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        1990,
+        1991,
+        2002
+    ],
+    "station_name": "ZZ SOUTH FORK"
+}

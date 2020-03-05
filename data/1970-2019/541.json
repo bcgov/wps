@@ -1,0 +1,20 @@
+{
+    "FFMC": 86.9000015258789,
+    "ISI": 3.5999999046325684,
+    "BUI": 58.4000015258789,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        1989,
+        1990,
+        1991,
+        1992,
+        1993,
+        1994
+    ],
+    "station_name": "ZZ GILLIES BAY"
+}

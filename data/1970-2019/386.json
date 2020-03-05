@@ -1,0 +1,17 @@
+{
+    "FFMC": 93.4000015258789,
+    "ISI": 12.899999618530273,
+    "BUI": 83.77999725341796,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        1986,
+        1987,
+        1988
+    ],
+    "station_name": "ZZ KETTLE"
+}

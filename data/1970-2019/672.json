@@ -1,0 +1,17 @@
+{
+    "FFMC": 92.93167877197266,
+    "ISI": 10.100212097167969,
+    "BUI": 111.94903182983398,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        2000,
+        2001,
+        2002
+    ],
+    "station_name": "ZZ BIGHORN  (PARKS)"
+}

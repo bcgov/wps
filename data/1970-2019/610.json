@@ -1,0 +1,19 @@
+{
+    "FFMC": 91.5999984741211,
+    "ISI": 8.739999961853032,
+    "BUI": 112.5999984741211,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        1992,
+        1993,
+        1994,
+        1995,
+        1996
+    ],
+    "station_name": "ZZ OCOCK FSR"
+}

@@ -1,0 +1,15 @@
+{
+    "FFMC": 92.98839263916015,
+    "ISI": 9.412147045135498,
+    "BUI": 88.11604690551758,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        2008
+    ],
+    "station_name": "ZZ YELLOWHEAD"
+}

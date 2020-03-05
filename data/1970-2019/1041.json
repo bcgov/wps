@@ -1,0 +1,15 @@
+{
+    "FFMC": 97.05802154541016,
+    "ISI": 21.65506668090819,
+    "BUI": 222.99898681640624,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        2009
+    ],
+    "station_name": "ZZ GUNN CREEK"
+}

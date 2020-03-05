@@ -1,0 +1,15 @@
+{
+    "FFMC": 89.7302032470703,
+    "ISI": 3.013959032995627,
+    "BUI": 59.96006736755372,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        2005
+    ],
+    "station_name": "ZZ W RAFT Temp"
+}

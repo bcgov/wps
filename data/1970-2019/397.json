@@ -1,0 +1,19 @@
+{
+    "FFMC": 92.4000015258789,
+    "ISI": 8.660000038146977,
+    "BUI": 104.49999694824221,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        1981,
+        1982,
+        1983,
+        1984,
+        1985
+    ],
+    "station_name": "ZZ NELWAY"
+}

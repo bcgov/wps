@@ -1,0 +1,18 @@
+{
+    "FFMC": 91.1999969482422,
+    "ISI": 9.339999961853032,
+    "BUI": 92.17999877929692,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        1990,
+        1991,
+        1992,
+        1996
+    ],
+    "station_name": "ZZ BARLOW"
+}

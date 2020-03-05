@@ -1,0 +1,19 @@
+{
+    "FFMC": 90.5999984741211,
+    "ISI": 8.100000381469728,
+    "BUI": 70.34000244140626,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        1990,
+        1991,
+        1992,
+        1993,
+        1994
+    ],
+    "station_name": "ZZ WASH WASH"
+}

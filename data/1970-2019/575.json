@@ -1,0 +1,16 @@
+{
+    "FFMC": 86.93000106811523,
+    "ISI": 4.259999895095827,
+    "BUI": 26.26999988555909,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        1994,
+        1995
+    ],
+    "station_name": "ZZ RODERICK"
+}

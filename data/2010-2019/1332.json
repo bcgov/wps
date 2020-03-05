@@ -1,0 +1,16 @@
+{
+    "FFMC": 95.77041015625,
+    "ISI": 16.42407636642457,
+    "BUI": 207.05924072265626,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        2018,
+        2019
+    ],
+    "station_name": "GRIZZLY EXT"
+}

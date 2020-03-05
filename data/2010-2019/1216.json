@@ -1,0 +1,15 @@
+{
+    "FFMC": 94.51128387451173,
+    "ISI": 16.182463455200196,
+    "BUI": 117.01759262084961,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        2015
+    ],
+    "station_name": "ZZ ESPERON TS"
+}
