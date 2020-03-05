@@ -2,70 +2,70 @@ apiVersion: v1
 kind: Template
 metadata:
   name: ${NAME}
-parameters:
-  - name: NAME
-    description: Module name
-    value: wps-web
-  - name: SUFFIX
-    description: Deployment suffix, e.g. pr-###
-    required: true
-  - name: GIT_URL
-    value: https://github.com/bcgov/wps-web.git
-  - name: GIT_BRANCH
-    description: PR branch
-    required: true
-  - name: API_BASE_URL
-    value: "https://wps-api-prod.pathfinder.gov.bc.ca"
+  annotations:
+    openshift.io/display-name: "wps-web" 
+    description: "Wildfire Predictive Services - Fire Weather Index"  
+    openshift.io/long-description: "Wildfire Predictive Services - Fire Weather Index" 
+    tags: "wps,wps-web" 
+    iconClass: icon-js 
+    openshift.io/provider-display-name: "Government of British Columbia" 
+    openshift.io/documentation-url: "https://github.com/bcgov/wps-web" 
+    openshift.io/support-url: "https://github.com/bcgov/wps-web"
 labels:
   app.kubernetes.io/part-of: "${NAME}"
+parameters:
+- name: NAME
+  description: Module name
+  value: wps-web
+- name: SUFFIX
+  description: Deployment suffix, e.g. pr-###
+  required: true
+- name: GIT_URL
+  value: https://github.com/bcgov/wps-web.git
+- name: GIT_BRANCH
+  description: PR branch
+  required: true
+- name: API_BASE_URL
+  value: "https://wps-api-prod.pathfinder.gov.bc.ca"
 objects:
-  - apiVersion: image.openshift.io/v1
+  - apiVersion: v1
     kind: ImageStream
     metadata:
       annotations:
         openshift.io/generated-by: OpenShiftNewBuild
-      creationTimestamp: null
-      labels:
-        app: ${NAME}
-        common: "true"
-      name: ${NAME}
-    spec:
-      lookupPolicy:
-        local: false
-    status:
-      dockerImageRepository: ""
-  - apiVersion: image.openshift.io/v1
-    kind: ImageStream
-    metadata:
-      annotations:
-        openshift.io/generated-by: OpenShiftNewBuild
-      creationTimestamp: null
       labels:
         app: ${NAME}-${SUFFIX}
-      name: ${NAME}-source
+        common: "true"
+      name: ${NAME}-${SUFFIX}-s2i
     spec:
       lookupPolicy:
         local: false
-    status:
-      dockerImageRepository: ""
-  - apiVersion: build.openshift.io/v1
+  - apiVersion: v1
+    kind: ImageStream
+    metadata:
+      annotations:
+        openshift.io/generated-by: OpenShiftNewBuild
+      labels:
+        app: ${NAME}-${SUFFIX}
+      name: ${NAME}-${SUFFIX}-source
+    spec:
+      lookupPolicy:
+        local: false
+  - apiVersion: v1
     kind: BuildConfig
     metadata:
       annotations:
         openshift.io/generated-by: OpenShiftNewBuild
-      creationTimestamp: null
       labels:
         app: ${NAME}-${SUFFIX}
-      name: ${NAME}-source-${SUFFIX}
+      name: ${NAME}-${SUFFIX}-source
     spec:
-      nodeSelector: null
       runPolicy: Parallel
       completionDeadlineSeconds: 1200 # 20 minutes
       output:
         to:
           kind: ImageStreamTag
-          name: ${NAME}-source:${SUFFIX}
-      postCommit: {}
+          name: ${NAME}-${SUFFIX}-source:latest
       resources:
         limits:
           cpu: "2"
@@ -94,28 +94,22 @@ objects:
         type: Source
       triggers:
         - type: ConfigChange
-        - imageChange: {}
-          type: ImageChange
-    status:
-      lastVersion: 0
-  - apiVersion: build.openshift.io/v1
+        - type: ImageChange
+  - apiVersion: v1
     kind: BuildConfig
     metadata:
       annotations:
         openshift.io/generated-by: OpenShiftNewBuild
-      creationTimestamp: null
       labels:
         app: ${NAME}-${SUFFIX}
-      name: ${NAME}-${SUFFIX}
+      name: ${NAME}-${SUFFIX}-s2i
     spec:
-      nodeSelector: null
       runPolicy: SerialLatestOnly
       completionDeadlineSeconds: 600 # 10 minutes
       output:
         to:
           kind: ImageStreamTag
-          name: ${NAME}:${SUFFIX}
-      postCommit: {}
+          name: ${NAME}-${SUFFIX}-s2i:latest
       resources:
         limits:
           cpu: "2"
@@ -130,7 +124,7 @@ objects:
         images:
           - from:
               kind: ImageStreamTag
-              name: ${NAME}-source:${SUFFIX}
+              name: ${NAME}-${SUFFIX}-source:latest
             paths:
               - destinationDir: "./"
                 sourcePath: /opt/app-root/src/build
@@ -144,7 +138,4 @@ objects:
         type: Docker
       triggers:
         - type: ConfigChange
-        - imageChange: {}
-          type: ImageChange
-    status:
-      lastVersion: 0
+        - type: ImageChange

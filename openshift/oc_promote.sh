@@ -1,8 +1,11 @@
 #!/bin/bash
+#
+source "$(dirname ${0})/common/common"
+
 #%
-#% OpenShift Deployment Promotion Helper
+#% OpenShift DEV-PROD ImageStreamTag Promotion Helper
 #%
-#%   Intended for use with a pull request-based pipeline.
+#%   Promote a passing imagestreamtag from DEV to PROD environments.
 #%
 #% Usage:
 #%
@@ -16,59 +19,43 @@
 #%   Apply when satisfied.
 #%   ${THIS_FILE} 0 apply
 #%
-#
-# If no parameters, then show this help header (cat file, grep #% lines and clean up with sed)
-#
-[ "${#}" -gt 0 ] || {
-	THIS_FILE="$(dirname ${0})/$(basename ${0})"
-	cat ${THIS_FILE} |
-		grep "^#%" |
-		sed -e "s|^#%||g" |
-		sed -e "s|\${THIS_FILE}|${THIS_FILE}|g"
-	exit
-}
 
-# Specify halt conditions (errors, unsets, non-zero pipes), field separator and verbosity
+# Vars
 #
-set -euo pipefail
-IFS=$'\n\t'
-[ ! "${VERBOSE:-}" == "true" ] || set -x
+SUFFIX_DEV="pr-${PR_NO}"
+SUFFIX_PROD="$(echo ${PROJ_PROD} | cut -d'-' -f2)"
+# The tag for the imagestream being imported from DEV to PROD
+TAG_IMPORT="${NAME}:${SUFFIX_DEV}"
+# The tag for labeling the most recent imagestreatag as PROD
+TAG_CURRENT="${NAME}:${SUFFIX_PROD}"
+# Long name for the DEV imagestreamtag to import to PROD
+SOURCE_IMG="docker-registry.default.svc:5000/${PROJ_TOOLS}/${NAME}-${SUFFIX_DEV}-s2i:latest"
 
-# Receive parameters and source/load environment variables from a file
+# Create OpenShift commands to consume
 #
-PR_NO=${1:-}
-APPLY=${2:-}
-source "$(dirname ${0})/envars"
-
-# Verify login
+# Import DEV image into an imagestream in PROD namespace
+OC_IMG_IMPORT="oc -n ${PROJ_TOOLS} import-image ${TAG_IMPORT} --from=${SOURCE_IMG}"
+# Apply the PROD label to that imagestreamtag
+OC_IMG_TAG="oc -n ${PROJ_TOOLS} tag ${TAG_IMPORT} ${TAG_CURRENT}"
+# Process a template (mostly variable substition)
 #
-$(oc whoami &>/dev/null) || {
-	echo "Please verify oc login"
-	exit
-}
-
-# Command to copy imagestreamtag from dev PR to prod (ENV is the after-dash portion of PROJ_PROD)
-#
-ENV=$(echo $PROJ_PROD | cut -d'-' -f2)
-SOURCE_IMG="docker-registry.default.svc:5000/${PROJ_TOOLS}/${NAME}:pr-${PR_NO}"
-OC_PROMOTE="oc -n ${PROJ_TOOLS} import-image ${NAME}:${ENV} --from=${SOURCE_IMG}"
-
-# Command to process and apply deployment template
-#
-OC_PROCESS="oc -n ${PROJ_TOOLS} process -f ${PATH_DC} -p NAME=${NAME} -p SUFFIX=${ENV}"
+OC_PROCESS="oc -n ${PROJ_TOOLS} process -f ${PATH_DC} -p NAME=${NAME} -p SUFFIX=${SUFFIX_DEV}"
+# Apply a template (can use --dry-run)
 OC_APPLY="oc -n ${PROJ_PROD} apply -f -"
+# Pipe the first command into the second
 OC_COMMAND="${OC_PROCESS} | ${OC_APPLY}"
-#
-[ "${APPLY}" == "apply" ] || {
-	OC_COMMAND+=" --dry-run"
-	eval "${OC_PROCESS}"
-	echo -e "\n*** This is a dry run.  Use 'apply' to deploy. ***\n"
-}
 
-# Execute and output commands
+# Process commands
 #
-eval "${OC_PROMOTE}"
+if [ "${APPLY}" ]; then
+	# Only delete the imagestreamtag if applying
+	eval "${OC_IMG_IMPORT}"
+	eval "${OC_IMG_TAG}"
+else
+	OC_COMMAND+=" --dry-run"
+fi
 eval "${OC_COMMAND}"
+
+# Provide oc command instruction
 #
-echo -e "\n${OC_PROMOTE}"
-echo -e "\n${OC_COMMAND}\n"
+display_helper "${OC_IMG_IMPORT}" "${OC_IMG_TAG}" "${OC_COMMAND}"
