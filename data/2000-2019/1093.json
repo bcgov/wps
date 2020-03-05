@@ -1,0 +1,23 @@
+{
+    "FFMC": 90.3655288696289,
+    "ISI": 6.019121932983398,
+    "BUI": 115.1220199584961,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019
+    ],
+    "station_name": "QUINSAM BASE FWX (TRIAL)"
+}

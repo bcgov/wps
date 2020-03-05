@@ -1,0 +1,18 @@
+{
+    "FFMC": 92.32000274658202,
+    "ISI": 9.820000076293947,
+    "BUI": 96.88000183105468,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        1989,
+        1990,
+        1991,
+        1992
+    ],
+    "station_name": "ZZ ANGEL LK"
+}

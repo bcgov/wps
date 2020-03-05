@@ -1,0 +1,16 @@
+{
+    "FFMC": 90.41000137329101,
+    "ISI": 6.81000018119812,
+    "BUI": 47.26000061035157,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        1981,
+        1982
+    ],
+    "station_name": "ZZ TOD MT"
+}

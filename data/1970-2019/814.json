@@ -1,0 +1,15 @@
+{
+    "FFMC": 92.0999984741211,
+    "ISI": 7.870000123977662,
+    "BUI": 116.5999984741211,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        1989
+    ],
+    "station_name": "ZZ KINSCHKUSCH"
+}

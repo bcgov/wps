@@ -1,0 +1,17 @@
+{
+    "FFMC": 90.21000289916991,
+    "ISI": 5.290000152587891,
+    "BUI": 106.85000000000001,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        1993,
+        1994,
+        1995
+    ],
+    "station_name": "ZZ THAUTIL"
+}

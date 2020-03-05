@@ -13,6 +13,7 @@ pytest = "*"
 pep8 = "*"
 pytest-pep8 = "*"
 pandas = "*"
+pylint = "*"
 
 [packages]
 fastapi = "*"

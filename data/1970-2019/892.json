@@ -1,0 +1,15 @@
+{
+    "FFMC": 92.35806884765626,
+    "ISI": 9.89854030609131,
+    "BUI": 68.98439788818361,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        2005
+    ],
+    "station_name": "ZZ RUSSELL LAKE"
+}

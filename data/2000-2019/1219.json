@@ -1,0 +1,15 @@
+{
+    "FFMC": 88.9206756591797,
+    "ISI": 4.834934854507447,
+    "BUI": 150.80123138427734,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        2015
+    ],
+    "station_name": "ZZ KING SALMON QD"
+}

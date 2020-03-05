@@ -1,0 +1,16 @@
+{
+    "FFMC": 84.9000015258789,
+    "ISI": 3.2999999523162837,
+    "BUI": 63.69999885559082,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        1989,
+        1990
+    ],
+    "station_name": "ZZ DENMAN"
+}

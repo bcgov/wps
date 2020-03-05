@@ -1,0 +1,16 @@
+{
+    "FFMC": 92.70416717529297,
+    "ISI": 9.726953887939453,
+    "BUI": 47.98334655761718,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        2012,
+        2013
+    ],
+    "station_name": "ZZ W KOKANEE QD"
+}

@@ -1,0 +1,16 @@
+{
+    "FFMC": 89.17999725341797,
+    "ISI": 5.9000000953674325,
+    "BUI": 69.70000000000002,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        1993,
+        1994
+    ],
+    "station_name": "ZZ SKINNY LK"
+}

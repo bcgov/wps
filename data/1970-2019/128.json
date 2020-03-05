@@ -1,0 +1,18 @@
+{
+    "FFMC": 88.96000061035157,
+    "ISI": 6.260000038146975,
+    "BUI": 73.11999969482423,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        1982,
+        1983,
+        1985,
+        1986
+    ],
+    "station_name": "ZZ STONEY LAKE"
+}

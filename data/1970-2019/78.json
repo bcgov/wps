@@ -1,0 +1,21 @@
+{
+    "FFMC": 89.0999984741211,
+    "ISI": 5.5,
+    "BUI": 63.0,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        1973,
+        1975,
+        1977,
+        1987,
+        1988,
+        1989,
+        1990
+    ],
+    "station_name": "ZZ JERVIS"
+}

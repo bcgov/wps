@@ -1,0 +1,15 @@
+{
+    "FFMC": 92.21822738647461,
+    "ISI": 9.618136978149415,
+    "BUI": 147.13353576660157,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        2003
+    ],
+    "station_name": "ZZ WHITEWATER"
+}

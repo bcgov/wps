@@ -1,0 +1,15 @@
+{
+    "FFMC": 92.96080017089844,
+    "ISI": 11.807184600830078,
+    "BUI": 158.0619140625,
+    "season": {
+        "start_month": 5,
+        "start_day": 1,
+        "end_month": 8,
+        "end_day": 31
+    },
+    "years": [
+        2014
+    ],
+    "station_name": "ZZ WHITE ROCK QD"
+}
