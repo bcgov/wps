@@ -2,7 +2,7 @@ pipeline {
     agent none
     environment {
         // Pipeline-wide vars
-        name =  "wps-test"
+        name =  "wps-web"
         ver = "0.0.1"
         projTools = "auzhsi-tools"
         projDev = "auzhsi-dev"
@@ -71,7 +71,7 @@ pipeline {
                     sh """
                         echo "TO DO: echo Tag known good prod images, backup databases, backup settings"
                         echo "Update on Rocket.Chat dev channel"
-                        curl -X POST -H "Content-Type: application/json" ${rcToken} -d '{"text":"${SUFFIX} deployed to ${projProd}."}' --connect-timeout 30 --max-time 30
+                        curl -X POST -H "Content-Type: application/json" ${rcToken} -d '{"text":"${name}-${SUFFIX} deployed to ${projProd}."}' --connect-timeout 30 --max-time 30
                     """
                 }
             }

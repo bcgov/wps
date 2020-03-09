@@ -40,12 +40,20 @@ eval "${OC_COMMAND}"
 # Follow builds if deploying (wait condition)
 #
 if [ "${APPLY}" ]; then
+	APP_NAME=${NAME}-pr-${PR_NO}
 	# Identify buildconfig objects
-	BUILD_PODS=$(oc get bc -n ${PROJ_TOOLS} -o name -l app=${NAME}-pr-${PR_NO})
+	BUILD_PODS=$(oc get bc -n ${PROJ_TOOLS} -o name -l app=${APP_NAME})
 	# Follow building of these objects (creates wait condition, lots of output!)
 	for p in "${BUILD_PODS}"; do
 		oc logs -n ${PROJ_TOOLS} --follow $p
 	done
+	# Make sure build has succeeded
+	BUILD_LAST=$(oc -n ${PROJ_TOOLS} get bc/${APP_NAME} -o 'jsonpath={.status.lastVersion}')
+	BUILD_RESULT=$(oc -n ${PROJ_TOOLS} get build/${APP_NAME}-${BUILD_LAST} -o 'jsonpath={.status.phase}')
+	if [ "${BUILD_RESULT}" != "Complete" ]; then
+		echo -e "\n*** Build not complete! ***\n"
+		exit 1
+	fi
 fi
 
 # Provide oc command instruction
