@@ -1,11 +1,10 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
 import Autocomplete from '@material-ui/lab/Autocomplete'
-import { TextField, Tooltip } from '@material-ui/core'
+import { TextField, Tooltip, IconButton } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
-
 import MapIcon from '@material-ui/icons/Map'
-import IconButton from '@material-ui/core/IconButton'
+
 import { Station } from 'api/stationAPI'
 import { selectStationsReducer } from 'app/rootReducer'
 import { WEATHER_STATION_MAP_LINK } from 'utils/constants'
@@ -13,7 +12,7 @@ import { ErrorMessage } from 'components/ErrorMessage'
 
 const useStyles = makeStyles({
   root: {
-    width: 600
+    width: '100%'
   },
   mapIcon: {
     padding: 10
@@ -40,14 +39,15 @@ export const WeatherStationsDropdown = (props: Props) => {
     <>
       <div className={classes.wrapper}>
         <Autocomplete
-          className={classes.root}
           data-testid="weather-station-dropdown"
+          className={classes.root}
+          disableCloseOnSelect
+          multiple
           options={stations}
           getOptionLabel={option => `${option.name} (${option.code})`}
           onChange={(_, stations) => {
             props.onStationsChange(stations)
           }}
-          multiple
           value={props.stations}
           renderInput={params => (
             <TextField
