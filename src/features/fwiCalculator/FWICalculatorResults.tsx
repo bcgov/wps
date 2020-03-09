@@ -6,13 +6,11 @@ import { selectPercentilesReducer } from 'app/rootReducer'
 import { PercentileMeanResultTable } from 'features/fwiCalculator/components/PercentileMeanResultTable'
 import { PercentileStationResultTable } from 'features/fwiCalculator/components/PercentileStationResultTable'
 import { ErrorMessage } from 'components/ErrorMessage'
+import { GridItem, GridContainer } from 'components/Grid'
 
 const useStyles = makeStyles({
-  stations: {
-    display: 'flex'
-  },
-  error: {
-    marginTop: 5
+  root: {
+    marginTop: 15
   }
 })
 
@@ -36,19 +34,24 @@ export const FWICalculatorResults = () => {
   const stationResults = Object.entries(result.stations).map(
     ([stationCode, stationResponse]) => {
       return (
-        <PercentileStationResultTable
-          key={stationCode}
-          stationCode={stationCode}
-          stationResponse={stationResponse}
-        />
+        <GridItem key={stationCode}>
+          <PercentileStationResultTable
+            stationCode={stationCode}
+            stationResponse={stationResponse}
+          />
+        </GridItem>
       )
     }
   )
 
   return (
-    <div data-testid="percentile-result-tables">
-      <div className={classes.stations}>{stationResults}</div>
-      <PercentileMeanResultTable meanValues={result.mean_values} />
+    <div data-testid="percentile-result-tables" className={classes.root}>
+      <GridContainer>{stationResults}</GridContainer>
+      <GridContainer>
+        <GridItem>
+          <PercentileMeanResultTable meanValues={result.mean_values} />
+        </GridItem>
+      </GridContainer>
     </div>
   )
 }
