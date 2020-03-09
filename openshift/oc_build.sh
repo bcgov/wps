@@ -23,7 +23,7 @@ source "$(dirname ${0})/common/common"
 # Create OpenShift commands to consume
 #
 # Process a template (mostly variable substition)
-OC_PROCESS="oc -n ${PROJ_TOOLS} process -f ${PATH_BC} -p NAME=${NAME} -p SUFFIX=pr-${PR_NO} -p GIT_URL=${GIT_URL} -p GIT_BRANCH=${GIT_BRANCH}"
+OC_PROCESS="oc -n ${PROJ_TOOLS} process -f ${PATH_BC} -p NAME=${NAME} -p SUFFIX=pr-${PR_NO} -p GIT_BRANCH=${GIT_BRANCH}"
 # Apply a template (can use --dry-run)
 OC_APPLY="oc -n "${PROJ_TOOLS}" apply -f -"
 # Pipe the first command into the second
