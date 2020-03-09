@@ -4,8 +4,8 @@ metadata:
   name: ${NAME}
   annotations:
     openshift.io/display-name: "wps-web" 
-    description: "Wildfire Predictive Services - Web Client"  
-    openshift.io/long-description: "Wildfire Predictive Services - Web Client" 
+    description: "Wildfire Predictive Services - Fire Weather Index"  
+    openshift.io/long-description: "Wildfire Predictive Services - Fire Weather Index" 
     tags: "wps,wps-web" 
     iconClass: icon-js 
     openshift.io/provider-display-name: "Government of British Columbia" 
@@ -40,26 +40,43 @@ parameters:
     value: 1Gi
 objects:
   - apiVersion: v1
-    kind: DeploymentConfig
+    data:
+      Caddyfile: |
+        0.0.0.0:8080
+        root /var/www/html
+        log stdout
+        errors stdout
+    kind: ConfigMap
     metadata:
+      creationTimestamp: null
+      name: caddyfile-${NAME}-${SUFFIX}
+      labels:
+        app: ${NAME}-${SUFFIX}
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      labels:
+        app: ${NAME}-${SUFFIX}
       name: ${NAME}-${SUFFIX}
     spec:
       replicas: 1
       selector:
-        name: ${NAME}-${SUFFIX}
-      strategy:
-        type: Rolling
+        matchLabels:
+          app: ${NAME}-${SUFFIX}
       template:
         metadata:
           labels:
-            name: ${NAME}-${SUFFIX}
+            app: ${NAME}-${SUFFIX}
         spec:
           automountServiceAccountToken: false
           containers:
-            - image: ${DOCKER_REGISTRY}/${PROJECT_TOOLS}/${NAME}-${SUFFIX}:latest
+            - image: ${DOCKER_REGISTRY}/${PROJECT_TOOLS}/${NAME}-${SUFFIX}-s2i:latest
+              imagePullPolicy: Always
               name: ${NAME}
+              args:
+                - /tmp/scripts/run
               ports:
-                - containerPort: 3000
+                - containerPort: 8080
               resources:
                 limits:
                   cpu: ${CPU_LIMIT}
@@ -67,6 +84,16 @@ objects:
                 requests:
                   cpu: ${CPU_REQUEST}
                   memory: ${MEMORY_REQUEST}
+              volumeMounts:
+                - name: caddy-${NAME}-${SUFFIX}
+                  mountPath: /etc/Caddyfile
+                  readOnly: true
+                  subPath: Caddyfile
+          volumes:
+            - name: caddy-${NAME}-${SUFFIX}
+              configMap:
+                defaultMode: 420
+                name: caddyfile-${NAME}-${SUFFIX}
   - apiVersion: v1
     kind: Service
     metadata:
@@ -74,13 +101,13 @@ objects:
         app: ${NAME}-${SUFFIX}
       name: ${NAME}-${SUFFIX}
     spec:
-      ports:
-        - name: 3000-tcp
-          protocol: TCP
-          port: 3000
-          targetPort: 3000
       selector:
-        name: ${NAME}-${SUFFIX}
+        app: ${NAME}-${SUFFIX}
+      ports:
+        - name: 8080-tcp
+          protocol: TCP
+          port: 8080
+          targetPort: 8080
   - apiVersion: v1
     kind: Route
     metadata:
@@ -90,7 +117,7 @@ objects:
     spec:
       host: ${NAME}-${SUFFIX}.pathfinder.gov.bc.ca
       port:
-        targetPort: 3000-tcp
+        targetPort: 8080-tcp
       to:
         kind: Service
         name: ${NAME}-${SUFFIX}

@@ -1,10 +1,9 @@
 FROM node:10
 
 # Set working directory
-ENV APP_ROOT=/usr/src/app
-RUN mkdir ${APP_ROOT}
+RUN mkdir /usr/src/app
 
-WORKDIR ${APP_ROOT}
+WORKDIR /usr/src/app
 
 # A wildcard is used to ensure both package.json AND package-lock.json are copied
 COPY package*.json ./
