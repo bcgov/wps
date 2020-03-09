@@ -54,6 +54,8 @@ objects:
         to:
           kind: ImageStreamTag
           name: ${NAME}-${SUFFIX}:latest
+      postCommit:
+        script: "npm run test:ci"
       resources:
         limits:
           cpu: "2"

@@ -29,7 +29,7 @@ TAG_IMPORT="${NAME}:${SUFFIX_DEV}"
 # The tag for labeling the most recent imagestreatag as PROD
 TAG_CURRENT="${NAME}:${SUFFIX_PROD}"
 # Long name for the DEV imagestreamtag to import to PROD
-SOURCE_IMG="docker-registry.default.svc:5000/${PROJ_TOOLS}/${NAME}-${SUFFIX_DEV}-s2i:latest"
+SOURCE_IMG="docker-registry.default.svc:5000/${PROJ_TOOLS}/${NAME}-${SUFFIX_DEV}:latest"
 
 # Create OpenShift commands to consume
 #
