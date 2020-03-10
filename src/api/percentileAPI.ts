@@ -1,10 +1,15 @@
 import axios from 'api/axios'
 
-interface SeasonResponse {
+interface Season {
   start_month: number
   start_day: number
   end_month: number
   end_day: number
+}
+
+interface Station {
+  code: number
+  name: string
 }
 
 export interface YearRange {
@@ -16,9 +21,9 @@ export interface StationSummaryResponse {
   FFMC: number
   ISI: number
   BUI: number
-  season: SeasonResponse
+  season: Season
   years: number[]
-  station_name: string
+  station: Station
 }
 
 export interface MeanValues {

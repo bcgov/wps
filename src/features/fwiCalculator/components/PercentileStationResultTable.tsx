@@ -13,15 +13,11 @@ import { StationSummaryResponse } from 'api/percentileAPI'
 import { FWI_VALUES_DECIMAL_POINT } from 'utils/constants'
 
 interface Props {
-  stationCode: string
   stationResponse: StationSummaryResponse
 }
 
-export const PercentileStationResultTable = ({
-  stationCode,
-  stationResponse
-}: Props) => {
-  const { season, FFMC, BUI, ISI, years, station_name } = stationResponse
+export const PercentileStationResultTable = ({ stationResponse }: Props) => {
+  const { season, FFMC, BUI, ISI, years, station } = stationResponse
   const seasonRange = `${season.start_month}/${season.start_day} ~ ${season.end_month}/${season.end_day}`
   const yearRange = years.join(', ')
 
@@ -32,7 +28,7 @@ export const PercentileStationResultTable = ({
           <TableRow>
             <TableCell>Station Name</TableCell>
             <TableCell>
-              {station_name} ({stationCode})
+              {station.name} ({station.code})
             </TableCell>
           </TableRow>
         </TableHead>
