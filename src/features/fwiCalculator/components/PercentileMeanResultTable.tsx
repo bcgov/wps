@@ -1,5 +1,4 @@
 import React from 'react'
-import { MeanValues } from 'api/percentileAPI'
 import {
   Paper,
   TableContainer,
@@ -8,6 +7,9 @@ import {
   TableCell,
   TableBody
 } from '@material-ui/core'
+
+import { MeanValues } from 'api/percentileAPI'
+import { FWI_VALUES_DECIMAL_POINT } from 'utils/constants'
 
 interface Props {
   meanValues: MeanValues
@@ -20,15 +22,21 @@ export const PercentileMeanResultTable = ({ meanValues }: Props) => {
         <TableBody>
           <TableRow>
             <TableCell>FFMC mean value</TableCell>
-            <TableCell>{meanValues.FFMC.toFixed(1)}</TableCell>
+            <TableCell>
+              {meanValues.FFMC.toFixed(FWI_VALUES_DECIMAL_POINT)}
+            </TableCell>
           </TableRow>
           <TableRow>
             <TableCell>BUI mean value</TableCell>
-            <TableCell>{meanValues.BUI.toFixed(1)}</TableCell>
+            <TableCell>
+              {meanValues.BUI.toFixed(FWI_VALUES_DECIMAL_POINT)}
+            </TableCell>
           </TableRow>
           <TableRow>
             <TableCell>ISI mean value</TableCell>
-            <TableCell>{meanValues.ISI.toFixed(1)}</TableCell>
+            <TableCell>
+              {meanValues.ISI.toFixed(FWI_VALUES_DECIMAL_POINT)}
+            </TableCell>
           </TableRow>
         </TableBody>
       </Table>

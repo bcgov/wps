@@ -5,7 +5,10 @@ import { waitForElement, cleanup, fireEvent } from '@testing-library/react'
 import axios from 'api/axios'
 import { selectStationsReducer } from 'app/rootReducer'
 import { renderWithRedux } from 'utils/testUtils'
-import { WEATHER_STATION_MAP_LINK } from 'utils/constants'
+import {
+  WEATHER_STATION_MAP_LINK,
+  FWI_VALUES_DECIMAL_POINT
+} from 'utils/constants'
 import { FWICalculatorPage } from 'features/fwiCalculator/FWICalculatorPage'
 
 const mockAxios = new MockAdapter(axios)
@@ -126,9 +129,21 @@ it('renders percentiles result when clicking on the calculate button', async () 
 
   // Check if mean values are rendered
   expect(store.getState().percentiles.result).toEqual(mockPercentilesResponse)
-  getByText(mockPercentilesResponse.mean_values.FFMC.toFixed(1).toString())
-  getByText(mockPercentilesResponse.mean_values.BUI.toFixed(1).toString())
-  getByText(mockPercentilesResponse.mean_values.ISI.toFixed(1).toString())
+  getByText(
+    mockPercentilesResponse.mean_values.FFMC.toFixed(
+      FWI_VALUES_DECIMAL_POINT
+    ).toString()
+  )
+  getByText(
+    mockPercentilesResponse.mean_values.BUI.toFixed(
+      FWI_VALUES_DECIMAL_POINT
+    ).toString()
+  )
+  getByText(
+    mockPercentilesResponse.mean_values.ISI.toFixed(
+      FWI_VALUES_DECIMAL_POINT
+    ).toString()
+  )
 
   // Check if the documentation is rendered
   expect(getByTestId('percentile-documentation-card')).toBeInTheDocument()
