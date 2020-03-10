@@ -44,5 +44,8 @@
         2018,
         2019
     ],
-    "station_name": "JOHNSON LAKE"
+    "station": {
+        "code": "419",
+        "name": "JOHNSON LAKE"
+    }
 }

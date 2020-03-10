@@ -19,5 +19,8 @@
         2017,
         2018
     ],
-    "station_name": "TS MCNABB"
+    "station": {
+        "code": "1066",
+        "name": "TS MCNABB"
+    }
 }

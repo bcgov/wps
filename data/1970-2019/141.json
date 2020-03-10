@@ -59,5 +59,8 @@
         2018,
         2019
     ],
-    "station_name": "MANSON"
+    "station": {
+        "code": "141",
+        "name": "MANSON"
+    }
 }

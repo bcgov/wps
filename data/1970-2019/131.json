@@ -46,5 +46,8 @@
         2018,
         2019
     ],
-    "station_name": "MUSKWA"
+    "station": {
+        "code": "131",
+        "name": "MUSKWA"
+    }
 }

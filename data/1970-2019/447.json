@@ -34,5 +34,8 @@
         2018,
         2019
     ],
-    "station_name": "WATSON LAKE FS"
+    "station": {
+        "code": "447",
+        "name": "WATSON LAKE FS"
+    }
 }

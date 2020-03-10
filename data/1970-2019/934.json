@@ -23,5 +23,8 @@
         2017,
         2018
     ],
-    "station_name": "MESACHIE 2"
+    "station": {
+        "code": "934",
+        "name": "MESACHIE 2"
+    }
 }

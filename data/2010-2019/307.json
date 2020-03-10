@@ -20,5 +20,8 @@
         2018,
         2019
     ],
-    "station_name": "LEIGHTON LAKE"
+    "station": {
+        "code": "307",
+        "name": "LEIGHTON LAKE"
+    }
 }

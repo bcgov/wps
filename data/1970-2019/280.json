@@ -53,5 +53,8 @@
         2018,
         2019
     ],
-    "station_name": "LILLOOET"
+    "station": {
+        "code": "280",
+        "name": "LILLOOET"
+    }
 }

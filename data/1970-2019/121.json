@@ -44,5 +44,8 @@
         2018,
         2019
     ],
-    "station_name": "PADDY"
+    "station": {
+        "code": "121",
+        "name": "PADDY"
+    }
 }

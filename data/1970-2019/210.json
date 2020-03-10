@@ -50,5 +50,8 @@
         2018,
         2019
     ],
-    "station_name": "RISKE CREEK"
+    "station": {
+        "code": "210",
+        "name": "RISKE CREEK"
+    }
 }

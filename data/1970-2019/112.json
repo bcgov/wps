@@ -51,5 +51,8 @@
         2018,
         2019
     ],
-    "station_name": "ISKUT"
+    "station": {
+        "code": "112",
+        "name": "ISKUT"
+    }
 }

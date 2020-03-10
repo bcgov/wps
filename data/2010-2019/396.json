@@ -20,5 +20,8 @@
         2018,
         2019
     ],
-    "station_name": "OCTOPUS CREEK"
+    "station": {
+        "code": "396",
+        "name": "OCTOPUS CREEK"
+    }
 }

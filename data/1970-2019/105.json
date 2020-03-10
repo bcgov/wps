@@ -56,5 +56,8 @@
         2018,
         2019
     ],
-    "station_name": "ROSSWOOD"
+    "station": {
+        "code": "105",
+        "name": "ROSSWOOD"
+    }
 }

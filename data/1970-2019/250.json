@@ -41,5 +41,8 @@
         2018,
         2019
     ],
-    "station_name": "HARBOUR LAKE"
+    "station": {
+        "code": "250",
+        "name": "HARBOUR LAKE"
+    }
 }

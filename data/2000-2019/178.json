@@ -30,5 +30,8 @@
         2018,
         2019
     ],
-    "station_name": "PEDEN"
+    "station": {
+        "code": "178",
+        "name": "PEDEN"
+    }
 }

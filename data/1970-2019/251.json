@@ -41,5 +41,8 @@
         2018,
         2019
     ],
-    "station_name": "DECEPTION"
+    "station": {
+        "code": "251",
+        "name": "DECEPTION"
+    }
 }

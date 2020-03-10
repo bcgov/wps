@@ -30,5 +30,8 @@
         2018,
         2019
     ],
-    "station_name": "BEDNESTI"
+    "station": {
+        "code": "175",
+        "name": "BEDNESTI"
+    }
 }

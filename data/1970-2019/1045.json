@@ -21,5 +21,8 @@
         2018,
         2019
     ],
-    "station_name": "OSBORN"
+    "station": {
+        "code": "1045",
+        "name": "OSBORN"
+    }
 }

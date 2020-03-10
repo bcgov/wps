@@ -15,5 +15,8 @@
         2018,
         2019
     ],
-    "station_name": "DARKWOODS"
+    "station": {
+        "code": "1203",
+        "name": "DARKWOODS"
+    }
 }

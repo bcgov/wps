@@ -20,5 +20,8 @@
         2018,
         2019
     ],
-    "station_name": "RED DEER"
+    "station": {
+        "code": "138",
+        "name": "RED DEER"
+    }
 }

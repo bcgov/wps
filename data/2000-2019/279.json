@@ -30,5 +30,8 @@
         2018,
         2019
     ],
-    "station_name": "THYNNE"
+    "station": {
+        "code": "279",
+        "name": "THYNNE"
+    }
 }

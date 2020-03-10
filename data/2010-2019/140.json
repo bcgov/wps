@@ -20,5 +20,8 @@
         2018,
         2019
     ],
-    "station_name": "LEMORAY"
+    "station": {
+        "code": "140",
+        "name": "LEMORAY"
+    }
 }

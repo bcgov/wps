@@ -23,5 +23,8 @@
         2018,
         2019
     ],
-    "station_name": "BAKER EAST/WEST HUB"
+    "station": {
+        "code": "503",
+        "name": "BAKER EAST/WEST HUB"
+    }
 }

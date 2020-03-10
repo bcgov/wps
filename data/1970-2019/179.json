@@ -45,5 +45,8 @@
         2018,
         2019
     ],
-    "station_name": "NADINA"
+    "station": {
+        "code": "179",
+        "name": "NADINA"
+    }
 }

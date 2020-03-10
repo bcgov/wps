@@ -45,5 +45,8 @@
         2017,
         2018
     ],
-    "station_name": "AUGIER LAKE"
+    "station": {
+        "code": "167",
+        "name": "AUGIER LAKE"
+    }
 }
