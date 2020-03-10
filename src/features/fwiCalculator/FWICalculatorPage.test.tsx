@@ -91,7 +91,7 @@ it('renders percentiles result when clicking on the calculate button', async () 
   mockAxios
     .onGet('/stations')
     .replyOnce(200, { weather_stations: mockStations })
-  mockAxios.onPost('/percentiles').replyOnce(200, mockPercentilesResponse)
+  mockAxios.onPost('/percentiles/').replyOnce(200, mockPercentilesResponse)
 
   const { getByText, getByTestId, store, queryByTestId } = renderWithRedux(
     <FWICalculatorPage />
