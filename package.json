@@ -1,10 +1,16 @@
 {
   "name": "wps-web",
   "version": "0.1.0",
-  "private": true,
   "engines": {
-    "node": "~10.16.0"
+    "node": "~8.10.0"
   },
+  "license": "Apache-2.0",
+  "licenses": [
+    {
+      "type": "Apache-2.0",
+      "url": "https://www.apache.org/licenses/LICENSE-2.0"
+    }
+  ],
   "dependencies": {
     "@material-ui/core": "^4.9.2",
     "@material-ui/icons": "^4.9.1",
