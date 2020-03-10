@@ -20,5 +20,8 @@
         2018,
         2019
     ],
-    "station_name": "SKOONKA"
+    "station": {
+        "code": "1024",
+        "name": "SKOONKA"
+    }
 }

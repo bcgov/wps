@@ -20,5 +20,8 @@
         2018,
         2019
     ],
-    "station_name": "NEGRO CREEK"
+    "station": {
+        "code": "789",
+        "name": "NEGRO CREEK"
+    }
 }

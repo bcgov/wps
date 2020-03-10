@@ -30,5 +30,8 @@
         2018,
         2019
     ],
-    "station_name": "DEASE LAKE FS"
+    "station": {
+        "code": "108",
+        "name": "DEASE LAKE FS"
+    }
 }

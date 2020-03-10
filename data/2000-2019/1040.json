@@ -21,5 +21,8 @@
         2018,
         2019
     ],
-    "station_name": "BIG SILVER 2"
+    "station": {
+        "code": "1040",
+        "name": "BIG SILVER 2"
+    }
 }

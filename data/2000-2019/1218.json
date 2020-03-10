@@ -15,5 +15,8 @@
         2018,
         2019
     ],
-    "station_name": "POWELL RIVER WEST LAKE"
+    "station": {
+        "code": "1218",
+        "name": "POWELL RIVER WEST LAKE"
+    }
 }

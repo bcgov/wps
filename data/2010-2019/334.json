@@ -19,5 +19,8 @@
         2017,
         2018
     ],
-    "station_name": "MCCUDDY"
+    "station": {
+        "code": "334",
+        "name": "MCCUDDY"
+    }
 }

@@ -40,14 +40,18 @@ season = {
 # the algorithm
 def main():
     for item in range(len(RANGES)):
+        stations_json_to_dict()
         parse_weather_dates()
         remove_data_outside_date_range(RANGES[item])
         remove_data_outside_fire_season()
-        sort_by_weather_station()
         calculate_percentile_per_station()
         list_years_per_station()
         write_output_to_json(RANGES[item])
 
+def stations_json_to_dict():
+    with open('../data/weather_stations.json') as fileHandle:
+        global weather_stations
+        weather_stations = json.load(fileHandle)['weather_stations']
 
 def parse_weather_dates():
     print('parse_weather_dates...')
@@ -65,13 +69,9 @@ def parse_weather_dates():
 
 def remove_data_outside_date_range(date_range):
     print('remove_data_outside_date_range...')
-    # remove data recorded before START_YEAR
-    indexNames = daily_weather_data[daily_weather_data['year']
-                                    < int(date_range[0:4])].index
-    daily_weather_data.drop(indexNames, inplace=True)
-    # remove data recorded after END_YEAR
-    indexNames = daily_weather_data[daily_weather_data['year']
-                                    > int(date_range[5:9])].index
+    # remove data recorded before START_YEAR or after END_YEAR
+    indexNames = daily_weather_data[(daily_weather_data['year']
+                                    < int(date_range[0:4])) | (daily_weather_data['year'] > int(date_range[5:9]))].index
     daily_weather_data.drop(indexNames, inplace=True)
     return
 
@@ -79,11 +79,8 @@ def remove_data_outside_date_range(date_range):
 def remove_data_outside_fire_season():
     print('remove_data_outside_fire_season...')
     # remove data recorded outside of fire season
-    indexNames = daily_weather_data[daily_weather_data['month']
-                                    < FIRE_SEASON_START_MONTH].index
-    daily_weather_data.drop(indexNames, inplace=True)
-    indexNames = daily_weather_data[daily_weather_data['month']
-                                    > FIRE_SEASON_END_MONTH].index
+    indexNames = daily_weather_data[(daily_weather_data['month']
+                                    < FIRE_SEASON_START_MONTH) | (daily_weather_data['month'] > FIRE_SEASON_END_MONTH)].index
     daily_weather_data.drop(indexNames, inplace=True)
     indexNames = daily_weather_data[(daily_weather_data['month'] == FIRE_SEASON_START_MONTH) & (
         daily_weather_data['day'] < FIRE_SEASON_START_DATE)].index
@@ -92,14 +89,6 @@ def remove_data_outside_fire_season():
         daily_weather_data['day'] > FIRE_SEASON_END_DATE)].index
     daily_weather_data.drop(indexNames, inplace=True)
     return
-
-
-def sort_by_weather_station():
-    print('sort_by_weather_station...')
-    # sort the dataframe by station ID
-    daily_weather_data.sort_values(by=['station_code'], inplace=True)
-    return
-
 
 def calculate_percentile_per_station():
     print('calculate_percentile_per_station...')
@@ -124,24 +113,27 @@ def list_years_per_station():
 
 def write_output_to_json(date_range):
     print('write_output_to_json...')
-    global season, year_range, station_summary_dict
-    for index, value in ffmc_percentiles.items():
-        station_summary = {
-            'FFMC': ffmc_percentiles[index],
-            'ISI': isi_percentiles[index],
-            'BUI': bui_percentiles[index],
-            'season': season,
-            'years': [int(year) for year in data_years[index]],
-            'station_name':
-                daily_weather_data.loc[daily_weather_data['station_code']
-                                       == index, 'station_name'].iloc[0]
-        }
-        output_folder = "../data/" + date_range
-        if not os.path.exists(output_folder):
-            os.mkdir(output_folder)
-        output_filename = output_folder + "/" + str(index) + ".json"
-        with open(output_filename, 'w+') as json_file:
-            json.dump(station_summary, json_file, indent=4)
+    global weather_stations
+    for weath_stat in weather_stations:
+        key = weath_stat['code']
+        ws = {'code': key, 'name': weath_stat['name']}
+        try:
+            station_summary = {
+                'FFMC': ffmc_percentiles[int(key)],
+                'ISI': isi_percentiles[int(key)],
+                'BUI': bui_percentiles[int(key)],
+                'season': season,
+                'years': [int(year) for year in data_years[int(key)]],
+                'station': ws
+            }
+            output_folder = "../data/" + date_range
+            if not os.path.exists(output_folder):
+                os.mkdir(output_folder)
+            output_filename = output_folder + "/" + key + ".json"
+            with open(output_filename, 'w+') as json_file:
+                json.dump(station_summary, json_file, indent=4)
+        except KeyError:
+            print('Data not available for ' + key)
 
     return
 

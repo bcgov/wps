@@ -44,5 +44,8 @@
         2018,
         2019
     ],
-    "station_name": "CHILAKO"
+    "station": {
+        "code": "189",
+        "name": "CHILAKO"
+    }
 }

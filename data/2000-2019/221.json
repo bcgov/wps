@@ -30,5 +30,8 @@
         2018,
         2019
     ],
-    "station_name": "BALDFACE"
+    "station": {
+        "code": "221",
+        "name": "BALDFACE"
+    }
 }

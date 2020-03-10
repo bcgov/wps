@@ -24,6 +24,9 @@ class PercentileRequest(BaseModel):
     percentile: int
     year_range: YearRange
 
+class WeatherStation(BaseModel):
+    code: int
+    name: str
 
 class StationSummary(BaseModel):
     FFMC: float
@@ -31,7 +34,7 @@ class StationSummary(BaseModel):
     BUI: float
     season: Season
     years: List[int]
-    station_name: str
+    station: WeatherStation
 
 
 class MeanValues(BaseModel):
@@ -45,12 +48,6 @@ class CalculatedResponse(BaseModel):
     mean_values: MeanValues = None
     year_range: YearRange
     percentile: int
-
-
-class WeatherStation(BaseModel):
-    code: int
-    name: str
-
 
 class WeatherStations(BaseModel):
     weather_stations: List[WeatherStation]
@@ -101,7 +98,10 @@ async def get_percentiles(request: PercentileRequest):
     isi = []
     ffmc = []
     for station in request.stations:
-        summary = StationSummary.parse_file('data/{}-{}/{}.json'.format(year_range_start, year_range_end, station))
+        try:
+            summary = StationSummary.parse_file('data/{}-{}/{}.json'.format(year_range_start, year_range_end, station))
+        except:
+            raise HTTPException(status_code=404, detail='Weather data not found')
         bui.append(summary.BUI)
         isi.append(summary.ISI)
         ffmc.append(summary.FFMC)

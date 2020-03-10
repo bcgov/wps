@@ -29,5 +29,8 @@
         2018,
         2019
     ],
-    "station_name": "TABERNACLE  (WIND)"
+    "station": {
+        "code": "376",
+        "name": "TABERNACLE  (WIND)"
+    }
 }

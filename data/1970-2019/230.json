@@ -58,5 +58,8 @@
         2018,
         2019
     ],
-    "station_name": "HORSEFLY"
+    "station": {
+        "code": "230",
+        "name": "HORSEFLY"
+    }
 }

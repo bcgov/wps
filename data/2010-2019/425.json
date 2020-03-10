@@ -20,5 +20,8 @@
         2018,
         2019
     ],
-    "station_name": "EMILY CREEK"
+    "station": {
+        "code": "425",
+        "name": "EMILY CREEK"
+    }
 }

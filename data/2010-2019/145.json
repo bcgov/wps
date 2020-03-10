@@ -20,5 +20,8 @@
         2018,
         2019
     ],
-    "station_name": "INGENIKA POINT"
+    "station": {
+        "code": "145",
+        "name": "INGENIKA POINT"
+    }
 }

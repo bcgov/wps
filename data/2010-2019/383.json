@@ -20,5 +20,8 @@
         2018,
         2019
     ],
-    "station_name": "FALLS CREEK"
+    "station": {
+        "code": "383",
+        "name": "FALLS CREEK"
+    }
 }

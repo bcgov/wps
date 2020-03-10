@@ -13,5 +13,8 @@
         2018,
         2019
     ],
-    "station_name": "OLD FADDY"
+    "station": {
+        "code": "1270",
+        "name": "OLD FADDY"
+    }
 }

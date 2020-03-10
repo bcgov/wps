@@ -22,5 +22,8 @@
         2018,
         2019
     ],
-    "station_name": "TS THEODOSIA"
+    "station": {
+        "code": "1025",
+        "name": "TS THEODOSIA"
+    }
 }

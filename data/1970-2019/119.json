@@ -44,5 +44,8 @@
         2018,
         2019
     ],
-    "station_name": "NELSON FORKS"
+    "station": {
+        "code": "119",
+        "name": "NELSON FORKS"
+    }
 }

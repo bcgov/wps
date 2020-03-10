@@ -20,5 +20,8 @@
         2018,
         2019
     ],
-    "station_name": "SPLINTLUM"
+    "station": {
+        "code": "1055",
+        "name": "SPLINTLUM"
+    }
 }

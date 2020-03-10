@@ -20,5 +20,8 @@
         2018,
         2019
     ],
-    "station_name": "COLDSCAUR LAKE"
+    "station": {
+        "code": "232",
+        "name": "COLDSCAUR LAKE"
+    }
 }

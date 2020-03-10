@@ -29,5 +29,8 @@
         2018,
         2019
     ],
-    "station_name": "PEMBERTON BASE"
+    "station": {
+        "code": "301",
+        "name": "PEMBERTON BASE"
+    }
 }

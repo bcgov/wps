@@ -24,5 +24,8 @@
         2018,
         2019
     ],
-    "station_name": "TS NAKA CREEK"
+    "station": {
+        "code": "945",
+        "name": "TS NAKA CREEK"
+    }
 }

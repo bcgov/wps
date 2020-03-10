@@ -43,5 +43,8 @@
         2018,
         2019
     ],
-    "station_name": "MABEL LAKE 2"
+    "station": {
+        "code": "362",
+        "name": "MABEL LAKE 2"
+    }
 }

@@ -20,5 +20,8 @@
         2018,
         2019
     ],
-    "station_name": "HUDSON HOPE"
+    "station": {
+        "code": "132",
+        "name": "HUDSON HOPE"
+    }
 }

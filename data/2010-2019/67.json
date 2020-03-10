@@ -20,5 +20,8 @@
         2018,
         2019
     ],
-    "station_name": "HAIG CAMP"
+    "station": {
+        "code": "67",
+        "name": "HAIG CAMP"
+    }
 }

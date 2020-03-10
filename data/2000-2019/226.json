@@ -29,5 +29,8 @@
         2017,
         2018
     ],
-    "station_name": "MIDDLE LAKE"
+    "station": {
+        "code": "226",
+        "name": "MIDDLE LAKE"
+    }
 }

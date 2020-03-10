@@ -50,5 +50,8 @@
         2018,
         2019
     ],
-    "station_name": "SALMON ARM"
+    "station": {
+        "code": "346",
+        "name": "SALMON ARM"
+    }
 }

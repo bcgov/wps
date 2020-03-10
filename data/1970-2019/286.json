@@ -44,5 +44,8 @@
         2018,
         2019
     ],
-    "station_name": "TURTLE"
+    "station": {
+        "code": "286",
+        "name": "TURTLE"
+    }
 }

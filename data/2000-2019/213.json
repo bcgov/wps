@@ -30,5 +30,8 @@
         2018,
         2019
     ],
-    "station_name": "ANAHIM LAKE HUB"
+    "station": {
+        "code": "213",
+        "name": "ANAHIM LAKE HUB"
+    }
 }

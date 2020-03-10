@@ -41,5 +41,8 @@
         2018,
         2019
     ],
-    "station_name": "GREENSTONE HUB"
+    "station": {
+        "code": "321",
+        "name": "GREENSTONE HUB"
+    }
 }

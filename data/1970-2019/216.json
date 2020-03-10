@@ -47,5 +47,8 @@
         2018,
         2019
     ],
-    "station_name": "NEMIAH"
+    "station": {
+        "code": "216",
+        "name": "NEMIAH"
+    }
 }
