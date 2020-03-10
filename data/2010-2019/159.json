@@ -20,5 +20,8 @@
         2018,
         2019
     ],
-    "station_name": "NORTH CHILCO"
+    "station": {
+        "code": "159",
+        "name": "NORTH CHILCO"
+    }
 }

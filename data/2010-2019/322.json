@@ -20,5 +20,8 @@
         2018,
         2019
     ],
-    "station_name": "AFTON"
+    "station": {
+        "code": "322",
+        "name": "AFTON"
+    }
 }

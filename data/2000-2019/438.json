@@ -30,5 +30,8 @@
         2018,
         2019
     ],
-    "station_name": "ELK MOUNTAIN"
+    "station": {
+        "code": "438",
+        "name": "ELK MOUNTAIN"
+    }
 }

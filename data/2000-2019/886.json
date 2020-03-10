@@ -25,5 +25,8 @@
         2018,
         2019
     ],
-    "station_name": "GOATHAVEN"
+    "station": {
+        "code": "886",
+        "name": "GOATHAVEN"
+    }
 }

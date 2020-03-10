@@ -59,5 +59,8 @@
         2018,
         2019
     ],
-    "station_name": "LIKELY RS"
+    "station": {
+        "code": "255",
+        "name": "LIKELY RS"
+    }
 }

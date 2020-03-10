@@ -48,5 +48,8 @@
         2018,
         2019
     ],
-    "station_name": "SCAR CREEK"
+    "station": {
+        "code": "82",
+        "name": "SCAR CREEK"
+    }
 }

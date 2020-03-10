@@ -19,5 +19,8 @@
         2017,
         2018
     ],
-    "station_name": "MATHEW"
+    "station": {
+        "code": "263",
+        "name": "MATHEW"
+    }
 }

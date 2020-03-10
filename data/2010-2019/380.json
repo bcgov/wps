@@ -20,5 +20,8 @@
         2018,
         2019
     ],
-    "station_name": "POWDER CREEK"
+    "station": {
+        "code": "380",
+        "name": "POWDER CREEK"
+    }
 }

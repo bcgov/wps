@@ -32,5 +32,8 @@
         2018,
         2019
     ],
-    "station_name": "HOLY CROSS 2"
+    "station": {
+        "code": "654",
+        "name": "HOLY CROSS 2"
+    }
 }

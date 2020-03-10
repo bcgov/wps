@@ -30,5 +30,8 @@
         2018,
         2019
     ],
-    "station_name": "NANCY GREEN"
+    "station": {
+        "code": "407",
+        "name": "NANCY GREEN"
+    }
 }

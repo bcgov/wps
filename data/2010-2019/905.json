@@ -20,5 +20,8 @@
         2018,
         2019
     ],
-    "station_name": "DOWNIE"
+    "station": {
+        "code": "905",
+        "name": "DOWNIE"
+    }
 }

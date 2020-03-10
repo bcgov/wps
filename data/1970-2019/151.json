@@ -38,5 +38,8 @@
         2018,
         2019
     ],
-    "station_name": "NABESHE"
+    "station": {
+        "code": "151",
+        "name": "NABESHE"
+    }
 }

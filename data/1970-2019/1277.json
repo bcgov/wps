@@ -13,5 +13,8 @@
         2018,
         2019
     ],
-    "station_name": "WEST KELOWNA"
+    "station": {
+        "code": "1277",
+        "name": "WEST KELOWNA"
+    }
 }

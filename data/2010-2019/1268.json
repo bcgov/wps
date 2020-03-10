@@ -14,5 +14,8 @@
         2018,
         2019
     ],
-    "station_name": "VALEMOUNT AIRPORT"
+    "station": {
+        "code": "1268",
+        "name": "VALEMOUNT AIRPORT"
+    }
 }

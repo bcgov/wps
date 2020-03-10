@@ -11,5 +11,8 @@
     "years": [
         2018
     ],
-    "station_name": "WILLIS EXT"
+    "station": {
+        "code": "1326",
+        "name": "WILLIS EXT"
+    }
 }

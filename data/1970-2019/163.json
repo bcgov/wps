@@ -48,5 +48,8 @@
         2018,
         2019
     ],
-    "station_name": "LOVELL COVE"
+    "station": {
+        "code": "163",
+        "name": "LOVELL COVE"
+    }
 }

@@ -20,5 +20,8 @@
         2018,
         2019
     ],
-    "station_name": "EAST BARRIERE"
+    "station": {
+        "code": "243",
+        "name": "EAST BARRIERE"
+    }
 }

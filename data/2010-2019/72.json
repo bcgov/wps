@@ -20,5 +20,8 @@
         2018,
         2019
     ],
-    "station_name": "UBC RESEARCH"
+    "station": {
+        "code": "72",
+        "name": "UBC RESEARCH"
+    }
 }

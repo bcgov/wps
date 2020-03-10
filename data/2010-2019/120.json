@@ -19,5 +19,8 @@
         2017,
         2018
     ],
-    "station_name": "SILVER"
+    "station": {
+        "code": "120",
+        "name": "SILVER"
+    }
 }

@@ -45,5 +45,8 @@
         2018,
         2019
     ],
-    "station_name": "SUMMIT"
+    "station": {
+        "code": "11",
+        "name": "SUMMIT"
+    }
 }

@@ -47,5 +47,8 @@
         2018,
         2019
     ],
-    "station_name": "PALLISER"
+    "station": {
+        "code": "411",
+        "name": "PALLISER"
+    }
 }

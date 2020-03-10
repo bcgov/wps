@@ -22,5 +22,8 @@
         2018,
         2019
     ],
-    "station_name": "FIVE MILE"
+    "station": {
+        "code": "1029",
+        "name": "FIVE MILE"
+    }
 }

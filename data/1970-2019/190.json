@@ -42,5 +42,8 @@
         2018,
         2019
     ],
-    "station_name": "JERRY"
+    "station": {
+        "code": "190",
+        "name": "JERRY"
+    }
 }

@@ -19,5 +19,8 @@
         2018,
         2019
     ],
-    "station_name": "BLUE RIVER 2"
+    "station": {
+        "code": "1108",
+        "name": "BLUE RIVER 2"
+    }
 }

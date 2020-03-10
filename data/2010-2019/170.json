@@ -20,5 +20,8 @@
         2018,
         2019
     ],
-    "station_name": "EAST OOTSA"
+    "station": {
+        "code": "170",
+        "name": "EAST OOTSA"
+    }
 }

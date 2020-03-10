@@ -20,5 +20,8 @@
         2018,
         2019
     ],
-    "station_name": "EIGHT MILE"
+    "station": {
+        "code": "391",
+        "name": "EIGHT MILE"
+    }
 }

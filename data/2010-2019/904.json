@@ -20,5 +20,8 @@
         2018,
         2019
     ],
-    "station_name": "HAGENSBORG 2"
+    "station": {
+        "code": "904",
+        "name": "HAGENSBORG 2"
+    }
 }

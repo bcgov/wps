@@ -20,5 +20,8 @@
         2018,
         2019
     ],
-    "station_name": "VAN DYKE"
+    "station": {
+        "code": "430",
+        "name": "VAN DYKE"
+    }
 }

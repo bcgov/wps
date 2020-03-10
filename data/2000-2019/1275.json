@@ -13,5 +13,8 @@
         2018,
         2019
     ],
-    "station_name": "APE LAKE"
+    "station": {
+        "code": "1275",
+        "name": "APE LAKE"
+    }
 }

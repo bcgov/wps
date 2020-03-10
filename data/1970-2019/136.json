@@ -39,5 +39,8 @@
         2017,
         2018
     ],
-    "station_name": "WONOWON"
+    "station": {
+        "code": "136",
+        "name": "WONOWON"
+    }
 }

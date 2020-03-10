@@ -35,5 +35,8 @@
         2018,
         2019
     ],
-    "station_name": "WELLS GRAY"
+    "station": {
+        "code": "266",
+        "name": "WELLS GRAY"
+    }
 }

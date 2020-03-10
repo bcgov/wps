@@ -13,5 +13,8 @@
         2018,
         2019
     ],
-    "station_name": "CHEAKAMUS"
+    "station": {
+        "code": "1283",
+        "name": "CHEAKAMUS"
+    }
 }
