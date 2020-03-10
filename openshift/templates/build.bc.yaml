@@ -18,7 +18,7 @@ parameters:
   description: Module name
   value: wps-web
 - name: SUFFIX
-  description: Deployment suffix, e.g. pr-###
+  description: Deployment suffix, e.g. pr-### or prod
   required: true
 - name: GIT_URL
   value: https://github.com/bcgov/wps-web.git
@@ -34,9 +34,9 @@ objects:
       annotations:
         openshift.io/generated-by: OpenShiftNewBuild
       labels:
-        app: ${NAME}-${SUFFIX}
+        app: ${NAME}
         common: "true"
-      name: ${NAME}-${SUFFIX}
+      name: ${NAME}
     spec:
       lookupPolicy:
         local: false
@@ -53,7 +53,7 @@ objects:
       output:
         to:
           kind: ImageStreamTag
-          name: ${NAME}-${SUFFIX}:latest
+          name: ${NAME}:${SUFFIX}
       postCommit:
         script: "npm run test:ci"
       resources:

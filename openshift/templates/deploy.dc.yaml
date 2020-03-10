@@ -22,26 +22,26 @@ parameters:
     required: true
   - name: DOCKER_REGISTRY
     value: docker-registry.default.svc:5000
-  - name: PROJECT_DEPLOY
-    value: auzhsi-dev
   - name: PROJECT_TOOLS
     value: auzhsi-tools
   - name: CPU_REQUEST
     description: Requested CPU
-    value: 500m
+    value: 1000m
   - name: CPU_LIMIT
     description: CPU upper limit
-    value: 500m
+    value: 1000m
   - name: MEMORY_REQUEST
     description: Requested memory
-    value: 1Gi
+    value: 2Gi
   - name: MEMORY_LIMIT
     description: Memory upper limit
-    value: 1Gi
+    value: 2Gi
 objects:
   - apiVersion: v1
     kind: DeploymentConfig
     metadata:
+      labels:
+        app: ${NAME}-${SUFFIX}
       name: ${NAME}-${SUFFIX}
     spec:
       replicas: 1
@@ -55,8 +55,17 @@ objects:
             name: ${NAME}-${SUFFIX}
         spec:
           automountServiceAccountToken: false
+          triggers:
+            - type: "ConfigChange"
+              type: "ImageChange"
+              imageChangeParams:
+                automatic: true
+                from:
+                  kind: "ImageStreamTag"
+                  name: "${NAME}:${SUFFIX}"
+                  namespace: "${PROJECT_TOOLS}"
           containers:
-            - image: ${DOCKER_REGISTRY}/${PROJECT_TOOLS}/${NAME}-${SUFFIX}:latest
+            - image: ${DOCKER_REGISTRY}/${PROJECT_TOOLS}/${NAME}:${SUFFIX}
               name: ${NAME}
               ports:
                 - containerPort: 3000
