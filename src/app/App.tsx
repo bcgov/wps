@@ -2,7 +2,7 @@ import React from 'react'
 import { CssBaseline } from '@material-ui/core'
 import { ThemeProvider, createMuiTheme } from '@material-ui/core/styles'
 
-import { FWICalculatorPage } from 'features/fwiCalculator/FWICalculatorPage'
+import { FWICalculatorDisclaimerModal } from 'features/fwiCalculator/FWICalculatorDisclaimerModal'
 
 // Theme documentation: https://material-ui.com/customization/palette/
 // Theme demo: https://material.io/resources/color/#!/?view.left=1&view.right=1&primary.color=003365&secondary.color=FBC02D
@@ -37,7 +37,7 @@ const App = () => {
     <React.StrictMode>
       <CssBaseline />
       <ThemeProvider theme={theme}>
-        <FWICalculatorPage />
+        <FWICalculatorDisclaimerModal />
       </ThemeProvider>
     </React.StrictMode>
   )

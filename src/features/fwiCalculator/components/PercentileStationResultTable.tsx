@@ -8,7 +8,9 @@ import {
   TableCell,
   TableBody
 } from '@material-ui/core'
+
 import { StationSummaryResponse } from 'api/percentileAPI'
+import { FWI_VALUES_DECIMAL_POINT } from 'utils/constants'
 
 interface Props {
   stationCode: string
@@ -37,15 +39,15 @@ export const PercentileStationResultTable = ({
         <TableBody>
           <TableRow>
             <TableCell>FFMC</TableCell>
-            <TableCell>{FFMC.toFixed(1)}</TableCell>
+            <TableCell>{FFMC.toFixed(FWI_VALUES_DECIMAL_POINT)}</TableCell>
           </TableRow>
           <TableRow>
             <TableCell>BUI</TableCell>
-            <TableCell>{BUI.toFixed(1)}</TableCell>
+            <TableCell>{BUI.toFixed(FWI_VALUES_DECIMAL_POINT)}</TableCell>
           </TableRow>
           <TableRow>
             <TableCell>ISI</TableCell>
-            <TableCell>{ISI.toFixed(1)}</TableCell>
+            <TableCell>{ISI.toFixed(FWI_VALUES_DECIMAL_POINT)}</TableCell>
           </TableRow>
 
           <TableRow>
