@@ -7,10 +7,14 @@ import { PercentileMeanResultTable } from 'features/fwiCalculator/components/Per
 import { PercentileStationResultTable } from 'features/fwiCalculator/components/PercentileStationResultTable'
 import { ErrorMessage } from 'components/ErrorMessage'
 import { GridItem, GridContainer } from 'components/Grid'
+import { PercentileCalcDocumentation } from 'features/fwiCalculator/components/PercentileCalcDocumentation'
 
 const useStyles = makeStyles({
   root: {
     marginTop: 15
+  },
+  gridContainer: {
+    marginBottom: 15
   }
 })
 
@@ -43,13 +47,21 @@ export const FWICalculatorResults = () => {
       )
     }
   )
+  const isMoreThanOneResult = stationResults.length > 1
 
   return (
     <div data-testid="percentile-result-tables" className={classes.root}>
-      <GridContainer>{stationResults}</GridContainer>
-      <GridContainer>
-        <GridItem>
-          <PercentileMeanResultTable meanValues={result.mean_values} />
+      <GridContainer className={classes.gridContainer}>
+        {stationResults}
+        {isMoreThanOneResult && (
+          <GridItem>
+            <PercentileMeanResultTable meanValues={result.mean_values} />
+          </GridItem>
+        )}
+      </GridContainer>
+      <GridContainer className={classes.gridContainer}>
+        <GridItem lg={12} md={12}>
+          <PercentileCalcDocumentation />
         </GridItem>
       </GridContainer>
     </div>

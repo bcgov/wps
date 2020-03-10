@@ -18,7 +18,8 @@ const useStyles = makeStyles({
     padding: 10
   },
   wrapper: {
-    display: 'flex'
+    display: 'flex',
+    alignItems: 'flex-start'
   }
 })
 
@@ -41,7 +42,6 @@ export const WeatherStationsDropdown = (props: Props) => {
         <Autocomplete
           data-testid="weather-station-dropdown"
           className={classes.root}
-          disableCloseOnSelect
           multiple
           options={stations}
           getOptionLabel={option => `${option.name} (${option.code})`}
@@ -56,6 +56,7 @@ export const WeatherStationsDropdown = (props: Props) => {
               variant="outlined"
               fullWidth
               size="small"
+              helperText="Can select up to 3 weather stations."
             />
           )}
         />

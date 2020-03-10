@@ -34,12 +34,12 @@ const theme = createMuiTheme({
 
 const App = () => {
   return (
-    <>
+    <React.StrictMode>
       <CssBaseline />
       <ThemeProvider theme={theme}>
         <FWICalculatorPage />
       </ThemeProvider>
-    </>
+    </React.StrictMode>
   )
 }
 
