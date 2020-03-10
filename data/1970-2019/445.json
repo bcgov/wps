@@ -45,5 +45,8 @@
         2018,
         2019
     ],
-    "station_name": "BOYA LAKE"
+    "station": {
+        "code": "445",
+        "name": "BOYA LAKE"
+    }
 }

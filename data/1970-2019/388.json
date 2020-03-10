@@ -43,5 +43,8 @@
         2018,
         2019
     ],
-    "station_name": "KETTLE 2"
+    "station": {
+        "code": "388",
+        "name": "KETTLE 2"
+    }
 }

@@ -41,5 +41,8 @@
         2018,
         2019
     ],
-    "station_name": "WHITE RIVER"
+    "station": {
+        "code": "790",
+        "name": "WHITE RIVER"
+    }
 }

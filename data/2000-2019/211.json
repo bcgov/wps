@@ -30,5 +30,8 @@
         2018,
         2019
     ],
-    "station_name": "NAZKO"
+    "station": {
+        "code": "211",
+        "name": "NAZKO"
+    }
 }

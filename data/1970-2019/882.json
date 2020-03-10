@@ -25,5 +25,8 @@
         2018,
         2019
     ],
-    "station_name": "SICAMOUS"
+    "station": {
+        "code": "882",
+        "name": "SICAMOUS"
+    }
 }

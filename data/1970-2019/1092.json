@@ -19,5 +19,8 @@
         2018,
         2019
     ],
-    "station_name": "RORY CREEK"
+    "station": {
+        "code": "1092",
+        "name": "RORY CREEK"
+    }
 }

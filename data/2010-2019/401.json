@@ -20,5 +20,8 @@
         2018,
         2019
     ],
-    "station_name": "GOATFELL"
+    "station": {
+        "code": "401",
+        "name": "GOATFELL"
+    }
 }

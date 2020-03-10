@@ -21,5 +21,8 @@
         2018,
         2019
     ],
-    "station_name": "PARROTT"
+    "station": {
+        "code": "183",
+        "name": "PARROTT"
+    }
 }

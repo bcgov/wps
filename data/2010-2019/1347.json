@@ -11,5 +11,8 @@
     "years": [
         2019
     ],
-    "station_name": "PERSEVERANCE"
+    "station": {
+        "code": "1347",
+        "name": "PERSEVERANCE"
+    }
 }

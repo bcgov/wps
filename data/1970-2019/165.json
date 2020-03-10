@@ -50,5 +50,8 @@
         2018,
         2019
     ],
-    "station_name": "MOOSE LAKE"
+    "station": {
+        "code": "165",
+        "name": "MOOSE LAKE"
+    }
 }

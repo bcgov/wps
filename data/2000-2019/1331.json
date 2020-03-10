@@ -12,5 +12,8 @@
         2018,
         2019
     ],
-    "station_name": "INKANEEP EXT"
+    "station": {
+        "code": "1331",
+        "name": "INKANEEP EXT"
+    }
 }

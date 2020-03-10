@@ -20,5 +20,8 @@
         2018,
         2019
     ],
-    "station_name": "PENDOREILLE"
+    "station": {
+        "code": "402",
+        "name": "PENDOREILLE"
+    }
 }

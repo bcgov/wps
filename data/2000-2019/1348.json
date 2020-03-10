@@ -11,5 +11,8 @@
     "years": [
         2019
     ],
-    "station_name": "KLINAKLINI"
+    "station": {
+        "code": "1348",
+        "name": "KLINAKLINI"
+    }
 }

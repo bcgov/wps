@@ -19,5 +19,8 @@
         2017,
         2018
     ],
-    "station_name": "KNIFE"
+    "station": {
+        "code": "225",
+        "name": "KNIFE"
+    }
 }

@@ -52,5 +52,8 @@
         2018,
         2019
     ],
-    "station_name": "D'ARCY"
+    "station": {
+        "code": "292",
+        "name": "D'ARCY"
+    }
 }

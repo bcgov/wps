@@ -19,5 +19,8 @@
         2018,
         2019
     ],
-    "station_name": "TS ELPHINSTONE"
+    "station": {
+        "code": "1002",
+        "name": "TS ELPHINSTONE"
+    }
 }

@@ -54,5 +54,8 @@
         2018,
         2019
     ],
-    "station_name": "HOWARD"
+    "station": {
+        "code": "343",
+        "name": "HOWARD"
+    }
 }

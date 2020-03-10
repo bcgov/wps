@@ -20,5 +20,8 @@
         2018,
         2019
     ],
-    "station_name": "MEAGER CREEK"
+    "station": {
+        "code": "1083",
+        "name": "MEAGER CREEK"
+    }
 }

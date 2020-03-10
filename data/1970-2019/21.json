@@ -60,5 +60,8 @@
         2018,
         2019
     ],
-    "station_name": "WOSS CAMP"
+    "station": {
+        "code": "21",
+        "name": "WOSS CAMP"
+    }
 }

@@ -40,5 +40,8 @@
         2018,
         2019
     ],
-    "station_name": "TIMOTHY"
+    "station": {
+        "code": "234",
+        "name": "TIMOTHY"
+    }
 }

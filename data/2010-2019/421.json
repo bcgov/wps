@@ -20,5 +20,8 @@
         2018,
         2019
     ],
-    "station_name": "DEWAR CREEK"
+    "station": {
+        "code": "421",
+        "name": "DEWAR CREEK"
+    }
 }

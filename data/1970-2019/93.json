@@ -42,5 +42,8 @@
         2018,
         2019
     ],
-    "station_name": "HONNA"
+    "station": {
+        "code": "93",
+        "name": "HONNA"
+    }
 }

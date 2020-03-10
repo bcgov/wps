@@ -20,5 +20,8 @@
         2018,
         2019
     ],
-    "station_name": "TUMBLER(DENISON) HUB"
+    "station": {
+        "code": "127",
+        "name": "TUMBLER(DENISON) HUB"
+    }
 }

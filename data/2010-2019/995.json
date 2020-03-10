@@ -20,5 +20,8 @@
         2018,
         2019
     ],
-    "station_name": "TS ARTLISH"
+    "station": {
+        "code": "995",
+        "name": "TS ARTLISH"
+    }
 }

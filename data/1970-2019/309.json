@@ -44,5 +44,8 @@
         2018,
         2019
     ],
-    "station_name": "GWYNETH LAKE"
+    "station": {
+        "code": "309",
+        "name": "GWYNETH LAKE"
+    }
 }

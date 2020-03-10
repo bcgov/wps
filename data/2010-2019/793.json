@@ -19,5 +19,8 @@
         2018,
         2019
     ],
-    "station_name": "CARIBOO CREEK"
+    "station": {
+        "code": "793",
+        "name": "CARIBOO CREEK"
+    }
 }

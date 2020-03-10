@@ -20,5 +20,8 @@
         2018,
         2019
     ],
-    "station_name": "TOBA CAMP"
+    "station": {
+        "code": "75",
+        "name": "TOBA CAMP"
+    }
 }

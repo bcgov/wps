@@ -52,5 +52,8 @@
         2018,
         2019
     ],
-    "station_name": "MERRITT HUB"
+    "station": {
+        "code": "294",
+        "name": "MERRITT HUB"
+    }
 }

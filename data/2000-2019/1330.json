@@ -12,5 +12,8 @@
         2018,
         2019
     ],
-    "station_name": "LODESTONE EXT"
+    "station": {
+        "code": "1330",
+        "name": "LODESTONE EXT"
+    }
 }

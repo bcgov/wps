@@ -34,5 +34,8 @@
         2018,
         2019
     ],
-    "station_name": "GOSNEL"
+    "station": {
+        "code": "270",
+        "name": "GOSNEL"
+    }
 }

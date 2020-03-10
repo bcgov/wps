@@ -23,5 +23,8 @@
         2018,
         2019
     ],
-    "station_name": "ANDERSON CREEK"
+    "station": {
+        "code": "977",
+        "name": "ANDERSON CREEK"
+    }
 }

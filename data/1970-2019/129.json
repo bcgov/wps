@@ -47,5 +47,8 @@
         2018,
         2019
     ],
-    "station_name": "PINK MOUNTAIN"
+    "station": {
+        "code": "129",
+        "name": "PINK MOUNTAIN"
+    }
 }

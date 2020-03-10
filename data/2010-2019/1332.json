@@ -12,5 +12,8 @@
         2018,
         2019
     ],
-    "station_name": "GRIZZLY EXT"
+    "station": {
+        "code": "1332",
+        "name": "GRIZZLY EXT"
+    }
 }

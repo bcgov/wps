@@ -30,5 +30,8 @@
         2018,
         2019
     ],
-    "station_name": "HELMUT"
+    "station": {
+        "code": "118",
+        "name": "HELMUT"
+    }
 }

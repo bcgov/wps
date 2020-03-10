@@ -53,5 +53,8 @@
         2018,
         2019
     ],
-    "station_name": "BRENDA MINES"
+    "station": {
+        "code": "283",
+        "name": "BRENDA MINES"
+    }
 }

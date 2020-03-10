@@ -20,5 +20,8 @@
         2018,
         2019
     ],
-    "station_name": "BELL-IRVING"
+    "station": {
+        "code": "432",
+        "name": "BELL-IRVING"
+    }
 }

@@ -20,5 +20,8 @@
         2018,
         2019
     ],
-    "station_name": "TABLE RIVER"
+    "station": {
+        "code": "144",
+        "name": "TABLE RIVER"
+    }
 }
