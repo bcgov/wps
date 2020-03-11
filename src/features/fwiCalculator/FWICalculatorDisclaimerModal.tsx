@@ -6,21 +6,21 @@ import InfoIcon from '@material-ui/icons/Info'
 import { FWICalculatorPage } from 'features/fwiCalculator/FWICalculatorPage'
 
 const useStyles = makeStyles({
-  wrapper: {
+  cardWrapper: {
+    height: '100%',
     display: 'flex',
     justifyContent: 'center',
-    alignItems: 'center',
-    height: '100%'
+    alignItems: 'center'
   },
   card: {
-    padding: 20,
     maxWidth: 600,
-    '& p': {
-      textAlign: 'justify'
-    }
+    maxHeight: 'calc(100% - 32px)',
+    margin: 16,
+    overflowY: 'auto',
+    padding: 16
   },
   title: {
-    fontSize: '1.3rem',
+    fontSize: '1.5rem',
     fontWeight: 'bold',
     textAlign: 'center'
   },
@@ -48,13 +48,8 @@ export const FWICalculatorDisclaimerModal = () => {
   }
 
   return (
-    <Modal
-      aria-labelledby="simple-modal-title"
-      aria-describedby="simple-modal-description"
-      open={open}
-      onClose={handleClose}
-    >
-      <div className={classes.wrapper}>
+    <Modal open={open} aria-labelledby="disclaimer-modal" onClose={handleClose}>
+      <div className={classes.cardWrapper}>
         <Card className={classes.card}>
           <div className={classes.iconWrapper}>
             <InfoIcon color="secondary" fontSize="large" />
