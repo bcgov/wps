@@ -6,32 +6,30 @@ source "$(dirname ${0})/common/common"
 #% OpenShift Cleanup Helper
 #%
 #%   Intended for use with a pull request-based pipeline.
+#%   Suffixes incl.: pr-###, test and prod.
 #%
 #% Usage:
 #%
-#%   ${THIS_FILE} [PR_NUMBER] [apply]
+#%   ${THIS_FILE} [SUFFIX] [apply]
 #%
 #% Examples:
 #%
 #%   Provide a PR number. Default only returns object names.
-#%   ${THIS_FILE} 0
+#%   ${THIS_FILE} pr-0
 #%
 #%   Apply when satisfied.
-#%   ${THIS_FILE} 0 apply
+#%   ${THIS_FILE} pr-0 apply
 #%
 
-# Set and process commands
+# Delete (apply) or get (not apply) items matching the a label
 #
-APP_LABEL="${NAME}-pr-${PR_NO}"
 if [ "${APPLY}" ]; then
-	# Delete everything with the specified label
-	OC_CLEAN_DEPLOY="oc -n ${PROJ_DEV} delete all -o name -l app=${APP_LABEL}"
-	OC_CLEAN_TOOLS="oc -n ${PROJ_TOOLS} delete all -o name -l app=${APP_LABEL}"
+	DELETE_OR_GET="delete"
 else
-	# List everything with the specified label
-	OC_CLEAN_DEPLOY="oc -n ${PROJ_DEV} get all -o name -l app=${APP_LABEL}"
-	OC_CLEAN_TOOLS="oc -n ${PROJ_TOOLS} get all -o name -l app=${APP_LABEL}"
+	DELETE_OR_GET="get"
 fi
+OC_CLEAN_DEPLOY="oc -n ${PROJ_DEV} ${DELETE_OR_GET} all -o name -l app=${NAME}-${SUFFIX}"
+OC_CLEAN_TOOLS="oc -n ${PROJ_TOOLS} ${DELETE_OR_GET} all -o name -l app=${NAME}-${SUFFIX}"
 
 # Execute commands
 #
