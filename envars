@@ -1,4 +1,4 @@
-NAME=wps-web
+NAME=$(basename -s .git $(git config --get remote.origin.url))
 PROJ_TOOLS=auzhsi-tools
 PROJ_DEV=auzhsi-dev
 PROJ_PROD=auzhsi-prod
