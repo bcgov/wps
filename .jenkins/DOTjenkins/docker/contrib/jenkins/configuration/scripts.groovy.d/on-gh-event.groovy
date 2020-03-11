@@ -1,4 +1,9 @@
 import groovy.json.*
+import hudson.model.*
+import java.util.concurrent.CancellationException
+import hudson.AbortException
+import jenkins.model.Jenkins
+import hudson.console.HyperlinkNote
 
 class OnGhEvent extends Script {
 
@@ -30,7 +35,25 @@ static Map exec(List args, File workingDirectory=null, Appendable stdout=null, A
 
     return ret
 }
+    def buildJob = { 
+    projectRepo,pullRequestNumber ->
+	    def job = Jenkins.instance.getItemByFullName('_SYS/ON_PR_CLOSE_CLEANUP');
+	    def anotherBuild
+	    try {
+		    def inputs= [
+			    new StringParameterValue("PROJECT_REPO", projectRepo),
+			    new StringParameterValue("PR_NUMBER", pullRequestNumber)
+		    ]
+		    def future = job.scheduleBuild2(0, new Cause.UpstreamCause(build), new ParametersAction(inputs))
+		    println "Waiting for the completion of " + HyperlinkNote.encodeTo('/' + job.url, job.fullDisplayName)
+		    anotherBuild = future.get()
+	    } 
+	    catch (CancellationException x) {
+		    throw new AbortException("${job.fullDisplayName} aborted.")
+	    }
+	    println HyperlinkNote.encodeTo('/' + anotherBuild.url, anotherBuild.fullDisplayName) + " completed. Result was " + anotherBuild.result
 
+    }
     def run() {
         String ghPayload = build.buildVariableResolver.resolve("payload")
         String ghEventType = build.buildVariableResolver.resolve("x_github_event")
@@ -59,8 +82,9 @@ static Map exec(List args, File workingDirectory=null, Appendable stdout=null, A
                     println exec(['git', 'checkout', "PR-${payload.number}"] , gitWorkDir)
 
                     File pipelineWorkDir = new File("${gitWorkDir.getAbsolutePath()}/.pipeline")
-                    println exec(['./npmw', 'ci'], pipelineWorkDir)
-                    println exec(['./npmw', 'run', 'clean' ,'--' ,"--pr=${payload.number}", '--env=transient'], pipelineWorkDir)
+                    //println exec(['./npmw', 'ci'], pipelineWorkDir)
+                    //println exec(['./npmw', 'run', 'clean' ,'--' ,"--pr=${payload.number}", '--env=transient'], pipelineWorkDir)
+                    buildJob(payload.repository.name,"pr-${payload.number}")
                 }
             }else if ("issue_comment" == ghEventType){
                 def payload = new JsonSlurper().parseText(ghPayload)
