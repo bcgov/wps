@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
 
 import { Station } from 'api/stationAPI'
+import { PageHeader } from 'components/PageHeader'
 import { PageTitle } from 'components/PageTitle'
 import { Container } from 'components/Container'
 import { fetchStations } from 'features/fwiCalculator/slices/stationsSlice'
@@ -58,6 +59,7 @@ export const FWICalculatorPage = () => {
 
   return (
     <div data-testid="fwi-calculator-page">
+      <PageHeader title="Predictive Services Unit" />
       <PageTitle title="FWI Calculator" />
       <Container>
         <WeatherStationsDropdown

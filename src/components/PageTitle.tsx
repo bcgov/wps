@@ -10,7 +10,7 @@ const useStyles = makeStyles(theme => ({
     paddingBottom: '1rem',
     paddingTop: '1rem',
     fontSize: '1.3rem',
-    background: theme.palette.primary.main,
+    background: theme.palette.primary.light,
     color: theme.palette.primary.contrastText
   }
 }))

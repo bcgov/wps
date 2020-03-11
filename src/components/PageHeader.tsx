@@ -1,29 +1,72 @@
 import React from 'react'
 import { Container } from 'components/Container'
 import { makeStyles } from '@material-ui/core/styles'
+import { FIDER_LINK } from 'utils/constants'
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(theme => ({
   root: {
-    maxHeight: 60
+    // minHeight: 65,
+    background: theme.palette.primary.main,
+    borderBottomWidth: 2,
+    borderBottomStyle: 'solid',
+    borderBottomColor: theme.palette.secondary.main
+  },
+  container: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between'
   },
   logo: {
-    width: 180,
-    height: 45
+    width: 175,
+    marginTop: '10px',
+    marginBottom: '10px'
+  },
+  title: {
+    color: theme.palette.primary.contrastText,
+    fontSize: '1.7rem'
+  },
+  titleWrapper: {
+    display: 'flex',
+    alignItems: 'center'
+  },
+  contact: {
+    color: 'white',
+    fontStyle: 'bold',
+    fontSize: '1.1em',
+    textDecoration: 'none',
+    '&:hover': {
+      textDecoration: 'underline'
+    }
   }
-})
+}))
 
-export const PageHeader = () => {
+interface Props {
+  title: string
+}
+
+export const PageHeader = ({ title }: Props) => {
   const classes = useStyles()
 
   return (
     <nav className={classes.root}>
-      <Container>
-        <a href="https://www2.gov.bc.ca">
-          <img
-            className={classes.logo}
-            src={process.env.PUBLIC_URL + '/images/bcid-logo-rev-en.svg'}
-            alt="B.C. Government logo"
-          />
+      <Container className={classes.container}>
+        <div className={classes.titleWrapper}>
+          <a href="https://gov.bc.ca">
+            <img
+              className={classes.logo}
+              src={process.env.PUBLIC_URL + '/images/BCID_H_rgb_rev.svg'}
+              alt="B.C. Government logo"
+            />
+          </a>
+          <div className={classes.title}>{title}</div>
+        </div>
+        <a
+          className={classes.contact}
+          href={FIDER_LINK}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Contact
         </a>
       </Container>
     </nav>

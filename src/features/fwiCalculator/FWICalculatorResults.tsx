@@ -38,7 +38,7 @@ export const FWICalculatorResults = () => {
   const stationResults = Object.entries(result.stations).map(
     ([stationCode, stationResponse]) => {
       return (
-        <GridItem key={stationCode}>
+        <GridItem key={stationCode} lg={6}>
           <PercentileStationResultTable stationResponse={stationResponse} />
         </GridItem>
       )
@@ -51,7 +51,7 @@ export const FWICalculatorResults = () => {
       <GridContainer className={classes.gridContainer}>
         {stationResults}
         {isMoreThanOneResult && (
-          <GridItem>
+          <GridItem lg={6}>
             <PercentileMeanResultTable meanValues={result.mean_values} />
           </GridItem>
         )}
