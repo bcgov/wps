@@ -2,13 +2,11 @@ pipeline {
     agent none
     environment {
         // Pipeline-wide vars
-        name =  "wps-web"
+        name =  "wps-test"
         ver = "0.0.1"
         projTools = "auzhsi-tools"
         projDev = "auzhsi-dev"
-        projProd = "auzhsi-prod"
         suffix = "pr-${env.CHANGE_ID}"
-        rcToken="https://chat.pathfinder.gov.bc.ca/hooks/7A8RwSpZPDAqc6uXS/z8nRXX43oifYWELkwJKeLj4e86rtyfvtJdqdvjSE3XoK2sri"
     }
     options {
         disableResume()
@@ -39,16 +37,50 @@ pipeline {
         stage('Build') {
             agent { label 'build' }
             steps {
+                echo "Building ..."
                 script {
-                    sh "GIT_BRANCH=${env.CHANGE_BRANCH} ./openshift/scripts/oc_build.sh ${suffix} apply"
+                    sh "GIT_REF=${env.CHANGE_BRANCH} ./openshift/oc_build.sh ${env.CHANGE_ID}"
                 }
             }
         }
         stage('Deploy (DEV)') {
             agent { label 'deploy' }
             steps {
+                echo "Deploying ..."
                 script {
-                    sh "./openshift/scripts/oc_deploy.sh ${suffix} apply"
+                    sh "./openshift/oc_deploy.sh ${env.CHANGE_ID}"
+                }
+            }
+        }
+        stage('Tests (DEV)') {
+            agent { label 'deploy' }
+            steps {
+                echo "Testing ..."
+                script {
+                    sh "echo UNIT TESTS"
+                    sh "echo SMOKE TESTS"
+                    sh "echo API TESTS"
+                }
+            }
+        }
+        stage('Deploy (TEST)') {
+            agent { label 'deploy' }
+            input {
+                message "Should we continue with deployment to TEST?"
+                ok "Yes!"
+            }
+            steps {
+                echo "Deploying ..."
+            }
+        }
+        stage('Tests (TEST)') {
+            agent { label 'deploy' }
+            steps {
+                echo "Testing ..."
+                script {
+                    sh "echo UNIT TESTS"
+                    sh "echo SMOKE TESTS"
+                    sh "echo ZAP TESTS"
                 }
             }
         }
@@ -59,27 +91,44 @@ pipeline {
                 ok "Yes!"
             }
             steps {
+                echo "Promote ..."
+            }
+        }
+        stage('Backups (PROD)') {
+            agent { label 'deploy' }
+            steps {
+                echo "Tag known good prod images, backup databases, backup settings, ..."
                 script {
-                    sh "./openshift/scripts/oc_promote.sh ${suffix} apply"
+                    sh "echo Backup procedures"
                 }
             }
         }
-        stage('Post-promote (PROD)') {
+        stage('Update routes (PROD)') {
             agent { label 'deploy' }
             steps {
+                echo "Testing ..."
                 script {
-                    sh """
-                        echo "TO DO: echo Tag known good prod images, backup databases, backup settings"
-                    """
+                    sh "echo SMOKE TESTS"
+                }
+            }
+        }
+        stage('Smoke tests (PROD)') {
+            agent { label 'deploy' }
+            steps {
+                echo "Testing ..."
+                script {
+                    sh "echo SMOKE TESTS"
                 }
             }
         }
         stage('Cleanup') {
             agent { label 'deploy' }
+            input {
+                message "Should we continue with cleanup?"
+                ok "Yes!"
+            }
             steps {
-                script {
-                    sh "./openshift/scripts/oc_cleanup.sh ${suffix} apply"
-                }
+                echo "Cleaning ..."
             }
         }
     }
