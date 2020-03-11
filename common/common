@@ -33,7 +33,7 @@ source "$(dirname ${0})/common/envars"
 # Verify login
 #
 $(oc whoami &>/dev/null) || {
-	echo "Please verify oc login"
+	echo -e "\nPlease verify oc login\n"
 	exit
 }
 
