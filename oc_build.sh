@@ -30,16 +30,20 @@ OC_PROCESS="oc -n ${PROJ_TOOLS} process -f ${PATH_BC} -p NAME=${NAME} -p SUFFIX=
 OC_APPLY="oc -n ${PROJ_TOOLS} apply -f -"
 [ "${APPLY}" ] || OC_APPLY+=" --dry-run"
 
-# Force to start a new build each time (apply or don't run)
+
+# Cancel non complete builds and start a new build (apply or don't run)
 #
+OC_CANCEL_BUILD="oc -n ${PROJ_TOOLS} cancel-build bc/${NAME}-${SUFFIX}"
 OC_START_BUILD="oc -n ${PROJ_TOOLS} start-build ${NAME}-${SUFFIX} --follow=true"
-[ "${APPLY}" ] || OC_START_BUILD=""
 
 # Execute commands
 #
 eval "${OC_PROCESS}"
 eval "${OC_PROCESS} | ${OC_APPLY}"
-eval "${OC_START_BUILD}"
+if [ "${APPLY}" ]; then
+	eval "${OC_CANCEL_BUILD}" 
+	eval "${OC_START_BUILD}"
+fi
 
 # Follow builds if deploying and ensure they pass successfully
 APP_NAME="${NAME}-${SUFFIX}"
@@ -57,5 +61,4 @@ fi
 
 # Provide oc command instruction
 #
-display_helper "${OC_PROCESS} | ${OC_APPLY}"
-display_helper "${OC_START_BUILD}"
+display_helper "${OC_PROCESS} | ${OC_APPLY}" "${OC_CANCEL_BUILD}" "${OC_START_BUILD}"
