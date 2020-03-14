@@ -27,35 +27,38 @@ OC_PROCESS="oc -n ${PROJ_TOOLS} process -f ${PATH_BC} -p NAME=${NAME} -p SUFFIX=
 
 # Apply a template (apply or use --dry-run)
 #
-OC_APPLY="oc -n "${PROJ_TOOLS}" apply -f -"
+OC_APPLY="oc -n ${PROJ_TOOLS} apply -f -"
 [ "${APPLY}" ] || OC_APPLY+=" --dry-run"
+
+
+# Cancel non complete builds and start a new build (apply or don't run)
+#
+OC_CANCEL_BUILD="oc -n ${PROJ_TOOLS} cancel-build bc/${NAME}-${SUFFIX}"
+OC_START_BUILD="oc -n ${PROJ_TOOLS} start-build ${NAME}-${SUFFIX} --follow=true"
 
 # Execute commands
 #
 eval "${OC_PROCESS}"
 eval "${OC_PROCESS} | ${OC_APPLY}"
-
-# Follow builds if deploying (wait condition) and ensure sure they pass successfully
-#
 if [ "${APPLY}" ]; then
-	APP_NAME=${NAME}-${SUFFIX}
-	# Identify buildconfig objects
-	BUILD_PODS=$(oc get bc -n ${PROJ_TOOLS} -o name -l app=${APP_NAME})
-	# Follow building of these objects (creates wait condition, lots of output!)
-	for p in "${BUILD_PODS}"; do
-		oc logs -n ${PROJ_TOOLS} --follow $p
-	done
-	# Get the most recent build version
-	BUILD_LAST=$(oc -n ${PROJ_TOOLS} get bc/${APP_NAME} -o 'jsonpath={.status.lastVersion}')
-	# Command to get the build result
-	BUILD_RESULT=$(oc -n ${PROJ_TOOLS} get build/${APP_NAME}-${BUILD_LAST} -o 'jsonpath={.status.phase}')
-	# Make sure that result is a successful completion
-	if [ "${BUILD_RESULT}" != "Complete" ]; then
-		echo -e "\n*** Build not complete! ***\n"
-		exit 1
-	fi
+	eval "${OC_CANCEL_BUILD}" 
+	eval "${OC_START_BUILD}"
+fi
+
+# Follow builds if deploying and ensure they pass successfully
+APP_NAME="${NAME}-${SUFFIX}"
+# Get the most recent build version
+BUILD_LAST=$(oc -n ${PROJ_TOOLS} get bc/${APP_NAME} -o 'jsonpath={.status.lastVersion}')
+# Command to get the build result
+BUILD_RESULT=$(oc -n ${PROJ_TOOLS} get build/${APP_NAME}-${BUILD_LAST} -o 'jsonpath={.status.phase}')
+
+# Make sure that result is a successful completion
+if [ "${BUILD_RESULT}" != "Complete" ]; then
+	echo "Build result: ${BUILD_RESULT}"
+	echo -e "\n*** Build not complete! ***\n"
+	exit 1
 fi
 
 # Provide oc command instruction
 #
-display_helper "${OC_PROCESS} | ${OC_APPLY}"
+display_helper "${OC_PROCESS} | ${OC_APPLY}" "${OC_CANCEL_BUILD}" "${OC_START_BUILD}"
