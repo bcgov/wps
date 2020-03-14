@@ -28,8 +28,8 @@ if [ "${APPLY}" ]; then
 else
 	DELETE_OR_GET="get"
 fi
-OC_CLEAN_DEPLOY="oc -n ${PROJ_DEV} ${DELETE_OR_GET} all -o name,cm -l app=${NAME}-${SUFFIX}"
-OC_CLEAN_TOOLS="oc -n ${PROJ_TOOLS} ${DELETE_OR_GET} all -o name,cm -l app=${NAME}-${SUFFIX}"
+OC_CLEAN_DEPLOY="oc -n ${PROJ_DEV} ${DELETE_OR_GET} all,cm -o name -l app=${NAME}-${SUFFIX}"
+OC_CLEAN_TOOLS="oc -n ${PROJ_TOOLS} ${DELETE_OR_GET} all,cm -o name -l app=${NAME}-${SUFFIX}"
 
 # Execute commands
 #
