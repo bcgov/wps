@@ -38,6 +38,15 @@ parameters:
     value: 2Gi
 objects:
   - apiVersion: v1
+    kind: ConfigMap
+    data:
+      env.api-base-url: 'https://wps-api-prod.pathfinder.gov.bc.ca'
+      env.fider-url: 'https://psufider.pathfinder.gov.bc.ca'
+    metadata:
+      labels:
+        app: ${NAME}-${SUFFIX}
+      name: ${NAME}-${SUFFIX}
+  - apiVersion: v1
     kind: DeploymentConfig
     metadata:
       labels:
@@ -67,6 +76,17 @@ objects:
           containers:
             - image: ${DOCKER_REGISTRY}/${PROJECT_TOOLS}/${NAME}:${SUFFIX}
               name: ${NAME}
+              env:
+                - name: REACT_APP_API_BASE_URL
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-${SUFFIX}
+                      key: env.api-base-url
+                - name: REACT_APP_FIDER_LINK
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-${SUFFIX}
+                      key: env.fider-url
               ports:
                 - containerPort: 3000
               resources:
