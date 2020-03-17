@@ -25,6 +25,8 @@ parameters:
     value: docker-registry.default.svc:5000
   - name: PROJECT_TOOLS
     value: auzhsi-tools
+  - name: ALLOWED_ORIGINS
+    value: wps-web-*.pathfinder.gov.bc.ca
   - name: CPU_REQUEST
     description: Requested CPU
     value: 250m
@@ -41,8 +43,7 @@ objects:
   - apiVersion: v1
     kind: ConfigMap
     data:
-      env.origins: |
-        'wps-web-${SUFFIX}.pathfinder.gov.bc.ca'
+      env.origins: "${ALLOWED_ORIGINS}"
     metadata:
       labels:
         app: ${NAME}-${SUFFIX}

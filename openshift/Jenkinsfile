@@ -62,13 +62,11 @@ pipeline {
                 }
             }
         }
-        stage('Post-promote (PROD)') {
+        stage('Deploy (PROD)') {
             agent { label 'deploy' }
             steps {
                 script {
-                    sh """
-                        echo "TO DO: echo Tag known good prod images, backup databases, backup settings"
-                    """
+                    sh "PROJ_TARGET=${projProd} ./openshift/scripts/oc_deploy.sh prod apply"
                 }
             }
         }
