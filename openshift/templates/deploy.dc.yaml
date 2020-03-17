@@ -24,6 +24,10 @@ parameters:
     value: docker-registry.default.svc:5000
   - name: PROJECT_TOOLS
     value: auzhsi-tools
+  - name: URL_API
+    value: https://wps-api-prod.pathfinder.gov.bc.ca/
+  - name: URL_FIDER
+    value: https://psufider.pathfinder.gov.bc.ca/
   - name: CPU_REQUEST
     description: Requested CPU
     value: 1000m
@@ -40,8 +44,8 @@ objects:
   - apiVersion: v1
     kind: ConfigMap
     data:
-      env.api-base-url: 'https://wps-api-prod.pathfinder.gov.bc.ca'
-      env.fider-url: 'https://psufider.pathfinder.gov.bc.ca'
+      env.api-base-url: "${URL_API}"
+      env.fider-url: "${URL_FIDER}"
     metadata:
       labels:
         app: ${NAME}-${SUFFIX}
