@@ -7,4 +7,4 @@ services:
       ports:
         - "3000:3000"
       volumes:
-        - .:/app
+        - .:/app:delegated # Volume optimizations https://engageinteractive.co.uk/blog/making-docker-faster-on-mac
