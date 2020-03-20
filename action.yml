@@ -1,0 +1,14 @@
+name: Deploy to OpenShift
+description: Deploy Dockerized application to OpenShift choosing from predefined config templates
+inputs:
+  AUTH_TOKEN:
+    description: OpenShift service account authorization token
+    required: true
+  COMMAND:
+    description: Command to run
+    default: "./oc_build.sh pr-56"
+    required: true
+runs:
+  using: docker
+  image: Dockerfile
+  args: ${{ inputs.COMMAND }}
