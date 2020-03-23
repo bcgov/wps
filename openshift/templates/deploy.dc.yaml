@@ -1,0 +1,120 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: ${NAME}
+  annotations:
+    openshift.io/display-name: "wps-api"
+    description: "Wildfire Predictive Services - Fire Weather Index API"
+    openshift.io/long-description: "Wildfire Predictive Services - Fire Weather Index API"
+    tags: "wps,wps-api"
+    iconClass: icon-js
+    openshift.io/provider-display-name: "Government of British Columbia"
+    openshift.io/documentation-url: "https://github.com/bcgov/wps-api"
+    openshift.io/support-url: "https://github.com/bcgov/wps-api"
+labels:
+  app.kubernetes.io/part-of: "${NAME}"
+  app: ${NAME}-${SUFFIX}
+parameters:
+  - name: NAME
+    description: Module name
+    value: wps-api
+  - name: SUFFIX
+    description: Deployment suffix, e.g. pr-###
+    required: true
+  - name: DOCKER_REGISTRY
+    value: docker-registry.default.svc:5000
+  - name: PROJECT_TOOLS
+    value: auzhsi-tools
+  - name: ALLOWED_ORIGINS
+    value: wps-web-*.pathfinder.gov.bc.ca
+  - name: CPU_REQUEST
+    description: Requested CPU
+    value: 250m
+  - name: CPU_LIMIT
+    description: CPU upper limit
+    value: 250m
+  - name: MEMORY_REQUEST
+    description: Requested memory
+    value: 1Gi
+  - name: MEMORY_LIMIT
+    description: Memory upper limit
+    value: 1Gi
+objects:
+  - apiVersion: v1
+    kind: ConfigMap
+    data:
+      env.origins: "${ALLOWED_ORIGINS}"
+    metadata:
+      labels:
+        app: ${NAME}-${SUFFIX}
+      name: ${NAME}-${SUFFIX}
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      labels:
+        app: ${NAME}-${SUFFIX}
+      name: ${NAME}-${SUFFIX}
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: ${NAME}-${SUFFIX}
+      template:
+        metadata:
+          labels:
+            app: ${NAME}-${SUFFIX}
+          name: ${NAME}-${SUFFIX}
+        spec:
+          automountServiceAccountToken: false
+          containers:
+            - image: ${DOCKER_REGISTRY}/${PROJECT_TOOLS}/${NAME}:${SUFFIX}
+              imagePullPolicy: Always
+              name: ${NAME}
+              env:
+                - name: ORIGINS
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-${SUFFIX}
+                      key: env.origins
+              ports:
+                - containerPort: 8080
+              resources:
+                limits:
+                  cpu: ${CPU_LIMIT}
+                  memory: ${MEMORY_LIMIT}
+                requests:
+                  cpu: ${CPU_REQUEST}
+                  memory: ${MEMORY_REQUEST}
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      labels:
+        app: ${NAME}-${SUFFIX}
+      name: ${NAME}-${SUFFIX}
+    spec:
+      selector:
+        app: ${NAME}-${SUFFIX}
+      ports:
+        - name: 8080-tcp
+          protocol: TCP
+          port: 80
+          targetPort: 8080
+        - name: 8443-tcp
+          protocol: TCP
+          port: 443
+          targetPort: 8443
+  - apiVersion: route.openshift.io/v1
+    kind: Route
+    metadata:
+      labels:
+        app: ${NAME}-${SUFFIX}
+      name: ${NAME}-${SUFFIX}-secure
+    spec:
+      host: ${NAME}-${SUFFIX}.pathfinder.gov.bc.ca
+      port:
+        targetPort: 8080-tcp
+      to:
+        kind: Service
+        name: ${NAME}-${SUFFIX}
+      tls:
+        termination: edge

@@ -1,0 +1,104 @@
+apiVersion: v1
+kind: Template
+labels:
+  app.kubernetes.io/part-of: "${NAME}"
+  app: ${NAME}-${SUFFIX}
+parameters:
+  - name: NAME
+    description: Module name
+    value: ${NAME}
+  - name: SUFFIX
+    description: Deployment suffix, e.g. pr-### or prod
+    required: true
+  - name: GIT_URL
+    value: https://github.com/bcgov/wps-api.git
+  - name: GIT_BRANCH
+    description: PR branch
+    required: true
+labels:
+  app.kubernetes.io/part-of: '${NAME}'
+objects:
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewBuild
+    labels:
+      app: ${NAME}
+      common: "true"
+    name: ${NAME}
+  spec:
+    lookupPolicy:
+      local: false
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewBuild
+    labels:
+      app: ${NAME}-${SUFFIX}
+    name: ${NAME}-${SUFFIX}
+  spec:
+    completionDeadlineSeconds: 1200 # 20 minutes
+    output:
+      to:
+        kind: ImageStreamTag
+        name: ${NAME}:${SUFFIX}
+    resources:
+      limits:
+        cpu: "2"
+        memory: 5Gi
+      requests:
+        cpu: "1"
+        memory: 1Gi
+    source:
+      git:
+        uri: ${GIT_URL}
+        ref: origin/${GIT_BRANCH}
+      type: Git
+    strategy:
+      type: Docker
+    triggers:
+      - type: ConfigChange
+      - type: ImageChange
+- apiVersion: build.openshift.io/v1
+  kind: BuildConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewBuild
+    labels:
+      app: ${NAME}-${SUFFIX}
+    name: ${NAME}-${SUFFIX}
+  spec:
+    nodeSelector: null
+    runPolicy: SerialLatestOnly
+    completionDeadlineSeconds: 1200 # 20 minutes
+    output:
+      to:
+        kind: ImageStreamTag
+        name: ${NAME}:${SUFFIX}
+    resources:
+      limits:
+        cpu: '2'
+        memory: 5Gi
+      requests:
+        cpu: '1'
+        memory: 1Gi
+    source:
+      git:
+        uri: ${GIT_URL}
+        ref: origin/${GIT_BRANCH}
+      type: Git
+    strategy:
+      dockerStrategy:
+        env:
+          - name: ENABLE_PIPENV
+            value: 'true'
+        from:
+          kind: ImageStreamTag
+          name: python:3.6
+          namespace: openshift
+      type: Docker
+    triggers:
+        - type: ConfigChange
+        - type: ImageChange
