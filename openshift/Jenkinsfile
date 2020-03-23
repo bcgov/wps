@@ -1,0 +1,82 @@
+pipeline {
+    agent none
+    environment {
+        // Pipeline-wide vars
+        ver = "0.0.1"
+        projTools = "auzhsi-tools"
+        projDev = "auzhsi-dev"
+        projProd = "auzhsi-prod"
+        suffix = "pr-${env.CHANGE_ID}"
+    }
+    options {
+        disableResume()
+    }
+    stages {
+        stage('Startup') {
+            agent { label 'build' }
+            steps {
+                script {
+                    def filesInThisCommitAsString = sh(
+                        script:"git diff --name-only HEAD~1..HEAD | grep '^.jenkins/' || echo -n ''",
+                        returnStatus: false,
+                        returnStdout: true
+                    ).trim()
+                    def hasChangesInPath = (filesInThisCommitAsString.length() > 0)
+                    echo "${filesInThisCommitAsString}"
+                    if (!currentBuild.rawBuild.getCauses()[0].toString().contains('UserIdCause') && !hasChangesInPath){
+                        currentBuild.rawBuild.delete()
+                        error("No changes detected in the path ('^.jenkins/')")
+                    }
+                }
+                echo "Aborting all running jobs ..."
+                script {
+                    abortAllPreviousBuildInProgress(currentBuild)
+                }
+            }
+        }
+        stage('Build') {
+            agent { label 'build' }
+            steps {
+                script {
+                    sh "GIT_BRANCH=${env.CHANGE_BRANCH} ./openshift/scripts/oc_build.sh ${suffix} apply"
+                }
+            }
+        }
+        stage('Deploy (DEV)') {
+            agent { label 'deploy' }
+            steps {
+                script {
+                    sh "./openshift/scripts/oc_deploy.sh ${suffix} apply"
+                }
+            }
+        }
+        stage('Promote (PROD)') {
+            agent { label 'deploy' }
+            input {
+                message "Should we promote this deployment to PRODUCTION?"
+                ok "Yes!"
+            }
+            steps {
+                script {
+                    sh "./openshift/scripts/oc_promote.sh ${suffix} apply"
+                }
+            }
+        }
+        stage('Deploy (PROD)') {
+            agent { label 'deploy' }
+            steps {
+                script {
+                    sh "PROJ_TARGET=${projProd} ./openshift/scripts/oc_deploy.sh prod apply"
+                }
+            }
+        }
+        stage('Cleanup') {
+            agent { label 'deploy' }
+            steps {
+                script {
+                    sh "./openshift/scripts/oc_cleanup.sh ${suffix} apply"
+                }
+            }
+        }
+    }
+}
