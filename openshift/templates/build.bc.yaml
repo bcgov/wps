@@ -91,9 +91,6 @@ objects:
       type: Git
     strategy:
       dockerStrategy:
-        env:
-          - name: ENABLE_PIPENV
-            value: 'true'
         from:
           kind: ImageStreamTag
           name: python:3.6

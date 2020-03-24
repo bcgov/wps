@@ -1,20 +1,24 @@
+""" Unit tests for API.
+"""
 import unittest
 
-from starlette.responses import HTMLResponse
 from starlette.testclient import TestClient
 
-from main import app
+from main import APP
 
 
 class BasicTestCase(unittest.TestCase):
+    """ Some basic unit tests. """
 
     def test_stations(self):
-        client = TestClient(app)
+        """ Test that stations request returns 200/OK. """
+        client = TestClient(APP)
         response = client.get('/stations')
         self.assertEqual(response.status_code, 200)
 
     def test_percentile(self):
-        client = TestClient(app)
+        """ Test that a request for percentiles return 200/OK. """
+        client = TestClient(APP)
         response = client.post('/percentiles/',
                                headers={'Content-Type': 'application/json'},
                                json={
@@ -30,10 +34,10 @@ class BasicTestCase(unittest.TestCase):
                                })
         self.assertEqual(response.status_code, 200)
 
-    def test_percentile_errors(self):
-        client = TestClient(app)
-
-        # Test to check for empty stations array
+    def test_percentile_no_stations_errors(self):
+        """ Test to check for empty stations array. If no stations are provided in the request,
+        the expected behavious is to get back a 400 error. """
+        client = TestClient(APP)
         response = client.post('/percentiles/',
                                headers={'Content-Type': 'application/json'},
                                json={
@@ -47,7 +51,10 @@ class BasicTestCase(unittest.TestCase):
                                })
         self.assertEqual(response.status_code, 400)
 
-        # Test to check for invalid year range
+    def test_percentile_no_invalid_year_errors(self):
+        """ Test to check for invalid year range. If an invalid year range is specified, the requested
+        behaviour is to get back a 400 error. """
+        client = TestClient(APP)
         response = client.post('/percentiles/',
                                headers={'Content-Type': 'application/json'},
                                json={
