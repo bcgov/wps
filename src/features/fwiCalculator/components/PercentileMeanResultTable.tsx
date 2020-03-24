@@ -23,19 +23,19 @@ export const PercentileMeanResultTable = ({ meanValues }: Props) => {
           <TableRow>
             <TableCell>FFMC mean value</TableCell>
             <TableCell>
-              {meanValues.FFMC.toFixed(FWI_VALUES_DECIMAL_POINT)}
+              {meanValues.ffmc.toFixed(FWI_VALUES_DECIMAL_POINT)}
             </TableCell>
           </TableRow>
           <TableRow>
             <TableCell>BUI mean value</TableCell>
             <TableCell>
-              {meanValues.BUI.toFixed(FWI_VALUES_DECIMAL_POINT)}
+              {meanValues.bui.toFixed(FWI_VALUES_DECIMAL_POINT)}
             </TableCell>
           </TableRow>
           <TableRow>
             <TableCell>ISI mean value</TableCell>
             <TableCell>
-              {meanValues.ISI.toFixed(FWI_VALUES_DECIMAL_POINT)}
+              {meanValues.isi.toFixed(FWI_VALUES_DECIMAL_POINT)}
             </TableCell>
           </TableRow>
         </TableBody>

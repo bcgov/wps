@@ -44,7 +44,7 @@ it('renders FWI calculator page', async () => {
 
 it('renders weather stations dropdown with data', async () => {
   mockAxios
-    .onGet('/stations')
+    .onGet('/stations/')
     .replyOnce(200, { weather_stations: mockStations })
 
   const { getByText, getByTestId, store } = renderWithRedux(
@@ -64,7 +64,7 @@ it('renders weather stations dropdown with data', async () => {
 })
 
 it('renders error message when fetching stations failed', async () => {
-  mockAxios.onGet('/stations').replyOnce(404)
+  mockAxios.onGet('/stations/').replyOnce(404)
 
   const { getByText, queryByText, store } = renderWithRedux(
     <FWICalculatorPage />
@@ -92,7 +92,7 @@ it('renders time range slider with selecting the range', async () => {
 
 it('renders percentiles result when clicking on the calculate button', async () => {
   mockAxios
-    .onGet('/stations')
+    .onGet('/stations/')
     .replyOnce(200, { weather_stations: mockStations })
   mockAxios.onPost('/percentiles/').replyOnce(200, mockPercentilesResponse)
 
@@ -130,19 +130,19 @@ it('renders percentiles result when clicking on the calculate button', async () 
   // Check if mean values are rendered
   expect(store.getState().percentiles.result).toEqual(mockPercentilesResponse)
   getByText(
-    mockPercentilesResponse.mean_values.FFMC.toFixed(
-      FWI_VALUES_DECIMAL_POINT
-    ).toString()
+    mockPercentilesResponse.mean_values.ffmc
+      .toFixed(FWI_VALUES_DECIMAL_POINT)
+      .toString()
   )
   getByText(
-    mockPercentilesResponse.mean_values.BUI.toFixed(
-      FWI_VALUES_DECIMAL_POINT
-    ).toString()
+    mockPercentilesResponse.mean_values.bui
+      .toFixed(FWI_VALUES_DECIMAL_POINT)
+      .toString()
   )
   getByText(
-    mockPercentilesResponse.mean_values.ISI.toFixed(
-      FWI_VALUES_DECIMAL_POINT
-    ).toString()
+    mockPercentilesResponse.mean_values.isi
+      .toFixed(FWI_VALUES_DECIMAL_POINT)
+      .toString()
   )
 
   // Check if the documentation is rendered
