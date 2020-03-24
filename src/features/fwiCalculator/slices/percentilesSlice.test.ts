@@ -14,9 +14,9 @@ describe('Percentiles Slice', () => {
     const data: PercentilesResponse = {
       stations: {},
       mean_values: {
-        FFMC: 1,
-        BUI: 1,
-        ISI: 1
+        ffmc: 1,
+        bui: 1,
+        isi: 1
       },
       percentile: 90,
       year_range: { start: 2010, end: 2019 }

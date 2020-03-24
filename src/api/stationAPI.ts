@@ -10,7 +10,7 @@ export interface StationsResponse {
 }
 
 export async function getStations(): Promise<Station[]> {
-  const url = '/stations'
+  const url = '/stations/'
 
   try {
     const { data } = await axios.get<StationsResponse>(url)

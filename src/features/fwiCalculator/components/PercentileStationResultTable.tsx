@@ -17,7 +17,7 @@ interface Props {
 }
 
 export const PercentileStationResultTable = ({ stationResponse }: Props) => {
-  const { season, FFMC, BUI, ISI, years, station } = stationResponse
+  const { season, ffmc, bui, isi, years, station } = stationResponse
   const seasonRange = `${season.start_month}/${season.start_day} ~ ${season.end_month}/${season.end_day}`
   const yearRange = years.join(', ')
 
@@ -35,15 +35,15 @@ export const PercentileStationResultTable = ({ stationResponse }: Props) => {
         <TableBody>
           <TableRow>
             <TableCell>FFMC</TableCell>
-            <TableCell>{FFMC.toFixed(FWI_VALUES_DECIMAL_POINT)}</TableCell>
+            <TableCell>{ffmc.toFixed(FWI_VALUES_DECIMAL_POINT)}</TableCell>
           </TableRow>
           <TableRow>
             <TableCell>BUI</TableCell>
-            <TableCell>{BUI.toFixed(FWI_VALUES_DECIMAL_POINT)}</TableCell>
+            <TableCell>{bui.toFixed(FWI_VALUES_DECIMAL_POINT)}</TableCell>
           </TableRow>
           <TableRow>
             <TableCell>ISI</TableCell>
-            <TableCell>{ISI.toFixed(FWI_VALUES_DECIMAL_POINT)}</TableCell>
+            <TableCell>{isi.toFixed(FWI_VALUES_DECIMAL_POINT)}</TableCell>
           </TableRow>
 
           <TableRow>
