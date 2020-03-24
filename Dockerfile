@@ -1,9 +1,48 @@
+# Multistage dockerfile
+
+####
+# Stage 0:
+#
+# We need a requirements.txt, but we don't need pipenv installed in our final image,
+# so we do a multistage build where we generate the requirements.txt in our first stage,
+# and consume it in our final stage.
+# TODO: This slows down the build somewhat, look at alternatives.
 FROM python:3.6
-WORKDIR /usr/src/app
-RUN pip install pipenv
+# Install pipenv.
+RUN python -m pip install pipenv
+# Copy Pipfile and Pipfile.lock.
 COPY Pipfile* /tmp/
+# Generate a requirements.txt file, which contains a list of all our project dependancies.
 RUN cd /tmp && pipenv lock --requirements > requirements.txt
-RUN pip install -r /tmp/requirements.txt
+
+##### <START TEMPORARY!!!!
+# Until such time as linting and testing are run as part of the pipeline,
+# it's being enforced inside the build.
+# TODO: Remove this temporary step
+WORKDIR /app
 COPY . .
+RUN python -m pip install -r /tmp/requirements.txt
+RUN python -m pip install pylint
+RUN ./scripts/lint.sh
+# We set ORIGINS explicitly, as environment variables aren't available during image build.
+RUN ORIGINS="testorigin" ./scripts/test.sh
+##### END TEMPORARY>
+
+####
+# Stage 1:
+#
+# We now start a nice clean build - that has only the bare minimum of what we need
+
+FROM python:3.6
+
+# Copy the requirements.txt from the 1st stage of the build.
+COPY --from=0 /tmp/requirements.txt /tmp
+# Install all our package requirements.
+RUN python -m pip install -r /tmp/requirements.txt
+
+WORKDIR /app
+COPY . .
+
 EXPOSE 8080
-CMD uvicorn main:app --reload --host 0.0.0.0 --port 8080
+
+CMD gunicorn main:APP -w 4 -k uvicorn.workers.UvicornWorker -b :8080

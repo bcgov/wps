@@ -1,18 +1,29 @@
-import sys
+""" This is a "throway" script used to export data in an Access database to .csv as a stopgap solution
+until such time as the Fire Weather Index calculator is communicating directly to the Wildfire One API.
+
+NOTE: This script will only work in an environment with an Access ODBC driver for PyODBC (in other words,
+it will only work on a computer running Windows).
+
+TODO: Remove this script once API is talking directly to the final Wildfire API.
+"""
 import csv
 
-import pyodbc
+import pyodbc  # pylint: disable=import-error
 
 # This module contains some very basic code for exporting CSV files from an access database.
 
 
 # following instructions from https://github.com/mkleehammer/pyodbc/wiki/Connecting-to-Microsoft-Access
 # Do a visual check for access odbc drivers:
-# i had to install the 32bit driver to get accdb (https://www.microsoft.com/en-US/download/details.aspx?id=13255)
-[print(x) for x in pyodbc.drivers() if x.startswith('Microsoft Access Driver')]
+# i had to install the 32bit driver (https://www.microsoft.com/en-US/download/details.aspx?id=13255) to get
+# accdb
+# pylint: disable=c-extension-no-member
+DRIVERS = [x for x in pyodbc.drivers() if x.startswith('Microsoft Access Driver')]
+print(DRIVERS)
 
 
 def export_table(cursor, table, sql):
+    """ Function to export all rows from sql query to csv file. """
     # Get the field names
     fieldnames = []
     for row in cursor.columns(table=table):
@@ -42,11 +53,19 @@ def export_table(cursor, table, sql):
         print('DONE: rows processed: {}'.format(rows_processed))
 
 
-conn_str = (
-    r'DRIVER={Microsoft Access Driver (*.mdb)};'
-    r'DBQ=C:\Users\Sybrand\Workspace\wps-api\scripts\BCFireWeather2019_DailyAllStns;'
+def main():
+    """ Entry point for exporting Access to csv """
+    conn_str = (
+        r'DRIVER={Microsoft Access Driver (*.mdb)};'
+        r'DBQ=C:\Users\Sybrand\Workspace\wps-api\scripts\BCFireWeather2019_DailyAllStns;'
     )
-with pyodbc.connect(conn_str) as connection:
-    with connection.cursor() as cursor:
-        export_table(cursor, 'Station_BC', 'SELECT * FROM Station_BC ORDER BY station_code')
-        export_table(cursor, 'DailyWeather', 'SELECT * FROM DailyWeather ORDER BY station_code, weather_date')
+    with pyodbc.connect(conn_str) as connection:
+        with connection.cursor() as cursor:
+            export_table(cursor, 'Station_BC',
+                         'SELECT * FROM Station_BC ORDER BY station_code')
+            export_table(cursor, 'DailyWeather',
+                         'SELECT * FROM DailyWeather ORDER BY station_code, weather_date')
+
+
+if __name__ == '__main__':
+    main()
