@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh -l
 #
 source "$(dirname ${0})/common/common"
 
@@ -27,12 +27,12 @@ PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 
 # Process a template (mostly variable substition)
 #
-OC_PROCESS="oc -n ${PROJ_TOOLS} process -f ${PATH_DC} -p NAME=${NAME} -p SUFFIX=${SUFFIX}"
+OC_PROCESS="oc -n ${PROJ_TOOLS} process -f ${PATH_DC} -p NAME=${NAME_APP} -p SUFFIX=${SUFFIX}"
 
 # Apply a template (apply or use --dry-run)
 #
 OC_APPLY="oc -n ${PROJ_TARGET} apply -f -"
-[ "${APPLY}" ] || OC_APPLY+=" --dry-run"
+[ "${APPLY}" ] || OC_APPLY="${OC_APPLY} --dry-run"
 
 # Execute commands
 #
