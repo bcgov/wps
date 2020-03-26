@@ -8,7 +8,9 @@ Wildfire Predictive Services to support decision making in prevention, preparedn
 
 ### Dependencies
 
-- [Node.js](https://nodejs.org/en/) - You’ll need to have Node >= 8.10 and npm >= 5.6 on your machine. You can use [nvm](https://github.com/nvm-sh/nvm#installation) (macOS/Linux) or [nvm-windows](https://github.com/coreybutler/nvm-windows#node-version-manager-nvm-for-windows) to switch Node versions between different projects.
+- [Node.js](https://nodejs.org/en/) - You’ll need to have Node >= 10.x and npm >= 5.6 on your machine. You can use [nvm](https://github.com/nvm-sh/nvm#installation) (macOS/Linux) or [nvm-windows](https://github.com/coreybutler/nvm-windows#node-version-manager-nvm-for-windows) to switch Node versions between different projects.
+
+Note: We are using Node 10 as a base image on our pipeline.
 
 ### Installing
 
