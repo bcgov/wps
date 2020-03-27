@@ -52,8 +52,6 @@ objects:
         to:
           kind: ImageStreamTag
           name: ${NAME}:${SUFFIX}
-      postCommit:
-        script: "npm run test:ci"
       resources:
         limits:
           cpu: "2"
@@ -68,6 +66,4 @@ objects:
         type: Git
       strategy:
         type: Docker
-      triggers:
-        - type: ConfigChange
-        - type: ImageChange
+      triggers: []

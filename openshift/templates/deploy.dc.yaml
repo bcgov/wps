@@ -62,23 +62,16 @@ objects:
         name: ${NAME}-${SUFFIX}
       strategy:
         type: Rolling
+      triggers: []
       template:
         metadata:
           labels:
             name: ${NAME}-${SUFFIX}
         spec:
           automountServiceAccountToken: false
-          triggers:
-            - type: "ConfigChange"
-              type: "ImageChange"
-              imageChangeParams:
-                automatic: true
-                from:
-                  kind: "ImageStreamTag"
-                  name: "${NAME}:${SUFFIX}"
-                  namespace: "${PROJECT_TOOLS}"
           containers:
             - image: ${DOCKER_REGISTRY}/${PROJECT_TOOLS}/${NAME}:${SUFFIX}
+              imagePullPolicy: Always
               name: ${NAME}
               env:
                 - name: REACT_APP_API_BASE_URL
