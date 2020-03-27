@@ -1,5 +1,5 @@
 GIT_URL="${GIT_URL:-$(git remote get-url origin)}"
-GIT_BRANCH="${GIT_BRANCH:-$(git describe --all --contains HEAD)}"
+GIT_BRANCH="${GIT_BRANCH:-$(git rev-parse --abbrev-ref HEAD)}"
 NAME_APP="${NAME_APP:-$(echo ${GIT_URL##*/} | sed -e 's/\.[^.]*$//')}"
 NAME_OBJ="${NAME_APP}-${SUFFIX}"
 PROJ_TOOLS="${PROJ_TOOLS:-auzhsi-tools}"
