@@ -35,13 +35,13 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Build image
-        uses: bcgov/openshift-launchpad-deployment@custom-script
+        uses: bcgov/openshift-launchpad-deployment@master
         with:
           AUTH_TOKEN: ${{ secrets.action_token }}
-          SCRIPT: openshift/scripts/oc_build.sh ${SUFFIX} apply
+          SCRIPT: GIT_BRANCH=${GITHUB_HEAD_REF} openshift/scripts/oc_build.sh ${SUFFIX} apply
 
       - name: Deploy to Dev
-        uses: bcgov/openshift-launchpad-deployment@custom-script
+        uses: bcgov/openshift-launchpad-deployment@master
         with:
           AUTH_TOKEN: ${{ secrets.action_token }}
           SCRIPT: openshift/scripts/oc_deploy.sh ${SUFFIX} apply
