@@ -30,7 +30,7 @@ jobs:
         shell: bash
         run: |
           echo "::set-env name=SUFFIX::pr-${{ github.event.number }}"
-          
+
       - name: Checkout
         uses: actions/checkout@v2
 
