@@ -5,7 +5,7 @@ on:
     types: [created]
 
 jobs:
-  deployCommandDispatch:
+  deploy-command-dispatch:
     name: Deploy Command Dispatch
     runs-on: ubuntu-latest
     steps:

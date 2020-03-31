@@ -5,15 +5,27 @@ on:
     types: [deploy-command]
 
 jobs:
-  deploy:
+  deploy-prod:
     name: Deploy to Prod
     runs-on: ubuntu-latest
-    # Use this as an initial start point
     steps:
-      - name: Add reaction
-        uses: peter-evans/create-or-update-comment@v1
+      - name: Set Variables
+        shell: bash
+        run: |
+          echo "::set-env name=projProd::auzhsi-prod"
+          echo "::set-env name=SUFFIX::${{ github.event.client_payload.slash_command.arg1 }}"
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Promote Image
+        uses: bcgov/openshift-launchpad-deployment@master
         with:
-          token: ${{ secrets.REPO_ACCESS_TOKEN }}
-          repository: ${{ github.event.client_payload.github.payload.repository.full_name }}
-          comment-id: ${{ github.event.client_payload.github.payload.comment.id }}
-          reaction-type: hooray
+          AUTH_TOKEN: ${{ secrets.action_token }}
+          SCRIPT: openshift/scripts/oc_promote.sh ${SUFFIX} apply
+
+      - name: Deploy to Prod
+        uses: bcgov/openshift-launchpad-deployment@master
+        with:
+          AUTH_TOKEN: ${{ secrets.action_token }}
+          SCRIPT: 'PROJ_TARGET=${projProd} openshift/scripts/oc_deploy.sh ${SUFFIX} apply'
