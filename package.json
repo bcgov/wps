@@ -21,11 +21,12 @@
     "@types/react": "^16.9.19",
     "@types/react-dom": "^16.9.5",
     "@types/react-redux": "^7.1.7",
+    "@types/webpack-env": "^1.15.1",
     "axios": "^0.19.2",
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
     "react-redux": "^7.2.0",
-    "react-scripts": "3.3.1",
+    "react-scripts": "3.4.0",
     "typescript": "^3.7.5"
   },
   "scripts": {
@@ -36,8 +37,7 @@
     "eject": "react-scripts eject",
     "lint": "eslint './src/**/*.{ts,tsx}'",
     "lint:fix": "eslint --fix './src/**/*.{ts,tsx}'",
-    "format": "prettier --write \"**/*.+(js|jsx|json|yml|yaml|css|md|vue)\"",
-    "test:watch": "npm test -- --watch"
+    "format": "prettier --write \"**/*.+(js|jsx|json|yml|yaml|css|md)\""
   },
   "browserslist": {
     "production": [
@@ -53,7 +53,6 @@
   },
   "devDependencies": {
     "@types/jest": "^24.9.1",
-    "@types/webpack-env": "^1.15.1",
     "@typescript-eslint/eslint-plugin": "^2.19.0",
     "@typescript-eslint/parser": "^2.19.0",
     "@testing-library/jest-dom": "^4.2.4",
