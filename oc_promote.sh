@@ -21,10 +21,6 @@ source "$(dirname ${0})/common/common"
 #%   ${THIS_FILE} pr-0 apply
 #%
 
-# Delete previous prod label
-#
-# OC_IMG_DELETE="oc -n ${PROJ_TOOLS} delete istag ${NAME_APP}:${TAG_PROD}"
-
 # Source and destination
 #
 IMG_SOURCE="docker-registry.default.svc:5000/${PROJ_TOOLS}/${NAME_APP}-${SUFFIX}:latest"
