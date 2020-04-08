@@ -32,9 +32,8 @@ objects:
       annotations:
         openshift.io/generated-by: OpenShiftNewBuild
       labels:
-        app: ${NAME}
-        common: "true"
-      name: ${NAME}
+        app: ${NAME}-${SUFFIX}
+      name: ${NAME}-${SUFFIX}
     spec:
       lookupPolicy:
         local: false
@@ -51,7 +50,7 @@ objects:
       output:
         to:
           kind: ImageStreamTag
-          name: ${NAME}:${SUFFIX}
+          name: ${NAME}-${SUFFIX}:latest
       resources:
         limits:
           cpu: "2"

@@ -6,7 +6,7 @@ metadata:
     openshift.io/display-name: "wps-web" 
     description: "Wildfire Predictive Services - Web Client"  
     openshift.io/long-description: "Wildfire Predictive Services - Web Client" 
-    tags: "wps,wps-web" 
+    tags: "wps,wps-web"
     iconClass: icon-js 
     openshift.io/provider-display-name: "Government of British Columbia" 
     openshift.io/documentation-url: "https://github.com/bcgov/wps-web" 
@@ -70,7 +70,7 @@ objects:
         spec:
           automountServiceAccountToken: false
           containers:
-            - image: ${DOCKER_REGISTRY}/${PROJECT_TOOLS}/${NAME}:${SUFFIX}
+            - image: ${DOCKER_REGISTRY}/${PROJECT_TOOLS}/${NAME}-${SUFFIX}:latest
               imagePullPolicy: Always
               name: ${NAME}
               env:
