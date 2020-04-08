@@ -24,10 +24,6 @@ parameters:
     value: docker-registry.default.svc:5000
   - name: PROJECT_TOOLS
     value: auzhsi-tools
-  - name: URL_API
-    value: https://wps-api-prod.pathfinder.gov.bc.ca/
-  - name: URL_FIDER
-    value: https://psufider.pathfinder.gov.bc.ca/
   - name: CPU_REQUEST
     description: Requested CPU
     value: 1000m
@@ -40,16 +36,9 @@ parameters:
   - name: MEMORY_LIMIT
     description: Memory upper limit
     value: 2Gi
+  - name: WPS_WEB_GLOBAL_CONFIG
+    value: wps-web-global
 objects:
-  - apiVersion: v1
-    kind: ConfigMap
-    data:
-      env.api-base-url: "${URL_API}"
-      env.fider-url: "${URL_FIDER}"
-    metadata:
-      labels:
-        app: ${NAME}-${SUFFIX}
-      name: ${NAME}-${SUFFIX}
   - apiVersion: v1
     kind: DeploymentConfig
     metadata:
@@ -70,20 +59,35 @@ objects:
         spec:
           automountServiceAccountToken: false
           containers:
-            - image: ${DOCKER_REGISTRY}/${PROJECT_TOOLS}/${NAME}-${SUFFIX}:latest
+            - image: ${DOCKER_REGISTRY}/${PROJECT_TOOLS}/${NAME}-${SUFFIX}:${SUFFIX}
               imagePullPolicy: Always
               name: ${NAME}
               env:
                 - name: REACT_APP_API_BASE_URL
                   valueFrom:
                     configMapKeyRef:
-                      name: ${NAME}-${SUFFIX}
+                      name: ${WPS_WEB_GLOBAL_CONFIG}
                       key: env.api-base-url
                 - name: REACT_APP_FIDER_LINK
                   valueFrom:
                     configMapKeyRef:
-                      name: ${NAME}-${SUFFIX}
+                      name: ${WPS_WEB_GLOBAL_CONFIG}
                       key: env.fider-url
+                - name: REACT_APP_KEYCLOAK_AUTH_URL
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${WPS_WEB_GLOBAL_CONFIG}
+                      key: env.keycloak-auth-url
+                - name: REACT_APP_KEYCLOAK_REALM
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${WPS_WEB_GLOBAL_CONFIG}
+                      key: env.keycloak-realm
+                - name: REACT_APP_KEYCLOAK_CLIENT
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${WPS_WEB_GLOBAL_CONFIG}
+                      key: env.keycloak-client
               ports:
                 - containerPort: 3000
               resources:
