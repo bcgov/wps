@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh -l
 #
 # Move to repo root and pull subtree updates
 #
