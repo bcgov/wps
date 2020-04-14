@@ -44,11 +44,18 @@ If you have trouble getting pipenv to resolve python 3.8.1, you can also try:
 ```
 pipenv install --python ~/.pyenv/versions/3.6.10/bin/python3.6 --dev
 ```
-#### Local machine, running Ubuntu os 
+#### Local machine, running Linux
 
 If you have trouble installing pyodbc, you can try:
+
+##### Ubuntu
 ```
 sudo apt install unixodbc-dev
+```
+
+##### Fedora
+```
+sudo dnf install unixODBC-devel
 ```
 
 ### Executing program
