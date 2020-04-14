@@ -15,19 +15,6 @@ COPY Pipfile* /tmp/
 # Generate a requirements.txt file, which contains a list of all our project dependancies.
 RUN cd /tmp && pipenv lock --requirements > requirements.txt
 
-##### <START TEMPORARY!!!!
-# Until such time as linting and testing are run as part of the pipeline,
-# it's being enforced inside the build.
-# TODO: Remove this temporary step
-WORKDIR /app
-COPY . .
-RUN python -m pip install -r /tmp/requirements.txt
-RUN python -m pip install pylint
-RUN ./scripts/lint.sh
-# We set ORIGINS explicitly, as environment variables aren't available during image build.
-RUN ORIGINS="testorigin" ./scripts/test.sh
-##### END TEMPORARY>
-
 ####
 # Stage 1:
 #
