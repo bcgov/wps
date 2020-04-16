@@ -2,13 +2,13 @@ import React from 'react'
 import { cleanup, fireEvent } from '@testing-library/react'
 
 import { renderWithRedux } from 'utils/testUtils'
-import { FWICalculatorDisclaimerModal } from 'features/fwiCalculator/FWICalculatorDisclaimerModal'
+import { FWICalculatorPageWithDisclaimer } from 'features/fwiCalculator/FWICalculatorPageWithDisclaimer'
 
 afterEach(cleanup)
 
 it('renders Disclaimer modal', async () => {
   const { getByText, getByTestId, queryByTestId } = renderWithRedux(
-    <FWICalculatorDisclaimerModal />
+    <FWICalculatorPageWithDisclaimer showDisclaimer />
   )
 
   // Make sure the page is not rendered

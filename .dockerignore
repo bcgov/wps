@@ -1,4 +1,9 @@
-.git
-.jenkins
-openshift
-node_modules
+**/.git
+**/.gitignore
+**/node_modules
+**/.vs
+**/.vscode
+**/docker-compose*
+**/Dockerfile*
+**/.jenkins
+**/openshift

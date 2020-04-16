@@ -35,20 +35,24 @@ const useStyles = makeStyles({
   }
 })
 
-export const FWICalculatorDisclaimerModal = () => {
+interface Props {
+  showDisclaimer: boolean
+}
+
+export const FWICalculatorPageWithDisclaimer = (props: Props) => {
   const classes = useStyles()
-  const [open, setOpen] = React.useState(true)
+  const [show, setShow] = React.useState(props.showDisclaimer)
 
   const handleClose = () => {
-    setOpen(false)
+    setShow(false)
   }
 
-  if (!open) {
+  if (!show) {
     return <FWICalculatorPage />
   }
 
   return (
-    <Modal open={open} aria-labelledby="disclaimer-modal" onClose={handleClose}>
+    <Modal open={show} aria-labelledby="disclaimer-modal" onClose={handleClose}>
       <div className={classes.cardWrapper}>
         <Card className={classes.card}>
           <div className={classes.iconWrapper}>
