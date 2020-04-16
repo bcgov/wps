@@ -17,17 +17,11 @@ const auth = createSlice({
     getAuthenticationStart(state: AuthenticationState) {
       state.isAuthenticated = false
     },
-    getAuthenticationFailed(
-      state: AuthenticationState,
-      action: PayloadAction<string>
-    ) {
+    getAuthenticationFailed(state: AuthenticationState, action: PayloadAction<string>) {
       state.isAuthenticated = false
       state.error = action.payload
     },
-    getAuthenticationSuccess(
-      state: AuthenticationState,
-      action: PayloadAction<boolean>
-    ) {
+    getAuthenticationSuccess(state: AuthenticationState, action: PayloadAction<boolean>) {
       state.isAuthenticated = action.payload
     },
     resetAuthentication(state: AuthenticationState) {

@@ -1,11 +1,12 @@
 import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+
 import { selectAuthenticationReducer } from 'app/rootReducer'
 import {
   getAuthenticationSuccess,
   resetAuthentication,
   getAuthenticationFailed
-} from './slices/authenticationSlice'
+} from 'features/auth/slices/authenticationSlice'
 
 export const FireWeatherPage = () => {
   const { isAuthenticated } = useSelector(selectAuthenticationReducer)
@@ -39,11 +40,9 @@ export const FireWeatherPage = () => {
       })
   }, [dispatch])
 
-  if (isAuthenticated) return <header>Hello World!!!</header>
-  else
-    return (
-      <div>
-        <p>Page is loading....</p>
-      </div>
-    )
+  if (!isAuthenticated) {
+    return <div>Page is loading...</div>
+  }
+
+  return <div>This is fire weather page</div>
 }

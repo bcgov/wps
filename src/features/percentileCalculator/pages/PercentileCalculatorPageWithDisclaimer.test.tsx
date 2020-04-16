@@ -2,17 +2,17 @@ import React from 'react'
 import { cleanup, fireEvent } from '@testing-library/react'
 
 import { renderWithRedux } from 'utils/testUtils'
-import { FWICalculatorPageWithDisclaimer } from 'features/fwiCalculator/FWICalculatorPageWithDisclaimer'
+import { PercentileCalculatorPageWithDisclaimer } from 'features/percentileCalculator/pages/PercentileCalculatorPageWithDisclaimer'
 
 afterEach(cleanup)
 
 it('renders Disclaimer modal', async () => {
   const { getByText, getByTestId, queryByTestId } = renderWithRedux(
-    <FWICalculatorPageWithDisclaimer showDisclaimer />
+    <PercentileCalculatorPageWithDisclaimer showDisclaimer />
   )
 
   // Make sure the page is not rendered
-  expect(queryByTestId('fwi-calculator-page')).not.toBeInTheDocument()
+  expect(queryByTestId('percentile-calculator-page')).not.toBeInTheDocument()
 
   expect(getByText(/Disclaimer/i)).toBeInTheDocument()
 
@@ -20,5 +20,5 @@ it('renders Disclaimer modal', async () => {
   fireEvent.click(getByTestId('disclaimer-accept-button'))
 
   // The page should be rendered after accepting
-  expect(getByTestId('fwi-calculator-page')).toBeInTheDocument()
+  expect(getByTestId('percentile-calculator-page')).toBeInTheDocument()
 })

@@ -1,7 +1,7 @@
 import reducer, {
   percentileInitialState,
   getPercentilesSuccess
-} from 'features/fwiCalculator/slices/percentilesSlice'
+} from 'features/percentileCalculator/slices/percentilesSlice'
 import { PercentilesResponse } from 'api/percentileAPI'
 
 describe('Percentiles Slice', () => {
@@ -21,10 +21,7 @@ describe('Percentiles Slice', () => {
       percentile: 90,
       year_range: { start: 2010, end: 2019 }
     }
-    const nextState = reducer(
-      percentileInitialState,
-      getPercentilesSuccess(data)
-    )
+    const nextState = reducer(percentileInitialState, getPercentilesSuccess(data))
     expect(nextState).not.toBe(percentileInitialState)
     expect(nextState.result).toBe(data)
   })

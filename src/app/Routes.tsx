@@ -1,13 +1,8 @@
 import React from 'react'
-import {
-  BrowserRouter as Router,
-  Route,
-  Switch,
-  Redirect
-} from 'react-router-dom'
+import { BrowserRouter as Router, Route, Switch, Redirect } from 'react-router-dom'
 
 import { FireWeatherPage } from 'features/fireWeather/FireWeatherPage'
-import { FWICalculatorPageWithDisclaimer } from 'features/fwiCalculator/FWICalculatorPageWithDisclaimer'
+import { PercentileCalculatorPageWithDisclaimer } from 'features/percentileCalculator/pages/PercentileCalculatorPageWithDisclaimer'
 
 const NoMatch = () => <div>Page not found.</div>
 
@@ -20,9 +15,7 @@ export const Routes = () => {
         <Redirect exact from="/" to="/percentile-calculator" />
 
         <Route path="/percentile-calculator">
-          <FWICalculatorPageWithDisclaimer
-            showDisclaimer={shouldShowDisclaimer}
-          />
+          <PercentileCalculatorPageWithDisclaimer showDisclaimer={shouldShowDisclaimer} />
         </Route>
 
         <Route path="/fire-weather">

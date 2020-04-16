@@ -3,11 +3,11 @@ import { makeStyles } from '@material-ui/core/styles'
 import { useSelector } from 'react-redux'
 
 import { selectPercentilesReducer } from 'app/rootReducer'
-import { PercentileMeanResultTable } from 'features/fwiCalculator/components/PercentileMeanResultTable'
-import { PercentileStationResultTable } from 'features/fwiCalculator/components/PercentileStationResultTable'
+import { PercentileMeanResultTable } from 'features/percentileCalculator/components/PercentileMeanResultTable'
+import { PercentileStationResultTable } from 'features/percentileCalculator/components/PercentileStationResultTable'
 import { ErrorMessage } from 'components/ErrorMessage'
 import { GridItem, GridContainer } from 'components/Grid'
-import { PercentileCalcDocumentation } from 'features/fwiCalculator/components/PercentileCalcDocumentation'
+import { PercentileCalcDocumentation } from 'features/percentileCalculator/components/PercentileCalcDocumentation'
 
 const useStyles = makeStyles({
   root: {
@@ -18,17 +18,13 @@ const useStyles = makeStyles({
   }
 })
 
-export const FWICalculatorResults = () => {
+export const PercentileResults = () => {
   const classes = useStyles()
   const { result, error } = useSelector(selectPercentilesReducer)
 
   if (error) {
     return (
-      <ErrorMessage
-        message={error}
-        when="while getting the calculation"
-        marginTop={5}
-      />
+      <ErrorMessage message={error} when="while getting the calculation" marginTop={5} />
     )
   }
 

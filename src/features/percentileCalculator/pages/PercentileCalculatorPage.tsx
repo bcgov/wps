@@ -5,21 +5,21 @@ import { Station } from 'api/stationAPI'
 import { PageHeader } from 'components/PageHeader'
 import { PageTitle } from 'components/PageTitle'
 import { Container } from 'components/Container'
-import { fetchStations } from 'features/fwiCalculator/slices/stationsSlice'
-import { WeatherStationsDropdown } from 'features/fwiCalculator/components/StationsDropdown'
-import { PercentileTextfield } from 'features/fwiCalculator/components/PercentileTextfield'
+import { fetchStations } from 'features/percentileCalculator/slices/stationsSlice'
+import { WeatherStationsDropdown } from 'features/percentileCalculator/components/StationsDropdown'
+import { PercentileTextfield } from 'features/percentileCalculator/components/PercentileTextfield'
 import {
   fetchPercentiles,
   resetPercentilesResult
-} from 'features/fwiCalculator/slices/percentilesSlice'
-import { PercentileActionButtons } from 'features/fwiCalculator/components/PercentileActionButtons'
-import { FWICalculatorResults } from 'features/fwiCalculator/FWICalculatorResults'
-import { TimeRangeSlider } from './components/TimeRangeSlider'
+} from 'features/percentileCalculator/slices/percentilesSlice'
+import { PercentileActionButtons } from 'features/percentileCalculator/components/PercentileActionButtons'
+import { PercentileResults } from 'features/percentileCalculator/components/PercentileResults'
+import { TimeRangeSlider } from '../components/TimeRangeSlider'
 
 const defaultTimeRange = 10
 const defaultPercentile = 90
 
-export const FWICalculatorPage = () => {
+export const PercentileCalculatorPage = () => {
   const dispatch = useDispatch()
 
   const [stations, setStations] = useState<Station[]>([])
@@ -58,19 +58,16 @@ export const FWICalculatorPage = () => {
   }
 
   return (
-    <div data-testid="fwi-calculator-page">
+    <div data-testid="percentile-calculator-page">
       <PageHeader title="Predictive Services Unit" />
-      <PageTitle title="FWI Calculator" />
+      <PageTitle title="Percentile Calculator" />
       <Container>
         <WeatherStationsDropdown
           stations={stations}
           onStationsChange={onStationsChange}
         />
 
-        <TimeRangeSlider
-          timeRange={timeRange}
-          onYearRangeChange={onYearRangeChange}
-        />
+        <TimeRangeSlider timeRange={timeRange} onYearRangeChange={onYearRangeChange} />
 
         <PercentileTextfield />
 
@@ -80,7 +77,7 @@ export const FWICalculatorPage = () => {
           onResetClick={onResetClick}
         />
 
-        <FWICalculatorResults />
+        <PercentileResults />
       </Container>
     </div>
   )

@@ -1,9 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import {
-  getPercentiles,
-  PercentilesResponse,
-  YearRange
-} from 'api/percentileAPI'
+import { getPercentiles, PercentilesResponse, YearRange } from 'api/percentileAPI'
 import { AppThunk } from 'app/store'
 
 interface PercentilesState {
@@ -33,10 +29,7 @@ const percentiles = createSlice({
       state.isLoading = false
       state.error = null
     },
-    getPercentilesFailed(
-      state: PercentilesState,
-      action: PayloadAction<string>
-    ) {
+    getPercentilesFailed(state: PercentilesState, action: PayloadAction<string>) {
       state.isLoading = false
       state.error = action.payload
     },
