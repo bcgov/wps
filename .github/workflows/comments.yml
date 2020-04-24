@@ -1,0 +1,34 @@
+# Communicates with contributors using comments
+#
+# New PRs receive a welcome and some direction
+# Merges receive a pointer to any post-merge rollouts
+#
+name: PR Comments
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, closed]
+
+jobs:
+  variables:
+    name: Comment on New Pull Request
+    runs-on: ubuntu-latest
+    steps:
+      - name: Comment on PR
+        if: github.event.pull_request.merged == false && github.event.pull_request.comments == 0
+        uses: thollander/actions-comment-pull-request@master
+        with:
+          message: >-
+            Thanks for the pull request! <br>
+            Please see [CONTRIBUTING.md](https://github.com/bcgov/wps-web/blob/master/CONTRIBUTING.yaml) 
+            for details.
+          GITHUB_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
+
+      - name: Comment on PR
+        if: github.event.pull_request.merged == true
+        uses: thollander/actions-comment-pull-request@master
+        with:
+          message: >-
+            This pull request has been merged! <br>
+            ACTION: Please ensure any post-merge steps have been taken.
+          GITHUB_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}

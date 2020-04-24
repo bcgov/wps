@@ -28,7 +28,7 @@ jobs:
       - run: npm run test:ci
 
   build-and-deploy:
-    name: Build and Deploy
+    name: Build and Deploy from Pull Request
     runs-on: ubuntu-latest
     steps:
       - name: Variables
