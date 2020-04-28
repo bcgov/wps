@@ -1,0 +1,42 @@
+
+name: Deploy to OpenShift
+description: Deploy Dockerized application to OpenShift choosing from predefined config templates
+inputs:
+  MODE:
+    description: Type of app, either "client" or "server"
+    required: true
+  AUTH_TOKEN:
+    description: OpenShift service account authorization token
+    required: true
+  NAMESPACE:
+    description: OpenShift project namespace
+    required: true
+  APP_NAME:
+    description: OpenShift app name label
+    required: true
+  BRANCH:
+    description: Branch of the application repo that is to be deployed
+    required: false
+    default: master
+  CLUSTER:
+    description: The target OpenShift cluster
+    required: false
+    default: https://console.pathfinder.gov.bc.ca:8443
+  SCRIPT:
+    description: Custom script to 
+    required: false
+    default: ''
+  SERVER_PORT:
+    description: Port exposed by the server
+    required: false
+    default: '5000'
+  CLIENT_PORT:
+    description: Port exposed by the client
+    required: false
+    default: '3000'
+  API_URL:
+    description: URL of app server
+    required: false
+runs:
+  using: docker
+  image: Dockerfile
