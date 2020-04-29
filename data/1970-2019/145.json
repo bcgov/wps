@@ -61,6 +61,8 @@
     ],
     "station": {
         "code": "145",
-        "name": "INGENIKA POINT"
+        "name": "INGENIKA POINT",
+        "lat": "57.0194167",
+        "long": "-125.1803889"
     }
 }

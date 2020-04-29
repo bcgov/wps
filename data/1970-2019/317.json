@@ -44,6 +44,8 @@
     ],
     "station": {
         "code": "317",
-        "name": "ALLISON PASS"
+        "name": "ALLISON PASS",
+        "lat": "49.0623139",
+        "long": "-120.7674194"
     }
 }

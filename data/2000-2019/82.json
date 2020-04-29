@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "82",
-        "name": "SCAR CREEK"
+        "name": "SCAR CREEK",
+        "lat": "51.1891111",
+        "long": "-125.0280556"
     }
 }

@@ -21,6 +21,8 @@
     ],
     "station": {
         "code": "1108",
-        "name": "BLUE RIVER 2"
+        "name": "BLUE RIVER 2",
+        "lat": "52.1222500",
+        "long": "-119.2935833"
     }
 }

@@ -45,6 +45,8 @@
     ],
     "station": {
         "code": "120",
-        "name": "SILVER"
+        "name": "SILVER",
+        "lat": "57.4967800",
+        "long": "-121.2969500"
     }
 }

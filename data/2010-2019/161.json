@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "161",
-        "name": "GRASSY PLAINS HUB"
+        "name": "GRASSY PLAINS HUB",
+        "lat": "53.9453830",
+        "long": "-125.8760667"
     }
 }

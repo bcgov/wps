@@ -43,6 +43,8 @@
     ],
     "station": {
         "code": "322",
-        "name": "AFTON"
+        "name": "AFTON",
+        "lat": "50.6733333",
+        "long": "-120.4816667"
     }
 }

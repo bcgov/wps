@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "1075",
-        "name": "KOOCANUSA"
+        "name": "KOOCANUSA",
+        "lat": "49.0469444",
+        "long": "-115.2252778"
     }
 }

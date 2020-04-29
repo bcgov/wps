@@ -36,6 +36,8 @@
     ],
     "station": {
         "code": "447",
-        "name": "WATSON LAKE FS"
+        "name": "WATSON LAKE FS",
+        "lat": "60.0618000",
+        "long": "-128.7179330"
     }
 }

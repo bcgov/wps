@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "163",
-        "name": "LOVELL COVE"
+        "name": "LOVELL COVE",
+        "lat": "55.6882222",
+        "long": "-126.0526111"
     }
 }

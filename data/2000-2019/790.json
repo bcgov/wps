@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "790",
-        "name": "WHITE RIVER"
+        "name": "WHITE RIVER",
+        "lat": "50.1850000",
+        "long": "-115.2676389"
     }
 }

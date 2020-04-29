@@ -33,6 +33,8 @@
     ],
     "station": {
         "code": "599",
-        "name": "FORT NELSON FS"
+        "name": "FORT NELSON FS",
+        "lat": "58.8418889",
+        "long": "-122.5735000"
     }
 }

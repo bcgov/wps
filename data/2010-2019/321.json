@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "321",
-        "name": "GREENSTONE HUB"
+        "name": "GREENSTONE HUB",
+        "lat": "50.6112670",
+        "long": "-120.6415500"
     }
 }

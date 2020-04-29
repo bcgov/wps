@@ -44,6 +44,8 @@
     ],
     "station": {
         "code": "263",
-        "name": "MATHEW"
+        "name": "MATHEW",
+        "lat": "52.9100000",
+        "long": "-120.9116667"
     }
 }

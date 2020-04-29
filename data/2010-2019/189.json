@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "189",
-        "name": "CHILAKO"
+        "name": "CHILAKO",
+        "lat": "53.4937778",
+        "long": "-123.6087778"
     }
 }

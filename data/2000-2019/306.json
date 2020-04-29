@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "306",
-        "name": "FRENCH BAR"
+        "name": "FRENCH BAR",
+        "lat": "51.1774667",
+        "long": "-122.2489333"
     }
 }

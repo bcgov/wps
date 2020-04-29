@@ -46,6 +46,8 @@
     ],
     "station": {
         "code": "431",
-        "name": "UPPER KISPIOX"
+        "name": "UPPER KISPIOX",
+        "lat": "55.6014500",
+        "long": "-128.0477830"
     }
 }

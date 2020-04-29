@@ -13,6 +13,8 @@
     ],
     "station": {
         "code": "1326",
-        "name": "WILLIS EXT"
+        "name": "WILLIS EXT",
+        "lat": "49.3393056",
+        "long": "-120.4070556"
     }
 }

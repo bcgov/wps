@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "199",
-        "name": "CATFISH"
+        "name": "CATFISH",
+        "lat": "53.5764444",
+        "long": "-120.8584444"
     }
 }

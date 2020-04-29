@@ -41,6 +41,8 @@
     ],
     "station": {
         "code": "236",
-        "name": "MEADOW LAKE"
+        "name": "MEADOW LAKE",
+        "lat": "51.3750000",
+        "long": "-121.7166667"
     }
 }

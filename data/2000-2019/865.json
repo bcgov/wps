@@ -28,6 +28,8 @@
     ],
     "station": {
         "code": "865",
-        "name": "BRISCO"
+        "name": "BRISCO",
+        "lat": "50.8193000",
+        "long": "-116.2449000"
     }
 }

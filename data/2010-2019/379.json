@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "379",
-        "name": "GOLD HILL"
+        "name": "GOLD HILL",
+        "lat": "50.3658333",
+        "long": "-117.0645000"
     }
 }

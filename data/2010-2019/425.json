@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "425",
-        "name": "EMILY CREEK"
+        "name": "EMILY CREEK",
+        "lat": "50.1450800",
+        "long": "-115.9772300"
     }
 }

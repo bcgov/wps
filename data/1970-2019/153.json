@@ -41,6 +41,8 @@
     ],
     "station": {
         "code": "153",
-        "name": "MCLEOD LAKE"
+        "name": "MCLEOD LAKE",
+        "lat": "54.7255278",
+        "long": "-123.0786667"
     }
 }

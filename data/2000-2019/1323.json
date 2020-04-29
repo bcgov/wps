@@ -14,6 +14,8 @@
     ],
     "station": {
         "code": "1323",
-        "name": "LARCH HILLS WEST"
+        "name": "LARCH HILLS WEST",
+        "lat": "50.6905556",
+        "long": "-119.1761111"
     }
 }

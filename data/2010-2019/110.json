@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "110",
-        "name": "TELEGRAPH CREEK"
+        "name": "TELEGRAPH CREEK",
+        "lat": "57.9141330",
+        "long": "-131.1711500"
     }
 }

@@ -49,6 +49,8 @@
     ],
     "station": {
         "code": "411",
-        "name": "PALLISER"
+        "name": "PALLISER",
+        "lat": "50.4946111",
+        "long": "-115.6664444"
     }
 }

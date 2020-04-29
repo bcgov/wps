@@ -36,6 +36,8 @@
     ],
     "station": {
         "code": "440",
-        "name": "FIRESIDE"
+        "name": "FIRESIDE",
+        "lat": "59.7226667",
+        "long": "-127.3351389"
     }
 }

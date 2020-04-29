@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "156",
-        "name": "SUSTUT"
+        "name": "SUSTUT",
+        "lat": "56.3287300",
+        "long": "-127.0342500"
     }
 }

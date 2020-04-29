@@ -21,6 +21,8 @@
     ],
     "station": {
         "code": "1093",
-        "name": "QUINSAM BASE FWX (TRIAL)"
+        "name": "QUINSAM BASE FWX (TRIAL)",
+        "lat": "50.0273000",
+        "long": "-125.2940660"
     }
 }

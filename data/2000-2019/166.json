@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "166",
-        "name": "KLUSKUS"
+        "name": "KLUSKUS",
+        "lat": "53.3830500",
+        "long": "-124.5120800"
     }
 }

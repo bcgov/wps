@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "654",
-        "name": "HOLY CROSS 2"
+        "name": "HOLY CROSS 2",
+        "lat": "53.9359722",
+        "long": "-124.7767222"
     }
 }

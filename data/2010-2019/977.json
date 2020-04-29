@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "977",
-        "name": "ANDERSON CREEK"
+        "name": "ANDERSON CREEK",
+        "lat": "49.6551000",
+        "long": "-121.3580667"
     }
 }

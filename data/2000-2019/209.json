@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "209",
-        "name": "ALEXIS CREEK"
+        "name": "ALEXIS CREEK",
+        "lat": "52.0837700",
+        "long": "-123.2732667"
     }
 }

@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "126",
-        "name": "TOAD RIVER"
+        "name": "TOAD RIVER",
+        "lat": "58.8658500",
+        "long": "-125.3107000"
     }
 }

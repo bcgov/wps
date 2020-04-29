@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "118",
-        "name": "HELMUT"
+        "name": "HELMUT",
+        "lat": "59.4210000",
+        "long": "-120.7889167"
     }
 }

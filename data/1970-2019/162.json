@@ -58,6 +58,8 @@
     ],
     "station": {
         "code": "162",
-        "name": "HOUSTON(DUNGATE)"
+        "name": "HOUSTON(DUNGATE)",
+        "lat": "54.3939000",
+        "long": "-126.6175667"
     }
 }

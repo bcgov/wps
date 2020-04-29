@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "56",
-        "name": "BOWSER"
+        "name": "BOWSER",
+        "lat": "49.4368333",
+        "long": "-124.7022222"
     }
 }

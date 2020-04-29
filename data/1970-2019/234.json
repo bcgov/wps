@@ -42,6 +42,8 @@
     ],
     "station": {
         "code": "234",
-        "name": "TIMOTHY"
+        "name": "TIMOTHY",
+        "lat": "51.9130000",
+        "long": "-121.3890000"
     }
 }

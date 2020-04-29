@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "832",
-        "name": "CHURN CREEK"
+        "name": "CHURN CREEK",
+        "lat": "51.4027200",
+        "long": "-122.3201700"
     }
 }

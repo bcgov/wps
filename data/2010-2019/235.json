@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "235",
-        "name": "YOUNG LAKE"
+        "name": "YOUNG LAKE",
+        "lat": "51.2377700",
+        "long": "-120.9976200"
     }
 }

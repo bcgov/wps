@@ -51,6 +51,8 @@
     ],
     "station": {
         "code": "344",
-        "name": "SEYMOUR ARM"
+        "name": "SEYMOUR ARM",
+        "lat": "51.2735170",
+        "long": "-118.9147000"
     }
 }

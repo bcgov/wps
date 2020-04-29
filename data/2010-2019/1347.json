@@ -13,6 +13,8 @@
     ],
     "station": {
         "code": "1347",
-        "name": "PERSEVERANCE"
+        "name": "PERSEVERANCE",
+        "lat": "49.5935570",
+        "long": "-125.1312710"
     }
 }

@@ -18,6 +18,8 @@
     ],
     "station": {
         "code": "151",
-        "name": "NABESHE"
+        "name": "NABESHE",
+        "lat": "56.3643300",
+        "long": "-123.3655600"
     }
 }

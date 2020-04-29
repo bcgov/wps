@@ -61,6 +61,8 @@
     ],
     "station": {
         "code": "158",
-        "name": "VANDERHOOF HUB"
+        "name": "VANDERHOOF HUB",
+        "lat": "54.0558056",
+        "long": "-124.0088611"
     }
 }

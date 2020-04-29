@@ -15,6 +15,8 @@
     ],
     "station": {
         "code": "1277",
-        "name": "WEST KELOWNA"
+        "name": "WEST KELOWNA",
+        "lat": "49.8832000",
+        "long": "-119.5695000"
     }
 }

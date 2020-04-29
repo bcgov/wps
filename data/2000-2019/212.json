@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "212",
-        "name": "PLACE LAKE"
+        "name": "PLACE LAKE",
+        "lat": "51.8166667",
+        "long": "-122.0000000"
     }
 }

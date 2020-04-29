@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "244",
-        "name": "WINDY MOUNTAIN"
+        "name": "WINDY MOUNTAIN",
+        "lat": "51.6700000",
+        "long": "-120.6500000"
     }
 }

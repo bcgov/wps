@@ -55,6 +55,8 @@
     ],
     "station": {
         "code": "111",
-        "name": "ATLIN"
+        "name": "ATLIN",
+        "lat": "59.5844830",
+        "long": "-133.6643830"
     }
 }

@@ -20,6 +20,8 @@
     ],
     "station": {
         "code": "1144",
-        "name": "FORD MOUNTAIN"
+        "name": "FORD MOUNTAIN",
+        "lat": "49.1040278",
+        "long": "-121.6375278"
     }
 }

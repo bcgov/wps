@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "432",
-        "name": "BELL-IRVING"
+        "name": "BELL-IRVING",
+        "lat": "56.3485830",
+        "long": "-129.2928500"
     }
 }

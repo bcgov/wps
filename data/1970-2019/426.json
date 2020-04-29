@@ -31,6 +31,8 @@
     ],
     "station": {
         "code": "426",
-        "name": "CRANBROOK FS"
+        "name": "CRANBROOK FS",
+        "lat": "49.6673000",
+        "long": "-115.8483333"
     }
 }

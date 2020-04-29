@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "173",
-        "name": "NORTH BABINE"
+        "name": "NORTH BABINE",
+        "lat": "55.1345167",
+        "long": "-126.2072667"
     }
 }

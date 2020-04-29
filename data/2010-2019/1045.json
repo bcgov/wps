@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "1045",
-        "name": "OSBORN"
+        "name": "OSBORN",
+        "lat": "56.5583333",
+        "long": "-120.3819444"
     }
 }

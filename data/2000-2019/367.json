@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "367",
-        "name": "MARION"
+        "name": "MARION",
+        "lat": "51.0421667",
+        "long": "-116.3638333"
     }
 }

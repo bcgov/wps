@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "182",
-        "name": "GANOKWA"
+        "name": "GANOKWA",
+        "lat": "54.8012330",
+        "long": "-126.9483167"
     }
 }

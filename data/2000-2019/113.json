@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "113",
-        "name": "BOB QUINN LAKE"
+        "name": "BOB QUINN LAKE",
+        "lat": "56.9809830",
+        "long": "-130.2508000"
     }
 }

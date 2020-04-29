@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "301",
-        "name": "PEMBERTON BASE"
+        "name": "PEMBERTON BASE",
+        "lat": "50.3059333",
+        "long": "-122.7287833"
     }
 }

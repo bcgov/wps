@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "444",
-        "name": "KETCHIKA"
+        "name": "KETCHIKA",
+        "lat": "58.7269800",
+        "long": "-127.1249600"
     }
 }

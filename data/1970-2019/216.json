@@ -49,6 +49,8 @@
     ],
     "station": {
         "code": "216",
-        "name": "NEMIAH"
+        "name": "NEMIAH",
+        "lat": "51.4800000",
+        "long": "-123.8183333"
     }
 }

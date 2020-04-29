@@ -47,6 +47,8 @@
     ],
     "station": {
         "code": "179",
-        "name": "NADINA"
+        "name": "NADINA",
+        "lat": "53.9424830",
+        "long": "-126.9278167"
     }
 }

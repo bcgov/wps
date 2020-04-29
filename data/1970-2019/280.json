@@ -55,6 +55,8 @@
     ],
     "station": {
         "code": "280",
-        "name": "LILLOOET"
+        "name": "LILLOOET",
+        "lat": "50.6720167",
+        "long": "-121.8881833"
     }
 }

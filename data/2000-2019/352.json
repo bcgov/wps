@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "352",
-        "name": "CURWEN CREEK"
+        "name": "CURWEN CREEK",
+        "lat": "50.6021500",
+        "long": "-118.4229167"
     }
 }

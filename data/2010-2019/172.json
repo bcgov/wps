@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "172",
-        "name": "NILKITKWA"
+        "name": "NILKITKWA",
+        "lat": "55.5378500",
+        "long": "-126.5774500"
     }
 }

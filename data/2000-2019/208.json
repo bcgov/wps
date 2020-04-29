@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "208",
-        "name": "TATLA LAKE HUB"
+        "name": "TATLA LAKE HUB",
+        "lat": "51.9066667",
+        "long": "-124.6050000"
     }
 }

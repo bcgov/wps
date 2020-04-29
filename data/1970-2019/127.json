@@ -50,6 +50,8 @@
     ],
     "station": {
         "code": "127",
-        "name": "TUMBLER(DENISON) HUB"
+        "name": "TUMBLER(DENISON) HUB",
+        "lat": "55.0273600",
+        "long": "-120.9340500"
     }
 }

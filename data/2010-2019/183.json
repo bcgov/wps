@@ -19,6 +19,8 @@
     ],
     "station": {
         "code": "183",
-        "name": "PARROTT"
+        "name": "PARROTT",
+        "lat": "54.0186667",
+        "long": "-126.3888889"
     }
 }

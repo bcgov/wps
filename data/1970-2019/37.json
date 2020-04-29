@@ -45,6 +45,8 @@
     ],
     "station": {
         "code": "37",
-        "name": "BEAVER CREEK"
+        "name": "BEAVER CREEK",
+        "lat": "49.3772222",
+        "long": "-124.9332667"
     }
 }

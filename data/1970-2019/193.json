@@ -45,6 +45,8 @@
     ],
     "station": {
         "code": "193",
-        "name": "BOWRON HAGGEN"
+        "name": "BOWRON HAGGEN",
+        "lat": "53.4631389",
+        "long": "-121.5603333"
     }
 }

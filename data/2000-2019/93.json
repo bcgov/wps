@@ -30,6 +30,8 @@
     ],
     "station": {
         "code": "93",
-        "name": "HONNA"
+        "name": "HONNA",
+        "lat": "53.2532000",
+        "long": "-132.1156200"
     }
 }

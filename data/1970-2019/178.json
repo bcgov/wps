@@ -48,6 +48,8 @@
     ],
     "station": {
         "code": "178",
-        "name": "PEDEN"
+        "name": "PEDEN",
+        "lat": "53.9867430",
+        "long": "-126.5172230"
     }
 }

@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "262",
-        "name": "BIG VALLEY"
+        "name": "BIG VALLEY",
+        "lat": "53.2616667",
+        "long": "-121.7616667"
     }
 }

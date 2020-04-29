@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "995",
-        "name": "TS ARTLISH"
+        "name": "TS ARTLISH",
+        "lat": "50.1324167",
+        "long": "-126.9282333"
     }
 }

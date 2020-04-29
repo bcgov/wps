@@ -52,6 +52,8 @@
     ],
     "station": {
         "code": "165",
-        "name": "MOOSE LAKE"
+        "name": "MOOSE LAKE",
+        "lat": "53.0714600",
+        "long": "-125.4121500"
     }
 }

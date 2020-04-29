@@ -26,6 +26,8 @@
     ],
     "station": {
         "code": "938",
-        "name": "PINE CREEK"
+        "name": "PINE CREEK",
+        "lat": "54.6837830",
+        "long": "-127.3258167"
     }
 }

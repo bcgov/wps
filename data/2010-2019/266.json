@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "266",
-        "name": "WELLS GRAY"
+        "name": "WELLS GRAY",
+        "lat": "52.3426330",
+        "long": "-120.2437500"
     }
 }

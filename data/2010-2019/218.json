@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "218",
-        "name": "LONE BUTTE"
+        "name": "LONE BUTTE",
+        "lat": "51.5070000",
+        "long": "-121.1620000"
     }
 }

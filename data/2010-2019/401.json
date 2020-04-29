@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "401",
-        "name": "GOATFELL"
+        "name": "GOATFELL",
+        "lat": "49.1253333",
+        "long": "-116.1638333"
     }
 }

@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "121",
-        "name": "PADDY"
+        "name": "PADDY",
+        "lat": "57.7818100",
+        "long": "-120.2368000"
     }
 }

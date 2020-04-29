@@ -45,6 +45,8 @@
     ],
     "station": {
         "code": "385",
-        "name": "DUNCAN"
+        "name": "DUNCAN",
+        "lat": "50.7808333",
+        "long": "-117.1805000"
     }
 }

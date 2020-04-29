@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "316",
-        "name": "NAHATLATCH"
+        "name": "NAHATLATCH",
+        "lat": "49.9017800",
+        "long": "-122.0207000"
     }
 }

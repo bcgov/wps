@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "361",
-        "name": "TSAR CREEK"
+        "name": "TSAR CREEK",
+        "lat": "51.9972200",
+        "long": "-118.1025000"
     }
 }

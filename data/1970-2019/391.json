@@ -44,6 +44,8 @@
     ],
     "station": {
         "code": "391",
-        "name": "EIGHT MILE"
+        "name": "EIGHT MILE",
+        "lat": "49.4328333",
+        "long": "-118.5783333"
     }
 }

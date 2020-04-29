@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "326",
-        "name": "PASKA LAKE"
+        "name": "PASKA LAKE",
+        "lat": "50.5040000",
+        "long": "-120.6740000"
     }
 }

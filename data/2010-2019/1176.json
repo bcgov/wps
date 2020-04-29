@@ -18,6 +18,8 @@
     ],
     "station": {
         "code": "1176",
-        "name": "MUDPIT"
+        "name": "MUDPIT",
+        "lat": "51.3130833",
+        "long": "-119.3924722"
     }
 }

@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "233",
-        "name": "TALCHAKO"
+        "name": "TALCHAKO",
+        "lat": "52.2513500",
+        "long": "-126.0283667"
     }
 }

@@ -42,6 +42,8 @@
     ],
     "station": {
         "code": "226",
-        "name": "MIDDLE LAKE"
+        "name": "MIDDLE LAKE",
+        "lat": "51.7016667",
+        "long": "-124.8750000"
     }
 }

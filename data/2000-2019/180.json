@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "180",
-        "name": "MCBRIDE LAKE"
+        "name": "MCBRIDE LAKE",
+        "lat": "54.0747330",
+        "long": "-127.3994167"
     }
 }

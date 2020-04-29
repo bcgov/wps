@@ -42,6 +42,8 @@
     ],
     "station": {
         "code": "394",
-        "name": "ROCK CREEK"
+        "name": "ROCK CREEK",
+        "lat": "49.0520000",
+        "long": "-118.9366667"
     }
 }

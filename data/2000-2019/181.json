@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "181",
-        "name": "BURNS LAKE 850M"
+        "name": "BURNS LAKE 850M",
+        "lat": "54.2586000",
+        "long": "-125.7571000"
     }
 }

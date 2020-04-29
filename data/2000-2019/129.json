@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "129",
-        "name": "PINK MOUNTAIN"
+        "name": "PINK MOUNTAIN",
+        "lat": "57.0875278",
+        "long": "-122.5909722"
     }
 }

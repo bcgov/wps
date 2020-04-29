@@ -48,6 +48,8 @@
     ],
     "station": {
         "code": "131",
-        "name": "MUSKWA"
+        "name": "MUSKWA",
+        "lat": "57.8842500",
+        "long": "-123.6163000"
     }
 }

@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "428",
-        "name": "KISPIOX HUB"
+        "name": "KISPIOX HUB",
+        "lat": "55.4343000",
+        "long": "-127.6487000"
     }
 }

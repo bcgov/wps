@@ -46,6 +46,8 @@
     ],
     "station": {
         "code": "402",
-        "name": "PENDOREILLE"
+        "name": "PENDOREILLE",
+        "lat": "49.0505556",
+        "long": "-117.4138889"
     }
 }

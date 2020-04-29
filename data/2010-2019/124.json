@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "124",
-        "name": "GRAHAM"
+        "name": "GRAHAM",
+        "lat": "56.4346389",
+        "long": "-122.4576667"
     }
 }

@@ -31,6 +31,8 @@
     ],
     "station": {
         "code": "154",
-        "name": "WITCH"
+        "name": "WITCH",
+        "lat": "55.0230300",
+        "long": "-124.2666111"
     }
 }

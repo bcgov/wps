@@ -30,6 +30,8 @@
     ],
     "station": {
         "code": "264",
-        "name": "PRAIRIE CREEK"
+        "name": "PRAIRIE CREEK",
+        "lat": "52.3916667",
+        "long": "-120.9850000"
     }
 }

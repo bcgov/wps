@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "221",
-        "name": "BALDFACE"
+        "name": "BALDFACE",
+        "lat": "52.7101000",
+        "long": "-124.4822500"
     }
 }
