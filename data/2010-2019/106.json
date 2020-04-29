@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "106",
-        "name": "KITPARK"
+        "name": "KITPARK",
+        "lat": "54.1696000",
+        "long": "-128.5758500"
     }
 }

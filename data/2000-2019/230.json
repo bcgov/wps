@@ -31,6 +31,8 @@
     ],
     "station": {
         "code": "230",
-        "name": "HORSEFLY"
+        "name": "HORSEFLY",
+        "lat": "52.3300000",
+        "long": "-121.3966667"
     }
 }

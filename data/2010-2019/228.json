@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "228",
-        "name": "BENSON"
+        "name": "BENSON",
+        "lat": "52.9100000",
+        "long": "-122.0650000"
     }
 }

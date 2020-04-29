@@ -40,6 +40,8 @@
     ],
     "station": {
         "code": "407",
-        "name": "NANCY GREEN"
+        "name": "NANCY GREEN",
+        "lat": "49.2545000",
+        "long": "-117.9941667"
     }
 }

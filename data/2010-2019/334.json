@@ -21,6 +21,8 @@
     ],
     "station": {
         "code": "334",
-        "name": "MCCUDDY"
+        "name": "MCCUDDY",
+        "lat": "49.1483333",
+        "long": "-119.4150000"
     }
 }

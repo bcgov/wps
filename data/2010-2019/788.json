@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "788",
-        "name": "ROUND PRAIRIE"
+        "name": "ROUND PRAIRIE",
+        "lat": "50.0867000",
+        "long": "-114.8997000"
     }
 }

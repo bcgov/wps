@@ -24,6 +24,8 @@
     ],
     "station": {
         "code": "1024",
-        "name": "SKOONKA"
+        "name": "SKOONKA",
+        "lat": "50.4386944",
+        "long": "-121.5515000"
     }
 }

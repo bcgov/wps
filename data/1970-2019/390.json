@@ -62,6 +62,8 @@
     ],
     "station": {
         "code": "390",
-        "name": "BEAVERDELL"
+        "name": "BEAVERDELL",
+        "lat": "49.4563889",
+        "long": "-119.0886111"
     }
 }

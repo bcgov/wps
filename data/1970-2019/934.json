@@ -25,6 +25,8 @@
     ],
     "station": {
         "code": "934",
-        "name": "MESACHIE 2"
+        "name": "MESACHIE 2",
+        "lat": "48.8228833",
+        "long": "-124.1370833"
     }
 }

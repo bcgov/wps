@@ -16,6 +16,8 @@
     ],
     "station": {
         "code": "1251",
-        "name": "NARROWS INLET"
+        "name": "NARROWS INLET",
+        "lat": "49.7517000",
+        "long": "-123.7050556"
     }
 }

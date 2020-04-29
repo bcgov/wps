@@ -31,6 +31,8 @@
     ],
     "station": {
         "code": "376",
-        "name": "TABERNACLE  (WIND)"
+        "name": "TABERNACLE  (WIND)",
+        "lat": "51.7513333",
+        "long": "-117.7613333"
     }
 }

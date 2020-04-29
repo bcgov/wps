@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "227",
-        "name": "GAVIN"
+        "name": "GAVIN",
+        "lat": "52.4700000",
+        "long": "-121.7416667"
     }
 }

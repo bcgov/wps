@@ -57,6 +57,8 @@
     ],
     "station": {
         "code": "206",
-        "name": "TAUTRI"
+        "name": "TAUTRI",
+        "lat": "52.5422222",
+        "long": "-123.3500000"
     }
 }

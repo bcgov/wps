@@ -50,6 +50,8 @@
     ],
     "station": {
         "code": "393",
-        "name": "NICOLL"
+        "name": "NICOLL",
+        "lat": "49.5266667",
+        "long": "-118.3603333"
     }
 }

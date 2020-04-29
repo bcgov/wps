@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "1055",
-        "name": "SPLINTLUM"
+        "name": "SPLINTLUM",
+        "lat": "50.3511111",
+        "long": "-121.6549500"
     }
 }

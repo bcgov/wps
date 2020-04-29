@@ -31,6 +31,8 @@
     ],
     "station": {
         "code": "225",
-        "name": "KNIFE"
+        "name": "KNIFE",
+        "lat": "52.0497200",
+        "long": "-121.8738300"
     }
 }

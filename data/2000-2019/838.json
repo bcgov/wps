@@ -29,6 +29,8 @@
     ],
     "station": {
         "code": "838",
-        "name": "AKOKLI CREEK"
+        "name": "AKOKLI CREEK",
+        "lat": "49.4358000",
+        "long": "-116.7464000"
     }
 }

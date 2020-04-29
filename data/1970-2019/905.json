@@ -27,6 +27,8 @@
     ],
     "station": {
         "code": "905",
-        "name": "DOWNIE"
+        "name": "DOWNIE",
+        "lat": "51.5154000",
+        "long": "-118.2720666"
     }
 }

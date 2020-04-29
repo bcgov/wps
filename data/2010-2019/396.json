@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "396",
-        "name": "OCTOPUS CREEK"
+        "name": "OCTOPUS CREEK",
+        "lat": "49.6990000",
+        "long": "-118.0810000"
     }
 }

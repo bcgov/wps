@@ -31,6 +31,8 @@
     ],
     "station": {
         "code": "45",
-        "name": "SALTSPRING 2"
+        "name": "SALTSPRING 2",
+        "lat": "48.7739500",
+        "long": "-123.4735000"
     }
 }

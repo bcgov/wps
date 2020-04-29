@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "279",
-        "name": "THYNNE"
+        "name": "THYNNE",
+        "lat": "49.7151500",
+        "long": "-120.8660500"
     }
 }

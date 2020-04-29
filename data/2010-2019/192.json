@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "192",
-        "name": "MCGREGOR 2"
+        "name": "MCGREGOR 2",
+        "lat": "53.9288889",
+        "long": "-120.6356944"
     }
 }

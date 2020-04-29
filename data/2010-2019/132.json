@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "132",
-        "name": "HUDSON HOPE"
+        "name": "HUDSON HOPE",
+        "lat": "56.0347000",
+        "long": "-121.9902100"
     }
 }

@@ -47,6 +47,8 @@
     ],
     "station": {
         "code": "11",
-        "name": "SUMMIT"
+        "name": "SUMMIT",
+        "lat": "48.9275667",
+        "long": "-124.6469000"
     }
 }

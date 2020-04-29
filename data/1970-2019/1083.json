@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "1083",
-        "name": "MEAGER CREEK"
+        "name": "MEAGER CREEK",
+        "lat": "50.6197222",
+        "long": "-123.4100000"
     }
 }

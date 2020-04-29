@@ -31,6 +31,8 @@
     ],
     "station": {
         "code": "155",
-        "name": "MACKENZIE FS"
+        "name": "MACKENZIE FS",
+        "lat": "55.3221111",
+        "long": "-123.0931667"
     }
 }

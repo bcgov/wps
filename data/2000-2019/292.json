@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "292",
-        "name": "D'ARCY"
+        "name": "D'ARCY",
+        "lat": "50.5217222",
+        "long": "-122.4978889"
     }
 }

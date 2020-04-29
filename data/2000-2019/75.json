@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "75",
-        "name": "TOBA CAMP"
+        "name": "TOBA CAMP",
+        "lat": "50.5710000",
+        "long": "-124.0771667"
     }
 }

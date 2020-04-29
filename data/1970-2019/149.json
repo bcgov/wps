@@ -51,6 +51,8 @@
     ],
     "station": {
         "code": "149",
-        "name": "BEAR LAKE"
+        "name": "BEAR LAKE",
+        "lat": "54.5092222",
+        "long": "-122.6910278"
     }
 }

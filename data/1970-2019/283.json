@@ -55,6 +55,8 @@
     ],
     "station": {
         "code": "283",
-        "name": "BRENDA MINES"
+        "name": "BRENDA MINES",
+        "lat": "49.8684170",
+        "long": "-119.9925170"
     }
 }

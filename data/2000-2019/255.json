@@ -31,6 +31,8 @@
     ],
     "station": {
         "code": "255",
-        "name": "LIKELY RS"
+        "name": "LIKELY RS",
+        "lat": "52.6150000",
+        "long": "-121.5133333"
     }
 }

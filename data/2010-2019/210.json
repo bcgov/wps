@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "210",
-        "name": "RISKE CREEK"
+        "name": "RISKE CREEK",
+        "lat": "51.9594444",
+        "long": "-122.5041667"
     }
 }

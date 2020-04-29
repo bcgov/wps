@@ -29,6 +29,8 @@
     ],
     "station": {
         "code": "836",
-        "name": "AUGUST LAKE"
+        "name": "AUGUST LAKE",
+        "lat": "49.4334800",
+        "long": "-120.4571200"
     }
 }

@@ -34,6 +34,8 @@
     ],
     "station": {
         "code": "302",
-        "name": "ASPEN GROVE"
+        "name": "ASPEN GROVE",
+        "lat": "49.9481100",
+        "long": "-120.6210700"
     }
 }

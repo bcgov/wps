@@ -51,6 +51,8 @@
     ],
     "station": {
         "code": "392",
-        "name": "GRAND FORKS"
+        "name": "GRAND FORKS",
+        "lat": "49.0307000",
+        "long": "-118.4156000"
     }
 }

@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "418",
-        "name": "FLATHEAD 2"
+        "name": "FLATHEAD 2",
+        "lat": "49.0791389",
+        "long": "-114.5373389"
     }
 }

@@ -43,6 +43,8 @@
     ],
     "station": {
         "code": "152",
-        "name": "SIFTON"
+        "name": "SIFTON",
+        "lat": "57.8517500",
+        "long": "-126.1167600"
     }
 }

@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "882",
-        "name": "SICAMOUS"
+        "name": "SICAMOUS",
+        "lat": "50.8634670",
+        "long": "-119.0028500"
     }
 }

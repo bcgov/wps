@@ -37,6 +37,8 @@
     ],
     "station": {
         "code": "108",
-        "name": "DEASE LAKE FS"
+        "name": "DEASE LAKE FS",
+        "lat": "58.4257830",
+        "long": "-130.0187167"
     }
 }

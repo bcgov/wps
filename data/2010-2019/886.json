@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "886",
-        "name": "GOATHAVEN"
+        "name": "GOATHAVEN",
+        "lat": "49.6673000",
+        "long": "-115.2144444"
     }
 }

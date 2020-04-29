@@ -23,6 +23,8 @@
     ],
     "station": {
         "code": "1002",
-        "name": "TS ELPHINSTONE"
+        "name": "TS ELPHINSTONE",
+        "lat": "49.4280472",
+        "long": "-123.5648400"
     }
 }

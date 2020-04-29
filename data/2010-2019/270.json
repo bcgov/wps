@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "270",
-        "name": "GOSNEL"
+        "name": "GOSNEL",
+        "lat": "52.4526000",
+        "long": "-119.1753330"
     }
 }

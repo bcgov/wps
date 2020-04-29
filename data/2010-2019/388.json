@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "388",
-        "name": "KETTLE 2"
+        "name": "KETTLE 2",
+        "lat": "49.9599833",
+        "long": "-118.6260333"
     }
 }

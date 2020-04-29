@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "175",
-        "name": "BEDNESTI"
+        "name": "BEDNESTI",
+        "lat": "53.8653889",
+        "long": "-123.3231667"
     }
 }

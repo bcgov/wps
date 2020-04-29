@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "291",
-        "name": "GLIMPSE"
+        "name": "GLIMPSE",
+        "lat": "50.2704500",
+        "long": "-120.2883000"
     }
 }

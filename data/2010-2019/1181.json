@@ -18,6 +18,8 @@
     ],
     "station": {
         "code": "1181",
-        "name": "NORTH SLOQUET"
+        "name": "NORTH SLOQUET",
+        "lat": "49.7483300",
+        "long": "-122.2863800"
     }
 }

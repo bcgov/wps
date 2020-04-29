@@ -53,6 +53,8 @@
     ],
     "station": {
         "code": "112",
-        "name": "ISKUT"
+        "name": "ISKUT",
+        "lat": "57.8615000",
+        "long": "-130.0182500"
     }
 }

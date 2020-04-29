@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "427",
-        "name": "NASS CAMP"
+        "name": "NASS CAMP",
+        "lat": "55.2886000",
+        "long": "-128.9984500"
     }
 }

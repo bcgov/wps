@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "380",
-        "name": "POWDER CREEK"
+        "name": "POWDER CREEK",
+        "lat": "49.9065000",
+        "long": "-116.8551000"
     }
 }

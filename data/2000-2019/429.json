@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "429",
-        "name": "CEDARVALE"
+        "name": "CEDARVALE",
+        "lat": "55.0301670",
+        "long": "-128.3115830"
     }
 }

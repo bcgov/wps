@@ -42,6 +42,8 @@
     ],
     "station": {
         "code": "146",
-        "name": "FORT ST JAMES"
+        "name": "FORT ST JAMES",
+        "lat": "54.3940833",
+        "long": "-124.2609722"
     }
 }

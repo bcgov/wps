@@ -40,6 +40,8 @@
     ],
     "station": {
         "code": "331",
-        "name": "ASHNOLA"
+        "name": "ASHNOLA",
+        "lat": "49.1390500",
+        "long": "-120.1844000"
     }
 }

@@ -46,6 +46,8 @@
     ],
     "station": {
         "code": "119",
-        "name": "NELSON FORKS"
+        "name": "NELSON FORKS",
+        "lat": "59.6172800",
+        "long": "-124.0985100"
     }
 }

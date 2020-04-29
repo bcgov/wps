@@ -61,6 +61,8 @@
     ],
     "station": {
         "code": "141",
-        "name": "MANSON"
+        "name": "MANSON",
+        "lat": "55.5798800",
+        "long": "-124.2319800"
     }
 }

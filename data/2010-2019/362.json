@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "362",
-        "name": "MABEL LAKE 2"
+        "name": "MABEL LAKE 2",
+        "lat": "50.3516667",
+        "long": "-118.7733333"
     }
 }

@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "101",
-        "name": "MACHMELL"
+        "name": "MACHMELL",
+        "lat": "51.5931167",
+        "long": "-126.4507667"
     }
 }

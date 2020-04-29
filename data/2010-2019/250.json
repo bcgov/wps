@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "250",
-        "name": "HARBOUR LAKE"
+        "name": "HARBOUR LAKE",
+        "lat": "51.5226670",
+        "long": "-119.1133500"
     }
 }

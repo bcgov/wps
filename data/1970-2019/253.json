@@ -45,6 +45,8 @@
     ],
     "station": {
         "code": "253",
-        "name": "CAHILTY"
+        "name": "CAHILTY",
+        "lat": "50.8878830",
+        "long": "-119.8383170"
     }
 }

@@ -13,6 +13,8 @@
     ],
     "station": {
         "code": "1350",
-        "name": "LOWER CAIN"
+        "name": "LOWER CAIN",
+        "lat": "50.2257500",
+        "long": "-126.3563000"
     }
 }

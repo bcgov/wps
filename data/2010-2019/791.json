@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "791",
-        "name": "CHERRY LAKE"
+        "name": "CHERRY LAKE",
+        "lat": "49.1877778",
+        "long": "-115.5416667"
     }
 }

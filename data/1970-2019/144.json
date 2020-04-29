@@ -45,6 +45,8 @@
     ],
     "station": {
         "code": "144",
-        "name": "TABLE RIVER"
+        "name": "TABLE RIVER",
+        "lat": "54.7161667",
+        "long": "-122.2741667"
     }
 }

@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "789",
-        "name": "NEGRO CREEK"
+        "name": "NEGRO CREEK",
+        "lat": "49.4539000",
+        "long": "-115.9872000"
     }
 }

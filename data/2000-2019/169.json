@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "169",
-        "name": "UPPER FULTON"
+        "name": "UPPER FULTON",
+        "lat": "55.0339500",
+        "long": "-126.7996670"
     }
 }

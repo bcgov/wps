@@ -40,6 +40,8 @@
     ],
     "station": {
         "code": "298",
-        "name": "FINTRY"
+        "name": "FINTRY",
+        "lat": "50.2066667",
+        "long": "-119.4800000"
     }
 }

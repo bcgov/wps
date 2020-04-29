@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "190",
-        "name": "JERRY"
+        "name": "JERRY",
+        "lat": "53.5259444",
+        "long": "-122.1055000"
     }
 }

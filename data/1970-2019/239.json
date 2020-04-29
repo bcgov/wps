@@ -56,6 +56,8 @@
     ],
     "station": {
         "code": "239",
-        "name": "CLEARWATER HUB"
+        "name": "CLEARWATER HUB",
+        "lat": "51.6289000",
+        "long": "-120.0945670"
     }
 }

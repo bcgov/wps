@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "72",
-        "name": "UBC RESEARCH"
+        "name": "UBC RESEARCH",
+        "lat": "49.2645000",
+        "long": "-122.5732833"
     }
 }

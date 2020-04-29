@@ -31,6 +31,8 @@
     ],
     "station": {
         "code": "201",
-        "name": "HOLMES"
+        "name": "HOLMES",
+        "lat": "53.3454300",
+        "long": "-119.7132300"
     }
 }

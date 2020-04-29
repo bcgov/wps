@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "945",
-        "name": "TS NAKA CREEK"
+        "name": "TS NAKA CREEK",
+        "lat": "50.3701333",
+        "long": "-126.4339333"
     }
 }

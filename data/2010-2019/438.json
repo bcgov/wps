@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "438",
-        "name": "ELK MOUNTAIN"
+        "name": "ELK MOUNTAIN",
+        "lat": "59.3336944",
+        "long": "-125.5113889"
     }
 }

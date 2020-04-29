@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "187",
-        "name": "HIXON"
+        "name": "HIXON",
+        "lat": "53.4112778",
+        "long": "-122.5957500"
     }
 }

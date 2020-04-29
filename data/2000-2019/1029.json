@@ -24,6 +24,8 @@
     ],
     "station": {
         "code": "1029",
-        "name": "FIVE MILE"
+        "name": "FIVE MILE",
+        "lat": "50.9108861",
+        "long": "-122.6888889"
     }
 }

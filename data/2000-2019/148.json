@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "148",
-        "name": "BLACKPINE"
+        "name": "BLACKPINE",
+        "lat": "56.3187778",
+        "long": "-125.3679722"
     }
 }

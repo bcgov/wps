@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "105",
-        "name": "ROSSWOOD"
+        "name": "ROSSWOOD",
+        "lat": "54.9167330",
+        "long": "-128.8598000"
     }
 }

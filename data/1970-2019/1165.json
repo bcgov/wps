@@ -18,6 +18,8 @@
     ],
     "station": {
         "code": "1165",
-        "name": "SEVEREID"
+        "name": "SEVEREID",
+        "lat": "54.1695700",
+        "long": "-121.6516800"
     }
 }

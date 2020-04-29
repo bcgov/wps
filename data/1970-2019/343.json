@@ -56,6 +56,8 @@
     ],
     "station": {
         "code": "343",
-        "name": "HOWARD"
+        "name": "HOWARD",
+        "lat": "52.3720800",
+        "long": "-118.6602778"
     }
 }

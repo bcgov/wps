@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "421",
-        "name": "DEWAR CREEK"
+        "name": "DEWAR CREEK",
+        "lat": "49.7845000",
+        "long": "-116.3830000"
     }
 }

@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "211",
-        "name": "NAZKO"
+        "name": "NAZKO",
+        "lat": "52.9575000",
+        "long": "-123.5958000"
     }
 }

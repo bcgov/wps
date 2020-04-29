@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "213",
-        "name": "ANAHIM LAKE HUB"
+        "name": "ANAHIM LAKE HUB",
+        "lat": "52.4566667",
+        "long": "-125.3033333"
     }
 }

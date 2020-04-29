@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "433",
-        "name": "CRANBERRY"
+        "name": "CRANBERRY",
+        "lat": "55.5768333",
+        "long": "-128.7047500"
     }
 }

@@ -14,6 +14,8 @@
     ],
     "station": {
         "code": "1331",
-        "name": "INKANEEP EXT"
+        "name": "INKANEEP EXT",
+        "lat": "49.1046111",
+        "long": "-119.3914167"
     }
 }

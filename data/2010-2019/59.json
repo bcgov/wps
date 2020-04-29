@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "59",
-        "name": "CEDAR"
+        "name": "CEDAR",
+        "lat": "49.0476167",
+        "long": "-123.8747333"
     }
 }

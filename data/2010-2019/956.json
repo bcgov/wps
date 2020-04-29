@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "956",
-        "name": "TS EFFINGHAM"
+        "name": "TS EFFINGHAM",
+        "lat": "49.1700000",
+        "long": "-125.2825000"
     }
 }

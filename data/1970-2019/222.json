@@ -40,6 +40,8 @@
     ],
     "station": {
         "code": "222",
-        "name": "GASPARD"
+        "name": "GASPARD",
+        "lat": "51.4516667",
+        "long": "-122.6616667"
     }
 }

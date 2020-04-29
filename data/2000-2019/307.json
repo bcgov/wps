@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "307",
-        "name": "LEIGHTON LAKE"
+        "name": "LEIGHTON LAKE",
+        "lat": "50.6152500",
+        "long": "-120.8361000"
     }
 }

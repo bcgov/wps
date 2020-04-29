@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "117",
-        "name": "SIERRA"
+        "name": "SIERRA",
+        "lat": "58.8381100",
+        "long": "-121.3966600"
     }
 }

@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "445",
-        "name": "BOYA LAKE"
+        "name": "BOYA LAKE",
+        "lat": "59.3673670",
+        "long": "-129.1110167"
     }
 }

@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "305",
-        "name": "SPARKS LAKE"
+        "name": "SPARKS LAKE",
+        "lat": "50.9237000",
+        "long": "-120.8671500"
     }
 }

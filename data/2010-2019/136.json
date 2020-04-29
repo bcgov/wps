@@ -21,6 +21,8 @@
     ],
     "station": {
         "code": "136",
-        "name": "WONOWON"
+        "name": "WONOWON",
+        "lat": "56.7185000",
+        "long": "-121.7654300"
     }
 }

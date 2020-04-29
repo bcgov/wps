@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "1056",
-        "name": "TS MAURELLE"
+        "name": "TS MAURELLE",
+        "lat": "50.2709167",
+        "long": "-125.1308889"
     }
 }

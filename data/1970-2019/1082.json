@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "1082",
-        "name": "MAYSON"
+        "name": "MAYSON",
+        "lat": "51.2111111",
+        "long": "-120.4119722"
     }
 }

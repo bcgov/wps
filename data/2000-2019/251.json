@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "251",
-        "name": "DECEPTION"
+        "name": "DECEPTION",
+        "lat": "51.9670000",
+        "long": "-120.6080000"
     }
 }

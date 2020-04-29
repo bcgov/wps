@@ -43,6 +43,8 @@
     ],
     "station": {
         "code": "171",
-        "name": "LEO CREEK"
+        "name": "LEO CREEK",
+        "lat": "55.0818300",
+        "long": "-125.4774000"
     }
 }

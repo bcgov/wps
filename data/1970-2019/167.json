@@ -47,6 +47,8 @@
     ],
     "station": {
         "code": "167",
-        "name": "AUGIER LAKE"
+        "name": "AUGIER LAKE",
+        "lat": "54.3618830",
+        "long": "-125.5253500"
     }
 }

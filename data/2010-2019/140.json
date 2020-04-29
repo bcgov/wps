@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "140",
-        "name": "LEMORAY"
+        "name": "LEMORAY",
+        "lat": "55.5249800",
+        "long": "-122.5171000"
     }
 }

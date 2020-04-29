@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "309",
-        "name": "GWYNETH LAKE"
+        "name": "GWYNETH LAKE",
+        "lat": "50.7963333",
+        "long": "-122.8804667"
     }
 }

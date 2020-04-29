@@ -17,6 +17,8 @@
     ],
     "station": {
         "code": "1203",
-        "name": "DARKWOODS"
+        "name": "DARKWOODS",
+        "lat": "49.3576111",
+        "long": "-116.9502500"
     }
 }

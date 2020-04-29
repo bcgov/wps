@@ -46,6 +46,8 @@
     ],
     "station": {
         "code": "170",
-        "name": "EAST OOTSA"
+        "name": "EAST OOTSA",
+        "lat": "53.5024330",
+        "long": "-125.7793167"
     }
 }

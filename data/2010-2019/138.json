@@ -22,6 +22,8 @@
     ],
     "station": {
         "code": "138",
-        "name": "RED DEER"
+        "name": "RED DEER",
+        "lat": "54.6330300",
+        "long": "-120.5762100"
     }
 }

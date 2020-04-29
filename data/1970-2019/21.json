@@ -62,6 +62,8 @@
     ],
     "station": {
         "code": "21",
-        "name": "WOSS CAMP"
+        "name": "WOSS CAMP",
+        "lat": "50.2131167",
+        "long": "-126.6070500"
     }
 }

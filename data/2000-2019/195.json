@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "195",
-        "name": "MCBRIDE"
+        "name": "MCBRIDE",
+        "lat": "53.2948333",
+        "long": "-120.1527778"
     }
 }

@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "159",
-        "name": "NORTH CHILCO"
+        "name": "NORTH CHILCO",
+        "lat": "54.1546300",
+        "long": "-123.7541300"
     }
 }

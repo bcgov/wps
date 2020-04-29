@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "363",
-        "name": "REVELSTOKE"
+        "name": "REVELSTOKE",
+        "lat": "51.0603333",
+        "long": "-118.2171667"
     }
 }

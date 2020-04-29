@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "430",
-        "name": "VAN DYKE"
+        "name": "VAN DYKE",
+        "lat": "56.0127250",
+        "long": "-129.0998083"
     }
 }

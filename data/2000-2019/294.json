@@ -32,6 +32,8 @@
     ],
     "station": {
         "code": "294",
-        "name": "MERRITT HUB"
+        "name": "MERRITT HUB",
+        "lat": "50.0874500",
+        "long": "-120.7457300"
     }
 }

@@ -53,6 +53,8 @@
     ],
     "station": {
         "code": "232",
-        "name": "COLDSCAUR LAKE"
+        "name": "COLDSCAUR LAKE",
+        "lat": "51.7237830",
+        "long": "-120.3899330"
     }
 }
