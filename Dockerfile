@@ -17,6 +17,6 @@ RUN wget --quiet -O oc.tar.gz "https://github.com/openshift/origin/releases/down
     && rm -rf oc.tar.gz openshift-origin-client-tools-v*
 
 # Action repo contents to /deployment dir
-COPY . /deployment
+COPY ./scripts /scripts
 
-ENTRYPOINT ["/deployment/entrypoint.sh"]
+ENTRYPOINT ["/scripts/entrypoint.sh"]
