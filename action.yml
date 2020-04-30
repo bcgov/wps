@@ -1,10 +1,6 @@
-
-name: Deploy to OpenShift
-description: Deploy Dockerized application to OpenShift choosing from predefined config templates
+name: OpenShift Runner
+description: Run OpenShift Commands with a Common Set of Base Scripts
 inputs:
-  MODE:
-    description: Type of app, either "client" or "server"
-    required: true
   AUTH_TOKEN:
     description: OpenShift service account authorization token
     required: true
@@ -26,17 +22,6 @@ inputs:
     description: Custom script to 
     required: false
     default: ''
-  SERVER_PORT:
-    description: Port exposed by the server
-    required: false
-    default: '5000'
-  CLIENT_PORT:
-    description: Port exposed by the client
-    required: false
-    default: '3000'
-  API_URL:
-    description: URL of app server
-    required: false
 runs:
   using: docker
   image: Dockerfile
