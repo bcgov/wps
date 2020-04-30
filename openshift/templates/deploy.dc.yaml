@@ -48,8 +48,8 @@ objects:
       labels:
         app: ${NAME}-${SUFFIX}
       name: ${NAME}-${SUFFIX}
-  - apiVersion: apps/v1
-    kind: Deployment
+  - apiVersion: v1
+    kind: DeploymentConfig
     metadata:
       labels:
         app: ${NAME}-${SUFFIX}
@@ -57,17 +57,18 @@ objects:
     spec:
       replicas: 1
       selector:
-        matchLabels:
-          app: ${NAME}-${SUFFIX}
+        name: ${NAME}-${SUFFIX}
+      strategy:
+        type: Rolling
+      triggers: []
       template:
         metadata:
           labels:
-            app: ${NAME}-${SUFFIX}
-          name: ${NAME}-${SUFFIX}
+            name: ${NAME}-${SUFFIX}
         spec:
           automountServiceAccountToken: false
           containers:
-            - image: ${DOCKER_REGISTRY}/${PROJECT_TOOLS}/${NAME}:${SUFFIX}
+            - image: ${DOCKER_REGISTRY}/${PROJECT_TOOLS}/${NAME}-${SUFFIX}:${SUFFIX}
               imagePullPolicy: Always
               name: ${NAME}
               env:
@@ -92,23 +93,19 @@ objects:
         app: ${NAME}-${SUFFIX}
       name: ${NAME}-${SUFFIX}
     spec:
-      selector:
-        app: ${NAME}-${SUFFIX}
       ports:
         - name: 8080-tcp
           protocol: TCP
           port: 80
           targetPort: 8080
-        - name: 8443-tcp
-          protocol: TCP
-          port: 443
-          targetPort: 8443
+      selector:
+        name: ${NAME}-${SUFFIX}
   - apiVersion: route.openshift.io/v1
     kind: Route
     metadata:
       labels:
         app: ${NAME}-${SUFFIX}
-      name: ${NAME}-${SUFFIX}-secure
+      name: ${NAME}-${SUFFIX}
     spec:
       host: ${NAME}-${SUFFIX}.pathfinder.gov.bc.ca
       port:

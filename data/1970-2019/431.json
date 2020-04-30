@@ -1,7 +1,7 @@
 {
-    "FFMC": 90.8240135192871,
-    "ISI": 7.744355297088624,
-    "BUI": 72.5,
+    "ffmc": 90.8240135192871,
+    "isi": 7.744355297088624,
+    "bui": 72.5,
     "season": {
         "start_month": 5,
         "start_day": 1,
@@ -46,6 +46,8 @@
     ],
     "station": {
         "code": "431",
-        "name": "UPPER KISPIOX"
+        "name": "UPPER KISPIOX",
+        "lat": "55.6014500",
+        "long": "-128.0477830"
     }
 }

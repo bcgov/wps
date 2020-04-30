@@ -18,8 +18,8 @@ pylint = "*"
 [packages]
 fastapi = "*"
 uvicorn = "*"
-python-multipart = "*"
 requests = "*"
+gunicorn = "*"
 
 [requires]
 python_version = "3.6"

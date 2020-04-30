@@ -1,7 +1,7 @@
 {
-    "FFMC": NaN,
-    "ISI": NaN,
-    "BUI": NaN,
+    "ffmc": NaN,
+    "isi": NaN,
+    "bui": NaN,
     "season": {
         "start_month": 5,
         "start_day": 1,
@@ -13,6 +13,8 @@
     ],
     "station": {
         "code": "1348",
-        "name": "KLINAKLINI"
+        "name": "KLINAKLINI",
+        "lat": "51.3800200",
+        "long": "-125.7695300"
     }
 }

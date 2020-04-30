@@ -1,7 +1,7 @@
 {
-    "FFMC": NaN,
-    "ISI": NaN,
-    "BUI": NaN,
+    "ffmc": NaN,
+    "isi": NaN,
+    "bui": NaN,
     "season": {
         "start_month": 5,
         "start_day": 1,
@@ -26,6 +26,8 @@
     ],
     "station": {
         "code": "474",
-        "name": "FROTH  (WIND)"
+        "name": "FROTH  (WIND)",
+        "lat": "52.0105000",
+        "long": "-119.2550170"
     }
 }

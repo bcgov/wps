@@ -1,7 +1,7 @@
 {
-    "FFMC": 89.4666748046875,
-    "ISI": 5.399179220199585,
-    "BUI": 50.75,
+    "ffmc": 89.4666748046875,
+    "isi": 5.399179220199585,
+    "bui": 50.75,
     "season": {
         "start_month": 5,
         "start_day": 1,
@@ -43,6 +43,8 @@
     ],
     "station": {
         "code": "321",
-        "name": "GREENSTONE HUB"
+        "name": "GREENSTONE HUB",
+        "lat": "50.6112670",
+        "long": "-120.6415500"
     }
 }

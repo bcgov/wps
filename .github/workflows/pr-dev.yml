@@ -1,0 +1,57 @@
+name: DEV
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  lint-and-test:
+    name: Lint and Unit Test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.6]
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install pipenv
+        uses: dschep/install-pipenv-action@v1
+      - name: Install Remaining Dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          pipenv lock --requirements > ./requirements.txt
+          python3 -m pip install -r ./requirements.txt
+          python3 -m pip install pylint
+      - name: Lint
+        run: python3 -m pylint --rcfile=.pylintrc *.py **/*.py
+      - name: Unit Test
+        run: ORIGINS=testorigin python3 -m unittest
+
+  build-and-deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set Variables
+        shell: bash
+        run: |
+          echo "::set-env name=SUFFIX::pr-${{ github.event.number }}"
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Build image
+        uses: bcgov/openshift-launchpad-deployment@master
+        with:
+          AUTH_TOKEN: ${{ secrets.action_token }}
+          SCRIPT: GIT_BRANCH=${GITHUB_HEAD_REF} openshift/scripts/oc_build.sh ${SUFFIX} apply
+
+      - name: Deploy to Dev
+        uses: bcgov/openshift-launchpad-deployment@master
+        with:
+          AUTH_TOKEN: ${{ secrets.action_token }}
+          SCRIPT: openshift/scripts/oc_deploy.sh ${SUFFIX} apply
