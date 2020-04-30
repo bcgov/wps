@@ -1,7 +1,7 @@
 {
-    "FFMC": 91.56238708496093,
-    "ISI": 6.639049673080446,
-    "BUI": 43.621639251708984,
+    "ffmc": 91.56238708496093,
+    "isi": 6.639049673080446,
+    "bui": 43.621639251708984,
     "season": {
         "start_month": 5,
         "start_day": 1,
@@ -15,6 +15,8 @@
     ],
     "station": {
         "code": "1276",
-        "name": "MACHMELL KLINIKLINI"
+        "name": "MACHMELL KLINIKLINI",
+        "lat": "51.6555806",
+        "long": "-126.1407444"
     }
 }

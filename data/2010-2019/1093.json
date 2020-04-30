@@ -1,7 +1,7 @@
 {
-    "FFMC": 90.3655288696289,
-    "ISI": 6.019121932983398,
-    "BUI": 115.1220199584961,
+    "ffmc": 90.3655288696289,
+    "isi": 6.019121932983398,
+    "bui": 115.1220199584961,
     "season": {
         "start_month": 5,
         "start_day": 1,
@@ -21,6 +21,8 @@
     ],
     "station": {
         "code": "1093",
-        "name": "QUINSAM BASE FWX (TRIAL)"
+        "name": "QUINSAM BASE FWX (TRIAL)",
+        "lat": "50.0273000",
+        "long": "-125.2940660"
     }
 }

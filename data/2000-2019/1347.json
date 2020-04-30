@@ -1,7 +1,7 @@
 {
-    "FFMC": NaN,
-    "ISI": NaN,
-    "BUI": NaN,
+    "ffmc": NaN,
+    "isi": NaN,
+    "bui": NaN,
     "season": {
         "start_month": 5,
         "start_day": 1,
@@ -13,6 +13,8 @@
     ],
     "station": {
         "code": "1347",
-        "name": "PERSEVERANCE"
+        "name": "PERSEVERANCE",
+        "lat": "49.5935570",
+        "long": "-125.1312710"
     }
 }

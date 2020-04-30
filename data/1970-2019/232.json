@@ -1,7 +1,7 @@
 {
-    "FFMC": 93.0,
-    "ISI": 10.803923511505129,
-    "BUI": 82.05999832153343,
+    "ffmc": 93.0,
+    "isi": 10.803923511505129,
+    "bui": 82.05999832153343,
     "season": {
         "start_month": 5,
         "start_day": 1,
@@ -53,6 +53,8 @@
     ],
     "station": {
         "code": "232",
-        "name": "COLDSCAUR LAKE"
+        "name": "COLDSCAUR LAKE",
+        "lat": "51.7237830",
+        "long": "-120.3899330"
     }
 }

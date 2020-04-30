@@ -1,7 +1,7 @@
 {
-    "FFMC": NaN,
-    "ISI": NaN,
-    "BUI": NaN,
+    "ffmc": NaN,
+    "isi": NaN,
+    "bui": NaN,
     "season": {
         "start_month": 5,
         "start_day": 1,
@@ -25,6 +25,8 @@
     ],
     "station": {
         "code": "503",
-        "name": "BAKER EAST/WEST HUB"
+        "name": "BAKER EAST/WEST HUB",
+        "lat": "49.4588889",
+        "long": "-115.6302778"
     }
 }

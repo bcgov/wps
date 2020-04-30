@@ -1,7 +1,7 @@
 {
-    "FFMC": 91.479736328125,
-    "ISI": 7.894705963134766,
-    "BUI": 142.88240966796874,
+    "ffmc": 91.479736328125,
+    "isi": 7.894705963134766,
+    "bui": 142.88240966796874,
     "season": {
         "start_month": 5,
         "start_day": 1,
@@ -17,6 +17,8 @@
     ],
     "station": {
         "code": "1218",
-        "name": "POWELL RIVER WEST LAKE"
+        "name": "POWELL RIVER WEST LAKE",
+        "lat": "49.8180556",
+        "long": "-124.4494444"
     }
 }

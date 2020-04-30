@@ -18,16 +18,15 @@ brew install docker-compose
 
 ### Installing
 
-You will need a .env file, see sample.env. For local development, you can copy sample.env to .env
+You will need a .env file, .env.example ; For local development, you can copy .env.example to .env.
+
+#### Local machine, in docker
 
 ```
-cd code
 docker-compose build
 ```
 
-#### On your local MacOS
-
-Do so at your own risk!
+#### Local machine, running MacOS
 
 Install system dependancies:
 ```
@@ -45,57 +44,71 @@ If you have trouble getting pipenv to resolve python 3.8.1, you can also try:
 ```
 pipenv install --python ~/.pyenv/versions/3.6.10/bin/python3.6 --dev
 ```
-#### Local machine, running Ubuntu os 
+#### Local machine, running Linux
 
 If you have trouble installing pyodbc, you can try:
+
+##### Ubuntu
 ```
 sudo apt install unixodbc-dev
 ```
 
+##### Fedora
+```
+sudo dnf install unixODBC-devel
+```
+
 ### Executing program
 
-Running the web service in docker:
+See [Makefile](Makefile) for examples of running the API in docker.
+
+e.g.:
 ```
+make docker-run
+```
+will execute:
+```
+docker-compose run api scripts/test.sh
 docker-compose up
-```
-Running unit tests in docker:
-```
-docker-compose run web python -m unittest
 ```
 
 #### Local machine, running mac os
 
-Run it:
-```
-pipenv run uvicorn main:app --reload
-```
-or
+See [Makefile](Makefile) for examples or running the API on your local machine.
+
+e.g.:
 ```
 make run
 ```
-
-Run tests:
+will execute:
 ```
+pipenv run pylint --rcfile=.pylintrc *.py **/*.py
 pipenv run python -m unittest
+pipenv run uvicorn main:APP --reload --port 8080
 ```
-or
+
+## Contributing
+
+### Coding conventions
+
+Code must be [PEP8](https://www.python.org/dev/peps/pep-0008/) compliant with the exception of allowing for line lengths up to 110 characters.
+Compliance is enforced using [Pylint](https://www.pylint.org/) and a [.pylintrc](.pylintrc) file.
+
+Run pylint to check that your code conforms before pushing code to the repository:
+```
+make lint
+```
+Or enfore by running [scripts/lint.sh](scripts/lint.sh) as part of your ci/cd pipeline.
+
+### Testing
+
+Code must pass all unit tests.
+
+Run python unit tests before pushing code to the repository:
 ```
 make test
 ```
-
-Running jupyter notebooks:
-```
-pipenv run jupyter notebook
-```
-or
-```
-make notebook
-```
-
-Shell:
-```
-pipenv shell
-```
+Or enforce by running [scripts/test.sh](scripts/test.sh) as part of your ci/cd pipeline.
 
 ## Architecture
 

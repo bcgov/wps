@@ -1,5 +1,16 @@
 apiVersion: v1
 kind: Template
+metadata:
+  name: ${NAME}
+  annotations:
+    openshift.io/display-name: "wps-api" 
+    description: "Wildfire Predictive Services - Fire Weather Index API"
+    openshift.io/long-description: "Wildfire Predictive Services - Fire Weather Index API"
+    tags: "wps,wps-api"
+    iconClass: icon-js
+    openshift.io/provider-display-name: "Government of British Columbia" 
+    openshift.io/documentation-url: "https://github.com/bcgov/wps-api" 
+    openshift.io/support-url: "https://github.com/bcgov/wps-api"
 labels:
   app.kubernetes.io/part-of: "${NAME}"
   app: ${NAME}-${SUFFIX}
@@ -15,8 +26,6 @@ parameters:
   - name: GIT_BRANCH
     description: PR branch
     required: true
-labels:
-  app.kubernetes.io/part-of: '${NAME}'
 objects:
 - apiVersion: v1
   kind: ImageStream
@@ -24,9 +33,9 @@ objects:
     annotations:
       openshift.io/generated-by: OpenShiftNewBuild
     labels:
-      app: ${NAME}
+      app: ${NAME}-${SUFFIX}
       common: "true"
-    name: ${NAME}
+    name: ${NAME}-${SUFFIX}
   spec:
     lookupPolicy:
       local: false
@@ -43,7 +52,7 @@ objects:
     output:
       to:
         kind: ImageStreamTag
-        name: ${NAME}:${SUFFIX}
+        name: ${NAME}-${SUFFIX}:${SUFFIX}
     resources:
       limits:
         cpu: "2"
@@ -58,47 +67,4 @@ objects:
       type: Git
     strategy:
       type: Docker
-    triggers:
-      - type: ConfigChange
-      - type: ImageChange
-- apiVersion: build.openshift.io/v1
-  kind: BuildConfig
-  metadata:
-    annotations:
-      openshift.io/generated-by: OpenShiftNewBuild
-    labels:
-      app: ${NAME}-${SUFFIX}
-    name: ${NAME}-${SUFFIX}
-  spec:
-    nodeSelector: null
-    runPolicy: SerialLatestOnly
-    completionDeadlineSeconds: 1200 # 20 minutes
-    output:
-      to:
-        kind: ImageStreamTag
-        name: ${NAME}:${SUFFIX}
-    resources:
-      limits:
-        cpu: '2'
-        memory: 5Gi
-      requests:
-        cpu: '1'
-        memory: 1Gi
-    source:
-      git:
-        uri: ${GIT_URL}
-        ref: origin/${GIT_BRANCH}
-      type: Git
-    strategy:
-      dockerStrategy:
-        env:
-          - name: ENABLE_PIPENV
-            value: 'true'
-        from:
-          kind: ImageStreamTag
-          name: python:3.6
-          namespace: openshift
-      type: Docker
-    triggers:
-        - type: ConfigChange
-        - type: ImageChange
+    triggers: []

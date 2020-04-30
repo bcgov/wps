@@ -1,0 +1,22 @@
+name: DEV
+
+on:
+  pull_request:
+    types: [closed]
+jobs:
+  clean-up:
+    name: Clean OpenShift artifacts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set Variables
+        shell: bash
+        run: |
+          echo "::set-env name=SUFFIX::pr-${{ github.event.number }}"
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Cleanup Script
+        uses: bcgov/openshift-launchpad-deployment@master
+        with:
+          AUTH_TOKEN: ${{ secrets.action_token }}
+          SCRIPT: openshift/scripts/oc_cleanup.sh ${SUFFIX} apply
