@@ -20,7 +20,7 @@ jobs:
         with:
           message: >-
             Thanks for the pull request! <br>
-            Please see [CONTRIBUTING.md](https://github.com/bcgov/wps-web/blob/master/CONTRIBUTING.yaml) 
+            Please see [CONTRIBUTING.md](https://github.com/bcgov/wps-web/blob/master/CONTRIBUTING.md)
             for details.
           GITHUB_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
 
