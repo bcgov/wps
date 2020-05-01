@@ -30,11 +30,12 @@ it('renders FWI calculator page', async () => {
   expect(getByTestId('time-range-slider')).toBeInTheDocument()
   expect(getByTestId('percentile-textfield')).toBeInTheDocument()
 
-  // Map icon tests
-  expect(getByTestId('map-icon')).toBeInTheDocument()
-  window.open = jest.fn()
-  fireEvent.click(getByTestId('map-icon'))
-  expect(window.open).toBeCalledWith(WEATHER_STATION_MAP_LINK, '_blank')
+  // Map link tests
+  expect(getByTestId('launch-map-link').closest('a')).toHaveAttribute(
+    'href',
+    WEATHER_STATION_MAP_LINK
+  )
+  fireEvent.click(getByTestId('launch-map-link'))
 })
 
 it('renders weather stations dropdown with data', async () => {
