@@ -1,5 +1,7 @@
+# https://hub.docker.com/_/alpine?tab=tags
 FROM alpine:3.11
 
+# OC and GNU C Library versions
 ARG OC_VERSION=3.11.0
 ARG GLIBC_VERSION=2.31-r0
 
@@ -16,7 +18,10 @@ RUN wget --quiet -O oc.tar.gz "https://github.com/openshift/origin/releases/down
     && mv "$FILE" /usr/local/bin/oc \
     && rm -rf oc.tar.gz openshift-origin-client-tools-v*
 
-# Action repo contents to /deployment dir
+# Action repo contents to /scripts dir
 COPY ./scripts /scripts
+
+# Start in repo
+WORKDIR /repo
 
 ENTRYPOINT ["/scripts/entrypoint.sh"]
