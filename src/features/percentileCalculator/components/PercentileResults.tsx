@@ -34,7 +34,7 @@ export const PercentileResults = () => {
   const stationResults = Object.entries(result.stations).map(
     ([stationCode, stationResponse]) => {
       return (
-        <GridItem key={stationCode} lg={6}>
+        <GridItem key={stationCode} md lg>
           <PercentileStationResultTable stationResponse={stationResponse} />
         </GridItem>
       )
