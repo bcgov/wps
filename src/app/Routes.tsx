@@ -1,25 +1,26 @@
 import React from 'react'
 import { BrowserRouter as Router, Route, Switch, Redirect } from 'react-router-dom'
 
-import { FireWeatherPage } from 'features/fireWeather/FireWeatherPage'
+import { DailyForecastsPage } from 'features/dailyForecasts/DailyForecastsPage'
 import { PercentileCalculatorPageWithDisclaimer } from 'features/percentileCalculator/pages/PercentileCalculatorPageWithDisclaimer'
+import { HIDE_DISCLAIMER } from 'utils/constants'
+
+const shouldShowDisclaimer = HIDE_DISCLAIMER === undefined
 
 const NoMatch = () => <div>Page not found.</div>
-
-const shouldShowDisclaimer = process.env.REACT_APP_HIDE_DISCLAIMER === undefined
 
 export const Routes = () => {
   return (
     <Router>
       <Switch>
-        <Redirect exact from="/" to="/percentile-calculator" />
+        <Redirect exact from="/" to="/percentile-calculator/" />
 
-        <Route path="/percentile-calculator">
+        <Route path="/percentile-calculator/">
           <PercentileCalculatorPageWithDisclaimer showDisclaimer={shouldShowDisclaimer} />
         </Route>
 
-        <Route path="/fire-weather">
-          <FireWeatherPage />
+        <Route path="/fire-weather/">
+          <DailyForecastsPage />
         </Route>
 
         <Route>

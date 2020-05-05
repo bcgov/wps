@@ -1,40 +1,60 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
-interface AuthenticationState {
+import { AppThunk } from 'app/store'
+import kcInstance, { kcInitOption } from 'features/auth/keycloak'
+
+interface State {
+  authenticating: boolean
   isAuthenticated: boolean
   error: string | null
 }
 
-export const authenticationInitialState: AuthenticationState = {
+export const initialState: State = {
+  authenticating: false,
   isAuthenticated: false,
   error: null
 }
 
 const auth = createSlice({
   name: 'authentication',
-  initialState: authenticationInitialState,
+  initialState,
   reducers: {
-    getAuthenticationStart(state: AuthenticationState) {
-      state.isAuthenticated = false
+    authenticationStart(state: State) {
+      state.authenticating = true
     },
-    getAuthenticationFailed(state: AuthenticationState, action: PayloadAction<string>) {
+    authenticationFinished(state: State, action: PayloadAction<boolean>) {
+      state.authenticating = false
+      state.isAuthenticated = action.payload
+    },
+    authenticationError(state: State, action: PayloadAction<string>) {
+      state.authenticating = false
       state.isAuthenticated = false
       state.error = action.payload
     },
-    getAuthenticationSuccess(state: AuthenticationState, action: PayloadAction<boolean>) {
-      state.isAuthenticated = action.payload
-    },
-    resetAuthentication(state: AuthenticationState) {
+    resetAuthentication(state: State) {
       state.isAuthenticated = false
     }
   }
 })
 
 export const {
-  getAuthenticationStart,
-  getAuthenticationFailed,
-  getAuthenticationSuccess,
+  authenticationStart,
+  authenticationFinished,
+  authenticationError,
   resetAuthentication
 } = auth.actions
 
 export default auth.reducer
+
+export const authenticate = (): AppThunk => dispatch => {
+  dispatch(authenticationStart())
+  kcInstance
+    .init(kcInitOption)
+    .then(isAuthenticated => {
+      dispatch(authenticationFinished(isAuthenticated))
+    })
+    .catch(err => {
+      console.error(err)
+      dispatch(authenticationError('Failed to authenticate.'))
+    })
+}

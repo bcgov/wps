@@ -3,6 +3,8 @@ import axios from 'api/axios'
 export interface Station {
   code: number
   name: string
+  lat: string
+  long: string
 }
 
 export interface StationsResponse {
@@ -16,6 +18,6 @@ export async function getStations(): Promise<Station[]> {
     const { data } = await axios.get<StationsResponse>(url)
     return data.weather_stations
   } catch (err) {
-    throw err
+    throw err.toString()
   }
 }

@@ -1,15 +1,16 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+
 import { getPercentiles, PercentilesResponse, YearRange } from 'api/percentileAPI'
 import { AppThunk } from 'app/store'
 
 interface PercentilesState {
-  isLoading: boolean
+  loading: boolean
   error: string | null
   result: PercentilesResponse | null
 }
 
 export const percentileInitialState: PercentilesState = {
-  isLoading: false,
+  loading: false,
   error: null,
   result: null
 }
@@ -19,18 +20,18 @@ const percentiles = createSlice({
   initialState: percentileInitialState,
   reducers: {
     getPercentilesStart(state: PercentilesState) {
-      state.isLoading = true
+      state.loading = true
     },
     getPercentilesSuccess(
       state: PercentilesState,
       action: PayloadAction<PercentilesResponse>
     ) {
       state.result = action.payload
-      state.isLoading = false
+      state.loading = false
       state.error = null
     },
     getPercentilesFailed(state: PercentilesState, action: PayloadAction<string>) {
-      state.isLoading = false
+      state.loading = false
       state.error = action.payload
     },
     resetPercentilesResult(state: PercentilesState) {
@@ -49,15 +50,15 @@ export const {
 export default percentiles.reducer
 
 export const fetchPercentiles = (
-  stations: number[],
+  stationCodes: number[],
   percentile: number,
   yearRange: YearRange
 ): AppThunk => async dispatch => {
   try {
     dispatch(getPercentilesStart())
-    const result = await getPercentiles(stations, percentile, yearRange)
+    const result = await getPercentiles(stationCodes, percentile, yearRange)
     dispatch(getPercentilesSuccess(result))
   } catch (err) {
-    dispatch(getPercentilesFailed(err.toString()))
+    dispatch(getPercentilesFailed(err))
   }
 }

@@ -1,17 +1,17 @@
 import reducer, {
-  authenticationInitialState,
-  getAuthenticationSuccess
+  initialState,
+  authenticationFinished
 } from 'features/auth/slices/authenticationSlice'
 
 describe('Authentication Slice', () => {
   it('Should return initial state on first run', () => {
     const result = reducer(undefined, { type: 'someAction' })
-    expect(result).toEqual(authenticationInitialState)
+    expect(result).toEqual(initialState)
   })
 
-  it('Should return new state after fetching authentication', () => {
-    const nextState = reducer(authenticationInitialState, getAuthenticationSuccess(true))
-    expect(nextState).not.toBe(authenticationInitialState) // check referential identity
+  it('Should return new state after authentication is finished', () => {
+    const nextState = reducer(initialState, authenticationFinished(true))
+    expect(nextState).not.toBe(initialState) // check referential identity
     expect(nextState.isAuthenticated).toBe(true)
   })
 })

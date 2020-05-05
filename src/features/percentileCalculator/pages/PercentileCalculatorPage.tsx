@@ -2,11 +2,9 @@ import React, { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
 
 import { Station } from 'api/stationAPI'
-import { PageHeader } from 'components/PageHeader'
-import { PageTitle } from 'components/PageTitle'
-import { Container } from 'components/Container'
-import { fetchStations } from 'features/percentileCalculator/slices/stationsSlice'
-import { WeatherStationsDropdown } from 'features/percentileCalculator/components/StationsDropdown'
+import { PageHeader, PageTitle, Container } from 'components'
+import { fetchWxStations } from 'features/stations/slices/stationsSlice'
+import { WxStationDropdown } from 'features/stations/components/WxStationDropdown'
 import { PercentileTextfield } from 'features/percentileCalculator/components/PercentileTextfield'
 import {
   fetchPercentiles,
@@ -14,7 +12,7 @@ import {
 } from 'features/percentileCalculator/slices/percentilesSlice'
 import { PercentileActionButtons } from 'features/percentileCalculator/components/PercentileActionButtons'
 import { PercentileResults } from 'features/percentileCalculator/components/PercentileResults'
-import { TimeRangeSlider } from '../components/TimeRangeSlider'
+import { TimeRangeSlider } from 'features/percentileCalculator/components/TimeRangeSlider'
 
 const defaultTimeRange = 10
 const defaultPercentile = 90
@@ -22,17 +20,14 @@ const defaultPercentile = 90
 export const PercentileCalculatorPage = () => {
   const dispatch = useDispatch()
 
-  const [stations, setStations] = useState<Station[]>([])
+  const [selectedStations, setStations] = useState<Station[]>([])
   const [timeRange, setTimeRange] = useState<number>(defaultTimeRange)
 
   useEffect(() => {
-    dispatch(fetchStations())
+    dispatch(fetchWxStations())
   }, [dispatch])
 
   const onStationsChange = (s: Station[]) => {
-    if (s.length > 3) {
-      return
-    }
     setStations(s)
   }
 
@@ -41,7 +36,7 @@ export const PercentileCalculatorPage = () => {
   }
 
   const onCalculateClick = () => {
-    const stationCodes = stations.map(s => s.code)
+    const stationCodes = selectedStations.map(s => s.code)
     const currYear = new Date().getFullYear()
     const yearRange = {
       start: currYear - timeRange,
@@ -53,8 +48,8 @@ export const PercentileCalculatorPage = () => {
 
   const onResetClick = () => {
     setStations([])
-    dispatch(resetPercentilesResult())
     setTimeRange(defaultTimeRange)
+    dispatch(resetPercentilesResult())
   }
 
   return (
@@ -62,8 +57,8 @@ export const PercentileCalculatorPage = () => {
       <PageHeader title="Predictive Services Unit" />
       <PageTitle title="Percentile Calculator" />
       <Container>
-        <WeatherStationsDropdown
-          stations={stations}
+        <WxStationDropdown
+          stations={selectedStations}
           onStationsChange={onStationsChange}
         />
 
@@ -72,7 +67,7 @@ export const PercentileCalculatorPage = () => {
         <PercentileTextfield />
 
         <PercentileActionButtons
-          stations={stations}
+          stations={selectedStations}
           onCalculateClick={onCalculateClick}
           onResetClick={onResetClick}
         />

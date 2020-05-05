@@ -9,17 +9,14 @@ const useStyles = makeStyles(theme => ({
 }))
 
 interface Props {
-  message: string
-  when?: string
+  error: string
+  context?: string
   marginTop?: number
 }
 
 export const ErrorMessage = (props: Props) => {
   const classes = useStyles(props)
+  const message = props.context ? `Error occurred (${props.context}).` : 'Error occurred.'
 
-  return (
-    <div className={classes.root}>
-      {props.message} ({props.when})
-    </div>
-  )
+  return <div className={classes.root}>{message}</div>
 }

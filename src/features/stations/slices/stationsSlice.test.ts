@@ -1,7 +1,7 @@
 import reducer, {
   stationsInitialState,
   getStationsSuccess
-} from 'features/percentileCalculator/slices/stationsSlice'
+} from 'features/stations/slices/stationsSlice'
 
 describe('Stations Slice', () => {
   it('Should return initial state on first run', () => {

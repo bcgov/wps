@@ -3,13 +3,13 @@ import { Station, getStations } from 'api/stationAPI'
 import { AppThunk } from 'app/store'
 
 interface StationsState {
-  isLoading: boolean
+  loading: boolean
   error: string | null
   stations: Station[]
 }
 
 export const stationsInitialState: StationsState = {
-  isLoading: false,
+  loading: false,
   error: null,
   stations: []
 }
@@ -19,14 +19,14 @@ const stations = createSlice({
   initialState: stationsInitialState,
   reducers: {
     getStationsStart(state: StationsState) {
-      state.isLoading = true
+      state.loading = true
     },
     getStationsFailed(state: StationsState, action: PayloadAction<string>) {
-      state.isLoading = false
+      state.loading = false
       state.error = action.payload
     },
     getStationsSuccess(state: StationsState, action: PayloadAction<Station[]>) {
-      state.isLoading = false
+      state.loading = false
       state.stations = action.payload
       state.error = null
     }
@@ -41,12 +41,12 @@ export const {
 
 export default stations.reducer
 
-export const fetchStations = (): AppThunk => async dispatch => {
+export const fetchWxStations = (): AppThunk => async dispatch => {
   try {
     dispatch(getStationsStart())
     const stations = await getStations()
     dispatch(getStationsSuccess(stations))
   } catch (err) {
-    dispatch(getStationsFailed(err.toString()))
+    dispatch(getStationsFailed(err))
   }
 }

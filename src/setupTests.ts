@@ -18,4 +18,12 @@ if (window.document) {
     }
   })
 }
-/* eslint-enable */
+
+// mock Keycloak function to always be authenticated
+window.Keycloak = () => ({
+  init: () =>
+    // @ts-ignore
+    new Promise((resolve, reject) => {
+      resolve(true)
+    })
+})

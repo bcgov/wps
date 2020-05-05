@@ -42,7 +42,7 @@ export interface PercentilesResponse {
 }
 
 export async function getPercentiles(
-  stations: number[],
+  stationCodes: number[],
   percentile: number,
   yearRange: YearRange
 ): Promise<PercentilesResponse> {
@@ -50,12 +50,12 @@ export async function getPercentiles(
 
   try {
     const { data } = await axios.post(url, {
-      stations,
+      stations: stationCodes,
       percentile,
       year_range: yearRange
     })
     return data
   } catch (err) {
-    throw err
+    throw err.toString()
   }
 }
