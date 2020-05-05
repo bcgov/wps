@@ -9,17 +9,20 @@ notebook = "*"
 pycodestyle = "*"
 pyodbc = "*"
 autopep8 = "*"
-pytest = "*"
 pep8 = "*"
 pytest-pep8 = "*"
-pandas = "*"
 pylint = "*"
+asynctest = "*"
+nest-asyncio = "*"
 
 [packages]
 fastapi = "*"
 uvicorn = "*"
 requests = "*"
 gunicorn = "*"
+aiodns = "*"
+aiohttp = "*"
+pandas = "*"
 
 [requires]
-python_version = "3.6"
+python_version = "3.8"

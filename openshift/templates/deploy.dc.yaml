@@ -39,6 +39,12 @@ parameters:
   - name: MEMORY_LIMIT
     description: Memory upper limit
     value: 1Gi
+  - name: WPS_API_GLOBAL_CONFIG
+    description: Global configuration mapping
+    value: wps-api-global
+  - name: WPS_API_GLOBAL_SECRET
+    description: Global secret
+    value: wps-api-global
 objects:
   - apiVersion: v1
     kind: ConfigMap
@@ -77,6 +83,16 @@ objects:
                     configMapKeyRef:
                       name: ${NAME}-${SUFFIX}
                       key: env.origins
+                - name: SPOTWX_BASE_URI
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${WPS_API_GLOBAL_CONFIG}
+                      key: env.spotwx-url
+                - name: SPOTWX_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${WPS_API_GLOBAL_SECRET}
+                      key: spotwx-api-key
               ports:
                 - containerPort: 8080
               resources:

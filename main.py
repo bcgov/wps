@@ -2,12 +2,23 @@
 
 See README.md for details on how to run.
 """
-from os import getenv, path
+import os
 from statistics import mean
-from typing import List, Dict
-from pydantic import BaseModel
+import json
+import logging
+import logging.config
 from starlette.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, HTTPException
+from forecasts import fetch_forecasts
+import schemas
+
+LOGGING_CONFIG = 'logging.json'
+if os.path.exists(LOGGING_CONFIG):
+    with open(LOGGING_CONFIG) as config_file:
+        CONFIG = json.load(config_file)
+    logging.config.dictConfig(CONFIG)
+LOGGER = logging.getLogger(__name__)
+
 
 API_INFO = '''
     Description: API for the PSU FWI Calculator
@@ -48,70 +59,13 @@ API_INFO = '''
     has been specifically advised of the possibility of such damages.'''
 
 
-class Season(BaseModel):
-    """ A fire season consists of a start date (month and day) and an end date (month and day). """
-    start_month: int
-    start_day: int
-    end_month: int
-    end_day: int
-
-
-class YearRange(BaseModel):
-    """ A request for data spans a range of years. """
-    start: int
-    end: int
-
-
-class PercentileRequest(BaseModel):
-    """ A request for some quantile for a given set of stations over a specified year range. """
-    stations: List[str]
-    percentile: int
-    year_range: YearRange
-
-
-class WeatherStation(BaseModel):
-    """ A fire weather station has a code and name. """
-    code: int
-    name: str
-
-
-class StationSummary(BaseModel):
-    """ The summary of daily weather data for a given station. """
-    ffmc: float
-    isi: float
-    bui: float
-    season: Season
-    years: List[int]
-    station: WeatherStation
-
-
-class MeanValues(BaseModel):
-    """ The mean percentile values for set of stations. """
-    ffmc: float = None
-    isi: float = None
-    bui: float = None
-
-
-class CalculatedResponse(BaseModel):
-    """ The combined response for a set of stations. """
-    stations: Dict[int, StationSummary] = {}
-    mean_values: MeanValues = None
-    year_range: YearRange
-    percentile: int
-
-
-class WeatherStationsResponse(BaseModel):
-    """ List of fire weather stations. """
-    weather_stations: List[WeatherStation]
-
-
 APP = FastAPI(
     title="Predictive Services Fire Weather Index Calculator",
     description=API_INFO,
     version="0.0.0"
 )
 
-ORIGINS = getenv('ORIGINS')
+ORIGINS = os.getenv('ORIGINS')
 
 APP.add_middleware(
     CORSMiddleware,
@@ -122,15 +76,27 @@ APP.add_middleware(
 )
 
 
-@APP.get('/stations/', response_model=WeatherStationsResponse)
+@APP.post('/forecasts/', response_model=schemas.WeatherForecastResponse)
+async def get_forecasts(request: schemas.WeatherForecastRequest):
+    """ Returns 10 day noon forecasts based on the global deterministic prediction system (GDPS)
+    for the specified set of weather stations. """
+    try:
+        forecasts = await fetch_forecasts(request.stations)
+        return schemas.WeatherForecastResponse(forecasts=forecasts)
+    except Exception as exception:
+        LOGGER.critical(exception, exc_info=True)
+        raise
+
+
+@APP.get('/stations/', response_model=schemas.WeatherStationsResponse)
 async def get_stations():
     """ Return a list of fire weather stations.
     """
-    return WeatherStationsResponse.parse_file('data/weather_stations.json')
+    return schemas.WeatherStationsResponse.parse_file('data/weather_stations.json')
 
 
-@APP.post('/percentiles/', response_model=CalculatedResponse)
-async def get_percentiles(request: PercentileRequest):
+@APP.post('/percentiles/', response_model=schemas.CalculatedResponse)
+async def get_percentiles(request: schemas.PercentileRequest):
     """ Return 90% FFMC, 90% ISI, 90% BUI etc. for a given set of fire stations for a given period of time.
     """
     # NOTE: percentile is ignored, all responses overriden to match
@@ -140,30 +106,29 @@ async def get_percentiles(request: PercentileRequest):
 
     # Error Code: 400 (Bad request)
     if len(request.stations) == 0 or request.stations is None:
-        raise HTTPException(status_code=400)
+        raise HTTPException(
+            status_code=400, detail='Weather station is not found.')
 
-    if not path.exists('data/{}-{}'.format(year_range_start, year_range_end)):
-        raise HTTPException(status_code=400)
+    if not os.path.exists('data/{}-{}'.format(year_range_start, year_range_end)):
+        raise HTTPException(
+            status_code=400, detail='The year range is not currently supported.')
 
-    response = CalculatedResponse(
+    response = schemas.CalculatedResponse(
         percentile=90,
-        year_range=YearRange(
+        year_range=schemas.YearRange(
             start=year_range_start,
             end=year_range_end))
     bui = []
     isi = []
     ffmc = []
     for station in request.stations:
-        try:
-            summary = StationSummary.parse_file(
-                'data/{}-{}/{}.json'.format(year_range_start, year_range_end, station))
-        except BaseException:
-            raise HTTPException(status_code=404, detail='Weather data not found')
+        summary = schemas.StationSummary.parse_file(
+            'data/{}-{}/{}.json'.format(year_range_start, year_range_end, station))
         bui.append(summary.bui)
         isi.append(summary.isi)
         ffmc.append(summary.ffmc)
         response.stations[station] = summary
-    response.mean_values = MeanValues()
+    response.mean_values = schemas.MeanValues()
     response.mean_values.bui = mean(bui)
     response.mean_values.isi = mean(isi)
     response.mean_values.ffmc = mean(ffmc)
