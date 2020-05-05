@@ -1,0 +1,9 @@
+**/*.zip
+**/*.csv
+**/*.grib2
+grib
+csv
+.vscode
+.github
+.ipynb_checkpoints
+.vscode
