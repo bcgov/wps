@@ -6,8 +6,7 @@ name: Pipeline - Pull Request
 
 on:
   pull_request:
-    types:
-      [opened, reopened, synchronize, closed]
+    types: [opened, reopened, synchronize, closed]
 
 jobs:
   lint-and-test:
@@ -50,7 +49,7 @@ jobs:
           echo "GITHUB_REF: ${GITHUB_REF}"
           echo "GITHUB_HEAD_REF: ${GITHUB_HEAD_REF}"
           echo "GITHUB_BASE_REF: ${GITHUB_BASE_REF}"
-          
+
           echo -e "\n\n--- Workflow (Custom) Variables ---\n"
           echo "::set-env name=SUFFIX::pr-${{ github.event.number }}"
           echo "SUFFIX: pr-${{ github.event.number }}"
@@ -62,19 +61,19 @@ jobs:
         if: github.event.pull_request.state == 'open'
         uses: bcgov/openshift-launchpad-deployment@master
         with:
-          AUTH_TOKEN: ${{ secrets.action_token }}
+          AUTH_TOKEN: ${{ secrets.OC_TOOL_TOKEN_EDIT }}
           SCRIPT: GIT_BRANCH=${GITHUB_HEAD_REF} openshift/scripts/oc_build.sh ${SUFFIX} apply
 
       - name: Deploy
         if: github.event.pull_request.state == 'open'
         uses: bcgov/openshift-launchpad-deployment@master
         with:
-          AUTH_TOKEN: ${{ secrets.action_token }}
+          AUTH_TOKEN: ${{ secrets.OC_TOOL_TOKEN_EDIT }}
           SCRIPT: openshift/scripts/oc_deploy.sh ${SUFFIX} apply
 
       - name: Cleanup
         if: github.event.pull_request.state == 'closed'
         uses: bcgov/openshift-launchpad-deployment@master
         with:
-          AUTH_TOKEN: ${{ secrets.action_token }}
+          AUTH_TOKEN: ${{ secrets.OC_TOOL_TOKEN_EDIT }}
           SCRIPT: openshift/scripts/oc_cleanup.sh ${SUFFIX} apply
