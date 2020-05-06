@@ -68,12 +68,12 @@ jobs:
         if: github.event.pull_request.state == 'open'
         uses: bcgov/openshift-launchpad-deployment@master
         with:
-          AUTH_TOKEN: ${{ secrets.OC_TOOL_TOKEN_EDIT }}
+          AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
           SCRIPT: openshift/scripts/oc_deploy.sh ${SUFFIX} apply
 
       - name: Cleanup
         if: github.event.pull_request.state == 'closed'
         uses: bcgov/openshift-launchpad-deployment@master
         with:
-          AUTH_TOKEN: ${{ secrets.OC_TOOL_TOKEN_EDIT }}
+          AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
           SCRIPT: openshift/scripts/oc_cleanup.sh ${SUFFIX} apply
