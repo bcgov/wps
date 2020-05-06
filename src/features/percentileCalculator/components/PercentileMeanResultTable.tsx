@@ -31,7 +31,7 @@ export const PercentileMeanResultTable = ({ meanValues }: Props) => {
         <TableBody>
           <TableRow>
             <TableCell className={classes.tableHeader} align="right" colSpan={2}>
-              Daily Value Percentile
+              Daily 90th Percentile Values
             </TableCell>
           </TableRow>
           <TableRow>
