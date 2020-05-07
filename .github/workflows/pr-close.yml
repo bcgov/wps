@@ -18,5 +18,5 @@ jobs:
       - name: Cleanup Script
         uses: bcgov/openshift-launchpad-deployment@master
         with:
-          AUTH_TOKEN: ${{ secrets.action_token }}
+          AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
           SCRIPT: openshift/scripts/oc_cleanup.sh ${SUFFIX} apply

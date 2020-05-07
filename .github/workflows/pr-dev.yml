@@ -43,11 +43,11 @@ jobs:
       - name: Build image
         uses: bcgov/openshift-launchpad-deployment@master
         with:
-          AUTH_TOKEN: ${{ secrets.action_token }}
+          AUTH_TOKEN: ${{ secrets.OC_TOOL_TOKEN_EDIT }}
           SCRIPT: GIT_BRANCH=${GITHUB_HEAD_REF} openshift/scripts/oc_build.sh ${SUFFIX} apply
 
       - name: Deploy to Dev
         uses: bcgov/openshift-launchpad-deployment@master
         with:
-          AUTH_TOKEN: ${{ secrets.action_token }}
+          AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
           SCRIPT: openshift/scripts/oc_deploy.sh ${SUFFIX} apply
