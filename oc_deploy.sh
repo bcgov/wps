@@ -35,7 +35,7 @@ OC_APPLY="oc -n ${PROJ_TARGET} apply -f -"
 [ "${APPLY}" ] || OC_APPLY="${OC_APPLY} --dry-run"
 
 # Deploy and follow the progress
-# 
+#
 OC_DEPLOY="oc -n ${PROJ_TARGET} rollout latest dc/${NAME_OBJ}"
 OC_LOG="oc -n ${PROJ_TARGET} logs -f dc/${NAME_OBJ}"
 if [ ! "${APPLY}" ]; then
