@@ -76,6 +76,12 @@ APP.add_middleware(
 )
 
 
+@APP.get('/health')
+async def get_health():
+    """ A simple endpoint for Openshift Healthchecks """
+    return {"message": "Healthy as ever"}
+
+
 @APP.post('/forecasts/', response_model=schemas.WeatherForecastResponse)
 async def get_forecasts(request: schemas.WeatherForecastRequest):
     """ Returns 10 day noon forecasts based on the global deterministic prediction system (GDPS)
