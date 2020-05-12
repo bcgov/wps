@@ -44,6 +44,33 @@ It correctly bundles React in production mode and optimizes the build for the be
 2. Run `docker-compose build` and then `docker-compose up`
 3. Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
+## Contributing
+
+### Branch naming conventions
+
+Branches must be named in accordance with the rules specified in [.githooks/pre-push](.githooks/pre-push).
+
+- branch names should be informative, meaningful and concise.
+- branch names should follow the pattern (category)/(description)/(ticket number)
+
+```
+# Enforce branch naming conventions for this project using git hooks.
+git config core.hooksPath .githooks
+```
+
+example of a good branch name:
+
+```
+# Task related to re-factoring of logging, the ticket number being 123:
+task/re-factor-logging/123
+```
+
+example of a bad branch name:
+
+```
+wps-123
+```
+
 ## License
 
 This project is licensed under the [Apache License, Version 2.0](https://github.com/bcgov/wps-web/blob/master/LICENSE).
