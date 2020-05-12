@@ -6,13 +6,15 @@ import csv
 import json
 import re
 
-with open('Station_BC.csv', 'r') as csvfile:
+with open('csv/Station_BC.csv', 'r') as csvfile:
     READER = csv.reader(csvfile, dialect=csv.unix_dialect)
 
     HEADER = next(READER)
     STATION_CODE = HEADER.index('station_code')
     STATION_NAME = HEADER.index('station_name')
     STATION_CATEGORY = HEADER.index('station_category')
+    STATION_LATITUDE = HEADER.index('latitude')
+    STATION_LONGITUDE = HEADER.index('longitude')
 
     WEATHER_STATIONS = []
 
@@ -27,20 +29,23 @@ with open('Station_BC.csv', 'r') as csvfile:
         regex = re.compile('^(ZZ)|(.*QD)$', re.I)
         if row[STATION_CATEGORY] == 'active':
             if regex.match(row[STATION_NAME]):
-                print('Skipping {}:{}'.format(row[STATION_CODE], row[STATION_NAME]))
+                print('Skipping {}:{}'.format(
+                    row[STATION_CODE], row[STATION_NAME]))
                 continue
             STATION_COUNT = STATION_COUNT + 1
             WEATHER_STATIONS.append(
                 {
                     "code": row[STATION_CODE],
-                    "name": row[STATION_NAME]
+                    "name": row[STATION_NAME],
+                    "lat": row[STATION_LATITUDE],
+                    "long": row[STATION_LONGITUDE]
                 }
             )
 
     # Order stations by name.
     WEATHER_STATIONS.sort(key=lambda station: station['name'])
 
-    with open('weather_stations.json', 'w') as json_file:
+    with open('data/weather_stations.json', 'w') as json_file:
         # Dump json with an indent making it more human readable.
         json.dump({
             'weather_stations': WEATHER_STATIONS
