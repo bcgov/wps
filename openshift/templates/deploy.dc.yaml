@@ -45,11 +45,15 @@ parameters:
   - name: WPS_API_GLOBAL_SECRET
     description: Global secret
     value: wps-api-global
+  - name: WFWX_MAX_PAGE_SIZE
+    description: Maximum number of entities to request at a time from the WFWX API
+    value: "1000"
 objects:
   - apiVersion: v1
     kind: ConfigMap
     data:
       env.origins: "${ALLOWED_ORIGINS}"
+      env.wfwx-max-page-size: "${WFWX_MAX_PAGE_SIZE}"
     metadata:
       labels:
         app: ${NAME}-${SUFFIX}
@@ -93,6 +97,33 @@ objects:
                     secretKeyRef:
                       name: ${WPS_API_GLOBAL_SECRET}
                       key: spotwx-api-key
+                - name: USE_WFWX
+                  value: "False"
+                - name: WFWX_AUTH_URL
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${WPS_API_GLOBAL_CONFIG}
+                      key: env.wfwx-auth-url
+                - name: WFWX_BASE_URL
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${WPS_API_GLOBAL_CONFIG}
+                      key: env.wfwx-base-url
+                - name: WFWX_USER
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${WPS_API_GLOBAL_CONFIG}
+                      key: env.wfwx-user
+                - name: WFWX_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${WPS_API_GLOBAL_SECRET}
+                      key: wfwx-secret
+                - name: WFWX_MAX_PAGE_SIZE
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-${SUFFIX}
+                      key: env.wfwx-max-page-size
               ports:
                 - containerPort: 8080
                   protocol: TCP
