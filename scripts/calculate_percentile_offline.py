@@ -27,7 +27,7 @@ PERCENTILE = 0.9
 # ---------- GLOBAL VARIABLES ----------------
 # import the CSV into Pandas dataframe
 print('open file...')
-DAILY_WEATHER_DATA = pd.read_csv('../DailyWeather.csv')
+DAILY_WEATHER_DATA = pd.read_csv('csv/DailyWeather.csv')
 # ----------- end of global variables -------------
 
 
@@ -49,7 +49,7 @@ def stations_json_to_dict():
 
     Returns: Dictionary containing list of stations.
     """
-    with open('../data/weather_stations.json') as file_handle:
+    with open('data/weather_stations.json') as file_handle:
         return json.load(file_handle)['weather_stations']
 
 
@@ -136,9 +136,14 @@ def write_output_to_json(date_range, weather_stations, data_years, percentiles):
                 'bui': percentiles['bui'][int(key)],
                 'season': season,
                 'years': [int(year) for year in data_years[int(key)]],
-                'station': {'code': key, 'name': weath_stat['name']}
+                'station': {
+                    'code': key,
+                    'name': weath_stat['name'],
+                    'lat': weath_stat['lat'],
+                    'long': weath_stat['long']
+                }
             }
-            output_folder = "../data/{}-{}".format(
+            output_folder = "data/{}-{}".format(
                 date_range[0], date_range[1])
             if not os.path.exists(output_folder):
                 os.mkdir(output_folder)
