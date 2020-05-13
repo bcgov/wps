@@ -44,6 +44,12 @@ It correctly bundles React in production mode and optimizes the build for the be
 2. Run `docker-compose build` and then `docker-compose up`
 3. Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
+## Config
+
+In `openshift/templates/global.config.yaml` there is a template for a global ConfigMap. This template can be applied to the Openshift project from the command line. For example, to apply the global.config template and pass a value for the REACT_APP_KEYCLOAK_REALM parameter, run 
+
+`oc -n <openshift-project-name> process -f openshift/templates/global.config.yaml -p REACT_APP_KEYCLOAK_REALM=<realm-name> | oc create -f -`
+
 ## Contributing
 
 ### Branch naming conventions
