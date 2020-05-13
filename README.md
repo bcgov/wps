@@ -131,6 +131,13 @@ Or enforce by running [scripts/test.sh](scripts/test.sh) as part of your ci/cd p
 
 ![FWI calculator container diagram](container_diagram.png)
 
+## Config Maps & Secrets
+
+In `openshift/templates/global.config.yaml` there are templates for a global ConfigMap and global Secrets used by the API.
+These templates can be applied to the Openshift project from the command line. For example, to apply the global.config template and pass a value for the WFWX-AUTH-URL parameter, run
+
+`oc -n <openshift-project-name> process -f openshift/templates/global.config.yaml -p WFWX-AUTH-URL=https://spotwx.com/ | oc create -f -`
+
 ## License
 
 This project is licensed under the [Apache License, Version 2.0](https://github.com/bcgov/wps-api/blob/master/LICENSE).
