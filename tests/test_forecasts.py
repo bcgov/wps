@@ -1,39 +1,81 @@
-""" Unit tests for API.
+""" Unit tests for API - forecasts.
 """
+import json
 import logging
 from datetime import datetime
 import numpy
-import nest_asyncio
 from starlette.testclient import TestClient
-from asynctest import CoroutineMock, patch, TestCase
+from asynctest import patch, TestCase
 
 from main import APP
+import tests.common
 
 LOGGER = logging.getLogger(__name__)
 
-# We need to allow for nesting of asyncio, since both our unit test and our api have event loops.
-nest_asyncio.apply()
+
+# pylint: disable=too-few-public-methods
+class ResponseAsyncContextManager(tests.common.ResponseAsyncContextManagerBase):
+    """ Stubbed asyncronous context manager.
+    """
+
+    async def __aenter__(self):
+        """ Enter context """
+        if 'page' in self.url:
+            with open('tests/wf1_stations_by_code.json') as page:
+                return tests.common.ClientResponse(json_response=json.load(page))
+        if 'spotwx' in self.url:
+            with open('tests/spotwx_response_sample.csv', mode='r') as spotwx:
+                data = spotwx.read()
+                return tests.common.ClientResponse(text_response=data)
+        return await super().__aenter__()
 
 
 class ForecastTestCase(TestCase):
-    """ Tests relating to /forecasts """
+    """ Tests relating to /forecasts (not using WFWX) """
 
-    @patch('forecasts.ClientSession.get')
-    # pylint: disable=invalid-overridden-method
-    # pylint: disable=arguments-differ
-    async def setUp(self, mock_get):
-        with open('tests/spotwx_response_sample.csv', mode='r') as spotwx:
-            data = spotwx.read()
-            mock_get.return_value.__aenter__.return_value.text = CoroutineMock(
-                return_value=data)
+    @staticmethod
+    def use_wfwx():
+        """ Don't use wfwx in API calls. """
+        return 'False'
 
-        client = TestClient(APP)
-        self.response = client.post('/forecasts/', headers={'Content-Type': 'application/json'},
-                                    json={"stations": [
-                                        "331",
-                                        "328"
-                                    ]})
-        self.response_json = self.response.json()
+    @classmethod
+    def setUpClass(cls):
+        with patch('wildfire_one.ClientSession.get') as mock_get:
+            with patch('config.getenv') as mock_getenv:
+
+                def getenv_side_effect(key):
+                    """ Override of getenv to ensure we're using wildfire API.
+                    """
+                    environment = {
+                        'SPOTWX_API_KEY': 'something',
+                        'SPOTWX_BASE_URI': 'spotwx',
+                        'USE_WFWX': cls.use_wfwx(),
+                        'WFWX_USER': 'user',
+                        'WFWX_SECRET': 'secret',
+                        'WFWX_AUTH_URL': 'http://localhost/token',
+                        'WFWX_BASE_URL': 'http://localhost/page',
+                        'WFWX_MAX_PAGE_SIZE': 1000
+                    }
+                    return environment.get(key, None)
+
+                mock_getenv.side_effect = getenv_side_effect
+
+                # pylint: disable=unused-argument
+                def get_side_effect(url, **args):
+                    return ResponseAsyncContextManager(url)
+
+                mock_get.side_effect = get_side_effect
+
+                client = TestClient(APP)
+                cls.response = client.post('/forecasts/', headers={'Content-Type': 'application/json'},
+                                           json={"stations": [
+                                               "331",
+                                               "328"
+                                           ]})
+                cls.response_json = cls.response.json()
+
+                mock_get.assert_called()
+                mock_getenv.assert_called()
 
     def test_ok(self):
         """ We expect a 200 ok response. """
@@ -66,3 +108,12 @@ class ForecastTestCase(TestCase):
             '2020-05-04T20:00:00').timestamp(), x_p, f_p)
         self.assertEqual(
             self.response_json['forecasts'][0]['values'][0]['temperature'], expected_temperature)
+
+
+class ForecastTestCaseUseFwWx(ForecastTestCase):
+    """ Tests relating to /forecasts (using WFWX) """
+
+    @staticmethod
+    def use_wfwx():
+        """ Don't use WFWX API in tests """
+        return 'True'

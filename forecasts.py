@@ -1,32 +1,21 @@
 """ This module contain logic to retrieve predicted weather data.
 """
-from os import getenv
 from datetime import datetime, timedelta
 import asyncio
-import json
 import logging
 from io import StringIO
 from typing import List
 import pandas
 from aiohttp import ClientSession
 from schemas import WeatherForecast, WeatherStation, WeatherForecastValues
+from wildfire_one import get_stations_by_codes
+import config
 
 LOGGER = logging.getLogger(__name__)
 
 
 class StationNotFoundException(Exception):
     """ Custom exception for when a station cannot be found """
-
-
-def fetch_station_by_code(station_code: int) -> WeatherStation:
-    """ Return a station matching the specified code """
-    # NOTE: This will change to use the WildeFire API.
-    with open('data/weather_stations.json') as file_pointer:
-        stations = json.load(file_pointer)
-        for station in stations['weather_stations']:
-            if int(station['code']) == station_code:
-                return WeatherStation(**station)
-        raise StationNotFoundException()
 
 
 def get_key_map():
@@ -71,21 +60,18 @@ def get_key_map():
     }
 
 
-async def fetch_forecast(session: ClientSession, station_code: int) -> WeatherForecast:
+async def fetch_forecast(session: ClientSession, station: WeatherStation) -> WeatherForecast:
     """ Return the forecast for a weather station from spotwx.
     """
-    # We need the station coordinates, spotwx doesn't know about station id's.
-    station = fetch_station_by_code(station_code)
-
     url = '{base_url}?key={key}&model={model}&lat={lat}&lon={long}'.format(
-        lat=station.lat, long=station.long, model='gdps', key=getenv('SPOTWX_API_KEY'),
-        base_url=getenv('SPOTWX_BASE_URI'))
+        lat=station.lat, long=station.long, model='gdps', key=config.get('SPOTWX_API_KEY'),
+        base_url=config.get('SPOTWX_BASE_URI'))
 
-    LOGGER.debug('getting response from spotwx for %d...', station_code)
+    LOGGER.debug('getting response from spotwx for %d...', station.code)
     async with session.get(url) as response:
         csv_data = await response.text()
     LOGGER.debug('retreived response from spotwx for %d, csv data: %s...',
-                 station_code, csv_data[:20])
+                 station.code, csv_data[:20])
 
     # Data from spotwx comes back as csv :(
     # NOTE: There is scope for reading data with csvreader as it comes in to improve speed.
@@ -134,11 +120,11 @@ async def fetch_forecast(session: ClientSession, station_code: int) -> WeatherFo
 
 async def fetch_forecast_with_semaphore(
         semaphore: asyncio.Semaphore,
-        station_code: int, session: ClientSession) -> asyncio.Future:
+        station: WeatherStation, session: ClientSession) -> asyncio.Future:
     """ Fetch a forecast for a station using a semaphor.
     """
     async with semaphore:
-        return await fetch_forecast(session, station_code)
+        return await fetch_forecast(session, station)
 
 
 async def fetch_forecasts(station_codes: List[int]) -> asyncio.Future:
@@ -150,11 +136,13 @@ async def fetch_forecasts(station_codes: List[int]) -> asyncio.Future:
     # NOTE: Wouldn't using TCPConnector with a pool limit give us the same as using the semaphore?
     semaphore = asyncio.Semaphore(10)
 
+    stations = await get_stations_by_codes(station_codes)
+
     async with ClientSession() as session:
         # Line up tasks
-        for station_code in station_codes:
+        for station in stations:
             task = asyncio.create_task(
-                fetch_forecast_with_semaphore(semaphore, station_code, session))
+                fetch_forecast_with_semaphore(semaphore, station, session))
             tasks.append(task)
         # Run the tasks concurrently, waiting for them all to complete.
         return await asyncio.gather(*tasks)
