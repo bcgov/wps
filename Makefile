@@ -17,6 +17,9 @@ run:
 	-pipenv run python -m unittest
 	pipenv run uvicorn main:APP --reload --port 8080
 
+run-fast:
+	pipenv run uvicorn main:APP --reload --port 8080
+
 notebook:
 	# Run jupyter notebooks.
 	pipenv run jupyter notebook
