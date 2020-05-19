@@ -1,0 +1,41 @@
+kind: Template
+apiVersion: v1
+metadata:
+  name: wps-api-global
+parameters:
+  - name: WFWX_AUTH_URL
+    description: Wildfire One API authentication URL
+    required: true
+  - name: WFWX_BASE_URL
+    description: Wildfire One API URL
+    required: true
+  - name: WFWX_USER
+    description: The username to be used for authentication to the Wildfire One API
+    required: true
+  - name: SPOTWX_API_KEY
+    description: Token used for authentication to access SpotWX API
+    required: true
+  - name: WFWX_SECRET
+    description: Password for authentication to access Wildfire One API
+    required: true
+objects:
+- kind: ConfigMap
+  apiVersion: v1
+  metadata:
+    name: wps-api-global
+    labels:
+      app.kubernetes.io/part-of: wps-api
+  data:
+    env.origins: wps-web-*.pathfinder.gov.bc.ca
+    env.spotwx-url: 'https://spotwx.com/services/api.php'
+    env.wfwx-auth-url: ${WFWX_AUTH_URL}
+    env.wfwx-base-url: ${WFWX_BASE_URL}
+    env.wfwx-user: ${WFWX_USER}
+- kind: Secret
+  apiVersion: v1
+  metadata:
+    name: wps-api-global
+  type: Opaque
+  stringData:
+    spotwx-api-key: ${SPOTWX_API_KEY}
+    wfwx-secret: ${WFWX_SECRET}
