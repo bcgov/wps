@@ -1,33 +1,15 @@
-# Pipeline for Pull Requests
-#
-# Lint, Unit Test, Build, Deploy and Cleanup
-#
-name: Pipeline - Pull Request
+name: Deployment
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, closed]
+    # By default, a workflow only runs when a pull_request's activity type is opened, synchronize, or reopened
+    types: [opened, synchronize, reopened, closed]
+    branches:
+      - master
 
 jobs:
-  lint-and-test:
-    name: Lint and Unit Test
-    if: github.event.pull_request.state == 'open'
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [10.x]
-    steps:
-      - uses: actions/checkout@v2
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
-        with:
-          node-version: ${{ matrix.node-version }}
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run test:ci
-
   build-and-deploy:
-    name: Build and Deploy from Pull Request
+    name: Build & Deploy to Dev
     runs-on: ubuntu-latest
     steps:
       - name: Variables

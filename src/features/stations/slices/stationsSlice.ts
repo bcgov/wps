@@ -8,7 +8,7 @@ interface StationsState {
   stations: Station[]
 }
 
-export const stationsInitialState: StationsState = {
+export const initialState: StationsState = {
   loading: false,
   error: null,
   stations: []
@@ -16,7 +16,7 @@ export const stationsInitialState: StationsState = {
 
 const stations = createSlice({
   name: 'stations',
-  initialState: stationsInitialState,
+  initialState: initialState,
   reducers: {
     getStationsStart(state: StationsState) {
       state.loading = true
