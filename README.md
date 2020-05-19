@@ -127,9 +127,41 @@ make test
 
 Or enforce by running [scripts/test.sh](scripts/test.sh) as part of your ci/cd pipeline.
 
+### Branch naming conventions
+
+Branches must be named in accordance with the rules specified in [.githooks/pre-push](.githooks/pre-push).
+
+- branch names should be informative, meaningful and concise.
+- branch names should follow the pattern (category)/(description)/(ticket number)
+
+```
+# Enforce branch naming conventions for this project using git hooks.
+git config core.hooksPath .githooks
+```
+
+example of a good branch name:
+
+```
+# Task related to re-factoring of logging, the ticket number being 123:
+task/re-factor-logging/123
+```
+
+example of a bad branch name:
+
+```
+wps-123
+```
+
 ## Architecture
 
 ![FWI calculator container diagram](container_diagram.png)
+
+## Config Maps & Secrets
+
+In `openshift/templates/global.config.yaml` there are templates for a global ConfigMap and global Secrets used by the API.
+These templates can be applied to the Openshift project from the command line. For example, to apply the global.config template and pass a value for the WFWX-AUTH-URL parameter, run
+
+`oc -n <openshift-project-name> process -f openshift/templates/global.config.yaml -p WFWX-AUTH-URL=https://spotwx.com/ | oc create -f -`
 
 ## License
 
