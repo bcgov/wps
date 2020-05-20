@@ -3,14 +3,15 @@
 See README.md for details on how to run.
 """
 import os
-from statistics import mean
 import json
 import logging
 import logging.config
-from starlette.middleware.cors import CORSMiddleware
-from fastapi import FastAPI, HTTPException
-from forecasts import fetch_forecasts
+from statistics import mean
+from fastapi import FastAPI, HTTPException, status, Depends
+from fastapi.middleware.cors import CORSMiddleware
 import schemas
+from forecasts import fetch_forecasts
+from auth import authenticate
 import wildfire_one
 import config
 
@@ -85,7 +86,8 @@ async def get_health():
 
 
 @APP.post('/forecasts/', response_model=schemas.WeatherForecastResponse)
-async def get_forecasts(request: schemas.WeatherForecastRequest):
+async def get_forecasts(request: schemas.WeatherForecastRequest, _: bool = Depends(authenticate)):
+    # async def get_forecasts(request: schemas.WeatherForecastRequest):
     """ Returns 10 day noon forecasts based on the global deterministic prediction system (GDPS)
     for the specified set of weather stations. """
     try:
@@ -120,11 +122,11 @@ async def get_percentiles(request: schemas.PercentileRequest):
     # Error Code: 400 (Bad request)
     if len(request.stations) == 0 or request.stations is None:
         raise HTTPException(
-            status_code=400, detail='Weather station is not found.')
+            status_code=status.HTTP_400_BAD_REQUEST, detail='Weather station is not found.')
 
     if not os.path.exists('data/{}-{}'.format(year_range_start, year_range_end)):
         raise HTTPException(
-            status_code=400, detail='The year range is not currently supported.')
+            status_code=status.HTTP_400_BAD_REQUEST, detail='The year range is not currently supported.')
 
     response = schemas.CalculatedResponse(
         percentile=90,

@@ -1,77 +1,62 @@
-""" Unit tests for API - stations using wf1
-"""
+""" Functional testing for API - stations using wf1 """
 import json
-import logging
-from asynctest import patch, TestCase
-from starlette.testclient import TestClient
-
+from pytest_bdd import scenario, given, then
+from fastapi.testclient import TestClient
+from aiohttp import ClientSession
 from main import APP
-import tests.common
+from tests.common import MockClientSession
 
-LOGGER = logging.getLogger(__name__)
+# pylint: disable=unused-argument, redefined-outer-name, too-many-arguments
 
 
-# pylint: disable=too-few-public-methods
-class ResponseAsyncContextManager(tests.common.ResponseAsyncContextManagerBase):
-    """ Stubbed asyncronous context manager.
+@scenario('test_stations.feature', 'Get weather stations from WFWX',
+          example_converters=dict(status=int, index=int, code=int, name=str, lat=float, long=float))
+def test_stations_scenario():
+    """ BDD Scenario. """
+
+
+@given("I request a list of weather stations")
+def response(monkeypatch, mock_env_with_use_wfwx):
+    """ Mock external requests and make GET /stations/ request """
+
+    def mock_client_get(*args, **kwargs):
+        url = args[1]
+        if '/token' in url:
+            return MockClientSession(json={'access_token': 'Bearer token'})
+
+        if '/page/v1/stations?' in url:
+            match = url.find('page=')
+            with open('tests/wf1_stations_page{}.json'.format(url[match+5:match+6])) as page:
+                return MockClientSession(json=json.load(page))
+
+        raise Exception('unexpected url: {}'.format(url))
+
+    monkeypatch.setattr(ClientSession, 'get', mock_client_get)
+
+    client = TestClient(APP)
+    return client.get('/stations/')
+
+
+@then("the response status code is <status>")
+def status_code(response, status: int):
+    """ Assert that we receive the expected status code """
+    assert response.status_code == status
+
+
+@then("there are active 16 weather stations")
+def active_16_weather_stations(response):
+    """ We expect there to be 16 weather stations. Even though we were given 50 stations from the
+    API, some of those stations are inactive/invalid/disabled or don't have lat/long.
     """
-    async def __aenter__(self):
-        """ Enter context - return the appropriate response object depending on the url
-        """
-        if 'page' in self.url:
-            match = self.url.find('page=')
-            with open('tests/wf1_stations_page{}.json'.format(self.url[match+5:match+6])) as page:
-                return tests.common.ClientResponse(json_response=json.load(page))
-        return await super().__aenter__()
+    assert len(response.json()['weather_stations']) == 16
 
 
-class StationsTestCase(TestCase):
-    """ Tests relating to stations """
-
-    @classmethod
-    def setUpClass(cls):
-        """ Make a call to that /stations/ endpoint using a stubbed out ClientSession
-        """
-        with patch('forecasts.ClientSession.get') as mock_get:
-            with patch('config.getenv') as mock_getenv:
-
-                def getenv_side_effect(key):
-                    """ Override of getenv to ensure we're using wildfire API.
-                    """
-                    environment = {
-                        'USE_WFWX': 'True',
-                        'WFWX_USER': 'user',
-                        'WFWX_SECRET': 'secret',
-                        'ORIGINS': 'secret',
-                        'WFWX_AUTH_URL': 'http://localhost/token',
-                        'WFWX_BASE_URL': 'http://localhost/page',
-                        'WFWX_MAX_PAGE_SIZE': 1000
-                    }
-                    return environment.get(key, None)
-
-                mock_getenv.side_effect = getenv_side_effect
-
-                # pylint: disable=unused-argument
-                def get_side_effect(url, **args):
-                    return ResponseAsyncContextManager(url)
-
-                mock_get.side_effect = get_side_effect
-
-                client = TestClient(APP)
-                cls.response = client.get('/stations/')
-                cls.response_json = cls.response.json()
-
-                mock_get.assert_called()
-                mock_getenv.assert_called()
-
-    def test_station_number(self):
-        """ We expect there to be 16 weather stations. Even though we were given 50 stations from the
-        API, some of those stations are inactive/invalid/disabled or don't have lat/long.
-        """
-        self.assertEqual(len(self.response_json['weather_stations']), 16)
-
-    def test_station_serialization(self):
-        """ We expect a station to have a code, name, lat and long. """
-        actual_station = self.response_json['weather_stations'][0]
-        self.assertEqual(actual_station, {'code': 67, 'name': 'HAIG CAMP',
-                                          'lat': 49.3806, 'long': -121.525967})
+@then("there is a station in <index> has <code>, <name>, <lat>, and <long>")
+def there_is_a_station(response, index, code, name, lat, long):
+    """ We expect a station to have a code, name, lat and long. """
+    assert response.json()['weather_stations'][index] == {
+        "code": code,
+        "name": name,
+        "lat": lat,
+        "long": long
+    }

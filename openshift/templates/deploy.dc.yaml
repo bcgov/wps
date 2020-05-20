@@ -124,6 +124,11 @@ objects:
                     configMapKeyRef:
                       name: ${NAME}-${SUFFIX}
                       key: env.wfwx-max-page-size
+                - name: KEYCLOAK_PUBLIC_KEY
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${WPS_API_GLOBAL_CONFIG}
+                      key: env.keycloak-public-key
               ports:
                 - containerPort: 8080
                   protocol: TCP
