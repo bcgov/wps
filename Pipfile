@@ -14,6 +14,7 @@ pytest-pep8 = "*"
 pylint = "*"
 asynctest = "*"
 nest-asyncio = "*"
+pytest-bdd = "*"
 
 [packages]
 fastapi = "*"
@@ -23,6 +24,8 @@ gunicorn = "*"
 aiodns = "*"
 aiohttp = "*"
 pandas = "*"
+pyjwt = "*"
+cryptography = "*"
 
 [requires]
 python_version = "3.8"
