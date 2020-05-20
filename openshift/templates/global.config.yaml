@@ -18,24 +18,28 @@ parameters:
   - name: WFWX_SECRET
     description: Password for authentication to access Wildfire One API
     required: true
+  - name: KEYCLOAK_PUBLIC_KEY
+    description: Keycloak public key for validating the access token
+    required: true
 objects:
-- kind: ConfigMap
-  apiVersion: v1
-  metadata:
-    name: wps-api-global
-    labels:
-      app.kubernetes.io/part-of: wps-api
-  data:
-    env.origins: wps-web-*.pathfinder.gov.bc.ca
-    env.spotwx-url: 'https://spotwx.com/services/api.php'
-    env.wfwx-auth-url: ${WFWX_AUTH_URL}
-    env.wfwx-base-url: ${WFWX_BASE_URL}
-    env.wfwx-user: ${WFWX_USER}
-- kind: Secret
-  apiVersion: v1
-  metadata:
-    name: wps-api-global
-  type: Opaque
-  stringData:
-    spotwx-api-key: ${SPOTWX_API_KEY}
-    wfwx-secret: ${WFWX_SECRET}
+  - kind: ConfigMap
+    apiVersion: v1
+    metadata:
+      name: wps-api-global
+      labels:
+        app.kubernetes.io/part-of: wps-api
+    data:
+      env.origins: wps-web-*.pathfinder.gov.bc.ca
+      env.spotwx-url: "https://spotwx.com/services/api.php"
+      env.wfwx-auth-url: ${WFWX_AUTH_URL}
+      env.wfwx-base-url: ${WFWX_BASE_URL}
+      env.wfwx-user: ${WFWX_USER}
+      env.keycloak-public-key: ${KEYCLOAK_PUBLIC_KEY}
+  - kind: Secret
+    apiVersion: v1
+    metadata:
+      name: wps-api-global
+    type: Opaque
+    stringData:
+      spotwx-api-key: ${SPOTWX_API_KEY}
+      wfwx-secret: ${WFWX_SECRET}

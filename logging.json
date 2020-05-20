@@ -16,37 +16,32 @@
   "loggers": {
     "forecasts": {
       "level": "DEBUG",
-      "handlers": [
-        "console"
-      ],
+      "handlers": ["console"],
+      "propagate": false
+    },
+    "auth": {
+      "level": "DEBUG",
+      "handlers": ["console"],
       "propagate": false
     },
     "wildfire_one": {
       "level": "DEBUG",
-      "handlers": [
-        "console"
-      ],
+      "handlers": ["console"],
       "propagate": false
     },
     "config": {
       "level": "DEBUG",
-      "handlers": [
-        "console"
-      ],
+      "handlers": ["console"],
       "propagate": false
     },
     "tests": {
       "level": "DEBUG",
-      "handlers": [
-        "console"
-      ],
+      "handlers": ["console"],
       "propagate": false
     }
   },
   "root": {
     "level": "INFO",
-    "handlers": [
-      "console"
-    ]
+    "handlers": ["console"]
   }
 }

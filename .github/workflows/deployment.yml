@@ -1,0 +1,41 @@
+name: Deployment
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, closed]
+    branches:
+      - master
+
+jobs:
+  build-and-deploy:
+    name: Build & Deploy to Dev
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set Variables
+        shell: bash
+        run: |
+          echo "::set-env name=SUFFIX::pr-${{ github.event.number }}"
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Build Image
+        if: github.event.pull_request.state == 'open'
+        uses: bcgov/openshift-launchpad-deployment@master
+        with:
+          AUTH_TOKEN: ${{ secrets.OC_TOOL_TOKEN_EDIT }}
+          SCRIPT: GIT_BRANCH=${GITHUB_HEAD_REF} openshift/scripts/oc_build.sh ${SUFFIX} apply
+
+      - name: Deploy to Dev
+        if: github.event.pull_request.state == 'open'
+        uses: bcgov/openshift-launchpad-deployment@master
+        with:
+          AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
+          SCRIPT: openshift/scripts/oc_deploy.sh ${SUFFIX} apply
+
+      - name: Clean up
+        if: github.event.pull_request.state == 'closed'
+        uses: bcgov/openshift-launchpad-deployment@master
+        with:
+          AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
+          SCRIPT: openshift/scripts/oc_cleanup.sh ${SUFFIX} apply
