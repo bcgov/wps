@@ -64,3 +64,8 @@ docker-shell-dev:
 	# Shell into the dev container.
 	docker run -it --entrypoint bash wps-api_api-dev:latest 
 
+docker-shell-db:
+	# Shell into the db container
+	docker-compose exec db psql -h postgres -U wps
+
+
