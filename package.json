@@ -28,6 +28,7 @@
     "@types/webpack-env": "^1.15.1",
     "axios": "^0.19.2",
     "clsx": "^1.1.0",
+    "moment": "^2.26.0",
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
     "react-redux": "^7.2.0",
@@ -70,7 +71,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-push": "npm run lint & npm run test:ci"
+      "pre-push": ".githooks/pre-push & npm run lint & npm run test:ci"
     }
   }
 }

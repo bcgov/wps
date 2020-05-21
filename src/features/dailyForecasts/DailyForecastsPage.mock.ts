@@ -1,4 +1,5 @@
 import { ForecastsResponse } from 'api/forecastAPI'
+import { HourliesResponse } from 'api/hourliesAPI'
 import { RecursivePartial } from 'types/utilTypes'
 
 export const mockStations = [
@@ -18,6 +19,28 @@ export const mockForecastsResponse: RecursivePartial<ForecastsResponse> = {
           wind_direction: 230,
           wind_speed: 5,
           total_precipitation: 0
+        }
+      ]
+    }
+  ]
+}
+
+export const mockHourliesResponse: RecursivePartial<HourliesResponse> = {
+  hourlies: [
+    {
+      station: mockStations[0],
+      values: [
+        {
+          datetime: '2020-05-15T11:00:00',
+          temperature: 16.9,
+          relative_humidity: 37.0,
+          wind_speed: 9.0,
+          wind_direction: 45.0,
+          barometric_pressure: 0.0,
+          precipitation: 0.0,
+          ffmc: undefined,
+          isi: undefined,
+          fwi: undefined
         }
       ]
     }

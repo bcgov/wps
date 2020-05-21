@@ -8,7 +8,8 @@ import { renderWithRedux } from 'utils/testUtils'
 import { DailyForecastsPage } from 'features/dailyForecasts/DailyForecastsPage'
 import {
   mockStations,
-  mockForecastsResponse
+  mockForecastsResponse,
+  mockHourliesResponse
 } from 'features/dailyForecasts/DailyForecastsPage.mock'
 
 const mockAxios = new MockAdapter(axios)
@@ -49,9 +50,10 @@ it('renders weather stations dropdown with data', async () => {
   expect(selectStations(store.getState()).stations).toEqual(mockStations)
 })
 
-it('renders daily forecast values in response to user inputs', async () => {
+it('renders daily forecast and hourly values in response to user inputs', async () => {
   mockAxios.onGet('/stations/').replyOnce(200, { weather_stations: mockStations })
   mockAxios.onPost('/forecasts/').replyOnce(200, mockForecastsResponse)
+  mockAxios.onPost('/hourlies/').replyOnce(200, mockHourliesResponse)
 
   const { getByText, getByTestId } = renderWithRedux(<DailyForecastsPage />)
 
@@ -70,12 +72,18 @@ it('renders daily forecast values in response to user inputs', async () => {
 
   // Wait until the forecasts are fetched
   await waitForElement(() => getByTestId('daily-forecast-displays'))
+  // Wait until the hourlies are fetched
+  await waitForElement(() => getByTestId('hourly-readings-displays'))
 
   // Validate the correct request body
-  expect(mockAxios.history.post.length).toBe(1)
-  expect(mockAxios.history.post[0].data).toBe(
-    JSON.stringify({
-      stations: [1]
-    })
-  )
+  // There should have been two requests, one for forecasts and one for hourlies.
+  expect(mockAxios.history.post.length).toBe(2)
+  // Each of those request should ask for a station
+  mockAxios.history.post.forEach(post => {
+    expect(post.data).toBe(
+      JSON.stringify({
+        stations: [1]
+      })
+    )
+  })
 })

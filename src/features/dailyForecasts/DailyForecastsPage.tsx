@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { makeStyles } from '@material-ui/core/styles'
 
 import { Station } from 'api/stationAPI'
-import { selectAuthentication, selectForecasts } from 'app/rootReducer'
+import { selectAuthentication, selectForecasts, selectHourlies } from 'app/rootReducer'
 import { PageHeader, PageTitle, Container, Button } from 'components'
 import {
   authenticate,
@@ -12,7 +12,9 @@ import {
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { WxStationDropdown } from 'features/stations/components/WxStationDropdown'
 import { fetchForecasts } from 'features/dailyForecasts/slices/ForecastsSlice'
+import { fetchHistoricalReadings } from 'features/hourlies/slices/HourliesSlice'
 import { DailyForecastsDisplay } from 'features/dailyForecasts/components/DailyForecastsDisplay'
+import { HourlyReadingsDisplay } from 'features/hourlies/components/HourlyReadingsDisplay'
 
 const useStyles = makeStyles({
   stationDropdown: {
@@ -28,7 +30,9 @@ export const DailyForecastsPage = () => {
   const [selectedStations, setStations] = useState<Station[]>([])
 
   const { isAuthenticated, authenticating, error } = useSelector(selectAuthentication)
-  const { loading: wxDataLoading } = useSelector(selectForecasts)
+  const { loading: forecastDataLoading } = useSelector(selectForecasts)
+  const { loading: hourlyDataLoading } = useSelector(selectHourlies)
+  const wxDataLoading = forecastDataLoading || hourlyDataLoading
 
   useEffect(() => {
     dispatch(authenticate())
@@ -42,6 +46,7 @@ export const DailyForecastsPage = () => {
   const onSubmitClick = () => {
     const stationCodes = selectedStations.map(s => s.code)
     dispatch(fetchForecasts(stationCodes))
+    dispatch(fetchHistoricalReadings(stationCodes))
   }
 
   if (error) {
@@ -76,9 +81,10 @@ export const DailyForecastsPage = () => {
           variant="contained"
           color="primary"
         >
-          Get Wx Forecast Data
+          Get Historic Readings and Forecasted Global Model Data
         </Button>
         <DailyForecastsDisplay />
+        <HourlyReadingsDisplay />
       </Container>
     </div>
   )
