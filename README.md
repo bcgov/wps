@@ -96,7 +96,7 @@ will execute:
 
 ```
 pipenv run pylint --rcfile=.pylintrc *.py **/*.py
-pipenv run python -m unittest
+pipenv run python -m pytest
 pipenv run uvicorn main:APP --reload --port 8080
 ```
 

@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 from aiohttp import ClientSession
 import numpy
 from main import APP
-from tests.common import MockClientSession
+from tests.common import default_mock_client_get
 
 LOGGER = logging.getLogger(__name__)
 
@@ -23,21 +23,11 @@ def test_forecasts_scenario():
 @given("I request weather forecasts for stations: <codes>")
 def response(monkeypatch, mock_jwt_decode, codes):
     """ Mock external requests and make GET /forecasts/ request """
-
-    def mock_client_get(*args, **kwargs):
-        url = args[1]
-        if 'spotwx' in url:
-            with open('tests/spotwx_response_sample.csv', mode='r') as spotwx:
-                data = spotwx.read()
-                return MockClientSession(text=data)
-
-        raise Exception('unexpected url: {}'.format(url))
-
-    monkeypatch.setattr(ClientSession, 'get', mock_client_get)
+    monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
 
     client = TestClient(APP)
     stations = eval(codes)
-    return client.post('/forecasts/', headers={'Authorization': "Bearer token"}, json={"stations": stations})
+    return client.post('/forecasts/', headers={'Authorization': 'Bearer token'}, json={'stations': stations})
 
 
 @then("the response status code is <status>")
