@@ -19,8 +19,9 @@ def mock_env(monkeypatch):
     monkeypatch.setenv("USE_WFWX", 'False')
     monkeypatch.setenv("WFWX_USER", "user")
     monkeypatch.setenv("WFWX_SECRET", "secret")
-    monkeypatch.setenv("WFWX_AUTH_URL", "http://localhost/token")
-    monkeypatch.setenv("WFWX_BASE_URL", "http://localhost/page")
+    monkeypatch.setenv(
+        "WFWX_AUTH_URL", "http://localhost/pub/oauth2/v1/oauth/token")
+    monkeypatch.setenv("WFWX_BASE_URL", "http://localhost/wfwx")
     monkeypatch.setenv("WFWX_MAX_PAGE_SIZE", "1000")
     monkeypatch.setenv("KEYCLOAK_PUBLIC_KEY", "public_key")
 
