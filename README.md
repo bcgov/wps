@@ -100,6 +100,8 @@ pipenv run python -m unittest
 pipenv run uvicorn main:APP --reload --port 8080
 ```
 
+To shell into the Docker container for the database, execute `make docker-shell-db` and enter the password for the local DB.
+
 ## Contributing
 
 ### Coding conventions

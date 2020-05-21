@@ -10,3 +10,14 @@ services:
       - "8080:8080"
     volumes:
       - .:/app:delegated
+    depends_on:
+      - db
+  # Application's local database container & service
+  db:
+    image: postgis/postgis
+    hostname: postgres
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=wps
+      - POSTGRES_PASSWORD=wps
