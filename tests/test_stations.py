@@ -1,12 +1,9 @@
 """ Functional testing for API - stations using wf1 """
-import json
 from pytest_bdd import scenario, given, then
 from fastapi.testclient import TestClient
 from aiohttp import ClientSession
 from main import APP
-from tests.common import MockClientSession
-
-# pylint: disable=unused-argument, redefined-outer-name, too-many-arguments
+from tests.common import default_mock_client_get
 
 
 @scenario('test_stations.feature', 'Get weather stations from WFWX',
@@ -15,28 +12,17 @@ def test_stations_scenario():
     """ BDD Scenario. """
 
 
+# pylint: disable=unused-argument
 @given("I request a list of weather stations")
 def response(monkeypatch, mock_env_with_use_wfwx):
     """ Mock external requests and make GET /stations/ request """
-
-    def mock_client_get(*args, **kwargs):
-        url = args[1]
-        if '/token' in url:
-            return MockClientSession(json={'access_token': 'Bearer token'})
-
-        if '/page/v1/stations?' in url:
-            match = url.find('page=')
-            with open('tests/wf1_stations_page{}.json'.format(url[match+5:match+6])) as page:
-                return MockClientSession(json=json.load(page))
-
-        raise Exception('unexpected url: {}'.format(url))
-
-    monkeypatch.setattr(ClientSession, 'get', mock_client_get)
+    monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
 
     client = TestClient(APP)
     return client.get('/stations/')
 
 
+# pylint: disable=unused-argument, redefined-outer-name, too-many-arguments
 @then("the response status code is <status>")
 def status_code(response, status: int):
     """ Assert that we receive the expected status code """

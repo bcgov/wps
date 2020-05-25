@@ -5,8 +5,9 @@ import asyncio
 import logging
 from io import StringIO
 from typing import List
+import pytz
 import pandas
-from aiohttp import ClientSession
+from aiohttp import ClientSession, TCPConnector
 from schemas import WeatherForecast, WeatherStation, WeatherForecastValues
 from wildfire_one import get_stations_by_codes
 import config
@@ -63,12 +64,15 @@ def get_key_map():
 async def fetch_forecast(session: ClientSession, station: WeatherStation) -> WeatherForecast:
     """ Return the forecast for a weather station from spotwx.
     """
-    url = '{base_url}?key={key}&model={model}&lat={lat}&lon={long}'.format(
-        lat=station.lat, long=station.long, model='gdps', key=config.get('SPOTWX_API_KEY'),
-        base_url=config.get('SPOTWX_BASE_URI'))
-
-    LOGGER.debug('getting response from spotwx for %d...', station.code)
-    async with session.get(url) as response:
+    params = {
+        'key': config.get('SPOTWX_API_KEY'),
+        'model': 'gdps',
+        'lat': str(station.lat),
+        'lon': str(station.long)
+    }
+    LOGGER.debug(
+        'getting response from spotwx for %d with params %s...', station.code, params)
+    async with session.get(config.get('SPOTWX_BASE_URI'), params=params) as response:
         csv_data = await response.text()
     LOGGER.debug('retreived response from spotwx for %d, csv data: %s...',
                  station.code, csv_data[:20])
@@ -104,11 +108,14 @@ async def fetch_forecast(session: ClientSession, station: WeatherStation) -> Wea
     # Fix the ordering.
     data = data.sort_values(by=['DATETIME'])
     # Set the index to use the date column, for appropriate interpolation.
-    data = data.set_index('DATETIME', drop=False)
+    data = data.set_index('DATETIME')
     # Interpolate using time. (All the null values from our data insert will now be populated)
     data = data.interpolate(method='time')
     # Filter to noon values only.
     data = data.at_time('{}:00:00'.format(utc_noon))
+    # Set the timezone to UTC
+    data['DATETIME'] = data.apply(
+        lambda row: row.name.tz_localize(tz=pytz.utc).isoformat(), axis=1)
     # Rename all columns using our key map.
     data = data.rename(columns=get_key_map())
     # Create forecast object to return.
@@ -118,31 +125,21 @@ async def fetch_forecast(session: ClientSession, station: WeatherStation) -> Wea
     return forecast
 
 
-async def fetch_forecast_with_semaphore(
-        semaphore: asyncio.Semaphore,
-        station: WeatherStation, session: ClientSession) -> asyncio.Future:
-    """ Fetch a forecast for a station using a semaphor.
-    """
-    async with semaphore:
-        return await fetch_forecast(session, station)
-
-
 async def fetch_forecasts(station_codes: List[int]) -> asyncio.Future:
     """ Fetch forecasts for all stations concurrently.
     """
     # Create a list containing all the tasks to run in parallel.
     tasks = []
     # Limit the number of concurrent tasks that can be run to 10, using a semaphore.
-    # NOTE: Wouldn't using TCPConnector with a pool limit give us the same as using the semaphore?
-    semaphore = asyncio.Semaphore(10)
+    conn = TCPConnector(limit=10)
 
+    # NOTE: this should be re-factored to re-use the same ClientSession
     stations = await get_stations_by_codes(station_codes)
 
-    async with ClientSession() as session:
+    async with ClientSession(connector=conn) as session:
         # Line up tasks
         for station in stations:
-            task = asyncio.create_task(
-                fetch_forecast_with_semaphore(semaphore, station, session))
+            task = asyncio.create_task(fetch_forecast(session, station))
             tasks.append(task)
         # Run the tasks concurrently, waiting for them all to complete.
         return await asyncio.gather(*tasks)
