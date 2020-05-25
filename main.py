@@ -86,13 +86,24 @@ async def get_health():
 
 
 @APP.post('/forecasts/', response_model=schemas.WeatherForecastResponse)
-async def get_forecasts(request: schemas.WeatherForecastRequest, _: bool = Depends(authenticate)):
+async def get_forecasts(request: schemas.StationCodeList, _: bool = Depends(authenticate)):
     # async def get_forecasts(request: schemas.WeatherForecastRequest):
     """ Returns 10 day noon forecasts based on the global deterministic prediction system (GDPS)
     for the specified set of weather stations. """
     try:
         forecasts = await fetch_forecasts(request.stations)
         return schemas.WeatherForecastResponse(forecasts=forecasts)
+    except Exception as exception:
+        LOGGER.critical(exception, exc_info=True)
+        raise
+
+
+@APP.post('/hourlies/', response_model=schemas.WeatherStationHourlyReadingsResponse)
+async def get_hourlies(request: schemas.StationCodeList, _: bool = Depends(authenticate)):
+    """ Returns hourlies for the last 5 days, for the specified weather stations """
+    try:
+        readings = await wildfire_one.get_hourly_readings(request.stations)
+        return schemas.WeatherStationHourlyReadingsResponse(hourlies=readings)
     except Exception as exception:
         LOGGER.critical(exception, exc_info=True)
         raise
