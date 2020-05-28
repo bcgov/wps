@@ -19,12 +19,12 @@ const useStyles = makeStyles(theme => ({
   }
 }))
 
-export const Button = ({ loading, ...buttonProps }: Props) => {
+export const Button = ({ loading, className, disabled, ...buttonProps }: Props) => {
   const classes = useStyles()
-  const buttonClassName = clsx(classes.root, buttonProps.className)
+  const buttonClassName = clsx(classes.root, className)
 
   return (
-    <B className={buttonClassName} {...buttonProps}>
+    <B {...buttonProps} className={buttonClassName} disabled={disabled || loading}>
       {buttonProps.children}
       {loading && <CircularProgress size={24} className={classes.spinner} />}
     </B>

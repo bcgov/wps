@@ -33,7 +33,7 @@ interface Props {
   maxNumOfSelect?: number
 }
 
-export const WxStationDropdown = (props: Props) => {
+const WxStationDropdown = (props: Props) => {
   const classes = useStyles()
   const { stations, error } = useSelector(selectStations)
   const isError = Boolean(error)
@@ -87,3 +87,5 @@ export const WxStationDropdown = (props: Props) => {
     </div>
   )
 }
+
+export default React.memo(WxStationDropdown)

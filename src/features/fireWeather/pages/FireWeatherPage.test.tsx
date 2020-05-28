@@ -5,12 +5,12 @@ import { waitForElement, cleanup, fireEvent } from '@testing-library/react'
 import { selectStations } from 'app/rootReducer'
 import axios from 'api/axios'
 import { renderWithRedux } from 'utils/testUtils'
-import { DailyForecastsPage } from 'features/dailyForecasts/DailyForecastsPage'
+import FireWeatherPage from 'features/fireWeather/pages/FireWeatherPage'
 import {
   mockStations,
-  mockForecastsResponse,
-  mockHourliesResponse
-} from 'features/dailyForecasts/DailyForecastsPage.mock'
+  mockModelsResponse,
+  mockReadingsResponse
+} from 'features/fireWeather/pages/FireWeatherPage.mock'
 
 const mockAxios = new MockAdapter(axios)
 
@@ -19,21 +19,21 @@ afterEach(() => {
   cleanup()
 })
 
-it('renders daily forecast page', async () => {
-  const { getByText, getByTestId } = renderWithRedux(<DailyForecastsPage />)
+it('renders fire weather page', async () => {
+  const { getByText, getByTestId } = renderWithRedux(<FireWeatherPage />)
   // before authenticated
   expect(getByText(/Signing in/i)).toBeInTheDocument()
 
   // Check if all the components are rendered after authenticated
   await waitForElement(() => getByText(/Predictive Services Unit/i))
-  expect(getByText(/Daily Weather Forecast/i)).toBeInTheDocument()
+  expect(getByText(/Daily Weather Model/i)).toBeInTheDocument()
   expect(getByTestId('weather-station-dropdown')).toBeInTheDocument()
 })
 
 it('renders weather stations dropdown with data', async () => {
   mockAxios.onGet('/stations/').replyOnce(200, { weather_stations: mockStations })
 
-  const { getByText, getByTestId, store } = renderWithRedux(<DailyForecastsPage />)
+  const { getByText, getByTestId, store } = renderWithRedux(<FireWeatherPage />)
   expect(selectStations(store.getState()).stations).toEqual([])
 
   // wait for authentication
@@ -50,12 +50,12 @@ it('renders weather stations dropdown with data', async () => {
   expect(selectStations(store.getState()).stations).toEqual(mockStations)
 })
 
-it('renders daily forecast and hourly values in response to user inputs', async () => {
+it('renders daily model and hourly values in response to user inputs', async () => {
   mockAxios.onGet('/stations/').replyOnce(200, { weather_stations: mockStations })
-  mockAxios.onPost('/forecasts/').replyOnce(200, mockForecastsResponse)
-  mockAxios.onPost('/hourlies/').replyOnce(200, mockHourliesResponse)
+  mockAxios.onPost('/forecasts/').replyOnce(200, mockModelsResponse)
+  mockAxios.onPost('/hourlies/').replyOnce(200, mockReadingsResponse)
 
-  const { getByText, getByTestId } = renderWithRedux(<DailyForecastsPage />)
+  const { getByText, getByTestId } = renderWithRedux(<FireWeatherPage />)
 
   // wait for authentication
   await waitForElement(() => getByText(/Predictive Services Unit/i))
@@ -68,15 +68,15 @@ it('renders daily forecast and hourly values in response to user inputs', async 
   fireEvent.click(station1)
 
   // Send the request
-  fireEvent.click(getByTestId('get-forecast-wx-button'))
+  fireEvent.click(getByTestId('get-wx-data-button'))
 
-  // Wait until the forecasts are fetched
-  await waitForElement(() => getByTestId('daily-forecast-displays'))
-  // Wait until the hourlies are fetched
-  await waitForElement(() => getByTestId('hourly-readings-displays'))
+  // Wait until all the displays show up
+  await waitForElement(() => getByTestId('daily-models-display'))
+  await waitForElement(() => getByTestId('hourly-readings-display'))
+  await waitForElement(() => getByTestId('weather-graph-by-station'))
 
   // Validate the correct request body
-  // There should have been two requests, one for forecasts and one for hourlies.
+  // There should have been two requests, one for models and one for hourly readings.
   expect(mockAxios.history.post.length).toBe(2)
   // Each of those request should ask for a station
   mockAxios.history.post.forEach(post => {

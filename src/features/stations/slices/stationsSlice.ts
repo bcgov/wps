@@ -14,7 +14,7 @@ export const initialState: StationsState = {
   stations: []
 }
 
-const stations = createSlice({
+const stationsSlice = createSlice({
   name: 'stations',
   initialState: initialState,
   reducers: {
@@ -37,9 +37,9 @@ export const {
   getStationsStart,
   getStationsFailed,
   getStationsSuccess
-} = stations.actions
+} = stationsSlice.actions
 
-export default stations.reducer
+export default stationsSlice.reducer
 
 export const fetchWxStations = (): AppThunk => async dispatch => {
   try {

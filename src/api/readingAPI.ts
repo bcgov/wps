@@ -1,7 +1,7 @@
 import { Station } from 'api/stationAPI'
 import axios from 'api/axios'
 
-interface HourlyReading {
+export interface ReadingValue {
   datetime: string
   temperature: number
   relative_humidity: number
@@ -14,20 +14,20 @@ interface HourlyReading {
   fwi?: number
 }
 
-export interface HourlyReadings {
+export interface Reading {
   station: Station
-  values: HourlyReading[]
+  values: ReadingValue[]
 }
 
-export interface HourliesResponse {
-  hourlies: HourlyReadings[]
+export interface ReadingsResponse {
+  hourlies: Reading[]
 }
 
-export async function getHourlies(stationCodes: number[]): Promise<HourlyReadings[]> {
+export async function getReadings(stationCodes: number[]): Promise<Reading[]> {
   const url = '/hourlies/'
 
   try {
-    const { data } = await axios.post<HourliesResponse>(url, {
+    const { data } = await axios.post<ReadingsResponse>(url, {
       stations: stationCodes
     })
     return data.hourlies

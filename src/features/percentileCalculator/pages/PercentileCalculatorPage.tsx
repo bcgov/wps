@@ -4,7 +4,7 @@ import { useDispatch } from 'react-redux'
 import { Station } from 'api/stationAPI'
 import { PageHeader, PageTitle, Container } from 'components'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
-import { WxStationDropdown } from 'features/stations/components/WxStationDropdown'
+import WxStationDropdown from 'features/stations/components/WxStationDropdown'
 import { PercentileTextfield } from 'features/percentileCalculator/components/PercentileTextfield'
 import {
   fetchPercentiles,

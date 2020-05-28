@@ -21,7 +21,7 @@ export const initialState: State = {
   error: null
 }
 
-const auth = createSlice({
+const authSlice = createSlice({
   name: 'authentication',
   initialState,
   reducers: {
@@ -62,9 +62,9 @@ export const {
   authenticateFinished,
   authenticateError,
   refreshTokenFinished
-} = auth.actions
+} = authSlice.actions
 
-export default auth.reducer
+export default authSlice.reducer
 
 export const authenticate = (): AppThunk => dispatch => {
   dispatch(authenticateStart())

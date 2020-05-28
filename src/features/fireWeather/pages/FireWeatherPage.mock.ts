@@ -1,5 +1,5 @@
-import { ForecastsResponse } from 'api/forecastAPI'
-import { HourliesResponse } from 'api/hourliesAPI'
+import { ModelsResponse } from 'api/modelAPI'
+import { ReadingsResponse } from 'api/readingAPI'
 import { RecursivePartial } from 'types/utilTypes'
 
 export const mockStations = [
@@ -7,7 +7,7 @@ export const mockStations = [
   { code: 2, name: 'Station 2', lat: '2', long: '2' }
 ]
 
-export const mockForecastsResponse: RecursivePartial<ForecastsResponse> = {
+export const mockModelsResponse: RecursivePartial<ModelsResponse> = {
   forecasts: [
     {
       station: mockStations[0],
@@ -25,7 +25,7 @@ export const mockForecastsResponse: RecursivePartial<ForecastsResponse> = {
   ]
 }
 
-export const mockHourliesResponse: RecursivePartial<HourliesResponse> = {
+export const mockReadingsResponse: RecursivePartial<ReadingsResponse> = {
   hourlies: [
     {
       station: mockStations[0],
