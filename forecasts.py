@@ -74,7 +74,7 @@ async def fetch_forecast(session: ClientSession, station: WeatherStation) -> Wea
         'getting response from spotwx for %d with params %s...', station.code, params)
     async with session.get(config.get('SPOTWX_BASE_URI'), params=params) as response:
         csv_data = await response.text()
-    LOGGER.debug('retreived response from spotwx for %d, csv data: %s...',
+    LOGGER.debug('retrieved response from spotwx for %d, csv data: %s...',
                  station.code, csv_data[:20])
 
     # Data from spotwx comes back as csv :(
@@ -111,8 +111,6 @@ async def fetch_forecast(session: ClientSession, station: WeatherStation) -> Wea
     data = data.set_index('DATETIME')
     # Interpolate using time. (All the null values from our data insert will now be populated)
     data = data.interpolate(method='time')
-    # Filter to noon values only.
-    data = data.at_time('{}:00:00'.format(utc_noon))
     # Set the timezone to UTC
     data['DATETIME'] = data.apply(
         lambda row: row.name.tz_localize(tz=pytz.utc).isoformat(), axis=1)

@@ -42,19 +42,13 @@ def num_of_forecasts(response, num_forecasts):
     assert len(response.json()['forecasts']) == num_forecasts
 
 
-@then("there are 10 days of forecasts for each station")
+@then("there are 3 hourly forecast with 10 days of interpolated noon values for each station")
 def ten_days_of_forecasts(response):
     """ We're expecting a 10 day forecast. """
-    assert len(response.json()['forecasts'][0]['values']) == 10
-
-
-@then("forecasts have noon values only")
-def expect_noon_values_only(response):
-    """ We're expecting noon values (20h00 UTC). """
-    for forecast in response.json()['forecasts']:
-        for values in forecast['values']:
-            timestamp = datetime.fromisoformat(values['datetime'])
-            assert timestamp.hour == 20
+    num_of_3_hourly = 81
+    num_of_noons = 10
+    assert len(response.json()['forecasts'][0]
+               ['values']) == num_of_3_hourly + num_of_noons
 
 
 @then("forecast values should be interpolated")
@@ -68,5 +62,6 @@ def expect_interpolated_values(response):
     # calculate interpolated temperature
     expected_temperature = numpy.interp(datetime.fromisoformat(
         '2020-05-04T20:00:00').timestamp(), x_p, f_p)
-    temp_value = response.json()['forecasts'][0]['values'][0]['temperature']
-    assert temp_value == expected_temperature
+    noon = response.json()['forecasts'][0]['values'][3]
+    noon_temperature = noon['temperature']
+    assert noon_temperature == expected_temperature
