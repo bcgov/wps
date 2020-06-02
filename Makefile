@@ -8,6 +8,12 @@ test:
 	# -s show stdout
 	pipenv run python -m pytest
 
+test-coverage:
+	pipenv run coverage run --source=. -m pytest
+	pipenv run coverage report
+	pipenv run coverage xml -o coverage-reports/coverage-report.xml
+
+
 lint:
 	# Run lint in virtual environment.
 	pipenv run pylint --rcfile=.pylintrc *.py **/*.py
@@ -71,5 +77,3 @@ docker-shell-dev:
 docker-shell-db:
 	# Shell into the db container
 	docker-compose exec db psql -h postgres -U wps
-
-
