@@ -15,6 +15,7 @@ pylint = "*"
 asynctest = "*"
 nest-asyncio = "*"
 pytest-bdd = "*"
+coverage = "*"
 
 [packages]
 fastapi = "*"

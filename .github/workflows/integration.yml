@@ -4,7 +4,7 @@ on: [pull_request]
 
 jobs:
   lint-and-test:
-    name: Lint & Unit Test
+    name: Lint, Unit Test & SonarQube
     if: github.event.pull_request.state == 'open'
     runs-on: ubuntu-latest
     strategy:
@@ -13,6 +13,9 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
+        with:
+          # For sonar-scanner to work properly we can't use a shallow fetch.
+          fetch-depth: 0
 
       - name: Setup Python ${{ matrix.python-version }}
         uses: actions/setup-python@v1
@@ -30,3 +33,25 @@ jobs:
 
       - name: Unit Test
         run: ORIGINS=testorigin python3 -m pytest -o log_cli=true --disable-warnings --verbose
+
+      - name: Run coverage and SonarScanner
+        # - Re-run unit test with coverage.
+        # - Install sonar-scanner.
+        # - Run sonar-scanner.
+        shell: bash
+        env:
+          SONARCLOUD_TOKEN: ${{ secrets.SONARCLOUD_TOKEN }}
+        run: |
+          echo "---Install sonar-scanner---"
+          export SONAR_SCANNER_VERSION=4.2.0.1873
+          export SONAR_SCANNER_HOME=$HOME/.sonar/sonar-scanner-$SONAR_SCANNER_VERSION-linux
+          curl --create-dirs -sSLo $HOME/.sonar/sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-$SONAR_SCANNER_VERSION-linux.zip
+          unzip -o $HOME/.sonar/sonar-scanner.zip -d $HOME/.sonar/
+          export PATH=$SONAR_SCANNER_HOME/bin:$PATH
+          export SONAR_SCANNER_OPTS="-server"
+          echo "---Run tests with coverage---"
+          ORIGINS=testorigin coverage run --source=. -m pytest
+          coverage report
+          coverage xml -o coverage-reports/coverage-report.xml
+          echo "---Run sonar-scanner---"
+          sonar-scanner -Dsonar.login="$SONARCLOUD_TOKEN"
