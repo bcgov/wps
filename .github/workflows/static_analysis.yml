@@ -1,11 +1,13 @@
-name: Integration
+name: Static Analysis
 
-on: [pull_request]
+on:
+  push:
+    branches:
+      - master
 
 jobs:
-  lint-and-test:
-    name: Lint & Unit Test
-    if: github.event.pull_request.state == 'open'
+  coverage:
+    name: SonarQube - (master)
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -20,8 +22,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - run: npm ci
-      - run: npm run lint
-      - name: Tests with coverage
+      - name: Test coverage
         run: npm run coverage:ci
       - name: SonarCloud Scan
         uses: sonarsource/sonarcloud-github-action@master

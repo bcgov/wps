@@ -40,6 +40,8 @@
     "build": "react-scripts build",
     "test": "DEBUG_PRINT_LIMIT=5000 react-scripts test",
     "test:ci": "CI=true npm test",
+    "coverage": "npm test -- --coverage --watchAll=false",
+    "coverage:ci": "CI=true npm test -- --coverage --watchAll=false",
     "eject": "react-scripts eject",
     "lint": "eslint './src/**/*.{ts,tsx}'",
     "lint:fix": "eslint --fix './src/**/*.{ts,tsx}'",
@@ -80,5 +82,13 @@
     "hooks": {
       "pre-push": ".githooks/pre-push & npm run lint & npm run test:ci"
     }
+  },
+  "jest": {
+    "collectCoverageFrom": [
+      "src/**/*.{ts,tsx}",
+      "!src/**/*.stories.tsx",
+      "!src/index.ts",
+      "!src/serviceWorker.ts"
+    ]
   }
 }
