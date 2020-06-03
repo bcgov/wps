@@ -27,6 +27,10 @@ aiohttp = "*"
 pandas = "*"
 pyjwt = "*"
 cryptography = "*"
+sqlalchemy = "*"
+psycopg2 = "*"
+postgres = "*"
+alchemy-mock = "*"
 
 [requires]
 python_version = "3.8"
