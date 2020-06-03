@@ -176,6 +176,9 @@ objects:
       labels:
         app: ${NAME}-${SUFFIX}
       name: ${NAME}-${SUFFIX}
+      annotations:
+        # Enable HTTP Strict Transport Security:
+        haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
     spec:
       host: ${NAME}-${SUFFIX}.pathfinder.gov.bc.ca
       port:
