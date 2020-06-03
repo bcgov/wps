@@ -26,7 +26,7 @@ export const Button = ({ loading, className, disabled, ...buttonProps }: Props) 
   return (
     <B {...buttonProps} className={buttonClassName} disabled={disabled || loading}>
       {buttonProps.children}
-      {loading && <CircularProgress size={24} className={classes.spinner} />}
+      {loading && <CircularProgress size={20} className={classes.spinner} />}
     </B>
   )
 }

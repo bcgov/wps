@@ -5,10 +5,9 @@ import { makeStyles } from '@material-ui/core/styles'
 
 import DailyModelsDisplay from 'features/fireWeather/components/DailyModelsDisplay'
 import HourlyReadingsDisplay from 'features/fireWeather/components/HourlyReadingsDisplay'
-import WxGraphByStation from 'features/fireWeather/components/WxGraphByStation'
+import WxGraphByStation from 'features/fireWeather/components/WxDataGraph'
 import { Station } from 'api/stationAPI'
 import { selectReadings, selectModels } from 'app/rootReducer'
-import { ErrorMessage } from 'components'
 
 const useStyles = makeStyles({
   displays: {
@@ -27,42 +26,27 @@ const useStyles = makeStyles({
 })
 
 interface Props {
-  stations: Station[]
+  requestedStations: Station[]
 }
 
-const WxDisplaysByStations = ({ stations }: Props) => {
+const WxDataDisplays = ({ requestedStations }: Props) => {
   const classes = useStyles()
-  const { error: errorFetchingReadings, readingsByStation } = useSelector(selectReadings)
-  const {
-    error: errorFetchingModels,
-    noonModelsByStation,
-    modelsByStation
-  } = useSelector(selectModels)
+
+  const { loading: loadingReadings, readingsByStation } = useSelector(selectReadings)
+  const { loading: loadingModels, noonModelsByStation, modelsByStation } = useSelector(
+    selectModels
+  )
+
+  const wxDataLoading = loadingModels || loadingReadings
 
   return (
-    <>
-      {errorFetchingModels && (
-        <ErrorMessage
-          error={errorFetchingModels}
-          context="while fetching global model data"
-          marginTop={5}
-        />
-      )}
-
-      {errorFetchingReadings && (
-        <ErrorMessage
-          error={errorFetchingReadings}
-          context="while fetching hourly readings"
-          marginTop={5}
-        />
-      )}
-
-      <div className={classes.displays}>
-        {stations.map(s => {
-          const ReadingValues = readingsByStation[s.code]
-          const ModelValues = modelsByStation[s.code]
+    <div className={classes.displays}>
+      {!wxDataLoading &&
+        requestedStations.map(s => {
+          const readingValues = readingsByStation[s.code]
+          const modelValues = modelsByStation[s.code]
           const noonModelValues = noonModelsByStation[s.code]
-          const nothingToDisplay = !ReadingValues && !ModelValues
+          const nothingToDisplay = !readingValues && !modelValues
 
           if (nothingToDisplay) {
             return null
@@ -73,15 +57,14 @@ const WxDisplaysByStations = ({ stations }: Props) => {
               <Typography className={classes.station} variant="subtitle1" component="div">
                 Weather station: {`${s.name} (${s.code})`}
               </Typography>
-              <HourlyReadingsDisplay values={ReadingValues} />
+              <HourlyReadingsDisplay values={readingValues} />
               <DailyModelsDisplay values={noonModelValues} />
-              <WxGraphByStation values={ModelValues} />
+              <WxGraphByStation modelValues={modelValues} readingValues={readingValues} />
             </Paper>
           )
         })}
-      </div>
-    </>
+    </div>
   )
 }
 
-export default React.memo(WxDisplaysByStations)
+export default React.memo(WxDataDisplays)

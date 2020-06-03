@@ -143,4 +143,5 @@ objects:
         kind: Service
         name: ${NAME}-${SUFFIX}
       tls:
+        insecureEdgeTerminationPolicy: Redirect
         termination: edge

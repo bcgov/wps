@@ -9,9 +9,9 @@ export interface ReadingValue {
   wind_direction: number
   barometric_pressure: number
   precipitation: number
-  ffmc?: number
-  isi?: number
-  fwi?: number
+  ffmc: number | null
+  isi: number | null
+  fwi: number | null
 }
 
 export interface Reading {

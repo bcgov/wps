@@ -3,10 +3,10 @@ import { useDispatch, useSelector } from 'react-redux'
 import { makeStyles } from '@material-ui/core/styles'
 
 import { Station } from 'api/stationAPI'
-import { selectAuthentication, selectModels, selectReadings } from 'app/rootReducer'
-import { PageHeader, PageTitle, Container, Button } from 'components'
+import { selectAuthentication } from 'app/rootReducer'
+import { PageHeader, PageTitle, Container } from 'components'
 import WxStationDropdown from 'features/stations/components/WxStationDropdown'
-import WxDisplaysByStations from 'features/fireWeather/components/WxDisplaysByStations'
+import WxDisplaysByStations from 'features/fireWeather/components/WxDataDisplays'
 import {
   authenticate,
   setAxiosRequestInterceptors
@@ -14,6 +14,7 @@ import {
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { fetchModels } from 'features/fireWeather/slices/modelsSlice'
 import { fetchReadings } from 'features/fireWeather/slices/readingsSlice'
+import GetWxDataButton from '../components/GetWxDataButton'
 
 const useStyles = makeStyles({
   stationDropdown: {
@@ -28,8 +29,6 @@ const FireWeatherPage = () => {
   const [selectedStations, setStations] = useState<Station[]>([])
   const [requestedStations, setRequestedStations] = useState<Station[]>([])
   const { isAuthenticated, authenticating, error } = useSelector(selectAuthentication)
-  const { loading: loadingModels } = useSelector(selectModels)
-  const { loading: loadingReadings } = useSelector(selectReadings)
 
   useEffect(() => {
     dispatch(authenticate())
@@ -53,14 +52,11 @@ const FireWeatherPage = () => {
     setStations(s)
   }
   const onSubmitClick = () => {
-    const stationCodes = selectedStations.map(s => s.code)
     setRequestedStations(selectedStations)
+    const stationCodes = selectedStations.map(s => s.code)
     dispatch(fetchModels(stationCodes))
     dispatch(fetchReadings(stationCodes))
   }
-
-  const wxDataLoading = loadingModels || loadingReadings
-  const isBtnDisabled = selectedStations.length === 0
 
   return (
     <div data-testid="fire-weather-page">
@@ -72,17 +68,8 @@ const FireWeatherPage = () => {
           stations={selectedStations}
           onStationsChange={onStationsChange}
         />
-        <Button
-          data-testid="get-wx-data-button"
-          onClick={onSubmitClick}
-          disabled={isBtnDisabled}
-          loading={wxDataLoading}
-          variant="contained"
-          color="primary"
-        >
-          Get Historic Readings &amp; Global Model Data
-        </Button>
-        <WxDisplaysByStations stations={requestedStations} />
+        <GetWxDataButton onBtnClick={onSubmitClick} selectedStations={selectedStations} />
+        <WxDisplaysByStations requestedStations={requestedStations} />
       </Container>
     </div>
   )

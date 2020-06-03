@@ -1,3 +1,4 @@
 src/serviceWorker.ts
 src/**/__tests__/**
+src/**/*.stories.tsx
 src/types/**
