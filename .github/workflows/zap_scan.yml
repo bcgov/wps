@@ -1,0 +1,20 @@
+name: Every Sunday at 02:00
+on:
+  schedule:
+    # Scheduled workflows run on the latest commit on the default or base branch.
+    - cron: "0 2 * * 0"
+
+jobs:
+  zap_scan:
+    runs-on: ubuntu-latest
+    name: Scan the webapplication
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: master
+      - name: ZAP Scan
+        # f.y.i.: ZAP Scan must be able to log an issue or it will fail.
+        uses: zaproxy/action-baseline@v0.3.0
+        with:
+          target: "https://wps-web-prod.pathfinder.gov.bc.ca/"
