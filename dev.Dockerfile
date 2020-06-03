@@ -20,4 +20,4 @@ RUN python -m pipenv install --dev
 
 EXPOSE 8080
 
-CMD pipenv run uvicorn main:APP --reload --host 0.0.0.0 --port 8080
+CMD pipenv run python -m db.create_db; pipenv run uvicorn main:APP --reload --host 0.0.0.0 --port 8080

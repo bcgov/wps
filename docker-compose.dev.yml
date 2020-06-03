@@ -12,6 +12,8 @@ services:
       - .:/app:delegated
     depends_on:
       - db
+    networks: 
+      - wps_network
   # Application's local database container & service
   db:
     image: postgis/postgis
@@ -21,3 +23,10 @@ services:
     environment:
       - POSTGRES_USER=wps
       - POSTGRES_PASSWORD=wps
+      - POSTGRES_DB=wps
+      - POSTGRES_HOST_AUTH_METHOD="trust"
+    networks:
+      - wps_network
+networks:
+  wps_network:
+    driver: bridge
