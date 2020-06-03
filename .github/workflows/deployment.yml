@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-and-deploy:
-    name: Build & Deploy to Dev
+    name: Build, Deploy to Dev & run Zap Baseline Scan
     runs-on: ubuntu-latest
     steps:
       - name: Set Variables
@@ -32,6 +32,13 @@ jobs:
         with:
           AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
           SCRIPT: openshift/scripts/oc_deploy.sh ${SUFFIX} apply
+
+      - name: ZAP Scan
+        if: github.event.pull_request.state == 'open'
+        # f.y.i.: ZAP Scan must be able to log an issue or it will fail.
+        uses: zaproxy/action-baseline@v0.3.0
+        with:
+          target: "https://wps-api-pr-${{ github.event.number }}.pathfinder.gov.bc.ca"
 
       - name: Clean up
         if: github.event.pull_request.state == 'closed'

@@ -1,17 +1,19 @@
-name: Integration
+name: Static Analysis
 
-on: [pull_request]
+on:
+  push:
+    branches:
+      - master
 
 jobs:
-  lint-and-test:
-    name: Lint, Unit Test & SonarQube
-    if: github.event.pull_request.state == 'open'
+  coverage:
+    name: SonarQube - (master)
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: [3.8]
     steps:
-      - name: Checkout repo
+      - name: Checkout repo (master)
         uses: actions/checkout@v2
         with:
           # For sonar-scanner to work properly we can't use a shallow fetch.
@@ -28,15 +30,10 @@ jobs:
       - name: Install Remaining Dependencies
         run: pipenv install --dev --system
 
-      - name: Lint
-        run: python3 -m pylint --rcfile=.pylintrc *.py **/*.py
-
-      - name: Unit Test (with coverage)
-        run: ORIGINS=testorigin coverage run --source=. -m pytest -o log_cli=true --disable-warnings --verbose
-
-      - name: Create coverage report
+      - name: Run unit tests with coverage
         shell: bash
         run: |
+          ORIGINS=testorigin coverage run --source=. -m pytest
           coverage report
           coverage xml -o coverage-reports/coverage-report.xml
 
