@@ -79,3 +79,6 @@ jspm_packages/
 
 # IDE - VSCode
 .vscode/*
+
+# sonar-scanner
+.scannerwork
