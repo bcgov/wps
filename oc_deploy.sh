@@ -10,7 +10,8 @@ source "$(dirname ${0})/common/common"
 #%
 #% Usage:
 #%
-#%   ${THIS_FILE} [SUFFIX] [apply]
+#%   [CPU_REQUEST=<>] [CPU_LIMIT=<>] [MEMORY_REQUEST=<>] [MEMORY_LIMIT=<>] [REPLICAS=<>] \
+#%     ${THIS_FILE} [SUFFIX] [apply]
 #%
 #% Examples:
 #%
@@ -20,6 +21,8 @@ source "$(dirname ${0})/common/common"
 #%   Apply when satisfied.
 #%   ${THIS_FILE} pr-0 apply
 #%
+#%   Override default CPU_REQUEST to 2000 millicores
+#%   CPU_REQUEST=2000m ${THIS_FILE} pr-0
 
 # Target project override for Dev or Prod deployments
 #
