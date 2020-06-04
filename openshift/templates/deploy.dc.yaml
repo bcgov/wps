@@ -51,7 +51,7 @@ objects:
         app: ${NAME}-${SUFFIX}
       name: ${NAME}-${SUFFIX}
     spec:
-      replicas: '${REPLICAS}'
+      replicas: ${{REPLICAS}}
       selector:
         name: ${NAME}-${SUFFIX}
       strategy:
