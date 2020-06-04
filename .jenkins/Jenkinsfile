@@ -55,7 +55,7 @@ pipeline {
             agent { label 'deploy' }
             steps {
                 script {
-                    sh "CPU_REQUEST=1000 CPU_LIMIT=1000 MEMORY_REQUEST=2gi MEMORY_LIMIT=2gi REPLICAS=3 PROJ_TARGET=${projProd} ./openshift/scripts/oc_deploy.sh prod apply"
+                    sh "CPU_REQUEST=1000m CPU_LIMIT=1000m MEMORY_REQUEST=2Gi MEMORY_LIMIT=2Gi REPLICAS=3 PROJ_TARGET=${projProd} ./openshift/scripts/oc_deploy.sh prod apply"
                 }
             }
         }

@@ -27,7 +27,7 @@ PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 
 # Process a template (mostly variable substition)
 #
-OC_PROCESS="oc -n ${PROJ_TOOLS} process -f ${PATH_DC} -p NAME=${NAME_APP} -p SUFFIX=${SUFFIX} -p CPU_REQUEST=${CPU_REQUEST:-500} -p CPU_LIMIT=${CPU_LIMIT:-500} -p MEMORY_REQUEST=${MEMORY_REQUEST:-1gi} -p MEMORY_LIMIT=${MEMORY_LIMIT:-1gi} -p REPLICAS=${REPLICAS:-2}"
+OC_PROCESS="oc -n ${PROJ_TOOLS} process -f ${PATH_DC} -p NAME=${NAME_APP} -p SUFFIX=${SUFFIX} -p CPU_REQUEST=${CPU_REQUEST:-500m} -p CPU_LIMIT=${CPU_LIMIT:-500m} -p MEMORY_REQUEST=${MEMORY_REQUEST:-1Gi} -p MEMORY_LIMIT=${MEMORY_LIMIT:-1Gi} -p REPLICAS=${REPLICAS:-2}"
 
 # Apply a template (apply or use --dry-run)
 #
