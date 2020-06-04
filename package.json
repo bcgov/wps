@@ -87,7 +87,7 @@
     "collectCoverageFrom": [
       "src/**/*.{ts,tsx}",
       "!src/**/*.stories.tsx",
-      "!src/index.ts",
+      "!src/index.tsx",
       "!src/serviceWorker.ts"
     ]
   }

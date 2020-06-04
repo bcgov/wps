@@ -4,7 +4,7 @@ on: [pull_request]
 
 jobs:
   lint-and-test:
-    name: Lint & Unit Test
+    name: Lint, Unit Test, Coverage & SonarQube
     if: github.event.pull_request.state == 'open'
     runs-on: ubuntu-latest
     strategy:
@@ -23,6 +23,11 @@ jobs:
       - run: npm run lint
       - name: Tests with coverage
         run: npm run coverage:ci
+      - name: Fix code coverage paths
+        # Due to the way sonarscanner mounts thing when running in docker, we need to change the coverage file.
+        working-directory: ./coverage
+        run: |
+          sed -i 's/\/home\/runner\/work\/wps-web\/wps-web\//\/github\/workspace\//g' lcov.info
       - name: SonarCloud Scan
         uses: sonarsource/sonarcloud-github-action@master
         env:
