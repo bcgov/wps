@@ -1,4 +1,4 @@
-# Wildfire Predictive Services Web Application
+# Wildfire Predictive Services
 
 ## Description
 
@@ -6,90 +6,28 @@ Wildfire Predictive Services to support decision making in prevention, preparedn
 
 ## Getting Started
 
-### Dependencies
-
-- [Node.js](https://nodejs.org/en/) - You’ll need to have Node >= 10.x and npm >= 5.6 on your machine. You can use [nvm](https://github.com/nvm-sh/nvm#installation) (macOS/Linux) or [nvm-windows](https://github.com/coreybutler/nvm-windows#node-version-manager-nvm-for-windows) to switch Node versions between different projects.
-
-Note: We are using Node 10 as a base image on our pipeline.
-
-### Installing
-
-In the project directory, run:
-
-#### `npm install`
-
-Installs all dependencies in the node_modules folder.
-
-### Executing program
-
-In the project directory, create `.env` file at root using `.env.example` as a sample, then you can run:
-
-#### `npm start`
-
-Runs the app in the development mode.
-The page will reload if you make edits. You will also see any lint errors in the console.
-
-#### `npm test`
-
-Launches the test runner in the interactive watch mode.
-
-#### `npm run build`
-
-Builds the app for production to the `build` folder.
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-##### Running the application in docker:
-
-1. Create `.env` file at root using `.env.example` as a sample
-2. Run `docker-compose build` and then `docker-compose up`
-3. Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
-
-## Config
-
-In `openshift/templates/global.config.yaml` there is a template for a global ConfigMap. This template can be applied to the Openshift project from the command line. For example, to apply the global.config template and pass a value for the REACT_APP_KEYCLOAK_REALM parameter, run
-
-`oc -n <openshift-project-name> process -f openshift/templates/global.config.yaml -p REACT_APP_KEYCLOAK_REALM=<realm-name> | oc create -f -`
-
-## Contributing
-
-### Branch naming conventions
-
-Branches must be named in accordance with the rules specified in [.githooks/pre-push](.githooks/pre-push).
-
-- branch names should be informative, meaningful and concise.
-- branch names should follow the pattern (category)/(description)/(ticket number)
-
-```
-# Enforce branch naming conventions for this project using git hooks.
-git config core.hooksPath .githooks
-```
-
-example of a good branch name:
-
-```
-# Task related to re-factoring of logging, the ticket number being 123:
-task/re-factor-logging/123
-```
-
-example of a bad branch name:
-
-```
-wps-123
-```
+To be provided after first sprint or release.
 
 ## License
 
-This project is licensed under the [Apache License, Version 2.0](https://github.com/bcgov/wps-web/blob/master/LICENSE).
+[Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) License - see the [LICENSE.md](https://github.com/bcgov/wps/blob/master/LICENSE)
 
-## Acknowledgments
+## Glossary
 
-Inspiration, code snippets, etc.
+A glossary of terms relating to Wildfire that are relevant to Predictive Services can be found at the [Predictive Wildfire Wiki Glossary Page](https://github.com/bcgov/wps/wiki/Glossary)
 
-- [Create React App](https://github.com/facebook/create-react-app/)
-- [Redux Toolkit - advanced tutorial](https://redux-toolkit.js.org/tutorials/advanced-tutorial/)
+## Contributing
 
-[![SonarCloud](https://sonarcloud.io/images/project_badges/sonarcloud-white.svg)](https://sonarcloud.io/dashboard?id=bcgov_wps-web)
+# How to contribute
 
-Template copied from
+Resources:
 
-- [DomPizzie](https://gist.github.com/DomPizzie/7a5ff55ffa9081f2de27c315f5018afc)
+  * [Issues](https://github.com/bcgov/wps/issues)
+  * [ZenHub Kanban Board](https://app.zenhub.com/workspaces/wildfire-predictive-services-5e321393e038fba5bbe203b8/board?repos=235861506,237125626,237125691)
+  * [PEP8](https://github.com/python/peps/blob/master/pep-0008.txt) and [PEP20](https://github.com/python/peps/blob/master/pep-0020.txt) coding conventions, but with 110 character line breaks
+  * [Code of Conduct](https://github.com/bcgov/wps/blob/master/CONDUCT.md)
+
+
+Thanks,
+
+The BC Wildfire Predictive Services Team

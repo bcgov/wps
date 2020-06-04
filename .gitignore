@@ -35,13 +35,14 @@ bower_components
 .lock-wscript
 
 # Compiled binary addons (https://nodejs.org/api/addons.html)
-build/
+build/Release
 
 # Dependency directories
 node_modules/
 jspm_packages/
-/.pnp
-.pnp.js
+
+# TypeScript v1 declaration files
+typings/
 
 # TypeScript cache
 *.tsbuildinfo
@@ -74,11 +75,34 @@ jspm_packages/
 # parcel-bundler cache (https://parceljs.org/)
 .cache
 
-# misc
-.DS_Store
+# Next.js build output
+.next
 
-# IDE - VSCode
-.vscode/*
+# Nuxt.js build / generate output
+.nuxt
+dist
 
-# sonar-scanner
-.scannerwork
+# Gatsby files
+.cache/
+# Comment in the public line in if your project uses Gatsby and *not* Next.js
+# https://nextjs.org/blog/next-9-1#public-directory-support
+# public
+
+# vuepress build output
+.vuepress/dist
+
+# Serverless directories
+.serverless/
+
+# FuseBox cache
+.fusebox/
+
+# DynamoDB Local files
+.dynamodb/
+
+# TernJS port file
+.tern-port
+node_modules/
+
+# IDE
+.vscode/

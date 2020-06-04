@@ -1,7 +1,0 @@
-export * from 'components/Button'
-export * from 'components/Container'
-export * from 'components/ErrorMessage'
-export * from 'components/Grid'
-export * from 'components/PageHeader'
-export * from 'components/PageTitle'
-export * from 'components/Slider'
