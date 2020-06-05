@@ -122,3 +122,10 @@ __pycache__/
 
 # CSV
 csv/
+
+# Coverage folders
+.coverage
+coverage-reports
+
+# Sonar-scanner
+.scannerwork

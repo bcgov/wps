@@ -10,7 +10,8 @@ source "$(dirname ${0})/common/common"
 #%
 #% Usage:
 #%
-#%   ${THIS_FILE} [SUFFIX] [apply]
+#%   [CPU_REQUEST=<>] [CPU_LIMIT=<>] [MEMORY_REQUEST=<>] [MEMORY_LIMIT=<>] [REPLICAS=<>] \
+#%     ${THIS_FILE} [SUFFIX] [apply]
 #%
 #% Examples:
 #%
@@ -20,6 +21,8 @@ source "$(dirname ${0})/common/common"
 #%   Apply when satisfied.
 #%   ${THIS_FILE} pr-0 apply
 #%
+#%   Override default CPU_REQUEST to 2000 millicores
+#%   CPU_REQUEST=2000m ${THIS_FILE} pr-0
 
 # Target project override for Dev or Prod deployments
 #
@@ -27,7 +30,14 @@ PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 
 # Process a template (mostly variable substition)
 #
-OC_PROCESS="oc -n ${PROJ_TOOLS} process -f ${PATH_DC} -p NAME=${NAME_APP} -p SUFFIX=${SUFFIX}"
+OC_PROCESS="oc -n ${PROJ_TOOLS} process -f ${PATH_DC} \
+ -p NAME=${NAME_APP} \
+ -p SUFFIX=${SUFFIX} \
+ ${CPU_REQUEST:+ "-p CPU_REQUEST=${CPU_REQUEST}"} \
+ ${CPU_LIMIT:+ "-p CPU_LIMIT=${CPU_LIMIT}"} \
+ ${MEMORY_REQUEST:+ "-p MEMORY_REQUEST=${MEMORY_REQUEST}"} \
+ ${MEMORY_LIMIT:+ "-p MEMORY_LIMIT=${MEMORY_LIMIT}"} \
+ ${REPLICAS:+ "-p REPLICAS=${REPLICAS}"}"
 
 # Apply a template (apply or use --dry-run)
 #
