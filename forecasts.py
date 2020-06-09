@@ -57,7 +57,7 @@ def get_key_map():
         "WSPD_925MB": "wind_speed_925mb",
         "WDIR_925MB": "wind_direction_925mb",
         "WSPD_850MB": "wind_speed_850mb",
-        "WDIR_850MB": "wind_direction_850m"
+        "WDIR_850MB": "wind_direction_850mb"
     }
 
 

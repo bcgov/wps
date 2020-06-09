@@ -84,9 +84,16 @@ class WeatherStationHourlyReadings(BaseModel):
     station: WeatherStation
 
 
+class WeatherForecastModel(BaseModel):
+    """ The full name & acronym for a weather forecast model """
+    name: str
+    abbrev: str
+
+
 class WeatherForecastValues(BaseModel):
     """ The predicted weather values. """
     datetime: datetime
+    forecast_model: WeatherForecastModel = None
     temperature: float = None
     dew_point: float = None
     relative_humidity: float = None
@@ -107,7 +114,7 @@ class WeatherForecastValues(BaseModel):
     wind_speed_925mb: float = None
     wind_direction_925mb: float = None
     wind_speed_850mb: float = None
-    wind_direction_850m: float = None
+    wind_direction_850mb: float = None
 
 
 class WeatherForecast(BaseModel):
