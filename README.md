@@ -34,6 +34,7 @@ Install system dependancies:
 brew install pyenv
 pyenv install 3.8.1
 brew install pipenv
+brew install postgresql
 ```
 
 Install project requirements:
@@ -48,6 +49,12 @@ If you have trouble getting pipenv to resolve python 3.8.1, you can also try exp
 ```
 pipenv install --python ~/.pyenv/versions/3.8.1/bin/python3.8 --dev
 ```
+
+##### Troubleshooting
+
+If you experience errors when installing `psycopg2` in your virtual environment (pipenv) and you are using MacOS, try running
+`env LDFLAGS="-I/usr/local/opt/openssl@1.1/include -L/usr/local/opt/openssl@1.1/lib" pipenv install psycopg2`
+from the command line.
 
 #### Local machine, running Linux
 
@@ -70,6 +77,12 @@ sudo dnf install unixODBC-devel
 See [Makefile](Makefile) for examples of running the API in docker.
 
 e.g.:
+
+```
+make init
+```
+
+will execute `pipenv install --dev`, which is required before executing the program locally for the first time.
 
 ```
 make docker-run
@@ -100,7 +113,13 @@ pipenv run python -m pytest
 pipenv run uvicorn main:APP --reload --port 8080
 ```
 
-To shell into the Docker container for the database, execute `make docker-shell-db` and enter the password for the local DB.
+To shell into the Docker container for the database, execute `make docker-shell-db`.
+
+### Running the database locally
+
+Executing `make docker-build-dev` followed by `make docker-run-dev` will build and run the Docker container needed to run the application locally. Running the dev container will also spin up a local Postgres service and will create a local copy of the wps database with the necessary schemas.
+
+To access the local copy of the database, you can shell into it by opening a new terminal window and executing `psql -h localhost -p 5432 -U <db-username>` and enter the local database password when prompted.
 
 ## Contributing
 
@@ -115,7 +134,7 @@ Run pylint to check that your code conforms before pushing code to the repositor
 make lint
 ```
 
-Or enfore by running [scripts/lint.sh](scripts/lint.sh) as part of your ci/cd pipeline.
+Or enforce by running [scripts/lint.sh](scripts/lint.sh) as part of your ci/cd pipeline.
 
 ### Testing
 
@@ -170,6 +189,8 @@ These templates can be applied to the Openshift project from the command line. F
 This project is licensed under the [Apache License, Version 2.0](https://github.com/bcgov/wps-api/blob/master/LICENSE).
 
 ## Acknowledgments
+
+[![SonarCloud](https://sonarcloud.io/images/project_badges/sonarcloud-white.svg)](https://sonarcloud.io/dashboard?id=bcgov_wps-api)
 
 Template copied from
 

@@ -72,7 +72,7 @@ docker-run-dev:
 
 docker-shell-dev:
 	# Shell into the dev container.
-	docker run -it --entrypoint bash wps-api_api-dev:latest 
+	docker run -it --env-file .env --entrypoint bash wps-api_api-dev:latest 
 
 docker-shell-db:
 	# Shell into the db container

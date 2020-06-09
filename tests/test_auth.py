@@ -3,6 +3,7 @@ from pytest_bdd import scenario, given, then
 from fastapi.testclient import TestClient
 from main import APP
 
+
 # pylint: disable=unused-argument, redefined-outer-name
 @scenario('test_auth.feature', 'Handling unauthenticated users',
           example_converters=dict(token=str, status=int, message=str))
