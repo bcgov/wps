@@ -1,7 +1,7 @@
 {
-    "ffmc": NaN,
-    "isi": NaN,
-    "bui": NaN,
+    "ffmc": 91.24307708740234,
+    "isi": 6.716288232803345,
+    "bui": 86.7507942199707,
     "season": {
         "start_month": 5,
         "start_day": 1,
@@ -9,7 +9,6 @@
         "end_day": 31
     },
     "years": [
-        2000,
         2001,
         2002,
         2003,
@@ -31,9 +30,9 @@
         2019
     ],
     "station": {
-        "code": "321",
-        "name": "GREENSTONE HUB",
-        "lat": "50.6112670",
-        "long": "-120.6415500"
+        "code": "555",
+        "name": "SEYMOUR GVRD",
+        "lat": "49.4830000",
+        "long": "-122.9500000"
     }
 }

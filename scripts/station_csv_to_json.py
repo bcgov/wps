@@ -45,10 +45,10 @@ with open('csv/Station_BC.csv', 'r') as csvfile:
     # Order stations by name.
     WEATHER_STATIONS.sort(key=lambda station: station['name'])
 
-    with open('data/weather_stations.json', 'w') as json_file:
+    with open('app/data/weather_stations.json', 'w') as json_file:
         # Dump json with an indent making it more human readable.
         json.dump({
             'weather_stations': WEATHER_STATIONS
-        }, json_file, indent=' ')
+        }, json_file, indent='  ')
 
     print('Station export complete, {} stations exported.'.format(STATION_COUNT))

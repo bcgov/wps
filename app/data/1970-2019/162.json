@@ -1,7 +1,7 @@
 {
     "ffmc": 91.0,
     "isi": 7.800000190734862,
-    "bui": 104.45613250732418,
+    "bui": 103.79188308715824,
     "season": {
         "start_month": 5,
         "start_day": 1,
@@ -58,7 +58,7 @@
     ],
     "station": {
         "code": "162",
-        "name": "HOUSTON(DUNGATE)",
+        "name": "HOUSTON",
         "lat": "54.3939000",
         "long": "-126.6175667"
     }
