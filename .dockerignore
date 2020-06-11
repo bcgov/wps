@@ -7,3 +7,5 @@ csv
 .github
 .ipynb_checkpoints
 .vscode
+**/__pycache__
+**/*.pyc

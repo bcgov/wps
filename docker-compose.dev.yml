@@ -5,14 +5,14 @@ services:
       context: .
       dockerfile: dev.Dockerfile
     env_file:
-      - .env
+      - app/.env
     ports:
       - "8080:8080"
     volumes:
-      - .:/app:delegated
+      - ./app:/app:delegated
     depends_on:
       - db
-    networks: 
+    networks:
       - wps_network
   # Application's local database container & service
   db:

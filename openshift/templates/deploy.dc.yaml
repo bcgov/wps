@@ -29,10 +29,10 @@ parameters:
     value: wps-web-*.pathfinder.gov.bc.ca
   - name: CPU_REQUEST
     description: Requested CPU
-    value: 250m
+    value: 300m
   - name: CPU_LIMIT
     description: CPU upper limit
-    value: 250m
+    value: 300m
   - name: MEMORY_REQUEST
     description: Requested memory
     value: 1Gi
@@ -51,6 +51,12 @@ parameters:
   - name: WFWX_MAX_PAGE_SIZE
     description: Maximum number of entities to request at a time from the WFWX API
     value: "1000"
+  - name: PORT
+    description: The port that the API will run on (used by fastapi docker image)
+    value: "8080"
+  - name: WORKERS_PER_CORE
+    description: The number of worker per code
+    value: "0.25"
 objects:
   - apiVersion: v1
     kind: ConfigMap
@@ -85,6 +91,10 @@ objects:
               imagePullPolicy: Always
               name: ${NAME}
               env:
+                - name: PORT
+                  value: ${PORT}
+                - name: WORKERS_PER_CORE
+                  value: ${WORKERS_PER_CORE}
                 - name: ORIGINS
                   valueFrom:
                     configMapKeyRef:

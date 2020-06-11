@@ -15,7 +15,7 @@ from auth import authenticate
 import wildfire_one
 import config
 
-LOGGING_CONFIG = 'logging.json'
+LOGGING_CONFIG = os.path.join(os.path.dirname(__file__), 'logging.json')
 if os.path.exists(LOGGING_CONFIG):
     with open(LOGGING_CONFIG) as config_file:
         CONFIG = json.load(config_file)
@@ -62,7 +62,7 @@ API_INFO = '''
     has been specifically advised of the possibility of such damages.'''
 
 
-APP = FastAPI(
+app = FastAPI(
     title="Predictive Services Fire Weather Index Calculator",
     description=API_INFO,
     version="0.0.0"
@@ -70,7 +70,7 @@ APP = FastAPI(
 
 ORIGINS = config.get('ORIGINS')
 
-APP.add_middleware(
+app.add_middleware(
     CORSMiddleware,
     allow_origins=ORIGINS,
     allow_credentials=True,
@@ -79,13 +79,13 @@ APP.add_middleware(
 )
 
 
-@APP.get('/health')
+@app.get('/health')
 async def get_health():
     """ A simple endpoint for Openshift Healthchecks """
     return {"message": "Healthy as ever"}
 
 
-@APP.post('/forecasts/', response_model=schemas.WeatherForecastResponse)
+@app.post('/forecasts/', response_model=schemas.WeatherForecastResponse)
 async def get_forecasts(request: schemas.StationCodeList, _: bool = Depends(authenticate)):
     # async def get_forecasts(request: schemas.WeatherForecastRequest):
     """ Returns 10 day noon forecasts based on the global deterministic prediction system (GDPS)
@@ -98,7 +98,7 @@ async def get_forecasts(request: schemas.StationCodeList, _: bool = Depends(auth
         raise
 
 
-@APP.post('/hourlies/', response_model=schemas.WeatherStationHourlyReadingsResponse)
+@app.post('/hourlies/', response_model=schemas.WeatherStationHourlyReadingsResponse)
 async def get_hourlies(request: schemas.StationCodeList, _: bool = Depends(authenticate)):
     """ Returns hourlies for the last 5 days, for the specified weather stations """
     try:
@@ -109,7 +109,7 @@ async def get_hourlies(request: schemas.StationCodeList, _: bool = Depends(authe
         raise
 
 
-@APP.get('/stations/', response_model=schemas.WeatherStationsResponse)
+@app.get('/stations/', response_model=schemas.WeatherStationsResponse)
 async def get_stations():
     """ Return a list of fire weather stations.
     """
@@ -121,41 +121,49 @@ async def get_stations():
         raise
 
 
-@APP.post('/percentiles/', response_model=schemas.CalculatedResponse)
+@app.post('/percentiles/', response_model=schemas.CalculatedResponse)
 async def get_percentiles(request: schemas.PercentileRequest):
     """ Return 90% FFMC, 90% ISI, 90% BUI etc. for a given set of fire stations for a given period of time.
     """
-    # NOTE: percentile is ignored, all responses overriden to match
-    # pre-calculated values; 90th percentile
-    year_range_start = request.year_range.start
-    year_range_end = request.year_range.end
+    try:
+        # NOTE: percentile is ignored, all responses overriden to match
+        # pre-calculated values; 90th percentile
+        year_range_start = request.year_range.start
+        year_range_end = request.year_range.end
 
-    # Error Code: 400 (Bad request)
-    if len(request.stations) == 0 or request.stations is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail='Weather station is not found.')
+        # Error Code: 400 (Bad request)
+        if len(request.stations) == 0 or request.stations is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail='Weather station is not found.')
 
-    if not os.path.exists('data/{}-{}'.format(year_range_start, year_range_end)):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail='The year range is not currently supported.')
+        foldername = os.path.join(
+            os.path.dirname(__file__), 'data/{}-{}'.format(year_range_start, year_range_end))
+        if not os.path.exists(foldername):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail='The year range is not currently supported.')
 
-    response = schemas.CalculatedResponse(
-        percentile=90,
-        year_range=schemas.YearRange(
-            start=year_range_start,
-            end=year_range_end))
-    bui = []
-    isi = []
-    ffmc = []
-    for station in request.stations:
-        summary = schemas.StationSummary.parse_file(
-            'data/{}-{}/{}.json'.format(year_range_start, year_range_end, station))
-        bui.append(summary.bui)
-        isi.append(summary.isi)
-        ffmc.append(summary.ffmc)
-        response.stations[station] = summary
-    response.mean_values = schemas.MeanValues()
-    response.mean_values.bui = mean(bui)
-    response.mean_values.isi = mean(isi)
-    response.mean_values.ffmc = mean(ffmc)
-    return response
+        response = schemas.CalculatedResponse(
+            percentile=90,
+            year_range=schemas.YearRange(
+                start=year_range_start,
+                end=year_range_end))
+        bui = []
+        isi = []
+        ffmc = []
+        for station in request.stations:
+            filename = os.path.join(
+                os.path.dirname(__file__), 'data/{}-{}/{}.json'.format(
+                    year_range_start, year_range_end, station))
+            summary = schemas.StationSummary.parse_file(filename)
+            bui.append(summary.bui)
+            isi.append(summary.isi)
+            ffmc.append(summary.ffmc)
+            response.stations[station] = summary
+        response.mean_values = schemas.MeanValues()
+        response.mean_values.bui = mean(bui)
+        response.mean_values.isi = mean(isi)
+        response.mean_values.ffmc = mean(ffmc)
+        return response
+    except Exception as exception:
+        LOGGER.critical(exception, exc_info=True)
+        raise
