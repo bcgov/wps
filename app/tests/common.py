@@ -76,7 +76,7 @@ def _get_fixture_path(url: str, params: dict = None) -> str:
     if params:
         fixture_url = '{}?{}'.format(fixture_url, urlencode(params))
     # Join the url with the fixture location.
-    return os.path.join('tests/fixtures/', fixture_url)
+    return os.path.join(os.path.dirname(__file__), 'fixtures/', fixture_url)
 
 
 def get_mock_client_session(url: str, params: dict = None) -> MockClientSession:

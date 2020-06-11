@@ -12,7 +12,7 @@ Wildfire Predictive Services support decision making in prevention, preparedness
 
 - Docker Compose
 
-```
+```bash
 brew install docker-compose
 ```
 
@@ -22,7 +22,7 @@ You will need a .env file, .env.example ; For local development, you can copy .e
 
 #### Local machine, in docker
 
-```
+```bash
 docker-compose build
 ```
 
@@ -30,31 +30,30 @@ docker-compose build
 
 Install system dependancies:
 
-```
+```bash
+brew update
 brew install pyenv
-pyenv install 3.8.1
-brew install pipenv
+pyenv install 3.8.2
 brew install postgresql
+curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
 ```
 
 Install project requirements:
 
-```
+```bash
 cd wps-api
-pipenv install --dev
-```
-
-If you have trouble getting pipenv to resolve python 3.8.1, you can also try explicitly specifying the python location:
-
-```
-pipenv install --python ~/.pyenv/versions/3.8.1/bin/python3.8 --dev
+poetry env use 3.8
+poetry install
 ```
 
 ##### Troubleshooting
 
-If you experience errors when installing `psycopg2` in your virtual environment (pipenv) and you are using MacOS, try running
-`env LDFLAGS="-I/usr/local/opt/openssl@1.1/include -L/usr/local/opt/openssl@1.1/lib" pipenv install psycopg2`
+If you experience errors when installing `psycopg2` and you are using MacOS, try running
+`env LDFLAGS="-I/usr/local/opt/openssl@1.1/include -L/usr/local/opt/openssl@1.1/lib" poetry install`
 from the command line.
+
+If you're getting errors relating to `pg_config` executable not found when installing `psycopg2` it means
+you either don't have PostgreSQL installed or psycopg2 doesn't know where to find it. You can install PostgreSQL by following instructions on <https://www.postgresql.org/download/>, be sure to update your PATH if you're installing it manually.
 
 #### Local machine, running Linux
 
@@ -62,13 +61,13 @@ If you have trouble installing pyodbc, you can try:
 
 ##### Ubuntu
 
-```
+```bash
 sudo apt install unixodbc-dev
 ```
 
 ##### Fedora
 
-```
+```bash
 sudo dnf install unixODBC-devel
 ```
 
@@ -78,20 +77,19 @@ See [Makefile](Makefile) for examples of running the API in docker.
 
 e.g.:
 
-```
+```bash
 make init
 ```
 
-will execute `pipenv install --dev`, which is required before executing the program locally for the first time.
+will execute `poetry install`, which is required before executing the program locally for the first time.
 
-```
+```bash
 make docker-run
 ```
 
 will execute:
 
-```
-docker-compose run api scripts/test.sh
+```bash
 docker-compose up
 ```
 
@@ -101,16 +99,17 @@ See [Makefile](Makefile) for examples or running the API on your local machine.
 
 e.g.:
 
-```
+```bash
 make run
 ```
 
 will execute:
 
-```
-pipenv run pylint --rcfile=.pylintrc *.py **/*.py
-pipenv run python -m pytest
-pipenv run uvicorn main:APP --reload --port 8080
+```bash
+poetry run pylint --rcfile=.pylintrc app/*.py app/**/*.py;
+poetry run python -m pytest app;
+cd app; \
+poetry run uvicorn main:app --reload --port 8080;
 ```
 
 To shell into the Docker container for the database, execute `make docker-shell-db`.
@@ -130,7 +129,7 @@ Compliance is enforced using [Pylint](https://www.pylint.org/) and a [.pylintrc]
 
 Run pylint to check that your code conforms before pushing code to the repository:
 
-```
+```bash
 make lint
 ```
 
@@ -142,7 +141,7 @@ Code must pass all unit tests.
 
 Run python unit tests before pushing code to the repository:
 
-```
+```bash
 make test
 ```
 
@@ -155,21 +154,21 @@ Branches must be named in accordance with the rules specified in [.githooks/pre-
 - branch names should be informative, meaningful and concise.
 - branch names should follow the pattern (category)/(description)/(ticket number)
 
-```
+```bash
 # Enforce branch naming conventions for this project using git hooks.
 git config core.hooksPath .githooks
 ```
 
 example of a good branch name:
 
-```
+```bash
 # Task related to re-factoring of logging, the ticket number being 123:
 task/re-factor-logging/123
 ```
 
 example of a bad branch name:
 
-```
+```bash
 wps-123
 ```
 

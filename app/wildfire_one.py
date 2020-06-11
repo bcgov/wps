@@ -1,5 +1,6 @@
 """ This module contains methods for retrieving information from the WFWX Fireweather API.
 """
+import os
 import json
 from datetime import datetime, timedelta
 import math
@@ -148,7 +149,7 @@ def _parse_hourly(hourly) -> WeatherReading:
 def _get_stations_by_codes_local(station_codes: List[int]) -> List[WeatherStation]:
     """ Get a list of stations by code, from local json files. """
     LOGGER.info('Using pre-generated json to retrieve station by code')
-    with open('data/weather_stations.json') as file_pointer:
+    with open(os.path.join(os.path.dirname(__file__), 'data/weather_stations.json')) as file_pointer:
         stations = json.load(file_pointer)
         results = []
         for station in stations['weather_stations']:
@@ -187,7 +188,7 @@ def _get_stations_local() -> List[WeatherStation]:
     """ Get list of stations from local json files.
     """
     LOGGER.info('Using pre-generated json to retrieve station list')
-    with open('data/weather_stations.json') as weather_stations_file:
+    with open(os.path.join(os.path.dirname(__file__), 'data/weather_stations.json')) as weather_stations_file:
         json_data = json.load(weather_stations_file)
         return json_data['weather_stations']
 

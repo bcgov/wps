@@ -1,0 +1,34 @@
+[tool.poetry]
+name = "wps-api"
+version = "0.1.0"
+description = "Wildfier Predictive Services Unit API"
+authors = ["Sybrand Strauss <sybrand.strauss@gov.bc.ca>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+fastapi = "^0.55.1"
+requests = "^2.23.0"
+aiodns = "^2.0.0"
+aiohttp = "^3.6.2"
+pandas = "^1.0.4"
+pyjwt = "^1.7.1"
+cryptography = "^2.9.2"
+sqlalchemy = "^1.3.17"
+psycopg2 = "^2.8.5"
+postgres = "^3.0.0"
+python-decouple = "^3.3"
+uvicorn = "^0.11.5"
+
+[tool.poetry.dev-dependencies]
+pytest = "^4.6"
+jupyter = "^1.0.0"
+notebook = "^6.0.3"
+alchemy-mock = "^0.4.3"
+pytest_bdd = "^3.4.0"
+coverage = "^5.1"
+pylint = "^2.5.3"
+pycodestyle = "^2.6.0"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
