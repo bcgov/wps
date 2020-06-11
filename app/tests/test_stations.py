@@ -2,7 +2,7 @@
 from pytest_bdd import scenario, given, then
 from fastapi.testclient import TestClient
 from aiohttp import ClientSession
-from main import APP
+from main import app
 from tests.common import default_mock_client_get
 
 
@@ -18,7 +18,7 @@ def response(monkeypatch, mock_env_with_use_wfwx):
     """ Mock external requests and make GET /stations/ request """
     monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
 
-    client = TestClient(APP)
+    client = TestClient(app)
     return client.get('/stations/')
 
 

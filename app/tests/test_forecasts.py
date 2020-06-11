@@ -6,7 +6,7 @@ from pytest_bdd import scenario, given, then
 from fastapi.testclient import TestClient
 from aiohttp import ClientSession
 import numpy
-from main import APP
+from main import app
 from tests.common import default_mock_client_get
 
 LOGGER = logging.getLogger(__name__)
@@ -25,7 +25,7 @@ def response(monkeypatch, mock_jwt_decode, codes):
     """ Mock external requests and make GET /forecasts/ request """
     monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
 
-    client = TestClient(APP)
+    client = TestClient(app)
     stations = eval(codes)
     return client.post('/forecasts/', headers={'Authorization': 'Bearer token'}, json={'stations': stations})
 
