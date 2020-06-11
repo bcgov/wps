@@ -1,52 +1,75 @@
+clean:
+	find . -name \*.pyc -delete
+
 init:
-	# Create virtual environment using pipenv.
-	pipenv install --dev
+	# Create virtual environment.
+	poetry install;
+
+init-mac:
+	# Create virtual environment.
+	env LDFLAGS="-I/usr/local/opt/openssl@1.1/include -L/usr/local/opt/openssl@1.1/lib" poetry install
 
 test:
 	# Run tests in virtual environment.
 	# useful params for pytest:
 	# -s show stdout
-	pipenv run python -m pytest
+	poetry run pytest app;
+	# ImportMismatchError? run: make clean
 
 test-coverage:
-	pipenv run coverage run --source=. -m pytest
-	pipenv run coverage report
-	pipenv run coverage xml -o coverage-reports/coverage-report.xml
-
+	poetry run coverage run --source=app -m pytest;
+	poetry run coverage report;
+	poetry run coverage xml -o coverage-reports/coverage-report.xml;
+	# ImportMismatchError? run: make clean
 
 lint:
 	# Run lint in virtual environment.
-	pipenv run pylint --rcfile=.pylintrc *.py **/*.py
+	poetry run pylint --rcfile=.pylintrc app/*.py app/**/*.py;
 
 run:
 	# Run the application in the virtual environment (after linting and testing).
 	# Not failing on lint or test - just output so developer knows.
-	-pipenv run pylint --rcfile=.pylintrc *.py **/*.py
-	-pipenv run python -m pytest
-	pipenv run uvicorn main:APP --reload --port 8080
+	-poetry run pylint --rcfile=.pylintrc app/*.py app/**/*.py;
+	-poetry run python -m pytest app;
+	cd app; \
+		poetry run uvicorn main:app --reload --port 8080;
 
 run-fast:
-	pipenv run uvicorn main:APP --reload --port 8080
+	cd app; \
+		poetry run uvicorn main:app --reload --port 8080;
 
 notebook:
 	# Run jupyter notebooks.
-	pipenv run jupyter notebook
+	poetry run jupyter notebook
 
 shell:
 	# Run shell in virtual environment shell.
-	pipenv shell
+	poetry shell
 
-docker-dev-test:
+docker-build-dev:
+	# Build dev docker images.
+	# Having issues? try: docker volume prune
+	# Still having issues? try: docker system prune
+	docker-compose -f docker-compose.dev.yml build
+
+docker-test-dev:
 	# Run tests in docker (dev instance).
 	# We use the dev instance, because the "production" version doesn't have
 	# a number of the development dependancies.
-	docker-compose -f docker-compose.dev.yml run api-dev pipenv run python -m pytest
+	docker-compose -f docker-compose.dev.yml run api-dev python -m pytest
+	# ImportMismatchError? run: make clean
 
-docker-dev-lint:
-	# Run lint in docker (dev instance).
-	# We use the dev instance, because the "production" version doesn't have
-	# a number of the development dependancies, including pylint.
-	docker-compose -f docker-compose.dev.yml run api-dev pipenv run pylint --rcfile=.pylintrc *.py **/*.py
+docker-run-dev:
+	# Run docker in dev mode.
+	docker-compose -f docker-compose.dev.yml up
+
+docker-shell-dev:
+	# Shell into the dev container.
+	docker run -it --env-file app/.env --entrypoint bash wps-api_api-dev:latest 
+
+docker-shell-dev-db:
+	# Shell into the db container
+	docker-compose exec db psql -h postgres -U wps
 
 docker-build:
 	# Build docker images.
@@ -55,25 +78,3 @@ docker-build:
 docker-run:
 	# Run api in production mode, in docker.
 	docker-compose up
-
-docker-build-dev:
-	# Build dev docker images.
-	# Having issues? try: docker volume prune
-	# Still having issues? try: docker system prune
-	docker-compose -f docker-compose.dev.yml build
-
-docker-run-dev:
-	# Run docker in dev mode.
-	# 1. run test and lint.
-	docker-compose -f docker-compose.dev.yml run api-dev pipenv run python -m pytest
-	docker-compose -f docker-compose.dev.yml run api-dev pipenv run pylint --rcfile=.pylintrc *.py **/*.py
-	# 2. start api
-	docker-compose -f docker-compose.dev.yml up
-
-docker-shell-dev:
-	# Shell into the dev container.
-	docker run -it --env-file .env --entrypoint bash wps-api_api-dev:latest 
-
-docker-shell-db:
-	# Shell into the db container
-	docker-compose exec db psql -h postgres -U wps

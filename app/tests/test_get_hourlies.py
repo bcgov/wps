@@ -5,7 +5,7 @@ import pytz
 from pytest_bdd import scenario, given, then
 from starlette.testclient import TestClient
 from aiohttp import ClientSession
-from main import APP
+from main import app
 from tests.common import default_mock_client_get
 import wildfire_one
 
@@ -36,7 +36,7 @@ def response(monkeypatch, mock_env_with_use_wfwx, mock_jwt_decode, codes):
     stations = eval(codes)
 
     # Create API client and get the reppnse.
-    client = TestClient(APP)
+    client = TestClient(app)
     headers = {'Content-Type': 'application/json',
                'Authorization': 'Bearer token'}
     return client.post('/hourlies/', headers=headers, json={"stations": stations})
