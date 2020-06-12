@@ -49,7 +49,7 @@ def stations_json_to_dict():
 
     Returns: Dictionary containing list of stations.
     """
-    with open('data/weather_stations.json') as file_handle:
+    with open('app/data/weather_stations.json') as file_handle:
         return json.load(file_handle)['weather_stations']
 
 
@@ -127,9 +127,11 @@ def write_output_to_json(date_range, weather_stations, data_years, percentiles):
         'end_month': FIRE_SEASON_END_MONTH,
         'end_day': FIRE_SEASON_END_DATE
     }
+    output_folder = "app/data/{}-{}".format(date_range[0], date_range[1])
     for weath_stat in weather_stations:
-        key = weath_stat['code']
         try:
+            key = weath_stat['code']
+            output_filename = output_folder + "/" + key + ".json"
             station_summary = {
                 'ffmc': percentiles['ffmc'][int(key)],
                 'isi': percentiles['isi'][int(key)],
@@ -143,15 +145,18 @@ def write_output_to_json(date_range, weather_stations, data_years, percentiles):
                     'long': weath_stat['long']
                 }
             }
-            output_folder = "data/{}-{}".format(
-                date_range[0], date_range[1])
             if not os.path.exists(output_folder):
                 os.mkdir(output_folder)
-            output_filename = output_folder + "/" + key + ".json"
             with open(output_filename, 'w+') as json_file:
-                json.dump(station_summary, json_file, indent=4)
+                json.dump(station_summary, json_file, indent=4, allow_nan=False)
         except KeyError:
-            print('Data not available for ' + key)
+            print('Data not available for {}'.format(key))
+            if os.path.exists(output_filename):
+                os.remove(output_filename)
+        except ValueError as e:
+            print('Value error for {} - {}'.format(key, e))
+            if os.path.exists(output_filename):
+                os.remove(output_filename)
 
 
 if __name__ == '__main__':
