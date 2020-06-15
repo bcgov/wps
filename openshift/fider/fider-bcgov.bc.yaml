@@ -1,0 +1,59 @@
+---
+kind: Template
+apiVersion: template.openshift.io/v1
+message: A new Fider Image, customized with noTLS, has been created in your project
+metadata:
+  name: nrm-feedback-bc
+parameters:
+- name: NAME
+  displayName: Name
+  description: A descriptive name of the image
+  value: fider-bcgov
+  required: true
+- name: VERSION
+  required: true
+  value: latest
+- name: SOURCE_REPOSITORY_URL
+  required: true
+  value: https://github.com/garywong-bc/nrm-feedback
+- name: SOURCE_REPOSITORY_REF
+  required: true
+  value: master
+objects:
+- kind: ImageStream
+  apiVersion: v1
+  metadata:
+    labels:
+      build: nrm-feedback
+    name: ${NAME}
+- kind: BuildConfig
+  apiVersion: build.openshift.io/v1
+  metadata:
+    name: nrm-feedback
+    labels:
+      build: nrm-feedback
+  spec:
+    runPolicy: Serial
+    source:
+      type: Git
+      git:
+        uri: "${SOURCE_REPOSITORY_URL}"
+        ref: "${SOURCE_REPOSITORY_REF}"
+    strategy:
+      type: Docker
+      dockerStrategy:
+        from:
+          kind: DockerImage
+          name: alpine:3.10
+        dockerfilePath: Dockerfile.openshift
+    output:
+      to:
+        kind: ImageStreamTag
+        name: "${NAME}:${VERSION}"
+    resources:
+      limits:
+        cpu: 250m
+        memory: 2048Mi
+      requests:
+        cpu: 100m
+        memory: 1024Mi
