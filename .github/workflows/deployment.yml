@@ -2,13 +2,12 @@ name: Deployment
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, closed]
     branches:
       - master
 
 jobs:
   build-and-deploy:
-    name: Build, Deploy to Dev & run Zap Baseline Scan
+    name: Build, Deploy to Dev & ZAP Baseline Scan
     runs-on: ubuntu-latest
     steps:
       - name: Set Variables
@@ -20,29 +19,19 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Build Image
-        if: github.event.pull_request.state == 'open'
         uses: bcgov/openshift-launchpad-deployment@master
         with:
           AUTH_TOKEN: ${{ secrets.OC_TOOL_TOKEN_EDIT }}
           SCRIPT: GIT_BRANCH=${GITHUB_HEAD_REF} openshift/scripts/oc_build.sh ${SUFFIX} apply
 
       - name: Deploy to Dev
-        if: github.event.pull_request.state == 'open'
         uses: bcgov/openshift-launchpad-deployment@master
         with:
           AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
           SCRIPT: openshift/scripts/oc_deploy.sh ${SUFFIX} apply
 
+      # f.y.i.: ZAP Scan must be able to log an issue or it will fail.
       - name: ZAP Scan
-        if: github.event.pull_request.state == 'open'
-        # f.y.i.: ZAP Scan must be able to log an issue or it will fail.
         uses: zaproxy/action-baseline@v0.3.0
         with:
           target: "https://wps-api-pr-${{ github.event.number }}.pathfinder.gov.bc.ca"
-
-      - name: Clean up
-        if: github.event.pull_request.state == 'closed'
-        uses: bcgov/openshift-launchpad-deployment@master
-        with:
-          AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
-          SCRIPT: openshift/scripts/oc_cleanup.sh ${SUFFIX} apply
