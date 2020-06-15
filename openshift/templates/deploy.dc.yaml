@@ -4,8 +4,8 @@ metadata:
   name: ${NAME}
   annotations:
     openshift.io/display-name: "wps-api"
-    description: "Wildfire Predictive Services - Fire Weather Index API"
-    openshift.io/long-description: "Wildfire Predictive Services - Fire Weather Index API"
+    description: "Wildfire Predictive Services - API"
+    openshift.io/long-description: "Wildfire Predictive Services - API"
     tags: "wps,wps-api"
     iconClass: icon-js
     openshift.io/provider-display-name: "Government of British Columbia"
@@ -21,12 +21,8 @@ parameters:
   - name: SUFFIX
     description: Deployment suffix, e.g. pr-###
     required: true
-  - name: DOCKER_REGISTRY
-    value: docker-registry.default.svc:5000
   - name: PROJECT_TOOLS
     value: auzhsi-tools
-  - name: ALLOWED_ORIGINS
-    value: wps-web-*.pathfinder.gov.bc.ca
   - name: CPU_REQUEST
     description: Requested CPU
     value: 300m
@@ -42,31 +38,12 @@ parameters:
   - name: REPLICAS
     description: Number of replicas (pods)
     value: "2"
-  - name: WPS_API_GLOBAL_CONFIG
-    description: Global configuration mapping
-    value: wps-api-global
-  - name: WPS_API_GLOBAL_SECRET
-    description: Global secret
-    value: wps-api-global
+  - name: ALLOWED_ORIGINS
+    value: wps-web-*.pathfinder.gov.bc.ca
   - name: WFWX_MAX_PAGE_SIZE
     description: Maximum number of entities to request at a time from the WFWX API
     value: "1000"
-  - name: PORT
-    description: The port that the API will run on (used by fastapi docker image)
-    value: "8080"
-  - name: WORKERS_PER_CORE
-    description: The number of worker per code
-    value: "0.25"
 objects:
-  - apiVersion: v1
-    kind: ConfigMap
-    data:
-      env.origins: "${ALLOWED_ORIGINS}"
-      env.wfwx-max-page-size: "${WFWX_MAX_PAGE_SIZE}"
-    metadata:
-      labels:
-        app: ${NAME}-${SUFFIX}
-      name: ${NAME}-${SUFFIX}
   - apiVersion: v1
     kind: DeploymentConfig
     metadata:
@@ -87,60 +64,54 @@ objects:
         spec:
           automountServiceAccountToken: false
           containers:
-            - image: ${DOCKER_REGISTRY}/${PROJECT_TOOLS}/${NAME}-${SUFFIX}:${SUFFIX}
+            - image: docker-registry.default.svc:5000/${PROJECT_TOOLS}/${NAME}-${SUFFIX}:${SUFFIX}
               imagePullPolicy: Always
               name: ${NAME}
               env:
-                - name: PORT
-                  value: ${PORT}
-                - name: WORKERS_PER_CORE
-                  value: ${WORKERS_PER_CORE}
                 - name: ORIGINS
-                  valueFrom:
-                    configMapKeyRef:
-                      name: ${NAME}-${SUFFIX}
-                      key: env.origins
+                  value: ${ALLOWED_ORIGINS}
+                - name: PORT # The port that the API will run on (used by fastapi docker image)
+                  value: "8080"
+                - name: WORKERS_PER_CORE # The number of worker per code (used by fastapi docker image)
+                  value: "0.25"
                 - name: SPOTWX_BASE_URI
                   valueFrom:
                     configMapKeyRef:
-                      name: ${WPS_API_GLOBAL_CONFIG}
+                      name: ${NAME}-global
                       key: env.spotwx-url
                 - name: SPOTWX_API_KEY
                   valueFrom:
                     secretKeyRef:
-                      name: ${WPS_API_GLOBAL_SECRET}
+                      name: ${NAME}-global
                       key: spotwx-api-key
                 - name: USE_WFWX
                   value: "False"
+                - name: WFWX_MAX_PAGE_SIZE
+                  value: ${WFWX_MAX_PAGE_SIZE}
                 - name: WFWX_AUTH_URL
                   valueFrom:
                     configMapKeyRef:
-                      name: ${WPS_API_GLOBAL_CONFIG}
+                      name: ${NAME}-global
                       key: env.wfwx-auth-url
                 - name: WFWX_BASE_URL
                   valueFrom:
                     configMapKeyRef:
-                      name: ${WPS_API_GLOBAL_CONFIG}
+                      name: ${NAME}-global
                       key: env.wfwx-base-url
                 - name: WFWX_USER
                   valueFrom:
                     configMapKeyRef:
-                      name: ${WPS_API_GLOBAL_CONFIG}
+                      name: ${NAME}-global
                       key: env.wfwx-user
                 - name: WFWX_SECRET
                   valueFrom:
                     secretKeyRef:
-                      name: ${WPS_API_GLOBAL_SECRET}
+                      name: ${NAME}-global
                       key: wfwx-secret
-                - name: WFWX_MAX_PAGE_SIZE
-                  valueFrom:
-                    configMapKeyRef:
-                      name: ${NAME}-${SUFFIX}
-                      key: env.wfwx-max-page-size
                 - name: KEYCLOAK_PUBLIC_KEY
                   valueFrom:
                     configMapKeyRef:
-                      name: ${WPS_API_GLOBAL_CONFIG}
+                      name: ${NAME}-global
                       key: env.keycloak-public-key
               ports:
                 - containerPort: 8080
