@@ -1,13 +1,7 @@
 {
-    "ffmc": 91.62894287109376,
-    "isi": 8.481312465667722,
-    "bui": 69.53988418579101,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 91.6612533569336,
+    "isi": 8.509054946899415,
+    "bui": 69.55565643310547,
     "years": [
         2000,
         2001,
@@ -34,6 +28,13 @@
         "code": "119",
         "name": "NELSON FORKS",
         "lat": "59.6172800",
-        "long": "-124.0985100"
+        "long": "-124.0985100",
+        "ecodivision_name": "SUB-ARCTIC",
+        "core_season": {
+            "start_month": "6",
+            "start_day": "1",
+            "end_month": "8",
+            "end_day": "15"
+        }
     }
 }

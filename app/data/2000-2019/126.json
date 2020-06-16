@@ -1,13 +1,7 @@
 {
-    "ffmc": 92.35400390625,
-    "isi": 10.399732875823977,
-    "bui": 77.31765441894532,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 92.37143478393554,
+    "isi": 10.436209487915038,
+    "bui": 77.83430938720703,
     "years": [
         2000,
         2001,
@@ -34,6 +28,13 @@
         "code": "126",
         "name": "TOAD RIVER",
         "lat": "58.8658500",
-        "long": "-125.3107000"
+        "long": "-125.3107000",
+        "ecodivision_name": "SUB-ARCTIC HIGHLANDS",
+        "core_season": {
+            "start_month": "6",
+            "start_day": "1",
+            "end_month": "8",
+            "end_day": "15"
+        }
     }
 }

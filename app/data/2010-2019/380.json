@@ -1,13 +1,7 @@
 {
-    "ffmc": 94.09295578002929,
-    "isi": 13.733095645904541,
-    "bui": 112.92483291625977,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 94.17064514160157,
+    "isi": 13.976032257080078,
+    "bui": 117.08344268798828,
     "years": [
         2010,
         2011,
@@ -24,6 +18,13 @@
         "code": "380",
         "name": "POWDER CREEK",
         "lat": "49.9065000",
-        "long": "-116.8551000"
+        "long": "-116.8551000",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

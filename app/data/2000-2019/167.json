@@ -1,13 +1,7 @@
 {
-    "ffmc": 91.7382095336914,
-    "isi": 8.942048645019531,
-    "bui": 86.5952896118164,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 91.77858963012694,
+    "isi": 9.049919509887694,
+    "bui": 88.11921997070313,
     "years": [
         2000,
         2001,
@@ -27,13 +21,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "167",
         "name": "AUGIER LAKE",
         "lat": "54.3618830",
-        "long": "-125.5253500"
+        "long": "-125.5253500",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

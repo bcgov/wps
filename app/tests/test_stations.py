@@ -7,7 +7,8 @@ from tests.common import default_mock_client_get
 
 
 @scenario('test_stations.feature', 'Get weather stations from WFWX',
-          example_converters=dict(status=int, index=int, code=int, name=str, lat=float, long=float))
+          example_converters=dict(status=int, index=int, code=int, name=str, lat=float,
+                                  long=float, ecodivision_name=str, core_season=dict))
 def test_stations_scenario():
     """ BDD Scenario. """
 
@@ -37,12 +38,21 @@ def active_16_weather_stations(response):
     assert len(response.json()['weather_stations']) == 16
 
 
-@then("there is a station in <index> has <code>, <name>, <lat>, and <long>")
+@then("there is a station in <index> has <code>, <name>, <lat> and <long>")
 def there_is_a_station(response, index, code, name, lat, long):
     """ We expect a station to have a code, name, lat and long. """
-    assert response.json()['weather_stations'][index] == {
-        "code": code,
-        "name": name,
-        "lat": lat,
-        "long": long
-    }
+    assert (response.json()['weather_stations'][index]['code'] == code and
+            response.json()['weather_stations'][index]['name'] == name and
+            response.json()['weather_stations'][index]['lat'] == lat and
+            response.json()['weather_stations'][index]['long'] == long)
+
+@then("the station has <ecodivision_name> with core_season <start_month> <start_day> - <end_month> <end_day>")
+def station_ecodivision_data(response, index, ecodivision_name, start_month, start_day, end_month, end_day):
+    """ We expect station's ecodivision to have name, start_month start_day - end_month end_day """
+    assert (response.json()['weather_stations'][index]['ecodivision_name'] == ecodivision_name and
+            response.json()['weather_stations'][index]['core_season'] == {
+                "start_month": int(start_month),
+                "start_day": int(start_day),
+                "end_month": int(end_month),
+                "end_day": int(end_day)
+            })

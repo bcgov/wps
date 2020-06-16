@@ -1,13 +1,7 @@
 {
-    "ffmc": 92.59429321289062,
-    "isi": 10.553375816345218,
-    "bui": 97.66373901367189,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 92.6165771484375,
+    "isi": 10.543050765991213,
+    "bui": 99.93021392822266,
     "years": [
         2010,
         2011,
@@ -24,6 +18,13 @@
         "code": "149",
         "name": "BEAR LAKE",
         "lat": "54.5092222",
-        "long": "-122.6910278"
+        "long": "-122.6910278",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

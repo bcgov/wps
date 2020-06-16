@@ -1,13 +1,7 @@
 {
-    "ffmc": 90.62541580200195,
-    "isi": 6.17580943107605,
-    "bui": 51.309034729003905,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 90.5999984741211,
+    "isi": 6.120052814483643,
+    "bui": 51.34671020507813,
     "years": [
         1986,
         1987,
@@ -48,6 +42,13 @@
         "code": "199",
         "name": "CATFISH",
         "lat": "53.5764444",
-        "long": "-120.8584444"
+        "long": "-120.8584444",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

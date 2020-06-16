@@ -1,13 +1,7 @@
 {
-    "ffmc": 86.30000305175781,
-    "isi": 3.9146735668182377,
-    "bui": 50.70000076293945,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 86.34102172851563,
+    "isi": 3.9321696758270255,
+    "bui": 50.29729461669922,
     "years": [
         1986,
         1987,
@@ -46,6 +40,13 @@
         "code": "93",
         "name": "HONNA",
         "lat": "53.2532000",
-        "long": "-132.1156200"
+        "long": "-132.1156200",
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

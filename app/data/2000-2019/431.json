@@ -1,13 +1,7 @@
 {
-    "ffmc": 91.17728118896484,
-    "isi": 7.939756870269777,
-    "bui": 71.40970916748047,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 91.16957092285156,
+    "isi": 7.943811893463135,
+    "bui": 71.4087142944336,
     "years": [
         2000,
         2001,
@@ -34,6 +28,13 @@
         "code": "431",
         "name": "UPPER KISPIOX",
         "lat": "55.6014500",
-        "long": "-128.0477830"
+        "long": "-128.0477830",
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

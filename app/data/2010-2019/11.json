@@ -1,13 +1,7 @@
 {
-    "ffmc": 90.51433563232422,
-    "isi": 6.490357398986816,
-    "bui": 85.20732421875,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 90.72190856933594,
+    "isi": 6.654181480407715,
+    "bui": 87.04174957275391,
     "years": [
         2010,
         2011,
@@ -24,6 +18,13 @@
         "code": "11",
         "name": "SUMMIT",
         "lat": "48.9275667",
-        "long": "-124.6469000"
+        "long": "-124.6469000",
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

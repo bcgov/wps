@@ -1,13 +1,7 @@
 {
-    "ffmc": 94.74678955078124,
-    "isi": 14.770984077453612,
-    "bui": 293.0848754882812,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 94.91934204101562,
+    "isi": 14.938431739807127,
+    "bui": 316.58978271484375,
     "years": [
         2017,
         2018,
@@ -17,6 +11,13 @@
         "code": "1277",
         "name": "WEST KELOWNA",
         "lat": "49.8832000",
-        "long": "-119.5695000"
+        "long": "-119.5695000",
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
     }
 }

@@ -1,13 +1,7 @@
 {
-    "ffmc": 91.2907943725586,
-    "isi": 11.30656204223633,
-    "bui": 79.08477249145508,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 91.2889404296875,
+    "isi": 11.296405601501469,
+    "bui": 79.09991836547852,
     "years": [
         1983,
         1985,
@@ -50,6 +44,13 @@
         "code": "118",
         "name": "HELMUT",
         "lat": "59.4210000",
-        "long": "-120.7889167"
+        "long": "-120.7889167",
+        "ecodivision_name": "SUB-ARCTIC",
+        "core_season": {
+            "start_month": "6",
+            "start_day": "1",
+            "end_month": "8",
+            "end_day": "15"
+        }
     }
 }

@@ -1,13 +1,7 @@
 {
-    "ffmc": 91.92071990966795,
-    "isi": 9.093376159667967,
-    "bui": 84.4879379272461,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 91.96322555541992,
+    "isi": 9.148039340972902,
+    "bui": 86.72628936767579,
     "years": [
         2000,
         2001,
@@ -34,6 +28,13 @@
         "code": "171",
         "name": "LEO CREEK",
         "lat": "55.0818300",
-        "long": "-125.4774000"
+        "long": "-125.4774000",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

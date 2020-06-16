@@ -1,13 +1,7 @@
 {
-    "ffmc": 91.4020004272461,
-    "isi": 9.083955192565922,
-    "bui": 81.22320251464843,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 91.41182556152344,
+    "isi": 9.123585414886474,
+    "bui": 82.0058479309082,
     "years": [
         1993,
         1994,
@@ -41,6 +35,13 @@
         "code": "181",
         "name": "BURNS LAKE 850M",
         "lat": "54.2586000",
-        "long": "-125.7571000"
+        "long": "-125.7571000",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

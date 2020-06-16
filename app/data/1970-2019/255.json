@@ -1,13 +1,7 @@
 {
-    "ffmc": 91.52836380004882,
+    "ffmc": 91.52382049560546,
     "isi": 8.600000381469728,
-    "bui": 77.47871856689454,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "bui": 78.0999984741211,
     "years": [
         1970,
         1971,
@@ -63,6 +57,13 @@
         "code": "255",
         "name": "LIKELY RS",
         "lat": "52.6150000",
-        "long": "-121.5133333"
+        "long": "-121.5133333",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

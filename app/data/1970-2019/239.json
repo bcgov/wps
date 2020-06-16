@@ -1,13 +1,7 @@
 {
-    "ffmc": 94.23956298828125,
-    "isi": 10.497955131530762,
-    "bui": 121.9994400024414,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 94.24527664184569,
+    "isi": 10.470088195800779,
+    "bui": 122.05260772705078,
     "years": [
         1976,
         1977,
@@ -58,6 +52,13 @@
         "code": "239",
         "name": "CLEARWATER HUB",
         "lat": "51.6289000",
-        "long": "-120.0945670"
+        "long": "-120.0945670",
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
     }
 }

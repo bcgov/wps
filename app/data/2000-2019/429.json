@@ -1,13 +1,7 @@
 {
-    "ffmc": 91.65116806030274,
-    "isi": 9.116258716583252,
-    "bui": 101.51977005004889,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 91.6423439025879,
+    "isi": 9.155789470672604,
+    "bui": 103.46632003784178,
     "years": [
         2000,
         2001,
@@ -34,6 +28,13 @@
         "code": "429",
         "name": "CEDARVALE",
         "lat": "55.0301670",
-        "long": "-128.3115830"
+        "long": "-128.3115830",
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

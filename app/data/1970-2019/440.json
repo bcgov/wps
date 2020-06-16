@@ -1,13 +1,7 @@
 {
-    "ffmc": 91.3385025024414,
-    "isi": 8.814665412902835,
-    "bui": 86.76211547851567,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 91.33861236572265,
+    "isi": 8.802528762817387,
+    "bui": 87.0456954956055,
     "years": [
         1996,
         1997,
@@ -38,6 +32,13 @@
         "code": "440",
         "name": "FIRESIDE",
         "lat": "59.7226667",
-        "long": "-127.3351389"
+        "long": "-127.3351389",
+        "ecodivision_name": "SUB-ARCTIC HIGHLANDS",
+        "core_season": {
+            "start_month": "6",
+            "start_day": "1",
+            "end_month": "8",
+            "end_day": "15"
+        }
     }
 }

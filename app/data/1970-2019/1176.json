@@ -1,13 +1,7 @@
 {
-    "ffmc": 93.37214813232423,
-    "isi": 10.07891826629639,
-    "bui": 103.07209930419923,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 93.63392333984375,
+    "isi": 10.420240116119388,
+    "bui": 109.05942001342777,
     "years": [
         2014,
         2015,
@@ -20,6 +14,13 @@
         "code": "1176",
         "name": "MUDPIT",
         "lat": "51.3130833",
-        "long": "-119.3924722"
+        "long": "-119.3924722",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

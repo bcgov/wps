@@ -1,13 +1,7 @@
 {
-    "ffmc": 90.6584358215332,
-    "isi": 7.760578536987306,
-    "bui": 68.0,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 90.64196014404295,
+    "isi": 7.765904045104981,
+    "bui": 68.69999694824219,
     "years": [
         1988,
         1989,
@@ -45,6 +39,13 @@
         "code": "152",
         "name": "SIFTON",
         "lat": "57.8517500",
-        "long": "-126.1167600"
+        "long": "-126.1167600",
+        "ecodivision_name": "SUB-ARCTIC HIGHLANDS",
+        "core_season": {
+            "start_month": "6",
+            "start_day": "1",
+            "end_month": "8",
+            "end_day": "15"
+        }
     }
 }

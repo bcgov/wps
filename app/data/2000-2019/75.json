@@ -1,13 +1,7 @@
 {
-    "ffmc": 92.70175704956053,
-    "isi": 8.91766691207886,
-    "bui": 106.69088211059572,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 92.74081726074219,
+    "isi": 8.85510368347168,
+    "bui": 106.65021209716797,
     "years": [
         2000,
         2001,
@@ -34,6 +28,13 @@
         "code": "75",
         "name": "TOBA CAMP",
         "lat": "50.5710000",
-        "long": "-124.0771667"
+        "long": "-124.0771667",
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

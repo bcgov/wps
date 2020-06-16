@@ -1,13 +1,7 @@
 {
-    "ffmc": 93.78585662841796,
-    "isi": 12.776296043395996,
-    "bui": 120.35808258056642,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 93.81127166748048,
+    "isi": 12.83777942657471,
+    "bui": 122.6209991455079,
     "years": [
         2000,
         2001,
@@ -34,6 +28,13 @@
         "code": "404",
         "name": "SMALLWOOD",
         "lat": "49.4966667",
-        "long": "-117.4475000"
+        "long": "-117.4475000",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

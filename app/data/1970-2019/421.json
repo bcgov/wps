@@ -1,13 +1,7 @@
 {
-    "ffmc": 93.11499328613282,
-    "isi": 9.79920883178711,
-    "bui": 91.47154388427738,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 93.12661743164062,
+    "isi": 9.816969585418704,
+    "bui": 92.83651809692384,
     "years": [
         1986,
         1987,
@@ -48,6 +42,13 @@
         "code": "421",
         "name": "DEWAR CREEK",
         "lat": "49.7845000",
-        "long": "-116.3830000"
+        "long": "-116.3830000",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

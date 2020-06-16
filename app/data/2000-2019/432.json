@@ -1,13 +1,7 @@
 {
-    "ffmc": 90.63336639404297,
-    "isi": 6.126757526397705,
-    "bui": 63.48825607299805,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 90.64894409179686,
+    "isi": 6.1449305534362795,
+    "bui": 64.47263641357422,
     "years": [
         2000,
         2001,
@@ -34,6 +28,13 @@
         "code": "432",
         "name": "BELL-IRVING",
         "lat": "56.3485830",
-        "long": "-129.2928500"
+        "long": "-129.2928500",
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

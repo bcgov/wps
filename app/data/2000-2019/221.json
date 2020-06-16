@@ -1,13 +1,7 @@
 {
-    "ffmc": 92.05042266845705,
-    "isi": 11.073578262329102,
-    "bui": 103.55965728759766,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 92.06706390380859,
+    "isi": 11.104995918273927,
+    "bui": 105.28838195800782,
     "years": [
         2000,
         2001,
@@ -34,6 +28,13 @@
         "code": "221",
         "name": "BALDFACE",
         "lat": "52.7101000",
-        "long": "-124.4822500"
+        "long": "-124.4822500",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

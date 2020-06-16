@@ -1,13 +1,7 @@
 {
-    "ffmc": 92.57760620117188,
-    "isi": 11.681909942626953,
-    "bui": 129.95922546386717,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 92.55972595214844,
+    "isi": 11.699999809265135,
+    "bui": 131.0605163574219,
     "years": [
         1982,
         1984,
@@ -51,6 +45,13 @@
         "code": "216",
         "name": "NEMIAH",
         "lat": "51.4800000",
-        "long": "-123.8183333"
+        "long": "-123.8183333",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

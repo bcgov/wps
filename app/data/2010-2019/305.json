@@ -1,13 +1,7 @@
 {
-    "ffmc": 94.41400146484376,
-    "isi": 12.055094051361086,
-    "bui": 148.06400451660159,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 94.45899810791016,
+    "isi": 12.244595050811768,
+    "bui": 149.50797119140626,
     "years": [
         2010,
         2011,
@@ -24,6 +18,13 @@
         "code": "305",
         "name": "SPARKS LAKE",
         "lat": "50.9237000",
-        "long": "-120.8671500"
+        "long": "-120.8671500",
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
     }
 }

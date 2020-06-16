@@ -1,13 +1,7 @@
 {
-    "ffmc": 92.39530944824219,
-    "isi": 9.617355537414552,
-    "bui": 88.16144561767581,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 92.46250915527344,
+    "isi": 9.69255256652832,
+    "bui": 94.39270782470705,
     "years": [
         2010,
         2011,
@@ -24,6 +18,13 @@
         "code": "140",
         "name": "LEMORAY",
         "lat": "55.5249800",
-        "long": "-122.5171000"
+        "long": "-122.5171000",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

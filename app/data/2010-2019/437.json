@@ -1,13 +1,7 @@
 {
-    "ffmc": 92.15094757080078,
-    "isi": 12.93807916641236,
-    "bui": 86.62951736450201,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 92.21414260864258,
+    "isi": 13.08791732788086,
+    "bui": 90.01128387451172,
     "years": [
         2010,
         2011,
@@ -24,6 +18,13 @@
         "code": "437",
         "name": "NOEL",
         "lat": "55.2957600",
-        "long": "-120.4860600"
+        "long": "-120.4860600",
+        "ecodivision_name": "BOREAL",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

@@ -1,13 +1,7 @@
 {
-    "ffmc": 92.08983383178712,
-    "isi": 10.0150842666626,
-    "bui": 89.39925689697266,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 92.11455993652343,
+    "isi": 10.054479598999025,
+    "bui": 90.9908935546875,
     "years": [
         2010,
         2011,
@@ -24,6 +18,13 @@
         "code": "868",
         "name": "BIG MOUTH 2",
         "lat": "51.8533333",
-        "long": "-118.5913889"
+        "long": "-118.5913889",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

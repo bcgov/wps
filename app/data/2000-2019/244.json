@@ -1,13 +1,7 @@
 {
-    "ffmc": 92.68709564208984,
-    "isi": 11.487853240966796,
-    "bui": 76.84056625366208,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 92.71456756591797,
+    "isi": 11.491401767730714,
+    "bui": 78.56566009521485,
     "years": [
         2000,
         2001,
@@ -34,6 +28,13 @@
         "code": "244",
         "name": "WINDY MOUNTAIN",
         "lat": "51.6700000",
-        "long": "-120.6500000"
+        "long": "-120.6500000",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

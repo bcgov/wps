@@ -1,13 +1,7 @@
 {
-    "ffmc": 90.74659729003906,
-    "isi": 10.338430404663086,
-    "bui": 58.159141540527344,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 90.72390594482422,
+    "isi": 10.341667652130129,
+    "bui": 58.42537117004394,
     "years": [
         1983,
         1984,
@@ -50,6 +44,13 @@
         "code": "131",
         "name": "MUSKWA",
         "lat": "57.8842500",
-        "long": "-123.6163000"
+        "long": "-123.6163000",
+        "ecodivision_name": "SUB-ARCTIC",
+        "core_season": {
+            "start_month": "6",
+            "start_day": "1",
+            "end_month": "8",
+            "end_day": "15"
+        }
     }
 }

@@ -1,13 +1,7 @@
 {
-    "ffmc": 91.61356201171876,
-    "isi": 8.824447441101075,
-    "bui": 85.4422721862793,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 91.61076354980469,
+    "isi": 8.835281944274906,
+    "bui": 85.61576538085941,
     "years": [
         1970,
         1971,
@@ -58,6 +52,13 @@
         "code": "343",
         "name": "HOWARD",
         "lat": "52.3720800",
-        "long": "-118.6602778"
+        "long": "-118.6602778",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

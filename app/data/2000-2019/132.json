@@ -1,13 +1,7 @@
 {
-    "ffmc": 92.1219985961914,
-    "isi": 12.003611946105957,
-    "bui": 98.66652832031261,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 92.12789611816406,
+    "isi": 12.037556648254393,
+    "bui": 101.24872283935541,
     "years": [
         2000,
         2001,
@@ -34,6 +28,13 @@
         "code": "132",
         "name": "HUDSON HOPE",
         "lat": "56.0347000",
-        "long": "-121.9902100"
+        "long": "-121.9902100",
+        "ecodivision_name": "BOREAL",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

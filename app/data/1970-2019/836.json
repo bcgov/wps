@@ -1,13 +1,7 @@
 {
-    "ffmc": 95.07888793945312,
-    "isi": 12.36386013031006,
-    "bui": 196.797607421875,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 95.09093322753907,
+    "isi": 12.366015243530274,
+    "bui": 195.96124877929688,
     "years": [
         2003,
         2004,
@@ -31,6 +25,13 @@
         "code": "836",
         "name": "AUGUST LAKE",
         "lat": "49.4334800",
-        "long": "-120.4571200"
+        "long": "-120.4571200",
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
     }
 }

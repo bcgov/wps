@@ -1,13 +1,7 @@
 {
-    "ffmc": 93.00526580810548,
-    "isi": 9.47060489654541,
-    "bui": 96.41889572143556,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 92.99822998046876,
+    "isi": 9.440525531768799,
+    "bui": 97.7604789733887,
     "years": [
         1995,
         1996,
@@ -39,6 +33,13 @@
         "code": "363",
         "name": "REVELSTOKE",
         "lat": "51.0603333",
-        "long": "-118.2171667"
+        "long": "-118.2171667",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

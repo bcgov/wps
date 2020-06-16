@@ -1,13 +1,7 @@
 {
-    "ffmc": 93.61711578369142,
-    "isi": 12.68470020294189,
-    "bui": 116.17416305541992,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 93.69169998168945,
+    "isi": 12.97339849472046,
+    "bui": 119.92665786743164,
     "years": [
         2010,
         2011,
@@ -24,6 +18,13 @@
         "code": "235",
         "name": "YOUNG LAKE",
         "lat": "51.2377700",
-        "long": "-120.9976200"
+        "long": "-120.9976200",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

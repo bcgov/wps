@@ -46,6 +46,8 @@ poetry env use 3.8
 poetry install
 ```
 
+**N.B.: If `poetry env use 3.8` returns an `EnvCommandError` saying that "pyenv: python3.8: command not found", but `pyenv versions` shows that 3.8.x is installed, you must first run `pyenv shell 3.8.x` and then re-run `poetry env use 3.8`.**
+
 ##### Troubleshooting
 
 If you experience errors when installing `psycopg2` and you are using MacOS, try running

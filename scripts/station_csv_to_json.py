@@ -5,8 +5,19 @@ TODO: Remove this module when the Fire Weather Index Calculator uses the correct
 import csv
 import json
 import re
+import geopandas
+from shapely.geometry import Point
 
-with open('csv/Station_BC.csv', 'r') as csvfile:
+def fetch_ecodivision_name(lat: str, long: str, ecodivisions: geopandas.GeoDataFrame):
+    """ Returns the ecodivision name for a given lat/long coordinate """
+    station_coord = Point(float(long), float(lat))
+    for index, row in ecodivisions.iterrows(): #pylint: disable=redefined-outer-name, unused-variable
+        geom = row['geometry']
+        if station_coord.within(geom):
+            return row['CDVSNNM']
+    return None
+
+with open('csv/Station_BC_June2020.csv', 'r') as csvfile:
     READER = csv.reader(csvfile, dialect=csv.unix_dialect)
 
     HEADER = next(READER)
@@ -17,6 +28,10 @@ with open('csv/Station_BC.csv', 'r') as csvfile:
     STATION_LONGITUDE = HEADER.index('longitude')
 
     WEATHER_STATIONS = []
+
+    ECODIVISIONS = geopandas.read_file('data/ERC_ECODIV_polygon/ERC_ECODIV_polygon.shp')
+    with open('data/ecodivisions_core_seasons.json') as file_handle:
+        CORE_SEASONS = json.load(file_handle)
 
     # Keep track of station count for debug purposes.
     STATION_COUNT = 0
@@ -33,12 +48,19 @@ with open('csv/Station_BC.csv', 'r') as csvfile:
                     row[STATION_CODE], row[STATION_NAME]))
                 continue
             STATION_COUNT = STATION_COUNT + 1
+            ecodivision_name = fetch_ecodivision_name(row[STATION_LATITUDE], row[STATION_LONGITUDE], ECODIVISIONS)
+            if ecodivision_name is not None:
+                core_season = CORE_SEASONS[ecodivision_name]['core_season']
+            else:
+                core_season = None #pylint: disable=invalid-name
             WEATHER_STATIONS.append(
                 {
                     "code": row[STATION_CODE],
                     "name": row[STATION_NAME],
                     "lat": row[STATION_LATITUDE],
-                    "long": row[STATION_LONGITUDE]
+                    "long": row[STATION_LONGITUDE],
+                    "ecodivision_name": ecodivision_name,
+                    "core_season": core_season
                 }
             )
 

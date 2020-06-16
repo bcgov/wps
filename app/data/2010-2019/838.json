@@ -1,13 +1,7 @@
 {
-    "ffmc": 92.39454345703123,
-    "isi": 9.59042263031006,
-    "bui": 133.1907958984375,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 92.47129364013672,
+    "isi": 9.655447006225588,
+    "bui": 137.0645385742188,
     "years": [
         2010,
         2011,
@@ -24,6 +18,13 @@
         "code": "838",
         "name": "AKOKLI CREEK",
         "lat": "49.4358000",
-        "long": "-116.7464000"
+        "long": "-116.7464000",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

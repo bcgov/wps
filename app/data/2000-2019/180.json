@@ -1,13 +1,7 @@
 {
-    "ffmc": 92.18850173950196,
-    "isi": 9.249597930908202,
-    "bui": 123.24873809814451,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 92.1627655029297,
+    "isi": 9.251348781585692,
+    "bui": 125.41435317993165,
     "years": [
         2000,
         2001,
@@ -34,6 +28,13 @@
         "code": "180",
         "name": "MCBRIDE LAKE",
         "lat": "54.0747330",
-        "long": "-127.3994167"
+        "long": "-127.3994167",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

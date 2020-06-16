@@ -1,13 +1,7 @@
 {
-    "ffmc": 91.9000015258789,
-    "isi": 9.505253982543948,
-    "bui": 115.97402191162112,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 91.89330596923828,
+    "isi": 9.5,
+    "bui": 116.30021667480469,
     "years": [
         1981,
         1982,
@@ -53,6 +47,13 @@
         "code": "213",
         "name": "ANAHIM LAKE HUB",
         "lat": "52.4566667",
-        "long": "-125.3033333"
+        "long": "-125.3033333",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

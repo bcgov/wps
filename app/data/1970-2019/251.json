@@ -1,13 +1,7 @@
 {
-    "ffmc": 91.70095214843751,
-    "isi": 8.296335220336914,
-    "bui": 74.6341552734375,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 91.70618209838867,
+    "isi": 8.300000190734862,
+    "bui": 75.52721328735352,
     "years": [
         1989,
         1990,
@@ -45,6 +39,13 @@
         "code": "251",
         "name": "DECEPTION",
         "lat": "51.9670000",
-        "long": "-120.6080000"
+        "long": "-120.6080000",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

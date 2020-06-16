@@ -1,13 +1,7 @@
 {
-    "ffmc": 93.4138916015625,
-    "isi": 11.165850067138676,
-    "bui": 94.04491271972657,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 93.48652801513671,
+    "isi": 11.173652267456056,
+    "bui": 95.03359832763674,
     "years": [
         2000,
         2001,
@@ -34,6 +28,13 @@
         "code": "367",
         "name": "MARION",
         "lat": "51.0421667",
-        "long": "-116.3638333"
+        "long": "-116.3638333",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

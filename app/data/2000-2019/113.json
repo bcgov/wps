@@ -1,13 +1,7 @@
 {
-    "ffmc": 90.07332077026369,
-    "isi": 6.257936954498293,
-    "bui": 62.333256149292,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 90.03506088256836,
+    "isi": 6.224817752838135,
+    "bui": 61.63498306274414,
     "years": [
         2000,
         2001,
@@ -34,6 +28,13 @@
         "code": "113",
         "name": "BOB QUINN LAKE",
         "lat": "56.9809830",
-        "long": "-130.2508000"
+        "long": "-130.2508000",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }
