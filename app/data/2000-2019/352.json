@@ -1,13 +1,7 @@
 {
-    "ffmc": 93.31569595336914,
-    "isi": 10.360464096069336,
-    "bui": 77.79708862304688,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 93.4108428955078,
+    "isi": 10.466238307952882,
+    "bui": 79.6673179626465,
     "years": [
         2000,
         2001,
@@ -34,6 +28,13 @@
         "code": "352",
         "name": "CURWEN CREEK",
         "lat": "50.6021500",
-        "long": "-118.4229167"
+        "long": "-118.4229167",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

@@ -1,13 +1,7 @@
 {
     "ffmc": 91.9000015258789,
-    "isi": 10.304719924926758,
-    "bui": 77.3989028930664,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "isi": 10.300000190734863,
+    "bui": 77.9000015258789,
     "years": [
         1979,
         1980,
@@ -53,6 +47,13 @@
         "code": "124",
         "name": "GRAHAM",
         "lat": "56.4346389",
-        "long": "-122.4576667"
+        "long": "-122.4576667",
+        "ecodivision_name": "BOREAL",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

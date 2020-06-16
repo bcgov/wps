@@ -1,13 +1,7 @@
 {
-    "ffmc": 94.43162994384765,
-    "isi": 13.932844734191894,
-    "bui": 144.01934509277342,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 94.46234130859375,
+    "isi": 13.935068130493166,
+    "bui": 144.5917694091797,
     "years": [
         2000,
         2001,
@@ -34,6 +28,13 @@
         "code": "317",
         "name": "ALLISON PASS",
         "lat": "49.0623139",
-        "long": "-120.7674194"
+        "long": "-120.7674194",
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
     }
 }

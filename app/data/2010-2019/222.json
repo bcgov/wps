@@ -1,13 +1,7 @@
 {
-    "ffmc": 92.19906768798828,
-    "isi": 12.685012817382814,
-    "bui": 96.06461639404297,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 92.3209732055664,
+    "isi": 13.138701915740969,
+    "bui": 100.2544044494629,
     "years": [
         2010,
         2011,
@@ -24,6 +18,13 @@
         "code": "222",
         "name": "GASPARD",
         "lat": "51.4516667",
-        "long": "-122.6616667"
+        "long": "-122.6616667",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

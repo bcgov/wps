@@ -1,13 +1,7 @@
 {
-    "ffmc": 90.5432144165039,
-    "isi": 6.573973560333253,
-    "bui": 101.49710235595704,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 90.66532974243165,
+    "isi": 6.625931310653686,
+    "bui": 102.95833892822263,
     "years": [
         2010,
         2011,
@@ -24,6 +18,13 @@
         "code": "1025",
         "name": "TS THEODOSIA",
         "lat": "50.1035000",
-        "long": "-124.6146944"
+        "long": "-124.6146944",
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

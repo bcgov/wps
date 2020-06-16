@@ -1,13 +1,7 @@
 {
-    "ffmc": 91.71043701171875,
-    "isi": 8.902936935424805,
-    "bui": 85.43193817138672,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 91.70829696655274,
+    "isi": 8.855452346801757,
+    "bui": 84.82973175048828,
     "years": [
         1996,
         1997,
@@ -38,6 +32,8 @@
         "code": "447",
         "name": "WATSON LAKE FS",
         "lat": "60.0618000",
-        "long": "-128.7179330"
+        "long": "-128.7179330",
+        "ecodivision_name": null,
+        "core_season": null
     }
 }

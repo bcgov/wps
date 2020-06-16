@@ -1,13 +1,7 @@
 {
-    "ffmc": 92.11640930175781,
-    "isi": 9.285557270050052,
-    "bui": 77.1981544494629,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 92.12385330200195,
+    "isi": 9.335149669647219,
+    "bui": 78.70293502807618,
     "years": [
         2000,
         2001,
@@ -34,6 +28,13 @@
         "code": "166",
         "name": "KLUSKUS",
         "lat": "53.3830500",
-        "long": "-124.5120800"
+        "long": "-124.5120800",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

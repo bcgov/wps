@@ -1,13 +1,7 @@
 {
-    "ffmc": 90.68408432006837,
-    "isi": 7.9081670284271235,
-    "bui": 146.18817443847655,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 90.70260314941406,
+    "isi": 7.880682945251466,
+    "bui": 147.89658660888674,
     "years": [
         2000,
         2001,
@@ -34,6 +28,13 @@
         "code": "59",
         "name": "CEDAR",
         "lat": "49.0476167",
-        "long": "-123.8747333"
+        "long": "-123.8747333",
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

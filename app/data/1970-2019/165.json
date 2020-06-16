@@ -1,13 +1,7 @@
 {
-    "ffmc": 91.5136962890625,
-    "isi": 8.800000190734863,
-    "bui": 83.36544952392578,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 91.5,
+    "isi": 8.795445442199707,
+    "bui": 83.773681640625,
     "years": [
         1980,
         1981,
@@ -54,6 +48,13 @@
         "code": "165",
         "name": "MOOSE LAKE",
         "lat": "53.0714600",
-        "long": "-125.4121500"
+        "long": "-125.4121500",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

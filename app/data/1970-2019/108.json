@@ -1,13 +1,7 @@
 {
-    "ffmc": 91.10210494995117,
-    "isi": 9.36047868728638,
-    "bui": 75.2100700378418,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 91.03925170898438,
+    "isi": 9.295764923095707,
+    "bui": 75.20783157348633,
     "years": [
         1978,
         1996,
@@ -39,6 +33,13 @@
         "code": "108",
         "name": "DEASE LAKE FS",
         "lat": "58.4257830",
-        "long": "-130.0187167"
+        "long": "-130.0187167",
+        "ecodivision_name": "SUB-ARCTIC HIGHLANDS",
+        "core_season": {
+            "start_month": "6",
+            "start_day": "1",
+            "end_month": "8",
+            "end_day": "15"
+        }
     }
 }

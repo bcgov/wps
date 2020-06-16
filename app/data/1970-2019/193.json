@@ -1,13 +1,7 @@
 {
     "ffmc": 92.3000030517578,
-    "isi": 8.848775672912598,
-    "bui": 62.59358596801758,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "isi": 8.81167049407959,
+    "bui": 63.023098373413085,
     "years": [
         1986,
         1987,
@@ -47,6 +41,13 @@
         "code": "193",
         "name": "BOWRON HAGGEN",
         "lat": "53.4631389",
-        "long": "-121.5603333"
+        "long": "-121.5603333",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

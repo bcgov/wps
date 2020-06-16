@@ -1,13 +1,7 @@
 {
-    "ffmc": 94.05769500732423,
-    "isi": 14.694167804718015,
-    "bui": 154.13676910400392,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 94.12702178955078,
+    "isi": 14.947553730010988,
+    "bui": 157.15555114746093,
     "years": [
         2010,
         2011,
@@ -24,6 +18,13 @@
         "code": "210",
         "name": "RISKE CREEK",
         "lat": "51.9594444",
-        "long": "-122.5041667"
+        "long": "-122.5041667",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

@@ -1,13 +1,7 @@
 {
-    "ffmc": 94.51983642578124,
-    "isi": 14.01769371032715,
-    "bui": 169.25595703124998,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 94.86972427368164,
+    "isi": 14.98070287704468,
+    "bui": 180.72859344482424,
     "years": [
         2017,
         2018,
@@ -17,6 +11,13 @@
         "code": "1283",
         "name": "CHEAKAMUS",
         "lat": "50.0825056",
-        "long": "-123.0412722"
+        "long": "-123.0412722",
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

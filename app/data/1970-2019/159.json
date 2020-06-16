@@ -1,13 +1,7 @@
 {
-    "ffmc": 91.10883483886718,
-    "isi": 8.445717620849612,
-    "bui": 87.8166213989258,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 91.10055236816406,
+    "isi": 8.428215026855469,
+    "bui": 88.02806854248047,
     "years": [
         1972,
         1973,
@@ -51,6 +45,13 @@
         "code": "159",
         "name": "NORTH CHILCO",
         "lat": "54.1546300",
-        "long": "-123.7541300"
+        "long": "-123.7541300",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

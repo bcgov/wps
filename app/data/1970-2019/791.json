@@ -1,13 +1,7 @@
 {
-    "ffmc": 93.9695556640625,
-    "isi": 13.821816062927248,
-    "bui": 127.45509796142582,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 93.9652801513672,
+    "isi": 13.84727668762207,
+    "bui": 129.2732177734375,
     "years": [
         1989,
         1990,
@@ -43,6 +37,13 @@
         "code": "791",
         "name": "CHERRY LAKE",
         "lat": "49.1877778",
-        "long": "-115.5416667"
+        "long": "-115.5416667",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

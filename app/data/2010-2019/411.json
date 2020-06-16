@@ -1,13 +1,7 @@
 {
-    "ffmc": 94.48098144531251,
-    "isi": 12.628674697875976,
-    "bui": 133.2568466186524,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 94.50178146362305,
+    "isi": 12.641512584686279,
+    "bui": 136.31793670654295,
     "years": [
         2010,
         2011,
@@ -24,6 +18,13 @@
         "code": "411",
         "name": "PALLISER",
         "lat": "50.4946111",
-        "long": "-115.6664444"
+        "long": "-115.6664444",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

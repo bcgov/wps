@@ -1,13 +1,7 @@
 {
-    "ffmc": 94.73615646362305,
-    "isi": 14.666248130798339,
-    "bui": 226.40695495605465,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 95.9547607421875,
+    "isi": 17.638191604614256,
+    "bui": 270.6001342773437,
     "years": [
         2018,
         2019
@@ -16,6 +10,13 @@
         "code": "1331",
         "name": "INKANEEP EXT",
         "lat": "49.1046111",
-        "long": "-119.3914167"
+        "long": "-119.3914167",
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
     }
 }

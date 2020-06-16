@@ -1,13 +1,7 @@
 {
-    "ffmc": 93.06993713378907,
-    "isi": 10.092724704742436,
-    "bui": 107.44940719604494,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 93.12588806152343,
+    "isi": 10.244938659667971,
+    "bui": 109.21909103393557,
     "years": [
         2003,
         2004,
@@ -31,6 +25,13 @@
         "code": "383",
         "name": "FALLS CREEK",
         "lat": "50.3830000",
-        "long": "-117.8799000"
+        "long": "-117.8799000",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

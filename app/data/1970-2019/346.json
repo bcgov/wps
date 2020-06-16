@@ -1,13 +1,7 @@
 {
-    "ffmc": 93.04249877929688,
-    "isi": 9.872999763488773,
-    "bui": 126.11752166748049,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 93.02890319824219,
+    "isi": 9.866968154907228,
+    "bui": 126.87665252685551,
     "years": [
         1976,
         1977,
@@ -54,6 +48,13 @@
         "code": "346",
         "name": "SALMON ARM",
         "lat": "50.6850000",
-        "long": "-119.2350000"
+        "long": "-119.2350000",
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
     }
 }

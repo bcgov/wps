@@ -1,13 +1,7 @@
 {
-    "ffmc": 91.97200927734376,
-    "isi": 9.457904720306399,
-    "bui": 82.56365890502931,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 92.0350730895996,
+    "isi": 9.586279487609865,
+    "bui": 86.43829650878907,
     "years": [
         2010,
         2011,
@@ -24,6 +18,13 @@
         "code": "148",
         "name": "BLACKPINE",
         "lat": "56.3187778",
-        "long": "-125.3679722"
+        "long": "-125.3679722",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

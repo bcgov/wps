@@ -120,13 +120,6 @@ def list_years_per_station():
 def write_output_to_json(date_range, weather_stations, data_years, percentiles):
     """ Write output to json file. """
     print('write_output_to_json...')
-    # create season instance to be used in output
-    season = {
-        'start_month': FIRE_SEASON_START_MONTH,
-        'start_day': FIRE_SEASON_START_DATE,
-        'end_month': FIRE_SEASON_END_MONTH,
-        'end_day': FIRE_SEASON_END_DATE
-    }
     output_folder = "app/data/{}-{}".format(date_range[0], date_range[1])
     for weath_stat in weather_stations:
         try:
@@ -136,13 +129,14 @@ def write_output_to_json(date_range, weather_stations, data_years, percentiles):
                 'ffmc': percentiles['ffmc'][int(key)],
                 'isi': percentiles['isi'][int(key)],
                 'bui': percentiles['bui'][int(key)],
-                'season': season,
                 'years': [int(year) for year in data_years[int(key)]],
                 'station': {
                     'code': key,
                     'name': weath_stat['name'],
                     'lat': weath_stat['lat'],
-                    'long': weath_stat['long']
+                    'long': weath_stat['long'],
+                    'ecodivision_name': weath_stat['ecodivision_name'],
+                    'core_season': weath_stat['core_season']
                 }
             }
             if not os.path.exists(output_folder):

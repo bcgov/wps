@@ -1,13 +1,7 @@
 {
-    "ffmc": 93.83706817626953,
-    "isi": 11.892461967468263,
-    "bui": 88.35793609619141,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 93.91562194824219,
+    "isi": 11.930567264556885,
+    "bui": 90.59117813110352,
     "years": [
         2010,
         2011,
@@ -24,6 +18,13 @@
         "code": "385",
         "name": "DUNCAN",
         "lat": "50.7808333",
-        "long": "-117.1805000"
+        "long": "-117.1805000",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

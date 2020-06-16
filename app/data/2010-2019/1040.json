@@ -1,13 +1,7 @@
 {
-    "ffmc": 93.05384674072266,
-    "isi": 10.748893737792976,
-    "bui": 105.59565887451174,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 93.26963424682617,
+    "isi": 11.027422523498533,
+    "bui": 108.24773559570312,
     "years": [
         2010,
         2011,
@@ -24,6 +18,13 @@
         "code": "1040",
         "name": "BIG SILVER 2",
         "lat": "49.7233972",
-        "long": "-121.8365167"
+        "long": "-121.8365167",
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

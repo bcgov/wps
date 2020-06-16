@@ -1,13 +1,7 @@
 {
-    "ffmc": 95.43212432861328,
-    "isi": 16.24836235046386,
-    "bui": 211.1500289916992,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 95.45962600708006,
+    "isi": 16.20756530761719,
+    "bui": 215.08246765136724,
     "years": [
         2000,
         2001,
@@ -34,6 +28,13 @@
         "code": "392",
         "name": "GRAND FORKS",
         "lat": "49.0307000",
-        "long": "-118.4156000"
+        "long": "-118.4156000",
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
     }
 }

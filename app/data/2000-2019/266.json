@@ -1,13 +1,7 @@
 {
-    "ffmc": 94.16660385131836,
-    "isi": 11.338447570800781,
-    "bui": 83.92030944824221,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 94.21224975585938,
+    "isi": 11.53905057907105,
+    "bui": 84.9061882019043,
     "years": [
         2000,
         2001,
@@ -34,6 +28,13 @@
         "code": "266",
         "name": "WELLS GRAY",
         "lat": "52.3426330",
-        "long": "-120.2437500"
+        "long": "-120.2437500",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

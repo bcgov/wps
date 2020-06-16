@@ -1,13 +1,7 @@
 {
-    "ffmc": 92.8695831298828,
-    "isi": 8.675556182861332,
-    "bui": 136.5026931762696,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 92.86537551879883,
+    "isi": 8.63958034515381,
+    "bui": 137.5055908203125,
     "years": [
         2000,
         2001,
@@ -34,6 +28,13 @@
         "code": "233",
         "name": "TALCHAKO",
         "lat": "52.2513500",
-        "long": "-126.0283667"
+        "long": "-126.0283667",
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

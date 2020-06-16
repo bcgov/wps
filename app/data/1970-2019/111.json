@@ -1,13 +1,7 @@
 {
-    "ffmc": 89.8348892211914,
-    "isi": 8.636076736450194,
-    "bui": 107.7502227783203,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 89.80000305175781,
+    "isi": 8.609325027465818,
+    "bui": 108.1999969482422,
     "years": [
         1977,
         1978,
@@ -57,6 +51,13 @@
         "code": "111",
         "name": "ATLIN",
         "lat": "59.5844830",
-        "long": "-133.6643830"
+        "long": "-133.6643830",
+        "ecodivision_name": "SUB-ARCTIC HIGHLANDS",
+        "core_season": {
+            "start_month": "6",
+            "start_day": "1",
+            "end_month": "8",
+            "end_day": "15"
+        }
     }
 }

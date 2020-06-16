@@ -1,13 +1,7 @@
 {
-    "ffmc": 91.26988220214842,
-    "isi": 8.032750511169432,
-    "bui": 79.66715087890626,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 91.32810974121094,
+    "isi": 8.119255447387696,
+    "bui": 81.28916397094727,
     "years": [
         2000,
         2001,
@@ -34,6 +28,13 @@
         "code": "253",
         "name": "CAHILTY",
         "lat": "50.8878830",
-        "long": "-119.8383170"
+        "long": "-119.8383170",
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
     }
 }

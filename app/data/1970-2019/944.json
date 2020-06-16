@@ -1,13 +1,7 @@
 {
-    "ffmc": 88.97813568115234,
-    "isi": 5.760507106781007,
-    "bui": 89.57551727294918,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 88.97693481445313,
+    "isi": 5.758949756622315,
+    "bui": 91.49873962402344,
     "years": [
         2006,
         2007,
@@ -28,6 +22,13 @@
         "code": "944",
         "name": "TS SAN JUAN",
         "lat": "48.5711111",
-        "long": "-124.2005556"
+        "long": "-124.2005556",
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

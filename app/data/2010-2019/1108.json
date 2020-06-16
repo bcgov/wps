@@ -1,13 +1,7 @@
 {
-    "ffmc": 94.58331146240235,
-    "isi": 12.786623764038087,
-    "bui": 80.85329742431641,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 94.59400329589845,
+    "isi": 12.837848281860353,
+    "bui": 82.84923400878908,
     "years": [
         2011,
         2012,
@@ -23,6 +17,13 @@
         "code": "1108",
         "name": "BLUE RIVER 2",
         "lat": "52.1222500",
-        "long": "-119.2935833"
+        "long": "-119.2935833",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

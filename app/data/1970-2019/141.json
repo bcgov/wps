@@ -1,13 +1,7 @@
 {
-    "ffmc": 91.3460189819336,
+    "ffmc": 91.30777435302734,
     "isi": 8.199999809265138,
-    "bui": 84.19999694824219,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "bui": 84.3253746032715,
     "years": [
         1970,
         1971,
@@ -63,6 +57,13 @@
         "code": "141",
         "name": "MANSON",
         "lat": "55.5798800",
-        "long": "-124.2319800"
+        "long": "-124.2319800",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

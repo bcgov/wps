@@ -1,13 +1,7 @@
 {
-    "ffmc": 93.56051330566406,
-    "isi": 12.506898975372314,
-    "bui": 119.47042007446288,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 93.61821136474609,
+    "isi": 12.518957138061525,
+    "bui": 121.45958709716795,
     "years": [
         2000,
         2001,
@@ -34,6 +28,13 @@
         "code": "407",
         "name": "NANCY GREEN",
         "lat": "49.2545000",
-        "long": "-117.9941667"
+        "long": "-117.9941667",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

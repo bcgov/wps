@@ -1,13 +1,7 @@
 {
     "ffmc": 89.5,
     "isi": 6.300000190734862,
-    "bui": 76.30000305175781,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "bui": 76.83058166503908,
     "years": [
         1970,
         1971,
@@ -64,6 +58,13 @@
         "code": "427",
         "name": "NASS CAMP",
         "lat": "55.2886000",
-        "long": "-128.9984500"
+        "long": "-128.9984500",
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

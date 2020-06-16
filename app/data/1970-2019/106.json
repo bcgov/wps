@@ -1,13 +1,7 @@
 {
     "ffmc": 90.4000015258789,
-    "isi": 7.531768178939818,
-    "bui": 71.41930847167968,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "isi": 7.50475130081177,
+    "bui": 70.05437622070312,
     "years": [
         1995,
         1996,
@@ -39,6 +33,13 @@
         "code": "106",
         "name": "KITPARK",
         "lat": "54.1696000",
-        "long": "-128.5758500"
+        "long": "-128.5758500",
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

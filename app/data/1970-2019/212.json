@@ -1,13 +1,7 @@
 {
-    "ffmc": 93.12358245849609,
-    "isi": 9.862881469726565,
-    "bui": 118.35040283203125,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 93.13167419433594,
+    "isi": 9.872257614135744,
+    "bui": 119.57061462402346,
     "years": [
         1981,
         1987,
@@ -48,6 +42,13 @@
         "code": "212",
         "name": "PLACE LAKE",
         "lat": "51.8166667",
-        "long": "-122.0000000"
+        "long": "-122.0000000",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

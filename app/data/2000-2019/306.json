@@ -1,13 +1,7 @@
 {
-    "ffmc": 93.43083953857422,
-    "isi": 13.182183647155762,
-    "bui": 121.25395965576176,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 93.4689971923828,
+    "isi": 13.229061126708986,
+    "bui": 122.61582336425784,
     "years": [
         2000,
         2001,
@@ -34,6 +28,13 @@
         "code": "306",
         "name": "FRENCH BAR",
         "lat": "51.1774667",
-        "long": "-122.2489333"
+        "long": "-122.2489333",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

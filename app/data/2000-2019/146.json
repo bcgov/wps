@@ -1,13 +1,7 @@
 {
-    "ffmc": 91.868359375,
-    "isi": 9.6011137008667,
-    "bui": 100.94227294921876,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 91.8719696044922,
+    "isi": 9.539950656890872,
+    "bui": 101.99524612426762,
     "years": [
         2000,
         2001,
@@ -34,6 +28,13 @@
         "code": "146",
         "name": "FORT ST JAMES",
         "lat": "54.3940833",
-        "long": "-124.2609722"
+        "long": "-124.2609722",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

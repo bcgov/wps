@@ -1,13 +1,7 @@
 {
-    "ffmc": 92.01789016723633,
-    "isi": 8.666875267028814,
-    "bui": 87.67871551513673,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 92.01814422607421,
+    "isi": 8.708353996276857,
+    "bui": 89.52878265380863,
     "years": [
         2000,
         2001,
@@ -34,6 +28,13 @@
         "code": "227",
         "name": "GAVIN",
         "lat": "52.4700000",
-        "long": "-121.7416667"
+        "long": "-121.7416667",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

@@ -1,13 +1,7 @@
 {
-    "ffmc": 94.21664276123047,
-    "isi": 15.968611812591547,
-    "bui": 199.67004852294923,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 94.24568710327148,
+    "isi": 16.03813419342041,
+    "bui": 199.67763671875,
     "years": [
         2000,
         2001,
@@ -34,6 +28,13 @@
         "code": "322",
         "name": "AFTON",
         "lat": "50.6733333",
-        "long": "-120.4816667"
+        "long": "-120.4816667",
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
     }
 }

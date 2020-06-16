@@ -1,13 +1,7 @@
 {
-    "ffmc": 94.01138458251953,
-    "isi": 10.6720760345459,
-    "bui": 123.705517578125,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 94.03118286132812,
+    "isi": 10.679827785491943,
+    "bui": 123.40487747192384,
     "years": [
         2000,
         2001,
@@ -34,6 +28,13 @@
         "code": "82",
         "name": "SCAR CREEK",
         "lat": "51.1891111",
-        "long": "-125.0280556"
+        "long": "-125.0280556",
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

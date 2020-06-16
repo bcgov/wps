@@ -1,13 +1,7 @@
 {
-    "ffmc": 92.31369476318358,
-    "isi": 14.231425857543947,
-    "bui": 106.2212387084961,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 92.4,
+    "isi": 14.531943130493165,
+    "bui": 106.54127197265625,
     "years": [
         2009,
         2010,
@@ -25,6 +19,13 @@
         "code": "1045",
         "name": "OSBORN",
         "lat": "56.5583333",
-        "long": "-120.3819444"
+        "long": "-120.3819444",
+        "ecodivision_name": "BOREAL",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

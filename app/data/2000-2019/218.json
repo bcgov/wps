@@ -1,13 +1,7 @@
 {
-    "ffmc": 92.66476211547851,
-    "isi": 10.981216049194341,
-    "bui": 116.50453796386729,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 92.6792823791504,
+    "isi": 10.989266014099119,
+    "bui": 118.67958679199218,
     "years": [
         2000,
         2001,
@@ -34,6 +28,13 @@
         "code": "218",
         "name": "LONE BUTTE",
         "lat": "51.5070000",
-        "long": "-121.1620000"
+        "long": "-121.1620000",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

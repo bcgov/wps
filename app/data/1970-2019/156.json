@@ -1,13 +1,7 @@
 {
-    "ffmc": 91.41494827270508,
-    "isi": 8.442499732971193,
-    "bui": 69.33479461669924,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 91.41377029418945,
+    "isi": 8.431449127197265,
+    "bui": 70.17608337402343,
     "years": [
         1991,
         1992,
@@ -42,6 +36,13 @@
         "code": "156",
         "name": "SUSTUT",
         "lat": "56.3287300",
-        "long": "-127.0342500"
+        "long": "-127.0342500",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

@@ -1,13 +1,7 @@
 {
-    "ffmc": 93.01798858642577,
-    "isi": 9.953563022613526,
-    "bui": 116.15371093750001,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 93.05955200195312,
+    "isi": 10.062623023986816,
+    "bui": 117.46801376342773,
     "years": [
         2000,
         2001,
@@ -34,6 +28,13 @@
         "code": "291",
         "name": "GLIMPSE",
         "lat": "50.2704500",
-        "long": "-120.2883000"
+        "long": "-120.2883000",
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
     }
 }

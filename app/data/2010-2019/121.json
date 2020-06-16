@@ -1,13 +1,7 @@
 {
-    "ffmc": 92.4533462524414,
-    "isi": 10.280641841888428,
-    "bui": 90.33635101318359,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 92.4531639099121,
+    "isi": 10.250178146362305,
+    "bui": 84.56691360473633,
     "years": [
         2010,
         2011,
@@ -24,6 +18,13 @@
         "code": "121",
         "name": "PADDY",
         "lat": "57.7818100",
-        "long": "-120.2368000"
+        "long": "-120.2368000",
+        "ecodivision_name": "BOREAL",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

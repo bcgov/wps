@@ -1,13 +1,7 @@
 {
-    "ffmc": 93.27172164916992,
-    "isi": 11.333162212371828,
-    "bui": 94.63109359741212,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 93.32349319458008,
+    "isi": 11.446874618530273,
+    "bui": 96.10926055908205,
     "years": [
         2000,
         2001,
@@ -34,6 +28,13 @@
         "code": "366",
         "name": "WHISKEY",
         "lat": "51.0653333",
-        "long": "-116.7850000"
+        "long": "-116.7850000",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

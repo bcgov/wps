@@ -1,13 +1,7 @@
 {
-    "ffmc": 92.96105194091797,
-    "isi": 12.480841350555423,
-    "bui": 120.13600692749024,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 93.00611877441406,
+    "isi": 12.61067132949829,
+    "bui": 121.9849983215332,
     "years": [
         1999,
         2000,
@@ -35,6 +29,13 @@
         "code": "326",
         "name": "PASKA LAKE",
         "lat": "50.5040000",
-        "long": "-120.6740000"
+        "long": "-120.6740000",
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
     }
 }

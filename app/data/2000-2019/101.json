@@ -1,13 +1,7 @@
 {
-    "ffmc": 91.16300811767579,
-    "isi": 7.722253608703618,
-    "bui": 77.34677734375,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 91.16053009033205,
+    "isi": 7.6429310798645025,
+    "bui": 77.68223876953125,
     "years": [
         2000,
         2001,
@@ -34,6 +28,13 @@
         "code": "101",
         "name": "MACHMELL",
         "lat": "51.5931167",
-        "long": "-126.4507667"
+        "long": "-126.4507667",
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

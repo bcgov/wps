@@ -1,13 +1,7 @@
 {
-    "ffmc": 96.30457839965821,
-    "isi": 16.13987789154053,
-    "bui": 225.55237579345712,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 96.34497604370115,
+    "isi": 16.126325225830076,
+    "bui": 231.93739166259763,
     "years": [
         2010,
         2011,
@@ -24,6 +18,13 @@
         "code": "394",
         "name": "ROCK CREEK",
         "lat": "49.0520000",
-        "long": "-118.9366667"
+        "long": "-118.9366667",
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
     }
 }

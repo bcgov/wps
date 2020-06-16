@@ -1,13 +1,7 @@
 {
-    "ffmc": 93.45577087402346,
-    "isi": 11.24666967391968,
-    "bui": 118.93175811767583,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 93.44552001953126,
+    "isi": 11.300867080688478,
+    "bui": 122.20934448242191,
     "years": [
         2010,
         2011,
@@ -24,6 +18,13 @@
         "code": "362",
         "name": "MABEL LAKE 2",
         "lat": "50.3516667",
-        "long": "-118.7733333"
+        "long": "-118.7733333",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

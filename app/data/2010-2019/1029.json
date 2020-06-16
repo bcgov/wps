@@ -1,13 +1,7 @@
 {
-    "ffmc": 94.26908264160157,
-    "isi": 14.12478494644165,
-    "bui": 198.85660552978516,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 94.45374832153318,
+    "isi": 14.29779052734375,
+    "bui": 203.7754867553711,
     "years": [
         2010,
         2011,
@@ -24,6 +18,13 @@
         "code": "1029",
         "name": "FIVE MILE",
         "lat": "50.9108861",
-        "long": "-122.6888889"
+        "long": "-122.6888889",
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
     }
 }

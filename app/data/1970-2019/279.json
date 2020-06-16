@@ -1,13 +1,7 @@
 {
-    "ffmc": 92.82575225830078,
-    "isi": 11.525239944458008,
-    "bui": 137.99334716796875,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 92.87828750610353,
+    "isi": 11.567973613739014,
+    "bui": 138.41537017822264,
     "years": [
         1977,
         1978,
@@ -53,6 +47,13 @@
         "code": "279",
         "name": "THYNNE",
         "lat": "49.7151500",
-        "long": "-120.8660500"
+        "long": "-120.8660500",
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
     }
 }

@@ -1,13 +1,7 @@
 {
-    "ffmc": 94.07094879150391,
-    "isi": 15.134993743896487,
-    "bui": 100.06999969482426,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 94.09541702270508,
+    "isi": 15.113411712646487,
+    "bui": 100.87948608398439,
     "years": [
         1989,
         1990,
@@ -45,6 +39,13 @@
         "code": "790",
         "name": "WHITE RIVER",
         "lat": "50.1850000",
-        "long": "-115.2676389"
+        "long": "-115.2676389",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

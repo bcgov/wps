@@ -1,13 +1,7 @@
 {
-    "ffmc": 92.83434448242187,
-    "isi": 11.071654701232912,
-    "bui": 88.7722122192383,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 92.85799255371094,
+    "isi": 11.241633892059326,
+    "bui": 89.13277969360352,
     "years": [
         2010,
         2011,
@@ -24,6 +18,13 @@
         "code": "599",
         "name": "FORT NELSON FS",
         "lat": "58.8418889",
-        "long": "-122.5735000"
+        "long": "-122.5735000",
+        "ecodivision_name": "SUB-ARCTIC",
+        "core_season": {
+            "start_month": "6",
+            "start_day": "1",
+            "end_month": "8",
+            "end_day": "15"
+        }
     }
 }

@@ -1,13 +1,7 @@
 {
-    "ffmc": 91.9166259765625,
-    "isi": 11.480173110961914,
-    "bui": 77.50960769653321,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 91.94326782226564,
+    "isi": 11.480257511138916,
+    "bui": 78.22804641723633,
     "years": [
         2000,
         2001,
@@ -34,6 +28,13 @@
         "code": "127",
         "name": "TUMBLER(DENISON) HUB",
         "lat": "55.0273600",
-        "long": "-120.9340500"
+        "long": "-120.9340500",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

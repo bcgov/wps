@@ -1,13 +1,7 @@
 {
-    "ffmc": 91.59370651245119,
-    "isi": 9.020550727844238,
-    "bui": 89.68879547119141,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 91.5999984741211,
+    "isi": 9.053264141082764,
+    "bui": 90.5,
     "years": [
         1986,
         1987,
@@ -48,6 +42,13 @@
         "code": "170",
         "name": "EAST OOTSA",
         "lat": "53.5024330",
-        "long": "-125.7793167"
+        "long": "-125.7793167",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }
