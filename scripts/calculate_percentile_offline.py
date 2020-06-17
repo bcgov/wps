@@ -1,156 +1,156 @@
-""" This module contains "throwaway" code for pre-generating weather station summaries.
-
-TODO: Remove this module when the Fire Weather Index Calculator uses the correct API as source for data.
-"""
+""" Pre 90th percentile calculator """
 import os
 import json
-import pandas as pd  # pylint: disable=import-error
+import pandas as pd
 
-# --------- INPUT PARAMETERS -----------------
-# fire season start and end dates (month and day in numeric format) for location
-# May 1 - Aug 31 used for now as MVP
-FIRE_SEASON_START_MONTH = 5
-FIRE_SEASON_START_DATE = 1
-FIRE_SEASON_END_MONTH = 8
-FIRE_SEASON_END_DATE = 31
+# pylint: disable=import-error, invalid-name
 
-# time range start and end years
-# start of 1970 fire season to end of 2019 fire season is 50 years
-# start of 2000 fire season to end of 2019 fire season is 20 years
-# start of 2010 fire season to end of 2019 fire season is 10 years
-RANGES = ((1970, 2019), (2000, 2019), (2010, 2019))
-
-# percentile to report out (in decimal format)
+RECENT_YEAR = 2019  # the most recent year that has the core fire season recorded
+RANGES = [(1970, RECENT_YEAR), (RECENT_YEAR - 19, RECENT_YEAR),
+          (RECENT_YEAR - 9, RECENT_YEAR)]
 PERCENTILE = 0.9
-# ------------ end of input parameters ---------
-
-# ---------- GLOBAL VARIABLES ----------------
-# import the CSV into Pandas dataframe
-print('open file...')
-DAILY_WEATHER_DATA = pd.read_csv('csv/DailyWeather.csv')
-# ----------- end of global variables -------------
+NUMBER_OF_DECIMAL_POINT = 5  # for FWI values
 
 
 def main():
     """ The main entrypoint for pre-generating json daily summaries. """
-    for date_range in RANGES:
-        weather_stations = stations_json_to_dict()
-        parse_weather_dates()
-        remove_data_outside_date_range(date_range)
-        remove_data_outside_fire_season()
-        percentiles = calculate_percentile_per_station()
-        data_years = list_years_per_station()
-        write_output_to_json(date_range, weather_stations,
-                             data_years, percentiles)
+    # import the CSV into Pandas dataframe
+    print('Open file...')
+    df = pd.read_csv('csv/DailyWeather.csv')
+    print('Split dates into multiple columns...')
+    split_dates_into_multiple_cols(df)
+
+    stations = get_stations()
+
+    for start_year, end_year in RANGES:
+        year_range = list(range(start_year, end_year + 1))
+        year_df = grab_data_in_particular_year_range(df, year_range)
+
+        folder_name = getOutputFolderName(start_year, end_year)
+
+        for station in stations:
+            station_code = int(station['code'])
+            station_df = year_df[year_df['station_code'] == station_code]
+
+            if station_df.empty:
+                print('Data not available for {} creating empty summary...'.format(
+                    station_code))
+                empty_summary = create_null_summary(station, year_range)
+                dump_summary_in_json(folder_name, station_code, empty_summary)
+                continue
+
+            season = get_core_fire_season(station)
+            remove_data_outside_fire_season(station_df, season)
+            percentiles = calculate_percentile(station_df, PERCENTILE)
+
+            years = get_years_for_valid_fwi_values(station_df)
+
+            summary = {
+                'ffmc': percentiles['ffmc'],
+                'isi': percentiles['isi'],
+                'bui': percentiles['bui'],
+                'years': years,
+                'station': station
+            }
+
+            dump_summary_in_json(folder_name, station_code, summary)
+
+        print('--- Done creating data under {} folder ---'.format(folder_name))
 
 
-def stations_json_to_dict():
-    """ Load stations from json
+def create_null_summary(station, year_range):
+    return {
+        'ffmc': None,
+        'isi': None,
+        'bui': None,
+        'years': year_range,
+        'station': station
+    }
 
-    Returns: Dictionary containing list of stations.
-    """
+
+def dump_summary_in_json(folder_name: str, station_code: str, summary: dict):
+    """ Create a json file with the given summary """
+    filename = '{}/{}.json'.format(folder_name, station_code)
+    with open(filename, 'w+') as json_file:
+        json.dump(summary, json_file, indent=4, allow_nan=False)
+
+
+def getOutputFolderName(start_year: int, end_year: int) -> str:
+    """ Create an output folder and return its name """
+    folder_name = "app/data/{}-{}".format(start_year, end_year)
+    if not os.path.exists(folder_name):
+        os.mkdir(folder_name)
+    return folder_name
+
+
+def get_stations() -> list:
+    """ Load stations from json """
     with open('app/data/weather_stations.json') as file_handle:
         return json.load(file_handle)['weather_stations']
 
 
-def parse_weather_dates():
-    """ Parse weather_date string into 3 columns: yyyy - mm - dd """
-    print('parse_weather_dates...')
-    DAILY_WEATHER_DATA['weather_date'] = DAILY_WEATHER_DATA['weather_date'].apply(
-        str)
-    DAILY_WEATHER_DATA['year'] = DAILY_WEATHER_DATA['weather_date'].apply(
-        lambda x: int(x[:4]))
-    DAILY_WEATHER_DATA['month'] = DAILY_WEATHER_DATA['weather_date'].apply(
-        lambda x: int(x[4:6]))
-    DAILY_WEATHER_DATA['day'] = DAILY_WEATHER_DATA['weather_date'].apply(
-        lambda x: int(x[6:]))
+def get_core_fire_season(station) -> dict:
+    """ Read the core fire season and return them in dict """
+    return {
+        'start_month': int(station['core_season']['start_month']),
+        'start_day': int(station['core_season']['start_day']),
+        'end_month': int(station['core_season']['end_month']),
+        'end_day': int(station['core_season']['end_day']),
+    }
 
 
-def remove_data_outside_date_range(date_range):
-    """ Remove data recorded before START_YEAR or after END_YEAR. """
-    print('remove_data_outside_date_range...')
-    index = DAILY_WEATHER_DATA[(DAILY_WEATHER_DATA['year'] < date_range[0]) | (
-        DAILY_WEATHER_DATA['year'] > date_range[1])].index
-    DAILY_WEATHER_DATA.drop(index, inplace=True)
+def split_dates_into_multiple_cols(df):
+    """ Turn weather_date into datetime type then create 3 columns, year, month, and day """
+    df['weather_date'] = df['weather_date'].apply(str)
+    df['year'] = df['weather_date'].apply(lambda x: int(x[:4]))
+    df['month'] = df['weather_date'].apply(lambda x: int(x[4:6]))
+    df['day'] = df['weather_date'].apply(lambda x: int(x[6:]))
 
 
-def remove_data_outside_fire_season():
+def grab_data_in_particular_year_range(df, year_range: list) -> pd.DataFrame:
+    """ Grab data recorded between start_year and end_year. """
+    return df[df['year'].isin(year_range)]
+
+
+def remove_data_outside_fire_season(df, season: dict):
     """ Remove data recorded outside of fire season. """
-    print('remove_data_outside_fire_season...')
-    index = (DAILY_WEATHER_DATA['month'] < FIRE_SEASON_START_MONTH) | (
-        DAILY_WEATHER_DATA['month'] > FIRE_SEASON_END_MONTH)
-    index = DAILY_WEATHER_DATA[index].index
-    DAILY_WEATHER_DATA.drop(index, inplace=True)
-    index = DAILY_WEATHER_DATA[(DAILY_WEATHER_DATA['month'] == FIRE_SEASON_START_MONTH) & (
-        DAILY_WEATHER_DATA['day'] < FIRE_SEASON_START_DATE)].index
-    DAILY_WEATHER_DATA.drop(index, inplace=True)
-    index = DAILY_WEATHER_DATA[(DAILY_WEATHER_DATA['month'] == FIRE_SEASON_END_MONTH) & (
-        DAILY_WEATHER_DATA['day'] > FIRE_SEASON_END_DATE)].index
-    DAILY_WEATHER_DATA.drop(index, inplace=True)
+    outside_month = (df['month'] < season['start_month']) | (
+        df['month'] > season['end_month'])
+    df.drop(df[outside_month].index, inplace=True)
+
+    before_start = ((df['month'] == season['start_month']) &
+                    (df['day'] < season['start_day']))
+    df.drop(df[before_start].index, inplace=True)
+
+    after_end = ((df['month'] == season['end_month']) &
+                 (df['day'] > season['end_day']))
+    df.drop(df[after_end].index, inplace=True)
 
 
-def calculate_percentile_per_station():
-    """ Calculate percentile per weather station.
+def calculate_percentile(df, percentile: float) -> dict:
+    """ Calculate percentile """
+    ffmc = df[df['ffmc_valid']].ffmc.quantile(percentile)
+    bui = df[df['bui_valid']].bui.quantile(percentile)
+    isi = df[df['isi_valid']].isi.quantile(percentile)
 
-    Returns:
-        dict: Containing percentiles for ffmc, bui and isi per station. """
-    print('calculate_percentile_per_station...')
-    ffmc_percentiles = DAILY_WEATHER_DATA.groupby(
-        'station_code').ffmc.quantile(PERCENTILE)
-    bui_percentiles = DAILY_WEATHER_DATA.groupby(
-        'station_code').bui.quantile(PERCENTILE)
-    isi_percentiles = DAILY_WEATHER_DATA.groupby(
-        'station_code').isi.quantile(PERCENTILE)
-    return {'ffmc': ffmc_percentiles, 'bui': bui_percentiles, 'isi': isi_percentiles}
+    ffmc = round(ffmc, NUMBER_OF_DECIMAL_POINT) if not pd.isna(ffmc) else None
+    bui = round(bui, NUMBER_OF_DECIMAL_POINT) if not pd.isna(bui) else None
+    isi = round(isi, NUMBER_OF_DECIMAL_POINT) if not pd.isna(isi) else None
+
+    return {'ffmc': ffmc, 'bui': bui, 'isi': isi}
 
 
-def list_years_per_station():
-    """ List data years per station.
+def get_years_for_valid_fwi_values(df) -> list:
+    """ List each year that is sorted """
+    ffmc_data_years = df[df['ffmc_valid']].year.unique().tolist()
+    bui_data_years = df[df['bui_valid']].year.unique().tolist()
+    isi_data_years = df[df['isi_valid']].year.unique().tolist()
+    # Combine them and remove duplicates
+    data_years = list(set(ffmc_data_years) | set(
+        bui_data_years) | set(isi_data_years))
+    data_years.sort()
 
-    Returns:
-        Series: pandas dataframe, which you can kind of think of as a dictionary containing a list of
-        integers.
-    """
-    print('list_years_per_station...')
-    data_years = DAILY_WEATHER_DATA.groupby('station_code').year.unique()
-    data_years.apply(lambda x: x.sort())
     return data_years
-
-
-def write_output_to_json(date_range, weather_stations, data_years, percentiles):
-    """ Write output to json file. """
-    print('write_output_to_json...')
-    output_folder = "app/data/{}-{}".format(date_range[0], date_range[1])
-    for weath_stat in weather_stations:
-        try:
-            key = weath_stat['code']
-            output_filename = output_folder + "/" + key + ".json"
-            station_summary = {
-                'ffmc': percentiles['ffmc'][int(key)],
-                'isi': percentiles['isi'][int(key)],
-                'bui': percentiles['bui'][int(key)],
-                'years': [int(year) for year in data_years[int(key)]],
-                'station': {
-                    'code': key,
-                    'name': weath_stat['name'],
-                    'lat': weath_stat['lat'],
-                    'long': weath_stat['long'],
-                    'ecodivision_name': weath_stat['ecodivision_name'],
-                    'core_season': weath_stat['core_season']
-                }
-            }
-            if not os.path.exists(output_folder):
-                os.mkdir(output_folder)
-            with open(output_filename, 'w+') as json_file:
-                json.dump(station_summary, json_file, indent=4, allow_nan=False)
-        except KeyError:
-            print('Data not available for {}'.format(key))
-            if os.path.exists(output_filename):
-                os.remove(output_filename)
-        except ValueError as e:
-            print('Value error for {} - {}'.format(key, e))
-            if os.path.exists(output_filename):
-                os.remove(output_filename)
 
 
 if __name__ == '__main__':

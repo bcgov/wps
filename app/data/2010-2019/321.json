@@ -1,0 +1,19 @@
+{
+    "ffmc": null,
+    "isi": null,
+    "bui": null,
+    "years": [],
+    "station": {
+        "code": "321",
+        "name": "GREENSTONE HUB",
+        "lat": "50.6112670",
+        "long": "-120.6415500",
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
+    }
+}

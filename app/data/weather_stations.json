@@ -235,19 +235,6 @@
       }
     },
     {
-      "code": "509",
-      "name": "BEGBIE SF",
-      "lat": "51.4733333",
-      "long": "-121.3600000",
-      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
-      "core_season": {
-        "start_month": "5",
-        "start_day": "15",
-        "end_month": "8",
-        "end_day": "31"
-      }
-    },
-    {
       "code": "432",
       "name": "BELL-IRVING",
       "lat": "56.3485830",
@@ -993,19 +980,6 @@
       "name": "FRENCH BAR",
       "lat": "51.1774667",
       "long": "-122.2489333",
-      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
-      "core_season": {
-        "start_month": "5",
-        "start_day": "15",
-        "end_month": "8",
-        "end_day": "31"
-      }
-    },
-    {
-      "code": "474",
-      "name": "FROTH  (WIND)",
-      "lat": "52.0105000",
-      "long": "-119.2550170",
       "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
       "core_season": {
         "start_month": "5",
@@ -2172,19 +2146,6 @@
       }
     },
     {
-      "code": "408",
-      "name": "NORNS (WIND)",
-      "lat": "49.5025000",
-      "long": "-117.7870000",
-      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
-      "core_season": {
-        "start_month": "5",
-        "start_day": "15",
-        "end_month": "8",
-        "end_day": "31"
-      }
-    },
-    {
       "code": "173",
       "name": "NORTH BABINE",
       "lat": "55.1345167",
@@ -2822,19 +2783,6 @@
       }
     },
     {
-      "code": "376",
-      "name": "TABERNACLE  (WIND)",
-      "lat": "51.7513333",
-      "long": "-117.7613333",
-      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
-      "core_season": {
-        "start_month": "5",
-        "start_day": "15",
-        "end_month": "8",
-        "end_day": "31"
-      }
-    },
-    {
       "code": "144",
       "name": "TABLE RIVER",
       "lat": "54.7161667",
@@ -2897,19 +2845,6 @@
         "start_day": "1",
         "end_month": "8",
         "end_day": "15"
-      }
-    },
-    {
-      "code": "1198",
-      "name": "THUNDER SF",
-      "lat": "54.9541600",
-      "long": "-120.5916600",
-      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
-      "core_season": {
-        "start_month": "5",
-        "start_day": "15",
-        "end_month": "8",
-        "end_day": "31"
       }
     },
     {

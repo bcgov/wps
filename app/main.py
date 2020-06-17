@@ -6,11 +6,11 @@ import os
 import json
 import logging
 import logging.config
-from statistics import mean
-from fastapi import FastAPI, HTTPException, status, Depends
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 import schemas
 from forecasts import fetch_forecasts
+from percentile import get_precalculated_percentiles
 from auth import authenticate
 import wildfire_one
 import config
@@ -126,44 +126,8 @@ async def get_percentiles(request: schemas.PercentileRequest):
     """ Return 90% FFMC, 90% ISI, 90% BUI etc. for a given set of fire stations for a given period of time.
     """
     try:
-        # NOTE: percentile is ignored, all responses overriden to match
-        # pre-calculated values; 90th percentile
-        year_range_start = request.year_range.start
-        year_range_end = request.year_range.end
-
-        # Error Code: 400 (Bad request)
-        if len(request.stations) == 0 or request.stations is None:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail='Weather station is not found.')
-
-        foldername = os.path.join(
-            os.path.dirname(__file__), 'data/{}-{}'.format(year_range_start, year_range_end))
-        if not os.path.exists(foldername):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail='The year range is not currently supported.')
-
-        response = schemas.CalculatedResponse(
-            percentile=90,
-            year_range=schemas.YearRange(
-                start=year_range_start,
-                end=year_range_end))
-        bui = []
-        isi = []
-        ffmc = []
-        for station in request.stations:
-            filename = os.path.join(
-                os.path.dirname(__file__), 'data/{}-{}/{}.json'.format(
-                    year_range_start, year_range_end, station))
-            summary = schemas.StationSummary.parse_file(filename)
-            bui.append(summary.bui)
-            isi.append(summary.isi)
-            ffmc.append(summary.ffmc)
-            response.stations[station] = summary
-        response.mean_values = schemas.MeanValues()
-        response.mean_values.bui = mean(bui)
-        response.mean_values.isi = mean(isi)
-        response.mean_values.ffmc = mean(ffmc)
-        return response
+        percentiles = get_precalculated_percentiles(request)
+        return percentiles
     except Exception as exception:
         LOGGER.critical(exception, exc_info=True)
         raise
