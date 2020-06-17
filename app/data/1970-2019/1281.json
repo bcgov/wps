@@ -1,0 +1,19 @@
+{
+    "ffmc": null,
+    "isi": null,
+    "bui": null,
+    "years": [],
+    "station": {
+        "code": "1281",
+        "name": "LAVINA QD #4",
+        "lat": "50.4063889",
+        "long": "-117.1452778",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}
