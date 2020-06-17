@@ -192,19 +192,19 @@
                     "value": "${TABLE_SCHEMA}"
                   },
                   {
-                    "name": "PSUFIDERDEV_POSTGRESQL_USER",
+                    "name": "PSUFIDER_POSTGRESQL_USER",
                     "valueFrom": {
                       "secretKeyRef": {
-                        "name": "psufiderdev-postgresql",
+                        "name": "psufider-postgresql",
                         "key": "database-user"
                       }
                     }
                   },
                   {
-                    "name": "PSUFIDERDEV_POSTGRESQL_PASSWORD",
+                    "name": "PSUFIDER_POSTGRESQL_PASSWORD",
                     "valueFrom": {
                       "secretKeyRef": {
-                        "name": "psufiderdev-postgresql",
+                        "name": "psufider-postgresql",
                         "key": "database-password"
                       }
                     }
@@ -306,14 +306,14 @@
       "displayName": "Image Namespace",
       "description": "The namespace of the OpenShift project containing the imagestream for the application.",
       "required": true,
-      "value": "backup-container"
+      "value": "auzhsi-tools"
     },
     {
       "name": "TAG_NAME",
       "displayName": "Environment TAG name",
       "description": "The TAG name for this environment, e.g., dev, test, prod",
       "required": true,
-      "value": "dev"
+      "value": "prod"
     },
     {
       "name": "DATABASE_SERVICE_NAME",
