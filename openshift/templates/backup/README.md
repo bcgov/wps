@@ -4,6 +4,10 @@ These instructions were written using [v2.1.1](https://github.com/BCDevOps/backu
 
 ## Installation
 
+### Provision a backup PVC
+
+Using the service catalog, provision a backup pvc in each environment.
+
 ### OpenShift Build config
 
 Create an imagestream in the tools project:
@@ -33,25 +37,38 @@ Create a deployment config for backup, with 0 replicas. If you need to do a manu
 backups, restore or some other maintenance - stop the OpenShift cronjob, increase the number of replicas
 to 1, do your maintenance, and reduce the replicas back to 0 when done.
 
-Create a deployment config in your development environment (we don't need to use nfs-backup in dev, so we override
-BACKUP_VOLUME_CLASS):
+Create a deployment config in your environments (we don't need to use nfs-backup in dev, so you
+can override BACKUP_VOLUME_CLASS if desired to be netapp-block-standard - but then be sure not to have
+multiple pods access the backup pvc):
 
 ```bash
-oc -n <project> new-app --file=backup-deploy.json -p IMAGE_NAMESPACE=<tools-project> -p BACKUP_VOLUME_CLASS=netapp-block-standard
+oc -n <project> process -f backup-deploy-<environment>.json -p BACKUP_VOLUME_NAME=<backup volume name> | oc -n <project> apply -f -
 ```
 
-Create a deployment config in your production environment:
+e.g. for dev:
 
 ```bash
-oc -n <project> new-app --file=backup-deploy.json -p IMAGE_NAMESPACE=<tools-project>
+oc -n auzhsi-dev process -f backup-deploy-dev.json -p BACKUP_VOLUME_NAME=bk-auzhsi-dev-vgc3svkn4776 -p | oc -n auzhsi-dev apply -f -
+```
+
+e.g. for production:
+
+```bash
+oc -n auzhsi-prod process -f backup-deploy-prod.json -p BACKUP_VOLUME_NAME=bk-auzhsi-prod-lenk19vmffnx | oc -n auzhsi-prod apply -f -
 ```
 
 #### Test your deployment
 
-Scale up:
+Scale up (note that a backup will be made on startup):
 
 ```bash
-oc -n <project> scale dc/ --replicas=1
+oc -n <project> scale dc/backup-postgres --replicas=1
+```
+
+e.g. for production:
+
+```bash
+oc -n auzhsi-prod scale dc/backup-postgres --replicas=1
 ```
 
 Rsh, backup and validate:
@@ -69,7 +86,7 @@ oc -n <project> rsh <pod>
 Scale back down:
 
 ```bash
-oc -n <project> scale dc/ --replicas=0
+oc -n <project> scale dc/backup-postgres --replicas=0
 ```
 
 #### Set up openshift cronjob
@@ -92,7 +109,8 @@ oc process -f backup-cronjob.yaml -p IMAGE_NAMESPACE=auzhsi-tools -p TAG_NAME=de
 
 e.g. - prod:
 
-TBD
+````bash
+oc process -f backup-cronjob.yaml -p TAG_NAME=prod -p DATABASE_SERVICE_NAME=psufider-postgresql -p DATABASE_NAME=psufider -p DATABASE_DEPLOYMENT_NAME=psufider-postgresql | oc -n auzhsi-prod apply -f -
 
 ##### Validate cronjob
 
@@ -109,7 +127,7 @@ oc -n <project> patch cronjob backup-postgres -p '{ "spec": { "schedule": "*/5 *
 oc -n <project> patch cronjob backup-postgres -p '{ "spec": { "schedule": "0 1 * * *" } }'
 # Debug a recently run pod
 oc -n <project> debug <pod>
-```
+````
 
 ## Atribution
 
