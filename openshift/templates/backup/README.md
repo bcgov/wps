@@ -96,21 +96,20 @@ Create the cronjob:
 ```bash
 oc process -f backup-cronjob.yaml -p IMAGE_NAMESPACE=<tools-project> -p TAG_NAME=<dev/prod> \
     -p DATABASE_SERVICE_NAME=<name of service> -p DATABASE_NAME=<name of database> \
-    -p DATABASE_DEPLOYMENT_NAME=<name of deployment> | oc -n <project> apply -f -
+    -p DATABASE_DEPLOYMENT_NAME=<name of deployment> -p JOB_PERSISTENT_STORAGE_NAME=<name of backup volume> | oc -n <project> apply -f -
 ```
 
 e.g. - dev:
 
 ```bash
-oc process -f backup-cronjob.yaml -p IMAGE_NAMESPACE=auzhsi-tools -p TAG_NAME=dev \
-    -p DATABASE_SERVICE_NAME=psufiderdev-postgresql -p DATABASE_NAME=psufiderdev \
-    -p DATABASE_DEPLOYMENT_NAME=psufiderdev-postgresql | oc -n auzhsi-dev apply -f -
+oc process -f backup-cronjob.yaml -p IMAGE_NAMESPACE=auzhsi-tools -p TAG_NAME=dev -p DATABASE_SERVICE_NAME=psufiderdev-postgresql -p DATABASE_NAME=psufiderdev -p DATABASE_DEPLOYMENT_NAME=psufiderdev-postgresql -p JOB_PERSISTENT_STORAGE_NAME=bk-auzhsi-dev-vgc3svkn4776 -p JOB_NAME=backup-fider-postgres | oc -n auzhsi-dev apply -f -
 ```
 
 e.g. - prod:
 
 ````bash
-oc process -f backup-cronjob.yaml -p TAG_NAME=prod -p DATABASE_SERVICE_NAME=psufider-postgresql -p DATABASE_NAME=psufider -p DATABASE_DEPLOYMENT_NAME=psufider-postgresql | oc -n auzhsi-prod apply -f -
+oc process -f backup-cronjob.yaml -p TAG_NAME=prod -p DATABASE_SERVICE_NAME=psufider-postgresql -p DATABASE_NAME=psufider -p DATABASE_DEPLOYMENT_NAME=psufider-postgresql -p JOB_PERSISTENT_STORAGE_NAME=bk-auzhsi-prod-lenk19vmffnx -p JOB_NAME=backup-fider-postgres | oc -n auzhsi-prod apply -f -
+```
 
 ##### Validate cronjob
 
@@ -120,11 +119,11 @@ Some useful commands:
 # List your cronjobs - you should see the one you've created.
 oc -n <project> get cronjobs
 # Get cronjob details.
-oc -n <project> describe cronjob backup-postgres
+oc -n <project> describe cronjob backup-fider-postgres
 # Patch the cronjob to run more frequently (every 5 minutes).
-oc -n <project> patch cronjob backup-postgres -p '{ "spec": { "schedule": "*/5 * * * *" } }'
+oc -n <project> patch cronjob backup-fider-postgres -p '{ "spec": { "schedule": "*/5 * * * *" } }'
 # Patch the cronjob back to running at 1am once a day.
-oc -n <project> patch cronjob backup-postgres -p '{ "spec": { "schedule": "0 1 * * *" } }'
+oc -n <project> patch cronjob backup-fider-postgres -p '{ "spec": { "schedule": "0 1 * * *" } }'
 # Debug a recently run pod
 oc -n <project> debug <pod>
 ````
