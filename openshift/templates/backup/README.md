@@ -1,6 +1,6 @@
 # Backup templates
 
-These instructions were written using [v2.1.1](https://github.com/BCDevOps/backup-container/releases/tag/2.1.1) of the [BC DevOps backup-container](https://github.com/BCDevOps/backup-container)
+These instructions were written referencing [v2.1.1](https://github.com/BCDevOps/backup-container/releases/tag/2.1.1) of the [BC DevOps backup-container](https://github.com/BCDevOps/backup-container), for full reference, refer to the [backup container README](https://github.com/BCDevOps/backup-container/blob/master/README.md).
 
 ## Installation
 
@@ -27,6 +27,8 @@ oc -n <tools-project> tag backup-postgres:latest backup-postgres:prod
 
 #### Create a configmap
 
+The long running backup-container pod needs this configuration.
+
 ```bash
 oc -n <project> apply -f backup-conf-configmap_DeploymentConfig-<environment>.json
 ```
@@ -38,37 +40,19 @@ backups, restore or some other maintenance - stop the OpenShift cronjob, increas
 to 1, do your maintenance, and reduce the replicas back to 0 when done.
 
 Create a deployment config in your environments (we don't need to use nfs-backup in dev, so you
-can override BACKUP_VOLUME_CLASS if desired to be netapp-block-standard - but then be sure not to have
+can override BACKUP_VOLUME_CLASS if desired to be netapp-block-standard - but then be extra sure not to have
 multiple pods access the backup pvc):
 
 ```bash
 oc -n <project> process -f backup-deploy-<environment>.json -p BACKUP_VOLUME_NAME=<backup volume name> | oc -n <project> apply -f -
 ```
 
-e.g. for dev:
-
-```bash
-oc -n auzhsi-dev process -f backup-deploy-dev.json -p BACKUP_VOLUME_NAME=bk-auzhsi-dev-vgc3svkn4776 -p | oc -n auzhsi-dev apply -f -
-```
-
-e.g. for production:
-
-```bash
-oc -n auzhsi-prod process -f backup-deploy-prod.json -p BACKUP_VOLUME_NAME=bk-auzhsi-prod-lenk19vmffnx | oc -n auzhsi-prod apply -f -
-```
-
 #### Test your deployment
 
-Scale up (note that a backup will be made on startup):
+Scale up (note: a backup will be made on startup):
 
 ```bash
 oc -n <project> scale dc/backup-postgres --replicas=1
-```
-
-e.g. for production:
-
-```bash
-oc -n auzhsi-prod scale dc/backup-postgres --replicas=1
 ```
 
 Rsh, backup and validate:
@@ -89,46 +73,75 @@ Scale back down:
 oc -n <project> scale dc/backup-postgres --replicas=0
 ```
 
-#### Set up openshift cronjob
+### Set up openshift cronjob
 
 Create the cronjob:
 
 ```bash
 oc process -f backup-cronjob.yaml -p IMAGE_NAMESPACE=<tools-project> -p TAG_NAME=<dev/prod> \
     -p DATABASE_SERVICE_NAME=<name of service> -p DATABASE_NAME=<name of database> \
-    -p DATABASE_DEPLOYMENT_NAME=<name of deployment> -p JOB_PERSISTENT_STORAGE_NAME=<name of backup volume> | oc -n <project> apply -f -
+    -p DATABASE_DEPLOYMENT_NAME=<name of deployment> \
+    -p JOB_PERSISTENT_STORAGE_NAME=<name of backup volume> \
+    -p JOB_NAME=<a good name for the cronjob> | oc -n <project> apply -f -
 ```
 
-e.g. - dev:
-
-```bash
-oc process -f backup-cronjob.yaml -p IMAGE_NAMESPACE=auzhsi-tools -p TAG_NAME=dev -p DATABASE_SERVICE_NAME=psufiderdev-postgresql -p DATABASE_NAME=psufiderdev -p DATABASE_DEPLOYMENT_NAME=psufiderdev-postgresql -p JOB_PERSISTENT_STORAGE_NAME=bk-auzhsi-dev-vgc3svkn4776 -p JOB_NAME=backup-fider-postgres | oc -n auzhsi-dev apply -f -
-```
-
-e.g. - prod:
-
-````bash
-oc process -f backup-cronjob.yaml -p TAG_NAME=prod -p DATABASE_SERVICE_NAME=psufider-postgresql -p DATABASE_NAME=psufider -p DATABASE_DEPLOYMENT_NAME=psufider-postgresql -p JOB_PERSISTENT_STORAGE_NAME=bk-auzhsi-prod-lenk19vmffnx -p JOB_NAME=backup-fider-postgres | oc -n auzhsi-prod apply -f -
-```
-
-##### Validate cronjob
+#### Validate cronjob
 
 Some useful commands:
 
 ```bash
-# List your cronjobs - you should see the one you've created.
+# List your cronjobs - you should see the one you've created:
 oc -n <project> get cronjobs
-# Get cronjob details.
-oc -n <project> describe cronjob backup-fider-postgres
-# Patch the cronjob to run more frequently (every 5 minutes).
-oc -n <project> patch cronjob backup-fider-postgres -p '{ "spec": { "schedule": "*/5 * * * *" } }'
-# Patch the cronjob back to running at 1am once a day.
-oc -n <project> patch cronjob backup-fider-postgres -p '{ "spec": { "schedule": "0 1 * * *" } }'
-# Debug a recently run pod
+# Get cronjob details:
+oc -n <project> describe cronjob <cronjob name>
+# Patch the cronjob to run more frequently (every 5 minutes):
+oc -n <project> patch cronjob <cronjob name> -p '{ "spec": { "schedule": "*/5 * * * *" } }'
+# Patch the cronjob back to running at 1am once a day:
+oc -n <project> patch cronjob <cronjob name> -p '{ "spec": { "schedule": "0 1 * * *" } }'
+# Debug a recently run pod:
 oc -n <project> debug <pod>
-````
+```
+
+### Restore
+
+- Scale down any applications using the database.
+
+```bash
+oc -n <project> scale dc/<your app using the db you want to restore> --replicas=0
+```
+
+- Scale up the backup dc.
+
+```bash
+oc -n <project> scale dc/<your backup dc> --replicas=1
+```
+
+- Rsh to the backup pod
+
+```bash
+oc -n <project> rsh <pod>
+# List the backups.
+./bash.sh -l
+```
+
+- Follow instructions from [backup.usage](https://github.com/BCDevOps/backup-container/blob/master/docker/backup.usage). Note that in order to restore the postgres admin password is required. You may have to set one manualy.
+
+```bash
+# the basic form for a restore:
+./bash -r <database to restore to> -f <filename to restore>
+```
+
+- Setting the admin password if you need to:
+
+```bash
+# rsh to db pod.
+oc -n <project> rsh <pod>
+# start psql
+psql
+# change the password
+\password
+```
 
 ## Atribution
 
-These templates taken from the [BC DevOps backup-container](https://github.com/BCDevOps/backup-container)
-and modified for this project.
+The templates in this folder taken from the [BC DevOps backup-container project](https://github.com/BCDevOps/backup-container) and modified for this project.
