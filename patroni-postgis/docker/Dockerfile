@@ -16,17 +16,17 @@ RUN export DEBIAN_FRONTEND=noninteractive \
     && apt-get upgrade -y \
     && apt-cache depends patroni | sed -n -e 's/.* Depends: \(python3-.\+\)$/\1/p' \
     | grep -Ev '^python3-(sphinx|etcd|consul|kazoo|kubernetes)' \
-    | xargs apt-get install -y gettext curl jq locales git python3-pip python3-wheel \
-
+    | xargs apt-get install -y gettext curl jq locales git python3-pip python3-wheel pgloader \
+    && apt-cache showpkg postgresql-$PG_MAJOR-postgis-$POSTGIS_MAJOR \
+    && apt-get install -y --no-install-recommends \
+    postgresql-$PG_MAJOR-postgis-$POSTGIS_MAJOR=$POSTGIS_VERSION \
+    postgresql-$PG_MAJOR-postgis-$POSTGIS_MAJOR-scripts=$POSTGIS_VERSION \
     ## Make sure we have a en_US.UTF-8 locale available
     && localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8 \
-
     && pip3 install setuptools \
     && pip3 install 'git+https://github.com/zalando/patroni.git#egg=patroni[kubernetes]' \
-
     && mkdir -p $PGHOME \
     && sed -i "s|/var/lib/postgresql.*|$PGHOME:/bin/bash|" /etc/passwd \
-
     # Set permissions for OpenShift
     && chmod 775 $PGHOME \
     && chmod 664 /etc/passwd \
