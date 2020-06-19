@@ -62,10 +62,12 @@ fi
 #
 eval "${OC_PROCESS}"
 eval "${OC_PROCESS} | ${OC_APPLY}"
-eval "${OC_CANCEL_ALL_PREV_DEPLOY}"
-if [ "${APPLY}" ]; then # Check previous deployment statuses before moving onto new deploying
+if [ "${APPLY}" ]; then
+  echo "canceling previous deployments..."
+  eval "${OC_CANCEL_ALL_PREV_DEPLOY}"
   count=1
   timeout=10
+  # Check previous deployment statuses before moving onto new deploying
   while [ $count -le $timeout ]; do
     sleep 1
     PENDINGS="$(oc -n ${PROJ_TARGET} rollout history dc/${NAME_OBJ} | awk '{print $2}' | grep -c Pending || true)"
