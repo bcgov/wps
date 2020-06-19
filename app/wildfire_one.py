@@ -123,17 +123,19 @@ def _is_station_valid(station) -> bool:
 def _parse_station(station) -> WeatherStation:
     """ Transform from the json object returned by wf1, to our station object.
     """
-    with open('data/ecodivisions_core_seasons.json') as file_handle:
+    with open('app/data/ecodivisions_core_seasons.json') as file_handle:
         core_seasons = json.load(file_handle)
-    ecodivisions = geopandas.read_file('data/ERC_ECODIV_polygon/ERC_ECODIV_polygon.shp')
-    station_coord = Point(float(station['longitude']), float(station['latitude']))
+    ecodivisions = geopandas.read_file(
+        'app/data/ERC_ECODIV_polygon/ERC_ECODIV_polygon.shp')
+    station_coord = Point(
+        float(station['longitude']), float(station['latitude']))
 
     # hacky fix for station 447 (WATSON LAKE FS), which is in the Yukon
     # so ecodivision name has to be hard-coded
     if station['stationCode'] == '447':
         ecodiv_name = "SUB-ARCTIC HIGHLANDS"
     else:
-        for index, row in ecodivisions.iterrows(): #pylint: disable=redefined-outer-name, unused-variable
+        for index, row in ecodivisions.iterrows():  # pylint: disable=redefined-outer-name, unused-variable
             geom = row['geometry']
             if station_coord.within(geom):
                 ecodiv_name = row['CDVSNNM']
@@ -145,6 +147,7 @@ def _parse_station(station) -> WeatherStation:
         long=station['longitude'],
         ecodivision_name=ecodiv_name,
         core_season=core_seasons[ecodiv_name]['core_season'])
+
 
 def _parse_hourly(hourly) -> WeatherReading:
     """ Transform from the raw hourly json object returned by wf1, to our hourly obkect.
@@ -224,7 +227,8 @@ async def _get_stations_remote() -> List[WeatherStation]:
         async for raw_station in _fetch_raw_stations(session, header, BuildQueryAllStations()):
             # If the station is valid, add it to our list of stations.
             if _is_station_valid(raw_station):
-                LOGGER.info('Processing raw_station %d', int(raw_station['stationCode']))
+                LOGGER.info('Processing raw_station %d',
+                            int(raw_station['stationCode']))
                 stations.append(_parse_station(raw_station))
         LOGGER.debug('total stations: %d', len(stations))
     return stations
