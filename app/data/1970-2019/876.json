@@ -1,13 +1,7 @@
 {
-    "ffmc": 94.31186218261718,
-    "isi": 12.515035820007327,
-    "bui": 120.79719848632816,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 94.36599,
+    "isi": 12.64145,
+    "bui": 131.8934,
     "years": [
         2004,
         2005,
@@ -30,6 +24,13 @@
         "code": "876",
         "name": "IDABEL LAKE 3",
         "lat": "49.7672170",
-        "long": "-119.1240670"
+        "long": "-119.1240670",
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
     }
 }

@@ -1,13 +1,7 @@
 {
-    "ffmc": 94.71732788085937,
-    "isi": 12.338354587554937,
-    "bui": 152.25516357421893,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 94.73581,
+    "isi": 12.38599,
+    "bui": 168.49681,
     "years": [
         2010,
         2011,
@@ -24,6 +18,13 @@
         "code": "286",
         "name": "TURTLE",
         "lat": "50.8033333",
-        "long": "-119.6300000"
+        "long": "-119.6300000",
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
     }
 }

@@ -1,13 +1,7 @@
 {
-    "ffmc": 93.0238639831543,
-    "isi": 11.361534023284912,
-    "bui": 94.58552551269533,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 93.15093,
+    "isi": 11.5043,
+    "bui": 97.64677,
     "years": [
         2001,
         2002,
@@ -26,13 +20,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "396",
         "name": "OCTOPUS CREEK",
         "lat": "49.6990000",
-        "long": "-118.0810000"
+        "long": "-118.0810000",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

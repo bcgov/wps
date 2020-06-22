@@ -1,13 +1,7 @@
 {
-    "ffmc": 93.48890075683593,
-    "isi": 11.90984592437744,
-    "bui": 76.96629486083984,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 93.48636,
+    "isi": 11.71628,
+    "bui": 79.05807,
     "years": [
         2005,
         2006,
@@ -22,13 +16,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "905",
         "name": "DOWNIE",
         "lat": "51.5154000",
-        "long": "-118.2720666"
+        "long": "-118.2720666",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

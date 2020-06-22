@@ -1,13 +1,7 @@
 {
-    "ffmc": 90.94298095703125,
-    "isi": 9.0,
-    "bui": 104.3724899291992,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 90.95043,
+    "isi": 8.8,
+    "bui": 107.8,
     "years": [
         1970,
         1972,
@@ -56,13 +50,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "158",
         "name": "VANDERHOOF HUB",
         "lat": "54.0558056",
-        "long": "-124.0088611"
+        "long": "-124.0088611",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

@@ -1,13 +1,7 @@
 {
-    "ffmc": 91.52041931152344,
-    "isi": 9.496446037292483,
-    "bui": 65.81895141601566,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 91.28959,
+    "isi": 8.74503,
+    "bui": 65.48832,
     "years": [
         2000,
         2001,
@@ -27,13 +21,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "129",
         "name": "PINK MOUNTAIN",
         "lat": "57.0875278",
-        "long": "-122.5909722"
+        "long": "-122.5909722",
+        "ecodivision_name": "SUB-ARCTIC",
+        "core_season": {
+            "start_month": "6",
+            "start_day": "1",
+            "end_month": "8",
+            "end_day": "15"
+        }
     }
 }

@@ -1,13 +1,7 @@
 {
-    "ffmc": 95.00285186767577,
-    "isi": 18.152735137939455,
-    "bui": 162.79449310302735,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 95.27242,
+    "isi": 18.82767,
+    "bui": 172.3101,
     "years": [
         2010,
         2011,
@@ -17,13 +11,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "419",
         "name": "JOHNSON LAKE",
         "lat": "49.9444444",
-        "long": "-115.7583333"
+        "long": "-115.7583333",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

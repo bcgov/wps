@@ -1,13 +1,7 @@
 {
-    "ffmc": 93.03479843139648,
-    "isi": 9.464912796020508,
-    "bui": 65.74313659667969,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 93.0399,
+    "isi": 9.4378,
+    "bui": 68.929,
     "years": [
         2010,
         2011,
@@ -17,13 +11,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "193",
         "name": "BOWRON HAGGEN",
         "lat": "53.4631389",
-        "long": "-121.5603333"
+        "long": "-121.5603333",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

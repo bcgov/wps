@@ -1,13 +1,7 @@
 {
-    "ffmc": 91.71043701171875,
-    "isi": 8.902936935424805,
-    "bui": 85.43193817138672,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 91.75395,
+    "isi": 8.66378,
+    "bui": 87.5748,
     "years": [
         1996,
         1997,
@@ -31,13 +25,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "447",
         "name": "WATSON LAKE FS",
         "lat": "60.0618000",
-        "long": "-128.7179330"
+        "long": "-128.7179330",
+        "ecodivision_name": "SUB-ARCTIC HIGHLANDS",
+        "core_season": {
+            "start_month": "6",
+            "start_day": "1",
+            "end_month": "8",
+            "end_day": "15"
+        }
     }
 }

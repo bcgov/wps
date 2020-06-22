@@ -1,13 +1,7 @@
 {
-    "ffmc": 90.3099365234375,
-    "isi": 10.386429786682127,
-    "bui": 108.98059844970705,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 90.37062,
+    "isi": 10.56287,
+    "bui": 116.15849,
     "years": [
         2005,
         2006,
@@ -22,13 +16,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "904",
         "name": "HAGENSBORG 2",
         "lat": "52.3872500",
-        "long": "-126.5897167"
+        "long": "-126.5897167",
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

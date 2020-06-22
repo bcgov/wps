@@ -1,13 +1,7 @@
 {
-    "ffmc": 92.23177185058594,
-    "isi": 9.161753177642822,
-    "bui": 80.08146667480469,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 92.32424,
+    "isi": 9.28819,
+    "bui": 86.38063,
     "years": [
         2010,
         2011,
@@ -17,13 +11,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "882",
         "name": "SICAMOUS",
         "lat": "50.8634670",
-        "long": "-119.0028500"
+        "long": "-119.0028500",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

@@ -1,13 +1,7 @@
 {
-    "ffmc": 92.2051010131836,
-    "isi": 11.80446529388428,
-    "bui": 97.96443557739258,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 92.24844,
+    "isi": 11.8,
+    "bui": 101.21295,
     "years": [
         1977,
         1978,
@@ -57,6 +51,13 @@
         "code": "283",
         "name": "BRENDA MINES",
         "lat": "49.8684170",
-        "long": "-119.9925170"
+        "long": "-119.9925170",
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
     }
 }

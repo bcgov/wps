@@ -1,13 +1,7 @@
 {
-    "ffmc": 91.09525604248047,
-    "isi": 8.692432880401611,
-    "bui": 75.62567138671875,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 91.11556,
+    "isi": 8.68779,
+    "bui": 77.37206,
     "years": [
         1990,
         1991,
@@ -36,13 +30,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "153",
         "name": "MCLEOD LAKE",
         "lat": "54.7255278",
-        "long": "-123.0786667"
+        "long": "-123.0786667",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

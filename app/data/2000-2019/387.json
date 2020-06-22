@@ -1,13 +1,7 @@
 {
-    "ffmc": 93.38229522705078,
-    "isi": 12.077263832092285,
-    "bui": 88.53394927978518,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 93.50775,
+    "isi": 12.25437,
+    "bui": 93.02431,
     "years": [
         2000,
         2001,
@@ -27,13 +21,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "387",
         "name": "TROUT LAKE",
         "lat": "50.6052778",
-        "long": "-117.4272222"
+        "long": "-117.4272222",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

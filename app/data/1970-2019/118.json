@@ -1,13 +1,7 @@
 {
-    "ffmc": 91.2907943725586,
-    "isi": 11.30656204223633,
-    "bui": 79.08477249145508,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 91.3,
+    "isi": 11.0,
+    "bui": 82.63933,
     "years": [
         1983,
         1985,
@@ -43,13 +37,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "118",
         "name": "HELMUT",
         "lat": "59.4210000",
-        "long": "-120.7889167"
+        "long": "-120.7889167",
+        "ecodivision_name": "SUB-ARCTIC",
+        "core_season": {
+            "start_month": "6",
+            "start_day": "1",
+            "end_month": "8",
+            "end_day": "15"
+        }
     }
 }

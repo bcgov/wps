@@ -1,13 +1,7 @@
 {
-    "ffmc": 93.84649047851563,
-    "isi": 12.662500953674318,
-    "bui": 129.3916061401368,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 93.93794,
+    "isi": 12.78728,
+    "bui": 137.3885,
     "years": [
         2000,
         2001,
@@ -27,13 +21,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "418",
         "name": "FLATHEAD 2",
         "lat": "49.0791389",
-        "long": "-114.5373389"
+        "long": "-114.5373389",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

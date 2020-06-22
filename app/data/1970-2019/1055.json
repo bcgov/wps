@@ -1,13 +1,7 @@
 {
-    "ffmc": 94.72053756713868,
-    "isi": 16.61368885040283,
-    "bui": 217.3018203735353,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 94.74698,
+    "isi": 16.59239,
+    "bui": 219.24567,
     "years": [
         2010,
         2011,
@@ -24,6 +18,13 @@
         "code": "1055",
         "name": "SPLINTLUM",
         "lat": "50.3511111",
-        "long": "-121.6549500"
+        "long": "-121.6549500",
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
     }
 }

@@ -5,20 +5,22 @@ from typing import List, Dict
 from pydantic import BaseModel
 
 
-class WeatherStation(BaseModel):
-    """ A fire weather station has a code, name and geographical coordinate. """
-    code: int
-    name: str
-    lat: float
-    long: float
-
-
 class Season(BaseModel):
     """ A fire season consists of a start date (month and day) and an end date (month and day). """
     start_month: int
     start_day: int
     end_month: int
     end_day: int
+
+
+class WeatherStation(BaseModel):
+    """ A fire weather station has a code, name and geographical coordinate. """
+    code: int
+    name: str
+    lat: float
+    long: float
+    ecodivision_name: str = None
+    core_season: Season
 
 
 class YearRange(BaseModel):
@@ -36,10 +38,9 @@ class PercentileRequest(BaseModel):
 
 class StationSummary(BaseModel):
     """ The summary of daily weather data for a given station. """
-    ffmc: float
-    isi: float
-    bui: float
-    season: Season
+    ffmc: float = None
+    isi: float = None
+    bui: float = None
     years: List[int]
     station: WeatherStation
 
@@ -136,3 +137,9 @@ class WeatherStationHourlyReadingsResponse(BaseModel):
 class StationCodeList(BaseModel):
     """ List of station codes """
     stations: List[int]
+
+
+class Ecodivision(BaseModel):
+    """ Name and core fire season of BC Ecodivision """
+    name: str
+    core_season: Season

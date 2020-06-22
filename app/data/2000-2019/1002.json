@@ -1,13 +1,7 @@
 {
-    "ffmc": 88.44342422485352,
-    "isi": 5.707218933105469,
-    "bui": 71.09757537841797,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 88.43437,
+    "isi": 5.70631,
+    "bui": 75.46108,
     "years": [
         2008,
         2009,
@@ -18,13 +12,19 @@
         2014,
         2015,
         2016,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "1002",
         "name": "TS ELPHINSTONE",
         "lat": "49.4280472",
-        "long": "-123.5648400"
+        "long": "-123.5648400",
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

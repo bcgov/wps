@@ -1,13 +1,7 @@
 {
-    "ffmc": 91.99492645263672,
-    "isi": 9.399999618530273,
-    "bui": 57.51483383178713,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 91.94459,
+    "isi": 9.30607,
+    "bui": 59.28444,
     "years": [
         1987,
         1988,
@@ -40,13 +34,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "263",
         "name": "MATHEW",
         "lat": "52.9100000",
-        "long": "-120.9116667"
+        "long": "-120.9116667",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

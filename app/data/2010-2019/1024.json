@@ -1,13 +1,7 @@
 {
-    "ffmc": 92.56531372070313,
-    "isi": 10.905716705322266,
-    "bui": 107.4675392150879,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 92.77854,
+    "isi": 11.10315,
+    "bui": 115.61938,
     "years": [
         2010,
         2011,
@@ -24,6 +18,13 @@
         "code": "1024",
         "name": "SKOONKA",
         "lat": "50.4386944",
-        "long": "-121.5515000"
+        "long": "-121.5515000",
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
     }
 }

@@ -1,13 +1,7 @@
 {
-    "ffmc": 92.93666839599608,
-    "isi": 9.301523971557618,
-    "bui": 68.878173828125,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 93.01906,
+    "isi": 9.31567,
+    "bui": 71.2592,
     "years": [
         2010,
         2011,
@@ -17,13 +11,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "200",
         "name": "VALEMOUNT 2",
         "lat": "52.7880500",
-        "long": "-119.3148100"
+        "long": "-119.3148100",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

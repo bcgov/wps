@@ -1,13 +1,7 @@
 {
-    "ffmc": 92.64538269042968,
-    "isi": 11.663873577117915,
-    "bui": 83.1241340637207,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 92.53781,
+    "isi": 11.4733,
+    "bui": 86.39312,
     "years": [
         2000,
         2001,
@@ -27,13 +21,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "124",
         "name": "GRAHAM",
         "lat": "56.4346389",
-        "long": "-122.4576667"
+        "long": "-122.4576667",
+        "ecodivision_name": "BOREAL",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

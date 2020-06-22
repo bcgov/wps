@@ -1,13 +1,7 @@
 {
-    "ffmc": 92.74442062377929,
-    "isi": 9.051153850555421,
-    "bui": 139.07034149169928,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 92.80004,
+    "isi": 9.22738,
+    "bui": 146.01013,
     "years": [
         2010,
         2011,
@@ -17,13 +11,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "37",
         "name": "BEAVER CREEK",
         "lat": "49.3772222",
-        "long": "-124.9332667"
+        "long": "-124.9332667",
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

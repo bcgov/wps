@@ -1,13 +1,7 @@
 {
-    "ffmc": 94.0683822631836,
-    "isi": 11.711559867858888,
-    "bui": 198.5272766113282,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 94.03038,
+    "isi": 11.58785,
+    "bui": 208.50023,
     "years": [
         2000,
         2001,
@@ -34,6 +28,13 @@
         "code": "298",
         "name": "FINTRY",
         "lat": "50.2066667",
-        "long": "-119.4800000"
+        "long": "-119.4800000",
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
     }
 }

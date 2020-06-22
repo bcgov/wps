@@ -1,13 +1,7 @@
 {
-    "ffmc": 93.44802474975586,
-    "isi": 10.202492141723628,
-    "bui": 141.40436096191402,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 93.49655,
+    "isi": 10.38327,
+    "bui": 157.72911,
     "years": [
         2010,
         2011,
@@ -17,13 +11,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "977",
         "name": "ANDERSON CREEK",
         "lat": "49.6551000",
-        "long": "-121.3580667"
+        "long": "-121.3580667",
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

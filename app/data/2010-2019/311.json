@@ -1,13 +1,7 @@
 {
-    "ffmc": 93.34651184082031,
-    "isi": 10.509830474853516,
-    "bui": 123.95149993896484,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 93.34245,
+    "isi": 10.42632,
+    "bui": 133.46413,
     "years": [
         2010,
         2011,
@@ -24,6 +18,13 @@
         "code": "311",
         "name": "MCLEAN LAKE",
         "lat": "50.7923000",
-        "long": "-121.3581500"
+        "long": "-121.3581500",
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
     }
 }

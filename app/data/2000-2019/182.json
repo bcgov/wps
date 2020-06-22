@@ -1,13 +1,7 @@
 {
-    "ffmc": 90.79883346557617,
-    "isi": 7.662005424499512,
-    "bui": 74.30245971679688,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 90.86059,
+    "isi": 7.64084,
+    "bui": 78.25921,
     "years": [
         2000,
         2001,
@@ -27,13 +21,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "182",
         "name": "GANOKWA",
         "lat": "54.8012330",
-        "long": "-126.9483167"
+        "long": "-126.9483167",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

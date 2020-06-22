@@ -1,13 +1,7 @@
 {
-    "ffmc": 90.74659729003906,
-    "isi": 10.338430404663086,
-    "bui": 58.159141540527344,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 90.39939,
+    "isi": 8.9,
+    "bui": 56.93,
     "years": [
         1983,
         1984,
@@ -43,13 +37,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "131",
         "name": "MUSKWA",
         "lat": "57.8842500",
-        "long": "-123.6163000"
+        "long": "-123.6163000",
+        "ecodivision_name": "SUB-ARCTIC",
+        "core_season": {
+            "start_month": "6",
+            "start_day": "1",
+            "end_month": "8",
+            "end_day": "15"
+        }
     }
 }

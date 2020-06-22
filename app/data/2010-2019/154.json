@@ -1,13 +1,7 @@
 {
-    "ffmc": 92.0679718017578,
-    "isi": 10.836924171447755,
-    "bui": 86.57642517089846,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 92.05295,
+    "isi": 10.88714,
+    "bui": 89.89551,
     "years": [
         2010,
         2011,
@@ -17,13 +11,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "154",
         "name": "WITCH",
         "lat": "55.0230300",
-        "long": "-124.2666111"
+        "long": "-124.2666111",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

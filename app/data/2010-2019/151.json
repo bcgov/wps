@@ -1,25 +1,24 @@
 {
-    "ffmc": 91.59459381103515,
-    "isi": 13.414250373840332,
-    "bui": 81.20222091674805,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 91.7113,
+    "isi": 13.64354,
+    "bui": 93.02547,
     "years": [
         2010,
-        2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "151",
         "name": "NABESHE",
         "lat": "56.3643300",
-        "long": "-123.3655600"
+        "long": "-123.3655600",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

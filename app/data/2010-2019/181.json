@@ -1,13 +1,7 @@
 {
-    "ffmc": 92.33304443359376,
-    "isi": 10.655951786041259,
-    "bui": 93.41415328979492,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 92.32349,
+    "isi": 10.58573,
+    "bui": 99.23138,
     "years": [
         2010,
         2011,
@@ -17,13 +11,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "181",
         "name": "BURNS LAKE 850M",
         "lat": "54.2586000",
-        "long": "-125.7571000"
+        "long": "-125.7571000",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

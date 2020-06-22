@@ -1,13 +1,7 @@
 {
-    "ffmc": 91.94512634277343,
-    "isi": 8.806432247161865,
-    "bui": 128.77615356445312,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 91.98522,
+    "isi": 8.70623,
+    "bui": 137.16432,
     "years": [
         2010,
         2011,
@@ -17,13 +11,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "162",
         "name": "HOUSTON",
         "lat": "54.3939000",
-        "long": "-126.6175667"
+        "long": "-126.6175667",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

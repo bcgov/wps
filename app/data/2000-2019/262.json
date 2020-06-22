@@ -1,13 +1,7 @@
 {
-    "ffmc": 90.02958526611329,
-    "isi": 7.875416421890259,
-    "bui": 42.27336463928222,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 89.99643,
+    "isi": 7.71911,
+    "bui": 43.72135,
     "years": [
         2000,
         2001,
@@ -27,13 +21,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "262",
         "name": "BIG VALLEY",
         "lat": "53.2616667",
-        "long": "-121.7616667"
+        "long": "-121.7616667",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

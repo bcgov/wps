@@ -1,13 +1,7 @@
 {
-    "ffmc": 91.4000015258789,
-    "isi": 9.062783622741707,
-    "bui": 80.0599990844727,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 91.2338,
+    "isi": 8.76318,
+    "bui": 82.94416,
     "years": [
         1980,
         1981,
@@ -47,13 +41,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "195",
         "name": "MCBRIDE",
         "lat": "53.2948333",
-        "long": "-120.1527778"
+        "long": "-120.1527778",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

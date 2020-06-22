@@ -1,13 +1,7 @@
 {
-    "ffmc": 93.95771942138671,
-    "isi": 11.100000381469727,
-    "bui": 125.79820251464844,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 94.10141,
+    "isi": 11.28027,
+    "bui": 130.88705,
     "years": [
         1986,
         1987,
@@ -41,13 +35,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "401",
         "name": "GOATFELL",
         "lat": "49.1253333",
-        "long": "-116.1638333"
+        "long": "-116.1638333",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

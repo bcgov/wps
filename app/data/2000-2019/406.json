@@ -1,13 +1,7 @@
 {
-    "ffmc": 93.92664337158202,
-    "isi": 13.385035705566406,
-    "bui": 104.60418090820315,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 94.07508,
+    "isi": 13.59284,
+    "bui": 109.56488,
     "years": [
         2000,
         2001,
@@ -27,13 +21,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "406",
         "name": "SLOCAN",
         "lat": "49.7846667",
-        "long": "-117.4400000"
+        "long": "-117.4400000",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

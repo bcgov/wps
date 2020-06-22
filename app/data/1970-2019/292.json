@@ -1,13 +1,7 @@
 {
-    "ffmc": 94.17808532714844,
-    "isi": 12.155698204040549,
-    "bui": 167.66372070312502,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 94.05923,
+    "isi": 11.95216,
+    "bui": 168.5032,
     "years": [
         1978,
         1979,
@@ -56,6 +50,13 @@
         "code": "292",
         "name": "D'ARCY",
         "lat": "50.5217222",
-        "long": "-122.4978889"
+        "long": "-122.4978889",
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
     }
 }

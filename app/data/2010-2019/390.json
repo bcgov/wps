@@ -1,13 +1,7 @@
 {
-    "ffmc": 95.95563430786133,
-    "isi": 15.095020961761474,
-    "bui": 178.14040527343758,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 95.95604,
+    "isi": 14.97095,
+    "bui": 188.32275,
     "years": [
         2010,
         2011,
@@ -24,6 +18,13 @@
         "code": "390",
         "name": "BEAVERDELL",
         "lat": "49.4563889",
-        "long": "-119.0886111"
+        "long": "-119.0886111",
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
     }
 }

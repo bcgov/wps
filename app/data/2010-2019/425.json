@@ -1,13 +1,7 @@
 {
-    "ffmc": 94.2498809814453,
-    "isi": 15.874684810638428,
-    "bui": 127.46245193481445,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 94.38292,
+    "isi": 16.19131,
+    "bui": 134.29039,
     "years": [
         2010,
         2011,
@@ -17,13 +11,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "425",
         "name": "EMILY CREEK",
         "lat": "50.1450800",
-        "long": "-115.9772300"
+        "long": "-115.9772300",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

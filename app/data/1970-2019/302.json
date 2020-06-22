@@ -1,13 +1,7 @@
 {
-    "ffmc": 93.99291381835938,
-    "isi": 14.877584171295165,
-    "bui": 165.37057495117188,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 94.0263,
+    "isi": 14.90097,
+    "bui": 173.06729,
     "years": [
         1998,
         1999,
@@ -36,6 +30,13 @@
         "code": "302",
         "name": "ASPEN GROVE",
         "lat": "49.9481100",
-        "long": "-120.6210700"
+        "long": "-120.6210700",
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
     }
 }

@@ -1,13 +1,7 @@
 {
-    "ffmc": 88.90848693847656,
-    "isi": 7.347345590591431,
-    "bui": 140.189697265625,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 88.9116,
+    "isi": 7.4424,
+    "bui": 147.52862,
     "years": [
         2001,
         2002,
@@ -26,13 +20,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "45",
         "name": "SALTSPRING 2",
         "lat": "48.7728889",
-        "long": "-123.4744167"
+        "long": "-123.4744167",
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

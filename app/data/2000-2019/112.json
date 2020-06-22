@@ -1,13 +1,7 @@
 {
-    "ffmc": 91.31952667236328,
-    "isi": 8.102958011627209,
-    "bui": 87.75086517333985,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 91.29176,
+    "isi": 7.69139,
+    "bui": 94.03626,
     "years": [
         2000,
         2001,
@@ -27,13 +21,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "112",
         "name": "ISKUT",
         "lat": "57.8615000",
-        "long": "-130.0182500"
+        "long": "-130.0182500",
+        "ecodivision_name": "SUB-ARCTIC HIGHLANDS",
+        "core_season": {
+            "start_month": "6",
+            "start_day": "1",
+            "end_month": "8",
+            "end_day": "15"
+        }
     }
 }
