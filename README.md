@@ -187,7 +187,7 @@ These templates can be applied to the Openshift project from the command line. F
 
 ## License
 
-This project is licensed under the [Apache License, Version 2.0](https://github.com/bcgov/wps-api/blob/master/LICENSE).
+This project is licensed under the [Apache License, Version 2.0](https://github.com/bcgov/wps-api/blob/main/LICENSE).
 
 ## Acknowledgments
 

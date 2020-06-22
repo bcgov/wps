@@ -3,7 +3,7 @@ name: Deployment
 on:
   pull_request:
     branches:
-      - master
+      - main
 
 jobs:
   build-and-deploy:

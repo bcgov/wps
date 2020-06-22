@@ -3,17 +3,17 @@ name: Static Analysis
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   coverage:
-    name: SonarQube - (master)
+    name: SonarQube - (main)
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: [3.8]
     steps:
-      - name: Checkout repo (master)
+      - name: Checkout repo (main)
         uses: actions/checkout@v2
         with:
           # For sonar-scanner to work properly we can't use a shallow fetch.
