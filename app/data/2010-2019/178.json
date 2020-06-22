@@ -1,13 +1,7 @@
 {
-    "ffmc": 92.47869415283205,
-    "isi": 10.723110103607183,
-    "bui": 139.6477951049805,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 92.37185,
+    "isi": 10.4368,
+    "bui": 148.48042,
     "years": [
         2010,
         2011,
@@ -17,13 +11,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "178",
         "name": "PEDEN",
         "lat": "53.9867430",
-        "long": "-126.5172230"
+        "long": "-126.5172230",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

@@ -1,13 +1,7 @@
 {
-    "ffmc": 95.21287536621094,
-    "isi": 16.714036750793458,
-    "bui": 143.4553421020508,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 95.33809,
+    "isi": 17.08479,
+    "bui": 151.5777,
     "years": [
         2000,
         2001,
@@ -27,13 +21,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "393",
         "name": "NICOLL",
         "lat": "49.5266667",
-        "long": "-118.3603333"
+        "long": "-118.3603333",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

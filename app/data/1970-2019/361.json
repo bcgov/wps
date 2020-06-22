@@ -1,13 +1,7 @@
 {
-    "ffmc": 91.70153045654297,
-    "isi": 9.098171329498289,
-    "bui": 74.30265960693359,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 91.79118,
+    "isi": 9.13193,
+    "bui": 76.73676,
     "years": [
         1986,
         1987,
@@ -41,13 +35,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "361",
         "name": "TSAR CREEK",
         "lat": "51.9972200",
-        "long": "-118.1025000"
+        "long": "-118.1025000",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

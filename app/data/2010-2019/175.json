@@ -1,13 +1,7 @@
 {
-    "ffmc": 92.37809371948242,
-    "isi": 9.627267932891847,
-    "bui": 103.09619216918946,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 92.16448,
+    "isi": 9.39892,
+    "bui": 111.07624,
     "years": [
         2010,
         2011,
@@ -17,13 +11,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "175",
         "name": "BEDNESTI",
         "lat": "53.8653889",
-        "long": "-123.3231667"
+        "long": "-123.3231667",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

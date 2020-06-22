@@ -1,13 +1,7 @@
 {
-    "ffmc": 91.68885803222656,
-    "isi": 9.048635959625248,
-    "bui": 102.36700134277346,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 91.64124,
+    "isi": 9.01562,
+    "bui": 104.35131,
     "years": [
         1985,
         1986,
@@ -42,13 +36,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "179",
         "name": "NADINA",
         "lat": "53.9424830",
-        "long": "-126.9278167"
+        "long": "-126.9278167",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

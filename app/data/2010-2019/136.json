@@ -1,13 +1,7 @@
 {
-    "ffmc": 91.92572784423828,
-    "isi": 11.967659759521485,
-    "bui": 85.20872497558595,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 91.8362,
+    "isi": 11.82122,
+    "bui": 89.32339,
     "years": [
         2010,
         2011,
@@ -17,13 +11,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "136",
         "name": "WONOWON",
         "lat": "56.7185000",
-        "long": "-121.7654300"
+        "long": "-121.7654300",
+        "ecodivision_name": "BOREAL",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

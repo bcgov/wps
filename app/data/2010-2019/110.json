@@ -1,13 +1,7 @@
 {
-    "ffmc": 90.9036117553711,
-    "isi": 10.368697834014892,
-    "bui": 162.58753509521486,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 90.56204,
+    "isi": 9.49683,
+    "bui": 167.24383,
     "years": [
         2010,
         2011,
@@ -17,13 +11,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "110",
         "name": "TELEGRAPH CREEK",
         "lat": "57.9141330",
-        "long": "-131.1711500"
+        "long": "-131.1711500",
+        "ecodivision_name": "SUB-ARCTIC HIGHLANDS",
+        "core_season": {
+            "start_month": "6",
+            "start_day": "1",
+            "end_month": "8",
+            "end_day": "15"
+        }
     }
 }

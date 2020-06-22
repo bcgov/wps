@@ -1,13 +1,7 @@
 {
-    "ffmc": 91.19815979003907,
-    "isi": 9.699939727783203,
-    "bui": 56.10322380065918,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 91.1775,
+    "isi": 9.57221,
+    "bui": 56.90496,
     "years": [
         1986,
         1987,
@@ -41,13 +35,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "120",
         "name": "SILVER",
         "lat": "57.4967800",
-        "long": "-121.2969500"
+        "long": "-121.2969500",
+        "ecodivision_name": "BOREAL",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

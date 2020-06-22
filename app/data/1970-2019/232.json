@@ -1,13 +1,7 @@
 {
-    "ffmc": 92.93581619262696,
-    "isi": 10.772966003417967,
-    "bui": 81.47646484375,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 93.0,
+    "isi": 10.77105,
+    "bui": 84.39065,
     "years": [
         1979,
         1980,
@@ -48,13 +42,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "232",
         "name": "COLDSCAUR LAKE",
         "lat": "51.7237830",
-        "long": "-120.3899330"
+        "long": "-120.3899330",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

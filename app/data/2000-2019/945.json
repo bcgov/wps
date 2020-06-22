@@ -1,13 +1,7 @@
 {
-    "ffmc": 89.18121643066407,
-    "isi": 7.93184895515442,
-    "bui": 75.99710845947266,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 89.17994,
+    "isi": 7.9022,
+    "bui": 81.16383,
     "years": [
         2006,
         2007,
@@ -21,13 +15,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "945",
         "name": "TS NAKA CREEK",
         "lat": "50.3701333",
-        "long": "-126.4339333"
+        "long": "-126.4339333",
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

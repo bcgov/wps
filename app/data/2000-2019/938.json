@@ -1,13 +1,7 @@
 {
-    "ffmc": 89.6251434326172,
-    "isi": 7.671185731887815,
-    "bui": 68.8965362548828,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 89.69993,
+    "isi": 7.76916,
+    "bui": 72.69317,
     "years": [
         2006,
         2007,
@@ -21,13 +15,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "938",
         "name": "PINE CREEK",
         "lat": "54.6837830",
-        "long": "-127.3258167"
+        "long": "-127.3258167",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

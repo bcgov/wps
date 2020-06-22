@@ -1,13 +1,7 @@
 {
-    "ffmc": 93.87087860107422,
-    "isi": 13.191890144348148,
-    "bui": 136.87909851074218,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 93.87503,
+    "isi": 13.17873,
+    "bui": 142.59837,
     "years": [
         2000,
         2001,
@@ -34,6 +28,13 @@
         "code": "307",
         "name": "LEIGHTON LAKE",
         "lat": "50.6152500",
-        "long": "-120.8361000"
+        "long": "-120.8361000",
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
     }
 }

@@ -1,13 +1,7 @@
 {
-    "ffmc": 90.87394104003907,
-    "isi": 7.201291084289551,
-    "bui": 61.06941757202148,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 90.80677,
+    "isi": 7.2,
+    "bui": 62.47979,
     "years": [
         1986,
         1987,
@@ -41,13 +35,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "172",
         "name": "NILKITKWA",
         "lat": "55.5378500",
-        "long": "-126.5774500"
+        "long": "-126.5774500",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

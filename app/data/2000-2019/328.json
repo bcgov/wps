@@ -1,13 +1,7 @@
 {
-    "ffmc": 94.09365539550781,
-    "isi": 11.640800857543942,
-    "bui": 190.68017120361327,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 93.99431,
+    "isi": 11.4771,
+    "bui": 192.63046,
     "years": [
         2000,
         2001,
@@ -34,6 +28,13 @@
         "code": "328",
         "name": "PENTICTON RS",
         "lat": "49.5183333",
-        "long": "-119.5533333"
+        "long": "-119.5533333",
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
     }
 }

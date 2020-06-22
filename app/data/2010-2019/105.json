@@ -1,13 +1,7 @@
 {
-    "ffmc": 91.64469604492187,
-    "isi": 7.790444803237916,
-    "bui": 86.30543212890625,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 91.69656,
+    "isi": 7.93923,
+    "bui": 92.2379,
     "years": [
         2010,
         2011,
@@ -17,13 +11,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "105",
         "name": "ROSSWOOD",
         "lat": "54.9167330",
-        "long": "-128.8598000"
+        "long": "-128.8598000",
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

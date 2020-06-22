@@ -1,13 +1,7 @@
 {
-    "ffmc": 93.01059188842774,
-    "isi": 9.711602210998535,
-    "bui": 110.26394653320312,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 93.06144,
+    "isi": 9.74561,
+    "bui": 115.10613,
     "years": [
         2000,
         2001,
@@ -27,13 +21,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "374",
         "name": "SUCCOUR CREEK",
         "lat": "51.7161667",
-        "long": "-117.5416667"
+        "long": "-117.5416667",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

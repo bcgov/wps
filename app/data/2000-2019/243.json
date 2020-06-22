@@ -1,13 +1,7 @@
 {
-    "ffmc": 94.20245819091797,
-    "isi": 10.927335166931158,
-    "bui": 131.38233337402343,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 94.23395,
+    "isi": 10.98992,
+    "bui": 139.13838,
     "years": [
         2000,
         2001,
@@ -27,13 +21,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "243",
         "name": "EAST BARRIERE",
         "lat": "51.2531330",
-        "long": "-119.8816830"
+        "long": "-119.8816830",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

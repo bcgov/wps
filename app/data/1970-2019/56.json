@@ -1,13 +1,7 @@
 {
-    "ffmc": 89.21132354736328,
-    "isi": 5.790493488311769,
-    "bui": 115.38824157714845,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 89.27975,
+    "isi": 5.86981,
+    "bui": 120.40536,
     "years": [
         1985,
         1986,
@@ -42,13 +36,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "56",
         "name": "BOWSER",
         "lat": "49.4368333",
-        "long": "-124.7022222"
+        "long": "-124.7022222",
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

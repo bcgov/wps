@@ -1,13 +1,7 @@
 {
-    "ffmc": 92.47193679809571,
-    "isi": 9.255965709686278,
-    "bui": 89.780517578125,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 92.43674,
+    "isi": 9.17911,
+    "bui": 97.09695,
     "years": [
         2010,
         2011,
@@ -17,13 +11,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "234",
         "name": "TIMOTHY",
         "lat": "51.9130000",
-        "long": "-121.3890000"
+        "long": "-121.3890000",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

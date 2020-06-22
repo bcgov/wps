@@ -1,13 +1,7 @@
 {
-    "ffmc": 89.19999694824219,
-    "isi": 4.980387210845947,
-    "bui": 76.58493041992188,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 89.25325,
+    "isi": 5.02146,
+    "bui": 81.11287,
     "years": [
         1981,
         1982,
@@ -46,13 +40,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "72",
         "name": "UBC RESEARCH",
         "lat": "49.2645000",
-        "long": "-122.5732833"
+        "long": "-122.5732833",
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

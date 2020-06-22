@@ -1,13 +1,7 @@
 {
-    "ffmc": 94.12044296264648,
-    "isi": 14.019225120544434,
-    "bui": 137.27044677734375,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 94.27911,
+    "isi": 14.26104,
+    "bui": 148.74699,
     "years": [
         2010,
         2011,
@@ -24,6 +18,13 @@
         "code": "331",
         "name": "ASHNOLA",
         "lat": "49.1390500",
-        "long": "-120.1844000"
+        "long": "-120.1844000",
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
     }
 }

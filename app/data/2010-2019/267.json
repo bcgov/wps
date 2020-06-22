@@ -1,13 +1,7 @@
 {
-    "ffmc": 92.03397979736329,
-    "isi": 10.296004104614257,
-    "bui": 71.75471801757813,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 92.09751,
+    "isi": 10.40698,
+    "bui": 73.63607,
     "years": [
         2010,
         2011,
@@ -17,13 +11,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "267",
         "name": "BERRY",
         "lat": "51.9787667",
-        "long": "-119.4133833"
+        "long": "-119.4133833",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

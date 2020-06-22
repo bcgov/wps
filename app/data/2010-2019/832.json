@@ -1,13 +1,7 @@
 {
-    "ffmc": 93.5156021118164,
-    "isi": 14.919762229919437,
-    "bui": 129.09911804199223,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 93.63987,
+    "isi": 15.29435,
+    "bui": 138.31749,
     "years": [
         2010,
         2011,
@@ -17,13 +11,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "832",
         "name": "CHURN CREEK",
         "lat": "51.4027200",
-        "long": "-122.3201700"
+        "long": "-122.3201700",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

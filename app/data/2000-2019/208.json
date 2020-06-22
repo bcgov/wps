@@ -1,13 +1,7 @@
 {
-    "ffmc": 93.57115554809572,
-    "isi": 12.090078639984128,
-    "bui": 170.65899658203125,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 93.64555,
+    "isi": 12.12502,
+    "bui": 178.75487,
     "years": [
         2000,
         2001,
@@ -27,13 +21,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "208",
         "name": "TATLA LAKE HUB",
         "lat": "51.9066667",
-        "long": "-124.6050000"
+        "long": "-124.6050000",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

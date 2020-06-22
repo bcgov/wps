@@ -1,13 +1,7 @@
 {
-    "ffmc": 91.10168762207032,
-    "isi": 9.399999618530273,
-    "bui": 80.8400024414063,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 91.0,
+    "isi": 9.19242,
+    "bui": 81.88,
     "years": [
         1971,
         1972,
@@ -56,13 +50,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "145",
         "name": "INGENIKA POINT",
         "lat": "57.0194167",
-        "long": "-125.1803889"
+        "long": "-125.1803889",
+        "ecodivision_name": "SUB-ARCTIC HIGHLANDS",
+        "core_season": {
+            "start_month": "6",
+            "start_day": "1",
+            "end_month": "8",
+            "end_day": "15"
+        }
     }
 }

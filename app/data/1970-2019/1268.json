@@ -1,23 +1,23 @@
 {
-    "ffmc": 94.18885803222656,
-    "isi": 13.96007804870606,
-    "bui": 90.1617324829102,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 94.4513,
+    "isi": 14.23058,
+    "bui": 101.96071,
     "years": [
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "1268",
         "name": "VALEMOUNT AIRPORT",
         "lat": "52.8597222",
-        "long": "-119.3386111"
+        "long": "-119.3386111",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

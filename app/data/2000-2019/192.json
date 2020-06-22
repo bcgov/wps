@@ -1,19 +1,12 @@
 {
-    "ffmc": 91.45500183105469,
-    "isi": 7.5472447872161865,
-    "bui": 58.0635425567627,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 91.455,
+    "isi": 7.47412,
+    "bui": 59.0335,
     "years": [
         2000,
         2001,
         2002,
         2003,
-        2004,
         2005,
         2006,
         2007,
@@ -27,13 +20,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "192",
         "name": "MCGREGOR 2",
         "lat": "53.9288889",
-        "long": "-120.6356944"
+        "long": "-120.6356944",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

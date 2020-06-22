@@ -1,13 +1,7 @@
 {
-    "ffmc": 91.28771209716797,
-    "isi": 7.800000190734862,
-    "bui": 70.50988311767577,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 91.26632,
+    "isi": 7.7,
+    "bui": 71.4623,
     "years": [
         1987,
         1988,
@@ -40,13 +34,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "144",
         "name": "TABLE RIVER",
         "lat": "54.7161667",
-        "long": "-122.2741667"
+        "long": "-122.2741667",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

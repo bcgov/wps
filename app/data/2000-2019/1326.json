@@ -1,21 +1,21 @@
 {
-    "ffmc": 93.49615936279295,
-    "isi": 10.168959617614746,
-    "bui": 181.3740997314453,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 94.97456,
+    "isi": 11.61065,
+    "bui": 206.53863,
     "years": [
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "1326",
         "name": "WILLIS EXT",
         "lat": "49.3393056",
-        "long": "-120.4070556"
+        "long": "-120.4070556",
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
     }
 }

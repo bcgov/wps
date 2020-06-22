@@ -1,13 +1,7 @@
 {
-    "ffmc": 89.69839172363282,
-    "isi": 7.331661319732666,
-    "bui": 63.416903686523426,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 89.595,
+    "isi": 7.29396,
+    "bui": 66.19203,
     "years": [
         1995,
         1996,
@@ -32,13 +26,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "433",
         "name": "CRANBERRY",
         "lat": "55.5768333",
-        "long": "-128.7047500"
+        "long": "-128.7047500",
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

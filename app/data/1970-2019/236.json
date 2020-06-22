@@ -1,13 +1,7 @@
 {
-    "ffmc": 93.5,
-    "isi": 12.084144592285156,
-    "bui": 123.7189697265625,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 93.58784,
+    "isi": 12.05383,
+    "bui": 128.21495,
     "years": [
         1991,
         1992,
@@ -36,13 +30,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "236",
         "name": "MEADOW LAKE",
         "lat": "51.3750000",
-        "long": "-121.7166667"
+        "long": "-121.7166667",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

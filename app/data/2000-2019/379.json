@@ -1,16 +1,9 @@
 {
-    "ffmc": 94.07010498046874,
-    "isi": 11.0095796585083,
-    "bui": 110.20819854736328,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 94.15437,
+    "isi": 11.00933,
+    "bui": 114.25619,
     "years": [
         2000,
-        2001,
         2002,
         2003,
         2004,
@@ -27,13 +20,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "379",
         "name": "GOLD HILL",
         "lat": "50.3658333",
-        "long": "-117.0645000"
+        "long": "-117.0645000",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

@@ -1,13 +1,7 @@
 {
-    "ffmc": 92.5474479675293,
-    "isi": 8.90934009552002,
-    "bui": 136.82954101562504,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 92.00148,
+    "isi": 8.30324,
+    "bui": 138.54354,
     "years": [
         2010,
         2011,
@@ -17,13 +11,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "444",
         "name": "KETCHIKA",
         "lat": "58.7269800",
-        "long": "-127.1249600"
+        "long": "-127.1249600",
+        "ecodivision_name": "SUB-ARCTIC HIGHLANDS",
+        "core_season": {
+            "start_month": "6",
+            "start_day": "1",
+            "end_month": "8",
+            "end_day": "15"
+        }
     }
 }

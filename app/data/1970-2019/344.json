@@ -1,13 +1,7 @@
 {
-    "ffmc": 93.07877655029299,
-    "isi": 8.698240566253665,
-    "bui": 86.21580047607422,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 93.1417,
+    "isi": 8.72987,
+    "bui": 89.34368,
     "years": [
         1981,
         1982,
@@ -46,13 +40,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "344",
         "name": "SEYMOUR ARM",
         "lat": "51.2735170",
-        "long": "-118.9147000"
+        "long": "-118.9147000",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

@@ -1,13 +1,7 @@
 {
-    "ffmc": 93.98052368164063,
-    "isi": 11.5039436340332,
-    "bui": 102.37999877929686,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 94.12647,
+    "isi": 11.62857,
+    "bui": 110.81812,
     "years": [
         2000,
         2001,
@@ -34,6 +28,13 @@
         "code": "388",
         "name": "KETTLE 2",
         "lat": "49.9599833",
-        "long": "-118.6260333"
+        "long": "-118.6260333",
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
     }
 }

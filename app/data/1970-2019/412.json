@@ -1,13 +1,7 @@
 {
-    "ffmc": 94.48121032714843,
-    "isi": 14.632657623291017,
-    "bui": 144.3000030517578,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 94.66211,
+    "isi": 15.05398,
+    "bui": 149.53382,
     "years": [
         1970,
         1971,
@@ -38,13 +32,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "412",
         "name": "ELKO",
         "lat": "49.2876667",
-        "long": "-115.1545556"
+        "long": "-115.1545556",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

@@ -1,13 +1,7 @@
 {
-    "ffmc": 94.58325576782227,
-    "isi": 13.690459632873534,
-    "bui": 218.50424652099608,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 94.54684,
+    "isi": 13.55823,
+    "bui": 210.59434,
     "years": [
         2000,
         2001,
@@ -34,6 +28,13 @@
         "code": "280",
         "name": "LILLOOET",
         "lat": "50.6720167",
-        "long": "-121.8881833"
+        "long": "-121.8881833",
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
     }
 }

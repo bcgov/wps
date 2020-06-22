@@ -1,13 +1,7 @@
 {
-    "ffmc": 92.48554916381836,
-    "isi": 9.399999618530273,
-    "bui": 99.8838768005371,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 92.52997,
+    "isi": 9.3,
+    "bui": 103.71181,
     "years": [
         1971,
         1972,
@@ -55,13 +49,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "230",
         "name": "HORSEFLY",
         "lat": "52.3300000",
-        "long": "-121.3966667"
+        "long": "-121.3966667",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

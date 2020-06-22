@@ -1,13 +1,7 @@
 {
-    "ffmc": 94.8712387084961,
-    "isi": 16.03141498565674,
-    "bui": 216.6311492919922,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 94.95325,
+    "isi": 16.45926,
+    "bui": 231.33705,
     "years": [
         2010,
         2011,
@@ -17,13 +11,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "226",
         "name": "MIDDLE LAKE",
         "lat": "51.7016667",
-        "long": "-124.8750000"
+        "long": "-124.8750000",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

@@ -1,13 +1,7 @@
 {
-    "ffmc": 94.03146362304688,
-    "isi": 10.883415794372558,
-    "bui": 96.83105163574221,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 94.12432,
+    "isi": 10.88295,
+    "bui": 104.03416,
     "years": [
         2010,
         2011,
@@ -17,13 +11,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "866",
         "name": "BLAEBERRY",
         "lat": "51.4357000",
-        "long": "-117.0571000"
+        "long": "-117.0571000",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

@@ -1,13 +1,7 @@
 {
-    "ffmc": 92.3591766357422,
-    "isi": 10.203824996948242,
-    "bui": 97.40976333618164,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 92.24768,
+    "isi": 10.06985,
+    "bui": 100.61445,
     "years": [
         2010,
         2011,
@@ -17,13 +11,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "228",
         "name": "BENSON",
         "lat": "52.9100000",
-        "long": "-122.0650000"
+        "long": "-122.0650000",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

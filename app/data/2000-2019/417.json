@@ -1,13 +1,7 @@
 {
-    "ffmc": 94.7355972290039,
-    "isi": 14.759309768676756,
-    "bui": 154.26857299804684,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 94.86942,
+    "isi": 15.00315,
+    "bui": 158.03949,
     "years": [
         2000,
         2001,
@@ -27,13 +21,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "417",
         "name": "TOBY HUB",
         "lat": "50.5128333",
-        "long": "-116.0553333"
+        "long": "-116.0553333",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

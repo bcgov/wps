@@ -1,13 +1,7 @@
 {
-    "ffmc": 91.96808471679688,
-    "isi": 9.343555450439453,
-    "bui": 93.63069152832031,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 91.93438,
+    "isi": 9.31495,
+    "bui": 96.38119,
     "years": [
         1998,
         1999,
@@ -29,13 +23,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "654",
         "name": "HOLY CROSS 2",
         "lat": "53.9359722",
-        "long": "-124.7767222"
+        "long": "-124.7767222",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

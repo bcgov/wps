@@ -1,13 +1,7 @@
 {
-    "ffmc": 90.92225341796875,
-    "isi": 6.959222698211672,
-    "bui": 101.90690917968755,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": null,
+    "isi": null,
+    "bui": null,
     "years": [
         2010,
         2011,
@@ -24,6 +18,13 @@
         "code": "554",
         "name": "CAPILANO GVRD",
         "lat": "49.4400000",
-        "long": "-123.0970000"
+        "long": "-123.0970000",
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }

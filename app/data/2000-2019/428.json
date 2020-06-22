@@ -1,13 +1,7 @@
 {
-    "ffmc": 90.4073715209961,
-    "isi": 6.590790510177612,
-    "bui": 63.35020065307617,
-    "season": {
-        "start_month": 5,
-        "start_day": 1,
-        "end_month": 8,
-        "end_day": 31
-    },
+    "ffmc": 90.35136,
+    "isi": 6.55348,
+    "bui": 65.06933,
     "years": [
         2000,
         2001,
@@ -27,13 +21,19 @@
         2015,
         2016,
         2017,
-        2018,
-        2019
+        2018
     ],
     "station": {
         "code": "428",
         "name": "KISPIOX HUB",
         "lat": "55.4343000",
-        "long": "-127.6487000"
+        "long": "-127.6487000",
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
     }
 }
