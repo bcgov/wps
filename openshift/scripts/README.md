@@ -18,6 +18,7 @@ A glossary of terms relating to Wildfire that are relevant to Predictive Service
 
 ## Contributing
 
+
 # How to contribute
 
 Resources:
