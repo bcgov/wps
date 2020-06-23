@@ -142,6 +142,6 @@ psql
 \password
 ```
 
-## Atribution
+## Attribution
 
 The templates in this folder taken from the [BC DevOps backup-container project](https://github.com/BCDevOps/backup-container) and modified for this project.
