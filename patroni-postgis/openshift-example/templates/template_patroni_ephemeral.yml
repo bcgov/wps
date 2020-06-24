@@ -36,7 +36,7 @@ objects:
       labels:
         application: ${APPLICATION_NAME}
         cluster-name: ${PATRONI_CLUSTER_NAME}
-      name: ${PATRONI_MASTER_SERVICE_NAME}
+      name: ${PATRONI_LEADER_SERVICE_NAME}
     spec:
       ports:
         - port: 5432
@@ -50,6 +50,15 @@ objects:
       type: ClusterIP
     status:
       loadBalancer: {}
+  - apiVersion: v1
+    kind: Secret
+    metadata:
+      name: ${APPLICATION_SECRET}
+    type: Opaque
+    stringData:
+      app-db-name: ${APPLICATION_SECRET}
+      app-db-username: ${APPLICATION_SECRET}
+      app-db-password: ${APP_DB_PASSWORD}
   - apiVersion: v1
     kind: Secret
     metadata:
@@ -141,6 +150,21 @@ objects:
                     fieldRef:
                       apiVersion: v1
                       fieldPath: metadata.name
+                - name: APP_USER
+                  valueFrom:
+                    secretKeyRef:
+                      key: app-db-username
+                      name: ${APPLICATION_SECRET}
+                - name: APP_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      key: app-db-password
+                      name: ${APPLICATION_SECRET}
+                - name: APP_DATABASE
+                  valueFrom:
+                    secretKeyRef:
+                      key: app-db-name
+                      name: ${APPLICATION_SECRET}
                 - name: PATRONI_POSTGRESQL_DATA_DIR
                   value: /home/postgres/pgdata/pgroot/data
                 - name: PATRONI_POSTGRESQL_PGPASS
@@ -149,7 +173,7 @@ objects:
                   value: 0.0.0.0:5432
                 - name: PATRONI_RESTAPI_LISTEN
                   value: 0.0.0.0:8008
-              image: docker-registry.default.svc:5000/${NAMESPACE}/patroni:10
+              image: docker-registry.default.svc:5000/${IMAGE_NAMESPACE}/patroni:10
               imagePullPolicy: IfNotPresent
               name: ${APPLICATION_NAME}
               ports:
@@ -255,10 +279,10 @@ parameters:
     displayName: Cluster Name
     name: PATRONI_CLUSTER_NAME
     value: patroni-ephemeral
-  - description: The name of the OpenShift Service exposed for the patroni-ephemeral-master container.
-    displayName: Master service name.
-    name: PATRONI_MASTER_SERVICE_NAME
-    value: patroni-ephemeral-master
+  - description: The name of the OpenShift Service exposed for the patroni-ephemeral-leader container.
+    displayName: Leader service name.
+    name: PATRONI_LEADER_SERVICE_NAME
+    value: patroni-ephemeral-leader
   - description: The name of the OpenShift Service exposed for the patroni-ephemeral-replica containers.
     displayName: Replica service name.
     name: PATRONI_REPLICA_SERVICE_NAME
@@ -269,7 +293,7 @@ parameters:
     value: 512Mi
   - description: The OpenShift Namespace where the patroni and postgresql ImageStream resides.
     displayName: ImageStream Namespace
-    name: NAMESPACE
+    name: IMAGE_NAMESPACE
     value: openshift
   - description: Username of the superuser account for initialization.
     displayName: Superuser Username
@@ -291,3 +315,10 @@ parameters:
     displayName: Service Account
     name: SERVICE_ACCOUNT
     value: patroniocp
+  - description: Name of secret where application secrets are stored.
+    displayName: Application Secrets
+    name: APPLICATION_SECRET
+    value: wps-api
+  - name: APP_DB_PASSWORD
+    generate: expression
+    from: "[a-zA-Z0-9]{32}"
