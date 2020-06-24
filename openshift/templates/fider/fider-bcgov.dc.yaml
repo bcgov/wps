@@ -1,0 +1,296 @@
+---
+kind: Template
+apiVersion: v1
+message: A new Fider application, customized with noTLS, has been created in your project
+metadata:
+  name: nrmf-feedback-dc
+parameters:
+- description: The OpenShift Namespace where the ImageStream resides.
+  displayName: Namespace
+  name: IS_NAMESPACE
+  value: b7cg3n-tools
+- description: The OpenShift ImageStream name.
+  displayName: Image Stream
+  name: IS_NAME
+  value: fider-bcgov
+- description: Version of Feedback image to be used (e.g. v0.18.0)
+  displayName: Version of Fider Product Feedback
+  name: IS_VERSION
+  value: 0.18.0
+- description: The short-name of the Feedback Product, lower-case with hyphen.
+  displayName: Feedback Product Name
+  name: FEEDBACK_NAME
+  required: true
+  value: nrm
+- description: The Fider environment (development | production).
+  displayName: Fider Go Environment
+  name: GO_ENV
+  value: production
+- description: The Fider loggin level (DEBUG | INFO).
+  displayName: Fider application logging level
+  name: LOG_LEVEL
+  value: INFO
+- description: JWT Secret.
+  displayName: Fider Go Environment
+  from: "[a-zA-Z0-9]{32}"
+  generate: expression
+  name: JWT_SECRET
+  required: true
+- description: Email SMTP Host Configuration
+  displayName: SMTP Host
+  name: EMAIL_SMTP_HOST
+  value: apps.smtp.gov.bc.ca
+- description: Email SMTP Port Configuration
+  displayName: SMTP Port
+  name: EMAIL_SMTP_PORT
+  value: '25'
+- description: Email SMTP Username
+  displayName: SMTP User
+  name: EMAIL_SMTP_USERNAME
+  value: Gary.T.Wong@gov.bc.ca
+- description: Email SMTP No-Reply Address
+  displayName: SMTP No-Reply Address
+  name: EMAIL_NOREPLY
+  value: noreply@gov.bc.ca
+- description: Google Social Media Configuration ID
+  displayName: Google SoMe AppID
+  name: OAUTH_GOOGLE_CLIENTID
+  value: ''
+- description: Google Social Media Configuration Secret
+  displayName: Google SoMe Secret
+  name: OAUTH_GOOGLE_SECRET
+  value: ''
+- description: FaceBook Social Media Configuration ID
+  displayName: FaceBook SoMe AppID
+  name: OAUTH_FACEBOOK_APPID
+  value: ''
+- description: FaceBook Social Media Configuration Secret
+  displayName: FaceBook SoMe Secret
+  name: OAUTH_FACEBOOK_SECRET
+  value: ''
+- description: GitHub Social Media Configuration ID
+  displayName: GitHub SoMe AppID
+  name: OAUTH_GITHUB_CLIENTID
+  value: ''
+- description: GitHub Social Media Configuration Secret
+  displayName: GitHub SoMe Secret
+  name: OAUTH_GITHUB_SECRET
+  value: ''
+- name: CPU_LIMIT
+  value: 500m
+- name: MEMORY_LIMIT
+  value: 1Gi
+- name: CPU_REQUEST
+  value: 100m
+- name: MEMORY_REQUEST
+  value: 256Mi
+- name: REPLICA_MIN
+  value: '2'
+- name: REPLICA_MAX
+  value: '2'
+objects:
+- kind: Secret
+  apiVersion: v1
+  metadata:
+    name: "${FEEDBACK_NAME}-jwt"
+    labels:
+      app: "${FEEDBACK_NAME}"
+    annotations:
+      description: Fider JWT token.
+      template.openshift.io/expose-fider_jst: "{.data['fider-jwt']}"
+  stringData:
+    fider-jwt: "${JWT_SECRET}"
+- kind: DeploymentConfig
+  apiVersion: v1
+  metadata:
+    name: "${FEEDBACK_NAME}-app"
+    generation: 1
+    labels:
+      app: "${FEEDBACK_NAME}"
+    annotations: {}
+  spec:
+    strategy:
+      type: Rolling
+      rollingParams:
+        updatePeriodSeconds: 1
+        intervalSeconds: 1
+        timeoutSeconds: 180
+        maxUnavailable: 25%
+        maxSurge: 25%
+      resources: {}
+      activeDeadlineSeconds: 21600
+    triggers:
+    - type: ConfigChange
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+        - fider-app
+        from:
+          kind: ImageStreamTag
+          namespace: "${IS_NAMESPACE}"
+          name: "${IS_NAME}:${IS_VERSION}"
+    replicas: "${{REPLICA_MIN}}"
+    revisionHistoryLimit: 10
+    test: false
+    selector:
+      app: "${FEEDBACK_NAME}"
+      deploymentconfig: "${FEEDBACK_NAME}-app"
+    template:
+      metadata:
+        labels:
+          app: "${FEEDBACK_NAME}"
+          deploymentconfig: "${FEEDBACK_NAME}-app"
+        annotations: {}
+      spec:
+        containers:
+        - name: fider-app
+          image: getfider/fider:stable
+          ports:
+          - containerPort: 3000
+            protocol: TCP
+          env:
+          - name: POSTGRESQL_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: "${FEEDBACK_NAME}-postgresql"
+                key: database-user
+          - name: POSTGRESQL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: "${FEEDBACK_NAME}-postgresql"
+                key: database-password
+          - name: POSTGRESQL_DB_NAME
+            valueFrom:
+              secretKeyRef:
+                name: "${FEEDBACK_NAME}-postgresql"
+                key: database-name
+          - name: POSTGRESQL_DB_HOST
+            value: "${FEEDBACK_NAME}-postgresql"
+          - name: POSTGRESQL_PORT
+            value: '5432'
+          - description: The Fider environment (development | production).
+            displayName: Fider Go Environment
+            name: GO_ENV
+            value: "${GO_ENV}"
+          - description: The Fider loggin level (DEBUG | INFO).
+            displayName: Fider application logging level
+            name: LOG_LEVEL
+            value: "${LOG_LEVEL}"
+          - description: Email SMTP Host Configuration
+            displayName: SMTP Host
+            name: EMAIL_SMTP_HOST
+            value: "${EMAIL_SMTP_HOST}"
+          - description: Email SMTP Port Configuration
+            displayName: SMTP Port
+            name: EMAIL_SMTP_PORT
+            value: "${EMAIL_SMTP_PORT}"
+          - description: Email SMTP Username.
+            displayName: Email Username
+            name: EMAIL_SMTP_USERNAME
+            value: "${EMAIL_SMTP_USERNAME}"
+          - description: From which account e-mails will be sent.
+            displayName: From Email Address
+            name: EMAIL_NOREPLY
+            value: "${EMAIL_NOREPLY}"
+          - description: Email SMTP Username.
+            displayName: Email Username
+            name: EMAIL_SMTP_USERNAME
+            value: "${EMAIL_SMTP_USERNAME}"
+          - description: Connection string to the database.
+            displayName: Database connection
+            name: DATABASE_URL
+            value: postgres://$(POSTGRESQL_USERNAME):$(POSTGRESQL_PASSWORD)@$(POSTGRESQL_DB_HOST):$(POSTGRESQL_PORT)/${FEEDBACK_NAME}?sslmode=disable
+          - name: JWT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: "${FEEDBACK_NAME}-jwt"
+                key: fider-jwt
+          resources:
+            limits:
+              cpu: "${CPU_LIMIT}"
+              memory: "${MEMORY_LIMIT}"
+            requests:
+              cpu: "${CPU_REQUEST}"
+              memory: "${MEMORY_REQUEST}"
+          livenessProbe:
+            httpGet:
+              path: "/"
+              port: 3000
+              scheme: HTTP
+            initialDelaySeconds: 60
+            timeoutSeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 6
+          readinessProbe:
+            httpGet:
+              path: "/"
+              port: 3000
+              scheme: HTTP
+            initialDelaySeconds: 10
+            timeoutSeconds: 2
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 10
+          terminationMessagePath: "/dev/termination-log"
+          terminationMessagePolicy: File
+          imagePullPolicy: Always
+        restartPolicy: Always
+        terminationGracePeriodSeconds: 30
+        dnsPolicy: ClusterFirst
+        securityContext: {}
+        schedulerName: default-scheduler
+- apiVersion: autoscaling/v1
+  kind: HorizontalPodAutoscaler
+  metadata:
+    name: "${FEEDBACK_NAME}"
+    labels:
+      app: "${FEEDBACK_NAME}"
+  spec:
+    maxReplicas: "${{REPLICA_MAX}}"
+    minReplicas: "${{REPLICA_MIN}}"
+    scaleTargetRef:
+      apiVersion: v1
+      kind: DeploymentConfig
+      name: "${FEEDBACK_NAME}-app"
+    targetCPUUtilizationPercentage: 95
+- kind: Service
+  apiVersion: v1
+  metadata:
+    name: "${FEEDBACK_NAME}"
+    labels:
+      app: "${FEEDBACK_NAME}"
+    annotations:
+      description: Exposes and load balances the application pods
+  spec:
+    ports:
+    - name: web
+      protocol: TCP
+      port: 8080
+      targetPort: 3000
+    selector:
+      app: "${FEEDBACK_NAME}"
+      deploymentconfig: "${FEEDBACK_NAME}-app"
+    type: ClusterIP
+    sessionAffinity: None
+  status:
+    loadBalancer: {}
+- kind: Route
+  apiVersion: v1
+  metadata:
+    name: "${FEEDBACK_NAME}"
+    creationTimestamp: 
+    labels:
+      app: "${FEEDBACK_NAME}"
+  spec:
+    host: "${FEEDBACK_NAME}.pathfinder.gov.bc.ca"
+    to:
+      kind: Service
+      name: "${FEEDBACK_NAME}"
+      weight: 100
+    port:
+      targetPort: web
+    tls:
+      termination: edge
+    wildcardPolicy: None
