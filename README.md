@@ -14,7 +14,7 @@ Detailed installation instructions for Openshift available on: <https://github.c
 
 ## License
 
-[Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) License - see the [LICENSE.md](https://github.com/bcgov/wps/blob/master/LICENSE)
+[Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) License - see the [LICENSE.md](https://github.com/bcgov/wps/blob/main/LICENSE)
 
 ## Glossary
 
