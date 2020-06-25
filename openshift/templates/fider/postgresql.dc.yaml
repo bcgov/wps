@@ -1,0 +1,167 @@
+---
+kind: Template
+apiVersion: v1
+message: A new PostgreSQL application has been created in your project
+metadata:
+  name: nrmfeedback-postgresql-dc
+parameters:
+- description: The short-name of the Feedback Service, lower-case with hyphen.
+  displayName: Feedback Name
+  name: FEEDBACK_NAME
+  required: true
+  value: mds
+- description: Maximum amount of memory the container can use.
+  displayName: Memory Limit
+  name: MEMORY_LIMIT
+  required: true
+  value: 512Mi
+- description: Password for the PostgreSQL connection user.
+  displayName: PostgreSQL Connection Password
+  from: "[a-zA-Z0-9]{16}"
+  generate: expression
+  name: POSTGRESQL_PASSWORD
+  required: true
+- description: Volume space available for data, e.g. 512Mi, 2Gi.
+  displayName: Database Volume Capacity
+  name: DB_VOLUME_CAPACITY
+  required: true
+  value: 2Gi
+objects:
+- kind: Secret
+  apiVersion: v1
+  metadata:
+    name: "${FEEDBACK_NAME}-postgresql"
+    labels:
+      app: "${FEEDBACK_NAME}"
+    annotations:
+      description: Database credentials and name.
+      template.openshift.io/expose-database_name: "{.data['database-name']}"
+      template.openshift.io/expose-password: "{.data['database-password']}"
+      template.openshift.io/expose-username: "{.data['database-user']}"
+  stringData:
+    database-name: "${FEEDBACK_NAME}"
+    database-password: "${POSTGRESQL_PASSWORD}"
+    database-user: "${FEEDBACK_NAME}"
+- kind: PersistentVolumeClaim
+  apiVersion: v1
+  metadata:
+    name: "${FEEDBACK_NAME}-postgresql"
+    labels:
+      app: "${FEEDBACK_NAME}"
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: "${DB_VOLUME_CAPACITY}"
+    storageClassName: netapp-file-standard
+- kind: DeploymentConfig
+  apiVersion: v1
+  metadata:
+    name: "${FEEDBACK_NAME}-postgresql"
+    labels:
+      app: "${FEEDBACK_NAME}"
+    annotations: {}
+  spec:
+    strategy:
+      type: Recreate
+      recreateParams:
+        timeoutSeconds: 600
+      resources: {}
+      activeDeadlineSeconds: 21600
+    triggers:
+    - type: ConfigChange
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+        - "${FEEDBACK_NAME}-postgresql"
+        from:
+          kind: ImageStreamTag
+          namespace: openshift
+          name: postgresql:9.6
+    replicas: 1
+    revisionHistoryLimit: 10
+    test: false
+    selector:
+      app: "${FEEDBACK_NAME}"
+      deploymentconfig: "${FEEDBACK_NAME}-postgresql"
+    template:
+      metadata:
+        creationTimestamp: 
+        labels:
+          app: "${FEEDBACK_NAME}"
+          deploymentconfig: "${FEEDBACK_NAME}-postgresql"
+        annotations: {}
+      spec:
+        volumes:
+        - name: postgresql-volume
+          persistentVolumeClaim:
+            claimName: "${FEEDBACK_NAME}-postgresql"
+        containers:
+        - name: "${FEEDBACK_NAME}-postgresql"
+          image: docker-registry.default.svc:5000/openshift/postgresql@sha256:0400ad0dacf89cd6474b3b70c5b6b4c8466d0f36def998aba83aae61f38f3a53
+          ports:
+          - containerPort: 5432
+            protocol: TCP
+          env:
+          - name: POSTGRESQL_DATABASE
+            valueFrom:
+              secretKeyRef:
+                name: "${FEEDBACK_NAME}-postgresql"
+                key: database-name
+          - name: POSTGRESQL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: "${FEEDBACK_NAME}-postgresql"
+                key: database-password
+          - name: POSTGRESQL_USER
+            valueFrom:
+              secretKeyRef:
+                name: "${FEEDBACK_NAME}-postgresql"
+                key: database-user
+          resources: {}
+          volumeMounts:
+          - name: postgresql-volume
+            mountPath: "/var/lib/pgsql/data"
+          livenessProbe:
+            initialDelaySeconds: 30
+            tcpSocket:
+              port: 5432
+            timeoutSeconds: 1
+          readinessProbe:
+            exec:
+              command:
+              - "/bin/bash"
+              - "-c"
+              - pg_isready -h localhost -p 5432
+            initialDelaySeconds: 5
+            timeoutSeconds: 1
+          terminationMessagePath: "/dev/termination-log"
+          terminationMessagePolicy: File
+          imagePullPolicy: Always
+        restartPolicy: Always
+        terminationGracePeriodSeconds: 30
+        dnsPolicy: ClusterFirst
+        securityContext: {}
+        schedulerName: default-scheduler
+- kind: Service
+  apiVersion: v1
+  metadata:
+    name: "${FEEDBACK_NAME}-postgresql"
+    labels:
+      app: "${FEEDBACK_NAME}"
+    annotations: {}
+  spec:
+    ports:
+    - name: 5432-tcp
+      protocol: TCP
+      port: 5432
+      targetPort: 5432
+    selector:
+      app: "${FEEDBACK_NAME}"
+      deploymentconfig: "${FEEDBACK_NAME}-postgresql"
+    type: ClusterIP
+    sessionAffinity: None
+  status:
+    loadBalancer: {}
