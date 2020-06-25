@@ -7,6 +7,7 @@ it will only work on a computer running Windows).
 TODO: Remove this script once API is talking directly to the final Wildfire API.
 """
 import csv
+import os
 
 import pyodbc  # pylint: disable=import-error
 
@@ -55,10 +56,8 @@ def export_table(cursor, table, sql):
 
 def main():
     """ Entry point for exporting Access to csv """
-    conn_str = (
-        r'DRIVER={Microsoft Access Driver (*.mdb)};'
-        r'DBQ=C:\Users\Sybrand\Workspace\wps-api\scripts\BCFireWeather2019_DailyAllStns;'
-    )
+    database_location = os.path.join(os.getcwd(), 'BCFireWeather2019_DailyAllStns')
+    conn_str = 'DRIVER={{Microsoft Access Driver (*.mdb)}};DBQ={};'.format(database_location)
     with pyodbc.connect(conn_str) as connection:
         with connection.cursor() as cursor:
             export_table(cursor, 'Station_BC',

@@ -59,15 +59,18 @@ you either don't have PostgreSQL installed or psycopg2 doesn't know where to fin
 
 #### Local machine, running Linux
 
-If you have trouble installing pyodbc, you can try:
-
 ##### Ubuntu
+
+Install system dependancies:
 
 ```bash
 sudo apt install unixodbc-dev
+sudo apt install python3-dev libpq-dev
 ```
 
 ##### Fedora
+
+Install system dependancies:
 
 ```bash
 sudo dnf install unixODBC-devel

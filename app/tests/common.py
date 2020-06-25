@@ -10,6 +10,10 @@ import config
 LOGGER = logging.getLogger(__name__)
 
 
+class FixtureException(Exception):
+    """ Exception for fixture related issues """
+
+
 # pylint: disable=too-few-public-methods
 class MockJWTDecode:
     """ Mock pyjwt module """
@@ -72,7 +76,7 @@ def _get_fixture_path(url: str, params: dict = None) -> str:
         # Point to wf1 auth fixture.
         fixture_url = 'wf1/v1/oauth/token'
     else:
-        raise Exception('unhandeled url: {}'.format(url))
+        raise FixtureException('unhandeled url: {}'.format(url))
     if params:
         fixture_url = '{}?{}'.format(fixture_url, urlencode(params))
     # Join the url with the fixture location.
@@ -93,7 +97,7 @@ def get_mock_client_session(url: str, params: dict = None) -> MockClientSession:
         with open(fixture + '.txt', 'r') as fixture_file:
             return MockClientSession(text_response=fixture_file.read())
     # Expected fixture not found - raise an exception.
-    raise Exception('fixture file {} for {} not found.'.format(fixture, url))
+    raise FixtureException('fixture file {} for {} not found.'.format(fixture, url))
 
 
 def default_mock_client_get(*args, **kwargs) -> MockClientSession:
