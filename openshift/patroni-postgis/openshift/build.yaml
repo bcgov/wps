@@ -20,7 +20,7 @@ parameters:
   - name: GIT_URI
     value: https://github.com/bcgov/wps.git
   - name: GIT_REF
-    value: task/patroni_templates/210
+    value: main
   - name: POSTGRES_VERSION
     value: "10"
 objects:
@@ -47,24 +47,6 @@ objects:
             type: Source
     status:
       dockerImageRepository: ""
-  #- apiVersion: v1
-  #  generation: 0
-  #  kind: ImageStreamTag
-  #  lookupPolicy:
-  #    local: false
-  #  metadata:
-  #    creationTimestamp: null
-  #    name: postgres:${POSTGRES_VERSION}
-  #  tag:
-  #    annotations: null
-  #    from:
-  #      kind: DockerImage
-  #      name: registry.hub.docker.com/library/postgres:${POSTGRES_VERSION}
-  #    generation: 0
-  #    importPolicy: {}
-  #    name: "${POSTGRES_VERSION}"
-  #    referencePolicy:
-  #      type: Source
   - apiVersion: v1
     kind: ImageStream
     metadata:
@@ -89,7 +71,7 @@ objects:
       postCommit: {}
       resources: {}
       source:
-        contextDir: patroni-postgis/docker
+        contextDir: openshift/patroni-postgis/docker
         git:
           ref: ${GIT_REF}
           uri: ${GIT_URI}
