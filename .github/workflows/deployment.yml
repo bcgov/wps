@@ -6,9 +6,47 @@ on:
       - main
 
 jobs:
+  pre-requisite:
+    name: Apply pre-requisite templates.
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set Variables
+        shell: bash
+        run: |
+          echo "::set-env name=SUFFIX::pr-${{ github.event.number }}"
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Apply secret template.
+        uses: bcgov/openshift-launchpad-deployment@master
+        with:
+          AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
+          SCRIPT: openshift/scripts/oc_apply_secret.sh ${SUFFIX} apply
+
+  prepare-database:
+    name: Prepare Dev Database
+    runs-on: ubuntu-latest
+    needs: pre-requisite
+    steps:
+      - name: Set Variables
+        shell: bash
+        run: |
+          echo "::set-env name=SUFFIX::pr-${{ github.event.number }}"
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Deploy PostGIS instance
+        uses: bcgov/openshift-launchpad-deployment@master
+        with:
+          AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
+          SCRIPT: openshift/scripts/oc_provision_db.sh ${SUFFIX} apply
+
   build-and-deploy:
     name: Build, Deploy to Dev & ZAP Baseline Scan
     runs-on: ubuntu-latest
+    needs: pre-requisite
     steps:
       - name: Set Variables
         shell: bash

@@ -37,6 +37,11 @@ pipeline {
             agent { label 'deploy' }
             steps {
                 script {
+                    // Apply pre-requisites for database and application:
+                    sh "PROJ_TARGET=${projProd} ./openshift/scripts/oc_apply_secret.sh prod apply"
+                    // Update database template:
+                    sh "PROJ_TARGET=${projProd} ./openshift/scripts/oc_provision_db.sh prod apply"
+                    // Deploy API
                     sh "CPU_REQUEST=500m CPU_LIMIT=500m MEMORY_REQUEST=2Gi MEMORY_LIMIT=2Gi REPLICAS=3 PROJ_TARGET=${projProd} ./openshift/scripts/oc_deploy.sh prod apply"
                 }
             }
