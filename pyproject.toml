@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "wps-api"
 version = "0.1.0"
-description = "Wildfier Predictive Services Unit API"
+description = "Wildfire Predictive Services Unit API"
 authors = ["Sybrand Strauss <sybrand.strauss@gov.bc.ca>"]
 
 [tool.poetry.dependencies]
