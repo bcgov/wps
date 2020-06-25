@@ -1,11 +1,11 @@
 {
-    "kind": "ConfigMap",
-    "apiVersion": "v1",
-    "metadata": {
-        "name": "backup-conf",
-        "creationTimestamp": null
-    },
-    "data": {
-        "backup.conf": "# ============================================================\n# Databases:\n# ------------------------------------------------------------\npostgres=psufider-postgresql/psufider\n# -----------------------------------------------------------\n# Cron Scheduling:\n# -----------------------------------------------------------\n# We're using Openshift cronjobs to do the backup, so we\n# don't schedule anything here.\n# 0 1 * * * default ./backup.sh -s\n# 0 4 * * * default ./backup.sh -s -v all\n# -----------------------------------------------------------\n# Full Example:\n# -----------------------------------------------------------\n# postgres=postgresql:5432/TheOrgBook_Database\n# mongo=mender-mongodb:27017/useradm\n# postgres=wallet-db/tob_issuer\n# mssql=pims-db-dev:1433/pims\n#\n# 0 1 * * * default ./backup.sh -s\n# 0 4 * * * default ./backup.sh -s -v all\n# ============================================================\n"
-    }
+  "kind": "ConfigMap",
+  "apiVersion": "v1",
+  "metadata": {
+    "name": "backup-conf",
+    "creationTimestamp": null
+  },
+  "data": {
+    "backup.conf": "# ============================================================\n# Databases:\n# ------------------------------------------------------------\npostgres=psufider-postgresql/psufider\npostgres=patroni-leader-wps-api-prod/wps-api-prod\n# -----------------------------------------------------------\n# Cron Scheduling:\n# -----------------------------------------------------------\n# We're using Openshift cronjobs to do the backup, so we\n# don't schedule anything here.\n# 0 1 * * * default ./backup.sh -s\n# 0 4 * * * default ./backup.sh -s -v all\n# -----------------------------------------------------------\n# Full Example:\n# -----------------------------------------------------------\n# postgres=postgresql:5432/TheOrgBook_Database\n# mongo=mender-mongodb:27017/useradm\n# postgres=wallet-db/tob_issuer\n# mssql=pims-db-dev:1433/pims\n#\n# 0 1 * * * default ./backup.sh -s\n# 0 4 * * * default ./backup.sh -s -v all\n# ============================================================\n"
+  }
 }

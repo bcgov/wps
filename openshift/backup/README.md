@@ -33,6 +33,8 @@ The long running backup-container pod needs this configuration.
 oc -n <project> apply -f backup-conf-configmap_DeploymentConfig-<environment>.json
 ```
 
+For instructions on how to generate the configuration file, refer to [backup-container README](https://github.com/BCDevOps/backup-container/tree/2.1.1#backupconf)
+
 #### Create a deployment config
 
 Create a deployment config for backup, with 0 replicas. If you need to do a manual backup, verify

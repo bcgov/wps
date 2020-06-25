@@ -210,6 +210,24 @@
                     }
                   },
                   {
+                    "name": "PATRONI_LEADER_WPS_API_DEV_USER",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "wps-api-dev",
+                        "key": "app-db-username"
+                      }
+                    }
+                  },
+                  {
+                    "name": "PATRONI_LEADER_WPS_API_DEV_PASSWORD",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "wps-api-dev",
+                        "key": "app-db-password"
+                      }
+                    }
+                  },
+                  {
                     "name": "FTP_URL",
                     "valueFrom": {
                       "secretKeyRef": {
