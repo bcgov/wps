@@ -192,20 +192,38 @@
                     "value": "${TABLE_SCHEMA}"
                   },
                   {
-                    "name": "PSUFIDERDEV_POSTGRESQL_USER",
+                    "name": "PSUFIDER_POSTGRESQL_USER",
                     "valueFrom": {
                       "secretKeyRef": {
-                        "name": "psufiderdev-postgresql",
+                        "name": "psufider-postgresql",
                         "key": "database-user"
                       }
                     }
                   },
                   {
-                    "name": "PSUFIDERDEV_POSTGRESQL_PASSWORD",
+                    "name": "PSUFIDER_POSTGRESQL_PASSWORD",
                     "valueFrom": {
                       "secretKeyRef": {
-                        "name": "psufiderdev-postgresql",
+                        "name": "psufider-postgresql",
                         "key": "database-password"
+                      }
+                    }
+                  },
+                  {
+                    "name": "PATRONI_LEADER_WPS_API_PROD_USER",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "wps-api-prod",
+                        "key": "app-db-username"
+                      }
+                    }
+                  },
+                  {
+                    "name": "PATRONI_LEADER_WPS_API_PROD_PASSWORD",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "wps-api-prod",
+                        "key": "app-db-password"
                       }
                     }
                   },
@@ -313,7 +331,7 @@
       "displayName": "Environment TAG name",
       "description": "The TAG name for this environment, e.g., dev, test, prod",
       "required": true,
-      "value": "dev"
+      "value": "prod"
     },
     {
       "name": "DATABASE_SERVICE_NAME",
@@ -501,7 +519,7 @@
       "displayName": "Backup Volume Size",
       "description": "The size of the persistent volume used to store the backups, e.g. 512Mi, 1Gi, 2Gi.  Ensure this is sized correctly.  Refer to the container documentation for details.",
       "required": true,
-      "value": "2Gi"
+      "value": "5Gi"
     },
     {
       "name": "BACKUP_VOLUME_CLASS",

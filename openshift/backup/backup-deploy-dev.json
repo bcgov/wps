@@ -192,20 +192,38 @@
                     "value": "${TABLE_SCHEMA}"
                   },
                   {
-                    "name": "PSUFIDER_POSTGRESQL_USER",
+                    "name": "PSUFIDERDEV_POSTGRESQL_USER",
                     "valueFrom": {
                       "secretKeyRef": {
-                        "name": "psufider-postgresql",
+                        "name": "psufiderdev-postgresql",
                         "key": "database-user"
                       }
                     }
                   },
                   {
-                    "name": "PSUFIDER_POSTGRESQL_PASSWORD",
+                    "name": "PSUFIDERDEV_POSTGRESQL_PASSWORD",
                     "valueFrom": {
                       "secretKeyRef": {
-                        "name": "psufider-postgresql",
+                        "name": "psufiderdev-postgresql",
                         "key": "database-password"
+                      }
+                    }
+                  },
+                  {
+                    "name": "PATRONI_LEADER_WPS_API_DEV_USER",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "wps-api-dev",
+                        "key": "app-db-username"
+                      }
+                    }
+                  },
+                  {
+                    "name": "PATRONI_LEADER_WPS_API_DEV_PASSWORD",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "wps-api-dev",
+                        "key": "app-db-password"
                       }
                     }
                   },
@@ -313,7 +331,7 @@
       "displayName": "Environment TAG name",
       "description": "The TAG name for this environment, e.g., dev, test, prod",
       "required": true,
-      "value": "prod"
+      "value": "dev"
     },
     {
       "name": "DATABASE_SERVICE_NAME",
@@ -501,7 +519,7 @@
       "displayName": "Backup Volume Size",
       "description": "The size of the persistent volume used to store the backups, e.g. 512Mi, 1Gi, 2Gi.  Ensure this is sized correctly.  Refer to the container documentation for details.",
       "required": true,
-      "value": "5Gi"
+      "value": "2Gi"
     },
     {
       "name": "BACKUP_VOLUME_CLASS",
