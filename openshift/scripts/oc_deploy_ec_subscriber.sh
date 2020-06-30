@@ -21,14 +21,12 @@ source "$(dirname ${0})/common/common"
 #%   ${THIS_FILE} pr-0 apply
 #%
 
-
 # Target project override for Dev or Prod deployments
 #
 PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 
 # Process template
-# Note: A role issue is currenty preventing use of the image if it resides in the tools project.
-OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/secret.config.yaml \
+OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/ec_subscriber.dc.yaml \
 -p NAME=${NAME_APP} \
 -p SUFFIX=${SUFFIX}"
 
