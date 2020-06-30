@@ -17,8 +17,17 @@ import config
 
 LOGGER = logging.getLogger(__name__)
 
+dirname = os.path.dirname(__file__)
+core_season_file_path = os.path.join(
+    dirname, 'data/ecodivisions_core_seasons.json')
+ecodiv_shape_file_path = os.path.join(
+    dirname, 'data/ERC_ECODIV_polygon/ERC_ECODIV_polygon.shp')
+weather_stations_file_path = os.path.join(
+    dirname, 'data/weather_stations.json')
 
 # pylint: disable=too-few-public-methods
+
+
 class BuildQuery(ABC):
     """ Base class for building query urls and params """
 
@@ -123,10 +132,9 @@ def _is_station_valid(station) -> bool:
 def _parse_station(station) -> WeatherStation:
     """ Transform from the json object returned by wf1, to our station object.
     """
-    with open('app/data/ecodivisions_core_seasons.json') as file_handle:
+    with open(core_season_file_path) as file_handle:
         core_seasons = json.load(file_handle)
-    ecodivisions = geopandas.read_file(
-        'app/data/ERC_ECODIV_polygon/ERC_ECODIV_polygon.shp')
+    ecodivisions = geopandas.read_file(ecodiv_shape_file_path)
     station_coord = Point(
         float(station['longitude']), float(station['latitude']))
 
@@ -171,7 +179,7 @@ def _parse_hourly(hourly) -> WeatherReading:
 def _get_stations_by_codes_local(station_codes: List[int]) -> List[WeatherStation]:
     """ Get a list of stations by code, from local json files. """
     LOGGER.info('Using pre-generated json to retrieve station by code')
-    with open(os.path.join(os.path.dirname(__file__), 'data/weather_stations.json')) as file_pointer:
+    with open(weather_stations_file_path) as file_pointer:
         stations = json.load(file_pointer)
         results = []
         for station in stations['weather_stations']:
@@ -210,7 +218,7 @@ def _get_stations_local() -> List[WeatherStation]:
     """ Get list of stations from local json files.
     """
     LOGGER.info('Using pre-generated json to retrieve station list')
-    with open(os.path.join(os.path.dirname(__file__), 'data/weather_stations.json')) as weather_stations_file:
+    with open(weather_stations_file_path) as weather_stations_file:
         json_data = json.load(weather_stations_file)
         return json_data['weather_stations']
 
