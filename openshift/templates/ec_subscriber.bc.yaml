@@ -1,0 +1,54 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: ${NAME}
+labels:
+  app.kubernetes.io/part-of: "${NAME}"
+  app: ${NAME}
+parameters:
+  - name: NAME
+    description: Module name
+    value: ec-subscriber
+  - name: GIT_URL
+    value: https://github.com/bcgov/wps-api.git
+objects:
+  - apiVersion: v1
+    kind: ImageStream
+    metadata:
+      annotations:
+        openshift.io/generated-by: OpenShiftNewBuild
+      labels:
+        app: ${NAME}
+        common: "true"
+      name: ${NAME}
+    spec:
+      lookupPolicy:
+        local: false
+  - apiVersion: v1
+    kind: BuildConfig
+    metadata:
+      annotations:
+        openshift.io/generated-by: OpenShiftNewBuild
+      labels:
+        app: ${NAME}
+      name: ${NAME}
+    spec:
+      output:
+        to:
+          kind: ImageStreamTag
+          name: ${NAME}:latest
+      resources:
+        limits:
+          cpu: 1
+          memory: 1Gi
+        requests:
+          cpu: 1
+          memory: 1Gi
+      source:
+        git:
+          uri: ${GIT_URL}
+          ref: origin/main
+        type: Git
+        contextDir: ec_subscriber
+      strategy:
+        type: Docker
