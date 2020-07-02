@@ -37,8 +37,6 @@ pipeline {
             agent { label 'deploy' }
             steps {
                 script {
-                    // Apply pre-requisites for database and application:
-                    sh "PROJ_TARGET=${projProd} ./openshift/scripts/oc_apply_secret.sh prod apply"
                     // Env Canada Subscriber
                     sh "PROJ_TARGET=${projProd} ./openshift/scripts/oc_deploy_ec_subscriber.sh prod apply"
                     // Update database template:

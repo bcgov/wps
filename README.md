@@ -1,8 +1,8 @@
-# Wildfire Predictive Services FWI Percentile Calculator API
+# Wildfire Predictive Services Unit FWI Percentile Calculator API
 
 ## Description
 
-Wildfire Predictive Services support decision making in prevention, preparedness, response and recovery.
+Wildfire Predictive Services Unit support decision making in prevention, preparedness, response and recovery.
 
 ## Getting Started
 

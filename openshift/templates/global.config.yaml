@@ -21,6 +21,17 @@ parameters:
   - name: KEYCLOAK_PUBLIC_KEY
     description: Keycloak public key for validating the access token
     required: true
+  - name: APP_DB_PASSWORD
+    description: Password for the application database
+    required: true
+  - description: Password of the superuser account for initialization.
+    displayName: Superuser Passsword
+    name: PATRONI_SUPERUSER_PASSWORD
+    required: true
+  - description: Password of the replication account for initialization.
+    displayName: Repication Passsword
+    name: PATRONI_REPLICATION_PASSWORD
+    required: true
 objects:
   - kind: ConfigMap
     apiVersion: v1
@@ -43,3 +54,6 @@ objects:
     stringData:
       spotwx-api-key: ${SPOTWX_API_KEY}
       wfwx-secret: ${WFWX_SECRET}
+      app-db-password: ${APP_DB_PASSWORD}
+      patroni-replication-password: ${PATRONI_REPLICATION_PASSWORD}
+      patroni-superuser-password: ${PATRONI_SUPERUSER_PASSWORD}
