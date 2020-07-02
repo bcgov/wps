@@ -55,16 +55,6 @@ objects:
     status:
       loadBalancer: {}
   - apiVersion: v1
-    kind: Secret
-    metadata:
-      name: ${PATRONI_CLUSTER_NAME}
-      labels:
-        application: ${APPLICATION_NAME}
-        cluster-name: ${PATRONI_CLUSTER_NAME}
-    stringData:
-      superuser-password: ${PATRONI_SUPERUSER_PASSWORD}
-      replication-password: ${PATRONI_REPLICATION_PASSWORD}
-  - apiVersion: v1
     kind: Service
     metadata:
       creationTimestamp: null
@@ -129,15 +119,15 @@ objects:
                 - name: PATRONI_SUPERUSER_PASSWORD
                   valueFrom:
                     secretKeyRef:
-                      key: superuser-password
-                      name: ${PATRONI_CLUSTER_NAME}
+                      name: ${NAME}-global
+                      key: patroni-superuser-password
                 - name: PATRONI_REPLICATION_USERNAME
                   value: ${PATRONI_REPLICATION_USERNAME}
                 - name: PATRONI_REPLICATION_PASSWORD
                   valueFrom:
                     secretKeyRef:
-                      key: replication-password
-                      name: ${PATRONI_CLUSTER_NAME}
+                      name: ${NAME}-global
+                      key: patroni-replication-password
                 - name: PATRONI_SCOPE
                   value: ${PATRONI_CLUSTER_NAME}
                 - name: PATRONI_NAME
@@ -146,20 +136,14 @@ objects:
                       apiVersion: v1
                       fieldPath: metadata.name
                 - name: APP_USER
-                  valueFrom:
-                    secretKeyRef:
-                      key: app-db-username
-                      name: ${APPLICATION_SECRET}
+                  value: ${NAME}-${SUFFIX}
                 - name: APP_PASSWORD
                   valueFrom:
                     secretKeyRef:
+                      name: ${NAME}-global
                       key: app-db-password
-                      name: ${APPLICATION_SECRET}
                 - name: APP_DATABASE
-                  valueFrom:
-                    secretKeyRef:
-                      key: app-db-name
-                      name: ${APPLICATION_SECRET}
+                  value: ${NAME}-${SUFFIX}
                 - name: PATRONI_POSTGRESQL_DATA_DIR
                   value: /home/postgres/pgdata/pgroot/data
                 - name: PATRONI_POSTGRESQL_PGPASS
@@ -312,31 +296,14 @@ parameters:
     displayName: Superuser Username
     name: PATRONI_SUPERUSER_USERNAME
     value: postgres
-  - description: Password of the superuser account for initialization.
-    displayName: Superuser Passsword
-    name: PATRONI_SUPERUSER_PASSWORD
-    generate: expression
-    from: "[a-zA-Z0-9]{32}"
   - description: Username of the replication account for initialization.
     displayName: Replication Username
     name: PATRONI_REPLICATION_USERNAME
     value: replication
-  - description: Password of the replication account for initialization.
-    displayName: Repication Passsword
-    name: PATRONI_REPLICATION_PASSWORD
-    generate: expression
-    from: "[a-zA-Z0-9]{32}"
   - description: Service account name used for pods and rolebindings to form a cluster in the project.
     displayName: Service Account
     name: SERVICE_ACCOUNT
     value: patroniocp
-  - description: Name of secret where application secrets are stored.
-    displayName: Application Secrets
-    name: APPLICATION_SECRET
-    value: wps-api
-  - name: APP_DB_PASSWORD
-    generate: expression
-    from: "[a-zA-Z0-9]{32}"
   - description: The size of the persistent volume to create.
     displayName: Persistent Volume Size
     name: PVC_SIZE
