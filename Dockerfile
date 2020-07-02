@@ -20,6 +20,8 @@ RUN cd /tmp && \
     poetry install --no-root --no-dev
 
 COPY ./app /app
+COPY ./alembic /bootstrap/alembic
+COPY alembic.ini /bootstrap
 
 # The fastapi docker image defaults to port 80, but openshift doesn't allow non-root users port 80.
 EXPOSE 8080
