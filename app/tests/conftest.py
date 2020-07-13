@@ -33,7 +33,7 @@ def mock_env_with_use_wfwx(monkeypatch):
     monkeypatch.setenv("USE_WFWX", 'True')
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_jwt_decode(monkeypatch):
     """ Mock pyjwt's decode method """
 

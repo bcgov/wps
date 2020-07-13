@@ -26,7 +26,7 @@ source "$(dirname ${0})/common/common"
 PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 
 # Process template
-OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/ec_subscriber.dc.yaml \
+OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/env_canada.cronjob.yaml \
 -p NAME=${NAME_APP} \
 -p SUFFIX=${SUFFIX}"
 

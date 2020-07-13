@@ -1,0 +1,42 @@
+kind: Template
+apiVersion: v1
+metadata:
+  name: ${JOB_NAME}-cronjob-template
+  annotations:
+    description: "Scheduled task to download weather data from the MSC Datamart through http protocol."
+    tags: "cronjob,env-canada"
+labels:
+  app.kubernetes.io/part-of: "${NAME}"
+  app: ${NAME}
+parameters:
+  - name: NAME
+    description: Module name
+    value: wps-api
+  - name: SUFFIX
+    description: Deployment suffix, e.g. pr-###
+    required: true
+  - name: PROJECT_TOOLS
+    value: auzhsi-tools
+  - name: JOB_NAME
+    value: env-canada
+objects:
+  - kind: CronJob
+    apiVersion: batch/v1beta1
+    metadata:
+      name: ${JOB_NAME}
+      labels:
+        cronjob: ${JOB_NAME}
+    spec:
+      schedule: "*/60 * * * *"
+      jobTemplate:
+        metadata:
+          labels:
+            cronjob: ${JOB_NAME}
+        spec:
+          template:
+            spec:
+              containers:
+                - name: ${JOB_NAME}
+                  image: docker-registry.default.svc:5000/${PROJECT_TOOLS}/${NAME}-${SUFFIX}:${SUFFIX}
+                  command: ["python", "env_canada.py"]
+              restartPolicy: OnFailure

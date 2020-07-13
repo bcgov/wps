@@ -4,7 +4,7 @@ FROM tiangolo/uvicorn-gunicorn-fastapi:python3.8
 # spotwx has an old certificate, so we have to make debian more forgiving.
 RUN sed -i 's/TLSv1.2/TLSv1.0/g' /etc/ssl/openssl.cnf
 
-# Install poetry
+# Install poetry https://python-poetry.org/docs/#installation
 RUN cd /tmp && \
     curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py > get-poetry.py && \
     POETRY_HOME=/opt/poetry python get-poetry.py --version 1.0.8 && \
@@ -22,6 +22,10 @@ RUN cd /tmp && \
 COPY ./app /app
 COPY ./alembic /bootstrap/alembic
 COPY alembic.ini /bootstrap
+
+# Give the container user rwx permissions for /app directory
+RUN chgrp -R 0 /app && \
+    chmod -R g+rwX /app
 
 # The fastapi docker image defaults to port 80, but openshift doesn't allow non-root users port 80.
 EXPOSE 8080

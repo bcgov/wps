@@ -18,12 +18,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Apply Env canada subscriber template
-        uses: bcgov/openshift-launchpad-deployment@master
-        with:
-          AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
-          SCRIPT: openshift/scripts/oc_deploy_ec_subscriber.sh ${SUFFIX} apply
-
   prepare-database:
     name: Prepare Dev Database
     runs-on: ubuntu-latest
