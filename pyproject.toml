@@ -19,6 +19,7 @@ postgres = "^3.0.0"
 python-decouple = "^3.3"
 uvicorn = "^0.11.5"
 geopandas = "^0.7.0"
+wget = "^3.2"
 pylint = "^2.5.3"
 alembic = "^1.4.2"
 
@@ -31,6 +32,7 @@ pytest_bdd = "^3.4.0"
 coverage = "^5.1"
 pylint = "^2.5.3"
 pycodestyle = "^2.6.0"
+autopep8 = "^1.5.3"
 
 [build-system]
 requires = ["poetry>=0.12"]
