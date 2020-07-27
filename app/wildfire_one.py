@@ -10,10 +10,10 @@ from typing import List
 import asyncio
 import pytz
 import geopandas
-from shapely.geometry import Point
 from aiohttp import ClientSession, BasicAuth, TCPConnector
-from schemas import WeatherStation, WeatherStationHourlyReadings, WeatherReading
-import config
+from shapely.geometry import Point
+from . import config
+from .schemas import WeatherStation, WeatherStationHourlyReadings, WeatherReading
 
 LOGGER = logging.getLogger(__name__)
 
@@ -124,7 +124,8 @@ def _is_station_valid(station) -> bool:
         return False
     if station['latitude'] is None or station['longitude'] is None:
         # We can't use a station if it doesn't have a latitude and longitude.
-        # TODO : Decide if a station is valid if we can't determine its ecodivision and/or core fire season  #pylint: disable=fixme
+        # pylint: disable=fixme
+        # TODO : Decide if a station is valid if we can't determine its ecodivision and/or core fire season
         return False
     return True
 
@@ -214,7 +215,7 @@ async def get_stations_by_codes(station_codes: List[int]) -> List[WeatherStation
     return _get_stations_by_codes_local(station_codes)
 
 
-def _get_stations_local() -> List[WeatherStation]:
+def _get_stations_local() -> List[dict]:
     """ Get list of stations from local json files.
     """
     LOGGER.info('Using pre-generated json to retrieve station list')

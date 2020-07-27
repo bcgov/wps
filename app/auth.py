@@ -4,7 +4,7 @@ import logging
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 import jwt
-import config
+from app import config
 
 LOGGER = logging.getLogger(__name__)
 

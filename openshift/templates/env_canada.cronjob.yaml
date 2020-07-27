@@ -3,7 +3,7 @@ apiVersion: v1
 metadata:
   name: ${JOB_NAME}-cronjob-template
   annotations:
-    description: "Scheduled task to download weather data from the MSC Datamart through http protocol."
+    description: "Scheduled task to download and process weather data from the MSC Datamart through http protocol."
     tags: "cronjob,env-canada"
 labels:
   app.kubernetes.io/part-of: "${NAME}"
@@ -28,6 +28,7 @@ objects:
         cronjob: ${JOB_NAME}
     spec:
       schedule: "*/60 * * * *"
+      concurrencyPolicy: "Forbid"
       jobTemplate:
         metadata:
           labels:
@@ -38,5 +39,20 @@ objects:
               containers:
                 - name: ${JOB_NAME}
                   image: docker-registry.default.svc:5000/${PROJECT_TOOLS}/${NAME}-${SUFFIX}:${SUFFIX}
-                  command: ["python", "env_canada.py"]
+                  imagePullPolicy: "Always"
+                  command: ["python", "-m", "app.env_canada"]
+                  env:
+                    - name: POSTGRES_USER
+                      value: ${NAME}-${SUFFIX}
+                    - name: POSTGRES_PASSWORD
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${NAME}-global
+                          key: app-db-password
+                    - name: POSTGRES_HOST
+                      value: patroni-leader-${NAME}-${SUFFIX}
+                    - name: POSTGRES_PORT
+                      value: "5432"
+                    - name: POSTGRES_DATABASE
+                      value: ${NAME}-${SUFFIX}
               restartPolicy: OnFailure

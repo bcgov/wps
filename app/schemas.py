@@ -91,10 +91,9 @@ class WeatherForecastModel(BaseModel):
     abbrev: str
 
 
-class WeatherForecastValues(BaseModel):
+class WeatherModelForecastValues(BaseModel):
     """ The predicted weather values. """
     datetime: datetime
-    forecast_model: WeatherForecastModel = None
     temperature: float = None
     dew_point: float = None
     relative_humidity: float = None
@@ -118,28 +117,62 @@ class WeatherForecastValues(BaseModel):
     wind_direction_850mb: float = None
 
 
-class WeatherForecast(BaseModel):
+class WeatherModelRun(BaseModel):
+    """ Detail about the model run """
+    datetime: datetime
+    name: str
+    abbreviation: str
+    projection: str
+
+
+class WeatherModelForecast(BaseModel):
     """ Weather forecast for a particular weather station. """
     station: WeatherStation
-    values: List[WeatherForecastValues] = []
+    model_run: WeatherModelRun = None
+    values: List[WeatherModelForecastValues] = []
 
 
-class WeatherForecastResponse(BaseModel):
+class WeatherModelForecastResponse(BaseModel):
     """ Response containg a number of weather forecasts. """
-    forecasts: List[WeatherForecast]
+    forecasts: List[WeatherModelForecast]
 
 
 class WeatherStationHourlyReadingsResponse(BaseModel):
-    """ Response containing a number of hourly readings """
+    """ Response containing a number of hourly readings. """
     hourlies: List[WeatherStationHourlyReadings]
 
 
 class StationCodeList(BaseModel):
-    """ List of station codes """
+    """ List of station codes. """
     stations: List[int]
 
 
 class Ecodivision(BaseModel):
-    """ Name and core fire season of BC Ecodivision """
+    """ Name and core fire season of BC Ecodivision. """
     name: str
     core_season: Season
+
+
+class WeatherForecastModelSummaryValues(BaseModel):
+    """ Summary of model forecast values. """
+    datetime: datetime
+    tmp_2m_5th: float
+    tmp_2m_90th: float
+    tmp_2m_median: float
+    rh_2m_5th: float
+    rh_2m_90th: float
+    rh_2m_median: float
+
+
+class WeatherForecastModelSummary(BaseModel):
+    """ Summary of weather forecast for a given model.
+    Detail: For the global model, we end up with 20 different forecasts for every three hours of any given
+    day, this represents a summary of that data. """
+    station: WeatherStation
+    values: List[WeatherForecastModelSummaryValues] = []
+
+
+class WeatherForecastModelSummaryResponse(BaseModel):
+    """ Response containing forecast summaries for a given weather model."""
+    model: WeatherForecastModel
+    summaries: List[WeatherForecastModelSummary]

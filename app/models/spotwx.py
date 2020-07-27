@@ -8,9 +8,9 @@ from typing import List
 import pytz
 import pandas
 from aiohttp import ClientSession, TCPConnector
-from schemas import WeatherForecast, WeatherStation, WeatherForecastValues
-from wildfire_one import get_stations_by_codes
-import config
+from app.schemas import WeatherModelForecast, WeatherStation, WeatherModelForecastValues
+from app.wildfire_one import get_stations_by_codes
+from app import config
 
 LOGGER = logging.getLogger(__name__)
 
@@ -61,7 +61,7 @@ def get_key_map():
     }
 
 
-async def fetch_forecast(session: ClientSession, station: WeatherStation) -> WeatherForecast:
+async def fetch_forecast(session: ClientSession, station: WeatherStation) -> WeatherModelForecast:
     """ Return the forecast for a weather station from spotwx.
     """
     params = {
@@ -117,9 +117,9 @@ async def fetch_forecast(session: ClientSession, station: WeatherStation) -> Wea
     # Rename all columns using our key map.
     data = data.rename(columns=get_key_map())
     # Create forecast object to return.
-    forecast = WeatherForecast(station=station)
+    forecast = WeatherModelForecast(station=station)
     for row in data.to_dict(orient='records'):
-        forecast.values.append(WeatherForecastValues(**row))
+        forecast.values.append(WeatherModelForecastValues(**row))
     return forecast
 
 

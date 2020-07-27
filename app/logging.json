@@ -8,34 +8,14 @@
   "handlers": {
     "console": {
       "class": "logging.StreamHandler",
-      "level": "DEBUG",
+      "level": "INFO",
       "formatter": "simple",
       "stream": "ext://sys.stdout"
     }
   },
   "loggers": {
-    "forecasts": {
-      "level": "DEBUG",
-      "handlers": ["console"],
-      "propagate": false
-    },
-    "auth": {
-      "level": "DEBUG",
-      "handlers": ["console"],
-      "propagate": false
-    },
-    "wildfire_one": {
-      "level": "DEBUG",
-      "handlers": ["console"],
-      "propagate": false
-    },
-    "config": {
-      "level": "DEBUG",
-      "handlers": ["console"],
-      "propagate": false
-    },
-    "tests": {
-      "level": "DEBUG",
+    "app": {
+      "level": "INFO",
       "handlers": ["console"],
       "propagate": false
     }
