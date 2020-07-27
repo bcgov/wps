@@ -6,14 +6,15 @@ import os
 import json
 import logging
 import logging.config
+from enum import Enum
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
-import schemas
-from forecasts import fetch_forecasts
-from percentile import get_precalculated_percentiles
-from auth import authenticate
-import wildfire_one
-import config
+from app import schemas
+from app.models.fetch import fetch_model_forecasts, fetch_model_forecast_summaries
+from app.percentile import get_precalculated_percentiles
+from app.auth import authenticate
+from app import wildfire_one
+from app import config
 
 LOGGING_CONFIG = os.path.join(os.path.dirname(__file__), 'logging.json')
 if os.path.exists(LOGGING_CONFIG):
@@ -62,6 +63,11 @@ API_INFO = '''
     has been specifically advised of the possibility of such damages.'''
 
 
+class ModelEnum(str, Enum):
+    """ Enumerator for different kinds of supported weather models """
+    GDPS = "GDPS"
+
+
 app = FastAPI(
     title="Predictive Services Fire Weather Index Calculator",
     description=API_INFO,
@@ -82,17 +88,33 @@ app.add_middleware(
 @app.get('/health')
 async def get_health():
     """ A simple endpoint for Openshift Healthchecks """
+    LOGGER.info('/health')
     return {"message": "Healthy as ever"}
 
 
-@app.post('/forecasts/', response_model=schemas.WeatherForecastResponse)
-async def get_forecasts(request: schemas.StationCodeList, _: bool = Depends(authenticate)):
-    # async def get_forecasts(request: schemas.WeatherForecastRequest):
+@app.post('/models/{model}/forecasts/', response_model=schemas.WeatherModelForecastResponse)
+async def get_model_forecasts(
+        model: ModelEnum, request: schemas.StationCodeList, _: bool = Depends(authenticate)):
     """ Returns 10 day noon forecasts based on the global deterministic prediction system (GDPS)
     for the specified set of weather stations. """
     try:
-        forecasts = await fetch_forecasts(request.stations)
-        return schemas.WeatherForecastResponse(forecasts=forecasts)
+        LOGGER.info('/models/%s/forecasts/', model)
+        model_forecasts = await fetch_model_forecasts(model, request.stations)
+        return schemas.WeatherModelForecastResponse(forecasts=model_forecasts)
+    except Exception as exception:
+        LOGGER.critical(exception, exc_info=True)
+        raise
+
+
+@app.post('/models/{model}/forecasts/summaries/', response_model=schemas.WeatherForecastModelSummaryResponse)
+async def get_forecast_summaries(model: ModelEnum, request: schemas.StationCodeList):
+    """ Return a summary of forecast for a given model.
+    NOTE: Incomplete and untested!
+    """
+    try:
+        LOGGER.info('/models/{model}/forecasts/summaries/')
+        summaries = fetch_model_forecast_summaries(model, request.stations)
+        return schemas.WeatherForecastModelSummaryResponse(summaries=summaries, model=None)
     except Exception as exception:
         LOGGER.critical(exception, exc_info=True)
         raise
@@ -102,6 +124,7 @@ async def get_forecasts(request: schemas.StationCodeList, _: bool = Depends(auth
 async def get_hourlies(request: schemas.StationCodeList, _: bool = Depends(authenticate)):
     """ Returns hourlies for the last 5 days, for the specified weather stations """
     try:
+        LOGGER.info('/hourlies/')
         readings = await wildfire_one.get_hourly_readings(request.stations)
         return schemas.WeatherStationHourlyReadingsResponse(hourlies=readings)
     except Exception as exception:
@@ -114,6 +137,7 @@ async def get_stations():
     """ Return a list of fire weather stations.
     """
     try:
+        LOGGER.info('/stations/')
         stations = await wildfire_one.get_stations()
         return schemas.WeatherStationsResponse(weather_stations=stations)
     except Exception as exception:
@@ -126,6 +150,7 @@ async def get_percentiles(request: schemas.PercentileRequest):
     """ Return 90% FFMC, 90% ISI, 90% BUI etc. for a given set of fire stations for a given period of time.
     """
     try:
+        LOGGER.info('/percentiles/')
         percentiles = get_precalculated_percentiles(request)
         return percentiles
     except Exception as exception:

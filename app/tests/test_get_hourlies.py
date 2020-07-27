@@ -5,9 +5,9 @@ import pytz
 from pytest_bdd import scenario, given, then
 from starlette.testclient import TestClient
 from aiohttp import ClientSession
-from main import app
-from tests.common import default_mock_client_get
-import wildfire_one
+import app.main
+from app.tests.common import default_mock_client_get
+import app.wildfire_one
 
 LOGGER = logging.getLogger(__name__)
 
@@ -28,7 +28,7 @@ def response(monkeypatch, mock_env_with_use_wfwx, mock_jwt_decode, codes):
     def mock_now(*args, **kwargs):
         return datetime.fromtimestamp(1590076213962/1000, tz=pytz.utc)
 
-    monkeypatch.setattr(wildfire_one, '_get_now', mock_now)
+    monkeypatch.setattr(app.wildfire_one, '_get_now', mock_now)
 
     monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
     # NOTE: should be using a converter
@@ -36,7 +36,7 @@ def response(monkeypatch, mock_env_with_use_wfwx, mock_jwt_decode, codes):
     stations = eval(codes)
 
     # Create API client and get the reppnse.
-    client = TestClient(app)
+    client = TestClient(app.main.app)
     headers = {'Content-Type': 'application/json',
                'Authorization': 'Bearer token'}
     return client.post('/hourlies/', headers=headers, json={"stations": stations})

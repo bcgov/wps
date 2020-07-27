@@ -2,7 +2,9 @@
 
 import logging
 import pytest
-from tests.common import MockJWTDecode
+from alchemy_mock.mocking import UnifiedAlchemyMagicMock
+from app.tests.common import MockJWTDecode
+import app.db.database
 
 LOGGER = logging.getLogger(__name__)
 
@@ -26,11 +28,26 @@ def mock_env(monkeypatch):
     monkeypatch.setenv("KEYCLOAK_PUBLIC_KEY", "public_key")
 
 
+@pytest.fixture(autouse=True)
+def mock_session(monkeypatch):
+    """ Ensure that all unit tests mock out the database session by default! """
+    def mock_get_session(*args):
+        return UnifiedAlchemyMagicMock()
+    monkeypatch.setattr(app.db.database, 'get_session', mock_get_session)
+
+
 @pytest.fixture()
 def mock_env_with_use_wfwx(monkeypatch):
     """ Set environment variable USE_WFWX to 'True' """
 
     monkeypatch.setenv("USE_WFWX", 'True')
+
+
+@pytest.fixture()
+def mock_env_with_use_spotwx(monkeypatch):
+    """ Set environment variable USE_SPOTWX to 'True' """
+
+    monkeypatch.setenv('USE_SPOTWX', 'True')
 
 
 @pytest.fixture()

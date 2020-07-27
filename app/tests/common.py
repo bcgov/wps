@@ -4,7 +4,7 @@ import logging
 import os
 import json
 from urllib.parse import urlencode
-import config
+from app import config
 
 
 LOGGER = logging.getLogger(__name__)
@@ -97,7 +97,8 @@ def get_mock_client_session(url: str, params: dict = None) -> MockClientSession:
         with open(fixture + '.txt', 'r') as fixture_file:
             return MockClientSession(text_response=fixture_file.read())
     # Expected fixture not found - raise an exception.
-    raise FixtureException('fixture file {} for {} not found.'.format(fixture, url))
+    raise FixtureException(
+        'fixture file {} for {} not found.'.format(fixture, url))
 
 
 def default_mock_client_get(*args, **kwargs) -> MockClientSession:

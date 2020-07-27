@@ -1,7 +1,7 @@
 """ Functional testing for authentication """
 from pytest_bdd import scenario, given, then
 from fastapi.testclient import TestClient
-from main import app
+from app.main import app
 
 
 # pylint: disable=unused-argument, redefined-outer-name
@@ -12,10 +12,10 @@ def test_auth_1st_scenario():
 
 
 @given("I am an unauthenticated user <token> when I access a protected endpoint")
-def response(token: str):
-    """ Make POST /forecasts/ request which is protected """
+def response(mock_env_with_use_spotwx, token: str):
+    """ Make POST /models/GDPS/forecasts/ request which is protected """
     client = TestClient(app)
-    return client.post('/forecasts/', headers={'Authorization': token})
+    return client.post('/models/GDPS/forecasts/', headers={'Authorization': token})
 
 
 @then("I will get an error with <status> code")
@@ -36,10 +36,11 @@ def test_auth_2nd_scenario():
 
 
 @given("I am an authenticated user when I access a protected endpoint")
-def response_2(mock_jwt_decode):
-    """ Make POST /forecasts/ request which is protected """
+def response_2(mock_jwt_decode, mock_env_with_use_spotwx):
+    """ Make POST /models/GDPS/forecasts/ request which is protected """
     client = TestClient(app)
-    return client.post('/forecasts/', headers={'Authorization': 'Bearer token'}, json={"stations": []})
+    return client.post(
+        '/models/GDPS/forecasts/', headers={'Authorization': 'Bearer token'}, json={"stations": []})
 
 
 @then("I shouldn't get an unauthorized error <status> code")

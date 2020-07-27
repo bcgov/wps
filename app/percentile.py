@@ -2,9 +2,12 @@
 """
 
 import os
+import logging
 from statistics import mean
 from fastapi import HTTPException, status
-import schemas
+from app import schemas
+
+logger = logging.getLogger(__name__)
 
 
 def get_precalculated_percentiles(request: schemas.PercentileRequest):
@@ -21,6 +24,7 @@ def get_precalculated_percentiles(request: schemas.PercentileRequest):
 
     foldername = os.path.join(
         os.path.dirname(__file__), 'data/{}-{}'.format(year_range_start, year_range_end))
+    logger.info(foldername)
 
     if not os.path.exists(foldername):
         raise HTTPException(
@@ -36,8 +40,7 @@ def get_precalculated_percentiles(request: schemas.PercentileRequest):
     isi = []
     ffmc = []
     for code in request.stations:
-        filename = os.path.join(
-            os.path.dirname(__file__), '{}/{}.json'.format(foldername, code))
+        filename = os.path.join(foldername, '{}.json'.format(code))
         summary = schemas.StationSummary.parse_file(filename)
 
         if summary.bui and summary.isi and summary.ffmc:
