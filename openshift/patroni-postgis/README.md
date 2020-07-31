@@ -21,3 +21,11 @@ oc -n auzhsi-tools process -f openshift/build.yaml | oc -n auzhsi-tools apply -f
 # Tag the imagestream:
 oc -n auzhsi-tools tag patroni:v10-latest patroni:10
 ```
+
+Allow the production product to pull images from tools
+
+```bash
+oc -n auzhsi-prod policy add-role-to-user \
+    system:image-puller system:serviceaccount:auzhsi-prod:patroniocp-wps-api-prod \
+    --namespace=auzhsi-tools
+```
