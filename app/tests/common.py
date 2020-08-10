@@ -66,10 +66,7 @@ class MockResponse:
 def _get_fixture_path(url: str, params: dict = None) -> str:
     """ Returns the path to a fixture based on url and params.
     """
-    if config.get('SPOTWX_BASE_URI') in url:
-        # Point to spotwx fixtures.
-        fixture_url = 'spotwx.com/'
-    elif config.get('WFWX_BASE_URL') in url:
+    if config.get('WFWX_BASE_URL') in url:
         # Point to wf1 fixtures.
         fixture_url = 'wf1/' + url[len(config.get('WFWX_BASE_URL')):]
     elif config.get('WFWX_AUTH_URL') in url:

@@ -72,7 +72,7 @@ run-raw:
 	${call run-api}
 
 run-env-canada-raw:
-	POSTGRES_HOST=localhost python -m app.env_canada
+	POSTGRES_HOST=localhost python -m app.models.env_canada
 
 notebook:
 	# Run jupyter notebooks.
@@ -101,11 +101,12 @@ docker-run-dev:
 
 docker-shell-dev:
 	# Shell into the dev container.
-	docker run -it --env-file app/.env --entrypoint bash wps-api_api-dev:latest 
+	# docker run -it --env-file app/.env --entrypoint bash wps-api_api-dev:latest
+	docker-compose run api bash
 
 docker-shell-dev-db:
 	# Shell into the db container
-	docker-compose exec db psql -h postgres -U wps
+	docker-compose exec db psql -h db -U wps
 
 docker-build:
 	# Build docker images.

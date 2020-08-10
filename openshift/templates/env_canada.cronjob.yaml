@@ -40,7 +40,7 @@ objects:
                 - name: ${JOB_NAME}
                   image: docker-registry.default.svc:5000/${PROJECT_TOOLS}/${NAME}-${SUFFIX}:${SUFFIX}
                   imagePullPolicy: "Always"
-                  command: ["python", "-m", "app.env_canada"]
+                  command: ["python", "-m", "app.models.env_canada"]
                   env:
                     - name: POSTGRES_USER
                       value: ${NAME}-${SUFFIX}

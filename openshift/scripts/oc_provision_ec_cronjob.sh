@@ -27,6 +27,7 @@ PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 
 # Process template
 OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/env_canada.cronjob.yaml \
+-p JOB_NAME=env-canada-${NAME_APP}-${SUFFIX} \
 -p NAME=${NAME_APP} \
 -p SUFFIX=${SUFFIX}"
 

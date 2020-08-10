@@ -2,7 +2,7 @@
 import logging
 import datetime
 from pytest_bdd import scenario, given, then, when
-from app.models.fetch import NoonInterpolator
+from app.models.fetch.forecasts import NoonInterpolator
 from app.schemas import WeatherModelForecastValues
 logger = logging.getLogger(__name__)
 

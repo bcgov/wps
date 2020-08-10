@@ -17,7 +17,7 @@ services:
   # Application's local database container & service
   db:
     image: postgis/postgis
-    hostname: postgres
+    hostname: db
     ports:
       - 5432:5432
     environment:

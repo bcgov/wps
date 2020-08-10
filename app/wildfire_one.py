@@ -2,13 +2,12 @@
 """
 import os
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import math
 from abc import abstractmethod, ABC
 import logging
 from typing import List
 import asyncio
-import pytz
 import geopandas
 from aiohttp import ClientSession, BasicAuth, TCPConnector
 from shapely.geometry import Point
@@ -162,7 +161,7 @@ def _parse_hourly(hourly) -> WeatherReading:
     """ Transform from the raw hourly json object returned by wf1, to our hourly obkect.
     """
     timestamp = datetime.fromtimestamp(
-        int(hourly['weatherTimestamp'])/1000, tz=pytz.utc).isoformat()
+        int(hourly['weatherTimestamp'])/1000, tz=timezone.utc).isoformat()
     return WeatherReading(
         datetime=timestamp,
         temperature=hourly.get('temperature', None),
@@ -255,7 +254,7 @@ async def get_stations() -> List[WeatherStation]:
 
 def _get_now():
     """ Helper function to get the current time (easy function to mock out in testing) """
-    return datetime.now(tz=pytz.utc)
+    return datetime.now(tz=timezone.utc)
 
 
 def prepare_fetch_hourlies_query(raw_station):

@@ -111,7 +111,7 @@ class ModelRunGridSubsetPrediction(Base):
     prediction_model_grid_subset = relationship("PredictionModelGridSubset")
     # The date and time to which the forecast applies.
     prediction_timestamp = Column(TIMESTAMP(timezone=True), nullable=False)
-    # Temperature 2m above ground.
+    # Temperature 2m above model layer.
     tmp_tgl_2 = Column(ARRAY(Float), nullable=True)
-    # Relative humidity 2m above ground.
+    # Relative humidity 2m above model layer.
     rh_tgl_2 = Column(ARRAY(Float), nullable=True)

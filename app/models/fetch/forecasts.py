@@ -9,12 +9,14 @@ from scipy.interpolate import griddata, interp1d
 from geoalchemy2.shape import to_shape
 from shapely.geometry import Point, Polygon
 import app.db.database
-from app.schemas import WeatherStation, WeatherModelForecast, WeatherModelForecastValues, WeatherModelRun
+from app.schemas import (WeatherStation, WeatherModelForecast,
+                         WeatherModelForecastValues, WeatherModelRun)
 from app.db.models import ModelRunGridSubsetPrediction
 import app.db.crud
 from app.wildfire_one import get_stations_by_codes
 from app import config
-from app.models import spotwx
+from app.models import ModelEnum
+from app.models.fetch import extract_stations_in_polygon
 
 logger = logging.getLogger(__name__)
 
@@ -85,20 +87,9 @@ class NoonInterpolator:
         return result
 
 
-def _get_stations_for_polygon(stations, polygon: Polygon) -> List:
-    """ There could be multiple stations in this polygon, return all that match.
-    """
-    stations_in_polygon = []
-    for station in stations:
-        point = Point(station.long, station.lat)
-        logger.info('testing if %s is within %s', point, polygon)
-        if point.within(polygon):
-            stations_in_polygon.append(station)
-    return stations_in_polygon
-
-
 def _add_model_prediction_to_forecast(forecast: WeatherModelForecast,
-                                      prediction: ModelRunGridSubsetPrediction, points: List[float],
+                                      prediction: ModelRunGridSubsetPrediction,
+                                      points: List[float],
                                       noon_interpolator: NoonInterpolator):
     """ Add the model prediction for a particular timestamp to the forecast schema. """
     forecast_values = WeatherModelForecastValues(
@@ -127,11 +118,12 @@ def _add_model_prediction_to_forecast(forecast: WeatherModelForecast,
     forecast.values.append(forecast_values)
 
 
-# pylint: disable=too-many-locals
 def _fetch_model_forecasts_by_stations(
-        session, model: str, stations: List[WeatherStation]) -> List[WeatherModelForecast]:
-    """ Fetch forecasts for stations.
-    """
+        session,
+        model: ModelEnum,
+        stations: List[WeatherStation]) -> List[WeatherModelForecast]:
+    """ Fetch forecasts for stations. """
+    # pylint: disable=too-many-locals
     # Get the most recent model run:
     most_recent_run = app.db.crud.get_most_recent_model_run(
         session, model, app.db.crud.LATLON_15X_15)
@@ -157,12 +149,10 @@ def _fetch_model_forecasts_by_stations(
         if grid != prev_grid:
             prev_grid = grid
             forecasts_in_grid = {}
-            # Get the coordinates of the bounding geometry.
-            poly = to_shape(grid.geom)
             # Get the bounding points (ignore the last point of the polygon)
+            poly = to_shape(grid.geom)
             points = list(poly.exterior.coords)[:-1]
-            # Match stations to the grid.
-            stations_in_polygon = _get_stations_for_polygon(
+            stations_in_polygon = extract_stations_in_polygon(
                 tmp_station_list, poly)
             # Initialize forecasts for all the stations in this grid.
             for station in stations_in_polygon:
@@ -170,6 +160,7 @@ def _fetch_model_forecasts_by_stations(
                     station=station, model_run=model_run, values=[])
                 forecasts.append(forecast)
                 forecasts_in_grid[station.code] = forecast, NoonInterpolator()
+                logger.info(type(forecasts_in_grid[station.code]))
                 # pop the station off the list
                 tmp_station_list.remove(station)
 
@@ -183,7 +174,7 @@ def _fetch_model_forecasts_by_stations(
     return forecasts
 
 
-async def _fetch_model_forecasts_by_station_codes(model: str, station_codes: List[int]):
+async def _fetch_model_forecasts_by_station_codes(model: ModelEnum, station_codes: List[int]):
     """ Fetch forecasts from database.
     """
     # Using the list of station codes, fetch the stations:
@@ -195,19 +186,7 @@ async def _fetch_model_forecasts_by_station_codes(model: str, station_codes: Lis
     return forecasts
 
 
-async def fetch_model_forecasts(model: str, station_codes: List[int]):
+async def fetch_model_forecasts(model: ModelEnum, station_codes: List[int]):
     """ Fetch 10 day global model weather forecasts for a given station."""
-    use_spotwx = config.get('USE_SPOTWX', 'False') == 'True'
-
-    if use_spotwx:
-        # Fetch forecasts from spotwx.
-        return await spotwx.fetch_forecasts(station_codes)
     # Fetch forecasts from the database.
     return await _fetch_model_forecasts_by_station_codes(model, station_codes)
-
-
-async def fetch_model_forecast_summaries(model: str, station_codes: List[int]):
-    """ Fetch summaries of model forecasts
-    NOTE: Incomplete
-    """
-    logger.warning('not implemented %s %s', model, station_codes)

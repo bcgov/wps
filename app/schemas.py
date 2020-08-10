@@ -156,12 +156,12 @@ class Ecodivision(BaseModel):
 class WeatherForecastModelSummaryValues(BaseModel):
     """ Summary of model forecast values. """
     datetime: datetime
-    tmp_2m_5th: float
-    tmp_2m_90th: float
-    tmp_2m_median: float
-    rh_2m_5th: float
-    rh_2m_90th: float
-    rh_2m_median: float
+    tmp_tgl_2_5th: float
+    tmp_tgl_2_90th: float
+    tmp_tgl_2_median: float
+    rh_tgl_2_5th: float
+    rh_tgl_2_90th: float
+    rh_tgl_2_median: float
 
 
 class WeatherForecastModelSummary(BaseModel):
@@ -169,10 +169,10 @@ class WeatherForecastModelSummary(BaseModel):
     Detail: For the global model, we end up with 20 different forecasts for every three hours of any given
     day, this represents a summary of that data. """
     station: WeatherStation
+    model: WeatherForecastModel
     values: List[WeatherForecastModelSummaryValues] = []
 
 
 class WeatherForecastModelSummaryResponse(BaseModel):
     """ Response containing forecast summaries for a given weather model."""
-    model: WeatherForecastModel
     summaries: List[WeatherForecastModelSummary]
