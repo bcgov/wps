@@ -4,23 +4,23 @@ TODO: Move this file to app/models/ (not part of this PR as it makes comparing p
 """
 
 import os
+import sys
 import json
 import datetime
 import logging
 import logging.config
 import time
 import tempfile
-import pytz
 import requests
 import app.db.database
-from app.db.crud import get_processed_file
+from app.db.crud import get_processed_file_record
 from app.db.models import ProcessedModelRunFile
 from app.models.process_grib import GribFileProcessor, ModelRunInfo
 
 
 # If running as it's own process, configure loggin appropriately.
 if __name__ == "__main__":
-    LOGGING_CONFIG = os.path.join(os.path.dirname(__file__), 'logging.json')
+    LOGGING_CONFIG = os.path.join(os.path.dirname(__file__), '../logging.json')
     if os.path.exists(LOGGING_CONFIG):
         with open(LOGGING_CONFIG) as config_file:
             CONFIG = json.load(config_file)
@@ -54,7 +54,7 @@ def parse_env_canada_filename(filename):
         year=int(forecast_start[:4]),
         month=int(forecast_start[4:6]),
         day=int(forecast_start[6:8]),
-        hour=int(run_time), tzinfo=pytz.utc)
+        hour=int(run_time), tzinfo=datetime.timezone.utc)
     last_part = parts[7].split('.')
     forecast_hour = last_part[0][1:]
     forecast_timestamp = model_run_timestamp + \
@@ -153,15 +153,15 @@ def download(url: str, path: str) -> str:
 
 def flag_file_as_processed(session, url):
     """ Flag the file as processed in the database """
-    processed_file = get_processed_file(session, url)
+    processed_file = get_processed_file_record(session, url)
     if processed_file:
         logger.info('re-procesed %s', url)
     else:
         logger.info('file processed %s', url)
         processed_file = ProcessedModelRunFile(
             url=url,
-            create_date=datetime.datetime.now(pytz.utc))
-    processed_file.update_date = datetime.datetime.now(pytz.utc)
+            create_date=datetime.datetime.now(datetime.timezone.utc))
+    processed_file.update_date = datetime.datetime.now(datetime.timezone.utc)
     session.add(processed_file)
     session.commit()
 
@@ -172,6 +172,7 @@ def main():
     session = app.db.database.get_session()
     files_downloaded = 0
     files_processed = 0
+    exception_count = 0
     urls = get_download_urls()
     processor = GribFileProcessor()
     with tempfile.TemporaryDirectory() as gdps_path:
@@ -179,7 +180,7 @@ def main():
         for url, filename in urls:
             try:
                 # check the database for a record of this file:
-                processed_file_record = get_processed_file(session, url)
+                processed_file_record = get_processed_file_record(session, url)
                 if processed_file_record:
                     # This file has already been processed - so we skip it.
                     logger.info('file aready processed %s', url)
@@ -201,6 +202,7 @@ def main():
                             os.remove(downloaded)
             # pylint: disable=broad-except
             except Exception as exception:
+                exception_count += 1
                 # We catch and log exceptions, but keep trying to download.
                 # We intentionally catch a broad exception, as we want to try and download as much
                 # as we can.
@@ -210,8 +212,13 @@ def main():
     execution_time = round(time.time() - start_time, 1)
     logger.info('%d downloaded, %d processed in total, took %s seconds',
                 files_downloaded, files_processed, execution_time)
+    if exception_count > 0:
+        logger.warning('completed processing with some exceptions')
+        sys.exit(os.EX_SOFTWARE)
     return files_processed
 
 
 if __name__ == "__main__":
     main()
+    # We assume success if we get to this point.
+    sys.exit(os.EX_OK)

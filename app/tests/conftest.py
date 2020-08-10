@@ -1,23 +1,21 @@
 """ Global fixtures """
 
+import datetime
+from datetime import timezone
 import logging
 import pytest
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
+from alchemy_mock.compat import mock
 from app.tests.common import MockJWTDecode
+from app.db.models import PredictionModel, PredictionModelRun
 import app.db.database
 
 LOGGER = logging.getLogger(__name__)
-
-# pylint: disable=unused-argument
 
 
 @pytest.fixture(autouse=True)
 def mock_env(monkeypatch):
     """ Automatically mock environment variable """
-
-    monkeypatch.setenv("SPOTWX_BASE_URI",
-                       "https://spotwx.com/services/api.php")
-    monkeypatch.setenv("SPOTWX_API_KEY", "something")
     monkeypatch.setenv("USE_WFWX", 'False')
     monkeypatch.setenv("WFWX_USER", "user")
     monkeypatch.setenv("WFWX_SECRET", "secret")
@@ -31,8 +29,31 @@ def mock_env(monkeypatch):
 @pytest.fixture(autouse=True)
 def mock_session(monkeypatch):
     """ Ensure that all unit tests mock out the database session by default! """
+    # pylint: disable=unused-argument
     def mock_get_session(*args):
-        return UnifiedAlchemyMagicMock()
+        """ return a session with a bare minimum database that should be good for most unit tests. """
+        prediction_model = PredictionModel(id=1,
+                                           abbreviation='GDPS',
+                                           projection='latlon.15x.15',
+                                           name='Global Deterministic Prediction System')
+        preduction_model_run = PredictionModelRun(id=1,
+                                                  prediction_model_id=1,
+                                                  prediction_run_timestamp=datetime.datetime.now(
+                                                      tz=timezone.utc),
+                                                  prediction_model=prediction_model)
+        session = UnifiedAlchemyMagicMock(data=[
+            (
+                [mock.call.query(PredictionModel),
+                 mock.call.filter(PredictionModel.abbreviation == 'GDPS',
+                                  PredictionModel.projection == 'latlon.15x.15')],
+                [prediction_model],
+            ),
+            (
+                [mock.call.query(PredictionModelRun)],
+                [preduction_model_run]
+            )
+        ])
+        return session
     monkeypatch.setattr(app.db.database, 'get_session', mock_get_session)
 
 
@@ -44,17 +65,11 @@ def mock_env_with_use_wfwx(monkeypatch):
 
 
 @pytest.fixture()
-def mock_env_with_use_spotwx(monkeypatch):
-    """ Set environment variable USE_SPOTWX to 'True' """
-
-    monkeypatch.setenv('USE_SPOTWX', 'True')
-
-
-@pytest.fixture()
 def mock_jwt_decode(monkeypatch):
     """ Mock pyjwt's decode method """
 
-    def mock(*args, **kwargs):
+    # pylint: disable=unused-argument
+    def mock_function(*args, **kwargs):
         return MockJWTDecode()
 
-    monkeypatch.setattr("jwt.decode", mock)
+    monkeypatch.setattr("jwt.decode", mock_function)

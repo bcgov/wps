@@ -7,7 +7,7 @@ import pytest
 import requests
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
-from app import env_canada
+from app.models import env_canada
 from app.db.models import PredictionModel, ProcessedModelRunFile
 import app.db.database
 # pylint: disable=unused-argument, redefined-outer-name
@@ -63,7 +63,7 @@ def mock_download(monkeypatch):
         """ mock env_canada download method """
         dirname = os.path.dirname(os.path.realpath(__file__))
         filename = os.path.join(
-            dirname, 'models/CMC_glb_RH_TGL_2_latlon.15x.15_2020071300_P000.grib2')
+            dirname, 'CMC_glb_RH_TGL_2_latlon.15x.15_2020071300_P000.grib2')
         with open(filename, 'rb') as file:
             content = file.read()
         return MockResponse(status_code=200, content=content)

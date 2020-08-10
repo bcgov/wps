@@ -6,11 +6,12 @@ import os
 import json
 import logging
 import logging.config
-from enum import Enum
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from app import schemas
-from app.models.fetch import fetch_model_forecasts, fetch_model_forecast_summaries
+from app.models.fetch.forecasts import fetch_model_forecasts
+from app.models.fetch.summaries import fetch_model_forecast_summaries
+from app.models import ModelEnum
 from app.percentile import get_precalculated_percentiles
 from app.auth import authenticate
 from app import wildfire_one
@@ -63,11 +64,6 @@ API_INFO = '''
     has been specifically advised of the possibility of such damages.'''
 
 
-class ModelEnum(str, Enum):
-    """ Enumerator for different kinds of supported weather models """
-    GDPS = "GDPS"
-
-
 app = FastAPI(
     title="Predictive Services Fire Weather Index Calculator",
     description=API_INFO,
@@ -98,7 +94,7 @@ async def get_model_forecasts(
     """ Returns 10 day noon forecasts based on the global deterministic prediction system (GDPS)
     for the specified set of weather stations. """
     try:
-        LOGGER.info('/models/%s/forecasts/', model)
+        LOGGER.info('/models/%s/forecasts/', model.name)
         model_forecasts = await fetch_model_forecasts(model, request.stations)
         return schemas.WeatherModelForecastResponse(forecasts=model_forecasts)
     except Exception as exception:
@@ -107,14 +103,13 @@ async def get_model_forecasts(
 
 
 @app.post('/models/{model}/forecasts/summaries/', response_model=schemas.WeatherForecastModelSummaryResponse)
-async def get_forecast_summaries(model: ModelEnum, request: schemas.StationCodeList):
-    """ Return a summary of forecast for a given model.
-    NOTE: Incomplete and untested!
-    """
+async def get_model_forecast_summaries(
+        model: ModelEnum, request: schemas.StationCodeList, _: bool = Depends(authenticate)):
+    """ Return a summary of forecast for a given model. """
     try:
-        LOGGER.info('/models/{model}/forecasts/summaries/')
-        summaries = fetch_model_forecast_summaries(model, request.stations)
-        return schemas.WeatherForecastModelSummaryResponse(summaries=summaries, model=None)
+        LOGGER.info('/models/%s/forecasts/summaries/', model.name)
+        summaries = await fetch_model_forecast_summaries(model, request.stations)
+        return schemas.WeatherForecastModelSummaryResponse(summaries=summaries)
     except Exception as exception:
         LOGGER.critical(exception, exc_info=True)
         raise

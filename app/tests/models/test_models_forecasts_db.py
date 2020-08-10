@@ -16,8 +16,6 @@ from app.db.models import (PredictionModelRun, PredictionModel, ModelRunGridSubs
 
 LOGGER = logging.getLogger(__name__)
 
-# pylint: disable=unused-argument, redefined-outer-name, eval-used
-
 
 @pytest.fixture()
 def mock_session(monkeypatch, data):
@@ -39,9 +37,10 @@ def mock_session(monkeypatch, data):
             return mock_session
 
         def mock_get_most_recent_model_run(*args) -> PredictionModelRun:
+            timestamp = '2020-01-22T18:00:00+00:00'
             return PredictionModelRun(id=1,
                                       prediction_model=prediction_model,
-                                      prediction_run_timestamp=datetime.fromisoformat('2020-01-22T18:00:00+00:00'))
+                                      prediction_run_timestamp=datetime.fromisoformat(timestamp))
 
         def mock_get_model_run_predictions(*args):
             shape = shapely.wkt.loads(geometry)
@@ -65,10 +64,9 @@ def mock_session(monkeypatch, data):
                             mock_get_model_run_predictions)
 
 
-@ scenario("test_models_forecasts_db.feature", "Get model forecasts from database",
-           example_converters=dict(codes=str, data=str, num_forecast_values=str))
+@ scenario("test_models_forecasts_db.feature", "Get model forecasts from database")
 def test_db_forecasts_scenario():
-    """ BDD Scenario. """
+    """ BDD Scenario for forecasts """
 
 
 @given("A database with <data>")
@@ -82,11 +80,11 @@ def given_stations(codes):
     return eval(codes)
 
 
-@when("I call /models/{model}/forecasts/")
-def when_forecasts(mock_jwt_decode, given_a_database, given_stations):
+@when("I call <endpoint>")
+def when_forecasts(mock_jwt_decode, given_a_database, given_stations, endpoint: str):
     client = TestClient(app.main.app)
     response = client.post(
-        '/models/GDPS/forecasts/', headers={'Authorization': 'Bearer token'}, json={'stations': given_stations})
+        endpoint, headers={'Authorization': 'Bearer token'}, json={'stations': given_stations})
     given_a_database['response_json'] = response.json()
 
 
