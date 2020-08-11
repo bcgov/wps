@@ -74,6 +74,9 @@ run-raw:
 run-env-canada-raw:
 	POSTGRES_HOST=localhost python -m app.models.env_canada
 
+run-bender:
+	poetry run python -m app.fireweather_bot
+
 notebook:
 	# Run jupyter notebooks.
 	POSTGRES_HOST=localhost PYTHONPATH=$(shell pwd) JUPYTER_PATH=$(shell pwd) poetry run jupyter notebook --ip 0.0.0.0

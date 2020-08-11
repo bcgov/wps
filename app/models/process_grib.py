@@ -6,9 +6,9 @@ import struct
 import logging
 import logging.config
 from typing import List
-import gdal
 from sqlalchemy.dialects.postgresql import array
 import sqlalchemy.exc
+import gdal
 import app.db.database
 from app.wildfire_one import _get_stations_local
 from app.db.models import (

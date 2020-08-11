@@ -6,6 +6,7 @@ import os
 import json
 import logging
 import logging.config
+import datetime
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from app import schemas
@@ -13,6 +14,7 @@ from app.models.fetch.forecasts import fetch_model_forecasts
 from app.models.fetch.summaries import fetch_model_forecast_summaries
 from app.models import ModelEnum
 from app.percentile import get_precalculated_percentiles
+from app.noon_forecasts import fetch_noon_forecasts
 from app.auth import authenticate
 from app import wildfire_one
 from app import config
@@ -87,7 +89,6 @@ async def get_health():
     LOGGER.info('/health')
     return {"message": "Healthy as ever"}
 
-
 @app.post('/models/{model}/forecasts/', response_model=schemas.WeatherModelForecastResponse)
 async def get_model_forecasts(
         model: ModelEnum, request: schemas.StationCodeList, _: bool = Depends(authenticate)):
@@ -114,6 +115,19 @@ async def get_model_forecast_summaries(
         LOGGER.critical(exception, exc_info=True)
         raise
 
+@app.post('/noon_forecasts/', response_model=schemas.NoonForecastResponse)
+def get_noon_forecasts(request: schemas.StationCodeList, _: bool = Depends(authenticate)):
+    """ Returns noon forecasts pulled from BC FireWeather Phase 1 website for the specified
+    set of weather stations. """
+    try:
+        LOGGER.info('/noon_forecasts/')
+        start_date = datetime.datetime.now(tz=datetime.timezone.utc)
+        end_date = start_date + datetime.timedelta(days=5)
+        LOGGER.info('Querying /noon_forecasts/ for %s from %s to %s', request.stations, start_date, end_date)
+        return fetch_noon_forecasts(request.stations, start_date, end_date)
+    except Exception as exception:
+        LOGGER.critical(exception, exc_info=True)
+        raise
 
 @app.post('/hourlies/', response_model=schemas.WeatherStationHourlyReadingsResponse)
 async def get_hourlies(request: schemas.StationCodeList, _: bool = Depends(authenticate)):
