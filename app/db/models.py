@@ -1,7 +1,9 @@
 """ Class models that reflect resources and map to database tables
 """
-
-from sqlalchemy import (Column, String, Integer, Float,
+import datetime
+from datetime import timezone
+import math
+from sqlalchemy import (Column, String, Integer, Float, Boolean,
                         TIMESTAMP, Sequence, ForeignKey, UniqueConstraint)
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import ARRAY
@@ -115,3 +117,59 @@ class ModelRunGridSubsetPrediction(Base):
     tmp_tgl_2 = Column(ARRAY(Float), nullable=True)
     # Relative humidity 2m above model layer.
     rh_tgl_2 = Column(ARRAY(Float), nullable=True)
+
+
+class NoonForecasts(Base):
+    """ Class representing table structure of 'noon_forecasts' table in DB.
+    Default float values of math.nan are used for the weather variables that are
+    sometimes null (None), because Postgres evaluates None != None, so the unique
+    constraint doesn't work on records with >=1 None values. But math.nan == math.nan
+    """
+    __tablename__ = 'noon_forecasts'
+    __table_args__ = (
+        UniqueConstraint('weather_date',
+                         'station_code',
+                         'temp_valid',
+                         'temperature',
+                         'rh_valid',
+                         'relative_humidity',
+                         'wdir_valid',
+                         'wind_direction',
+                         'wspeed_valid',
+                         'wind_speed',
+                         'precip_valid',
+                         'precipitation',
+                         'gc',
+                         'ffmc',
+                         'dmc',
+                         'dc',
+                         'isi',
+                         'bui',
+                         'fwi',
+                         'danger_rating'),
+        {'comment': 'The noon_forecast for a weather station and weather date.'}
+    )
+    id = Column(Integer, primary_key=True)
+    weather_date = Column(TIMESTAMP(timezone=True), nullable=False)
+    station_code = Column(Integer, nullable=False)
+    temp_valid = Column(Boolean, default=False, nullable=False)
+    temperature = Column(Float, nullable=False)
+    rh_valid = Column(Boolean, default=False, nullable=False)
+    relative_humidity = Column(Float, nullable=False)
+    wdir_valid = Column(Boolean, default=False, nullable=False)
+    # Set default wind_direction to NaN because some stations don't report it
+    wind_direction = Column(Float, nullable=False, default=math.nan)
+    wspeed_valid = Column(Boolean, default=False, nullable=False)
+    wind_speed = Column(Float, nullable=False)
+    precip_valid = Column(Boolean, default=False, nullable=False)
+    precipitation = Column(Float, nullable=False)
+    gc = Column(Float, nullable=False, default=math.nan)
+    ffmc = Column(Float, nullable=False, default=math.nan)
+    dmc = Column(Float, nullable=False, default=math.nan)
+    dc = Column(Float, nullable=False, default=math.nan)
+    isi = Column(Float, nullable=False, default=math.nan)
+    bui = Column(Float, nullable=False, default=math.nan)
+    fwi = Column(Float, nullable=False, default=math.nan)
+    danger_rating = Column(Integer, nullable=False)
+    created_at = Column(TIMESTAMP(timezone=True), nullable=False,
+                        default=datetime.datetime.now(tz=timezone.utc))

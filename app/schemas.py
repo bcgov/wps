@@ -153,6 +153,41 @@ class Ecodivision(BaseModel):
     core_season: Season
 
 
+class NoonForecastValue(BaseModel):
+    """ Data structure for a noon forecast retrieved from BC FireWeather Phase 1 """
+    datetime: datetime
+    temp_valid: bool
+    temperature: int
+    rh_valid: bool
+    relative_humidity: int
+    wdir_valid: bool
+    wind_direction: int = None
+    wspeed_valid: bool
+    wind_speed: float
+    precip_valid: bool
+    total_precipitation: float
+    gc: float = None
+    ffmc: float = None
+    dmc: float = None
+    dc: float = None
+    isi: float = None
+    bui: float = None
+    fwi: float = None
+    danger_rating: int = None
+    created_at: datetime
+
+
+class NoonForecast(BaseModel):
+    """ Data structure for returning forecasts for a particular station """
+    station_code: int
+    values: List[NoonForecastValue]
+
+
+class NoonForecastResponse(BaseModel):
+    """ Response containg a number of noon forecasts. """
+    noon_forecasts: List[NoonForecast]
+
+
 class WeatherForecastModelSummaryValues(BaseModel):
     """ Summary of model forecast values. """
     datetime: datetime

@@ -8,7 +8,7 @@ from .. import config
 DB_STRING = 'postgres://{}:{}@{}:{}/{}'.format(
     config.get('POSTGRES_USER', 'wps'),
     config.get('POSTGRES_PASSWORD', 'wps'),
-    config.get('POSTGRES_HOST', 'db'),
+    config.get('POSTGRES_HOST', 'localhost'),
     config.get('POSTGRES_PORT', '5432'),
     config.get('POSTGRES_DATABASE', 'wps'))
 

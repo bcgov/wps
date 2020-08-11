@@ -24,7 +24,10 @@ def mock_env(monkeypatch):
     monkeypatch.setenv("WFWX_BASE_URL", "http://localhost/wfwx")
     monkeypatch.setenv("WFWX_MAX_PAGE_SIZE", "1000")
     monkeypatch.setenv("KEYCLOAK_PUBLIC_KEY", "public_key")
-
+    monkeypatch.setenv("BC_FIRE_WEATHER_BASE_URL", "http://localhost")
+    monkeypatch.setenv("BC_FIRE_WEATHER_USER", "someuser")
+    monkeypatch.setenv("BC_FIRE_WEATHER_SECRET", "password")
+    monkeypatch.setenv("BC_FIRE_WEATHER_FILTER_ID", "1")
 
 @pytest.fixture(autouse=True)
 def mock_session(monkeypatch):
@@ -60,7 +63,6 @@ def mock_session(monkeypatch):
 @pytest.fixture()
 def mock_env_with_use_wfwx(monkeypatch):
     """ Set environment variable USE_WFWX to 'True' """
-
     monkeypatch.setenv("USE_WFWX", 'True')
 
 

@@ -17,7 +17,6 @@ def response(token: str, endpoint: str):
     client = TestClient(app.main.app)
     return client.post(endpoint, headers={'Authorization': token})
 
-
 @then("I will get an error with <status> code")
 def status_code(response, status: int):
     """ Assert that we receive the expected status code """

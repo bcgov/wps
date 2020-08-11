@@ -12,7 +12,6 @@ from app.db.models import (
 
 logger = logging.getLogger(__name__)
 
-
 LATLON_15X_15 = 'latlon.15x.15'
 
 
