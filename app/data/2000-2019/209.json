@@ -1,0 +1,39 @@
+{
+    "ffmc": 94.13511,
+    "isi": 13.33665,
+    "bui": 170.4472,
+    "years": [
+        2000,
+        2001,
+        2002,
+        2003,
+        2004,
+        2005,
+        2006,
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018
+    ],
+    "station": {
+        "code": "209",
+        "name": "ALEXIS CREEK",
+        "lat": "52.0837700",
+        "long": "-123.2732667",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

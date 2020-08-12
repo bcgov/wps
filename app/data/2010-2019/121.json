@@ -1,0 +1,28 @@
+{
+    "ffmc": 92.2707,
+    "isi": 9.85954,
+    "bui": 85.21593,
+    "years": [
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2018
+    ],
+    "station": {
+        "code": "121",
+        "name": "PADDY",
+        "lat": "57.7818100",
+        "long": "-120.2368000",
+        "ecodivision_name": "BOREAL",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

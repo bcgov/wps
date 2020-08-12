@@ -1,0 +1,58 @@
+{
+  "SUB-ARCTIC HIGHLANDS": {
+    "core_season": {
+      "start_month": "6",
+      "start_day": "1",
+      "end_month": "8",
+      "end_day": "15"
+    }
+  },
+  "SUB-ARCTIC": {
+    "core_season": {
+      "start_month": "6",
+      "start_day": "1",
+      "end_month": "8",
+      "end_day": "15"
+    }
+  },
+  "BOREAL": {
+    "core_season": {
+      "start_month": "5",
+      "start_day": "15",
+      "end_month": "8",
+      "end_day": "31"
+    }
+  },
+  "HUMID CONTINENTAL HIGHLANDS": {
+    "core_season": {
+      "start_month": "5",
+      "start_day": "15",
+      "end_month": "8",
+      "end_day": "31"
+    }
+  },
+  "COOL HYPERMARITIME AND HIGHLANDS": {
+    "core_season": {
+      "start_month": "5",
+      "start_day": "15",
+      "end_month": "8",
+      "end_day": "31"
+    }
+  },
+  "SEMI-ARID STEPPE HIGHLANDS": {
+    "core_season": {
+      "start_month": "5",
+      "start_day": "1",
+      "end_month": "9",
+      "end_day": "15"
+    }
+  },
+  "NORTHEASTERN SUB-ARCTIC PACIFIC": {
+    "core_season": {
+      "start_month": "6",
+      "start_day": "1",
+      "end_month": "8",
+      "end_day": "15"
+    }
+  }
+}

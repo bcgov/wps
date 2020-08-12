@@ -1,0 +1,29 @@
+{
+    "ffmc": 94.15069,
+    "isi": 14.54212,
+    "bui": 126.01219,
+    "years": [
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018
+    ],
+    "station": {
+        "code": "865",
+        "name": "BRISCO",
+        "lat": "50.8193000",
+        "long": "-116.2449000",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

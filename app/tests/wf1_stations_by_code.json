@@ -1,0 +1,171 @@
+{
+    "_embedded": {
+        "stations": [
+            {
+                "id": "f1bdf30e-1318-4bbd-ac4f-51aa55416888",
+                "displayLabel": "PENTICTON RS",
+                "creationTimestamp": "2020-03-25T22:07:57.000+0000",
+                "createdBy": "WXP3_WEATHER_API",
+                "lastEntityUpdate": 1585853682391,
+                "lastModifiedBy": "WXP3_WEATHER_API",
+                "lastUpdated": "2020-04-02T18:54:42.000+0000",
+                "stationCode": 328,
+                "stationAcronym": "FPE",
+                "stationStatus": {
+                    "id": "ACTIVE",
+                    "displayLabel": "Active",
+                    "displayOrder": 1,
+                    "effectiveDate": "2000-01-01T08:00:00.000+0000",
+                    "expiryDate": "9999-12-31T08:00:00.000+0000",
+                    "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+                    "createdBy": "DATA_LOAD",
+                    "updateDate": "2020-02-25T08:00:00.000+0000",
+                    "lastModifiedBy": "DATA_LOAD"
+                },
+                "dataSource": "polling",
+                "dataLoggerType": {
+                    "id": "a1b21682-2f19-4821-e053-0d09228e8a99",
+                    "displayLabel": "FWS12S",
+                    "displayOrder": 5,
+                    "dataLoggerType": "FWS12S",
+                    "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+                    "createdBy": "DATA_LOAD",
+                    "updateDate": "2020-02-25T08:00:00.000+0000",
+                    "lastModifiedBy": "DATA_LOAD"
+                },
+                "siteType": null,
+                "weatherZone": null,
+                "hourly": true,
+                "latitude": 49.518333,
+                "longitude": -119.553333,
+                "elevation": 427,
+                "windspeedAdjRoughness": 1.0,
+                "windspeedAdjHeight": 1.0,
+                "overWinterPrecipAdj": false,
+                "influencingSlope": 0,
+                "installationDate": "1988-08-16T07:00:00.000+0000",
+                "decommissionDate": null,
+                "influencingAspect": null,
+                "orgUnit": {
+                    "id": "b01ac042-6320-4c7c-8af8-b1fd83676745",
+                    "displayLabel": "Kamloops Fire Centre Weather Program",
+                    "displayOrder": 0,
+                    "ownerName": "test10",
+                    "ownerDisplayName": "test",
+                    "ownerComment": "test",
+                    "creationTimestamp": "2020-03-04T08:00:00.000+0000",
+                    "createdBy": "DATA_LOAD",
+                    "updateDate": "2020-03-04T08:00:00.000+0000",
+                    "lastModifiedBy": "DATA_LOAD"
+                },
+                "fireCentre": {
+                    "id": 25,
+                    "displayLabel": "Kamloops Fire Centre",
+                    "alias": 5
+                },
+                "zone": {
+                    "id": "K5",
+                    "zone": 30,
+                    "displayLabel": "Penticton Zone",
+                    "alias": 5,
+                    "fireCentre": "Kamloops Fire Centre",
+                    "fireCentreAlias": 5
+                },
+                "comments": "1st Daily 19700525; Penticton",
+                "_links": {
+                    "self": {
+                        "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/rsql/f1bdf30e-1318-4bbd-ac4f-51aa55416888"
+                    }
+                }
+            },
+            {
+                "id": "27621281-d7f5-4509-84ee-4303ac1cbc1c",
+                "displayLabel": "ASHNOLA",
+                "creationTimestamp": "2020-03-25T22:07:57.000+0000",
+                "createdBy": "WXP3_WEATHER_API",
+                "lastEntityUpdate": 1585853682404,
+                "lastModifiedBy": "WXP3_WEATHER_API",
+                "lastUpdated": "2020-04-02T18:54:42.000+0000",
+                "stationCode": 331,
+                "stationAcronym": "FAS",
+                "stationStatus": {
+                    "id": "ACTIVE",
+                    "displayLabel": "Active",
+                    "displayOrder": 1,
+                    "effectiveDate": "2000-01-01T08:00:00.000+0000",
+                    "expiryDate": "9999-12-31T08:00:00.000+0000",
+                    "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+                    "createdBy": "DATA_LOAD",
+                    "updateDate": "2020-02-25T08:00:00.000+0000",
+                    "lastModifiedBy": "DATA_LOAD"
+                },
+                "dataSource": "AutoCaller GOES",
+                "dataLoggerType": {
+                    "id": "a1b21682-2f19-4821-e053-0d09228e8a99",
+                    "displayLabel": "FWS12S",
+                    "displayOrder": 5,
+                    "dataLoggerType": "FWS12S",
+                    "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+                    "createdBy": "DATA_LOAD",
+                    "updateDate": "2020-02-25T08:00:00.000+0000",
+                    "lastModifiedBy": "DATA_LOAD"
+                },
+                "siteType": null,
+                "weatherZone": null,
+                "hourly": true,
+                "latitude": 49.13905,
+                "longitude": -120.1844,
+                "elevation": 1683,
+                "windspeedAdjRoughness": 1.0,
+                "windspeedAdjHeight": 1.0,
+                "overWinterPrecipAdj": false,
+                "influencingSlope": 10,
+                "installationDate": "1991-09-20T07:00:00.000+0000",
+                "decommissionDate": null,
+                "influencingAspect": null,
+                "orgUnit": {
+                    "id": "b01ac042-6320-4c7c-8af8-b1fd83676745",
+                    "displayLabel": "Kamloops Fire Centre Weather Program",
+                    "displayOrder": 0,
+                    "ownerName": "test10",
+                    "ownerDisplayName": "test",
+                    "ownerComment": "test",
+                    "creationTimestamp": "2020-03-04T08:00:00.000+0000",
+                    "createdBy": "DATA_LOAD",
+                    "updateDate": "2020-03-04T08:00:00.000+0000",
+                    "lastModifiedBy": "DATA_LOAD"
+                },
+                "fireCentre": {
+                    "id": 25,
+                    "displayLabel": "Kamloops Fire Centre",
+                    "alias": 5
+                },
+                "zone": {
+                    "id": "K5",
+                    "zone": 30,
+                    "displayLabel": "Penticton Zone",
+                    "alias": 5,
+                    "fireCentre": "Kamloops Fire Centre",
+                    "fireCentreAlias": 5
+                },
+                "comments": "GOES ID BCF058C6",
+                "_links": {
+                    "self": {
+                        "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/rsql/27621281-d7f5-4509-84ee-4303ac1cbc1c"
+                    }
+                }
+            }
+        ]
+    },
+    "_links": {
+        "self": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1stations/rsql?query=stationCode%3D%3D331%20or%20stationCode%3D%3D328"
+        }
+    },
+    "page": {
+        "size": 1000,
+        "totalElements": 2,
+        "totalPages": 1,
+        "number": 0
+    }
+}

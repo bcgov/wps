@@ -1,0 +1,1709 @@
+{
+  "_embedded": {
+    "stations": [
+      {
+        "id": "d7be0916-c727-4dd7-9d77-14c0f075ffce",
+        "displayLabel": "ZZ CLOWHOLM",
+        "creationTimestamp": "2020-03-25T22:07:56.000+0000",
+        "createdBy": "WXP3_WEATHER_API",
+        "lastEntityUpdate": 1585853681547,
+        "lastModifiedBy": "WXP3_WEATHER_API",
+        "lastUpdated": "2020-04-02T18:54:41.000+0000",
+        "stationCode": 85,
+        "stationAcronym": null,
+        "stationStatus": {
+          "id": "ARCHIVED",
+          "displayLabel": "Archived",
+          "displayOrder": 3,
+          "effectiveDate": "2000-01-01T08:00:00.000+0000",
+          "expiryDate": "9999-12-31T08:00:00.000+0000",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "dataSource": "polling",
+        "dataLoggerType": {
+          "id": "a1b21682-2f16-4821-e053-0d09228e8a99",
+          "displayLabel": "Undetermined",
+          "displayOrder": 2,
+          "dataLoggerType": "UNDTRMND",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "siteType": {
+          "id": "a1b21682-2f1e-4821-e053-0d09228e8a99",
+          "displayLabel": "Undetermined",
+          "displayOrder": 1,
+          "siteType": "UNDTRMND",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "weatherZone": null,
+        "hourly": true,
+        "latitude": 49.756667,
+        "longitude": -123.508333,
+        "elevation": 18,
+        "windspeedAdjRoughness": 1.0,
+        "windspeedAdjHeight": 1.0,
+        "overWinterPrecipAdj": false,
+        "influencingSlope": 60,
+        "installationDate": "1987-01-01T08:00:00.000+0000",
+        "decommissionDate": "1999-06-10T07:00:00.000+0000",
+        "influencingAspect": null,
+        "orgUnit": {
+          "id": "bcb56373-0a7b-4717-be0d-cd8f108d47e8",
+          "displayLabel": "Coastal Fire Centre Weather Program",
+          "displayOrder": 0,
+          "ownerName": "test9",
+          "ownerDisplayName": "test",
+          "ownerComment": "test",
+          "creationTimestamp": "2020-03-04T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-03-04T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "fireCentre": {
+          "id": 50,
+          "displayLabel": "Coastal Fire Centre",
+          "alias": 2
+        },
+        "zone": {
+          "id": "V5",
+          "zone": 53,
+          "displayLabel": "Sunshine Coast Zone",
+          "alias": 5,
+          "fireCentre": "Coastal Fire Centre",
+          "fireCentreAlias": 2
+        },
+        "comments": null,
+        "_links": {
+          "self": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/d7be0916-c727-4dd7-9d77-14c0f075ffce"
+          },
+          "station": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/d7be0916-c727-4dd7-9d77-14c0f075ffce"
+          }
+        }
+      },
+      {
+        "id": "b47e4225-565c-420b-908b-8bbc0cdf534f",
+        "displayLabel": "ZZ HOVEL BAY",
+        "creationTimestamp": "2020-03-25T22:07:56.000+0000",
+        "createdBy": "WXP3_WEATHER_API",
+        "lastEntityUpdate": 1585853681551,
+        "lastModifiedBy": "WXP3_WEATHER_API",
+        "lastUpdated": "2020-04-02T18:54:41.000+0000",
+        "stationCode": 86,
+        "stationAcronym": null,
+        "stationStatus": {
+          "id": "ARCHIVED",
+          "displayLabel": "Archived",
+          "displayOrder": 3,
+          "effectiveDate": "2000-01-01T08:00:00.000+0000",
+          "expiryDate": "9999-12-31T08:00:00.000+0000",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "dataSource": "polling",
+        "dataLoggerType": {
+          "id": "a1b21682-2f1c-4821-e053-0d09228e8a99",
+          "displayLabel": "WR62",
+          "displayOrder": 8,
+          "dataLoggerType": "WR62",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "siteType": {
+          "id": "a1b21682-2f1e-4821-e053-0d09228e8a99",
+          "displayLabel": "Undetermined",
+          "displayOrder": 1,
+          "siteType": "UNDTRMND",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "weatherZone": null,
+        "hourly": false,
+        "latitude": 50.6,
+        "longitude": -124.7,
+        "elevation": 6,
+        "windspeedAdjRoughness": 1.0,
+        "windspeedAdjHeight": 1.0,
+        "overWinterPrecipAdj": false,
+        "influencingSlope": null,
+        "installationDate": "1988-01-01T08:00:00.000+0000",
+        "decommissionDate": "1997-06-30T07:00:00.000+0000",
+        "influencingAspect": null,
+        "orgUnit": {
+          "id": "bcb56373-0a7b-4717-be0d-cd8f108d47e8",
+          "displayLabel": "Coastal Fire Centre Weather Program",
+          "displayOrder": 0,
+          "ownerName": "test9",
+          "ownerDisplayName": "test",
+          "ownerComment": "test",
+          "creationTimestamp": "2020-03-04T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-03-04T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "fireCentre": {
+          "id": 50,
+          "displayLabel": "Coastal Fire Centre",
+          "alias": 2
+        },
+        "zone": {
+          "id": "V5",
+          "zone": 53,
+          "displayLabel": "Sunshine Coast Zone",
+          "alias": 5,
+          "fireCentre": "Coastal Fire Centre",
+          "fireCentreAlias": 2
+        },
+        "comments": null,
+        "_links": {
+          "self": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/b47e4225-565c-420b-908b-8bbc0cdf534f"
+          },
+          "station": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/b47e4225-565c-420b-908b-8bbc0cdf534f"
+          }
+        }
+      },
+      {
+        "id": "16267d8d-6a77-4cb6-aeda-f3cafa66ea0e",
+        "displayLabel": "ZZ TOM BROWNE LK (NEC) (CELL)",
+        "creationTimestamp": "2020-03-25T22:07:56.000+0000",
+        "createdBy": "WXP3_WEATHER_API",
+        "lastEntityUpdate": 1585853681555,
+        "lastModifiedBy": "WXP3_WEATHER_API",
+        "lastUpdated": "2020-04-02T18:54:41.000+0000",
+        "stationCode": 87,
+        "stationAcronym": null,
+        "stationStatus": {
+          "id": "ARCHIVED",
+          "displayLabel": "Archived",
+          "displayOrder": 3,
+          "effectiveDate": "2000-01-01T08:00:00.000+0000",
+          "expiryDate": "9999-12-31T08:00:00.000+0000",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "dataSource": "polling",
+        "dataLoggerType": {
+          "id": "a1b21682-2f16-4821-e053-0d09228e8a99",
+          "displayLabel": "Undetermined",
+          "displayOrder": 2,
+          "dataLoggerType": "UNDTRMND",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "siteType": {
+          "id": "a1b21682-2f1e-4821-e053-0d09228e8a99",
+          "displayLabel": "Undetermined",
+          "displayOrder": 1,
+          "siteType": "UNDTRMND",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "weatherZone": null,
+        "hourly": true,
+        "latitude": 50.8,
+        "longitude": -125.8,
+        "elevation": 300,
+        "windspeedAdjRoughness": 1.0,
+        "windspeedAdjHeight": 1.0,
+        "overWinterPrecipAdj": false,
+        "influencingSlope": 15,
+        "installationDate": "1989-01-01T08:00:00.000+0000",
+        "decommissionDate": "1999-12-14T08:00:00.000+0000",
+        "influencingAspect": null,
+        "orgUnit": {
+          "id": "bcb56373-0a7b-4717-be0d-cd8f108d47e8",
+          "displayLabel": "Coastal Fire Centre Weather Program",
+          "displayOrder": 0,
+          "ownerName": "test9",
+          "ownerDisplayName": "test",
+          "ownerComment": "test",
+          "creationTimestamp": "2020-03-04T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-03-04T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "fireCentre": {
+          "id": 50,
+          "displayLabel": "Coastal Fire Centre",
+          "alias": 2
+        },
+        "zone": {
+          "id": "V9",
+          "zone": 57,
+          "displayLabel": "North Island Mid Coast Zone (Port McNeill)",
+          "alias": 9,
+          "fireCentre": "Coastal Fire Centre",
+          "fireCentreAlias": 2
+        },
+        "comments": null,
+        "_links": {
+          "self": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/16267d8d-6a77-4cb6-aeda-f3cafa66ea0e"
+          },
+          "station": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/16267d8d-6a77-4cb6-aeda-f3cafa66ea0e"
+          }
+        }
+      },
+      {
+        "id": "2e51a25e-8da5-43c4-b579-5e5020263c58",
+        "displayLabel": "PRINCE RUPERT (EC)",
+        "creationTimestamp": "2020-03-25T22:07:56.000+0000",
+        "createdBy": "WXP3_WEATHER_API",
+        "lastEntityUpdate": 1585853681561,
+        "lastModifiedBy": "WXP3_WEATHER_API",
+        "lastUpdated": "2020-04-02T18:54:41.000+0000",
+        "stationCode": 88,
+        "stationAcronym": "YPR",
+        "stationStatus": {
+          "id": "ACTIVE",
+          "displayLabel": "Active",
+          "displayOrder": 1,
+          "effectiveDate": "2000-01-01T08:00:00.000+0000",
+          "expiryDate": "9999-12-31T08:00:00.000+0000",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "dataSource": "import",
+        "dataLoggerType": {
+          "id": "a1b21682-2f16-4821-e053-0d09228e8a99",
+          "displayLabel": "Undetermined",
+          "displayOrder": 2,
+          "dataLoggerType": "UNDTRMND",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "siteType": null,
+        "weatherZone": null,
+        "hourly": false,
+        "latitude": 54.3,
+        "longitude": -130.4,
+        "elevation": 35,
+        "windspeedAdjRoughness": 0.67,
+        "windspeedAdjHeight": 1.0,
+        "overWinterPrecipAdj": false,
+        "influencingSlope": 0,
+        "installationDate": "1973-05-01T07:00:00.000+0000",
+        "decommissionDate": null,
+        "influencingAspect": null,
+        "orgUnit": {
+          "id": "b34cd050-a36f-4f6b-bdf1-6c6333cbfff0",
+          "displayLabel": "Meteorological Services Canada",
+          "displayOrder": 0,
+          "ownerName": "test11",
+          "ownerDisplayName": "test",
+          "ownerComment": "test",
+          "creationTimestamp": "2020-03-04T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-03-04T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "fireCentre": {
+          "id": 42,
+          "displayLabel": "Northwest Fire Centre",
+          "alias": 3
+        },
+        "zone": {
+          "id": "R8",
+          "zone": 48,
+          "displayLabel": "Skeena Zone (North Coast)",
+          "alias": 8,
+          "fireCentre": "Northwest Fire Centre",
+          "fireCentreAlias": 3
+        },
+        "comments": "1st Daily 19730501;",
+        "_links": {
+          "self": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/2e51a25e-8da5-43c4-b579-5e5020263c58"
+          },
+          "station": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/2e51a25e-8da5-43c4-b579-5e5020263c58"
+          }
+        }
+      },
+      {
+        "id": "d39359ab-bc96-40ac-9826-4c87cc0754a5",
+        "displayLabel": "ETHELDA BAY (EC)",
+        "creationTimestamp": "2020-03-25T22:07:56.000+0000",
+        "createdBy": "WXP3_WEATHER_API",
+        "lastEntityUpdate": 1585853681565,
+        "lastModifiedBy": "WXP3_WEATHER_API",
+        "lastUpdated": "2020-04-02T18:54:41.000+0000",
+        "stationCode": 89,
+        "stationAcronym": null,
+        "stationStatus": {
+          "id": "DISABLED",
+          "displayLabel": "Disabled",
+          "displayOrder": 2,
+          "effectiveDate": "2000-01-01T08:00:00.000+0000",
+          "expiryDate": "9999-12-31T08:00:00.000+0000",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "dataSource": "import",
+        "dataLoggerType": {
+          "id": "a1b21682-2f16-4821-e053-0d09228e8a99",
+          "displayLabel": "Undetermined",
+          "displayOrder": 2,
+          "dataLoggerType": "UNDTRMND",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "siteType": null,
+        "weatherZone": null,
+        "hourly": false,
+        "latitude": 53.1,
+        "longitude": -129.7,
+        "elevation": 10,
+        "windspeedAdjRoughness": 0.67,
+        "windspeedAdjHeight": 1.0,
+        "overWinterPrecipAdj": false,
+        "influencingSlope": 0,
+        "installationDate": "1970-01-01T08:00:00.000+0000",
+        "decommissionDate": null,
+        "influencingAspect": null,
+        "orgUnit": {
+          "id": "b34cd050-a36f-4f6b-bdf1-6c6333cbfff0",
+          "displayLabel": "Meteorological Services Canada",
+          "displayOrder": 0,
+          "ownerName": "test11",
+          "ownerDisplayName": "test",
+          "ownerComment": "test",
+          "creationTimestamp": "2020-03-04T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-03-04T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "fireCentre": {
+          "id": 42,
+          "displayLabel": "Northwest Fire Centre",
+          "alias": 3
+        },
+        "zone": {
+          "id": "R8",
+          "zone": 48,
+          "displayLabel": "Skeena Zone (North Coast)",
+          "alias": 8,
+          "fireCentre": "Northwest Fire Centre",
+          "fireCentreAlias": 3
+        },
+        "comments": null,
+        "_links": {
+          "self": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/d39359ab-bc96-40ac-9826-4c87cc0754a5"
+          },
+          "station": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/d39359ab-bc96-40ac-9826-4c87cc0754a5"
+          }
+        }
+      },
+      {
+        "id": "d8999c76-1450-428d-8a2b-440e04909304",
+        "displayLabel": "SANDSPIT (EC)",
+        "creationTimestamp": "2020-03-25T22:07:56.000+0000",
+        "createdBy": "WXP3_WEATHER_API",
+        "lastEntityUpdate": 1585853681569,
+        "lastModifiedBy": "WXP3_WEATHER_API",
+        "lastUpdated": "2020-04-02T18:54:41.000+0000",
+        "stationCode": 90,
+        "stationAcronym": "YZP",
+        "stationStatus": {
+          "id": "DISABLED",
+          "displayLabel": "Disabled",
+          "displayOrder": 2,
+          "effectiveDate": "2000-01-01T08:00:00.000+0000",
+          "expiryDate": "9999-12-31T08:00:00.000+0000",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "dataSource": "import",
+        "dataLoggerType": {
+          "id": "a1b21682-2f16-4821-e053-0d09228e8a99",
+          "displayLabel": "Undetermined",
+          "displayOrder": 2,
+          "dataLoggerType": "UNDTRMND",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "siteType": null,
+        "weatherZone": null,
+        "hourly": false,
+        "latitude": 53.254167,
+        "longitude": -131.813889,
+        "elevation": 6,
+        "windspeedAdjRoughness": 0.67,
+        "windspeedAdjHeight": 1.0,
+        "overWinterPrecipAdj": false,
+        "influencingSlope": 0,
+        "installationDate": "1970-01-01T08:00:00.000+0000",
+        "decommissionDate": null,
+        "influencingAspect": null,
+        "orgUnit": {
+          "id": "b34cd050-a36f-4f6b-bdf1-6c6333cbfff0",
+          "displayLabel": "Meteorological Services Canada",
+          "displayOrder": 0,
+          "ownerName": "test11",
+          "ownerDisplayName": "test",
+          "ownerComment": "test",
+          "creationTimestamp": "2020-03-04T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-03-04T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "fireCentre": {
+          "id": 42,
+          "displayLabel": "Northwest Fire Centre",
+          "alias": 3
+        },
+        "zone": {
+          "id": "V1",
+          "zone": 51,
+          "displayLabel": "Fraser Zone (Chilliwack)",
+          "alias": 1,
+          "fireCentre": "Coastal Fire Centre",
+          "fireCentreAlias": 2
+        },
+        "comments": "not for FWI",
+        "_links": {
+          "self": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/d8999c76-1450-428d-8a2b-440e04909304"
+          },
+          "station": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/d8999c76-1450-428d-8a2b-440e04909304"
+          }
+        }
+      },
+      {
+        "id": "0db15388-265c-4175-a462-9e3e94a1932e",
+        "displayLabel": "ZZ JUSKATLA",
+        "creationTimestamp": "2020-03-25T22:07:56.000+0000",
+        "createdBy": "WXP3_WEATHER_API",
+        "lastEntityUpdate": 1585853681573,
+        "lastModifiedBy": "WXP3_WEATHER_API",
+        "lastUpdated": "2020-04-02T18:54:41.000+0000",
+        "stationCode": 91,
+        "stationAcronym": null,
+        "stationStatus": {
+          "id": "ARCHIVED",
+          "displayLabel": "Archived",
+          "displayOrder": 3,
+          "effectiveDate": "2000-01-01T08:00:00.000+0000",
+          "expiryDate": "9999-12-31T08:00:00.000+0000",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "dataSource": "polling",
+        "dataLoggerType": {
+          "id": "a1b21682-2f1c-4821-e053-0d09228e8a99",
+          "displayLabel": "WR62",
+          "displayOrder": 8,
+          "dataLoggerType": "WR62",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "siteType": {
+          "id": "a1b21682-2f1e-4821-e053-0d09228e8a99",
+          "displayLabel": "Undetermined",
+          "displayOrder": 1,
+          "siteType": "UNDTRMND",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "weatherZone": null,
+        "hourly": false,
+        "latitude": 53.7,
+        "longitude": -132.3,
+        "elevation": 0,
+        "windspeedAdjRoughness": 1.0,
+        "windspeedAdjHeight": 1.0,
+        "overWinterPrecipAdj": false,
+        "influencingSlope": null,
+        "installationDate": "1982-01-01T08:00:00.000+0000",
+        "decommissionDate": "1995-01-01T08:00:00.000+0000",
+        "influencingAspect": null,
+        "orgUnit": {
+          "id": "bcb56373-0a7b-4717-be0d-cd8f108d47e8",
+          "displayLabel": "Coastal Fire Centre Weather Program",
+          "displayOrder": 0,
+          "ownerName": "test9",
+          "ownerDisplayName": "test",
+          "ownerComment": "test",
+          "creationTimestamp": "2020-03-04T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-03-04T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "fireCentre": {
+          "id": 50,
+          "displayLabel": "Coastal Fire Centre",
+          "alias": 2
+        },
+        "zone": {
+          "id": "V1",
+          "zone": 51,
+          "displayLabel": "Fraser Zone (Chilliwack)",
+          "alias": 1,
+          "fireCentre": "Coastal Fire Centre",
+          "fireCentreAlias": 2
+        },
+        "comments": null,
+        "_links": {
+          "self": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/0db15388-265c-4175-a462-9e3e94a1932e"
+          },
+          "station": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/0db15388-265c-4175-a462-9e3e94a1932e"
+          }
+        }
+      },
+      {
+        "id": "07e6c35e-5d38-4f01-9aee-f11f1b1f8326",
+        "displayLabel": "MCINNIS ISLAND (EC)",
+        "creationTimestamp": "2020-03-25T22:07:56.000+0000",
+        "createdBy": "WXP3_WEATHER_API",
+        "lastEntityUpdate": 1585853681578,
+        "lastModifiedBy": "WXP3_WEATHER_API",
+        "lastUpdated": "2020-04-02T18:54:41.000+0000",
+        "stationCode": 92,
+        "stationAcronym": "WMS",
+        "stationStatus": {
+          "id": "DISABLED",
+          "displayLabel": "Disabled",
+          "displayOrder": 2,
+          "effectiveDate": "2000-01-01T08:00:00.000+0000",
+          "expiryDate": "9999-12-31T08:00:00.000+0000",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "dataSource": "import",
+        "dataLoggerType": {
+          "id": "a1b21682-2f16-4821-e053-0d09228e8a99",
+          "displayLabel": "Undetermined",
+          "displayOrder": 2,
+          "dataLoggerType": "UNDTRMND",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "siteType": null,
+        "weatherZone": null,
+        "hourly": false,
+        "latitude": 52.3,
+        "longitude": -128.7,
+        "elevation": 26,
+        "windspeedAdjRoughness": 0.67,
+        "windspeedAdjHeight": 1.0,
+        "overWinterPrecipAdj": false,
+        "influencingSlope": 0,
+        "installationDate": "1985-01-01T08:00:00.000+0000",
+        "decommissionDate": null,
+        "influencingAspect": null,
+        "orgUnit": {
+          "id": "b34cd050-a36f-4f6b-bdf1-6c6333cbfff0",
+          "displayLabel": "Meteorological Services Canada",
+          "displayOrder": 0,
+          "ownerName": "test11",
+          "ownerDisplayName": "test",
+          "ownerComment": "test",
+          "creationTimestamp": "2020-03-04T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-03-04T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "fireCentre": {
+          "id": 50,
+          "displayLabel": "Coastal Fire Centre",
+          "alias": 2
+        },
+        "zone": {
+          "id": "VA",
+          "zone": 58,
+          "displayLabel": "North Island Mid Coast Zone (Mid Coast)",
+          "alias": 10,
+          "fireCentre": "Coastal Fire Centre",
+          "fireCentreAlias": 2
+        },
+        "comments": "not for FWI",
+        "_links": {
+          "self": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/07e6c35e-5d38-4f01-9aee-f11f1b1f8326"
+          },
+          "station": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/07e6c35e-5d38-4f01-9aee-f11f1b1f8326"
+          }
+        }
+      },
+      {
+        "id": "f245d65e-a3a5-4cab-a0df-a7e042fc92db",
+        "displayLabel": "HONNA",
+        "creationTimestamp": "2020-03-25T22:07:56.000+0000",
+        "createdBy": "WXP3_WEATHER_API",
+        "lastEntityUpdate": 1585853681582,
+        "lastModifiedBy": "WXP3_WEATHER_API",
+        "lastUpdated": "2020-04-02T18:54:41.000+0000",
+        "stationCode": 93,
+        "stationAcronym": "FHN",
+        "stationStatus": {
+          "id": "ACTIVE",
+          "displayLabel": "Active",
+          "displayOrder": 1,
+          "effectiveDate": "2000-01-01T08:00:00.000+0000",
+          "expiryDate": "9999-12-31T08:00:00.000+0000",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "dataSource": "polling",
+        "dataLoggerType": {
+          "id": "a1b21682-2f19-4821-e053-0d09228e8a99",
+          "displayLabel": "FWS12S",
+          "displayOrder": 5,
+          "dataLoggerType": "FWS12S",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "siteType": null,
+        "weatherZone": null,
+        "hourly": true,
+        "latitude": 53.2532,
+        "longitude": -132.11562,
+        "elevation": 100,
+        "windspeedAdjRoughness": 1.0,
+        "windspeedAdjHeight": 1.0,
+        "overWinterPrecipAdj": false,
+        "influencingSlope": 30,
+        "installationDate": "1990-06-16T07:00:00.000+0000",
+        "decommissionDate": null,
+        "influencingAspect": null,
+        "orgUnit": {
+          "id": "074c5942-e3fb-4442-934e-82062597252d",
+          "displayLabel": "Northwest Fire Centre Weather Program",
+          "displayOrder": 0,
+          "ownerName": "test7",
+          "ownerDisplayName": "test",
+          "ownerComment": "test",
+          "creationTimestamp": "2020-03-04T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-03-04T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "fireCentre": {
+          "id": 50,
+          "displayLabel": "Coastal Fire Centre",
+          "alias": 2
+        },
+        "zone": {
+          "id": "V1",
+          "zone": 51,
+          "displayLabel": "Fraser Zone (Chilliwack)",
+          "alias": 1,
+          "fireCentre": "Coastal Fire Centre",
+          "fireCentreAlias": 2
+        },
+        "comments": "1st Daily 19860415; 001 May 2005 to stand alone Necols phone site",
+        "_links": {
+          "self": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/f245d65e-a3a5-4cab-a0df-a7e042fc92db"
+          },
+          "station": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/f245d65e-a3a5-4cab-a0df-a7e042fc92db"
+          }
+        }
+      },
+      {
+        "id": "58f19fd0-4dd3-4eba-b125-d00718356d1d",
+        "displayLabel": "CAPE ST. JAMES (EC)",
+        "creationTimestamp": "2020-03-25T22:07:56.000+0000",
+        "createdBy": "WXP3_WEATHER_API",
+        "lastEntityUpdate": 1585853681586,
+        "lastModifiedBy": "WXP3_WEATHER_API",
+        "lastUpdated": "2020-04-02T18:54:41.000+0000",
+        "stationCode": 94,
+        "stationAcronym": "WFV",
+        "stationStatus": {
+          "id": "DISABLED",
+          "displayLabel": "Disabled",
+          "displayOrder": 2,
+          "effectiveDate": "2000-01-01T08:00:00.000+0000",
+          "expiryDate": "9999-12-31T08:00:00.000+0000",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "dataSource": "import",
+        "dataLoggerType": {
+          "id": "a1b21682-2f16-4821-e053-0d09228e8a99",
+          "displayLabel": "Undetermined",
+          "displayOrder": 2,
+          "dataLoggerType": "UNDTRMND",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "siteType": null,
+        "weatherZone": null,
+        "hourly": false,
+        "latitude": 51.9,
+        "longitude": -131.0,
+        "elevation": 89,
+        "windspeedAdjRoughness": 0.67,
+        "windspeedAdjHeight": 1.0,
+        "overWinterPrecipAdj": false,
+        "influencingSlope": 0,
+        "installationDate": "1990-01-01T08:00:00.000+0000",
+        "decommissionDate": null,
+        "influencingAspect": null,
+        "orgUnit": {
+          "id": "b34cd050-a36f-4f6b-bdf1-6c6333cbfff0",
+          "displayLabel": "Meteorological Services Canada",
+          "displayOrder": 0,
+          "ownerName": "test11",
+          "ownerDisplayName": "test",
+          "ownerComment": "test",
+          "creationTimestamp": "2020-03-04T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-03-04T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "fireCentre": {
+          "id": 42,
+          "displayLabel": "Northwest Fire Centre",
+          "alias": 3
+        },
+        "zone": {
+          "id": "V1",
+          "zone": 51,
+          "displayLabel": "Fraser Zone (Chilliwack)",
+          "alias": 1,
+          "fireCentre": "Coastal Fire Centre",
+          "fireCentreAlias": 2
+        },
+        "comments": null,
+        "_links": {
+          "self": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/58f19fd0-4dd3-4eba-b125-d00718356d1d"
+          },
+          "station": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/58f19fd0-4dd3-4eba-b125-d00718356d1d"
+          }
+        }
+      },
+      {
+        "id": "b2082a89-cf83-42fc-9c3d-53124aa918d5",
+        "displayLabel": "LANGARA ISLAND (EC)",
+        "creationTimestamp": "2020-03-25T22:07:56.000+0000",
+        "createdBy": "WXP3_WEATHER_API",
+        "lastEntityUpdate": 1585853681591,
+        "lastModifiedBy": "WXP3_WEATHER_API",
+        "lastUpdated": "2020-04-02T18:54:41.000+0000",
+        "stationCode": 95,
+        "stationAcronym": "WLA",
+        "stationStatus": {
+          "id": "DISABLED",
+          "displayLabel": "Disabled",
+          "displayOrder": 2,
+          "effectiveDate": "2000-01-01T08:00:00.000+0000",
+          "expiryDate": "9999-12-31T08:00:00.000+0000",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "dataSource": "import",
+        "dataLoggerType": {
+          "id": "a1b21682-2f16-4821-e053-0d09228e8a99",
+          "displayLabel": "Undetermined",
+          "displayOrder": 2,
+          "dataLoggerType": "UNDTRMND",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "siteType": null,
+        "weatherZone": null,
+        "hourly": false,
+        "latitude": 54.2,
+        "longitude": -133.0,
+        "elevation": 41,
+        "windspeedAdjRoughness": 0.67,
+        "windspeedAdjHeight": 1.0,
+        "overWinterPrecipAdj": false,
+        "influencingSlope": 0,
+        "installationDate": "1988-01-01T08:00:00.000+0000",
+        "decommissionDate": null,
+        "influencingAspect": null,
+        "orgUnit": {
+          "id": "b34cd050-a36f-4f6b-bdf1-6c6333cbfff0",
+          "displayLabel": "Meteorological Services Canada",
+          "displayOrder": 0,
+          "ownerName": "test11",
+          "ownerDisplayName": "test",
+          "ownerComment": "test",
+          "creationTimestamp": "2020-03-04T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-03-04T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "fireCentre": {
+          "id": 50,
+          "displayLabel": "Coastal Fire Centre",
+          "alias": 2
+        },
+        "zone": {
+          "id": "V1",
+          "zone": 51,
+          "displayLabel": "Fraser Zone (Chilliwack)",
+          "alias": 1,
+          "fireCentre": "Coastal Fire Centre",
+          "fireCentreAlias": 2
+        },
+        "comments": null,
+        "_links": {
+          "self": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/b2082a89-cf83-42fc-9c3d-53124aa918d5"
+          },
+          "station": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/b2082a89-cf83-42fc-9c3d-53124aa918d5"
+          }
+        }
+      },
+      {
+        "id": "1ba0fa5b-8fd1-4093-9d99-1caace1d067f",
+        "displayLabel": "ROSE SPIT (EC)",
+        "creationTimestamp": "2020-03-25T22:07:56.000+0000",
+        "createdBy": "WXP3_WEATHER_API",
+        "lastEntityUpdate": 1585853681595,
+        "lastModifiedBy": "WXP3_WEATHER_API",
+        "lastUpdated": "2020-04-02T18:54:41.000+0000",
+        "stationCode": 96,
+        "stationAcronym": "WRO",
+        "stationStatus": {
+          "id": "DISABLED",
+          "displayLabel": "Disabled",
+          "displayOrder": 2,
+          "effectiveDate": "2000-01-01T08:00:00.000+0000",
+          "expiryDate": "9999-12-31T08:00:00.000+0000",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "dataSource": "import",
+        "dataLoggerType": {
+          "id": "a1b21682-2f16-4821-e053-0d09228e8a99",
+          "displayLabel": "Undetermined",
+          "displayOrder": 2,
+          "dataLoggerType": "UNDTRMND",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "siteType": null,
+        "weatherZone": null,
+        "hourly": false,
+        "latitude": 54.2,
+        "longitude": -131.7,
+        "elevation": 7,
+        "windspeedAdjRoughness": 0.67,
+        "windspeedAdjHeight": 1.0,
+        "overWinterPrecipAdj": false,
+        "influencingSlope": 0,
+        "installationDate": "1988-01-01T08:00:00.000+0000",
+        "decommissionDate": null,
+        "influencingAspect": null,
+        "orgUnit": {
+          "id": "b34cd050-a36f-4f6b-bdf1-6c6333cbfff0",
+          "displayLabel": "Meteorological Services Canada",
+          "displayOrder": 0,
+          "ownerName": "test11",
+          "ownerDisplayName": "test",
+          "ownerComment": "test",
+          "creationTimestamp": "2020-03-04T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-03-04T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "fireCentre": {
+          "id": 42,
+          "displayLabel": "Northwest Fire Centre",
+          "alias": 3
+        },
+        "zone": {
+          "id": "V1",
+          "zone": 51,
+          "displayLabel": "Fraser Zone (Chilliwack)",
+          "alias": 1,
+          "fireCentre": "Coastal Fire Centre",
+          "fireCentreAlias": 2
+        },
+        "comments": "not for FWI",
+        "_links": {
+          "self": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/1ba0fa5b-8fd1-4093-9d99-1caace1d067f"
+          },
+          "station": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/1ba0fa5b-8fd1-4093-9d99-1caace1d067f"
+          }
+        }
+      },
+      {
+        "id": "a32f5857-ee78-4ef4-835e-90e839a332bd",
+        "displayLabel": "ZZ COPPER",
+        "creationTimestamp": "2020-03-25T22:07:56.000+0000",
+        "createdBy": "WXP3_WEATHER_API",
+        "lastEntityUpdate": 1585853681599,
+        "lastModifiedBy": "WXP3_WEATHER_API",
+        "lastUpdated": "2020-04-02T18:54:41.000+0000",
+        "stationCode": 97,
+        "stationAcronym": null,
+        "stationStatus": {
+          "id": "ARCHIVED",
+          "displayLabel": "Archived",
+          "displayOrder": 3,
+          "effectiveDate": "2000-01-01T08:00:00.000+0000",
+          "expiryDate": "9999-12-31T08:00:00.000+0000",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "dataSource": "polling",
+        "dataLoggerType": {
+          "id": "a1b21682-2f1c-4821-e053-0d09228e8a99",
+          "displayLabel": "WR62",
+          "displayOrder": 8,
+          "dataLoggerType": "WR62",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "siteType": null,
+        "weatherZone": null,
+        "hourly": true,
+        "latitude": 53.15,
+        "longitude": -131.86,
+        "elevation": 287,
+        "windspeedAdjRoughness": 1.0,
+        "windspeedAdjHeight": 1.0,
+        "overWinterPrecipAdj": false,
+        "influencingSlope": 0,
+        "installationDate": "1990-01-01T08:00:00.000+0000",
+        "decommissionDate": "2005-05-23T07:00:00.000+0000",
+        "influencingAspect": null,
+        "orgUnit": {
+          "id": "074c5942-e3fb-4442-934e-82062597252d",
+          "displayLabel": "Northwest Fire Centre Weather Program",
+          "displayOrder": 0,
+          "ownerName": "test7",
+          "ownerDisplayName": "test",
+          "ownerComment": "test",
+          "creationTimestamp": "2020-03-04T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-03-04T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "fireCentre": {
+          "id": 42,
+          "displayLabel": "Northwest Fire Centre",
+          "alias": 3
+        },
+        "zone": {
+          "id": "V1",
+          "zone": 51,
+          "displayLabel": "Fraser Zone (Chilliwack)",
+          "alias": 1,
+          "fireCentre": "Coastal Fire Centre",
+          "fireCentreAlias": 2
+        },
+        "comments": "ILMB RPP 08956-40",
+        "_links": {
+          "self": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/a32f5857-ee78-4ef4-835e-90e839a332bd"
+          },
+          "station": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/a32f5857-ee78-4ef4-835e-90e839a332bd"
+          }
+        }
+      },
+      {
+        "id": "d5e83f6b-7329-4c88-b173-e876a94d345c",
+        "displayLabel": "ZZ KITSAULT",
+        "creationTimestamp": "2020-03-25T22:07:56.000+0000",
+        "createdBy": "WXP3_WEATHER_API",
+        "lastEntityUpdate": 1585853681603,
+        "lastModifiedBy": "WXP3_WEATHER_API",
+        "lastUpdated": "2020-04-02T18:54:41.000+0000",
+        "stationCode": 98,
+        "stationAcronym": null,
+        "stationStatus": {
+          "id": "ARCHIVED",
+          "displayLabel": "Archived",
+          "displayOrder": 3,
+          "effectiveDate": "2000-01-01T08:00:00.000+0000",
+          "expiryDate": "9999-12-31T08:00:00.000+0000",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "dataSource": "polling",
+        "dataLoggerType": {
+          "id": "a1b21682-2f16-4821-e053-0d09228e8a99",
+          "displayLabel": "Undetermined",
+          "displayOrder": 2,
+          "dataLoggerType": "UNDTRMND",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "siteType": {
+          "id": "a1b21682-2f1e-4821-e053-0d09228e8a99",
+          "displayLabel": "Undetermined",
+          "displayOrder": 1,
+          "siteType": "UNDTRMND",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "weatherZone": null,
+        "hourly": true,
+        "latitude": 55.458333,
+        "longitude": -129.475,
+        "elevation": 100,
+        "windspeedAdjRoughness": 1.0,
+        "windspeedAdjHeight": 1.0,
+        "overWinterPrecipAdj": false,
+        "influencingSlope": 0,
+        "installationDate": "1996-01-01T08:00:00.000+0000",
+        "decommissionDate": "2000-08-24T07:00:00.000+0000",
+        "influencingAspect": null,
+        "orgUnit": {
+          "id": "074c5942-e3fb-4442-934e-82062597252d",
+          "displayLabel": "Northwest Fire Centre Weather Program",
+          "displayOrder": 0,
+          "ownerName": "test7",
+          "ownerDisplayName": "test",
+          "ownerComment": "test",
+          "creationTimestamp": "2020-03-04T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-03-04T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "fireCentre": {
+          "id": 42,
+          "displayLabel": "Northwest Fire Centre",
+          "alias": 3
+        },
+        "zone": {
+          "id": "R8",
+          "zone": 48,
+          "displayLabel": "Skeena Zone (North Coast)",
+          "alias": 8,
+          "fireCentre": "Northwest Fire Centre",
+          "fireCentreAlias": 3
+        },
+        "comments": null,
+        "_links": {
+          "self": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/d5e83f6b-7329-4c88-b173-e876a94d345c"
+          },
+          "station": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/d5e83f6b-7329-4c88-b173-e876a94d345c"
+          }
+        }
+      },
+      {
+        "id": "ae19b533-5808-41d0-b69e-07198145dd5a",
+        "displayLabel": "ZZ FIRVALE",
+        "creationTimestamp": "2020-03-25T22:07:56.000+0000",
+        "createdBy": "WXP3_WEATHER_API",
+        "lastEntityUpdate": 1585853681609,
+        "lastModifiedBy": "WXP3_WEATHER_API",
+        "lastUpdated": "2020-04-02T18:54:41.000+0000",
+        "stationCode": 99,
+        "stationAcronym": null,
+        "stationStatus": {
+          "id": "ARCHIVED",
+          "displayLabel": "Archived",
+          "displayOrder": 3,
+          "effectiveDate": "2000-01-01T08:00:00.000+0000",
+          "expiryDate": "9999-12-31T08:00:00.000+0000",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "dataSource": "polling",
+        "dataLoggerType": {
+          "id": "a1b21682-2f1c-4821-e053-0d09228e8a99",
+          "displayLabel": "WR62",
+          "displayOrder": 8,
+          "dataLoggerType": "WR62",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "siteType": {
+          "id": "a1b21682-2f1e-4821-e053-0d09228e8a99",
+          "displayLabel": "Undetermined",
+          "displayOrder": 1,
+          "siteType": "UNDTRMND",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "weatherZone": null,
+        "hourly": false,
+        "latitude": 52.5,
+        "longitude": -126.3,
+        "elevation": 0,
+        "windspeedAdjRoughness": 1.0,
+        "windspeedAdjHeight": 1.0,
+        "overWinterPrecipAdj": false,
+        "influencingSlope": null,
+        "installationDate": "1970-01-01T08:00:00.000+0000",
+        "decommissionDate": "1982-05-07T07:00:00.000+0000",
+        "influencingAspect": null,
+        "orgUnit": {
+          "id": "bcb56373-0a7b-4717-be0d-cd8f108d47e8",
+          "displayLabel": "Coastal Fire Centre Weather Program",
+          "displayOrder": 0,
+          "ownerName": "test9",
+          "ownerDisplayName": "test",
+          "ownerComment": "test",
+          "creationTimestamp": "2020-03-04T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-03-04T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "fireCentre": {
+          "id": 50,
+          "displayLabel": "Coastal Fire Centre",
+          "alias": 2
+        },
+        "zone": {
+          "id": "VA",
+          "zone": 58,
+          "displayLabel": "North Island Mid Coast Zone (Mid Coast)",
+          "alias": 10,
+          "fireCentre": "Coastal Fire Centre",
+          "fireCentreAlias": 2
+        },
+        "comments": null,
+        "_links": {
+          "self": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/ae19b533-5808-41d0-b69e-07198145dd5a"
+          },
+          "station": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/ae19b533-5808-41d0-b69e-07198145dd5a"
+          }
+        }
+      },
+      {
+        "id": "cdbc1d92-a2f3-420f-9c60-4a8c9acac582",
+        "displayLabel": "BELLA COOLA AP (EC)",
+        "creationTimestamp": "2020-03-25T22:07:56.000+0000",
+        "createdBy": "WXP3_WEATHER_API",
+        "lastEntityUpdate": 1585853681613,
+        "lastModifiedBy": "WXP3_WEATHER_API",
+        "lastUpdated": "2020-04-02T18:54:41.000+0000",
+        "stationCode": 100,
+        "stationAcronym": "YBD",
+        "stationStatus": {
+          "id": "DISABLED",
+          "displayLabel": "Disabled",
+          "displayOrder": 2,
+          "effectiveDate": "2000-01-01T08:00:00.000+0000",
+          "expiryDate": "9999-12-31T08:00:00.000+0000",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "dataSource": "import",
+        "dataLoggerType": {
+          "id": "a1b21682-2f16-4821-e053-0d09228e8a99",
+          "displayLabel": "Undetermined",
+          "displayOrder": 2,
+          "dataLoggerType": "UNDTRMND",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "siteType": null,
+        "weatherZone": null,
+        "hourly": false,
+        "latitude": 52.4,
+        "longitude": -126.6,
+        "elevation": 36,
+        "windspeedAdjRoughness": 0.67,
+        "windspeedAdjHeight": 1.0,
+        "overWinterPrecipAdj": false,
+        "influencingSlope": 0,
+        "installationDate": "1982-01-01T08:00:00.000+0000",
+        "decommissionDate": null,
+        "influencingAspect": null,
+        "orgUnit": {
+          "id": "b34cd050-a36f-4f6b-bdf1-6c6333cbfff0",
+          "displayLabel": "Meteorological Services Canada",
+          "displayOrder": 0,
+          "ownerName": "test11",
+          "ownerDisplayName": "test",
+          "ownerComment": "test",
+          "creationTimestamp": "2020-03-04T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-03-04T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "fireCentre": {
+          "id": 50,
+          "displayLabel": "Coastal Fire Centre",
+          "alias": 2
+        },
+        "zone": {
+          "id": "VA",
+          "zone": 58,
+          "displayLabel": "North Island Mid Coast Zone (Mid Coast)",
+          "alias": 10,
+          "fireCentre": "Coastal Fire Centre",
+          "fireCentreAlias": 2
+        },
+        "comments": null,
+        "_links": {
+          "self": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/cdbc1d92-a2f3-420f-9c60-4a8c9acac582"
+          },
+          "station": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/cdbc1d92-a2f3-420f-9c60-4a8c9acac582"
+          }
+        }
+      },
+      {
+        "id": "bb4ffea8-7a95-474b-8e00-a8fb027b5732",
+        "displayLabel": "MACHMELL",
+        "creationTimestamp": "2020-03-25T22:07:56.000+0000",
+        "createdBy": "WXP3_WEATHER_API",
+        "lastEntityUpdate": 1585853681617,
+        "lastModifiedBy": "WXP3_WEATHER_API",
+        "lastUpdated": "2020-04-02T18:54:41.000+0000",
+        "stationCode": 101,
+        "stationAcronym": "FAL",
+        "stationStatus": {
+          "id": "ACTIVE",
+          "displayLabel": "Active",
+          "displayOrder": 1,
+          "effectiveDate": "2000-01-01T08:00:00.000+0000",
+          "expiryDate": "9999-12-31T08:00:00.000+0000",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "dataSource": "AutoCaller GOES",
+        "dataLoggerType": {
+          "id": "a1b21682-2f19-4821-e053-0d09228e8a99",
+          "displayLabel": "FWS12S",
+          "displayOrder": 5,
+          "dataLoggerType": "FWS12S",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "siteType": null,
+        "weatherZone": null,
+        "hourly": true,
+        "latitude": 51.593117,
+        "longitude": -126.450767,
+        "elevation": 332,
+        "windspeedAdjRoughness": 1.0,
+        "windspeedAdjHeight": 1.0,
+        "overWinterPrecipAdj": false,
+        "influencingSlope": 0,
+        "installationDate": "1997-07-08T07:00:00.000+0000",
+        "decommissionDate": null,
+        "influencingAspect": null,
+        "orgUnit": {
+          "id": "bcb56373-0a7b-4717-be0d-cd8f108d47e8",
+          "displayLabel": "Coastal Fire Centre Weather Program",
+          "displayOrder": 0,
+          "ownerName": "test9",
+          "ownerDisplayName": "test",
+          "ownerComment": "test",
+          "creationTimestamp": "2020-03-04T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-03-04T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "fireCentre": {
+          "id": 50,
+          "displayLabel": "Coastal Fire Centre",
+          "alias": 2
+        },
+        "zone": {
+          "id": "VA",
+          "zone": 58,
+          "displayLabel": "North Island Mid Coast Zone (Mid Coast)",
+          "alias": 10,
+          "fireCentre": "Coastal Fire Centre",
+          "fireCentreAlias": 2
+        },
+        "comments": "1st Daily 19900410; 003 GOES NESDIS BCF17202 - 00:08:50 - site opened up Jul15/13",
+        "_links": {
+          "self": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/bb4ffea8-7a95-474b-8e00-a8fb027b5732"
+          },
+          "station": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/bb4ffea8-7a95-474b-8e00-a8fb027b5732"
+          }
+        }
+      },
+      {
+        "id": "e0679aeb-799e-430f-b339-611d760bfda1",
+        "displayLabel": "TERRACE (EC)",
+        "creationTimestamp": "2020-03-25T22:07:56.000+0000",
+        "createdBy": "WXP3_WEATHER_API",
+        "lastEntityUpdate": 1585853681622,
+        "lastModifiedBy": "WXP3_WEATHER_API",
+        "lastUpdated": "2020-04-02T18:54:41.000+0000",
+        "stationCode": 103,
+        "stationAcronym": "YXT",
+        "stationStatus": {
+          "id": "ACTIVE",
+          "displayLabel": "Active",
+          "displayOrder": 1,
+          "effectiveDate": "2000-01-01T08:00:00.000+0000",
+          "expiryDate": "9999-12-31T08:00:00.000+0000",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "dataSource": "import",
+        "dataLoggerType": {
+          "id": "a1b21682-2f16-4821-e053-0d09228e8a99",
+          "displayLabel": "Undetermined",
+          "displayOrder": 2,
+          "dataLoggerType": "UNDTRMND",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "siteType": null,
+        "weatherZone": null,
+        "hourly": false,
+        "latitude": 54.5,
+        "longitude": -128.6,
+        "elevation": 217,
+        "windspeedAdjRoughness": 0.67,
+        "windspeedAdjHeight": 1.0,
+        "overWinterPrecipAdj": false,
+        "influencingSlope": 0,
+        "installationDate": "1970-05-25T07:00:00.000+0000",
+        "decommissionDate": null,
+        "influencingAspect": null,
+        "orgUnit": {
+          "id": "b34cd050-a36f-4f6b-bdf1-6c6333cbfff0",
+          "displayLabel": "Meteorological Services Canada",
+          "displayOrder": 0,
+          "ownerName": "test11",
+          "ownerDisplayName": "test",
+          "ownerComment": "test",
+          "creationTimestamp": "2020-03-04T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-03-04T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "fireCentre": {
+          "id": 42,
+          "displayLabel": "Northwest Fire Centre",
+          "alias": 3
+        },
+        "zone": {
+          "id": "R5",
+          "zone": 47,
+          "displayLabel": "Skeena Zone (Kalum)",
+          "alias": 5,
+          "fireCentre": "Northwest Fire Centre",
+          "fireCentreAlias": 3
+        },
+        "comments": "1st Daily 19700525;",
+        "_links": {
+          "self": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/e0679aeb-799e-430f-b339-611d760bfda1"
+          },
+          "station": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/e0679aeb-799e-430f-b339-611d760bfda1"
+          }
+        }
+      },
+      {
+        "id": "e0583fe2-c8c9-4ec6-80e0-918e7d900144",
+        "displayLabel": "ZZ KEMANO",
+        "creationTimestamp": "2020-03-25T22:07:56.000+0000",
+        "createdBy": "WXP3_WEATHER_API",
+        "lastEntityUpdate": 1585853681626,
+        "lastModifiedBy": "WXP3_WEATHER_API",
+        "lastUpdated": "2020-04-02T18:54:41.000+0000",
+        "stationCode": 104,
+        "stationAcronym": null,
+        "stationStatus": {
+          "id": "ARCHIVED",
+          "displayLabel": "Archived",
+          "displayOrder": 3,
+          "effectiveDate": "2000-01-01T08:00:00.000+0000",
+          "expiryDate": "9999-12-31T08:00:00.000+0000",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "dataSource": "polling",
+        "dataLoggerType": {
+          "id": "a1b21682-2f16-4821-e053-0d09228e8a99",
+          "displayLabel": "Undetermined",
+          "displayOrder": 2,
+          "dataLoggerType": "UNDTRMND",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "siteType": {
+          "id": "a1b21682-2f1e-4821-e053-0d09228e8a99",
+          "displayLabel": "Undetermined",
+          "displayOrder": 1,
+          "siteType": "UNDTRMND",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "weatherZone": null,
+        "hourly": true,
+        "latitude": 53.563333,
+        "longitude": -127.943333,
+        "elevation": 17,
+        "windspeedAdjRoughness": 1.0,
+        "windspeedAdjHeight": 1.0,
+        "overWinterPrecipAdj": false,
+        "influencingSlope": 0,
+        "installationDate": "1989-01-01T08:00:00.000+0000",
+        "decommissionDate": "1998-12-31T08:00:00.000+0000",
+        "influencingAspect": null,
+        "orgUnit": {
+          "id": "074c5942-e3fb-4442-934e-82062597252d",
+          "displayLabel": "Northwest Fire Centre Weather Program",
+          "displayOrder": 0,
+          "ownerName": "test7",
+          "ownerDisplayName": "test",
+          "ownerComment": "test",
+          "creationTimestamp": "2020-03-04T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-03-04T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "fireCentre": {
+          "id": 42,
+          "displayLabel": "Northwest Fire Centre",
+          "alias": 3
+        },
+        "zone": {
+          "id": "R5",
+          "zone": 47,
+          "displayLabel": "Skeena Zone (Kalum)",
+          "alias": 5,
+          "fireCentre": "Northwest Fire Centre",
+          "fireCentreAlias": 3
+        },
+        "comments": null,
+        "_links": {
+          "self": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/e0583fe2-c8c9-4ec6-80e0-918e7d900144"
+          },
+          "station": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/e0583fe2-c8c9-4ec6-80e0-918e7d900144"
+          }
+        }
+      },
+      {
+        "id": "2e4ec968-d35a-4447-81f3-c971357d995b",
+        "displayLabel": "ROSSWOOD",
+        "creationTimestamp": "2020-03-25T22:07:56.000+0000",
+        "createdBy": "WXP3_WEATHER_API",
+        "lastEntityUpdate": 1585853681630,
+        "lastModifiedBy": "WXP3_WEATHER_API",
+        "lastUpdated": "2020-04-02T18:54:41.000+0000",
+        "stationCode": 105,
+        "stationAcronym": "FRS",
+        "stationStatus": {
+          "id": "ACTIVE",
+          "displayLabel": "Active",
+          "displayOrder": 1,
+          "effectiveDate": "2000-01-01T08:00:00.000+0000",
+          "expiryDate": "9999-12-31T08:00:00.000+0000",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "dataSource": "polling",
+        "dataLoggerType": {
+          "id": "a1b21682-2f19-4821-e053-0d09228e8a99",
+          "displayLabel": "FWS12S",
+          "displayOrder": 5,
+          "dataLoggerType": "FWS12S",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "siteType": null,
+        "weatherZone": null,
+        "hourly": true,
+        "latitude": 54.916733,
+        "longitude": -128.8598,
+        "elevation": 239,
+        "windspeedAdjRoughness": 1.0,
+        "windspeedAdjHeight": 1.0,
+        "overWinterPrecipAdj": false,
+        "influencingSlope": 0,
+        "installationDate": "1990-01-01T08:00:00.000+0000",
+        "decommissionDate": null,
+        "influencingAspect": {
+          "id": "FLAT",
+          "displayLabel": "Flat",
+          "displayOrder": 10,
+          "effectiveDate": "2000-01-01T08:00:00.000+0000",
+          "expiryDate": "9999-12-31T08:00:00.000+0000",
+          "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-02-25T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "orgUnit": {
+          "id": "074c5942-e3fb-4442-934e-82062597252d",
+          "displayLabel": "Northwest Fire Centre Weather Program",
+          "displayOrder": 0,
+          "ownerName": "test7",
+          "ownerDisplayName": "test",
+          "ownerComment": "test",
+          "creationTimestamp": "2020-03-04T08:00:00.000+0000",
+          "createdBy": "DATA_LOAD",
+          "updateDate": "2020-03-04T08:00:00.000+0000",
+          "lastModifiedBy": "DATA_LOAD"
+        },
+        "fireCentre": {
+          "id": 42,
+          "displayLabel": "Northwest Fire Centre",
+          "alias": 3
+        },
+        "zone": {
+          "id": "R5",
+          "zone": 47,
+          "displayLabel": "Skeena Zone (Kalum)",
+          "alias": 5,
+          "fireCentre": "Northwest Fire Centre",
+          "fireCentreAlias": 3
+        },
+        "comments": "1st Daily 19700525; Globalstar",
+        "_links": {
+          "self": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/2e4ec968-d35a-4447-81f3-c971357d995b"
+          },
+          "station": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/2e4ec968-d35a-4447-81f3-c971357d995b"
+          }
+        }
+      }
+    ]
+  },
+  "_links": {
+    "first": {
+      "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations?page=0&size=20"
+    },
+    "prev": {
+      "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations?page=0&size=20"
+    },
+    "self": {
+      "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations{&sort}",
+      "templated": true
+    },
+    "next": {
+      "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations?page=2&size=20"
+    },
+    "last": {
+      "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations?page=62&size=20"
+    },
+    "profile": {
+      "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/profile/stations"
+    },
+    "search": {
+      "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/search"
+    }
+  },
+  "page": {
+    "size": 20,
+    "totalElements": 50,
+    "totalPages": 3,
+    "number": 1
+  }
+}

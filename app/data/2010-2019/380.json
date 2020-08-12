@@ -1,0 +1,29 @@
+{
+    "ffmc": 94.29517,
+    "isi": 14.17371,
+    "bui": 120.40199,
+    "years": [
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018
+    ],
+    "station": {
+        "code": "380",
+        "name": "POWDER CREEK",
+        "lat": "49.9065000",
+        "long": "-116.8551000",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

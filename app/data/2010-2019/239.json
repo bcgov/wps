@@ -1,0 +1,30 @@
+{
+    "ffmc": 94.62649,
+    "isi": 11.17836,
+    "bui": 128.98094,
+    "years": [
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019
+    ],
+    "station": {
+        "code": "239",
+        "name": "CLEARWATER HUB",
+        "lat": "51.6289000",
+        "long": "-120.0945670",
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
+    }
+}

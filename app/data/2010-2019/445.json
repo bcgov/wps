@@ -1,0 +1,29 @@
+{
+    "ffmc": 91.74016,
+    "isi": 8.19873,
+    "bui": 107.82951,
+    "years": [
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018
+    ],
+    "station": {
+        "code": "445",
+        "name": "BOYA LAKE",
+        "lat": "59.3673670",
+        "long": "-129.1110167",
+        "ecodivision_name": "SUB-ARCTIC HIGHLANDS",
+        "core_season": {
+            "start_month": "6",
+            "start_day": "1",
+            "end_month": "8",
+            "end_day": "15"
+        }
+    }
+}

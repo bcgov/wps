@@ -1,0 +1,171 @@
+{
+    "_embedded": {
+        "stations": [
+            {
+                "id": "df4832f9-5318-4aee-94bc-f24c8f039f2e",
+                "displayLabel": "FORT ST JAMES",
+                "creationTimestamp": "2020-03-25T22:07:56.000+0000",
+                "createdBy": "WXP3_WEATHER_API",
+                "lastEntityUpdate": 1585853681841,
+                "lastModifiedBy": "WXP3_WEATHER_API",
+                "lastUpdated": "2020-04-02T18:54:41.000+0000",
+                "stationCode": 146,
+                "stationAcronym": "FFJ",
+                "stationStatus": {
+                    "id": "ACTIVE",
+                    "displayLabel": "Active",
+                    "displayOrder": 1,
+                    "effectiveDate": "2000-01-01T08:00:00.000+0000",
+                    "expiryDate": "9999-12-31T08:00:00.000+0000",
+                    "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+                    "createdBy": "DATA_LOAD",
+                    "updateDate": "2020-02-25T08:00:00.000+0000",
+                    "lastModifiedBy": "DATA_LOAD"
+                },
+                "dataSource": "polling",
+                "dataLoggerType": {
+                    "id": "a1b21682-2f19-4821-e053-0d09228e8a99",
+                    "displayLabel": "FWS12S",
+                    "displayOrder": 5,
+                    "dataLoggerType": "FWS12S",
+                    "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+                    "createdBy": "DATA_LOAD",
+                    "updateDate": "2020-02-25T08:00:00.000+0000",
+                    "lastModifiedBy": "DATA_LOAD"
+                },
+                "siteType": null,
+                "weatherZone": null,
+                "hourly": true,
+                "latitude": 54.394083,
+                "longitude": -124.260972,
+                "elevation": 750,
+                "windspeedAdjRoughness": 1.0,
+                "windspeedAdjHeight": 1.0,
+                "overWinterPrecipAdj": false,
+                "influencingSlope": 0,
+                "installationDate": "1992-07-16T07:00:00.000+0000",
+                "decommissionDate": null,
+                "influencingAspect": null,
+                "orgUnit": {
+                    "id": "b12f0c51-161c-4b53-8380-37e49fbdc411",
+                    "displayLabel": "Prince George Fire Centre Weather Program",
+                    "displayOrder": 0,
+                    "ownerName": "test5",
+                    "ownerDisplayName": "test",
+                    "ownerComment": "test",
+                    "creationTimestamp": "2020-03-04T08:00:00.000+0000",
+                    "createdBy": "DATA_LOAD",
+                    "updateDate": "2020-03-04T08:00:00.000+0000",
+                    "lastModifiedBy": "DATA_LOAD"
+                },
+                "fireCentre": {
+                    "id": 8,
+                    "displayLabel": "Prince George Fire Centre",
+                    "alias": 4
+                },
+                "zone": {
+                    "id": "G5",
+                    "zone": 12,
+                    "displayLabel": "VanJam Zone (Fort St. James)",
+                    "alias": 5,
+                    "fireCentre": "Prince George Fire Centre",
+                    "fireCentreAlias": 4
+                },
+                "comments": "1st Daily 19790701; 22 250-996-8926",
+                "_links": {
+                    "self": {
+                        "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/rsql/df4832f9-5318-4aee-94bc-f24c8f039f2e"
+                    }
+                }
+            },
+            {
+                "id": "45d948f7-c57b-4069-92b7-50ac3bff3ad1",
+                "displayLabel": "HORSEFLY",
+                "creationTimestamp": "2020-03-25T22:07:56.000+0000",
+                "createdBy": "WXP3_WEATHER_API",
+                "lastEntityUpdate": 1585853682778,
+                "lastModifiedBy": "WXP3_WEATHER_API",
+                "lastUpdated": "2020-04-02T18:54:42.000+0000",
+                "stationCode": 230,
+                "stationAcronym": "FHR",
+                "stationStatus": {
+                    "id": "ACTIVE",
+                    "displayLabel": "Active",
+                    "displayOrder": 1,
+                    "effectiveDate": "2000-01-01T08:00:00.000+0000",
+                    "expiryDate": "9999-12-31T08:00:00.000+0000",
+                    "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+                    "createdBy": "DATA_LOAD",
+                    "updateDate": "2020-02-25T08:00:00.000+0000",
+                    "lastModifiedBy": "DATA_LOAD"
+                },
+                "dataSource": "polling",
+                "dataLoggerType": {
+                    "id": "a1b21682-2f19-4821-e053-0d09228e8a99",
+                    "displayLabel": "FWS12S",
+                    "displayOrder": 5,
+                    "dataLoggerType": "FWS12S",
+                    "creationTimestamp": "2020-02-25T08:00:00.000+0000",
+                    "createdBy": "DATA_LOAD",
+                    "updateDate": "2020-02-25T08:00:00.000+0000",
+                    "lastModifiedBy": "DATA_LOAD"
+                },
+                "siteType": null,
+                "weatherZone": null,
+                "hourly": true,
+                "latitude": 52.33,
+                "longitude": -121.396667,
+                "elevation": 701,
+                "windspeedAdjRoughness": 1.0,
+                "windspeedAdjHeight": 1.0,
+                "overWinterPrecipAdj": true,
+                "influencingSlope": 0,
+                "installationDate": "1990-05-23T07:00:00.000+0000",
+                "decommissionDate": null,
+                "influencingAspect": null,
+                "orgUnit": {
+                    "id": "b2f8baf9-c0e6-4011-adf5-e1a71d973864",
+                    "displayLabel": "Cariboo Fire Centre Weather Program",
+                    "displayOrder": 0,
+                    "ownerName": "test8",
+                    "ownerDisplayName": "test",
+                    "ownerComment": "test",
+                    "creationTimestamp": "2020-03-04T08:00:00.000+0000",
+                    "createdBy": "DATA_LOAD",
+                    "updateDate": "2020-03-04T08:00:00.000+0000",
+                    "lastModifiedBy": "DATA_LOAD"
+                },
+                "fireCentre": {
+                    "id": 2,
+                    "displayLabel": "Cariboo Fire Centre",
+                    "alias": 7
+                },
+                "zone": {
+                    "id": "C3",
+                    "zone": 5,
+                    "displayLabel": "Cariboo Chilcotin Zone (Horsefly)",
+                    "alias": 3,
+                    "fireCentre": "Cariboo Fire Centre",
+                    "fireCentreAlias": 7
+                },
+                "comments": "1st Daily 19710503;",
+                "_links": {
+                    "self": {
+                        "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/rsql/45d948f7-c57b-4069-92b7-50ac3bff3ad1"
+                    }
+                }
+            }
+        ]
+    },
+    "_links": {
+        "self": {
+            "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1stations/rsql?query=stationCode%3D%3D146%20or%20stationCode%3D%3D230"
+        }
+    },
+    "page": {
+        "size": 1000,
+        "totalElements": 2,
+        "totalPages": 1,
+        "number": 0
+    }
+}
