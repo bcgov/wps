@@ -1,0 +1,29 @@
+{
+    "ffmc": 90.60631,
+    "isi": 7.61166,
+    "bui": 111.00908,
+    "years": [
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018
+    ],
+    "station": {
+        "code": "1056",
+        "name": "TS MAURELLE",
+        "lat": "50.2709167",
+        "long": "-125.1308889",
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

@@ -1,0 +1,3332 @@
+{
+  "weather_stations": [
+    {
+      "code": "322",
+      "name": "AFTON",
+      "lat": "50.6733333",
+      "long": "-120.4816667",
+      "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "1",
+        "end_month": "9",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "838",
+      "name": "AKOKLI CREEK",
+      "lat": "49.4358000",
+      "long": "-116.7464000",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "209",
+      "name": "ALEXIS CREEK",
+      "lat": "52.0837700",
+      "long": "-123.2732667",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "317",
+      "name": "ALLISON PASS",
+      "lat": "49.0623139",
+      "long": "-120.7674194",
+      "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "1",
+        "end_month": "9",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "213",
+      "name": "ANAHIM LAKE HUB",
+      "lat": "52.4566667",
+      "long": "-125.3033333",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "977",
+      "name": "ANDERSON CREEK",
+      "lat": "49.6551000",
+      "long": "-121.3580667",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "1275",
+      "name": "APE LAKE",
+      "lat": "52.1345694",
+      "long": "-126.2626806",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "331",
+      "name": "ASHNOLA",
+      "lat": "49.1390500",
+      "long": "-120.1844000",
+      "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "1",
+        "end_month": "9",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "302",
+      "name": "ASPEN GROVE",
+      "lat": "49.9481100",
+      "long": "-120.6210700",
+      "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "1",
+        "end_month": "9",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "111",
+      "name": "ATLIN",
+      "lat": "59.5844830",
+      "long": "-133.6643830",
+      "ecodivision_name": "SUB-ARCTIC HIGHLANDS",
+      "core_season": {
+        "start_month": "6",
+        "start_day": "1",
+        "end_month": "8",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "167",
+      "name": "AUGIER LAKE",
+      "lat": "54.3618830",
+      "long": "-125.5253500",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "836",
+      "name": "AUGUST LAKE",
+      "lat": "49.4334800",
+      "long": "-120.4571200",
+      "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "1",
+        "end_month": "9",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "503",
+      "name": "BAKER",
+      "lat": "49.4588889",
+      "long": "-115.6302778",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "221",
+      "name": "BALDFACE",
+      "lat": "52.7101000",
+      "long": "-124.4822500",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "149",
+      "name": "BEAR LAKE",
+      "lat": "54.5092222",
+      "long": "-122.6910278",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "37",
+      "name": "BEAVER CREEK",
+      "lat": "49.3772222",
+      "long": "-124.9332667",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "390",
+      "name": "BEAVERDELL",
+      "lat": "49.4563889",
+      "long": "-119.0886111",
+      "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "1",
+        "end_month": "9",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "175",
+      "name": "BEDNESTI",
+      "lat": "53.8653889",
+      "long": "-123.3231667",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "432",
+      "name": "BELL-IRVING",
+      "lat": "56.3485830",
+      "long": "-129.2928500",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "228",
+      "name": "BENSON",
+      "lat": "52.9100000",
+      "long": "-122.0650000",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "267",
+      "name": "BERRY",
+      "lat": "51.9787667",
+      "long": "-119.4133833",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "868",
+      "name": "BIG MOUTH 2",
+      "lat": "51.8533333",
+      "long": "-118.5913889",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "1040",
+      "name": "BIG SILVER 2",
+      "lat": "49.7233972",
+      "long": "-121.8365167",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "262",
+      "name": "BIG VALLEY",
+      "lat": "53.2616667",
+      "long": "-121.7616667",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "148",
+      "name": "BLACKPINE",
+      "lat": "56.3187778",
+      "long": "-125.3679722",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "866",
+      "name": "BLAEBERRY",
+      "lat": "51.4357000",
+      "long": "-117.0571000",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "1108",
+      "name": "BLUE RIVER 2",
+      "lat": "52.1222500",
+      "long": "-119.2935833",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "113",
+      "name": "BOB QUINN LAKE",
+      "lat": "56.9809830",
+      "long": "-130.2508000",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "193",
+      "name": "BOWRON HAGGEN",
+      "lat": "53.4631389",
+      "long": "-121.5603333",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "56",
+      "name": "BOWSER",
+      "lat": "49.4368333",
+      "long": "-124.7022222",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "445",
+      "name": "BOYA LAKE",
+      "lat": "59.3673670",
+      "long": "-129.1110167",
+      "ecodivision_name": "SUB-ARCTIC HIGHLANDS",
+      "core_season": {
+        "start_month": "6",
+        "start_day": "1",
+        "end_month": "8",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "283",
+      "name": "BRENDA MINES",
+      "lat": "49.8684170",
+      "long": "-119.9925170",
+      "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "1",
+        "end_month": "9",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "865",
+      "name": "BRISCO",
+      "lat": "50.8193000",
+      "long": "-116.2449000",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "181",
+      "name": "BURNS LAKE 850M",
+      "lat": "54.2586000",
+      "long": "-125.7571000",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "253",
+      "name": "CAHILTY",
+      "lat": "50.8878830",
+      "long": "-119.8383170",
+      "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "1",
+        "end_month": "9",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "554",
+      "name": "CAPILANO GVRD",
+      "lat": "49.4400000",
+      "long": "-123.0970000",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "793",
+      "name": "CARIBOO CREEK",
+      "lat": "51.1763889",
+      "long": "-117.2316667",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "199",
+      "name": "CATFISH",
+      "lat": "53.5764444",
+      "long": "-120.8584444",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "59",
+      "name": "CEDAR",
+      "lat": "49.0476167",
+      "long": "-123.8747333",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "429",
+      "name": "CEDARVALE",
+      "lat": "55.0301670",
+      "long": "-128.3115830",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "1283",
+      "name": "CHEAKAMUS",
+      "lat": "50.0825056",
+      "long": "-123.0412722",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "791",
+      "name": "CHERRY LAKE",
+      "lat": "49.1877778",
+      "long": "-115.5416667",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "189",
+      "name": "CHILAKO",
+      "lat": "53.4937778",
+      "long": "-123.6087778",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "832",
+      "name": "CHURN CREEK",
+      "lat": "51.4027200",
+      "long": "-122.3201700",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "239",
+      "name": "CLEARWATER HUB",
+      "lat": "51.6289000",
+      "long": "-120.0945670",
+      "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "1",
+        "end_month": "9",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "232",
+      "name": "COLDSCAUR LAKE",
+      "lat": "51.7237830",
+      "long": "-120.3899330",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "556",
+      "name": "COQUITLAM GVRD",
+      "lat": "49.3860000",
+      "long": "-122.7700000",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "433",
+      "name": "CRANBERRY",
+      "lat": "55.5768333",
+      "long": "-128.7047500",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "426",
+      "name": "CRANBROOK",
+      "lat": "49.6673000",
+      "long": "-115.8483333",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "873",
+      "name": "CRAWFORD",
+      "lat": "50.7650000",
+      "long": "-117.9577778",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "352",
+      "name": "CURWEN CREEK",
+      "lat": "50.6021500",
+      "long": "-118.4229167",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "292",
+      "name": "D'ARCY",
+      "lat": "50.5217222",
+      "long": "-122.4978889",
+      "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "1",
+        "end_month": "9",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "1203",
+      "name": "DARKWOODS",
+      "lat": "49.3576111",
+      "long": "-116.9502500",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "108",
+      "name": "DEASE LAKE FS",
+      "lat": "58.4257830",
+      "long": "-130.0187167",
+      "ecodivision_name": "SUB-ARCTIC HIGHLANDS",
+      "core_season": {
+        "start_month": "6",
+        "start_day": "1",
+        "end_month": "8",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "251",
+      "name": "DECEPTION",
+      "lat": "51.9670000",
+      "long": "-120.6080000",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "421",
+      "name": "DEWAR CREEK",
+      "lat": "49.7845000",
+      "long": "-116.3830000",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "905",
+      "name": "DOWNIE",
+      "lat": "51.5154000",
+      "long": "-118.2720666",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "385",
+      "name": "DUNCAN",
+      "lat": "50.7808333",
+      "long": "-117.1805000",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "243",
+      "name": "EAST BARRIERE",
+      "lat": "51.2531330",
+      "long": "-119.8816830",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "170",
+      "name": "EAST OOTSA",
+      "lat": "53.5024330",
+      "long": "-125.7793167",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "391",
+      "name": "EIGHT MILE",
+      "lat": "49.4328333",
+      "long": "-118.5783333",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "438",
+      "name": "ELK MOUNTAIN",
+      "lat": "59.3336944",
+      "long": "-125.5113889",
+      "ecodivision_name": "SUB-ARCTIC HIGHLANDS",
+      "core_season": {
+        "start_month": "6",
+        "start_day": "1",
+        "end_month": "8",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "412",
+      "name": "ELKO",
+      "lat": "49.2876667",
+      "long": "-115.1545556",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "425",
+      "name": "EMILY CREEK",
+      "lat": "50.1450800",
+      "long": "-115.9772300",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "383",
+      "name": "FALLS CREEK",
+      "lat": "50.3830000",
+      "long": "-117.8799000",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "298",
+      "name": "FINTRY",
+      "lat": "50.2066667",
+      "long": "-119.4800000",
+      "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "1",
+        "end_month": "9",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "440",
+      "name": "FIRESIDE",
+      "lat": "59.7226667",
+      "long": "-127.3351389",
+      "ecodivision_name": "SUB-ARCTIC HIGHLANDS",
+      "core_season": {
+        "start_month": "6",
+        "start_day": "1",
+        "end_month": "8",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "1029",
+      "name": "FIVE MILE",
+      "lat": "50.9108861",
+      "long": "-122.6888889",
+      "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "1",
+        "end_month": "9",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "418",
+      "name": "FLATHEAD 2",
+      "lat": "49.0791389",
+      "long": "-114.5373389",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "1144",
+      "name": "FORD MOUNTAIN",
+      "lat": "49.1040278",
+      "long": "-121.6375278",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "1377",
+      "name": "FORRESTKERR",
+      "lat": "56.7116389",
+      "long": "-130.6783611",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "599",
+      "name": "FORT NELSON FS",
+      "lat": "58.8418889",
+      "long": "-122.5735000",
+      "ecodivision_name": "SUB-ARCTIC",
+      "core_season": {
+        "start_month": "6",
+        "start_day": "1",
+        "end_month": "8",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "146",
+      "name": "FORT ST JAMES",
+      "lat": "54.3940833",
+      "long": "-124.2609722",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "1339",
+      "name": "FOUR BARREL TEST",
+      "lat": "49.9694833",
+      "long": "-121.5162778",
+      "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "1",
+        "end_month": "9",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "1375",
+      "name": "FRANK CREEK",
+      "lat": "49.8744444",
+      "long": "-122.2811111",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "306",
+      "name": "FRENCH BAR",
+      "lat": "51.1774667",
+      "long": "-122.2489333",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "182",
+      "name": "GANOKWA",
+      "lat": "54.8012330",
+      "long": "-126.9483167",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "222",
+      "name": "GASPARD",
+      "lat": "51.4516667",
+      "long": "-122.6616667",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "227",
+      "name": "GAVIN",
+      "lat": "52.4700000",
+      "long": "-121.7416667",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "291",
+      "name": "GLIMPSE",
+      "lat": "50.2704500",
+      "long": "-120.2883000",
+      "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "1",
+        "end_month": "9",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "401",
+      "name": "GOATFELL",
+      "lat": "49.1253333",
+      "long": "-116.1638333",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "886",
+      "name": "GOATHAVEN",
+      "lat": "49.6673000",
+      "long": "-115.2144444",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "379",
+      "name": "GOLD HILL",
+      "lat": "50.3658333",
+      "long": "-117.0645000",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "919",
+      "name": "GOLDSTREAM 2",
+      "lat": "51.6694300",
+      "long": "-118.4870670",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "270",
+      "name": "GOSNEL",
+      "lat": "52.4526000",
+      "long": "-119.1753330",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "124",
+      "name": "GRAHAM",
+      "lat": "56.4346389",
+      "long": "-122.4576667",
+      "ecodivision_name": "BOREAL",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "392",
+      "name": "GRAND FORKS",
+      "lat": "49.0307000",
+      "long": "-118.4156000",
+      "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "1",
+        "end_month": "9",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "161",
+      "name": "GRASSY PLAINS HUB",
+      "lat": "53.9453830",
+      "long": "-125.8760667",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "321",
+      "name": "GREENSTONE HUB",
+      "lat": "50.6112670",
+      "long": "-120.6415500",
+      "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "1",
+        "end_month": "9",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "1332",
+      "name": "GRIZZLY EXT",
+      "lat": "49.2700000",
+      "long": "-119.2202778",
+      "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "1",
+        "end_month": "9",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "309",
+      "name": "GWYNETH LAKE",
+      "lat": "50.7963333",
+      "long": "-122.8804667",
+      "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "1",
+        "end_month": "9",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "904",
+      "name": "HAGENSBORG 2",
+      "lat": "52.3872500",
+      "long": "-126.5897167",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "67",
+      "name": "HAIG CAMP",
+      "lat": "49.3806000",
+      "long": "-121.5259667",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "250",
+      "name": "HARBOUR LAKE",
+      "lat": "51.5226670",
+      "long": "-119.1133500",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "118",
+      "name": "HELMUT",
+      "lat": "59.4210000",
+      "long": "-120.7889167",
+      "ecodivision_name": "SUB-ARCTIC",
+      "core_season": {
+        "start_month": "6",
+        "start_day": "1",
+        "end_month": "8",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "187",
+      "name": "HIXON",
+      "lat": "53.4112778",
+      "long": "-122.5957500",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "201",
+      "name": "HOLMES",
+      "lat": "53.3454300",
+      "long": "-119.7132300",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "654",
+      "name": "HOLY CROSS 2",
+      "lat": "53.9359722",
+      "long": "-124.7767222",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "1349",
+      "name": "HOMATHKO",
+      "lat": "51.1018700",
+      "long": "-124.9501810",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "93",
+      "name": "HONNA",
+      "lat": "53.2532000",
+      "long": "-132.1156200",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "230",
+      "name": "HORSEFLY",
+      "lat": "52.3300000",
+      "long": "-121.3966667",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "162",
+      "name": "HOUSTON",
+      "lat": "54.3939000",
+      "long": "-126.6175667",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "343",
+      "name": "HOWARD",
+      "lat": "52.3720800",
+      "long": "-118.6602778",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "132",
+      "name": "HUDSON HOPE",
+      "lat": "56.0347000",
+      "long": "-121.9902100",
+      "ecodivision_name": "BOREAL",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "876",
+      "name": "IDABEL LAKE 3",
+      "lat": "49.7672170",
+      "long": "-119.1240670",
+      "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "1",
+        "end_month": "9",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "145",
+      "name": "INGENIKA POINT",
+      "lat": "57.0194167",
+      "long": "-125.1803889",
+      "ecodivision_name": "SUB-ARCTIC HIGHLANDS",
+      "core_season": {
+        "start_month": "6",
+        "start_day": "1",
+        "end_month": "8",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "1331",
+      "name": "INKANEEP EXT",
+      "lat": "49.1046111",
+      "long": "-119.3914167",
+      "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "1",
+        "end_month": "9",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "112",
+      "name": "ISKUT",
+      "lat": "57.8615000",
+      "long": "-130.0182500",
+      "ecodivision_name": "SUB-ARCTIC HIGHLANDS",
+      "core_season": {
+        "start_month": "6",
+        "start_day": "1",
+        "end_month": "8",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "190",
+      "name": "JERRY",
+      "lat": "53.5259444",
+      "long": "-122.1055000",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "419",
+      "name": "JOHNSON LAKE",
+      "lat": "49.9444444",
+      "long": "-115.7583333",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "444",
+      "name": "KETCHIKA",
+      "lat": "58.7269800",
+      "long": "-127.1249600",
+      "ecodivision_name": "SUB-ARCTIC HIGHLANDS",
+      "core_season": {
+        "start_month": "6",
+        "start_day": "1",
+        "end_month": "8",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "388",
+      "name": "KETTLE 2",
+      "lat": "49.9599833",
+      "long": "-118.6260333",
+      "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "1",
+        "end_month": "9",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "428",
+      "name": "KISPIOX HUB",
+      "lat": "55.4343000",
+      "long": "-127.6487000",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "106",
+      "name": "KITPARK",
+      "lat": "54.1696000",
+      "long": "-128.5758500",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "1348",
+      "name": "KLINAKLINI",
+      "lat": "51.3800200",
+      "long": "-125.7695300",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "166",
+      "name": "KLUSKUS",
+      "lat": "53.3830500",
+      "long": "-124.5120800",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "225",
+      "name": "KNIFE",
+      "lat": "52.0497200",
+      "long": "-121.8738300",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "1075",
+      "name": "KOOCANUSA",
+      "lat": "49.0469444",
+      "long": "-115.2252778",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "1323",
+      "name": "LARCH HILLS WEST",
+      "lat": "50.6905556",
+      "long": "-119.1761111",
+      "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "1",
+        "end_month": "9",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "1281",
+      "name": "LAVINA QD #4",
+      "lat": "50.4063889",
+      "long": "-117.1452778",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "307",
+      "name": "LEIGHTON LAKE",
+      "lat": "50.6152500",
+      "long": "-120.8361000",
+      "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "1",
+        "end_month": "9",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "140",
+      "name": "LEMORAY",
+      "lat": "55.5249800",
+      "long": "-122.5171000",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "171",
+      "name": "LEO CREEK",
+      "lat": "55.0818300",
+      "long": "-125.4774000",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "255",
+      "name": "LIKELY RS",
+      "lat": "52.6150000",
+      "long": "-121.5133333",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "280",
+      "name": "LILLOOET",
+      "lat": "50.6720167",
+      "long": "-121.8881833",
+      "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "1",
+        "end_month": "9",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "1330",
+      "name": "LODESTONE EXT",
+      "lat": "49.4696944",
+      "long": "-120.7925000",
+      "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "1",
+        "end_month": "9",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "218",
+      "name": "LONE BUTTE",
+      "lat": "51.5070000",
+      "long": "-121.1620000",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "163",
+      "name": "LOVELL COVE",
+      "lat": "55.6882222",
+      "long": "-126.0526111",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "1350",
+      "name": "LOWER CAIN",
+      "lat": "50.2257500",
+      "long": "-126.3563000",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "362",
+      "name": "MABEL LAKE 2",
+      "lat": "50.3516667",
+      "long": "-118.7733333",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "101",
+      "name": "MACHMELL",
+      "lat": "51.5931167",
+      "long": "-126.4507667",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "1276",
+      "name": "MACHMELL KLINIKLINI",
+      "lat": "51.6555806",
+      "long": "-126.1407444",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "155",
+      "name": "MACKENZIE FS",
+      "lat": "55.3221111",
+      "long": "-123.0931667",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "141",
+      "name": "MANSON",
+      "lat": "55.5798800",
+      "long": "-124.2319800",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "367",
+      "name": "MARION",
+      "lat": "51.0421667",
+      "long": "-116.3638333",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "263",
+      "name": "MATHEW",
+      "lat": "52.9100000",
+      "long": "-120.9116667",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "1082",
+      "name": "MAYSON",
+      "lat": "51.2111111",
+      "long": "-120.4119722",
+      "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "1",
+        "end_month": "9",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "195",
+      "name": "MCBRIDE",
+      "lat": "53.2948333",
+      "long": "-120.1527778",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "180",
+      "name": "MCBRIDE LAKE",
+      "lat": "54.0747330",
+      "long": "-127.3994167",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "334",
+      "name": "MCCUDDY",
+      "lat": "49.1483333",
+      "long": "-119.4150000",
+      "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "1",
+        "end_month": "9",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "192",
+      "name": "MCGREGOR 2",
+      "lat": "53.9288889",
+      "long": "-120.6356944",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "311",
+      "name": "MCLEAN LAKE",
+      "lat": "50.7923000",
+      "long": "-121.3581500",
+      "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "1",
+        "end_month": "9",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "153",
+      "name": "MCLEOD LAKE",
+      "lat": "54.7255278",
+      "long": "-123.0786667",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "236",
+      "name": "MEADOW LAKE",
+      "lat": "51.3750000",
+      "long": "-121.7166667",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "1083",
+      "name": "MEAGER CREEK",
+      "lat": "50.6197222",
+      "long": "-123.4100000",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "19",
+      "name": "MENZIES CAMP",
+      "lat": "50.0486333",
+      "long": "-125.7886667",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "294",
+      "name": "MERRITT HUB",
+      "lat": "50.0874500",
+      "long": "-120.7457300",
+      "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "1",
+        "end_month": "9",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "934",
+      "name": "MESACHIE 2",
+      "lat": "48.8228833",
+      "long": "-124.1370833",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "226",
+      "name": "MIDDLE LAKE",
+      "lat": "51.7016667",
+      "long": "-124.8750000",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "165",
+      "name": "MOOSE LAKE",
+      "lat": "53.0714600",
+      "long": "-125.4121500",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "1176",
+      "name": "MUDPIT",
+      "lat": "51.3130833",
+      "long": "-119.3924722",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "131",
+      "name": "MUSKWA",
+      "lat": "57.8842500",
+      "long": "-123.6163000",
+      "ecodivision_name": "SUB-ARCTIC",
+      "core_season": {
+        "start_month": "6",
+        "start_day": "1",
+        "end_month": "8",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "151",
+      "name": "NABESHE",
+      "lat": "56.3643300",
+      "long": "-123.3655600",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "179",
+      "name": "NADINA",
+      "lat": "53.9424830",
+      "long": "-126.9278167",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "316",
+      "name": "NAHATLATCH",
+      "lat": "49.9017800",
+      "long": "-122.0207000",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "407",
+      "name": "NANCY GREEN",
+      "lat": "49.2545000",
+      "long": "-117.9941667",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "1251",
+      "name": "NARROWS INLET",
+      "lat": "49.7517750",
+      "long": "-123.7051389",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "427",
+      "name": "NASS CAMP",
+      "lat": "55.2886000",
+      "long": "-128.9984500",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "211",
+      "name": "NAZKO",
+      "lat": "52.9575000",
+      "long": "-123.5958000",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "789",
+      "name": "NEGRO CREEK",
+      "lat": "49.4539000",
+      "long": "-115.9872000",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "119",
+      "name": "NELSON FORKS",
+      "lat": "59.6172800",
+      "long": "-124.0985100",
+      "ecodivision_name": "SUB-ARCTIC",
+      "core_season": {
+        "start_month": "6",
+        "start_day": "1",
+        "end_month": "8",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "216",
+      "name": "NEMIAH",
+      "lat": "51.4800000",
+      "long": "-123.8183333",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "393",
+      "name": "NICOLL",
+      "lat": "49.5266667",
+      "long": "-118.3603333",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "172",
+      "name": "NILKITKWA",
+      "lat": "55.5378500",
+      "long": "-126.5774500",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "437",
+      "name": "NOEL",
+      "lat": "55.2957600",
+      "long": "-120.4860600",
+      "ecodivision_name": "BOREAL",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "173",
+      "name": "NORTH BABINE",
+      "lat": "55.1345167",
+      "long": "-126.2072667",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "159",
+      "name": "NORTH CHILCO",
+      "lat": "54.1546300",
+      "long": "-123.7541300",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "396",
+      "name": "OCTOPUS CREEK",
+      "lat": "49.6990000",
+      "long": "-118.0810000",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "1270",
+      "name": "OLD FADDY",
+      "lat": "59.8928000",
+      "long": "-129.0933333",
+      "ecodivision_name": "SUB-ARCTIC HIGHLANDS",
+      "core_season": {
+        "start_month": "6",
+        "start_day": "1",
+        "end_month": "8",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "1045",
+      "name": "OSBORN",
+      "lat": "56.5583333",
+      "long": "-120.3819444",
+      "ecodivision_name": "BOREAL",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "121",
+      "name": "PADDY",
+      "lat": "57.7818100",
+      "long": "-120.2368000",
+      "ecodivision_name": "BOREAL",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "411",
+      "name": "PALLISER",
+      "lat": "50.4946111",
+      "long": "-115.6664444",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "183",
+      "name": "PARROTT",
+      "lat": "54.0186667",
+      "long": "-126.3888889",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "326",
+      "name": "PASKA LAKE",
+      "lat": "50.5040000",
+      "long": "-120.6740000",
+      "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "1",
+        "end_month": "9",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "178",
+      "name": "PEDEN",
+      "lat": "53.9867430",
+      "long": "-126.5172230",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "301",
+      "name": "PEMBERTON BASE",
+      "lat": "50.3059333",
+      "long": "-122.7287833",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "402",
+      "name": "PENDOREILLE",
+      "lat": "49.0505556",
+      "long": "-117.4138889",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "328",
+      "name": "PENTICTON RS",
+      "lat": "49.5183333",
+      "long": "-119.5533333",
+      "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "1",
+        "end_month": "9",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "1248",
+      "name": "PG CENTRAL",
+      "lat": "53.9024900",
+      "long": "-122.7962390",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "938",
+      "name": "PINE CREEK",
+      "lat": "54.6837830",
+      "long": "-127.3258167",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "129",
+      "name": "PINK MOUNTAIN",
+      "lat": "57.0875278",
+      "long": "-122.5909722",
+      "ecodivision_name": "SUB-ARCTIC",
+      "core_season": {
+        "start_month": "6",
+        "start_day": "1",
+        "end_month": "8",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "212",
+      "name": "PLACE LAKE",
+      "lat": "51.8166667",
+      "long": "-122.0000000",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "1387",
+      "name": "PLUMMER HUT",
+      "lat": "51.3735000",
+      "long": "-125.1645000",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "380",
+      "name": "POWDER CREEK",
+      "lat": "49.9065000",
+      "long": "-116.8551000",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "1218",
+      "name": "POWELL RIVER WEST LAKE",
+      "lat": "49.8180556",
+      "long": "-124.4494444",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "264",
+      "name": "PRAIRIE CREEK",
+      "lat": "52.3916667",
+      "long": "-120.9850000",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "1093",
+      "name": "QUINSAM BASE FWX (TRIAL)",
+      "lat": "50.0273000",
+      "long": "-125.2940660",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "138",
+      "name": "RED DEER",
+      "lat": "54.6330300",
+      "long": "-120.5762100",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "363",
+      "name": "REVELSTOKE",
+      "lat": "51.0603333",
+      "long": "-118.2171667",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "210",
+      "name": "RISKE CREEK",
+      "lat": "51.9594444",
+      "long": "-122.5041667",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "394",
+      "name": "ROCK CREEK",
+      "lat": "49.0520000",
+      "long": "-118.9366667",
+      "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "1",
+        "end_month": "9",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "1092",
+      "name": "RORY CREEK",
+      "lat": "50.6126167",
+      "long": "-116.7933167",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "105",
+      "name": "ROSSWOOD",
+      "lat": "54.9167330",
+      "long": "-128.8598000",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "788",
+      "name": "ROUND PRAIRIE",
+      "lat": "50.0820300",
+      "long": "-114.9004000",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "346",
+      "name": "SALMON ARM",
+      "lat": "50.6850000",
+      "long": "-119.2350000",
+      "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "1",
+        "end_month": "9",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "45",
+      "name": "SALTSPRING 2",
+      "lat": "48.7728889",
+      "long": "-123.4744167",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "1345",
+      "name": "SAWTOOTH",
+      "lat": "55.3072222",
+      "long": "-125.3666667",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "82",
+      "name": "SCAR CREEK",
+      "lat": "51.1891111",
+      "long": "-125.0280556",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "1165",
+      "name": "SEVEREID",
+      "lat": "54.1695700",
+      "long": "-121.6516800",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "344",
+      "name": "SEYMOUR ARM",
+      "lat": "51.2735170",
+      "long": "-118.9147000",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "555",
+      "name": "SEYMOUR GVRD",
+      "lat": "49.4830000",
+      "long": "-122.9500000",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "882",
+      "name": "SICAMOUS",
+      "lat": "50.8634670",
+      "long": "-119.0028500",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "117",
+      "name": "SIERRA",
+      "lat": "58.8381100",
+      "long": "-121.3966600",
+      "ecodivision_name": "SUB-ARCTIC",
+      "core_season": {
+        "start_month": "6",
+        "start_day": "1",
+        "end_month": "8",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "152",
+      "name": "SIFTON",
+      "lat": "57.8517500",
+      "long": "-126.1167600",
+      "ecodivision_name": "SUB-ARCTIC HIGHLANDS",
+      "core_season": {
+        "start_month": "6",
+        "start_day": "1",
+        "end_month": "8",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "120",
+      "name": "SILVER",
+      "lat": "57.4967800",
+      "long": "-121.2969500",
+      "ecodivision_name": "BOREAL",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "1024",
+      "name": "SKOONKA",
+      "lat": "50.4386944",
+      "long": "-121.5515000",
+      "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "1",
+        "end_month": "9",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "406",
+      "name": "SLOCAN",
+      "lat": "49.7846667",
+      "long": "-117.4400000",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "404",
+      "name": "SMALLWOOD",
+      "lat": "49.4966667",
+      "long": "-117.4475000",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "305",
+      "name": "SPARKS LAKE",
+      "lat": "50.9237000",
+      "long": "-120.8671500",
+      "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "1",
+        "end_month": "9",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "1055",
+      "name": "SPLINTLUM",
+      "lat": "50.3511111",
+      "long": "-121.6549500",
+      "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "1",
+        "end_month": "9",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "1359",
+      "name": "STATION BAY 2",
+      "lat": "50.4972222",
+      "long": "-119.7269444",
+      "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "1",
+        "end_month": "9",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "374",
+      "name": "SUCCOUR CREEK",
+      "lat": "51.7161667",
+      "long": "-117.5416667",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "11",
+      "name": "SUMMIT",
+      "lat": "48.9275667",
+      "long": "-124.6469000",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "156",
+      "name": "SUSTUT",
+      "lat": "56.3287300",
+      "long": "-127.0342500",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "144",
+      "name": "TABLE RIVER",
+      "lat": "54.7161667",
+      "long": "-122.2741667",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "233",
+      "name": "TALCHAKO",
+      "lat": "52.2513500",
+      "long": "-126.0283667",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "208",
+      "name": "TATLA LAKE HUB",
+      "lat": "51.9066667",
+      "long": "-124.6050000",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "206",
+      "name": "TAUTRI",
+      "lat": "52.5422222",
+      "long": "-123.3500000",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "110",
+      "name": "TELEGRAPH CREEK",
+      "lat": "57.9141330",
+      "long": "-131.1711500",
+      "ecodivision_name": "SUB-ARCTIC HIGHLANDS",
+      "core_season": {
+        "start_month": "6",
+        "start_day": "1",
+        "end_month": "8",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "279",
+      "name": "THYNNE",
+      "lat": "49.7151500",
+      "long": "-120.8660500",
+      "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "1",
+        "end_month": "9",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "234",
+      "name": "TIMOTHY",
+      "lat": "51.9130000",
+      "long": "-121.3890000",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "126",
+      "name": "TOAD RIVER",
+      "lat": "58.8658500",
+      "long": "-125.3107000",
+      "ecodivision_name": "SUB-ARCTIC HIGHLANDS",
+      "core_season": {
+        "start_month": "6",
+        "start_day": "1",
+        "end_month": "8",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "75",
+      "name": "TOBA CAMP",
+      "lat": "50.5710000",
+      "long": "-124.0771667",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "417",
+      "name": "TOBY HUB",
+      "lat": "50.5128333",
+      "long": "-116.0553333",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "387",
+      "name": "TROUT LAKE",
+      "lat": "50.6052778",
+      "long": "-117.4272222",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "995",
+      "name": "TS ARTLISH",
+      "lat": "50.1324167",
+      "long": "-126.9282333",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "1378",
+      "name": "TS ATLUCK",
+      "lat": "50.2678056",
+      "long": "-127.0796111",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "1362",
+      "name": "TS BURMAN",
+      "lat": "49.6102222",
+      "long": "-126.0326972",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "956",
+      "name": "TS EFFINGHAM",
+      "lat": "49.1700000",
+      "long": "-125.2825000",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "1002",
+      "name": "TS ELPHINSTONE",
+      "lat": "49.4280472",
+      "long": "-123.5648400",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "1056",
+      "name": "TS MAURELLE",
+      "lat": "50.2709167",
+      "long": "-125.1308889",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "1066",
+      "name": "TS MCNABB",
+      "lat": "49.5855000",
+      "long": "-123.3872167",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "945",
+      "name": "TS NAKA CREEK",
+      "lat": "50.3701333",
+      "long": "-126.4339333",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "944",
+      "name": "TS SAN JUAN",
+      "lat": "48.5711111",
+      "long": "-124.2005556",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "1025",
+      "name": "TS THEODOSIA",
+      "lat": "50.1035000",
+      "long": "-124.6146944",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "361",
+      "name": "TSAR CREEK",
+      "lat": "51.9972200",
+      "long": "-118.1025000",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "127",
+      "name": "TUMBLER(DENISON) HUB",
+      "lat": "55.0273600",
+      "long": "-120.9340500",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "286",
+      "name": "TURTLE",
+      "lat": "50.8033333",
+      "long": "-119.6300000",
+      "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "1",
+        "end_month": "9",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "72",
+      "name": "UBC RESEARCH",
+      "lat": "49.2645000",
+      "long": "-122.5732833",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "169",
+      "name": "UPPER FULTON",
+      "lat": "55.0339500",
+      "long": "-126.7996670",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "431",
+      "name": "UPPER KISPIOX",
+      "lat": "55.6014500",
+      "long": "-128.0477830",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "200",
+      "name": "VALEMOUNT 2",
+      "lat": "52.7880500",
+      "long": "-119.3148100",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "1268",
+      "name": "VALEMOUNT AIRPORT",
+      "lat": "52.8597222",
+      "long": "-119.3386111",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "430",
+      "name": "VAN DYKE",
+      "lat": "56.0127250",
+      "long": "-129.0998083",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "158",
+      "name": "VANDERHOOF HUB",
+      "lat": "54.0558056",
+      "long": "-124.0088611",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "447",
+      "name": "WATSON LAKE FS",
+      "lat": "60.0618000",
+      "long": "-128.7179330",
+      "ecodivision_name": "SUB-ARCTIC HIGHLANDS",
+      "core_season": {
+        "start_month": "6",
+        "start_day": "1",
+        "end_month": "8",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "266",
+      "name": "WELLS GRAY",
+      "lat": "52.3426330",
+      "long": "-120.2437500",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "1277",
+      "name": "WEST KELOWNA",
+      "lat": "49.8832000",
+      "long": "-119.5695000",
+      "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "1",
+        "end_month": "9",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "366",
+      "name": "WHISKEY",
+      "lat": "51.0653333",
+      "long": "-116.7850000",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "790",
+      "name": "WHITE RIVER",
+      "lat": "50.1850000",
+      "long": "-115.2676389",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "1326",
+      "name": "WILLIS EXT",
+      "lat": "49.3393056",
+      "long": "-120.4070556",
+      "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "1",
+        "end_month": "9",
+        "end_day": "15"
+      }
+    },
+    {
+      "code": "244",
+      "name": "WINDY MOUNTAIN",
+      "lat": "51.6700000",
+      "long": "-120.6500000",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "154",
+      "name": "WITCH",
+      "lat": "55.0230300",
+      "long": "-124.2666111",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "136",
+      "name": "WONOWON",
+      "lat": "56.7185000",
+      "long": "-121.7654300",
+      "ecodivision_name": "BOREAL",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "21",
+      "name": "WOSS CAMP",
+      "lat": "50.2131167",
+      "long": "-126.6070500",
+      "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    },
+    {
+      "code": "235",
+      "name": "YOUNG LAKE",
+      "lat": "51.2377700",
+      "long": "-120.9976200",
+      "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+      "core_season": {
+        "start_month": "5",
+        "start_day": "15",
+        "end_month": "8",
+        "end_day": "31"
+      }
+    }
+  ]
+}

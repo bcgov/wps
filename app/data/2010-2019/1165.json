@@ -1,0 +1,25 @@
+{
+    "ffmc": 91.4232,
+    "isi": 7.74264,
+    "bui": 59.93729,
+    "years": [
+        2014,
+        2015,
+        2016,
+        2017,
+        2018
+    ],
+    "station": {
+        "code": "1165",
+        "name": "SEVEREID",
+        "lat": "54.1695700",
+        "long": "-121.6516800",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

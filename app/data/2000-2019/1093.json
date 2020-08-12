@@ -1,0 +1,28 @@
+{
+    "ffmc": 90.4068,
+    "isi": 6.11243,
+    "bui": 118.89329,
+    "years": [
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018
+    ],
+    "station": {
+        "code": "1093",
+        "name": "QUINSAM BASE FWX (TRIAL)",
+        "lat": "50.0273000",
+        "long": "-125.2940660",
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

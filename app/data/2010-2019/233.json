@@ -1,0 +1,29 @@
+{
+    "ffmc": 93.4045,
+    "isi": 9.43943,
+    "bui": 161.81889,
+    "years": [
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018
+    ],
+    "station": {
+        "code": "233",
+        "name": "TALCHAKO",
+        "lat": "52.2513500",
+        "long": "-126.0283667",
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

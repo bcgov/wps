@@ -1,0 +1,29 @@
+{
+    "ffmc": 90.54218,
+    "isi": 6.57128,
+    "bui": 106.98849,
+    "years": [
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018
+    ],
+    "station": {
+        "code": "1025",
+        "name": "TS THEODOSIA",
+        "lat": "50.1035000",
+        "long": "-124.6146944",
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

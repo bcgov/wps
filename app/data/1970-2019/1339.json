@@ -1,0 +1,21 @@
+{
+    "ffmc": 92.33617,
+    "isi": 8.69538,
+    "bui": 96.35887,
+    "years": [
+        2019
+    ],
+    "station": {
+        "code": "1339",
+        "name": "FOUR BARREL TEST",
+        "lat": "49.9694833",
+        "long": "-121.5162778",
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
+    }
+}
