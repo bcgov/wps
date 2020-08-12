@@ -132,8 +132,11 @@ def download(url: str, path: str) -> str:
     # Construct target location for downloaded file.
     target = os.path.join(os.getcwd(), path, filename)
     # Get the file.
+    # It's important to have a timeout on the get, otherwise the call may get stuck for an indefinite
+    # amount of time - there is no default value for timeout. During testing, it was observed that
+    # downloads usually complete in less than a second.
     logger.info('downloading %s', url)
-    response = requests.get(url)
+    response = requests.get(url, timeout=60)
     # If the response is 200/OK.
     if response.status_code == 200:
         # Store the response.

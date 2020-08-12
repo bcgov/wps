@@ -59,7 +59,7 @@ def mock_session(monkeypatch):
 @pytest.fixture()
 def mock_download(monkeypatch):
     """ fixture for env_canada.download """
-    def mock_requests_get(*args):
+    def mock_requests_get(*args, **kwargs):
         """ mock env_canada download method """
         dirname = os.path.dirname(os.path.realpath(__file__))
         filename = os.path.join(
@@ -73,7 +73,7 @@ def mock_download(monkeypatch):
 @pytest.fixture()
 def mock_download_fail(monkeypatch):
     """ fixture for env_canada.download """
-    def mock_requests_get(*args):
+    def mock_requests_get(*args, **kwargs):
         """ mock env_canada download method """
         return MockResponse(status_code=400)
     monkeypatch.setattr(requests, 'get', mock_requests_get)
