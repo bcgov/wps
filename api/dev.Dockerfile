@@ -29,7 +29,7 @@ RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-
     poetry config virtualenvs.create false
 
 # Copy poetry files.
-COPY pyproject.toml poetry.lock /tmp/
+COPY ./pyproject.toml ./poetry.lock /tmp/
 
 # Install dependancies.
 RUN cd /tmp && \

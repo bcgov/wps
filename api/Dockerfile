@@ -26,7 +26,7 @@ RUN cd /tmp && \
     poetry config virtualenvs.create false
 
 # Copy poetry files.
-COPY pyproject.toml poetry.lock /tmp/
+COPY ./pyproject.toml ./poetry.lock /tmp/
 
 # Install dependancies.
 RUN cd /tmp && \
