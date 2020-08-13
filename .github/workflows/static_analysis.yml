@@ -52,7 +52,7 @@ jobs:
           /opt/poetry/bin/poetry install --no-root
 
       - name: Unit Test (with coverage)
-        run: ORIGINS=testorigin coverage run --source=app -m pytest -o log_cli=true --disable-warnings --verbose
+        run: ORIGINS=testorigin coverage run --source=api/app -m pytest -o log_cli=true --disable-warnings --verbose
 
       - name: Create coverage report
         shell: bash
