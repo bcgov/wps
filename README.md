@@ -1,4 +1,4 @@
-# Wildfire Predictive Services Unit API & Web
+# Wildfire Predictive Services Unit API
 
 ## Description
 

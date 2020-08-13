@@ -61,7 +61,7 @@ jobs:
         shell: bash
         run: |
           coverage report
-          coverage xml -o coverage-reports/coverage-report.xml
+          coverage xml -o api/coverage-reports/coverage-report.xml
 
       - name: SonarCloud Scan
         uses: sonarsource/sonarcloud-github-action@master
