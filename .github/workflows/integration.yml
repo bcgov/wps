@@ -52,7 +52,7 @@ jobs:
           /opt/poetry/bin/poetry install --no-root
 
       - name: Lint
-        run: python3 -m pylint --rcfile=.pylintrc api/app/*.py api/app/**/*.py
+        run: python3 -m pylint --rcfile=api/.pylintrc api/app/*.py api/app/**/*.py
 
       - name: Unit Test (with coverage)
         run: ORIGINS=testorigin coverage run --source=api/app -m pytest -o log_cli=true --disable-warnings --verbose
