@@ -61,12 +61,11 @@ objects:
           cpu: "1"
           memory: 1Gi
       source:
+        type: Git
         git:
           uri: ${GIT_URL}
           ref: origin/${GIT_BRANCH}
-        type: Git
+        contextDir: api
       strategy:
         type: Docker
-        dockerStrategy:
-          dockerfilePath: api/Dockerfile
       triggers: []
