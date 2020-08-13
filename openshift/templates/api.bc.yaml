@@ -4,13 +4,13 @@ metadata:
   name: ${NAME}
   annotations:
     openshift.io/display-name: "wps-api"
-    description: "Wildfire Predictive Services - Fire Weather Index API"
-    openshift.io/long-description: "Wildfire Predictive Services - Fire Weather Index API"
+    description: "Wildfire Predictive Services - API"
+    openshift.io/long-description: "Wildfire Predictive Services - API"
     tags: "wps,wps-api"
     iconClass: icon-js
     openshift.io/provider-display-name: "Government of British Columbia"
-    openshift.io/documentation-url: "https://github.com/bcgov/wps-api"
-    openshift.io/support-url: "https://github.com/bcgov/wps-api"
+    openshift.io/documentation-url: "https://github.com/bcgov/wps"
+    openshift.io/support-url: "https://github.com/bcgov/wps"
 labels:
   app.kubernetes.io/part-of: "${NAME}"
   app: ${NAME}-${SUFFIX}
@@ -22,7 +22,7 @@ parameters:
     description: Deployment suffix, e.g. pr-### or prod
     required: true
   - name: GIT_URL
-    value: https://github.com/bcgov/wps-api.git
+    value: https://github.com/bcgov/wps.git
   - name: GIT_BRANCH
     description: PR branch
     required: true

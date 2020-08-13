@@ -9,8 +9,8 @@ metadata:
     tags: "wps,wps-api"
     iconClass: icon-js
     openshift.io/provider-display-name: "Government of British Columbia"
-    openshift.io/documentation-url: "https://github.com/bcgov/wps-api"
-    openshift.io/support-url: "https://github.com/bcgov/wps-api"
+    openshift.io/documentation-url: "https://github.com/bcgov/wps"
+    openshift.io/support-url: "https://github.com/bcgov/wps"
 labels:
   app.kubernetes.io/part-of: "${NAME}"
   app: ${NAME}-${SUFFIX}
