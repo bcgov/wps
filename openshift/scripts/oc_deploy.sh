@@ -30,7 +30,7 @@ PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 
 # Process a template (mostly variable substition)
 #
-OC_PROCESS="oc -n ${PROJ_TOOLS} process -f ${PATH_DC} \
+OC_PROCESS="oc -n ${PROJ_TOOLS} process -f ${PATH_API_DC} \
  -p NAME=${NAME_APP} \
  -p SUFFIX=${SUFFIX} \
  ${CPU_REQUEST:+ "-p CPU_REQUEST=${CPU_REQUEST}"} \

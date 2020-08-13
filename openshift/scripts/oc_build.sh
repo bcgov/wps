@@ -23,7 +23,7 @@ source "$(dirname ${0})/common/common"
 
 # Process a template (mostly variable substition)
 #
-OC_PROCESS="oc -n ${PROJ_TOOLS} process -f ${PATH_BC} -p NAME=${NAME_APP} -p SUFFIX=${SUFFIX} -p GIT_BRANCH=${GIT_BRANCH}"
+OC_PROCESS="oc -n ${PROJ_TOOLS} process -f ${PATH_API_BC} -p NAME=${NAME_APP} -p SUFFIX=${SUFFIX} -p GIT_BRANCH=${GIT_BRANCH}"
 
 # Apply a template (apply or use --dry-run)
 #
