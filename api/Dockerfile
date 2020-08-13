@@ -36,9 +36,8 @@ RUN cd /tmp && \
 COPY ./app /app/app
 # Copy almebic:
 COPY ./alembic /app/alembic
-COPY ./alembic.ini /app
 # Copy pre-start.sh (it will be run on startup):
-COPY ./prestart.sh /app
+COPY ./alembic.ini ./prestart.sh /app/
 
 # The fastapi docker image defaults to port 80, but openshift doesn't allow non-root users port 80.
 EXPOSE 8080

@@ -2,10 +2,11 @@
 **/*.csv
 **/*.grib2
 grib
-csv
 .vscode
 .github
 .ipynb_checkpoints
-.vscode
+*.ipynb
+coverage-reports
+.coverage
 **/__pycache__
 **/*.pyc
