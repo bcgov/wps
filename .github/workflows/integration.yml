@@ -47,7 +47,7 @@ jobs:
 
       - name: Install python dependencies
         run: |
-          cp pyproject.toml poetry.lock /tmp/
+          cp api/pyproject.toml api/poetry.lock /tmp/
           cd /tmp
           /opt/poetry/bin/poetry install --no-root
 
