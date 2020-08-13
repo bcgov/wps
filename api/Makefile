@@ -75,7 +75,7 @@ run-env-canada-raw:
 	POSTGRES_HOST=localhost python -m app.models.env_canada
 
 run-bender:
-	poetry run python -m app.fireweather_bot
+	poetry run python -m app.models.fireweather_bot
 
 notebook:
 	# Run jupyter notebooks.
@@ -118,3 +118,9 @@ docker-build:
 docker-run:
 	# Run api in production mode, in docker.
 	docker-compose up
+
+docker-run-env-canada-raw:
+	docker-compose exec api python -m app.models.env_canada
+
+docker-run-bender:
+	docker-compose exec api python -m app.models.fireweather_bot
