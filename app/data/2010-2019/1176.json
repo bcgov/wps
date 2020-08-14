@@ -1,0 +1,25 @@
+{
+    "ffmc": 93.64478,
+    "isi": 10.34134,
+    "bui": 111.62084,
+    "years": [
+        2014,
+        2015,
+        2016,
+        2017,
+        2018
+    ],
+    "station": {
+        "code": "1176",
+        "name": "MUDPIT",
+        "lat": "51.3130833",
+        "long": "-119.3924722",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

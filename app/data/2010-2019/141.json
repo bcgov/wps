@@ -1,0 +1,29 @@
+{
+    "ffmc": 92.60596,
+    "isi": 8.70831,
+    "bui": 91.81687,
+    "years": [
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018
+    ],
+    "station": {
+        "code": "141",
+        "name": "MANSON",
+        "lat": "55.5798800",
+        "long": "-124.2319800",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

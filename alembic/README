@@ -1,0 +1,75 @@
+# Using Alembic for Database Migrations
+
+## Installing Alembic
+
+The Alembic package is managed through poetry. To install Alembic on your local machine, simply run 
+```bash
+poetry install
+```
+
+## Creating a New Migration
+
+To generate a migration, run the command 
+```bash
+poetry run alembic revision -m "<revision-name>"
+```
+
+This command will create a new file called '< guid >_revision_name.py' inside the `/alembic/versions/` directory. The GUID is an auto-generated string of alphanumeric characters.
+Inside the python script for the revision, you must replace the placeholder code with your desired functionality for the `upgrade()` and `downgrade()` methods.
+
+For more documentation on how to write these methods, view the [tutorial for creating a migration script](https://alembic.sqlalchemy.org/en/latest/tutorial.html#create-a-migration-script) or the [Alembic Operation Reference](https://alembic.sqlalchemy.org/en/latest/ops.html#ops).
+
+## Running an Upgrade Migration Locally
+
+Note that in order for these commands to execute successfully, you must have the Postgres server engine running locally.
+
+To upgrade your local database to the most recent version, execute
+```bash
+poetry run alembic upgrade head
+```
+
+As an alternative to the `head` keyword, you can also refer to a specific version number. (Version numbers can be retrieved from the migration history - see below).
+
+You can also specify the number of versions you want to upgrade to (from current). For example,
+```bash
+poetry run alembic upgrade +3
+```
+will run the 3 versions that appear after the database's current version.
+
+## Running a Downgrade Migration
+
+To downgrade your local database to a previous version, execute
+```bash
+poetry run alembic downgrade <version-number>
+```
+
+As an alternative to the version number, you can specify the number of versions you want to revert back to. For example, running 
+```bash
+poetry run alembic downgrade -2
+```
+will revert your local copy of the database down to the version 2 revisions prior to the current version.
+
+You can downgrade to the initial version (where there is nothing in the database) by executing
+```bash
+poetry run alembic downgrade base
+```
+
+## Running Migrations from the Openshift environment
+
+Alembic migrations can be manually run from Openshift by accessing the Terminal for the DEV environment or a Pull Request environment.
+
+First, retrieve the values for the `app-db-name`, `app-db-password`, and `app-db-username` secrets specific to the Openshift environment you're working in. You will also need to make a note of the name of the Patroni leader pod for your environment.
+
+Then, from the Terminal for the pod for your environment (e.g., "wps-api-pr-< PR# >-< GUID >") run the following command, substituting in the values listed above
+```bash
+cd ../bootstrap
+POSTGRES_USER=<app-db-username> POSTGRES_PASSWORD=<app-db-password> POSTGRES_HOST=<patroni-leader-pod-name> POSTGRES_PORT=5432 POSTGRES_DATABASE=<app-db-name> alembic upgrade head
+```
+
+## Viewing Migration History
+
+Use
+```bash
+poetry run alembic history --verbose
+```
+to see a detailed migration history for the database.

@@ -1,0 +1,30 @@
+{
+    "ffmc": 91.49732,
+    "isi": 8.50039,
+    "bui": 86.60304,
+    "years": [
+        1995,
+        1996,
+        1998,
+        1999,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018
+    ],
+    "station": {
+        "code": "183",
+        "name": "PARROTT",
+        "lat": "54.0186667",
+        "long": "-126.3888889",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

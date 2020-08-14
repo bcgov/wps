@@ -1,0 +1,24 @@
+{
+    "ffmc": 93.27335,
+    "isi": 13.39419,
+    "bui": 116.93685,
+    "years": [
+        2015,
+        2016,
+        2017,
+        2018
+    ],
+    "station": {
+        "code": "1203",
+        "name": "DARKWOODS",
+        "lat": "49.3576111",
+        "long": "-116.9502500",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}
