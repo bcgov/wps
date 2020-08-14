@@ -33,17 +33,17 @@ jobs:
           cd /usr/local/bin
           /opt/poetry/bin/poetry config virtualenvs.create false
 
-      - name: Install libgdal-dev
-        # The python gdal component relies on libgdal-dev being installed.
-        run: |
-          sudo apt-get -y update
-          sudo apt-get -y install libgdal-dev
+      # - name: Install libgdal-dev
+      #   # The python gdal component relies on libgdal-dev being installed.
+      #   run: |
+      #     sudo apt-get -y update
+      #     sudo apt-get -y install libgdal-dev
 
-      - name: Install gdal python
-        # We don't have much control over what version of gdal we're getting, it's pretty much whatever is
-        # available to us. As such, gdal is not installed by poetry, since the versio will differ between
-        # platforms.
-        run: CPLUS_INCLUDE_PATH=/usr/include/gdal C_INCLUDE_PATH=/usr/include/gdal python3 -m pip install gdal==$(gdal-config --version)
+      # - name: Install gdal python
+      #   # We don't have much control over what version of gdal we're getting, it's pretty much whatever is
+      #   # available to us. As such, gdal is not installed by poetry, since the versio will differ between
+      #   # platforms.
+      #   run: CPLUS_INCLUDE_PATH=/usr/include/gdal C_INCLUDE_PATH=/usr/include/gdal python3 -m pip install gdal==$(gdal-config --version)
 
       - name: Install python dependencies
         run: |
@@ -51,8 +51,8 @@ jobs:
           cd /tmp
           /opt/poetry/bin/poetry install --no-root
 
-      - name: Lint
-        run: python3 -m pylint --rcfile=api/.pylintrc api/app/*.py api/app/**/*.py
+      # - name: Lint
+      #   run: python3 -m pylint --rcfile=api/.pylintrc api/app/*.py api/app/**/*.py
 
       - name: Unit Test (with coverage)
         run: ORIGINS=testorigin coverage run --source=api/app -m pytest -o log_cli=true --disable-warnings --verbose
@@ -62,6 +62,8 @@ jobs:
         run: |
           coverage report
           coverage xml -o api/coverage-reports/coverage-report.xml
+          pwd
+          ls -al
 
       - name: SonarCloud Scan
         uses: sonarsource/sonarcloud-github-action@master
