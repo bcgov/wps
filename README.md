@@ -137,6 +137,15 @@ from the command line.
 If you're getting errors relating to `pg_config` executable not found when installing `psycopg2` it means
 you either don't have PostgreSQL installed or psycopg2 doesn't know where to find it. You can install PostgreSQL by following instructions on <https://www.postgresql.org/download/>, be sure to update your PATH if you're installing it manually.
 
+###### GDAL
+
+If python gdal complains about header files, you may have to help it find them, export location before doing pip install
+
+```bash
+export CPLUS_INCLUDE_PATH=/usr/include/gdal
+export C_INCLUDE_PATH=/usr/include/gdal
+```
+
 #### Local machine, running Linux
 
 ##### Ubuntu
@@ -146,6 +155,7 @@ Install system dependancies:
 ```bash
 sudo apt install unixodbc-dev
 sudo apt install python3-dev libpq-dev
+sudo apt install libgdal-dev
 ```
 
 ##### Fedora

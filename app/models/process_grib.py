@@ -12,14 +12,14 @@ import gdal
 import app.db.database
 from app.wildfire_one import _get_stations_local
 from app.db.models import (
-    PredictionModel, PredictionModelRun, ModelRunGridSubsetPrediction)
+    PredictionModel, PredictionModelRunTimestamp, ModelRunGridSubsetPrediction)
 from app.db.crud import get_prediction_model, get_or_create_prediction_run, get_or_create_grid_subset
 
 
 logger = logging.getLogger(__name__)
 
 
-class ForecastModelNotFound(Exception):
+class PredictionModelNotFound(Exception):
     """ Exception raised when specified model cannot be found in database. """
 
 
@@ -35,7 +35,7 @@ class ModelRunInfo():
         self.model_abbreviation = None
         self.projection = None
         self.model_run_timestamp = None
-        self.forecast_timestamp = None
+        self.prediction_timestamp = None
         self.variable_name = None
 
 
@@ -115,8 +115,8 @@ class GribFileProcessor():
         prediction_model = get_prediction_model(
             self.session, grib_info.model_abbreviation, grib_info.projection)
         if not prediction_model:
-            raise ForecastModelNotFound(
-                'Could not find this forecast model in the database',
+            raise PredictionModelNotFound(
+                'Could not find this prediction model in the database',
                 grib_info.model_abbreviation, grib_info.projection)
         return prediction_model
 
@@ -134,7 +134,7 @@ class GribFileProcessor():
 
             yield (points, values)
 
-    def store_bounding_values(self, points, values, preduction_model_run: PredictionModelRun,
+    def store_bounding_values(self, points, values, preduction_model_run: PredictionModelRunTimestamp,
                               grib_info: ModelRunInfo):
         """ Store the values around the area of interest.
         """
@@ -151,15 +151,16 @@ class GribFileProcessor():
         # Load the record if it exists.
         # pylint: disable=no-member
         prediction = self.session.query(ModelRunGridSubsetPrediction).\
-            filter(ModelRunGridSubsetPrediction.prediction_model_run_id == preduction_model_run.id).\
-            filter(ModelRunGridSubsetPrediction.prediction_timestamp == grib_info.forecast_timestamp).\
+            filter(
+                ModelRunGridSubsetPrediction.prediction_model_run_timestamp_id == preduction_model_run.id).\
+            filter(ModelRunGridSubsetPrediction.prediction_timestamp == grib_info.prediction_timestamp).\
             filter(ModelRunGridSubsetPrediction.prediction_model_grid_subset_id ==
                    grid_subset.id).first()
         if not prediction:
             # Record doesn't exist, so we create it.
             prediction = ModelRunGridSubsetPrediction()
-            prediction.prediction_model_run_id = preduction_model_run.id
-            prediction.prediction_timestamp = grib_info.forecast_timestamp
+            prediction.prediction_model_run_timestamp_id = preduction_model_run.id
+            prediction.prediction_timestamp = grib_info.prediction_timestamp
             prediction.prediction_model_grid_subset_id = grid_subset.id
 
         setattr(prediction, grib_info.variable_name.lower(), array(values))

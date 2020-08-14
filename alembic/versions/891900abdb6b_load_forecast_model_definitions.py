@@ -1,4 +1,4 @@
-"""Load forecast model definitions
+"""Load prediction model definitions
 
 Revision ID: 891900abdb6b
 Revises: b29cbd0bb078

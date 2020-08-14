@@ -2,8 +2,8 @@
 import logging
 import datetime
 from pytest_bdd import scenario, given, then, when
-from app.models.fetch.forecasts import NoonInterpolator
-from app.schemas import WeatherModelForecastValues
+from app.models.fetch.predictions import NoonInterpolator
+from app.schemas import WeatherModelPredictionValues
 logger = logging.getLogger(__name__)
 
 
@@ -29,7 +29,8 @@ def processed(given_data):
 
 
 @ then('<timestamp> <temperature> <relative_humidity>')
-def then(given_data: WeatherModelForecastValues, timestamp: str, temperature: float, relative_humidity: float):
+def then(given_data: WeatherModelPredictionValues, timestamp: str, temperature: float,
+         relative_humidity: float):
     assert given_data['noon_value'].datetime == datetime.datetime.fromisoformat(
         timestamp)
     assert given_data['noon_value'].temperature == temperature

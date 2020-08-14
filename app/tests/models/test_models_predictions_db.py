@@ -1,4 +1,4 @@
-""" Functional testing for /models/{model}/forecasts/ endpoint.
+""" Functional testing for /models/{model}/predictions/ endpoint.
 """
 import logging
 from datetime import datetime
@@ -11,7 +11,7 @@ import shapely.wkt
 from geoalchemy2.shape import from_shape
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 import app.main
-from app.db.models import (PredictionModelRun, PredictionModel, ModelRunGridSubsetPrediction,
+from app.db.models import (PredictionModelRunTimestamp, PredictionModel, ModelRunGridSubsetPrediction,
                            PredictionModelGridSubset)
 
 LOGGER = logging.getLogger(__name__)
@@ -36,11 +36,11 @@ def mock_session(monkeypatch, data):
             mock_session = UnifiedAlchemyMagicMock()
             return mock_session
 
-        def mock_get_most_recent_model_run(*args) -> PredictionModelRun:
+        def mock_get_most_recent_model_run(*args) -> PredictionModelRunTimestamp:
             timestamp = '2020-01-22T18:00:00+00:00'
-            return PredictionModelRun(id=1,
-                                      prediction_model=prediction_model,
-                                      prediction_run_timestamp=datetime.fromisoformat(timestamp))
+            return PredictionModelRunTimestamp(id=1,
+                                               prediction_model=prediction_model,
+                                               prediction_run_timestamp=datetime.fromisoformat(timestamp))
 
         def mock_get_model_run_predictions(*args):
             shape = shapely.wkt.loads(geometry)
@@ -64,9 +64,9 @@ def mock_session(monkeypatch, data):
                             mock_get_model_run_predictions)
 
 
-@ scenario("test_models_forecasts_db.feature", "Get model forecasts from database")
-def test_db_forecasts_scenario():
-    """ BDD Scenario for forecasts """
+@ scenario("test_models_predictions_db.feature", "Get model predictions from database")
+def test_db_predictions_scenario():
+    """ BDD Scenario for predictions """
 
 
 @given("A database with <data>")
@@ -81,19 +81,19 @@ def given_stations(codes):
 
 
 @when("I call <endpoint>")
-def when_forecasts(mock_jwt_decode, given_a_database, given_stations, endpoint: str):
+def when_predictions(mock_jwt_decode, given_a_database, given_stations, endpoint: str):
     client = TestClient(app.main.app)
     response = client.post(
         endpoint, headers={'Authorization': 'Bearer token'}, json={'stations': given_stations})
     given_a_database['response_json'] = response.json()
 
 
-@ then('There are <num_forecast_values>')
-def assert_num_forecasts(given_a_database, num_forecast_values):
+@ then('There are <num_prediction_values>')
+def assert_num_predictions(given_a_database, num_prediction_values):
     """ Even though there are only two predictions in the database, we expect an interpolated noon value. """
-    num_forecast_values = eval(num_forecast_values)
-    assert len(given_a_database['response_json']['forecasts']
-               [num_forecast_values['index']]['values']) == num_forecast_values['len']
+    num_prediction_values = eval(num_prediction_values)
+    assert len(given_a_database['response_json']['predictions']
+               [num_prediction_values['index']]['values']) == num_prediction_values['len']
 
 
 @then('The <expected_response> is matched')

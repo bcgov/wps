@@ -9,7 +9,10 @@ import app.db.database
 from app.db.crud import get_predictions_from_coordinates
 from app.db.models import ModelRunGridSubsetPrediction, PredictionModelGridSubset, PredictionModel
 from app.schemas import (
-    WeatherForecastModelSummary, WeatherForecastModelSummaryValues, WeatherStation, WeatherForecastModel)
+    WeatherModelPredictionSummary,
+    WeatherModelPredictionSummaryValues,
+    WeatherStation,
+    WeatherPredictionModel)
 from app.models import ModelEnum
 from app.wildfire_one import get_stations_by_codes
 from app.models.fetch import extract_stations_in_polygon
@@ -32,8 +35,8 @@ def _build_query_to_get_predictions(stations: List[WeatherStation], model: Model
     return get_predictions_from_coordinates(session, coordinates, model)
 
 
-class ModelForecastSummaryBuilder():
-    """ Class for generating ModelForecastSummaries """
+class ModelPredictionSummaryBuilder():
+    """ Class for generating ModelPredictionSummaries """
 
     def __init__(self):
         """ """
@@ -42,7 +45,7 @@ class ModelForecastSummaryBuilder():
         self.prev_grid = None
         self.values = None
         self.prev_grid = None
-        self.forecast_summaries = []
+        self.prediction_summaries = []
         self.summaries_in_grid = {}
 
     def init_values(self):
@@ -51,7 +54,7 @@ class ModelForecastSummaryBuilder():
             self.values[key] = []
 
     def calculate_and_append_percentiles(self,
-                                         summary: WeatherForecastModelSummary,
+                                         summary: WeatherModelPredictionSummary,
                                          timestamp: datetime.datetime,
                                          values: dict) -> None:
         """ Calculate percentiles and append.  """
@@ -60,7 +63,7 @@ class ModelForecastSummaryBuilder():
             data['{}_5th'.format(key)] = percentile(values[key], 5)
             data['{}_median'.format(key)] = mean(values[key])
             data['{}_90th'.format(key)] = percentile(values[key], 90)
-        summary_value = WeatherForecastModelSummaryValues(**data)
+        summary_value = WeatherModelPredictionSummaryValues(**data)
         summary.values.append(summary_value)
 
     def calculate_summaries(self, prev_time):
@@ -75,7 +78,7 @@ class ModelForecastSummaryBuilder():
     def handle_new_grid(self,
                         grid: PredictionModelGridSubset,
                         prediction_model: PredictionModel,
-                        stations: List[WeatherForecastModelSummary]) -> List:
+                        stations: List[WeatherModelPredictionSummary]) -> List:
         """ When a new grid is detected, we need to:
         -) calculate percentiles for accumulated values.
         -) calculate bounding points, to be used in interpolation.
@@ -91,14 +94,14 @@ class ModelForecastSummaryBuilder():
         stations_in_polygon = extract_stations_in_polygon(
             stations, poly)
         for station in stations_in_polygon:
-            forecast_summary = WeatherForecastModelSummary(
+            prediction_summary = WeatherModelPredictionSummary(
                 station=station,
-                model=WeatherForecastModel(name=prediction_model.name,
-                                           abbrev=prediction_model.abbreviation),
+                model=WeatherPredictionModel(name=prediction_model.name,
+                                             abbrev=prediction_model.abbreviation),
                 values=[])
-            self.forecast_summaries.append(forecast_summary)
+            self.prediction_summaries.append(prediction_summary)
             self.summaries_in_grid[station.code] = {
-                'summary': forecast_summary, 'target_coordinate': [(station.long, station.lat)]}
+                'summary': prediction_summary, 'target_coordinate': [(station.long, station.lat)]}
             stations.remove(station)
         return points
 
@@ -120,7 +123,7 @@ class ModelForecastSummaryBuilder():
     async def get_summaries(
             self,
             model: ModelEnum,
-            station_codes: List[int]) -> List[WeatherForecastModelSummary]:
+            station_codes: List[int]) -> List[WeatherModelPredictionSummary]:
         """ Given a model and station codes, return list of weather summaries. """
 
         # Get list of stations.
@@ -147,13 +150,13 @@ class ModelForecastSummaryBuilder():
 
         # We're done iterating through all records, so we process the last accumulated values:
         self.calculate_summaries(None)
-        return self.forecast_summaries
+        return self.prediction_summaries
 
 
-async def fetch_model_forecast_summaries(
+async def fetch_model_prediction_summaries(
         model: ModelEnum,
-        station_codes: List[int]) -> List[WeatherForecastModelSummary]:
+        station_codes: List[int]) -> List[WeatherModelPredictionSummary]:
     """ Given a model type (e.g. GDPS) and a  list of station codes, return a corresponding list of model
-    forecast summaries containing various percentiles. """
-    builder = ModelForecastSummaryBuilder()
+    prediction summaries containing various percentiles. """
+    builder = ModelPredictionSummaryBuilder()
     return await builder.get_summaries(model, station_codes)

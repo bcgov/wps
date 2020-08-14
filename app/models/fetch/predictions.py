@@ -9,8 +9,8 @@ from scipy.interpolate import griddata, interp1d
 from geoalchemy2.shape import to_shape
 from shapely.geometry import Point, Polygon
 import app.db.database
-from app.schemas import (WeatherStation, WeatherModelForecast,
-                         WeatherModelForecastValues, WeatherModelRun)
+from app.schemas import (WeatherStation, WeatherModelPrediction,
+                         WeatherModelPredictionValues, WeatherModelRun)
 from app.db.models import ModelRunGridSubsetPrediction
 import app.db.crud
 from app.wildfire_one import get_stations_by_codes
@@ -60,7 +60,7 @@ class NoonInterpolator:
         """ Retrun true if given time is after uct noon """
         return timestamp.time() > self.utc_noon
 
-    def calculate_noon_value(self) -> WeatherModelForecastValues:
+    def calculate_noon_value(self) -> WeatherModelPredictionValues:
         """ Calcualte the interpolated noon value (if possible) """
         # If the previous timestamp was before noon, and the current timestamp is after noon,
         # it means there is no noon value, and we can interpolate one.
@@ -71,7 +71,7 @@ class NoonInterpolator:
             noon = datetime.datetime(year=self.prev_timestamp.year, month=self.prev_timestamp.month,
                                      day=self.prev_timestamp.day, hour=self.utc_noon.hour,
                                      minute=self.utc_noon.minute, tzinfo=timezone.utc)
-            result = WeatherModelForecastValues(datetime=noon)
+            result = WeatherModelPredictionValues(datetime=noon)
             # x-axis is the timestamp
             x_axis = (self.prev_timestamp.timestamp(),
                       self.current_timestamp.timestamp())
@@ -87,14 +87,15 @@ class NoonInterpolator:
         return result
 
 
-def _add_model_prediction_to_forecast(forecast: WeatherModelForecast,
-                                      prediction: ModelRunGridSubsetPrediction,
-                                      points: List[float],
-                                      noon_interpolator: NoonInterpolator):
-    """ Add the model prediction for a particular timestamp to the forecast schema. """
-    forecast_values = WeatherModelForecastValues(
-        datetime=prediction.prediction_timestamp)
-    target_coordinate = [(forecast.station.long, forecast.station.lat)]
+def _add_model_prediction_record_to_prediction_schema(prediction_schema: WeatherModelPrediction,
+                                                      prediction_record: ModelRunGridSubsetPrediction,
+                                                      points: List[float],
+                                                      noon_interpolator: NoonInterpolator):
+    """ Add the model prediction for a particular timestamp to the prediction schema. """
+    prediction_values = WeatherModelPredictionValues(
+        datetime=prediction_record.prediction_timestamp)
+    target_coordinate = [(prediction_schema.station.long,
+                          prediction_schema.station.lat)]
     key_map = {
         'tmp_tgl_2': 'temperature',
         'rh_tgl_2': 'relative_humidity'
@@ -103,26 +104,26 @@ def _add_model_prediction_to_forecast(forecast: WeatherModelForecast,
     # Iterate through each of the mappings.
     for key, target in key_map.items():
         # Get the values.
-        values = getattr(prediction, key)
+        values = getattr(prediction_record, key)
         if values:
             # If there are values, calculate the interpolated value, and set.
             interpolated_value = griddata(
                 points, values, target_coordinate, method='linear')[0]
-            setattr(forecast_values, target, interpolated_value)
+            setattr(prediction_values, target, interpolated_value)
             noon_interpolator.update(
-                target, interpolated_value, prediction.prediction_timestamp)
+                target, interpolated_value, prediction_record.prediction_timestamp)
 
     noon_value = noon_interpolator.calculate_noon_value()
     if noon_value:
-        forecast.values.append(noon_value)
-    forecast.values.append(forecast_values)
+        prediction_schema.values.append(noon_value)
+    prediction_schema.values.append(prediction_values)
 
 
-def _fetch_model_forecasts_by_stations(
+def _fetch_model_predictions_by_stations(
         session,
         model: ModelEnum,
-        stations: List[WeatherStation]) -> List[WeatherModelForecast]:
-    """ Fetch forecasts for stations. """
+        stations: List[WeatherStation]) -> List[WeatherModelPrediction]:
+    """ Fetch predictions for stations. """
     # pylint: disable=too-many-locals
     # Get the most recent model run:
     most_recent_run = app.db.crud.get_most_recent_model_run(
@@ -138,55 +139,57 @@ def _fetch_model_forecasts_by_stations(
         abbreviation=most_recent_run.prediction_model.abbreviation,
         projection=most_recent_run.prediction_model.projection)
 
-    forecasts = []
+    predictions = []
     tmp_station_list = stations.copy()
     prev_grid = None
     points = None
     stations_in_polygon = None
-    forecasts_in_grid = {}
+    predictions_in_grid = {}
 
-    for grid, prediction in query:
+    for grid, prediction_record in query:
         if grid != prev_grid:
             prev_grid = grid
-            forecasts_in_grid = {}
+            predictions_in_grid = {}
             # Get the bounding points (ignore the last point of the polygon)
             poly = to_shape(grid.geom)
             points = list(poly.exterior.coords)[:-1]
             stations_in_polygon = extract_stations_in_polygon(
                 tmp_station_list, poly)
-            # Initialize forecasts for all the stations in this grid.
+            # Initialize predictions for all the stations in this grid.
             for station in stations_in_polygon:
-                forecast = WeatherModelForecast(
+                prediction = WeatherModelPrediction(
                     station=station, model_run=model_run, values=[])
-                forecasts.append(forecast)
-                forecasts_in_grid[station.code] = forecast, NoonInterpolator()
-                logger.info(type(forecasts_in_grid[station.code]))
+                predictions.append(prediction)
+                predictions_in_grid[station.code] = prediction, NoonInterpolator(
+                )
+                logger.info(type(predictions_in_grid[station.code]))
                 # pop the station off the list
                 tmp_station_list.remove(station)
 
         # It could conceivably happen that we have N where N>1 stations in a
         # grid, in which case we need to iterate over the grid predictions N times.
-        for forecast, noon_interpolator in forecasts_in_grid.values():
-            _add_model_prediction_to_forecast(
-                forecast, prediction, points, noon_interpolator)
+        for prediction, noon_interpolator in predictions_in_grid.values():
+            _add_model_prediction_record_to_prediction_schema(
+                prediction, prediction_record, points, noon_interpolator)
         # NOTE: The code would be much simpler if we only did the interpolation afterwards.
 
-    return forecasts
+    return predictions
 
 
-async def _fetch_model_forecasts_by_station_codes(model: ModelEnum, station_codes: List[int]):
-    """ Fetch forecasts from database.
+async def _fetch_model_predictions_by_station_codes(model: ModelEnum, station_codes: List[int]):
+    """ Fetch predictions from database.
     """
     # Using the list of station codes, fetch the stations:
     stations = await get_stations_by_codes(station_codes)
     session = app.db.database.get_session()
-    # Fetch the all the forecasts
-    forecasts = _fetch_model_forecasts_by_stations(session, model, stations)
+    # Fetch the all the predictions.
+    predictions = _fetch_model_predictions_by_stations(
+        session, model, stations)
 
-    return forecasts
+    return predictions
 
 
-async def fetch_model_forecasts(model: ModelEnum, station_codes: List[int]):
-    """ Fetch 10 day global model weather forecasts for a given station."""
-    # Fetch forecasts from the database.
-    return await _fetch_model_forecasts_by_station_codes(model, station_codes)
+async def fetch_model_predictions(model: ModelEnum, station_codes: List[int]):
+    """ Fetch 10 day global model weather predictions for a given station."""
+    # Fetch predictions from the database.
+    return await _fetch_model_predictions_by_station_codes(model, station_codes)

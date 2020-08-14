@@ -7,7 +7,7 @@ import pytest
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
 from app.tests.common import MockJWTDecode
-from app.db.models import PredictionModel, PredictionModelRun
+from app.db.models import PredictionModel, PredictionModelRunTimestamp
 import app.db.database
 
 LOGGER = logging.getLogger(__name__)
@@ -39,11 +39,11 @@ def mock_session(monkeypatch):
                                            abbreviation='GDPS',
                                            projection='latlon.15x.15',
                                            name='Global Deterministic Prediction System')
-        preduction_model_run = PredictionModelRun(id=1,
-                                                  prediction_model_id=1,
-                                                  prediction_run_timestamp=datetime.datetime.now(
-                                                      tz=timezone.utc),
-                                                  prediction_model=prediction_model)
+        preduction_model_run = PredictionModelRunTimestamp(id=1,
+                                                           prediction_model_id=1,
+                                                           prediction_run_timestamp=datetime.datetime.now(
+                                                               tz=timezone.utc),
+                                                           prediction_model=prediction_model)
         session = UnifiedAlchemyMagicMock(data=[
             (
                 [mock.call.query(PredictionModel),
@@ -52,7 +52,7 @@ def mock_session(monkeypatch):
                 [prediction_model],
             ),
             (
-                [mock.call.query(PredictionModelRun)],
+                [mock.call.query(PredictionModelRunTimestamp)],
                 [preduction_model_run]
             )
         ])

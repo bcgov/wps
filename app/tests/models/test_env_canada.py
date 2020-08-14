@@ -8,7 +8,7 @@ import requests
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
 from app.models import env_canada
-from app.db.models import PredictionModel, ProcessedModelRunFile
+from app.db.models import PredictionModel, ProcessedModelRunUrl
 import app.db.database
 # pylint: disable=unused-argument, redefined-outer-name
 
@@ -47,9 +47,9 @@ def mock_session(monkeypatch):
                                  projection='latlon.15x.15')],
             ),
             (
-                [mock.call.query(ProcessedModelRunFile),
-                 mock.call.filter(ProcessedModelRunFile.url == url)],
-                [ProcessedModelRunFile()]
+                [mock.call.query(ProcessedModelRunUrl),
+                 mock.call.filter(ProcessedModelRunUrl.url == url)],
+                [ProcessedModelRunUrl()]
 
             )
         ])

@@ -11,16 +11,16 @@ from geoalchemy2 import Geometry
 from app.db.database import Base
 
 
-class ProcessedModelRunFile(Base):
+class ProcessedModelRunUrl(Base):
     """ Record to indicate that a particular model run file has been processed.
     NOTE: One could check if values for a particular model run exists, but that would make it more
     difficult to re-process files as you'd have to delete existing values.
     """
-    __tablename__ = 'processed_model_run_files'
+    __tablename__ = 'processed_model_run_urls'
     __table_args__ = (
         {'comment': 'Record to indicate that a particular model run file has been processed.'})
     # Unique identifier.
-    id = Column(Integer, Sequence('processed_model_run_files_id_seq'),
+    id = Column(Integer, Sequence('processed_model_run_url_id_seq'),
                 primary_key=True, nullable=False, index=True)
     # Source URL of file processed.
     url = Column(String, nullable=False, unique=True)
@@ -50,9 +50,9 @@ class PredictionModel(Base):
     projection = Column(String, nullable=False)
 
 
-class PredictionModelRun(Base):
+class PredictionModelRunTimestamp(Base):
     """ Identify which prediction model run (e.g.  2020 07 07 12:00)."""
-    __tablename__ = 'prediction_model_runs'
+    __tablename__ = 'prediction_model_run_timestamps'
     __table_args__ = (
         UniqueConstraint('prediction_model_id', 'prediction_run_timestamp'),
         {
@@ -61,7 +61,7 @@ class PredictionModelRun(Base):
         }
     )
 
-    id = Column(Integer, Sequence('prediction_model_runs_id_seq'),
+    id = Column(Integer, Sequence('prediction_model_run_timestamps_id_seq'),
                 primary_key=True, nullable=False, index=True)
     # Is it GPDS or RDPS?
     prediction_model_id = Column(Integer, ForeignKey(
@@ -92,10 +92,10 @@ class PredictionModelGridSubset(Base):
 
 class ModelRunGridSubsetPrediction(Base):
     """ The prediction for a particular model grid subset.
-    Each value is an array that corresponds to the vertex in the forecast bounding polygon. """
+    Each value is an array that corresponds to the vertex in the prediction bounding polygon. """
     __tablename__ = 'model_run_grid_subset_predictions'
     __table_args__ = (
-        UniqueConstraint('prediction_model_run_id', 'prediction_model_grid_subset_id',
+        UniqueConstraint('prediction_model_run_timestamp_id', 'prediction_model_grid_subset_id',
                          'prediction_timestamp'),
         {'comment': 'The prediction for a grid subset of a particular model run.'}
     )
@@ -103,15 +103,15 @@ class ModelRunGridSubsetPrediction(Base):
     id = Column(Integer, Sequence('model_run_grid_subset_predictions_id_seq'),
                 primary_key=True, nullable=False, index=True)
     # Which model run does this forecacst apply to? E.g. The GDPS 15x.15 run from 2020 07 07 12h00.
-    prediction_model_run_id = Column(Integer, ForeignKey(
-        'prediction_model_runs.id'), nullable=False)
-    prediction_model_run = relationship(
-        "PredictionModelRun", foreign_keys=[prediction_model_run_id])
-    # Which grid does this forecast apply to?
+    prediction_model_run_timestamp_id = Column(Integer, ForeignKey(
+        'prediction_model_run_timestamps.id'), nullable=False)
+    prediction_model_run_timestamp = relationship(
+        "PredictionModelRunTimestamp", foreign_keys=[prediction_model_run_timestamp_id])
+    # Which grid does this prediction apply to?
     prediction_model_grid_subset_id = Column(Integer, ForeignKey(
         'prediction_model_grid_subsets.id'), nullable=False)
     prediction_model_grid_subset = relationship("PredictionModelGridSubset")
-    # The date and time to which the forecast applies.
+    # The date and time to which the prediction applies.
     prediction_timestamp = Column(TIMESTAMP(timezone=True), nullable=False)
     # Temperature 2m above model layer.
     tmp_tgl_2 = Column(ARRAY(Float), nullable=True)

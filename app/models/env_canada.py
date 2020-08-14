@@ -14,7 +14,7 @@ import tempfile
 import requests
 import app.db.database
 from app.db.crud import get_processed_file_record
-from app.db.models import ProcessedModelRunFile
+from app.db.models import ProcessedModelRunUrl
 from app.models.process_grib import GribFileProcessor, ModelRunInfo
 
 
@@ -48,17 +48,17 @@ def parse_env_canada_filename(filename):
     variable_name = '_'.join(
         [variable, level_type, level])
     projection = parts[5]
-    forecast_start = parts[6][:-2]
+    prediction_start = parts[6][:-2]
     run_time = parts[6][-2:]
     model_run_timestamp = datetime.datetime(
-        year=int(forecast_start[:4]),
-        month=int(forecast_start[4:6]),
-        day=int(forecast_start[6:8]),
+        year=int(prediction_start[:4]),
+        month=int(prediction_start[4:6]),
+        day=int(prediction_start[6:8]),
         hour=int(run_time), tzinfo=datetime.timezone.utc)
     last_part = parts[7].split('.')
-    forecast_hour = last_part[0][1:]
-    forecast_timestamp = model_run_timestamp + \
-        datetime.timedelta(hours=int(forecast_hour))
+    prediction_hour = last_part[0][1:]
+    prediction_timestamp = model_run_timestamp + \
+        datetime.timedelta(hours=int(prediction_hour))
 
     if model == 'glb':
         model_abbreviation = 'GDPS'
@@ -72,7 +72,7 @@ def parse_env_canada_filename(filename):
     info.model_abbreviation = model_abbreviation
     info.projection = projection
     info.model_run_timestamp = model_run_timestamp
-    info.forecast_timestamp = forecast_timestamp
+    info.prediction_timestamp = prediction_timestamp
     info.variable_name = variable_name
     return info
 
@@ -103,7 +103,7 @@ def get_download_urls():
     now = get_utcnow()
 
     # hh: model run start, in UTC [00, 12]
-    # hhh: forecast hour [000, 003, 006, ..., 240]
+    # hhh: prediction hour [000, 003, 006, ..., 240]
     # pylint: disable=invalid-name
     for hour in [0, 12]:
         hh = '{:02d}'.format(hour)
@@ -161,7 +161,7 @@ def flag_file_as_processed(session, url):
         logger.info('re-procesed %s', url)
     else:
         logger.info('file processed %s', url)
-        processed_file = ProcessedModelRunFile(
+        processed_file = ProcessedModelRunUrl(
             url=url,
             create_date=datetime.datetime.now(datetime.timezone.utc))
     processed_file.update_date = datetime.datetime.now(datetime.timezone.utc)

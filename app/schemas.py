@@ -85,13 +85,13 @@ class WeatherStationHourlyReadings(BaseModel):
     station: WeatherStation
 
 
-class WeatherForecastModel(BaseModel):
-    """ The full name & acronym for a weather forecast model """
+class WeatherPredictionModel(BaseModel):
+    """ The full name & acronym for a weather prediction model """
     name: str
     abbrev: str
 
 
-class WeatherModelForecastValues(BaseModel):
+class WeatherModelPredictionValues(BaseModel):
     """ The predicted weather values. """
     datetime: datetime
     temperature: float = None
@@ -125,16 +125,16 @@ class WeatherModelRun(BaseModel):
     projection: str
 
 
-class WeatherModelForecast(BaseModel):
-    """ Weather forecast for a particular weather station. """
+class WeatherModelPrediction(BaseModel):
+    """ Weather model prediction for a particular weather station. """
     station: WeatherStation
     model_run: WeatherModelRun = None
-    values: List[WeatherModelForecastValues] = []
+    values: List[WeatherModelPredictionValues] = []
 
 
-class WeatherModelForecastResponse(BaseModel):
-    """ Response containg a number of weather forecasts. """
-    forecasts: List[WeatherModelForecast]
+class WeatherModelPredictionResponse(BaseModel):
+    """ Response containg a number of weather predictions. """
+    predictions: List[WeatherModelPrediction]
 
 
 class WeatherStationHourlyReadingsResponse(BaseModel):
@@ -188,8 +188,8 @@ class NoonForecastResponse(BaseModel):
     noon_forecasts: List[NoonForecast]
 
 
-class WeatherForecastModelSummaryValues(BaseModel):
-    """ Summary of model forecast values. """
+class WeatherModelPredictionSummaryValues(BaseModel):
+    """ Summary of model prediction values. """
     datetime: datetime
     tmp_tgl_2_5th: float
     tmp_tgl_2_90th: float
@@ -199,15 +199,15 @@ class WeatherForecastModelSummaryValues(BaseModel):
     rh_tgl_2_median: float
 
 
-class WeatherForecastModelSummary(BaseModel):
-    """ Summary of weather forecast for a given model.
-    Detail: For the global model, we end up with 20 different forecasts for every three hours of any given
+class WeatherModelPredictionSummary(BaseModel):
+    """ Summary of weather predictions for a given model.
+    Detail: For the global model, we end up with 20 different predictions for every three hours of any given
     day, this represents a summary of that data. """
     station: WeatherStation
-    model: WeatherForecastModel
-    values: List[WeatherForecastModelSummaryValues] = []
+    model: WeatherPredictionModel
+    values: List[WeatherModelPredictionSummaryValues] = []
 
 
-class WeatherForecastModelSummaryResponse(BaseModel):
-    """ Response containing forecast summaries for a given weather model."""
-    summaries: List[WeatherForecastModelSummary]
+class WeatherModelPredictionSummaryResponse(BaseModel):
+    """ Response containing prediction summaries for a given weather model."""
+    summaries: List[WeatherModelPredictionSummary]

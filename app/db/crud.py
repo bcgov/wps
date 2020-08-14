@@ -6,7 +6,7 @@ from typing import List
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from app.db.models import (
-    ProcessedModelRunFile, PredictionModel, PredictionModelRun, PredictionModelGridSubset,
+    ProcessedModelRunUrl, PredictionModel, PredictionModelRunTimestamp, PredictionModelGridSubset,
     ModelRunGridSubsetPrediction)
 
 
@@ -15,7 +15,8 @@ logger = logging.getLogger(__name__)
 LATLON_15X_15 = 'latlon.15x.15'
 
 
-def get_most_recent_model_run(session: Session, abbreviation: str, projection: str) -> PredictionModelRun:
+def get_most_recent_model_run(
+        session: Session, abbreviation: str, projection: str) -> PredictionModelRunTimestamp:
     """
     Get the most recent model run of a specified type. (.e.g. give me the global
     model at 15km resolution)
@@ -24,27 +25,27 @@ def get_most_recent_model_run(session: Session, abbreviation: str, projection: s
     :abbreviation: e.g. GDPS or RDPS
     :projection: e.g. latlon.15x.15
     """
-    return session.query(PredictionModelRun).\
+    return session.query(PredictionModelRunTimestamp).\
         join(PredictionModel).\
         filter(PredictionModel.abbreviation == abbreviation, PredictionModel.projection == projection).\
-        order_by(PredictionModelRun.prediction_run_timestamp.desc()).\
+        order_by(PredictionModelRunTimestamp.prediction_run_timestamp.desc()).\
         first()
 
 
 def get_prediction_run(session: Session, prediction_model_id: int,
-                       prediction_run_timestamp: datetime.datetime) -> PredictionModelRun:
+                       prediction_run_timestamp: datetime.datetime) -> PredictionModelRunTimestamp:
     """ load the model run from the database (.e.g. for 2020 07 07 12h00). """
-    return session.query(PredictionModelRun).\
-        filter(PredictionModelRun.prediction_model_id == prediction_model_id).\
-        filter(PredictionModelRun.prediction_run_timestamp ==
+    return session.query(PredictionModelRunTimestamp).\
+        filter(PredictionModelRunTimestamp.prediction_model_id == prediction_model_id).\
+        filter(PredictionModelRunTimestamp.prediction_run_timestamp ==
                prediction_run_timestamp).first()
 
 
 def create_prediction_run(session: Session, prediction_model_id: int,
-                          prediction_run_timestamp: datetime.datetime) -> PredictionModelRun:
+                          prediction_run_timestamp: datetime.datetime) -> PredictionModelRunTimestamp:
     """ Create a model prediction run for a particular model.
     """
-    prediction_run = PredictionModelRun(
+    prediction_run = PredictionModelRunTimestamp(
         prediction_model_id=prediction_model_id, prediction_run_timestamp=prediction_run_timestamp)
     session.add(prediction_run)
     session.commit()
@@ -52,7 +53,7 @@ def create_prediction_run(session: Session, prediction_model_id: int,
 
 
 def get_or_create_prediction_run(session, prediction_model: PredictionModel,
-                                 prediction_run_timestamp: datetime.datetime) -> PredictionModelRun:
+                                 prediction_run_timestamp: datetime.datetime) -> PredictionModelRunTimestamp:
     """ Get a model prediction run for a particular model, creating one if it doesn't already exist.
     """
     prediction_run = get_prediction_run(
@@ -80,7 +81,7 @@ def _construct_grid_filter(coordinates):
 
 def get_model_run_predictions(
         session: Session,
-        prediction_run: PredictionModelRun,
+        prediction_run: PredictionModelRunTimestamp,
         coordinates) -> List:
     """
     Get the predictions for a particular model run, for a specified geographical coordinate.
@@ -95,7 +96,7 @@ def get_model_run_predictions(
     # Build up the query:
     query = session.query(PredictionModelGridSubset, ModelRunGridSubsetPrediction).\
         filter(geom_or).\
-        filter(ModelRunGridSubsetPrediction.prediction_model_run_id == prediction_run.id).\
+        filter(ModelRunGridSubsetPrediction.prediction_model_run_timestamp_id == prediction_run.id).\
         filter(ModelRunGridSubsetPrediction.prediction_model_grid_subset_id == PredictionModelGridSubset.id).\
         filter(ModelRunGridSubsetPrediction.prediction_timestamp >= now).\
         order_by(PredictionModelGridSubset.id,
@@ -148,10 +149,10 @@ def get_or_create_grid_subset(session: Session,
     return grid_subset
 
 
-def get_processed_file_record(session: Session, url: str) -> ProcessedModelRunFile:
+def get_processed_file_record(session: Session, url: str) -> ProcessedModelRunUrl:
     """ Get record corresponding to a processed file. """
-    processed_file = session.query(ProcessedModelRunFile).\
-        filter(ProcessedModelRunFile.url == url).first()
+    processed_file = session.query(ProcessedModelRunUrl).\
+        filter(ProcessedModelRunUrl.url == url).first()
     return processed_file
 
 

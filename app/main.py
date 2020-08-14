@@ -10,8 +10,8 @@ import datetime
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from app import schemas
-from app.models.fetch.forecasts import fetch_model_forecasts
-from app.models.fetch.summaries import fetch_model_forecast_summaries
+from app.models.fetch.predictions import fetch_model_predictions
+from app.models.fetch.summaries import fetch_model_prediction_summaries
 from app.models import ModelEnum
 from app.percentile import get_precalculated_percentiles
 from app.noon_forecasts import fetch_noon_forecasts
@@ -89,31 +89,34 @@ async def get_health():
     LOGGER.info('/health')
     return {"message": "Healthy as ever"}
 
-@app.post('/models/{model}/forecasts/', response_model=schemas.WeatherModelForecastResponse)
-async def get_model_forecasts(
+
+@app.post('/models/{model}/predictions/', response_model=schemas.WeatherModelPredictionResponse)
+async def get_model_predictions(
         model: ModelEnum, request: schemas.StationCodeList, _: bool = Depends(authenticate)):
-    """ Returns 10 day noon forecasts based on the global deterministic prediction system (GDPS)
+    """ Returns 10 day noon prediction based on the global deterministic prediction system (GDPS)
     for the specified set of weather stations. """
     try:
-        LOGGER.info('/models/%s/forecasts/', model.name)
-        model_forecasts = await fetch_model_forecasts(model, request.stations)
-        return schemas.WeatherModelForecastResponse(forecasts=model_forecasts)
+        LOGGER.info('/models/%s/predictions/', model.name)
+        model_predictions = await fetch_model_predictions(model, request.stations)
+        return schemas.WeatherModelPredictionResponse(predictions=model_predictions)
     except Exception as exception:
         LOGGER.critical(exception, exc_info=True)
         raise
 
 
-@app.post('/models/{model}/forecasts/summaries/', response_model=schemas.WeatherForecastModelSummaryResponse)
-async def get_model_forecast_summaries(
+@app.post('/models/{model}/predictions/summaries/',
+          response_model=schemas.WeatherModelPredictionSummaryResponse)
+async def get_model_prediction_summaries(
         model: ModelEnum, request: schemas.StationCodeList, _: bool = Depends(authenticate)):
-    """ Return a summary of forecast for a given model. """
+    """ Return a summary of predictions for a given model. """
     try:
-        LOGGER.info('/models/%s/forecasts/summaries/', model.name)
-        summaries = await fetch_model_forecast_summaries(model, request.stations)
-        return schemas.WeatherForecastModelSummaryResponse(summaries=summaries)
+        LOGGER.info('/models/%s/predictions/summaries/', model.name)
+        summaries = await fetch_model_prediction_summaries(model, request.stations)
+        return schemas.WeatherModelPredictionSummaryResponse(summaries=summaries)
     except Exception as exception:
         LOGGER.critical(exception, exc_info=True)
         raise
+
 
 @app.post('/noon_forecasts/', response_model=schemas.NoonForecastResponse)
 def get_noon_forecasts(request: schemas.StationCodeList, _: bool = Depends(authenticate)):
@@ -123,11 +126,13 @@ def get_noon_forecasts(request: schemas.StationCodeList, _: bool = Depends(authe
         LOGGER.info('/noon_forecasts/')
         start_date = datetime.datetime.now(tz=datetime.timezone.utc)
         end_date = start_date + datetime.timedelta(days=5)
-        LOGGER.info('Querying /noon_forecasts/ for %s from %s to %s', request.stations, start_date, end_date)
+        LOGGER.info('Querying /noon_forecasts/ for %s from %s to %s',
+                    request.stations, start_date, end_date)
         return fetch_noon_forecasts(request.stations, start_date, end_date)
     except Exception as exception:
         LOGGER.critical(exception, exc_info=True)
         raise
+
 
 @app.post('/hourlies/', response_model=schemas.WeatherStationHourlyReadingsResponse)
 async def get_hourlies(request: schemas.StationCodeList, _: bool = Depends(authenticate)):
