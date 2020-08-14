@@ -61,14 +61,12 @@ jobs:
         shell: bash
         run: |
           coverage report
-          coverage xml -o api/coverage-reports/coverage-report.xml
-          pwd
-          ls -al
+          coverage xml -o coverage-reports/coverage-report.xml
 
       - name: SonarCloud Scan
         uses: sonarsource/sonarcloud-github-action@master
-        with:
-          projectBaseDir: api
+        # with:
+        #   projectBaseDir: api
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
