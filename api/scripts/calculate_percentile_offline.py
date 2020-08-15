@@ -26,7 +26,7 @@ def main():
         year_range = list(range(start_year, end_year + 1))
         year_df = grab_data_in_particular_year_range(df, year_range)
 
-        folder_name = getOutputFolderName(start_year, end_year)
+        folder_name = get_output_foldername(start_year, end_year)
 
         for station in stations:
             station_code = int(station['code'])
@@ -75,7 +75,7 @@ def dump_summary_in_json(folder_name: str, station_code: str, summary: dict):
         json.dump(summary, json_file, indent=4, allow_nan=False)
 
 
-def getOutputFolderName(start_year: int, end_year: int) -> str:
+def get_output_foldername(start_year: int, end_year: int) -> str:
     """ Create an output folder and return its name """
     folder_name = "app/data/{}-{}".format(start_year, end_year)
     if not os.path.exists(folder_name):

@@ -91,12 +91,15 @@ docker-build-dev:
 	# Still having issues? try: docker system prune
 	docker-compose -f docker-compose.dev.yml build
 
+docker-lint-dev:
+	# Run linting in docker (dev instance).
+	${call run-lint,docker-compose -f docker-compose.dev.yml run api-dev}
+
 docker-test-dev:
 	# Run tests in docker (dev instance).
 	# We use the dev instance, because the "production" version doesn't have
 	# a number of the development dependancies.
-	docker-compose -f docker-compose.dev.yml run api-dev python -m pytest app
-	# ImportMismatchError? run: make clean
+	${call run-test-coverage,docker-compose -f docker-compose.dev.yml run api-dev}
 
 docker-run-dev:
 	# Run docker in dev mode.
@@ -105,9 +108,17 @@ docker-run-dev:
 docker-shell-dev:
 	# Shell into the dev container.
 	# docker run -it --env-file app/.env --entrypoint bash wps-api_api-dev:latest
-	docker-compose run api bash
+	docker-compose -f docker-compose.dev.yml run api-dev bash
 
-docker-shell-dev-db:
+docker-run-env-canada:
+	# Run a python script to download model data from Env Canada on docker
+	docker-compose exec api python -m app.models.env_canada
+
+docker-run-bender:
+	# Run a python script to download forecast data from BC Wild Fire on docker
+	docker-compose exec api python -m app.fireweather_bot
+
+docker-shell-db:
 	# Shell into the db container
 	docker-compose exec db psql -h db -U wps
 
