@@ -1,0 +1,22 @@
+{
+    "ffmc": 94.74259,
+    "isi": 14.36405,
+    "bui": 171.68745,
+    "years": [
+        2018,
+        2019
+    ],
+    "station": {
+        "code": "1330",
+        "name": "LODESTONE EXT",
+        "lat": "49.4696944",
+        "long": "-120.7925000",
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
+    }
+}

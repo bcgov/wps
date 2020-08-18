@@ -1,0 +1,22 @@
+{
+    "ffmc": 92.26575,
+    "isi": 10.31188,
+    "bui": 90.48112,
+    "years": [
+        2017,
+        2018
+    ],
+    "station": {
+        "code": "1270",
+        "name": "OLD FADDY",
+        "lat": "59.8928000",
+        "long": "-129.0933333",
+        "ecodivision_name": "SUB-ARCTIC HIGHLANDS",
+        "core_season": {
+            "start_month": "6",
+            "start_day": "1",
+            "end_month": "8",
+            "end_day": "15"
+        }
+    }
+}

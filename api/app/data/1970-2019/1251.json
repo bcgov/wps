@@ -1,0 +1,23 @@
+{
+    "ffmc": 91.83852,
+    "isi": 7.2473,
+    "bui": 122.95681,
+    "years": [
+        2016,
+        2017,
+        2018
+    ],
+    "station": {
+        "code": "1251",
+        "name": "NARROWS INLET",
+        "lat": "49.7517750",
+        "long": "-123.7051389",
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

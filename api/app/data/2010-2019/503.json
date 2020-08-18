@@ -1,0 +1,19 @@
+{
+    "ffmc": null,
+    "isi": null,
+    "bui": null,
+    "years": [],
+    "station": {
+        "code": "503",
+        "name": "BAKER",
+        "lat": "49.4588889",
+        "long": "-115.6302778",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

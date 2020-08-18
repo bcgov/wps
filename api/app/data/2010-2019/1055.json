@@ -1,0 +1,30 @@
+{
+    "ffmc": 94.74698,
+    "isi": 16.59239,
+    "bui": 219.24567,
+    "years": [
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019
+    ],
+    "station": {
+        "code": "1055",
+        "name": "SPLINTLUM",
+        "lat": "50.3511111",
+        "long": "-121.6549500",
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
+    }
+}

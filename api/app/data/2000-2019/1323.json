@@ -1,0 +1,22 @@
+{
+    "ffmc": 92.24076,
+    "isi": 8.63005,
+    "bui": 120.86412,
+    "years": [
+        2018,
+        2019
+    ],
+    "station": {
+        "code": "1323",
+        "name": "LARCH HILLS WEST",
+        "lat": "50.6905556",
+        "long": "-119.1761111",
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
+    }
+}

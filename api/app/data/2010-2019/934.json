@@ -1,0 +1,29 @@
+{
+    "ffmc": 92.49509,
+    "isi": 8.58697,
+    "bui": 164.79832,
+    "years": [
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018
+    ],
+    "station": {
+        "code": "934",
+        "name": "MESACHIE 2",
+        "lat": "48.8228833",
+        "long": "-124.1370833",
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

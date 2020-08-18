@@ -1,0 +1,29 @@
+{
+    "ffmc": 94.33652,
+    "isi": 11.28095,
+    "bui": 147.67421,
+    "years": [
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018
+    ],
+    "station": {
+        "code": "82",
+        "name": "SCAR CREEK",
+        "lat": "51.1891111",
+        "long": "-125.0280556",
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

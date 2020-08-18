@@ -1,0 +1,29 @@
+{
+    "ffmc": 93.5763,
+    "isi": 9.22636,
+    "bui": 171.0833,
+    "years": [
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018
+    ],
+    "station": {
+        "code": "301",
+        "name": "PEMBERTON BASE",
+        "lat": "50.3059333",
+        "long": "-122.7287833",
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

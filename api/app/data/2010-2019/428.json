@@ -1,0 +1,29 @@
+{
+    "ffmc": 90.9809,
+    "isi": 7.27829,
+    "bui": 73.77856,
+    "years": [
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018
+    ],
+    "station": {
+        "code": "428",
+        "name": "KISPIOX HUB",
+        "lat": "55.4343000",
+        "long": "-127.6487000",
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}
