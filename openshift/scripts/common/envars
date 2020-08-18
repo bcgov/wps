@@ -1,6 +1,6 @@
 GIT_URL="${GIT_URL:-$(git remote get-url origin)}"
 GIT_BRANCH="${GIT_BRANCH:-$(git describe --all --contains HEAD)}"
-NAME_APP="${NAME_APP:-$(echo ${GIT_URL##*/} | sed -e 's/\.[^.]*$//')}"
+NAME_APP="wps-api"
 NAME_OBJ="${NAME_APP}-${SUFFIX}"
 PROJ_TOOLS="${PROJ_TOOLS:-auzhsi-tools}"
 PROJ_DEV="${PROJ_DEV:-auzhsi-dev}"
