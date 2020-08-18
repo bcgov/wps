@@ -25,9 +25,12 @@ def get_most_recent_model_run(
     :abbreviation: e.g. GDPS or RDPS
     :projection: e.g. latlon.15x.15
     """
+    # NOTE: Don't be fooled into saying "PredictionModelRunTimestamp.complete is True", it won't work.
     return session.query(PredictionModelRunTimestamp).\
         join(PredictionModel).\
+        filter(PredictionModel.id == PredictionModelRunTimestamp.prediction_model_id).\
         filter(PredictionModel.abbreviation == abbreviation, PredictionModel.projection == projection).\
+        filter(PredictionModelRunTimestamp.complete == True).\
         order_by(PredictionModelRunTimestamp.prediction_run_timestamp.desc()).\
         first()
 
@@ -41,15 +44,25 @@ def get_prediction_run(session: Session, prediction_model_id: int,
                prediction_run_timestamp).first()
 
 
-def create_prediction_run(session: Session, prediction_model_id: int,
-                          prediction_run_timestamp: datetime.datetime) -> PredictionModelRunTimestamp:
+def create_prediction_run(
+        session: Session,
+        prediction_model_id: int,
+        prediction_run_timestamp: datetime.datetime,
+        complete: bool) -> PredictionModelRunTimestamp:
     """ Create a model prediction run for a particular model.
     """
     prediction_run = PredictionModelRunTimestamp(
-        prediction_model_id=prediction_model_id, prediction_run_timestamp=prediction_run_timestamp)
+        prediction_model_id=prediction_model_id,
+        prediction_run_timestamp=prediction_run_timestamp,
+        complete=complete)
     session.add(prediction_run)
     session.commit()
     return prediction_run
+
+
+def update_prediction_run(session: Session, prediction_run: PredictionModelRunTimestamp):
+    session.add(prediction_run)
+    session.commit()
 
 
 def get_or_create_prediction_run(session, prediction_model: PredictionModel,
@@ -62,7 +75,7 @@ def get_or_create_prediction_run(session, prediction_model: PredictionModel,
         logger.info('Creating prediction run %s for %s',
                     prediction_model.abbreviation, prediction_run_timestamp)
         prediction_run = create_prediction_run(
-            session, prediction_model.id, prediction_run_timestamp)
+            session, prediction_model.id, prediction_run_timestamp, False)
     return prediction_run
 
 

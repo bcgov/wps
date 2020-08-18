@@ -128,6 +128,8 @@ def _fetch_model_predictions_by_stations(
     # Get the most recent model run:
     most_recent_run = app.db.crud.get_most_recent_model_run(
         session, model, app.db.crud.LATLON_15X_15)
+    logger.info(
+        'most recent run: {0.prediction_run_timestamp}'.format(most_recent_run))
     # Get the predictions:
     query = app.db.crud.get_model_run_predictions(
         session, most_recent_run, map(lambda station: [station.long, station.lat], stations))
