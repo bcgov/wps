@@ -1,0 +1,29 @@
+{
+    "ffmc": 92.03764,
+    "isi": 11.39184,
+    "bui": 117.46656,
+    "years": [
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018
+    ],
+    "station": {
+        "code": "132",
+        "name": "HUDSON HOPE",
+        "lat": "56.0347000",
+        "long": "-121.9902100",
+        "ecodivision_name": "BOREAL",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

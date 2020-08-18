@@ -1,0 +1,28 @@
+{
+    "ffmc": 93.63199,
+    "isi": 11.98409,
+    "bui": 93.90481,
+    "years": [
+        2010,
+        2011,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018
+    ],
+    "station": {
+        "code": "793",
+        "name": "CARIBOO CREEK",
+        "lat": "51.1763889",
+        "long": "-117.2316667",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

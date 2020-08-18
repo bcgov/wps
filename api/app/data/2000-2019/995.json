@@ -1,0 +1,32 @@
+{
+    "ffmc": 90.91674,
+    "isi": 7.09922,
+    "bui": 90.828,
+    "years": [
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018
+    ],
+    "station": {
+        "code": "995",
+        "name": "TS ARTLISH",
+        "lat": "50.1324167",
+        "long": "-126.9282333",
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

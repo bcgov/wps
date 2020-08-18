@@ -1,0 +1,55 @@
+name: Deployment
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  prepare-database:
+    name: Prepare Dev Database
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set Variables
+        shell: bash
+        run: |
+          echo "::set-env name=SUFFIX::pr-${{ github.event.number }}"
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Deploy PostGIS instance
+        uses: bcgov/openshift-launchpad-deployment@master
+        with:
+          AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
+          SCRIPT: openshift/scripts/oc_provision_db.sh ${SUFFIX} apply
+
+  build-and-deploy:
+    name: Build, Deploy to Dev & ZAP Baseline Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set Variables
+        shell: bash
+        run: |
+          echo "::set-env name=SUFFIX::pr-${{ github.event.number }}"
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Build Image
+        uses: bcgov/openshift-launchpad-deployment@master
+        with:
+          AUTH_TOKEN: ${{ secrets.OC_TOOL_TOKEN_EDIT }}
+          SCRIPT: GIT_BRANCH=${GITHUB_HEAD_REF} openshift/scripts/oc_build.sh ${SUFFIX} apply
+
+      - name: Deploy to Dev
+        uses: bcgov/openshift-launchpad-deployment@master
+        with:
+          AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
+          SCRIPT: openshift/scripts/oc_deploy.sh ${SUFFIX} apply
+
+      # f.y.i.: ZAP Scan must be able to log an issue or it will fail.
+      - name: ZAP Scan
+        uses: zaproxy/action-baseline@v0.3.0
+        with:
+          target: "https://wps-api-pr-${{ github.event.number }}.pathfinder.gov.bc.ca"

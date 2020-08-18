@@ -1,0 +1,52 @@
+{
+  "summaries": [
+    {
+      "station": {
+        "code": 322,
+        "name": "AFTON",
+        "lat": 50.6733333,
+        "long": -120.4816667,
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+          "start_month": 5,
+          "start_day": 1,
+          "end_month": 9,
+          "end_day": 15
+        }
+      },
+      "model": {
+        "name": "Global Deterministic Prediction System",
+        "abbrev": "GDPS"
+      },
+      "values": [
+        {
+          "datetime": "2020-07-22T18:00:00+00:00",
+          "tmp_tgl_2_5th": 11.422222666666778,
+          "tmp_tgl_2_90th": 13.122222666666778,
+          "tmp_tgl_2_median": 12.322222666666777,
+          "rh_tgl_2_5th": 43.22222666666777,
+          "rh_tgl_2_90th": 51.22222666666777,
+          "rh_tgl_2_median": 46.55556000000111
+        },
+        {
+          "datetime": "2020-07-22T19:00:00+00:00",
+          "tmp_tgl_2_5th": 9.0,
+          "tmp_tgl_2_90th": 9.0,
+          "tmp_tgl_2_median": 9.0,
+          "rh_tgl_2_5th": 20.0,
+          "rh_tgl_2_90th": 20.0,
+          "rh_tgl_2_median": 20.0
+        },
+        {
+          "datetime": "2020-07-22T20:00:00+00:00",
+          "tmp_tgl_2_5th": 9.1,
+          "tmp_tgl_2_90th": 10.8,
+          "tmp_tgl_2_median": 10.0,
+          "rh_tgl_2_5th": 20.1,
+          "rh_tgl_2_90th": 21.8,
+          "rh_tgl_2_median": 21.0
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+    "ffmc": 93.63062,
+    "isi": 11.03924,
+    "bui": 117.52338,
+    "years": [
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018
+    ],
+    "station": {
+        "code": "421",
+        "name": "DEWAR CREEK",
+        "lat": "49.7845000",
+        "long": "-116.3830000",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

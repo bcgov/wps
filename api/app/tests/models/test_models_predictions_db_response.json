@@ -1,0 +1,99 @@
+{
+  "predictions": [
+    {
+      "station": {
+        "code": 322,
+        "name": "AFTON",
+        "lat": 50.6733333,
+        "long": -120.4816667,
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+          "start_month": 5,
+          "start_day": 1,
+          "end_month": 9,
+          "end_day": 15
+        }
+      },
+      "model_run": {
+        "datetime": "2020-01-22T18:00:00+00:00",
+        "name": "name",
+        "abbreviation": "abbrev",
+        "projection": "projection"
+      },
+      "values": [
+        {
+          "datetime": "2020-07-22T18:00:00+00:00",
+          "temperature": 10.966666666666699,
+          "dew_point": null,
+          "relative_humidity": 10.966666666666699,
+          "wind_speed": null,
+          "wind_direction": null,
+          "total_precipitation": null,
+          "accumulated_rain": null,
+          "accumulated_snow": null,
+          "accumulated_freezing_rain": null,
+          "accumulated_ice_pellets": null,
+          "cloud_cover": null,
+          "sea_level_pressure": null,
+          "wind_speed_40m": null,
+          "wind_direction_40m": null,
+          "wind_direction_80m": null,
+          "wind_speed_120m": null,
+          "wind_direction_120m": null,
+          "wind_speed_925mb": null,
+          "wind_direction_925mb": null,
+          "wind_speed_850mb": null,
+          "wind_direction_850mb": null
+        },
+        {
+          "datetime": "2020-07-22T20:00:00+00:00",
+          "temperature": 14.966666666666697,
+          "dew_point": null,
+          "relative_humidity": 7.5977776000000254,
+          "wind_speed": null,
+          "wind_direction": null,
+          "total_precipitation": null,
+          "accumulated_rain": null,
+          "accumulated_snow": null,
+          "accumulated_freezing_rain": null,
+          "accumulated_ice_pellets": null,
+          "cloud_cover": null,
+          "sea_level_pressure": null,
+          "wind_speed_40m": null,
+          "wind_direction_40m": null,
+          "wind_direction_80m": null,
+          "wind_speed_120m": null,
+          "wind_direction_120m": null,
+          "wind_speed_925mb": null,
+          "wind_direction_925mb": null,
+          "wind_speed_850mb": null,
+          "wind_direction_850mb": null
+        },
+        {
+          "datetime": "2020-07-22T23:00:00+00:00",
+          "temperature": 20.966666666666697,
+          "dew_point": null,
+          "relative_humidity": 2.544444000000016,
+          "wind_speed": null,
+          "wind_direction": null,
+          "total_precipitation": null,
+          "accumulated_rain": null,
+          "accumulated_snow": null,
+          "accumulated_freezing_rain": null,
+          "accumulated_ice_pellets": null,
+          "cloud_cover": null,
+          "sea_level_pressure": null,
+          "wind_speed_40m": null,
+          "wind_direction_40m": null,
+          "wind_direction_80m": null,
+          "wind_speed_120m": null,
+          "wind_direction_120m": null,
+          "wind_speed_925mb": null,
+          "wind_direction_925mb": null,
+          "wind_speed_850mb": null,
+          "wind_direction_850mb": null
+        }
+      ]
+    }
+  ]
+}

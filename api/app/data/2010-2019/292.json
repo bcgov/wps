@@ -1,0 +1,30 @@
+{
+    "ffmc": 94.93847,
+    "isi": 12.78447,
+    "bui": 195.31943,
+    "years": [
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019
+    ],
+    "station": {
+        "code": "292",
+        "name": "D'ARCY",
+        "lat": "50.5217222",
+        "long": "-122.4978889",
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "1",
+            "end_month": "9",
+            "end_day": "15"
+        }
+    }
+}
