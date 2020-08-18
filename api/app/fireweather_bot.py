@@ -87,8 +87,7 @@ def _authenticate_session(session: Session) -> Session:
     if re.search(r"server error", response.text, re.IGNORECASE):
         raise Exception(
             "Server Error occurred while authenticating user. \n {}".format(response.text))
-    else:
-        return session
+    return session
 
 
 def prepare_fetch_noon_forecasts_query():
@@ -119,11 +118,11 @@ def fetch_noon_forecasts(
     # Get forecasts
     resp = session.post(url, data=request_body)
     search_result = re.search(r"fire_weather\/csv\/.+\.csv", resp.text)
-    if search_result:
-        LOGGER.info('Fetching CSV from %s', search_result.group(0))
-        return search_result.group(0)
-    else:
+    if not search_result:
         raise Exception("Couldn't find the csv url.")
+
+    LOGGER.info('Fetching CSV from %s', search_result.group(0))
+    return search_result.group(0)
 
 
 def get_csv(
