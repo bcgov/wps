@@ -70,7 +70,8 @@ class BuildQueryByStationCode(BuildQuery):
     def query(self) -> [str, dict]:
         """ Return query url and params for a list of stations """
         params = {'query': self.querystring}
-        url = urljoin(self.base_url, 'Scripts/Public/Common/Results_Report.asp')
+        url = urljoin(
+            self.base_url, 'Scripts/Public/Common/Results_Report.asp')
         return [url, params]
 
 
@@ -80,8 +81,14 @@ def _authenticate_session(session: Session) -> Session:
     password = config.get('BC_FIRE_WEATHER_SECRET')
     user = config.get('BC_FIRE_WEATHER_USER')
     LOGGER.info('Authenticating user %s at %s', user, BC_FIRE_WEATHER_BASE_URL)
-    session.get(BC_FIRE_WEATHER_BASE_URL, auth=HttpNtlmAuth('idir\\'+user, password))
-    return session
+    response = session.get(BC_FIRE_WEATHER_BASE_URL,
+                           auth=HttpNtlmAuth('idir\\'+user, password))
+
+    if re.search(r"server error", response.text, re.IGNORECASE):
+        raise Exception(
+            "Server Error occurred while authenticating user. \n {}".format(response.text))
+    else:
+        return session
 
 
 def prepare_fetch_noon_forecasts_query():
@@ -110,13 +117,13 @@ def fetch_noon_forecasts(
     """
     url, request_body = prepare_fetch_noon_forecasts_query()
     # Get forecasts
-    response = session.post(url, data=request_body)
-    pattern = re.compile(r"fire_weather\/csv\/.+\.csv")
-    # pylint: disable=invalid-name
-    BC_FIRE_WEATHER_CSV_URL = pattern.search(
-        response.text)
-    LOGGER.info('Fetching CSV from %s', BC_FIRE_WEATHER_CSV_URL.group(0))
-    return BC_FIRE_WEATHER_CSV_URL.group(0)
+    resp = session.post(url, data=request_body)
+    search_result = re.search(r"fire_weather\/csv\/.+\.csv", resp.text)
+    if search_result:
+        LOGGER.info('Fetching CSV from %s', search_result.group(0))
+        return search_result.group(0)
+    else:
+        raise Exception("Couldn't find the csv url.")
 
 
 def get_csv(
@@ -152,6 +159,7 @@ def get_noon_forecasts(temp_path: str):
         # Parse the CSV data
         parse_csv(temp_path)
         LOGGER.debug('Finished writing noon forecasts to database')
+
 
 def parse_csv(temp_path: str):
     """ Given a CSV of forecast noon-time weather data for a station, load the CSV into a
@@ -197,6 +205,7 @@ def parse_csv(temp_path: str):
             LOGGER.info('Skipping duplicate record')
             session.rollback()
 
+
 def _get_start_date():
     """ Helper function to get the start date for query (if morning run, use current day; if evening run,
     use tomorrow's date, since we only want forecasts, not actuals)
@@ -220,18 +229,23 @@ def _get_end_date():
     five_days_ahead = _get_now() + timedelta(days=5)
     return five_days_ahead.strftime('%Y%m%d')
 
+
 def _get_station_names_to_codes() -> Dict:
     """ Helper function to create dictionary of (station_name: station_code) key-value pairs
     Is used when replacing station names with station IDs in dataframe
     """
     station_data = _get_stations_local()
-    station_codes = {station['name'] : station['code'] for station in station_data}
+    station_codes = {
+        station['name']: station['code'] for station in station_data
+    }
     # have to hack this, because BC FireWeather API spells a certain station 'DARCY'
     # while our weather_stations.json spells the station 'D'ARCY'
     station_codes['DARCY'] = station_codes.pop('D\'ARCY')
     return station_codes
 
 # pylint: disable=invalid-name
+
+
 def main():
     """ Makes the appropriate method calls in order to submit a query to the BC FireWeather Phase 1 API
     to get (up to) 5-day forecasts for all weather stations, downloads the resulting CSV file, writes

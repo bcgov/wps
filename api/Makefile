@@ -110,14 +110,6 @@ docker-shell-dev:
 	# docker run -it --env-file app/.env --entrypoint bash wps-api_api-dev:latest
 	docker-compose -f docker-compose.dev.yml run api-dev bash
 
-docker-run-env-canada:
-	# Run a python script to download model data from Env Canada on docker
-	docker-compose exec api python -m app.models.env_canada
-
-docker-run-bender:
-	# Run a python script to download forecast data from BC Wild Fire on docker
-	docker-compose exec api python -m app.fireweather_bot
-
 docker-shell-db:
 	# Shell into the db container
 	docker-compose exec db psql -h db -U wps
@@ -129,3 +121,13 @@ docker-build:
 docker-run:
 	# Run api in production mode, in docker.
 	docker-compose up
+
+docker-run-env-canada:
+	# Run a python script to download model data from Env Canada on docker
+	# Needs to run "make docker-run" first
+	docker-compose exec api python -m app.models.env_canada
+
+docker-run-bender:
+	# Run a python script to download forecast data from BC Wild Fire on docker
+	# Needs to run "make docker-run" first
+	docker-compose exec api python -m app.fireweather_bot
