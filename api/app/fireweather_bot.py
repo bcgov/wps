@@ -81,12 +81,13 @@ def _authenticate_session(session: Session) -> Session:
     password = config.get('BC_FIRE_WEATHER_SECRET')
     user = config.get('BC_FIRE_WEATHER_USER')
     LOGGER.info('Authenticating user %s at %s', user, BC_FIRE_WEATHER_BASE_URL)
-    response = session.get(BC_FIRE_WEATHER_BASE_URL,
-                           auth=HttpNtlmAuth('idir\\'+user, password))
+    resp = session.get(BC_FIRE_WEATHER_BASE_URL,
+                       auth=HttpNtlmAuth('idir\\'+user, password))
 
-    if re.search(r"server error", response.text, re.IGNORECASE):
+    if resp and re.search(r"server error", resp.text, re.IGNORECASE):
         raise Exception(
-            "Server Error occurred while authenticating user. \n {}".format(response.text))
+            "Server Error occurred while authenticating user. \n {}".format(resp.text))
+
     return session
 
 
