@@ -1,0 +1,29 @@
+{
+    "ffmc": 94.83884,
+    "isi": 13.07027,
+    "bui": 165.53754,
+    "years": [
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018
+    ],
+    "station": {
+        "code": "1083",
+        "name": "MEAGER CREEK",
+        "lat": "50.6197222",
+        "long": "-123.4100000",
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

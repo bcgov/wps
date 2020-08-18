@@ -1,0 +1,24 @@
+{
+    "ffmc": 91.55939,
+    "isi": 7.89471,
+    "bui": 145.38336,
+    "years": [
+        2015,
+        2016,
+        2017,
+        2018
+    ],
+    "station": {
+        "code": "1218",
+        "name": "POWELL RIVER WEST LAKE",
+        "lat": "49.8180556",
+        "long": "-124.4494444",
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

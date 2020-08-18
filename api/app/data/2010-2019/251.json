@@ -1,0 +1,29 @@
+{
+    "ffmc": 92.1841,
+    "isi": 9.06391,
+    "bui": 90.28532,
+    "years": [
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018
+    ],
+    "station": {
+        "code": "251",
+        "name": "DECEPTION",
+        "lat": "51.9670000",
+        "long": "-120.6080000",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

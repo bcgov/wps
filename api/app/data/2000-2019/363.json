@@ -1,0 +1,39 @@
+{
+    "ffmc": 93.28977,
+    "isi": 9.81375,
+    "bui": 105.97189,
+    "years": [
+        2000,
+        2001,
+        2002,
+        2003,
+        2004,
+        2005,
+        2006,
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018
+    ],
+    "station": {
+        "code": "363",
+        "name": "REVELSTOKE",
+        "lat": "51.0603333",
+        "long": "-118.2171667",
+        "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}

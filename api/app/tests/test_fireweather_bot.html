@@ -1,0 +1,134 @@
+
+<html>
+<head>
+<!-- No extra meta tags -->
+<title>
+**Daily (Bounded Days)
+</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+	<link rel="stylesheet" type="text/css" href="/BCWx_Light.css">
+	<link rel="stylesheet" type="text/css" href="/BCWx_Danger.css">
+<script language = javascript>
+<!--
+var dtStart = new Date()
+	function GetEndDate() {
+	var dtEnd = new Date()
+		document.write ('<br>Javascript took ' + (dtEnd - dtStart)/1000 + ' seconds to execute.') 
+	}
+function appear(object) {
+    if (document.layers && document.layers[object])
+        document.layers[object].visibility = 'visible';
+    else if (document.all)
+        document.all[object].style.visibility = 'visible';
+}
+
+function hide(object) {
+    if (document.layers && document.layers[object])
+        document.layers[object].visibility = 'hidden';
+    else if (document.all)
+        document.all[object].style.visibility = 'hidden';
+}
+function matchFieldSelect (field, select, value) {
+  var property = value ? 'value' : 'text';
+  var found = false;
+  
+  for (var i = 0; i < select.options.length; i++)
+    if ((found = select.options[i][property].indexOf(field.value) == 0))
+      break;
+  if (found)
+    select.selectedIndex = i;
+  else
+    select.selectedIndex = -1;
+  if (field.createTextRange) {
+    var cursorKeys ='8;46;37;38;39;40;33;34;35;36;45;'
+    if (cursorKeys.indexOf(event.keyCode+';') == -1) {
+      var r1 = field.createTextRange()
+      var oldValue = r1.text;
+      var newValue = found ? select.options[i][property] : oldValue;
+      if (newValue != field.value) {
+        field.value = newValue
+        var rNew = field.createTextRange()
+        rNew.moveStart('character', oldValue.length) 
+        rNew.select()
+      }
+    }
+  }
+}
+	
+	function TwoDigit(st) {
+		st = '00' + st.toString()
+		st = st.substr(st.length - 2, 2)
+		return st
+	
+	}
+	
+	function FormatDate(txt, iMode) {
+		var dt = new Date()
+		var theVal = txt.value
+
+		var theYear 
+		var theMonth
+		var theDay
+
+		dt.setTime(Date.parse(theVal))
+		
+		if (isNaN(dt)) {
+			// Check to see if it is this date format already, which javascript doesn't understand
+			if (theVal.length == 10) {
+				theYear = theVal.substr(0, 4)
+				theMonth = theVal.substr(5,2)
+				theDay = theVal.substr(8,2)
+				
+				theVal =  theMonth + "/" + theDay + "/" + theYear
+				
+				dt.setTime(Date.parse(theVal))
+			}
+			
+		}
+		
+		if (txt.value != "") {
+			if (isNaN(dt)) {
+				alert ("Invalid date '" + txt.value + "'")
+			} else {
+				// It is a non-blank date.
+				theYear = dt.getFullYear()
+				theMonth = TwoDigit(dt.getMonth() + 1)
+				theDay = TwoDigit(dt.getDate())
+
+				switch (iMode) {
+				case 0:
+					txt.value = theYear + '-' + theMonth + '-' + theDay
+					break
+				}
+			}
+		}
+	}
+	
+	
+	
+//-->
+</script>
+
+
+
+<!-- No extra javascript -->
+</head>
+<style>
+	body {font-family: Arial; font-size: x-small;}
+	a.MainTab {text-decoration: none;}
+	h2 {font-size: small; color: DarkGreen}
+</style>
+<body  bgcolor = 'white'>
+<form method=post action=Results_Report.asp>
+
+
+<!-- Begin sql_OSBD.inc --><input type= hidden name= Start_Date value = '20200729'><input type= hidden name= End_Date value = '20200802'><input type= hidden name= rdoReport value = 'OSBD'><input type= hidden name= Format value = 'CSV'><p><input type= hidden size= 40 name= txtStations value = '322, 838, 209, 317, 213, 977, 1275, 331, 302, 111, 167, 503, 221, 149, 37, 390, 175, 432, 228, 267, 868, 1040, 262, 148, 866, 1108, 113, 193, 56, 445, 283, 865, 181, 253, 554, 793, 199, 59, 429, 1283, 791, 189, 832, 239, 232, 556, 433, 426, 352, 292, 1203, 108, 251, 421, 905, 385, 243, 170, 391, 438, 412, 425, 383, 298, 440, 1029, 418, 1144, 1377, 599, 146, 1375, 306, 182, 222, 227, 291, 401, 886, 379, 919, 270, 124, 392, 161, 321, 1332, 309, 904, 67, 250, 118, 187, 201, 654, 1349, 93, 230, 162, 343, 132, 876, 145, 112, 190, 419, 444, 388, 428, 106, 1348, 166, 225, 1075, 1323, 307, 140, 171, 255, 280, 1330, 218, 163, 1350, 362, 101, 1276, 155, 141, 367, 263, 1082, 195, 180, 334, 192, 311, 153, 236, 1083, 19, 294, 934, 226, 165, 1176, 131, 151, 179, 316, 407, 1251, 427, 211, 789, 119, 216, 393, 172, 437, 173, 159, 396, 1270, 1045, 121, 411, 183, 326, 178, 301, 402, 328, 1248, 938, 129, 212, 1387, 380, 1218, 264, 1093, 138, 363, 210, 394, 1092, 105, 788, 346, 45, 1345, 82, 1165, 344, 555, 882, 117, 152, 120, 1024, 406, 404, 305, 1055, 1359, 374, 11, 156, 144, 208, 206, 110, 279, 234, 126, 75, 417, 387, 995, 1378, 1362, 956, 1002, 1056, 1066, 945, 944, 1025, 361, 127, 286, 72, 169, 431, 200, 1268, 430, 158, 447, 266, 1277, 366, 790, 244, 154, 136, 21, 235'><input type= hidden name= stnNumber value = '1'><input type= hidden name= stnCount value = '249'><input type= hidden name = LastStation value = 'False'>
+    <input type= hidden name= cboFilters value = '18241'>
+<!-- End sql_OSBD.inc -->
+<p>351 rows copied.<p><a href = /fire_weather/csv/IDIR_SEFCWX_7_28_2020_1_12_44_PM.csv>View the report</a>.  To download the report, right-click on the link and select 'Save Target As...' or the equivalent option in your browser.<p>Please do not bookmark the resulting report file.  It will only remain on the server until midnight tonight.
+	</td>
+</tr>
+</table><!-- ------------------------------- Begin CloseObjects.inc ------------------------------- -->
+
+<!-- ------------------------------- End CloseObjects.inc ------------------------------- -->
+</body></html>

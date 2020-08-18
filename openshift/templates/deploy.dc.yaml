@@ -1,0 +1,189 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: ${NAME}
+  annotations:
+    openshift.io/display-name: "wps-api"
+    description: "Wildfire Predictive Services - API"
+    openshift.io/long-description: "Wildfire Predictive Services - API"
+    tags: "wps,wps-api"
+    iconClass: icon-js
+    openshift.io/provider-display-name: "Government of British Columbia"
+    openshift.io/documentation-url: "https://github.com/bcgov/wps-api"
+    openshift.io/support-url: "https://github.com/bcgov/wps-api"
+labels:
+  app.kubernetes.io/part-of: "${NAME}"
+  app: ${NAME}-${SUFFIX}
+parameters:
+  - name: NAME
+    description: Module name
+    value: wps-api
+  - name: SUFFIX
+    description: Deployment suffix, e.g. pr-###
+    required: true
+  - name: PROJECT_TOOLS
+    value: auzhsi-tools
+  - name: CPU_REQUEST
+    description: Requested CPU
+    value: 300m
+  - name: CPU_LIMIT
+    description: CPU upper limit
+    value: 300m
+  - name: MEMORY_REQUEST
+    description: Requested memory
+    value: 1Gi
+  - name: MEMORY_LIMIT
+    description: Memory upper limit
+    value: 1Gi
+  - name: REPLICAS
+    description: Number of replicas (pods)
+    value: "2"
+  - name: ALLOWED_ORIGINS
+    value: wps-web-*.pathfinder.gov.bc.ca
+  - name: WFWX_MAX_PAGE_SIZE
+    description: Maximum number of entities to request at a time from the WFWX API
+    value: "1000"
+objects:
+  - apiVersion: v1
+    kind: DeploymentConfig
+    metadata:
+      labels:
+        app: ${NAME}-${SUFFIX}
+      name: ${NAME}-${SUFFIX}
+    spec:
+      replicas: ${{REPLICAS}}
+      selector:
+        name: ${NAME}-${SUFFIX}
+      strategy:
+        type: Rolling
+      triggers: []
+      template:
+        metadata:
+          labels:
+            name: ${NAME}-${SUFFIX}
+        spec:
+          automountServiceAccountToken: false
+          containers:
+            - image: docker-registry.default.svc:5000/${PROJECT_TOOLS}/${NAME}-${SUFFIX}:${SUFFIX}
+              imagePullPolicy: Always
+              name: ${NAME}
+              env:
+                - name: ORIGINS
+                  value: ${ALLOWED_ORIGINS}
+                - name: PORT # The port that the API will run on (used by fastapi docker image)
+                  value: "8080"
+                - name: WORKERS_PER_CORE # The number of worker per code (used by fastapi docker image)
+                  value: "0.25"
+                - name: SPOTWX_BASE_URI
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-global
+                      key: env.spotwx-url
+                - name: SPOTWX_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${NAME}-global
+                      key: spotwx-api-key
+                - name: USE_WFWX
+                  value: "False"
+                - name: USE_SPOTWX
+                  value: "False"
+                - name: WFWX_MAX_PAGE_SIZE
+                  value: ${WFWX_MAX_PAGE_SIZE}
+                - name: WFWX_AUTH_URL
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-global
+                      key: env.wfwx-auth-url
+                - name: WFWX_BASE_URL
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-global
+                      key: env.wfwx-base-url
+                - name: WFWX_USER
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-global
+                      key: env.wfwx-user
+                - name: WFWX_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${NAME}-global
+                      key: wfwx-secret
+                - name: KEYCLOAK_PUBLIC_KEY
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-global
+                      key: env.keycloak-public-key
+                - name: POSTGRES_USER
+                  value: ${NAME}-${SUFFIX}
+                - name: POSTGRES_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${NAME}-global
+                      key: app-db-password
+                - name: POSTGRES_HOST
+                  value: patroni-leader-${NAME}-${SUFFIX}
+                - name: POSTGRES_PORT
+                  value: "5432"
+                - name: POSTGRES_DATABASE
+                  value: ${NAME}-${SUFFIX}
+              ports:
+                - containerPort: 8080
+                  protocol: TCP
+              resources:
+                limits:
+                  cpu: ${CPU_LIMIT}
+                  memory: ${MEMORY_LIMIT}
+                requests:
+                  cpu: ${CPU_REQUEST}
+                  memory: ${MEMORY_REQUEST}
+              readinessProbe:
+                httpGet:
+                  path: /health
+                  port: 8080
+                  scheme: HTTP
+                initialDelaySeconds: 10
+                timeoutSeconds: 1
+              livenessProbe:
+                successThreshold: 1
+                failureThreshold: 3
+                httpGet:
+                  path: /health
+                  port: 8080
+                  scheme: HTTP
+                initialDelaySeconds: 10
+                periodSeconds: 360
+                timeoutSeconds: 1
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      labels:
+        app: ${NAME}-${SUFFIX}
+      name: ${NAME}-${SUFFIX}
+    spec:
+      ports:
+        - name: 8080-tcp
+          protocol: TCP
+          port: 80
+          targetPort: 8080
+      selector:
+        name: ${NAME}-${SUFFIX}
+  - apiVersion: route.openshift.io/v1
+    kind: Route
+    metadata:
+      labels:
+        app: ${NAME}-${SUFFIX}
+      name: ${NAME}-${SUFFIX}
+      annotations:
+        # Enable HTTP Strict Transport Security:
+        haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+    spec:
+      host: ${NAME}-${SUFFIX}.pathfinder.gov.bc.ca
+      port:
+        targetPort: 8080-tcp
+      to:
+        kind: Service
+        name: ${NAME}-${SUFFIX}
+      tls:
+        termination: edge

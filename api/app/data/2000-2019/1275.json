@@ -1,0 +1,21 @@
+{
+    "ffmc": 92.07364,
+    "isi": 8.34831,
+    "bui": 60.53918,
+    "years": [
+        2018
+    ],
+    "station": {
+        "code": "1275",
+        "name": "APE LAKE",
+        "lat": "52.1345694",
+        "long": "-126.2626806",
+        "ecodivision_name": "COOL HYPERMARITIME AND HIGHLANDS",
+        "core_season": {
+            "start_month": "5",
+            "start_day": "15",
+            "end_month": "8",
+            "end_day": "31"
+        }
+    }
+}
