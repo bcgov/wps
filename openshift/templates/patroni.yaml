@@ -166,6 +166,16 @@ objects:
               volumeMounts:
                 - mountPath: /home/postgres/pgdata
                   name: ${APPLICATION_NAME}
+              readinessProbe:
+                successThreshold: 1
+                failureThreshold: 3
+                exec:
+                  command:
+                    - /bin/bash
+                    - '-c'
+                    - /usr/share/scripts/patroni/health_check.sh
+                initialDelaySeconds: 60
+                periodSeconds: 300
           dnsPolicy: ClusterFirst
           restartPolicy: Always
           schedulerName: default-scheduler
