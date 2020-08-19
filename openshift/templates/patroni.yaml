@@ -152,7 +152,7 @@ objects:
                   value: 0.0.0.0:5432
                 - name: PATRONI_RESTAPI_LISTEN
                   value: 0.0.0.0:8008
-              image: docker-registry.default.svc:5000/${IMAGE_NAMESPACE}/patroni:10
+              image: docker-registry.default.svc:5000/${IMAGE_NAMESPACE}/patroni:${IMAGE_VERSION}
               imagePullPolicy: IfNotPresent
               name: ${APPLICATION_NAME}
               ports:
@@ -318,3 +318,7 @@ parameters:
     displayName: Persistent Volume Size
     name: PVC_SIZE
     value: 5Gi
+  - description: Version of Patroni image to be used.
+    displayName: Patroni image version
+    name: IMAGE_VERSION
+    value: 10
