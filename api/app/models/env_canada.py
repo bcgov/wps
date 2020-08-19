@@ -173,7 +173,12 @@ def flag_file_as_processed(session: Session, url):
     session.commit()
 
 
-def check_if_model_run_complete(session: Session, model: ModelEnum, projection: str, now: datetime.datetime, hour: int):
+def check_if_model_run_complete(
+        session: Session,
+        model: ModelEnum,
+        projection: str,
+        now: datetime.datetime,
+        hour: int):
     """ Check if a particular model run is complete """
 
     # Get all the download urls for a particular model run.
