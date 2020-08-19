@@ -110,6 +110,7 @@ def get_model_run_download_urls(now: datetime.datetime, hour: int):
 
     # hh: model run start, in UTC [00, 12]
     # hhh: prediction hour [000, 003, 006, ..., 240]
+    # pylint: disable=invalid-name
     hh = '{:02d}'.format(hour)
     # For the global model, we have prediction at 3 hour intervals up to 240 hours.
     for h in range(0, 241, 3):
@@ -192,17 +193,18 @@ def check_if_model_run_complete(
         # If the url has not been processed, mark as false and stop.
         if not processed_file_record:
             logger.info(
-                'for model {}:{} run {}, url {} not yet processed'.format(model, projection, hour, url))
+                'for model %s:%s run %s, url %s not yet processed', model, projection, hour, url)
             complete = False
             break
     return complete
 
 
-def mark_prediction_model_processed(session: Session,
-                                    model: ModelEnum,
-                                    projection: str,
-                                    now: datetime.datetime,
-                                    hour: int):
+def mark_prediction_model_run_processed(session: Session,
+                                        model: ModelEnum,
+                                        projection: str,
+                                        now: datetime.datetime,
+                                        hour: int):
+    """ Mark a prediction model run as processed (complete) """
 
     prediction_model = app.db.crud.get_prediction_model(
         session, model, projection)
@@ -269,7 +271,7 @@ def main():
         if check_if_model_run_complete(session, ModelEnum.GDPS, app.db.crud.LATLON_15X_15, now, hour):
             logger.info(
                 'GDPS model run {:02d} completed with SUCCESS'.format(hour))
-            mark_prediction_model_processed(
+            mark_prediction_model_run_processed(
                 session, ModelEnum.GDPS, app.db.crud.LATLON_15X_15, now, hour)
 
     execution_time = round(time.time() - start_time, 1)
@@ -284,10 +286,10 @@ def main():
 if __name__ == "__main__":
     try:
         main()
+    # pylint: disable=broad-except
     except Exception as exception:
         # We catch and log any exceptions we may have missed.
-        logger.error('unexpected exception processing %s',
-                     url, exc_info=exception)
+        logger.error('unexpected exception processing', exc_info=exception)
         # Exit with a failure code.
         sys.exit(os.EX_SOFTWARE)
     # We assume success if we get to this point.

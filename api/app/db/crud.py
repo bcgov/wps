@@ -26,6 +26,7 @@ def get_most_recent_model_run(
     :projection: e.g. latlon.15x.15
     """
     # NOTE: Don't be fooled into saying "PredictionModelRunTimestamp.complete is True", it won't work.
+    # pylint: disable=singleton-comparison
     return session.query(PredictionModelRunTimestamp).\
         join(PredictionModel).\
         filter(PredictionModel.id == PredictionModelRunTimestamp.prediction_model_id).\
@@ -61,6 +62,7 @@ def create_prediction_run(
 
 
 def update_prediction_run(session: Session, prediction_run: PredictionModelRunTimestamp):
+    """ Updarte a PredictionModelRunTimestamp record """
     session.add(prediction_run)
     session.commit()
 
