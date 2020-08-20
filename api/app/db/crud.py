@@ -165,6 +165,11 @@ def get_or_create_grid_subset(session: Session,
     return grid_subset
 
 
+def get_processed_file_count(session: Session, urls: List[str]) -> int:
+    """ Return the number of matching urls """
+    return session.query(ProcessedModelRunUrl).filter(ProcessedModelRunUrl.url.in_(urls)).count()
+
+
 def get_processed_file_record(session: Session, url: str) -> ProcessedModelRunUrl:
     """ Get record corresponding to a processed file. """
     processed_file = session.query(ProcessedModelRunUrl).\

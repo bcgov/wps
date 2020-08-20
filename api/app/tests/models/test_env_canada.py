@@ -26,6 +26,14 @@ class MockResponse:
 
 
 @pytest.fixture()
+def mock_get_processed_file_count(monkeypatch):
+    """ Mocked out get processed file count """
+    def mock_get_count(*args):
+        return 162
+    monkeypatch.setattr(env_canada, 'get_processed_file_count', mock_get_count)
+
+
+@pytest.fixture()
 def mock_utcnow(monkeypatch):
     """ Mocked out utcnow, to allow for deterministic tests """
     def mock_get_utcnow(*args):
@@ -39,6 +47,7 @@ def mock_session(monkeypatch):
     def mock_get_session(*args):
         url = ('https://dd.weather.gc.ca/model_gem_global/15km/grib2/lat_lon/00/000/'
                'CMC_glb_TMP_TGL_2_latlon.15x.15_2021020300_P000.grib2')
+        processed_model_run = ProcessedModelRunUrl(url=url)
 
         prediction_model = PredictionModel(id=1,
                                            abbreviation='GDPS',
@@ -60,8 +69,7 @@ def mock_session(monkeypatch):
             (
                 [mock.call.query(ProcessedModelRunUrl),
                  mock.call.filter(ProcessedModelRunUrl.url == url)],
-                [ProcessedModelRunUrl()]
-
+                [processed_model_run]
             ),
             (
                 [mock.call.query(PredictionModelRunTimestamp)],
@@ -102,7 +110,7 @@ def test_get_download_urls():
         datetime.datetime.now(), 0))) == total_num_of_urls
 
 
-def test_main(mock_download, mock_session, mock_utcnow):
+def test_main(mock_download, mock_session, mock_utcnow, mock_get_processed_file_count):
     """ run main method to see if it runs successfully. """
     # All files, except one, are marked as already having been downloaded, so we expect one file to
     # be processed.

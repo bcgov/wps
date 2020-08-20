@@ -17,7 +17,7 @@ import requests
 from sqlalchemy.orm import Session
 import app.db.database
 from app.models import ModelEnum
-from app.db.crud import get_processed_file_record
+from app.db.crud import get_processed_file_record, get_processed_file_count
 from app.db.models import ProcessedModelRunUrl
 from app.models.process_grib import GribFileProcessor, ModelRunInfo
 
@@ -225,8 +225,7 @@ class EnvCanada():
     def check_if_model_run_complete(self, urls):
         """ Check if a particular model run is complete """
         # pylint: disable=no-member
-        actual_count = self.session.query(ProcessedModelRunUrl).filter(
-            ProcessedModelRunUrl.url.in_(urls)).count()
+        actual_count = get_processed_file_count(self.session, urls)
         expected_count = len(urls)
         logger.info('we have processed %s/%s files', actual_count, expected_count)
         return actual_count == expected_count
