@@ -80,8 +80,11 @@ def parse_env_canada_filename(filename):
 
 
 def get_model_day(now, hour) -> int:
-    # if now (e.g. 10h00) is less than model run (e.g. 12), it means we have to look for yesterdays
-    # model run.
+    """ Get the model day, based on the current time.
+
+    If now (e.g. 10h00) is less than model run (e.g. 12), it means we have to look for yesterdays
+    model run.
+    """
     if now.hour < hour:
         return now.day - 1
     return now.day
@@ -187,8 +190,12 @@ def mark_prediction_model_run_processed(session: Session,
 
 
 class EnvCanada():
+    """ Class that orchestrates downloading and processing of weather model grib files from environment
+    Canada.
+    """
 
     def __init__(self):
+        """ Prep variables """
         self.files_downloaded = 0
         self.files_processed = 0
         self.exception_count = 0
@@ -209,6 +216,7 @@ class EnvCanada():
                 create_date=datetime.datetime.now(datetime.timezone.utc))
         processed_file.update_date = datetime.datetime.now(
             datetime.timezone.utc)
+        # pylint: disable=no-member
         self.session.add(processed_file)
         self.session.commit()
 
@@ -235,6 +243,8 @@ class EnvCanada():
         return complete
 
     def process_model_run_urls(self, urls):
+        """ Process the urls for a model run.
+        """
         for url, filename in urls:
             try:
                 # check the database for a record of this file:
@@ -271,6 +281,7 @@ class EnvCanada():
                              url, exc_info=exception)
 
     def process_model_run(self, hour):
+        """ Process a particular model run """
         logger.info('Processing GDPS model run {:02d}'.format(hour))
 
         # Get the urls for the current model run.
@@ -287,9 +298,11 @@ class EnvCanada():
                 self.session, ModelEnum.GDPS, app.db.crud.LATLON_15X_15, self.now, hour)
 
     def process(self):
+        """ Entry point for downloading and processing weather model grib files """
         for hour in get_model_run_hours():
             try:
                 self.process_model_run(hour)
+            # pylint: disable=broad-except
             except Exception as exception:
                 # We catch and log exceptions, but keep trying to process.
                 # We intentionally catch a broad exception, as we want to try to process as much as we can.
