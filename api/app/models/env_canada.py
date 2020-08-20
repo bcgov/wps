@@ -244,7 +244,7 @@ class EnvCanada():
                     logger.info('file aready processed %s', url)
                 else:
                     # extract model info from filename:
-                    filename = os.path.basename(urlparse(url))
+                    filename = os.path.basename(urlparse(url).path)
                     model_info = parse_env_canada_filename(filename)
                     # download the file:
                     with tempfile.TemporaryDirectory() as tmp_path:
