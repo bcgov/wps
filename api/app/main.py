@@ -14,7 +14,7 @@ from app.models.fetch.predictions import fetch_model_predictions
 from app.models.fetch.summaries import fetch_model_prediction_summaries
 from app.models import ModelEnum
 from app.percentile import get_precalculated_percentiles
-from app.noon_forecasts import fetch_noon_forecasts
+from app.forecasts.noon_forecasts import fetch_noon_forecasts
 from app.auth import authenticate
 from app import wildfire_one
 from app import config

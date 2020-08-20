@@ -40,7 +40,7 @@ objects:
                 - name: ${JOB_NAME}
                   image: docker-registry.default.svc:5000/${PROJECT_TOOLS}/${NAME}-${SUFFIX}:${SUFFIX}
                   imagePullPolicy: "Always"
-                  command: ["python", "-m", "app.fireweather_bot"]
+                  command: ["python", "-m", "app.forecasts.fireweather_bot"]
                   env:
                     - name: BC_FIRE_WEATHER_SECRET
                       valueFrom:
