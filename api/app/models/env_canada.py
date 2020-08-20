@@ -220,27 +220,14 @@ class EnvCanada():
         self.session.add(processed_file)
         self.session.commit()
 
-    def check_if_model_run_complete(self,
-                                    model: ModelEnum,
-                                    projection: str,
-                                    hour: int):
+    def check_if_model_run_complete(self, urls):
         """ Check if a particular model run is complete """
-        # Get all the download urls for a particular model run.
-        urls = get_model_run_download_urls(self.now, hour)
-        # Start off assuming it's complete, then attempt to falsify assumption.
-        complete = True
-        # Iterate through url's.
-        for url, _ in urls:
-            # Check if url as been processed.
-            processed_file_record = get_processed_file_record(
-                self.session, url)
-            # If the url has not been processed, mark as false and stop.
-            if not processed_file_record:
-                logger.info(
-                    'for model %s:%s run %s, url %s not yet processed', model, projection, hour, url)
-                complete = False
-                break
-        return complete
+        # pylint: disable=no-member
+        actual_count = self.session.query(ProcessedModelRunUrl).filter(
+            ProcessedModelRunUrl.url.in_(map(lambda item: item[0], urls))).count()
+        expected_count = len(list(urls))
+        logger.info('we have processed %s/%s files', actual_count, expected_count)
+        return actual_count == expected_count
 
     def process_model_run_urls(self, urls):
         """ Process the urls for a model run.
@@ -285,13 +272,13 @@ class EnvCanada():
         logger.info('Processing GDPS model run {:02d}'.format(hour))
 
         # Get the urls for the current model run.
-        urls = get_model_run_download_urls(self.now, hour)
+        urls = list(get_model_run_download_urls(self.now, hour))
 
         # Process all the urls.
         self.process_model_run_urls(urls)
 
         # Having completed processing, check if we're all done.
-        if self.check_if_model_run_complete(ModelEnum.GDPS, app.db.crud.LATLON_15X_15, hour):
+        if self.check_if_model_run_complete(urls):
             logger.info(
                 'GDPS model run {:02d} completed with SUCCESS'.format(hour))
             mark_prediction_model_run_processed(

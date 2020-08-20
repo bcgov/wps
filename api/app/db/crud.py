@@ -33,7 +33,7 @@ def get_most_recent_model_run(
         filter(PredictionModel.abbreviation == abbreviation, PredictionModel.projection == projection).\
         filter(PredictionModelRunTimestamp.complete == True).\
         order_by(PredictionModelRunTimestamp.prediction_run_timestamp.desc()).\
-        first()
+        first()  # noqa: E712
 
 
 def get_prediction_run(session: Session, prediction_model_id: int,
