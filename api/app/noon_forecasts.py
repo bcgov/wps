@@ -39,7 +39,8 @@ def parse_table_records_to_noon_forecast_response(data: [NoonForecasts]):
             rh_valid=record.rh_valid,
             relative_humidity=record.relative_humidity,
             wdir_valid=record.wdir_valid,
-            wind_direction=None if math.isnan(record.wind_direction) else record.wind_direction,
+            wind_direction=None if math.isnan(
+                record.wind_direction) else record.wind_direction,
             wspeed_valid=record.wspeed_valid,
             wind_speed=record.wind_speed,
             precip_valid=record.precip_valid,

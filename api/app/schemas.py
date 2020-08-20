@@ -188,6 +188,28 @@ class NoonForecastResponse(BaseModel):
     noon_forecasts: List[NoonForecast]
 
 
+class NoonForecastSummaryValues(BaseModel):
+    """ Summary of noon forecast values. """
+    datetime: datetime
+    tmp_5th: float
+    tmp_median: float
+    tmp_90th: float
+    rh_5th: float
+    rh_median: float
+    rh_90th: float
+
+
+class NoonForecastSummary(BaseModel):
+    """ Summary of noon forecasts for a given station """
+    station: WeatherStation
+    values: List[NoonForecastSummaryValues] = []
+
+
+class NoonForecastSummariesResponse(BaseModel):
+    """ Response containing noon forecast summaries """
+    summaries: List[NoonForecastSummary]
+
+
 class WeatherModelPredictionSummaryValues(BaseModel):
     """ Summary of model prediction values. """
     datetime: datetime

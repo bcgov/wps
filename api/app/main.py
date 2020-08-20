@@ -108,7 +108,7 @@ async def get_model_predictions(
           response_model=schemas.WeatherModelPredictionSummaryResponse)
 async def get_model_prediction_summaries(
         model: ModelEnum, request: schemas.StationCodeList, _: bool = Depends(authenticate)):
-    """ Return a summary of predictions for a given model. """
+    """ Returns a summary of predictions for a given model. """
     try:
         LOGGER.info('/models/%s/predictions/summaries/', model.name)
         summaries = await fetch_model_prediction_summaries(model, request.stations)
@@ -126,9 +126,18 @@ def get_noon_forecasts(request: schemas.StationCodeList, _: bool = Depends(authe
         LOGGER.info('/noon_forecasts/')
         start_date = datetime.datetime.now(tz=datetime.timezone.utc)
         end_date = start_date + datetime.timedelta(days=5)
-        LOGGER.info('Querying /noon_forecasts/ for %s from %s to %s',
-                    request.stations, start_date, end_date)
         return fetch_noon_forecasts(request.stations, start_date, end_date)
+    except Exception as exception:
+        LOGGER.critical(exception, exc_info=True)
+        raise
+
+
+@app.post('/noon_forecasts/summaries/', response_model=schemas.NoonForecastSummariesResponse)
+async def get_noon_forecasts_summaries(request: schemas.StationCodeList, _: bool = Depends(authenticate)):
+    """ Returns summaries of noon forecasts for given weather stations """
+    try:
+        LOGGER.info('/noon_forecasts/summaries/')
+
     except Exception as exception:
         LOGGER.critical(exception, exc_info=True)
         raise
