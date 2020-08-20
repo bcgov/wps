@@ -12,6 +12,8 @@ import logging.config
 import time
 import tempfile
 import requests
+from typing import Generator
+from urllib.parse import urlparse
 from sqlalchemy.orm import Session
 import app.db.database
 from app.models import ModelEnum
@@ -111,7 +113,7 @@ def get_model_run_hours():
         yield hour
 
 
-def get_model_run_download_urls(now: datetime.datetime, hour: int):
+def get_model_run_download_urls(now: datetime.datetime, hour: int) -> Generator[str, None, None]:
     """ Yield urls to download. """
 
     # hh: model run start, in UTC [00, 12]
@@ -128,7 +130,7 @@ def get_model_run_download_urls(now: datetime.datetime, hour: int):
             filename = 'CMC_glb_{}_latlon.15x.15_{}{}_P{}.grib2'.format(
                 level, date, hh, hhh)
             url = base_url + filename
-            yield url, filename
+            yield url
 
 
 def download(url: str, path: str) -> str:
@@ -224,15 +226,15 @@ class EnvCanada():
         """ Check if a particular model run is complete """
         # pylint: disable=no-member
         actual_count = self.session.query(ProcessedModelRunUrl).filter(
-            ProcessedModelRunUrl.url.in_(map(lambda item: item[0], urls))).count()
-        expected_count = len(list(urls))
+            ProcessedModelRunUrl.url.in_(urls)).count()
+        expected_count = len(urls)
         logger.info('we have processed %s/%s files', actual_count, expected_count)
         return actual_count == expected_count
 
     def process_model_run_urls(self, urls):
         """ Process the urls for a model run.
         """
-        for url, filename in urls:
+        for url in urls:
             try:
                 # check the database for a record of this file:
                 processed_file_record = get_processed_file_record(
@@ -242,6 +244,7 @@ class EnvCanada():
                     logger.info('file aready processed %s', url)
                 else:
                     # extract model info from filename:
+                    filename = os.path.basename(urlparse(url))
                     model_info = parse_env_canada_filename(filename)
                     # download the file:
                     with tempfile.TemporaryDirectory() as tmp_path:
