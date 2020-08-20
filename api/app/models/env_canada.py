@@ -7,13 +7,17 @@ import os
 import sys
 import json
 import datetime
+from typing import Generator
+from urllib.parse import urlparse
 import logging
 import logging.config
 import time
 import tempfile
 import requests
+from sqlalchemy.orm import Session
 import app.db.database
-from app.db.crud import get_processed_file_record
+from app.models import ModelEnum
+from app.db.crud import get_processed_file_record, get_processed_file_count
 from app.db.models import ProcessedModelRunUrl
 from app.models.process_grib import GribFileProcessor, ModelRunInfo
 
@@ -61,9 +65,9 @@ def parse_env_canada_filename(filename):
         datetime.timedelta(hours=int(prediction_hour))
 
     if model == 'glb':
-        model_abbreviation = 'GDPS'
+        model_abbreviation = ModelEnum.GDPS
     elif model == 'reg':
-        model_abbreviation = 'RDPS'
+        model_abbreviation = ModelEnum.RDPS
     else:
         raise UnhandledPredictionModelType(
             'Unhandeled prediction model type found', model)
@@ -77,15 +81,21 @@ def parse_env_canada_filename(filename):
     return info
 
 
+def get_model_day(now, hour) -> int:
+    """ Get the model day, based on the current time.
+
+    If now (e.g. 10h00) is less than model run (e.g. 12), it means we have to look for yesterdays
+    model run.
+    """
+    if now.hour < hour:
+        return now.day - 1
+    return now.day
+
+
 def get_file_date_part(now, hour) -> str:
     """ Construct the part of the filename that contains the model run date
     """
-    if now.hour < hour:
-        # if now (e.g. 10h00) is less than model run (e.g. 12), it means we have to look for yesterdays
-        # model run.
-        day = now.day - 1
-    else:
-        day = now.day
+    day = get_model_day(now, hour)
     date = '{year}{month:02d}{day:02d}'.format(
         year=now.year, month=now.month, day=day)
     return date
@@ -97,27 +107,30 @@ def get_utcnow():
     return datetime.datetime.utcnow()
 
 
-def get_download_urls():
-    """ Create a list of urls to download and return it """
-    # We always work in UTC:
-    now = get_utcnow()
+def get_model_run_hours():
+    """ Yield model run hours for GDPS (00h00 and 12h00) """
+    for hour in [0, 12]:
+        yield hour
+
+
+def get_model_run_download_urls(now: datetime.datetime, hour: int) -> Generator[str, None, None]:
+    """ Yield urls to download. """
 
     # hh: model run start, in UTC [00, 12]
     # hhh: prediction hour [000, 003, 006, ..., 240]
     # pylint: disable=invalid-name
-    for hour in [0, 12]:
-        hh = '{:02d}'.format(hour)
-        # For the global model, we have prediction at 3 hour intervals up to 240 hours.
-        for h in range(0, 241, 3):
-            hhh = format(h, '03d')
-            for level in ['TMP_TGL_2', 'RH_TGL_2']:
-                base_url = 'https://dd.weather.gc.ca/model_gem_global/15km/grib2/lat_lon/{}/{}/'.format(
-                    hh, hhh)
-                date = get_file_date_part(now, hour)
-                filename = 'CMC_glb_{}_latlon.15x.15_{}{}_P{}.grib2'.format(
-                    level, date, hh, hhh)
-                url = base_url + filename
-                yield url, filename
+    hh = '{:02d}'.format(hour)
+    # For the global model, we have prediction at 3 hour intervals up to 240 hours.
+    for h in range(0, 241, 3):
+        hhh = format(h, '03d')
+        for level in ['TMP_TGL_2', 'RH_TGL_2']:
+            base_url = 'https://dd.weather.gc.ca/model_gem_global/15km/grib2/lat_lon/{}/{}/'.format(
+                hh, hhh)
+            date = get_file_date_part(now, hour)
+            filename = 'CMC_glb_{}_latlon.15x.15_{}{}_P{}.grib2'.format(
+                level, date, hh, hhh)
+            url = base_url + filename
+            yield url
 
 
 def download(url: str, path: str) -> str:
@@ -154,74 +167,170 @@ def download(url: str, path: str) -> str:
     return target
 
 
-def flag_file_as_processed(session, url):
-    """ Flag the file as processed in the database """
-    processed_file = get_processed_file_record(session, url)
-    if processed_file:
-        logger.info('re-procesed %s', url)
-    else:
-        logger.info('file processed %s', url)
-        processed_file = ProcessedModelRunUrl(
-            url=url,
-            create_date=datetime.datetime.now(datetime.timezone.utc))
-    processed_file.update_date = datetime.datetime.now(datetime.timezone.utc)
-    session.add(processed_file)
-    session.commit()
+def mark_prediction_model_run_processed(session: Session,
+                                        model: ModelEnum,
+                                        projection: str,
+                                        now: datetime.datetime,
+                                        hour: int):
+    """ Mark a prediction model run as processed (complete) """
+
+    prediction_model = app.db.crud.get_prediction_model(
+        session, model, projection)
+    prediction_run_timestamp = datetime.datetime(
+        year=now.year,
+        month=now.month,
+        day=get_model_day(now, hour),
+        hour=hour, tzinfo=datetime.timezone.utc)
+    logger.info('prediction_model:%s, prediction_run_timestamp:%s',
+                prediction_model, prediction_run_timestamp)
+    prediction_run = app.db.crud.get_prediction_run(
+        session,
+        prediction_model.id,
+        prediction_run_timestamp)
+    prediction_run.complete = True
+    app.db.crud.update_prediction_run(session, prediction_run)
 
 
-def main():
-    """ main script """
-    start_time = time.time()
-    session = app.db.database.get_session()
-    files_downloaded = 0
-    files_processed = 0
-    exception_count = 0
-    urls = get_download_urls()
-    processor = GribFileProcessor()
-    with tempfile.TemporaryDirectory() as gdps_path:
+class EnvCanada():
+    """ Class that orchestrates downloading and processing of weather model grib files from environment
+    Canada.
+    """
 
-        for url, filename in urls:
+    def __init__(self):
+        """ Prep variables """
+        self.files_downloaded = 0
+        self.files_processed = 0
+        self.exception_count = 0
+        # We always work in UTC:
+        self.now = get_utcnow()
+        self.session = app.db.database.get_session()
+        self.grib_processor = GribFileProcessor()
+
+    def flag_file_as_processed(self, url):
+        """ Flag the file as processed in the database """
+        processed_file = get_processed_file_record(self.session, url)
+        if processed_file:
+            logger.info('re-procesed %s', url)
+        else:
+            logger.info('file processed %s', url)
+            processed_file = ProcessedModelRunUrl(
+                url=url,
+                create_date=datetime.datetime.now(datetime.timezone.utc))
+        processed_file.update_date = datetime.datetime.now(
+            datetime.timezone.utc)
+        # pylint: disable=no-member
+        self.session.add(processed_file)
+        self.session.commit()
+
+    def check_if_model_run_complete(self, urls):
+        """ Check if a particular model run is complete """
+        # pylint: disable=no-member
+        actual_count = get_processed_file_count(self.session, urls)
+        expected_count = len(urls)
+        logger.info('we have processed %s/%s files', actual_count, expected_count)
+        return actual_count == expected_count
+
+    def process_model_run_urls(self, urls):
+        """ Process the urls for a model run.
+        """
+        for url in urls:
             try:
                 # check the database for a record of this file:
-                processed_file_record = get_processed_file_record(session, url)
+                processed_file_record = get_processed_file_record(
+                    self.session, url)
                 if processed_file_record:
                     # This file has already been processed - so we skip it.
-                    logger.info('file aready processed %s', url)
+                    logger.info('file already processed %s', url)
                 else:
                     # extract model info from filename:
+                    filename = os.path.basename(urlparse(url).path)
                     model_info = parse_env_canada_filename(filename)
                     # download the file:
-                    downloaded = download(url, gdps_path)
-                    if downloaded:
-                        files_downloaded += 1
-                        # If we've downloaded the file ok, we can now process it.
-                        try:
-                            processor.process_grib_file(downloaded, model_info)
-                            # Flag the file as processed
-                            flag_file_as_processed(session, url)
-                            files_processed += 1
-                        finally:
-                            # delete the file when done.
-                            os.remove(downloaded)
+                    with tempfile.TemporaryDirectory() as tmp_path:
+                        downloaded = download(url, tmp_path)
+                        if downloaded:
+                            self.files_downloaded += 1
+                            # If we've downloaded the file ok, we can now process it.
+                            try:
+                                self.grib_processor.process_grib_file(
+                                    downloaded, model_info)
+                                # Flag the file as processed
+                                self.flag_file_as_processed(url)
+                                self.files_processed += 1
+                            finally:
+                                # delete the file when done.
+                                os.remove(downloaded)
             # pylint: disable=broad-except
             except Exception as exception:
-                exception_count += 1
+                self.exception_count += 1
                 # We catch and log exceptions, but keep trying to download.
                 # We intentionally catch a broad exception, as we want to try and download as much
                 # as we can.
                 logger.error('unexpected exception processing %s',
                              url, exc_info=exception)
 
+    def process_model_run(self, hour):
+        """ Process a particular model run """
+        logger.info('Processing GDPS model run {:02d}'.format(hour))
+
+        # Get the urls for the current model run.
+        urls = list(get_model_run_download_urls(self.now, hour))
+
+        # Process all the urls.
+        self.process_model_run_urls(urls)
+
+        # Having completed processing, check if we're all done.
+        if self.check_if_model_run_complete(urls):
+            logger.info(
+                'GDPS model run {:02d} completed with SUCCESS'.format(hour))
+            mark_prediction_model_run_processed(
+                self.session, ModelEnum.GDPS, app.db.crud.LATLON_15X_15, self.now, hour)
+
+    def process(self):
+        """ Entry point for downloading and processing weather model grib files """
+        for hour in get_model_run_hours():
+            try:
+                self.process_model_run(hour)
+            # pylint: disable=broad-except
+            except Exception as exception:
+                # We catch and log exceptions, but keep trying to process.
+                # We intentionally catch a broad exception, as we want to try to process as much as we can.
+                self.exception_count += 1
+                logger.error(
+                    'unexpected exception processing GDPS model run %d', hour, exc_info=exception)
+
+
+def main():
+    """ main script """
+
+    # grab the start time.
+    start_time = time.time()
+
+    # process everything.
+    env_canada = EnvCanada()
+    env_canada.process()
+
+    # calculate the execution time.
     execution_time = round(time.time() - start_time, 1)
+    # log some info.
     logger.info('%d downloaded, %d processed in total, took %s seconds',
-                files_downloaded, files_processed, execution_time)
-    if exception_count > 0:
+                env_canada.files_downloaded, env_canada.files_processed, execution_time)
+    # check if we encountered any exceptions.
+    if env_canada.exception_count > 0:
+        # if there were any exceptions, return a non-zero status.
         logger.warning('completed processing with some exceptions')
         sys.exit(os.EX_SOFTWARE)
-    return files_processed
+    return env_canada.files_processed
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    # pylint: disable=broad-except
+    except Exception as exception:
+        # We catch and log any exceptions we may have missed.
+        logger.error('unexpected exception processing', exc_info=exception)
+        # Exit with a failure code.
+        sys.exit(os.EX_SOFTWARE)
     # We assume success if we get to this point.
     sys.exit(os.EX_OK)
