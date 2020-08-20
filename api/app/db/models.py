@@ -49,6 +49,12 @@ class PredictionModel(Base):
     # regardles. A better approach may be to just store the resolution: "15x15"
     projection = Column(String, nullable=False)
 
+    def __str__(self):
+        return ('id:{self.id}, '
+                'name:{self.name}, '
+                'abbreviation:{self.abbreviation}, '
+                'projection:{self.projection}'.format(self=self))
+
 
 class PredictionModelRunTimestamp(Base):
     """ Identify which prediction model run (e.g.  2020 07 07 12:00)."""

@@ -39,6 +39,7 @@ def get_most_recent_model_run(
 def get_prediction_run(session: Session, prediction_model_id: int,
                        prediction_run_timestamp: datetime.datetime) -> PredictionModelRunTimestamp:
     """ load the model run from the database (.e.g. for 2020 07 07 12h00). """
+    logger.info('get prediction run for %s', prediction_run_timestamp)
     return session.query(PredictionModelRunTimestamp).\
         filter(PredictionModelRunTimestamp.prediction_model_id == prediction_model_id).\
         filter(PredictionModelRunTimestamp.prediction_run_timestamp ==
