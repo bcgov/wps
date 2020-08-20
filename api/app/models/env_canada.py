@@ -7,13 +7,13 @@ import os
 import sys
 import json
 import datetime
+from typing import Generator
+from urllib.parse import urlparse
 import logging
 import logging.config
 import time
 import tempfile
 import requests
-from typing import Generator
-from urllib.parse import urlparse
 from sqlalchemy.orm import Session
 import app.db.database
 from app.models import ModelEnum
