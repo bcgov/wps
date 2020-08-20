@@ -240,7 +240,7 @@ class EnvCanada():
                     self.session, url)
                 if processed_file_record:
                     # This file has already been processed - so we skip it.
-                    logger.info('file aready processed %s', url)
+                    logger.info('file already processed %s', url)
                 else:
                     # extract model info from filename:
                     filename = os.path.basename(urlparse(url).path)
