@@ -62,7 +62,7 @@ def create_prediction_run(
 
 
 def update_prediction_run(session: Session, prediction_run: PredictionModelRunTimestamp):
-    """ Updarte a PredictionModelRunTimestamp record """
+    """ Update a PredictionModelRunTimestamp record """
     session.add(prediction_run)
     session.commit()
 
