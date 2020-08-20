@@ -75,7 +75,7 @@ eval $COMPRESS_COMMAND
 
 # copy the data dump from server to local.
 # you'll get a weird message that says: "tar: Removing leading `/' from member names" - just ignore it.
-COPY_COMMAND="oc -n ${PROJECT} cp ${POD}:/tmp/${FILENAME}.gz ."
+COPY_COMMAND="oc -n ${PROJECT} cp ${POD}:/tmp/${FILENAME}.gz ./${FILENAME}.gz"
 echo $COPY_COMMAND
 eval $COPY_COMMAND
 
