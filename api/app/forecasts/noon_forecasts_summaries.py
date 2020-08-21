@@ -50,10 +50,10 @@ def create_noon_forecast_summary(station: WeatherStation,
     return summary
 
 
-async def fetch_noon_forecast_summaries(station_codes: StationCodeList,
-                                        start_date: datetime,
-                                        end_date: datetime
-                                        ) -> NoonForecastSummariesResponse:
+async def fetch_noon_forecasts_summaries(station_codes: StationCodeList,
+                                         start_date: datetime,
+                                         end_date: datetime
+                                         ) -> NoonForecastSummariesResponse:
     """ Fetch noon forecasts from the database and parse them,
     then calculate percentiles and put them in NoonForecastSummariesResponse """
     session = app.db.database.get_session()

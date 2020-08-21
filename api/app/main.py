@@ -15,7 +15,7 @@ from app.models.fetch.summaries import fetch_model_prediction_summaries
 from app.models import ModelEnum
 from app.percentile import get_precalculated_percentiles
 from app.forecasts.noon_forecasts import fetch_noon_forecasts
-from app.forecasts.noon_forecast_summaries import fetch_noon_forecast_summaries
+from app.forecasts.noon_forecasts_summaries import fetch_noon_forecasts_summaries
 from app.auth import authenticate
 from app import wildfire_one
 from app import config
@@ -140,7 +140,7 @@ async def get_noon_forecasts_summaries(request: schemas.StationCodeList, _: bool
         LOGGER.info('/noon_forecasts/summaries/')
         now = datetime.datetime.now(tz=datetime.timezone.utc)
         back_5_days = now - datetime.timedelta(days=5)
-        return await fetch_noon_forecast_summaries(request.stations, back_5_days, now)
+        return await fetch_noon_forecasts_summaries(request.stations, back_5_days, now)
 
     except Exception as exception:
         LOGGER.critical(exception, exc_info=True)
