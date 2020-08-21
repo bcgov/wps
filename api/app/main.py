@@ -88,7 +88,6 @@ app.add_middleware(
 @app.get('/health')
 async def get_health():
     """ A simple endpoint for Openshift Healthchecks """
-    LOGGER.info('/health')
     url = urljoin(
         'https://console.pathfinder.gov.bc.ca:8443/apis/apps/v1beta1/namespaces/',
         config.get('PROJECT_NAMESPACE'),
@@ -104,6 +103,7 @@ async def get_health():
         healthy = False
         message = 'Only %s out of %s pods are healthy' % (
             resp_json.status.readyReplicas, resp_json.status.replicas)
+    LOGGER.info('/health - healthy: %s. %s', healthy, message)
     return {"message": message, "healthy": healthy}
 
 
