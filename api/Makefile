@@ -75,7 +75,7 @@ run-env-canada-raw:
 	POSTGRES_HOST=localhost python -m app.models.env_canada
 
 run-bender:
-	poetry run python -m app.forecasts.fireweather_bot
+	poetry run python -m app.fireweather_bot
 
 notebook:
 	# Run jupyter notebooks.
@@ -135,4 +135,4 @@ docker-run-env-canada:
 docker-run-bender:
 	# Run a python script to download forecast data from BC Wild Fire on docker
 	# Needs to run "make docker-run" first
-	docker-compose exec api python -m app.forecasts.fireweather_bot
+	docker-compose exec api python -m app.fireweather_bot
