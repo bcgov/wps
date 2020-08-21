@@ -5,10 +5,10 @@ import logging
 from collections import defaultdict
 from datetime import datetime, timezone
 import math
-from sqlalchemy import desc
 from app.schemas import NoonForecast, NoonForecastResponse, NoonForecastValue, StationCodeList
 import app.db.database
 from app.db.models import NoonForecasts
+from app.db.crud import query_noon_forecast_records
 
 #pylint: disable=invalid-name
 
@@ -78,11 +78,7 @@ def fetch_noon_forecasts(stations: StationCodeList,
     LOGGER.debug('Querying noon forecasts for stations %s from %s to %s',
                  stations, start_date, end_date)
     session = app.db.database.get_session()
-    forecasts = session.query(NoonForecasts)\
-        .filter(NoonForecasts.station_code.in_(stations))\
-        .filter(NoonForecasts.weather_date >= start_date)\
-        .filter(NoonForecasts.weather_date <= end_date)\
-        .order_by(NoonForecasts.weather_date)\
-        .order_by(desc(NoonForecasts.created_at))
+    forecasts = query_noon_forecast_records(
+        session, stations, start_date, end_date)
 
     return parse_table_records_to_noon_forecast_response(forecasts)

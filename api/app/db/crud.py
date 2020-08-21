@@ -3,11 +3,12 @@
 import logging
 import datetime
 from typing import List
-from sqlalchemy import or_
+from sqlalchemy import or_, desc
 from sqlalchemy.orm import Session
+from app.schemas import StationCodeList
 from app.db.models import (
     ProcessedModelRunUrl, PredictionModel, PredictionModelRunTimestamp, PredictionModelGridSubset,
-    ModelRunGridSubsetPrediction)
+    ModelRunGridSubsetPrediction, NoonForecasts)
 
 
 logger = logging.getLogger(__name__)
@@ -161,3 +162,17 @@ def get_prediction_model(session: Session, abbreviation: str, projection: str) -
     return session.query(PredictionModel).\
         filter(PredictionModel.abbreviation == abbreviation).\
         filter(PredictionModel.projection == projection).first()
+
+
+def query_noon_forecast_records(session: Session,
+                                station_codes: StationCodeList,
+                                start_date: datetime,
+                                end_date: datetime
+                                ):
+    """ Sends a query to get noon forecast records """
+    return session.query(NoonForecasts)\
+        .filter(NoonForecasts.station_code.in_(station_codes))\
+        .filter(NoonForecasts.weather_date >= start_date)\
+        .filter(NoonForecasts.weather_date <= end_date)\
+        .order_by(NoonForecasts.weather_date)\
+        .order_by(desc(NoonForecasts.created_at))
