@@ -1,7 +1,6 @@
 import datetime
 import logging
 from typing import List
-from statistics import mean
 from numpy import percentile
 from geoalchemy2.shape import to_shape
 from scipy.interpolate import griddata
@@ -61,7 +60,7 @@ class ModelPredictionSummaryBuilder():
         data = {'datetime': timestamp}
         for key in KEYS:
             data['{}_5th'.format(key)] = percentile(values[key], 5)
-            data['{}_median'.format(key)] = mean(values[key])
+            data['{}_median'.format(key)] = percentile(values[key], 50)
             data['{}_90th'.format(key)] = percentile(values[key], 90)
         summary_value = WeatherModelPredictionSummaryValues(**data)
         summary.values.append(summary_value)
@@ -78,7 +77,7 @@ class ModelPredictionSummaryBuilder():
     def handle_new_grid(self,
                         grid: PredictionModelGridSubset,
                         prediction_model: PredictionModel,
-                        stations: List[WeatherModelPredictionSummary]) -> List:
+                        stations: List[WeatherStation]) -> List:
         """ When a new grid is detected, we need to:
         -) calculate percentiles for accumulated values.
         -) calculate bounding points, to be used in interpolation.

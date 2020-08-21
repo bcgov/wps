@@ -2,6 +2,7 @@
 the noon_forecasts table in our database.
 """
 import logging
+from collections import defaultdict
 from datetime import datetime, timezone
 import math
 from sqlalchemy import desc
@@ -23,7 +24,7 @@ def parse_table_records_to_noon_forecast_response(data: [NoonForecasts]):
     (which is a NoonForecasts object) and structure it as a NoonForecast
     object, then return the list of NoonForecast objects as a NoonForecastResponse
     """
-    noon_forecasts = {}
+    noon_forecasts = defaultdict(list)
     for record in data:
         # NOTE: have to fill NaN values with None for FE compatibility
         station_code = record.station_code
@@ -56,10 +57,8 @@ def parse_table_records_to_noon_forecast_response(data: [NoonForecasts]):
                 record.danger_rating) else record.danger_rating,
             created_at=record.created_at
         )
-        try:
-            noon_forecasts[station_code].append(noon_forecast_value)
-        except KeyError:
-            noon_forecasts[station_code] = [noon_forecast_value]
+        noon_forecasts[station_code].append(noon_forecast_value)
+
     values = []
     for key, value in noon_forecasts.items():
         noon_forecast = NoonForecast(
