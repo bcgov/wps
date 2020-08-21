@@ -9,6 +9,8 @@ import logging.config
 import datetime
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
+import requests
+from requests.compat import urljoin
 from app import schemas
 from app.models.fetch.predictions import fetch_model_predictions
 from app.models.fetch.summaries import fetch_model_prediction_summaries
@@ -87,7 +89,22 @@ app.add_middleware(
 async def get_health():
     """ A simple endpoint for Openshift Healthchecks """
     LOGGER.info('/health')
-    return {"message": "Healthy as ever"}
+    url = urljoin(
+        'https://console.pathfinder.gov.bc.ca:8443/apis/apps/v1beta1/namespaces/',
+        config.get('PROJECT_NAMESPACE'),
+        '/statefulsets/',
+        config.get('PATRONI_HEALTH_SUFFIX'))
+    header = {'Authorization': 'Bearer ' + config.get('STATUS_CHECKER_SECRET')}
+    resp = requests.get(url, headers=header)
+    resp_json = resp.json()
+    if resp_json.status.replicas == resp_json.status.readyReplicas:
+        healthy = True
+        message = 'Healthy as ever'
+    else:
+        healthy = False
+        message = 'Only %s out of %s pods are healthy' % (
+            resp_json.status.readyReplicas, resp_json.status.replicas)
+    return {"message": message, "healthy": healthy}
 
 
 @app.post('/models/{model}/predictions/', response_model=schemas.WeatherModelPredictionResponse)

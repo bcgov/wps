@@ -174,8 +174,9 @@ objects:
                     - /bin/bash
                     - '-c'
                     - /usr/share/scripts/patroni/health_check.sh
-                initialDelaySeconds: 60
+                initialDelaySeconds: 30
                 periodSeconds: 300
+                timeoutSeconds: 10
           dnsPolicy: ClusterFirst
           restartPolicy: Always
           schedulerName: default-scheduler
@@ -321,4 +322,4 @@ parameters:
   - description: Version of Patroni image to be used.
     displayName: Patroni image version
     name: IMAGE_VERSION
-    value: 10
+    value: "10"

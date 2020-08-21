@@ -44,6 +44,8 @@ parameters:
   - name: BC_FIRE_WEATHER_FILTER_ID
     description: ID of custom-made filter associated with BC_FIRE_WEATHER_USER account, used for querying forecast data for all stations
     required: true
+  - name: STATUS_CHECKER_SECRET
+    description: Token for status-checker Openshift service account. Used for /health check
 objects:
   - kind: ConfigMap
     apiVersion: v1
@@ -73,3 +75,4 @@ objects:
       patroni-replication-password: ${PATRONI_REPLICATION_PASSWORD}
       patroni-superuser-password: ${PATRONI_SUPERUSER_PASSWORD}
       bc-fire-weather-secret: ${BC_FIRE_WEATHER_SECRET}
+      status-checker-sa-secret: ${STATUS_CHECKER_SECRET}

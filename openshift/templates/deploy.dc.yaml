@@ -9,8 +9,8 @@ metadata:
     tags: "wps,wps-api"
     iconClass: icon-js
     openshift.io/provider-display-name: "Government of British Columbia"
-    openshift.io/documentation-url: "https://github.com/bcgov/wps-api"
-    openshift.io/support-url: "https://github.com/bcgov/wps-api"
+    openshift.io/documentation-url: "https://github.com/bcgov/wps"
+    openshift.io/support-url: "https://github.com/bcgov/wps"
 labels:
   app.kubernetes.io/part-of: "${NAME}"
   app: ${NAME}-${SUFFIX}
@@ -128,6 +128,13 @@ objects:
                   value: "5432"
                 - name: POSTGRES_DATABASE
                   value: ${NAME}-${SUFFIX}
+                - name: PROJECT_NAMESPACE
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-global
+                      key: env.project-namespace
+                - name: PATRONI_HEALTH_SUFFIX
+                  value: patroni-wps-api-${SUFFIX}
               ports:
                 - containerPort: 8080
                   protocol: TCP
