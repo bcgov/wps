@@ -99,7 +99,7 @@ docker-test-dev:
 	# Run tests in docker (dev instance).
 	# We use the dev instance, because the "production" version doesn't have
 	# a number of the development dependancies.
-	docker-compose -f docker-compose.dev.yml run --rm api-dev pytest
+	docker-compose -f docker-compose.dev.yml run --rm api-dev pytest app
 
 docker-test-coverage-dev:
 	# Run tests with coverage in docker (dev instance).
