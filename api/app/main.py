@@ -88,23 +88,28 @@ app.add_middleware(
 @app.get('/health')
 async def get_health():
     """ A simple endpoint for Openshift Healthchecks """
-    url = urljoin(
-        'https://console.pathfinder.gov.bc.ca:8443/apis/apps/v1beta1/namespaces/',
-        config.get('PROJECT_NAMESPACE'),
-        '/statefulsets/',
-        config.get('PATRONI_HEALTH_SUFFIX'))
-    header = {'Authorization': 'Bearer ' + config.get('STATUS_CHECKER_SECRET')}
-    resp = requests.get(url, headers=header)
-    resp_json = resp.json()
-    if resp_json.status.replicas == resp_json.status.readyReplicas:
-        healthy = True
-        message = 'Healthy as ever'
-    else:
-        healthy = False
-        message = 'Only %s out of %s pods are healthy' % (
-            resp_json.status.readyReplicas, resp_json.status.replicas)
-    LOGGER.info('/health - healthy: %s. %s', healthy, message)
-    return {"message": message, "healthy": healthy}
+    try:
+        url = urljoin(
+            'https://console.pathfinder.gov.bc.ca:8443/apis/apps/v1beta1/namespaces/',
+            config.get('PROJECT_NAMESPACE'),
+            '/statefulsets/',
+            config.get('PATRONI_HEALTH_SUFFIX'))
+        header = {'Authorization': 'Bearer ' +
+                  config.get('STATUS_CHECKER_SECRET')}
+        resp = requests.get(url, headers=header)
+        resp_json = resp.json()
+        if resp_json.status.replicas == resp_json.status.readyReplicas:
+            healthy = True
+            message = 'Healthy as ever'
+        else:
+            healthy = False
+            message = 'Only %s out of %s pods are healthy' % (
+                resp_json.status.readyReplicas, resp_json.status.replicas)
+        LOGGER.info('/health - healthy: %s. %s', healthy, message)
+        return {"message": message, "healthy": healthy}
+    except Exception as e:
+        LOGGER.error(e, exc_info=True)
+        raise
 
 
 @app.post('/models/{model}/predictions/', response_model=schemas.WeatherModelPredictionResponse)

@@ -135,6 +135,11 @@ objects:
                       key: env.project-namespace
                 - name: PATRONI_HEALTH_SUFFIX
                   value: patroni-wps-api-${SUFFIX}
+                - name: STATUS_CHECKER_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${NAME}-global
+                      key: status-checker-sa-secret
               ports:
                 - containerPort: 8080
                   protocol: TCP
