@@ -84,7 +84,7 @@ def assert_number_of_summaries(response, num_summaries):
 
 @then('and contain calculated percentiles for available stations <codes>')
 def assert_response(response, codes):
-    """ Check if we receive correct percentiles of noon forecasts """
+    """ Check if we calculate correct percentiles based on its noon forecasts """
     stations = eval(codes)
     result = response.json()
     tmp_5th = percentile(mock_tmps, 5)

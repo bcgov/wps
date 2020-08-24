@@ -85,11 +85,6 @@ shell:
 	# Run shell in virtual environment shell.
 	poetry shell
 
-copy-prod-db:
-	# Download the production database copy
-	# Make sure to login to Openshift first
-	PROJECT=auzhsi-prod POD=patroni-wps-api-prod-2 DATABASE=wps-api-prod scripts/copy_db_from_pod_to_local.sh
-
 docker-build-dev:
 	# Build dev docker images.
 	# Having issues? try: docker volume prune
@@ -117,7 +112,7 @@ docker-shell-dev:
 
 docker-run-dev:
 	# Run docker in dev mode.
-	docker-compose -f docker-compose.dev.yml up
+	docker-compose -f docker-compose.dev.yml up --build
 
 docker-shell-db:
 	# Shell into the db container
