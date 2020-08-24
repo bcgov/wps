@@ -3,10 +3,11 @@
 import datetime
 from datetime import timezone
 import logging
+import requests
 import pytest
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
-from app.tests.common import MockJWTDecode
+from app.tests.common import MockJWTDecode, default_mock_requests_get
 from app.db.models import PredictionModel, PredictionModelRunTimestamp
 import app.db.database
 
@@ -28,6 +29,18 @@ def mock_env(monkeypatch):
     monkeypatch.setenv("BC_FIRE_WEATHER_USER", "someuser")
     monkeypatch.setenv("BC_FIRE_WEATHER_SECRET", "password")
     monkeypatch.setenv("BC_FIRE_WEATHER_FILTER_ID", "1")
+    monkeypatch.setenv("PATHFINDER_BASE_URI", "https://console.pathfinder.gov.bc.ca:8443")
+    monkeypatch.setenv("PROJECT_NAMESPACE", "project_namespace")
+    monkeypatch.setenv("PATRONI_HEALTH_SUFFIX", "some_suffix")
+    monkeypatch.setenv("STATUS_CHECKER_SECRET", "some_secret")
+
+
+@pytest.fixture(autouse=True)
+def mock_requests(monkeypatch):
+    """ Patch all calls to request.get by default.
+    """
+    monkeypatch.setattr(requests, 'get', default_mock_requests_get)
+
 
 @pytest.fixture(autouse=True)
 def mock_session(monkeypatch):
