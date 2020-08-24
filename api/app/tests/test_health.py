@@ -1,8 +1,11 @@
 """ Test the health endpoint
 """
-# import requests
+import os
+import json
+import requests
 from starlette.testclient import TestClient
 import app.main
+from app.tests.common import MockRequestResponse
 
 
 def test_health_ok():
@@ -10,3 +13,23 @@ def test_health_ok():
     client = TestClient(app.main.app)
     response = client.get('/health/')
     assert response.status_code == 200
+
+
+def test_health_fail(monkeypatch):
+    """ Test the health endpoint, given that pods aren't up """
+
+    # pylint: disable=unused-argument
+    def mock_requests_fail_condition(*args, **kwargs):
+        """ Mock request response """
+        fixture_path = ('fixtures/pathfinder/apis/'
+                        'apps/v1beta1/namespaces/project_namespace/'
+                        'statefulsets/some_suffix_fail.json')
+        fixture_path = os.path.join(os.path.dirname(__file__), fixture_path)
+        with open(fixture_path, 'r') as fixture_file:
+            return MockRequestResponse(json_response=json.load(fixture_file))
+
+    monkeypatch.setattr(requests, 'get', mock_requests_fail_condition)
+
+    client = TestClient(app.main.app)
+    response = client.get('/health/')
+    assert response.status_code != 200

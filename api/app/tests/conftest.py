@@ -37,6 +37,8 @@ def mock_env(monkeypatch):
 
 @pytest.fixture(autouse=True)
 def mock_requests(monkeypatch):
+    """ Patch all calls to request.get by default.
+    """
     monkeypatch.setattr(requests, 'get', default_mock_requests_get)
 
 
