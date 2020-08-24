@@ -4,4 +4,5 @@ from enum import Enum
 
 class ModelEnum(str, Enum):
     """ Enumerator for different kinds of supported weather models """
-    GDPS = "GDPS"
+    GDPS = 'GDPS'
+    RDPS = 'RDPS'

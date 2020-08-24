@@ -49,6 +49,12 @@ class PredictionModel(Base):
     # regardles. A better approach may be to just store the resolution: "15x15"
     projection = Column(String, nullable=False)
 
+    def __str__(self):
+        return ('id:{self.id}, '
+                'name:{self.name}, '
+                'abbreviation:{self.abbreviation}, '
+                'projection:{self.projection}'.format(self=self))
+
 
 class PredictionModelRunTimestamp(Base):
     """ Identify which prediction model run (e.g.  2020 07 07 12:00)."""
@@ -69,6 +75,14 @@ class PredictionModelRunTimestamp(Base):
     prediction_model = relationship("PredictionModel")
     # The date and time of the model run.
     prediction_run_timestamp = Column(TIMESTAMP(timezone=True), nullable=False)
+    # Indicate if this particular model run is completely downloaded.
+    complete = Column(Boolean, nullable=False)
+
+    def __str__(self):
+        return ('id:{self.id}, '
+                'prediction_model:{self.prediction_model.abbreviation}:{self.prediction_model.projection}, '
+                'prediction_run_timestamp:{self.prediction_run_timestamp}, '
+                'complete={self.complete}').format(self=self)
 
 
 class PredictionModelGridSubset(Base):
