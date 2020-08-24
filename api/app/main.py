@@ -7,10 +7,10 @@ import json
 import logging
 import logging.config
 import datetime
+from functools import reduce
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 import requests
-from requests.compat import urljoin
 from app import schemas
 from app.models.fetch.predictions import fetch_model_predictions
 from app.models.fetch.summaries import fetch_model_prediction_summaries
@@ -89,26 +89,31 @@ app.add_middleware(
 async def get_health():
     """ A simple endpoint for Openshift Healthchecks """
     try:
-        url = urljoin(
+        parts = [
             'https://console.pathfinder.gov.bc.ca:8443/apis/apps/v1beta1/namespaces/',
             config.get('PROJECT_NAMESPACE'),
-            '/statefulsets/',
-            config.get('PATRONI_HEALTH_SUFFIX'))
-        header = {'Authorization': 'Bearer ' +
-                  config.get('STATUS_CHECKER_SECRET')}
+            'statefulsets',
+            config.get('PATRONI_HEALTH_SUFFIX')
+        ]
+        url = reduce(os.path.join, parts)
+        header = {
+            'Authorization': 'Bearer ' + config.get('STATUS_CHECKER_SECRET')
+        }
         resp = requests.get(url, headers=header)
         resp_json = resp.json()
-        if resp_json.status.replicas == resp_json.status.readyReplicas:
+        if resp_json.get('status').get('replicas') == resp_json.get('status').get('readyReplicas'):
             healthy = True
             message = 'Healthy as ever'
         else:
             healthy = False
             message = 'Only %s out of %s pods are healthy' % (
-                resp_json.status.readyReplicas, resp_json.status.replicas)
+                resp_json.get('status').get('readyReplicas'),
+                resp_json.get('status').get('replicas')
+            )
         LOGGER.info('/health - healthy: %s. %s', healthy, message)
         return {"message": message, "healthy": healthy}
-    except Exception as e:
-        LOGGER.error(e, exc_info=True)
+    except Exception as exception:
+        LOGGER.error(exception, exc_info=True)
         raise
 
 
