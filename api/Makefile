@@ -104,8 +104,12 @@ docker-test-dev:
 	# Run tests in docker (dev instance).
 	# We use the dev instance, because the "production" version doesn't have
 	# a number of the development dependancies.
-	docker-compose -f docker-compose.dev.yml run --rm api-dev pytest app/tests/forecasts/test_noon_forecasts_summaries.py
+	docker-compose -f docker-compose.dev.yml run --rm api-dev pytest
 
+docker-test-coverage-dev:
+	# Run tests with coverage in docker (dev instance).
+	${call run-test-coverage,docker-compose -f docker-compose.dev.yml run --rm api-dev}
+	
 docker-shell-dev:
 	# Shell into the dev container.
 	# docker run -it --env-file app/.env --entrypoint bash wps-api_api-dev:latest
