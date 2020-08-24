@@ -74,19 +74,7 @@ objects:
                   value: "8080"
                 - name: WORKERS_PER_CORE # The number of worker per code (used by fastapi docker image)
                   value: "0.25"
-                - name: SPOTWX_BASE_URI
-                  valueFrom:
-                    configMapKeyRef:
-                      name: ${NAME}-global
-                      key: env.spotwx-url
-                - name: SPOTWX_API_KEY
-                  valueFrom:
-                    secretKeyRef:
-                      name: ${NAME}-global
-                      key: spotwx-api-key
                 - name: USE_WFWX
-                  value: "False"
-                - name: USE_SPOTWX
                   value: "False"
                 - name: WFWX_MAX_PAGE_SIZE
                   value: ${WFWX_MAX_PAGE_SIZE}
@@ -140,6 +128,11 @@ objects:
                     secretKeyRef:
                       name: ${NAME}-global
                       key: status-checker-sa-secret
+                - name: PATHFINDER_BASE_URI
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-global
+                      key: env.pathfinder-base-uri
               ports:
                 - containerPort: 8080
                   protocol: TCP

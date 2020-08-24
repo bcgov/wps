@@ -12,7 +12,6 @@ def test_health_ok():
     """ Test health endpoint, given that everything is fine """
     client = TestClient(app.main.app)
     response = client.get('/health/')
-    assert response.status_code == 200
     assert response.json().get('healthy')
 
 
@@ -33,5 +32,4 @@ def test_health_fail(monkeypatch):
 
     client = TestClient(app.main.app)
     response = client.get('/health/')
-    assert response.status_code == 200
     assert not response.json().get('healthy')

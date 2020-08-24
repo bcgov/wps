@@ -90,7 +90,8 @@ async def get_health():
     """ A simple endpoint for Openshift Healthchecks """
     try:
         parts = [
-            'https://console.pathfinder.gov.bc.ca:8443/apis/apps/v1beta1/namespaces/',
+            config.get('PATHFINDER_BASE_URI'),
+            '/apis/apps/v1beta1/namespaces/',
             config.get('PROJECT_NAMESPACE'),
             'statefulsets',
             config.get('PATRONI_HEALTH_SUFFIX')

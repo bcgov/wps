@@ -12,9 +12,6 @@ parameters:
   - name: WFWX_USER
     description: The username to be used for authentication to the Wildfire One API
     required: true
-  - name: SPOTWX_API_KEY
-    description: Token used for authentication to access SpotWX API
-    required: true
   - name: WFWX_SECRET
     description: Password for authentication to access Wildfire One API
     required: true
@@ -46,6 +43,8 @@ parameters:
     required: true
   - name: STATUS_CHECKER_SECRET
     description: Token for status-checker Openshift service account. Used for /health check
+  - name: PATHFINDER_BASE_URI
+    description: Base URI for connecting to Pathfinder console in Openshift. Used for /health check
 objects:
   - kind: ConfigMap
     apiVersion: v1
@@ -55,7 +54,6 @@ objects:
         app.kubernetes.io/part-of: wps-api
     data:
       env.origins: wps-web-*.pathfinder.gov.bc.ca
-      env.spotwx-url: "https://spotwx.com/services/api.php"
       env.wfwx-auth-url: ${WFWX_AUTH_URL}
       env.wfwx-base-url: ${WFWX_BASE_URL}
       env.wfwx-user: ${WFWX_USER}
@@ -63,13 +61,13 @@ objects:
       bc-fire-weather-base-url: ${BC_FIRE_WEATHER_BASE_URL}
       bc-fire-weather-user: ${BC_FIRE_WEATHER_USER}
       bc-fire-weather-filter-id: ${BC_FIRE_WEATHER_FILTER_ID}
+      env.pathfinder-base-uri: ${PATHFINDER_BASE_URI}
   - kind: Secret
     apiVersion: v1
     metadata:
       name: wps-api-global
     type: Opaque
     stringData:
-      spotwx-api-key: ${SPOTWX_API_KEY}
       wfwx-secret: ${WFWX_SECRET}
       app-db-password: ${APP_DB_PASSWORD}
       patroni-replication-password: ${PATRONI_REPLICATION_PASSWORD}
