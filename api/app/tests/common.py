@@ -47,11 +47,12 @@ class MockResponse:
     """ Stubbed response object.
     """
 
-    def __init__(self, text_response: str = None, json_response: dict = None):
+    def __init__(self, text_response: str = None, json_response: dict = None, status_code=200):
         """ Initialize client response """
 
         self.text_response = text_response
         self.json_response = json_response
+        self.status_code = status_code
 
     async def text(self) -> str:
         """ Return text response """
@@ -72,6 +73,9 @@ def _get_fixture_path(url: str, params: dict = None) -> str:
     elif config.get('WFWX_AUTH_URL') in url:
         # Point to wf1 auth fixture.
         fixture_url = 'wf1/v1/oauth/token'
+    elif config.get('PATHFINDER_BASE_URI') in url:
+        # Point to the pathfinder fixture url.
+        fixture_url = 'pathfinder/' + url[len(config.get('PATHFINDER_BASE_URI')):]
     else:
         raise FixtureException('unhandeled url: {}'.format(url))
     if params:
@@ -104,3 +108,19 @@ def default_mock_client_get(*args, **kwargs) -> MockClientSession:
     url = args[1]
     params = kwargs.get('params')
     return get_mock_client_session(url, params)
+
+
+def default_mock_requests_get(*args, **kwargs) -> MockResponse:
+    """ Return a mocked request response """
+    url = args[0]
+    params = kwargs.get('params')
+    # Get the file location of the fixture
+    fixture = _get_fixture_path(url, params)
+    # Try to get a matching json fixture
+    if os.path.exists(fixture + '.json'):
+        with open(fixture + '.json', 'r') as fixture_file:
+            # Return a response with the appropriate fixture
+            return MockResponse(json_response=json.load(fixture_file))
+    # Expected fixture not found - raise an exception.
+    raise FixtureException(
+        'fixture file {} for {} not found.'.format(fixture, url))
