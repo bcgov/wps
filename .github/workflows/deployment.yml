@@ -48,6 +48,12 @@ jobs:
           AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
           SCRIPT: openshift/scripts/oc_deploy.sh ${SUFFIX} apply
 
+      - name: Hourly cronjob
+        uses: bcgov/openshift-launchpad-deployment@master
+        with:
+          AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
+          SCRIPT: openshift/scripts/oc_provision_bcfw_p1_hourly_actuals_cronjob.sh ${SUFFIX} apply
+
       # f.y.i.: ZAP Scan must be able to log an issue or it will fail.
       - name: ZAP Scan
         uses: zaproxy/action-baseline@v0.3.0

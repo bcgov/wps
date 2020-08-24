@@ -18,7 +18,7 @@ parameters:
   - name: PROJECT_TOOLS
     value: auzhsi-tools
   - name: JOB_NAME
-    value: bcfw-p1-forecasts
+    value: bcfw-p1-hourly-actuals
 objects:
   - kind: CronJob
     apiVersion: batch/v1beta1
@@ -27,7 +27,7 @@ objects:
       labels:
         cronjob: ${JOB_NAME}
     spec:
-      schedule: "30 8,16 * * *"
+      schedule: "15 * * * *"
       concurrencyPolicy: "Replace"
       jobTemplate:
         metadata:
@@ -40,7 +40,7 @@ objects:
                 - name: ${JOB_NAME}
                   image: docker-registry.default.svc:5000/${PROJECT_TOOLS}/${NAME}-${SUFFIX}:${SUFFIX}
                   imagePullPolicy: "Always"
-                  command: ["python", "-m", "app.fireweather_bot.noon_forecasts"]
+                  command: ["python", "-m", "app.fireweather_bot.hourly_actuals"]
                   env:
                     - name: BC_FIRE_WEATHER_SECRET
                       valueFrom:

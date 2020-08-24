@@ -2,7 +2,6 @@
 for each weather station and store the results (from a CSV file) in our database.
 """
 import os
-import json
 import sys
 import logging
 import logging.config
@@ -13,34 +12,26 @@ from typing import List, Dict
 from abc import abstractmethod, ABC
 from requests import Session
 from requests.compat import urljoin
-from requests_ntlm import HttpNtlmAuth
 from sqlalchemy.exc import IntegrityError
 import pandas as pd
-from app import config
+from requests_ntlm import HttpNtlmAuth
+from app import config, configure_logging
 import app.db.database
 from app.db.models import NoonForecasts
-from app.wildfire_one import _get_now, _get_stations_local
+from app.wildfire_one import _get_stations_local
+from app.fireweather_bot import BC_FIRE_WEATHER_BASE_URL, BC_FIRE_WEATHER_ENDPOINT, _authenticate_session
+from app.time_utils import get_utc_now
 
 
-# If running as it's own process, configure loggin appropriately.
+# If running as it's own process, configure logging appropriately.
 if __name__ == "__main__":
-    LOGGING_CONFIG = os.path.join(os.path.dirname(__file__), 'logging.json')
-    if os.path.exists(LOGGING_CONFIG):
-        with open(LOGGING_CONFIG) as config_file:
-            CONFIG = json.load(config_file)
-        logging.config.dictConfig(CONFIG)
+    configure_logging()
 
 LOGGER = logging.getLogger(__name__)
 
 TEMP_CSV_FILENAME = 'weather_station_forecasts.csv'
-BC_FIRE_WEATHER_BASE_URL = 'https://bcfireweatherp1.nrs.gov.bc.ca'
-
-dirname = os.path.dirname(__file__)
-weather_stations_file_path = os.path.join(
-    dirname, 'data/weather_stations.json')
 
 
-# pylint: disable=too-few-public-methods, broad-except, no-member
 class BuildQuery(ABC):
     """ Base class for building query urls and params """
 
@@ -51,8 +42,6 @@ class BuildQuery(ABC):
     @abstractmethod
     def query(self) -> [str, dict]:
         """ Return query url and params """
-
-# pylint: disable=too-few-public-methods
 
 
 class BuildQueryByStationCode(BuildQuery):
@@ -75,22 +64,6 @@ class BuildQueryByStationCode(BuildQuery):
         return [url, params]
 
 
-def _authenticate_session(session: Session) -> Session:
-    """ Authenticate the session using NTLM auth
-    """
-    password = config.get('BC_FIRE_WEATHER_SECRET')
-    user = config.get('BC_FIRE_WEATHER_USER')
-    LOGGER.info('Authenticating user %s at %s', user, BC_FIRE_WEATHER_BASE_URL)
-    resp = session.get(BC_FIRE_WEATHER_BASE_URL,
-                       auth=HttpNtlmAuth('idir\\'+user, password))
-
-    if resp and re.search(r"server error", resp.text, re.IGNORECASE):
-        raise Exception(
-            "Server Error occurred while authenticating user. \n {}".format(resp.text))
-
-    return session
-
-
 def prepare_fetch_noon_forecasts_query():
     """ Prepare url and params to fetch forecast noon-time values from the BC FireWeather Phase 1 API.
     """
@@ -106,8 +79,7 @@ def prepare_fetch_noon_forecasts_query():
         'cboFilters': config.get('BC_FIRE_WEATHER_FILTER_ID'),
         'rdoReport': 'OSBD',
     }
-    endpoint = ('Scripts/Public/Common/Results_Report.asp')
-    url = urljoin(BC_FIRE_WEATHER_BASE_URL, endpoint)
+    url = urljoin(BC_FIRE_WEATHER_BASE_URL, BC_FIRE_WEATHER_ENDPOINT)
     return url, request_body
 
 
@@ -145,7 +117,7 @@ def get_csv(
         csv_file.write(content)
 
 
-def get_noon_forecasts(temp_path: str):
+def get_noon_forecasts():
     """ Send POST request to BC FireWeather API to generate a CSV,
     then send GET request to retrieve the CSV,
     then parse the CSV and store in DB.
@@ -155,9 +127,10 @@ def get_noon_forecasts(temp_path: str):
         # Submit the POST request to query forecasts for the station
         csv_url = fetch_noon_forecasts(session)
         # Use the returned URL to fetch the CSV data for the station
-        get_csv(session, csv_url, temp_path)
-        # Parse the CSV data
-        parse_csv(temp_path)
+        with tempfile.TemporaryDirectory() as temp_path:
+            get_csv(session, csv_url, temp_path)
+            # Parse the CSV data
+            parse_csv(temp_path)
         LOGGER.debug('Finished writing noon forecasts to database')
 
 
@@ -211,7 +184,7 @@ def _get_start_date():
     use tomorrow's date, since we only want forecasts, not actuals)
     Strip out time, we just want yyyymmdd """
     date = ''
-    now = _get_now()    # returns time in UTC
+    now = get_utc_now()    # returns time in UTC
     if now.hour == 23:
         # this is the evening run during Pacific Daylight Savings
         date = now + timedelta(days=1)
@@ -226,7 +199,7 @@ def _get_start_date():
 def _get_end_date():
     """ Helper function to get the end date for query (5 days in future).
     Strip out time, we just want <year><month><date> """
-    five_days_ahead = _get_now() + timedelta(days=5)
+    five_days_ahead = get_utc_now() + timedelta(days=5)
     return five_days_ahead.strftime('%Y%m%d')
 
 
@@ -243,8 +216,6 @@ def _get_station_names_to_codes() -> Dict:
     station_codes['DARCY'] = station_codes.pop('D\'ARCY')
     return station_codes
 
-# pylint: disable=invalid-name
-
 
 def main():
     """ Makes the appropriate method calls in order to submit a query to the BC FireWeather Phase 1 API
@@ -253,8 +224,7 @@ def main():
     """
     LOGGER.debug('Retrieving noon forecasts...')
     try:
-        with tempfile.TemporaryDirectory() as temp_path:
-            get_noon_forecasts(temp_path)
+        get_noon_forecasts()
         LOGGER.debug(
             'Finished retrieving noon forecasts for all weather stations.')
         # Exit with 0 - success.
@@ -265,6 +235,7 @@ def main():
             exc_info=exception)
         # Exit non 0 - failure.
         sys.exit(1)
+    # pylint: disable=broad-except
     except Exception as exception:
         # Exit non 0 - failure.
         LOGGER.error('Failed to retrieve noon forecasts.',

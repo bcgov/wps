@@ -14,7 +14,6 @@ class FixtureException(Exception):
     """ Exception for fixture related issues """
 
 
-# pylint: disable=too-few-public-methods
 class MockJWTDecode:
     """ Mock pyjwt module """
 

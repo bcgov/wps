@@ -9,7 +9,6 @@ from app.schemas import NoonForecast, NoonForecastResponse, NoonForecastValue, S
 import app.db.database
 from app.db.models import NoonForecasts
 
-#pylint: disable=invalid-name
 
 LOGGER = logging.getLogger(__name__)
 

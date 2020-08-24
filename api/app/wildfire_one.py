@@ -13,6 +13,8 @@ from aiohttp import ClientSession, BasicAuth, TCPConnector
 from shapely.geometry import Point
 from . import config
 from .schemas import WeatherStation, WeatherStationHourlyReadings, WeatherReading
+from app.time_utils import get_utc_now
+
 
 LOGGER = logging.getLogger(__name__)
 
@@ -23,8 +25,6 @@ ecodiv_shape_file_path = os.path.join(
     dirname, 'data/ERC_ECODIV_polygon/ERC_ECODIV_polygon.shp')
 weather_stations_file_path = os.path.join(
     dirname, 'data/weather_stations.json')
-
-# pylint: disable=too-few-public-methods
 
 
 class BuildQuery(ABC):
@@ -40,7 +40,6 @@ class BuildQuery(ABC):
         """ Return query url and params """
 
 
-# pylint: disable=too-few-public-methods
 class BuildQueryAllStations(BuildQuery):
     """ Class for building a url and params to request all stations.  """
 
@@ -52,7 +51,6 @@ class BuildQueryAllStations(BuildQuery):
         return [url, params]
 
 
-# pylint: disable=too-few-public-methods
 class BuildQueryByStationCode(BuildQuery):
     """ Class for building a url and params to request a list of stations by code """
 
@@ -252,17 +250,12 @@ async def get_stations() -> List[WeatherStation]:
     return _get_stations_local()
 
 
-def _get_now():
-    """ Helper function to get the current time (easy function to mock out in testing) """
-    return datetime.now(tz=timezone.utc)
-
-
 def prepare_fetch_hourlies_query(raw_station):
     """ Prepare url and params to fetch hourly readings from the WFWX Fireweather API.
     """
     base_url = config.get('WFWX_BASE_URL')
     # By default we're concerned with the last 5 days only.
-    now = _get_now()
+    now = get_utc_now()
     five_days_ago = now - timedelta(days=5)
     LOGGER.debug('requesting historic data from %s to %s', five_days_ago, now)
     # Prepare query params and query:

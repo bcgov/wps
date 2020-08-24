@@ -2,14 +2,11 @@
 
 See README.md for details on how to run.
 """
-import os
-import json
-import logging
-import logging.config
 import datetime
+import logging
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from app import schemas
+from app import schemas, configure_logging
 from app.models.fetch.predictions import fetch_model_predictions
 from app.models.fetch.summaries import fetch_model_prediction_summaries
 from app.models import ModelEnum
@@ -19,13 +16,10 @@ from app.auth import authenticate
 from app import wildfire_one
 from app import config
 
-LOGGING_CONFIG = os.path.join(os.path.dirname(__file__), 'logging.json')
-if os.path.exists(LOGGING_CONFIG):
-    with open(LOGGING_CONFIG) as config_file:
-        CONFIG = json.load(config_file)
-    logging.config.dictConfig(CONFIG)
-LOGGER = logging.getLogger(__name__)
 
+configure_logging()
+
+LOGGER = logging.getLogger(__name__)
 
 API_INFO = '''
     Description: API for the PSU FWI Calculator
