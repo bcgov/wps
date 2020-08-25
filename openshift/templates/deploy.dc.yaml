@@ -121,8 +121,6 @@ objects:
                     configMapKeyRef:
                       name: ${NAME}-global
                       key: env.project-namespace
-                - name: PATRONI_HEALTH_SUFFIX
-                  value: patroni-wps-api-${SUFFIX}
                 - name: STATUS_CHECKER_SECRET
                   valueFrom:
                     secretKeyRef:
@@ -133,6 +131,8 @@ objects:
                     configMapKeyRef:
                       name: ${NAME}-global
                       key: env.pathfinder-base-uri
+                - name: PATRONI_CLUSTER_NAME
+                  value: patroni-wps-api-${SUFFIX}
               ports:
                 - containerPort: 8080
                   protocol: TCP

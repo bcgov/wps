@@ -36,14 +36,14 @@ class MockClientSession:
     async def __aenter__(self):
         """ Enter context - return the appropriate response object depending on the url """
         if self.json_response:
-            return MockResponse(json_response=self.json_response)
-        return MockResponse(text_response=self.text_response)
+            return MockAsyncResponse(json_response=self.json_response)
+        return MockAsyncResponse(text_response=self.text_response)
 
     async def __aexit__(self, *error_info):
         """ Clean up anything you need to clean up """
 
 
-class MockRequestResponse:
+class MockResponse:
     """ Stubbed response object. """
 
     def __init__(self, text_response: str = None, json_response: dict = None, status_code=200):
@@ -63,7 +63,7 @@ class MockRequestResponse:
         return self.json_response
 
 
-class MockResponse:
+class MockAsyncResponse:
     """ Stubbed async response object.
     """
 
@@ -95,7 +95,8 @@ def _get_fixture_path(url: str, params: dict = None) -> str:
         fixture_url = 'wf1/v1/oauth/token'
     elif config.get('PATHFINDER_BASE_URI') in url:
         # Point to the pathfinder fixture url.
-        fixture_url = 'pathfinder/' + url[len(config.get('PATHFINDER_BASE_URI')):]
+        fixture_url = 'pathfinder/' + \
+            url[len(config.get('PATHFINDER_BASE_URI')):]
     else:
         raise FixtureException('unhandeled url: {}'.format(url))
     if params:
@@ -130,7 +131,7 @@ def default_mock_client_get(*args, **kwargs) -> MockClientSession:
     return get_mock_client_session(url, params)
 
 
-def default_mock_requests_get(*args, **kwargs) -> MockRequestResponse:
+def default_mock_requests_get(*args, **kwargs) -> MockResponse:
     """ Return a mocked request response """
     url = args[0]
     params = kwargs.get('params')
@@ -140,7 +141,7 @@ def default_mock_requests_get(*args, **kwargs) -> MockRequestResponse:
     if os.path.exists(fixture + '.json'):
         with open(fixture + '.json', 'r') as fixture_file:
             # Return a response with the appropriate fixture
-            return MockRequestResponse(json_response=json.load(fixture_file))
+            return MockResponse(json_response=json.load(fixture_file))
     # Expected fixture not found - raise an exception.
     raise FixtureException(
         'fixture file {} for {} not found.'.format(fixture, url))
