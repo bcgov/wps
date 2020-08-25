@@ -52,6 +52,7 @@ OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/patroni.yaml \
  ${MEMORY_REQUEST:+ "-p MEMORY_REQUEST=${MEMORY_REQUEST}"} \
  ${MEMORY_LIMIT:+ "-p MEMORY_LIMIT=${MEMORY_LIMIT}"}"
 
+
 # Apply template (apply or use --dry-run)
 #
 OC_APPLY="oc -n ${PROJ_TARGET} apply -f -"
