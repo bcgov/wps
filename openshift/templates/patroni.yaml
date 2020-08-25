@@ -85,7 +85,7 @@ objects:
         cluster-name: ${PATRONI_CLUSTER_NAME}
       name: ${APPLICATION_NAME}
     spec:
-      podManagementPolicy: OrderedReady
+      podManagementPolicy: ${POD_MANAGEMENT_POLICY}
       replicas: 3
       revisionHistoryLimit: 10
       selector:
@@ -152,7 +152,7 @@ objects:
                   value: 0.0.0.0:5432
                 - name: PATRONI_RESTAPI_LISTEN
                   value: 0.0.0.0:8008
-              image: docker-registry.default.svc:5000/${IMAGE_NAMESPACE}/patroni:10
+              image: docker-registry.default.svc:5000/${IMAGE_NAMESPACE}/patroni:${IMAGE_VERSION}
               imagePullPolicy: IfNotPresent
               name: ${APPLICATION_NAME}
               ports:
@@ -172,6 +172,17 @@ objects:
               volumeMounts:
                 - mountPath: /home/postgres/pgdata
                   name: ${APPLICATION_NAME}
+              readinessProbe:
+                successThreshold: 1
+                failureThreshold: 3
+                exec:
+                  command:
+                    - /bin/bash
+                    - '-c'
+                    - /usr/share/scripts/patroni/health_check.sh
+                initialDelaySeconds: 10
+                periodSeconds: 60
+                timeoutSeconds: 10
           dnsPolicy: ClusterFirst
           restartPolicy: Always
           schedulerName: default-scheduler
@@ -326,3 +337,12 @@ parameters:
     displayName: Persistent Volume Size
     name: PVC_SIZE
     value: 5Gi
+  - description: Version of Patroni image to be used.
+    displayName: Patroni image version
+    name: IMAGE_VERSION
+    value: "v10-build5"
+  - description: Pod management policy. For faster startups, use Parallel.
+    displayName: Pod management policy.
+    name: POD_MANAGEMENT_POLICY
+    value: "Parallel"
+
