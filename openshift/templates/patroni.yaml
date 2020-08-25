@@ -160,7 +160,13 @@ objects:
                   protocol: TCP
                 - containerPort: 5432
                   protocol: TCP
-              resources: {}
+              resources:
+                limits:
+                  cpu: ${CPU_LIMIT}
+                  memory: ${MEMORY_LIMIT}
+                requests:
+                  cpu: ${CPU_REQUEST}
+                  memory: ${MEMORY_REQUEST}
               terminationMessagePath: /dev/termination-log
               terminationMessagePolicy: File
               volumeMounts:
@@ -298,7 +304,19 @@ parameters:
   - description: Maximum amount of memory the container can use.
     displayName: Memory Limit
     name: MEMORY_LIMIT
-    value: 512Mi
+    value: 1Gi
+  - description: Maximum amount of cpu the container can use.
+    displayName: CPU Limit
+    name: CPU_LIMIT
+    value: 250m
+  - description: Maximum amount of memory the container can request.
+    displayName: Memory Request
+    name: MEMORY_REQUEST
+    value: 256Mi
+  - description: Maximum amount of cpu the container can request.
+    displayName: CPU Request
+    name: CPU_REQUEST
+    value: 50m
   - description: The OpenShift Namespace where the patroni and postgresql ImageStream resides.
     displayName: ImageStream Namespace
     name: IMAGE_NAMESPACE

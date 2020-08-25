@@ -42,6 +42,7 @@ def mock_requests(monkeypatch):
     monkeypatch.setattr(requests, 'get', default_mock_requests_get)
 
 
+
 @pytest.fixture(autouse=True)
 def mock_session(monkeypatch):
     """ Ensure that all unit tests mock out the database session by default! """
@@ -52,11 +53,12 @@ def mock_session(monkeypatch):
                                            abbreviation='GDPS',
                                            projection='latlon.15x.15',
                                            name='Global Deterministic Prediction System')
-        preduction_model_run = PredictionModelRunTimestamp(id=1,
+        prediction_model_run = PredictionModelRunTimestamp(id=1,
                                                            prediction_model_id=1,
                                                            prediction_run_timestamp=datetime.datetime.now(
                                                                tz=timezone.utc),
-                                                           prediction_model=prediction_model)
+                                                           prediction_model=prediction_model,
+                                                           complete=True)
         session = UnifiedAlchemyMagicMock(data=[
             (
                 [mock.call.query(PredictionModel),
@@ -66,7 +68,7 @@ def mock_session(monkeypatch):
             ),
             (
                 [mock.call.query(PredictionModelRunTimestamp)],
-                [preduction_model_run]
+                [prediction_model_run]
             )
         ])
         return session
