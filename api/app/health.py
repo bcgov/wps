@@ -1,18 +1,7 @@
 """ Module to perform health checks.
 """
-import os
-import json
-import logging
-import logging.config
 import requests
 from app import config
-
-LOGGING_CONFIG = os.path.join(os.path.dirname(__file__), 'logging.json')
-if os.path.exists(LOGGING_CONFIG):
-    with open(LOGGING_CONFIG) as config_file:
-        CONFIG = json.load(config_file)
-    logging.config.dictConfig(CONFIG)
-LOGGER = logging.getLogger(__name__)
 
 
 def patroni_cluster_health_check():
