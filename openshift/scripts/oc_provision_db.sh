@@ -1,4 +1,4 @@
-#!/bin/sh -l
+#!/bin/bash -l
 #
 source "$(dirname ${0})/common/common"
 
@@ -44,12 +44,17 @@ OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/patroni.yaml \
 -p PATRONI_LEADER_SERVICE_NAME=${PATRONI_LEADER_SERVICE_NAME} \
 -p PATRONI_REPLICA_SERVICE_NAME=${PATRONI_REPLICA_SERVICE_NAME} \
 -p SERVICE_ACCOUNT=${SERVICE_ACCOUNT} \
--p IMAGE_NAMESPACE=${IMAGE_NAMESPACE}"
+-p IMAGE_NAMESPACE=${IMAGE_NAMESPACE} \
+ ${PVC_SIZE:+ " -p PVC_SIZE=${PVC_SIZE}"} \
+ ${CPU_REQUEST:+ "-p CPU_REQUEST=${CPU_REQUEST}"} \
+ ${CPU_LIMIT:+ "-p CPU_LIMIT=${CPU_LIMIT}"} \
+ ${MEMORY_REQUEST:+ "-p MEMORY_REQUEST=${MEMORY_REQUEST}"} \
+ ${MEMORY_LIMIT:+ "-p MEMORY_LIMIT=${MEMORY_LIMIT}"}"
 
 # Apply template (apply or use --dry-run)
 #
 OC_APPLY="oc -n ${PROJ_TARGET} apply -f -"
-[ "${APPLY}" ] || OC_APPLY="${OC_APPLY} --dry-run"
+[ "${APPLY}" ] || OC_APPLY="${OC_APPLY} --dry-run=client"
 
 # Execute commands
 #

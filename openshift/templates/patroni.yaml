@@ -85,7 +85,7 @@ objects:
         cluster-name: ${PATRONI_CLUSTER_NAME}
       name: ${APPLICATION_NAME}
     spec:
-      podManagementPolicy: OrderedReady
+      podManagementPolicy: Parallel
       replicas: 3
       revisionHistoryLimit: 10
       selector:
@@ -180,8 +180,8 @@ objects:
                     - /bin/bash
                     - '-c'
                     - /usr/share/scripts/patroni/health_check.sh
-                initialDelaySeconds: 30
-                periodSeconds: 300
+                initialDelaySeconds: 10
+                periodSeconds: 60
                 timeoutSeconds: 10
           dnsPolicy: ClusterFirst
           restartPolicy: Always
@@ -340,4 +340,4 @@ parameters:
   - description: Version of Patroni image to be used.
     displayName: Patroni image version
     name: IMAGE_VERSION
-    value: "10"
+    value: "v10-build5"
