@@ -1,11 +1,11 @@
 """ Module to perform health checks.
 """
-import requests
 import os
 import json
-from app import config
 import logging
 import logging.config
+import requests
+from app import config
 
 LOGGING_CONFIG = os.path.join(os.path.dirname(__file__), 'logging.json')
 if os.path.exists(LOGGING_CONFIG):
