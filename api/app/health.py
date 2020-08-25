@@ -10,7 +10,7 @@ def patroni_cluster_health_check():
     parts = [
         config.get('PATHFINDER_BASE_URI'),
         'apis/apps/v1beta1/namespaces/',
-        config.get('PROJECT_NAMESPACE'),
+        config.get('PROJ_TARGET'),
         'statefulsets/',
         config.get('PATRONI_CLUSTER_NAME')
     ]

@@ -27,6 +27,7 @@ source "$(dirname ${0})/common/common"
 # Target project override for Dev or Prod deployments
 #
 PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
+PATRONI_CLUSTER_NAME="patroni-wps-api-${SUFFIX}"
 
 # Process a template (mostly variable substition)
 #
@@ -37,7 +38,9 @@ OC_PROCESS="oc -n ${PROJ_TOOLS} process -f ${PATH_DC} \
  ${CPU_LIMIT:+ "-p CPU_LIMIT=${CPU_LIMIT}"} \
  ${MEMORY_REQUEST:+ "-p MEMORY_REQUEST=${MEMORY_REQUEST}"} \
  ${MEMORY_LIMIT:+ "-p MEMORY_LIMIT=${MEMORY_LIMIT}"} \
- ${REPLICAS:+ "-p REPLICAS=${REPLICAS}"}"
+ ${REPLICAS:+ "-p REPLICAS=${REPLICAS}"} \
+ ${PROJ_TARGET:+ "-p PROJ_TARGET=${PROJ_TARGET}"} \
+ ${PATRONI_CLUSTER_NAME:+ "-p PATRONI_CLUSTER_NAME=${PATRONI_CLUSTER_NAME}"}"
 
 # Apply a template (apply or use --dry-run)
 #

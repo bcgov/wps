@@ -116,11 +116,6 @@ objects:
                   value: "5432"
                 - name: POSTGRES_DATABASE
                   value: ${NAME}-${SUFFIX}
-                - name: PROJECT_NAMESPACE
-                  valueFrom:
-                    configMapKeyRef:
-                      name: ${NAME}-global
-                      key: env.project-namespace
                 - name: STATUS_CHECKER_SECRET
                   valueFrom:
                     secretKeyRef:
@@ -131,8 +126,6 @@ objects:
                     configMapKeyRef:
                       name: ${NAME}-global
                       key: env.pathfinder-base-uri
-                - name: PATRONI_CLUSTER_NAME
-                  value: patroni-wps-api-${SUFFIX}
               ports:
                 - containerPort: 8080
                   protocol: TCP
