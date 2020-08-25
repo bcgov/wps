@@ -172,6 +172,14 @@ objects:
               volumeMounts:
                 - mountPath: /home/postgres/pgdata
                   name: ${APPLICATION_NAME}
+              livenessProbe:
+                exec:
+                  command:
+                    - /bin/bash
+                    - '-c'
+                    - /usr/share/scripts/patroni/disk_space_check.sh
+                  initialDelaySeconds: 60
+                  periodSeconds: 3600
               readinessProbe:
                 successThreshold: 1
                 failureThreshold: 3
