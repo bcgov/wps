@@ -29,9 +29,6 @@ parameters:
     displayName: Repication Passsword
     name: PATRONI_REPLICATION_PASSWORD
     required: true
-  - name: BC_FIRE_WEATHER_BASE_URL
-    description: BC FireWeather Phase1 URL
-    required: true
   - name: BC_FIRE_WEATHER_USER
     description: Username (idir) to be used for authentication to access BC FireWeather Phase 1
     required: true
@@ -58,7 +55,6 @@ objects:
       env.wfwx-base-url: ${WFWX_BASE_URL}
       env.wfwx-user: ${WFWX_USER}
       env.keycloak-public-key: ${KEYCLOAK_PUBLIC_KEY}
-      bc-fire-weather-base-url: ${BC_FIRE_WEATHER_BASE_URL}
       bc-fire-weather-user: ${BC_FIRE_WEATHER_USER}
       bc-fire-weather-filter-id: ${BC_FIRE_WEATHER_FILTER_ID}
       env.pathfinder-base-uri: ${PATHFINDER_BASE_URI}
