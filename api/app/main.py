@@ -7,10 +7,8 @@ import json
 import logging
 import logging.config
 import datetime
-from functools import reduce
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
-import requests
 from app import schemas
 from app.models.fetch.predictions import fetch_model_predictions
 from app.models.fetch.summaries import fetch_model_prediction_summaries
@@ -20,6 +18,7 @@ from app.noon_forecasts import fetch_noon_forecasts
 from app.auth import authenticate
 from app import wildfire_one
 from app import config
+from app import health
 
 LOGGING_CONFIG = os.path.join(os.path.dirname(__file__), 'logging.json')
 if os.path.exists(LOGGING_CONFIG):
@@ -89,30 +88,10 @@ app.add_middleware(
 async def get_health():
     """ A simple endpoint for Openshift Healthchecks """
     try:
-        parts = [
-            config.get('PATHFINDER_BASE_URI'),
-            'apis/apps/v1beta1/namespaces/',
-            config.get('PROJECT_NAMESPACE'),
-            'statefulsets',
-            config.get('PATRONI_HEALTH_SUFFIX')
-        ]
-        url = reduce(os.path.join, parts)
-        header = {
-            'Authorization': 'Bearer ' + config.get('STATUS_CHECKER_SECRET')
-        }
-        resp = requests.get(url, headers=header)
-        resp_json = resp.json()
-        if resp_json.get('status').get('replicas') == resp_json.get('status').get('readyReplicas'):
-            healthy = True
-            message = 'Healthy as ever'
-        else:
-            healthy = False
-            message = 'Only %s out of %s pods are healthy' % (
-                resp_json.get('status').get('readyReplicas'),
-                resp_json.get('status').get('replicas')
-            )
-        LOGGER.info('/health - healthy: %s. %s', healthy, message)
-        return {"message": message, "healthy": healthy}
+        health_check = health.patroni_cluster_health_check()
+        LOGGER.info('/health - healthy: %s. %s',
+                    health_check.get('healthy'), health_check.get('message'))
+        return health_check
     except Exception as exception:
         LOGGER.error(exception, exc_info=True)
         raise

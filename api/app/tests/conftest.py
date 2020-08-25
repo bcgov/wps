@@ -32,8 +32,8 @@ def mock_env(monkeypatch):
     monkeypatch.setenv("PATHFINDER_BASE_URI",
                        "https://console.pathfinder.gov.bc.ca:8443")
     monkeypatch.setenv("PROJECT_NAMESPACE", "project_namespace")
-    monkeypatch.setenv("PATRONI_HEALTH_SUFFIX", "some_suffix")
     monkeypatch.setenv("STATUS_CHECKER_SECRET", "some_secret")
+    monkeypatch.setenv("PATRONI_CLUSTER_NAME", "some_suffix")
 
 
 @pytest.fixture(autouse=True)
