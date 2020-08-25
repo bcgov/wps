@@ -116,7 +116,6 @@ curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poet
 ##### Install project python requirements
 
 ```bash
-cd wps-api
 poetry env use 3.8
 poetry install
 poetry shell
