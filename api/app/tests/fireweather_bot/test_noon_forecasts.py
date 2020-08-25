@@ -4,7 +4,7 @@ import logging
 from requests import Session
 import pytest
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
-import app.fireweather_bot_noon_forecasts
+from app.fireweather_bot import noon_forecasts
 
 logger = logging.getLogger(__name__)
 
@@ -59,8 +59,8 @@ def mock_database_session(monkeypatch):
 
 
 # pylint: disable=redefined-outer-name, unused-argument
-def test_fire_weather_bot(mock_request_session, mock_database_session):
+def test_noon_forecasts_bot(mock_request_session, mock_database_session):
     """ Very simple (not very good) test that checks that the bot exits with a success code. """
     with pytest.raises(SystemExit) as excinfo:
-        app.fireweather_bot_noon_forecasts.main()
+        noon_forecasts.main()
     assert excinfo.value.code == 0
