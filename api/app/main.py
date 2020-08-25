@@ -91,7 +91,7 @@ async def get_health():
     try:
         parts = [
             config.get('PATHFINDER_BASE_URI'),
-            '/apis/apps/v1beta1/namespaces/',
+            'apis/apps/v1beta1/namespaces/',
             config.get('PROJECT_NAMESPACE'),
             'statefulsets',
             config.get('PATRONI_HEALTH_SUFFIX')
