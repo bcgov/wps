@@ -85,7 +85,7 @@ objects:
         cluster-name: ${PATRONI_CLUSTER_NAME}
       name: ${APPLICATION_NAME}
     spec:
-      podManagementPolicy: Parallel
+      podManagementPolicy: ${POD_MANAGEMENT_POLICY}
       replicas: 3
       revisionHistoryLimit: 10
       selector:
@@ -341,3 +341,8 @@ parameters:
     displayName: Patroni image version
     name: IMAGE_VERSION
     value: "v10-build5"
+  - description: Pod management policy. For faster startups, use Parallel.
+    displayName: Pod management policy.
+    name: POD_MANAGEMENT_POLICY
+    value: "Parallel"
+
