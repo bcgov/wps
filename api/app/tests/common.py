@@ -3,7 +3,7 @@
 import logging
 import os
 import json
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlsplit
 from app import config
 
 
@@ -28,7 +28,6 @@ class MockClientSession:
 
     def __init__(self, json_response=None, text_response=None):
         """ Initialize client response """
-
         self.json_response = json_response
         self.text_response = text_response
 
@@ -97,7 +96,7 @@ def _get_fixture_path(url: str, params: dict = None) -> str:
         fixture_url = 'pathfinder/' + \
             url[len(config.get('PATHFINDER_BASE_URI')):]
     else:
-        raise FixtureException('unhandeled url: {}'.format(url))
+        fixture_url = urlsplit(url).netloc
     if params:
         fixture_url = '{}?{}'.format(fixture_url, urlencode(params))
     # Join the url with the fixture location.
@@ -144,3 +143,8 @@ def default_mock_requests_get(*args, **kwargs) -> MockResponse:
     # Expected fixture not found - raise an exception.
     raise FixtureException(
         'fixture file {} for {} not found.'.format(fixture, url))
+
+
+def default_mock_session_requests_get(*args, **kwargs) -> MockResponse:
+    """ Return a mocked request response from a request.Session object """
+    return default_mock_requests_get(*args[1:], kwargs)

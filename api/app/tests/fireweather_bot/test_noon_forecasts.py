@@ -1,4 +1,4 @@
-""" Unit tests for the fireweather bot """
+""" Unit tests for the fireweather noon forecats bot (Bender) """
 import os
 import logging
 from requests import Session

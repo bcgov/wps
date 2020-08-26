@@ -7,7 +7,7 @@ import requests
 import pytest
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
-from app.tests.common import MockJWTDecode, default_mock_requests_get
+from app.tests.common import MockJWTDecode, default_mock_requests_get, default_mock_session_requests_get
 from app.db.models import PredictionModel, PredictionModelRunTimestamp
 import app.db.database
 
@@ -34,6 +34,27 @@ def mock_env(monkeypatch):
     monkeypatch.setenv("PROJECT_NAMESPACE", "project_namespace")
     monkeypatch.setenv("STATUS_CHECKER_SECRET", "some_secret")
     monkeypatch.setenv("PATRONI_CLUSTER_NAME", "some_suffix")
+
+
+class MockSession():
+    pass
+
+
+@pytest.fixture(autouse=True)
+def mock_requests_session(monkeypatch):
+    """ Patch all calls to requests.Session.* """
+    # def mock_request_session():
+        # return MockSession()
+    # monkeypatch.setattr(requests, 'Session', mock_request_session)
+
+    def get(*args, **kwargs):
+        pass
+
+    def post(*args, **kwargs):
+        pass
+
+    monkeypatch.setattr(requests.Session, 'get', default_mock_session_requests_get)
+    monkeypatch.setattr(requests.Session, 'post', post)
 
 
 @pytest.fixture(autouse=True)
