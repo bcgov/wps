@@ -25,7 +25,6 @@ def mock_env(monkeypatch):
     monkeypatch.setenv("WFWX_BASE_URL", "http://localhost/wfwx")
     monkeypatch.setenv("WFWX_MAX_PAGE_SIZE", "1000")
     monkeypatch.setenv("KEYCLOAK_PUBLIC_KEY", "public_key")
-    monkeypatch.setenv("BC_FIRE_WEATHER_BASE_URL", "http://localhost")
     monkeypatch.setenv("BC_FIRE_WEATHER_USER", "someuser")
     monkeypatch.setenv("BC_FIRE_WEATHER_SECRET", "password")
     monkeypatch.setenv("BC_FIRE_WEATHER_FILTER_ID", "1")
@@ -41,7 +40,6 @@ def mock_requests(monkeypatch):
     """ Patch all calls to request.get by default.
     """
     monkeypatch.setattr(requests, 'get', default_mock_requests_get)
-
 
 
 @pytest.fixture(autouse=True)
