@@ -29,3 +29,10 @@ oc -n auzhsi-prod policy add-role-to-user \
     system:image-puller system:serviceaccount:auzhsi-prod:patroniocp-wps-api-prod \
     --namespace=auzhsi-tools
 ```
+
+## More examples
+
+```bash
+# Build the patroni image, specifying some of the variables
+oc -n auzhsi-tools process -f openshift/build.yaml -p GIT_REF=mybranch -p VERSION=yourtag | oc -n auzhsi-tools apply -f -
+```

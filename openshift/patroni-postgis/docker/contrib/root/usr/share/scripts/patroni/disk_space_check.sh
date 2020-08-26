@@ -29,7 +29,7 @@ fi
 send_notification() {
     local TEXT="$(hostname) is running low on space: $1 < $2"
     echo $TEXT
-    local COMMAND="curl -v \
+    local COMMAND="curl \
         -H 'X-Auth-Token: ${ROCKET_AUTH_TOKEN}' \
         -H 'X-User-Id: ${ROCKET_USER_ID}' \
         -H 'Content-Type: application/json' \
