@@ -75,12 +75,11 @@ def response(monkeypatch, mock_env_with_use_wfwx, mock_jwt_decode, codes):
 # pylint: disable=redefined-outer-name
 @then('the response status code is <status>')
 def assert_status_code(response, status):
-    """ Assert that we recieve the expected status code """
+    """ Assert that we receive the expected status code """
     assert response.status_code == status
 
 
 @then('there are <num_groups> groups of forecasts')
 def assert_number_of_forecasts_groups(response, num_groups):
-    """ Assert that we recieve the expected number of forecast groups """
-    print(response.json())
+    """ Assert that we receive the expected number of forecast groups """
     assert len(response.json()['noon_forecasts']) == num_groups
