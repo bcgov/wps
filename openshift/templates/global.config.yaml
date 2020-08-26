@@ -29,9 +29,6 @@ parameters:
     displayName: Repication Passsword
     name: PATRONI_REPLICATION_PASSWORD
     required: true
-  - name: BC_FIRE_WEATHER_BASE_URL
-    description: BC FireWeather Phase1 URL
-    required: true
   - name: BC_FIRE_WEATHER_USER
     description: Username (idir) to be used for authentication to access BC FireWeather Phase 1
     required: true
@@ -45,8 +42,6 @@ parameters:
     description: Token for status-checker Openshift service account. Used for /health check
   - name: PATHFINDER_BASE_URI
     description: Base URI for connecting to Pathfinder console in Openshift. Used for /health check
-  - name: PATRONI_CLUSTER_NAME
-    description: Name of Patroni cluster as it appears in Openshift for the relevant namespace
   - name: ROCKET_AUTH_TOKEN
     description: Authentication token for rocket.chat notifications
     required: true
@@ -66,11 +61,9 @@ objects:
       env.wfwx-base-url: ${WFWX_BASE_URL}
       env.wfwx-user: ${WFWX_USER}
       env.keycloak-public-key: ${KEYCLOAK_PUBLIC_KEY}
-      bc-fire-weather-base-url: ${BC_FIRE_WEATHER_BASE_URL}
       bc-fire-weather-user: ${BC_FIRE_WEATHER_USER}
       bc-fire-weather-filter-id: ${BC_FIRE_WEATHER_FILTER_ID}
       env.pathfinder-base-uri: ${PATHFINDER_BASE_URI}
-      env.patroni-cluster-name: ${PATRONI_CLUSTER_NAME}
   - kind: Secret
     apiVersion: v1
     metadata:
