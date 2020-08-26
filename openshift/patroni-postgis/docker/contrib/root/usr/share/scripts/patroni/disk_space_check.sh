@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
-set -Eeu
-set -o pipefail
+set -Ee
 
 # Check if the available disk space on /home/postgres/pgdata has dropped
 # below a critical amount ($DISK_SPACE_WARNING_LIMIT). If it has, it will send a notification
 # on rocket chat.
+# NOTE: This script is currently being run as a livenessProbe, and as such some care has been taken
+#       to ensure that this script returns exit code 0 - so as not to incorrectly indicate that the 
+#       server is unresponsive due to a failure to send a notification.
 
 if [[ -z "$ROCKET_AUTH_TOKEN" ]]; then
     echo "Must provide (rocket-chat) ROCKET_AUTH_TOKEN in environment" 1>&2
@@ -43,10 +45,8 @@ FREE_SPACE=$(df $DRIVE --output=avail | tail -n 1)
 if (($FREE_SPACE < $DISK_SPACE_WARNING_LIMIT))
 then
     send_notification $FREE_SPACE $DISK_SPACE_WARNING_LIMIT
-    exit 1
+    exit 0
 else
     echo "$(hostname): $FREE_SPACE > $DISK_SPACE_WARNING_LIMIT : all is well"
     exit 0
 fi
-
-exit 0
