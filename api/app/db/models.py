@@ -187,3 +187,11 @@ class NoonForecasts(Base):
     danger_rating = Column(Integer, nullable=False)
     created_at = Column(TIMESTAMP(timezone=True), nullable=False,
                         default=datetime.datetime.now(tz=timezone.utc))
+
+    def __str__(self):
+        return (
+            'weather_date:{self.weather_date}, '
+            'created_at:{self.created_at}, '
+            'temp={self.temperature}, '
+            'ffmc={self.ffmc}'
+        ).format(self=self)

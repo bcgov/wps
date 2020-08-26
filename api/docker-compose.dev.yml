@@ -9,9 +9,7 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ./:/app/:delegated
-    depends_on:
-      - db
+      - ./:/app:delegated
     networks:
       - wps_network
   # Application's local database container & service
