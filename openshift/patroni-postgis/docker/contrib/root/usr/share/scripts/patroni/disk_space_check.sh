@@ -35,7 +35,6 @@ send_notification() {
         -H 'Content-Type: application/json' \
         https://chat.pathfinder.gov.bc.ca/api/v1/chat.postMessage \
         -d '{\"channel\": \"${ROCKET_CHANNEL}\", \"text\": \"${TEXT}\"}'"
-    echo $COMMAND
     eval $COMMAND
 }
 

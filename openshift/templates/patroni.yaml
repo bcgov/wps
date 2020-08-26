@@ -362,7 +362,7 @@ parameters:
   - description: Version of Patroni image to be used.
     displayName: Patroni image version
     name: IMAGE_VERSION
-    value: "v10-build7"
+    value: "v10-build8"
   - description: Pod management policy. For faster startups, use Parallel.
     displayName: Pod management policy.
     name: POD_MANAGEMENT_POLICY
