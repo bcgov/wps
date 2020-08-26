@@ -96,22 +96,26 @@ docker-build-dev:
 
 docker-lint-dev:
 	# Run linting in docker (dev instance).
-	${call run-lint,docker-compose -f docker-compose.dev.yml run api-dev}
+	${call run-lint,docker-compose -f docker-compose.dev.yml run --rm api-dev}
 
 docker-test-dev:
 	# Run tests in docker (dev instance).
 	# We use the dev instance, because the "production" version doesn't have
 	# a number of the development dependancies.
-	${call run-test-coverage,docker-compose -f docker-compose.dev.yml run api-dev}
+	docker-compose -f docker-compose.dev.yml run --rm api-dev pytest app
 
-docker-run-dev:
-	# Run docker in dev mode.
-	docker-compose -f docker-compose.dev.yml up
-
+docker-test-coverage-dev:
+	# Run tests with coverage in docker (dev instance).
+	${call run-test-coverage,docker-compose -f docker-compose.dev.yml run --rm api-dev}
+	
 docker-shell-dev:
 	# Shell into the dev container.
 	# docker run -it --env-file app/.env --entrypoint bash wps-api_api-dev:latest
-	docker-compose -f docker-compose.dev.yml run api-dev bash
+	docker-compose -f docker-compose.dev.yml run --rm api-dev bash
+
+docker-run-dev:
+	# Run docker in dev mode.
+	docker-compose -f docker-compose.dev.yml up --build
 
 docker-shell-db:
 	# Shell into the db container
