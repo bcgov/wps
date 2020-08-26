@@ -15,3 +15,8 @@ def configure_logging():
         with open(logging_config) as config_file:
             config = json.load(config_file)
         logging.config.dictConfig(config)
+
+
+def url_join(parts):
+    """ Take various parts of a url and join them """
+    return "/".join(map(lambda part: part.strip('/'), parts))

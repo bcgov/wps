@@ -1,7 +1,7 @@
 """ Module to perform health checks.
 """
 import requests
-from app import config
+from app import config, url_join
 
 
 def patroni_cluster_health_check():
@@ -15,7 +15,7 @@ def patroni_cluster_health_check():
         config.get('PATRONI_CLUSTER_NAME')
     ]
     # form URL by concatenating all substrings in parts[], making sure there's exactly 1 / between each part
-    url = "/".join(map(lambda part: part.strip('/'), parts))
+    url = url_join(parts)
     header = {
         'Authorization': 'Bearer ' + config.get('STATUS_CHECKER_SECRET')
     }
