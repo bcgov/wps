@@ -152,6 +152,20 @@ objects:
                   value: 0.0.0.0:5432
                 - name: PATRONI_RESTAPI_LISTEN
                   value: 0.0.0.0:8008
+                - name: ROCKET_AUTH_TOKEN:
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${NAME}-global
+                      key: rocket.chat-auth-token-secret
+                - name: ROCKET_USER_ID:
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${NAME}-global
+                      key: rocket.chat-user-id-secret
+                - name: ROCKET_CHANNEL:
+                  value: ${ROCKET_CHANNEL}
+                - name: DISK_SPACE_WARNING_LIMIT:
+                  value: ${DISK_SPACE_WARNING_LIMIT}
               image: docker-registry.default.svc:5000/${IMAGE_NAMESPACE}/patroni:${IMAGE_VERSION}
               imagePullPolicy: IfNotPresent
               name: ${APPLICATION_NAME}
@@ -353,4 +367,11 @@ parameters:
     displayName: Pod management policy.
     name: POD_MANAGEMENT_POLICY
     value: "Parallel"
-
+  - description: Rocket.Chat channel to use for notifications.
+    displayName: Rocket.Chat channel
+    name: ROCKET_CHANNEL
+    value: "#predictiveservicesteam-dev"
+  - description: Amount of space (in kilobytes) at which to start sending notifications.
+    displayName: Disk space warning limit.
+    name: DISK_SPACE_WARNING_LIMIT
+    value: "2097152"

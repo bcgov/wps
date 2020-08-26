@@ -47,6 +47,12 @@ parameters:
     description: Base URI for connecting to Pathfinder console in Openshift. Used for /health check
   - name: PATRONI_CLUSTER_NAME
     description: Name of Patroni cluster as it appears in Openshift for the relevant namespace
+  - name: ROCKET_AUTH_TOKEN
+    description: Authentication token for rocket.chat notifications
+    required: true
+  - name: ROCKET_USER_ID
+    description: User id for rocket.chat notifications
+    required: true
 objects:
   - kind: ConfigMap
     apiVersion: v1
@@ -77,3 +83,5 @@ objects:
       patroni-superuser-password: ${PATRONI_SUPERUSER_PASSWORD}
       bc-fire-weather-secret: ${BC_FIRE_WEATHER_SECRET}
       status-checker-sa-secret: ${STATUS_CHECKER_SECRET}
+      rocket.chat-auth-token-secret: ${ROCKET_AUTH_TOKEN}
+      rocket.chat-user-id-secret: ${ROCKET_USER_ID}
