@@ -44,7 +44,6 @@ pipeline {
                     // Env Canada Subscriber
                     sh "PROJ_TARGET=${projProd} ./openshift/scripts/oc_provision_ec_cronjob.sh prod apply"
                     sh "PROJ_TARGET=${projProd} ./openshift/scripts/oc_provision_bcfw_p1_forecasts_cronjob.sh prod apply"
-                    sh "CPU_REQUEST=100m CPU_LIMIT=2000m MEMORY_REQUEST=512Mi MEMORY_LIMIT=2Gi POD_MANAGEMENT_POLICY=OrderedReady PROJ_TARGET=${projProd} ./openshift/scripts/oc_provision_db.sh prod"
                 }
             }
         }

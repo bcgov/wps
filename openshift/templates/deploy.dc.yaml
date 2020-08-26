@@ -45,6 +45,7 @@ parameters:
     value: "1000"
   - name: PROJECT_NAMESPACE
     description: Openshift project namespace. Used for /health check
+    required: true
 objects:
   - apiVersion: v1
     kind: DeploymentConfig
