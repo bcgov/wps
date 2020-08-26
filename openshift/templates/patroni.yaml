@@ -167,7 +167,7 @@ objects:
                 - name: DISK_SPACE_WARNING_LIMIT
                   value: ${DISK_SPACE_WARNING_LIMIT}
               image: docker-registry.default.svc:5000/${IMAGE_NAMESPACE}/patroni:${IMAGE_VERSION}
-              imagePullPolicy: IfNotPresent
+              imagePullPolicy: Always
               name: ${APPLICATION_NAME}
               ports:
                 - containerPort: 8008
@@ -362,7 +362,7 @@ parameters:
   - description: Version of Patroni image to be used.
     displayName: Patroni image version
     name: IMAGE_VERSION
-    value: "v10-pr-454"
+    value: "10"
   - description: Pod management policy. For faster startups, use Parallel.
     displayName: Pod management policy.
     name: POD_MANAGEMENT_POLICY

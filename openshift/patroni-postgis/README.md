@@ -18,8 +18,10 @@ Build and tag an imagestream as follows:
 ```bash
 # Build a patroni imagestream:
 oc -n auzhsi-tools process -f openshift/build.yaml | oc -n auzhsi-tools apply -f -
-# Tag the imagestream:
-oc -n auzhsi-tools tag patroni:v10-latest patroni:10-pr-<your pr number>
+# Tag the old imagestream so we can keep it around if we need to revert:
+oc -n auzhsi-tools tag patroni:v10 patroni:10-<date deprecated, e.g. 20200826>
+# Tag the new imagestream (it won't be used until the pods get re-created):
+oc -n auzhsi-tools tag patroni:v10-latest patroni:10
 ```
 
 Allow the production product to pull images from tools
@@ -33,6 +35,6 @@ oc -n auzhsi-prod policy add-role-to-user \
 ## More examples
 
 ```bash
-# Build the patroni image, specifying some of the variables
+# Build the patroni image, specifying some of the variables (useful if you're testing)
 oc -n auzhsi-tools process -f openshift/build.yaml -p GIT_REF=mybranch -p VERSION=yourtag | oc -n auzhsi-tools apply -f -
 ```
