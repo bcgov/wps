@@ -21,7 +21,7 @@ oc -n auzhsi-tools process -f openshift/build.yaml | oc -n auzhsi-tools apply -f
 # Tag the old imagestream so we can keep it around if we need to revert:
 oc -n auzhsi-tools tag patroni:v10 patroni:10-<date deprecated, e.g. 20200826>
 # Tag the new imagestream (it won't be used until the pods get re-created):
-oc -n auzhsi-tools tag patroni:v10-latest patroni:10
+oc -n auzhsi-tools tag patroni:v10-latest patroni:v10
 ```
 
 Allow the production product to pull images from tools
