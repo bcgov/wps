@@ -43,6 +43,8 @@ parameters:
   - name: WFWX_MAX_PAGE_SIZE
     description: Maximum number of entities to request at a time from the WFWX API
     value: "1000"
+  - name: PROJECT_NAMESPACE
+    description: Openshift project namespace. Used for /health check
 objects:
   - apiVersion: v1
     kind: DeploymentConfig
@@ -126,6 +128,10 @@ objects:
                     configMapKeyRef:
                       name: ${NAME}-global
                       key: env.pathfinder-base-uri
+                - name: PATRONI_CLUSTER_NAME
+                  value: patroni-wps-api-${SUFFIX}
+                - name: PROJECT_NAMESPACE
+                  value: ${PROJECT_NAMESPACE}
               ports:
                 - containerPort: 8080
                   protocol: TCP
