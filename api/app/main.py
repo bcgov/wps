@@ -19,6 +19,7 @@ from app.forecasts.noon_forecasts_summaries import fetch_noon_forecasts_summarie
 from app.auth import authenticate
 from app import wildfire_one
 from app import config
+from app import health
 
 LOGGING_CONFIG = os.path.join(os.path.dirname(__file__), 'logging.json')
 if os.path.exists(LOGGING_CONFIG):
@@ -87,8 +88,14 @@ app.add_middleware(
 @app.get('/health')
 async def get_health():
     """ A simple endpoint for Openshift Healthchecks """
-    LOGGER.info('/health')
-    return {"message": "Healthy as ever"}
+    try:
+        health_check = health.patroni_cluster_health_check()
+        LOGGER.info('/health - healthy: %s. %s',
+                    health_check.get('healthy'), health_check.get('message'))
+        return health_check
+    except Exception as exception:
+        LOGGER.error(exception, exc_info=True)
+        raise
 
 
 @app.post('/models/{model}/predictions/', response_model=schemas.WeatherModelPredictionResponse)

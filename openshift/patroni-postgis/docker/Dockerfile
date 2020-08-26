@@ -8,7 +8,7 @@ FROM postgres:10
 ARG PGHOME=/home/postgres
 
 ENV POSTGIS_MAJOR 3
-ENV POSTGIS_VERSION 3.0.1+dfsg-4.pgdg90+1
+ENV POSTGIS_VERSION 3.0.2+dfsg-2.pgdg90+1
 
 RUN export DEBIAN_FRONTEND=noninteractive \
     && echo 'APT::Install-Recommends "0";\nAPT::Install-Suggests "0";' > /etc/apt/apt.conf.d/01norecommend \
