@@ -152,19 +152,19 @@ objects:
                   value: 0.0.0.0:5432
                 - name: PATRONI_RESTAPI_LISTEN
                   value: 0.0.0.0:8008
-                - name: ROCKET_AUTH_TOKEN:
+                - name: ROCKET_AUTH_TOKEN
                   valueFrom:
                     secretKeyRef:
                       name: ${NAME}-global
                       key: rocket.chat-auth-token-secret
-                - name: ROCKET_USER_ID:
+                - name: ROCKET_USER_ID
                   valueFrom:
                     secretKeyRef:
                       name: ${NAME}-global
                       key: rocket.chat-user-id-secret
-                - name: ROCKET_CHANNEL:
+                - name: ROCKET_CHANNEL
                   value: ${ROCKET_CHANNEL}
-                - name: DISK_SPACE_WARNING_LIMIT:
+                - name: DISK_SPACE_WARNING_LIMIT
                   value: ${DISK_SPACE_WARNING_LIMIT}
               image: docker-registry.default.svc:5000/${IMAGE_NAMESPACE}/patroni:${IMAGE_VERSION}
               imagePullPolicy: IfNotPresent
@@ -362,7 +362,7 @@ parameters:
   - description: Version of Patroni image to be used.
     displayName: Patroni image version
     name: IMAGE_VERSION
-    value: "v10-build5"
+    value: "v10-build7"
   - description: Pod management policy. For faster startups, use Parallel.
     displayName: Pod management policy.
     name: POD_MANAGEMENT_POLICY
