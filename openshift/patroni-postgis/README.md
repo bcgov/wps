@@ -19,7 +19,7 @@ Build and tag an imagestream as follows:
 # Build a patroni imagestream:
 oc -n auzhsi-tools process -f openshift/build.yaml | oc -n auzhsi-tools apply -f -
 # Tag the imagestream:
-oc -n auzhsi-tools tag patroni:v10-latest patroni:10
+oc -n auzhsi-tools tag patroni:v10-latest patroni:10-pr-<your pr number>
 ```
 
 Allow the production product to pull images from tools
