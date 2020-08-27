@@ -3,6 +3,7 @@
 
 from datetime import timedelta
 import logging
+import sys
 from requests import Session
 from urllib.parse import urljoin
 from app import configure_logging, config
@@ -55,6 +56,8 @@ def main():
     logger.debug('Retrieving hourly actuals...')
     bot = HourlyActualsBot()
     bot.run()
+    # Exit with 0 - success.
+    sys.exit(0)
 
 
 if __name__ == '__main__':

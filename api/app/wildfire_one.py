@@ -13,7 +13,7 @@ from aiohttp import ClientSession, BasicAuth, TCPConnector
 from shapely.geometry import Point
 from . import config
 from .schemas import WeatherStation, WeatherStationHourlyReadings, WeatherReading
-from app.time_utils import get_utc_now
+import app.time_utils
 
 
 LOGGER = logging.getLogger(__name__)
@@ -255,7 +255,7 @@ def prepare_fetch_hourlies_query(raw_station):
     """
     base_url = config.get('WFWX_BASE_URL')
     # By default we're concerned with the last 5 days only.
-    now = get_utc_now()
+    now = app.time_utils.get_utc_now()
     five_days_ago = now - timedelta(days=5)
     LOGGER.debug('requesting historic data from %s to %s', five_days_ago, now)
     # Prepare query params and query:

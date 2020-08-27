@@ -4,17 +4,13 @@ import logging
 from requests import Session
 import pytest
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
+import app
+from app.tests.common import MockResponse
 from app.fireweather_bot import noon_forecasts
 
 logger = logging.getLogger(__name__)
 
 
-class MockResponse:
-    """ Mock response object to fake out bot requests """
-
-    def __init__(self, text=None, content=None):
-        self.text = text
-        self.content = content
 
 
 @pytest.fixture()
@@ -27,7 +23,7 @@ def mock_request_session(monkeypatch):
         logger.debug('MOCK Session.get %s', url)
         if url.endswith('csv'):
             dirname = os.path.dirname(os.path.realpath(__file__))
-            filename = os.path.join(dirname, 'test_fireweather_bot.csv')
+            filename = os.path.join(dirname, 'test_noon_forecasts.csv')
             with open(filename, 'rb') as response_file:
                 return MockResponse(content=response_file.read())
         return None
@@ -36,7 +32,7 @@ def mock_request_session(monkeypatch):
         """ Mock out calls to session.post """
         logger.debug('MOCK Session.post %s %s', url, data)
         dirname = os.path.dirname(os.path.realpath(__file__))
-        filename = os.path.join(dirname, 'test_fireweather_bot.html')
+        filename = os.path.join(dirname, 'test_noon_forecasts.html')
         with open(filename) as response_file:
             return MockResponse(text=response_file.read())
 

@@ -7,7 +7,9 @@ import requests
 import pytest
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
-from app.tests.common import MockJWTDecode, default_mock_requests_get, default_mock_session_requests_get
+from app.tests.common import (
+    MockJWTDecode, default_mock_requests_get,
+    default_mock_requests_session_get, default_mock_requests_session_post)
 from app.db.models import PredictionModel, PredictionModelRunTimestamp
 import app.db.database
 
@@ -21,8 +23,8 @@ def mock_env(monkeypatch):
     monkeypatch.setenv("WFWX_USER", "user")
     monkeypatch.setenv("WFWX_SECRET", "secret")
     monkeypatch.setenv(
-        "WFWX_AUTH_URL", "http://localhost/pub/oauth2/v1/oauth/token")
-    monkeypatch.setenv("WFWX_BASE_URL", "http://localhost/wfwx")
+        "WFWX_AUTH_URL", "http://wf1/pub/oauth2/v1/oauth/token")
+    monkeypatch.setenv("WFWX_BASE_URL", "http://wf1/wfwx")
     monkeypatch.setenv("WFWX_MAX_PAGE_SIZE", "1000")
     monkeypatch.setenv("KEYCLOAK_PUBLIC_KEY", "public_key")
     monkeypatch.setenv("BC_FIRE_WEATHER_BASE_URL", "http://localhost")
@@ -41,28 +43,10 @@ class MockSession():
 
 
 @pytest.fixture(autouse=True)
-def mock_requests_session(monkeypatch):
-    """ Patch all calls to requests.Session.* """
-    # def mock_request_session():
-        # return MockSession()
-    # monkeypatch.setattr(requests, 'Session', mock_request_session)
-
-    def get(*args, **kwargs):
-        pass
-
-    def post(*args, **kwargs):
-        pass
-
-    monkeypatch.setattr(requests.Session, 'get', default_mock_session_requests_get)
-    monkeypatch.setattr(requests.Session, 'post', post)
-
-
-@pytest.fixture(autouse=True)
 def mock_requests(monkeypatch):
     """ Patch all calls to request.get by default.
     """
     monkeypatch.setattr(requests, 'get', default_mock_requests_get)
-
 
 
 @pytest.fixture(autouse=True)

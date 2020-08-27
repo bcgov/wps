@@ -5,6 +5,7 @@ from pytest_bdd import scenario, given, then
 from starlette.testclient import TestClient
 from aiohttp import ClientSession
 import app.main
+import app.time_utils
 from app.tests.common import default_mock_client_get
 import app.wildfire_one
 
@@ -27,7 +28,7 @@ def response(monkeypatch, mock_env_with_use_wfwx, mock_jwt_decode, codes):
     def mock_now(*args, **kwargs):
         return datetime.fromtimestamp(1590076213962/1000, tz=timezone.utc)
 
-    monkeypatch.setattr(app.wildfire_one, '_get_now', mock_now)
+    monkeypatch.setattr(app.time_utils, 'get_utc_now', mock_now)
 
     monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
     # NOTE: should be using a converter

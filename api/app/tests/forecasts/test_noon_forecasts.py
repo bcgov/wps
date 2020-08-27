@@ -59,7 +59,7 @@ def response(monkeypatch, mock_env_with_use_wfwx, mock_jwt_decode, codes):
     def mock_now(*args, **kwargs):
         return datetime.fromtimestamp(1590076213962/1000, tz=pytz.utc)
 
-    monkeypatch.setattr(app.wildfire_one, '_get_now', mock_now)
+    monkeypatch.setattr(app.time_utils, 'get_utc_now', mock_now)
     monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
     # NOTE: should be using a converter
     # pylint: disable=eval-used
