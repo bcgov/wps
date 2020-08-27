@@ -2,17 +2,13 @@
 """
 import logging
 import os
-from pathlib import Path
 import json
 from urllib.parse import urlencode, urlsplit
 from app import config, url_join
+from app.tests.fixtures.loader import FixtureFinder
 
 
 LOGGER = logging.getLogger(__name__)
-
-
-class FixtureException(Exception):
-    """ Exception for fixture related issues """
 
 
 class MockJWTDecode:
@@ -79,54 +75,22 @@ class MockAsyncResponse:
         return self.json_response
 
 
-def _get_fixture_path(url: str, verb: str, params: dict = None) -> str:
-    """ Returns the path to a fixture based on url and params.
-    """
-    # if config.get('WFWX_BASE_URL') in url:
-    #     # Point to wf1 fixtures.
-    #     fixture_url = 'wf1/' + url[len(config.get('WFWX_BASE_URL')):]
-    # elif config.get('WFWX_AUTH_URL') in url:
-    #     # Point to wf1 auth fixture.
-    #     fixture_url = 'wf1/v1/oauth/token'
-    # elif config.get('PATHFINDER_BASE_URI') in url:
-    #     # Point to the pathfinder fixture url.
-    #     fixture_url = 'pathfinder/' + \
-    #         url[len(config.get('PATHFINDER_BASE_URI')):]
-    # else:
-    # Try to automatically find the fixture path
-    
-    split = urlsplit(url)
-
-    base_path = os.path.join(os.path.dirname(__file__), 'fixtures/', split.netloc)
-    if not os.path.exists(base_path):
-        Path(base_path).mkdir()
-        raise FixtureException('unhandeled url: {}, fixture path ({}) does not exist'.format(url, base_path))
-
-    fixture_url = url_join((split.netloc, split.path))
-    if params:
-        fixture_url = '{}?{}'.format(fixture_url, urlencode(params))
-    # Join the url with the fixture location.
-    return os.path.join(os.path.dirname(__file__), 'fixtures/', fixture_url, verb)
+def is_json(filename):
+    extension = os.path.splitext(filename)[1]
+    return extension == '.json'
 
 
 def get_mock_client_session(url: str, params: dict = None) -> MockClientSession:
     """ Returns a mocked client session, looking for fixtures based on the url and params provided.
     """
-    fixture = _get_fixture_path(url, 'get', params)
-    LOGGER.debug('using fixture %s for %s', fixture, url)
-    # We try looking for a json fixture 1st:
-    if os.path.exists(fixture + '.json'):
-        with open(fixture + '.json', 'r') as fixture_file:
+    # Get the fixture filename
+    fixture_finder = FixtureFinder()
+    filename = fixture_finder.get_fixture_path(url, 'get', params)
+    with open(filename) as fixture_file:
+        if is_json(filename):
             return MockClientSession(json_response=json.load(fixture_file))
-    # No json fixture found, try a text file:
-    elif os.path.exists(fixture + '.txt'):
-        with open(fixture + '.txt', 'r') as fixture_file:
+        else:
             return MockClientSession(text_response=fixture_file.read())
-    # Expected fixture not found - raise an exception.
-    wantthis = Path(fixture[:fixture.rfind('/')])
-    wantthis.mkdir(parents=True)
-    raise FixtureException(
-        'fixture file {} for {} not found.'.format(fixture, url))
 
 
 def default_mock_client_get(*args, **kwargs) -> MockClientSession:
@@ -139,35 +103,31 @@ def default_mock_client_get(*args, **kwargs) -> MockClientSession:
 
 def _get_fixture_response(fixture):
     LOGGER.debug('construct response with {}'.format(fixture))
-    # Try to get a matching json fixture
-    if os.path.exists(fixture + '.json'):
-        with open(fixture + '.json', 'r') as fixture_file:
+    with open(fixture) as fixture_file:
+        if is_json(fixture):
             # Return a response with the appropriate fixture
             return MockResponse(json_response=json.load(fixture_file))
-    elif os.path.exists(fixture + '.txt'):
-        with open(fixture + '.txt', 'r') as fixture_file:
+        else:
             # Return a response with the appropriate fixture
             return MockResponse(text=fixture_file.read())
-    # Expected fixture not found - raise an exception.
-    Path(fixture[:fixture.rfind('/')]).mkdir(parents=True)
-    raise FixtureException(
-        'fixture file {} not found.'.format(fixture))
 
 
 def default_mock_requests_get(url, params=None, **kwargs) -> MockResponse:
     """ Return a mocked request response """
     # Get the file location of the fixture
-    fixture = _get_fixture_path(url, 'get', params)
+    fixture_finder = FixtureFinder()
+    filename = fixture_finder.get_fixture_path(url, 'get', params)
     # Construct the response
-    return _get_fixture_response(fixture)
+    return _get_fixture_response(filename)
 
 
-def default_mock_requests_post(url, data, json, **kwargs) -> MockResponse:
+def default_mock_requests_post(url, data, json, params=None, **kwargs) -> MockResponse:
     """ Return a mocked request response """
     # Get the file location of the fixture
-    fixture = _get_fixture_path(url, 'get')
+    fixture_finder = FixtureFinder()
+    filename = fixture_finder.get_fixture_path(url, 'post', params, data)
     # Construct the response
-    return _get_fixture_response(fixture)
+    return _get_fixture_response(filename)
 
 
 def default_mock_requests_session_get(self, url, **kwargs) -> MockResponse:

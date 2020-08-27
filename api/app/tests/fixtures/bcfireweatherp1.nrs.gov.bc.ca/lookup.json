@@ -1,0 +1,9 @@
+{
+   "https://bcfireweatherp1.nrs.gov.bc.ca": {
+      "get": {
+         "None": {
+            "None": "root.txt"
+         }
+      }
+   }
+}
