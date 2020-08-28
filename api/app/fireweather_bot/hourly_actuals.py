@@ -6,7 +6,7 @@ import sys
 from sqlalchemy.exc import IntegrityError
 import pandas as pd
 from app import configure_logging, config
-from app.db.database import get_session
+import app.db.database
 from app.db.models import HourlyActual
 from app.time_utils import get_pst_now, PST_UTC_OFFSET
 from app.fireweather_bot.common import (BaseBot, get_station_names_to_codes)
@@ -63,7 +63,7 @@ class HourlyActualsBot(BaseBot):
         dates = pd.to_datetime(data_df['weather_date'], format='%Y%m%d%H')
         data_df['weather_date'] = dates
         # write to database using _session's engine
-        session = get_session()
+        session = app.db.database.get_session()
         # write the data_df to the database one row at a time, so that if data_df contains >=1 rows that are
         # duplicates of what is already in the db, the write won't fail for the unique rows
         # NOTE: iterating over the data_df one Series (row) at a time is ugly, but until pandas is updated
@@ -74,7 +74,7 @@ class HourlyActualsBot(BaseBot):
             try:
                 data = row.to_dict()
                 # Note: There must be a more "pandas" way of doing this, but I don't know how.
-                data['weather_date'] = self._fix_pandas_datetime(data['weather_date'])
+                data['weather_date'] = _fix_pandas_datetime(data['weather_date'])
                 session.add(HourlyActual(**row.to_dict()))
                 session.commit()
             except IntegrityError:

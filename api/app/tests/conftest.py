@@ -53,6 +53,7 @@ def mock_requests(monkeypatch):
 def mock_session(monkeypatch):
     """ Ensure that all unit tests mock out the database session by default! """
     # pylint: disable=unused-argument
+
     def mock_get_session(*args):
         """ return a session with a bare minimum database that should be good for most unit tests. """
         prediction_model = PredictionModel(id=1,

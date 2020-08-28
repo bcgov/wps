@@ -3,6 +3,7 @@
 import logging
 import os
 import json
+import pytest
 from urllib.parse import urlencode, urlsplit
 from app import config, url_join
 from app.tests.fixtures.loader import FixtureFinder
@@ -76,6 +77,7 @@ class MockAsyncResponse:
 
 
 def is_json(filename):
+    """ Check if file is a json file (look if the extension is .json) """
     extension = os.path.splitext(filename)[1]
     return extension == '.json'
 
@@ -89,8 +91,7 @@ def get_mock_client_session(url: str, params: dict = None) -> MockClientSession:
     with open(filename) as fixture_file:
         if is_json(filename):
             return MockClientSession(json_response=json.load(fixture_file))
-        else:
-            return MockClientSession(text_response=fixture_file.read())
+        return MockClientSession(text_response=fixture_file.read())
 
 
 def default_mock_client_get(*args, **kwargs) -> MockClientSession:
@@ -102,17 +103,17 @@ def default_mock_client_get(*args, **kwargs) -> MockClientSession:
 
 
 def _get_fixture_response(fixture):
-    LOGGER.debug('construct response with {}'.format(fixture))
+    LOGGER.debug('construct response with %s', fixture)
     with open(fixture, 'rb') as fixture_file:
         if is_json(fixture):
             # Return a response with the appropriate fixture
             return MockResponse(json_response=json.load(fixture_file))
-        else:
-            # Return a response with the appropriate fixture
-            data = fixture_file.read()
-            return MockResponse(text=data.decode(), content=data)
+        # Return a response with the appropriate fixture
+        data = fixture_file.read()
+        return MockResponse(text=data.decode(), content=data)
 
 
+# pylint: disable=unused-argument
 def default_mock_requests_get(url, params=None, **kwargs) -> MockResponse:
     """ Return a mocked request response """
     # Get the file location of the fixture
