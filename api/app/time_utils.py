@@ -7,6 +7,10 @@ from typing import Final
 PST_UTC_OFFSET: Final[int] = -8
 
 
+def get_pst_tz():
+    timezone(timedelta(hours=PST_UTC_OFFSET), name="PST")
+
+
 def get_utc_now():
     """ Helper function to get the current UTC time (easy function to mock out in testing) """
     return datetime.now(tz=timezone.utc)
@@ -14,4 +18,4 @@ def get_utc_now():
 
 def get_pst_now():
     """ Helper function to get the current PST time (easy function to mock out in testing) """
-    return datetime.now(tz=timezone(timedelta(hours=PST_UTC_OFFSET), name="PST"))
+    return datetime.now(tz=get_pst_tz())

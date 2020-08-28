@@ -103,13 +103,14 @@ def default_mock_client_get(*args, **kwargs) -> MockClientSession:
 
 def _get_fixture_response(fixture):
     LOGGER.debug('construct response with {}'.format(fixture))
-    with open(fixture) as fixture_file:
+    with open(fixture, 'rb') as fixture_file:
         if is_json(fixture):
             # Return a response with the appropriate fixture
             return MockResponse(json_response=json.load(fixture_file))
         else:
             # Return a response with the appropriate fixture
-            return MockResponse(text=fixture_file.read())
+            data = fixture_file.read()
+            return MockResponse(text=data.decode(), content=data)
 
 
 def default_mock_requests_get(url, params=None, **kwargs) -> MockResponse:

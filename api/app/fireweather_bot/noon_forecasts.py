@@ -7,19 +7,17 @@ import logging
 import logging.config
 import tempfile
 from datetime import timedelta
-import re
 from typing import List, Dict
 from abc import abstractmethod, ABC
 from requests import Session
-from requests.compat import urljoin
 from sqlalchemy.exc import IntegrityError
 import pandas as pd
 from requests_ntlm import HttpNtlmAuth
 from app import config, configure_logging
 import app.db.database
 from app.db.models import NoonForecasts
-from app.wildfire_one import _get_stations_local
-from app.fireweather_bot import BC_FIRE_WEATHER_BASE_URL, BC_FIRE_WEATHER_ENDPOINT, _authenticate_session
+from app.fireweather_bot import (BC_FIRE_WEATHER_BASE_URL, BC_FIRE_WEATHER_ENDPOINT, _authenticate_session,
+                                 _get_csv_url, _download_csv)
 import app.time_utils
 
 
@@ -30,38 +28,6 @@ if __name__ == "__main__":
 LOGGER = logging.getLogger(__name__)
 
 TEMP_CSV_FILENAME = 'weather_station_forecasts.csv'
-
-
-class BuildQuery(ABC):
-    """ Base class for building query urls and params """
-
-    def __init__(self):
-        """ Initialize object """
-        self.base_url = BC_FIRE_WEATHER_BASE_URL
-
-    @abstractmethod
-    def query(self) -> [str, dict]:
-        """ Return query url and params """
-
-
-class BuildQueryByStationCode(BuildQuery):
-    """ Class for building a url and params to request a list of stations by code """
-
-    def __init__(self, station_codes: List[int]):
-        """ Initialize object """
-        super().__init__()
-        self.querystring = ''
-        for code in station_codes:
-            if len(self.querystring) > 0:
-                self.querystring += ' or '
-            self.querystring += 'stationCode=={}'.format(code)
-
-    def query(self) -> [str, dict]:
-        """ Return query url and params for a list of stations """
-        params = {'query': self.querystring}
-        url = urljoin(
-            self.base_url, 'Scripts/Public/Common/Results_Report.asp')
-        return [url, params]
 
 
 def prepare_fetch_noon_forecasts_query():
@@ -90,31 +56,7 @@ def fetch_noon_forecasts(
     url, request_body = prepare_fetch_noon_forecasts_query()
     # Get forecasts
     resp = session.post(url, data=request_body)
-    search_result = re.search(r"fire_weather\/csv\/.+\.csv", resp.text)
-    if not search_result:
-        raise Exception("Couldn't find the csv url.")
-
-    LOGGER.info('Fetching CSV from %s', search_result.group(0))
-    return search_result.group(0)
-
-
-def get_csv(
-        session: Session,
-        csv_url: str,
-        temp_path: str):
-    """ Fetch CSV of hourly actual weather for a station.
-    """
-    url = urljoin(BC_FIRE_WEATHER_BASE_URL, csv_url)
-    response = session.get(
-        url,
-        auth=HttpNtlmAuth('idir\\'+config.get('BC_FIRE_WEATHER_USER'),
-                          config.get('BC_FIRE_WEATHER_SECRET'))
-    )
-    content = response.content
-
-    # Need to write response content to a CSV file - once the CSV file has been read, it will be deleted
-    with open(os.path.join(temp_path, TEMP_CSV_FILENAME), 'wb') as csv_file:
-        csv_file.write(content)
+    return _get_csv_filename(resp.text)
 
 
 def get_noon_forecasts():
@@ -125,10 +67,11 @@ def get_noon_forecasts():
     with Session() as session:
         _authenticate_session(session)
         # Submit the POST request to query forecasts for the station
-        csv_url = fetch_noon_forecasts(session)
+        csv_path = fetch_noon_forecasts(session)
         # Use the returned URL to fetch the CSV data for the station
         with tempfile.TemporaryDirectory() as temp_path:
-            get_csv(session, csv_url, temp_path)
+            _download_csv(session, csv_path)
+            get_csv(session, csv_path, temp_path)
             # Parse the CSV data
             parse_csv(temp_path)
         LOGGER.debug('Finished writing noon forecasts to database')
@@ -202,19 +145,6 @@ def _get_end_date():
     five_days_ahead = app.time_utils.get_utc_now() + timedelta(days=5)
     return five_days_ahead.strftime('%Y%m%d')
 
-
-def _get_station_names_to_codes() -> Dict:
-    """ Helper function to create dictionary of (station_name: station_code) key-value pairs
-    Is used when replacing station names with station IDs in dataframe
-    """
-    station_data = _get_stations_local()
-    station_codes = {
-        station['name']: station['code'] for station in station_data
-    }
-    # have to hack this, because BC FireWeather API spells a certain station 'DARCY'
-    # while our weather_stations.json spells the station 'D'ARCY'
-    station_codes['DARCY'] = station_codes.pop('D\'ARCY')
-    return station_codes
 
 
 def main():

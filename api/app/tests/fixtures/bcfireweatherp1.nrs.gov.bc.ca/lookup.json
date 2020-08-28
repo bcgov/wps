@@ -5,5 +5,12 @@
             "None": "root.txt"
          }
       }
+   },
+   "https://bcfireweatherp1.nrs.gov.bc.ca/fire_weather/csv/IDIR_SEFCWX_8_24_2020_5_05_53_PM.csv": {
+      "get": {
+         "None": {
+            "None": "fire_weather/csv/IDIR_SEFCWX_8_24_2020_5_05_53_PM.csv"
+         }
+      }
    }
 }
