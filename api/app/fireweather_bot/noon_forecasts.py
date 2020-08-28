@@ -106,12 +106,13 @@ def _get_end_date():
 
 
 class NoonForecastsBot(BaseBot):
+    """ Implementation of class to process noon forecasts. """
 
     def construct_request_body(self):
         return _construct_request_body()
 
-    def process_csv(self, csv_path: str):
-        _parse_csv(csv_path)
+    def process_csv(self, filename: str):
+        _parse_csv(filename)
 
 
 def main():

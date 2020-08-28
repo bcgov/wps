@@ -1,6 +1,5 @@
 """ BDD tests for API /hourlies. """
 import logging
-from datetime import datetime, timezone
 from pytest_bdd import scenario, given, then
 from starlette.testclient import TestClient
 from aiohttp import ClientSession

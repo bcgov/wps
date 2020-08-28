@@ -38,10 +38,6 @@ def mock_env(monkeypatch):
     monkeypatch.setenv("PATRONI_CLUSTER_NAME", "some_suffix")
 
 
-class MockSession():
-    pass
-
-
 @pytest.fixture(autouse=True)
 def mock_requests(monkeypatch):
     """ Patch all calls to request.get by default.
@@ -51,6 +47,7 @@ def mock_requests(monkeypatch):
 
 @pytest.fixture(autouse=True)
 def mock_get_now(monkeypatch):
+    """ Patch all calls to app.timeutils: get_utc_now and get_pst_now  """
     timestamp = 1590076213962/1000
 
     def mock_utc_now():

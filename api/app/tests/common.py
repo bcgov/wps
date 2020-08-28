@@ -3,9 +3,6 @@
 import logging
 import os
 import json
-import pytest
-from urllib.parse import urlencode, urlsplit
-from app import config, url_join
 from app.tests.fixtures.loader import FixtureFinder
 
 
@@ -123,6 +120,7 @@ def default_mock_requests_get(url, params=None, **kwargs) -> MockResponse:
     return _get_fixture_response(filename)
 
 
+# pylint: disable=redefined-outer-name
 def default_mock_requests_post(url, data, json, params=None, **kwargs) -> MockResponse:
     """ Return a mocked request response """
     # Get the file location of the fixture
@@ -137,6 +135,7 @@ def default_mock_requests_session_get(self, url, **kwargs) -> MockResponse:
     return default_mock_requests_get(url, **kwargs)
 
 
+# pylint: disable=redefined-outer-name
 def default_mock_requests_session_post(self, url, data=None, json=None, **kwargs) -> MockResponse:
     """ Return a mocked request response from a request.Session object """
     return default_mock_requests_post(url, data, json, **kwargs)
