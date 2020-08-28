@@ -8,7 +8,7 @@ import pandas as pd
 from app import configure_logging, config
 import app.db.database
 from app.db.models import HourlyActual
-from app.time_utils import get_pst_now, PST_UTC_OFFSET
+import app.time_utils
 from app.fireweather_bot.common import (BaseBot, get_station_names_to_codes)
 
 # If running as it's own process, configure logging appropriately.
@@ -27,14 +27,14 @@ def _fix_pandas_datetime(panda_datetime):
     # we want to work in utc:
     python_date = python_date.replace(tzinfo=timezone.utc)
     # but alse need to adjust our time, because it's in PST:
-    return python_date - timedelta(hours=PST_UTC_OFFSET)
+    return python_date - timedelta(hours=app.time_utils.PST_UTC_OFFSET)
 
 
 class HourlyActualsBot(BaseBot):
     """ Bot that downloads the hourly actuals from the wildfire website and stores it in a database. """
 
     def __init__(self):
-        self.now = get_pst_now()
+        self.now = app.time_utils.get_pst_now()
         print('now is {}'.format(self.now))
 
     def _get_start_date(self) -> int:

@@ -24,12 +24,6 @@ def response(monkeypatch, mock_env_with_use_wfwx, mock_jwt_decode, codes):
     """ Make /hourlies/ request using mocked out ClientSession.
     """
 
-    # Mock out the part that gives us a datetime.
-    def mock_now(*args, **kwargs):
-        return datetime.fromtimestamp(1590076213962/1000, tz=timezone.utc)
-
-    monkeypatch.setattr(app.time_utils, 'get_utc_now', mock_now)
-
     monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
     # NOTE: should be using a converter
     # pylint: disable=eval-used

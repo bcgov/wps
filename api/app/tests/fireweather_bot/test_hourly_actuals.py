@@ -4,18 +4,10 @@ import logging
 import requests
 import pytest
 from app.fireweather_bot import hourly_actuals
-from app.tests.common import (default_mock_requests_session_get,
-                              default_mock_requests_session_post, MockResponse)
+from app.tests.conftest import mock_requests_session
 
 
 logger = logging.getLogger(__name__)
-
-
-@pytest.fixture()
-def mock_requests_session(monkeypatch):
-    """ Patch all calls to requests.Session.* """
-    monkeypatch.setattr(requests.Session, 'get', default_mock_requests_session_get)
-    monkeypatch.setattr(requests.Session, 'post', default_mock_requests_session_post)
 
 
 def test_hourly_actuals_bot(mock_requests_session):

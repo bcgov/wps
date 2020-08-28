@@ -1,12 +1,12 @@
 """ Global fixtures """
 
-import datetime
-from datetime import timezone
+from datetime import timezone, datetime
 import logging
 import requests
 import pytest
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
+from app.time_utils import get_pst_tz
 from app.tests.common import (
     MockJWTDecode, default_mock_requests_get,
     default_mock_requests_session_get, default_mock_requests_session_post)
@@ -50,6 +50,20 @@ def mock_requests(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def mock_get_now(monkeypatch):
+    timestamp = 1590076213962/1000
+
+    def mock_utc_now():
+        return datetime.fromtimestamp(timestamp, tz=timezone.utc)
+
+    def mock_pst_now():
+        return datetime.fromtimestamp(timestamp, tz=get_pst_tz())
+
+    monkeypatch.setattr(app.time_utils, 'get_utc_now', mock_utc_now)
+    monkeypatch.setattr(app.time_utils, 'get_pst_now', mock_pst_now)
+
+
+@pytest.fixture(autouse=True)
 def mock_session(monkeypatch):
     """ Ensure that all unit tests mock out the database session by default! """
     # pylint: disable=unused-argument
@@ -62,7 +76,7 @@ def mock_session(monkeypatch):
                                            name='Global Deterministic Prediction System')
         prediction_model_run = PredictionModelRunTimestamp(id=1,
                                                            prediction_model_id=1,
-                                                           prediction_run_timestamp=datetime.datetime.now(
+                                                           prediction_run_timestamp=datetime.now(
                                                                tz=timezone.utc),
                                                            prediction_model=prediction_model,
                                                            complete=True)
@@ -97,3 +111,10 @@ def mock_jwt_decode(monkeypatch):
         return MockJWTDecode()
 
     monkeypatch.setattr("jwt.decode", mock_function)
+
+
+@pytest.fixture()
+def mock_requests_session(monkeypatch):
+    """ Patch all calls to requests.Session.* """
+    monkeypatch.setattr(requests.Session, 'get', default_mock_requests_session_get)
+    monkeypatch.setattr(requests.Session, 'post', default_mock_requests_session_post)
