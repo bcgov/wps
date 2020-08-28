@@ -27,7 +27,6 @@ def mock_env(monkeypatch):
     monkeypatch.setenv("WFWX_BASE_URL", "http://wf1/wfwx")
     monkeypatch.setenv("WFWX_MAX_PAGE_SIZE", "1000")
     monkeypatch.setenv("KEYCLOAK_PUBLIC_KEY", "public_key")
-    monkeypatch.setenv("BC_FIRE_WEATHER_BASE_URL", "http://localhost")
     monkeypatch.setenv("BC_FIRE_WEATHER_USER", "someuser")
     monkeypatch.setenv("BC_FIRE_WEATHER_SECRET", "password")
     monkeypatch.setenv("BC_FIRE_WEATHER_FILTER_ID", "1")
