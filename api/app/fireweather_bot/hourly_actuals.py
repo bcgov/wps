@@ -3,10 +3,6 @@
 from datetime import timedelta, timezone
 import logging
 import sys
-import os
-import tempfile
-from requests import Session
-from urllib.parse import urljoin
 from sqlalchemy.exc import IntegrityError
 import pandas as pd
 from app import configure_logging, config
@@ -22,7 +18,20 @@ if __name__ == "__main__":
 logger = logging.getLogger(__name__)
 
 
+def _fix_pandas_datetime(panda_datetime):
+    """ We want to be explicit about timezones, pandas gives us a timezone naive date - this is no
+    good! We know the date we get is in PST, and we know we need to store it in UTC.
+    """
+    # go from pandas to python native:
+    python_date = panda_datetime.to_pydatetime()
+    # we want to work in utc:
+    python_date = python_date.replace(tzinfo=timezone.utc)
+    # but alse need to adjust our time, because it's in PST:
+    return python_date - timedelta(hours=PST_UTC_OFFSET)
+
+
 class HourlyActualsBot(BaseBot):
+    """ Bot that downloads the hourly actuals from the wildfire website and stores it in a database. """
 
     def __init__(self):
         self.now = get_pst_now()
@@ -41,19 +50,8 @@ class HourlyActualsBot(BaseBot):
         """ Return now. E.g. if it's 17h15 now, we'd get YYYYMMDD17 """
         return int(self.now.strftime('%Y%m%d%H'))
 
-    def _fix_pandas_datetime(self, panda_datetime):
-        """ We want to be explicit about timezones, pandas gives us a timezone naive date - this is no
-        good! We know the date we get is in PST, and we know we need to store it in UTC.
-        """
-        # go from pandas to python native:
-        python_date = panda_datetime.to_pydatetime()
-        # we want to work in utc:
-        python_date = python_date.replace(tzinfo=timezone.utc)
-        # but alse need to adjust our time, because it's in PST:
-        return python_date - timedelta(hours=PST_UTC_OFFSET)
-
-    def process_csv(self, csv_path: str):
-        with open(csv_path, 'r') as csv_file:
+    def process_csv(self, filename: str):
+        with open(filename, 'r') as csv_file:
             data_df = pd.read_csv(csv_file)
         station_codes = get_station_names_to_codes()
         # replace 'display_name' column (station name) in df with station_id
@@ -62,10 +60,7 @@ class HourlyActualsBot(BaseBot):
         data_df.rename(columns={'display_name': 'station_code'}, inplace=True)
 
         # weather_date is formatted yyyymmddhh as an int - need to reformat it as a Timestamp
-        # TODO: make it pst!
         dates = pd.to_datetime(data_df['weather_date'], format='%Y%m%d%H')
-        # dates = dates.transform(lambda x: x.tz_localize(tz=get_pst_tz()))
-        # dates = dates.tz_localize('UTC')
         data_df['weather_date'] = dates
         # write to database using _session's engine
         session = get_session()
@@ -78,6 +73,7 @@ class HourlyActualsBot(BaseBot):
         for index, row in data_df.iterrows():
             try:
                 data = row.to_dict()
+                # Note: There must be a more "pandas" way of doing this, but I don't know how.
                 data['weather_date'] = self._fix_pandas_datetime(data['weather_date'])
                 session.add(HourlyActual(**row.to_dict()))
                 session.commit()
@@ -107,6 +103,7 @@ def main():
         bot.run()
         # Exit with 0 - success.
         sys.exit(0)
+    # pylint: disable=broad-except
     except Exception as exception:
         # Exit non 0 - failure.
         logger.error('Failed to retrieve hourly actuals.', exc_info=exception)

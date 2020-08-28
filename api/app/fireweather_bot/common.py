@@ -1,16 +1,16 @@
 """ Code common to fireweather bots
 """
+from abc import ABC, abstractmethod
 import logging
 import re
 import os
 from tempfile import TemporaryDirectory
 from urllib.parse import urljoin
 from pathlib import PurePath
-from requests import Session
+from requests import Session, HTTPError
 from requests_ntlm import HttpNtlmAuth
 from app import config
 from app.wildfire_one import _get_stations_local
-from abc import ABC, abstractmethod
 
 
 BC_FIRE_WEATHER_BASE_URL = 'https://bcfireweatherp1.nrs.gov.bc.ca'
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class CSVNotFoundException(Exception):
-    pass
+    """ Exception thrown if CSV is not found """
 
 
 def _authenticate_session(session: Session) -> Session:
@@ -105,16 +105,23 @@ def _download_csv(
 
 
 class BaseBot(ABC):
+    """ Base class for the fire weather bots. The hourly and noon bots are essentially identical, except
+    for what the request looks like, and how to process the data. """
 
     @abstractmethod
     def construct_request_body(self):
-        pass
+        """ Code for constructing the request body that is used to request a CSV from the phase one website
+        """
+        raise NotImplementedError()
 
     @abstractmethod
-    def process_csv(filename: str):
-        pass
+    def process_csv(self, filename: str):
+        """ Code for processing the CSV returned from the phase one website and insert it into a databas
+        """
+        raise NotImplementedError()
 
     def run(self):
+        """ Entry point for running the bot """
         with Session() as session:
             # Authenticate with idir.
             _authenticate_session(session)

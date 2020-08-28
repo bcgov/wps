@@ -134,6 +134,11 @@ class ModelRunGridSubsetPrediction(Base):
 
 
 class HourlyActual(Base):
+    """ Class representing table structure of 'hourly_actuals' table in DB.
+    Default float values of math.nan are used for the weather variables that are
+    sometimes null (None), because Postgres evaluates None != None, so the unique
+    constraint doesn't work on records with >=1 None values. But math.nan == math.nan
+    """
     __tablename__ = 'hourly_actuals'
     __table_args__ = (
         UniqueConstraint('weather_date',

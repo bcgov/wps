@@ -1,17 +1,12 @@
 """ This is a bot to pull hourly weather actuals from the BC FireWeather Phase 1 API
 for each weather station and store the results (from a CSV file) in our database.
 """
-import os
 import sys
 import logging
 import logging.config
-from urllib.parse import urljoin
 from datetime import timedelta
-from typing import List, Dict
-from requests import Session
 from sqlalchemy.exc import IntegrityError
 import pandas as pd
-from requests_ntlm import HttpNtlmAuth
 from app import config, configure_logging
 import app.db.database
 from app.db.models import NoonForecasts
@@ -132,12 +127,6 @@ def main():
             'Finished retrieving noon forecasts for all weather stations.')
         # Exit with 0 - success.
         sys.exit(0)
-    except IntegrityError as exception:
-        LOGGER.error(
-            "One or more records were not written to the database because they are duplicates.",
-            exc_info=exception)
-        # Exit non 0 - failure.
-        sys.exit(1)
     # pylint: disable=broad-except
     except Exception as exception:
         # Exit non 0 - failure.
