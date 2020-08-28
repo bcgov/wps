@@ -5,13 +5,10 @@ import json
 import logging
 from urllib.parse import urlencode, urlsplit
 from pathlib import Path
-from app import config, configure_logging
+from app import config
 
 
 logger = logging.getLogger(__name__)
-
-
-configure_logging()
 
 
 class FixtureException(Exception):
@@ -121,13 +118,3 @@ class FixtureFinder():
             FixtureException('fixture file {} for {} not found.'.format(fixture_filename, url))
         logger.info('returning {} for {}'.format(fixture_filename, url))
         return fixture_filename
-
-
-if __name__ == '__main__':
-    url = 'http://www.something.com/what/a/thing'
-    verb = 'get'
-    params = {'a': 1, 'b': 2}
-    data = None
-
-    finder = FixtureFinder()
-    print(finder.get_fixture_path(url, verb, params, data))
