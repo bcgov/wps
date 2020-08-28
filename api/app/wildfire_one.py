@@ -11,8 +11,10 @@ import asyncio
 import geopandas
 from aiohttp import ClientSession, BasicAuth, TCPConnector
 from shapely.geometry import Point
-from . import config
-from .schemas import WeatherStation, WeatherStationHourlyReadings, WeatherReading
+from app import config
+from app.schemas import WeatherStation, WeatherStationHourlyReadings, WeatherReading
+import app.time_utils
+
 
 LOGGER = logging.getLogger(__name__)
 
@@ -252,17 +254,12 @@ async def get_stations() -> List[WeatherStation]:
     return _get_stations_local()
 
 
-def _get_now():
-    """ Helper function to get the current time (easy function to mock out in testing) """
-    return datetime.now(tz=timezone.utc)
-
-
 def prepare_fetch_hourlies_query(raw_station):
     """ Prepare url and params to fetch hourly readings from the WFWX Fireweather API.
     """
     base_url = config.get('WFWX_BASE_URL')
     # By default we're concerned with the last 5 days only.
-    now = _get_now()
+    now = app.time_utils.get_utc_now()
     five_days_ago = now - timedelta(days=5)
     LOGGER.debug('requesting historic data from %s to %s', five_days_ago, now)
     # Prepare query params and query:

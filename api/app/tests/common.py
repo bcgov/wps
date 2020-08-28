@@ -3,18 +3,12 @@
 import logging
 import os
 import json
-from urllib.parse import urlencode
-from app import config
+from app.tests.fixtures.loader import FixtureFinder
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class FixtureException(Exception):
-    """ Exception for fixture related issues """
-
-
-# pylint: disable=too-few-public-methods
 class MockJWTDecode:
     """ Mock pyjwt module """
 
@@ -29,7 +23,6 @@ class MockClientSession:
 
     def __init__(self, json_response=None, text_response=None):
         """ Initialize client response """
-
         self.json_response = json_response
         self.text_response = text_response
 
@@ -46,17 +39,13 @@ class MockClientSession:
 class MockResponse:
     """ Stubbed response object. """
 
-    def __init__(self, text_response: str = None, json_response: dict = None, status_code=200):
+    def __init__(self, text: str = None, json_response: dict = None, status_code=200, content=None):
         """ Initialize client response """
 
-        self.text_response = text_response
+        self.text = text
+        self.content = content
         self.json_response = json_response
         self.status_code = status_code
-
-    def text(self) -> str:
-        """ Return text response """
-
-        return self.text_response
 
     def json(self) -> dict:
         """ Return json response """
@@ -84,43 +73,22 @@ class MockAsyncResponse:
         return self.json_response
 
 
-def _get_fixture_path(url: str, params: dict = None) -> str:
-    """ Returns the path to a fixture based on url and params.
-    """
-    if config.get('WFWX_BASE_URL') in url:
-        # Point to wf1 fixtures.
-        fixture_url = 'wf1/' + url[len(config.get('WFWX_BASE_URL')):]
-    elif config.get('WFWX_AUTH_URL') in url:
-        # Point to wf1 auth fixture.
-        fixture_url = 'wf1/v1/oauth/token'
-    elif config.get('PATHFINDER_BASE_URI') in url:
-        # Point to the pathfinder fixture url.
-        fixture_url = 'pathfinder/' + \
-            url[len(config.get('PATHFINDER_BASE_URI')):]
-    else:
-        raise FixtureException('unhandeled url: {}'.format(url))
-    if params:
-        fixture_url = '{}?{}'.format(fixture_url, urlencode(params))
-    # Join the url with the fixture location.
-    return os.path.join(os.path.dirname(__file__), 'fixtures/', fixture_url)
+def is_json(filename):
+    """ Check if file is a json file (look if the extension is .json) """
+    extension = os.path.splitext(filename)[1]
+    return extension == '.json'
 
 
 def get_mock_client_session(url: str, params: dict = None) -> MockClientSession:
     """ Returns a mocked client session, looking for fixtures based on the url and params provided.
     """
-    fixture = _get_fixture_path(url, params)
-    LOGGER.debug('using fixture %s for %s', fixture, url)
-    # We try looking for a json fixture 1st:
-    if os.path.exists(fixture + '.json'):
-        with open(fixture + '.json', 'r') as fixture_file:
+    # Get the fixture filename
+    fixture_finder = FixtureFinder()
+    filename = fixture_finder.get_fixture_path(url, 'get', params)
+    with open(filename) as fixture_file:
+        if is_json(filename):
             return MockClientSession(json_response=json.load(fixture_file))
-    # No json fixture found, try a text file:
-    elif os.path.exists(fixture + '.txt'):
-        with open(fixture + '.txt', 'r') as fixture_file:
-            return MockClientSession(text_response=fixture_file.read())
-    # Expected fixture not found - raise an exception.
-    raise FixtureException(
-        'fixture file {} for {} not found.'.format(fixture, url))
+        return MockClientSession(text_response=fixture_file.read())
 
 
 def default_mock_client_get(*args, **kwargs) -> MockClientSession:
@@ -131,17 +99,43 @@ def default_mock_client_get(*args, **kwargs) -> MockClientSession:
     return get_mock_client_session(url, params)
 
 
-def default_mock_requests_get(*args, **kwargs) -> MockResponse:
-    """ Return a mocked request response """
-    url = args[0]
-    params = kwargs.get('params')
-    # Get the file location of the fixture
-    fixture = _get_fixture_path(url, params)
-    # Try to get a matching json fixture
-    if os.path.exists(fixture + '.json'):
-        with open(fixture + '.json', 'r') as fixture_file:
+def _get_fixture_response(fixture):
+    LOGGER.debug('construct response with %s', fixture)
+    with open(fixture, 'rb') as fixture_file:
+        if is_json(fixture):
             # Return a response with the appropriate fixture
             return MockResponse(json_response=json.load(fixture_file))
-    # Expected fixture not found - raise an exception.
-    raise FixtureException(
-        'fixture file {} for {} not found.'.format(fixture, url))
+        # Return a response with the appropriate fixture
+        data = fixture_file.read()
+        return MockResponse(text=data.decode(), content=data)
+
+
+# pylint: disable=unused-argument
+def default_mock_requests_get(url, params=None, **kwargs) -> MockResponse:
+    """ Return a mocked request response """
+    # Get the file location of the fixture
+    fixture_finder = FixtureFinder()
+    filename = fixture_finder.get_fixture_path(url, 'get', params)
+    # Construct the response
+    return _get_fixture_response(filename)
+
+
+# pylint: disable=redefined-outer-name
+def default_mock_requests_post(url, data, json, params=None, **kwargs) -> MockResponse:
+    """ Return a mocked request response """
+    # Get the file location of the fixture
+    fixture_finder = FixtureFinder()
+    filename = fixture_finder.get_fixture_path(url, 'post', params, data)
+    # Construct the response
+    return _get_fixture_response(filename)
+
+
+def default_mock_requests_session_get(self, url, **kwargs) -> MockResponse:
+    """ Return a mocked request response from a request.Session object """
+    return default_mock_requests_get(url, **kwargs)
+
+
+# pylint: disable=redefined-outer-name
+def default_mock_requests_session_post(self, url, data=None, json=None, **kwargs) -> MockResponse:
+    """ Return a mocked request response from a request.Session object """
+    return default_mock_requests_post(url, data, json, **kwargs)

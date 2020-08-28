@@ -21,7 +21,7 @@ def test_health_fail(monkeypatch):
     # pylint: disable=unused-argument
     def mock_requests_fail_condition(*args, **kwargs):
         """ Mock request response """
-        fixture_path = ('fixtures/pathfinder/apis/'
+        fixture_path = ('fixtures/console.pathfinder.gov.bc.ca:8443/apis/'
                         'apps/v1beta1/namespaces/project_namespace/'
                         'statefulsets/some_suffix_fail.json')
         fixture_path = os.path.join(os.path.dirname(__file__), fixture_path)

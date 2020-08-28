@@ -1,13 +1,15 @@
 """ Global fixtures """
 
-import datetime
-from datetime import timezone
+from datetime import timezone, datetime
 import logging
 import requests
 import pytest
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
-from app.tests.common import MockJWTDecode, default_mock_requests_get
+from app.time_utils import get_pst_tz
+from app.tests.common import (
+    MockJWTDecode, default_mock_requests_get,
+    default_mock_requests_session_get, default_mock_requests_session_post)
 from app.db.models import PredictionModel, PredictionModelRunTimestamp
 import app.db.database
 
@@ -21,8 +23,8 @@ def mock_env(monkeypatch):
     monkeypatch.setenv("WFWX_USER", "user")
     monkeypatch.setenv("WFWX_SECRET", "secret")
     monkeypatch.setenv(
-        "WFWX_AUTH_URL", "http://localhost/pub/oauth2/v1/oauth/token")
-    monkeypatch.setenv("WFWX_BASE_URL", "http://localhost/wfwx")
+        "WFWX_AUTH_URL", "http://wf1/pub/oauth2/v1/oauth/token")
+    monkeypatch.setenv("WFWX_BASE_URL", "http://wf1/wfwx")
     monkeypatch.setenv("WFWX_MAX_PAGE_SIZE", "1000")
     monkeypatch.setenv("KEYCLOAK_PUBLIC_KEY", "public_key")
     monkeypatch.setenv("BC_FIRE_WEATHER_USER", "someuser")
@@ -43,9 +45,25 @@ def mock_requests(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def mock_get_now(monkeypatch):
+    """ Patch all calls to app.timeutils: get_utc_now and get_pst_now  """
+    timestamp = 1590076213962/1000
+
+    def mock_utc_now():
+        return datetime.fromtimestamp(timestamp, tz=timezone.utc)
+
+    def mock_pst_now():
+        return datetime.fromtimestamp(timestamp, tz=get_pst_tz())
+
+    monkeypatch.setattr(app.time_utils, 'get_utc_now', mock_utc_now)
+    monkeypatch.setattr(app.time_utils, 'get_pst_now', mock_pst_now)
+
+
+@pytest.fixture(autouse=True)
 def mock_session(monkeypatch):
     """ Ensure that all unit tests mock out the database session by default! """
     # pylint: disable=unused-argument
+
     def mock_get_session(*args):
         """ return a session with a bare minimum database that should be good for most unit tests. """
         prediction_model = PredictionModel(id=1,
@@ -54,7 +72,7 @@ def mock_session(monkeypatch):
                                            name='Global Deterministic Prediction System')
         prediction_model_run = PredictionModelRunTimestamp(id=1,
                                                            prediction_model_id=1,
-                                                           prediction_run_timestamp=datetime.datetime.now(
+                                                           prediction_run_timestamp=datetime.now(
                                                                tz=timezone.utc),
                                                            prediction_model=prediction_model,
                                                            complete=True)
@@ -89,3 +107,10 @@ def mock_jwt_decode(monkeypatch):
         return MockJWTDecode()
 
     monkeypatch.setattr("jwt.decode", mock_function)
+
+
+@pytest.fixture()
+def mock_requests_session(monkeypatch):
+    """ Patch all calls to requests.Session.* """
+    monkeypatch.setattr(requests.Session, 'get', default_mock_requests_session_get)
+    monkeypatch.setattr(requests.Session, 'post', default_mock_requests_session_post)
