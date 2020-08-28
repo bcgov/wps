@@ -137,28 +137,15 @@ class HourlyActual(Base):
     __tablename__ = 'hourly_actuals'
     __table_args__ = (
         UniqueConstraint('weather_date',
-                         'station_code',
-                         'temp_valid',
-                         'temperature',
-                         'rh_valid',
-                         'relative_humidity',
-                         'wdir_valid',
-                         'wind_direction',
-                         'wspeed_valid',
-                         'wind_speed',
-                         'precip_valid',
-                         'precipitation',
-                         'ffmc',
-                         'isi',
-                         'fwi'),
+                         'station_code'),
         {'comment': 'The hourly_actuals for a weather station and weather date.'}
     )
-
     id = Column(Integer, primary_key=True)
     weather_date = Column(TIMESTAMP(timezone=True), nullable=False)
     station_code = Column(Integer, nullable=False)
     temp_valid = Column(Boolean, default=False, nullable=False)
     temperature = Column(Float, nullable=False)
+    dewpoint = Column(Float, nullable=False)
     rh_valid = Column(Boolean, default=False, nullable=False)
     relative_humidity = Column(Float, nullable=False)
     wdir_valid = Column(Boolean, default=False, nullable=False)

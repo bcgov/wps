@@ -5,10 +5,9 @@ import os
 import sys
 import logging
 import logging.config
-import tempfile
+from urllib.parse import urljoin
 from datetime import timedelta
 from typing import List, Dict
-from abc import abstractmethod, ABC
 from requests import Session
 from sqlalchemy.exc import IntegrityError
 import pandas as pd
@@ -16,8 +15,7 @@ from requests_ntlm import HttpNtlmAuth
 from app import config, configure_logging
 import app.db.database
 from app.db.models import NoonForecasts
-from app.fireweather_bot import (BC_FIRE_WEATHER_BASE_URL, BC_FIRE_WEATHER_ENDPOINT, _authenticate_session,
-                                 _get_csv_url, _download_csv)
+from app.fireweather_bot.common import BaseBot, get_station_names_to_codes
 import app.time_utils
 
 
@@ -27,64 +25,32 @@ if __name__ == "__main__":
 
 LOGGER = logging.getLogger(__name__)
 
-TEMP_CSV_FILENAME = 'weather_station_forecasts.csv'
 
-
-def prepare_fetch_noon_forecasts_query():
-    """ Prepare url and params to fetch forecast noon-time values from the BC FireWeather Phase 1 API.
+def _construct_request_body():
+    """ Prepare the params to fetch forecast noon-time values from the BC FireWeather Phase 1 API.
     """
     start_date = _get_start_date()
     end_date = _get_end_date()
     LOGGER.debug('requesting noon forecasts from %s to %s',
                  start_date, end_date)
-    # Prepare query params and query:
-    request_body = {
+    # Prepare query data:
+    return {
         'Start_Date': int(start_date),
         'End_Date': int(end_date),
         'Format': 'CSV',
         'cboFilters': config.get('BC_FIRE_WEATHER_FILTER_ID'),
         'rdoReport': 'OSBD',
     }
-    url = urljoin(BC_FIRE_WEATHER_BASE_URL, BC_FIRE_WEATHER_ENDPOINT)
-    return url, request_body
 
 
-def fetch_noon_forecasts(
-        session: Session):
-    """ Fetch daily weather forecasts (noon values) for a given station.
-    """
-    url, request_body = prepare_fetch_noon_forecasts_query()
-    # Get forecasts
-    resp = session.post(url, data=request_body)
-    return _get_csv_filename(resp.text)
-
-
-def get_noon_forecasts():
-    """ Send POST request to BC FireWeather API to generate a CSV,
-    then send GET request to retrieve the CSV,
-    then parse the CSV and store in DB.
-    """
-    with Session() as session:
-        _authenticate_session(session)
-        # Submit the POST request to query forecasts for the station
-        csv_path = fetch_noon_forecasts(session)
-        # Use the returned URL to fetch the CSV data for the station
-        with tempfile.TemporaryDirectory() as temp_path:
-            _download_csv(session, csv_path)
-            get_csv(session, csv_path, temp_path)
-            # Parse the CSV data
-            parse_csv(temp_path)
-        LOGGER.debug('Finished writing noon forecasts to database')
-
-
-def parse_csv(temp_path: str):
+def _parse_csv(temp_path: str):
     """ Given a CSV of forecast noon-time weather data for a station, load the CSV into a
     pandas dataframe, then insert the dataframe into the DB. (This 2-step process is
     the neatest way to write CSVs into a DB.)
     """
-    with open(os.path.join(temp_path, TEMP_CSV_FILENAME), 'r') as csv_file:
+    with open(temp_path, 'r') as csv_file:
         data_df = pd.read_csv(csv_file)
-    station_codes = _get_station_names_to_codes()
+    station_codes = get_station_names_to_codes()
     # replace 'display_name' column (station name) in df with station_id
     # and rename the column appropriately
     data_df['display_name'].replace(station_codes, inplace=True)
@@ -102,8 +68,6 @@ def parse_csv(temp_path: str):
     dates = pd.to_datetime(data_df['weather_date'], format='%Y%m%d')
     dates = dates.transform(lambda x: x.replace(hour=20))
     data_df['weather_date'] = dates
-    # delete the temp CSV file - it's not needed anymore
-    os.remove(os.path.join(temp_path, TEMP_CSV_FILENAME))
     # write to database using _session's engine
     session = app.db.database.get_session()
     # write the data_df to the database one row at a time, so that if data_df contains >=1 rows that are
@@ -146,15 +110,24 @@ def _get_end_date():
     return five_days_ahead.strftime('%Y%m%d')
 
 
+class NoonForecastsBot(BaseBot):
+
+    def construct_request_body(self):
+        return _construct_request_body()
+
+    def process_csv(self, csv_path: str):
+        _parse_csv(csv_path)
+
 
 def main():
     """ Makes the appropriate method calls in order to submit a query to the BC FireWeather Phase 1 API
     to get (up to) 5-day forecasts for all weather stations, downloads the resulting CSV file, writes
     the CSV file to the database, then deletes the local copy of the CSV file.
     """
-    LOGGER.debug('Retrieving noon forecasts...')
     try:
-        get_noon_forecasts()
+        LOGGER.debug('Retrieving noon forecasts...')
+        bot = NoonForecastsBot()
+        bot.run()
         LOGGER.debug(
             'Finished retrieving noon forecasts for all weather stations.')
         # Exit with 0 - success.

@@ -77,7 +77,10 @@ run-env-canada-raw:
 run-bender:
 	poetry run python -m app.fireweather_bot.noon_forecasts
 
-run-bender-hourly-raw:
+run-bender-raw:
+	python -m app.fireweather_bot.noon_forecasts
+
+run-marvin-raw:
 	python -m app.fireweather_bot.hourly_actuals
 
 notebook:
