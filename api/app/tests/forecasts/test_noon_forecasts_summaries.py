@@ -5,7 +5,6 @@ from datetime import datetime, timedelta
 import logging
 import json
 from pytest_bdd import scenario, given, then, when
-from numpy import percentile
 from fastapi.testclient import TestClient
 import pytest
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
@@ -87,12 +86,10 @@ def assert_response(response, codes):
     """ Check if we calculate correct percentiles based on its noon forecasts """
     stations = eval(codes)
     result = response.json()
-    tmp_5th = percentile(mock_tmps, 5)
-    tmp_median = percentile(mock_tmps, 50)
-    tmp_90th = percentile(mock_tmps, 90)
-    rh_5th = percentile(mock_rhs, 5)
-    rh_median = percentile(mock_rhs, 50)
-    rh_90th = percentile(mock_rhs, 90)
+    tmp_min = min(mock_tmps)
+    tmp_max = max(mock_tmps)
+    rh_min = min(mock_rhs)
+    rh_max = max(mock_rhs)
 
     if len(result['summaries']) == 0:
         assert result['summaries'] == []
@@ -100,5 +97,5 @@ def assert_response(response, codes):
     if len(result['summaries']) == 1:
         summary = result['summaries'][0]
         assert summary['station']['code'] == stations[0]
-        assert summary['values'] == [{'datetime': weather_date.isoformat(), 'tmp_5th': tmp_5th,
-                                      'tmp_median': tmp_median, 'tmp_90th': tmp_90th, 'rh_5th': rh_5th, 'rh_median': rh_median, 'rh_90th': rh_90th}]
+        assert summary['values'] == [{'datetime': weather_date.isoformat(), 'tmp_min': tmp_min,
+                                      'tmp_max': tmp_max, 'rh_min': rh_min, 'rh_max': rh_max}]

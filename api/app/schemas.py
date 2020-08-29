@@ -191,12 +191,10 @@ class NoonForecastResponse(BaseModel):
 class NoonForecastSummaryValues(BaseModel):
     """ Summary of noon forecast values. """
     datetime: datetime
-    tmp_5th: float
-    tmp_median: float
-    tmp_90th: float
-    rh_5th: float
-    rh_median: float
-    rh_90th: float
+    tmp_min: float
+    tmp_max: float
+    rh_min: float
+    rh_max: float
 
 
 class NoonForecastSummary(BaseModel):

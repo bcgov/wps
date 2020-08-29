@@ -4,7 +4,6 @@ import json
 import logging
 from collections import defaultdict
 from datetime import datetime
-from numpy import percentile
 from app.wildfire_one import get_stations_by_codes
 import app.db.database
 from app.db.crud import query_noon_forecast_records
@@ -38,12 +37,10 @@ def create_noon_forecast_summary(station: WeatherStation,
     for date in nested_dict:
         percentile_values = NoonForecastSummaryValues(
             datetime=date,
-            tmp_5th=percentile(nested_dict[date]['temp'], 5),
-            tmp_median=percentile(nested_dict[date]['temp'], 50),
-            tmp_90th=percentile(nested_dict[date]['temp'], 90),
-            rh_5th=percentile(nested_dict[date]['rh'], 5),
-            rh_median=percentile(nested_dict[date]['rh'], 50),
-            rh_90th=percentile(nested_dict[date]['rh'], 90),
+            tmp_min=min(nested_dict[date]['temp']),
+            tmp_max=max(nested_dict[date]['temp']),
+            rh_min=min(nested_dict[date]['rh']),
+            rh_max=max(nested_dict[date]['rh']),
         )
         summary.values.append(percentile_values)
 
