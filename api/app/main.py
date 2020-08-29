@@ -132,9 +132,10 @@ def get_noon_forecasts(request: schemas.StationCodeList, _: bool = Depends(authe
     set of weather stations. """
     try:
         LOGGER.info('/noon_forecasts/')
-        start_date = datetime.datetime.now(tz=datetime.timezone.utc)
-        end_date = start_date + datetime.timedelta(days=5)
-        return fetch_noon_forecasts(request.stations, start_date, end_date)
+        now = datetime.datetime.now(tz=datetime.timezone.utc)
+        back_5_days = now - datetime.timedelta(days=5)
+        forward_5_days = now + datetime.timedelta(days=5)
+        return fetch_noon_forecasts(request.stations, back_5_days, forward_5_days)
     except Exception as exception:
         LOGGER.critical(exception, exc_info=True)
         raise
