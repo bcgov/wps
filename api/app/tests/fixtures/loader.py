@@ -1,17 +1,14 @@
-""" Loading of fixtures """
+""" Code for automatic loading of fixture files based on requests. """
 import os
 from collections import defaultdict
 import json
 import logging
 from urllib.parse import urlencode, urlsplit
 from pathlib import Path
-from app import config, configure_logging
+from app import config
 
 
 logger = logging.getLogger(__name__)
-
-
-configure_logging()
 
 
 class FixtureException(Exception):
@@ -20,6 +17,10 @@ class FixtureException(Exception):
 
 def nested_set(dic: dict, keys: list, value: object):
     """
+    An easy way to set values in a nested dictionary without having to first create the nested
+    dictionaries.
+    e.g., if you have a dictionary a = {}, and you want to set a['a']['b']['c']['d'] = 1, just call
+    nested_set(a, ('a', 'b', 'c', 'd'), 1)
     credit: https://stackoverflow.com/a/13688108/295741
     """
     for key in keys[:-1]:
@@ -29,25 +30,29 @@ def nested_set(dic: dict, keys: list, value: object):
 
 class FixtureFinder():
     """ Use a lookup file to find the associated fixtured.
-    The lookupfile is a dictionary that uses the verb, url, params and data as keys to find
-    the appropriate fixture file:
+    The lookupfile is a dictionary that uses the verb (e.g. get, post, put, etc), url, params and data as 
+    keys to find the appropriate fixture file:
     {
-        'verb: e.g. one of get/post/put/delete':
-        {
-            'url: e.g. http://some.url.com/some/path':
-            {
-                'params: e.g. {'a': 1, 'b': 2}: {
-                    'data: e.g. post data': filename
+        '<verb>': {
+            '<url>': {
+                '<params>': {
+                    '<data>': <filename>
                 }
             }
         }
     }
+    e.g. a get query http://thing?a=1 that servers up some file.json would be:
+    {
+        "get": {"http://thing": {{"'a': 1": "None": "file.json"}}}
+    }
+
+    If the environment variable AUTO_MAKE_FIXTURES is set to True, it will attempt to create some files
+    and folder structures for you. (This is useful when developing.)
     """
 
-    def __init__(self):
-        super().__init__()
-
     def get_base_path(self, url: str):
+        """ Get the bast path of the provided url.
+        """
         # break url into parts.
         split = urlsplit(url)
         # construct the base path.
@@ -56,22 +61,23 @@ class FixtureFinder():
         if not os.path.exists(base_path):
             if config.get('AUTO_MAKE_FIXTURES'):
                 # Make the fixture path if it doesn't exist - very useful for development.
-                logger.warning('creating fixture base path {}'.format(base_path))
+                logger.warning('creating fixture base path %s', base_path)
                 Path(base_path).mkdir()
             raise FixtureException('unhandeled url: {}, fixture path ({}) does not exist'.format(
                 url, base_path))
         return base_path
 
     def get_lookup_filename(self, base_path: str):
+        """ Get the filename of the json containing the lookup dictionary. """
         return os.path.join(base_path, 'lookup.json')
 
     def load_lookup(self, base_path: str):
+        """ Load the lookup dictionary. """
         self.lookup_file_name = self.get_lookup_filename(base_path)
 
         if not os.path.exists(self.lookup_file_name):
             if config.get('AUTO_MAKE_FIXTURES'):
-                logger.warning('creating fixture lookup file {}'.format(
-                    self.lookup_file_name))
+                logger.warning('creating fixture lookup file %s', self.lookup_file_name)
                 with open(self.lookup_file_name, 'w') as lookup_file:
                     return json.dump({}, lookup_file)
             raise FixtureException(
@@ -81,6 +87,7 @@ class FixtureFinder():
             return json.load(lookup_file)
 
     def guess_filename(self, url: str, params: dict):
+        """ Guess a filename for the fixture. Only used when AUTO_MAKE_FIXTURES is True. """
         parts = urlsplit(url)
         filename = parts.path.strip('/')
         if params:
@@ -90,10 +97,16 @@ class FixtureFinder():
                     value = value.replace(' ', '_')
                 filename = '{}_{}_{}'.format(filename, key, value)
         filename = filename[:200] + '.json'
-        logger.warn('I think a good filename for {} would be {}'.format(url, filename))
+        logger.warning('I think a good filename for %s would be %s', url, filename)
         return filename
 
-    def lookup_fixture(self, lookup: dict, url: str, verb: str, params: dict = None, data: str = None) -> str:
+    def lookup_fixture_filename(self,
+                                lookup: dict,
+                                url: str,
+                                verb: str,
+                                params: dict = None,
+                                data: str = None) -> str:
+        """ Given the request, find the name of the fixture. """
         fixture = lookup.get(url, {}).get(verb, {}).get(str(params), {}).get(str(data), None)
         if fixture is None:
             if config.get('AUTO_MAKE_FIXTURES'):
@@ -108,26 +121,16 @@ class FixtureFinder():
     def get_fixture_path(self, url: str, verb: str, params: dict = None, data: str = None) -> str:
         """ Returns the path to a fixture based on url and params.
         """
-        logger.info('finding a fixture for {}'.format(url))
+        logger.info('finding a fixture for %s', url)
         # get the base path of the fixture:
         base_path = self.get_base_path(url)
         # load the lookup dictionary:
         lookup = self.load_lookup(base_path)
         # get the fixture file
-        fixture_filename = self.lookup_fixture(lookup, url, verb, params, data)
+        fixture_filename = self.lookup_fixture_filename(lookup, url, verb, params, data)
         # the filename has to be relative to the base path
         fixture_filename = os.path.join(base_path, fixture_filename)
         if not os.path.exists(fixture_filename):
-            FixtureException('fixture file {} for {} not found.'.format(fixture_filename, url))
-        logger.info('returning {} for {}'.format(fixture_filename, url))
+            raise FixtureException('fixture file {} for {} not found.'.format(fixture_filename, url))
+        logger.info('returning %s for %s', fixture_filename, url)
         return fixture_filename
-
-
-if __name__ == '__main__':
-    url = 'http://www.something.com/what/a/thing'
-    verb = 'get'
-    params = {'a': 1, 'b': 2}
-    data = None
-
-    finder = FixtureFinder()
-    print(finder.get_fixture_path(url, verb, params, data))

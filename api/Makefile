@@ -105,6 +105,7 @@ docker-test-dev:
 	# Run tests in docker (dev instance).
 	# We use the dev instance, because the "production" version doesn't have
 	# a number of the development dependancies.
+	# If you're run tests locally, you probably have to run `make clean` or this will fail.
 	docker-compose -f docker-compose.dev.yml run --rm api-dev pytest app
 
 docker-test-coverage-dev:
