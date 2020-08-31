@@ -1,5 +1,6 @@
 # As per https://fastapi.tiangolo.com/deployment/, we use the provided docker image:
 FROM tiangolo/uvicorn-gunicorn-fastapi:python3.8
+# see: https://github.com/tiangolo/uvicorn-gunicorn-fastapi-docker for available images.
 
 # Install old (2.4.*; current debian) version of gdal
 RUN apt-get -y update
