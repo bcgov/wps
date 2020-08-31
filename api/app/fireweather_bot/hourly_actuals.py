@@ -36,7 +36,6 @@ class HourlyActualsBot(BaseBot):
 
     def __init__(self):
         self.now = app.time_utils.get_pst_now()
-        print('now is {}'.format(self.now))
 
     def _get_start_date(self) -> int:
         """ Return time N hour ago. E.g. if it's 17h15 now, we'd get YYYYMMDD16. The intention is that
