@@ -115,7 +115,7 @@ class FixtureFinder():
                 with open(self.lookup_file_name, 'w') as lookup_file:
                     json.dump(lookup, lookup_file, indent=3)
             raise FixtureException(
-                'could not find {} {} {} in lookup'.format(url, params, data))
+                'could not find {} {} {} {} in lookup'.format(url, verb, params, data))
         return fixture
 
     def get_fixture_path(self, url: str, verb: str, params: dict = None, data: str = None) -> str:
