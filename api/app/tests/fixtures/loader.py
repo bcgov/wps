@@ -115,6 +115,6 @@ class FixtureFinder():
         # the filename has to be relative to the base path
         fixture_filename = os.path.join(base_path, fixture_filename)
         if not os.path.exists(fixture_filename):
-            FixtureException('fixture file {} for {} not found.'.format(fixture_filename, url))
+            raise FixtureException('fixture file {} for {} not found.'.format(fixture_filename, url))
         logger.info('returning {} for {}'.format(fixture_filename, url))
         return fixture_filename

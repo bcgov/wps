@@ -112,6 +112,7 @@ dist
 # Python
 __pycache__/
 app.egg-info/
+.pytest_cache
 
 # Apple
 .DS_store
