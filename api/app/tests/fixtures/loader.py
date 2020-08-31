@@ -53,7 +53,7 @@ class FixtureFinder():
         if not os.path.exists(base_path):
             if config.get('AUTO_MAKE_FIXTURES'):
                 # Make the fixture path if it doesn't exist - very useful for development.
-                logger.warning('creating fixture base path {}'.format(base_path))
+                logger.warning('creating fixture base path %s', base_path)
                 Path(base_path).mkdir()
             raise FixtureException('unhandeled url: {}, fixture path ({}) does not exist'.format(
                 url, base_path))
@@ -67,8 +67,7 @@ class FixtureFinder():
 
         if not os.path.exists(self.lookup_file_name):
             if config.get('AUTO_MAKE_FIXTURES'):
-                logger.warning('creating fixture lookup file {}'.format(
-                    self.lookup_file_name))
+                logger.warning('creating fixture lookup file %s', self.lookup_file_name)
                 with open(self.lookup_file_name, 'w') as lookup_file:
                     return json.dump({}, lookup_file)
             raise FixtureException(
@@ -87,7 +86,7 @@ class FixtureFinder():
                     value = value.replace(' ', '_')
                 filename = '{}_{}_{}'.format(filename, key, value)
         filename = filename[:200] + '.json'
-        logger.warn('I think a good filename for {} would be {}'.format(url, filename))
+        logger.warning('I think a good filename for %s would be %s', url, filename)
         return filename
 
     def lookup_fixture(self, lookup: dict, url: str, verb: str, params: dict = None, data: str = None) -> str:
@@ -105,7 +104,7 @@ class FixtureFinder():
     def get_fixture_path(self, url: str, verb: str, params: dict = None, data: str = None) -> str:
         """ Returns the path to a fixture based on url and params.
         """
-        logger.info('finding a fixture for {}'.format(url))
+        logger.info('finding a fixture for %s', url)
         # get the base path of the fixture:
         base_path = self.get_base_path(url)
         # load the lookup dictionary:
@@ -116,5 +115,5 @@ class FixtureFinder():
         fixture_filename = os.path.join(base_path, fixture_filename)
         if not os.path.exists(fixture_filename):
             raise FixtureException('fixture file {} for {} not found.'.format(fixture_filename, url))
-        logger.info('returning {} for {}'.format(fixture_filename, url))
+        logger.info('returning %s for %s', fixture_filename, url)
         return fixture_filename
