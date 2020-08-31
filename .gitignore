@@ -122,9 +122,6 @@ app.egg-info/
 *.laccdb
 *.mdb
 
-# CSV
-csv/*
-
 # Coverage folders
 .coverage
 coverage-reports
