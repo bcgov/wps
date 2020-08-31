@@ -49,7 +49,7 @@ objects:
                           key: bc-fire-weather-secret
                     - name: BC_FIRE_WEATHER_USER
                       valueFrom:
-                        secretKeyRef:
+                        configMapKeyRef:
                           name: ${NAME}-global
                           key: bc-fire-weather-user
                     - name: BC_FIRE_WEATHER_FILTER_ID
