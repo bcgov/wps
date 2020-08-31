@@ -15,18 +15,24 @@
   },
   "loggers": {
     "app": {
-      "level": "DEBUG",
-      "handlers": ["console"],
+      "level": "INFO",
+      "handlers": [
+        "console"
+      ],
       "propagate": false
     },
     "__main__": {
       "level": "INFO",
-      "handlers": ["console"],
+      "handlers": [
+        "console"
+      ],
       "propagate": false
     }
   },
   "root": {
     "level": "INFO",
-    "handlers": ["console"]
+    "handlers": [
+      "console"
+    ]
   }
 }
