@@ -27,7 +27,8 @@ def _fix_pandas_datetime(panda_datetime):
     # we want to work in utc:
     python_date = python_date.replace(tzinfo=timezone.utc)
     # but alse need to adjust our time, because it's in PST:
-    return python_date - timedelta(hours=app.time_utils.PST_UTC_OFFSET)
+    python_date = python_date - timedelta(hours=app.time_utils.PST_UTC_OFFSET)
+    return python_date
 
 
 class HourlyActualsBot(BaseBot):
@@ -72,10 +73,15 @@ class HourlyActualsBot(BaseBot):
         # pylint: disable=unused-variable
         for index, row in data_df.iterrows():
             try:
+                # Go from pandas to a python dict.
                 data = row.to_dict()
+                # Fix the timestamp, make it be tz aware.
                 # Note: There must be a more "pandas" way of doing this, but I don't know how.
                 data['weather_date'] = _fix_pandas_datetime(data['weather_date'])
-                session.add(HourlyActual(**row.to_dict()))
+                # Throw the data into the model.
+                hourly_actual = HourlyActual(**data)
+                # Persist in the database
+                session.add(hourly_actual)
                 session.commit()
             except IntegrityError:
                 logger.info('Skipping duplicate record for %s @ %s',

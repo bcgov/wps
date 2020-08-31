@@ -4,7 +4,7 @@ for each weather station and store the results (from a CSV file) in our database
 import sys
 import logging
 import logging.config
-from datetime import timedelta
+from datetime import timedelta, timezone
 from sqlalchemy.exc import IntegrityError
 import pandas as pd
 from app import config, configure_logging
@@ -74,7 +74,10 @@ def _parse_csv(temp_path: str):
     for index, row in data_df.iterrows():
         try:
             row = row.dropna()
-            session.add(NoonForecasts(**row.to_dict()))
+            data = row.to_dict()
+            # We need to ensure that the timezone is set correctly.
+            data['weather_date'] = data['weather_date'].to_pydatetime().replace(tzinfo=timezone.utc)
+            session.add(NoonForecasts(**data))
             session.commit()
         except IntegrityError:
             LOGGER.info('Skipping duplicate record')

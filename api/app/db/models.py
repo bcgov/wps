@@ -3,12 +3,32 @@
 import datetime
 from datetime import timezone
 import math
+import logging
 from sqlalchemy import (Column, String, Integer, Float, Boolean,
                         TIMESTAMP, Sequence, ForeignKey, UniqueConstraint)
+from sqlalchemy.types import TypeDecorator
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import ARRAY
 from geoalchemy2 import Geometry
 from app.db.database import Base
+
+
+logger = logging.getLogger(__name__)
+
+
+class TZTimeStamp(TypeDecorator):
+    """ TimeStamp type that ensures that timezones are always specified.
+    If the timezone isn't specified, you aren't guaranteed that you're going to get consistent times. """
+    impl = TIMESTAMP(timezone=True)
+
+    def process_bind_param(self, value, dialect):
+        if isinstance(value, datetime.datetime) and value.tzinfo is None:
+            logger.warn('type:%s tzinfo:%s', type(value), value.tzinfo)
+            raise ValueError('{!r} must be TZ-aware'.format(value))
+        return value
+
+    def __repr__(self):
+        return 'TZTimeStamp()'
 
 
 class ProcessedModelRunUrl(Base):
@@ -25,9 +45,9 @@ class ProcessedModelRunUrl(Base):
     # Source URL of file processed.
     url = Column(String, nullable=False, unique=True)
     # Date this record was created.
-    create_date = Column(TIMESTAMP(timezone=True), nullable=False)
+    create_date = Column(TZTimeStamp, nullable=False)
     # Date this record was updated.
-    update_date = Column(TIMESTAMP(timezone=True), nullable=False)
+    update_date = Column(TZTimeStamp, nullable=False)
 
 
 class PredictionModel(Base):
@@ -74,7 +94,7 @@ class PredictionModelRunTimestamp(Base):
         'prediction_models.id'), nullable=False)
     prediction_model = relationship("PredictionModel")
     # The date and time of the model run.
-    prediction_run_timestamp = Column(TIMESTAMP(timezone=True), nullable=False)
+    prediction_run_timestamp = Column(TZTimeStamp, nullable=False)
     # Indicate if this particular model run is completely downloaded.
     complete = Column(Boolean, nullable=False)
 
@@ -126,7 +146,7 @@ class ModelRunGridSubsetPrediction(Base):
         'prediction_model_grid_subsets.id'), nullable=False)
     prediction_model_grid_subset = relationship("PredictionModelGridSubset")
     # The date and time to which the prediction applies.
-    prediction_timestamp = Column(TIMESTAMP(timezone=True), nullable=False)
+    prediction_timestamp = Column(TZTimeStamp, nullable=False)
     # Temperature 2m above model layer.
     tmp_tgl_2 = Column(ARRAY(Float), nullable=True)
     # Relative humidity 2m above model layer.
@@ -146,7 +166,7 @@ class HourlyActual(Base):
         {'comment': 'The hourly_actuals for a weather station and weather date.'}
     )
     id = Column(Integer, primary_key=True)
-    weather_date = Column(TIMESTAMP(timezone=True), nullable=False)
+    weather_date = Column(TZTimeStamp, nullable=False)
     station_code = Column(Integer, nullable=False)
     temp_valid = Column(Boolean, default=False, nullable=False)
     temperature = Column(Float, nullable=False)
@@ -163,7 +183,7 @@ class HourlyActual(Base):
     ffmc = Column(Float, nullable=False, default=math.nan)
     isi = Column(Float, nullable=False, default=math.nan)
     fwi = Column(Float, nullable=False, default=math.nan)
-    created_at = Column(TIMESTAMP(timezone=True), nullable=False,
+    created_at = Column(TZTimeStamp, nullable=False,
                         default=datetime.datetime.now(tz=timezone.utc))
 
 
@@ -198,7 +218,7 @@ class NoonForecasts(Base):
         {'comment': 'The noon_forecast for a weather station and weather date.'}
     )
     id = Column(Integer, primary_key=True)
-    weather_date = Column(TIMESTAMP(timezone=True), nullable=False)
+    weather_date = Column(TZTimeStamp, nullable=False)
     station_code = Column(Integer, nullable=False)
     temp_valid = Column(Boolean, default=False, nullable=False)
     temperature = Column(Float, nullable=False)
@@ -219,7 +239,7 @@ class NoonForecasts(Base):
     bui = Column(Float, nullable=False, default=math.nan)
     fwi = Column(Float, nullable=False, default=math.nan)
     danger_rating = Column(Integer, nullable=False)
-    created_at = Column(TIMESTAMP(timezone=True), nullable=False,
+    created_at = Column(TZTimeStamp, nullable=False,
                         default=datetime.datetime.now(tz=timezone.utc))
 
     def __str__(self):
