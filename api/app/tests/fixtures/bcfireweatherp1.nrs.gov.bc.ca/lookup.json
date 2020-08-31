@@ -16,7 +16,7 @@
    "https://bcfireweatherp1.nrs.gov.bc.ca/Scripts/Public/Common/Results_Report.asp": {
       "post": {
          "None": {
-            "{'Start_Date': 2020052105, 'End_Date': 2020052108, 'Format': 'CSV', 'cboFilters': '1', 'rdoReport': 'OSBH'}": "Scripts/Public/Common/hourly_Results_Report.asp.html",
+            "{'Start_Date': 2020052104, 'End_Date': 2020052107, 'Format': 'CSV', 'cboFilters': '1', 'rdoReport': 'OSBH'}": "Scripts/Public/Common/hourly_Results_Report.asp.html",
             "{'Start_Date': 20200521, 'End_Date': 20200526, 'Format': 'CSV', 'cboFilters': '1', 'rdoReport': 'OSBD'}": "Scripts/Public/Common/noon_Results_Report.asp.html"
          }
       }

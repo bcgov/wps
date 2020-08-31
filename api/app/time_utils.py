@@ -8,7 +8,7 @@ PST_UTC_OFFSET: Final[int] = -8
 
 def get_pst_tz():
     """ Get the Pacific Standard Timezone (PST) : UTC-8"""
-    timezone(timedelta(hours=PST_UTC_OFFSET), name="PST")
+    return timezone(timedelta(hours=PST_UTC_OFFSET), name="PST")
 
 
 def get_utc_now():
