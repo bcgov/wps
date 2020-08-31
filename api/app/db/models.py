@@ -16,6 +16,7 @@ from app.db.database import Base
 logger = logging.getLogger(__name__)
 
 
+# pylint: disable=abstract-method
 class TZTimeStamp(TypeDecorator):
     """ TimeStamp type that ensures that timezones are always specified.
     If the timezone isn't specified, you aren't guaranteed that you're going to get consistent times. """
@@ -23,7 +24,7 @@ class TZTimeStamp(TypeDecorator):
 
     def process_bind_param(self, value, dialect):
         if isinstance(value, datetime.datetime) and value.tzinfo is None:
-            logger.warn('type:%s tzinfo:%s', type(value), value.tzinfo)
+            logger.warning('type:%s tzinfo:%s', type(value), value.tzinfo)
             raise ValueError('{!r} must be TZ-aware'.format(value))
         return value
 
