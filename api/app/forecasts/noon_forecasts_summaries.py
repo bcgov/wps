@@ -1,10 +1,9 @@
-""" This module is used to fetch noon forecasts in percentiles for each day """
+""" This module is used to fetch noon forecasts summaries with minimum and maximum values for each day """
 
 import json
 import logging
 from collections import defaultdict
 from datetime import datetime
-from numpy import percentile
 from app.wildfire_one import get_stations_by_codes
 import app.db.database
 from app.db.crud import query_noon_forecast_records
@@ -19,7 +18,7 @@ LOGGER = logging.getLogger(__name__)
 def create_noon_forecast_summary(station: WeatherStation,
                                  records_by_station: dict
                                  ) -> NoonForecastSummary:
-    """ Returns NoonForecastSummary with percentiles for each day """
+    """ Returns NoonForecastSummary with min and max for each day """
     summary = NoonForecastSummary(station=station)
 
     records_for_one_station = records_by_station[station.code]
@@ -36,16 +35,14 @@ def create_noon_forecast_summary(station: WeatherStation,
     LOGGER.debug(json.dumps(nested_dict, sort_keys=True, indent=4))
 
     for date in nested_dict:
-        percentile_values = NoonForecastSummaryValues(
+        min_max_values = NoonForecastSummaryValues(
             datetime=date,
-            tmp_5th=percentile(nested_dict[date]['temp'], 5),
-            tmp_median=percentile(nested_dict[date]['temp'], 50),
-            tmp_90th=percentile(nested_dict[date]['temp'], 90),
-            rh_5th=percentile(nested_dict[date]['rh'], 5),
-            rh_median=percentile(nested_dict[date]['rh'], 50),
-            rh_90th=percentile(nested_dict[date]['rh'], 90),
+            tmp_min=min(nested_dict[date]['temp']),
+            tmp_max=max(nested_dict[date]['temp']),
+            rh_min=min(nested_dict[date]['rh']),
+            rh_max=max(nested_dict[date]['rh']),
         )
-        summary.values.append(percentile_values)
+        summary.values.append(min_max_values)
 
     return summary
 
@@ -55,7 +52,7 @@ async def fetch_noon_forecasts_summaries(station_codes: StationCodeList,
                                          end_date: datetime
                                          ) -> NoonForecastSummariesResponse:
     """ Fetch noon forecasts from the database and parse them,
-    then calculate percentiles and put them in NoonForecastSummariesResponse """
+    then calculate min&max and put them in NoonForecastSummariesResponse """
     session = app.db.database.get_session()
     records = query_noon_forecast_records(
         session, station_codes, start_date, end_date)

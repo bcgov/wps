@@ -1,7 +1,5 @@
 """ Class models that reflect resources and map to database tables
 """
-import datetime
-from datetime import timezone
 import math
 from sqlalchemy import (Column, String, Integer, Float, Boolean,
                         TIMESTAMP, Sequence, ForeignKey, UniqueConstraint)
@@ -9,6 +7,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import ARRAY
 from geoalchemy2 import Geometry
 from app.db.database import Base
+import app.time_utils as time_utils
 
 
 class ProcessedModelRunUrl(Base):
@@ -133,7 +132,7 @@ class ModelRunGridSubsetPrediction(Base):
     rh_tgl_2 = Column(ARRAY(Float), nullable=True)
 
 
-class NoonForecasts(Base):
+class NoonForecast(Base):
     """ Class representing table structure of 'noon_forecasts' table in DB.
     Default float values of math.nan are used for the weather variables that are
     sometimes null (None), because Postgres evaluates None != None, so the unique
@@ -186,7 +185,7 @@ class NoonForecasts(Base):
     fwi = Column(Float, nullable=False, default=math.nan)
     danger_rating = Column(Integer, nullable=False)
     created_at = Column(TIMESTAMP(timezone=True), nullable=False,
-                        default=datetime.datetime.now(tz=timezone.utc))
+                        default=time_utils.get_utc_now())
 
     def __str__(self):
         return (

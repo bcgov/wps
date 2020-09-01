@@ -16,7 +16,7 @@ import app.main
 from app.tests.common import default_mock_client_get
 import app.wildfire_one
 import app.db.database
-from app.db.models import NoonForecasts
+from app.db.models import NoonForecast
 
 LOGGER = logging.getLogger(__name__)
 
@@ -36,7 +36,7 @@ def mock_session(monkeypatch):
                     forecast['weather_date'])
                 forecast['created_at'] = datetime.fromisoformat(
                     forecast['created_at'])
-                session.add(NoonForecasts(**forecast))
+                session.add(NoonForecast(**forecast))
         return session
 
     monkeypatch.setattr(app.db.database, 'get_session', mock_get_session)

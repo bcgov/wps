@@ -18,7 +18,7 @@ from sqlalchemy.exc import IntegrityError
 import pandas as pd
 from app import config
 import app.db.database
-from app.db.models import NoonForecasts
+from app.db.models import NoonForecast
 import app.time_utils
 from app.wildfire_one import _get_stations_local
 
@@ -200,7 +200,7 @@ def parse_csv(temp_path: str):
     for index, row in data_df.iterrows():
         try:
             row = row.dropna()
-            session.add(NoonForecasts(**row.to_dict()))
+            session.add(NoonForecast(**row.to_dict()))
             session.commit()
         except IntegrityError:
             LOGGER.info('Skipping duplicate record')
