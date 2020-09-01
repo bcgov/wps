@@ -20,7 +20,7 @@ from app.models import ModelEnum
 from app.db.crud import get_processed_file_record, get_processed_file_count
 from app.db.models import ProcessedModelRunUrl
 from app.models.process_grib import GribFileProcessor, ModelRunInfo
-from app import time_utils
+import app.time_utils as time_utils
 
 # If running as it's own process, configure loggin appropriately.
 if __name__ == "__main__":
@@ -226,8 +226,7 @@ class EnvCanada():
         # pylint: disable=no-member
         actual_count = get_processed_file_count(self.session, urls)
         expected_count = len(urls)
-        logger.info('we have processed %s/%s files',
-                    actual_count, expected_count)
+        logger.info('we have processed %s/%s files', actual_count, expected_count)
         return actual_count == expected_count
 
     def process_model_run_urls(self, urls):

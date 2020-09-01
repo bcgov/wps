@@ -11,7 +11,7 @@ from alchemy_mock.compat import mock
 from app.models import env_canada
 from app.db.models import PredictionModel, ProcessedModelRunUrl, PredictionModelRunTimestamp
 import app.db.database
-from app import time_utils
+import app.time_utils as time_utils
 # pylint: disable=unused-argument, redefined-outer-name
 
 
@@ -54,11 +54,9 @@ def mock_session(monkeypatch):
                                            abbreviation='GDPS',
                                            projection='latlon.15x.15',
                                            name='Global Deterministic Prediction System')
-        prediction_model_run = PredictionModelRunTimestamp(id=1,
-                                                           prediction_model_id=1,
-                                                           prediction_run_timestamp=time_utils.get_utc_now(),
-                                                           prediction_model=prediction_model,
-                                                           complete=True)
+        prediction_model_run = PredictionModelRunTimestamp(
+            id=1, prediction_model_id=1, prediction_run_timestamp=time_utils.get_utc_now(),
+            prediction_model=prediction_model, complete=True)
         return UnifiedAlchemyMagicMock(data=[
             (
                 [mock.call.query(PredictionModel),

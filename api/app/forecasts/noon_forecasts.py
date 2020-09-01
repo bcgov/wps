@@ -8,6 +8,7 @@ import math
 from app.schemas import NoonForecast, NoonForecastResponse, NoonForecastValue, StationCodeList
 import app.db.database
 from app.db.crud import query_noon_forecast_records
+import app.db.models
 
 #pylint: disable=invalid-name
 

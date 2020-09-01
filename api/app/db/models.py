@@ -1,7 +1,5 @@
 """ Class models that reflect resources and map to database tables
 """
-import datetime
-from datetime import timezone
 import math
 from sqlalchemy import (Column, String, Integer, Float, Boolean,
                         TIMESTAMP, Sequence, ForeignKey, UniqueConstraint)
@@ -9,7 +7,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import ARRAY
 from geoalchemy2 import Geometry
 from app.db.database import Base
-from app import time_utils
+import app.time_utils as time_utils
 
 
 class ProcessedModelRunUrl(Base):

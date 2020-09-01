@@ -9,7 +9,7 @@ from app.schemas import StationCodeList
 from app.db.models import (
     ProcessedModelRunUrl, PredictionModel, PredictionModelRunTimestamp, PredictionModelGridSubset,
     ModelRunGridSubsetPrediction, NoonForecast)
-from app import time_utils
+import app.time_utils as time_utils
 
 logger = logging.getLogger(__name__)
 

@@ -20,7 +20,7 @@ from app.auth import authenticate
 from app import wildfire_one
 from app import config
 from app import health
-from app import time_utils
+import app.time_utils as time_utils
 
 LOGGING_CONFIG = os.path.join(os.path.dirname(__file__), 'logging.json')
 if os.path.exists(LOGGING_CONFIG):

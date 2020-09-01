@@ -12,7 +12,7 @@ from app.tests.common import (
     default_mock_requests_session_get, default_mock_requests_session_post)
 from app.db.models import PredictionModel, PredictionModelRunTimestamp
 import app.db.database
-from app import time_utils
+import app.time_utils as time_utils
 
 LOGGER = logging.getLogger(__name__)
 
@@ -71,11 +71,9 @@ def mock_session(monkeypatch):
                                            abbreviation='GDPS',
                                            projection='latlon.15x.15',
                                            name='Global Deterministic Prediction System')
-        prediction_model_run = PredictionModelRunTimestamp(id=1,
-                                                           prediction_model_id=1,
-                                                           prediction_run_timestamp=time_utils.get_utc_now(),
-                                                           prediction_model=prediction_model,
-                                                           complete=True)
+        prediction_model_run = PredictionModelRunTimestamp(
+            id=1, prediction_model_id=1, prediction_run_timestamp=time_utils.get_utc_now(),
+            prediction_model=prediction_model, complete=True)
         session = UnifiedAlchemyMagicMock(data=[
             (
                 [mock.call.query(PredictionModel),
