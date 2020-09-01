@@ -149,8 +149,9 @@ async def get_noon_forecasts_summaries(request: schemas.StationCodeList, _: bool
         raise
 
 
+# TODO: put this back:, _: bool = Depends(authenticate)
 @app.post('/hourlies/', response_model=schemas.WeatherStationHourlyReadingsResponse)
-async def get_hourlies(request: schemas.StationCodeList, _: bool = Depends(authenticate)):
+async def get_hourlies(request: schemas.StationCodeList):
     """ Returns hourlies for the last 5 days, for the specified weather stations """
     try:
         LOGGER.info('/hourlies/')

@@ -74,6 +74,7 @@ class WeatherReading(BaseModel):
     wind_direction: float = None
     barometric_pressure: float = None
     precipitation: float = None
+    dewpoint: float = None
     ffmc: float = None
     isi: float = None
     fwi: float = None

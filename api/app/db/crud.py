@@ -203,5 +203,5 @@ def get_hourly_actuals(session: Session, station_codes: List[int], start_date: d
     return session.query(HourlyActual)\
         .filter(HourlyActual.station_code.in_(station_codes))\
         .filter(HourlyActual.weather_date >= start_date)\
-        .order_by(HourlyActual.weather_date)\
-        .order_by(HourlyActual.station_code)
+        .order_by(HourlyActual.station_code)\
+        .order_by(HourlyActual.weather_date)
