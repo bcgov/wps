@@ -40,22 +40,13 @@ class MockClientSession:
 class MockResponse:
     """ Stubbed response object. """
 
-
-<< << << < HEAD
-    def __init__(self, text: str = None, json_response: dict = None, status_code=200, content=None):
-== == == =
     # pylint: disable=redefined-outer-name
     def __init__(self, text: str = None, json: dict = None, status_code=200, content=None):
->>>>>> > main
         """ Initialize client response """
 
         self.text = text
         self.content = content
-<< << << < HEAD
-        self.json_response = json_response
-== == == =
         self._json = json
->>>>>> > main
         self.status_code = status_code
 
     def json(self) -> dict:
@@ -98,13 +89,8 @@ def get_mock_client_session(url: str, params: dict = None) -> MockClientSession:
     filename = fixture_finder.get_fixture_path(url, 'get', params)
     with open(filename) as fixture_file:
         if is_json(filename):
-<<<<<<< HEAD
-            return MockClientSession(json_response=json.load(fixture_file))
-        return MockClientSession(text_response=fixture_file.read())
-=======
             return MockClientSession(json=json.load(fixture_file))
         return MockClientSession(text=fixture_file.read())
->>>>>>> main
 
 
 def default_mock_client_get(*args, **kwargs) -> MockClientSession:
@@ -120,11 +106,7 @@ def _get_fixture_response(fixture):
     with open(fixture, 'rb') as fixture_file:
         if is_json(fixture):
             # Return a response with the appropriate fixture
-<<<<<<< HEAD
-            return MockResponse(json_response=json.load(fixture_file))
-=======
             return MockResponse(json=json.load(fixture_file))
->>>>>>> main
         # Return a response with the appropriate fixture
         data = fixture_file.read()
         return MockResponse(text=data.decode(), content=data)
