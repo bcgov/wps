@@ -20,6 +20,7 @@ from app.auth import authenticate
 from app import wildfire_one
 from app import config
 from app import health
+import app.time_utils as time_utils
 
 LOGGING_CONFIG = os.path.join(os.path.dirname(__file__), 'logging.json')
 if os.path.exists(LOGGING_CONFIG):
@@ -132,9 +133,10 @@ def get_noon_forecasts(request: schemas.StationCodeList, _: bool = Depends(authe
     set of weather stations. """
     try:
         LOGGER.info('/noon_forecasts/')
-        start_date = datetime.datetime.now(tz=datetime.timezone.utc)
-        end_date = start_date + datetime.timedelta(days=5)
-        return fetch_noon_forecasts(request.stations, start_date, end_date)
+        now = time_utils.get_utc_now()
+        back_5_days = now - datetime.timedelta(days=5)
+        forward_5_days = now + datetime.timedelta(days=5)
+        return fetch_noon_forecasts(request.stations, back_5_days, forward_5_days)
     except Exception as exception:
         LOGGER.critical(exception, exc_info=True)
         raise
@@ -145,7 +147,7 @@ async def get_noon_forecasts_summaries(request: schemas.StationCodeList, _: bool
     """ Returns summaries of noon forecasts for given weather stations """
     try:
         LOGGER.info('/noon_forecasts/summaries/')
-        now = datetime.datetime.now(tz=datetime.timezone.utc)
+        now = time_utils.get_utc_now()
         back_5_days = now - datetime.timedelta(days=5)
         return await fetch_noon_forecasts_summaries(request.stations, back_5_days, now)
 

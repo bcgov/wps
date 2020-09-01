@@ -8,8 +8,8 @@ from sqlalchemy.orm import Session
 from app.schemas import StationCodeList
 from app.db.models import (
     ProcessedModelRunUrl, PredictionModel, PredictionModelRunTimestamp, PredictionModelGridSubset,
-    ModelRunGridSubsetPrediction, NoonForecasts)
-
+    ModelRunGridSubsetPrediction, NoonForecast)
+import app.time_utils as time_utils
 
 logger = logging.getLogger(__name__)
 
@@ -108,7 +108,7 @@ def get_model_run_predictions(
     geom_or = _construct_grid_filter(coordinates)
 
     # We are only interested in predictions from now onwards
-    now = datetime.datetime.now(tz=datetime.timezone.utc)
+    now = time_utils.get_utc_now()
 
     # Build up the query:
     query = session.query(PredictionModelGridSubset, ModelRunGridSubsetPrediction).\
@@ -127,7 +127,7 @@ def get_predictions_from_coordinates(session: Session, coordinates: List, model:
     geom_or = _construct_grid_filter(coordinates)
 
     # We are only interested in the last 5 days.
-    now = datetime.datetime.now(tz=datetime.timezone.utc)
+    now = time_utils.get_utc_now()
     back_5_days = now - datetime.timedelta(days=5)
 
     # Build the query:
@@ -191,9 +191,9 @@ def query_noon_forecast_records(session: Session,
                                 end_date: datetime
                                 ):
     """ Sends a query to get noon forecast records """
-    return session.query(NoonForecasts)\
-        .filter(NoonForecasts.station_code.in_(station_codes))\
-        .filter(NoonForecasts.weather_date >= start_date)\
-        .filter(NoonForecasts.weather_date <= end_date)\
-        .order_by(NoonForecasts.weather_date)\
-        .order_by(desc(NoonForecasts.created_at))
+    return session.query(NoonForecast)\
+        .filter(NoonForecast.station_code.in_(station_codes))\
+        .filter(NoonForecast.weather_date >= start_date)\
+        .filter(NoonForecast.weather_date <= end_date)\
+        .order_by(NoonForecast.weather_date)\
+        .order_by(desc(NoonForecast.created_at))
