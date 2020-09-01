@@ -15,17 +15,16 @@ class FixtureException(Exception):
     """ Exception for fixture related issues """
 
 
-def nested_set(dic: dict, keys: list, value: object):
+def nested_defaultdict(existing=None, **kwargs):
+    """ Created an infintely nested default dict from an existing dict.
+    credit: https://stackoverflow.com/a/62438324/295741
     """
-    An easy way to set values in a nested dictionary without having to first create the nested
-    dictionaries.
-    e.g., if you have a dictionary a = {}, and you want to set a['a']['b']['c']['d'] = 1, just call
-    nested_set(a, ('a', 'b', 'c', 'd'), 1)
-    credit: https://stackoverflow.com/a/13688108/295741
-    """
-    for key in keys[:-1]:
-        dic = dic.setdefault(key, {})
-    dic[keys[-1]] = value
+    if existing is None:
+        existing = {}
+    if not isinstance(existing, dict):
+        return existing
+    existing = {key: nested_defaultdict(val) for key, val in existing.items()}
+    return defaultdict(nested_defaultdict, existing, **kwargs)
 
 
 class FixtureFinder():
@@ -107,15 +106,18 @@ class FixtureFinder():
                                 params: dict = None,
                                 data: str = None) -> str:
         """ Given the request, find the name of the fixture. """
-        fixture = lookup.get(url, {}).get(verb, {}).get(str(params), {}).get(str(data), None)
-        if fixture is None:
+        # turn our dictionary into a supercharged nested dictionary
+        lookup = nested_defaultdict(lookup)
+        fixture = lookup[url][verb][str(params)][str(data)]
+
+        if type(fixture) is not str:
             if config.get('AUTO_MAKE_FIXTURES'):
                 logger.warning('inserting fixture into lookup')
-                nested_set(lookup, [url, verb, str(params), str(data)], self.guess_filename(url, params))
+                lookup[url][verb][str(params)][str(data)] = self.guess_filename(url, params)
                 with open(self.lookup_file_name, 'w') as lookup_file:
                     json.dump(lookup, lookup_file, indent=3)
             raise FixtureException(
-                'could not find {} {} {} {} in lookup'.format(url, verb, params, data))
+                'could not find {} {} {} in lookup'.format(url, params, data))
         return fixture
 
     def get_fixture_path(self, url: str, verb: str, params: dict = None, data: str = None) -> str:
