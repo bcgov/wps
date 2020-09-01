@@ -2,6 +2,7 @@
 """
 import math
 import logging
+from datetime import datetime
 from sqlalchemy import (Column, String, Integer, Float, Boolean,
                         TIMESTAMP, Sequence, ForeignKey, UniqueConstraint)
 from sqlalchemy.types import TypeDecorator
@@ -184,7 +185,7 @@ class HourlyActual(Base):
     isi = Column(Float, nullable=False, default=math.nan)
     fwi = Column(Float, nullable=False, default=math.nan)
     created_at = Column(TZTimeStamp, nullable=False,
-                        default=datetime.datetime.now(tz=timezone.utc))
+                        default=time_utils.get_utc_now())
 
 
 class NoonForecast(Base):

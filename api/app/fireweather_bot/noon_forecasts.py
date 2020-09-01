@@ -9,7 +9,7 @@ from sqlalchemy.exc import IntegrityError
 import pandas as pd
 from app import config, configure_logging
 import app.db.database
-from app.db.models import NoonForecasts
+from app.db.models import NoonForecast
 from app.fireweather_bot.common import BaseBot, get_station_names_to_codes
 import app.time_utils
 
@@ -77,7 +77,7 @@ def _parse_csv(temp_path: str):
             data = row.to_dict()
             # We need to ensure that the timezone is set correctly.
             data['weather_date'] = data['weather_date'].to_pydatetime().replace(tzinfo=timezone.utc)
-            session.add(NoonForecasts(**data))
+            session.add(NoonForecast(**data))
             session.commit()
         except IntegrityError:
             LOGGER.info('Skipping duplicate record')
@@ -108,7 +108,7 @@ def _get_end_date():
     return five_days_ahead.strftime('%Y%m%d')
 
 
-class NoonForecastsBot(BaseBot):
+class NoonForecastBot(BaseBot):
     """ Implementation of class to process noon forecasts. """
 
     def construct_request_body(self):
@@ -125,7 +125,7 @@ def main():
     """
     try:
         LOGGER.debug('Retrieving noon forecasts...')
-        bot = NoonForecastsBot()
+        bot = NoonForecastBot()
         bot.run()
         LOGGER.debug(
             'Finished retrieving noon forecasts for all weather stations.')
