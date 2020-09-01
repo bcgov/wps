@@ -9,6 +9,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import ARRAY
 from geoalchemy2 import Geometry
 from app.db.database import Base
+from app import time_utils
 
 
 class ProcessedModelRunUrl(Base):
@@ -186,7 +187,7 @@ class NoonForecast(Base):
     fwi = Column(Float, nullable=False, default=math.nan)
     danger_rating = Column(Integer, nullable=False)
     created_at = Column(TIMESTAMP(timezone=True), nullable=False,
-                        default=datetime.datetime.now(tz=timezone.utc))
+                        default=time_utils.get_utc_now())
 
     def __str__(self):
         return (

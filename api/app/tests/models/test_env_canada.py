@@ -11,6 +11,7 @@ from alchemy_mock.compat import mock
 from app.models import env_canada
 from app.db.models import PredictionModel, ProcessedModelRunUrl, PredictionModelRunTimestamp
 import app.db.database
+from app import time_utils
 # pylint: disable=unused-argument, redefined-outer-name
 
 
@@ -55,8 +56,7 @@ def mock_session(monkeypatch):
                                            name='Global Deterministic Prediction System')
         prediction_model_run = PredictionModelRunTimestamp(id=1,
                                                            prediction_model_id=1,
-                                                           prediction_run_timestamp=datetime.datetime.now(
-                                                               tz=timezone.utc),
+                                                           prediction_run_timestamp=time_utils.get_utc_now(),
                                                            prediction_model=prediction_model,
                                                            complete=True)
         return UnifiedAlchemyMagicMock(data=[
@@ -107,7 +107,7 @@ def test_get_download_urls():
     """ test to see if get_download_urls methods give the correct number of urls """
     total_num_of_urls = 81 * len(['TMP_TGL_2', 'RH_TGL_2'])
     assert len(list(env_canada.get_model_run_download_urls(
-        datetime.datetime.now(), 0))) == total_num_of_urls
+        time_utils.get_utc_now(), 0))) == total_num_of_urls
 
 
 def test_main(mock_download, mock_session, mock_utcnow, mock_get_processed_file_count):

@@ -11,10 +11,13 @@ from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
 import app.main
 from app.db.models import NoonForecast
+from app import time_utils
+
 
 LOGGER = logging.getLogger(__name__)
 
-noon = datetime.now().replace(hour=20, minute=0, second=0, microsecond=0)
+noon = time_utils.get_utc_now().replace(
+    hour=20, minute=0, second=0, microsecond=0)
 weather_date = noon - timedelta(days=2)
 
 # they should have the same length
@@ -38,7 +41,7 @@ def get_session_with_data():
                 NoonForecast(
                     station_code=code,
                     weather_date=weather_date,
-                    created_at=datetime.now(),
+                    created_at=time_utils.get_utc_now(),
                     temperature=value['tmp'],
                     relative_humidity=value['rh']
                 )
