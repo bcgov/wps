@@ -71,6 +71,11 @@ class BuildQueryByStationCode(BuildQuery):
         return [url, params]
 
 
+def use_wfwx():
+    """ Return True if configured to use WFWX """
+    return config.get('USE_WFWX') == 'True'
+
+
 async def _fetch_access_token(session: ClientSession) -> dict:
     """ Fetch an access token for WFWX Fireweather API
     """
@@ -206,8 +211,7 @@ async def _get_stations_by_codes_remote(station_codes: List[int]) -> List[Weathe
 
 async def get_stations_by_codes(station_codes: List[int]) -> List[WeatherStation]:
     """ Get a list of stations by code, from WFWX Fireweather API. """
-    use_wfwx = config.get('USE_WFWX') == 'True'
-    if use_wfwx:
+    if use_wfwx():
         return await _get_stations_by_codes_remote(station_codes)
     return _get_stations_by_codes_local(station_codes)
 
@@ -244,8 +248,7 @@ async def get_stations() -> List[WeatherStation]:
     """ Get list of stations from WFWX Fireweather API.
     """
     # Check if we're really using the api, or loading from pre-generated files.
-    use_wfwx = config.get('USE_WFWX') == 'True'
-    if use_wfwx:
+    if use_wfwx():
         return await _get_stations_remote()
     return _get_stations_local()
 

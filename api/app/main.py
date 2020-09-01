@@ -17,6 +17,7 @@ from app.auth import authenticate
 from app import wildfire_one
 from app import config
 from app import health
+from app import hourlies
 
 
 configure_logging()
@@ -153,7 +154,7 @@ async def get_hourlies(request: schemas.StationCodeList, _: bool = Depends(authe
     """ Returns hourlies for the last 5 days, for the specified weather stations """
     try:
         LOGGER.info('/hourlies/')
-        readings = await wildfire_one.get_hourly_readings(request.stations)
+        readings = await hourlies.get_hourly_readings(request.stations)
         return schemas.WeatherStationHourlyReadingsResponse(hourlies=readings)
     except Exception as exception:
         LOGGER.critical(exception, exc_info=True)
