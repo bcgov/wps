@@ -55,10 +55,10 @@ objects:
           name: ${NAME}-${SUFFIX}:${SUFFIX}
       resources:
         limits:
-          cpu: "2"
+          cpu: "4"
           memory: 5Gi
         requests:
-          cpu: "1"
+          cpu: "2"
           memory: 1Gi
       source:
         type: Git
