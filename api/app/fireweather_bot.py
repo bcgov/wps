@@ -19,7 +19,8 @@ import pandas as pd
 from app import config
 import app.db.database
 from app.db.models import NoonForecast
-from app.wildfire_one import _get_now, _get_stations_local
+import app.time_utils
+from app.wildfire_one import _get_stations_local
 
 
 # If running as it's own process, configure loggin appropriately.
@@ -211,7 +212,7 @@ def _get_start_date():
     use tomorrow's date, since we only want forecasts, not actuals)
     Strip out time, we just want yyyymmdd """
     date = ''
-    now = _get_now()    # returns time in UTC
+    now = app.time_utils.get_utc_now()    # returns time in UTC
     if now.hour == 23:
         # this is the evening run during Pacific Daylight Savings
         date = now + timedelta(days=1)
@@ -226,7 +227,7 @@ def _get_start_date():
 def _get_end_date():
     """ Helper function to get the end date for query (5 days in future).
     Strip out time, we just want <year><month><date> """
-    five_days_ahead = _get_now() + timedelta(days=5)
+    five_days_ahead = app.time_utils.get_utc_now() + timedelta(days=5)
     return five_days_ahead.strftime('%Y%m%d')
 
 
