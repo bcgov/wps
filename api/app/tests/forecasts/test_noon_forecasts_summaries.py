@@ -16,7 +16,7 @@ import app.time_utils as time_utils
 
 LOGGER = logging.getLogger(__name__)
 
-noon = app.time_utils.get_utc_now().replace(
+noon = time_utils.get_utc_now().replace(
     hour=20, minute=0, second=0, microsecond=0)
 weather_date = noon - timedelta(days=2)
 
