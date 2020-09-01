@@ -38,7 +38,7 @@ def _authenticate_session(session: Session) -> Session:
                        auth=HttpNtlmAuth('idir\\'+user, password))
 
     if resp and re.search(r"server error", resp.text, re.IGNORECASE):
-        raise AutenticationException(
+        raise AuthenticationException(
             "Server Error occurred while authenticating user. \n {}".format(resp.text))
 
     return session
