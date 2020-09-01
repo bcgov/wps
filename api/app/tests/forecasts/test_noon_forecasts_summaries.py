@@ -10,7 +10,7 @@ import pytest
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
 import app.main
-from app.db.models import NoonForecasts
+from app.db.models import NoonForecast
 
 LOGGER = logging.getLogger(__name__)
 
@@ -35,7 +35,7 @@ def get_session_with_data():
     for code in station_codes:
         for value in weather_values:
             session.add(
-                NoonForecasts(
+                NoonForecast(
                     station_code=code,
                     weather_date=weather_date,
                     created_at=datetime.now(),

@@ -133,7 +133,7 @@ class ModelRunGridSubsetPrediction(Base):
     rh_tgl_2 = Column(ARRAY(Float), nullable=True)
 
 
-class NoonForecasts(Base):
+class NoonForecast(Base):
     """ Class representing table structure of 'noon_forecasts' table in DB.
     Default float values of math.nan are used for the weather variables that are
     sometimes null (None), because Postgres evaluates None != None, so the unique
