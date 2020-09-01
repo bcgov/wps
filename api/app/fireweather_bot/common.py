@@ -24,7 +24,7 @@ class CSVNotFoundException(Exception):
     """ Exception thrown if CSV is not found """
 
 
-class AutenticationException(Exception):
+class AuthenticationException(Exception):
     """ Exception thrown if there's any issue authenticating """
 
 
