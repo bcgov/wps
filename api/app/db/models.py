@@ -23,7 +23,7 @@ class TZTimeStamp(TypeDecorator):
     impl = TIMESTAMP(timezone=True)
 
     def process_bind_param(self, value, dialect):
-        if isinstance(value, datetime.datetime) and value.tzinfo is None:
+        if isinstance(value, datetime) and value.tzinfo is None:
             logger.warning('type:%s tzinfo:%s', type(value), value.tzinfo)
             raise ValueError('{!r} must be TZ-aware'.format(value))
         return value
