@@ -1,17 +1,17 @@
-""" Unit tests for the fireweather noon forecats bot (Bender) """
+""" Unit testing for hourly actuals bot (Marvin) """
 import os
 import logging
 import requests
 import pytest
-import app
+from app.fireweather_bot import hourly_actuals
 from app.tests.conftest import mock_requests_session
-from app.fireweather_bot import noon_forecasts
+
 
 logger = logging.getLogger(__name__)
 
 
-def test_noon_forecasts_bot(mock_requests_session):
+def test_hourly_actuals_bot(mock_requests_session):
     """ Very simple (not very good) test that checks that the bot exits with a success code. """
     with pytest.raises(SystemExit) as excinfo:
-        noon_forecasts.main()
+        hourly_actuals.main()
     assert excinfo.value.code == 0

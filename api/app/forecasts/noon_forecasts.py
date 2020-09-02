@@ -10,7 +10,6 @@ import app.db.database
 from app.db.crud import query_noon_forecast_records
 import app.db.models
 
-#pylint: disable=invalid-name
 
 LOGGER = logging.getLogger(__name__)
 

@@ -123,7 +123,7 @@ class FixtureFinder():
     def get_fixture_path(self, url: str, verb: str, params: dict = None, data: str = None) -> str:
         """ Returns the path to a fixture based on url and params.
         """
-        logger.info('finding a fixture for %s', url)
+        logger.debug('finding a fixture for %s', url)
         # get the base path of the fixture:
         base_path = self.get_base_path(url)
         # load the lookup dictionary:
@@ -134,5 +134,5 @@ class FixtureFinder():
         fixture_filename = os.path.join(base_path, fixture_filename)
         if not os.path.exists(fixture_filename):
             raise FixtureException('fixture file {} for {} not found.'.format(fixture_filename, url))
-        logger.info('returning %s for %s', fixture_filename, url)
+        logger.debug('returning %s for %s', fixture_filename, url)
         return fixture_filename

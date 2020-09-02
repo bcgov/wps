@@ -5,16 +5,15 @@ TODO: Move this file to app/models/ (not part of this PR as it makes comparing p
 
 import os
 import sys
-import json
 import datetime
 from typing import Generator
 from urllib.parse import urlparse
 import logging
-import logging.config
 import time
 import tempfile
 import requests
 from sqlalchemy.orm import Session
+from app import configure_logging
 import app.db.database
 from app.models import ModelEnum
 from app.db.crud import get_processed_file_record, get_processed_file_count
@@ -24,11 +23,7 @@ import app.time_utils as time_utils
 
 # If running as it's own process, configure loggin appropriately.
 if __name__ == "__main__":
-    LOGGING_CONFIG = os.path.join(os.path.dirname(__file__), '../logging.json')
-    if os.path.exists(LOGGING_CONFIG):
-        with open(LOGGING_CONFIG) as config_file:
-            CONFIG = json.load(config_file)
-        logging.config.dictConfig(CONFIG)
+    configure_logging()
 
 logger = logging.getLogger(__name__)
 
