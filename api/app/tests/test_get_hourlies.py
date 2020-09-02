@@ -67,19 +67,19 @@ def response(monkeypatch, mock_jwt_decode, codes, use_wfwx):
 
 
 # pylint: disable=redefined-outer-name
-@ then('the response status code is <status>')
+@then('the response status code is <status>')
 def assert_status_code(response, status):
     """ Assert that we receive the expected status code """
     assert response.status_code == status
 
 
-@ then('there are <num_groups> groups of hourlies')
+@then('there are <num_groups> groups of hourlies')
 def assert_number_of_hourlies_groups(response, num_groups):
     """ Assert that we receive the expected number of hourly groups """
     assert len(response.json()['hourlies']) == num_groups
 
 
-@ then('there are <num_readings_per_group> readings per group')
+@then('there are <num_readings_per_group> readings per group')
 def assert_number_of_hourlies_per_group(response, num_readings_per_group):
     """ Assert that we receive the expected number of hourlies per groups """
     # pylint: disable=eval-used
