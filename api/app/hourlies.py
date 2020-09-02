@@ -14,7 +14,7 @@ def get(value: object, condition: bool = True):
     """ If the condition is False, or the value is not a number, return None, otherwise
     return the value.
     """
-    if not condition or math.isnan(value):
+    if not condition or value is None or math.isnan(value):
         return None
     return value
 
