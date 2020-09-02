@@ -19,7 +19,7 @@ from app.models import ModelEnum
 from app.db.crud import get_processed_file_record, get_processed_file_count
 from app.db.models import ProcessedModelRunUrl
 from app.models.process_grib import GribFileProcessor, ModelRunInfo
-
+import app.time_utils as time_utils
 
 # If running as it's own process, configure loggin appropriately.
 if __name__ == "__main__":
@@ -210,9 +210,8 @@ class EnvCanada():
             logger.info('file processed %s', url)
             processed_file = ProcessedModelRunUrl(
                 url=url,
-                create_date=datetime.datetime.now(datetime.timezone.utc))
-        processed_file.update_date = datetime.datetime.now(
-            datetime.timezone.utc)
+                create_date=time_utils.get_utc_now())
+        processed_file.update_date = time_utils.get_utc_now()
         # pylint: disable=no-member
         self.session.add(processed_file)
         self.session.commit()

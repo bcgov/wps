@@ -12,6 +12,7 @@ from app.tests.common import (
     default_mock_requests_session_get, default_mock_requests_session_post)
 from app.db.models import PredictionModel, PredictionModelRunTimestamp
 import app.db.database
+import app.time_utils as time_utils
 
 LOGGER = logging.getLogger(__name__)
 
@@ -70,12 +71,9 @@ def mock_session(monkeypatch):
                                            abbreviation='GDPS',
                                            projection='latlon.15x.15',
                                            name='Global Deterministic Prediction System')
-        prediction_model_run = PredictionModelRunTimestamp(id=1,
-                                                           prediction_model_id=1,
-                                                           prediction_run_timestamp=datetime.now(
-                                                               tz=timezone.utc),
-                                                           prediction_model=prediction_model,
-                                                           complete=True)
+        prediction_model_run = PredictionModelRunTimestamp(
+            id=1, prediction_model_id=1, prediction_run_timestamp=time_utils.get_utc_now(),
+            prediction_model=prediction_model, complete=True)
         session = UnifiedAlchemyMagicMock(data=[
             (
                 [mock.call.query(PredictionModel),
@@ -112,5 +110,7 @@ def mock_jwt_decode(monkeypatch):
 @pytest.fixture()
 def mock_requests_session(monkeypatch):
     """ Patch all calls to requests.Session.* """
-    monkeypatch.setattr(requests.Session, 'get', default_mock_requests_session_get)
-    monkeypatch.setattr(requests.Session, 'post', default_mock_requests_session_post)
+    monkeypatch.setattr(requests.Session, 'get',
+                        default_mock_requests_session_get)
+    monkeypatch.setattr(requests.Session, 'post',
+                        default_mock_requests_session_post)

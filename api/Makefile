@@ -141,4 +141,4 @@ docker-run-env-canada:
 docker-run-bender:
 	# Run a python script to download forecast data from BC Wild Fire on docker
 	# Needs to run "make docker-run" first
-	docker-compose exec api python -m app.fireweather_bot_noon_forecasts
+	docker-compose exec api python -m app.fireweather_bot.noon_forecasts
