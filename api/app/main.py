@@ -14,15 +14,16 @@ from app.percentile import get_precalculated_percentiles
 from app.forecasts.noon_forecasts import fetch_noon_forecasts
 from app.forecasts.noon_forecasts_summaries import fetch_noon_forecasts_summaries
 from app.auth import authenticate
-from app import wildfire_one
 from app import config
 from app import health
+from app import hourlies
+from app import stations
 import app.time_utils as time_utils
 
 
 configure_logging()
 
-LOGGER = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 API_INFO = '''
     Description: API for the PSU FWI Calculator
@@ -85,11 +86,11 @@ async def get_health():
     """ A simple endpoint for Openshift Healthchecks """
     try:
         health_check = health.patroni_cluster_health_check()
-        LOGGER.info('/health - healthy: %s. %s',
+        logger.info('/health - healthy: %s. %s',
                     health_check.get('healthy'), health_check.get('message'))
         return health_check
     except Exception as exception:
-        LOGGER.error(exception, exc_info=True)
+        logger.error(exception, exc_info=True)
         raise
 
 
@@ -99,11 +100,11 @@ async def get_model_predictions(
     """ Returns 10 day noon prediction based on the global deterministic prediction system (GDPS)
     for the specified set of weather stations. """
     try:
-        LOGGER.info('/models/%s/predictions/', model.name)
+        logger.info('/models/%s/predictions/', model.name)
         model_predictions = await fetch_model_predictions(model, request.stations)
         return schemas.WeatherModelPredictionResponse(predictions=model_predictions)
     except Exception as exception:
-        LOGGER.critical(exception, exc_info=True)
+        logger.critical(exception, exc_info=True)
         raise
 
 
@@ -113,11 +114,11 @@ async def get_model_prediction_summaries(
         model: ModelEnum, request: schemas.StationCodeList, _: bool = Depends(authenticate)):
     """ Returns a summary of predictions for a given model. """
     try:
-        LOGGER.info('/models/%s/predictions/summaries/', model.name)
+        logger.info('/models/%s/predictions/summaries/', model.name)
         summaries = await fetch_model_prediction_summaries(model, request.stations)
         return schemas.WeatherModelPredictionSummaryResponse(summaries=summaries)
     except Exception as exception:
-        LOGGER.critical(exception, exc_info=True)
+        logger.critical(exception, exc_info=True)
         raise
 
 
@@ -126,13 +127,13 @@ def get_noon_forecasts(request: schemas.StationCodeList, _: bool = Depends(authe
     """ Returns noon forecasts pulled from BC FireWeather Phase 1 website for the specified
     set of weather stations. """
     try:
-        LOGGER.info('/noon_forecasts/')
+        logger.info('/noon_forecasts/')
         now = time_utils.get_utc_now()
         back_5_days = now - datetime.timedelta(days=5)
         forward_5_days = now + datetime.timedelta(days=5)
         return fetch_noon_forecasts(request.stations, back_5_days, forward_5_days)
     except Exception as exception:
-        LOGGER.critical(exception, exc_info=True)
+        logger.critical(exception, exc_info=True)
         raise
 
 
@@ -140,13 +141,13 @@ def get_noon_forecasts(request: schemas.StationCodeList, _: bool = Depends(authe
 async def get_noon_forecasts_summaries(request: schemas.StationCodeList, _: bool = Depends(authenticate)):
     """ Returns summaries of noon forecasts for given weather stations """
     try:
-        LOGGER.info('/noon_forecasts/summaries/')
+        logger.info('/noon_forecasts/summaries/')
         now = time_utils.get_utc_now()
         back_5_days = now - datetime.timedelta(days=5)
         return await fetch_noon_forecasts_summaries(request.stations, back_5_days, now)
 
     except Exception as exception:
-        LOGGER.critical(exception, exc_info=True)
+        logger.critical(exception, exc_info=True)
         raise
 
 
@@ -154,11 +155,11 @@ async def get_noon_forecasts_summaries(request: schemas.StationCodeList, _: bool
 async def get_hourlies(request: schemas.StationCodeList, _: bool = Depends(authenticate)):
     """ Returns hourlies for the last 5 days, for the specified weather stations """
     try:
-        LOGGER.info('/hourlies/')
-        readings = await wildfire_one.get_hourly_readings(request.stations)
+        logger.info('/hourlies/')
+        readings = await hourlies.get_hourly_readings(request.stations)
         return schemas.WeatherStationHourlyReadingsResponse(hourlies=readings)
     except Exception as exception:
-        LOGGER.critical(exception, exc_info=True)
+        logger.critical(exception, exc_info=True)
         raise
 
 
@@ -167,11 +168,11 @@ async def get_stations():
     """ Return a list of fire weather stations.
     """
     try:
-        LOGGER.info('/stations/')
-        stations = await wildfire_one.get_stations()
-        return schemas.WeatherStationsResponse(weather_stations=stations)
+        logger.info('/stations/')
+        weather_stations = await stations.get_stations()
+        return schemas.WeatherStationsResponse(weather_stations=weather_stations)
     except Exception as exception:
-        LOGGER.critical(exception, exc_info=True)
+        logger.critical(exception, exc_info=True)
         raise
 
 
@@ -180,9 +181,9 @@ async def get_percentiles(request: schemas.PercentileRequest):
     """ Return 90% FFMC, 90% ISI, 90% BUI etc. for a given set of fire stations for a given period of time.
     """
     try:
-        LOGGER.info('/percentiles/')
+        logger.info('/percentiles/')
         percentiles = get_precalculated_percentiles(request)
         return percentiles
     except Exception as exception:
-        LOGGER.critical(exception, exc_info=True)
+        logger.critical(exception, exc_info=True)
         raise

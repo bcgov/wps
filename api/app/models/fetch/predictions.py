@@ -13,7 +13,7 @@ from app.schemas import (WeatherStation, WeatherModelPrediction,
                          WeatherModelPredictionValues, WeatherModelRun)
 from app.db.models import ModelRunGridSubsetPrediction
 import app.db.crud
-from app.wildfire_one import get_stations_by_codes
+import app.stations
 from app import config
 from app.models import ModelEnum
 from app.models.fetch import extract_stations_in_polygon
@@ -182,7 +182,7 @@ async def _fetch_model_predictions_by_station_codes(model: ModelEnum, station_co
     """ Fetch predictions from database.
     """
     # Using the list of station codes, fetch the stations:
-    stations = await get_stations_by_codes(station_codes)
+    stations = await app.stations.get_stations_by_codes(station_codes)
     session = app.db.database.get_session()
     # Fetch the all the predictions.
     predictions = _fetch_model_predictions_by_stations(
