@@ -60,7 +60,7 @@ jobs:
           AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
           SCRIPT: openshift/scripts/oc_provision_bcfw_p1_forecasts_cronjob.sh ${SUFFIX} apply
 
-      - name: Environment Canada cronjob
+      - name: Environment Canada cronjob (Donald)
         uses: bcgov/openshift-launchpad-deployment@master
         with:
           AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
