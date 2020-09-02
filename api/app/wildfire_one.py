@@ -26,8 +26,6 @@ ecodiv_shape_file_path = os.path.join(
 weather_stations_file_path = os.path.join(
     dirname, 'data/weather_stations.json')
 
-# pylint: disable=too-few-public-methods
-
 
 class BuildQuery(ABC):
     """ Base class for building query urls and params """
@@ -42,7 +40,6 @@ class BuildQuery(ABC):
         """ Return query url and params """
 
 
-# pylint: disable=too-few-public-methods
 class BuildQueryAllStations(BuildQuery):
     """ Class for building a url and params to request all stations.  """
 
@@ -54,7 +51,6 @@ class BuildQueryAllStations(BuildQuery):
         return [url, params]
 
 
-# pylint: disable=too-few-public-methods
 class BuildQueryByStationCode(BuildQuery):
     """ Class for building a url and params to request a list of stations by code """
 

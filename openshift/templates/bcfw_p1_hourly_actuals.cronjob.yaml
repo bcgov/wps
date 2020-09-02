@@ -3,8 +3,8 @@ apiVersion: v1
 metadata:
   name: ${JOB_NAME}-cronjob-template
   annotations:
-    description: "Scheduled task to download and process weather data from the MSC Datamart through http protocol."
-    tags: "cronjob,env-canada"
+    description: "Scheduled task to download noon-time weather forecasts for all weather stations from the BC Fire Weather Phase 1 API."
+    tags: "cronjob,bcfw-p1"
 labels:
   app.kubernetes.io/part-of: "${NAME}"
   app: ${NAME}
@@ -18,7 +18,7 @@ parameters:
   - name: PROJECT_TOOLS
     value: auzhsi-tools
   - name: JOB_NAME
-    value: env-canada
+    value: bcfw-p1-hourly-actuals
 objects:
   - kind: CronJob
     apiVersion: batch/v1beta1
@@ -27,13 +27,7 @@ objects:
       labels:
         cronjob: ${JOB_NAME}
     spec:
-      # Don't run on the hour - as a courtesy to env canada, pick a random 
-      # number so that not everyone hits env. canada at the same time.
-      schedule: "13 * * * *"
-      # We use the "Replace" policy, because we never want the cronjobs to run concurrently,
-      # and if for whatever reason a cronjob gets stuck, we want the next run to proceed.
-      # If we were to use Forbid, and a cronjob gets stuck, then we'd stop gathering data until someone
-      # noticed. We don't want that.
+      schedule: "15 * * * *"
       concurrencyPolicy: "Replace"
       jobTemplate:
         metadata:
@@ -46,8 +40,23 @@ objects:
                 - name: ${JOB_NAME}
                   image: docker-registry.default.svc:5000/${PROJECT_TOOLS}/${NAME}-${SUFFIX}:${SUFFIX}
                   imagePullPolicy: "Always"
-                  command: ["python", "-m", "app.models.env_canada"]
+                  command: ["python", "-m", "app.fireweather_bot.hourly_actuals"]
                   env:
+                    - name: BC_FIRE_WEATHER_SECRET
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${NAME}-global
+                          key: bc-fire-weather-secret
+                    - name: BC_FIRE_WEATHER_USER
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${NAME}-global
+                          key: bc-fire-weather-user
+                    - name: BC_FIRE_WEATHER_FILTER_ID
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${NAME}-global
+                          key: bc-fire-weather-filter-id
                     - name: POSTGRES_USER
                       value: ${NAME}-${SUFFIX}
                     - name: POSTGRES_PASSWORD

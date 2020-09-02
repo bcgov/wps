@@ -187,7 +187,7 @@ class GribFileProcessor():
             for (points, values) in self.yield_data_for_stations(raster_band):
                 self.store_bounding_values(
                     points, values, prediction_run, grib_info)
-        except sqlalchemy.exc.OperationalError:
+        except sqlalchemy.exc.OperationalError as exception:
             # Sometimes this exception is thrown with a "server closed the connection unexpectedly" error.
             # This could happen due to the connection being closed.
             if self.session.is_disconnect():
@@ -195,6 +195,6 @@ class GribFileProcessor():
                 # Try to re-connect, so that subsequent calls to this function may succeed.
                 # NOTE: I'm not sure if this will solve the problem!
                 self.session = app.db.database.get_session()
-                raise DatabaseException('Database disconnection')
+                raise DatabaseException('Database disconnection') from exception
             # Re-throw the exception.
             raise

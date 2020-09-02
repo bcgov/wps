@@ -28,4 +28,4 @@ async def authenticate(token: str = Depends(oauth2_scheme)):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=detail,
             headers={'WWW-Authenticate': 'Bearer'},
-        )
+        ) from exception
