@@ -3,6 +3,7 @@
 
 import math
 import struct
+import asyncio
 import logging
 import logging.config
 from typing import List
@@ -10,7 +11,6 @@ from sqlalchemy.dialects.postgresql import array
 import sqlalchemy.exc
 import gdal
 import app.db.database
-import asyncio
 from app.stations import get_stations
 from app.db.models import (
     PredictionModel, PredictionModelRunTimestamp, ModelRunGridSubsetPrediction)

@@ -14,7 +14,6 @@ from app.percentile import get_precalculated_percentiles
 from app.forecasts.noon_forecasts import fetch_noon_forecasts
 from app.forecasts.noon_forecasts_summaries import fetch_noon_forecasts_summaries
 from app.auth import authenticate
-from app import wildfire_one
 from app import config
 from app import health
 from app import hourlies
