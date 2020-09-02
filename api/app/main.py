@@ -18,6 +18,7 @@ from app import wildfire_one
 from app import config
 from app import health
 from app import hourlies
+from app import stations
 import app.time_utils as time_utils
 
 
@@ -169,8 +170,8 @@ async def get_stations():
     """
     try:
         LOGGER.info('/stations/')
-        stations = await wildfire_one.get_stations()
-        return schemas.WeatherStationsResponse(weather_stations=stations)
+        weather_stations = await stations.get_stations()
+        return schemas.WeatherStationsResponse(weather_stations=weather_stations)
     except Exception as exception:
         LOGGER.critical(exception, exc_info=True)
         raise

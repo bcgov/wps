@@ -5,6 +5,7 @@ from typing import List
 from datetime import timedelta
 import app.db.database
 from app.db.crud import get_hourly_actuals
+import app.stations
 from app import wildfire_one
 from app.schemas import WeatherStationHourlyReadings, WeatherReading
 
@@ -21,7 +22,7 @@ def get(value: object, condition: bool = True):
 async def fetch_hourly_readings_from_db(station_codes: List[int]) -> List[WeatherStationHourlyReadings]:
     """ Fetch the hourly readings from the database.
     """
-    stations = await wildfire_one.get_stations_by_codes(station_codes)
+    stations = await app.stations.get_stations_by_codes(station_codes)
     session = app.db.database.get_session()
     # by default, we want the last 5 days
     now = app.time_utils.get_utc_now()

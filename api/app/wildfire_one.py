@@ -23,8 +23,6 @@ core_season_file_path = os.path.join(
     dirname, 'data/ecodivisions_core_seasons.json')
 ecodiv_shape_file_path = os.path.join(
     dirname, 'data/ERC_ECODIV_polygon/ERC_ECODIV_polygon.shp')
-weather_stations_file_path = os.path.join(
-    dirname, 'data/weather_stations.json')
 
 
 class BuildQuery(ABC):
@@ -179,19 +177,7 @@ def _parse_hourly(hourly) -> WeatherReading:
     )
 
 
-def _get_stations_by_codes_local(station_codes: List[int]) -> List[WeatherStation]:
-    """ Get a list of stations by code, from local json files. """
-    LOGGER.info('Using pre-generated json to retrieve station by code')
-    with open(weather_stations_file_path) as file_pointer:
-        stations = json.load(file_pointer)
-        results = []
-        for station in stations['weather_stations']:
-            if int(station['code']) in station_codes:
-                results.append(WeatherStation(**station))
-        return results
-
-
-async def _get_stations_by_codes_remote(station_codes: List[int]) -> List[WeatherStation]:
+async def get_stations_by_codes(station_codes: List[int]) -> List[WeatherStation]:
     """ Get a list of stations by code, from WFWX Fireweather API. """
     LOGGER.info('Using WFWX to retrieve stations by code')
     async with ClientSession() as session:
@@ -209,23 +195,7 @@ async def _get_stations_by_codes_remote(station_codes: List[int]) -> List[Weathe
         return stations
 
 
-async def get_stations_by_codes(station_codes: List[int]) -> List[WeatherStation]:
-    """ Get a list of stations by code, from WFWX Fireweather API. """
-    if use_wfwx():
-        return await _get_stations_by_codes_remote(station_codes)
-    return _get_stations_by_codes_local(station_codes)
-
-
-def _get_stations_local() -> List[dict]:
-    """ Get list of stations from local json files.
-    """
-    LOGGER.info('Using pre-generated json to retrieve station list')
-    with open(weather_stations_file_path) as weather_stations_file:
-        json_data = json.load(weather_stations_file)
-        return json_data['weather_stations']
-
-
-async def _get_stations_remote() -> List[WeatherStation]:
+async def get_stations() -> List[WeatherStation]:
     """ Get list of stations from WFWX Fireweather API.
     """
     LOGGER.info('Using WFWX to retrieve station list')
@@ -242,15 +212,6 @@ async def _get_stations_remote() -> List[WeatherStation]:
                 stations.append(_parse_station(raw_station))
         LOGGER.debug('total stations: %d', len(stations))
     return stations
-
-
-async def get_stations() -> List[WeatherStation]:
-    """ Get list of stations from WFWX Fireweather API.
-    """
-    # Check if we're really using the api, or loading from pre-generated files.
-    if use_wfwx():
-        return await _get_stations_remote()
-    return _get_stations_local()
 
 
 def prepare_fetch_hourlies_query(raw_station):
