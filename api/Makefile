@@ -2,7 +2,8 @@ define run-test
 	# function to run tests
 	# useful params for pytest:
 	# -s show stdout
-	$(1) pytest -n 4 app;
+	# -n numprocesses - doesn't really seem to run faster with more proccesses at the moment.
+	$(1) pytest app;
 	# ImportMismatchError? run: make clean
 endef
 

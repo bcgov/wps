@@ -28,7 +28,7 @@ def processed(given_data):
     given_data['noon_value'] = interpolator.calculate_noon_value()
 
 
-@ then('<timestamp> <temperature> <relative_humidity>')
+@then('<timestamp> <temperature> <relative_humidity>')
 def then(given_data: WeatherModelPredictionValues, timestamp: str, temperature: float,
          relative_humidity: float):
     assert given_data['noon_value'].datetime == datetime.datetime.fromisoformat(
