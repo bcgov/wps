@@ -40,7 +40,7 @@ def response(monkeypatch, mock_jwt_decode, codes, use_wfwx):
         hourly_actuals = []
         for code in stations:
             hourly_actuals.append(HourlyActual(weather_date=datetime.fromisoformat(
-                "2020-01-01T01:01+00:00"), station_code=code))
+                "2020-01-01T01:01+00:00"), station_code=code, temp_valid=True, temperature=11.1))
 
         # Create a mock session - no filters, this is what you'll get on any query
         session = UnifiedAlchemyMagicMock(data=[
