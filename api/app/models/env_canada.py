@@ -76,23 +76,23 @@ def parse_env_canada_filename(filename):
     return info
 
 
-def get_model_day(now, hour) -> int:
-    """ Get the model day, based on the current time.
+def adjust_model_day(now, hour) -> datetime:
+    """ Adjust the model day, based on the current time.
 
     If now (e.g. 10h00) is less than model run (e.g. 12), it means we have to look for yesterdays
     model run.
     """
     if now.hour < hour:
-        return now.day - 1
-    return now.day
+        return now - datetime.timedelta(days=1)
+    return now
 
 
 def get_file_date_part(now, hour) -> str:
     """ Construct the part of the filename that contains the model run date
     """
-    day = get_model_day(now, hour)
+    now = adjust_model_day(now, hour)
     date = '{year}{month:02d}{day:02d}'.format(
-        year=now.year, month=now.month, day=day)
+        year=now.year, month=now.month, day=now.day)
     return date
 
 
@@ -174,8 +174,9 @@ def mark_prediction_model_run_processed(session: Session,
     prediction_run_timestamp = datetime.datetime(
         year=now.year,
         month=now.month,
-        day=get_model_day(now, hour),
+        day=now.day,
         hour=hour, tzinfo=datetime.timezone.utc)
+    prediction_run_timestamp = adjust_model_day(prediction_run_timestamp, hour)
     logger.info('prediction_model:%s, prediction_run_timestamp:%s',
                 prediction_model, prediction_run_timestamp)
     prediction_run = app.db.crud.get_prediction_run(
