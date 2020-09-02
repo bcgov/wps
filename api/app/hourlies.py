@@ -1,3 +1,5 @@
+""" Hourly reading from weather stations ("actuals")
+"""
 import math
 from typing import List
 from datetime import timedelta
@@ -26,7 +28,6 @@ async def fetch_hourly_readings_from_db(station_codes: List[int]) -> List[Weathe
     five_days_ago = now - timedelta(days=5)
     readings = get_hourly_actuals(session, station_codes, five_days_ago)
 
-    prev_station_code = None
     station_readings = None
     result = []
 
@@ -58,6 +59,4 @@ async def get_hourly_readings(station_codes: List[int]) -> List[WeatherStationHo
     """
     if wildfire_one.use_wfwx():
         return await wildfire_one.get_hourly_readings(station_codes)
-    else:
-        # TODO: get it locally
-        return await fetch_hourly_readings_from_db(station_codes)
+    return await fetch_hourly_readings_from_db(station_codes)

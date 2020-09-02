@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from app.schemas import StationCodeList
 from app.db.models import (
     ProcessedModelRunUrl, PredictionModel, PredictionModelRunTimestamp, PredictionModelGridSubset,
-    ModelRunGridSubsetPrediction, NoonForecasts, HourlyActual)
+    ModelRunGridSubsetPrediction, NoonForecast, HourlyActual)
 import app.time_utils as time_utils
 
 logger = logging.getLogger(__name__)
@@ -191,15 +191,16 @@ def query_noon_forecast_records(session: Session,
                                 end_date: datetime
                                 ):
     """ Sends a query to get noon forecast records """
-    return session.query(NoonForecasts)\
-        .filter(NoonForecasts.station_code.in_(station_codes))\
-        .filter(NoonForecasts.weather_date >= start_date)\
-        .filter(NoonForecasts.weather_date <= end_date)\
-        .order_by(NoonForecasts.weather_date)\
-        .order_by(desc(NoonForecasts.created_at))
+    return session.query(NoonForecast)\
+        .filter(NoonForecast.station_code.in_(station_codes))\
+        .filter(NoonForecast.weather_date >= start_date)\
+        .filter(NoonForecast.weather_date <= end_date)\
+        .order_by(NoonForecast.weather_date)\
+        .order_by(desc(NoonForecast.created_at))
 
 
 def get_hourly_actuals(session: Session, station_codes: List[int], start_date: datetime):
+    """ Query for hourly actuals for given stations, from stated start_date onwards. """
     return session.query(HourlyActual)\
         .filter(HourlyActual.station_code.in_(station_codes))\
         .filter(HourlyActual.weather_date >= start_date)\
