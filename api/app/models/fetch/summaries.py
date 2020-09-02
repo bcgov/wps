@@ -15,7 +15,7 @@ from app.schemas import (
     WeatherStation,
     WeatherPredictionModel)
 from app.models import ModelEnum
-from app.wildfire_one import get_stations_by_codes
+import app.stations
 from app.models.fetch import extract_stations_in_polygon
 
 
@@ -128,7 +128,7 @@ class ModelPredictionSummaryBuilder():
         """ Given a model and station codes, return list of weather summaries. """
 
         # Get list of stations.
-        stations = await get_stations_by_codes(station_codes)
+        stations = await app.stations.get_stations_by_codes(station_codes)
 
         # Build database query
         query = _build_query_to_get_predictions(stations, model)

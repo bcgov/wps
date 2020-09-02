@@ -16,15 +16,13 @@ from app.schemas import WeatherStation, WeatherStationHourlyReadings, WeatherRea
 import app.time_utils
 
 
-LOGGER = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 dirname = os.path.dirname(__file__)
 core_season_file_path = os.path.join(
     dirname, 'data/ecodivisions_core_seasons.json')
 ecodiv_shape_file_path = os.path.join(
     dirname, 'data/ERC_ECODIV_polygon/ERC_ECODIV_polygon.shp')
-weather_stations_file_path = os.path.join(
-    dirname, 'data/weather_stations.json')
 
 
 class BuildQuery(ABC):
@@ -71,10 +69,17 @@ class BuildQueryByStationCode(BuildQuery):
         return [url, params]
 
 
+def use_wfwx():
+    """ Return True if configured to use WFWX """
+    using_wfwx = config.get('USE_WFWX') == 'True'
+    logger.info('USE_WFWX = %s', using_wfwx)
+    return using_wfwx
+
+
 async def _fetch_access_token(session: ClientSession) -> dict:
     """ Fetch an access token for WFWX Fireweather API
     """
-    LOGGER.debug('fetching access token...')
+    logger.debug('fetching access token...')
     password = config.get('WFWX_SECRET')
     user = config.get('WFWX_USER')
     auth_url = config.get('WFWX_AUTH_URL')
@@ -100,10 +105,10 @@ async def _fetch_raw_stations(session: ClientSession, headers: dict, query_build
     while page_count < total_pages:
         # Build up the request URL.
         url, params = query_builder.query(page_count)
-        LOGGER.debug('loading station page %d...', page_count)
+        logger.debug('loading station page %d...', page_count)
         async with session.get(url, headers=headers, params=params) as response:
             station_json = await response.json()
-            LOGGER.debug('done loading station page %d.', page_count)
+            logger.debug('done loading station page %d.', page_count)
         # Update the total page count.
         total_pages = station_json['page']['totalPages']
         for station in station_json['_embedded']['stations']:
@@ -174,21 +179,9 @@ def _parse_hourly(hourly) -> WeatherReading:
     )
 
 
-def _get_stations_by_codes_local(station_codes: List[int]) -> List[WeatherStation]:
-    """ Get a list of stations by code, from local json files. """
-    LOGGER.info('Using pre-generated json to retrieve station by code')
-    with open(weather_stations_file_path) as file_pointer:
-        stations = json.load(file_pointer)
-        results = []
-        for station in stations['weather_stations']:
-            if int(station['code']) in station_codes:
-                results.append(WeatherStation(**station))
-        return results
-
-
-async def _get_stations_by_codes_remote(station_codes: List[int]) -> List[WeatherStation]:
+async def get_stations_by_codes(station_codes: List[int]) -> List[WeatherStation]:
     """ Get a list of stations by code, from WFWX Fireweather API. """
-    LOGGER.info('Using WFWX to retrieve stations by code')
+    logger.info('Using WFWX to retrieve stations by code')
     async with ClientSession() as session:
         # Get the authentication header
         header = await _get_auth_header(session)
@@ -200,31 +193,14 @@ async def _get_stations_by_codes_remote(station_codes: List[int]) -> List[Weathe
             # If the station is valid, add it to our list of stations.
             if _is_station_valid(raw_station):
                 stations.append(_parse_station(raw_station))
-        LOGGER.debug('total stations: %d', len(stations))
+        logger.debug('total stations: %d', len(stations))
         return stations
 
 
-async def get_stations_by_codes(station_codes: List[int]) -> List[WeatherStation]:
-    """ Get a list of stations by code, from WFWX Fireweather API. """
-    use_wfwx = config.get('USE_WFWX') == 'True'
-    if use_wfwx:
-        return await _get_stations_by_codes_remote(station_codes)
-    return _get_stations_by_codes_local(station_codes)
-
-
-def _get_stations_local() -> List[dict]:
-    """ Get list of stations from local json files.
-    """
-    LOGGER.info('Using pre-generated json to retrieve station list')
-    with open(weather_stations_file_path) as weather_stations_file:
-        json_data = json.load(weather_stations_file)
-        return json_data['weather_stations']
-
-
-async def _get_stations_remote() -> List[WeatherStation]:
+async def get_stations() -> List[WeatherStation]:
     """ Get list of stations from WFWX Fireweather API.
     """
-    LOGGER.info('Using WFWX to retrieve station list')
+    logger.info('Using WFWX to retrieve station list')
     async with ClientSession() as session:
         # Get the authentication header
         header = await _get_auth_header(session)
@@ -233,21 +209,11 @@ async def _get_stations_remote() -> List[WeatherStation]:
         async for raw_station in _fetch_raw_stations(session, header, BuildQueryAllStations()):
             # If the station is valid, add it to our list of stations.
             if _is_station_valid(raw_station):
-                LOGGER.info('Processing raw_station %d',
+                logger.info('Processing raw_station %d',
                             int(raw_station['stationCode']))
                 stations.append(_parse_station(raw_station))
-        LOGGER.debug('total stations: %d', len(stations))
+        logger.debug('total stations: %d', len(stations))
     return stations
-
-
-async def get_stations() -> List[WeatherStation]:
-    """ Get list of stations from WFWX Fireweather API.
-    """
-    # Check if we're really using the api, or loading from pre-generated files.
-    use_wfwx = config.get('USE_WFWX') == 'True'
-    if use_wfwx:
-        return await _get_stations_remote()
-    return _get_stations_local()
 
 
 def prepare_fetch_hourlies_query(raw_station):
@@ -257,7 +223,7 @@ def prepare_fetch_hourlies_query(raw_station):
     # By default we're concerned with the last 5 days only.
     now = app.time_utils.get_utc_now()
     five_days_ago = now - timedelta(days=5)
-    LOGGER.debug('requesting historic data from %s to %s', five_days_ago, now)
+    logger.debug('requesting historic data from %s to %s', five_days_ago, now)
     # Prepare query params and query:
     start_time_stamp = math.floor(five_days_ago.timestamp()*1000)
     end_time_stamp = math.floor(now.timestamp()*1000)
@@ -279,7 +245,7 @@ async def fetch_hourlies(
     """ Fetch hourly weather readings for a give station.
     """
     url, params = prepare_fetch_hourlies_query(raw_station)
-    LOGGER.debug('fetching hourlies for %s(%s)',
+    logger.debug('fetching hourlies for %s(%s)',
                  raw_station['displayLabel'], raw_station['stationCode'])
     # Get hourlies
     async with session.get(url, params=params, headers=headers) as response:
@@ -289,7 +255,7 @@ async def fetch_hourlies(
             # We only accept "ACTUAL" values:
             if hourly.get('hourlyMeasurementTypeCode', '').get('id') == 'ACTUAL':
                 hourlies.append(_parse_hourly(hourly))
-        LOGGER.debug('fetched %d hourlies for %s(%s)', len(
+        logger.debug('fetched %d hourlies for %s(%s)', len(
             hourlies), raw_station['displayLabel'], raw_station['stationCode'])
         return WeatherStationHourlyReadings(values=hourlies, station=_parse_station(raw_station))
 

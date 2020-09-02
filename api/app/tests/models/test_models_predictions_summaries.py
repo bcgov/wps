@@ -115,7 +115,7 @@ def when_prediction(mock_jwt_decode, given_a_database, given_stations, endpoint:
     given_a_database['response_json'] = response.json()
 
 
-@ then('The <expected_response> is matched')
+@then('The <expected_response> is matched')
 def assert_response(given_a_database, expected_response):
     """ "Catch all" test that blindly checks the actual json response against an expected response. """
     dirname = os.path.dirname(os.path.realpath(__file__))
