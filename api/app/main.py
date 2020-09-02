@@ -4,8 +4,10 @@ See README.md for details on how to run.
 """
 import datetime
 import logging
+import aiofiles
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from app import schemas, configure_logging
 from app.models.fetch.predictions import fetch_model_predictions
 from app.models.fetch.summaries import fetch_model_prediction_summaries
@@ -68,6 +70,8 @@ app = FastAPI(
     description=API_INFO,
     version="0.0.0"
 )
+
+app.mount('/', StaticFiles(directory='static'), name='static')
 
 ORIGINS = config.get('ORIGINS')
 

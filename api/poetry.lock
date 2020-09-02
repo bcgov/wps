@@ -11,6 +11,14 @@ pycares = ">=3.0.0"
 
 [[package]]
 category = "main"
+description = "File support for asyncio."
+name = "aiofiles"
+optional = false
+python-versions = "*"
+version = "0.5.0"
+
+[[package]]
+category = "main"
 description = "Async http client/server framework (asyncio)"
 name = "aiohttp"
 optional = false
@@ -1404,7 +1412,7 @@ psycopg2-binary = "*"
 [[package]]
 category = "dev"
 description = "Run a subprocess in a pseudo terminal"
-marker = "sys_platform != \"win32\" or os_name != \"nt\" or python_version >= \"3.3\" and sys_platform != \"win32\""
+marker = "python_version >= \"3.3\" and sys_platform != \"win32\" or sys_platform != \"win32\" or os_name != \"nt\" or python_version >= \"3.3\" and sys_platform != \"win32\" and (python_version >= \"3.3\" and sys_platform != \"win32\" or sys_platform != \"win32\")"
 name = "ptyprocess"
 optional = false
 python-versions = "*"
@@ -1939,7 +1947,7 @@ description = "Traitlets Python configuration system"
 name = "traitlets"
 optional = false
 python-versions = ">=3.7"
-version = "5.0.0"
+version = "5.0.2"
 
 [package.dependencies]
 ipython-genutils = "*"
@@ -2077,7 +2085,7 @@ idna = ">=2.0"
 multidict = ">=4.0"
 
 [metadata]
-content-hash = "025fae575cdd2830668f40dc4e90846c33676c736d3f1889b28aff37e3ea99a8"
+content-hash = "9aae627d3f41c634a46b6fb79fbe8fff3f62168786dd8422c47441c9aa11fa94"
 lock-version = "1.0"
 python-versions = "^3.8"
 
@@ -2085,6 +2093,10 @@ python-versions = "^3.8"
 aiodns = [
     {file = "aiodns-2.0.0-py2.py3-none-any.whl", hash = "sha256:aaa5ac584f40fe778013df0aa6544bf157799bd3f608364b451840ed2c8688de"},
     {file = "aiodns-2.0.0.tar.gz", hash = "sha256:815fdef4607474295d68da46978a54481dd1e7be153c7d60f9e72773cd38d77d"},
+]
+aiofiles = [
+    {file = "aiofiles-0.5.0-py3-none-any.whl", hash = "sha256:377fdf7815cc611870c59cbd07b68b180841d2a2b79812d8c218be02448c2acb"},
+    {file = "aiofiles-0.5.0.tar.gz", hash = "sha256:98e6bcfd1b50f97db4980e182ddd509b7cc35909e903a8fe50d8849e02d815af"},
 ]
 aiohttp = [
     {file = "aiohttp-3.6.2-cp35-cp35m-macosx_10_13_x86_64.whl", hash = "sha256:1e984191d1ec186881ffaed4581092ba04f7c61582a177b187d3a2f07ed9719e"},
@@ -3275,8 +3287,8 @@ tornado = [
     {file = "tornado-6.0.4.tar.gz", hash = "sha256:0fe2d45ba43b00a41cd73f8be321a44936dc1aba233dee979f17a042b83eb6dc"},
 ]
 traitlets = [
-    {file = "traitlets-5.0.0-py3-none-any.whl", hash = "sha256:62a037f12ccb823fb05823afbe35fe0273bc18fa3202d0cf0ea8f24e97e464be"},
-    {file = "traitlets-5.0.0.tar.gz", hash = "sha256:0d9c4005506b306b0a99551e96174b8bedc675c2dd048f92b3bbbb7d86ac93a9"},
+    {file = "traitlets-5.0.2-py3-none-any.whl", hash = "sha256:613da6efe96bdb4288c72dc65bc82c53320994b1702c6803150e0d2b21f83216"},
+    {file = "traitlets-5.0.2.tar.gz", hash = "sha256:4c9a7212db9642056ea4fcd4ba9e18d302eb617daf679f45fd8cb5d19687b640"},
 ]
 urllib3 = [
     {file = "urllib3-1.25.10-py2.py3-none-any.whl", hash = "sha256:e7983572181f5e1522d9c98453462384ee92a0be7fac5f1413a1e35c56cc0461"},
