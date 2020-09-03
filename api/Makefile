@@ -2,7 +2,8 @@ define run-test
 	# function to run tests
 	# useful params for pytest:
 	# -s show stdout
-	$(1) pytest -n 4 app;
+	# -n numprocesses - doesn't really seem to run faster with more proccesses at the moment.
+	$(1) pytest app;
 	# ImportMismatchError? run: make clean
 endef
 
@@ -75,7 +76,13 @@ run-env-canada-raw:
 	POSTGRES_HOST=localhost python -m app.models.env_canada
 
 run-bender:
-	poetry run python -m app.fireweather_bot
+	poetry run python -m app.fireweather_bot.noon_forecasts
+
+run-bender-raw:
+	python -m app.fireweather_bot.noon_forecasts
+
+run-marvin-raw:
+	python -m app.fireweather_bot.hourly_actuals
 
 notebook:
 	# Run jupyter notebooks.
@@ -99,6 +106,7 @@ docker-test-dev:
 	# Run tests in docker (dev instance).
 	# We use the dev instance, because the "production" version doesn't have
 	# a number of the development dependancies.
+	# If you're run tests locally, you probably have to run `make clean` or this will fail.
 	docker-compose -f docker-compose.dev.yml run --rm api-dev pytest app
 
 docker-test-coverage-dev:
@@ -134,4 +142,4 @@ docker-run-env-canada:
 docker-run-bender:
 	# Run a python script to download forecast data from BC Wild Fire on docker
 	# Needs to run "make docker-run" first
-	docker-compose exec api python -m app.fireweather_bot
+	docker-compose exec api python -m app.fireweather_bot.noon_forecasts

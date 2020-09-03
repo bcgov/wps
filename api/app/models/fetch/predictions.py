@@ -13,7 +13,7 @@ from app.schemas import (WeatherStation, WeatherModelPrediction,
                          WeatherModelPredictionValues, WeatherModelRun)
 from app.db.models import ModelRunGridSubsetPrediction
 import app.db.crud
-from app.wildfire_one import get_stations_by_codes, _get_now
+from app.wildfire_one import get_stations_by_codes
 from app import config
 from app.models import ModelEnum
 from app.models.fetch import extract_stations_in_polygon
@@ -209,6 +209,14 @@ def _fetch_most_recent_historic_predictions_by_stations(session, model: ModelEnu
             temperature=prediction.ModelRunGridSubsetPrediction.tmp_tgl_2[0],
             relative_humidity=prediction.ModelRunGridSubsetPrediction.rh_tgl_2[0],
             datetime=prediction.ModelRunGridSubsetPrediction.prediction_timestamp
+        )
+        # construct the WeatherModelRun
+        # TODO fix the values for name, abbrev, & projection
+        wmr = WeatherModelRun(
+            datetime=prediction.WeatherModelRun.prediction_run_timestamp,
+            name=model,
+            abbreviation=model,
+            projection=model
         )
     return [historic_predictions]
 

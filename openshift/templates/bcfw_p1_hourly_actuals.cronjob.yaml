@@ -1,0 +1,73 @@
+kind: Template
+apiVersion: v1
+metadata:
+  name: ${JOB_NAME}-cronjob-template
+  annotations:
+    description: "Scheduled task to download noon-time weather forecasts for all weather stations from the BC Fire Weather Phase 1 API."
+    tags: "cronjob,bcfw-p1"
+labels:
+  app.kubernetes.io/part-of: "${NAME}"
+  app: ${NAME}
+parameters:
+  - name: NAME
+    description: Module name
+    value: wps-api
+  - name: SUFFIX
+    description: Deployment suffix, e.g. pr-###
+    required: true
+  - name: PROJECT_TOOLS
+    value: auzhsi-tools
+  - name: JOB_NAME
+    value: bcfw-p1-hourly-actuals
+objects:
+  - kind: CronJob
+    apiVersion: batch/v1beta1
+    metadata:
+      name: ${JOB_NAME}
+      labels:
+        cronjob: ${JOB_NAME}
+    spec:
+      schedule: "15 * * * *"
+      concurrencyPolicy: "Replace"
+      jobTemplate:
+        metadata:
+          labels:
+            cronjob: ${JOB_NAME}
+        spec:
+          template:
+            spec:
+              containers:
+                - name: ${JOB_NAME}
+                  image: docker-registry.default.svc:5000/${PROJECT_TOOLS}/${NAME}-${SUFFIX}:${SUFFIX}
+                  imagePullPolicy: "Always"
+                  command: ["python", "-m", "app.fireweather_bot.hourly_actuals"]
+                  env:
+                    - name: BC_FIRE_WEATHER_SECRET
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${NAME}-global
+                          key: bc-fire-weather-secret
+                    - name: BC_FIRE_WEATHER_USER
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${NAME}-global
+                          key: bc-fire-weather-user
+                    - name: BC_FIRE_WEATHER_FILTER_ID
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${NAME}-global
+                          key: bc-fire-weather-filter-id
+                    - name: POSTGRES_USER
+                      value: ${NAME}-${SUFFIX}
+                    - name: POSTGRES_PASSWORD
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${NAME}-global
+                          key: app-db-password
+                    - name: POSTGRES_HOST
+                      value: patroni-leader-${NAME}-${SUFFIX}
+                    - name: POSTGRES_PORT
+                      value: "5432"
+                    - name: POSTGRES_DATABASE
+                      value: ${NAME}-${SUFFIX}
+              restartPolicy: OnFailure

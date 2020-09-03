@@ -3,33 +3,32 @@ TODO: Move this file to app/models/ (not part of this PR as it makes comparing p
       there are so many changes, it's picked up as a delete instead of a move.)
 """
 
+import app.time_utils as time_utils
+import app.stations
+from app.models.process_grib import GribFileProcessor, ModelRunInfo
+from app.db.models import ProcessedModelRunUrl, PredictionModelRunTimestamp
 import os
 import sys
-import json
 import datetime
 from typing import Generator
 from urllib.parse import urlparse
 import logging
-import logging.config
 import time
 import tempfile
 import requests
 from sqlalchemy.orm import Session
+from app import configure_logging
 import app.db.database
 from app.models import ModelEnum
-from app.db.crud import get_processed_file_record, get_processed_file_count, get_prediction_model_runs
-from app.db.models import ProcessedModelRunUrl, PredictionModelRunTimestamp
-from app.models.process_grib import GribFileProcessor, ModelRunInfo
-import app.stations
-
+from app.db.crud import (get_processed_file_record,
+                         get_processed_file_count,
+                         get_prediction_model_run_timestamp_records,
+                         get_model_run_predictions,
+                         get_grid_for_coordinates)
 
 # If running as it's own process, configure loggin appropriately.
 if __name__ == "__main__":
-    LOGGING_CONFIG = os.path.join(os.path.dirname(__file__), '../logging.json')
-    if os.path.exists(LOGGING_CONFIG):
-        with open(LOGGING_CONFIG) as config_file:
-            CONFIG = json.load(config_file)
-        logging.config.dictConfig(CONFIG)
+    configure_logging()
 
 logger = logging.getLogger(__name__)
 
@@ -82,23 +81,23 @@ def parse_env_canada_filename(filename):
     return info
 
 
-def get_model_day(now, hour) -> int:
-    """ Get the model day, based on the current time.
+def adjust_model_day(now, hour) -> datetime:
+    """ Adjust the model day, based on the current time.
 
     If now (e.g. 10h00) is less than model run (e.g. 12), it means we have to look for yesterdays
     model run.
     """
     if now.hour < hour:
-        return now.day - 1
-    return now.day
+        return now - datetime.timedelta(days=1)
+    return now
 
 
 def get_file_date_part(now, hour) -> str:
     """ Construct the part of the filename that contains the model run date
     """
-    day = get_model_day(now, hour)
+    now = adjust_model_day(now, hour)
     date = '{year}{month:02d}{day:02d}'.format(
-        year=now.year, month=now.month, day=day)
+        year=now.year, month=now.month, day=now.day)
     return date
 
 
@@ -180,8 +179,9 @@ def mark_prediction_model_run_processed(session: Session,
     prediction_run_timestamp = datetime.datetime(
         year=now.year,
         month=now.month,
-        day=get_model_day(now, hour),
+        day=now.day,
         hour=hour, tzinfo=datetime.timezone.utc)
+    prediction_run_timestamp = adjust_model_day(prediction_run_timestamp, hour)
     logger.info('prediction_model:%s, prediction_run_timestamp:%s',
                 prediction_model, prediction_run_timestamp)
     prediction_run = app.db.crud.get_prediction_run(
@@ -216,9 +216,8 @@ class EnvCanada():
             logger.info('file processed %s', url)
             processed_file = ProcessedModelRunUrl(
                 url=url,
-                create_date=datetime.datetime.now(datetime.timezone.utc))
-        processed_file.update_date = datetime.datetime.now(
-            datetime.timezone.utc)
+                create_date=time_utils.get_utc_now())
+        processed_file.update_date = time_utils.get_utc_now()
         # pylint: disable=no-member
         self.session.add(processed_file)
         self.session.commit()
@@ -305,18 +304,36 @@ def Interpolator():
 
     def __init__(self):
         self.session = app.db.database.get_session()
-        self.stations = app.stations
+        self.stations = app.stations.get_stations()
 
     def process_model_run(self, model_run: PredictionModelRunTimestamp):
-        pass
+        for station in self.stations:
+            self.process_model_run_for_station(self, model_run, station)
+            break
+
+    def process_model_run_for_station(self,
+                                      model_run: PredictionModelRunTimestamp,
+                                      station: WeatherStation):
+        coordinate = [station.long, station.lat]
+        grid = get_grid_for_coordinates(self.session, model_run.prediction_model, coordinate)
+        query = get_model_run_predictions(self.session,
+                                          model_run, [[station.long, station.lat]])
+        # We're only going to get one grid, since we only query for one station.
+        for prediction in query:
+            logger.info('station: %s; modelrun : %s; prediction %s'.format(station, model_run, prediction))
+            break
 
     def mark_model_run_interpolated(self, model_run: PredictionModelRunTimestamp):
-        pass
+        model_run.interpolated = True
+        logger.info('marking %s as interpolated', model_run)
+        # self.session.add(model_run)
+        # self.session.commit()
 
     def process(self):
-        for model_run in get_prediction_model_runs(self.session, interpolated=False):
+        for model_run in get_prediction_model_run_timestamp_records(self.session, interpolated=False):
             self.process_model_run(model_run)
             self.mark_model_run_interpolated(model_run)
+            break
 
 
 def main():
@@ -327,7 +344,7 @@ def main():
 
     # process everything.
     env_canada = EnvCanada()
-    env_canada.process()
+    # env_canada.process()
 
     # interpolate everything that needs interpolating.
     interpolator = Interpolator()
