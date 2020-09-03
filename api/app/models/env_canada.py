@@ -6,7 +6,7 @@ TODO: Move this file to app/models/ (not part of this PR as it makes comparing p
 import app.time_utils as time_utils
 import app.stations
 from app.models.process_grib import GribFileProcessor, ModelRunInfo
-from app.db.models import ProcessedModelRunUrl, PredictionModelRunTimestamp
+from app.db.models import ProcessedModelRunUrl, PredictionModelRunTimestamp, WeatherStationModelPrediction
 import os
 import sys
 import datetime
@@ -331,10 +331,20 @@ class Interpolator:
         for prediction in query:
             station_prediction = get_weather_station_model_prediction(
                 self.session, station['code'], model_run.id, prediction.prediction_timestamp)
+            if station_prediction is None:
+                station_prediction = WeatherStationModelPrediction()
+            station_prediction.station_code = station['code']
+            station_prediction.prediction_model_run_timestamp_id = model_run.id
+            station_prediction.prediction_timestamp = prediction.prediction_timestamp
+            station_prediction.tmp_tgl_2 = griddata(
+                points, prediction.tmp_tgl_2, coordinate, method='linear')[0]
+            station_prediction.rh_tgl_2 = griddata(
+                points, prediction.rh_tgl_2, coordinate, method='linear')[0]
+            station_prediction.update_date = time_utils.get_utc_now()
+            self.session.add(station_prediction)
+            self.session.commit()
 
-            logger.info('station: %s; modelrun : %s; prediction %s', station, model_run, prediction)
-            interpolated_value = griddata(points, prediction.tmp_tgl_2, coordinate, method='linear')[0]
-            logger.info('%s becomes %s', prediction.tmp_tgl_2, interpolated_value)
+            logger.info('station_prediction: %s', station_prediction)
             break
 
     def mark_model_run_interpolated(self, model_run: PredictionModelRunTimestamp):

@@ -193,6 +193,10 @@ class WeatherStationModelPrediction(Base):
     # Relative Humidity 2m above model layer - an interpolated value based on 4 values
     # from model_run_grid_subset_prediction
     rh_tgl_2 = Column(Float, nullable=True)
+    # Date this record was created.
+    create_date = Column(TZTimeStamp, nullable=False, default=time_utils.get_utc_now())
+    # Date this record was updated.
+    update_date = Column(TZTimeStamp, nullable=False, default=time_utils.get_utc_now())
 
 
 class HourlyActual(Base):
