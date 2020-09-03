@@ -309,20 +309,22 @@ class Interpolator:
 
     def __init__(self):
         self.session = app.db.database.get_session()
-
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         self.stations = loop.run_until_complete(app.stations.get_stations())
+        self.station_count = len(self.stations)
 
     def process_model_run(self, model_run: PredictionModelRunTimestamp):
         logger.info('Interpolating values for model run: %s', model_run)
-        for station in self.stations:
+        for index, station in enumerate(self.stations):
+            logger.info('Processing station %s:%s (%s/%s)',
+                        station['code'], station['name'], index, self.station_count)
             self.process_model_run_for_station(model_run, station)
+        self.session.commit()
 
     def process_model_run_for_station(self,
                                       model_run: PredictionModelRunTimestamp,
                                       station: dict):
-        logger.info('Processing station %s:%s', station['code'], station['name'])
         coordinate = [station['long'], station['lat']]
         grid = get_grid_for_coordinate(self.session, model_run.prediction_model, coordinate)
         query = get_model_run_predictions_for_grid(self.session, model_run, grid)
@@ -343,8 +345,7 @@ class Interpolator:
                 points, prediction.rh_tgl_2, coordinate, method='linear')[0]
             station_prediction.update_date = time_utils.get_utc_now()
             self.session.add(station_prediction)
-            self.session.commit()
-        logger.info('Done processing station %s:%s', station['code'], station['name'])
+        # self.session.commit()
 
     def mark_model_run_interpolated(self, model_run: PredictionModelRunTimestamp):
         model_run.interpolated = True
