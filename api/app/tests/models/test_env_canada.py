@@ -3,7 +3,7 @@
 import os
 import logging
 import datetime
-from datetime import timezone
+from datetime import timezone, datetime
 import pytest
 import requests
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
@@ -38,7 +38,7 @@ def mock_get_processed_file_count(monkeypatch):
 def mock_utcnow(monkeypatch):
     """ Mocked out utcnow, to allow for deterministic tests """
     def mock_get_utcnow(*args):
-        return datetime.datetime(year=2021, month=2, day=3, hour=0)
+        return datetime(year=2021, month=2, day=3, hour=0)
     monkeypatch.setattr(env_canada, 'get_utcnow', mock_get_utcnow)
 
 
@@ -113,3 +113,16 @@ def test_main(mock_download, mock_session, mock_utcnow, mock_get_processed_file_
     # All files, except one, are marked as already having been downloaded, so we expect one file to
     # be processed.
     assert env_canada.main() == 1
+
+
+def test_for_zero_day_bug(monkeypatch):
+    """ There's a very specific case, where on the 1st day of the new month, before 12 UTC,
+    a url with a month day zero is construced.
+    This test ensures that if it's before 12 UTC, we look for the previous days 12 UTC model run"""
+    problem_date = datetime.fromisoformat('2020-09-01T00:13:58+00:00')
+    urls = env_canada.get_model_run_download_urls(problem_date, 12)
+    url = next(urls)
+    expected_url = ('https://dd.weather.gc.ca/model_gem_global/15km/'
+                    'grib2/lat_lon/12/000/CMC_glb_TMP_TGL_2_latlon.'
+                    '15x.15_2020083112_P000.grib2')
+    assert url == expected_url
