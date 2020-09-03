@@ -28,7 +28,8 @@ from app.db.crud import (get_processed_file_record,
                          get_processed_file_count,
                          get_prediction_model_run_timestamp_records,
                          get_model_run_predictions_for_grid,
-                         get_grid_for_coordinate)
+                         get_grid_for_coordinate,
+                         get_weather_station_model_prediction)
 
 # If running as it's own process, configure loggin appropriately.
 if __name__ == "__main__":
@@ -328,6 +329,9 @@ class Interpolator:
         poly = to_shape(grid.geom)
         points = list(poly.exterior.coords)[:-1]
         for prediction in query:
+            station_prediction = get_weather_station_model_prediction(
+                self.session, station['code'], model_run.id, prediction.prediction_timestamp)
+
             logger.info('station: %s; modelrun : %s; prediction %s', station, model_run, prediction)
             interpolated_value = griddata(points, prediction.tmp_tgl_2, coordinate, method='linear')[0]
             logger.info('%s becomes %s', prediction.tmp_tgl_2, interpolated_value)

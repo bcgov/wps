@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from app.schemas import StationCodeList
 from app.db.models import (
     ProcessedModelRunUrl, PredictionModel, PredictionModelRunTimestamp, PredictionModelGridSubset,
-    ModelRunGridSubsetPrediction, NoonForecast, HourlyActual)
+    ModelRunGridSubsetPrediction, NoonForecast, HourlyActual, WeatherStationModelPrediction)
 import app.time_utils as time_utils
 
 logger = logging.getLogger(__name__)
@@ -297,3 +297,13 @@ def get_hourly_actuals(session: Session, station_codes: List[int], start_date: d
         .filter(HourlyActual.weather_date >= start_date)\
         .order_by(HourlyActual.station_code)\
         .order_by(HourlyActual.weather_date)
+
+
+def get_weather_station_model_prediction(session: Session,
+                                         station_code: int,
+                                         prediction_model_run_timestamp_id: int,
+                                         prediction_timestamp: datetime) -> WeatherStationModelPrediction:
+    return session.query(WeatherStationModelPrediction).\
+        filter(WeatherStationModelPrediction.station_code == station_code).\
+        filter(WeatherStationModelPrediction.prediction_model_run_timestamp_id == prediction_model_run_timestamp_id).\
+        filter(WeatherStationModelPrediction.prediction_timestamp == prediction_timestamp).first()
