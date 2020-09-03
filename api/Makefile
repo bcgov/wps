@@ -21,7 +21,7 @@ endef
 
 define run-api
 	# function to run api
-	${1} uvicorn app.main:main_app --host 0.0.0.0 --reload --port 8080;
+	${1} uvicorn app.main:app --host 0.0.0.0 --reload --port 8080;
 endef
 
 clean:

@@ -8,8 +8,10 @@ import aiofiles
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, PlainTextResponse
+from fastapi.responses import FileResponse, PlainTextResponse, Response
+from starlette.applications import Starlette
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.types import Receive, Scope, Send
 from app import schemas, configure_logging
 from app.models.fetch.predictions import fetch_model_predictions
 from app.models.fetch.summaries import fetch_model_prediction_summaries
@@ -66,9 +68,15 @@ API_INFO = '''
     programs or information, even if the Government of British Columbia
     has been specifically advised of the possibility of such damages.'''
 
-main_app = FastAPI()
+# This is our base starlette app - it doesn't do much except glue together
+# the api and the front end.
+app = Starlette()
 
-frontend = FastAPI()
+# This is the front end app. It's not going to do much other than serve up
+# static files.
+frontend = Starlette()
+
+# This is the api app.
 api = FastAPI(
     title="Predictive Services Fire Weather Index Calculator",
     description=API_INFO,
@@ -76,45 +84,31 @@ api = FastAPI(
 )
 
 
-@main_app.exception_handler(StarletteHTTPException)
-async def http_exception_handler(request, exc):
-    print("moo")
-    return PlainTextResponse(str(exc.detail), status_code=exc.status_code)
+class SPAStaticFiles(StaticFiles):
+    """ Single Page App Static Files.
+    Serves up .(root, or /) whenever a file isn't found. 
+    For a single page app using routing, we need to serve up
+    index.html and let the spa figure out what to serve up.
+    NOTE: Ensure html=True is set
+    """
+    async def get_response(self, path: str, scope: Scope) -> Response:
+        # Call the method on the base class.
+        response = await super().get_response(path, scope)
+        # If file not found, try to serve up the root.
+        if response.status_code == 404:
+            response = await super().get_response('.', scope)
+        return response
 
 
-@frontend.exception_handler(StarletteHTTPException)
-async def http_exception_handler(request, exc):
-    print("moo")
-    return PlainTextResponse(str(exc.detail), status_code=exc.status_code)
+frontend.mount('/', SPAStaticFiles(directory='../../wps-web/build', html=True), name='ui')
 
-
-@api.exception_handler(StarletteHTTPException)
-async def http_exception_handler(request, exc):
-    print("moo")
-    return PlainTextResponse(str(exc.detail), status_code=exc.status_code)
-
-# @main_app.exception_handler(404)
-# def main_app_not_found(request, exc):
-#     LOGGER.warning('main app exception')
-#     return FileResponse('../../wps-web/build/index.html')
-
-
-# @api.exception_handler(404)
-# def api_not_found(request, exc):
-#     LOGGER.warning('api end exception')
-#     return FileResponse('../../wps-web/build/index.html')
-
-
-# @frontend.exception_handler(404)
-# def not_found(request, exc):
-#     LOGGER.warning('front end exception')
-#     return FileResponse('../../wps-web/build/index.html')
-
-
-frontend.mount('/', StaticFiles(directory='../../wps-web/build', html=True), name='static')
-
-main_app.mount('/api', app=api)
-main_app.mount('/', app=frontend)
+# The order here is super important:
+# 1. Mount the /api
+# Technically we could leave the api on the route, but then you'd get index.html
+# instead of a 404 if you have a mistake on your api url.
+app.mount('/api', app=api)
+# 2. Mount everything else on the root, to the frontend app.
+app.mount('/', app=frontend)
 
 ORIGINS = config.get('ORIGINS')
 
