@@ -17,9 +17,10 @@ import requests
 from sqlalchemy.orm import Session
 import app.db.database
 from app.models import ModelEnum
-from app.db.crud import get_processed_file_record, get_processed_file_count
-from app.db.models import ProcessedModelRunUrl
+from app.db.crud import get_processed_file_record, get_processed_file_count, get_prediction_model_runs
+from app.db.models import ProcessedModelRunUrl, PredictionModelRunTimestamp
 from app.models.process_grib import GribFileProcessor, ModelRunInfo
+import app.stations
 
 
 # If running as it's own process, configure loggin appropriately.
@@ -300,6 +301,24 @@ class EnvCanada():
                     'unexpected exception processing GDPS model run %d', hour, exc_info=exception)
 
 
+def Interpolator():
+
+    def __init__(self):
+        self.session = app.db.database.get_session()
+        self.stations = app.stations
+
+    def process_model_run(self, model_run: PredictionModelRunTimestamp):
+        pass
+
+    def mark_model_run_interpolated(self, model_run: PredictionModelRunTimestamp):
+        pass
+
+    def process(self):
+        for model_run in get_prediction_model_runs(self.session, interpolated=False):
+            self.process_model_run(model_run)
+            self.mark_model_run_interpolated(model_run)
+
+
 def main():
     """ main script """
 
@@ -309,6 +328,10 @@ def main():
     # process everything.
     env_canada = EnvCanada()
     env_canada.process()
+
+    # interpolate everything that needs interpolating.
+    interpolator = Interpolator()
+    interpolator.process()
 
     # calculate the execution time.
     execution_time = round(time.time() - start_time, 1)

@@ -77,6 +77,8 @@ class PredictionModelRunTimestamp(Base):
     prediction_run_timestamp = Column(TIMESTAMP(timezone=True), nullable=False)
     # Indicate if this particular model run is completely downloaded.
     complete = Column(Boolean, nullable=False)
+    # Indicate if this model run has been interpolated for weather stations.
+    interpolated = Column(Boolean, nullable=False)
 
     def __str__(self):
         return ('id:{self.id}, '

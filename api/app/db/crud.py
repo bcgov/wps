@@ -240,6 +240,13 @@ def get_prediction_model(session: Session, abbreviation: str, projection: str) -
         filter(PredictionModel.projection == projection).first()
 
 
+def get_prediction_model_run_timestamp_records(session: Session, interpolated: bool = None):
+    query = session.query(PredictionModelRunTimestamp)
+    if interpolated is not None:
+        query.filter(PredictionModelRunTimestamp.inerpolated == interpolated)
+    return query
+
+
 def query_noon_forecast_records(session: Session,
                                 station_codes: StationCodeList,
                                 start_date: datetime,
