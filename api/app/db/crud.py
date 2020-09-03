@@ -142,6 +142,7 @@ def get_or_create_prediction_run(session, prediction_model: PredictionModel,
 def get_grid_for_coordinate(session: Session,
                             prediction_model: PredictionModel,
                             coordinate) -> PredictionModelGridSubset:
+    """ Given a specified coordinate and model, return the appropriate grid. """
     query = session.query(PredictionModelGridSubset).\
         filter(PredictionModelGridSubset.geom.ST_Contains(
             'POINT({longitude} {latitude})'.format(longitude=coordinate[0], latitude=coordinate[1]))).\
@@ -152,6 +153,7 @@ def get_grid_for_coordinate(session: Session,
 def get_model_run_predictions_for_grid(session: Session,
                                        prediction_run: PredictionModelRunTimestamp,
                                        grid: PredictionModelGridSubset) -> List:
+    """ Get all the predictions for a provided model run and grid. """
 
     return session.query(ModelRunGridSubsetPrediction).\
         filter(ModelRunGridSubsetPrediction.prediction_model_grid_subset_id == grid.id).\
@@ -271,10 +273,14 @@ def get_prediction_model(session: Session, abbreviation: str, projection: str) -
         filter(PredictionModel.projection == projection).first()
 
 
-def get_prediction_model_run_timestamp_records(session: Session, interpolated: bool = None):
+def get_prediction_model_run_timestamp_records(
+        session: Session, complete: bool = True, interpolated: bool = True):
+    """ Get prediction model run timestamps (filter on complete and interpolated if provided.) """
     query = session.query(PredictionModelRunTimestamp)
     if interpolated is not None:
-        query.filter(PredictionModelRunTimestamp.interpolated == interpolated)
+        query = query.filter(PredictionModelRunTimestamp.interpolated == interpolated)
+    if complete is not None:
+        query = query.filter(PredictionModelRunTimestamp.complete == complete)
     return query
 
 
@@ -305,6 +311,7 @@ def get_weather_station_model_prediction(session: Session,
                                          station_code: int,
                                          prediction_model_run_timestamp_id: int,
                                          prediction_timestamp: datetime) -> WeatherStationModelPrediction:
+    """ Get the model prediction for a weather station given a model run and a timestamp. """
     return session.query(WeatherStationModelPrediction).\
         filter(WeatherStationModelPrediction.station_code == station_code).\
         filter(WeatherStationModelPrediction.prediction_model_run_timestamp_id == prediction_model_run_timestamp_id).\

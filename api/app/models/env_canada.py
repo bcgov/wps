@@ -306,57 +306,87 @@ class EnvCanada():
 
 
 class Interpolator:
+    """ Iterate through model runs that have completed, and calculate the interpolated weather predictions.
+    """
 
     def __init__(self):
+        """ Prepare variables we're going to use throughout """
         self.session = app.db.database.get_session()
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         self.stations = loop.run_until_complete(app.stations.get_stations())
         self.station_count = len(self.stations)
 
-    def process_model_run(self, model_run: PredictionModelRunTimestamp):
+    def _process_model_run(self, model_run: PredictionModelRunTimestamp):
+        """ Interpolate predictions in the provided model run for all stations. """
         logger.info('Interpolating values for model run: %s', model_run)
+        # Iterate through stations.
         for index, station in enumerate(self.stations):
-            logger.info('Processing station %s:%s (%s/%s)',
+            logger.info('Interpolating model run %s for %s:%s (%s/%s)',
+                        model_run.id,
                         station['code'], station['name'], index, self.station_count)
-            self.process_model_run_for_station(model_run, station)
+            # Process this model run for station.
+            self._process_model_run_for_station(model_run, station)
+        # Commit all the weather station model predictions (it's fast if we line them all up and commit
+        # them in one go.)
         self.session.commit()
 
-    def process_model_run_for_station(self,
-                                      model_run: PredictionModelRunTimestamp,
-                                      station: dict):
+    def _process_model_run_for_station(self,
+                                       model_run: PredictionModelRunTimestamp,
+                                       station: dict):
+        """ Process the model run for the prodvided station.
+        """
+        # Extract the coordinate.
         coordinate = [station['long'], station['lat']]
+        # Lookup the grid our weather station is in.
         grid = get_grid_for_coordinate(self.session, model_run.prediction_model, coordinate)
+        # Get all the predictions associated to this particular model run, in the grid.
         query = get_model_run_predictions_for_grid(self.session, model_run, grid)
 
+        # Conver the grid database object to a polygon object.
         poly = to_shape(grid.geom)
+        # Extract the vertices of the polygon.
         points = list(poly.exterior.coords)[:-1]
+
+        # Iterate through all the predictions.
         for prediction in query:
-            #
+            # If there's already a prediction, we want to update it
             station_prediction = get_weather_station_model_prediction(
                 self.session, station['code'], model_run.id, prediction.prediction_timestamp)
             if station_prediction is None:
                 station_prediction = WeatherStationModelPrediction()
+            # Populate the weather station prediction object.
             station_prediction.station_code = station['code']
             station_prediction.prediction_model_run_timestamp_id = model_run.id
             station_prediction.prediction_timestamp = prediction.prediction_timestamp
+            # Caclulate the interpolated values.
             station_prediction.tmp_tgl_2 = griddata(
                 points, prediction.tmp_tgl_2, coordinate, method='linear')[0]
             station_prediction.rh_tgl_2 = griddata(
                 points, prediction.rh_tgl_2, coordinate, method='linear')[0]
+            # Update the update time (this might be an update)
             station_prediction.update_date = time_utils.get_utc_now()
+            # Add this prediction to the session (we'll commit it later.)
             self.session.add(station_prediction)
 
-    def mark_model_run_interpolated(self, model_run: PredictionModelRunTimestamp):
+    def _mark_model_run_interpolated(self, model_run: PredictionModelRunTimestamp):
+        """ Having completely processed a model run, we can mark it has having been interpolated.
+        """
         model_run.interpolated = True
         logger.info('marking %s as interpolated', model_run)
         self.session.add(model_run)
         self.session.commit()
 
     def process(self):
-        for model_run in get_prediction_model_run_timestamp_records(self.session, interpolated=False):
-            self.process_model_run(model_run)
-            self.mark_model_run_interpolated(model_run)
+        """ Entry point to start processing model runs that have not yet had their predictions interpolated
+        """
+        # Get model runs that are complete (fully downloaded), but not yet interpolated.
+        query = get_prediction_model_run_timestamp_records(self.session, complete=True, interpolated=False)
+        for model_run in query:
+            # Process the model run.
+            self._process_model_run(model_run)
+            # Mark the model run as interpolated.
+            self._mark_model_run_interpolated(model_run)
 
 
 def main():
