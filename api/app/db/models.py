@@ -155,6 +155,14 @@ class ModelRunGridSubsetPrediction(Base):
     # Relative humidity 2m above model layer.
     rh_tgl_2 = Column(ARRAY(Float), nullable=True)
 
+    def __str__(self):
+        return ('id:{self.id}, '
+                'prediction_model_run_timestamp_id:{self.prediction_model_run_timestamp_id}, '
+                'prediction_model_grid_subset_id:{self.prediction_model_grid_subset_id}, '
+                'prediction_timestamp={self.prediction_timestamp}, '
+                'tmp_tgl_2={self.tmp_tgl_2}, '
+                'rh_tgl_2={self.rh_tgl_2}').format(self=self)
+
 
 class HourlyActual(Base):
     """ Class representing table structure of 'hourly_actuals' table in DB.

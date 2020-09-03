@@ -10,21 +10,25 @@ from app.db.models import ProcessedModelRunUrl, PredictionModelRunTimestamp
 import os
 import sys
 import datetime
+import asyncio
 from typing import Generator
 from urllib.parse import urlparse
 import logging
 import time
 import tempfile
 import requests
+from scipy.interpolate import griddata
+from geoalchemy2.shape import to_shape
 from sqlalchemy.orm import Session
 from app import configure_logging
 import app.db.database
+from app.schemas import WeatherStation
 from app.models import ModelEnum
 from app.db.crud import (get_processed_file_record,
                          get_processed_file_count,
                          get_prediction_model_run_timestamp_records,
-                         get_model_run_predictions,
-                         get_grid_for_coordinates)
+                         get_model_run_predictions_for_grid,
+                         get_grid_for_coordinate)
 
 # If running as it's own process, configure loggin appropriately.
 if __name__ == "__main__":
@@ -300,27 +304,33 @@ class EnvCanada():
                     'unexpected exception processing GDPS model run %d', hour, exc_info=exception)
 
 
-def Interpolator():
+class Interpolator:
 
     def __init__(self):
         self.session = app.db.database.get_session()
-        self.stations = app.stations.get_stations()
+
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        self.stations = loop.run_until_complete(app.stations.get_stations())
 
     def process_model_run(self, model_run: PredictionModelRunTimestamp):
         for station in self.stations:
-            self.process_model_run_for_station(self, model_run, station)
+            self.process_model_run_for_station(model_run, station)
             break
 
     def process_model_run_for_station(self,
                                       model_run: PredictionModelRunTimestamp,
-                                      station: WeatherStation):
-        coordinate = [station.long, station.lat]
-        grid = get_grid_for_coordinates(self.session, model_run.prediction_model, coordinate)
-        query = get_model_run_predictions(self.session,
-                                          model_run, [[station.long, station.lat]])
-        # We're only going to get one grid, since we only query for one station.
+                                      station: dict):
+        coordinate = [station['long'], station['lat']]
+        grid = get_grid_for_coordinate(self.session, model_run.prediction_model, coordinate)
+        query = get_model_run_predictions_for_grid(self.session, model_run, grid)
+
+        poly = to_shape(grid.geom)
+        points = list(poly.exterior.coords)[:-1]
         for prediction in query:
-            logger.info('station: %s; modelrun : %s; prediction %s'.format(station, model_run, prediction))
+            logger.info('station: %s; modelrun : %s; prediction %s', station, model_run, prediction)
+            interpolated_value = griddata(points, prediction.tmp_tgl_2, coordinate, method='linear')[0]
+            logger.info('%s becomes %s', prediction.tmp_tgl_2, interpolated_value)
             break
 
     def mark_model_run_interpolated(self, model_run: PredictionModelRunTimestamp):

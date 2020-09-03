@@ -31,6 +31,9 @@ def _construct_grid_filter(coordinates):
     return geom_or
 
 
+# ----------- end of UTILITY FUNCTIONS ------------------------
+
+
 def get_or_create_grid_subset(session: Session,
                               prediction_model: PredictionModel,
                               geographic_points) -> PredictionModelGridSubset:
@@ -64,8 +67,6 @@ def get_prediction_model_grid_subset_from_coordinates(session: Session, coordina
         filter(PredictionModelGridSubset.prediction_model_id ==
                PredictionModel.id, PredictionModel.abbreviation == model)
     return query.all()
-
-# ----------- end of UTILITY FUNCTIONS ------------------------
 
 
 def get_most_recent_model_run(
@@ -142,7 +143,7 @@ def get_grid_for_coordinate(session: Session,
     query = session.query(PredictionModelGridSubset).\
         filter(PredictionModelGridSubset.geom.ST_Contains(
             'POINT({longitude} {latitude})'.format(longitude=coordinate[0], latitude=coordinate[1]))).\
-        filter(PredictionModelGridSubset.prediction_model.id == prediction_model.id)
+        filter(PredictionModelGridSubset.prediction_model_id == prediction_model.id)
     return query.first()
 
 
@@ -271,7 +272,7 @@ def get_prediction_model(session: Session, abbreviation: str, projection: str) -
 def get_prediction_model_run_timestamp_records(session: Session, interpolated: bool = None):
     query = session.query(PredictionModelRunTimestamp)
     if interpolated is not None:
-        query.filter(PredictionModelRunTimestamp.inerpolated == interpolated)
+        query.filter(PredictionModelRunTimestamp.interpolated == interpolated)
     return query
 
 
