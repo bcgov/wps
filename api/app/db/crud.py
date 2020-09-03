@@ -3,13 +3,13 @@
 import logging
 import datetime
 from typing import List
-from sqlalchemy import or_, desc, func
+from sqlalchemy import or_, desc
 from sqlalchemy.orm import Session
 from app.schemas import StationCodeList
 from app.db.models import (
     ProcessedModelRunUrl, PredictionModel, PredictionModelRunTimestamp, PredictionModelGridSubset,
-    ModelRunGridSubsetPrediction, NoonForecasts)
-
+    ModelRunGridSubsetPrediction, NoonForecast, HourlyActual)
+import app.time_utils as time_utils
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +83,8 @@ def get_most_recent_model_run(
     return session.query(PredictionModelRunTimestamp).\
         join(PredictionModel).\
         filter(PredictionModel.id == PredictionModelRunTimestamp.prediction_model_id).\
-        filter(PredictionModel.abbreviation == abbreviation, PredictionModel.projection == projection).\
+        filter(PredictionModel.abbreviation == abbreviation,
+               PredictionModel.projection == projection).\
         filter(PredictionModelRunTimestamp.complete == True).\
         order_by(PredictionModelRunTimestamp.prediction_run_timestamp.desc()).\
         first()  # noqa: E712
@@ -147,7 +148,7 @@ def get_model_run_predictions(
     geom_or = _construct_grid_filter(coordinates)
 
     # We are only interested in predictions from now onwards
-    now = datetime.datetime.now(tz=datetime.timezone.utc)
+    now = time_utils.get_utc_now()
 
     # Build up the query:
     query = session.query(PredictionModelGridSubset, ModelRunGridSubsetPrediction).\
@@ -166,11 +167,13 @@ def get_predictions_from_coordinates(session: Session, coordinates: List, model:
     geom_or = _construct_grid_filter(coordinates)
 
     # We are only interested in the last 5 days.
-    now = datetime.datetime.now(tz=datetime.timezone.utc)
+    now = time_utils.get_utc_now()
     back_5_days = now - datetime.timedelta(days=5)
 
     # Build the query:
-    query = session.query(PredictionModelGridSubset, ModelRunGridSubsetPrediction, PredictionModel).\
+    query = session.query(PredictionModelGridSubset,
+                          ModelRunGridSubsetPrediction,
+                          PredictionModel).\
         filter(geom_or).\
         filter(ModelRunGridSubsetPrediction.prediction_timestamp >= back_5_days,
                ModelRunGridSubsetPrediction.prediction_timestamp <= now).\
@@ -183,12 +186,17 @@ def get_predictions_from_coordinates(session: Session, coordinates: List, model:
     return query
 
 
-def get_model_run_timestamp_ids_for_model_and_date_range(session: Session, model: str, start_date: datetime, end_date: datetime) -> List:
-    """ Returns a list of model_run_timestamp_ids for the requested model where the prediction_run_timestamp is within
-    the range of start_date and end_date (inclusive)
+def get_model_run_timestamp_ids_for_model_and_date_range(
+        session: Session,
+        model: str,
+        start_date: datetime,
+        end_date: datetime) -> List:
+    """ Returns a list of model_run_timestamp_ids for the requested model where the prediction_run_timestamp
+    is within the range of start_date and end_date (inclusive)
     """
     query = session.query(PredictionModelRunTimestamp.id).\
-        filter(PredictionModelRunTimestamp.prediction_model_id == PredictionModel.id, PredictionModel.abbreviation == model).\
+        filter(PredictionModelRunTimestamp.prediction_model_id == PredictionModel.id,
+               PredictionModel.abbreviation == model).\
         filter(PredictionModelRunTimestamp.prediction_run_timestamp >= start_date,
                PredictionModelRunTimestamp.prediction_run_timestamp <= end_date)
     return query.all()
@@ -209,7 +217,8 @@ def get_most_recent_historic_prediction_from_coordinates(session: Session, coord
     timestamp_ids = get_model_run_timestamp_ids_for_model_and_date_range(
         session, model, five_days_ago, now)
 
-    # Fetch model weather values for grid_subset_id and model_run_timestamp_id where prediction_timestamp == model_run_timestamp
+    # Fetch model weather values for grid_subset_id and model_run_timestamp_id
+    # where prediction_timestamp == model_run_timestamp
     query = session.query(ModelRunGridSubsetPrediction, PredictionModelRunTimestamp, PredictionModelGridSubset).\
         filter(PredictionModelGridSubset.id.in_(grid_ids)).\
         filter(PredictionModelRunTimestamp.id.in_(timestamp_ids)).\
@@ -246,9 +255,18 @@ def query_noon_forecast_records(session: Session,
                                 end_date: datetime
                                 ):
     """ Sends a query to get noon forecast records """
-    return session.query(NoonForecasts)\
-        .filter(NoonForecasts.station_code.in_(station_codes))\
-        .filter(NoonForecasts.weather_date >= start_date)\
-        .filter(NoonForecasts.weather_date <= end_date)\
-        .order_by(NoonForecasts.weather_date)\
-        .order_by(desc(NoonForecasts.created_at))
+    return session.query(NoonForecast)\
+        .filter(NoonForecast.station_code.in_(station_codes))\
+        .filter(NoonForecast.weather_date >= start_date)\
+        .filter(NoonForecast.weather_date <= end_date)\
+        .order_by(NoonForecast.weather_date)\
+        .order_by(desc(NoonForecast.created_at))
+
+
+def get_hourly_actuals(session: Session, station_codes: List[int], start_date: datetime):
+    """ Query for hourly actuals for given stations, from stated start_date onwards. """
+    return session.query(HourlyActual)\
+        .filter(HourlyActual.station_code.in_(station_codes))\
+        .filter(HourlyActual.weather_date >= start_date)\
+        .order_by(HourlyActual.station_code)\
+        .order_by(HourlyActual.weather_date)

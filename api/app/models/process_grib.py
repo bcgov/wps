@@ -3,6 +3,7 @@
 
 import math
 import struct
+import asyncio
 import logging
 import logging.config
 from typing import List
@@ -10,7 +11,7 @@ from sqlalchemy.dialects.postgresql import array
 import sqlalchemy.exc
 import gdal
 import app.db.database
-from app.wildfire_one import _get_stations_local
+from app.stations import get_stations
 from app.db.models import (
     PredictionModel, PredictionModelRunTimestamp, ModelRunGridSubsetPrediction)
 from app.db.crud import get_prediction_model, get_or_create_prediction_run, get_or_create_grid_subset
@@ -104,7 +105,9 @@ class GribFileProcessor():
 
     def __init__(self):
         # Get list of stations we're interested in, and store it so that we only call it once.
-        self.stations = _get_stations_local()
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        self.stations = loop.run_until_complete(get_stations())
         self.session = app.db.database.get_session()
         self.origin = None
         self.pixel = None
@@ -187,7 +190,7 @@ class GribFileProcessor():
             for (points, values) in self.yield_data_for_stations(raster_band):
                 self.store_bounding_values(
                     points, values, prediction_run, grib_info)
-        except sqlalchemy.exc.OperationalError:
+        except sqlalchemy.exc.OperationalError as exception:
             # Sometimes this exception is thrown with a "server closed the connection unexpectedly" error.
             # This could happen due to the connection being closed.
             if self.session.is_disconnect():
@@ -195,6 +198,6 @@ class GribFileProcessor():
                 # Try to re-connect, so that subsequent calls to this function may succeed.
                 # NOTE: I'm not sure if this will solve the problem!
                 self.session = app.db.database.get_session()
-                raise DatabaseException('Database disconnection')
+                raise DatabaseException('Database disconnection') from exception
             # Re-throw the exception.
             raise

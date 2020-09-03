@@ -7,10 +7,9 @@ from datetime import datetime, timezone
 import math
 from app.schemas import NoonForecast, NoonForecastResponse, NoonForecastValue, StationCodeList
 import app.db.database
-from app.db.models import NoonForecasts
 from app.db.crud import query_noon_forecast_records
+import app.db.models
 
-#pylint: disable=invalid-name
 
 LOGGER = logging.getLogger(__name__)
 
@@ -19,9 +18,9 @@ class StationNotFoundException(Exception):
     """ Custom exception for when a station cannot be found """
 
 
-def parse_table_records_to_noon_forecast_response(data: [NoonForecasts]):
+def parse_table_records_to_noon_forecast_response(data: [app.db.models.NoonForecast]):
     """ Given a list of table records from the database, parse each record
-    (which is a NoonForecasts object) and structure it as a NoonForecast
+    (which is a NoonForecast object) and structure it as a NoonForecast
     object, then return the list of NoonForecast objects as a NoonForecastResponse
     """
     noon_forecasts = defaultdict(list)

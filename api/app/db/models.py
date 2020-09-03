@@ -1,14 +1,35 @@
 """ Class models that reflect resources and map to database tables
 """
-import datetime
-from datetime import timezone
 import math
+import logging
+from datetime import datetime
 from sqlalchemy import (Column, String, Integer, Float, Boolean,
                         TIMESTAMP, Sequence, ForeignKey, UniqueConstraint)
+from sqlalchemy.types import TypeDecorator
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import ARRAY
 from geoalchemy2 import Geometry
 from app.db.database import Base
+import app.time_utils as time_utils
+
+
+logger = logging.getLogger(__name__)
+
+
+# pylint: disable=abstract-method
+class TZTimeStamp(TypeDecorator):
+    """ TimeStamp type that ensures that timezones are always specified.
+    If the timezone isn't specified, you aren't guaranteed that you're going to get consistent times. """
+    impl = TIMESTAMP(timezone=True)
+
+    def process_bind_param(self, value, dialect):
+        if isinstance(value, datetime) and value.tzinfo is None:
+            logger.warning('type:%s tzinfo:%s', type(value), value.tzinfo)
+            raise ValueError('{!r} must be TZ-aware'.format(value))
+        return value
+
+    def __repr__(self):
+        return 'TZTimeStamp()'
 
 
 class ProcessedModelRunUrl(Base):
@@ -25,9 +46,9 @@ class ProcessedModelRunUrl(Base):
     # Source URL of file processed.
     url = Column(String, nullable=False, unique=True)
     # Date this record was created.
-    create_date = Column(TIMESTAMP(timezone=True), nullable=False)
+    create_date = Column(TZTimeStamp, nullable=False)
     # Date this record was updated.
-    update_date = Column(TIMESTAMP(timezone=True), nullable=False)
+    update_date = Column(TZTimeStamp, nullable=False)
 
 
 class PredictionModel(Base):
@@ -74,7 +95,7 @@ class PredictionModelRunTimestamp(Base):
         'prediction_models.id'), nullable=False)
     prediction_model = relationship("PredictionModel")
     # The date and time of the model run.
-    prediction_run_timestamp = Column(TIMESTAMP(timezone=True), nullable=False)
+    prediction_run_timestamp = Column(TZTimeStamp, nullable=False)
     # Indicate if this particular model run is completely downloaded.
     complete = Column(Boolean, nullable=False)
 
@@ -126,14 +147,48 @@ class ModelRunGridSubsetPrediction(Base):
         'prediction_model_grid_subsets.id'), nullable=False)
     prediction_model_grid_subset = relationship("PredictionModelGridSubset")
     # The date and time to which the prediction applies.
-    prediction_timestamp = Column(TIMESTAMP(timezone=True), nullable=False)
+    prediction_timestamp = Column(TZTimeStamp, nullable=False)
     # Temperature 2m above model layer.
     tmp_tgl_2 = Column(ARRAY(Float), nullable=True)
     # Relative humidity 2m above model layer.
     rh_tgl_2 = Column(ARRAY(Float), nullable=True)
 
 
-class NoonForecasts(Base):
+class HourlyActual(Base):
+    """ Class representing table structure of 'hourly_actuals' table in DB.
+    Default float values of math.nan are used for the weather variables that are
+    sometimes null (None), because Postgres evaluates None != None, so the unique
+    constraint doesn't work on records with >=1 None values. But math.nan == math.nan
+    """
+    __tablename__ = 'hourly_actuals'
+    __table_args__ = (
+        UniqueConstraint('weather_date',
+                         'station_code'),
+        {'comment': 'The hourly_actuals for a weather station and weather date.'}
+    )
+    id = Column(Integer, primary_key=True)
+    weather_date = Column(TZTimeStamp, nullable=False)
+    station_code = Column(Integer, nullable=False)
+    temp_valid = Column(Boolean, default=False, nullable=False)
+    temperature = Column(Float, nullable=False)
+    dewpoint = Column(Float, nullable=False)
+    rh_valid = Column(Boolean, default=False, nullable=False)
+    relative_humidity = Column(Float, nullable=False)
+    wdir_valid = Column(Boolean, default=False, nullable=False)
+    # Set default wind_direction to NaN because some stations don't report it
+    wind_direction = Column(Float, nullable=False, default=math.nan)
+    wspeed_valid = Column(Boolean, default=False, nullable=False)
+    wind_speed = Column(Float, nullable=False)
+    precip_valid = Column(Boolean, default=False, nullable=False)
+    precipitation = Column(Float, nullable=False)
+    ffmc = Column(Float, nullable=False, default=math.nan)
+    isi = Column(Float, nullable=False, default=math.nan)
+    fwi = Column(Float, nullable=False, default=math.nan)
+    created_at = Column(TZTimeStamp, nullable=False,
+                        default=time_utils.get_utc_now())
+
+
+class NoonForecast(Base):
     """ Class representing table structure of 'noon_forecasts' table in DB.
     Default float values of math.nan are used for the weather variables that are
     sometimes null (None), because Postgres evaluates None != None, so the unique
@@ -164,7 +219,7 @@ class NoonForecasts(Base):
         {'comment': 'The noon_forecast for a weather station and weather date.'}
     )
     id = Column(Integer, primary_key=True)
-    weather_date = Column(TIMESTAMP(timezone=True), nullable=False)
+    weather_date = Column(TZTimeStamp, nullable=False)
     station_code = Column(Integer, nullable=False)
     temp_valid = Column(Boolean, default=False, nullable=False)
     temperature = Column(Float, nullable=False)
@@ -185,8 +240,8 @@ class NoonForecasts(Base):
     bui = Column(Float, nullable=False, default=math.nan)
     fwi = Column(Float, nullable=False, default=math.nan)
     danger_rating = Column(Integer, nullable=False)
-    created_at = Column(TIMESTAMP(timezone=True), nullable=False,
-                        default=datetime.datetime.now(tz=timezone.utc))
+    created_at = Column(TZTimeStamp, nullable=False,
+                        default=time_utils.get_utc_now())
 
     def __str__(self):
         return (

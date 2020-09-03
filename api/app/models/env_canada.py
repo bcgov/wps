@@ -5,30 +5,25 @@ TODO: Move this file to app/models/ (not part of this PR as it makes comparing p
 
 import os
 import sys
-import json
 import datetime
 from typing import Generator
 from urllib.parse import urlparse
 import logging
-import logging.config
 import time
 import tempfile
 import requests
 from sqlalchemy.orm import Session
+from app import configure_logging
 import app.db.database
 from app.models import ModelEnum
 from app.db.crud import get_processed_file_record, get_processed_file_count
 from app.db.models import ProcessedModelRunUrl
 from app.models.process_grib import GribFileProcessor, ModelRunInfo
-
+import app.time_utils as time_utils
 
 # If running as it's own process, configure loggin appropriately.
 if __name__ == "__main__":
-    LOGGING_CONFIG = os.path.join(os.path.dirname(__file__), '../logging.json')
-    if os.path.exists(LOGGING_CONFIG):
-        with open(LOGGING_CONFIG) as config_file:
-            CONFIG = json.load(config_file)
-        logging.config.dictConfig(CONFIG)
+    configure_logging()
 
 logger = logging.getLogger(__name__)
 
@@ -81,23 +76,23 @@ def parse_env_canada_filename(filename):
     return info
 
 
-def get_model_day(now, hour) -> int:
-    """ Get the model day, based on the current time.
+def adjust_model_day(now, hour) -> datetime:
+    """ Adjust the model day, based on the current time.
 
     If now (e.g. 10h00) is less than model run (e.g. 12), it means we have to look for yesterdays
     model run.
     """
     if now.hour < hour:
-        return now.day - 1
-    return now.day
+        return now - datetime.timedelta(days=1)
+    return now
 
 
 def get_file_date_part(now, hour) -> str:
     """ Construct the part of the filename that contains the model run date
     """
-    day = get_model_day(now, hour)
+    now = adjust_model_day(now, hour)
     date = '{year}{month:02d}{day:02d}'.format(
-        year=now.year, month=now.month, day=day)
+        year=now.year, month=now.month, day=now.day)
     return date
 
 
@@ -179,8 +174,9 @@ def mark_prediction_model_run_processed(session: Session,
     prediction_run_timestamp = datetime.datetime(
         year=now.year,
         month=now.month,
-        day=get_model_day(now, hour),
+        day=now.day,
         hour=hour, tzinfo=datetime.timezone.utc)
+    prediction_run_timestamp = adjust_model_day(prediction_run_timestamp, hour)
     logger.info('prediction_model:%s, prediction_run_timestamp:%s',
                 prediction_model, prediction_run_timestamp)
     prediction_run = app.db.crud.get_prediction_run(
@@ -215,9 +211,8 @@ class EnvCanada():
             logger.info('file processed %s', url)
             processed_file = ProcessedModelRunUrl(
                 url=url,
-                create_date=datetime.datetime.now(datetime.timezone.utc))
-        processed_file.update_date = datetime.datetime.now(
-            datetime.timezone.utc)
+                create_date=time_utils.get_utc_now())
+        processed_file.update_date = time_utils.get_utc_now()
         # pylint: disable=no-member
         self.session.add(processed_file)
         self.session.commit()

@@ -1,38 +1,63 @@
 """ BDD tests for API /hourlies. """
 import logging
-from datetime import datetime, timezone
+from datetime import datetime
 from pytest_bdd import scenario, given, then
 from starlette.testclient import TestClient
 from aiohttp import ClientSession
+from alchemy_mock.mocking import UnifiedAlchemyMagicMock
+from alchemy_mock.compat import mock
 import app.main
+import app.time_utils
+from app.db.models import HourlyActual
 from app.tests.common import default_mock_client_get
 import app.wildfire_one
 
-LOGGER = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 @scenario('test_get_hourlies.feature', 'Get hourlies',
-          example_converters=dict(codes=str, status=int, num_groups=int, num_readings_per_group=str))
+          example_converters=dict(
+              codes=str, status=int,
+              num_groups=int,
+              num_readings_per_group=str,
+              use_wfwx=str))
 def test_hourlies():
     """ BDD Scenario. """
 
 
 # pylint: disable=unused-argument
-@given('I request hourlies for stations: <codes>')
-def response(monkeypatch, mock_env_with_use_wfwx, mock_jwt_decode, codes):
+@given('I request hourlies for stations: <codes> with <use_wfwx>')
+def response(monkeypatch, mock_jwt_decode, codes, use_wfwx):
     """ Make /hourlies/ request using mocked out ClientSession.
     """
 
-    # Mock out the part that gives us a datetime.
-    def mock_now(*args, **kwargs):
-        return datetime.fromtimestamp(1590076213962/1000, tz=timezone.utc)
-
-    monkeypatch.setattr(app.wildfire_one, '_get_now', mock_now)
-
-    monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
     # NOTE: should be using a converter
     # pylint: disable=eval-used
     stations = eval(codes)
+
+    def mock_get_session(*args):
+        """ Slap some actuals into the database to match the stations being queried """
+        hourly_actuals = []
+        for code in stations:
+            hourly_actuals.append(HourlyActual(weather_date=datetime.fromisoformat(
+                "2020-01-01T01:01+00:00"), station_code=code, temp_valid=True, temperature=11.1))
+
+        # Create a mock session - no filters, this is what you'll get on any query
+        session = UnifiedAlchemyMagicMock(data=[
+            (
+                [mock.call.query(HourlyActual)], hourly_actuals
+            )
+        ])
+        return session
+
+    if use_wfwx == 'True':
+        logger.info('running test with WFWX set to True')
+        monkeypatch.setenv("USE_WFWX", 'True')
+        monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
+    else:
+        logger.info('running test with WFWX set to False')
+        monkeypatch.setenv("USE_WFWX", 'False')
+        monkeypatch.setattr(app.db.database, 'get_session', mock_get_session)
 
     # Create API client and get the reppnse.
     client = TestClient(app.main.app)

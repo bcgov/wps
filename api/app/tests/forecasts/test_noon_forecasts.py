@@ -16,7 +16,7 @@ import app.main
 from app.tests.common import default_mock_client_get
 import app.wildfire_one
 import app.db.database
-from app.db.models import NoonForecasts
+from app.db.models import NoonForecast
 
 LOGGER = logging.getLogger(__name__)
 
@@ -36,7 +36,7 @@ def mock_session(monkeypatch):
                     forecast['weather_date'])
                 forecast['created_at'] = datetime.fromisoformat(
                     forecast['created_at'])
-                session.add(NoonForecasts(**forecast))
+                session.add(NoonForecast(**forecast))
         return session
 
     monkeypatch.setattr(app.db.database, 'get_session', mock_get_session)
@@ -53,13 +53,6 @@ def test_noon_forecasts():
 def response(monkeypatch, mock_env_with_use_wfwx, mock_jwt_decode, codes):
     """ Make /noon_forecasts/ request using mocked out ClientSession.
     """
-
-    # Mock out the part that gives us a datetime.
-    # pylint: disable=unused-argument
-    def mock_now(*args, **kwargs):
-        return datetime.fromtimestamp(1590076213962/1000, tz=pytz.utc)
-
-    monkeypatch.setattr(app.wildfire_one, '_get_now', mock_now)
     monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
     # NOTE: should be using a converter
     # pylint: disable=eval-used
