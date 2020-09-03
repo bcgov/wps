@@ -164,6 +164,37 @@ class ModelRunGridSubsetPrediction(Base):
                 'rh_tgl_2={self.rh_tgl_2}').format(self=self)
 
 
+class WeatherStationModelPrediction(Base):
+    """ The model prediction for a particular weather station.
+    Based on values from ModelRunGridSubsetPrediction, but captures linear interpolations based on weather
+    station's location within the grid_subset, and also captures time-based linear interpolations where
+    needed for certain Model types. """
+    __tablename__ = 'weather_station_model_predictions'
+    __table_args__ = (
+        UniqueConstraint('station_code', 'model_run_grid_subset_prediction_id', 'prediction_timestamp'),
+        {'comment': 'The interpolated weather values for a weather station, weather date, and model run'}
+    )
+
+    id = Column(Integer, Sequence('weather_station_model_predictions_id_seq'),
+                primary_key=True, nullable=False, index=True)
+    # The 3-digit code for the weather station to which the prediction applies
+    station_code = Column(Integer, nullable=False)
+    # Which ModelRunGridSubsetPrediction is this station's prediction based on?
+    model_run_grid_subset_prediction_id = Column(Integer, ForeignKey(
+        'model_run_grid_subset_predictions.id'), nullable=False)
+    model_run_grid_subset_prediction = relationship("ModelRunGridSubsetPrediction")
+    # The date and time to which the prediction applies. Will most often be copied directly from
+    # prediction_timestamp for the ModelRunGridSubsetPrediction, but is included again for cases
+    # when values are interpolated (e.g., noon interpolations on GDPS model runs)
+    prediction_timestamp = Column(TZTimeStamp, nullable=False)
+    # Temperature 2m above model layer - an interpolated value based on 4 values from
+    # model_run_grid_subset_prediction
+    tmp_tgl_2 = Column(Float, nullable=True)
+    # Relative Humidity 2m above model layer - an interpolated value based on 4 values
+    # from model_run_grid_subset_prediction
+    rh_tgl_2 = Column(Float, nullable=True)
+
+
 class HourlyActual(Base):
     """ Class representing table structure of 'hourly_actuals' table in DB.
     Default float values of math.nan are used for the weather variables that are
