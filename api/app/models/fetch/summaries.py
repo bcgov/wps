@@ -45,9 +45,9 @@ class ModelPredictionSummaryBuilder():
         self.prev_time = None
         self.prev_grid = None
         self.values = None
-        self.prev_grid = None
         self.prediction_summaries = []
         self.summaries_in_grid = {}
+        self.most_recent_historic = {}
 
     def init_values(self):
         self.values = {}
@@ -75,6 +75,10 @@ class ModelPredictionSummaryBuilder():
                     summary['summary'], self.prev_time, self.values)
         self.prev_time = prev_time
         self.values = None
+
+    # def fetch_most_recent_model_run(self, timestamp: datetime.datetime):
+    #     """ Append the weather values for the most recent model run. """
+    #     for
 
     def handle_new_grid(self,
                         grid: PredictionModelGridSubset,

@@ -13,7 +13,7 @@ from app.schemas import (WeatherStation, WeatherModelPrediction,
                          WeatherModelPredictionValues, WeatherModelRun)
 from app.db.models import ModelRunGridSubsetPrediction
 import app.db.crud
-from app.wildfire_one import get_stations_by_codes
+from app.wildfire_one import get_stations_by_codes, _get_now
 from app import config
 from app.models import ModelEnum
 from app.models.fetch import extract_stations_in_polygon
@@ -164,7 +164,6 @@ def _fetch_model_predictions_by_stations(
                 predictions.append(prediction)
                 predictions_in_grid[station.code] = prediction, NoonInterpolator(
                 )
-                logger.info(type(predictions_in_grid[station.code]))
                 # pop the station off the list
                 tmp_station_list.remove(station)
 
@@ -192,6 +191,41 @@ async def _fetch_model_predictions_by_station_codes(model: ModelEnum, station_co
 
 
 async def fetch_model_predictions(model: ModelEnum, station_codes: List[int]):
-    """ Fetch 10 day global model weather predictions for a given station."""
+    """ Fetch model weather predictions for a given list of stations and a given model. """
     # Fetch predictions from the database.
     return await _fetch_model_predictions_by_station_codes(model, station_codes)
+
+
+def _fetch_most_recent_historic_predictions_by_stations(session, model: ModelEnum, stations: List[WeatherStation]) -> List[WeatherModelPrediction]:
+    """ Fetch the most recent historic model predictions from database based on each station's coordinates. """
+    coordinate_pairs = [[station.long, station.lat] for station in stations]
+    historic_predictions = app.db.crud.get_most_recent_historic_prediction_from_coordinates(
+        session, coordinate_pairs, model)
+    predictions_by_station = {}
+    for prediction in historic_predictions:
+        # construct the WeatherModelPredictionValue
+        # TODO fix this so that it's not just grabbing the first value in the list for temp & rh
+        wmpv = WeatherModelPredictionValues(
+            temperature=prediction.ModelRunGridSubsetPrediction.tmp_tgl_2[0],
+            relative_humidity=prediction.ModelRunGridSubsetPrediction.rh_tgl_2[0],
+            datetime=prediction.ModelRunGridSubsetPrediction.prediction_timestamp
+        )
+    return [historic_predictions]
+
+
+async def _fetch_most_recent_historic_predictions_by_station_codes(model: ModelEnum, station_codes: List[int]):
+    """ Fetch the most recent prediction from database for each station.
+    """
+    # Using the list of station codes, fetch the stations:
+    stations = await get_stations_by_codes(station_codes)
+    session = app.db.database.get_session()
+    # Fetch the predictions for each day
+    historic_predictions = _fetch_most_recent_historic_predictions_by_stations(
+        session, model, stations)
+
+    return historic_predictions
+
+
+async def fetch_most_recent_historic_predictions(model: ModelEnum, station_codes: List[int]):
+    """ Fetch most recently issued model prediction for the last 5 days for a given list of stations and a given model. """
+    return await _fetch_most_recent_historic_predictions_by_station_codes(model, station_codes)

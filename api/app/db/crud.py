@@ -3,7 +3,7 @@
 import logging
 import datetime
 from typing import List
-from sqlalchemy import or_, desc
+from sqlalchemy import or_, desc, func
 from sqlalchemy.orm import Session
 from app.schemas import StationCodeList
 from app.db.models import (
@@ -14,6 +14,58 @@ from app.db.models import (
 logger = logging.getLogger(__name__)
 
 LATLON_15X_15 = 'latlon.15x.15'
+
+# --------------  COMMON UTILITY FUNCTIONS ---------------------------
+
+
+def _construct_grid_filter(coordinates):
+    # Run through each coordinate, adding it to the "or" construct.
+    geom_or = None
+    for coordinate in coordinates:
+        condition = PredictionModelGridSubset.geom.ST_Contains(
+            'POINT({longitude} {latitude})'.format(longitude=coordinate[0], latitude=coordinate[1]))
+        if geom_or is None:
+            geom_or = or_(condition)
+        else:
+            geom_or = or_(condition, geom_or)
+    return geom_or
+
+
+def get_or_create_grid_subset(session: Session,
+                              prediction_model: PredictionModel,
+                              geographic_points) -> PredictionModelGridSubset:
+    """ Get the subset of grid points of interest. """
+    geom = 'POLYGON(({} {}, {} {}, {} {}, {} {}, {} {}))'.format(
+        geographic_points[0][0], geographic_points[0][1],
+        geographic_points[1][0], geographic_points[1][1],
+        geographic_points[2][0], geographic_points[2][1],
+        geographic_points[3][0], geographic_points[3][1],
+        geographic_points[0][0], geographic_points[0][1])
+    grid_subset = session.query(PredictionModelGridSubset).\
+        filter(PredictionModelGridSubset.prediction_model_id == prediction_model.id).\
+        filter(PredictionModelGridSubset.geom == geom).first()
+    if not grid_subset:
+        logger.info('creating grid subset %s', geographic_points)
+        grid_subset = PredictionModelGridSubset(
+            prediction_model_id=prediction_model.id, geom=geom)
+        session.add(grid_subset)
+        session.commit()
+    return grid_subset
+
+
+def get_prediction_model_grid_subset_from_coordinates(session: Session, coordinates: List, model: str):
+    """ Get the prediction_model_grid_subset_id for the given model and weather station coordinates """
+    # condition for query: are coordinates within the existing grids
+    geom_or = _construct_grid_filter(coordinates)
+
+    # Build the query:
+    query = session.query(PredictionModelGridSubset.id).\
+        filter(geom_or).\
+        filter(PredictionModelGridSubset.prediction_model_id ==
+               PredictionModel.id, PredictionModel.abbreviation == model)
+    return query.all()
+
+# ----------- end of UTILITY FUNCTIONS ------------------------
 
 
 def get_most_recent_model_run(
@@ -83,19 +135,6 @@ def get_or_create_prediction_run(session, prediction_model: PredictionModel,
     return prediction_run
 
 
-def _construct_grid_filter(coordinates):
-    # Run through each coordinate, adding it to the "or" construct.
-    geom_or = None
-    for coordinate in coordinates:
-        condition = PredictionModelGridSubset.geom.ST_Contains(
-            'POINT({longitude} {latitude})'.format(longitude=coordinate[0], latitude=coordinate[1]))
-        if geom_or is None:
-            geom_or = or_(condition)
-        else:
-            geom_or = or_(condition, geom_or)
-    return geom_or
-
-
 def get_model_run_predictions(
         session: Session,
         prediction_run: PredictionModelRunTimestamp,
@@ -144,26 +183,42 @@ def get_predictions_from_coordinates(session: Session, coordinates: List, model:
     return query
 
 
-def get_or_create_grid_subset(session: Session,
-                              prediction_model: PredictionModel,
-                              geographic_points) -> PredictionModelGridSubset:
-    """ Get the subset of grid points of interest. """
-    geom = 'POLYGON(({} {}, {} {}, {} {}, {} {}, {} {}))'.format(
-        geographic_points[0][0], geographic_points[0][1],
-        geographic_points[1][0], geographic_points[1][1],
-        geographic_points[2][0], geographic_points[2][1],
-        geographic_points[3][0], geographic_points[3][1],
-        geographic_points[0][0], geographic_points[0][1])
-    grid_subset = session.query(PredictionModelGridSubset).\
-        filter(PredictionModelGridSubset.prediction_model_id == prediction_model.id).\
-        filter(PredictionModelGridSubset.geom == geom).first()
-    if not grid_subset:
-        logger.info('creating grid subset %s', geographic_points)
-        grid_subset = PredictionModelGridSubset(
-            prediction_model_id=prediction_model.id, geom=geom)
-        session.add(grid_subset)
-        session.commit()
-    return grid_subset
+def get_model_run_timestamp_ids_for_model_and_date_range(session: Session, model: str, start_date: datetime, end_date: datetime) -> List:
+    """ Returns a list of model_run_timestamp_ids for the requested model where the prediction_run_timestamp is within
+    the range of start_date and end_date (inclusive)
+    """
+    query = session.query(PredictionModelRunTimestamp.id).\
+        filter(PredictionModelRunTimestamp.prediction_model_id == PredictionModel.id, PredictionModel.abbreviation == model).\
+        filter(PredictionModelRunTimestamp.prediction_run_timestamp >= start_date,
+               PredictionModelRunTimestamp.prediction_run_timestamp <= end_date)
+    return query.all()
+
+
+def get_most_recent_historic_prediction_from_coordinates(session: Session, coordinates: List, model: str) -> List:
+    """  """
+    # Determine the prediction_model_grid_subset_id for the requested model for each station's coordinates
+    grid_ids = get_prediction_model_grid_subset_from_coordinates(
+        session, coordinates, model)
+
+    # We're only interested in the last 5 days
+    now = datetime.datetime.now(tz=datetime.timezone.utc)
+    five_days_ago = now - datetime.timedelta(days=5)
+    # Determine the model_run_timestamp_ids for the requested model and where
+    # prediction_run_timestamp >= five_days_ago AND
+    # prediction_run_timestamp <= now
+    timestamp_ids = get_model_run_timestamp_ids_for_model_and_date_range(
+        session, model, five_days_ago, now)
+
+    # Fetch model weather values for grid_subset_id and model_run_timestamp_id where prediction_timestamp == model_run_timestamp
+    query = session.query(ModelRunGridSubsetPrediction, PredictionModelRunTimestamp, PredictionModelGridSubset).\
+        filter(PredictionModelGridSubset.id.in_(grid_ids)).\
+        filter(PredictionModelRunTimestamp.id.in_(timestamp_ids)).\
+        filter(PredictionModelRunTimestamp.prediction_run_timestamp ==
+               ModelRunGridSubsetPrediction.prediction_timestamp)
+
+    logger.info(query)
+
+    return query.all()
 
 
 def get_processed_file_count(session: Session, urls: List[str]) -> int:
