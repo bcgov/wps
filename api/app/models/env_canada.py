@@ -315,13 +315,14 @@ class Interpolator:
         self.stations = loop.run_until_complete(app.stations.get_stations())
 
     def process_model_run(self, model_run: PredictionModelRunTimestamp):
+        logger.info('Interpolating values for model run: %s', model_run)
         for station in self.stations:
             self.process_model_run_for_station(model_run, station)
-            break
 
     def process_model_run_for_station(self,
                                       model_run: PredictionModelRunTimestamp,
                                       station: dict):
+        logger.info('Processing station %s:%s', station['code'], station['name'])
         coordinate = [station['long'], station['lat']]
         grid = get_grid_for_coordinate(self.session, model_run.prediction_model, coordinate)
         query = get_model_run_predictions_for_grid(self.session, model_run, grid)
@@ -343,21 +344,18 @@ class Interpolator:
             station_prediction.update_date = time_utils.get_utc_now()
             self.session.add(station_prediction)
             self.session.commit()
-
-            logger.info('station_prediction: %s', station_prediction)
-            break
+        logger.info('Done processing station %s:%s', station['code'], station['name'])
 
     def mark_model_run_interpolated(self, model_run: PredictionModelRunTimestamp):
         model_run.interpolated = True
         logger.info('marking %s as interpolated', model_run)
-        # self.session.add(model_run)
-        # self.session.commit()
+        self.session.add(model_run)
+        self.session.commit()
 
     def process(self):
         for model_run in get_prediction_model_run_timestamp_records(self.session, interpolated=False):
             self.process_model_run(model_run)
             self.mark_model_run_interpolated(model_run)
-            break
 
 
 def main():
