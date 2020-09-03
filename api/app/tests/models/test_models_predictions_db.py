@@ -88,7 +88,7 @@ def when_predictions(mock_jwt_decode, given_a_database, given_stations, endpoint
     given_a_database['response_json'] = response.json()
 
 
-@ then('There are <num_prediction_values>')
+@then('There are <num_prediction_values>')
 def assert_num_predictions(given_a_database, num_prediction_values):
     """ Even though there are only two predictions in the database, we expect an interpolated noon value. """
     num_prediction_values = eval(num_prediction_values)

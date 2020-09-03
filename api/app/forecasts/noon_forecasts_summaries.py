@@ -4,7 +4,7 @@ import json
 import logging
 from collections import defaultdict
 from datetime import datetime
-from app.wildfire_one import get_stations_by_codes
+import app.stations
 import app.db.database
 from app.db.crud import query_noon_forecast_records
 from app.schemas import (
@@ -63,7 +63,7 @@ async def fetch_noon_forecasts_summaries(station_codes: StationCodeList,
         records_by_station[code].append(record)
 
     response = NoonForecastSummariesResponse()
-    stations = await get_stations_by_codes(station_codes)
+    stations = await app.stations.get_stations_by_codes(station_codes)
     for station in stations:
         summary = create_noon_forecast_summary(station, records_by_station)
         response.summaries.append(summary)
