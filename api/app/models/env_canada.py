@@ -332,6 +332,7 @@ class Interpolator:
         poly = to_shape(grid.geom)
         points = list(poly.exterior.coords)[:-1]
         for prediction in query:
+            #
             station_prediction = get_weather_station_model_prediction(
                 self.session, station['code'], model_run.id, prediction.prediction_timestamp)
             if station_prediction is None:
@@ -345,7 +346,6 @@ class Interpolator:
                 points, prediction.rh_tgl_2, coordinate, method='linear')[0]
             station_prediction.update_date = time_utils.get_utc_now()
             self.session.add(station_prediction)
-        # self.session.commit()
 
     def mark_model_run_interpolated(self, model_run: PredictionModelRunTimestamp):
         model_run.interpolated = True
@@ -367,7 +367,7 @@ def main():
 
     # process everything.
     env_canada = EnvCanada()
-    # env_canada.process()
+    env_canada.process()
 
     # interpolate everything that needs interpolating.
     interpolator = Interpolator()
