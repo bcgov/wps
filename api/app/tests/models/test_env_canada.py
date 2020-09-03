@@ -1,17 +1,20 @@
 """ Unit tests for app/env_canada.py """
 
+import app.time_utils as time_utils
+import app.db.database
 import os
 import logging
 import datetime
 from datetime import timezone, datetime
 import pytest
 import requests
+import shapely.wkt
+from geoalchemy2.shape import from_shape
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
 from app.models import env_canada
-from app.db.models import PredictionModel, ProcessedModelRunUrl, PredictionModelRunTimestamp
-import app.db.database
-import app.time_utils as time_utils
+from app.db.models import (PredictionModel, ProcessedModelRunUrl, PredictionModelRunTimestamp,
+                           PredictionModelGridSubset)
 # pylint: disable=unused-argument, redefined-outer-name
 
 
@@ -45,18 +48,24 @@ def mock_utcnow(monkeypatch):
 @pytest.fixture()
 def mock_session(monkeypatch):
     """ Mocked out sqlalchemy session object """
-    def mock_get_session(*args):
-        url = ('https://dd.weather.gc.ca/model_gem_global/15km/grib2/lat_lon/00/000/'
-               'CMC_glb_TMP_TGL_2_latlon.15x.15_2021020300_P000.grib2')
-        processed_model_run = ProcessedModelRunUrl(url=url)
+    geom = ("POLYGON ((-120.525 50.77500000000001, -120.375 50.77500000000001,-120.375 50.62500000000001,"
+            " -120.525 50.62500000000001, -120.525 50.77500000000001))")
+    shape = shapely.wkt.loads(geom)
 
-        prediction_model = PredictionModel(id=1,
-                                           abbreviation='GDPS',
-                                           projection='latlon.15x.15',
-                                           name='Global Deterministic Prediction System')
-        prediction_model_run = PredictionModelRunTimestamp(
-            id=1, prediction_model_id=1, prediction_run_timestamp=time_utils.get_utc_now(),
-            prediction_model=prediction_model, complete=True)
+    url = ('https://dd.weather.gc.ca/model_gem_global/15km/grib2/lat_lon/00/000/'
+           'CMC_glb_TMP_TGL_2_latlon.15x.15_2021020300_P000.grib2')
+    processed_model_run = ProcessedModelRunUrl(url=url)
+
+    prediction_model = PredictionModel(id=1,
+                                       abbreviation='GDPS',
+                                       projection='latlon.15x.15',
+                                       name='Global Deterministic Prediction System')
+    prediction_model_run = PredictionModelRunTimestamp(
+        id=1, prediction_model_id=1, prediction_run_timestamp=time_utils.get_utc_now(),
+        prediction_model=prediction_model, complete=True)
+
+    def mock_get_session(*args):
+
         return UnifiedAlchemyMagicMock(data=[
             (
                 [mock.call.query(PredictionModel),
@@ -72,13 +81,23 @@ def mock_session(monkeypatch):
             (
                 [mock.call.query(PredictionModelRunTimestamp)],
                 [prediction_model_run]
+            ),
+            (
+                [mock.call.query(PredictionModelGridSubset)],
+                [PredictionModelGridSubset(
+                    id=1, prediction_model_id=prediction_model.id, geom=from_shape(shape))]
             )
-            # TODO: add filter for getting the last prediction model run
         ])
+
+    def mock_get_prediction_model_run_timestamp_records(*args, **kwargs):
+        return [prediction_model_run, ]
+
     monkeypatch.setattr(app.db.database, 'get_session', mock_get_session)
+    monkeypatch.setattr(app.models.env_canada, 'get_prediction_model_run_timestamp_records',
+                        mock_get_prediction_model_run_timestamp_records)
 
 
-@pytest.fixture()
+@ pytest.fixture()
 def mock_download(monkeypatch):
     """ fixture for env_canada.download """
     def mock_requests_get(*args, **kwargs):
@@ -92,7 +111,7 @@ def mock_download(monkeypatch):
     monkeypatch.setattr(requests, 'get', mock_requests_get)
 
 
-@pytest.fixture()
+@ pytest.fixture()
 def mock_download_fail(monkeypatch):
     """ fixture for env_canada.download """
     def mock_requests_get(*args, **kwargs):
