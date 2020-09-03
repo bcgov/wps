@@ -8,6 +8,8 @@ import aiofiles
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse, PlainTextResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from app import schemas, configure_logging
 from app.models.fetch.predictions import fetch_model_predictions
 from app.models.fetch.summaries import fetch_model_prediction_summaries
@@ -64,18 +66,59 @@ API_INFO = '''
     programs or information, even if the Government of British Columbia
     has been specifically advised of the possibility of such damages.'''
 
+main_app = FastAPI()
 
-app = FastAPI(
+frontend = FastAPI()
+api = FastAPI(
     title="Predictive Services Fire Weather Index Calculator",
     description=API_INFO,
     version="0.0.0"
 )
 
-app.mount('/', StaticFiles(directory='static'), name='static')
+
+@main_app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request, exc):
+    print("moo")
+    return PlainTextResponse(str(exc.detail), status_code=exc.status_code)
+
+
+@frontend.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request, exc):
+    print("moo")
+    return PlainTextResponse(str(exc.detail), status_code=exc.status_code)
+
+
+@api.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request, exc):
+    print("moo")
+    return PlainTextResponse(str(exc.detail), status_code=exc.status_code)
+
+# @main_app.exception_handler(404)
+# def main_app_not_found(request, exc):
+#     LOGGER.warning('main app exception')
+#     return FileResponse('../../wps-web/build/index.html')
+
+
+# @api.exception_handler(404)
+# def api_not_found(request, exc):
+#     LOGGER.warning('api end exception')
+#     return FileResponse('../../wps-web/build/index.html')
+
+
+# @frontend.exception_handler(404)
+# def not_found(request, exc):
+#     LOGGER.warning('front end exception')
+#     return FileResponse('../../wps-web/build/index.html')
+
+
+frontend.mount('/', StaticFiles(directory='../../wps-web/build', html=True), name='static')
+
+main_app.mount('/api', app=api)
+main_app.mount('/', app=frontend)
 
 ORIGINS = config.get('ORIGINS')
 
-app.add_middleware(
+api.add_middleware(
     CORSMiddleware,
     allow_origins=ORIGINS,
     allow_credentials=True,
@@ -84,7 +127,7 @@ app.add_middleware(
 )
 
 
-@app.get('/health')
+@api.get('/health')
 async def get_health():
     """ A simple endpoint for Openshift Healthchecks """
     try:
@@ -97,7 +140,7 @@ async def get_health():
         raise
 
 
-@app.post('/models/{model}/predictions/', response_model=schemas.WeatherModelPredictionResponse)
+@api.post('/models/{model}/predictions/', response_model=schemas.WeatherModelPredictionResponse)
 async def get_model_predictions(
         model: ModelEnum, request: schemas.StationCodeList, _: bool = Depends(authenticate)):
     """ Returns 10 day noon prediction based on the global deterministic prediction system (GDPS)
@@ -111,7 +154,7 @@ async def get_model_predictions(
         raise
 
 
-@app.post('/models/{model}/predictions/summaries/',
+@api.post('/models/{model}/predictions/summaries/',
           response_model=schemas.WeatherModelPredictionSummaryResponse)
 async def get_model_prediction_summaries(
         model: ModelEnum, request: schemas.StationCodeList, _: bool = Depends(authenticate)):
@@ -125,7 +168,7 @@ async def get_model_prediction_summaries(
         raise
 
 
-@app.post('/noon_forecasts/', response_model=schemas.NoonForecastResponse)
+@api.post('/noon_forecasts/', response_model=schemas.NoonForecastResponse)
 def get_noon_forecasts(request: schemas.StationCodeList, _: bool = Depends(authenticate)):
     """ Returns noon forecasts pulled from BC FireWeather Phase 1 website for the specified
     set of weather stations. """
@@ -140,7 +183,7 @@ def get_noon_forecasts(request: schemas.StationCodeList, _: bool = Depends(authe
         raise
 
 
-@app.post('/noon_forecasts/summaries/', response_model=schemas.NoonForecastSummariesResponse)
+@api.post('/noon_forecasts/summaries/', response_model=schemas.NoonForecastSummariesResponse)
 async def get_noon_forecasts_summaries(request: schemas.StationCodeList, _: bool = Depends(authenticate)):
     """ Returns summaries of noon forecasts for given weather stations """
     try:
@@ -154,7 +197,7 @@ async def get_noon_forecasts_summaries(request: schemas.StationCodeList, _: bool
         raise
 
 
-@app.post('/hourlies/', response_model=schemas.WeatherStationHourlyReadingsResponse)
+@api.post('/hourlies/', response_model=schemas.WeatherStationHourlyReadingsResponse)
 async def get_hourlies(request: schemas.StationCodeList, _: bool = Depends(authenticate)):
     """ Returns hourlies for the last 5 days, for the specified weather stations """
     try:
@@ -166,7 +209,7 @@ async def get_hourlies(request: schemas.StationCodeList, _: bool = Depends(authe
         raise
 
 
-@app.get('/stations/', response_model=schemas.WeatherStationsResponse)
+@api.get('/stations/', response_model=schemas.WeatherStationsResponse)
 async def get_stations():
     """ Return a list of fire weather stations.
     """
@@ -179,7 +222,7 @@ async def get_stations():
         raise
 
 
-@app.post('/percentiles/', response_model=schemas.CalculatedResponse)
+@api.post('/percentiles/', response_model=schemas.CalculatedResponse)
 async def get_percentiles(request: schemas.PercentileRequest):
     """ Return 90% FFMC, 90% ISI, 90% BUI etc. for a given set of fire stations for a given period of time.
     """
