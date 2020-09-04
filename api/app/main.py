@@ -4,14 +4,9 @@ See README.md for details on how to run.
 """
 import datetime
 import logging
-import aiofiles
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, PlainTextResponse, Response
 from starlette.applications import Starlette
-from starlette.exceptions import HTTPException as StarletteHTTPException
-from starlette.types import Receive, Scope, Send
 from app import schemas, configure_logging
 from app.models.fetch.predictions import fetch_model_predictions
 from app.models.fetch.summaries import fetch_model_prediction_summaries
@@ -24,6 +19,7 @@ from app import config
 from app import health
 from app import hourlies
 from app import stations
+from app.frontend import frontend
 import app.time_utils as time_utils
 
 
@@ -69,13 +65,6 @@ API_INFO = '''
     programs or information, even if the Government of British Columbia
     has been specifically advised of the possibility of such damages.'''
 
-# This is our base starlette app - it doesn't do much except glue together
-# the api and the front end.
-app = Starlette()
-
-# This is the front end app. It's not going to do much other than serve up
-# static files.
-frontend = Starlette()
 
 # This is the api app.
 api = FastAPI(
@@ -84,24 +73,10 @@ api = FastAPI(
     version="0.0.0"
 )
 
+# This is our base starlette app - it doesn't do much except glue together
+# the api and the front end.
+app = Starlette()
 
-class SPAStaticFiles(StaticFiles):
-    """ Single Page App Static Files.
-    Serves up .(root, or /) whenever a file isn't found. 
-    For a single page app using routing, we need to serve up
-    index.html and let the spa figure out what to serve up.
-    NOTE: Ensure html=True is set
-    """
-    async def get_response(self, path: str, scope: Scope) -> Response:
-        # Call the method on the base class.
-        response = await super().get_response(path, scope)
-        # If file not found, try to serve up the root.
-        if response.status_code == 404:
-            response = await super().get_response('.', scope)
-        return response
-
-
-frontend.mount('/', SPAStaticFiles(directory='../../wps-web/build', html=True), name='ui')
 
 # The order here is important:
 # 1. Mount the /api
