@@ -26,7 +26,7 @@ class SPAStaticFiles(StaticFiles):
         return response
 
 
-templates = Jinja2Templates(directory='../../wps-web/build')
+templates = Jinja2Templates(directory='static')
 
 
 async def get_config(request: Request):
@@ -47,5 +47,5 @@ async def get_config(request: Request):
 # static files.
 frontend = Starlette(routes=[
     Route('/config.js', get_config),
-    Mount('/', SPAStaticFiles(directory='../../wps-web/build', html=True), name='ui')
+    Mount('/', SPAStaticFiles(directory='static', html=True), name='ui')
 ])
