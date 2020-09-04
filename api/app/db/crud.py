@@ -3,7 +3,7 @@
 import logging
 import datetime
 from typing import List
-from sqlalchemy import or_, desc
+from sqlalchemy import or_, desc, func
 from sqlalchemy.orm import Session
 from app.schemas import StationCodeList
 from app.db.models import (
@@ -235,7 +235,7 @@ def get_most_recent_historic_station_model_predictions(session: Session, station
     now = datetime.datetime.now(tz=datetime.timezone.utc)
     five_days_ago = now - datetime.timedelta(days=5)
 
-    query = session.query(WeatherStationModelPrediction, PredictionModelRunTimestamp).\
+    query = session.query(WeatherStationModelPrediction, PredictionModelRunTimestamp, PredictionModel).\
         filter(WeatherStationModelPrediction.station_code.in_(station_codes)).\
         filter(WeatherStationModelPrediction.prediction_timestamp >= five_days_ago).\
         filter(WeatherStationModelPrediction.prediction_timestamp <= now).\
@@ -245,7 +245,7 @@ def get_most_recent_historic_station_model_predictions(session: Session, station
         order_by(WeatherStationModelPrediction.prediction_timestamp).\
         order_by(PredictionModelRunTimestamp.prediction_run_timestamp.desc())
 
-    return query.all()
+    return query
 
 
 def get_processed_file_count(session: Session, urls: List[str]) -> int:
