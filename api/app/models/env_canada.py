@@ -3,10 +3,7 @@ TODO: Move this file to app/models/ (not part of this PR as it makes comparing p
       there are so many changes, it's picked up as a delete instead of a move.)
 """
 
-import app.time_utils as time_utils
-import app.stations
-from app.models.process_grib import GribFileProcessor, ModelRunInfo
-from app.db.models import ProcessedModelRunUrl, PredictionModelRunTimestamp, WeatherStationModelPrediction
+
 import os
 import sys
 import datetime
@@ -21,8 +18,11 @@ from scipy.interpolate import griddata
 from geoalchemy2.shape import to_shape
 from sqlalchemy.orm import Session
 from app import configure_logging
+import app.time_utils as time_utils
+import app.stations
+from app.models.process_grib import GribFileProcessor, ModelRunInfo
+from app.db.models import ProcessedModelRunUrl, PredictionModelRunTimestamp, WeatherStationModelPrediction
 import app.db.database
-from app.schemas import WeatherStation
 from app.models import ModelEnum
 from app.db.crud import (get_processed_file_record,
                          get_processed_file_count,

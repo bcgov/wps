@@ -3,7 +3,7 @@
 import logging
 import datetime
 from typing import List
-from sqlalchemy import or_, desc, func
+from sqlalchemy import or_, desc
 from sqlalchemy.orm import Session
 from app.schemas import StationCodeList
 from app.db.models import (
@@ -226,7 +226,10 @@ def get_model_run_timestamp_ids_for_model_and_date_range(
     return query.all()
 
 
-def get_most_recent_historic_station_model_predictions(session: Session, station_codes: List, model: str) -> List:
+def get_most_recent_historic_station_model_predictions(
+        session: Session,
+        station_codes: List,
+        model: str) -> List:
     """ Fetches the model predictions that were most recently issued before the prediction_timestamp.
     Used to compare the most recent model predictions against forecasts and actuals for the same
     weather date and weather station.
@@ -239,8 +242,10 @@ def get_most_recent_historic_station_model_predictions(session: Session, station
         filter(WeatherStationModelPrediction.station_code.in_(station_codes)).\
         filter(WeatherStationModelPrediction.prediction_timestamp >= five_days_ago).\
         filter(WeatherStationModelPrediction.prediction_timestamp <= now).\
-        filter(PredictionModelRunTimestamp.id == WeatherStationModelPrediction.prediction_model_run_timestamp_id).\
-        filter(PredictionModelRunTimestamp.prediction_model_id == PredictionModel.id, PredictionModel.abbreviation == model).\
+        filter(PredictionModelRunTimestamp.id ==
+               WeatherStationModelPrediction.prediction_model_run_timestamp_id).\
+        filter(PredictionModelRunTimestamp.prediction_model_id == PredictionModel.id,
+               PredictionModel.abbreviation == model).\
         order_by(WeatherStationModelPrediction.station_code).\
         order_by(WeatherStationModelPrediction.prediction_timestamp).\
         order_by(PredictionModelRunTimestamp.prediction_run_timestamp.desc())
@@ -308,5 +313,6 @@ def get_weather_station_model_prediction(session: Session,
     """ Get the model prediction for a weather station given a model run and a timestamp. """
     return session.query(WeatherStationModelPrediction).\
         filter(WeatherStationModelPrediction.station_code == station_code).\
-        filter(WeatherStationModelPrediction.prediction_model_run_timestamp_id == prediction_model_run_timestamp_id).\
+        filter(WeatherStationModelPrediction.prediction_model_run_timestamp_id ==
+               prediction_model_run_timestamp_id).\
         filter(WeatherStationModelPrediction.prediction_timestamp == prediction_timestamp).first()
