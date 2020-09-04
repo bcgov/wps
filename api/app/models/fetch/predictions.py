@@ -204,8 +204,8 @@ async def _fetch_most_recent_historic_predictions_by_station_codes(model: ModelE
         stations_dict[station.code] = station
 
     # construct helper dictionary of WeatherModelPredictions
-    # weather_model_predictions_dict is indexed by PredictionModelRunTimestamp.id
-    weather_model_predictions_dict = defaultdict(list)
+    # weather_model_predictions_dict is indexed by station_code, then by prediction_timestamp
+    weather_model_predictions_dict = defaultdict(lambda: defaultdict(list))
 
     # send the query
     session = app.db.database.get_session()
@@ -219,28 +219,33 @@ async def _fetch_most_recent_historic_predictions_by_station_codes(model: ModelE
             datetime=prediction.WeatherStationModelPrediction.prediction_timestamp
         )
 
-        # if the PredictionModelRunTimestamp already exists in weather_model_predictions_dict,
-        # append prediction_value to the list of values for the relevant WeatherModelRun
-        if(weather_model_predictions_dict[prediction.PredictionModelRunTimestamp.id] == []):
+        existing_prediction = weather_model_predictions_dict[prediction.WeatherStationModelPrediction.station_code][
+            prediction.WeatherStationModelPrediction.prediction_timestamp]
+        # check if a WeatherModelPrediction already exists in weather_model_predictions_dict for the station_code and prediction_timestamp
+        if(existing_prediction != []):
+            if(existing_prediction.model_run.datetime > prediction.PredictionModelRunTimestamp.prediction_run_timestamp):
+                continue
+        else:
             model_run = WeatherModelRun(
                 datetime=prediction.PredictionModelRunTimestamp.prediction_run_timestamp,
                 name=prediction.PredictionModel.name,
                 abbreviation=model,
                 projection=prediction.PredictionModel.projection
             )
-
             # construct the WeatherModelPrediction
             weather_model_prediction = WeatherModelPrediction(
                 station=stations_dict[prediction.WeatherStationModelPrediction.station_code],
                 model_run=model_run,
                 values=[prediction_value]
             )
-            weather_model_predictions_dict[prediction.PredictionModelRunTimestamp.id] = weather_model_prediction
-        else:
-            wmp = weather_model_predictions_dict[prediction.PredictionModelRunTimestamp.id]
-            wmp.values.append(prediction_value)
+            weather_model_predictions_dict[prediction.WeatherStationModelPrediction.station_code][
+                prediction.WeatherStationModelPrediction.prediction_timestamp] = weather_model_prediction
 
-    return list(weather_model_predictions_dict.values())
+    # flatten the nested dict into a regular list of WeatherModelPredictions
+    weather_predictions_response = [item for timestamp in list(
+        weather_model_predictions_dict.values()) for item in list(timestamp.values())]
+
+    return weather_predictions_response
 
 
 async def fetch_most_recent_historic_predictions(model: ModelEnum, station_codes: List[int]):
