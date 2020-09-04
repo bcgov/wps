@@ -31,7 +31,7 @@ def get_static_foldername():
     """ Get the static foldername - it defaults to 'static', but can be changed by setting
     an environment variable.
     """
-    dirname = os.path.dirname(__file__)
+    dirname = os.path.dirname(os.path.abspath(__file__))
     static_foldername = config.get('STATIC_FOLDER', os.path.join(dirname, '../', 'static'))
     return static_foldername
 
