@@ -226,30 +226,24 @@ def get_model_run_timestamp_ids_for_model_and_date_range(
     return query.all()
 
 
-def get_most_recent_historic_prediction_from_coordinates(session: Session, coordinates: List, model: str) -> List:
-    """  """
-    # Determine the prediction_model_grid_subset_id for the requested model for each station's coordinates
-    grid_ids = get_prediction_model_grid_subset_from_coordinates(
-        session, coordinates, model)
-
+def get_most_recent_historic_station_model_predictions(session: Session, station_codes: List, model: str) -> List:
+    """ Fetches the model predictions that were most recently issued before the prediction_timestamp.
+    Used to compare the most recent model predictions against forecasts and actuals for the same
+    weather date and weather station.
+    """
     # We're only interested in the last 5 days
     now = datetime.datetime.now(tz=datetime.timezone.utc)
     five_days_ago = now - datetime.timedelta(days=5)
-    # Determine the model_run_timestamp_ids for the requested model and where
-    # prediction_run_timestamp >= five_days_ago AND
-    # prediction_run_timestamp <= now
-    timestamp_ids = get_model_run_timestamp_ids_for_model_and_date_range(
-        session, model, five_days_ago, now)
 
-    # Fetch model weather values for grid_subset_id and model_run_timestamp_id
-    # where prediction_timestamp == model_run_timestamp
-    query = session.query(ModelRunGridSubsetPrediction, PredictionModelRunTimestamp, PredictionModelGridSubset).\
-        filter(PredictionModelGridSubset.id.in_(grid_ids)).\
-        filter(PredictionModelRunTimestamp.id.in_(timestamp_ids)).\
-        filter(PredictionModelRunTimestamp.prediction_run_timestamp ==
-               ModelRunGridSubsetPrediction.prediction_timestamp)
-
-    logger.info(query)
+    query = session.query(WeatherStationModelPrediction, PredictionModelRunTimestamp).\
+        filter(WeatherStationModelPrediction.station_code.in_(station_codes)).\
+        filter(WeatherStationModelPrediction.prediction_timestamp >= five_days_ago).\
+        filter(WeatherStationModelPrediction.prediction_timestamp <= now).\
+        filter(PredictionModelRunTimestamp.id == WeatherStationModelPrediction.prediction_model_run_timestamp_id).\
+        filter(PredictionModelRunTimestamp.prediction_model_id == PredictionModel.id, PredictionModel.abbreviation == model).\
+        order_by(WeatherStationModelPrediction.station_code).\
+        order_by(WeatherStationModelPrediction.prediction_timestamp).\
+        order_by(PredictionModelRunTimestamp.prediction_run_timestamp.desc())
 
     return query.all()
 

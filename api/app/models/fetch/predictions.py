@@ -196,44 +196,32 @@ async def fetch_model_predictions(model: ModelEnum, station_codes: List[int]):
     return await _fetch_model_predictions_by_station_codes(model, station_codes)
 
 
-def _fetch_most_recent_historic_predictions_by_stations(session, model: ModelEnum, stations: List[WeatherStation]) -> List[WeatherModelPrediction]:
+def _fetch_most_recent_historic_predictions_by_station_codes(model: ModelEnum, station_codes: List[int]) -> List[WeatherModelPrediction]:
     """ Fetch the most recent historic model predictions from database based on each station's coordinates. """
-    coordinate_pairs = [[station.long, station.lat] for station in stations]
-    historic_predictions = app.db.crud.get_most_recent_historic_prediction_from_coordinates(
-        session, coordinate_pairs, model)
+    session = app.db.database.get_session()
+    historic_predictions = app.db.crud.get_most_recent_historic_station_model_predictions(
+        session, station_codes, model)
     predictions_by_station = {}
     for prediction in historic_predictions:
         # construct the WeatherModelPredictionValue
-        # TODO fix this so that it's not just grabbing the first value in the list for temp & rh
         wmpv = WeatherModelPredictionValues(
-            temperature=prediction.ModelRunGridSubsetPrediction.tmp_tgl_2[0],
-            relative_humidity=prediction.ModelRunGridSubsetPrediction.rh_tgl_2[0],
-            datetime=prediction.ModelRunGridSubsetPrediction.prediction_timestamp
+            temperature=prediction.WeatherStationModelPrediction.tmp_tgl_2,
+            relative_humidity=prediction.WeatherStationModelPrediction.rh_tgl_2,
+            datetime=prediction.WeatherStationModelPrediction.prediction_timestamp
         )
+        logger.info(wmpv)
         # construct the WeatherModelRun
         # TODO fix the values for name, abbrev, & projection
         wmr = WeatherModelRun(
-            datetime=prediction.WeatherModelRun.prediction_run_timestamp,
+            datetime=prediction.PredictionModelRunTimestamp.prediction_run_timestamp,
             name=model,
             abbreviation=model,
             projection=model
         )
+        logger.info(wmr)
     return [historic_predictions]
-
-
-async def _fetch_most_recent_historic_predictions_by_station_codes(model: ModelEnum, station_codes: List[int]):
-    """ Fetch the most recent prediction from database for each station.
-    """
-    # Using the list of station codes, fetch the stations:
-    stations = await get_stations_by_codes(station_codes)
-    session = app.db.database.get_session()
-    # Fetch the predictions for each day
-    historic_predictions = _fetch_most_recent_historic_predictions_by_stations(
-        session, model, stations)
-
-    return historic_predictions
 
 
 async def fetch_most_recent_historic_predictions(model: ModelEnum, station_codes: List[int]):
     """ Fetch most recently issued model prediction for the last 5 days for a given list of stations and a given model. """
-    return await _fetch_most_recent_historic_predictions_by_station_codes(model, station_codes)
+    return _fetch_most_recent_historic_predictions_by_station_codes(model, station_codes)
