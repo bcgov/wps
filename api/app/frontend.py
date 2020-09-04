@@ -1,5 +1,6 @@
 """ Serve up the Single Page Application
 """
+import os
 from starlette.applications import Starlette
 from starlette.types import Scope
 from starlette.routing import Route, Mount
@@ -26,7 +27,16 @@ class SPAStaticFiles(StaticFiles):
         return response
 
 
-templates = Jinja2Templates(directory='static')
+def get_static_foldername():
+    """ Get the static foldername - it defaults to 'static', but can be changed by setting
+    an environment variable.
+    """
+    dirname = os.path.dirname(__file__)
+    static_foldername = config.get('STATIC_FOLDER', os.path.join(dirname, '../', 'static'))
+    return static_foldername
+
+
+templates = Jinja2Templates(directory=get_static_foldername())
 
 
 async def get_config(request: Request):
@@ -47,5 +57,5 @@ async def get_config(request: Request):
 # static files.
 frontend = Starlette(routes=[
     Route('/config.js', get_config),
-    Mount('/', SPAStaticFiles(directory='static', html=True), name='ui')
+    Mount('/', SPAStaticFiles(directory=get_static_foldername(), html=True), name='frontend')
 ])
