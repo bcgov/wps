@@ -35,6 +35,8 @@ RUN cd /tmp && \
 
 # Copy the app:
 COPY ./app /app/app
+# Copy the static content:
+COPY ./static /app/static
 # Copy almebic:
 COPY ./alembic /app/alembic
 COPY ./alembic.ini /app
