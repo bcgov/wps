@@ -7,6 +7,9 @@ from starlette.testclient import TestClient
 from app.main import app
 
 
+PERCENTILE_URL = '/api/percentiles/'
+
+
 class BasicTestCase(unittest.TestCase):
     """ Some basic unit tests. """
 
@@ -19,7 +22,7 @@ class BasicTestCase(unittest.TestCase):
     def test_percentile(self):
         """ Test that a request for percentiles return 200/OK. """
         client = TestClient(app)
-        response = client.post('/api/percentiles/',
+        response = client.post(PERCENTILE_URL,
                                headers={'Content-Type': 'application/json'},
                                json={
                                    "stations": [
@@ -38,7 +41,7 @@ class BasicTestCase(unittest.TestCase):
         """ Test to check for empty stations array. If no stations are provided in the request,
         the expected behavious is to get back a 400 error. """
         client = TestClient(app)
-        response = client.post('/api/percentiles/',
+        response = client.post(PERCENTILE_URL,
                                headers={'Content-Type': 'application/json'},
                                json={
                                    "stations": [
@@ -55,7 +58,7 @@ class BasicTestCase(unittest.TestCase):
         """ Test to check for invalid year range. If an invalid year range is specified, the requested
         behaviour is to get back a 400 error. """
         client = TestClient(app)
-        response = client.post('/api/percentiles/',
+        response = client.post(PERCENTILE_URL,
                                headers={'Content-Type': 'application/json'},
                                json={
                                    "stations": [
