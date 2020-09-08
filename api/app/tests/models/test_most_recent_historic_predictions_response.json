@@ -1,0 +1,145 @@
+{
+  "predictions": [
+    {
+      "station": {
+        "code": 322,
+        "name": "AFTON",
+        "lat": 50.6733333,
+        "long": -120.4816667,
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+          "start_month": 5,
+          "start_day": 1,
+          "end_month": 9,
+          "end_day": 15
+        }
+      },
+      "model_run": {
+        "datetime": "2020-08-31T12:00:00+00:00",
+        "name": "Global Deterministic Prediction System",
+        "abbreviation": "GDPS",
+        "projection": "latlon.15x.15"
+      },
+      "values": [
+        {
+          "datetime": "2020-08-31T00:00:00+00",
+          "temperature": 15.941671556620184,
+          "dew_point": null,
+          "relative_humidity": 42.95084507397479,
+          "wind_speed": null,
+          "wind_direction": null,
+          "total_precipitation": null,
+          "accumulated_rain": null,
+          "accumulated_snow": null,
+          "accumulated_freezing_rain": null,
+          "accumulated_ice_pellets": null,
+          "cloud_cover": null,
+          "sea_level_pressure": null,
+          "wind_speed_40m": null,
+          "wind_direction_40m": null,
+          "wind_direction_80m": null,
+          "wind_speed_120m": null,
+          "wind_direction_120m": null,
+          "wind_speed_925mb": null,
+          "wind_direction_925mb": null,
+          "wind_speed_850mb": null,
+          "wind_direction_850mb": null
+        }
+      ]
+    },
+    {
+      "station": {
+        "code": 322,
+        "name": "AFTON",
+        "lat": 50.6733333,
+        "long": -120.4816667,
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+          "start_month": 5,
+          "start_day": 1,
+          "end_month": 9,
+          "end_day": 15
+        }
+      },
+      "model_run": {
+        "datetime": "2020-08-31T12:00:00+00:00",
+        "name": "Global Deterministic Prediction System",
+        "abbreviation": "GDPS",
+        "projection": "latlon.15x.15"
+      },
+      "values": [
+        {
+          "datetime": "2020-08-31T03:00:00+00",
+          "temperature": 11.936360147440388,
+          "dew_point": null,
+          "relative_humidity": 62.37222533333436,
+          "wind_speed": null,
+          "wind_direction": null,
+          "total_precipitation": null,
+          "accumulated_rain": null,
+          "accumulated_snow": null,
+          "accumulated_freezing_rain": null,
+          "accumulated_ice_pellets": null,
+          "cloud_cover": null,
+          "sea_level_pressure": null,
+          "wind_speed_40m": null,
+          "wind_direction_40m": null,
+          "wind_direction_80m": null,
+          "wind_speed_120m": null,
+          "wind_direction_120m": null,
+          "wind_speed_925mb": null,
+          "wind_direction_925mb": null,
+          "wind_speed_850mb": null,
+          "wind_direction_850mb": null
+        }
+      ]
+    },
+    {
+      "station": {
+        "code": 322,
+        "name": "AFTON",
+        "lat": 50.6733333,
+        "long": -120.4816667,
+        "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+        "core_season": {
+          "start_month": 5,
+          "start_day": 1,
+          "end_month": 9,
+          "end_day": 15
+        }
+      },
+      "model_run": {
+        "datetime": "2020-08-31T00:00:00+00:00",
+        "name": "Global Deterministic Prediction System",
+        "abbreviation": "GDPS",
+        "projection": "latlon.15x.15"
+      },
+      "values": [
+        {
+          "datetime": "2020-08-31T06:00:00+00",
+          "temperature": 9.403910739562948,
+          "dew_point": null,
+          "relative_humidity": 66.27945692561852,
+          "wind_speed": null,
+          "wind_direction": null,
+          "total_precipitation": null,
+          "accumulated_rain": null,
+          "accumulated_snow": null,
+          "accumulated_freezing_rain": null,
+          "accumulated_ice_pellets": null,
+          "cloud_cover": null,
+          "sea_level_pressure": null,
+          "wind_speed_40m": null,
+          "wind_direction_40m": null,
+          "wind_direction_80m": null,
+          "wind_speed_120m": null,
+          "wind_direction_120m": null,
+          "wind_speed_925mb": null,
+          "wind_direction_925mb": null,
+          "wind_speed_850mb": null,
+          "wind_direction_850mb": null
+        }
+      ]
+    }
+  ]
+}

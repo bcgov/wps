@@ -229,19 +229,19 @@ def get_model_run_timestamp_ids_for_model_and_date_range(
 def get_most_recent_historic_station_model_predictions(
         session: Session,
         station_codes: List,
-        model: str) -> List:
+        model: str,
+        start_date: str,
+        end_date: str) -> List:
     """ Fetches the model predictions that were most recently issued before the prediction_timestamp.
     Used to compare the most recent model predictions against forecasts and actuals for the same
     weather date and weather station.
+    Only fetches WeatherStationModelPredictions for prediction_timestamps in the date range of
+    start_date - end_date (inclusive).
     """
-    # We're only interested in the last 5 days
-    now = datetime.datetime.now(tz=datetime.timezone.utc)
-    five_days_ago = now - datetime.timedelta(days=5)
-
     query = session.query(WeatherStationModelPrediction, PredictionModelRunTimestamp, PredictionModel).\
         filter(WeatherStationModelPrediction.station_code.in_(station_codes)).\
-        filter(WeatherStationModelPrediction.prediction_timestamp >= five_days_ago).\
-        filter(WeatherStationModelPrediction.prediction_timestamp <= now).\
+        filter(WeatherStationModelPrediction.prediction_timestamp >= start_date).\
+        filter(WeatherStationModelPrediction.prediction_timestamp <= end_date).\
         filter(PredictionModelRunTimestamp.id ==
                WeatherStationModelPrediction.prediction_model_run_timestamp_id).\
         filter(PredictionModelRunTimestamp.prediction_model_id == PredictionModel.id,
