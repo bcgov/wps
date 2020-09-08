@@ -131,3 +131,6 @@ coverage-reports
 
 # Jupyter notebooks
 *.ipynb
+
+# Temperary files
+tmp/

@@ -63,7 +63,7 @@ def response(monkeypatch, mock_jwt_decode, codes, use_wfwx):
     client = TestClient(app.main.app)
     headers = {'Content-Type': 'application/json',
                'Authorization': 'Bearer token'}
-    return client.post('/hourlies/', headers=headers, json={"stations": stations})
+    return client.post('/api/hourlies/', headers=headers, json={"stations": stations})
 
 
 # pylint: disable=redefined-outer-name
