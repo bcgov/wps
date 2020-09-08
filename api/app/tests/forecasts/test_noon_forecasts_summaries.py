@@ -65,7 +65,7 @@ def response(monkeypatch, mock_jwt_decode, codes):
     monkeypatch.setattr(app.db.database, 'get_session', mock_get_session)
 
     client = TestClient(app.main.app)
-    endpoint = '/noon_forecasts/summaries/'
+    endpoint = '/api/noon_forecasts/summaries/'
     response = client.post(
         endpoint, headers={'Authorization': 'Bearer token'}, json={'stations': stations})
 

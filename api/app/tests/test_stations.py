@@ -16,11 +16,11 @@ def test_stations_scenario():
 # pylint: disable=unused-argument
 @given("I request a list of weather stations")
 def response(monkeypatch, mock_env_with_use_wfwx):
-    """ Mock external requests and make GET /stations/ request """
+    """ Mock external requests and make GET /api/stations/ request """
     monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
 
     client = TestClient(app)
-    return client.get('/stations/')
+    return client.get('/api/stations/')
 
 
 # pylint: disable=unused-argument, redefined-outer-name, too-many-arguments

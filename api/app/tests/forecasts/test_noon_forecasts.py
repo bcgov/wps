@@ -51,7 +51,7 @@ def test_noon_forecasts():
 # pylint: disable=unused-argument, redefined-outer-name
 @given('I request noon_forecasts for stations: <codes>')
 def response(monkeypatch, mock_env_with_use_wfwx, mock_jwt_decode, codes):
-    """ Make /noon_forecasts/ request using mocked out ClientSession.
+    """ Make /api/noon_forecasts/ request using mocked out ClientSession.
     """
     monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
     # NOTE: should be using a converter
@@ -62,7 +62,7 @@ def response(monkeypatch, mock_env_with_use_wfwx, mock_jwt_decode, codes):
     client = TestClient(app.main.app)
     headers = {'Content-Type': 'application/json',
                'Authorization': 'Bearer token'}
-    return client.post('/noon_forecasts/', headers=headers, json={"stations": stations})
+    return client.post('/api/noon_forecasts/', headers=headers, json={"stations": stations})
 
 
 # pylint: disable=redefined-outer-name
