@@ -7,5 +7,5 @@ Feature: /models/{model}/predictions/
         Then There are <num_prediction_values>
         Then The <expected_response> is matched
         Examples:
-            | codes | endpoint                  | data                            | num_prediction_values | expected_response                        |
-            | [322] | /models/GDPS/predictions/ | test_models_predictions_db.json | {'index':0, 'len':3}  | test_models_predictions_db_response.json |
+            | codes | endpoint                      | data                            | num_prediction_values | expected_response                        |
+            | [322] | /api/models/GDPS/predictions/ | test_models_predictions_db.json | {'index':0, 'len':3}  | test_models_predictions_db_response.json |

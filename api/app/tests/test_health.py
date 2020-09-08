@@ -11,7 +11,7 @@ from app.tests.common import MockResponse
 def test_health_ok():
     """ Test health endpoint, given that everything is fine """
     client = TestClient(app.main.app)
-    response = client.get('/health/')
+    response = client.get('/api/health/')
     assert response.json().get('healthy')
 
 
@@ -31,5 +31,5 @@ def test_health_fail(monkeypatch):
     monkeypatch.setattr(requests, 'get', mock_requests_fail_condition)
 
     client = TestClient(app.main.app)
-    response = client.get('/health/')
+    response = client.get('/api/health/')
     assert not response.json().get('healthy')

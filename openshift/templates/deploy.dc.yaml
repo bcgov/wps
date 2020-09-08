@@ -145,7 +145,7 @@ objects:
                   memory: ${MEMORY_REQUEST}
               readinessProbe:
                 httpGet:
-                  path: /health
+                  path: /api/health
                   port: 8080
                   scheme: HTTP
                 initialDelaySeconds: 10
@@ -154,7 +154,7 @@ objects:
                 successThreshold: 1
                 failureThreshold: 3
                 httpGet:
-                  path: /health
+                  path: /api/health
                   port: 8080
                   scheme: HTTP
                 initialDelaySeconds: 10
