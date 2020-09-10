@@ -56,19 +56,6 @@ def get_or_create_grid_subset(session: Session,
     return grid_subset
 
 
-def get_prediction_model_grid_subset_from_coordinates(session: Session, coordinates: List, model: str):
-    """ Get the prediction_model_grid_subset_id for the given model and weather station coordinates """
-    # condition for query: are coordinates within the existing grids
-    geom_or = _construct_grid_filter(coordinates)
-
-    # Build the query:
-    query = session.query(PredictionModelGridSubset.id).\
-        filter(geom_or).\
-        filter(PredictionModelGridSubset.prediction_model_id ==
-               PredictionModel.id, PredictionModel.abbreviation == model)
-    return query.all()
-
-
 def get_most_recent_model_run(
         session: Session, abbreviation: str, projection: str) -> PredictionModelRunTimestamp:
     """
@@ -208,22 +195,6 @@ def get_predictions_from_coordinates(session: Session, coordinates: List, model:
         order_by(PredictionModelGridSubset.id,
                  ModelRunGridSubsetPrediction.prediction_timestamp.asc())
     return query
-
-
-def get_model_run_timestamp_ids_for_model_and_date_range(
-        session: Session,
-        model: str,
-        start_date: datetime,
-        end_date: datetime) -> List:
-    """ Returns a list of model_run_timestamp_ids for the requested model where the prediction_run_timestamp
-    is within the range of start_date and end_date (inclusive)
-    """
-    query = session.query(PredictionModelRunTimestamp.id).\
-        filter(PredictionModelRunTimestamp.prediction_model_id == PredictionModel.id,
-               PredictionModel.abbreviation == model).\
-        filter(PredictionModelRunTimestamp.prediction_run_timestamp >= start_date,
-               PredictionModelRunTimestamp.prediction_run_timestamp <= end_date)
-    return query.all()
 
 
 def get_most_recent_historic_station_model_predictions(
