@@ -13,6 +13,8 @@ from app.db.models import (PredictionModel, WeatherStationModelPrediction, Predi
 
 LOGGER = logging.getLogger(__name__)
 
+datetime_format = '%Y-%m-%dT%H:%M:%S.%f%z'
+
 
 @pytest.fixture()
 def mock_session(monkeypatch, data):
@@ -25,13 +27,13 @@ def mock_session(monkeypatch, data):
             # convert strings to datetime
             for item in json_data['predictions']:
                 item['prediction_timestamp'] = datetime.datetime.strptime(
-                    item['prediction_timestamp'], '%Y-%m-%dT%H:%M:%S.%f%z')
+                    item['prediction_timestamp'], datetime_format)
                 item['create_date'] = datetime.datetime.strptime(
-                    item['create_date'], '%Y-%m-%dT%H:%M:%S.%f%z')
+                    item['create_date'], datetime_format)
                 item['update_date'] = datetime.datetime.strptime(
-                    item['update_date'], '%Y-%m-%dT%H:%M:%S.%f%z')
+                    item['update_date'], datetime_format)
                 item['prediction_model_run_timestamp'] = datetime.datetime.strptime(
-                    item['prediction_model_run_timestamp'], '%Y-%m-%dT%H:%M:%S.%f%z')
+                    item['prediction_model_run_timestamp'], datetime_format)
 
         def mock_get_session(*args):
             mock_session = UnifiedAlchemyMagicMock()

@@ -76,10 +76,6 @@ class ModelPredictionSummaryBuilder():
         self.prev_time = prev_time
         self.values = None
 
-    # def fetch_most_recent_model_run(self, timestamp: datetime.datetime):
-    #     """ Append the weather values for the most recent model run. """
-    #     for
-
     def handle_new_grid(self,
                         grid: PredictionModelGridSubset,
                         prediction_model: PredictionModel,
