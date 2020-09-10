@@ -214,36 +214,32 @@ async def _fetch_most_recent_historic_predictions_by_station_codes(model: ModelE
     session = app.db.database.get_session()
     historic_predictions = app.db.crud.get_most_recent_historic_station_model_predictions(
         session, station_codes, model, five_days_ago, now)
-    for prediction in historic_predictions:
-        # construct the WeatherModelPredictionValue
-        prediction_value = WeatherModelPredictionValues(
-            temperature=prediction.WeatherStationModelPrediction.tmp_tgl_2,
-            relative_humidity=prediction.WeatherStationModelPrediction.rh_tgl_2,
-            datetime=prediction.WeatherStationModelPrediction.prediction_timestamp
-        )
-
-        existing_prediction = weather_model_predictions_dict[prediction.WeatherStationModelPrediction.station_code][
-            prediction.WeatherStationModelPrediction.prediction_timestamp]
-        # check if a WeatherModelPrediction already exists in weather_model_predictions_dict for the station_code and prediction_timestamp
-        if(existing_prediction != []):
-            if(existing_prediction.model_run.datetime > prediction.PredictionModelRunTimestamp.prediction_run_timestamp):
-                continue
-        else:
+    for prediction, prediction_model_run_timestamp, prediction_model in historic_predictions:
+        existing_prediction = weather_model_predictions_dict[prediction.station_code][
+            prediction.prediction_timestamp]
+        # insert the prediction into weather_model_predictions_dict if no entry for prediction.prediction_timestamp exists, or if
+        # prediction_model_run_timestamp.prediction_run_timestamp is more recent than the model_run time for the existing_prediction
+        if(existing_prediction == [] or existing_prediction.model_run.datetime < prediction_model_run_timestamp.prediction_run_timestamp):
+            # construct the WeatherModelPredictionValue
+            prediction_value = WeatherModelPredictionValues(
+                temperature=prediction.tmp_tgl_2,
+                relative_humidity=prediction.rh_tgl_2,
+                datetime=prediction.prediction_timestamp
+            )
             model_run = WeatherModelRun(
-                datetime=prediction.PredictionModelRunTimestamp.prediction_run_timestamp,
-                name=prediction.PredictionModel.name,
+                datetime=prediction_model_run_timestamp.prediction_run_timestamp,
+                name=prediction_model.name,
                 abbreviation=model,
-                projection=prediction.PredictionModel.projection
+                projection=prediction_model.projection
             )
             # construct the WeatherModelPrediction
             weather_model_prediction = WeatherModelPrediction(
-                station=stations_dict[prediction.WeatherStationModelPrediction.station_code],
+                station=stations_dict[prediction.station_code],
                 model_run=model_run,
                 values=[prediction_value]
             )
-            weather_model_predictions_dict[prediction.WeatherStationModelPrediction.station_code][
-                prediction.WeatherStationModelPrediction.prediction_timestamp] = weather_model_prediction
-
+            weather_model_predictions_dict[prediction.station_code][
+                prediction.prediction_timestamp] = weather_model_prediction
     # flatten the nested dict into a regular list of WeatherModelPredictions
     weather_predictions_response = [item for timestamp in list(
         weather_model_predictions_dict.values()) for item in list(timestamp.values())]
