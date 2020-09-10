@@ -214,7 +214,6 @@ async def _fetch_most_recent_historic_predictions_by_station_codes(model: ModelE
     session = app.db.database.get_session()
     historic_predictions = app.db.crud.get_historic_station_model_predictions(
         session, station_codes, model, five_days_ago, now)
-    print(historic_predictions)
     for prediction, prediction_model_run_timestamp, prediction_model in historic_predictions:
         station_predictions = weather_model_predictions_dict.get(prediction.station_code)
         existing_prediction = None
