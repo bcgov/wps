@@ -197,18 +197,14 @@ async def fetch_model_predictions(model: ModelEnum, station_codes: List[int]):
 
 async def _fetch_most_recent_historic_predictions_by_station_codes(model: ModelEnum, station_codes: List[int]) -> List[WeatherModelPrediction]:
     """ Fetch the most recent historic model predictions from database based on each station's coordinates. """
-    # construct temporary helper dictionary of relevant weather stations
-    stations_dict = {}
-    stations = await app.stations.get_stations_by_codes(station_codes)
-    for station in stations:
-        stations_dict[station.code] = station
+    stations = {station.code: station for station in await app.stations.get_stations_by_codes(station_codes)}
 
     # construct helper dictionary of WeatherModelPredictions
     # weather_model_predictions_dict is indexed by station_code, then by prediction_timestamp
     weather_model_predictions_dict = defaultdict(dict)
 
     # We're only interested in the last 5 days
-    now = datetime.datetime.now(tz=datetime.timezone.utc)
+    now = app.time_utils.get_utc_now()
     five_days_ago = now - datetime.timedelta(days=5)
     # send the query
     session = app.db.database.get_session()
@@ -238,15 +234,18 @@ async def _fetch_most_recent_historic_predictions_by_station_codes(model: ModelE
             )
             # construct the WeatherModelPrediction
             weather_model_prediction = WeatherModelPrediction(
-                station=stations_dict[prediction.station_code],
+                station=stations[prediction.station_code],
                 model_run=model_run,
                 values=[prediction_value]
             )
             weather_model_predictions_dict[prediction.station_code][
                 prediction.prediction_timestamp] = weather_model_prediction
+
     # flatten the nested dict into a regular list of WeatherModelPredictions
-    weather_predictions_response = [item for timestamp in list(
-        weather_model_predictions_dict.values()) for item in list(timestamp.values())]
+    weather_predictions_response = []
+    for station, timestamp_and_predictions in weather_model_predictions_dict.items():
+        for prediction in timestamp_and_predictions.values():
+            weather_predictions_response.append(prediction)
 
     return weather_predictions_response
 
