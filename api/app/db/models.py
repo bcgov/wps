@@ -124,6 +124,11 @@ class PredictionModelGridSubset(Base):
     # 1st vertex top left, 2nd vertex top right, 3rd vertex bottom right, 4th vertex bottom left.
     geom = Column(Geometry('POLYGON'), nullable=False)
 
+    def __str__(self):
+        return ('id: {self.id}, '
+                'prediction_model_id: {self.prediction_model_id}'
+                ).format(self=self)
+
 
 class ModelRunGridSubsetPrediction(Base):
     """ The prediction for a particular model grid subset.
@@ -152,6 +157,12 @@ class ModelRunGridSubsetPrediction(Base):
     tmp_tgl_2 = Column(ARRAY(Float), nullable=True)
     # Relative humidity 2m above model layer.
     rh_tgl_2 = Column(ARRAY(Float), nullable=True)
+
+    def __str__(self):
+        return ('model_run: {self.prediction_model_run_timestamp_id}, '
+                'prediction_timestamp: {self.prediction_timestamp}, '
+                'tmp_tgl_2: {self.tmp_tgl_2}, '
+                'rh_tgl_2: {self.rh_tgl_2}').format(self=self)
 
 
 class HourlyActual(Base):
@@ -186,6 +197,12 @@ class HourlyActual(Base):
     fwi = Column(Float, nullable=False, default=math.nan)
     created_at = Column(TZTimeStamp, nullable=False,
                         default=time_utils.get_utc_now())
+
+    def __str__(self):
+        return (
+            'station_code:{self.station_code}, '
+            'weather_date:{self.weather_date}'
+        ).format(self=self)
 
 
 class NoonForecast(Base):
