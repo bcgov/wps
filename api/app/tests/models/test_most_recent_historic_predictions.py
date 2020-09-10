@@ -59,7 +59,7 @@ def mock_session(monkeypatch, data):
             return result
 
         monkeypatch.setattr(app.db.database, 'get_session', mock_get_session)
-        monkeypatch.setattr(app.db.crud, 'get_most_recent_historic_station_model_predictions',
+        monkeypatch.setattr(app.db.crud, 'get_historic_station_model_predictions',
                             mock_get_weather_station_model_predictions)
 
 

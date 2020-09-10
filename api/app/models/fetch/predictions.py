@@ -198,28 +198,33 @@ async def fetch_model_predictions(model: ModelEnum, station_codes: List[int]):
 async def _fetch_most_recent_historic_predictions_by_station_codes(model: ModelEnum, station_codes: List[int]) -> List[WeatherModelPrediction]:
     """ Fetch the most recent historic model predictions from database based on each station's coordinates. """
     # construct temporary helper dictionary of relevant weather stations
-    stations_dict = defaultdict(list)
+    stations_dict = {}
     stations = await app.stations.get_stations_by_codes(station_codes)
     for station in stations:
         stations_dict[station.code] = station
 
     # construct helper dictionary of WeatherModelPredictions
     # weather_model_predictions_dict is indexed by station_code, then by prediction_timestamp
-    weather_model_predictions_dict = defaultdict(lambda: defaultdict(list))
+    weather_model_predictions_dict = defaultdict(dict)
 
     # We're only interested in the last 5 days
     now = datetime.datetime.now(tz=datetime.timezone.utc)
     five_days_ago = now - datetime.timedelta(days=5)
     # send the query
     session = app.db.database.get_session()
-    historic_predictions = app.db.crud.get_most_recent_historic_station_model_predictions(
+    historic_predictions = app.db.crud.get_historic_station_model_predictions(
         session, station_codes, model, five_days_ago, now)
+    print(historic_predictions)
     for prediction, prediction_model_run_timestamp, prediction_model in historic_predictions:
-        existing_prediction = weather_model_predictions_dict[prediction.station_code][
-            prediction.prediction_timestamp]
-        # insert the prediction into weather_model_predictions_dict if no entry for prediction.prediction_timestamp exists, or if
-        # prediction_model_run_timestamp.prediction_run_timestamp is more recent than the model_run time for the existing_prediction
-        if(existing_prediction == [] or existing_prediction.model_run.datetime < prediction_model_run_timestamp.prediction_run_timestamp):
+        station_predictions = weather_model_predictions_dict.get(prediction.station_code)
+        existing_prediction = None
+        if station_predictions is not None:
+            existing_prediction = station_predictions.get(prediction.prediction_timestamp)
+        # insert the prediction into weather_model_predictions_dict if no entry for
+        # prediction.prediction_timestamp exists,or if prediction_model_run_timestamp.prediction_run_timestamp
+        # is more recent than the model_run time for the existing_prediction
+        if(existing_prediction is None or
+           existing_prediction.model_run.datetime < prediction_model_run_timestamp.prediction_run_timestamp):
             # construct the WeatherModelPredictionValue
             prediction_value = WeatherModelPredictionValues(
                 temperature=prediction.tmp_tgl_2,

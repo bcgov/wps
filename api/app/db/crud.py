@@ -197,7 +197,7 @@ def get_predictions_from_coordinates(session: Session, coordinates: List, model:
     return query
 
 
-def get_most_recent_historic_station_model_predictions(
+def get_historic_station_model_predictions(
         session: Session,
         station_codes: List,
         model: str,
