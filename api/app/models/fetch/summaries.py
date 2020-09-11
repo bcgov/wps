@@ -45,9 +45,9 @@ class ModelPredictionSummaryBuilder():
         self.prev_time = None
         self.prev_grid = None
         self.values = None
-        self.prev_grid = None
         self.prediction_summaries = []
         self.summaries_in_grid = {}
+        self.most_recent_historic = {}
 
     def init_values(self):
         self.values = {}

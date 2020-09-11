@@ -5,16 +5,15 @@ import logging
 from typing import List
 import datetime
 from datetime import timezone
+from collections import defaultdict
 from scipy.interpolate import griddata, interp1d
 from geoalchemy2.shape import to_shape
-from shapely.geometry import Point, Polygon
 import app.db.database
 from app.schemas import (WeatherStation, WeatherModelPrediction,
                          WeatherModelPredictionValues, WeatherModelRun)
 from app.db.models import ModelRunGridSubsetPrediction
 import app.db.crud
 import app.stations
-from app import config
 from app.models import ModelEnum
 from app.models.fetch import extract_stations_in_polygon
 
@@ -164,7 +163,6 @@ def _fetch_model_predictions_by_stations(
                 predictions.append(prediction)
                 predictions_in_grid[station.code] = prediction, NoonInterpolator(
                 )
-                logger.info(type(predictions_in_grid[station.code]))
                 # pop the station off the list
                 tmp_station_list.remove(station)
 
@@ -192,6 +190,66 @@ async def _fetch_model_predictions_by_station_codes(model: ModelEnum, station_co
 
 
 async def fetch_model_predictions(model: ModelEnum, station_codes: List[int]):
-    """ Fetch 10 day global model weather predictions for a given station."""
+    """ Fetch model weather predictions for a given list of stations and a given model. """
     # Fetch predictions from the database.
     return await _fetch_model_predictions_by_station_codes(model, station_codes)
+
+
+async def _fetch_most_recent_historic_predictions_by_station_codes(model: ModelEnum, station_codes: List[int]) -> List[WeatherModelPrediction]:
+    """ Fetch the most recent historic model predictions from database based on each station's coordinates. """
+    stations = {station.code: station for station in await app.stations.get_stations_by_codes(station_codes)}
+
+    # construct helper dictionary of WeatherModelPredictions
+    # weather_model_predictions_dict is indexed by station_code, then by prediction_timestamp
+    weather_model_predictions_dict = defaultdict(dict)
+
+    # We're only interested in the last 5 days
+    now = app.time_utils.get_utc_now()
+    five_days_ago = now - datetime.timedelta(days=5)
+    # send the query
+    session = app.db.database.get_session()
+    historic_predictions = app.db.crud.get_historic_station_model_predictions(
+        session, station_codes, model, five_days_ago, now)
+    for prediction, prediction_model_run_timestamp, prediction_model in historic_predictions:
+        station_predictions = weather_model_predictions_dict.get(prediction.station_code)
+        existing_prediction = None
+        if station_predictions is not None:
+            existing_prediction = station_predictions.get(prediction.prediction_timestamp)
+        # insert the prediction into weather_model_predictions_dict if no entry for
+        # prediction.prediction_timestamp exists,or if prediction_model_run_timestamp.prediction_run_timestamp
+        # is more recent than the model_run time for the existing_prediction
+        if(existing_prediction is None or
+           existing_prediction.model_run.datetime < prediction_model_run_timestamp.prediction_run_timestamp):
+            # construct the WeatherModelPredictionValue
+            prediction_value = WeatherModelPredictionValues(
+                temperature=prediction.tmp_tgl_2,
+                relative_humidity=prediction.rh_tgl_2,
+                datetime=prediction.prediction_timestamp
+            )
+            model_run = WeatherModelRun(
+                datetime=prediction_model_run_timestamp.prediction_run_timestamp,
+                name=prediction_model.name,
+                abbreviation=model,
+                projection=prediction_model.projection
+            )
+            # construct the WeatherModelPrediction
+            weather_model_prediction = WeatherModelPrediction(
+                station=stations[prediction.station_code],
+                model_run=model_run,
+                values=[prediction_value]
+            )
+            weather_model_predictions_dict[prediction.station_code][
+                prediction.prediction_timestamp] = weather_model_prediction
+
+    # flatten the nested dict into a regular list of WeatherModelPredictions
+    weather_predictions_response = []
+    for station, prediction_dict_by_timestamp in weather_model_predictions_dict.items():
+        for prediction in prediction_dict_by_timestamp.values():
+            weather_predictions_response.append(prediction)
+
+    return weather_predictions_response
+
+
+async def fetch_most_recent_historic_predictions(model: ModelEnum, station_codes: List[int]):
+    """ Fetch most recently issued model prediction for the last 5 days for a given list of stations and a given model. """
+    return await _fetch_most_recent_historic_predictions_by_station_codes(model, station_codes)

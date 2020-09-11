@@ -7,6 +7,11 @@ define run-test
 	# ImportMismatchError? run: make clean
 endef
 
+define run-test-verbose
+	# function to run tests with verbose output
+	$(1) pytest app -vv;
+endef
+
 define run-test-coverage
 	# function to run tests with coverate reports
 	$(1) coverage run --source=app -m pytest;
@@ -39,6 +44,9 @@ init-mac:
 test:
 	# Run tests in virtual environment.
 	${call run-test,poetry run}
+
+test-verbose:
+	${call run-test-verbose,poetry run}
 
 test-raw:
 	# Assumes you've run 'poetry shell', or have installed all dependancies.
