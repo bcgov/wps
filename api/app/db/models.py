@@ -201,7 +201,8 @@ class HourlyActual(Base):
     def __str__(self):
         return (
             'station_code:{self.station_code}, '
-            'weather_date:{self.weather_date}'
+            'weather_date:{self.weather_date}, '
+            'temperature :{self.temperature}'
         ).format(self=self)
 
 
