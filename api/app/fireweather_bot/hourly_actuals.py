@@ -51,7 +51,7 @@ class HourlyActualsBot(BaseBot):
         However, just to be on the safe side, we're asking for the last three hours - just in case there
         was a station that came in late, or if for whatever reason we missed a run.
         """
-        hour_ago = self.now - timedelta(days=30)
+        hour_ago = self.now - timedelta(hours=3)
         return int(hour_ago.strftime('%Y%m%d%H'))
 
     def _get_end_date(self) -> int:
