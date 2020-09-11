@@ -243,8 +243,8 @@ async def _fetch_most_recent_historic_predictions_by_station_codes(model: ModelE
 
     # flatten the nested dict into a regular list of WeatherModelPredictions
     weather_predictions_response = []
-    for station, timestamp_and_predictions in weather_model_predictions_dict.items():
-        for prediction in timestamp_and_predictions.values():
+    for station, prediction_dict_by_timestamp in weather_model_predictions_dict.items():
+        for prediction in prediction_dict_by_timestamp.values():
             weather_predictions_response.append(prediction)
 
     return weather_predictions_response
