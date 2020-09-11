@@ -1,10 +1,9 @@
 """ Configurations for Alembic migrations
 """
-import app
-import os
 from logging.config import fileConfig
 import sqlalchemy
 from alembic import context
+import app
 
 # pylint: disable=invalid-name
 
