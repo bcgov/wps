@@ -1,0 +1,44 @@
+{
+  "predictions": [
+    {
+      "station_code": 322,
+      "prediction_model_run_timestamp_id": 1,
+      "prediction_model_run_timestamp": "2020-08-31T00:00:00.00000+00:00",
+      "prediction_timestamp": "2020-08-31T00:00:00.00000+00:00",
+      "tmp_tgl_2": 15.941671556620184,
+      "rh_tgl_2": 42.95084507397479,
+      "create_date": "2020-09-03T21:14:51.939836+00:00",
+      "update_date": "2020-09-03T21:53:29.794081+00:00"
+    },
+    {
+      "station_code": 322,
+      "prediction_model_run_timestamp_id": 1,
+      "prediction_model_run_timestamp": "2020-08-31T00:00:00.00000+00:00",
+      "prediction_timestamp": "2020-08-31T03:00:00.00000+00:00",
+      "tmp_tgl_2": 11.936360147440388,
+      "rh_tgl_2": 62.37222533333436,
+      "create_date": "2020-09-03T21:14:51.939836+00:00",
+      "update_date": "2020-09-03T21:53:29.794081+00:00"
+    },
+    {
+      "station_code": 322,
+      "prediction_model_run_timestamp_id": 1,
+      "prediction_model_run_timestamp": "2020-08-31T00:00:00.00000+00:00",
+      "prediction_timestamp": "2020-08-31T18:00:00.00000+00:00",
+      "tmp_tgl_2": 9.856750847920642,
+      "rh_tgl_2": 66.04444633333371,
+      "create_date": "2020-09-01T21:14:51.939836+00:00",
+      "update_date": "2020-09-01T21:53:29.794081+00:00"
+    },
+    {
+      "station_code": 322,
+      "prediction_model_run_timestamp_id": 2,
+      "prediction_model_run_timestamp": "2020-08-31T12:00:00.00000+00:00",
+      "prediction_timestamp": "2020-08-31T18:00:00.00000+00:00",
+      "tmp_tgl_2": 9.403910739562948,
+      "rh_tgl_2": 66.27945692561852,
+      "create_date": "2020-09-03T21:14:51.939836+00:00",
+      "update_date": "2020-09-03T21:53:29.794081+00:00"
+    }
+  ]
+}
