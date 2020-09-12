@@ -83,6 +83,9 @@ run-raw:
 run-env-canada-raw:
 	POSTGRES_HOST=localhost python -m app.models.env_canada
 
+run-donald-raw:
+	POSTGRES_HOST=localhost python -m app.models.env_canada
+
 run-bender:
 	poetry run python -m app.fireweather_bot.noon_forecasts
 
@@ -91,6 +94,9 @@ run-bender-raw:
 
 run-marvin-raw:
 	python -m app.fireweather_bot.hourly_actuals
+
+run-r2d2-raw:
+	python -m app.machine.predict
 
 notebook:
 	# Run jupyter notebooks.

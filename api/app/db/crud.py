@@ -6,6 +6,7 @@ from typing import List
 from sqlalchemy import or_, desc
 from sqlalchemy.orm import Session
 from app.schemas import StationCodeList
+from app.models import ModelEnum
 from app.db.models import (
     ProcessedModelRunUrl, PredictionModel, PredictionModelRunTimestamp, PredictionModelGridSubset,
     ModelRunGridSubsetPrediction, NoonForecast, HourlyActual, WeatherStationModelPrediction)
@@ -273,6 +274,7 @@ def get_hourly_actuals(session: Session, station_codes: List[int], start_date: d
     return session.query(HourlyActual)\
         .filter(HourlyActual.station_code.in_(station_codes))\
         .filter(HourlyActual.weather_date >= start_date)\
+        .filter(HourlyActual.temp_valid == True)\
         .order_by(HourlyActual.station_code)\
         .order_by(HourlyActual.weather_date)
 
@@ -287,3 +289,32 @@ def get_weather_station_model_prediction(session: Session,
         filter(WeatherStationModelPrediction.prediction_model_run_timestamp_id ==
                prediction_model_run_timestamp_id).\
         filter(WeatherStationModelPrediction.prediction_timestamp == prediction_timestamp).first()
+
+
+def get_closest_model_run(session, prediction_model_id, timestamp):
+    """ get model run closest to the given timestamp
+    """
+    return session.query(PredictionModelRunTimestamp)\
+        .filter(PredictionModelRunTimestamp.prediction_model_id == prediction_model_id)\
+        .filter(PredictionModelRunTimestamp.prediction_run_timestamp <= timestamp)\
+        .order_by(PredictionModelRunTimestamp.prediction_run_timestamp.desc())\
+        .limit(1).first()
+
+
+def get_weather_station_model_predictions(session: Session,
+                                          station_code: int,
+                                          prediction_model_run_timestamp_id: int):
+    return session.query(WeatherStationModelPrediction)\
+        .filter(WeatherStationModelPrediction.station_code == station_code)\
+        .filter(WeatherStationModelPrediction.prediction_model_run_timestamp_id == prediction_model_run_timestamp_id)
+
+
+def get_weather_station_model_prediction(session: Session,
+                                         station_code: int,
+                                         prediction_model_run_timestamp_id: int,
+                                         timestamp):
+    """ get the prediction corresponding to the model run and the timestamp """
+    return session.query(WeatherStationModelPrediction)\
+        .filter(WeatherStationModelPrediction.station_code == station_code)\
+        .filter(WeatherStationModelPrediction.prediction_model_run_timestamp_id == prediction_model_run_timestamp_id)\
+        .filter(WeatherStationModelPrediction.prediction_timestamp == timestamp).first()

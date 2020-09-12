@@ -1,6 +1,7 @@
 """ Get stations (from wildfire one, or local - depending on configuration.)
 """
 import os
+import asyncio
 import logging
 from typing import List
 import json
@@ -49,3 +50,11 @@ async def get_stations() -> List[WeatherStation]:
     if wildfire_one.use_wfwx():
         return await wildfire_one.get_stations()
     return _get_stations_local()
+
+
+def get_stations_sync() -> List[WeatherStation]:
+    """ Get list of stations - blocking call
+    """
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    return loop.run_until_complete(get_stations())

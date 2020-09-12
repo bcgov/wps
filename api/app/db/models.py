@@ -203,6 +203,9 @@ class WeatherStationModelPrediction(Base):
     # Date this record was updated.
     update_date = Column(TZTimeStamp, nullable=False, default=time_utils.get_utc_now())
 
+    def __str__(self):
+        return ('{self.station_code} {self.prediction_timestamp} {self.tmp_tgl_2}').format(self=self)
+
 
 class HourlyActual(Base):
     """ Class representing table structure of 'hourly_actuals' table in DB.
@@ -243,6 +246,20 @@ class HourlyActual(Base):
             'weather_date:{self.weather_date}, '
             'temperature :{self.temperature}'
         ).format(self=self)
+
+
+# class LinearRegressionForecast(Base):
+#     __tablename__ = 'linear_regression_forecasts'
+#     __table_args__ = (
+#         UniqueConstraint('weather_date', 'station_code', 'prediction_model_run_timestamp_id'))
+#     id = Column(Integer, primary_key=True)
+#     prediction_model_run_timestamp_id = Column(Integer, ForeignKey(
+#         'prediction_model_run_timestamps.id'), nullable=False)
+#     station_code = Column(Integer, nullable=False)
+#     weather_date = Column(TZTimeStamp, nullable=False)
+#     temperature = Column(Float, nullable=False)
+#     created_at = Column(TZTimeStamp, nullable=False,
+#                         default=time_utils.get_utc_now())
 
 
 class NoonForecast(Base):
