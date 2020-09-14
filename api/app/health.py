@@ -1,7 +1,7 @@
 """ Module to perform health checks.
 """
-import requests
 import logging
+import requests
 from app import config, url_join
 
 logger = logging.getLogger(__name__)
