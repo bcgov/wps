@@ -21,9 +21,11 @@ def patroni_cluster_health_check():
     }
     resp = requests.get(url, headers=header)
     resp_json = resp.json()
-    if resp_json.get('status').get('replicas') == resp_json.get('status').get('readyReplicas'):
+    if resp_json.get('status').get('readyReplicas') > 1:
         healthy = True
-        message = 'Healthy as ever'
+        message = 'Healthy ({} out of {} pods are ready)'.format(
+            resp_json.get('status').get('readyReplicas'),
+            resp_json.get('status').get('replicas'))
     else:
         healthy = False
         message = 'Only %s out of %s pods are healthy' % (
