@@ -24,18 +24,18 @@ def patroni_cluster_health_check():
     }
     resp = requests.get(url, headers=header)
     resp_json = resp.json()
-    readyCount = resp_json.get('status').get('readyReplicas')
-    replicaCount = resp_json.get('status').get('replicas')
-    if readyCount > 1:
+    ready_count = resp_json.get('status').get('readyReplicas')
+    replica_count = resp_json.get('status').get('replicas')
+    if ready_count > 1:
         healthy = True
         message = 'Healthy ({} out of {} pods are ready)'.format(
-            readyCount,
-            replicaCount)
+            ready_count,
+            replica_count)
     else:
         healthy = False
         message = 'Only {} out of {} pods are healthy'.format(
-            readyCount, replicaCount)
-    if readyCount < replicaCount:
+            ready_count, replica_count)
+    if ready_count < replica_count:
         logger.error(message)
     else:
         logger.info(message)
