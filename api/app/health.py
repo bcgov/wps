@@ -1,7 +1,10 @@
 """ Module to perform health checks.
 """
 import requests
+import logging
 from app import config, url_join
+
+logger = logging.getLogger(__name__)
 
 
 def patroni_cluster_health_check():
@@ -21,15 +24,19 @@ def patroni_cluster_health_check():
     }
     resp = requests.get(url, headers=header)
     resp_json = resp.json()
-    if resp_json.get('status').get('readyReplicas') > 1:
+    readyCount = resp_json.get('status').get('readyReplicas')
+    replicaCount = resp_json.get('status').get('replicas')
+    if readyCount > 1:
         healthy = True
         message = 'Healthy ({} out of {} pods are ready)'.format(
-            resp_json.get('status').get('readyReplicas'),
-            resp_json.get('status').get('replicas'))
+            readyCount,
+            replicaCount)
     else:
         healthy = False
-        message = 'Only %s out of %s pods are healthy' % (
-            resp_json.get('status').get('readyReplicas'),
-            resp_json.get('status').get('replicas')
-        )
+        message = 'Only {} out of {} pods are healthy'.format(
+            readyCount, replicaCount)
+    if readyCount < replicaCount:
+        logger.error(message)
+    else:
+        logger.info(message)
     return {"message": message, "healthy": healthy}
