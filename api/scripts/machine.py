@@ -3,6 +3,7 @@ from datetime import timedelta
 import numpy as np
 import math
 import matplotlib.pyplot as plt
+import csv
 from matplotlib.ticker import MultipleLocator
 from sklearn.linear_model import LinearRegression
 from scipy.interpolate import griddata, interp1d
@@ -137,11 +138,13 @@ def match_predictions_with_actuals(session, actuals, grid, points, target_coordi
             interpolated_value = griddata(points, prediction.tmp_tgl_2,
                                           target_coordinate, method='linear')
             actual_values.append(actual.temperature)
-            predicted_values.append(interpolated_value)
+            # we take into account the model value for temperature, and the hour of the day
+            predicted_values.append([interpolated_value[0], actual.weather_date.hour])
 
     # logger.info('data range: {} {} ({} samples)'.format(start_date, end_date, len(predicted_values)))
 
-    x = np.array(predicted_values).reshape((-1, 1))
+    #
+    x = np.array(predicted_values)
     y = np.array(actual_values)
     return x, y, start_date, end_date
 
@@ -154,108 +157,115 @@ def main():
     overall_machine_count = 0
     overall_human_count = 0
 
-    for station in stations:
-        station_count += 1
-        machine_count = 0
-        human_count = 0
-        tie_count = 0
-        best_machine_estimate = math.inf
-        worst_machine_estimate = 0
-        best_human_estimate = math.inf
-        worst_human_estimate = 0
+    with open('machine_all_stations.csv', 'w') as csv_file:
+        writer = csv.writer(csv_file)
+        writer.writerow(['station', 'date', 'actual', 'forecast', 'model', 'machine'])
 
-        # logger.info('processing %s - %s', station['code'], station['name'])
+        for station in stations:
+            station_count += 1
+            machine_count = 0
+            human_count = 0
+            tie_count = 0
+            best_machine_estimate = math.inf
+            worst_machine_estimate = 0
+            best_human_estimate = math.inf
+            worst_human_estimate = 0
 
-        # logger.info('get actuals...')
-        actuals = get_actuals(session, station['code'])
+            # logger.info('processing %s - %s', station['code'], station['name'])
 
-        # logger.info('get grid...')
-        grid = get_coordinate_grid(session, station['lat'], station['long'])
-        poly = to_shape(grid.geom)
-        points = list(poly.exterior.coords)[:-1]
-        target_coordinate = [(station['long'], station['lat'])]
+            # logger.info('get actuals...')
+            actuals = get_actuals(session, station['code'])
 
-        # for every actual, let's get the most recent prediction.
-        # logger.info('get predicted values for actuals')
-        x, y, start_date, end_date = match_predictions_with_actuals(
-            session, actuals, grid, points, target_coordinate)
+            # logger.info('get grid...')
+            grid = get_coordinate_grid(session, station['lat'], station['long'])
+            poly = to_shape(grid.geom)
+            points = list(poly.exterior.coords)[:-1]
+            target_coordinate = [(station['long'], station['lat'])]
 
-        if len(x) == 0:
-            logger.info('insufficient data - skipping {}({})'.format(station['name'], station['code']))
-        else:
-            # create model and fit it
-            # logger.info('doing model fit with {} data points'.format(len(x)))
-            model = LinearRegression()
-            model.fit(x, y)
+            # for every actual, let's get the most recent prediction.
+            # logger.info('get predicted values for actuals')
+            x, y, start_date, end_date = match_predictions_with_actuals(
+                session, actuals, grid, points, target_coordinate)
 
-            r_sq = model.score(x, y)
-            # we want 1 for coefficient of determination, as it indicates a linear relationship.
-            # logger.info('coefficient of determination: %s', r_sq)
-            # logger.info('intercept: %s', model.intercept_)
-            # logger.info('slope: %s', model.coef_)
-
-            # ok - grand - we have a model, now let's make some predictions.
-            # to be fair, we exclude data we used to learn.
-            noon_forecasts = get_noon_forecasts(session, station['code'], end_date)
-            noon_forecasts = extract_one_day_forecast(noon_forecasts)
-
-            # logger.info('there are {} noon_forecasts'.format(len(noon_forecasts)))
-
-            comparison_count = 0
-            for forecast in noon_forecasts:
-                # get an appropriate model prediction for this forecast
-                # get the most recent model run for this forecast
-                prediction = get_noon_model_prediction(
-                    session, grid, forecast.weather_date, points, target_coordinate)
-                if prediction:
-                    actual = get_actual(session, station['code'], forecast.weather_date)
-                    if actual:
-                        comparison_count += 1
-                        machine = model.predict([[prediction]])
-                        # who is closer?
-                        machine_delta = abs(round(machine[0], 1) - actual.temperature)
-                        if best_machine_estimate > machine_delta:
-                            best_machine_estimate = machine_delta
-                        if worst_machine_estimate < machine_delta:
-                            worst_machine_estimate = machine_delta
-                        human_delta = abs(forecast.temperature - actual.temperature)
-                        if best_human_estimate > human_delta:
-                            best_human_estimate = human_delta
-                        if worst_human_estimate < human_delta:
-                            worst_human_estimate = human_delta
-                        message = "It's a tie!"
-                        if human_delta < machine_delta:
-                            # human wins
-                            message = "Human wins."
-                            human_count += 1
-                        elif machine_delta < human_delta:
-                            # machine wins
-                            message = "Machine wins"
-                            machine_count += 1
-                        else:
-                            tie_count += 1
-                        # print('{} : forecast: {}, model prediction: {}, machine: {}, actual: {} ; {}'.format(
-                        #     forecast.weather_date,
-                        #     forecast.temperature,
-                        #     round(prediction, 1),
-                        #     round(machine[0], 1),
-                        #     actual.temperature,
-                        #     message))
-
-            if comparison_count == 0:
-                logger.info('no data to compare for %s(%s)', station['name'], station['code'])
+            if len(x) == 0:
+                logger.info('insufficient data - skipping {}({})'.format(station['name'], station['code']))
             else:
-                overall_machine_count += machine_count
-                overall_human_count += human_count
-                print('{} ({}): machines: {}, humans: {}'.format(
-                    station['name'], station['code'], machine_count, human_count))
-                # print('worst human estimate, off by: {}'.format(round(worst_human_estimate, 1)))
-                # print('best human estimate, off by: {}'.format(best_human_estimate))
-                # print('worst machine estimate, off by: {}'.format(round(worst_machine_estimate, 1)))
-                # print('best machine estimate, off by: {}'.format(best_machine_estimate))
-                # if station_count > 2:
-                # break
-        print('overall - machines: {}, humans: {}'.format(overall_machine_count, overall_human_count))
+                # create model and fit it
+                # logger.info('doing model fit with {} data points'.format(len(x)))
+                model = LinearRegression()
+                model.fit(x, y)
+
+                r_sq = model.score(x, y)
+                # we want 1 for coefficient of determination, as it indicates a linear relationship.
+                # logger.info('coefficient of determination: %s', r_sq)
+                # logger.info('intercept: %s', model.intercept_)
+                # logger.info('slope: %s', model.coef_)
+
+                # ok - grand - we have a model, now let's make some predictions.
+                # to be fair, we exclude data we used to learn.
+                noon_forecasts = get_noon_forecasts(session, station['code'], end_date)
+                noon_forecasts = extract_one_day_forecast(noon_forecasts)
+
+                # logger.info('there are {} noon_forecasts'.format(len(noon_forecasts)))
+
+                comparison_count = 0
+                for forecast in noon_forecasts:
+                    # get an appropriate model prediction for this forecast
+                    # get the most recent model run for this forecast
+                    prediction = get_noon_model_prediction(
+                        session, grid, forecast.weather_date, points, target_coordinate)
+                    if prediction:
+                        actual = get_actual(session, station['code'], forecast.weather_date)
+                        if actual:
+                            comparison_count += 1
+                            machine = model.predict([[prediction, forecast.weather_date.hour]])
+                            # who is closer?
+                            machine_delta = abs(round(machine[0], 1) - actual.temperature)
+                            if best_machine_estimate > machine_delta:
+                                best_machine_estimate = machine_delta
+                            if worst_machine_estimate < machine_delta:
+                                worst_machine_estimate = machine_delta
+                            human_delta = abs(forecast.temperature - actual.temperature)
+                            if best_human_estimate > human_delta:
+                                best_human_estimate = human_delta
+                            if worst_human_estimate < human_delta:
+                                worst_human_estimate = human_delta
+                            message = "It's a tie!"
+                            if human_delta < machine_delta:
+                                # human wins
+                                message = "Human wins."
+                                human_count += 1
+                            elif machine_delta < human_delta:
+                                # machine wins
+                                message = "Machine wins"
+                                machine_count += 1
+                            else:
+                                tie_count += 1
+
+                            writer.writerow([station['code'], forecast.weather_date.isoformat(), actual.temperature, forecast.temperature,
+                                             prediction, machine[0]])
+                            # print('{} : forecast: {}, model prediction: {}, machine: {}, actual: {} ; {}'.format(
+                            #     forecast.weather_date,
+                            #     forecast.temperature,
+                            #     round(prediction, 1),
+                            #     round(machine[0], 1),
+                            #     actual.temperature,
+                            #     message))
+
+                if comparison_count == 0:
+                    logger.info('no data to compare for %s(%s)', station['name'], station['code'])
+                else:
+                    overall_machine_count += machine_count
+                    overall_human_count += human_count
+                    print('{} ({}): machines: {}, humans: {}'.format(
+                        station['name'], station['code'], machine_count, human_count))
+                    # print('worst human estimate, off by: {}'.format(round(worst_human_estimate, 1)))
+                    # print('best human estimate, off by: {}'.format(best_human_estimate))
+                    # print('worst machine estimate, off by: {}'.format(round(worst_machine_estimate, 1)))
+                    # print('best machine estimate, off by: {}'.format(best_machine_estimate))
+                    # if station_count > 2:
+                    # break
+            print('overall - machines: {}, humans: {}'.format(overall_machine_count, overall_human_count))
 
 
 if __name__ == '__main__':
