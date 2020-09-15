@@ -24,6 +24,7 @@ from app.models.process_grib import GribFileProcessor, ModelRunInfo
 from app.db.models import ProcessedModelRunUrl, PredictionModelRunTimestamp, WeatherStationModelPrediction
 import app.db.database
 from app.models import ModelEnum
+from app.models.machine_learning import StationMachineLearning
 from app.db.crud import (get_processed_file_record,
                          get_processed_file_count,
                          get_prediction_model_run_timestamp_records,
@@ -232,7 +233,8 @@ class EnvCanada():
         # pylint: disable=no-member
         actual_count = get_processed_file_count(self.session, urls)
         expected_count = len(urls)
-        logger.info('we have processed %s/%s files', actual_count, expected_count)
+        logger.info('we have processed %s/%s files',
+                    actual_count, expected_count)
         return actual_count == expected_count
 
     def process_model_run_urls(self, urls):
@@ -305,7 +307,7 @@ class EnvCanada():
                     'unexpected exception processing GDPS model run %d', hour, exc_info=exception)
 
 
-class Interpolator:
+class ModelValueProcessor:
     """ Iterate through model runs that have completed, and calculate the interpolated weather predictions.
     """
 
@@ -339,14 +341,28 @@ class Interpolator:
         # Extract the coordinate.
         coordinate = [station['long'], station['lat']]
         # Lookup the grid our weather station is in.
-        grid = get_grid_for_coordinate(self.session, model_run.prediction_model, coordinate)
+        grid = get_grid_for_coordinate(
+            self.session, model_run.prediction_model, coordinate)
         # Get all the predictions associated to this particular model run, in the grid.
-        query = get_model_run_predictions_for_grid(self.session, model_run, grid)
+        query = get_model_run_predictions_for_grid(
+            self.session, model_run, grid)
 
-        # Conver the grid database object to a polygon object.
+        # Convert the grid database object to a polygon object.
         poly = to_shape(grid.geom)
         # Extract the vertices of the polygon.
         points = list(poly.exterior.coords)[:-1]
+
+        machine = StationMachineLearning(
+            session=self.session,
+            model=model_run.prediction_model,
+            grid=grid,
+            points=points,
+            target_coordinate=coordinate,
+            station_code=station['code'],
+            start_date=model_run.prediction_run_timestamp -
+            datetime.timedelta(days=2),
+            end_date=model_run.prediction_run_timestamp)
+        machine.learn()
 
         # Iterate through all the predictions.
         for prediction in query:
@@ -364,9 +380,14 @@ class Interpolator:
                 points, prediction.tmp_tgl_2, coordinate, method='linear')[0]
             station_prediction.rh_tgl_2 = griddata(
                 points, prediction.rh_tgl_2, coordinate, method='linear')[0]
+            # Predict the temperature
+            station_prediction.temperature = machine.predict_temperature(station_prediction.tmp_tgl_2,
+                                                                         station_prediction.prediction_timestamp)
             # Update the update time (this might be an update)
             station_prediction.update_date = time_utils.get_utc_now()
             # Add this prediction to the session (we'll commit it later.)
+            # logger.info('model: %s, machine: %s',
+            # station_prediction.tmp_tgl_2, station_prediction.temperature)
             self.session.add(station_prediction)
 
     def _mark_model_run_interpolated(self, model_run: PredictionModelRunTimestamp):
@@ -381,7 +402,8 @@ class Interpolator:
         """ Entry point to start processing model runs that have not yet had their predictions interpolated
         """
         # Get model runs that are complete (fully downloaded), but not yet interpolated.
-        query = get_prediction_model_run_timestamp_records(self.session, complete=True, interpolated=False)
+        query = get_prediction_model_run_timestamp_records(
+            self.session, complete=True, interpolated=False)
         for model_run in query:
             # Process the model run.
             self._process_model_run(model_run)
@@ -399,21 +421,21 @@ def main():
     env_canada = EnvCanada()
     env_canada.process()
 
-    # interpolate everything that needs interpolating.
-    interpolator = Interpolator()
-    interpolator.process()
+    # interpolate and machine learn everything that needs interpolating.
+    model_value_processor = ModelValueProcessor()
+    model_value_processor.process()
 
     # calculate the execution time.
     execution_time = round(time.time() - start_time, 1)
     # log some info.
-    logger.info('%d downloaded, %d processed in total, took %s seconds',
-                env_canada.files_downloaded, env_canada.files_processed, execution_time)
+    # logger.info('%d downloaded, %d processed in total, took %s seconds',
+    #             env_canada.files_downloaded, env_canada.files_processed, execution_time)
     # check if we encountered any exceptions.
-    if env_canada.exception_count > 0:
-        # if there were any exceptions, return a non-zero status.
-        logger.warning('completed processing with some exceptions')
-        sys.exit(os.EX_SOFTWARE)
-    return env_canada.files_processed
+    # if env_canada.exception_count > 0:
+    #     # if there were any exceptions, return a non-zero status.
+    #     logger.warning('completed processing with some exceptions')
+    #     sys.exit(os.EX_SOFTWARE)
+    # return env_canada.files_processed
 
 
 if __name__ == "__main__":

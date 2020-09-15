@@ -145,7 +145,8 @@ def get_model_run_predictions_for_grid(session: Session,
 
     return session.query(ModelRunGridSubsetPrediction).\
         filter(ModelRunGridSubsetPrediction.prediction_model_grid_subset_id == grid.id).\
-        filter(ModelRunGridSubsetPrediction.prediction_model_run_timestamp_id == prediction_run.id)
+        filter(ModelRunGridSubsetPrediction.prediction_model_run_timestamp_id ==
+               prediction_run.id)
 
 
 def get_model_run_predictions(
@@ -171,6 +172,17 @@ def get_model_run_predictions(
         order_by(PredictionModelGridSubset.id,
                  ModelRunGridSubsetPrediction.prediction_timestamp.asc())
     return query
+
+
+def get_most_recent_model_run_prediction(session, prediction_model_id, grid, weather_date) -> ModelRunGridSubsetPrediction:
+    """ Get the prediction for a given time & grid from the most recent model run.
+    """
+    return session.query(ModelRunGridSubsetPrediction)\
+        .join(PredictionModelRunTimestamp)\
+        .filter(PredictionModelRunTimestamp.id == ModelRunGridSubsetPrediction.prediction_model_run_timestamp_id)\
+        .filter(ModelRunGridSubsetPrediction.prediction_model_grid_subset_id == grid.id)\
+        .filter(ModelRunGridSubsetPrediction.prediction_timestamp == weather_date)\
+        .order_by(PredictionModelRunTimestamp.prediction_run_timestamp.desc()).first()
 
 
 def get_predictions_from_coordinates(session: Session, coordinates: List, model: str) -> List:
@@ -249,7 +261,8 @@ def get_prediction_model_run_timestamp_records(
     """ Get prediction model run timestamps (filter on complete and interpolated if provided.) """
     query = session.query(PredictionModelRunTimestamp)
     if interpolated is not None:
-        query = query.filter(PredictionModelRunTimestamp.interpolated == interpolated)
+        query = query.filter(
+            PredictionModelRunTimestamp.interpolated == interpolated)
     if complete is not None:
         query = query.filter(PredictionModelRunTimestamp.complete == complete)
     return query
@@ -269,14 +282,24 @@ def query_noon_forecast_records(session: Session,
         .order_by(desc(NoonForecast.created_at))
 
 
-def get_hourly_actuals(session: Session, station_codes: List[int], start_date: datetime):
-    """ Query for hourly actuals for given stations, from stated start_date onwards. """
-    return session.query(HourlyActual)\
+def get_hourly_actuals(
+        session: Session,
+        station_codes: List[int],
+        start_date: datetime,
+        end_date: datetime = None):
+    """ Query for hourly actuals for given stations, from stated start_date to end_date.
+
+    :param end_date: If specified, return up to and including the end_date
+    """
+    query = session.query(HourlyActual)\
         .filter(HourlyActual.station_code.in_(station_codes))\
         .filter(HourlyActual.weather_date >= start_date)\
-        .filter(HourlyActual.temp_valid == True)\
-        .order_by(HourlyActual.station_code)\
+        .filter(HourlyActual.temp_valid == True)
+    if end_date is not None:
+        query = query.filter(HourlyActual.weather_date <= end_date)
+    query = query.order_by(HourlyActual.station_code)\
         .order_by(HourlyActual.weather_date)
+    return query
 
 
 def get_weather_station_model_prediction(session: Session,
@@ -288,7 +311,8 @@ def get_weather_station_model_prediction(session: Session,
         filter(WeatherStationModelPrediction.station_code == station_code).\
         filter(WeatherStationModelPrediction.prediction_model_run_timestamp_id ==
                prediction_model_run_timestamp_id).\
-        filter(WeatherStationModelPrediction.prediction_timestamp == prediction_timestamp).first()
+        filter(WeatherStationModelPrediction.prediction_timestamp ==
+               prediction_timestamp).first()
 
 
 def get_closest_model_run(session, prediction_model_id, timestamp):

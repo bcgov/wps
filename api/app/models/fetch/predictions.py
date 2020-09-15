@@ -211,10 +211,12 @@ async def _fetch_most_recent_historic_predictions_by_station_codes(model: ModelE
     historic_predictions = app.db.crud.get_historic_station_model_predictions(
         session, station_codes, model, five_days_ago, now)
     for prediction, prediction_model_run_timestamp, prediction_model in historic_predictions:
-        station_predictions = weather_model_predictions_dict.get(prediction.station_code)
+        station_predictions = weather_model_predictions_dict.get(
+            prediction.station_code)
         existing_prediction = None
         if station_predictions is not None:
-            existing_prediction = station_predictions.get(prediction.prediction_timestamp)
+            existing_prediction = station_predictions.get(
+                prediction.prediction_timestamp)
         # insert the prediction into weather_model_predictions_dict if no entry for
         # prediction.prediction_timestamp exists,or if prediction_model_run_timestamp.prediction_run_timestamp
         # is more recent than the model_run time for the existing_prediction
@@ -222,7 +224,7 @@ async def _fetch_most_recent_historic_predictions_by_station_codes(model: ModelE
            existing_prediction.model_run.datetime < prediction_model_run_timestamp.prediction_run_timestamp):
             # construct the WeatherModelPredictionValue
             prediction_value = WeatherModelPredictionValues(
-                temperature=prediction.tmp_tgl_2,
+                temperature=prediction.temperature,
                 relative_humidity=prediction.rh_tgl_2,
                 datetime=prediction.prediction_timestamp
             )
