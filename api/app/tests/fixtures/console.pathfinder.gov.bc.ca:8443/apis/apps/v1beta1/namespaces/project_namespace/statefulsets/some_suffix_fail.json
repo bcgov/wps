@@ -157,9 +157,7 @@
                 "value": "0.0.0.0:8008"
               }
             ],
-            "resources": {
-              
-            },
+            "resources": {},
             "volumeMounts": [
               {
                 "name": "patroni-wps-api-dev",
@@ -176,9 +174,7 @@
         "dnsPolicy": "ClusterFirst",
         "serviceAccountName": "patroniocp-wps-api-dev",
         "serviceAccount": "patroniocp-wps-api-dev",
-        "securityContext": {
-          
-        },
+        "securityContext": {},
         "schedulerName": "default-scheduler"
       }
     },
@@ -192,9 +188,7 @@
           }
         },
         "spec": {
-          "accessModes": [
-            "ReadWriteOnce"
-          ],
+          "accessModes": ["ReadWriteOnce"],
           "resources": {
             "requests": {
               "storage": "5Gi"
@@ -216,7 +210,7 @@
   "status": {
     "observedGeneration": 1,
     "replicas": 3,
-    "readyReplicas": 2,
+    "readyReplicas": 1,
     "currentReplicas": 3,
     "updatedReplicas": 3,
     "currentRevision": "patroni-wps-api-dev-58d758bf6c",
