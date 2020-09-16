@@ -422,8 +422,8 @@ def main():
     env_canada.process()
 
     # interpolate and machine learn everything that needs interpolating.
-    # model_value_processor = ModelValueProcessor()
-    # model_value_processor.process()
+    model_value_processor = ModelValueProcessor()
+    model_value_processor.process()
 
     # calculate the execution time.
     execution_time = round(time.time() - start_time, 1)

@@ -76,6 +76,7 @@ class StationMachineLearning:
     def learn(self):
         self.temperature_model = LinearRegression()
         self.rh_model = LinearRegression()
+        logger.info('collecting data...')
         x, y = self._collect_data()
         logger.info('collected %s samples for %s', len(x), self.station_code)
         if len(x) > 0:
