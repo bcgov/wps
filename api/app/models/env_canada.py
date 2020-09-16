@@ -329,6 +329,8 @@ class ModelValueProcessor:
                         station['code'], station['name'], index, self.station_count)
             # Process this model run for station.
             self._process_model_run_for_station(model_run, station)
+            # if self.station_count > 4:
+            # raise Exception("ok - make it faster")
         # Commit all the weather station model predictions (it's fast if we line them all up and commit
         # them in one go.)
         logger.info('commit to database...')

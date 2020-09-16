@@ -45,8 +45,10 @@ class StationMachineLearning:
     def _collect_data(self):
 
         # Get hourlies (within some range)
+        logger.info('fetching hourly actuals...')
         actuals = get_hourly_actuals(
             self.session, [self.station_code], self.start_date, self.end_date)
+        logger.info('done fetching hourly actuals.')
         # data = {
         #     'temperature': {
         #         x: [],
@@ -56,10 +58,13 @@ class StationMachineLearning:
         # }
         x = []
         y = []
+        logger.info('iterating through actuals...')
         for actual in actuals:
             # Get the most recent prediction for the actual:
+            logger.info('get most recent prediction run for actual...')
             prediction = get_most_recent_model_run_prediction(
                 self.session, self.model.id, self.grid, actual.weather_date)
+            logger.info('done fetching most recent prediction for actual.')
             if prediction:
                 # Interpolate spatially, to get close to our actual position:
                 interpolated_value = griddata(self.points, prediction.tmp_tgl_2,
@@ -68,6 +73,7 @@ class StationMachineLearning:
                 # Using two variables, the interpolated temperature value, and the hour of the day.
                 x.append([interpolated_value[0], actual.weather_date.hour])
                 y.append(actual.temperature)
+        logger.info('done iterating through actuals.')
 
         x = np.array(x)
         y = np.array(y)
