@@ -427,15 +427,15 @@ def main():
 
     # calculate the execution time.
     execution_time = round(time.time() - start_time, 1)
-    # log some info.
-    # logger.info('%d downloaded, %d processed in total, took %s seconds',
-    #             env_canada.files_downloaded, env_canada.files_processed, execution_time)
+    log some info.
+    logger.info('%d downloaded, %d processed in total, took %s seconds',
+                env_canada.files_downloaded, env_canada.files_processed, execution_time)
     # check if we encountered any exceptions.
-    # if env_canada.exception_count > 0:
-    #     # if there were any exceptions, return a non-zero status.
-    #     logger.warning('completed processing with some exceptions')
-    #     sys.exit(os.EX_SOFTWARE)
-    # return env_canada.files_processed
+    if env_canada.exception_count > 0:
+        # if there were any exceptions, return a non-zero status.
+        logger.warning('completed processing with some exceptions')
+        sys.exit(os.EX_SOFTWARE)
+    return env_canada.files_processed
 
 
 if __name__ == "__main__":

@@ -70,6 +70,22 @@ def extract_one_day_forecast(query):
     return forecasts.values()
 
 
+def interpolate_value(x_axis, noon, before, after, points, target_coordinate):
+    y_axis = [
+        [before[0], after[0]],
+        [before[1], after[1]],
+        [before[2], after[2]],
+        [before[3], after[3]]
+    ]
+    function = interp1d(x_axis, y_axis, kind='linear')
+    # interpolate by time
+    interpolated_noon_value = function(noon.timestamp())
+    # interpolate by location
+    interpolated_value = griddata(
+        points, interpolated_noon_value, target_coordinate, method='linear')
+    return interpolate_value[0]
+
+
 def get_noon_model_prediction(session, grid, weather_date, points, target_coordinate):
     """ get one day prediction """
     end_bound = weather_date - timedelta(days=1)
@@ -92,21 +108,19 @@ def get_noon_model_prediction(session, grid, weather_date, points, target_coordi
         after = query[1][0]
 
         # x-axis is the timestamp
-        x_axis = (before.prediction_timestamp.timestamp(), after.prediction_timestamp.timestamp())
-        # y-axis is the temperature at 18 and the temperature at 21
-        y_axis = [
-            [before.tmp_tgl_2[0], after.tmp_tgl_2[0]],
-            [before.tmp_tgl_2[1], after.tmp_tgl_2[1]],
-            [before.tmp_tgl_2[2], after.tmp_tgl_2[2]],
-            [before.tmp_tgl_2[3], after.tmp_tgl_2[3]]
-        ]
+        x_axis = (before.prediction_timestamp.timestamp(),
+                  after.prediction_timestamp.timestamp())
+
         noon = before.prediction_timestamp.replace(hour=20)
-        function = interp1d(x_axis, y_axis, kind='linear')
-        # interpolate by time
-        interpolated_noon_value = function(noon.timestamp())
-        # interpolate by location
-        interpolated_value = griddata(points, interpolated_noon_value, target_coordinate, method='linear')
-        return interpolated_value[0]
+        temperature = interpolate_value(
+            x_axis, noon, before.tmp_tgl_2, after.tmp_tgl_2, points, target_coordinate)
+        rh = interpolate_value(
+            x_axis, noon, before.rh_tgl_2, after.rh_tgl_2, points, target_coordinate)
+        )
+        return {
+            'temperature': temperature,
+            'rh': rh
+        }
     return None
 
     # for prediction, run in query:
@@ -115,8 +129,10 @@ def get_noon_model_prediction(session, grid, weather_date, points, target_coordi
 
 
 def match_predictions_with_actuals(session, actuals, grid, points, target_coordinate):
-    actual_values = []
-    predicted_values = []
+    actual_temperature_values = []
+    actual_rh_values = []
+    predicted_temperature_values = []
+    predicted_rh_values = []
 
     start_date = None
     end_date = None
@@ -135,17 +151,31 @@ def match_predictions_with_actuals(session, actuals, grid, points, target_coordi
                 break
             prediction, run = result
             # interpolate grid location
-            interpolated_value = griddata(points, prediction.tmp_tgl_2,
-                                          target_coordinate, method='linear')
-            actual_values.append(actual.temperature)
+            interpolated_temperature_value = griddata(points, prediction.tmp_tgl_2,
+                                                      target_coordinate, method = 'linear')
+            interpolated_rh_value=griddata(
+                points, prediction.tmp_rh_2, target_coordinate, method='linear')
+            actual_temperature_values.append(actual.temperature)
+            actual_rh_values.append(actual.relative_humidity)
             # we take into account the model value for temperature, and the hour of the day
-            predicted_values.append([interpolated_value[0], actual.weather_date.hour])
+            predicted_temperature_values.append(
+                [interpolated_temperature_value[0], actual.weather_date.hour])
+            predicted_rh_values.append(
+                [interpolated_rh_value[0], actual.weather_date.hour])
 
     # logger.info('data range: {} {} ({} samples)'.format(start_date, end_date, len(predicted_values)))
 
     #
-    x = np.array(predicted_values)
-    y = np.array(actual_values)
+    data = {
+        'temperature': {
+            'x': np.array(predicted_temperature_values),
+            'y': np.array(actual_temperature_values)
+        },
+        'rh': {
+            'x': np.array(predicted_rh_values),
+            'y': np.array(actual_rh_values)
+        }
+    }
     return x, y, start_date, end_date
 
 
@@ -159,7 +189,8 @@ def main():
 
     with open('machine_all_stations.csv', 'w') as csv_file:
         writer = csv.writer(csv_file)
-        writer.writerow(['station', 'date', 'actual', 'forecast', 'model', 'machine'])
+        writer.writerow(['station', 'date', 'actual',
+                         'forecast', 'model', 'machine'])
 
         for station in stations:
             station_count += 1
@@ -177,55 +208,66 @@ def main():
             actuals = get_actuals(session, station['code'])
 
             # logger.info('get grid...')
-            grid = get_coordinate_grid(session, station['lat'], station['long'])
+            grid = get_coordinate_grid(
+                session, station['lat'], station['long'])
             poly = to_shape(grid.geom)
             points = list(poly.exterior.coords)[:-1]
             target_coordinate = [(station['long'], station['lat'])]
 
             # for every actual, let's get the most recent prediction.
             # logger.info('get predicted values for actuals')
-            x, y, start_date, end_date = match_predictions_with_actuals(
+            data, start_date, end_date = match_predictions_with_actuals(
                 session, actuals, grid, points, target_coordinate)
 
-            if len(x) == 0:
-                logger.info('insufficient data - skipping {}({})'.format(station['name'], station['code']))
+            if len(data['temperature']['x']) == 0:
+                logger.info(
+                    'insufficient data - skipping {}({})'.format(station['name'], station['code']))
             else:
                 # create model and fit it
                 # logger.info('doing model fit with {} data points'.format(len(x)))
-                model = LinearRegression()
-                model.fit(x, y)
+                temperature_model = LinearRegression()
+                temperature_model.fit(
+                    data['temperature']['x'], data['temperature']['y'])
+                rh_model = LinearRegression()
+                rh_model.firt(data['rh']['x'], data['rh']['y'])
 
-                r_sq = model.score(x, y)
+                r_sq = temperature_model.score(x, y)
                 # we want 1 for coefficient of determination, as it indicates a linear relationship.
                 # logger.info('coefficient of determination: %s', r_sq)
-                # logger.info('intercept: %s', model.intercept_)
-                # logger.info('slope: %s', model.coef_)
+                # logger.info('intercept: %s', temperature_model.intercept_)
+                # logger.info('slope: %s', temperature_model.coef_)
 
-                # ok - grand - we have a model, now let's make some predictions.
+                # ok - grand - we have a temperature_model, now let's make some predictions.
                 # to be fair, we exclude data we used to learn.
-                noon_forecasts = get_noon_forecasts(session, station['code'], end_date)
+                noon_forecasts = get_noon_forecasts(
+                    session, station['code'], end_date)
                 noon_forecasts = extract_one_day_forecast(noon_forecasts)
 
                 # logger.info('there are {} noon_forecasts'.format(len(noon_forecasts)))
 
                 comparison_count = 0
                 for forecast in noon_forecasts:
-                    # get an appropriate model prediction for this forecast
+                    # get an appropriate temperature_model prediction for this forecast
                     # get the most recent model run for this forecast
                     prediction = get_noon_model_prediction(
                         session, grid, forecast.weather_date, points, target_coordinate)
                     if prediction:
-                        actual = get_actual(session, station['code'], forecast.weather_date)
+                        actual = get_actual(
+                            session, station['code'], forecast.weather_date)
                         if actual:
                             comparison_count += 1
-                            machine = model.predict([[prediction, forecast.weather_date.hour]])
+                            machine = temperature_model.predict(
+                                [[prediction, forecast.weather_date.hour]])
+                            machine_rh = rh_model.prediction([[, forecast.weather_date.hour]])
                             # who is closer?
-                            machine_delta = abs(round(machine[0], 1) - actual.temperature)
+                            machine_delta = abs(
+                                round(machine[0], 1) - actual.temperature)
                             if best_machine_estimate > machine_delta:
                                 best_machine_estimate = machine_delta
                             if worst_machine_estimate < machine_delta:
                                 worst_machine_estimate = machine_delta
-                            human_delta = abs(forecast.temperature - actual.temperature)
+                            human_delta = abs(
+                                forecast.temperature - actual.temperature)
                             if best_human_estimate > human_delta:
                                 best_human_estimate = human_delta
                             if worst_human_estimate < human_delta:
@@ -253,7 +295,8 @@ def main():
                             #     message))
 
                 if comparison_count == 0:
-                    logger.info('no data to compare for %s(%s)', station['name'], station['code'])
+                    logger.info('no data to compare for %s(%s)',
+                                station['name'], station['code'])
                 else:
                     overall_machine_count += machine_count
                     overall_human_count += human_count
@@ -265,7 +308,8 @@ def main():
                     # print('best machine estimate, off by: {}'.format(best_machine_estimate))
                     # if station_count > 2:
                     # break
-            print('overall - machines: {}, humans: {}'.format(overall_machine_count, overall_human_count))
+            print(
+                'overall - machines: {}, humans: {}'.format(overall_machine_count, overall_human_count))
 
 
 if __name__ == '__main__':
