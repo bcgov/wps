@@ -250,7 +250,8 @@ class HourlyActual(Base):
         return (
             'station_code:{self.station_code}, '
             'weather_date:{self.weather_date}, '
-            'temperature :{self.temperature}'
+            'temperature :{self.temperature}, '
+            'relative_humidity:{self.relative_humidity}'
         ).format(self=self)
 
 

@@ -180,6 +180,7 @@ def get_most_recent_model_run_prediction(session, prediction_model_id, grid, wea
     return session.query(ModelRunGridSubsetPrediction)\
         .join(PredictionModelRunTimestamp)\
         .filter(PredictionModelRunTimestamp.id == ModelRunGridSubsetPrediction.prediction_model_run_timestamp_id)\
+        .filter(PredictionModelRunTimestamp.prediction_model_id == prediction_model_id)\
         .filter(ModelRunGridSubsetPrediction.prediction_model_grid_subset_id == grid.id)\
         .filter(ModelRunGridSubsetPrediction.prediction_timestamp == weather_date)\
         .order_by(PredictionModelRunTimestamp.prediction_run_timestamp.desc()).first()
@@ -282,6 +283,27 @@ def query_noon_forecast_records(session: Session,
         .order_by(desc(NoonForecast.created_at))
 
 
+def get_actuals_paired_with_predictions(
+        session, model_id: int, grid_id: int, station_code: int,
+        start_date: datetime, end_date: datetime):
+    """ TODO: improve this query - we only need the most recent prediction
+    """
+    return session.query(HourlyActual, ModelRunGridSubsetPrediction)\
+        .join(ModelRunGridSubsetPrediction,
+              ModelRunGridSubsetPrediction.prediction_timestamp == HourlyActual.weather_date)\
+        .join(PredictionModelRunTimestamp, PredictionModelRunTimestamp.id == ModelRunGridSubsetPrediction.prediction_model_run_timestamp_id)\
+        .filter(PredictionModelRunTimestamp.prediction_model_id == model_id)\
+        .filter(ModelRunGridSubsetPrediction.prediction_model_grid_subset_id == grid_id)\
+        .filter(HourlyActual.station_code == station_code)\
+        .filter(HourlyActual.weather_date >= start_date)\
+        .filter(HourlyActual.temp_valid == True)\
+        .filter(HourlyActual.rh_valid == True)\
+        .filter(HourlyActual.weather_date <= end_date)\
+        .order_by(HourlyActual.station_code)\
+        .order_by(HourlyActual.weather_date)\
+        .order_by(PredictionModelRunTimestamp.prediction_run_timestamp.desc())
+
+
 def get_hourly_actuals(
         session: Session,
         station_codes: List[int],
@@ -294,7 +316,8 @@ def get_hourly_actuals(
     query = session.query(HourlyActual)\
         .filter(HourlyActual.station_code.in_(station_codes))\
         .filter(HourlyActual.weather_date >= start_date)\
-        .filter(HourlyActual.temp_valid == True)
+        .filter(HourlyActual.temp_valid == True)\
+        .filter(HourlyActual.rh_valid == True)
     if end_date is not None:
         query = query.filter(HourlyActual.weather_date <= end_date)
     query = query.order_by(HourlyActual.station_code)\

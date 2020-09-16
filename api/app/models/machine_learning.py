@@ -8,6 +8,7 @@ from app.db.models import PredictionModel, PredictionModelGridSubset
 from app.db.crud import (
     get_hourly_actuals,
     get_weather_station_model_prediction,
+    get_actuals_paired_with_predictions,
     get_most_recent_model_run_prediction)
 
 
@@ -59,13 +60,11 @@ class StationMachineLearning:
         x = []
         y = []
         logger.info('iterating through actuals...')
-        for actual in actuals:
-            # Get the most recent prediction for the actual:
-            logger.info('get most recent prediction run for actual...')
-            prediction = get_most_recent_model_run_prediction(
-                self.session, self.model.id, self.grid, actual.weather_date)
-            logger.info('done fetching most recent prediction for actual.')
-            if prediction:
+        query = get_actuals_paired_with_predictions(
+            self.session, self.model.id, self.grid.id, self.station_code, self.start_date, self.end_date)
+        prev_actual = None
+        for actual, prediction in query:
+            if prev_actual != actual:
                 # Interpolate spatially, to get close to our actual position:
                 interpolated_value = griddata(self.points, prediction.tmp_tgl_2,
                                               self.target_coordinate, method='linear')
