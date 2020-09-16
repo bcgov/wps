@@ -57,15 +57,19 @@ objects:
                         configMapKeyRef:
                           name: ${NAME}-global
                           key: bc-fire-weather-filter-id
-                    - name: POSTGRES_USER
+                    - name: POSTGRES_READ_USER
+                      value: ${NAME}-${SUFFIX}
+                    - name: POSTGRES_WRITE_USER
                       value: ${NAME}-${SUFFIX}
                     - name: POSTGRES_PASSWORD
                       valueFrom:
                         secretKeyRef:
                           name: ${NAME}-global
                           key: app-db-password
-                    - name: POSTGRES_HOST
+                    - name: POSTGRES_WRITE_HOST
                       value: patroni-leader-${NAME}-${SUFFIX}
+                    - name: POSTGRES_READ_HOST
+                      value: patroni-replica-${NAME}-${SUFFIX}
                     - name: POSTGRES_PORT
                       value: "5432"
                     - name: POSTGRES_DATABASE

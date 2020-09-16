@@ -210,7 +210,7 @@ class EnvCanada():
         self.exception_count = 0
         # We always work in UTC:
         self.now = get_utcnow()
-        self.session = app.db.database.get_session()
+        self.session = app.db.database.get_write_session()
         self.grib_processor = GribFileProcessor()
 
     def flag_file_as_processed(self, url):
@@ -313,7 +313,7 @@ class ModelValueProcessor:
 
     def __init__(self):
         """ Prepare variables we're going to use throughout """
-        self.session = app.db.database.get_session()
+        self.session = app.db.database.get_write_session()
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         self.stations = loop.run_until_complete(app.stations.get_stations())
@@ -422,12 +422,12 @@ def main():
     env_canada.process()
 
     # interpolate and machine learn everything that needs interpolating.
-    model_value_processor = ModelValueProcessor()
-    model_value_processor.process()
+    # model_value_processor = ModelValueProcessor()
+    # model_value_processor.process()
 
     # calculate the execution time.
     execution_time = round(time.time() - start_time, 1)
-    log some info.
+    # log some info
     logger.info('%d downloaded, %d processed in total, took %s seconds',
                 env_canada.files_downloaded, env_canada.files_processed, execution_time)
     # check if we encountered any exceptions.
