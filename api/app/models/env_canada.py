@@ -331,7 +331,9 @@ class ModelValueProcessor:
             self._process_model_run_for_station(model_run, station)
         # Commit all the weather station model predictions (it's fast if we line them all up and commit
         # them in one go.)
+        logger.info('commit to database...')
         self.session.commit()
+        logger.info('done commit.')
 
     def _process_model_run_for_station(self,
                                        model_run: PredictionModelRunTimestamp,
@@ -365,6 +367,7 @@ class ModelValueProcessor:
         machine.learn()
 
         # Iterate through all the predictions.
+        logger.info('iterating through predictions for model run...')
         for prediction in query:
             # If there's already a prediction, we want to update it
             station_prediction = get_weather_station_model_prediction(
