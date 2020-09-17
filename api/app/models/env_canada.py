@@ -324,9 +324,12 @@ class ModelValueProcessor:
         logger.info('Interpolating values for model run: %s', model_run)
         # Iterate through stations.
         for index, station in enumerate(self.stations):
-            logger.info('Interpolating model run %s for %s:%s (%s/%s)',
+            # if station['code'] != '322':
+            # continue
+            logger.info('Interpolating model run %s (%s/%s) for %s:%s',
                         model_run.id,
-                        station['code'], station['name'], index, self.station_count)
+                        index, self.station_count,
+                        station['code'], station['name'])
             # Process this model run for station.
             self._process_model_run_for_station(model_run, station)
             # if self.station_count > 4:
@@ -369,7 +372,7 @@ class ModelValueProcessor:
         machine.learn()
 
         # Iterate through all the predictions.
-        logger.info('iterating through predictions for model run...')
+        # logger.info('iterating through predictions for model run...')
         for prediction in query:
             # If there's already a prediction, we want to update it
             station_prediction = get_weather_station_model_prediction(

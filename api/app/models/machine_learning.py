@@ -46,10 +46,10 @@ class StationMachineLearning:
     def _collect_data(self):
 
         # Get hourlies (within some range)
-        logger.info('fetching hourly actuals...')
+        # logger.info('fetching hourly actuals...')
         actuals = get_hourly_actuals(
             self.session, [self.station_code], self.start_date, self.end_date)
-        logger.info('done fetching hourly actuals.')
+        # logger.info('done fetching hourly actuals.')
         # data = {
         #     'temperature': {
         #         x: [],
@@ -59,7 +59,7 @@ class StationMachineLearning:
         # }
         x = []
         y = []
-        logger.info('iterating through actuals...')
+        # logger.info('iterating through actuals...')
         query = get_actuals_paired_with_predictions(
             self.session, self.model.id, self.grid.id, self.station_code, self.start_date, self.end_date)
         prev_actual = None
@@ -72,7 +72,7 @@ class StationMachineLearning:
                 # Using two variables, the interpolated temperature value, and the hour of the day.
                 x.append([interpolated_value[0], actual.weather_date.hour])
                 y.append(actual.temperature)
-        logger.info('done iterating through actuals.')
+        # logger.info('done iterating through actuals.')
 
         x = np.array(x)
         y = np.array(y)
@@ -81,17 +81,19 @@ class StationMachineLearning:
     def learn(self):
         self.temperature_model = LinearRegression()
         self.rh_model = LinearRegression()
-        logger.info('collecting data...')
+        # logger.info('collecting data...')
         x, y = self._collect_data()
-        logger.info('collected %s samples for %s', len(x), self.station_code)
-        if len(x) > 0:
+        # logger.info('collected %s samples for %s', len(x), self.station_code)
+        if len(x) > 3:
+            # using a REALLY low tolerance for number of samples - this can cause issues!
             # logger.info('x: %s', x)
+            # logger.info('y: %s', y)
             self.temperature_model.fit(x, y)
             r_sq = self.temperature_model.score(x, y)
-            logger.info('coefficient of determination: %s', r_sq)
+            # logger.info('coefficient of determination: %s', r_sq)
             self.good_model = True
         else:
-            logger.info('bad model. won\'t be predicting anything.')
+            logger.debug('bad model. won\'t be predicting anything.')
 
     def predict_temperature(self, model_temperature, timestamp):
         if self.good_model:
