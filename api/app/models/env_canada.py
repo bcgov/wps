@@ -14,14 +14,14 @@ import logging
 import time
 import tempfile
 import requests
-from scipy.interpolate import griddata
+from scipy.interpolate import griddata, interp1d
 from geoalchemy2.shape import to_shape
 from sqlalchemy.orm import Session
 from app import configure_logging
 import app.time_utils as time_utils
 import app.stations
 from app.models.process_grib import GribFileProcessor, ModelRunInfo
-from app.db.models import ProcessedModelRunUrl, PredictionModelRunTimestamp, WeatherStationModelPrediction
+from app.db.models import ProcessedModelRunUrl, PredictionModelRunTimestamp, WeatherStationModelPrediction, ModelRunGridSubsetPrediction
 import app.db.database
 from app.models import ModelEnum
 from app.models.machine_learning import StationMachineLearning
@@ -43,7 +43,18 @@ class UnhandledPredictionModelType(Exception):
     """ Exception raised when an unknown model type is encountered. """
 
 
+def interpolate(x_axis, before, after, timestamp):
+    y_axis = [
+        [before[0], after[0]],
+        [before[1], after[1]],
+        [before[2], after[2]],
+        [before[3], after[3]]
+    ]
+    return interp1d(x_axis, y_axis, kind='linear')(timestamp)
+
 # pylint: disable=too-many-locals
+
+
 def parse_env_canada_filename(filename):
     """ Take a grib filename, as per file name nomenclature defined at
     https://weather.gc.ca/grib/grib2_glb_25km_e.html, and parse into a meaningful object.
@@ -340,6 +351,35 @@ class ModelValueProcessor:
         self.session.commit()
         logger.info('done commit.')
 
+    def _process_prediction(self, prediction, station, model_run, points, coordinate, machine):
+        # If there's already a prediction, we want to update it
+        station_prediction = get_weather_station_model_prediction(
+            self.session, station['code'], model_run.id, prediction.prediction_timestamp)
+        if station_prediction is None:
+            station_prediction = WeatherStationModelPrediction()
+        # Populate the weather station prediction object.
+        station_prediction.station_code = station['code']
+        station_prediction.prediction_model_run_timestamp_id = model_run.id
+        station_prediction.prediction_timestamp = prediction.prediction_timestamp
+        # Caclulate the interpolated values.
+        station_prediction.tmp_tgl_2 = griddata(
+            points, prediction.tmp_tgl_2, coordinate, method='linear')[0]
+        station_prediction.rh_tgl_2 = griddata(
+            points, prediction.rh_tgl_2, coordinate, method='linear')[0]
+        # Predict the temperature
+        station_prediction.temperature = machine.predict_temperature(
+            station_prediction.tmp_tgl_2,
+            station_prediction.prediction_timestamp)
+        # Predict the rh
+        station_prediction.bias_adjusted_rh = machine.predict_rh(
+            station_prediction.rh_tgl_2, station_prediction.prediction_timestamp)
+        # Update the update time (this might be an update)
+        station_prediction.update_date = time_utils.get_utc_now()
+        # Add this prediction to the session (we'll commit it later.)
+        # logger.info('model: %s, machine: %s',
+        # station_prediction.tmp_tgl_2, station_prediction.temperature)
+        self.session.add(station_prediction)
+
     def _process_model_run_for_station(self,
                                        model_run: PredictionModelRunTimestamp,
                                        station: dict):
@@ -373,30 +413,31 @@ class ModelValueProcessor:
 
         # Iterate through all the predictions.
         # logger.info('iterating through predictions for model run...')
+        prev_prediction = None
         for prediction in query:
-            # If there's already a prediction, we want to update it
-            station_prediction = get_weather_station_model_prediction(
-                self.session, station['code'], model_run.id, prediction.prediction_timestamp)
-            if station_prediction is None:
-                station_prediction = WeatherStationModelPrediction()
-            # Populate the weather station prediction object.
-            station_prediction.station_code = station['code']
-            station_prediction.prediction_model_run_timestamp_id = model_run.id
-            station_prediction.prediction_timestamp = prediction.prediction_timestamp
-            # Caclulate the interpolated values.
-            station_prediction.tmp_tgl_2 = griddata(
-                points, prediction.tmp_tgl_2, coordinate, method='linear')[0]
-            station_prediction.rh_tgl_2 = griddata(
-                points, prediction.rh_tgl_2, coordinate, method='linear')[0]
-            # Predict the temperature
-            station_prediction.temperature = machine.predict_temperature(station_prediction.tmp_tgl_2,
-                                                                         station_prediction.prediction_timestamp)
-            # Update the update time (this might be an update)
-            station_prediction.update_date = time_utils.get_utc_now()
-            # Add this prediction to the session (we'll commit it later.)
-            # logger.info('model: %s, machine: %s',
-            # station_prediction.tmp_tgl_2, station_prediction.temperature)
-            self.session.add(station_prediction)
+            if (prev_prediction is not None
+                    and prev_prediction.prediction_timestamp.hour == 18
+                    and prediction.prediction_timestamp.hour == 21):
+                noon_prediction = ModelRunGridSubsetPrediction()
+                noon_prediction.prediction_timestamp = prediction.prediction_timestamp.replace(
+                    hour=20)
+                # x-axis is the timestamp
+                x_axis = (prev_prediction.prediction_timestamp.timestamp(),
+                          prediction.prediction_timestamp.timestamp())
+                noon_prediction.tmp_tgl_2 = interpolate(
+                    x_axis, prev_prediction.tmp_tgl_2,
+                    prediction.tmp_tgl_2,
+                    noon_prediction.prediction_timestamp.timestamp())
+                noon_prediction.rh_tgl_2 = interpolate(
+                    x_axis, prev_prediction.rh_tgl_2,
+                    prediction.rh_tgl_2,
+                    noon_prediction.prediction_timestamp.timestamp())
+                self._process_prediction(
+                    noon_prediction, station, model_run, points, coordinate, machine)
+                # logging.info('interpolate a noon value dude!')
+            self._process_prediction(
+                prediction, station, model_run, points, coordinate, machine)
+            prev_prediction = prediction
 
     def _mark_model_run_interpolated(self, model_run: PredictionModelRunTimestamp):
         """ Having completely processed a model run, we can mark it has having been interpolated.

@@ -203,6 +203,8 @@ class WeatherStationModelPrediction(Base):
     # from model_run_grid_subset_prediction
     rh_tgl_2 = Column(Float, nullable=True)
     # Date this record was created.
+    # RH adjusted by bias
+    bias_adjusted_rh = Column(Float, nullable=True)
     create_date = Column(TZTimeStamp, nullable=False,
                          default=time_utils.get_utc_now())
     # Date this record was updated.

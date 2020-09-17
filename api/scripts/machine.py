@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import csv
 from matplotlib.ticker import MultipleLocator
 from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import PolynomialFeatures
 from scipy.interpolate import griddata, interp1d
 from geoalchemy2.shape import to_shape
 from sqlalchemy import extract
@@ -21,6 +22,9 @@ configure_logging()
 
 
 logger = logging.getLogger()
+
+
+use_hour = True
 
 
 def get_actuals(session, station_code):
@@ -153,11 +157,18 @@ def match_predictions_with_actuals(session, actuals, grid, points, target_coordi
             actual_temperature_values.append(actual.temperature)
             actual_rh_values.append(actual.relative_humidity)
             # we take into account the model value for temperature, and the hour of the day
-            predicted_temperature_values.append(
-                [interpolated_temperature_value[0], actual.weather_date.hour])
+            if use_hour:
+                predicted_temperature_values.append(
+                    [interpolated_temperature_value[0], calc_temp_hour(actual.weather_date)])
+            else:
+                predicted_temperature_values.append(
+                    interpolated_temperature_value[0])
             # there's a correlation between temperature and relative humidity - so let's try to use that too.
-            predicted_rh_values.append(
-                [interpolated_rh_value[0], actual.weather_date.hour])
+            if use_hour:
+                predicted_rh_values.append(
+                    [interpolated_rh_value[0], calc_rh_hour(actual.weather_date)])
+            else:
+                predicted_rh_values.append(interpolated_rh_value[0])
 
     # logger.info('data range: {} {} ({} samples)'.format(start_date, end_date, len(predicted_values)))
 
@@ -196,6 +207,40 @@ class Judge:
         return '{} judge: machines={}, humans={}'.format(self.name, self.machine_count, self.human_count)
 
 
+def get_polynomial():
+    return PolynomialFeatures(degree=2, include_bias=False)
+
+
+def calc_rh_hour(timestamp):
+    """
+    20h00 UTC is solar noon in BC.
+    22h00 UTC is 14h00 in BC.
+    For some reason I don't understand there's correlation here.
+    """
+    return abs(((timestamp.hour + 2) % 24) - 12)
+
+
+def calc_temp_hour(timestamp):
+    """
+    20h00 is solar noon in BC. (20h00 utc, -8 is 12 pacific, noon)
+    8 hours after noon, is 20h00 PST, or 04h00 UTC
+    for some reason, we get the highest temperature score if we make this the midpoint.
+    I don't understand.
+    """
+    return abs(((timestamp.hour + 8) % 24) - 12)
+
+
+# def calc_hour(timestamp):
+#     # the hour is in utc
+#     # 20h00 is noon, but the warmest part of the day is 5 hours later
+#     # 20h00 + 5 = 01h00
+#     # so 01h00 is the warmest really, but that in the middle, by adding 11
+#     # so we can find the distance from warmest part, by adding 11, and then subtracting 12.
+#     # so really, subtracting 1 gives us the distance from warmest part?
+#     return abs(((timestamp.hour - 8) % 24) - 12)
+#     # return timestamp.hour
+
+
 def main():
     session = get_write_session()
     stations = get_stations_sync()
@@ -220,6 +265,8 @@ def main():
         'model': [],
         'human': []
     }
+
+    polynomial = False
 
     with open('machine_all_stations.csv', 'w') as csv_file:
         writer = csv.writer(csv_file)
@@ -262,14 +309,25 @@ def main():
                     'doing model fit with {} data points ({}-{})'.format(
                         len(data['temperature']['x']),
                         start_date, end_date))
-                temperature_model = LinearRegression()
-                temperature_model.fit(
-                    data['temperature']['x'], data['temperature']['y'])
-                rh_model = LinearRegression()
-                rh_model.fit(data['rh']['x'], data['rh']['y'])
 
-                r_sq = temperature_model.score(
-                    data['temperature']['x'], data['temperature']['y'])
+                temperature_model = LinearRegression()
+                x = data['temperature']['x']
+                if polynomial:
+                    x = get_polynomial().fit_transform(x)
+                if not use_hour:
+                    x = x.reshape((-1, 1))
+                temperature_model.fit(x, data['temperature']['y'])
+
+                rh_model = LinearRegression()
+                x = data['rh']['x']
+                if polynomial:
+                    x = get_polynomial().fit_transform(x)
+                if not use_hour:
+                    x = x.reshape((-1, 1))
+
+                rh_model.fit(x, data['rh']['y'])
+
+                r_sq = temperature_model.score(x, data['temperature']['y'])
                 # we want 1 for coefficient of determination, as it indicates a linear relationship.
                 # logger.info('coefficient of determination: %s', r_sq)
                 # logger.info('intercept: %s', temperature_model.intercept_)
@@ -294,10 +352,25 @@ def main():
                             session, station['code'], forecast.weather_date)
                         if actual:
                             comparison_count += 1
-                            machine = temperature_model.predict(
-                                [[prediction['temperature'], forecast.weather_date.hour]])
-                            machine_rh = rh_model.predict(
-                                [[prediction['rh'], forecast.weather_date.hour]])
+                            if use_hour:
+                                x = [[prediction['temperature'],
+                                      calc_temp_hour(forecast.weather_date)]]
+                            else:
+                                x = np.array([prediction['temperature']
+                                              ]).reshape((-1, 1))
+                            if polynomial:
+                                x = get_polynomial().fit_transform(x)
+
+                            machine = temperature_model.predict(x)
+                            if use_hour:
+                                x = [[prediction['rh'], calc_rh_hour(
+                                    forecast.weather_date)]]
+                            else:
+                                x = np.array([prediction['rh']]
+                                             ).reshape((-1, 1))
+                            if polynomial:
+                                x = get_polynomial().fit_transform(x)
+                            machine_rh = rh_model.predict(x)
                             # who is closer?
                             temp_judge.adjudicate(
                                 machine[0], forecast.temperature, actual.temperature)

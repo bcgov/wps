@@ -260,7 +260,8 @@ def get_prediction_model(session: Session, abbreviation: str, projection: str) -
 def get_prediction_model_run_timestamp_records(
         session: Session, complete: bool = True, interpolated: bool = True):
     """ Get prediction model run timestamps (filter on complete and interpolated if provided.) """
-    query = session.query(PredictionModelRunTimestamp)
+    query = session.query(PredictionModelRunTimestamp).order_by(
+        PredictionModelRunTimestamp.prediction_run_timestamp.desc())
     if interpolated is not None:
         query = query.filter(
             PredictionModelRunTimestamp.interpolated == interpolated)
