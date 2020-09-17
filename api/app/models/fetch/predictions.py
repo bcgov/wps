@@ -225,7 +225,7 @@ async def _fetch_most_recent_historic_predictions_by_station_codes(model: ModelE
             # construct the WeatherModelPredictionValue
             prediction_value = WeatherModelPredictionValues(
                 temperature=prediction.temperature,
-                relative_humidity=prediction.rh_tgl_2,
+                relative_humidity=prediction.bias_adjusted_rh,
                 datetime=prediction.prediction_timestamp
             )
             model_run = WeatherModelRun(
