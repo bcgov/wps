@@ -147,7 +147,24 @@ async def get_most_recent_historic_model_values(
     """
     try:
         logger.info('/models/%s/predictions/historic/most_recent/', model.name)
-        historic_predictions = await fetch_most_recent_historic_predictions(model, request.stations)
+        historic_predictions = await fetch_most_recent_historic_predictions(model, request.stations, time_utils.get_utc_now())
+        return schemas.WeatherModelPredictionResponse(predictions=historic_predictions)
+    except Exception as exception:
+        logger.critical(exception, exc_info=True)
+        raise
+
+
+@api.post('/models/{model}/predictions/most_recent/',
+          response_model=schemas.WeatherModelPredictionResponse)
+async def get_most_recent_historic_model_values(
+        model: ModelEnum, request: schemas.StationCodeList):
+    """ Returns the weather values for the last model prediction that was issued
+    for the station before actual weather readings became available.
+    """
+    try:
+        logger.info('/models/%s/predictions/historic/most_recent/', model.name)
+        end_date = time_utils.get_utc_now() + datetime.timedelta(days=10)
+        historic_predictions = await fetch_most_recent_historic_predictions(model, request.stations, end_date)
         return schemas.WeatherModelPredictionResponse(predictions=historic_predictions)
     except Exception as exception:
         logger.critical(exception, exc_info=True)

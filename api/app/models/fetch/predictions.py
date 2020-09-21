@@ -195,7 +195,8 @@ async def fetch_model_predictions(model: ModelEnum, station_codes: List[int]):
     return await _fetch_model_predictions_by_station_codes(model, station_codes)
 
 
-async def _fetch_most_recent_historic_predictions_by_station_codes(model: ModelEnum, station_codes: List[int]) -> List[WeatherModelPrediction]:
+async def _fetch_most_recent_historic_predictions_by_station_codes(
+        model: ModelEnum, station_codes: List[int], end_date) -> List[WeatherModelPrediction]:
     """ Fetch the most recent historic model predictions from database based on each station's coordinates. """
     stations = {station.code: station for station in await app.stations.get_stations_by_codes(station_codes)}
 
@@ -209,7 +210,7 @@ async def _fetch_most_recent_historic_predictions_by_station_codes(model: ModelE
     # send the query
     session = app.db.database.get_session()
     historic_predictions = app.db.crud.get_historic_station_model_predictions(
-        session, station_codes, model, five_days_ago, now)
+        session, station_codes, model, five_days_ago, end_date)
     for prediction, prediction_model_run_timestamp, prediction_model in historic_predictions:
         station_predictions = weather_model_predictions_dict.get(
             prediction.station_code)
@@ -225,8 +226,10 @@ async def _fetch_most_recent_historic_predictions_by_station_codes(model: ModelE
             # construct the WeatherModelPredictionValue
             # NOTE: using the bias adjusted values here!
             prediction_value = WeatherModelPredictionValues(
-                temperature=prediction.temperature,
-                relative_humidity=prediction.bias_adjusted_rh,
+                temperature=prediction.tmp_tgl_2,
+                bias_adjusted_temperature=prediction.temperature,
+                relative_humidity=prediction.rh_tgl_2,
+                bias_adjusted_relative_humidity=prediction.bias_adjusted_rh,
                 datetime=prediction.prediction_timestamp
             )
             model_run = WeatherModelRun(
@@ -253,6 +256,6 @@ async def _fetch_most_recent_historic_predictions_by_station_codes(model: ModelE
     return weather_predictions_response
 
 
-async def fetch_most_recent_historic_predictions(model: ModelEnum, station_codes: List[int]):
+async def fetch_most_recent_historic_predictions(model: ModelEnum, station_codes: List[int], end_date):
     """ Fetch most recently issued model prediction for the last 5 days for a given list of stations and a given model. """
-    return await _fetch_most_recent_historic_predictions_by_station_codes(model, station_codes)
+    return await _fetch_most_recent_historic_predictions_by_station_codes(model, station_codes, end_date)

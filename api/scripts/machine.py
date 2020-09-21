@@ -82,9 +82,9 @@ def interpolate_value(x_axis, noon, before, after, points, target_coordinate):
         [before[3], after[3]]
     ]
     function = interp1d(x_axis, y_axis, kind='linear')
-    # interpolate by time
+    # interpolate by time.
     interpolated_noon_value = function(noon.timestamp())
-    # interpolate by location
+    # interpolate by location.
     interpolated_value = griddata(
         points, interpolated_noon_value, target_coordinate, method='linear')
     return interpolated_value[0]
@@ -111,6 +111,9 @@ def get_noon_model_prediction(session, grid, weather_date, points, target_coordi
         before = query[0][0]
         after = query[1][0]
 
+        # logger.info('for forecast: %s, using model %s',
+        # weather_date, query[0][1].prediction_run_timestamp)
+
         # x-axis is the timestamp
         x_axis = (before.prediction_timestamp.timestamp(),
                   after.prediction_timestamp.timestamp())
@@ -135,8 +138,6 @@ def match_predictions_with_actuals(session, actuals, grid, points, target_coordi
 
     start_date = None
     end_date = None
-
-    # we'll limit to a weeks worth of data to learn from
 
     for actual in actuals:
         result = most_recent_model_run(session, grid, actual.weather_date)
@@ -193,8 +194,11 @@ class Judge:
         self.human_count = 0
         self.tie = 0
 
+    def round(self, value):
+        raise NotImplementedError()
+
     def adjudicate(self, machine, human, observed):
-        machine_delta = abs(round(machine, 1) - observed)
+        machine_delta = abs(self.round(machine) - observed)
         human_delta = abs(human-observed)
         if human_delta < machine_delta:
             self.human_count += 1
@@ -204,7 +208,19 @@ class Judge:
             self.tie += 1
 
     def __str__(self):
-        return '{} judge: machines={}, humans={}'.format(self.name, self.machine_count, self.human_count)
+        return '{} judge: machines={}, humans={}, tie={}'.format(
+            self.name, self.machine_count, self.human_count, self.tie)
+
+
+class TemperatureJudge(Judge):
+
+    def round(self, value):
+        return round(value*2)/2
+
+
+class RHJudge(Judge):
+    def round(self, value):
+        return round(value, 0)
 
 
 def get_polynomial():
@@ -254,6 +270,10 @@ def main():
         'temperature': 0,
         'rh': 0
     }
+    overall_tie_count = {
+        'temperature': 0,
+        'rh': 0
+    }
 
     overall_temp_error = {
         'machine': [],
@@ -280,8 +300,8 @@ def main():
             # if station['code'] != '322':
             #     continue
             station_count += 1
-            temp_judge = Judge('temperature')
-            rh_judge = Judge('relative humidity')
+            temp_judge = TemperatureJudge('temperature')
+            rh_judge = RHJudge('relative humidity')
 
             logger.info('processing %s - %s', station['code'], station['name'])
 
@@ -425,8 +445,10 @@ def main():
                 else:
                     overall_machine_count['temperature'] += temp_judge.machine_count
                     overall_human_count['temperature'] += temp_judge.human_count
+                    overall_tie_count['temperature'] += temp_judge.tie
                     overall_machine_count['rh'] += rh_judge.machine_count
                     overall_human_count['rh'] += rh_judge.human_count
+                    overall_tie_count['rh'] += rh_judge.tie
 
                     print('{} ({}): {}, {}'.format(
                         station['name'], station['code'], temp_judge, rh_judge))
@@ -438,7 +460,7 @@ def main():
                     # break
                 # break
             print(
-                'overall - machines: {}, humans: {}'.format(overall_machine_count, overall_human_count))
+                'overall - machines: {}, humans: {}, tie: {}'.format(overall_machine_count, overall_human_count, overall_tie_count))
 
             machine_t_e = np.average(overall_temp_error['machine'])
             model_t_e = np.average(overall_temp_error['model'])
