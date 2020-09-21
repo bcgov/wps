@@ -223,6 +223,7 @@ async def _fetch_most_recent_historic_predictions_by_station_codes(model: ModelE
         if(existing_prediction is None or
            existing_prediction.model_run.datetime < prediction_model_run_timestamp.prediction_run_timestamp):
             # construct the WeatherModelPredictionValue
+            # NOTE: using the bias adjusted values here!
             prediction_value = WeatherModelPredictionValues(
                 temperature=prediction.temperature,
                 relative_humidity=prediction.bias_adjusted_rh,

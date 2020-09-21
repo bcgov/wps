@@ -96,8 +96,10 @@ class WeatherModelPredictionValues(BaseModel):
     """ The predicted weather values. """
     datetime: datetime
     temperature: float = None
+    bias_adjusted_temperature: float = None
     dew_point: float = None
     relative_humidity: float = None
+    bias_adjusted_relative_humidity: float = None
     wind_speed: float = None
     wind_direction: float = None
     total_precipitation: float = None
