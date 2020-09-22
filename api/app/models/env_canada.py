@@ -24,7 +24,7 @@ from app.models.process_grib import GribFileProcessor, ModelRunInfo
 from app.db.models import ProcessedModelRunUrl, PredictionModelRunTimestamp, WeatherStationModelPrediction, ModelRunGridSubsetPrediction
 import app.db.database
 from app.models import ModelEnum
-from app.models.machine_learning import StationMachineLearning
+from app.models.machine_learning_v2 import StationMachineLearning
 from app.db.crud import (get_processed_file_record,
                          get_processed_file_count,
                          get_prediction_model_run_timestamp_records,
@@ -406,9 +406,7 @@ class ModelValueProcessor:
             points=points,
             target_coordinate=coordinate,
             station_code=station['code'],
-            start_date=model_run.prediction_run_timestamp -
-            datetime.timedelta(days=2),
-            end_date=model_run.prediction_run_timestamp)
+            max_learn_date=model_run.prediction_run_timestamp)
         machine.learn()
 
         # Iterate through all the predictions.
@@ -468,7 +466,7 @@ def main():
 
     # process everything.
     env_canada = EnvCanada()
-    env_canada.process()
+    # env_canada.process()
 
     # interpolate and machine learn everything that needs interpolating.
     model_value_processor = ModelValueProcessor()

@@ -3,7 +3,7 @@
 import logging
 import datetime
 from typing import List
-from sqlalchemy import or_, desc
+from sqlalchemy import or_, desc, and_
 from sqlalchemy.orm import Session
 from app.schemas import StationCodeList
 from app.models import ModelEnum
@@ -282,6 +282,41 @@ def query_noon_forecast_records(session: Session,
         .filter(NoonForecast.weather_date <= end_date)\
         .order_by(NoonForecast.weather_date)\
         .order_by(desc(NoonForecast.created_at))
+
+
+def get_predictions(
+        session, model_id: int, grid_id: int,
+        start_date: datetime, end_date: datetime):
+    return session.query(ModelRunGridSubsetPrediction)\
+        .join(PredictionModelRunTimestamp, PredictionModelRunTimestamp.id == ModelRunGridSubsetPrediction.prediction_model_run_timestamp_id)\
+        .filter(PredictionModelRunTimestamp.prediction_model_id == model_id)\
+        .filter(ModelRunGridSubsetPrediction.prediction_model_grid_subset_id == grid_id)\
+        .filter(ModelRunGridSubsetPrediction.prediction_timestamp >= start_date)\
+        .filter(ModelRunGridSubsetPrediction.prediction_timestamp >= end_date)\
+        .order_by(ModelRunGridSubsetPrediction.prediction_timestamp)\
+        .order_by(PredictionModelRunTimestamp.prediction_run_timestamp.desc())
+
+
+def get_actuals_outer_join_with_predictions(
+        session, model_id: int, grid_id: int, station_code: int,
+        start_date: datetime, end_date: datetime):
+    """ TODO: improve this query - we only need the most recent prediction
+    """
+    return session.query(HourlyActual, ModelRunGridSubsetPrediction)\
+        .outerjoin(ModelRunGridSubsetPrediction,
+                   and_(ModelRunGridSubsetPrediction.prediction_timestamp == HourlyActual.weather_date,
+                        ModelRunGridSubsetPrediction.prediction_model_grid_subset_id == grid_id))\
+        .outerjoin(PredictionModelRunTimestamp,
+                   and_(PredictionModelRunTimestamp.id == ModelRunGridSubsetPrediction.prediction_model_run_timestamp_id,
+                        PredictionModelRunTimestamp.prediction_model_id == model_id))\
+        .filter(HourlyActual.station_code == station_code)\
+        .filter(HourlyActual.weather_date >= start_date)\
+        .filter(HourlyActual.temp_valid == True)\
+        .filter(HourlyActual.rh_valid == True)\
+        .filter(HourlyActual.weather_date <= end_date)\
+        .order_by(HourlyActual.station_code)\
+        .order_by(HourlyActual.weather_date)\
+        .order_by(PredictionModelRunTimestamp.prediction_run_timestamp.desc())
 
 
 def get_actuals_paired_with_predictions(
