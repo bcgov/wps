@@ -466,7 +466,7 @@ def main():
 
     # process everything.
     env_canada = EnvCanada()
-    # env_canada.process()
+    env_canada.process()
 
     # interpolate and machine learn everything that needs interpolating.
     model_value_processor = ModelValueProcessor()
