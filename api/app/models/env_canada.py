@@ -209,7 +209,7 @@ class EnvCanada():
         self.exception_count = 0
         # We always work in UTC:
         self.now = get_utcnow()
-        self.session = app.db.database.get_session()
+        self.session = app.db.database.get_write_session()
         self.grib_processor = GribFileProcessor()
 
     def flag_file_as_processed(self, url):
@@ -232,7 +232,8 @@ class EnvCanada():
         # pylint: disable=no-member
         actual_count = get_processed_file_count(self.session, urls)
         expected_count = len(urls)
-        logger.info('we have processed %s/%s files', actual_count, expected_count)
+        logger.info('we have processed %s/%s files',
+                    actual_count, expected_count)
         return actual_count == expected_count
 
     def process_model_run_urls(self, urls):
@@ -311,7 +312,7 @@ class Interpolator:
 
     def __init__(self):
         """ Prepare variables we're going to use throughout """
-        self.session = app.db.database.get_session()
+        self.session = app.db.database.get_write_session()
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         self.stations = loop.run_until_complete(app.stations.get_stations())
@@ -339,9 +340,11 @@ class Interpolator:
         # Extract the coordinate.
         coordinate = [station['long'], station['lat']]
         # Lookup the grid our weather station is in.
-        grid = get_grid_for_coordinate(self.session, model_run.prediction_model, coordinate)
+        grid = get_grid_for_coordinate(
+            self.session, model_run.prediction_model, coordinate)
         # Get all the predictions associated to this particular model run, in the grid.
-        query = get_model_run_predictions_for_grid(self.session, model_run, grid)
+        query = get_model_run_predictions_for_grid(
+            self.session, model_run, grid)
 
         # Conver the grid database object to a polygon object.
         poly = to_shape(grid.geom)
@@ -381,7 +384,8 @@ class Interpolator:
         """ Entry point to start processing model runs that have not yet had their predictions interpolated
         """
         # Get model runs that are complete (fully downloaded), but not yet interpolated.
-        query = get_prediction_model_run_timestamp_records(self.session, complete=True, interpolated=False)
+        query = get_prediction_model_run_timestamp_records(
+            self.session, complete=True, interpolated=False)
         for model_run in query:
             # Process the model run.
             self._process_model_run(model_run)

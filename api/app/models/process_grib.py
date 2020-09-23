@@ -108,7 +108,7 @@ class GribFileProcessor():
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         self.stations = loop.run_until_complete(get_stations())
-        self.session = app.db.database.get_session()
+        self.session = app.db.database.get_write_session()
         self.origin = None
         self.pixel = None
         self.prediction_model = None
@@ -198,6 +198,7 @@ class GribFileProcessor():
                 # Try to re-connect, so that subsequent calls to this function may succeed.
                 # NOTE: I'm not sure if this will solve the problem!
                 self.session = app.db.database.get_session()
-                raise DatabaseException('Database disconnection') from exception
+                raise DatabaseException(
+                    'Database disconnection') from exception
             # Re-throw the exception.
             raise
