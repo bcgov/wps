@@ -272,6 +272,14 @@ class Judge:
             self.name, self.machine_count, self.human_count, self.tie)
 
 
+def round_temperature(value):
+    return round(value*2)/2
+
+
+def round_rh(value):
+    return round(value, 0)
+
+
 class TemperatureJudge(Judge):
 
     def round(self, value):
@@ -308,15 +316,17 @@ def main(days_of_samples):
     overall_temp_error = {
         'machine': [],
         'model': [],
-        'human': []
+        'human': [],
+        'machine_round': []
     }
     overall_rh_error = {
         'machine': [],
         'model': [],
-        'human': []
+        'human': [],
+        'machine_round': []
     }
 
-    with open('machine_all_stations.csv', 'w') as csv_file:
+    with open('machine_all_stations_{}.csv'.format(days_of_samples), 'w') as csv_file:
         writer = csv.writer(csv_file)
         writer.writerow(['station', 'date',
                          'observed_temp', 'forecast_temp', 'model_temp', 'machine_temp',
@@ -399,21 +409,29 @@ def main(days_of_samples):
                             actual.temperature - predicted_temperature[0])
                         machine_temp_error = abs(
                             actual.temperature - machine_temp[0])
+                        machine_temp_round_error = abs(
+                            actual.temperature - round_temperature(machine_temp[0]))
                         forecast_rh_error = abs(
                             actual.relative_humidity - forecast.relative_humidity)
                         model_rh_error = abs(
                             actual.relative_humidity - predicted_rh[0])
                         machine_rh_error = abs(
                             actual.relative_humidity - machine_rh[0])
+                        machine_rh_round_error = abs(
+                            actual.relative_humidity - round_rh(machine_rh[0]))
 
                         overall_temp_error['machine'].append(
                             machine_temp_error)
+                        overall_temp_error['machine_round'].append(
+                            machine_temp_round_error)
                         overall_temp_error['model'].append(
                             model_temp_error)
                         overall_temp_error['human'].append(
                             forecast_temp_error)
                         overall_rh_error['machine'].append(
                             machine_rh_error)
+                        overall_rh_error['machine_round'].append(
+                            machine_rh_round_error)
                         overall_rh_error['model'].append(model_rh_error)
                         overall_rh_error['human'].append(forecast_rh_error)
 
@@ -459,10 +477,12 @@ def main(days_of_samples):
                 'overall - machines: {}, humans: {}, tie: {}'.format(overall_machine_count, overall_human_count, overall_tie_count))
 
             machine_t_e = np.average(overall_temp_error['machine'])
+            machine_t_e_r = np.average(overall_temp_error['machine_round'])
             model_t_e = np.average(overall_temp_error['model'])
             human_t_e = np.average(overall_temp_error['human'])
 
             machine_r_e = np.average(overall_rh_error['machine'])
+            machine_r_e_r = np.average(overall_rh_error['machine_round'])
             model_r_e = np.average(overall_rh_error['model'])
             human_r_e = np.average(overall_rh_error['human'])
 
@@ -474,26 +494,29 @@ def main(days_of_samples):
                 machine_r_e, model_r_e, human_r_e))
 
     machine_t_e = np.average(overall_temp_error['machine'])
+    machine_t_e_r = np.average(overall_temp_error['machine_round'])
     model_t_e = np.average(overall_temp_error['model'])
     human_t_e = np.average(overall_temp_error['human'])
 
     machine_r_e = np.average(overall_rh_error['machine'])
+    machine_r_e_r = np.average(overall_rh_error['machine_round'])
     model_r_e = np.average(overall_rh_error['model'])
     human_r_e = np.average(overall_rh_error['human'])
 
-    return machine_t_e, model_t_e, human_t_e, machine_r_e, model_r_e, human_r_e
+    return machine_t_e, machine_t_e_r, model_t_e, human_t_e, machine_r_e, machine_r_e_r, model_r_e, human_r_e
 
 
 if __name__ == '__main__':
     with open('accuracy.csv', 'w') as csv_file:
         writer = csv.writer(csv_file)
         writer.writerow(['sample_size',
-                         'machine_temp_error', 'model_temp_error', 'forecast_temp_error',
-                         'machine_rh_error', 'model_rh_error', 'forecast_rh_error'])
+                         'machine_temp_error', 'machine_temp_error_round', 'model_temp_error', 'forecast_temp_error',
+                         'machine_rh_error', 'machine_rh_error_round', 'model_rh_error', 'forecast_rh_error'])
 
-        for days_of_samples in range(2, 3):
-            machine_t_e, model_t_e, human_t_e, machine_r_e, model_r_e, human_r_e = main(
+        for days_of_samples in range(1, 24):
+            machine_t_e, machine_t_e_r, model_t_e, human_t_e, machine_r_e, machine_r_e_r, model_r_e, human_r_e = main(
                 days_of_samples)
             writer.writerow([days_of_samples,
-                             machine_t_e, model_t_e, human_t_e,
-                             machine_r_e, model_r_e, human_r_e])
+                             machine_t_e, machine_t_e_r, model_t_e, human_t_e,
+                             machine_r_e, machine_r_e_r, model_r_e, human_r_e])
+            csv_file.flush()
