@@ -9,13 +9,13 @@ import geopandas
 from shapely.geometry import Point
 
 
-def fetch_ecodivision_name(lat: str, long: str, ecodivisions: geopandas.GeoDataFrame):
+def fetch_ecodivision_name(latitude: str, longitude: str, ecodivisions: geopandas.GeoDataFrame):
     """ Returns the ecodivision name for a given lat/long coordinate """
-    station_coord = Point(float(long), float(lat))
-    for index, row in ecodivisions.iterrows():  # pylint: disable=redefined-outer-name, unused-variable
-        geom = row['geometry']
+    station_coord = Point(float(longitude), float(latitude))
+    for _, ecodivision_row in ecodivisions.iterrows():
+        geom = ecodivision_row['geometry']
         if station_coord.within(geom):
-            return row['CDVSNNM']
+            return ecodivision_row['CDVSNNM']
     return None
 
 

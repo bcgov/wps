@@ -23,7 +23,7 @@ async def fetch_hourly_readings_from_db(station_codes: List[int]) -> List[Weathe
     """ Fetch the hourly readings from the database.
     """
     stations = await app.stations.get_stations_by_codes(station_codes)
-    session = app.db.database.get_session()
+    session = app.db.database.get_read_session()
     # by default, we want the last 5 days
     now = app.time_utils.get_utc_now()
     five_days_ago = now - timedelta(days=5)
@@ -36,7 +36,8 @@ async def fetch_hourly_readings_from_db(station_codes: List[int]) -> List[Weathe
         if station_readings is None or reading.station_code != station_readings.station.code:
             station = next(
                 station for station in stations if station.code == reading.station_code)
-            station_readings = WeatherStationHourlyReadings(station=station, values=[])
+            station_readings = WeatherStationHourlyReadings(
+                station=station, values=[])
             result.append(station_readings)
         weather_reading = WeatherReading(
             datetime=reading.weather_date,

@@ -48,17 +48,28 @@ objects:
                   imagePullPolicy: "Always"
                   command: ["python", "-m", "app.models.env_canada"]
                   env:
-                    - name: POSTGRES_USER
+                    - name: POSTGRES_READ_USER
+                      value: ${NAME}-${SUFFIX}
+                    - name: POSTGRES_WRITE_USER
                       value: ${NAME}-${SUFFIX}
                     - name: POSTGRES_PASSWORD
                       valueFrom:
                         secretKeyRef:
                           name: ${NAME}-global
                           key: app-db-password
-                    - name: POSTGRES_HOST
+                    - name: POSTGRES_WRITE_HOST
                       value: patroni-leader-${NAME}-${SUFFIX}
+                    - name: POSTGRES_READ_HOST
+                      value: patroni-replica-${NAME}-${SUFFIX}
                     - name: POSTGRES_PORT
                       value: "5432"
                     - name: POSTGRES_DATABASE
                       value: ${NAME}-${SUFFIX}
+                  resources:
+                    limits:
+                      cpu: '1'
+                      memory: 512Mi
+                    requests:
+                      cpu: '500m'
+                      memory: 256Mi
               restartPolicy: OnFailure
