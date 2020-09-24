@@ -24,9 +24,21 @@ def patroni_cluster_health_check():
     }
     resp = requests.get(url, headers=header)
     resp_json = resp.json()
+    # NOTE: In Openshift parlance "replica" refers to how many of one pod we have, in Patroni, a "Replica"
+    # refers to a read only copy of of the Leader.
+    # Get the number of pods that are ready:
     ready_count = resp_json.get('status').get('readyReplicas')
+    # Get the number of pods we expect:
     replica_count = resp_json.get('status').get('replicas')
     if ready_count > 1:
+        # It's actually a bit more complicated than this.
+        # There are a number of scenarios that are ok:
+        # e.g. Leader is up, and one ore more patroni replicas are somewhat lagging.
+        # e.g. Leader is up, and there's one patroni replica.
+        # There are scenarios that are bad:
+        # e.g. Leader is up, and there are no patroni replicas. (Bots work, but website would be down)
+        # e.g. Leader is down, replicas are up.
+        # For now, we assume that if there's more than one pod, that all is well.
         healthy = True
         message = 'Healthy ({} out of {} pods are ready)'.format(
             ready_count,
