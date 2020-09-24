@@ -11,14 +11,14 @@ from geoalchemy2.shape import from_shape
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
 import app.main
-from app.db.models import (PredictionModelRunTimestamp, PredictionModel, ModelRunGridSubsetPrediction,
+from app.db.models import (PredictionModel, ModelRunGridSubsetPrediction,
                            PredictionModelGridSubset)
 
 
 @pytest.fixture()
 def mock_session(monkeypatch):
     """ Mocked out sqlalchemy session """
-    def mock_get_session(*args):
+    def mock_get_session(*args):  # pylint: disable=unused-argument
 
         prediction_model = PredictionModel(id=1,
                                            abbreviation='GDPS',
@@ -85,10 +85,9 @@ def mock_session(monkeypatch):
                 ]
             )
         ]
-        mock_session = UnifiedAlchemyMagicMock(data=data)
-        return mock_session
+        return UnifiedAlchemyMagicMock(data=data)
 
-    monkeypatch.setattr(app.db.database, 'get_session', mock_get_session)
+    monkeypatch.setattr(app.db.database, 'get_read_session', mock_get_session)
 
 
 @ scenario("test_models_predictions_summaries.feature", "Get model prediction summaries from database")
@@ -97,24 +96,29 @@ def test_model_predictions_summaries_scenario():
 
 
 @ given("A database")
-def given_a_database(mock_session):
+def given_a_database(mock_session):  # pylint: disable=unused-argument, redefined-outer-name
     """ Bind the data variable """
     return {}
 
 
 @ given("station <codes>")
 def given_stations(codes):
-    return eval(codes)
+    """ evaluate string and return array of station codes. """
+    return eval(codes)  # pylint: disable=eval-used
 
 
+# pylint: disable=redefined-outer-name, unused-argument
 @ when("I call <endpoint>")
 def when_prediction(mock_jwt_decode, given_a_database, given_stations, endpoint: str):
+    """ Make call to endpoint """
     client = TestClient(app.main.app)
     response = client.post(
         endpoint, headers={'Authorization': 'Bearer token'}, json={'stations': given_stations})
     given_a_database['response_json'] = response.json()
+# pylint: enable=redefined-outer-name, unused-argument
 
 
+# pylint: disable=redefined-outer-name, unused-argument
 @then('The <expected_response> is matched')
 def assert_response(given_a_database, expected_response):
     """ "Catch all" test that blindly checks the actual json response against an expected response. """
@@ -123,3 +127,4 @@ def assert_response(given_a_database, expected_response):
     with open(filename) as data_file:
         expected_json = json.load(data_file)
         assert given_a_database['response_json'] == expected_json
+# pylint: enable=redefined-outer-name, unused-argument

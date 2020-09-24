@@ -25,17 +25,15 @@ def test_hourlies():
     """ BDD Scenario. """
 
 
-# pylint: disable=unused-argument
 @given('I request hourlies for stations: <codes> with <use_wfwx>')
-def response(monkeypatch, mock_jwt_decode, codes, use_wfwx):
+def response(monkeypatch, mock_jwt_decode, codes, use_wfwx):  # pylint: disable=unused-argument
     """ Make /hourlies/ request using mocked out ClientSession.
     """
 
     # NOTE: should be using a converter
-    # pylint: disable=eval-used
-    stations = eval(codes)
+    stations = eval(codes)  # pylint: disable=eval-used
 
-    def mock_get_session(*args):
+    def mock_get_session(*args):  # pylint: disable=unused-argument
         """ Slap some actuals into the database to match the stations being queried """
         hourly_actuals = []
         for code in stations:
@@ -57,7 +55,8 @@ def response(monkeypatch, mock_jwt_decode, codes, use_wfwx):
     else:
         logger.info('running test with WFWX set to False')
         monkeypatch.setenv("USE_WFWX", 'False')
-        monkeypatch.setattr(app.db.database, 'get_session', mock_get_session)
+        monkeypatch.setattr(
+            app.db.database, 'get_read_session', mock_get_session)
 
     # Create API client and get the reppnse.
     client = TestClient(app.main.app)
@@ -66,23 +65,23 @@ def response(monkeypatch, mock_jwt_decode, codes, use_wfwx):
     return client.post('/api/hourlies/', headers=headers, json={"stations": stations})
 
 
-# pylint: disable=redefined-outer-name
 @then('the response status code is <status>')
-def assert_status_code(response, status):
+def assert_status_code(response, status):  # pylint: disable=redefined-outer-name
     """ Assert that we receive the expected status code """
     assert response.status_code == status
 
 
 @then('there are <num_groups> groups of hourlies')
-def assert_number_of_hourlies_groups(response, num_groups):
+def assert_number_of_hourlies_groups(response, num_groups):  # pylint: disable=redefined-outer-name
     """ Assert that we receive the expected number of hourly groups """
     assert len(response.json()['hourlies']) == num_groups
 
 
 @then('there are <num_readings_per_group> readings per group')
-def assert_number_of_hourlies_per_group(response, num_readings_per_group):
+def assert_number_of_hourlies_per_group(
+        response,  # pylint: disable=redefined-outer-name
+        num_readings_per_group):
     """ Assert that we receive the expected number of hourlies per groups """
-    # pylint: disable=eval-used
-    for index, item in enumerate(eval(num_readings_per_group)):
+    for index, item in enumerate(eval(num_readings_per_group)):  # pylint: disable=eval-used
         assert len(response.json()['hourlies']
                    [index]['values']) == item

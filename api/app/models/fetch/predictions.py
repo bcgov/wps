@@ -128,7 +128,7 @@ def _fetch_model_predictions_by_stations(
     most_recent_run = app.db.crud.get_most_recent_model_run(
         session, model, app.db.crud.LATLON_15X_15)
     logger.info(
-        'most recent run: {0.prediction_run_timestamp}'.format(most_recent_run))
+        'most recent run: %s', most_recent_run.prediction_run_timestamp)
     # Get the predictions:
     query = app.db.crud.get_model_run_predictions(
         session, most_recent_run, map(lambda station: [station.long, station.lat], stations))
@@ -181,7 +181,7 @@ async def _fetch_model_predictions_by_station_codes(model: ModelEnum, station_co
     """
     # Using the list of station codes, fetch the stations:
     stations = await app.stations.get_stations_by_codes(station_codes)
-    session = app.db.database.get_session()
+    session = app.db.database.get_read_session()
     # Fetch the all the predictions.
     predictions = _fetch_model_predictions_by_stations(
         session, model, stations)
@@ -195,8 +195,11 @@ async def fetch_model_predictions(model: ModelEnum, station_codes: List[int]):
     return await _fetch_model_predictions_by_station_codes(model, station_codes)
 
 
-async def _fetch_most_recent_historic_predictions_by_station_codes(model: ModelEnum, station_codes: List[int]) -> List[WeatherModelPrediction]:
-    """ Fetch the most recent historic model predictions from database based on each station's coordinates. """
+async def _fetch_most_recent_historic_predictions_by_station_codes(
+        model: ModelEnum,
+        station_codes: List[int]) -> List[WeatherModelPrediction]:
+    """ Fetch the most recent historic model predictions from database based on each station's
+    coordinates. """
     stations = {station.code: station for station in await app.stations.get_stations_by_codes(station_codes)}
 
     # construct helper dictionary of WeatherModelPredictions
@@ -207,14 +210,16 @@ async def _fetch_most_recent_historic_predictions_by_station_codes(model: ModelE
     now = app.time_utils.get_utc_now()
     five_days_ago = now - datetime.timedelta(days=5)
     # send the query
-    session = app.db.database.get_session()
+    session = app.db.database.get_read_session()
     historic_predictions = app.db.crud.get_historic_station_model_predictions(
         session, station_codes, model, five_days_ago, now)
     for prediction, prediction_model_run_timestamp, prediction_model in historic_predictions:
-        station_predictions = weather_model_predictions_dict.get(prediction.station_code)
+        station_predictions = weather_model_predictions_dict.get(
+            prediction.station_code)
         existing_prediction = None
         if station_predictions is not None:
-            existing_prediction = station_predictions.get(prediction.prediction_timestamp)
+            existing_prediction = station_predictions.get(
+                prediction.prediction_timestamp)
         # insert the prediction into weather_model_predictions_dict if no entry for
         # prediction.prediction_timestamp exists,or if prediction_model_run_timestamp.prediction_run_timestamp
         # is more recent than the model_run time for the existing_prediction
@@ -251,5 +256,6 @@ async def _fetch_most_recent_historic_predictions_by_station_codes(model: ModelE
 
 
 async def fetch_most_recent_historic_predictions(model: ModelEnum, station_codes: List[int]):
-    """ Fetch most recently issued model prediction for the last 5 days for a given list of stations and a given model. """
+    """ Fetch most recently issued model prediction for the last 5 days for a given list of
+    stations and a given model. """
     return await _fetch_most_recent_historic_predictions_by_station_codes(model, station_codes)

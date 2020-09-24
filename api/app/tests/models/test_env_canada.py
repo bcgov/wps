@@ -1,11 +1,11 @@
 """ Unit tests for app/env_canada.py """
 
-import app.time_utils as time_utils
-import app.db.database
 import os
 import logging
 import datetime
-from datetime import timezone, datetime
+from datetime import datetime
+import app.time_utils as time_utils
+import app.db.database
 import pytest
 import requests
 import shapely.wkt
@@ -92,7 +92,7 @@ def mock_session(monkeypatch):
     def mock_get_prediction_model_run_timestamp_records(*args, **kwargs):
         return [prediction_model_run, ]
 
-    monkeypatch.setattr(app.db.database, 'get_session', mock_get_session)
+    monkeypatch.setattr(app.db.database, 'get_write_session', mock_get_session)
     monkeypatch.setattr(app.models.env_canada, 'get_prediction_model_run_timestamp_records',
                         mock_get_prediction_model_run_timestamp_records)
 
@@ -145,3 +145,5 @@ def test_for_zero_day_bug(monkeypatch):
                     'grib2/lat_lon/12/000/CMC_glb_TMP_TGL_2_latlon.'
                     '15x.15_2020083112_P000.grib2')
     assert url == expected_url
+
+# pylint: enable=unused-argument, redefined-outer-name

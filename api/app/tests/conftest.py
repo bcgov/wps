@@ -87,7 +87,8 @@ def mock_session(monkeypatch):
             )
         ])
         return session
-    monkeypatch.setattr(app.db.database, 'get_session', mock_get_session)
+    monkeypatch.setattr(app.db.database, 'get_read_session', mock_get_session)
+    monkeypatch.setattr(app.db.database, 'get_write_session', mock_get_session)
 
 
 @pytest.fixture()
