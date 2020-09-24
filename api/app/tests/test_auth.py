@@ -17,6 +17,7 @@ def response(token: str, endpoint: str):
     client = TestClient(app.main.app)
     return client.post(endpoint, headers={'Authorization': token})
 
+
 @then("I will get an error with <status> code")
 def status_code(response, status: int):
     """ Assert that we receive the expected status code """
@@ -46,3 +47,5 @@ def response_2(mock_jwt_decode, endpoint: str):
 def status_code_2(response_2, status: int):
     """ Assert that we receive the expected status code """
     assert response_2.status_code == status
+
+# pylint: enable=unused-argument, redefined-outer-name

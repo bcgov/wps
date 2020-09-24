@@ -32,7 +32,7 @@ def _build_query_to_get_predictions(stations: List[WeatherStation], model: Model
     # Using the list of stations, extract coordinates:
     coordinates = map(lambda station: [station.long, station.lat], stations)
     # Build the query:
-    session = app.db.database.get_session()
+    session = app.db.database.get_read_session()
     return get_predictions_from_coordinates(session, coordinates, model)
 
 
@@ -40,7 +40,7 @@ class ModelPredictionSummaryBuilder():
     """ Class for generating ModelPredictionSummaries """
 
     def __init__(self):
-        """ """
+        """ Prepare class. """
         # Using the list of station codes, fetch the stations:
         self.prev_time = None
         self.prev_grid = None
@@ -50,6 +50,7 @@ class ModelPredictionSummaryBuilder():
         self.most_recent_historic = {}
 
     def init_values(self):
+        """ Initialize values. """
         self.values = {}
         for key in KEYS:
             self.values[key] = []

@@ -20,6 +20,7 @@ import pyodbc  # pylint: disable=import-error
 # accdb
 # pylint: disable=c-extension-no-member
 DRIVERS = [x for x in pyodbc.drivers() if x.startswith('Microsoft Access Driver')]
+# pylint: enable=c-extension-no-member
 print(DRIVERS)
 
 
