@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 def _fix_datetime(source_date):
     """ We want to be explicit about timezones, the csv file gives us a timezone naive date - this is no
     good! We know the date we get is in PST, and we know we need to store it in UTC.
-    Furthermore, the csv has discovered another hour. 24. Presumable this means 00 the next day.
+    Furthermore, the csv has discovered another hour. 24. Presumably this means 00 the next day.
     """
     # build a date using year, month and day.
     python_date = datetime.strptime(str(source_date)[:-2], '%Y%m%d')
