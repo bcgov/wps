@@ -52,13 +52,12 @@ def interpolate(x_axis, before, after, timestamp):
     ]
     return interp1d(x_axis, y_axis, kind='linear')(timestamp)
 
-# pylint: disable=too-many-locals
-
 
 def parse_env_canada_filename(filename):
     """ Take a grib filename, as per file name nomenclature defined at
     https://weather.gc.ca/grib/grib2_glb_25km_e.html, and parse into a meaningful object.
     """
+    # pylint: disable=too-many-locals
 
     base = os.path.basename(filename)
     parts = base.split('_')

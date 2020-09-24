@@ -5,7 +5,6 @@ import sqlalchemy
 from alembic import context
 import app
 
-# pylint: disable=invalid-name
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -42,12 +41,14 @@ exclude_tables = exclude_tables_from_config(
     config.get_section('alembic:exclude'))
 
 
+# pylint: disable=redefined-builtin, unused-argument
 def include_object(object, name, type_, reflected, compare_to):
     """ any tables not in the ignore list, are to be included """
     if type_ == "table" and name in exclude_tables:
         return False
     else:
         return True
+# pylint: enable=redefined-builtin, unused-argument
 
 
 def run_migrations_offline():

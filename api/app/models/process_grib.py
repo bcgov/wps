@@ -197,7 +197,7 @@ class GribFileProcessor():
                 logger.error("Database disconnected!")
                 # Try to re-connect, so that subsequent calls to this function may succeed.
                 # NOTE: I'm not sure if this will solve the problem!
-                self.session = app.db.database.get_session()
+                self.session = app.db.database.get_read_session()
                 raise DatabaseException(
                     'Database disconnection') from exception
             # Re-throw the exception.

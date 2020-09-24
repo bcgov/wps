@@ -16,8 +16,7 @@ import app.time_utils as time_utils
 logger = logging.getLogger(__name__)
 
 
-# pylint: disable=abstract-method
-class TZTimeStamp(TypeDecorator):
+class TZTimeStamp(TypeDecorator):  # pylint: disable=abstract-method
     """ TimeStamp type that ensures that timezones are always specified.
     If the timezone isn't specified, you aren't guaranteed that you're going to get consistent times. """
     impl = TIMESTAMP(timezone=True)

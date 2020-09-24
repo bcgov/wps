@@ -76,7 +76,7 @@ def fetch_noon_forecasts(stations: StationCodeList,
     are updated twice daily. """
     LOGGER.debug('Querying noon forecasts for stations %s from %s to %s',
                  stations, start_date, end_date)
-    session = app.db.database.get_session()
+    session = app.db.database.get_read_session()
     forecasts = query_noon_forecast_records(
         session, stations, start_date, end_date)
 
