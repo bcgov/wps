@@ -112,8 +112,7 @@ def _get_fixture_response(fixture):
         return MockResponse(text=data.decode(), content=data)
 
 
-# pylint: disable=unused-argument
-def default_mock_requests_get(url, params=None, **kwargs) -> MockResponse:
+def default_mock_requests_get(url, params=None, **kwargs) -> MockResponse:  # pylint: disable=unused-argument
     """ Return a mocked request response """
     # Get the file location of the fixture
     fixture_finder = FixtureFinder()
@@ -122,7 +121,7 @@ def default_mock_requests_get(url, params=None, **kwargs) -> MockResponse:
     return _get_fixture_response(filename)
 
 
-# pylint: disable=redefined-outer-name
+# pylint: disable=redefined-outer-name, unused-argument
 def default_mock_requests_post(url, data, json, params=None, **kwargs) -> MockResponse:
     """ Return a mocked request response """
     # Get the file location of the fixture
@@ -130,14 +129,18 @@ def default_mock_requests_post(url, data, json, params=None, **kwargs) -> MockRe
     filename = fixture_finder.get_fixture_path(url, 'post', params, data)
     # Construct the response
     return _get_fixture_response(filename)
+# pylint: enable=redefined-outer-name
 
 
+# pylint: disable=redefined-outer-name
 def default_mock_requests_session_get(self, url, **kwargs) -> MockResponse:
     """ Return a mocked request response from a request.Session object """
     return default_mock_requests_get(url, **kwargs)
+# pylint: enable=redefined-outer-name
 
 
 # pylint: disable=redefined-outer-name
 def default_mock_requests_session_post(self, url, data=None, json=None, **kwargs) -> MockResponse:
     """ Return a mocked request response from a request.Session object """
     return default_mock_requests_post(url, data, json, **kwargs)
+# pylint: enable=redefined-outer-name

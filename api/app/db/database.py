@@ -35,10 +35,11 @@ _read_session = sessionmaker(
 Base = declarative_base()
 
 
-def get_session() -> Session:
-    """ Wrap getting session to assist in making unit tests a bit easier """
+def get_read_session() -> Session:
+    """ Wrap getting read session to assist in making unit tests a bit easier """
     return _read_session()
 
 
 def get_write_session() -> Session:
+    """ Wrap getting write session to assist in making unit test a bit easier"""
     return _write_session()
