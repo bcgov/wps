@@ -197,7 +197,7 @@ class WeatherStationModelPrediction(Base):
     # model_run_grid_subset_prediction
     tmp_tgl_2 = Column(Float, nullable=True)
     # Temperature prediction using available data.
-    temperature = Column(Float, nullable=True)
+    bias_adjusted_temperature = Column(Float, nullable=True)
     # Relative Humidity 2m above model layer - an interpolated value based on 4 values
     # from model_run_grid_subset_prediction
     rh_tgl_2 = Column(Float, nullable=True)
