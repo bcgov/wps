@@ -24,7 +24,7 @@ from app.models.process_grib import GribFileProcessor, ModelRunInfo
 from app.db.models import (ProcessedModelRunUrl, PredictionModelRunTimestamp,
                            WeatherStationModelPrediction, ModelRunGridSubsetPrediction)
 import app.db.database
-from app.models import ModelEnum, interpolate_between_two_points
+from app.models import ModelEnum, construct_interpolated_noon_prediction
 from app.models.machine_learning import StationMachineLearning
 from app.db.crud import (get_processed_file_record,
                          get_processed_file_count,
@@ -368,8 +368,6 @@ class ModelValueProcessor:
         # Update the update time (this might be an update)
         station_prediction.update_date = time_utils.get_utc_now()
         # Add this prediction to the session (we'll commit it later.)
-        # logger.info('model: %s, machine: %s',
-        # station_prediction.tmp_tgl_2, station_prediction.temperature)
         self.session.add(station_prediction)
 
     def _process_model_run_for_station(self,
@@ -402,27 +400,12 @@ class ModelValueProcessor:
         machine.learn()
 
         # Iterate through all the predictions.
-        # logger.info('iterating through predictions for model run...')
         prev_prediction = None
         for prediction in query:
             if (prev_prediction is not None
                     and prev_prediction.prediction_timestamp.hour == 18
                     and prediction.prediction_timestamp.hour == 21):
-                noon_prediction = ModelRunGridSubsetPrediction()
-                noon_prediction.prediction_timestamp = prediction.prediction_timestamp.replace(
-                    hour=20)
-
-                timestamp_a = prev_prediction.prediction_timestamp.timestamp()
-                timestamp_b = prediction.prediction_timestamp.timestamp()
-                noon_timestamp = noon_prediction.prediction_timestamp.timestamp()
-                noon_prediction.tmp_tgl_2 = interpolate_between_two_points(
-                    timestamp_a, timestamp_b, prev_prediction.tmp_tgl_2,
-                    prediction.tmp_tgl_2,
-                    noon_timestamp)
-                noon_prediction.rh_tgl_2 = interpolate_between_two_points(
-                    timestamp_a, timestamp_b, prev_prediction.rh_tgl_2,
-                    prediction.rh_tgl_2,
-                    noon_timestamp)
+                noon_prediction = construct_interpolated_noon_prediction(prev_prediction, prediction)
                 self._process_prediction(
                     noon_prediction, station, model_run, points, coordinate, machine)
             self._process_prediction(

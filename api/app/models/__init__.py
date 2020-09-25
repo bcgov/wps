@@ -2,6 +2,11 @@
 from enum import Enum
 from typing import List
 from scipy.interpolate import interp1d
+from app.db.models import ModelRunGridSubsetPrediction
+
+
+# Key values on ModelRunGridSubsetPrediction.
+MODEL_VALUE_KEYS = ('tmp_tgl_2', 'rh_tgl_2')
 
 
 class ModelEnum(str, Enum):
@@ -35,3 +40,24 @@ def interpolate_between_two_points(
     function = interp1d(x_axis, y_axis, kind='linear')
     # Use iterpolation function to derive values at the time of interest.
     return function(point_of_interest)
+
+
+def construct_interpolated_noon_prediction(prediction_a: ModelRunGridSubsetPrediction,
+                                           prediction_b: ModelRunGridSubsetPrediction):
+    """ Construct a noon prediction by interpolating.
+    """
+    # create a noon prediction.
+    noon_prediction = ModelRunGridSubsetPrediction()
+    noon_prediction.prediction_timestamp = prediction_a.prediction_timestamp.replace(
+        hour=20)
+    # throw timestamps into their own variables.
+    timestamp_a = prediction_a.prediction_timestamp.timestamp()
+    timestamp_b = prediction_b.prediction_timestamp.timestamp()
+    noon_timestamp = noon_prediction.prediction_timestamp.timestamp()
+    # calculate interpolated values.
+    for key in MODEL_VALUE_KEYS:
+        value = interpolate_between_two_points(
+            timestamp_a, timestamp_b, getattr(prediction_a, key),
+            getattr(prediction_b, key), noon_timestamp)
+        setattr(noon_prediction, key, value)
+    return noon_prediction

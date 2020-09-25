@@ -2,7 +2,7 @@
 Regression.
 """
 from datetime import datetime, timedelta
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from collections import defaultdict
 from typing import List
 from logging import getLogger
@@ -10,7 +10,7 @@ from sklearn.linear_model import LinearRegression
 from scipy.interpolate import griddata
 import numpy as np
 from sqlalchemy.orm import Session
-from app.models import interpolate_between_two_points
+from app.models import construct_interpolated_noon_prediction
 from app.db.models import (
     PredictionModel, PredictionModelGridSubset, ModelRunGridSubsetPrediction, HourlyActual)
 from app.db.crud import get_actuals_outer_join_with_predictions
@@ -18,32 +18,37 @@ from app.db.crud import get_actuals_outer_join_with_predictions
 
 logger = getLogger(__name__)
 
-# Key values on ModelRunGridSubsetPrediction.
-MODEL_VALUE_KEYS = ('tmp_tgl_2', 'rh_tgl_2')
 # Corresponding key values on HourlyActual and SampleCollection
 SAMPLE_VALUE_KEYS = ('temperature', 'relative_humidity')
 
 
 @dataclass
 class LinearRegressionWrapper:
-    """ Class wrapping LinearRegression """
+    """ Class wrapping LinearRegression.
+    This class just adds in a handy boolean to indicate if this linear regression model is good to use.
+    """
     model: LinearRegression = LinearRegression()
     good_model: bool = False
 
 
 @dataclass
 class RegressionModels:
-    """ Class for storing regression models """
+    """ Class for storing regression models.
+    For each different reading, we have a seperate LinearRegression model.
+    """
     temperature: LinearRegressionWrapper = LinearRegressionWrapper()
     relative_humidity: LinearRegressionWrapper = LinearRegressionWrapper()
 
 
 @dataclass
 class Samples:
-    """ Class for storing samples in buckets of hours """
+    """ Class for storing samples in buckets of hours.
+    e.g. a temperature sample consists of an x axis (predicted values) and a y axis (observed values) put 
+    together in hour buckets.
+    """
 
-    _x: dict = defaultdict(list)
-    _y: dict = defaultdict(list)
+    _x: dict = field(default_factory=lambda: defaultdict(list))
+    _y: dict = field(default_factory=lambda: defaultdict(list))
 
     def hours(self):
         """ Return all the hours used to bucket samples together. """
@@ -86,27 +91,6 @@ class SampleCollection:
     """ Class for storing different kinds of samples """
     temperature: Samples = Samples()
     relative_humidity: Samples = Samples()
-
-
-def _construct_noon_prediction(prediction_a: ModelRunGridSubsetPrediction,
-                               prediction_b: ModelRunGridSubsetPrediction):
-    """ Construct a noon prediction by interpolating.
-    """
-    # create a noon prediction.
-    noon_prediction = ModelRunGridSubsetPrediction()
-    noon_prediction.prediction_timestamp = prediction_a.prediction_timestamp.replace(
-        hour=20)
-    # throw timestamps into their own variables.
-    timestamp_a = prediction_a.prediction_timestamp.timestamp()
-    timestamp_b = prediction_b.prediction_timestamp.timestamp()
-    noon_timestamp = noon_prediction.prediction_timestamp.timestamp()
-    # calculate interpolated values.
-    for key in MODEL_VALUE_KEYS:
-        value = interpolate_between_two_points(
-            timestamp_a, timestamp_b, getattr(prediction_a, key),
-            getattr(prediction_b, key), noon_timestamp)
-        setattr(noon_prediction, key, value)
-    return noon_prediction
 
 
 class StationMachineLearning:  # pylint: disable=too-many-instance-attributes
@@ -176,7 +160,7 @@ class StationMachineLearning:  # pylint: disable=too-many-instance-attributes
                         and prev_prediction.prediction_timestamp.hour == 18):
                     # If there's a gap in the data (like with the GLOBAL model) - then make up
                     # a noon prediction using interpolation, and add it as a sample.
-                    noon_prediction = _construct_noon_prediction(prev_prediction, prediction)
+                    noon_prediction = construct_interpolated_noon_prediction(prev_prediction, prediction)
                     self._add_prediction_to_sample(
                         noon_prediction, prev_actual, sample_collection)
 
