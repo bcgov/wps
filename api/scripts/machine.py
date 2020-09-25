@@ -1,16 +1,16 @@
+""" This file used during machine learning experimentation - not worthy of being included on the main
+branch.
+"""
+# pylint: disable-all
 import logging
 from collections import defaultdict
 from datetime import timedelta
 import numpy as np
-import math
-import matplotlib.pyplot as plt
 import csv
-from matplotlib.ticker import MultipleLocator
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
 from scipy.interpolate import griddata, interp1d
 from geoalchemy2.shape import to_shape
-from sqlalchemy import extract
 from app import configure_logging
 from app.stations import get_stations_sync
 
@@ -164,10 +164,6 @@ class ModelDataCollection():
 
 
 def match_predictions_with_actuals(session, actuals, grid, points, target_coordinate, days_of_samples):
-    # actual_temperature_values = []
-    # actual_rh_values = []
-    # predicted_temperature_values = []
-    # predicted_rh_values = []
 
     start_date = None
     end_date = None

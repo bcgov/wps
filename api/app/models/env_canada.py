@@ -21,7 +21,8 @@ from app import configure_logging
 import app.time_utils as time_utils
 import app.stations
 from app.models.process_grib import GribFileProcessor, ModelRunInfo
-from app.db.models import ProcessedModelRunUrl, PredictionModelRunTimestamp, WeatherStationModelPrediction, ModelRunGridSubsetPrediction
+from app.db.models import (ProcessedModelRunUrl, PredictionModelRunTimestamp,
+                           WeatherStationModelPrediction, ModelRunGridSubsetPrediction)
 import app.db.database
 from app.models import ModelEnum
 from app.models.machine_learning_v2 import StationMachineLearning
