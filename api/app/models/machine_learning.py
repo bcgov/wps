@@ -11,59 +11,81 @@ from scipy.interpolate import griddata
 import numpy as np
 from sqlalchemy.orm import Session
 from app.models import interpolate_between_two_points
-from app.db.models import PredictionModel, PredictionModelGridSubset, ModelRunGridSubsetPrediction
+from app.db.models import (
+    PredictionModel, PredictionModelGridSubset, ModelRunGridSubsetPrediction, HourlyActual)
 from app.db.crud import get_actuals_outer_join_with_predictions
 
 
 logger = getLogger(__name__)
 
-
-class ModelWrapper:
-
-    def __init__(self):
-        self.model = LinearRegression()
-        self.good = False
+# Key values on ModelRunGridSubsetPrediction.
+MODEL_VALUE_KEYS = ('tmp_tgl_2', 'rh_tgl_2')
+# Corresponding key values on HourlyActual and SampleCollection
+SAMPLE_VALUE_KEYS = ('temperature', 'relative_humidity')
 
 
 @dataclass
-class DataAxisWrapper:
+class LinearRegressionWrapper:
+    """ Class wrapping LinearRegression """
+    model: LinearRegression = LinearRegression()
+    good_model: bool = False
 
-    def __init__(self):
-        self._x = defaultdict(list)
-        self._y = defaultdict(list)
 
-    def keys(self):
+@dataclass
+class RegressionModels:
+    """ Class for storing regression models """
+    temperature: LinearRegressionWrapper = LinearRegressionWrapper()
+    relative_humidity: LinearRegressionWrapper = LinearRegressionWrapper()
+
+
+@dataclass
+class Samples:
+    """ Class for storing samples in buckets of hours """
+
+    _x: dict = defaultdict(list)
+    _y: dict = defaultdict(list)
+
+    def hours(self):
+        """ Return all the hours used to bucket samples together. """
         return self._x.keys()
 
     def append_x(self, value, timestamp: datetime):
+        """ Append another predicted value. """
         self._x[timestamp.hour].append(value)
 
     def append_y(self, value, timestamp: datetime):
+        """ Append another observered values. """
         self._y[timestamp.hour].append(value)
 
     def np_x(self, hour):
+        """ Return numpy array of the predicted values, reshaped appropriately. """
         return np.array(self._x[hour]).reshape((-1, 1))
 
     def np_y(self, hour):
+        """ Return a numpy array of the observed values """
         return np.array(self._y[hour])
+
+    def add_sample(self,  # pylint: disable=too-many-arguments
+                   points: List,
+                   target_point: List,
+                   model_values: List,
+                   actual_value: float,
+                   timestamp: datetime):
+        """ Add a sample, interpolating the model values spatially """
+        # Interpolate spatially, to get close to our actual position:
+        interpolated_value = griddata(
+            points, model_values, target_point, method='linear')
+        # Add to the data we're going to learn from:
+        # Using two variables, the interpolated temperature value, and the hour of the day.
+        self.append_x(interpolated_value[0], timestamp)
+        self.append_y(actual_value, timestamp)
 
 
 @dataclass
-class Data:
-    """ Class for storing samples """
-    temperature: DataAxisWrapper
-    relative_humidity: DataAxisWrapper
-
-    def __init__(self):
-        self.temperature = DataAxisWrapper()
-        self.relative_humidity = DataAxisWrapper()
-
-
-class RegressionModels:
-
-    def __init__(self):
-        self.temperature = ModelWrapper()
-        self.rh = ModelWrapper()
+class SampleCollection:
+    """ Class for storing different kinds of samples """
+    temperature: Samples = Samples()
+    relative_humidity: Samples = Samples()
 
 
 def _construct_noon_prediction(prediction_a: ModelRunGridSubsetPrediction,
@@ -79,7 +101,7 @@ def _construct_noon_prediction(prediction_a: ModelRunGridSubsetPrediction,
     timestamp_b = prediction_b.prediction_timestamp.timestamp()
     noon_timestamp = noon_prediction.prediction_timestamp.timestamp()
     # calculate interpolated values.
-    for key in ('tmp_tgl_2', 'rh_tgl_2'):
+    for key in MODEL_VALUE_KEYS:
         value = interpolate_between_two_points(
             timestamp_a, timestamp_b, getattr(prediction_a, key),
             getattr(prediction_b, key), noon_timestamp)
@@ -87,10 +109,10 @@ def _construct_noon_prediction(prediction_a: ModelRunGridSubsetPrediction,
     return noon_prediction
 
 
-class StationMachineLearning:
+class StationMachineLearning:  # pylint: disable=too-many-instance-attributes
     """ Wrap away machine learning in an easy to use class. """
 
-    def __init__(self,
+    def __init__(self,  # pylint: disable=too-many-arguments
                  session: Session,
                  model: PredictionModel,
                  grid: PredictionModelGridSubset,
@@ -99,13 +121,13 @@ class StationMachineLearning:
                  station_code: int,
                  max_learn_date: datetime):
         """
-        :param session: Database session.
-        :param model: Prediction model, e.g. GDPS
-        :param grid: Grid in which the station is contained.
-        :param points: Grid represented as points.
-        :param target_coordinate: Coordinate we're interested in.
-        :param station_code: Code of the weather station.
-        :param max_learn_date: Maximum date up to which to learn.
+        : param session: Database session.
+        : param model: Prediction model, e.g. GDPS
+        : param grid: Grid in which the station is contained.
+        : param points: Grid represented as points.
+        : param target_coordinate: Coordinate we're interested in .
+        : param station_code: Code of the weather station.
+        : param max_learn_date: Maximum date up to which to learn.
         """
         self.session = session
         self.model = model
@@ -120,28 +142,24 @@ class StationMachineLearning:
         # NOTE: This could be an environment variable.
         self.max_days_to_learn = 19
 
-    def _add_sample(self, points, target_point, model_values, actual_value, timestamp, target):
-        # Interpolate spatially, to get close to our actual position:
-        interpolated_value = griddata(
-            points, model_values, target_point, method='linear')
-        # Add to the data we're going to learn from:
-        # Using two variables, the interpolated temperature value, and the hour of the day.
-        target.append_x(interpolated_value[0], timestamp)
-        target.append_y(actual_value, timestamp)
-
-    def _add_prediction_to_sample(self, prediction, actual, data):
-        self._add_sample(self.points, self.target_coordinate, prediction.tmp_tgl_2,
-                         actual.temperature, actual.weather_date, data.temperature)
-        self._add_sample(self.points, self.target_coordinate, prediction.rh_tgl_2,
-                         actual.relative_humidity, actual.weather_date, data.rh)
+    def _add_prediction_to_sample(self,
+                                  prediction: ModelRunGridSubsetPrediction,
+                                  actual: HourlyActual,
+                                  sample_collection: SampleCollection):
+        for model_key, sample_key in zip(MODEL_VALUE_KEYS, SAMPLE_VALUE_KEYS):
+            model_value = getattr(prediction, model_key)
+            actual_value = getattr(actual, sample_key)
+            sample_value = getattr(sample_collection, sample_key)
+            sample_value.add_sample(self.points, self.target_coordinate, model_value,
+                                    actual_value, actual.weather_date, sample_value)
 
     def _collect_data(self):
         """ Collect date to use for machine learning.
         """
         # Calculate the date to start learning from.
         start_date = self.max_learn_date - timedelta(days=self.max_days_to_learn)
-
-        data = Data()
+        # Create a convenient structure to store samples in.
+        sample_collection = SampleCollection()
 
         # Query actuals, with prediction outer joined (so if there's no prediction, it will be None)
         query = get_actuals_outer_join_with_predictions(
@@ -160,35 +178,34 @@ class StationMachineLearning:
                     # a noon prediction using interpolation, and add it as a sample.
                     noon_prediction = _construct_noon_prediction(prev_prediction, prediction)
                     self._add_prediction_to_sample(
-                        noon_prediction, prev_actual, data)
+                        noon_prediction, prev_actual, sample_collection)
 
-                self._add_prediction_to_sample(prediction, actual, data)
+                self._add_prediction_to_sample(prediction, actual, sample_collection)
                 prev_prediction = prediction
             prev_actual = actual
-        return data
+        return sample_collection
 
     def learn(self):
         """ Collect data and perform linear regression.
         """
+        # collect data
         data = self._collect_data()
 
-        for hour in data.temperature.keys():
-            self.regression_models[hour].temperature.model.fit(
-                data.temperature.np_x(hour), data.temperature.np_y(hour)
-            )
-            self.regression_models[hour].temperature.good = True
-        for hour in data.relative_humidity.keys():
-            self.regression_models[hour].rh.model.fit(
-                data.relative_humidity.np_x(hour), data.relative_humidity.np_y(hour)
-            )
-            self.regression_models[hour].rh.good = True
+        # iterate through the data, creating a regression model for each variable
+        # and each our.
+        for key in SAMPLE_VALUE_KEYS:
+            sample = getattr(data, key)
+            for hour in sample.hours():
+                regression_model = getattr(self.regression_models[hour], key)
+                regression_model.fit(sample.np_x(hour), sample.np_y(hour))
+                regression_model.good_model = True
 
     def predict_temperature(self, model_temperature, timestamp):
         """ Predict the bias adjusted temperature for a given point in time, given a corresponding model
         temperature.
-        :param model_temperature: Temperature as provided by the model
-        :param timestamp: Datetime value for the predicted value.
-        :return: The bias adjusted temperature as predicted by the linear regression model.
+        : param model_temperature: Temperature as provided by the model
+        : param timestamp: Datetime value for the predicted value.
+        : return: The bias adjusted temperature as predicted by the linear regression model.
         """
         hour = timestamp.hour
         if self.regression_models[hour].temperature.good:
@@ -197,9 +214,9 @@ class StationMachineLearning:
 
     def predict_rh(self, model_rh: float, timestamp: datetime):
         """ Predict the bias adjusted rh for a given point in time, given a corresponding model rh.
-        :param model_rh: Relative humidity as provided by model.
-        :param timestamp: Datetime value for the predicted value.
-        :return: The bias adjusted RH as predicted by the linear regression model.
+        : param model_rh: Relative humidity as provided by model.
+        : param timestamp: Datetime value for the predicted value.
+        : return: The bias adjusted RH as predicted by the linear regression model.
         """
         hour = timestamp.hour
         if self.regression_models[hour].rh.good:

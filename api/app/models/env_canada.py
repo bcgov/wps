@@ -8,7 +8,7 @@ import os
 import sys
 import datetime
 import asyncio
-from typing import Generator
+from typing import Generator, List
 from urllib.parse import urlparse
 import logging
 import time
@@ -341,7 +341,13 @@ class ModelValueProcessor:
         self.session.commit()
         logger.info('done commit.')
 
-    def _process_prediction(self, prediction, station, model_run, points, coordinate, machine):
+    def _process_prediction(self,  # pylint: disable=too-many-arguments
+                            prediction: ModelRunGridSubsetPrediction,
+                            station: dict,
+                            model_run: PredictionModelRunTimestamp,
+                            points: List,
+                            coordinate: List,
+                            machine: StationMachineLearning):
         # If there's already a prediction, we want to update it
         station_prediction = get_weather_station_model_prediction(
             self.session, station['code'], model_run.id, prediction.prediction_timestamp)
@@ -357,7 +363,7 @@ class ModelValueProcessor:
         station_prediction.rh_tgl_2 = griddata(
             points, prediction.rh_tgl_2, coordinate, method='linear')[0]
         # Predict the temperature
-        station_prediction.temperature = machine.predict_temperature(
+        station_prediction.bias_adjusted_temperature = machine.predict_temperature(
             station_prediction.tmp_tgl_2,
             station_prediction.prediction_timestamp)
         # Predict the rh

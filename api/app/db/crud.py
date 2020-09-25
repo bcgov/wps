@@ -181,7 +181,8 @@ def get_most_recent_model_run_prediction(session: Session,
     """
     return session.query(ModelRunGridSubsetPrediction)\
         .join(PredictionModelRunTimestamp)\
-        .filter(PredictionModelRunTimestamp.id == ModelRunGridSubsetPrediction.prediction_model_run_timestamp_id)\
+        .filter(PredictionModelRunTimestamp.id ==
+                ModelRunGridSubsetPrediction.prediction_model_run_timestamp_id)\
         .filter(PredictionModelRunTimestamp.prediction_model_id == prediction_model_id)\
         .filter(ModelRunGridSubsetPrediction.prediction_model_grid_subset_id == grid.id)\
         .filter(ModelRunGridSubsetPrediction.prediction_timestamp == weather_date)\
@@ -286,52 +287,22 @@ def query_noon_forecast_records(session: Session,
         .order_by(desc(NoonForecast.created_at))
 
 
-def get_predictions(
-        session, model_id: int, grid_id: int,
+def get_actuals_outer_join_with_predictions(  # pylint: disable=too-many-arguments
+        session: Session, model_id: int, grid_id: int, station_code: int,
         start_date: datetime, end_date: datetime):
-    return session.query(ModelRunGridSubsetPrediction)\
-        .join(PredictionModelRunTimestamp, PredictionModelRunTimestamp.id == ModelRunGridSubsetPrediction.prediction_model_run_timestamp_id)\
-        .filter(PredictionModelRunTimestamp.prediction_model_id == model_id)\
-        .filter(ModelRunGridSubsetPrediction.prediction_model_grid_subset_id == grid_id)\
-        .filter(ModelRunGridSubsetPrediction.prediction_timestamp >= start_date)\
-        .filter(ModelRunGridSubsetPrediction.prediction_timestamp >= end_date)\
-        .order_by(ModelRunGridSubsetPrediction.prediction_timestamp)\
-        .order_by(PredictionModelRunTimestamp.prediction_run_timestamp.desc())
-
-
-def get_actuals_outer_join_with_predictions(
-        session, model_id: int, grid_id: int, station_code: int,
-        start_date: datetime, end_date: datetime):
-    """ TODO: improve this query - we only need the most recent prediction
     """
+    NOTE: Can improve this query by only returning the most recent prediction, maybe using nested
+    queries. It works for now - but things could be faster.
+    """
+    # pylint: disable=singleton-comparison
     return session.query(HourlyActual, ModelRunGridSubsetPrediction)\
         .outerjoin(ModelRunGridSubsetPrediction,
                    and_(ModelRunGridSubsetPrediction.prediction_timestamp == HourlyActual.weather_date,
                         ModelRunGridSubsetPrediction.prediction_model_grid_subset_id == grid_id))\
         .outerjoin(PredictionModelRunTimestamp,
-                   and_(PredictionModelRunTimestamp.id == ModelRunGridSubsetPrediction.prediction_model_run_timestamp_id,
+                   and_(PredictionModelRunTimestamp.id ==
+                        ModelRunGridSubsetPrediction.prediction_model_run_timestamp_id,
                         PredictionModelRunTimestamp.prediction_model_id == model_id))\
-        .filter(HourlyActual.station_code == station_code)\
-        .filter(HourlyActual.weather_date >= start_date)\
-        .filter(HourlyActual.temp_valid == True)\
-        .filter(HourlyActual.rh_valid == True)\
-        .filter(HourlyActual.weather_date <= end_date)\
-        .order_by(HourlyActual.station_code)\
-        .order_by(HourlyActual.weather_date)\
-        .order_by(PredictionModelRunTimestamp.prediction_run_timestamp.desc())
-
-
-def get_actuals_paired_with_predictions(
-        session, model_id: int, grid_id: int, station_code: int,
-        start_date: datetime, end_date: datetime):
-    """ TODO: improve this query - we only need the most recent prediction
-    """
-    return session.query(HourlyActual, ModelRunGridSubsetPrediction)\
-        .join(ModelRunGridSubsetPrediction,
-              ModelRunGridSubsetPrediction.prediction_timestamp == HourlyActual.weather_date)\
-        .join(PredictionModelRunTimestamp, PredictionModelRunTimestamp.id == ModelRunGridSubsetPrediction.prediction_model_run_timestamp_id)\
-        .filter(PredictionModelRunTimestamp.prediction_model_id == model_id)\
-        .filter(ModelRunGridSubsetPrediction.prediction_model_grid_subset_id == grid_id)\
         .filter(HourlyActual.station_code == station_code)\
         .filter(HourlyActual.weather_date >= start_date)\
         .filter(HourlyActual.temp_valid == True)\
@@ -351,6 +322,7 @@ def get_hourly_actuals(
 
     :param end_date: If specified, return up to and including the end_date
     """
+    # pylint: disable=singleton-comparison
     query = session.query(HourlyActual)\
         .filter(HourlyActual.station_code.in_(station_codes))\
         .filter(HourlyActual.weather_date >= start_date)\
@@ -384,11 +356,3 @@ def get_closest_model_run(session, prediction_model_id, timestamp):
         .filter(PredictionModelRunTimestamp.prediction_run_timestamp <= timestamp)\
         .order_by(PredictionModelRunTimestamp.prediction_run_timestamp.desc())\
         .limit(1).first()
-
-
-def get_weather_station_model_predictions(session: Session,
-                                          station_code: int,
-                                          prediction_model_run_timestamp_id: int):
-    return session.query(WeatherStationModelPrediction)\
-        .filter(WeatherStationModelPrediction.station_code == station_code)\
-        .filter(WeatherStationModelPrediction.prediction_model_run_timestamp_id == prediction_model_run_timestamp_id)
