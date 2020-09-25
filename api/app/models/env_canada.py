@@ -108,12 +108,6 @@ def get_file_date_part(now, hour) -> str:
     return date
 
 
-def get_utcnow():
-    """ Wrapped datetime.datetime.uctnow() for easier mocking in unit tests.
-    """
-    return datetime.datetime.utcnow()
-
-
 def get_model_run_hours():
     """ Yield model run hours for GDPS (00h00 and 12h00) """
     for hour in [0, 12]:
@@ -210,7 +204,7 @@ class EnvCanada():
         self.files_processed = 0
         self.exception_count = 0
         # We always work in UTC:
-        self.now = get_utcnow()
+        self.now = time_utils.get_utc_now()
         self.session = app.db.database.get_write_session()
         self.grib_processor = GribFileProcessor()
 
@@ -325,6 +319,8 @@ class ModelValueProcessor:
         logger.info('Interpolating values for model run: %s', model_run)
         # Iterate through stations.
         for index, station in enumerate(self.stations):
+            if station['code'] != '181':
+                continue
             logger.info('Interpolating model run %s (%s/%s) for %s:%s',
                         model_run.id,
                         index, self.station_count,

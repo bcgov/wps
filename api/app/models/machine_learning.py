@@ -2,7 +2,6 @@
 Regression.
 """
 from datetime import datetime, timedelta
-from dataclasses import dataclass, field
 from collections import defaultdict
 from typing import List
 from logging import getLogger
@@ -22,33 +21,35 @@ logger = getLogger(__name__)
 SAMPLE_VALUE_KEYS = ('temperature', 'relative_humidity')
 
 
-@dataclass
 class LinearRegressionWrapper:
     """ Class wrapping LinearRegression.
     This class just adds in a handy boolean to indicate if this linear regression model is good to use.
     """
-    model: LinearRegression = LinearRegression()
-    good_model: bool = False
+
+    def __init__(self):
+        self.model = LinearRegression()
+        self.good_model = False
 
 
-@dataclass
 class RegressionModels:
     """ Class for storing regression models.
     For each different reading, we have a seperate LinearRegression model.
     """
-    temperature: LinearRegressionWrapper = LinearRegressionWrapper()
-    relative_humidity: LinearRegressionWrapper = LinearRegressionWrapper()
+
+    def __init__(self):
+        self.temperature = LinearRegressionWrapper()
+        self.relative_humidity = LinearRegressionWrapper()
 
 
-@dataclass
 class Samples:
     """ Class for storing samples in buckets of hours.
     e.g. a temperature sample consists of an x axis (predicted values) and a y axis (observed values) put
     together in hour buckets.
     """
 
-    _x: dict = field(default_factory=lambda: defaultdict(list))
-    _y: dict = field(default_factory=lambda: defaultdict(list))
+    def __init__(self):
+        self._x = defaultdict(list)
+        self._y = defaultdict(list)
 
     def hours(self):
         """ Return all the hours used to bucket samples together. """
@@ -86,11 +87,12 @@ class Samples:
         self.append_y(actual_value, timestamp)
 
 
-@dataclass
 class SampleCollection:
     """ Class for storing different kinds of samples """
-    temperature: Samples = Samples()
-    relative_humidity: Samples = Samples()
+
+    def __init__(self):
+        self.temperature = Samples()
+        self.relative_humidity = Samples()
 
 
 class StationMachineLearning:  # pylint: disable=too-many-instance-attributes

@@ -38,14 +38,6 @@ def mock_get_processed_file_count(monkeypatch):
 
 
 @pytest.fixture()
-def mock_utcnow(monkeypatch):
-    """ Mocked out utcnow, to allow for deterministic tests """
-    def mock_get_utcnow(*args):
-        return datetime(year=2021, month=2, day=3, hour=0)
-    monkeypatch.setattr(env_canada, 'get_utcnow', mock_get_utcnow)
-
-
-@pytest.fixture()
 def mock_session(monkeypatch):
     """ Mocked out sqlalchemy session object """
     geom = ("POLYGON ((-120.525 50.77500000000001, -120.375 50.77500000000001,-120.375 50.62500000000001,"
@@ -127,7 +119,7 @@ def test_get_download_urls():
         time_utils.get_utc_now(), 0))) == total_num_of_urls
 
 
-def test_main(mock_download, mock_session, mock_utcnow, mock_get_processed_file_count):
+def test_main(mock_download, mock_session, mock_get_processed_file_count):
     """ run main method to see if it runs successfully. """
     # All files, except one, are marked as already having been downloaded, so we expect one file to
     # be processed.
