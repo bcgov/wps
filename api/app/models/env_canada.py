@@ -319,8 +319,6 @@ class ModelValueProcessor:
         logger.info('Interpolating values for model run: %s', model_run)
         # Iterate through stations.
         for index, station in enumerate(self.stations):
-            if station['code'] != '181':
-                continue
             logger.info('Interpolating model run %s (%s/%s) for %s:%s',
                         model_run.id,
                         index, self.station_count,
