@@ -64,7 +64,7 @@ def _parse_csv(temp_path: str):
     dates = dates.transform(lambda x: x.replace(hour=20))
     data_df['weather_date'] = dates
     # write to database using _session's engine
-    session = app.db.database.get_session()
+    session = app.db.database.get_write_session()
     # write the data_df to the database one row at a time, so that if data_df contains >=1 rows that are
     # duplicates of what is already in the db, the write won't fail for the unique rows
     # NOTE: iterating over the data_df one Series (row) at a time is ugly, but until pandas is updated
@@ -76,7 +76,8 @@ def _parse_csv(temp_path: str):
             row = row.dropna()
             data = row.to_dict()
             # We need to ensure that the timezone is set correctly.
-            data['weather_date'] = data['weather_date'].to_pydatetime().replace(tzinfo=timezone.utc)
+            data['weather_date'] = data['weather_date'].to_pydatetime().replace(
+                tzinfo=timezone.utc)
             session.add(NoonForecast(**data))
             session.commit()
         except IntegrityError:

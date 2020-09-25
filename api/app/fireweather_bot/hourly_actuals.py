@@ -63,7 +63,7 @@ class HourlyActualsBot(BaseBot):
         dates = pd.to_datetime(data_df['weather_date'], format='%Y%m%d%H')
         data_df['weather_date'] = dates
         # write to database using _session's engine
-        session = app.db.database.get_session()
+        session = app.db.database.get_write_session()
         # write the data_df to the database one row at a time, so that if data_df contains >=1 rows that are
         # duplicates of what is already in the db, the write won't fail for the unique rows
         # NOTE: iterating over the data_df one Series (row) at a time is ugly, but until pandas is updated
@@ -76,7 +76,8 @@ class HourlyActualsBot(BaseBot):
                 data = row.to_dict()
                 # Fix the timestamp, make it be tz aware.
                 # Note: There must be a more "pandas" way of doing this, but I don't know how.
-                data['weather_date'] = _fix_pandas_datetime(data['weather_date'])
+                data['weather_date'] = _fix_pandas_datetime(
+                    data['weather_date'])
                 # Throw the data into the model.
                 hourly_actual = HourlyActual(**data)
                 # Persist in the database

@@ -6,7 +6,6 @@ import json
 import os
 import logging
 from datetime import datetime
-import pytz
 import pytest
 from pytest_bdd import scenario, given, then
 from starlette.testclient import TestClient
@@ -39,7 +38,7 @@ def mock_session(monkeypatch):
                 session.add(NoonForecast(**forecast))
         return session
 
-    monkeypatch.setattr(app.db.database, 'get_session', mock_get_session)
+    monkeypatch.setattr(app.db.database, 'get_read_session', mock_get_session)
 
 
 @scenario('test_noon_forecasts.feature', 'Get noon_forecasts',
@@ -63,16 +62,16 @@ def response(monkeypatch, mock_env_with_use_wfwx, mock_jwt_decode, codes):
     headers = {'Content-Type': 'application/json',
                'Authorization': 'Bearer token'}
     return client.post('/api/noon_forecasts/', headers=headers, json={"stations": stations})
+# pylint: enable=unused-argument, redefined-outer-name
 
 
-# pylint: disable=redefined-outer-name
 @then('the response status code is <status>')
-def assert_status_code(response, status):
+def assert_status_code(response, status):  # pylint: disable=redefined-outer-name
     """ Assert that we receive the expected status code """
     assert response.status_code == status
 
 
 @then('there are <num_groups> groups of forecasts')
-def assert_number_of_forecasts_groups(response, num_groups):
+def assert_number_of_forecasts_groups(response, num_groups):  # pylint: disable=redefined-outer-name
     """ Assert that we receive the expected number of forecast groups """
     assert len(response.json()['noon_forecasts']) == num_groups

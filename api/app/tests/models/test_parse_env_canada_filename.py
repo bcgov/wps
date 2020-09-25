@@ -12,7 +12,6 @@ def test_parse():
     """ BDD Scenario. """
 
 
-# pylint: disable=unused-argument
 @given('I have a grib file <filename>')
 def parsed_file(filename):
     """ Make /hourlies/ request using mocked out ClientSession.
@@ -20,15 +19,13 @@ def parsed_file(filename):
     return parse_env_canada_filename(filename)
 
 
-# pylint: disable=redefined-outer-name
 @then('The projection is <projection>')
-def assert_status_code(parsed_file, projection):
+def assert_status_code(parsed_file, projection):  # pylint: disable=redefined-outer-name
     """ Assert that we recieve the expected status code """
     assert parsed_file.projection == projection
 
 
-# pylint: disable=redefined-outer-name
 @then('The variable_name is <variable_name>')
-def assert_variable_name(parsed_file, variable_name):
+def assert_variable_name(parsed_file, variable_name):  # pylint: disable=redefined-outer-name
     """ Assert that we recieve the expected status code """
     assert parsed_file.variable_name == variable_name

@@ -3,7 +3,6 @@ import os
 import json
 import pandas as pd
 
-# pylint: disable=import-error, invalid-name
 
 RECENT_YEAR = 2019  # the most recent year that has the core fire season recorded
 RANGES = [(1970, RECENT_YEAR), (RECENT_YEAR - 19, RECENT_YEAR),
@@ -13,6 +12,7 @@ NUMBER_OF_DECIMAL_POINT = 5  # for FWI values
 
 
 def main():
+    # pylint: disable=invalid-name
     """ The main entrypoint for pre-generating json daily summaries. """
     # import the CSV into Pandas dataframe
     print('Open file...')
@@ -59,6 +59,7 @@ def main():
 
 
 def create_null_summary(station, year_range):
+    """ Create an empty summary """
     return {
         'ffmc': None,
         'isi': None,
@@ -99,7 +100,7 @@ def get_core_fire_season(station) -> dict:
     }
 
 
-def split_dates_into_multiple_cols(df):
+def split_dates_into_multiple_cols(df):  # pylint: disable=invalid-name
     """ Turn weather_date into datetime type then create 3 columns, year, month, and day """
     df['weather_date'] = df['weather_date'].apply(str)
     df['year'] = df['weather_date'].apply(lambda x: int(x[:4]))
@@ -107,12 +108,12 @@ def split_dates_into_multiple_cols(df):
     df['day'] = df['weather_date'].apply(lambda x: int(x[6:]))
 
 
-def grab_data_in_particular_year_range(df, year_range: list) -> pd.DataFrame:
+def grab_data_in_particular_year_range(df, year_range: list) -> pd.DataFrame:  # pylint: disable=invalid-name
     """ Grab data recorded between start_year and end_year. """
     return df[df['year'].isin(year_range)]
 
 
-def remove_data_outside_fire_season(df, season: dict):
+def remove_data_outside_fire_season(df, season: dict):  # pylint: disable=invalid-name
     """ Remove data recorded outside of fire season. """
     outside_month = (df['month'] < season['start_month']) | (
         df['month'] > season['end_month'])
@@ -127,7 +128,7 @@ def remove_data_outside_fire_season(df, season: dict):
     df.drop(df[after_end].index, inplace=True)
 
 
-def calculate_percentile(df, percentile: float) -> dict:
+def calculate_percentile(df, percentile: float) -> dict:  # pylint: disable=invalid-name
     """ Calculate percentile """
     ffmc = df[df['ffmc_valid']].ffmc.quantile(percentile)
     bui = df[df['bui_valid']].bui.quantile(percentile)

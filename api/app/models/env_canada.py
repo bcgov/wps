@@ -42,11 +42,11 @@ class UnhandledPredictionModelType(Exception):
     """ Exception raised when an unknown model type is encountered. """
 
 
-# pylint: disable=too-many-locals
 def parse_env_canada_filename(filename):
     """ Take a grib filename, as per file name nomenclature defined at
     https://weather.gc.ca/grib/grib2_glb_25km_e.html, and parse into a meaningful object.
     """
+    # pylint: disable=too-many-locals
 
     base = os.path.basename(filename)
     parts = base.split('_')
@@ -241,7 +241,7 @@ class EnvCanada():
         self.exception_count = 0
         # We always work in UTC:
         self.now = get_utcnow()
-        self.session = app.db.database.get_session()
+        self.session = app.db.database.get_write_session()
         self.grib_processor = GribFileProcessor()
         self.model_type = ModelEnum(model_type)
 
@@ -349,7 +349,7 @@ class Interpolator:
 
     def __init__(self):
         """ Prepare variables we're going to use throughout """
-        self.session = app.db.database.get_session()
+        self.session = app.db.database.get_write_session()
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         self.stations = loop.run_until_complete(app.stations.get_stations())
