@@ -32,10 +32,12 @@ def _fix_datetime(source_date):
     else:
         # anything else, we trust.
         python_date = python_date + timedelta(hours=int(str(source_date)[-2:]))
-    # we want to work in utc:
-    python_date = python_date.replace(tzinfo=timezone.utc)
-    # but alse need to adjust our time, because it's in PST:
+    # but alse need to adjust our time, because it's in PST. PST_UTC_OFFSET is -8, so we have
+    # to subtract it, to add 8 hours to our current date.
+    # e.g. 12h00 PST, becomes 20h00 UTC
     python_date = python_date - timedelta(hours=app.time_utils.PST_UTC_OFFSET)
+    # we've add the offset, so set the timezone to utc:
+    python_date = python_date.replace(tzinfo=timezone.utc)
     return python_date
 
 
