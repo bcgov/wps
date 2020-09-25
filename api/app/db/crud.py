@@ -6,7 +6,6 @@ from typing import List
 from sqlalchemy import or_, desc, and_
 from sqlalchemy.orm import Session
 from app.schemas import StationCodeList
-from app.models import ModelEnum
 from app.db.models import (
     ProcessedModelRunUrl, PredictionModel, PredictionModelRunTimestamp, PredictionModelGridSubset,
     ModelRunGridSubsetPrediction, NoonForecast, HourlyActual, WeatherStationModelPrediction)
@@ -174,7 +173,10 @@ def get_model_run_predictions(
     return query
 
 
-def get_most_recent_model_run_prediction(session, prediction_model_id, grid, weather_date) -> ModelRunGridSubsetPrediction:
+def get_most_recent_model_run_prediction(session: Session,
+                                         prediction_model_id: int,
+                                         grid: PredictionModelGridSubset,
+                                         weather_date: datetime) -> ModelRunGridSubsetPrediction:
     """ Get the prediction for a given time & grid from the most recent model run.
     """
     return session.query(ModelRunGridSubsetPrediction)\
@@ -390,14 +392,3 @@ def get_weather_station_model_predictions(session: Session,
     return session.query(WeatherStationModelPrediction)\
         .filter(WeatherStationModelPrediction.station_code == station_code)\
         .filter(WeatherStationModelPrediction.prediction_model_run_timestamp_id == prediction_model_run_timestamp_id)
-
-
-def get_weather_station_model_prediction(session: Session,
-                                         station_code: int,
-                                         prediction_model_run_timestamp_id: int,
-                                         timestamp):
-    """ get the prediction corresponding to the model run and the timestamp """
-    return session.query(WeatherStationModelPrediction)\
-        .filter(WeatherStationModelPrediction.station_code == station_code)\
-        .filter(WeatherStationModelPrediction.prediction_model_run_timestamp_id == prediction_model_run_timestamp_id)\
-        .filter(WeatherStationModelPrediction.prediction_timestamp == timestamp).first()

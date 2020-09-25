@@ -14,7 +14,7 @@ import logging
 import time
 import tempfile
 import requests
-from scipy.interpolate import griddata, interp1d
+from scipy.interpolate import griddata
 from geoalchemy2.shape import to_shape
 from sqlalchemy.orm import Session
 from app import configure_logging
@@ -24,8 +24,8 @@ from app.models.process_grib import GribFileProcessor, ModelRunInfo
 from app.db.models import (ProcessedModelRunUrl, PredictionModelRunTimestamp,
                            WeatherStationModelPrediction, ModelRunGridSubsetPrediction)
 import app.db.database
-from app.models import ModelEnum
-from app.models.machine_learning_v2 import StationMachineLearning
+from app.models import ModelEnum, interpolate_between_two_points
+from app.models.machine_learning import StationMachineLearning
 from app.db.crud import (get_processed_file_record,
                          get_processed_file_count,
                          get_prediction_model_run_timestamp_records,
@@ -42,16 +42,6 @@ logger = logging.getLogger(__name__)
 
 class UnhandledPredictionModelType(Exception):
     """ Exception raised when an unknown model type is encountered. """
-
-
-def interpolate(x_axis, before, after, timestamp):
-    y_axis = [
-        [before[0], after[0]],
-        [before[1], after[1]],
-        [before[2], after[2]],
-        [before[3], after[3]]
-    ]
-    return interp1d(x_axis, y_axis, kind='linear')(timestamp)
 
 
 def parse_env_canada_filename(filename):
@@ -419,17 +409,18 @@ class ModelValueProcessor:
                 noon_prediction = ModelRunGridSubsetPrediction()
                 noon_prediction.prediction_timestamp = prediction.prediction_timestamp.replace(
                     hour=20)
-                # x-axis is the timestamp
-                x_axis = (prev_prediction.prediction_timestamp.timestamp(),
-                          prediction.prediction_timestamp.timestamp())
-                noon_prediction.tmp_tgl_2 = interpolate(
-                    x_axis, prev_prediction.tmp_tgl_2,
+
+                timestamp_a = prev_prediction.prediction_timestamp.timestamp()
+                timestamp_b = prediction.prediction_timestamp.timestamp()
+                noon_timestamp = noon_prediction.prediction_timestamp.timestamp()
+                noon_prediction.tmp_tgl_2 = interpolate_between_two_points(
+                    timestamp_a, timestamp_b, prev_prediction.tmp_tgl_2,
                     prediction.tmp_tgl_2,
-                    noon_prediction.prediction_timestamp.timestamp())
-                noon_prediction.rh_tgl_2 = interpolate(
-                    x_axis, prev_prediction.rh_tgl_2,
+                    noon_timestamp)
+                noon_prediction.rh_tgl_2 = interpolate_between_two_points(
+                    timestamp_a, timestamp_b, prev_prediction.rh_tgl_2,
                     prediction.rh_tgl_2,
-                    noon_prediction.prediction_timestamp.timestamp())
+                    noon_timestamp)
                 self._process_prediction(
                     noon_prediction, station, model_run, points, coordinate, machine)
                 # logging.info('interpolate a noon value dude!')
