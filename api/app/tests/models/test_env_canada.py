@@ -14,7 +14,7 @@ from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
 from app.models import env_canada
 from app.db.models import (PredictionModel, ProcessedModelRunUrl, PredictionModelRunTimestamp,
-                           PredictionModelGridSubset)
+                           PredictionModelGridSubset, ModelRunGridSubsetPrediction)
 # pylint: disable=unused-argument, redefined-outer-name
 
 
@@ -35,6 +35,24 @@ def mock_get_processed_file_count(monkeypatch):
     def mock_get_count(*args):
         return 162
     monkeypatch.setattr(env_canada, 'get_processed_file_count', mock_get_count)
+
+
+@pytest.fixture()
+def mock_get_model_run_predictions_for_grid(monkeypatch):
+    """ Mock out call to DB returning predictions """
+    def mock_get(*args):
+        result = [
+            ModelRunGridSubsetPrediction(
+                tmp_tgl_2=[2, 3, 4, 5],
+                rh_tgl_2=[10, 20, 30, 40],
+                prediction_timestamp=datetime(2020, 10, 10, 18)),
+            ModelRunGridSubsetPrediction(
+                tmp_tgl_2=[1, 2, 3, 4],
+                rh_tgl_2=[20, 30, 40, 50],
+                prediction_timestamp=datetime(2020, 10, 10, 21))
+        ]
+        return result
+    monkeypatch.setattr(env_canada, 'get_model_run_predictions_for_grid', mock_get)
 
 
 @pytest.fixture()
@@ -119,7 +137,10 @@ def test_get_download_urls():
         time_utils.get_utc_now(), 0))) == total_num_of_urls
 
 
-def test_main(mock_download, mock_session, mock_get_processed_file_count):
+def test_main(mock_download,
+              mock_session,
+              mock_get_processed_file_count,
+              mock_get_model_run_predictions_for_grid):
     """ run main method to see if it runs successfully. """
     # All files, except one, are marked as already having been downloaded, so we expect one file to
     # be processed.

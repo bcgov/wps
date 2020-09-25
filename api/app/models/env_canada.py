@@ -374,9 +374,6 @@ class ModelValueProcessor:
         # Lookup the grid our weather station is in.
         grid = get_grid_for_coordinate(
             self.session, model_run.prediction_model, coordinate)
-        # Get all the predictions associated to this particular model run, in the grid.
-        query = get_model_run_predictions_for_grid(
-            self.session, model_run, grid)
 
         # Convert the grid database object to a polygon object.
         poly = to_shape(grid.geom)
@@ -392,6 +389,10 @@ class ModelValueProcessor:
             station_code=station['code'],
             max_learn_date=model_run.prediction_run_timestamp)
         machine.learn()
+
+        # Get all the predictions associated to this particular model run, in the grid.
+        query = get_model_run_predictions_for_grid(
+            self.session, model_run, grid)
 
         # Iterate through all the predictions.
         prev_prediction = None
