@@ -10,7 +10,7 @@ from sklearn.linear_model import LinearRegression
 from scipy.interpolate import griddata
 import numpy as np
 from sqlalchemy.orm import Session
-from app.models import construct_interpolated_noon_prediction
+from app.models import MODEL_VALUE_KEYS, construct_interpolated_noon_prediction
 from app.db.models import (
     PredictionModel, PredictionModelGridSubset, ModelRunGridSubsetPrediction, HourlyActual)
 from app.db.crud import get_actuals_outer_join_with_predictions
@@ -43,7 +43,7 @@ class RegressionModels:
 @dataclass
 class Samples:
     """ Class for storing samples in buckets of hours.
-    e.g. a temperature sample consists of an x axis (predicted values) and a y axis (observed values) put 
+    e.g. a temperature sample consists of an x axis (predicted values) and a y axis (observed values) put
     together in hour buckets.
     """
 
@@ -135,7 +135,7 @@ class StationMachineLearning:  # pylint: disable=too-many-instance-attributes
             actual_value = getattr(actual, sample_key)
             sample_value = getattr(sample_collection, sample_key)
             sample_value.add_sample(self.points, self.target_coordinate, model_value,
-                                    actual_value, actual.weather_date, sample_value)
+                                    actual_value, actual.weather_date)
 
     def _collect_data(self):
         """ Collect date to use for machine learning.
@@ -181,7 +181,9 @@ class StationMachineLearning:  # pylint: disable=too-many-instance-attributes
             sample = getattr(data, key)
             for hour in sample.hours():
                 regression_model = getattr(self.regression_models[hour], key)
-                regression_model.fit(sample.np_x(hour), sample.np_y(hour))
+                regression_model.model.fit(sample.np_x(hour), sample.np_y(hour))
+                # NOTE: We could get fancy here, and evaluate how good the regression actually worked,
+                # how much sample data we actually had etc., and then not mark the model as being "good".
                 regression_model.good_model = True
 
     def predict_temperature(self, model_temperature, timestamp):
@@ -192,7 +194,7 @@ class StationMachineLearning:  # pylint: disable=too-many-instance-attributes
         : return: The bias adjusted temperature as predicted by the linear regression model.
         """
         hour = timestamp.hour
-        if self.regression_models[hour].temperature.good:
+        if self.regression_models[hour].temperature.good_model:
             return self.regression_models[hour].temperature.model.predict([[model_temperature]])[0]
         return None
 
@@ -203,6 +205,6 @@ class StationMachineLearning:  # pylint: disable=too-many-instance-attributes
         : return: The bias adjusted RH as predicted by the linear regression model.
         """
         hour = timestamp.hour
-        if self.regression_models[hour].rh.good:
-            return self.regression_models[hour].rh.model.predict([[model_rh]])[0]
+        if self.regression_models[hour].relative_humidity.good_model:
+            return self.regression_models[hour].relative_humidity.model.predict([[model_rh]])[0]
         return None
