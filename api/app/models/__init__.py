@@ -6,3 +6,4 @@ class ModelEnum(str, Enum):
     """ Enumerator for different kinds of supported weather models """
     GDPS = 'GDPS'
     RDPS = 'RDPS'
+    HRDPS = 'HRDPS'

@@ -73,9 +73,11 @@ def parse_env_canada_filename(filename):
         model_abbreviation = ModelEnum.GDPS
     elif model == 'reg':
         model_abbreviation = ModelEnum.RDPS
+    elif model == 'hrdps':
+        model_abbreviation = ModelEnum.HRDPS
     else:
         raise UnhandledPredictionModelType(
-            'Unhandeled prediction model type found', model)
+            'Unhandled prediction model type found', model)
 
     info = ModelRunInfo()
     info.model_abbreviation = model_abbreviation
@@ -112,14 +114,27 @@ def get_utcnow():
     return datetime.datetime.utcnow()
 
 
-def get_model_run_hours():
-    """ Yield model run hours for GDPS (00h00 and 12h00) """
-    for hour in [0, 12]:
-        yield hour
+def get_model_run_hours(model_abbreviation: str):
+    """ Yield model run hours based on model type """
+    logger.info('Getting hours for %s', model_abbreviation)
+    if model_abbreviation == ModelEnum.GDPS:
+        for hour in [0, 12]:
+            yield hour
+    elif model_abbreviation == ModelEnum.HRDPS:
+        for hour in [0, 6, 12, 18]:
+            yield hour
 
 
-def get_model_run_download_urls(now: datetime.datetime, hour: int) -> Generator[str, None, None]:
+def get_model_run_download_urls(now: datetime.datetime, hour: int, model_type: str):
     """ Yield urls to download. """
+    if model_type == ModelEnum.GDPS:
+        get_global_model_run_download_urls(now, hour)
+    elif model_type == ModelEnum.HRDPS:
+        get_high_res_model_run_download_urls(now, hour)
+
+
+def get_global_model_run_download_urls(now: datetime.datetime, hour: int) -> Generator[str, None, None]:
+    """ Yield urls to download GDPS (global) model runs """
 
     # hh: model run start, in UTC [00, 12]
     # hhh: prediction hour [000, 003, 006, ..., 240]
@@ -133,6 +148,23 @@ def get_model_run_download_urls(now: datetime.datetime, hour: int) -> Generator[
                 hh, hhh)
             date = get_file_date_part(now, hour)
             filename = 'CMC_glb_{}_latlon.15x.15_{}{}_P{}.grib2'.format(
+                level, date, hh, hhh)
+            url = base_url + filename
+            yield url
+
+
+def get_high_res_model_run_download_urls(now: datetime.datetime, hour: int) -> Generator[str, None, None]:
+    """ Yield urls to download HRDPS (high-res) model runs """
+
+    hh = '{:02d}'.format(hour)
+    # For the high-res model, predictions are at 1 hour intervals up to 48 hours.
+    for h in range(0, 49):
+        hhh = format(h, '03d')
+        for level in ['TMP_TGL_2', 'RH_TGL_2']:
+            base_url = 'https://dd.weather.gc.ca/model_hrdps/continental/grib2/{}/{}/'.format(
+                hh, hhh)
+            date = get_file_date_part(now, hour)
+            filename = 'CMC_hrdps_continental_{}_ps2.5km_{}{}_P{}-00.grib2'.format(
                 level, date, hh, hhh)
             url = base_url + filename
             yield url
@@ -202,7 +234,7 @@ class EnvCanada():
     Canada.
     """
 
-    def __init__(self):
+    def __init__(self, model_type):
         """ Prep variables """
         self.files_downloaded = 0
         self.files_processed = 0
@@ -211,6 +243,7 @@ class EnvCanada():
         self.now = get_utcnow()
         self.session = app.db.database.get_session()
         self.grib_processor = GribFileProcessor()
+        self.model_type = ModelEnum(model_type)
 
     def flag_file_as_processed(self, url):
         """ Flag the file as processed in the database """
@@ -232,7 +265,8 @@ class EnvCanada():
         # pylint: disable=no-member
         actual_count = get_processed_file_count(self.session, urls)
         expected_count = len(urls)
-        logger.info('we have processed %s/%s files', actual_count, expected_count)
+        logger.info('we have processed %s/%s files',
+                    actual_count, expected_count)
         return actual_count == expected_count
 
     def process_model_run_urls(self, urls):
@@ -276,10 +310,12 @@ class EnvCanada():
 
     def process_model_run(self, hour):
         """ Process a particular model run """
-        logger.info('Processing GDPS model run {:02d}'.format(hour))
+        logger.info('Processing {} model run {:02d}'.format(
+            self.model_type, hour))
 
         # Get the urls for the current model run.
-        urls = list(get_model_run_download_urls(self.now, hour))
+        urls = list(get_model_run_download_urls(
+            self.now, hour, self.model_type))
 
         # Process all the urls.
         self.process_model_run_urls(urls)
@@ -287,14 +323,16 @@ class EnvCanada():
         # Having completed processing, check if we're all done.
         if self.check_if_model_run_complete(urls):
             logger.info(
-                'GDPS model run {:02d} completed with SUCCESS'.format(hour))
+                '{} model run {:02d} completed with SUCCESS'.format(self.model_type, hour))
+
             mark_prediction_model_run_processed(
-                self.session, ModelEnum.GDPS, app.db.crud.LATLON_15X_15, self.now, hour)
+                self.session, self.model_type, app.db.crud.LATLON_15X_15, self.now, hour)
 
     def process(self):
         """ Entry point for downloading and processing weather model grib files """
-        for hour in get_model_run_hours():
+        for hour in get_model_run_hours(self.model_type):
             try:
+                logger.info('HOUR %s', hour)
                 self.process_model_run(hour)
             # pylint: disable=broad-except
             except Exception as exception:
@@ -302,7 +340,7 @@ class EnvCanada():
                 # We intentionally catch a broad exception, as we want to try to process as much as we can.
                 self.exception_count += 1
                 logger.error(
-                    'unexpected exception processing GDPS model run %d', hour, exc_info=exception)
+                    'unexpected exception processing %s model run %d', self.model_type, hour, exc_info=exception)
 
 
 class Interpolator:
@@ -339,9 +377,11 @@ class Interpolator:
         # Extract the coordinate.
         coordinate = [station['long'], station['lat']]
         # Lookup the grid our weather station is in.
-        grid = get_grid_for_coordinate(self.session, model_run.prediction_model, coordinate)
+        grid = get_grid_for_coordinate(
+            self.session, model_run.prediction_model, coordinate)
         # Get all the predictions associated to this particular model run, in the grid.
-        query = get_model_run_predictions_for_grid(self.session, model_run, grid)
+        query = get_model_run_predictions_for_grid(
+            self.session, model_run, grid)
 
         # Conver the grid database object to a polygon object.
         poly = to_shape(grid.geom)
@@ -381,7 +421,8 @@ class Interpolator:
         """ Entry point to start processing model runs that have not yet had their predictions interpolated
         """
         # Get model runs that are complete (fully downloaded), but not yet interpolated.
-        query = get_prediction_model_run_timestamp_records(self.session, complete=True, interpolated=False)
+        query = get_prediction_model_run_timestamp_records(
+            self.session, complete=True, interpolated=False)
         for model_run in query:
             # Process the model run.
             self._process_model_run(model_run)
@@ -392,11 +433,15 @@ class Interpolator:
 def main():
     """ main script """
 
+    # set the model type requested based on arg passed via command line
+    model_type = sys.argv[1]
+    logger.info('model type %s', model_type)
+
     # grab the start time.
     start_time = time.time()
 
     # process everything.
-    env_canada = EnvCanada()
+    env_canada = EnvCanada(model_type)
     env_canada.process()
 
     # interpolate everything that needs interpolating.

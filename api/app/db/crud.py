@@ -14,6 +14,7 @@ import app.time_utils as time_utils
 logger = logging.getLogger(__name__)
 
 LATLON_15X_15 = 'latlon.15x.15'
+HIGH_RES_CONTINENTAL = ''
 
 # --------------  COMMON UTILITY FUNCTIONS ---------------------------
 
@@ -144,7 +145,8 @@ def get_model_run_predictions_for_grid(session: Session,
 
     return session.query(ModelRunGridSubsetPrediction).\
         filter(ModelRunGridSubsetPrediction.prediction_model_grid_subset_id == grid.id).\
-        filter(ModelRunGridSubsetPrediction.prediction_model_run_timestamp_id == prediction_run.id)
+        filter(ModelRunGridSubsetPrediction.prediction_model_run_timestamp_id ==
+               prediction_run.id)
 
 
 def get_model_run_predictions(
@@ -248,7 +250,8 @@ def get_prediction_model_run_timestamp_records(
     """ Get prediction model run timestamps (filter on complete and interpolated if provided.) """
     query = session.query(PredictionModelRunTimestamp)
     if interpolated is not None:
-        query = query.filter(PredictionModelRunTimestamp.interpolated == interpolated)
+        query = query.filter(
+            PredictionModelRunTimestamp.interpolated == interpolated)
     if complete is not None:
         query = query.filter(PredictionModelRunTimestamp.complete == complete)
     return query
@@ -286,4 +289,5 @@ def get_weather_station_model_prediction(session: Session,
         filter(WeatherStationModelPrediction.station_code == station_code).\
         filter(WeatherStationModelPrediction.prediction_model_run_timestamp_id ==
                prediction_model_run_timestamp_id).\
-        filter(WeatherStationModelPrediction.prediction_timestamp == prediction_timestamp).first()
+        filter(WeatherStationModelPrediction.prediction_timestamp ==
+               prediction_timestamp).first()
