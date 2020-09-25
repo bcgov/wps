@@ -256,20 +256,6 @@ class HourlyActual(Base):
         ).format(self=self)
 
 
-# class LinearRegressionForecast(Base):
-#     __tablename__ = 'linear_regression_forecasts'
-#     __table_args__ = (
-#         UniqueConstraint('weather_date', 'station_code', 'prediction_model_run_timestamp_id'))
-#     id = Column(Integer, primary_key=True)
-#     prediction_model_run_timestamp_id = Column(Integer, ForeignKey(
-#         'prediction_model_run_timestamps.id'), nullable=False)
-#     station_code = Column(Integer, nullable=False)
-#     weather_date = Column(TZTimeStamp, nullable=False)
-#     temperature = Column(Float, nullable=False)
-#     created_at = Column(TZTimeStamp, nullable=False,
-#                         default=time_utils.get_utc_now())
-
-
 class NoonForecast(Base):
     """ Class representing table structure of 'noon_forecasts' table in DB.
     Default float values of math.nan are used for the weather variables that are

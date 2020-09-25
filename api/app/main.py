@@ -8,7 +8,7 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.applications import Starlette
 from app import schemas, configure_logging
-from app.models.fetch.predictions import fetch_model_predictions, fetch_most_recent_historic_predictions
+from app.models.fetch.predictions import fetch_model_predictions, fetch_predictions_by_station_code
 from app.models.fetch.summaries import fetch_model_prediction_summaries
 from app.models import ModelEnum
 from app.percentile import get_precalculated_percentiles
@@ -144,11 +144,13 @@ async def get_most_recent_historic_model_values(
         model: ModelEnum, request: schemas.StationCodeList, _: bool = Depends(authenticate)):
     """ Returns the weather values for the last model prediction that was issued
     for the station before actual weather readings became available.
+    NOTE: This api method can be made redundant - calling /models/{model}/predictions/most_recent/
+    will return historic as well as most recent.
     """
     try:
         logger.info('/models/%s/predictions/historic/most_recent/', model.name)
-        historic_predictions = await fetch_most_recent_historic_predictions(model, request.stations,
-                                                                            time_utils.get_utc_now())
+        historic_predictions = await fetch_predictions_by_station_code(model, request.stations,
+                                                                       time_utils.get_utc_now())
         return schemas.WeatherModelPredictionResponse(predictions=historic_predictions)
     except Exception as exception:
         logger.critical(exception, exc_info=True)
@@ -165,7 +167,7 @@ async def get_most_recent_model_values(
     try:
         logger.info('/models/%s/predictions/historic/most_recent/', model.name)
         end_date = time_utils.get_utc_now() + datetime.timedelta(days=10)
-        historic_predictions = await fetch_most_recent_historic_predictions(model, request.stations, end_date)
+        historic_predictions = await fetch_predictions_by_station_code(model, request.stations, end_date)
         return schemas.WeatherModelPredictionResponse(predictions=historic_predictions)
     except Exception as exception:
         logger.critical(exception, exc_info=True)

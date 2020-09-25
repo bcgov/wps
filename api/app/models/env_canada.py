@@ -325,16 +325,12 @@ class ModelValueProcessor:
         logger.info('Interpolating values for model run: %s', model_run)
         # Iterate through stations.
         for index, station in enumerate(self.stations):
-            # if station['code'] != '322':
-            # continue
             logger.info('Interpolating model run %s (%s/%s) for %s:%s',
                         model_run.id,
                         index, self.station_count,
                         station['code'], station['name'])
             # Process this model run for station.
             self._process_model_run_for_station(model_run, station)
-            # if self.station_count > 4:
-            # raise Exception("ok - make it faster")
         # Commit all the weather station model predictions (it's fast if we line them all up and commit
         # them in one go.)
         logger.info('commit to database...')
@@ -429,7 +425,6 @@ class ModelValueProcessor:
                     noon_timestamp)
                 self._process_prediction(
                     noon_prediction, station, model_run, points, coordinate, machine)
-                # logging.info('interpolate a noon value dude!')
             self._process_prediction(
                 prediction, station, model_run, points, coordinate, machine)
             prev_prediction = prediction
@@ -471,7 +466,7 @@ def main():
 
     # calculate the execution time.
     execution_time = round(time.time() - start_time, 1)
-    # log some info
+    # log some info.
     logger.info('%d downloaded, %d processed in total, took %s seconds',
                 env_canada.files_downloaded, env_canada.files_processed, execution_time)
     # check if we encountered any exceptions.
