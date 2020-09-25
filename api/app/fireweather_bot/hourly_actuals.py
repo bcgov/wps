@@ -1,6 +1,6 @@
 """ Bot for loading hourly actual values.
 """
-from datetime import timedelta, timezone
+from datetime import timedelta, timezone, datetime
 import logging
 import sys
 from sqlalchemy.exc import IntegrityError
@@ -18,16 +18,26 @@ if __name__ == "__main__":
 logger = logging.getLogger(__name__)
 
 
-def _fix_pandas_datetime(panda_datetime):
-    """ We want to be explicit about timezones, pandas gives us a timezone naive date - this is no
+def _fix_datetime(source_date):
+    """ We want to be explicit about timezones, the csv file gives us a timezone naive date - this is no
     good! We know the date we get is in PST, and we know we need to store it in UTC.
+    Furthermore, the csv has discovered another hour. 24. Presumably this means 00 the next day.
     """
-    # go from pandas to python native:
-    python_date = panda_datetime.to_pydatetime()
-    # we want to work in utc:
-    python_date = python_date.replace(tzinfo=timezone.utc)
-    # but alse need to adjust our time, because it's in PST:
+    # build a date using year, month and day.
+    python_date = datetime.strptime(str(source_date)[:-2], '%Y%m%d')
+    # handle the mysterious 24th hour.
+    if str(source_date)[-2:] == '24':
+        # if it's 24, just push to hour 00 on the next day.
+        python_date = python_date + timedelta(days=1)
+    else:
+        # anything else, we trust.
+        python_date = python_date + timedelta(hours=int(str(source_date)[-2:]))
+    # but alse need to adjust our time, because it's in PST. PST_UTC_OFFSET is -8, so we have
+    # to subtract it, to add 8 hours to our current date.
+    # e.g. 12h00 PST, becomes 20h00 UTC
     python_date = python_date - timedelta(hours=app.time_utils.PST_UTC_OFFSET)
+    # we've add the offset, so set the timezone to utc:
+    python_date = python_date.replace(tzinfo=timezone.utc)
     return python_date
 
 
@@ -59,9 +69,6 @@ class HourlyActualsBot(BaseBot):
         data_df['display_name'].replace(station_codes, inplace=True)
         data_df.rename(columns={'display_name': 'station_code'}, inplace=True)
 
-        # weather_date is formatted yyyymmddhh as an int - need to reformat it as a Timestamp
-        dates = pd.to_datetime(data_df['weather_date'], format='%Y%m%d%H')
-        data_df['weather_date'] = dates
         # write to database using _session's engine
         session = app.db.database.get_write_session()
         # write the data_df to the database one row at a time, so that if data_df contains >=1 rows that are
@@ -74,10 +81,8 @@ class HourlyActualsBot(BaseBot):
             try:
                 # Go from pandas to a python dict.
                 data = row.to_dict()
-                # Fix the timestamp, make it be tz aware.
-                # Note: There must be a more "pandas" way of doing this, but I don't know how.
-                data['weather_date'] = _fix_pandas_datetime(
-                    data['weather_date'])
+                # Format and fix timestamp, make it be tz aware.
+                data['weather_date'] = _fix_datetime(data['weather_date'])
                 # Throw the data into the model.
                 hourly_actual = HourlyActual(**data)
                 # Persist in the database
