@@ -1,4 +1,4 @@
-""" Some crud responses
+""" Some crud responses used to mock our calls to app.db.crud
 """
 from datetime import datetime
 from app.db.models import HourlyActual, ModelRunGridSubsetPrediction

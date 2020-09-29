@@ -130,10 +130,11 @@ class StationMachineLearning:  # pylint: disable=too-many-instance-attributes
         # NOTE: This could be an environment variable.
         self.max_days_to_learn = 19
 
-    def _add_prediction_to_sample(self,
+    def _add_sample_to_collection(self,
                                   prediction: ModelRunGridSubsetPrediction,
                                   actual: HourlyActual,
                                   sample_collection: SampleCollection):
+        """ Take the provided prediction and observed value, adding them to the collection of samples """
         for model_key, sample_key in zip(MODEL_VALUE_KEYS, SAMPLE_VALUE_KEYS):
             model_value = getattr(prediction, model_key)
             actual_value = getattr(actual, sample_key)
@@ -142,7 +143,7 @@ class StationMachineLearning:  # pylint: disable=too-many-instance-attributes
                                     actual_value, actual.weather_date)
 
     def _collect_data(self):
-        """ Collect date to use for machine learning.
+        """ Collect data to use for machine learning.
         """
         # Calculate the date to start learning from.
         start_date = self.max_learn_date - timedelta(days=self.max_days_to_learn)
@@ -165,10 +166,10 @@ class StationMachineLearning:  # pylint: disable=too-many-instance-attributes
                     # If there's a gap in the data (like with the GLOBAL model) - then make up
                     # a noon prediction using interpolation, and add it as a sample.
                     noon_prediction = construct_interpolated_noon_prediction(prev_prediction, prediction)
-                    self._add_prediction_to_sample(
+                    self._add_sample_to_collection(
                         noon_prediction, prev_actual, sample_collection)
 
-                self._add_prediction_to_sample(prediction, actual, sample_collection)
+                self._add_sample_to_collection(prediction, actual, sample_collection)
                 prev_prediction = prediction
             prev_actual = actual
         return sample_collection
@@ -180,7 +181,7 @@ class StationMachineLearning:  # pylint: disable=too-many-instance-attributes
         data = self._collect_data()
 
         # iterate through the data, creating a regression model for each variable
-        # and each our.
+        # and each hour.
         for sample_key, wrapper_key in zip(SAMPLE_VALUE_KEYS, RegressionModels.keys):
             sample = getattr(data, sample_key)
             for hour in sample.hours():
