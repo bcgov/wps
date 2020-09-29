@@ -46,7 +46,7 @@ def construct_interpolated_noon_prediction(prediction_a: ModelRunGridSubsetPredi
                                            prediction_b: ModelRunGridSubsetPrediction):
     """ Construct a noon prediction by interpolating.
     """
-    # create a noon prediction.
+    # create a noon prediction. (using utc hour 20, as that is solar noon in B.C.)
     noon_prediction = ModelRunGridSubsetPrediction()
     noon_prediction.prediction_timestamp = prediction_a.prediction_timestamp.replace(
         hour=20)

@@ -28,7 +28,7 @@ class LinearRegressionWrapper:
 
     def __init__(self):
         self.model = LinearRegression()
-        self.good_model = False
+        self.good_model = False  # Flag if regression model is "good" (usable).
 
 
 class RegressionModels:
@@ -36,9 +36,11 @@ class RegressionModels:
     For each different reading, we have a seperate LinearRegression model.
     """
 
+    keys = ('temperature_wrapper', 'relative_humidity_wrapper')
+
     def __init__(self):
-        self.temperature = LinearRegressionWrapper()
-        self.relative_humidity = LinearRegressionWrapper()
+        self.temperature_wrapper = LinearRegressionWrapper()
+        self.relative_humidity_wrapper = LinearRegressionWrapper()
 
 
 class Samples:
@@ -179,10 +181,10 @@ class StationMachineLearning:  # pylint: disable=too-many-instance-attributes
 
         # iterate through the data, creating a regression model for each variable
         # and each our.
-        for key in SAMPLE_VALUE_KEYS:
-            sample = getattr(data, key)
+        for sample_key, wrapper_key in zip(SAMPLE_VALUE_KEYS, RegressionModels.keys):
+            sample = getattr(data, sample_key)
             for hour in sample.hours():
-                regression_model = getattr(self.regression_models[hour], key)
+                regression_model = getattr(self.regression_models[hour], wrapper_key)
                 regression_model.model.fit(sample.np_x(hour), sample.np_y(hour))
                 # NOTE: We could get fancy here, and evaluate how good the regression actually worked,
                 # how much sample data we actually had etc., and then not mark the model as being "good".
@@ -196,8 +198,8 @@ class StationMachineLearning:  # pylint: disable=too-many-instance-attributes
         : return: The bias adjusted temperature as predicted by the linear regression model.
         """
         hour = timestamp.hour
-        if self.regression_models[hour].temperature.good_model:
-            return self.regression_models[hour].temperature.model.predict([[model_temperature]])[0]
+        if self.regression_models[hour].temperature_wrapper.good_model:
+            return self.regression_models[hour].temperature_wrapper.model.predict([[model_temperature]])[0]
         return None
 
     def predict_rh(self, model_rh: float, timestamp: datetime):
@@ -207,6 +209,6 @@ class StationMachineLearning:  # pylint: disable=too-many-instance-attributes
         : return: The bias adjusted RH as predicted by the linear regression model.
         """
         hour = timestamp.hour
-        if self.regression_models[hour].relative_humidity.good_model:
-            return self.regression_models[hour].relative_humidity.model.predict([[model_rh]])[0]
+        if self.regression_models[hour].relative_humidity_wrapper.good_model:
+            return self.regression_models[hour].relative_humidity_wrapper.model.predict([[model_rh]])[0]
         return None
