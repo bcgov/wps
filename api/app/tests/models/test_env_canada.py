@@ -15,7 +15,8 @@ import app.db.database
 from app.schemas import WeatherStation, Season
 from app.models import env_canada, machine_learning
 from app.db.models import (PredictionModel, ProcessedModelRunUrl, PredictionModelRunTimestamp,
-                           PredictionModelGridSubset, ModelRunGridSubsetPrediction, HourlyActual)
+                           PredictionModelGridSubset, ModelRunGridSubsetPrediction)
+from app.tests.models.crud import get_actuals_outer_join_with_predictions
 # pylint: disable=unused-argument, redefined-outer-name
 
 
@@ -70,65 +71,8 @@ def mock_get_model_run_predictions_for_grid(monkeypatch):
 @pytest.fixture()
 def mock_get_actuals_outer_join_with_predictions(monkeypatch):
     """ Mock out call to DB returning actuals macthed with predictions """
-    def mock_get(*args):
-        result = [
-            # day 1
-            [HourlyActual(
-                weather_date=datetime(2020, 10, 10, 18),
-                temperature=20,
-                temp_valid=True,
-                relative_humidity=50,
-                rh_valid=True),
-             ModelRunGridSubsetPrediction(
-                tmp_tgl_2=[2, 3, 4, 5],
-                rh_tgl_2=[10, 20, 30, 40],
-                prediction_timestamp=datetime(2020, 10, 10, 18))],
-            [HourlyActual(weather_date=datetime(2020, 10, 10, 19)), None],
-            [HourlyActual(weather_date=datetime(2020, 10, 10, 20),
-                          temperature=25,
-                          temp_valid=True,
-                          relative_humidity=70,
-                          rh_valid=True), None],
-            [HourlyActual(
-                weather_date=datetime(2020, 10, 10, 21),
-                temperature=30,
-                temp_valid=True,
-                relative_humidity=100,
-                rh_valid=True),
-             ModelRunGridSubsetPrediction(
-                tmp_tgl_2=[1, 2, 3, 4],
-                rh_tgl_2=[20, 30, 40, 50],
-                prediction_timestamp=datetime(2020, 10, 10, 21))],
-            # day 2
-            [HourlyActual(
-                weather_date=datetime(2020, 10, 11, 18),
-                temperature=20,
-                temp_valid=True,
-                relative_humidity=50,
-                rh_valid=True),
-             ModelRunGridSubsetPrediction(
-                tmp_tgl_2=[2, 3, 4, 5],
-                rh_tgl_2=[10, 20, 30, 40],
-                prediction_timestamp=datetime(2020, 10, 11, 18))],
-            [HourlyActual(weather_date=datetime(2020, 10, 11, 19)), None],
-            [HourlyActual(weather_date=datetime(2020, 10, 11, 20),
-                          temperature=27,
-                          temp_valid=True,
-                          relative_humidity=60,
-                          rh_valid=True), None],
-            [HourlyActual(
-                weather_date=datetime(2020, 10, 11, 21),
-                temperature=30,
-                temp_valid=True,
-                relative_humidity=100,
-                rh_valid=True),
-             ModelRunGridSubsetPrediction(
-                tmp_tgl_2=[1, 2, 3, 4],
-                rh_tgl_2=[20, 30, 40, 50],
-                prediction_timestamp=datetime(2020, 10, 11, 21))]
-        ]
-        return result
-    monkeypatch.setattr(machine_learning, 'get_actuals_outer_join_with_predictions', mock_get)
+    monkeypatch.setattr(machine_learning, 'get_actuals_outer_join_with_predictions',
+                        get_actuals_outer_join_with_predictions)
 
 
 @pytest.fixture()
