@@ -7,7 +7,6 @@ TODO: Move this file to app/models/ (not part of this PR as it makes comparing p
 import os
 import sys
 import datetime
-import asyncio
 from typing import Generator, List
 from urllib.parse import urlparse
 import logging
@@ -19,11 +18,12 @@ from geoalchemy2.shape import to_shape
 from sqlalchemy.orm import Session
 from app import configure_logging
 import app.time_utils as time_utils
-import app.stations
+from app.stations import get_stations_synchronously
 from app.models.process_grib import GribFileProcessor, ModelRunInfo
 from app.db.models import (ProcessedModelRunUrl, PredictionModelRunTimestamp,
                            WeatherStationModelPrediction, ModelRunGridSubsetPrediction)
 import app.db.database
+from app.schemas import WeatherStation
 from app.models import ModelEnum, construct_interpolated_noon_prediction
 from app.models.machine_learning import StationMachineLearning
 from app.db.crud import (get_processed_file_record,
@@ -309,9 +309,7 @@ class ModelValueProcessor:
     def __init__(self):
         """ Prepare variables we're going to use throughout """
         self.session = app.db.database.get_write_session()
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        self.stations = loop.run_until_complete(app.stations.get_stations())
+        self.stations = get_stations_synchronously()
         self.station_count = len(self.stations)
 
     def _process_model_run(self, model_run: PredictionModelRunTimestamp):
@@ -322,7 +320,7 @@ class ModelValueProcessor:
             logger.info('Interpolating model run %s (%s/%s) for %s:%s',
                         model_run.id,
                         index, self.station_count,
-                        station['code'], station['name'])
+                        station.code, station.name)
             # Process this model run for station.
             self._process_model_run_for_station(model_run, station)
         # Commit all the weather station model predictions (it's fast if we line them all up and commit
@@ -333,18 +331,18 @@ class ModelValueProcessor:
 
     def _process_prediction(self,  # pylint: disable=too-many-arguments
                             prediction: ModelRunGridSubsetPrediction,
-                            station: dict,
+                            station: WeatherStation,
                             model_run: PredictionModelRunTimestamp,
                             points: List,
                             coordinate: List,
                             machine: StationMachineLearning):
         # If there's already a prediction, we want to update it
         station_prediction = get_weather_station_model_prediction(
-            self.session, station['code'], model_run.id, prediction.prediction_timestamp)
+            self.session, station.code, model_run.id, prediction.prediction_timestamp)
         if station_prediction is None:
             station_prediction = WeatherStationModelPrediction()
         # Populate the weather station prediction object.
-        station_prediction.station_code = station['code']
+        station_prediction.station_code = station.code
         station_prediction.prediction_model_run_timestamp_id = model_run.id
         station_prediction.prediction_timestamp = prediction.prediction_timestamp
         # Caclulate the interpolated values.
@@ -366,11 +364,11 @@ class ModelValueProcessor:
 
     def _process_model_run_for_station(self,
                                        model_run: PredictionModelRunTimestamp,
-                                       station: dict):
+                                       station: WeatherStation):
         """ Process the model run for the prodvided station.
         """
         # Extract the coordinate.
-        coordinate = [station['long'], station['lat']]
+        coordinate = [station.long, station.lat]
         # Lookup the grid our weather station is in.
         grid = get_grid_for_coordinate(
             self.session, model_run.prediction_model, coordinate)
@@ -386,7 +384,7 @@ class ModelValueProcessor:
             grid=grid,
             points=points,
             target_coordinate=coordinate,
-            station_code=station['code'],
+            station_code=station.code,
             max_learn_date=model_run.prediction_run_timestamp)
         machine.learn()
 

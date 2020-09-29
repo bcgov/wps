@@ -4,17 +4,18 @@ import os
 import logging
 import datetime
 from datetime import datetime
-import app.time_utils as time_utils
-import app.db.database
 import pytest
 import requests
 import shapely.wkt
 from geoalchemy2.shape import from_shape
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
-from app.models import env_canada
+import app.time_utils as time_utils
+import app.db.database
+from app.schemas import WeatherStation, Season
+from app.models import env_canada, machine_learning
 from app.db.models import (PredictionModel, ProcessedModelRunUrl, PredictionModelRunTimestamp,
-                           PredictionModelGridSubset, ModelRunGridSubsetPrediction)
+                           PredictionModelGridSubset, ModelRunGridSubsetPrediction, HourlyActual)
 # pylint: disable=unused-argument, redefined-outer-name
 
 
@@ -27,6 +28,17 @@ class MockResponse:
     def __init__(self, status_code, content=None):
         self.status_code = status_code
         self.content = content
+
+
+@pytest.fixture()
+def mock_get_stations(monkeypatch):
+    """ Mocked out listing of weather stations """
+    def mock_get(*args):
+        return [WeatherStation(
+            code=123, name='Test', lat=50.7, long=-120.425, ecodivision_name='Test',
+            core_season=Season(
+                start_month=5, start_day=1, end_month=9, end_day=21)), ]
+    monkeypatch.setattr(env_canada, 'get_stations_synchronously', mock_get)
 
 
 @pytest.fixture()
@@ -53,6 +65,70 @@ def mock_get_model_run_predictions_for_grid(monkeypatch):
         ]
         return result
     monkeypatch.setattr(env_canada, 'get_model_run_predictions_for_grid', mock_get)
+
+
+@pytest.fixture()
+def mock_get_actuals_outer_join_with_predictions(monkeypatch):
+    """ Mock out call to DB returning actuals macthed with predictions """
+    def mock_get(*args):
+        result = [
+            # day 1
+            [HourlyActual(
+                weather_date=datetime(2020, 10, 10, 18),
+                temperature=20,
+                temp_valid=True,
+                relative_humidity=50,
+                rh_valid=True),
+             ModelRunGridSubsetPrediction(
+                tmp_tgl_2=[2, 3, 4, 5],
+                rh_tgl_2=[10, 20, 30, 40],
+                prediction_timestamp=datetime(2020, 10, 10, 18))],
+            [HourlyActual(weather_date=datetime(2020, 10, 10, 19)), None],
+            [HourlyActual(weather_date=datetime(2020, 10, 10, 20),
+                          temperature=25,
+                          temp_valid=True,
+                          relative_humidity=70,
+                          rh_valid=True), None],
+            [HourlyActual(
+                weather_date=datetime(2020, 10, 10, 21),
+                temperature=30,
+                temp_valid=True,
+                relative_humidity=100,
+                rh_valid=True),
+             ModelRunGridSubsetPrediction(
+                tmp_tgl_2=[1, 2, 3, 4],
+                rh_tgl_2=[20, 30, 40, 50],
+                prediction_timestamp=datetime(2020, 10, 10, 21))],
+            # day 2
+            [HourlyActual(
+                weather_date=datetime(2020, 10, 11, 18),
+                temperature=20,
+                temp_valid=True,
+                relative_humidity=50,
+                rh_valid=True),
+             ModelRunGridSubsetPrediction(
+                tmp_tgl_2=[2, 3, 4, 5],
+                rh_tgl_2=[10, 20, 30, 40],
+                prediction_timestamp=datetime(2020, 10, 11, 18))],
+            [HourlyActual(weather_date=datetime(2020, 10, 11, 19)), None],
+            [HourlyActual(weather_date=datetime(2020, 10, 11, 20),
+                          temperature=27,
+                          temp_valid=True,
+                          relative_humidity=60,
+                          rh_valid=True), None],
+            [HourlyActual(
+                weather_date=datetime(2020, 10, 11, 21),
+                temperature=30,
+                temp_valid=True,
+                relative_humidity=100,
+                rh_valid=True),
+             ModelRunGridSubsetPrediction(
+                tmp_tgl_2=[1, 2, 3, 4],
+                rh_tgl_2=[20, 30, 40, 50],
+                prediction_timestamp=datetime(2020, 10, 11, 21))]
+        ]
+        return result
+    monkeypatch.setattr(machine_learning, 'get_actuals_outer_join_with_predictions', mock_get)
 
 
 @pytest.fixture()
@@ -140,7 +216,9 @@ def test_get_download_urls():
 def test_main(mock_download,
               mock_session,
               mock_get_processed_file_count,
-              mock_get_model_run_predictions_for_grid):
+              mock_get_model_run_predictions_for_grid,
+              mock_get_actuals_outer_join_with_predictions,
+              mock_get_stations):
     """ run main method to see if it runs successfully. """
     # All files, except one, are marked as already having been downloaded, so we expect one file to
     # be processed.
