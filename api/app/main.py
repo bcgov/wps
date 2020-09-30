@@ -163,7 +163,7 @@ async def get_most_recent_historic_model_values(
 @api.post('/models/{model}/predictions/most_recent/',
           response_model=schemas.WeatherStationsModelRunsPredictionsResponse)
 async def get_most_recent_model_values(
-        model: ModelEnum, request: schemas.StationCodeList):
+        model: ModelEnum, request: schemas.StationCodeList, _: bool = Depends(authenticate)):
     """ Returns the weather values for the last model prediction that was issued
     for the station before actual weather readings became available.
     """
