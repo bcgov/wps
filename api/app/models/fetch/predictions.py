@@ -205,11 +205,8 @@ async def fetch_model_run_predictions_by_station_code(
     """ Fetch model predictions from database based on list of station code, up to the specified end_date.
     Predictions are grouped by station and model run.
     """
-    stations = {station.code: station for station in await app.stations.get_stations_by_codes(station_codes)}
-
     # We're only interested in the last 5 days.
-    now = app.time_utils.get_utc_now()
-    five_days_ago = now - datetime.timedelta(days=5)
+    five_days_ago = app.time_utils.get_utc_now() - datetime.timedelta(days=5)
     # send the query (ordered by prediction date.)
     session = app.db.database.get_read_session()
     historic_predictions = app.db.crud.get_historic_station_model_predictions(
@@ -218,8 +215,10 @@ async def fetch_model_run_predictions_by_station_code(
     # Helper dictionary.
     station_predictions = defaultdict(dict)
 
+    # NOTE: The query could be optimized to only return the latest predictions.
     for prediction, prediction_model_run_timestamp, prediction_model in historic_predictions:
-        # As we iterate through predictions, only the most recent prediction will be retained.
+        # As we iterate through predictions, only the most recent prediction will be retained due
+        # to the ordering of the results.
         station_predictions[prediction.station_code][prediction.prediction_timestamp] = {
             'model_run': WeatherModelRun(
                 datetime=prediction_model_run_timestamp.prediction_run_timestamp,
@@ -235,6 +234,8 @@ async def fetch_model_run_predictions_by_station_code(
         }
 
     # Re-structure the data, grouping data by station and model run.
+    # NOTE: It means looping through twice, but the code reads easier this way.
+    stations = {station.code: station for station in await app.stations.get_stations_by_codes(station_codes)}
     response = []
     for station_code, predictions in station_predictions.items():
         model_run_dict = {}
@@ -260,7 +261,11 @@ async def fetch_model_run_predictions_by_station_code(
 
 async def fetch_predictions_by_station_code(
         model: ModelEnum, station_codes: List[int], end_date: datetime) -> List[WeatherModelPrediction]:
-    """ Fetch model predictions from database based on list of station code, up to the specified end_date. """
+    """ Fetch model predictions from database based on list of station code, up to the specified end_date.
+
+    NOTE: This function is redundant, fetch_model_run_predictions_by_station_code can be used to 
+    replace it.
+    """
     stations = {station.code: station for station in await app.stations.get_stations_by_codes(station_codes)}
 
     # construct helper dictionary of WeatherModelPredictions
