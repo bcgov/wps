@@ -220,7 +220,7 @@ def get_historic_station_model_predictions(
                PredictionModel.abbreviation == model).\
         order_by(WeatherStationModelPrediction.station_code).\
         order_by(WeatherStationModelPrediction.prediction_timestamp).\
-        order_by(PredictionModelRunTimestamp.prediction_run_timestamp.desc())
+        order_by(PredictionModelRunTimestamp.prediction_run_timestamp.asc())
 
     return query
 

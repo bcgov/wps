@@ -140,6 +140,24 @@ class WeatherModelPredictionResponse(BaseModel):
     predictions: List[WeatherModelPrediction]
 
 
+class ModelRunPredictions(BaseModel):
+    """ Predictions for a model run """
+    model_run: WeatherModelRun = None
+    values: List[WeatherModelPredictionValues] = []
+
+
+class WeatherStationModelRunsPredictions(BaseModel):
+    """ Weather model run and predictions for a station. """
+    station: WeatherStation
+    model_runs: List[ModelRunPredictions]
+
+
+class WeatherStationsModelRunsPredictionsResponse(BaseModel):
+    """ Response containing a number of weather predictions for a number of weather model runs for a number
+    of stations."""
+    stations: List[WeatherStationModelRunsPredictions]
+
+
 class WeatherStationHourlyReadingsResponse(BaseModel):
     """ Response containing a number of hourly readings. """
     hourlies: List[WeatherStationHourlyReadings]

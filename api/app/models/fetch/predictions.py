@@ -10,7 +10,10 @@ from scipy.interpolate import griddata, interp1d
 from geoalchemy2.shape import to_shape
 import app.db.database
 from app.schemas import (WeatherStation, WeatherModelPrediction,
-                         WeatherModelPredictionValues, WeatherModelRun)
+                         WeatherModelPredictionValues, WeatherModelRun,
+                         ModelRunPredictions,
+                         WeatherStationsModelRunsPredictionsResponse,
+                         WeatherStationModelRunsPredictions)
 from app.db.models import ModelRunGridSubsetPrediction
 import app.db.crud
 import app.stations
@@ -193,6 +196,66 @@ async def fetch_model_predictions(model: ModelEnum, station_codes: List[int]):
     """ Fetch model weather predictions for a given list of stations and a given model. """
     # Fetch predictions from the database.
     return await _fetch_model_predictions_by_station_codes(model, station_codes)
+
+
+async def fetch_model_run_predictions_by_station_code(
+        model: ModelEnum,
+        station_codes: List[int],
+        end_date: datetime) -> List[WeatherStationModelRunsPredictions]:
+    """ Fetch model predictions from database based on list of station code, up to the specified end_date.
+    Predictions are grouped by station and model run.
+    """
+    stations = {station.code: station for station in await app.stations.get_stations_by_codes(station_codes)}
+
+    # We're only interested in the last 5 days.
+    now = app.time_utils.get_utc_now()
+    five_days_ago = now - datetime.timedelta(days=5)
+    # send the query (ordered by prediction date.)
+    session = app.db.database.get_read_session()
+    historic_predictions = app.db.crud.get_historic_station_model_predictions(
+        session, station_codes, model, five_days_ago, end_date)
+
+    # Helper dictionary.
+    station_predictions = defaultdict(dict)
+
+    for prediction, prediction_model_run_timestamp, prediction_model in historic_predictions:
+        # As we iterate through predictions, only the most recent prediction will be retained.
+        station_predictions[prediction.station_code][prediction.prediction_timestamp] = {
+            'model_run': WeatherModelRun(
+                datetime=prediction_model_run_timestamp.prediction_run_timestamp,
+                name=prediction_model.name,
+                abbreviation=model,
+                projection=prediction_model.projection),
+            'prediction': WeatherModelPredictionValues(
+                temperature=prediction.tmp_tgl_2,
+                bias_adjusted_temperature=prediction.bias_adjusted_temperature,
+                relative_humidity=prediction.rh_tgl_2,
+                bias_adjusted_relative_humidity=prediction.bias_adjusted_rh,
+                datetime=prediction.prediction_timestamp)
+        }
+
+    # Re-structure the data, grouping data by station and model run.
+    response = []
+    for station_code, predictions in station_predictions.items():
+        model_run_dict = {}
+        for prediction in predictions.values():
+
+            if prediction['model_run'].datetime in model_run_dict:
+                model_run_predictions = model_run_dict[prediction['model_run'].datetime]
+            else:
+                model_run_predictions = ModelRunPredictions(
+                    model_run=prediction['model_run'],
+                    values=[]
+                )
+                model_run_dict[prediction['model_run'].datetime] = model_run_predictions
+            model_run_predictions.values.append(prediction['prediction'])
+
+        response.append(WeatherStationModelRunsPredictions(
+            station=stations[station_code],
+            model_runs=list(model_run_dict.values())
+        ))
+
+    return response
 
 
 async def fetch_predictions_by_station_code(
