@@ -46,6 +46,8 @@ def _parse_csv(temp_path: str):
     with open(temp_path, 'r') as csv_file:
         data_df = pd.read_csv(csv_file)
     station_codes = get_station_names_to_codes()
+    # drop any rows where 'display_name' is not found in the station_codes lookup:
+    data_df.drop(index=data_df[~data_df['display_name'].isin(station_codes.keys())].index, inplace=True)
     # replace 'display_name' column (station name) in df with station_id
     # and rename the column appropriately
     data_df['display_name'].replace(station_codes, inplace=True)
