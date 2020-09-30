@@ -6,19 +6,22 @@ Feature: Authentication
         And I will see an error <message>
 
         Examples:
-            | token        | status | message                                                 | endpoint                                |
-            | Basic token  | 401    | Not authenticated                                       | /api/models/GDPS/predictions/           |
-            | just_token   | 401    | Not authenticated                                       | /api/models/GDPS/predictions/           |
-            | Bearer token | 401    | Could not validate the credential (Not enough segments) | /api/models/GDPS/predictions/           |
-            | Basic token  | 401    | Not authenticated                                       | /api/models/GDPS/predictions/summaries/ |
-            | just_token   | 401    | Not authenticated                                       | /api/models/GDPS/predictions/summaries/ |
-            | Bearer token | 401    | Could not validate the credential (Not enough segments) | /api/models/GDPS/predictions/summaries/ |
+            | token        | status | message                                                 | endpoint                                  |
+            | Basic token  | 401    | Not authenticated                                       | /api/models/GDPS/predictions/             |
+            | just_token   | 401    | Not authenticated                                       | /api/models/GDPS/predictions/             |
+            | Bearer token | 401    | Could not validate the credential (Not enough segments) | /api/models/GDPS/predictions/             |
+            | Basic token  | 401    | Not authenticated                                       | /api/models/GDPS/predictions/summaries/   |
+            | just_token   | 401    | Not authenticated                                       | /api/models/GDPS/predictions/summaries/   |
+            | Bearer token | 401    | Could not validate the credential (Not enough segments) | /api/models/GDPS/predictions/summaries/   |
+            | just_token   | 401    | Not authenticated                                       | /api/models/GDPS/predictions/most_recent/ |
+            | Bearer token | 401    | Could not validate the credential (Not enough segments) | /api/models/GDPS/predictions/most_recent/ |
 
     Scenario: Verifying authenticated users
         Given I am an authenticated user when I access a protected <endpoint>
         Then I shouldn't get an unauthorized error <status> code
 
         Examples:
-            | status | endpoint                                |
-            | 200    | /api/models/GDPS/predictions/           |
-            | 200    | /api/models/GDPS/predictions/summaries/ |
+            | status | endpoint                                  |
+            | 200    | /api/models/GDPS/predictions/             |
+            | 200    | /api/models/GDPS/predictions/summaries/   |
+            | 200    | /api/models/GDPS/predictions/most_recent/ |
