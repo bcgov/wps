@@ -294,7 +294,7 @@ def get_hourly_actuals(
     return query
 
 
-def get_actuals_outer_join_with_predictions(  # pylint: disable=too-many-arguments
+def get_actuals_left_outer_join_with_predictions(  # pylint: disable=too-many-arguments
         session: Session, model_id: int, grid_id: int, station_code: int,
         start_date: datetime, end_date: datetime):
     """

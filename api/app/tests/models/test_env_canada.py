@@ -16,7 +16,7 @@ from app.schemas import WeatherStation, Season
 from app.models import env_canada, machine_learning
 from app.db.models import (PredictionModel, ProcessedModelRunUrl, PredictionModelRunTimestamp,
                            PredictionModelGridSubset, ModelRunGridSubsetPrediction)
-from app.tests.models.crud import get_actuals_outer_join_with_predictions
+from app.tests.models.crud import get_actuals_left_outer_join_with_predictions
 # pylint: disable=unused-argument, redefined-outer-name
 
 
@@ -65,17 +65,18 @@ def mock_get_model_run_predictions_for_grid(monkeypatch):
                 prediction_timestamp=datetime(2020, 10, 10, 21))
         ]
         return result
-    monkeypatch.setattr(env_canada, 'get_model_run_predictions_for_grid', mock_get)
+    monkeypatch.setattr(
+        env_canada, 'get_model_run_predictions_for_grid', mock_get)
 
 
 @pytest.fixture()
-def mock_get_actuals_outer_join_with_predictions(monkeypatch):
+def mock_get_actuals_left_outer_join_with_predictions(monkeypatch):
     """ Mock out call to DB returning actuals macthed with predictions """
-    monkeypatch.setattr(machine_learning, 'get_actuals_outer_join_with_predictions',
-                        get_actuals_outer_join_with_predictions)
+    monkeypatch.setattr(machine_learning, 'get_actuals_left_outer_join_with_predictions',
+                        get_actuals_left_outer_join_with_predictions)
 
 
-@pytest.fixture()
+@ pytest.fixture()
 def mock_session(monkeypatch):
     """ Mocked out sqlalchemy session object """
     geom = ("POLYGON ((-120.525 50.77500000000001, -120.375 50.77500000000001,-120.375 50.62500000000001,"
@@ -161,7 +162,7 @@ def test_main(mock_download,
               mock_session,
               mock_get_processed_file_count,
               mock_get_model_run_predictions_for_grid,
-              mock_get_actuals_outer_join_with_predictions,
+              mock_get_actuals_left_outer_join_with_predictions,
               mock_get_stations):
     """ run main method to see if it runs successfully. """
     # All files, except one, are marked as already having been downloaded, so we expect one file to

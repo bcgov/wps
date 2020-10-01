@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from app.models import MODEL_VALUE_KEYS, construct_interpolated_noon_prediction
 from app.db.models import (
     PredictionModel, PredictionModelGridSubset, ModelRunGridSubsetPrediction, HourlyActual)
-from app.db.crud import get_actuals_outer_join_with_predictions
+from app.db.crud import get_actuals_left_outer_join_with_predictions
 
 
 logger = getLogger(__name__)
@@ -146,12 +146,14 @@ class StationMachineLearning:  # pylint: disable=too-many-instance-attributes
         """ Collect data to use for machine learning.
         """
         # Calculate the date to start learning from.
-        start_date = self.max_learn_date - timedelta(days=self.max_days_to_learn)
+        start_date = self.max_learn_date - \
+            timedelta(days=self.max_days_to_learn)
         # Create a convenient structure to store samples in.
         sample_collection = SampleCollection()
 
-        # Query actuals, with prediction outer joined (so if there's no prediction, it will be None)
-        query = get_actuals_outer_join_with_predictions(
+        # Query actuals, with prediction left outer joined (so if there isn't a prediction, you'll
+        # get an actual, but prediction will be None)
+        query = get_actuals_left_outer_join_with_predictions(
             self.session, self.model.id, self.grid.id, self.station_code, start_date, self.max_learn_date)
         # We need to keep track of previous so that we can do interpolation for the global model.
         prev_actual = None
@@ -165,11 +167,13 @@ class StationMachineLearning:  # pylint: disable=too-many-instance-attributes
                         and prev_prediction.prediction_timestamp.hour == 18):
                     # If there's a gap in the data (like with the GLOBAL model) - then make up
                     # a noon prediction using interpolation, and add it as a sample.
-                    noon_prediction = construct_interpolated_noon_prediction(prev_prediction, prediction)
+                    noon_prediction = construct_interpolated_noon_prediction(
+                        prev_prediction, prediction)
                     self._add_sample_to_collection(
                         noon_prediction, prev_actual, sample_collection)
 
-                self._add_sample_to_collection(prediction, actual, sample_collection)
+                self._add_sample_to_collection(
+                    prediction, actual, sample_collection)
                 prev_prediction = prediction
             prev_actual = actual
         return sample_collection
@@ -185,8 +189,10 @@ class StationMachineLearning:  # pylint: disable=too-many-instance-attributes
         for sample_key, wrapper_key in zip(SAMPLE_VALUE_KEYS, RegressionModels.keys):
             sample = getattr(data, sample_key)
             for hour in sample.hours():
-                regression_model = getattr(self.regression_models[hour], wrapper_key)
-                regression_model.model.fit(sample.np_x(hour), sample.np_y(hour))
+                regression_model = getattr(
+                    self.regression_models[hour], wrapper_key)
+                regression_model.model.fit(
+                    sample.np_x(hour), sample.np_y(hour))
                 # NOTE: We could get fancy here, and evaluate how good the regression actually worked,
                 # how much sample data we actually had etc., and then not mark the model as being "good".
                 regression_model.good_model = True

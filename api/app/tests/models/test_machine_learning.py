@@ -7,14 +7,14 @@ import pytest
 from pytest_bdd import scenario, given, then, when
 from app.db.models import PredictionModel, PredictionModelGridSubset
 from app.models import machine_learning
-from app.tests.models.crud import get_actuals_outer_join_with_predictions
+from app.tests.models.crud import get_actuals_left_outer_join_with_predictions
 
 
 @pytest.fixture()
-def mock_get_actuals_outer_join_with_predictions(monkeypatch):
+def mock_get_actuals_left_outer_join_with_predictions(monkeypatch):
     """ Mock out call to DB returning actuals macthed with predictions """
-    monkeypatch.setattr(machine_learning, 'get_actuals_outer_join_with_predictions',
-                        get_actuals_outer_join_with_predictions)
+    monkeypatch.setattr(machine_learning, 'get_actuals_left_outer_join_with_predictions',
+                        get_actuals_left_outer_join_with_predictions)
 
 
 @scenario("test_machine_learning.feature", "Learn weather",
@@ -23,7 +23,8 @@ def mock_get_actuals_outer_join_with_predictions(monkeypatch):
                                   model_temp=float,
                                   model_rh=float,
                                   timestamp=datetime.fromisoformat,
-                                  bias_adjusted_temp=lambda value: None if value == 'None' else float(value),
+                                  bias_adjusted_temp=lambda value: None if value == 'None' else float(
+                                      value),
                                   bias_adjusted_rh=lambda value: None if value == 'None' else float(value)))
 def test_machine_learning():
     """ BDD Scenario for predictions """
@@ -45,7 +46,7 @@ def given_an_instance(coordinate: List, points: List):
 
 @ when('The machine learns')
 def learn(given_an_instance: machine_learning.StationMachineLearning,
-          mock_get_actuals_outer_join_with_predictions: List):
+          mock_get_actuals_left_outer_join_with_predictions: List):
     """ Train the machine learning model """
     given_an_instance.learn()
 # pylint: enable=redefined-outer-name

@@ -4,8 +4,8 @@ from datetime import datetime
 from app.db.models import HourlyActual, ModelRunGridSubsetPrediction
 
 
-def get_actuals_outer_join_with_predictions(*args):  # pylint: disable=unused-argument
-    """ Fixed response as replacement for app.db.crud.get_actuals_outer_join_with_predictions
+def get_actuals_left_outer_join_with_predictions(*args):  # pylint: disable=unused-argument
+    """ Fixed response as replacement for app.db.crud.get_actuals_left_outer_join_with_predictions
     """
     result = [
         # day 1

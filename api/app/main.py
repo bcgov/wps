@@ -246,5 +246,8 @@ async def get_percentiles(request: schemas.PercentileRequest):
 
 
 if __name__ == "__main__":
+    # This section of code is for the convenience of developers only. Having this section of code, allows
+    # for developers to easily debug the application by running main.py and attaching to it with a debugger.
+    # uvicorn is imported in this scope only, as it's not required when the application is run in production.
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8080)
