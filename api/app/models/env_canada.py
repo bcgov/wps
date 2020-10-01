@@ -345,7 +345,7 @@ class ModelValueProcessor:
         station_prediction.station_code = station.code
         station_prediction.prediction_model_run_timestamp_id = model_run.id
         station_prediction.prediction_timestamp = prediction.prediction_timestamp
-        # Caclulate the interpolated values.
+        # Calculate the interpolated values.
         station_prediction.tmp_tgl_2 = griddata(
             points, prediction.tmp_tgl_2, coordinate, method='linear')[0]
         station_prediction.rh_tgl_2 = griddata(
@@ -398,7 +398,8 @@ class ModelValueProcessor:
             if (prev_prediction is not None
                     and prev_prediction.prediction_timestamp.hour == 18
                     and prediction.prediction_timestamp.hour == 21):
-                noon_prediction = construct_interpolated_noon_prediction(prev_prediction, prediction)
+                noon_prediction = construct_interpolated_noon_prediction(
+                    prev_prediction, prediction)
                 self._process_prediction(
                     noon_prediction, station, model_run, points, coordinate, machine)
             self._process_prediction(
