@@ -168,7 +168,7 @@ async def get_most_recent_model_values(
     for the station before actual weather readings became available.
     """
     try:
-        logger.info('/models/%s/predictions/historic/most_recent/', model.name)
+        logger.info('/models/%s/predictions/most_recent/', model.name)
         end_date = time_utils.get_utc_now() + datetime.timedelta(days=10)
         station_predictions = await fetch_model_run_predictions_by_station_code(
             model, request.stations, end_date)
