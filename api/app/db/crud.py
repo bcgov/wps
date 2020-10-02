@@ -268,6 +268,12 @@ def query_noon_forecast_records(session: Session,
         .order_by(desc(NoonForecast.created_at))
 
 
+def save_noon_forecast(session: Session, noon_forecast: NoonForecast):
+    """ Abstraction for writing NoonForecast to database. """
+    session.add(noon_forecast)
+    session.commit()
+
+
 def get_hourly_actuals(session: Session, station_codes: List[int], start_date: datetime):
     """ Query for hourly actuals for given stations, from stated start_date onwards. """
     return session.query(HourlyActual)\
@@ -275,6 +281,12 @@ def get_hourly_actuals(session: Session, station_codes: List[int], start_date: d
         .filter(HourlyActual.weather_date >= start_date)\
         .order_by(HourlyActual.station_code)\
         .order_by(HourlyActual.weather_date)
+
+
+def save_hourly_actual(session: Session, hourly_actual: HourlyActual):
+    """ Abstraction for writing HourlyActual to database. """
+    session.add(hourly_actual)
+    session.commit()
 
 
 def get_weather_station_model_prediction(session: Session,
