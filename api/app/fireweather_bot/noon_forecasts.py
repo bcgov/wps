@@ -9,6 +9,7 @@ from sqlalchemy.exc import IntegrityError
 import pandas as pd
 from app import config, configure_logging
 import app.db.database
+from app.db.crud import save_noon_forecast
 from app.db.models import NoonForecast
 from app.fireweather_bot.common import BaseBot, get_station_names_to_codes
 import app.time_utils
@@ -80,8 +81,7 @@ def _parse_csv(temp_path: str):
             # We need to ensure that the timezone is set correctly.
             data['weather_date'] = data['weather_date'].to_pydatetime().replace(
                 tzinfo=timezone.utc)
-            session.add(NoonForecast(**data))
-            session.commit()
+            save_noon_forecast(session, NoonForecast(**data))
         except IntegrityError:
             LOGGER.info('Skipping duplicate record')
             session.rollback()
