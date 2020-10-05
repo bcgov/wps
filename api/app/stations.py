@@ -1,6 +1,7 @@
 """ Get stations (from wildfire one, or local - depending on configuration.)
 """
 import os
+import asyncio
 import logging
 from typing import List
 import json
@@ -14,13 +15,16 @@ weather_stations_file_path = os.path.join(
     dirname, 'data/weather_stations.json')
 
 
-def _get_stations_local() -> List[dict]:
+def _get_stations_local() -> List[WeatherStation]:
     """ Get list of stations from local json files.
     """
     logger.info('Using pre-generated json to retrieve station list')
     with open(weather_stations_file_path) as weather_stations_file:
         json_data = json.load(weather_stations_file)
-        return json_data['weather_stations']
+        results = []
+        for station in json_data['weather_stations']:
+            results.append(WeatherStation(**station))
+        return results
 
 
 def _get_stations_by_codes_local(station_codes: List[int]) -> List[WeatherStation]:
@@ -49,3 +53,11 @@ async def get_stations() -> List[WeatherStation]:
     if wildfire_one.use_wfwx():
         return await wildfire_one.get_stations()
     return _get_stations_local()
+
+
+def get_stations_synchronously() -> List[WeatherStation]:
+    """ Get list of stations - in a synchronous/blocking call.
+    """
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    return loop.run_until_complete(get_stations())

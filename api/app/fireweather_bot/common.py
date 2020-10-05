@@ -4,14 +4,13 @@ from abc import ABC, abstractmethod
 import logging
 import re
 import os
-import asyncio
 from tempfile import TemporaryDirectory
 from urllib.parse import urljoin
 from pathlib import PurePath
 from requests import Session, HTTPError
 from requests_ntlm import HttpNtlmAuth
 from app import config
-from app.stations import get_stations
+from app.stations import get_stations_synchronously
 
 
 BC_FIRE_WEATHER_BASE_URL = 'https://bcfireweatherp1.nrs.gov.bc.ca'
@@ -82,11 +81,9 @@ def get_station_names_to_codes() -> dict:
     """ Helper function to create dictionary of (station_name: station_code) key-value pairs
     Is used when replacing station names with station IDs in dataframe
     """
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    station_data = loop.run_until_complete(get_stations())
+    stations = get_stations_synchronously()
     station_codes = {
-        station['name']: station['code'] for station in station_data
+        station.name: station.code for station in stations
     }
     # have to hack this, because BC FireWeather API spells a certain station 'DARCY'
     # while our weather_stations.json spells the station 'D'ARCY'
