@@ -14,7 +14,7 @@ from app.schemas import (WeatherStation, WeatherModelPrediction,
 from app.db.models import ModelRunGridSubsetPrediction
 import app.db.crud
 import app.stations
-from app.models import ModelEnum
+from app.models import ModelEnum, ProjectionEnum
 from app.models.fetch import extract_stations_in_polygon
 
 logger = logging.getLogger(__name__)
@@ -121,12 +121,13 @@ def _add_model_prediction_record_to_prediction_schema(prediction_schema: Weather
 def _fetch_model_predictions_by_stations(
         session,
         model: ModelEnum,
+        projection: ProjectionEnum,
         stations: List[WeatherStation]) -> List[WeatherModelPrediction]:
     """ Fetch predictions for stations. """
     # pylint: disable=too-many-locals
     # Get the most recent model run:
     most_recent_run = app.db.crud.get_most_recent_model_run(
-        session, model, app.db.crud.LATLON_15X_15)
+        session, model, projection)
     logger.info(
         'most recent run: %s', most_recent_run.prediction_run_timestamp)
     # Get the predictions:
@@ -176,7 +177,7 @@ def _fetch_model_predictions_by_stations(
     return predictions
 
 
-async def _fetch_model_predictions_by_station_codes(model: ModelEnum, station_codes: List[int]):
+async def _fetch_model_predictions_by_station_codes(model: ModelEnum, projection: ProjectionEnum, station_codes: List[int]):
     """ Fetch predictions from database.
     """
     # Using the list of station codes, fetch the stations:
@@ -184,15 +185,15 @@ async def _fetch_model_predictions_by_station_codes(model: ModelEnum, station_co
     session = app.db.database.get_read_session()
     # Fetch the all the predictions.
     predictions = _fetch_model_predictions_by_stations(
-        session, model, stations)
+        session, model, projection, stations)
 
     return predictions
 
 
-async def fetch_model_predictions(model: ModelEnum, station_codes: List[int]):
+async def fetch_model_predictions(model: ModelEnum, projection: ProjectionEnum, station_codes: List[int]):
     """ Fetch model weather predictions for a given list of stations and a given model. """
     # Fetch predictions from the database.
-    return await _fetch_model_predictions_by_station_codes(model, station_codes)
+    return await _fetch_model_predictions_by_station_codes(model, projection, station_codes)
 
 
 async def _fetch_most_recent_historic_predictions_by_station_codes(

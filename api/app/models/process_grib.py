@@ -10,6 +10,7 @@ from typing import List
 from sqlalchemy.dialects.postgresql import array
 import sqlalchemy.exc
 import gdal
+from pyproj import CRS, Transformer
 import app.db.database
 from app.stations import get_stations
 from app.db.models import (
@@ -46,7 +47,6 @@ def get_surrounding_grid(
     NOTE: Order of the points is super important! Vertices are ordered clockwise, values are also
     ordered clockwise.
     """
-
     # Read scanlines of the raster, build up the four points and corresponding values:
     scanline_one = band.ReadRaster(xoff=x_index, yoff=y_index, xsize=2, ysize=1,
                                    buf_xsize=2, buf_ysize=1, buf_type=gdal.GDT_Float32)
@@ -65,22 +65,44 @@ def get_surrounding_grid(
     return points, values
 
 
-def calculate_raster_coordinate(longitude: float, latitude: float, origin: List[int], pixel: List[int]):
+def calculate_raster_coordinate(longitude: float, latitude: float, padTransform: List[float], transformer: Transformer):
     """ From a given longitude and latitude, calculate the raster coordinate corresponding to the
     top left point of the grid surrounding the given geographic coordinate.
     """
-    delta_x = longitude - origin[0]
-    delta_y = latitude - origin[1]
-    x_coordinate = delta_x / pixel[0]
-    y_coordinate = delta_y / pixel[1]
-    return math.floor(x_coordinate), math.floor(y_coordinate)
+    # If the grib file is for HRDPS, we first need to transform the lat,long coords to
+    # polar stereographic coords
+    raster_lat, raster_long = transformer.transform(latitude, longitude)
+
+    logger.info("long,lat %f,%f\traster long,lat %f,%f",
+                longitude, latitude, raster_long, raster_lat)
+
+    # Calculate the j index for point i,j in the grib file
+    numerator = padTransform[1] * (raster_long - padTransform[3]) - \
+        padTransform[4] * (raster_lat - padTransform[0])
+    denominator = padTransform[1] * padTransform[5] - \
+        padTransform[2] * padTransform[4]
+    logger.info("j num: %f, denom: %f", numerator, denominator)
+    j_index = math.floor(numerator/denominator)
+
+    # Calculate the i index for point i,j in the grib file
+    numerator = raster_lat - padTransform[0] - j_index * padTransform[2]
+    denominator = padTransform[1]
+    logger.info("i num: %f, denom: %f", numerator, denominator)
+    i_index = math.floor(numerator/denominator)
+
+    logger.info("j,i %f,%f", j_index, i_index)
+    return (i_index, j_index)
 
 
-def calculate_geographic_coordinate(point: List[int], origin: List[float], pixel: List[float]) -> List[float]:
+def calculate_geographic_coordinate(point: List[int], padfTransform: List[float], transformer: Transformer) -> List[float]:
     """ Calculate the geographic coordinates for a given points """
-    x_coordinate = origin[0] + point[0] * pixel[0]
-    y_coordinate = origin[1] + point[1] * pixel[1]
-    return (x_coordinate, y_coordinate)
+    x_coordinate = padfTransform[0] + point[0] * \
+        padfTransform[1] + point[1]*padfTransform[2]
+    y_coordinate = padfTransform[3] + point[0] * \
+        padfTransform[4] + point[1]*padfTransform[5]
+
+    lat, lon = transformer.transform(x_coordinate, y_coordinate)
+    return (lat, lon)
 
 
 def open_grib(filename: str) -> gdal.Dataset:
@@ -91,12 +113,7 @@ def open_grib(filename: str) -> gdal.Dataset:
 def get_dataset_geometry(dataset: gdal.Dataset) -> (List[int], List[int]):
     """ Get the geometry info (origin and pixel size) of the dataset.
     """
-    geotransform = dataset.GetGeoTransform()
-    # Upper left corner:
-    origin = (geotransform[0], geotransform[3])
-    # Pixel width and height:
-    pixel = (geotransform[1], geotransform[5])
-    return origin, pixel
+    return dataset.GetGeoTransform()
 
 
 class GribFileProcessor():
@@ -109,8 +126,9 @@ class GribFileProcessor():
         asyncio.set_event_loop(loop)
         self.stations = loop.run_until_complete(get_stations())
         self.session = app.db.database.get_write_session()
-        self.origin = None
-        self.pixel = None
+        self.padTransform = None
+        self.raster_to_geo_transformer = None
+        self.geo_to_raster_transformer = None
         self.prediction_model = None
 
     def get_prediction_model(self, grib_info: ModelRunInfo) -> PredictionModel:
@@ -130,7 +148,7 @@ class GribFileProcessor():
             longitude = float(station['long'])
             latitude = float(station['lat'])
             x_coordinate, y_coordinate = calculate_raster_coordinate(
-                longitude, latitude, self.origin, self.pixel)
+                longitude, latitude, self.padTransform, self.geo_to_raster_transformer)
 
             points, values = get_surrounding_grid(
                 raster_band, x_coordinate, y_coordinate)
@@ -145,7 +163,7 @@ class GribFileProcessor():
         geographic_points = []
         for point in points:
             geographic_points.append(
-                calculate_geographic_coordinate(point, self.origin, self.pixel))
+                calculate_geographic_coordinate(point, self.padTransform, self.raster_to_geo_transformer))
 
         # Get the grid subset, i.e. the relevant bounding area for this particular model.
         grid_subset = get_or_create_grid_subset(
@@ -176,7 +194,16 @@ class GribFileProcessor():
             logger.info('processing %s', filename)
             # Open grib file
             dataset = open_grib(filename)
-            self.origin, self.pixel = get_dataset_geometry(dataset)
+            # Ensure that grib file uses EPSG:4269 (NAD83) coordinate system
+            # (this step is included because HRDPS grib files are in another coordinate system)
+            wkt = dataset.GetProjection()
+            logger.info("Projection %s", wkt)
+            crs = CRS.from_string(wkt)
+            geo_crs = CRS('epsg:4269')
+            self.raster_to_geo_transformer = Transformer.from_crs(crs, geo_crs)
+            self.geo_to_raster_transformer = Transformer.from_crs(geo_crs, crs)
+
+            self.padTransform = get_dataset_geometry(dataset)
 
             # get the model (.e.g. GPDS/RDPS latlon24x.24):
             self.prediction_model = self.get_prediction_model(grib_info)

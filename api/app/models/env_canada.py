@@ -17,13 +17,14 @@ import requests
 from scipy.interpolate import griddata
 from geoalchemy2.shape import to_shape
 from sqlalchemy.orm import Session
+from pyproj import Transformer, CRS
 from app import configure_logging
 import app.time_utils as time_utils
 import app.stations
 from app.models.process_grib import GribFileProcessor, ModelRunInfo
 from app.db.models import ProcessedModelRunUrl, PredictionModelRunTimestamp, WeatherStationModelPrediction
 import app.db.database
-from app.models import ModelEnum
+from app.models import ModelEnum, ProjectionEnum
 from app.db.crud import (get_processed_file_record,
                          get_processed_file_count,
                          get_prediction_model_run_timestamp_records,
@@ -42,12 +43,7 @@ class UnhandledPredictionModelType(Exception):
     """ Exception raised when an unknown model type is encountered. """
 
 
-def parse_env_canada_filename(filename):
-    """ Take a grib filename, as per file name nomenclature defined at
-    https://weather.gc.ca/grib/grib2_glb_25km_e.html, and parse into a meaningful object.
-    """
-    # pylint: disable=too-many-locals
-
+def parse_global_model_filename(filename):
     base = os.path.basename(filename)
     parts = base.split('_')
     model = parts[1]
@@ -68,12 +64,53 @@ def parse_env_canada_filename(filename):
     prediction_hour = last_part[0][1:]
     prediction_timestamp = model_run_timestamp + \
         datetime.timedelta(hours=int(prediction_hour))
+    return model, variable_name, projection, model_run_timestamp, prediction_timestamp
+
+
+def parse_high_res_model_filename(filename):
+    base = os.path.basename(filename)
+    parts = base.split('_')
+    model = '_'.join([parts[1], parts[2]])
+    variable = parts[3]
+    level_type = parts[4]
+    level = parts[5]
+    variable_name = '_'.join(
+        [variable, level_type, level])
+    projection = parts[6]
+    prediction_start = parts[7][:-2]
+    run_time = parts[7][-2:]
+    model_run_timestamp = datetime.datetime(
+        year=int(prediction_start[:4]),
+        month=int(prediction_start[4:6]),
+        day=int(prediction_start[6:8]),
+        hour=int(run_time), tzinfo=datetime.timezone.utc)
+    last_part = parts[8].split('.')
+    prediction_hour = last_part[0][1:4]
+    prediction_timestamp = model_run_timestamp + \
+        datetime.timedelta(hours=int(prediction_hour))
+    return model, variable_name, projection, model_run_timestamp, prediction_timestamp
+
+
+def parse_env_canada_filename(filename):
+    """ Take a grib filename, as per file name nomenclature defined at
+    https://weather.gc.ca/grib/grib2_glb_25km_e.html, and parse into a meaningful object.
+    """
+    # pylint: disable=too-many-locals
+    base = os.path.basename(filename)
+    parts = base.split('_')
+    model = parts[1]
+    if model == 'glb':
+        model, variable_name, projection, model_run_timestamp, prediction_timestamp = parse_global_model_filename(
+            filename)
+    elif model == 'hrdps':
+        model, variable_name, projection, model_run_timestamp, prediction_timestamp = parse_high_res_model_filename(
+            filename)
 
     if model == 'glb':
         model_abbreviation = ModelEnum.GDPS
     elif model == 'reg':
         model_abbreviation = ModelEnum.RDPS
-    elif model == 'hrdps':
+    elif model == 'hrdps_continental':
         model_abbreviation = ModelEnum.HRDPS
     else:
         raise UnhandledPredictionModelType(
@@ -123,14 +160,6 @@ def get_model_run_hours(model_abbreviation: str):
     elif model_abbreviation == ModelEnum.HRDPS:
         for hour in [0, 6, 12, 18]:
             yield hour
-
-
-def get_model_run_download_urls(now: datetime.datetime, hour: int, model_type: str):
-    """ Yield urls to download. """
-    if model_type == ModelEnum.GDPS:
-        get_global_model_run_download_urls(now, hour)
-    elif model_type == ModelEnum.HRDPS:
-        get_high_res_model_run_download_urls(now, hour)
 
 
 def get_global_model_run_download_urls(now: datetime.datetime, hour: int) -> Generator[str, None, None]:
@@ -206,7 +235,7 @@ def download(url: str, path: str) -> str:
 
 def mark_prediction_model_run_processed(session: Session,
                                         model: ModelEnum,
-                                        projection: str,
+                                        projection: ProjectionEnum,
                                         now: datetime.datetime,
                                         hour: int):
     """ Mark a prediction model run as processed (complete) """
@@ -225,6 +254,7 @@ def mark_prediction_model_run_processed(session: Session,
         session,
         prediction_model.id,
         prediction_run_timestamp)
+    logger.info('prediction run: %s', prediction_run)
     prediction_run.complete = True
     app.db.crud.update_prediction_run(session, prediction_run)
 
@@ -244,6 +274,11 @@ class EnvCanada():
         self.session = app.db.database.get_write_session()
         self.grib_processor = GribFileProcessor()
         self.model_type = ModelEnum(model_type)
+        # set projection based on model_type
+        if self.model_type == ModelEnum.GDPS:
+            self.projection = ProjectionEnum.LATLON_15X_15
+        elif self.model_type == ModelEnum.HRDPS:
+            self.projection = ProjectionEnum.HIGH_RES_CONTINENTAL
 
     def flag_file_as_processed(self, url):
         """ Flag the file as processed in the database """
@@ -296,6 +331,7 @@ class EnvCanada():
                                 # Flag the file as processed
                                 self.flag_file_as_processed(url)
                                 self.files_processed += 1
+                                logger.info('Processed %s', url)
                             finally:
                                 # delete the file when done.
                                 os.remove(downloaded)
@@ -314,8 +350,10 @@ class EnvCanada():
             self.model_type, hour))
 
         # Get the urls for the current model run.
-        urls = list(get_model_run_download_urls(
-            self.now, hour, self.model_type))
+        if self.model_type == ModelEnum.GDPS:
+            urls = list(get_global_model_run_download_urls(self.now, hour))
+        elif self.model_type == ModelEnum.HRDPS:
+            urls = list(get_high_res_model_run_download_urls(self.now, hour))
 
         # Process all the urls.
         self.process_model_run_urls(urls)
@@ -326,7 +364,7 @@ class EnvCanada():
                 '{} model run {:02d} completed with SUCCESS'.format(self.model_type, hour))
 
             mark_prediction_model_run_processed(
-                self.session, self.model_type, app.db.crud.LATLON_15X_15, self.now, hour)
+                self.session, self.model_type, self.projection, self.now, hour)
 
     def process(self):
         """ Entry point for downloading and processing weather model grib files """
@@ -354,6 +392,8 @@ class Interpolator:
         asyncio.set_event_loop(loop)
         self.stations = loop.run_until_complete(app.stations.get_stations())
         self.station_count = len(self.stations)
+        self.to_lat_long_transformer = None
+        self.from_lat_long_transformer = None
 
     def _process_model_run(self, model_run: PredictionModelRunTimestamp):
         """ Interpolate predictions in the provided model run for all stations. """
@@ -372,11 +412,22 @@ class Interpolator:
     def _process_model_run_for_station(self,
                                        model_run: PredictionModelRunTimestamp,
                                        station: dict):
-        """ Process the model run for the prodvided station.
+        """ Process the model run for the provided station.
         """
         # Extract the coordinate.
         coordinate = [station['long'], station['lat']]
         # Lookup the grid our weather station is in.
+        logger.info("Getting grid for coordinate %s and model %s",
+                    coordinate, model_run.prediction_model)
+        # Depending on the model type, it may be necessary to convert the station's lat/long coords
+        # to whichever coordinate system is being used in the grib files. If objects have been
+        # assigned to to_lat_long_transformer and from_lat_long_transformer, we need to first
+        # perform the coordinate transformation.
+        if self.from_lat_long_transformer is not None:
+            x, y = self.from_lat_long_transformer.transform(
+                coordinate[1], coordinate[0])
+            logger.info("Converted coordinates to %f,%f", x, y)
+            coordinate = [y, x]
         grid = get_grid_for_coordinate(
             self.session, model_run.prediction_model, coordinate)
         # Get all the predictions associated to this particular model run, in the grid.
@@ -417,6 +468,13 @@ class Interpolator:
         self.session.add(model_run)
         self.session.commit()
 
+    def set_transformers(self, to_transformer: Transformer, from_transformer: Transformer):
+        """ Assign Transformers to self to convert to and from lat/long coordinates to
+        whatever coordinate system is being used in the grib files. Not all model types need
+        transformers. """
+        self.to_lat_long_transformer = to_transformer
+        self.from_lat_long_transformer = from_transformer
+
     def process(self):
         """ Entry point to start processing model runs that have not yet had their predictions interpolated
         """
@@ -446,6 +504,8 @@ def main():
 
     # interpolate everything that needs interpolating.
     interpolator = Interpolator()
+    interpolator.set_transformers(env_canada.grib_processor.raster_to_geo_transformer,
+                                  env_canada.grib_processor.geo_to_raster_transformer)
     interpolator.process()
 
     # calculate the execution time.

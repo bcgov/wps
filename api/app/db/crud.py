@@ -13,9 +13,6 @@ import app.time_utils as time_utils
 
 logger = logging.getLogger(__name__)
 
-LATLON_15X_15 = 'latlon.15x.15'
-HIGH_RES_CONTINENTAL = ''
-
 # --------------  COMMON UTILITY FUNCTIONS ---------------------------
 
 
@@ -142,7 +139,7 @@ def get_model_run_predictions_for_grid(session: Session,
                                        prediction_run: PredictionModelRunTimestamp,
                                        grid: PredictionModelGridSubset) -> List:
     """ Get all the predictions for a provided model run and grid. """
-
+    logger.info("Getting model predictions for grid %s", grid)
     return session.query(ModelRunGridSubsetPrediction).\
         filter(ModelRunGridSubsetPrediction.prediction_model_grid_subset_id == grid.id).\
         filter(ModelRunGridSubsetPrediction.prediction_model_run_timestamp_id ==

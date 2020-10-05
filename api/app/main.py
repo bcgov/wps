@@ -10,7 +10,7 @@ from starlette.applications import Starlette
 from app import schemas, configure_logging
 from app.models.fetch.predictions import fetch_model_predictions, fetch_most_recent_historic_predictions
 from app.models.fetch.summaries import fetch_model_prediction_summaries
-from app.models import ModelEnum
+from app.models import ModelEnum, ProjectionEnum
 from app.percentile import get_precalculated_percentiles
 from app.forecasts.noon_forecasts import fetch_noon_forecasts
 from app.forecasts.noon_forecasts_summaries import fetch_noon_forecasts_summaries
@@ -117,7 +117,13 @@ async def get_model_predictions(
     for the specified set of weather stations. """
     try:
         logger.info('/models/%s/predictions/', model.name)
-        model_predictions = await fetch_model_predictions(model, request.stations)
+        if model == ModelEnum.GDPS:
+            projection = ProjectionEnum.LATLON_15X_15
+        elif model == ModelEnum.HRDPS:
+            projection = ProjectionEnum.HIGH_RES_CONTINENTAL
+        else:
+            projection = None
+        model_predictions = await fetch_model_predictions(model, projection, request.stations)
         return schemas.WeatherModelPredictionResponse(predictions=model_predictions)
     except Exception as exception:
         logger.critical(exception, exc_info=True)
