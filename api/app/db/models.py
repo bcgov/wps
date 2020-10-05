@@ -125,6 +125,11 @@ class PredictionModelGridSubset(Base):
     # 1st vertex top left, 2nd vertex top right, 3rd vertex bottom right, 4th vertex bottom left.
     geom = Column(Geometry('POLYGON'), nullable=False)
 
+    def __str__(self):
+        return ('id: {self.id}, '
+                'prediction_model_id: {self.prediction_model_id}'
+                ).format(self=self)
+
 
 class ModelRunGridSubsetPrediction(Base):
     """ The prediction for a particular model grid subset.
@@ -170,7 +175,8 @@ class WeatherStationModelPrediction(Base):
     needed for certain Model types. """
     __tablename__ = 'weather_station_model_predictions'
     __table_args__ = (
-        UniqueConstraint('station_code', 'prediction_model_run_timestamp_id', 'prediction_timestamp'),
+        UniqueConstraint(
+            'station_code', 'prediction_model_run_timestamp_id', 'prediction_timestamp'),
         {'comment': 'The interpolated weather values for a weather station, weather date, and model run'}
     )
 
@@ -181,7 +187,8 @@ class WeatherStationModelPrediction(Base):
     # Which PredictionModelRunTimestamp is this station's prediction based on?
     prediction_model_run_timestamp_id = Column(Integer, ForeignKey(
         'prediction_model_run_timestamps.id'), nullable=False)
-    prediction_model_run_timestamp = relationship("PredictionModelRunTimestamp")
+    prediction_model_run_timestamp = relationship(
+        "PredictionModelRunTimestamp")
     # The date and time to which the prediction applies. Will most often be copied directly from
     # prediction_timestamp for the ModelRunGridSubsetPrediction, but is included again for cases
     # when values are interpolated (e.g., noon interpolations on GDPS model runs)
@@ -189,13 +196,22 @@ class WeatherStationModelPrediction(Base):
     # Temperature 2m above model layer - an interpolated value based on 4 values from
     # model_run_grid_subset_prediction
     tmp_tgl_2 = Column(Float, nullable=True)
+    # Temperature prediction using available data.
+    bias_adjusted_temperature = Column(Float, nullable=True)
     # Relative Humidity 2m above model layer - an interpolated value based on 4 values
     # from model_run_grid_subset_prediction
     rh_tgl_2 = Column(Float, nullable=True)
     # Date this record was created.
-    create_date = Column(TZTimeStamp, nullable=False, default=time_utils.get_utc_now())
+    # RH adjusted by bias
+    bias_adjusted_rh = Column(Float, nullable=True)
+    create_date = Column(TZTimeStamp, nullable=False,
+                         default=time_utils.get_utc_now())
     # Date this record was updated.
-    update_date = Column(TZTimeStamp, nullable=False, default=time_utils.get_utc_now())
+    update_date = Column(TZTimeStamp, nullable=False,
+                         default=time_utils.get_utc_now())
+
+    def __str__(self):
+        return ('{self.station_code} {self.prediction_timestamp} {self.tmp_tgl_2}').format(self=self)
 
 
 class HourlyActual(Base):
@@ -230,6 +246,14 @@ class HourlyActual(Base):
     fwi = Column(Float, nullable=False, default=math.nan)
     created_at = Column(TZTimeStamp, nullable=False,
                         default=time_utils.get_utc_now())
+
+    def __str__(self):
+        return (
+            'station_code:{self.station_code}, '
+            'weather_date:{self.weather_date}, '
+            'temperature :{self.temperature}, '
+            'relative_humidity:{self.relative_humidity}'
+        ).format(self=self)
 
 
 class NoonForecast(Base):

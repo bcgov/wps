@@ -3,7 +3,6 @@
 
 import math
 import struct
-import asyncio
 import logging
 import logging.config
 from typing import List
@@ -11,7 +10,7 @@ from sqlalchemy.dialects.postgresql import array
 import sqlalchemy.exc
 import gdal
 import app.db.database
-from app.stations import get_stations
+from app.stations import get_stations_synchronously
 from app.db.models import (
     PredictionModel, PredictionModelRunTimestamp, ModelRunGridSubsetPrediction)
 from app.db.crud import get_prediction_model, get_or_create_prediction_run, get_or_create_grid_subset
@@ -105,9 +104,7 @@ class GribFileProcessor():
 
     def __init__(self):
         # Get list of stations we're interested in, and store it so that we only call it once.
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        self.stations = loop.run_until_complete(get_stations())
+        self.stations = get_stations_synchronously()
         self.session = app.db.database.get_write_session()
         self.origin = None
         self.pixel = None
@@ -127,8 +124,8 @@ class GribFileProcessor():
         """ Given a list of stations, and a gdal dataset, yield relevant data
         """
         for station in self.stations:
-            longitude = float(station['long'])
-            latitude = float(station['lat'])
+            longitude = station.long
+            latitude = station.lat
             x_coordinate, y_coordinate = calculate_raster_coordinate(
                 longitude, latitude, self.origin, self.pixel)
 

@@ -96,8 +96,10 @@ class WeatherModelPredictionValues(BaseModel):
     """ The predicted weather values. """
     datetime: datetime
     temperature: float = None
+    bias_adjusted_temperature: float = None
     dew_point: float = None
     relative_humidity: float = None
+    bias_adjusted_relative_humidity: float = None
     wind_speed: float = None
     wind_direction: float = None
     total_precipitation: float = None
@@ -136,6 +138,24 @@ class WeatherModelPrediction(BaseModel):
 class WeatherModelPredictionResponse(BaseModel):
     """ Response containg a number of weather predictions. """
     predictions: List[WeatherModelPrediction]
+
+
+class ModelRunPredictions(BaseModel):
+    """ Predictions for a model run """
+    model_run: WeatherModelRun = None
+    values: List[WeatherModelPredictionValues] = []
+
+
+class WeatherStationModelRunsPredictions(BaseModel):
+    """ Weather model run and predictions for a station. """
+    station: WeatherStation
+    model_runs: List[ModelRunPredictions]
+
+
+class WeatherStationsModelRunsPredictionsResponse(BaseModel):
+    """ Response containing a number of weather predictions for a number of weather model runs for a number
+    of stations."""
+    stations: List[WeatherStationModelRunsPredictions]
 
 
 class WeatherStationHourlyReadingsResponse(BaseModel):

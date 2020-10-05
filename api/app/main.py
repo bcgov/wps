@@ -8,7 +8,10 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.applications import Starlette
 from app import schemas, configure_logging
-from app.models.fetch.predictions import fetch_model_predictions, fetch_most_recent_historic_predictions
+from app.models.fetch.predictions import (
+    fetch_model_predictions,
+    fetch_predictions_by_station_code,
+    fetch_model_run_predictions_by_station_code)
 from app.models.fetch.summaries import fetch_model_prediction_summaries
 from app.models import ModelEnum
 from app.percentile import get_precalculated_percentiles
@@ -144,11 +147,32 @@ async def get_most_recent_historic_model_values(
         model: ModelEnum, request: schemas.StationCodeList, _: bool = Depends(authenticate)):
     """ Returns the weather values for the last model prediction that was issued
     for the station before actual weather readings became available.
+    NOTE: This api method can be made redundant - calling /models/{model}/predictions/most_recent/
+    will return historic as well as most recent.
     """
     try:
         logger.info('/models/%s/predictions/historic/most_recent/', model.name)
-        historic_predictions = await fetch_most_recent_historic_predictions(model, request.stations)
+        historic_predictions = await fetch_predictions_by_station_code(model, request.stations,
+                                                                       time_utils.get_utc_now())
         return schemas.WeatherModelPredictionResponse(predictions=historic_predictions)
+    except Exception as exception:
+        logger.critical(exception, exc_info=True)
+        raise
+
+
+@api.post('/models/{model}/predictions/most_recent/',
+          response_model=schemas.WeatherStationsModelRunsPredictionsResponse)
+async def get_most_recent_model_values(
+        model: ModelEnum, request: schemas.StationCodeList, _: bool = Depends(authenticate)):
+    """ Returns the weather values for the last model prediction that was issued
+    for the station before actual weather readings became available.
+    """
+    try:
+        logger.info('/models/%s/predictions/most_recent/', model.name)
+        end_date = time_utils.get_utc_now() + datetime.timedelta(days=10)
+        station_predictions = await fetch_model_run_predictions_by_station_code(
+            model, request.stations, end_date)
+        return schemas.WeatherStationsModelRunsPredictionsResponse(stations=station_predictions)
     except Exception as exception:
         logger.critical(exception, exc_info=True)
         raise
@@ -219,3 +243,11 @@ async def get_percentiles(request: schemas.PercentileRequest):
     except Exception as exception:
         logger.critical(exception, exc_info=True)
         raise
+
+
+if __name__ == "__main__":
+    # This section of code is for the convenience of developers only. Having this section of code, allows
+    # for developers to easily debug the application by running main.py and attaching to it with a debugger.
+    # uvicorn is imported in this scope only, as it's not required when the application is run in production.
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8080)
