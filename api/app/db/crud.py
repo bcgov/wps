@@ -128,6 +128,8 @@ def get_grid_for_coordinate(session: Session,
                             prediction_model: PredictionModel,
                             coordinate) -> PredictionModelGridSubset:
     """ Given a specified coordinate and model, return the appropriate grid. """
+    logger.info("Model %s, coords %s,%s", prediction_model.id,
+                coordinate[1], coordinate[0])
     query = session.query(PredictionModelGridSubset).\
         filter(PredictionModelGridSubset.geom.ST_Contains(
             'POINT({longitude} {latitude})'.format(longitude=coordinate[0], latitude=coordinate[1]))).\

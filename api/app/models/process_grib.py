@@ -73,24 +73,22 @@ def calculate_raster_coordinate(longitude: float, latitude: float, padTransform:
     # polar stereographic coords
     raster_lat, raster_long = transformer.transform(latitude, longitude)
 
-    logger.info("long,lat %f,%f\traster long,lat %f,%f",
-                longitude, latitude, raster_long, raster_lat)
+    # logger.info("long,lat %f,%f\traster long,lat %f,%f",
+    # longitude, latitude, raster_long, raster_lat)
 
     # Calculate the j index for point i,j in the grib file
     numerator = padTransform[1] * (raster_long - padTransform[3]) - \
         padTransform[4] * (raster_lat - padTransform[0])
     denominator = padTransform[1] * padTransform[5] - \
         padTransform[2] * padTransform[4]
-    logger.info("j num: %f, denom: %f", numerator, denominator)
     j_index = math.floor(numerator/denominator)
 
     # Calculate the i index for point i,j in the grib file
     numerator = raster_lat - padTransform[0] - j_index * padTransform[2]
     denominator = padTransform[1]
-    logger.info("i num: %f, denom: %f", numerator, denominator)
     i_index = math.floor(numerator/denominator)
 
-    logger.info("j,i %f,%f", j_index, i_index)
+    # logger.info("j,i %f,%f", j_index, i_index)
     return (i_index, j_index)
 
 
@@ -102,7 +100,7 @@ def calculate_geographic_coordinate(point: List[int], padfTransform: List[float]
         padfTransform[4] + point[1]*padfTransform[5]
 
     lat, lon = transformer.transform(x_coordinate, y_coordinate)
-    return (lat, lon)
+    return (lon, lat)
 
 
 def open_grib(filename: str) -> gdal.Dataset:
@@ -164,7 +162,6 @@ class GribFileProcessor():
         for point in points:
             geographic_points.append(
                 calculate_geographic_coordinate(point, self.padTransform, self.raster_to_geo_transformer))
-
         # Get the grid subset, i.e. the relevant bounding area for this particular model.
         grid_subset = get_or_create_grid_subset(
             self.session, self.prediction_model, geographic_points)
@@ -197,7 +194,6 @@ class GribFileProcessor():
             # Ensure that grib file uses EPSG:4269 (NAD83) coordinate system
             # (this step is included because HRDPS grib files are in another coordinate system)
             wkt = dataset.GetProjection()
-            logger.info("Projection %s", wkt)
             crs = CRS.from_string(wkt)
             geo_crs = CRS('epsg:4269')
             self.raster_to_geo_transformer = Transformer.from_crs(crs, geo_crs)

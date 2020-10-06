@@ -392,8 +392,6 @@ class Interpolator:
         asyncio.set_event_loop(loop)
         self.stations = loop.run_until_complete(app.stations.get_stations())
         self.station_count = len(self.stations)
-        self.to_lat_long_transformer = None
-        self.from_lat_long_transformer = None
 
     def _process_model_run(self, model_run: PredictionModelRunTimestamp):
         """ Interpolate predictions in the provided model run for all stations. """
@@ -419,15 +417,6 @@ class Interpolator:
         # Lookup the grid our weather station is in.
         logger.info("Getting grid for coordinate %s and model %s",
                     coordinate, model_run.prediction_model)
-        # Depending on the model type, it may be necessary to convert the station's lat/long coords
-        # to whichever coordinate system is being used in the grib files. If objects have been
-        # assigned to to_lat_long_transformer and from_lat_long_transformer, we need to first
-        # perform the coordinate transformation.
-        if self.from_lat_long_transformer is not None:
-            x, y = self.from_lat_long_transformer.transform(
-                coordinate[1], coordinate[0])
-            logger.info("Converted coordinates to %f,%f", x, y)
-            coordinate = [y, x]
         grid = get_grid_for_coordinate(
             self.session, model_run.prediction_model, coordinate)
         # Get all the predictions associated to this particular model run, in the grid.
@@ -468,13 +457,6 @@ class Interpolator:
         self.session.add(model_run)
         self.session.commit()
 
-    def set_transformers(self, to_transformer: Transformer, from_transformer: Transformer):
-        """ Assign Transformers to self to convert to and from lat/long coordinates to
-        whatever coordinate system is being used in the grib files. Not all model types need
-        transformers. """
-        self.to_lat_long_transformer = to_transformer
-        self.from_lat_long_transformer = from_transformer
-
     def process(self):
         """ Entry point to start processing model runs that have not yet had their predictions interpolated
         """
@@ -504,8 +486,6 @@ def main():
 
     # interpolate everything that needs interpolating.
     interpolator = Interpolator()
-    interpolator.set_transformers(env_canada.grib_processor.raster_to_geo_transformer,
-                                  env_canada.grib_processor.geo_to_raster_transformer)
     interpolator.process()
 
     # calculate the execution time.
