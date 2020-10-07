@@ -3,6 +3,7 @@ import os
 import logging
 from pytest_bdd import scenario, given, then, when
 import gdal
+from pyproj import CRS, Transformer
 import app.models.process_grib as process_grib
 
 logger = logging.getLogger(__name__)
@@ -82,9 +83,12 @@ def test_meta_data():
     """ BDD Scenario. """
 
 
-@given('an <origin> and <pixels>')
-def given_origin_and_pixels(origin, pixels):
-    return dict(origin=eval(origin), pixels=eval(pixels))
+@given('a GDAL <geotransform> and WKT projection_string <filename>')
+def given_geotransform_and_projection_string(geotransform, filename):
+    dirname = os.path.dirname(os.path.realpath(__file__))
+    with open(os.path.join(dirname, filename), 'r') as file:
+        projection_string = file.read()
+    return dict(geotransform=eval(geotransform), projection_string=projection_string)
 
 
 @given('a geographic coordinate <geographic_coordinate>')
@@ -93,17 +97,20 @@ def given_geographic_coordinate(geographic_coordinate):
 
 
 @when('I calculate the raster coordinate')
-def when_calculate_raster_coordinate(given_origin_and_pixels, given_geographic_coordinate):
+def when_calculate_raster_coordinate(given_geotransform_and_projection_string, given_geographic_coordinate):
     longitude, latitude = given_geographic_coordinate
-    origin = given_origin_and_pixels['origin']
-    pixels = given_origin_and_pixels['pixels']
-    given_origin_and_pixels['raster_coordinate'] = process_grib.calculate_raster_coordinate(
-        longitude, latitude, origin, pixels)
+    geotransform = given_geotransform_and_projection_string['geotransform']
+    proj_crs = CRS.from_string(
+        given_geotransform_and_projection_string['projection_string'])
+    geo_crs = CRS('epsg:4269')
+    transformer = Transformer.from_crs(geo_crs, proj_crs)
+    given_geotransform_and_projection_string['raster_coordinate'] = process_grib.calculate_raster_coordinate(
+        longitude, latitude, geotransform, transformer)
 
 
 @then('I expect <raster_coordinate>')
-def assert_raster_coordinates(given_origin_and_pixels, raster_coordinate):
-    assert given_origin_and_pixels['raster_coordinate'] == eval(
+def assert_raster_coordinates(given_geotransform_and_projection_string, raster_coordinate):
+    assert given_geotransform_and_projection_string['raster_coordinate'] == eval(
         raster_coordinate)
 
 
@@ -113,14 +120,17 @@ def test_calculate_geographic_coordinates():
 
 
 @when('I calculate the geographic coordinate')
-def calculate_geographic_coordinate(given_origin_and_pixels, given_raster_coordinate):
-    origin = given_origin_and_pixels['origin']
-    pixels = given_origin_and_pixels['pixels']
-    given_origin_and_pixels['geographic_coordinate'] = process_grib.calculate_geographic_coordinate(
-        given_raster_coordinate, origin, pixels)
+def calculate_geographic_coordinate(given_geotransform_and_projection_string, given_raster_coordinate):
+    geotransform = given_geotransform_and_projection_string['geotransform']
+    proj_crs = CRS.from_string(
+        given_geotransform_and_projection_string['projection_string'])
+    geo_crs = CRS('epsg:4269')
+    transformer = Transformer.from_crs(proj_crs, geo_crs)
+    given_geotransform_and_projection_string['geographic_coordinate'] = process_grib.calculate_geographic_coordinate(
+        given_raster_coordinate, geotransform, transformer)
 
 
 @then('I expect <geographic_coordinate>')
-def assert_geographic_coordinate(given_origin_and_pixels, geographic_coordinate):
+def assert_geographic_coordinate(given_geotransform_and_projection_string, geographic_coordinate):
     expected_coordinate = eval(geographic_coordinate)
-    assert given_origin_and_pixels['geographic_coordinate'] == expected_coordinate
+    assert given_geotransform_and_projection_string['geographic_coordinate'] == expected_coordinate
