@@ -69,12 +69,9 @@ def calculate_raster_coordinate(longitude: float, latitude: float, padTransform:
     """ From a given longitude and latitude, calculate the raster coordinate corresponding to the
     top left point of the grid surrounding the given geographic coordinate.
     """
-    # If the grib file is for HRDPS, we first need to transform the lat,long coords to
-    # polar stereographic coords
+    # Because not all model types use EPSG:4269 projection, we first convert longitude and latitude
+    # to whichever projection and coordinate system the grib file is using
     raster_lat, raster_long = transformer.transform(latitude, longitude)
-
-    # logger.info("long,lat %f,%f\traster long,lat %f,%f",
-    # longitude, latitude, raster_long, raster_lat)
 
     # Calculate the j index for point i,j in the grib file
     numerator = padTransform[1] * (raster_long - padTransform[3]) - \
@@ -88,7 +85,6 @@ def calculate_raster_coordinate(longitude: float, latitude: float, padTransform:
     denominator = padTransform[1]
     i_index = math.floor(numerator/denominator)
 
-    # logger.info("j,i %f,%f", j_index, i_index)
     return (i_index, j_index)
 
 
@@ -200,9 +196,16 @@ class GribFileProcessor():
             self.geo_to_raster_transformer = Transformer.from_crs(geo_crs, crs)
 
             self.padTransform = get_dataset_geometry(dataset)
-
             # get the model (.e.g. GPDS/RDPS latlon24x.24):
             self.prediction_model = self.get_prediction_model(grib_info)
+
+            # if the model type is GDPS (Global), we need to manually set the padTransform
+            # with the x,y coordinates of origin reversed
+            if self.prediction_model.abbreviation == 'GDPS':
+                self.padTransform = (
+                    self.padTransform[3], self.padTransform[5], self.padTransform[2], self.padTransform[0], self.padTransform[4], self.padTransform[1])
+                dataset.SetGeoTransform(self.padTransform)
+
             # get the model run (e.g. GDPS latlon24x.24 for 2020 07 07 12h00):
             prediction_run = get_or_create_prediction_run(
                 self.session, self.prediction_model, grib_info.model_run_timestamp)
