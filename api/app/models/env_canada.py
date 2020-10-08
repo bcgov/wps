@@ -88,23 +88,23 @@ def parse_env_canada_filename(filename):
     return info
 
 
-def adjust_model_day(now, hour) -> datetime:
+def adjust_model_day(now, model_run_hour) -> datetime:
     """ Adjust the model day, based on the current time.
 
     If now (e.g. 10h00) is less than model run (e.g. 12), it means we have to look for yesterdays
     model run.
     """
-    if now.hour < hour:
+    if now.hour < model_run_hour:
         return now - datetime.timedelta(days=1)
     return now
 
 
-def get_file_date_part(now, hour) -> str:
+def get_file_date_part(now, model_run_hour) -> str:
     """ Construct the part of the filename that contains the model run date
     """
-    now = adjust_model_day(now, hour)
+    adjusted = adjust_model_day(now, model_run_hour)
     date = '{year}{month:02d}{day:02d}'.format(
-        year=now.year, month=now.month, day=now.day)
+        year=adjusted.year, month=adjusted.month, day=adjusted.day)
     return date
 
 
@@ -114,20 +114,20 @@ def get_model_run_hours():
         yield hour
 
 
-def get_model_run_download_urls(now: datetime.datetime, hour: int) -> Generator[str, None, None]:
+def get_model_run_download_urls(now: datetime.datetime, model_run_hour: int) -> Generator[str, None, None]:
     """ Yield urls to download. """
 
     # hh: model run start, in UTC [00, 12]
     # hhh: prediction hour [000, 003, 006, ..., 240]
     # pylint: disable=invalid-name
-    hh = '{:02d}'.format(hour)
+    hh = '{:02d}'.format(model_run_hour)
     # For the global model, we have prediction at 3 hour intervals up to 240 hours.
     for h in range(0, 241, 3):
         hhh = format(h, '03d')
         for level in ['TMP_TGL_2', 'RH_TGL_2']:
             base_url = 'https://dd.weather.gc.ca/model_gem_global/15km/grib2/lat_lon/{}/{}/'.format(
                 hh, hhh)
-            date = get_file_date_part(now, hour)
+            date = get_file_date_part(now, model_run_hour)
             filename = 'CMC_glb_{}_latlon.15x.15_{}{}_P{}.grib2'.format(
                 level, date, hh, hhh)
             url = base_url + filename
@@ -172,7 +172,7 @@ def mark_prediction_model_run_processed(session: Session,
                                         model: ModelEnum,
                                         projection: str,
                                         now: datetime.datetime,
-                                        hour: int):
+                                        model_run_hour: int):
     """ Mark a prediction model run as processed (complete) """
 
     prediction_model = app.db.crud.get_prediction_model(
@@ -181,8 +181,9 @@ def mark_prediction_model_run_processed(session: Session,
         year=now.year,
         month=now.month,
         day=now.day,
-        hour=hour, tzinfo=datetime.timezone.utc)
-    prediction_run_timestamp = adjust_model_day(prediction_run_timestamp, hour)
+        hour=now.hour, tzinfo=datetime.timezone.utc)
+    prediction_run_timestamp = adjust_model_day(prediction_run_timestamp, model_run_hour)
+    prediction_run_timestamp = prediction_run_timestamp.replace(hour=model_run_hour)
     logger.info('prediction_model:%s, prediction_run_timestamp:%s',
                 prediction_model, prediction_run_timestamp)
     prediction_run = app.db.crud.get_prediction_run(
@@ -271,12 +272,12 @@ class EnvCanada():
                 logger.error('unexpected exception processing %s',
                              url, exc_info=exception)
 
-    def process_model_run(self, hour):
+    def process_model_run(self, model_run_hour):
         """ Process a particular model run """
-        logger.info('Processing GDPS model run {:02d}'.format(hour))
+        logger.info('Processing GDPS model run {:02d}:00'.format(model_run_hour))
 
         # Get the urls for the current model run.
-        urls = list(get_model_run_download_urls(self.now, hour))
+        urls = list(get_model_run_download_urls(self.now, model_run_hour))
 
         # Process all the urls.
         self.process_model_run_urls(urls)
@@ -284,9 +285,9 @@ class EnvCanada():
         # Having completed processing, check if we're all done.
         if self.check_if_model_run_complete(urls):
             logger.info(
-                'GDPS model run {:02d} completed with SUCCESS'.format(hour))
+                'GDPS model run {:02d}:00 completed with SUCCESS'.format(model_run_hour))
             mark_prediction_model_run_processed(
-                self.session, ModelEnum.GDPS, app.db.crud.LATLON_15X_15, self.now, hour)
+                self.session, ModelEnum.GDPS, app.db.crud.LATLON_15X_15, self.now, model_run_hour)
 
     def process(self):
         """ Entry point for downloading and processing weather model grib files """
