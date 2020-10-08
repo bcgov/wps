@@ -94,7 +94,7 @@ def calculate_raster_coordinate(
 def calculate_geographic_coordinate(
         point: List[int],
         padf_transform: List[float],
-        transformer: Transformer) -> List[float]:
+        transformer: Transformer):
     """ Calculate the geographic coordinates for a given points """
     x_coordinate = padf_transform[0] + point[0] * \
         padf_transform[1] + point[1]*padf_transform[2]
