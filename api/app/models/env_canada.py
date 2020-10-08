@@ -157,7 +157,8 @@ def get_model_run_hours(model_abbreviation: str):
             yield hour
 
 
-def get_global_model_run_download_urls(now: datetime.datetime, model_run_hour: int) -> Generator[str, None, None]:
+def get_global_model_run_download_urls(now: datetime.datetime,
+                                       model_run_hour: int) -> Generator[str, None, None]:
     """ Yield urls to download GDPS (global) model runs """
 
     # hh: model run start, in UTC [00, 12]
