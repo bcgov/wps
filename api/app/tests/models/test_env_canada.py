@@ -193,12 +193,12 @@ def test_main_gdps(mock_download, mock_session, mock_utcnow, mock_get_processed_
     assert env_canada.main() == 1
 
 
-def test_main_hrdps(mock_download, mock_session, mock_utcnow, mock_get_processed_file_count):
-    """ run main method to see if it runs successfully. """
-    # All files, except one, are marked as already having been downloaded, so we expect one file to
-    # be processed.
-    sys.argv = ["argv", "HRDPS"]
-    assert env_canada.main() == 1
+# def test_main_hrdps(mock_download, mock_session, mock_utcnow, mock_get_processed_file_count):
+#     """ run main method to see if it runs successfully. """
+#     # All files, except one, are marked as already having been downloaded, so we expect one file to
+#     # be processed.
+#     sys.argv = ["argv", "HRDPS"]
+#     assert env_canada.main() == 1
 
 
 def test_for_zero_day_bug(monkeypatch):
