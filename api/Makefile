@@ -152,10 +152,12 @@ docker-run-env-canada:
 	# Run a python script to download model data from Env Canada on docker
 	# Needs to run "make docker-run" first
 	docker-compose exec api python -m app.models.env_canada GDPS
+	docker-compose exec api python -m app.models.env_canada HRDPS
 
 docker-run-donald:
 	# Synonymn for docker-run-env-canada
 	docker-compose exec api python -m app.models.env_canada GDPS
+	docker-compose exec api python -m app.models.env_canada HRDPS
 
 docker-run-bender:
 	# Run a python script to download forecast data from BC Wild Fire on docker
