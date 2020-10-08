@@ -3,12 +3,10 @@ TODO: Move this file to app/models/ (not part of this PR as it makes comparing p
       there are so many changes, it's picked up as a delete instead of a move.)
 """
 
-
 import os
 import sys
 import datetime
-import asyncio
-from typing import Generator
+from typing import Generator, List
 from urllib.parse import urlparse
 import logging
 import time
@@ -17,22 +15,24 @@ import requests
 from scipy.interpolate import griddata
 from geoalchemy2.shape import to_shape
 from sqlalchemy.orm import Session
-from pyproj import Transformer, CRS
-from app import configure_logging
-import app.time_utils as time_utils
-import app.stations
-from app.models.process_grib import GribFileProcessor, ModelRunInfo
-from app.db.models import ProcessedModelRunUrl, PredictionModelRunTimestamp, WeatherStationModelPrediction
-import app.db.database
-from app.models import ModelEnum, ProjectionEnum
 from app.db.crud import (get_processed_file_record,
                          get_processed_file_count,
                          get_prediction_model_run_timestamp_records,
                          get_model_run_predictions_for_grid,
                          get_grid_for_coordinate,
                          get_weather_station_model_prediction)
+from app.models.machine_learning import StationMachineLearning
+from app.models import ModelEnum, ProjectionEnum, construct_interpolated_noon_prediction
+from app.schemas import WeatherStation
+from app import configure_logging
+import app.time_utils as time_utils
+from app.stations import get_stations_synchronously
+from app.models.process_grib import GribFileProcessor, ModelRunInfo
+from app.db.models import (ProcessedModelRunUrl, PredictionModelRunTimestamp,
+                           WeatherStationModelPrediction, ModelRunGridSubsetPrediction)
+import app.db.database
 
-# If running as it's own process, configure loggin appropriately.
+# If running as its own process, configure logging appropriately.
 if __name__ == "__main__":
     configure_logging()
 
@@ -44,6 +44,7 @@ class UnhandledPredictionModelType(Exception):
 
 
 def parse_global_model_filename(filename):
+    """ Parse filename for GDPS grib file to extract metadata """
     base = os.path.basename(filename)
     parts = base.split('_')
     model = parts[1]
@@ -68,6 +69,7 @@ def parse_global_model_filename(filename):
 
 
 def parse_high_res_model_filename(filename):
+    """ Parse filename for HRDPS grib file to extract metadata """
     base = os.path.basename(filename)
     parts = base.split('_')
     model = '_'.join([parts[1], parts[2]])
@@ -100,11 +102,11 @@ def parse_env_canada_filename(filename):
     parts = base.split('_')
     model = parts[1]
     if model == 'glb':
-        model, variable_name, projection, model_run_timestamp, prediction_timestamp = parse_global_model_filename(
-            filename)
+        model, variable_name, projection, model_run_timestamp, prediction_timestamp = \
+            parse_global_model_filename(filename)
     elif model == 'hrdps':
-        model, variable_name, projection, model_run_timestamp, prediction_timestamp = parse_high_res_model_filename(
-            filename)
+        model, variable_name, projection, model_run_timestamp, prediction_timestamp = \
+            parse_high_res_model_filename(filename)
 
     if model == 'glb':
         model_abbreviation = ModelEnum.GDPS
@@ -145,15 +147,8 @@ def get_file_date_part(now, hour) -> str:
     return date
 
 
-def get_utcnow():
-    """ Wrapped datetime.datetime.uctnow() for easier mocking in unit tests.
-    """
-    return datetime.datetime.utcnow()
-
-
 def get_model_run_hours(model_abbreviation: str):
-    """ Yield model run hours based on model type """
-    logger.info('Getting hours for %s', model_abbreviation)
+    """ Yield model run hours for GDPS (00h00 and 12h00) """
     if model_abbreviation == ModelEnum.GDPS:
         for hour in [0, 12]:
             yield hour
@@ -184,7 +179,7 @@ def get_global_model_run_download_urls(now: datetime.datetime, hour: int) -> Gen
 
 def get_high_res_model_run_download_urls(now: datetime.datetime, hour: int) -> Generator[str, None, None]:
     """ Yield urls to download HRDPS (high-res) model runs """
-
+    # pylint: disable=invalid-name
     hh = '{:02d}'.format(hour)
     # For the high-res model, predictions are at 1 hour intervals up to 48 hours.
     for h in range(0, 49):
@@ -270,7 +265,7 @@ class EnvCanada():
         self.files_processed = 0
         self.exception_count = 0
         # We always work in UTC:
-        self.now = get_utcnow()
+        self.now = time_utils.get_utc_now()
         self.session = app.db.database.get_write_session()
         self.grib_processor = GribFileProcessor()
         self.model_type = ModelEnum(model_type)
@@ -378,19 +373,18 @@ class EnvCanada():
                 # We intentionally catch a broad exception, as we want to try to process as much as we can.
                 self.exception_count += 1
                 logger.error(
-                    'unexpected exception processing %s model run %d', self.model_type, hour, exc_info=exception)
+                    'unexpected exception processing %s model run %d',
+                    self.model_type, hour, exc_info=exception)
 
 
-class Interpolator:
+class ModelValueProcessor:
     """ Iterate through model runs that have completed, and calculate the interpolated weather predictions.
     """
 
     def __init__(self):
         """ Prepare variables we're going to use throughout """
         self.session = app.db.database.get_write_session()
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        self.stations = loop.run_until_complete(app.stations.get_stations())
+        self.stations = get_stations_synchronously()
         self.station_count = len(self.stations)
 
     def _process_model_run(self, model_run: PredictionModelRunTimestamp):
@@ -398,56 +392,96 @@ class Interpolator:
         logger.info('Interpolating values for model run: %s', model_run)
         # Iterate through stations.
         for index, station in enumerate(self.stations):
-            logger.info('Interpolating model run %s for %s:%s (%s/%s)',
+            logger.info('Interpolating model run %s (%s/%s) for %s:%s',
                         model_run.id,
-                        station['code'], station['name'], index, self.station_count)
+                        index, self.station_count,
+                        station.code, station.name)
             # Process this model run for station.
             self._process_model_run_for_station(model_run, station)
         # Commit all the weather station model predictions (it's fast if we line them all up and commit
         # them in one go.)
+        logger.info('commit to database...')
         self.session.commit()
+        logger.info('done commit.')
+
+    def _process_prediction(self,  # pylint: disable=too-many-arguments
+                            prediction: ModelRunGridSubsetPrediction,
+                            station: WeatherStation,
+                            model_run: PredictionModelRunTimestamp,
+                            points: List,
+                            coordinate: List,
+                            machine: StationMachineLearning):
+        # If there's already a prediction, we want to update it
+        station_prediction = get_weather_station_model_prediction(
+            self.session, station.code, model_run.id, prediction.prediction_timestamp)
+        if station_prediction is None:
+            station_prediction = WeatherStationModelPrediction()
+        # Populate the weather station prediction object.
+        station_prediction.station_code = station.code
+        station_prediction.prediction_model_run_timestamp_id = model_run.id
+        station_prediction.prediction_timestamp = prediction.prediction_timestamp
+        # Calculate the interpolated values.
+        station_prediction.tmp_tgl_2 = griddata(
+            points, prediction.tmp_tgl_2, coordinate, method='linear')[0]
+        station_prediction.rh_tgl_2 = griddata(
+            points, prediction.rh_tgl_2, coordinate, method='linear')[0]
+        # Predict the temperature
+        station_prediction.bias_adjusted_temperature = machine.predict_temperature(
+            station_prediction.tmp_tgl_2,
+            station_prediction.prediction_timestamp)
+        # Predict the rh
+        station_prediction.bias_adjusted_rh = machine.predict_rh(
+            station_prediction.rh_tgl_2, station_prediction.prediction_timestamp)
+        # Update the update time (this might be an update)
+        station_prediction.update_date = time_utils.get_utc_now()
+        # Add this prediction to the session (we'll commit it later.)
+        self.session.add(station_prediction)
 
     def _process_model_run_for_station(self,
                                        model_run: PredictionModelRunTimestamp,
-                                       station: dict):
-        """ Process the model run for the provided station.
+                                       station: WeatherStation):
+        """ Process the model run for the prodvided station.
         """
         # Extract the coordinate.
-        coordinate = [station['long'], station['lat']]
+        coordinate = [station.long, station.lat]
         # Lookup the grid our weather station is in.
         logger.info("Getting grid for coordinate %s and model %s",
                     coordinate, model_run.prediction_model)
         grid = get_grid_for_coordinate(
             self.session, model_run.prediction_model, coordinate)
-        # Get all the predictions associated to this particular model run, in the grid.
-        query = get_model_run_predictions_for_grid(
-            self.session, model_run, grid)
 
-        # Conver the grid database object to a polygon object.
+        # Convert the grid database object to a polygon object.
         poly = to_shape(grid.geom)
         # Extract the vertices of the polygon.
         points = list(poly.exterior.coords)[:-1]
 
+        machine = StationMachineLearning(
+            session=self.session,
+            model=model_run.prediction_model,
+            grid=grid,
+            points=points,
+            target_coordinate=coordinate,
+            station_code=station.code,
+            max_learn_date=model_run.prediction_run_timestamp)
+        machine.learn()
+
+        # Get all the predictions associated to this particular model run, in the grid.
+        query = get_model_run_predictions_for_grid(
+            self.session, model_run, grid)
+
         # Iterate through all the predictions.
+        prev_prediction = None
         for prediction in query:
-            # If there's already a prediction, we want to update it
-            station_prediction = get_weather_station_model_prediction(
-                self.session, station['code'], model_run.id, prediction.prediction_timestamp)
-            if station_prediction is None:
-                station_prediction = WeatherStationModelPrediction()
-            # Populate the weather station prediction object.
-            station_prediction.station_code = station['code']
-            station_prediction.prediction_model_run_timestamp_id = model_run.id
-            station_prediction.prediction_timestamp = prediction.prediction_timestamp
-            # Caclulate the interpolated values.
-            station_prediction.tmp_tgl_2 = griddata(
-                points, prediction.tmp_tgl_2, coordinate, method='linear')[0]
-            station_prediction.rh_tgl_2 = griddata(
-                points, prediction.rh_tgl_2, coordinate, method='linear')[0]
-            # Update the update time (this might be an update)
-            station_prediction.update_date = time_utils.get_utc_now()
-            # Add this prediction to the session (we'll commit it later.)
-            self.session.add(station_prediction)
+            if (prev_prediction is not None
+                    and prev_prediction.prediction_timestamp.hour == 18
+                    and prediction.prediction_timestamp.hour == 21):
+                noon_prediction = construct_interpolated_noon_prediction(
+                    prev_prediction, prediction)
+                self._process_prediction(
+                    noon_prediction, station, model_run, points, coordinate, machine)
+            self._process_prediction(
+                prediction, station, model_run, points, coordinate, machine)
+            prev_prediction = prediction
 
     def _mark_model_run_interpolated(self, model_run: PredictionModelRunTimestamp):
         """ Having completely processed a model run, we can mark it has having been interpolated.
@@ -484,9 +518,9 @@ def main():
     env_canada = EnvCanada(model_type)
     env_canada.process()
 
-    # interpolate everything that needs interpolating.
-    interpolator = Interpolator()
-    interpolator.process()
+    # interpolate and machine learn everything that needs interpolating.
+    model_value_processor = ModelValueProcessor()
+    model_value_processor.process()
 
     # calculate the execution time.
     execution_time = round(time.time() - start_time, 1)

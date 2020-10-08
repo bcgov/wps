@@ -1,4 +1,5 @@
 weather_date,display_name,status,temp_valid,temperature,rh_valid,relative_humidity,wdir_valid,wind_direction,wspeed_valid,wind_speed,precip_valid,precipitation,gc,ffmc,dmc,dc,isi,bui,fwi,danger_rating
+20200930,ZZMERRITT HUB [archived],forecast,True,15,True,45,False,,True,12,True,0,,89.27014,84.44769,834.092,7.068483,134.7807,28.18778,4
 20200729,AFTON,forecast,True,30,True,26,False,,True,10,True,0,,93.64161,49.02521,507.2018,11.87847,78.96812,31.50238,3
 20200729,AKOKLI CREEK,forecast,True,27,True,30,True,250,True,7,True,0,,92.31423,76.90684,456.1752,8.479126,108.207,29.21823,4
 20200730,AKOKLI CREEK,forecast,True,27,True,30,True,250,True,7,True,0,,92.36436,81.52646,464.7392,8.539252,113.3445,29.96119,4

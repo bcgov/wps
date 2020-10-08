@@ -115,3 +115,4 @@ def mock_requests_session(monkeypatch):
                         default_mock_requests_session_get)
     monkeypatch.setattr(requests.Session, 'post',
                         default_mock_requests_session_post)
+    return monkeypatch

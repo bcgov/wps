@@ -1,5 +1,6 @@
 display_name,weather_date,temp_valid,temperature,dewpoint,rh_valid,relative_humidity,wdir_valid,wind_direction,wspeed_valid,wind_speed,precip_valid,precipitation,ffmc,isi,fwi
-AFTON,2020083109,True,13.9,8.2,True,68,True,248,True,12.9,True,0,83.41229,3.26225,17.13011
+SOMETHING RANDOM,2020083124,True,13.9,8.2,True,68,True,248,True,12.9,True,0,83.41229,3.26225,17.13011
+AFTON,2020083124,True,13.9,8.2,True,68,True,248,True,12.9,True,0,83.41229,3.26225,17.13011
 AFTON,2020083110,True,16.1,7.1,True,55,True,236,True,12,True,0,83.7365,3.253062,17.0941
 AKOKLI CREEK,2020083110,True,15.4,8.9,True,65,True,331,True,9.8,True,0,78.38071,1.594926,9.73512
 AKOKLI CREEK,2020083109,True,15.2,8.3,True,63,True,281,True,8.2,True,0,77.7571,1.395762,8.687514
