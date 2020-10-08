@@ -259,6 +259,7 @@ class EnvCanada():
     Canada.
     """
 
+    # pylint: disable=too-many-instance-attributes
     def __init__(self, model_type):
         """ Prep variables """
         self.files_downloaded = 0

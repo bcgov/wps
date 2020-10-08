@@ -64,7 +64,11 @@ def get_surrounding_grid(
     return points, values
 
 
-def calculate_raster_coordinate(longitude: float, latitude: float, padTransform: List[float], transformer: Transformer):
+def calculate_raster_coordinate(
+        longitude: float,
+        latitude: float,
+        padf_transform: List[float],
+        transformer: Transformer):
     """ From a given longitude and latitude, calculate the raster coordinate corresponding to the
     top left point of the grid surrounding the given geographic coordinate.
     """
@@ -73,26 +77,29 @@ def calculate_raster_coordinate(longitude: float, latitude: float, padTransform:
     raster_lat, raster_long = transformer.transform(latitude, longitude)
 
     # Calculate the j index for point i,j in the grib file
-    numerator = padTransform[1] * (raster_long - padTransform[3]) - \
-        padTransform[4] * (raster_lat - padTransform[0])
-    denominator = padTransform[1] * padTransform[5] - \
-        padTransform[2] * padTransform[4]
+    numerator = padf_transform[1] * (raster_long - padf_transform[3]) - \
+        padf_transform[4] * (raster_lat - padf_transform[0])
+    denominator = padf_transform[1] * padf_transform[5] - \
+        padf_transform[2] * padf_transform[4]
     j_index = math.floor(numerator/denominator)
 
     # Calculate the i index for point i,j in the grib file
-    numerator = raster_lat - padTransform[0] - j_index * padTransform[2]
-    denominator = padTransform[1]
+    numerator = raster_lat - padf_transform[0] - j_index * padf_transform[2]
+    denominator = padf_transform[1]
     i_index = math.floor(numerator/denominator)
 
     return (i_index, j_index)
 
 
-def calculate_geographic_coordinate(point: List[int], padfTransform: List[float], transformer: Transformer) -> List[float]:
+def calculate_geographic_coordinate(
+        point: List[int],
+        padf_transform: List[float],
+        transformer: Transformer) -> List[float]:
     """ Calculate the geographic coordinates for a given points """
-    x_coordinate = padfTransform[0] + point[0] * \
-        padfTransform[1] + point[1]*padfTransform[2]
-    y_coordinate = padfTransform[3] + point[0] * \
-        padfTransform[4] + point[1]*padfTransform[5]
+    x_coordinate = padf_transform[0] + point[0] * \
+        padf_transform[1] + point[1]*padf_transform[2]
+    y_coordinate = padf_transform[3] + point[0] * \
+        padf_transform[4] + point[1]*padf_transform[5]
 
     lat, lon = transformer.transform(x_coordinate, y_coordinate)
     return (lon, lat)
@@ -117,7 +124,7 @@ class GribFileProcessor():
         # Get list of stations we're interested in, and store it so that we only call it once.
         self.stations = get_stations_synchronously()
         self.session = app.db.database.get_write_session()
-        self.padTransform = None
+        self.padf_transform = None
         self.raster_to_geo_transformer = None
         self.geo_to_raster_transformer = None
         self.prediction_model = None
@@ -139,7 +146,7 @@ class GribFileProcessor():
             longitude = station.long
             latitude = station.lat
             x_coordinate, y_coordinate = calculate_raster_coordinate(
-                longitude, latitude, self.padTransform, self.geo_to_raster_transformer)
+                longitude, latitude, self.padf_transform, self.geo_to_raster_transformer)
 
             points, values = get_surrounding_grid(
                 raster_band, x_coordinate, y_coordinate)
@@ -154,7 +161,7 @@ class GribFileProcessor():
         geographic_points = []
         for point in points:
             geographic_points.append(
-                calculate_geographic_coordinate(point, self.padTransform, self.raster_to_geo_transformer))
+                calculate_geographic_coordinate(point, self.padf_transform, self.raster_to_geo_transformer))
         # Get the grid subset, i.e. the relevant bounding area for this particular model.
         grid_subset = get_or_create_grid_subset(
             self.session, self.prediction_model, geographic_points)
@@ -192,16 +199,21 @@ class GribFileProcessor():
             self.raster_to_geo_transformer = Transformer.from_crs(crs, geo_crs)
             self.geo_to_raster_transformer = Transformer.from_crs(geo_crs, crs)
 
-            self.padTransform = get_dataset_geometry(dataset)
+            self.padf_transform = get_dataset_geometry(dataset)
             # get the model (.e.g. GPDS/RDPS latlon24x.24):
             self.prediction_model = self.get_prediction_model(grib_info)
 
             # if the model type is GDPS (Global), we need to manually set the padTransform
             # with the x,y coordinates of origin reversed
             if self.prediction_model.abbreviation == 'GDPS':
-                self.padTransform = (
-                    self.padTransform[3], self.padTransform[5], self.padTransform[2], self.padTransform[0], self.padTransform[4], self.padTransform[1])
-                dataset.SetGeoTransform(self.padTransform)
+                self.padf_transform = (
+                    self.padf_transform[3],
+                    self.padf_transform[5],
+                    self.padf_transform[2],
+                    self.padf_transform[0],
+                    self.padf_transform[4],
+                    self.padf_transform[1])
+                dataset.SetGeoTransform(self.padf_transform)
 
             # get the model run (e.g. GDPS latlon24x.24 for 2020 07 07 12h00):
             prediction_run = get_or_create_prediction_run(
