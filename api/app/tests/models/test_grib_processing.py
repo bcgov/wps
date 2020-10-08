@@ -1,6 +1,7 @@
 """ BDD tests for grib file processing """
 import os
 import logging
+from operator import itemgetter
 from pytest_bdd import scenario, given, then, when
 from pyproj import CRS, Transformer
 import app.models.process_grib as process_grib
@@ -30,7 +31,7 @@ def when_extract_geometry(given_grib_file):  # pylint: disable=redefined-outer-n
 @then('I expect <origin>')
 def assert_origin(given_grib_file, origin):  # pylint: disable=redefined-outer-name
     """ assert that origin matches expected """
-    actual_origin = given_grib_file['geometry'][0]
+    actual_origin = itemgetter(0, 3)(given_grib_file['geometry'])
     expected_origin = eval(origin)  # pylint: disable=eval-used
     logger.warning('actual: %s ; expected %s', actual_origin, expected_origin)
     # This fails when using gdal-2.2.3! Be sure to use a more recent version.
@@ -40,7 +41,7 @@ def assert_origin(given_grib_file, origin):  # pylint: disable=redefined-outer-n
 @then('I expect <pixels>')
 def assert_pixels(given_grib_file, pixels):  # pylint: disable=redefined-outer-name
     """ assert that pixels match expected """
-    actual_pixels = given_grib_file['geometry'][1]
+    actual_pixels = itemgetter(1, 5)(given_grib_file['geometry'])
     expected_pixels = eval(pixels)  # pylint: disable=eval-used
     assert actual_pixels == expected_pixels
 
