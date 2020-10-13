@@ -100,6 +100,13 @@ notebook:
 	# Run jupyter notebooks.
 	POSTGRES_HOST=localhost PYTHONPATH=$(shell pwd) JUPYTER_PATH=$(shell pwd) poetry run jupyter notebook --ip 0.0.0.0
 
+
+
+
+
+
+
+
 shell:
 	# Run shell in virtual environment shell.
 	poetry shell
