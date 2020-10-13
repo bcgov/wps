@@ -17,8 +17,10 @@ depends_on = None
 
 
 def upgrade():
+    """ Nothing to upgrade; just merging 2 heads """
     pass
 
 
 def downgrade():
+    """ Nothing to downgrade; just merging 2 heads """
     pass
