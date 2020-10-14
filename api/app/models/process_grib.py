@@ -214,9 +214,10 @@ class GribFileProcessor():
                     self.padf_transform[4],
                     self.padf_transform[1])
                 dataset.SetGeoTransform(revised_transform)
+                dataset.FlushCache()
                 self.padf_transform = revised_transform
-                logger.info('GDPS padf_transform set to %s',
-                            self.padf_transform)
+                logger.info('GDPS padf_transform set to %s. Dataset geotransform %s',
+                            self.padf_transform, dataset.GetGeoTransform())
 
             # get the model run (e.g. GDPS latlon24x.24 for 2020 07 07 12h00):
             prediction_run = get_or_create_prediction_run(
