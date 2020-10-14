@@ -206,14 +206,17 @@ class GribFileProcessor():
             # if the model type is GDPS (Global), we need to manually set the padTransform
             # with the x,y coordinates of origin reversed
             if self.prediction_model.abbreviation == 'GDPS':
-                self.padf_transform = (
+                revised_transform = (
                     self.padf_transform[3],
                     self.padf_transform[5],
                     self.padf_transform[2],
                     self.padf_transform[0],
                     self.padf_transform[4],
                     self.padf_transform[1])
-                dataset.SetGeoTransform(self.padf_transform)
+                dataset.SetGeoTransform(revised_transform)
+                self.padf_transform = revised_transform
+                logger.info('GDPS padf_transform set to %s',
+                            self.padf_transform)
 
             # get the model run (e.g. GDPS latlon24x.24 for 2020 07 07 12h00):
             prediction_run = get_or_create_prediction_run(
