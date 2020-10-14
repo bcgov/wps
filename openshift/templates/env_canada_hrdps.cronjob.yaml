@@ -29,7 +29,7 @@ objects:
     spec:
       # Don't run on the hour - as a courtesy to env canada, pick a random
       # number so that not everyone hits env. canada at the same time.
-      schedule: "10 0,6,12,18 * * *"
+      schedule: "10 * * * *"
       # We use the "Replace" policy, because we never want the cronjobs to run concurrently,
       # and if for whatever reason a cronjob gets stuck, we want the next run to proceed.
       # If we were to use Forbid, and a cronjob gets stuck, then we'd stop gathering data until someone
