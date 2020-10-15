@@ -161,6 +161,7 @@ class GribFileProcessor():
 
             yield (points, values)
 
+    # pylint: disable=fixme
     # TODO: Remove this once the root reason why GDPS model runs sometimes fail is determined.
     def reverse_geotransform(self):
         """ Reverses the X and Y coordinates in self.padf_transform.
