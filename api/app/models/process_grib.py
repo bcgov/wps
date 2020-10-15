@@ -76,8 +76,6 @@ def calculate_raster_coordinate(
     # to whichever projection and coordinate system the grib file is using
     raster_lat, raster_long = transformer.transform(latitude, longitude)
 
-    logger.info('padf_transform in calculate_raster() is %s', padf_transform)
-
     # Calculate the j index for point i,j in the grib file
     numerator = padf_transform[1] * (raster_long - padf_transform[3]) - \
         padf_transform[4] * (raster_lat - padf_transform[0])
@@ -141,7 +139,7 @@ class GribFileProcessor():
                 grib_info.model_abbreviation, grib_info.projection)
         return prediction_model
 
-    def yield_data_for_stations(self, raster_band):
+    def yield_data_for_stations(self, raster_band: gdal.Dataset):
         """ Given a list of stations, and a gdal dataset, yield relevant data
         """
         for station in self.stations:
@@ -150,10 +148,31 @@ class GribFileProcessor():
             x_coordinate, y_coordinate = calculate_raster_coordinate(
                 longitude, latitude, self.padf_transform, self.geo_to_raster_transformer)
 
+            if x_coordinate < 0 or y_coordinate < 0 or x_coordinate > raster_band.XSize \
+                    or y_coordinate > raster_band.YSize:
+                logger.info(
+                    'Detected raster calculation error. Reversing geotransform to try again...')
+                self.reverse_geotransform()
+                x_coordinate, y_coordinate = calculate_raster_coordinate(
+                    longitude, latitude, self.padf_transform, self.geo_to_raster_transformer)
+
             points, values = get_surrounding_grid(
                 raster_band, x_coordinate, y_coordinate)
 
             yield (points, values)
+
+    # TODO: Remove this once the root reason why GDPS model runs sometimes fail is determined.
+    def reverse_geotransform(self):
+        """ Reverses the X and Y coordinates in self.padf_transform.
+        Included for now as a band-aid fix when GDPS model runs fail inconsistently.
+        """
+        reverse_geotransform = (self.padf_transform[3],
+                                self.padf_transform[5],
+                                self.padf_transform[2],
+                                self.padf_transform[0],
+                                self.padf_transform[4],
+                                self.padf_transform[1])
+        self.padf_transform = reverse_geotransform
 
     def store_bounding_values(self, points, values, preduction_model_run: PredictionModelRunTimestamp,
                               grib_info: ModelRunInfo):
