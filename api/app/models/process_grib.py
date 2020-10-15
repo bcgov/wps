@@ -76,6 +76,8 @@ def calculate_raster_coordinate(
     # to whichever projection and coordinate system the grib file is using
     raster_lat, raster_long = transformer.transform(latitude, longitude)
 
+    logger.info('padf_transform in calculate_raster() is %s', padf_transform)
+
     # Calculate the j index for point i,j in the grib file
     numerator = padf_transform[1] * (raster_long - padf_transform[3]) - \
         padf_transform[4] * (raster_lat - padf_transform[0])
@@ -214,7 +216,6 @@ class GribFileProcessor():
                     self.padf_transform[4],
                     self.padf_transform[1])
                 dataset.SetGeoTransform(revised_transform)
-                dataset.FlushCache()
                 self.padf_transform = revised_transform
                 logger.info('GDPS padf_transform set to %s. Dataset geotransform %s',
                             self.padf_transform, dataset.GetGeoTransform())
