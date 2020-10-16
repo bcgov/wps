@@ -329,7 +329,6 @@ class EnvCanada():
                                 # Flag the file as processed
                                 self.flag_file_as_processed(url)
                                 self.files_processed += 1
-                                logger.info('Processed %s', url)
                             finally:
                                 # delete the file when done.
                                 os.remove(downloaded)
@@ -370,7 +369,6 @@ class EnvCanada():
         """ Entry point for downloading and processing weather model grib files """
         for hour in get_model_run_hours(self.model_type):
             try:
-                logger.info('HOUR %s', hour)
                 self.process_model_run(hour)
             # pylint: disable=broad-except
             except Exception as exception:
@@ -496,17 +494,18 @@ class ModelValueProcessor:
         self.session.add(model_run)
         self.session.commit()
 
-    def process(self):
+    def process(self, model_type: str):
         """ Entry point to start processing model runs that have not yet had their predictions interpolated
         """
         # Get model runs that are complete (fully downloaded), but not yet interpolated.
         query = get_prediction_model_run_timestamp_records(
-            self.session, complete=True, interpolated=False)
+            self.session, complete=True, interpolated=False, model_type=model_type)
         for model_run in query:
             # Process the model run.
-            self._process_model_run(model_run)
+            self._process_model_run(model_run.PredictionModelRunTimestamp)
             # Mark the model run as interpolated.
-            self._mark_model_run_interpolated(model_run)
+            self._mark_model_run_interpolated(
+                model_run.PredictionModelRunTimestamp)
 
 
 def main():
@@ -525,7 +524,7 @@ def main():
 
     # interpolate and machine learn everything that needs interpolating.
     model_value_processor = ModelValueProcessor()
-    model_value_processor.process()
+    model_value_processor.process(model_type)
 
     # calculate the execution time.
     execution_time = round(time.time() - start_time, 1)
