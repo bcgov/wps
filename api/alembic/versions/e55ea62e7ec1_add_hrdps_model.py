@@ -1,8 +1,8 @@
-"""add hrdps to models table
+"""add_hrdps_model
 
-Revision ID: bcd30e84cda0
-Revises: c9f9b2849fef
-Create Date: 2020-09-24 16:48:12.942342
+Revision ID: e55ea62e7ec1
+Revises: 7bedf64b703c
+Create Date: 2020-10-16 13:11:54.743540
 
 """
 from alembic import op
@@ -10,16 +10,18 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'bcd30e84cda0'
-down_revision = 'c9f9b2849fef'
+revision = 'e55ea62e7ec1'
+down_revision = '7bedf64b703c'
 branch_labels = None
 depends_on = None
 
 
 def upgrade():
+    """ Insert HRDPS model data into prediction_models table """
     op.execute(
         'INSERT INTO prediction_models (abbreviation, name, projection) VALUES (\'HRDPS\', \'High Resolution Deterministic Prediction System\', \'ps2.5km\')')
 
 
 def downgrade():
+    """ Delete the HRDPS model from prediction_models """
     op.execute('DELETE from prediction_models WHERE projection = \'ps2.5km\'')
