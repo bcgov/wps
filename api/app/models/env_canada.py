@@ -104,16 +104,14 @@ def parse_env_canada_filename(filename):
     if model == 'glb':
         model, variable_name, projection, model_run_timestamp, prediction_timestamp = \
             parse_global_model_filename(filename)
+        model_abbreviation = ModelEnum.GDPS
     elif model == 'hrdps':
         model, variable_name, projection, model_run_timestamp, prediction_timestamp = \
             parse_high_res_model_filename(filename)
-
-    if model == 'glb':
-        model_abbreviation = ModelEnum.GDPS
+        model_abbreviation = ModelEnum.HRDPS
     elif model == 'reg':
         model_abbreviation = ModelEnum.RDPS
-    elif model == 'hrdps_continental':
-        model_abbreviation = ModelEnum.HRDPS
+        # NOTE: function to parse RDPS filenames has not been written yet
     else:
         raise UnhandledPredictionModelType(
             'Unhandled prediction model type found', model)
