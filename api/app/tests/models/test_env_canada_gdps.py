@@ -121,7 +121,7 @@ def mock_session(monkeypatch):
         ])
 
     def mock_get_gdps_prediction_model_run_timestamp_records(*args, **kwargs):
-        return [gdps_prediction_model_run, ]
+        return [(gdps_prediction_model_run, gdps_prediction_model)]
 
     monkeypatch.setattr(app.db.database, 'get_write_session',
                         mock_get_session_gdps)

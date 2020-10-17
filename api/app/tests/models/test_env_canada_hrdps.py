@@ -14,7 +14,7 @@ import app.db.database
 from app.models import env_canada
 from app.db.models import (PredictionModel, ProcessedModelRunUrl, PredictionModelRunTimestamp,
                            PredictionModelGridSubset)
-from app.tests.models.test_env_canada import MockResponse
+from app.tests.models.test_env_canada_gdps import MockResponse
 # pylint: disable=unused-argument, redefined-outer-name
 
 
@@ -63,7 +63,7 @@ def mock_session(monkeypatch):
         ])
 
     def mock_get_hrdps_prediction_model_run_timestamp_records(*args, **kwargs):
-        return [hrdps_prediction_model_run, ]
+        return [(hrdps_prediction_model_run, hrdps_prediction_model)]
 
     monkeypatch.setattr(app.db.database, 'get_write_session',
                         mock_get_session_hrdps)
