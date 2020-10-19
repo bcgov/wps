@@ -3,7 +3,6 @@ TODO: Move this file to app/models/ (not part of this PR as it makes comparing p
       there are so many changes, it's picked up as a delete instead of a move.)
 """
 
-
 import os
 import sys
 import datetime
@@ -16,6 +15,15 @@ import requests
 from scipy.interpolate import griddata
 from geoalchemy2.shape import to_shape
 from sqlalchemy.orm import Session
+from app.db.crud import (get_processed_file_record,
+                         get_processed_file_count,
+                         get_prediction_model_run_timestamp_records,
+                         get_model_run_predictions_for_grid,
+                         get_grid_for_coordinate,
+                         get_weather_station_model_prediction)
+from app.models.machine_learning import StationMachineLearning
+from app.models import ModelEnum, ProjectionEnum, construct_interpolated_noon_prediction
+from app.schemas import WeatherStation
 from app import configure_logging
 import app.time_utils as time_utils
 from app.stations import get_stations_synchronously
@@ -23,17 +31,8 @@ from app.models.process_grib import GribFileProcessor, ModelRunInfo
 from app.db.models import (ProcessedModelRunUrl, PredictionModelRunTimestamp,
                            WeatherStationModelPrediction, ModelRunGridSubsetPrediction)
 import app.db.database
-from app.schemas import WeatherStation
-from app.models import ModelEnum, construct_interpolated_noon_prediction
-from app.models.machine_learning import StationMachineLearning
-from app.db.crud import (get_processed_file_record,
-                         get_processed_file_count,
-                         get_prediction_model_run_timestamp_records,
-                         get_model_run_predictions_for_grid,
-                         get_grid_for_coordinate,
-                         get_weather_station_model_prediction)
 
-# If running as it's own process, configure loggin appropriately.
+# If running as its own process, configure logging appropriately.
 if __name__ == "__main__":
     configure_logging()
 
@@ -44,12 +43,8 @@ class UnhandledPredictionModelType(Exception):
     """ Exception raised when an unknown model type is encountered. """
 
 
-def parse_env_canada_filename(filename):
-    """ Take a grib filename, as per file name nomenclature defined at
-    https://weather.gc.ca/grib/grib2_glb_25km_e.html, and parse into a meaningful object.
-    """
-    # pylint: disable=too-many-locals
-
+def parse_global_model_filename(filename):
+    """ Parse filename for GDPS grib file to extract metadata """
     base = os.path.basename(filename)
     parts = base.split('_')
     model = parts[1]
@@ -70,14 +65,56 @@ def parse_env_canada_filename(filename):
     prediction_hour = last_part[0][1:]
     prediction_timestamp = model_run_timestamp + \
         datetime.timedelta(hours=int(prediction_hour))
+    return model, variable_name, projection, model_run_timestamp, prediction_timestamp
 
+
+def parse_high_res_model_filename(filename):
+    """ Parse filename for HRDPS grib file to extract metadata """
+    base = os.path.basename(filename)
+    parts = base.split('_')
+    model = '_'.join([parts[1], parts[2]])
+    variable = parts[3]
+    level_type = parts[4]
+    level = parts[5]
+    variable_name = '_'.join(
+        [variable, level_type, level])
+    projection = parts[6]
+    prediction_start = parts[7][:-2]
+    run_time = parts[7][-2:]
+    model_run_timestamp = datetime.datetime(
+        year=int(prediction_start[:4]),
+        month=int(prediction_start[4:6]),
+        day=int(prediction_start[6:8]),
+        hour=int(run_time), tzinfo=datetime.timezone.utc)
+    last_part = parts[8].split('.')
+    prediction_hour = last_part[0][1:4]
+    prediction_timestamp = model_run_timestamp + \
+        datetime.timedelta(hours=int(prediction_hour))
+    return model, variable_name, projection, model_run_timestamp, prediction_timestamp
+
+
+def parse_env_canada_filename(filename):
+    """ Take a grib filename, as per file name nomenclature defined at
+    https://weather.gc.ca/grib/grib2_glb_25km_e.html, and parse into a meaningful object.
+    """
+    # pylint: disable=too-many-locals
+    base = os.path.basename(filename)
+    parts = base.split('_')
+    model = parts[1]
     if model == 'glb':
+        model, variable_name, projection, model_run_timestamp, prediction_timestamp = \
+            parse_global_model_filename(filename)
         model_abbreviation = ModelEnum.GDPS
+    elif model == 'hrdps':
+        model, variable_name, projection, model_run_timestamp, prediction_timestamp = \
+            parse_high_res_model_filename(filename)
+        model_abbreviation = ModelEnum.HRDPS
     elif model == 'reg':
         model_abbreviation = ModelEnum.RDPS
+        # NOTE: function to parse RDPS filenames has not been written yet
     else:
         raise UnhandledPredictionModelType(
-            'Unhandeled prediction model type found', model)
+            'Unhandled prediction model type found', model)
 
     info = ModelRunInfo()
     info.model_abbreviation = model_abbreviation
@@ -108,14 +145,19 @@ def get_file_date_part(now, model_run_hour) -> str:
     return date
 
 
-def get_model_run_hours():
+def get_model_run_hours(model_abbreviation: str):
     """ Yield model run hours for GDPS (00h00 and 12h00) """
-    for hour in [0, 12]:
-        yield hour
+    if model_abbreviation == ModelEnum.GDPS:
+        for hour in [0, 12]:
+            yield hour
+    elif model_abbreviation == ModelEnum.HRDPS:
+        for hour in [0, 6, 12, 18]:
+            yield hour
 
 
-def get_model_run_download_urls(now: datetime.datetime, model_run_hour: int) -> Generator[str, None, None]:
-    """ Yield urls to download. """
+def get_global_model_run_download_urls(now: datetime.datetime,
+                                       model_run_hour: int) -> Generator[str, None, None]:
+    """ Yield urls to download GDPS (global) model runs """
 
     # hh: model run start, in UTC [00, 12]
     # hhh: prediction hour [000, 003, 006, ..., 240]
@@ -129,6 +171,23 @@ def get_model_run_download_urls(now: datetime.datetime, model_run_hour: int) -> 
                 hh, hhh)
             date = get_file_date_part(now, model_run_hour)
             filename = 'CMC_glb_{}_latlon.15x.15_{}{}_P{}.grib2'.format(
+                level, date, hh, hhh)
+            url = base_url + filename
+            yield url
+
+
+def get_high_res_model_run_download_urls(now: datetime.datetime, hour: int) -> Generator[str, None, None]:
+    """ Yield urls to download HRDPS (high-res) model runs """
+    # pylint: disable=invalid-name
+    hh = '{:02d}'.format(hour)
+    # For the high-res model, predictions are at 1 hour intervals up to 48 hours.
+    for h in range(0, 49):
+        hhh = format(h, '03d')
+        for level in ['TMP_TGL_2', 'RH_TGL_2']:
+            base_url = 'https://dd.weather.gc.ca/model_hrdps/continental/grib2/{}/{}/'.format(
+                hh, hhh)
+            date = get_file_date_part(now, hour)
+            filename = 'CMC_hrdps_continental_{}_ps2.5km_{}{}_P{}-00.grib2'.format(
                 level, date, hh, hhh)
             url = base_url + filename
             yield url
@@ -170,7 +229,7 @@ def download(url: str, path: str) -> str:
 
 def mark_prediction_model_run_processed(session: Session,
                                         model: ModelEnum,
-                                        projection: str,
+                                        projection: ProjectionEnum,
                                         now: datetime.datetime,
                                         model_run_hour: int):
     """ Mark a prediction model run as processed (complete) """
@@ -182,14 +241,17 @@ def mark_prediction_model_run_processed(session: Session,
         month=now.month,
         day=now.day,
         hour=now.hour, tzinfo=datetime.timezone.utc)
-    prediction_run_timestamp = adjust_model_day(prediction_run_timestamp, model_run_hour)
-    prediction_run_timestamp = prediction_run_timestamp.replace(hour=model_run_hour)
+    prediction_run_timestamp = adjust_model_day(
+        prediction_run_timestamp, model_run_hour)
+    prediction_run_timestamp = prediction_run_timestamp.replace(
+        hour=model_run_hour)
     logger.info('prediction_model:%s, prediction_run_timestamp:%s',
                 prediction_model, prediction_run_timestamp)
     prediction_run = app.db.crud.get_prediction_run(
         session,
         prediction_model.id,
         prediction_run_timestamp)
+    logger.info('prediction run: %s', prediction_run)
     prediction_run.complete = True
     app.db.crud.update_prediction_run(session, prediction_run)
 
@@ -199,7 +261,8 @@ class EnvCanada():
     Canada.
     """
 
-    def __init__(self):
+    # pylint: disable=too-many-instance-attributes
+    def __init__(self, model_type):
         """ Prep variables """
         self.files_downloaded = 0
         self.files_processed = 0
@@ -208,6 +271,12 @@ class EnvCanada():
         self.now = time_utils.get_utc_now()
         self.session = app.db.database.get_write_session()
         self.grib_processor = GribFileProcessor()
+        self.model_type = ModelEnum(model_type)
+        # set projection based on model_type
+        if self.model_type == ModelEnum.GDPS:
+            self.projection = ProjectionEnum.LATLON_15X_15
+        elif self.model_type == ModelEnum.HRDPS:
+            self.projection = ProjectionEnum.HIGH_RES_CONTINENTAL
 
     def flag_file_as_processed(self, url):
         """ Flag the file as processed in the database """
@@ -274,10 +343,16 @@ class EnvCanada():
 
     def process_model_run(self, model_run_hour):
         """ Process a particular model run """
-        logger.info('Processing GDPS model run {:02d}:00'.format(model_run_hour))
+        logger.info('Processing {} model run {:02d}'.format(
+            self.model_type, model_run_hour))
 
         # Get the urls for the current model run.
-        urls = list(get_model_run_download_urls(self.now, model_run_hour))
+        if self.model_type == ModelEnum.GDPS:
+            urls = list(get_global_model_run_download_urls(
+                self.now, model_run_hour))
+        elif self.model_type == ModelEnum.HRDPS:
+            urls = list(get_high_res_model_run_download_urls(
+                self.now, model_run_hour))
 
         # Process all the urls.
         self.process_model_run_urls(urls)
@@ -285,13 +360,14 @@ class EnvCanada():
         # Having completed processing, check if we're all done.
         if self.check_if_model_run_complete(urls):
             logger.info(
-                'GDPS model run {:02d}:00 completed with SUCCESS'.format(model_run_hour))
+                '{} model run {:02d}:00 completed with SUCCESS'.format(self.model_type, model_run_hour))
+
             mark_prediction_model_run_processed(
-                self.session, ModelEnum.GDPS, app.db.crud.LATLON_15X_15, self.now, model_run_hour)
+                self.session, self.model_type, self.projection, self.now, model_run_hour)
 
     def process(self):
         """ Entry point for downloading and processing weather model grib files """
-        for hour in get_model_run_hours():
+        for hour in get_model_run_hours(self.model_type):
             try:
                 self.process_model_run(hour)
             # pylint: disable=broad-except
@@ -300,7 +376,8 @@ class EnvCanada():
                 # We intentionally catch a broad exception, as we want to try to process as much as we can.
                 self.exception_count += 1
                 logger.error(
-                    'unexpected exception processing GDPS model run %d', hour, exc_info=exception)
+                    'unexpected exception processing %s model run %d',
+                    self.model_type, hour, exc_info=exception)
 
 
 class ModelValueProcessor:
@@ -371,6 +448,8 @@ class ModelValueProcessor:
         # Extract the coordinate.
         coordinate = [station.long, station.lat]
         # Lookup the grid our weather station is in.
+        logger.info("Getting grid for coordinate %s and model %s",
+                    coordinate, model_run.prediction_model)
         grid = get_grid_for_coordinate(
             self.session, model_run.prediction_model, coordinate)
 
@@ -415,13 +494,15 @@ class ModelValueProcessor:
         self.session.add(model_run)
         self.session.commit()
 
-    def process(self):
+    def process(self, model_type: str):
         """ Entry point to start processing model runs that have not yet had their predictions interpolated
         """
         # Get model runs that are complete (fully downloaded), but not yet interpolated.
         query = get_prediction_model_run_timestamp_records(
-            self.session, complete=True, interpolated=False)
-        for model_run in query:
+            self.session, complete=True, interpolated=False, model_type=model_type)
+        for model_run, model in query:
+            logger.info('model %s', model)
+            logger.info('model_run %s', model_run)
             # Process the model run.
             self._process_model_run(model_run)
             # Mark the model run as interpolated.
@@ -431,16 +512,20 @@ class ModelValueProcessor:
 def main():
     """ main script """
 
+    # set the model type requested based on arg passed via command line
+    model_type = sys.argv[1]
+    logger.info('model type %s', model_type)
+
     # grab the start time.
     start_time = time.time()
 
     # process everything.
-    env_canada = EnvCanada()
+    env_canada = EnvCanada(model_type)
     env_canada.process()
 
     # interpolate and machine learn everything that needs interpolating.
     model_value_processor = ModelValueProcessor()
-    model_value_processor.process()
+    model_value_processor.process(model_type)
 
     # calculate the execution time.
     execution_time = round(time.time() - start_time, 1)

@@ -4,7 +4,7 @@ metadata:
   name: ${JOB_NAME}-cronjob-template
   annotations:
     description: "Scheduled task to download and process weather data from the MSC Datamart through http protocol."
-    tags: "cronjob,env-canada"
+    tags: "cronjob,env-canada,hrdps"
 labels:
   app.kubernetes.io/part-of: "${NAME}"
   app: ${NAME}
@@ -27,9 +27,9 @@ objects:
       labels:
         cronjob: ${JOB_NAME}
     spec:
-      # Don't run on the hour - as a courtesy to env canada, pick a random 
+      # Don't run on the hour - as a courtesy to env canada, pick a random
       # number so that not everyone hits env. canada at the same time.
-      schedule: "13 * * * *"
+      schedule: "07 * * * *"
       # We use the "Replace" policy, because we never want the cronjobs to run concurrently,
       # and if for whatever reason a cronjob gets stuck, we want the next run to proceed.
       # If we were to use Forbid, and a cronjob gets stuck, then we'd stop gathering data until someone
@@ -46,7 +46,7 @@ objects:
                 - name: ${JOB_NAME}
                   image: docker-registry.default.svc:5000/${PROJECT_TOOLS}/${NAME}-${SUFFIX}:${SUFFIX}
                   imagePullPolicy: "Always"
-                  command: ["python", "-m", "app.models.env_canada"]
+                  command: ["python", "-m", "app.models.env_canada", "HRDPS"]
                   env:
                     - name: POSTGRES_READ_USER
                       value: ${NAME}-${SUFFIX}
@@ -67,9 +67,9 @@ objects:
                       value: ${NAME}-${SUFFIX}
                   resources:
                     limits:
-                      cpu: '1'
+                      cpu: "1"
                       memory: 512Mi
                     requests:
-                      cpu: '500m'
+                      cpu: "500m"
                       memory: 256Mi
               restartPolicy: OnFailure

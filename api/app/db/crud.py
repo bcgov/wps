@@ -13,8 +13,6 @@ import app.time_utils as time_utils
 
 logger = logging.getLogger(__name__)
 
-LATLON_15X_15 = 'latlon.15x.15'
-
 # --------------  COMMON UTILITY FUNCTIONS ---------------------------
 
 
@@ -130,6 +128,8 @@ def get_grid_for_coordinate(session: Session,
                             prediction_model: PredictionModel,
                             coordinate) -> PredictionModelGridSubset:
     """ Given a specified coordinate and model, return the appropriate grid. """
+    logger.info("Model %s, coords %s,%s", prediction_model.id,
+                coordinate[1], coordinate[0])
     query = session.query(PredictionModelGridSubset).\
         filter(PredictionModelGridSubset.geom.ST_Contains(
             'POINT({longitude} {latitude})'.format(longitude=coordinate[0], latitude=coordinate[1]))).\
@@ -141,7 +141,7 @@ def get_model_run_predictions_for_grid(session: Session,
                                        prediction_run: PredictionModelRunTimestamp,
                                        grid: PredictionModelGridSubset) -> List:
     """ Get all the predictions for a provided model run and grid. """
-
+    logger.info("Getting model predictions for grid %s", grid)
     return session.query(ModelRunGridSubsetPrediction).\
         filter(ModelRunGridSubsetPrediction.prediction_model_grid_subset_id == grid.id).\
         filter(ModelRunGridSubsetPrediction.prediction_model_run_timestamp_id ==
@@ -245,9 +245,10 @@ def get_prediction_model(session: Session, abbreviation: str, projection: str) -
 
 
 def get_prediction_model_run_timestamp_records(
-        session: Session, complete: bool = True, interpolated: bool = True):
+        session: Session, model_type: str, complete: bool = True, interpolated: bool = True):
     """ Get prediction model run timestamps (filter on complete and interpolated if provided.) """
-    query = session.query(PredictionModelRunTimestamp)
+    query = session.query(PredictionModelRunTimestamp, PredictionModel) \
+        .filter(PredictionModel.abbreviation == model_type)
     if interpolated is not None:
         query = query.filter(
             PredictionModelRunTimestamp.interpolated == interpolated)

@@ -9,6 +9,7 @@ from typing import List
 from sqlalchemy.dialects.postgresql import array
 import sqlalchemy.exc
 import gdal
+from pyproj import CRS, Transformer
 import app.db.database
 from app.stations import get_stations_synchronously
 from app.db.models import (
@@ -45,7 +46,6 @@ def get_surrounding_grid(
     NOTE: Order of the points is super important! Vertices are ordered clockwise, values are also
     ordered clockwise.
     """
-
     # Read scanlines of the raster, build up the four points and corresponding values:
     scanline_one = band.ReadRaster(xoff=x_index, yoff=y_index, xsize=2, ysize=1,
                                    buf_xsize=2, buf_ysize=1, buf_type=gdal.GDT_Float32)
@@ -64,22 +64,45 @@ def get_surrounding_grid(
     return points, values
 
 
-def calculate_raster_coordinate(longitude: float, latitude: float, origin: List[int], pixel: List[int]):
+def calculate_raster_coordinate(
+        longitude: float,
+        latitude: float,
+        padf_transform: List[float],
+        transformer: Transformer):
     """ From a given longitude and latitude, calculate the raster coordinate corresponding to the
     top left point of the grid surrounding the given geographic coordinate.
     """
-    delta_x = longitude - origin[0]
-    delta_y = latitude - origin[1]
-    x_coordinate = delta_x / pixel[0]
-    y_coordinate = delta_y / pixel[1]
-    return math.floor(x_coordinate), math.floor(y_coordinate)
+    # Because not all model types use EPSG:4269 projection, we first convert longitude and latitude
+    # to whichever projection and coordinate system the grib file is using
+    raster_lat, raster_long = transformer.transform(latitude, longitude)
+
+    # Calculate the j index for point i,j in the grib file
+    numerator = padf_transform[1] * (raster_long - padf_transform[3]) - \
+        padf_transform[4] * (raster_lat - padf_transform[0])
+    denominator = padf_transform[1] * padf_transform[5] - \
+        padf_transform[2] * padf_transform[4]
+    j_index = math.floor(numerator/denominator)
+
+    # Calculate the i index for point i,j in the grib file
+    numerator = raster_lat - padf_transform[0] - j_index * padf_transform[2]
+    denominator = padf_transform[1]
+    i_index = math.floor(numerator/denominator)
+
+    return (i_index, j_index)
 
 
-def calculate_geographic_coordinate(point: List[int], origin: List[float], pixel: List[float]) -> List[float]:
+def calculate_geographic_coordinate(
+        point: List[int],
+        padf_transform: List[float],
+        transformer: Transformer):
     """ Calculate the geographic coordinates for a given points """
-    x_coordinate = origin[0] + point[0] * pixel[0]
-    y_coordinate = origin[1] + point[1] * pixel[1]
-    return (x_coordinate, y_coordinate)
+    x_coordinate = padf_transform[0] + point[0] * \
+        padf_transform[1] + point[1]*padf_transform[2]
+    y_coordinate = padf_transform[3] + point[0] * \
+        padf_transform[4] + point[1]*padf_transform[5]
+
+    lat, lon = transformer.transform(x_coordinate, y_coordinate)
+    return (lon, lat)
 
 
 def open_grib(filename: str) -> gdal.Dataset:
@@ -90,12 +113,7 @@ def open_grib(filename: str) -> gdal.Dataset:
 def get_dataset_geometry(dataset: gdal.Dataset) -> (List[int], List[int]):
     """ Get the geometry info (origin and pixel size) of the dataset.
     """
-    geotransform = dataset.GetGeoTransform()
-    # Upper left corner:
-    origin = (geotransform[0], geotransform[3])
-    # Pixel width and height:
-    pixel = (geotransform[1], geotransform[5])
-    return origin, pixel
+    return dataset.GetGeoTransform()
 
 
 class GribFileProcessor():
@@ -106,8 +124,9 @@ class GribFileProcessor():
         # Get list of stations we're interested in, and store it so that we only call it once.
         self.stations = get_stations_synchronously()
         self.session = app.db.database.get_write_session()
-        self.origin = None
-        self.pixel = None
+        self.padf_transform = None
+        self.raster_to_geo_transformer = None
+        self.geo_to_raster_transformer = None
         self.prediction_model = None
 
     def get_prediction_model(self, grib_info: ModelRunInfo) -> PredictionModel:
@@ -120,19 +139,41 @@ class GribFileProcessor():
                 grib_info.model_abbreviation, grib_info.projection)
         return prediction_model
 
-    def yield_data_for_stations(self, raster_band):
+    def yield_data_for_stations(self, raster_band: gdal.Dataset):
         """ Given a list of stations, and a gdal dataset, yield relevant data
         """
         for station in self.stations:
             longitude = station.long
             latitude = station.lat
             x_coordinate, y_coordinate = calculate_raster_coordinate(
-                longitude, latitude, self.origin, self.pixel)
+                longitude, latitude, self.padf_transform, self.geo_to_raster_transformer)
+
+            if x_coordinate < 0 or y_coordinate < 0 or x_coordinate > raster_band.XSize \
+                    or y_coordinate > raster_band.YSize:
+                logger.info(
+                    'Detected raster calculation error. Reversing geotransform to try again...')
+                self.reverse_geotransform()
+                x_coordinate, y_coordinate = calculate_raster_coordinate(
+                    longitude, latitude, self.padf_transform, self.geo_to_raster_transformer)
 
             points, values = get_surrounding_grid(
                 raster_band, x_coordinate, y_coordinate)
 
             yield (points, values)
+
+    # pylint: disable=fixme
+    # TODO: Remove this once the root reason why GDPS model runs sometimes fail is determined.
+    def reverse_geotransform(self):
+        """ Reverses the X and Y coordinates in self.padf_transform.
+        Included for now as a band-aid fix when GDPS model runs fail inconsistently.
+        """
+        reverse_geotransform = (self.padf_transform[3],
+                                self.padf_transform[5],
+                                self.padf_transform[2],
+                                self.padf_transform[0],
+                                self.padf_transform[4],
+                                self.padf_transform[1])
+        self.padf_transform = reverse_geotransform
 
     def store_bounding_values(self, points, values, preduction_model_run: PredictionModelRunTimestamp,
                               grib_info: ModelRunInfo):
@@ -142,8 +183,7 @@ class GribFileProcessor():
         geographic_points = []
         for point in points:
             geographic_points.append(
-                calculate_geographic_coordinate(point, self.origin, self.pixel))
-
+                calculate_geographic_coordinate(point, self.padf_transform, self.raster_to_geo_transformer))
         # Get the grid subset, i.e. the relevant bounding area for this particular model.
         grid_subset = get_or_create_grid_subset(
             self.session, self.prediction_model, geographic_points)
@@ -173,10 +213,18 @@ class GribFileProcessor():
             logger.info('processing %s', filename)
             # Open grib file
             dataset = open_grib(filename)
-            self.origin, self.pixel = get_dataset_geometry(dataset)
+            # Ensure that grib file uses EPSG:4269 (NAD83) coordinate system
+            # (this step is included because HRDPS grib files are in another coordinate system)
+            wkt = dataset.GetProjection()
+            crs = CRS.from_string(wkt)
+            geo_crs = CRS('epsg:4269')
+            self.raster_to_geo_transformer = Transformer.from_crs(crs, geo_crs)
+            self.geo_to_raster_transformer = Transformer.from_crs(geo_crs, crs)
 
+            self.padf_transform = get_dataset_geometry(dataset)
             # get the model (.e.g. GPDS/RDPS latlon24x.24):
             self.prediction_model = self.get_prediction_model(grib_info)
+
             # get the model run (e.g. GDPS latlon24x.24 for 2020 07 07 12h00):
             prediction_run = get_or_create_prediction_run(
                 self.session, self.prediction_model, grib_info.model_run_timestamp)
