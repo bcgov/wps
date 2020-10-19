@@ -1,7 +1,9 @@
 """ BDD tests for grib file processing """
 import os
 import logging
+from operator import itemgetter
 from pytest_bdd import scenario, given, then, when
+from pyproj import CRS, Transformer
 import app.models.process_grib as process_grib
 
 logger = logging.getLogger(__name__)
@@ -29,7 +31,7 @@ def when_extract_geometry(given_grib_file):  # pylint: disable=redefined-outer-n
 @then('I expect <origin>')
 def assert_origin(given_grib_file, origin):  # pylint: disable=redefined-outer-name
     """ assert that origin matches expected """
-    actual_origin = given_grib_file['geometry'][0]
+    actual_origin = itemgetter(0, 3)(given_grib_file['geometry'])
     expected_origin = eval(origin)  # pylint: disable=eval-used
     logger.warning('actual: %s ; expected %s', actual_origin, expected_origin)
     # This fails when using gdal-2.2.3! Be sure to use a more recent version.
@@ -39,7 +41,7 @@ def assert_origin(given_grib_file, origin):  # pylint: disable=redefined-outer-n
 @then('I expect <pixels>')
 def assert_pixels(given_grib_file, pixels):  # pylint: disable=redefined-outer-name
     """ assert that pixels match expected """
-    actual_pixels = given_grib_file['geometry'][1]
+    actual_pixels = itemgetter(1, 5)(given_grib_file['geometry'])
     expected_pixels = eval(pixels)  # pylint: disable=eval-used
     assert actual_pixels == expected_pixels
 
@@ -57,7 +59,7 @@ def given_raster_coordinate(raster_coordinate):
 
 @when('I get the surrounding grid')
 def get_surrounding_grid(given_grib_file, given_raster_coordinate):  # pylint: disable=redefined-outer-name
-    """ git grid surrounding given coordinate """
+    """ get grid surrounding given coordinate """
     # Get the band with data.
     raster_band = given_grib_file['dataset'].GetRasterBand(1)
     x, y = given_raster_coordinate  # pylint: disable=invalid-name
@@ -88,10 +90,13 @@ def test_calculate_raster_coordinates():
     """ BDD Scenario. """
 
 
-@given('an <origin> and <pixels>')
-def given_origin_and_pixels(origin, pixels):
-    """ return origin and pixels """
-    return dict(origin=eval(origin), pixels=eval(pixels))  # pylint: disable=eval-used
+@given('a GDAL <geotransform> and WKT projection_string <filename>')
+def given_geotransform_and_projection_string(geotransform, filename):
+    """ return dict with geotransform and projection_string loaded from WKT file """
+    dirname = os.path.dirname(os.path.realpath(__file__))
+    with open(os.path.join(dirname, filename), 'r') as file:
+        projection_string = file.read()
+    return dict(geotransform=eval(geotransform), projection_string=projection_string)
 
 
 @given('a geographic coordinate <geographic_coordinate>')
@@ -101,19 +106,22 @@ def given_geographic_coordinate(geographic_coordinate):
 
 
 @when('I calculate the raster coordinate')
-def when_calculate_raster_coordinate(given_origin_and_pixels, given_geographic_coordinate):  # pylint: disable=redefined-outer-name
-    """ calculate raster coordinates """
+def when_calculate_raster_coordinate(given_geotransform_and_projection_string, given_geographic_coordinate):  # pylint: disable=redefined-outer-name
+    """ calculate the raster coordinate """
     longitude, latitude = given_geographic_coordinate
-    origin = given_origin_and_pixels['origin']
-    pixels = given_origin_and_pixels['pixels']
-    given_origin_and_pixels['raster_coordinate'] = process_grib.calculate_raster_coordinate(
-        longitude, latitude, origin, pixels)
+    geotransform = given_geotransform_and_projection_string['geotransform']
+    proj_crs = CRS.from_string(
+        given_geotransform_and_projection_string['projection_string'])
+    geo_crs = CRS('epsg:4269')
+    transformer = Transformer.from_crs(geo_crs, proj_crs)
+    given_geotransform_and_projection_string['raster_coordinate'] = process_grib.calculate_raster_coordinate(
+        longitude, latitude, geotransform, transformer)
 
 
 @then('I expect <raster_coordinate>')
-def assert_raster_coordinates(given_origin_and_pixels, raster_coordinate):  # pylint: disable=redefined-outer-name
-    """ assert expected coordinates """
-    assert given_origin_and_pixels['raster_coordinate'] == eval(  # pylint: disable=eval-used
+def assert_raster_coordinates(given_geotransform_and_projection_string, raster_coordinate):  # pylint: disable=redefined-outer-name
+    """ assert that raster_coordinate matches expected value """
+    assert given_geotransform_and_projection_string['raster_coordinate'] == eval(  # pylint: disable=eval-used
         raster_coordinate)
 
 
@@ -123,16 +131,21 @@ def test_calculate_geographic_coordinates():
 
 
 @when('I calculate the geographic coordinate')
-def calculate_geographic_coordinate(given_origin_and_pixels, given_raster_coordinate):  # pylint: disable=redefined-outer-name
-    """ calculate geographic coordinate """
-    origin = given_origin_and_pixels['origin']
-    pixels = given_origin_and_pixels['pixels']
-    given_origin_and_pixels['geographic_coordinate'] = process_grib.calculate_geographic_coordinate(
-        given_raster_coordinate, origin, pixels)
+def calculate_geographic_coordinate(given_geotransform_and_projection_string, given_raster_coordinate):  # pylint: disable=redefined-outer-name
+    """ calculate the geographic coordinate """
+    geotransform = given_geotransform_and_projection_string['geotransform']
+    proj_crs = CRS.from_string(
+        given_geotransform_and_projection_string['projection_string'])
+    geo_crs = CRS('epsg:4269')
+    transformer = Transformer.from_crs(proj_crs, geo_crs)
+    given_geotransform_and_projection_string['geographic_coordinate'] = \
+        process_grib.calculate_geographic_coordinate(
+        given_raster_coordinate, geotransform, transformer)
 
 
 @then('I expect <geographic_coordinate>')
-def assert_geographic_coordinate(given_origin_and_pixels, geographic_coordinate):  # pylint: disable=redefined-outer-name
-    """ assert expected geographic coordinate """
-    expected_coordinate = eval(geographic_coordinate)  # pylint: disable=eval-used
-    assert given_origin_and_pixels['geographic_coordinate'] == expected_coordinate
+def assert_geographic_coordinate(given_geotransform_and_projection_string, geographic_coordinate):  # pylint: disable=redefined-outer-name
+    """ assert that geographic_coordinate matches the expected value """
+    # pylint: disable=eval-used
+    expected_coordinate = eval(geographic_coordinate)
+    assert given_geotransform_and_projection_string['geographic_coordinate'] == expected_coordinate

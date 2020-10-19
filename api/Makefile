@@ -81,11 +81,13 @@ run-raw:
 	${call run-api}
 
 run-env-canada-raw:
-	POSTGRES_HOST=localhost python -m app.models.env_canada
+	POSTGRES_HOST=localhost python -m app.models.env_canada GDPS
+	POSTGRES_HOST=localhost python -m app.models.env_canada HRDPS
 
 run-donald-raw:
 	# Synonymn for run-env-canada-raw
-	POSTGRES_HOST=localhost python -m app.models.env_canada
+	POSTGRES_HOST=localhost python -m app.models.env_canada GDPS
+	POSTGRES_HOST=localhost python -m app.models.env_canada HRDPS
 
 run-bender:
 	poetry run python -m app.fireweather_bot.noon_forecasts
@@ -156,11 +158,13 @@ docker-run:
 docker-run-env-canada:
 	# Run a python script to download model data from Env Canada on docker
 	# Needs to run "make docker-run" first
-	docker-compose exec api python -m app.models.env_canada
+	docker-compose exec api python -m app.models.env_canada GDPS
+	docker-compose exec api python -m app.models.env_canada HRDPS
 
 docker-run-donald:
 	# Synonymn for docker-run-env-canada
-	docker-compose exec api python -m app.models.env_canada
+	docker-compose exec api python -m app.models.env_canada GDPS
+	docker-compose exec api python -m app.models.env_canada HRDPS
 
 docker-run-bender:
 	# Run a python script to download forecast data from BC Wild Fire on docker
