@@ -42,7 +42,8 @@ pipeline {
                     // Deploy API
                     sh "CPU_REQUEST=500m CPU_LIMIT=500m MEMORY_REQUEST=2Gi MEMORY_LIMIT=2Gi REPLICAS=3 PROJ_TARGET=${projProd} ./openshift/scripts/oc_deploy.sh prod apply"
                     // Env Canada Subscriber
-                    sh "PROJ_TARGET=${projProd} ./openshift/scripts/oc_provision_ec_cronjob.sh prod apply"
+                    sh "PROJ_TARGET=${projProd} ./openshift/scripts/oc_provision_ec_gdps_cronjob.sh prod apply"
+                    sh "PROJ_TARGET=${projProd} ./openshift/scripts/oc_provision_ec_hrdps_cronjob.sh prod apply"
                     sh "PROJ_TARGET=${projProd} ./openshift/scripts/oc_provision_bcfw_p1_forecasts_cronjob.sh prod apply"
                     sh "PROJ_TARGET=${projProd} ./openshift/scripts/oc_provision_bcfw_p1_hourly_actuals_cronjob.sh prod apply"
                 }
