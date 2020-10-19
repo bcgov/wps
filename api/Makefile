@@ -112,6 +112,11 @@ docker-build-dev:
 	# Still having issues? try: docker system prune
 	docker-compose -f docker-compose.dev.yml build
 
+
+
+
+	
+
 docker-lint-dev:
 	# Run linting in docker (dev instance).
 	${call run-lint,docker-compose -f docker-compose.dev.yml run --rm api-dev}
