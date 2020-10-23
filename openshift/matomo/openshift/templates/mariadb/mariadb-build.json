@@ -55,7 +55,7 @@
       "displayName": "Output Image Tag",
       "description": "The tag given to the built image.",
       "required": true,
-      "value": "latest"
+      "value": "1-66"
     },
     {
       "name": "SOURCE_IMAGE_KIND",
@@ -76,7 +76,7 @@
       "displayName": "Source Image Tag",
       "description": "The tag of the source image.",
       "required": true,
-      "value": "latest"
+      "value": "1-66"
     }
   ]
 }

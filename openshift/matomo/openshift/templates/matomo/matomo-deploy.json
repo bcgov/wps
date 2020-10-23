@@ -284,7 +284,7 @@
       "displayName": "Image Namespace",
       "required": true,
       "description": "The namespace of the OpenShift project containing the imagestream for the application.",
-      "value": "myproject"
+      "value": "auzhsi-tools"
     },
     {
       "name": "SOURCE_IMAGE_NAME",
