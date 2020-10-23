@@ -1,0 +1,338 @@
+#!/bin/bash
+export MSYS_NO_PATHCONV=1
+SCRIPT_HOME="$( cd "$( dirname "$0" )" && pwd )"
+
+# =================================================================================================================
+# Usage:
+# -----------------------------------------------------------------------------------------------------------------
+usage () {
+  cat <<-EOF
+
+  A script to automate and manage the build and deployment of motomo instance(s) within a given environment.
+  Steps:
+    - Initialize the environment using the 'init' command.
+    - Publish the build configuration(s) using the 'build' command.
+    - Publish the deployment configuration(s) and tag the images using the 'deploy' command.
+    - Remove components from your environment(s) using the 'clean' command.
+
+  Usage:
+    $0 [options] [commands]
+
+  Examples:
+    $0 -n ggpixq init
+    $0 -n ggpixq -r https://github.com/WadeBarnes/matomo-openshift.git init
+
+    $0 build
+
+    $0 -e prod deploy
+
+    $0 -e tools clean
+    $0 -e prod clean
+
+  Options:
+  ========
+    -n Project namespace, the name of the target project minus the environment suffix (-tool, -dev, -test, -prod).
+       Used by the 'init' command to set the target project for all subsequent operations.
+
+    -r Optional - GitHub repository URL
+       Used by the 'init' command to set the GitHub for repository for all subsequent build operations.
+       Only used for build operations to redirect the source repository to another fork.
+
+    -b Optional - Git Branch
+       Used by the 'init' command to set the branch of the repository for all subsequent build operations.
+       Only used for build operations to redirect the source repository to another branch of a fork.
+
+  Commands:
+  ========
+    init
+      - Initialize the application environment for your project environment.
+        Specify your project namespace using the -n option.
+
+    build
+      - Publish the build configuration(s).
+
+    deploy
+      - deployment configuration(s) and tag the images.
+
+    clean
+      - Remove the application components from a given environment.
+        Specify the environment using the -e option.
+
+    scaleUp
+      - Scale up one or more pods.
+        For example;
+          $0 -e prod scaleUp motomo
+
+    scaleDown
+      - Scale down one or more pods.
+        For example;
+          $0 -e prod scaleDown motomo
+
+    recycle
+      - Recycle one or more pods.
+        For example;
+          $0 -e prod recycle motomo
+EOF
+}
+
+# Default:
+# All of the commands rely on local setting and parameters.
+export APPLY_LOCAL_SETTINGS=1
+
+# =================================================================================================================
+# Process the local command line arguments and pass everything else along.
+# - The 'getopts' options string must start with ':' for this to work.
+# -----------------------------------------------------------------------------------------------------------------
+while [ ${OPTIND} -le $# ]; do
+  if getopts :n:r:b: FLAG; then
+    case ${FLAG} in
+      # List of local options:
+      n) PROJECT_NAMESPACE=$OPTARG ;;
+      r) GIT_URI=$OPTARG ;;
+      b) GIT_REF=$OPTARG ;;
+
+      # Pass unrecognized options ...
+      \?) pass+=" -${OPTARG}" ;;
+    esac
+  else
+    argument=$(echo "${!OPTIND}" | tr '[:upper:]' '[:lower:]')
+    case "${argument}" in
+      init|build|deploy|clean|delete|scaleup|scaledown|recycle)
+        _cmd=${argument}
+        ;;
+      *)
+        # Pass unrecognized arguments ...
+        pass+=" ${!OPTIND}"
+        ;;
+    esac
+    let OPTIND++
+  fi
+done
+
+# Pass the unrecognized arguments along for further processing ...
+shift $((OPTIND-1))
+set -- "$@" $(echo -e "${pass}" | sed -e 's/^[[:space:]]*//')
+
+# -----------------------------------------------------------------------------------------------------------------
+# Define hook scripts:
+# - These must be defined before the main settings script 'settings.sh' is loaded.
+# -----------------------------------------------------------------------------------------------------------------
+deploymentEnvNameSet() {
+  if [ ! -z "${DEPLOYMENT_ENV_NAME}" ]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+projectNamespaceSet() {
+  if [ ! -z "${PROJECT_NAMESPACE}" ] && [ "bcgov" != "${PROJECT_NAMESPACE}" ]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+requireProjectNamespace(){
+  _red='\033[0;31m'
+  _nc='\033[0m' # No Color
+
+  # Deployment Environment Name
+  if ! projectNamespaceSet; then
+    echo
+    echo -e "${_red}You MUST specify a project namespace using the '-n' flag.${_nc}"  
+    exit 1
+  fi
+}
+
+requireDeploymentEnvName(){
+  _red='\033[0;31m'
+  _nc='\033[0m' # No Color
+
+  # Deployment Environment Name
+  if ! deploymentEnvNameSet; then
+    echo
+    echo -e "${_red}You MUST specify an environment name using the '-e' flag.${_nc}"
+    echo -e "${_red}Assuming a default would have unwanted consequences.${_nc}"    
+    exit 1
+  fi
+}
+
+onRequiredOptionsExist() {
+  (
+    case "${_cmd}" in
+      init)
+        requireProjectNamespace
+        ;;
+
+      build)
+        ;;
+
+      *)
+        requireDeploymentEnvName
+        ;;
+    esac
+  )
+}
+
+onUsesCommandLineArguments() {
+  (
+    # This script is not expecting command line arguments to be passed ...
+    return 1
+  )
+}
+
+# -----------------------------------------------------------------------------------------------------------------
+# Initialization:
+# -----------------------------------------------------------------------------------------------------------------
+# An empty settings.local.sh is required for the scripts to run correctly during the first run.
+# If no settings.local.sh is provided, the initialization above will fail due to 
+# the environment variable APPLY_LOCAL_SETTING set to 1.
+# Similarly, if the environment variable is not set, the initialize script will NOT
+# correctly create the local settings file
+touch settings.local.sh
+
+# Load the project settings and functions ...
+_includeFile="ocFunctions.inc"
+_settingsFile="settings.sh"
+if [ ! -z $(type -p ${_includeFile}) ]; then
+  _includeFilePath=$(type -p ${_includeFile})
+  export OCTOOLSBIN=$(dirname ${_includeFilePath})
+
+  if [ -f ${OCTOOLSBIN}/${_settingsFile} ]; then
+    . ${OCTOOLSBIN}/${_settingsFile}
+  fi
+
+  if [ -f ${OCTOOLSBIN}/${_includeFile} ]; then
+    . ${OCTOOLSBIN}/${_includeFile}
+  fi
+else
+  _red='\033[0;31m'
+  _yellow='\033[1;33m'
+  _nc='\033[0m' # No Color
+  echo -e \\n"${_red}${_includeFile} could not be found on the path.${_nc}"
+  echo -e "${_yellow}Please ensure the openshift-developer-tools are installed on and registered on your path.${_nc}"
+  echo -e "${_yellow}https://github.com/BCDevOps/openshift-developer-tools${_nc}"
+fi
+# -----------------------------------------------------------------------------------------------------------------
+# Functions:
+# -----------------------------------------------------------------------------------------------------------------
+updateDeploymentParams() {
+  (
+    _imageTag=${1:-"latest"}
+
+    _paramFiles=$(find . -name "*deploy.local.param")
+    for paramFile in ${_paramFiles}; do
+      # Uncomment and update the required deployment settings ...
+      _parameterFilters="/TAG_NAME/s~^#.~~;"
+      _parameterFilters="${_parameterFilters}/IMAGE_NAMESPACE/s~^#.~~;"
+      _parameterFilters="${_parameterFilters}s~\(^TAG_NAME=\).*$~\1${_imageTag}~;"
+
+      cat ${paramFile} | sed ${_parameterFilters} > ${paramFile}.tmp
+      rm ${paramFile}
+      mv ${paramFile}.tmp ${paramFile}
+    done
+  )
+}
+
+deployApp(){
+  (
+    _appName=${1:-matomo}
+
+    # Deploy or update the configuration ...
+    updateDeploymentParams ${DEPLOYMENT_ENV_NAME}
+    if dcExists ${_appName}; then
+      OPERATION=update genDepls.sh -u -l
+    else
+      genDepls.sh -l
+    fi
+
+    # Tag the application images for deployment ...
+    appImages=$(oc -n ${TOOLS} get is -l app=${_appName} --template '{{ range .items }}{{ printf "%s\n" .metadata.name}}{{end}}')
+    for appImage in ${appImages}; do
+      sourceTag=$( oc -n ${TOOLS} get is ${appImage} --template "{{ with index .status.tags 0 }}{{ .tag }}{{end}}")
+      oc -n ${TOOLS} tag ${appImage}:${sourceTag} ${appImage}:${DEPLOYMENT_ENV_NAME}
+    done
+  )
+}
+
+deleteResources()
+{
+  (
+    _appName=${1:-matomo}
+    oc -n $(getProjectName) delete all,secret,pvc,configmap -l app=${_appName}
+  )
+}
+
+cleanResources()
+{
+  (
+    _appName=${1:-matomo}
+    oc -n $(getProjectName) delete all,configmap -l app=${_appName}
+  )
+}
+
+initialize(){
+  echo -e "\nInitializing environment settings ...\n"
+
+  # Write a local settings file ...
+  echo "Writing local settings file (settings.local.sh) ..."
+  echo "export PROJECT_NAMESPACE=\${PROJECT_NAMESPACE:-${PROJECT_NAMESPACE}}" > settings.local.sh
+  echo "export GIT_URI=${GIT_URI}" >> settings.local.sh
+  echo "export GIT_REF=${GIT_REF}" >> settings.local.sh
+
+  # Generate local params files ...
+  echo "Generating local param files ..."
+  genTemplateParams.sh -lf
+
+  echo "Environment settings:"
+  echo "  Project namespace: ${PROJECT_NAMESPACE}"
+  echo "  Source Repository (used for optional builds): ${GIT_URI}"
+  echo "  Source branch (used for optional builds): ${GIT_REF}"
+}
+# =================================================================================================================
+pushd ${SCRIPT_HOME} >/dev/null
+shift
+
+case "${_cmd}" in
+  init)
+    initialize
+    ;;
+
+  build)
+    echoWarning "\nDeploying the build configuration.\nPlease wait for the build to complete before running any other command."
+    genBuilds.sh -l
+    ;;
+
+  deploy)
+    appName=${1:-matomo}
+    deployApp ${appName}
+    ;;
+
+  clean)
+    appName=${1:-matomo}
+    cleanResources ${appName}
+    ;;
+
+  delete)
+    appName=${1:-matomo}
+    deleteResources ${appName}
+    ;;
+
+  scaleup)
+    scaleUp -w ${@}
+    ;;
+  scaledown)
+    scaleDown -w ${@}
+    ;;
+  recycle)
+    recyclePods -w ${@}
+    ;;
+
+  *)
+    echoWarning "Unrecognized command; ${_cmd}"
+    globalUsage
+    ;;
+esac
+
+popd >/dev/null
