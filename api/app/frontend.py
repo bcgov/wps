@@ -49,7 +49,9 @@ async def get_config(request: Request):
             'REACT_APP_KEYCLOAK_AUTH_URL': config.get('REACT_APP_KEYCLOAK_AUTH_URL'),
             'REACT_APP_KEYCLOAK_REALM': config.get('REACT_APP_KEYCLOAK_REALM'),
             'REACT_APP_KEYCLOAK_CLIENT': config.get('REACT_APP_KEYCLOAK_CLIENT'),
-            'REACT_APP_FIDER_LINK': config.get('REACT_APP_FIDER_LINK')
+            'REACT_APP_FIDER_LINK': config.get('REACT_APP_FIDER_LINK'),
+            'REACT_APP_MATOMO_URL': config.get('REACT_APP_MATOMO_URL'),
+            'REACT_APP_MATOMO_SITE_ID': config.get('REACT_APP_MATOMO_SITE_ID')
         })
 
 
