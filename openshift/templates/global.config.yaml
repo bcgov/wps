@@ -48,6 +48,10 @@ parameters:
   - name: ROCKET_USER_ID
     description: User id for rocket.chat notifications
     required: true
+  - name: MATOMO_URL
+    description: URL for matomo (analytics) site.
+  - name: MATOMO_SITE_ID
+    description: ID of application for matomo (analytics) tracking.
 objects:
   - kind: ConfigMap
     apiVersion: v1
@@ -64,6 +68,8 @@ objects:
       bc-fire-weather-user: ${BC_FIRE_WEATHER_USER}
       bc-fire-weather-filter-id: ${BC_FIRE_WEATHER_FILTER_ID}
       env.pathfinder-base-uri: ${PATHFINDER_BASE_URI}
+      env.matomo-url: ${MATOMO_URL}
+      env.matomo-site-id: ${MATOMO_SITE_ID}
   - kind: Secret
     apiVersion: v1
     metadata:
