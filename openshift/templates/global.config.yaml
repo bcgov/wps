@@ -50,10 +50,8 @@ parameters:
     required: true
   - name: MATOMO_URL
     description: URL for matomo (analytics) site.
-    value: "matomo-auzhsi-dev.pathfinder.gov.bc.ca"
   - name: MATOMO_SITE_ID
     description: ID of application for matomo (analytics) tracking.
-    value: "1"
 objects:
   - kind: ConfigMap
     apiVersion: v1
