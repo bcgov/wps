@@ -36,6 +36,11 @@ def mock_env(monkeypatch):
     monkeypatch.setenv("PROJECT_NAMESPACE", "project_namespace")
     monkeypatch.setenv("STATUS_CHECKER_SECRET", "some_secret")
     monkeypatch.setenv("PATRONI_CLUSTER_NAME", "some_suffix")
+    monkeypatch.setenv("ROCKET_URL_POST_MESSAGE",
+                       "https://chat.pathfinder.gov.bc.ca/api/v1/chat.postMessage")
+    monkeypatch.setenv("ROCKET_AUTH_TOKEN", "sometoken")
+    monkeypatch.setenv("ROCKET_USER_ID", "someid")
+    monkeypatch.setenv("ROCKET_CHANNEL", "#channel")
 
 
 @pytest.fixture(autouse=True)
