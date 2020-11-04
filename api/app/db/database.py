@@ -22,7 +22,8 @@ DB_READ_STRING = 'postgres://{}:{}@{}:{}/{}'.format(
 # connect to database - defaulting to always use utc timezone
 _write_engine = create_engine(DB_WRITE_STRING, connect_args={
                               'options': '-c timezone=utc'})
-_read_engine = create_engine(DB_READ_STRING, connect_args={
+# use pre-ping on read, as connections are quite often stale due to how few users we have at the moment.
+_read_engine = create_engine(DB_READ_STRING, pool_pre_ping=True, connect_args={
                              'options': '-c timezone=utc'})
 
 # bind session to database
