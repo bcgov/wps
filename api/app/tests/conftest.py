@@ -8,7 +8,7 @@ from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
 from app.time_utils import get_pst_tz
 from app.tests.common import (
-    MockJWTDecode, default_mock_requests_get,
+    MockJWTDecode, default_mock_requests_get, default_mock_requests_post,
     default_mock_requests_session_get, default_mock_requests_session_post)
 from app.db.models import PredictionModel, PredictionModelRunTimestamp
 import app.db.database
@@ -37,7 +37,7 @@ def mock_env(monkeypatch):
     monkeypatch.setenv("STATUS_CHECKER_SECRET", "some_secret")
     monkeypatch.setenv("PATRONI_CLUSTER_NAME", "some_suffix")
     monkeypatch.setenv("ROCKET_URL_POST_MESSAGE",
-                       "https://chat.pathfinder.gov.bc.ca/api/v1/chat.postMessage")
+                       "https://rc-notifications-test.ca/api/v1/chat.postMessage")
     monkeypatch.setenv("ROCKET_AUTH_TOKEN", "sometoken")
     monkeypatch.setenv("ROCKET_USER_ID", "someid")
     monkeypatch.setenv("ROCKET_CHANNEL", "#channel")
@@ -48,6 +48,7 @@ def mock_requests(monkeypatch):
     """ Patch all calls to request.get by default.
     """
     monkeypatch.setattr(requests, 'get', default_mock_requests_get)
+    monkeypatch.setattr(requests, 'post', default_mock_requests_post)
 
 
 @pytest.fixture(autouse=True)
