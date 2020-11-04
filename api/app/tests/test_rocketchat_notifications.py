@@ -15,6 +15,7 @@ def response(message_string):
 
 
 @then('the response should indicate success <success_boolean>')
+# pylint: disable=redefined-outer-name
 def assert_success_boolean(response, success_boolean):
     """ Assert the value in the response json for key 'success' matches success_boolean """
     assert str(response['success']) == success_boolean

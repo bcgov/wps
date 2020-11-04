@@ -9,7 +9,7 @@ from app import config
 
 def send_rocketchat_notification(text: str):
     """ Sends message with specified text to configured Rocketchat channel. """
-    r = requests.post(
+    response = requests.post(
         config.get('ROCKET_URL_POST_MESSAGE'),
         headers={
             'X-Auth-Token': config.get('ROCKET_AUTH_TOKEN'),
@@ -21,4 +21,4 @@ def send_rocketchat_notification(text: str):
             'text': text
         }
     )
-    return r.json()
+    return response.json()
