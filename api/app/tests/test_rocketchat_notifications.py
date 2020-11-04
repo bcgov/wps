@@ -1,7 +1,6 @@
 """ BDD tests for rocketchat_notifications.py """
 from pytest_bdd import scenario, given, then
 from app.rocketchat_notifications import send_rocketchat_notification
-from app.tests.conftest import mock_requests
 
 
 @scenario('test_rocketchat_notifications.feature', 'Send automated notification to Rocketchat channel')
@@ -10,7 +9,7 @@ def test_rocketchat_notifications():
 
 
 @given('a specified <message_string>')
-def response(mock_requests, message_string):
+def response(message_string):
     """ Send the message to the Rocketchat channel using configured auth. """
     return send_rocketchat_notification(message_string)
 
