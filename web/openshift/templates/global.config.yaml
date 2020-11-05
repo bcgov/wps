@@ -1,0 +1,30 @@
+kind: Template
+apiVersion: v1
+metadata:
+  name: wps-web-global
+parameters:
+  - name: REACT_APP_KEYCLOAK_REALM
+    description: Keycloak realm name used by the application
+    required: true
+  - name: REACT_APP_MATOMO_URL
+    description: URL for matomo (analytics) site.
+  - name: REACT_APP_MATOMO_SITE_ID
+    description: ID of application for matomo (analytics) tracking.
+  - name: REACT_APP_MATOMO_CONTAINER
+    description: Container used for matomo event tracking.
+objects:
+  - kind: ConfigMap
+    apiVersion: v1
+    metadata:
+      name: wps-web-global
+      labels:
+        app.kubernetes.io/part-of: wps-web
+    data:
+      env.api-base-url: 'https://wps-api-prod.pathfinder.gov.bc.ca'
+      env.fider-url: 'https://psufiderdev.pathfinder.gov.bc.ca/'
+      env.keycloak-auth-url: 'https://sso-dev.pathfinder.gov.bc.ca/auth'
+      env.keycloak-client: wps-web
+      env.keycloak-realm: ${REACT_APP_KEYCLOAK_REALM}
+      env.matomo-url: ${REACT_APP_MATOMO_URL}
+      env.matomo-site-id: ${REACT_APP_MATOMO_SITE_ID}
+      env.matomo-container: ${REACT_APP_MATOMO_CONTAINER}

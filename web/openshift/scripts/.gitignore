@@ -102,38 +102,7 @@ dist
 
 # TernJS port file
 .tern-port
+node_modules/
 
-# Yupyter notebooks
-.ipynb_checkpoints/
-
-# VSCode
+# IDE
 .vscode/
-
-# Python
-__pycache__/
-app.egg-info/
-.pytest_cache
-
-# Apple
-.DS_store
-
-# Access
-*.accdb
-*.laccdb
-*.mdb
-
-# Coverage folders
-.coverage
-coverage-reports
-
-# Sonar-scanner
-.scannerwork
-
-# Jupyter notebooks
-*.ipynb
-
-# Temperary files
-tmp/
-
-# Static files
-api/static/*
