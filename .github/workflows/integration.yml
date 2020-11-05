@@ -13,6 +13,7 @@ jobs:
     strategy:
       matrix:
         python-version: [3.8]
+        node-version: [10.x]
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
@@ -20,12 +21,12 @@ jobs:
           # For sonar-scanner to work properly we can't use a shallow fetch.
           fetch-depth: 0
 
-      - name: Setup Python ${{ matrix.python-version }}
+      - name: Setup Python ${{ matrix.python-version }} (api)
         uses: actions/setup-python@v1
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install poetry
+      - name: Install poetry (api)
         run: |
           curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py > /tmp/get-poetry.py
           cd /tmp
@@ -33,34 +34,60 @@ jobs:
           cd /usr/local/bin
           /opt/poetry/bin/poetry config virtualenvs.create false
 
-      - name: Install libgdal-dev
+      - name: Install libgdal-dev (api)
         # The python gdal component relies on libgdal-dev being installed.
         run: |
           sudo apt-get -y install libgdal-dev
 
-      - name: Install gdal python
+      - name: Install gdal python (api)
         # We don't have much control over what version of gdal we're getting, it's pretty much whatever is
         # available to us. As such, gdal is not installed by poetry, since the versio will differ between
         # platforms.
         run: CPLUS_INCLUDE_PATH=/usr/include/gdal C_INCLUDE_PATH=/usr/include/gdal python3 -m pip install gdal==$(gdal-config --version)
 
-      - name: Install python dependencies
+      - name: Install python dependencies (api)
         run: |
           cp api/pyproject.toml api/poetry.lock /tmp/
           cd /tmp
           /opt/poetry/bin/poetry install --no-root
 
-      - name: Lint
+      - name: Lint (api)
         run: python3 -m pylint --rcfile=api/.pylintrc api/app/*.py api/app/**/*.py
 
-      - name: Unit Test (with coverage)
-        run: ORIGINS=testorigin coverage run --source=api/app -m pytest -o log_cli=true --disable-warnings --verbose
+      - name: Unit Test with coverage (api)
+        run: |
+          ORIGINS=testorigin coverage run --source=api/app -m pytest -o log_cli=true --disable-warnings --verbose
 
-      - name: Create coverage report
+      - name: Create coverage report (api)
         shell: bash
         run: |
           coverage report
           coverage xml -o coverage-reports/coverage-report.xml
+
+      - name: Install node dependencies (web)
+        run: |
+          cd web
+          npm ci
+
+      - name: Lint (web)
+        run: |
+          cd web
+          npm run lint
+
+      # "Error: ENOSPC: System limit for number of file watchers reached" can be addressed
+      # with this: https://github.com/guard/listen/wiki/Increasing-the-amount-of-inotify-watchers#the-technical-details
+      # It seems unnecessary at the moment because tests pass anyway
+      - name: Cypress tests (web)
+        run: npm run cypress:ci
+
+      - name: Tests with coverage (web)
+        run: npm run test:ci
+
+      - name: Fix code coverage paths (web)
+        # Due to the way sonarscanner mounts thing when running in docker, we need to change the coverage file.
+        working-directory: ./coverage
+        run: |
+          sed -i 's/\/home\/runner\/work\/wps-web\/wps-web\//\/github\/workspace\//g' lcov.info
 
       - name: SonarCloud Scan
         uses: sonarsource/sonarcloud-github-action@master
