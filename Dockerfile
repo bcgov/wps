@@ -46,7 +46,7 @@ RUN cd /tmp && \
 # Copy the app:
 COPY ./api/app /app/app
 # Copy the static content:
-COPY --from=static /app/build /app/app/static
+COPY --from=static /app/build /app/static
 # COPY ./static /app/static
 # Copy almebic:
 COPY ./api/alembic /app/alembic
