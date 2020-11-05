@@ -144,10 +144,6 @@ docker-build:
 	# Build docker images.
 	docker-compose build
 
-docker-run:
-	# Run api in production mode, in docker.
-	docker-compose up
-
 docker-run-env-canada:
 	# Run a python script to download model data from Env Canada on docker
 	# Needs to run "make docker-run" first
