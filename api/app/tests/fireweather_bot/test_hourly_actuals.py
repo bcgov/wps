@@ -4,7 +4,6 @@ import logging
 import pytest
 from pytest_mock import MockerFixture
 from app.fireweather_bot import hourly_actuals
-# from app import rocketchat_notifications
 
 
 logger = logging.getLogger(__name__)
