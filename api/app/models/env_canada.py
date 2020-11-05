@@ -556,7 +556,7 @@ def main():
         # We catch and log any exceptions we may have missed.
         logger.error('unexpected exception processing', exc_info=exception)
         rc_message = ':poop: Encountered error retrieving model data from Env Canada\n{}: {}'.format(
-            config.get('PROJECT_NAMESPACE'), exception)
+            config.get('HOSTNAME'), exception)
         send_rocketchat_notification(rc_message)
         # Exit with a failure code.
         sys.exit(os.EX_SOFTWARE)
