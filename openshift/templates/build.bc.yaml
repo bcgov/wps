@@ -65,7 +65,7 @@ objects:
         git:
           uri: ${GIT_URL}
           ref: origin/${GIT_BRANCH}
-        contextDir: api
+        contextDir: ./
       strategy:
         type: Docker
       triggers: []

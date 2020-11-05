@@ -1,3 +1,13 @@
+# PHASE 1 - build static html.
+FROM node:10 as static
+
+# Set the working directory
+WORKDIR /app
+COPY web /app/
+RUN npx browserslist@latest --update-db
+RUN npm run build
+
+# PHASE 2 - prepare python.
 # As per https://fastapi.tiangolo.com/deployment/, we use the provided docker image:
 FROM tiangolo/uvicorn-gunicorn-fastapi:python3.8
 # see: https://github.com/tiangolo/uvicorn-gunicorn-fastapi-docker for available images.
@@ -27,21 +37,22 @@ RUN cd /tmp && \
     poetry config virtualenvs.create false
 
 # Copy poetry files.
-COPY pyproject.toml poetry.lock /tmp/
+COPY ./api/pyproject.toml ./api/poetry.lock /tmp/
 
 # Install dependancies.
 RUN cd /tmp && \
     poetry install --no-root --no-dev
 
 # Copy the app:
-COPY ./app /app/app
+COPY ./api/app /app/app
 # Copy the static content:
-COPY ./static /app/static
+COPY --from=static /app/build /app/app/static
+# COPY ./static /app/static
 # Copy almebic:
-COPY ./alembic /app/alembic
-COPY ./alembic.ini /app
+COPY ./api/alembic /app/alembic
+COPY ./api/alembic.ini /app
 # Copy pre-start.sh (it will be run on startup):
-COPY ./prestart.sh /app
+COPY ./api/prestart.sh /app
 
 # The fastapi docker image defaults to port 80, but openshift doesn't allow non-root users port 80.
 EXPOSE 8080

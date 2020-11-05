@@ -3,11 +3,11 @@ services:
   api:
     build: .
     env_file:
-      - app/.env
+      - api/app/.env
     ports:
       - "8080:8080"
     volumes:
-      - ./:/app:delegated
+      - ./api/:/app:delegated
     depends_on:
       - db
     networks:
