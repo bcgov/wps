@@ -31,7 +31,6 @@ from app.models.process_grib import GribFileProcessor, ModelRunInfo
 from app.db.models import (ProcessedModelRunUrl, PredictionModelRunTimestamp,
                            WeatherStationModelPrediction, ModelRunGridSubsetPrediction)
 import app.db.database
-from app import config
 from app.rocketchat_notifications import send_rocketchat_notification
 
 # If running as its own process, configure logging appropriately.
@@ -555,9 +554,8 @@ def main():
     except Exception as exception:  # pylint: disable=broad-except
         # We catch and log any exceptions we may have missed.
         logger.error('unexpected exception processing', exc_info=exception)
-        rc_message = ':poop: Encountered error retrieving model data from Env Canada\n{}: {}'.format(
-            config.get('HOSTNAME'), exception)
-        send_rocketchat_notification(rc_message)
+        rc_message = ':poop: Encountered error retrieving model data from Env Canada'
+        send_rocketchat_notification(rc_message, exception)
         # Exit with a failure code.
         sys.exit(os.EX_SOFTWARE)
     # We assume success if we get to this point.

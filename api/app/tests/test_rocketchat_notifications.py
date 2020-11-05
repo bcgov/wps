@@ -8,10 +8,10 @@ def test_rocketchat_notifications():
     """  BDD Scenario. """
 
 
-@given('a specified <message_string>')
-def response(message_string):
+@given('a specified <message_string> and an <exception>')
+def response(message_string, exception):
     """ Send the message to the Rocketchat channel using configured auth. """
-    return send_rocketchat_notification(message_string)
+    return send_rocketchat_notification(message_string, exception)
 
 
 @then('the response should indicate success <success_boolean>')

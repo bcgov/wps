@@ -142,9 +142,8 @@ def main():
         # Exit non 0 - failure.
         LOGGER.error('Failed to retrieve noon forecasts.',
                      exc_info=exception)
-        rc_message = ':confounded: Encountered error retrieving noon forecasts\n{}: {}'.format(
-            config.get('HOSTNAME'), exception)
-        send_rocketchat_notification(rc_message)
+        rc_message = ':confounded: Encountered error retrieving noon forecasts'
+        send_rocketchat_notification(rc_message, exception)
         sys.exit(os.EX_SOFTWARE)
 
 

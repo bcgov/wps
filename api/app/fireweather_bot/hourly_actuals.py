@@ -121,9 +121,8 @@ def main():
     except Exception as exception:
         # Exit non 0 - failure.
         logger.error('Failed to retrieve hourly actuals.', exc_info=exception)
-        rc_message = ':scream: Encountered error retrieving hourly actuals\n{}: {}'.format(
-            config.get('HOSTNAME'), exception)
-        send_rocketchat_notification(rc_message)
+        rc_message = ':scream: Encountered error retrieving hourly actuals'
+        send_rocketchat_notification(rc_message, exception)
         sys.exit(os.EX_SOFTWARE)
 
 

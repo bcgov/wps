@@ -10,7 +10,7 @@ from app import config
 logger = logging.getLogger(__name__)
 
 
-def send_rocketchat_notification(text: str):
+def send_rocketchat_notification(text: str, exc_info: Exception):
     """ Sends message with specified text to configured Rocketchat channel.
 
     We don't want this method to raise any exceptions, as we don't want to
@@ -20,6 +20,7 @@ def send_rocketchat_notification(text: str):
     If you want to know if this method worked or not, you'll have to inspect
     the response.
     """
+    full_message = '{}\n{}: {}'.format(text, config.get('HOSTNAME'), exc_info)
     try:
         response = requests.post(
             config.get('ROCKET_URL_POST_MESSAGE'),
@@ -30,9 +31,10 @@ def send_rocketchat_notification(text: str):
             },
             json={
                 'channel': config.get('ROCKET_CHANNEL'),
-                'text': text
+                'text': full_message
             }
         )
         return response.json()
     except Exception as exception:  # pylint: disable=broad-except
-        logger.error('failed to send rocket chat notification', exc_info=exception)
+        logger.error('failed to send rocket chat notification',
+                     exc_info=exception)
