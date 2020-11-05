@@ -1,6 +1,7 @@
 """ This is a bot to pull hourly weather actuals from the BC FireWeather Phase 1 API
 for each weather station and store the results (from a CSV file) in our database.
 """
+import os
 import sys
 import logging
 import logging.config
@@ -13,6 +14,7 @@ from app.db.crud import save_noon_forecast
 from app.db.models import NoonForecast
 from app.fireweather_bot.common import BaseBot, get_station_names_to_codes
 import app.time_utils
+from app.rocketchat_notifications import send_rocketchat_notification
 
 
 # If running as it's own process, configure logging appropriately.
@@ -48,7 +50,8 @@ def _parse_csv(temp_path: str):
         data_df = pd.read_csv(csv_file)
     station_codes = get_station_names_to_codes()
     # drop any rows where 'display_name' is not found in the station_codes lookup:
-    data_df.drop(index=data_df[~data_df['display_name'].isin(station_codes.keys())].index, inplace=True)
+    data_df.drop(index=data_df[~data_df['display_name'].isin(
+        station_codes.keys())].index, inplace=True)
     # replace 'display_name' column (station name) in df with station_id
     # and rename the column appropriately
     data_df['display_name'].replace(station_codes, inplace=True)
@@ -133,13 +136,15 @@ def main():
         LOGGER.debug(
             'Finished retrieving noon forecasts for all weather stations.')
         # Exit with 0 - success.
-        sys.exit(0)
+        sys.exit(os.EX_OK)
     # pylint: disable=broad-except
     except Exception as exception:
         # Exit non 0 - failure.
         LOGGER.error('Failed to retrieve noon forecasts.',
                      exc_info=exception)
-        sys.exit(1)
+        rc_message = ':confounded: Encountered error retrieving noon forecasts'
+        send_rocketchat_notification(rc_message, exception)
+        sys.exit(os.EX_SOFTWARE)
 
 
 if __name__ == '__main__':

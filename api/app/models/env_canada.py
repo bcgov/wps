@@ -31,6 +31,7 @@ from app.models.process_grib import GribFileProcessor, ModelRunInfo
 from app.db.models import (ProcessedModelRunUrl, PredictionModelRunTimestamp,
                            WeatherStationModelPrediction, ModelRunGridSubsetPrediction)
 import app.db.database
+from app.rocketchat_notifications import send_rocketchat_notification
 
 # If running as its own process, configure logging appropriately.
 if __name__ == "__main__":
@@ -41,6 +42,10 @@ logger = logging.getLogger(__name__)
 
 class UnhandledPredictionModelType(Exception):
     """ Exception raised when an unknown model type is encountered. """
+
+
+class CompletedWithSomeExceptions(Exception):
+    """ Exception raised when processing completed, but there were some non critical exceptions """
 
 
 def parse_global_model_filename(filename):
@@ -509,8 +514,8 @@ class ModelValueProcessor:
             self._mark_model_run_interpolated(model_run)
 
 
-def main():
-    """ main script """
+def process_models():
+    """ downloading and processing models """
 
     # set the model type requested based on arg passed via command line
     model_type = sys.argv[1]
@@ -535,19 +540,27 @@ def main():
     # check if we encountered any exceptions.
     if env_canada.exception_count > 0:
         # if there were any exceptions, return a non-zero status.
-        logger.warning('completed processing with some exceptions')
-        sys.exit(os.EX_SOFTWARE)
+        raise CompletedWithSomeExceptions()
     return env_canada.files_processed
 
 
-if __name__ == "__main__":
+def main():
+    """ main script - process and download models, then do exception handling """
     try:
-        main()
-    # pylint: disable=broad-except
-    except Exception as exception:
+        process_models()
+    except CompletedWithSomeExceptions:
+        logger.warning('completed processing with some exceptions')
+        sys.exit(os.EX_SOFTWARE)
+    except Exception as exception:  # pylint: disable=broad-except
         # We catch and log any exceptions we may have missed.
         logger.error('unexpected exception processing', exc_info=exception)
+        rc_message = ':poop: Encountered error retrieving model data from Env Canada'
+        send_rocketchat_notification(rc_message, exception)
         # Exit with a failure code.
         sys.exit(os.EX_SOFTWARE)
     # We assume success if we get to this point.
     sys.exit(os.EX_OK)
+
+
+if __name__ == "__main__":
+    main()
