@@ -1,6 +1,7 @@
 """ This is a bot to pull hourly weather actuals from the BC FireWeather Phase 1 API
 for each weather station and store the results (from a CSV file) in our database.
 """
+import os
 import sys
 import logging
 import logging.config
@@ -135,7 +136,7 @@ def main():
         LOGGER.debug(
             'Finished retrieving noon forecasts for all weather stations.')
         # Exit with 0 - success.
-        sys.exit(0)
+        sys.exit(os.EX_OK)
     # pylint: disable=broad-except
     except Exception as exception:
         # Exit non 0 - failure.
@@ -144,7 +145,7 @@ def main():
         rc_message = ':confounded: Encountered error retrieving noon forecasts\n{}: {}'.format(
             config.get('PROJECT_NAMESPACE'), exception)
         send_rocketchat_notification(rc_message)
-        sys.exit(1)
+        sys.exit(os.EX_SOFTWARE)
 
 
 if __name__ == '__main__':

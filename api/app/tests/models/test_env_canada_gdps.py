@@ -159,17 +159,17 @@ def test_get_gdps_download_urls():
         time_utils.get_utc_now(), 0))) == total_num_of_urls
 
 
-def test_main_gdps(mock_download,
-                   mock_session,
-                   mock_get_processed_file_count,
-                   mock_get_model_run_predictions_for_grid,
-                   mock_get_actuals_left_outer_join_with_predictions,
-                   mock_get_stations):
+def test_process_gdps(mock_download,
+                      mock_session,
+                      mock_get_processed_file_count,
+                      mock_get_model_run_predictions_for_grid,
+                      mock_get_actuals_left_outer_join_with_predictions,
+                      mock_get_stations):
     """ run main method to see if it runs successfully. """
     # All files, except one, are marked as already having been downloaded, so we expect one file to
     # be processed.
     sys.argv = ["argv", "GDPS"]
-    assert env_canada.main() == 1
+    assert env_canada.process_models() == 1
 
 
 def test_for_zero_day_bug(monkeypatch):

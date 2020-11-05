@@ -1,4 +1,5 @@
 """ Unit tests for the fireweather noon forecats bot (Bender) """
+import os
 import logging
 import pytest
 from pytest_mock import MockerFixture
@@ -38,7 +39,7 @@ def test_noon_forecasts_bot_fail(mocker: MockerFixture,
 
     with pytest.raises(SystemExit) as excinfo:
         noon_forecasts.main()
-    # Assert that we exited without errors.
-    assert excinfo.value.code == 1
+    # Assert that we exited with an error code.
+    assert excinfo.value.code == os.EX_SOFTWARE
     # Assert that rocket chat was called.
     assert rocket_chat_spy.call_count == 1

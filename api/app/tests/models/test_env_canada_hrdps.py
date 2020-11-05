@@ -9,6 +9,7 @@ import shapely.wkt
 from geoalchemy2.shape import from_shape
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
+from pytest_mock import MockerFixture
 import app.time_utils as time_utils
 import app.db.database
 from app.models import env_canada
@@ -92,12 +93,30 @@ def test_get_hrdps_download_urls():
         time_utils.get_utc_now(), 0))) == total_num_of_urls
 
 
-def test_main_hrdps(mock_download, mock_session):
-    """ run main method to see if it runs successfully. """
+def test_process_hrdps(mock_download, mock_session):
+    """ run process method to see if it runs successfully. """
     # All files, except one, are marked as already having been downloaded, so we expect one file to
     # be processed.
     sys.argv = ["argv", "HRDPS"]
-    assert env_canada.main() == 1
+    assert env_canada.process_models() == 1
 
+
+def test_main_fail(mocker: MockerFixture, monkeypatch):
+    """ Run the main method, check that message is sent to rocket chat, and exit code is EX_SOFTWARE """
+    sys.argv = ["argv", "HRDPS"]
+
+    def mock_process_models():
+        raise Exception()
+
+    rocket_chat_spy = mocker.spy(env_canada, 'send_rocketchat_notification')
+    monkeypatch.setattr(env_canada, 'process_models', mock_process_models)
+
+    with pytest.raises(SystemExit) as excinfo:
+        env_canada.main()
+
+    # Assert that we exited with an error code.
+    assert excinfo.value.code == os.EX_SOFTWARE
+    # Assert that rocket chat was called.
+    assert rocket_chat_spy.call_count == 1
 
 # pylint: enable=unused-argument, redefined-outer-name

@@ -1,5 +1,6 @@
 """ Bot for loading hourly actual values.
 """
+import os
 from datetime import timedelta, timezone, datetime
 import logging
 import sys
@@ -115,7 +116,7 @@ def main():
         bot = HourlyActualsBot()
         bot.run()
         # Exit with 0 - success.
-        sys.exit(0)
+        sys.exit(os.EX_OK)
     # pylint: disable=broad-except
     except Exception as exception:
         # Exit non 0 - failure.
@@ -123,7 +124,7 @@ def main():
         rc_message = ':scream: Encountered error retrieving hourly actuals\n{}: {}'.format(
             config.get('PROJECT_NAMESPACE'), exception)
         send_rocketchat_notification(rc_message)
-        sys.exit(1)
+        sys.exit(os.EX_SOFTWARE)
 
 
 if __name__ == '__main__':
