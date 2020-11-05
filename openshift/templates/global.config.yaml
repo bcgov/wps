@@ -48,6 +48,16 @@ parameters:
   - name: ROCKET_USER_ID
     description: User id for rocket.chat notifications
     required: true
+  - name: ROCKET_URL_POST_MESSAGE
+    description: Url to Rocketchat API for posting a message
+    required: true
+  - name: ROCKET_CHANNEL
+    description: The name of the Rocketchat channel to post automated notifications to
+    required: true
+  - name: MATOMO_URL
+    description: URL for matomo (analytics) site.
+  - name: MATOMO_SITE_ID
+    description: ID of application for matomo (analytics) tracking.
 objects:
   - kind: ConfigMap
     apiVersion: v1
@@ -64,6 +74,10 @@ objects:
       bc-fire-weather-user: ${BC_FIRE_WEATHER_USER}
       bc-fire-weather-filter-id: ${BC_FIRE_WEATHER_FILTER_ID}
       env.pathfinder-base-uri: ${PATHFINDER_BASE_URI}
+      env.matomo-url: ${MATOMO_URL}
+      env.matomo-site-id: ${MATOMO_SITE_ID}
+      rocket.chat-channel: ${ROCKET_CHANNEL}
+      rocket.chat-url-post-message: ${ROCKET_URL_POST_MESSAGE}
   - kind: Secret
     apiVersion: v1
     metadata:
