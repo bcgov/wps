@@ -122,7 +122,7 @@ def default_mock_requests_get(url, params=None, **kwargs) -> MockResponse:  # py
 
 
 # pylint: disable=redefined-outer-name, unused-argument
-def default_mock_requests_post(url, data, json, params=None, **kwargs) -> MockResponse:
+def default_mock_requests_post(url, data=None, json=None, params=None, **kwargs) -> MockResponse:
     """ Return a mocked request response """
     # Get the file location of the fixture
     fixture_finder = FixtureFinder()

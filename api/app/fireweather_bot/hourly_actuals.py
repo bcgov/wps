@@ -1,5 +1,6 @@
 """ Bot for loading hourly actual values.
 """
+import os
 from datetime import timedelta, timezone, datetime
 import logging
 import sys
@@ -11,6 +12,7 @@ from app.db.crud import save_hourly_actual
 from app.db.models import HourlyActual
 import app.time_utils
 from app.fireweather_bot.common import (BaseBot, get_station_names_to_codes)
+from app.rocketchat_notifications import send_rocketchat_notification
 
 # If running as it's own process, configure logging appropriately.
 if __name__ == "__main__":
@@ -66,7 +68,8 @@ class HourlyActualsBot(BaseBot):
             data_df = pd.read_csv(csv_file)
         station_codes = get_station_names_to_codes()
         # drop any rows where 'display_name' is not found in the station_codes lookup:
-        data_df.drop(index=data_df[~data_df['display_name'].isin(station_codes.keys())].index, inplace=True)
+        data_df.drop(index=data_df[~data_df['display_name'].isin(
+            station_codes.keys())].index, inplace=True)
         # replace 'display_name' column (station name) in df with station_id
         # and rename the column appropriately
         data_df['display_name'].replace(station_codes, inplace=True)
@@ -113,12 +116,14 @@ def main():
         bot = HourlyActualsBot()
         bot.run()
         # Exit with 0 - success.
-        sys.exit(0)
+        sys.exit(os.EX_OK)
     # pylint: disable=broad-except
     except Exception as exception:
         # Exit non 0 - failure.
         logger.error('Failed to retrieve hourly actuals.', exc_info=exception)
-        sys.exit(1)
+        rc_message = ':scream: Encountered error retrieving hourly actuals'
+        send_rocketchat_notification(rc_message, exception)
+        sys.exit(os.EX_SOFTWARE)
 
 
 if __name__ == '__main__':

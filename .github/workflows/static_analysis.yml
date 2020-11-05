@@ -36,7 +36,6 @@ jobs:
       - name: Install libgdal-dev
         # The python gdal component relies on libgdal-dev being installed.
         run: |
-          sudo apt-get -y update
           sudo apt-get -y install libgdal-dev
 
       - name: Install gdal python
