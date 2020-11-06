@@ -60,7 +60,7 @@ async def get_index(request: Request):
         "index.html",
         {
             'request': request,
-            'PUBLIC_URL': '.',
+            'PUBLIC_URL': config.get('PUBLIC_URL', '.'),
             'REACT_APP_KEYCLOAK_AUTH_URL': config.get('REACT_APP_KEYCLOAK_AUTH_URL'),
             'REACT_APP_MATOMO_URL': config.get('REACT_APP_MATOMO_URL'),
             'REACT_APP_MATOMO_SITE_ID': config.get('REACT_APP_MATOMO_SITE_ID'),

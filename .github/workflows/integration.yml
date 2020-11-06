@@ -89,6 +89,7 @@ jobs:
           /opt/poetry/bin/poetry install --no-root
 
       - name: Lint (api)
+        working-directory: ./api
         run: /opt/poetry/bin/poetry run pylint --rcfile=api/.pylintrc api/app/*.py api/app/**/*.py
 
       - name: Unit Test with coverage (api)
