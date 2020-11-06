@@ -35,16 +35,14 @@ jobs:
           path: "~/poetry_installer"
           key: "1.0.8"
 
-      - name: Install poetry (api)
-        env:
-          CACHE_HIT: ${{steps.cache-poetry-installer}}
+      - name: Download poetry installer
+        if: steps.cache-poetry_installer.outputs.cache-hit != 'true'
         run: |
-          if [[ "$CACHE_HIT" == 'true']]; then
-            echo "using cached version of get-poetry.py"
-          else
-            mkdir ~/poetry_installer
-            curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py > ~/poetry_installer/get-poetry.py
-          fi
+          mkdir ~/poetry_installer
+          curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py > ~/poetry_installer/get-poetry.py
+
+      - name: Install poetry (api)
+        run: |
           cd ~/poetry_installer
           POETRY_HOME=/opt/poetry python get-poetry.py --version 1.0.8
           cd /usr/local/bin
