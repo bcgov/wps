@@ -26,12 +26,26 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      # - name: Cach poetry installer
+      - name: Cach poetry installer
+        uses: actions/cache@v2
+        id: cache-poetry-installer
+        env:
+          cache-name: cache-poetry-installer
+        with:
+          path: "~/poetry_installer"
+          key: "1.0.8"
 
       - name: Install poetry (api)
+        env:
+          CACHE_HIT: ${{steps.cache-poetry-installer}}
         run: |
-          curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py > /tmp/get-poetry.py
-          cd /tmp
+          if [[ "$CACHE_HIT" == 'true']]; then
+            echo "using cached version of get-poetry.py"
+          else
+            mkdir ~/poetry_installer
+            curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py > ~/poetry_installer/get-poetry.py
+          fi
+          cd ~/poetry_installer
           POETRY_HOME=/opt/poetry python get-poetry.py --version 1.0.8
           cd /usr/local/bin
           /opt/poetry/bin/poetry config virtualenvs.create false
@@ -118,7 +132,7 @@ jobs:
         # Due to the way sonarscanner mounts thing when running in docker, we need to change the coverage file.
         working-directory: ./coverage
         run: |
-          sed -i 's/\/home\/runner\/work\/wps\/wps\//\/github\/workspace\//g' lcov.info
+          sed -i 's/\/home\/runner\/work\/wps\/wps\/web\//\/github\/workspace\//g' lcov.info
 
       - name: SonarCloud Scan
         uses: sonarsource/sonarcloud-github-action@master

@@ -54,14 +54,12 @@ objects:
           kind: ImageStreamTag
           name: ${NAME}-${SUFFIX}:${SUFFIX}
       resources:
-        # Best-Effort: A request value of 0 (unlimited) with no limit set is classified as best effort. Best-Effort containers are the first to get killed when resources are limited.
-        # limits:
-        # cpu: "4"
-        # memory: 5Gi
-        #
+        limits:
+          cpu: "4"
+          memory: 5Gi
         requests:
-          cpu: 0
-          memory: 0
+          cpu: "2"
+          memory: 1Gi
       source:
         type: Git
         git:
