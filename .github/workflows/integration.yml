@@ -26,6 +26,8 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      # - name: Cach poetry installer
+
       - name: Install poetry (api)
         run: |
           curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py > /tmp/get-poetry.py
@@ -47,7 +49,7 @@ jobs:
 
       # poetry cache folder: /home/runner/.cache/pypoetry
       - name: Cache poetry
-      - uses: actions/cache@v2
+        uses: actions/cache@v2
         env:
           cache-name: cache-poetry
         with:
