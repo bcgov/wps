@@ -45,6 +45,17 @@ jobs:
         # platforms.
         run: CPLUS_INCLUDE_PATH=/usr/include/gdal C_INCLUDE_PATH=/usr/include/gdal python3 -m pip install gdal==$(gdal-config --version)
 
+      # poetry cache folder: /home/runner/.cache/pypoetry
+      - name: Cache poetry
+      - uses: actions/cache@v2
+        env:
+          cache-name: cache-poetry
+        with:
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-
+
       - name: Install python dependencies (api)
         run: |
           /opt/poetry/bin/poetry config --list
@@ -105,7 +116,7 @@ jobs:
         # Due to the way sonarscanner mounts thing when running in docker, we need to change the coverage file.
         working-directory: ./coverage
         run: |
-          sed -i 's/\/home\/runner\/work\/wps-web\/wps-web\//\/github\/workspace\//g' lcov.info
+          sed -i 's/\/home\/runner\/work\/wps\/wps\//\/github\/workspace\//g' lcov.info
 
       - name: SonarCloud Scan
         uses: sonarsource/sonarcloud-github-action@master

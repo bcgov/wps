@@ -1,4 +1,4 @@
-export const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || './api'
+export const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '/api'
 export const HIDE_DISCLAIMER = process.env.REACT_APP_HIDE_DISCLAIMER
 export const KC_AUTH_URL =
   process.env.REACT_APP_KEYCLOAK_AUTH_URL || window.env.REACT_APP_KEYCLOAK_AUTH_URL

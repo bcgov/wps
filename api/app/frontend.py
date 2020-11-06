@@ -55,9 +55,24 @@ async def get_config(request: Request):
         })
 
 
+async def get_index(request: Request):
+    """ Apply jina template to index.html
+    """
+    return templates.TemplateResponse(
+        "index.html",
+        {
+            'request': request,
+            'REACT_APP_MATOMO_URL': config.get('REACT_APP_MATOMO_URL'),
+            'REACT_APP_MATOMO_SITE_ID': config.get('REACT_APP_MATOMO_SITE_ID'),
+            'PUBLIC_URL': config.get('PUBLIC_URL'),
+            'REACT_APP_KEYCLOAK_AUTH_URL': config.get('REACT_APP_KEYCLOAK_AUTH_URL')
+        })
+
+
 # This is the front end app. It's not going to do much other than serve up
 # static files.
 frontend = Starlette(routes=[
     Route('/config.js', get_config),
+    Route('/index.html', get_index),
     Mount('/', SPAStaticFiles(directory=get_static_foldername(), html=True), name='frontend')
 ])
