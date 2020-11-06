@@ -66,7 +66,7 @@ jobs:
         env:
           cache-name: cache-poetry
         with:
-          path: ~/.cache/pypoetry
+          path: /home/runner/.cache/pypoetry
           key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
           restore-keys: |
             ${{ runner.os }}-poetry-

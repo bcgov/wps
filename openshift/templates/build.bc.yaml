@@ -67,7 +67,6 @@ objects:
           ref: origin/${GIT_BRANCH}
         contextDir: ./
       strategy:
-        type: Docker
         env:
           - name: "REACT_APP_MATOMO_URL"
             value: "{{REACT_APP_MATOMO_URL}}"
@@ -77,7 +76,7 @@ objects:
             value: "{{PUBLIC_URL}}"
           - name: "REACT_APP_KEYCLOAK_AUTH_URL"
             value: "{{REACT_APP_KEYCLOAK_AUTH_URL}}"
-        sourceStrategy:
+        dockerStrategy:
           env:
             - name: "REACT_APP_MATOMO_URL"
               value: "{{REACT_APP_MATOMO_URL}}"
