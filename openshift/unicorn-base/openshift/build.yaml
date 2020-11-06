@@ -16,7 +16,7 @@ parameters:
   - name: VERSION
     description: Ouput version
     value: "python3.8-latest"
-  - name: GIT_URI
+  - name: GIT_URL
     value: https://github.com/bcgov/wps.git
   - name: GIT_BRANCH
     value: task/common-repo-3-3/273
@@ -35,24 +35,24 @@ objects:
       lookupPolicy:
         local: false
   - apiVersion: v1
-      kind: BuildConfig
-      metadata:
-        annotations:
-          openshift.io/generated-by: OpenShiftNewBuild
-        labels:
-          app: uvicorn-gunicorn-fastapi
-        name: uvicorn-gunicorn-fastapi
-      spec:
-        completionDeadlineSeconds: 1200 # 20 minutes
-        output:
-          to:
-            kind: ImageStreamTag
-            name: ${NAME}${SUFFIX}:${VERSION}
-        source:
-          type: Git
-          git:
-            uri: ${GIT_URL}
-            ref: origin/${GIT_BRANCH}
-          contextDir: openshift/unicorn-base/docker
-        strategy:
-          type: Docker
+    kind: BuildConfig
+    metadata:
+      annotations:
+        openshift.io/generated-by: OpenShiftNewBuild
+      labels:
+        app: uvicorn-gunicorn-fastapi
+      name: uvicorn-gunicorn-fastapi
+    spec:
+      completionDeadlineSeconds: 1200 # 20 minutes
+      output:
+        to:
+          kind: ImageStreamTag
+          name: ${NAME}${SUFFIX}:${VERSION}
+      source:
+        type: Git
+        git:
+          uri: ${GIT_URL}
+          ref: origin/${GIT_BRANCH}
+        contextDir: openshift/unicorn-base/docker
+      strategy:
+        type: Docker
