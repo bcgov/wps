@@ -26,7 +26,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Cach poetry installer
+      - name: Cache poetry installer
         uses: actions/cache@v2
         id: cache-poetry-installer
         env:

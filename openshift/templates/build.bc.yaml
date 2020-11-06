@@ -67,15 +67,15 @@ objects:
           ref: origin/${GIT_BRANCH}
         contextDir: ./
       strategy:
-        env:
-          - name: "REACT_APP_MATOMO_URL"
-            value: "{{REACT_APP_MATOMO_URL}}"
-          - name: "REACT_APP_MATOMO_SITE_ID"
-            value: "{{REACT_APP_MATOMO_SITE_ID}}"
-          - name: "PUBLIC_URL"
-            value: "{{PUBLIC_URL}}"
-          - name: "REACT_APP_KEYCLOAK_AUTH_URL"
-            value: "{{REACT_APP_KEYCLOAK_AUTH_URL}}"
+        # env:
+        #   - name: "REACT_APP_MATOMO_URL"
+        #     value: "{{REACT_APP_MATOMO_URL}}"
+        #   - name: "REACT_APP_MATOMO_SITE_ID"
+        #     value: "{{REACT_APP_MATOMO_SITE_ID}}"
+        #   - name: "PUBLIC_URL"
+        #     value: "{{PUBLIC_URL}}"
+        #   - name: "REACT_APP_KEYCLOAK_AUTH_URL"
+        #     value: "{{REACT_APP_KEYCLOAK_AUTH_URL}}"
         dockerStrategy:
           env:
             - name: "REACT_APP_MATOMO_URL"
@@ -86,13 +86,15 @@ objects:
               value: "{{PUBLIC_URL}}"
             - name: "REACT_APP_KEYCLOAK_AUTH_URL"
               value: "{{REACT_APP_KEYCLOAK_AUTH_URL}}"
-      env:
-        - name: "REACT_APP_MATOMO_URL"
-          value: "{{REACT_APP_MATOMO_URL}}"
-        - name: "REACT_APP_MATOMO_SITE_ID"
-          value: "{{REACT_APP_MATOMO_SITE_ID}}"
-        - name: "PUBLIC_URL"
-          value: "{{PUBLIC_URL}}"
-        - name: "REACT_APP_KEYCLOAK_AUTH_URL"
-          value: "{{REACT_APP_KEYCLOAK_AUTH_URL}}"
+            - name: "REACT_APP_MATOMO_CONTAINER"
+              value: "{{REACT_APP_MATOMO_CONTAINER}}"
+      # env:
+      #   - name: "REACT_APP_MATOMO_URL"
+      #     value: "{{REACT_APP_MATOMO_URL}}"
+      #   - name: "REACT_APP_MATOMO_SITE_ID"
+      #     value: "{{REACT_APP_MATOMO_SITE_ID}}"
+      #   - name: "PUBLIC_URL"
+      #     value: "{{PUBLIC_URL}}"
+      #   - name: "REACT_APP_KEYCLOAK_AUTH_URL"
+      #     value: "{{REACT_APP_KEYCLOAK_AUTH_URL}}"
       triggers: []

@@ -64,6 +64,7 @@ async def get_index(request: Request):
             'request': request,
             'REACT_APP_MATOMO_URL': config.get('REACT_APP_MATOMO_URL'),
             'REACT_APP_MATOMO_SITE_ID': config.get('REACT_APP_MATOMO_SITE_ID'),
+            'REACT_APP_MATOMO_CONTAINER': config.get('REACT_APP_MATOMO_CONTAINER'),
             'PUBLIC_URL': config.get('PUBLIC_URL'),
             'REACT_APP_KEYCLOAK_AUTH_URL': config.get('REACT_APP_KEYCLOAK_AUTH_URL')
         })
@@ -74,5 +75,6 @@ async def get_index(request: Request):
 frontend = Starlette(routes=[
     Route('/config.js', get_config),
     Route('/index.html', get_index),
+    Route('/', get_index),
     Mount('/', SPAStaticFiles(directory=get_static_foldername(), html=True), name='frontend')
 ])
