@@ -43,11 +43,13 @@ jobs:
           curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py > ~/poetry_installer/get-poetry.py
 
       - name: Install poetry (api)
+        # Set virtualenvs.create true, otherwise there's nothing to cache!
         run: |
           cd ~/poetry_installer
           POETRY_HOME=/opt/poetry python get-poetry.py --version 1.0.8
           cd /usr/local/bin
-          /opt/poetry/bin/poetry config virtualenvs.create false
+          /opt/poetry/bin/poetry config virtualenvs.create true
+          /opt/poetry/bin/poetry config virtualenvs.in-project false
 
       - name: Install libgdal-dev (api)
         # The python gdal component relies on libgdal-dev being installed.
@@ -60,13 +62,21 @@ jobs:
         # platforms.
         run: CPLUS_INCLUDE_PATH=/usr/include/gdal C_INCLUDE_PATH=/usr/include/gdal python3 -m pip install gdal==$(gdal-config --version)
 
+      # - name: Cache pip
+      #   uses: actions/cache@v2
+      #   with:
+      #     path: ~/.cache/pip
+      #     key: ${{ runner.os }}-pip-${{ hashFiles('**/poetry.lock') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-pip-
+
       # poetry cache folder: /home/runner/.cache/pypoetry
       - name: Cache poetry
         uses: actions/cache@v2
         env:
           cache-name: cache-poetry
         with:
-          path: /home/runner/.cache/pypoetry
+          path: ~/.cache/pypoetry
           key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
           restore-keys: |
             ${{ runner.os }}-poetry-
