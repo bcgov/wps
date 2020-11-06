@@ -157,6 +157,41 @@ objects:
                     secretKeyRef:
                       name: ${NAME}-global
                       key: rocket.chat-auth-token-secret
+                - name: REACT_APP_FIDER_LINK
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-global
+                      key: env.fider-url
+                - name: REACT_APP_KEYCLOAK_AUTH_URL
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-global
+                      key: env.keycloak-auth-url
+                - name: REACT_APP_KEYCLOAK_REALM
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-global
+                      key: env.keycloak-realm
+                - name: REACT_APP_KEYCLOAK_CLIENT
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-global
+                      key: env.keycloak-client
+                - name: REACT_APP_MATOMO_URL
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-global
+                      key: env.matomo-url
+                - name: REACT_APP_MATOMO_SITE_ID
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-global
+                      key: env.matomo-site-id
+                - name: REACT_APP_MATOMO_CONTAINER
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-global
+                      key: env.matomo-container
               ports:
                 - containerPort: 8080
                   protocol: TCP

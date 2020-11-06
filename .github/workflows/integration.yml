@@ -47,6 +47,7 @@ jobs:
 
       - name: Install python dependencies (api)
         run: |
+          /opt/poetry/bin/poetry config --list
           cp api/pyproject.toml api/poetry.lock /tmp/
           cd /tmp
           /opt/poetry/bin/poetry install --no-root
@@ -64,6 +65,19 @@ jobs:
           coverage report
           coverage xml -o coverage-reports/coverage-report.xml
 
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          # npm cache files are stored in `~/.npm` on Linux/macOS
+          path: ~/.npm
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
       - name: Install node dependencies (web)
         run: |
           cd web
@@ -78,10 +92,14 @@ jobs:
       # with this: https://github.com/guard/listen/wiki/Increasing-the-amount-of-inotify-watchers#the-technical-details
       # It seems unnecessary at the moment because tests pass anyway
       - name: Cypress tests (web)
-        run: npm run cypress:ci
+        run: |
+          cd web
+          npm run cypress:ci
 
       - name: Tests with coverage (web)
-        run: npm run test:ci
+        run: |
+          cd web
+          npm run test:ci
 
       - name: Fix code coverage paths (web)
         # Due to the way sonarscanner mounts thing when running in docker, we need to change the coverage file.
