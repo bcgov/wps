@@ -104,33 +104,28 @@ jobs:
             ${{ runner.os }}-
 
       - name: Install node dependencies (web)
-        run: |
-          cd web
-          npm ci
+        working-directory: ./web
+        run: npm ci
 
       - name: Lint (web)
-        run: |
-          cd web
-          npm run lint
+        working-directory: ./web
+        run: npm run lint
 
       # "Error: ENOSPC: System limit for number of file watchers reached" can be addressed
       # with this: https://github.com/guard/listen/wiki/Increasing-the-amount-of-inotify-watchers#the-technical-details
       # It seems unnecessary at the moment because tests pass anyway
       - name: Cypress tests (web)
-        run: |
-          cd web
-          npm run cypress:ci
+        working-directory: ./web
+        run: npm run cypress:ci
 
       - name: Tests with coverage (web)
-        run: |
-          cd web
-          npm run test:ci
+        working-directory: ./web
+        run: npm run test:ci
 
       - name: Fix code coverage paths (web)
         # Due to the way sonarscanner mounts thing when running in docker, we need to change the coverage file.
-        working-directory: ./coverage
-        run: |
-          sed -i 's/\/home\/runner\/work\/wps\/wps\/web\//\/github\/workspace\//g' lcov.info
+        working-directory: ./web/coverage
+        run: sed -i 's/\/home\/runner\/work\/wps\/wps\/web\//\/github\/workspace\//g' lcov.info
 
       - name: SonarCloud Scan
         uses: sonarsource/sonarcloud-github-action@master
