@@ -43,11 +43,11 @@ jobs:
           curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py > ~/poetry_installer/get-poetry.py
 
       - name: Install poetry (api)
-        # Set virtualenvs.create true, otherwise there's nothing to cache!
         run: |
           cd ~/poetry_installer
           POETRY_HOME=/opt/poetry python get-poetry.py --version 1.0.8
           cd /usr/local/bin
+          # /opt/poetry/bin/poetry config virtualenvs.create false
           /opt/poetry/bin/poetry config virtualenvs.create true
           /opt/poetry/bin/poetry config virtualenvs.in-project false
 
@@ -89,17 +89,17 @@ jobs:
           /opt/poetry/bin/poetry install --no-root
 
       - name: Lint (api)
-        run: python3 -m pylint --rcfile=api/.pylintrc api/app/*.py api/app/**/*.py
+        run: /opt/poetry/bin/poetry run pylint --rcfile=api/.pylintrc api/app/*.py api/app/**/*.py
 
       - name: Unit Test with coverage (api)
         run: |
-          ORIGINS=testorigin coverage run --source=api/app -m pytest -o log_cli=true --disable-warnings --verbose
+          ORIGINS=testorigin /opt/poetry/bin/poetry run coverage run --source=api/app -m pytest -o log_cli=true --disable-warnings --verbose
 
       - name: Create coverage report (api)
         shell: bash
         run: |
-          coverage report
-          coverage xml -o coverage-reports/coverage-report.xml
+          /opt/poetry/bin/poetry run coverage report
+          /opt/poetry/bin/poetry run coverage xml -o coverage-reports/coverage-report.xml
 
       - name: Cache node modules
         uses: actions/cache@v2
