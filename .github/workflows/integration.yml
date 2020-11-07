@@ -89,13 +89,16 @@ jobs:
         working-directory: ./api
         run: |
           source ~/.poetry/env
-          poetry run pylint --rcfile=api/.pylintrc api/app/*.py api/app/**/*.py
+          poetry run pylint --rcfile=.pylintrc app/*.py app/**/*.py
 
       - name: Unit Test with coverage (api)
+        working-directory: ./api
         run: |
-          ORIGINS=testorigin /opt/poetry/bin/poetry run coverage run --source=api/app -m pytest -o log_cli=true --disable-warnings --verbose
+          source ~/.poetry/env
+          ORIGINS=testorigin poetry run coverage run --source=app -m pytest -o log_cli=true --disable-warnings --verbose
 
       - name: Create coverage report (api)
+        working-directory: ./api
         shell: bash
         run: |
           source ~/.poetry/env
