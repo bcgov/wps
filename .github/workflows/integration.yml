@@ -46,15 +46,13 @@ jobs:
         run: |
           cd ~/poetry_installer
           POETRY_HOME=/opt/poetry python get-poetry.py --version 1.0.8
-          cd /usr/local/bin
-          # /opt/poetry/bin/poetry config virtualenvs.create false
-          /opt/poetry/bin/poetry config virtualenvs.create true
-          /opt/poetry/bin/poetry config virtualenvs.in-project false
+          source ~/.poetry/env
+          poetry config virtualenvs.create true
+          poetry config virtualenvs.in-project false
 
       - name: Install libgdal-dev (api)
         # The python gdal component relies on libgdal-dev being installed.
-        run: |
-          sudo apt-get -y install libgdal-dev
+        run: sudo apt-get -y install libgdal-dev
 
       - name: Install gdal python (api)
         # We don't have much control over what version of gdal we're getting, it's pretty much whatever is
@@ -82,15 +80,16 @@ jobs:
             ${{ runner.os }}-poetry-
 
       - name: Install python dependencies (api)
+        working-directory: ./api
         run: |
-          /opt/poetry/bin/poetry config --list
-          cp api/pyproject.toml api/poetry.lock /tmp/
-          cd /tmp
-          /opt/poetry/bin/poetry install --no-root
+          source ~/.poetry/env
+          poetry install
 
       - name: Lint (api)
         working-directory: ./api
-        run: /opt/poetry/bin/poetry run pylint --rcfile=api/.pylintrc api/app/*.py api/app/**/*.py
+        run: |
+          source ~/.poetry/env
+          poetry run pylint --rcfile=api/.pylintrc api/app/*.py api/app/**/*.py
 
       - name: Unit Test with coverage (api)
         run: |
@@ -99,8 +98,9 @@ jobs:
       - name: Create coverage report (api)
         shell: bash
         run: |
-          /opt/poetry/bin/poetry run coverage report
-          /opt/poetry/bin/poetry run coverage xml -o coverage-reports/coverage-report.xml
+          source ~/.poetry/env
+          poetry run coverage report
+          poetry run coverage xml -o coverage-reports/coverage-report.xml
 
       - name: Cache node modules
         uses: actions/cache@v2
