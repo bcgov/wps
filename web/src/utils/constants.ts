@@ -8,7 +8,10 @@ export const KC_CLIENT =
   process.env.REACT_APP_KEYCLOAK_CLIENT || window.env.REACT_APP_KEYCLOAK_CLIENT
 export const REACT_APP_FIDER_LINK =
   process.env.REACT_APP_FIDER_LINK || window.env.REACT_APP_FIDER_LINK
-export const PUBLIC_URL = process.env.PUBLIC_URL || window.env.PUBLIC_URL
+// process.env.PUBLIC_URL is set to {{PUBLIC_URL}} during npm build
+export const PUBLIC_URL = window.env.PUBLIC_URL || process.env.PUBLIC_URL
+console.log('PUBLIC_URL', PUBLIC_URL)
+console.log('process.env.PUBLIC_URL', process.env.PUBLIC_URL)
 
 export const WEATHER_STATION_MAP_LINK =
   'https://governmentofbc.maps.arcgis.com/apps/webappviewer/index.html?id=c36baf74b74a46978cf517579a9ee332'
