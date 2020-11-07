@@ -46,6 +46,7 @@ async def get_config(request: Request):
         "config.js",
         {
             'request': request,
+            'PUBLIC_URL': config.get('PUBLIC_URL', '.'),
             'REACT_APP_KEYCLOAK_AUTH_URL': config.get('REACT_APP_KEYCLOAK_AUTH_URL'),
             'REACT_APP_KEYCLOAK_REALM': config.get('REACT_APP_KEYCLOAK_REALM'),
             'REACT_APP_KEYCLOAK_CLIENT': config.get('REACT_APP_KEYCLOAK_CLIENT'),
