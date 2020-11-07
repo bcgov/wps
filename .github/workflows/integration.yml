@@ -45,7 +45,7 @@ jobs:
       - name: Install poetry (api)
         run: |
           cd ~/poetry_installer
-          POETRY_HOME=/opt/poetry python get-poetry.py --version 1.0.8
+          python get-poetry.py --version 1.0.8
           source ~/.poetry/env
           poetry config virtualenvs.create true
           poetry config virtualenvs.in-project false
