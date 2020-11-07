@@ -5,3 +5,4 @@ window.env = {
   REACT_APP_KEYCLOAK_CLIENT: '{{REACT_APP_KEYCLOAK_CLIENT}}',
   REACT_APP_FIDER_LINK: '{{REACT_APP_FIDER_LINK}}'
 }
+console.log('window.env.PUBLIC_URL', window.env.PUBLIC_URL)
