@@ -71,7 +71,7 @@ async def get_index(request: Request):
 
 # This is the front end app. It's not going to do much other than serve up
 # static files.
-# TODO - modify SPAStaticFiles to always apply template to root
+# NOTE: may need to modify SPAStaticFiles to always apply template to root
 frontend = Starlette(routes=[
     Route('/config.js', get_config),
     Route('/index.html', get_index),
