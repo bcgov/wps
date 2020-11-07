@@ -193,7 +193,7 @@ objects:
                       name: ${NAME}-global
                       key: env.matomo-container
                 - name: PUBLIC_URL
-                  value: "."
+                  value: "/"
 
               ports:
                 - containerPort: 8080

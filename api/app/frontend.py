@@ -75,5 +75,8 @@ frontend = Starlette(routes=[
     Route('/config.js', get_config),
     Route('/index.html', get_index),
     Route('/', get_index),
+    Route('/morecast', get_index),
+    Route('/percentile-calculator', get_index),
+    Route('/fire-weather', get_index),
     Mount('/', SPAStaticFiles(directory=get_static_foldername(), html=True), name='frontend')
 ])
