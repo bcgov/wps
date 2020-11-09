@@ -78,9 +78,9 @@ jobs:
           cache-name: cache-poetry
         with:
           path: ~/.cache/pypoetry
-          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
+          key: ${{ runner.os }}-poetry-cache-${{ hashFiles('**/poetry.lock') }}
           restore-keys: |
-            ${{ runner.os }}-poetry-
+            ${{ runner.os }}-poetry-cache-
 
       - name: Install python dependencies (api)
         working-directory: ./api
