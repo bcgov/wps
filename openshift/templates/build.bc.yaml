@@ -73,6 +73,12 @@ objects:
           env:
             - name: "REACT_APP_KEYCLOAK_AUTH_URL"
               value: "{{REACT_APP_KEYCLOAK_AUTH_URL}}"
+            - name: "REACT_APP_KEYCLOAK_REALM"
+              value: "{{REACT_APP_KEYCLOAK_REALM}}"
+            - name: "REACT_APP_KEYCLOAK_CLIENT"
+              value: "{{REACT_APP_KEYCLOAK_CLIENT}}"
+            - name: "REACT_APP_FIDER_LINK"
+              value: "{{REACT_APP_FIDER_LINK}}"
             - name: "REACT_APP_MATOMO_URL"
               value: "{{REACT_APP_MATOMO_URL}}"
             - name: "REACT_APP_MATOMO_SITE_ID"
