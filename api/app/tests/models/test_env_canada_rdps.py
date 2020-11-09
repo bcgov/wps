@@ -19,37 +19,13 @@ from app.models import env_canada, machine_learning
 from app.db.models import (PredictionModel, ProcessedModelRunUrl, PredictionModelRunTimestamp,
                            PredictionModelGridSubset, ModelRunGridSubsetPrediction)
 from app.tests.models.crud import get_actuals_left_outer_join_with_predictions
-from app.tests.models.test_env_canada_gdps import MockResponse, mock_get_stations
+from app.tests.models.test_env_canada_gdps import (MockResponse, mock_get_stations,
+                                                   mock_get_model_run_predictions_for_grid,
+                                                   mock_get_actuals_left_outer_join_with_predictions)
 # pylint: disable=unused-argument, redefined-outer-name
 
 
 logger = logging.getLogger(__name__)
-
-
-@pytest.fixture()
-def mock_get_model_run_predictions_for_grid(monkeypatch):
-    """ Mock out call to DB returning predictions """
-    def mock_get(*args):
-        result = [
-            ModelRunGridSubsetPrediction(
-                tmp_tgl_2=[2, 3, 4, 5],
-                rh_tgl_2=[10, 20, 30, 40],
-                prediction_timestamp=datetime(2020, 10, 10, 18)),
-            ModelRunGridSubsetPrediction(
-                tmp_tgl_2=[1, 2, 3, 4],
-                rh_tgl_2=[20, 30, 40, 50],
-                prediction_timestamp=datetime(2020, 10, 10, 21))
-        ]
-        return result
-    monkeypatch.setattr(
-        env_canada, 'get_model_run_predictions_for_grid', mock_get)
-
-
-@pytest.fixture()
-def mock_get_actuals_left_outer_join_with_predictions(monkeypatch):
-    """ Mock out call to DB returning actuals macthed with predictions """
-    monkeypatch.setattr(machine_learning, 'get_actuals_left_outer_join_with_predictions',
-                        get_actuals_left_outer_join_with_predictions)
 
 
 @ pytest.fixture()
@@ -107,7 +83,7 @@ def mock_session(monkeypatch):
 @ pytest.fixture()
 def mock_download(monkeypatch):
     """ fixture for env_canada.download """
-    def mock_requests_get_gdps(*args, **kwargs):
+    def mock_requests_get_rdps(*args, **kwargs):
         """ mock env_canada download method for RDPS """
         dirname = os.path.dirname(os.path.realpath(__file__))
         filename = os.path.join(
@@ -115,7 +91,7 @@ def mock_download(monkeypatch):
         with open(filename, 'rb') as file:
             content = file.read()
         return MockResponse(status_code=200, content=content)
-    monkeypatch.setattr(requests, 'get', mock_requests_get_gdps)
+    monkeypatch.setattr(requests, 'get', mock_requests_get_rdps)
 
 
 @ pytest.fixture()
@@ -144,24 +120,5 @@ def test_process_rdps(mock_download,
     # be processed.
     sys.argv = ["argv", "RDPS"]
     assert env_canada.process_models() == 1
-
-
-def test_main_fail(mocker: MockerFixture, monkeypatch):
-    """ Run the main method, check that message is sent to rocket chat, and exit code is EX_SOFTWARE """
-    sys.argv = ["argv", "RDPS"]
-
-    def mock_process_models():
-        raise Exception()
-
-    rocket_chat_spy = mocker.spy(env_canada, 'send_rocketchat_notification')
-    monkeypatch.setattr(env_canada, 'process_models', mock_process_models)
-
-    with pytest.raises(SystemExit) as excinfo:
-        env_canada.main()
-
-    # Assert that we exited with an error code.
-    assert excinfo.value.code == os.EX_SOFTWARE
-    # Assert that rocket chat was called.
-    assert rocket_chat_spy.call_count == 1
 
 # pylint: enable=unused-argument, redefined-outer-name
