@@ -192,8 +192,6 @@ objects:
                     configMapKeyRef:
                       name: ${NAME}-global
                       key: env.matomo-container
-                - name: PUBLIC_URL
-                  value: "/"
 
               ports:
                 - containerPort: 8080

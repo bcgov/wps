@@ -1,7 +1,7 @@
 import React from 'react'
 import { Container } from 'components/Container'
 import { makeStyles } from '@material-ui/core/styles'
-import { PUBLIC_URL, REACT_APP_FIDER_LINK } from 'utils/constants'
+import { REACT_APP_FIDER_LINK } from 'utils/constants'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -54,7 +54,7 @@ export const PageHeader: React.FunctionComponent<Props> = ({ title }: Props) => 
           <a href="https://gov.bc.ca">
             <img
               className={classes.logo}
-              src={PUBLIC_URL + '/images/BCID_H_rgb_rev.svg'}
+              src={'/images/BCID_H_rgb_rev.svg'}
               alt="B.C. Government logo"
             />
           </a>

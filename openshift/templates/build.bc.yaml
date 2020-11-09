@@ -71,8 +71,6 @@ objects:
           # when npm run build executes, it will replace node tags with
           # python jinja tags using these environment variables.
           env:
-            - name: "PUBLIC_URL"
-              value: "{{PUBLIC_URL}}"
             - name: "REACT_APP_KEYCLOAK_AUTH_URL"
               value: "{{REACT_APP_KEYCLOAK_AUTH_URL}}"
             - name: "REACT_APP_MATOMO_URL"

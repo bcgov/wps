@@ -9,6 +9,7 @@ from fastapi.responses import Response
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.requests import Request
+from jinja2.exceptions import TemplateNotFound
 from app import config
 
 logger = logging.getLogger(__name__)
@@ -48,19 +49,23 @@ class SPAStaticFiles(StaticFiles):
 async def get_index(request: Request):
     """ Apply jina template to index.html
     """
-    return templates.TemplateResponse(
-        "index.html",
-        {
-            'request': request,
-            'PUBLIC_URL': config.get('PUBLIC_URL', '.'),
-            'REACT_APP_KEYCLOAK_AUTH_URL': config.get('REACT_APP_KEYCLOAK_AUTH_URL'),
-            'REACT_APP_KEYCLOAK_REALM': config.get('REACT_APP_KEYCLOAK_REALM'),
-            'REACT_APP_KEYCLOAK_CLIENT': config.get('REACT_APP_KEYCLOAK_CLIENT'),
-            'REACT_APP_FIDER_LINK': config.get('REACT_APP_FIDER_LINK'),
-            'REACT_APP_MATOMO_URL': config.get('REACT_APP_MATOMO_URL'),
-            'REACT_APP_MATOMO_SITE_ID': config.get('REACT_APP_MATOMO_SITE_ID'),
-            'REACT_APP_MATOMO_CONTAINER': config.get('REACT_APP_MATOMO_CONTAINER'),
-        })
+    try:
+        return templates.TemplateResponse(
+            "index.html",
+            {
+                'request': request,
+                'REACT_APP_KEYCLOAK_AUTH_URL': config.get('REACT_APP_KEYCLOAK_AUTH_URL'),
+                'REACT_APP_KEYCLOAK_REALM': config.get('REACT_APP_KEYCLOAK_REALM'),
+                'REACT_APP_KEYCLOAK_CLIENT': config.get('REACT_APP_KEYCLOAK_CLIENT'),
+                'REACT_APP_FIDER_LINK': config.get('REACT_APP_FIDER_LINK'),
+                'REACT_APP_MATOMO_URL': config.get('REACT_APP_MATOMO_URL'),
+                'REACT_APP_MATOMO_SITE_ID': config.get('REACT_APP_MATOMO_SITE_ID'),
+                'REACT_APP_MATOMO_CONTAINER': config.get('REACT_APP_MATOMO_CONTAINER'),
+            })
+    except TemplateNotFound as exception:
+        # This has most likely happened because there's nothing in the static folder
+        # Make sure you've run npm build, and copied the static files into the correct location.
+        logger.error(exception, exc_info=exception)
 
 
 # This is the front end app. It's not going to do much other than serve up

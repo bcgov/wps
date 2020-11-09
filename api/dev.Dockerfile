@@ -1,6 +1,6 @@
 FROM python:3.8-buster
 
-# spotwx has an old certificate, so we have to make debian more forgiving.
+# wildfire one has an old certificate, so we have to make debian more forgiving.
 RUN sed -i 's/TLSv1.2/TLSv1.0/g' /etc/ssl/openssl.cnf
 
 # Install dependancies need by python developer packages

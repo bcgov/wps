@@ -51,7 +51,6 @@ RUN cd /tmp && \
 COPY ./api/app /app/app
 # Copy the static content:
 COPY --from=static /app/build /app/static
-# COPY ./static /app/static
 # Copy almebic:
 COPY ./api/alembic /app/alembic
 COPY ./api/alembic.ini /app
