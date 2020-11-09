@@ -19,30 +19,11 @@ from app.models import env_canada, machine_learning
 from app.db.models import (PredictionModel, ProcessedModelRunUrl, PredictionModelRunTimestamp,
                            PredictionModelGridSubset, ModelRunGridSubsetPrediction)
 from app.tests.models.crud import get_actuals_left_outer_join_with_predictions
-from app.tests.models.test_env_canada_gdps import MockResponse
+from app.tests.models.test_env_canada_gdps import MockResponse, mock_get_stations
 # pylint: disable=unused-argument, redefined-outer-name
 
 
 logger = logging.getLogger(__name__)
-
-
-@pytest.fixture()
-def mock_get_stations(monkeypatch):
-    """ Mocked out listing of weather stations """
-    def mock_get(*args):
-        return [WeatherStation(
-            code=123, name='Test', lat=50.7, long=-120.425, ecodivision_name='Test',
-            core_season=Season(
-                start_month=5, start_day=1, end_month=9, end_day=21)), ]
-    monkeypatch.setattr(env_canada, 'get_stations_synchronously', mock_get)
-
-
-@pytest.fixture()
-def mock_get_processed_file_count(monkeypatch):
-    """ Mocked out get processed file count """
-    def mock_get_count(*args):
-        return 162
-    monkeypatch.setattr(env_canada, 'get_processed_file_count', mock_get_count)
 
 
 @pytest.fixture()
@@ -155,7 +136,6 @@ def test_get_rdps_download_urls():
 
 def test_process_rdps(mock_download,
                       mock_session,
-                      mock_get_processed_file_count,
                       mock_get_model_run_predictions_for_grid,
                       mock_get_actuals_left_outer_join_with_predictions,
                       mock_get_stations):
