@@ -4,6 +4,7 @@ FROM node:10 as static
 # Set the working directory
 WORKDIR /app
 COPY web /app/
+RUN npm install --production
 RUN npm run build
 
 # PHASE 2 - prepare python.
