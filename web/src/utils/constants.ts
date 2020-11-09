@@ -3,7 +3,8 @@ export const HIDE_DISCLAIMER = process.env.REACT_APP_HIDE_DISCLAIMER
 // a number of process.env.* vars are set to {{*}} during the npm build (for the purposes of jina template
 // rendering). As such, we have to follow the pattern 'thing = window.env.* || process.env.*'
 export const KC_AUTH_URL =
-  (window.env.REACT_APP_KEYCLOAK_AUTH_URL || process.env.REACT_APP_KEYCLOAK_AUTH_URL) ?? ''
+  (window.env.REACT_APP_KEYCLOAK_AUTH_URL || process.env.REACT_APP_KEYCLOAK_AUTH_URL) ??
+  ''
 export const KC_REALM =
   (window.env.REACT_APP_KEYCLOAK_REALM || process.env.REACT_APP_KEYCLOAK_REALM) ?? ''
 export const KC_CLIENT =
