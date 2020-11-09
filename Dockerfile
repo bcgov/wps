@@ -4,7 +4,9 @@ FROM node:10 as static
 # Set the working directory
 WORKDIR /app
 COPY web /app/
-RUN npm install --production
+# TODO: Next line should be: `RUN npm install --production`! But that isn't working right now, as it causes
+# npm run build to fail.
+RUN npm install
 RUN npm run build
 
 # PHASE 2 - prepare python.

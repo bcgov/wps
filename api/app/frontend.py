@@ -36,20 +36,18 @@ class SPAStaticFiles(StaticFiles):
     async def get_response(self, path: str, scope: Scope) -> Response:
         # Call the method on the base class.
         response = await super().get_response(path, scope)
-        # If file not found, try to serve up the root.
+        # If file not found, try to serve up index.html
         if response.status_code == 404:
-            logger.info('serving up root for %s', path)
+            logger.debug('serving up root for %s', path)
             request = Request(scope)
             return await get_index(request)
-            # response = await super().get_response('.', scope)
-        logger.info('serve static: %s', path)
+        logger.debug('serve static: %s', path)
         return response
 
 
 async def get_config(request: Request):
     """ Apply jinja template response to config.js
     """
-    logger.info('serving up config.js')
     return templates.TemplateResponse(
         "config.js",
         {
@@ -65,7 +63,6 @@ async def get_config(request: Request):
 async def get_index(request: Request):
     """ Apply jina template to index.html
     """
-    logger.info('serving up index.html')
     return templates.TemplateResponse(
         "index.html",
         {
@@ -80,13 +77,8 @@ async def get_index(request: Request):
 
 # This is the front end app. It's not going to do much other than serve up
 # static files.
-# NOTE: may need to modify SPAStaticFiles to always apply template to root
 frontend = Starlette(routes=[
     Route('/config.js', get_config),
-    # Route('/index.html', get_index),
     Route('/', get_index),
-    # Route('/morecast', get_index),
-    # Route('/percentile-calculator*', get_index),
-    # Route('/fire-weather', get_index),
     Mount('/', SPAStaticFiles(directory=get_static_foldername(), html=True), name='frontend')
 ])
