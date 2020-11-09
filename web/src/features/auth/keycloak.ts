@@ -10,9 +10,9 @@ export const kcInitOption: KeycloakInitOptions = {
 // Let Typescript know we are using the 'native' promise type
 const instance = window.Keycloak
   ? window.Keycloak<'native'>({
-      url: KC_AUTH_URL!,
-      realm: KC_REALM!,
-      clientId: KC_CLIENT!
+      url: KC_AUTH_URL,
+      realm: KC_REALM,
+      clientId: KC_CLIENT
     })
   : null
 
