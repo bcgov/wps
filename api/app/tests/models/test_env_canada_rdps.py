@@ -19,18 +19,11 @@ from app.models import env_canada, machine_learning
 from app.db.models import (PredictionModel, ProcessedModelRunUrl, PredictionModelRunTimestamp,
                            PredictionModelGridSubset, ModelRunGridSubsetPrediction)
 from app.tests.models.crud import get_actuals_left_outer_join_with_predictions
+from app.tests.models.test_env_canada_gdps import MockResponse
 # pylint: disable=unused-argument, redefined-outer-name
 
 
 logger = logging.getLogger(__name__)
-
-
-class MockResponse:
-    """ Mocked out request.Response object """
-
-    def __init__(self, status_code, content=None):
-        self.status_code = status_code
-        self.content = content
 
 
 @pytest.fixture()
