@@ -11,6 +11,7 @@ import shapely.wkt
 from geoalchemy2.shape import from_shape
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
+from pytest_mock import MockerFixture
 import app.time_utils as time_utils
 import app.db.database
 from app.schemas import WeatherStation, Season
@@ -84,8 +85,8 @@ def mock_session(monkeypatch):
             " -120.525 50.62500000000001, -120.525 50.77500000000001))")
     shape = shapely.wkt.loads(geom)
 
-    rdps_url = ('https://dd.weather.gc.ca/model_gem_global/15km/grib2/lat_lon/00/000/'
-                'CMC_reg_TMP_TGL_2_ps10km_2021020300_P000.grib2')
+    rdps_url = ('https://dd.weather.gc.ca/model_gem_regional/10km/grib2/00/034/'
+                'CMC_reg_RH_TGL_2_ps10km_2020110500_P034.grib2')
     rdps_processed_model_run = ProcessedModelRunUrl(url=rdps_url)
     rdps_prediction_model = PredictionModel(id=2,
                                             abbreviation='RDPS',
@@ -136,7 +137,7 @@ def mock_download(monkeypatch):
         """ mock env_canada download method for RDPS """
         dirname = os.path.dirname(os.path.realpath(__file__))
         filename = os.path.join(
-            dirname, 'CMC_reg_RH_TGL_2_ps10km_2020071300_P000.grib2')
+            dirname, 'CMC_reg_RH_TGL_2_ps10km_2020110500_P034.grib2')
         with open(filename, 'rb') as file:
             content = file.read()
         return MockResponse(status_code=200, content=content)
@@ -170,5 +171,24 @@ def test_process_rdps(mock_download,
     # be processed.
     sys.argv = ["argv", "RDPS"]
     assert env_canada.process_models() == 1
+
+
+def test_main_fail(mocker: MockerFixture, monkeypatch):
+    """ Run the main method, check that message is sent to rocket chat, and exit code is EX_SOFTWARE """
+    sys.argv = ["argv", "RDPS"]
+
+    def mock_process_models():
+        raise Exception()
+
+    rocket_chat_spy = mocker.spy(env_canada, 'send_rocketchat_notification')
+    monkeypatch.setattr(env_canada, 'process_models', mock_process_models)
+
+    with pytest.raises(SystemExit) as excinfo:
+        env_canada.main()
+
+    # Assert that we exited with an error code.
+    assert excinfo.value.code == os.EX_SOFTWARE
+    # Assert that rocket chat was called.
+    assert rocket_chat_spy.call_count == 1
 
 # pylint: enable=unused-argument, redefined-outer-name
