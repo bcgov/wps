@@ -45,21 +45,6 @@ class SPAStaticFiles(StaticFiles):
         return response
 
 
-async def get_config(request: Request):
-    """ Apply jinja template response to config.js
-    """
-    return templates.TemplateResponse(
-        "config.js",
-        {
-            'request': request,
-            'PUBLIC_URL': config.get('PUBLIC_URL', '.'),
-            'REACT_APP_KEYCLOAK_AUTH_URL': config.get('REACT_APP_KEYCLOAK_AUTH_URL'),
-            'REACT_APP_KEYCLOAK_REALM': config.get('REACT_APP_KEYCLOAK_REALM'),
-            'REACT_APP_KEYCLOAK_CLIENT': config.get('REACT_APP_KEYCLOAK_CLIENT'),
-            'REACT_APP_FIDER_LINK': config.get('REACT_APP_FIDER_LINK')
-        })
-
-
 async def get_index(request: Request):
     """ Apply jina template to index.html
     """
@@ -69,6 +54,9 @@ async def get_index(request: Request):
             'request': request,
             'PUBLIC_URL': config.get('PUBLIC_URL', '.'),
             'REACT_APP_KEYCLOAK_AUTH_URL': config.get('REACT_APP_KEYCLOAK_AUTH_URL'),
+            'REACT_APP_KEYCLOAK_REALM': config.get('REACT_APP_KEYCLOAK_REALM'),
+            'REACT_APP_KEYCLOAK_CLIENT': config.get('REACT_APP_KEYCLOAK_CLIENT'),
+            'REACT_APP_FIDER_LINK': config.get('REACT_APP_FIDER_LINK'),
             'REACT_APP_MATOMO_URL': config.get('REACT_APP_MATOMO_URL'),
             'REACT_APP_MATOMO_SITE_ID': config.get('REACT_APP_MATOMO_SITE_ID'),
             'REACT_APP_MATOMO_CONTAINER': config.get('REACT_APP_MATOMO_CONTAINER'),
@@ -78,7 +66,6 @@ async def get_index(request: Request):
 # This is the front end app. It's not going to do much other than serve up
 # static files.
 frontend = Starlette(routes=[
-    Route('/config.js', get_config),
     Route('/', get_index),
     Mount('/', SPAStaticFiles(directory=get_static_foldername(), html=True), name='frontend')
 ])
