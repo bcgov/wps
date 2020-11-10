@@ -19,7 +19,7 @@ parameters:
   - name: GIT_URL
     value: https://github.com/bcgov/wps.git
   - name: GIT_BRANCH
-    value: task/common-repo-3-3/273
+    value: main
 objects:
   #ImageStream is create if it doesn't already exist
   - apiVersion: v1
