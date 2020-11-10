@@ -1,0 +1,30 @@
+version: "3.7"
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - app/.env.docker
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./:/app:delegated
+    networks:
+      - wps_network
+  # Application's local database container & service
+  db:
+    image: postgis/postgis
+    hostname: db
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=wps
+      - POSTGRES_PASSWORD=wps
+      - POSTGRES_DB=wps
+      - POSTGRES_HOST_AUTH_METHOD="trust"
+    networks:
+      - wps_network
+networks:
+  wps_network:
+    driver: bridge
