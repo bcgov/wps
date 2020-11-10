@@ -134,7 +134,7 @@ objects:
                       name: ${NAME}-global
                       key: env.pathfinder-base-uri
                 - name: PATRONI_CLUSTER_NAME
-                  value: patroni-wps-api-${SUFFIX}
+                  value: patroni-wps-${SUFFIX}
                 - name: PROJECT_NAMESPACE
                   value: ${PROJECT_NAMESPACE}
                 - name: ROCKET_URL_POST_MESSAGE
