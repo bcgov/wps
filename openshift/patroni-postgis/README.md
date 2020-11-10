@@ -28,7 +28,7 @@ Allow the production product to pull images from tools
 
 ```bash
 oc -n auzhsi-prod policy add-role-to-user \
-    system:image-puller system:serviceaccount:auzhsi-prod:patroniocp-wps-api-prod \
+    system:image-puller system:serviceaccount:auzhsi-prod:patroniocp-wps-prod \
     --namespace=auzhsi-tools
 ```
 
