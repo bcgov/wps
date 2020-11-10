@@ -3,8 +3,8 @@
 
 FROM python:3.8-buster
 
-# wildfire one has an old certificate, so we have to make debian more forgiving.
-RUN sed -i 's/TLSv1.2/TLSv1.0/g' /etc/ssl/openssl.cnf
+# wildfire one may have an old certificate, so we have to make debian more forgiving.
+# RUN sed -i 's/TLSv1.2/TLSv1.0/g' /etc/ssl/openssl.cnf
 
 # Install dependancies need by python developer packages
 # NOTE: Once we no longer need pyodbc, please remove the apt-get update and install commands below.

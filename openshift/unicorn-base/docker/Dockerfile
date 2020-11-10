@@ -6,8 +6,8 @@ FROM tiangolo/uvicorn-gunicorn-fastapi:python3.8
 RUN apt-get -y update
 RUN apt-get -y install libgdal-dev
 
-# spotwx has an old certificate, so we have to make debian more forgiving.
-RUN sed -i 's/TLSv1.2/TLSv1.0/g' /etc/ssl/openssl.cnf
+# wildfire one may have an old certificate, so we have to make debian more forgiving.
+# RUN sed -i 's/TLSv1.2/TLSv1.0/g' /etc/ssl/openssl.cnf
 
 # Update pip  
 RUN python -m pip install --upgrade pip
