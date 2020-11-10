@@ -35,7 +35,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./web:/app:delegated
+      - ./web:/app:delegated # Volume optimizations https://engageinteractive.co.uk/blog/making-docker-faster-on-mac
 networks:
   wps_network:
     driver: bridge
