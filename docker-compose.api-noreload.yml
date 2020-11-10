@@ -1,0 +1,32 @@
+version: "3.7"
+services:
+  api:
+    build:
+      context: api
+      dockerfile: Dockerfile
+    env_file:
+      - ./api/app/.env.docker
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./api:/app:delegated
+      - ./web/build:/app/static:delegated
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
+    networks:
+      - wps_network
+  # Application's local database container & service
+  db:
+    image: postgis/postgis
+    hostname: db
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=wps
+      - POSTGRES_PASSWORD=wps
+      - POSTGRES_DB=wps
+      - POSTGRES_HOST_AUTH_METHOD="trust"
+    networks:
+      - wps_network
+networks:
+  wps_network:
+    driver: bridge
