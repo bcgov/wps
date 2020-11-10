@@ -444,8 +444,6 @@ class ModelValueProcessor:
                             points: List,
                             coordinate: List,
                             machine: StationMachineLearning):
-        logger.info('station: %s', station)
-        logger.info('rh_tgl_2: %s', prediction.rh_tgl_2)
         # If there's already a prediction, we want to update it
         station_prediction = get_weather_station_model_prediction(
             self.session, station.code, model_run.id, prediction.prediction_timestamp)
@@ -507,7 +505,6 @@ class ModelValueProcessor:
         # Iterate through all the predictions.
         prev_prediction = None
         for prediction in query:
-            logger.info('prediction: %s', prediction)
             if (prev_prediction is not None
                     and prev_prediction.prediction_timestamp.hour == 18
                     and prediction.prediction_timestamp.hour == 21):
