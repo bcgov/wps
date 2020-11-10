@@ -141,7 +141,7 @@ docker-test-coverage:
 	
 docker-shell:
 	# Shell into the dev container.
-	# docker run -it --env-file app/.env --entrypoint bash wps-api_api-dev:latest
+	# docker run -it --env-file app/.env --entrypoint bash wps-api_api:latest
 	docker-compose run --rm api bash
 
 docker-run:

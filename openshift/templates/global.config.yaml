@@ -1,7 +1,7 @@
 kind: Template
 apiVersion: v1
 metadata:
-  name: wps-api-global
+  name: wps-global
 parameters:
   - name: WFWX_AUTH_URL
     description: Wildfire One API authentication URL
@@ -62,11 +62,11 @@ objects:
   - kind: ConfigMap
     apiVersion: v1
     metadata:
-      name: wps-api-global
+      name: wps-global
       labels:
-        app.kubernetes.io/part-of: wps-api
+        app.kubernetes.io/part-of: wps
     data:
-      env.origins: wps-web-*.pathfinder.gov.bc.ca
+      env.origins: wps-*.pathfinder.gov.bc.ca
       env.wfwx-auth-url: ${WFWX_AUTH_URL}
       env.wfwx-base-url: ${WFWX_BASE_URL}
       env.wfwx-user: ${WFWX_USER}
@@ -81,7 +81,7 @@ objects:
   - kind: Secret
     apiVersion: v1
     metadata:
-      name: wps-api-global
+      name: wps-global
     type: Opaque
     stringData:
       wfwx-secret: ${WFWX_SECRET}

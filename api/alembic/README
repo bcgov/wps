@@ -60,7 +60,7 @@ Alembic migrations can be manually run from Openshift by accessing the Terminal 
 
 First, retrieve the values for the `app-db-name`, `app-db-password`, and `app-db-username` secrets specific to the Openshift environment you're working in. You will also need to make a note of the name of the Patroni leader pod for your environment.
 
-Then, from the Terminal for the pod for your environment (e.g., "wps-api-pr-< PR# >-< GUID >") run the following command, substituting in the values listed above
+Then, from the Terminal for the pod for your environment (e.g., "wps-pr-< PR# >-< GUID >") run the following command, substituting in the values listed above
 ```bash
 cd ../bootstrap
 POSTGRES_USER=<app-db-username> POSTGRES_PASSWORD=<app-db-password> POSTGRES_HOST=<patroni-leader-pod-name> POSTGRES_PORT=5432 POSTGRES_DATABASE=<app-db-name> alembic upgrade head

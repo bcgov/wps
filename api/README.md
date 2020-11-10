@@ -328,11 +328,11 @@ These are the steps necessary to increase the amount of disk space provisioned f
 
 ## License
 
-This project is licensed under the [Apache License, Version 2.0](https://github.com/bcgov/wps-api/blob/main/LICENSE).
+This project is licensed under the [Apache License, Version 2.0](https://github.com/bcgov/wps/blob/main/LICENSE).
 
 ## Acknowledgments
 
-[![SonarCloud](https://sonarcloud.io/images/project_badges/sonarcloud-white.svg)](https://sonarcloud.io/dashboard?id=bcgov_wps-api)
+[![SonarCloud](https://sonarcloud.io/images/project_badges/sonarcloud-white.svg)](https://sonarcloud.io/dashboard?id=bcgov_wps)
 
 Template copied from
 
