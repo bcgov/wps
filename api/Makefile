@@ -30,16 +30,28 @@ define run-api
 	${1} uvicorn app.main:app --host 0.0.0.0 --reload --port 8080;
 endef
 
+define build-static
+	# function to build static content
+	cd ../web; REACT_APP_KEYCLOAK_AUTH_URL="{{REACT_APP_KEYCLOAK_AUTH_URL}}" REACT_APP_MATOMO_URL="{{REACT_APP_MATOMO_URL}}" REACT_APP_MATOMO_SITE_ID="{{REACT_APP_MATOMO_SITE_ID}}" REACT_APP_MATOMO_CONTAINER="{{REACT_APP_MATOMO_CONTAINER}}" npm run build
+endef
+
 clean:
+	# delete python bytecode.
 	find . -name \*.pyc -delete
+	# clean out the static folder - leaving the placeholder alone.
+	find static ! -name 'placeholder.txt' ! -name 'static' -exec rm -rf {} +
 
 init:
 	# Create virtual environment.
 	poetry install;
+	# Create static content
+	${call build-static}
 
 init-mac:
 	# Create virtual environment.
 	env LDFLAGS="-I/usr/local/opt/openssl@1.1/include -L/usr/local/opt/openssl@1.1/lib" poetry install
+	# Create static content
+	${call build-static}
 
 test:
 	# Run tests in virtual environment.
@@ -106,43 +118,39 @@ shell:
 	# Run shell in virtual environment shell.
 	poetry shell
 
-docker-build-dev:
+docker-build:
 	# Build dev docker images.
 	# Having issues? try: docker volume prune
 	# Still having issues? try: docker system prune
-	docker-compose -f docker-compose.dev.yml build
+	docker-compose build
 
-docker-lint-dev:
+docker-lint:
 	# Run linting in docker (dev instance).
-	${call run-lint,docker-compose -f docker-compose.dev.yml run --rm api-dev}
+	${call run-lint,docker-compose run --rm api}
 
-docker-test-dev:
+docker-test:
 	# Run tests in docker (dev instance).
 	# We use the dev instance, because the "production" version doesn't have
 	# a number of the development dependancies.
 	# If you're run tests locally, you probably have to run `make clean` or this will fail.
-	docker-compose -f docker-compose.dev.yml run --rm api-dev pytest app
+	docker-compose run --rm api pytest app
 
-docker-test-coverage-dev:
+docker-test-coverage:
 	# Run tests with coverage in docker (dev instance).
-	${call run-test-coverage,docker-compose -f docker-compose.dev.yml run --rm api-dev}
+	${call run-test-coverage,docker-compose run --rm api}
 	
-docker-shell-dev:
+docker-shell:
 	# Shell into the dev container.
 	# docker run -it --env-file app/.env --entrypoint bash wps-api_api-dev:latest
-	docker-compose -f docker-compose.dev.yml run --rm api-dev bash
+	docker-compose run --rm api bash
 
-docker-run-dev:
+docker-run:
 	# Run docker in dev mode.
-	docker-compose -f docker-compose.dev.yml up --build
+	docker-compose up
 
 docker-shell-db:
 	# Shell into the db container
 	docker-compose exec db psql -h db -U wps
-
-docker-build:
-	# Build docker images.
-	docker-compose build
 
 docker-run-env-canada:
 	# Run a python script to download model data from Env Canada on docker

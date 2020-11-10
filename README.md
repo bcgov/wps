@@ -12,15 +12,23 @@ Wildfire Predictive Services to support decision making in prevention, preparedn
 
 Detailed installation instructions for Openshift available on: <https://github.com/garywong-bc/nrm-feedback>
 
-### Installing0
+### Installing
 
 #### Running the application locally in docker:
 
 1. Create `.env` file in `web` using `web/.env.example` as a sample.
-2. Create `.env` file in `api/app` using `api/app/.env.example` as a sample.
+2. Create `.env.docker` file in `api/app` using `api/app/.env.example` as a sample.
 3. Run `docker-compose -f docker-compose.dev.yml build` and then `docker-compose -f docker-compose.dev.yml up`
 4. Open [http://localhost:8080](http://localhost:8080) to view the front end served up from a static folder by the python api.
 5. Open [http://localhost:3000](http://localhost:3000) to view the front end served up in developer mode by node.
+
+#### Running the api alone
+
+Refer to [api/README.md](api/README.md).
+
+#### Running the front end alone
+
+Refer to [web/README.md](api/README.md)
 
 ## License
 

@@ -16,17 +16,27 @@ Wildfire Predictive Services Unit support decision making in prevention, prepare
 brew install docker-compose
 ```
 
+OR
+
+```
+pip install docker-compose
+```
+
 ### Installing
 
-You will need a .env file, .env.example ; For local development, you can copy .env.example to .env.
+You will need an environment file. See: .env.example.
 
 #### Local machine, in docker
+
+For local development, you can copy .env.example to .env.docker.
 
 ```bash
 docker-compose build
 ```
 
 #### Local machine, running MacOS
+
+For local development, you can copy .env.example to .env.
 
 NOTE: matching the version of postgresql, postgis and gdal with production is problematic, and best
 avoided. (postgresql + postgis binaries on mac use a newer version of gdal that we don't have on debian yet.)
