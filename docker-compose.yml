@@ -29,7 +29,7 @@ services:
   web:
     build:
       context: web
-      dockerfile: dev.Dockerfile
+      dockerfile: Dockerfile
     env_file:
       - web/.env
     ports:
