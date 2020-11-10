@@ -14,7 +14,7 @@ parameters:
     value: uvicorn-gunicorn-fastapi
   - name: SUFFIX
   - name: VERSION
-    description: Ouput version
+    description: Output version
     value: "python3.8-latest"
   - name: GIT_URL
     value: https://github.com/bcgov/wps.git
