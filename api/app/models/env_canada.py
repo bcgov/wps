@@ -444,7 +444,7 @@ class ModelValueProcessor:
                             points: List,
                             coordinate: List,
                             machine: StationMachineLearning):
-        logger.info('POINTS: %s', points)
+        logger.info('station: %s', station)
         logger.info('rh_tgl_2: %s', prediction.rh_tgl_2)
         # If there's already a prediction, we want to update it
         station_prediction = get_weather_station_model_prediction(
