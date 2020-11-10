@@ -40,6 +40,31 @@ A glossary of terms relating to Wildfire that are relevant to Predictive Service
 
 ## Contributing
 
+### Branch naming conventions
+
+Branches must be named in accordance with the rules specified in [.githooks/pre-push](.githooks/pre-push).
+
+- branch names should be informative, meaningful and concise.
+- branch names should follow the pattern (category)/(description)/(ticket number)
+
+```
+# Enforce branch naming conventions for this project using git hooks.
+git config core.hooksPath .githooks
+```
+
+example of a good branch name:
+
+```
+# Task related to re-factoring of logging, the ticket number being 123:
+task/re-factor-logging/123
+```
+
+example of a bad branch name:
+
+```
+wps-123
+```
+
 ### How to contribute
 
 Resources:

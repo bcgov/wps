@@ -39,7 +39,7 @@ parameters:
     description: Number of replicas (pods)
     value: "2"
   - name: ALLOWED_ORIGINS
-    value: wps-web-*.pathfinder.gov.bc.ca
+    value: wps-*.pathfinder.gov.bc.ca
   - name: WFWX_MAX_PAGE_SIZE
     description: Maximum number of entities to request at a time from the WFWX API
     value: "1000"
