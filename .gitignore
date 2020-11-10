@@ -35,14 +35,16 @@ bower_components
 .lock-wscript
 
 # Compiled binary addons (https://nodejs.org/api/addons.html)
-build/Release
+web/build/
 
 # Dependency directories
-node_modules/
-jspm_packages/
+web/node_modules/
+web/jspm_packages/
+web/.pnp
+web/.pnp.js
 
 # TypeScript v1 declaration files
-typings/
+web/typings/
 
 # TypeScript cache
 *.tsbuildinfo
@@ -132,7 +134,7 @@ coverage-reports
 # Jupyter notebooks
 *.ipynb
 
-# Temperary files
+# Temporary files
 tmp/
 
 # Static files

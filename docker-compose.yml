@@ -2,14 +2,15 @@ version: "3.7"
 services:
   api:
     build:
-      context: .
-      dockerfile: api.dev.Dockerfile
+      context: api
+      dockerfile: Dockerfile
     env_file:
       - ./api/app/.env.docker
     ports:
       - "8080:8080"
     volumes:
       - ./api:/app:delegated
+      - ./web/build:/app/static:delegated
     networks:
       - wps_network
   # Application's local database container & service
