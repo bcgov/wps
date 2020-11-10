@@ -507,6 +507,7 @@ class ModelValueProcessor:
         # Iterate through all the predictions.
         prev_prediction = None
         for prediction in query:
+            logger.info('prediction: %s', prediction)
             if (prev_prediction is not None
                     and prev_prediction.prediction_timestamp.hour == 18
                     and prediction.prediction_timestamp.hour == 21):
@@ -581,7 +582,8 @@ def main():
     except Exception as exception:  # pylint: disable=broad-except
         # We catch and log any exceptions we may have missed.
         logger.error('unexpected exception processing', exc_info=exception)
-        rc_message = ':poop: Encountered error retrieving model data from Env Canada'
+        rc_message = ':poop: Encountered error retrieving {} model data from Env Canada'.format(
+            sys.argv[1])
         send_rocketchat_notification(rc_message, exception)
         # Exit with a failure code.
         sys.exit(os.EX_SOFTWARE)
