@@ -40,7 +40,8 @@ objects:
                 - name: ${JOB_NAME}
                   image: docker-registry.default.svc:5000/${PROJECT_TOOLS}/${NAME}-${SUFFIX}:${SUFFIX}
                   imagePullPolicy: "Always"
-                  command: ["python", "-m", "app.fireweather_bot.hourly_actuals"]
+                  command:
+                    ["python", "-m", "app.fireweather_bot.hourly_actuals"]
                   env:
                     - name: BC_FIRE_WEATHER_SECRET
                       valueFrom:
@@ -74,4 +75,24 @@ objects:
                       value: "5432"
                     - name: POSTGRES_DATABASE
                       value: ${NAME}-${SUFFIX}
+                    - name: ROCKET_URL_POST_MESSAGE
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${NAME}-global
+                          key: rocket.chat-url-post-message
+                    - name: ROCKET_CHANNEL
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${NAME}-global
+                          key: rocket.chat-channel
+                    - name: ROCKET_USER_ID
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${NAME}-global
+                          key: rocket.chat-user-id-secret
+                    - name: ROCKET_AUTH_TOKEN
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${NAME}-global
+                          key: rocket.chat-auth-token-secret
               restartPolicy: OnFailure

@@ -65,6 +65,26 @@ objects:
                       value: "5432"
                     - name: POSTGRES_DATABASE
                       value: ${NAME}-${SUFFIX}
+                    - name: ROCKET_URL_POST_MESSAGE
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${NAME}-global
+                          key: rocket.chat-url-post-message
+                    - name: ROCKET_CHANNEL
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${NAME}-global
+                          key: rocket.chat-channel
+                    - name: ROCKET_USER_ID
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${NAME}-global
+                          key: rocket.chat-user-id-secret
+                    - name: ROCKET_AUTH_TOKEN
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${NAME}-global
+                          key: rocket.chat-auth-token-secret
                   resources:
                     limits:
                       cpu: "1"
