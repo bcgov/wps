@@ -22,6 +22,7 @@ class ProjectionEnum(str, Enum):
     """
     LATLON_15X_15 = 'latlon.15x.15'
     HIGH_RES_CONTINENTAL = 'ps2.5km'
+    REGIONAL_PS = 'ps10km'
 
 
 def interpolate_between_two_points(  # pylint: disable=invalid-name

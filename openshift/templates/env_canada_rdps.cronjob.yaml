@@ -1,0 +1,96 @@
+kind: Template
+apiVersion: v1
+metadata:
+  name: ${JOB_NAME}-cronjob-template
+  annotations:
+    description: "Scheduled task to download and process weather data from the MSC Datamart through http protocol."
+    tags: "cronjob,env-canada,rdps"
+labels:
+  app.kubernetes.io/part-of: "${NAME}"
+  app: ${NAME}
+parameters:
+  - name: NAME
+    description: Module name
+    value: wps-api
+  - name: SUFFIX
+    description: Deployment suffix, e.g. pr-###
+    required: true
+  - name: PROJECT_TOOLS
+    value: auzhsi-tools
+  - name: JOB_NAME
+    value: env-canada
+objects:
+  - kind: CronJob
+    apiVersion: batch/v1beta1
+    metadata:
+      name: ${JOB_NAME}
+      labels:
+        cronjob: ${JOB_NAME}
+    spec:
+      # Don't run on the hour - as a courtesy to env canada, pick a random
+      # number so that not everyone hits env. canada at the same time.
+      # Run cronjob every 2nd hour because one run takes > 1 hour.
+      schedule: "22 */2 * * *"
+      # We use the "Replace" policy, because we never want the cronjobs to run concurrently,
+      # and if for whatever reason a cronjob gets stuck, we want the next run to proceed.
+      # If we were to use Forbid, and a cronjob gets stuck, then we'd stop gathering data until someone
+      # noticed. We don't want that.
+      concurrencyPolicy: "Replace"
+      jobTemplate:
+        metadata:
+          labels:
+            cronjob: ${JOB_NAME}
+        spec:
+          template:
+            spec:
+              containers:
+                - name: ${JOB_NAME}
+                  image: docker-registry.default.svc:5000/${PROJECT_TOOLS}/${NAME}-${SUFFIX}:${SUFFIX}
+                  imagePullPolicy: "Always"
+                  command: ["python", "-m", "app.models.env_canada", "RDPS"]
+                  env:
+                    - name: POSTGRES_READ_USER
+                      value: ${NAME}-${SUFFIX}
+                    - name: POSTGRES_WRITE_USER
+                      value: ${NAME}-${SUFFIX}
+                    - name: POSTGRES_PASSWORD
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${NAME}-global
+                          key: app-db-password
+                    - name: POSTGRES_WRITE_HOST
+                      value: patroni-leader-${NAME}-${SUFFIX}
+                    - name: POSTGRES_READ_HOST
+                      value: patroni-replica-${NAME}-${SUFFIX}
+                    - name: POSTGRES_PORT
+                      value: "5432"
+                    - name: POSTGRES_DATABASE
+                      value: ${NAME}-${SUFFIX}
+                    - name: ROCKET_URL_POST_MESSAGE
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${NAME}-global
+                          key: rocket.chat-url-post-message
+                    - name: ROCKET_CHANNEL
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${NAME}-global
+                          key: rocket.chat-channel
+                    - name: ROCKET_USER_ID
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${NAME}-global
+                          key: rocket.chat-user-id-secret
+                    - name: ROCKET_AUTH_TOKEN
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${NAME}-global
+                          key: rocket.chat-auth-token-secret
+                  resources:
+                    limits:
+                      cpu: "1"
+                      memory: 512Mi
+                    requests:
+                      cpu: "500m"
+                      memory: 256Mi
+              restartPolicy: OnFailure
