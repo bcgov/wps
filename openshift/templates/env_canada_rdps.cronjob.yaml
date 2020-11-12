@@ -11,7 +11,7 @@ labels:
 parameters:
   - name: NAME
     description: Module name
-    value: wps-api
+    value: wps
   - name: SUFFIX
     description: Deployment suffix, e.g. pr-###
     required: true
