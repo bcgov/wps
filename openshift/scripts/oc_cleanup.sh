@@ -34,6 +34,7 @@ OC_CLEAN_HOURLY_CRONJOB="oc -n ${PROJ_DEV} ${DELETE_OR_GET} cronjob/bcfw-p1-hour
 OC_CLEAN_FORECAST_CRONJOB="oc -n ${PROJ_DEV} ${DELETE_OR_GET} cronjob/bcfw-p1-forecasts-${NAME_APP}-${SUFFIX}"
 OC_CLEAN_EC_GDPS_CRONJOB="oc -n ${PROJ_DEV} ${DELETE_OR_GET} cronjob/env-canada-gdps-${NAME_APP}-${SUFFIX}"
 OC_CLEAN_EC_HRDPS_CRONJOB="oc -n ${PROJ_DEV} ${DELETE_OR_GET} cronjob/env-canada-hrdps-${NAME_APP}-${SUFFIX}"
+OC_CLEAN_EC_RDPS_CRONJOB="oc -n ${PROJ_DEV} ${DELETE_OR_GET} cronjob/env-canada-rdps-${NAME_APP}-${SUFFIX}"
 
 # Execute commands
 #
@@ -43,10 +44,12 @@ eval "${OC_CLEAN_HOURLY_CRONJOB}"
 eval "${OC_CLEAN_FORECAST_CRONJOB}"
 eval "${OC_CLEAN_EC_GDPS_CRONJOB}"
 eval "${OC_CLEAN_EC_HRDPS_CRONJOB}"
+eval "${OC_CLEAN_EC_RDPS_CRONJOB}"
 echo -e "\n${PROJ_TOOLS}:"
 eval "${OC_CLEAN_TOOLS}"
 
 # Provide oc command instruction
 #
 display_helper "${OC_CLEAN_DEPLOY}" "${OC_CLEAN_TOOLS}" "${OC_CLEAN_HOURLY_CRONJOB}" \
-	"${OC_CLEAN_FORECAST_CRONJOB}" "${OC_CLEAN_EC_GDPS_CRONJOB}" "${OC_CLEAN_EC_HRDPS_CRONJOB}"
+	"${OC_CLEAN_FORECAST_CRONJOB}" "${OC_CLEAN_EC_GDPS_CRONJOB}" "${OC_CLEAN_EC_HRDPS_CRONJOB}" \
+	"${OC_CLEAN_EC_RDPS_CRONJOB}"

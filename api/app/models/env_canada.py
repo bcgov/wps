@@ -48,7 +48,7 @@ class CompletedWithSomeExceptions(Exception):
     """ Exception raised when processing completed, but there were some non critical exceptions """
 
 
-def parse_global_model_filename(filename):
+def parse_gdps_rdps_filename(filename):
     """ Parse filename for GDPS grib file to extract metadata """
     base = os.path.basename(filename)
     parts = base.split('_')
@@ -108,15 +108,16 @@ def parse_env_canada_filename(filename):
     model = parts[1]
     if model == 'glb':
         model, variable_name, projection, model_run_timestamp, prediction_timestamp = \
-            parse_global_model_filename(filename)
+            parse_gdps_rdps_filename(filename)
         model_abbreviation = ModelEnum.GDPS
     elif model == 'hrdps':
         model, variable_name, projection, model_run_timestamp, prediction_timestamp = \
             parse_high_res_model_filename(filename)
         model_abbreviation = ModelEnum.HRDPS
     elif model == 'reg':
+        model, variable_name, projection, model_run_timestamp, prediction_timestamp = \
+            parse_gdps_rdps_filename(filename)
         model_abbreviation = ModelEnum.RDPS
-        # NOTE: function to parse RDPS filenames has not been written yet
     else:
         raise UnhandledPredictionModelType(
             'Unhandled prediction model type found', model)
@@ -155,7 +156,7 @@ def get_model_run_hours(model_abbreviation: str):
     if model_abbreviation == ModelEnum.GDPS:
         for hour in [0, 12]:
             yield hour
-    elif model_abbreviation == ModelEnum.HRDPS:
+    elif model_abbreviation in (ModelEnum.HRDPS, ModelEnum.RDPS):
         for hour in [0, 6, 12, 18]:
             yield hour
 
@@ -193,6 +194,24 @@ def get_high_res_model_run_download_urls(now: datetime.datetime, hour: int) -> G
                 hh, hhh)
             date = get_file_date_part(now, hour)
             filename = 'CMC_hrdps_continental_{}_ps2.5km_{}{}_P{}-00.grib2'.format(
+                level, date, hh, hhh)
+            url = base_url + filename
+            yield url
+
+
+def get_regional_model_run_download_urls(now: datetime.datetime, hour: int) -> Generator[str, None, None]:
+    """ Yield urls to download RDPS model runs """
+    # pylint: disable=invalid-name
+    hh = '{:02d}'.format(hour)
+    # For the RDPS model, predictions are at 1 hour intervals up to 84 hours.
+    for h in range(0, 85):
+        hhh = format(h, '03d')
+        for level in ['TMP_TGL_2', 'RH_TGL_2']:
+            base_url = 'https://dd.weather.gc.ca/model_gem_regional/10km/grib2/{}/{}/'.format(
+                hh, hhh
+            )
+            date = get_file_date_part(now, hour)
+            filename = 'CMC_reg_{}_ps10km_{}{}_P{}.grib2'.format(
                 level, date, hh, hhh)
             url = base_url + filename
             yield url
@@ -282,6 +301,8 @@ class EnvCanada():
             self.projection = ProjectionEnum.LATLON_15X_15
         elif self.model_type == ModelEnum.HRDPS:
             self.projection = ProjectionEnum.HIGH_RES_CONTINENTAL
+        elif self.model_type == ModelEnum.RDPS:
+            self.projection = ProjectionEnum.REGIONAL_PS
 
     def flag_file_as_processed(self, url):
         """ Flag the file as processed in the database """
@@ -358,6 +379,10 @@ class EnvCanada():
         elif self.model_type == ModelEnum.HRDPS:
             urls = list(get_high_res_model_run_download_urls(
                 self.now, model_run_hour))
+        elif self.model_type == ModelEnum.RDPS:
+            urls = list(get_regional_model_run_download_urls(
+                self.now, model_run_hour
+            ))
 
         # Process all the urls.
         self.process_model_run_urls(urls)
@@ -554,7 +579,8 @@ def main():
     except Exception as exception:  # pylint: disable=broad-except
         # We catch and log any exceptions we may have missed.
         logger.error('unexpected exception processing', exc_info=exception)
-        rc_message = ':poop: Encountered error retrieving model data from Env Canada'
+        rc_message = ':poop: Encountered error retrieving {} model data from Env Canada'.format(
+            sys.argv[1])
         send_rocketchat_notification(rc_message, exception)
         # Exit with a failure code.
         sys.exit(os.EX_SOFTWARE)
