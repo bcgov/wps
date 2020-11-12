@@ -3,7 +3,7 @@ define run-test
 	# useful params for pytest:
 	# -s show stdout
 	# -n numprocesses - doesn't really seem to run faster with more proccesses at the moment.
-	$(1) pytest app;
+	PYTHONPYCACHEPREFIX=python_cache $(1) pytest app;
 	# ImportMismatchError? run: make clean
 endef
 
@@ -132,7 +132,7 @@ docker-test:
 	# Run tests in docker (dev instance).
 	# We use the dev instance, because the "production" version doesn't have
 	# a number of the development dependancies.
-	# If you're run tests locally, you probably have to run `make clean` or this will fail.
+	# Make sure that your docker pycache doesn't conflict with your local pycache.
 	docker-compose run --rm api pytest app
 
 docker-test-coverage:

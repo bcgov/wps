@@ -1,4 +1,7 @@
 version: "3.7"
+volumes:
+  # Create volumes for docker to store stuff in that doesn't clash with local!
+  node_modules:
 services:
   api:
     build:
@@ -9,8 +12,9 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ./api:/app:delegated
-      - ./web/build:/app/static:delegated
+      - ./api:/app:delegated # Volume optimizations https://engageinteractive.co.uk/blog/making-docker-faster-on-mac
+      - node_modules:/app/node_modules/ # point to docker volume for node_modules
+      - ./web/build:/app/static:delegated # point to local build files
     command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
     networks:
       - wps_network
