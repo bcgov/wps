@@ -16,17 +16,27 @@ Wildfire Predictive Services Unit support decision making in prevention, prepare
 brew install docker-compose
 ```
 
+OR
+
+```
+pip install docker-compose
+```
+
 ### Installing
 
-You will need a .env file, .env.example ; For local development, you can copy .env.example to .env.
+You will need an environment file. See: .env.example.
 
 #### Local machine, in docker
+
+For local development, you can copy .env.example to .env.docker.
 
 ```bash
 docker-compose build
 ```
 
 #### Local machine, running MacOS
+
+For local development, you can copy .env.example to .env.
 
 NOTE: matching the version of postgresql, postgis and gdal with production is problematic, and best
 avoided. (postgresql + postgis binaries on mac use a newer version of gdal that we don't have on debian yet.)
@@ -241,31 +251,6 @@ make test
 
 Or enforce by running [scripts/test.sh](scripts/test.sh) as part of your ci/cd pipeline.
 
-### Branch naming conventions
-
-Branches must be named in accordance with the rules specified in [.githooks/pre-push](.githooks/pre-push).
-
-- branch names should be informative, meaningful and concise.
-- branch names should follow the pattern (category)/(description)/(ticket number)
-
-```bash
-# Enforce branch naming conventions for this project using git hooks.
-git config core.hooksPath .githooks
-```
-
-example of a good branch name:
-
-```bash
-# Task related to re-factoring of logging, the ticket number being 123:
-task/re-factor-logging/123
-```
-
-example of a bad branch name:
-
-```bash
-wps-123
-```
-
 ### Making changes to the databse
 
 After making a change to the model, create migration script:
@@ -318,11 +303,11 @@ These are the steps necessary to increase the amount of disk space provisioned f
 
 ## License
 
-This project is licensed under the [Apache License, Version 2.0](https://github.com/bcgov/wps-api/blob/main/LICENSE).
+This project is licensed under the [Apache License, Version 2.0](https://github.com/bcgov/wps/blob/main/LICENSE).
 
 ## Acknowledgments
 
-[![SonarCloud](https://sonarcloud.io/images/project_badges/sonarcloud-white.svg)](https://sonarcloud.io/dashboard?id=bcgov_wps-api)
+[![SonarCloud](https://sonarcloud.io/images/project_badges/sonarcloud-white.svg)](https://sonarcloud.io/dashboard?id=bcgov_wps)
 
 Template copied from
 

@@ -3,10 +3,10 @@ kind: Template
 metadata:
   name: ${NAME}
   annotations:
-    openshift.io/display-name: "wps-api"
+    openshift.io/display-name: "wps"
     description: "Wildfire Predictive Services - API"
     openshift.io/long-description: "Wildfire Predictive Services - API"
-    tags: "wps,wps-api"
+    tags: "wps"
     iconClass: icon-js
     openshift.io/provider-display-name: "Government of British Columbia"
     openshift.io/documentation-url: "https://github.com/bcgov/wps"
@@ -17,7 +17,7 @@ labels:
 parameters:
   - name: NAME
     description: Module name
-    value: wps-api
+    value: wps
   - name: SUFFIX
     description: Deployment suffix, e.g. pr-###
     required: true
@@ -39,7 +39,7 @@ parameters:
     description: Number of replicas (pods)
     value: "2"
   - name: ALLOWED_ORIGINS
-    value: wps-web-*.pathfinder.gov.bc.ca
+    value: wps-*.pathfinder.gov.bc.ca
   - name: WFWX_MAX_PAGE_SIZE
     description: Maximum number of entities to request at a time from the WFWX API
     value: "1000"
@@ -134,7 +134,7 @@ objects:
                       name: ${NAME}-global
                       key: env.pathfinder-base-uri
                 - name: PATRONI_CLUSTER_NAME
-                  value: patroni-wps-api-${SUFFIX}
+                  value: patroni-wps-${SUFFIX}
                 - name: PROJECT_NAMESPACE
                   value: ${PROJECT_NAMESPACE}
                 - name: ROCKET_URL_POST_MESSAGE
@@ -157,6 +157,42 @@ objects:
                     secretKeyRef:
                       name: ${NAME}-global
                       key: rocket.chat-auth-token-secret
+                - name: REACT_APP_FIDER_LINK
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-global
+                      key: env.fider-url
+                - name: REACT_APP_KEYCLOAK_AUTH_URL
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-global
+                      key: env.keycloak-auth-url
+                - name: REACT_APP_KEYCLOAK_REALM
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-global
+                      key: env.keycloak-realm
+                - name: REACT_APP_KEYCLOAK_CLIENT
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-global
+                      key: env.keycloak-client
+                - name: REACT_APP_MATOMO_URL
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-global
+                      key: env.matomo-url
+                - name: REACT_APP_MATOMO_SITE_ID
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-global
+                      key: env.matomo-site-id
+                - name: REACT_APP_MATOMO_CONTAINER
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-global
+                      key: env.matomo-container
+
               ports:
                 - containerPort: 8080
                   protocol: TCP

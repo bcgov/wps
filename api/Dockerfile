@@ -1,13 +1,17 @@
-# As per https://fastapi.tiangolo.com/deployment/, we use the provided docker image:
-FROM tiangolo/uvicorn-gunicorn-fastapi:python3.8
-# see: https://github.com/tiangolo/uvicorn-gunicorn-fastapi-docker for available images.
+# NOTE:
+# This Dockerfile is for local development only!
 
-# Install old (2.4.*; current debian) version of gdal
+FROM python:3.8-buster
+
+# wildfire one may have an old certificate, so we have to make debian more forgiving.
+# RUN sed -i 's/TLSv1.2/TLSv1.0/g' /etc/ssl/openssl.cnf
+
+# Install dependancies need by python developer packages
+# NOTE: Once we no longer need pyodbc, please remove the apt-get update and install commands below.
 RUN apt-get -y update
+RUN apt-get -y install unixodbc-dev
+# Install old (2.4.*; current debian) version of gdal
 RUN apt-get -y install libgdal-dev
-
-# spotwx has an old certificate, so we have to make debian more forgiving.
-RUN sed -i 's/TLSv1.2/TLSv1.0/g' /etc/ssl/openssl.cnf
 
 # Update pip  
 RUN python -m pip install --upgrade pip
@@ -18,10 +22,8 @@ RUN python -m pip install --upgrade pip
 # platforms.
 RUN python -m pip install gdal==$(gdal-config --version)
 
-# Install poetry https://python-poetry.org/docs/#installation
-RUN cd /tmp && \
-    curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py > get-poetry.py && \
-    POETRY_HOME=/opt/poetry python get-poetry.py --version 1.0.8 && \
+# Install poetry
+RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | POETRY_HOME=/opt/poetry python && \
     cd /usr/local/bin && \
     ln -s /opt/poetry/bin/poetry && \
     poetry config virtualenvs.create false
@@ -31,17 +33,11 @@ COPY pyproject.toml poetry.lock /tmp/
 
 # Install dependancies.
 RUN cd /tmp && \
-    poetry install --no-root --no-dev
+    poetry install --no-root
 
-# Copy the app:
+WORKDIR /app
 COPY ./app /app/app
-# Copy the static content:
-COPY ./static /app/static
-# Copy almebic:
-COPY ./alembic /app/alembic
-COPY ./alembic.ini /app
-# Copy pre-start.sh (it will be run on startup):
-COPY ./prestart.sh /app
 
-# The fastapi docker image defaults to port 80, but openshift doesn't allow non-root users port 80.
 EXPOSE 8080
+
+CMD uvicorn app.main:app --reload --host 0.0.0.0 --port 8080

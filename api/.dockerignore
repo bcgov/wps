@@ -7,3 +7,4 @@ grib
 .vscode
 **/__pycache__
 **/*.pyc
+python_cache

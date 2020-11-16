@@ -17,4 +17,4 @@ jobs:
         # f.y.i.: ZAP Scan must be able to log an issue or it will fail.
         uses: zaproxy/action-baseline@v0.3.0
         with:
-          target: "https://wps-api-prod.pathfinder.gov.bc.ca/"
+          target: "https://wps-prod.pathfinder.gov.bc.ca/"

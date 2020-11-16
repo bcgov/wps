@@ -13,7 +13,7 @@ jobs:
       - name: Set Variables
         shell: bash
         run: |
-          echo "::set-env name=SUFFIX::pr-${{ github.event.number }}"
+          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
 
       - name: Checkout
         uses: actions/checkout@v2
@@ -31,7 +31,7 @@ jobs:
       - name: Set Variables
         shell: bash
         run: |
-          echo "::set-env name=SUFFIX::pr-${{ github.event.number }}"
+          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
 
       - name: Checkout
         uses: actions/checkout@v2
@@ -82,6 +82,6 @@ jobs:
       - name: ZAP Scan
         uses: zaproxy/action-baseline@v0.3.0
         with:
-          target: "https://wps-api-pr-${{ github.event.number }}.pathfinder.gov.bc.ca"
+          target: "https://wps-pr-${{ github.event.number }}.pathfinder.gov.bc.ca"
           # Do not return failure on warnings - TODO: this has to be resolved!
           cmd_options: "-I"

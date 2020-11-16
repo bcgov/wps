@@ -1,0 +1,58 @@
+apiVersion: v1
+kind: Template
+metadata:
+  creationTimestamp: null
+  name: uvicorn-gunicorn-fastapi
+labels:
+  app: ${NAME}${SUFFIX}
+  phase: build
+  app.kubernetes.io/name: uvicorn-gunicorn-fastapi
+  app.kubernetes.io/managed-by: template
+  app.kubernetes.io/version: "python3.8"
+parameters:
+  - name: NAME
+    value: uvicorn-gunicorn-fastapi
+  - name: SUFFIX
+  - name: VERSION
+    description: Output version
+    value: "python3.8-latest"
+  - name: GIT_URL
+    value: https://github.com/bcgov/wps.git
+  - name: GIT_BRANCH
+    value: main
+objects:
+  #ImageStream is create if it doesn't already exist
+  - apiVersion: v1
+    kind: ImageStream
+    metadata:
+      annotations:
+        openshift.io/generated-by: OpenShiftNewBuild
+      labels:
+        app: uvicorn-gunicorn-fastapi
+        common: "true"
+      name: uvicorn-gunicorn-fastapi
+    spec:
+      lookupPolicy:
+        local: false
+  - apiVersion: v1
+    kind: BuildConfig
+    metadata:
+      annotations:
+        openshift.io/generated-by: OpenShiftNewBuild
+      labels:
+        app: uvicorn-gunicorn-fastapi
+      name: uvicorn-gunicorn-fastapi
+    spec:
+      completionDeadlineSeconds: 1200 # 20 minutes
+      output:
+        to:
+          kind: ImageStreamTag
+          name: ${NAME}${SUFFIX}:${VERSION}
+      source:
+        type: Git
+        git:
+          uri: ${GIT_URL}
+          ref: origin/${GIT_BRANCH}
+        contextDir: openshift/unicorn-base/docker
+      strategy:
+        type: Docker

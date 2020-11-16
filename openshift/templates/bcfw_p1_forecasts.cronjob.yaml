@@ -11,7 +11,7 @@ labels:
 parameters:
   - name: NAME
     description: Module name
-    value: wps-api
+    value: wps
   - name: SUFFIX
     description: Deployment suffix, e.g. pr-###
     required: true
@@ -40,7 +40,8 @@ objects:
                 - name: ${JOB_NAME}
                   image: docker-registry.default.svc:5000/${PROJECT_TOOLS}/${NAME}-${SUFFIX}:${SUFFIX}
                   imagePullPolicy: "Always"
-                  command: ["python", "-m", "app.fireweather_bot.noon_forecasts"]
+                  command:
+                    ["python", "-m", "app.fireweather_bot.noon_forecasts"]
                   env:
                     - name: BC_FIRE_WEATHER_SECRET
                       valueFrom:

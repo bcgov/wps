@@ -213,7 +213,7 @@
                     "name": "PATRONI_LEADER_WPS_API_DEV_USER",
                     "valueFrom": {
                       "secretKeyRef": {
-                        "name": "wps-api-dev",
+                        "name": "wps-dev",
                         "key": "app-db-username"
                       }
                     }
@@ -222,7 +222,7 @@
                     "name": "PATRONI_LEADER_WPS_API_DEV_PASSWORD",
                     "valueFrom": {
                       "secretKeyRef": {
-                        "name": "wps-api-dev",
+                        "name": "wps-dev",
                         "key": "app-db-password"
                       }
                     }
