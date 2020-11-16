@@ -87,6 +87,18 @@ oc process -f backup-cronjob.yaml -p IMAGE_NAMESPACE=<tools-project> -p TAG_NAME
     -p JOB_NAME=<a good name for the cronjob> | oc -n <project> apply -f -
 ```
 
+e.g.:
+
+```bash
+oc process -f backup-cronjob.yaml -p IMAGE_NAMESPACE=auzhsi-tools -p TAG_NAME=prod \
+    -p DATABASE_SERVICE_NAME=patroni-leader-wps-prod -p DATABASE_NAME=wps-prod \
+    -p DATABASE_DEPLOYMENT_NAME=wps-prod \
+    -p DATABASE_USER_KEY_NAME=app-db-username \
+    -p DATABASE_PASSWORD_KEY_NAME=app-db-password \
+    -p JOB_PERSISTENT_STORAGE_NAME=<name of backup volume> \
+    -p JOB_NAME=backup-wps-prod | oc -n auzhsi-prod apply -f -
+```
+
 #### Validate cronjob
 
 Some useful commands:
