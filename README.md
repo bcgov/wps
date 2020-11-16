@@ -12,6 +12,24 @@ Wildfire Predictive Services to support decision making in prevention, preparedn
 
 Detailed installation instructions for Openshift available on: <https://github.com/garywong-bc/nrm-feedback>
 
+### Installing
+
+#### Running the application locally in docker:
+
+1. Create `.env` file in `web` using `web/.env.example` as a sample.
+2. Create `.env.docker` file in `api/app` using `api/app/.env.example` as a sample.
+3. Run `docker-compose build` and then `docker-compose up`
+4. Open [http://localhost:8080](http://localhost:8080) to view the front end served up from a static folder by the python api.
+5. Open [http://localhost:3000](http://localhost:3000) to view the front end served up in developer mode by node.
+
+#### Running the api alone
+
+Refer to [api/README.md](api/README.md).
+
+#### Running the front end alone
+
+Refer to [web/README.md](api/README.md)
+
 ## License
 
 [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) License - see the [LICENSE.md](https://github.com/bcgov/wps/blob/main/LICENSE)
@@ -21,6 +39,31 @@ Detailed installation instructions for Openshift available on: <https://github.c
 A glossary of terms relating to Wildfire that are relevant to Predictive Services can be found at the [Predictive Wildfire Wiki Glossary Page](https://github.com/bcgov/wps/wiki/Glossary)
 
 ## Contributing
+
+### Branch naming conventions
+
+Branches must be named in accordance with the rules specified in [.githooks/pre-push](.githooks/pre-push).
+
+- branch names should be informative, meaningful and concise.
+- branch names should follow the pattern (category)/(description)/(ticket number)
+
+```
+# Enforce branch naming conventions for this project using git hooks.
+git config core.hooksPath .githooks
+```
+
+example of a good branch name:
+
+```
+# Task related to re-factoring of logging, the ticket number being 123:
+task/re-factor-logging/123
+```
+
+example of a bad branch name:
+
+```
+wps-123
+```
 
 ### How to contribute
 
@@ -33,4 +76,4 @@ Resources:
 
 ## Acknowledgments
 
-[![SonarCloud](https://sonarcloud.io/images/project_badges/sonarcloud-white.svg)](https://sonarcloud.io/dashboard?id=bcgov_wps-api)
+[![SonarCloud](https://sonarcloud.io/images/project_badges/sonarcloud-white.svg)](https://sonarcloud.io/dashboard?id=bcgov_wps)

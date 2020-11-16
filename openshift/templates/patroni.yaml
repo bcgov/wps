@@ -190,7 +190,7 @@ objects:
                 exec:
                   command:
                     - /bin/bash
-                    - '-c'
+                    - "-c"
                     - /usr/share/scripts/patroni/disk_space_check.sh
                   initialDelaySeconds: 60
                   periodSeconds: 3600
@@ -200,7 +200,7 @@ objects:
                 exec:
                   command:
                     - /bin/bash
-                    - '-c'
+                    - "-c"
                     - /usr/share/scripts/patroni/health_check.sh
                 initialDelaySeconds: 10
                 periodSeconds: 60
@@ -303,7 +303,7 @@ objects:
 parameters:
   - name: NAME
     description: Module name
-    value: wps-api
+    value: wps
   - name: SUFFIX
     description: Deployment suffix, e.g. pr-###
     required: true

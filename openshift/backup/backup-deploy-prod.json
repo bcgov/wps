@@ -210,19 +210,19 @@
                     }
                   },
                   {
-                    "name": "PATRONI_LEADER_WPS_API_PROD_USER",
+                    "name": "PATRONI_LEADER_WPS_PROD_USER",
                     "valueFrom": {
                       "secretKeyRef": {
-                        "name": "wps-api-prod",
+                        "name": "wps-prod",
                         "key": "app-db-username"
                       }
                     }
                   },
                   {
-                    "name": "PATRONI_LEADER_WPS_API_PROD_PASSWORD",
+                    "name": "PATRONI_LEADER_WPS_PROD_PASSWORD",
                     "valueFrom": {
                       "secretKeyRef": {
-                        "name": "wps-api-prod",
+                        "name": "wps-prod",
                         "key": "app-db-password"
                       }
                     }
@@ -463,14 +463,14 @@
       "displayName": "Number of Daily Backups to Retain",
       "description": "The number of daily backup files to be retained.  Used for the `rolling` backup strategy.",
       "required": false,
-      "value": ""
+      "value": "3"
     },
     {
       "name": "WEEKLY_BACKUPS",
       "displayName": "Number of Weekly Backups to Retain",
       "description": "The number of weekly backup files to be retained.  Used for the `rolling` backup strategy.",
       "required": false,
-      "value": ""
+      "value": "2"
     },
     {
       "name": "MONTHLY_BACKUPS",

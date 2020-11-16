@@ -3,14 +3,14 @@ kind: Template
 metadata:
   name: ${NAME}
   annotations:
-    openshift.io/display-name: "wps-api"
+    openshift.io/display-name: "wps"
     description: "Wildfire Predictive Services - API"
     openshift.io/long-description: "Wildfire Predictive Services - API"
-    tags: "wps,wps-api"
+    tags: "wps"
     iconClass: icon-js
     openshift.io/provider-display-name: "Government of British Columbia"
-    openshift.io/documentation-url: "https://github.com/bcgov/wps-api"
-    openshift.io/support-url: "https://github.com/bcgov/wps-api"
+    openshift.io/documentation-url: "https://github.com/bcgov/wps"
+    openshift.io/support-url: "https://github.com/bcgov/wps"
 labels:
   app.kubernetes.io/part-of: "${NAME}"
   app: ${NAME}-${SUFFIX}
@@ -65,7 +65,24 @@ objects:
         git:
           uri: ${GIT_URL}
           ref: origin/${GIT_BRANCH}
-        contextDir: api
+        contextDir: ./
       strategy:
-        type: Docker
+        dockerStrategy:
+          # when npm run build executes, it will replace node tags with
+          # python jinja tags using these environment variables.
+          env:
+            - name: "REACT_APP_KEYCLOAK_AUTH_URL"
+              value: "{{REACT_APP_KEYCLOAK_AUTH_URL}}"
+            - name: "REACT_APP_KEYCLOAK_REALM"
+              value: "{{REACT_APP_KEYCLOAK_REALM}}"
+            - name: "REACT_APP_KEYCLOAK_CLIENT"
+              value: "{{REACT_APP_KEYCLOAK_CLIENT}}"
+            - name: "REACT_APP_FIDER_LINK"
+              value: "{{REACT_APP_FIDER_LINK}}"
+            - name: "REACT_APP_MATOMO_URL"
+              value: "{{REACT_APP_MATOMO_URL}}"
+            - name: "REACT_APP_MATOMO_SITE_ID"
+              value: "{{REACT_APP_MATOMO_SITE_ID}}"
+            - name: "REACT_APP_MATOMO_CONTAINER"
+              value: "{{REACT_APP_MATOMO_CONTAINER}}"
       triggers: []

@@ -1,0 +1,1 @@
+this placeholder exists in order to ensure that the static folder is created on checkout - without it, api tests fail.
