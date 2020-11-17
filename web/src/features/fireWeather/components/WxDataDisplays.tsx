@@ -16,7 +16,9 @@ import {
   selectWxDataLoading,
   selectForecastSummaries,
   selectHighResModels,
-  selectHighResModelSummaries
+  selectHighResModelSummaries,
+  selectRegionalModels,
+  selectRegionalModelSummaries
 } from 'app/rootReducer'
 
 const useStyles = makeStyles({
@@ -52,6 +54,8 @@ const WxDataDisplays = ({ requestedStations }: Props) => {
   const { forecastSummariesByStation } = useSelector(selectForecastSummaries)
   const { allHighResModelsByStation } = useSelector(selectHighResModels)
   const { highResModelSummariesByStation } = useSelector(selectHighResModelSummaries)
+  const { allRegionalModelsByStation } = useSelector(selectRegionalModels)
+  const { regionalModelSummariesByStation } = useSelector(selectRegionalModelSummaries)
   const wxDataLoading = useSelector(selectWxDataLoading)
 
   return (
@@ -66,8 +70,14 @@ const WxDataDisplays = ({ requestedStations }: Props) => {
           const forecastSummaries = forecastSummariesByStation[s.code]
           const allHighResModelValues = allHighResModelsByStation[s.code]
           const highResModelSummaries = highResModelSummariesByStation[s.code]
+          const allRegionalModelValues = allRegionalModelsByStation[s.code]
+          const regionalModelSummaries = regionalModelSummariesByStation[s.code]
           const nothingToDisplay =
-            !observedValues && !allForecasts && !allModelValues && !allHighResModelValues
+            !observedValues &&
+            !allForecasts &&
+            !allModelValues &&
+            !allHighResModelValues &&
+            !allRegionalModelValues
 
           return (
             <Paper key={s.code} className={classes.paper} elevation={3}>
@@ -108,6 +118,8 @@ const WxDataDisplays = ({ requestedStations }: Props) => {
                   forecastSummaries={forecastSummaries}
                   allHighResModelValues={allHighResModelValues}
                   highResModelSummaries={highResModelSummaries}
+                  allRegionalModelValues={allRegionalModelValues}
+                  regionalModelSummaries={regionalModelSummaries}
                 />
               </ErrorBoundary>
             </Paper>

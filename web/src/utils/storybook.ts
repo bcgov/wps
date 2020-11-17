@@ -9,6 +9,8 @@ const getPastValues = () => {
   const _modelSummaries = []
   const _pastHighResModelValues = []
   const _highResModelSummaries = []
+  const _pastRegionalModelValues = []
+  const _regionalModelSummaries = []
 
   const days = 3
   const first = moment()
@@ -60,6 +62,22 @@ const getPastValues = () => {
         rh_tgl_2_median: rh,
         rh_tgl_2_90th: rh - 3
       })
+      _pastRegionalModelValues.push({
+        datetime,
+        temperature: temp + (Math.random() - 0.7) * 7,
+        bias_adjusted_temperature: temp + (Math.random() - 0.7) * 7 - 2,
+        relative_humidity: rh + (Math.random() - 0.7) * 7,
+        bias_adjusted_relative_humidity: rh - (Math.random() - 0.7) * 7 - 2
+      })
+      _regionalModelSummaries.push({
+        datetime,
+        tmp_tgl_2_5th: temp + 4 - Math.random(),
+        tmp_tgl_2_median: temp,
+        tmp_tgl_2_90th: temp - 4 - Math.random() * 3,
+        rh_tgl_2_5th: rh + 4 - Math.random(),
+        rh_tgl_2_median: rh,
+        rh_tgl_2_90th: rh - 4 + Math.random() * 3
+      })
 
       if (isNoonInPST(datetime)) {
         _pastForecastValues.push({
@@ -107,13 +125,16 @@ const getPastValues = () => {
     pastModelValues: _pastModelValues,
     modelSummaries: _modelSummaries,
     pastHighResModelValues: _pastHighResModelValues,
-    highResModelSummaries: _highResModelSummaries
+    highResModelSummaries: _highResModelSummaries,
+    pastRegionalModelValues: _pastRegionalModelValues,
+    regionalModelSummaries: _regionalModelSummaries
   }
 }
 
 const getFutureValues = () => {
   const _modelValues = []
   const _highResModelValues = []
+  const _regionalModelValues = []
   const _forecastValues = []
 
   const days = 2
@@ -143,6 +164,13 @@ const getFutureValues = () => {
         bias_adjusted_temperature: temp + (Math.random() - 0.5) * 6 - 2,
         relative_humidity: rh + (Math.random() - 0.5) * 6,
         bias_adjusted_relative_humidity: rh + (Math.random() - 0.5) * 6 - 2
+      })
+      _regionalModelValues.push({
+        datetime,
+        temperature: temp + (Math.random() - 1.4) * 9 + 1.5,
+        bias_adjusted_temperature: temp + (Math.random() - 1.4) * 9 - 4,
+        relative_humidity: rh + (Math.random() - 1.4) * 9,
+        bias_adjusted_relative_humidity: rh - (Math.random() - 1.4) * 7 - 4
       })
 
       // every 3 hour and PST noon
@@ -176,11 +204,17 @@ const getFutureValues = () => {
   return {
     modelValues: _modelValues,
     highResModelValues: _highResModelValues,
+    regionalModelValues: _regionalModelValues,
     forecastValues: _forecastValues
   }
 }
 
-export const { forecastValues, modelValues, highResModelValues } = getFutureValues()
+export const {
+  forecastValues,
+  modelValues,
+  highResModelValues,
+  regionalModelValues
+} = getFutureValues()
 
 export const {
   observedValues,
@@ -189,5 +223,7 @@ export const {
   pastModelValues,
   modelSummaries,
   pastHighResModelValues,
-  highResModelSummaries
+  highResModelSummaries,
+  pastRegionalModelValues,
+  regionalModelSummaries
 } = getPastValues()

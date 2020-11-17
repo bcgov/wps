@@ -20,6 +20,8 @@ describe('MoreCast Page', () => {
     cy.checkErrorMessage('Error occurred (while fetching noon forecast summaries).')
     cy.checkErrorMessage('Error occurred (while fetching HRDPS).')
     cy.checkErrorMessage('Error occurred (while fetching HRDPS summaries).')
+    cy.checkErrorMessage('Error occurred (while fetching RDPS).')
+    cy.checkErrorMessage('Error occurred (while fetching RDPS summaries).')
 
     cy.contains('Data is not available.')
   })
@@ -33,6 +35,8 @@ describe('MoreCast Page', () => {
       cy.route('POST', 'api/models/GDPS/predictions/summaries/', 'fixture:weather-data/model-summaries')
       cy.route('POST', 'api/models/HRDPS/predictions/most_recent', 'fixture:weather-data/hr-models-with-bias-adjusted') // prettier-ignore
       cy.route('POST', 'api/models/HRDPS/predictions/summaries', 'fixture:weather-data/high-res-model-summaries') // prettier-ignore
+      cy.route('POST', 'api/models/RDPS/predictions/most_recent', 'fixture:weather-data/regional-models-with-bias-adjusted')
+      cy.route('POST', 'api/models/RDPS/predictions/summaries', 'fixture:weather-data/regional-model-summaries')
       cy.wait('@getStations')
 
       // Request the weather data
@@ -78,6 +82,14 @@ describe('MoreCast Page', () => {
       cy.getByTestId('wx-graph-high-res-model-toggle').click()
       cy.getByTestId('high-res-model-summary-temp-area').should('not.exist')
       cy.getByTestId('high-res-model-temp-symbol').should('not.exist')
+
+      cy.getByTestId('wx-graph-regional-model-toggle').click()
+      cy.getByTestId('regional-model-summary-temp-area')
+      cy.getByTestId('regional-model-temp-symbol')
+      cy.getByTestId('regional-model-temp-path')
+      cy.getByTestId('wx-graph-regional-model-toggle').click()
+      cy.getByTestId('regional-model-summary-rh-area').should('not.exist')
+      cy.getByTestId('regional-model-rh-symbol').should('not.exist')
     })
 
     it('Tooltip & sidebar in the graph', () => {

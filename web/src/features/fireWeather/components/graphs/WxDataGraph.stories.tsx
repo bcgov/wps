@@ -12,7 +12,10 @@ import {
   forecastSummaries,
   pastHighResModelValues,
   highResModelValues,
-  highResModelSummaries
+  highResModelSummaries,
+  pastRegionalModelValues,
+  regionalModelValues,
+  regionalModelSummaries
 } from 'utils/storybook'
 import { ModelValue } from 'api/modelAPI'
 import { NoonForecastValue } from 'api/forecastAPI'
@@ -29,6 +32,8 @@ storiesOf('WxDataGraph', module).add('default', () => {
         pastHighResModelValues.concat(highResModelValues) as ModelValue[]
       }
       highResModelSummaries={highResModelSummaries}
+      allRegionalModelValues={pastRegionalModelValues.concat(regionalModelValues) as ModelValue[]}
+      regionalModelSummaries={regionalModelSummaries}
     />
   )
 })
