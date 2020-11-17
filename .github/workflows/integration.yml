@@ -98,12 +98,15 @@ jobs:
           ORIGINS=testorigin poetry run coverage run --source=app -m pytest -o log_cli=true --disable-warnings --verbose
 
       - name: Create coverage report (api)
+        # Create coverage report, and then replace occurrences of
+        # 'filename="app' with 'filename="api/app" in coverage-report.xml
         working-directory: ./api
         shell: bash
         run: |
           source ~/.poetry/env
           poetry run coverage report
           poetry run coverage xml -o coverage-reports/coverage-report.xml
+          sed -i 's/filename="app/filename="api\/app/' coverage-reports/coverage-report.xml
 
       - name: Cache node modules
         uses: actions/cache@v2
