@@ -1,8 +1,49 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import moment from 'moment'
 import * as d3 from 'd3'
+import { PDT_UTC_OFFSET } from 'utils/constants'
 
 export const transitionDuration = 50
+
+/**
+ * Returns a list of dates in which each date is 12am PDT within the domain
+ * @param domain a pair of dates, x domain
+ */
+export const getTickValues = (
+  domain: [Date, Date] | [undefined, undefined],
+  utcOffset: number,
+  includeFirst = true
+) => {
+  const [d1, d2] = domain
+
+  if (!d1) {
+    return []
+  } else if (d1 && !d2) {
+    return includeFirst ? [d1] : []
+  } else {
+    const result = includeFirst ? [d1] : []
+
+    let nextDate =
+      moment(d1)
+        .utcOffset(utcOffset)
+        .get('date') + 1
+    const lastDate = moment(d2)
+      .utcOffset(utcOffset)
+      .get('date')
+
+    while (lastDate >= nextDate) {
+      result.push(
+        moment(d1)
+          .utcOffset(utcOffset)
+          .set({ date: nextDate, hours: 0, minutes: 0 })
+          .toDate()
+      )
+      nextDate++
+    }
+
+    return result
+  }
+}
 
 /**
  * High order function to generate formatting functions
@@ -10,27 +51,18 @@ export const transitionDuration = 50
  */
 const formatDate = (format: string) => (value: Date | { valueOf(): number }) => {
   if (value instanceof Date) {
-    return moment(value).format(format)
+    return moment(value)
+      .utcOffset(PDT_UTC_OFFSET)
+      .format(format)
   }
 
-  return moment(value.valueOf()).format(format)
+  return moment(value.valueOf())
+    .utcOffset(PDT_UTC_OFFSET)
+    .format(format)
 }
 
 export const formatDateInDay = formatDate('Do')
 export const formatDateInMonthAndDay = formatDate('MMM D')
-
-export const storeDaysLookup = (
-  lookup: { [k: string]: Date },
-  datetime: string
-): Date => {
-  const date = d3.isoParse(datetime) as Date
-  const day = formatDateInMonthAndDay(date)
-  if (!lookup[day]) {
-    lookup[day] = new Date(date)
-  }
-
-  return date
-}
 
 /**
  * Note: className should be unique
@@ -412,7 +444,7 @@ const getNearestByDate = <T extends { date: Date }>(
 
 /**
  * Attach a listener to display a tooltip in the graph, inspired by: https://observablehq.com/@d3/line-chart-with-tooltip
- * Note: .tooltip, .tooltip--hidden, and .tooltipCursor classes need to be defined
+ * Note: .tooltip, .tooltip--hidden, and .tooltip__cursor classes need to be defined
  * The T is a generic type that captures the type of the given data
  */
 export const addTooltipListener = <T extends { date: Date } & { [K in keyof T]: T[K] }>({
@@ -457,7 +489,7 @@ export const addTooltipListener = <T extends { date: Date } & { [K in keyof T]: 
       .call(txt =>
         txt
           .selectAll('tspan')
-          .data((value + '').split(/\n/))
+          .data(value.split(/\n/))
           .join('tspan')
           .attr('x', 0)
           .attr('y', (d, i) => `${i * 1.5}em`)
@@ -503,6 +535,7 @@ export const addTooltipListener = <T extends { date: Date } & { [K in keyof T]: 
     .attr('width', width)
     .attr('height', height)
     .attr('fill', 'transparent')
+    .attr('class', 'tooltip--background')
   if (bgdTestId) {
     svg.attr('data-testid', bgdTestId)
   }
@@ -512,7 +545,7 @@ export const addTooltipListener = <T extends { date: Date } & { [K in keyof T]: 
     .attr('y1', 0)
     .attr('x2', 0)
     .attr('y2', height)
-    .attr('class', 'tooltipCursor')
+    .attr('class', 'tooltip__cursor')
   const tooltip = svg.append('g')
   const removeTooltip = () => {
     tooltip.call(createTooltipCallout(), null)
