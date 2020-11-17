@@ -1,7 +1,7 @@
 import { ModelRun, ModelValue } from 'api/modelAPI'
 import { isNoonInPST } from 'utils/date'
 
-export const parseModelValuesSlice = (
+export const parseModelValuesHelper = (
   model_runs: ModelRun[],
   separate_noon_values: boolean
 ): Record<string, ModelValue[]> => {
@@ -17,10 +17,11 @@ export const parseModelValuesSlice = (
     const isFutureModel = new Date(v.datetime) >= currDate
     if (isFutureModel) {
       modelValues.push(v)
-    } else if (separate_noon_values && isNoonInPST(v.datetime)) {
-      noonModelValues.push(v)
     } else {
       pastModelValues.push(v)
+      if (separate_noon_values && isNoonInPST(v.datetime)) {
+        noonModelValues.push(v)
+      }
     }
   })
 

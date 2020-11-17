@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 import { ModelValue, getModelsWithBiasAdj, ModelsForStation } from 'api/modelAPI'
-import { parseModelValuesSlice } from 'features/fireWeather/slices/parseModelValuesSlice'
+import { parseModelValuesHelper } from 'features/fireWeather/slices/parseModelValuesHelper'
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 
@@ -38,7 +38,7 @@ const highResModelsSlice = createSlice({
       action.payload.forEach(({ station, model_runs }) => {
         if (station && model_runs) {
           const code = station.code
-          const parsedValues = parseModelValuesSlice(model_runs, false)
+          const parsedValues = parseModelValuesHelper(model_runs, false)
           state.pastHighResModelsByStation[code] = parsedValues.pastValues
           state.highResModelsByStation[code] = parsedValues.modelValues
           state.allHighResModelsByStation[code] = parsedValues.allValues
