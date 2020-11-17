@@ -6,7 +6,7 @@ from collections import defaultdict
 from datetime import datetime
 import app.stations
 import app.db.database
-from app.db.crud import query_noon_forecast_records
+from app.db.crud.forecasts import query_noon_forecast_records
 from app.schemas import (
     StationCodeList, NoonForecastSummariesResponse,
     NoonForecastSummary, NoonForecastSummaryValues, WeatherStation

@@ -15,7 +15,7 @@ import app.main
 from app.tests.common import default_mock_client_get
 import app.wildfire_one
 import app.db.database
-from app.db.models import NoonForecast
+from app.db.models.forecasts import NoonForecast
 
 LOGGER = logging.getLogger(__name__)
 

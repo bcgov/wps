@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from app.schemas import StationCodeList
 from app.db.models import (
     ProcessedModelRunUrl, PredictionModel, PredictionModelRunTimestamp, PredictionModelGridSubset,
-    ModelRunGridSubsetPrediction, NoonForecast, WeatherStationModelPrediction)
+    ModelRunGridSubsetPrediction, WeatherStationModelPrediction)
 import app.time_utils as time_utils
 
 logger = logging.getLogger(__name__)
@@ -257,26 +257,6 @@ def get_prediction_model_run_timestamp_records(
     query = query.order_by(
         PredictionModelRunTimestamp.prediction_run_timestamp.desc())
     return query
-
-
-def query_noon_forecast_records(session: Session,
-                                station_codes: StationCodeList,
-                                start_date: datetime,
-                                end_date: datetime
-                                ):
-    """ Sends a query to get noon forecast records """
-    return session.query(NoonForecast)\
-        .filter(NoonForecast.station_code.in_(station_codes))\
-        .filter(NoonForecast.weather_date >= start_date)\
-        .filter(NoonForecast.weather_date <= end_date)\
-        .order_by(NoonForecast.weather_date)\
-        .order_by(desc(NoonForecast.created_at))
-
-
-def save_noon_forecast(session: Session, noon_forecast: NoonForecast):
-    """ Abstraction for writing NoonForecast to database. """
-    session.add(noon_forecast)
-    session.commit()
 
 
 def get_weather_station_model_prediction(session: Session,

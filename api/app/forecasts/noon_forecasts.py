@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 import math
 from app.schemas import NoonForecast, NoonForecastResponse, NoonForecastValue, StationCodeList
 import app.db.database
-from app.db.crud import query_noon_forecast_records
+from app.db.crud.forecasts import query_noon_forecast_records
 import app.db.models
 
 
@@ -18,7 +18,7 @@ class StationNotFoundException(Exception):
     """ Custom exception for when a station cannot be found """
 
 
-def parse_table_records_to_noon_forecast_response(data: [app.db.models.NoonForecast]):
+def parse_table_records_to_noon_forecast_response(data: [app.db.models.forecasts.NoonForecast]):
     """ Given a list of table records from the database, parse each record
     (which is a NoonForecast object) and structure it as a NoonForecast
     object, then return the list of NoonForecast objects as a NoonForecastResponse

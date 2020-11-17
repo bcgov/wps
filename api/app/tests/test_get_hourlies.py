@@ -8,7 +8,7 @@ from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
 import app.main
 import app.time_utils
-from app.db.models import HourlyActual
+from app.db.models.observations import HourlyActual
 from app.tests.common import default_mock_client_get
 import app.wildfire_one
 
