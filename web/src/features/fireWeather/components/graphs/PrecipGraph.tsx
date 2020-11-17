@@ -99,7 +99,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       }
     })
 
-    const observedPrecips = Object.entries(aggreObservedPrecips).map(
+    const _observedPrecips = Object.entries(aggreObservedPrecips).map(
       ([formattedDate, totalPrecip]) => {
         const date = moment(formattedDate)
           .utc()
@@ -114,7 +114,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       }
     )
 
-    const forecastPrecips = forecastValues.map(({ datetime, total_precipitation }) => {
+    const _forecastPrecips = forecastValues.map(({ datetime, total_precipitation }) => {
       const date = moment(datetime)
         .utc()
         .set({ hour: Math.abs(utcOffset) })
@@ -140,13 +140,13 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
     d2 = moment(d2)
       .add(6, 'hours')
       .toDate()
-    const xDomain: [Date, Date] = [d1, d2]
+    const _xDomain: [Date, Date] = [d1, d2]
 
     return {
-      xDomain,
-      xTickValues: d3Utils.getTickValues(xDomain, utcOffset, false),
-      observedPrecips,
-      forecastPrecips
+      xDomain: _xDomain,
+      xTickValues: d3Utils.getTickValues(_xDomain, utcOffset, false),
+      observedPrecips: _observedPrecips,
+      forecastPrecips: _forecastPrecips
     }
   }, [utcOffset, observedValues, forecastValues])
 
@@ -189,7 +189,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         .domain([0, 100])
         .range([chartHeight, 0])
 
-      observedPrecips.map(precip =>
+      observedPrecips.forEach(precip =>
         d3Utils.drawVerticalLine({
           svg: chart,
           className: 'precipLine__observed',
@@ -201,7 +201,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         })
       )
 
-      forecastPrecips.map(precip =>
+      forecastPrecips.forEach(precip =>
         d3Utils.drawVerticalLine({
           svg: chart,
           className: 'precipLine__forecast',
@@ -267,14 +267,13 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
 
   const precipsOfInterest = useMemo(() => {
     const precipsByDatetime: { [date: string]: PrecipValue } = {}
-    const { showObservations, showForecasts } = toggleValues
 
-    showObservations &&
+    toggleValues.showObservations &&
       observedPrecips.forEach(({ date, value }) => {
         precipsByDatetime[date.toISOString()] = { date, precip: value }
       })
 
-    showForecasts &&
+    toggleValues.showForecasts &&
       forecastPrecips.forEach(({ date, value }) => {
         precipsByDatetime[date.toISOString()] = {
           ...precipsByDatetime[date.toISOString()],
