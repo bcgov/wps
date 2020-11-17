@@ -436,10 +436,11 @@ export const addLegend = ({
     .style('fill', color)
 }
 
-const getNearestByDate = <T extends { date: Date }>(
-  invertedDate: Date,
-  arr: T[]
-): T | undefined => {
+const getNearestByDate = <T extends { date: Date }>(invertedDate: Date, arr: T[]): T => {
+  if (arr.length === 1) {
+    return arr[0]
+  }
+
   // What is bisect: https://observablehq.com/@d3/d3-bisect
   const bisect = d3.bisector((d: T) => d.date).left
   const index = bisect(arr, invertedDate, 1)
@@ -460,13 +461,13 @@ const getNearestByDate = <T extends { date: Date }>(
  * Note: .tooltip, .tooltip--hidden, and .tooltip__cursor classes need to be defined
  * The T is a generic type that captures the type of the given data
  */
-export const addTooltipListener = <T extends { date: Date } & { [K in keyof T]: T[K] }>({
+export const addTooltipListener = <T extends { date: Date }>({
   svg,
   xScale,
   width,
   height,
   data,
-  getInnerText,
+  getTextData,
   textTestId,
   bgdTestId
 }: {
@@ -475,16 +476,16 @@ export const addTooltipListener = <T extends { date: Date } & { [K in keyof T]: 
   width: number
   height: number
   data: T[]
-  getInnerText: (pair: [string, ValueOf<T>], index: number) => string
+  getTextData: (d: T) => ({ text: string; color?: string } | undefined)[]
   textTestId?: string
   bgdTestId?: string
 }): void => {
-  const createTooltipCallout = (position?: 'right' | 'left') => (
-    // High order function
+  const tooltipCallout = (
     g: typeof svg,
-    value: string
+    position: 'right' | 'left',
+    textData: { text: string; color?: string }[]
   ) => {
-    if (!value) return g.attr('class', 'tooltip--hidden')
+    if (!textData) return g.attr('class', 'tooltip--hidden')
 
     g.attr('class', 'tooltip')
 
@@ -502,11 +503,12 @@ export const addTooltipListener = <T extends { date: Date } & { [K in keyof T]: 
       .call(txt =>
         txt
           .selectAll('tspan')
-          .data(value.split(/\n/))
+          .data(textData)
           .join('tspan')
+          .attr('fill', d => d.color || 'black')
           .attr('x', 0)
-          .attr('y', (d, i) => `${i * 1.5}em`)
-          .text(d => d)
+          .attr('y', (_, i) => `${i * 1.5}em`)
+          .text(d => d.text)
       )
     if (textTestId) {
       text.attr('data-testid', textTestId)
@@ -541,6 +543,7 @@ export const addTooltipListener = <T extends { date: Date } & { [K in keyof T]: 
       `
     )
   }
+
   // Draw a rectangular that covers the whole svg space so that
   // the listener can react to user's mouseover in anywhere within the graph
   svg
@@ -561,7 +564,7 @@ export const addTooltipListener = <T extends { date: Date } & { [K in keyof T]: 
     .attr('class', 'tooltip__cursor')
   const tooltip = svg.append('g')
   const removeTooltip = () => {
-    tooltip.call(createTooltipCallout(), null)
+    tooltip.call(tooltipCallout)
     tooltipCursor.style('opacity', 0)
   }
   svg.on('touchmove mousemove', function() {
@@ -579,12 +582,10 @@ export const addTooltipListener = <T extends { date: Date } & { [K in keyof T]: 
 
     const nearestX = xScale(nearest.date)
     const position = width / 2 > nearestX ? 'right' : 'left'
-    const tooltipText = Object.entries(nearest)
-      .map(getInnerText)
-      .join('\n') // new line after each text
+    const tooltipTextData = getTextData(nearest).filter(d => d)
     tooltip
       .attr('transform', `translate(${nearestX}, ${height / 3})`)
-      .call(createTooltipCallout(position), tooltipText)
+      .call(tooltipCallout, position, tooltipTextData)
     tooltipCursor.attr('transform', `translate(${nearestX}, 0)`).style('opacity', 1)
   })
   svg.on('touchend mouseleave', removeTooltip)

@@ -971,49 +971,88 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         data: weatherValues,
         textTestId: 'temp-rh-tooltip-text',
         bgdTestId: 'temp-rh-graph-background',
-        getInnerText: ([k, value]) => {
-          const key = k as keyof WeatherValue
-          if (key === 'date' && value instanceof Date) {
-            return `${formatDateInPDT(value, 'h:mm a, ddd, MMM Do')} (PDT, UTC-7)`
-          } else if (typeof value === 'number') {
-            let weatherValue: number | string = value
-            if (isNaN(weatherValue)) {
-              weatherValue = '-'
+        getTextData: v =>
+          Object.entries(v).map(([key, value]) => {
+            if (key === 'date' && value instanceof Date) {
+              return {
+                text: `${formatDateInPDT(value, 'h:mm a, ddd, MMM Do')} (PDT, UTC-7)`
+              }
+            } else if (typeof value === 'number') {
+              let weatherPrint: number | string = value
+              if (isNaN(weatherPrint)) {
+                weatherPrint = '-'
+              }
+
+              switch (key) {
+                case 'temp':
+                  return {
+                    text: `Observed Temp: ${weatherPrint} (°C)`,
+                    color: styles.observedTempColor
+                  }
+                case 'forecastTemp':
+                  return {
+                    text: `Forecast Temp: ${weatherPrint} (°C)`,
+                    color: styles.forecastTempDotColor
+                  }
+                case 'modelTemp':
+                  return {
+                    text: `GDPS Temp: ${weatherPrint} (°C)`,
+                    color: styles.modelTempColor
+                  }
+                case 'biasAdjModelTemp':
+                  return {
+                    text: `Bias adjusted GDPS Temp: ${weatherPrint} (°C)`,
+                    color: styles.biasModelTempColor
+                  }
+                case 'hrModelTemp':
+                  return {
+                    text: `HRDPS Temp ${weatherPrint} (°C)`,
+                    color: styles.highResModelTempColor
+                  }
+                case 'regModelTemp':
+                  return {
+                    text: `RDPS Temp ${weatherPrint} (°C)`,
+                    color: styles.regionalModelTempColor
+                  }
+
+                case 'rh':
+                  return {
+                    text: `Observed RH: ${weatherPrint} (%)`,
+                    color: styles.observedRHColor
+                  }
+                case 'forecastRH':
+                  return {
+                    text: `Forecast RH: ${weatherPrint} (%)`,
+                    color: styles.forecastRHDotColor
+                  }
+                case 'modelRH':
+                  return {
+                    text: `GDPS RH: ${weatherPrint} (%)`,
+                    color: styles.modelRHColor
+                  }
+                case 'biasAdjModelRH':
+                  return {
+                    text: `Bias adjusted GDPS RH: ${weatherPrint} (%)`,
+                    color: styles.biasModelRHColor
+                  }
+                case 'hrModelRH':
+                  return {
+                    text: `HRDPS RH ${weatherPrint} (%)`,
+                    color: styles.highResModelRHColor
+                  }
+                case 'regModelRH':
+                  return {
+                    text: `RDPS RH ${weatherPrint} (%)`,
+                    color: styles.regionalModelRHColor
+                  }
+
+                default:
+                  return undefined
+              }
             }
 
-            switch (key) {
-              case 'temp':
-                return `Observed Temp: ${weatherValue} (°C)`
-              case 'forecastTemp':
-                return `Forecast Temp: ${weatherValue} (°C)`
-              case 'modelTemp':
-                return `GDPS Temp: ${weatherValue} (°C)`
-              case 'biasAdjModelTemp':
-                return `Bias adjusted GDPS Temp: ${weatherValue} (°C)`
-              case 'hrModelTemp':
-                return `HRDPS Temp ${weatherValue} (°C)`
-              case 'regModelTemp':
-                return `RDPS Temp ${weatherValue} (°C)`
-
-              case 'rh':
-                return `Observed RH: ${weatherValue} (%)`
-              case 'forecastRH':
-                return `Forecast RH: ${weatherValue} (%)`
-              case 'modelRH':
-                return `GDPS RH: ${weatherValue} (%)`
-              case 'biasAdjModelRH':
-                return `Bias adjusted GDPS RH: ${weatherValue} (%)`
-              case 'hrModelRH':
-                return `HRDPS RH ${weatherValue} (%)`
-              case 'regModelRH':
-                return `RDPS RH ${weatherValue} (%)`
-
-              default:
-                return ''
-            }
-          }
-          return ''
-        }
+            return undefined
+          })
       })
     }
   }, [

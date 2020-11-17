@@ -307,23 +307,31 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         data: precipsOfInterest,
         textTestId: 'precip-tooltip-text',
         bgdTestId: 'precip-graph-background',
-        getInnerText: ([k, value]) => {
-          const key = k as keyof PrecipValue
-          if (key === 'date' && value instanceof Date) {
-            return `${formatDateInPDT(value, 'dddd, MMM Do')} (PDT, UTC-7)`
-          } else if (typeof value === 'number') {
-            switch (key) {
-              case 'precip':
-                return `Observed Precip: ${value} (mm/cm)`
-              case 'forecastPrecip':
-                return `Forecast Precip: ${value} (mm/cm)`
-              default:
-                return ''
+        getTextData: v =>
+          Object.entries(v).map(([key, value]) => {
+            if (key === 'date' && value instanceof Date) {
+              return {
+                text: `${formatDateInPDT(value, 'dddd, MMM Do')} (PDT, UTC-7)`
+              }
+            } else if (typeof value === 'number') {
+              switch (key) {
+                case 'precip':
+                  return {
+                    text: `Observed Precip: ${value} (mm/cm)`,
+                    color: observedPrecipColor
+                  }
+                case 'forecastPrecip':
+                  return {
+                    text: `Forecast Precip: ${value} (mm/cm)`,
+                    color: forecastPrecipColor
+                  }
+                default:
+                  return undefined
+              }
             }
-          }
 
-          return ''
-        }
+            return undefined
+          })
       })
     }
 
