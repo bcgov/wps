@@ -113,11 +113,11 @@ run-marvin-raw:
 	python -m app.fireweather_bot.hourly_actuals
 
 run-all-bots-raw:
-	python -m app.fireweather_bot.noon_forecasts
-	python -m app.fireweather_bot.hourly_actuals
 	POSTGRES_HOST=localhost python -m app.models.env_canada GDPS
 	POSTGRES_HOST=localhost python -m app.models.env_canada HRDPS
 	POSTGRES_HOST=localhost python -m app.models.env_canada RDPS
+	python -m app.fireweather_bot.hourly_actuals
+	python -m app.fireweather_bot.noon_forecasts
 
 notebook:
 	# Run jupyter notebooks.
