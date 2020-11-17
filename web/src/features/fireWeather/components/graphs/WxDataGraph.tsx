@@ -22,6 +22,8 @@ interface Props {
   forecastSummaries: ForecastSummary[] | undefined
   allHighResModelValues: ModelValue[] | undefined
   highResModelSummaries: ModelSummary[] | undefined
+  allRegionalModelValues: ModelValue[] | undefined
+  regionalModelSummaries: ModelSummary[] | undefined
 }
 
 const WxDataGraph = ({
@@ -31,7 +33,9 @@ const WxDataGraph = ({
   allForecasts = [],
   forecastSummaries = [],
   allHighResModelValues = [],
-  highResModelSummaries = []
+  highResModelSummaries = [],
+  allRegionalModelValues = [],
+  regionalModelSummaries = []
 }: Props) => {
   const classes = useStyles()
 
@@ -41,16 +45,26 @@ const WxDataGraph = ({
   const noBiasAdjModels = allModelValues.length === 0
   const noHighResModels =
     allHighResModelValues.length === 0 && highResModelSummaries.length === 0
+  const noRegionalModels =
+    allRegionalModelValues.length === 0 && regionalModelSummaries.length === 0
 
   const [toggleValues, setToggleValues] = useGraphToggles({
     showObservations: !noObservations,
     showModels: false,
     showForecasts: false,
     showBiasAdjModels: false,
-    showHighResModels: false
+    showHighResModels: false,
+    showRegionalModels: false
   })
 
-  if (noObservations && noForecasts && noModels && noBiasAdjModels && noHighResModels) {
+  if (
+    noObservations &&
+    noForecasts &&
+    noModels &&
+    noBiasAdjModels &&
+    noHighResModels &&
+    noRegionalModels
+  ) {
     return null
   }
 
@@ -59,7 +73,8 @@ const WxDataGraph = ({
     showModels,
     showForecasts,
     showBiasAdjModels,
-    showHighResModels
+    showHighResModels,
+    showRegionalModels
   } = toggleValues
 
   return (
@@ -72,6 +87,7 @@ const WxDataGraph = ({
         noModels={noModels}
         noBiasAdjModels={noBiasAdjModels}
         noHighResModels={noHighResModels}
+        noRegionalModels={noRegionalModels}
       />
 
       <TempRHGraph
@@ -83,6 +99,8 @@ const WxDataGraph = ({
         biasAdjModelValues={showBiasAdjModels ? allModelValues : []}
         highResModelValues={showHighResModels ? allHighResModelValues : []}
         highResModelSummaries={showHighResModels ? highResModelSummaries : []}
+        regionalModelValues={showRegionalModels ? allRegionalModelValues : []}
+        regionalModelSummaries={showRegionalModels ? regionalModelSummaries : []}
       />
     </div>
   )

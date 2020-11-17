@@ -2,8 +2,8 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 import { ModelValue, getModelsWithBiasAdj, ModelsForStation } from 'api/modelAPI'
 import { AppThunk } from 'app/store'
-import { isNoonInPST } from 'utils/date'
 import { logError } from 'utils/error'
+import { parseModelValuesHelper } from 'features/fireWeather/slices/parseModelValuesHelper'
 
 interface State {
   loading: boolean
@@ -40,30 +40,11 @@ const modelsSlice = createSlice({
       action.payload.forEach(({ station, model_runs }) => {
         if (station && model_runs) {
           const code = station.code
-          const pastModelValues: ModelValue[] = []
-          const modelValues: ModelValue[] = []
-          const noonModelValues: ModelValue[] = []
-          const allModelValues = model_runs.reduce(
-            (values: ModelValue[], modelRun) => values.concat(modelRun.values),
-            []
-          )
-          const currDate = new Date()
-          allModelValues.forEach(v => {
-            const isFutureModel = new Date(v.datetime) >= currDate
-            if (isFutureModel) {
-              modelValues.push(v)
-            } else {
-              pastModelValues.push(v)
-            }
-
-            if (isNoonInPST(v.datetime)) {
-              noonModelValues.push(v)
-            }
-          })
-          state.allModelsByStation[code] = allModelValues
-          state.pastModelsByStation[code] = pastModelValues
-          state.modelsByStation[code] = modelValues
-          state.noonModelsByStation[code] = noonModelValues
+          const parsedValues = parseModelValuesHelper(model_runs, true)
+          state.allModelsByStation[code] = parsedValues.allValues
+          state.pastModelsByStation[code] = parsedValues.pastValues
+          state.modelsByStation[code] = parsedValues.modelValues
+          state.noonModelsByStation[code] = parsedValues.noonValues
         }
       })
       state.loading = false

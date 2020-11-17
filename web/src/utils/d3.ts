@@ -327,7 +327,7 @@ export const addLegend = ({
   length = 8 // rect length
 }: {
   svg: d3.Selection<SVGGElement, unknown, null, undefined>
-  shape?: 'circle' | 'rect' | 'diamond' | 'triangle'
+  shape?: 'circle' | 'rect' | 'diamond' | 'triangle' | 'cross'
   text: string
   color: string
   fill?: string | 'none'
@@ -377,6 +377,19 @@ export const addLegend = ({
           .symbol()
           .type(d3.symbolDiamond)
           .size(10)
+      )
+      .attr('transform', `translate(${shapeX},${shapeY})`)
+      .style('stroke', color)
+      .attr('fill', fill || color)
+  } else if (shape === 'cross') {
+    svg
+      .append('path')
+      .attr(
+        'd',
+        d3
+          .symbol()
+          .type(d3.symbolCross)
+          .size(5)
       )
       .attr('transform', `translate(${shapeX},${shapeY})`)
       .style('stroke', color)

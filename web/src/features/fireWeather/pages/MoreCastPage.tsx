@@ -16,6 +16,8 @@ import { fetchGlobalModelSummaries } from 'features/fireWeather/slices/modelSumm
 import { fetchForecastSummaries } from 'features/fireWeather/slices/forecastSummariesSlice'
 import { fetchHighResModels } from 'features/fireWeather/slices/highResModelsSlice'
 import { fetchHighResModelSummaries } from 'features/fireWeather/slices/highResModelSummariesSlice'
+import { fetchRegionalModels } from '../slices/regionalModelsSlice'
+import { fetchRegionalModelSummaries } from '../slices/regionalModelSummariesSlice'
 
 const useStyles = makeStyles({
   stationDropdown: {
@@ -44,6 +46,8 @@ const MoreCastPage = () => {
     dispatch(fetchGlobalModelSummaries(stationCodes))
     dispatch(fetchHighResModels(stationCodes))
     dispatch(fetchHighResModelSummaries(stationCodes))
+    dispatch(fetchRegionalModels(stationCodes))
+    dispatch(fetchRegionalModelSummaries(stationCodes))
     // Create matomo event
     // NOTE: This section is proof of concept - strongly consider re-factoring when adding other events.
     // TODO: Re-evaluate this way of implementing Matomo once we know more about it.
