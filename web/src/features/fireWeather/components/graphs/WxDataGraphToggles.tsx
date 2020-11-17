@@ -31,6 +31,7 @@ interface Props {
   noForecasts: boolean
   noBiasAdjModels: boolean
   noHighResModels: boolean
+  noRegionalModels: boolean
 }
 
 const WxDataToggles = ({
@@ -40,7 +41,8 @@ const WxDataToggles = ({
   noModels,
   noForecasts,
   noBiasAdjModels,
-  noHighResModels
+  noHighResModels,
+  noRegionalModels
 }: Props) => {
   const classes = useStyles()
   const handleSwitch = (e: React.ChangeEvent<{ name: string }>, checked: boolean) => {
@@ -112,6 +114,25 @@ const WxDataToggles = ({
         label={
           <Typography className={classes.switchLabel} variant="body2">
             HRDPS
+          </Typography>
+        }
+      />
+
+      <FormControlLabel
+        className={classes.switchControl}
+        control={
+          <Switch
+            name="showRegionalModels"
+            data-testid="wx-graph-regional-model-toggle"
+            checked={toggleValues.showRegionalModels}
+            disabled={noRegionalModels}
+            size="small"
+            onChange={handleSwitch}
+          />
+        }
+        label={
+          <Typography className={classes.switchLabel} variant="body2">
+            RDPS
           </Typography>
         }
       />

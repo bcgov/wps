@@ -7,6 +7,7 @@ export interface ToggleValues {
   showForecasts: boolean
   showBiasAdjModels: boolean
   showHighResModels: boolean
+  showRegionalModels: boolean
 }
 
 export type SetToggleValues = (
