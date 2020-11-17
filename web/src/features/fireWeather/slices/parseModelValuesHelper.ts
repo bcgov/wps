@@ -19,9 +19,9 @@ export const parseModelValuesHelper = (
       modelValues.push(v)
     } else {
       pastModelValues.push(v)
-      if (separate_noon_values && isNoonInPST(v.datetime)) {
-        noonModelValues.push(v)
-      }
+    }
+    if (separate_noon_values && isNoonInPST(v.datetime)) {
+      noonModelValues.push(v)
     }
   })
 
