@@ -310,7 +310,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         getInnerText: ([k, value]) => {
           const key = k as keyof PrecipValue
           if (key === 'date' && value instanceof Date) {
-            return `${formatDateInPDT(value, 'h:mm a, ddd, MMM Do')} (PDT, UTC-7)`
+            return `${formatDateInPDT(value, 'dddd, MMM Do')} (PDT, UTC-7)`
           } else if (typeof value === 'number') {
             switch (key) {
               case 'precip':
