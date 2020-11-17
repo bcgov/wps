@@ -104,6 +104,7 @@ jobs:
           source ~/.poetry/env
           poetry run coverage report
           poetry run coverage xml -o coverage-reports/coverage-report.xml
+          sed -i 's/filename="app/filename="api\/app/' coverage-reports/coverage-report.xml
 
       - name: Cache node modules
         uses: actions/cache@v2
