@@ -40,7 +40,7 @@ describe('MoreCast Page', () => {
       cy.getByTestId('get-wx-data-button').click({ force: true })
     })
 
-    it('SVGs in the graph & toggle buttons', () => {
+    it('Temp & RH graph displays svg graphics with toggles', () => {
       // Check if svg elements are displayed in the graph
       cy.getByTestId('hourly-observed-temp-symbol')
       cy.getByTestId('hourly-observed-temp-path')
@@ -80,7 +80,7 @@ describe('MoreCast Page', () => {
       cy.getByTestId('high-res-model-temp-symbol').should('not.exist')
     })
 
-    it('Tooltip & sidebar in the graph', () => {
+    it('Temp & RH graph displays a tooltip & sidebar ', () => {
       // Hover over the first dot and check if the tooltip shows up with the correct text
       cy.getByTestId('hourly-observed-rh-symbol')
         .first()
@@ -118,6 +118,26 @@ describe('MoreCast Page', () => {
             view: win
           })
       })
+    })
+
+    it('Precip graph displays svg graphics and a tooltip', () => {
+      // Check if svg elements are displayed (or not) in the graph
+      cy.getByTestId('observed-precip-line').should('not.have.class', 'precipLine--hidden')
+      cy.getByTestId('forecast-precip-line').should('have.class', 'precipLine--hidden')
+      cy.getByTestId('wx-graph-observation-toggle').click()
+      cy.getByTestId('wx-graph-forecast-toggle').click()
+      cy.getByTestId('observed-precip-line').should('have.class', 'precipLine--hidden')
+      cy.getByTestId('forecast-precip-line').should('not.have.class', 'precipLine--hidden')
+      cy.getByTestId('wx-graph-observation-toggle').click()
+
+      // Hover over the first date and check if the tooltip shows up with a correct text
+      cy.getByTestId('observed-precip-line')
+        .first()
+        .trigger('mousemove', { force: true, x: 3, y: 1 })
+      cy.getByTestId('precip-tooltip-text').contains('tspan', /(PDT, UTC-7)/)
+      cy.getByTestId('precip-tooltip-text')
+        .should('contain', 'Observed Precip: 0.4 (mm/cm)')
+        .and('contain', 'Forecast Precip: 1 (mm/cm)')
     })
   })
 })

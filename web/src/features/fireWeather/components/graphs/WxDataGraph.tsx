@@ -7,6 +7,7 @@ import { NoonForecastValue, ForecastSummary } from 'api/forecastAPI'
 import TempRHGraph from 'features/fireWeather/components/graphs/TempRHGraph'
 import WxDataGraphToggles from 'features/fireWeather/components/graphs/WxDataGraphToggles'
 import { useGraphToggles } from 'features/fireWeather/components/graphs/useGraphToggles'
+import PrecipGraph from 'features/fireWeather/components/graphs/PrecipGraph'
 
 const useStyles = makeStyles({
   display: {
@@ -83,6 +84,12 @@ const WxDataGraph = ({
         biasAdjModelValues={showBiasAdjModels ? allModelValues : []}
         highResModelValues={showHighResModels ? allHighResModelValues : []}
         highResModelSummaries={showHighResModels ? highResModelSummaries : []}
+      />
+
+      <PrecipGraph
+        toggleValues={toggleValues}
+        observedValues={observedValues}
+        forecastValues={allForecasts}
       />
     </div>
   )
