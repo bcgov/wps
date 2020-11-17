@@ -21,6 +21,8 @@ interface WeatherValue {
   biasAdjModelRH?: number
   hrModelTemp?: number
   hrModelRH?: number
+  regModelTemp?: number
+  regModelRH?: number
 }
 type ModelSummary = Omit<_ModelSummary, 'datetime'> & { date: Date }
 type ForecastSummary = Omit<_ForecastSummary, 'datetime'> & { date: Date }
@@ -34,6 +36,8 @@ interface Props {
   biasAdjModelValues: ModelValue[]
   highResModelValues: ModelValue[]
   highResModelSummaries: _ModelSummary[]
+  regionalModelValues: ModelValue[]
+  regionalModelSummaries: _ModelSummary[]
 }
 
 const TempRHGraph: React.FunctionComponent<Props> = ({
@@ -44,7 +48,9 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
   forecastSummaries: _forecastSummaries,
   biasAdjModelValues: _biasAdjModelValues,
   highResModelValues: _highResModelValues,
-  highResModelSummaries: _highResModelSummaries
+  highResModelSummaries: _highResModelSummaries,
+  regionalModelValues: _regionalModelValues,
+  regionalModelSummaries: _regionalModelSummaries
 }: Props) => {
   const classes = styles.useStyles()
   const svgRef = useRef(null)
@@ -112,6 +118,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         return { ...s, date }
       })
 
+      // GDPS
       const modelTempValues: { date: Date; modelTemp: number }[] = []
       const modelRHValues: { date: Date; modelRH: number }[] = []
       _modelValues.forEach(v => {
@@ -151,6 +158,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         return { ...s, date }
       })
 
+      // Bias Adjusted GDPS
       const biasAdjModelTempValues: { date: Date; biasAdjModelTemp: number }[] = []
       const biasAdjModelRHValues: { date: Date; biasAdjModelRH: number }[] = []
       _biasAdjModelValues.forEach(v => {
@@ -184,6 +192,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         }
       })
 
+      // HRDPS
       const hrModelTempValues: { date: Date; hrModelTemp: number }[] = []
       const hrModelRHValues: { date: Date; hrModelRH: number }[] = []
       _highResModelValues.forEach(v => {
@@ -215,6 +224,38 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         return { ...s, date }
       })
 
+      // RDPS
+      const regModelTempValues: { date: Date; regModelTemp: number }[] = []
+      const regModelRHValues: { date: Date; regModelRH: number }[] = []
+      _regionalModelValues.forEach(v => {
+        if (v.temperature == null && v.relative_humidity == null) {
+          return
+        }
+
+        const date = new Date(v.datetime)
+        datesFromAllSources.push(date)
+
+        const regModel = { date, regModelTemp: NaN, regModelRH: NaN }
+        if (v.temperature != null) {
+          regModel.regModelTemp = Number(v.temperature.toFixed(2))
+          regModelTempValues.push(regModel)
+        }
+        if (v.relative_humidity != null) {
+          regModel.regModelRH = Math.round(v.relative_humidity)
+          regModelRHValues.push(regModel)
+        }
+        weatherValuesByDatetime[v.datetime] = {
+          ...weatherValuesByDatetime[v.datetime],
+          ...regModel
+        }
+      })
+      const regionalModelSummaries: ModelSummary[] = _regionalModelSummaries.map(d => {
+        const date = new Date(d.datetime)
+        datesFromAllSources.push(date)
+
+        return { ...d, date }
+      })
+
       // weather values without percentile summaries
       const weatherValues = Object.values(weatherValuesByDatetime).sort(
         (a, b) => a.date.valueOf() - b.date.valueOf()
@@ -223,7 +264,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
       const xTickValues = d3Utils.getTickValues(xDomain, PDT_UTC_OFFSET)
 
       /* Set dimensions and svg groups */
-      const margin = { top: 10, right: 40, bottom: 150, left: 40 }
+      const margin = { top: 10, right: 40, bottom: 200, left: 40 }
       const svgWidth = 600
       const svgHeight = 400
       const chartWidth = svgWidth - margin.left - margin.right
@@ -315,6 +356,25 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         svg: chart,
         className: 'highResModelSummaryRHArea',
         datum: highResModelSummaries,
+        x: d => xScale(d.date),
+        y0: d => yRHScale(d.rh_tgl_2_90th),
+        y1: d => yRHScale(d.rh_tgl_2_5th)
+      })
+
+      /* Render regional model temp and rh summary clouds */
+      const updateRegionalModelSummaryTempArea = d3Utils.drawArea({
+        svg: chart,
+        className: 'regionalModelSummaryTempArea',
+        datum: regionalModelSummaries,
+        x: d => xScale(d.date),
+        y0: d => yTempScale(d.tmp_tgl_2_90th),
+        y1: d => yTempScale(d.tmp_tgl_2_5th),
+        testId: 'regional-model-summary-temp-area'
+      })
+      const updateRegionalModelSummaryRHArea = d3Utils.drawArea({
+        svg: chart,
+        className: 'regionalModelSummaryRHArea',
+        datum: regionalModelSummaries,
         x: d => xScale(d.date),
         y0: d => yRHScale(d.rh_tgl_2_90th),
         y1: d => yRHScale(d.rh_tgl_2_5th)
@@ -456,6 +516,44 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         x: d => xScale(d.date),
         y: d => yRHScale(d.hrModelRH),
         testId: 'high-res-model-rh-path'
+      })
+
+      /* Render regional model temp and rh values */
+      const updateRegionalModelTempSymbols = d3Utils.drawSymbols({
+        svg: chart,
+        className: 'regionalModelTempSymbol',
+        data: regModelTempValues,
+        x: d => xScale(d.date),
+        y: d => yTempScale(d.regModelTemp),
+        size: 5,
+        symbol: d3.symbolCross,
+        testId: 'regional-model-temp-symbol'
+      })
+      const updateRegionalModelTempPath = d3Utils.drawPath({
+        svg: chart,
+        className: 'regionalModelTempPath',
+        data: regModelTempValues,
+        x: d => xScale(d.date),
+        y: d => yTempScale(d.regModelTemp),
+        testId: 'regional-model-temp-path'
+      })
+      const updateRegionalModelRHSymbols = d3Utils.drawSymbols({
+        svg: chart,
+        className: 'regionalModelRHSymbol',
+        data: regModelRHValues,
+        x: d => xScale(d.date),
+        y: d => yRHScale(d.regModelRH),
+        size: 5,
+        symbol: d3.symbolCross,
+        testId: 'regional-model-rh-symbol'
+      })
+      const updateRegionalModelRHPath = d3Utils.drawPath({
+        svg: chart,
+        className: 'regionalModelRHPath',
+        data: regModelRHValues,
+        x: d => xScale(d.date),
+        y: d => yRHScale(d.regModelRH),
+        testId: 'regional-model-rh-path'
       })
 
       /* Render temp and rh noon forecasts */
@@ -616,6 +714,12 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
           updateBiasAdjModelRHSymbols?.(d => xScale(d.date))
           updateBiasAdjModelTempPath(d => xScale(d.date))
           updateBiasAdjModelRHPath(d => xScale(d.date))
+          updateRegionalModelTempSymbols?.(d => xScale(d.date))
+          updateRegionalModelRHSymbols?.(d => xScale(d.date))
+          updateRegionalModelTempPath(d => xScale(d.date))
+          updateRegionalModelRHPath(d => xScale(d.date))
+          updateRegionalModelSummaryTempArea?.(d => xScale(d.date))
+          updateRegionalModelSummaryRHArea?.(d => xScale(d.date))
           updateCurrLine(xScale)
           updateCurrLineText(xScale)
         }
@@ -810,6 +914,54 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         textY: legendY + 3
       })
 
+      // New line
+      legendX = 0
+      legendY += 16
+      d3Utils.addLegend({
+        svg: legend,
+        text: 'RDPS Temp',
+        color: styles.regionalModelTempColor,
+        fill: styles.regionalModelTempColor,
+        shape: 'cross',
+        shapeX: legendX,
+        shapeY: legendY,
+        textX: legendX += 6,
+        textY: legendY + 4
+      })
+      d3Utils.addLegend({
+        svg: legend,
+        text: 'RDPS RH',
+        color: styles.regionalModelRHColor,
+        fill: styles.regionalModelRHColor,
+        shape: 'cross',
+        shapeX: legendX += 81,
+        shapeY: legendY,
+        textX: legendX += 6,
+        textY: legendY + 4
+      })
+      d3Utils.addLegend({
+        svg: legend,
+        text: 'RDPS Temp 5th - 90th percentiles',
+        shape: 'rect',
+        color: styles.regionalModelSummaryTempAreaColor,
+        fill: styles.regionalModelSummaryTempAreaColor,
+        shapeX: legendX += 82,
+        shapeY: legendY - 4,
+        textX: legendX += 13,
+        textY: legendY + 4
+      })
+      d3Utils.addLegend({
+        svg: legend,
+        text: 'RDPS RH 5th - 90th percentiles',
+        shape: 'rect',
+        color: styles.regionalModelSummaryRHAreaColor,
+        fill: styles.regionalModelSummaryRHAreaColor,
+        shapeX: legendX += 160,
+        shapeY: legendY - 4,
+        textX: legendX + 13,
+        textY: legendY + 4
+      })
+
       /* Attach tooltip listener */
       d3Utils.addTooltipListener({
         svg: chart,
@@ -840,6 +992,8 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
                 return `Bias adjusted GDPS Temp: ${weatherValue} (°C)`
               case 'hrModelTemp':
                 return `HRDPS Temp ${weatherValue} (°C)`
+              case 'regModelTemp':
+                return `RDPS Temp ${weatherValue} (°C)`
 
               case 'rh':
                 return `Observed RH: ${weatherValue} (%)`
@@ -851,6 +1005,8 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
                 return `Bias adjusted GDPS RH: ${weatherValue} (%)`
               case 'hrModelRH':
                 return `HRDPS RH ${weatherValue} (%)`
+              case 'regModelRH':
+                return `RDPS RH ${weatherValue} (%)`
 
               default:
                 return ''
@@ -869,7 +1025,9 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
     _forecastSummaries,
     _highResModelValues,
     _biasAdjModelValues,
-    _highResModelSummaries
+    _highResModelSummaries,
+    _regionalModelValues,
+    _regionalModelSummaries
   ])
 
   return (

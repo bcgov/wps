@@ -10,6 +10,8 @@ import modelSummariesReducer from 'features/fireWeather/slices/modelSummariesSli
 import forecastSummariesReducer from 'features/fireWeather/slices/forecastSummariesSlice'
 import highResModelsReducer from 'features/fireWeather/slices/highResModelsSlice'
 import highResModelSummariesReducer from 'features/fireWeather/slices/highResModelSummariesSlice'
+import regionalModelsReducer from 'features/fireWeather/slices/regionalModelsSlice'
+import regionalModelSummariesReducer from 'features/fireWeather/slices/regionalModelSummariesSlice'
 
 const rootReducer = combineReducers({
   stations: stationsReducer,
@@ -21,7 +23,9 @@ const rootReducer = combineReducers({
   forecasts: forecastsReducer,
   forecastSummaries: forecastSummariesReducer,
   highResModels: highResModelsReducer,
-  highResModelSummaries: highResModelSummariesReducer
+  highResModelSummaries: highResModelSummariesReducer,
+  regionalModels: regionalModelsReducer,
+  regionalModelSummaries: regionalModelSummariesReducer
 })
 
 // Infer whatever gets returned from rootReducer and use it as the type of the root state
@@ -42,6 +46,9 @@ export const selectForecastSummaries = (state: RootState) => state.forecastSumma
 export const selectHighResModels = (state: RootState) => state.highResModels
 export const selectHighResModelSummaries = (state: RootState) =>
   state.highResModelSummaries
+export const selectRegionalModels = (state: RootState) => state.regionalModels
+export const selectRegionalModelSummaries = (state: RootState) =>
+  state.regionalModelSummaries
 export const selectWxDataLoading = (state: RootState): boolean =>
   state.observations.loading ||
   state.models.loading ||
@@ -49,4 +56,6 @@ export const selectWxDataLoading = (state: RootState): boolean =>
   state.forecasts.loading ||
   state.forecastSummaries.loading ||
   state.highResModels.loading ||
-  state.highResModelSummaries.loading
+  state.highResModelSummaries.loading ||
+  state.regionalModels.loading ||
+  state.regionalModelSummaries.loading
