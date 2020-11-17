@@ -240,7 +240,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
 
       /* Render legends */
       // TODO: We're going to have to look at using layouts moving forward to achieve the placement of objects. https://www.d3indepth.com/layouts/
-      let legendY = 0
+      const legendY = 0
       let legendX = 0
       d3Utils.addLegend({
         svg: legend,
