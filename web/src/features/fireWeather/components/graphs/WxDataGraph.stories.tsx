@@ -32,7 +32,9 @@ storiesOf('WxDataGraph', module).add('default', () => {
         pastHighResModelValues.concat(highResModelValues) as ModelValue[]
       }
       highResModelSummaries={highResModelSummaries}
-      allRegionalModelValues={pastRegionalModelValues.concat(regionalModelValues) as ModelValue[]}
+      allRegionalModelValues={
+        pastRegionalModelValues.concat(regionalModelValues) as ModelValue[]
+      }
       regionalModelSummaries={regionalModelSummaries}
     />
   )

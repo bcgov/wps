@@ -972,7 +972,8 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         textTestId: 'temp-rh-tooltip-text',
         bgdTestId: 'temp-rh-graph-background',
         getTextData: v =>
-          Object.entries(v).map(([key, value]) => {
+          Object.entries(v).map(([k, value]) => {
+            const key = k as keyof WeatherValue
             if (key === 'date' && value instanceof Date) {
               return {
                 text: `${formatDateInPDT(value, 'h:mm a, ddd, MMM Do')} (PDT, UTC-7)`

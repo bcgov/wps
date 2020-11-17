@@ -58,7 +58,7 @@ const useStyles = makeStyles({
 
 interface PrecipValue {
   date: Date
-  precip?: number
+  observedPrecip?: number
   forecastPrecip?: number
 }
 
@@ -270,7 +270,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
 
     toggleValues.showObservations &&
       observedPrecips.forEach(({ date, value }) => {
-        precipsByDatetime[date.toISOString()] = { date, precip: value }
+        precipsByDatetime[date.toISOString()] = { date, observedPrecip: value }
       })
 
     toggleValues.showForecasts &&
@@ -308,14 +308,15 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         textTestId: 'precip-tooltip-text',
         bgdTestId: 'precip-graph-background',
         getTextData: v =>
-          Object.entries(v).map(([key, value]) => {
+          Object.entries(v).map(([k, value]) => {
+            const key = k as keyof PrecipValue
             if (key === 'date' && value instanceof Date) {
               return {
                 text: `${formatDateInPDT(value, 'dddd, MMM Do')} (PDT, UTC-7)`
               }
             } else if (typeof value === 'number') {
               switch (key) {
-                case 'precip':
+                case 'observedPrecip':
                   return {
                     text: `Observed Precip: ${value} (mm/cm)`,
                     color: observedPrecipColor

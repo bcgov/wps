@@ -437,10 +437,6 @@ export const addLegend = ({
 }
 
 const getNearestByDate = <T extends { date: Date }>(invertedDate: Date, arr: T[]): T => {
-  if (arr.length === 1) {
-    return arr[0]
-  }
-
   // What is bisect: https://observablehq.com/@d3/d3-bisect
   const bisect = d3.bisector((d: T) => d.date).left
   const index = bisect(arr, invertedDate, 1)
@@ -571,8 +567,12 @@ export const addTooltipListener = <T extends { date: Date }>({
     if (data.length === 0) return
 
     const mx = d3.mouse(this)[0]
-    // if user's mouse is not within the weather value dots range
-    if (mx < xScale(data[0].date) || mx > xScale(data[data.length - 1].date)) {
+    // if user's mouse is far away from the data range
+    const extraRange = 25
+    if (
+      mx < xScale(data[0].date) - extraRange ||
+      mx > xScale(data[data.length - 1].date) + extraRange
+    ) {
       return removeTooltip()
     }
 
