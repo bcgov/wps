@@ -12,6 +12,7 @@ from geoalchemy2 import Geometry
 from app.db.database import Base
 import app.time_utils as time_utils
 from app.db.models.common import TZTimeStamp
+# Keep all the models in one place for alembic to discover:
 from app.db.models.forecasts import NoonForecast
 from app.db.models.observations import HourlyActual
 

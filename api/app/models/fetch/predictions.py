@@ -15,7 +15,7 @@ from app.schemas import (WeatherStation, WeatherModelPrediction,
                          WeatherStationsModelRunsPredictionsResponse,
                          WeatherStationModelRunsPredictions)
 from app.db.models import ModelRunGridSubsetPrediction
-import app.db.crud
+import app.db.crud.weather_models
 import app.stations
 from app.models import ModelEnum, ProjectionEnum
 from app.models.fetch import extract_stations_in_polygon
@@ -129,12 +129,12 @@ def _fetch_model_predictions_by_stations(
     """ Fetch predictions for stations. """
     # pylint: disable=too-many-locals
     # Get the most recent model run:
-    most_recent_run = app.db.crud.get_most_recent_model_run(
+    most_recent_run = app.db.crud.weather_models.get_most_recent_model_run(
         session, model, projection)
     logger.info(
         'most recent run: %s', most_recent_run.prediction_run_timestamp)
     # Get the predictions:
-    query = app.db.crud.get_model_run_predictions(
+    query = app.db.crud.weather_models.get_model_run_predictions(
         session, most_recent_run, map(lambda station: [station.long, station.lat], stations))
 
     # Construct response object:
@@ -210,7 +210,7 @@ async def fetch_model_run_predictions_by_station_code(
     five_days_ago = app.time_utils.get_utc_now() - datetime.timedelta(days=5)
     # send the query (ordered by prediction date.)
     session = app.db.database.get_read_session()
-    historic_predictions = app.db.crud.get_historic_station_model_predictions(
+    historic_predictions = app.db.crud.weather_models.get_historic_station_model_predictions(
         session, station_codes, model, five_days_ago, end_date)
 
     # Helper dictionary.
@@ -278,7 +278,7 @@ async def fetch_predictions_by_station_code(
     five_days_ago = now - datetime.timedelta(days=5)
     # send the query
     session = app.db.database.get_read_session()
-    historic_predictions = app.db.crud.get_historic_station_model_predictions(
+    historic_predictions = app.db.crud.weather_models.get_historic_station_model_predictions(
         session, station_codes, model, five_days_ago, end_date)
     for prediction, prediction_model_run_timestamp, prediction_model in historic_predictions:
         station_predictions = weather_model_predictions_dict.get(

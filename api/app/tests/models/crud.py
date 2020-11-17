@@ -6,7 +6,7 @@ from app.db.models.observations import HourlyActual
 
 
 def get_actuals_left_outer_join_with_predictions(*args):  # pylint: disable=unused-argument
-    """ Fixed response as replacement for app.db.crud.get_actuals_left_outer_join_with_predictions
+    """ Fixed response as replacement for app.db.crud.observations.get_actuals_left_outer_join_with_predictions
     """
     result = [
         # day 1

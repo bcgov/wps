@@ -7,7 +7,7 @@ from numpy import percentile
 from geoalchemy2.shape import to_shape
 from scipy.interpolate import griddata
 import app.db.database
-from app.db.crud import get_predictions_from_coordinates
+from app.db.crud.weather_models import get_predictions_from_coordinates
 from app.db.models import ModelRunGridSubsetPrediction, PredictionModelGridSubset, PredictionModel
 from app.schemas import (
     WeatherModelPredictionSummary,

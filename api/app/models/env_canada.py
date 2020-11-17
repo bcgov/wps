@@ -15,12 +15,12 @@ import requests
 from scipy.interpolate import griddata
 from geoalchemy2.shape import to_shape
 from sqlalchemy.orm import Session
-from app.db.crud import (get_processed_file_record,
-                         get_processed_file_count,
-                         get_prediction_model_run_timestamp_records,
-                         get_model_run_predictions_for_grid,
-                         get_grid_for_coordinate,
-                         get_weather_station_model_prediction)
+from app.db.crud.weather_models import (get_processed_file_record,
+                                        get_processed_file_count,
+                                        get_prediction_model_run_timestamp_records,
+                                        get_model_run_predictions_for_grid,
+                                        get_grid_for_coordinate,
+                                        get_weather_station_model_prediction)
 from app.models.machine_learning import StationMachineLearning
 from app.models import ModelEnum, ProjectionEnum, construct_interpolated_noon_prediction
 from app.schemas import WeatherStation
@@ -258,7 +258,7 @@ def mark_prediction_model_run_processed(session: Session,
                                         model_run_hour: int):
     """ Mark a prediction model run as processed (complete) """
 
-    prediction_model = app.db.crud.get_prediction_model(
+    prediction_model = app.db.crud.weather_models.get_prediction_model(
         session, model, projection)
     prediction_run_timestamp = datetime.datetime(
         year=now.year,
@@ -271,13 +271,13 @@ def mark_prediction_model_run_processed(session: Session,
         hour=model_run_hour)
     logger.info('prediction_model:%s, prediction_run_timestamp:%s',
                 prediction_model, prediction_run_timestamp)
-    prediction_run = app.db.crud.get_prediction_run(
+    prediction_run = app.db.crud.weather_models.get_prediction_run(
         session,
         prediction_model.id,
         prediction_run_timestamp)
     logger.info('prediction run: %s', prediction_run)
     prediction_run.complete = True
-    app.db.crud.update_prediction_run(session, prediction_run)
+    app.db.crud.weather_models.update_prediction_run(session, prediction_run)
 
 
 class EnvCanada():
