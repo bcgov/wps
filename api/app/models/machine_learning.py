@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from app.models import MODEL_VALUE_KEYS, construct_interpolated_noon_prediction
 from app.db.models import (
     PredictionModel, PredictionModelGridSubset, ModelRunGridSubsetPrediction, HourlyActual)
-from app.db.crud import get_actuals_left_outer_join_with_predictions
+from app.db.crud.observations import get_actuals_left_outer_join_with_predictions
 
 
 logger = getLogger(__name__)
