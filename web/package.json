@@ -92,7 +92,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-push": "../.githooks/pre-push & npm run lint & npm run test:ci"
+      "pre-push": "npm run lint & npm run test:ci"
     }
   },
   "jest": {
