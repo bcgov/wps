@@ -9,7 +9,7 @@ from scipy.interpolate import griddata
 import app.db.database
 from app.db.crud.weather_models import get_predictions_from_coordinates
 from app.db.models import ModelRunGridSubsetPrediction, PredictionModelGridSubset, PredictionModel
-from app.schemas import (
+from app.schemas.weather_models import (
     WeatherModelPredictionSummary,
     WeatherModelPredictionSummaryValues,
     WeatherPredictionModel)

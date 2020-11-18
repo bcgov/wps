@@ -7,7 +7,7 @@ from datetime import datetime
 import app.stations
 import app.db.database
 from app.db.crud.forecasts import query_noon_forecast_records
-from app.schemas import (
+from app.schemas.forecasts import (
     NoonForecastSummariesResponse,
     NoonForecastSummary, NoonForecastSummaryValues
 )

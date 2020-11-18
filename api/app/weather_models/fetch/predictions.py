@@ -9,10 +9,10 @@ from collections import defaultdict
 from scipy.interpolate import griddata, interp1d
 from geoalchemy2.shape import to_shape
 import app.db.database
-from app.schemas import (WeatherModelPrediction,
-                         WeatherModelPredictionValues, WeatherModelRun,
-                         ModelRunPredictions,
-                         WeatherStationModelRunsPredictions)
+from app.schemas.weather_models import (WeatherModelPrediction,
+                                        WeatherModelPredictionValues, WeatherModelRun,
+                                        ModelRunPredictions,
+                                        WeatherStationModelRunsPredictions)
 from app.schemas.stations import WeatherStation
 from app.db.models import ModelRunGridSubsetPrediction
 import app.db.crud.weather_models
