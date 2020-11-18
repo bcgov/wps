@@ -1,8 +1,49 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import moment from 'moment'
 import * as d3 from 'd3'
+import { PDT_UTC_OFFSET } from 'utils/constants'
 
 export const transitionDuration = 50
+
+/**
+ * Returns a list of dates in which each date is 12am PDT within the domain
+ * @param domain a pair of dates, x domain
+ */
+export const getTickValues = (
+  domain: [Date, Date] | [undefined, undefined],
+  utcOffset: number,
+  includeFirst = true
+) => {
+  const [d1, d2] = domain
+
+  if (!d1) {
+    return []
+  } else if (d1 && !d2) {
+    return includeFirst ? [d1] : []
+  } else {
+    const result = includeFirst ? [d1] : []
+
+    let nextDate =
+      moment(d1)
+        .utcOffset(utcOffset)
+        .get('date') + 1
+    const lastDate = moment(d2)
+      .utcOffset(utcOffset)
+      .get('date')
+
+    while (lastDate >= nextDate) {
+      result.push(
+        moment(d1)
+          .utcOffset(utcOffset)
+          .set({ date: nextDate, hours: 0, minutes: 0 })
+          .toDate()
+      )
+      nextDate++
+    }
+
+    return result
+  }
+}
 
 /**
  * High order function to generate formatting functions
@@ -10,27 +51,18 @@ export const transitionDuration = 50
  */
 const formatDate = (format: string) => (value: Date | { valueOf(): number }) => {
   if (value instanceof Date) {
-    return moment(value).format(format)
+    return moment(value)
+      .utcOffset(PDT_UTC_OFFSET)
+      .format(format)
   }
 
-  return moment(value.valueOf()).format(format)
+  return moment(value.valueOf())
+    .utcOffset(PDT_UTC_OFFSET)
+    .format(format)
 }
 
 export const formatDateInDay = formatDate('Do')
 export const formatDateInMonthAndDay = formatDate('MMM D')
-
-export const storeDaysLookup = (
-  lookup: { [k: string]: Date },
-  datetime: string
-): Date => {
-  const date = d3.isoParse(datetime) as Date
-  const day = formatDateInMonthAndDay(date)
-  if (!lookup[day]) {
-    lookup[day] = new Date(date)
-  }
-
-  return date
-}
 
 /**
  * Note: className should be unique
@@ -203,8 +235,8 @@ export const drawVerticalLine = ({
   }
 
   const update = (newXScale: d3.ScaleTime<number, number>, duration?: number) => {
-    // Get inverted x using the original scale
-    // then calculate the new x with the new scale
+    // Get the corresponding value from the domain using the original scale
+    // then calculate new x with the updated x scale
     const newX = newXScale(xScale.invert(x))
 
     line
@@ -404,10 +436,7 @@ export const addLegend = ({
     .style('fill', color)
 }
 
-const getNearestByDate = <T extends { date: Date }>(
-  invertedDate: Date,
-  arr: T[]
-): T | undefined => {
+const getNearestByDate = <T extends { date: Date }>(invertedDate: Date, arr: T[]): T => {
   // What is bisect: https://observablehq.com/@d3/d3-bisect
   const bisect = d3.bisector((d: T) => d.date).left
   const index = bisect(arr, invertedDate, 1)
@@ -425,16 +454,16 @@ const getNearestByDate = <T extends { date: Date }>(
 
 /**
  * Attach a listener to display a tooltip in the graph, inspired by: https://observablehq.com/@d3/line-chart-with-tooltip
- * Note: .tooltip, .tooltip--hidden, and .tooltipCursor classes need to be defined
+ * Note: .tooltip, .tooltip--hidden, and .tooltip__cursor classes need to be defined
  * The T is a generic type that captures the type of the given data
  */
-export const addTooltipListener = <T extends { date: Date } & { [K in keyof T]: T[K] }>({
+export const addTooltipListener = <T extends { date: Date }>({
   svg,
   xScale,
   width,
   height,
   data,
-  getInnerText,
+  getTextData,
   textTestId,
   bgdTestId
 }: {
@@ -443,16 +472,16 @@ export const addTooltipListener = <T extends { date: Date } & { [K in keyof T]: 
   width: number
   height: number
   data: T[]
-  getInnerText: (pair: [string, ValueOf<T>], index: number) => string
+  getTextData: (d: T) => ({ text: string; color?: string } | undefined)[]
   textTestId?: string
   bgdTestId?: string
 }): void => {
-  const createTooltipCallout = (position?: 'right' | 'left') => (
-    // High order function
+  const tooltipCallout = (
     g: typeof svg,
-    value: string
+    position: 'right' | 'left',
+    textData: { text: string; color?: string }[]
   ) => {
-    if (!value) return g.attr('class', 'tooltip--hidden')
+    if (!textData) return g.attr('class', 'tooltip--hidden')
 
     g.attr('class', 'tooltip')
 
@@ -470,11 +499,12 @@ export const addTooltipListener = <T extends { date: Date } & { [K in keyof T]: 
       .call(txt =>
         txt
           .selectAll('tspan')
-          .data((value + '').split(/\n/))
+          .data(textData)
           .join('tspan')
+          .attr('fill', d => d.color || 'black')
           .attr('x', 0)
-          .attr('y', (d, i) => `${i * 1.5}em`)
-          .text(d => d)
+          .attr('y', (_, i) => `${i * 1.5}em`)
+          .text(d => d.text)
       )
     if (textTestId) {
       text.attr('data-testid', textTestId)
@@ -509,6 +539,7 @@ export const addTooltipListener = <T extends { date: Date } & { [K in keyof T]: 
       `
     )
   }
+
   // Draw a rectangular that covers the whole svg space so that
   // the listener can react to user's mouseover in anywhere within the graph
   svg
@@ -516,6 +547,7 @@ export const addTooltipListener = <T extends { date: Date } & { [K in keyof T]: 
     .attr('width', width)
     .attr('height', height)
     .attr('fill', 'transparent')
+    .attr('class', 'tooltip--background')
   if (bgdTestId) {
     svg.attr('data-testid', bgdTestId)
   }
@@ -525,18 +557,22 @@ export const addTooltipListener = <T extends { date: Date } & { [K in keyof T]: 
     .attr('y1', 0)
     .attr('x2', 0)
     .attr('y2', height)
-    .attr('class', 'tooltipCursor')
+    .attr('class', 'tooltip__cursor')
   const tooltip = svg.append('g')
   const removeTooltip = () => {
-    tooltip.call(createTooltipCallout(), null)
+    tooltip.call(tooltipCallout)
     tooltipCursor.style('opacity', 0)
   }
   svg.on('touchmove mousemove', function() {
     if (data.length === 0) return
 
     const mx = d3.mouse(this)[0]
-    // if user's mouse is not within the weather value dots range
-    if (mx < xScale(data[0].date) || mx > xScale(data[data.length - 1].date)) {
+    // if user's mouse is far away from the data range
+    const extraRange = 25
+    if (
+      mx < xScale(data[0].date) - extraRange ||
+      mx > xScale(data[data.length - 1].date) + extraRange
+    ) {
       return removeTooltip()
     }
 
@@ -546,12 +582,10 @@ export const addTooltipListener = <T extends { date: Date } & { [K in keyof T]: 
 
     const nearestX = xScale(nearest.date)
     const position = width / 2 > nearestX ? 'right' : 'left'
-    const tooltipText = Object.entries(nearest)
-      .map(getInnerText)
-      .join('\n') // new line after each text
+    const tooltipTextData = getTextData(nearest).filter(d => d)
     tooltip
       .attr('transform', `translate(${nearestX}, ${height / 3})`)
-      .call(createTooltipCallout(position), tooltipText)
+      .call(tooltipCallout, position, tooltipTextData)
     tooltipCursor.attr('transform', `translate(${nearestX}, 0)`).style('opacity', 1)
   })
   svg.on('touchend mouseleave', removeTooltip)
