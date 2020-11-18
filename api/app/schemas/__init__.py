@@ -3,8 +3,7 @@
 from datetime import datetime
 from typing import List, Dict
 from pydantic import BaseModel
-from app.schemas.stations import (Season, WeatherStation, WeatherStationsResponse,
-                                  StationCodeList)
+
 from app.schemas.percentiles import (YearRange, PercentileRequest, StationSummary, MeanValues,
                                      CalculatedResponse)
 from app.schemas.observations import (

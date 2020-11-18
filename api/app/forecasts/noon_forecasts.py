@@ -5,7 +5,8 @@ import logging
 from collections import defaultdict
 from datetime import datetime, timezone
 import math
-from app.schemas import NoonForecast, NoonForecastResponse, NoonForecastValue, StationCodeList
+from app.schemas import NoonForecast, NoonForecastResponse, NoonForecastValue
+from app.schemas.stations import StationCodeList
 import app.db.database
 from app.db.crud.forecasts import query_noon_forecast_records
 import app.db.models

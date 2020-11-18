@@ -23,7 +23,7 @@ from app.db.crud.weather_models import (get_processed_file_record,
                                         get_weather_station_model_prediction)
 from app.weather_models.machine_learning import StationMachineLearning
 from app.weather_models import ModelEnum, ProjectionEnum, construct_interpolated_noon_prediction
-from app.schemas import WeatherStation
+from app.schemas.stations import WeatherStation
 from app import configure_logging
 import app.time_utils as time_utils
 from app.stations import get_stations_synchronously

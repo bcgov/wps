@@ -3,7 +3,7 @@
 import datetime
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
-from app.schemas import StationCodeList
+from app.schemas.stations import StationCodeList
 from app.db.models.forecasts import NoonForecast
 
 

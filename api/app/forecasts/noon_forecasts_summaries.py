@@ -8,9 +8,10 @@ import app.stations
 import app.db.database
 from app.db.crud.forecasts import query_noon_forecast_records
 from app.schemas import (
-    StationCodeList, NoonForecastSummariesResponse,
-    NoonForecastSummary, NoonForecastSummaryValues, WeatherStation
+    NoonForecastSummariesResponse,
+    NoonForecastSummary, NoonForecastSummaryValues
 )
+from app.schemas.stations import WeatherStation, StationCodeList
 
 LOGGER = logging.getLogger(__name__)
 

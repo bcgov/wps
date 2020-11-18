@@ -115,7 +115,7 @@ async def get_health():
 
 @api.post('/models/{model}/predictions/', response_model=schemas.WeatherModelPredictionResponse)
 async def get_model_predictions(
-        model: ModelEnum, request: schemas.StationCodeList, _: bool = Depends(authenticate)):
+        model: ModelEnum, request: schemas.stations.StationCodeList, _: bool = Depends(authenticate)):
     """ Returns 10 day noon prediction based on the global deterministic prediction system (GDPS)
     for the specified set of weather stations. """
     try:
@@ -136,7 +136,7 @@ async def get_model_predictions(
 @api.post('/models/{model}/predictions/summaries/',
           response_model=schemas.WeatherModelPredictionSummaryResponse)
 async def get_model_prediction_summaries(
-        model: ModelEnum, request: schemas.StationCodeList, _: bool = Depends(authenticate)):
+        model: ModelEnum, request: schemas.stations.StationCodeList, _: bool = Depends(authenticate)):
     """ Returns a summary of predictions for a given model. """
     try:
         logger.info('/models/%s/predictions/summaries/', model.name)
@@ -150,7 +150,7 @@ async def get_model_prediction_summaries(
 @api.post('/models/{model}/predictions/historic/most_recent/',
           response_model=schemas.WeatherModelPredictionResponse)
 async def get_most_recent_historic_model_values(
-        model: ModelEnum, request: schemas.StationCodeList, _: bool = Depends(authenticate)):
+        model: ModelEnum, request: schemas.stations.StationCodeList, _: bool = Depends(authenticate)):
     """ Returns the weather values for the last model prediction that was issued
     for the station before actual weather readings became available.
     NOTE: This api method can be made redundant - calling /models/{model}/predictions/most_recent/
@@ -169,7 +169,7 @@ async def get_most_recent_historic_model_values(
 @api.post('/models/{model}/predictions/most_recent/',
           response_model=schemas.WeatherStationsModelRunsPredictionsResponse)
 async def get_most_recent_model_values(
-        model: ModelEnum, request: schemas.StationCodeList, _: bool = Depends(authenticate)):
+        model: ModelEnum, request: schemas.stations.StationCodeList, _: bool = Depends(authenticate)):
     """ Returns the weather values for the last model prediction that was issued
     for the station before actual weather readings became available.
     """
@@ -185,7 +185,7 @@ async def get_most_recent_model_values(
 
 
 @api.post('/noon_forecasts/', response_model=schemas.NoonForecastResponse)
-def get_noon_forecasts(request: schemas.StationCodeList, _: bool = Depends(authenticate)):
+def get_noon_forecasts(request: schemas.stations.StationCodeList, _: bool = Depends(authenticate)):
     """ Returns noon forecasts pulled from BC FireWeather Phase 1 website for the specified
     set of weather stations. """
     try:
@@ -200,7 +200,8 @@ def get_noon_forecasts(request: schemas.StationCodeList, _: bool = Depends(authe
 
 
 @api.post('/noon_forecasts/summaries/', response_model=schemas.NoonForecastSummariesResponse)
-async def get_noon_forecasts_summaries(request: schemas.StationCodeList, _: bool = Depends(authenticate)):
+async def get_noon_forecasts_summaries(request: schemas.stations.StationCodeList,
+                                       _: bool = Depends(authenticate)):
     """ Returns summaries of noon forecasts for given weather stations """
     try:
         logger.info('/noon_forecasts/summaries/')
@@ -214,7 +215,7 @@ async def get_noon_forecasts_summaries(request: schemas.StationCodeList, _: bool
 
 
 @api.post('/hourlies/', response_model=schemas.WeatherStationHourlyReadingsResponse)
-async def get_hourlies(request: schemas.StationCodeList, _: bool = Depends(authenticate)):
+async def get_hourlies(request: schemas.stations.StationCodeList, _: bool = Depends(authenticate)):
     """ Returns hourlies for the last 5 days, for the specified weather stations """
     try:
         logger.info('/hourlies/')
@@ -225,14 +226,14 @@ async def get_hourlies(request: schemas.StationCodeList, _: bool = Depends(authe
         raise
 
 
-@api.get('/stations/', response_model=schemas.WeatherStationsResponse)
+@api.get('/stations/', response_model=schemas.stations.WeatherStationsResponse)
 async def get_stations():
     """ Return a list of fire weather stations.
     """
     try:
         logger.info('/stations/')
         weather_stations = await stations.get_stations()
-        return schemas.WeatherStationsResponse(weather_stations=weather_stations)
+        return schemas.stations.WeatherStationsResponse(weather_stations=weather_stations)
     except Exception as exception:
         logger.critical(exception, exc_info=True)
         raise

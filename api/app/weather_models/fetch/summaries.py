@@ -12,8 +12,8 @@ from app.db.models import ModelRunGridSubsetPrediction, PredictionModelGridSubse
 from app.schemas import (
     WeatherModelPredictionSummary,
     WeatherModelPredictionSummaryValues,
-    WeatherStation,
     WeatherPredictionModel)
+from app.schemas.stations import WeatherStation
 from app.weather_models import ModelEnum
 import app.stations
 from app.weather_models.fetch import extract_stations_in_polygon

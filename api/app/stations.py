@@ -5,7 +5,7 @@ import asyncio
 import logging
 from typing import List
 import json
-from app.schemas import WeatherStation
+from app.schemas.stations import WeatherStation
 from app import wildfire_one
 
 logger = logging.getLogger(__name__)

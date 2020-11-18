@@ -12,7 +12,8 @@ import geopandas
 from aiohttp import ClientSession, BasicAuth, TCPConnector
 from shapely.geometry import Point
 from app import config
-from app.schemas import WeatherStation, WeatherStationHourlyReadings, WeatherReading
+from app.schemas import WeatherStationHourlyReadings, WeatherReading
+from app.schemas.stations import WeatherStation
 import app.time_utils
 
 
