@@ -6,8 +6,8 @@ from typing import List
 import pytest
 from pytest_bdd import scenario, given, then, when
 from app.db.models import PredictionModel, PredictionModelGridSubset
-from app.models import machine_learning
-from app.tests.models.crud import get_actuals_left_outer_join_with_predictions
+from app.weather_models import machine_learning
+from app.tests.weather_models.crud import get_actuals_left_outer_join_with_predictions
 
 
 @pytest.fixture()

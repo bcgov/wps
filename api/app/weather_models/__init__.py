@@ -1,4 +1,4 @@
-""" Code common to app.models.fetch """
+""" Code common to app.weather_models.fetch """
 from enum import Enum
 from typing import List
 from scipy.interpolate import interp1d

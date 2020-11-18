@@ -13,11 +13,11 @@ from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
 import app.time_utils as time_utils
 import app.db.database
-from app.schemas import WeatherStation, Season
-from app.models import env_canada, machine_learning
+from app.schemas.stations import WeatherStation, Season
+from app.weather_models import env_canada, machine_learning
 from app.db.models import (PredictionModel, ProcessedModelRunUrl, PredictionModelRunTimestamp,
                            PredictionModelGridSubset, ModelRunGridSubsetPrediction)
-from app.tests.models.crud import get_actuals_left_outer_join_with_predictions
+from app.tests.weather_models.crud import get_actuals_left_outer_join_with_predictions
 # pylint: disable=unused-argument, redefined-outer-name
 
 

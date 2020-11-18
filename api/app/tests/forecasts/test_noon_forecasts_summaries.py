@@ -7,7 +7,7 @@ from pytest_bdd import scenario, given, then
 from fastapi.testclient import TestClient
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 import app.main
-from app.db.models import NoonForecast
+from app.db.models.forecasts import NoonForecast
 import app.time_utils as time_utils
 
 

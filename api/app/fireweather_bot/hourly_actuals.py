@@ -8,8 +8,8 @@ from sqlalchemy.exc import IntegrityError
 import pandas as pd
 from app import configure_logging, config
 import app.db.database
-from app.db.crud import save_hourly_actual
-from app.db.models import HourlyActual
+from app.db.crud.observations import save_hourly_actual
+from app.db.models.observations import HourlyActual
 import app.time_utils
 from app.fireweather_bot.common import (BaseBot, get_station_names_to_codes)
 from app.rocketchat_notifications import send_rocketchat_notification

@@ -1,34 +1,16 @@
-""" Class models that reflect resources and map to database tables
+""" Class models that reflect resources and map to database tables relating to weather models.
 """
-import math
 import logging
-from datetime import datetime
 from sqlalchemy import (Column, String, Integer, Float, Boolean,
-                        TIMESTAMP, Sequence, ForeignKey, UniqueConstraint)
-from sqlalchemy.types import TypeDecorator
+                        Sequence, ForeignKey, UniqueConstraint)
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import ARRAY
 from geoalchemy2 import Geometry
 from app.db.database import Base
 import app.time_utils as time_utils
-
+from app.db.models.common import TZTimeStamp
 
 logger = logging.getLogger(__name__)
-
-
-class TZTimeStamp(TypeDecorator):  # pylint: disable=abstract-method
-    """ TimeStamp type that ensures that timezones are always specified.
-    If the timezone isn't specified, you aren't guaranteed that you're going to get consistent times. """
-    impl = TIMESTAMP(timezone=True)
-
-    def process_bind_param(self, value, dialect):
-        if isinstance(value, datetime) and value.tzinfo is None:
-            logger.warning('type:%s tzinfo:%s', type(value), value.tzinfo)
-            raise ValueError('{!r} must be TZ-aware'.format(value))
-        return value
-
-    def __repr__(self):
-        return 'TZTimeStamp()'
 
 
 class ProcessedModelRunUrl(Base):
@@ -212,109 +194,3 @@ class WeatherStationModelPrediction(Base):
 
     def __str__(self):
         return ('{self.station_code} {self.prediction_timestamp} {self.tmp_tgl_2}').format(self=self)
-
-
-class HourlyActual(Base):
-    """ Class representing table structure of 'hourly_actuals' table in DB.
-    Default float values of math.nan are used for the weather variables that are
-    sometimes null (None), because Postgres evaluates None != None, so the unique
-    constraint doesn't work on records with >=1 None values. But math.nan == math.nan
-    """
-    __tablename__ = 'hourly_actuals'
-    __table_args__ = (
-        UniqueConstraint('weather_date',
-                         'station_code'),
-        {'comment': 'The hourly_actuals for a weather station and weather date.'}
-    )
-    id = Column(Integer, primary_key=True)
-    weather_date = Column(TZTimeStamp, nullable=False)
-    station_code = Column(Integer, nullable=False)
-    temp_valid = Column(Boolean, default=False, nullable=False)
-    temperature = Column(Float, nullable=False)
-    dewpoint = Column(Float, nullable=False)
-    rh_valid = Column(Boolean, default=False, nullable=False)
-    relative_humidity = Column(Float, nullable=False)
-    wdir_valid = Column(Boolean, default=False, nullable=False)
-    # Set default wind_direction to NaN because some stations don't report it
-    wind_direction = Column(Float, nullable=False, default=math.nan)
-    wspeed_valid = Column(Boolean, default=False, nullable=False)
-    wind_speed = Column(Float, nullable=False)
-    precip_valid = Column(Boolean, default=False, nullable=False)
-    precipitation = Column(Float, nullable=False)
-    ffmc = Column(Float, nullable=False, default=math.nan)
-    isi = Column(Float, nullable=False, default=math.nan)
-    fwi = Column(Float, nullable=False, default=math.nan)
-    created_at = Column(TZTimeStamp, nullable=False,
-                        default=time_utils.get_utc_now())
-
-    def __str__(self):
-        return (
-            'station_code:{self.station_code}, '
-            'weather_date:{self.weather_date}, '
-            'temperature :{self.temperature}, '
-            'relative_humidity:{self.relative_humidity}'
-        ).format(self=self)
-
-
-class NoonForecast(Base):
-    """ Class representing table structure of 'noon_forecasts' table in DB.
-    Default float values of math.nan are used for the weather variables that are
-    sometimes null (None), because Postgres evaluates None != None, so the unique
-    constraint doesn't work on records with >=1 None values. But math.nan == math.nan
-    """
-    __tablename__ = 'noon_forecasts'
-    __table_args__ = (
-        UniqueConstraint('weather_date',
-                         'station_code',
-                         'temp_valid',
-                         'temperature',
-                         'rh_valid',
-                         'relative_humidity',
-                         'wdir_valid',
-                         'wind_direction',
-                         'wspeed_valid',
-                         'wind_speed',
-                         'precip_valid',
-                         'precipitation',
-                         'gc',
-                         'ffmc',
-                         'dmc',
-                         'dc',
-                         'isi',
-                         'bui',
-                         'fwi',
-                         'danger_rating'),
-        {'comment': 'The noon_forecast for a weather station and weather date.'}
-    )
-    id = Column(Integer, primary_key=True)
-    weather_date = Column(TZTimeStamp, nullable=False)
-    station_code = Column(Integer, nullable=False)
-    temp_valid = Column(Boolean, default=False, nullable=False)
-    temperature = Column(Float, nullable=False)
-    rh_valid = Column(Boolean, default=False, nullable=False)
-    relative_humidity = Column(Float, nullable=False)
-    wdir_valid = Column(Boolean, default=False, nullable=False)
-    # Set default wind_direction to NaN because some stations don't report it
-    wind_direction = Column(Float, nullable=False, default=math.nan)
-    wspeed_valid = Column(Boolean, default=False, nullable=False)
-    wind_speed = Column(Float, nullable=False)
-    precip_valid = Column(Boolean, default=False, nullable=False)
-    precipitation = Column(Float, nullable=False)
-    gc = Column(Float, nullable=False, default=math.nan)
-    ffmc = Column(Float, nullable=False, default=math.nan)
-    dmc = Column(Float, nullable=False, default=math.nan)
-    dc = Column(Float, nullable=False, default=math.nan)
-    isi = Column(Float, nullable=False, default=math.nan)
-    bui = Column(Float, nullable=False, default=math.nan)
-    fwi = Column(Float, nullable=False, default=math.nan)
-    danger_rating = Column(Integer, nullable=False)
-    created_at = Column(TZTimeStamp, nullable=False,
-                        default=time_utils.get_utc_now())
-
-    def __str__(self):
-        return (
-            'weather_date:{self.weather_date}, '
-            'created_at:{self.created_at}, '
-            'temp={self.temperature}, '
-            'ffmc={self.ffmc}'
-        ).format(self=self)

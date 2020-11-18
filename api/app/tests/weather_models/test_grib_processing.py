@@ -4,7 +4,7 @@ import logging
 from operator import itemgetter
 from pytest_bdd import scenario, given, then, when
 from pyproj import CRS, Transformer
-import app.models.process_grib as process_grib
+import app.weather_models.process_grib as process_grib
 
 logger = logging.getLogger(__name__)
 
