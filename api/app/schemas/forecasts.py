@@ -1,4 +1,4 @@
-""" This module contains pydandict schemas relating to forecasts made by weather forecasters for the API.
+""" This module contains pydantic schemas relating to forecasts made by weather forecasters for the API.
 """
 from datetime import datetime
 from typing import List
