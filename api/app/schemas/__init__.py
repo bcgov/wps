@@ -10,7 +10,8 @@ from app.schemas.percentiles import (YearRange, PercentileRequest, StationSummar
 from app.schemas.observations import (
     WeatherReading, WeatherStationHourlyReadings, WeatherStationHourlyReadingsResponse)
 from app.schemas.forecasts import (NoonForecast, NoonForecastResponse,
-                                   NoonForecastValue, NoonForecastSummariesResponse, NoonForecastSummary, NoonForecastSummaryValues)
+                                   NoonForecastValue, NoonForecastSummariesResponse, NoonForecastSummary,
+                                   NoonForecastSummaryValues)
 from app.schemas.weather_models import (
     WeatherModelPredictionSummaryValues, WeatherModelPredictionSummary,
     WeatherModelPredictionSummaryResponse, WeatherPredictionModel, WeatherModelPrediction,
