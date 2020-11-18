@@ -8,12 +8,12 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.applications import Starlette
 from app import schemas, configure_logging
-from app.models.fetch.predictions import (
+from app.weather_models.fetch.predictions import (
     fetch_model_predictions,
     fetch_predictions_by_station_code,
     fetch_model_run_predictions_by_station_code)
-from app.models.fetch.summaries import fetch_model_prediction_summaries
-from app.models import ModelEnum, ProjectionEnum
+from app.weather_models.fetch.summaries import fetch_model_prediction_summaries
+from app.weather_models import ModelEnum, ProjectionEnum
 from app.percentile import get_precalculated_percentiles
 from app.forecasts.noon_forecasts import fetch_noon_forecasts
 from app.forecasts.noon_forecasts_summaries import fetch_noon_forecasts_summaries

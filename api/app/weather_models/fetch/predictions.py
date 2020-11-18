@@ -17,8 +17,8 @@ from app.schemas import (WeatherStation, WeatherModelPrediction,
 from app.db.models import ModelRunGridSubsetPrediction
 import app.db.crud.weather_models
 import app.stations
-from app.models import ModelEnum, ProjectionEnum
-from app.models.fetch import extract_stations_in_polygon
+from app.weather_models import ModelEnum, ProjectionEnum
+from app.weather_models.fetch import extract_stations_in_polygon
 
 logger = logging.getLogger(__name__)
 

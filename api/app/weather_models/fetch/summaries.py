@@ -14,9 +14,9 @@ from app.schemas import (
     WeatherModelPredictionSummaryValues,
     WeatherStation,
     WeatherPredictionModel)
-from app.models import ModelEnum
+from app.weather_models import ModelEnum
 import app.stations
-from app.models.fetch import extract_stations_in_polygon
+from app.weather_models.fetch import extract_stations_in_polygon
 
 
 logger = logging.getLogger(__name__)

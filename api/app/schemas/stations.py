@@ -30,9 +30,3 @@ class WeatherStationsResponse(BaseModel):
 class StationCodeList(BaseModel):
     """ List of station codes. """
     stations: List[int]
-
-
-class Ecodivision(BaseModel):
-    """ Name and core fire season of BC Ecodivision. """
-    name: str
-    core_season: Season

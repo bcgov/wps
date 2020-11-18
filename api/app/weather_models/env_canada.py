@@ -21,13 +21,13 @@ from app.db.crud.weather_models import (get_processed_file_record,
                                         get_model_run_predictions_for_grid,
                                         get_grid_for_coordinate,
                                         get_weather_station_model_prediction)
-from app.models.machine_learning import StationMachineLearning
-from app.models import ModelEnum, ProjectionEnum, construct_interpolated_noon_prediction
+from app.weather_models.machine_learning import StationMachineLearning
+from app.weather_models import ModelEnum, ProjectionEnum, construct_interpolated_noon_prediction
 from app.schemas import WeatherStation
 from app import configure_logging
 import app.time_utils as time_utils
 from app.stations import get_stations_synchronously
-from app.models.process_grib import GribFileProcessor, ModelRunInfo
+from app.weather_models.process_grib import GribFileProcessor, ModelRunInfo
 from app.db.models import (ProcessedModelRunUrl, PredictionModelRunTimestamp,
                            WeatherStationModelPrediction, ModelRunGridSubsetPrediction)
 import app.db.database

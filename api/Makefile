@@ -93,15 +93,15 @@ run-raw:
 	${call run-api}
 
 run-env-canada-raw:
-	POSTGRES_HOST=localhost python -m app.models.env_canada GDPS
-	POSTGRES_HOST=localhost python -m app.models.env_canada HRDPS
-	POSTGRES_HOST=localhost python -m app.models.env_canada RDPS
+	POSTGRES_HOST=localhost python -m app.weather_models.env_canada GDPS
+	POSTGRES_HOST=localhost python -m app.weather_models.env_canada HRDPS
+	POSTGRES_HOST=localhost python -m app.weather_models.env_canada RDPS
 
 run-donald-raw:
 	# Synonymn for run-env-canada-raw
-	POSTGRES_HOST=localhost python -m app.models.env_canada GDPS
-	POSTGRES_HOST=localhost python -m app.models.env_canada HRDPS
-	POSTGRES_HOST=localhost python -m app.models.env_canada RDPS
+	POSTGRES_HOST=localhost python -m app.weather_models.env_canada GDPS
+	POSTGRES_HOST=localhost python -m app.weather_models.env_canada HRDPS
+	POSTGRES_HOST=localhost python -m app.weather_models.env_canada RDPS
 
 run-bender:
 	poetry run python -m app.fireweather_bot.noon_forecasts
@@ -113,9 +113,9 @@ run-marvin-raw:
 	python -m app.fireweather_bot.hourly_actuals
 
 run-all-bots-raw:
-	POSTGRES_HOST=localhost python -m app.models.env_canada GDPS
-	POSTGRES_HOST=localhost python -m app.models.env_canada HRDPS
-	POSTGRES_HOST=localhost python -m app.models.env_canada RDPS
+	POSTGRES_HOST=localhost python -m app.weather_models.env_canada GDPS
+	POSTGRES_HOST=localhost python -m app.weather_models.env_canada HRDPS
+	POSTGRES_HOST=localhost python -m app.weather_models.env_canada RDPS
 	python -m app.fireweather_bot.hourly_actuals
 	python -m app.fireweather_bot.noon_forecasts
 
@@ -164,15 +164,15 @@ docker-shell-db:
 docker-run-env-canada:
 	# Run a python script to download model data from Env Canada on docker
 	# Needs to run "make docker-run" first
-	docker-compose exec api python -m app.models.env_canada GDPS
-	docker-compose exec api python -m app.models.env_canada HRDPS
-	docker-compose exec api python -m app.models.env_canada RDPS
+	docker-compose exec api python -m app.weather_models.env_canada GDPS
+	docker-compose exec api python -m app.weather_models.env_canada HRDPS
+	docker-compose exec api python -m app.weather_models.env_canada RDPS
 
 docker-run-donald:
 	# Synonymn for docker-run-env-canada
-	docker-compose exec api python -m app.models.env_canada GDPS
-	docker-compose exec api python -m app.models.env_canada HRDPS
-	docker-compose exec api python -m app.models.env_canada RDPS
+	docker-compose exec api python -m app.weather_models.env_canada GDPS
+	docker-compose exec api python -m app.weather_models.env_canada HRDPS
+	docker-compose exec api python -m app.weather_models.env_canada RDPS
 
 docker-run-bender:
 	# Run a python script to download forecast data from BC Wild Fire on docker
