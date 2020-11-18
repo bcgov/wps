@@ -43,16 +43,16 @@ export const useStyles = makeStyles({
       font: '9px sans-serif',
       fill: currLineColor
     },
-    '& .tooltipCursor': {
-      strokeWidth: 1,
-      stroke: 'gray',
-      strokeDasharray: '1,1',
-      opacity: 0
-    },
     '& .tooltip': {
       pointerEvents: 'none',
       font: '8.5px sans-serif',
 
+      '&__cursor': {
+        strokeWidth: 1,
+        stroke: 'gray',
+        strokeDasharray: '1,1',
+        opacity: 0
+      },
       '&--hidden': {
         display: 'none'
       }

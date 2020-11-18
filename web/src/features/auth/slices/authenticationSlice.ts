@@ -4,6 +4,7 @@ import axios from 'api/axios'
 import { AppThunk } from 'app/store'
 import { selectToken } from 'app/rootReducer'
 import kcInstance, { kcInitOption } from 'features/auth/keycloak'
+import { logError } from 'utils/error'
 
 interface State {
   authenticating: boolean
@@ -57,7 +58,7 @@ const authSlice = createSlice({
   }
 })
 
-export const {
+const {
   authenticateStart,
   authenticateFinished,
   authenticateError,
@@ -81,7 +82,7 @@ export const authenticate = (): AppThunk => dispatch => {
       dispatch(authenticateFinished({ isAuthenticated, token: kcInstance?.token }))
     })
     .catch(err => {
-      console.error(err)
+      logError(err)
       dispatch(authenticateError('Failed to authenticate.'))
     })
   // Set a callback that will be triggered when the access token is expired

@@ -27,7 +27,7 @@ const getPastValues = () => {
       const wind_speed = 20 + Math.sin(length) * sineWeight
       const wind_direction = 20 + Math.sin(length) * sineWeight
       const barometric_pressure = 10 + Math.sin(length) * sineWeight
-      const precipitation = 10 + Math.sin(length) * sineWeight
+      const precip = Math.random()
       const datetime = moment(first)
         .add(length, 'hours')
         .utc()
@@ -41,7 +41,7 @@ const getPastValues = () => {
         wind_speed,
         wind_direction,
         barometric_pressure,
-        precipitation,
+        precipitation: precip,
         ffmc: null,
         isi: null,
         fwi: null
@@ -83,7 +83,8 @@ const getPastValues = () => {
         _pastForecastValues.push({
           datetime,
           temperature: temp + (Math.random() - 0.5) * 8,
-          relative_humidity: rh + (Math.random() - 0.5) * 8
+          relative_humidity: rh + (Math.random() - 0.5) * 8,
+          total_precipitation: 24 * precip + (Math.random() - 0.5) * 4
         })
         _forecastSummaries.push({
           datetime,
@@ -151,7 +152,7 @@ const getFutureValues = () => {
       const dew_point = 20 + Math.sin(length) * sineWeight
       const wind_speed = 20 + Math.sin(length) * sineWeight
       const wind_direction = 20 + Math.sin(length) * sineWeight
-      const total_precipitation = 10 + Math.sin(length) * sineWeight
+      const precip = Math.random()
       const datetime = moment(first)
         .add(length, 'hours')
         .utc()
@@ -184,7 +185,7 @@ const getFutureValues = () => {
           bias_adjusted_relative_humidity: rh + (Math.random() - 0.5) * 8 - 5,
           wind_speed,
           wind_direction,
-          total_precipitation
+          total_precipitation: precip
         })
       }
 
@@ -193,7 +194,8 @@ const getFutureValues = () => {
         _forecastValues.push({
           datetime,
           temperature: temp + (Math.random() - 0.5) * 8,
-          relative_humidity: rh + (Math.random() - 0.5) * 8
+          relative_humidity: rh + (Math.random() - 0.5) * 8,
+          total_precipitation: 24 * precip + (Math.random() - 0.5) * 4
         })
       }
     }

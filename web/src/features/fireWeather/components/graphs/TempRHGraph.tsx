@@ -7,6 +7,7 @@ import { ForecastSummary as _ForecastSummary, NoonForecastValue } from 'api/fore
 import { formatDateInPDT } from 'utils/date'
 import * as styles from 'features/fireWeather/components/graphs/TempRHGraph.styles'
 import * as d3Utils from 'utils/d3'
+import { PDT_UTC_OFFSET } from 'utils/constants'
 
 interface WeatherValue {
   date: Date
@@ -67,7 +68,6 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         .remove()
 
       /* Prepare for data */
-      const daysLookup: { [k: string]: Date } = {} // will help to create the date label on x axis
       const datesFromAllSources: Date[] = [] // will be used to determine x axis range
       const weatherValuesByDatetime: { [k: string]: WeatherValue } = {}
 
@@ -78,7 +78,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
           return
         }
 
-        const date = d3Utils.storeDaysLookup(daysLookup, v.datetime)
+        const date = new Date(v.datetime)
         datesFromAllSources.push(date)
 
         const observation = { date, temp: NaN, rh: NaN }
@@ -93,29 +93,29 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         weatherValuesByDatetime[v.datetime] = observation
       })
 
-      const forecastValues = _forecastValues.map(d => {
-        const date = d3Utils.storeDaysLookup(daysLookup, d.datetime)
+      const forecastValues = _forecastValues.map(v => {
+        const date = new Date(v.datetime)
         datesFromAllSources.push(date)
 
         const forecast = {
           date,
-          forecastTemp: Number(d.temperature.toFixed(2)),
-          forecastRH: Math.round(d.relative_humidity)
+          forecastTemp: Number(v.temperature.toFixed(2)),
+          forecastRH: Math.round(v.relative_humidity)
         }
         // combine with existing observed and models values
-        weatherValuesByDatetime[d.datetime] = {
-          ...weatherValuesByDatetime[d.datetime],
+        weatherValuesByDatetime[v.datetime] = {
+          ...weatherValuesByDatetime[v.datetime],
           ...forecast
         }
 
         return forecast
       })
 
-      const forecastSummaries: ForecastSummary[] = _forecastSummaries.map(d => {
-        const date = d3Utils.storeDaysLookup(daysLookup, d.datetime)
+      const forecastSummaries: ForecastSummary[] = _forecastSummaries.map(s => {
+        const date = new Date(s.datetime)
         datesFromAllSources.push(date)
 
-        return { ...d, date }
+        return { ...s, date }
       })
 
       // GDPS
@@ -128,7 +128,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
           return
         }
 
-        const date = d3Utils.storeDaysLookup(daysLookup, v.datetime)
+        const date = new Date(v.datetime)
         datesFromAllSources.push(date)
 
         const model = {
@@ -151,11 +151,11 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         }
       })
 
-      const modelSummaries: ModelSummary[] = _modelSummaries.map(d => {
-        const date = d3Utils.storeDaysLookup(daysLookup, d.datetime)
+      const modelSummaries: ModelSummary[] = _modelSummaries.map(s => {
+        const date = new Date(s.datetime)
         datesFromAllSources.push(date)
 
-        return { ...d, date }
+        return { ...s, date }
       })
 
       // Bias Adjusted GDPS
@@ -170,7 +170,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
           return
         }
 
-        const date = d3Utils.storeDaysLookup(daysLookup, v.datetime)
+        const date = new Date(v.datetime)
         datesFromAllSources.push(date)
 
         const biasAdjModel = {
@@ -200,7 +200,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
           return
         }
 
-        const date = d3Utils.storeDaysLookup(daysLookup, v.datetime)
+        const date = new Date(v.datetime)
         datesFromAllSources.push(date)
 
         const hrModel = { date, hrModelTemp: NaN, hrModelRH: NaN }
@@ -217,11 +217,11 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
           ...hrModel
         }
       })
-      const highResModelSummaries: ModelSummary[] = _highResModelSummaries.map(d => {
-        const date = d3Utils.storeDaysLookup(daysLookup, d.datetime)
+      const highResModelSummaries: ModelSummary[] = _highResModelSummaries.map(s => {
+        const date = new Date(s.datetime)
         datesFromAllSources.push(date)
 
-        return { ...d, date }
+        return { ...s, date }
       })
 
       // RDPS
@@ -232,7 +232,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
           return
         }
 
-        const date = d3Utils.storeDaysLookup(daysLookup, v.datetime)
+        const date = new Date(v.datetime)
         datesFromAllSources.push(date)
 
         const regModel = { date, regModelTemp: NaN, regModelRH: NaN }
@@ -250,7 +250,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         }
       })
       const regionalModelSummaries: ModelSummary[] = _regionalModelSummaries.map(d => {
-        const date = d3Utils.storeDaysLookup(daysLookup, d.datetime)
+        const date = new Date(d.datetime)
         datesFromAllSources.push(date)
 
         return { ...d, date }
@@ -260,17 +260,8 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
       const weatherValues = Object.values(weatherValuesByDatetime).sort(
         (a, b) => a.date.valueOf() - b.date.valueOf()
       )
-      const xDomain = d3.extent(datesFromAllSources) as [Date, Date]
-      const xTickValues = Object.values(daysLookup)
-        .sort((a, b) => a.valueOf() - b.valueOf()) // Sort in ascending order
-        .map((day, idx) => {
-          if (idx === 0) {
-            // Return the first day as it is
-            return day
-          }
-          // Return the rest with 0h 0m 0s set
-          return new Date(day.setHours(0, 0, 0))
-        })
+      const xDomain = d3.extent(datesFromAllSources)
+      const xTickValues = d3Utils.getTickValues(xDomain, PDT_UTC_OFFSET)
 
       /* Set dimensions and svg groups */
       const margin = { top: 10, right: 40, bottom: 200, left: 40 }
@@ -320,9 +311,9 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
       /* Create scales for x and y axes */
       const xScale = d3
         .scaleTime()
-        .domain(xDomain)
+        .domain(xDomain[0] && xDomain[1] ? xDomain : [])
         .range([0, chartWidth])
-      const xSidebarScale = xScale.copy()
+      const xScaleOriginal = xScale.copy()
       const yTempScale = d3
         .scaleLinear()
         .domain([-10, 40])
@@ -394,7 +385,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         d3Utils.drawVerticalLine({
           svg: chart,
           className: 'forecastSummaryTempLine',
-          xScale: xScale.copy(),
+          xScale: xScaleOriginal,
           x: xScale(forecast.date),
           y1: yTempScale(forecast.tmp_min),
           y2: yTempScale(forecast.tmp_max),
@@ -406,7 +397,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         d3Utils.drawVerticalLine({
           svg: chart,
           className: 'forecastSummaryRHLine',
-          xScale: xScale.copy(),
+          xScale: xScaleOriginal,
           x: xScale(forecast.date),
           y1: yRHScale(forecast.rh_min),
           y2: yRHScale(forecast.rh_max)
@@ -627,15 +618,15 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
       const updateCurrLine = d3Utils.drawVerticalLine({
         svg: chart,
         className: 'currLine',
-        xScale: xScale.copy(),
+        xScale: xScaleOriginal,
         x: scaledCurrDate,
         y1: 0,
-        y2: chartHeight
+        y2: yRHScale(0)
       })
       const updateCurrLineText = d3Utils.drawText({
         svg: chart,
         className: 'currLabel',
-        xScale: xScale.copy(),
+        xScale: xScaleOriginal,
         x: scaledCurrDate,
         y: -12,
         dx: '-1em',
@@ -662,11 +653,11 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         .attr('transform', 'rotate(45)')
       context // Y temp axis
         .append('g')
-        .call(d3.axisLeft(yTempScale).tickValues([-10, 0, 10, 20, 30, 40]))
+        .call(d3.axisLeft(yTempScale).ticks(6))
       context // Y rh axis
         .append('g')
         .attr('transform', `translate(${chartWidth}, 0)`)
-        .call(d3.axisRight(yRHScale).tickValues([0, 25, 50, 75, 100]))
+        .call(d3.axisRight(yRHScale).ticks(4))
 
       context // Temperature label
         .append('text')
@@ -693,7 +684,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         if (selection) {
           brushSelection.current = selection
           // Update x scale with a new domain modified by the sidebar
-          xScale.domain(selection.map(xSidebarScale.invert, xSidebarScale))
+          xScale.domain(selection.map(xScaleOriginal.invert, xScaleOriginal))
 
           // Update chart's x axis with the new scale
           chart.select<SVGGElement>('.xAxis').call(xAxisFunc)
@@ -745,7 +736,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         .attr('transform', `translate(0, ${sidebarHeight})`)
         .call(
           d3
-            .axisBottom(xSidebarScale)
+            .axisBottom(xScaleOriginal)
             .tickFormat(d3Utils.formatDateInMonthAndDay)
             .tickValues(xTickValues)
         )
@@ -759,7 +750,10 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
       sidebar
         .append('g')
         .call(brush)
-        .call(brush.move, brushSelection.current || xSidebarScale.range().map(x => x / 4))
+        .call(
+          brush.move,
+          brushSelection.current || xScaleOriginal.range().map(x => x / 4)
+        )
 
       /* Render legends */
       // TODO: We're going to have to look at using layouts moving forward to achieve the placement of objects. https://www.d3indepth.com/layouts/
@@ -922,6 +916,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         textX: legendX + 13,
         textY: legendY + 3
       })
+
       // New line
       legendX = 0
       legendY += 16
@@ -969,6 +964,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         textX: legendX + 13,
         textY: legendY + 4
       })
+
       /* Attach tooltip listener */
       d3Utils.addTooltipListener({
         svg: chart,
@@ -978,49 +974,89 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         data: weatherValues,
         textTestId: 'temp-rh-tooltip-text',
         bgdTestId: 'temp-rh-graph-background',
-        getInnerText: ([k, value]) => {
-          const key = k as keyof WeatherValue
-          if (key === 'date' && value instanceof Date) {
-            return `${formatDateInPDT(value, 'h:mm a, ddd, MMM Do')} (PDT, UTC-7)`
-          } else if (typeof value === 'number') {
-            let weatherValue: number | string = value
-            if (isNaN(weatherValue)) {
-              weatherValue = '-'
+        getTextData: v =>
+          Object.entries(v).map(([k, value]) => {
+            const key = k as keyof WeatherValue
+            if (key === 'date' && value instanceof Date) {
+              return {
+                text: `${formatDateInPDT(value, 'h:mm a, ddd, MMM Do')} (PDT, UTC-7)`
+              }
+            } else if (typeof value === 'number') {
+              let weatherPrint: number | string = value
+              if (isNaN(weatherPrint)) {
+                weatherPrint = '-'
+              }
+
+              switch (key) {
+                case 'temp':
+                  return {
+                    text: `Observed Temp: ${weatherPrint} (°C)`,
+                    color: styles.observedTempColor
+                  }
+                case 'forecastTemp':
+                  return {
+                    text: `Forecast Temp: ${weatherPrint} (°C)`,
+                    color: styles.forecastTempDotColor
+                  }
+                case 'modelTemp':
+                  return {
+                    text: `GDPS Temp: ${weatherPrint} (°C)`,
+                    color: styles.modelTempColor
+                  }
+                case 'biasAdjModelTemp':
+                  return {
+                    text: `Bias adjusted GDPS Temp: ${weatherPrint} (°C)`,
+                    color: styles.biasModelTempColor
+                  }
+                case 'hrModelTemp':
+                  return {
+                    text: `HRDPS Temp ${weatherPrint} (°C)`,
+                    color: styles.highResModelTempColor
+                  }
+                case 'regModelTemp':
+                  return {
+                    text: `RDPS Temp ${weatherPrint} (°C)`,
+                    color: styles.regionalModelTempColor
+                  }
+
+                case 'rh':
+                  return {
+                    text: `Observed RH: ${weatherPrint} (%)`,
+                    color: styles.observedRHColor
+                  }
+                case 'forecastRH':
+                  return {
+                    text: `Forecast RH: ${weatherPrint} (%)`,
+                    color: styles.forecastRHDotColor
+                  }
+                case 'modelRH':
+                  return {
+                    text: `GDPS RH: ${weatherPrint} (%)`,
+                    color: styles.modelRHColor
+                  }
+                case 'biasAdjModelRH':
+                  return {
+                    text: `Bias adjusted GDPS RH: ${weatherPrint} (%)`,
+                    color: styles.biasModelRHColor
+                  }
+                case 'hrModelRH':
+                  return {
+                    text: `HRDPS RH ${weatherPrint} (%)`,
+                    color: styles.highResModelRHColor
+                  }
+                case 'regModelRH':
+                  return {
+                    text: `RDPS RH ${weatherPrint} (%)`,
+                    color: styles.regionalModelRHColor
+                  }
+
+                default:
+                  return undefined
+              }
             }
 
-            switch (key) {
-              case 'temp':
-                return `Observed Temp: ${weatherValue} (°C)`
-              case 'forecastTemp':
-                return `Forecast Temp: ${weatherValue} (°C)`
-              case 'modelTemp':
-                return `GDPS Temp: ${weatherValue} (°C)`
-              case 'biasAdjModelTemp':
-                return `Bias adjusted GDPS Temp: ${weatherValue} (°C)`
-              case 'hrModelTemp':
-                return `HRDPS Temp ${weatherValue} (°C)`
-              case 'regModelTemp':
-                return `RDPS Temp ${weatherValue} (°C)`
-
-              case 'rh':
-                return `Observed RH: ${weatherValue} (%)`
-              case 'forecastRH':
-                return `Forecast RH: ${weatherValue} (%)`
-              case 'modelRH':
-                return `GDPS RH: ${weatherValue} (%)`
-              case 'biasAdjModelRH':
-                return `Bias adjusted GDPS RH: ${weatherValue} (%)`
-              case 'hrModelRH':
-                return `HRDPS RH ${weatherValue} (%)`
-              case 'regModelRH':
-                return `RDPS RH ${weatherValue} (%)`
-
-              default:
-                return ''
-            }
-          }
-          return ''
-        }
+            return undefined
+          })
       })
     }
   }, [
