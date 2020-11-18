@@ -235,8 +235,8 @@ export const drawVerticalLine = ({
   }
 
   const update = (newXScale: d3.ScaleTime<number, number>, duration?: number) => {
-    // Get inverted x using the original scale
-    // then calculate the new x with the new scale
+    // Get the corresponding value from the domain using the original scale
+    // then calculate new x with the updated x scale
     const newX = newXScale(xScale.invert(x))
 
     line

@@ -313,7 +313,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         .scaleTime()
         .domain(xDomain[0] && xDomain[1] ? xDomain : [])
         .range([0, chartWidth])
-      const xSidebarScale = xScale.copy()
+      const xScaleOriginal = xScale.copy()
       const yTempScale = d3
         .scaleLinear()
         .domain([-10, 40])
@@ -385,7 +385,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         d3Utils.drawVerticalLine({
           svg: chart,
           className: 'forecastSummaryTempLine',
-          xScale: xScale.copy(),
+          xScale: xScaleOriginal,
           x: xScale(forecast.date),
           y1: yTempScale(forecast.tmp_min),
           y2: yTempScale(forecast.tmp_max),
@@ -397,7 +397,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         d3Utils.drawVerticalLine({
           svg: chart,
           className: 'forecastSummaryRHLine',
-          xScale: xScale.copy(),
+          xScale: xScaleOriginal,
           x: xScale(forecast.date),
           y1: yRHScale(forecast.rh_min),
           y2: yRHScale(forecast.rh_max)
@@ -618,7 +618,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
       const updateCurrLine = d3Utils.drawVerticalLine({
         svg: chart,
         className: 'currLine',
-        xScale: xScale.copy(),
+        xScale: xScaleOriginal,
         x: scaledCurrDate,
         y1: 0,
         y2: yRHScale(0)
@@ -626,7 +626,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
       const updateCurrLineText = d3Utils.drawText({
         svg: chart,
         className: 'currLabel',
-        xScale: xScale.copy(),
+        xScale: xScaleOriginal,
         x: scaledCurrDate,
         y: -12,
         dx: '-1em',
@@ -684,7 +684,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         if (selection) {
           brushSelection.current = selection
           // Update x scale with a new domain modified by the sidebar
-          xScale.domain(selection.map(xSidebarScale.invert, xSidebarScale))
+          xScale.domain(selection.map(xScaleOriginal.invert, xScaleOriginal))
 
           // Update chart's x axis with the new scale
           chart.select<SVGGElement>('.xAxis').call(xAxisFunc)
@@ -736,7 +736,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         .attr('transform', `translate(0, ${sidebarHeight})`)
         .call(
           d3
-            .axisBottom(xSidebarScale)
+            .axisBottom(xScaleOriginal)
             .tickFormat(d3Utils.formatDateInMonthAndDay)
             .tickValues(xTickValues)
         )
@@ -750,7 +750,10 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
       sidebar
         .append('g')
         .call(brush)
-        .call(brush.move, brushSelection.current || xSidebarScale.range().map(x => x / 4))
+        .call(
+          brush.move,
+          brushSelection.current || xScaleOriginal.range().map(x => x / 4)
+        )
 
       /* Render legends */
       // TODO: We're going to have to look at using layouts moving forward to achieve the placement of objects. https://www.d3indepth.com/layouts/

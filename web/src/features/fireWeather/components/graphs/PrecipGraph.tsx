@@ -183,7 +183,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         .scaleTime()
         .domain(xDomain)
         .range([0, chartWidth])
-      const xScaleCopy = xScale.copy()
+      const xScaleOriginal = xScale.copy()
       const yScale = d3
         .scaleLinear()
         .domain([0, 100])
@@ -193,7 +193,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         d3Utils.drawVerticalLine({
           svg: chart,
           className: 'precipLine__observed',
-          xScale: xScaleCopy,
+          xScale: xScaleOriginal,
           x: xScale(precip.date) - 2,
           y1: yScale(precip.value),
           y2: yScale(0),
@@ -205,7 +205,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         d3Utils.drawVerticalLine({
           svg: chart,
           className: 'precipLine__forecast',
-          xScale: xScaleCopy,
+          xScale: xScaleOriginal,
           x: xScale(precip.date) + 2,
           y1: yScale(precip.value),
           y2: yScale(0),
@@ -298,6 +298,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         .scaleTime()
         .domain(xDomain)
         .range([0, chartWidth])
+      const xScaleOriginal = xScale.copy()
 
       d3Utils.addTooltipListener({
         svg: svg.select('.chart'),
