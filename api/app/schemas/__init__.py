@@ -1,2 +1,2 @@
-""" This module contains pydandict schemas for the API.
+""" This module contains pydantic schemas for the API.
 """
