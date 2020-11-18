@@ -14,7 +14,8 @@ import app.db.database
 from app.stations import get_stations_synchronously
 from app.db.models import (
     PredictionModel, PredictionModelRunTimestamp, ModelRunGridSubsetPrediction)
-from app.db.crud import get_prediction_model, get_or_create_prediction_run, get_or_create_grid_subset
+from app.db.crud.weather_models import (
+    get_prediction_model, get_or_create_prediction_run, get_or_create_grid_subset)
 
 
 logger = logging.getLogger(__name__)

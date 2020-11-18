@@ -10,8 +10,8 @@ from sqlalchemy.exc import IntegrityError
 import pandas as pd
 from app import config, configure_logging
 import app.db.database
-from app.db.crud import save_noon_forecast
-from app.db.models import NoonForecast
+from app.db.crud.forecasts import save_noon_forecast
+from app.db.models.forecasts import NoonForecast
 from app.fireweather_bot.common import BaseBot, get_station_names_to_codes
 import app.time_utils
 from app.rocketchat_notifications import send_rocketchat_notification

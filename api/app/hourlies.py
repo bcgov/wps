@@ -4,10 +4,10 @@ import math
 from typing import List
 from datetime import timedelta
 import app.db.database
-from app.db.crud import get_hourly_actuals
+from app.db.crud.observations import get_hourly_actuals
 import app.stations
 from app import wildfire_one
-from app.schemas import WeatherStationHourlyReadings, WeatherReading
+from app.schemas.observations import WeatherStationHourlyReadings, WeatherReading
 
 
 def get(value: object, condition: bool = True):

@@ -12,10 +12,10 @@ from alchemy_mock.compat import mock
 from pytest_mock import MockerFixture
 import app.time_utils as time_utils
 import app.db.database
-from app.models import env_canada
+from app.weather_models import env_canada
 from app.db.models import (PredictionModel, ProcessedModelRunUrl, PredictionModelRunTimestamp,
                            PredictionModelGridSubset)
-from app.tests.models.test_env_canada_gdps import MockResponse
+from app.tests.weather_models.test_env_canada_gdps import MockResponse
 # pylint: disable=unused-argument, redefined-outer-name
 
 
@@ -68,7 +68,7 @@ def mock_session(monkeypatch):
 
     monkeypatch.setattr(app.db.database, 'get_write_session',
                         mock_get_session_hrdps)
-    monkeypatch.setattr(app.models.env_canada, 'get_prediction_model_run_timestamp_records',
+    monkeypatch.setattr(app.weather_models.env_canada, 'get_prediction_model_run_timestamp_records',
                         mock_get_hrdps_prediction_model_run_timestamp_records)
 
 
