@@ -239,8 +239,8 @@ async def get_stations():
         raise
 
 
-@api.post('/percentiles/', response_model=schemas.CalculatedResponse)
-async def get_percentiles(request: schemas.PercentileRequest):
+@api.post('/percentiles/', response_model=schemas.percentiles.CalculatedResponse)
+async def get_percentiles(request: schemas.percentiles.PercentileRequest):
     """ Return 90% FFMC, 90% ISI, 90% BUI etc. for a given set of fire stations for a given period of time.
     """
     try:

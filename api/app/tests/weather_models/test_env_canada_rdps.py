@@ -3,22 +3,18 @@
 import os
 import sys
 import logging
-import datetime
-from datetime import datetime
 import pytest
 import requests
 import shapely.wkt
 from geoalchemy2.shape import from_shape
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
-from pytest_mock import MockerFixture
 import app.time_utils as time_utils
 import app.db.database
-from app.schemas.stations import WeatherStation, Season
-from app.weather_models import env_canada, machine_learning
+from app.weather_models import env_canada
 from app.db.models import (PredictionModel, ProcessedModelRunUrl, PredictionModelRunTimestamp,
-                           PredictionModelGridSubset, ModelRunGridSubsetPrediction)
-from app.tests.weather_models.crud import get_actuals_left_outer_join_with_predictions
+                           PredictionModelGridSubset)
+# pylint: disable=unused-import
 from app.tests.weather_models.test_env_canada_gdps import (MockResponse, mock_get_stations,
                                                            mock_get_model_run_predictions_for_grid,
                                                            mock_get_actuals_left_outer_join_with_predictions)
@@ -122,3 +118,4 @@ def test_process_rdps(mock_download,
     assert env_canada.process_models() == 1
 
 # pylint: enable=unused-argument, redefined-outer-name
+# pylint: enable=unused-import

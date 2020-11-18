@@ -12,7 +12,6 @@ import app.db.database
 from app.schemas import (WeatherModelPrediction,
                          WeatherModelPredictionValues, WeatherModelRun,
                          ModelRunPredictions,
-                         WeatherStationsModelRunsPredictionsResponse,
                          WeatherStationModelRunsPredictions)
 from app.schemas.stations import WeatherStation
 from app.db.models import ModelRunGridSubsetPrediction
