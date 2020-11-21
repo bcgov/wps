@@ -6,6 +6,20 @@
   },
   "objects": [
     {
+      "kind": "ConfigMap",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "${NAME}-config",
+        "labels":
+          {
+            "template": "${NAME}-config-template"
+          }
+      },
+      "data": {
+        
+      }
+    },
+    {
       "kind": "PersistentVolumeClaim",
       "apiVersion": "v1",
       "metadata": {
@@ -192,38 +206,20 @@
                     "value": "${TABLE_SCHEMA}"
                   },
                   {
-                    "name": "PSUFIDERDEV_POSTGRESQL_USER",
+                    "name": "MATOMO_DB_USER",
                     "valueFrom": {
                       "secretKeyRef": {
-                        "name": "psufiderdev-postgresql",
+                        "name": "matomo-db",
                         "key": "database-user"
                       }
                     }
                   },
                   {
-                    "name": "PSUFIDERDEV_POSTGRESQL_PASSWORD",
+                    "name": "MATOMO_DB_PASSWORD",
                     "valueFrom": {
                       "secretKeyRef": {
-                        "name": "psufiderdev-postgresql",
+                        "name": "matomo-db",
                         "key": "database-password"
-                      }
-                    }
-                  },
-                  {
-                    "name": "PATRONI_LEADER_WPS_API_DEV_USER",
-                    "valueFrom": {
-                      "secretKeyRef": {
-                        "name": "wps-dev",
-                        "key": "app-db-username"
-                      }
-                    }
-                  },
-                  {
-                    "name": "PATRONI_LEADER_WPS_API_DEV_PASSWORD",
-                    "valueFrom": {
-                      "secretKeyRef": {
-                        "name": "wps-dev",
-                        "key": "app-db-password"
                       }
                     }
                   },
@@ -317,7 +313,7 @@
       "displayName": "Source Image Name",
       "description": "The name of the image to use for this resource.  Use 'backup-{database name}' depending on your database provider",
       "required": true,
-      "value": "backup-postgres"
+      "value": "backup-mariadb"
     },
     {
       "name": "IMAGE_NAMESPACE",
@@ -331,7 +327,7 @@
       "displayName": "Environment TAG name",
       "description": "The TAG name for this environment, e.g., dev, test, prod",
       "required": true,
-      "value": "dev"
+      "value": "prod"
     },
     {
       "name": "DATABASE_SERVICE_NAME",
@@ -526,7 +522,7 @@
       "displayName": "Backup Volume Class",
       "description": "The class of the persistent volume used to store the backups; netapp-block-standard, netapp-file-standard, nfs-backup.  Please note, nfs-backup storage is the recommended storage type for backups.  It MUST be provisioned manually through the OCP catalog via the 'BC Gov NFS Storage' template.  nfs-backup storage CANNOT be automatically provisioned by this template.",
       "required": true,
-      "value": "nfs-backup"
+      "value": "netapp-file-standard"
     },
     {
       "name": "VERIFICATION_VOLUME_NAME",
@@ -554,7 +550,7 @@
       "displayName": "Verification Volume Mount Path",
       "description": "The path on which to mount the verification volume.  This is used by the database server to contain the database configuration and data files. For Mongo, please use /var/lib/mongodb/data . For MSSQL, please use /var/opt/mssql/data",
       "required": true,
-      "value": "/var/lib/pgsql/data"
+      "value": "/var/lib/mysql/data"
     },
     {
       "name": "CPU_REQUEST",

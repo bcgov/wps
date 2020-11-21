@@ -24,6 +24,24 @@ jobs:
           AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
           SCRIPT: openshift/scripts/oc_provision_db.sh ${SUFFIX} apply
 
+  prepare-database-backups:
+    name: Prepare Dev Database Backups
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set Variables
+        shell: bash
+        run: |
+          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Prepare Matomo Backups
+        uses: bcgov/openshift-launchpad-deployment@master
+        with:
+          AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
+          SCRIPT: openshift/scripts/oc_provision_matomo_backup.sh ${SUFFIX} apply
+
   build-and-deploy:
     name: Build, Deploy to Dev & ZAP Baseline Scan
     runs-on: ubuntu-latest

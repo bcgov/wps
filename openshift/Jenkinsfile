@@ -47,6 +47,8 @@ pipeline {
                     sh "PROJ_TARGET=${projProd} ./openshift/scripts/oc_provision_ec_rdps_cronjob.sh prod apply"
                     sh "PROJ_TARGET=${projProd} ./openshift/scripts/oc_provision_bcfw_p1_forecasts_cronjob.sh prod apply"
                     sh "PROJ_TARGET=${projProd} ./openshift/scripts/oc_provision_bcfw_p1_hourly_actuals_cronjob.sh prod apply"
+                    // Configure backups
+                    sh "PROJ_TARGET=${projProd} BACKUP_VOLUME_CLASS=nfs-backup BACKUP_VOLUME_NAME=bk-auzhsi-prod-lenk19vmffnx ./openshift/scripts/oc_provision_matomo_backup.sh prod apply"
                 }
             }
         }
