@@ -170,43 +170,54 @@
                 "env": [
                   {
                     "name": "BACKUP_STRATEGY",
-                    "value": "${BACKUP_STRATEGY}"
+                    "valueFrom": {
+                      "configMapKeyRef": {
+                        "name": "${CONFIG_MAP_NAME}",
+                        "key": "BACKUP_STRATEGY"
+                      }
+                    }
+                  },
+                  {
+                    "name": "NUM_BACKUPS",
+                    "valueFrom": {
+                      "configMapKeyRef": {
+                        "name": "${CONFIG_MAP_NAME}",
+                        "key": "RETENTION.NUM_BACKUPS",
+                        "optional": true
+                      }
+                    }
+                  },
+                  {
+                    "name": "DAILY_BACKUPS",
+                    "valueFrom": {
+                        "configMapKeyRef": {
+                          "name": "${CONFIG_MAP_NAME}",
+                          "key": "RETENTION.DAILY_BACKUPS",
+                          "optional": true
+                        }
+                    }
+                  }, {
+                    "name": "WEEKLY_BACKUPS",
+                      "valueFrom": {
+                        "configMapKeyRef": {
+                          "name": "${CONFIG_MAP_NAME}",
+                          "key": "RETENTION.WEEKLY_BACKUPS",
+                          "optional": true
+                        }
+                      }
+                  }, {
+                    "name": "MONTHLY_BACKUPS",
+                      "valueFrom": {
+                        "configMapKeyRef": {
+                          "name": "${CONFIG_MAP_NAME}",
+                          "key": "RETENTION.MONTHLY_BACKUPS",
+                          "optional": true
+                        }
+                      }
                   },
                   {
                     "name": "BACKUP_DIR",
                     "value": "${BACKUP_DIR}"
-                  },
-                  {
-                    "name": "NUM_BACKUPS",
-                    "value": "${NUM_BACKUPS}"
-                  },
-                  {
-                    "name": "DAILY_BACKUPS",
-                    "value": "${DAILY_BACKUPS}"
-                  },
-                  {
-                    "name": "WEEKLY_BACKUPS",
-                    "value": "${WEEKLY_BACKUPS}"
-                  },
-                  {
-                    "name": "MONTHLY_BACKUPS",
-                    "value": "${MONTHLY_BACKUPS}"
-                  },
-                  {
-                    "name": "BACKUP_PERIOD",
-                    "value": "${BACKUP_PERIOD}"
-                  },
-                  {
-                    "name": "DATABASE_SERVICE_NAME",
-                    "value": "${DATABASE_SERVICE_NAME}"
-                  },
-                  {
-                    "name": "DATABASE_NAME",
-                    "value": "${DATABASE_NAME}"
-                  },
-                  {
-                    "name": "MONGODB_AUTHENTICATION_DATABASE",
-                    "value": "${MONGODB_AUTHENTICATION_DATABASE}"
                   },
                   {
                     "name": "TABLE_SCHEMA",
@@ -390,13 +401,6 @@
       "value": "public"
     },
     {
-      "name": "BACKUP_STRATEGY",
-      "displayName": "Backup Strategy",
-      "description": "The strategy to use for backups; for example daily, or rolling.",
-      "required": true,
-      "value": "rolling"
-    },
-    {
       "name": "FTP_SECRET_KEY",
       "displayName": "FTP Secret Key",
       "description": "The FTP secret key is used to wire up the credentials associated to the FTP.",
@@ -451,41 +455,6 @@
       "description": "The name of the root backup directory.  The backup volume will be mounted to this directory.",
       "required": true,
       "value": "/backups/"
-    },
-    {
-      "name": "NUM_BACKUPS",
-      "displayName": "The number of backup files to be retained",
-      "description": "Used for backward compatibility only.  Ignored when using the recommended `rolling` backup strategy.  The number of backup files to be retained.  Used for the `daily` backup strategy.",
-      "required": false,
-      "value": ""
-    },
-    {
-      "name": "DAILY_BACKUPS",
-      "displayName": "Number of Daily Backups to Retain",
-      "description": "The number of daily backup files to be retained.  Used for the `rolling` backup strategy.",
-      "required": false,
-      "value": ""
-    },
-    {
-      "name": "WEEKLY_BACKUPS",
-      "displayName": "Number of Weekly Backups to Retain",
-      "description": "The number of weekly backup files to be retained.  Used for the `rolling` backup strategy.",
-      "required": false,
-      "value": ""
-    },
-    {
-      "name": "MONTHLY_BACKUPS",
-      "displayName": "Number of Monthly Backups to Retain",
-      "description": "The number of monthly backup files to be retained.  Used for the `rolling` backup strategy.",
-      "required": false,
-      "value": ""
-    },
-    {
-      "name": "BACKUP_PERIOD",
-      "displayName": "Period (d,m,s) between backups in a format used by the sleep command",
-      "description": "Used for backward compatibility only.  Ignored when using the recommended `backup.conf` and cron backup strategy.  Period (d,m,s) between backups in a format used by the sleep command",
-      "required": false,
-      "value": ""
     },
     {
       "name": "CONFIG_FILE_NAME",
