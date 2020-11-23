@@ -36,11 +36,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Prepare Matomo Backups
+      - name: Prepare Matomo Backup Deployment
         uses: bcgov/openshift-launchpad-deployment@master
         with:
           AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
           SCRIPT: openshift/scripts/oc_provision_matomo_backup.sh ${SUFFIX} apply
+
+      - name: Prepare Matomo Backup Cronjob
+        uses: bcgov/openshift-launchpad-deployment@master
+        with:
+          AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
+          SCRIPT: openshift/scripts/oc_provision_matomo_backup_cronjob.sh ${SUFFIX} apply
 
   build-and-deploy:
     name: Build, Deploy to Dev & ZAP Baseline Scan

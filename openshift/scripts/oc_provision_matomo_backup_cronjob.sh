@@ -27,19 +27,19 @@ source "$(dirname ${0})/common/common"
 PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 
 # Prepare variables for backups
-NAME="${NAME_APP}-${SUFFIX}"
+CONFIG_VOLUME_NAME="${NAME_APP}-${SUFFIX}-config-volume"
+JOB_NAME="matomo-backup-${NAME_APP}-${SUFFIX}"
+JOB_PERSISTENT_STORAGE_NAME="matomo-backup-${NAME_APP}-${SUFFIX}"
 IMAGE_NAMESPACE=${PROJ_TOOLS}
 CONFIG_MAP_NAME="matomo-backup-${NAME_APP}-${SUFFIX}-config"
-VERIFICATION_VOLUME_NAME="matomo-backup-verification-${NAME_APP}-${SUFFIX}"
 
-OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/mariadb-backup.dc.json \
-    -p NAME=${NAME} \
-    -p IMAGE_NAMESPACE=${IMAGE_NAMESPACE} \
+OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/mariadb-backup-cronjob.yaml \
+    -p CONFIG_VOLUME_NAME=${CONFIG_VOLUME_NAME} \
+    -p JOB_NAME=${JOB_NAME} \
     -p CONFIG_MAP_NAME=${CONFIG_MAP_NAME} \
-    -p VERIFICATION_VOLUME_NAME=${VERIFICATION_VOLUME_NAME} \
-    ${TAG_NAME:+ " -p TAG_NAME=${TAG_NAME}"} \
-    -p BACKUP_VOLUME_NAME=${BACKUP_VOLUME_NAME:-"matomo-backup-${NAME_APP}-${SUFFIX}"} \
-    ${BACKUP_VOLUME_CLASS:+ " -p BACKUP_VOLUME_CLASS=${BACKUP_VOLUME_CLASS}"}"
+    -p JOB_PERSISTENT_STORAGE_NAME=${JOB_PERSISTENT_STORAGE_NAME:-"matomo-backup-${NAME_APP}-${SUFFIX}"} \
+    -p IMAGE_NAMESPACE=${IMAGE_NAMESPACE} \
+    ${TAG_NAME:+ " -p TAG_NAME=${TAG_NAME}"}"
 
 # Apply template (apply or use --dry-run)
 #

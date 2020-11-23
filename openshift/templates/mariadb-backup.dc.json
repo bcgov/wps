@@ -9,14 +9,21 @@
       "kind": "ConfigMap",
       "apiVersion": "v1",
       "metadata": {
-        "name": "${NAME}-config",
+        "name": "${CONFIG_MAP_NAME}",
         "labels":
           {
+            "app": "${NAME}",
             "template": "${NAME}-config-template"
           }
       },
       "data": {
-        
+        "BACKUP_STRATEGY": "rolling",
+        "RETENTION.DAILY_BACKUPS": "7",
+        "RETENTION.MONTHLY_BACKUPS": "1",
+        "RETENTION.WEEKLY_BACKUPS": "4",
+        "DATABASE_SERVICE_NAME": "matomo-db",
+        "DEFAULT_PORT": "3306",
+        "backup.conf": "# ============================================================\n# Databases:\n# ------------------------------------------------------------\nmariadb=matomo-db/matomo\n"
       }
     },
     {
@@ -87,7 +94,7 @@
       "kind": "DeploymentConfig",
       "apiVersion": "v1",
       "metadata": {
-        "name": "${NAME}",
+        "name": "matomo-backup-${NAME}",
         "labels": {
           "template": "${NAME}-deployment",
           "app": "${NAME}"
@@ -305,8 +312,7 @@
       "name": "NAME",
       "displayName": "Name",
       "description": "The name assigned to all of the resources.  Use 'backup-{database name}' depending on your database provider",
-      "required": true,
-      "value": "backup-postgres"
+      "required": true
     },
     {
       "name": "SOURCE_IMAGE_NAME",
@@ -333,8 +339,7 @@
       "name": "DATABASE_SERVICE_NAME",
       "displayName": "Database Service Name",
       "description": "Used for backward compatibility only. Not needed when using the recommended 'backup.conf' configuration.  The name of the database service.",
-      "required": false,
-      "value": ""
+      "required": false
     },
     {
       "name": "DATABASE_NAME",
@@ -507,15 +512,14 @@
       "name": "BACKUP_VOLUME_NAME",
       "displayName": "Backup Volume Name",
       "description": "The name of the persistent volume used to store the backups.  Please note, when using the recommended nfs-backup storage class the name of the pvc MUST be taken from the manually provisioned claim; nfs-backup storage MUST be provisioned manually.",
-      "required": true,
-      "value": "backup"
+      "required": true
     },
     {
       "name": "BACKUP_VOLUME_SIZE",
       "displayName": "Backup Volume Size",
       "description": "The size of the persistent volume used to store the backups, e.g. 512Mi, 1Gi, 2Gi.  Ensure this is sized correctly.  Refer to the container documentation for details.",
       "required": true,
-      "value": "2Gi"
+      "value": "1Gi"
     },
     {
       "name": "BACKUP_VOLUME_CLASS",
@@ -528,15 +532,14 @@
       "name": "VERIFICATION_VOLUME_NAME",
       "displayName": "Verification Volume Name",
       "description": "The name for the verification volume, used for restoring and verifying backups.  When using the recommend nfs-backup storage class for backups, this volume MUST be either netapp-file-standard or netapp-block-standard storage; netapp-block-standard is recommended (it has far better performance).",
-      "required": false,
-      "value": "backup-verification"
+      "required": true
     },
     {
       "name": "VERIFICATION_VOLUME_SIZE",
       "displayName": "Backup Volume Size",
       "description": "The size of the persistent volume used for restoring and verifying backups, e.g. 512Mi, 1Gi, 2Gi.  Ensure this is sized correctly.  It should be large enough to contain your largest database.",
       "required": true,
-      "value": "1Gi"
+      "value": "512Mi"
     },
     {
       "name": "VERIFICATION_VOLUME_CLASS",
