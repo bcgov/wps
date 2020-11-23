@@ -60,10 +60,6 @@ export interface ModelValue {
   wind_speed: number | null
   total_precipitation: number | null
   dew_point: number | null
-  accumulated_rain: number
-  accumulated_snow: number
-  accumulated_freezing_rain: number
-  accumulated_ice_pellets: number
   cloud_cover: number
   sea_level_pressure: number
   wind_speed_40m: number

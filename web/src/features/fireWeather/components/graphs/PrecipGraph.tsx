@@ -7,11 +7,15 @@ import { ObservedValue } from 'api/observationAPI'
 import * as d3Utils from 'utils/d3'
 import { formatDateInPDT } from 'utils/date'
 import { NoonForecastValue } from 'api/forecastAPI'
+import { ModelValue } from 'api/modelAPI'
 import { ToggleValues } from 'features/fireWeather/components/graphs/useGraphToggles'
 import { PDT_UTC_OFFSET } from 'utils/constants'
 
 const observedPrecipColor = '#a50b41'
 const forecastPrecipColor = '#fb0058'
+const gdpsPrecipColor = ''
+const rdpsPrecipColor = ''
+const hrdpsPrecipColor = ''
 
 const useStyles = makeStyles({
   root: {
@@ -49,6 +53,21 @@ const useStyles = makeStyles({
         stroke: forecastPrecipColor
       },
 
+      '&__gdps': {
+        strokeWidth: 2.5,
+        stroke: gdpsPrecipColor
+      },
+
+      '&__rdps': {
+        strokeWidth: 2.5,
+        stroke: rdpsPrecipColor
+      },
+
+      '&__hrdps': {
+        strokeWidth: 2.5,
+        stroke: hrdpsPrecipColor
+      },
+
       '&--hidden': {
         visibility: 'hidden'
       }
@@ -60,12 +79,18 @@ interface PrecipValue {
   date: Date
   observedPrecip?: number
   forecastPrecip?: number
+  gdpsPrecip?: number
+  rdpsPrecip?: number
+  hrdpsPrecip?: number
 }
 
 interface Props {
   toggleValues: ToggleValues
   observedValues: ObservedValue[]
   forecastValues: NoonForecastValue[]
+  gdpsModelValues: ModelValue[]
+  rdpsModelValues: ModelValue[]
+  hrdpsModelValues: ModelValue[]
 }
 
 /* Table layout constants */
@@ -78,7 +103,10 @@ const chartHeight = svgHeight - margin.top - margin.bottom
 const PrecipGraph: React.FunctionComponent<Props> = ({
   toggleValues,
   observedValues,
-  forecastValues
+  forecastValues,
+  gdpsModelValues,
+  rdpsModelValues,
+  hrdpsModelValues
 }: Props) => {
   const classes = useStyles()
   const svgRef = useRef<SVGSVGElement>(null)
@@ -86,7 +114,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
 
   // useMemo will only recompute the memoized value when one of the dependencies has changed.
   // This optimization helps to avoid expensive calculations on every render.
-  const { xDomain, xTickValues, observedPrecips, forecastPrecips } = useMemo(() => {
+  const { xDomain, xTickValues, observedPrecips, forecastPrecips,  } = useMemo(() => {
     const datesFromAllSources: Date[] = []
 
     const aggreObservedPrecips: { [k: string]: number } = {}
@@ -101,12 +129,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
 
     const _observedPrecips = Object.entries(aggreObservedPrecips).map(
       ([formattedDate, totalPrecip]) => {
-        const date = moment(formattedDate)
-          .utc()
-          .set({ hour: Math.abs(utcOffset), minute: 0 })
-          .toDate()
-        datesFromAllSources.push(date)
-
+        const date = datetimeToDate(formattedDate)
         return {
           date,
           value: Number(totalPrecip.toFixed(2))
@@ -115,17 +138,42 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
     )
 
     const _forecastPrecips = forecastValues.map(({ datetime, total_precipitation }) => {
-      const date = moment(datetime)
-        .utc()
-        .set({ hour: Math.abs(utcOffset) })
-        .toDate()
-      datesFromAllSources.push(date)
-
+      const date = datetimeToDate(datetime)
       return {
         date,
         value: Number(total_precipitation.toFixed(2))
       }
     })
+
+    const _gdpsPrecips = gdpsModelValues.map(({ datetime, total_precipitation }) => {
+      const date = datetimeToDate(datetime)
+      return {
+        date,
+        value: Number(total_precipitation?.toFixed(2))
+      }
+    })
+
+    const _rdpsPrecips = rdpsModelValues.map(({ datetime, total_precipitation }) => {
+      const date = datetimeToDate(datetime)
+      return {
+        date,
+        value: Number(total_precipitation?.toFixed(2))
+      }
+    })
+
+    const _hrdpsPrecips = hrdpsModelValues.map(({ datetime, total_precipitation }) => {
+      const date = datetimeToDate(datetime)
+      return {
+        date,
+        value: Number(total_precipitation?.toFixed(2))
+      }
+    })
+
+    const datetimeToDate = (datetime: string) => {
+      const date = moment(datetime).utc().set({ hour: Math.abs(utcOffset), minute: 0 }).toDate()
+      datesFromAllSources.push(date)
+      return date
+    }
 
     const currDate = new Date()
     const pastDate = moment(currDate)
@@ -146,7 +194,10 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       xDomain: _xDomain,
       xTickValues: d3Utils.getTickValues(_xDomain, utcOffset, false),
       observedPrecips: _observedPrecips,
-      forecastPrecips: _forecastPrecips
+      forecastPrecips: _forecastPrecips,
+      gdpsPrecips: _gdpsPrecips,
+      rdpsPrecips: _rdpsPrecips,
+      hrdpsPrecips: _hrdpsPrecips
     }
   }, [utcOffset, observedValues, forecastValues])
 

@@ -172,7 +172,7 @@ def get_global_model_run_download_urls(now: datetime.datetime,
     # For the global model, we have prediction at 3 hour intervals up to 240 hours.
     for h in range(0, 241, 3):
         hhh = format(h, '03d')
-        for level in ['TMP_TGL_2', 'RH_TGL_2']:
+        for level in ['TMP_TGL_2', 'RH_TGL_2', 'APCP_SFC_0']:
             base_url = 'https://dd.weather.gc.ca/model_gem_global/15km/grib2/lat_lon/{}/{}/'.format(
                 hh, hhh)
             date = get_file_date_part(now, model_run_hour)
@@ -189,7 +189,7 @@ def get_high_res_model_run_download_urls(now: datetime.datetime, hour: int) -> G
     # For the high-res model, predictions are at 1 hour intervals up to 48 hours.
     for h in range(0, 49):
         hhh = format(h, '03d')
-        for level in ['TMP_TGL_2', 'RH_TGL_2']:
+        for level in ['TMP_TGL_2', 'RH_TGL_2', 'APCP_SFC_0']:
             base_url = 'https://dd.weather.gc.ca/model_hrdps/continental/grib2/{}/{}/'.format(
                 hh, hhh)
             date = get_file_date_part(now, hour)
@@ -206,7 +206,7 @@ def get_regional_model_run_download_urls(now: datetime.datetime, hour: int) -> G
     # For the RDPS model, predictions are at 1 hour intervals up to 84 hours.
     for h in range(0, 85):
         hhh = format(h, '03d')
-        for level in ['TMP_TGL_2', 'RH_TGL_2']:
+        for level in ['TMP_TGL_2', 'RH_TGL_2', 'APCP_SFC_0']:
             base_url = 'https://dd.weather.gc.ca/model_gem_regional/10km/grib2/{}/{}/'.format(
                 hh, hhh
             )
@@ -458,6 +458,13 @@ class ModelValueProcessor:
             points, prediction.tmp_tgl_2, coordinate, method='linear')[0]
         station_prediction.rh_tgl_2 = griddata(
             points, prediction.rh_tgl_2, coordinate, method='linear')[0]
+        # Check that apcp_sfc_0 is not None, since accumulated precipitation
+        # does not exist for 00 hour
+        if (prediction.apcp_sfc_0 is not None):
+            station_prediction.apcp_sfc_0 = griddata(
+                points, prediction.apcp_sfc_0, coordinate, method='linear')[0]
+        else:
+            station_prediction.apcp_sfc_0 = None
         # Predict the temperature
         station_prediction.bias_adjusted_temperature = machine.predict_temperature(
             station_prediction.tmp_tgl_2,
