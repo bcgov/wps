@@ -1,4 +1,5 @@
 import { NOT_AVAILABLE } from '../../src/utils/strings'
+import { PERCENTILE_CALC_ROUTE } from '../../src/utils/constants'
 
 describe('Percentile Calculator Page', () => {
   beforeEach(() => {
@@ -7,14 +8,14 @@ describe('Percentile Calculator Page', () => {
 
   describe('Weather station dropdown', () => {
     it('renders error message when fetching stations failed', () => {
-      cy.visit('/percentile-calculator/')
+      cy.visit(PERCENTILE_CALC_ROUTE)
       cy.getByTestId('disclaimer-accept-button').click()
       cy.checkErrorMessage('Error occurred (while fetching weather stations).')
     })
 
     it('can select & deselect stations if successfully received stations', () => {
       cy.route('GET', 'api/stations/', 'fixture:weather-stations.json').as('getStations')
-      cy.visit('/percentile-calculator/')
+      cy.visit(PERCENTILE_CALC_ROUTE)
       cy.getByTestId('disclaimer-accept-button').click()
       cy.wait('@getStations')
 
@@ -35,7 +36,7 @@ describe('Percentile Calculator Page', () => {
 
   describe('For analytics', () => {
     it('Some DOM elements should exist with IDs', () => {
-      cy.visit('/percentile-calculator/')
+      cy.visit(PERCENTILE_CALC_ROUTE)
       cy.get('#disclaimer-accept-button').click()
 
       cy.get('#reset-percentiles-button')
@@ -49,8 +50,7 @@ describe('Percentile Calculator Page', () => {
   describe('Other inputs', () => {
     beforeEach(() => {
       cy.route('GET', 'api/stations/', 'fixture:weather-stations.json')
-      cy.route('POST', 'api/percentiles/').as('getPercentiles')
-      cy.visit('/percentile-calculator/')
+      cy.visit(PERCENTILE_CALC_ROUTE)
       cy.getByTestId('disclaimer-accept-button').click()
     })
 
@@ -71,6 +71,7 @@ describe('Percentile Calculator Page', () => {
       const stationCode = 838
       cy.selectStationByCode(stationCode)
 
+      cy.route('POST', 'api/percentiles/').as('getPercentiles')
       cy.requestPercentilesAndCheckRequestBody('@getPercentiles', {
         stations: [stationCode],
         year_range: { start: 1970, end: 2019 }, // Full was selected
@@ -89,7 +90,7 @@ describe('Percentile Calculator Page', () => {
   describe('Calculation result', () => {
     beforeEach(() => {
       cy.route('GET', 'api/stations/', 'fixture:weather-stations.json').as('getStations')
-      cy.visit('/percentile-calculator/', {
+      cy.visit(PERCENTILE_CALC_ROUTE, {
         onBeforeLoad: (win: any) => {
           win._mtm = { push: () => {} } // mock Matomo object
         }

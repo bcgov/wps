@@ -1,10 +1,12 @@
+import { MORECAST_ROUTE } from '../../src/utils/constants'
+
 describe('MoreCast Page', () => {
   const stationCode = 328
 
   beforeEach(() => {
     cy.server()
     cy.route('GET', 'api/stations/', 'fixture:weather-stations.json').as('getStations')
-    cy.visit('/morecast/')
+    cy.visit(MORECAST_ROUTE)
   })
 
   it('When network errors occurred', () => {
@@ -35,7 +37,7 @@ describe('MoreCast Page', () => {
       cy.route('POST', 'api/models/GDPS/predictions/summaries/', 'fixture:weather-data/model-summaries')
       cy.route('POST', 'api/models/HRDPS/predictions/most_recent', 'fixture:weather-data/hr-models-with-bias-adjusted') // prettier-ignore
       cy.route('POST', 'api/models/HRDPS/predictions/summaries', 'fixture:weather-data/high-res-model-summaries') // prettier-ignore
-      cy.route('POST', 'api/models/RDPS/predictions/most_recent', 'fixture:weather-data/regional-models-with-bias-adjusted')
+      cy.route('POST', 'api/models/RDPS/predictions/most_recent', 'fixture:weather-data/regional-models-with-bias-adjusted') // prettier-ignore
       cy.route('POST', 'api/models/RDPS/predictions/summaries', 'fixture:weather-data/regional-model-summaries')
       cy.wait('@getStations')
 

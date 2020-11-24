@@ -6,6 +6,12 @@ import AuthWrapper from 'features/auth/AuthWrapper'
 import PercentileCalculatorPageWithDisclaimer from 'features/percentileCalculator/pages/PercentileCalculatorPageWithDisclaimer'
 import MoreCastPage from 'features/fireWeather/pages/MoreCastPage'
 import HfiCalculatorPage from 'features/hfiCalculator/pages/HfiCalculatorPage'
+import {
+  PERCENTILE_CALC_ROUTE,
+  FIRE_WEATHER_ROUTE,
+  MORECAST_ROUTE,
+  HFI_CALC_ROUTE
+} from 'utils/constants'
 
 const shouldShowDisclaimer = HIDE_DISCLAIMER === 'false' || HIDE_DISCLAIMER === undefined
 const shouldAuthenticate =
@@ -17,20 +23,20 @@ const Routes: React.FunctionComponent = () => {
   return (
     <Router>
       <Switch>
-        <Redirect exact from="/" to="/percentile-calculator/" />
+        <Redirect exact from="/" to={PERCENTILE_CALC_ROUTE} />
 
-        <Route path="/percentile-calculator/">
+        <Route path={PERCENTILE_CALC_ROUTE}>
           <PercentileCalculatorPageWithDisclaimer showDisclaimer={shouldShowDisclaimer} />
         </Route>
 
-        <Redirect from="/fire-weather/" to="/morecast/" />
-        <Route path="/morecast/">
+        <Redirect from={FIRE_WEATHER_ROUTE} to={MORECAST_ROUTE} />
+        <Route path={MORECAST_ROUTE}>
           <AuthWrapper shouldAuthenticate={shouldAuthenticate}>
             <MoreCastPage />
           </AuthWrapper>
         </Route>
 
-        <Route path="/hfi-calculator/">
+        <Route path={HFI_CALC_ROUTE}>
           <AuthWrapper shouldAuthenticate={shouldAuthenticate}>
             <HfiCalculatorPage />
           </AuthWrapper>
