@@ -364,7 +364,7 @@
     {
       "name": "DATABASE_USER_KEY_NAME",
       "displayName": "Database User Key Name",
-      "description": "The datbase user key name stored in database deployment resources specified by DATABASE_DEPLOYMENT_NAME.",
+      "description": "The database user key name stored in database deployment resources specified by DATABASE_DEPLOYMENT_NAME.",
       "required": true,
       "value": "database-user"
     },
