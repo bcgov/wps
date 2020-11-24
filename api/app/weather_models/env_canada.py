@@ -461,8 +461,11 @@ class ModelValueProcessor:
         # Check that apcp_sfc_0 is not None, since accumulated precipitation
         # does not exist for 00 hour
         if (prediction.apcp_sfc_0 is not None):
+            logger.info('prediction: %s', prediction)
             station_prediction.apcp_sfc_0 = griddata(
                 points, prediction.apcp_sfc_0, coordinate, method='linear')[0]
+            logger.info('station_predicted precip: %f',
+                        station_prediction.apcp_sfc_0)
         else:
             station_prediction.apcp_sfc_0 = None
         # Predict the temperature
