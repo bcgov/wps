@@ -135,7 +135,7 @@ objects:
             template: "${JOB_NAME}-job"
             cronjob: "${JOB_NAME}"
         spec:
-          backoffLimit: ${JOB_BACKOFF_LIMIT}
+          backoffLimit: ${{JOB_BACKOFF_LIMIT}}
           template:
             spec:
               containers:
@@ -195,11 +195,6 @@ objects:
                           name: "${JOB_NAME}-config"
                           key: DEFAULT_PORT
                           optional: true
-                    # - name: POSTGRESQL_DATABASE
-                    #   valueFrom:
-                    #     configMapKeyRef:
-                    #       name: "${JOB_NAME}-config"
-                    #       key: POSTGRESQL_DATABASE
                     - name: DATABASE_USER
                       valueFrom:
                         secretKeyRef:
