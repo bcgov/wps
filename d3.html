@@ -1,0 +1,186 @@
+<html>
+  <head> </head>
+  <body style="background-color: #101010">
+    <svg
+      id="viz"
+      height="200"
+      width="400"
+      style="border-color: green; border-width: 1px; border-style: solid"
+    ></svg>
+    <script src="https://d3js.org/d3.v4.js"></script>
+    <script>
+      const svg = d3.select("#viz");
+      //   svg
+      //     .append("circle")
+      //     .attr("cx", 2)
+      //     .attr("cy", 2)
+      //     .attr("r", 40)
+      //     .style("fill", "blue");
+
+      const data = [
+        { text: "Short", color: "blue", shape: { type: "circle", r: 5 } },
+        {
+          text: "Longer can be problematic",
+          color: "purple",
+          shape: { type: "rect" },
+        },
+        {
+          text: "Observed Temp",
+          color: "red",
+          shape: { type: "diamond", size: 10 },
+        },
+        {
+          text: "Observed RH",
+          color: "green",
+          shape: { type: "triangle", size: 20 },
+        },
+        {
+          text: "Forecast Temp",
+          color: "yellow",
+          shape: { type: "cross", size: 30 },
+        },
+        {
+          text: "Forecast RH",
+          color: "orange",
+          shape: { type: "circle", r: 5 },
+        },
+        { text: "GDPS Temp", color: "pink", shape: { type: "circle", r: 5 } },
+      ];
+
+      const legend = svg.selectAll(".legend").data(data);
+
+      let x_offset = 0;
+      let y_offset = 0;
+      const max_width = 400;
+      legend
+        .enter()
+        .append("g")
+        .attr("transform", "translate(0, 0)")
+        .attr("class", "legend")
+        .each(function (d, i) {
+          const item = d3.select(this);
+          let icon_width = 0;
+          let icon = null;
+          if (d.shape.type === "circle") {
+            icon = item
+              .append(d.shape.type)
+              .attr(
+                "transform",
+                "translate(" +
+                  (x_offset + d.shape.r) +
+                  ", " +
+                  (y_offset + d.shape.r) +
+                  ")"
+              )
+              .attr("r", d.shape.r)
+              .style("fill", d.color);
+          } else if (d.shape.type === "rect") {
+            icon = item
+              .append(d.shape.type)
+              .attr(
+                "transform",
+                "translate(" + x_offset + ", " + y_offset + ")"
+              )
+              .attr("width", 10)
+              .attr("height", 10)
+              .style("fill", d.color);
+          } else if (d.shape.type === "diamond") {
+            icon = item
+              .append("path")
+              .attr("d", d3.symbol().type(d3.symbolDiamond).size(d.shape.size))
+              .attr(
+                "transform",
+                "translate(" + x_offset + ", " + y_offset + ")"
+              )
+              .style("stroke", d.color)
+              .attr("fill", d.color);
+          } else if (d.shape.type === "triangle") {
+            icon = item
+              .append("path")
+              .attr("d", d3.symbol().type(d3.symbolTriangle).size(d.shape.size))
+              .attr(
+                "transform",
+                "translate(" + x_offset + ", " + y_offset + ")"
+              )
+              .style("stroke", d.color)
+              .attr("fill", d.color);
+          } else if (d.shape.type === "cross") {
+            icon = item
+              .append("path")
+              .attr("d", d3.symbol().type(d3.symbolCross).size(d.shape.size))
+              .attr(
+                "transform",
+                "translate(" + x_offset + ", " + y_offset + ")"
+              )
+              .style("stroke", d.color)
+              .attr("fill", d.color);
+          }
+          if (icon) {
+            icon_width = icon.node().getBBox().width;
+            console.log(d, icon_width);
+          }
+          const text = item
+            .append("text")
+            .attr(
+              "transform",
+              "translate(" + (x_offset + icon_width) + ", " + y_offset + ")"
+            )
+            .attr("text-anchor", "left")
+            .style("alignment-baseline", "hanging")
+            .style("fill", (d) => d.color)
+            .text(d.text);
+          x_offset += icon_width + text.node().getBBox().width;
+          if (x_offset > max_width) {
+            y_offset += text.node().getBBox().height;
+            text.attr("transform", "translate(0, " + y_offset + ")");
+            x_offset = text.node().getBBox().width;
+          }
+          //   console.log(text.node().getBBox().width);
+        });
+
+      //   svg
+      //     .selectAll("mydots")
+      //     .data(data)
+      //     .enter()
+      //     .append("circle")
+      //     .attr("cx", function () {
+      //       return 10;
+      //     })
+      //     .attr("cy", (d, i) => 40 + i * 25)
+      //     .attr("r", 7)
+      //     .style("fill", (d) => d.color);
+
+      //   svg
+      //     .selectAll("mylabels")
+      //     .data(data)
+      //     .enter()
+      //     .append("text")
+      //     .attr("x", function () {
+      //       if (
+      //         this.previousSibling &&
+      //         this.previousSibling.nodeName === "text"
+      //       ) {
+      //       }
+      //       return 30;
+      //     })
+      //     .attr("y", (d, i) => 40 + i * 25)
+      //     .style("fill", (d) => d.color)
+      //     .text((d) => d.text)
+      //     .attr("text-anchor", "left")
+      //     .style("alignment-baseline", "middle");
+
+      //   function myLayout() {
+      //     let space = 1;
+      //     function compute(data) {
+      //       return data;
+      //     }
+      //     compute.space = function (s) {
+      //       return this;
+      //     };
+      //     return compute;
+      //   }
+      //   const layout = myLayout().space(10);
+      //   const nodes = layout(data);
+    </script>
+  </body>
+</html>
