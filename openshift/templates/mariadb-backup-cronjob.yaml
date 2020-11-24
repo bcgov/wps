@@ -18,7 +18,7 @@ parameters:
   - name: "SCHEDULE"
     displayName: "Cron Schedule"
     description: "Cron Schedule to Execute the Job (using local cluster system TZ)"
-    # Currently targeting 1:00 AM Daily
+    # Targeting 2:00 AM Daily
     value: "0 2 * * *"
     required: true
   - name: "SOURCE_IMAGE_NAME"
