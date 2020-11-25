@@ -1,5 +1,6 @@
 import { NOT_AVAILABLE } from '../../src/utils/strings'
 import { PERCENTILE_CALC_ROUTE } from '../../src/utils/constants'
+import { stationCodeQueryKey } from '../../src/utils/url'
 
 describe('Percentile Calculator Page', () => {
   beforeEach(() => {
@@ -7,13 +8,13 @@ describe('Percentile Calculator Page', () => {
   })
 
   describe('Weather station dropdown', () => {
-    it('renders error message when fetching stations failed', () => {
+    it('Renders error message when fetching stations failed', () => {
       cy.visit(PERCENTILE_CALC_ROUTE)
       cy.getByTestId('disclaimer-accept-button').click()
       cy.checkErrorMessage('Error occurred (while fetching weather stations).')
     })
 
-    it('can select & deselect stations if successfully received stations', () => {
+    it('Can select & deselect stations if successfully received stations', () => {
       cy.route('GET', 'api/stations/', 'fixture:weather-stations.json').as('getStations')
       cy.visit(PERCENTILE_CALC_ROUTE)
       cy.getByTestId('disclaimer-accept-button').click()
@@ -26,11 +27,15 @@ describe('Percentile Calculator Page', () => {
       cy.get('.MuiChip-deleteIcon').click()
 
       // Select multiple stations in the dropdown and check if only 3 stations were selected
-      cy.selectStationByCode(322)
-      cy.selectStationByCode(209)
-      cy.selectStationByCode(1275)
-      cy.selectStationByCode(838)
+      const stationCodes = [1275, 322, 209, 838]
+      stationCodes.forEach(code => {
+        cy.selectStationByCode(code)
+      })
       cy.get('.MuiChip-deletable').should('have.length', 3)
+
+      // Check if the url query has been changed
+      cy.getByTestId('calculate-percentiles-button').click()
+      cy.url().should('contain', `${stationCodeQueryKey}=${stationCodes.slice(0, 3).join(',')}`)
     })
   })
 
@@ -98,7 +103,7 @@ describe('Percentile Calculator Page', () => {
       cy.getByTestId('disclaimer-accept-button').click()
     })
 
-    it('failed due to network error', () => {
+    it('Failed due to network error', () => {
       // Calculate button should be disabled if no stations selected
       cy.getByTestId('calculate-percentiles-button').should('be.disabled')
 
@@ -109,7 +114,7 @@ describe('Percentile Calculator Page', () => {
       cy.checkErrorMessage('Error occurred (while getting the calculation result).')
     })
 
-    it('successful with one station', () => {
+    it('Successful with one station', () => {
       const stationCode = 838
       cy.route('POST', 'api/percentiles/', 'fixture:percentiles/percentile-result.json').as('getPercentiles')
 
@@ -135,7 +140,7 @@ describe('Percentile Calculator Page', () => {
       cy.getByTestId('percentile-station-result-ISI').should('contain', NOT_AVAILABLE)
     })
 
-    it('successful with two stations', () => {
+    it('Successful with two stations', () => {
       const stationCodes = [322, 1275]
       cy.route('POST', 'api/percentiles/', 'fixture:percentiles/two-percentiles-result.json').as('getPercentiles')
 

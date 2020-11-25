@@ -18,7 +18,7 @@ import { fetchHighResModels } from 'features/fireWeather/slices/highResModelsSli
 import { fetchHighResModelSummaries } from 'features/fireWeather/slices/highResModelSummariesSlice'
 import { fetchRegionalModels } from 'features/fireWeather/slices/regionalModelsSlice'
 import { fetchRegionalModelSummaries } from 'features/fireWeather/slices/regionalModelSummariesSlice'
-import { getStationCodesFromUrl } from 'utils/url'
+import { getStationCodesFromUrl, stationCodeQueryKey } from 'utils/url'
 
 const useStyles = makeStyles({
   stationDropdown: {
@@ -60,7 +60,7 @@ const MoreCastPage = () => {
 
   const onSubmitClick = () => {
     // Update the page url query with new station codes
-    history.push({ search: `code=${selectedCodes.join(',')}` })
+    history.push({ search: `${stationCodeQueryKey}=${selectedCodes.join(',')}` })
 
     // Create matomo event
     // NOTE: This section is proof of concept - strongly consider re-factoring when adding other events.

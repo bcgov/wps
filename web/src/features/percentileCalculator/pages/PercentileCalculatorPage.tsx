@@ -13,7 +13,7 @@ import {
 import { PercentileActionButtons } from 'features/percentileCalculator/components/PercentileActionButtons'
 import { PercentileResults } from 'features/percentileCalculator/components/PercentileResults'
 import { TimeRangeSlider } from 'features/percentileCalculator/components/TimeRangeSlider'
-import { getStationCodesFromUrl } from 'utils/url'
+import { getStationCodesFromUrl, stationCodeQueryKey } from 'utils/url'
 
 const defaultTimeRange = 10
 const defaultPercentile = 90
@@ -50,7 +50,7 @@ const PercentileCalculatorPage = () => {
 
   const onCalculateClick = () => {
     // Update the page url query with new station codes
-    history.push({ search: `code=${stationCodes.join(',')}` })
+    history.push({ search: `${stationCodeQueryKey}=${stationCodes.join(',')}` })
 
     // Create a matomo event, pushing various variables onto the dataLayer
     // NOTE: This section is proof of concept - strongly consider re-factoring when adding other events.

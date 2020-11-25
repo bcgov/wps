@@ -1,4 +1,5 @@
 import { MORECAST_ROUTE } from '../../src/utils/constants'
+import { stationCodeQueryKey } from '../../src/utils/url'
 
 describe('MoreCast Page', () => {
   const stationCode = 328
@@ -14,6 +15,7 @@ describe('MoreCast Page', () => {
 
     cy.selectStationByCode(stationCode)
     cy.getByTestId('get-wx-data-button').click({ force: true })
+    cy.url().should('contain', `${stationCodeQueryKey}=${stationCode}`)
 
     cy.checkErrorMessage('Error occurred (while fetching hourly observations).')
     cy.checkErrorMessage('Error occurred (while fetching GDPS).')
@@ -59,27 +61,27 @@ describe('MoreCast Page', () => {
       // Test the toggle buttons
       cy.getByTestId('wx-graph-global-model-toggle').click()
       cy.getByTestId('model-summary-temp-area')
-      cy.getByTestId('model-temp-symbol')
+      cy.getByTestId('model-temp-symbol').should('have.length', 130)
       cy.getByTestId('wx-graph-global-model-toggle').click()
       cy.getByTestId('model-summary-temp-area').should('not.exist')
       cy.getByTestId('model-temp-symbol').should('not.exist')
 
       cy.getByTestId('wx-graph-forecast-toggle').click()
-      cy.getByTestId('forecast-temp-dot')
+      cy.getByTestId('forecast-temp-dot').should('have.length', 6)
       cy.getByTestId('forecast-summary-temp-line')
       cy.getByTestId('wx-graph-forecast-toggle').click()
       cy.getByTestId('forecast-temp-dot').should('not.exist')
       cy.getByTestId('forecast-summary-temp-line').should('not.exist')
 
       cy.getByTestId('wx-graph-bias-toggle').click()
-      cy.getByTestId('bias-adjusted-model-temp-symbol')
+      cy.getByTestId('bias-adjusted-model-temp-symbol').should('have.length', 130)
       cy.getByTestId('bias-adjusted-model-temp-path')
       cy.getByTestId('wx-graph-bias-toggle').click()
       cy.getByTestId('bias-adjusted-model-temp-symbol').should('not.exist')
 
       cy.getByTestId('wx-graph-high-res-model-toggle').click()
       cy.getByTestId('high-res-model-summary-temp-area')
-      cy.getByTestId('high-res-model-temp-symbol')
+      cy.getByTestId('high-res-model-temp-symbol').should('have.length', 103)
       cy.getByTestId('high-res-model-temp-path')
       cy.getByTestId('wx-graph-high-res-model-toggle').click()
       cy.getByTestId('high-res-model-summary-temp-area').should('not.exist')
@@ -87,7 +89,7 @@ describe('MoreCast Page', () => {
 
       cy.getByTestId('wx-graph-regional-model-toggle').click()
       cy.getByTestId('regional-model-summary-temp-area')
-      cy.getByTestId('regional-model-temp-symbol')
+      cy.getByTestId('regional-model-temp-symbol').should('have.length', 103)
       cy.getByTestId('regional-model-temp-path')
       cy.getByTestId('wx-graph-regional-model-toggle').click()
       cy.getByTestId('regional-model-summary-rh-area').should('not.exist')
