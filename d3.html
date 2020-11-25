@@ -1,56 +1,138 @@
 <html>
-  <head> </head>
+  <head>
+    <style>
+      text {
+        font-family: "Helvetica Neue", Helvetica, sans-serif;
+        fill: white;
+        font-size: 15px;
+      }
+    </style>
+  </head>
   <body style="background-color: #101010">
     <svg
       id="viz"
       height="200"
-      width="400"
+      width="600"
       style="border-color: green; border-width: 1px; border-style: solid"
     ></svg>
     <script src="https://d3js.org/d3.v4.js"></script>
     <script>
       const svg = d3.select("#viz");
-      //   svg
-      //     .append("circle")
-      //     .attr("cx", 2)
-      //     .attr("cy", 2)
-      //     .attr("r", 40)
-      //     .style("fill", "blue");
 
       const data = [
-        { text: "Short", color: "blue", shape: { type: "circle", r: 5 } },
+        {
+          text: "Short",
+          group: 0,
+          color: "blue",
+          shape: { type: "cross", size: 45 },
+        },
         {
           text: "Longer can be problematic",
+          group: 0,
           color: "purple",
-          shape: { type: "rect" },
+          shape: { type: "rect", r: 5 },
         },
         {
           text: "Observed Temp",
+          group: 1,
           color: "red",
-          shape: { type: "diamond", size: 10 },
+          shape: { type: "diamond", size: 15 },
         },
         {
           text: "Observed RH",
+          group: 1,
           color: "green",
-          shape: { type: "triangle", size: 20 },
+          fill: "none",
+          shape: { type: "circle", r: 5 },
         },
         {
           text: "Forecast Temp",
           color: "yellow",
-          shape: { type: "cross", size: 30 },
+          group: 2,
+          shape: { type: "circle", r: 5 },
         },
         {
           text: "Forecast RH",
           color: "orange",
+          group: 2,
           shape: { type: "circle", r: 5 },
         },
-        { text: "GDPS Temp", color: "pink", shape: { type: "circle", r: 5 } },
+        {
+          text: "GDPS Temp",
+          group: 3,
+          color: "pink",
+          shape: { type: "circle", r: 5 },
+        },
       ];
+
+      function create_icon(item, d) {
+        if (d.shape.type === "circle") {
+          console.log(d.fill, d.fill || d.color);
+          return item
+            .append(d.shape.type)
+            .attr("r", d.shape.r)
+            .style("stroke", d.color)
+            .style("fill", d.fill || d.color);
+        } else if (d.shape.type === "rect") {
+          return item
+            .append(d.shape.type)
+            .attr("width", 10)
+            .attr("height", 10)
+            .style("stroke", d.color)
+            .style("fill", d.fill || d.color);
+        } else if (d.shape.type === "diamond") {
+          return item
+            .append("path")
+            .attr("d", d3.symbol().type(d3.symbolDiamond).size(d.shape.size))
+            .style("stroke", d.color)
+            .attr("fill", d.fill || d.color);
+        } else if (d.shape.type === "triangle") {
+          return item
+            .append("path")
+            .attr("d", d3.symbol().type(d3.symbolTriangle).size(d.shape.size))
+            .style("stroke", d.color)
+            .attr("fill", d.fill || d.color);
+        } else if (d.shape.type === "cross") {
+          return item
+            .append("path")
+            .attr("d", d3.symbol().type(d3.symbolCross).size(d.shape.size))
+            .style("stroke", d.color)
+            .attr("fill", d.fill || d.color);
+        }
+      }
+
+      function translate_icon(shape, x_offset, y_offset, icon, text) {
+        const delta = Math.abs(
+          icon.node().getBBox().height - text.node().getBBox().height / 2
+        );
+        if (shape.type === "diamond") {
+          const x = x_offset + icon.node().getBBox().width / 2;
+          const y = y_offset - delta;
+          return `translate(${x}, ${y})`;
+        } else if (shape.type === "circle") {
+          const x = x_offset + icon.node().getBBox().width / 2;
+          const y = y_offset - delta;
+          return `translate(${x}, ${y})`;
+        } else if (shape.type === "rect") {
+          const x = x_offset;
+          const y = y_offset - icon.node().getBBox().height / 2 - delta;
+          return `translate(${x}, ${y})`;
+        } else if (shape.type === "cross") {
+          const x = x_offset + icon.node().getBBox().width / 2;
+          const y = y_offset - delta;
+          return `translate(${x}, ${y})`;
+        }
+        return;
+        `translate(${x_offset + icon.node().getBBox().width / 2}, {y_offset}`;
+      }
 
       const legend = svg.selectAll(".legend").data(data);
 
+      let group = data[0].group;
+      const x_margin = 5;
+      const y_margin = 5;
       let x_offset = 0;
-      let y_offset = 0;
+      let y_offset = 5 + y_margin;
       const max_width = 400;
       legend
         .enter()
@@ -59,82 +141,65 @@
         .attr("class", "legend")
         .each(function (d, i) {
           const item = d3.select(this);
-          let icon_width = 0;
-          let icon = null;
-          if (d.shape.type === "circle") {
-            icon = item
-              .append(d.shape.type)
-              .attr(
-                "transform",
-                "translate(" +
-                  (x_offset + d.shape.r) +
-                  ", " +
-                  (y_offset + d.shape.r) +
-                  ")"
-              )
-              .attr("r", d.shape.r)
-              .style("fill", d.color);
-          } else if (d.shape.type === "rect") {
-            icon = item
-              .append(d.shape.type)
-              .attr(
-                "transform",
-                "translate(" + x_offset + ", " + y_offset + ")"
-              )
-              .attr("width", 10)
-              .attr("height", 10)
-              .style("fill", d.color);
-          } else if (d.shape.type === "diamond") {
-            icon = item
-              .append("path")
-              .attr("d", d3.symbol().type(d3.symbolDiamond).size(d.shape.size))
-              .attr(
-                "transform",
-                "translate(" + x_offset + ", " + y_offset + ")"
-              )
-              .style("stroke", d.color)
-              .attr("fill", d.color);
-          } else if (d.shape.type === "triangle") {
-            icon = item
-              .append("path")
-              .attr("d", d3.symbol().type(d3.symbolTriangle).size(d.shape.size))
-              .attr(
-                "transform",
-                "translate(" + x_offset + ", " + y_offset + ")"
-              )
-              .style("stroke", d.color)
-              .attr("fill", d.color);
-          } else if (d.shape.type === "cross") {
-            icon = item
-              .append("path")
-              .attr("d", d3.symbol().type(d3.symbolCross).size(d.shape.size))
-              .attr(
-                "transform",
-                "translate(" + x_offset + ", " + y_offset + ")"
-              )
-              .style("stroke", d.color)
-              .attr("fill", d.color);
-          }
-          if (icon) {
-            icon_width = icon.node().getBBox().width;
-            console.log(d, icon_width);
-          }
+          // x_offset += x_margin;
+
           const text = item
             .append("text")
-            .attr(
-              "transform",
-              "translate(" + (x_offset + icon_width) + ", " + y_offset + ")"
-            )
             .attr("text-anchor", "left")
-            .style("alignment-baseline", "hanging")
+            .style("alignment-baseline", "middle")
             .style("fill", (d) => d.color)
             .text(d.text);
-          x_offset += icon_width + text.node().getBBox().width;
-          if (x_offset > max_width) {
-            y_offset += text.node().getBBox().height;
-            text.attr("transform", "translate(0, " + y_offset + ")");
-            x_offset = text.node().getBBox().width;
+
+          const icon = create_icon(item, d);
+          if (icon) {
+            icon.attr(
+              "transform",
+              translate_icon(d.shape, x_offset, y_offset, icon, text)
+            );
           }
+          x_offset += x_margin;
+          text.attr(
+            "transform",
+            "translate(" +
+              (x_offset + icon.node().getBBox().width) +
+              ", " +
+              y_offset +
+              ")"
+          );
+
+          x_offset +=
+            icon.node().getBBox().width +
+            text.node().getBBox().width +
+            x_margin;
+          return;
+
+          if (d.group !== group) {
+            x_offset = x_margin;
+            y_offset += text.node().getBBox().height + y_margin;
+            icon.attr(
+              "transform",
+              translate_icon(d.shape, x_offset, y_offset, icon, text)
+            );
+            icon_width = icon.node().getBBox().width;
+            x_offset += icon_width;
+            x_offset += x_margin;
+            text.attr(
+              "transform",
+              "translate(" + x_offset + ", " + y_offset + ")"
+            );
+            group = d.group;
+            x_offset += text.node().getBBox().width;
+          } else {
+            x_offset += icon_width + text.node().getBBox().width;
+          }
+          //    else {
+          //     x_offset += icon_width + text.node().getBBox().width;
+          //     if (x_offset > max_width) {
+          //       y_offset += text.node().getBBox().height;
+          //       text.attr("transform", "translate(0, " + y_offset + ")");
+          //       x_offset = text.node().getBBox().width;
+          //     }
+          //   }
           //   console.log(text.node().getBBox().width);
         });
 
