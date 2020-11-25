@@ -27,10 +27,3 @@ window.Keycloak = () => ({
       resolve(true)
     })
 })
-
-window.env = {
-  REACT_APP_FIDER_LINK: 'https://psufiderdev.pathfinder.gov.bc.ca/',
-  REACT_APP_KEYCLOAK_AUTH_URL: 'https://sso-dev.pathfinder.gov.bc.ca/auth',
-  REACT_APP_KEYCLOAK_REALM: 'keycloak_realm',
-  REACT_APP_KEYCLOAK_CLIENT: 'keycloak_client'
-}

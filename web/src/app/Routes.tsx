@@ -1,7 +1,7 @@
 import React from 'react'
 import { BrowserRouter as Router, Route, Switch, Redirect } from 'react-router-dom'
 
-import { HIDE_DISCLAIMER } from 'utils/constants'
+import { HIDE_DISCLAIMER } from 'utils/env'
 import AuthWrapper from 'features/auth/AuthWrapper'
 import PercentileCalculatorPageWithDisclaimer from 'features/percentileCalculator/pages/PercentileCalculatorPageWithDisclaimer'
 import MoreCastPage from 'features/fireWeather/pages/MoreCastPage'
