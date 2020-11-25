@@ -28,16 +28,9 @@ PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 
 # Prepare variables for backups
 NAME="${NAME_APP}-${SUFFIX}"
-IMAGE_NAMESPACE=${PROJ_TOOLS}
-CONFIG_MAP_NAME="matomo-backup-${NAME_APP}-${SUFFIX}-config"
-VERIFICATION_VOLUME_NAME="matomo-backup-verification-${NAME_APP}-${SUFFIX}"
 
-OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/mariadb-backup.dc.json \
+OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/mariadb-backup-pvc.json \
     -p NAME=${NAME} \
-    -p IMAGE_NAMESPACE=${IMAGE_NAMESPACE} \
-    -p CONFIG_MAP_NAME=${CONFIG_MAP_NAME} \
-    -p VERIFICATION_VOLUME_NAME=${VERIFICATION_VOLUME_NAME} \
-    ${TAG_NAME:+ " -p TAG_NAME=${TAG_NAME}"} \
     -p BACKUP_VOLUME_NAME=${BACKUP_VOLUME_NAME:-"matomo-backup-${NAME_APP}-${SUFFIX}"}"
 
 # Apply template (apply or use --dry-run)

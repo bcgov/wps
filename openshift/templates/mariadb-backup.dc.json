@@ -30,26 +30,6 @@
       "kind": "PersistentVolumeClaim",
       "apiVersion": "v1",
       "metadata": {
-        "name": "${BACKUP_VOLUME_NAME}",
-        "labels": {
-          "app": "${NAME}-persistent",
-          "template": "${NAME}-persistent-template"
-        }
-      },
-      "spec": {
-        "storageClassName": "${BACKUP_VOLUME_CLASS}",
-        "accessModes": ["ReadWriteOnce"],
-        "resources": {
-          "requests": {
-            "storage": "${BACKUP_VOLUME_SIZE}"
-          }
-        }
-      }
-    },
-    {
-      "kind": "PersistentVolumeClaim",
-      "apiVersion": "v1",
-      "metadata": {
         "name": "${VERIFICATION_VOLUME_NAME}",
         "labels": {
           "app": "${NAME}-persistent",
@@ -482,20 +462,6 @@
       "displayName": "Backup Volume Name",
       "description": "The name of the persistent volume used to store the backups.  Please note, when using the recommended nfs-backup storage class the name of the pvc MUST be taken from the manually provisioned claim; nfs-backup storage MUST be provisioned manually.",
       "required": true
-    },
-    {
-      "name": "BACKUP_VOLUME_SIZE",
-      "displayName": "Backup Volume Size",
-      "description": "The size of the persistent volume used to store the backups, e.g. 512Mi, 1Gi, 2Gi.  Ensure this is sized correctly.  Refer to the container documentation for details.",
-      "required": true,
-      "value": "1Gi"
-    },
-    {
-      "name": "BACKUP_VOLUME_CLASS",
-      "displayName": "Backup Volume Class",
-      "description": "The class of the persistent volume used to store the backups; netapp-block-standard, netapp-file-standard, nfs-backup.  Please note, nfs-backup storage is the recommended storage type for backups.  It MUST be provisioned manually through the OCP catalog via the 'BC Gov NFS Storage' template.  nfs-backup storage CANNOT be automatically provisioned by this template.",
-      "required": true,
-      "value": "netapp-file-standard"
     },
     {
       "name": "VERIFICATION_VOLUME_NAME",

@@ -36,7 +36,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Prepare Matomo Backup Deployment
+      - name: Prepare Matomo Backup Volume PVC
+        uses: bcgov/openshift-launchpad-deployment@master
+        with:
+          AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
+          SCRIPT: openshift/scripts/oc_provision_matomo_back_pvc.sh ${SUFFIX} apply
+
+      - name: Prepare Matomo Backup Deployment Config
         uses: bcgov/openshift-launchpad-deployment@master
         with:
           AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
