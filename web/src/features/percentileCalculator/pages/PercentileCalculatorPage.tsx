@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
+import { useLocation, useHistory } from 'react-router-dom'
 
-import { Station } from 'api/stationAPI'
 import { PageHeader, PageTitle, Container, ErrorBoundary } from 'components'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import WxStationDropdown from 'features/stations/components/WxStationDropdown'
@@ -13,29 +13,44 @@ import {
 import { PercentileActionButtons } from 'features/percentileCalculator/components/PercentileActionButtons'
 import { PercentileResults } from 'features/percentileCalculator/components/PercentileResults'
 import { TimeRangeSlider } from 'features/percentileCalculator/components/TimeRangeSlider'
+import { getStationCodesFromUrl } from 'utils/url'
 
 const defaultTimeRange = 10
 const defaultPercentile = 90
 
-export const PercentileCalculatorPage: React.FunctionComponent = () => {
+const PercentileCalculatorPage = () => {
   const dispatch = useDispatch()
+  const location = useLocation()
+  const history = useHistory()
 
-  const [selectedStations, setStations] = useState<Station[]>([])
+  const codesFromQuery = getStationCodesFromUrl(location.search)
+  const [stationCodes, setStationCodes] = useState<number[]>(codesFromQuery)
   const [timeRange, setTimeRange] = useState<number>(defaultTimeRange)
+  const currYear = new Date().getFullYear()
+  const yearRange = {
+    start: currYear - timeRange,
+    end: currYear - 1
+  }
 
   useEffect(() => {
     dispatch(fetchWxStations())
   }, [dispatch])
 
-  const onCalculateClick = () => {
-    const stationCodes = selectedStations.map(s => s.code)
-    const currYear = new Date().getFullYear()
-    const yearRange = {
-      start: currYear - timeRange,
-      end: currYear - 1
-    }
+  useEffect(() => {
+    // Update local state to match with the url query
+    setStationCodes(codesFromQuery)
 
-    dispatch(fetchPercentiles(stationCodes, defaultPercentile, yearRange))
+    if (codesFromQuery.length > 0) {
+      dispatch(fetchPercentiles(codesFromQuery, defaultPercentile, yearRange))
+    } else {
+      dispatch(resetPercentilesResult())
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch, location])
+
+  const onCalculateClick = () => {
+    // Update the page url query with new station codes
+    history.push({ search: `code=${stationCodes.join(',')}` })
 
     // Create a matomo event, pushing various variables onto the dataLayer
     // NOTE: This section is proof of concept - strongly consider re-factoring when adding other events.
@@ -44,7 +59,7 @@ export const PercentileCalculatorPage: React.FunctionComponent = () => {
       // see: https://developer.matomo.org/guides/tagmanager/integration-plugin#supporting-the-data-layer
       window._mtm.push({
         event: 'calculatePercentiles',
-        stationCodes: stationCodes,
+        stationCodes,
         percentile: defaultPercentile,
         yearRange: yearRange
       })
@@ -52,24 +67,25 @@ export const PercentileCalculatorPage: React.FunctionComponent = () => {
   }
 
   const onResetClick = () => {
-    setStations([])
+    history.replace({ search: undefined })
     setTimeRange(defaultTimeRange)
-    dispatch(resetPercentilesResult())
   }
+
+  const shouldCalcBtnDisabled = stationCodes.length === 0
 
   return (
     <main data-testid="percentile-calculator-page">
       <PageHeader title="Predictive Services Unit" />
       <PageTitle title="Percentile Calculator" />
       <Container>
-        <WxStationDropdown stations={selectedStations} onStationsChange={setStations} />
+        <WxStationDropdown stationCodes={stationCodes} onChange={setStationCodes} />
 
         <TimeRangeSlider timeRange={timeRange} onYearRangeChange={setTimeRange} />
 
         <PercentileTextfield />
 
         <PercentileActionButtons
-          stations={selectedStations}
+          calcDisabled={shouldCalcBtnDisabled}
           onCalculateClick={onCalculateClick}
           onResetClick={onResetClick}
         />
@@ -81,3 +97,5 @@ export const PercentileCalculatorPage: React.FunctionComponent = () => {
     </main>
   )
 }
+
+export default React.memo(PercentileCalculatorPage)

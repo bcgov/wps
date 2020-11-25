@@ -7,7 +7,6 @@ import HourlyObservationsTable from 'features/fireWeather/components/HourlyObser
 import NoonForecastTable from 'features/fireWeather/components/NoonForecastTable'
 import WxDataGraph from 'features/fireWeather/components/graphs/WxDataGraph'
 import { ErrorBoundary } from 'components'
-import { Station } from 'api/stationAPI'
 import {
   selectObservations,
   selectModels,
@@ -18,7 +17,8 @@ import {
   selectHighResModels,
   selectHighResModelSummaries,
   selectRegionalModels,
-  selectRegionalModelSummaries
+  selectRegionalModelSummaries,
+  selectStations
 } from 'app/rootReducer'
 
 const useStyles = makeStyles({
@@ -41,12 +41,13 @@ const useStyles = makeStyles({
 })
 
 interface Props {
-  requestedStations: Station[]
+  stationCodes: number[]
 }
 
-const WxDataDisplays = ({ requestedStations }: Props) => {
+const WxDataDisplays = ({ stationCodes }: Props) => {
   const classes = useStyles()
 
+  const { stationsByCode } = useSelector(selectStations)
   const { observationsByStation } = useSelector(selectObservations)
   const { allModelsByStation, noonModelsByStation } = useSelector(selectModels)
   const { modelSummariesByStation } = useSelector(selectModelSummaries)
@@ -61,17 +62,20 @@ const WxDataDisplays = ({ requestedStations }: Props) => {
   return (
     <div className={classes.displays}>
       {!wxDataLoading &&
-        requestedStations.map(s => {
-          const observedValues = observationsByStation[s.code]
-          const allModelValues = allModelsByStation[s.code]
-          const modelSummaries = modelSummariesByStation[s.code]
-          const noonModelValues = noonModelsByStation[s.code]
-          const allForecasts = allNoonForecastsByStation[s.code]
-          const forecastSummaries = forecastSummariesByStation[s.code]
-          const allHighResModelValues = allHighResModelsByStation[s.code]
-          const highResModelSummaries = highResModelSummariesByStation[s.code]
-          const allRegionalModelValues = allRegionalModelsByStation[s.code]
-          const regionalModelSummaries = regionalModelSummariesByStation[s.code]
+        stationCodes.map(code => {
+          const station = stationsByCode[code]
+          if (!station) return null
+
+          const observedValues = observationsByStation[code]
+          const allModelValues = allModelsByStation[code]
+          const modelSummaries = modelSummariesByStation[code]
+          const noonModelValues = noonModelsByStation[code]
+          const allForecasts = allNoonForecastsByStation[code]
+          const forecastSummaries = forecastSummariesByStation[code]
+          const allHighResModelValues = allHighResModelsByStation[code]
+          const highResModelSummaries = highResModelSummariesByStation[code]
+          const allRegionalModelValues = allRegionalModelsByStation[code]
+          const regionalModelSummaries = regionalModelSummariesByStation[code]
           const nothingToDisplay =
             !observedValues &&
             !allForecasts &&
@@ -80,9 +84,9 @@ const WxDataDisplays = ({ requestedStations }: Props) => {
             !allRegionalModelValues
 
           return (
-            <Paper key={s.code} className={classes.paper} elevation={3}>
+            <Paper key={code} className={classes.paper} elevation={3}>
               <Typography className={classes.station} variant="subtitle1" component="div">
-                Weather station: {`${s.name} (${s.code})`}
+                Weather station: {station ? `${station.name} (${code})` : code}
               </Typography>
               {nothingToDisplay && (
                 <Typography className={classes.noDataAvailable} variant="body2">
@@ -97,14 +101,14 @@ const WxDataDisplays = ({ requestedStations }: Props) => {
               </ErrorBoundary>
               <ErrorBoundary>
                 <NoonForecastTable
-                  testId={`noon-models-table-${s.code}`}
+                  testId={`noon-models-table-${code}`}
                   title="Interpolated global model noon values (20:00 UTC): "
                   values={noonModelValues}
                 />
               </ErrorBoundary>
               <ErrorBoundary>
                 <NoonForecastTable
-                  testId={`noon-forecasts-table-${s.code}`}
+                  testId={`noon-forecasts-table-${code}`}
                   title="Weather forecast noon values (20:00 UTC): "
                   values={allForecasts}
                 />

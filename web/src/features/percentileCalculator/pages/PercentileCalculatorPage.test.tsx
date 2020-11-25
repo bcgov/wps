@@ -12,7 +12,7 @@ import { selectStations } from 'app/rootReducer'
 import { renderWithRedux } from 'utils/testUtils'
 import { WEATHER_STATION_MAP_LINK, FWI_VALUES_DECIMAL } from 'utils/constants'
 import { NOT_AVAILABLE } from 'utils/strings'
-import { PercentileCalculatorPage } from 'features/percentileCalculator/pages/PercentileCalculatorPage'
+import PercentileCalculatorPage from 'features/percentileCalculator/pages/PercentileCalculatorPage'
 import {
   mockStations,
   mockPercentilesResponse,
