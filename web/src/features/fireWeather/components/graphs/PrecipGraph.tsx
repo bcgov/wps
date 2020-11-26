@@ -239,29 +239,23 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         .attr('transform', 'rotate(-90)')
 
       /* Render legends */
-      // TODO: We're going to have to look at using layouts moving forward to achieve the placement of objects. https://www.d3indepth.com/layouts/
-      const legendY = 0
-      let legendX = 0
-      d3Utils.addLegend({
-        svg: legend,
-        text: 'Observed Precip',
-        color: observedPrecipColor,
-        shape: 'rect',
-        shapeX: legendX - 2,
-        shapeY: legendY - 4,
-        textX: legendX += 10,
-        textY: legendY + 3.5
-      })
-      d3Utils.addLegend({
-        svg: legend,
-        text: 'Forecast Precip',
-        color: forecastPrecipColor,
-        shape: 'rect',
-        shapeX: legendX += 85,
-        shapeY: legendY - 4,
-        textX: legendX += 12,
-        textY: legendY + 3.5
-      })
+      // const data = []
+      // console.log('toggle values', toggleValues)
+      // if (toggleValues.showObservations) {
+      //   data.push({
+      //     text: 'Observed Precip',
+      //     shape: 'rect',
+      //     color: observedPrecipColor
+      //   })
+      // }
+      // if (toggleValues.showForecasts) {
+      //   data.push({
+      //     text: 'Forecast Precip',
+      //     shape: 'rect',
+      //     color: observedPrecipColor
+      //   })
+      // }
+      // const legendHeight = d3Utils.addLegendEx({ svg: legend, data: data })
     }
   }, [xDomain, xTickValues, observedPrecips, forecastPrecips])
 
@@ -284,6 +278,36 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
 
     return Object.values(precipsByDatetime)
   }, [toggleValues, observedPrecips, forecastPrecips])
+
+  // Effect hook for updating the legend
+  useEffect(() => {
+    const data = []
+    console.log('toggle values', toggleValues)
+    if (toggleValues.showObservations) {
+      data.push({
+        text: 'Observed Precip',
+        shape: 'rect',
+        color: observedPrecipColor
+      })
+    }
+    if (toggleValues.showForecasts) {
+      data.push({
+        text: 'Forecast Precip',
+        shape: 'rect',
+        color: forecastPrecipColor
+      })
+    }
+    const svgElement = svgRef.current
+    if (svgElement) {
+      const svg = d3.select(svgElement)
+      // Grab the legend.
+      const legend = svg.select('.legend')
+      // Clear out all the child nodes.
+      legend.selectAll('*').remove()
+      // Re-create the legend.
+      d3Utils.addLegendEx({ svg: legend, data: data })
+    }
+  }, [precipsOfInterest])
 
   // Effect hook for adding/updating tooltip
   useEffect(() => {

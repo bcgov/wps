@@ -267,16 +267,12 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
       /* Set dimensions and svg groups */
       const margin = { top: 10, right: 40, bottom: 200, left: 40 }
       const svgWidth = 600
-      const svgHeight = 400
       const chartWidth = svgWidth - margin.left - margin.right
-      const chartHeight = svgHeight - margin.top - margin.bottom
-      const svg = d3
-        .select(svgRef.current)
-        // Make it responsive: https://medium.com/@louisemoxy/a-simple-way-to-make-d3-js-charts-svgs-responsive-7afb04bc2e4b
-        .attr('viewBox', `0 0 ${svgWidth} ${svgHeight}`)
+      const chartHeight = 190
+      const svg = d3.select(svgRef.current)
 
       // Set up a clipper that removes graphics that don't fall within the boundary
-      svg
+      const clipRect = svg
         .append('defs')
         .append('clipPath')
         .attr('id', 'clip')
@@ -284,7 +280,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         .attr('x', -1) // -1 to give some tiny window to show stuff that's hidden on the left
         .attr('y', -10) // - 10 to show the text(Now) from the reference line
         .attr('width', chartWidth + 2) // + 2 to show the last tick of the x axis
-        .attr('height', svgHeight) // Use svgHeight to show the x axis and its labels
+
       const chart = svg
         .append('g')
         .attr('class', 'chart')
@@ -304,6 +300,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         .attr('transform', `translate(${margin.left}, ${sidebarMarginTop})`)
 
       const legendMarginTop = sidebarMarginTop + 70
+      const svgHeight = chartHeight + sidebarHeight + 90
       const legend = svg
         .append('g')
         .attr('class', 'legend')
@@ -887,7 +884,11 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         )
       }
 
-      d3Utils.addLegendEx({ svg: legend, data: data })
+      const legendHeight = d3Utils.addLegendEx({ svg: legend, data: data })
+
+      // Make it responsive: https://medium.com/@louisemoxy/a-simple-way-to-make-d3-js-charts-svgs-responsive-7afb04bc2e4b
+      svg.attr('viewBox', `0 0 ${svgWidth} ${svgHeight + legendHeight}`)
+      clipRect.attr('height', svgHeight + legendHeight) // Use svgHeight to show the x axis and its labels
 
       /* Attach tooltip listener */
       d3Utils.addTooltipListener({

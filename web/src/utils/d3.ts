@@ -424,19 +424,18 @@ function translate_icon(shape, x_offset: number, y_offset: number, icon, text) {
   return `translate(${x_offset}, ${y})`
 }
 
-export const addLegendEx = ({
+export const addLegendEx = <T>({
   svg,
   data
 }: {
   svg: d3.Selection<SVGGElement, unknown, null, undefined>
-  data: object
-}): void => {
+  data: T[]
+}): number => {
   const x_margin = 5
   const y_margin = 0
+  const line_height = 20
   let x_offset = 0
   let y_offset = 1 + y_margin
-
-  console.log('here')
 
   const legend = svg.selectAll('.legend').data(data)
 
@@ -444,7 +443,6 @@ export const addLegendEx = ({
     .enter()
     .append('g')
     .attr('transform', 'translate(0, 0)')
-    .attr('class', 'legend')
     .each(function(d, i) {
       console.log(d)
       const item = d3.select(this)
@@ -462,7 +460,7 @@ export const addLegendEx = ({
       let new_x_offset = calculate_new_x_offset(x_offset, icon, text, x_margin)
       if (new_x_offset > 400) {
         x_offset = 0
-        y_offset += 20
+        y_offset += line_height
 
         new_x_offset = calculate_new_x_offset(x_offset, icon, text, x_margin)
       }
@@ -477,9 +475,9 @@ export const addLegendEx = ({
           y_offset +
           ')'
       )
-
       x_offset = new_x_offset + x_margin
     })
+  return y_offset + line_height
 }
 
 export const addLegend = ({
