@@ -8,6 +8,7 @@ import { formatDateInPDT } from 'utils/date'
 import * as styles from 'features/fireWeather/components/graphs/TempRHGraph.styles'
 import * as d3Utils from 'utils/d3'
 import { PDT_UTC_OFFSET } from 'utils/constants'
+import { style } from 'd3'
 
 interface WeatherValue {
   date: Date
@@ -755,230 +756,138 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
           brushSelection.current || xScaleOriginal.range().map(x => x / 4)
         )
 
-      const data = [
-        {
+      // TODO: Link shapes and text to tooltip
+      const data = []
+      if (observedTempValues.length > 0) {
+        data.push({
           text: 'Observed Temp',
           color: styles.observedTempColor,
-          shape: { type: 'rect', width: 8, height: 8 }
-        },
-        {
+          shape: 'rect'
+        })
+      }
+      if (observedRHValues.length > 0) {
+        data.push({
           text: 'Observed RH',
           color: styles.observedRHColor,
-          shape: { type: 'rect', width: 8, height: 8 }
-        }
-      ]
+          shape: 'rect'
+        })
+      }
+      if (forecastValues.length > 0) {
+        data.push(
+          {
+            text: 'Forecast Temp',
+            color: styles.forecastTempDotColor,
+            shape: 'circle',
+            fill: 'none'
+          },
+          {
+            text: 'Forecast RH',
+            color: styles.forecastRHDotColor,
+            shape: 'circle',
+            fill: 'none'
+          }
+        )
+      }
+      if (modelTempValues.length > 0) {
+        data.push({
+          text: 'GDPS Temp',
+          color: styles.modelTempColor,
+          shape: 'triangle'
+        })
+      }
+      if (modelRHValues.length > 0) {
+        data.push({
+          text: 'GDPS RH',
+          color: styles.modelRHColor,
+          shape: 'triangle'
+        })
+      }
+      if (modelSummaries.length > 0) {
+        data.push(
+          {
+            text: 'GDPS Temp 5th - 90th percentiles',
+            color: styles.modelSummaryTempAreaColor,
+            shape: 'rect'
+          },
+          {
+            text: 'GDPS RH 5th - 90th percentiles',
+            color: styles.modelSummaryRHAreaColor,
+            shape: 'rect'
+          }
+        )
+      }
+      if (biasAdjModelTempValues.length > 0) {
+        data.push({
+          text: 'Bias Adjusted GDPS Temp',
+          color: styles.biasModelTempColor,
+          shape: 'diamond'
+        })
+      }
+      if (biasAdjModelRHValues.length > 0) {
+        data.push({
+          text: 'Bias Adjusted GDPS RH',
+          color: styles.biasModelRHColor,
+          shape: 'diamond'
+        })
+      }
+      if (hrModelTempValues.length > 0) {
+        data.push({
+          text: 'HRDPS Temp',
+          color: styles.highResModelTempColor,
+          shape: 'circle'
+        })
+      }
+      if (hrModelRHValues.length > 0) {
+        data.push({
+          text: 'HRDPS RH',
+          color: styles.highResModelRHColor,
+          shape: 'circle'
+        })
+      }
+      if (highResModelSummaries.length > 0) {
+        data.push(
+          {
+            text: 'HRDPS Temp 5th - 90th percentiles',
+            color: styles.highResModelSummaryTempAreaColor,
+            shape: 'rect'
+          },
+          {
+            text: 'HRDPS RH 5th - 90th percentiles',
+            color: styles.highResModelSummaryRHAreaColor,
+            shape: 'rect'
+          }
+        )
+      }
+      if (regModelTempValues.length > 0) {
+        data.push({
+          text: 'RDPS Temp',
+          color: styles.regionalModelTempColor,
+          shape: 'cross'
+        })
+      }
+      if (regModelRHValues.length > 0) {
+        data.push({
+          text: 'RDPS RH',
+          color: styles.regionalModelRHColor,
+          shape: 'cross'
+        })
+      }
+      if (regionalModelSummaries.length > 0) {
+        data.push(
+          {
+            text: 'RDPS Temp 5th - 90th percentiles',
+            color: styles.regionalModelSummaryTempAreaColor,
+            shape: 'rect'
+          },
+          {
+            text: 'RDPS RH 5th - 90th percentiles',
+            color: styles.regionalModelSummaryRHAreaColor,
+            shape: 'rect'
+          }
+        )
+      }
 
       d3Utils.addLegendEx({ svg: legend, data: data })
-
-      /* Render legends */
-      // TODO: We're going to have to look at using layouts moving forward to achieve the placement of objects. https://www.d3indepth.com/layouts/
-      let legendY = 0
-      let legendX = 10
-      // d3Utils.addLegend({
-      //   svg: legend,
-      //   text: 'Observed Temp',
-      //   color: styles.observedTempColor,
-      //   shape: 'rect',
-      //   shapeX: legendX - 2,
-      //   shapeY: legendY - 4,
-      //   textX: legendX += 10,
-      //   textY: legendY + 4
-      // })
-      d3Utils.addLegend({
-        svg: legend,
-        text: 'Observed RH',
-        color: styles.observedRHColor,
-        shape: 'rect',
-        shapeX: legendX += 80,
-        shapeY: legendY - 4,
-        textX: legendX += 12,
-        textY: legendY + 4
-      })
-      d3Utils.addLegend({
-        svg: legend,
-        text: 'Forecast Temp',
-        color: styles.forecastTempDotColor,
-        fill: 'none',
-        shapeX: legendX += 73,
-        shapeY: legendY,
-        textX: legendX += 7,
-        textY: legendY + 3
-      })
-      d3Utils.addLegend({
-        svg: legend,
-        text: 'Forecast RH',
-        color: styles.forecastRHDotColor,
-        fill: 'none',
-        shapeX: legendX += 80,
-        shapeY: legendY,
-        textX: legendX += 7,
-        textY: legendY + 3
-      })
-      d3Utils.addLegend({
-        svg: legend,
-        text: 'GDPS Temp',
-        shape: 'triangle',
-        color: styles.modelTempColor,
-        fill: styles.modelTempColor,
-        shapeX: legendX += 70,
-        shapeY: legendY,
-        textX: legendX += 7,
-        textY: legendY + 3
-      })
-      d3Utils.addLegend({
-        svg: legend,
-        text: 'GDPS RH',
-        shape: 'triangle',
-        color: styles.modelRHColor,
-        fill: styles.modelRHColor,
-        shapeX: legendX += 70,
-        shapeY: legendY,
-        textX: legendX + 7,
-        textY: legendY + 3
-      })
-      // New line
-      legendX = 0
-      legendY += 16
-      d3Utils.addLegend({
-        svg: legend,
-        shape: 'rect',
-        text: 'GDPS Temp 5th - 90th percentiles',
-        color: styles.modelSummaryTempAreaColor,
-        shapeX: legendX - 2,
-        shapeY: legendY - 4,
-        textX: legendX += 11,
-        textY: legendY + 3
-      })
-      d3Utils.addLegend({
-        svg: legend,
-        shape: 'rect',
-        text: 'GDPS RH 5th - 90th percentiles',
-        color: styles.modelSummaryRHAreaColor,
-        shapeX: legendX += 165,
-        shapeY: legendY - 4,
-        textX: legendX + 13,
-        textY: legendY + 3
-      })
-      // New line
-      legendX = 0
-      legendY += 16
-      d3Utils.addLegend({
-        svg: legend,
-        text: 'Bias Adjusted GDPS Temp',
-        shape: 'diamond',
-        color: styles.biasModelTempColor,
-        fill: styles.biasModelTempColor,
-        shapeX: legendX,
-        shapeY: legendY,
-        textX: legendX += 7,
-        textY: legendY + 3,
-        radius: 0.5
-      })
-      d3Utils.addLegend({
-        svg: legend,
-        text: 'Bias Adjusted GDPS RH',
-        shape: 'diamond',
-        color: styles.biasModelRHColor,
-        fill: styles.biasModelRHColor,
-        shapeX: legendX += 130,
-        shapeY: legendY,
-        textX: legendX + 7,
-        textY: legendY + 3,
-        radius: 0.5
-      })
-      d3Utils.addLegend({
-        svg: legend,
-        text: 'HRDPS Temp',
-        color: styles.highResModelTempColor,
-        fill: styles.highResModelTempColor,
-        shapeX: legendX += 127,
-        shapeY: legendY,
-        textX: legendX += 7,
-        textY: legendY + 3
-      })
-      d3Utils.addLegend({
-        svg: legend,
-        text: 'HRDPS RH',
-        color: styles.highResModelRHColor,
-        fill: styles.highResModelRHColor,
-        shapeX: legendX += 81,
-        shapeY: legendY,
-        textX: legendX + 7,
-        textY: legendY + 3
-      })
-      // new line
-      legendX = 0
-      legendY += 16
-      d3Utils.addLegend({
-        svg: legend,
-        text: 'HRDPS Temp 5th - 90th percentiles',
-        shape: 'rect',
-        color: styles.highResModelSummaryTempAreaColor,
-        fill: styles.highResModelSummaryTempAreaColor,
-        shapeX: legendX - 2,
-        shapeY: legendY - 4,
-        textX: legendX += 10,
-        textY: legendY + 4
-      })
-      d3Utils.addLegend({
-        svg: legend,
-        text: 'HRDPS RH 5th - 90th percentiles',
-        shape: 'rect',
-        color: styles.highResModelSummaryRHAreaColor,
-        fill: styles.highResModelSummaryRHAreaColor,
-        shapeX: legendX += 165,
-        shapeY: legendY - 4,
-        textX: legendX + 13,
-        textY: legendY + 3
-      })
-
-      // New line
-      legendX = 0
-      legendY += 16
-      d3Utils.addLegend({
-        svg: legend,
-        text: 'RDPS Temp',
-        color: styles.regionalModelTempColor,
-        fill: styles.regionalModelTempColor,
-        shape: 'cross',
-        shapeX: legendX,
-        shapeY: legendY,
-        textX: legendX += 6,
-        textY: legendY + 4
-      })
-      d3Utils.addLegend({
-        svg: legend,
-        text: 'RDPS RH',
-        color: styles.regionalModelRHColor,
-        fill: styles.regionalModelRHColor,
-        shape: 'cross',
-        shapeX: legendX += 81,
-        shapeY: legendY,
-        textX: legendX += 6,
-        textY: legendY + 4
-      })
-      d3Utils.addLegend({
-        svg: legend,
-        text: 'RDPS Temp 5th - 90th percentiles',
-        shape: 'rect',
-        color: styles.regionalModelSummaryTempAreaColor,
-        fill: styles.regionalModelSummaryTempAreaColor,
-        shapeX: legendX += 82,
-        shapeY: legendY - 4,
-        textX: legendX += 13,
-        textY: legendY + 4
-      })
-      d3Utils.addLegend({
-        svg: legend,
-        text: 'RDPS RH 5th - 90th percentiles',
-        shape: 'rect',
-        color: styles.regionalModelSummaryRHAreaColor,
-        fill: styles.regionalModelSummaryRHAreaColor,
-        shapeX: legendX += 160,
-        shapeY: legendY - 4,
-        textX: legendX + 13,
-        textY: legendY + 4
-      })
 
       /* Attach tooltip listener */
       d3Utils.addTooltipListener({

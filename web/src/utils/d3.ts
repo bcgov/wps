@@ -345,22 +345,21 @@ export const drawArea = <T>({
   return updateArea
 }
 
-function create_icon(item, d) {
-  if (d.shape.type === 'circle') {
-    console.log(d.fill, d.fill || d.color)
+function createIcon(item, d) {
+  if (d.shape === 'circle') {
     return item
-      .append(d.shape.type)
-      .attr('r', d.shape.r)
+      .append(d.shape)
+      .attr('r', 2)
       .style('stroke', d.color)
       .style('fill', d.fill || d.color)
-  } else if (d.shape.type === 'rect') {
+  } else if (d.shape === 'rect') {
     return item
-      .append(d.shape.type)
-      .attr('width', d.shape.width)
-      .attr('height', d.shape.height)
+      .append(d.shape)
+      .attr('width', 8)
+      .attr('height', 8)
       .style('stroke', d.color)
       .style('fill', d.fill || d.color)
-  } else if (d.shape.type === 'diamond') {
+  } else if (d.shape === 'diamond') {
     return item
       .append('path')
       .attr(
@@ -368,11 +367,11 @@ function create_icon(item, d) {
         d3
           .symbol()
           .type(d3.symbolDiamond)
-          .size(d.shape.size)
+          .size(10)
       )
       .style('stroke', d.color)
       .attr('fill', d.fill || d.color)
-  } else if (d.shape.type === 'triangle') {
+  } else if (d.shape === 'triangle') {
     return item
       .append('path')
       .attr(
@@ -380,11 +379,11 @@ function create_icon(item, d) {
         d3
           .symbol()
           .type(d3.symbolTriangle)
-          .size(d.shape.size)
+          .size(7)
       )
       .style('stroke', d.color)
       .attr('fill', d.fill || d.color)
-  } else if (d.shape.type === 'cross') {
+  } else if (d.shape === 'cross') {
     return item
       .append('path')
       .attr(
@@ -392,18 +391,18 @@ function create_icon(item, d) {
         d3
           .symbol()
           .type(d3.symbolCross)
-          .size(d.shape.size)
+          .size(7)
       )
       .style('stroke', d.color)
       .attr('fill', d.fill || d.color)
   }
 }
 
-function calculate_new_x_offset(x_offset, icon, text, x_margin) {
+function calculate_new_x_offset(x_offset: number, icon, text, x_margin: number) {
   return x_offset + icon.node().getBBox().width + text.node().getBBox().width + x_margin
 }
 
-function translate_icon(shape, x_offset, y_offset, icon, text) {
+function translate_icon(shape, x_offset: number, y_offset: number, icon, text) {
   const delta = Math.abs(icon.node().getBBox().height - text.node().getBBox().height / 2)
   if (shape.type === 'diamond' || shape.type === 'circle' || shape.type === 'cross') {
     const x = x_offset + icon.node().getBBox().width / 2
@@ -411,7 +410,17 @@ function translate_icon(shape, x_offset, y_offset, icon, text) {
     return `translate(${x}, ${y})`
   }
   // rect:
-  const y = y_offset - icon.node().getBBox().height / 2 - delta
+  const y = y_offset - icon.node().getBBox().height / 2 // - icon.node().getBBox().height / 2 - Math.abs(icon.node().getBBox().height - text.node().getBBox().height / 2)
+
+  console.log(
+    'translate icon',
+    icon.node().getBBox().width,
+    icon.node().getBBox().height,
+    text.node().getBBox().width,
+    text.node().getBBox().height
+  )
+  console.log(x_offset)
+  console.log(y)
   return `translate(${x_offset}, ${y})`
 }
 
@@ -449,12 +458,17 @@ export const addLegendEx = ({
         .style('font-size', '9px')
         .text(d.text)
 
-      const icon = create_icon(item, d)
+      const icon = createIcon(item, d)
       let new_x_offset = calculate_new_x_offset(x_offset, icon, text, x_margin)
-      if (icon) {
-        icon.attr('transform', translate_icon(d.shape, x_offset, y_offset, icon, text))
+      if (new_x_offset > 400) {
+        x_offset = 0
+        y_offset += 20
+
+        new_x_offset = calculate_new_x_offset(x_offset, icon, text, x_margin)
       }
 
+      // Move icon and text to the correct location.
+      icon.attr('transform', translate_icon(d.shape, x_offset, y_offset, icon, text))
       text.attr(
         'transform',
         'translate(' +
