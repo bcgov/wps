@@ -345,14 +345,11 @@ export const drawArea = <T>({
   return updateArea
 }
 
-function createIcon(item, d) {
-  if (d.shape === 'circle') {
-    return item
-      .append(d.shape)
-      .attr('r', 2)
-      .style('stroke', d.color)
-      .style('fill', d.fill || d.color)
-  } else if (d.shape === 'rect') {
+const createIcon = (
+  item: d3.Selection<SVGGElement, unknown, null, undefined>,
+  d: Legend
+): any => {
+  if (d.shape === 'rect') {
     return item
       .append(d.shape)
       .attr('width', 8)
@@ -396,15 +393,31 @@ function createIcon(item, d) {
       .style('stroke', d.color)
       .attr('fill', d.fill || d.color)
   }
+  return item
+    .append(d.shape)
+    .attr('r', 2)
+    .style('stroke', d.color)
+    .style('fill', d.fill || d.color)
 }
 
-function calculate_new_x_offset(x_offset: number, icon, text, x_margin: number) {
+function calculate_new_x_offset(
+  x_offset: number,
+  icon: any,
+  text: any,
+  x_margin: number
+) {
   return x_offset + icon.node().getBBox().width + text.node().getBBox().width + x_margin
 }
 
-function translate_icon(shape, x_offset: number, y_offset: number, icon, text) {
+function translate_icon(
+  shape: string,
+  x_offset: number,
+  y_offset: number,
+  icon: any,
+  text: any
+) {
   const delta = Math.abs(icon.node().getBBox().height - text.node().getBBox().height / 2)
-  if (shape.type === 'diamond' || shape.type === 'circle' || shape.type === 'cross') {
+  if (shape === 'diamond' || shape === 'circle' || shape === 'cross') {
     const x = x_offset + icon.node().getBBox().width / 2
     const y = y_offset - delta
     return `translate(${x}, ${y})`
@@ -424,13 +437,17 @@ function translate_icon(shape, x_offset: number, y_offset: number, icon, text) {
   return `translate(${x_offset}, ${y})`
 }
 
-export const addLegendEx = <T>({
-  svg,
-  data
-}: {
-  svg: d3.Selection<SVGGElement, unknown, null, undefined>
-  data: T[]
-}): number => {
+export interface Legend {
+  text: string
+  shape: string
+  color: string
+  fill: null | string
+}
+
+export const addLegendEx = (
+  svg: d3.Selection<SVGGElement, unknown, null, undefined>,
+  data: Legend[]
+): number => {
   const x_margin = 5
   const y_margin = 0
   const line_height = 20
@@ -443,7 +460,7 @@ export const addLegendEx = <T>({
     .enter()
     .append('g')
     .attr('transform', 'translate(0, 0)')
-    .each(function(d, i) {
+    .each(function(d: Legend, i) {
       console.log(d)
       const item = d3.select(this)
       // x_offset += x_margin
@@ -452,7 +469,7 @@ export const addLegendEx = <T>({
         .append('text')
         .attr('text-anchor', 'left')
         .style('alignment-baseline', 'middle')
-        .style('fill', d => d.color)
+        .style('fill', d.color)
         .style('font-size', '9px')
         .text(d.text)
 

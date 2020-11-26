@@ -237,25 +237,6 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         .attr('class', 'yAxisLabel')
         .text('Precipitation (mm/cm)')
         .attr('transform', 'rotate(-90)')
-
-      /* Render legends */
-      // const data = []
-      // console.log('toggle values', toggleValues)
-      // if (toggleValues.showObservations) {
-      //   data.push({
-      //     text: 'Observed Precip',
-      //     shape: 'rect',
-      //     color: observedPrecipColor
-      //   })
-      // }
-      // if (toggleValues.showForecasts) {
-      //   data.push({
-      //     text: 'Forecast Precip',
-      //     shape: 'rect',
-      //     color: observedPrecipColor
-      //   })
-      // }
-      // const legendHeight = d3Utils.addLegendEx({ svg: legend, data: data })
     }
   }, [xDomain, xTickValues, observedPrecips, forecastPrecips])
 
@@ -301,11 +282,16 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
     if (svgElement) {
       const svg = d3.select(svgElement)
       // Grab the legend.
-      const legend = svg.select('.legend')
+      const legend = svg.select('.legend') as d3.Selection<
+        SVGGElement,
+        unknown,
+        null,
+        undefined
+      >
       // Clear out all the child nodes.
       legend.selectAll('*').remove()
       // Re-create the legend.
-      d3Utils.addLegendEx({ svg: legend, data: data })
+      d3Utils.addLegendEx(legend, data as d3Utils.Legend[])
     }
   }, [precipsOfInterest])
 
@@ -322,7 +308,6 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         .scaleTime()
         .domain(xDomain)
         .range([0, chartWidth])
-      // const xScaleOriginal = xScale.copy()
 
       d3Utils.addTooltipListener({
         svg: svg.select('.chart'),
