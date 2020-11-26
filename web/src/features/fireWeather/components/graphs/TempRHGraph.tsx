@@ -755,20 +755,35 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
           brushSelection.current || xScaleOriginal.range().map(x => x / 4)
         )
 
+      const data = [
+        {
+          text: 'Observed Temp',
+          color: styles.observedTempColor,
+          shape: { type: 'rect', width: 8, height: 8 }
+        },
+        {
+          text: 'Observed RH',
+          color: styles.observedRHColor,
+          shape: { type: 'rect', width: 8, height: 8 }
+        }
+      ]
+
+      d3Utils.addLegendEx({ svg: legend, data: data })
+
       /* Render legends */
       // TODO: We're going to have to look at using layouts moving forward to achieve the placement of objects. https://www.d3indepth.com/layouts/
       let legendY = 0
-      let legendX = 0
-      d3Utils.addLegend({
-        svg: legend,
-        text: 'Observed Temp',
-        color: styles.observedTempColor,
-        shape: 'rect',
-        shapeX: legendX - 2,
-        shapeY: legendY - 4,
-        textX: legendX += 10,
-        textY: legendY + 4
-      })
+      let legendX = 10
+      // d3Utils.addLegend({
+      //   svg: legend,
+      //   text: 'Observed Temp',
+      //   color: styles.observedTempColor,
+      //   shape: 'rect',
+      //   shapeX: legendX - 2,
+      //   shapeY: legendY - 4,
+      //   textX: legendX += 10,
+      //   textY: legendY + 4
+      // })
       d3Utils.addLegend({
         svg: legend,
         text: 'Observed RH',

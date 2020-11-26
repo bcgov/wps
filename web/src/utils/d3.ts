@@ -345,6 +345,129 @@ export const drawArea = <T>({
   return updateArea
 }
 
+function create_icon(item, d) {
+  if (d.shape.type === 'circle') {
+    console.log(d.fill, d.fill || d.color)
+    return item
+      .append(d.shape.type)
+      .attr('r', d.shape.r)
+      .style('stroke', d.color)
+      .style('fill', d.fill || d.color)
+  } else if (d.shape.type === 'rect') {
+    return item
+      .append(d.shape.type)
+      .attr('width', d.shape.width)
+      .attr('height', d.shape.height)
+      .style('stroke', d.color)
+      .style('fill', d.fill || d.color)
+  } else if (d.shape.type === 'diamond') {
+    return item
+      .append('path')
+      .attr(
+        'd',
+        d3
+          .symbol()
+          .type(d3.symbolDiamond)
+          .size(d.shape.size)
+      )
+      .style('stroke', d.color)
+      .attr('fill', d.fill || d.color)
+  } else if (d.shape.type === 'triangle') {
+    return item
+      .append('path')
+      .attr(
+        'd',
+        d3
+          .symbol()
+          .type(d3.symbolTriangle)
+          .size(d.shape.size)
+      )
+      .style('stroke', d.color)
+      .attr('fill', d.fill || d.color)
+  } else if (d.shape.type === 'cross') {
+    return item
+      .append('path')
+      .attr(
+        'd',
+        d3
+          .symbol()
+          .type(d3.symbolCross)
+          .size(d.shape.size)
+      )
+      .style('stroke', d.color)
+      .attr('fill', d.fill || d.color)
+  }
+}
+
+function calculate_new_x_offset(x_offset, icon, text, x_margin) {
+  return x_offset + icon.node().getBBox().width + text.node().getBBox().width + x_margin
+}
+
+function translate_icon(shape, x_offset, y_offset, icon, text) {
+  const delta = Math.abs(icon.node().getBBox().height - text.node().getBBox().height / 2)
+  if (shape.type === 'diamond' || shape.type === 'circle' || shape.type === 'cross') {
+    const x = x_offset + icon.node().getBBox().width / 2
+    const y = y_offset - delta
+    return `translate(${x}, ${y})`
+  }
+  // rect:
+  const y = y_offset - icon.node().getBBox().height / 2 - delta
+  return `translate(${x_offset}, ${y})`
+}
+
+export const addLegendEx = ({
+  svg,
+  data
+}: {
+  svg: d3.Selection<SVGGElement, unknown, null, undefined>
+  data: object
+}): void => {
+  const x_margin = 5
+  const y_margin = 0
+  let x_offset = 0
+  let y_offset = 1 + y_margin
+
+  console.log('here')
+
+  const legend = svg.selectAll('.legend').data(data)
+
+  legend
+    .enter()
+    .append('g')
+    .attr('transform', 'translate(0, 0)')
+    .attr('class', 'legend')
+    .each(function(d, i) {
+      console.log(d)
+      const item = d3.select(this)
+      // x_offset += x_margin
+
+      const text = item
+        .append('text')
+        .attr('text-anchor', 'left')
+        .style('alignment-baseline', 'middle')
+        .style('fill', d => d.color)
+        .style('font-size', '9px')
+        .text(d.text)
+
+      const icon = create_icon(item, d)
+      let new_x_offset = calculate_new_x_offset(x_offset, icon, text, x_margin)
+      if (icon) {
+        icon.attr('transform', translate_icon(d.shape, x_offset, y_offset, icon, text))
+      }
+
+      text.attr(
+        'transform',
+        'translate(' +
+          (x_offset + x_margin + icon.node().getBBox().width) +
+          ', ' +
+          y_offset +
+          ')'
+      )
+
+      x_offset = new_x_offset + x_margin
+    })
+}
+
 export const addLegend = ({
   svg,
   shape = 'circle',

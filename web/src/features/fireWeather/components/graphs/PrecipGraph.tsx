@@ -298,7 +298,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         .scaleTime()
         .domain(xDomain)
         .range([0, chartWidth])
-      const xScaleOriginal = xScale.copy()
+      // const xScaleOriginal = xScale.copy()
 
       d3Utils.addTooltipListener({
         svg: svg.select('.chart'),
