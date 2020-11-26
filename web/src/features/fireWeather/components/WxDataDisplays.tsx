@@ -86,7 +86,7 @@ const WxDataDisplays = ({ stationCodes }: Props) => {
           return (
             <Paper key={code} className={classes.paper} elevation={3}>
               <Typography className={classes.station} variant="subtitle1" component="div">
-                Weather station: {station ? `${station.name} (${code})` : code}
+                Weather station: {`${station.name} (${station.code})`}
               </Typography>
               {nothingToDisplay && (
                 <Typography className={classes.noDataAvailable} variant="body2">

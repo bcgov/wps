@@ -1,6 +1,6 @@
 export const stationCodeQueryKey = 'codes'
 
-export const getStationCodesFromUrl = (search: string) => {
+export const getStationCodesFromUrl = (search: string): number[] => {
   const codeQueryString = new URLSearchParams(search).get(stationCodeQueryKey)
   const stationCodes = codeQueryString
     ? codeQueryString
