@@ -29,7 +29,6 @@ PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 # Prepare variables for backups
 CONFIG_VOLUME_NAME="${NAME_APP}-${SUFFIX}-config-volume"
 JOB_NAME="matomo-backup-${NAME_APP}-${SUFFIX}"
-JOB_PERSISTENT_STORAGE_NAME="matomo-backup-${NAME_APP}-${SUFFIX}"
 IMAGE_NAMESPACE=${PROJ_TOOLS}
 CONFIG_MAP_NAME="matomo-backup-${NAME_APP}-${SUFFIX}-config"
 
