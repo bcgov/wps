@@ -6,23 +6,24 @@
   },
   "objects": [
     {
-      "kind": "PersistentVolumeClaim",
+      "kind": "ConfigMap",
       "apiVersion": "v1",
       "metadata": {
-        "name": "${BACKUP_VOLUME_NAME}",
-        "labels": {
-          "app": "${NAME}-persistent",
-          "template": "${NAME}-persistent-template"
-        }
-      },
-      "spec": {
-        "storageClassName": "${BACKUP_VOLUME_CLASS}",
-        "accessModes": ["ReadWriteOnce"],
-        "resources": {
-          "requests": {
-            "storage": "${BACKUP_VOLUME_SIZE}"
+        "name": "${CONFIG_MAP_NAME}",
+        "labels":
+          {
+            "app": "${NAME}",
+            "template": "${NAME}-config-template"
           }
-        }
+      },
+      "data": {
+        "BACKUP_STRATEGY": "rolling",
+        "RETENTION.DAILY_BACKUPS": "7",
+        "RETENTION.MONTHLY_BACKUPS": "1",
+        "RETENTION.WEEKLY_BACKUPS": "4",
+        "DATABASE_SERVICE_NAME": "matomo-db",
+        "DEFAULT_PORT": "3306",
+        "backup.conf": "# ============================================================\n# Databases:\n# ------------------------------------------------------------\nmariadb=matomo-db/matomo\n"
       }
     },
     {
@@ -73,7 +74,7 @@
       "kind": "DeploymentConfig",
       "apiVersion": "v1",
       "metadata": {
-        "name": "${NAME}",
+        "name": "matomo-backup-${NAME}",
         "labels": {
           "template": "${NAME}-deployment",
           "app": "${NAME}"
@@ -149,81 +150,74 @@
                 "env": [
                   {
                     "name": "BACKUP_STRATEGY",
-                    "value": "${BACKUP_STRATEGY}"
+                    "valueFrom": {
+                      "configMapKeyRef": {
+                        "name": "${CONFIG_MAP_NAME}",
+                        "key": "BACKUP_STRATEGY"
+                      }
+                    }
+                  },
+                  {
+                    "name": "NUM_BACKUPS",
+                    "valueFrom": {
+                      "configMapKeyRef": {
+                        "name": "${CONFIG_MAP_NAME}",
+                        "key": "RETENTION.NUM_BACKUPS",
+                        "optional": true
+                      }
+                    }
+                  },
+                  {
+                    "name": "DAILY_BACKUPS",
+                    "valueFrom": {
+                        "configMapKeyRef": {
+                          "name": "${CONFIG_MAP_NAME}",
+                          "key": "RETENTION.DAILY_BACKUPS",
+                          "optional": true
+                        }
+                    }
+                  }, {
+                    "name": "WEEKLY_BACKUPS",
+                      "valueFrom": {
+                        "configMapKeyRef": {
+                          "name": "${CONFIG_MAP_NAME}",
+                          "key": "RETENTION.WEEKLY_BACKUPS",
+                          "optional": true
+                        }
+                      }
+                  }, {
+                    "name": "MONTHLY_BACKUPS",
+                      "valueFrom": {
+                        "configMapKeyRef": {
+                          "name": "${CONFIG_MAP_NAME}",
+                          "key": "RETENTION.MONTHLY_BACKUPS",
+                          "optional": true
+                        }
+                      }
                   },
                   {
                     "name": "BACKUP_DIR",
                     "value": "${BACKUP_DIR}"
                   },
                   {
-                    "name": "NUM_BACKUPS",
-                    "value": "${NUM_BACKUPS}"
-                  },
-                  {
-                    "name": "DAILY_BACKUPS",
-                    "value": "${DAILY_BACKUPS}"
-                  },
-                  {
-                    "name": "WEEKLY_BACKUPS",
-                    "value": "${WEEKLY_BACKUPS}"
-                  },
-                  {
-                    "name": "MONTHLY_BACKUPS",
-                    "value": "${MONTHLY_BACKUPS}"
-                  },
-                  {
-                    "name": "BACKUP_PERIOD",
-                    "value": "${BACKUP_PERIOD}"
-                  },
-                  {
-                    "name": "DATABASE_SERVICE_NAME",
-                    "value": "${DATABASE_SERVICE_NAME}"
-                  },
-                  {
-                    "name": "DATABASE_NAME",
-                    "value": "${DATABASE_NAME}"
-                  },
-                  {
-                    "name": "MONGODB_AUTHENTICATION_DATABASE",
-                    "value": "${MONGODB_AUTHENTICATION_DATABASE}"
-                  },
-                  {
                     "name": "TABLE_SCHEMA",
                     "value": "${TABLE_SCHEMA}"
                   },
                   {
-                    "name": "PSUFIDERDEV_POSTGRESQL_USER",
+                    "name": "MATOMO_DB_USER",
                     "valueFrom": {
                       "secretKeyRef": {
-                        "name": "psufiderdev-postgresql",
+                        "name": "matomo-db",
                         "key": "database-user"
                       }
                     }
                   },
                   {
-                    "name": "PSUFIDERDEV_POSTGRESQL_PASSWORD",
+                    "name": "MATOMO_DB_PASSWORD",
                     "valueFrom": {
                       "secretKeyRef": {
-                        "name": "psufiderdev-postgresql",
+                        "name": "matomo-db",
                         "key": "database-password"
-                      }
-                    }
-                  },
-                  {
-                    "name": "PATRONI_LEADER_WPS_API_DEV_USER",
-                    "valueFrom": {
-                      "secretKeyRef": {
-                        "name": "wps-dev",
-                        "key": "app-db-username"
-                      }
-                    }
-                  },
-                  {
-                    "name": "PATRONI_LEADER_WPS_API_DEV_PASSWORD",
-                    "valueFrom": {
-                      "secretKeyRef": {
-                        "name": "wps-dev",
-                        "key": "app-db-password"
                       }
                     }
                   },
@@ -309,15 +303,14 @@
       "name": "NAME",
       "displayName": "Name",
       "description": "The name assigned to all of the resources.  Use 'backup-{database name}' depending on your database provider",
-      "required": true,
-      "value": "backup-postgres"
+      "required": true
     },
     {
       "name": "SOURCE_IMAGE_NAME",
       "displayName": "Source Image Name",
       "description": "The name of the image to use for this resource.  Use 'backup-{database name}' depending on your database provider",
       "required": true,
-      "value": "backup-postgres"
+      "value": "backup-mariadb"
     },
     {
       "name": "IMAGE_NAMESPACE",
@@ -331,14 +324,13 @@
       "displayName": "Environment TAG name",
       "description": "The TAG name for this environment, e.g., dev, test, prod",
       "required": true,
-      "value": "dev"
+      "value": "prod"
     },
     {
       "name": "DATABASE_SERVICE_NAME",
       "displayName": "Database Service Name",
       "description": "Used for backward compatibility only. Not needed when using the recommended 'backup.conf' configuration.  The name of the database service.",
-      "required": false,
-      "value": ""
+      "required": false
     },
     {
       "name": "DATABASE_NAME",
@@ -364,7 +356,7 @@
     {
       "name": "DATABASE_USER_KEY_NAME",
       "displayName": "Database User Key Name",
-      "description": "The database user key name stored in database deployment resources specified by DATABASE_DEPLOYMENT_NAME.",
+      "description": "The datbase user key name stored in database deployment resources specified by DATABASE_DEPLOYMENT_NAME.",
       "required": true,
       "value": "database-user"
     },
@@ -387,13 +379,6 @@
       "description": "The table schema for your database.  Used for Postgres backups.",
       "required": true,
       "value": "public"
-    },
-    {
-      "name": "BACKUP_STRATEGY",
-      "displayName": "Backup Strategy",
-      "description": "The strategy to use for backups; for example daily, or rolling.",
-      "required": true,
-      "value": "rolling"
     },
     {
       "name": "FTP_SECRET_KEY",
@@ -452,41 +437,6 @@
       "value": "/backups/"
     },
     {
-      "name": "NUM_BACKUPS",
-      "displayName": "The number of backup files to be retained",
-      "description": "Used for backward compatibility only.  Ignored when using the recommended `rolling` backup strategy.  The number of backup files to be retained.  Used for the `daily` backup strategy.",
-      "required": false,
-      "value": ""
-    },
-    {
-      "name": "DAILY_BACKUPS",
-      "displayName": "Number of Daily Backups to Retain",
-      "description": "The number of daily backup files to be retained.  Used for the `rolling` backup strategy.",
-      "required": false,
-      "value": ""
-    },
-    {
-      "name": "WEEKLY_BACKUPS",
-      "displayName": "Number of Weekly Backups to Retain",
-      "description": "The number of weekly backup files to be retained.  Used for the `rolling` backup strategy.",
-      "required": false,
-      "value": ""
-    },
-    {
-      "name": "MONTHLY_BACKUPS",
-      "displayName": "Number of Monthly Backups to Retain",
-      "description": "The number of monthly backup files to be retained.  Used for the `rolling` backup strategy.",
-      "required": false,
-      "value": ""
-    },
-    {
-      "name": "BACKUP_PERIOD",
-      "displayName": "Period (d,m,s) between backups in a format used by the sleep command",
-      "description": "Used for backward compatibility only.  Ignored when using the recommended `backup.conf` and cron backup strategy.  Period (d,m,s) between backups in a format used by the sleep command",
-      "required": false,
-      "value": ""
-    },
-    {
       "name": "CONFIG_FILE_NAME",
       "displayName": "Config File Name",
       "description": "The name of the configuration file.",
@@ -511,36 +461,20 @@
       "name": "BACKUP_VOLUME_NAME",
       "displayName": "Backup Volume Name",
       "description": "The name of the persistent volume used to store the backups.  Please note, when using the recommended nfs-backup storage class the name of the pvc MUST be taken from the manually provisioned claim; nfs-backup storage MUST be provisioned manually.",
-      "required": true,
-      "value": "backup"
-    },
-    {
-      "name": "BACKUP_VOLUME_SIZE",
-      "displayName": "Backup Volume Size",
-      "description": "The size of the persistent volume used to store the backups, e.g. 512Mi, 1Gi, 2Gi.  Ensure this is sized correctly.  Refer to the container documentation for details.",
-      "required": true,
-      "value": "2Gi"
-    },
-    {
-      "name": "BACKUP_VOLUME_CLASS",
-      "displayName": "Backup Volume Class",
-      "description": "The class of the persistent volume used to store the backups; netapp-block-standard, netapp-file-standard, nfs-backup.  Please note, nfs-backup storage is the recommended storage type for backups.  It MUST be provisioned manually through the OCP catalog via the 'BC Gov NFS Storage' template.  nfs-backup storage CANNOT be automatically provisioned by this template.",
-      "required": true,
-      "value": "nfs-backup"
+      "required": true
     },
     {
       "name": "VERIFICATION_VOLUME_NAME",
       "displayName": "Verification Volume Name",
       "description": "The name for the verification volume, used for restoring and verifying backups.  When using the recommend nfs-backup storage class for backups, this volume MUST be either netapp-file-standard or netapp-block-standard storage; netapp-block-standard is recommended (it has far better performance).",
-      "required": false,
-      "value": "backup-verification"
+      "required": true
     },
     {
       "name": "VERIFICATION_VOLUME_SIZE",
       "displayName": "Backup Volume Size",
       "description": "The size of the persistent volume used for restoring and verifying backups, e.g. 512Mi, 1Gi, 2Gi.  Ensure this is sized correctly.  It should be large enough to contain your largest database.",
       "required": true,
-      "value": "1Gi"
+      "value": "512Mi"
     },
     {
       "name": "VERIFICATION_VOLUME_CLASS",
@@ -554,7 +488,7 @@
       "displayName": "Verification Volume Mount Path",
       "description": "The path on which to mount the verification volume.  This is used by the database server to contain the database configuration and data files. For Mongo, please use /var/lib/mongodb/data . For MSSQL, please use /var/opt/mssql/data",
       "required": true,
-      "value": "/var/lib/pgsql/data"
+      "value": "/var/lib/mysql/data"
     },
     {
       "name": "CPU_REQUEST",
