@@ -1,4 +1,4 @@
-import { KC_AUTH_URL, KC_REALM, KC_CLIENT } from 'utils/constants'
+import { KC_AUTH_URL, KC_REALM, KC_CLIENT } from 'utils/env'
 import { KeycloakInitOptions } from 'types/keycloak'
 
 export const kcInitOption: KeycloakInitOptions = {

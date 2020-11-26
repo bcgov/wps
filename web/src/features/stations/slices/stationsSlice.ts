@@ -8,12 +8,14 @@ interface State {
   loading: boolean
   error: string | null
   stations: Station[]
+  stationsByCode: Record<number, Station | undefined>
 }
 
 const initialState: State = {
   loading: false,
   error: null,
-  stations: []
+  stations: [],
+  stationsByCode: {}
 }
 
 const stationsSlice = createSlice({
@@ -30,6 +32,11 @@ const stationsSlice = createSlice({
     getStationsSuccess(state: State, action: PayloadAction<Station[]>) {
       state.error = null
       state.stations = action.payload
+      const stationsByCode: State['stationsByCode'] = {}
+      action.payload.forEach(station => {
+        stationsByCode[station.code] = station
+      })
+      state.stationsByCode = stationsByCode
       state.loading = false
     }
   }

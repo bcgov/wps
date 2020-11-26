@@ -2,8 +2,6 @@ import React from 'react'
 import { Button } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 
-import { Station } from 'api/stationAPI'
-
 const useStyles = makeStyles({
   root: {
     marginTop: 15
@@ -14,13 +12,13 @@ const useStyles = makeStyles({
 })
 
 interface Props {
-  stations: Station[]
+  calcDisabled: boolean
   onCalculateClick: () => void
   onResetClick: () => void
 }
 
 export const PercentileActionButtons: React.FunctionComponent<Props> = ({
-  stations,
+  calcDisabled,
   onCalculateClick,
   onResetClick
 }: Props) => {
@@ -41,7 +39,7 @@ export const PercentileActionButtons: React.FunctionComponent<Props> = ({
         className={classes.calculateBtn}
         data-testid="calculate-percentiles-button"
         id="calculate-percentiles-button"
-        disabled={stations.length === 0}
+        disabled={calcDisabled}
         variant="contained"
         color="primary"
         onClick={onCalculateClick}

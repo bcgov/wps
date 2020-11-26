@@ -11,6 +11,9 @@ import {
 } from 'features/fireWeather/components/graphs/useGraphToggles'
 
 const useStyles = makeStyles({
+  root: {
+    marginBottom: 5
+  },
   switchControl: {
     marginLeft: -5
   },
@@ -60,7 +63,7 @@ const WxDataToggles = ({
   }
 
   return (
-    <FormGroup row>
+    <FormGroup className={classes.root} row>
       <FormControlLabel
         className={classes.switchControl}
         control={

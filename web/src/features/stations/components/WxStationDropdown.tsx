@@ -1,11 +1,10 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { useSelector } from 'react-redux'
 import Autocomplete from '@material-ui/lab/Autocomplete'
 import { TextField, Link } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 import LaunchIcon from '@material-ui/icons/Launch'
 
-import { Station } from 'api/stationAPI'
 import { selectStations } from 'app/rootReducer'
 import { WEATHER_STATION_MAP_LINK } from 'utils/constants'
 import { ErrorMessage } from 'components/ErrorMessage'
@@ -28,16 +27,24 @@ const useStyles = makeStyles({
 
 interface Props {
   className?: string
-  stations: Station[]
-  onStationsChange: (stations: Station[]) => void
+  stationCodes: number[]
+  onChange: (codes: number[]) => void
   maxNumOfSelect?: number
 }
 
 const WxStationDropdown = (props: Props) => {
   const classes = useStyles()
-  const { stations, error } = useSelector(selectStations)
+  const { stations, stationsByCode, error } = useSelector(selectStations)
   const isError = Boolean(error)
   const maxNumOfSelect = props.maxNumOfSelect || 3
+  const options = useMemo(() => stations.map(s => s.code), [stations])
+  const getOptionLabel = (code: number) => {
+    const station = stationsByCode[code]
+    if (station) {
+      return `${station.name} (${station.code})`
+    }
+    return `Unknown (${code})`
+  }
 
   return (
     <div className={props.className}>
@@ -57,20 +64,21 @@ const WxStationDropdown = (props: Props) => {
           </span>
         </Link>
       </div>
+
       <div className={classes.wrapper}>
         <Autocomplete
           className={classes.root}
           data-testid="weather-station-dropdown"
           id="weather-station-dropdown"
           multiple
-          options={stations}
-          getOptionLabel={option => `${option.name} (${option.code})`}
-          onChange={(_, stations) => {
-            if (stations.length <= maxNumOfSelect) {
-              props.onStationsChange(stations)
+          options={options}
+          getOptionLabel={getOptionLabel}
+          onChange={(_, stationCodes) => {
+            if (stationCodes.length <= maxNumOfSelect) {
+              props.onChange(stationCodes)
             }
           }}
-          value={props.stations}
+          value={props.stationCodes}
           renderInput={params => (
             <TextField
               {...params}
@@ -84,6 +92,7 @@ const WxStationDropdown = (props: Props) => {
           )}
         />
       </div>
+
       {error && <ErrorMessage error={error} context="while fetching weather stations" />}
     </div>
   )
