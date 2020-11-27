@@ -6,7 +6,6 @@ import { useLocation, useHistory } from 'react-router-dom'
 import { PageHeader, PageTitle, Container } from 'components'
 import WxStationDropdown from 'features/stations/components/WxStationDropdown'
 import WxDataDisplays from 'features/fireWeather/components/WxDataDisplays'
-import { setAxiosRequestInterceptors } from 'features/auth/slices/authenticationSlice'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { fetchGlobalModelsWithBiasAdj } from 'features/fireWeather/slices/modelsSlice'
 import { fetchObservations } from 'features/fireWeather/slices/observationsSlice'
@@ -36,7 +35,6 @@ const MoreCastPage = () => {
   const [selectedCodes, setSelectedCodes] = useState<number[]>(codesFromQuery)
 
   useEffect(() => {
-    dispatch(setAxiosRequestInterceptors())
     dispatch(fetchWxStations())
   }, [dispatch])
 
