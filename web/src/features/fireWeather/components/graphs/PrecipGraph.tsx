@@ -88,7 +88,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
   // This optimization helps to avoid expensive calculations on every render.
   const calculated = useMemo(() => {
     const datesFromAllSources: Date[] = []
-    let maxPrecip = 0
+    let maxPrecip = 10
 
     const aggreObservedPrecips: { [k: string]: number } = {}
     observedValues.forEach(({ datetime, precipitation }) => {
