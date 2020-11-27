@@ -40,10 +40,10 @@ declare global {
       getByTestId(id: string): Chainable<Element>
 
       /**
-       * Custom command to select a wx station by its code in the dropdown.
-       * @example cy.selectStationByCode(322)
+       * Custom command to select a wx station by its code or name in the dropdown.
+       * @example cy.selectStationInDropdown(322) or cy.selectStationInDropdown('AFTON')
        */
-      selectStationByCode(code: number): Chainable<Element>
+      selectStationInDropdown(code: number | string): Chainable<Element>
 
       /**
        * Custom command to select ErrorMessage component and check the message.
