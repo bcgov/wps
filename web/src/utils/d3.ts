@@ -152,14 +152,14 @@ export const drawSymbols = <T>({
     path.attr('data-testid', testId)
   }
 
-  const update = (newX: (d: T) => number, duration?: number) => {
+  const redraw = (newX: (d: T) => number, duration?: number) => {
     path
       .transition(d3.event.transform)
       .duration(duration || transitionDuration)
       .attr('transform', d => `translate(${newX(d)}, ${y(d)})`)
   }
 
-  return update
+  return redraw
 }
 
 export const drawPath = <T>({
@@ -196,14 +196,14 @@ export const drawPath = <T>({
     path.attr('data-testid', testId)
   }
 
-  const updatePath = (newX: (d: T) => number, duration?: number) => {
+  const redraw = (newX: (d: T) => number, duration?: number) => {
     path
       .transition(d3.event.transform)
       .duration(duration || transitionDuration)
       .attr('d', lineFunc.x(newX))
   }
 
-  return updatePath
+  return redraw
 }
 
 export const drawVerticalLine = ({
@@ -234,7 +234,7 @@ export const drawVerticalLine = ({
     line.attr('data-testid', testId)
   }
 
-  const update = (newXScale: d3.ScaleTime<number, number>, duration?: number) => {
+  const redraw = (newXScale: d3.ScaleTime<number, number>, duration?: number) => {
     // Get the corresponding value from the domain using the original scale
     // then calculate new x with the updated x scale
     const newX = newXScale(xScale.invert(x))
@@ -246,7 +246,7 @@ export const drawVerticalLine = ({
       .attr('x2', newX)
   }
 
-  return update
+  return redraw
 }
 
 export const drawText = ({
@@ -282,7 +282,7 @@ export const drawText = ({
     textSvg.attr('data-testid', testId)
   }
 
-  const update = (newXScale: d3.ScaleTime<number, number>, duration?: number) => {
+  const redraw = (newXScale: d3.ScaleTime<number, number>, duration?: number) => {
     // Get inverted x using the original scale
     // then calculate the new x with the new scale
     const newX = newXScale(xScale.invert(x))
@@ -293,7 +293,7 @@ export const drawText = ({
       .attr('x', newX)
   }
 
-  return update
+  return redraw
 }
 
 export const drawArea = <T>({
@@ -335,14 +335,14 @@ export const drawArea = <T>({
     path.attr('data-testid', testId)
   }
 
-  const updateArea = (newX: (d: T) => number, duration?: number) => {
+  const redraw = (newX: (d: T) => number, duration?: number) => {
     path
       .transition(d3.event.transform)
       .duration(duration || transitionDuration)
       .attr('d', areaFunc.x(newX))
   }
 
-  return updateArea
+  return redraw
 }
 
 export const addLegend = ({
