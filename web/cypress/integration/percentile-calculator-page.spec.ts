@@ -20,8 +20,8 @@ describe('Percentile Calculator Page', () => {
       cy.getByTestId('disclaimer-accept-button').click()
       cy.wait('@getStations')
 
-      // Select the first station in the dropdown list
-      cy.selectStationByCode(1275)
+      // Select a station with its name
+      cy.selectStationInDropdown('AFTON')
 
       // Deselect the selected station
       cy.get('.MuiChip-deleteIcon').click()
@@ -29,13 +29,28 @@ describe('Percentile Calculator Page', () => {
       // Select multiple stations in the dropdown and check if only 3 stations were selected
       const stationCodes = [1275, 322, 209, 838]
       stationCodes.forEach(code => {
-        cy.selectStationByCode(code)
+        cy.selectStationInDropdown(code)
       })
       cy.get('.MuiChip-deletable').should('have.length', 3)
 
       // Check if the url query has been changed
       cy.getByTestId('calculate-percentiles-button').click()
       cy.url().should('contain', `${stationCodeQueryKey}=${stationCodes.slice(0, 3).join(',')}`)
+    })
+
+    it('Should let users know if there were invalid weather stations', () => {
+      const invalidCodes = [1, 999]
+      cy.route('GET', 'api/stations/', 'fixture:weather-stations.json').as('getStations')
+      cy.visit(`${PERCENTILE_CALC_ROUTE}?${stationCodeQueryKey}=${invalidCodes.join(',')}`)
+      cy.getByTestId('disclaimer-accept-button').click()
+
+      // Remove the invalid codes from the dropdown and check if the error message is gone
+      cy.getByTestId('error-message').contains('Invalid weather station code(s) detected.')
+      cy.getByTestId('weather-station-dropdown').contains(`Invalid (${invalidCodes[0]})`)
+      cy.get('.MuiChip-deleteIcon').first().click() // prettier-ignore
+      cy.getByTestId('weather-station-dropdown').contains(`Invalid (${invalidCodes[1]})`)
+      cy.get('.MuiChip-deleteIcon').click()
+      cy.getByTestId('error-message').should('not.contain', 'Invalid weather station code(s) detected.')
     })
   })
 
@@ -74,7 +89,7 @@ describe('Percentile Calculator Page', () => {
       cy.selectYearInTimeRangeSlider(0, 50)
 
       const stationCode = 838
-      cy.selectStationByCode(stationCode)
+      cy.selectStationInDropdown(stationCode)
 
       cy.route('POST', 'api/percentiles/').as('getPercentiles')
       cy.requestPercentilesAndCheckRequestBody('@getPercentiles', {
@@ -107,7 +122,7 @@ describe('Percentile Calculator Page', () => {
       // Calculate button should be disabled if no stations selected
       cy.getByTestId('calculate-percentiles-button').should('be.disabled')
 
-      cy.selectStationByCode(0)
+      cy.selectStationInDropdown(0)
 
       // Check if the error message showed up
       cy.getByTestId('calculate-percentiles-button').should('not.be.disabled').click() // prettier-ignore
@@ -119,7 +134,7 @@ describe('Percentile Calculator Page', () => {
       cy.route('POST', 'api/percentiles/', 'fixture:percentiles/percentile-result.json').as('getPercentiles')
 
       // Select a station
-      cy.selectStationByCode(stationCode)
+      cy.selectStationInDropdown(stationCode)
 
       cy.requestPercentilesAndCheckRequestBody('@getPercentiles', {
         stations: [stationCode],
@@ -145,8 +160,8 @@ describe('Percentile Calculator Page', () => {
       cy.route('POST', 'api/percentiles/', 'fixture:percentiles/two-percentiles-result.json').as('getPercentiles')
 
       // Select two weather stations
-      cy.selectStationByCode(stationCodes[0])
-      cy.selectStationByCode(stationCodes[1])
+      cy.selectStationInDropdown(stationCodes[0])
+      cy.selectStationInDropdown(stationCodes[1])
 
       cy.requestPercentilesAndCheckRequestBody('@getPercentiles', {
         stations: stationCodes,

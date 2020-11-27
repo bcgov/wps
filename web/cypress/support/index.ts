@@ -22,13 +22,22 @@ Cypress.Commands.add('getByTestId', (id: string) => {
   return cy.get(`[data-testid=${id}]`)
 })
 
-Cypress.Commands.add('selectStationByCode', (code: number) => {
+Cypress.Commands.add('selectStationInDropdown', (code: number | string) => {
+  if (typeof code === 'number') {
+    return cy
+      .getByTestId('weather-station-dropdown')
+      .click()
+      .get('li')
+      .contains(code)
+      .click()
+  }
+
   return cy
     .getByTestId('weather-station-dropdown')
-    .click()
-    .get('li')
-    .contains(code)
-    .click()
+    .find('input')
+    .type(code)
+    .type('{downarrow}')
+    .type('{enter}')
 })
 
 Cypress.Commands.add('checkErrorMessage', (msg: string) => {
