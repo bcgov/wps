@@ -13,7 +13,7 @@ describe('MoreCast Page', () => {
   it('When network errors occurred', () => {
     cy.wait('@getStations')
 
-    cy.selectStationByCode(stationCode)
+    cy.selectStationInDropdown(stationCode)
     cy.getByTestId('get-wx-data-button').click({ force: true })
     cy.url().should('contain', `${stationCodeQueryKey}=${stationCode}`)
 
@@ -44,7 +44,7 @@ describe('MoreCast Page', () => {
       cy.wait('@getStations')
 
       // Request the weather data
-      cy.selectStationByCode(stationCode)
+      cy.selectStationInDropdown(stationCode)
       cy.getByTestId('get-wx-data-button').click({ force: true })
     })
 
