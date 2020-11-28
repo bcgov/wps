@@ -4,7 +4,7 @@ See README.md for details on how to run.
 """
 import datetime
 import logging
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, Response
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.applications import Starlette
 from app import schemas, configure_logging
@@ -229,12 +229,13 @@ async def get_hourlies(request: schemas.stations.StationCodeList, _: bool = Depe
 
 
 @api.get('/stations/', response_model=schemas.stations.WeatherStationsResponse)
-async def get_stations():
+async def get_stations(response: Response):
     """ Return a list of fire weather stations.
     """
     try:
         logger.info('/stations/')
         weather_stations = await stations.get_stations()
+        response.headers["Cache-Control"] = "max-age=43200"  # let browsers to cache the data for 12 hours
         return schemas.stations.WeatherStationsResponse(weather_stations=weather_stations)
     except Exception as exception:
         logger.critical(exception, exc_info=True)

@@ -1,7 +1,7 @@
 import React from 'react'
 import { Container } from 'components/Container'
 import { makeStyles } from '@material-ui/core/styles'
-import { REACT_APP_FIDER_LINK } from 'utils/constants'
+import { FIDER_LINK } from 'utils/env'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -62,7 +62,7 @@ export const PageHeader: React.FunctionComponent<Props> = ({ title }: Props) => 
         </div>
         <a
           className={classes.contact}
-          href={REACT_APP_FIDER_LINK}
+          href={FIDER_LINK}
           target="_blank"
           rel="noopener noreferrer"
           id="contact-link"

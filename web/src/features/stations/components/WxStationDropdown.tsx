@@ -5,7 +5,6 @@ import { TextField, Link } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 import LaunchIcon from '@material-ui/icons/Launch'
 
-import { Station } from 'api/stationAPI'
 import { selectStations } from 'app/rootReducer'
 import { WEATHER_STATION_MAP_LINK } from 'utils/constants'
 import { ErrorMessage } from 'components/ErrorMessage'
@@ -28,16 +27,28 @@ const useStyles = makeStyles({
 
 interface Props {
   className?: string
-  stations: Station[]
-  onStationsChange: (stations: Station[]) => void
+  stationCodes: number[]
+  onChange: (codes: number[]) => void
   maxNumOfSelect?: number
 }
 
 const WxStationDropdown = (props: Props) => {
   const classes = useStyles()
-  const { stations, error } = useSelector(selectStations)
-  const isError = Boolean(error)
+  const { stations, stationsByCode, error: errorFetchingStations } = useSelector(
+    selectStations
+  )
+  let isThereInvalidCode = false
   const maxNumOfSelect = props.maxNumOfSelect || 3
+  const autocompleteValue = props.stationCodes.map(code => {
+    const station = stationsByCode[code]
+    if (station) {
+      return station
+    }
+
+    isThereInvalidCode = true
+    return { name: 'Invalid', code }
+  })
+  const isError = Boolean(errorFetchingStations) || isThereInvalidCode
 
   return (
     <div className={props.className}>
@@ -57,6 +68,7 @@ const WxStationDropdown = (props: Props) => {
           </span>
         </Link>
       </div>
+
       <div className={classes.wrapper}>
         <Autocomplete
           className={classes.root}
@@ -67,10 +79,10 @@ const WxStationDropdown = (props: Props) => {
           getOptionLabel={option => `${option.name} (${option.code})`}
           onChange={(_, stations) => {
             if (stations.length <= maxNumOfSelect) {
-              props.onStationsChange(stations)
+              props.onChange(stations.map(s => s.code))
             }
           }}
-          value={props.stations}
+          value={autocompleteValue}
           renderInput={params => (
             <TextField
               {...params}
@@ -84,7 +96,20 @@ const WxStationDropdown = (props: Props) => {
           )}
         />
       </div>
-      {error && <ErrorMessage error={error} context="while fetching weather stations" />}
+
+      {errorFetchingStations && (
+        <ErrorMessage
+          error={errorFetchingStations}
+          context="while fetching weather stations"
+        />
+      )}
+
+      {isThereInvalidCode && (
+        <ErrorMessage
+          error="Invalid code"
+          message="Invalid weather station code(s) detected."
+        />
+      )}
     </div>
   )
 }
