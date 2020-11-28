@@ -100,7 +100,8 @@ def _add_model_prediction_record_to_prediction_schema(prediction_schema: Weather
                           prediction_schema.station.lat)]
     key_map = {
         'tmp_tgl_2': 'temperature',
-        'rh_tgl_2': 'relative_humidity'
+        'rh_tgl_2': 'relative_humidity',
+        'apcp_sfc_0': 'total_precipitation'
     }
 
     # Iterate through each of the mappings.
@@ -231,6 +232,7 @@ async def fetch_model_run_predictions_by_station_code(
                 bias_adjusted_temperature=prediction.bias_adjusted_temperature,
                 relative_humidity=prediction.rh_tgl_2,
                 bias_adjusted_relative_humidity=prediction.bias_adjusted_rh,
+                total_precipitation=prediction.apcp_sfc_0,
                 datetime=prediction.prediction_timestamp)
         }
 
@@ -298,6 +300,7 @@ async def fetch_predictions_by_station_code(
                 bias_adjusted_temperature=prediction.bias_adjusted_temperature,
                 relative_humidity=prediction.rh_tgl_2,
                 bias_adjusted_relative_humidity=prediction.bias_adjusted_rh,
+                total_precipitation=prediction.apcp_sfc_0,
                 datetime=prediction.prediction_timestamp
             )
             model_run = WeatherModelRun(

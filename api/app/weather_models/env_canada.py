@@ -173,6 +173,9 @@ def get_global_model_run_download_urls(now: datetime.datetime,
     for h in range(0, 241, 3):
         hhh = format(h, '03d')
         for level in ['TMP_TGL_2', 'RH_TGL_2', 'APCP_SFC_0']:
+            # Accumulated precipitation does not exist for 000 hour, so the url for this doesn't exist
+            if (hhh == '000' and level == 'APCP_SFC_0'):
+                continue
             base_url = 'https://dd.weather.gc.ca/model_gem_global/15km/grib2/lat_lon/{}/{}/'.format(
                 hh, hhh)
             date = get_file_date_part(now, model_run_hour)
@@ -190,6 +193,9 @@ def get_high_res_model_run_download_urls(now: datetime.datetime, hour: int) -> G
     for h in range(0, 49):
         hhh = format(h, '03d')
         for level in ['TMP_TGL_2', 'RH_TGL_2', 'APCP_SFC_0']:
+            # Accumulated precipitation does not exist for 000 hour, so the url for this doesn't exist
+            if (hhh == '000' and level == 'APCP_SFC_0'):
+                continue
             base_url = 'https://dd.weather.gc.ca/model_hrdps/continental/grib2/{}/{}/'.format(
                 hh, hhh)
             date = get_file_date_part(now, hour)
@@ -207,6 +213,9 @@ def get_regional_model_run_download_urls(now: datetime.datetime, hour: int) -> G
     for h in range(0, 85):
         hhh = format(h, '03d')
         for level in ['TMP_TGL_2', 'RH_TGL_2', 'APCP_SFC_0']:
+            # Accumulated precipitation does not exist for 000 hour, so the url for this doesn't exist
+            if (hhh == '000' and level == 'APCP_SFC_0'):
+                continue
             base_url = 'https://dd.weather.gc.ca/model_gem_regional/10km/grib2/{}/{}/'.format(
                 hh, hhh
             )
@@ -460,14 +469,24 @@ class ModelValueProcessor:
             points, prediction.rh_tgl_2, coordinate, method='linear')[0]
         # Check that apcp_sfc_0 is not None, since accumulated precipitation
         # does not exist for 00 hour
-        if (prediction.apcp_sfc_0 is not None):
-            logger.info('prediction: %s', prediction)
+        if prediction.apcp_sfc_0 is not None:
             station_prediction.apcp_sfc_0 = griddata(
                 points, prediction.apcp_sfc_0, coordinate, method='linear')[0]
-            logger.info('station_predicted precip: %f',
-                        station_prediction.apcp_sfc_0)
         else:
-            station_prediction.apcp_sfc_0 = None
+            station_prediction.apcp_sfc_0 = 0.0
+        # Calculate the delta_precipitation based on station's previous prediction_timestamp
+        # for the same model run
+        self.session.flush()
+        results = self.session.query(WeatherStationModelPrediction).\
+            filter(WeatherStationModelPrediction.station_code == station.code).\
+            filter(WeatherStationModelPrediction.prediction_model_run_timestamp_id == model_run.id).\
+            filter(WeatherStationModelPrediction.prediction_timestamp < prediction.prediction_timestamp).\
+            order_by(WeatherStationModelPrediction.prediction_timestamp.desc()).\
+            first()
+        if results is not None:
+            station_prediction.delta_precip = station_prediction.apcp_sfc_0 - results.apcp_sfc_0
+        else:
+            station_prediction.delta_precip = station_prediction.apcp_sfc_0
         # Predict the temperature
         station_prediction.bias_adjusted_temperature = machine.predict_temperature(
             station_prediction.tmp_tgl_2,

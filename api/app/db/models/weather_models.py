@@ -188,8 +188,10 @@ class WeatherStationModelPrediction(Base):
     rh_tgl_2 = Column(Float, nullable=True)
     # RH adjusted by bias
     bias_adjusted_rh = Column(Float, nullable=True)
-    # Accumulated precipitation (units kg.m^-2)
+    # Accumulated precipitation over calendar day measured in UTC (units kg.m^-2)
     apcp_sfc_0 = Column(Float, nullable=True)
+    # Change in accumulated precipitation between current and previous prediction_timestamp
+    delta_precip = Column(Float, nullable=True)
     # Date this record was created.
     create_date = Column(TZTimeStamp, nullable=False,
                          default=time_utils.get_utc_now())

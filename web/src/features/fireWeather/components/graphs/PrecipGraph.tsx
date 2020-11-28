@@ -13,9 +13,9 @@ import { PDT_UTC_OFFSET } from 'utils/constants'
 
 const observedPrecipColor = '#a50b41'
 const forecastPrecipColor = '#fb0058'
-const gdpsPrecipColor = ''
-const rdpsPrecipColor = ''
-const hrdpsPrecipColor = ''
+const gdpsPrecipColor = '#32e7e7'
+const rdpsPrecipColor = '#a017c2'
+const hrdpsPrecipColor = '#026200'
 
 const useStyles = makeStyles({
   root: {
@@ -114,8 +114,14 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
 
   // useMemo will only recompute the memoized value when one of the dependencies has changed.
   // This optimization helps to avoid expensive calculations on every render.
-  const { xDomain, xTickValues, observedPrecips, forecastPrecips,  } = useMemo(() => {
+  const { xDomain, xTickValues, observedPrecips, forecastPrecips, gdpsPrecips, rdpsPrecips, hrdpsPrecips } = useMemo(() => {
     const datesFromAllSources: Date[] = []
+
+    const datetimeToDate = (datetime: string) => {
+      const date = moment(datetime).utc().set({ hour: Math.abs(utcOffset), minute: 0 }).toDate()
+      datesFromAllSources.push(date)
+      return date
+    }
 
     const aggreObservedPrecips: { [k: string]: number } = {}
     observedValues.forEach(({ datetime, precipitation: precip }) => {
@@ -145,35 +151,62 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       }
     })
 
-    const _gdpsPrecips = gdpsModelValues.map(({ datetime, total_precipitation }) => {
-      const date = datetimeToDate(datetime)
-      return {
-        date,
-        value: Number(total_precipitation?.toFixed(2))
+    const aggreGDPSPrecips: { [k: string]: number } = {}
+    gdpsModelValues.forEach(({ datetime, total_precipitation: precip }) => {
+      const date = formatDateInPDT(datetime, 'YYYY-MM-DD')
+      if (!aggreGDPSPrecips[date]) {
+        aggreGDPSPrecips[date] = Number(precip)
+      } else {
+        aggreGDPSPrecips[date] += Number(precip)
       }
     })
 
-    const _rdpsPrecips = rdpsModelValues.map(({ datetime, total_precipitation }) => {
-      const date = datetimeToDate(datetime)
+    const _gdpsPrecips = Object.entries(aggreGDPSPrecips).map(
+      ([formattedDate, totalPrecip]) => {
+      const date = datetimeToDate(formattedDate)
       return {
         date,
-        value: Number(total_precipitation?.toFixed(2))
+        value: Number(totalPrecip?.toFixed(2))
       }
     })
 
-    const _hrdpsPrecips = hrdpsModelValues.map(({ datetime, total_precipitation }) => {
-      const date = datetimeToDate(datetime)
-      return {
-        date,
-        value: Number(total_precipitation?.toFixed(2))
+    const aggreRDPSPrecips: { [k: string]: number } = {}
+    rdpsModelValues.forEach(({ datetime, total_precipitation: precip }) => {
+      const date = formatDateInPDT(datetime, 'YYYY-MM-DD')
+      if (!aggreRDPSPrecips[date]) {
+        aggreRDPSPrecips[date] = Number(precip)
+      } else {
+        aggreRDPSPrecips[date] += Number(precip)
       }
     })
 
-    const datetimeToDate = (datetime: string) => {
-      const date = moment(datetime).utc().set({ hour: Math.abs(utcOffset), minute: 0 }).toDate()
-      datesFromAllSources.push(date)
-      return date
-    }
+    const _rdpsPrecips = Object.entries(aggreRDPSPrecips).map(
+      ([formattedDate, totalPrecip]) => {
+      const date = datetimeToDate(formattedDate)
+      return {
+        date,
+        value: Number(totalPrecip?.toFixed(2))
+      }
+    })
+
+    const aggreHRDPSPrecips: { [k: string]: number } = {}
+    hrdpsModelValues.forEach(({ datetime, total_precipitation: precip }) => {
+      const date = formatDateInPDT(datetime, 'YYYY-MM-DD')
+      if (!aggreHRDPSPrecips[date]) {
+        aggreHRDPSPrecips[date] = Number(precip)
+      } else {
+        aggreHRDPSPrecips[date] += Number(precip)
+      }
+    })
+
+    const _hrdpsPrecips = Object.entries(aggreHRDPSPrecips).map(
+      ([formattedDate, totalPrecip]) => {
+      const date = datetimeToDate(formattedDate)
+      return {
+        date,
+        value: Number(totalPrecip?.toFixed(2))
+      }
+    })
 
     const currDate = new Date()
     const pastDate = moment(currDate)
@@ -199,7 +232,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       rdpsPrecips: _rdpsPrecips,
       hrdpsPrecips: _hrdpsPrecips
     }
-  }, [utcOffset, observedValues, forecastValues])
+  }, [utcOffset, observedValues, forecastValues, gdpsModelValues, rdpsModelValues, hrdpsModelValues])
 
   // Effect hook for displaying graphics
   useEffect(() => {
@@ -245,7 +278,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
           svg: chart,
           className: 'precipLine__observed',
           xScale: xScaleOriginal,
-          x: xScale(precip.date) - 2,
+          x: xScale(precip.date) - 8,
           y1: yScale(precip.value),
           y2: yScale(0),
           testId: 'observed-precip-line'
@@ -257,11 +290,47 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
           svg: chart,
           className: 'precipLine__forecast',
           xScale: xScaleOriginal,
-          x: xScale(precip.date) + 2,
+          x: xScale(precip.date) - 4,
           y1: yScale(precip.value),
           y2: yScale(0),
           testId: 'forecast-precip-line'
         })
+      )
+
+      gdpsPrecips.forEach(precip =>
+        d3Utils.drawVerticalLine({
+          svg: chart,
+          className: 'precipLine__gdps',
+          xScale: xScaleOriginal,
+          x: xScale(precip.date),
+          y1: yScale(precip.value),
+          y2: yScale(0),
+          testId: 'gdps-precip-line'
+        })  
+      )
+
+      rdpsPrecips.forEach(precip =>
+        d3Utils.drawVerticalLine({
+          svg: chart,
+          className: 'precipLine__rdps',
+          xScale: xScaleOriginal,
+          x: xScale(precip.date) + 4,
+          y1: yScale(precip.value),
+          y2: yScale(0),
+          testId: 'rdps-precip-line'
+        })  
+      )
+
+      hrdpsPrecips.forEach(precip =>
+        d3Utils.drawVerticalLine({
+          svg: chart,
+          className: 'precipLine__hrdps',
+          xScale: xScaleOriginal,
+          x: xScale(precip.date) + 8,
+          y1: yScale(precip.value),
+          y2: yScale(0),
+          testId: 'hrdps-precip-line'
+        })  
       )
 
       /* Render the X & Y axis and labels */
@@ -313,8 +382,38 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         textX: legendX += 12,
         textY: legendY + 3.5
       })
+      d3Utils.addLegend({
+        svg: legend,
+        text: 'GDPS Precip',
+        color: gdpsPrecipColor,
+        shape: 'rect',
+        shapeX: legendX += 85,
+        shapeY: legendY - 4,
+        textX: legendX += 12,
+        textY: legendY + 3.5
+      })
+      d3Utils.addLegend({
+        svg: legend,
+        text: 'RDPS Precip',
+        color: rdpsPrecipColor,
+        shape: 'rect',
+        shapeX: legendX += 85,
+        shapeY: legendY - 4,
+        textX: legendX += 12,
+        textY: legendY + 3.5
+      })
+      d3Utils.addLegend({
+        svg: legend,
+        text: 'HRDPS Precip',
+        color: hrdpsPrecipColor,
+        shape: 'rect',
+        shapeX: legendX += 85,
+        shapeY: legendY - 4,
+        textX: legendX += 12,
+        textY: legendY + 3.5
+      })
     }
-  }, [xDomain, xTickValues, observedPrecips, forecastPrecips])
+  }, [xDomain, xTickValues, observedPrecips, forecastPrecips, gdpsPrecips, rdpsPrecips, hrdpsPrecips])
 
   const precipsOfInterest = useMemo(() => {
     const precipsByDatetime: { [date: string]: PrecipValue } = {}
@@ -333,8 +432,35 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         }
       })
 
+    toggleValues.showModels &&
+      gdpsPrecips.forEach(({ date, value }) => {
+        precipsByDatetime[date.toISOString()] = {
+          ...precipsByDatetime[date.toISOString()],
+          date,
+          gdpsPrecip: value
+        }
+      })
+
+    toggleValues.showRegionalModels &&
+      rdpsPrecips.forEach(({ date, value }) => {
+        precipsByDatetime[date.toISOString()] = {
+          ...precipsByDatetime[date.toISOString()],
+          date,
+          rdpsPrecip: value
+        }
+      })
+
+    toggleValues.showHighResModels &&
+      hrdpsPrecips.forEach(({ date, value }) => {
+        precipsByDatetime[date.toISOString()] = {
+          ...precipsByDatetime[date.toISOString()],
+          date,
+          hrdpsPrecip: value
+        }
+      })
+
     return Object.values(precipsByDatetime)
-  }, [toggleValues, observedPrecips, forecastPrecips])
+  }, [toggleValues, observedPrecips, forecastPrecips, gdpsPrecips, rdpsPrecips, hrdpsPrecips])
 
   // Effect hook for adding/updating tooltip
   useEffect(() => {
@@ -378,6 +504,21 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
                     text: `Forecast Precip: ${value} (mm/cm)`,
                     color: forecastPrecipColor
                   }
+                case 'gdpsPrecip':
+                  return {
+                    text: `GDPS Precip: ${value} (mm/cm)`,
+                    color: gdpsPrecipColor
+                  }
+                case 'rdpsPrecip':
+                  return {
+                    text: `RDPS Precip: ${value} (mm/cm)`,
+                    color: rdpsPrecipColor
+                  }
+                case 'hrdpsPrecip':
+                  return {
+                    text: `HRDPS Precip: ${value} (mm/cm)`,
+                    color: hrdpsPrecipColor
+                  }
                 default:
                   return undefined
               }
@@ -399,7 +540,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
   }, [xDomain, precipsOfInterest])
 
   // Effect hooks for showing/hiding graphics
-  const { showObservations, showForecasts } = toggleValues
+  const { showObservations, showForecasts, showModels, showRegionalModels, showHighResModels } = toggleValues
   useEffect(() => {
     if (svgRef.current) {
       const svg = d3.select(svgRef.current)
@@ -414,6 +555,24 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       svg.selectAll('.precipLine__forecast').classed('precipLine--hidden', !showForecasts)
     }
   }, [showForecasts])
+  useEffect(() => {
+    if (svgRef.current) {
+      const svg = d3.select(svgRef.current)
+      svg.selectAll('.precipLine__gdps').classed('precipLine--hidden', !showModels)
+    }
+  }, [showModels])
+  useEffect(() => {
+    if (svgRef.current) {
+      const svg = d3.select(svgRef.current)
+      svg.selectAll('.precipLine__rdps').classed('precipLine--hidden', !showRegionalModels)
+    }
+  }, [showRegionalModels])
+  useEffect(() => {
+    if (svgRef.current) {
+      const svg = d3.select(svgRef.current)
+      svg.selectAll('.precipLine__hrdps').classed('precipLine--hidden', !showHighResModels)
+    }
+  }, [showHighResModels])
 
   return (
     <div className={classes.root}>
