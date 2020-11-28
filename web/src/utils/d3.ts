@@ -13,36 +13,30 @@ export const getTickValues = (
   domain: [Date, Date] | [undefined, undefined],
   utcOffset: number,
   includeFirst = true
-) => {
+): Date[] => {
   const [d1, d2] = domain
 
   if (!d1) {
     return []
-  } else if (d1 && !d2) {
-    return includeFirst ? [d1] : []
-  } else {
-    const result = includeFirst ? [d1] : []
-
-    let nextDate =
-      moment(d1)
-        .utcOffset(utcOffset)
-        .get('date') + 1
-    const lastDate = moment(d2)
-      .utcOffset(utcOffset)
-      .get('date')
-
-    while (lastDate >= nextDate) {
-      result.push(
-        moment(d1)
-          .utcOffset(utcOffset)
-          .set({ date: nextDate, hours: 0, minutes: 0 })
-          .toDate()
-      )
-      nextDate++
-    }
-
-    return result
   }
+
+  const result = includeFirst ? [d1] : []
+
+  const next = moment(d1)
+    .utcOffset(utcOffset)
+    .add(1, 'days')
+    .set({
+      hours: 0,
+      minute: 0
+    })
+  const last = moment(d2).utcOffset(utcOffset)
+
+  while (last >= next) {
+    result.push(moment(next).toDate())
+    next.add(1, 'days')
+  }
+
+  return result
 }
 
 /**
