@@ -404,9 +404,12 @@ function calculate_new_x_offset(
   x_offset: number,
   icon: any,
   text: any,
-  x_margin: number
+  x_margin: number,
+  columnWidth: number
 ) {
-  return x_offset + icon.node().getBBox().width + text.node().getBBox().width + x_margin
+  return (
+    x_offset + icon.node().getBBox().width + text.node().getBBox().width + columnWidth
+  )
 }
 
 function translate_icon(
@@ -446,14 +449,17 @@ export interface Legend {
 
 export const addLegendEx = (
   svg: d3.Selection<SVGGElement, unknown, null, undefined>,
+  legendWidth: number,
   data: Legend[]
 ): number => {
+  const columnWidth = legendWidth / 4
   const x_margin = 5
   const y_margin = 0
   const line_height = 20
-  let x_offset = 0
-  let y_offset = 1 + y_margin
+  // let x_offset = 0
+  // let y_offset = 1 + y_margin
 
+  // console.log('svg:', svg.node().getBBox().width)
   const legend = svg.selectAll('.legend').data(data)
 
   legend
@@ -474,27 +480,35 @@ export const addLegendEx = (
         .text(d.text)
 
       const icon = createIcon(item, d)
-      let new_x_offset = calculate_new_x_offset(x_offset, icon, text, x_margin)
-      if (new_x_offset > 400) {
-        x_offset = 0
-        y_offset += line_height
+      const xOffset = (i % 4) * columnWidth
+      const yOffset = ((i / 4) | 0) * line_height
 
-        new_x_offset = calculate_new_x_offset(x_offset, icon, text, x_margin)
-      }
+      // let new_x_offset = calculate_new_x_offset(
+      //   x_offset,
+      //   icon,
+      //   text,
+      //   x_margin,
+      //   columnWidth
+      // )
+      // if (new_x_offset > legendWidth) {
+      //   x_offset = 0
+      //   y_offset += line_height
+
+      //   new_x_offset = calculate_new_x_offset(x_offset, icon, text, x_margin, columnWidth)
+      // }
 
       // Move icon and text to the correct location.
-      icon.attr('transform', translate_icon(d.shape, x_offset, y_offset, icon, text))
+      icon.attr('transform', translate_icon(d.shape, xOffset, yOffset, icon, text))
       text.attr(
         'transform',
         'translate(' +
-          (x_offset + x_margin + icon.node().getBBox().width) +
+          (xOffset + x_margin + icon.node().getBBox().width) +
           ', ' +
-          y_offset +
+          yOffset +
           ')'
       )
-      x_offset = new_x_offset + x_margin
     })
-  return y_offset + line_height
+  return ((data.length / 4) | 0) * line_height + line_height
 }
 
 export const addLegend = ({

@@ -884,7 +884,11 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         )
       }
 
-      const legendHeight = d3Utils.addLegendEx(legend, data as d3Utils.Legend[])
+      const legendHeight = d3Utils.addLegendEx(
+        legend,
+        chartWidth,
+        data as d3Utils.Legend[]
+      )
 
       // Make it responsive: https://medium.com/@louisemoxy/a-simple-way-to-make-d3-js-charts-svgs-responsive-7afb04bc2e4b
       svg.attr('viewBox', `0 0 ${svgWidth} ${svgHeight + legendHeight}`)

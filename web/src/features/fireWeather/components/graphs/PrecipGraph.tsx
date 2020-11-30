@@ -291,7 +291,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       // Clear out all the child nodes.
       legend.selectAll('*').remove()
       // Re-create the legend.
-      d3Utils.addLegendEx(legend, data as d3Utils.Legend[])
+      d3Utils.addLegendEx(legend, chartWidth, data as d3Utils.Legend[])
     }
   }, [precipsOfInterest])
 
