@@ -1,6 +1,7 @@
 # PHASE 1 - build static html.
 # FROM node:10 as static <-- pulls from docker, can't use
 FROM registry.access.redhat.com/rhscl/nodejs-10-rhel7 as static
+# FROM registry.access.redhat.com/ubi7/nodejs-10 as static
 # FROM ubi7/nodejs-10 as static <-- error: 
 # FROM nodejs:10 as static <-- error: build error: failed to pull image: repository docker.io/nodejs not found: does not exist or no pull access
 
@@ -9,10 +10,12 @@ FROM registry.access.redhat.com/rhscl/nodejs-10-rhel7 as static
 # RUN mkdir /tmp/app
 # WORKDIR /tmp/app
 # COPY web /tmp/app/
+USER 0
 RUN pwd
 ADD web .
 RUN npm ci --production
 RUN npm run build
+USER 1001
 
 # PHASE 2 - prepare python.
 # Using local docker image to speed up build. See openshift/unicorn-base for details.
