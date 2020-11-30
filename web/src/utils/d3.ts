@@ -352,8 +352,8 @@ const createIcon = (
   if (d.shape === 'rect') {
     return item
       .append(d.shape)
-      .attr('width', 8)
-      .attr('height', 8)
+      .attr('width', 4)
+      .attr('height', 4)
       .style('stroke', d.color)
       .style('fill', d.fill || d.color)
   } else if (d.shape === 'diamond') {
@@ -400,48 +400,28 @@ const createIcon = (
     .style('fill', d.fill || d.color)
 }
 
-function calculate_new_x_offset(
-  x_offset: number,
-  icon: any,
-  text: any,
-  x_margin: number,
-  columnWidth: number
-) {
-  return (
-    x_offset + icon.node().getBBox().width + text.node().getBBox().width + columnWidth
-  )
-}
-
-function translate_icon(
-  shape: string,
-  x_offset: number,
-  y_offset: number,
+const translateIcon = (
+  shape: 'circle' | 'rect' | 'diamond' | 'cross' | 'triangle',
+  xOffset: number,
+  yOffset: number,
   icon: any,
   text: any
-) {
-  const delta = Math.abs(icon.node().getBBox().height - text.node().getBBox().height / 2)
-  if (shape === 'diamond' || shape === 'circle' || shape === 'cross') {
-    const x = x_offset + icon.node().getBBox().width / 2
-    const y = y_offset - delta
+): string => {
+  if (shape === 'triangle') {
+    const x = xOffset + icon.node().getBBox().width / 2
+    const y = yOffset + (text.node().getBBox().height / 2 - icon.node().getBBox().height)
     return `translate(${x}, ${y})`
+  } else if (shape === 'rect') {
+    const y = yOffset - icon.node().getBBox().height / 2
+    return `translate(${xOffset}, ${y})`
   }
-  // rect:
-  const y = y_offset - icon.node().getBBox().height / 2 // - icon.node().getBBox().height / 2 - Math.abs(icon.node().getBBox().height - text.node().getBBox().height / 2)
-
-  console.log(
-    'translate icon',
-    icon.node().getBBox().width,
-    icon.node().getBBox().height,
-    text.node().getBBox().width,
-    text.node().getBBox().height
-  )
-  console.log(x_offset)
-  console.log(y)
-  return `translate(${x_offset}, ${y})`
+  // diamond, circle, cross
+  const x = xOffset + icon.node().getBBox().width / 2
+  return `translate(${x}, ${yOffset})`
 }
 
 export interface Legend {
-  text: string
+  text: 'rect' | 'circle' | 'cross' | 'diamond'
   shape: string
   color: string
   fill: null | string
@@ -452,14 +432,11 @@ export const addLegendEx = (
   legendWidth: number,
   data: Legend[]
 ): number => {
-  const columnWidth = legendWidth / 4
+  const numColumns = 3
+  const columnWidth = legendWidth / numColumns
   const x_margin = 5
-  const y_margin = 0
-  const line_height = 20
-  // let x_offset = 0
-  // let y_offset = 1 + y_margin
+  const line_height = 15
 
-  // console.log('svg:', svg.node().getBBox().width)
   const legend = svg.selectAll('.legend').data(data)
 
   legend
@@ -467,38 +444,24 @@ export const addLegendEx = (
     .append('g')
     .attr('transform', 'translate(0, 0)')
     .each(function(d: Legend, i) {
-      console.log(d)
       const item = d3.select(this)
-      // x_offset += x_margin
 
       const text = item
         .append('text')
         .attr('text-anchor', 'left')
-        .style('alignment-baseline', 'middle')
+        .style('alignment-baseline', 'central')
         .style('fill', d.color)
-        .style('font-size', '9px')
+        .style('font-size', '8px')
         .text(d.text)
 
       const icon = createIcon(item, d)
-      const xOffset = (i % 4) * columnWidth
-      const yOffset = ((i / 4) | 0) * line_height
-
-      // let new_x_offset = calculate_new_x_offset(
-      //   x_offset,
-      //   icon,
-      //   text,
-      //   x_margin,
-      //   columnWidth
-      // )
-      // if (new_x_offset > legendWidth) {
-      //   x_offset = 0
-      //   y_offset += line_height
-
-      //   new_x_offset = calculate_new_x_offset(x_offset, icon, text, x_margin, columnWidth)
-      // }
+      // Calculte x offset using the remainder.
+      const xOffset = (i % numColumns) * columnWidth
+      // Calculate y offset using the quotient.
+      const yOffset = ((i / numColumns) | 0) * line_height
 
       // Move icon and text to the correct location.
-      icon.attr('transform', translate_icon(d.shape, xOffset, yOffset, icon, text))
+      icon.attr('transform', translateIcon(d.shape, xOffset, yOffset, icon, text))
       text.attr(
         'transform',
         'translate(' +
