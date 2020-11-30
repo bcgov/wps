@@ -4,8 +4,9 @@
 FROM ubi7/nodejs-10 as static
 
 # Set the working directory
-WORKDIR /app
-COPY web /app/
+RUN mkdir /tmp/app
+WORKDIR /tmp/app
+COPY web /tmp/app/
 RUN npm ci --production
 RUN npm run build
 
