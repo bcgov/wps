@@ -86,7 +86,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
 
   // useMemo will only recompute the memoized value when one of the dependencies has changed.
   // This optimization helps to avoid expensive calculations on every render.
-  const calculated = useMemo(() => {
+  const graphCalculations = useMemo(() => {
     const datesFromAllSources: Date[] = []
     let maxPrecip = 10
 
@@ -173,7 +173,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       maxPrecip,
       observedPrecips,
       forecastPrecips
-    } = calculated
+    } = graphCalculations
 
     if (svgRef.current) {
       /* Clear previous graphics before rendering new ones */
@@ -286,18 +286,18 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         textY: legendY + 3.5
       })
     }
-  }, [calculated])
+  }, [graphCalculations])
 
   const precipsOfInterest = useMemo(() => {
     const precipsByDatetime: { [date: string]: PrecipValue } = {}
 
     toggleValues.showObservations &&
-      calculated.observedPrecips.forEach(({ date, value }) => {
+      graphCalculations.observedPrecips.forEach(({ date, value }) => {
         precipsByDatetime[date.toISOString()] = { date, observedPrecip: value }
       })
 
     toggleValues.showForecasts &&
-      calculated.forecastPrecips.forEach(({ date, value }) => {
+      graphCalculations.forecastPrecips.forEach(({ date, value }) => {
         precipsByDatetime[date.toISOString()] = {
           ...precipsByDatetime[date.toISOString()],
           date,
@@ -306,7 +306,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       })
 
     return Object.values(precipsByDatetime)
-  }, [toggleValues, calculated])
+  }, [toggleValues, graphCalculations])
 
   // Effect hook for adding/updating tooltip
   useEffect(() => {
@@ -319,7 +319,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
 
       const xScale = d3
         .scaleTime()
-        .domain(calculated.xDomain)
+        .domain(graphCalculations.xDomain)
         .range([0, chartWidth])
 
       d3Utils.addTooltipListener({
@@ -367,7 +367,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         svg.on('touchend mouseleave', null)
       }
     }
-  }, [calculated, precipsOfInterest])
+  }, [graphCalculations, precipsOfInterest])
 
   // Effect hooks for showing/hiding graphics
   const { showObservations, showForecasts } = toggleValues

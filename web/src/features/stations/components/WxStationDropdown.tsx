@@ -46,9 +46,9 @@ const WxStationDropdown = (props: Props) => {
   let isThereUnknownCode = false
   const maxNumOfSelect = props.maxNumOfSelect || 3
   const autocompleteValue: Option[] = props.stationCodes.map(code => {
-    const s = stationsByCode[code]
-    if (s) {
-      return { name: s.name, code: s.code }
+    const station = stationsByCode[code]
+    if (station) {
+      return { name: station.name, code: station.code }
     }
 
     isThereUnknownCode = true
@@ -56,7 +56,7 @@ const WxStationDropdown = (props: Props) => {
   })
   const isError = Boolean(errorFetchingStations) || isThereUnknownCode
   const autocompleteOptions: Option[] = useMemo(
-    () => stations.map(s => ({ name: s.name, code: s.code })),
+    () => stations.map(station => ({ name: station.name, code: station.code })),
     [stations]
   )
 
