@@ -1,6 +1,6 @@
 # PHASE 1 - build static html.
 # Pull from local registry - we can't pull from docker due to limits.
-# FROM registry.access.redhat.com/rhscl/nodejs-10-rhel7 as static
+# see https://catalog.redhat.com/software/containers/ubi8/nodejs-14/5ed7887dd70cc50e69c2fabb for details
 FROM registry.access.redhat.com/ubi8/nodejs-14 as static
 
 # Switch to root user for package installs
