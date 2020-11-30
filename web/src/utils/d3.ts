@@ -421,8 +421,8 @@ const translateIcon = (
 }
 
 export interface Legend {
-  text: 'rect' | 'circle' | 'cross' | 'diamond'
-  shape: string
+  text: string
+  shape: 'rect' | 'circle' | 'cross' | 'diamond' | 'triangle'
   color: string
   fill: null | string
 }
@@ -437,31 +437,35 @@ export const addLegendEx = (
   const x_margin = 5
   const line_height = 15
 
-  const legend = svg.selectAll('.legend').data(data)
+  const legend = svg.selectAll('.legend')
 
   legend
+    .data(data)
     .enter()
     .append('g')
     .attr('transform', 'translate(0, 0)')
-    .each(function(d: Legend, i) {
+    .each(function(legendData: Legend, i) {
       const item = d3.select(this)
 
       const text = item
         .append('text')
         .attr('text-anchor', 'left')
         .style('alignment-baseline', 'central')
-        .style('fill', d.color)
+        .style('fill', legendData.color)
         .style('font-size', '8px')
-        .text(d.text)
+        .text(legendData.text)
 
-      const icon = createIcon(item, d)
+      const icon = createIcon(item, legendData)
       // Calculte x offset using the remainder.
       const xOffset = (i % numColumns) * columnWidth
       // Calculate y offset using the quotient.
       const yOffset = ((i / numColumns) | 0) * line_height
 
       // Move icon and text to the correct location.
-      icon.attr('transform', translateIcon(d.shape, xOffset, yOffset, icon, text))
+      icon.attr(
+        'transform',
+        translateIcon(legendData.shape, xOffset, yOffset, icon, text)
+      )
       text.attr(
         'transform',
         'translate(' +
