@@ -2,7 +2,6 @@ import React from 'react'
 import { useSelector } from 'react-redux'
 
 import { ErrorMessage, Button } from 'components'
-import { Station } from 'api/stationAPI'
 import {
   selectObservations,
   selectModels,
@@ -18,10 +17,10 @@ import {
 
 interface Props {
   onBtnClick: () => void
-  selectedStations: Station[]
+  disabled: boolean
 }
 
-const GetWxDataButton = ({ onBtnClick, selectedStations }: Props) => {
+const GetWxDataButton = ({ onBtnClick, disabled }: Props) => {
   const { error: errFetchingObservations } = useSelector(selectObservations)
   const { error: errFetchingModels } = useSelector(selectModels)
   const { error: errFetchingModelSummaries } = useSelector(selectModelSummaries)
@@ -36,14 +35,13 @@ const GetWxDataButton = ({ onBtnClick, selectedStations }: Props) => {
     selectRegionalModelSummaries
   )
   const wxDataLoading = useSelector(selectWxDataLoading)
-  const shouldBtnDisabled = selectedStations.length === 0
 
   return (
     <>
       <Button
         data-testid="get-wx-data-button"
         onClick={onBtnClick}
-        disabled={shouldBtnDisabled}
+        disabled={disabled}
         loading={wxDataLoading}
         variant="contained"
         color="primary"

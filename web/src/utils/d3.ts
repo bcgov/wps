@@ -588,7 +588,10 @@ export const addLegend = ({
     .style('fill', color)
 }
 
-const getNearestByDate = <T extends { date: Date }>(invertedDate: Date, arr: T[]): T => {
+export const getNearestByDate = <T extends { date: Date }>(
+  invertedDate: Date,
+  arr: T[]
+): T => {
   // What is bisect: https://observablehq.com/@d3/d3-bisect
   const bisect = d3.bisector((d: T) => d.date).left
   const index = bisect(arr, invertedDate, 1)

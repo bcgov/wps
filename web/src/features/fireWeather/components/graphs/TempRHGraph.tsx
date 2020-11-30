@@ -265,7 +265,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
       const xTickValues = d3Utils.getTickValues(xDomain, PDT_UTC_OFFSET)
 
       /* Set dimensions and svg groups */
-      const margin = { top: 10, right: 40, bottom: 200, left: 40 }
+      const margin = { top: 10, right: 40, bottom: 190, left: 40 }
       const svgWidth = 600
       const chartWidth = svgWidth - margin.left - margin.right
       const chartHeight = 190

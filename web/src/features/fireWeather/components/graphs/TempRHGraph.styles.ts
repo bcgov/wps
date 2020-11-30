@@ -25,7 +25,6 @@ const forecastSummaryRHLineColor = forecastRHDotColor
 export const useStyles = makeStyles({
   // Give styling through classes for svg elements
   root: {
-    paddingBottom: 15,
     '& .xAxisLabel': {
       textAnchor: 'start',
       font: '9px sans-serif'

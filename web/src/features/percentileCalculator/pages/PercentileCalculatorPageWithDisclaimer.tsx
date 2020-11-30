@@ -3,7 +3,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import { Modal, Card, Button } from '@material-ui/core'
 import InfoIcon from '@material-ui/icons/Info'
 
-import { PercentileCalculatorPage } from 'features/percentileCalculator/pages/PercentileCalculatorPage'
+import PercentileCalculatorPage from 'features/percentileCalculator/pages/PercentileCalculatorPage'
 
 const useStyles = makeStyles({
   cardWrapper: {
