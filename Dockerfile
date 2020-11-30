@@ -10,11 +10,13 @@ FROM registry.access.redhat.com/rhscl/nodejs-10-rhel7 as static
 # RUN mkdir /tmp/app
 # WORKDIR /tmp/app
 # COPY web /tmp/app/
+# Switch to root user for package installs
 USER 0
 RUN pwd
 ADD web .
 RUN npm ci --production
 RUN npm run build
+# Switch back to default user
 USER 1001
 
 # PHASE 2 - prepare python.
@@ -31,7 +33,7 @@ RUN cd /tmp && \
 # Copy the app:
 COPY ./api/app /app/app
 # Copy the static content:
-COPY --from=static /app/build /app/static
+COPY --from=static /opt/app-root/src/build /app/static
 # Copy almebic:
 COPY ./api/alembic /app/alembic
 COPY ./api/alembic.ini /app
