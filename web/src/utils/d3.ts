@@ -409,7 +409,7 @@ const translateIcon = (
 ): string => {
   if (shape === 'triangle') {
     const x = xOffset + icon.node().getBBox().width / 2
-    const y = yOffset + (text.node().getBBox().height / 2 - icon.node().getBBox().height)
+    const y = yOffset + 1 // rather frustrated - having to add magic number to render correctly.
     return `translate(${x}, ${y})`
   } else if (shape === 'rect') {
     const y = yOffset - icon.node().getBBox().height / 2
@@ -432,10 +432,10 @@ export const addLegendEx = (
   legendWidth: number,
   data: Legend[]
 ): number => {
-  const numColumns = 3
-  const columnWidth = legendWidth / numColumns
-  const x_margin = 5
-  const line_height = 15
+  const numColumns = 3 // number of columns
+  const columnWidth = legendWidth / numColumns // how wide is each column
+  const iconTextPadding = 5 // amount of padding between icon and text
+  const line_height = 15 // height of line of text
 
   const legend = svg.selectAll('.legend')
 
@@ -452,7 +452,7 @@ export const addLegendEx = (
         .attr('text-anchor', 'left')
         .style('alignment-baseline', 'central')
         .style('fill', legendData.color)
-        .style('font-size', '8px')
+        .style('font-size', '9px')
         .text(legendData.text)
 
       const icon = createIcon(item, legendData)
@@ -469,104 +469,13 @@ export const addLegendEx = (
       text.attr(
         'transform',
         'translate(' +
-          (xOffset + x_margin + icon.node().getBBox().width) +
+          (xOffset + iconTextPadding + icon.node().getBBox().width) +
           ', ' +
           yOffset +
           ')'
       )
     })
   return ((data.length / 4) | 0) * line_height + line_height
-}
-
-export const addLegend = ({
-  svg,
-  shape = 'circle',
-  text,
-  fill,
-  color,
-  shapeX,
-  shapeY,
-  textX,
-  textY,
-  radius = 2, // circle radius
-  length = 8 // rect length
-}: {
-  svg: d3.Selection<SVGGElement, unknown, null, undefined>
-  shape?: 'circle' | 'rect' | 'diamond' | 'triangle' | 'cross'
-  text: string
-  color: string
-  fill?: string | 'none'
-  shapeX: number
-  shapeY: number
-  textX: number
-  textY: number
-  radius?: number
-  length?: number
-}): void => {
-  if (shape === 'circle') {
-    svg
-      .append('circle')
-      .attr('cx', shapeX)
-      .attr('cy', shapeY)
-      .attr('r', radius)
-      .style('stroke', color)
-      .style('fill', fill || color)
-  } else if (shape === 'rect') {
-    svg
-      .append('rect')
-      .attr('x', shapeX)
-      .attr('y', shapeY)
-      .attr('width', length)
-      .attr('height', length)
-      .style('stroke', color)
-      .attr('fill', fill || color)
-  } else if (shape === 'triangle') {
-    svg
-      .append('path')
-      .attr(
-        'd',
-        d3
-          .symbol()
-          .type(d3.symbolTriangle)
-          .size(10)
-      )
-      .attr('transform', `translate(${shapeX},${shapeY})`)
-      .style('stroke', color)
-      .attr('fill', fill || color)
-  } else if (shape === 'diamond') {
-    svg
-      .append('path')
-      .attr(
-        'd',
-        d3
-          .symbol()
-          .type(d3.symbolDiamond)
-          .size(10)
-      )
-      .attr('transform', `translate(${shapeX},${shapeY})`)
-      .style('stroke', color)
-      .attr('fill', fill || color)
-  } else if (shape === 'cross') {
-    svg
-      .append('path')
-      .attr(
-        'd',
-        d3
-          .symbol()
-          .type(d3.symbolCross)
-          .size(5)
-      )
-      .attr('transform', `translate(${shapeX},${shapeY})`)
-      .style('stroke', color)
-      .attr('fill', fill || color)
-  }
-  svg
-    .append('text')
-    .attr('x', textX)
-    .attr('y', textY)
-    .text(text)
-    .style('font-size', '9px')
-    .style('fill', color)
 }
 
 export const getNearestByDate = <T extends { date: Date }>(
