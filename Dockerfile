@@ -1,21 +1,15 @@
 # PHASE 1 - build static html.
-# FROM node:10 as static <-- pulls from docker, can't use
-FROM registry.access.redhat.com/rhscl/nodejs-10-rhel7 as static
-# FROM registry.access.redhat.com/ubi7/nodejs-10 as static
-# FROM ubi7/nodejs-10 as static <-- error: 
-# FROM nodejs:10 as static <-- error: build error: failed to pull image: repository docker.io/nodejs not found: does not exist or no pull access
+# Pull from local registry - we can't pull from docker due to limits.
+# FROM registry.access.redhat.com/rhscl/nodejs-10-rhel7 as static
+FROM registry.access.redhat.com/ubi8/nodejs-14 as static
 
-# Set the working directory
-# RUN pwd
-# RUN mkdir /tmp/app
-# WORKDIR /tmp/app
-# COPY web /tmp/app/
 # Switch to root user for package installs
 USER 0
-RUN pwd
+
 ADD web .
 RUN npm ci --production
 RUN npm run build
+
 # Switch back to default user
 USER 1001
 
