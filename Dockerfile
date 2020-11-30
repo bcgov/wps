@@ -1,5 +1,5 @@
 # PHASE 1 - build static html.
-FROM node:10 as static
+FROM registry.access.redhat.com/rhscl/nodejs-10-rhel7 as static
 
 # Set the working directory
 WORKDIR /app
