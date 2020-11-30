@@ -140,10 +140,20 @@ describe('MoreCast Page', () => {
       // Check if svg elements are displayed (or not) in the graph
       cy.getByTestId('observed-precip-line').should('not.have.class', 'precipLine--hidden')
       cy.getByTestId('forecast-precip-line').should('have.class', 'precipLine--hidden')
+      cy.getByTestId('gdps-precip-line').should('have.class', 'precipLine--hidden')
+      cy.getByTestId('rdps-precip-line').should('have.class', 'precipLine--hidden')
+      cy.getByTestId('hrdps-precip-line').should('have.class', 'precipLine--hidden')
       cy.getByTestId('wx-graph-observation-toggle').click()
       cy.getByTestId('wx-graph-forecast-toggle').click()
       cy.getByTestId('observed-precip-line').should('have.class', 'precipLine--hidden')
       cy.getByTestId('forecast-precip-line').should('not.have.class', 'precipLine--hidden')
+      cy.getByTestId('wx-graph-regional-model-toggle').click()
+      cy.getByTestId('rdps-precip-line').should('not.have.class', 'precipLine--hidden')
+      cy.getByTestId('gdps-precip-line').should('have.class', 'precipLine--hidden')
+      cy.getByTestId('wx-graph-high-res-model-toggle').click()
+      cy.getByTestId('wx-graph-global-model-toggle').click()
+      cy.getByTestId('hrdps-precip-line').should('not.have.class', 'precipLine--hidden')
+      cy.getByTestId('gdps-precip-line').should('not.have.class', 'precipLine--hidden')
       cy.getByTestId('wx-graph-observation-toggle').click()
 
       // Hover over the first date and check if the tooltip shows up with a correct text
