@@ -1,5 +1,7 @@
 # PHASE 1 - build static html.
-FROM registry.access.redhat.com/rhscl/nodejs-10-rhel7 as static
+# FROM node:10 as static <-- pulls from docker, can't use
+# FROM registry.access.redhat.com/rhscl/nodejs-10-rhel7 as static <-- Error: EACCES: permission denied 
+FROM ubi7/nodejs-10 as static
 
 # Set the working directory
 WORKDIR /app
