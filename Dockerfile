@@ -1,12 +1,16 @@
 # PHASE 1 - build static html.
 # FROM node:10 as static <-- pulls from docker, can't use
 # FROM registry.access.redhat.com/rhscl/nodejs-10-rhel7 as static <-- Error: EACCES: permission denied 
-FROM ubi7/nodejs-10 as static
+# FROM ubi7/nodejs-10 as static
+FROM nodejs:10 as static
 
 # Set the working directory
-RUN mkdir /tmp/app
-WORKDIR /tmp/app
-COPY web /tmp/app/
+# RUN pwd
+# RUN mkdir /tmp/app
+# WORKDIR /tmp/app
+# COPY web /tmp/app/
+RUN pwd
+ADD web .
 RUN npm ci --production
 RUN npm run build
 
@@ -24,7 +28,7 @@ RUN cd /tmp && \
 # Copy the app:
 COPY ./api/app /app/app
 # Copy the static content:
-COPY --from=static /tmp/app/build /app/static
+COPY --from=static /app/build /app/static
 # Copy almebic:
 COPY ./api/alembic /app/alembic
 COPY ./api/alembic.ini /app
