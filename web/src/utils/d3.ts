@@ -13,36 +13,30 @@ export const getTickValues = (
   domain: [Date, Date] | [undefined, undefined],
   utcOffset: number,
   includeFirst = true
-) => {
+): Date[] => {
   const [d1, d2] = domain
 
   if (!d1) {
     return []
-  } else if (d1 && !d2) {
-    return includeFirst ? [d1] : []
-  } else {
-    const result = includeFirst ? [d1] : []
-
-    let nextDate =
-      moment(d1)
-        .utcOffset(utcOffset)
-        .get('date') + 1
-    const lastDate = moment(d2)
-      .utcOffset(utcOffset)
-      .get('date')
-
-    while (lastDate >= nextDate) {
-      result.push(
-        moment(d1)
-          .utcOffset(utcOffset)
-          .set({ date: nextDate, hours: 0, minutes: 0 })
-          .toDate()
-      )
-      nextDate++
-    }
-
-    return result
   }
+
+  const result = includeFirst ? [d1] : []
+
+  const next = moment(d1)
+    .utcOffset(utcOffset)
+    .add(1, 'days')
+    .set({
+      hours: 0,
+      minute: 0
+    })
+  const last = moment(d2).utcOffset(utcOffset)
+
+  while (last >= next) {
+    result.push(moment(next).toDate())
+    next.add(1, 'days')
+  }
+
+  return result
 }
 
 /**
@@ -152,14 +146,14 @@ export const drawSymbols = <T>({
     path.attr('data-testid', testId)
   }
 
-  const update = (newX: (d: T) => number, duration?: number) => {
+  const redraw = (newX: (d: T) => number, duration?: number) => {
     path
       .transition(d3.event.transform)
       .duration(duration || transitionDuration)
       .attr('transform', d => `translate(${newX(d)}, ${y(d)})`)
   }
 
-  return update
+  return redraw
 }
 
 export const drawPath = <T>({
@@ -196,14 +190,14 @@ export const drawPath = <T>({
     path.attr('data-testid', testId)
   }
 
-  const updatePath = (newX: (d: T) => number, duration?: number) => {
+  const redraw = (newX: (d: T) => number, duration?: number) => {
     path
       .transition(d3.event.transform)
       .duration(duration || transitionDuration)
       .attr('d', lineFunc.x(newX))
   }
 
-  return updatePath
+  return redraw
 }
 
 export const drawVerticalLine = ({
@@ -234,7 +228,7 @@ export const drawVerticalLine = ({
     line.attr('data-testid', testId)
   }
 
-  const update = (newXScale: d3.ScaleTime<number, number>, duration?: number) => {
+  const redraw = (newXScale: d3.ScaleTime<number, number>, duration?: number) => {
     // Get the corresponding value from the domain using the original scale
     // then calculate new x with the updated x scale
     const newX = newXScale(xScale.invert(x))
@@ -246,7 +240,7 @@ export const drawVerticalLine = ({
       .attr('x2', newX)
   }
 
-  return update
+  return redraw
 }
 
 export const drawText = ({
@@ -282,7 +276,7 @@ export const drawText = ({
     textSvg.attr('data-testid', testId)
   }
 
-  const update = (newXScale: d3.ScaleTime<number, number>, duration?: number) => {
+  const redraw = (newXScale: d3.ScaleTime<number, number>, duration?: number) => {
     // Get inverted x using the original scale
     // then calculate the new x with the new scale
     const newX = newXScale(xScale.invert(x))
@@ -293,7 +287,7 @@ export const drawText = ({
       .attr('x', newX)
   }
 
-  return update
+  return redraw
 }
 
 export const drawArea = <T>({
@@ -335,14 +329,14 @@ export const drawArea = <T>({
     path.attr('data-testid', testId)
   }
 
-  const updateArea = (newX: (d: T) => number, duration?: number) => {
+  const redraw = (newX: (d: T) => number, duration?: number) => {
     path
       .transition(d3.event.transform)
       .duration(duration || transitionDuration)
       .attr('d', areaFunc.x(newX))
   }
 
-  return updateArea
+  return redraw
 }
 
 const createIcon = (
