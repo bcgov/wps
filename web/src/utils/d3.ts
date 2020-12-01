@@ -456,7 +456,7 @@ export const addLegend = (
       // Calculte x offset using the remainder.
       const xOffset = (i % numColumns) * columnWidth
       // Calculate y offset using the quotient.
-      const yOffset = ((i / numColumns) | 0) * lineHeight
+      const yOffset = Math.trunc(i / numColumns) * lineHeight
 
       // Move icon and text to the correct location.
       icon.attr('transform', translateIcon(legendData.shape, xOffset, yOffset, icon))
@@ -466,7 +466,7 @@ export const addLegend = (
         'translate(' + (xOffset + iconTextPadding + iconWidth) + ', ' + yOffset + ')'
       )
     })
-  return ((data.length / numColumns) | 0) * lineHeight + lineHeight
+  return Math.trunc(data.length / numColumns) * lineHeight + lineHeight
 }
 
 export const getNearestByDate = <T extends { date: Date }>(

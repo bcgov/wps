@@ -317,7 +317,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       // Re-create the legend.
       d3Utils.addLegend(legend, chartWidth, legendData)
     }
-  }, [precipsOfInterest, toggleValues])
+  }, [toggleValues])
 
   // Effect hook for adding/updating tooltip
   useEffect(() => {
