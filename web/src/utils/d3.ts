@@ -427,7 +427,9 @@ export interface Legend {
 }
 
 export const addLegend = (
-  svg: d3.Selection<SVGGElement, unknown, null, undefined>,
+  svg:
+    | d3.Selection<d3.DescElement, Datum, PElement, PDatum>
+    | d3.Selection<SVGGElement, unknown, null, undefined>,
   legendWidth: number,
   data: Legend[]
 ): number => {
