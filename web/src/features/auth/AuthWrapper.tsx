@@ -2,7 +2,10 @@ import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
 import { selectAuthentication } from 'app/rootReducer'
-import { authenticate } from 'features/auth/slices/authenticationSlice'
+import {
+  authenticate,
+  setAxiosRequestInterceptors
+} from 'features/auth/slices/authenticationSlice'
 
 interface Props {
   shouldAuthenticate: boolean
@@ -17,6 +20,7 @@ const AuthWrapper = ({ children, shouldAuthenticate }: Props) => {
   useEffect(() => {
     if (shouldAuthenticate) {
       dispatch(authenticate())
+      dispatch(setAxiosRequestInterceptors())
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch])
