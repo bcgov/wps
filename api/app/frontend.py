@@ -30,9 +30,9 @@ templates = Jinja2Templates(directory=get_static_foldername())
 def add_security_headers(scope, response):
     """ Add security headers to statically served content
     """
-
     path = scope.get('path')
 
+    # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options
     if path and path[path.rfind('.'):] in ('.css', '.js', '.png', '.xml', '.svg', '.json', '.txt'):
         response.headers.setdefault('X-Content-Type-Options', 'nosniff')
     elif response.media_type in ('text/html',):
