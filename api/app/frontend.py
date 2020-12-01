@@ -27,6 +27,25 @@ def get_static_foldername():
 templates = Jinja2Templates(directory=get_static_foldername())
 
 
+def add_security_headers(scope, response):
+    """ Add security headers to statically served content
+    """
+    path = scope.get('path')
+
+    # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options
+    if (path and path[path.rfind('.'):] in ('.css', '.js', '.png', '.xml', '.svg', '.json', '.txt'))\
+            or response.media_type in ('text/html',):
+        response.headers.setdefault('X-Content-Type-Options', 'nosniff')
+    if (path and path[path.rfind('.'):] in ('.xml', '.svg', '.json', '.txt')):
+        # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
+        response.headers.setdefault('Cache-Control', 'no-cache')
+        # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Pragma
+        response.headers.setdefault('Pragma', 'no-cache')
+    # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
+    if response.media_type in ('text/html', 'text/xml'):
+        response.headers.setdefault('X-Frame-Options', 'DENY')
+
+
 class SPAStaticFiles(StaticFiles):
     """ Single Page App Static Files.
     Serves up .(root, or /) whenever a file isn't found.
@@ -42,6 +61,7 @@ class SPAStaticFiles(StaticFiles):
             logger.debug('serving up root for %s', path)
             request = Request(scope)
             return await get_index(request)
+        add_security_headers(scope, response)
         logger.debug('serve static: %s', path)
         return response
 
@@ -50,7 +70,7 @@ async def get_index(request: Request):
     """ Apply jina template to index.html
     """
     try:
-        return templates.TemplateResponse(
+        response = templates.TemplateResponse(
             "index.html",
             {
                 'request': request,
@@ -62,6 +82,20 @@ async def get_index(request: Request):
                 'REACT_APP_MATOMO_SITE_ID': config.get('REACT_APP_MATOMO_SITE_ID'),
                 'REACT_APP_MATOMO_CONTAINER': config.get('REACT_APP_MATOMO_CONTAINER'),
             })
+        # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
+        response.headers.setdefault('X-Frame-Options', 'DENY')
+        # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options
+        response.headers.setdefault('X-Content-Type-Options', 'nosniff')
+        # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
+        response.headers.setdefault('Cache-Control', 'no-cache')
+        # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Pragma
+        response.headers.setdefault('Pragma', 'no-cache')
+        # https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
+        response.headers.setdefault('Content-Security-Policy',
+                                    ('default-src \'self\' \'unsafe-inline\' *.googleapis.com *.gov.bc.ca'
+                                     ' *.gstatic.com;'
+                                     ' script-src \'self\' \'unsafe-inline\' *.gov.bc.ca;'))
+        return response
     except TemplateNotFound as exception:
         # This has most likely happened because there's nothing in the static folder
         # Make sure you've run npm build, and copied the static files into the correct location.
