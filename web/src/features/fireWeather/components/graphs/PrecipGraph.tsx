@@ -201,8 +201,6 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
     console.log(gdpsPrecips)
 
     const aggreRDPSPrecips: { [k: string]: number } = {}
-    console.log('rdpsModelValues')
-    console.log(rdpsModelValues)
     rdpsModelValues.forEach(({ datetime, total_precipitation: precip }) => {
       const date = formatDateInPDT(datetime, 'YYYY-MM-DD')
       if (!aggreRDPSPrecips[date]) {
@@ -211,8 +209,6 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         aggreRDPSPrecips[date] += Number(precip)
       }
     })
-    console.log('aggreRDPSPrecips')
-    console.log(aggreRDPSPrecips)
 
     const rdpsPrecips = Object.entries(aggreRDPSPrecips).map(
       ([formattedDate, totalPrecip]) => {
@@ -228,12 +224,8 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         value: Number(totalPrecip?.toFixed(2))
       }
     })
-    console.log('rdpsPrecips')
-    console.log(rdpsPrecips)
 
     const aggreHRDPSPrecips: { [k: string]: number } = {}
-    console.log('hrdpsModelValues')
-    console.log(hrdpsModelValues)
     hrdpsModelValues.forEach(({ datetime, total_precipitation: precip }) => {
       const date = formatDateInPDT(datetime, 'YYYY-MM-DD')
       if (!aggreHRDPSPrecips[date]) {
@@ -242,8 +234,6 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         aggreHRDPSPrecips[date] += Number(precip)
       }
     })
-    console.log('aggreHRDPSPrecips')
-    console.log(aggreHRDPSPrecips)
     const hrdpsPrecips = Object.entries(aggreHRDPSPrecips).map(
       ([formattedDate, totalPrecip]) => {
       const date = moment(formattedDate).utc().set({ hour: Math.abs(utcOffset), minute: 0 }).toDate()
@@ -258,8 +248,6 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         value: Number(totalPrecip?.toFixed(2))
       }
     })
-    console.log('hrdpsPrecips')
-    console.group(hrdpsPrecips)
 
     const currDate = new Date()
     const pastDate = moment(currDate)
