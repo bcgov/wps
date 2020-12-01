@@ -173,7 +173,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         .attr('transform', `translate(${margin.left}, ${margin.top})`)
 
       const legendMarginTop = chartHeight + 40
-      const legend = svg
+      svg
         .append('g')
         .attr('class', 'legend')
         .attr('transform', `translate(${margin.left}, ${legendMarginTop})`)
@@ -262,20 +262,21 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
 
   // Effect hook for updating the legend
   useEffect(() => {
-    const data = []
-    console.log('toggle values', toggleValues)
+    const data: d3Utils.Legend[] = []
     if (toggleValues.showObservations) {
       data.push({
         text: 'Observed Precip',
         shape: 'rect',
-        color: observedPrecipColor
+        color: observedPrecipColor,
+        fill: null
       })
     }
     if (toggleValues.showForecasts) {
       data.push({
         text: 'Forecast Precip',
         shape: 'rect',
-        color: forecastPrecipColor
+        color: forecastPrecipColor,
+        fill: null
       })
     }
     const svgElement = svgRef.current
@@ -293,7 +294,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       // Re-create the legend.
       d3Utils.addLegendEx(legend, chartWidth, data as d3Utils.Legend[])
     }
-  }, [precipsOfInterest])
+  }, [precipsOfInterest, toggleValues])
 
   // Effect hook for adding/updating tooltip
   useEffect(() => {

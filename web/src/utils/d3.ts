@@ -348,7 +348,10 @@ export const drawArea = <T>({
 const createIcon = (
   item: d3.Selection<SVGGElement, unknown, null, undefined>,
   d: Legend
-): any => {
+):
+  | d3.Selection<SVGRectElement, unknown, null, undefined>
+  | d3.Selection<SVGPathElement, unknown, null, undefined>
+  | d3.Selection<SVGCircleElement, unknown, null, undefined> => {
   if (d.shape === 'rect') {
     return item
       .append(d.shape)
@@ -404,19 +407,21 @@ const translateIcon = (
   shape: 'circle' | 'rect' | 'diamond' | 'cross' | 'triangle',
   xOffset: number,
   yOffset: number,
-  icon: any,
-  text: any
+  icon:
+    | d3.Selection<SVGRectElement, unknown, null, undefined>
+    | d3.Selection<SVGPathElement, unknown, null, undefined>
+    | d3.Selection<SVGCircleElement, unknown, null, undefined>
 ): string => {
   if (shape === 'triangle') {
-    const x = xOffset + icon.node().getBBox().width / 2
+    const x = xOffset + (icon.node()?.getBBox().width ?? 0) / 2
     const y = yOffset + 1 // rather frustrated - having to add magic number to render correctly.
     return `translate(${x}, ${y})`
   } else if (shape === 'rect') {
-    const y = yOffset - icon.node().getBBox().height / 2
+    const y = yOffset - (icon.node()?.getBBox().height ?? 0) / 2
     return `translate(${xOffset}, ${y})`
   }
   // diamond, circle, cross
-  const x = xOffset + icon.node().getBBox().width / 2
+  const x = xOffset + (icon.node()?.getBBox().width ?? 0) / 2
   return `translate(${x}, ${yOffset})`
 }
 
@@ -462,17 +467,11 @@ export const addLegendEx = (
       const yOffset = ((i / numColumns) | 0) * line_height
 
       // Move icon and text to the correct location.
-      icon.attr(
-        'transform',
-        translateIcon(legendData.shape, xOffset, yOffset, icon, text)
-      )
+      icon.attr('transform', translateIcon(legendData.shape, xOffset, yOffset, icon))
+      const iconWidth = icon.node()?.getBBox().width ?? 0
       text.attr(
         'transform',
-        'translate(' +
-          (xOffset + iconTextPadding + icon.node().getBBox().width) +
-          ', ' +
-          yOffset +
-          ')'
+        'translate(' + (xOffset + iconTextPadding + iconWidth) + ', ' + yOffset + ')'
       )
     })
   return ((data.length / 4) | 0) * line_height + line_height

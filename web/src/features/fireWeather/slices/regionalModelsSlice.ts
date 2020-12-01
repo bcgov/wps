@@ -49,9 +49,9 @@ const regionalModelsSlice = createSlice({
 })
 
 export const {
-  getRegionalModelsStart: getRegionalModelsStart,
-  getRegionalModelsFailed: getRegionalModelsFailed,
-  getRegionalModelsSuccess: getRegionalModelsSuccess
+  getRegionalModelsStart,
+  getRegionalModelsFailed,
+  getRegionalModelsSuccess
 } = regionalModelsSlice.actions
 
 export default regionalModelsSlice.reducer

@@ -8,7 +8,6 @@ import { formatDateInPDT } from 'utils/date'
 import * as styles from 'features/fireWeather/components/graphs/TempRHGraph.styles'
 import * as d3Utils from 'utils/d3'
 import { PDT_UTC_OFFSET } from 'utils/constants'
-import { style } from 'd3'
 
 interface WeatherValue {
   date: Date
@@ -753,20 +752,21 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
           brushSelection.current || xScaleOriginal.range().map(x => x / 4)
         )
 
-      // TODO: Link shapes and text to tooltip
-      const data = []
+      const data: d3Utils.Legend[] = []
       if (observedTempValues.length > 0) {
         data.push({
           text: 'Observed Temp',
           color: styles.observedTempColor,
-          shape: 'rect'
+          shape: 'rect',
+          fill: null
         })
       }
       if (observedRHValues.length > 0) {
         data.push({
           text: 'Observed RH',
           color: styles.observedRHColor,
-          shape: 'rect'
+          shape: 'rect',
+          fill: null
         })
       }
       if (forecastValues.length > 0) {
@@ -789,14 +789,16 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         data.push({
           text: 'GDPS Temp',
           color: styles.modelTempColor,
-          shape: 'triangle'
+          shape: 'triangle',
+          fill: null
         })
       }
       if (modelRHValues.length > 0) {
         data.push({
           text: 'GDPS RH',
           color: styles.modelRHColor,
-          shape: 'triangle'
+          shape: 'triangle',
+          fill: null
         })
       }
       if (modelSummaries.length > 0) {
@@ -804,12 +806,14 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
           {
             text: 'GDPS Temp 5th - 90th percentiles',
             color: styles.modelSummaryTempAreaColor,
-            shape: 'rect'
+            shape: 'rect',
+            fill: null
           },
           {
             text: 'GDPS RH 5th - 90th percentiles',
             color: styles.modelSummaryRHAreaColor,
-            shape: 'rect'
+            shape: 'rect',
+            fill: null
           }
         )
       }
@@ -817,28 +821,32 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         data.push({
           text: 'Bias Adjusted GDPS Temp',
           color: styles.biasModelTempColor,
-          shape: 'diamond'
+          shape: 'diamond',
+          fill: null
         })
       }
       if (biasAdjModelRHValues.length > 0) {
         data.push({
           text: 'Bias Adjusted GDPS RH',
           color: styles.biasModelRHColor,
-          shape: 'diamond'
+          shape: 'diamond',
+          fill: null
         })
       }
       if (hrModelTempValues.length > 0) {
         data.push({
           text: 'HRDPS Temp',
           color: styles.highResModelTempColor,
-          shape: 'circle'
+          shape: 'circle',
+          fill: null
         })
       }
       if (hrModelRHValues.length > 0) {
         data.push({
           text: 'HRDPS RH',
           color: styles.highResModelRHColor,
-          shape: 'circle'
+          shape: 'circle',
+          fill: null
         })
       }
       if (highResModelSummaries.length > 0) {
@@ -846,12 +854,14 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
           {
             text: 'HRDPS Temp 5th - 90th percentiles',
             color: styles.highResModelSummaryTempAreaColor,
-            shape: 'rect'
+            shape: 'rect',
+            fill: null
           },
           {
             text: 'HRDPS RH 5th - 90th percentiles',
             color: styles.highResModelSummaryRHAreaColor,
-            shape: 'rect'
+            shape: 'rect',
+            fill: null
           }
         )
       }
@@ -859,14 +869,16 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         data.push({
           text: 'RDPS Temp',
           color: styles.regionalModelTempColor,
-          shape: 'cross'
+          shape: 'cross',
+          fill: null
         })
       }
       if (regModelRHValues.length > 0) {
         data.push({
           text: 'RDPS RH',
           color: styles.regionalModelRHColor,
-          shape: 'cross'
+          shape: 'cross',
+          fill: null
         })
       }
       if (regionalModelSummaries.length > 0) {
@@ -874,12 +886,14 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
           {
             text: 'RDPS Temp 5th - 90th percentiles',
             color: styles.regionalModelSummaryTempAreaColor,
-            shape: 'rect'
+            shape: 'rect',
+            fill: null
           },
           {
             text: 'RDPS RH 5th - 90th percentiles',
             color: styles.regionalModelSummaryRHAreaColor,
-            shape: 'rect'
+            shape: 'rect',
+            fill: null
           }
         )
       }
