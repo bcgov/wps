@@ -786,54 +786,6 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
           }
         )
       }
-      if (modelTempValues.length > 0) {
-        legendData.push({
-          text: 'GDPS Temp',
-          color: styles.modelTempColor,
-          shape: 'triangle',
-          fill: null
-        })
-      }
-      if (modelRHValues.length > 0) {
-        legendData.push({
-          text: 'GDPS RH',
-          color: styles.modelRHColor,
-          shape: 'triangle',
-          fill: null
-        })
-      }
-      if (modelSummaries.length > 0) {
-        legendData.push(
-          {
-            text: 'GDPS Temp 5th - 90th percentiles',
-            color: styles.modelSummaryTempAreaColor,
-            shape: 'rect',
-            fill: null
-          },
-          {
-            text: 'GDPS RH 5th - 90th percentiles',
-            color: styles.modelSummaryRHAreaColor,
-            shape: 'rect',
-            fill: null
-          }
-        )
-      }
-      if (biasAdjModelTempValues.length > 0) {
-        legendData.push({
-          text: 'Bias Adjusted GDPS Temp',
-          color: styles.biasModelTempColor,
-          shape: 'diamond',
-          fill: null
-        })
-      }
-      if (biasAdjModelRHValues.length > 0) {
-        legendData.push({
-          text: 'Bias Adjusted GDPS RH',
-          color: styles.biasModelRHColor,
-          shape: 'diamond',
-          fill: null
-        })
-      }
       if (hrModelTempValues.length > 0) {
         legendData.push({
           text: 'HRDPS Temp',
@@ -897,6 +849,54 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
             fill: null
           }
         )
+      }
+      if (modelTempValues.length > 0) {
+        legendData.push({
+          text: 'GDPS Temp',
+          color: styles.modelTempColor,
+          shape: 'triangle',
+          fill: null
+        })
+      }
+      if (modelRHValues.length > 0) {
+        legendData.push({
+          text: 'GDPS RH',
+          color: styles.modelRHColor,
+          shape: 'triangle',
+          fill: null
+        })
+      }
+      if (modelSummaries.length > 0) {
+        legendData.push(
+          {
+            text: 'GDPS Temp 5th - 90th percentiles',
+            color: styles.modelSummaryTempAreaColor,
+            shape: 'rect',
+            fill: null
+          },
+          {
+            text: 'GDPS RH 5th - 90th percentiles',
+            color: styles.modelSummaryRHAreaColor,
+            shape: 'rect',
+            fill: null
+          }
+        )
+      }
+      if (biasAdjModelTempValues.length > 0) {
+        legendData.push({
+          text: 'Bias Adjusted GDPS Temp',
+          color: styles.biasModelTempColor,
+          shape: 'diamond',
+          fill: null
+        })
+      }
+      if (biasAdjModelRHValues.length > 0) {
+        legendData.push({
+          text: 'Bias Adjusted GDPS RH',
+          color: styles.biasModelRHColor,
+          shape: 'diamond',
+          fill: null
+        })
       }
 
       const legendHeight = d3Utils.addLegend(legend, chartWidth, legendData)

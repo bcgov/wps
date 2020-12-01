@@ -466,7 +466,7 @@ export const addLegend = (
         'translate(' + (xOffset + iconTextPadding + iconWidth) + ', ' + yOffset + ')'
       )
     })
-  return ((data.length / 4) | 0) * lineHeight + lineHeight
+  return ((data.length / numColumns) | 0) * lineHeight + lineHeight
 }
 
 export const getNearestByDate = <T extends { date: Date }>(
