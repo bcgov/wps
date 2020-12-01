@@ -196,7 +196,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         .attr('transform', `translate(${margin.left}, ${margin.top})`)
 
       const legendMarginTop = chartHeight + 40
-      const legend = svg
+      svg
         .append('g')
         .attr('class', 'legend')
         .attr('transform', `translate(${margin.left}, ${legendMarginTop})`)
@@ -260,31 +260,6 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         .attr('class', 'yAxisLabel')
         .text('Precipitation (mm/cm)')
         .attr('transform', 'rotate(-90)')
-
-      /* Render legends */
-      // TODO: We're going to have to look at using layouts moving forward to achieve the placement of objects. https://www.d3indepth.com/layouts/
-      const legendY = 0
-      let legendX = 0
-      d3Utils.addLegend({
-        svg: legend,
-        text: 'Observed Precip',
-        color: observedPrecipColor,
-        shape: 'rect',
-        shapeX: legendX - 2,
-        shapeY: legendY - 4,
-        textX: legendX += 10,
-        textY: legendY + 3.5
-      })
-      d3Utils.addLegend({
-        svg: legend,
-        text: 'Forecast Precip',
-        color: forecastPrecipColor,
-        shape: 'rect',
-        shapeX: legendX += 85,
-        shapeY: legendY - 4,
-        textX: legendX += 12,
-        textY: legendY + 3.5
-      })
     }
   }, [graphCalculations])
 
@@ -307,6 +282,37 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
 
     return Object.values(precipsByDatetime)
   }, [toggleValues, graphCalculations])
+
+  // Effect hook for updating the legend
+  useEffect(() => {
+    const legendData: d3Utils.Legend[] = []
+    if (toggleValues.showObservations) {
+      legendData.push({
+        text: 'Observed Precip',
+        shape: 'rect',
+        color: observedPrecipColor,
+        fill: null
+      })
+    }
+    if (toggleValues.showForecasts) {
+      legendData.push({
+        text: 'Forecast Precip',
+        shape: 'rect',
+        color: forecastPrecipColor,
+        fill: null
+      })
+    }
+    const svgElement = svgRef.current
+    if (svgElement) {
+      const svg = d3.select(svgElement)
+      // Grab the legend.
+      const legend = svg.select<SVGGElement>('.legend')
+      // Clear out all the child nodes.
+      legend.selectAll('*').remove()
+      // Re-create the legend.
+      d3Utils.addLegend(legend, chartWidth, legendData)
+    }
+  }, [toggleValues])
 
   // Effect hook for adding/updating tooltip
   useEffect(() => {
