@@ -27,6 +27,18 @@ def get_static_foldername():
 templates = Jinja2Templates(directory=get_static_foldername())
 
 
+def add_security_headers(scope, response):
+    """ Add security headers to statically served content
+    """
+
+    path = scope.get('path')
+
+    if path and path[path.rfind('.'):] in ('.css', '.js', '.png', '.xml', '.svg', '.json', '.txt'):
+        response.headers.setdefault('X-Content-Type-Options', 'nosniff')
+    elif response.media_type in ('text/html',):
+        response.headers.setdefault('X-Content-Type-Options', 'nosniff')
+
+
 class SPAStaticFiles(StaticFiles):
     """ Single Page App Static Files.
     Serves up .(root, or /) whenever a file isn't found.
@@ -41,7 +53,10 @@ class SPAStaticFiles(StaticFiles):
         if response.status_code == 404:
             logger.debug('serving up root for %s', path)
             request = Request(scope)
-            return await get_index(request)
+            response = await get_index(request)
+            add_security_headers(scope, response)
+            return response
+        add_security_headers(scope, response)
         logger.debug('serve static: %s', path)
         return response
 
