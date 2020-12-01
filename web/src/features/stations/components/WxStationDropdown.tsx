@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { useSelector } from 'react-redux'
 import Autocomplete from '@material-ui/lab/Autocomplete'
 import { TextField, Link } from '@material-ui/core'
@@ -25,6 +25,11 @@ const useStyles = makeStyles({
   }
 })
 
+interface Option {
+  name: string
+  code: number
+}
+
 interface Props {
   className?: string
   stationCodes: number[]
@@ -37,18 +42,23 @@ const WxStationDropdown = (props: Props) => {
   const { stations, stationsByCode, error: errorFetchingStations } = useSelector(
     selectStations
   )
-  let isThereInvalidCode = false
+
+  let isThereUnknownCode = false
   const maxNumOfSelect = props.maxNumOfSelect || 3
-  const autocompleteValue = props.stationCodes.map(code => {
+  const autocompleteValue: Option[] = props.stationCodes.map(code => {
     const station = stationsByCode[code]
     if (station) {
-      return station
+      return { name: station.name, code: station.code }
     }
 
-    isThereInvalidCode = true
-    return { name: 'Invalid', code }
+    isThereUnknownCode = true
+    return { name: 'Unknown', code }
   })
-  const isError = Boolean(errorFetchingStations) || isThereInvalidCode
+  const isError = Boolean(errorFetchingStations) || isThereUnknownCode
+  const autocompleteOptions: Option[] = useMemo(
+    () => stations.map(station => ({ name: station.name, code: station.code })),
+    [stations]
+  )
 
   return (
     <div className={props.className}>
@@ -75,11 +85,11 @@ const WxStationDropdown = (props: Props) => {
           data-testid="weather-station-dropdown"
           id="weather-station-dropdown"
           multiple
-          options={stations}
+          options={autocompleteOptions}
           getOptionLabel={option => `${option.name} (${option.code})`}
-          onChange={(_, stations) => {
-            if (stations.length <= maxNumOfSelect) {
-              props.onChange(stations.map(s => s.code))
+          onChange={(_, options) => {
+            if (options.length <= maxNumOfSelect) {
+              props.onChange(options.map(s => s.code))
             }
           }}
           value={autocompleteValue}
@@ -104,10 +114,10 @@ const WxStationDropdown = (props: Props) => {
         />
       )}
 
-      {isThereInvalidCode && (
+      {!errorFetchingStations && isThereUnknownCode && (
         <ErrorMessage
-          error="Invalid code"
-          message="Invalid weather station code(s) detected."
+          error="Unknown station code(s)"
+          message="Unknown weather station code(s) detected."
         />
       )}
     </div>

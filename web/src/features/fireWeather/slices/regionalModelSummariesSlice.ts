@@ -45,9 +45,9 @@ const regionalModelSummariesSlice = createSlice({
 })
 
 export const {
-  getRegionalModelSummariesStart: getRegionalModelSummariesStart,
-  getRegionalModelSummariesFailed: getRegionalModelSummariesFailed,
-  getRegionalModelSummariesSuccess: getRegionalModelSummariesSuccess
+  getRegionalModelSummariesStart,
+  getRegionalModelSummariesFailed,
+  getRegionalModelSummariesSuccess
 } = regionalModelSummariesSlice.actions
 
 export default regionalModelSummariesSlice.reducer
