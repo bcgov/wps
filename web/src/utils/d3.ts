@@ -432,7 +432,7 @@ export interface Legend {
   fill: null | string
 }
 
-export const addLegendEx = (
+export const addLegend = (
   svg: d3.Selection<SVGGElement, unknown, null, undefined>,
   legendWidth: number,
   data: Legend[]
@@ -440,7 +440,7 @@ export const addLegendEx = (
   const numColumns = 3 // number of columns
   const columnWidth = legendWidth / numColumns // how wide is each column
   const iconTextPadding = 5 // amount of padding between icon and text
-  const line_height = 15 // height of line of text
+  const lineHeight = 15 // height of line of text
 
   const legend = svg.selectAll('.legend')
 
@@ -450,9 +450,9 @@ export const addLegendEx = (
     .append('g')
     .attr('transform', 'translate(0, 0)')
     .each(function(legendData: Legend, i) {
-      const item = d3.select(this)
+      const legendItem = d3.select(this)
 
-      const text = item
+      const text = legendItem
         .append('text')
         .attr('text-anchor', 'left')
         .style('alignment-baseline', 'central')
@@ -460,11 +460,11 @@ export const addLegendEx = (
         .style('font-size', '9px')
         .text(legendData.text)
 
-      const icon = createIcon(item, legendData)
+      const icon = createIcon(legendItem, legendData)
       // Calculte x offset using the remainder.
       const xOffset = (i % numColumns) * columnWidth
       // Calculate y offset using the quotient.
-      const yOffset = ((i / numColumns) | 0) * line_height
+      const yOffset = ((i / numColumns) | 0) * lineHeight
 
       // Move icon and text to the correct location.
       icon.attr('transform', translateIcon(legendData.shape, xOffset, yOffset, icon))
@@ -474,7 +474,7 @@ export const addLegendEx = (
         'translate(' + (xOffset + iconTextPadding + iconWidth) + ', ' + yOffset + ')'
       )
     })
-  return ((data.length / 4) | 0) * line_height + line_height
+  return ((data.length / 4) | 0) * lineHeight + lineHeight
 }
 
 export const getNearestByDate = <T extends { date: Date }>(

@@ -262,9 +262,9 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
 
   // Effect hook for updating the legend
   useEffect(() => {
-    const data: d3Utils.Legend[] = []
+    const legendData: d3Utils.Legend[] = []
     if (toggleValues.showObservations) {
-      data.push({
+      legendData.push({
         text: 'Observed Precip',
         shape: 'rect',
         color: observedPrecipColor,
@@ -272,7 +272,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       })
     }
     if (toggleValues.showForecasts) {
-      data.push({
+      legendData.push({
         text: 'Forecast Precip',
         shape: 'rect',
         color: forecastPrecipColor,
@@ -292,7 +292,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       // Clear out all the child nodes.
       legend.selectAll('*').remove()
       // Re-create the legend.
-      d3Utils.addLegendEx(legend, chartWidth, data as d3Utils.Legend[])
+      d3Utils.addLegend(legend, chartWidth, legendData)
     }
   }, [precipsOfInterest, toggleValues])
 

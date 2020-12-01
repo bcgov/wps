@@ -752,9 +752,10 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
           brushSelection.current || xScaleOriginal.range().map(x => x / 4)
         )
 
-      const data: d3Utils.Legend[] = []
+      // Create list of legend items.
+      const legendData: d3Utils.Legend[] = []
       if (observedTempValues.length > 0) {
-        data.push({
+        legendData.push({
           text: 'Observed Temp',
           color: styles.observedTempColor,
           shape: 'rect',
@@ -762,7 +763,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         })
       }
       if (observedRHValues.length > 0) {
-        data.push({
+        legendData.push({
           text: 'Observed RH',
           color: styles.observedRHColor,
           shape: 'rect',
@@ -770,7 +771,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         })
       }
       if (forecastValues.length > 0) {
-        data.push(
+        legendData.push(
           {
             text: 'Forecast Temp',
             color: styles.forecastTempDotColor,
@@ -786,7 +787,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         )
       }
       if (modelTempValues.length > 0) {
-        data.push({
+        legendData.push({
           text: 'GDPS Temp',
           color: styles.modelTempColor,
           shape: 'triangle',
@@ -794,7 +795,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         })
       }
       if (modelRHValues.length > 0) {
-        data.push({
+        legendData.push({
           text: 'GDPS RH',
           color: styles.modelRHColor,
           shape: 'triangle',
@@ -802,7 +803,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         })
       }
       if (modelSummaries.length > 0) {
-        data.push(
+        legendData.push(
           {
             text: 'GDPS Temp 5th - 90th percentiles',
             color: styles.modelSummaryTempAreaColor,
@@ -818,7 +819,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         )
       }
       if (biasAdjModelTempValues.length > 0) {
-        data.push({
+        legendData.push({
           text: 'Bias Adjusted GDPS Temp',
           color: styles.biasModelTempColor,
           shape: 'diamond',
@@ -826,7 +827,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         })
       }
       if (biasAdjModelRHValues.length > 0) {
-        data.push({
+        legendData.push({
           text: 'Bias Adjusted GDPS RH',
           color: styles.biasModelRHColor,
           shape: 'diamond',
@@ -834,7 +835,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         })
       }
       if (hrModelTempValues.length > 0) {
-        data.push({
+        legendData.push({
           text: 'HRDPS Temp',
           color: styles.highResModelTempColor,
           shape: 'circle',
@@ -842,7 +843,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         })
       }
       if (hrModelRHValues.length > 0) {
-        data.push({
+        legendData.push({
           text: 'HRDPS RH',
           color: styles.highResModelRHColor,
           shape: 'circle',
@@ -850,7 +851,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         })
       }
       if (highResModelSummaries.length > 0) {
-        data.push(
+        legendData.push(
           {
             text: 'HRDPS Temp 5th - 90th percentiles',
             color: styles.highResModelSummaryTempAreaColor,
@@ -866,7 +867,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         )
       }
       if (regModelTempValues.length > 0) {
-        data.push({
+        legendData.push({
           text: 'RDPS Temp',
           color: styles.regionalModelTempColor,
           shape: 'cross',
@@ -874,7 +875,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         })
       }
       if (regModelRHValues.length > 0) {
-        data.push({
+        legendData.push({
           text: 'RDPS RH',
           color: styles.regionalModelRHColor,
           shape: 'cross',
@@ -882,7 +883,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         })
       }
       if (regionalModelSummaries.length > 0) {
-        data.push(
+        legendData.push(
           {
             text: 'RDPS Temp 5th - 90th percentiles',
             color: styles.regionalModelSummaryTempAreaColor,
@@ -898,11 +899,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         )
       }
 
-      const legendHeight = d3Utils.addLegendEx(
-        legend,
-        chartWidth,
-        data as d3Utils.Legend[]
-      )
+      const legendHeight = d3Utils.addLegend(legend, chartWidth, legendData)
 
       // Make it responsive: https://medium.com/@louisemoxy/a-simple-way-to-make-d3-js-charts-svgs-responsive-7afb04bc2e4b
       svg.attr('viewBox', `0 0 ${svgWidth} ${svgHeight + legendHeight}`)
