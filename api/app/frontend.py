@@ -37,6 +37,11 @@ def add_security_headers(scope, response):
         response.headers.setdefault('X-Content-Type-Options', 'nosniff')
     elif response.media_type in ('text/html',):
         response.headers.setdefault('X-Content-Type-Options', 'nosniff')
+    # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
+    response.headers.setdefault('Cache-Control', 'no-cache')
+    # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
+    if response.media_type in ('text/html', 'text/xml'):
+        response.headers.setdefault('X-Frame-Options', 'DENY')
 
 
 class SPAStaticFiles(StaticFiles):
@@ -53,9 +58,7 @@ class SPAStaticFiles(StaticFiles):
         if response.status_code == 404:
             logger.debug('serving up root for %s', path)
             request = Request(scope)
-            response = await get_index(request)
-            add_security_headers(scope, response)
-            return response
+            return await get_index(request)
         add_security_headers(scope, response)
         logger.debug('serve static: %s', path)
         return response
@@ -65,7 +68,7 @@ async def get_index(request: Request):
     """ Apply jina template to index.html
     """
     try:
-        return templates.TemplateResponse(
+        response = templates.TemplateResponse(
             "index.html",
             {
                 'request': request,
@@ -77,6 +80,13 @@ async def get_index(request: Request):
                 'REACT_APP_MATOMO_SITE_ID': config.get('REACT_APP_MATOMO_SITE_ID'),
                 'REACT_APP_MATOMO_CONTAINER': config.get('REACT_APP_MATOMO_CONTAINER'),
             })
+        # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options
+        # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
+        # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
+        response.headers.setdefault('X-Frame-Options', 'DENY')
+        response.headers.setdefault('X-Content-Type-Options', 'nosniff')
+        response.headers.setdefault('Cache-Control', 'no-cache')
+        return response
     except TemplateNotFound as exception:
         # This has most likely happened because there's nothing in the static folder
         # Make sure you've run npm build, and copied the static files into the correct location.
