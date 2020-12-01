@@ -306,12 +306,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
     if (svgElement) {
       const svg = d3.select(svgElement)
       // Grab the legend.
-      const legend = svg.select('.legend') as d3.Selection<
-        SVGGElement,
-        unknown,
-        null,
-        undefined
-      >
+      const legend = svg.select<SVGGElement>('.legend')
       // Clear out all the child nodes.
       legend.selectAll('*').remove()
       // Re-create the legend.
