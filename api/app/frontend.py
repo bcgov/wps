@@ -91,10 +91,10 @@ async def get_index(request: Request):
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Pragma
         response.headers.setdefault('Pragma', 'no-cache')
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
-        # NOTE: for this to work, unsafe inlince js has to be moved to .js files in index.html
-        # response.headers.setdefault('Content-Security-Policy',
-        #                             ('default-src \'self\' *.googleapis.com *.gov.bc.ca *.gstatic.com;'
-        #                              ' script-src \'self\' *.googleapis.com *.gov.bc.ca *.gstatic.com;'))
+        response.headers.setdefault('Content-Security-Policy',
+                                    ('default-src \'self\' \'unsafe-inline\' *.googleapis.com *.gov.bc.ca'
+                                     ' *.gstatic.com;'
+                                     ' script-src \'self\' \'unsafe-inline\' *.gov.bc.ca;'))
         return response
     except TemplateNotFound as exception:
         # This has most likely happened because there's nothing in the static folder
