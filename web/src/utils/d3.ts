@@ -407,16 +407,14 @@ const translateIcon = (
     | d3.Selection<SVGCircleElement, unknown, null, undefined>
 ): string => {
   if (shape === 'triangle') {
-    const x = xOffset + (icon.node()?.getBBox().width ?? 0) / 2
-    const y = yOffset + 1 // rather frustrated - having to add magic number to render correctly.
-    return `translate(${x}, ${y})`
+    // rather frustrated - having to add magic number (+1) to render triangle correctly.
+    return `translate(${xOffset + (icon.node()?.getBBox().width ?? 0) / 2}, ${yOffset +
+      1})`
   } else if (shape === 'rect') {
-    const y = yOffset - (icon.node()?.getBBox().height ?? 0) / 2
-    return `translate(${xOffset}, ${y})`
+    return `translate(${xOffset}, ${yOffset - (icon.node()?.getBBox().height ?? 0) / 2})`
   }
   // diamond, circle, cross
-  const x = xOffset + (icon.node()?.getBBox().width ?? 0) / 2
-  return `translate(${x}, ${yOffset})`
+  return `translate(${xOffset + (icon.node()?.getBBox().width ?? 0) / 2}, ${yOffset})`
 }
 
 export interface Legend {
