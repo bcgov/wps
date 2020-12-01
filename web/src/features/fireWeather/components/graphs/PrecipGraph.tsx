@@ -114,8 +114,9 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
 
   // useMemo will only recompute the memoized value when one of the dependencies has changed.
   // This optimization helps to avoid expensive calculations on every render.
-  const { xDomain, xTickValues, observedPrecips, forecastPrecips, gdpsPrecips, rdpsPrecips, hrdpsPrecips } = useMemo(() => {
+  const graphCalculations = useMemo(() => {
     const datesFromAllSources: Date[] = []
+    let maxPrecip = 10
 
     const datetimeToDate = (datetime: string) => {
       const date = moment(datetime).utc().set({ hour: Math.abs(utcOffset), minute: 0 }).toDate()
@@ -124,18 +125,29 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
     }
 
     const aggreObservedPrecips: { [k: string]: number } = {}
-    observedValues.forEach(({ datetime, precipitation: precip }) => {
+    observedValues.forEach(({ datetime, precipitation }) => {
       const date = formatDateInPDT(datetime, 'YYYY-MM-DD')
+      const precip = Number(precipitation)
+
       if (!aggreObservedPrecips[date]) {
-        aggreObservedPrecips[date] = Number(precip)
+        aggreObservedPrecips[date] = precip
       } else {
-        aggreObservedPrecips[date] = aggreObservedPrecips[date] + Number(precip)
+        aggreObservedPrecips[date] = aggreObservedPrecips[date] + precip
       }
     })
 
-    const _observedPrecips = Object.entries(aggreObservedPrecips).map(
+    const observedPrecips = Object.entries(aggreObservedPrecips).map(
       ([formattedDate, totalPrecip]) => {
-        const date = datetimeToDate(formattedDate)
+        const date = moment(formattedDate)
+          .utc()
+          .set({ hour: Math.abs(utcOffset), minute: 0 })
+          .toDate()
+        datesFromAllSources.push(date)
+
+        if (totalPrecip > maxPrecip) {
+          maxPrecip = totalPrecip
+        }
+
         return {
           date,
           value: Number(totalPrecip.toFixed(2))
@@ -143,13 +155,24 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       }
     )
 
-    const _forecastPrecips = forecastValues.map(({ datetime, total_precipitation }) => {
-      const date = datetimeToDate(datetime)
-      return {
-        date,
-        value: Number(total_precipitation.toFixed(2))
+    const forecastPrecips = forecastValues.map(
+      ({ datetime, total_precipitation: totalPrecip }) => {
+        const date = moment(datetime)
+          .utc()
+          .set({ hour: Math.abs(utcOffset) })
+          .toDate()
+        datesFromAllSources.push(date)
+
+        if (totalPrecip > maxPrecip) {
+          maxPrecip = totalPrecip
+        }
+
+        return {
+          date,
+          value: Number(totalPrecip.toFixed(2))
+        }
       }
-    })
+    )
 
     const aggreGDPSPrecips: { [k: string]: number } = {}
     console.log('gdpsModelValues')
@@ -165,7 +188,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
     console.log('aggreGDPSPrecips')
     console.log(aggreGDPSPrecips)
 
-    const _gdpsPrecips = Object.entries(aggreGDPSPrecips).map(
+    const gdpsPrecips = Object.entries(aggreGDPSPrecips).map(
       ([formattedDate, totalPrecip]) => {
       const date = datetimeToDate(formattedDate)
       return {
@@ -188,7 +211,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
     console.log('aggreRDPSPrecips')
     console.log(aggreRDPSPrecips)
 
-    const _rdpsPrecips = Object.entries(aggreRDPSPrecips).map(
+    const rdpsPrecips = Object.entries(aggreRDPSPrecips).map(
       ([formattedDate, totalPrecip]) => {
       const date = datetimeToDate(formattedDate)
       return {
@@ -210,7 +233,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
     })
     console.log('aggreHRDPSPrecips')
     console.log(aggreHRDPSPrecips)
-    const _hrdpsPrecips = Object.entries(aggreHRDPSPrecips).map(
+    const hrdpsPrecips = Object.entries(aggreHRDPSPrecips).map(
       ([formattedDate, totalPrecip]) => {
       const date = datetimeToDate(formattedDate)
       return {
@@ -232,21 +255,34 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
     d2 = moment(d2)
       .add(6, 'hours')
       .toDate()
-    const _xDomain: [Date, Date] = [d1, d2]
+    const xDomain: [Date, Date] = [d1, d2]
+    maxPrecip = Math.ceil(maxPrecip / 10) * 10 // round to the nearest 10
 
     return {
-      xDomain: _xDomain,
-      xTickValues: d3Utils.getTickValues(_xDomain, utcOffset, false),
-      observedPrecips: _observedPrecips,
-      forecastPrecips: _forecastPrecips,
-      gdpsPrecips: _gdpsPrecips,
-      rdpsPrecips: _rdpsPrecips,
-      hrdpsPrecips: _hrdpsPrecips
+      xDomain,
+      xTickValues: d3Utils.getTickValues(xDomain, utcOffset, false),
+      maxPrecip,
+      observedPrecips,
+      forecastPrecips,
+      gdpsPrecips,
+      rdpsPrecips,
+      hrdpsPrecips
     }
   }, [utcOffset, observedValues, forecastValues, gdpsModelValues, rdpsModelValues, hrdpsModelValues])
 
   // Effect hook for displaying graphics
   useEffect(() => {
+    const {
+      xDomain,
+      xTickValues,
+      maxPrecip,
+      observedPrecips,
+      forecastPrecips,
+      gdpsPrecips,
+      rdpsPrecips,
+      hrdpsPrecips
+    } = graphCalculations
+
     if (svgRef.current) {
       /* Clear previous graphics before rendering new ones */
       d3.select(svgRef.current)
@@ -281,7 +317,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       const xScaleOriginal = xScale.copy()
       const yScale = d3
         .scaleLinear()
-        .domain([0, 100])
+        .domain([0, maxPrecip])
         .range([chartHeight, 0])
 
       observedPrecips.forEach(precip =>
@@ -424,18 +460,18 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         textY: legendY + 3.5
       })
     }
-  }, [xDomain, xTickValues, observedPrecips, forecastPrecips, gdpsPrecips, rdpsPrecips, hrdpsPrecips])
+  }, [graphCalculations])
 
   const precipsOfInterest = useMemo(() => {
     const precipsByDatetime: { [date: string]: PrecipValue } = {}
 
     toggleValues.showObservations &&
-      observedPrecips.forEach(({ date, value }) => {
+      graphCalculations.observedPrecips.forEach(({ date, value }) => {
         precipsByDatetime[date.toISOString()] = { date, observedPrecip: value }
       })
 
     toggleValues.showForecasts &&
-      forecastPrecips.forEach(({ date, value }) => {
+      graphCalculations.forecastPrecips.forEach(({ date, value }) => {
         precipsByDatetime[date.toISOString()] = {
           ...precipsByDatetime[date.toISOString()],
           date,
@@ -444,7 +480,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       })
 
     toggleValues.showModels &&
-      gdpsPrecips.forEach(({ date, value }) => {
+      graphCalculations.gdpsPrecips.forEach(({ date, value }) => {
         precipsByDatetime[date.toISOString()] = {
           ...precipsByDatetime[date.toISOString()],
           date,
@@ -453,7 +489,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       })
 
     toggleValues.showRegionalModels &&
-      rdpsPrecips.forEach(({ date, value }) => {
+      graphCalculations.rdpsPrecips.forEach(({ date, value }) => {
         precipsByDatetime[date.toISOString()] = {
           ...precipsByDatetime[date.toISOString()],
           date,
@@ -462,7 +498,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       })
 
     toggleValues.showHighResModels &&
-      hrdpsPrecips.forEach(({ date, value }) => {
+      graphCalculations.hrdpsPrecips.forEach(({ date, value }) => {
         precipsByDatetime[date.toISOString()] = {
           ...precipsByDatetime[date.toISOString()],
           date,
@@ -471,7 +507,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       })
 
     return Object.values(precipsByDatetime)
-  }, [toggleValues, observedPrecips, forecastPrecips, gdpsPrecips, rdpsPrecips, hrdpsPrecips])
+  }, [toggleValues, graphCalculations])
 
   // Effect hook for adding/updating tooltip
   useEffect(() => {
@@ -484,7 +520,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
 
       const xScale = d3
         .scaleTime()
-        .domain(xDomain)
+        .domain(graphCalculations.xDomain)
         .range([0, chartWidth])
 
       d3Utils.addTooltipListener({
@@ -547,7 +583,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         svg.on('touchend mouseleave', null)
       }
     }
-  }, [xDomain, precipsOfInterest])
+  }, [graphCalculations, precipsOfInterest])
 
   // Effect hooks for showing/hiding graphics
   useEffect(() => {

@@ -45,12 +45,12 @@ describe('Percentile Calculator Page', () => {
       cy.getByTestId('disclaimer-accept-button').click()
 
       // Remove the invalid codes from the dropdown and check if the error message is gone
-      cy.getByTestId('error-message').contains('Invalid weather station code(s) detected.')
-      cy.getByTestId('weather-station-dropdown').contains(`Invalid (${invalidCodes[0]})`)
+      cy.getByTestId('error-message').contains('Unknown weather station code(s) detected.')
+      cy.getByTestId('weather-station-dropdown').contains(`Unknown (${invalidCodes[0]})`)
       cy.get('.MuiChip-deleteIcon').first().click() // prettier-ignore
-      cy.getByTestId('weather-station-dropdown').contains(`Invalid (${invalidCodes[1]})`)
+      cy.getByTestId('weather-station-dropdown').contains(`Unknown (${invalidCodes[1]})`)
       cy.get('.MuiChip-deleteIcon').click()
-      cy.getByTestId('error-message').should('not.contain', 'Invalid weather station code(s) detected.')
+      cy.getByTestId('error-message').should('not.contain', 'Unknown weather station code(s) detected.')
     })
   })
 
