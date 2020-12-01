@@ -22,8 +22,7 @@ const AuthWrapper = ({ children, shouldAuthenticate }: Props) => {
       dispatch(authenticate())
       dispatch(setAxiosRequestInterceptors())
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!shouldAuthenticate) {
     return children
