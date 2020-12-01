@@ -152,6 +152,8 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
     })
 
     const aggreGDPSPrecips: { [k: string]: number } = {}
+    console.log('gdpsModelValues')
+    console.log(gdpsModelValues)
     gdpsModelValues.forEach(({ datetime, total_precipitation: precip }) => {
       const date = formatDateInPDT(datetime, 'YYYY-MM-DD')
       if (!aggreGDPSPrecips[date]) {
@@ -160,6 +162,8 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         aggreGDPSPrecips[date] += Number(precip)
       }
     })
+    console.log('aggreGDPSPrecips')
+    console.log(aggreGDPSPrecips)
 
     const _gdpsPrecips = Object.entries(aggreGDPSPrecips).map(
       ([formattedDate, totalPrecip]) => {
@@ -171,6 +175,8 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
     })
 
     const aggreRDPSPrecips: { [k: string]: number } = {}
+    console.log('rdpsModelValues')
+    console.log(rdpsModelValues)
     rdpsModelValues.forEach(({ datetime, total_precipitation: precip }) => {
       const date = formatDateInPDT(datetime, 'YYYY-MM-DD')
       if (!aggreRDPSPrecips[date]) {
@@ -179,6 +185,8 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         aggreRDPSPrecips[date] += Number(precip)
       }
     })
+    console.log('aggreRDPSPrecips')
+    console.log(aggreRDPSPrecips)
 
     const _rdpsPrecips = Object.entries(aggreRDPSPrecips).map(
       ([formattedDate, totalPrecip]) => {
@@ -190,6 +198,8 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
     })
 
     const aggreHRDPSPrecips: { [k: string]: number } = {}
+    console.log('hrdpsModelValues')
+    console.log(hrdpsModelValues)
     hrdpsModelValues.forEach(({ datetime, total_precipitation: precip }) => {
       const date = formatDateInPDT(datetime, 'YYYY-MM-DD')
       if (!aggreHRDPSPrecips[date]) {
@@ -198,7 +208,8 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         aggreHRDPSPrecips[date] += Number(precip)
       }
     })
-
+    console.log('aggreHRDPSPrecips')
+    console.log(aggreHRDPSPrecips)
     const _hrdpsPrecips = Object.entries(aggreHRDPSPrecips).map(
       ([formattedDate, totalPrecip]) => {
       const date = datetimeToDate(formattedDate)
@@ -539,39 +550,26 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
   }, [xDomain, precipsOfInterest])
 
   // Effect hooks for showing/hiding graphics
-  const { showObservations, showForecasts, showModels, showRegionalModels, showHighResModels } = toggleValues
   useEffect(() => {
     if (svgRef.current) {
-      const svg = d3.select(svgRef.current)
-      svg
-        .selectAll('.precipLine__observed')
-        .classed('precipLine--hidden', !showObservations)
+    const svg = d3.select(svgRef.current)
+    svg
+    .selectAll('.precipLine__observed')
+    .classed('precipLine--hidden', !toggleValues.showObservations)
+    svg
+    .selectAll('.precipLine__forecast')
+    .classed('precipLine--hidden', !toggleValues.showForecasts)
+    svg
+    .selectAll('.precipLine__gdps')
+    .classed('precipLine--hidden', !toggleValues.showModels)
+    svg
+    .selectAll('.precipLine__rdps')
+    .classed('precipLine--hidden', !toggleValues.showRegionalModels)
+    svg
+    .selectAll('.precipLine__hrdps')
+    .classed('precipLine--hidden', !toggleValues.showHighResModels)
     }
-  }, [showObservations])
-  useEffect(() => {
-    if (svgRef.current) {
-      const svg = d3.select(svgRef.current)
-      svg.selectAll('.precipLine__forecast').classed('precipLine--hidden', !showForecasts)
-    }
-  }, [showForecasts])
-  useEffect(() => {
-    if (svgRef.current) {
-      const svg = d3.select(svgRef.current)
-      svg.selectAll('.precipLine__gdps').classed('precipLine--hidden', !showModels)
-    }
-  }, [showModels])
-  useEffect(() => {
-    if (svgRef.current) {
-      const svg = d3.select(svgRef.current)
-      svg.selectAll('.precipLine__rdps').classed('precipLine--hidden', !showRegionalModels)
-    }
-  }, [showRegionalModels])
-  useEffect(() => {
-    if (svgRef.current) {
-      const svg = d3.select(svgRef.current)
-      svg.selectAll('.precipLine__hrdps').classed('precipLine--hidden', !showHighResModels)
-    }
-  }, [showHighResModels])
+    }, [toggleValues])
 
   return (
     <div className={classes.root}>
