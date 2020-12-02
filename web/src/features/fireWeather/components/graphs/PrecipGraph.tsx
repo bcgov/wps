@@ -169,8 +169,6 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
     )
 
     const aggreGDPSPrecips: { [k: string]: number } = {}
-    console.log('gdpsModelValues')
-    console.log(gdpsModelValues)
     gdpsModelValues.forEach(({ datetime, delta_precipitation }) => {
       const date = formatDateInPDT(datetime, 'YYYY-MM-DD')
       const precip = Number(delta_precipitation)
@@ -181,8 +179,6 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         aggreGDPSPrecips[date] += precip
       }
     })
-    console.log('aggreGDPSPrecips')
-    console.log(aggreGDPSPrecips)
 
     const gdpsPrecips = Object.entries(aggreGDPSPrecips).map(
       ([formattedDate, totalPrecip]) => {
@@ -201,8 +197,6 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         }
       }
     )
-    console.log('gdpsPrecips')
-    console.log(gdpsPrecips)
 
     const aggreRDPSPrecips: { [k: string]: number } = {}
     rdpsModelValues.forEach(({ datetime, delta_precipitation: precip }) => {
