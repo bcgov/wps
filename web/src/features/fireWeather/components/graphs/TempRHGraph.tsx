@@ -266,16 +266,12 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
       /* Set dimensions and svg groups */
       const margin = { top: 10, right: 40, bottom: 190, left: 40 }
       const svgWidth = 600
-      const svgHeight = 400
       const chartWidth = svgWidth - margin.left - margin.right
-      const chartHeight = svgHeight - margin.top - margin.bottom
-      const svg = d3
-        .select(svgRef.current)
-        // Make it responsive: https://medium.com/@louisemoxy/a-simple-way-to-make-d3-js-charts-svgs-responsive-7afb04bc2e4b
-        .attr('viewBox', `0 0 ${svgWidth} ${svgHeight}`)
+      const chartHeight = 190
+      const svg = d3.select(svgRef.current)
 
       // Set up a clipper that removes graphics that don't fall within the boundary
-      svg
+      const clipRect = svg
         .append('defs')
         .append('clipPath')
         .attr('id', 'clip')
@@ -283,7 +279,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         .attr('x', -1) // -1 to give some tiny window to show stuff that's hidden on the left
         .attr('y', -10) // - 10 to show the text(Now) from the reference line
         .attr('width', chartWidth + 2) // + 2 to show the last tick of the x axis
-        .attr('height', svgHeight) // Use svgHeight to show the x axis and its labels
+
       const chart = svg
         .append('g')
         .attr('class', 'chart')
@@ -303,6 +299,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         .attr('transform', `translate(${margin.left}, ${sidebarMarginTop})`)
 
       const legendMarginTop = sidebarMarginTop + 70
+      const svgHeight = chartHeight + sidebarHeight + 90
       const legend = svg
         .append('g')
         .attr('class', 'legend')
@@ -755,215 +752,158 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
           brushSelection.current || xScaleOriginal.range().map(x => x / 4)
         )
 
-      /* Render legends */
-      // TODO: We're going to have to look at using layouts moving forward to achieve the placement of objects. https://www.d3indepth.com/layouts/
-      let legendY = 0
-      let legendX = 0
-      d3Utils.addLegend({
-        svg: legend,
-        text: 'Observed Temp',
-        color: styles.observedTempColor,
-        shape: 'rect',
-        shapeX: legendX - 2,
-        shapeY: legendY - 4,
-        textX: legendX += 10,
-        textY: legendY + 4
-      })
-      d3Utils.addLegend({
-        svg: legend,
-        text: 'Observed RH',
-        color: styles.observedRHColor,
-        shape: 'rect',
-        shapeX: legendX += 80,
-        shapeY: legendY - 4,
-        textX: legendX += 12,
-        textY: legendY + 4
-      })
-      d3Utils.addLegend({
-        svg: legend,
-        text: 'Forecast Temp',
-        color: styles.forecastTempDotColor,
-        fill: 'none',
-        shapeX: legendX += 73,
-        shapeY: legendY,
-        textX: legendX += 7,
-        textY: legendY + 3
-      })
-      d3Utils.addLegend({
-        svg: legend,
-        text: 'Forecast RH',
-        color: styles.forecastRHDotColor,
-        fill: 'none',
-        shapeX: legendX += 80,
-        shapeY: legendY,
-        textX: legendX += 7,
-        textY: legendY + 3
-      })
-      d3Utils.addLegend({
-        svg: legend,
-        text: 'GDPS Temp',
-        shape: 'triangle',
-        color: styles.modelTempColor,
-        fill: styles.modelTempColor,
-        shapeX: legendX += 70,
-        shapeY: legendY,
-        textX: legendX += 7,
-        textY: legendY + 3
-      })
-      d3Utils.addLegend({
-        svg: legend,
-        text: 'GDPS RH',
-        shape: 'triangle',
-        color: styles.modelRHColor,
-        fill: styles.modelRHColor,
-        shapeX: legendX += 70,
-        shapeY: legendY,
-        textX: legendX + 7,
-        textY: legendY + 3
-      })
-      // New line
-      legendX = 0
-      legendY += 16
-      d3Utils.addLegend({
-        svg: legend,
-        shape: 'rect',
-        text: 'GDPS Temp 5th - 90th percentiles',
-        color: styles.modelSummaryTempAreaColor,
-        shapeX: legendX - 2,
-        shapeY: legendY - 4,
-        textX: legendX += 11,
-        textY: legendY + 3
-      })
-      d3Utils.addLegend({
-        svg: legend,
-        shape: 'rect',
-        text: 'GDPS RH 5th - 90th percentiles',
-        color: styles.modelSummaryRHAreaColor,
-        shapeX: legendX += 165,
-        shapeY: legendY - 4,
-        textX: legendX + 13,
-        textY: legendY + 3
-      })
-      // New line
-      legendX = 0
-      legendY += 16
-      d3Utils.addLegend({
-        svg: legend,
-        text: 'Bias Adjusted GDPS Temp',
-        shape: 'diamond',
-        color: styles.biasModelTempColor,
-        fill: styles.biasModelTempColor,
-        shapeX: legendX,
-        shapeY: legendY,
-        textX: legendX += 7,
-        textY: legendY + 3,
-        radius: 0.5
-      })
-      d3Utils.addLegend({
-        svg: legend,
-        text: 'Bias Adjusted GDPS RH',
-        shape: 'diamond',
-        color: styles.biasModelRHColor,
-        fill: styles.biasModelRHColor,
-        shapeX: legendX += 130,
-        shapeY: legendY,
-        textX: legendX + 7,
-        textY: legendY + 3,
-        radius: 0.5
-      })
-      d3Utils.addLegend({
-        svg: legend,
-        text: 'HRDPS Temp',
-        color: styles.highResModelTempColor,
-        fill: styles.highResModelTempColor,
-        shapeX: legendX += 127,
-        shapeY: legendY,
-        textX: legendX += 7,
-        textY: legendY + 3
-      })
-      d3Utils.addLegend({
-        svg: legend,
-        text: 'HRDPS RH',
-        color: styles.highResModelRHColor,
-        fill: styles.highResModelRHColor,
-        shapeX: legendX += 81,
-        shapeY: legendY,
-        textX: legendX + 7,
-        textY: legendY + 3
-      })
-      // new line
-      legendX = 0
-      legendY += 16
-      d3Utils.addLegend({
-        svg: legend,
-        text: 'HRDPS Temp 5th - 90th percentiles',
-        shape: 'rect',
-        color: styles.highResModelSummaryTempAreaColor,
-        fill: styles.highResModelSummaryTempAreaColor,
-        shapeX: legendX - 2,
-        shapeY: legendY - 4,
-        textX: legendX += 10,
-        textY: legendY + 4
-      })
-      d3Utils.addLegend({
-        svg: legend,
-        text: 'HRDPS RH 5th - 90th percentiles',
-        shape: 'rect',
-        color: styles.highResModelSummaryRHAreaColor,
-        fill: styles.highResModelSummaryRHAreaColor,
-        shapeX: legendX += 165,
-        shapeY: legendY - 4,
-        textX: legendX + 13,
-        textY: legendY + 3
-      })
+      // Create list of legend items.
+      const legendData: d3Utils.Legend[] = []
+      if (observedTempValues.length > 0) {
+        legendData.push({
+          text: 'Observed Temp',
+          color: styles.observedTempColor,
+          shape: 'rect',
+          fill: null
+        })
+      }
+      if (observedRHValues.length > 0) {
+        legendData.push({
+          text: 'Observed RH',
+          color: styles.observedRHColor,
+          shape: 'rect',
+          fill: null
+        })
+      }
+      if (forecastValues.length > 0) {
+        legendData.push(
+          {
+            text: 'Forecast Temp',
+            color: styles.forecastTempDotColor,
+            shape: 'circle',
+            fill: 'none'
+          },
+          {
+            text: 'Forecast RH',
+            color: styles.forecastRHDotColor,
+            shape: 'circle',
+            fill: 'none'
+          }
+        )
+      }
+      if (hrModelTempValues.length > 0) {
+        legendData.push({
+          text: 'HRDPS Temp',
+          color: styles.highResModelTempColor,
+          shape: 'circle',
+          fill: null
+        })
+      }
+      if (hrModelRHValues.length > 0) {
+        legendData.push({
+          text: 'HRDPS RH',
+          color: styles.highResModelRHColor,
+          shape: 'circle',
+          fill: null
+        })
+      }
+      if (highResModelSummaries.length > 0) {
+        legendData.push(
+          {
+            text: 'HRDPS Temp 5th - 90th percentiles',
+            color: styles.highResModelSummaryTempAreaColor,
+            shape: 'rect',
+            fill: null
+          },
+          {
+            text: 'HRDPS RH 5th - 90th percentiles',
+            color: styles.highResModelSummaryRHAreaColor,
+            shape: 'rect',
+            fill: null
+          }
+        )
+      }
+      if (regModelTempValues.length > 0) {
+        legendData.push({
+          text: 'RDPS Temp',
+          color: styles.regionalModelTempColor,
+          shape: 'cross',
+          fill: null
+        })
+      }
+      if (regModelRHValues.length > 0) {
+        legendData.push({
+          text: 'RDPS RH',
+          color: styles.regionalModelRHColor,
+          shape: 'cross',
+          fill: null
+        })
+      }
+      if (regionalModelSummaries.length > 0) {
+        legendData.push(
+          {
+            text: 'RDPS Temp 5th - 90th percentiles',
+            color: styles.regionalModelSummaryTempAreaColor,
+            shape: 'rect',
+            fill: null
+          },
+          {
+            text: 'RDPS RH 5th - 90th percentiles',
+            color: styles.regionalModelSummaryRHAreaColor,
+            shape: 'rect',
+            fill: null
+          }
+        )
+      }
+      if (modelTempValues.length > 0) {
+        legendData.push({
+          text: 'GDPS Temp',
+          color: styles.modelTempColor,
+          shape: 'triangle',
+          fill: null
+        })
+      }
+      if (modelRHValues.length > 0) {
+        legendData.push({
+          text: 'GDPS RH',
+          color: styles.modelRHColor,
+          shape: 'triangle',
+          fill: null
+        })
+      }
+      if (modelSummaries.length > 0) {
+        legendData.push(
+          {
+            text: 'GDPS Temp 5th - 90th percentiles',
+            color: styles.modelSummaryTempAreaColor,
+            shape: 'rect',
+            fill: null
+          },
+          {
+            text: 'GDPS RH 5th - 90th percentiles',
+            color: styles.modelSummaryRHAreaColor,
+            shape: 'rect',
+            fill: null
+          }
+        )
+      }
+      if (biasAdjModelTempValues.length > 0) {
+        legendData.push({
+          text: 'Bias Adjusted GDPS Temp',
+          color: styles.biasModelTempColor,
+          shape: 'diamond',
+          fill: null
+        })
+      }
+      if (biasAdjModelRHValues.length > 0) {
+        legendData.push({
+          text: 'Bias Adjusted GDPS RH',
+          color: styles.biasModelRHColor,
+          shape: 'diamond',
+          fill: null
+        })
+      }
 
-      // New line
-      legendX = 0
-      legendY += 16
-      d3Utils.addLegend({
-        svg: legend,
-        text: 'RDPS Temp',
-        color: styles.regionalModelTempColor,
-        fill: styles.regionalModelTempColor,
-        shape: 'cross',
-        shapeX: legendX,
-        shapeY: legendY,
-        textX: legendX += 6,
-        textY: legendY + 4
-      })
-      d3Utils.addLegend({
-        svg: legend,
-        text: 'RDPS RH',
-        color: styles.regionalModelRHColor,
-        fill: styles.regionalModelRHColor,
-        shape: 'cross',
-        shapeX: legendX += 81,
-        shapeY: legendY,
-        textX: legendX += 6,
-        textY: legendY + 4
-      })
-      d3Utils.addLegend({
-        svg: legend,
-        text: 'RDPS Temp 5th - 90th percentiles',
-        shape: 'rect',
-        color: styles.regionalModelSummaryTempAreaColor,
-        fill: styles.regionalModelSummaryTempAreaColor,
-        shapeX: legendX += 82,
-        shapeY: legendY - 4,
-        textX: legendX += 13,
-        textY: legendY + 4
-      })
-      d3Utils.addLegend({
-        svg: legend,
-        text: 'RDPS RH 5th - 90th percentiles',
-        shape: 'rect',
-        color: styles.regionalModelSummaryRHAreaColor,
-        fill: styles.regionalModelSummaryRHAreaColor,
-        shapeX: legendX += 160,
-        shapeY: legendY - 4,
-        textX: legendX + 13,
-        textY: legendY + 4
-      })
+      const legendHeight = d3Utils.addLegend(legend, chartWidth, legendData)
+
+      // Make it responsive: https://medium.com/@louisemoxy/a-simple-way-to-make-d3-js-charts-svgs-responsive-7afb04bc2e4b
+      svg.attr('viewBox', `0 0 ${svgWidth} ${svgHeight + legendHeight}`)
+      clipRect.attr('height', svgHeight + legendHeight) // Use svgHeight to show the x axis and its labels
 
       /* Attach tooltip listener */
       d3Utils.addTooltipListener({

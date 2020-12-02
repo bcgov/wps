@@ -20,8 +20,7 @@ def upgrade():
     op.create_table('weather_station_model_predictions',
                     sa.Column('id', sa.Integer(), nullable=False),
                     sa.Column('station_code', sa.Integer(), nullable=False),
-                    sa.Column('prediction_model_run_timestamp_id',
-                              sa.Integer(), nullable=False),
+                    sa.Column('prediction_model_run_timestamp_id', sa.Integer(), nullable=False),
                     sa.Column('prediction_timestamp', sa.TIMESTAMP(
                         timezone=True), nullable=False),
                     sa.Column('tmp_tgl_2', sa.Float(), nullable=True),
