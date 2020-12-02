@@ -339,63 +339,22 @@ export const drawArea = <T>({
   return redraw
 }
 
-export const addLegend = ({
-  svg,
-  shape = 'circle',
-  text,
-  fill,
-  color,
-  shapeX,
-  shapeY,
-  textX,
-  textY,
-  radius = 2, // circle radius
-  length = 8 // rect length
-}: {
-  svg: d3.Selection<SVGGElement, unknown, null, undefined>
-  shape?: 'circle' | 'rect' | 'diamond' | 'triangle' | 'cross'
-  text: string
-  color: string
-  fill?: string | 'none'
-  shapeX: number
-  shapeY: number
-  textX: number
-  textY: number
-  radius?: number
-  length?: number
-}): void => {
-  if (shape === 'circle') {
-    svg
-      .append('circle')
-      .attr('cx', shapeX)
-      .attr('cy', shapeY)
-      .attr('r', radius)
-      .style('stroke', color)
-      .style('fill', fill || color)
-  } else if (shape === 'rect') {
-    svg
-      .append('rect')
-      .attr('x', shapeX)
-      .attr('y', shapeY)
-      .attr('width', length)
-      .attr('height', length)
-      .style('stroke', color)
-      .attr('fill', fill || color)
-  } else if (shape === 'triangle') {
-    svg
-      .append('path')
-      .attr(
-        'd',
-        d3
-          .symbol()
-          .type(d3.symbolTriangle)
-          .size(10)
-      )
-      .attr('transform', `translate(${shapeX},${shapeY})`)
-      .style('stroke', color)
-      .attr('fill', fill || color)
-  } else if (shape === 'diamond') {
-    svg
+const createIcon = (
+  item: d3.Selection<SVGGElement, unknown, null, undefined>,
+  d: Legend
+):
+  | d3.Selection<SVGRectElement, unknown, null, undefined>
+  | d3.Selection<SVGPathElement, unknown, null, undefined>
+  | d3.Selection<SVGCircleElement, unknown, null, undefined> => {
+  if (d.shape === 'rect') {
+    return item
+      .append(d.shape)
+      .attr('width', 4)
+      .attr('height', 4)
+      .style('stroke', d.color)
+      .style('fill', d.fill || d.color)
+  } else if (d.shape === 'diamond') {
+    return item
       .append('path')
       .attr(
         'd',
@@ -404,30 +363,110 @@ export const addLegend = ({
           .type(d3.symbolDiamond)
           .size(10)
       )
-      .attr('transform', `translate(${shapeX},${shapeY})`)
-      .style('stroke', color)
-      .attr('fill', fill || color)
-  } else if (shape === 'cross') {
-    svg
+      .style('stroke', d.color)
+      .attr('fill', d.fill || d.color)
+  } else if (d.shape === 'triangle') {
+    return item
+      .append('path')
+      .attr(
+        'd',
+        d3
+          .symbol()
+          .type(d3.symbolTriangle)
+          .size(7)
+      )
+      .style('stroke', d.color)
+      .attr('fill', d.fill || d.color)
+  } else if (d.shape === 'cross') {
+    return item
       .append('path')
       .attr(
         'd',
         d3
           .symbol()
           .type(d3.symbolCross)
-          .size(5)
+          .size(7)
       )
-      .attr('transform', `translate(${shapeX},${shapeY})`)
-      .style('stroke', color)
-      .attr('fill', fill || color)
+      .style('stroke', d.color)
+      .attr('fill', d.fill || d.color)
   }
-  svg
-    .append('text')
-    .attr('x', textX)
-    .attr('y', textY)
-    .text(text)
-    .style('font-size', '9px')
-    .style('fill', color)
+  return item
+    .append(d.shape)
+    .attr('r', 2)
+    .style('stroke', d.color)
+    .style('fill', d.fill || d.color)
+}
+
+const translateIcon = (
+  shape: 'circle' | 'rect' | 'diamond' | 'cross' | 'triangle',
+  xOffset: number,
+  yOffset: number,
+  icon:
+    | d3.Selection<SVGRectElement, unknown, null, undefined>
+    | d3.Selection<SVGPathElement, unknown, null, undefined>
+    | d3.Selection<SVGCircleElement, unknown, null, undefined>
+): string => {
+  if (shape === 'triangle') {
+    // rather frustrated - having to add magic number (+1) to render triangle correctly.
+    return `translate(${xOffset + (icon.node()?.getBBox().width ?? 0) / 2}, ${yOffset +
+      1})`
+  } else if (shape === 'rect') {
+    return `translate(${xOffset}, ${yOffset - (icon.node()?.getBBox().height ?? 0) / 2})`
+  }
+  // diamond, circle, cross
+  return `translate(${xOffset + (icon.node()?.getBBox().width ?? 0) / 2}, ${yOffset})`
+}
+
+export interface Legend {
+  text: string
+  shape: 'rect' | 'circle' | 'cross' | 'diamond' | 'triangle'
+  color: string
+  fill: null | string
+}
+
+export const addLegend = (
+  svg: d3.Selection<SVGGElement, unknown, null, undefined>,
+  legendWidth: number,
+  data: Legend[]
+): number => {
+  const numColumns = 3 // number of columns
+  const columnWidth = legendWidth / numColumns // how wide is each column
+  const iconTextPadding = 5 // amount of padding between icon and text
+  const lineHeight = 15 // height of line of text
+
+  const legend = svg.selectAll('.legend')
+
+  legend
+    .data(data)
+    .enter()
+    .append('g')
+    .attr('transform', 'translate(0, 0)')
+    .each(function(legendData: Legend, i) {
+      const legendItem = d3.select(this)
+
+      const text = legendItem
+        .append('text')
+        .attr('text-anchor', 'left')
+        .style('alignment-baseline', 'central')
+        .style('fill', legendData.color)
+        .style('font-size', '9px')
+        .text(legendData.text)
+
+      const icon = createIcon(legendItem, legendData)
+      // Calculte x offset using the remainder.
+      const xOffset = (i % numColumns) * columnWidth
+      // Calculate y offset using the quotient.
+      const yOffset = Math.trunc(i / numColumns) * lineHeight
+
+      // Move icon and text to the correct location.
+      icon.attr('transform', translateIcon(legendData.shape, xOffset, yOffset, icon))
+      const iconWidth = icon.node()?.getBBox().width ?? 0
+      text.attr(
+        'transform',
+        'translate(' + (xOffset + iconTextPadding + iconWidth) + ', ' + yOffset + ')'
+      )
+    })
+  return Math.trunc(data.length / numColumns) * lineHeight + lineHeight
 }
 
 export const getNearestByDate = <T extends { date: Date }>(
