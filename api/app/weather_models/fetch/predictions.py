@@ -233,6 +233,7 @@ async def fetch_model_run_predictions_by_station_code(
                 relative_humidity=prediction.rh_tgl_2,
                 bias_adjusted_relative_humidity=prediction.bias_adjusted_rh,
                 total_precipitation=prediction.apcp_sfc_0,
+                delta_precipitation=prediction.delta_precip,
                 datetime=prediction.prediction_timestamp)
         }
 

@@ -59,6 +59,7 @@ export interface ModelValue {
   wind_direction?: number | null
   wind_speed?: number | null
   total_precipitation?: number | null
+  delta_precipitation?: number | null
   dew_point?: number | null
   cloud_cover?: number
   sea_level_pressure?: number

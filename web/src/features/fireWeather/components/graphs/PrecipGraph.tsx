@@ -171,9 +171,9 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
     const aggreGDPSPrecips: { [k: string]: number } = {}
     console.log('gdpsModelValues')
     console.log(gdpsModelValues)
-    gdpsModelValues.forEach(({ datetime, total_precipitation }) => {
+    gdpsModelValues.forEach(({ datetime, delta_precipitation }) => {
       const date = formatDateInPDT(datetime, 'YYYY-MM-DD')
-      const precip = Number(total_precipitation)
+      const precip = Number(delta_precipitation)
 
       if (!aggreGDPSPrecips[date]) {
         aggreGDPSPrecips[date] = precip
@@ -205,7 +205,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
     console.log(gdpsPrecips)
 
     const aggreRDPSPrecips: { [k: string]: number } = {}
-    rdpsModelValues.forEach(({ datetime, total_precipitation: precip }) => {
+    rdpsModelValues.forEach(({ datetime, delta_precipitation: precip }) => {
       const date = formatDateInPDT(datetime, 'YYYY-MM-DD')
       if (!aggreRDPSPrecips[date]) {
         aggreRDPSPrecips[date] = Number(precip)
@@ -234,7 +234,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
     )
 
     const aggreHRDPSPrecips: { [k: string]: number } = {}
-    hrdpsModelValues.forEach(({ datetime, total_precipitation: precip }) => {
+    hrdpsModelValues.forEach(({ datetime, delta_precipitation: precip }) => {
       const date = formatDateInPDT(datetime, 'YYYY-MM-DD')
       if (!aggreHRDPSPrecips[date]) {
         aggreHRDPSPrecips[date] = Number(precip)

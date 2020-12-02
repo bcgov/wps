@@ -48,6 +48,7 @@ class WeatherModelPredictionValues(BaseModel):
     wind_speed: float = None
     wind_direction: float = None
     total_precipitation: float = None
+    delta_precipitation: float = None
     accumulated_rain: float = None
     accumulated_snow: float = None
     accumulated_freezing_rain: float = None
