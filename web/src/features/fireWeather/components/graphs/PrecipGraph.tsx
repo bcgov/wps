@@ -186,20 +186,21 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
 
     const gdpsPrecips = Object.entries(aggreGDPSPrecips).map(
       ([formattedDate, totalPrecip]) => {
-      const date = moment(formattedDate)
-        .utc()
-        .set({ hour: Math.abs(utcOffset), minute: 0 })
-        .toDate()
-      datesFromAllSources.push(date)
-      if (totalPrecip > maxPrecip) {
-        maxPrecip = totalPrecip
-      }
+        const date = moment(formattedDate)
+          .utc()
+          .set({ hour: Math.abs(utcOffset), minute: 0 })
+          .toDate()
+        datesFromAllSources.push(date)
+        if (totalPrecip > maxPrecip) {
+          maxPrecip = totalPrecip
+        }
 
-      return {
-        date,
-        value: Number(totalPrecip?.toFixed(2))
+        return {
+          date,
+          value: Number(totalPrecip?.toFixed(2))
+        }
       }
-    })
+    )
     console.log('gdpsPrecips')
     console.log(gdpsPrecips)
 
@@ -215,21 +216,22 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
 
     const rdpsPrecips = Object.entries(aggreRDPSPrecips).map(
       ([formattedDate, totalPrecip]) => {
-      const date = moment(formattedDate)
-        .utc()
-        .set({ hour: Math.abs(utcOffset), minute: 0 })
-        .toDate()
-      datesFromAllSources.push(date)
+        const date = moment(formattedDate)
+          .utc()
+          .set({ hour: Math.abs(utcOffset), minute: 0 })
+          .toDate()
+        datesFromAllSources.push(date)
 
-      if (totalPrecip > maxPrecip) {
-        maxPrecip = totalPrecip
-      }
+        if (totalPrecip > maxPrecip) {
+          maxPrecip = totalPrecip
+        }
 
-      return {
-        date,
-        value: Number(totalPrecip?.toFixed(2))
+        return {
+          date,
+          value: Number(totalPrecip?.toFixed(2))
+        }
       }
-    })
+    )
 
     const aggreHRDPSPrecips: { [k: string]: number } = {}
     hrdpsModelValues.forEach(({ datetime, total_precipitation: precip }) => {
@@ -242,21 +244,22 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
     })
     const hrdpsPrecips = Object.entries(aggreHRDPSPrecips).map(
       ([formattedDate, totalPrecip]) => {
-      const date = moment(formattedDate)
-        .utc()
-        .set({ hour: Math.abs(utcOffset), minute: 0 })
-        .toDate()
-      datesFromAllSources.push(date)
+        const date = moment(formattedDate)
+          .utc()
+          .set({ hour: Math.abs(utcOffset), minute: 0 })
+          .toDate()
+        datesFromAllSources.push(date)
 
-      if (totalPrecip > maxPrecip) {
-        maxPrecip = totalPrecip
-      }
+        if (totalPrecip > maxPrecip) {
+          maxPrecip = totalPrecip
+        }
 
-      return {
-        date,
-        value: Number(totalPrecip?.toFixed(2))
+        return {
+          date,
+          value: Number(totalPrecip?.toFixed(2))
+        }
       }
-    })
+    )
 
     const currDate = new Date()
     const pastDate = moment(currDate)
@@ -284,7 +287,14 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       rdpsPrecips,
       hrdpsPrecips
     }
-  }, [utcOffset, observedValues, forecastValues, gdpsModelValues, rdpsModelValues, hrdpsModelValues])
+  }, [
+    utcOffset,
+    observedValues,
+    forecastValues,
+    gdpsModelValues,
+    rdpsModelValues,
+    hrdpsModelValues
+  ])
 
   // Effect hook for displaying graphics
   useEffect(() => {
@@ -369,7 +379,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
           y1: yScale(precip.value),
           y2: yScale(0),
           testId: 'gdps-precip-line'
-        })  
+        })
       )
 
       rdpsPrecips.forEach(precip =>
@@ -381,7 +391,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
           y1: yScale(precip.value),
           y2: yScale(0),
           testId: 'rdps-precip-line'
-        })  
+        })
       )
 
       hrdpsPrecips.forEach(precip =>
@@ -393,7 +403,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
           y1: yScale(precip.value),
           y2: yScale(0),
           testId: 'hrdps-precip-line'
-        })  
+        })
       )
 
       /* Render the X & Y axis and labels */
@@ -604,24 +614,24 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
   // Effect hooks for showing/hiding graphics
   useEffect(() => {
     if (svgRef.current) {
-    const svg = d3.select(svgRef.current)
-    svg
-    .selectAll('.precipLine__observed')
-    .classed('precipLine--hidden', !toggleValues.showObservations)
-    svg
-    .selectAll('.precipLine__forecast')
-    .classed('precipLine--hidden', !toggleValues.showForecasts)
-    svg
-    .selectAll('.precipLine__gdps')
-    .classed('precipLine--hidden', !toggleValues.showModels)
-    svg
-    .selectAll('.precipLine__rdps')
-    .classed('precipLine--hidden', !toggleValues.showRegionalModels)
-    svg
-    .selectAll('.precipLine__hrdps')
-    .classed('precipLine--hidden', !toggleValues.showHighResModels)
+      const svg = d3.select(svgRef.current)
+      svg
+        .selectAll('.precipLine__observed')
+        .classed('precipLine--hidden', !toggleValues.showObservations)
+      svg
+        .selectAll('.precipLine__forecast')
+        .classed('precipLine--hidden', !toggleValues.showForecasts)
+      svg
+        .selectAll('.precipLine__gdps')
+        .classed('precipLine--hidden', !toggleValues.showModels)
+      svg
+        .selectAll('.precipLine__rdps')
+        .classed('precipLine--hidden', !toggleValues.showRegionalModels)
+      svg
+        .selectAll('.precipLine__hrdps')
+        .classed('precipLine--hidden', !toggleValues.showHighResModels)
     }
-    }, [toggleValues])
+  }, [toggleValues])
 
   return (
     <div className={classes.root}>
