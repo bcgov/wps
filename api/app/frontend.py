@@ -38,7 +38,8 @@ def add_security_headers(scope, response):
         response.headers.setdefault('X-Content-Type-Options', 'nosniff')
     if (path and path[path.rfind('.'):] in ('.xml', '.svg', '.json', '.txt')):
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
-        response.headers.setdefault('Cache-Control', 'no-cache')
+        # https://www.zaproxy.org/docs/alerts/10015/
+        response.headers.setdefault('Cache-Control', 'no-cache, no-store, must-revalidate;')
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Pragma
         response.headers.setdefault('Pragma', 'no-cache')
     # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
@@ -87,7 +88,8 @@ async def get_index(request: Request):
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options
         response.headers.setdefault('X-Content-Type-Options', 'nosniff')
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
-        response.headers.setdefault('Cache-Control', 'no-cache')
+        # https://www.zaproxy.org/docs/alerts/10015/
+        response.headers.setdefault('Cache-Control', 'no-cache, no-store, must-revalidate;')
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Pragma
         response.headers.setdefault('Pragma', 'no-cache')
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
