@@ -186,7 +186,10 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
 
     const gdpsPrecips = Object.entries(aggreGDPSPrecips).map(
       ([formattedDate, totalPrecip]) => {
-      const date = moment(formattedDate).utc().set({ hour: Math.abs(utcOffset), minute: 0 }).toDate()
+      const date = moment(formattedDate)
+        .utc()
+        .set({ hour: Math.abs(utcOffset), minute: 0 })
+        .toDate()
       datesFromAllSources.push(date)
       if (totalPrecip > maxPrecip) {
         maxPrecip = totalPrecip
@@ -212,7 +215,10 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
 
     const rdpsPrecips = Object.entries(aggreRDPSPrecips).map(
       ([formattedDate, totalPrecip]) => {
-      const date = moment(formattedDate).utc().set({ hour: Math.abs(utcOffset), minute: 0 }).toDate()
+      const date = moment(formattedDate)
+        .utc()
+        .set({ hour: Math.abs(utcOffset), minute: 0 })
+        .toDate()
       datesFromAllSources.push(date)
 
       if (totalPrecip > maxPrecip) {
@@ -236,7 +242,10 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
     })
     const hrdpsPrecips = Object.entries(aggreHRDPSPrecips).map(
       ([formattedDate, totalPrecip]) => {
-      const date = moment(formattedDate).utc().set({ hour: Math.abs(utcOffset), minute: 0 }).toDate()
+      const date = moment(formattedDate)
+        .utc()
+        .set({ hour: Math.abs(utcOffset), minute: 0 })
+        .toDate()
       datesFromAllSources.push(date)
 
       if (totalPrecip > maxPrecip) {
