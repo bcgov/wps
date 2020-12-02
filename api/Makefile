@@ -97,6 +97,15 @@ run-env-canada-raw:
 	POSTGRES_HOST=localhost python -m app.weather_models.env_canada HRDPS
 	POSTGRES_HOST=localhost python -m app.weather_models.env_canada RDPS
 
+run-env-canada-gdps-raw:
+	POSTGRES_HOST=localhost python -m app.weather_models.env_canada GDPS
+
+run-env-canada-hrdps-raw:
+	POSTGRES_HOST=localhost python -m app.weather_models.env_canada HRDPS
+
+run-env-canada-rdps-raw:
+	POSTGRES_HOST=localhost python -m app.weather_models.env_canada RDPS
+
 run-donald-raw:
 	# Synonymn for run-env-canada-raw
 	POSTGRES_HOST=localhost python -m app.weather_models.env_canada GDPS

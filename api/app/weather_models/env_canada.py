@@ -476,7 +476,8 @@ class ModelValueProcessor:
             station_prediction.apcp_sfc_0 = 0.0
         # Calculate the delta_precipitation based on station's previous prediction_timestamp
         # for the same model run
-        self.session.flush()
+        # For some reason pyling doesn't think session has a flush!
+        self.session.flush()  # pylint: disable=no-member
         results = self.session.query(WeatherStationModelPrediction).\
             filter(WeatherStationModelPrediction.station_code == station.code).\
             filter(WeatherStationModelPrediction.prediction_model_run_timestamp_id == model_run.id).\

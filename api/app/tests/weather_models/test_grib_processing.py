@@ -112,8 +112,7 @@ def when_calculate_raster_coordinate(given_geotransform_and_projection_string, g
     geotransform = given_geotransform_and_projection_string['geotransform']
     proj_crs = CRS.from_string(
         given_geotransform_and_projection_string['projection_string'])
-    geo_crs = CRS('epsg:4269')
-    transformer = Transformer.from_crs(geo_crs, proj_crs)
+    transformer = process_grib.get_transformer(process_grib.GEO_CRS, proj_crs)
     given_geotransform_and_projection_string['raster_coordinate'] = process_grib.calculate_raster_coordinate(
         longitude, latitude, geotransform, transformer)
 
@@ -136,8 +135,7 @@ def calculate_geographic_coordinate(given_geotransform_and_projection_string, gi
     geotransform = given_geotransform_and_projection_string['geotransform']
     proj_crs = CRS.from_string(
         given_geotransform_and_projection_string['projection_string'])
-    geo_crs = CRS('epsg:4269')
-    transformer = Transformer.from_crs(proj_crs, geo_crs)
+    transformer = process_grib.get_transformer(proj_crs, process_grib.GEO_CRS)
     given_geotransform_and_projection_string['geographic_coordinate'] = \
         process_grib.calculate_geographic_coordinate(
         given_raster_coordinate, geotransform, transformer)
