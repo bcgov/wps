@@ -21,14 +21,11 @@ def upgrade():
                     sa.Column('id', sa.Integer(), nullable=False),
                     sa.Column('station_code', sa.Integer(), nullable=False),
                     sa.Column('prediction_model_run_timestamp_id', sa.Integer(), nullable=False),
-                    sa.Column('prediction_timestamp', sa.TIMESTAMP(
-                        timezone=True), nullable=False),
+                    sa.Column('prediction_timestamp', sa.TIMESTAMP(timezone=True), nullable=False),
                     sa.Column('tmp_tgl_2', sa.Float(), nullable=True),
                     sa.Column('rh_tgl_2', sa.Float(), nullable=True),
-                    sa.Column('create_date', sa.TIMESTAMP(
-                        timezone=True), nullable=False),
-                    sa.Column('update_date', sa.TIMESTAMP(
-                        timezone=True), nullable=False),
+                    sa.Column('create_date', sa.TIMESTAMP(timezone=True), nullable=False),
+                    sa.Column('update_date', sa.TIMESTAMP(timezone=True), nullable=False),
                     sa.ForeignKeyConstraint(['prediction_model_run_timestamp_id'], [
                         'prediction_model_run_timestamps.id'], ),
                     sa.PrimaryKeyConstraint('id'),
