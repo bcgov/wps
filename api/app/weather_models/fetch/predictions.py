@@ -300,7 +300,7 @@ async def fetch_predictions_by_station_code(
                 bias_adjusted_temperature=prediction.bias_adjusted_temperature,
                 relative_humidity=prediction.rh_tgl_2,
                 bias_adjusted_relative_humidity=prediction.bias_adjusted_rh,
-                delta_precipitation=prediction.delta_precipitation,
+                delta_precipitation=prediction.delta_precip,
                 datetime=prediction.prediction_timestamp
             )
             model_run = WeatherModelRun(
