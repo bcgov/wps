@@ -490,7 +490,7 @@ export const getNearestByDate = <T extends { date: Date }>(
 
 /**
  * Attach a listener to display a tooltip in the graph, inspired by: https://observablehq.com/@d3/line-chart-with-tooltip
- * Note: .tooltip, .tooltip--hidden, and .tooltip__cursor classes need to be defined
+ * Note: .tooltip, .tooltip--hidden, and .tooltipCursor classes need to be defined
  * The T is a generic type that captures the type of the given data
  */
 export const addTooltipListener = <T extends { date: Date }>({
@@ -532,6 +532,7 @@ export const addTooltipListener = <T extends { date: Date }>({
       .selectAll('text')
       .data([null])
       .join('text')
+      .attr('class', 'tooltipText')
       .call(txt =>
         txt
           .selectAll('tspan')
@@ -583,7 +584,7 @@ export const addTooltipListener = <T extends { date: Date }>({
     .attr('width', width)
     .attr('height', height)
     .attr('fill', 'transparent')
-    .attr('class', 'tooltip--background')
+    .attr('class', 'tooltipBackground')
   if (bgdTestId) {
     svg.attr('data-testid', bgdTestId)
   }
@@ -593,7 +594,7 @@ export const addTooltipListener = <T extends { date: Date }>({
     .attr('y1', 0)
     .attr('x2', 0)
     .attr('y2', height)
-    .attr('class', 'tooltip__cursor')
+    .attr('class', 'tooltipCursor')
   const tooltip = svg.append('g')
   const removeTooltip = () => {
     tooltip.call(tooltipCallout)

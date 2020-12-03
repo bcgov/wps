@@ -26,16 +26,16 @@ const useStyles = makeStyles({
       pointerEvents: 'none',
       font: '8.5px sans-serif',
 
-      '&__cursor': {
-        strokeWidth: 1,
-        stroke: 'gray',
-        strokeDasharray: '1,1',
-        opacity: 0
-      },
-
       '&--hidden': {
         display: 'none'
       }
+    },
+
+    '& .tooltipCursor': {
+      strokeWidth: 1,
+      stroke: 'gray',
+      strokeDasharray: '1,1',
+      opacity: 0
     },
 
     '& .precipLine': {
@@ -141,11 +141,11 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
     )
 
     const currDate = new Date()
-    const pastDate = moment(currDate)
+    const past5Date = moment(currDate)
       .subtract(5, 'days')
       .toDate()
     const [minDate, maxDate] = d3.extent(datesFromAllSources)
-    let d1 = minDate || pastDate
+    let d1 = minDate || past5Date
     let d2 = maxDate || currDate
     d1 = moment(d1)
       .subtract(6, 'hours')
@@ -320,8 +320,8 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
     if (svgElement) {
       const svg = d3.select(svgElement)
       svg.select('.tooltip').remove()
-      svg.select('.tooltip__cursor').remove()
-      svg.select('.tooltip__background').remove()
+      svg.select('.tooltipCursor').remove()
+      svg.select('.tooltipBackground').remove()
 
       const xScale = d3
         .scaleTime()

@@ -92,16 +92,17 @@ const WxDataGraph = ({
       />
 
       <TempRHGraph
-        observedValues={showObservations ? observedValues : []}
-        modelValues={showModels ? allModelValues : []}
-        modelSummaries={showModels ? modelSummaries : []}
-        forecastValues={showForecasts ? allForecasts : []}
-        forecastSummaries={showForecasts ? forecastSummaries : []}
-        biasAdjModelValues={showBiasAdjModels ? allModelValues : []}
-        highResModelValues={showHighResModels ? allHighResModelValues : []}
-        highResModelSummaries={showHighResModels ? highResModelSummaries : []}
-        regionalModelValues={showRegionalModels ? allRegionalModelValues : []}
-        regionalModelSummaries={showRegionalModels ? regionalModelSummaries : []}
+        toggleValues={toggleValues}
+        observedValues={observedValues}
+        modelValues={allModelValues}
+        modelSummaries={modelSummaries}
+        forecastValues={allForecasts}
+        forecastSummaries={forecastSummaries}
+        biasAdjModelValues={allModelValues}
+        highResModelValues={allHighResModelValues}
+        highResModelSummaries={highResModelSummaries}
+        regionalModelValues={allRegionalModelValues}
+        regionalModelSummaries={regionalModelSummaries}
       />
 
       <PrecipGraph
