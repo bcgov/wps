@@ -10,7 +10,6 @@ from starlette.applications import Starlette
 from app import schemas, configure_logging
 from app.weather_models.fetch.predictions import (
     fetch_model_predictions,
-    fetch_predictions_by_station_code,
     fetch_model_run_predictions_by_station_code)
 from app.weather_models.fetch.summaries import fetch_model_prediction_summaries
 from app.weather_models import ModelEnum, ProjectionEnum
