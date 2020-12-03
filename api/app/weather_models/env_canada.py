@@ -504,8 +504,7 @@ class ModelValueProcessor:
             first()
         if results is not None:
             return station_prediction.apcp_sfc_0 - results.apcp_sfc_0
-        else:
-            return station_prediction.apcp_sfc_0
+        return station_prediction.apcp_sfc_0
 
     def _process_model_run_for_station(self,
                                        model_run: PredictionModelRunTimestamp,
