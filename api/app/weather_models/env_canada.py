@@ -478,16 +478,8 @@ class ModelValueProcessor:
         # for the same model run
         # For some reason pylint doesn't think session has a flush!
         self.session.flush()  # pylint: disable=no-member
-        results = self.session.query(WeatherStationModelPrediction).\
-            filter(WeatherStationModelPrediction.station_code == station.code).\
-            filter(WeatherStationModelPrediction.prediction_model_run_timestamp_id == model_run.id).\
-            filter(WeatherStationModelPrediction.prediction_timestamp < prediction.prediction_timestamp).\
-            order_by(WeatherStationModelPrediction.prediction_timestamp.desc()).\
-            first()
-        if results is not None:
-            station_prediction.delta_precip = station_prediction.apcp_sfc_0 - results.apcp_sfc_0
-        else:
-            station_prediction.delta_precip = station_prediction.apcp_sfc_0
+        station_prediction.delta_precip = self._calculate_delta_precip(
+            station, model_run, prediction, station_prediction)
         # Predict the temperature
         station_prediction.bias_adjusted_temperature = machine.predict_temperature(
             station_prediction.tmp_tgl_2,
@@ -499,6 +491,21 @@ class ModelValueProcessor:
         station_prediction.update_date = time_utils.get_utc_now()
         # Add this prediction to the session (we'll commit it later.)
         self.session.add(station_prediction)
+
+    def _calculate_delta_precip(self, station, model_run, prediction, station_prediction):
+        """ Calculate the station_prediction's delta_precip based on the previous precip
+        prediction for the station
+        """
+        results = self.session.query(WeatherStationModelPrediction).\
+            filter(WeatherStationModelPrediction.station_code == station.code).\
+            filter(WeatherStationModelPrediction.prediction_model_run_timestamp_id == model_run.id).\
+            filter(WeatherStationModelPrediction.prediction_timestamp < prediction.prediction_timestamp).\
+            order_by(WeatherStationModelPrediction.prediction_timestamp.desc()).\
+            first()
+        if results is not None:
+            return station_prediction.apcp_sfc_0 - results.apcp_sfc_0
+        else:
+            return station_prediction.apcp_sfc_0
 
     def _process_model_run_for_station(self,
                                        model_run: PredictionModelRunTimestamp,
