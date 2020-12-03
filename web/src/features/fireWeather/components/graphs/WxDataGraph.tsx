@@ -69,15 +69,6 @@ const WxDataGraph = ({
     return null
   }
 
-  const {
-    showObservations,
-    showModels,
-    showForecasts,
-    showBiasAdjModels,
-    showHighResModels,
-    showRegionalModels
-  } = toggleValues
-
   return (
     <div className={classes.display}>
       <WxDataGraphToggles
@@ -94,15 +85,15 @@ const WxDataGraph = ({
       <TempRHGraph
         toggleValues={toggleValues}
         observedValues={observedValues}
-        modelValues={allModelValues}
-        modelSummaries={modelSummaries}
         forecastValues={allForecasts}
         forecastSummaries={forecastSummaries}
-        biasAdjModelValues={allModelValues}
-        highResModelValues={allHighResModelValues}
-        highResModelSummaries={highResModelSummaries}
-        regionalModelValues={allRegionalModelValues}
-        regionalModelSummaries={regionalModelSummaries}
+        gdpsValues={allModelValues}
+        gdpsSummaries={modelSummaries}
+        biasAdjGdpsValues={allModelValues}
+        hrdpsValues={allHighResModelValues}
+        hrdpsSummaries={highResModelSummaries}
+        rdpsValues={allRegionalModelValues}
+        rdpsSummaries={regionalModelSummaries}
       />
 
       <PrecipGraph

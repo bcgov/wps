@@ -1,6 +1,5 @@
 import React, { useRef, useEffect, useMemo } from 'react'
 import * as d3 from 'd3'
-import moment from 'moment'
 
 import { ObservedValue } from 'api/observationAPI'
 import { ModelSummary as _ModelSummary, ModelValue } from 'api/modelAPI'
@@ -10,37 +9,23 @@ import { PDT_UTC_OFFSET } from 'utils/constants'
 import * as d3Utils from 'utils/d3'
 import * as styles from 'features/fireWeather/components/graphs/TempRHGraph.styles'
 import { ToggleValues } from 'features/fireWeather/components/graphs/useGraphToggles'
-
-interface WeatherValue {
-  date: Date
-  temp?: number
-  rh?: number
-  modelTemp?: number
-  modelRH?: number
-  forecastTemp?: number
-  forecastRH?: number
-  biasAdjModelTemp?: number
-  biasAdjModelRH?: number
-  hrModelTemp?: number
-  hrModelRH?: number
-  regModelTemp?: number
-  regModelRH?: number
-}
-type ModelSummary = Omit<_ModelSummary, 'datetime'> & { date: Date }
-type ForecastSummary = Omit<_ForecastSummary, 'datetime'> & { date: Date }
+import {
+  useGraphCalculation,
+  WeatherValue
+} from 'features/fireWeather/components/graphs/TempRHGraph.utils'
 
 export interface Props {
   toggleValues: ToggleValues
   observedValues: ObservedValue[]
-  modelValues: ModelValue[]
-  modelSummaries: _ModelSummary[]
   forecastValues: NoonForecastValue[]
   forecastSummaries: _ForecastSummary[]
-  biasAdjModelValues: ModelValue[]
-  highResModelValues: ModelValue[]
-  highResModelSummaries: _ModelSummary[]
-  regionalModelValues: ModelValue[]
-  regionalModelSummaries: _ModelSummary[]
+  gdpsValues: ModelValue[]
+  gdpsSummaries: _ModelSummary[]
+  biasAdjGdpsValues: ModelValue[]
+  hrdpsValues: ModelValue[]
+  hrdpsSummaries: _ModelSummary[]
+  rdpsValues: ModelValue[]
+  rdpsSummaries: _ModelSummary[]
 }
 
 /* Table layout constants */
@@ -50,155 +35,24 @@ const svgHeight = 300
 const chartWidth = svgWidth - chartMargin.left - chartMargin.right
 const chartHeight = svgHeight - chartMargin.top - chartMargin.bottom - 50
 
-const TempRHGraph: React.FunctionComponent<Props> = ({
-  toggleValues,
-  observedValues,
-  modelValues,
-  modelSummaries,
-  forecastValues,
-  forecastSummaries,
-  biasAdjModelValues,
-  highResModelValues,
-  highResModelSummaries,
-  regionalModelValues,
-  regionalModelSummaries
-}: Props) => {
+const TempRHGraph: React.FunctionComponent<Props> = (props: Props) => {
+  const { toggleValues } = props
   const classes = styles.useStyles()
-  const svgRef = useRef(null)
   const utcOffset = PDT_UTC_OFFSET
 
-  const graphCalculations = useMemo(() => {
-    const datesFromAllSources: Date[] = []
-    const weatherValuesByDatetime: { [k: string]: WeatherValue } = {}
-    let maxTemp = 40, minTemp = -10 // prettier-ignore
-
-    const observedTempValues: { date: Date; temp: number }[] = []
-    const observedRHValues: { date: Date; rh: number }[] = []
-    observedValues.forEach(v => {
-      if (v.temperature == null && v.relative_humidity == null) {
-        return
-      }
-
-      const date = new Date(v.datetime)
-      datesFromAllSources.push(date)
-
-      const observation = { date, temp: NaN, rh: NaN }
-      if (v.temperature != null) {
-        const temp = Number(v.temperature.toFixed(2))
-        observation.temp = temp
-        observedTempValues.push(observation)
-        if (temp > maxTemp) {
-          maxTemp = temp
-        } else if (temp < minTemp) {
-          minTemp = temp
-        }
-      }
-      if (v.relative_humidity != null) {
-        observation.rh = Math.round(v.relative_humidity)
-        observedRHValues.push(observation)
-      }
-      weatherValuesByDatetime[v.datetime] = observation
-    })
-
-    const forecastTempRHValues = forecastValues.map(v => {
-      const date = new Date(v.datetime)
-      datesFromAllSources.push(date)
-
-      const temp = Number(v.temperature.toFixed(2))
-      const rh = Math.round(v.relative_humidity)
-
-      if (temp > maxTemp) {
-        maxTemp = temp
-      } else if (temp < minTemp) {
-        minTemp = temp
-      }
-
-      // combine with existing observed and models values
-      weatherValuesByDatetime[v.datetime] = {
-        ...weatherValuesByDatetime[v.datetime],
-        date,
-        forecastTemp: temp,
-        forecastRH: rh
-      }
-
-      return {
-        date,
-        temp,
-        rh
-      }
-    })
-
-    const forecastTempRHSummaries = forecastSummaries.map(summary => {
-      const { datetime, ...rest } = summary
-
-      const date = new Date(datetime)
-      datesFromAllSources.push(date)
-
-      if (rest.tmp_max > maxTemp) {
-        maxTemp = rest.tmp_max
-      }
-      if (rest.tmp_min < minTemp) {
-        minTemp = rest.tmp_min
-      }
-
-      return { date, ...rest }
-    })
-
-    const weatherValues = Object.values(weatherValuesByDatetime).sort(
-      (a, b) => a.date.valueOf() - b.date.valueOf()
-    )
-
-    const currDate = new Date()
-    const past5Date = moment(currDate).subtract(5, 'days').toDate() // prettier-ignore
-    const past2Date = moment(currDate).subtract(2, 'days').toDate() // prettier-ignore
-    const future2Date = moment(currDate).add(2, 'days').toDate() // prettier-ignore
-    const [minDate, maxDate] = d3.extent(datesFromAllSources)
-    let d1 = minDate || past5Date
-    let d2 = maxDate || future2Date
-    d1 = moment(d1)
-      .subtract(1, 'hours')
-      .toDate()
-    d2 = moment(d2)
-      .add(1, 'hours')
-      .toDate()
-    const xDomain: [Date, Date] = [d1, d2]
-    const xScale = d3
-      .scaleTime()
-      .domain(xDomain)
-      .range([0, chartWidth])
-    const defaultBrushSelection = [xScale(past2Date), xScale(future2Date)]
-
-    return {
-      xDomain,
-      xScale,
-      defaultBrushSelection,
-      maxTemp: Math.ceil(maxTemp / 5) * 5, // nearest 5
-      minTemp: Math.floor(minTemp / 5) * 5, // nearest -5
-      currDate,
-      weatherValues,
-      observedTempValues,
-      observedRHValues,
-      forecastTempRHValues,
-      forecastTempRHSummaries
-    }
-  }, [
-    observedValues,
-    modelValues,
-    modelSummaries,
-    forecastValues,
-    forecastSummaries,
-    biasAdjModelValues,
-    highResModelValues,
-    highResModelSummaries,
-    regionalModelValues,
-    regionalModelSummaries
-  ])
-
+  const svgRef = useRef(null)
+  const graphCalculations = useGraphCalculation(props)
+  const xScale = d3
+    .scaleTime()
+    .domain(graphCalculations.xDomain)
+    .range([0, chartWidth])
   // Use mutable ref object that doesn't cause re-render
-  const xScaleRef = useRef(graphCalculations.xScale)
+  const xScaleRef = useRef(xScale)
 
   // Effect hook for displaying graphics
   useEffect(() => {
+    console.log('hmm')
+
     const gc = graphCalculations
     if (svgRef.current) {
       /* Clear previous graphics before rendering new ones */
@@ -295,7 +149,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         className: 'observed observedTempSymbol',
         data: gc.observedTempValues,
         x: d => xScale(d.date),
-        y: d => yTempScale(d.temp),
+        y: d => yTempScale(d.value),
         symbol: d3.symbolSquare,
         size: 10,
         testId: 'hourly-observed-temp-symbol'
@@ -305,7 +159,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         className: 'observed observedTempPath',
         data: gc.observedTempValues,
         x: d => xScale(d.date),
-        y: d => yTempScale(d.temp),
+        y: d => yTempScale(d.value),
         strokeWidth: 1.5,
         testId: 'hourly-observed-temp-path'
       })
@@ -314,7 +168,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         className: 'observed observedRHSymbol',
         data: gc.observedRHValues,
         x: d => xScale(d.date),
-        y: d => yRHScale(d.rh),
+        y: d => yRHScale(d.value),
         symbol: d3.symbolSquare,
         size: 10,
         testId: 'hourly-observed-rh-symbol'
@@ -324,7 +178,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         className: 'observed observedRHPath',
         data: gc.observedRHValues,
         x: d => xScale(d.date),
-        y: d => yRHScale(d.rh),
+        y: d => yRHScale(d.value),
         strokeWidth: 1.5,
         testId: 'hourly-observed-rh-path'
       })
@@ -451,7 +305,7 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
       sidebar
         .append('g')
         .call(brush)
-        .call(brush.move, graphCalculations.defaultBrushSelection)
+        .call(brush.move, [xScale(gc.past2Date), xScale(gc.future2Date)])
     }
   }, [utcOffset, graphCalculations])
 
@@ -469,14 +323,30 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
         ? gc.weatherValues
             .map(v => {
               const value = { ...v } // create a fresh copy
-              if (!toggleValues.showObservations) {
-                delete value.temp
-                delete value.rh
-              }
 
+              if (!toggleValues.showObservations) {
+                delete value.observedTemp
+                delete value.observedRH
+              }
               if (!toggleValues.showForecasts) {
                 delete value.forecastTemp
                 delete value.forecastRH
+              }
+              if (!toggleValues.showModels) {
+                delete value.gdpsTemp
+                delete value.gdpsRH
+              }
+              if (!toggleValues.showBiasAdjModels) {
+                delete value.biasAdjGdpsTemp
+                delete value.biasAdjGdpsRH
+              }
+              if (!toggleValues.showHighResModels) {
+                delete value.hrdpsTemp
+                delete value.hrdpsRH
+              }
+              if (!toggleValues.showRegionalModels) {
+                delete value.rdpsTemp
+                delete value.rdpsRH
               }
 
               const noDataToPresent = Object.keys(value).length === 1 // only date present
@@ -511,63 +381,62 @@ const TempRHGraph: React.FunctionComponent<Props> = ({
               }
 
               switch (key) {
-                case 'temp':
+                case 'observedTemp':
                   return {
                     text: `Observed Temp: ${weatherPrint} (°C)`,
                     color: styles.observedTempColor
+                  }
+                case 'observedRH':
+                  return {
+                    text: `Observed RH: ${weatherPrint} (%)`,
+                    color: styles.observedRHColor
                   }
                 case 'forecastTemp':
                   return {
                     text: `Forecast Temp: ${weatherPrint} (°C)`,
                     color: styles.forecastTempDotColor
                   }
-                case 'modelTemp':
-                  return {
-                    text: `GDPS Temp: ${weatherPrint} (°C)`,
-                    color: styles.modelTempColor
-                  }
-                case 'biasAdjModelTemp':
-                  return {
-                    text: `Bias adjusted GDPS Temp: ${weatherPrint} (°C)`,
-                    color: styles.biasModelTempColor
-                  }
-                case 'hrModelTemp':
-                  return {
-                    text: `HRDPS Temp ${weatherPrint} (°C)`,
-                    color: styles.highResModelTempColor
-                  }
-                case 'regModelTemp':
-                  return {
-                    text: `RDPS Temp ${weatherPrint} (°C)`,
-                    color: styles.regionalModelTempColor
-                  }
-
-                case 'rh':
-                  return {
-                    text: `Observed RH: ${weatherPrint} (%)`,
-                    color: styles.observedRHColor
-                  }
                 case 'forecastRH':
                   return {
                     text: `Forecast RH: ${weatherPrint} (%)`,
                     color: styles.forecastRHDotColor
                   }
-                case 'modelRH':
+                case 'gdpsTemp':
+                  return {
+                    text: `GDPS Temp: ${weatherPrint} (°C)`,
+                    color: styles.modelTempColor
+                  }
+                case 'gdpsRH':
                   return {
                     text: `GDPS RH: ${weatherPrint} (%)`,
                     color: styles.modelRHColor
                   }
-                case 'biasAdjModelRH':
+                case 'biasAdjGdpsTemp':
+                  return {
+                    text: `Bias adjusted GDPS Temp: ${weatherPrint} (°C)`,
+                    color: styles.biasModelTempColor
+                  }
+                case 'biasAdjGdpsRH':
                   return {
                     text: `Bias adjusted GDPS RH: ${weatherPrint} (%)`,
                     color: styles.biasModelRHColor
                   }
-                case 'hrModelRH':
+                case 'hrdpsTemp':
+                  return {
+                    text: `HRDPS Temp ${weatherPrint} (°C)`,
+                    color: styles.highResModelTempColor
+                  }
+                case 'hrdpsRH':
                   return {
                     text: `HRDPS RH ${weatherPrint} (%)`,
                     color: styles.highResModelRHColor
                   }
-                case 'regModelRH':
+                case 'rdpsTemp':
+                  return {
+                    text: `RDPS Temp ${weatherPrint} (°C)`,
+                    color: styles.regionalModelTempColor
+                  }
+                case 'rdpsRH':
                   return {
                     text: `RDPS RH ${weatherPrint} (%)`,
                     color: styles.regionalModelRHColor
