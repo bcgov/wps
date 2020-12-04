@@ -230,8 +230,14 @@ def get_station_model_predictions_order_by_prediction_timestamp(
     This is useful if you're interested in seeing all the different predictions regardles of
     model run.
     """
-    query = get_station_model_predictions_no_order(session, station_codes, model, start_date, end_date)
-    query = query.\
+    query = session.query(WeatherStationModelPrediction, PredictionModelRunTimestamp, PredictionModel).\
+        filter(WeatherStationModelPrediction.station_code.in_(station_codes)).\
+        filter(WeatherStationModelPrediction.prediction_timestamp >= start_date).\
+        filter(WeatherStationModelPrediction.prediction_timestamp <= end_date).\
+        filter(PredictionModelRunTimestamp.id ==
+               WeatherStationModelPrediction.prediction_model_run_timestamp_id).\
+        filter(PredictionModelRunTimestamp.prediction_model_id == PredictionModel.id,
+               PredictionModel.abbreviation == model).\
         order_by(WeatherStationModelPrediction.station_code).\
         order_by(WeatherStationModelPrediction.prediction_timestamp)
     return query
@@ -242,7 +248,8 @@ def get_station_model_predictions(
         station_codes: List,
         model: str,
         start_date: str,
-        end_date: str) -> List[Union[WeatherStationModelPrediction, PredictionModelRunTimestamp, PredictionModel]]:
+        end_date: str) -> List[
+            Union[WeatherStationModelPrediction, PredictionModelRunTimestamp, PredictionModel]]:
     """ Fetches the model predictions that were most recently issued before the prediction_timestamp.
     Used to compare the most recent model predictions against forecasts and actuals for the same
     weather date and weather station.
