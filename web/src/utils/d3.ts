@@ -3,7 +3,7 @@ import moment from 'moment'
 import * as d3 from 'd3'
 import { PDT_UTC_OFFSET } from 'utils/constants'
 
-export const transitionDuration = 50
+const transitionDuration = 50
 
 /**
  * Returns a list of dates in which each date is 12am PDT within the domain
@@ -421,7 +421,7 @@ export interface Legend {
   text: string
   shape: 'rect' | 'circle' | 'cross' | 'diamond' | 'triangle'
   color: string
-  fill: null | string
+  fill?: string
 }
 
 export const addLegend = (

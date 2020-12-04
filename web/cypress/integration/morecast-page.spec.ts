@@ -32,6 +32,9 @@ describe('MoreCast Page', () => {
 
   describe('When wx data successfully fetched', () => {
     beforeEach(() => {
+      const now = new Date('2020-10-21T15:00:00+00:00').getTime()
+      cy.clock(now)
+
       cy.route('POST', 'api/hourlies/', 'fixture:weather-data/observations')
       cy.route('POST', 'api/noon_forecasts/', 'fixture:weather-data/noon-forecasts')
       cy.route('POST', 'api/noon_forecasts/summaries/', 'fixture:weather-data/noon-forecast-summaries')
@@ -50,50 +53,53 @@ describe('MoreCast Page', () => {
 
     it('Temp & RH graph displays svg graphics with toggles', () => {
       // Check if svg elements are displayed in the graph
-      cy.getByTestId('hourly-observed-temp-symbol')
-      cy.getByTestId('hourly-observed-temp-path')
-      cy.getByTestId('hourly-observed-rh-symbol')
-      cy.getByTestId('hourly-observed-rh-path')
+      cy.getByTestId('hourly-observed-temp-symbol').should('have.length', 118)
+      cy.getByTestId('hourly-observed-temp-path').should('not.have.class', 'hidden')
+      cy.getByTestId('hourly-observed-rh-symbol').should('have.length', 119)
+      cy.getByTestId('hourly-observed-rh-path').should('not.have.class', 'hidden')
       cy.getByTestId('wx-graph-observation-toggle').click()
-      cy.getByTestId('hourly-observed-temp-symbol').should('not.exist')
-      cy.getByTestId('hourly-observed-rh-symbol').should('not.exist')
+      cy.getByTestId('hourly-observed-temp-symbol').should('have.class', 'hidden')
+      cy.getByTestId('hourly-observed-rh-symbol').should('have.class', 'hidden')
 
       // Test the toggle buttons
       cy.getByTestId('wx-graph-global-model-toggle').click()
-      cy.getByTestId('model-summary-temp-area')
+      cy.getByTestId('model-summary-temp-area').should('not.have.class', 'hidden')
       cy.getByTestId('model-temp-symbol').should('have.length', 130)
       cy.getByTestId('wx-graph-global-model-toggle').click()
-      cy.getByTestId('model-summary-temp-area').should('not.exist')
-      cy.getByTestId('model-temp-symbol').should('not.exist')
+      cy.getByTestId('model-summary-temp-area').should('have.class', 'hidden')
+      cy.getByTestId('model-temp-symbol').should('have.class', 'hidden')
 
       cy.getByTestId('wx-graph-forecast-toggle').click()
       cy.getByTestId('forecast-temp-dot').should('have.length', 6)
-      cy.getByTestId('forecast-summary-temp-line')
+      cy.getByTestId('forecast-summary-temp-line').should('not.have.class', 'hidden')
       cy.getByTestId('wx-graph-forecast-toggle').click()
-      cy.getByTestId('forecast-temp-dot').should('not.exist')
-      cy.getByTestId('forecast-summary-temp-line').should('not.exist')
+      cy.getByTestId('forecast-temp-dot').should('have.class', 'hidden')
+      cy.getByTestId('forecast-summary-temp-line').should('have.class', 'hidden')
 
       cy.getByTestId('wx-graph-bias-toggle').click()
       cy.getByTestId('bias-adjusted-model-temp-symbol').should('have.length', 130)
-      cy.getByTestId('bias-adjusted-model-temp-path')
+      cy.getByTestId('bias-adjusted-model-temp-path').should('not.have.class', 'hidden')
       cy.getByTestId('wx-graph-bias-toggle').click()
-      cy.getByTestId('bias-adjusted-model-temp-symbol').should('not.exist')
+      cy.getByTestId('bias-adjusted-model-temp-symbol').should('have.class', 'hidden')
+      cy.getByTestId('bias-adjusted-model-temp-path').should('have.class', 'hidden')
 
       cy.getByTestId('wx-graph-high-res-model-toggle').click()
-      cy.getByTestId('high-res-model-summary-temp-area')
+      cy.getByTestId('high-res-model-summary-temp-area').should('not.have.class', 'hidden')
       cy.getByTestId('high-res-model-temp-symbol').should('have.length', 103)
-      cy.getByTestId('high-res-model-temp-path')
+      cy.getByTestId('high-res-model-temp-path').should('not.have.class', 'hidden')
       cy.getByTestId('wx-graph-high-res-model-toggle').click()
-      cy.getByTestId('high-res-model-summary-temp-area').should('not.exist')
-      cy.getByTestId('high-res-model-temp-symbol').should('not.exist')
+      cy.getByTestId('high-res-model-summary-temp-area').should('have.class', 'hidden')
+      cy.getByTestId('high-res-model-temp-symbol').should('have.class', 'hidden')
+      cy.getByTestId('high-res-model-temp-path').should('have.class', 'hidden')
 
       cy.getByTestId('wx-graph-regional-model-toggle').click()
-      cy.getByTestId('regional-model-summary-temp-area')
+      cy.getByTestId('regional-model-summary-temp-area').should('not.have.class', 'hidden')
       cy.getByTestId('regional-model-temp-symbol').should('have.length', 103)
-      cy.getByTestId('regional-model-temp-path')
+      cy.getByTestId('regional-model-temp-path').should('not.have.class', 'hidden')
       cy.getByTestId('wx-graph-regional-model-toggle').click()
-      cy.getByTestId('regional-model-summary-rh-area').should('not.exist')
-      cy.getByTestId('regional-model-rh-symbol').should('not.exist')
+      cy.getByTestId('regional-model-summary-temp-area').should('have.class', 'hidden')
+      cy.getByTestId('regional-model-temp-symbol').should('have.class', 'hidden')
+      cy.getByTestId('regional-model-temp-path').should('have.class', 'hidden')
     })
 
     it('Temp & RH graph displays a tooltip & sidebar ', () => {

@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useMemo } from 'react'
+import React, { useRef, useEffect } from 'react'
 import * as d3 from 'd3'
 
 import { ObservedValue } from 'api/observationAPI'
@@ -10,7 +10,8 @@ import * as d3Utils from 'utils/d3'
 import * as styles from 'features/fireWeather/components/graphs/TempRHGraph.styles'
 import { ToggleValues } from 'features/fireWeather/components/graphs/useGraphToggles'
 import {
-  useGraphCalculation,
+  getLegendData,
+  useMemoGraphCalculation,
   WeatherValue
 } from 'features/fireWeather/components/graphs/TempRHGraph.utils'
 
@@ -29,42 +30,34 @@ export interface Props {
 }
 
 /* Table layout constants */
-const chartMargin = { top: 10, right: 40, bottom: 50, left: 40 }
-const svgWidth = 600
-const svgHeight = 300
-const chartWidth = svgWidth - chartMargin.left - chartMargin.right
-const chartHeight = svgHeight - chartMargin.top - chartMargin.bottom - 50
+const margin = { top: 10, right: 40, bottom: 20, left: 40 }
+const graphWidth = 600
+const graphHeight = 300
+const legendHeight = 50
+const chartWidth = graphWidth - margin.left - margin.right
+const chartHeight = graphHeight - margin.top - margin.bottom - 50
 
 const TempRHGraph: React.FunctionComponent<Props> = (props: Props) => {
   const { toggleValues } = props
   const classes = styles.useStyles()
   const utcOffset = PDT_UTC_OFFSET
 
-  const svgRef = useRef(null)
-  const graphCalculations = useGraphCalculation(props)
-
-  // Create x scale outside of useEffect
-  // so that the tooltip and sidebar can access the same reference
-  const xScale = d3
-    .scaleTime()
-    .domain(graphCalculations.xDomain)
-    .range([0, chartWidth])
-  const xScaleRef = useRef(xScale)
+  const graphRef = useRef<SVGSVGElement>(null)
+  const legendRef = useRef<SVGSVGElement>(null)
+  const gc = useMemoGraphCalculation(props, chartWidth)
 
   // Effect hook for displaying graphics
   useEffect(() => {
-    console.log('hmm')
-
-    const gc = graphCalculations
-    if (svgRef.current) {
+    const svgGraphElement = graphRef.current
+    if (svgGraphElement) {
       /* Clear previous graphics before rendering new ones */
-      d3.select(svgRef.current)
+      d3.select(svgGraphElement)
         .selectAll('*')
         .remove()
 
       const svg = d3
-        .select(svgRef.current)
-        .attr('viewBox', `0 0 ${svgWidth} ${svgHeight}`)
+        .select(svgGraphElement)
+        .attr('viewBox', `0 0 ${graphWidth} ${graphHeight}`)
 
       // Set up a clipper that removes graphics that don't fall within the boundary
       svg
@@ -80,24 +73,24 @@ const TempRHGraph: React.FunctionComponent<Props> = (props: Props) => {
       const chart = svg
         .append('g')
         .attr('class', 'chart')
-        .attr('transform', `translate(${chartMargin.left}, ${chartMargin.top})`)
+        .attr('transform', `translate(${margin.left}, ${margin.top})`)
         .attr('clip-path', 'url(#clip)')
 
       const context = svg // svg group for Y axis and its labels
         .append('g')
         .attr('class', 'context')
-        .attr('transform', `translate(${chartMargin.left}, ${chartMargin.top})`)
+        .attr('transform', `translate(${margin.left}, ${margin.top})`)
 
       const sidebarHeight = 15
       const sidebarMarginTop = chartHeight + sidebarHeight + 25
       const sidebar = svg
         .append('g')
         .attr('class', 'sidebar')
-        .attr('transform', `translate(${chartMargin.left}, ${sidebarMarginTop})`)
+        .attr('transform', `translate(${margin.left}, ${sidebarMarginTop})`)
 
       /* Create scales for x and y axes */
-      const xScale = xScaleRef.current
-      const xScaleOriginal = xScaleRef.current.copy()
+      const xScale = gc.xScale
+      const xScaleOriginal = gc.xScale.copy()
       const yTempScale = d3
         .scaleLinear()
         .domain(gc.tempDomain)
@@ -304,16 +297,14 @@ const TempRHGraph: React.FunctionComponent<Props> = (props: Props) => {
         x: d => xScale(d.date),
         y: d => yRHScale(d.value),
         size: 5,
-        symbol: d3.symbolCross,
-        testId: 'regional-model-rh-symbol'
+        symbol: d3.symbolCross
       })
       const redrawRegionalModelRHPath = d3Utils.drawPath({
         svg: chart,
         className: 'rdps regionalModelRHPath',
         data: gc.rdpsRHs,
         x: d => xScale(d.date),
-        y: d => yRHScale(d.value),
-        testId: 'regional-model-rh-path'
+        y: d => yRHScale(d.value)
       })
 
       /* Draw HRDPS temp and rh lines and dots */
@@ -435,7 +426,7 @@ const TempRHGraph: React.FunctionComponent<Props> = (props: Props) => {
         .call(d3.axisRight(yRHScale).ticks(4))
       context // Temperature label
         .append('text')
-        .attr('y', 0 - chartMargin.left)
+        .attr('y', 0 - margin.left)
         .attr('x', 0 - chartHeight / 2)
         .attr('dy', '1.3em')
         .attr('dx', '0')
@@ -445,7 +436,7 @@ const TempRHGraph: React.FunctionComponent<Props> = (props: Props) => {
       context // RH label
         .append('text')
         .attr('transform', 'rotate(-270)')
-        .attr('y', 0 - chartWidth - chartMargin.left)
+        .attr('y', 0 - chartWidth - margin.left)
         .attr('x', chartHeight / 2)
         .attr('dy', '1.3em')
         .attr('class', 'yAxisLabel')
@@ -518,17 +509,17 @@ const TempRHGraph: React.FunctionComponent<Props> = (props: Props) => {
         .call(brush)
         .call(brush.move, [xScale(gc.past2Date), xScale(gc.future2Date)])
     }
-  }, [utcOffset, graphCalculations])
+  }, [utcOffset, gc])
 
   // Effect hook for adding/updating tooltip
   useEffect(() => {
-    if (svgRef.current) {
-      const svg = d3.select(svgRef.current)
+    const svgGraphElement = graphRef.current
+    if (svgGraphElement) {
+      const svg = d3.select(svgGraphElement)
       svg.select('.tooltip').remove()
       svg.select('.tooltipCursor').remove()
       svg.select('.tooltipBackground').remove()
 
-      const gc = graphCalculations
       const weatherValues = gc.weatherValues
         .map(v => {
           const value = { ...v } // create a fresh copy
@@ -569,7 +560,7 @@ const TempRHGraph: React.FunctionComponent<Props> = (props: Props) => {
 
       d3Utils.addTooltipListener({
         svg: svg.select('.chart'),
-        xScale: xScaleRef.current,
+        xScale: gc.xScale,
         width: chartWidth,
         height: chartHeight,
         data: weatherValues,
@@ -661,19 +652,19 @@ const TempRHGraph: React.FunctionComponent<Props> = (props: Props) => {
     }
 
     return () => {
-      if (svgRef.current) {
+      if (svgGraphElement) {
         // clean up the event listeners
-        const svg = d3.select(svgRef.current)
+        const svg = d3.select(svgGraphElement)
         svg.on('touchmove mousemove', null)
         svg.on('touchend mouseleave', null)
       }
     }
-  }, [graphCalculations, toggleValues])
+  }, [toggleValues, gc])
 
-  // Effect hooks for showing/hiding graphics
+  // Effect hooks for showing/hiding graphics & legend
   useEffect(() => {
-    if (svgRef.current) {
-      const svg = d3.select(svgRef.current)
+    if (graphRef.current) {
+      const svg = d3.select(graphRef.current)
       svg.selectAll('.observed').classed('hidden', !toggleValues.showObservations)
       svg.selectAll('.forecast').classed('hidden', !toggleValues.showForecasts)
       svg.selectAll('.gdps').classed('hidden', !toggleValues.showModels)
@@ -681,11 +672,31 @@ const TempRHGraph: React.FunctionComponent<Props> = (props: Props) => {
       svg.selectAll('.hrdps').classed('hidden', !toggleValues.showHighResModels)
       svg.selectAll('.rdps').classed('hidden', !toggleValues.showRegionalModels)
     }
+
+    if (legendRef.current) {
+      d3.select(legendRef.current)
+        .selectAll('*')
+        .remove()
+
+      const svg = d3
+        .select(legendRef.current)
+        .attr('viewBox', `0 0 ${graphWidth} ${legendHeight}`)
+
+      const legend = svg
+        .append('g')
+        .attr('class', 'legend')
+        .attr('transform', `translate(${margin.left}, ${margin.top})`)
+
+      const legendData = getLegendData(toggleValues)
+      const newLegendHeight = d3Utils.addLegend(legend, chartWidth, legendData)
+      svg.attr('viewBox', `0 0 ${graphWidth} ${newLegendHeight}`)
+    }
   }, [toggleValues])
 
   return (
     <div className={classes.root}>
-      <svg data-testid="temp-rh-graph" ref={svgRef} />
+      <svg data-testid="temp-rh-graph" ref={graphRef} />
+      <svg data-testid="temp-rh-legend" ref={legendRef} />
     </div>
   )
 }

@@ -290,16 +290,14 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       legendData.push({
         text: 'Observed Precip',
         shape: 'rect',
-        color: observedPrecipColor,
-        fill: null
+        color: observedPrecipColor
       })
     }
     if (toggleValues.showForecasts) {
       legendData.push({
         text: 'Forecast Precip',
         shape: 'rect',
-        color: forecastPrecipColor,
-        fill: null
+        color: forecastPrecipColor
       })
     }
     const svgElement = svgRef.current
