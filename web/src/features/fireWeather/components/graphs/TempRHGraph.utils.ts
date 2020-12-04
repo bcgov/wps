@@ -39,10 +39,10 @@ export const useGraphCalculation = ({
   return useMemo(() => {
     const datesFromAllSources: Date[] = []
     const weatherValuesByDatetime: { [k: string]: WeatherValue } = {}
-    let maxTemp = 40, minTemp = -10 // prettier-ignore
+    const allTemps: number[] = [40, -10]
 
-    const observedTempValues: { date: Date; value: number }[] = []
-    const observedRHValues: { date: Date; value: number }[] = []
+    const observedTemps: { date: Date; value: number }[] = []
+    const observedRHs: { date: Date; value: number }[] = []
     observedValues.forEach(v => {
       if (v.temperature == null && v.relative_humidity == null) {
         return
@@ -55,34 +55,26 @@ export const useGraphCalculation = ({
       if (v.temperature != null) {
         const temp = Number(v.temperature.toFixed(2))
         weatherValue.observedTemp = temp
-        observedTempValues.push({ date, value: temp })
-        if (temp > maxTemp) {
-          maxTemp = temp
-        } else if (temp < minTemp) {
-          minTemp = temp
-        }
+        observedTemps.push({ date, value: temp })
+        allTemps.push(temp)
       }
       if (v.relative_humidity != null) {
         const rh = Math.round(v.relative_humidity)
         weatherValue.observedRH = rh
-        observedRHValues.push({ date, value: rh })
+        observedRHs.push({ date, value: rh })
       }
 
       weatherValuesByDatetime[v.datetime] = weatherValue
     })
 
-    const forecastTempRHValues = forecastValues.map(v => {
+    const forecastTempRHs = forecastValues.map(v => {
       const date = new Date(v.datetime)
       datesFromAllSources.push(date)
 
       const temp = Number(v.temperature.toFixed(2))
       const rh = Math.round(v.relative_humidity)
 
-      if (temp > maxTemp) {
-        maxTemp = temp
-      } else if (temp < minTemp) {
-        minTemp = temp
-      }
+      allTemps.push(temp)
 
       const weatherValue: WeatherValue = { date, forecastTemp: temp, forecastRH: rh }
       weatherValuesByDatetime[v.datetime] = {
@@ -103,18 +95,13 @@ export const useGraphCalculation = ({
       const date = new Date(datetime)
       datesFromAllSources.push(date)
 
-      if (rest.tmp_max > maxTemp) {
-        maxTemp = rest.tmp_max
-      }
-      if (rest.tmp_min < minTemp) {
-        minTemp = rest.tmp_min
-      }
+      allTemps.push(rest.tmp_min, rest.tmp_max)
 
       return { date, ...rest }
     })
 
-    const gdpsTempValues: { date: Date; value: number }[] = []
-    const gdpsRHValues: { date: Date; value: number }[] = []
+    const gdpsTemps: { date: Date; value: number }[] = []
+    const gdpsRHs: { date: Date; value: number }[] = []
     gdpsValues.forEach(v => {
       if (v.temperature == null && v.relative_humidity == null) {
         return
@@ -127,23 +114,142 @@ export const useGraphCalculation = ({
       if (v.temperature != null) {
         const temp = Number(v.temperature.toFixed(2))
         weatherValue.gdpsTemp = temp
-        gdpsTempValues.push({ date, value: temp })
-        if (temp > maxTemp) {
-          maxTemp = temp
-        } else if (temp < minTemp) {
-          minTemp = temp
-        }
+        gdpsTemps.push({ date, value: temp })
+        allTemps.push(temp)
       }
       if (v.relative_humidity != null) {
         const rh = Math.round(v.relative_humidity)
         weatherValue.gdpsRH = rh
-        gdpsRHValues.push({ date, value: rh })
+        gdpsRHs.push({ date, value: rh })
       }
 
       weatherValuesByDatetime[v.datetime] = {
         ...weatherValuesByDatetime[v.datetime],
         ...weatherValue
       }
+    })
+
+    const gdpsTempRHSummaries = gdpsSummaries.map(summary => {
+      const { datetime, ...rest } = summary
+
+      const date = new Date(datetime)
+      datesFromAllSources.push(date)
+
+      allTemps.push(rest.tmp_tgl_2_5th, rest.tmp_tgl_2_90th)
+
+      return { date, ...rest }
+    })
+
+    const biasAdjGdpsTemps: { date: Date; value: number }[] = []
+    const biasAdjGdpsRHs: { date: Date; value: number }[] = []
+    biasAdjGdpsValues.forEach(v => {
+      if (
+        v.bias_adjusted_temperature == null &&
+        v.bias_adjusted_relative_humidity == null
+      ) {
+        return
+      }
+
+      const date = new Date(v.datetime)
+      datesFromAllSources.push(date)
+
+      const weatherValue: WeatherValue = { date, biasAdjGdpsTemp: NaN, biasAdjGdpsRH: NaN } // prettier-ignore
+      if (v.bias_adjusted_temperature != null) {
+        const temp = Number(v.bias_adjusted_temperature.toFixed(2))
+        weatherValue.biasAdjGdpsTemp = temp
+        biasAdjGdpsTemps.push({ date, value: temp })
+        allTemps.push(temp)
+      }
+      if (v.bias_adjusted_relative_humidity != null) {
+        const rh = Math.round(v.bias_adjusted_relative_humidity)
+        weatherValue.biasAdjGdpsRH = rh
+        biasAdjGdpsRHs.push({ date, value: rh })
+      }
+
+      weatherValuesByDatetime[v.datetime] = {
+        ...weatherValuesByDatetime[v.datetime],
+        ...weatherValue
+      }
+    })
+
+    const hrdpsTemps: { date: Date; value: number }[] = []
+    const hrdpsRHs: { date: Date; value: number }[] = []
+    hrdpsValues.forEach(v => {
+      if (v.temperature == null && v.relative_humidity == null) {
+        return
+      }
+
+      const date = new Date(v.datetime)
+      datesFromAllSources.push(date)
+
+      const weatherValue: WeatherValue = { date, hrdpsTemp: NaN, hrdpsRH: NaN }
+      if (v.temperature != null) {
+        const temp = Number(v.temperature.toFixed(2))
+        weatherValue.hrdpsTemp = temp
+        hrdpsTemps.push({ date, value: temp })
+        allTemps.push(temp)
+      }
+      if (v.relative_humidity != null) {
+        const rh = Math.round(v.relative_humidity)
+        weatherValue.hrdpsRH = rh
+        hrdpsRHs.push({ date, value: rh })
+      }
+
+      weatherValuesByDatetime[v.datetime] = {
+        ...weatherValuesByDatetime[v.datetime],
+        ...weatherValue
+      }
+    })
+
+    const hrdpsTempRHSummaries = hrdpsSummaries.map(summary => {
+      const { datetime, ...rest } = summary
+
+      const date = new Date(datetime)
+      datesFromAllSources.push(date)
+
+      allTemps.push(rest.tmp_tgl_2_5th, rest.tmp_tgl_2_90th)
+
+      return { date, ...rest }
+    })
+
+    const rdpsTemps: { date: Date; value: number }[] = []
+    const rdpsRHs: { date: Date; value: number }[] = []
+    rdpsValues.forEach(v => {
+      if (v.temperature == null && v.relative_humidity == null) {
+        return
+      }
+
+      const date = new Date(v.datetime)
+      datesFromAllSources.push(date)
+
+      const weatherValue: WeatherValue = { date, rdpsTemp: NaN, rdpsRH: NaN }
+      if (v.temperature != null) {
+        const temp = Number(v.temperature.toFixed(2))
+        weatherValue.rdpsTemp = temp
+        rdpsTemps.push({ date, value: temp })
+        allTemps.push(temp)
+      }
+      if (v.relative_humidity != null) {
+        const rh = Math.round(v.relative_humidity)
+        weatherValue.rdpsRH = rh
+        rdpsRHs.push({ date, value: rh })
+      }
+
+      weatherValuesByDatetime[v.datetime] = {
+        ...weatherValuesByDatetime[v.datetime],
+        ...weatherValue
+      }
+    })
+
+    const rdpsTempRHSummaries = gdpsSummaries.map(summary => {
+      const { datetime, ...rest } = summary
+
+      const date = new Date(datetime)
+      datesFromAllSources.push(date)
+
+      allTemps.push(rest.tmp_tgl_2_5th, rest.tmp_tgl_2_90th)
+
+      return { date, ...rest }
     })
 
     const weatherValues = Object.values(weatherValuesByDatetime).sort(
@@ -157,28 +263,36 @@ export const useGraphCalculation = ({
     const [minDate, maxDate] = d3.extent(datesFromAllSources)
     let d1 = minDate || past5Date
     let d2 = maxDate || future2Date
-    d1 = moment(d1)
-      .subtract(1, 'hours')
-      .toDate()
-    d2 = moment(d2)
-      .add(1, 'hours')
-      .toDate()
+    d1 = moment(d1).subtract(1, 'hours').toDate() // prettier-ignore
+    d2 = moment(d2).add(1, 'hours').toDate() // prettier-ignore
     const xDomain: [Date, Date] = [d1, d2]
 
+    const maxTemp = Math.ceil((d3.max(allTemps) as number) / 5) * 5 // nearest 5
+    const minTemp = Math.floor((d3.min(allTemps) as number) / 5) * 5 // nearest -5
+    const tempDomain = [minTemp, maxTemp]
+
     return {
+      tempDomain,
       xDomain,
-      maxTemp: Math.ceil(maxTemp / 5) * 5, // nearest 5
-      minTemp: Math.floor(minTemp / 5) * 5, // nearest -5
       currDate,
       past2Date,
       future2Date,
       weatherValues,
-      observedTempValues,
-      observedRHValues,
-      forecastTempRHValues,
+      observedTemps,
+      observedRHs,
+      forecastTempRHs,
       forecastTempRHSummaries,
-      gdpsTempValues,
-      gdpsRHValues
+      gdpsTemps,
+      gdpsRHs,
+      gdpsTempRHSummaries,
+      biasAdjGdpsTemps,
+      biasAdjGdpsRHs,
+      hrdpsTemps,
+      hrdpsRHs,
+      hrdpsTempRHSummaries,
+      rdpsTemps,
+      rdpsRHs,
+      rdpsTempRHSummaries
     }
   }, [
     observedValues,

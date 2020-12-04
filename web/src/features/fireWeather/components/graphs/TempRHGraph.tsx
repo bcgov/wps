@@ -42,11 +42,13 @@ const TempRHGraph: React.FunctionComponent<Props> = (props: Props) => {
 
   const svgRef = useRef(null)
   const graphCalculations = useGraphCalculation(props)
+
+  // Create x scale outside of useEffect
+  // so that the tooltip and sidebar can access the same reference
   const xScale = d3
     .scaleTime()
     .domain(graphCalculations.xDomain)
     .range([0, chartWidth])
-  // Use mutable ref object that doesn't cause re-render
   const xScaleRef = useRef(xScale)
 
   // Effect hook for displaying graphics
@@ -98,14 +100,71 @@ const TempRHGraph: React.FunctionComponent<Props> = (props: Props) => {
       const xScaleOriginal = xScaleRef.current.copy()
       const yTempScale = d3
         .scaleLinear()
-        .domain([gc.minTemp, gc.maxTemp])
+        .domain(gc.tempDomain)
         .range([chartHeight, 0])
       const yRHScale = d3
         .scaleLinear()
         .domain([0, 100])
         .range([chartHeight, 0])
 
-      /* Render temp and rh noon forecasts and forecast summaries */
+      /* Render GDPS temp and rh summary clouds */
+      const redrawModelSummaryTempArea = d3Utils.drawArea({
+        svg: chart,
+        className: 'gdps modelSummaryTempArea',
+        datum: gc.gdpsTempRHSummaries,
+        x: d => xScale(d.date),
+        y0: d => yTempScale(d.tmp_tgl_2_90th),
+        y1: d => yTempScale(d.tmp_tgl_2_5th),
+        testId: 'model-summary-temp-area'
+      })
+      const redrawModelSummaryRHArea = d3Utils.drawArea({
+        svg: chart,
+        className: 'gdps modelSummaryRHArea',
+        datum: gc.gdpsTempRHSummaries,
+        x: d => xScale(d.date),
+        y0: d => yRHScale(d.rh_tgl_2_90th),
+        y1: d => yRHScale(d.rh_tgl_2_5th)
+      })
+
+      /* Draw RDPS temp and rh clouds */
+      const redrawRegionalModelSummaryTempArea = d3Utils.drawArea({
+        svg: chart,
+        className: 'rdps regionalModelSummaryTempArea',
+        datum: gc.rdpsTempRHSummaries,
+        x: d => xScale(d.date),
+        y0: d => yTempScale(d.tmp_tgl_2_90th),
+        y1: d => yTempScale(d.tmp_tgl_2_5th),
+        testId: 'regional-model-summary-temp-area'
+      })
+      const redrawRegionalModelSummaryRHArea = d3Utils.drawArea({
+        svg: chart,
+        className: 'rdps regionalModelSummaryRHArea',
+        datum: gc.rdpsTempRHSummaries,
+        x: d => xScale(d.date),
+        y0: d => yRHScale(d.rh_tgl_2_90th),
+        y1: d => yRHScale(d.rh_tgl_2_5th)
+      })
+
+      /* Draw HRDPS temp and rh clouds */
+      const redrawHighResModelSummaryTempArea = d3Utils.drawArea({
+        svg: chart,
+        className: 'hrdps highResModelSummaryTempArea',
+        datum: gc.hrdpsTempRHSummaries,
+        x: d => xScale(d.date),
+        y0: d => yTempScale(d.tmp_tgl_2_90th),
+        y1: d => yTempScale(d.tmp_tgl_2_5th),
+        testId: 'high-res-model-summary-temp-area'
+      })
+      const redrawHighResModelSummaryRHArea = d3Utils.drawArea({
+        svg: chart,
+        className: 'hrdps highResModelSummaryRHArea',
+        datum: gc.hrdpsTempRHSummaries,
+        x: d => xScale(d.date),
+        y0: d => yRHScale(d.rh_tgl_2_90th),
+        y1: d => yRHScale(d.rh_tgl_2_5th)
+      })
+
+      /* Draw noon forecasts temp and rh lines and clouds */
       const redrawForecastSummaryTempLines = gc.forecastTempRHSummaries.map(summary =>
         d3Utils.drawVerticalLine({
           svg: chart,
@@ -130,7 +189,7 @@ const TempRHGraph: React.FunctionComponent<Props> = (props: Props) => {
       const redrawForecastTempDots = d3Utils.drawDots({
         svg: chart,
         className: 'forecast forecastTempDot',
-        data: gc.forecastTempRHValues,
+        data: gc.forecastTempRHs,
         cx: d => xScale(d.date),
         cy: d => yTempScale(d.temp),
         testId: 'forecast-temp-dot'
@@ -138,16 +197,168 @@ const TempRHGraph: React.FunctionComponent<Props> = (props: Props) => {
       const redrawForecastRHDots = d3Utils.drawDots({
         svg: chart,
         className: 'forecast forecastRHDot',
-        data: gc.forecastTempRHValues,
+        data: gc.forecastTempRHs,
         cx: d => xScale(d.date),
         cy: d => yRHScale(d.rh)
       })
 
-      /* Render temp and rh hourly observations */
+      /* Draw GDPS temp and rh lines and dots */
+      const redrawModelTempSymbols = d3Utils.drawSymbols({
+        svg: chart,
+        className: 'gdps modelTempSymbol',
+        data: gc.gdpsTemps,
+        x: d => xScale(d.date),
+        y: d => yTempScale(d.value),
+        size: 10,
+        symbol: d3.symbolTriangle,
+        testId: 'model-temp-symbol'
+      })
+      const redrawModelTempPath = d3Utils.drawPath({
+        svg: chart,
+        className: 'gdps modelTempPath',
+        data: gc.gdpsTemps,
+        x: d => xScale(d.date),
+        y: d => yTempScale(d.value),
+        testId: 'model-temp-path'
+      })
+      const redrawModelRHSymbols = d3Utils.drawSymbols({
+        svg: chart,
+        className: 'gdps modelRHSymbol',
+        data: gc.gdpsRHs,
+        x: d => xScale(d.date),
+        y: d => yRHScale(d.value),
+        size: 10,
+        symbol: d3.symbolTriangle,
+        testId: 'model-rh-symbol'
+      })
+      const redrawModelRHPath = d3Utils.drawPath({
+        svg: chart,
+        className: 'gdps modelRHPath',
+        data: gc.gdpsRHs,
+        x: d => xScale(d.date),
+        y: d => yRHScale(d.value),
+        testId: 'model-rh-path'
+      })
+
+      /* Draw bias adjusted GDPS temp and rh lines and dots */
+      const redrawBiasAdjModelTempSymbols = d3Utils.drawSymbols({
+        svg: chart,
+        className: 'biasAdjGdps biasAdjModelTempSymbol',
+        data: gc.biasAdjGdpsTemps,
+        x: d => xScale(d.date),
+        y: d => yTempScale(d.value),
+        size: 5,
+        symbol: d3.symbolDiamond,
+        testId: 'bias-adjusted-model-temp-symbol'
+      })
+      const redrawBiasAdjModelTempPath = d3Utils.drawPath({
+        svg: chart,
+        className: 'biasAdjGdps biasAdjModelTempPath',
+        data: gc.biasAdjGdpsTemps,
+        x: d => xScale(d.date),
+        y: d => yTempScale(d.value),
+        testId: 'bias-adjusted-model-temp-path'
+      })
+      const redrawBiasAdjModelRHSymbols = d3Utils.drawSymbols({
+        svg: chart,
+        className: 'biasAdjGdps biasAdjModelRHSymbol',
+        data: gc.biasAdjGdpsRHs,
+        x: d => xScale(d.date),
+        y: d => yRHScale(d.value),
+        size: 5,
+        symbol: d3.symbolDiamond,
+        testId: 'bias-adjusted-model-rh-symbol'
+      })
+      const redrawBiasAdjModelRHPath = d3Utils.drawPath({
+        svg: chart,
+        className: 'biasAdjGdps biasAdjModelRHPath',
+        data: gc.biasAdjGdpsRHs,
+        x: d => xScale(d.date),
+        y: d => yRHScale(d.value),
+        testId: 'bias-adjusted-model-rh-path'
+      })
+
+      /* Draw RDPS temp and rh lines and dots */
+      const redrawRegionalModelTempSymbols = d3Utils.drawSymbols({
+        svg: chart,
+        className: 'rdps regionalModelTempSymbol',
+        data: gc.rdpsTemps,
+        x: d => xScale(d.date),
+        y: d => yTempScale(d.value),
+        size: 5,
+        symbol: d3.symbolCross,
+        testId: 'regional-model-temp-symbol'
+      })
+      const redrawRegionalModelTempPath = d3Utils.drawPath({
+        svg: chart,
+        className: 'rdps regionalModelTempPath',
+        data: gc.rdpsTemps,
+        x: d => xScale(d.date),
+        y: d => yTempScale(d.value),
+        testId: 'regional-model-temp-path'
+      })
+      const redrawRegionalModelRHSymbols = d3Utils.drawSymbols({
+        svg: chart,
+        className: 'rdps regionalModelRHSymbol',
+        data: gc.rdpsRHs,
+        x: d => xScale(d.date),
+        y: d => yRHScale(d.value),
+        size: 5,
+        symbol: d3.symbolCross,
+        testId: 'regional-model-rh-symbol'
+      })
+      const redrawRegionalModelRHPath = d3Utils.drawPath({
+        svg: chart,
+        className: 'rdps regionalModelRHPath',
+        data: gc.rdpsRHs,
+        x: d => xScale(d.date),
+        y: d => yRHScale(d.value),
+        testId: 'regional-model-rh-path'
+      })
+
+      /* Draw HRDPS temp and rh lines and dots */
+      const redrawHighResModelTempSymbols = d3Utils.drawSymbols({
+        svg: chart,
+        className: 'hrdps highResModelTempSymbol',
+        data: gc.hrdpsTemps,
+        x: d => xScale(d.date),
+        y: d => yTempScale(d.value),
+        size: 7,
+        symbol: d3.symbolCircle,
+        testId: 'high-res-model-temp-symbol'
+      })
+      const redrawHighResModelTempPath = d3Utils.drawPath({
+        svg: chart,
+        className: 'hrdps highResModelTempPath',
+        data: gc.hrdpsTemps,
+        x: d => xScale(d.date),
+        y: d => yTempScale(d.value),
+        testId: 'high-res-model-temp-path'
+      })
+      const redrawHighResModelRHSymbols = d3Utils.drawSymbols({
+        svg: chart,
+        className: 'hrdps highResModelRHSymbol',
+        data: gc.hrdpsRHs,
+        x: d => xScale(d.date),
+        y: d => yRHScale(d.value),
+        size: 7,
+        symbol: d3.symbolCircle,
+        testId: 'high-res-model-rh-symbol'
+      })
+      const redrawHighResModelRHPath = d3Utils.drawPath({
+        svg: chart,
+        className: 'hrdps highResModelRHPath',
+        data: gc.hrdpsRHs,
+        x: d => xScale(d.date),
+        y: d => yRHScale(d.value),
+        testId: 'high-res-model-rh-path'
+      })
+
+      /* Draw temp and rh hourly observation lines and dots */
       const redrawObservedTempSymbols = d3Utils.drawSymbols({
         svg: chart,
         className: 'observed observedTempSymbol',
-        data: gc.observedTempValues,
+        data: gc.observedTemps,
         x: d => xScale(d.date),
         y: d => yTempScale(d.value),
         symbol: d3.symbolSquare,
@@ -157,7 +368,7 @@ const TempRHGraph: React.FunctionComponent<Props> = (props: Props) => {
       const redrawObservedTempPath = d3Utils.drawPath({
         svg: chart,
         className: 'observed observedTempPath',
-        data: gc.observedTempValues,
+        data: gc.observedTemps,
         x: d => xScale(d.date),
         y: d => yTempScale(d.value),
         strokeWidth: 1.5,
@@ -166,7 +377,7 @@ const TempRHGraph: React.FunctionComponent<Props> = (props: Props) => {
       const redrawObservedRHSymbols = d3Utils.drawSymbols({
         svg: chart,
         className: 'observed observedRHSymbol',
-        data: gc.observedRHValues,
+        data: gc.observedRHs,
         x: d => xScale(d.date),
         y: d => yRHScale(d.value),
         symbol: d3.symbolSquare,
@@ -176,7 +387,7 @@ const TempRHGraph: React.FunctionComponent<Props> = (props: Props) => {
       const redrawObservedRHPath = d3Utils.drawPath({
         svg: chart,
         className: 'observed observedRHPath',
-        data: gc.observedRHValues,
+        data: gc.observedRHs,
         x: d => xScale(d.date),
         y: d => yRHScale(d.value),
         strokeWidth: 1.5,
@@ -260,28 +471,28 @@ const TempRHGraph: React.FunctionComponent<Props> = (props: Props) => {
           redrawForecastRHDots?.(d => xScale(d.date))
           redrawForecastSummaryTempLines.forEach(redraw => redraw(xScale))
           redrawForecastSummaryRHLines.forEach(redraw => redraw(xScale))
-          // redrawModelTempSymbols?.(d => xScale(d.date))
-          // redrawModelRHSymbols?.(d => xScale(d.date))
-          // redrawModelTempPath(d => xScale(d.date))
-          // redrawModelRHPath(d => xScale(d.date))
-          // redrawModelSummaryTempArea?.(d => xScale(d.date))
-          // redrawModelSummaryRHArea?.(d => xScale(d.date))
-          // redrawHighResModelTempSymbols?.(d => xScale(d.date))
-          // redrawHighResModelRHSymbols?.(d => xScale(d.date))
-          // redrawHighResModelTempPath(d => xScale(d.date))
-          // redrawHighResModelRHPath(d => xScale(d.date))
-          // redrawHighResModelSummaryTempArea?.(d => xScale(d.date))
-          // redrawHighResModelSummaryRHArea?.(d => xScale(d.date))
-          // redrawBiasAdjModelTempSymbols?.(d => xScale(d.date))
-          // redrawBiasAdjModelRHSymbols?.(d => xScale(d.date))
-          // redrawBiasAdjModelTempPath(d => xScale(d.date))
-          // redrawBiasAdjModelRHPath(d => xScale(d.date))
-          // redrawRegionalModelTempSymbols?.(d => xScale(d.date))
-          // redrawRegionalModelRHSymbols?.(d => xScale(d.date))
-          // redrawRegionalModelTempPath(d => xScale(d.date))
-          // redrawRegionalModelRHPath(d => xScale(d.date))
-          // redrawRegionalModelSummaryTempArea?.(d => xScale(d.date))
-          // redrawRegionalModelSummaryRHArea?.(d => xScale(d.date))
+          redrawModelTempSymbols?.(d => xScale(d.date))
+          redrawModelRHSymbols?.(d => xScale(d.date))
+          redrawModelTempPath(d => xScale(d.date))
+          redrawModelRHPath(d => xScale(d.date))
+          redrawModelSummaryTempArea?.(d => xScale(d.date))
+          redrawModelSummaryRHArea?.(d => xScale(d.date))
+          redrawHighResModelTempSymbols?.(d => xScale(d.date))
+          redrawHighResModelRHSymbols?.(d => xScale(d.date))
+          redrawHighResModelTempPath(d => xScale(d.date))
+          redrawHighResModelRHPath(d => xScale(d.date))
+          redrawHighResModelSummaryTempArea?.(d => xScale(d.date))
+          redrawHighResModelSummaryRHArea?.(d => xScale(d.date))
+          redrawBiasAdjModelTempSymbols?.(d => xScale(d.date))
+          redrawBiasAdjModelRHSymbols?.(d => xScale(d.date))
+          redrawBiasAdjModelTempPath(d => xScale(d.date))
+          redrawBiasAdjModelRHPath(d => xScale(d.date))
+          redrawRegionalModelTempSymbols?.(d => xScale(d.date))
+          redrawRegionalModelRHSymbols?.(d => xScale(d.date))
+          redrawRegionalModelTempPath(d => xScale(d.date))
+          redrawRegionalModelRHPath(d => xScale(d.date))
+          redrawRegionalModelSummaryTempArea?.(d => xScale(d.date))
+          redrawRegionalModelSummaryRHArea?.(d => xScale(d.date))
           redrawCurrLine(xScale)
           redrawCurrLineText(xScale)
         }
@@ -318,46 +529,43 @@ const TempRHGraph: React.FunctionComponent<Props> = (props: Props) => {
       svg.select('.tooltipBackground').remove()
 
       const gc = graphCalculations
-      const shouldShowTooltip = Object.values(toggleValues).includes(true)
-      const weatherValues = shouldShowTooltip
-        ? gc.weatherValues
-            .map(v => {
-              const value = { ...v } // create a fresh copy
+      const weatherValues = gc.weatherValues
+        .map(v => {
+          const value = { ...v } // create a fresh copy
 
-              if (!toggleValues.showObservations) {
-                delete value.observedTemp
-                delete value.observedRH
-              }
-              if (!toggleValues.showForecasts) {
-                delete value.forecastTemp
-                delete value.forecastRH
-              }
-              if (!toggleValues.showModels) {
-                delete value.gdpsTemp
-                delete value.gdpsRH
-              }
-              if (!toggleValues.showBiasAdjModels) {
-                delete value.biasAdjGdpsTemp
-                delete value.biasAdjGdpsRH
-              }
-              if (!toggleValues.showHighResModels) {
-                delete value.hrdpsTemp
-                delete value.hrdpsRH
-              }
-              if (!toggleValues.showRegionalModels) {
-                delete value.rdpsTemp
-                delete value.rdpsRH
-              }
+          if (!toggleValues.showObservations) {
+            delete value.observedTemp
+            delete value.observedRH
+          }
+          if (!toggleValues.showForecasts) {
+            delete value.forecastTemp
+            delete value.forecastRH
+          }
+          if (!toggleValues.showModels) {
+            delete value.gdpsTemp
+            delete value.gdpsRH
+          }
+          if (!toggleValues.showBiasAdjModels) {
+            delete value.biasAdjGdpsTemp
+            delete value.biasAdjGdpsRH
+          }
+          if (!toggleValues.showHighResModels) {
+            delete value.hrdpsTemp
+            delete value.hrdpsRH
+          }
+          if (!toggleValues.showRegionalModels) {
+            delete value.rdpsTemp
+            delete value.rdpsRH
+          }
 
-              const noDataToPresent = Object.keys(value).length === 1 // only date present
-              if (noDataToPresent) {
-                return undefined
-              }
+          const noDataToPresent = Object.keys(value).length === 1 // only date present
+          if (noDataToPresent) {
+            return undefined
+          }
 
-              return value
-            })
-            .filter((v): v is WeatherValue => Boolean(v))
-        : []
+          return value
+        })
+        .filter((v): v is WeatherValue => Boolean(v))
 
       d3Utils.addTooltipListener({
         svg: svg.select('.chart'),
@@ -468,6 +676,10 @@ const TempRHGraph: React.FunctionComponent<Props> = (props: Props) => {
       const svg = d3.select(svgRef.current)
       svg.selectAll('.observed').classed('hidden', !toggleValues.showObservations)
       svg.selectAll('.forecast').classed('hidden', !toggleValues.showForecasts)
+      svg.selectAll('.gdps').classed('hidden', !toggleValues.showModels)
+      svg.selectAll('.biasAdjGdps').classed('hidden', !toggleValues.showBiasAdjModels)
+      svg.selectAll('.hrdps').classed('hidden', !toggleValues.showHighResModels)
+      svg.selectAll('.rdps').classed('hidden', !toggleValues.showRegionalModels)
     }
   }, [toggleValues])
 
