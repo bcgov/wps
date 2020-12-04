@@ -2,7 +2,7 @@
 """
 import logging
 import datetime
-from typing import List
+from typing import List, Union
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from app.db.models import (
@@ -197,17 +197,14 @@ def get_predictions_from_coordinates(session: Session, coordinates: List, model:
     return query
 
 
-def get_historic_station_model_predictions(
+def get_station_model_predictions_no_order(
         session: Session,
         station_codes: List,
         model: str,
         start_date: str,
-        end_date: str) -> List:
-    """ Fetches the model predictions that were most recently issued before the prediction_timestamp.
-    Used to compare the most recent model predictions against forecasts and actuals for the same
-    weather date and weather station.
-    Only fetches WeatherStationModelPredictions for prediction_timestamps in the date range of
-    start_date - end_date (inclusive).
+        end_date: str) -> List[
+            Union[WeatherStationModelPrediction, PredictionModelRunTimestamp, PredictionModel]]:
+    """ Fetch model predictions for given stations within given time range with no order applied.
     """
     query = session.query(WeatherStationModelPrediction, PredictionModelRunTimestamp, PredictionModel).\
         filter(WeatherStationModelPrediction.station_code.in_(station_codes)).\
@@ -216,11 +213,47 @@ def get_historic_station_model_predictions(
         filter(PredictionModelRunTimestamp.id ==
                WeatherStationModelPrediction.prediction_model_run_timestamp_id).\
         filter(PredictionModelRunTimestamp.prediction_model_id == PredictionModel.id,
-               PredictionModel.abbreviation == model).\
+               PredictionModel.abbreviation == model)
+    return query
+
+
+def get_station_model_predictions_order_by_prediction_timestamp(
+        session: Session,
+        station_codes: List,
+        model: str,
+        start_date: str,
+        end_date: str) -> List[
+            Union[WeatherStationModelPrediction, PredictionModelRunTimestamp, PredictionModel]]:
+    """ Fetch model predictions for given stations within given time range ordered by station code
+    and prediction timestamp.
+
+    This is useful if you're interested in seeing all the different predictions regardles of
+    model run.
+    """
+    query = get_station_model_predictions_no_order(session, station_codes, model, start_date, end_date)
+    query = query.\
+        order_by(WeatherStationModelPrediction.station_code).\
+        order_by(WeatherStationModelPrediction.prediction_timestamp)
+    return query
+
+
+def get_station_model_predictions(
+        session: Session,
+        station_codes: List,
+        model: str,
+        start_date: str,
+        end_date: str) -> List[Union[WeatherStationModelPrediction, PredictionModelRunTimestamp, PredictionModel]]:
+    """ Fetches the model predictions that were most recently issued before the prediction_timestamp.
+    Used to compare the most recent model predictions against forecasts and actuals for the same
+    weather date and weather station.
+    Only fetches WeatherStationModelPredictions for prediction_timestamps in the date range of
+    start_date - end_date (inclusive).
+    """
+    query = get_station_model_predictions_no_order(session, station_codes, model, start_date, end_date)
+    query = query.\
         order_by(WeatherStationModelPrediction.station_code).\
         order_by(WeatherStationModelPrediction.prediction_timestamp).\
         order_by(PredictionModelRunTimestamp.prediction_run_timestamp.asc())
-
     return query
 
 

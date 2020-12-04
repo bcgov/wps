@@ -180,7 +180,10 @@ def _fetch_model_predictions_by_stations(
     return predictions
 
 
-async def _fetch_model_predictions_by_station_codes(model: ModelEnum, projection: ProjectionEnum, station_codes: List[int]):
+async def _fetch_model_predictions_by_station_codes(
+        model: ModelEnum,
+        projection: ProjectionEnum,
+        station_codes: List[int]):
     """ Fetch predictions from database.
     """
     # Using the list of station codes, fetch the stations:
@@ -210,7 +213,7 @@ async def fetch_model_run_predictions_by_station_code(
     five_days_ago = app.time_utils.get_utc_now() - datetime.timedelta(days=5)
     # send the query (ordered by prediction date.)
     session = app.db.database.get_read_session()
-    historic_predictions = app.db.crud.weather_models.get_historic_station_model_predictions(
+    historic_predictions = app.db.crud.weather_models.get_station_model_predictions(
         session, station_codes, model, five_days_ago, end_date)
 
     # Helper dictionary.

@@ -2,6 +2,7 @@
 
 See README.md for details on how to run.
 """
+import cProfile
 import datetime
 import logging
 from fastapi import FastAPI, Depends, Response
@@ -116,7 +117,7 @@ async def get_health():
           response_model=schemas.weather_models.WeatherModelPredictionResponse)
 async def get_model_predictions(
         model: ModelEnum, request: schemas.stations.StationCodeList, _: bool = Depends(authenticate)):
-    """ Returns 10 day noon prediction based on the global deterministic prediction system (GDPS)
+    """ Returns 10 day noon prediction based on the specified model,
     for the specified set of weather stations. """
     try:
         logger.info('/models/%s/predictions/', model.name)
@@ -136,11 +137,13 @@ async def get_model_predictions(
 @api.post('/models/{model}/predictions/summaries/',
           response_model=schemas.weather_models.WeatherModelPredictionSummaryResponse)
 async def get_model_prediction_summaries(
-        model: ModelEnum, request: schemas.stations.StationCodeList, _: bool = Depends(authenticate)):
+        model: ModelEnum, request: schemas.stations.StationCodeList):
     """ Returns a summary of predictions for a given model. """
     try:
         logger.info('/models/%s/predictions/summaries/', model.name)
-        summaries = await fetch_model_prediction_summaries(model, request.stations)
+        with cProfile.Profile() as pr:
+            summaries = await fetch_model_prediction_summaries(model, request.stations)
+            pr.dump_stats('summaries.profile')
         return schemas.weather_models.WeatherModelPredictionSummaryResponse(summaries=summaries)
     except Exception as exception:
         logger.critical(exception, exc_info=True)
