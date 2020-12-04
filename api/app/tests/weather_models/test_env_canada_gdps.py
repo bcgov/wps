@@ -59,10 +59,12 @@ def mock_get_model_run_predictions_for_grid(monkeypatch):
             ModelRunGridSubsetPrediction(
                 tmp_tgl_2=[2, 3, 4, 5],
                 rh_tgl_2=[10, 20, 30, 40],
+                apcp_sfc_0=[2, 4, 3, 6],
                 prediction_timestamp=datetime(2020, 10, 10, 18)),
             ModelRunGridSubsetPrediction(
                 tmp_tgl_2=[1, 2, 3, 4],
                 rh_tgl_2=[20, 30, 40, 50],
+                apcp_sfc_0=[3, 6, 3, 4],
                 prediction_timestamp=datetime(2020, 10, 10, 21))
         ]
         return result

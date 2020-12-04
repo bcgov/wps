@@ -48,6 +48,7 @@ class WeatherModelPredictionValues(BaseModel):
     wind_speed: float = None
     wind_direction: float = None
     delta_precipitation: float = None
+    total_precipitation: float = None
     cloud_cover: float = None
     sea_level_pressure: float = None
     wind_speed_40m: float = None

@@ -80,6 +80,7 @@ class NoonInterpolator:
             # for each key value, we have a y-axis
             y_axis = {}
             for key, value in self.prev_values.items():
+                print(key, value)
                 y_axis[key] = [value, self.current_values[key]]
             for key, value in y_axis.items():
                 function = interp1d(x_axis, value, kind='linear')

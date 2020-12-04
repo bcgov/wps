@@ -6,7 +6,7 @@ from app.db.models import ModelRunGridSubsetPrediction
 
 
 # Key values on ModelRunGridSubsetPrediction.
-MODEL_VALUE_KEYS = ('tmp_tgl_2', 'rh_tgl_2')
+MODEL_VALUE_KEYS = ('tmp_tgl_2', 'rh_tgl_2', 'apcp_sfc_0')
 
 
 class ModelEnum(str, Enum):
@@ -70,4 +70,14 @@ def construct_interpolated_noon_prediction(prediction_a: ModelRunGridSubsetPredi
             timestamp_a, timestamp_b, getattr(prediction_a, key),
             getattr(prediction_b, key), noon_timestamp)
         setattr(noon_prediction, key, value)
+    delta_precip = calculate_interpolated_delta_precipitation(prediction_a, noon_prediction)
+    setattr(noon_prediction, 'delta_precip', delta_precip)
     return noon_prediction
+
+
+def calculate_interpolated_delta_precipitation(prev_prediction: ModelRunGridSubsetPrediction,
+                                               noon_prediction: ModelRunGridSubsetPrediction):
+    """ Calculate the noon prediction's delta_precip value based on the difference between
+    the noon prediction apcp_sfc_0 and the previous prediction's apcp_sfc_0
+    """
+    return getattr(noon_prediction, 'apcp_sfc_0') - getattr(prev_prediction, 'apcp_sfc_0')
