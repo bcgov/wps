@@ -223,21 +223,22 @@ def get_station_model_predictions_order_by_prediction_timestamp(
         model: str,
         start_date: str,
         end_date: str) -> List[
-            Union[WeatherStationModelPrediction, PredictionModelRunTimestamp, PredictionModel]]:
+            Union[WeatherStationModelPrediction, PredictionModel]]:
     """ Fetch model predictions for given stations within given time range ordered by station code
     and prediction timestamp.
 
     This is useful if you're interested in seeing all the different predictions regardles of
     model run.
     """
-    query = session.query(WeatherStationModelPrediction, PredictionModelRunTimestamp, PredictionModel).\
+    query = session.query(WeatherStationModelPrediction, PredictionModel).\
+        join(PredictionModelRunTimestamp, PredictionModelRunTimestamp.id ==
+             WeatherStationModelPrediction.prediction_model_run_timestamp_id).\
+        join(PredictionModel, PredictionModel.id ==
+             PredictionModelRunTimestamp.prediction_model_id).\
         filter(WeatherStationModelPrediction.station_code.in_(station_codes)).\
         filter(WeatherStationModelPrediction.prediction_timestamp >= start_date).\
         filter(WeatherStationModelPrediction.prediction_timestamp <= end_date).\
-        filter(PredictionModelRunTimestamp.id ==
-               WeatherStationModelPrediction.prediction_model_run_timestamp_id).\
-        filter(PredictionModelRunTimestamp.prediction_model_id == PredictionModel.id,
-               PredictionModel.abbreviation == model).\
+        filter(PredictionModel.abbreviation == model).\
         order_by(WeatherStationModelPrediction.station_code).\
         order_by(WeatherStationModelPrediction.prediction_timestamp)
     return query

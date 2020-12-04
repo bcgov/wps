@@ -22,9 +22,9 @@ logger = logging.getLogger(__name__)
 KEYS = ('tmp_tgl_2', 'rh_tgl_2')
 
 
-def _build_query_to_get_predictions_new(
+def _build_query_to_get_predictions(
         station_codes: List[int],
-        model: ModelEnum) -> List[Union[WeatherStationModelPrediction, PredictionModelRunTimestamp, PredictionModel]]:
+        model: ModelEnum) -> List[Union[WeatherStationModelPrediction, PredictionModel]]:
     """ Build a query to get the predictions for a given list of weather stations for a specified
     model.
     """
@@ -111,10 +111,10 @@ class ModelPredictionSummaryBuilder():
             app.stations.get_stations_by_codes(station_codes)}
 
         # Build database query
-        new_query = _build_query_to_get_predictions_new(station_codes, model)
+        new_query = _build_query_to_get_predictions(station_codes, model)
 
         # Iterate through the result of our query.
-        for prediction, model_run, prediction_model in new_query:
+        for prediction, prediction_model in new_query:
             # Check for station change - when the station changes, we need to process accumulated values and
             # create new responses for the new station.
             if prediction.station_code != self.prev_station:
