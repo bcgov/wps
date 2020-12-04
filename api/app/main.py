@@ -143,7 +143,11 @@ async def get_model_prediction_summaries(
         logger.info('/models/%s/predictions/summaries/', model.name)
         with cProfile.Profile() as pr:
             summaries = await fetch_model_prediction_summaries(model, request.stations)
-            pr.dump_stats('summaries.profile')
+            try:
+                pr.dump_stats('summaries.profile')
+            except:
+                logger.warn('could not create profile file')
+
         return schemas.weather_models.WeatherModelPredictionSummaryResponse(summaries=summaries)
     except Exception as exception:
         logger.critical(exception, exc_info=True)
