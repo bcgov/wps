@@ -115,13 +115,17 @@ class ModelPredictionSummaryBuilder():
 
         # Iterate through the result of our query.
         for prediction, prediction_model in new_query:
-            # Check for station change - when the station changes, we need to process accumulated values and
-            # create new responses for the new station.
             if prediction.station_code != self.prev_station:
+                # when the station changes, we need to process accumulated values and
+                # create new responses for the new station.
+                first_station = self.prev_station is None
+                if not first_station:
+                    # Before moving on, we need to finish calculating the values for the previous station.
+                    self.calculate_summaries(prediction.prediction_timestamp)
                 self.handle_new_station(prediction, prediction_model)
-
-            # Check time change - when the time changes, we need to process the accumulated values:
-            if self.prev_time != prediction.prediction_timestamp:
+                # Set prev_time (so that we don't trigger calculate_summaries)
+                self.prev_time = prediction.prediction_timestamp
+            elif self.prev_time != prediction.prediction_timestamp:
                 # The timestamp has changed, process the accumulated values:
                 self.calculate_summaries(prediction.prediction_timestamp)
 
