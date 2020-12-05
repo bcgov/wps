@@ -33,7 +33,7 @@ export interface Props {
 const margin = { top: 10, right: 40, bottom: 20, left: 40 }
 const graphWidth = 600
 const graphHeight = 300
-const legendHeight = 50
+const legendHeight = 15
 const chartWidth = graphWidth - margin.left - margin.right
 const chartHeight = graphHeight - margin.top - margin.bottom - 50
 

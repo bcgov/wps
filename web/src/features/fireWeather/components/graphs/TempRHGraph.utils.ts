@@ -27,6 +27,7 @@ export interface WeatherValue {
  * A custom hook to process the weather data and memoize the output
  * which will be used to draw graphics on the graph.
  */
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const useMemoGraphCalculation = (props: Props, chartWidth: number) => {
   const {
     observedValues,
@@ -315,7 +316,7 @@ export const useMemoGraphCalculation = (props: Props, chartWidth: number) => {
   )
 }
 
-export const getLegendData = (toggleValues: ToggleValues) => {
+export const getLegendData = (toggleValues: ToggleValues): Legend[] => {
   const legendData: Legend[] = []
 
   if (toggleValues.showObservations) {

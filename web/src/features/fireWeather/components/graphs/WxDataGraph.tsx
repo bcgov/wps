@@ -41,13 +41,11 @@ const WxDataGraph = ({
   const classes = useStyles()
 
   const noObservations = observedValues.length === 0
-  const noModels = allModelValues.length === 0 && modelSummaries.length === 0
-  const noForecasts = allForecasts.length === 0 && forecastSummaries.length === 0
+  const noModels = allModelValues.length === 0
+  const noForecasts = allForecasts.length === 0
   const noBiasAdjModels = allModelValues.length === 0
-  const noHighResModels =
-    allHighResModelValues.length === 0 && highResModelSummaries.length === 0
-  const noRegionalModels =
-    allRegionalModelValues.length === 0 && regionalModelSummaries.length === 0
+  const noHighResModels = allHighResModelValues.length === 0
+  const noRegionalModels = allRegionalModelValues.length === 0
 
   const [toggleValues, setToggleValues] = useGraphToggles({
     showObservations: !noObservations,
