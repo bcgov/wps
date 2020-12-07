@@ -1,4 +1,4 @@
 # 10017: Cross-Domain JavaScript Source File Inclusion
 # We intentionally load keycloak from our SSO provider to ensure we always have the correct version.
-10017   OUTOFSCOPE  https://dev.oidc.gov.bc.ca/auth/js/keycloak.js
-10017   OUTOFSCOPE  https://oidc.gov.bc.ca/auth/js/keycloak.js
+10017	OUTOFSCOPE	https://dev.oidc.gov.bc.ca/auth/js/keycloak.js
+10017	OUTOFSCOPE	https://oidc.gov.bc.ca/auth/js/keycloak.js
