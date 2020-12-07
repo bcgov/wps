@@ -19,6 +19,7 @@ def get_actuals_left_outer_join_with_predictions(*args):  # pylint: disable=unus
             ModelRunGridSubsetPrediction(
             tmp_tgl_2=[2, 3, 4, 5],
             rh_tgl_2=[10, 20, 30, 40],
+            apcp_sfc_0=[2, 4, 3, 6],
             prediction_timestamp=datetime(2020, 10, 10, 18))],
         [HourlyActual(weather_date=datetime(2020, 10, 10, 19)), None],
         [HourlyActual(weather_date=datetime(2020, 10, 10, 20),
@@ -35,6 +36,7 @@ def get_actuals_left_outer_join_with_predictions(*args):  # pylint: disable=unus
             ModelRunGridSubsetPrediction(
             tmp_tgl_2=[1, 2, 3, 4],
             rh_tgl_2=[20, 30, 40, 50],
+            apcp_sfc_0=[3, 6, 3, 4],
             prediction_timestamp=datetime(2020, 10, 10, 21))],
         # day 2
         [HourlyActual(
@@ -46,6 +48,7 @@ def get_actuals_left_outer_join_with_predictions(*args):  # pylint: disable=unus
             ModelRunGridSubsetPrediction(
             tmp_tgl_2=[2, 3, 4, 5],
             rh_tgl_2=[10, 20, 30, 40],
+            apcp_sfc_0=[2, 4, 3, 6],
             prediction_timestamp=datetime(2020, 10, 11, 18))],
         [HourlyActual(weather_date=datetime(2020, 10, 11, 19)), None],
         [HourlyActual(weather_date=datetime(2020, 10, 11, 20),
@@ -62,6 +65,7 @@ def get_actuals_left_outer_join_with_predictions(*args):  # pylint: disable=unus
             ModelRunGridSubsetPrediction(
             tmp_tgl_2=[1, 2, 3, 4],
             rh_tgl_2=[20, 30, 40, 50],
+            apcp_sfc_0=[3, 6, 3, 4],
             prediction_timestamp=datetime(2020, 10, 11, 21))]
     ]
     return result
