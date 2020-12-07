@@ -5,6 +5,7 @@ import datetime
 from typing import List, Union
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
+from app.weather_models import ModelEnum
 from app.db.models import (
     ProcessedModelRunUrl, PredictionModel, PredictionModelRunTimestamp, PredictionModelGridSubset,
     ModelRunGridSubsetPrediction, WeatherStationModelPrediction)
@@ -197,30 +198,10 @@ def get_predictions_from_coordinates(session: Session, coordinates: List, model:
     return query
 
 
-def get_station_model_predictions_no_order(
-        session: Session,
-        station_codes: List,
-        model: str,
-        start_date: str,
-        end_date: str) -> List[
-            Union[WeatherStationModelPrediction, PredictionModelRunTimestamp, PredictionModel]]:
-    """ Fetch model predictions for given stations within given time range with no order applied.
-    """
-    query = session.query(WeatherStationModelPrediction, PredictionModelRunTimestamp, PredictionModel).\
-        filter(WeatherStationModelPrediction.station_code.in_(station_codes)).\
-        filter(WeatherStationModelPrediction.prediction_timestamp >= start_date).\
-        filter(WeatherStationModelPrediction.prediction_timestamp <= end_date).\
-        filter(PredictionModelRunTimestamp.id ==
-               WeatherStationModelPrediction.prediction_model_run_timestamp_id).\
-        filter(PredictionModelRunTimestamp.prediction_model_id == PredictionModel.id,
-               PredictionModel.abbreviation == model)
-    return query
-
-
 def get_station_model_predictions_order_by_prediction_timestamp(
         session: Session,
         station_codes: List,
-        model: str,
+        model: ModelEnum,
         start_date: str,
         end_date: str) -> List[
             Union[WeatherStationModelPrediction, PredictionModel]]:
@@ -257,8 +238,14 @@ def get_station_model_predictions(
     Only fetches WeatherStationModelPredictions for prediction_timestamps in the date range of
     start_date - end_date (inclusive).
     """
-    query = get_station_model_predictions_no_order(session, station_codes, model, start_date, end_date)
-    query = query.\
+    query = session.query(WeatherStationModelPrediction, PredictionModelRunTimestamp, PredictionModel).\
+        filter(WeatherStationModelPrediction.station_code.in_(station_codes)).\
+        filter(WeatherStationModelPrediction.prediction_timestamp >= start_date).\
+        filter(WeatherStationModelPrediction.prediction_timestamp <= end_date).\
+        filter(PredictionModelRunTimestamp.id ==
+               WeatherStationModelPrediction.prediction_model_run_timestamp_id).\
+        filter(PredictionModelRunTimestamp.prediction_model_id == PredictionModel.id,
+               PredictionModel.abbreviation == model).\
         order_by(WeatherStationModelPrediction.station_code).\
         order_by(WeatherStationModelPrediction.prediction_timestamp).\
         order_by(PredictionModelRunTimestamp.prediction_run_timestamp.asc())

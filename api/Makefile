@@ -1,3 +1,11 @@
+# If the VIRTUAL_ENV is specified, we can assume we're in a poetry shell, otherwise
+# wee need to execute "poetry run"
+ifdef VIRTUAL_ENV
+POETRY_RUN=
+else
+POETRY_RUN=poetry run
+endif
+
 define run-test
 	# function to run tests
 	# useful params for pytest:
@@ -55,28 +63,17 @@ init-mac:
 
 test:
 	# Run tests in virtual environment.
-	${call run-test,poetry run}
+	${call run-test,$(POETRY_RUN)}
 
 test-verbose:
-	${call run-test-verbose,poetry run}
-
-test-raw:
-	# Assumes you've run 'poetry shell', or have installed all dependancies.
-	${call run-test}
+	${call run-test-verbose,$(POETRY_RUN)}
 
 test-coverage:
-	${call run-test-coverage,poetry run}	
-
-test-coverage-raw:
-	# Assumes you've run 'poetry shell', or have installed all dependancies.
-	${call run-test-coverage}	
+	${call run-test-coverage,$(POETRY_RUN)}	
 
 lint:
 	# Run lint in virtual environment.
-	${call run-lint,poetry run}
-
-lint-raw:
-	${call run-lint}
+	${call run-lint, $(POETRY_RUN)}
 
 run:
 	# Run the application in the virtual environment (after linting and testing).
@@ -86,11 +83,8 @@ run:
 	${call run-api,poetry run}
 
 run-fast:
-	${call run-api,poetry run}
+	${call run-api,$(POETRY_RUN)}
 
-run-raw:
-	# Assumes you've run 'poetry shell', or have installed all dependancies.
-	${call run-api}
 
 run-env-canada-raw:
 	POSTGRES_HOST=localhost python -m app.weather_models.env_canada GDPS

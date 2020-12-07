@@ -1,0 +1,198 @@
+[
+   [
+      {
+         "module": "app.db.models.weather_models",
+         "class": "WeatherStationModelPrediction",
+         "data": {
+            "station_code": 322,
+            "create_date": "2020-11-24T05:23:40.169285+00:00",
+            "rh_tgl_2": 30,
+            "tmp_tgl_2": 10,
+            "prediction_model_run_timestamp_id": 1036,
+            "id": 7945375,
+            "update_date": "2020-11-24T05:43:51.249445+00:00",
+            "bias_adjusted_rh": 92.92890855712365,
+            "bias_adjusted_temperature": -3.0329715514371802,
+            "prediction_timestamp": "2020-07-22T18:00:00+00:00"
+         }
+      },
+      {
+         "module": "app.db.models.weather_models",
+         "class": "PredictionModel",
+         "data": {
+            "projection": "latlon.15x.15",
+            "abbreviation": "GDPS",
+            "name": "Global Deterministic Prediction System",
+            "id": 1
+         }
+      }
+   ],
+   [
+      {
+         "module": "app.db.models.weather_models",
+         "class": "WeatherStationModelPrediction",
+         "data": {
+            "station_code": 322,
+            "create_date": "2020-11-24T05:23:40.169285+00:00",
+            "rh_tgl_2": 40,
+            "tmp_tgl_2": 15,
+            "prediction_model_run_timestamp_id": 1036,
+            "id": 7945375,
+            "update_date": "2020-11-24T05:43:51.249445+00:00",
+            "bias_adjusted_rh": 92.92890855712365,
+            "bias_adjusted_temperature": -3.0329715514371802,
+            "prediction_timestamp": "2020-07-22T18:00:00+00:00"
+         }
+      },
+      {
+         "module": "app.db.models.weather_models",
+         "class": "PredictionModel",
+         "data": {
+            "projection": "latlon.15x.15",
+            "abbreviation": "GDPS",
+            "name": "Global Deterministic Prediction System",
+            "id": 1
+         }
+      }
+   ],
+   [
+      {
+         "module": "app.db.models.weather_models",
+         "class": "WeatherStationModelPrediction",
+         "data": {
+            "station_code": 322,
+            "create_date": "2020-11-24T05:23:40.169285+00:00",
+            "rh_tgl_2": 50,
+            "tmp_tgl_2": 5,
+            "prediction_model_run_timestamp_id": 1036,
+            "id": 7945375,
+            "update_date": "2020-11-24T05:43:51.249445+00:00",
+            "bias_adjusted_rh": 92.92890855712365,
+            "bias_adjusted_temperature": -3.0329715514371802,
+            "prediction_timestamp": "2020-07-22T18:00:00+00:00"
+         }
+      },
+      {
+         "module": "app.db.models.weather_models",
+         "class": "PredictionModel",
+         "data": {
+            "projection": "latlon.15x.15",
+            "abbreviation": "GDPS",
+            "name": "Global Deterministic Prediction System",
+            "id": 1
+         }
+      }
+   ],
+   [
+      {
+         "module": "app.db.models.weather_models",
+         "class": "WeatherStationModelPrediction",
+         "data": {
+            "station_code": 322,
+            "create_date": "2020-11-24T05:23:40.169285+00:00",
+            "rh_tgl_2": 20,
+            "tmp_tgl_2": 9,
+            "prediction_model_run_timestamp_id": 1036,
+            "id": 7945375,
+            "update_date": "2020-11-24T05:43:51.249445+00:00",
+            "bias_adjusted_rh": 92.92890855712365,
+            "bias_adjusted_temperature": -3.0329715514371802,
+            "prediction_timestamp": "2020-07-22T19:00:00+00:00"
+         }
+      },
+      {
+         "module": "app.db.models.weather_models",
+         "class": "PredictionModel",
+         "data": {
+            "projection": "latlon.15x.15",
+            "abbreviation": "GDPS",
+            "name": "Global Deterministic Prediction System",
+            "id": 1
+         }
+      }
+   ],
+   [
+      {
+         "module": "app.db.models.weather_models",
+         "class": "WeatherStationModelPrediction",
+         "data": {
+            "station_code": 322,
+            "create_date": "2020-11-24T05:23:40.169285+00:00",
+            "rh_tgl_2": 20,
+            "tmp_tgl_2": 9,
+            "prediction_model_run_timestamp_id": 1036,
+            "id": 7945375,
+            "update_date": "2020-11-24T05:43:51.249445+00:00",
+            "bias_adjusted_rh": 92.92890855712365,
+            "bias_adjusted_temperature": -3.0329715514371802,
+            "prediction_timestamp": "2020-07-22T20:00:00+00:00"
+         }
+      },
+      {
+         "module": "app.db.models.weather_models",
+         "class": "PredictionModel",
+         "data": {
+            "projection": "latlon.15x.15",
+            "abbreviation": "GDPS",
+            "name": "Global Deterministic Prediction System",
+            "id": 1
+         }
+      }
+   ],
+   [
+      {
+         "module": "app.db.models.weather_models",
+         "class": "WeatherStationModelPrediction",
+         "data": {
+            "station_code": 322,
+            "create_date": "2020-11-24T05:23:40.169285+00:00",
+            "rh_tgl_2": 21,
+            "tmp_tgl_2": 10,
+            "prediction_model_run_timestamp_id": 1036,
+            "id": 7945375,
+            "update_date": "2020-11-24T05:43:51.249445+00:00",
+            "bias_adjusted_rh": 92.92890855712365,
+            "bias_adjusted_temperature": -3.0329715514371802,
+            "prediction_timestamp": "2020-07-22T20:00:00+00:00"
+         }
+      },
+      {
+         "module": "app.db.models.weather_models",
+         "class": "PredictionModel",
+         "data": {
+            "projection": "latlon.15x.15",
+            "abbreviation": "GDPS",
+            "name": "Global Deterministic Prediction System",
+            "id": 1
+         }
+      }
+   ],
+   [
+      {
+         "module": "app.db.models.weather_models",
+         "class": "WeatherStationModelPrediction",
+         "data": {
+            "station_code": 322,
+            "create_date": "2020-11-24T05:23:40.169285+00:00",
+            "rh_tgl_2": 22,
+            "tmp_tgl_2": 11,
+            "prediction_model_run_timestamp_id": 1036,
+            "id": 7945375,
+            "update_date": "2020-11-24T05:43:51.249445+00:00",
+            "bias_adjusted_rh": 22,
+            "bias_adjusted_temperature": 11,
+            "prediction_timestamp": "2020-07-22T20:00:00+00:00"
+         }
+      },
+      {
+         "module": "app.db.models.weather_models",
+         "class": "PredictionModel",
+         "data": {
+            "projection": "latlon.15x.15",
+            "abbreviation": "GDPS",
+            "name": "Global Deterministic Prediction System",
+            "id": 1
+         }
+      }
+   ]
+]

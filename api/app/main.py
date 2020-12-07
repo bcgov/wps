@@ -2,7 +2,6 @@
 
 See README.md for details on how to run.
 """
-import cProfile
 import datetime
 import logging
 from fastapi import FastAPI, Depends, Response
@@ -137,17 +136,11 @@ async def get_model_predictions(
 @api.post('/models/{model}/predictions/summaries/',
           response_model=schemas.weather_models.WeatherModelPredictionSummaryResponse)
 async def get_model_prediction_summaries(
-        model: ModelEnum, request: schemas.stations.StationCodeList):
+        model: ModelEnum, request: schemas.stations.StationCodeList, _: bool = Depends(authenticate)):
     """ Returns a summary of predictions for a given model. """
     try:
         logger.info('/models/%s/predictions/summaries/', model.name)
-        with cProfile.Profile() as pr:
-            summaries = await fetch_model_prediction_summaries(model, request.stations)
-            try:
-                pr.dump_stats('summaries.profile')
-            except:
-                logger.warn('could not create profile file')
-
+        summaries = await fetch_model_prediction_summaries(model, request.stations)
         return schemas.weather_models.WeatherModelPredictionSummaryResponse(summaries=summaries)
     except Exception as exception:
         logger.critical(exception, exc_info=True)

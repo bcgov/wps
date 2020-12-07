@@ -13,7 +13,7 @@ from app.schemas.weather_models import (
 import app.time_utils as time_utils
 import app.db.database
 from app.db.crud.weather_models import get_station_model_predictions_order_by_prediction_timestamp
-from app.db.models import (PredictionModel, WeatherStationModelPrediction, PredictionModelRunTimestamp)
+from app.db.models import PredictionModel, WeatherStationModelPrediction
 
 
 logger = logging.getLogger(__name__)
@@ -33,7 +33,8 @@ def _build_query_to_get_predictions(
     # We are only interested in the last 5 days.
     now = time_utils.get_utc_now()
     back_5_days = now - datetime.timedelta(days=5)
-    return get_station_model_predictions_order_by_prediction_timestamp(session, station_codes, model, back_5_days, now)
+    return get_station_model_predictions_order_by_prediction_timestamp(
+        session, station_codes, model, back_5_days, now)
 
 
 class ModelPredictionSummaryBuilder():
@@ -129,8 +130,7 @@ class ModelPredictionSummaryBuilder():
                 # The timestamp has changed, process the accumulated values:
                 self.calculate_summaries(prediction.prediction_timestamp)
 
-            # Accumulate the values (to be process at next station change, time change,
-            # or when done iterating):
+            # Accumulate the values (to be process at next station change, time change, or when done):
             self.accumulate_values(prediction)
 
         self.calculate_summaries(None)
