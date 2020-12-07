@@ -82,13 +82,14 @@ class ModelPredictionSummaryBuilder():
         -) prepare a summary for the new station.
         """
         self.prev_station = prediction.station_code
-        station = self.stations[prediction.station_code]
         self.prediction_summary = WeatherModelPredictionSummary(
-            station=station,
+            station=self.stations[prediction.station_code],
             model=WeatherPredictionModel(name=prediction_model.name,
                                          abbrev=prediction_model.abbreviation),
             values=[])
         self.prediction_summaries.append(self.prediction_summary)
+        # Set prev_time (so that we don't trigger calculate_summaries)
+        self.prev_time = prediction.prediction_timestamp
 
     def accumulate_values(self, prediction: WeatherStationModelPrediction):
         """ As we iterate through predictions, we accumulate the values so that we can calculate
@@ -119,18 +120,16 @@ class ModelPredictionSummaryBuilder():
             if prediction.station_code != self.prev_station:
                 # when the station changes, we need to process accumulated values and
                 # create new responses for the new station.
-                first_station = self.prev_station is None
-                if not first_station:
-                    # Before moving on, we need to finish calculating the values for the previous station.
+                if self.prev_station is not None:
+                    # This isn't the 1st new station we've had, so before moving on,
+                    # we need to finish calculating the values for the previous station.
                     self.calculate_summaries(prediction.prediction_timestamp)
                 self.handle_new_station(prediction, prediction_model)
-                # Set prev_time (so that we don't trigger calculate_summaries)
-                self.prev_time = prediction.prediction_timestamp
             elif self.prev_time != prediction.prediction_timestamp:
                 # The timestamp has changed, process the accumulated values:
                 self.calculate_summaries(prediction.prediction_timestamp)
 
-            # Accumulate the values (to be process at next station change, time change, or when done):
+            # Accumulate the values (to be processed at next station change, time change, or when done):
             self.accumulate_values(prediction)
 
         self.calculate_summaries(None)
