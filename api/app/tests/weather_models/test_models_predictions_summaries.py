@@ -18,7 +18,9 @@ def given_a_database(monkeypatch, sql_response: str):
     """ Mock the sql response """
 
     def mock_get_data(*args):  # pylint: disable=unused-argument
-        return load_sqlalchemy_response_from_json(sql_response)
+        dirname = os.path.dirname(os.path.realpath(__file__))
+        filename = os.path.join(dirname, sql_response)
+        return load_sqlalchemy_response_from_json(filename)
 
     monkeypatch.setattr(app.weather_models.fetch.summaries,
                         'get_station_model_predictions_order_by_prediction_timestamp', mock_get_data)
