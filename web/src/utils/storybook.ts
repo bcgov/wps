@@ -52,7 +52,7 @@ const getPastValues = () => {
         bias_adjusted_temperature: temp + (Math.random() - 0.5) * 6 - 2,
         relative_humidity: rh + (Math.random() - 0.5) * 6,
         bias_adjusted_relative_humidity: rh + (Math.random() - 0.5) * 6 - 2,
-        total_precipitation: precip
+        delta_precipitation: precip
       })
       _highResModelSummaries.push({
         datetime,
@@ -69,7 +69,7 @@ const getPastValues = () => {
         bias_adjusted_temperature: temp + (Math.random() - 0.7) * 7 - 2,
         relative_humidity: rh + (Math.random() - 0.7) * 7,
         bias_adjusted_relative_humidity: rh - (Math.random() - 0.7) * 7 - 2,
-        total_precipitation: precip
+        delta_precipitation: precip
       })
       _regionalModelSummaries.push({
         datetime,
@@ -105,7 +105,7 @@ const getPastValues = () => {
           bias_adjusted_temperature: temp + (Math.random() - 0.5) * 8 - 2,
           relative_humidity: rh + (Math.random() - 0.5) * 8,
           bias_adjusted_relative_humidity: rh + (Math.random() - 0.5) * 8 - 2,
-          total_precipitation: precip
+          delta_precipitation: precip
         })
         _modelSummaries.push({
           datetime,
@@ -168,7 +168,7 @@ const getFutureValues = () => {
         bias_adjusted_temperature: temp + (Math.random() - 0.5) * 6 - 2,
         relative_humidity: rh + (Math.random() - 0.5) * 6,
         bias_adjusted_relative_humidity: rh + (Math.random() - 0.5) * 6 - 2,
-        total_precipitation: precip * Math.random() * 7
+        delta_precipitation: precip * Math.random() * 7
       })
       _regionalModelValues.push({
         datetime,
@@ -176,7 +176,7 @@ const getFutureValues = () => {
         bias_adjusted_temperature: temp + (Math.random() - 1.4) * 9 - 4,
         relative_humidity: rh + (Math.random() - 1.4) * 9,
         bias_adjusted_relative_humidity: rh - (Math.random() - 1.4) * 7 - 4,
-        total_precipitation: precip * Math.random() * 8
+        delta_precipitation: precip * Math.random() * 8
       })
 
       // every 3 hour and PST noon
@@ -190,7 +190,7 @@ const getFutureValues = () => {
           bias_adjusted_relative_humidity: rh + (Math.random() - 0.5) * 8 - 5,
           wind_speed,
           wind_direction,
-          total_precipitation: precip * Math.random() * 5
+          delta_precipitation: precip * Math.random() * 5
         })
       }
 
