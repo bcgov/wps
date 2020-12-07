@@ -17,7 +17,7 @@ def test_model_predictions_summaries_scenario():
 def given_a_database(monkeypatch, sql_response: str):
     """ Mock the sql response """
 
-    def mock_get_data(*args):  # pylint: unused-argument
+    def mock_get_data(*args):  # pylint: disable=unused-argument
         return load_sqlalchemy_response_from_json(sql_response)
 
     monkeypatch.setattr(app.weather_models.fetch.summaries,
