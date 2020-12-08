@@ -1,93 +1,11 @@
 """ Functional testing for /models/{model}/predictions/ endpoint.
 """
-from datetime import datetime
 import os
 import json
 from pytest_bdd import scenario, given, then, when
 from fastapi.testclient import TestClient
-import pytest
-import shapely.wkt
-from geoalchemy2.shape import from_shape
-from alchemy_mock.mocking import UnifiedAlchemyMagicMock
-from alchemy_mock.compat import mock
 import app.main
-from app.db.models import (PredictionModel, ModelRunGridSubsetPrediction,
-                           PredictionModelGridSubset)
-
-
-@pytest.fixture()
-def mock_session(monkeypatch):
-    """ Mocked out sqlalchemy session """
-    def mock_get_session(*args):  # pylint: disable=unused-argument
-
-        prediction_model = PredictionModel(id=1,
-                                           abbreviation='GDPS',
-                                           projection='latlon.15x.15',
-                                           name='Global Deterministic Prediction System')
-
-        geometry = ("POLYGON ((-120.525 50.77500000000001, -120.375 50.77500000000001,"
-                    "-120.375 50.62500000000001, -120.525 50.62500000000001, -120.525 50.77500000000001))")
-        shape = shapely.wkt.loads(geometry)
-
-        grid = PredictionModelGridSubset(
-            id=1,
-            prediction_model_id=prediction_model.id,
-            prediction_model=prediction_model,
-            geom=from_shape(shape)
-        )
-
-        date_1 = "2020-07-22T18:00:00+00:00"
-        date_2 = "2020-07-22T20:00:00+00:00"
-        data = [
-            (
-                [mock.call.query(PredictionModelGridSubset,
-                                 ModelRunGridSubsetPrediction, PredictionModel)],
-                [
-                    # 3 on the same hour, testing interpolation and percentiles.
-                    [grid, ModelRunGridSubsetPrediction(
-                        prediction_model_grid_subset_id=grid.id,
-                        prediction_timestamp=datetime.fromisoformat(date_1),
-                        tmp_tgl_2=[10, 11, 12, 13],
-                        rh_tgl_2=[20, 30, 40, 50]), prediction_model],
-                    [grid, ModelRunGridSubsetPrediction(
-                        prediction_model_grid_subset_id=grid.id,
-                        prediction_timestamp=datetime.fromisoformat(date_1),
-                        tmp_tgl_2=[11, 12, 13, 14],
-                        rh_tgl_2=[30, 40, 50, 60]), prediction_model],
-                    [grid, ModelRunGridSubsetPrediction(
-                        prediction_model_grid_subset_id=grid.id,
-                        prediction_timestamp=datetime.fromisoformat(date_1),
-                        tmp_tgl_2=[9, 10, 11, 12],
-                        rh_tgl_2=[20, 30, 40, 50]), prediction_model],
-                    # 1 on the hour, testing it remains unchanged.
-                    [grid, ModelRunGridSubsetPrediction(
-                        prediction_model_grid_subset_id=grid.id,
-                        prediction_timestamp=datetime.fromisoformat(
-                            "2020-07-22T19:00:00+00:00"),
-                        tmp_tgl_2=[9, 9, 9, 9],
-                        rh_tgl_2=[20, 20, 20, 20]), prediction_model],
-                    # 3 on same hour, same values at each grid point for easy percentile testing.
-                    [grid, ModelRunGridSubsetPrediction(
-                        prediction_model_grid_subset_id=grid.id,
-                        prediction_timestamp=datetime.fromisoformat(date_2),
-                        tmp_tgl_2=[9, 9, 9, 9],
-                        rh_tgl_2=[20, 20, 20, 20]), prediction_model],
-                    [grid, ModelRunGridSubsetPrediction(
-                        prediction_model_grid_subset_id=grid.id,
-                        prediction_timestamp=datetime.fromisoformat(date_2),
-                        tmp_tgl_2=[10, 10, 10, 10],
-                        rh_tgl_2=[21, 21, 21, 21]), prediction_model],
-                    [grid, ModelRunGridSubsetPrediction(
-                        prediction_model_grid_subset_id=grid.id,
-                        prediction_timestamp=datetime.fromisoformat(date_2),
-                        tmp_tgl_2=[11, 11, 11, 11],
-                        rh_tgl_2=[22, 22, 22, 22]), prediction_model]
-                ]
-            )
-        ]
-        return UnifiedAlchemyMagicMock(data=data)
-
-    monkeypatch.setattr(app.db.database, 'get_read_session', mock_get_session)
+from app.tests import load_sqlalchemy_response_from_json
 
 
 @ scenario("test_models_predictions_summaries.feature", "Get model prediction summaries from database")
@@ -95,9 +13,17 @@ def test_model_predictions_summaries_scenario():
     """ BDD Scenario for prediction summaries """
 
 
-@ given("A database")
-def given_a_database(mock_session):  # pylint: disable=unused-argument, redefined-outer-name
-    """ Bind the data variable """
+@ given("A database <sql_response>")
+def given_a_database(monkeypatch, sql_response: str):
+    """ Mock the sql response """
+
+    def mock_get_data(*args):  # pylint: disable=unused-argument
+        dirname = os.path.dirname(os.path.realpath(__file__))
+        filename = os.path.join(dirname, sql_response)
+        return load_sqlalchemy_response_from_json(filename)
+
+    monkeypatch.setattr(app.weather_models.fetch.summaries,
+                        'get_station_model_predictions_order_by_prediction_timestamp', mock_get_data)
     return {}
 
 
