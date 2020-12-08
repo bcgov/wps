@@ -501,7 +501,7 @@ class ModelValueProcessor:
             filter(WeatherStationModelPrediction.prediction_model_run_timestamp_id == model_run.id).\
             filter(WeatherStationModelPrediction.prediction_timestamp < prediction.prediction_timestamp).\
             order_by(WeatherStationModelPrediction.prediction_timestamp.desc()).\
-            first()
+            limit(1).first()
         if results is not None:
             return station_prediction.apcp_sfc_0 - results.apcp_sfc_0
         return station_prediction.apcp_sfc_0
