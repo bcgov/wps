@@ -36,9 +36,10 @@ def add_security_headers(scope, response):
     if (path and path[path.rfind('.'):] in ('.css', '.js', '.png', '.xml', '.svg', '.json', '.txt'))\
             or response.media_type in ('text/html',):
         response.headers.setdefault('X-Content-Type-Options', 'nosniff')
-    if (path and path[path.rfind('.'):] in ('.xml', '.svg', '.json', '.txt')):
+    if (path and path[path.rfind('.'):] in ('.xml', '.svg', '.json', '.txt', '.css')):
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
-        response.headers.setdefault('Cache-Control', 'no-cache')
+        # https://www.zaproxy.org/docs/alerts/10015/
+        response.headers.setdefault('Cache-Control', 'no-cache, no-store, must-revalidate;')
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Pragma
         response.headers.setdefault('Pragma', 'no-cache')
     # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
@@ -87,14 +88,16 @@ async def get_index(request: Request):
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options
         response.headers.setdefault('X-Content-Type-Options', 'nosniff')
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
-        response.headers.setdefault('Cache-Control', 'no-cache')
+        # https://www.zaproxy.org/docs/alerts/10015/
+        response.headers.setdefault('Cache-Control', 'no-cache, no-store, must-revalidate;')
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Pragma
         response.headers.setdefault('Pragma', 'no-cache')
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
         response.headers.setdefault('Content-Security-Policy',
                                     ('default-src \'self\' \'unsafe-inline\' *.googleapis.com *.gov.bc.ca'
                                      ' *.gstatic.com;'
-                                     ' script-src \'self\' \'unsafe-inline\' *.gov.bc.ca;'))
+                                     ' script-src \'self\' \'unsafe-inline\' *.gov.bc.ca;'
+                                     ' frame-ancestors \'none\''))
         return response
     except TemplateNotFound as exception:
         # This has most likely happened because there's nothing in the static folder
