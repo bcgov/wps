@@ -80,4 +80,4 @@ def calculate_interpolated_delta_precipitation(prev_prediction: ModelRunGridSubs
     """ Calculate the noon prediction's delta_precip value based on the difference between
     the noon prediction apcp_sfc_0 and the previous prediction's apcp_sfc_0
     """
-    return getattr(noon_prediction, 'apcp_sfc_0') - getattr(prev_prediction, 'apcp_sfc_0')
+    return noon_prediction.apcp_sfc_0 - prev_prediction.apcp_sfc_0
