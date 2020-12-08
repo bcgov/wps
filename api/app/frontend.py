@@ -98,6 +98,8 @@ async def get_index(request: Request):
                                      ' *.gstatic.com;'
                                      ' script-src \'self\' \'unsafe-inline\' *.gov.bc.ca;'
                                      ' frame-ancestors \'none\''))
+        # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie/SameSite
+        response.headers.setdefault('Set-Cookie', 'SameSite=Strict; Secure')
         return response
     except TemplateNotFound as exception:
         # This has most likely happened because there's nothing in the static folder
