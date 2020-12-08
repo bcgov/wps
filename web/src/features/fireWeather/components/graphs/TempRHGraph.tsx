@@ -666,13 +666,13 @@ const TempRHGraph: React.FunctionComponent<Props> = (props: Props) => {
   // Effect hooks for showing/hiding graphics & legend
   useEffect(() => {
     if (graphRef.current) {
-      const svg = d3.select(graphRef.current)
-      svg.selectAll('.observed').classed('hidden', !toggleValues.showObservations)
-      svg.selectAll('.forecast').classed('hidden', !toggleValues.showForecasts)
-      svg.selectAll('.gdps').classed('hidden', !toggleValues.showModels)
-      svg.selectAll('.biasAdjGdps').classed('hidden', !toggleValues.showBiasAdjModels)
-      svg.selectAll('.hrdps').classed('hidden', !toggleValues.showHighResModels)
-      svg.selectAll('.rdps').classed('hidden', !toggleValues.showRegionalModels)
+      const graphSvg = d3.select(graphRef.current)
+      graphSvg.selectAll('.observed').classed('hidden', !toggleValues.showObservations)
+      graphSvg.selectAll('.forecast').classed('hidden', !toggleValues.showForecasts)
+      graphSvg.selectAll('.gdps').classed('hidden', !toggleValues.showModels)
+      graphSvg.selectAll('.biasAdjGdps').classed('hidden', !toggleValues.showBiasAdjModels) // prettier-ignore
+      graphSvg.selectAll('.hrdps').classed('hidden', !toggleValues.showHighResModels)
+      graphSvg.selectAll('.rdps').classed('hidden', !toggleValues.showRegionalModels)
     }
 
     if (legendRef.current) {
@@ -680,18 +680,18 @@ const TempRHGraph: React.FunctionComponent<Props> = (props: Props) => {
         .selectAll('*')
         .remove()
 
-      const svg = d3
+      const legendSvg = d3
         .select(legendRef.current)
         .attr('viewBox', `0 0 ${graphWidth} ${legendHeight}`)
 
-      const legend = svg
+      const legend = legendSvg
         .append('g')
         .attr('class', 'legend')
         .attr('transform', `translate(${margin.left}, ${margin.top})`)
 
       const legendData = getLegendData(toggleValues)
       const newLegendHeight = d3Utils.addLegend(legend, chartWidth, legendData)
-      svg.attr('viewBox', `0 0 ${graphWidth} ${newLegendHeight}`)
+      legendSvg.attr('viewBox', `0 0 ${graphWidth} ${newLegendHeight}`)
     }
   }, [toggleValues])
 

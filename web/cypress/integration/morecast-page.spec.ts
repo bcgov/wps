@@ -83,7 +83,6 @@ describe('MoreCast Page', () => {
       cy.getByTestId('bias-adjusted-model-temp-symbol').should('have.class', 'hidden')
       cy.getByTestId('bias-adjusted-model-temp-path').should('have.class', 'hidden')
 
-      cy.getByTestId('wx-graph-high-res-model-toggle').click()
       cy.getByTestId('high-res-model-summary-temp-area').should('not.have.class', 'hidden')
       cy.getByTestId('high-res-model-temp-symbol').should('have.length', 103)
       cy.getByTestId('high-res-model-temp-path').should('not.have.class', 'hidden')
