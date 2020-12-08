@@ -107,15 +107,6 @@ describe('MoreCast Page', () => {
     })
 
     it('Temp & RH graph displays a tooltip & sidebar ', () => {
-      // Hover over the first dot and check if the tooltip shows up with the correct text
-      cy.getByTestId('hourly-observed-rh-symbol')
-        .first()
-        .trigger('mousemove', { force: true, x: 3, y: 1 })
-      cy.getByTestId('temp-rh-tooltip-text').contains('tspan', /(PDT, UTC-7)/)
-      cy.getByTestId('temp-rh-tooltip-text')
-        .should('contain', 'Observed Temp: - (°C)')
-        .and('contain', 'Observed RH: 61 (%)')
-
       cy.window().then(win => {
         // Move sidebar all the way to the right
         cy.get('.sidebar')
@@ -144,6 +135,15 @@ describe('MoreCast Page', () => {
             view: win
           })
       })
+
+      // Hover over the first dot and check if the tooltip shows up with the correct text
+      cy.getByTestId('hourly-observed-rh-symbol')
+        .first()
+        .trigger('mousemove', { force: true, x: 1, y: 1 })
+      cy.getByTestId('temp-rh-tooltip-text').contains('tspan', /(PDT, UTC-7)/)
+      cy.getByTestId('temp-rh-tooltip-text')
+        .should('contain', 'Observed Temp: - (°C)')
+        .and('contain', 'Observed RH: 61 (%)')
     })
 
     it('Precip graph displays svg graphics and a tooltip', () => {
