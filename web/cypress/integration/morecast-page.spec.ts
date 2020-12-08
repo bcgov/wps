@@ -1,13 +1,18 @@
-import { MORECAST_ROUTE } from '../../src/utils/constants'
+import { FIRE_WEATHER_ROUTE, MORECAST_ROUTE } from '../../src/utils/constants'
 import { stationCodeQueryKey } from '../../src/utils/url'
 
-describe('MoreCast Page', () => {
-  const stationCode = 328
+const stationCode = 328
 
+describe('MoreCast Page', () => {
   beforeEach(() => {
     cy.server()
     cy.route('GET', 'api/stations/', 'fixture:weather-stations.json').as('getStations')
     cy.visit(MORECAST_ROUTE)
+  })
+
+  it('Should redirect to /morecast when accessing /fire-weather', () => {
+    cy.visit(FIRE_WEATHER_ROUTE)
+    cy.url().should('contain', MORECAST_ROUTE)
   })
 
   it('When network errors occurred', () => {
