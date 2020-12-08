@@ -49,10 +49,10 @@ const WxDataGraph = ({
 
   const [toggleValues, setToggleValues] = useGraphToggles({
     showObservations: !noObservations,
-    showModels: false,
     showForecasts: false,
+    showModels: false,
     showBiasAdjModels: false,
-    showHighResModels: false,
+    showHighResModels: !noHighResModels,
     showRegionalModels: false
   })
 

@@ -596,7 +596,7 @@ export const addTooltipListener = <T extends { date: Date }>({
     .attr('y2', height)
     .attr('class', 'tooltipCursor')
   const tooltip = svg.append('g')
-  const removeTooltip = () => {
+  const hideTooltip = () => {
     tooltip.call(tooltipCallout)
     tooltipCursor.style('opacity', 0)
   }
@@ -610,7 +610,7 @@ export const addTooltipListener = <T extends { date: Date }>({
       mx < xScale(data[0].date) - extraRange ||
       mx > xScale(data[data.length - 1].date) + extraRange
     ) {
-      return removeTooltip()
+      return hideTooltip()
     }
 
     const invertedDate = xScale.invert(mx)
@@ -625,5 +625,5 @@ export const addTooltipListener = <T extends { date: Date }>({
       .call(tooltipCallout, position, tooltipTextData)
     tooltipCursor.attr('transform', `translate(${nearestX}, 0)`).style('opacity', 1)
   })
-  svg.on('touchend mouseleave', removeTooltip)
+  svg.on('touchend mouseleave', hideTooltip)
 }

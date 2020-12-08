@@ -46,7 +46,7 @@ export const useMemoGraphCalculation = (props: Props, chartWidth: number) => {
     () => {
       const datesFromAllSources: Date[] = []
       const weatherValuesByDatetime: { [k: string]: WeatherValue } = {}
-      const allTemps: number[] = [40, -10]
+      const allTemps: number[] = [10, -10]
 
       const observedTemps: { date: Date; value: number }[] = []
       const observedRHs: { date: Date; value: number }[] = []

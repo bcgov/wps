@@ -12,7 +12,6 @@ interface Props {
   children: React.ReactElement
 }
 
-// TODO: Maybe turn this into High order function later
 const AuthWrapper = ({ children, shouldAuthenticate }: Props) => {
   const dispatch = useDispatch()
   const { isAuthenticated, authenticating, error } = useSelector(selectAuthentication)
