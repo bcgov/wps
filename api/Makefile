@@ -1,29 +1,10 @@
-define run-test
-	# function to run tests
-	# useful params for pytest:
-	# -s show stdout
-	# -n numprocesses - doesn't really seem to run faster with more proccesses at the moment.
-	PYTHONPYCACHEPREFIX=python_cache $(1) pytest app;
-	# ImportMismatchError? run: make clean
-endef
-
-define run-test-verbose
-	# function to run tests with verbose output
-	$(1) pytest app -vv;
-endef
-
-define run-test-coverage
-	# function to run tests with coverate reports
-	$(1) coverage run --source=app -m pytest;
-	$(1) coverage report;
-	$(1) coverage xml -o coverage-reports/coverage-report.xml;
-	# ImportMismatchError? run: make clean
-endef
-
-define run-lint
-	# function to run linting
-	${1} pylint -j 0 --rcfile=.pylintrc app/*.py app/**/*.py;
-endef
+# If the VIRTUAL_ENV is specified, we can assume we're in a poetry shell, otherwise
+# we need to execute "poetry run"
+ifdef VIRTUAL_ENV
+POETRY_RUN=
+else
+POETRY_RUN=poetry run
+endif
 
 define run-api
 	# function to run api
@@ -33,6 +14,12 @@ endef
 define build-static
 	# function to build static content
 	cd ../web; REACT_APP_KEYCLOAK_AUTH_URL="{{REACT_APP_KEYCLOAK_AUTH_URL}}" REACT_APP_MATOMO_URL="{{REACT_APP_MATOMO_URL}}" REACT_APP_MATOMO_SITE_ID="{{REACT_APP_MATOMO_SITE_ID}}" REACT_APP_MATOMO_CONTAINER="{{REACT_APP_MATOMO_CONTAINER}}" npm run build
+endef
+
+define run-env-canada
+	POSTGRES_HOST=localhost $(POETRY_RUN) python -m app.weather_models.env_canada GDPS
+	POSTGRES_HOST=localhost $(POETRY_RUN) python -m app.weather_models.env_canada HRDPS
+	POSTGRES_HOST=localhost $(POETRY_RUN) python -m app.weather_models.env_canada RDPS
 endef
 
 clean:
@@ -54,70 +41,56 @@ init-mac:
 	${call build-static}
 
 test:
-	# Run tests in virtual environment.
-	${call run-test,poetry run}
+	# Run tests
+	# useful params for pytest:
+	# -s show stdout
+	# -n numprocesses - doesn't really seem to run faster with more proccesses at the moment.
+	PYTHONPYCACHEPREFIX=python_cache $(POETRY_RUN) pytest app;
+	# ImportMismatchError? run: make clean
 
 test-verbose:
-	${call run-test-verbose,poetry run}
-
-test-raw:
-	# Assumes you've run 'poetry shell', or have installed all dependancies.
-	${call run-test}
+	# Run tests with verbose output
+	$(POETRY_RUN) pytest app -vv;
 
 test-coverage:
-	${call run-test-coverage,poetry run}	
-
-test-coverage-raw:
-	# Assumes you've run 'poetry shell', or have installed all dependancies.
-	${call run-test-coverage}	
+	# run tests with coverate reports
+	$(POETRY_RUN) coverage run --source=app -m pytest;
+	$(POETRY_RUN) coverage report;
+	$(POETRY_RUN) coverage xml -o coverage-reports/coverage-report.xml;
+	# ImportMismatchError? run: make clean
 
 lint:
-	# Run lint in virtual environment.
-	${call run-lint,poetry run}
-
-lint-raw:
-	${call run-lint}
+	# Run lint.
+	$(POETRY_RUN) pylint -j 0 --rcfile=.pylintrc app/*.py app/**/*.py;
 
 run:
 	# Run the application in the virtual environment (after linting and testing).
 	# Not failing on lint or test - just output so developer knows.
 	-poetry run pylint --rcfile=.pylintrc app/*.py app/**/*.py;
 	-poetry run python -m pytest app;
-	${call run-api,poetry run}
+	${call run-api,$(POETRY_RUN)}
 
 run-fast:
-	${call run-api,poetry run}
+	${call run-api,$(POETRY_RUN)}
 
-run-raw:
-	# Assumes you've run 'poetry shell', or have installed all dependancies.
-	${call run-api}
 
-run-env-canada-raw:
-	POSTGRES_HOST=localhost python -m app.weather_models.env_canada GDPS
-	POSTGRES_HOST=localhost python -m app.weather_models.env_canada HRDPS
-	POSTGRES_HOST=localhost python -m app.weather_models.env_canada RDPS
+run-env-canada:
+	${call run-env-canada}
 
-run-donald-raw:
+run-donald:
 	# Synonymn for run-env-canada-raw
-	POSTGRES_HOST=localhost python -m app.weather_models.env_canada GDPS
-	POSTGRES_HOST=localhost python -m app.weather_models.env_canada HRDPS
-	POSTGRES_HOST=localhost python -m app.weather_models.env_canada RDPS
+	${call run-env-canada}
 
 run-bender:
-	poetry run python -m app.fireweather_bot.noon_forecasts
+	$(POETRY_RUN) python -m app.fireweather_bot.noon_forecasts
 
-run-bender-raw:
-	python -m app.fireweather_bot.noon_forecasts
+run-marvin:
+	$(POETRY_RUN) python -m app.fireweather_bot.hourly_actuals
 
-run-marvin-raw:
-	python -m app.fireweather_bot.hourly_actuals
-
-run-all-bots-raw:
-	POSTGRES_HOST=localhost python -m app.weather_models.env_canada GDPS
-	POSTGRES_HOST=localhost python -m app.weather_models.env_canada HRDPS
-	POSTGRES_HOST=localhost python -m app.weather_models.env_canada RDPS
-	python -m app.fireweather_bot.hourly_actuals
-	python -m app.fireweather_bot.noon_forecasts
+run-all-bots:
+	${call run-env-canada}
+	$(POETRY_RUN) python -m app.fireweather_bot.hourly_actuals
+	$(POETRY_RUN) python -m app.fireweather_bot.noon_forecasts
 
 notebook:
 	# Run jupyter notebooks.
