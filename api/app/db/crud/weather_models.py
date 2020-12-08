@@ -263,7 +263,7 @@ def get_station_model_prediction_from_previous_model_run(
     """
     # create a lower_bound for time range so that we're not querying timestamps all the way back to the
     # beginning of time
-    lower_bound = str(prediction_model_run_timestamp - datetime.timedelta(days=1))
+    lower_bound =prediction_model_run_timestamp - datetime.timedelta(days=1)
     response = session.query(WeatherStationModelPrediction, PredictionModelRunTimestamp, PredictionModel).\
         filter(WeatherStationModelPrediction.station_code.in_(station_codes)).\
         filter(WeatherStationModelPrediction.prediction_timestamp == prediction_timestamp).\
