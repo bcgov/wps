@@ -256,7 +256,7 @@ def get_station_model_prediction_from_previous_model_run(
         session: Session,
         station_codes: List[int],
         model: str,
-        prediction_timestamp: str,
+        prediction_timestamp: datetime.datetime,
         prediction_model_run_timestamp: str):
     """ Fetches the one model prediction for the specified station_code, model, and prediction_timestamp
     from the prediction model run immediately previous to the given prediction_model_run_timestamp.
