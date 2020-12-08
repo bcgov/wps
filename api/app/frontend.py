@@ -45,6 +45,9 @@ def add_security_headers(scope, response):
     # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
     if response.media_type in ('text/html', 'text/xml'):
         response.headers.setdefault('X-Frame-Options', 'DENY')
+    if (path and path[path.rfind('.'):] in ('.xml', '.txt')):
+        # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie/SameSite
+        response.headers.setdefault('Set-Cookie', 'SameSite=Strict; Secure; HttpOnly')
 
 
 class SPAStaticFiles(StaticFiles):
@@ -99,7 +102,7 @@ async def get_index(request: Request):
                                      ' script-src \'self\' \'unsafe-inline\' *.gov.bc.ca;'
                                      ' frame-ancestors \'none\''))
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie/SameSite
-        response.headers.setdefault('Set-Cookie', 'SameSite=Strict; Secure')
+        response.headers.setdefault('Set-Cookie', 'SameSite=Strict; Secure; HttpOnly')
         return response
     except TemplateNotFound as exception:
         # This has most likely happened because there's nothing in the static folder
