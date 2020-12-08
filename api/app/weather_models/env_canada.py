@@ -502,8 +502,12 @@ class ModelValueProcessor:
             filter(WeatherStationModelPrediction.prediction_timestamp < prediction.prediction_timestamp).\
             order_by(WeatherStationModelPrediction.prediction_timestamp.desc()).\
             limit(1).first()
+        # If there exists a previous prediction for the station from the same model run
         if results is not None:
             return station_prediction.apcp_sfc_0 - results.apcp_sfc_0
+        # If there is no prior prediction within the same model run, it means that station_prediction is
+        # the first prediction with apcp for the current model run (hour 001 or 003, depending on the
+        # model type). In this case, delta_precip will be equal to the apcp
         return station_prediction.apcp_sfc_0
 
     def _process_model_run_for_station(self,

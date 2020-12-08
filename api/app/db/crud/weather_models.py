@@ -233,15 +233,19 @@ def get_station_model_prediction_from_previous_model_run(
     """ Fetches the one model prediction for the specified station_code, model, and prediction_timestamp
     from the prediction model run immediately previous to the given prediction_model_run_timestamp.
     """
-    query = session.query(WeatherStationModelPrediction, PredictionModelRunTimestamp, PredictionModel).\
+    # create a lower_bound for time range so that we're not querying timestamps all the way back to the
+    # beginning of time
+    lower_bound = datetime.datetime(prediction_model_run_timestamp) - datetime.timedelta(days=1)
+    response = session.query(WeatherStationModelPrediction, PredictionModelRunTimestamp, PredictionModel).\
         filter(WeatherStationModelPrediction.station_code.in_(station_codes)).\
         filter(WeatherStationModelPrediction.prediction_timestamp == prediction_timestamp).\
         filter(PredictionModelRunTimestamp.prediction_model_id == PredictionModel.id, PredictionModel.abbreviation == model).\
         filter(PredictionModelRunTimestamp.prediction_run_timestamp < prediction_model_run_timestamp).\
+        filter(PredictionModelRunTimestamp.prediction_run_timestamp > lower_bound).\
         order_by(PredictionModelRunTimestamp.prediction_run_timestamp.desc()).\
-        first()
+        limit(1).first()
 
-    return query
+    return response
 
 
 def get_processed_file_count(session: Session, urls: List[str]) -> int:
