@@ -217,7 +217,10 @@ async def _fetch_delta_precip_for_prev_model_run(
     session = app.db.database.get_read_session()
     prev_prediction = app.db.crud.weather_models.get_station_model_prediction_from_previous_model_run(
         session, station_codes, model, prediction.prediction_timestamp, prediction_model_run_timestamp)
-    return prev_prediction.WeatherStationModelPrediction.delta_precip
+    if prev_prediction:
+        return prev_prediction.WeatherStationModelPrediction.delta_precip
+    else:
+        return None
 
 
 async def fetch_model_run_predictions_by_station_code(
@@ -241,42 +244,30 @@ async def fetch_model_run_predictions_by_station_code(
     for prediction, prediction_model_run_timestamp, prediction_model in historic_predictions:
         # If this is true, it means that we are at hour 000 of the model run but not at the 0th hour of the day,
         # so we need to look at the accumulated precip from the previous model run to calculate the delta_precip
+        precip_value = None
         if prediction.prediction_timestamp == prediction_model_run_timestamp.prediction_run_timestamp and prediction.prediction_timestamp.hour > 0:
-            starting_precip = await _fetch_delta_precip_for_prev_model_run(
+            precip_value = await _fetch_delta_precip_for_prev_model_run(
                 model, station_codes, prediction, prediction_model_run_timestamp.prediction_run_timestamp)
-            station_predictions[prediction.station_code][prediction.prediction_timestamp] = {
-                'model_run': WeatherModelRun(
-                    datetime=prediction_model_run_timestamp.prediction_run_timestamp,
-                    name=prediction_model.name,
-                    abbreviation=model,
-                    projection=prediction_model.projection
-                ),
-                'prediction': WeatherModelPredictionValues(
-                    temperature=prediction.tmp_tgl_2,
-                    bias_adjusted_temperature=prediction.bias_adjusted_temperature,
-                    relative_humidity=prediction.rh_tgl_2,
-                    bias_adjusted_relative_humidity=prediction.bias_adjusted_rh,
-                    delta_precipitation=starting_precip,
-                    datetime=prediction.prediction_timestamp
-                )
-            }
-        # As we iterate through predictions, only the most recent prediction will be retained due
-        # to the ordering of the results.
-        else:
-            station_predictions[prediction.station_code][prediction.prediction_timestamp] = {
-                'model_run': WeatherModelRun(
-                    datetime=prediction_model_run_timestamp.prediction_run_timestamp,
-                    name=prediction_model.name,
-                    abbreviation=model,
-                    projection=prediction_model.projection),
-                'prediction': WeatherModelPredictionValues(
-                    temperature=prediction.tmp_tgl_2,
-                    bias_adjusted_temperature=prediction.bias_adjusted_temperature,
-                    relative_humidity=prediction.rh_tgl_2,
-                    bias_adjusted_relative_humidity=prediction.bias_adjusted_rh,
-                    delta_precipitation=prediction.delta_precip,
-                    datetime=prediction.prediction_timestamp)
-            }
+        # This condition catches situations where we are not at hour 000 of the model run, or where it is
+        # hour 000 but there was nothing returned from _fetch_delta_precip_for_prev_model_run()
+        if precip_value is None:
+            precip_value = prediction.delta_precip
+        station_predictions[prediction.station_code][prediction.prediction_timestamp] = {
+            'model_run': WeatherModelRun(
+                datetime=prediction_model_run_timestamp.prediction_run_timestamp,
+                name=prediction_model.name,
+                abbreviation=model,
+                projection=prediction_model.projection
+            ),
+            'prediction': WeatherModelPredictionValues(
+                temperature=prediction.tmp_tgl_2,
+                bias_adjusted_temperature=prediction.bias_adjusted_temperature,
+                relative_humidity=prediction.rh_tgl_2,
+                bias_adjusted_relative_humidity=prediction.bias_adjusted_rh,
+                delta_precipitation=precip_value,
+                datetime=prediction.prediction_timestamp
+            )
+        }
 
     # Re-structure the data, grouping data by station and model run.
     # NOTE: It means looping through twice, but the code reads easier this way.
