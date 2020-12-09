@@ -36,12 +36,9 @@ const MoreCastPage = () => {
 
   useEffect(() => {
     dispatch(fetchWxStations())
-  }, [dispatch])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    // Update local state to match with the url query
-    setSelectedCodes(codesFromQuery)
-
     if (codesFromQuery.length > 0) {
       dispatch(fetchObservations(codesFromQuery))
       dispatch(fetchForecasts(codesFromQuery))
@@ -53,11 +50,13 @@ const MoreCastPage = () => {
       dispatch(fetchRegionalModels(codesFromQuery))
       dispatch(fetchRegionalModelSummaries(codesFromQuery))
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch, location])
+
+    // Update local state to match with the url query
+    setSelectedCodes(codesFromQuery)
+  }, [location]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const onSubmitClick = () => {
-    // Update the page url query with new station codes
+    // Update the url query with the new station codes
     history.push({ search: `${stationCodeQueryKey}=${selectedCodes.join(',')}` })
 
     // Create matomo event

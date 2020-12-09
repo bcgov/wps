@@ -12,7 +12,6 @@ interface Props {
   children: React.ReactElement
 }
 
-// TODO: Maybe turn this into High order function later
 const AuthWrapper = ({ children, shouldAuthenticate }: Props) => {
   const dispatch = useDispatch()
   const { isAuthenticated, authenticating, error } = useSelector(selectAuthentication)
@@ -22,8 +21,7 @@ const AuthWrapper = ({ children, shouldAuthenticate }: Props) => {
       dispatch(authenticate())
       dispatch(setAxiosRequestInterceptors())
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!shouldAuthenticate) {
     return children

@@ -46,28 +46,29 @@ export const useStyles = makeStyles({
       pointerEvents: 'none',
       font: '8.5px sans-serif',
 
-      '&__cursor': {
-        strokeWidth: 1,
-        stroke: 'gray',
-        strokeDasharray: '1,1',
-        opacity: 0
-      },
       '&--hidden': {
         display: 'none'
       }
     },
+    '& .tooltipCursor': {
+      strokeWidth: 1,
+      stroke: 'gray',
+      strokeDasharray: '1,1',
+      opacity: 0
+    },
+    '& .hidden': {
+      visibility: 'hidden'
+    },
     '& .observedTempSymbol': {
       stroke: observedTempColor,
-      fill: observedTempColor,
-      cursor: 'pointer'
+      fill: observedTempColor
     },
     '& .observedTempPath': {
       stroke: observedTempColor
     },
     '& .observedRHSymbol': {
       stroke: observedRHColor,
-      fill: observedRHColor,
-      cursor: 'pointer'
+      fill: observedRHColor
     },
     '& .observedRHPath': {
       stroke: observedRHColor
@@ -86,48 +87,42 @@ export const useStyles = makeStyles({
     },
     '& .modelTempSymbol': {
       stroke: modelTempColor,
-      fill: modelTempColor,
-      cursor: 'pointer'
+      fill: modelTempColor
     },
     '& .modelTempPath': {
       stroke: modelTempColor
     },
     '& .modelRHSymbol': {
       stroke: modelRHColor,
-      fill: modelRHColor,
-      cursor: 'pointer'
+      fill: modelRHColor
     },
     '& .modelRHPath': {
       stroke: modelRHColor
     },
     '& .biasAdjModelTempSymbol': {
       stroke: biasModelTempColor,
-      fill: biasModelTempColor,
-      cursor: 'pointer'
+      fill: biasModelTempColor
     },
     '& .biasAdjModelTempPath': {
       stroke: biasModelTempColor
     },
     '& .biasAdjModelRHSymbol': {
       stroke: biasModelRHColor,
-      fill: biasModelRHColor,
-      cursor: 'pointer'
+      fill: biasModelRHColor
     },
     '& .biasAdjModelRHPath': {
       stroke: biasModelRHColor
     },
     '& .highResModelTempSymbol': {
       stroke: highResModelTempColor,
-      fill: highResModelTempColor,
-      cursor: 'pointer'
+      fill: highResModelTempColor
     },
     '& .highResModelTempPath': {
       stroke: highResModelTempColor
     },
     '& .highResModelRHSymbol': {
       stroke: highResModelRHColor,
-      fill: highResModelRHColor,
-      cursor: 'pointer'
+      fill: highResModelRHColor
     },
     '& .highResModelRHPath': {
       stroke: highResModelRHColor
@@ -146,8 +141,7 @@ export const useStyles = makeStyles({
     },
     '& .regionalModelTempSymbol': {
       stroke: regionalModelTempColor,
-      fill: regionalModelTempColor,
-      cursor: 'pointer'
+      fill: regionalModelTempColor
     },
     '& .regionalModelTempPath': {
       stroke: regionalModelTempColor
@@ -155,8 +149,7 @@ export const useStyles = makeStyles({
     '& .regionalModelRHSymbol': {
       stroke: regionalModelRHColor,
       fill: regionalModelRHColor,
-      strokeWidth: 0.7,
-      cursor: 'pointer'
+      strokeWidth: 0.7
     },
     '& .regionalModelRHPath': {
       stroke: regionalModelRHColor
@@ -175,13 +168,11 @@ export const useStyles = makeStyles({
     },
     '& .forecastTempDot': {
       stroke: forecastTempDotColor,
-      fill: 'none',
-      cursor: 'pointer'
+      fill: 'none'
     },
     '& .forecastRHDot': {
       stroke: forecastRHDotColor,
-      fill: 'none',
-      cursor: 'pointer'
+      fill: 'none'
     },
     '& .forecastSummaryTempLine': {
       stroke: forecastSummaryTempLineColor,
