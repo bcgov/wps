@@ -41,20 +41,18 @@ const WxDataGraph = ({
   const classes = useStyles()
 
   const noObservations = observedValues.length === 0
-  const noModels = allModelValues.length === 0 && modelSummaries.length === 0
-  const noForecasts = allForecasts.length === 0 && forecastSummaries.length === 0
+  const noModels = allModelValues.length === 0
+  const noForecasts = allForecasts.length === 0
   const noBiasAdjModels = allModelValues.length === 0
-  const noHighResModels =
-    allHighResModelValues.length === 0 && highResModelSummaries.length === 0
-  const noRegionalModels =
-    allRegionalModelValues.length === 0 && regionalModelSummaries.length === 0
+  const noHighResModels = allHighResModelValues.length === 0
+  const noRegionalModels = allRegionalModelValues.length === 0
 
   const [toggleValues, setToggleValues] = useGraphToggles({
     showObservations: !noObservations,
-    showModels: false,
     showForecasts: false,
+    showModels: false,
     showBiasAdjModels: false,
-    showHighResModels: false,
+    showHighResModels: !noHighResModels,
     showRegionalModels: false
   })
 
@@ -68,15 +66,6 @@ const WxDataGraph = ({
   ) {
     return null
   }
-
-  const {
-    showObservations,
-    showModels,
-    showForecasts,
-    showBiasAdjModels,
-    showHighResModels,
-    showRegionalModels
-  } = toggleValues
 
   return (
     <div className={classes.display}>
@@ -92,16 +81,17 @@ const WxDataGraph = ({
       />
 
       <TempRHGraph
-        observedValues={showObservations ? observedValues : []}
-        modelValues={showModels ? allModelValues : []}
-        modelSummaries={showModels ? modelSummaries : []}
-        forecastValues={showForecasts ? allForecasts : []}
-        forecastSummaries={showForecasts ? forecastSummaries : []}
-        biasAdjModelValues={showBiasAdjModels ? allModelValues : []}
-        highResModelValues={showHighResModels ? allHighResModelValues : []}
-        highResModelSummaries={showHighResModels ? highResModelSummaries : []}
-        regionalModelValues={showRegionalModels ? allRegionalModelValues : []}
-        regionalModelSummaries={showRegionalModels ? regionalModelSummaries : []}
+        toggleValues={toggleValues}
+        observedValues={observedValues}
+        forecastValues={allForecasts}
+        forecastSummaries={forecastSummaries}
+        gdpsValues={allModelValues}
+        gdpsSummaries={modelSummaries}
+        biasAdjGdpsValues={allModelValues}
+        hrdpsValues={allHighResModelValues}
+        hrdpsSummaries={highResModelSummaries}
+        rdpsValues={allRegionalModelValues}
+        rdpsSummaries={regionalModelSummaries}
       />
 
       <PrecipGraph

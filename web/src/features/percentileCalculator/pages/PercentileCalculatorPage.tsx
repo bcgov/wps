@@ -34,22 +34,21 @@ const PercentileCalculatorPage = () => {
 
   useEffect(() => {
     dispatch(fetchWxStations())
-  }, [dispatch])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    // Update local state to match with the url query
-    setStationCodes(codesFromQuery)
-
     if (codesFromQuery.length > 0) {
       dispatch(fetchPercentiles(codesFromQuery, defaultPercentile, yearRange))
     } else {
       dispatch(resetPercentilesResult())
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch, location])
+
+    // Update local state to match with the url query
+    setStationCodes(codesFromQuery)
+  }, [location]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const onCalculateClick = () => {
-    // Update the page url query with new station codes
+    // Update the url query with the new station codes
     history.push({ search: `${stationCodeQueryKey}=${stationCodes.join(',')}` })
 
     // Create a matomo event, pushing various variables onto the dataLayer
