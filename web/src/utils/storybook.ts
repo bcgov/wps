@@ -90,10 +90,10 @@ const getPastValues = () => {
         })
         _forecastSummaries.push({
           datetime,
-          tmp_min: temp - 4,
-          tmp_max: temp + 4,
-          rh_min: rh - 4,
-          rh_max: rh + 4
+          tmp_min: temp + (Math.random() - 0.5) * 8 - 4,
+          tmp_max: temp + (Math.random() - 0.5) * 8 + 4,
+          rh_min: rh + (Math.random() - 0.5) * 8 - 4,
+          rh_max: rh + (Math.random() - 0.5) * 8 + 4
         })
       }
 
