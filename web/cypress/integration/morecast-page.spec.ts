@@ -152,7 +152,7 @@ describe('MoreCast Page', () => {
       cy.getByTestId('forecast-precip-line').should('have.class', 'precipLine--hidden')
       cy.getByTestId('gdps-precip-line').should('have.class', 'precipLine--hidden')
       cy.getByTestId('rdps-precip-line').should('have.class', 'precipLine--hidden')
-      cy.getByTestId('hrdps-precip-line').should('have.class', 'precipLine--hidden')
+      cy.getByTestId('hrdps-precip-line').should('not.have.class', 'precipLine--hidden')
       cy.getByTestId('wx-graph-observation-toggle').click()
       cy.getByTestId('wx-graph-forecast-toggle').click()
       cy.getByTestId('observed-precip-line').should('have.class', 'precipLine--hidden')
@@ -162,7 +162,7 @@ describe('MoreCast Page', () => {
       cy.getByTestId('gdps-precip-line').should('have.class', 'precipLine--hidden')
       cy.getByTestId('wx-graph-high-res-model-toggle').click()
       cy.getByTestId('wx-graph-global-model-toggle').click()
-      cy.getByTestId('hrdps-precip-line').should('not.have.class', 'precipLine--hidden')
+      cy.getByTestId('hrdps-precip-line').should('have.class', 'precipLine--hidden')
       cy.getByTestId('gdps-precip-line').should('not.have.class', 'precipLine--hidden')
       cy.getByTestId('wx-graph-observation-toggle').click()
 
