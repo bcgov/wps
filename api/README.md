@@ -274,10 +274,6 @@ CREATE EXTENSION postgis;
 
 ```
 
-## Architecture
-
-![FWI calculator container diagram](container_diagram.png)
-
 ## Config Maps & Secrets
 
 In `openshift/templates/global.config.yaml` there are templates for a global ConfigMap and global Secrets used by the API.
