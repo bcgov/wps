@@ -38,6 +38,10 @@ Refer to [web/README.md](api/README.md)
 
 A glossary of terms relating to Wildfire that are relevant to Predictive Services can be found at the [Predictive Wildfire Wiki Glossary Page](https://github.com/bcgov/wps/wiki/Glossary)
 
+## Architecture
+
+![FWI calculator container diagram](container_diagram.jpg)
+
 ## Contributing
 
 ### Branch naming conventions
