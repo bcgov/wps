@@ -10,6 +10,6 @@ export const PDT_UTC_OFFSET = -7 // The Pacific Daylight Time offset is -7 hours
 export const PST_UTC_OFFSET = -8
 
 export const PERCENTILE_CALC_ROUTE = '/percentile-calculator'
-export const FIRE_WEATHER_ROUTE = 'fire-weather'
+export const FIRE_WEATHER_ROUTE = '/fire-weather'
 export const MORECAST_ROUTE = '/morecast'
 export const HFI_CALC_ROUTE = '/hfi-calculator'
