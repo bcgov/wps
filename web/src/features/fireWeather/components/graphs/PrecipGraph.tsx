@@ -495,24 +495,21 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       legendData.push({
         text: 'HRDPS Precip',
         shape: 'rect',
-        color: hrdpsPrecipColor,
-        fill: null
+        color: hrdpsPrecipColor
       })
     }
     if (toggleValues.showRegionalModels) {
       legendData.push({
         text: 'RDPS Precip',
         shape: 'rect',
-        color: rdpsPrecipColor,
-        fill: null
+        color: rdpsPrecipColor
       })
     }
     if (toggleValues.showModels) {
       legendData.push({
         text: 'GDPS Precip',
         shape: 'rect',
-        color: gdpsPrecipColor,
-        fill: null
+        color: gdpsPrecipColor
       })
     }
     const svgElement = svgRef.current
