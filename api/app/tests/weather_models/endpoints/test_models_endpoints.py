@@ -43,12 +43,12 @@ def when_prediction(mock_jwt_decode, given_a_database, given_stations, endpoint:
     if response.status_code == 200:
         given_a_database['response_json'] = response.json()
         with open('tmp_response.json', 'w') as fp:
-            json.dump(given_a_database['response_json'], fp)
+            json.dump(given_a_database['response_json'], fp, indent=4)
     given_a_database['status_code'] = response.status_code
 # pylint: enable=redefined-outer-name, unused-argument
 
 
-@then('The <expected_status_code> is matched')
+@ then('The <expected_status_code> is matched')
 def assert_status_code(given_a_database, expected_status_code: str):  # pylint: disable=redefined-outer-name
     """ Assert that the status code is as expected
     """
@@ -57,12 +57,12 @@ def assert_status_code(given_a_database, expected_status_code: str):  # pylint: 
 # pylint: disable=redefined-outer-name, unused-argument
 
 
-@then('The <expected_response> is matched')
+@ then('The <expected_response> is matched')
 def assert_response(given_a_database, expected_response):
     """ "Catch all" test that blindly checks the actual json response against an expected response. """
     dirname = os.path.dirname(os.path.realpath(__file__))
     filename = os.path.join(dirname, expected_response)
-    with open(filename) as data_file:
-        expected_json = json.load(data_file)
+    with open(filename) as expected_json_file:
+        expected_json = json.load(expected_json_file)
         assert given_a_database['response_json'] == expected_json
 # pylint: enable=redefined-outer-name, unused-argument
