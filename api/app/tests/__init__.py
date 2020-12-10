@@ -41,7 +41,6 @@ def dump_sqlalchemy_response_to_json(response, target: IO[Any]):
                     'data': data
                 }
             )
-            result.append(result_row)
         result.append(result_row)
     json.dump(result, fp=target, default=json_converter, indent=3)
 
