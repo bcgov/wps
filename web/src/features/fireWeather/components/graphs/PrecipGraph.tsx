@@ -12,6 +12,8 @@ import { PDT_UTC_OFFSET } from 'utils/constants'
 
 const observedPrecipColor = '#a50b41'
 const forecastPrecipColor = '#fb0058'
+const accumObservedPrecipColor = '#17c4c4'
+const accumForecastPrecipColor = '#057070'
 
 const useStyles = makeStyles({
   root: {
@@ -59,7 +61,9 @@ const useStyles = makeStyles({
 interface PrecipValue {
   date: Date
   observedPrecip?: number
+  accumObservedPrecip?: number
   forecastPrecip?: number
+  accumForecastPrecip?: number
 }
 
 interface Props {
@@ -121,6 +125,20 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       }
     )
 
+    const accumObservedPrecips: { date: Date, accumPrecip: number }[] = []
+    observedPrecips.forEach(({ date, value }) => {
+      const observed = { date, accumPrecip: NaN }
+      if (value != null) {
+        if (accumObservedPrecips.length == 0) {
+          observed.accumPrecip = value
+        }
+        else {
+          observed.accumPrecip = value + accumObservedPrecips[accumObservedPrecips.length - 1].accumPrecip
+        }
+        accumObservedPrecips.push(observed)
+      }
+    }) 
+
     const forecastPrecips = forecastValues.map(
       ({ datetime, total_precipitation: totalPrecip }) => {
         const date = moment(datetime)
@@ -139,6 +157,20 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         }
       }
     )
+
+    const accumForecastPrecips: { date: Date, accumPrecip: number }[] = []
+    forecastPrecips.forEach(({ date, value }) => {
+      const forecast = { date, accumPrecip: NaN}
+      if (value != null) {
+        if (accumForecastPrecips.length == 0) {
+          forecast.accumPrecip = value
+        }
+        else {
+          forecast.accumPrecip = value + accumForecastPrecips[accumForecastPrecips.length - 1].accumPrecip
+        }
+        accumForecastPrecips.push(forecast)
+      }
+    })
 
     const currDate = new Date()
     const pastDate = moment(currDate)
@@ -161,7 +193,9 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       xTickValues: d3Utils.getTickValues(xDomain, utcOffset, false),
       maxPrecip,
       observedPrecips,
-      forecastPrecips
+      accumObservedPrecips,
+      forecastPrecips,
+      accumForecastPrecips
     }
   }, [utcOffset, observedValues, forecastValues])
 
@@ -172,7 +206,9 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       xTickValues,
       maxPrecip,
       observedPrecips,
-      forecastPrecips
+      accumObservedPrecips,
+      forecastPrecips,
+      accumForecastPrecips
     } = graphCalculations
 
     if (svgRef.current) {
@@ -224,6 +260,15 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         })
       )
 
+      const drawAccumObservedPrecipPath = d3Utils.drawPath({
+        svg: chart,
+        className: 'accumObservedPrecipPath',
+        data: accumObservedPrecips,
+        x: d => xScale(d.date),
+        y: d => yScale(d.accumPrecip),
+        testId: 'accum-observed-precip-path'
+      })
+
       forecastPrecips.forEach(precip =>
         d3Utils.drawVerticalLine({
           svg: chart,
@@ -270,6 +315,14 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       graphCalculations.observedPrecips.forEach(({ date, value }) => {
         precipsByDatetime[date.toISOString()] = { date, observedPrecip: value }
       })
+    toggleValues.showObservations &&
+      graphCalculations.accumObservedPrecips.forEach(({ date, accumPrecip }) => {
+        precipsByDatetime[date.toISOString()] = {
+          ...precipsByDatetime[date.toISOString()],
+          date,
+          accumObservedPrecip: accumPrecip
+        }
+      })
 
     toggleValues.showForecasts &&
       graphCalculations.forecastPrecips.forEach(({ date, value }) => {
@@ -277,6 +330,14 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
           ...precipsByDatetime[date.toISOString()],
           date,
           forecastPrecip: value
+        }
+      })
+    toggleValues.showForecasts &&
+      graphCalculations.accumForecastPrecips.forEach(({ date, accumPrecip }) => {
+        precipsByDatetime[date.toISOString()] = { 
+          ...precipsByDatetime[date.toISOString()],
+          date,
+          accumForecastPrecip: accumPrecip
         }
       })
 
@@ -293,12 +354,24 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         color: observedPrecipColor,
         fill: null
       })
+      legendData.push({
+        text: 'Accumulated Observed Precip',
+        shape: 'rect',
+        color: accumObservedPrecipColor,
+        fill: null
+      })
     }
     if (toggleValues.showForecasts) {
       legendData.push({
         text: 'Forecast Precip',
         shape: 'rect',
         color: forecastPrecipColor,
+        fill: null
+      })
+      legendData.push({
+        text: 'Accumulated Forecast Precip',
+        shape: 'rect',
+        color: accumForecastPrecipColor,
         fill: null
       })
     }
@@ -354,6 +427,16 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
                   return {
                     text: `Forecast Precip: ${value} (mm/cm)`,
                     color: forecastPrecipColor
+                  }
+                case 'accumObservedPrecip':
+                  return {
+                    text: `Accumulated Observed Precip: ${Number(value).toFixed(2)} (mm/cm)`,
+                    color: accumObservedPrecipColor
+                  }
+                case 'accumForecastPrecip':
+                  return {
+                    text: `Accumulated Forecast precip: ${Number(value).toFixed(2)} (mm/cm)`,
+                    color: accumForecastPrecipColor
                   }
                 default:
                   return undefined
