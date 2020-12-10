@@ -590,8 +590,8 @@ def process_models():
     start_time = time.time()
 
     # process everything.
-    # env_canada = EnvCanada(model_type)
-    # env_canada.process()
+    env_canada = EnvCanada(model_type)
+    env_canada.process()
 
     # interpolate and machine learn everything that needs interpolating.
     model_value_processor = ModelValueProcessor()
