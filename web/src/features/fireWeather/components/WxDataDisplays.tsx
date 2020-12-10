@@ -4,7 +4,7 @@ import { Paper, Typography } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 
 import HourlyObservationsTable from 'features/fireWeather/components/HourlyObservationsTable'
-import NoonForecastTable from 'features/fireWeather/components/NoonForecastTable'
+import NoonWeatherValueTable from 'features/fireWeather/components/NoonWeatherValueTable'
 import WxDataGraph from 'features/fireWeather/components/graphs/WxDataGraph'
 import { ErrorBoundary } from 'components'
 import {
@@ -28,6 +28,7 @@ const useStyles = makeStyles({
   paper: {
     paddingLeft: 16,
     paddingRight: 16,
+    paddingBottom: 8,
     marginBottom: 20
   },
   station: {
@@ -96,21 +97,21 @@ const WxDataDisplays = ({ stationCodes }: Props) => {
               <ErrorBoundary>
                 <HourlyObservationsTable
                   title="Past 5 days of hourly observations from station: "
-                  values={observedValues}
+                  rows={observedValues}
                 />
               </ErrorBoundary>
               <ErrorBoundary>
-                <NoonForecastTable
+                <NoonWeatherValueTable
                   testId={`noon-models-table-${code}`}
                   title="Interpolated global model noon values (20:00 UTC): "
-                  values={noonModelValues}
+                  rows={noonModelValues}
                 />
               </ErrorBoundary>
               <ErrorBoundary>
-                <NoonForecastTable
+                <NoonWeatherValueTable
                   testId={`noon-forecasts-table-${code}`}
                   title="Weather forecast noon values (20:00 UTC): "
-                  values={allForecasts}
+                  rows={allForecasts}
                 />
               </ErrorBoundary>
               <ErrorBoundary>

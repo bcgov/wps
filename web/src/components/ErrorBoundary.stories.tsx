@@ -8,7 +8,7 @@ import { ErrorBoundary } from 'components'
 storiesOf('ErrorBoundary', module).add('default', () => {
   return (
     <ErrorBoundary>
-      <HourlyObservationsTable title="this is title" values={{}} />
+      <HourlyObservationsTable title="this is title" rows={{}} />
     </ErrorBoundary>
   )
 })
