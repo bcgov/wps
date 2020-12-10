@@ -66,6 +66,7 @@ def construct_interpolated_noon_prediction(prediction_a: ModelRunGridSubsetPredi
     noon_timestamp = noon_prediction.prediction_timestamp.timestamp()
     # calculate interpolated values.
     for key in MODEL_VALUE_KEYS:
+        # TODO: put code in here to check for prediction value!
         value = interpolate_between_two_points(
             timestamp_a, timestamp_b, getattr(prediction_a, key),
             getattr(prediction_b, key), noon_timestamp)

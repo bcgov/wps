@@ -15,10 +15,11 @@ from app.schemas.weather_models import (WeatherModelPrediction,
                                         WeatherStationModelRunsPredictions)
 from app.schemas.stations import WeatherStation
 from app.db.models import ModelRunGridSubsetPrediction
-import app.db.crud.weather_models
+from app.db.crud.weather_models import get_station_model_predictions
 import app.stations
 from app.weather_models import ModelEnum, ProjectionEnum
 from app.weather_models.fetch import extract_stations_in_polygon
+from app.tests import dump_sqlalchemy_response_to_json
 
 logger = logging.getLogger(__name__)
 
@@ -234,8 +235,11 @@ async def fetch_model_run_predictions_by_station_code(
     five_days_ago = app.time_utils.get_utc_now() - datetime.timedelta(days=5)
     # send the query (ordered by prediction date.)
     session = app.db.database.get_read_session()
-    historic_predictions = app.db.crud.weather_models.get_station_model_predictions(
+    historic_predictions = get_station_model_predictions(
         session, station_codes, model, five_days_ago, end_date)
+
+    with open('get_station_model_predictions_{}_{}.json'.format(model, station_codes), 'w') as out:
+        dump_sqlalchemy_response_to_json(historic_predictions, out)
 
     # Helper dictionary.
     station_predictions = defaultdict(dict)
