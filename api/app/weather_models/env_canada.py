@@ -465,8 +465,15 @@ class ModelValueProcessor:
         # Calculate the interpolated values.
         station_prediction.tmp_tgl_2 = griddata(
             points, prediction.tmp_tgl_2, coordinate, method='linear')[0]
-        station_prediction.rh_tgl_2 = griddata(
-            points, prediction.rh_tgl_2, coordinate, method='linear')[0]
+        # 2020 Dec 10, Sybrand: Encountered situation where rh_tgl_2 was None, add this workaround for it.
+        # NOTE: Not sure why this value would ever be None.
+        if prediction.rh_tgl_2 is None:
+            # This is unexpected, so we log it.
+            logger.warning('rh_tgl_2 is None')
+            station_prediction.rh_tgl_2 = None
+        else:
+            station_prediction.rh_tgl_2 = griddata(
+                points, prediction.rh_tgl_2, coordinate, method='linear')[0]
         # Check that apcp_sfc_0 is not None, since accumulated precipitation
         # does not exist for 00 hour
         if prediction.apcp_sfc_0 is not None:
