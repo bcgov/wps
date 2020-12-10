@@ -1,8 +1,11 @@
 """ Code common to app.weather_models.fetch """
 from enum import Enum
 from typing import List
+import logging
 from scipy.interpolate import interp1d
 from app.db.models import ModelRunGridSubsetPrediction
+
+logger = logging.getLogger(__name__)
 
 
 # Key values on ModelRunGridSubsetPrediction.
@@ -66,10 +69,15 @@ def construct_interpolated_noon_prediction(prediction_a: ModelRunGridSubsetPredi
     noon_timestamp = noon_prediction.prediction_timestamp.timestamp()
     # calculate interpolated values.
     for key in MODEL_VALUE_KEYS:
-        # TODO: put code in here to check for prediction value!
-        value = interpolate_between_two_points(
-            timestamp_a, timestamp_b, getattr(prediction_a, key),
-            getattr(prediction_b, key), noon_timestamp)
+        value_a = getattr(prediction_a, key)
+        value_b = getattr(prediction_b, key)
+        if value_a is None or value_b is None:
+            logger.warning('can\'t interpolate between None values')
+            continue
+        value = interpolate_between_two_points(timestamp_a, timestamp_b, value_a, value_b, noon_timestamp)
         setattr(noon_prediction, key, value)
-    noon_prediction.delta_precip = noon_prediction.apcp_sfc_0 - prediction_a.apcp_sfc_0
+    if noon_prediction.apcp_sfc_0 is None or prediction_a.apcp_sfc_0 is None:
+        noon_prediction.delta_precip = None
+    else:
+        noon_prediction.delta_precip = noon_prediction.apcp_sfc_0 - prediction_a.apcp_sfc_0
     return noon_prediction
