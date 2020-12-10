@@ -19,8 +19,6 @@ const hrdpsPrecipColor = '#026200'
 
 const useStyles = makeStyles({
   root: {
-    paddingBottom: 15,
-
     '& .yAxisLabel': {
       textAnchor: 'middle',
       font: '9px sans-serif'
