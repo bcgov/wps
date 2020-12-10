@@ -49,7 +49,9 @@ def when_prediction(mock_jwt_decode, given_a_database, given_stations, endpoint:
 
 
 @then('The <expected_status_code> is matched')
-def assert_status_code(given_a_database, expected_status_code: str):
+def assert_status_code(given_a_database, expected_status_code: str):  # pylint: disable=redefined-outer-name
+    """ Assert that the status code is as expected
+    """
     assert given_a_database['status_code'] == int(expected_status_code)
 
 # pylint: disable=redefined-outer-name, unused-argument
