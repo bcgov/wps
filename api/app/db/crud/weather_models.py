@@ -238,7 +238,6 @@ def get_station_model_predictions(
     Only fetches WeatherStationModelPredictions for prediction_timestamps in the date range of
     start_date - end_date (inclusive).
     """
-    # TODO: There's something not right about his query - it's returning the same model run multiple times.
     query = session.query(WeatherStationModelPrediction, PredictionModelRunTimestamp, PredictionModel).\
         filter(WeatherStationModelPrediction.station_code.in_(station_codes)).\
         filter(WeatherStationModelPrediction.prediction_timestamp >= start_date).\
