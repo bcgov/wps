@@ -24,9 +24,6 @@ define run-env-canada
 	${call run-env-canada-model,GDPS}
 	${call run-env-canada-model,HRDPS}
 	${call run-env-canada-model,RDPS}
-	# POSTGRES_HOST=localhost $(POETRY_RUN) python -m app.weather_models.env_canada GDPS
-	# POSTGRES_HOST=localhost $(POETRY_RUN) python -m app.weather_models.env_canada HRDPS
-	# POSTGRES_HOST=localhost $(POETRY_RUN) python -m app.weather_models.env_canada RDPS
 endef
 
 clean:
