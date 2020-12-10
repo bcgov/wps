@@ -42,8 +42,6 @@ def when_prediction(mock_jwt_decode, given_a_database, given_stations, endpoint:
         endpoint, headers={'Authorization': 'Bearer token'}, json={'stations': given_stations})
     if response.status_code == 200:
         given_a_database['response_json'] = response.json()
-        with open('tmp_response.json', 'w') as fp:
-            json.dump(given_a_database['response_json'], fp, indent=4)
     given_a_database['status_code'] = response.status_code
 # pylint: enable=redefined-outer-name, unused-argument
 

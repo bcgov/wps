@@ -238,9 +238,6 @@ async def fetch_model_run_predictions_by_station_code(
     historic_predictions = get_station_model_predictions(
         session, station_codes, model, five_days_ago, end_date)
 
-    with open('get_station_model_predictions_{}_{}.json'.format(model, station_codes), 'w') as out:
-        dump_sqlalchemy_response_to_json(historic_predictions, out)
-
     # Helper dictionary.
     station_predictions = defaultdict(dict)
 
