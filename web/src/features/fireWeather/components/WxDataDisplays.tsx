@@ -102,7 +102,7 @@ const WxDataDisplays = ({ stationCodes }: Props) => {
               </ErrorBoundary>
               <ErrorBoundary>
                 <NoonWeatherValueTable
-                  testId={`noon-models-table-${code}`}
+                  testId={`noon-gdps-table-${code}`}
                   title="Interpolated global model noon values (20:00 UTC): "
                   rows={noonModelValues}
                 />

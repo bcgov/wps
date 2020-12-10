@@ -101,23 +101,23 @@ interface Props {
   rows: ObservedValue[] | undefined
 }
 
-const HourlyObservationsTable = ({ title, rows }: Props) => {
+const HourlyObservationsTable = (props: Props) => {
   const classes = useStyles()
   const [order, setOrder] = useState<Order>('asc')
 
-  if (!rows) {
+  if (!props.rows) {
     return null
   }
 
-  const rowsSortedByDatetime = [...rows].sort(getDatetimeComparator(order))
+  const rowsSortedByDatetime = [...props.rows].sort(getDatetimeComparator(order))
   const toggleDatetimeOrder = () => {
     setOrder(order === 'asc' ? 'desc' : 'asc')
   }
 
   return (
-    <div className={classes.display} data-testid="hourly-observations-display">
+    <div className={classes.display} data-testid="hourly-observations-table">
       <Typography className={classes.title} component="div" variant="subtitle2">
-        {title}
+        {props.title}
       </Typography>
 
       <Paper className={classes.paper} elevation={1}>

@@ -91,27 +91,27 @@ const columns: Column[] = [
 
 interface Props {
   rows: (ModelValue | NoonForecastValue)[] | undefined
-  testId: string
   title: string
+  testId: string
 }
 
-const NoonWeatherValueTable = ({ rows, testId, title }: Props) => {
+const NoonWeatherValueTable = (props: Props) => {
   const classes = useStyles()
   const [order, setOrder] = useState<Order>('asc')
 
-  if (!rows) {
+  if (!props.rows) {
     return null
   }
 
-  const rowsSortedByDatetime = [...rows].sort(getDatetimeComparator(order))
+  const rowsSortedByDatetime = [...props.rows].sort(getDatetimeComparator(order))
   const toggleDatetimeOrder = () => {
     setOrder(order === 'asc' ? 'desc' : 'asc')
   }
 
   return (
-    <div className={classes.display} data-testid={testId}>
+    <div className={classes.display} data-testid={props.testId}>
       <Typography className={classes.title} variant="subtitle2" component="div">
-        {title}
+        {props.title}
       </Typography>
       <Paper className={classes.paper} elevation={1}>
         <TableContainer className={classes.tableContainer}>
