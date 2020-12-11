@@ -92,7 +92,8 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
   // This optimization helps to avoid expensive calculations on every render.
   const graphCalculations = useMemo(() => {
     const datesFromAllSources: Date[] = []
-    let maxPrecip = 10
+    let maxDailyPrecip = 10
+    let maxAccumPrecip = 10
 
     const aggreObservedPrecips: { [k: string]: number } = {}
     observedValues.forEach(({ datetime, precipitation }) => {
@@ -114,8 +115,8 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
           .toDate()
         datesFromAllSources.push(date)
 
-        if (totalPrecip > maxPrecip) {
-          maxPrecip = totalPrecip
+        if (totalPrecip > maxDailyPrecip) {
+          maxDailyPrecip = totalPrecip
         }
 
         return {
@@ -137,7 +138,10 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         }
         accumObservedPrecips.push(observed)
       }
-    }) 
+    })
+    if (maxAccumPrecip < accumObservedPrecips[accumObservedPrecips.length - 1].accumPrecip) {
+      maxAccumPrecip = accumObservedPrecips[accumObservedPrecips.length - 1].accumPrecip
+    }
 
     const forecastPrecips = forecastValues.map(
       ({ datetime, total_precipitation: totalPrecip }) => {
@@ -147,8 +151,8 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
           .toDate()
         datesFromAllSources.push(date)
 
-        if (totalPrecip > maxPrecip) {
-          maxPrecip = totalPrecip
+        if (totalPrecip > maxDailyPrecip) {
+          maxDailyPrecip = totalPrecip
         }
 
         return {
@@ -171,6 +175,9 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         accumForecastPrecips.push(forecast)
       }
     })
+    if (maxAccumPrecip < accumForecastPrecips[accumForecastPrecips.length - 1].accumPrecip) {
+      maxAccumPrecip = accumForecastPrecips[accumForecastPrecips.length - 1].accumPrecip
+    }
 
     const currDate = new Date()
     const pastDate = moment(currDate)
@@ -186,12 +193,14 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       .add(6, 'hours')
       .toDate()
     const xDomain: [Date, Date] = [d1, d2]
-    maxPrecip = Math.ceil(maxPrecip / 10) * 10 // round to the nearest 10
+    maxDailyPrecip = Math.ceil(maxDailyPrecip / 10) * 10 // round to the nearest 10
+    maxAccumPrecip = Math.ceil(maxAccumPrecip / 10) * 10 // round to the nearest 10
 
     return {
       xDomain,
       xTickValues: d3Utils.getTickValues(xDomain, utcOffset, false),
-      maxPrecip,
+      maxDailyPrecip,
+      maxAccumPrecip,
       observedPrecips,
       accumObservedPrecips,
       forecastPrecips,
@@ -204,7 +213,8 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
     const {
       xDomain,
       xTickValues,
-      maxPrecip,
+      maxDailyPrecip,
+      maxAccumPrecip,
       observedPrecips,
       accumObservedPrecips,
       forecastPrecips,
@@ -243,9 +253,13 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         .domain(xDomain)
         .range([0, chartWidth])
       const xScaleOriginal = xScale.copy()
-      const yScale = d3
+      const yDailyScale = d3
         .scaleLinear()
-        .domain([0, maxPrecip])
+        .domain([0, maxDailyPrecip])
+        .range([chartHeight, 0])
+      const yAccumScale = d3
+        .scaleLinear()
+        .domain([0, maxAccumPrecip])
         .range([chartHeight, 0])
 
       observedPrecips.forEach(precip =>
@@ -254,8 +268,8 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
           className: 'precipLine__observed',
           xScale: xScaleOriginal,
           x: xScale(precip.date) - 2,
-          y1: yScale(precip.value),
-          y2: yScale(0),
+          y1: yDailyScale(precip.value),
+          y2: yDailyScale(0),
           testId: 'observed-precip-line'
         })
       )
@@ -265,7 +279,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         className: 'accumObservedPrecipPath',
         data: accumObservedPrecips,
         x: d => xScale(d.date),
-        y: d => yScale(d.accumPrecip),
+        y: d => yDailyScale(d.accumPrecip),
         testId: 'accum-observed-precip-path'
       })
 
@@ -275,8 +289,8 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
           className: 'precipLine__forecast',
           xScale: xScaleOriginal,
           x: xScale(precip.date) + 2,
-          y1: yScale(precip.value),
-          y2: yScale(0),
+          y1: yDailyScale(precip.value),
+          y2: yDailyScale(0),
           testId: 'forecast-precip-line'
         })
       )
@@ -295,16 +309,30 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       context
         .append('g')
         .attr('class', 'yAxis')
-        .call(d3.axisLeft(yScale).ticks(5))
-      context // Temperature label
+        .call(d3.axisLeft(yDailyScale).ticks(5))
+      context
+        .append('g')
+        .attr('class', 'yAccumAxis')
+        .attr('transform', `translate(${chartWidth}, 0)`)
+        .call(d3.axisRight(yAccumScale).ticks(5))
+      context // Daily Precipitation label
         .append('text')
         .attr('y', 0 - margin.left)
         .attr('x', 0 - chartHeight / 2)
         .attr('dy', '1.3em')
         .attr('dx', '0')
         .attr('class', 'yAxisLabel')
-        .text('Precipitation (mm/cm)')
+        .text('Daily Precipitation (mm/cm)')
         .attr('transform', 'rotate(-90)')
+      context // Accum Precipitation label
+        .append('text')
+        .attr('y', 0 - chartWidth - margin.left)
+        .attr('x', chartHeight / 2)
+        .attr('dy', '1.3em')
+        .attr('dx', '0')
+        .attr('class', 'yAxisLabel')
+        .text('Accumulated Precipitation (mm/cm)')
+        .attr('transform', 'rotate(90)')
     }
   }, [graphCalculations])
 
