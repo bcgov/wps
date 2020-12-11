@@ -172,7 +172,10 @@ def get_global_model_run_download_urls(now: datetime.datetime,
     # For the global model, we have prediction at 3 hour intervals up to 240 hours.
     for h in range(0, 241, 3):
         hhh = format(h, '03d')
-        for level in ['TMP_TGL_2', 'RH_TGL_2']:
+        for level in ['TMP_TGL_2', 'RH_TGL_2', 'APCP_SFC_0']:
+            # Accumulated precipitation does not exist for 000 hour, so the url for this doesn't exist
+            if (hhh == '000' and level == 'APCP_SFC_0'):
+                continue
             base_url = 'https://dd.weather.gc.ca/model_gem_global/15km/grib2/lat_lon/{}/{}/'.format(
                 hh, hhh)
             date = get_file_date_part(now, model_run_hour)
@@ -189,7 +192,10 @@ def get_high_res_model_run_download_urls(now: datetime.datetime, hour: int) -> G
     # For the high-res model, predictions are at 1 hour intervals up to 48 hours.
     for h in range(0, 49):
         hhh = format(h, '03d')
-        for level in ['TMP_TGL_2', 'RH_TGL_2']:
+        for level in ['TMP_TGL_2', 'RH_TGL_2', 'APCP_SFC_0']:
+            # Accumulated precipitation does not exist for 000 hour, so the url for this doesn't exist
+            if (hhh == '000' and level == 'APCP_SFC_0'):
+                continue
             base_url = 'https://dd.weather.gc.ca/model_hrdps/continental/grib2/{}/{}/'.format(
                 hh, hhh)
             date = get_file_date_part(now, hour)
@@ -206,7 +212,10 @@ def get_regional_model_run_download_urls(now: datetime.datetime, hour: int) -> G
     # For the RDPS model, predictions are at 1 hour intervals up to 84 hours.
     for h in range(0, 85):
         hhh = format(h, '03d')
-        for level in ['TMP_TGL_2', 'RH_TGL_2']:
+        for level in ['TMP_TGL_2', 'RH_TGL_2', 'APCP_SFC_0']:
+            # Accumulated precipitation does not exist for 000 hour, so the url for this doesn't exist
+            if (hhh == '000' and level == 'APCP_SFC_0'):
+                continue
             base_url = 'https://dd.weather.gc.ca/model_gem_regional/10km/grib2/{}/{}/'.format(
                 hh, hhh
             )
@@ -456,8 +465,28 @@ class ModelValueProcessor:
         # Calculate the interpolated values.
         station_prediction.tmp_tgl_2 = griddata(
             points, prediction.tmp_tgl_2, coordinate, method='linear')[0]
-        station_prediction.rh_tgl_2 = griddata(
-            points, prediction.rh_tgl_2, coordinate, method='linear')[0]
+        # 2020 Dec 10, Sybrand: Encountered situation where rh_tgl_2 was None, add this workaround for it.
+        # NOTE: Not sure why this value would ever be None.
+        if prediction.rh_tgl_2 is None:
+            # This is unexpected, so we log it.
+            logger.warning('rh_tgl_2 is None')
+            station_prediction.rh_tgl_2 = None
+        else:
+            station_prediction.rh_tgl_2 = griddata(
+                points, prediction.rh_tgl_2, coordinate, method='linear')[0]
+        # Check that apcp_sfc_0 is not None, since accumulated precipitation
+        # does not exist for 00 hour
+        if prediction.apcp_sfc_0 is not None:
+            station_prediction.apcp_sfc_0 = griddata(
+                points, prediction.apcp_sfc_0, coordinate, method='linear')[0]
+        else:
+            station_prediction.apcp_sfc_0 = 0.0
+        # Calculate the delta_precipitation based on station's previous prediction_timestamp
+        # for the same model run
+        # For some reason pylint doesn't think session has a flush!
+        self.session.flush()  # pylint: disable=no-member
+        station_prediction.delta_precip = self._calculate_delta_precip(
+            station, model_run, prediction, station_prediction)
         # Predict the temperature
         station_prediction.bias_adjusted_temperature = machine.predict_temperature(
             station_prediction.tmp_tgl_2,
@@ -469,6 +498,24 @@ class ModelValueProcessor:
         station_prediction.update_date = time_utils.get_utc_now()
         # Add this prediction to the session (we'll commit it later.)
         self.session.add(station_prediction)
+
+    def _calculate_delta_precip(self, station, model_run, prediction, station_prediction):
+        """ Calculate the station_prediction's delta_precip based on the previous precip
+        prediction for the station
+        """
+        results = self.session.query(WeatherStationModelPrediction).\
+            filter(WeatherStationModelPrediction.station_code == station.code).\
+            filter(WeatherStationModelPrediction.prediction_model_run_timestamp_id == model_run.id).\
+            filter(WeatherStationModelPrediction.prediction_timestamp < prediction.prediction_timestamp).\
+            order_by(WeatherStationModelPrediction.prediction_timestamp.desc()).\
+            limit(1).first()
+        # If there exists a previous prediction for the station from the same model run
+        if results is not None:
+            return station_prediction.apcp_sfc_0 - results.apcp_sfc_0
+        # If there is no prior prediction within the same model run, it means that station_prediction is
+        # the first prediction with apcp for the current model run (hour 001 or 003, depending on the
+        # model type). In this case, delta_precip will be equal to the apcp
+        return station_prediction.apcp_sfc_0
 
     def _process_model_run_for_station(self,
                                        model_run: PredictionModelRunTimestamp,

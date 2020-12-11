@@ -4,6 +4,7 @@ from typing import IO, Any
 import datetime
 import json
 import importlib
+from app.db.models.common import TZTimeStamp
 
 
 def json_converter(item: object):
@@ -40,7 +41,6 @@ def dump_sqlalchemy_response_to_json(response, target: IO[Any]):
                     'data': data
                 }
             )
-            result.append(result_row)
         result.append(result_row)
     json.dump(result, fp=target, default=json_converter, indent=3)
 
@@ -60,7 +60,15 @@ def load_sqlalchemy_response_from_dict(data):
         for record in row:
             module = importlib.import_module(record['module'])
             class_ = getattr(module, record['class'])
-            object_ = class_(**record['data'])
+            record_data = {}
+            for key, value in record['data'].items():
+                # Handle the special case, where the type is timestamp, converting the string to the
+                # correct data type.
+                if isinstance(getattr(class_, key).type, TZTimeStamp):
+                    record_data[key] = datetime.datetime.fromisoformat(value)
+                else:
+                    record_data[key] = value
+            object_ = class_(**record_data)
             result_row.append(object_)
         result.append(result_row)
     return result

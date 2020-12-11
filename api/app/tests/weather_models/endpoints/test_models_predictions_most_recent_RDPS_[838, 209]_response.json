@@ -1,0 +1,438 @@
+{
+    "stations": [
+        {
+            "station": {
+                "code": 209,
+                "name": "ALEXIS CREEK",
+                "lat": 52.08377,
+                "long": -123.2732667,
+                "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+                "core_season": {
+                    "start_month": 5,
+                    "start_day": 15,
+                    "end_month": 8,
+                    "end_day": 31
+                }
+            },
+            "model_runs": [
+                {
+                    "model_run": {
+                        "datetime": "2020-12-05T18:00:00+00:00",
+                        "name": "Regional Deterministic Prediction System",
+                        "abbreviation": "GDPS",
+                        "projection": "ps10km"
+                    },
+                    "values": [
+                        {
+                            "datetime": "2020-12-05T23:00:00+00:00",
+                            "temperature": 2.0141004379335694,
+                            "bias_adjusted_temperature": 1.9516044265168286,
+                            "dew_point": null,
+                            "relative_humidity": 63.882641527675815,
+                            "bias_adjusted_relative_humidity": 69.9867134882322,
+                            "wind_speed": null,
+                            "wind_direction": null,
+                            "delta_precipitation": null,
+                            "cloud_cover": null,
+                            "sea_level_pressure": null,
+                            "wind_speed_40m": null,
+                            "wind_direction_40m": null,
+                            "wind_direction_80m": null,
+                            "wind_speed_120m": null,
+                            "wind_direction_120m": null,
+                            "wind_speed_925mb": null,
+                            "wind_direction_925mb": null,
+                            "wind_speed_850mb": null,
+                            "wind_direction_850mb": null
+                        }
+                    ]
+                },
+                {
+                    "model_run": {
+                        "datetime": "2020-12-06T00:00:00+00:00",
+                        "name": "Regional Deterministic Prediction System",
+                        "abbreviation": "GDPS",
+                        "projection": "ps10km"
+                    },
+                    "values": [
+                        {
+                            "datetime": "2020-12-06T00:00:00+00:00",
+                            "temperature": 1.6681578071864474,
+                            "bias_adjusted_temperature": 1.751303300172565,
+                            "dew_point": null,
+                            "relative_humidity": 67.00862899209554,
+                            "bias_adjusted_relative_humidity": 72.08628995042629,
+                            "wind_speed": null,
+                            "wind_direction": null,
+                            "delta_precipitation": null,
+                            "cloud_cover": null,
+                            "sea_level_pressure": null,
+                            "wind_speed_40m": null,
+                            "wind_direction_40m": null,
+                            "wind_direction_80m": null,
+                            "wind_speed_120m": null,
+                            "wind_direction_120m": null,
+                            "wind_speed_925mb": null,
+                            "wind_direction_925mb": null,
+                            "wind_speed_850mb": null,
+                            "wind_direction_850mb": null
+                        },
+                        {
+                            "datetime": "2020-12-06T01:00:00+00:00",
+                            "temperature": 0.07471583590026168,
+                            "bias_adjusted_temperature": -0.2944503581052256,
+                            "dew_point": null,
+                            "relative_humidity": 72.49934699039281,
+                            "bias_adjusted_relative_humidity": 80.58677681911878,
+                            "wind_speed": null,
+                            "wind_direction": null,
+                            "delta_precipitation": null,
+                            "cloud_cover": null,
+                            "sea_level_pressure": null,
+                            "wind_speed_40m": null,
+                            "wind_direction_40m": null,
+                            "wind_direction_80m": null,
+                            "wind_speed_120m": null,
+                            "wind_direction_120m": null,
+                            "wind_speed_925mb": null,
+                            "wind_direction_925mb": null,
+                            "wind_speed_850mb": null,
+                            "wind_direction_850mb": null
+                        },
+                        {
+                            "datetime": "2020-12-06T02:00:00+00:00",
+                            "temperature": -1.0105668132041616,
+                            "bias_adjusted_temperature": -1.163152292784333,
+                            "dew_point": null,
+                            "relative_humidity": 77.43790291312693,
+                            "bias_adjusted_relative_humidity": 84.36507184434157,
+                            "wind_speed": null,
+                            "wind_direction": null,
+                            "delta_precipitation": null,
+                            "cloud_cover": null,
+                            "sea_level_pressure": null,
+                            "wind_speed_40m": null,
+                            "wind_direction_40m": null,
+                            "wind_direction_80m": null,
+                            "wind_speed_120m": null,
+                            "wind_direction_120m": null,
+                            "wind_speed_925mb": null,
+                            "wind_direction_925mb": null,
+                            "wind_speed_850mb": null,
+                            "wind_direction_850mb": null
+                        }
+                    ]
+                },
+                {
+                    "model_run": {
+                        "datetime": "2020-12-02T18:00:00+00:00",
+                        "name": "Regional Deterministic Prediction System",
+                        "abbreviation": "GDPS",
+                        "projection": "ps10km"
+                    },
+                    "values": [
+                        {
+                            "datetime": "2020-12-06T03:00:00+00:00",
+                            "temperature": 0.46955691253333254,
+                            "bias_adjusted_temperature": -0.38992895576449194,
+                            "dew_point": null,
+                            "relative_humidity": 74.5018028448487,
+                            "bias_adjusted_relative_humidity": 82.84729605658188,
+                            "wind_speed": null,
+                            "wind_direction": null,
+                            "delta_precipitation": null,
+                            "cloud_cover": null,
+                            "sea_level_pressure": null,
+                            "wind_speed_40m": null,
+                            "wind_direction_40m": null,
+                            "wind_direction_80m": null,
+                            "wind_speed_120m": null,
+                            "wind_direction_120m": null,
+                            "wind_speed_925mb": null,
+                            "wind_direction_925mb": null,
+                            "wind_speed_850mb": null,
+                            "wind_direction_850mb": null
+                        }
+                    ]
+                },
+                {
+                    "model_run": {
+                        "datetime": "2020-12-10T18:00:00+00:00",
+                        "name": "Regional Deterministic Prediction System",
+                        "abbreviation": "GDPS",
+                        "projection": "ps10km"
+                    },
+                    "values": [
+                        {
+                            "datetime": "2020-12-14T04:00:00+00:00",
+                            "temperature": -7.760299302168213,
+                            "bias_adjusted_temperature": null,
+                            "dew_point": null,
+                            "relative_humidity": 91.84106061601119,
+                            "bias_adjusted_relative_humidity": null,
+                            "wind_speed": null,
+                            "wind_direction": null,
+                            "delta_precipitation": 0.013786331656472806,
+                            "cloud_cover": null,
+                            "sea_level_pressure": null,
+                            "wind_speed_40m": null,
+                            "wind_direction_40m": null,
+                            "wind_direction_80m": null,
+                            "wind_speed_120m": null,
+                            "wind_direction_120m": null,
+                            "wind_speed_925mb": null,
+                            "wind_direction_925mb": null,
+                            "wind_speed_850mb": null,
+                            "wind_direction_850mb": null
+                        },
+                        {
+                            "datetime": "2020-12-14T05:00:00+00:00",
+                            "temperature": -7.80942687087406,
+                            "bias_adjusted_temperature": null,
+                            "dew_point": null,
+                            "relative_humidity": 91.92265273636473,
+                            "bias_adjusted_relative_humidity": null,
+                            "wind_speed": null,
+                            "wind_direction": null,
+                            "delta_precipitation": 0.05883235641106288,
+                            "cloud_cover": null,
+                            "sea_level_pressure": null,
+                            "wind_speed_40m": null,
+                            "wind_direction_40m": null,
+                            "wind_direction_80m": null,
+                            "wind_speed_120m": null,
+                            "wind_direction_120m": null,
+                            "wind_speed_925mb": null,
+                            "wind_direction_925mb": null,
+                            "wind_speed_850mb": null,
+                            "wind_direction_850mb": null
+                        },
+                        {
+                            "datetime": "2020-12-14T06:00:00+00:00",
+                            "temperature": -7.838255771418401,
+                            "bias_adjusted_temperature": null,
+                            "dew_point": null,
+                            "relative_humidity": 91.94796811560866,
+                            "bias_adjusted_relative_humidity": null,
+                            "wind_speed": null,
+                            "wind_direction": null,
+                            "delta_precipitation": 0.05749244828442146,
+                            "cloud_cover": null,
+                            "sea_level_pressure": null,
+                            "wind_speed_40m": null,
+                            "wind_direction_40m": null,
+                            "wind_direction_80m": null,
+                            "wind_speed_120m": null,
+                            "wind_direction_120m": null,
+                            "wind_speed_925mb": null,
+                            "wind_direction_925mb": null,
+                            "wind_speed_850mb": null,
+                            "wind_direction_850mb": null
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "station": {
+                "code": 838,
+                "name": "AKOKLI CREEK",
+                "lat": 49.4358,
+                "long": -116.7464,
+                "ecodivision_name": "HUMID CONTINENTAL HIGHLANDS",
+                "core_season": {
+                    "start_month": 5,
+                    "start_day": 15,
+                    "end_month": 8,
+                    "end_day": 31
+                }
+            },
+            "model_runs": [
+                {
+                    "model_run": {
+                        "datetime": "2020-12-05T18:00:00+00:00",
+                        "name": "Regional Deterministic Prediction System",
+                        "abbreviation": "GDPS",
+                        "projection": "ps10km"
+                    },
+                    "values": [
+                        {
+                            "datetime": "2020-12-05T23:00:00+00:00",
+                            "temperature": -2.7990873231683557,
+                            "bias_adjusted_temperature": 2.2745356273485084,
+                            "dew_point": null,
+                            "relative_humidity": 89.57561989188325,
+                            "bias_adjusted_relative_humidity": 91.01010386321593,
+                            "wind_speed": null,
+                            "wind_direction": null,
+                            "delta_precipitation": null,
+                            "cloud_cover": null,
+                            "sea_level_pressure": null,
+                            "wind_speed_40m": null,
+                            "wind_direction_40m": null,
+                            "wind_direction_80m": null,
+                            "wind_speed_120m": null,
+                            "wind_direction_120m": null,
+                            "wind_speed_925mb": null,
+                            "wind_direction_925mb": null,
+                            "wind_speed_850mb": null,
+                            "wind_direction_850mb": null
+                        }
+                    ]
+                },
+                {
+                    "model_run": {
+                        "datetime": "2020-12-06T00:00:00+00:00",
+                        "name": "Regional Deterministic Prediction System",
+                        "abbreviation": "GDPS",
+                        "projection": "ps10km"
+                    },
+                    "values": [
+                        {
+                            "datetime": "2020-12-06T00:00:00+00:00",
+                            "temperature": -4.3463707881417815,
+                            "bias_adjusted_temperature": 0.8004279907318388,
+                            "dew_point": null,
+                            "relative_humidity": 86.3389262363934,
+                            "bias_adjusted_relative_humidity": 88.12107884607457,
+                            "wind_speed": null,
+                            "wind_direction": null,
+                            "delta_precipitation": null,
+                            "cloud_cover": null,
+                            "sea_level_pressure": null,
+                            "wind_speed_40m": null,
+                            "wind_direction_40m": null,
+                            "wind_direction_80m": null,
+                            "wind_speed_120m": null,
+                            "wind_direction_120m": null,
+                            "wind_speed_925mb": null,
+                            "wind_direction_925mb": null,
+                            "wind_speed_850mb": null,
+                            "wind_direction_850mb": null
+                        },
+                        {
+                            "datetime": "2020-12-06T01:00:00+00:00",
+                            "temperature": -7.545182324685943,
+                            "bias_adjusted_temperature": 0.16431564142964827,
+                            "dew_point": null,
+                            "relative_humidity": 90.52438425174846,
+                            "bias_adjusted_relative_humidity": 88.00355604713435,
+                            "wind_speed": null,
+                            "wind_direction": null,
+                            "delta_precipitation": null,
+                            "cloud_cover": null,
+                            "sea_level_pressure": null,
+                            "wind_speed_40m": null,
+                            "wind_direction_40m": null,
+                            "wind_direction_80m": null,
+                            "wind_speed_120m": null,
+                            "wind_direction_120m": null,
+                            "wind_speed_925mb": null,
+                            "wind_direction_925mb": null,
+                            "wind_speed_850mb": null,
+                            "wind_direction_850mb": null
+                        },
+                        {
+                            "datetime": "2020-12-06T02:00:00+00:00",
+                            "temperature": -8.336601104122389,
+                            "bias_adjusted_temperature": 0.16594344341642575,
+                            "dew_point": null,
+                            "relative_humidity": 88.89403652147428,
+                            "bias_adjusted_relative_humidity": 84.72015632847581,
+                            "wind_speed": null,
+                            "wind_direction": null,
+                            "delta_precipitation": null,
+                            "cloud_cover": null,
+                            "sea_level_pressure": null,
+                            "wind_speed_40m": null,
+                            "wind_direction_40m": null,
+                            "wind_direction_80m": null,
+                            "wind_speed_120m": null,
+                            "wind_direction_120m": null,
+                            "wind_speed_925mb": null,
+                            "wind_direction_925mb": null,
+                            "wind_speed_850mb": null,
+                            "wind_direction_850mb": null
+                        },
+                        {
+                            "datetime": "2020-12-06T03:00:00+00:00",
+                            "temperature": -8.828912820782016,
+                            "bias_adjusted_temperature": 0.2800048287268271,
+                            "dew_point": null,
+                            "relative_humidity": 87.2652777308226,
+                            "bias_adjusted_relative_humidity": 80.6152919795398,
+                            "wind_speed": null,
+                            "wind_direction": null,
+                            "delta_precipitation": null,
+                            "cloud_cover": null,
+                            "sea_level_pressure": null,
+                            "wind_speed_40m": null,
+                            "wind_direction_40m": null,
+                            "wind_direction_80m": null,
+                            "wind_speed_120m": null,
+                            "wind_direction_120m": null,
+                            "wind_speed_925mb": null,
+                            "wind_direction_925mb": null,
+                            "wind_speed_850mb": null,
+                            "wind_direction_850mb": null
+                        },
+                        {
+                            "datetime": "2020-12-06T04:00:00+00:00",
+                            "temperature": -9.078782656675974,
+                            "bias_adjusted_temperature": 0.25592002523275204,
+                            "dew_point": null,
+                            "relative_humidity": 85.90155392223477,
+                            "bias_adjusted_relative_humidity": 77.29051867476984,
+                            "wind_speed": null,
+                            "wind_direction": null,
+                            "delta_precipitation": null,
+                            "cloud_cover": null,
+                            "sea_level_pressure": null,
+                            "wind_speed_40m": null,
+                            "wind_direction_40m": null,
+                            "wind_direction_80m": null,
+                            "wind_speed_120m": null,
+                            "wind_direction_120m": null,
+                            "wind_speed_925mb": null,
+                            "wind_direction_925mb": null,
+                            "wind_speed_850mb": null,
+                            "wind_direction_850mb": null
+                        }
+                    ]
+                },
+                {
+                    "model_run": {
+                        "datetime": "2020-12-03T18:00:00+00:00",
+                        "name": "Regional Deterministic Prediction System",
+                        "abbreviation": "GDPS",
+                        "projection": "ps10km"
+                    },
+                    "values": [
+                        {
+                            "datetime": "2020-12-06T05:00:00+00:00",
+                            "temperature": -10.191092295279292,
+                            "bias_adjusted_temperature": -0.19756093921475282,
+                            "dew_point": null,
+                            "relative_humidity": 84.21596704417422,
+                            "bias_adjusted_relative_humidity": 74.82201255932603,
+                            "wind_speed": null,
+                            "wind_direction": null,
+                            "delta_precipitation": null,
+                            "cloud_cover": null,
+                            "sea_level_pressure": null,
+                            "wind_speed_40m": null,
+                            "wind_direction_40m": null,
+                            "wind_direction_80m": null,
+                            "wind_speed_120m": null,
+                            "wind_direction_120m": null,
+                            "wind_speed_925mb": null,
+                            "wind_direction_925mb": null,
+                            "wind_speed_850mb": null,
+                            "wind_direction_850mb": null
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

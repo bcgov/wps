@@ -98,6 +98,9 @@ const WxDataGraph = ({
         toggleValues={toggleValues}
         observedValues={observedValues}
         forecastValues={allForecasts}
+        gdpsModelValues={allModelValues}
+        rdpsModelValues={allRegionalModelValues}
+        hrdpsModelValues={allHighResModelValues}
       />
     </div>
   )
