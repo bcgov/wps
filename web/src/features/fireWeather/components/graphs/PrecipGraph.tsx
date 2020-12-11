@@ -54,6 +54,20 @@ const useStyles = makeStyles({
       '&--hidden': {
         visibility: 'hidden'
       }
+    },
+
+    '& .accumPrecipLine': {
+      '&__observed': {
+        stroke: accumObservedPrecipColor
+      },
+
+      '&__forecast': {
+        stroke: accumForecastPrecipColor
+      },
+
+      '&--hidden': {
+        visibility: 'hidden'
+      }
     }
   }
 })
@@ -274,12 +288,12 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         })
       )
 
-      const drawAccumObservedPrecipPath = d3Utils.drawPath({
+      d3Utils.drawPath({
         svg: chart,
-        className: 'accumObservedPrecipPath',
+        className: 'accumPrecipLine__observed',
         data: accumObservedPrecips,
         x: d => xScale(d.date),
-        y: d => yDailyScale(d.accumPrecip),
+        y: d => yAccumScale(d.accumPrecip),
         testId: 'accum-observed-precip-path'
       })
 
@@ -294,6 +308,15 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
           testId: 'forecast-precip-line'
         })
       )
+
+      d3Utils.drawPath({
+        svg: chart,
+        className: 'accumPrecipLine__forecast',
+        data: accumForecastPrecips,
+        x: d => xScale(d.date),
+        y: d => yAccumScale(d.accumPrecip),
+        testId: 'accum-forecast-precip-path'
+      })
 
       /* Render the X & Y axis and labels */
       chart
@@ -494,12 +517,16 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       svg
         .selectAll('.precipLine__observed')
         .classed('precipLine--hidden', !showObservations)
+      svg
+        .selectAll('.accumPrecipLine__observed')
+        .classed('accumPrecipLine--hidden', !showObservations)
     }
   }, [showObservations])
   useEffect(() => {
     if (svgRef.current) {
       const svg = d3.select(svgRef.current)
       svg.selectAll('.precipLine__forecast').classed('precipLine--hidden', !showForecasts)
+      svg.selectAll('.accumPrecipLine__forecast').classed('accumPrecipLine--hidden', !showForecasts)
     }
   }, [showForecasts])
 
