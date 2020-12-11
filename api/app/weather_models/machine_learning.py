@@ -217,6 +217,6 @@ class StationMachineLearning:  # pylint: disable=too-many-instance-attributes
         : return: The bias adjusted RH as predicted by the linear regression model.
         """
         hour = timestamp.hour
-        if self.regression_models[hour].relative_humidity_wrapper.good_model:
+        if self.regression_models[hour].relative_humidity_wrapper.good_model and model_rh is not None:
             return self.regression_models[hour].relative_humidity_wrapper.model.predict([[model_rh]])[0]
         return None

@@ -140,6 +140,8 @@ class ModelRunGridSubsetPrediction(Base):
     tmp_tgl_2 = Column(ARRAY(Float), nullable=True)
     # Relative humidity 2m above model layer.
     rh_tgl_2 = Column(ARRAY(Float), nullable=True)
+    # Accumulated precipitation (units kg.m^-2)
+    apcp_sfc_0 = Column(ARRAY(Float), nullable=True)
 
     def __str__(self):
         return ('id:{self.id}, '
@@ -147,7 +149,8 @@ class ModelRunGridSubsetPrediction(Base):
                 'prediction_model_grid_subset_id:{self.prediction_model_grid_subset_id}, '
                 'prediction_timestamp={self.prediction_timestamp}, '
                 'tmp_tgl_2={self.tmp_tgl_2}, '
-                'rh_tgl_2={self.rh_tgl_2}').format(self=self)
+                'rh_tgl_2={self.rh_tgl_2}, '
+                'apcp_sfc_0={self.apcp_sfc_0}').format(self=self)
 
 
 class WeatherStationModelPrediction(Base):
@@ -183,9 +186,13 @@ class WeatherStationModelPrediction(Base):
     # Relative Humidity 2m above model layer - an interpolated value based on 4 values
     # from model_run_grid_subset_prediction
     rh_tgl_2 = Column(Float, nullable=True)
-    # Date this record was created.
     # RH adjusted by bias
     bias_adjusted_rh = Column(Float, nullable=True)
+    # Accumulated precipitation over calendar day measured in UTC (units kg.m^-2)
+    apcp_sfc_0 = Column(Float, nullable=True)
+    # Change in accumulated precipitation between current and previous prediction_timestamp
+    delta_precip = Column(Float, nullable=True)
+    # Date this record was created.
     create_date = Column(TZTimeStamp, nullable=False,
                          default=time_utils.get_utc_now())
     # Date this record was updated.
@@ -193,4 +200,4 @@ class WeatherStationModelPrediction(Base):
                          default=time_utils.get_utc_now())
 
     def __str__(self):
-        return ('{self.station_code} {self.prediction_timestamp} {self.tmp_tgl_2}').format(self=self)
+        return ('{self.station_code} {self.prediction_timestamp} {self.tmp_tgl_2} {self.apcp_sfc_0} {self.delta_precip}').format(self=self)

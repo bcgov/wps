@@ -16,10 +16,14 @@ define build-static
 	cd ../web; REACT_APP_KEYCLOAK_AUTH_URL="{{REACT_APP_KEYCLOAK_AUTH_URL}}" REACT_APP_MATOMO_URL="{{REACT_APP_MATOMO_URL}}" REACT_APP_MATOMO_SITE_ID="{{REACT_APP_MATOMO_SITE_ID}}" REACT_APP_MATOMO_CONTAINER="{{REACT_APP_MATOMO_CONTAINER}}" npm run build
 endef
 
+define run-env-canada-model
+	POSTGRES_HOST=localhost $(POETRY_RUN) python -m app.weather_models.env_canada ${1}
+endef
+
 define run-env-canada
-	POSTGRES_HOST=localhost $(POETRY_RUN) python -m app.weather_models.env_canada GDPS
-	POSTGRES_HOST=localhost $(POETRY_RUN) python -m app.weather_models.env_canada HRDPS
-	POSTGRES_HOST=localhost $(POETRY_RUN) python -m app.weather_models.env_canada RDPS
+	${call run-env-canada-model,GDPS}
+	${call run-env-canada-model,HRDPS}
+	${call run-env-canada-model,RDPS}
 endef
 
 clean:
@@ -76,6 +80,15 @@ run-fast:
 
 run-env-canada:
 	${call run-env-canada}
+
+run-env-canada-gdps:
+	${call run-env-canada-model,GDPS}
+
+run-env-canada-hrdps:
+	${call run-env-canada-model,HRDPS}
+
+run-env-canada-rdps:
+	${call run-env-canada-model,RDPS}
 
 run-donald:
 	# Synonymn for run-env-canada-raw

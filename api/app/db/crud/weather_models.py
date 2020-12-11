@@ -202,8 +202,8 @@ def get_station_model_predictions_order_by_prediction_timestamp(
         session: Session,
         station_codes: List,
         model: ModelEnum,
-        start_date: str,
-        end_date: str) -> List[
+        start_date: datetime.datetime,
+        end_date: datetime.datetime) -> List[
             Union[WeatherStationModelPrediction, PredictionModel]]:
     """ Fetch model predictions for given stations within given time range ordered by station code
     and prediction timestamp.
@@ -229,8 +229,8 @@ def get_station_model_predictions(
         session: Session,
         station_codes: List,
         model: str,
-        start_date: str,
-        end_date: str) -> List[
+        start_date: datetime.datetime,
+        end_date: datetime.datetime) -> List[
             Union[WeatherStationModelPrediction, PredictionModelRunTimestamp, PredictionModel]]:
     """ Fetches the model predictions that were most recently issued before the prediction_timestamp.
     Used to compare the most recent model predictions against forecasts and actuals for the same
@@ -250,6 +250,30 @@ def get_station_model_predictions(
         order_by(WeatherStationModelPrediction.prediction_timestamp).\
         order_by(PredictionModelRunTimestamp.prediction_run_timestamp.asc())
     return query
+
+
+def get_station_model_prediction_from_previous_model_run(
+        session: Session,
+        station_codes: List[int],
+        model: str,
+        prediction_timestamp: datetime.datetime,
+        prediction_model_run_timestamp: datetime.datetime) -> Union[WeatherStationModelPrediction, PredictionModelRunTimestamp, PredictionModel]:
+    """ Fetches the one model prediction for the specified station_code, model, and prediction_timestamp
+    from the prediction model run immediately previous to the given prediction_model_run_timestamp.
+    """
+    # create a lower_bound for time range so that we're not querying timestamps all the way back to the
+    # beginning of time
+    lower_bound = prediction_model_run_timestamp - datetime.timedelta(days=1)
+    response = session.query(WeatherStationModelPrediction, PredictionModelRunTimestamp, PredictionModel).\
+        filter(WeatherStationModelPrediction.station_code.in_(station_codes)).\
+        filter(WeatherStationModelPrediction.prediction_timestamp == prediction_timestamp).\
+        filter(PredictionModelRunTimestamp.prediction_model_id == PredictionModel.id, PredictionModel.abbreviation == model).\
+        filter(PredictionModelRunTimestamp.prediction_run_timestamp < prediction_model_run_timestamp).\
+        filter(PredictionModelRunTimestamp.prediction_run_timestamp > lower_bound).\
+        order_by(PredictionModelRunTimestamp.prediction_run_timestamp.desc()).\
+        limit(1).first()
+
+    return response
 
 
 def get_processed_file_count(session: Session, urls: List[str]) -> int:
