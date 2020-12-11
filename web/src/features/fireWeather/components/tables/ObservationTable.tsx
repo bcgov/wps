@@ -3,7 +3,7 @@ import React from 'react'
 import { ObservedValue } from 'api/observationAPI'
 import SortableTableByDatetime, {
   Column
-} from 'features/fireWeather/components/SortableTableByDatetime'
+} from 'features/fireWeather/components/tables/SortableTableByDatetime'
 import { HOURLY_VALUES_DECIMAL } from 'utils/constants'
 import { formatDateInPDT } from 'utils/date'
 
@@ -75,8 +75,8 @@ interface Props {
   rows: ObservedValue[] | undefined
 }
 
-const HourlyObservationsTable = (props: Props) => {
+const ObservationTable = (props: Props) => {
   return <SortableTableByDatetime {...props} columns={columns} />
 }
 
-export default React.memo(HourlyObservationsTable)
+export default React.memo(ObservationTable)

@@ -34,6 +34,7 @@ interface WeatherValue {
   wind_direction?: number | null
   wind_speed?: number | null
   precipitation?: number | null
+  delta_precipitation?: number | null
   total_precipitation?: number | null
   ffmc?: number | null
   isi?: number | null

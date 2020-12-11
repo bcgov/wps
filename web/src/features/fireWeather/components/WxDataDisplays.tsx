@@ -3,8 +3,9 @@ import { useSelector } from 'react-redux'
 import { Paper, Typography } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 
-import HourlyObservationsTable from 'features/fireWeather/components/HourlyObservationsTable'
-import NoonWeatherValueTable from 'features/fireWeather/components/NoonWeatherValueTable'
+import ObservationTable from 'features/fireWeather/components/tables/ObservationTable'
+import NoonForecastTable from 'features/fireWeather/components/tables/NoonForecastTable'
+import NoonModelTable from 'features/fireWeather/components/tables/NoonModelTable'
 import WxDataGraph from 'features/fireWeather/components/graphs/WxDataGraph'
 import { ErrorBoundary } from 'components'
 import {
@@ -97,7 +98,7 @@ const WxDataDisplays = ({ stationCodes }: Props) => {
               )}
 
               <ErrorBoundary>
-                <HourlyObservationsTable
+                <ObservationTable
                   testId={`observations-table-${code}`}
                   title="Past 5 days of hourly observations from station: "
                   rows={observedValues}
@@ -105,7 +106,7 @@ const WxDataDisplays = ({ stationCodes }: Props) => {
               </ErrorBoundary>
 
               <ErrorBoundary>
-                <NoonWeatherValueTable
+                <NoonModelTable
                   testId={`noon-gdps-table-${code}`}
                   title="Interpolated global model noon values (20:00 UTC): "
                   rows={noonModelValues}
@@ -113,7 +114,7 @@ const WxDataDisplays = ({ stationCodes }: Props) => {
               </ErrorBoundary>
 
               <ErrorBoundary>
-                <NoonWeatherValueTable
+                <NoonForecastTable
                   testId={`noon-forecasts-table-${code}`}
                   title="Weather forecast noon values (20:00 UTC): "
                   rows={allForecasts}
