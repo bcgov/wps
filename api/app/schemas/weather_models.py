@@ -47,11 +47,7 @@ class WeatherModelPredictionValues(BaseModel):
     bias_adjusted_relative_humidity: float = None
     wind_speed: float = None
     wind_direction: float = None
-    total_precipitation: float = None
-    accumulated_rain: float = None
-    accumulated_snow: float = None
-    accumulated_freezing_rain: float = None
-    accumulated_ice_pellets: float = None
+    delta_precipitation: float = None
     cloud_cover: float = None
     sea_level_pressure: float = None
     wind_speed_40m: float = None

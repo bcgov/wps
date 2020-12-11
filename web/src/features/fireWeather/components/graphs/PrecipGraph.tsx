@@ -7,13 +7,20 @@ import { ObservedValue } from 'api/observationAPI'
 import * as d3Utils from 'utils/d3'
 import { formatDateInPDT } from 'utils/date'
 import { NoonForecastValue } from 'api/forecastAPI'
+import { ModelValue } from 'api/modelAPI'
 import { ToggleValues } from 'features/fireWeather/components/graphs/useGraphToggles'
 import { PDT_UTC_OFFSET } from 'utils/constants'
 
 const observedPrecipColor = '#a50b41'
-const forecastPrecipColor = '#fb0058'
 const accumObservedPrecipColor = '#17c4c4'
+const forecastPrecipColor = '#fb0058'
 const accumForecastPrecipColor = '#057070'
+const gdpsPrecipColor = '#32e7e7'
+const accumGDPSPrecipColor = '#'
+const rdpsPrecipColor = '#a017c2'
+const accumRDPSPrecipColor = '#'
+const hrdpsPrecipColor = '#026200'
+const accumHRDPSPrecipColor = '#'
 
 const useStyles = makeStyles({
   root: {
@@ -28,16 +35,16 @@ const useStyles = makeStyles({
       pointerEvents: 'none',
       font: '8.5px sans-serif',
 
-      '&__cursor': {
-        strokeWidth: 1,
-        stroke: 'gray',
-        strokeDasharray: '1,1',
-        opacity: 0
-      },
-
       '&--hidden': {
         display: 'none'
       }
+    },
+
+    '& .tooltipCursor': {
+      strokeWidth: 1,
+      stroke: 'gray',
+      strokeDasharray: '1,1',
+      opacity: 0
     },
 
     '& .precipLine': {
@@ -49,6 +56,21 @@ const useStyles = makeStyles({
       '&__forecast': {
         strokeWidth: 2.5,
         stroke: forecastPrecipColor
+      },
+
+      '&__gdps': {
+        strokeWidth: 2.5,
+        stroke: gdpsPrecipColor
+      },
+
+      '&__rdps': {
+        strokeWidth: 2.5,
+        stroke: rdpsPrecipColor
+      },
+
+      '&__hrdps': {
+        strokeWidth: 2.5,
+        stroke: hrdpsPrecipColor
       },
 
       '&--hidden': {
@@ -65,6 +87,18 @@ const useStyles = makeStyles({
         stroke: accumForecastPrecipColor
       },
 
+      '&__gdps': {
+        stroke: accumGDPSPrecipColor
+      },
+
+      '&__rdps': {
+        stroke: accumRDPSPrecipColor
+      },
+
+      '&__hrdps': {
+        stroke: accumHRDPSPrecipColor
+      },
+
       '&--hidden': {
         visibility: 'hidden'
       }
@@ -78,12 +112,21 @@ interface PrecipValue {
   accumObservedPrecip?: number
   forecastPrecip?: number
   accumForecastPrecip?: number
+  gdpsPrecip?: number
+  accumGDPSPrecip?: number
+  rdpsPrecip?: number
+  accumRDPSPrecip?: number
+  hrdpsPrecip?: number
+  accumHRDPSPrecip?: number
 }
 
 interface Props {
   toggleValues: ToggleValues
   observedValues: ObservedValue[]
   forecastValues: NoonForecastValue[]
+  gdpsModelValues: ModelValue[]
+  rdpsModelValues: ModelValue[]
+  hrdpsModelValues: ModelValue[]
 }
 
 /* Table layout constants */
@@ -96,7 +139,10 @@ const chartHeight = svgHeight - margin.top - margin.bottom
 const PrecipGraph: React.FunctionComponent<Props> = ({
   toggleValues,
   observedValues,
-  forecastValues
+  forecastValues,
+  gdpsModelValues,
+  rdpsModelValues,
+  hrdpsModelValues
 }: Props) => {
   const classes = useStyles()
   const svgRef = useRef<SVGSVGElement>(null)
@@ -178,7 +224,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
 
     const accumForecastPrecips: { date: Date, accumPrecip: number }[] = []
     forecastPrecips.forEach(({ date, value }) => {
-      const forecast = { date, accumPrecip: NaN}
+      const forecast = { date, accumPrecip: NaN }
       if (value != null) {
         if (accumForecastPrecips.length == 0) {
           forecast.accumPrecip = value
@@ -192,13 +238,117 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
     if (maxAccumPrecip < accumForecastPrecips[accumForecastPrecips.length - 1].accumPrecip) {
       maxAccumPrecip = accumForecastPrecips[accumForecastPrecips.length - 1].accumPrecip
     }
+    
+    const aggreGDPSPrecips: { [k: string]: number } = {}
+    gdpsModelValues.forEach(({ datetime, delta_precipitation }) => {
+      const date = formatDateInPDT(datetime, 'YYYY-MM-DD')
+      const precip = Number(delta_precipitation)
+
+      if (!aggreGDPSPrecips[date]) {
+        aggreGDPSPrecips[date] = precip
+      } else {
+        aggreGDPSPrecips[date] += precip
+      }
+    })
+
+    const gdpsPrecips = Object.entries(aggreGDPSPrecips).map(
+      ([formattedDate, totalPrecip]) => {
+        const date = moment(formattedDate)
+          .utc()
+          .set({ hour: Math.abs(utcOffset), minute: 0 })
+          .toDate()
+        datesFromAllSources.push(date)
+        if (totalPrecip > maxDailyPrecip) {
+          maxDailyPrecip = totalPrecip
+        }
+
+        return {
+          date,
+          value: Number(totalPrecip?.toFixed(2))
+        }
+      }
+    )
+
+    const accumGDPSPrecips: { date: Date, accumPrecip: number }[] = []
+    gdpsPrecips.forEach(({ date, value }) => {
+      const gdps = { date, accumPrecip: NaN }
+      if (value != null) {
+        if (accumGDPSPrecips.length == 0) {
+          gdps.accumPrecip = value
+        }
+        else {
+          gdps.accumPrecip = value + accumGDPSPrecips[accumGDPSPrecips.length - 1].accumPrecip
+        }
+        accumGDPSPrecips.push(gdps)
+      }
+    })
+    if (maxAccumPrecip < accumGDPSPrecips[accumGDPSPrecips.length - 1].accumPrecip) {
+      maxAccumPrecip = accumGDPSPrecips[accumGDPSPrecips.length - 1].accumPrecip
+    }
+
+    const aggreRDPSPrecips: { [k: string]: number } = {}
+    rdpsModelValues.forEach(({ datetime, delta_precipitation: precip }) => {
+      const date = formatDateInPDT(datetime, 'YYYY-MM-DD')
+      if (!aggreRDPSPrecips[date]) {
+        aggreRDPSPrecips[date] = Number(precip)
+      } else {
+        aggreRDPSPrecips[date] += Number(precip)
+      }
+    })
+
+    const rdpsPrecips = Object.entries(aggreRDPSPrecips).map(
+      ([formattedDate, totalPrecip]) => {
+        const date = moment(formattedDate)
+          .utc()
+          .set({ hour: Math.abs(utcOffset), minute: 0 })
+          .toDate()
+        datesFromAllSources.push(date)
+
+        if (totalPrecip > maxDailyPrecip) {
+          maxDailyPrecip = totalPrecip
+        }
+
+        return {
+          date,
+          value: Number(totalPrecip?.toFixed(2))
+        }
+      }
+    )
+
+    const aggreHRDPSPrecips: { [k: string]: number } = {}
+    hrdpsModelValues.forEach(({ datetime, delta_precipitation: precip }) => {
+      const date = formatDateInPDT(datetime, 'YYYY-MM-DD')
+      if (!aggreHRDPSPrecips[date]) {
+        aggreHRDPSPrecips[date] = Number(precip)
+      } else {
+        aggreHRDPSPrecips[date] += Number(precip)
+      }
+    })
+    const hrdpsPrecips = Object.entries(aggreHRDPSPrecips).map(
+      ([formattedDate, totalPrecip]) => {
+        const date = moment(formattedDate)
+          .utc()
+          .set({ hour: Math.abs(utcOffset), minute: 0 })
+          .toDate()
+        datesFromAllSources.push(date)
+
+        if (totalPrecip > maxDailyPrecip) {
+          maxDailyPrecip = totalPrecip
+        }
+
+        return {
+          date,
+          value: Number(totalPrecip?.toFixed(2))
+        }
+      }
+    )
 
     const currDate = new Date()
-    const pastDate = moment(currDate)
+    const past5Date = moment(currDate)
       .subtract(5, 'days')
       .toDate()
     const [minDate, maxDate] = d3.extent(datesFromAllSources)
-    let d1 = minDate || pastDate
+    let d1 = minDate || past5Date
     let d2 = maxDate || currDate
     d1 = moment(d1)
       .subtract(6, 'hours')
@@ -218,9 +368,20 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       observedPrecips,
       accumObservedPrecips,
       forecastPrecips,
-      accumForecastPrecips
+      accumForecastPrecips,
+      gdpsPrecips,
+      accumGDPSPrecips,
+      rdpsPrecips,
+      hrdpsPrecips
     }
-  }, [utcOffset, observedValues, forecastValues])
+  }, [
+    utcOffset,
+    observedValues,
+    forecastValues,
+    gdpsModelValues,
+    rdpsModelValues,
+    hrdpsModelValues
+  ])
 
   // Effect hook for displaying graphics
   useEffect(() => {
@@ -232,7 +393,11 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       observedPrecips,
       accumObservedPrecips,
       forecastPrecips,
-      accumForecastPrecips
+      accumForecastPrecips,
+      gdpsPrecips,
+      accumGDPSPrecips,
+      rdpsPrecips,
+      hrdpsPrecips
     } = graphCalculations
 
     if (svgRef.current) {
@@ -281,7 +446,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
           svg: chart,
           className: 'precipLine__observed',
           xScale: xScaleOriginal,
-          x: xScale(precip.date) - 2,
+          x: xScale(precip.date) - 8,
           y1: yDailyScale(precip.value),
           y2: yDailyScale(0),
           testId: 'observed-precip-line'
@@ -302,7 +467,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
           svg: chart,
           className: 'precipLine__forecast',
           xScale: xScaleOriginal,
-          x: xScale(precip.date) + 2,
+          x: xScale(precip.date) - 4,
           y1: yDailyScale(precip.value),
           y2: yDailyScale(0),
           testId: 'forecast-precip-line'
@@ -317,6 +482,51 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         y: d => yAccumScale(d.accumPrecip),
         testId: 'accum-forecast-precip-path'
       })
+
+      gdpsPrecips.forEach(precip =>
+        d3Utils.drawVerticalLine({
+          svg: chart,
+          className: 'precipLine__gdps',
+          xScale: xScaleOriginal,
+          x: xScale(precip.date),
+          y1: yDailyScale(precip.value),
+          y2: yDailyScale(0),
+          testId: 'gdps-precip-line'
+        })
+      )
+
+      d3Utils.drawPath({
+        svg: chart,
+        className: 'accumPrecipLine__gdps',
+        data: accumGDPSPrecips,
+        x: d => xScale(d.date),
+        y: d => yAccumScale(d.accumPrecip),
+        testId: 'accum-gdps-precip-path'
+      })
+
+      rdpsPrecips.forEach(precip =>
+        d3Utils.drawVerticalLine({
+          svg: chart,
+          className: 'precipLine__rdps',
+          xScale: xScaleOriginal,
+          x: xScale(precip.date) + 4,
+          y1: yDailyScale(precip.value),
+          y2: yDailyScale(0),
+          testId: 'rdps-precip-line'
+        })
+      )
+
+      hrdpsPrecips.forEach(precip =>
+        d3Utils.drawVerticalLine({
+          svg: chart,
+          className: 'precipLine__hrdps',
+          xScale: xScaleOriginal,
+          x: xScale(precip.date) + 8,
+          y1: yDailyScale(precip.value),
+          y2: yDailyScale(0),
+          testId: 'hrdps-precip-line'
+        })
+      )
 
       /* Render the X & Y axis and labels */
       chart
@@ -392,6 +602,41 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         }
       })
 
+    toggleValues.showModels &&
+      graphCalculations.gdpsPrecips.forEach(({ date, value }) => {
+        precipsByDatetime[date.toISOString()] = {
+          ...precipsByDatetime[date.toISOString()],
+          date,
+          gdpsPrecip: value
+        }
+      })
+    toggleValues.showModels &&
+      graphCalculations.accumGDPSPrecips.forEach(({ date, accumPrecip }) => {
+        precipsByDatetime[date.toISOString()] = {
+          ...precipsByDatetime[date.toISOString()],
+          date,
+          accumGDPSPrecip: accumPrecip
+        }
+      })
+
+    toggleValues.showRegionalModels &&
+      graphCalculations.rdpsPrecips.forEach(({ date, value }) => {
+        precipsByDatetime[date.toISOString()] = {
+          ...precipsByDatetime[date.toISOString()],
+          date,
+          rdpsPrecip: value
+        }
+      })
+
+    toggleValues.showHighResModels &&
+      graphCalculations.hrdpsPrecips.forEach(({ date, value }) => {
+        precipsByDatetime[date.toISOString()] = {
+          ...precipsByDatetime[date.toISOString()],
+          date,
+          hrdpsPrecip: value
+        }
+      })
+
     return Object.values(precipsByDatetime)
   }, [toggleValues, graphCalculations])
 
@@ -402,28 +647,45 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       legendData.push({
         text: 'Observed Precip',
         shape: 'rect',
-        color: observedPrecipColor,
-        fill: null
+        color: observedPrecipColor
       })
       legendData.push({
         text: 'Accumulated Observed Precip',
         shape: 'rect',
-        color: accumObservedPrecipColor,
-        fill: null
+        color: accumObservedPrecipColor
       })
     }
     if (toggleValues.showForecasts) {
       legendData.push({
         text: 'Forecast Precip',
         shape: 'rect',
-        color: forecastPrecipColor,
-        fill: null
+        color: forecastPrecipColor
+      })
+    }
+    if (toggleValues.showHighResModels) {
+      legendData.push({
+        text: 'HRDPS Precip',
+        shape: 'rect',
+        color: hrdpsPrecipColor
+      })
+    }
+    if (toggleValues.showRegionalModels) {
+      legendData.push({
+        text: 'RDPS Precip',
+        shape: 'rect',
+        color: rdpsPrecipColor
+      })
+    }
+    if (toggleValues.showModels) {
+      legendData.push({
+        text: 'GDPS Precip',
+        shape: 'rect',
+        color: gdpsPrecipColor
       })
       legendData.push({
         text: 'Accumulated Forecast Precip',
         shape: 'rect',
-        color: accumForecastPrecipColor,
-        fill: null
+        color: accumForecastPrecipColor
       })
     }
     const svgElement = svgRef.current
@@ -444,8 +706,8 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
     if (svgElement) {
       const svg = d3.select(svgElement)
       svg.select('.tooltip').remove()
-      svg.select('.tooltip__cursor').remove()
-      svg.select('.tooltip__background').remove()
+      svg.select('.tooltipCursor').remove()
+      svg.select('.tooltipBackground').remove()
 
       const xScale = d3
         .scaleTime()
@@ -474,20 +736,50 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
                     text: `Observed Precip: ${value} (mm/cm)`,
                     color: observedPrecipColor
                   }
-                case 'forecastPrecip':
-                  return {
-                    text: `Forecast Precip: ${value} (mm/cm)`,
-                    color: forecastPrecipColor
-                  }
                 case 'accumObservedPrecip':
                   return {
                     text: `Accumulated Observed Precip: ${Number(value).toFixed(2)} (mm/cm)`,
                     color: accumObservedPrecipColor
                   }
+                case 'forecastPrecip':
+                  return {
+                    text: `Forecast Precip: ${value} (mm/cm)`,
+                    color: forecastPrecipColor
+                  }
                 case 'accumForecastPrecip':
                   return {
-                    text: `Accumulated Forecast precip: ${Number(value).toFixed(2)} (mm/cm)`,
+                    text: `Accumulated Forecast Precip: ${Number(value).toFixed(2)} (mm/cm)`,
                     color: accumForecastPrecipColor
+                  }
+                case 'gdpsPrecip':
+                  return {
+                    text: `GDPS Precip: ${value} (mm/cm)`,
+                    color: gdpsPrecipColor
+                  }
+                case 'accumGDPSPrecip':
+                  return {
+                    text: `Accumulated GDPS Precip: ${Number(value).toFixed(2)} (mm/cm)`,
+                    color: accumGDPSPrecipColor
+                  }
+                case 'rdpsPrecip':
+                  return {
+                    text: `RDPS Precip: ${value} (mm/cm)`,
+                    color: rdpsPrecipColor
+                  }
+                case 'accumRDPSPrecip':
+                  return {
+                    text: `Accumulated RDPS Precip: ${Number(value).toFixed(2)} (mm/cm)`,
+                    color: accumRDPSPrecipColor
+                  }
+                case 'hrdpsPrecip':
+                  return {
+                    text: `HRDPS Precip: ${value} (mm/cm)`,
+                    color: hrdpsPrecipColor
+                  }
+                case 'accumHRDPSPrecip':
+                  return {
+                    text: `Accumulated HRDPS Precip: ${Number(value).toFixed(2)} (mm/cm)`,
+                    color: accumHRDPSPrecipColor
                   }
                 default:
                   return undefined
@@ -510,25 +802,37 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
   }, [graphCalculations, precipsOfInterest])
 
   // Effect hooks for showing/hiding graphics
-  const { showObservations, showForecasts } = toggleValues
   useEffect(() => {
     if (svgRef.current) {
       const svg = d3.select(svgRef.current)
       svg
         .selectAll('.precipLine__observed')
-        .classed('precipLine--hidden', !showObservations)
+        .classed('precipLine--hidden', !toggleValues.showObservations)
       svg
         .selectAll('.accumPrecipLine__observed')
-        .classed('accumPrecipLine--hidden', !showObservations)
+        .classed('accumPrecipLine--hidden', !toggleValues.showObservations)
     }
-  }, [showObservations])
+  }, [toggleValues.showObservations])
   useEffect(() => {
     if (svgRef.current) {
       const svg = d3.select(svgRef.current)
-      svg.selectAll('.precipLine__forecast').classed('precipLine--hidden', !showForecasts)
-      svg.selectAll('.accumPrecipLine__forecast').classed('accumPrecipLine--hidden', !showForecasts)
+      svg.selectAll('.precipLine__forecast').classed('precipLine--hidden', !toggleValues.showForecasts)
+      svg.selectAll('.accumPrecipLine__forecast').classed('accumPrecipLine--hidden', !toggleValues.showForecasts)
+        .classed('precipLine--hidden', !toggleValues.showObservations)
+      svg
+        .selectAll('.precipLine__forecast')
+        .classed('precipLine--hidden', !toggleValues.showForecasts)
+      svg
+        .selectAll('.precipLine__gdps')
+        .classed('precipLine--hidden', !toggleValues.showModels)
+      svg
+        .selectAll('.precipLine__rdps')
+        .classed('precipLine--hidden', !toggleValues.showRegionalModels)
+      svg
+        .selectAll('.precipLine__hrdps')
+        .classed('precipLine--hidden', !toggleValues.showHighResModels)
     }
-  }, [showForecasts])
+  }, [toggleValues])
 
   return (
     <div className={classes.root}>

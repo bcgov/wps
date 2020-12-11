@@ -3,7 +3,7 @@ import moment from 'moment'
 import * as d3 from 'd3'
 import { PDT_UTC_OFFSET } from 'utils/constants'
 
-export const transitionDuration = 50
+const transitionDuration = 50
 
 /**
  * Returns a list of dates in which each date is 12am PDT within the domain
@@ -421,7 +421,7 @@ export interface Legend {
   text: string
   shape: 'rect' | 'circle' | 'cross' | 'diamond' | 'triangle'
   color: string
-  fill: null | string
+  fill?: string
 }
 
 export const addLegend = (
@@ -490,7 +490,7 @@ export const getNearestByDate = <T extends { date: Date }>(
 
 /**
  * Attach a listener to display a tooltip in the graph, inspired by: https://observablehq.com/@d3/line-chart-with-tooltip
- * Note: .tooltip, .tooltip--hidden, and .tooltip__cursor classes need to be defined
+ * Note: .tooltip, .tooltip--hidden, and .tooltipCursor classes need to be defined
  * The T is a generic type that captures the type of the given data
  */
 export const addTooltipListener = <T extends { date: Date }>({
@@ -532,6 +532,7 @@ export const addTooltipListener = <T extends { date: Date }>({
       .selectAll('text')
       .data([null])
       .join('text')
+      .attr('class', 'tooltipText')
       .call(txt =>
         txt
           .selectAll('tspan')
@@ -583,7 +584,7 @@ export const addTooltipListener = <T extends { date: Date }>({
     .attr('width', width)
     .attr('height', height)
     .attr('fill', 'transparent')
-    .attr('class', 'tooltip--background')
+    .attr('class', 'tooltipBackground')
   if (bgdTestId) {
     svg.attr('data-testid', bgdTestId)
   }
@@ -593,9 +594,9 @@ export const addTooltipListener = <T extends { date: Date }>({
     .attr('y1', 0)
     .attr('x2', 0)
     .attr('y2', height)
-    .attr('class', 'tooltip__cursor')
+    .attr('class', 'tooltipCursor')
   const tooltip = svg.append('g')
-  const removeTooltip = () => {
+  const hideTooltip = () => {
     tooltip.call(tooltipCallout)
     tooltipCursor.style('opacity', 0)
   }
@@ -609,7 +610,7 @@ export const addTooltipListener = <T extends { date: Date }>({
       mx < xScale(data[0].date) - extraRange ||
       mx > xScale(data[data.length - 1].date) + extraRange
     ) {
-      return removeTooltip()
+      return hideTooltip()
     }
 
     const invertedDate = xScale.invert(mx)
@@ -624,5 +625,5 @@ export const addTooltipListener = <T extends { date: Date }>({
       .call(tooltipCallout, position, tooltipTextData)
     tooltipCursor.attr('transform', `translate(${nearestX}, 0)`).style('opacity', 1)
   })
-  svg.on('touchend mouseleave', removeTooltip)
+  svg.on('touchend mouseleave', hideTooltip)
 }

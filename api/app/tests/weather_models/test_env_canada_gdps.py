@@ -59,10 +59,17 @@ def mock_get_model_run_predictions_for_grid(monkeypatch):
             ModelRunGridSubsetPrediction(
                 tmp_tgl_2=[2, 3, 4, 5],
                 rh_tgl_2=[10, 20, 30, 40],
+                apcp_sfc_0=[2, 4, 3, 6],
                 prediction_timestamp=datetime(2020, 10, 10, 18)),
             ModelRunGridSubsetPrediction(
                 tmp_tgl_2=[1, 2, 3, 4],
                 rh_tgl_2=[20, 30, 40, 50],
+                apcp_sfc_0=[3, 6, 3, 4],
+                prediction_timestamp=datetime(2020, 10, 10, 21)),
+            ModelRunGridSubsetPrediction(
+                tmp_tgl_2=[1, 2, 3, 4],
+                rh_tgl_2=None,
+                apcp_sfc_0=[3, 6, 3, 4],
                 prediction_timestamp=datetime(2020, 10, 10, 21))
         ]
         return result
@@ -154,7 +161,8 @@ def mock_download_fail(monkeypatch):
 
 def test_get_gdps_download_urls():
     """ test to see if get_download_urls methods give the correct number of urls """
-    total_num_of_urls = 81 * len(['TMP_TGL_2', 'RH_TGL_2'])
+    # -1 because 000 hour has no APCP_SFC_0
+    total_num_of_urls = 81 * len(['TMP_TGL_2', 'RH_TGL_2', 'APCP_SFC_0']) - 1
     assert len(list(env_canada.get_global_model_run_download_urls(
         time_utils.get_utc_now(), 0))) == total_num_of_urls
 

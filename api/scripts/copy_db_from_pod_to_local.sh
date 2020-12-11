@@ -110,5 +110,5 @@ gunzip "${FILENAME}.gz"
 #   pg_restore -h localhost -d wps -U wps --no-owner --role=wps -c dump_db.tar
 #
 #   change user rights back:
-#   psql -U postgres -c "alter role wps nosuperuser"
+#   psql -U postgres -c "alter role wps nosuperuser;"
 
