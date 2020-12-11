@@ -26,14 +26,14 @@ const useStyles = makeStyles({
     marginTop: 16
   },
   paper: {
-    paddingLeft: 16,
-    paddingRight: 16,
+    paddingLeft: 18,
+    paddingRight: 18,
     paddingBottom: 8,
     marginBottom: 20
   },
   station: {
     fontSize: '1.1rem',
-    paddingTop: 8,
+    paddingTop: 10,
     paddingBottom: 8
   },
   noDataAvailable: {
@@ -89,17 +89,21 @@ const WxDataDisplays = ({ stationCodes }: Props) => {
               <Typography className={classes.station} variant="subtitle1" component="div">
                 Weather station: {`${station.name} (${station.code})`}
               </Typography>
+
               {nothingToDisplay && (
                 <Typography className={classes.noDataAvailable} variant="body2">
                   Data is not available.
                 </Typography>
               )}
+
               <ErrorBoundary>
                 <HourlyObservationsTable
+                  testId={`observations-table-${code}`}
                   title="Past 5 days of hourly observations from station: "
                   rows={observedValues}
                 />
               </ErrorBoundary>
+
               <ErrorBoundary>
                 <NoonWeatherValueTable
                   testId={`noon-gdps-table-${code}`}
@@ -107,6 +111,7 @@ const WxDataDisplays = ({ stationCodes }: Props) => {
                   rows={noonModelValues}
                 />
               </ErrorBoundary>
+
               <ErrorBoundary>
                 <NoonWeatherValueTable
                   testId={`noon-forecasts-table-${code}`}
@@ -114,6 +119,7 @@ const WxDataDisplays = ({ stationCodes }: Props) => {
                   rows={allForecasts}
                 />
               </ErrorBoundary>
+
               <ErrorBoundary>
                 <WxDataGraph
                   observedValues={observedValues}

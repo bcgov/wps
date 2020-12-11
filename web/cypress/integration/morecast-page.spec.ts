@@ -62,22 +62,22 @@ describe('MoreCast Page', () => {
     })
 
     it('Observation, noon forecast, and noon GDPS should be displayed in tables', () => {
-      cy.getByTestId('hourly-observations-table')
+      cy.getByTestId(`observations-table-${stationCode}`)
         .find('tbody > tr')
         .should('have.length', numOfObservations)
 
       // Check if the sorting functionality works
       const earliestDate = '2020-10-16 10:00'
       const latestDate = '2020-10-21 08:00'
-      cy.getByTestId('hourly-observations-table')
+      cy.getByTestId(`observations-table-${stationCode}`)
         .find('tbody > tr:first > td:first')
         .should('contain', earliestDate)
-      cy.getByTestId('hourly-observations-table').find('.MuiTableSortLabel-icon').click() // prettier-ignore
-      cy.getByTestId('hourly-observations-table')
+      cy.getByTestId(`observations-table-${stationCode}`).find('.MuiTableSortLabel-icon').click() // prettier-ignore
+      cy.getByTestId(`observations-table-${stationCode}`)
         .find('tbody > tr:first > td:first')
         .should('contain', latestDate)
-      cy.getByTestId('hourly-observations-table').find('.MuiTableSortLabel-icon').click() // prettier-ignore
-      cy.getByTestId('hourly-observations-table')
+      cy.getByTestId(`observations-table-${stationCode}`).find('.MuiTableSortLabel-icon').click() // prettier-ignore
+      cy.getByTestId(`observations-table-${stationCode}`)
         .find('tbody > tr:first > td:first')
         .should('contain', earliestDate)
 
