@@ -271,7 +271,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
 
     return {
       xDomain,
-      xTickValues: d3Utils.getTickValues(xDomain, utcOffset, false),
+      xTickValues: d3Utils.getTickValues(xDomain, utcOffset),
       maxPrecip,
       observedPrecips,
       forecastPrecips,

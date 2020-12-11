@@ -29,5 +29,11 @@ storiesOf('Weather data tables', module)
     )
   })
   .add('HourlyObservationsTable', () => {
-    return <HourlyObservationsTable title="This is title!" rows={observedValues} />
+    return (
+      <HourlyObservationsTable
+        testId="hmm"
+        title="This is title!"
+        rows={observedValues}
+      />
+    )
   })
