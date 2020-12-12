@@ -12,15 +12,16 @@ import { ToggleValues } from 'features/fireWeather/components/graphs/useGraphTog
 import { PDT_UTC_OFFSET } from 'utils/constants'
 
 const observedPrecipColor = '#a50b41'
-const accumObservedPrecipColor = '#17c4c4'
+const accumObservedPrecipColor = observedPrecipColor
 const forecastPrecipColor = '#fb0058'
-const accumForecastPrecipColor = '#057070'
+const accumForecastPrecipColor = forecastPrecipColor
 const gdpsPrecipColor = '#32e7e7'
-const accumGDPSPrecipColor = '#'
-const rdpsPrecipColor = '#a017c2'
-const accumRDPSPrecipColor = '#'
-const hrdpsPrecipColor = '#026200'
-const accumHRDPSPrecipColor = '#'
+const accumGDPSPrecipColor = gdpsPrecipColor
+const hrdpsPrecipColor = '#a017c2'
+const accumHRDPSPrecipColor = hrdpsPrecipColor
+const rdpsPrecipColor = '#026200'
+const accumRDPSPrecipColor = rdpsPrecipColor
+
 
 const useStyles = makeStyles({
   root: {
@@ -315,6 +316,23 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       }
     )
 
+    const accumRDPSPrecips: { date: Date, accumPrecip: number }[] = []
+    rdpsPrecips.forEach(({ date, value }) => {
+      const rdps = { date, accumPrecip: NaN }
+      if (value != null) {
+        if (accumRDPSPrecips.length == 0) {
+          rdps.accumPrecip = value
+        }
+        else {
+          rdps.accumPrecip = value + accumRDPSPrecips[accumRDPSPrecips.length - 1].accumPrecip
+        }
+        accumRDPSPrecips.push(rdps)
+      }
+    })
+    if (maxAccumPrecip < accumRDPSPrecips[accumRDPSPrecips.length - 1].accumPrecip) {
+      maxAccumPrecip = accumRDPSPrecips[accumRDPSPrecips.length - 1].accumPrecip
+    }
+
     const aggreHRDPSPrecips: { [k: string]: number } = {}
     hrdpsModelValues.forEach(({ datetime, delta_precipitation: precip }) => {
       const date = formatDateInPDT(datetime, 'YYYY-MM-DD')
@@ -342,6 +360,23 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         }
       }
     )
+
+    const accumHRDPSPrecips: { date: Date, accumPrecip: number }[] = []
+    hrdpsPrecips.forEach(({ date, value }) => {
+      const hrdps = { date, accumPrecip: NaN }
+      if (value != null) {
+        if (accumHRDPSPrecips.length == 0) {
+          hrdps.accumPrecip = value
+        }
+        else {
+          hrdps.accumPrecip = value + accumHRDPSPrecips[accumHRDPSPrecips.length - 1].accumPrecip
+        }
+        accumHRDPSPrecips.push(hrdps)
+      }
+    })
+    if (maxAccumPrecip < accumHRDPSPrecips[accumHRDPSPrecips.length - 1].accumPrecip) {
+      maxAccumPrecip = accumHRDPSPrecips[accumHRDPSPrecips.length - 1].accumPrecip
+    }
 
     const currDate = new Date()
     const past5Date = moment(currDate)
@@ -372,7 +407,9 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       gdpsPrecips,
       accumGDPSPrecips,
       rdpsPrecips,
-      hrdpsPrecips
+      accumRDPSPrecips,
+      hrdpsPrecips,
+      accumHRDPSPrecips
     }
   }, [
     utcOffset,
@@ -397,7 +434,9 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       gdpsPrecips,
       accumGDPSPrecips,
       rdpsPrecips,
-      hrdpsPrecips
+      accumRDPSPrecips,
+      hrdpsPrecips,
+      accumHRDPSPrecips
     } = graphCalculations
 
     if (svgRef.current) {
@@ -516,6 +555,15 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         })
       )
 
+      d3Utils.drawPath({
+        svg: chart,
+        className: 'accumPrecipLine__rdps',
+        data: accumRDPSPrecips,
+        x: d => xScale(d.date),
+        y: d => yAccumScale(d.accumPrecip),
+        testId: 'accum-rdps-precip-path'
+      })
+
       hrdpsPrecips.forEach(precip =>
         d3Utils.drawVerticalLine({
           svg: chart,
@@ -527,6 +575,15 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
           testId: 'hrdps-precip-line'
         })
       )
+
+      d3Utils.drawPath({
+        svg: chart,
+        className: 'accumPrecipLine__hrdps',
+        data: accumHRDPSPrecips,
+        x: d => xScale(d.date),
+        y: d => yAccumScale(d.accumPrecip),
+        testId: 'accum-hrdps-precip-path'
+      })
 
       /* Render the X & Y axis and labels */
       chart
@@ -627,6 +684,14 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
           rdpsPrecip: value
         }
       })
+    toggleValues.showRegionalModels &&
+      graphCalculations.accumRDPSPrecips.forEach(({ date, accumPrecip }) => {
+        precipsByDatetime[date.toISOString()] = {
+          ...precipsByDatetime[date.toISOString()],
+          date,
+          accumRDPSPrecip: accumPrecip
+        }
+      })
 
     toggleValues.showHighResModels &&
       graphCalculations.hrdpsPrecips.forEach(({ date, value }) => {
@@ -634,6 +699,14 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
           ...precipsByDatetime[date.toISOString()],
           date,
           hrdpsPrecip: value
+        }
+      })
+    toggleValues.showHighResModels &&
+      graphCalculations.accumHRDPSPrecips.forEach(({ date, accumPrecip }) => {
+        precipsByDatetime[date.toISOString()] = {
+          ...precipsByDatetime[date.toISOString()],
+          date,
+          accumHRDPSPrecip: accumPrecip
         }
       })
 
@@ -661,6 +734,11 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         shape: 'rect',
         color: forecastPrecipColor
       })
+      legendData.push({
+        text: 'Accumulated Forecast Precip',
+        shape: 'rect',
+        color: accumForecastPrecipColor
+      })
     }
     if (toggleValues.showHighResModels) {
       legendData.push({
@@ -668,12 +746,22 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         shape: 'rect',
         color: hrdpsPrecipColor
       })
+      legendData.push({
+        text: 'Accumulated HRDPS Precip',
+        shape: 'rect',
+        color: accumHRDPSPrecipColor
+      })
     }
     if (toggleValues.showRegionalModels) {
       legendData.push({
         text: 'RDPS Precip',
         shape: 'rect',
         color: rdpsPrecipColor
+      })
+      legendData.push({
+        text: 'Accumulated RDPS Precip',
+        shape: 'rect', 
+        color: accumRDPSPrecipColor
       })
     }
     if (toggleValues.showModels) {
@@ -683,9 +771,9 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         color: gdpsPrecipColor
       })
       legendData.push({
-        text: 'Accumulated Forecast Precip',
+        text: 'Accumulated GDPS Precip',
         shape: 'rect',
-        color: accumForecastPrecipColor
+        color: accumGDPSPrecipColor
       })
     }
     const svgElement = svgRef.current
@@ -805,32 +893,22 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
   useEffect(() => {
     if (svgRef.current) {
       const svg = d3.select(svgRef.current)
-      svg
-        .selectAll('.precipLine__observed')
-        .classed('precipLine--hidden', !toggleValues.showObservations)
-      svg
-        .selectAll('.accumPrecipLine__observed')
-        .classed('accumPrecipLine--hidden', !toggleValues.showObservations)
-    }
-  }, [toggleValues.showObservations])
-  useEffect(() => {
-    if (svgRef.current) {
-      const svg = d3.select(svgRef.current)
       svg.selectAll('.precipLine__forecast').classed('precipLine--hidden', !toggleValues.showForecasts)
       svg.selectAll('.accumPrecipLine__forecast').classed('accumPrecipLine--hidden', !toggleValues.showForecasts)
-        .classed('precipLine--hidden', !toggleValues.showObservations)
-      svg
-        .selectAll('.precipLine__forecast')
-        .classed('precipLine--hidden', !toggleValues.showForecasts)
+      svg.selectAll('.precipLine__observ').classed('precipLine--hidden', !toggleValues.showObservations)
+      svg.selectAll('.accumPrecipLine__observed').classed('accumPrecipLine--hidden', !toggleValues.showObservations)
       svg
         .selectAll('.precipLine__gdps')
         .classed('precipLine--hidden', !toggleValues.showModels)
+      svg.selectAll('.accumPrecipLine__gdps').classed('accumPrecipLine--hidden', !toggleValues.showModels)
       svg
         .selectAll('.precipLine__rdps')
         .classed('precipLine--hidden', !toggleValues.showRegionalModels)
+      svg.selectAll('.accumPrecipLine__rdps').classed('accumPrecipLine--hidden', !toggleValues.showRegionalModels)
       svg
         .selectAll('.precipLine__hrdps')
         .classed('precipLine--hidden', !toggleValues.showHighResModels)
+      svg.selectAll('.accumPrecipLine__hrdps').classed('accumPrecipLine--hidden', !toggleValues.showHighResModels)
     }
   }, [toggleValues])
 
