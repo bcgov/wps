@@ -67,7 +67,7 @@ const TempRHGraph: React.FunctionComponent<Props> = (props: Props) => {
         .append('rect')
         .attr('x', 0)
         .attr('y', -10) // - 10 to show the text(Now) from the reference line
-        .attr('width', chartWidth + 2) // + 2 to show the last tick of the x axis
+        .attr('width', chartWidth + 1) // + 1 to show the last tick of the x axis
         .attr('height', chartHeight + 50) // +50 to show the x axis and its labels
 
       const chart = svg
@@ -411,7 +411,7 @@ const TempRHGraph: React.FunctionComponent<Props> = (props: Props) => {
       /* Render the X & Y axis and labels */
       const xAxisFunc = d3
         .axisBottom(xScale)
-        .tickFormat(d3Utils.formatDateInMonthAndDay)
+        .tickFormat(d3Utils.getDateFormatter('MMM D', utcOffset))
         .tickValues(d3Utils.getTickValues(graphCalc.xDomain, utcOffset))
       chart // Include only x axis to the chart group
         .append('g')
@@ -502,7 +502,7 @@ const TempRHGraph: React.FunctionComponent<Props> = (props: Props) => {
         .call(
           d3
             .axisBottom(xScaleOriginal)
-            .tickFormat(d3Utils.formatDateInMonthAndDay)
+            .tickFormat(d3Utils.getDateFormatter('MMM D', utcOffset))
             .tickValues(d3Utils.getTickValues(graphCalc.xDomain, utcOffset, true))
         )
       sidebar

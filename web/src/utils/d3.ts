@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import moment from 'moment'
 import * as d3 from 'd3'
-import { PDT_UTC_OFFSET } from 'utils/constants'
 
 const transitionDuration = 50
 
 /**
  * Returns a list of dates in which each date is 12am PDT within the domain
  * @param domain a pair of dates, x domain
+ * @param utcOffset UTC offset for a specific timezone
+ * @param shouldLimitNumOfResult a flag that decides whether it should limit the number of results
  */
 export const getTickValues = (
   domain: [Date, Date] | [undefined, undefined],
@@ -20,8 +21,6 @@ export const getTickValues = (
     return []
   }
 
-  let result = []
-
   const next = moment(d1)
     .utcOffset(utcOffset)
     .add(1, 'days')
@@ -31,14 +30,15 @@ export const getTickValues = (
     })
   const last = moment(d2).utcOffset(utcOffset)
 
+  const result = []
+
   while (last >= next) {
     result.push(moment(next).toDate())
     next.add(1, 'days')
   }
 
   if (shouldLimitNumOfResult) {
-    const length = result.length
-    result = result.filter((_, index) => {
+    return result.filter((_, index, { length }) => {
       const divider = Math.ceil(length / 10)
       return index % divider === 0
     })
@@ -50,21 +50,21 @@ export const getTickValues = (
 /**
  * High order function to generate formatting functions
  * @param format format string recognized Moment
+ * @param utcOffset UTC offset for a specific timezone
  */
-const formatDate = (format: string) => (value: Date | { valueOf(): number }) => {
+export const getDateFormatter = (format: string, utcOffset: number) => (
+  value: Date | { valueOf(): number },
+  index: number // eslint-disable-line @typescript-eslint/no-unused-vars
+) => {
+  let m = null
   if (value instanceof Date) {
-    return moment(value)
-      .utcOffset(PDT_UTC_OFFSET)
-      .format(format)
+    m = moment(value)
+  } else {
+    m = moment(value.valueOf())
   }
 
-  return moment(value.valueOf())
-    .utcOffset(PDT_UTC_OFFSET)
-    .format(format)
+  return m.utcOffset(utcOffset).format(format)
 }
-
-export const formatDateInDay = formatDate('Do')
-export const formatDateInMonthAndDay = formatDate('MMM D')
 
 /**
  * Note: className should be unique
