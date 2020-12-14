@@ -2,6 +2,9 @@ import { FIRE_WEATHER_ROUTE, MORECAST_ROUTE } from '../../src/utils/constants'
 import { stationCodeQueryKey } from '../../src/utils/url'
 
 const stationCode = 328
+const numOfObservations = 119
+const numOfForecasts = 6
+const numOfGdps = 130
 
 describe('MoreCast Page', () => {
   beforeEach(() => {
@@ -16,12 +19,14 @@ describe('MoreCast Page', () => {
   })
 
   it('When network errors occurred', () => {
+    cy.route('POST', 'api/models/RDPS/predictions/summaries').as('getRdpsSummaries')
     cy.wait('@getStations')
 
     cy.selectStationInDropdown(stationCode)
     cy.getByTestId('get-wx-data-button').click({ force: true })
     cy.url().should('contain', `${stationCodeQueryKey}=${stationCode}`)
 
+    cy.wait('@getRdpsSummaries')
     cy.checkErrorMessage('Error occurred (while fetching hourly observations).')
     cy.checkErrorMessage('Error occurred (while fetching GDPS).')
     cy.checkErrorMessage('Error occurred (while fetching GDPS summaries).')
@@ -56,11 +61,39 @@ describe('MoreCast Page', () => {
       cy.getByTestId('get-wx-data-button').click({ force: true })
     })
 
+    it('Observation, noon forecast, and noon GDPS should be displayed in tables', () => {
+      cy.getByTestId(`observations-table-${stationCode}`)
+        .find('tbody > tr')
+        .should('have.length', numOfObservations)
+
+      // Check if the sorting functionality works
+      const earliestDate = '2020-10-16 10:00'
+      const latestDate = '2020-10-21 08:00'
+      cy.getByTestId(`observations-table-${stationCode}`)
+        .find('tbody > tr:first > td:first')
+        .should('contain', earliestDate)
+      cy.getByTestId(`observations-table-${stationCode}`).find('.MuiTableSortLabel-icon').click() // prettier-ignore
+      cy.getByTestId(`observations-table-${stationCode}`)
+        .find('tbody > tr:first > td:first')
+        .should('contain', latestDate)
+      cy.getByTestId(`observations-table-${stationCode}`).find('.MuiTableSortLabel-icon').click() // prettier-ignore
+      cy.getByTestId(`observations-table-${stationCode}`)
+        .find('tbody > tr:first > td:first')
+        .should('contain', earliestDate)
+
+      cy.getByTestId(`noon-gdps-table-${stationCode}`)
+        .find('tbody > tr')
+        .should('have.length', 15)
+      cy.getByTestId(`noon-forecasts-table-${stationCode}`)
+        .find('tbody > tr')
+        .should('have.length', numOfForecasts)
+    })
+
     it('Temp & RH graph displays svg graphics with toggles', () => {
       // Check if svg elements are displayed in the graph
-      cy.getByTestId('hourly-observed-temp-symbol').should('have.length', 118)
+      cy.getByTestId('hourly-observed-temp-symbol').should('have.length', numOfObservations - 1)
       cy.getByTestId('hourly-observed-temp-path').should('not.have.class', 'hidden')
-      cy.getByTestId('hourly-observed-rh-symbol').should('have.length', 119)
+      cy.getByTestId('hourly-observed-rh-symbol').should('have.length', numOfObservations)
       cy.getByTestId('hourly-observed-rh-path').should('not.have.class', 'hidden')
       cy.getByTestId('wx-graph-observation-toggle').click()
       cy.getByTestId('hourly-observed-temp-symbol').should('have.class', 'hidden')
@@ -69,20 +102,20 @@ describe('MoreCast Page', () => {
       // Test the toggle buttons
       cy.getByTestId('wx-graph-global-model-toggle').click()
       cy.getByTestId('model-summary-temp-area').should('not.have.class', 'hidden')
-      cy.getByTestId('model-temp-symbol').should('have.length', 130)
+      cy.getByTestId('model-temp-symbol').should('have.length', numOfGdps)
       cy.getByTestId('wx-graph-global-model-toggle').click()
       cy.getByTestId('model-summary-temp-area').should('have.class', 'hidden')
       cy.getByTestId('model-temp-symbol').should('have.class', 'hidden')
 
       cy.getByTestId('wx-graph-forecast-toggle').click()
-      cy.getByTestId('forecast-temp-dot').should('have.length', 6)
+      cy.getByTestId('forecast-temp-dot').should('have.length', numOfForecasts)
       cy.getByTestId('forecast-summary-temp-line').should('not.have.class', 'hidden')
       cy.getByTestId('wx-graph-forecast-toggle').click()
       cy.getByTestId('forecast-temp-dot').should('have.class', 'hidden')
       cy.getByTestId('forecast-summary-temp-line').should('have.class', 'hidden')
 
       cy.getByTestId('wx-graph-bias-toggle').click()
-      cy.getByTestId('bias-adjusted-model-temp-symbol').should('have.length', 130)
+      cy.getByTestId('bias-adjusted-model-temp-symbol').should('have.length', numOfGdps)
       cy.getByTestId('bias-adjusted-model-temp-path').should('not.have.class', 'hidden')
       cy.getByTestId('wx-graph-bias-toggle').click()
       cy.getByTestId('bias-adjusted-model-temp-symbol').should('have.class', 'hidden')
