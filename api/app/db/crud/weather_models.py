@@ -254,20 +254,24 @@ def get_station_model_predictions(
 
 def get_station_model_prediction_from_previous_model_run(
         session: Session,
-        station_codes: List[int],
-        model: str,
+        station_code: int,
+        model: ModelEnum,
         prediction_timestamp: datetime.datetime,
-        prediction_model_run_timestamp: datetime.datetime) -> Union[WeatherStationModelPrediction, PredictionModelRunTimestamp, PredictionModel]:
+        prediction_model_run_timestamp: datetime.datetime) -> List[WeatherStationModelPrediction]:
     """ Fetches the one model prediction for the specified station_code, model, and prediction_timestamp
     from the prediction model run immediately previous to the given prediction_model_run_timestamp.
     """
     # create a lower_bound for time range so that we're not querying timestamps all the way back to the
     # beginning of time
     lower_bound = prediction_model_run_timestamp - datetime.timedelta(days=1)
-    response = session.query(WeatherStationModelPrediction, PredictionModelRunTimestamp, PredictionModel).\
-        filter(WeatherStationModelPrediction.station_code.in_(station_codes)).\
+    response = session.query(WeatherStationModelPrediction).\
+        join(PredictionModelRunTimestamp,
+             PredictionModelRunTimestamp.id == WeatherStationModelPrediction.prediction_model_run_timestamp_id).\
+        join(PredictionModel, PredictionModel.id ==
+             PredictionModelRunTimestamp.prediction_model_id).\
+        filter(WeatherStationModelPrediction.station_code == station_code).\
         filter(WeatherStationModelPrediction.prediction_timestamp == prediction_timestamp).\
-        filter(PredictionModelRunTimestamp.prediction_model_id == PredictionModel.id, PredictionModel.abbreviation == model).\
+        filter(PredictionModel.abbreviation == model).\
         filter(PredictionModelRunTimestamp.prediction_run_timestamp < prediction_model_run_timestamp).\
         filter(PredictionModelRunTimestamp.prediction_run_timestamp > lower_bound).\
         order_by(PredictionModelRunTimestamp.prediction_run_timestamp.desc()).\
