@@ -905,7 +905,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         .selectAll('.accumPrecipLine__forecast')
         .classed('accumPrecipLine--hidden', !toggleValues.showForecasts)
       svg
-        .selectAll('.precipLine__observ')
+        .selectAll('.precipLine__observed')
         .classed('precipLine--hidden', !toggleValues.showObservations)
       svg
         .selectAll('.accumPrecipLine__observed')
