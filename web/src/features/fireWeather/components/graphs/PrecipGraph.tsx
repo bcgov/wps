@@ -429,7 +429,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         .text('Precipitation (mm/cm)')
         .attr('transform', 'rotate(-90)')
     }
-  }, [graphCalculations])
+  }, [graphCalculations, utcOffset])
 
   const precipsOfInterest = useMemo(() => {
     const precipsByDatetime: { [date: string]: PrecipValue } = {}
