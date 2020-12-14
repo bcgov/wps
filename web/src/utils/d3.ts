@@ -352,6 +352,7 @@ const createIcon = (
   d: Legend
 ):
   | d3.Selection<SVGRectElement, unknown, null, undefined>
+  | d3.Selection<SVGLineElement, unknown, null, undefined>
   | d3.Selection<SVGPathElement, unknown, null, undefined>
   | d3.Selection<SVGCircleElement, unknown, null, undefined> => {
   if (d.shape === 'rect') {
@@ -359,6 +360,15 @@ const createIcon = (
       .append(d.shape)
       .attr('width', 4)
       .attr('height', 4)
+      .style('stroke', d.color)
+      .style('fill', d.fill || d.color)
+  } else if (d.shape === 'line') {
+    return item
+      .append(d.shape)
+      .attr('x1', 0)
+      .attr('x2', 7)
+      .attr('y1', 0)
+      .attr('y2', 0)
       .style('stroke', d.color)
       .style('fill', d.fill || d.color)
   } else if (d.shape === 'diamond') {
@@ -406,11 +416,12 @@ const createIcon = (
 }
 
 const translateIcon = (
-  shape: 'circle' | 'rect' | 'diamond' | 'cross' | 'triangle',
+  shape: 'circle' | 'rect' | 'diamond' | 'cross' | 'triangle' | 'line',
   xOffset: number,
   yOffset: number,
   icon:
     | d3.Selection<SVGRectElement, unknown, null, undefined>
+    | d3.Selection<SVGLineElement, unknown, null, undefined>
     | d3.Selection<SVGPathElement, unknown, null, undefined>
     | d3.Selection<SVGCircleElement, unknown, null, undefined>
 ): string => {
@@ -420,6 +431,8 @@ const translateIcon = (
       1})`
   } else if (shape === 'rect') {
     return `translate(${xOffset}, ${yOffset - (icon.node()?.getBBox().height ?? 0) / 2})`
+  } else if (shape === 'line') {
+    return `translate(${xOffset}, ${yOffset})`
   }
   // diamond, circle, cross
   return `translate(${xOffset + (icon.node()?.getBBox().width ?? 0) / 2}, ${yOffset})`
@@ -427,7 +440,7 @@ const translateIcon = (
 
 export interface Legend {
   text: string
-  shape: 'rect' | 'circle' | 'cross' | 'diamond' | 'triangle'
+  shape: 'rect' | 'circle' | 'cross' | 'diamond' | 'triangle' | 'line'
   color: string
   fill?: string
 }

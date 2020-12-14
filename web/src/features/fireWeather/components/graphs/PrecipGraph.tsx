@@ -188,7 +188,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
     observedPrecips.forEach(({ date, value }) => {
       const observed = { date, accumPrecip: NaN }
       if (value != null) {
-        if (accumObservedPrecips.length == 0) {
+        if (accumObservedPrecips.length === 0) {
           observed.accumPrecip = value
         } else {
           observed.accumPrecip =
@@ -226,7 +226,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
     forecastPrecips.forEach(({ date, value }) => {
       const forecast = { date, accumPrecip: NaN }
       if (value != null) {
-        if (accumForecastPrecips.length == 0) {
+        if (accumForecastPrecips.length === 0) {
           forecast.accumPrecip = value
         } else {
           forecast.accumPrecip =
@@ -275,7 +275,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
     gdpsPrecips.forEach(({ date, value }) => {
       const gdps = { date, accumPrecip: NaN }
       if (value != null) {
-        if (accumGDPSPrecips.length == 0) {
+        if (accumGDPSPrecips.length === 0) {
           gdps.accumPrecip = value
         } else {
           gdps.accumPrecip =
@@ -321,7 +321,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
     rdpsPrecips.forEach(({ date, value }) => {
       const rdps = { date, accumPrecip: NaN }
       if (value != null) {
-        if (accumRDPSPrecips.length == 0) {
+        if (accumRDPSPrecips.length === 0) {
           rdps.accumPrecip = value
         } else {
           rdps.accumPrecip =
@@ -366,7 +366,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
     hrdpsPrecips.forEach(({ date, value }) => {
       const hrdps = { date, accumPrecip: NaN }
       if (value != null) {
-        if (accumHRDPSPrecips.length == 0) {
+        if (accumHRDPSPrecips.length === 0) {
           hrdps.accumPrecip = value
         } else {
           hrdps.accumPrecip =
@@ -725,7 +725,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       })
       legendData.push({
         text: 'Accumulated Observed Precip',
-        shape: 'rect',
+        shape: 'line',
         color: accumObservedPrecipColor
       })
     }
@@ -737,7 +737,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       })
       legendData.push({
         text: 'Accumulated Forecast Precip',
-        shape: 'rect',
+        shape: 'line',
         color: accumForecastPrecipColor
       })
     }
@@ -749,7 +749,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       })
       legendData.push({
         text: 'Accumulated HRDPS Precip',
-        shape: 'rect',
+        shape: 'line',
         color: accumHRDPSPrecipColor
       })
     }
@@ -761,7 +761,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       })
       legendData.push({
         text: 'Accumulated RDPS Precip',
-        shape: 'rect',
+        shape: 'line',
         color: accumRDPSPrecipColor
       })
     }
@@ -773,7 +773,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       })
       legendData.push({
         text: 'Accumulated GDPS Precip',
-        shape: 'rect',
+        shape: 'line',
         color: accumGDPSPrecipColor
       })
     }
