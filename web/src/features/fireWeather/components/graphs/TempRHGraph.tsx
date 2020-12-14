@@ -409,11 +409,10 @@ const TempRHGraph: React.FunctionComponent<Props> = (props: Props) => {
       })
 
       /* Render the X & Y axis and labels */
-      const xTickValues = d3Utils.getTickValues(graphCalc.xDomain, utcOffset, false)
       const xAxisFunc = d3
         .axisBottom(xScale)
         .tickFormat(d3Utils.formatDateInMonthAndDay)
-        .tickValues(xTickValues)
+        .tickValues(d3Utils.getTickValues(graphCalc.xDomain, utcOffset))
       chart // Include only x axis to the chart group
         .append('g')
         .attr('class', 'xAxis')
@@ -504,7 +503,7 @@ const TempRHGraph: React.FunctionComponent<Props> = (props: Props) => {
           d3
             .axisBottom(xScaleOriginal)
             .tickFormat(d3Utils.formatDateInMonthAndDay)
-            .tickValues(xTickValues)
+            .tickValues(d3Utils.getTickValues(graphCalc.xDomain, utcOffset, true))
         )
       sidebar
         .append('g')

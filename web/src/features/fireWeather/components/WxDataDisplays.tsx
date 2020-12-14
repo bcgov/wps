@@ -3,8 +3,11 @@ import { useSelector } from 'react-redux'
 import { Paper, Typography } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 
-import HourlyObservationsTable from 'features/fireWeather/components/HourlyObservationsTable'
-import NoonForecastTable from 'features/fireWeather/components/NoonForecastTable'
+import ObservationTable from 'features/fireWeather/components/tables/ObservationTable'
+import {
+  NoonForecastTable,
+  NoonModelTable
+} from 'features/fireWeather/components/tables/NoonWxValueTables'
 import WxDataGraph from 'features/fireWeather/components/graphs/WxDataGraph'
 import { ErrorBoundary } from 'components'
 import {
@@ -26,13 +29,14 @@ const useStyles = makeStyles({
     marginTop: 16
   },
   paper: {
-    paddingLeft: 16,
-    paddingRight: 16,
+    paddingLeft: 18,
+    paddingRight: 18,
+    paddingBottom: 8,
     marginBottom: 20
   },
   station: {
     fontSize: '1.1rem',
-    paddingTop: 8,
+    paddingTop: 10,
     paddingBottom: 8
   },
   noDataAvailable: {
@@ -88,31 +92,37 @@ const WxDataDisplays = ({ stationCodes }: Props) => {
               <Typography className={classes.station} variant="subtitle1" component="div">
                 Weather station: {`${station.name} (${station.code})`}
               </Typography>
+
               {nothingToDisplay && (
                 <Typography className={classes.noDataAvailable} variant="body2">
                   Data is not available.
                 </Typography>
               )}
+
               <ErrorBoundary>
-                <HourlyObservationsTable
+                <ObservationTable
+                  testId={`observations-table-${code}`}
                   title="Past 5 days of hourly observations from station: "
-                  values={observedValues}
+                  rows={observedValues}
                 />
               </ErrorBoundary>
+
               <ErrorBoundary>
-                <NoonForecastTable
-                  testId={`noon-models-table-${code}`}
+                <NoonModelTable
+                  testId={`noon-gdps-table-${code}`}
                   title="Interpolated global model noon values (20:00 UTC): "
-                  values={noonModelValues}
+                  rows={noonModelValues}
                 />
               </ErrorBoundary>
+
               <ErrorBoundary>
                 <NoonForecastTable
                   testId={`noon-forecasts-table-${code}`}
                   title="Weather forecast noon values (20:00 UTC): "
-                  values={allForecasts}
+                  rows={allForecasts}
                 />
               </ErrorBoundary>
+
               <ErrorBoundary>
                 <WxDataGraph
                   observedValues={observedValues}
