@@ -1,8 +1,12 @@
 import { makeStyles } from '@material-ui/core/styles'
 
 const currLineColor = 'green'
-export const observedTempColor = '#a50b41'
-export const observedRHColor = '#17c4c4'
+export const observedTempColor = '#fb0058'
+export const observedRHColor = '#057070'
+export const forecastTempDotColor = '#a50b41'
+export const forecastRHDotColor = '#17c4c4'
+const forecastSummaryTempLineColor = forecastTempDotColor
+const forecastSummaryRHLineColor = forecastRHDotColor
 export const modelTempColor = '#f56c9c'
 export const modelRHColor = '#32e7e7'
 export const biasModelTempColor = '#e604d0'
@@ -17,10 +21,6 @@ export const regionalModelTempColor = '#ea6d0e'
 export const regionalModelRHColor = '#026200'
 export const regionalModelSummaryTempAreaColor = '#f48f41'
 export const regionalModelSummaryRHAreaColor = '#2a8989'
-export const forecastTempDotColor = '#fb0058'
-export const forecastRHDotColor = '#057070'
-const forecastSummaryTempLineColor = forecastTempDotColor
-const forecastSummaryRHLineColor = forecastRHDotColor
 
 export const useStyles = makeStyles({
   // Give styling through classes for svg elements
@@ -87,45 +87,63 @@ export const useStyles = makeStyles({
     },
     '& .modelTempSymbol': {
       stroke: modelTempColor,
-      fill: modelTempColor
+      fill: modelTempColor,
+      opacity: 0.8
     },
     '& .modelTempPath': {
-      stroke: modelTempColor
+      stroke: modelTempColor,
+      strokeDasharray: 6,
+      opacity: 0.8
     },
     '& .modelRHSymbol': {
       stroke: modelRHColor,
-      fill: modelRHColor
+      fill: modelRHColor,
+      opacity: 0.8
     },
     '& .modelRHPath': {
-      stroke: modelRHColor
+      stroke: modelRHColor,
+      strokeDasharray: 6,
+      opacity: 0.8
     },
     '& .biasAdjModelTempSymbol': {
       stroke: biasModelTempColor,
-      fill: biasModelTempColor
+      fill: biasModelTempColor,
+      opacity: 0.8
     },
     '& .biasAdjModelTempPath': {
-      stroke: biasModelTempColor
+      stroke: biasModelTempColor,
+      strokeDasharray: 8,
+      opacity: 0.8
     },
     '& .biasAdjModelRHSymbol': {
       stroke: biasModelRHColor,
-      fill: biasModelRHColor
+      fill: biasModelRHColor,
+      opacity: 0.8
     },
     '& .biasAdjModelRHPath': {
-      stroke: biasModelRHColor
+      stroke: biasModelRHColor,
+      strokeDasharray: 8,
+      opacity: 0.8
     },
     '& .highResModelTempSymbol': {
       stroke: highResModelTempColor,
-      fill: highResModelTempColor
+      fill: highResModelTempColor,
+      opacity: 0.8
     },
     '& .highResModelTempPath': {
-      stroke: highResModelTempColor
+      stroke: highResModelTempColor,
+      strokeDasharray: 2,
+      opacity: 0.8
     },
     '& .highResModelRHSymbol': {
       stroke: highResModelRHColor,
-      fill: highResModelRHColor
+      fill: highResModelRHColor,
+      opacity: 0.8
     },
     '& .highResModelRHPath': {
-      stroke: highResModelRHColor
+      stroke: highResModelRHColor,
+      strokeDasharray: 2,
+      opacity: 0.8
     },
     '& .highResModelSummaryTempArea': {
       stroke: highResModelSummaryTempAreaColor,
@@ -141,38 +159,46 @@ export const useStyles = makeStyles({
     },
     '& .regionalModelTempSymbol': {
       stroke: regionalModelTempColor,
-      fill: regionalModelTempColor
+      fill: regionalModelTempColor,
+      opacity: 0.8
     },
     '& .regionalModelTempPath': {
-      stroke: regionalModelTempColor
+      stroke: regionalModelTempColor,
+      strokeDasharray: 4,
+      opacity: 0.8
     },
     '& .regionalModelRHSymbol': {
       stroke: regionalModelRHColor,
       fill: regionalModelRHColor,
-      strokeWidth: 0.7
+      strokeWidth: 0.7,
+      opacity: 0.8
     },
     '& .regionalModelRHPath': {
-      stroke: regionalModelRHColor
+      stroke: regionalModelRHColor,
+      strokeDasharray: 4,
+      opacity: 0.8
     },
     '& .regionalModelSummaryTempArea': {
       stroke: regionalModelSummaryTempAreaColor,
       strokeWidth: 1,
       fill: regionalModelSummaryTempAreaColor,
-      opacity: 0.2
+      opacity: 0.3
     },
     '& .regionalModelSummaryRHArea': {
       stroke: regionalModelSummaryRHAreaColor,
       strokeWidth: 1,
       fill: regionalModelSummaryRHAreaColor,
-      opacity: 0.2
+      opacity: 0.3
     },
     '& .forecastTempDot': {
       stroke: forecastTempDotColor,
-      fill: 'none'
+      fill: forecastTempDotColor,
+      opacity: 0.8
     },
     '& .forecastRHDot': {
       stroke: forecastRHDotColor,
-      fill: 'none'
+      fill: forecastTempDotColor,
+      opacity: 0.8
     },
     '& .forecastSummaryTempLine': {
       stroke: forecastSummaryTempLineColor,
