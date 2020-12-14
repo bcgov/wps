@@ -321,7 +321,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         .attr('class', 'context')
         .attr('transform', `translate(${margin.left}, ${margin.top})`)
 
-      const legendMarginTop = chartHeight + 40
+      const legendMarginTop = chartHeight + 55
       svg
         .append('g')
         .attr('class', 'legend')
@@ -406,9 +406,15 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         .call(
           d3
             .axisBottom(xScale)
-            .tickFormat(d3Utils.formatDateInMonthAndDay)
+            .tickFormat(d3Utils.getDateFormatter('MMM D', utcOffset))
             .tickValues(xTickValues)
         )
+        .selectAll('text')
+        .attr('y', 3)
+        .attr('x', 13)
+        .attr('dy', '1em')
+        .attr('dx', '0.8em')
+        .attr('transform', 'rotate(45)')
       context
         .append('g')
         .attr('class', 'yAxis')
