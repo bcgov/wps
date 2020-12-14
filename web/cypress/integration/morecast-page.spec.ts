@@ -149,22 +149,32 @@ describe('MoreCast Page', () => {
     it('Precip graph displays svg graphics and a tooltip', () => {
       // Check if svg elements are displayed (or not) in the graph
       cy.getByTestId('observed-precip-line').should('not.have.class', 'precipLine--hidden')
+      cy.getByTestId('accum-observed-precip-path').should('not.have.class', 'accumPrecipLine--hidden')
       cy.getByTestId('forecast-precip-line').should('have.class', 'precipLine--hidden')
+      cy.getByTestId('accum-forecast-precip-path').should('have.class', 'accumPrecipLine--hidden')
       cy.getByTestId('gdps-precip-line').should('have.class', 'precipLine--hidden')
+      cy.getByTestId('accum-gdps-precip-path').should('have.class', 'accumPrecipLine--hidden')
       cy.getByTestId('rdps-precip-line').should('have.class', 'precipLine--hidden')
+      cy.getByTestId('accum-rdps-precip-path').should('have.class', 'accumPrecipLine--hidden')
       cy.getByTestId('hrdps-precip-line').should('not.have.class', 'precipLine--hidden')
-      cy.getByTestId('wx-graph-observation-toggle').click()
-      cy.getByTestId('wx-graph-forecast-toggle').click()
+      cy.getByTestId('accum-hrdps-precip-path').should('not.have.class', 'accumPrecipLine--hidden')
+      cy.getByTestId('wx-graph-observation-toggle').click() // toggle Observations off
+      cy.getByTestId('wx-graph-forecast-toggle').click()    // toggle Forecasts on
       cy.getByTestId('observed-precip-line').should('have.class', 'precipLine--hidden')
+      cy.getByTestId('accum-observed-precip-path').should('have.class', 'accumPrecipLine--hidden')
       cy.getByTestId('forecast-precip-line').should('not.have.class', 'precipLine--hidden')
-      cy.getByTestId('wx-graph-regional-model-toggle').click()
+      cy.getByTestId('accum-forecast-precip-path').should('not.have.class', 'accumPrecipLine--hidden')
+      cy.getByTestId('wx-graph-regional-model-toggle').click()  // toggle RDPS on
       cy.getByTestId('rdps-precip-line').should('not.have.class', 'precipLine--hidden')
+      cy.getByTestId('accum-rdps-precip-path').should('not.have.class', 'accumPrecipLine--hidden')
       cy.getByTestId('gdps-precip-line').should('have.class', 'precipLine--hidden')
-      cy.getByTestId('wx-graph-high-res-model-toggle').click()
-      cy.getByTestId('wx-graph-global-model-toggle').click()
+      cy.getByTestId('wx-graph-high-res-model-toggle').click()  // toggle HRDPS off
+      cy.getByTestId('wx-graph-global-model-toggle').click()    // toggle GDPS on
       cy.getByTestId('hrdps-precip-line').should('have.class', 'precipLine--hidden')
+      cy.getByTestId('accum-hrdps-precip-path').should('have.class', 'accumPrecipLine--hidden')
       cy.getByTestId('gdps-precip-line').should('not.have.class', 'precipLine--hidden')
-      cy.getByTestId('wx-graph-observation-toggle').click()
+      cy.getByTestId('accum-gdps-precip-path').should('not.have.class', 'accumPrecipLine--hidden')
+      cy.getByTestId('wx-graph-observation-toggle').click()     // toggle Observations on
 
       // Hover over the first date and check if the tooltip shows up with a correct text
       cy.getByTestId('observed-precip-line')
