@@ -208,25 +208,6 @@ def _fetch_delta_precip_for_prev_model_run(
         session: Session,
         model: ModelEnum,
         prediction: WeatherModelPredictionValues,
-        prediction_model_run_timestamp: datetime.datetime):
-    """ Fetch the delta_precip for the station's prediction from the previous model run.
-    To be used in occasions where prediction_timestamp is not midnight but the prediction model run
-    is at hour 000 (and hence apcp is 0, so we must look at the delta_precip from the previous model run
-    in order to get a precipitation value)
-    """
-    logger.info('edge case - looking for precip value in db')
-    # send the query
-    prev_prediction = app.db.crud.weather_models.get_station_model_prediction_from_previous_model_run(
-        session, prediction.station_code, model, prediction.prediction_timestamp, prediction_model_run_timestamp)
-    if prev_prediction:
-        return prev_prediction.delta_precip
-    return None
-
-
-def _get_delta_precip_for_prev_model_run(
-        session: Session,
-        model: ModelEnum,
-        prediction: WeatherModelPredictionValues,
         prev_station_predictions,
         prediction_model_run_timestamp: datetime.datetime):
     # Look if we can find the previous value in memory
@@ -234,7 +215,11 @@ def _get_delta_precip_for_prev_model_run(
         return prev_station_predictions[prediction.station_code][prediction.prediction_timestamp]['prediction'].delta_precipitation
     # Uh oh - couldn't find it - let's go look in the database.
     # This should only happen in extreme edge cases!
-    return _fetch_delta_precip_for_prev_model_run(session, model, prediction, prediction_model_run_timestamp)
+    prev_prediction = app.db.crud.weather_models.get_station_model_prediction_from_previous_model_run(
+        session, prediction.station_code, model, prediction.prediction_timestamp, prediction_model_run_timestamp)
+    if prev_prediction:
+        return prev_prediction.delta_precip
+    return None
 
 
 async def fetch_model_run_predictions_by_station_code(
