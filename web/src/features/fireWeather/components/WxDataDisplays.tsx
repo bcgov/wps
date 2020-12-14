@@ -4,8 +4,10 @@ import { Paper, Typography } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 
 import ObservationTable from 'features/fireWeather/components/tables/ObservationTable'
-import NoonForecastTable from 'features/fireWeather/components/tables/NoonForecastTable'
-import NoonModelTable from 'features/fireWeather/components/tables/NoonModelTable'
+import {
+  NoonForecastTable,
+  NoonModelTable
+} from 'features/fireWeather/components/tables/NoonWxValueTables'
 import WxDataGraph from 'features/fireWeather/components/graphs/WxDataGraph'
 import { ErrorBoundary } from 'components'
 import {

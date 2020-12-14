@@ -1,9 +1,11 @@
 import React from 'react'
 import { storiesOf } from '@storybook/react'
 
-import NoonForecastTable from 'features/fireWeather/components/tables/NoonForecastTable'
 import ObservationTable from 'features/fireWeather/components/tables/ObservationTable'
-import NoonModelTable from 'features/fireWeather/components/tables/NoonModelTable'
+import {
+  NoonForecastTable,
+  NoonModelTable
+} from 'features/fireWeather/components/tables/NoonWxValueTables'
 import { forecastValues, modelValues, observedValues } from 'utils/storybook'
 import { isNoonInPST } from 'utils/date'
 import { ModelValue } from 'api/modelAPI'
