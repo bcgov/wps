@@ -208,7 +208,7 @@ def _fetch_delta_precip_for_prev_model_run(
         session: Session,
         model: ModelEnum,
         prediction: WeatherModelPredictionValues,
-        prev_station_predictions,
+        prev_station_predictions: dict,
         prediction_model_run_timestamp: datetime.datetime):
     # Look if we can find the previous value in memory
     if prediction.prediction_timestamp in prev_station_predictions[prediction.station_code]:
@@ -241,12 +241,13 @@ async def fetch_model_run_predictions_by_station_code(
 
     # NOTE: The query could be optimized to only return the latest predictions.
     for prediction, prediction_model_run_timestamp, prediction_model in historic_predictions:
-        # If this is true, it means that we are at hour 000 of the model run but not at the 0th hour of the day,
-        # so we need to look at the accumulated precip from the previous model run to calculate the delta_precip
+        # If this is true, it means that we are at hour 000 of the model run but not at the 0th hour of the
+        # day, so we need to look at the accumulated precip from the previous model run to calculate the
+        # delta_precip
         precip_value = None
-        if prediction.prediction_timestamp == prediction_model_run_timestamp.prediction_run_timestamp and prediction.prediction_timestamp.hour > 0:
-
-            precip_value = _get_delta_precip_for_prev_model_run(
+        if prediction.prediction_timestamp == prediction_model_run_timestamp.prediction_run_timestamp and \
+                prediction.prediction_timestamp.hour > 0:
+            precip_value = _fetch_delta_precip_for_prev_model_run(
                 session,
                 model,
                 prediction,

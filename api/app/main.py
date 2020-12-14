@@ -4,7 +4,6 @@ See README.md for details on how to run.
 """
 import datetime
 import logging
-import cProfile
 from fastapi import FastAPI, Depends, Response
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.applications import Starlette
@@ -140,10 +139,8 @@ async def get_model_prediction_summaries(
         model: ModelEnum, request: schemas.stations.StationCodeList, _: bool = Depends(authenticate)):
     """ Returns a summary of predictions for a given model. """
     try:
-        with cProfile.Profile() as pr:
-            logger.info('/models/%s/predictions/summaries/', model.name)
-            summaries = await fetch_model_prediction_summaries(model, request.stations)
-            pr.dump_stats('summaries_{}.profile'.format(model.name))
+        logger.info('/models/%s/predictions/summaries/', model.name)
+        summaries = await fetch_model_prediction_summaries(model, request.stations)
         return schemas.weather_models.WeatherModelPredictionSummaryResponse(summaries=summaries)
     except Exception as exception:
         logger.critical(exception, exc_info=True)
@@ -153,17 +150,15 @@ async def get_model_prediction_summaries(
 @api.post('/models/{model}/predictions/most_recent/',
           response_model=schemas.weather_models.WeatherStationsModelRunsPredictionsResponse)
 async def get_most_recent_model_values(
-        model: ModelEnum, request: schemas.stations.StationCodeList):
+        model: ModelEnum, request: schemas.stations.StationCodeList, _: bool = Depends(authenticate)):
     """ Returns the weather values for the last model prediction that was issued
     for the station before actual weather readings became available.
     """
     try:
-        with cProfile.Profile() as pr:
-            logger.info('/models/%s/predictions/most_recent/', model.name)
-            end_date = time_utils.get_utc_now() + datetime.timedelta(days=10)
-            station_predictions = await fetch_model_run_predictions_by_station_code(
-                model, request.stations, end_date)
-            pr.dump_stats('most_recent_{}.profile'.format(model.name))
+        logger.info('/models/%s/predictions/most_recent/', model.name)
+        end_date = time_utils.get_utc_now() + datetime.timedelta(days=10)
+        station_predictions = await fetch_model_run_predictions_by_station_code(
+            model, request.stations, end_date)
         return schemas.weather_models.WeatherStationsModelRunsPredictionsResponse(
             stations=station_predictions)
     except Exception as exception:
