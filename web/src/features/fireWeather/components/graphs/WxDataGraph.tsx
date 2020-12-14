@@ -43,7 +43,10 @@ const WxDataGraph = ({
   const noObservations = observedValues.length === 0
   const noModels = allModelValues.length === 0
   const noForecasts = allForecasts.length === 0
-  const noBiasAdjModels = allModelValues.length === 0
+  const noBiasAdjModels =
+    allModelValues.filter(
+      v => v.bias_adjusted_temperature || v.bias_adjusted_relative_humidity
+    ).length === 0
   const noHighResModels = allHighResModelValues.length === 0
   const noRegionalModels = allRegionalModelValues.length === 0
 
