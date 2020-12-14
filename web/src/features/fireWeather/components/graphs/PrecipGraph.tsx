@@ -24,8 +24,6 @@ const accumRDPSPrecipColor = rdpsPrecipColor
 
 const useStyles = makeStyles({
   root: {
-    paddingBottom: 15,
-
     '& .yAxisLabel': {
       textAnchor: 'middle',
       font: '9px sans-serif'
@@ -400,9 +398,9 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
 
     return {
       xDomain,
-      xTickValues: d3Utils.getTickValues(xDomain, utcOffset, false),
       maxDailyPrecip,
       maxAccumPrecip,
+      xTickValues: d3Utils.getTickValues(xDomain, utcOffset),
       observedPrecips,
       accumObservedPrecips,
       forecastPrecips,

@@ -12,7 +12,7 @@ const transitionDuration = 50
 export const getTickValues = (
   domain: [Date, Date] | [undefined, undefined],
   utcOffset: number,
-  includeFirst = true
+  shouldLimitNumOfResult = false
 ): Date[] => {
   const [d1, d2] = domain
 
@@ -20,7 +20,7 @@ export const getTickValues = (
     return []
   }
 
-  const result = includeFirst ? [d1] : []
+  let result = []
 
   const next = moment(d1)
     .utcOffset(utcOffset)
@@ -34,6 +34,14 @@ export const getTickValues = (
   while (last >= next) {
     result.push(moment(next).toDate())
     next.add(1, 'days')
+  }
+
+  if (shouldLimitNumOfResult) {
+    const length = result.length
+    result = result.filter((_, index) => {
+      const divider = Math.ceil(length / 10)
+      return index % divider === 0
+    })
   }
 
   return result

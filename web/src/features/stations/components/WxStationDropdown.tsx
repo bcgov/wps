@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React from 'react'
 import { useSelector } from 'react-redux'
 import Autocomplete from '@material-ui/lab/Autocomplete'
 import { TextField, Link } from '@material-ui/core'
@@ -39,9 +39,12 @@ interface Props {
 
 const WxStationDropdown = (props: Props) => {
   const classes = useStyles()
-  const { stations, stationsByCode, error: errorFetchingStations } = useSelector(
-    selectStations
-  )
+  const {
+    loading: fetchingStations,
+    stations,
+    stationsByCode,
+    error: errorFetchingStations
+  } = useSelector(selectStations)
 
   let isThereUnknownCode = false
   const maxNumOfSelect = props.maxNumOfSelect || 3
@@ -54,11 +57,12 @@ const WxStationDropdown = (props: Props) => {
     isThereUnknownCode = true
     return { name: 'Unknown', code }
   })
-  const isError = Boolean(errorFetchingStations) || isThereUnknownCode
-  const autocompleteOptions: Option[] = useMemo(
-    () => stations.map(station => ({ name: station.name, code: station.code })),
-    [stations]
-  )
+  const isThereError =
+    !fetchingStations && (Boolean(errorFetchingStations) || isThereUnknownCode)
+  const autocompleteOptions: Option[] = stations.map(station => ({
+    name: station.name,
+    code: station.code
+  }))
 
   return (
     <div className={props.className}>
@@ -100,8 +104,10 @@ const WxStationDropdown = (props: Props) => {
               variant="outlined"
               fullWidth
               size="small"
-              error={isError}
-              helperText={!isError && `Select up to ${maxNumOfSelect} weather stations.`}
+              error={isThereError}
+              helperText={
+                !isThereError && `Select up to ${maxNumOfSelect} weather stations.`
+              }
             />
           )}
         />
