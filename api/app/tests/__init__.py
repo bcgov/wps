@@ -67,8 +67,11 @@ def de_serialize_record(record):
     return class_(**record_data)
 
 
-def load_sqlalchemy_response_from_object(data):
+def load_sqlalchemy_response_from_object(data: object):
     """ Load a sqlalchemy response from an object """
+    # Usualy the data is a list of objects - or a list of list of objects.
+    # e.g.: [ { record }]
+    # e.g.: or [ [{record}, {record}]]
     if isinstance(data, list):
         result = []
         for row in data:
@@ -78,4 +81,5 @@ def load_sqlalchemy_response_from_object(data):
                 result_row.append(object_)
             result.append(result_row)
         return result
+    # Sometimes though, we're only expecting a single record, not a list.
     return de_serialize_record(data)
