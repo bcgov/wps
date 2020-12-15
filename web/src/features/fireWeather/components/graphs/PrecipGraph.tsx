@@ -198,6 +198,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       }
     })
     if (
+      accumObservedPrecips.length > 0 &&
       maxAccumPrecip < accumObservedPrecips[accumObservedPrecips.length - 1].accumPrecip
     ) {
       maxAccumPrecip = accumObservedPrecips[accumObservedPrecips.length - 1].accumPrecip
@@ -236,6 +237,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       }
     })
     if (
+      accumForecastPrecips.length > 0 &&
       maxAccumPrecip < accumForecastPrecips[accumForecastPrecips.length - 1].accumPrecip
     ) {
       maxAccumPrecip = accumForecastPrecips[accumForecastPrecips.length - 1].accumPrecip
@@ -284,7 +286,10 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         accumGDPSPrecips.push(gdps)
       }
     })
-    if (maxAccumPrecip < accumGDPSPrecips[accumGDPSPrecips.length - 1].accumPrecip) {
+    if (
+      accumGDPSPrecips.length > 0 &&
+      maxAccumPrecip < accumGDPSPrecips[accumGDPSPrecips.length - 1].accumPrecip
+    ) {
       maxAccumPrecip = accumGDPSPrecips[accumGDPSPrecips.length - 1].accumPrecip
     }
 
@@ -330,7 +335,10 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         accumRDPSPrecips.push(rdps)
       }
     })
-    if (maxAccumPrecip < accumRDPSPrecips[accumRDPSPrecips.length - 1].accumPrecip) {
+    if (
+      accumRDPSPrecips.length > 0 &&
+      maxAccumPrecip < accumRDPSPrecips[accumRDPSPrecips.length - 1].accumPrecip
+    ) {
       maxAccumPrecip = accumRDPSPrecips[accumRDPSPrecips.length - 1].accumPrecip
     }
 
@@ -375,7 +383,10 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         accumHRDPSPrecips.push(hrdps)
       }
     })
-    if (maxAccumPrecip < accumHRDPSPrecips[accumHRDPSPrecips.length - 1].accumPrecip) {
+    if (
+      accumHRDPSPrecips.length > 0 &&
+      maxAccumPrecip < accumHRDPSPrecips[accumHRDPSPrecips.length - 1].accumPrecip
+    ) {
       maxAccumPrecip = accumHRDPSPrecips[accumHRDPSPrecips.length - 1].accumPrecip
     }
 
