@@ -92,7 +92,7 @@ export const useStyles = makeStyles({
     },
     '& .modelTempPath': {
       stroke: modelTempColor,
-      strokeDasharray: 6,
+      strokeDasharray: 4,
       opacity: 0.8
     },
     '& .modelRHSymbol': {
@@ -102,7 +102,7 @@ export const useStyles = makeStyles({
     },
     '& .modelRHPath': {
       stroke: modelRHColor,
-      strokeDasharray: 6,
+      strokeDasharray: 4,
       opacity: 0.8
     },
     '& .biasAdjModelTempSymbol': {
@@ -112,7 +112,7 @@ export const useStyles = makeStyles({
     },
     '& .biasAdjModelTempPath': {
       stroke: biasModelTempColor,
-      strokeDasharray: 8,
+      strokeDasharray: 5,
       opacity: 0.8
     },
     '& .biasAdjModelRHSymbol': {
@@ -122,7 +122,7 @@ export const useStyles = makeStyles({
     },
     '& .biasAdjModelRHPath': {
       stroke: biasModelRHColor,
-      strokeDasharray: 8,
+      strokeDasharray: 5,
       opacity: 0.8
     },
     '& .highResModelTempSymbol': {
@@ -164,7 +164,7 @@ export const useStyles = makeStyles({
     },
     '& .regionalModelTempPath': {
       stroke: regionalModelTempColor,
-      strokeDasharray: 4,
+      strokeDasharray: 3,
       opacity: 0.8
     },
     '& .regionalModelRHSymbol': {
@@ -175,7 +175,7 @@ export const useStyles = makeStyles({
     },
     '& .regionalModelRHPath': {
       stroke: regionalModelRHColor,
-      strokeDasharray: 4,
+      strokeDasharray: 3,
       opacity: 0.8
     },
     '& .regionalModelSummaryTempArea': {
