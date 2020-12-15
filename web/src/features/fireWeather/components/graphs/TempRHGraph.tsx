@@ -686,7 +686,7 @@ const TempRHGraph: React.FunctionComponent<Props> = (props: Props) => {
       const legend = legendSvg
         .append('g')
         .attr('class', 'legend')
-        .attr('transform', `translate(${margin.left}, ${margin.top})`)
+        .attr('transform', `translate(${margin.left}, 5)`)
 
       const legendData = getLegendData(toggleValues)
       const newLegendHeight = d3Utils.addLegend(legend, chartWidth, legendData)

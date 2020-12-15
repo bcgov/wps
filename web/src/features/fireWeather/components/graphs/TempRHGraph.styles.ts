@@ -25,10 +25,6 @@ export const regionalModelSummaryRHAreaColor = '#2a8989'
 export const useStyles = makeStyles({
   // Give styling through classes for svg elements
   root: {
-    '& .xAxisLabel': {
-      textAnchor: 'start',
-      font: '9px sans-serif'
-    },
     '& .yAxisLabel': {
       textAnchor: 'middle',
       font: '9px sans-serif'

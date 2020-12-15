@@ -410,6 +410,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
             .tickValues(xTickValues)
         )
         .selectAll('text')
+        .attr('class', 'xAxisLabel')
         .attr('y', 3)
         .attr('x', 13)
         .attr('dy', '1em')
