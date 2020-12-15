@@ -150,6 +150,8 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
   // This optimization helps to avoid expensive calculations on every render.
   const graphCalculations = useMemo(() => {
     const datesFromAllSources: Date[] = []
+    const allDailyPrecips: number[] = [10]
+    const allAccumPrecips: number[] = [10]
 
     const aggreObservedPrecips: { [k: string]: number } = {}
     observedValues.forEach(({ datetime, precipitation }) => {
@@ -170,7 +172,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
           .set({ hour: Math.abs(utcOffset), minute: 0 })
           .toDate()
         datesFromAllSources.push(date)
-
+        allDailyPrecips.push(totalPrecip)
         return {
           date,
           value: Number(totalPrecip.toFixed(2))
@@ -192,6 +194,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
           )
         }
         accumObservedPrecips.push(observed)
+        allAccumPrecips.push(observed.accumPrecip)
       }
     })
 
@@ -202,7 +205,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
           .set({ hour: Math.abs(utcOffset) })
           .toDate()
         datesFromAllSources.push(date)
-
+        allDailyPrecips.push(totalPrecip)
         return {
           date,
           value: Number(totalPrecip.toFixed(2))
@@ -224,6 +227,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
           )
         }
         accumForecastPrecips.push(forecast)
+        allAccumPrecips.push(forecast.accumPrecip)
       }
     })
 
@@ -246,7 +250,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
           .set({ hour: Math.abs(utcOffset), minute: 0 })
           .toDate()
         datesFromAllSources.push(date)
-
+        allDailyPrecips.push(totalPrecip)
         return {
           date,
           value: Number(totalPrecip?.toFixed(2))
@@ -266,6 +270,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
           )
         }
         accumGDPSPrecips.push(gdps)
+        allAccumPrecips.push(gdps.accumPrecip)
       }
     })
 
@@ -286,7 +291,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
           .set({ hour: Math.abs(utcOffset), minute: 0 })
           .toDate()
         datesFromAllSources.push(date)
-
+        allDailyPrecips.push(totalPrecip)
         return {
           date,
           value: Number(totalPrecip?.toFixed(2))
@@ -306,6 +311,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
           )
         }
         accumRDPSPrecips.push(rdps)
+        allAccumPrecips.push(rdps.accumPrecip)
       }
     })
 
@@ -325,7 +331,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
           .set({ hour: Math.abs(utcOffset), minute: 0 })
           .toDate()
         datesFromAllSources.push(date)
-
+        allDailyPrecips.push(totalPrecip)
         return {
           date,
           value: Number(totalPrecip?.toFixed(2))
@@ -347,6 +353,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
           )
         }
         accumHRDPSPrecips.push(hrdps)
+        allAccumPrecips.push(hrdps.accumPrecip)
       }
     })
 
@@ -366,32 +373,9 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
     const xDomain: [Date, Date] = [d1, d2]
 
     // Determine maxDailyPrecip for yScale of graph
-    const dailyPrecipVals: number[] = []
-    const dailyPrecipArrays = [
-      observedPrecips,
-      rdpsPrecips,
-      hrdpsPrecips,
-      gdpsPrecips,
-      forecastPrecips
-    ]
-    dailyPrecipArrays.forEach(array => {
-      array.forEach(element => dailyPrecipVals.push(element.value))
-    })
-    const maxDailyPrecip = Math.ceil(Math.max(...dailyPrecipVals) / 10) * 10 // round to the nearest 10
-
+    const maxDailyPrecip = Math.ceil((d3.max(allDailyPrecips) as number) / 10) * 10 // round to the nearest 10
     // Determine maxAccumPrecip for yScale of graph
-    const accumPrecipVals: number[] = []
-    const accumPrecipArrays = [
-      accumObservedPrecips,
-      accumForecastPrecips,
-      accumGDPSPrecips,
-      accumRDPSPrecips,
-      accumHRDPSPrecips
-    ]
-    accumPrecipArrays.forEach(array => {
-      array.forEach(element => accumPrecipVals.push(element.accumPrecip))
-    })
-    const maxAccumPrecip = Math.ceil(Math.max(...accumPrecipVals) / 10) * 10 // round to the nearest 10
+    const maxAccumPrecip = Math.ceil((d3.max(allAccumPrecips) as number) / 10) * 10 // round to the nearest 10
 
     return {
       xDomain,
