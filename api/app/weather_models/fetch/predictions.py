@@ -15,11 +15,13 @@ from app.schemas.weather_models import (WeatherModelPrediction,
                                         ModelRunPredictions,
                                         WeatherStationModelRunsPredictions)
 from app.schemas.stations import WeatherStation
-from app.db.models import ModelRunGridSubsetPrediction
-from app.db.crud.weather_models import get_station_model_predictions
+from app.db.models import ModelRunGridSubsetPrediction, WeatherStationModelPrediction
+from app.db.crud.weather_models import (get_station_model_predictions,
+                                        get_station_model_prediction_from_previous_model_run)
 import app.stations
 from app.weather_models import ModelEnum, ProjectionEnum
 from app.weather_models.fetch import extract_stations_in_polygon
+from app.tests import dump_sqlalchemy_response_to_json
 
 logger = logging.getLogger(__name__)
 
@@ -207,7 +209,7 @@ async def fetch_model_predictions(model: ModelEnum, projection: ProjectionEnum, 
 def _fetch_delta_precip_for_prev_model_run(
         session: Session,
         model: ModelEnum,
-        prediction: WeatherModelPredictionValues,
+        prediction: WeatherStationModelPrediction,
         prev_station_predictions: dict,
         prediction_model_run_timestamp: datetime.datetime):
     # Look if we can find the previous value in memory
@@ -215,7 +217,7 @@ def _fetch_delta_precip_for_prev_model_run(
         return prev_station_predictions[prediction.station_code][prediction.prediction_timestamp]['prediction'].delta_precipitation
     # Uh oh - couldn't find it - let's go look in the database.
     # This should only happen in extreme edge cases!
-    prev_prediction = app.db.crud.weather_models.get_station_model_prediction_from_previous_model_run(
+    prev_prediction = get_station_model_prediction_from_previous_model_run(
         session, prediction.station_code, model, prediction.prediction_timestamp, prediction_model_run_timestamp)
     if prev_prediction:
         return prev_prediction.delta_precip
@@ -238,6 +240,9 @@ async def fetch_model_run_predictions_by_station_code(
 
     # Helper dictionary.
     station_predictions = defaultdict(dict)
+
+    # with open('get_station_model_predictions.json', 'w') as tmp:
+    # dump_sqlalchemy_response_to_json(historic_predictions, tmp)
 
     # NOTE: The query could be optimized to only return the latest predictions.
     for prediction, prediction_model_run_timestamp, prediction_model in historic_predictions:
