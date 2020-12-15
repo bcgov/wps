@@ -19,7 +19,7 @@ def test_model_predictions_summaries_scenario():
 
 
 def _patch_function(monkeypatch, module_name, function_name, json_filename):
-
+    """ Patch module_name.function_name to return de-serialized json_filename """
     def mock_get_data(*args):  # pylint: disable=unused-argument
         dirname = os.path.dirname(os.path.realpath(__file__))
         filename = os.path.join(dirname, json_filename)
@@ -30,6 +30,7 @@ def _patch_function(monkeypatch, module_name, function_name, json_filename):
 
 @given("some explanatory <notes>")
 def given_some_notes(notes: str):
+    """ Send notes to the logger. """
     logger.info(notes)
 
 
