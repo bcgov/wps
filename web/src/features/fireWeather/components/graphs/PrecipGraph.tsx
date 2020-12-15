@@ -150,8 +150,6 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
   // This optimization helps to avoid expensive calculations on every render.
   const graphCalculations = useMemo(() => {
     const datesFromAllSources: Date[] = []
-    let maxDailyPrecip = 10
-    let maxAccumPrecip = 10
 
     const aggreObservedPrecips: { [k: string]: number } = {}
     observedValues.forEach(({ datetime, precipitation }) => {
@@ -173,10 +171,6 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
           .toDate()
         datesFromAllSources.push(date)
 
-        if (totalPrecip > maxDailyPrecip) {
-          maxDailyPrecip = totalPrecip
-        }
-
         return {
           date,
           value: Number(totalPrecip.toFixed(2))
@@ -189,20 +183,14 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       const observed = { date, accumPrecip: NaN }
       if (value != null) {
         if (accumObservedPrecips.length === 0) {
-          observed.accumPrecip = value
+          observed.accumPrecip = Number(value.toFixed(2))
         } else {
-          observed.accumPrecip =
-            value + accumObservedPrecips[accumObservedPrecips.length - 1].accumPrecip
+          observed.accumPrecip = Number(
+            (value + accumObservedPrecips[accumObservedPrecips.length - 1].accumPrecip).toFixed(2))
         }
         accumObservedPrecips.push(observed)
       }
     })
-    if (
-      accumObservedPrecips.length > 0 &&
-      maxAccumPrecip < accumObservedPrecips[accumObservedPrecips.length - 1].accumPrecip
-    ) {
-      maxAccumPrecip = accumObservedPrecips[accumObservedPrecips.length - 1].accumPrecip
-    }
 
     const forecastPrecips = forecastValues.map(
       ({ datetime, total_precipitation: totalPrecip }) => {
@@ -211,10 +199,6 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
           .set({ hour: Math.abs(utcOffset) })
           .toDate()
         datesFromAllSources.push(date)
-
-        if (totalPrecip > maxDailyPrecip) {
-          maxDailyPrecip = totalPrecip
-        }
 
         return {
           date,
@@ -228,20 +212,14 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       const forecast = { date, accumPrecip: NaN }
       if (value != null) {
         if (accumForecastPrecips.length === 0) {
-          forecast.accumPrecip = value
+          forecast.accumPrecip = Number(value.toFixed(2))
         } else {
-          forecast.accumPrecip =
-            value + accumForecastPrecips[accumForecastPrecips.length - 1].accumPrecip
+          forecast.accumPrecip = Number(
+            (value + accumForecastPrecips[accumForecastPrecips.length - 1].accumPrecip).toFixed(2))
         }
         accumForecastPrecips.push(forecast)
       }
     })
-    if (
-      accumForecastPrecips.length > 0 &&
-      maxAccumPrecip < accumForecastPrecips[accumForecastPrecips.length - 1].accumPrecip
-    ) {
-      maxAccumPrecip = accumForecastPrecips[accumForecastPrecips.length - 1].accumPrecip
-    }
 
     const aggreGDPSPrecips: { [k: string]: number } = {}
     gdpsModelValues.forEach(({ datetime, delta_precipitation }) => {
@@ -262,9 +240,6 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
           .set({ hour: Math.abs(utcOffset), minute: 0 })
           .toDate()
         datesFromAllSources.push(date)
-        if (totalPrecip > maxDailyPrecip) {
-          maxDailyPrecip = totalPrecip
-        }
 
         return {
           date,
@@ -278,20 +253,14 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       const gdps = { date, accumPrecip: NaN }
       if (value != null) {
         if (accumGDPSPrecips.length === 0) {
-          gdps.accumPrecip = value
+          gdps.accumPrecip = Number(value.toFixed(2))
         } else {
-          gdps.accumPrecip =
-            value + accumGDPSPrecips[accumGDPSPrecips.length - 1].accumPrecip
+          gdps.accumPrecip = Number(
+            (value + accumGDPSPrecips[accumGDPSPrecips.length - 1].accumPrecip).toFixed(2))
         }
         accumGDPSPrecips.push(gdps)
       }
     })
-    if (
-      accumGDPSPrecips.length > 0 &&
-      maxAccumPrecip < accumGDPSPrecips[accumGDPSPrecips.length - 1].accumPrecip
-    ) {
-      maxAccumPrecip = accumGDPSPrecips[accumGDPSPrecips.length - 1].accumPrecip
-    }
 
     const aggreRDPSPrecips: { [k: string]: number } = {}
     rdpsModelValues.forEach(({ datetime, delta_precipitation: precip }) => {
@@ -311,10 +280,6 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
           .toDate()
         datesFromAllSources.push(date)
 
-        if (totalPrecip > maxDailyPrecip) {
-          maxDailyPrecip = totalPrecip
-        }
-
         return {
           date,
           value: Number(totalPrecip?.toFixed(2))
@@ -327,20 +292,14 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       const rdps = { date, accumPrecip: NaN }
       if (value != null) {
         if (accumRDPSPrecips.length === 0) {
-          rdps.accumPrecip = value
+          rdps.accumPrecip = Number(value.toFixed(2))
         } else {
-          rdps.accumPrecip =
-            value + accumRDPSPrecips[accumRDPSPrecips.length - 1].accumPrecip
+          rdps.accumPrecip = Number(
+            (value + accumRDPSPrecips[accumRDPSPrecips.length - 1].accumPrecip).toFixed(2))
         }
         accumRDPSPrecips.push(rdps)
       }
     })
-    if (
-      accumRDPSPrecips.length > 0 &&
-      maxAccumPrecip < accumRDPSPrecips[accumRDPSPrecips.length - 1].accumPrecip
-    ) {
-      maxAccumPrecip = accumRDPSPrecips[accumRDPSPrecips.length - 1].accumPrecip
-    }
 
     const aggreHRDPSPrecips: { [k: string]: number } = {}
     hrdpsModelValues.forEach(({ datetime, delta_precipitation: precip }) => {
@@ -359,10 +318,6 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
           .toDate()
         datesFromAllSources.push(date)
 
-        if (totalPrecip > maxDailyPrecip) {
-          maxDailyPrecip = totalPrecip
-        }
-
         return {
           date,
           value: Number(totalPrecip?.toFixed(2))
@@ -375,20 +330,14 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       const hrdps = { date, accumPrecip: NaN }
       if (value != null) {
         if (accumHRDPSPrecips.length === 0) {
-          hrdps.accumPrecip = value
+          hrdps.accumPrecip = Number(value.toFixed(2))
         } else {
-          hrdps.accumPrecip =
-            value + accumHRDPSPrecips[accumHRDPSPrecips.length - 1].accumPrecip
+          hrdps.accumPrecip = Number(
+            (value + accumHRDPSPrecips[accumHRDPSPrecips.length - 1].accumPrecip).toFixed(2))
         }
         accumHRDPSPrecips.push(hrdps)
       }
     })
-    if (
-      accumHRDPSPrecips.length > 0 &&
-      maxAccumPrecip < accumHRDPSPrecips[accumHRDPSPrecips.length - 1].accumPrecip
-    ) {
-      maxAccumPrecip = accumHRDPSPrecips[accumHRDPSPrecips.length - 1].accumPrecip
-    }
 
     const currDate = new Date()
     const past5Date = moment(currDate)
@@ -404,8 +353,22 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       .add(6, 'hours')
       .toDate()
     const xDomain: [Date, Date] = [d1, d2]
-    maxDailyPrecip = Math.ceil(maxDailyPrecip / 10) * 10 // round to the nearest 10
-    maxAccumPrecip = Math.ceil(maxAccumPrecip / 10) * 10 // round to the nearest 10
+
+    // Determine maxDailyPrecip for yScale of graph
+    let dailyPrecipVals: number[] = []
+    const dailyPrecipArrays = [observedPrecips, rdpsPrecips, hrdpsPrecips, gdpsPrecips, forecastPrecips]
+    dailyPrecipArrays.forEach(array => {
+      array.forEach(element => dailyPrecipVals.push(element.value))
+    })
+    const maxDailyPrecip = Math.ceil(Math.max(...dailyPrecipVals) / 10) * 10  // round to the nearest 10
+
+    // Determine maxAccumPrecip for yScale of graph
+    let accumPrecipVals: number[] = []
+    const accumPrecipArrays = [accumObservedPrecips, accumForecastPrecips, accumGDPSPrecips, accumRDPSPrecips, accumHRDPSPrecips]
+    accumPrecipArrays.forEach(array => {
+      array.forEach(element => accumPrecipVals.push(element.accumPrecip))
+    })
+    const maxAccumPrecip = Math.ceil(Math.max(...accumPrecipVals) / 10) * 10  // round to the nearest 10
 
     return {
       xDomain,
@@ -838,9 +801,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
                   }
                 case 'accumObservedPrecip':
                   return {
-                    text: `Accumulated Observed Precip: ${Number(value).toFixed(
-                      2
-                    )} (mm/cm)`,
+                    text: `Accumulated Observed Precip: ${value} (mm/cm)`,
                     color: accumObservedPrecipColor
                   }
                 case 'forecastPrecip':
@@ -850,9 +811,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
                   }
                 case 'accumForecastPrecip':
                   return {
-                    text: `Accumulated Forecast Precip: ${Number(value).toFixed(
-                      2
-                    )} (mm/cm)`,
+                    text: `Accumulated Forecast Precip: ${value} (mm/cm)`,
                     color: accumForecastPrecipColor
                   }
                 case 'gdpsPrecip':
@@ -862,7 +821,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
                   }
                 case 'accumGDPSPrecip':
                   return {
-                    text: `Accumulated GDPS Precip: ${Number(value).toFixed(2)} (mm/cm)`,
+                    text: `Accumulated GDPS Precip: ${value} (mm/cm)`,
                     color: accumGDPSPrecipColor
                   }
                 case 'rdpsPrecip':
@@ -872,7 +831,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
                   }
                 case 'accumRDPSPrecip':
                   return {
-                    text: `Accumulated RDPS Precip: ${Number(value).toFixed(2)} (mm/cm)`,
+                    text: `Accumulated RDPS Precip: ${value} (mm/cm)`,
                     color: accumRDPSPrecipColor
                   }
                 case 'hrdpsPrecip':
@@ -882,7 +841,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
                   }
                 case 'accumHRDPSPrecip':
                   return {
-                    text: `Accumulated HRDPS Precip: ${Number(value).toFixed(2)} (mm/cm)`,
+                    text: `Accumulated HRDPS Precip: ${value} (mm/cm)`,
                     color: accumHRDPSPrecipColor
                   }
                 default:
