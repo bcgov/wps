@@ -366,7 +366,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
     const xDomain: [Date, Date] = [d1, d2]
 
     // Determine maxDailyPrecip for yScale of graph
-    let dailyPrecipVals: number[] = []
+    const dailyPrecipVals: number[] = []
     const dailyPrecipArrays = [
       observedPrecips,
       rdpsPrecips,
@@ -380,7 +380,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
     const maxDailyPrecip = Math.ceil(Math.max(...dailyPrecipVals) / 10) * 10 // round to the nearest 10
 
     // Determine maxAccumPrecip for yScale of graph
-    let accumPrecipVals: number[] = []
+    const accumPrecipVals: number[] = []
     const accumPrecipArrays = [
       accumObservedPrecips,
       accumForecastPrecips,
