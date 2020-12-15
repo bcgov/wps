@@ -463,13 +463,21 @@ class ModelValueProcessor:
         station_prediction.prediction_model_run_timestamp_id = model_run.id
         station_prediction.prediction_timestamp = prediction.prediction_timestamp
         # Calculate the interpolated values.
-        station_prediction.tmp_tgl_2 = griddata(
-            points, prediction.tmp_tgl_2, coordinate, method='linear')[0]
+        # 2020 Dec 15, Sybrand: Encountered situation where tmp_tgl_2 was None, add this workaround for it.
+        # NOTE: Not sure why this value would ever be None. This could happen if for whatever reason, the
+        # tmp_tgl_2 layer failed to download and process, while other layers did.
+        if prediction.tmp_tgl_2 is None:
+            logger.warning('tmp_tgl_2 is None for ModelRunGridSubsetPrediction.id == %s', prediction.id)
+        else:
+            station_prediction.tmp_tgl_2 = griddata(
+                points, prediction.tmp_tgl_2, coordinate, method='linear')[0]
+
         # 2020 Dec 10, Sybrand: Encountered situation where rh_tgl_2 was None, add this workaround for it.
-        # NOTE: Not sure why this value would ever be None.
+        # NOTE: Not sure why this value would ever be None. This could happen if for whatever reason, the
+        # rh_tgl_2 layer failed to download and process, while other layers did.
         if prediction.rh_tgl_2 is None:
             # This is unexpected, so we log it.
-            logger.warning('rh_tgl_2 is None')
+            logger.warning('rh_tgl_2 is None for ModelRunGridSubsetPrediction.id == %s', prediction.id)
             station_prediction.rh_tgl_2 = None
         else:
             station_prediction.rh_tgl_2 = griddata(
