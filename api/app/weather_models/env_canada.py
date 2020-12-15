@@ -295,7 +295,7 @@ class EnvCanada():
     """
 
     # pylint: disable=too-many-instance-attributes
-    def __init__(self, model_type):
+    def __init__(self, model_type: ModelEnum):
         """ Prep variables """
         self.files_downloaded = 0
         self.files_processed = 0
@@ -304,7 +304,7 @@ class EnvCanada():
         self.now = time_utils.get_utc_now()
         self.session = app.db.database.get_write_session()
         self.grib_processor = GribFileProcessor()
-        self.model_type = ModelEnum(model_type)
+        self.model_type = model_type
         # set projection based on model_type
         if self.model_type == ModelEnum.GDPS:
             self.projection = ProjectionEnum.LATLON_15X_15
@@ -598,7 +598,7 @@ def process_models():
     """ downloading and processing models """
 
     # set the model type requested based on arg passed via command line
-    model_type = sys.argv[1]
+    model_type = ModelEnum(sys.argv[1])
     logger.info('model type %s', model_type)
 
     # grab the start time.
