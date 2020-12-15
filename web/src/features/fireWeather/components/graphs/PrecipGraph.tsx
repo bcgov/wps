@@ -186,7 +186,10 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
           observed.accumPrecip = Number(value.toFixed(2))
         } else {
           observed.accumPrecip = Number(
-            (value + accumObservedPrecips[accumObservedPrecips.length - 1].accumPrecip).toFixed(2))
+            (
+              value + accumObservedPrecips[accumObservedPrecips.length - 1].accumPrecip
+            ).toFixed(2)
+          )
         }
         accumObservedPrecips.push(observed)
       }
@@ -215,7 +218,10 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
           forecast.accumPrecip = Number(value.toFixed(2))
         } else {
           forecast.accumPrecip = Number(
-            (value + accumForecastPrecips[accumForecastPrecips.length - 1].accumPrecip).toFixed(2))
+            (
+              value + accumForecastPrecips[accumForecastPrecips.length - 1].accumPrecip
+            ).toFixed(2)
+          )
         }
         accumForecastPrecips.push(forecast)
       }
@@ -256,7 +262,8 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
           gdps.accumPrecip = Number(value.toFixed(2))
         } else {
           gdps.accumPrecip = Number(
-            (value + accumGDPSPrecips[accumGDPSPrecips.length - 1].accumPrecip).toFixed(2))
+            (value + accumGDPSPrecips[accumGDPSPrecips.length - 1].accumPrecip).toFixed(2)
+          )
         }
         accumGDPSPrecips.push(gdps)
       }
@@ -295,7 +302,8 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
           rdps.accumPrecip = Number(value.toFixed(2))
         } else {
           rdps.accumPrecip = Number(
-            (value + accumRDPSPrecips[accumRDPSPrecips.length - 1].accumPrecip).toFixed(2))
+            (value + accumRDPSPrecips[accumRDPSPrecips.length - 1].accumPrecip).toFixed(2)
+          )
         }
         accumRDPSPrecips.push(rdps)
       }
@@ -333,7 +341,10 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
           hrdps.accumPrecip = Number(value.toFixed(2))
         } else {
           hrdps.accumPrecip = Number(
-            (value + accumHRDPSPrecips[accumHRDPSPrecips.length - 1].accumPrecip).toFixed(2))
+            (value + accumHRDPSPrecips[accumHRDPSPrecips.length - 1].accumPrecip).toFixed(
+              2
+            )
+          )
         }
         accumHRDPSPrecips.push(hrdps)
       }
@@ -356,19 +367,31 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
 
     // Determine maxDailyPrecip for yScale of graph
     let dailyPrecipVals: number[] = []
-    const dailyPrecipArrays = [observedPrecips, rdpsPrecips, hrdpsPrecips, gdpsPrecips, forecastPrecips]
+    const dailyPrecipArrays = [
+      observedPrecips,
+      rdpsPrecips,
+      hrdpsPrecips,
+      gdpsPrecips,
+      forecastPrecips
+    ]
     dailyPrecipArrays.forEach(array => {
       array.forEach(element => dailyPrecipVals.push(element.value))
     })
-    const maxDailyPrecip = Math.ceil(Math.max(...dailyPrecipVals) / 10) * 10  // round to the nearest 10
+    const maxDailyPrecip = Math.ceil(Math.max(...dailyPrecipVals) / 10) * 10 // round to the nearest 10
 
     // Determine maxAccumPrecip for yScale of graph
     let accumPrecipVals: number[] = []
-    const accumPrecipArrays = [accumObservedPrecips, accumForecastPrecips, accumGDPSPrecips, accumRDPSPrecips, accumHRDPSPrecips]
+    const accumPrecipArrays = [
+      accumObservedPrecips,
+      accumForecastPrecips,
+      accumGDPSPrecips,
+      accumRDPSPrecips,
+      accumHRDPSPrecips
+    ]
     accumPrecipArrays.forEach(array => {
       array.forEach(element => accumPrecipVals.push(element.accumPrecip))
     })
-    const maxAccumPrecip = Math.ceil(Math.max(...accumPrecipVals) / 10) * 10  // round to the nearest 10
+    const maxAccumPrecip = Math.ceil(Math.max(...accumPrecipVals) / 10) * 10 // round to the nearest 10
 
     return {
       xDomain,
