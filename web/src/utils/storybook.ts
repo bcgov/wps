@@ -141,7 +141,7 @@ const getFutureValues = () => {
   const _regionalModelValues = []
   const _forecastValues = []
 
-  const days = 2
+  const days = 3
   const first = moment()
     .utc()
     .set({ minute: 0, second: 0 })
