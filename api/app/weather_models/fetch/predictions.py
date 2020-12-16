@@ -241,9 +241,6 @@ async def fetch_model_run_predictions_by_station_code(
     # Helper dictionary.
     station_predictions = defaultdict(dict)
 
-    # with open('get_station_model_predictions.json', 'w') as tmp:
-    # dump_sqlalchemy_response_to_json(historic_predictions, tmp)
-
     # NOTE: The query could be optimized to only return the latest predictions.
     for prediction, prediction_model_run_timestamp, prediction_model in historic_predictions:
         # If this is true, it means that we are at hour 000 of the model run but not at the 0th hour of the
