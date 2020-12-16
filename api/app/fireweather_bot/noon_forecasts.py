@@ -31,9 +31,9 @@ Outside of the fire season, forecasts are not usually issued, so no RC notificat
 should be sent if the bot fails to retrieve any data.
 """
 FIRE_SEASON_START_MONTH = 4
-FIRE_SEASON_START_DATE = 1
+FIRE_SEASON_START_DAY = 1
 FIRE_SEASON_END_MONTH = 9
-FIRE_SEASON_END_DATE = 30
+FIRE_SEASON_END_DAY = 30
 
 
 def _construct_request_body():
@@ -158,7 +158,7 @@ def main():
         # us of the error.
         now = app.time_utils.get_utc_now()
         if (FIRE_SEASON_START_MONTH <= now.month <= FIRE_SEASON_END_MONTH)\
-                and (FIRE_SEASON_START_DATE <= now.date <= FIRE_SEASON_END_DATE):
+                and (FIRE_SEASON_START_DAY <= now.day <= FIRE_SEASON_END_DAY):
             rc_message = ':confounded: Encountered error retrieving noon forecasts'
             send_rocketchat_notification(rc_message, exception)
         sys.exit(os.EX_SOFTWARE)
