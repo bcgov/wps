@@ -441,7 +441,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         .attr('class', 'context')
         .attr('transform', `translate(${margin.left}, ${margin.top})`)
 
-      const legendMarginTop = chartHeight + 40
+      const legendMarginTop = chartHeight + 55
       svg
         .append('g')
         .attr('class', 'legend')
@@ -575,9 +575,16 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         .call(
           d3
             .axisBottom(xScale)
-            .tickFormat(d3Utils.formatDateInMonthAndDay)
+            .tickFormat(d3Utils.getDateFormatter('MMM D', utcOffset))
             .tickValues(xTickValues)
         )
+        .selectAll('text')
+        .attr('class', 'xAxisLabel')
+        .attr('y', 3)
+        .attr('x', 13)
+        .attr('dy', '1em')
+        .attr('dx', '0.8em')
+        .attr('transform', 'rotate(45)')
       context
         .append('g')
         .attr('class', 'yAxis')
@@ -606,94 +613,7 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
         .text('Accumulated Precipitation (mm/cm)')
         .attr('transform', 'rotate(90)')
     }
-  }, [graphCalculations])
-
-  const precipsOfInterest = useMemo(() => {
-    const precipsByDatetime: { [date: string]: PrecipValue } = {}
-
-    toggleValues.showObservations &&
-      graphCalculations.observedPrecips.forEach(({ date, value }) => {
-        precipsByDatetime[date.toISOString()] = { date, observedPrecip: value }
-      })
-    toggleValues.showObservations &&
-      graphCalculations.accumObservedPrecips.forEach(({ date, accumPrecip }) => {
-        precipsByDatetime[date.toISOString()] = {
-          ...precipsByDatetime[date.toISOString()],
-          date,
-          accumObservedPrecip: accumPrecip
-        }
-      })
-
-    toggleValues.showForecasts &&
-      graphCalculations.forecastPrecips.forEach(({ date, value }) => {
-        precipsByDatetime[date.toISOString()] = {
-          ...precipsByDatetime[date.toISOString()],
-          date,
-          forecastPrecip: value
-        }
-      })
-    toggleValues.showForecasts &&
-      graphCalculations.accumForecastPrecips.forEach(({ date, accumPrecip }) => {
-        precipsByDatetime[date.toISOString()] = {
-          ...precipsByDatetime[date.toISOString()],
-          date,
-          accumForecastPrecip: accumPrecip
-        }
-      })
-
-    toggleValues.showModels &&
-      graphCalculations.gdpsPrecips.forEach(({ date, value }) => {
-        precipsByDatetime[date.toISOString()] = {
-          ...precipsByDatetime[date.toISOString()],
-          date,
-          gdpsPrecip: value
-        }
-      })
-    toggleValues.showModels &&
-      graphCalculations.accumGDPSPrecips.forEach(({ date, accumPrecip }) => {
-        precipsByDatetime[date.toISOString()] = {
-          ...precipsByDatetime[date.toISOString()],
-          date,
-          accumGDPSPrecip: accumPrecip
-        }
-      })
-
-    toggleValues.showRegionalModels &&
-      graphCalculations.rdpsPrecips.forEach(({ date, value }) => {
-        precipsByDatetime[date.toISOString()] = {
-          ...precipsByDatetime[date.toISOString()],
-          date,
-          rdpsPrecip: value
-        }
-      })
-    toggleValues.showRegionalModels &&
-      graphCalculations.accumRDPSPrecips.forEach(({ date, accumPrecip }) => {
-        precipsByDatetime[date.toISOString()] = {
-          ...precipsByDatetime[date.toISOString()],
-          date,
-          accumRDPSPrecip: accumPrecip
-        }
-      })
-
-    toggleValues.showHighResModels &&
-      graphCalculations.hrdpsPrecips.forEach(({ date, value }) => {
-        precipsByDatetime[date.toISOString()] = {
-          ...precipsByDatetime[date.toISOString()],
-          date,
-          hrdpsPrecip: value
-        }
-      })
-    toggleValues.showHighResModels &&
-      graphCalculations.accumHRDPSPrecips.forEach(({ date, accumPrecip }) => {
-        precipsByDatetime[date.toISOString()] = {
-          ...precipsByDatetime[date.toISOString()],
-          date,
-          accumHRDPSPrecip: accumPrecip
-        }
-      })
-
-    return Object.values(precipsByDatetime)
-  }, [toggleValues, graphCalculations])
+  }, [graphCalculations, utcOffset])
 
   // Effect hook for updating the legend
   useEffect(() => {
@@ -769,6 +689,95 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
       d3Utils.addLegend(legend, chartWidth, legendData)
     }
   }, [toggleValues])
+
+  const precipsOfInterest = useMemo(() => {
+    const precipsByDatetime: { [date: string]: PrecipValue } = {}
+
+    toggleValues.showObservations &&
+      graphCalculations.observedPrecips.forEach(({ date, value }) => {
+        precipsByDatetime[date.toISOString()] = { date, observedPrecip: value }
+      })
+    toggleValues.showObservations &&
+      graphCalculations.accumObservedPrecips.forEach(({ date, accumPrecip }) => {
+        precipsByDatetime[date.toISOString()] = {
+          ...precipsByDatetime[date.toISOString()],
+          date,
+          accumObservedPrecip: accumPrecip
+        }
+      })
+
+    toggleValues.showForecasts &&
+      graphCalculations.forecastPrecips.forEach(({ date, value }) => {
+        precipsByDatetime[date.toISOString()] = {
+          ...precipsByDatetime[date.toISOString()],
+          date,
+          forecastPrecip: value
+        }
+      })
+    toggleValues.showForecasts &&
+      graphCalculations.accumForecastPrecips.forEach(({ date, accumPrecip }) => {
+        precipsByDatetime[date.toISOString()] = {
+          ...precipsByDatetime[date.toISOString()],
+          date,
+          accumForecastPrecip: accumPrecip
+        }
+      })
+
+    toggleValues.showModels &&
+      graphCalculations.gdpsPrecips.forEach(({ date, value }) => {
+        precipsByDatetime[date.toISOString()] = {
+          ...precipsByDatetime[date.toISOString()],
+          date,
+          gdpsPrecip: value
+        }
+      })
+    toggleValues.showModels &&
+      graphCalculations.accumGDPSPrecips.forEach(({ date, accumPrecip }) => {
+        precipsByDatetime[date.toISOString()] = {
+          ...precipsByDatetime[date.toISOString()],
+          date,
+          accumGDPSPrecip: accumPrecip
+        }
+      })
+
+    toggleValues.showHighResModels &&
+      graphCalculations.hrdpsPrecips.forEach(({ date, value }) => {
+        precipsByDatetime[date.toISOString()] = {
+          ...precipsByDatetime[date.toISOString()],
+          date,
+          hrdpsPrecip: value
+        }
+      })
+    toggleValues.showHighResModels &&
+      graphCalculations.accumHRDPSPrecips.forEach(({ date, accumPrecip }) => {
+        precipsByDatetime[date.toISOString()] = {
+          ...precipsByDatetime[date.toISOString()],
+          date,
+          accumHRDPSPrecip: accumPrecip
+        }
+      })
+
+    toggleValues.showRegionalModels &&
+      graphCalculations.rdpsPrecips.forEach(({ date, value }) => {
+        precipsByDatetime[date.toISOString()] = {
+          ...precipsByDatetime[date.toISOString()],
+          date,
+          rdpsPrecip: value
+        }
+      })
+    toggleValues.showRegionalModels &&
+      graphCalculations.accumRDPSPrecips.forEach(({ date, accumPrecip }) => {
+        precipsByDatetime[date.toISOString()] = {
+          ...precipsByDatetime[date.toISOString()],
+          date,
+          accumRDPSPrecip: accumPrecip
+        }
+      })
+
+    return Object.values(precipsByDatetime).sort(
+      (a, b) => a.date.valueOf() - b.date.valueOf()
+    )
+  }, [toggleValues, graphCalculations])
 
   // Effect hook for adding/updating tooltip
   useEffect(() => {
@@ -876,35 +885,39 @@ const PrecipGraph: React.FunctionComponent<Props> = ({
     if (svgRef.current) {
       const svg = d3.select(svgRef.current)
       svg
-        .selectAll('.precipLine__forecast')
-        .classed('precipLine--hidden', !toggleValues.showForecasts)
-      svg
-        .selectAll('.accumPrecipLine__forecast')
-        .classed('accumPrecipLine--hidden', !toggleValues.showForecasts)
-      svg
         .selectAll('.precipLine__observed')
         .classed('precipLine--hidden', !toggleValues.showObservations)
       svg
         .selectAll('.accumPrecipLine__observed')
         .classed('accumPrecipLine--hidden', !toggleValues.showObservations)
+
+      svg
+        .selectAll('.precipLine__forecast')
+        .classed('precipLine--hidden', !toggleValues.showForecasts)
+      svg
+        .selectAll('.accumPrecipLine__forecast')
+        .classed('accumPrecipLine--hidden', !toggleValues.showForecasts)
+
       svg
         .selectAll('.precipLine__gdps')
         .classed('precipLine--hidden', !toggleValues.showModels)
       svg
         .selectAll('.accumPrecipLine__gdps')
         .classed('accumPrecipLine--hidden', !toggleValues.showModels)
-      svg
-        .selectAll('.precipLine__rdps')
-        .classed('precipLine--hidden', !toggleValues.showRegionalModels)
-      svg
-        .selectAll('.accumPrecipLine__rdps')
-        .classed('accumPrecipLine--hidden', !toggleValues.showRegionalModels)
+
       svg
         .selectAll('.precipLine__hrdps')
         .classed('precipLine--hidden', !toggleValues.showHighResModels)
       svg
         .selectAll('.accumPrecipLine__hrdps')
         .classed('accumPrecipLine--hidden', !toggleValues.showHighResModels)
+
+      svg
+        .selectAll('.precipLine__rdps')
+        .classed('precipLine--hidden', !toggleValues.showRegionalModels)
+      svg
+        .selectAll('.accumPrecipLine__rdps')
+        .classed('accumPrecipLine--hidden', !toggleValues.showRegionalModels)
     }
   }, [toggleValues])
 

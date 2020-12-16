@@ -300,9 +300,11 @@ def get_prediction_model(session: Session, abbreviation: str, projection: str) -
 
 
 def get_prediction_model_run_timestamp_records(
-        session: Session, model_type: str, complete: bool = True, interpolated: bool = True):
+        session: Session, model_type: ModelEnum, complete: bool = True, interpolated: bool = True):
     """ Get prediction model run timestamps (filter on complete and interpolated if provided.) """
     query = session.query(PredictionModelRunTimestamp, PredictionModel) \
+        .join(PredictionModelRunTimestamp,
+              PredictionModelRunTimestamp.prediction_model_id == PredictionModel.id)\
         .filter(PredictionModel.abbreviation == model_type)
     if interpolated is not None:
         query = query.filter(

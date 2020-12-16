@@ -295,7 +295,7 @@ class EnvCanada():
     """
 
     # pylint: disable=too-many-instance-attributes
-    def __init__(self, model_type):
+    def __init__(self, model_type: ModelEnum):
         """ Prep variables """
         self.files_downloaded = 0
         self.files_processed = 0
@@ -304,7 +304,7 @@ class EnvCanada():
         self.now = time_utils.get_utc_now()
         self.session = app.db.database.get_write_session()
         self.grib_processor = GribFileProcessor()
-        self.model_type = ModelEnum(model_type)
+        self.model_type = model_type
         # set projection based on model_type
         if self.model_type == ModelEnum.GDPS:
             self.projection = ProjectionEnum.LATLON_15X_15
@@ -463,13 +463,21 @@ class ModelValueProcessor:
         station_prediction.prediction_model_run_timestamp_id = model_run.id
         station_prediction.prediction_timestamp = prediction.prediction_timestamp
         # Calculate the interpolated values.
-        station_prediction.tmp_tgl_2 = griddata(
-            points, prediction.tmp_tgl_2, coordinate, method='linear')[0]
+        # 2020 Dec 15, Sybrand: Encountered situation where tmp_tgl_2 was None, add this workaround for it.
+        # NOTE: Not sure why this value would ever be None. This could happen if for whatever reason, the
+        # tmp_tgl_2 layer failed to download and process, while other layers did.
+        if prediction.tmp_tgl_2 is None:
+            logger.warning('tmp_tgl_2 is None for ModelRunGridSubsetPrediction.id == %s', prediction.id)
+        else:
+            station_prediction.tmp_tgl_2 = griddata(
+                points, prediction.tmp_tgl_2, coordinate, method='linear')[0]
+
         # 2020 Dec 10, Sybrand: Encountered situation where rh_tgl_2 was None, add this workaround for it.
-        # NOTE: Not sure why this value would ever be None.
+        # NOTE: Not sure why this value would ever be None. This could happen if for whatever reason, the
+        # rh_tgl_2 layer failed to download and process, while other layers did.
         if prediction.rh_tgl_2 is None:
             # This is unexpected, so we log it.
-            logger.warning('rh_tgl_2 is None')
+            logger.warning('rh_tgl_2 is None for ModelRunGridSubsetPrediction.id == %s', prediction.id)
             station_prediction.rh_tgl_2 = None
         else:
             station_prediction.rh_tgl_2 = griddata(
@@ -590,7 +598,7 @@ def process_models():
     """ downloading and processing models """
 
     # set the model type requested based on arg passed via command line
-    model_type = sys.argv[1]
+    model_type = ModelEnum(sys.argv[1])
     logger.info('model type %s', model_type)
 
     # grab the start time.
