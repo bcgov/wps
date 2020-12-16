@@ -23,6 +23,18 @@ if __name__ == "__main__":
 
 LOGGER = logging.getLogger(__name__)
 
+"""
+Define a "fire season" applicable to all weather stations.
+If bot fails to retrieve a forecast for any weather station during the fire season,
+an automatic notification will be sent via Rocketchat.
+Outside of the fire season, forecasts are not usually issued, so no RC notification
+should be sent if the bot fails to retrieve any data.
+"""
+FIRE_SEASON_START_MONTH = 4
+FIRE_SEASON_START_DATE = 1
+FIRE_SEASON_END_MONTH = 9
+FIRE_SEASON_END_DATE = 30
+
 
 def _construct_request_body():
     """ Prepare the params to fetch forecast noon-time values from the BC FireWeather Phase 1 API.
@@ -142,8 +154,13 @@ def main():
         # Exit non 0 - failure.
         LOGGER.error('Failed to retrieve noon forecasts.',
                      exc_info=exception)
-        rc_message = ':confounded: Encountered error retrieving noon forecasts'
-        send_rocketchat_notification(rc_message, exception)
+        # If and only if current date is during fire season, send a message to Rocketchat to notify
+        # us of the error.
+        now = app.time_utils.get_utc_now()
+        if (FIRE_SEASON_START_MONTH <= now.month <= FIRE_SEASON_END_MONTH)\
+                and (FIRE_SEASON_START_DATE <= now.date <= FIRE_SEASON_END_DATE):
+            rc_message = ':confounded: Encountered error retrieving noon forecasts'
+            send_rocketchat_notification(rc_message, exception)
         sys.exit(os.EX_SOFTWARE)
 
 
