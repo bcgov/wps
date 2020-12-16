@@ -7,6 +7,7 @@ import datetime
 from datetime import timezone
 from collections import defaultdict
 from scipy.interpolate import griddata, interp1d
+from sqlalchemy.orm import Session
 from geoalchemy2.shape import to_shape
 import app.db.database
 from app.schemas.weather_models import (WeatherModelPrediction,
@@ -14,8 +15,9 @@ from app.schemas.weather_models import (WeatherModelPrediction,
                                         ModelRunPredictions,
                                         WeatherStationModelRunsPredictions)
 from app.schemas.stations import WeatherStation
-from app.db.models import ModelRunGridSubsetPrediction
-from app.db.crud.weather_models import get_station_model_predictions
+from app.db.models import ModelRunGridSubsetPrediction, WeatherStationModelPrediction
+from app.db.crud.weather_models import (get_station_model_predictions,
+                                        get_station_model_prediction_from_previous_model_run)
 import app.stations
 from app.weather_models import ModelEnum, ProjectionEnum
 from app.weather_models.fetch import extract_stations_in_polygon
@@ -204,24 +206,22 @@ async def fetch_model_predictions(model: ModelEnum, projection: ProjectionEnum, 
     return await _fetch_model_predictions_by_station_codes(model, projection, station_codes)
 
 
-async def _fetch_delta_precip_for_prev_model_run(
+def _fetch_delta_precip_for_prev_model_run(
+        session: Session,
         model: ModelEnum,
-        station_codes: List[int],
-        prediction: WeatherModelPredictionValues,
-        prediction_model_run_timestamp):
-    """ Fetch the delta_precip for the station's prediction from the previous model run.
-    To be used in occasions where prediction_timestamp is not midnight but the prediction model run
-    is at hour 000 (and hence apcp is 0, so we must look at the delta_precip from the previous model run
-    in order to get a precipitation value)
-    """
-    # send the query
-    session = app.db.database.get_read_session()
-    prev_prediction = app.db.crud.weather_models.get_station_model_prediction_from_previous_model_run(
-        session, station_codes, model, prediction.prediction_timestamp, prediction_model_run_timestamp)
+        prediction: WeatherStationModelPrediction,
+        prev_station_predictions: dict,
+        prediction_model_run_timestamp: datetime.datetime):
+    # Look if we can find the previous value in memory
+    if prediction.prediction_timestamp in prev_station_predictions[prediction.station_code]:
+        return prev_station_predictions[prediction.station_code][prediction.prediction_timestamp]['prediction'].delta_precipitation
+    # Uh oh - couldn't find it - let's go look in the database.
+    # This should only happen in extreme edge cases!
+    prev_prediction = get_station_model_prediction_from_previous_model_run(
+        session, prediction.station_code, model, prediction.prediction_timestamp, prediction_model_run_timestamp)
     if prev_prediction:
-        return prev_prediction.WeatherStationModelPrediction.delta_precip
-    else:
-        return None
+        return prev_prediction.delta_precip
+    return None
 
 
 async def fetch_model_run_predictions_by_station_code(
@@ -243,12 +243,18 @@ async def fetch_model_run_predictions_by_station_code(
 
     # NOTE: The query could be optimized to only return the latest predictions.
     for prediction, prediction_model_run_timestamp, prediction_model in historic_predictions:
-        # If this is true, it means that we are at hour 000 of the model run but not at the 0th hour of the day,
-        # so we need to look at the accumulated precip from the previous model run to calculate the delta_precip
+        # If this is true, it means that we are at hour 000 of the model run but not at the 0th hour of the
+        # day, so we need to look at the accumulated precip from the previous model run to calculate the
+        # delta_precip
         precip_value = None
-        if prediction.prediction_timestamp == prediction_model_run_timestamp.prediction_run_timestamp and prediction.prediction_timestamp.hour > 0:
-            precip_value = await _fetch_delta_precip_for_prev_model_run(
-                model, station_codes, prediction, prediction_model_run_timestamp.prediction_run_timestamp)
+        if prediction.prediction_timestamp == prediction_model_run_timestamp.prediction_run_timestamp and \
+                prediction.prediction_timestamp.hour > 0:
+            precip_value = _fetch_delta_precip_for_prev_model_run(
+                session,
+                model,
+                prediction,
+                station_predictions,
+                prediction_model_run_timestamp.prediction_run_timestamp)
         # This condition catches situations where we are not at hour 000 of the model run, or where it is
         # hour 000 but there was nothing returned from _fetch_delta_precip_for_prev_model_run()
         if precip_value is None:

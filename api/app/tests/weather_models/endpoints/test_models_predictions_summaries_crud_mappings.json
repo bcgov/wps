@@ -1,0 +1,7 @@
+[
+    {
+        "module": "app.weather_models.fetch.summaries",
+        "function": "get_station_model_predictions_order_by_prediction_timestamp",
+        "json": "test_models_predictions_summaries_sql_response.json"
+    }
+]
