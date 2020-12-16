@@ -49,26 +49,37 @@ def load_sqlalchemy_response_from_json(filename):
     """ Load a sqlalchemy response from a json file """
     with open(filename, 'r') as tmp:
         data = json.load(tmp)
-    return load_sqlalchemy_response_from_dict(data)
+    return load_sqlalchemy_response_from_object(data)
 
 
-def load_sqlalchemy_response_from_dict(data):
-    """ Load a sqlalchemy response from a dictionary """
-    result = []
-    for row in data:
-        result_row = []
-        for record in row:
-            module = importlib.import_module(record['module'])
-            class_ = getattr(module, record['class'])
-            record_data = {}
-            for key, value in record['data'].items():
-                # Handle the special case, where the type is timestamp, converting the string to the
-                # correct data type.
-                if isinstance(getattr(class_, key).type, TZTimeStamp):
-                    record_data[key] = datetime.datetime.fromisoformat(value)
-                else:
-                    record_data[key] = value
-            object_ = class_(**record_data)
-            result_row.append(object_)
-        result.append(result_row)
-    return result
+def de_serialize_record(record):
+    """ De-serailize a single sqlalchemy record """
+    module = importlib.import_module(record['module'])
+    class_ = getattr(module, record['class'])
+    record_data = {}
+    for key, value in record['data'].items():
+        # Handle the special case, where the type is timestamp, converting the string to the
+        # correct data type.
+        if isinstance(getattr(class_, key).type, TZTimeStamp):
+            record_data[key] = datetime.datetime.fromisoformat(value)
+        else:
+            record_data[key] = value
+    return class_(**record_data)
+
+
+def load_sqlalchemy_response_from_object(data: object):
+    """ Load a sqlalchemy response from an object """
+    # Usualy the data is a list of objects - or a list of list of objects.
+    # e.g.: [ { record }]
+    # e.g.: or [ [{record}, {record}]]
+    if isinstance(data, list):
+        result = []
+        for row in data:
+            result_row = []
+            for record in row:
+                object_ = de_serialize_record(record)
+                result_row.append(object_)
+            result.append(result_row)
+        return result
+    # Sometimes though, we're only expecting a single record, not a list.
+    return de_serialize_record(data)

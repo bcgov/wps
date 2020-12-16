@@ -1,0 +1,12 @@
+[
+    {
+        "module": "app.weather_models.fetch.predictions",
+        "function": "get_station_model_predictions",
+        "json": "test_models_predictions_most_recent_GDPS_[956]_get_station_model_predictions.json"
+    },
+    {
+        "module": "app.weather_models.fetch.predictions",
+        "function": "get_station_model_prediction_from_previous_model_run",
+        "json": "test_models_predictions_most_recent_GDPS_[956]_get_station_model_prediction_from_previous_model_run.json"
+    }
+]

@@ -3,10 +3,14 @@
 import os
 import json
 import importlib
+import logging
 from pytest_bdd import scenario, given, then, when
 from fastapi.testclient import TestClient
 import app.main
 from app.tests import load_sqlalchemy_response_from_json
+
+
+logger = logging.getLogger(__name__)
 
 
 @ scenario("test_models_endpoints.feature", "Generic model endpoint testing")
@@ -14,16 +18,32 @@ def test_model_predictions_summaries_scenario():
     """ BDD Scenario for prediction summaries """
 
 
-@ given("A <sql_response> for <crud_method> in <module>")
-def given_a_database(monkeypatch, sql_response: str, crud_method: str, module: str):
-    """ Mock the sql response """
-
+def _patch_function(monkeypatch, module_name, function_name, json_filename):
+    """ Patch module_name.function_name to return de-serialized json_filename """
     def mock_get_data(*args):  # pylint: disable=unused-argument
         dirname = os.path.dirname(os.path.realpath(__file__))
-        filename = os.path.join(dirname, sql_response)
+        filename = os.path.join(dirname, json_filename)
         return load_sqlalchemy_response_from_json(filename)
 
-    monkeypatch.setattr(importlib.import_module(module), crud_method, mock_get_data)
+    monkeypatch.setattr(importlib.import_module(module_name), function_name, mock_get_data)
+
+
+@given("some explanatory <notes>")
+def given_some_notes(notes: str):
+    """ Send notes to the logger. """
+    logger.info(notes)
+
+
+@ given("A <crud_mapping>")
+def given_a_database(monkeypatch, crud_mapping: str):
+    """ Mock the sql response """
+
+    dirname = os.path.dirname(os.path.realpath(__file__))
+    filename = os.path.join(dirname, crud_mapping)
+    with open(filename) as crud_mappings_file:
+        for item in json.load(crud_mappings_file):
+            _patch_function(monkeypatch, item['module'], item['function'], item['json'])
+
     return {}
 
 

@@ -1,0 +1,7 @@
+[
+    {
+        "module": "app.weather_models.fetch.predictions",
+        "function": "get_station_model_predictions",
+        "json": "test_models_predictions_most_recent_GDPS_[838]_db.json"
+    }
+]
