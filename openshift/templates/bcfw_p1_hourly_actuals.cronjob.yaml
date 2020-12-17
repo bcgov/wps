@@ -27,7 +27,7 @@ objects:
       labels:
         cronjob: ${JOB_NAME}
     spec:
-      schedule: "15 * * 10 *"
+      schedule: "15 * * * *"
       concurrencyPolicy: "Replace"
       jobTemplate:
         metadata:
