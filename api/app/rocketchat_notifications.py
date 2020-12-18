@@ -36,5 +36,6 @@ def send_rocketchat_notification(text: str, exc_info: Exception):
         )
         return response.json()
     except Exception as exception:  # pylint: disable=broad-except
-        logger.error('failed to send rocket chat notification',
-                     exc_info=exception)
+        # not doing exc_info=exception - as this causes a lot of noise, and we're more interested
+        # in the main code!
+        logger.error('failed to send rocket chat notification %s', exception)

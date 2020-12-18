@@ -20,6 +20,9 @@ from app.db.crud.weather_models import (
 
 logger = logging.getLogger(__name__)
 
+# Ensure that grib file uses EPSG: 4269 (NAD83) coordinate system
+GEO_CRS = CRS('epsg:4269')
+
 
 class PredictionModelNotFound(Exception):
     """ Exception raised when specified model cannot be found in database. """
@@ -75,19 +78,21 @@ def calculate_raster_coordinate(
     """
     # Because not all model types use EPSG:4269 projection, we first convert longitude and latitude
     # to whichever projection and coordinate system the grib file is using
-    raster_lat, raster_long = transformer.transform(latitude, longitude)
+    raster_long, raster_lat = transformer.transform(longitude, latitude)
 
     # Calculate the j index for point i,j in the grib file
-    numerator = padf_transform[1] * (raster_long - padf_transform[3]) - \
-        padf_transform[4] * (raster_lat - padf_transform[0])
-    denominator = padf_transform[1] * padf_transform[5] - \
-        padf_transform[2] * padf_transform[4]
-    j_index = math.floor(numerator/denominator)
+    x_numerator = (raster_long - padf_transform[0] - raster_lat/padf_transform[5] *
+                   padf_transform[2] + padf_transform[3] / padf_transform[5] *
+                   padf_transform[2]) / padf_transform[1]
 
-    # Calculate the i index for point i,j in the grib file
-    numerator = raster_lat - padf_transform[0] - j_index * padf_transform[2]
-    denominator = padf_transform[1]
-    i_index = math.floor(numerator/denominator)
+    y_numerator = (raster_lat - padf_transform[3] - raster_long/padf_transform[1] *
+                   padf_transform[4] + padf_transform[0] / padf_transform[1] *
+                   padf_transform[4]) / padf_transform[5]
+
+    denominator = 1 - padf_transform[4]/padf_transform[5]*padf_transform[2]/padf_transform[1]
+
+    i_index = math.floor(x_numerator/denominator)
+    j_index = math.floor(y_numerator/denominator)
 
     return (i_index, j_index)
 
@@ -102,7 +107,7 @@ def calculate_geographic_coordinate(
     y_coordinate = padf_transform[3] + point[0] * \
         padf_transform[4] + point[1]*padf_transform[5]
 
-    lat, lon = transformer.transform(x_coordinate, y_coordinate)
+    lon, lat = transformer.transform(x_coordinate, y_coordinate)
     return (lon, lat)
 
 
@@ -115,6 +120,12 @@ def get_dataset_geometry(dataset: gdal.Dataset) -> (List[int], List[int]):
     """ Get the geometry info (origin and pixel size) of the dataset.
     """
     return dataset.GetGeoTransform()
+
+
+def get_transformer(crs_from, crs_to):
+    """ Get an appropriate transformer - it's super important that always_xy=True
+    is specified, otherwise the order in the CRS definition is honoured. """
+    return Transformer.from_crs(crs_from, crs_to, always_xy=True)
 
 
 class GribFileProcessor():
@@ -146,35 +157,14 @@ class GribFileProcessor():
         for station in self.stations:
             longitude = station.long
             latitude = station.lat
+
             x_coordinate, y_coordinate = calculate_raster_coordinate(
                 longitude, latitude, self.padf_transform, self.geo_to_raster_transformer)
-
-            if x_coordinate < 0 or y_coordinate < 0 or x_coordinate > raster_band.XSize \
-                    or y_coordinate > raster_band.YSize:
-                logger.info(
-                    'Detected raster calculation error. Reversing geotransform to try again...')
-                self.reverse_geotransform()
-                x_coordinate, y_coordinate = calculate_raster_coordinate(
-                    longitude, latitude, self.padf_transform, self.geo_to_raster_transformer)
 
             points, values = get_surrounding_grid(
                 raster_band, x_coordinate, y_coordinate)
 
             yield (points, values)
-
-    # pylint: disable=fixme
-    # TODO: Remove this once the root reason why GDPS model runs sometimes fail is determined.
-    def reverse_geotransform(self):
-        """ Reverses the X and Y coordinates in self.padf_transform.
-        Included for now as a band-aid fix when GDPS model runs fail inconsistently.
-        """
-        reverse_geotransform = (self.padf_transform[3],
-                                self.padf_transform[5],
-                                self.padf_transform[2],
-                                self.padf_transform[0],
-                                self.padf_transform[4],
-                                self.padf_transform[1])
-        self.padf_transform = reverse_geotransform
 
     def store_bounding_values(self, points, values, preduction_model_run: PredictionModelRunTimestamp,
                               grib_info: ModelRunInfo):
@@ -218,9 +208,8 @@ class GribFileProcessor():
             # (this step is included because HRDPS grib files are in another coordinate system)
             wkt = dataset.GetProjection()
             crs = CRS.from_string(wkt)
-            geo_crs = CRS('epsg:4269')
-            self.raster_to_geo_transformer = Transformer.from_crs(crs, geo_crs)
-            self.geo_to_raster_transformer = Transformer.from_crs(geo_crs, crs)
+            self.raster_to_geo_transformer = get_transformer(crs, GEO_CRS)
+            self.geo_to_raster_transformer = get_transformer(GEO_CRS, crs)
 
             self.padf_transform = get_dataset_geometry(dataset)
             # get the model (.e.g. GPDS/RDPS latlon24x.24):

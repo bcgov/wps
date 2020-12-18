@@ -67,7 +67,7 @@ const TempRHGraph: React.FunctionComponent<Props> = (props: Props) => {
         .append('rect')
         .attr('x', 0)
         .attr('y', -10) // - 10 to show the text(Now) from the reference line
-        .attr('width', chartWidth + 2) // + 2 to show the last tick of the x axis
+        .attr('width', chartWidth + 1) // + 1 to show the last tick of the x axis
         .attr('height', chartHeight + 50) // +50 to show the x axis and its labels
 
       const chart = svg
@@ -409,11 +409,10 @@ const TempRHGraph: React.FunctionComponent<Props> = (props: Props) => {
       })
 
       /* Render the X & Y axis and labels */
-      const xTickValues = d3Utils.getTickValues(graphCalc.xDomain, utcOffset, false)
       const xAxisFunc = d3
         .axisBottom(xScale)
-        .tickFormat(d3Utils.formatDateInMonthAndDay)
-        .tickValues(xTickValues)
+        .tickFormat(d3Utils.getDateFormatter('MMM D', utcOffset))
+        .tickValues(d3Utils.getTickValues(graphCalc.xDomain, utcOffset))
       chart // Include only x axis to the chart group
         .append('g')
         .attr('class', 'xAxis')
@@ -503,8 +502,8 @@ const TempRHGraph: React.FunctionComponent<Props> = (props: Props) => {
         .call(
           d3
             .axisBottom(xScaleOriginal)
-            .tickFormat(d3Utils.formatDateInMonthAndDay)
-            .tickValues(xTickValues)
+            .tickFormat(d3Utils.getDateFormatter('MMM D', utcOffset))
+            .tickValues(d3Utils.getTickValues(graphCalc.xDomain, utcOffset, true))
         )
       sidebar
         .append('g')
@@ -687,7 +686,7 @@ const TempRHGraph: React.FunctionComponent<Props> = (props: Props) => {
       const legend = legendSvg
         .append('g')
         .attr('class', 'legend')
-        .attr('transform', `translate(${margin.left}, ${margin.top})`)
+        .attr('transform', `translate(${margin.left}, 5)`)
 
       const legendData = getLegendData(toggleValues)
       const newLegendHeight = d3Utils.addLegend(legend, chartWidth, legendData)

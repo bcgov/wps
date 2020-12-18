@@ -58,7 +58,7 @@ jobs:
       - name: Install libgdal-dev
         # The python gdal component relies on libgdal-dev being installed.
         run: |
-          sudo apt-get -y install libgdal-dev
+          sudo apt-get update --fix-missing && sudo apt-get -y install libgdal-dev
 
       # poetry cache folder: /home/runner/.cache/pypoetry
       - name: Cache poetry

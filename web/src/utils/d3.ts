@@ -1,26 +1,25 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import moment from 'moment'
 import * as d3 from 'd3'
-import { PDT_UTC_OFFSET } from 'utils/constants'
 
 const transitionDuration = 50
 
 /**
  * Returns a list of dates in which each date is 12am PDT within the domain
  * @param domain a pair of dates, x domain
+ * @param utcOffset UTC offset for a specific timezone
+ * @param shouldLimitNumOfResult a flag that decides whether it should limit the number of results
  */
 export const getTickValues = (
   domain: [Date, Date] | [undefined, undefined],
   utcOffset: number,
-  includeFirst = true
+  shouldLimitNumOfResult = false
 ): Date[] => {
   const [d1, d2] = domain
 
   if (!d1) {
     return []
   }
-
-  const result = includeFirst ? [d1] : []
 
   const next = moment(d1)
     .utcOffset(utcOffset)
@@ -31,9 +30,18 @@ export const getTickValues = (
     })
   const last = moment(d2).utcOffset(utcOffset)
 
+  const result = []
+
   while (last >= next) {
     result.push(moment(next).toDate())
     next.add(1, 'days')
+  }
+
+  if (shouldLimitNumOfResult) {
+    return result.filter((_, index, { length }) => {
+      const divider = Math.ceil(length / 10)
+      return index % divider === 0
+    })
   }
 
   return result
@@ -42,21 +50,21 @@ export const getTickValues = (
 /**
  * High order function to generate formatting functions
  * @param format format string recognized Moment
+ * @param utcOffset UTC offset for a specific timezone
  */
-const formatDate = (format: string) => (value: Date | { valueOf(): number }) => {
+export const getDateFormatter = (format: string, utcOffset: number) => (
+  value: Date | { valueOf(): number },
+  index: number // eslint-disable-line @typescript-eslint/no-unused-vars
+) => {
+  let m = null
   if (value instanceof Date) {
-    return moment(value)
-      .utcOffset(PDT_UTC_OFFSET)
-      .format(format)
+    m = moment(value)
+  } else {
+    m = moment(value.valueOf())
   }
 
-  return moment(value.valueOf())
-    .utcOffset(PDT_UTC_OFFSET)
-    .format(format)
+  return m.utcOffset(utcOffset).format(format)
 }
-
-export const formatDateInDay = formatDate('Do')
-export const formatDateInMonthAndDay = formatDate('MMM D')
 
 /**
  * Note: className should be unique
@@ -344,6 +352,7 @@ const createIcon = (
   d: Legend
 ):
   | d3.Selection<SVGRectElement, unknown, null, undefined>
+  | d3.Selection<SVGLineElement, unknown, null, undefined>
   | d3.Selection<SVGPathElement, unknown, null, undefined>
   | d3.Selection<SVGCircleElement, unknown, null, undefined> => {
   if (d.shape === 'rect') {
@@ -351,6 +360,15 @@ const createIcon = (
       .append(d.shape)
       .attr('width', 4)
       .attr('height', 4)
+      .style('stroke', d.color)
+      .style('fill', d.fill || d.color)
+  } else if (d.shape === 'line') {
+    return item
+      .append(d.shape)
+      .attr('x1', 0)
+      .attr('x2', 7)
+      .attr('y1', 0)
+      .attr('y2', 0)
       .style('stroke', d.color)
       .style('fill', d.fill || d.color)
   } else if (d.shape === 'diamond') {
@@ -398,11 +416,12 @@ const createIcon = (
 }
 
 const translateIcon = (
-  shape: 'circle' | 'rect' | 'diamond' | 'cross' | 'triangle',
+  shape: 'circle' | 'rect' | 'diamond' | 'cross' | 'triangle' | 'line',
   xOffset: number,
   yOffset: number,
   icon:
     | d3.Selection<SVGRectElement, unknown, null, undefined>
+    | d3.Selection<SVGLineElement, unknown, null, undefined>
     | d3.Selection<SVGPathElement, unknown, null, undefined>
     | d3.Selection<SVGCircleElement, unknown, null, undefined>
 ): string => {
@@ -412,6 +431,8 @@ const translateIcon = (
       1})`
   } else if (shape === 'rect') {
     return `translate(${xOffset}, ${yOffset - (icon.node()?.getBBox().height ?? 0) / 2})`
+  } else if (shape === 'line') {
+    return `translate(${xOffset}, ${yOffset})`
   }
   // diamond, circle, cross
   return `translate(${xOffset + (icon.node()?.getBBox().width ?? 0) / 2}, ${yOffset})`
@@ -419,7 +440,7 @@ const translateIcon = (
 
 export interface Legend {
   text: string
-  shape: 'rect' | 'circle' | 'cross' | 'diamond' | 'triangle'
+  shape: 'rect' | 'circle' | 'cross' | 'diamond' | 'triangle' | 'line'
   color: string
   fill?: string
 }
