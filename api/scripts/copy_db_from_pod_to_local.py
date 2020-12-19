@@ -17,21 +17,23 @@ def oc_rsh(project: str, pod: str) -> List:
 
 def get_first_project() -> str:
     """ Return the first project in the list """
-    result = subprocess.run(['oc', 'get', 'projects', '-o', 'name'], stdout=subprocess.PIPE, check=True)
-    project = io.StringIO(result.stdout.decode()).readline()
+    result = subprocess.run(['oc', 'get', 'projects', '-o', 'name'],
+                            stdout=subprocess.PIPE, check=True, text=True)
+    project = io.StringIO(result.stdout).readline()
     return project[project.rindex('/')+1:-1]
 
 
 def list_pods(project: str) -> None:
     """ print list of pods to screen """
-    result = subprocess.run([*oc_n_project(project), 'get', 'pods'], stdout=subprocess.PIPE, check=True)
-    print(result.stdout.decode())
+    result = subprocess.run([*oc_n_project(project), 'get', 'pods'],
+                            stdout=subprocess.PIPE, check=True, text=True)
+    print(result.stdout)
 
 
 def list_projects() -> None:
     """ Print list of projects to screen """
-    result = subprocess.run(['oc', 'get', 'projects'], stdout=subprocess.PIPE, check=True)
-    print(result.stdout.decode())
+    result = subprocess.run(['oc', 'get', 'projects'], stdout=subprocess.PIPE, check=True, text=True)
+    print(result.stdout)
 
 
 def list_cluster_members(project: str, pod: str) -> None:
@@ -56,8 +58,9 @@ def list_cluster_members(project: str, pod: str) -> None:
 def list_databases(project: str, pod: str) -> None:
     """ List databases on pod """
     print("fetching list of databases...")
-    result = subprocess.run([*oc_rsh(project, pod), 'psql', '-c', '\\l'], stdout=subprocess.PIPE, check=True)
-    print(result.stdout.decode())
+    result = subprocess.run([*oc_rsh(project, pod), 'psql', '-c', '\\l'],
+                            stdout=subprocess.PIPE, check=True, text=True)
+    print(result.stdout)
 
 
 def dump_database(project, pod, database) -> List[str]:
@@ -162,9 +165,6 @@ def main():
     """
     Entry points - assumes you have openshift command line tools installed and are logged in.
     """
-    # project = 'auzhsi-dev'
-    # pod = 'patroni-wps-pr-642-1'
-    # database = 'wps-pr-642'
     project = get_project()
     pod = get_pod(project)
     database = get_database(project, pod)

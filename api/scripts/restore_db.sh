@@ -1,12 +1,17 @@
 #!/bin/bash
 
-# Database copy helper
+# Database restore helper
 #
-#   Connect to an openshift pod, dump a postgresql database and copy it locally.
+#   Restore database dump and csv with data to local database.
+#
+# Assumptions:
+#
+#   - Assumes you are using the users wps and wpsread.
+#   - Assumes you already have a database and users in place.
 #
 # Usage:
 #
-#   PROJECT=OPENSHIFT_PROJECT_NAME POD=OPENSHIFT_POD DATABASE=POSTGRESQL_DATABASE ${THIS_FILE}
+#   PGPASSWORD=PASSWORD_FOR_WPS_USER ${THIS_FILE}
 #
 #   Assumes you have openshift command line tools installed and are logged in.
 #
