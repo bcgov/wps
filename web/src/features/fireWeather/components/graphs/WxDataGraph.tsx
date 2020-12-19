@@ -4,10 +4,11 @@ import { makeStyles } from '@material-ui/core/styles'
 import { ModelSummary, ModelValue } from 'api/modelAPI'
 import { ObservedValue } from 'api/observationAPI'
 import { NoonForecastValue, ForecastSummary } from 'api/forecastAPI'
-import TempRHGraph from 'features/fireWeather/components/graphs/TempRHGraph'
 import WxDataGraphToggles from 'features/fireWeather/components/graphs/WxDataGraphToggles'
 import { useGraphToggles } from 'features/fireWeather/components/graphs/useGraphToggles'
+import TempRHGraph from 'features/fireWeather/components/graphs/TempRHGraph'
 import PrecipGraph from 'features/fireWeather/components/graphs/PrecipGraph'
+import WindGraph from 'features/fireWeather/components/graphs/WindGraph'
 
 const useStyles = makeStyles({
   display: {
@@ -105,6 +106,8 @@ const WxDataGraph = ({
         rdpsModelValues={allRegionalModelValues}
         hrdpsModelValues={allHighResModelValues}
       />
+
+      <WindGraph toggleValues={toggleValues} observedValues={observedValues} />
     </div>
   )
 }
