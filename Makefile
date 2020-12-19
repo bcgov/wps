@@ -8,3 +8,7 @@ docker-build:
 docker-run:
 	# Run docker in dev mode.
 	docker-compose up
+
+docker-db:
+	# Run the database
+	docker-compose up db
