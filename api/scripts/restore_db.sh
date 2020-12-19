@@ -21,7 +21,6 @@
 #   PGPASSWORD=mywpspassword MODE=linux ./restore_db.sh
 #
 
-# We don't do: `set -e pipefail`, pg_restore 
 set -euo pipefail
 
 NATIVE_LINUX="linux"
