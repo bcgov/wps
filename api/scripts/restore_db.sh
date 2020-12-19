@@ -6,6 +6,7 @@
 #
 # Assumptions:
 #
+#   - Assumes your database server is up and running.
 #   - Assumes you are using the users wps and wpsread.
 #   - Assumes you already have a database and users in place.
 #
