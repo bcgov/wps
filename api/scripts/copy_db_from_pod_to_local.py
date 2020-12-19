@@ -20,14 +20,6 @@ def get_first_project() -> str:
     result = subprocess.run(['oc', 'get', 'projects', '-o', 'name'], stdout=subprocess.PIPE, check=True)
     project = io.StringIO(result.stdout.decode()).readline()
     return project[project.rindex('/')+1:-1]
-    # itor = iter(result.stdout.readlline, '')
-    # return next(itor)
-
-# def list_projects():
-#     v1_projects = dyn_client.resources.get(api_version='project.openshift.io/v1', kind='Project')
-#     project_list = v1_projects.get()
-#     for project in project_list.items:
-#         print(project.metadata.name)
 
 
 def list_pods(project: str) -> None:
@@ -114,6 +106,7 @@ def copy_files_to_local(project: str, pod: str, files: List[str]) -> None:
 
 
 def delete_remote_files(project: str, pod: str, files: List[str]) -> None:
+    """ Delete all the files we made from the server (cleanup) """
     process = subprocess.Popen([*oc_rsh(project, pod)], stdin=subprocess.PIPE,
                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     for filename in files:
@@ -128,6 +121,7 @@ def delete_remote_files(project: str, pod: str, files: List[str]) -> None:
 
 
 def unzip_locally(files: List[str]) -> None:
+    """ Unzip all the files locally """
     print('unzipping files locally...')
     for filename in files:
         result = subprocess.run(['gunzip', '.{}.gz'.format(filename)],
@@ -165,6 +159,9 @@ def get_database(project, pod) -> str:
 
 
 def main():
+    """
+    Entry points - assumes you have openshift command line tools installed and are logged in.
+    """
     # project = 'auzhsi-dev'
     # pod = 'patroni-wps-pr-642-1'
     # database = 'wps-pr-642'

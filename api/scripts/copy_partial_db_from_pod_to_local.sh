@@ -153,29 +153,3 @@ do
     # eval "${UNZIP_COMMAND}"
 done
 printf "\n\n"
-
-####################
-# Restore it locally
-####################
-
-# Now do the restore, there are a number of ways to do this.
-# example 1:
-#   Restore the database with the same name, with the same owner as the source.
-# 
-#   pg_restore -d ${DATABASE} -U postgres -c --if-exists ${FILENAME}
-#   - Adding --if-exists hides harmless errors you may see the first time you run it if there isn't already
-#       a database with tables etc. to drop.
-#   - This assumes the existence of a database named ${DATABASE}
-#
-# example 2:
-#   Restore the database with a different name and owner.
-#
-#   give the wps user superuser roles for restore:
-#   psql -U postgres -c "alter role wps superuser;"
-#
-#   restore the database to wps database:
-#   pg_restore -h localhost -d wps -U wps --no-owner --role=wps -c dump_db.tar
-#
-#   change user rights back:
-#   psql -U postgres -c "alter role wps nosuperuser"
-
