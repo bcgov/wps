@@ -26,6 +26,7 @@ set -euo pipefail
 NATIVE="native"
 DOCKER="docker"
 
+PARTIAL="${PARTIAL:-True}"
 MODE="${MODE:-$DOCKER}"
 BACKUP_FOLDER="${BACKUP_FOLDER:-./tmp}"
 
@@ -63,16 +64,19 @@ then
     eval "${ALTER}"
 fi
 
-# Restore table data
-COPY="psql -h localhost -d wps -U wps -c \"\copy model_run_grid_subset_predictions FROM '${BACKUP_FOLDER}/model_run_grid_subset_predictions.csv' CSV\""
-echo "You may be prompted for the wps password..."
-echo "${COPY}"
-eval "${COPY}"
+if [ "$PARTIAL" = "True" ]
+then
+    # Restore table data
+    COPY="psql -h localhost -d wps -U wps -c \"\copy model_run_grid_subset_predictions FROM '${BACKUP_FOLDER}/model_run_grid_subset_predictions.csv' CSV\""
+    echo "You may be prompted for the wps password..."
+    echo "${COPY}"
+    eval "${COPY}"
 
-# Restore table data
-COPY="psql -h localhost -d wps -U wps -c \"\copy weather_station_model_predictions FROM '${BACKUP_FOLDER}/weather_station_model_predictions.csv' CSV\""
-echo "${COPY}"
-eval "${COPY}"
+    # Restore table data
+    COPY="psql -h localhost -d wps -U wps -c \"\copy weather_station_model_predictions FROM '${BACKUP_FOLDER}/weather_station_model_predictions.csv' CSV\""
+    echo "${COPY}"
+    eval "${COPY}"
+fi
 
 # Ensure wpsread user has appropriate rights:
 # This step assumes you have wpsread user!

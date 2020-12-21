@@ -112,6 +112,19 @@ fetch-database-partial:
 fetch-database-complete:
 	$(POETRY_RUN) python scripts/copy_db_from_pod_to_local.py --mode=complete
 
+restore-partial-database-local:
+	# Restore a partial database to local server.
+	# Set environment variable PGPASSWORD=mywpspassword if you want to skip authentication.
+	MODE=native ./scripts/restore_db.sh
+
+restore-complete-database-local:
+	# Restore a complete database to local server.
+	MODE=native PARTIAL=False ./scripts/restore_db.sh
+
+restore-partial-database-docker:
+	# Restore a partial database to server in docker.
+	# Set environment variable PGPASSWORD=mywpspassword if you want to skip authentication.
+	./scripts/restore_db.sh
 
 notebook:
 	# Run jupyter notebooks.
