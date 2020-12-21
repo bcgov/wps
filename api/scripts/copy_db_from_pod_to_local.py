@@ -71,6 +71,24 @@ def list_databases(project: str, pod: str) -> None:
     print(result.stdout)
 
 
+def create_lock_file(project: str, pod: str, database: str) -> None:
+    """ Attempt to create a lock file, will fail if already exists """
+    try:
+        lock_file = '/tmp/{}.lock'.format(database)
+        print('creating lock file: {}'.format(lock_file))
+        subprocess.run([*oc_rsh(project, pod), 'mkdir', lock_file],
+                       stdout=subprocess.PIPE, check=True, text=True)
+    except subprocess.CalledProcessError:
+        print('failed to create lock {}:{} - another copy may be in progress'.format(pod, lock_file))
+        raise
+
+
+def delete_lock_file(project: str, pod: str, database: str) -> None:
+    """ Attempt to delete lockfile """
+    subprocess.run([*oc_rsh(project, pod), 'rmdir', '{}.lock'.format(database)],
+                   stdout=subprocess.PIPE, check=True, text=True)
+
+
 def dump_database(project: str, pod: str, database: str, mode: Mode) -> List[str]:
     """ Dump database to file """
     print('running pg_dump...')
@@ -192,9 +210,13 @@ def main():
     project = get_project()
     pod = get_pod(project)
     database = get_database(project, pod)
-    files = dump_database(project, pod, database, mode)
-    copy_files_to_local(project, pod, files)
-    delete_remote_files(project, pod, files)
+    create_lock_file(project, pod, database)
+    try:
+        files = dump_database(project, pod, database, mode)
+        copy_files_to_local(project, pod, files)
+        delete_remote_files(project, pod, files)
+    finally:
+        delete_lock_file(project, pod, database)
     unzip_locally(files)
 
 
