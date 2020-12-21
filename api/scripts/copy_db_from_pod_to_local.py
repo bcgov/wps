@@ -143,6 +143,7 @@ def unzip_locally(files: List[str]) -> None:
     """ Unzip all the files locally """
     print('unzipping files locally...')
     for filename in files:
+        print('unzip .{}.gz'.format(filename))
         result = subprocess.run(['gunzip', '.{}.gz'.format(filename)],
                                 stdout=subprocess.PIPE, check=True, text=True)
         print(result.stdout)
