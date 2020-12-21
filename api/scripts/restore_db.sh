@@ -23,14 +23,15 @@
 
 set -euo pipefail
 
-NATIVE_LINUX="linux"
+NATIVE="native"
 DOCKER="docker"
 
 MODE="${MODE:-$DOCKER}"
+BACKUP_FOLDER="${BACKUP_FOLDER:-'./tmp'}"
 
-if [ "$MODE" = "$NATIVE_LINUX" ]
+if [ "$MODE" = "$NATIVE" ]
 then
-    echo "Running assuming you're running postgres natively on Linux."
+    echo "Running assuming you're running postgres natively on Linux/Mac."
 fi
 if [ "$MODE" = "$DOCKER" ]
 then
@@ -38,7 +39,7 @@ then
 fi
 
 
-if [ "$MODE" = "$NATIVE_LINUX" ]
+if [ "$MODE" = "$NATIVE" ]
 then
     # Temporarily elevate roles in order to easily do restore:
     echo "You may be prompted for your sudo password..."
@@ -49,12 +50,12 @@ fi
 
 
 # Restore pg dump:
-RESTORE="pg_restore -h localhost -d wps -U wps --no-owner --role=wps -n public -c tmp/dump_db.tar"
+RESTORE="pg_restore -h localhost -d wps -U wps --no-owner --role=wps -n public -c ${BACKUP_FOLDER}/dump_db.tar"
 echo "${RESTORE}"
 eval "${RESTORE}"
 
 
-if [ "$MODE" = "$NATIVE_LINUX" ]
+if [ "$MODE" = "$NATIVE" ]
 then
     # Change user rights back (remove superuser):
     ALTER="sudo -u postgres psql -U postgres -c \"alter role wps nosuperuser\""
@@ -63,20 +64,20 @@ then
 fi
 
 # Restore table data
-COPY="psql -h localhost -d wps -U wps -c \"\copy model_run_grid_subset_predictions FROM 'tmp/model_run_grid_subset_predictions.csv' CSV\""
+COPY="psql -h localhost -d wps -U wps -c \"\copy model_run_grid_subset_predictions FROM '${BACKUP_FOLDER}/model_run_grid_subset_predictions.csv' CSV\""
 echo "You may be prompted for the wps password..."
 echo "${COPY}"
 eval "${COPY}"
 
 # Restore table data
-COPY="psql -h localhost -d wps -U wps -c \"\copy weather_station_model_predictions FROM 'tmp/weather_station_model_predictions.csv' CSV\""
+COPY="psql -h localhost -d wps -U wps -c \"\copy weather_station_model_predictions FROM '${BACKUP_FOLDER}/weather_station_model_predictions.csv' CSV\""
 echo "${COPY}"
 eval "${COPY}"
 
 # Ensure wpsread user has appropriate rights:
 # This step assumes you have wpsread user!
 # If it fails, you can go ahead and just make one: `create user wpsread with password 'wps';`
-if [ "$MODE" = "$NATIVE_LINUX" ]
+if [ "$MODE" = "$NATIVE" ]
 then
     # sudo -u postgres psql -U postgres -d wps -c "REASSIGN owned by wpsread to wps; drop owned by wpsread; drop role if exists wpsread; create user wpsread with password 'wps';"
     # sudo -u postgres psql -U postgres -d wps -c "grant connect on database wps to wpsread; grant usage on schema public to wpsread; grant select on all tables in schema public to wpsread;"
