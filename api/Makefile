@@ -105,6 +105,14 @@ run-all-bots:
 	$(POETRY_RUN) python -m app.fireweather_bot.hourly_actuals
 	$(POETRY_RUN) python -m app.fireweather_bot.noon_forecasts
 
+
+fetch-database-partial:
+	$(POETRY_RUN) python scripts/copy_db_from_pod_to_local.py
+
+fetch-database-complete:
+	$(POETRY_RUN) python scripts/copy_db_from_pod_to_local.py --mode=complete
+
+
 notebook:
 	# Run jupyter notebooks.
 	POSTGRES_HOST=localhost PYTHONPATH=$(shell pwd) JUPYTER_PATH=$(shell pwd) poetry run jupyter notebook --ip 0.0.0.0

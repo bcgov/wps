@@ -1,20 +1,25 @@
 """ Module for getting database dump.
 """
+from enum import Enum
 import subprocess
 import io
-import sys
-import os
-import getopt
+import argparse
 from typing import List
 
 
+class Mode(str, Enum):
+    """ Different copy modes """
+    partial = 'partial'
+    complete = 'complete'
+
+
 def oc_n_project(project: str) -> List:
-    """ Construct ['oc', '-n', '<project name>'] """
+    """ Construct['oc', '-n', '<project name>'] """
     return ['oc', '-n', project]
 
 
 def oc_rsh(project: str, pod: str) -> List:
-    """ Construct ['oc', '-n', '<project_name>', 'rsh', '<pod>'] """
+    """ Construct['oc', '-n', '<project_name>', 'rsh', '<pod>'] """
     return [*oc_n_project(project), 'rsh', pod]
 
 
@@ -66,28 +71,36 @@ def list_databases(project: str, pod: str) -> None:
     print(result.stdout)
 
 
-def dump_database(project, pod, database) -> List[str]:
+def dump_database(project: str, pod: str, database: str, mode: Mode) -> List[str]:
     """ Dump database to file """
     print('running pg_dump...')
     files = ['/tmp/dump_db.tar']
-    result = subprocess.run([*oc_rsh(project, pod), 'pg_dump', '--file=/tmp/dump_db.tar',
-                             '--clean', '-Ft', database,
-                             '--exclude-table-data=model_run_grid_subset_predictions',
-                             '--exclude-table-data=weather_station_model_predictions'],
-                            stdout=subprocess.PIPE, check=True, text=True)
+    if mode == Mode.partial:
+        print('(partial dump)')
+        result = subprocess.run([*oc_rsh(project, pod), 'pg_dump', '--file=/tmp/dump_db.tar',
+                                 '--clean', '-Ft', database,
+                                 '--exclude-table-data=model_run_grid_subset_predictions',
+                                 '--exclude-table-data=weather_station_model_predictions'],
+                                stdout=subprocess.PIPE, check=True, text=True)
+    else:
+        print('(complete dump)')
+        result = subprocess.run([*oc_rsh(project, pod), 'pg_dump', '--file=/tmp/dump_db.tar',
+                                 '--clean', '-Ft', database],
+                                stdout=subprocess.PIPE, check=True, text=True)
     print(result.stdout)
-    tables = ['model_run_grid_subset_predictions', 'weather_station_model_predictions']
-    process = subprocess.Popen([*oc_rsh(project, pod)], stdin=subprocess.PIPE,
-                               stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    for table in tables:
-        csv_file = '/tmp/{}.csv'.format(table)
-        files.append(csv_file)
-        sql_command = ('psql {database} -c "\\copy (SELECT * FROM {table} WHERE '
-                       'prediction_timestamp > current_date -5) to \'{csv_file}\' with csv"\n').format(
-            database=database, table=table, csv_file=csv_file)
-        print('run: {}'.format(sql_command))
-        process.stdin.write(sql_command)
-        process.stdin.flush()
+    if mode == Mode.partial:
+        tables = ['model_run_grid_subset_predictions', 'weather_station_model_predictions']
+        process = subprocess.Popen([*oc_rsh(project, pod)], stdin=subprocess.PIPE,
+                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        for table in tables:
+            csv_file = '/tmp/{}.csv'.format(table)
+            files.append(csv_file)
+            sql_command = ('psql {database} -c "\\copy (SELECT * FROM {table} WHERE '
+                           'prediction_timestamp > current_date -5) to \'{csv_file}\' with csv"\n').format(
+                database=database, table=table, csv_file=csv_file)
+            print('run: {}'.format(sql_command))
+            process.stdin.write(sql_command)
+            process.stdin.flush()
 
     for filename in files:
         print('zip: {}'.format(filename))
@@ -112,7 +125,7 @@ def copy_files_to_local(project: str, pod: str, files: List[str]) -> None:
 
 
 def delete_remote_files(project: str, pod: str, files: List[str]) -> None:
-    """ Delete all the files we made from the server (cleanup) """
+    """ Delete all the files we made from the server(cleanup) """
     process = subprocess.Popen([*oc_rsh(project, pod)], stdin=subprocess.PIPE,
                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     for filename in files:
@@ -164,22 +177,25 @@ def get_database(project, pod) -> str:
     return database
 
 
-def main(argv):
+def main():
     """
-    Entry points - assumes you have openshift command line tools installed and are logged in.
+    Entry points - assumes you have openshift command line tools installed and are logged in .
     """
-    try:
-        opts, args = getopt.getopt(argv, "hi:o:", ["ifile=", "ofile="])
-    except getopt.GetoptError:
-        sys.exit(os.EX_SOFTWARE)
+    parser = argparse.ArgumentParser(
+        description='Download complete or partial database dump from a pod in an openshift cluster')
+    parser.add_argument('-m', '--mode', default='partial',
+                        help='Download complete or partial (default: partial)')
+    args = parser.parse_args()
+    mode = Mode(args.mode)
+
     project = get_project()
     pod = get_pod(project)
     database = get_database(project, pod)
-    files = dump_database(project, pod, database)
+    files = dump_database(project, pod, database, mode)
     copy_files_to_local(project, pod, files)
     delete_remote_files(project, pod, files)
     unzip_locally(files)
 
 
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    main()
