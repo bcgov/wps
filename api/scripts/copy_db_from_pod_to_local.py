@@ -7,6 +7,10 @@ import argparse
 from typing import List
 
 
+class CopyException(Exception):
+    """ Custom exception for errors """
+
+
 class Mode(str, Enum):
     """ Different copy modes """
     partial = 'partial'
@@ -60,7 +64,7 @@ def list_cluster_members(project: str, pod: str) -> None:
     if pod_is_leader:
         message = 'Please don\'t use the Leader - choose a different pod.'
         print(message)
-        raise Exception(message)
+        raise CopyException(message)
 
 
 def list_databases(project: str, pod: str) -> None:
@@ -185,7 +189,7 @@ def get_pod(project) -> str:
     list_pods(project)
     pod = input("enter pod name: ")
     if not pod:
-        raise Exception("you have to specify a pod name!")
+        raise CopyException("you have to specify a pod name!")
     list_cluster_members(project, pod)
     return pod
 
@@ -195,7 +199,7 @@ def get_database(project, pod) -> str:
     list_databases(project, pod)
     database = input("enter name of database: ")
     if not database:
-        raise Exception("you have to specify a database!")
+        raise CopyException("you have to specify a database!")
     return database
 
 
