@@ -12,13 +12,13 @@
 #
 # Usage:
 #
-#   PGPASSWORD=PASSWORD_FOR_WPS_USER MODE=[linux or docker] ${THIS_FILE}
+#   PGPASSWORD=[password for wps user] MODE=[linux or docker] ${THIS_FILE}
 #
 #   Assumes you have openshift command line tools installed and are logged in.
 #
 # Examples:
 #   
-#   PGPASSWORD=mywpspassword MODE=linux ./restore_db.sh
+#   PGPASSWORD=mywpspassword MODE=native ./restore_db.sh
 #
 
 set -euo pipefail
