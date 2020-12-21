@@ -85,8 +85,11 @@ def create_lock_file(project: str, pod: str, database: str) -> None:
 
 def delete_lock_file(project: str, pod: str, database: str) -> None:
     """ Attempt to delete lockfile """
-    subprocess.run([*oc_rsh(project, pod), 'rmdir', '{}.lock'.format(database)],
-                   stdout=subprocess.PIPE, check=True, text=True)
+    lock_file = '/tmp/{}.lock'.format(database)
+    print('deleting lock {}:{}...'.format(pod, lock_file))
+    result = subprocess.run([*oc_rsh(project, pod), 'rmdir', lock_file],
+                            stdout=subprocess.PIPE, check=True, text=True)
+    print(result.stdout)
 
 
 def dump_database(project: str, pod: str, database: str, mode: Mode) -> List[str]:
