@@ -27,7 +27,7 @@ NATIVE="native"
 DOCKER="docker"
 
 MODE="${MODE:-$DOCKER}"
-BACKUP_FOLDER="${BACKUP_FOLDER:-'./tmp'}"
+BACKUP_FOLDER="${BACKUP_FOLDER:-./tmp}"
 
 if [ "$MODE" = "$NATIVE" ]
 then
