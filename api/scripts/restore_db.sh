@@ -79,8 +79,6 @@ eval "${COPY}"
 # If it fails, you can go ahead and just make one: `create user wpsread with password 'wps';`
 if [ "$MODE" = "$NATIVE" ]
 then
-    # sudo -u postgres psql -U postgres -d wps -c "REASSIGN owned by wpsread to wps; drop owned by wpsread; drop role if exists wpsread; create user wpsread with password 'wps';"
-    # sudo -u postgres psql -U postgres -d wps -c "grant connect on database wps to wpsread; grant usage on schema public to wpsread; grant select on all tables in schema public to wpsread;"
     GRANT="sudo -u postgres psql -U postgres -d wps -c \"grant connect on database wps to wpsread; grant usage on schema public to wpsread; grant select on all tables in schema public to wpsread;\""
 fi
 if [ "$MODE" = "$DOCKER" ]

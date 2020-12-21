@@ -18,12 +18,6 @@
 
 set -euo pipefail
 
-#####################
-# Define some globals
-#####################
-
-# openshift rsh command.
-RSH="oc -n ${PROJECT} rsh ${POD}"
 
 ################
 # Variable check
@@ -32,9 +26,9 @@ if [ -z ${PROJECT+0} ]
 then
     echo "---------------------"
     echo "PROJECT not specified"
-    print "\nSpecify a project:\n\n"
+    printf "\nSpecify a project:\n\n"
     RSH="oc get projects"
-    eval $RSH
+    eval "${RSH}"
     exit 1
 fi
 
@@ -47,6 +41,9 @@ then
     eval $RSH
     exit 1
 fi
+
+# openshift rsh command.
+RSH="oc -n ${PROJECT} rsh ${POD}"
 
 # Check that the pod specified is a replica, not a leader. We don't want to bog
 # down the leader, since it's getting a lot of stuff written to it.
@@ -68,9 +65,17 @@ then
     exit 1
 fi
 
+
 #####################
 # Backup the database
 #####################
+
+# Create a lock file
+CREATE_LOCK="mkdir /tmp/${DATABASE}.lock"
+LOCK_COMMAND="${RSH} ${CREATE_LOCK}"
+echo $LOCK_COMMAND
+eval "${LOCK_COMMAND}"
+printf "\n\n"
 
 # name of file to dump.
 FILENAME="dump_db.tar"
@@ -85,10 +90,10 @@ BACKUP_COMMAND="${RSH} ${PG_DUMP}"
 
 echo "pgdump..."
 echo $BACKUP_COMMAND
-# eval "${BACKUP_COMMAND}"
+eval "${BACKUP_COMMAND}"
 printf "\n\n"
 
-# command to dump remaning tables
+# command to dump remaining tables
 STATION_FILE="weather_station_model_predictions.csv"
 GRID_FILE="model_run_grid_subset_predictions.csv"
 STATION_PREDICTIONS="\copy (SELECT * FROM weather_station_model_predictions WHERE prediction_timestamp > current_date - 5) to '/tmp/${STATION_FILE}' with csv"
@@ -97,13 +102,13 @@ GRID_PREDICTIONS="\copy (SELECT * FROM model_run_grid_subset_predictions WHERE p
 COPY_COMMAND="${RSH} psql ${DATABASE} -c \"${STATION_PREDICTIONS}\""
 echo "copy weather_station_model_predictions to csv..."
 echo "${COPY_COMMAND}"
-# eval "${COPY_COMMAND}"
+eval "${COPY_COMMAND}"
 printf "\n\n"
 
 COPY_COMMAND="${RSH} psql ${DATABASE} -c \"${GRID_PREDICTIONS}\""
 echo "copy model_run_grid_subset_predictions to csv..."
 echo "${COPY_COMMAND}"
-# eval "${COPY_COMMAND}"
+eval "${COPY_COMMAND}"
 printf "\n\n"
 
 ##################
@@ -119,7 +124,7 @@ do
     COMPRESS_COMMAND="${RSH} gzip /tmp/${file}"
     echo "compress ${file}..."
     echo "${COMPRESS_COMMAND}"
-    # eval $COMPRESS_COMMAND
+    eval $COMPRESS_COMMAND
 done
 printf "\n\n"
 
@@ -130,7 +135,7 @@ for file in "${FILES[@]}"
 do
     COPY_COMMAND="oc -n ${PROJECT} cp ${POD}:/tmp/${file}.gz ./${file}.gz"
     echo "${COPY_COMMAND}"
-    # eval "${COPY_COMMAND}"
+    eval "${COPY_COMMAND}"
 done
 printf "\n\n"
 
@@ -140,9 +145,18 @@ for file in "${FILES[@]}"
 do
     DELETE_COMMAND="${RSH} rm /tmp/${file}.gz"
     echo "${DELETE_COMMAND}"
-    # eval "${DELETE_COMMAND}"
+    eval "${DELETE_COMMAND}"
 done
 printf "\n\n"
+
+# remove the lock file
+echo "deleting lock file..."
+REMOVE_LOCK="rmdir /tmp/${DATABASE}.lock"
+UNLOCK_COMMAND="${RSH} ${REMOVE_LOCK}"
+echo $UNLOCK_COMMAND
+eval "${UNLOCK_COMMAND}"
+printf "\n\n"
+
 
 # unzip it locally
 echo "unzip local files..."
@@ -150,6 +164,6 @@ for file in "${FILES[@]}"
 do
     UNZIP_COMMAND="gunzip ${file}.gz"
     echo "${UNZIP_COMMAND}"
-    # eval "${UNZIP_COMMAND}"
+    eval "${UNZIP_COMMAND}"
 done
 printf "\n\n"
