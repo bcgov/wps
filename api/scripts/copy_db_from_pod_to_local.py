@@ -2,6 +2,9 @@
 """
 import subprocess
 import io
+import sys
+import os
+import getopt
 from typing import List
 
 
@@ -161,10 +164,14 @@ def get_database(project, pod) -> str:
     return database
 
 
-def main():
+def main(argv):
     """
     Entry points - assumes you have openshift command line tools installed and are logged in.
     """
+    try:
+        opts, args = getopt.getopt(argv, "hi:o:", ["ifile=", "ofile="])
+    except getopt.GetoptError:
+        sys.exit(os.EX_SOFTWARE)
     project = get_project()
     pod = get_pod(project)
     database = get_database(project, pod)
@@ -175,4 +182,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1:])
