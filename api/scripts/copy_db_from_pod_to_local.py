@@ -99,7 +99,7 @@ def delete_lock_file(project: str, pod: str, database: str) -> None:
 def dump_database(project: str, pod: str, database: str, mode: Mode) -> List[str]:
     """ Dump database to file """
     print('running pg_dump...')
-    files = ['/tmp/dump_db.tar']
+    files = ['/tmp/dump_db.tar', ]
     if mode == Mode.partial:
         print('(partial dump)')
         result = subprocess.run([*oc_rsh(project, pod), 'pg_dump', '--file=/tmp/dump_db.tar',
@@ -113,10 +113,10 @@ def dump_database(project: str, pod: str, database: str, mode: Mode) -> List[str
                                  '--clean', '-Ft', database],
                                 stdout=subprocess.PIPE, check=True, text=True)
     print(result.stdout)
+    process = subprocess.Popen([*oc_rsh(project, pod)], stdin=subprocess.PIPE,
+                               stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     if mode == Mode.partial:
         tables = ['model_run_grid_subset_predictions', 'weather_station_model_predictions']
-        process = subprocess.Popen([*oc_rsh(project, pod)], stdin=subprocess.PIPE,
-                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         for table in tables:
             csv_file = '/tmp/{}.csv'.format(table)
             files.append(csv_file)
