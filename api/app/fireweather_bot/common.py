@@ -48,7 +48,7 @@ def _infer_csv_url(content: str):
     """ Infer the CSV url from the request response and the base url """
     search_result = re.search(r"fire_weather\/csv\/.+\.csv", content)
     if not search_result:
-        raise CSVNotFoundException("Couldn't find the csv url.")
+        raise CSVNotFoundException("Couldn't find the csv url. Content: {}".format(content))
     logger.info('CSV file identified as %s', search_result.group(0))
     file_path = search_result.group(0)
     return urljoin(BC_FIRE_WEATHER_BASE_URL, file_path)
@@ -64,7 +64,8 @@ def _request_csv_url(session: Session, request_body: dict):
     response = session.post(url, data=request_body)
     if response.status_code != 200:
         # Raise an exception if we don't get a 200 response.
-        raise HTTPError("Expecting 200 response", response=response)
+        error_message = 'Received status code: {} (expecting 200)'.format(response.status_code)
+        raise HTTPError(error_message, response=response)
     # Extract csv url.
     return _infer_csv_url(response.text)
 

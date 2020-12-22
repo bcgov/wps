@@ -19,6 +19,9 @@ parameters:
     value: auzhsi-tools
   - name: JOB_NAME
     value: bcfw-p1-hourly-actuals
+  - name: SCHEDULE
+    value: "15 * * * *"
+    required: true
 objects:
   - kind: CronJob
     apiVersion: batch/v1beta1
@@ -27,7 +30,7 @@ objects:
       labels:
         cronjob: ${JOB_NAME}
     spec:
-      schedule: "15 * * * *"
+      schedule: ${SCHEDULE}
       concurrencyPolicy: "Replace"
       jobTemplate:
         metadata:
