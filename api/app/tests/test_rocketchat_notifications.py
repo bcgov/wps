@@ -9,9 +9,9 @@ def test_rocketchat_notifications():
 
 
 @given('a specified <message_string> and an <exception>', target_fixture='response')
-def given_message(message_string, exception):
+def given_message(message_string: str, exception: str):
     """ Send the message to the Rocketchat channel using configured auth. """
-    return send_rocketchat_notification(message_string, exception)
+    return send_rocketchat_notification(message_string, Exception(exception))
 
 
 @then('the response should indicate success <success_boolean>')
