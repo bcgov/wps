@@ -6,6 +6,7 @@ import logging
 from pytest_bdd import scenario, given, then
 from fastapi.testclient import TestClient
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
+import pytest
 import app.main
 from app.db.models.forecasts import NoonForecast
 import app.time_utils as time_utils
@@ -48,14 +49,15 @@ def get_session_with_data():
     return session
 
 
+@pytest.mark.usefixtures('mock_jwt_decode')
 @scenario('test_noon_forecasts_summaries.feature', 'Get noon forecasts summaries(historic)',
           example_converters=dict(codes=str, status=int, num_summaries=int))
 def test_noon_forecasts():
     """ BDD Scenario. """
 
 
-@given('I request noon forecasts for stations: <codes>')
-def response(monkeypatch, mock_jwt_decode, codes):  # pylint: disable=unused-argument
+@given('I request noon forecasts for stations: <codes>', target_fixture='response')
+def given_request(monkeypatch, codes):  # pylint: disable=unused-argument
     """ Stub forecasts into the database and make a request """
     stations = eval(codes)  # pylint: disable=eval-used
 
