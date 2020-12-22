@@ -1,6 +1,5 @@
 """ Functional testing for /models/{model}/predictions/ endpoint.
 """
-import logging
 from datetime import datetime
 import os
 import json
@@ -13,8 +12,6 @@ from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 import app.main
 from app.db.models import (PredictionModelRunTimestamp, PredictionModel, ModelRunGridSubsetPrediction,
                            PredictionModelGridSubset)
-
-LOGGER = logging.getLogger(__name__)
 
 
 @pytest.fixture(name='mock_session')
