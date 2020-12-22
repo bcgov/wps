@@ -52,6 +52,7 @@ fi
 
 
 # Restore pg dump:
+echo "You may be prompted for the wps password..."
 RESTORE="pg_restore -h localhost -d wps -U wps --no-owner --role=wps -n public -c ${BACKUP_FOLDER}/dump_db.tar"
 echo "${RESTORE}"
 eval "${RESTORE}"
@@ -69,7 +70,6 @@ if [ "$PARTIAL" = "True" ]
 then
     # Restore table data
     COPY="psql -h localhost -d wps -U wps -c \"\copy model_run_grid_subset_predictions FROM '${BACKUP_FOLDER}/model_run_grid_subset_predictions.csv' CSV\""
-    echo "You may be prompted for the wps password..."
     echo "${COPY}"
     eval "${COPY}"
 
