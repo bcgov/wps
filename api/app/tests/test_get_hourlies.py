@@ -6,6 +6,7 @@ from starlette.testclient import TestClient
 from aiohttp import ClientSession
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
+import pytest
 import app.main
 import app.time_utils
 from app.db.models.observations import HourlyActual
@@ -15,6 +16,7 @@ import app.wildfire_one
 logger = logging.getLogger(__name__)
 
 
+@pytest.mark.usefixtures("mock_jwt_decode")
 @scenario('test_get_hourlies.feature', 'Get hourlies',
           example_converters=dict(
               codes=str, status=int,
@@ -25,8 +27,8 @@ def test_hourlies():
     """ BDD Scenario. """
 
 
-@given('I request hourlies for stations: <codes> with <use_wfwx>')
-def response(monkeypatch, mock_jwt_decode, codes, use_wfwx):  # pylint: disable=unused-argument
+@given('I request hourlies for stations: <codes> with <use_wfwx>', target_fixture='response')
+def given_hourlies_request(monkeypatch, codes, use_wfwx):
     """ Make /hourlies/ request using mocked out ClientSession.
     """
 
@@ -66,20 +68,20 @@ def response(monkeypatch, mock_jwt_decode, codes, use_wfwx):  # pylint: disable=
 
 
 @then('the response status code is <status>')
-def assert_status_code(response, status):  # pylint: disable=redefined-outer-name
+def assert_status_code(response, status):
     """ Assert that we receive the expected status code """
     assert response.status_code == status
 
 
 @then('there are <num_groups> groups of hourlies')
-def assert_number_of_hourlies_groups(response, num_groups):  # pylint: disable=redefined-outer-name
+def assert_number_of_hourlies_groups(response, num_groups):
     """ Assert that we receive the expected number of hourly groups """
     assert len(response.json()['hourlies']) == num_groups
 
 
 @then('there are <num_readings_per_group> readings per group')
 def assert_number_of_hourlies_per_group(
-        response,  # pylint: disable=redefined-outer-name
+        response,
         num_readings_per_group):
     """ Assert that we receive the expected number of hourlies per groups """
     for index, item in enumerate(eval(num_readings_per_group)):  # pylint: disable=eval-used
