@@ -100,6 +100,9 @@ run-bender:
 run-marvin:
 	$(POETRY_RUN) python -m app.fireweather_bot.hourly_actuals
 
+run-hourly-observed:
+	$(POETRY_RUN) python -m app.fireweather_bot.hourly_actuals
+
 run-all-bots:
 	${call run-env-canada}
 	$(POETRY_RUN) python -m app.fireweather_bot.hourly_actuals

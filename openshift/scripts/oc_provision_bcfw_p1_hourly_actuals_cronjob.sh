@@ -25,11 +25,16 @@ source "$(dirname ${0})/common/common"
 #
 PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 
+# Use a random time if schedule not specified. (The BCWS server can't handle multiple identical requests at
+# the same time, it will throw a duplicate object exception.)
+SCHEDULE="${SCHEDULE:-$((16 + $RANDOM % 43)) * * * *}"
+
 # Process template
 OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/bcfw_p1_hourly_actuals.cronjob.yaml \
 -p JOB_NAME=bcfw-p1-hourly-actuals-${NAME_APP}-${SUFFIX} \
 -p NAME=${NAME_APP} \
--p SUFFIX=${SUFFIX}"
+-p SUFFIX=${SUFFIX} \
+-p SCHEDULE=\"${SCHEDULE}\""
 
 # Apply template (apply or use --dry-run)
 #

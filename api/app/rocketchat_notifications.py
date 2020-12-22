@@ -2,7 +2,7 @@
 Module to send notifications to team RocketChat channel.
 Notification content can be customized based on requestor.
 """
-
+import traceback
 import logging
 import requests
 from app import config
@@ -20,7 +20,13 @@ def send_rocketchat_notification(text: str, exc_info: Exception):
     If you want to know if this method worked or not, you'll have to inspect
     the response.
     """
-    full_message = '{}\n{}: {}'.format(text, config.get('HOSTNAME'), exc_info)
+    full_message = '{}\n{}: {}\n{}'.format(text,
+                                           config.get('HOSTNAME'),
+                                           exc_info,
+                                           traceback.format_exception(
+                                               etype=type(exc_info),
+                                               value=exc_info,
+                                               tb=exc_info.__traceback__))
     try:
         response = requests.post(
             config.get('ROCKET_URL_POST_MESSAGE'),
