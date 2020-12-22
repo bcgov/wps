@@ -3,6 +3,7 @@ result.
 """
 from datetime import datetime
 from typing import List
+import json
 import pytest
 from pytest_bdd import scenario, given, then, when
 from app.db.models import PredictionModel, PredictionModelGridSubset
@@ -17,9 +18,10 @@ def mock_get_actuals_left_outer_join_with_predictions(monkeypatch):
                         get_actuals_left_outer_join_with_predictions)
 
 
+@pytest.mark.usefixtures('mock_get_actuals_left_outer_join_with_predictions')
 @scenario("test_machine_learning.feature", "Learn weather",
-          example_converters=dict(coordinate=eval,
-                                  points=eval,
+          example_converters=dict(coordinate=json.loads,
+                                  points=json.loads,
                                   model_temp=float,
                                   model_rh=float,
                                   timestamp=datetime.fromisoformat,
@@ -30,7 +32,7 @@ def test_machine_learning():
     """ BDD Scenario for predictions """
 
 
-@ given("An instance of StationMachineLearning for <coordinate> within <points>")
+@given("An instance of StationMachineLearning for <coordinate> within <points>", target_fixture='instance')
 def given_an_instance(coordinate: List, points: List):
     """ Bind the data variable """
     return machine_learning.StationMachineLearning(
@@ -41,33 +43,26 @@ def given_an_instance(coordinate: List, points: List):
         target_coordinate=coordinate,
         station_code=None,
         max_learn_date=datetime.now())
-# pylint: disable=redefined-outer-name, unused-argument
 
 
-@ when('The machine learns')
-def learn(given_an_instance: machine_learning.StationMachineLearning,
-          mock_get_actuals_left_outer_join_with_predictions: List):
+@when('The machine learns')
+def learn(instance: machine_learning.StationMachineLearning):
     """ Train the machine learning model """
-    given_an_instance.learn()
-# pylint: enable=redefined-outer-name
+    instance.learn()
 
 
-# pylint: disable=redefined-outer-name
 @ then('The <model_temp> for <timestamp> results in <bias_adjusted_temp>')
 def assert_temperature(
-        given_an_instance: machine_learning.StationMachineLearning,
+        instance: machine_learning.StationMachineLearning,
         model_temp: float, timestamp: datetime, bias_adjusted_temp: float):
     """ Assert that the ML algorithm predicts the temperature correctly """
-    result = given_an_instance.predict_temperature(model_temp, timestamp)
+    result = instance.predict_temperature(model_temp, timestamp)
     assert result == bias_adjusted_temp
-# pylint: enable=redefined-outer-name
 
 
-# pylint: disable=redefined-outer-name
 @ then('The <model_rh> for <timestamp> results in <bias_adjusted_rh>')
-def assert_rh(given_an_instance: machine_learning.StationMachineLearning,
+def assert_rh(instance: machine_learning.StationMachineLearning,
               model_rh: float, timestamp: datetime, bias_adjusted_rh: float):
     """ Assert that the ML algorithm predicts the relative humidity correctly """
-    result = given_an_instance.predict_rh(model_rh, timestamp)
+    result = instance.predict_rh(model_rh, timestamp)
     assert result == bias_adjusted_rh
-# pylint: enable=redefined-outer-name
