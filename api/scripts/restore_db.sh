@@ -29,6 +29,7 @@ DOCKER="docker"
 PARTIAL="${PARTIAL:-True}"
 MODE="${MODE:-$DOCKER}"
 BACKUP_FOLDER="${BACKUP_FOLDER:-./tmp}"
+WITH_WPSREAD="${WITH_WPSREAD:-False}"
 
 if [ "$MODE" = "$NATIVE" ]
 then
@@ -79,18 +80,21 @@ then
 fi
 
 # Ensure wpsread user has appropriate rights:
-# This step assumes you have wpsread user!
-# If it fails, you can go ahead and just make one: `create user wpsread with password 'wps';`
-if [ "$MODE" = "$NATIVE" ]
+if [ "$WITH_WPSREAD" == "True" ]
 then
-    GRANT="sudo -u postgres psql -U postgres -d wps -c \"grant connect on database wps to wpsread; grant usage on schema public to wpsread; grant select on all tables in schema public to wpsread;\""
-fi
-if [ "$MODE" = "$DOCKER" ]
-then
-    GRANT="psql -h localhost -U wps -d wps -c \"grant connect on database wps to wpsread; grant usage on schema public to wpsread; grant select on all tables in schema public to wpsread;\""
-fi
+    # This step assumes you have wpsread user!
+    # If it fails, you can go ahead and just make one: `create user wpsread with password 'wps';`
+    if [ "$MODE" = "$NATIVE" ]
+    then
+        GRANT="sudo -u postgres psql -U postgres -d wps -c \"grant connect on database wps to wpsread; grant usage on schema public to wpsread; grant select on all tables in schema public to wpsread;\""
+    fi
+    if [ "$MODE" = "$DOCKER" ]
+    then
+        GRANT="psql -h localhost -U wps -d wps -c \"grant connect on database wps to wpsread; grant usage on schema public to wpsread; grant select on all tables in schema public to wpsread;\""
+    fi
 
-echo "${GRANT}"
-eval "${GRANT}"
+    echo "${GRANT}"
+    eval "${GRANT}"
+fi
 
 exit 0
