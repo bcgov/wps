@@ -25,6 +25,8 @@ source "$(dirname ${0})/common/common"
 #
 PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 
+# Use a random time if schedule not specified. (The BCWS server can't handle multiple identical requests at
+# the same time, it will throw a duplicate object exception.)
 SCHEDULE="${SCHEDULE:-$((16 + $RANDOM % 43)) * * * *}"
 
 # Process template
