@@ -5,6 +5,7 @@ NOTE: This test currently only handles one station.
 import json
 import os
 import logging
+from typing import List
 from datetime import datetime
 import pytest
 from pytest_bdd import scenario, given, then
@@ -43,25 +44,22 @@ def mock_session(monkeypatch):
 
 @pytest.mark.usefixtures('mock_env_with_use_wfwx', 'mock_jwt_decode')
 @scenario('test_noon_forecasts.feature', 'Get noon_forecasts',
-          example_converters=dict(codes=str, status=int, num_groups=int))
+          example_converters=dict(codes=json.loads, status=int, num_groups=int))
 def test_noon_forecasts():
     """ BDD Scenario. """
 
 
 @given('I request noon_forecasts for stations: <codes>', target_fixture='response')
-def given_request(monkeypatch, codes):
+def given_request(monkeypatch, codes: List):
     """ Make /api/noon_forecasts/ request using mocked out ClientSession.
     """
     monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
-    # NOTE: should be using a converter
-    # pylint: disable=eval-used
-    stations = eval(codes)
 
     # Create API client and get the reppnse.
     client = TestClient(app.main.app)
     headers = {'Content-Type': 'application/json',
                'Authorization': 'Bearer token'}
-    return client.post('/api/noon_forecasts/', headers=headers, json={"stations": stations})
+    return client.post('/api/noon_forecasts/', headers=headers, json={"stations": codes})
 
 
 @then('the response status code is <status>')

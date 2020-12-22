@@ -1,6 +1,8 @@
 """ BDD tests for API /hourlies. """
 import logging
 from datetime import datetime
+from typing import List
+import json
 from pytest_bdd import scenario, given, then
 from starlette.testclient import TestClient
 from aiohttp import ClientSession
@@ -19,26 +21,23 @@ logger = logging.getLogger(__name__)
 @pytest.mark.usefixtures("mock_jwt_decode")
 @scenario('test_get_hourlies.feature', 'Get hourlies',
           example_converters=dict(
-              codes=str, status=int,
+              codes=json.loads, status=int,
               num_groups=int,
-              num_readings_per_group=str,
+              num_readings_per_group=json.loads,
               use_wfwx=str))
 def test_hourlies():
     """ BDD Scenario. """
 
 
 @given('I request hourlies for stations: <codes> with <use_wfwx>', target_fixture='response')
-def given_hourlies_request(monkeypatch, codes, use_wfwx):
+def given_hourlies_request(monkeypatch, codes: List, use_wfwx):
     """ Make /hourlies/ request using mocked out ClientSession.
     """
 
-    # NOTE: should be using a converter
-    stations = eval(codes)  # pylint: disable=eval-used
-
-    def mock_get_session(*args):  # pylint: disable=unused-argument
+    def mock_get_session(*_):
         """ Slap some actuals into the database to match the stations being queried """
         hourly_actuals = []
-        for code in stations:
+        for code in codes:
             hourly_actuals.append(HourlyActual(weather_date=datetime.fromisoformat(
                 "2020-01-01T01:01+00:00"), station_code=code, temp_valid=True, temperature=11.1))
 
@@ -64,7 +63,7 @@ def given_hourlies_request(monkeypatch, codes, use_wfwx):
     client = TestClient(app.main.app)
     headers = {'Content-Type': 'application/json',
                'Authorization': 'Bearer token'}
-    return client.post('/api/hourlies/', headers=headers, json={"stations": stations})
+    return client.post('/api/hourlies/', headers=headers, json={"stations": codes})
 
 
 @then('the response status code is <status>')
@@ -82,8 +81,8 @@ def assert_number_of_hourlies_groups(response, num_groups):
 @then('there are <num_readings_per_group> readings per group')
 def assert_number_of_hourlies_per_group(
         response,
-        num_readings_per_group):
+        num_readings_per_group: List):
     """ Assert that we receive the expected number of hourlies per groups """
-    for index, item in enumerate(eval(num_readings_per_group)):  # pylint: disable=eval-used
+    for index, item in enumerate(num_readings_per_group):
         assert len(response.json()['hourlies']
                    [index]['values']) == item

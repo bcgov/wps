@@ -2,7 +2,9 @@
 """
 
 from datetime import timedelta
+import json
 import logging
+from typing import List
 from pytest_bdd import scenario, given, then
 from fastapi.testclient import TestClient
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
@@ -51,42 +53,40 @@ def get_session_with_data():
 
 @pytest.mark.usefixtures('mock_jwt_decode')
 @scenario('test_noon_forecasts_summaries.feature', 'Get noon forecasts summaries(historic)',
-          example_converters=dict(codes=str, status=int, num_summaries=int))
+          example_converters=dict(codes=json.loads, status=int, num_summaries=int))
 def test_noon_forecasts():
     """ BDD Scenario. """
 
 
 @given('I request noon forecasts for stations: <codes>', target_fixture='response')
-def given_request(monkeypatch, codes):  # pylint: disable=unused-argument
+def given_request(monkeypatch, codes: List):
     """ Stub forecasts into the database and make a request """
-    stations = eval(codes)  # pylint: disable=eval-used
 
-    def mock_get_session(*args):  # pylint: disable=unused-argument
+    def mock_get_session(*_):
         return get_session_with_data()
     monkeypatch.setattr(app.db.database, 'get_read_session', mock_get_session)
 
     client = TestClient(app.main.app)
     endpoint = '/api/noon_forecasts/summaries/'
     return client.post(
-        endpoint, headers={'Authorization': 'Bearer token'}, json={'stations': stations})
+        endpoint, headers={'Authorization': 'Bearer token'}, json={'stations': codes})
 
 
 @then('the status code of the response is <status>')
-def assert_status_code(response, status):  # pylint: disable=redefined-outer-name
+def assert_status_code(response, status: int):
     """ Check if we receive the expected status code """
     assert response.status_code == status
 
 
 @then('the response should have <num_summaries> summaries of forecasts')
-def assert_number_of_summaries(response, num_summaries):  # pylint: disable=redefined-outer-name
+def assert_number_of_summaries(response, num_summaries: int):
     """ Check if we receive the expected number of summaries"""
     assert len(response.json()['summaries']) == num_summaries
 
 
 @then('and contain calculated percentiles for available stations <codes>')
-def assert_response(response, codes):  # pylint: disable=redefined-outer-name
+def assert_response(response, codes: List):
     """ Check if we calculate correct percentiles based on its noon forecasts """
-    stations = eval(codes)  # pylint: disable=eval-used
     result = response.json()
     tmp_min = min(mock_tmps)
     tmp_max = max(mock_tmps)
@@ -98,6 +98,6 @@ def assert_response(response, codes):  # pylint: disable=redefined-outer-name
 
     if len(result['summaries']) == 1:
         summary = result['summaries'][0]
-        assert summary['station']['code'] == stations[0]
+        assert summary['station']['code'] == codes[0]
         assert summary['values'] == [{'datetime': weather_date.isoformat(), 'tmp_min': tmp_min,
                                       'tmp_max': tmp_max, 'rh_min': rh_min, 'rh_max': rh_max}]
