@@ -25,11 +25,14 @@ source "$(dirname ${0})/common/common"
 #
 PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 
+SCHEDULE="${SCHEDULE:-$((31 + $RANDOM % 29)) 8,16 * * *}"
+
 # Process template
 OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/bcfw_p1_forecasts.cronjob.yaml \
 -p JOB_NAME=bcfw-p1-forecasts-${NAME_APP}-${SUFFIX} \
 -p NAME=${NAME_APP} \
--p SUFFIX=${SUFFIX}"
+-p SUFFIX=${SUFFIX} \
+-p SCHEDULE=\"${SCHEDULE}\""
 
 # Apply template (apply or use --dry-run)
 #
