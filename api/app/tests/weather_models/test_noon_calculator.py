@@ -11,7 +11,8 @@ logger = logging.getLogger(__name__)
 
 
 @scenario('test_noon_calculator.feature', 'Calculate noon data',
-          example_converters=dict(data=json.loads, timestamp=str, temperature=float, relative_humidity=float, delta_precipitation=float))
+          example_converters=dict(data=json.loads, timestamp=str, temperature=float, relative_humidity=float,
+                                  delta_precipitation=float))
 def test_noon_calculator():
     """ BDD Scenario. """
 
