@@ -18,6 +18,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Check jq
+        run: jq --version
+        shell: bash
+
       - name: Deploy PostGIS instance
         uses: bcgov/openshift-launchpad-deployment@master
         with:
