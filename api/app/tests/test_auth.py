@@ -1,18 +1,18 @@
 """ Functional testing for authentication """
 from pytest_bdd import scenario, given, then
 from fastapi.testclient import TestClient
+import pytest
 import app.main
 
 
-# pylint: disable=unused-argument, redefined-outer-name
 @scenario('test_auth.feature', 'Handling unauthenticated users',
           example_converters=dict(token=str, status=int, message=str, endpoint=str))
 def test_auth_1st_scenario():
     """ BDD Scenario #1. """
 
 
-@given("I am an unauthenticated user <token> when I access a protected <endpoint>")
-def response(token: str, endpoint: str):
+@given("I am an unauthenticated user <token> when I access a protected <endpoint>", target_fixture='response')
+def given_unauthenticated_user(token: str, endpoint: str):
     """ Make POST {endpoint} request which is protected """
     client = TestClient(app.main.app)
     return client.post(endpoint, headers={'Authorization': token})
@@ -30,13 +30,14 @@ def error_message(response, message: str):
     assert response.json()['detail'] == message
 
 
+@pytest.mark.usefixtures("mock_jwt_decode")
 @scenario("test_auth.feature", "Verifying authenticated users", example_converters=dict(status=int))
 def test_auth_2nd_scenario():
     """ BDD Scenario #2. """
 
 
-@given("I am an authenticated user when I access a protected <endpoint>")
-def response_2(mock_jwt_decode, endpoint: str):
+@given("I am an authenticated user when I access a protected <endpoint>", target_fixture='response_2')
+def given_authenticated_user(endpoint: str):
     """ Make POST {endpoint} request which is protected """
     client = TestClient(app.main.app)
     return client.post(
@@ -47,5 +48,3 @@ def response_2(mock_jwt_decode, endpoint: str):
 def status_code_2(response_2, status: int):
     """ Assert that we receive the expected status code """
     assert response_2.status_code == status
-
-# pylint: enable=unused-argument, redefined-outer-name

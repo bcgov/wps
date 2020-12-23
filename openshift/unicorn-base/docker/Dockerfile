@@ -21,7 +21,7 @@ RUN python -m pip install gdal==$(gdal-config --version)
 # Install poetry https://python-poetry.org/docs/#installation
 RUN cd /tmp && \
     curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py > get-poetry.py && \
-    POETRY_HOME=/opt/poetry python get-poetry.py --version 1.0.8 && \
+    POETRY_HOME=/opt/poetry python get-poetry.py --version 1.1.4 && \
     cd /usr/local/bin && \
     ln -s /opt/poetry/bin/poetry && \
     poetry config virtualenvs.create false

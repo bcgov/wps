@@ -2,6 +2,7 @@
 import logging
 from pytest_bdd import scenario, given, then
 from app.weather_models.env_canada import parse_env_canada_filename
+from app.weather_models.process_grib import ModelRunInfo
 
 LOGGER = logging.getLogger(__name__)
 
@@ -12,20 +13,20 @@ def test_parse():
     """ BDD Scenario. """
 
 
-@given('I have a grib file <filename>')
-def parsed_file(filename):
+@given('I have a grib file <filename>', target_fixture='parsed_file')
+def given_grib_file(filename: str) -> ModelRunInfo:
     """ Make /hourlies/ request using mocked out ClientSession.
     """
     return parse_env_canada_filename(filename)
 
 
 @then('The projection is <projection>')
-def assert_status_code(parsed_file, projection):  # pylint: disable=redefined-outer-name
+def assert_status_code(parsed_file: ModelRunInfo, projection: str):
     """ Assert that we recieve the expected status code """
     assert parsed_file.projection == projection
 
 
 @then('The variable_name is <variable_name>')
-def assert_variable_name(parsed_file, variable_name):  # pylint: disable=redefined-outer-name
+def assert_variable_name(parsed_file: ModelRunInfo, variable_name: str):
     """ Assert that we recieve the expected status code """
     assert parsed_file.variable_name == variable_name

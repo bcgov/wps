@@ -65,7 +65,7 @@ test-coverage:
 
 lint:
 	# Run lint.
-	$(POETRY_RUN) pylint -j 0 --rcfile=.pylintrc app/*.py app/**/*.py;
+	$(POETRY_RUN) pylint --rcfile=.pylintrc app/*.py app/**/*.py;
 
 run:
 	# Run the application in the virtual environment (after linting and testing).
@@ -107,6 +107,29 @@ run-all-bots:
 	${call run-env-canada}
 	$(POETRY_RUN) python -m app.fireweather_bot.hourly_actuals
 	$(POETRY_RUN) python -m app.fireweather_bot.noon_forecasts
+
+
+fetch-database-partial:
+	$(POETRY_RUN) python scripts/copy_db_from_pod_to_local.py
+
+fetch-database-complete:
+	$(POETRY_RUN) python scripts/copy_db_from_pod_to_local.py --mode=complete
+
+restore-partial-database-local:
+	# Restore a partial database to local server.
+	# Set environment variable PGPASSWORD=mywpspassword if you want to skip typing password for authentication.
+	# Set environment variable WITH_WPSREAD if you want to grant rights for wpsread user.
+	MODE=native ./scripts/restore_db.sh
+
+restore-complete-database-local:
+	# Restore a complete database to local server.
+	MODE=native PARTIAL=False ./scripts/restore_db.sh
+
+restore-partial-database-docker:
+	# Restore a partial database to server in docker.
+	# Set environment variable PGPASSWORD=mywpspassword if you want to skip typing password for authentication.
+	# Set environment variable WITH_WPSREAD if you want to grant rights for wpsread user.
+	./scripts/restore_db.sh
 
 notebook:
 	# Run jupyter notebooks.
