@@ -51,7 +51,7 @@ def learn(instance: machine_learning.StationMachineLearning):
     instance.learn()
 
 
-@ then('The <model_temp> for <timestamp> results in <bias_adjusted_temp>')
+@then('The <model_temp> for <timestamp> results in <bias_adjusted_temp>')
 def assert_temperature(
         instance: machine_learning.StationMachineLearning,
         model_temp: float, timestamp: datetime, bias_adjusted_temp: float):
@@ -60,7 +60,7 @@ def assert_temperature(
     assert result == bias_adjusted_temp
 
 
-@ then('The <model_rh> for <timestamp> results in <bias_adjusted_rh>')
+@then('The <model_rh> for <timestamp> results in <bias_adjusted_rh>')
 def assert_rh(instance: machine_learning.StationMachineLearning,
               model_rh: float, timestamp: datetime, bias_adjusted_rh: float):
     """ Assert that the ML algorithm predicts the relative humidity correctly """
