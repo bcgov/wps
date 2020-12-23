@@ -45,8 +45,9 @@ pipeline {
                     sh "PROJ_TARGET=${projProd} ./openshift/scripts/oc_provision_ec_gdps_cronjob.sh prod apply"
                     sh "PROJ_TARGET=${projProd} ./openshift/scripts/oc_provision_ec_hrdps_cronjob.sh prod apply"
                     sh "PROJ_TARGET=${projProd} ./openshift/scripts/oc_provision_ec_rdps_cronjob.sh prod apply"
-                    sh "PROJ_TARGET=${projProd} ./openshift/scripts/oc_provision_bcfw_p1_forecasts_cronjob.sh prod apply"
-                    sh "PROJ_TARGET=${projProd} ./openshift/scripts/oc_provision_bcfw_p1_hourly_actuals_cronjob.sh prod apply"
+                    // BC FireWeather cronjobs
+                    sh "PROJ_TARGET=${projProd} SCHEDULE=\"30 8,16 * * *\" ./openshift/scripts/oc_provision_bcfw_p1_forecasts_cronjob.sh prod apply"
+                    sh "PROJ_TARGET=${projProd} SCHEDULE=\"15 * * * *\" ./openshift/scripts/oc_provision_bcfw_p1_hourly_actuals_cronjob.sh prod apply"
                     // Configure backups
                     sh "PROJ_TARGET=${projProd} BACKUP_VOLUME_NAME=bk-auzhsi-prod-lenk19vmffnx ./openshift/scripts/oc_provision_matomo_backup.sh prod apply"
                     sh "PROJ_TARGET=${projProd} JOB_PERSISTENT_STORAGE_NAME=bk-auzhsi-prod-lenk19vmffnx ./openshift/scripts/oc_provision_matomo_backup_cronjob.sh prod apply"
