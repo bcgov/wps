@@ -1,7 +1,6 @@
 """ Functional testing for /models/{model}/predictions/ endpoint.
 """
 from datetime import datetime
-import os
 import json
 from typing import List
 from pytest_bdd import scenario, given, then, when
