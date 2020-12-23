@@ -1,5 +1,7 @@
 # HFI Calculator Spreadsheet
 
+_Note: All equations in this document were converted to images using the VS Code extension "Math to Image". To preview any math-y Markdown documents in VS Code, use the extension "Markdown+Math"._
+
 ## Caveats
 
 This information was pulled from the sample HFI calculator spreadsheet "__20 HFI Workbook May 12-14.xlsx__", which is for the Coastal Fire Zone. Any possible variations between this and other fire zones have not been captured in this document.
