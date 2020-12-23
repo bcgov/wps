@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 @pytest.mark.usefixtures("mock_jwt_decode")
-@scenario('test_get_hourlies.feature', 'Get hourlies',
+@scenario('test_get_observations.feature', 'Get hourly observations',
           example_converters=dict(
               codes=json.loads, status=int,
               num_groups=int,

@@ -1,6 +1,6 @@
 Feature: /observations/
 
-    Scenario: Get hourlies
+    Scenario: Get hourly observations
         Given I request hourlies for stations: <codes> with <use_wfwx>
         Then the response status code is <status>
         And there are <num_groups> groups of hourlies

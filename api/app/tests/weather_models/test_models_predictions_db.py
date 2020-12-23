@@ -9,7 +9,6 @@ from fastapi.testclient import TestClient
 import pytest
 import shapely.wkt
 from geoalchemy2.shape import from_shape
-from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 import app.main
 from app.db.models import (PredictionModelRunTimestamp, PredictionModel, ModelRunGridSubsetPrediction,
                            PredictionModelGridSubset)
@@ -24,7 +23,7 @@ def load_json_file(filename: str) -> dict:
 
 @pytest.fixture(name='mock_session')
 def mock_session_fixture(monkeypatch, data):
-    """ Mocked out sqlalchemy session """
+    """ Mocked out crud calls """
     if data:
         dirname = os.path.dirname(os.path.realpath(__file__))
         filename = os.path.join(dirname, data)
@@ -37,17 +36,17 @@ def mock_session_fixture(monkeypatch, data):
         prediction_model = PredictionModel(
             id=1, name='name', abbreviation='abbrev', projection='projection')
 
-        # pylint: disable=unused-argument
-        def mock_get_session(*args):
-            return UnifiedAlchemyMagicMock()
+        def mock_get_session(*_):
+            """ Make sure we don't get a real session """
+            return None
 
-        def mock_get_most_recent_model_run(*args) -> PredictionModelRunTimestamp:
+        def mock_get_most_recent_model_run(*_) -> PredictionModelRunTimestamp:
             timestamp = '2020-01-22T18:00:00+00:00'
             return PredictionModelRunTimestamp(id=1,
                                                prediction_model=prediction_model,
                                                prediction_run_timestamp=datetime.fromisoformat(timestamp))
 
-        def mock_get_model_run_predictions(*args):
+        def mock_get_model_run_predictions(*_):
             shape = shapely.wkt.loads(geometry)
             grid = PredictionModelGridSubset(
                 id=1,
