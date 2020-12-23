@@ -49,59 +49,77 @@ The formula for ROS varies depending on the fuel layer type. The unit for ROS is
 
 #### C1
 
-$$
+<!-- $$
 \text{ROS} = 90(1-\exp[-0.0649(\text{ISI})])^{4.5}(\exp[50 \times \ln{0.9} \times (\frac{1}{\text{BUI}} - \frac{1}{72})])
-$$
+$$ --> 
+
+<div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BROS%7D%20%3D%2090(1-%5Cexp%5B-0.0649(%5Ctext%7BISI%7D)%5D)%5E%7B4.5%7D(%5Cexp%5B50%20%5Ctimes%20%5Cln%7B0.9%7D%20%5Ctimes%20(%5Cfrac%7B1%7D%7B%5Ctext%7BBUI%7D%7D%20-%20%5Cfrac%7B1%7D%7B72%7D)%5D)"></div>
 
 #### C2
 
-$$
+<!-- $$
 \text{ROS} = 110(1-\exp[-0.0282(\text{ISI})])^{1.5}(\exp[50 \times \ln{0.7} \times (\frac{1}{\text{BUI}} - \frac{1}{64})])
-$$
+$$ --> 
+
+<div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BROS%7D%20%3D%20110(1-%5Cexp%5B-0.0282(%5Ctext%7BISI%7D)%5D)%5E%7B1.5%7D(%5Cexp%5B50%20%5Ctimes%20%5Cln%7B0.7%7D%20%5Ctimes%20(%5Cfrac%7B1%7D%7B%5Ctext%7BBUI%7D%7D%20-%20%5Cfrac%7B1%7D%7B64%7D)%5D)"></div>
 
 #### C3 and C3m
 
-$$
+<!-- $$
 \text{ROS} = 110(1-\exp[-0.0444(\text{ISI})])^{3}(\exp[50 \times \ln{0.75} \times (\frac{1}{\text{BUI}} - \frac{1}{62})])
-$$
+$$ --> 
+
+<div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BROS%7D%20%3D%20110(1-%5Cexp%5B-0.0444(%5Ctext%7BISI%7D)%5D)%5E%7B3%7D(%5Cexp%5B50%20%5Ctimes%20%5Cln%7B0.75%7D%20%5Ctimes%20(%5Cfrac%7B1%7D%7B%5Ctext%7BBUI%7D%7D%20-%20%5Cfrac%7B1%7D%7B62%7D)%5D)"></div>
 
 #### C4
 
-$$
+<!-- $$
 \text{ROS} = 110(1-\exp[-0.0293(\text{ISI})])^{1.5}(\exp[50 \times \ln{0.8} \times (\frac{1}{\text{BUI}} - \frac{1}{66})])
-$$
+$$ --> 
+
+<div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BROS%7D%20%3D%20110(1-%5Cexp%5B-0.0293(%5Ctext%7BISI%7D)%5D)%5E%7B1.5%7D(%5Cexp%5B50%20%5Ctimes%20%5Cln%7B0.8%7D%20%5Ctimes%20(%5Cfrac%7B1%7D%7B%5Ctext%7BBUI%7D%7D%20-%20%5Cfrac%7B1%7D%7B66%7D)%5D)"></div>
 
 #### C5
 
-$$
+<!-- $$
 \text{ROS} = 30(1-\exp[-0.0697(\text{ISI})])^{4}(\exp[50 \times \ln{0.8} \times (\frac{1}{\text{BUI}} - \frac{1}{56})])
-$$
+$$ --> 
+
+<div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BROS%7D%20%3D%2030(1-%5Cexp%5B-0.0697(%5Ctext%7BISI%7D)%5D)%5E%7B4%7D(%5Cexp%5B50%20%5Ctimes%20%5Cln%7B0.8%7D%20%5Ctimes%20(%5Cfrac%7B1%7D%7B%5Ctext%7BBUI%7D%7D%20-%20%5Cfrac%7B1%7D%7B56%7D)%5D)"></div>
 
 #### C7
 
-$$
+<!-- $$
 \text{ROS} = 45(1-\exp[-0.0305(\text{ISI})])^{2}(\exp[50 \times \ln{0.85} \times (\frac{1}{\text{BUI}} - \frac{1}{106})])
-$$
+$$ --> 
+
+<div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BROS%7D%20%3D%2045(1-%5Cexp%5B-0.0305(%5Ctext%7BISI%7D)%5D)%5E%7B2%7D(%5Cexp%5B50%20%5Ctimes%20%5Cln%7B0.85%7D%20%5Ctimes%20(%5Cfrac%7B1%7D%7B%5Ctext%7BBUI%7D%7D%20-%20%5Cfrac%7B1%7D%7B106%7D)%5D)"></div>
 
 #### S3
 
-$$
+<!-- $$
 \text{ROS} = 55(1-\exp[-0.0829(\text{ISI})])^{3.2}(\exp[50 \times \ln{0.75} \times (\frac{1}{\text{BUI}} - \frac{1}{31})])
-$$
+$$ --> 
+
+<div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BROS%7D%20%3D%2055(1-%5Cexp%5B-0.0829(%5Ctext%7BISI%7D)%5D)%5E%7B3.2%7D(%5Cexp%5B50%20%5Ctimes%20%5Cln%7B0.75%7D%20%5Ctimes%20(%5Cfrac%7B1%7D%7B%5Ctext%7BBUI%7D%7D%20-%20%5Cfrac%7B1%7D%7B31%7D)%5D)"></div>
 
 ### Spread
 
-$$
+<!-- $$
 \text{Spread} = 60 \times \text{ROS}
-$$
+$$ --> 
+
+<div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BSpread%7D%20%3D%2060%20%5Ctimes%20%5Ctext%7BROS%7D"></div>
 
 ### 1 HR Fire Size
 
 LB Ratio and Spread are necessary to calculate the 1 HR Fire Size.
 
-$$
+<!-- $$
 \text{1 HR Fire size} = \frac{\pi \times \text{spread}^2}{40,000 \times \text{LB ratio}}
-$$ 
+$$ --> 
+
+<div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7B1%20HR%20Fire%20size%7D%20%3D%20%5Cfrac%7B%5Cpi%20%5Ctimes%20%5Ctext%7Bspread%7D%5E2%7D%7B40%2C000%20%5Ctimes%20%5Ctext%7BLB%20ratio%7D%7D"></div> 
 
 ### CSI
 
@@ -118,37 +136,47 @@ $$
 
 ### SFC
 
-$$
+<!-- $$
 \text{SFC} = 1.5 \times (1-\exp[-0.23(\text{FFMC}-81)])
-$$
+$$ --> 
+
+<div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BSFC%7D%20%3D%201.5%20%5Ctimes%20(1-%5Cexp%5B-0.23(%5Ctext%7BFFMC%7D-81)%5D)"></div>
 
 Except there is an extra column in the spreadsheet for SFC of fuel type C7. The formula for C7 SFC is:
 
 If FFMC < 70:
-$$
+<!-- $$
 \text{C7 SFC} = 1.5(1-\exp[-0.183(\text{BUI})])
-$$
+$$ --> 
+
+<div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BC7%20SFC%7D%20%3D%201.5(1-%5Cexp%5B-0.183(%5Ctext%7BBUI%7D)%5D)"></div>
 
 Else:
-$$
+<!-- $$
 \text{C7 SFC} = 2(1-\exp[-0.104(\text{FFMC} - 70)]) + 1.5(1-\exp[-0.183(\text{BUI})])
-$$
+$$ --> 
+
+<div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BC7%20SFC%7D%20%3D%202(1-%5Cexp%5B-0.104(%5Ctext%7BFFMC%7D%20-%2070)%5D)%20%2B%201.5(1-%5Cexp%5B-0.183(%5Ctext%7BBUI%7D)%5D)"></div>
 
 ### RSO
 
 RSO is the critical surface fire rate of spread.
 
-$$
+<!-- $$
 \text{RSO} = \frac{\text{CSI}}{300 \times \text{SFC}}
-$$
+$$ --> 
+
+<div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BRSO%7D%20%3D%20%5Cfrac%7B%5Ctext%7BCSI%7D%7D%7B300%20%5Ctimes%20%5Ctext%7BSFC%7D%7D"></div>
 
 ### CFB
 
 CFB is the Crown Fraction Burned.
 
-$$
+<!-- $$
 \text{CFB} = 1 - \exp(-0.23(\text{ROS} - \text{RSO}))
-$$
+$$ --> 
+
+<div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BCFB%7D%20%3D%201%20-%20%5Cexp(-0.23(%5Ctext%7BROS%7D%20-%20%5Ctext%7BRSO%7D))"></div>
 
 where ROS $\equiv$ Rate Of Spread
 
@@ -158,35 +186,45 @@ _Buckle up, it's complicated_
 
 At a high level, the formula for HFI calculation is
 
-$$
+<!-- $$
 \text{HFI} = 300 \times \text{TFC} \times \text{ROS}
-$$
+$$ --> 
+
+<div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BHFI%7D%20%3D%20300%20%5Ctimes%20%5Ctext%7BTFC%7D%20%5Ctimes%20%5Ctext%7BROS%7D"></div>
 where TFC $\equiv$ Total Fuel Consumption.
 
-$$
+<!-- $$
 \text{TFC} = \text{SFC + CFC}
-$$
+$$ --> 
+
+<div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BTFC%7D%20%3D%20%5Ctext%7BSFC%20%2B%20CFC%7D"></div>
 where SFC $\equiv$ Surface Fuel Consumption and CFC $\equiv$ Crown Fuel Consumption.
 
-$$
+<!-- $$
 \text{CFC} = \text{CFL} \times \text{CFB}
-$$
+$$ --> 
+
+<div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BCFC%7D%20%3D%20%5Ctext%7BCFL%7D%20%5Ctimes%20%5Ctext%7BCFB%7D"></div>
 where CFL $\equiv$ Crown Fuel Load and CFB $\equiv$ Crown Fraction Burned. CFL is a set of constants based on fuel type.
 
 We don't have the CFL constants available to us at the moment, so the following HFI equations have been inferred from the sample spreadsheet based on fuel layer type.
 
 #### C1
 
-If $(1.5(1-\exp[-0.23(\text{FFMC}-81)])) > 0$ AND $\frac{458}{1500(\text{ROS[C1]})(1-\exp[-0.0115 \times \text{BUI}])}<1$
-$$
+If <!-- $(1.5(1-\exp[-0.23(\text{FFMC}-81)])) > 0$ --> <img src="https://render.githubusercontent.com/render/math?math=(1.5(1-%5Cexp%5B-0.23(%5Ctext%7BFFMC%7D-81)%5D))%20%3E%200"> AND <!-- $\frac{458}{1500(\text{ROS[C1]})(1-\exp[-0.0115 \times \text{BUI}])}<1$ --> <img src="https://render.githubusercontent.com/render/math?math=%5Cfrac%7B458%7D%7B1500(%5Ctext%7BROS%5BC1%5D%7D)(1-%5Cexp%5B-0.0115%20%5Ctimes%20%5Ctext%7BBUI%7D%5D)%7D%3C1">
+<!-- $$
 \text{HFI} = 225(1-\exp[-0.23(\text{ROS[C1]} - \frac{458}{450(1-\exp[-0.023(\text{FFMC}-81)])})]) + 1.5(1-\exp[-0.23(\text{FFMC} -81)])(\text{ROS[C1]})
-$$
+$$ --> 
+
+<div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BHFI%7D%20%3D%20225(1-%5Cexp%5B-0.23(%5Ctext%7BROS%5BC1%5D%7D%20-%20%5Cfrac%7B458%7D%7B450(1-%5Cexp%5B-0.023(%5Ctext%7BFFMC%7D-81)%5D)%7D)%5D)%20%2B%201.5(1-%5Cexp%5B-0.23(%5Ctext%7BFFMC%7D%20-81)%5D)(%5Ctext%7BROS%5BC1%5D%7D)"></div>
 
 Else
 
-$$
+<!-- $$
 \text{HFI} = 1.5(1-\exp[-0.23(\text{FFMC}-81)])(\text{ROS[C1]})
-$$
+$$ --> 
+
+<div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BHFI%7D%20%3D%201.5(1-%5Cexp%5B-0.23(%5Ctext%7BFFMC%7D-81)%5D)(%5Ctext%7BROS%5BC1%5D%7D)"></div>
 
 #### C2
 
@@ -206,7 +244,7 @@ $$ -->
 
 <div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BM%7D%20%3D%20300(1.15)(1-%5Cexp%5B-0.23(%5Ctext%7BROS%7D%20-%20%5Cfrac%7B3667%7D%7B1500(1-%5Cexp%5B-0.0164%20%5Ctimes%20%5Ctext%7BBUI%7D%5D)%7D)%5E%7B2.24%7D%5D)"></div>
 
-Else $\text{M} = 0$.
+Else <!-- $\text{M} = 0$ --> <img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BM%7D%20%3D%200">.
 
 
 
@@ -215,7 +253,7 @@ Else $\text{M} = 0$.
 | HFI  | Intensity Group |
 |------|-----------------|
 | <500        | 1        |
-| $\geq$ 500  | 2        |
-| $\geq$ 1000 | 3        |
-| $\geq$ 2000 | 4        |
-| $\geq$ 4000 | 5        |
+| <!-- $\geq$ --> <img src="https://render.githubusercontent.com/render/math?math=%5Cgeq"> 500  | 2        |
+| <!-- $\geq$ --> <img src="https://render.githubusercontent.com/render/math?math=%5Cgeq"> 1000 | 3        |
+| <!-- $\geq$ --> <img src="https://render.githubusercontent.com/render/math?math=%5Cgeq"> 2000 | 4        |
+| <!-- $\geq$ --> <img src="https://render.githubusercontent.com/render/math?math=%5Cgeq"> 4000 | 5        |
