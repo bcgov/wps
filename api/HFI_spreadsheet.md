@@ -192,15 +192,19 @@ $$
 
 #### C3
 
-$$
+<!-- $$
 \text{HFI} = M + 5(1-\exp[-0.0164 \times \text{BUI}]^{2.24})(\text{ROS})
-$$
+$$ --> 
 
-If $\frac{3667}{1500(\text{ROS})(1-\exp[-0.0164 \times \text{BUI}])^{2.24}} < 1$,
+<div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BHFI%7D%20%3D%20M%20%2B%205(1-%5Cexp%5B-0.0164%20%5Ctimes%20%5Ctext%7BBUI%7D%5D%5E%7B2.24%7D)(%5Ctext%7BROS%7D)"></div>
 
-$$
+If <!-- $\frac{3667}{1500(\text{ROS})(1-\exp[-0.0164 \times \text{BUI}])^{2.24}} < 1$ --> <img src="https://render.githubusercontent.com/render/math?math=%5Cfrac%7B3667%7D%7B1500(%5Ctext%7BROS%7D)(1-%5Cexp%5B-0.0164%20%5Ctimes%20%5Ctext%7BBUI%7D%5D)%5E%7B2.24%7D%7D%20%3C%201">
+
+<!-- $$
 \text{M} = 300(1.15)(1-\exp[-0.23(\text{ROS} - \frac{3667}{1500(1-\exp[-0.0164 \times \text{BUI}])})^{2.24}])
-$$
+$$ --> 
+
+<div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BM%7D%20%3D%20300(1.15)(1-%5Cexp%5B-0.23(%5Ctext%7BROS%7D%20-%20%5Cfrac%7B3667%7D%7B1500(1-%5Cexp%5B-0.0164%20%5Ctimes%20%5Ctext%7BBUI%7D%5D)%7D)%5E%7B2.24%7D%5D)"></div>
 
 Else $\text{M} = 0$.
 
