@@ -9,23 +9,17 @@ from pytest_bdd import scenario, given, then, when
 from fastapi.testclient import TestClient
 import app.main
 from app.tests import load_sqlalchemy_response_from_json
+from app.tests import load_json_file
 
 
 logger = logging.getLogger(__name__)
 
 
-def load_json(filename: str) -> dict:
-    """ Load json file given filename """
-    dirname = os.path.dirname(os.path.realpath(__file__))
-    with open(os.path.join(dirname, filename)) as crud_mappings_file:
-        return json.load(crud_mappings_file)
-
-
 @pytest.mark.usefixtures("mock_jwt_decode")
 @scenario("test_models_endpoints.feature", "Generic model endpoint testing",
           example_converters=dict(
-              codes=json.loads, endpoint=str, crud_mapping=load_json, expected_status_code=int,
-              expected_response=load_json, notes=str))
+              codes=json.loads, endpoint=str, crud_mapping=load_json_file(__file__), expected_status_code=int,
+              expected_response=load_json_file(__file__), notes=str))
 def test_model_predictions_summaries_scenario():
     """ BDD Scenario for prediction summaries """
 

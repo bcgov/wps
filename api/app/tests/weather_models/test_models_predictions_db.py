@@ -12,69 +12,58 @@ from geoalchemy2.shape import from_shape
 import app.main
 from app.db.models import (PredictionModelRunTimestamp, PredictionModel, ModelRunGridSubsetPrediction,
                            PredictionModelGridSubset)
-
-
-def load_json_file(filename: str) -> dict:
-    """ Load json file given filename """
-    dirname = os.path.dirname(os.path.realpath(__file__))
-    with open(os.path.join(dirname, filename)) as file_pointer:
-        return json.load(file_pointer)
+from app.tests import load_json_file
 
 
 @pytest.fixture(name='mock_session')
 def mock_session_fixture(monkeypatch, data):
     """ Mocked out crud calls """
-    if data:
-        dirname = os.path.dirname(os.path.realpath(__file__))
-        filename = os.path.join(dirname, data)
-        with open(filename) as data_file:
-            json_data = json.load(data_file)
+    predictions = data['predictions']
+    geometry = data['geometry']
 
-        predictions = json_data['predictions']
-        geometry = json_data['geometry']
+    prediction_model = PredictionModel(
+        id=1, name='name', abbreviation='abbrev', projection='projection')
 
-        prediction_model = PredictionModel(
-            id=1, name='name', abbreviation='abbrev', projection='projection')
+    def mock_get_session(*_):
+        """ Make sure we don't get a real session """
+        return None
 
-        def mock_get_session(*_):
-            """ Make sure we don't get a real session """
-            return None
+    def mock_get_most_recent_model_run(*_) -> PredictionModelRunTimestamp:
+        timestamp = '2020-01-22T18:00:00+00:00'
+        return PredictionModelRunTimestamp(id=1,
+                                           prediction_model=prediction_model,
+                                           prediction_run_timestamp=datetime.fromisoformat(timestamp))
 
-        def mock_get_most_recent_model_run(*_) -> PredictionModelRunTimestamp:
-            timestamp = '2020-01-22T18:00:00+00:00'
-            return PredictionModelRunTimestamp(id=1,
-                                               prediction_model=prediction_model,
-                                               prediction_run_timestamp=datetime.fromisoformat(timestamp))
+    def mock_get_model_run_predictions(*_):
+        shape = shapely.wkt.loads(geometry)
+        grid = PredictionModelGridSubset(
+            id=1,
+            prediction_model_id=prediction_model.id,
+            prediction_model=prediction_model,
+            geom=from_shape(shape)
+        )
+        result = []
+        for prediction in predictions:
+            prediction['prediction_timestamp'] = datetime.fromisoformat(
+                prediction['prediction_timestamp'])
+            result.append(
+                (grid, ModelRunGridSubsetPrediction(**prediction)))
+        return result
 
-        def mock_get_model_run_predictions(*_):
-            shape = shapely.wkt.loads(geometry)
-            grid = PredictionModelGridSubset(
-                id=1,
-                prediction_model_id=prediction_model.id,
-                prediction_model=prediction_model,
-                geom=from_shape(shape)
-            )
-            result = []
-            for prediction in predictions:
-                prediction['prediction_timestamp'] = datetime.fromisoformat(
-                    prediction['prediction_timestamp'])
-                result.append(
-                    (grid, ModelRunGridSubsetPrediction(**prediction)))
-            return result
-        monkeypatch.setattr(
-            app.db.database, 'get_read_session', mock_get_session)
-        monkeypatch.setattr(app.db.crud.weather_models, 'get_most_recent_model_run',
-                            mock_get_most_recent_model_run)
-        monkeypatch.setattr(app.db.crud.weather_models, 'get_model_run_predictions',
-                            mock_get_model_run_predictions)
+    monkeypatch.setattr(
+        app.db.database, 'get_read_session', mock_get_session)
+    monkeypatch.setattr(app.db.crud.weather_models, 'get_most_recent_model_run',
+                        mock_get_most_recent_model_run)
+    monkeypatch.setattr(app.db.crud.weather_models, 'get_model_run_predictions',
+                        mock_get_model_run_predictions)
 
 
 @pytest.mark.usefixtures("mock_jwt_decode")
 @scenario("test_models_predictions_db.feature", "Get model predictions from database",
           example_converters=dict(codes=json.loads,
-                                  endpoint=str, data=str,
+                                  endpoint=str, data=load_json_file(__file__),
                                   num_prediction_values=json.loads,
-                                  expected_response=load_json_file))
+                                  expected_response=load_json_file(__file__)))
 def test_db_predictions_scenario():
     """ BDD Scenario for predictions """
 

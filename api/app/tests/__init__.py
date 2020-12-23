@@ -1,10 +1,25 @@
-""" Util & common files
+""" Util & common files for tests
 """
-from typing import IO, Any
+from typing import IO, Any, Callable
+import os
 import datetime
 import json
 import importlib
 from app.db.models.common import TZTimeStamp
+
+
+def _load_json_file(module_path: str, filename: str) -> dict:
+    """ Load json file given a module path and a filename """
+    dirname = os.path.dirname(os.path.realpath(module_path))
+    with open(os.path.join(dirname, filename)) as file_pointer:
+        return json.load(file_pointer)
+
+
+def load_json_file(module_path: str) -> Callable[[str], dict]:
+    """ Return a function that can load json from a filename """
+    def _json_loader(filename: str):
+        return _load_json_file(module_path, filename)
+    return _json_loader
 
 
 def json_converter(item: object):
