@@ -30,17 +30,15 @@ configure_logging()
 logger = logging.getLogger(__name__)
 
 API_INFO = '''
-    Description: API for the PSU FWI Calculator
+    Description: API for the PSU Services
 
     Warranty Disclaimer:
 
-    This 90th Percentile Forest Fire Weather Index(FWI) system software
-    and related documentation is provided as a public service by the
+    This PSU API and related documentation is provided as a public service by the
     Government of British Columbia, Box 9411, Victoria, British
     Columbia, Canada V8W 9V1.
 
-    This 90th Percentile Forest Fire Weather Index(FWI) system software
-    and related documentation are provided \"as is\" without
+    This PSU API and related documentation are provided \"as is\" without
     warranty of any kind, whether express or implied. Users of this
     software and documentation do so at their own risk. All implied
     warranties, including, without limitation, implied warranties of
@@ -53,9 +51,8 @@ API_INFO = '''
     The Government of British Columbia is not responsible for the
     content or reliability of any linked software and websites and does
     not endorse the content, products, services or views expressed
-    within them. It is the responsibility of all persons who use 90th
-    Percentile Forest Fire Weather Index(FWI) system software and
-    related documentation to independently confirm the accuracy of the
+    within them. It is the responsibility of all persons who use the PSU API
+    and documentation to independently confirm the accuracy of the
     data, information, or results obtained through their use.
 
     Limitation of Liabilities Under no circumstances will the Government
@@ -70,7 +67,7 @@ API_INFO = '''
 
 # This is the api app.
 api = FastAPI(
-    title="Predictive Services Fire Weather Index Calculator",
+    title="Predictive Services API",
     description=API_INFO,
     version="0.0.0"
 )
