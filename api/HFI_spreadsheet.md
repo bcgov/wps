@@ -173,28 +173,38 @@ $$
 $$
 where CFL $\equiv$ Crown Fuel Load and CFB $\equiv$ Crown Fraction Burned. CFL is a set of constants based on fuel type.
 
+We don't have the CFL constants available to us at the moment, so the following HFI equations have been inferred from the sample spreadsheet based on fuel layer type.
 
+#### C1
 
+If $(1.5(1-\exp[-0.23(\text{FFMC}-81)])) > 0$ AND $\frac{458}{1500(\text{ROS[C1]})(1-\exp[-0.0115 \times \text{BUI}])}<1$
 $$
-\text{HFI} = (\text{multiplier} \times 300)(1.15 + (5(1-\exp[-0.0164 \times \text{BUI}]^{2.24})))(\text{ROS[fuel type]})
-$$
-
-where ROS[fuel type] indicates the Rate of Spread for the station's fuel type, and BUI is the Build Up Index.
-
-To calculate the multiplier, first evaluate 
-
-$$
-\frac{\text{constant}}{1500(\text{ROS[fuel type]})((1-\exp[-0.0164\times\text{BUI}])^{2.24})}
+\text{HFI} = 225(1-\exp[-0.23(\text{ROS[C1]} - \frac{458}{450(1-\exp[-0.023(\text{FFMC}-81)])})]) + 1.5(1-\exp[-0.23(\text{FFMC} -81)])(\text{ROS[C1]})
 $$
 
-If this value is $\geq$ 1, the multiplier is 0 (and therefore HFI = 0).
-If this value is < 1, 
+Else
 
 $$
-\text{multiplier} = 1-e^{-0.23 \times \text{ROS[fuel type]} - \frac{\text{constant}}{(1-\exp[-0.0164 \times \text{BUI}])^{2.24}}}
+\text{HFI} = 1.5(1-\exp[-0.23(\text{FFMC}-81)])(\text{ROS[C1]})
 $$
 
-Remember to plug the value of multiplier into the first equation.
+#### C2
+
+#### C3
+
+$$
+\text{HFI} = M + 5(1-\exp[-0.0164 \times \text{BUI}]^{2.24})(\text{ROS})
+$$
+
+If $\frac{3667}{1500(\text{ROS})(1-\exp[-0.0164 \times \text{BUI}])^{2.24}} < 1$,
+
+$$
+\text{M} = 300(1.15)(1-\exp[-0.23(\text{ROS} - \frac{3667}{1500(1-\exp[-0.0164 \times \text{BUI}])})^{2.24}])
+$$
+
+Else $\text{M} = 0$.
+
+
 
 ### Head Fire Intensity Groups
 
