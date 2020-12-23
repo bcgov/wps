@@ -3,6 +3,7 @@
 from datetime import datetime
 import os
 import json
+from typing import List
 from pytest_bdd import scenario, given, then, when
 from fastapi.testclient import TestClient
 import pytest
@@ -12,6 +13,13 @@ from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 import app.main
 from app.db.models import (PredictionModelRunTimestamp, PredictionModel, ModelRunGridSubsetPrediction,
                            PredictionModelGridSubset)
+
+
+def load_json_file(filename: str) -> dict:
+    """ Load json file given filename """
+    dirname = os.path.dirname(os.path.realpath(__file__))
+    with open(os.path.join(dirname, filename)) as file_pointer:
+        return json.load(file_pointer)
 
 
 @pytest.fixture(name='mock_session')
@@ -63,46 +71,39 @@ def mock_session_fixture(monkeypatch, data):
 
 
 @pytest.mark.usefixtures("mock_jwt_decode")
-@scenario("test_models_predictions_db.feature", "Get model predictions from database")
+@scenario("test_models_predictions_db.feature", "Get model predictions from database",
+          example_converters=dict(codes=json.loads,
+                                  endpoint=str, data=str,
+                                  num_prediction_values=json.loads,
+                                  expected_response=load_json_file))
 def test_db_predictions_scenario():
     """ BDD Scenario for predictions """
 
 
-@given("A database with <data>", target_fixture='context')
+@ given("A database with <data>", target_fixture='context')
 def given_a_database(data):
     """ Bind the data variable """
     assert data
     return {}
 
 
-@given("station <codes>", target_fixture='stations')
-def given_stations(codes):
-    """ Turn provided string into array of codes. """
-    return eval(codes)  # pylint: disable=eval-used
-
-
-@when("I call <endpoint>")
-def when_predictions(context, stations, endpoint: str):
+@ when("I call <endpoint> with <codes>")
+def when_predictions(context, endpoint: str, codes: List):
     """ post to endpoint """
     client = TestClient(app.main.app)
     response = client.post(
-        endpoint, headers={'Authorization': 'Bearer token'}, json={'stations': stations})
+        endpoint, headers={'Authorization': 'Bearer token'}, json={'stations': codes})
     context['response_json'] = response.json()
 
 
-@then('There are <num_prediction_values>')
+@ then('There are <num_prediction_values>')
 def assert_num_predictions(context, num_prediction_values):
     """ Even though there are only two predictions in the database, we expect an interpolated noon value. """
-    num_prediction_values = eval(num_prediction_values)  # pylint: disable=eval-used
-    assert len(context['response_json']['predictions']
-               [num_prediction_values['index']]['values']) == num_prediction_values['len']
+    assert len(context['response_json']['predictions'][num_prediction_values['index']]
+               ['values']) == num_prediction_values['len']
 
 
-@then('The <expected_response> is matched')
-def assert_response(context, expected_response):
+@ then('The <expected_response> is matched')
+def assert_response(context, expected_response: dict):
     """ "Catch all" test that blindly checks the actual json response against an expected response. """
-    dirname = os.path.dirname(os.path.realpath(__file__))
-    filename = os.path.join(dirname, expected_response)
-    with open(filename) as data_file:
-        expected_json = json.load(data_file)
-        assert context['response_json'] == expected_json
+    assert context['response_json'] == expected_response
