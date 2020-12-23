@@ -191,42 +191,60 @@ At a high level, the formula for HFI calculation is
 $$ --> 
 
 <div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BHFI%7D%20%3D%20300%20%5Ctimes%20%5Ctext%7BTFC%7D%20%5Ctimes%20%5Ctext%7BROS%7D"></div>
-where TFC $\equiv$ Total Fuel Consumption.
+where TFC <!-- $\equiv$ --> <img src="https://render.githubusercontent.com/render/math?math=%5Cequiv"> Total Fuel Consumption.
 
 <!-- $$
 \text{TFC} = \text{SFC + CFC}
 $$ --> 
 
 <div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BTFC%7D%20%3D%20%5Ctext%7BSFC%20%2B%20CFC%7D"></div>
-where SFC $\equiv$ Surface Fuel Consumption and CFC $\equiv$ Crown Fuel Consumption.
+where SFC <!-- $\equiv$ --> <img src="https://render.githubusercontent.com/render/math?math=%5Cequiv"> Surface Fuel Consumption and CFC <!-- $\equiv$ --> <img src="https://render.githubusercontent.com/render/math?math=%5Cequiv"> Crown Fuel Consumption.
 
 <!-- $$
 \text{CFC} = \text{CFL} \times \text{CFB}
 $$ --> 
 
 <div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BCFC%7D%20%3D%20%5Ctext%7BCFL%7D%20%5Ctimes%20%5Ctext%7BCFB%7D"></div>
-where CFL $\equiv$ Crown Fuel Load and CFB $\equiv$ Crown Fraction Burned. CFL is a set of constants based on fuel type.
+where CFL <!-- $\equiv$ --> <img src="https://render.githubusercontent.com/render/math?math=%5Cequiv"> Crown Fuel Load and CFB <!-- $\equiv$ --> <img src="https://render.githubusercontent.com/render/math?math=%5Cequiv"> Crown Fraction Burned. CFL is a set of constants based on fuel type.
+
 
 We don't have the CFL constants available to us at the moment, so the following HFI equations have been inferred from the sample spreadsheet based on fuel layer type.
 
 #### C1
 
+<!-- $$
+\text{HFI} = \text{M} + 1.5 \times \text{ROS}(1-\exp[-0.23(\text{FFMC}-81)])
+$$ --> 
+
+<div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BHFI%7D%20%3D%20%5Ctext%7BM%7D%20%2B%201.5%20%5Ctimes%20%5Ctext%7BROS%7D(1-%5Cexp%5B-0.23(%5Ctext%7BFFMC%7D-81)%5D)"></div>
+
 If <!-- $(1.5(1-\exp[-0.23(\text{FFMC}-81)])) > 0$ --> <img src="https://render.githubusercontent.com/render/math?math=(1.5(1-%5Cexp%5B-0.23(%5Ctext%7BFFMC%7D-81)%5D))%20%3E%200"> AND <!-- $\frac{458}{1500(\text{ROS[C1]})(1-\exp[-0.0115 \times \text{BUI}])}<1$ --> <img src="https://render.githubusercontent.com/render/math?math=%5Cfrac%7B458%7D%7B1500(%5Ctext%7BROS%5BC1%5D%7D)(1-%5Cexp%5B-0.0115%20%5Ctimes%20%5Ctext%7BBUI%7D%5D)%7D%3C1">
-<!-- $$
-\text{HFI} = 225(1-\exp[-0.23(\text{ROS[C1]} - \frac{458}{450(1-\exp[-0.023(\text{FFMC}-81)])})]) + 1.5(1-\exp[-0.23(\text{FFMC} -81)])(\text{ROS[C1]})
-$$ --> 
-
-<div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BHFI%7D%20%3D%20225(1-%5Cexp%5B-0.23(%5Ctext%7BROS%5BC1%5D%7D%20-%20%5Cfrac%7B458%7D%7B450(1-%5Cexp%5B-0.023(%5Ctext%7BFFMC%7D-81)%5D)%7D)%5D)%20%2B%201.5(1-%5Cexp%5B-0.23(%5Ctext%7BFFMC%7D%20-81)%5D)(%5Ctext%7BROS%5BC1%5D%7D)"></div>
-
-Else
 
 <!-- $$
-\text{HFI} = 1.5(1-\exp[-0.23(\text{FFMC}-81)])(\text{ROS[C1]})
+\text{M} = 225(1-\exp[-0.23(\text{ROS}-\frac{458}{450(1-\exp[-0.023(\text{FFMC}-81)])})])
 $$ --> 
 
-<div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BHFI%7D%20%3D%201.5(1-%5Cexp%5B-0.23(%5Ctext%7BFFMC%7D-81)%5D)(%5Ctext%7BROS%5BC1%5D%7D)"></div>
+<div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BM%7D%20%3D%20225(1-%5Cexp%5B-0.23(%5Ctext%7BROS%7D-%5Cfrac%7B458%7D%7B450(1-%5Cexp%5B-0.023(%5Ctext%7BFFMC%7D-81)%5D)%7D)%5D)"></div>
+
+Else M = 0.
 
 #### C2
+
+<!-- $$
+\text{HFI} = \text{M} + 5(1-\exp[-0.0115 \times \text{BUI}])(\text{ROS})
+$$ --> 
+
+<div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BHFI%7D%20%3D%20%5Ctext%7BM%7D%20%2B%205(1-%5Cexp%5B-0.0115%20%5Ctimes%20%5Ctext%7BBUI%7D%5D)(%5Ctext%7BROS%7D)"></div>
+
+If <!-- $\frac{842}{1500(\text{ROS})(1-\exp[-0.0115 \times \text{BUI}])}$ --> <img src="https://render.githubusercontent.com/render/math?math=%5Cfrac%7B842%7D%7B1500(%5Ctext%7BROS%7D)(1-%5Cexp%5B-0.0115%20%5Ctimes%20%5Ctext%7BBUI%7D%5D)%7D"> <1:
+
+<!-- $$
+\text{M} = 240(1-\exp[-0.23(\text{ROS}-\frac{842}{1500(1-\exp[-0.0115 \times \text{BUI}])})])
+$$ --> 
+
+<div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BM%7D%20%3D%20240(1-%5Cexp%5B-0.23(%5Ctext%7BROS%7D-%5Cfrac%7B842%7D%7B1500(1-%5Cexp%5B-0.0115%20%5Ctimes%20%5Ctext%7BBUI%7D%5D)%7D)%5D)"></div>
+
+Else M = 0.
 
 #### C3
 
@@ -246,7 +264,77 @@ $$ -->
 
 Else <!-- $\text{M} = 0$ --> <img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BM%7D%20%3D%200">.
 
+#### C3m
 
+<!-- $$
+\text{HFI} = \text{M} + 5(1 - \exp[-0.0164 \times \text{BUI}])^{2.24}(\text{ROS})
+$$ --> 
+
+<div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BHFI%7D%20%3D%20%5Ctext%7BM%7D%20%2B%205(1%20-%20%5Cexp%5B-0.0164%20%5Ctimes%20%5Ctext%7BBUI%7D%5D)%5E%7B2.24%7D(%5Ctext%7BROS%7D)"></div>
+
+If <!-- $\frac{1296}{1500(\text{ROS})((1-\exp[-0.0164 \times \text{BUI}])^{2.24})}$ --> <img src="https://render.githubusercontent.com/render/math?math=%5Cfrac%7B1296%7D%7B1500(%5Ctext%7BROS%7D)((1-%5Cexp%5B-0.0164%20%5Ctimes%20%5Ctext%7BBUI%7D%5D)%5E%7B2.24%7D)%7D"> <1:
+
+<!-- $$
+\text{M} = 345(1-\exp[-0.23(\text{ROS} - \frac{1296}{1500(1-\exp[-0.0164 \times \text{BUI}])^{2.24}})])
+$$ --> 
+
+<div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BM%7D%20%3D%20345(1-%5Cexp%5B-0.23(%5Ctext%7BROS%7D%20-%20%5Cfrac%7B1296%7D%7B1500(1-%5Cexp%5B-0.0164%20%5Ctimes%20%5Ctext%7BBUI%7D%5D)%5E%7B2.24%7D%7D)%5D)"></div>
+
+Else M = 0.
+
+#### C4
+
+<!-- $$
+\text{HFI} = \text{M} + 5(1-\exp[-0.0164 \times \text{BUI}])^{2.24}(\text{ROS})
+$$ --> 
+
+<div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BHFI%7D%20%3D%20%5Ctext%7BM%7D%20%2B%205(1-%5Cexp%5B-0.0164%20%5Ctimes%20%5Ctext%7BBUI%7D%5D)%5E%7B2.24%7D(%5Ctext%7BROS%7D)"></div>
+
+If <!-- $\frac{1296}{1500(\text{ROS})((1 - \exp[-0.0164 \times \text{BUI}])^{2.24})}$ --> <img src="https://render.githubusercontent.com/render/math?math=%5Cfrac%7B1296%7D%7B1500(%5Ctext%7BROS%7D)((1%20-%20%5Cexp%5B-0.0164%20%5Ctimes%20%5Ctext%7BBUI%7D%5D)%5E%7B2.24%7D)%7D"> <1:
+
+<!-- $$
+\text{M} = 360(1-\exp[-0.23(\text{ROS}-\frac{1296}{1500((1-\exp[-0.0164 \times \text{BUI}])^{2.24})})])
+$$ --> 
+
+<div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BM%7D%20%3D%20360(1-%5Cexp%5B-0.23(%5Ctext%7BROS%7D-%5Cfrac%7B1296%7D%7B1500((1-%5Cexp%5B-0.0164%20%5Ctimes%20%5Ctext%7BBUI%7D%5D)%5E%7B2.24%7D)%7D)%5D)"></div>
+
+Else M = 0.
+
+#### C5
+
+<!-- $$
+\text{HFI} = \text{M} + 5(1-\exp[-0.0149 \times \text{BUI}])^{2.48}(\text{ROS})
+$$ --> 
+
+<div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BHFI%7D%20%3D%20%5Ctext%7BM%7D%20%2B%205(1-%5Cexp%5B-0.0149%20%5Ctimes%20%5Ctext%7BBUI%7D%5D)%5E%7B2.48%7D(%5Ctext%7BROS%7D)"></div>
+
+If <!-- $\frac{12375}{1500(\text{ROS})((1-\exp[-0.0149 \times \text{BUI}])^{2.48})}$ --> <img src="https://render.githubusercontent.com/render/math?math=%5Cfrac%7B12375%7D%7B1500(%5Ctext%7BROS%7D)((1-%5Cexp%5B-0.0149%20%5Ctimes%20%5Ctext%7BBUI%7D%5D)%5E%7B2.48%7D)%7D"> <1:
+
+<!-- $$
+\text{M} = 345(1-\exp[-0.23(\text{ROS}-\frac{12375}{1500((1-\exp[-0.0149 \times \text{BUI}])^{2.48})})])
+$$ --> 
+
+<div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BM%7D%20%3D%20345(1-%5Cexp%5B-0.23(%5Ctext%7BROS%7D-%5Cfrac%7B12375%7D%7B1500((1-%5Cexp%5B-0.0149%20%5Ctimes%20%5Ctext%7BBUI%7D%5D)%5E%7B2.48%7D)%7D)%5D)"></div>
+
+Else M = 0.
+
+#### C7
+
+<!-- $$
+\text{HFI} = 300(\text{M} \times 0.5 + \text{SFC}_{C7})
+$$ --> 
+
+<div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BHFI%7D%20%3D%20300(%5Ctext%7BM%7D%20%5Ctimes%200.5%20%2B%20%5Ctext%7BSFC%7D_%7BC7%7D)"></div>
+
+If <!-- $\frac{5124}{300 \times \text{ROS} \times \text{SFC}_{C7}}$ --> <img src="https://render.githubusercontent.com/render/math?math=%5Cfrac%7B5124%7D%7B300%20%5Ctimes%20%5Ctext%7BROS%7D%20%5Ctimes%20%5Ctext%7BSFC%7D_%7BC7%7D%7D"> <1:
+
+<!-- $$
+\text{M} = 1 - \exp[-0.23(\text{ROS}-\frac{5124}{300 \times \text{SFC}_{C7}})]
+$$ --> 
+
+<div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BM%7D%20%3D%201%20-%20%5Cexp%5B-0.23(%5Ctext%7BROS%7D-%5Cfrac%7B5124%7D%7B300%20%5Ctimes%20%5Ctext%7BSFC%7D_%7BC7%7D%7D)%5D"></div>
+
+Else M = 0.
 
 ### Head Fire Intensity Groups
 
