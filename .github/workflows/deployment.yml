@@ -20,8 +20,8 @@ jobs:
 
       - name: Check jq
         uses: Sybrand/openshift-launchpad-deployment@add-jq
-        run: jq --version
-        shell: bash
+        with:
+          SCRIPT: jq --version
 
       - name: Deploy PostGIS instance
         uses: Sybrand/openshift-launchpad-deployment@add-jq
