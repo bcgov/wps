@@ -1,9 +1,9 @@
 """ Functional testing for /models/{model}/predictions/ endpoint.
 """
-import logging
 from datetime import datetime
 import os
 import json
+from typing import List
 from pytest_bdd import scenario, given, then, when
 from fastapi.testclient import TestClient
 import pytest
@@ -14,13 +14,17 @@ import app.main
 from app.db.models import (PredictionModelRunTimestamp, PredictionModel, ModelRunGridSubsetPrediction,
                            PredictionModelGridSubset)
 
-LOGGER = logging.getLogger(__name__)
+
+def load_json_file(filename: str) -> dict:
+    """ Load json file given filename """
+    dirname = os.path.dirname(os.path.realpath(__file__))
+    with open(os.path.join(dirname, filename)) as file_pointer:
+        return json.load(file_pointer)
 
 
-@pytest.fixture()
-def mock_session(monkeypatch, data):
+@pytest.fixture(name='mock_session')
+def mock_session_fixture(monkeypatch, data):
     """ Mocked out sqlalchemy session """
-    # pylint: disable=unused-argument
     if data:
         dirname = os.path.dirname(os.path.realpath(__file__))
         filename = os.path.join(dirname, data)
@@ -33,6 +37,7 @@ def mock_session(monkeypatch, data):
         prediction_model = PredictionModel(
             id=1, name='name', abbreviation='abbrev', projection='projection')
 
+        # pylint: disable=unused-argument
         def mock_get_session(*args):
             return UnifiedAlchemyMagicMock()
 
@@ -65,47 +70,40 @@ def mock_session(monkeypatch, data):
                             mock_get_model_run_predictions)
 
 
-@ scenario("test_models_predictions_db.feature", "Get model predictions from database")
+@pytest.mark.usefixtures("mock_jwt_decode")
+@scenario("test_models_predictions_db.feature", "Get model predictions from database",
+          example_converters=dict(codes=json.loads,
+                                  endpoint=str, data=str,
+                                  num_prediction_values=json.loads,
+                                  expected_response=load_json_file))
 def test_db_predictions_scenario():
     """ BDD Scenario for predictions """
 
 
-@given("A database with <data>")
-def given_a_database(mock_session, data):  # pylint: disable=redefined-outer-name,unused-argument
+@given("A database with <data>", target_fixture='context')
+def given_a_database(data):
     """ Bind the data variable """
+    assert data
     return {}
 
 
-@given("station <codes>")
-def given_stations(codes):
-    """ Turn provided string into array of codes. """
-    return eval(codes)  # pylint: disable=eval-used
-
-
-# pylint: disable=unused-argument, redefined-outer-name
-@when("I call <endpoint>")
-def when_predictions(mock_jwt_decode, given_a_database, given_stations, endpoint: str):
+@when("I call <endpoint> with <codes>")
+def when_predictions(context, endpoint: str, codes: List):
     """ post to endpoint """
     client = TestClient(app.main.app)
     response = client.post(
-        endpoint, headers={'Authorization': 'Bearer token'}, json={'stations': given_stations})
-    given_a_database['response_json'] = response.json()
-# pylint: enable=unused-argument, redefined-outer-name
+        endpoint, headers={'Authorization': 'Bearer token'}, json={'stations': codes})
+    context['response_json'] = response.json()
 
 
 @then('There are <num_prediction_values>')
-def assert_num_predictions(given_a_database, num_prediction_values):  # pylint: disable=redefined-outer-name
+def assert_num_predictions(context, num_prediction_values):
     """ Even though there are only two predictions in the database, we expect an interpolated noon value. """
-    num_prediction_values = eval(num_prediction_values)  # pylint: disable=eval-used
-    assert len(given_a_database['response_json']['predictions']
-               [num_prediction_values['index']]['values']) == num_prediction_values['len']
+    assert len(context['response_json']['predictions'][num_prediction_values['index']]
+               ['values']) == num_prediction_values['len']
 
 
 @then('The <expected_response> is matched')
-def assert_response(given_a_database, expected_response):  # pylint: disable=redefined-outer-name
+def assert_response(context, expected_response: dict):
     """ "Catch all" test that blindly checks the actual json response against an expected response. """
-    dirname = os.path.dirname(os.path.realpath(__file__))
-    filename = os.path.join(dirname, expected_response)
-    with open(filename) as data_file:
-        expected_json = json.load(data_file)
-        assert given_a_database['response_json'] == expected_json
+    assert context['response_json'] == expected_response

@@ -3,8 +3,7 @@ Feature: Generic model endpoint testing
     Scenario: Generic model endpoint testing
         Given some explanatory <notes>
         Given A <crud_mapping>
-        Given station <codes>
-        When I call <endpoint>
+        When I call <endpoint> with <codes>
         Then The <expected_status_code> is matched
         Then The <expected_response> is matched
         Examples:
