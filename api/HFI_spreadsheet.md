@@ -146,17 +146,18 @@ Except there is an extra column in the spreadsheet for SFC of fuel type C7. The 
 
 If FFMC < 70:
 <!-- $$
-\text{C7 SFC} = 1.5(1-\exp[-0.183(\text{BUI})])
+\text{SFC}_{C7} = 1.5(1-\exp[-0.183(\text{BUI})])
 $$ --> 
 
-<div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BC7%20SFC%7D%20%3D%201.5(1-%5Cexp%5B-0.183(%5Ctext%7BBUI%7D)%5D)"></div>
+<div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BSFC%7D_%7BC7%7D%20%3D%201.5(1-%5Cexp%5B-0.183(%5Ctext%7BBUI%7D)%5D)"></div>
 
 Else:
 <!-- $$
-\text{C7 SFC} = 2(1-\exp[-0.104(\text{FFMC} - 70)]) + 1.5(1-\exp[-0.183(\text{BUI})])
+\text{SFC}_{C7} = 2(1-\exp[-0.104(\text{FFMC} - 70)]) + 1.5(1-\exp[-0.183(\text{BUI})])
 $$ --> 
 
-<div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BC7%20SFC%7D%20%3D%202(1-%5Cexp%5B-0.104(%5Ctext%7BFFMC%7D%20-%2070)%5D)%20%2B%201.5(1-%5Cexp%5B-0.183(%5Ctext%7BBUI%7D)%5D)"></div>
+<div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BSFC%7D_%7BC7%7D%20%3D%202(1-%5Cexp%5B-0.104(%5Ctext%7BFFMC%7D%20-%2070)%5D)%20%2B%201.5(1-%5Cexp%5B-0.183(%5Ctext%7BBUI%7D)%5D)"></div>
+
 
 ### RSO
 
@@ -178,7 +179,7 @@ $$ -->
 
 <div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BCFB%7D%20%3D%201%20-%20%5Cexp(-0.23(%5Ctext%7BROS%7D%20-%20%5Ctext%7BRSO%7D))"></div>
 
-where ROS $\equiv$ Rate Of Spread
+where ROS = Rate Of Spread
 
 ### HFI
 
@@ -191,21 +192,21 @@ At a high level, the formula for HFI calculation is
 $$ --> 
 
 <div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BHFI%7D%20%3D%20300%20%5Ctimes%20%5Ctext%7BTFC%7D%20%5Ctimes%20%5Ctext%7BROS%7D"></div>
-where TFC <!-- $\equiv$ --> <img src="https://render.githubusercontent.com/render/math?math=%5Cequiv"> Total Fuel Consumption.
+where TFC = Total Fuel Consumption.
 
 <!-- $$
 \text{TFC} = \text{SFC + CFC}
 $$ --> 
 
 <div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BTFC%7D%20%3D%20%5Ctext%7BSFC%20%2B%20CFC%7D"></div>
-where SFC <!-- $\equiv$ --> <img src="https://render.githubusercontent.com/render/math?math=%5Cequiv"> Surface Fuel Consumption and CFC <!-- $\equiv$ --> <img src="https://render.githubusercontent.com/render/math?math=%5Cequiv"> Crown Fuel Consumption.
+where SFC = Surface Fuel Consumption and CFC = Crown Fuel Consumption.
 
 <!-- $$
 \text{CFC} = \text{CFL} \times \text{CFB}
 $$ --> 
 
 <div align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BCFC%7D%20%3D%20%5Ctext%7BCFL%7D%20%5Ctimes%20%5Ctext%7BCFB%7D"></div>
-where CFL <!-- $\equiv$ --> <img src="https://render.githubusercontent.com/render/math?math=%5Cequiv"> Crown Fuel Load and CFB <!-- $\equiv$ --> <img src="https://render.githubusercontent.com/render/math?math=%5Cequiv"> Crown Fraction Burned. CFL is a set of constants based on fuel type.
+where CFL = Crown Fuel Load and CFB = Crown Fraction Burned. CFL is a set of constants based on fuel type.
 
 
 We don't have the CFL constants available to us at the moment, so the following HFI equations have been inferred from the sample spreadsheet based on fuel layer type.
