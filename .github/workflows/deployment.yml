@@ -18,10 +18,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Check jq
-        uses: Sybrand/openshift-launchpad-deployment@add-jq
-        with:
-          SCRIPT: jq --version
+      # - name: Check jq
+      #   uses: Sybrand/openshift-launchpad-deployment@add-jq
+      #   with:
+      #     SCRIPT: jq --version
 
       - name: Deploy PostGIS instance
         uses: Sybrand/openshift-launchpad-deployment@add-jq
