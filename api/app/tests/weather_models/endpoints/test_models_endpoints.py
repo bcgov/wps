@@ -74,7 +74,7 @@ def assert_status_code(database: dict, expected_status_code: str):
     assert database['status_code'] == int(expected_status_code)
 
 
-@ then('The <expected_response> is matched')
+@then('The <expected_response> is matched')
 def assert_response(database: dict, expected_response: dict):
     """ "Catch all" test that blindly checks the actual json response against an expected response. """
     assert database['response_json'] == expected_response

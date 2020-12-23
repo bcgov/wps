@@ -84,7 +84,7 @@ def mock_get_actuals_left_outer_join_with_predictions(monkeypatch):
                         get_actuals_left_outer_join_with_predictions)
 
 
-@ pytest.fixture()
+@pytest.fixture()
 def mock_session(monkeypatch):
     """ Mocked out sqlalchemy session object """
     geom = ("POLYGON ((-120.525 50.77500000000001, -120.375 50.77500000000001,-120.375 50.62500000000001,"
@@ -136,7 +136,7 @@ def mock_session(monkeypatch):
                         mock_get_gdps_prediction_model_run_timestamp_records)
 
 
-@ pytest.fixture()
+@pytest.fixture()
 def mock_download(monkeypatch):
     """ fixture for env_canada.download """
     def mock_requests_get_gdps(*args, **kwargs):
@@ -150,7 +150,7 @@ def mock_download(monkeypatch):
     monkeypatch.setattr(requests, 'get', mock_requests_get_gdps)
 
 
-@ pytest.fixture()
+@pytest.fixture()
 def mock_download_fail(monkeypatch):
     """ fixture for env_canada.download """
     def mock_requests_get(*args, **kwargs):

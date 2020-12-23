@@ -80,14 +80,14 @@ def test_db_predictions_scenario():
     """ BDD Scenario for predictions """
 
 
-@ given("A database with <data>", target_fixture='context')
+@given("A database with <data>", target_fixture='context')
 def given_a_database(data):
     """ Bind the data variable """
     assert data
     return {}
 
 
-@ when("I call <endpoint> with <codes>")
+@when("I call <endpoint> with <codes>")
 def when_predictions(context, endpoint: str, codes: List):
     """ post to endpoint """
     client = TestClient(app.main.app)
@@ -96,14 +96,14 @@ def when_predictions(context, endpoint: str, codes: List):
     context['response_json'] = response.json()
 
 
-@ then('There are <num_prediction_values>')
+@then('There are <num_prediction_values>')
 def assert_num_predictions(context, num_prediction_values):
     """ Even though there are only two predictions in the database, we expect an interpolated noon value. """
     assert len(context['response_json']['predictions'][num_prediction_values['index']]
                ['values']) == num_prediction_values['len']
 
 
-@ then('The <expected_response> is matched')
+@then('The <expected_response> is matched')
 def assert_response(context, expected_response: dict):
     """ "Catch all" test that blindly checks the actual json response against an expected response. """
     assert context['response_json'] == expected_response
