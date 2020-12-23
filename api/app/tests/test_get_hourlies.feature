@@ -1,4 +1,4 @@
-Feature: /hourlies/
+Feature: /observations/
 
     Scenario: Get hourlies
         Given I request hourlies for stations: <codes> with <use_wfwx>

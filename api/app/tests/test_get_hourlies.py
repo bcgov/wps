@@ -31,7 +31,7 @@ def test_hourlies():
 
 @given('I request hourlies for stations: <codes> with <use_wfwx>', target_fixture='response')
 def given_hourlies_request(monkeypatch, codes: List, use_wfwx):
-    """ Make /hourlies/ request using mocked out ClientSession.
+    """ Make /observations/ request using mocked out ClientSession.
     """
 
     def mock_get_session(*_):
@@ -63,7 +63,7 @@ def given_hourlies_request(monkeypatch, codes: List, use_wfwx):
     client = TestClient(app.main.app)
     headers = {'Content-Type': 'application/json',
                'Authorization': 'Bearer token'}
-    return client.post('/api/hourlies/', headers=headers, json={"stations": codes})
+    return client.post('/api/observations/', headers=headers, json={"stations": codes})
 
 
 @then('the response status code is <status>')
