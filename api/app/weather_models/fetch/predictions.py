@@ -272,6 +272,8 @@ async def fetch_model_run_predictions_by_station_code(
                 relative_humidity=prediction.rh_tgl_2,
                 bias_adjusted_relative_humidity=prediction.bias_adjusted_rh,
                 delta_precipitation=precip_value,
+                wind_speed=prediction.wind_tgl_10,
+                wind_direction=prediction.wdir_tgl_10,
                 datetime=prediction.prediction_timestamp
             )
         }

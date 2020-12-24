@@ -281,8 +281,8 @@ def get_closest_index(coordinate: List, points: List):
     # Use GRS80 ellipsoid (it's what NAD83 uses)
     geod = Geod(ellps="GRS80")
     # Calculate the distance each point is from the coordinate.
-    _, _, distances = geod.inv([coordinate[0] for x in range(4)],
-                               [coordinate[1] for x in range(4)],
+    _, _, distances = geod.inv([coordinate[0] for _ in range(4)],
+                               [coordinate[1] for _ in range(4)],
                                [x[0] for x in points],
                                [x[1] for x in points])
     # Return the index of the point with the shortest distance.
