@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 # Key values on ModelRunGridSubsetPrediction.
-MODEL_VALUE_KEYS = ('tmp_tgl_2', 'rh_tgl_2', 'apcp_sfc_0')
+SCALAR_MODEL_VALUE_KEYS = ('tmp_tgl_2', 'rh_tgl_2', 'apcp_sfc_0')
 
 
 class ModelEnum(str, Enum):
@@ -68,7 +68,7 @@ def construct_interpolated_noon_prediction(prediction_a: ModelRunGridSubsetPredi
     timestamp_b = prediction_b.prediction_timestamp.timestamp()
     noon_timestamp = noon_prediction.prediction_timestamp.timestamp()
     # calculate interpolated values.
-    for key in MODEL_VALUE_KEYS:
+    for key in SCALAR_MODEL_VALUE_KEYS:
         value_a = getattr(prediction_a, key)
         value_b = getattr(prediction_b, key)
         if value_a is None or value_b is None:

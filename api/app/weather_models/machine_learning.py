@@ -9,7 +9,7 @@ from sklearn.linear_model import LinearRegression
 from scipy.interpolate import griddata
 import numpy as np
 from sqlalchemy.orm import Session
-from app.weather_models import MODEL_VALUE_KEYS, construct_interpolated_noon_prediction
+from app.weather_models import SCALAR_MODEL_VALUE_KEYS, construct_interpolated_noon_prediction
 from app.db.models import (
     PredictionModel, PredictionModelGridSubset, ModelRunGridSubsetPrediction)
 from app.db.models.observations import HourlyActual
@@ -136,7 +136,8 @@ class StationMachineLearning:  # pylint: disable=too-many-instance-attributes
                                   actual: HourlyActual,
                                   sample_collection: SampleCollection):
         """ Take the provided prediction and observed value, adding them to the collection of samples """
-        for model_key, sample_key in zip(MODEL_VALUE_KEYS, SAMPLE_VALUE_KEYS):
+        # TODO: add precip to SAMPLE_VALUE_KEYS
+        for model_key, sample_key in zip(SCALAR_MODEL_VALUE_KEYS, SAMPLE_VALUE_KEYS):
             model_value = getattr(prediction, model_key)
             actual_value = getattr(actual, sample_key)
             sample_value = getattr(sample_collection, sample_key)

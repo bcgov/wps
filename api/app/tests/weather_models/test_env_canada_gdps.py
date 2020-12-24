@@ -162,7 +162,7 @@ def mock_download_fail(monkeypatch):
 def test_get_gdps_download_urls():
     """ test to see if get_download_urls methods give the correct number of urls """
     # -1 because 000 hour has no APCP_SFC_0
-    total_num_of_urls = 81 * len(['TMP_TGL_2', 'RH_TGL_2', 'APCP_SFC_0']) - 1
+    total_num_of_urls = 81 * len(env_canada.GRIB_LAYERS) - 1
     assert len(list(env_canada.get_global_model_run_download_urls(
         time_utils.get_utc_now(), 0))) == total_num_of_urls
 
