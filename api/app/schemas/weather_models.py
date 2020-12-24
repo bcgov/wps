@@ -42,14 +42,14 @@ class WeatherModelPredictionValues(BaseModel):
     datetime: datetime
     temperature: float = None
     bias_adjusted_temperature: float = None
-    dew_point: float = None
+    # dew_point: float = None
     relative_humidity: float = None
     bias_adjusted_relative_humidity: float = None
     wind_speed: float = None
     wind_direction: float = None
     delta_precipitation: float = None
-    cloud_cover: float = None
-    sea_level_pressure: float = None
+    # cloud_cover: float = None
+    # sea_level_pressure: float = None
     # we don't use these yet:
     # wind_speed_40m: float = None
     # wind_direction_40m: float = None
