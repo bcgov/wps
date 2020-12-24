@@ -169,10 +169,11 @@ def get_model_run_urls(now: datetime.datetime, model_type: ModelEnum, model_run_
     """ Get model run url's """
     if model_type == ModelEnum.GDPS:
         return list(get_global_model_run_download_urls(now, model_run_hour))
-    elif model_type == ModelEnum.HRDPS:
+    if model_type == ModelEnum.HRDPS:
         return list(get_high_res_model_run_download_urls(now, model_run_hour))
-    # elif model_type == ModelEnum.RDPS:
-    return list(get_regional_model_run_download_urls(now, model_run_hour))
+    if model_type == ModelEnum.RDPS:
+        return list(get_regional_model_run_download_urls(now, model_run_hour))
+    raise UnhandledPredictionModelType()
 
 
 def get_global_model_run_download_urls(now: datetime.datetime,
