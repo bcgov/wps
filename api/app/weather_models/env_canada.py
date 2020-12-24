@@ -520,7 +520,7 @@ class ModelValueProcessor:
             station_prediction.wind_tgl_10 = prediction.wind_tgl_10[get_closest_index(coordinate, points)]
         # Get the closest wind direcion
         if prediction.wdir_tgl_10 is not None:
-        station_prediction.wdir_tgl_10 = prediction.wdir_tgl_10[get_closest_index(coordinate, points)]
+            station_prediction.wdir_tgl_10 = prediction.wdir_tgl_10[get_closest_index(coordinate, points)]
 
         # Predict the temperature
         station_prediction.bias_adjusted_temperature = machine.predict_temperature(
