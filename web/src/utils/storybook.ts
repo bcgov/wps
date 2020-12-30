@@ -154,7 +154,7 @@ const getFutureValues = () => {
       const rh = 20 - Math.sin(length) * sineWeight
       const dew_point = 20 + Math.sin(length) * sineWeight
       const wind_speed = 20 + Math.sin(length) * sineWeight
-      const wind_direction = 20 + Math.sin(length) * sineWeight
+      const wind_direction = Math.floor(Math.random() * 360)
       const precip = Math.random()
       const datetime = moment(first)
         .add(length, 'hours')
