@@ -18,7 +18,7 @@ type Point = [number, number]
  *              "front"
  *                 ^
  *                / \
- *   "leftEnd"   /   \   "rightEnd"
+ *   "leftEnd"   / | \   "rightEnd"
  *                 |
  *                 |
  *                 |
