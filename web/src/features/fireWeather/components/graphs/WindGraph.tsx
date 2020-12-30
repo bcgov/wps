@@ -132,9 +132,13 @@ const WindGraph = (props: Props) => {
           text: 'Wind speed & direction graph',
           yanchor: 'middle'
         },
-        height: 450,
+        height: 550,
         margin: { pad: 10 },
         xaxis: {
+          rangeslider: {},
+          rangeselector: {
+            buttons: [{ step: 'all' }]
+          },
           tickfont: { size: 14 },
           type: 'date',
           dtick: 86400000.0 // to set the interval between ticks to one day: https://plotly.com/javascript/reference/#scatter-marker-colorbar-dtick

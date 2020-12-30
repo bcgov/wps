@@ -94,8 +94,8 @@ async def get_index(request: Request):
         response.headers.setdefault('Pragma', 'no-cache')
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
         response.headers.setdefault('Content-Security-Policy',
-                                    ('default-src \'self\' \'unsafe-inline\' *.googleapis.com *.gov.bc.ca'
-                                     ' *.gstatic.com;'
+                                    ('default-src \'self\' \'unsafe-inline\' *.googleapis.com *.gov.bc.ca *.gstatic.com;'
+                                     ' img-src *;'
                                      ' script-src \'self\' \'unsafe-inline\' \'unsafe-eval\' *.gov.bc.ca;'
                                      ' frame-ancestors \'none\''))
         return response
