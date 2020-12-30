@@ -96,7 +96,7 @@ async def get_index(request: Request):
         response.headers.setdefault('Content-Security-Policy',
                                     ('default-src \'self\' \'unsafe-inline\' *.googleapis.com *.gov.bc.ca *.gstatic.com;'
                                      ' img-src \'self\' data: https:;'
-                                     ' script-src \'self\' \'unsafe-inline\' \'unsafe-eval\' *.pathfinder.gov.bc.ca;'
+                                     ' script-src \'self\' \'unsafe-inline\' \'unsafe-eval\' *.gov.bc.ca;'
                                      ' frame-ancestors \'none\''))
         return response
     except TemplateNotFound as exception:
