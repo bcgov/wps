@@ -1,5 +1,6 @@
 import React from 'react'
 import Plot from 'react-plotly.js'
+import moment from 'moment'
 
 import { ObservedValue } from 'api/observationAPI'
 import { ToggleValues } from 'features/fireWeather/components/graphs/useGraphToggles'
@@ -52,7 +53,7 @@ const rotatePointsByAngle = (points: Point[], angle: number, cw = true): Point[]
    * Where theta is the angle of rotation
    */
 
-  let theta = (Math.PI / 180) * angle // Translate the angle into degree
+  let theta = (Math.PI / 180) * angle // Turn the angle(number) into degree
 
   if (cw) {
     theta = -theta
@@ -67,12 +68,11 @@ const rotatePointsByAngle = (points: Point[], angle: number, cw = true): Point[]
 const WindGraph = (props: Props) => {
   const { observedValues, toggleValues } = props
   const { showObservations } = toggleValues
+
   const observedWindSpeeds = observedValues.map(v => v.wind_speed || NaN)
   const dates = observedValues.map(v => new Date(v.datetime))
-  const maxWindSpd = Math.max(...observedWindSpeeds)
-  const minWindSpd = Math.min(...observedWindSpeeds)
-  const currDate = new Date()
-
+  const maxWindSpd = Math.max(...observedWindSpeeds.filter(spd => Boolean(spd)))
+  const minWindSpd = Math.min(...observedWindSpeeds.filter(spd => Boolean(spd)))
   const observedWindDirArrows: Partial<Shape>[] = []
   observedValues.forEach(({ wind_direction, wind_speed, datetime }) => {
     if (!wind_speed || !wind_direction) return
@@ -100,6 +100,16 @@ const WindGraph = (props: Props) => {
 
     observedWindDirArrows.push(path)
   })
+
+  const currDate = new Date()
+  const initialRange = [
+    moment(currDate)
+      .subtract(2, 'days')
+      .toDate(),
+    moment(currDate)
+      .add(2, 'days')
+      .toDate()
+  ]
 
   return (
     <Plot
@@ -132,13 +142,32 @@ const WindGraph = (props: Props) => {
           text: 'Wind speed & direction graph',
           yanchor: 'middle'
         },
-        height: 550,
+        height: 600,
         margin: { pad: 10 },
         xaxis: {
-          rangeslider: {},
-          rangeselector: {
-            buttons: [{ step: 'all' }]
+          range: initialRange,
+          rangeslider: {
+            bgcolor: '#dbdbdb',
+            thickness: 0.1
           },
+          rangeselector: {
+            buttons: [
+              {
+                step: 'day',
+                stepmode: 'backward',
+                count: 1,
+                label: '1d'
+              },
+              {
+                step: 'day',
+                stepmode: 'backward',
+                count: 2,
+                label: '2d'
+              },
+              { step: 'all' }
+            ]
+          },
+          hoverformat: '%I:00%p, %a, %b %e',
           tickfont: { size: 14 },
           type: 'date',
           dtick: 86400000.0 // to set the interval between ticks to one day: https://plotly.com/javascript/reference/#scatter-marker-colorbar-dtick
