@@ -71,8 +71,9 @@ const WindGraph = (props: Props) => {
 
   const observedWindSpeeds = observedValues.map(v => v.wind_speed || NaN)
   const dates = observedValues.map(v => new Date(v.datetime))
-  const maxWindSpd = Math.max(...observedWindSpeeds.filter(spd => Boolean(spd)))
-  const minWindSpd = Math.min(...observedWindSpeeds.filter(spd => Boolean(spd)))
+  const filteredObservedWindSpeeds = observedWindSpeeds.filter(spd => Boolean(spd))
+  const maxWindSpd = Math.max(...filteredObservedWindSpeeds)
+  const minWindSpd = Math.min(...filteredObservedWindSpeeds)
   const observedWindDirArrows: Partial<Shape>[] = []
   observedValues.forEach(({ wind_direction, wind_speed, datetime }) => {
     if (!wind_speed || !wind_direction) return
@@ -167,7 +168,7 @@ const WindGraph = (props: Props) => {
               { step: 'all' }
             ]
           },
-          hoverformat: '%I:00%p, %a, %b %e',
+          hoverformat: '%I:00%p, %a, %b %e', // https://github.com/d3/d3-3.x-api-reference/blob/master/Time-Formatting.md#format
           tickfont: { size: 14 },
           type: 'date',
           dtick: 86400000.0 // to set the interval between ticks to one day: https://plotly.com/javascript/reference/#scatter-marker-colorbar-dtick
