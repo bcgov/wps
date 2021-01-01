@@ -32,7 +32,7 @@ const leftEnd: Point = [5, 0]
 const rightEnd: Point = [-5, 0]
 const arrowPoints = [front, back, leftEnd, rightEnd]
 
-const buildArrowShapeDParam = (arrowShape: Point[]): string => {
+const buildArrowShapePath = (arrowShape: Point[]): string => {
   return `M${arrowShape[0][0]} ${arrowShape[0][1]} \
     L${arrowShape[2][0]} ${arrowShape[2][1]} \
     M${arrowShape[0][0]} ${arrowShape[0][1]} \
@@ -41,7 +41,7 @@ const buildArrowShapeDParam = (arrowShape: Point[]): string => {
     L${arrowShape[1][0]} ${arrowShape[1][1]}`
 }
 
-const rotatePointsByAngle = (points: Point[], angle: number, cw = true): Point[] => {
+const rotatePoints = (points: Point[], angle: number, cw = true): Point[] => {
   /**
    * https://academo.org/demos/rotation-about-point/
    * To rotate points around the origin,
@@ -69,47 +69,47 @@ const WindGraph = (props: Props) => {
   const { observedValues, toggleValues } = props
   const { showObservations } = toggleValues
 
-  const observedWindSpeeds = observedValues.map(v => v.wind_speed || NaN)
-  const dates = observedValues.map(v => new Date(v.datetime))
-  const filteredObservedWindSpeeds = observedWindSpeeds.filter(spd => Boolean(spd))
-  const maxWindSpd = Math.max(...filteredObservedWindSpeeds)
-  const minWindSpd = Math.min(...filteredObservedWindSpeeds)
+  const dates: Date[] = []
+  const observedWindSpds: number[] = []
   const observedWindDirArrows: Partial<Shape>[] = []
+  const observedWindSpdTexts: string[] = []
+
   observedValues.forEach(({ wind_direction, wind_speed, datetime }) => {
-    if (!wind_speed || !wind_direction) return
+    if (wind_speed != null) {
+      dates.push(new Date(datetime))
+      observedWindSpds.push(wind_speed)
+      observedWindSpdTexts.push(wind_direction != null ? `${wind_direction}` : '-')
 
-    const arrowShape = rotatePointsByAngle(arrowPoints, wind_direction)
-    const dParameter = buildArrowShapeDParam(arrowShape)
+      if (wind_direction != null) {
+        const arrowShape = rotatePoints(arrowPoints, wind_direction)
+        const path: Partial<Shape> = {
+          type: 'path',
+          path: buildArrowShapePath(arrowShape),
+          visible: showObservations,
+          layer: 'above',
+          xref: 'x', // By setting a reference to the wind spd scale (x & y),
+          yref: 'y', // we can position these arrows with wind spd values using xanchor & yanchor
+          xsizemode: 'pixel', // https://plotly.com/javascript/reference/layout/shapes/#layout-shapes-items-shape-xsizemode
+          ysizemode: 'pixel',
+          xanchor: new Date(datetime).valueOf(),
+          yanchor: wind_speed,
+          line: {
+            color: showObservations ? '#0251a1' : 'transparent'
+          }
+        }
 
-    const path: Partial<Shape> = {
-      type: 'path',
-      path: dParameter,
-      visible: showObservations,
-      layer: 'above',
-      xref: 'x',
-      yref: 'y',
-      xsizemode: 'pixel', // https://plotly.com/javascript/reference/layout/shapes/#layout-shapes-items-shape-xsizemode
-      ysizemode: 'pixel',
-      xanchor: new Date(datetime).valueOf(),
-      yanchor: wind_speed,
-      templateitemname: 'hmm',
-      name: 'name',
-      line: {
-        color: showObservations ? '#0251a1' : 'transparent'
+        observedWindDirArrows.push(path)
       }
     }
-
-    observedWindDirArrows.push(path)
   })
 
+  const maxWindSpd = Math.max(...observedWindSpds)
+  const minWindSpd = Math.min(...observedWindSpds)
+
   const currDate = new Date()
-  const initialRange = [
-    moment(currDate)
-      .subtract(2, 'days')
-      .toDate(),
-    moment(currDate)
-      .add(2, 'days')
-      .toDate()
+  const initialXAxisRange = [
+    moment(currDate).subtract(2, 'days').toDate(), // prettier-ignore
+    moment(currDate).add(2, 'days').toDate() // prettier-ignore
   ]
 
   return (
@@ -119,13 +119,13 @@ const WindGraph = (props: Props) => {
       data={[
         {
           x: dates,
-          y: observedWindSpeeds,
+          y: observedWindSpds,
           mode: 'lines',
           type: 'scatter',
           showlegend: false,
           line: { color: showObservations ? '#0080ff' : 'transparent' },
-          connectgaps: true, // to fill the possible gap from null values
-          hovertemplate: 'Observed Wind Spd: %{y:.2f} (km/h) <extra></extra>'
+          text: observedWindSpdTexts,
+          hovertemplate: 'Observed: %{y:.2f} km/h, %{text}°<extra></extra>'
         },
         {
           x: [currDate],
@@ -146,7 +146,7 @@ const WindGraph = (props: Props) => {
         height: 600,
         margin: { pad: 10 },
         xaxis: {
-          range: initialRange,
+          range: initialXAxisRange,
           rangeslider: {
             bgcolor: '#dbdbdb',
             thickness: 0.1
@@ -171,7 +171,7 @@ const WindGraph = (props: Props) => {
           hoverformat: '%I:00%p, %a, %b %e', // https://github.com/d3/d3-3.x-api-reference/blob/master/Time-Formatting.md#format
           tickfont: { size: 14 },
           type: 'date',
-          dtick: 86400000.0 // to set the interval between ticks to one day: https://plotly.com/javascript/reference/#scatter-marker-colorbar-dtick
+          dtick: 86400000.0 // Set the interval between ticks to one day: https://plotly.com/javascript/reference/#scatter-marker-colorbar-dtick
         },
         yaxis: {
           title: 'Wind Speed (km/h)',
