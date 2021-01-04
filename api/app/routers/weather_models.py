@@ -5,9 +5,8 @@ import datetime
 from fastapi import APIRouter, Depends
 from app.auth import authenticate
 import app.time_utils as time_utils
-from app.weather_models import ModelEnum, ProjectionEnum
+from app.weather_models import ModelEnum
 from app.schemas.weather_models import (
-    WeatherModelPredictionResponse,
     WeatherModelPredictionSummaryResponse,
     WeatherStationsModelRunsPredictionsResponse)
 from app.schemas.stations import StationCodeList
