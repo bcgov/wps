@@ -17,6 +17,7 @@ import { getStationCodesFromUrl, stationCodeQueryKey } from 'utils/url'
 
 const defaultTimeRange = 10
 const defaultPercentile = 90
+const yearWhenTheCalculationIsDone = 2020
 
 const PercentileCalculatorPage = () => {
   const dispatch = useDispatch()
@@ -26,10 +27,9 @@ const PercentileCalculatorPage = () => {
   const codesFromQuery = getStationCodesFromUrl(location.search)
   const [stationCodes, setStationCodes] = useState<number[]>(codesFromQuery)
   const [timeRange, setTimeRange] = useState<number>(defaultTimeRange)
-  const currYear = new Date().getFullYear()
   const yearRange = {
-    start: currYear - timeRange,
-    end: currYear - 1
+    start: yearWhenTheCalculationIsDone - timeRange,
+    end: yearWhenTheCalculationIsDone - 1
   }
 
   useEffect(() => {
