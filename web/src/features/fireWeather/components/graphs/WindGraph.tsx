@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import React from 'react'
 import Plot from 'react-plotly.js'
 import moment from 'moment'
@@ -124,7 +125,7 @@ const WindGraph = (props: Props) => {
           mode: 'lines',
           type: 'scatter',
           showlegend: false,
-          line: { color: showObservations ? '#0080ff' : 'transparent' },
+          line: { color: showObservations ? '#2491ff' : 'transparent' },
           text: observedWindSpdTexts,
           hovertemplate: 'Observation: %{y:.2f} km/h, %{text}°<extra></extra>'
         },
@@ -134,8 +135,10 @@ const WindGraph = (props: Props) => {
           mode: 'text',
           text: ['Now'],
           showlegend: false,
-          hoverinfo: 'none',
-          textfont: { color: 'green', size: 15 }
+          hoverinfo: 'skip',
+          textfont: { color: 'green', size: 15 },
+          // a workaround to remove this from the slider: https://github.com/plotly/plotly.js/issues/2010#issuecomment-637697204
+          xaxis: 'x2' // This moves trace to alternative xaxis(x2) which does not have a slider
         }
       ]}
       layout={{
@@ -148,7 +151,9 @@ const WindGraph = (props: Props) => {
         margin: { pad: 10 },
         xaxis: {
           range: initialXAxisRange,
+          autorange: true,
           rangeslider: {
+            visible: true,
             bgcolor: '#dbdbdb',
             thickness: 0.1
           },
@@ -174,9 +179,17 @@ const WindGraph = (props: Props) => {
           type: 'date',
           dtick: 86400000.0 // Set the interval between ticks to one day: https://plotly.com/javascript/reference/#scatter-marker-colorbar-dtick
         },
+        xaxis2: {
+          type: 'date',
+          showticklabels: false,
+          // @ts-expect-error
+          matches: 'x', // Important for slider to work properly for all traces
+          overlaying: 'x' // Important for hover to work properly for all traces
+        },
         yaxis: {
           title: 'Wind Speed (km/h)',
-          tickfont: { size: 14 }
+          tickfont: { size: 14 },
+          fixedrange: true
         },
         shapes: [
           {
@@ -189,7 +202,9 @@ const WindGraph = (props: Props) => {
               color: 'green',
               width: 1.5,
               dash: 'dot'
-            }
+            },
+            xref: 'x2',
+            layer: 'below'
           },
           ...observedWindDirArrows
         ]
