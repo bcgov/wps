@@ -15,7 +15,7 @@ def _load_json_file(module_path: str, filename: str) -> dict:
         return json.load(file_pointer)
 
 
-def load_json_file(module_path: str) -> Callable[[str], dict]:
+def load_json_file_curried(module_path: str) -> Callable[[str], dict]:
     """ Return a function that can load json from a filename """
     def _json_loader(filename: str):
         return _load_json_file(module_path, filename)
