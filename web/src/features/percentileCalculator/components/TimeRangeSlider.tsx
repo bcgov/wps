@@ -17,8 +17,7 @@ interface Props {
 }
 
 const MIN_YEARS = 0
-
-const MAX_YEARS = new Date().getFullYear() - 1970
+const MAX_YEARS = 50
 
 const TIME_RANGE_OPTIONS = [
   {

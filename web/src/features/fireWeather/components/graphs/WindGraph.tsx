@@ -120,12 +120,13 @@ const WindGraph = (props: Props) => {
         {
           x: dates,
           y: observedWindSpds,
+          name: 'Observation',
           mode: 'lines',
           type: 'scatter',
           showlegend: false,
           line: { color: showObservations ? '#0080ff' : 'transparent' },
           text: observedWindSpdTexts,
-          hovertemplate: 'Observed: %{y:.2f} km/h, %{text}°<extra></extra>'
+          hovertemplate: 'Observation: %{y:.2f} km/h, %{text}°<extra></extra>'
         },
         {
           x: [currDate],
