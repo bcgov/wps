@@ -1,7 +1,11 @@
 """ Code common to app.weather_models.fetch """
+import math
+from datetime import datetime
 from enum import Enum
 from typing import List
 import logging
+import numpy
+from pyproj import Geod
 from scipy.interpolate import interp1d
 from app.db.models import ModelRunGridSubsetPrediction
 
@@ -9,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 # Key values on ModelRunGridSubsetPrediction.
-SCALAR_MODEL_VALUE_KEYS = ('tmp_tgl_2', 'rh_tgl_2', 'apcp_sfc_0')
+SCALAR_MODEL_VALUE_KEYS = ('tmp_tgl_2', 'rh_tgl_2', 'apcp_sfc_0', 'wind_tgl_10')
 
 
 class ModelEnum(str, Enum):
@@ -55,6 +59,77 @@ def interpolate_between_two_points(  # pylint: disable=invalid-name
     return function(xn)
 
 
+def get_closest_index(coordinate: List, points: List):
+    """ Get the index of the point closest to the coordinate """
+    # https://pyproj4.github.io/pyproj/stable/api/geod.html
+    # Use GRS80 ellipsoid (it's what NAD83 uses)
+    geod = Geod(ellps="GRS80")
+    # Calculate the distance each point is from the coordinate.
+    _, _, distances = geod.inv([coordinate[0] for _ in range(4)],
+                               [coordinate[1] for _ in range(4)],
+                               [x[0] for x in points],
+                               [x[1] for x in points])
+    # Return the index of the point with the shortest distance.
+    return numpy.argmin(distances)
+
+
+def get_closest_windspeed_and_direction(prediction: ModelRunGridSubsetPrediction, points: List,
+                                        coordinate: List):
+    """ Get the closest wind speed and direction. """
+    index = get_closest_index(coordinate, points)
+    wind_tgl_10 = prediction.wind_tgl_10[index]
+    wdir_tgl_10 = prediction.wdir_tgl_10[index]
+    return wdir_tgl_10, wind_tgl_10
+
+
+def interpolate_bearing(time_a: datetime, time_b: datetime, target_time: datetime,
+                        direction_a: float, direction_b: float):
+    """ Interpolate between two bearings, along the acute angle between the two bearings.
+
+    params:
+    :time_a: Time of the first bearing.
+    :time_b: Time of the 2nd bearing.
+    :target_Time: Time for which we desire a value.
+    :direction_a: Bearing (in degrees) at time_a.
+    :direction_b: Bearing (in degrees) at time b.
+    """
+    x_axis = (time_a.timestamp(), time_b.timestamp())
+    if abs(direction_a - direction_b) > 180:
+        # We want to interpolate along the acute angle between the two directions
+        if direction_a < direction_b:
+            y_axis = (direction_a+360, direction_b)
+        else:
+            y_axis = (direction_a, direction_b+360)
+    else:
+        y_axis = (direction_a, direction_b)
+
+    function = interp1d(x_axis, y_axis, kind='linear')
+    interpolated_value = function(target_time.timestamp()).item(0)
+    if interpolated_value >= 360:
+        # If we had to adjust the angles, we need to re-adjust the resultant angle.
+        return interpolated_value - 360
+    return interpolated_value
+
+
+def interpolate_wind_direction(prediction_a: ModelRunGridSubsetPrediction,
+                               prediction_b: ModelRunGridSubsetPrediction,
+                               target_timestamp: datetime):
+    """ Interpolate wind direction  """
+    if prediction_a.wdir_tgl_10 is None or prediction_b.wdir_tgl_10 is None:
+        # There's nothing to interpolate!
+        return None
+    result = []
+    for wdir_tgl_10_a, wdir_tgl_10_b in zip(prediction_a.wdir_tgl_10, prediction_b.wdir_tgl_10):
+
+        interpolated_wdir = interpolate_bearing(prediction_a.prediction_timestamp,
+                                                prediction_b.prediction_timestamp, target_timestamp,
+                                                wdir_tgl_10_a, wdir_tgl_10_b)
+
+        result.append(interpolated_wdir)
+
+    return result
+
+
 def construct_interpolated_noon_prediction(prediction_a: ModelRunGridSubsetPrediction,
                                            prediction_b: ModelRunGridSubsetPrediction):
     """ Construct a noon prediction by interpolating.
@@ -74,10 +149,15 @@ def construct_interpolated_noon_prediction(prediction_a: ModelRunGridSubsetPredi
         if value_a is None or value_b is None:
             logger.warning('can\'t interpolate between None values')
             continue
+
         value = interpolate_between_two_points(timestamp_a, timestamp_b, value_a, value_b, noon_timestamp)
         setattr(noon_prediction, key, value)
     if noon_prediction.apcp_sfc_0 is None or prediction_a.apcp_sfc_0 is None:
         noon_prediction.delta_precip = None
     else:
         noon_prediction.delta_precip = noon_prediction.apcp_sfc_0 - prediction_a.apcp_sfc_0
+
+    noon_prediction.wdir_tgl_10 = interpolate_wind_direction(
+        prediction_a, prediction_b, noon_prediction.prediction_timestamp)
+
     return noon_prediction

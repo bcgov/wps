@@ -21,7 +21,6 @@ from app.db.crud.weather_models import (get_station_model_predictions,
 import app.stations
 from app.weather_models import ModelEnum, ProjectionEnum
 from app.weather_models.fetch import extract_stations_in_polygon
-from app.tests import dump_sqlalchemy_response_to_json
 
 logger = logging.getLogger(__name__)
 

@@ -106,4 +106,7 @@ def assert_num_predictions(context, num_prediction_values):
 @then('The <expected_response> is matched')
 def assert_response(context, expected_response: dict):
     """ "Catch all" test that blindly checks the actual json response against an expected response. """
+    with open('test_models_predictions_db_response.json', 'w') as f:
+        print(context['response_json'])
+        json.dump(context['response_json'], f)
     assert context['response_json'] == expected_response

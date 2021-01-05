@@ -169,8 +169,7 @@ class StationMachineLearning:  # pylint: disable=too-many-instance-attributes
                         and prev_prediction.prediction_timestamp.hour == 18):
                     # If there's a gap in the data (like with the GLOBAL model) - then make up
                     # a noon prediction using interpolation, and add it as a sample.
-                    noon_prediction = construct_interpolated_noon_prediction(
-                        prev_prediction, prediction)
+                    noon_prediction = construct_interpolated_noon_prediction(prev_prediction, prediction)
                     self._add_sample_to_collection(
                         noon_prediction, prev_actual, sample_collection)
 
