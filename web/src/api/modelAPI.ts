@@ -59,18 +59,6 @@ export interface ModelValue {
   wind_direction?: number | null
   wind_speed?: number | null
   delta_precipitation?: number | null
-  // dew_point?: number | null
-  // cloud_cover?: number
-  // sea_level_pressure?: number
-  // wind_speed_40m?: number
-  // wind_direction_40m?: number
-  // wind_direction_80m?: number
-  // wind_speed_120m?: number
-  // wind_direction_120m?: number
-  // wind_speed_925mb?: number
-  // wind_direction_925mb?: number
-  // wind_speed_850mb?: number
-  // wind_direction_850m?: number
 }
 
 export interface Model {
