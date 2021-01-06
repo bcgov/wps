@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         python-version: [3.8]
-        node-version: [10.x]
+        node-version: [14.x]
     steps:
       - name: Checkout repo (main)
         uses: actions/checkout@v2
@@ -21,7 +21,7 @@ jobs:
           # For sonar-scanner to work properly we can't use a shallow fetch.
           fetch-depth: 0
 
-      - name: Setup Python ${{ matrix.python-version }}
+      - name: Setup Python ${{ matrix.python-version }} (api)
         uses: actions/setup-python@v1
         with:
           python-version: ${{ matrix.python-version }}
@@ -55,7 +55,7 @@ jobs:
           poetry config virtualenvs.create true
           poetry config virtualenvs.in-project false
 
-      - name: Install libgdal-dev
+      - name: Install libgdal-dev (api)
         # The python gdal component relies on libgdal-dev being installed.
         run: |
           sudo apt-get update --fix-missing && sudo apt-get -y install libgdal-dev
@@ -127,11 +127,11 @@ jobs:
       # "Error: ENOSPC: System limit for number of file watchers reached" can be addressed
       # with this: https://github.com/guard/listen/wiki/Increasing-the-amount-of-inotify-watchers#the-technical-details
       # It seems unnecessary at the moment because tests pass anyway
-      - name: Cypress tests (web)
+      - name: Cypress tests with coverage (web)
         working-directory: ./web
         run: npm run cypress:ci
 
-      - name: Tests with coverage (web)
+      - name: Unit tests (web)
         working-directory: ./web
         run: npm run test:ci
 
