@@ -86,7 +86,6 @@ app.mount('/api', app=api)
 app.mount('/', app=frontend)
 
 ORIGINS = config.get('ORIGINS')
-
 api.add_middleware(
     CORSMiddleware,
     allow_origins=ORIGINS,
