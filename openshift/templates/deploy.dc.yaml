@@ -157,11 +157,6 @@ objects:
                     secretKeyRef:
                       name: ${NAME}-global
                       key: rocket.chat-auth-token-secret
-                - name: REACT_APP_FIDER_LINK
-                  valueFrom:
-                    configMapKeyRef:
-                      name: ${NAME}-global
-                      key: env.fider-url
                 - name: REACT_APP_KEYCLOAK_AUTH_URL
                   valueFrom:
                     configMapKeyRef:
