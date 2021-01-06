@@ -213,11 +213,13 @@ def _fetch_delta_precip_for_prev_model_run(
         prediction_model_run_timestamp: datetime.datetime):
     # Look if we can find the previous value in memory
     if prediction.prediction_timestamp in prev_station_predictions[prediction.station_code]:
-        return prev_station_predictions[prediction.station_code][prediction.prediction_timestamp]['prediction'].delta_precipitation
+        prev_station_prediction = prev_station_predictions[prediction.station_code]
+        return prev_station_prediction[prediction.prediction_timestamp]['prediction'].delta_precipitation
     # Uh oh - couldn't find it - let's go look in the database.
     # This should only happen in extreme edge cases!
     prev_prediction = get_station_model_prediction_from_previous_model_run(
-        session, prediction.station_code, model, prediction.prediction_timestamp, prediction_model_run_timestamp)
+        session, prediction.station_code, model, prediction.prediction_timestamp,
+        prediction_model_run_timestamp)
     if prev_prediction:
         return prev_prediction.delta_precip
     return None

@@ -266,7 +266,8 @@ def get_station_model_prediction_from_previous_model_run(
     lower_bound = prediction_model_run_timestamp - datetime.timedelta(days=1)
     response = session.query(WeatherStationModelPrediction).\
         join(PredictionModelRunTimestamp,
-             PredictionModelRunTimestamp.id == WeatherStationModelPrediction.prediction_model_run_timestamp_id).\
+             PredictionModelRunTimestamp.id ==
+             WeatherStationModelPrediction.prediction_model_run_timestamp_id).\
         join(PredictionModel, PredictionModel.id ==
              PredictionModelRunTimestamp.prediction_model_id).\
         filter(WeatherStationModelPrediction.station_code == station_code).\

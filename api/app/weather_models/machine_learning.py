@@ -136,7 +136,7 @@ class StationMachineLearning:  # pylint: disable=too-many-instance-attributes
                                   actual: HourlyActual,
                                   sample_collection: SampleCollection):
         """ Take the provided prediction and observed value, adding them to the collection of samples """
-        # TODO: add precip to SAMPLE_VALUE_KEYS
+        # TODO: add precip and wind speed/direction to SAMPLE_VALUE_KEYS
         for model_key, sample_key in zip(SCALAR_MODEL_VALUE_KEYS, SAMPLE_VALUE_KEYS):
             model_value = getattr(prediction, model_key)
             actual_value = getattr(actual, sample_key)
