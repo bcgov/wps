@@ -616,8 +616,6 @@ def process_models():
     # grab the start time.
     start_time = datetime.datetime.now()
 
-    # TODO: make sure we only mark a layer as done, and interpolate, once we have all the layers!
-    # process everything.
     env_canada = EnvCanada(model_type)
     env_canada.process()
 
