@@ -60,21 +60,21 @@ def mock_get_model_run_predictions_for_grid(monkeypatch):
                 tmp_tgl_2=[2, 3, 4, 5],
                 rh_tgl_2=[10, 20, 30, 40],
                 apcp_sfc_0=[2, 4, 3, 6],
-                wdir_tgl_10=[359, 10, 20, 280],
+                wdir_tgl_10=[10, 20, 30, 40],
                 wind_tgl_10=[1, 2, 3, 4],
                 prediction_timestamp=datetime(2020, 10, 10, 18)),
             ModelRunGridSubsetPrediction(
                 tmp_tgl_2=[1, 2, 3, 4],
                 rh_tgl_2=[20, 30, 40, 50],
                 apcp_sfc_0=[3, 6, 3, 4],
-                wdir_tgl_10=[280, 10, 20, 260],
+                wdir_tgl_10=[280, 290, 300, 310],
                 wind_tgl_10=[5, 6, 7, 8],
                 prediction_timestamp=datetime(2020, 10, 10, 21)),
             ModelRunGridSubsetPrediction(
                 tmp_tgl_2=[1, 2, 3, 4],
                 rh_tgl_2=None,
                 apcp_sfc_0=[3, 6, 3, 4],
-                wdir_tgl_10=[10, 10, 20, 280],
+                wdir_tgl_10=[20, 30, 40, 50],
                 wind_tgl_10=[4, 3, 2, 1],
                 prediction_timestamp=datetime(2020, 10, 10, 21))
         ]
