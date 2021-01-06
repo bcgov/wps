@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         python-version: [3.8]
-        node-version: [10.x]
+        node-version: [14.x]
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
@@ -133,11 +133,11 @@ jobs:
       # "Error: ENOSPC: System limit for number of file watchers reached" can be addressed
       # with this: https://github.com/guard/listen/wiki/Increasing-the-amount-of-inotify-watchers#the-technical-details
       # It seems unnecessary at the moment because tests pass anyway
-      - name: Cypress tests (web)
+      - name: Cypress tests with coverage (web)
         working-directory: ./web
         run: npm run cypress:ci
 
-      - name: Tests with coverage (web)
+      - name: Unit tests (web)
         working-directory: ./web
         run: npm run test:ci
 
