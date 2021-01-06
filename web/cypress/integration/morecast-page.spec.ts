@@ -19,7 +19,7 @@ describe('MoreCast Page', () => {
   })
 
   it('When network errors occurred', () => {
-    cy.route('POST', 'api/models/RDPS/predictions/summaries').as('getRdpsSummaries')
+    cy.route('POST', 'api/weather_models/RDPS/predictions/summaries').as('getRdpsSummaries')
     cy.wait('@getStations')
 
     cy.selectStationInDropdown(stationCode)
@@ -45,15 +45,15 @@ describe('MoreCast Page', () => {
       const now = new Date('2020-10-21T15:00:00+00:00').getTime()
       cy.clock(now)
 
-      cy.route('POST', 'api/hourlies/', 'fixture:weather-data/observations')
-      cy.route('POST', 'api/noon_forecasts/', 'fixture:weather-data/noon-forecasts')
-      cy.route('POST', 'api/noon_forecasts/summaries/', 'fixture:weather-data/noon-forecast-summaries')
-      cy.route('POST', 'api/models/GDPS/predictions/most_recent', 'fixture:weather-data/models-with-bias-adjusted') // prettier-ignore
-      cy.route('POST', 'api/models/GDPS/predictions/summaries/', 'fixture:weather-data/model-summaries')
-      cy.route('POST', 'api/models/HRDPS/predictions/most_recent', 'fixture:weather-data/hr-models-with-bias-adjusted') // prettier-ignore
-      cy.route('POST', 'api/models/HRDPS/predictions/summaries', 'fixture:weather-data/high-res-model-summaries') // prettier-ignore
-      cy.route('POST', 'api/models/RDPS/predictions/most_recent', 'fixture:weather-data/regional-models-with-bias-adjusted') // prettier-ignore
-      cy.route('POST', 'api/models/RDPS/predictions/summaries', 'fixture:weather-data/regional-model-summaries')
+      cy.route('POST', 'api/observations/', 'fixture:weather-data/observations')
+      cy.route('POST', 'api/forecasts/noon/', 'fixture:weather-data/noon-forecasts')
+      cy.route('POST', 'api/forecasts/noon/summaries/', 'fixture:weather-data/noon-forecast-summaries')
+      cy.route('POST', 'api/weather_models/GDPS/predictions/most_recent', 'fixture:weather-data/models-with-bias-adjusted') // prettier-ignore
+      cy.route('POST', 'api/weather_models/GDPS/predictions/summaries/', 'fixture:weather-data/model-summaries')
+      cy.route('POST', 'api/weather_models/HRDPS/predictions/most_recent', 'fixture:weather-data/hr-models-with-bias-adjusted') // prettier-ignore
+      cy.route('POST', 'api/weather_models/HRDPS/predictions/summaries', 'fixture:weather-data/high-res-model-summaries') // prettier-ignore
+      cy.route('POST', 'api/weather_models/RDPS/predictions/most_recent', 'fixture:weather-data/regional-models-with-bias-adjusted') // prettier-ignore
+      cy.route('POST', 'api/weather_models/RDPS/predictions/summaries', 'fixture:weather-data/regional-model-summaries')
       cy.wait('@getStations')
 
       // Request the weather data
@@ -192,22 +192,22 @@ describe('MoreCast Page', () => {
       cy.getByTestId('hrdps-precip-line').should('not.have.class', 'precipLine--hidden')
       cy.getByTestId('accum-hrdps-precip-path').should('not.have.class', 'accumPrecipLine--hidden')
       cy.getByTestId('wx-graph-observation-toggle').click() // toggle Observations off
-      cy.getByTestId('wx-graph-forecast-toggle').click()    // toggle Forecasts on
+      cy.getByTestId('wx-graph-forecast-toggle').click() // toggle Forecasts on
       cy.getByTestId('observed-precip-line').should('have.class', 'precipLine--hidden')
       cy.getByTestId('accum-observed-precip-path').should('have.class', 'accumPrecipLine--hidden')
       cy.getByTestId('forecast-precip-line').should('not.have.class', 'precipLine--hidden')
       cy.getByTestId('accum-forecast-precip-path').should('not.have.class', 'accumPrecipLine--hidden')
-      cy.getByTestId('wx-graph-regional-model-toggle').click()  // toggle RDPS on
+      cy.getByTestId('wx-graph-regional-model-toggle').click() // toggle RDPS on
       cy.getByTestId('rdps-precip-line').should('not.have.class', 'precipLine--hidden')
       cy.getByTestId('accum-rdps-precip-path').should('not.have.class', 'accumPrecipLine--hidden')
       cy.getByTestId('gdps-precip-line').should('have.class', 'precipLine--hidden')
-      cy.getByTestId('wx-graph-high-res-model-toggle').click()  // toggle HRDPS off
-      cy.getByTestId('wx-graph-global-model-toggle').click()    // toggle GDPS on
+      cy.getByTestId('wx-graph-high-res-model-toggle').click() // toggle HRDPS off
+      cy.getByTestId('wx-graph-global-model-toggle').click() // toggle GDPS on
       cy.getByTestId('hrdps-precip-line').should('have.class', 'precipLine--hidden')
       cy.getByTestId('accum-hrdps-precip-path').should('have.class', 'accumPrecipLine--hidden')
       cy.getByTestId('gdps-precip-line').should('not.have.class', 'precipLine--hidden')
       cy.getByTestId('accum-gdps-precip-path').should('not.have.class', 'accumPrecipLine--hidden')
-      cy.getByTestId('wx-graph-observation-toggle').click()     // toggle Observations on
+      cy.getByTestId('wx-graph-observation-toggle').click() // toggle Observations on
 
       // Hover over the first date and check if the tooltip shows up with a correct text
       cy.getByTestId('observed-precip-line')

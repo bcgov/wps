@@ -5,7 +5,7 @@ import datetime
 from typing import List, Union
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
-from app.weather_models import ModelEnum
+from app.weather_models import ModelEnum, ProjectionEnum
 from app.db.models import (
     ProcessedModelRunUrl, PredictionModel, PredictionModelRunTimestamp, PredictionModelGridSubset,
     ModelRunGridSubsetPrediction, WeatherStationModelPrediction)
@@ -52,28 +52,6 @@ def get_or_create_grid_subset(session: Session,
         session.add(grid_subset)
         session.commit()
     return grid_subset
-
-
-def get_most_recent_model_run(
-        session: Session, abbreviation: str, projection: str) -> PredictionModelRunTimestamp:
-    """
-    Get the most recent model run of a specified type. (.e.g. give me the global
-    model at 15km resolution)
-
-    params:
-    :abbreviation: e.g. GDPS or RDPS
-    :projection: e.g. latlon.15x.15
-    """
-    # NOTE: Don't be fooled into saying "PredictionModelRunTimestamp.complete is True", it won't work.
-    # pylint: disable=singleton-comparison
-    return session.query(PredictionModelRunTimestamp).\
-        join(PredictionModel).\
-        filter(PredictionModel.id == PredictionModelRunTimestamp.prediction_model_id).\
-        filter(PredictionModel.abbreviation == abbreviation,
-               PredictionModel.projection == projection).\
-        filter(PredictionModelRunTimestamp.complete == True).\
-        order_by(PredictionModelRunTimestamp.prediction_run_timestamp.desc()).\
-        first()  # noqa: E712
 
 
 def get_prediction_run(session: Session, prediction_model_id: int,
@@ -266,7 +244,8 @@ def get_station_model_prediction_from_previous_model_run(
     lower_bound = prediction_model_run_timestamp - datetime.timedelta(days=1)
     response = session.query(WeatherStationModelPrediction).\
         join(PredictionModelRunTimestamp,
-             PredictionModelRunTimestamp.id == WeatherStationModelPrediction.prediction_model_run_timestamp_id).\
+             PredictionModelRunTimestamp.id ==
+             WeatherStationModelPrediction.prediction_model_run_timestamp_id).\
         join(PredictionModel, PredictionModel.id ==
              PredictionModelRunTimestamp.prediction_model_id).\
         filter(WeatherStationModelPrediction.station_code == station_code).\

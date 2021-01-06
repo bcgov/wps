@@ -76,11 +76,6 @@ class WeatherModelPrediction(BaseModel):
     values: List[WeatherModelPredictionValues] = []
 
 
-class WeatherModelPredictionResponse(BaseModel):
-    """ Response containg a number of weather predictions. """
-    predictions: List[WeatherModelPrediction]
-
-
 class ModelRunPredictions(BaseModel):
     """ Predictions for a model run """
     model_run: WeatherModelRun = None

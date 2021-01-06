@@ -13,7 +13,7 @@ from app.schemas.forecasts import (
 )
 from app.schemas.stations import WeatherStation, StationCodeList
 
-LOGGER = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def create_noon_forecast_summary(station: WeatherStation,
@@ -33,7 +33,7 @@ def create_noon_forecast_summary(station: WeatherStation,
         nested_dict[date]['temp'].append(record.temperature)
         nested_dict[date]['rh'].append(record.relative_humidity)
 
-    LOGGER.debug(json.dumps(nested_dict, sort_keys=True, indent=4))
+    logger.debug(json.dumps(nested_dict, sort_keys=True, indent=4))
 
     for date in nested_dict:
         min_max_values = NoonForecastSummaryValues(
