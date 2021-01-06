@@ -62,8 +62,21 @@ export const NoonModelTable = React.memo(function _(props: NoonModelTableProps) 
     align: 'right',
     format: (value: number) => value.toFixed(MODEL_VALUE_DECIMAL)
   }
+  const modelRunColumn: Column = {
+    id: 'model_run',
+    label: 'Model Run (UTC)',
+    minWidth: 70,
+    maxWidth: 100,
+    align: 'left',
+    formatDt: (value: string) => value.slice(0, 13)
+  }
 
-  return <SortableTableByDatetime {...props} columns={[...sharedColumns, precipColumn]} />
+  return (
+    <SortableTableByDatetime
+      {...props}
+      columns={[...sharedColumns, precipColumn, modelRunColumn]}
+    />
+  )
 })
 
 interface NoonForecastTableProps {
