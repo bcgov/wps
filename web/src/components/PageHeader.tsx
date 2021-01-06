@@ -32,6 +32,8 @@ const useStyles = makeStyles(theme => ({
     fontStyle: 'bold',
     fontSize: '1.1em',
     textDecoration: 'none',
+    cursor: 'pointer',
+
     '&:hover': {
       textDecoration: 'underline'
     }
@@ -59,6 +61,7 @@ export const PageHeader: React.FunctionComponent<Props> = ({ title }: Props) => 
           <div className={classes.title}>{title}</div>
         </div>
         <div
+          id="contact-link"
           className={classes.contact}
           onClick={() => window.open('mailto:bcws.predictiveservice@gov.bc.ca')}
         >
