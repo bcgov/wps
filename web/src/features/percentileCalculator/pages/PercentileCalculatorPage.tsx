@@ -12,12 +12,14 @@ import {
 } from 'features/percentileCalculator/slices/percentilesSlice'
 import { PercentileActionButtons } from 'features/percentileCalculator/components/PercentileActionButtons'
 import { PercentileResults } from 'features/percentileCalculator/components/PercentileResults'
-import { TimeRangeSlider } from 'features/percentileCalculator/components/TimeRangeSlider'
+import {
+  TimeRangeSlider,
+  yearWhenTheCalculationIsDone
+} from 'features/percentileCalculator/components/TimeRangeSlider'
 import { getStationCodesFromUrl, stationCodeQueryKey } from 'utils/url'
 
 const defaultTimeRange = 10
 const defaultPercentile = 90
-const yearWhenTheCalculationIsDone = 2020
 
 const PercentileCalculatorPage = () => {
   const dispatch = useDispatch()
