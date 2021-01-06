@@ -10,7 +10,12 @@ export const parseModelValuesHelper = (
   const noonModelValues: ModelValue[] = []
   const reducer = (values: ModelValue[], modelRun: ModelRun) => {
     // TODO: add in the model run time
-    return values.concat(modelRun.values)
+    modelRun.values.forEach((value: ModelValue) => {
+      value.model_run = modelRun.model_run.datetime
+      values.push(value)
+    })
+    return values
+    // return values.concat(modelRun.values)
   }
   const allModelValues = model_runs.reduce(reducer, [])
   const currDate = new Date()

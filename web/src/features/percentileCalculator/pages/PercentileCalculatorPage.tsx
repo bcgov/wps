@@ -20,7 +20,6 @@ import { getStationCodesFromUrl, stationCodeQueryKey } from 'utils/url'
 
 const defaultTimeRange = 10
 const defaultPercentile = 90
-const yearWhenTheCalculationIsDone = 2020
 
 const PercentileCalculatorPage = () => {
   const dispatch = useDispatch()

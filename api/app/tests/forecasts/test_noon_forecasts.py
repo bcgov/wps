@@ -18,7 +18,7 @@ import app.wildfire_one
 import app.db.database
 from app.db.models.forecasts import NoonForecast
 
-LOGGER = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 @pytest.fixture()
@@ -51,7 +51,7 @@ def test_noon_forecasts():
 
 @given('I request noon_forecasts for stations: <codes>', target_fixture='response')
 def given_request(monkeypatch, codes: List):
-    """ Make /api/noon_forecasts/ request using mocked out ClientSession.
+    """ Make /api/forecasts/noon/ request using mocked out ClientSession.
     """
     monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
 
@@ -59,7 +59,7 @@ def given_request(monkeypatch, codes: List):
     client = TestClient(app.main.app)
     headers = {'Content-Type': 'application/json',
                'Authorization': 'Bearer token'}
-    return client.post('/api/noon_forecasts/', headers=headers, json={"stations": codes})
+    return client.post('/api/forecasts/noon/', headers=headers, json={"stations": codes})
 
 
 @then('the response status code is <status>')

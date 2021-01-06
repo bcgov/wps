@@ -6,7 +6,7 @@ import json
 from app.tests.fixtures.loader import FixtureFinder
 
 
-LOGGER = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class MockJWTDecode:
@@ -102,7 +102,7 @@ def default_mock_client_get(*args, **kwargs) -> MockClientSession:
 
 
 def _get_fixture_response(fixture):
-    LOGGER.debug('construct response with %s', fixture)
+    logger.debug('construct response with %s', fixture)
     with open(fixture, 'rb') as fixture_file:
         if is_json(fixture):
             # Return a response with the appropriate fixture

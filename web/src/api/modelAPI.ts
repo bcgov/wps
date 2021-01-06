@@ -36,7 +36,7 @@ export async function getModelSummaries(
   stationCodes: number[],
   model: 'GDPS' | 'HRDPS' | 'RDPS'
 ): Promise<ModelSummariesForStation[]> {
-  const url = `/models/${model}/predictions/summaries/`
+  const url = `/weather_models/${model}/predictions/summaries/`
   const { data } = await axios.post<ModelSummariesResponse>(url, {
     stations: stationCodes
   })
@@ -94,7 +94,7 @@ export async function getModelsWithBiasAdj(
   stationCodes: number[],
   model: 'GDPS' | 'HRDPS' | 'RDPS'
 ): Promise<ModelsForStation[]> {
-  const url = `/models/${model}/predictions/most_recent/`
+  const url = `/weather_models/${model}/predictions/most_recent/`
   const { data } = await axios.post<BiasAdjModelResponse>(url, {
     stations: stationCodes
   })

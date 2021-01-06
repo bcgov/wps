@@ -14,7 +14,7 @@ from app.db.models import PredictionModel, PredictionModelRunTimestamp
 import app.db.database
 import app.time_utils as time_utils
 
-LOGGER = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 @pytest.fixture(autouse=True)

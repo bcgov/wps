@@ -21,7 +21,7 @@ from app.rocketchat_notifications import send_rocketchat_notification
 if __name__ == "__main__":
     configure_logging()
 
-LOGGER = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 """
 Define a "fire season" applicable to all weather stations.
@@ -41,7 +41,7 @@ def _construct_request_body():
     """
     start_date = _get_start_date()
     end_date = _get_end_date()
-    LOGGER.debug('requesting noon forecasts from %s to %s',
+    logger.debug('requesting noon forecasts from %s to %s',
                  start_date, end_date)
     # Prepare query data:
     return {
@@ -98,7 +98,7 @@ def _parse_csv(temp_path: str):
                 tzinfo=timezone.utc)
             save_noon_forecast(session, NoonForecast(**data))
         except IntegrityError:
-            LOGGER.info('Skipping duplicate record')
+            logger.info('Skipping duplicate record')
             session.rollback()
 
 
@@ -142,17 +142,17 @@ def main():
     the CSV file to the database, then deletes the local copy of the CSV file.
     """
     try:
-        LOGGER.debug('Retrieving noon forecasts...')
+        logger.debug('Retrieving noon forecasts...')
         bot = NoonForecastBot()
         bot.run()
-        LOGGER.debug(
+        logger.debug(
             'Finished retrieving noon forecasts for all weather stations.')
         # Exit with 0 - success.
         sys.exit(os.EX_OK)
     # pylint: disable=broad-except
     except Exception as exception:
         # Exit non 0 - failure.
-        LOGGER.error('Failed to retrieve noon forecasts.',
+        logger.error('Failed to retrieve noon forecasts.',
                      exc_info=exception)
         # If and only if current date is during fire season, send a message to Rocketchat to notify
         # us of the error.
