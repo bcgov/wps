@@ -3,7 +3,7 @@
 import logging
 from decouple import config
 
-LOGGER = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def get(key, default=None):
@@ -16,5 +16,5 @@ def get(key, default=None):
     """
     value = config(key, default)
     if value is None:
-        LOGGER.warning('Expected environment variable (%s) not set.', key)
+        logger.warning('Expected environment variable (%s) not set.', key)
     return value

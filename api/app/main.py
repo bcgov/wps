@@ -2,27 +2,19 @@
 
 See README.md for details on how to run.
 """
-import datetime
 import logging
 from fastapi import FastAPI, Depends, Response
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.applications import Starlette
 from app import schemas, configure_logging
-from app.weather_models.fetch.predictions import (
-    fetch_model_predictions,
-    fetch_model_run_predictions_by_station_code)
-from app.weather_models.fetch.summaries import fetch_model_prediction_summaries
-from app.weather_models import ModelEnum, ProjectionEnum
 from app.percentile import get_precalculated_percentiles
-from app.forecasts.noon_forecasts import fetch_noon_forecasts
-from app.forecasts.noon_forecasts_summaries import fetch_noon_forecasts_summaries
 from app.auth import authenticate
 from app import config
 from app import health
 from app import hourlies
 from app import stations
 from app.frontend import frontend
-import app.time_utils as time_utils
+from app.routers import forecasts, weather_models
 
 
 configure_logging()
@@ -95,6 +87,9 @@ api.add_middleware(
     allow_headers=["*"],
 )
 
+api.include_router(forecasts.router)
+api.include_router(weather_models.router)
+
 
 @api.get('/health')
 async def get_health():
@@ -109,95 +104,11 @@ async def get_health():
         raise
 
 
-@api.post('/models/{model}/predictions/',
-          response_model=schemas.weather_models.WeatherModelPredictionResponse)
-async def get_model_predictions(
-        model: ModelEnum, request: schemas.stations.StationCodeList, _: bool = Depends(authenticate)):
-    """ Returns 10 day noon prediction based on the specified model,
-    for the specified set of weather stations. """
-    try:
-        logger.info('/models/%s/predictions/', model.name)
-        if model == ModelEnum.GDPS:
-            projection = ProjectionEnum.LATLON_15X_15
-        elif model == ModelEnum.HRDPS:
-            projection = ProjectionEnum.HIGH_RES_CONTINENTAL
-        else:
-            projection = None
-        model_predictions = await fetch_model_predictions(model, projection, request.stations)
-        return schemas.weather_models.WeatherModelPredictionResponse(predictions=model_predictions)
-    except Exception as exception:
-        logger.critical(exception, exc_info=True)
-        raise
-
-
-@api.post('/models/{model}/predictions/summaries/',
-          response_model=schemas.weather_models.WeatherModelPredictionSummaryResponse)
-async def get_model_prediction_summaries(
-        model: ModelEnum, request: schemas.stations.StationCodeList, _: bool = Depends(authenticate)):
-    """ Returns a summary of predictions for a given model. """
-    try:
-        logger.info('/models/%s/predictions/summaries/', model.name)
-        summaries = await fetch_model_prediction_summaries(model, request.stations)
-        return schemas.weather_models.WeatherModelPredictionSummaryResponse(summaries=summaries)
-    except Exception as exception:
-        logger.critical(exception, exc_info=True)
-        raise
-
-
-@api.post('/models/{model}/predictions/most_recent/',
-          response_model=schemas.weather_models.WeatherStationsModelRunsPredictionsResponse)
-async def get_most_recent_model_values(
-        model: ModelEnum, request: schemas.stations.StationCodeList, _: bool = Depends(authenticate)):
-    """ Returns the weather values for the last model prediction that was issued
-    for the station before actual weather readings became available.
-    """
-    try:
-        logger.info('/models/%s/predictions/most_recent/', model.name)
-        end_date = time_utils.get_utc_now() + datetime.timedelta(days=10)
-        station_predictions = await fetch_model_run_predictions_by_station_code(
-            model, request.stations, end_date)
-        return schemas.weather_models.WeatherStationsModelRunsPredictionsResponse(
-            stations=station_predictions)
-    except Exception as exception:
-        logger.critical(exception, exc_info=True)
-        raise
-
-
-@api.post('/noon_forecasts/', response_model=schemas.forecasts.NoonForecastResponse)
-def get_noon_forecasts(request: schemas.stations.StationCodeList, _: bool = Depends(authenticate)):
-    """ Returns noon forecasts pulled from BC FireWeather Phase 1 website for the specified
-    set of weather stations. """
-    try:
-        logger.info('/noon_forecasts/')
-        now = time_utils.get_utc_now()
-        back_5_days = now - datetime.timedelta(days=5)
-        forward_5_days = now + datetime.timedelta(days=5)
-        return fetch_noon_forecasts(request.stations, back_5_days, forward_5_days)
-    except Exception as exception:
-        logger.critical(exception, exc_info=True)
-        raise
-
-
-@api.post('/noon_forecasts/summaries/', response_model=schemas.forecasts.NoonForecastSummariesResponse)
-async def get_noon_forecasts_summaries(request: schemas.stations.StationCodeList,
-                                       _: bool = Depends(authenticate)):
-    """ Returns summaries of noon forecasts for given weather stations """
-    try:
-        logger.info('/noon_forecasts/summaries/')
-        now = time_utils.get_utc_now()
-        back_5_days = now - datetime.timedelta(days=5)
-        return await fetch_noon_forecasts_summaries(request.stations, back_5_days, now)
-
-    except Exception as exception:
-        logger.critical(exception, exc_info=True)
-        raise
-
-
-@api.post('/hourlies/', response_model=schemas.observations.WeatherStationHourlyReadingsResponse)
+@api.post('/observations/', response_model=schemas.observations.WeatherStationHourlyReadingsResponse)
 async def get_hourlies(request: schemas.stations.StationCodeList, _: bool = Depends(authenticate)):
-    """ Returns hourlies for the last 5 days, for the specified weather stations """
+    """ Returns hourly observations for the last 5 days, for the specified weather stations """
     try:
-        logger.info('/hourlies/')
+        logger.info('/observations/')
         readings = await hourlies.get_hourly_readings(request.stations)
         return schemas.observations.WeatherStationHourlyReadingsResponse(hourlies=readings)
     except Exception as exception:

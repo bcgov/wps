@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 def read_file_contents(filename):
+    """ Given a filename, return json """
     dirname = os.path.dirname(os.path.realpath(__file__))
     with open(os.path.join(dirname, filename), 'r') as file:
         return file.read()

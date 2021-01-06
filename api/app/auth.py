@@ -6,7 +6,7 @@ from fastapi.security import OAuth2PasswordBearer
 import jwt
 from app import config
 
-LOGGER = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 # Parse request header and pass the token
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/token")
@@ -23,7 +23,7 @@ async def authenticate(token: str = Depends(oauth2_scheme)):
         return True
     except Exception as exception:
         detail = 'Could not validate the credential ({})'.format(exception)
-        LOGGER.error(detail)
+        logger.error(detail)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=detail,

@@ -4,7 +4,7 @@ from pytest_bdd import scenario, given, then
 from app.weather_models.env_canada import parse_env_canada_filename
 from app.weather_models.process_grib import ModelRunInfo
 
-LOGGER = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 @scenario('test_parse_env_canada_filename.feature', 'Parse a grib filename',
@@ -15,7 +15,7 @@ def test_parse():
 
 @given('I have a grib file <filename>', target_fixture='parsed_file')
 def given_grib_file(filename: str) -> ModelRunInfo:
-    """ Make /hourlies/ request using mocked out ClientSession.
+    """ Parse filename.
     """
     return parse_env_canada_filename(filename)
 

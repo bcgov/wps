@@ -14,7 +14,7 @@ from app.db.models.forecasts import NoonForecast
 import app.time_utils as time_utils
 
 
-LOGGER = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 noon = time_utils.get_utc_now().replace(
     hour=20, minute=0, second=0, microsecond=0)
@@ -67,7 +67,7 @@ def given_request(monkeypatch, codes: List):
     monkeypatch.setattr(app.db.database, 'get_read_session', mock_get_session)
 
     client = TestClient(app.main.app)
-    endpoint = '/api/noon_forecasts/summaries/'
+    endpoint = '/api/forecasts/noon/summaries/'
     return client.post(
         endpoint, headers={'Authorization': 'Bearer token'}, json={'stations': codes})
 
