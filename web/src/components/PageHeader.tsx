@@ -1,11 +1,9 @@
 import React from 'react'
 import { Container } from 'components/Container'
 import { makeStyles } from '@material-ui/core/styles'
-import { FIDER_LINK } from 'utils/env'
 
 const useStyles = makeStyles(theme => ({
   root: {
-    // minHeight: 65,
     background: theme.palette.primary.main,
     borderBottomWidth: 2,
     borderBottomStyle: 'solid',
@@ -60,15 +58,12 @@ export const PageHeader: React.FunctionComponent<Props> = ({ title }: Props) => 
           </a>
           <div className={classes.title}>{title}</div>
         </div>
-        <a
+        <div
           className={classes.contact}
-          href={FIDER_LINK}
-          target="_blank"
-          rel="noopener noreferrer"
-          id="contact-link"
+          onClick={() => window.open('mailto:bcws.predictiveservice@gov.bc.ca')}
         >
           Contact
-        </a>
+        </div>
       </Container>
     </nav>
   )
