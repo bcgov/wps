@@ -11,7 +11,7 @@ export const parseModelValuesHelper = (
   const reducer = (values: ModelValue[], modelRun: ModelRun) => {
     // TODO: add in the model run time
     modelRun.values.forEach((value: ModelValue) => {
-      value.model_run = modelRun.model_run.datetime
+      value.model_run_datetime = modelRun.model_run.datetime
       values.push(value)
     })
     return values
@@ -20,7 +20,6 @@ export const parseModelValuesHelper = (
   const allModelValues = model_runs.reduce(reducer, [])
   const currDate = new Date()
   allModelValues.forEach(v => {
-    console.log(v)
     const isFutureModel = new Date(v.datetime) >= currDate
     if (isFutureModel) {
       modelValues.push(v)

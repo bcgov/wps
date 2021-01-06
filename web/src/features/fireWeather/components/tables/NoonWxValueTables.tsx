@@ -63,7 +63,7 @@ export const NoonModelTable = React.memo(function _(props: NoonModelTableProps) 
     format: (value: number) => value.toFixed(MODEL_VALUE_DECIMAL)
   }
   const modelRunColumn: Column = {
-    id: 'model_run',
+    id: 'model_run_datetime',
     label: 'Model Run (UTC)',
     minWidth: 70,
     maxWidth: 100,
