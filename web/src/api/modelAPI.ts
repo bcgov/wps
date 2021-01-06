@@ -59,6 +59,7 @@ export interface ModelValue {
   wind_direction?: number | null
   wind_speed?: number | null
   delta_precipitation?: number | null
+  model_run: string | null
 }
 
 export interface Model {
