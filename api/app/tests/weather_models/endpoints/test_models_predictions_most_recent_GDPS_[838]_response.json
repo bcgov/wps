@@ -29,8 +29,8 @@
                             "bias_adjusted_temperature": 1.9513612178452453,
                             "relative_humidity": 66.2583772989918,
                             "bias_adjusted_relative_humidity": 69.63901880660259,
-                            "wind_speed": null,
-                            "wind_direction": null,
+                            "wind_speed": 20.0,
+                            "wind_direction": 20.0,
                             "delta_precipitation": null
                         }
                     ]
@@ -49,8 +49,8 @@
                             "bias_adjusted_temperature": 2.456227563022262,
                             "relative_humidity": 67.55446187337311,
                             "bias_adjusted_relative_humidity": 75.92548545253038,
-                            "wind_speed": null,
-                            "wind_direction": null,
+                            "wind_speed": 20.0,
+                            "wind_direction": 20.0,
                             "delta_precipitation": null
                         }
                     ]
