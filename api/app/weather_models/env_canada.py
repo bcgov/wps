@@ -11,6 +11,8 @@ from urllib.parse import urlparse
 import logging
 import tempfile
 import requests
+import numpy
+from pyproj import Geod
 from scipy.interpolate import griddata
 from geoalchemy2.shape import to_shape
 from sqlalchemy.orm import Session
@@ -26,7 +28,6 @@ from app.schemas.stations import WeatherStation
 from app import configure_logging
 import app.time_utils as time_utils
 from app.stations import get_stations_synchronously
-from app.weather_models import get_closest_index
 from app.weather_models.process_grib import GribFileProcessor, ModelRunInfo
 from app.db.models import (ProcessedModelRunUrl, PredictionModelRunTimestamp,
                            WeatherStationModelPrediction, ModelRunGridSubsetPrediction)
@@ -272,6 +273,20 @@ def download(url: str, path: str) -> str:
         response.raise_for_status()
     # Return file location.
     return target
+
+
+def get_closest_index(coordinate: List, points: List):
+    """ Get the index of the point closest to the coordinate """
+    # https://pyproj4.github.io/pyproj/stable/api/geod.html
+    # Use GRS80 ellipsoid (it's what NAD83 uses)
+    geod = Geod(ellps="GRS80")
+    # Calculate the distance each point is from the coordinate.
+    _, _, distances = geod.inv([coordinate[0] for _ in range(4)],
+                               [coordinate[1] for _ in range(4)],
+                               [x[0] for x in points],
+                               [x[1] for x in points])
+    # Return the index of the point with the shortest distance.
+    return numpy.argmin(distances)
 
 
 def mark_prediction_model_run_processed(session: Session,

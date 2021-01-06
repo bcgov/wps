@@ -4,8 +4,6 @@ from datetime import datetime
 from enum import Enum
 from typing import List
 import logging
-import numpy
-from pyproj import Geod
 from scipy.interpolate import interp1d
 from app.db.models import ModelRunGridSubsetPrediction
 
@@ -57,29 +55,6 @@ def interpolate_between_two_points(  # pylint: disable=invalid-name
     function = interp1d(x_axis, y_axis, kind='linear')
     # Use iterpolation function to derive values at the time of interest.
     return function(xn)
-
-
-def get_closest_index(coordinate: List, points: List):
-    """ Get the index of the point closest to the coordinate """
-    # https://pyproj4.github.io/pyproj/stable/api/geod.html
-    # Use GRS80 ellipsoid (it's what NAD83 uses)
-    geod = Geod(ellps="GRS80")
-    # Calculate the distance each point is from the coordinate.
-    _, _, distances = geod.inv([coordinate[0] for _ in range(4)],
-                               [coordinate[1] for _ in range(4)],
-                               [x[0] for x in points],
-                               [x[1] for x in points])
-    # Return the index of the point with the shortest distance.
-    return numpy.argmin(distances)
-
-
-def get_closest_windspeed_and_direction(prediction: ModelRunGridSubsetPrediction, points: List,
-                                        coordinate: List):
-    """ Get the closest wind speed and direction. """
-    index = get_closest_index(coordinate, points)
-    wind_tgl_10 = prediction.wind_tgl_10[index]
-    wdir_tgl_10 = prediction.wdir_tgl_10[index]
-    return wdir_tgl_10, wind_tgl_10
 
 
 def interpolate_bearing(time_a: datetime, time_b: datetime, target_time: datetime,
