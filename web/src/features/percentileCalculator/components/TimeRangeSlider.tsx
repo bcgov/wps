@@ -1,5 +1,6 @@
 import React from 'react'
 import { InputLabel, makeStyles } from '@material-ui/core'
+
 import Slider from 'components/Slider'
 
 const useStyles = makeStyles({
@@ -16,9 +17,11 @@ interface Props {
   onYearRangeChange: (yearRangeNumber: number) => void
 }
 
-const MIN_YEARS = 0
+export const earliestYearAvailableForCalculation = 1970
+export const yearWhenTheCalculationIsDone = 2020
 
-const MAX_YEARS = new Date().getFullYear() - 1970
+const MIN_YEARS = 0
+const MAX_YEARS = yearWhenTheCalculationIsDone - earliestYearAvailableForCalculation
 
 const TIME_RANGE_OPTIONS = [
   {
@@ -41,6 +44,7 @@ const TIME_RANGE_OPTIONS = [
 
 export const TimeRangeSlider: React.FunctionComponent<Props> = (props: Props) => {
   const classes = useStyles()
+
   return (
     <div className={classes.root} data-testid="time-range-slider">
       <InputLabel className={classes.inputLabel}>Time Range (years)</InputLabel>
