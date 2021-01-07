@@ -23,7 +23,6 @@ def upgrade():
         'wind_tgl_10', postgresql.ARRAY(sa.Float()), nullable=True))
     op.add_column('weather_station_model_predictions', sa.Column('wdir_tgl_10', sa.Float(), nullable=True))
     op.add_column('weather_station_model_predictions', sa.Column('wind_tgl_10', sa.Float(), nullable=True))
-    # ### end Alembic commands ###
 
 
 def downgrade():
