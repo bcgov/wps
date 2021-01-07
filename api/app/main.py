@@ -77,8 +77,8 @@ app.mount('/api', app=api)
 # 2. Mount everything else on the root, to the frontend app.
 app.mount('/', app=frontend)
 
-
 ORIGINS = config.get('ORIGINS')
+
 api.add_middleware(
     CORSMiddleware,
     allow_origins=ORIGINS,
