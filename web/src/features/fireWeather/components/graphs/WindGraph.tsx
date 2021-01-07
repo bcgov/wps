@@ -4,12 +4,14 @@ import Plot from 'react-plotly.js'
 import moment from 'moment'
 
 import { ObservedValue } from 'api/observationAPI'
+import { ModelValue } from 'api/modelAPI'
 import { ToggleValues } from 'features/fireWeather/components/graphs/useGraphToggles'
 import { Shape } from 'plotly.js'
 
 export interface Props {
   toggleValues: ToggleValues
   observedValues: ObservedValue[]
+  hrdpsModelValues: ModelValue[]
 }
 
 type Point = [number, number]
@@ -67,8 +69,8 @@ const rotatePoints = (points: Point[], angle: number, cw = true): Point[] => {
 }
 
 const WindGraph = (props: Props) => {
-  const { observedValues, toggleValues } = props
-  const { showObservations } = toggleValues
+  const { observedValues, hrdpsModelValues, toggleValues } = props
+  const { showObservations, showHighResModels } = toggleValues
 
   const dates: Date[] = []
   const observedWindSpds: number[] = []
