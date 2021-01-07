@@ -70,6 +70,12 @@ def interpolate_bearing(time_a: datetime, time_b: datetime, target_time: datetim
     :direction_b: Bearing (in degrees) at time b.
     """
     x_axis = (time_a.timestamp(), time_b.timestamp())
+    # If the difference between two angles exceeds 180 degrees, it means we need to add
+    # 360 degrees to the smaller number in order to find the actute angle.
+    # After interpolating between the two angles, we need to subtract 360 degrees to ensure
+    # we have a value between between 0 and 360 again.
+    # e.g. a = 259 and b = 1 ; We don't actually want to interpolate between 259 and 1, we want
+    # to interpolat between 361 and 259.
     if abs(direction_a - direction_b) > 180:
         # We want to interpolate along the acute angle between the two directions
         if direction_a < direction_b:
