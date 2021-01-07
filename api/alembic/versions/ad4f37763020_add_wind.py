@@ -31,4 +31,3 @@ def downgrade():
     op.drop_column('weather_station_model_predictions', 'wdir_tgl_10')
     op.drop_column('model_run_grid_subset_predictions', 'wind_tgl_10')
     op.drop_column('model_run_grid_subset_predictions', 'wdir_tgl_10')
-    # ### end Alembic commands ###
