@@ -73,7 +73,7 @@ const MoreCastPage = () => {
 
   return (
     <main>
-      <PageHeader title="Predictive Services Unit" />
+      <PageHeader title="Predictive Services Unit" productName="MoreCast" />
       <PageTitle title="MoreCast - Weather Forecast Validation Tool" />
       <Container>
         <WxStationDropdown

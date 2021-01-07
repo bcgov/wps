@@ -1,6 +1,7 @@
 import React from 'react'
-import { Container } from 'components/Container'
 import { makeStyles } from '@material-ui/core/styles'
+
+import { Container } from 'components/Container'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -30,7 +31,7 @@ const useStyles = makeStyles(theme => ({
   contact: {
     color: 'white',
     fontStyle: 'bold',
-    fontSize: '1.1em',
+    fontSize: '1.2em',
     textDecoration: 'none',
     cursor: 'pointer',
 
@@ -42,9 +43,11 @@ const useStyles = makeStyles(theme => ({
 
 interface Props {
   title: string
+  productName: string
 }
 
-export const PageHeader: React.FunctionComponent<Props> = ({ title }: Props) => {
+export const PageHeader: React.FunctionComponent<Props> = (props: Props) => {
+  const { title, productName } = props
   const classes = useStyles()
 
   return (
@@ -60,13 +63,13 @@ export const PageHeader: React.FunctionComponent<Props> = ({ title }: Props) => 
           </a>
           <div className={classes.title}>{title}</div>
         </div>
-        <div
+        <a
           id="contact-link"
           className={classes.contact}
-          onClick={() => window.open('mailto:bcws.predictiveservice@gov.bc.ca')}
+          href={`mailto:bcws.predictiveservices@gov.bc.ca?subject=Predictive Services Unit - ${productName}`}
         >
           Contact
-        </div>
+        </a>
       </Container>
     </nav>
   )
