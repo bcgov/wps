@@ -9,9 +9,10 @@ import datetime
 from typing import Generator, List
 from urllib.parse import urlparse
 import logging
-import time
 import tempfile
 import requests
+import numpy
+from pyproj import Geod
 from scipy.interpolate import griddata
 from geoalchemy2.shape import to_shape
 from sqlalchemy.orm import Session
@@ -38,6 +39,9 @@ if __name__ == "__main__":
     configure_logging()
 
 logger = logging.getLogger(__name__)
+
+
+GRIB_LAYERS = ('TMP_TGL_2', 'RH_TGL_2', 'APCP_SFC_0', 'WDIR_TGL_10', 'WIND_TGL_10')
 
 
 class UnhandledPredictionModelType(Exception):
@@ -161,6 +165,17 @@ def get_model_run_hours(model_abbreviation: str):
             yield hour
 
 
+def get_model_run_urls(now: datetime.datetime, model_type: ModelEnum, model_run_hour: int):
+    """ Get model run url's """
+    if model_type == ModelEnum.GDPS:
+        return list(get_global_model_run_download_urls(now, model_run_hour))
+    if model_type == ModelEnum.HRDPS:
+        return list(get_high_res_model_run_download_urls(now, model_run_hour))
+    if model_type == ModelEnum.RDPS:
+        return list(get_regional_model_run_download_urls(now, model_run_hour))
+    raise UnhandledPredictionModelType()
+
+
 def get_global_model_run_download_urls(now: datetime.datetime,
                                        model_run_hour: int) -> Generator[str, None, None]:
     """ Yield urls to download GDPS (global) model runs """
@@ -172,7 +187,7 @@ def get_global_model_run_download_urls(now: datetime.datetime,
     # For the global model, we have prediction at 3 hour intervals up to 240 hours.
     for h in range(0, 241, 3):
         hhh = format(h, '03d')
-        for level in ['TMP_TGL_2', 'RH_TGL_2', 'APCP_SFC_0']:
+        for level in GRIB_LAYERS:
             # Accumulated precipitation does not exist for 000 hour, so the url for this doesn't exist
             if (hhh == '000' and level == 'APCP_SFC_0'):
                 continue
@@ -192,7 +207,7 @@ def get_high_res_model_run_download_urls(now: datetime.datetime, hour: int) -> G
     # For the high-res model, predictions are at 1 hour intervals up to 48 hours.
     for h in range(0, 49):
         hhh = format(h, '03d')
-        for level in ['TMP_TGL_2', 'RH_TGL_2', 'APCP_SFC_0']:
+        for level in GRIB_LAYERS:
             # Accumulated precipitation does not exist for 000 hour, so the url for this doesn't exist
             if (hhh == '000' and level == 'APCP_SFC_0'):
                 continue
@@ -212,7 +227,7 @@ def get_regional_model_run_download_urls(now: datetime.datetime, hour: int) -> G
     # For the RDPS model, predictions are at 1 hour intervals up to 84 hours.
     for h in range(0, 85):
         hhh = format(h, '03d')
-        for level in ['TMP_TGL_2', 'RH_TGL_2', 'APCP_SFC_0']:
+        for level in GRIB_LAYERS:
             # Accumulated precipitation does not exist for 000 hour, so the url for this doesn't exist
             if (hhh == '000' and level == 'APCP_SFC_0'):
                 continue
@@ -258,6 +273,20 @@ def download(url: str, path: str) -> str:
         response.raise_for_status()
     # Return file location.
     return target
+
+
+def get_closest_index(coordinate: List, points: List):
+    """ Get the index of the point closest to the coordinate """
+    # https://pyproj4.github.io/pyproj/stable/api/geod.html
+    # Use GRS80 ellipsoid (it's what NAD83 uses)
+    geod = Geod(ellps="GRS80")
+    # Calculate the distance each point is from the coordinate.
+    _, _, distances = geod.inv([coordinate[0] for _ in range(4)],
+                               [coordinate[1] for _ in range(4)],
+                               [x[0] for x in points],
+                               [x[1] for x in points])
+    # Return the index of the point with the shortest distance.
+    return numpy.argmin(distances)
 
 
 def mark_prediction_model_run_processed(session: Session,
@@ -382,16 +411,7 @@ class EnvCanada():
             self.model_type, model_run_hour))
 
         # Get the urls for the current model run.
-        if self.model_type == ModelEnum.GDPS:
-            urls = list(get_global_model_run_download_urls(
-                self.now, model_run_hour))
-        elif self.model_type == ModelEnum.HRDPS:
-            urls = list(get_high_res_model_run_download_urls(
-                self.now, model_run_hour))
-        elif self.model_type == ModelEnum.RDPS:
-            urls = list(get_regional_model_run_download_urls(
-                self.now, model_run_hour
-            ))
+        urls = get_model_run_urls(self.now, self.model_type, model_run_hour)
 
         # Process all the urls.
         self.process_model_run_urls(urls)
@@ -482,19 +502,27 @@ class ModelValueProcessor:
         else:
             station_prediction.rh_tgl_2 = griddata(
                 points, prediction.rh_tgl_2, coordinate, method='linear')[0]
-        # Check that apcp_sfc_0 is not None, since accumulated precipitation
-        # does not exist for 00 hour
-        if prediction.apcp_sfc_0 is not None:
+        # Check that apcp_sfc_0 is None, since accumulated precipitation
+        # does not exist for 00 hour.
+        if prediction.apcp_sfc_0 is None:
+            station_prediction.apcp_sfc_0 = 0.0
+        else:
             station_prediction.apcp_sfc_0 = griddata(
                 points, prediction.apcp_sfc_0, coordinate, method='linear')[0]
-        else:
-            station_prediction.apcp_sfc_0 = 0.0
         # Calculate the delta_precipitation based on station's previous prediction_timestamp
         # for the same model run
         # For some reason pylint doesn't think session has a flush!
         self.session.flush()  # pylint: disable=no-member
         station_prediction.delta_precip = self._calculate_delta_precip(
             station, model_run, prediction, station_prediction)
+
+        # Get the closest wind speed
+        if prediction.wind_tgl_10 is not None:
+            station_prediction.wind_tgl_10 = prediction.wind_tgl_10[get_closest_index(coordinate, points)]
+        # Get the closest wind direcion
+        if prediction.wdir_tgl_10 is not None:
+            station_prediction.wdir_tgl_10 = prediction.wdir_tgl_10[get_closest_index(coordinate, points)]
+
         # Predict the temperature
         station_prediction.bias_adjusted_temperature = machine.predict_temperature(
             station_prediction.tmp_tgl_2,
@@ -528,7 +556,7 @@ class ModelValueProcessor:
     def _process_model_run_for_station(self,
                                        model_run: PredictionModelRunTimestamp,
                                        station: WeatherStation):
-        """ Process the model run for the prodvided station.
+        """ Process the model run for the provided station.
         """
         # Extract the coordinate.
         coordinate = [station.long, station.lat]
@@ -563,8 +591,7 @@ class ModelValueProcessor:
             if (prev_prediction is not None
                     and prev_prediction.prediction_timestamp.hour == 18
                     and prediction.prediction_timestamp.hour == 21):
-                noon_prediction = construct_interpolated_noon_prediction(
-                    prev_prediction, prediction)
+                noon_prediction = construct_interpolated_noon_prediction(prev_prediction, prediction)
                 self._process_prediction(
                     noon_prediction, station, model_run, points, coordinate, machine)
             self._process_prediction(
@@ -602,9 +629,8 @@ def process_models():
     logger.info('model type %s', model_type)
 
     # grab the start time.
-    start_time = time.time()
+    start_time = datetime.datetime.now()
 
-    # process everything.
     env_canada = EnvCanada(model_type)
     env_canada.process()
 
@@ -613,10 +639,14 @@ def process_models():
     model_value_processor.process(model_type)
 
     # calculate the execution time.
-    execution_time = round(time.time() - start_time, 1)
+    execution_time = datetime.datetime.now() - start_time
+    hours, remainder = divmod(execution_time.seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+
     # log some info.
-    logger.info('%d downloaded, %d processed in total, took %s seconds',
-                env_canada.files_downloaded, env_canada.files_processed, execution_time)
+    logger.info('%d downloaded, %d processed in total, time taken %d hours, %d minutes, %d seconds (%s)',
+                env_canada.files_downloaded, env_canada.files_processed, hours, minutes, seconds,
+                execution_time)
     # check if we encountered any exceptions.
     if env_canada.exception_count > 0:
         # if there were any exceptions, return a non-zero status.

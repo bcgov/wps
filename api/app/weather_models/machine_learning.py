@@ -9,7 +9,7 @@ from sklearn.linear_model import LinearRegression
 from scipy.interpolate import griddata
 import numpy as np
 from sqlalchemy.orm import Session
-from app.weather_models import MODEL_VALUE_KEYS, construct_interpolated_noon_prediction
+from app.weather_models import SCALAR_MODEL_VALUE_KEYS, construct_interpolated_noon_prediction
 from app.db.models import (
     PredictionModel, PredictionModelGridSubset, ModelRunGridSubsetPrediction)
 from app.db.models.observations import HourlyActual
@@ -136,7 +136,8 @@ class StationMachineLearning:  # pylint: disable=too-many-instance-attributes
                                   actual: HourlyActual,
                                   sample_collection: SampleCollection):
         """ Take the provided prediction and observed value, adding them to the collection of samples """
-        for model_key, sample_key in zip(MODEL_VALUE_KEYS, SAMPLE_VALUE_KEYS):
+        # TODO: add precip and wind speed/direction to SAMPLE_VALUE_KEYS
+        for model_key, sample_key in zip(SCALAR_MODEL_VALUE_KEYS, SAMPLE_VALUE_KEYS):
             model_value = getattr(prediction, model_key)
             actual_value = getattr(actual, sample_key)
             sample_value = getattr(sample_collection, sample_key)
@@ -168,8 +169,7 @@ class StationMachineLearning:  # pylint: disable=too-many-instance-attributes
                         and prev_prediction.prediction_timestamp.hour == 18):
                     # If there's a gap in the data (like with the GLOBAL model) - then make up
                     # a noon prediction using interpolation, and add it as a sample.
-                    noon_prediction = construct_interpolated_noon_prediction(
-                        prev_prediction, prediction)
+                    noon_prediction = construct_interpolated_noon_prediction(prev_prediction, prediction)
                     self._add_sample_to_collection(
                         noon_prediction, prev_actual, sample_collection)
 
