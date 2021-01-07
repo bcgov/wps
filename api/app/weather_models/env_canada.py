@@ -455,7 +455,7 @@ class ModelValueProcessor:
                             machine: StationMachineLearning):
         """ NOTE: Re. using griddata to interpolate:
 
-        We're interpolating using degrees, as such we're introducing a slight 
+        We're interpolating using degrees, as such we're introducing a slight
         innacuracy since degrees != distance. (i.e. This distance between two
         points at the bottom of a grid, isn't the same as the distance at the
         top.)
