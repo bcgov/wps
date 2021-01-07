@@ -76,7 +76,7 @@ const PercentileCalculatorPage = () => {
 
   return (
     <main data-testid="percentile-calculator-page">
-      <PageHeader title="Predictive Services Unit" />
+      <PageHeader title="Predictive Services Unit" productName="Percentile Calculator" />
       <PageTitle title="Percentile Calculator" />
       <Container>
         <WxStationDropdown stationCodes={stationCodes} onChange={setStationCodes} />

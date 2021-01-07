@@ -1,11 +1,10 @@
 import React from 'react'
-import { Container } from 'components/Container'
 import { makeStyles } from '@material-ui/core/styles'
-import { FIDER_LINK } from 'utils/env'
+
+import { Container } from 'components/Container'
 
 const useStyles = makeStyles(theme => ({
   root: {
-    // minHeight: 65,
     background: theme.palette.primary.main,
     borderBottomWidth: 2,
     borderBottomStyle: 'solid',
@@ -32,8 +31,10 @@ const useStyles = makeStyles(theme => ({
   contact: {
     color: 'white',
     fontStyle: 'bold',
-    fontSize: '1.1em',
+    fontSize: '1.2em',
     textDecoration: 'none',
+    cursor: 'pointer',
+
     '&:hover': {
       textDecoration: 'underline'
     }
@@ -42,9 +43,11 @@ const useStyles = makeStyles(theme => ({
 
 interface Props {
   title: string
+  productName: string
 }
 
-export const PageHeader: React.FunctionComponent<Props> = ({ title }: Props) => {
+export const PageHeader: React.FunctionComponent<Props> = (props: Props) => {
+  const { title, productName } = props
   const classes = useStyles()
 
   return (
@@ -61,11 +64,9 @@ export const PageHeader: React.FunctionComponent<Props> = ({ title }: Props) => 
           <div className={classes.title}>{title}</div>
         </div>
         <a
-          className={classes.contact}
-          href={FIDER_LINK}
-          target="_blank"
-          rel="noopener noreferrer"
           id="contact-link"
+          className={classes.contact}
+          href={`mailto:bcws.predictiveservices@gov.bc.ca?subject=Predictive Services Unit - ${productName}`}
         >
           Contact
         </a>
