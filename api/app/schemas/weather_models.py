@@ -42,23 +42,11 @@ class WeatherModelPredictionValues(BaseModel):
     datetime: datetime
     temperature: float = None
     bias_adjusted_temperature: float = None
-    dew_point: float = None
     relative_humidity: float = None
     bias_adjusted_relative_humidity: float = None
     wind_speed: float = None
     wind_direction: float = None
     delta_precipitation: float = None
-    cloud_cover: float = None
-    sea_level_pressure: float = None
-    wind_speed_40m: float = None
-    wind_direction_40m: float = None
-    wind_direction_80m: float = None
-    wind_speed_120m: float = None
-    wind_direction_120m: float = None
-    wind_speed_925mb: float = None
-    wind_direction_925mb: float = None
-    wind_speed_850mb: float = None
-    wind_direction_850mb: float = None
 
 
 class WeatherModelRun(BaseModel):

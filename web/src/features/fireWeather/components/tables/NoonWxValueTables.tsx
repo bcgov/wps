@@ -33,15 +33,15 @@ const sharedColumns: Column[] = [
   },
   {
     id: 'wind_direction',
-    label: 'Wind Dir',
+    label: 'Wind Dir (10m)',
     align: 'right',
     format: (value: number) => Math.round(value)
   },
   {
     id: 'wind_speed',
-    label: 'Wind Spd (km/h)',
+    label: 'Wind Spd (10m) (km/h)',
     minWidth: 70,
-    maxWidth: 100,
+    maxWidth: 120,
     align: 'right',
     format: (value: number) => value.toFixed(MODEL_VALUE_DECIMAL)
   }
@@ -62,8 +62,21 @@ export const NoonModelTable = React.memo(function _(props: NoonModelTableProps) 
     align: 'right',
     format: (value: number) => value.toFixed(MODEL_VALUE_DECIMAL)
   }
+  const modelRunColumn: Column = {
+    id: 'model_run_datetime',
+    label: 'Model Run (UTC)',
+    minWidth: 70,
+    maxWidth: 100,
+    align: 'left',
+    formatDt: (value: string) => value.slice(0, 13)
+  }
 
-  return <SortableTableByDatetime {...props} columns={[...sharedColumns, precipColumn]} />
+  return (
+    <SortableTableByDatetime
+      {...props}
+      columns={[...sharedColumns, precipColumn, modelRunColumn]}
+    />
+  )
 })
 
 interface NoonForecastTableProps {
