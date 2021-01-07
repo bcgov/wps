@@ -8,10 +8,6 @@ Wildfire Predictive Services to support decision making in prevention, preparedn
 
 ### Dependencies
 
-#### Fider
-
-Detailed installation instructions for Openshift available on: <https://github.com/garywong-bc/nrm-feedback>
-
 ### Installing
 
 #### Running the application locally in docker:
