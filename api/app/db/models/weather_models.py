@@ -142,6 +142,10 @@ class ModelRunGridSubsetPrediction(Base):
     rh_tgl_2 = Column(ARRAY(Float), nullable=True)
     # Accumulated precipitation (units kg.m^-2)
     apcp_sfc_0 = Column(ARRAY(Float), nullable=True)
+    # Wind direction 10m above ground.
+    wdir_tgl_10 = Column(ARRAY(Float), nullable=True)
+    # Wind speed 10m above ground.
+    wind_tgl_10 = Column(ARRAY(Float), nullable=True)
 
     def __str__(self):
         return ('id:{self.id}, '
@@ -150,7 +154,9 @@ class ModelRunGridSubsetPrediction(Base):
                 'prediction_timestamp={self.prediction_timestamp}, '
                 'tmp_tgl_2={self.tmp_tgl_2}, '
                 'rh_tgl_2={self.rh_tgl_2}, '
-                'apcp_sfc_0={self.apcp_sfc_0}').format(self=self)
+                'apcp_sfc_0={self.apcp_sfc_0}'
+                'wdir_tgl_10={self.wdir_tgl_10}'
+                'wind_tgl_10={self.wind_tgl_10}').format(self=self)
 
 
 class WeatherStationModelPrediction(Base):
@@ -192,6 +198,10 @@ class WeatherStationModelPrediction(Base):
     apcp_sfc_0 = Column(Float, nullable=True)
     # Change in accumulated precipitation between current and previous prediction_timestamp
     delta_precip = Column(Float, nullable=True)
+    # Wind direction 10m above ground.
+    wdir_tgl_10 = Column(Float, nullable=True)
+    # Wind speed 10m above ground.
+    wind_tgl_10 = Column(Float, nullable=True)
     # Date this record was created.
     create_date = Column(TZTimeStamp, nullable=False,
                          default=time_utils.get_utc_now())
@@ -200,4 +210,5 @@ class WeatherStationModelPrediction(Base):
                          default=time_utils.get_utc_now())
 
     def __str__(self):
-        return ('{self.station_code} {self.prediction_timestamp} {self.tmp_tgl_2} {self.apcp_sfc_0} {self.delta_precip}').format(self=self)
+        return ('{self.station_code} {self.prediction_timestamp} {self.tmp_tgl_2} {self.apcp_sfc_0} '
+                '{self.delta_precip}').format(self=self)
