@@ -33,15 +33,15 @@ const sharedColumns: Column[] = [
   },
   {
     id: 'wind_direction',
-    label: 'Wind Dir',
+    label: 'Wind Dir (10m)',
     align: 'right',
     format: (value: number) => Math.round(value)
   },
   {
     id: 'wind_speed',
-    label: 'Wind Spd (km/h)',
+    label: 'Wind Spd (10m) (km/h)',
     minWidth: 70,
-    maxWidth: 100,
+    maxWidth: 120,
     align: 'right',
     format: (value: number) => value.toFixed(MODEL_VALUE_DECIMAL)
   }
