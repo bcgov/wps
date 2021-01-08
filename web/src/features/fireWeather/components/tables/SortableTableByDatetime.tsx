@@ -9,8 +9,8 @@ import TableHead from '@material-ui/core/TableHead'
 import TableSortLabel from '@material-ui/core/TableSortLabel'
 import Paper from '@material-ui/core/Paper'
 import Typography from '@material-ui/core/Typography'
-import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
-import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
+import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown'
+import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp'
 import { Collapse, IconButton, Toolbar, Tooltip } from '@material-ui/core'
 
 import { getDatetimeComparator, Order } from 'utils/table'
@@ -77,18 +77,20 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
   }
 
   interface TableHeaderProps {
-    title: string;
+    title: string
   }
 
   const TableHeader = (props: TableHeaderProps) => {
     return (
       <Toolbar>
-        <Typography className={classes.title}>
-          {props.title}
-        </Typography>
+        <Typography className={classes.title}>{props.title}</Typography>
         <Tooltip title="Collapse table">
-          <IconButton aria-label="collapse table" size="small" onClick={() => setOpen(!open)}>
-            { open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+          <IconButton
+            aria-label="collapse table"
+            size="small"
+            onClick={() => setOpen(!open)}
+          >
+            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </IconButton>
         </Tooltip>
       </Toolbar>
@@ -102,60 +104,60 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
       <Paper className={classes.paper} elevation={1}>
         <TableContainer className={classes.tableContainer}>
           <Collapse in={open} timeout="auto" unmountOnExit>
-          <Table stickyHeader size="small" aria-label="sortable wx table">
-            <TableHead>
-              <TableRow>
-                {props.columns.map(column => {
-                  const canSort = column.id === 'datetime'
-
-                  return (
-                    <TableCell
-                      key={column.id}
-                      align={column.align}
-                      style={{ minWidth: column.minWidth, maxWidth: column.maxWidth }}
-                      sortDirection={canSort ? order : false}
-                    >
-                      {canSort ? (
-                        <TableSortLabel
-                          active={canSort}
-                          direction={order}
-                          onClick={toggleDatetimeOrder}
-                        >
-                          {column.label}
-                        </TableSortLabel>
-                      ) : (
-                        column.label
-                      )}
-                    </TableCell>
-                  )
-                })}
-              </TableRow>
-            </TableHead>
-
-            <TableBody>
-              {rowsSortedByDatetime.map((row, idx) => (
-                <TableRow key={idx} hover tabIndex={-1}>
+            <Table stickyHeader size="small" aria-label="sortable wx table">
+              <TableHead>
+                <TableRow>
                   {props.columns.map(column => {
-                    const value = row[column.id]
-                    let display = null
-
-                    if (typeof value === 'string' && column.formatDt) {
-                      display = column.formatDt(value)
-                    }
-                    if (typeof value === 'number' && column.format) {
-                      display = column.format(value)
-                    }
+                    const canSort = column.id === 'datetime'
 
                     return (
-                      <TableCell key={column.id} align={column.align}>
-                        {display}
+                      <TableCell
+                        key={column.id}
+                        align={column.align}
+                        style={{ minWidth: column.minWidth, maxWidth: column.maxWidth }}
+                        sortDirection={canSort ? order : false}
+                      >
+                        {canSort ? (
+                          <TableSortLabel
+                            active={canSort}
+                            direction={order}
+                            onClick={toggleDatetimeOrder}
+                          >
+                            {column.label}
+                          </TableSortLabel>
+                        ) : (
+                          column.label
+                        )}
                       </TableCell>
                     )
                   })}
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHead>
+
+              <TableBody>
+                {rowsSortedByDatetime.map((row, idx) => (
+                  <TableRow key={idx} hover tabIndex={-1}>
+                    {props.columns.map(column => {
+                      const value = row[column.id]
+                      let display = null
+
+                      if (typeof value === 'string' && column.formatDt) {
+                        display = column.formatDt(value)
+                      }
+                      if (typeof value === 'number' && column.format) {
+                        display = column.format(value)
+                      }
+
+                      return (
+                        <TableCell key={column.id} align={column.align}>
+                          {display}
+                        </TableCell>
+                      )
+                    })}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </Collapse>
         </TableContainer>
       </Paper>
