@@ -90,7 +90,7 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
             aria-label="collapse table"
             size="small"
             onClick={() => setOpen(!open)}
-            data-testid={ `${props.testId}-collapse` }
+            data-testid={`${props.testId}-collapse`}
           >
             {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </IconButton>
