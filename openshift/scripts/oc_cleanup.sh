@@ -35,10 +35,10 @@ OC_CLEAN_FORECAST_CRONJOB="oc -n ${PROJ_DEV} ${DELETE_OR_GET} --ignore-not-found
 OC_CLEAN_EC_GDPS_CRONJOB="oc -n ${PROJ_DEV} ${DELETE_OR_GET} --ignore-not-found=true cronjob/env-canada-gdps-${NAME_APP}-${SUFFIX}"
 OC_CLEAN_EC_HRDPS_CRONJOB="oc -n ${PROJ_DEV} ${DELETE_OR_GET} --ignore-not-found=true cronjob/env-canada-hrdps-${NAME_APP}-${SUFFIX}"
 OC_CLEAN_EC_RDPS_CRONJOB="oc -n ${PROJ_DEV} ${DELETE_OR_GET} --ignore-not-found=true cronjob/env-canada-rdps-${NAME_APP}-${SUFFIX}"
-OC_GET_EC_PODS="oc -n ${PROJ_DEV} get pods -o name | grep -E 'env-canada-(gdps|rdps|hrdps)-${NAME_APP}-${SUFFIX}'"
+OC_DELETE_EC_PODS="oc -n ${PROJ_DEV} get pods -o name | { grep -E 'env-canada-(gdps|rdps|hrdps)-${NAME_APP}-${SUFFIX}' || test \$? = 1; } | { xargs -r oc ${DELETE_OR_GET} || test \$? = 1; } | cat"
 OC_CLEAN_MATOMO_BACKUP="oc -n ${PROJ_DEV} ${DELETE_OR_GET} all,cm -o name -l app=${NAME_OBJ}"
 OC_CLEAN_MATOMO_BACKUP_PVC="oc -n ${PROJ_DEV} ${DELETE_OR_GET} pvc -o name -l app=${NAME_OBJ}-persistent"
-OC_CLEAN_MATOMO_CRONJOB="oc -n ${PROJ_DEV} ${DELETE_OR_GET} cronjob/matomo-backup-${NAME_OBJ}"
+OC_CLEAN_MATOMO_CRONJOB="oc -n ${PROJ_DEV} ${DELETE_OR_GET} --ignore-not-found=true cronjob/matomo-backup-${NAME_OBJ}"
 
 # Execute commands
 #
@@ -49,12 +49,7 @@ eval "${OC_CLEAN_FORECAST_CRONJOB}"
 eval "${OC_CLEAN_EC_GDPS_CRONJOB}"
 eval "${OC_CLEAN_EC_HRDPS_CRONJOB}"
 eval "${OC_CLEAN_EC_RDPS_CRONJOB}"
-
-pods=$(eval "${OC_GET_EC_PODS}")
-if [ -n "$pods" ]; then
-	echo $pods | xargs oc -n ${PROJ_DEV} ${DELETE_OR_GET}
-fi
-
+eval "${OC_DELETE_EC_PODS}"
 eval "${OC_CLEAN_MATOMO_CRONJOB}"
 eval "${OC_CLEAN_MATOMO_BACKUP}"
 eval "${OC_CLEAN_MATOMO_BACKUP_PVC}"
@@ -65,5 +60,5 @@ eval "${OC_CLEAN_TOOLS}"
 #
 display_helper "${OC_CLEAN_DEPLOY}" "${OC_CLEAN_TOOLS}" "${OC_CLEAN_HOURLY_CRONJOB}" \
 	"${OC_CLEAN_FORECAST_CRONJOB}" "${OC_CLEAN_EC_GDPS_CRONJOB}" "${OC_CLEAN_EC_HRDPS_CRONJOB}" \
-	"${OC_CLEAN_EC_RDPS_CRONJOB}" "${OC_GET_EC_PODS}" \
+	"${OC_CLEAN_EC_RDPS_CRONJOB}" "${OC_DELETE_EC_PODS}" \
 	"${OC_CLEAN_MATOMO_CRONJOB}" "${OC_CLEAN_MATOMO_BACKUP}" "${OC_CLEAN_MATOMO_BACKUP_PVC}"
