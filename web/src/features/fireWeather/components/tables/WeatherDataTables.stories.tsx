@@ -19,7 +19,7 @@ storiesOf('Weather data tables', module).add('Sortable weather data tables', () 
   return (
     <>
       <ObservationTable
-        testId="hmm"
+        testId="observation-table-storybook"
         title={ObservationTableTitle}
         rows={observedValues}
       />
@@ -27,13 +27,13 @@ storiesOf('Weather data tables', module).add('Sortable weather data tables', () 
       <NoonModelTable
         rows={modelValues.filter(v => isNoonInPST(v.datetime)) as ModelValue[]}
         title={modelTableTitle}
-        testId=""
+        testId="noon-model-table-storybook"
       />
 
       <NoonForecastTable
         rows={forecastValues as NoonForecastValue[]}
         title={forecastTableTitle}
-        testId=""
+        testId="noon-forecast-table-storybook"
       />
     </>
   )

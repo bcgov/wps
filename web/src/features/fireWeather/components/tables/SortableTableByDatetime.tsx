@@ -65,7 +65,7 @@ interface Props<R> {
 function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
   const classes = useStyles()
   const [order, setOrder] = useState<Order>('asc')
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(true)
 
   if (!props.rows) {
     return null
@@ -78,6 +78,7 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
 
   interface TableHeaderProps {
     title: string
+    testId?: string
   }
 
   const TableHeader = (props: TableHeaderProps) => {
@@ -89,6 +90,7 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
             aria-label="collapse table"
             size="small"
             onClick={() => setOpen(!open)}
+            data-testid={ `${props.testId}-collapse` }
           >
             {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </IconButton>
@@ -99,8 +101,7 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
 
   return (
     <div className={classes.display} data-testid={props.testId}>
-      <TableHeader title={props.title}></TableHeader>
-
+      <TableHeader title={props.title} testId={props.testId}></TableHeader>
       <Paper className={classes.paper} elevation={1}>
         <TableContainer className={classes.tableContainer}>
           <Collapse in={open} timeout="auto" unmountOnExit>
