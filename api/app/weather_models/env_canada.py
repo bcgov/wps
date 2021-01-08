@@ -473,6 +473,37 @@ class ModelValueProcessor:
                             points: List,
                             coordinate: List,
                             machine: StationMachineLearning):
+        """ NOTE: Re. using griddata to interpolate:
+
+        We're interpolating using degrees, as such we're introducing a slight
+        innacuracy since degrees != distance. (i.e. This distance between two
+        points at the bottom of a grid, isn't the same as the distance at the
+        top.)
+
+        It would be more accurate to interpolate towards the point of interest
+        based on the distance of that point from the grid points.
+
+        One could:
+        a) convert all points from degrees to meters in UTM,
+           and then interpolate - that should be slightly more accurate, e.g.:
+        ```
+        def transform(long, lat):
+            # Transform NAD83 long and lat into UTM meters.
+            zone = math.floor((long + 180) / 6) + 1
+            utmProjection = "+proj=utm +zone={zone} +ellps=GRS80 +datum=NAD83 +units=m +no_defs".format(
+                zone=zone)
+            proj = Proj(utmProjection)
+            return proj(long, lat)
+        ```
+        b) use something else fancy like inverse distance weighting.
+
+        HOWEVER, the accuracy we gain is very little, it's adding an error of less than
+        100 meters on the global model. (Which typically results in the 3rd decimal value
+        of the interpolated value differing.)
+
+        More accuracy can be gained by taking into account altitude differences between
+        points and adjusting accordingly.
+        """
         # If there's already a prediction, we want to update it
         station_prediction = get_weather_station_model_prediction(
             self.session, station.code, model_run.id, prediction.prediction_timestamp)
