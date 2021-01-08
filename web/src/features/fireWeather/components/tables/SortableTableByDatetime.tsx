@@ -9,6 +9,9 @@ import TableHead from '@material-ui/core/TableHead'
 import TableSortLabel from '@material-ui/core/TableSortLabel'
 import Paper from '@material-ui/core/Paper'
 import Typography from '@material-ui/core/Typography'
+import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
+import { Collapse, IconButton, Toolbar, Tooltip } from '@material-ui/core'
 
 import { getDatetimeComparator, Order } from 'utils/table'
 
@@ -61,6 +64,7 @@ interface Props<R> {
 function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
   const classes = useStyles()
   const [order, setOrder] = useState<Order>('asc')
+  const [open, setOpen] = useState(false)
 
   if (!props.rows) {
     return null
@@ -71,14 +75,32 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
     setOrder(order === 'asc' ? 'desc' : 'asc')
   }
 
+  interface TableHeaderProps {
+    title: string;
+  }
+
+  const TableHeader = (props: TableHeaderProps) => {
+    return (
+      <Toolbar>
+        <Typography className={classes.title}>
+          {props.title}
+        </Typography>
+        <Tooltip title="Collapse table">
+          <IconButton aria-label="collapse table" size="small" onClick={() => setOpen(!open)}>
+            { open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+          </IconButton>
+        </Tooltip>
+      </Toolbar>
+    )
+  }
+
   return (
     <div className={classes.display} data-testid={props.testId}>
-      <Typography className={classes.title} component="div" variant="subtitle2">
-        {props.title}
-      </Typography>
+      <TableHeader title={props.title}></TableHeader>
 
       <Paper className={classes.paper} elevation={1}>
         <TableContainer className={classes.tableContainer}>
+          <Collapse in={open} timeout="auto" unmountOnExit>
           <Table stickyHeader size="small" aria-label="sortable wx table">
             <TableHead>
               <TableRow>
@@ -133,6 +155,7 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
               ))}
             </TableBody>
           </Table>
+          </Collapse>
         </TableContainer>
       </Paper>
     </div>
