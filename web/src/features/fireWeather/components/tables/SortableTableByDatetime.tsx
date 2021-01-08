@@ -42,6 +42,7 @@ interface WeatherValue {
   ffmc?: number | null
   isi?: number | null
   fwi?: number | null
+  model_run_datetime?: string | null
 }
 
 export interface Column {
