@@ -1,4 +1,4 @@
-FROM node:10
+FROM node:12
 
 # Set working directory
 WORKDIR /app
@@ -7,7 +7,7 @@ WORKDIR /app
 COPY package*.json ./
 
 ## Install only the packages defined in the package-lock.json (faster than the normal npm install)
-RUN npm install yarn && yarn install --frozen-lockfile
+RUN npm install yarn && yarn install
 
 # Copy the contents of the project to the image
 COPY . .
