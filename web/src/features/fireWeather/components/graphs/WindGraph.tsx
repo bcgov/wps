@@ -76,15 +76,20 @@ const WindGraph = (props: Props) => {
   const observedWindSpds: number[] = []
   const observedWindDirArrows: Partial<Shape>[] = []
   const observedWindSpdTexts: string[] = []
+  const hrdpsDates: Date[] = []
+  const hrdpsWindSpds: number[] = []
+  const hrdpsWindSpdsTexts: string[] = []
 
   hrdpsModelValues.forEach(({ wind_direction, wind_speed, datetime }) => {
     if (wind_speed != null) {
-      dates.push(new Date(datetime))
+      console.log(datetime, wind_speed)
+      hrdpsDates.push(new Date(datetime))
+      hrdpsWindSpds.push(wind_speed)
+      hrdpsWindSpdsTexts.push(wind_direction != null ? `${wind_direction}` : '-')
       // TODO: can I push date that aren't in order?
       // dates.push(new Date())
     }
   })
-  dates.push(new Date())
 
   observedValues.forEach(({ wind_direction, wind_speed, datetime }) => {
     if (wind_speed != null) {
@@ -150,6 +155,16 @@ const WindGraph = (props: Props) => {
           textfont: { color: 'green', size: 15 },
           // a workaround to remove this from the slider: https://github.com/plotly/plotly.js/issues/2010#issuecomment-637697204
           xaxis: 'x2' // This moves trace to alternative xaxis(x2) which does not have a slider
+        },
+        {
+          x: hrdpsDates,
+          y: hrdpsWindSpds,
+          name: 'HRDPS',
+          mode: 'lines',
+          type: 'scatter',
+          showlegend: false,
+          line: { color: showHighResModels ? '#ff0000': 'transparent'},
+          text: 
         }
       ]}
       layout={{
