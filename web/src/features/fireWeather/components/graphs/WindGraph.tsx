@@ -77,6 +77,15 @@ const WindGraph = (props: Props) => {
   const observedWindDirArrows: Partial<Shape>[] = []
   const observedWindSpdTexts: string[] = []
 
+  hrdpsModelValues.forEach(({ wind_direction, wind_speed, datetime }) => {
+    if (wind_speed != null) {
+      dates.push(new Date(datetime))
+      // TODO: can I push date that aren't in order?
+      // dates.push(new Date())
+    }
+  })
+  dates.push(new Date())
+
   observedValues.forEach(({ wind_direction, wind_speed, datetime }) => {
     if (wind_speed != null) {
       dates.push(new Date(datetime))
