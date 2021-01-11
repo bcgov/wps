@@ -91,7 +91,7 @@ export const noonForecastTableColumns: Column[] = [
     minWidth: 70,
     maxWidth: 100,
     align: 'right',
-    format: (value: number) => value.toFixed(MODEL_VALUE_DECIMAL)
+    format: (value: number): string => value.toFixed(MODEL_VALUE_DECIMAL)
   }
 ]
 
