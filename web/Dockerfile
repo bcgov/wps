@@ -7,7 +7,7 @@ WORKDIR /app
 COPY package*.json ./
 
 ## Install only the packages defined in the package-lock.json (faster than the normal npm install)
-RUN npm install yarn && yarn
+RUN npm install yarn --no-package-lock && yarn
 
 # Copy the contents of the project to the image
 COPY . .

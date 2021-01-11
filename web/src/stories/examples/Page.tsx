@@ -69,7 +69,7 @@ export const Page: React.FC<PageProps> = ({
           width="10"
           height="10"
           viewBox="0 0 12 12"
-          xmlns="http://www.w3.org/2000/svg"
+          xmlns="https://www.w3.org/2000/svg"
         >
           <g fill="none" fillRule="evenodd">
             <path

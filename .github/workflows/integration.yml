@@ -124,7 +124,7 @@ jobs:
 
       - name: Install node dependencies (web)
         working-directory: ./web
-        run: npm install yarn && yarn
+        run: npm install yarn --no-package-lock && yarn
 
       - name: Lint (web)
         working-directory: ./web
