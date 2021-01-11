@@ -129,7 +129,7 @@ def construct_interpolated_noon_prediction(prediction_a: ModelRunGridSubsetPredi
         value_a = getattr(prediction_a, key)
         value_b = getattr(prediction_b, key)
         if value_a is None or value_b is None:
-            logger.warning('can\'t interpolate between None values')
+            logger.warning('can\'t interpolate between None values for %s', key)
             continue
 
         value = interpolate_between_two_points(timestamp_a, timestamp_b, value_a, value_b, noon_timestamp)
