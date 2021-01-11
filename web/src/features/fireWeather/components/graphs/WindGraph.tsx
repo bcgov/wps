@@ -68,6 +68,30 @@ const rotatePoints = (points: Point[], angle: number, cw = true): Point[] => {
   ])
 }
 
+const createPath = (
+  arrowShape: Point[],
+  show: boolean,
+  datetime: string,
+  wind_speed: number,
+  colour: string
+): Partial<Shape> => {
+  return {
+    type: 'path',
+    path: buildArrowShapePath(arrowShape),
+    visible: show,
+    layer: 'above',
+    xref: 'x', // By setting a reference to the wind spd scale (x & y),
+    yref: 'y', // we can position these arrows with wind spd values using xanchor & yanchor
+    xsizemode: 'pixel', // https://plotly.com/javascript/reference/layout/shapes/#layout-shapes-items-shape-xsizemode
+    ysizemode: 'pixel',
+    xanchor: new Date(datetime).valueOf(),
+    yanchor: wind_speed,
+    line: {
+      color: show ? colour : 'transparent'
+    }
+  }
+}
+
 const WindGraph = (props: Props) => {
   const { observedValues, hrdpsModelValues, toggleValues } = props
   const { showObservations, showHighResModels } = toggleValues
@@ -85,7 +109,21 @@ const WindGraph = (props: Props) => {
       console.log(datetime, wind_speed)
       hrdpsDates.push(new Date(datetime))
       hrdpsWindSpds.push(wind_speed)
-      hrdpsWindSpdsTexts.push(wind_direction != null ? `${wind_direction}` : '-')
+      hrdpsWindSpdsTexts.push(
+        wind_direction != null ? `${Math.round(wind_direction)}` : '-'
+      )
+
+      if (wind_direction != null) {
+        const arrowShape = rotatePoints(arrowPoints, wind_direction)
+        const path = createPath(
+          arrowShape,
+          showHighResModels,
+          datetime,
+          wind_speed,
+          '#a017c2'
+        )
+        observedWindDirArrows.push(path)
+      }
       // TODO: can I push date that aren't in order?
       // dates.push(new Date())
     }
@@ -99,22 +137,13 @@ const WindGraph = (props: Props) => {
 
       if (wind_direction != null) {
         const arrowShape = rotatePoints(arrowPoints, wind_direction)
-        const path: Partial<Shape> = {
-          type: 'path',
-          path: buildArrowShapePath(arrowShape),
-          visible: showObservations,
-          layer: 'above',
-          xref: 'x', // By setting a reference to the wind spd scale (x & y),
-          yref: 'y', // we can position these arrows with wind spd values using xanchor & yanchor
-          xsizemode: 'pixel', // https://plotly.com/javascript/reference/layout/shapes/#layout-shapes-items-shape-xsizemode
-          ysizemode: 'pixel',
-          xanchor: new Date(datetime).valueOf(),
-          yanchor: wind_speed,
-          line: {
-            color: showObservations ? '#0251a1' : 'transparent'
-          }
-        }
-
+        const path = createPath(
+          arrowShape,
+          showObservations,
+          datetime,
+          wind_speed,
+          '#0251a1'
+        )
         observedWindDirArrows.push(path)
       }
     }
@@ -163,8 +192,9 @@ const WindGraph = (props: Props) => {
           mode: 'lines',
           type: 'scatter',
           showlegend: false,
-          line: { color: showHighResModels ? '#ff0000': 'transparent'},
-          text: 
+          line: { color: showHighResModels ? '#a017c2' : 'transparent' },
+          text: hrdpsWindSpdsTexts,
+          hovertemplate: 'HRDPS: %{y:.2f} km/h, %{text}°<extra></extra>'
         }
       ]}
       layout={{
