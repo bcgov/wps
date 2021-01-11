@@ -22,6 +22,7 @@
       { "singleQuote": true, "semi": false, "printWidth": 90 }
     ],
     "no-useless-catch": "off",
+    "react/prop-types": "off",
     "@typescript-eslint/camelcase": "off",
     "@typescript-eslint/explicit-function-return-type": "off"
   },
