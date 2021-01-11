@@ -14,6 +14,7 @@ import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp'
 import { Collapse, IconButton, Toolbar, Tooltip } from '@material-ui/core'
 
 import { getDatetimeComparator, Order } from 'utils/table'
+import { truncateSync } from 'fs'
 
 const useStyles = makeStyles({
   display: {
@@ -83,11 +84,11 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
 
   const TableHeader = (props: TableHeaderProps) => {
     return (
-      <Toolbar>
+      <Toolbar data-testid={`${props.testId}-header`} disableGutters={true}>
         <Typography className={classes.title}>{props.title}</Typography>
-        <Tooltip title={open ? "Collapse table" : "Expand table"}>
+        <Tooltip title={open ? 'Collapse table' : 'Expand table'}>
           <IconButton
-            aria-label="collapse table"
+            aria-label={open ? 'collapse table' : 'expand table'}
             size="small"
             onClick={() => setOpen(!open)}
             data-testid={`${props.testId}-collapse`}
