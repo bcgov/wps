@@ -147,7 +147,7 @@ class StationMachineLearning:  # pylint: disable=too-many-instance-attributes
         # TODO: add precip and wind speed/direction to SAMPLE_VALUE_KEYS
         for model_key, sample_key in zip(SCALAR_MODEL_VALUE_KEYS, SAMPLE_VALUE_KEYS):
             model_value = getattr(prediction, model_key)
-            if model_value:
+            if model_value is not None:
                 actual_value = getattr(actual, sample_key)
                 sample_value = getattr(sample_collection, sample_key)
                 sample_value.add_sample(self.points, self.target_coordinate, model_value,
