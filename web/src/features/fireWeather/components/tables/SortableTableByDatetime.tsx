@@ -85,7 +85,7 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
     return (
       <Toolbar>
         <Typography className={classes.title}>{props.title}</Typography>
-        <Tooltip title="Collapse table">
+        <Tooltip title={open ? "Collapse table" : "Expand table"}>
           <IconButton
             aria-label="collapse table"
             size="small"
