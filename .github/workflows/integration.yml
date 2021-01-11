@@ -124,7 +124,7 @@ jobs:
 
       - name: Install node dependencies (web)
         working-directory: ./web
-        run: npm ci
+        run: npm install yarn && yarn install --frozen-lockfile
 
       - name: Lint (web)
         working-directory: ./web

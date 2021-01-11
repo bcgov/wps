@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import React, { useRef, useEffect, useMemo } from 'react'
 import * as d3 from 'd3'
 import { makeStyles } from '@material-ui/core/styles'

@@ -42,11 +42,9 @@ type PropTypes = React.ComponentProps<typeof PercentileStationResultTable> & {
 }
 
 const Template: Story<PropTypes> = args => {
-  const { stationResponse, width } = args
-
   return (
-    <div style={{ width }}>
-      <PercentileStationResultTable stationResponse={stationResponse} />
+    <div style={{ width: args.width }}>
+      <PercentileStationResultTable stationResponse={args.stationResponse} />
     </div>
   )
 }

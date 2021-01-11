@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import moment from 'moment'
 import * as d3 from 'd3'
