@@ -98,14 +98,14 @@ const WxDataGraph = ({
         rdpsSummaries={regionalModelSummaries}
       />
 
-      <PrecipGraph
+      {/* <PrecipGraph
         toggleValues={toggleValues}
         observedValues={observedValues}
         forecastValues={allForecasts}
         gdpsModelValues={allModelValues}
         rdpsModelValues={allRegionalModelValues}
         hrdpsModelValues={allHighResModelValues}
-      />
+      /> */}
 
       <WindGraph
         toggleValues={toggleValues}

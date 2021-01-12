@@ -143,13 +143,17 @@ const getFutureValues = () => {
   const _regionalModelValues = []
   const _forecastValues = []
 
-  const days = 3
+  // GDPS goes out 10 days.
+  const days = 10
   const first = moment()
     .utc()
     .set({ minute: 0, second: 0 })
-  const last = moment(first).add(days, 'days')
+  const day = moment()
+    .utc()
+    .set({ minute: 0, second: 0 })
+  const last = moment(day).add(days, 'days')
 
-  while (last.diff(first, 'days') >= 0) {
+  while (last.diff(day, 'days') >= 0) {
     for (let length = 0; length < 24; length++) {
       const sineWeight = 7
       const temp = 20 + Math.sin(length) * sineWeight
@@ -158,32 +162,42 @@ const getFutureValues = () => {
       const wind_speed = 20 + Math.sin(length) * sineWeight
       const wind_direction = Math.floor(Math.random() * 360)
       const precip = Math.random()
-      const datetime = moment(first)
+      const datetime = moment(day)
         .add(length, 'hours')
         .utc()
         .format()
 
-      // every hour
-      _highResModelValues.push({
-        datetime,
-        temperature: temp + (Math.random() - 0.5) * 6,
-        bias_adjusted_temperature: temp + (Math.random() - 0.5) * 6 - 2,
-        relative_humidity: rh + (Math.random() - 0.5) * 6,
-        bias_adjusted_relative_humidity: rh + (Math.random() - 0.5) * 6 - 2,
-        delta_precipitation: precip * Math.random() * 7,
-        wind_speed: wind_speed + (Math.random() - 0.5) * 6,
-        wind_direction: wind_direction + (((Math.random() - 0.5) * 6) % 360)
-      })
-      _regionalModelValues.push({
-        datetime,
-        temperature: temp + (Math.random() - 1.4) * 9 + 1.5,
-        bias_adjusted_temperature: temp + (Math.random() - 1.4) * 9 - 4,
-        relative_humidity: rh + (Math.random() - 1.4) * 9,
-        bias_adjusted_relative_humidity: rh - (Math.random() - 1.4) * 7 - 4,
-        delta_precipitation: precip * Math.random() * 8
-      })
+      // HRDPS only goes out 48 hours
+      if (day.diff(first, 'days') <= 2) {
+        // every hour
+        _highResModelValues.push({
+          datetime,
+          temperature: temp + (Math.random() - 0.5) * 6,
+          bias_adjusted_temperature: temp + (Math.random() - 0.5) * 6 - 2,
+          relative_humidity: rh + (Math.random() - 0.5) * 6,
+          bias_adjusted_relative_humidity: rh + (Math.random() - 0.5) * 6 - 2,
+          delta_precipitation: precip * Math.random() * 7,
+          wind_speed: wind_speed + (Math.random() - 0.5) * 4,
+          wind_direction: wind_direction + (((Math.random() - 0.5) * 90) % 360)
+        })
+      }
 
-      // every 3 hour and PST noon
+      // REGIONAL model goes out 84 hours.
+      if (day.diff(first, 'days') <= 4) {
+        // every hour
+        _regionalModelValues.push({
+          datetime,
+          temperature: temp + (Math.random() - 1.4) * 9 + 1.5,
+          bias_adjusted_temperature: temp + (Math.random() - 1.4) * 9 - 4,
+          relative_humidity: rh + (Math.random() - 1.4) * 9,
+          bias_adjusted_relative_humidity: rh - (Math.random() - 1.4) * 7 - 4,
+          delta_precipitation: precip * Math.random() * 8,
+          wind_speed: wind_speed + (Math.random() - 0.5) * 6,
+          wind_direction: wind_direction + (((Math.random() - 0.5) * 90) % 360)
+        })
+      }
+
+      // GLOBAL model every 3 hour and PST noon
       if (length % 3 === 0 || isNoonInPST(datetime)) {
         _modelValues.push({
           datetime,
@@ -198,18 +212,22 @@ const getFutureValues = () => {
         })
       }
 
-      // every PST noon
-      if (isNoonInPST(datetime)) {
-        _forecastValues.push({
-          datetime,
-          temperature: temp + (Math.random() - 0.5) * 8,
-          relative_humidity: rh + (Math.random() - 0.5) * 8,
-          total_precipitation: 24 * precip + (Math.random() - 0.5) * 4
-        })
+      // every PST noon, 3 days out
+      if (day.diff(first, 'days') <= 3) {
+        if (isNoonInPST(datetime)) {
+          _forecastValues.push({
+            datetime,
+            temperature: temp + (Math.random() - 0.5) * 8,
+            relative_humidity: rh + (Math.random() - 0.5) * 8,
+            total_precipitation: 24 * precip + (Math.random() - 0.5) * 4,
+            wind_speed: wind_speed + (Math.random() - 0.5) * 10,
+            wind_direction: wind_direction + (((Math.random() - 0.5) * 45) % 360)
+          })
+        }
       }
     }
 
-    first.add(1, 'days')
+    day.add(1, 'days')
   }
 
   return {

@@ -184,6 +184,7 @@ const WindGraph = (props: Props) => {
           showlegend: showObservations,
           line: { color: showObservations ? '#2491ff' : 'transparent' },
           text: observedData.windSpdsTexts,
+          hoverinfo: showObservations ? 'all' : 'none',
           hovertemplate: showObservations
             ? 'Observation: %{y:.2f} km/h, %{text}°<extra></extra>'
             : ''
@@ -208,7 +209,8 @@ const WindGraph = (props: Props) => {
           showlegend: showModels,
           line: { color: showModels ? '#ff0000' : 'transparent' },
           text: gdpsData.windSpdsTexts,
-          hovertemplate: 'GDPS: %{y:.2f} km/h, %{text}°<extra></extra>'
+          hoverinfo: showModels ? 'all' : 'none',
+          hovertemplate: showModels ? 'GDPS: %{y:.2f} km/h, %{text}°<extra></extra>' : ''
         },
         {
           x: rdpsData.dates,
@@ -219,7 +221,10 @@ const WindGraph = (props: Props) => {
           showlegend: showRegionalModels,
           line: { color: showRegionalModels ? '#00ff00' : 'transparent' },
           text: rdpsData.windSpdsTexts,
-          hovertemplate: 'RDPS: %{y:.2f} km/h, %{text}°<extra></extra>'
+          hoverinfo: showRegionalModels ? 'all' : 'none',
+          hovertemplate: showRegionalModels
+            ? 'RDPS: %{y:.2f} km/h, %{text}°<extra></extra>'
+            : ''
         },
         {
           x: hrdpsData.dates,
@@ -230,7 +235,10 @@ const WindGraph = (props: Props) => {
           showlegend: showHighResModels,
           line: { color: showHighResModels ? '#a017c2' : 'transparent' },
           text: hrdpsData.windSpdsTexts,
-          hovertemplate: 'HRDPS: %{y:.2f} km/h, %{text}°<extra></extra>'
+          hoverinfo: showHighResModels ? 'all' : 'none',
+          hovertemplate: showHighResModels
+            ? 'HRDPS: %{y:.2f} km/h, %{text}°<extra></extra>'
+            : ''
         }
       ]}
       layout={{
