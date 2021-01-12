@@ -29,10 +29,10 @@ const useStyles = makeStyles({
     paddingBottom: 4
   },
   pointUp: {
-    'transform': 'rotate(0deg)'
+    transform: 'rotate(0deg)'
   },
   pointDown: {
-    'transform': 'rotate(180deg)'
+    transform: 'rotate(180deg)'
   }
 })
 
@@ -99,7 +99,9 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
             onClick={() => setOpen(!open)}
             data-testid={`${props.testId}-collapse`}
           >
-            <KeyboardArrowUpIcon className={clsx(!open && classes.pointDown, open && classes.pointUp)} /> 
+            <KeyboardArrowUpIcon
+              className={clsx(!open && classes.pointDown, open && classes.pointUp)}
+            />
           </IconButton>
         </Tooltip>
       </Toolbar>
