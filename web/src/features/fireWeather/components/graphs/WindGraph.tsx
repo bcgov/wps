@@ -124,8 +124,6 @@ const WindGraph = (props: Props) => {
         )
         observedWindDirArrows.push(path)
       }
-      // TODO: can I push date that aren't in order?
-      // dates.push(new Date())
     }
   })
 

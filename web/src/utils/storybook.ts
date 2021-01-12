@@ -170,7 +170,9 @@ const getFutureValues = () => {
         bias_adjusted_temperature: temp + (Math.random() - 0.5) * 6 - 2,
         relative_humidity: rh + (Math.random() - 0.5) * 6,
         bias_adjusted_relative_humidity: rh + (Math.random() - 0.5) * 6 - 2,
-        delta_precipitation: precip * Math.random() * 7
+        delta_precipitation: precip * Math.random() * 7,
+        wind_speed: wind_speed + (Math.random() - 0.5) * 6,
+        wind_direction: wind_direction + (((Math.random() - 0.5) * 6) % 360)
       })
       _regionalModelValues.push({
         datetime,
