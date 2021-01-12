@@ -6,7 +6,7 @@ import moment from 'moment'
 import { ObservedValue } from 'api/observationAPI'
 import { ModelValue } from 'api/modelAPI'
 import { ToggleValues } from 'features/fireWeather/components/graphs/useGraphToggles'
-import { Shape } from 'plotly.js'
+import { Shape, LegendClickEvent } from 'plotly.js'
 
 export interface Props {
   toggleValues: ToggleValues
@@ -14,6 +14,12 @@ export interface Props {
   hrdpsModelValues: ModelValue[]
   rdpsModelValues: ModelValue[]
   gdpsModelValues: ModelValue[]
+}
+
+interface WindSpeedValues {
+  datetime: string
+  wind_direction?: number | null
+  wind_speed?: number | null
 }
 
 const observationLineColor = '#fb0058'
@@ -103,10 +109,24 @@ const createPath = (
   }
 }
 
-interface WindSpeedValues {
-  datetime: string
-  wind_direction?: number | null
-  wind_speed?: number | null
+const getLoopExtent = (
+  layer: number,
+  layoutLengths: number[]
+): { start: number; end: number } => {
+  // Element 0 is the vertical now bar, so we start at 1.
+  let start = 1
+  let end = start
+  let i = 0
+  // Iterate through the number of layers, moving the start and end index forward.
+  do {
+    start = end
+    end += layoutLengths[i]
+    i += 1
+  } while (i <= layer)
+  return {
+    start,
+    end
+  }
 }
 
 const populateGraphData = (
@@ -182,6 +202,8 @@ const WindGraph = (props: Props) => {
   )
 
   const currDate = new Date()
+  // Getting the axis range to persist between toggling different layers is problematic.
+  // TODO: Add event handling that takes changes the range and persist it in the local store.
   const initialXAxisRange = [
     moment(currDate).subtract(2, 'days').toDate(), // prettier-ignore
     moment(currDate).add(2, 'days').toDate() // prettier-ignore
@@ -190,6 +212,27 @@ const WindGraph = (props: Props) => {
   return (
     <Plot
       style={{ width: '100%', height: '100%' }}
+      onLegendClick={(event: Readonly<Plotly.LegendClickEvent>): boolean => {
+        // We cannot group the shapes (arrows) with the legend (https://github.com/plotly/plotly.js/issues/98)
+        // So we loop through the corresponding shapes (arrows) to toggle them on and off.
+        // It's not very fast, but it works.
+        // NOTE: The alternative would be to just make this function return false, thus disabling
+        // toggling of layers using the legend.
+        if (event.layout.shapes) {
+          // Get the start and end positions of the arrows.
+          const { start, end } = getLoopExtent(event.expandedIndex, [
+            observedData.windSpds.length,
+            gdpsData.windSpds.length,
+            rdpsData.windSpds.length,
+            hrdpsData.windSpds.length
+          ])
+          for (let i = start; i < end; ++i) {
+            // Toggle visibility on the arrows.
+            event.layout.shapes[i].visible = !event.layout.shapes[i].visible
+          }
+        }
+        return true
+      }}
       config={{ responsive: true }}
       data={[
         {
@@ -208,17 +251,6 @@ const WindGraph = (props: Props) => {
           hovertemplate: showObservations
             ? 'Observation: %{y:.2f} km/h, %{text}°<extra></extra>'
             : ''
-        },
-        {
-          x: [currDate],
-          y: [maxWindSpd + 0.6],
-          mode: 'text',
-          text: ['Now'],
-          showlegend: false,
-          hoverinfo: 'skip',
-          textfont: { color: 'green', size: 15 },
-          // a workaround to remove this from the slider: https://github.com/plotly/plotly.js/issues/2010#issuecomment-637697204
-          xaxis: 'x2' // This moves trace to alternative xaxis(x2) which does not have a slider
         },
         {
           x: gdpsData.dates,
@@ -271,6 +303,17 @@ const WindGraph = (props: Props) => {
           hovertemplate: showHighResModels
             ? 'HRDPS: %{y:.2f} km/h, %{text}°<extra></extra>'
             : ''
+        },
+        {
+          x: [currDate],
+          y: [maxWindSpd + 0.6],
+          mode: 'text',
+          text: ['Now'],
+          showlegend: false,
+          hoverinfo: 'skip',
+          textfont: { color: 'green', size: 15 },
+          // a workaround to remove this from the slider: https://github.com/plotly/plotly.js/issues/2010#issuecomment-637697204
+          xaxis: 'x2' // This moves trace to alternative xaxis(x2) which does not have a slider
         }
       ]}
       layout={{
