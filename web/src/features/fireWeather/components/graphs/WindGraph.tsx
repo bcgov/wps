@@ -6,7 +6,7 @@ import moment from 'moment'
 import { ObservedValue } from 'api/observationAPI'
 import { ModelValue } from 'api/modelAPI'
 import { ToggleValues } from 'features/fireWeather/components/graphs/useGraphToggles'
-import { Shape, LegendClickEvent } from 'plotly.js'
+import { Shape } from 'plotly.js'
 
 export interface Props {
   toggleValues: ToggleValues
