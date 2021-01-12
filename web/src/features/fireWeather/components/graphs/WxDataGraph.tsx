@@ -84,7 +84,7 @@ const WxDataGraph = ({
         noRegionalModels={noRegionalModels}
       />
 
-      {/* <TempRHGraph
+      <TempRHGraph
         toggleValues={toggleValues}
         observedValues={observedValues}
         forecastValues={allForecasts}
@@ -105,11 +105,13 @@ const WxDataGraph = ({
         gdpsModelValues={allModelValues}
         rdpsModelValues={allRegionalModelValues}
         hrdpsModelValues={allHighResModelValues}
-      /> */}
+      />
 
       <WindGraph
         toggleValues={toggleValues}
         observedValues={observedValues}
+        gdpsModelValues={allModelValues}
+        rdpsModelValues={allRegionalModelValues}
         hrdpsModelValues={allHighResModelValues}
       />
     </div>

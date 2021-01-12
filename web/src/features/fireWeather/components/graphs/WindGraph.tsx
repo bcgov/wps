@@ -12,6 +12,8 @@ export interface Props {
   toggleValues: ToggleValues
   observedValues: ObservedValue[]
   hrdpsModelValues: ModelValue[]
+  rdpsModelValues: ModelValue[]
+  gdpsModelValues: ModelValue[]
 }
 
 type Point = [number, number]
@@ -92,63 +94,75 @@ const createPath = (
   }
 }
 
-const WindGraph = (props: Props) => {
-  const { observedValues, hrdpsModelValues, toggleValues } = props
-  const { showObservations, showHighResModels } = toggleValues
+interface WindSpeedValues {
+  datetime: string
+  wind_direction?: number | null
+  wind_speed?: number | null
+}
 
+const populateGraphData = (
+  values: WindSpeedValues[],
+  show: boolean,
+  colour: string
+): {
+  dates: Date[]
+  windSpds: number[]
+  windSpdsTexts: string[]
+  windDirArrows: Partial<Shape>[]
+} => {
   const dates: Date[] = []
-  const observedWindSpds: number[] = []
-  const observedWindDirArrows: Partial<Shape>[] = []
-  const observedWindSpdTexts: string[] = []
-  const hrdpsDates: Date[] = []
-  const hrdpsWindSpds: number[] = []
-  const hrdpsWindSpdsTexts: string[] = []
+  const windSpds: number[] = []
+  const windSpdsTexts: string[] = []
+  const windDirArrows: Partial<Shape>[] = []
 
-  hrdpsModelValues.forEach(({ wind_direction, wind_speed, datetime }) => {
-    if (wind_speed != null) {
-      console.log(datetime, wind_speed)
-      hrdpsDates.push(new Date(datetime))
-      hrdpsWindSpds.push(wind_speed)
-      hrdpsWindSpdsTexts.push(
-        wind_direction != null ? `${Math.round(wind_direction)}` : '-'
-      )
-
-      if (wind_direction != null) {
-        const arrowShape = rotatePoints(arrowPoints, wind_direction)
-        const path = createPath(
-          arrowShape,
-          showHighResModels,
-          datetime,
-          wind_speed,
-          '#a017c2'
-        )
-        observedWindDirArrows.push(path)
-      }
-    }
-  })
-
-  observedValues.forEach(({ wind_direction, wind_speed, datetime }) => {
+  values.forEach(({ wind_direction, wind_speed, datetime }) => {
     if (wind_speed != null) {
       dates.push(new Date(datetime))
-      observedWindSpds.push(wind_speed)
-      observedWindSpdTexts.push(wind_direction != null ? `${wind_direction}` : '-')
+      windSpds.push(wind_speed)
+      windSpdsTexts.push(wind_direction != null ? `${Math.round(wind_direction)}` : '-')
 
       if (wind_direction != null) {
         const arrowShape = rotatePoints(arrowPoints, wind_direction)
-        const path = createPath(
-          arrowShape,
-          showObservations,
-          datetime,
-          wind_speed,
-          '#0251a1'
-        )
-        observedWindDirArrows.push(path)
+        const path = createPath(arrowShape, show, datetime, wind_speed, colour)
+        windDirArrows.push(path)
       }
     }
   })
+  return { dates, windSpds, windSpdsTexts, windDirArrows }
+}
 
-  const maxWindSpd = Math.max(...observedWindSpds)
-  const minWindSpd = Math.min(...observedWindSpds)
+const WindGraph = (props: Props) => {
+  const {
+    observedValues,
+    gdpsModelValues,
+    rdpsModelValues,
+    hrdpsModelValues,
+    toggleValues
+  } = props
+  const {
+    showObservations,
+    showModels,
+    showRegionalModels,
+    showHighResModels
+  } = toggleValues
+
+  const gdpsData = populateGraphData(gdpsModelValues, showModels, '#ff0000')
+  const rdpsData = populateGraphData(rdpsModelValues, showRegionalModels, '#00ff00')
+  const hrdpsData = populateGraphData(hrdpsModelValues, showHighResModels, '#a017c2')
+  const observedData = populateGraphData(observedValues, showObservations, '#0251a1')
+
+  const maxWindSpd = Math.max(
+    ...observedData.windSpds,
+    ...gdpsData.windSpds,
+    ...rdpsData.windSpds,
+    ...hrdpsData.windSpds
+  )
+  const minWindSpd = Math.min(
+    ...observedData.windSpds,
+    ...gdpsData.windSpds,
+    ...rdpsData.windSpds,
+    ...hrdpsData.windSpds
+  )
 
   const currDate = new Date()
   const initialXAxisRange = [
@@ -162,15 +176,17 @@ const WindGraph = (props: Props) => {
       config={{ responsive: true }}
       data={[
         {
-          x: dates,
-          y: observedWindSpds,
+          x: observedData.dates,
+          y: observedData.windSpds,
           name: 'Observation',
           mode: 'lines',
           type: 'scatter',
-          showlegend: false,
+          showlegend: showObservations,
           line: { color: showObservations ? '#2491ff' : 'transparent' },
-          text: observedWindSpdTexts,
-          hovertemplate: 'Observation: %{y:.2f} km/h, %{text}°<extra></extra>'
+          text: observedData.windSpdsTexts,
+          hovertemplate: showObservations
+            ? 'Observation: %{y:.2f} km/h, %{text}°<extra></extra>'
+            : ''
         },
         {
           x: [currDate],
@@ -184,14 +200,36 @@ const WindGraph = (props: Props) => {
           xaxis: 'x2' // This moves trace to alternative xaxis(x2) which does not have a slider
         },
         {
-          x: hrdpsDates,
-          y: hrdpsWindSpds,
+          x: gdpsData.dates,
+          y: gdpsData.windSpds,
+          name: 'GDPS',
+          mode: 'lines',
+          type: 'scatter',
+          showlegend: showModels,
+          line: { color: showModels ? '#ff0000' : 'transparent' },
+          text: gdpsData.windSpdsTexts,
+          hovertemplate: 'GDPS: %{y:.2f} km/h, %{text}°<extra></extra>'
+        },
+        {
+          x: rdpsData.dates,
+          y: rdpsData.windSpds,
+          name: 'RDPS',
+          mode: 'lines',
+          type: 'scatter',
+          showlegend: showRegionalModels,
+          line: { color: showRegionalModels ? '#00ff00' : 'transparent' },
+          text: rdpsData.windSpdsTexts,
+          hovertemplate: 'RDPS: %{y:.2f} km/h, %{text}°<extra></extra>'
+        },
+        {
+          x: hrdpsData.dates,
+          y: hrdpsData.windSpds,
           name: 'HRDPS',
           mode: 'lines',
           type: 'scatter',
-          showlegend: false,
+          showlegend: showHighResModels,
           line: { color: showHighResModels ? '#a017c2' : 'transparent' },
-          text: hrdpsWindSpdsTexts,
+          text: hrdpsData.windSpdsTexts,
           hovertemplate: 'HRDPS: %{y:.2f} km/h, %{text}°<extra></extra>'
         }
       ]}
@@ -260,7 +298,10 @@ const WindGraph = (props: Props) => {
             xref: 'x2',
             layer: 'below'
           },
-          ...observedWindDirArrows
+          ...observedData.windDirArrows,
+          ...gdpsData.windDirArrows,
+          ...rdpsData.windDirArrows,
+          ...hrdpsData.windDirArrows
         ]
       }}
     />
