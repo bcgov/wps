@@ -9,12 +9,11 @@ import TableHead from '@material-ui/core/TableHead'
 import TableSortLabel from '@material-ui/core/TableSortLabel'
 import Paper from '@material-ui/core/Paper'
 import Typography from '@material-ui/core/Typography'
-import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown'
 import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp'
 import { Collapse, IconButton, Toolbar, Tooltip } from '@material-ui/core'
+import clsx from 'clsx'
 
 import { getDatetimeComparator, Order } from 'utils/table'
-import { truncateSync } from 'fs'
 
 const useStyles = makeStyles({
   display: {
@@ -28,6 +27,12 @@ const useStyles = makeStyles({
   },
   title: {
     paddingBottom: 4
+  },
+  pointUp: {
+    'transform': 'rotate(0deg)'
+  },
+  pointDown: {
+    'transform': 'rotate(180deg)'
   }
 })
 
@@ -83,6 +88,7 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
   }
 
   const TableHeader = (props: TableHeaderProps) => {
+    const classes = useStyles()
     return (
       <Toolbar data-testid={`${props.testId}-header`} disableGutters={true}>
         <Typography className={classes.title}>{props.title}</Typography>
@@ -93,7 +99,7 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
             onClick={() => setOpen(!open)}
             data-testid={`${props.testId}-collapse`}
           >
-            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+            <KeyboardArrowUpIcon className={clsx(!open && classes.pointDown, open && classes.pointUp)} /> 
           </IconButton>
         </Tooltip>
       </Toolbar>
