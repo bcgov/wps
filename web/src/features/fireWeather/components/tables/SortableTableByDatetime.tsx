@@ -73,7 +73,7 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
   const [order, setOrder] = useState<Order>('asc')
   const [open, setOpen] = useState(true)
 
-  if (!props.rows) {
+  if (!props.rows || props.rows.length === 0) {
     return null
   }
 

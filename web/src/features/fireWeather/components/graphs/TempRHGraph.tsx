@@ -1,3 +1,6 @@
+// @ts-nocheck
+// TODO: Remove @ts-nocheck after Plotly takes over all graph stuff
+
 import React, { useRef, useEffect } from 'react'
 import * as d3 from 'd3'
 

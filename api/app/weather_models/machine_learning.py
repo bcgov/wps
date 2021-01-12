@@ -218,6 +218,9 @@ class StationMachineLearning:  # pylint: disable=too-many-instance-attributes
         : param timestamp: Datetime value for the predicted value.
         : return: The bias adjusted temperature as predicted by the linear regression model.
         """
+        if model_temperature is None:
+            logger.warning('model temperature for %s was None', timestamp)
+            return None
         hour = timestamp.hour
         if self.regression_models[hour].temperature_wrapper.good_model:
             return self.regression_models[hour].temperature_wrapper.model.predict([[model_temperature]])[0]
