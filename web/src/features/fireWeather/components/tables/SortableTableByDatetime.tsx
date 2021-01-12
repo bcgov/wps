@@ -87,20 +87,20 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
     testId?: string
   }
 
-  const TableHeader = (props: TableHeaderProps) => {
-    const classes = useStyles()
+  const TableHeader = (tableHeaderProps: TableHeaderProps) => {
+    const tableHeaderClasses = useStyles()
     return (
-      <Toolbar data-testid={`${props.testId}-header`} disableGutters={true}>
-        <Typography className={classes.title}>{props.title}</Typography>
+      <Toolbar data-testid={`${tableHeaderProps.testId}-header`} disableGutters={true}>
+        <Typography className={tableHeaderClasses.title}>{tableHeaderProps.title}</Typography>
         <Tooltip title={open ? 'Collapse table' : 'Expand table'}>
           <IconButton
             aria-label={open ? 'collapse table' : 'expand table'}
             size="small"
             onClick={() => setOpen(!open)}
-            data-testid={`${props.testId}-collapse`}
+            data-testid={`${tableHeaderProps.testId}-collapse`}
           >
             <KeyboardArrowUpIcon
-              className={clsx(!open && classes.pointDown, open && classes.pointUp)}
+              className={clsx(!open && tableHeaderClasses.pointDown, open && tableHeaderClasses.pointUp)}
             />
           </IconButton>
         </Tooltip>
