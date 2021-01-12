@@ -17,25 +17,25 @@ const sharedColumns: Column[] = [
     id: 'datetime',
     label: 'Date (PDT)',
     align: 'left',
-    formatDt: (value: string) => value.slice(0, 10)
+    formatDt: (value: string): string => value.slice(0, 10)
   },
   {
     id: 'temperature',
     label: 'Temp (°C)',
     align: 'right',
-    format: (value: number) => value.toFixed(MODEL_VALUE_DECIMAL)
+    format: (value: number): string => value.toFixed(MODEL_VALUE_DECIMAL)
   },
   {
     id: 'relative_humidity',
     label: 'RH (%)',
     align: 'right',
-    format: (value: number) => Math.round(value)
+    format: (value: number): number => Math.round(value)
   },
   {
     id: 'wind_direction',
     label: 'Wind Dir (10m)',
     align: 'right',
-    format: (value: number) => Math.round(value)
+    format: (value: number): number => Math.round(value)
   },
   {
     id: 'wind_speed',
@@ -43,7 +43,27 @@ const sharedColumns: Column[] = [
     minWidth: 70,
     maxWidth: 120,
     align: 'right',
-    format: (value: number) => value.toFixed(MODEL_VALUE_DECIMAL)
+    format: (value: number): string => value.toFixed(MODEL_VALUE_DECIMAL)
+  }
+]
+
+export const noonModelTableColumns: Column[] = [
+  ...sharedColumns,
+  {
+    id: 'delta_precipitation',
+    label: 'Precip (mm/cm)',
+    minWidth: 70,
+    maxWidth: 100,
+    align: 'right',
+    format: (value: number): string => value.toFixed(MODEL_VALUE_DECIMAL)
+  },
+  {
+    id: 'model_run_datetime',
+    label: 'Model Run (UTC)',
+    minWidth: 70,
+    maxWidth: 100,
+    align: 'left',
+    formatDt: (value: string): string => value.slice(0, 13)
   }
 ]
 
@@ -54,29 +74,7 @@ interface NoonModelTableProps {
 }
 
 export const NoonModelTable = React.memo(function _(props: NoonModelTableProps) {
-  const precipColumn: Column = {
-    id: 'delta_precipitation',
-    label: 'Precip (mm/cm)',
-    minWidth: 70,
-    maxWidth: 100,
-    align: 'right',
-    format: (value: number) => value.toFixed(MODEL_VALUE_DECIMAL)
-  }
-  const modelRunColumn: Column = {
-    id: 'model_run_datetime',
-    label: 'Model Run (UTC)',
-    minWidth: 70,
-    maxWidth: 100,
-    align: 'left',
-    formatDt: (value: string) => value.slice(0, 13)
-  }
-
-  return (
-    <SortableTableByDatetime
-      {...props}
-      columns={[...sharedColumns, precipColumn, modelRunColumn]}
-    />
-  )
+  return <SortableTableByDatetime {...props} columns={noonModelTableColumns} />
 })
 
 interface NoonForecastTableProps {
@@ -85,15 +83,18 @@ interface NoonForecastTableProps {
   rows: NoonForecastValue[] | undefined
 }
 
-export const NoonForecastTable = React.memo(function _(props: NoonForecastTableProps) {
-  const precipColumn: Column = {
+export const noonForecastTableColumns: Column[] = [
+  ...sharedColumns,
+  {
     id: 'total_precipitation',
     label: 'Precip (mm/cm)',
     minWidth: 70,
     maxWidth: 100,
     align: 'right',
-    format: (value: number) => value.toFixed(MODEL_VALUE_DECIMAL)
+    format: (value: number): string => value.toFixed(MODEL_VALUE_DECIMAL)
   }
+]
 
-  return <SortableTableByDatetime {...props} columns={[...sharedColumns, precipColumn]} />
+export const NoonForecastTable = React.memo(function _(props: NoonForecastTableProps) {
+  return <SortableTableByDatetime {...props} columns={noonForecastTableColumns} />
 })

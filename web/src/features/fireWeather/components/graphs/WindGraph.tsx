@@ -243,7 +243,6 @@ const WindGraph = (props: Props) => {
         margin: { pad: 10 },
         xaxis: {
           range: initialXAxisRange,
-          autorange: true,
           rangeslider: {
             visible: true,
             bgcolor: '#dbdbdb',
