@@ -16,6 +16,15 @@ export interface Props {
   gdpsModelValues: ModelValue[]
 }
 
+const observationLineColor = '#fb0058'
+const observationArrowColor = observationLineColor
+const gdpsLineColor = '#f56c9c'
+const gdpsArrowColor = gdpsLineColor
+const rdpsLineColor = '#ea6d0e'
+const rdpsArrowColor = rdpsLineColor
+const hrdpsLineColor = '#3ac417'
+const hrdpsArrowColor = hrdpsLineColor
+
 type Point = [number, number]
 
 /**
@@ -103,7 +112,7 @@ interface WindSpeedValues {
 const populateGraphData = (
   values: WindSpeedValues[],
   show: boolean,
-  colour: string
+  arrowColor: string
 ): {
   dates: Date[]
   windSpds: number[]
@@ -123,7 +132,7 @@ const populateGraphData = (
 
       if (wind_direction != null) {
         const arrowShape = rotatePoints(arrowPoints, wind_direction)
-        const path = createPath(arrowShape, show, datetime, wind_speed, colour)
+        const path = createPath(arrowShape, show, datetime, wind_speed, arrowColor)
         windDirArrows.push(path)
       }
     }
@@ -146,10 +155,18 @@ const WindGraph = (props: Props) => {
     showHighResModels
   } = toggleValues
 
-  const gdpsData = populateGraphData(gdpsModelValues, showModels, '#ff0000')
-  const rdpsData = populateGraphData(rdpsModelValues, showRegionalModels, '#00ff00')
-  const hrdpsData = populateGraphData(hrdpsModelValues, showHighResModels, '#a017c2')
-  const observedData = populateGraphData(observedValues, showObservations, '#0251a1')
+  const gdpsData = populateGraphData(gdpsModelValues, showModels, gdpsArrowColor)
+  const rdpsData = populateGraphData(rdpsModelValues, showRegionalModels, rdpsArrowColor)
+  const hrdpsData = populateGraphData(
+    hrdpsModelValues,
+    showHighResModels,
+    hrdpsArrowColor
+  )
+  const observedData = populateGraphData(
+    observedValues,
+    showObservations,
+    observationArrowColor
+  )
 
   const maxWindSpd = Math.max(
     ...observedData.windSpds,
@@ -178,11 +195,14 @@ const WindGraph = (props: Props) => {
         {
           x: observedData.dates,
           y: observedData.windSpds,
-          name: 'Observation',
+          name: 'Observed',
           mode: 'lines',
           type: 'scatter',
           showlegend: showObservations,
-          line: { color: showObservations ? '#2491ff' : 'transparent' },
+          line: {
+            color: showObservations ? observationLineColor : 'transparent',
+            width: 2
+          },
           text: observedData.windSpdsTexts,
           hoverinfo: showObservations ? 'all' : 'none',
           hovertemplate: showObservations
@@ -207,7 +227,11 @@ const WindGraph = (props: Props) => {
           mode: 'lines',
           type: 'scatter',
           showlegend: showModels,
-          line: { color: showModels ? '#ff0000' : 'transparent' },
+          line: {
+            color: showModels ? gdpsLineColor : 'transparent',
+            dash: 'longdash',
+            width: 1
+          },
           text: gdpsData.windSpdsTexts,
           hoverinfo: showModels ? 'all' : 'none',
           hovertemplate: showModels ? 'GDPS: %{y:.2f} km/h, %{text}°<extra></extra>' : ''
@@ -219,7 +243,11 @@ const WindGraph = (props: Props) => {
           mode: 'lines',
           type: 'scatter',
           showlegend: showRegionalModels,
-          line: { color: showRegionalModels ? '#00ff00' : 'transparent' },
+          line: {
+            color: showRegionalModels ? rdpsLineColor : 'transparent',
+            width: 1,
+            dash: 'dash'
+          },
           text: rdpsData.windSpdsTexts,
           hoverinfo: showRegionalModels ? 'all' : 'none',
           hovertemplate: showRegionalModels
@@ -233,7 +261,11 @@ const WindGraph = (props: Props) => {
           mode: 'lines',
           type: 'scatter',
           showlegend: showHighResModels,
-          line: { color: showHighResModels ? '#a017c2' : 'transparent' },
+          line: {
+            color: showHighResModels ? hrdpsLineColor : 'transparent',
+            width: 1,
+            dash: 'dot'
+          },
           text: hrdpsData.windSpdsTexts,
           hoverinfo: showHighResModels ? 'all' : 'none',
           hovertemplate: showHighResModels
