@@ -90,6 +90,7 @@ describe('MoreCast Page', () => {
 
       // Check that collapse and expand functionality works
       cy.getByTestId(`observations-table-${stationCode}-collapse`).click() // collapse Observations table
+      cy.getByTestId(`observations-table-${stationCode}`).get('.MuiTableSortLabel-icon').should('not.exist') // table should be hidden
     })
 
     it('Temp & RH graph displays svg graphics with toggles', () => {
