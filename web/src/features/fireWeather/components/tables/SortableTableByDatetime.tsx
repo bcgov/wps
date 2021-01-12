@@ -118,7 +118,7 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
       <TableHeader title={props.title} testId={props.testId}></TableHeader>
       <Paper className={classes.paper} elevation={1}>
         <TableContainer className={classes.tableContainer}>
-          <Collapse in={open} timeout="auto" unmountOnExit>
+          <Collapse in={open} timeout={250} unmountOnExit>
             <Table stickyHeader size="small" aria-label="sortable wx table">
               <TableHead>
                 <TableRow>
