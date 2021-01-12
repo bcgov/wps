@@ -10,7 +10,7 @@ import TableSortLabel from '@material-ui/core/TableSortLabel'
 import Paper from '@material-ui/core/Paper'
 import Typography from '@material-ui/core/Typography'
 import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp'
-import { Collapse, IconButton, Toolbar, Tooltip } from '@material-ui/core'
+import { Collapse, Container, IconButton, Tooltip } from '@material-ui/core'
 import clsx from 'clsx'
 
 import { getDatetimeComparator, Order } from 'utils/table'
@@ -90,8 +90,8 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
   const TableHeader = (tableHeaderProps: TableHeaderProps) => {
     const tableHeaderClasses = useStyles()
     return (
-      <Toolbar data-testid={`${tableHeaderProps.testId}-header`} disableGutters={true}>
-        <Typography className={tableHeaderClasses.title}>
+      <Paper data-testid={`${tableHeaderProps.testId}-header`} style={{paddingLeft: '15px'}}>
+        <Typography className={tableHeaderClasses.title} display='inline'>
           {tableHeaderProps.title}
         </Typography>
         <Tooltip title={open ? 'Collapse table' : 'Expand table'}>
@@ -109,7 +109,7 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
             />
           </IconButton>
         </Tooltip>
-      </Toolbar>
+      </Paper>
     )
   }
 
