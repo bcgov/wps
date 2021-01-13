@@ -218,5 +218,22 @@ describe('MoreCast Page', () => {
         .should('contain', 'Observed Precip: 0.4 (mm/cm)')
         .and('contain', 'Forecast Precip: 1 (mm/cm)')
     })
+
+    it('The wind graph legend is working', () => {
+      cy.window().then(win => {
+        // The 'Observed' legend is visible
+        cy.get('.plotly .legendtext')
+          .first()
+          .should('have.text', 'Observed')
+        // Click on the legend
+        cy.get('.plotly .legend .traces')
+          .first()
+          .click({})
+        // If our handling of the click worked, the opacity should now be set to 0.5
+        cy.get('.plotly .legend .traces')
+          .first()
+          .should('have.css', 'opacity', '0.5')
+      })
+    })
   })
 })
