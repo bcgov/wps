@@ -10,8 +10,7 @@ import TableSortLabel from '@material-ui/core/TableSortLabel'
 import Paper from '@material-ui/core/Paper'
 import Typography from '@material-ui/core/Typography'
 import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp'
-import { Collapse, Container, IconButton, Tooltip } from '@material-ui/core'
-import clsx from 'clsx'
+import { Collapse, IconButton, Tooltip } from '@material-ui/core'
 
 import { getDatetimeComparator, Order } from 'utils/table'
 
@@ -28,11 +27,19 @@ const useStyles = makeStyles({
   title: {
     paddingBottom: 4
   },
-  pointUp: {
-    transform: 'rotate(0deg)'
+  clockwiseAnimation: {
+    animation: '$rotateCW 250ms forwards'
   },
-  pointDown: {
-    transform: 'rotate(180deg)'
+  counterClockwiseAnimation: {
+    animation: '$rotateCCW 250ms forwards'
+  },
+  '@keyframes rotateCW': {
+    from: { transform: 'rotate(0deg)' },
+    to: { transform: 'rotate(180deg)' }
+  },
+  '@keyframes rotateCCW': {
+    from: { transform: 'rotate(180deg)' },
+    to: { transform: 'rotate(0deg)' }
   }
 })
 
@@ -82,6 +89,14 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
     setOrder(order === 'asc' ? 'desc' : 'asc')
   }
 
+  const animate = () => {
+    if (open) {
+      return classes.counterClockwiseAnimation
+    } else if (!open) {
+      return classes.clockwiseAnimation
+    }
+  }
+
   interface TableHeaderProps {
     title: string
     testId?: string
@@ -90,23 +105,22 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
   const TableHeader = (tableHeaderProps: TableHeaderProps) => {
     const tableHeaderClasses = useStyles()
     return (
-      <Paper data-testid={`${tableHeaderProps.testId}-header`} style={{paddingLeft: '15px'}}>
-        <Typography className={tableHeaderClasses.title} display='inline'>
+      <Paper
+        data-testid={`${tableHeaderProps.testId}-header`}
+        style={{ paddingLeft: '15px' }}
+      >
+        <Typography className={tableHeaderClasses.title} display="inline">
           {tableHeaderProps.title}
         </Typography>
         <Tooltip title={open ? 'Collapse table' : 'Expand table'}>
           <IconButton
+            className={animate()}
             aria-label={open ? 'collapse table' : 'expand table'}
             size="small"
             onClick={() => setOpen(!open)}
             data-testid={`${tableHeaderProps.testId}-collapse`}
           >
-            <KeyboardArrowUpIcon
-              className={clsx(
-                !open && tableHeaderClasses.pointDown,
-                open && tableHeaderClasses.pointUp
-              )}
-            />
+            <KeyboardArrowUpIcon />
           </IconButton>
         </Tooltip>
       </Paper>
