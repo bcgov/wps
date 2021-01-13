@@ -78,7 +78,6 @@ async def get_index(request: Request):
                 'REACT_APP_KEYCLOAK_AUTH_URL': config.get('REACT_APP_KEYCLOAK_AUTH_URL'),
                 'REACT_APP_KEYCLOAK_REALM': config.get('REACT_APP_KEYCLOAK_REALM'),
                 'REACT_APP_KEYCLOAK_CLIENT': config.get('REACT_APP_KEYCLOAK_CLIENT'),
-                'REACT_APP_FIDER_LINK': config.get('REACT_APP_FIDER_LINK'),
                 'REACT_APP_MATOMO_URL': config.get('REACT_APP_MATOMO_URL'),
                 'REACT_APP_MATOMO_SITE_ID': config.get('REACT_APP_MATOMO_SITE_ID'),
                 'REACT_APP_MATOMO_CONTAINER': config.get('REACT_APP_MATOMO_CONTAINER'),
@@ -94,9 +93,10 @@ async def get_index(request: Request):
         response.headers.setdefault('Pragma', 'no-cache')
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
         response.headers.setdefault('Content-Security-Policy',
-                                    ('default-src \'self\' \'unsafe-inline\' *.googleapis.com *.gov.bc.ca'
-                                     ' *.gstatic.com;'
-                                     ' script-src \'self\' \'unsafe-inline\' *.gov.bc.ca;'
+                                    ('default-src \'self\' \'unsafe-inline\''
+                                     ' *.googleapis.com *.gov.bc.ca *.gstatic.com;'
+                                     ' img-src \'self\' data: https:;'
+                                     ' script-src \'self\' \'unsafe-inline\' \'unsafe-eval\' *.gov.bc.ca;'
                                      ' frame-ancestors \'none\''))
         return response
     except TemplateNotFound as exception:

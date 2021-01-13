@@ -24,7 +24,7 @@ export interface ObservationsResponse {
 }
 
 export async function getObservations(stationCodes: number[]): Promise<Observation[]> {
-  const url = '/hourlies/'
+  const url = '/observations/'
   const { data } = await axios.post<ObservationsResponse>(url, {
     stations: stationCodes
   })

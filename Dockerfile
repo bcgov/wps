@@ -7,8 +7,8 @@ FROM registry.access.redhat.com/ubi8/nodejs-14 as static
 USER 0
 
 ADD web .
-RUN npm ci --production
-RUN npm run build
+RUN npm i yarn && yarn install --production
+RUN yarn run build
 
 # Switch back to default user
 USER 1001

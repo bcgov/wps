@@ -33,6 +33,7 @@ PATRONI_LEADER_SERVICE_NAME="patroni-leader-${NAME_APP}-${SUFFIX}"
 PATRONI_REPLICA_SERVICE_NAME="patroni-replica-${NAME_APP}-${SUFFIX}"
 SERVICE_ACCOUNT="patroniocp-${NAME_APP}-${SUFFIX}"
 IMAGE_NAMESPACE=${PROJ_TOOLS}
+EPHEMERAL_STORAGE=${EPHEMERAL_STORAGE:-'False'}
 
 # Process template
 # Note: A role issue is currenty preventing use of the image if it resides in the tools project.
@@ -53,6 +54,14 @@ OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/patroni.yaml \
  ${MEMORY_REQUEST:+ "-p MEMORY_REQUEST=${MEMORY_REQUEST}"} \
  ${MEMORY_LIMIT:+ "-p MEMORY_LIMIT=${MEMORY_LIMIT}"}"
 
+# In order to avoid running out of storage quote in our development environment, use
+# ephemeral storage by removing the pvc request from the template.
+if [ "$EPHEMERAL_STORAGE" = "True" ]
+then
+    # Pipe the template to jq, and delete the pvc and volume claim items from the template.
+    OC_PROCESS="${OC_PROCESS} | jq 'del(.items[3].spec.template.spec.volumes[0].persistentVolumeClaim) \
+| del(.items[3].spec.volumeClaimTemplates)'"
+fi
 
 # Apply template (apply or use --dry-run)
 #

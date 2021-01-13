@@ -22,7 +22,7 @@ from app.tests.weather_models.test_env_canada_gdps import MockResponse
 logger = logging.getLogger(__name__)
 
 
-@ pytest.fixture()
+@pytest.fixture()
 def mock_session(monkeypatch):
     """ Mocked out sqlalchemy session object """
     geom = ("POLYGON ((-120.525 50.77500000000001, -120.375 50.77500000000001,-120.375 50.62500000000001,"
@@ -72,7 +72,7 @@ def mock_session(monkeypatch):
                         mock_get_hrdps_prediction_model_run_timestamp_records)
 
 
-@ pytest.fixture()
+@pytest.fixture()
 def mock_download(monkeypatch):
     """ fixture for env_canada.download """
     def mock_requests_get_hrdps(*args, **kwargs):
@@ -89,7 +89,7 @@ def mock_download(monkeypatch):
 def test_get_hrdps_download_urls():
     """ test to see if get_download_urls methods gives the correct number of urls """
     # -1 because 000 hour has no APCP_SFC_0
-    total_num_of_urls = 49 * len(['TMP_TGL_2', 'RH_TGL_2', 'APCP_SFC_0']) - 1
+    total_num_of_urls = 49 * len(env_canada.GRIB_LAYERS) - 1
     assert len(list(env_canada.get_high_res_model_run_download_urls(
         time_utils.get_utc_now(), 0))) == total_num_of_urls
 

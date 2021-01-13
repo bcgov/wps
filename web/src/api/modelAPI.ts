@@ -29,14 +29,14 @@ export interface ModelSummariesResponse {
 
 /**
  * Get the past model prediction percentiles (5th & 90th)
- * @param stationCodes A list of requested station codes
- * @param model Type of Env canada weather model
+ * @param stationCodes A list of station codes of interest
+ * @param model Available weather model type from Env Canada
  */
 export async function getModelSummaries(
   stationCodes: number[],
   model: 'GDPS' | 'HRDPS' | 'RDPS'
 ): Promise<ModelSummariesForStation[]> {
-  const url = `/models/${model}/predictions/summaries/`
+  const url = `/weather_models/${model}/predictions/summaries/`
   const { data } = await axios.post<ModelSummariesResponse>(url, {
     stations: stationCodes
   })
@@ -59,18 +59,7 @@ export interface ModelValue {
   wind_direction?: number | null
   wind_speed?: number | null
   delta_precipitation?: number | null
-  dew_point?: number | null
-  cloud_cover?: number
-  sea_level_pressure?: number
-  wind_speed_40m?: number
-  wind_direction_40m?: number
-  wind_direction_80m?: number
-  wind_speed_120m?: number
-  wind_direction_120m?: number
-  wind_speed_925mb?: number
-  wind_direction_925mb?: number
-  wind_speed_850mb?: number
-  wind_direction_850m?: number
+  model_run_datetime?: string | null
 }
 
 export interface Model {
@@ -97,15 +86,15 @@ export interface BiasAdjModelResponse {
 }
 
 /**
- * Get the past and future model predictions that are adjusted based on learned biases
- * @param stationCodes A list of requested station codes
- * @param model Type of Env canada weather model
+ * Get model predictions with bias adjusted GDPS from past 5 days to future 10 days
+ * @param stationCodes A list of station codes of interest
+ * @param model Available weather model type from Env Canada
  */
 export async function getModelsWithBiasAdj(
   stationCodes: number[],
   model: 'GDPS' | 'HRDPS' | 'RDPS'
 ): Promise<ModelsForStation[]> {
-  const url = `/models/${model}/predictions/most_recent/`
+  const url = `/weather_models/${model}/predictions/most_recent/`
   const { data } = await axios.post<BiasAdjModelResponse>(url, {
     stations: stationCodes
   })
