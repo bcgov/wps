@@ -10,7 +10,7 @@ from app import config
 logger = logging.getLogger(__name__)
 
 
-def send_rocketchat_notification(text: str, exc_info: Exception):
+def send_rocketchat_notification(text: str, exc_info: Exception) -> dict:
     """ Sends message with specified text to configured Rocketchat channel.
 
     We don't want this method to raise any exceptions, as we don't want to
@@ -27,6 +27,7 @@ def send_rocketchat_notification(text: str, exc_info: Exception):
                                                etype=type(exc_info),
                                                value=exc_info,
                                                tb=exc_info.__traceback__))
+    result = None
     try:
         response = requests.post(
             config.get('ROCKET_URL_POST_MESSAGE'),
@@ -40,8 +41,9 @@ def send_rocketchat_notification(text: str, exc_info: Exception):
                 'text': full_message
             }
         )
-        return response.json()
+        result = response.json()
     except Exception as exception:  # pylint: disable=broad-except
         # not doing exc_info=exception - as this causes a lot of noise, and we're more interested
         # in the main code!
         logger.error('failed to send rocket chat notification %s', exception)
+    return result

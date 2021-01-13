@@ -12,7 +12,10 @@ import {
 } from 'features/percentileCalculator/slices/percentilesSlice'
 import { PercentileActionButtons } from 'features/percentileCalculator/components/PercentileActionButtons'
 import { PercentileResults } from 'features/percentileCalculator/components/PercentileResults'
-import { TimeRangeSlider } from 'features/percentileCalculator/components/TimeRangeSlider'
+import {
+  TimeRangeSlider,
+  yearWhenTheCalculationIsDone
+} from 'features/percentileCalculator/components/TimeRangeSlider'
 import { getStationCodesFromUrl, stationCodeQueryKey } from 'utils/url'
 
 const defaultTimeRange = 10
@@ -26,10 +29,9 @@ const PercentileCalculatorPage = () => {
   const codesFromQuery = getStationCodesFromUrl(location.search)
   const [stationCodes, setStationCodes] = useState<number[]>(codesFromQuery)
   const [timeRange, setTimeRange] = useState<number>(defaultTimeRange)
-  const currYear = new Date().getFullYear()
   const yearRange = {
-    start: currYear - timeRange,
-    end: currYear - 1
+    start: yearWhenTheCalculationIsDone - timeRange,
+    end: yearWhenTheCalculationIsDone - 1
   }
 
   useEffect(() => {
@@ -74,7 +76,7 @@ const PercentileCalculatorPage = () => {
 
   return (
     <main data-testid="percentile-calculator-page">
-      <PageHeader title="Predictive Services Unit" />
+      <PageHeader title="Predictive Services Unit" productName="Percentile Calculator" />
       <PageTitle title="Percentile Calculator" />
       <Container>
         <WxStationDropdown stationCodes={stationCodes} onChange={setStationCodes} />

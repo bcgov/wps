@@ -35,7 +35,7 @@ send_notification() {
         -H 'X-Auth-Token: ${ROCKET_AUTH_TOKEN}' \
         -H 'X-User-Id: ${ROCKET_USER_ID}' \
         -H 'Content-Type: application/json' \
-        https://chat.pathfinder.gov.bc.ca/api/v1/chat.postMessage \
+        https://chat.developer.gov.bc.ca/api/v1/chat.postMessage \
         -d '{\"channel\": \"${ROCKET_CHANNEL}\", \"text\": \"${TEXT}\"}'"
     eval $COMMAND
 }

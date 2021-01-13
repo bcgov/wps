@@ -9,7 +9,7 @@ from sklearn.linear_model import LinearRegression
 from scipy.interpolate import griddata
 import numpy as np
 from sqlalchemy.orm import Session
-from app.weather_models import MODEL_VALUE_KEYS, construct_interpolated_noon_prediction
+from app.weather_models import SCALAR_MODEL_VALUE_KEYS, construct_interpolated_noon_prediction
 from app.db.models import (
     PredictionModel, PredictionModelGridSubset, ModelRunGridSubsetPrediction)
 from app.db.models.observations import HourlyActual
@@ -79,11 +79,19 @@ class Samples:
                    target_point: List,
                    model_values: List,
                    actual_value: float,
-                   timestamp: datetime):
+                   timestamp: datetime,
+                   model_key: str,
+                   sample_key: str):
         """ Add a sample, interpolating the model values spatially """
         # Interpolate spatially, to get close to our actual position:
-        interpolated_value = griddata(
-            points, model_values, target_point, method='linear')
+        try:
+            interpolated_value = griddata(
+                points, model_values, target_point, method='linear')
+        except:
+            # Additional logging to assist with finding errors:
+            logger.error('for %s->%s griddata failed with points: %s, model_values %s, target_point: %s',
+                         model_key, sample_key, points, model_values, target_point)
+            raise
         # Add to the data we're going to learn from:
         # Using two variables, the interpolated temperature value, and the hour of the day.
         self.append_x(interpolated_value[0], timestamp)
@@ -136,12 +144,18 @@ class StationMachineLearning:  # pylint: disable=too-many-instance-attributes
                                   actual: HourlyActual,
                                   sample_collection: SampleCollection):
         """ Take the provided prediction and observed value, adding them to the collection of samples """
-        for model_key, sample_key in zip(MODEL_VALUE_KEYS, SAMPLE_VALUE_KEYS):
+        # TODO: add precip and wind speed/direction to SAMPLE_VALUE_KEYS
+        for model_key, sample_key in zip(SCALAR_MODEL_VALUE_KEYS, SAMPLE_VALUE_KEYS):
             model_value = getattr(prediction, model_key)
-            actual_value = getattr(actual, sample_key)
-            sample_value = getattr(sample_collection, sample_key)
-            sample_value.add_sample(self.points, self.target_coordinate, model_value,
-                                    actual_value, actual.weather_date)
+            if model_value is not None:
+                actual_value = getattr(actual, sample_key)
+                sample_value = getattr(sample_collection, sample_key)
+                sample_value.add_sample(self.points, self.target_coordinate, model_value,
+                                        actual_value, actual.weather_date, model_key, sample_key)
+            else:
+                # Sometimes, for reasons that probably need investigation, model values
+                # are None.
+                logger.warning('no model value for %s->%s', model_key, sample_key)
 
     def _collect_data(self):
         """ Collect data to use for machine learning.
@@ -168,8 +182,7 @@ class StationMachineLearning:  # pylint: disable=too-many-instance-attributes
                         and prev_prediction.prediction_timestamp.hour == 18):
                     # If there's a gap in the data (like with the GLOBAL model) - then make up
                     # a noon prediction using interpolation, and add it as a sample.
-                    noon_prediction = construct_interpolated_noon_prediction(
-                        prev_prediction, prediction)
+                    noon_prediction = construct_interpolated_noon_prediction(prev_prediction, prediction)
                     self._add_sample_to_collection(
                         noon_prediction, prev_actual, sample_collection)
 
@@ -205,6 +218,9 @@ class StationMachineLearning:  # pylint: disable=too-many-instance-attributes
         : param timestamp: Datetime value for the predicted value.
         : return: The bias adjusted temperature as predicted by the linear regression model.
         """
+        if model_temperature is None:
+            logger.warning('model temperature for %s was None', timestamp)
+            return None
         hour = timestamp.hour
         if self.regression_models[hour].temperature_wrapper.good_model:
             return self.regression_models[hour].temperature_wrapper.model.predict([[model_temperature]])[0]

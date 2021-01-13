@@ -60,16 +60,22 @@ def mock_get_model_run_predictions_for_grid(monkeypatch):
                 tmp_tgl_2=[2, 3, 4, 5],
                 rh_tgl_2=[10, 20, 30, 40],
                 apcp_sfc_0=[2, 4, 3, 6],
+                wdir_tgl_10=[10, 20, 30, 40],
+                wind_tgl_10=[1, 2, 3, 4],
                 prediction_timestamp=datetime(2020, 10, 10, 18)),
             ModelRunGridSubsetPrediction(
                 tmp_tgl_2=[1, 2, 3, 4],
                 rh_tgl_2=[20, 30, 40, 50],
                 apcp_sfc_0=[3, 6, 3, 4],
+                wdir_tgl_10=[280, 290, 300, 310],
+                wind_tgl_10=[5, 6, 7, 8],
                 prediction_timestamp=datetime(2020, 10, 10, 21)),
             ModelRunGridSubsetPrediction(
                 tmp_tgl_2=[1, 2, 3, 4],
                 rh_tgl_2=None,
                 apcp_sfc_0=[3, 6, 3, 4],
+                wdir_tgl_10=[20, 30, 40, 50],
+                wind_tgl_10=[4, 3, 2, 1],
                 prediction_timestamp=datetime(2020, 10, 10, 21))
         ]
         return result
@@ -84,7 +90,7 @@ def mock_get_actuals_left_outer_join_with_predictions(monkeypatch):
                         get_actuals_left_outer_join_with_predictions)
 
 
-@ pytest.fixture()
+@pytest.fixture()
 def mock_session(monkeypatch):
     """ Mocked out sqlalchemy session object """
     geom = ("POLYGON ((-120.525 50.77500000000001, -120.375 50.77500000000001,-120.375 50.62500000000001,"
@@ -136,7 +142,7 @@ def mock_session(monkeypatch):
                         mock_get_gdps_prediction_model_run_timestamp_records)
 
 
-@ pytest.fixture()
+@pytest.fixture()
 def mock_download(monkeypatch):
     """ fixture for env_canada.download """
     def mock_requests_get_gdps(*args, **kwargs):
@@ -150,7 +156,7 @@ def mock_download(monkeypatch):
     monkeypatch.setattr(requests, 'get', mock_requests_get_gdps)
 
 
-@ pytest.fixture()
+@pytest.fixture()
 def mock_download_fail(monkeypatch):
     """ fixture for env_canada.download """
     def mock_requests_get(*args, **kwargs):
@@ -162,7 +168,7 @@ def mock_download_fail(monkeypatch):
 def test_get_gdps_download_urls():
     """ test to see if get_download_urls methods give the correct number of urls """
     # -1 because 000 hour has no APCP_SFC_0
-    total_num_of_urls = 81 * len(['TMP_TGL_2', 'RH_TGL_2', 'APCP_SFC_0']) - 1
+    total_num_of_urls = 81 * len(env_canada.GRIB_LAYERS) - 1
     assert len(list(env_canada.get_global_model_run_download_urls(
         time_utils.get_utc_now(), 0))) == total_num_of_urls
 

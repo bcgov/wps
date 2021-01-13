@@ -8,10 +8,15 @@ export const parseModelValuesHelper = (
   const pastModelValues: ModelValue[] = []
   const modelValues: ModelValue[] = []
   const noonModelValues: ModelValue[] = []
-  const allModelValues = model_runs.reduce(
-    (values: ModelValue[], modelRun) => values.concat(modelRun.values),
-    []
-  )
+  const reducer = (values: ModelValue[], modelRun: ModelRun) => {
+    // flatten data, adding in model run time onto model value.
+    modelRun.values.forEach((value: ModelValue) => {
+      value.model_run_datetime = modelRun.model_run.datetime
+      values.push(value)
+    })
+    return values
+  }
+  const allModelValues = model_runs.reduce(reducer, [])
   const currDate = new Date()
   allModelValues.forEach(v => {
     const isFutureModel = new Date(v.datetime) >= currDate

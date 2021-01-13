@@ -12,7 +12,7 @@ from app.db.crud.forecasts import query_noon_forecast_records
 import app.db.models
 
 
-LOGGER = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class StationNotFoundException(Exception):
@@ -75,7 +75,7 @@ def fetch_noon_forecasts(stations: StationCodeList,
     """ Query all noon forecasts between start_date and end_date for the specified weather station. Note that
     there may be multiple records for the same weather station and same weather_date, as noon forecasts
     are updated twice daily. """
-    LOGGER.debug('Querying noon forecasts for stations %s from %s to %s',
+    logger.debug('Querying noon forecasts for stations %s from %s to %s',
                  stations, start_date, end_date)
     session = app.db.database.get_read_session()
     forecasts = query_noon_forecast_records(

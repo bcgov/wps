@@ -14,6 +14,8 @@
             "bias_adjusted_rh": 65.6910528792126,
             "bias_adjusted_temperature": 0.7880931046273165,
             "prediction_model_run_timestamp_id": 1056,
+            "wdir_tgl_10": 20,
+            "wind_tgl_10": 20,
             "id": 8313098,
             "create_date": "2020-11-26T04:38:41.830558+00:00"
          }
@@ -55,6 +57,8 @@
             "bias_adjusted_rh": 78.01532473023556,
             "bias_adjusted_temperature": 0.7238499251044588,
             "prediction_model_run_timestamp_id": 1061,
+            "wdir_tgl_10": 20,
+            "wind_tgl_10": 20,
             "id": 8426760,
             "create_date": "2020-11-26T17:22:22.087948+00:00"
          }
@@ -96,6 +100,8 @@
             "bias_adjusted_rh": 66.17838270106067,
             "bias_adjusted_temperature": 1.2344673489349622,
             "prediction_model_run_timestamp_id": 1066,
+            "wdir_tgl_10": 20,
+            "wind_tgl_10": 20,
             "id": 8518659,
             "create_date": "2020-11-27T05:13:13.501143+00:00"
          }
@@ -137,6 +143,8 @@
             "bias_adjusted_rh": 72.48483755482468,
             "bias_adjusted_temperature": 1.4129541938163506,
             "prediction_model_run_timestamp_id": 1071,
+            "wdir_tgl_10": 20,
+            "wind_tgl_10": 20,
             "id": 8610559,
             "create_date": "2020-11-27T17:14:26.884319+00:00"
          }
@@ -178,6 +186,8 @@
             "bias_adjusted_rh": 77.73230051822355,
             "bias_adjusted_temperature": 0.9547331981445812,
             "prediction_model_run_timestamp_id": 1076,
+            "wdir_tgl_10": 20,
+            "wind_tgl_10": 20,
             "id": 8702459,
             "create_date": "2020-11-28T05:14:23.976500+00:00"
          }
@@ -219,6 +229,8 @@
             "bias_adjusted_rh": 74.46726358264783,
             "bias_adjusted_temperature": 0.835896673146399,
             "prediction_model_run_timestamp_id": 1081,
+            "wdir_tgl_10": 20,
+            "wind_tgl_10": 20,
             "id": 8794360,
             "create_date": "2020-11-28T17:14:18.673916+00:00"
          }
@@ -260,6 +272,8 @@
             "bias_adjusted_rh": 75.90832351457482,
             "bias_adjusted_temperature": 1.6803469054522036,
             "prediction_model_run_timestamp_id": 1086,
+            "wdir_tgl_10": 20,
+            "wind_tgl_10": 20,
             "id": 8886260,
             "create_date": "2020-11-29T05:14:25.771465+00:00"
          }
@@ -301,6 +315,8 @@
             "bias_adjusted_rh": 75.9242931359649,
             "bias_adjusted_temperature": 1.3073508774722442,
             "prediction_model_run_timestamp_id": 1091,
+            "wdir_tgl_10": 20,
+            "wind_tgl_10": 20,
             "id": 8978161,
             "create_date": "2020-11-29T17:14:16.973450+00:00"
          }
@@ -342,6 +358,8 @@
             "bias_adjusted_rh": 76.2353347483821,
             "bias_adjusted_temperature": 1.4862733088472644,
             "prediction_model_run_timestamp_id": 1096,
+            "wdir_tgl_10": 20,
+            "wind_tgl_10": 20,
             "id": 9070061,
             "create_date": "2020-11-30T05:14:19.385870+00:00"
          }
@@ -383,6 +401,8 @@
             "bias_adjusted_rh": 79.51341504070965,
             "bias_adjusted_temperature": 1.8686835769788424,
             "prediction_model_run_timestamp_id": 1101,
+            "wdir_tgl_10": 20,
+            "wind_tgl_10": 20,
             "id": 9161963,
             "create_date": "2020-11-30T17:13:10.264246+00:00"
          }
@@ -424,6 +444,8 @@
             "bias_adjusted_rh": 77.63345612182408,
             "bias_adjusted_temperature": 1.0217415617642795,
             "prediction_model_run_timestamp_id": 1106,
+            "wdir_tgl_10": 20,
+            "wind_tgl_10": 20,
             "id": 9253863,
             "create_date": "2020-12-01T05:14:17.696534+00:00"
          }
@@ -465,6 +487,8 @@
             "bias_adjusted_rh": 77.21966603876206,
             "bias_adjusted_temperature": 1.653604372032253,
             "prediction_model_run_timestamp_id": 1111,
+            "wdir_tgl_10": 20,
+            "wind_tgl_10": 20,
             "id": 9324004,
             "create_date": "2020-12-01T16:30:55.220675+00:00"
          }
@@ -506,6 +530,8 @@
             "bias_adjusted_rh": 77.81537279305633,
             "bias_adjusted_temperature": 1.0585911090952318,
             "prediction_model_run_timestamp_id": 1116,
+            "wdir_tgl_10": 20,
+            "wind_tgl_10": 20,
             "id": 9437665,
             "create_date": "2020-12-02T05:13:11.568798+00:00"
          }
@@ -547,6 +573,8 @@
             "bias_adjusted_rh": 74.0921223893705,
             "bias_adjusted_temperature": 1.1448121282035326,
             "prediction_model_run_timestamp_id": 1121,
+            "wdir_tgl_10": 20,
+            "wind_tgl_10": 20,
             "id": 9529566,
             "create_date": "2020-12-02T17:13:18.126265+00:00"
          }
@@ -588,6 +616,8 @@
             "bias_adjusted_rh": 76.2944628303882,
             "bias_adjusted_temperature": 1.4422091819881215,
             "prediction_model_run_timestamp_id": 1158,
+            "wdir_tgl_10": 20,
+            "wind_tgl_10": 20,
             "id": 9621370,
             "create_date": "2020-12-03T05:13:05.039416+00:00"
          }
@@ -629,6 +659,8 @@
             "bias_adjusted_rh": 73.6766789758336,
             "bias_adjusted_temperature": 1.5531445607731347,
             "prediction_model_run_timestamp_id": 1163,
+            "wdir_tgl_10": 20,
+            "wind_tgl_10": 20,
             "id": 9713101,
             "create_date": "2020-12-03T17:13:16.667014+00:00"
          }
@@ -669,6 +701,8 @@
             "delta_precip": null,
             "bias_adjusted_rh": 69.27960442345744,
             "bias_adjusted_temperature": 1.5074896343880684,
+            "wdir_tgl_10": 20,
+            "wind_tgl_10": 20,
             "prediction_model_run_timestamp_id": 1168,
             "id": 9805001,
             "create_date": "2020-12-04T05:13:13.261238+00:00"
@@ -710,6 +744,8 @@
             "delta_precip": null,
             "bias_adjusted_rh": 69.75197081503832,
             "bias_adjusted_temperature": 1.5206877839649886,
+            "wdir_tgl_10": 20,
+            "wind_tgl_10": 20,
             "prediction_model_run_timestamp_id": 1173,
             "id": 9896706,
             "create_date": "2020-12-04T17:13:11.720141+00:00"
@@ -751,6 +787,8 @@
             "delta_precip": null,
             "bias_adjusted_rh": 70.3327086830771,
             "bias_adjusted_temperature": 1.4884875921257814,
+            "wdir_tgl_10": 20,
+            "wind_tgl_10": 20,
             "prediction_model_run_timestamp_id": 1178,
             "id": 9988240,
             "create_date": "2020-12-05T05:13:16.784770+00:00"
@@ -793,6 +831,8 @@
             "bias_adjusted_rh": 69.63901880660259,
             "bias_adjusted_temperature": 1.9513612178452453,
             "prediction_model_run_timestamp_id": 1183,
+            "wdir_tgl_10": 20,
+            "wind_tgl_10": 20,
             "id": 10079971,
             "create_date": "2020-12-05T17:13:43.050078+00:00"
          }
@@ -834,6 +874,8 @@
             "bias_adjusted_rh": 65.34809430743805,
             "bias_adjusted_temperature": 2.2493313697193917,
             "prediction_model_run_timestamp_id": 1056,
+            "wdir_tgl_10": 20,
+            "wind_tgl_10": 20,
             "id": 8313099,
             "create_date": "2020-11-26T04:38:41.830558+00:00"
          }
@@ -875,6 +917,8 @@
             "bias_adjusted_rh": 76.23090801634667,
             "bias_adjusted_temperature": 2.137915960024733,
             "prediction_model_run_timestamp_id": 1061,
+            "wdir_tgl_10": 20,
+            "wind_tgl_10": 20,
             "id": 8426761,
             "create_date": "2020-11-26T17:22:22.087948+00:00"
          }
@@ -915,6 +959,8 @@
             "delta_precip": null,
             "bias_adjusted_rh": 67.22884893745861,
             "bias_adjusted_temperature": 2.3325685284422493,
+            "wdir_tgl_10": 20,
+            "wind_tgl_10": 20,
             "prediction_model_run_timestamp_id": 1066,
             "id": 8518660,
             "create_date": "2020-11-27T05:13:13.501143+00:00"
@@ -956,6 +1002,8 @@
             "delta_precip": null,
             "bias_adjusted_rh": 71.81424916647664,
             "bias_adjusted_temperature": 2.5836097218489673,
+            "wdir_tgl_10": 20,
+            "wind_tgl_10": 20,
             "prediction_model_run_timestamp_id": 1071,
             "id": 8610560,
             "create_date": "2020-11-27T17:14:26.884319+00:00"
@@ -997,6 +1045,8 @@
             "delta_precip": null,
             "bias_adjusted_rh": 77.00051908390404,
             "bias_adjusted_temperature": 1.9554536719009397,
+            "wdir_tgl_10": 20,
+            "wind_tgl_10": 20,
             "prediction_model_run_timestamp_id": 1076,
             "id": 8702460,
             "create_date": "2020-11-28T05:14:23.976500+00:00"
@@ -1038,6 +1088,8 @@
             "delta_precip": null,
             "bias_adjusted_rh": 73.65155400480265,
             "bias_adjusted_temperature": 1.935506421121151,
+            "wdir_tgl_10": 20,
+            "wind_tgl_10": 20,
             "prediction_model_run_timestamp_id": 1081,
             "id": 8794361,
             "create_date": "2020-11-28T17:14:18.673916+00:00"
@@ -1079,6 +1131,8 @@
             "delta_precip": null,
             "bias_adjusted_rh": 75.92548545253038,
             "bias_adjusted_temperature": 2.456227563022262,
+            "wdir_tgl_10": 20,
+            "wind_tgl_10": 20,
             "prediction_model_run_timestamp_id": 1086,
             "id": 8886261,
             "create_date": "2020-11-29T05:14:25.771465+00:00"
@@ -1120,6 +1174,8 @@
             "delta_precip": null,
             "bias_adjusted_rh": 89.87193790526712,
             "bias_adjusted_temperature": 1.3112030846281275,
+            "wdir_tgl_10": 20,
+            "wind_tgl_10": 20,
             "prediction_model_run_timestamp_id": 1188,
             "id": 10171918,
             "create_date": "2020-12-06T05:13:25.112578+00:00"
@@ -1161,6 +1217,8 @@
             "delta_precip": null,
             "bias_adjusted_rh": 83.36586909490677,
             "bias_adjusted_temperature": 1.0992646742808923,
+            "wdir_tgl_10": 20,
+            "wind_tgl_10": 20,
             "prediction_model_run_timestamp_id": 1193,
             "id": 10263551,
             "create_date": "2020-12-06T17:13:08.289186+00:00"
@@ -1202,6 +1260,8 @@
             "delta_precip": null,
             "bias_adjusted_rh": 85.35615225863799,
             "bias_adjusted_temperature": 1.3707870745140789,
+            "wdir_tgl_10": 20,
+            "wind_tgl_10": 20,
             "prediction_model_run_timestamp_id": 1198,
             "id": 10355183,
             "create_date": "2020-12-07T05:13:06.261612+00:00"
@@ -1243,6 +1303,8 @@
             "delta_precip": null,
             "bias_adjusted_rh": 84.28808868629267,
             "bias_adjusted_temperature": 0.9869632073187979,
+            "wdir_tgl_10": 20,
+            "wind_tgl_10": 20,
             "prediction_model_run_timestamp_id": 1203,
             "id": 10447084,
             "create_date": "2020-12-07T17:13:44.979782+00:00"

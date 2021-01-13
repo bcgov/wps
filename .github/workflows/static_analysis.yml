@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         python-version: [3.8]
-        node-version: [10.x]
+        node-version: [14.x]
     steps:
       - name: Checkout repo (main)
         uses: actions/checkout@v2
@@ -21,7 +21,7 @@ jobs:
           # For sonar-scanner to work properly we can't use a shallow fetch.
           fetch-depth: 0
 
-      - name: Setup Python ${{ matrix.python-version }}
+      - name: Setup Python ${{ matrix.python-version }} (api)
         uses: actions/setup-python@v1
         with:
           python-version: ${{ matrix.python-version }}
@@ -50,12 +50,12 @@ jobs:
       - name: Install poetry (api)
         run: |
           cd ~/poetry_installer
-          python get-poetry.py --version 1.0.8
+          python get-poetry.py --version 1.1.4
           source ~/.poetry/env
           poetry config virtualenvs.create true
           poetry config virtualenvs.in-project false
 
-      - name: Install libgdal-dev
+      - name: Install libgdal-dev (api)
         # The python gdal component relies on libgdal-dev being installed.
         run: |
           sudo apt-get update --fix-missing && sudo apt-get -y install libgdal-dev
@@ -103,37 +103,29 @@ jobs:
           poetry run coverage xml -o coverage-reports/coverage-report.xml
           sed -i 's/filename="app/filename="api\/app/' coverage-reports/coverage-report.xml
 
-      - name: Cache node modules
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-node-modules
+      - uses: actions/cache@v2
         with:
-          # npm cache files are stored in `~/.npm` on Linux/macOS
-          path: ~/.npm
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
+          path: "**/node_modules"
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
 
       - name: Install node dependencies (web)
         working-directory: ./web
-        run: npm ci
+        run: npm install yarn --no-package-lock && yarn
 
       - name: Lint (web)
         working-directory: ./web
-        run: npm run lint
+        run: yarn run lint
 
       # "Error: ENOSPC: System limit for number of file watchers reached" can be addressed
       # with this: https://github.com/guard/listen/wiki/Increasing-the-amount-of-inotify-watchers#the-technical-details
       # It seems unnecessary at the moment because tests pass anyway
-      - name: Cypress tests (web)
+      - name: Cypress tests with coverage (web)
         working-directory: ./web
-        run: npm run cypress:ci
+        run: yarn run cypress:ci
 
-      - name: Tests with coverage (web)
+      - name: Unit tests (web)
         working-directory: ./web
-        run: npm run test:ci
+        run: yarn run test:ci
 
       - name: Fix code coverage paths (web)
         # Due to the way sonarscanner mounts thing when running in docker, we need to change the coverage file.
