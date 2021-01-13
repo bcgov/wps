@@ -247,7 +247,7 @@ const WindGraph = (props: Props) => {
             width: 2
           },
           text: observedData.windSpdsTexts,
-          hoverinfo: showObservations ? 'all' : 'none',
+          hoverinfo: showObservations ? 'all' : 'skip',
           hovertemplate: showObservations
             ? 'Observation: %{y:.2f} km/h, %{text}°<extra></extra>'
             : ''
@@ -265,7 +265,7 @@ const WindGraph = (props: Props) => {
             width: 1
           },
           text: gdpsData.windSpdsTexts,
-          hoverinfo: showModels ? 'all' : 'none',
+          hoverinfo: showModels ? 'all' : 'skip',
           hovertemplate: showModels ? 'GDPS: %{y:.2f} km/h, %{text}°<extra></extra>' : ''
         },
         {
@@ -281,7 +281,7 @@ const WindGraph = (props: Props) => {
             dash: 'dash'
           },
           text: rdpsData.windSpdsTexts,
-          hoverinfo: showRegionalModels ? 'all' : 'none',
+          hoverinfo: showRegionalModels ? 'all' : 'skip',
           hovertemplate: showRegionalModels
             ? 'RDPS: %{y:.2f} km/h, %{text}°<extra></extra>'
             : ''
@@ -299,7 +299,7 @@ const WindGraph = (props: Props) => {
             dash: 'dot'
           },
           text: hrdpsData.windSpdsTexts,
-          hoverinfo: showHighResModels ? 'all' : 'none',
+          hoverinfo: showHighResModels ? 'all' : 'skip',
           hovertemplate: showHighResModels
             ? 'HRDPS: %{y:.2f} km/h, %{text}°<extra></extra>'
             : ''
