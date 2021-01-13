@@ -87,6 +87,18 @@ describe('MoreCast Page', () => {
       cy.getByTestId(`noon-forecasts-table-${stationCode}`)
         .find('tbody > tr')
         .should('have.length', numOfForecasts)
+
+      // Check that collapse and expand functionality works
+      cy.getByTestId(`observations-table-${stationCode}-collapse`).click() // collapse Observations table
+      cy.wait(500) // wait for animation to complete
+      cy.getByTestId(`observations-table-${stationCode}`)
+        .find('.MuiTableContainer-root')
+        .should('have.css', 'height', '0px') // table should be hidden
+      cy.getByTestId(`noon-gdps-table-${stationCode}-collapse`).click() // collapse Interpolated GDPS noon values table
+      cy.wait(500)
+      cy.getByTestId(`noon-gdps-table-${stationCode}`)
+        .find('.MuiTableContainer-root')
+        .should('have.css', 'height', '0px')
     })
 
     it('Temp & RH graph displays svg graphics with toggles', () => {

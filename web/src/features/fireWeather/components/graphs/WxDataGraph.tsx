@@ -107,7 +107,13 @@ const WxDataGraph = ({
         hrdpsModelValues={allHighResModelValues}
       />
 
-      <WindGraph toggleValues={toggleValues} observedValues={observedValues} />
+      <WindGraph
+        toggleValues={toggleValues}
+        observedValues={observedValues}
+        gdpsModelValues={allModelValues}
+        rdpsModelValues={allRegionalModelValues}
+        hrdpsModelValues={allHighResModelValues}
+      />
     </div>
   )
 }
