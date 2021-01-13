@@ -73,7 +73,9 @@ const rotatePoints = (points: Point[], angle: number, cw = true): Point[] => {
    * Where theta is the angle of rotation
    */
 
-  let theta = (Math.PI / 180) * angle // Turn the angle(number) into degree
+  // We need to rotate the arrow by 180 degrees (the degrees indiciate the origin of the wind,
+  // not the direction)
+  let theta = (Math.PI / 180) * ((angle + 180) % 360) // Turn the angle(number) into degree
 
   if (cw) {
     theta = -theta
