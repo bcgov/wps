@@ -109,6 +109,10 @@ run-all-bots:
 	$(POETRY_RUN) python -m app.fireweather_bot.noon_forecasts
 
 
+c-haines:
+	$(POETRY_RUN) python -m app.weather_models.c_haines
+
+
 fetch-database-partial:
 	$(POETRY_RUN) python scripts/copy_db_from_pod_to_local.py
 
