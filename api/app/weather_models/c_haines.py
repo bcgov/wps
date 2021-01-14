@@ -20,10 +20,6 @@ def read_scanline(band, yoff):
 def calculate_c_haines_index(t700: float, t850: float, td850: float):
     """ Given temperature and dew points values, calculate c-haines.  """
     # pylint: disable=invalid-name
-    # Change to Kelvin, so we only have positive numbers.
-    t700 += 273.15
-    t850 += 273.15
-    td850 += 273.15
 
     # temperature depression term
     ca = (t850-t700)/2-2
