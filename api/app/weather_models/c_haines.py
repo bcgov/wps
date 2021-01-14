@@ -1,8 +1,11 @@
+""" Code for generating c-haines charts from grib files.
+"""
 from typing import Final
 import logging
 import struct
 import numpy
 import gdal
+import ogr
 from app import configure_logging
 
 logger = logging.getLogger(__name__)
@@ -64,6 +67,7 @@ def calculate_c_haines_data(
 
         chaines_row = []
         mask_row = []
+        # TODO: Look at using numpy to iterate through this faster.
         # Iterate through values in row.
         for t700, t850, td850 in zip(row_tmp_700, row_tmp_850, row_dew_850):
             # pylint: disable=invalid-name
@@ -93,10 +97,17 @@ def calculate_c_haines_data(
         c_haines_data.append(chaines_row)
         mask_data.append(mask_row)
 
-    return c_haines_data, mask_data, rows, cols
+    # TODO: look at creating numpy arrays from the get go
+    return numpy.array(c_haines_data), numpy.array(mask_data), rows, cols
 
 
-def save_data_as_tiff(c_haines_data: [], target_filename: str, rows: int, cols: int, source_projection, source_geotransform):
+def save_data_as_tiff(
+        c_haines_data: numpy.ndarray,
+        target_filename: str,
+        rows: int,
+        cols: int,
+        source_projection,
+        source_geotransform):
     logger.info('saving output as tiff %s...', target_filename)
     driver = gdal.GetDriverByName("GTiff")
     outdata = driver.Create(target_filename, cols, rows, 1, gdal.GDT_Byte)
@@ -121,6 +132,52 @@ def save_data_as_tiff(c_haines_data: [], target_filename: str, rows: int, cols: 
     outdata.FlushCache()
 
 
+def save_data_as_geojson(
+        ch_data: numpy.ndarray,
+        mask_data: numpy.ndarray,
+        projection,
+        geotransform,
+        rows: int,
+        cols: int,
+        target_filename: str):
+    """ Save data as geojson polygon """
+    logger.info('saving output as geojson %s...', target_filename)
+
+    mem_driver = gdal.GetDriverByName('MEM')
+
+    # Create data band.
+    data_ds = mem_driver.Create('memory', cols, rows, 1, gdal.GDT_Byte)
+    data_ds.SetProjection(projection)
+    data_ds.SetGeoTransform(geotransform)
+    data_band = data_ds.GetRasterBand(1)
+    data_band.WriteArray(ch_data)
+
+    # Create mask band.
+    mask_ds = mem_driver.Create('memory', cols, rows, 1, gdal.GDT_Byte)
+    mask_ds.SetProjection(projection)
+    mask_ds.SetGeoTransform(geotransform)
+    mask_band = mask_ds.GetRasterBand(1)
+    mask_band.WriteArray(mask_data)
+
+    # Flush.
+    data_ds.FlushCache()
+    mask_ds.FlushCache()
+
+    # Save as geojson
+    geojson_driver = ogr.GetDriverByName('GeoJSON')
+    dst_ds = geojson_driver.CreateDataSource('c-haines.geojson')
+    dst_layer = dst_ds.CreateLayer('C-Haines', srs=None)
+    field_name = ogr.FieldDefn("index", ogr.OFTInteger)
+    field_name.SetWidth(24)
+    dst_layer.CreateField(field_name)
+    # Turn the rasters into polygons
+    gdal.Polygonize(data_band, mask_band, dst_layer, 0, [], callback=None)
+    dst_ds.FlushCache()
+
+    # Explicitly clean up (is this needed?)
+    del dst_ds, data_ds, mask_ds
+
+
 def thing(filename_tmp_700: str, filename_tmp_850: str, filename_dew_850: str):
     # Open the grib files.
     grib_tmp_700 = gdal.Open(filename_tmp_700, gdal.GA_ReadOnly)
@@ -132,12 +189,23 @@ def thing(filename_tmp_700: str, filename_tmp_850: str, filename_dew_850: str):
     geotransform = grib_tmp_850.GetGeoTransform()
 
     c_haines_data, mask_data, rows, cols = calculate_c_haines_data(grib_tmp_700, grib_tmp_850, grib_dew_850)
-    save_data_as_tiff(c_haines_data, 'out.tiff', rows, cols, projection, geotransform)
 
-    # Expictly release the grib files - they take a lot of memory.
-    del grib_tmp_700
-    del grib_tmp_850
-    del grib_dew_850
+    # Save to tiff (for easy debugging)
+    save_data_as_tiff(
+        c_haines_data, 'c-haines.tiff', rows, cols, projection, geotransform)
+
+    # Save to geojson
+    save_data_as_geojson(
+        c_haines_data,
+        mask_data,
+        projection,
+        geotransform,
+        rows,
+        cols,
+        'c-haines.geojson')
+
+    # Expictly release the grib files - they take a lot of memory. (Is this needed?)
+    del grib_tmp_700, grib_tmp_850, grib_dew_850
 
 
 def main():
