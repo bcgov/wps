@@ -93,7 +93,7 @@ class CHainesPoly(Base):
     """ C-Haines polygons """
     __tablename__ = 'prediction_model_c_haines_polygons'
 
-    id = Column(Integer, Sequence('prediction_model_c_haines_polygons_seq'),
+    id = Column(Integer, Sequence('prediction_model_c_haines_polygons_id_seq'),
                 primary_key=True, nullable=False, index=True)
     geom = Column(Geometry('POLYGON'), nullable=False)
     # TODO: add the c-haines index bucket

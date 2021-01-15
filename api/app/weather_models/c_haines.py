@@ -19,6 +19,8 @@ import gdal
 import ogr
 from shapely.geometry import shape
 from app import configure_logging
+from app.db.models import CHainesPoly
+import app.db.database
 
 logger = logging.getLogger(__name__)
 
@@ -243,13 +245,18 @@ def save_geojson_to_database(filename: str):
     """ Open geojson file, iterate through features, saving them into the
     databse.
     """
+    logger.info('saving geojson %s to database...', filename)
+    session = app.db.database.get_write_session()
     # Open the geojson file.
-    with open('c-haines.geojson') as file:
+    with open(filename) as file:
         data = json.load(file)
     # Convert each feature into a shapely geometry and save to database.
     for feature in data['features']:
-        geometry = feature['geometry']
-        print(shape(geometry))
+        geometry = shape(feature['geometry'])
+        polygon = CHainesPoly(geom=geometry.wkt)
+        session.add(polygon)
+    session.commit()
+    # TODO: simplify geometry: https://shapely.readthedocs.io/en/stable/manual.html#object.simplify
 
 
 def thing(filename_tmp_700: str, filename_tmp_850: str, filename_dew_850: str):
