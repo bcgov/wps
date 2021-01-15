@@ -89,6 +89,18 @@ class PredictionModelRunTimestamp(Base):
                 'complete={self.complete}').format(self=self)
 
 
+class CHainesPoly(Base):
+    """ C-Haines polygons """
+    __tablename__ = 'prediction_model_c_haines_polygons'
+
+    id = Column(Integer, Sequence('prediction_model_c_haines_polygons_seq'),
+                primary_key=True, nullable=False, index=True)
+    geom = Column(Geometry('POLYGON'), nullable=False)
+    # TODO: add the c-haines index bucket
+    # TODO: add the model run
+    # TODO: add the timestamp
+
+
 class PredictionModelGridSubset(Base):
     """ Identify the vertices surrounding the area of interest """
     __tablename__ = 'prediction_model_grid_subsets'

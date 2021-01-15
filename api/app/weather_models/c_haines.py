@@ -1,11 +1,23 @@
 """ Code for generating c-haines charts from grib files.
+
+Process:
+- Open grib files.
+- Calculate c-haines in in memory raster layer.
+- Polygonize the raster to a geojson data source.
+NEXT:
+- Load geojson, iterating through and saving it in the database.
+- Simplify polygons.
+- Load geojson from API and display in web map.
+- Download all grib files for model run.
 """
 from typing import Final
+import json
 import logging
 import struct
 import numpy
 import gdal
 import ogr
+from shapely.geometry import shape
 from app import configure_logging
 
 logger = logging.getLogger(__name__)
@@ -24,13 +36,17 @@ def calculate_c_haines_index(t700: float, t850: float, td850: float):
     """ Given temperature and dew points values, calculate c-haines.  """
     # pylint: disable=invalid-name
 
-    # temperature depression term
+    # Temperature depression term (this indicates atmospheric instability).
+    # Temperature at 850mb - Temperature at 700mb.
     ca = (t850-t700)/2-2
-    # dew point depression term
+    # Dew point depression term (this indicates how dry the air is).
+    # Temperature at 850mb - Dew point at 850mb.
     cb = (t850-td850)/3-1
 
-    # NOTE: this part doesn't make sense to me, source documentation says:
-    # If(CB > 9) then CB = 9; If(CB > 5) then CB = 5+(CB-5)/2
+    # This part limits the extent to which dry air is able to affect the overall index.
+    # If there is very dry air (big difference between dew point temperature and temperature),
+    # we want to limit to overall effect on the index, since if there's no atmospheric
+    # instability, that dry air isn't going anywhere.
     if cb > 9:
         cb = 9
     elif cb > 5:
@@ -132,6 +148,51 @@ def save_data_as_tiff(
     outdata.FlushCache()
 
 
+# def convert_to_polygon(ch_data: numpy.ndarray,
+#                        mask_data: numpy.ndarray,
+#                        projection,
+#                        geotransform,
+#                        rows: int,
+#                        cols: int):
+#     """ This doesn't work """
+
+#     mem_driver = gdal.GetDriverByName('MEM')
+
+#     # Create data band.
+#     data_ds = mem_driver.Create('memory', cols, rows, 1, gdal.GDT_Byte)
+#     data_ds.SetProjection(projection)
+#     data_ds.SetGeoTransform(geotransform)
+#     data_band = data_ds.GetRasterBand(1)
+#     data_band.WriteArray(ch_data)
+
+#     # Create mask band.
+#     mask_ds = mem_driver.Create('memory', cols, rows, 1, gdal.GDT_Byte)
+#     mask_ds.SetProjection(projection)
+#     mask_ds.SetGeoTransform(geotransform)
+#     mask_band = mask_ds.GetRasterBand(1)
+#     mask_band.WriteArray(mask_data)
+
+#     # Flush.
+#     data_ds.FlushCache()
+#     mask_ds.FlushCache()
+
+#     # Create polygon data source
+#     # polygon_ds = mem_driver.Create('memory', cols, rows, 1, gdal.GDT_Byte)
+#     # ogr_mem_driver = ogr.GetDriverByName('MEMORY')
+#     polygon_ds = mem_driver.CreateDataSource('memdata')
+#     dst_layer = polygon_ds.CreateLayer('C-Haines', srs=None)
+#     field_name = ogr.FieldDefn("index", ogr.OFTInteger)
+#     field_name.SetWidth(24)
+#     dst_layer.CreateField(field_name)
+#     # Turn the rasters into polygons
+#     gdal.Polygonize(data_band, mask_band, dst_layer, 0, [], callback=None)
+#     polygon_ds.FlushCache()
+
+#     del data_ds, mask_ds
+
+#     return dst_layer
+
+
 def save_data_as_geojson(
         ch_data: numpy.ndarray,
         mask_data: numpy.ndarray,
@@ -178,6 +239,19 @@ def save_data_as_geojson(
     del dst_ds, data_ds, mask_ds
 
 
+def save_geojson_to_database(filename: str):
+    """ Open geojson file, iterate through features, saving them into the
+    databse.
+    """
+    # Open the geojson file.
+    with open('c-haines.geojson') as file:
+        data = json.load(file)
+    # Convert each feature into a shapely geometry and save to database.
+    for feature in data['features']:
+        geometry = feature['geometry']
+        print(shape(geometry))
+
+
 def thing(filename_tmp_700: str, filename_tmp_850: str, filename_dew_850: str):
     # Open the grib files.
     grib_tmp_700 = gdal.Open(filename_tmp_700, gdal.GA_ReadOnly)
@@ -189,6 +263,9 @@ def thing(filename_tmp_700: str, filename_tmp_850: str, filename_dew_850: str):
     geotransform = grib_tmp_850.GetGeoTransform()
 
     c_haines_data, mask_data, rows, cols = calculate_c_haines_data(grib_tmp_700, grib_tmp_850, grib_dew_850)
+
+    # Expictly release the grib files - they take a lot of memory. (Is this needed?)
+    del grib_tmp_700, grib_tmp_850, grib_dew_850
 
     # Save to tiff (for easy debugging)
     save_data_as_tiff(
@@ -204,8 +281,7 @@ def thing(filename_tmp_700: str, filename_tmp_850: str, filename_dew_850: str):
         cols,
         'c-haines.geojson')
 
-    # Expictly release the grib files - they take a lot of memory. (Is this needed?)
-    del grib_tmp_700, grib_tmp_850, grib_dew_850
+    save_geojson_to_database('c-haines.geojson')
 
 
 def main():
