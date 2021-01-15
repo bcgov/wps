@@ -144,7 +144,7 @@ async def get_percentiles(request: schemas.percentiles.PercentileRequest):
         raise
 
 
-@api.post('/c-haines/')
+@api.get('/c-haines/')
 async def get_c_haines():
     """ Return geojson polygons for c-haines """
     return await c_haines.fetch()
