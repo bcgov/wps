@@ -30,6 +30,7 @@ templates = Jinja2Templates(directory=get_static_foldername())
 def add_security_headers(scope, response):
     """ Add security headers to statically served content
     """
+    return
     path = scope.get('path')
 
     # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options
@@ -82,6 +83,7 @@ async def get_index(request: Request):
                 'REACT_APP_MATOMO_SITE_ID': config.get('REACT_APP_MATOMO_SITE_ID'),
                 'REACT_APP_MATOMO_CONTAINER': config.get('REACT_APP_MATOMO_CONTAINER'),
             })
+        return response
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
         response.headers.setdefault('X-Frame-Options', 'DENY')
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options
@@ -94,9 +96,9 @@ async def get_index(request: Request):
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
         response.headers.setdefault('Content-Security-Policy',
                                     ('default-src \'self\' \'unsafe-inline\''
-                                     ' *.googleapis.com *.gov.bc.ca *.gstatic.com;'
+                                     ' *.googleapis.com *.gov.bc.ca *.gstatic.com unpkg.com;'
                                      ' img-src \'self\' data: https:;'
-                                     ' script-src \'self\' \'unsafe-inline\' \'unsafe-eval\' *.gov.bc.ca;'
+                                     ' script-src \'self\' \'unsafe-inline\' \'unsafe-eval\' *.gov.bc.ca unpkg.com;'
                                      ' frame-ancestors \'none\''))
         return response
     except TemplateNotFound as exception:

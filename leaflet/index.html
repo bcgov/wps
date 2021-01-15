@@ -1,0 +1,45 @@
+<html>
+  <head>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+      integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+      crossorigin=""
+    />
+    <script
+      src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+      integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+      crossorigin=""
+    ></script>
+    <style type="text/css">
+      #mapid {
+        height: 640px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="mapid"></div>
+    <script type="text/javascript">
+      var mymap = L.map("mapid").setView([0, 0], 1);
+      const streetLayer = L.tileLayer(
+        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        {
+          attribution:
+            '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+        }
+      );
+      streetLayer.addTo(mymap);
+
+      let xhr = new XMLHttpRequest();
+      xhr.open("GET", "/api/c-haines/");
+      xhr.setRequestHeader("Content-Type", "application/json");
+      xhr.responseType = "json";
+      xhr.onload = function () {
+        if (xhr.status !== 200) return;
+        const geoJsonLayer = L.geoJSON(xhr.response);
+        geoJsonLayer.addTo(mymap);
+      };
+      xhr.send();
+    </script>
+  </body>
+</html>
