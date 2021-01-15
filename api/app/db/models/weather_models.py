@@ -96,6 +96,10 @@ class CHainesPoly(Base):
     id = Column(Integer, Sequence('prediction_model_c_haines_polygons_id_seq'),
                 primary_key=True, nullable=False, index=True)
     geom = Column(Geometry('POLYGON'), nullable=False)
+    # Depending on the severity of the C-Haines index, we generate
+    # severity numbers. (Fire Behaviour analysts only care of the
+    # C-Haines is high)
+    severity = Column(Integer)
     # TODO: add the c-haines index bucket
     # TODO: add the model run
     # TODO: add the timestamp

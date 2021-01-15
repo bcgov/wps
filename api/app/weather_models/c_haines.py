@@ -230,7 +230,7 @@ def save_data_as_geojson(
     geojson_driver = ogr.GetDriverByName('GeoJSON')
     dst_ds = geojson_driver.CreateDataSource('c-haines.geojson')
     dst_layer = dst_ds.CreateLayer('C-Haines', srs=None)
-    field_name = ogr.FieldDefn("index", ogr.OFTInteger)
+    field_name = ogr.FieldDefn("severity", ogr.OFTInteger)
     field_name.SetWidth(24)
     dst_layer.CreateField(field_name)
     # Turn the rasters into polygons
@@ -253,7 +253,7 @@ def save_geojson_to_database(filename: str):
     # Convert each feature into a shapely geometry and save to database.
     for feature in data['features']:
         geometry = shape(feature['geometry'])
-        polygon = CHainesPoly(geom=geometry.wkt)
+        polygon = CHainesPoly(geom=geometry.wkt, severity=feature['properties']['severity'])
         session.add(polygon)
     session.commit()
     # TODO: simplify geometry: https://shapely.readthedocs.io/en/stable/manual.html#object.simplify
@@ -292,9 +292,9 @@ def thing(filename_tmp_700: str, filename_tmp_850: str, filename_dew_850: str):
 
 
 def main():
-    filename_tmp_700 = 'scripts/CMC_glb_TMP_ISBL_700_latlon.15x.15_2020122200_P000.grib2'
-    filename_tmp_850 = 'scripts/CMC_glb_TMP_ISBL_850_latlon.15x.15_2020122200_P000.grib2'
-    filename_dew_850 = 'scripts/CMC_glb_DEPR_ISBL_850_latlon.15x.15_2020122200_P000.grib2'
+    filename_tmp_700 = '/home/sybrand/Workspace/wps/api/scripts/CMC_glb_TMP_ISBL_700_latlon.15x.15_2020122200_P000.grib2'
+    filename_tmp_850 = '/home/sybrand/Workspace/wps/api/scripts/CMC_glb_TMP_ISBL_850_latlon.15x.15_2020122200_P000.grib2'
+    filename_dew_850 = '/home/sybrand/Workspace/wps/api/scripts/CMC_glb_DEPR_ISBL_850_latlon.15x.15_2020122200_P000.grib2'
 
     thing(filename_tmp_700, filename_tmp_850, filename_dew_850)
 
