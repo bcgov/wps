@@ -15,6 +15,7 @@ from app import hourlies
 from app import stations
 from app.frontend import frontend
 from app.routers import forecasts, weather_models
+from app.weather_models.fetch import c_haines
 
 
 configure_logging()
@@ -141,6 +142,12 @@ async def get_percentiles(request: schemas.percentiles.PercentileRequest):
     except Exception as exception:
         logger.critical(exception, exc_info=True)
         raise
+
+
+@api.post('/c-haines/')
+async def get_c_haines():
+    """ Return geojson polygons for c-haines """
+    return await c_haines.fetch()
 
 
 if __name__ == "__main__":
