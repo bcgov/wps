@@ -36,7 +36,18 @@
       xhr.responseType = "json";
       xhr.onload = function () {
         if (xhr.status !== 200) return;
-        const geoJsonLayer = L.geoJSON(xhr.response);
+        const geoJsonLayer = L.geoJSON(xhr.response, {
+          style: function (feature) {
+            switch (feature.properties.severity) {
+              case 1:
+                return { color: "#ffff00" };
+              case 2:
+                return { color: "#ff0000" };
+              case 3:
+                return { color: "#800080" };
+            }
+          },
+        });
         geoJsonLayer.addTo(mymap);
       };
       xhr.send();

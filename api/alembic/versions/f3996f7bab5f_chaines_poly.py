@@ -1,8 +1,8 @@
 """chaines poly
 
-Revision ID: 44d925b28f0a
+Revision ID: f3996f7bab5f
 Revises: ad4f37763020
-Create Date: 2021-01-14 16:23:02.868715
+Create Date: 2021-01-15 14:44:49.792116
 
 """
 from alembic import op
@@ -11,7 +11,7 @@ import geoalchemy2
 
 
 # revision identifiers, used by Alembic.
-revision = '44d925b28f0a'
+revision = 'f3996f7bab5f'
 down_revision = 'ad4f37763020'
 branch_labels = None
 depends_on = None
@@ -23,6 +23,7 @@ def upgrade():
                     sa.Column('id', sa.Integer(), nullable=False),
                     sa.Column('geom', geoalchemy2.types.Geometry(geometry_type='POLYGON',
                                                                  from_text='ST_GeomFromEWKT', name='geometry'), nullable=False),
+                    sa.Column('severity', sa.Integer(), nullable=True),
                     sa.PrimaryKeyConstraint('id')
                     )
     op.create_index(op.f('ix_prediction_model_c_haines_polygons_id'),
