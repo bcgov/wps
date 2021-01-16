@@ -11,6 +11,7 @@ NEXT:
 - Download all grib files for model run.
 """
 from typing import Final
+import os
 from datetime import datetime, timezone, timedelta
 import tempfile
 import json
@@ -277,7 +278,7 @@ def save_data_as_geojson(
 
     # Save as geojson
     geojson_driver = ogr.GetDriverByName('GeoJSON')
-    dst_ds = geojson_driver.CreateDataSource('c-haines.geojson')
+    dst_ds = geojson_driver.CreateDataSource(target_filename)
     dst_layer = dst_ds.CreateLayer('C-Haines', srs=None)
     field_name = ogr.FieldDefn("severity", ogr.OFTInteger)
     field_name.SetWidth(24)
@@ -341,18 +342,20 @@ def generate_and_store_c_haines(
     # c_haines_data, 'c-haines.tiff', rows, cols, projection, geotransform)
 
     # Save to geojson
-    save_data_as_geojson(
-        c_haines_data,
-        mask_data,
-        projection,
-        geotransform,
-        rows,
-        cols,
-        'c-haines.geojson')
+    with tempfile.TemporaryDirectory() as tmp_path:
+        json_filename = os.path.join(os.getcwd(), tmp_path, 'c-haines.geojson')
+        save_data_as_geojson(
+            c_haines_data,
+            mask_data,
+            projection,
+            geotransform,
+            rows,
+            cols,
+            json_filename)
 
-    save_geojson_to_database(session, 'c-haines.geojson', model_run_timestamp,
-                             prediction_timestamp,
-                             prediction_model)
+        save_geojson_to_database(session, json_filename, model_run_timestamp,
+                                 prediction_timestamp,
+                                 prediction_model)
 
 
 def local_test():
