@@ -8,31 +8,6 @@ import { ModelValue } from 'api/modelAPI'
 import { ToggleValues } from 'features/fireWeather/components/graphs/useGraphToggles'
 import { Shape } from 'plotly.js'
 
-export interface Props {
-  toggleValues: ToggleValues
-  observedValues: ObservedValue[]
-  hrdpsModelValues: ModelValue[]
-  rdpsModelValues: ModelValue[]
-  gdpsModelValues: ModelValue[]
-}
-
-interface WindSpeedValues {
-  datetime: string
-  wind_direction?: number | null
-  wind_speed?: number | null
-}
-
-const observationLineColor = '#fb0058'
-const observationArrowColor = observationLineColor
-const gdpsLineColor = '#f56c9c'
-const gdpsArrowColor = gdpsLineColor
-const rdpsLineColor = '#ea6d0e'
-const rdpsArrowColor = rdpsLineColor
-const hrdpsLineColor = '#3ac417'
-const hrdpsArrowColor = hrdpsLineColor
-
-type Point = [number, number]
-
 /**
  *   Basic arrow shape (before any transformations)
  *
@@ -46,6 +21,7 @@ type Point = [number, number]
  *               "back"
  *
  */
+type Point = [number, number]
 const front: Point = [0, 8]
 const back: Point = [0, -10]
 const leftEnd: Point = [5, 0]
@@ -131,8 +107,14 @@ const getLoopExtent = (
   }
 }
 
+interface WindValues {
+  datetime: string
+  wind_direction?: number | null
+  wind_speed?: number | null
+}
+
 const populateGraphData = (
-  values: WindSpeedValues[],
+  values: WindValues[],
   show: boolean,
   arrowColor: string
 ): {
@@ -159,8 +141,26 @@ const populateGraphData = (
       }
     }
   })
+
   return { dates, windSpds, windSpdsTexts, windDirArrows }
 }
+
+export interface Props {
+  toggleValues: ToggleValues
+  observedValues: ObservedValue[]
+  hrdpsModelValues: ModelValue[]
+  rdpsModelValues: ModelValue[]
+  gdpsModelValues: ModelValue[]
+}
+
+const observationLineColor = '#fb0058'
+const observationArrowColor = observationLineColor
+const gdpsLineColor = '#f56c9c'
+const gdpsArrowColor = gdpsLineColor
+const rdpsLineColor = '#ea6d0e'
+const rdpsArrowColor = rdpsLineColor
+const hrdpsLineColor = '#3ac417'
+const hrdpsArrowColor = hrdpsLineColor
 
 const WindGraph = (props: Props) => {
   const {
@@ -333,23 +333,6 @@ const WindGraph = (props: Props) => {
             bgcolor: '#dbdbdb',
             thickness: 0.1
           },
-          rangeselector: {
-            buttons: [
-              {
-                step: 'day',
-                stepmode: 'backward',
-                count: 1,
-                label: '1d'
-              },
-              {
-                step: 'day',
-                stepmode: 'backward',
-                count: 2,
-                label: '2d'
-              },
-              { step: 'all' }
-            ]
-          },
           hoverformat: '%I:00%p, %a, %b %e', // https://github.com/d3/d3-3.x-api-reference/blob/master/Time-Formatting.md#format
           tickfont: { size: 14 },
           type: 'date',
@@ -366,6 +349,10 @@ const WindGraph = (props: Props) => {
           title: 'Wind Speed (km/h)',
           tickfont: { size: 14 },
           fixedrange: true
+        },
+        legend: {
+          orientation: 'h',
+          y: -0.45
         },
         shapes: [
           {

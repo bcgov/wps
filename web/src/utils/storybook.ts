@@ -88,7 +88,7 @@ const getPastValues = () => {
           datetime,
           temperature: temp + (Math.random() - 0.5) * 8,
           relative_humidity: rh + (Math.random() - 0.5) * 8,
-          total_precipitation: 24 * precip + (Math.random() - 0.5) * 4
+          total_precipitation: 24 * precip + Math.random() * 4
         })
         _forecastSummaries.push({
           datetime,
@@ -219,7 +219,7 @@ const getFutureValues = () => {
             datetime,
             temperature: temp + (Math.random() - 0.5) * 8,
             relative_humidity: rh + (Math.random() - 0.5) * 8,
-            total_precipitation: 24 * precip + (Math.random() - 0.5) * 4,
+            total_precipitation: 24 * precip + Math.random() * 4,
             wind_speed: wind_speed + (Math.random() - 0.5) * 10,
             wind_direction: wind_direction + (((Math.random() - 0.5) * 45) % 360)
           })

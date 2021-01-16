@@ -7,7 +7,7 @@ import { NoonForecastValue, ForecastSummary } from 'api/forecastAPI'
 import WxDataGraphToggles from 'features/fireWeather/components/graphs/WxDataGraphToggles'
 import { useGraphToggles } from 'features/fireWeather/components/graphs/useGraphToggles'
 import TempRHGraph from 'features/fireWeather/components/graphs/TempRHGraph'
-import PrecipGraph from 'features/fireWeather/components/graphs/PrecipGraph'
+import PrecipGraph from 'features/fireWeather/components/graphs/PercipGraph'
 import WindGraph from 'features/fireWeather/components/graphs/WindGraph'
 
 const useStyles = makeStyles({
