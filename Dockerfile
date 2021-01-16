@@ -28,6 +28,7 @@ RUN cd /tmp && \
 COPY ./api/app /app/app
 # Copy the static content:
 COPY --from=static /opt/app-root/src/build /app/static
+COPY ./leaflet/leaflet.html /app/static
 # Copy almebic:
 COPY ./api/alembic /app/alembic
 COPY ./api/alembic.ini /app
