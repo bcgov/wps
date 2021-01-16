@@ -271,7 +271,7 @@ def get_processed_file_record(session: Session, url: str) -> ProcessedModelRunUr
     return processed_file
 
 
-def get_prediction_model(session: Session, abbreviation: str, projection: str) -> PredictionModel:
+def get_prediction_model(session: Session, abbreviation: ModelEnum, projection: ProjectionEnum) -> PredictionModel:
     """ Get the prediction model corresponding to a particular abbreviation and projection. """
     return session.query(PredictionModel).\
         filter(PredictionModel.abbreviation == abbreviation).\
