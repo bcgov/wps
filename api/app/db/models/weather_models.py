@@ -99,10 +99,12 @@ class CHainesPoly(Base):
     # Depending on the severity of the C-Haines index, we generate
     # severity numbers. (Fire Behaviour analysts only care of the
     # C-Haines is high)
-    severity = Column(Integer)
-    # TODO: add the c-haines index bucket
-    # TODO: add the model run
-    # TODO: add the timestamp
+    severity = Column(Integer, nullable=False)
+    prediction_timestamp = Column(TZTimeStamp, nullable=False)
+    model_run_timestamp = Column(TZTimeStamp, nullable=False)
+    prediction_model_id = Column(Integer, ForeignKey(
+        'prediction_models.id'), nullable=False)
+    prediction_model = relationship("PredictionModel")
 
 
 class PredictionModelGridSubset(Base):

@@ -11,15 +11,20 @@ NEXT:
 - Download all grib files for model run.
 """
 from typing import Final
+from datetime import datetime
 import json
 import logging
 import struct
 import numpy
 import gdal
 import ogr
+from sqlalchemy.orm import Session
 from shapely.geometry import shape
 from app import configure_logging
-from app.db.models import CHainesPoly
+from app.weather_models import ModelEnum, ProjectionEnum
+from app.db.models import CHainesPoly, PredictionModel
+from app.db.crud.weather_models import get_prediction_model
+from app.time_utils import get_utc_now
 import app.db.database
 
 logger = logging.getLogger(__name__)
@@ -241,25 +246,38 @@ def save_data_as_geojson(
     del dst_ds, data_ds, mask_ds
 
 
-def save_geojson_to_database(filename: str):
+def save_geojson_to_database(session: Session, filename: str, model_run_timestamp: datetime,
+                             prediction_timestamp: datetime,
+                             prediction_model: PredictionModel):
     """ Open geojson file, iterate through features, saving them into the
     databse.
     """
     logger.info('saving geojson %s to database...', filename)
-    session = app.db.database.get_write_session()
     # Open the geojson file.
     with open(filename) as file:
         data = json.load(file)
     # Convert each feature into a shapely geometry and save to database.
     for feature in data['features']:
         geometry = shape(feature['geometry'])
-        polygon = CHainesPoly(geom=geometry.wkt, severity=feature['properties']['severity'])
+        polygon = CHainesPoly(
+            geom=geometry.wkt,
+            severity=feature['properties']['severity'],
+            model_run_timestamp=model_run_timestamp,
+            prediction_timestamp=prediction_timestamp,
+            prediction_model=prediction_model)
         session.add(polygon)
     session.commit()
     # TODO: simplify geometry: https://shapely.readthedocs.io/en/stable/manual.html#object.simplify
 
 
-def thing(filename_tmp_700: str, filename_tmp_850: str, filename_dew_850: str):
+def generate_and_store_c_haines(
+        session: Session,
+        filename_tmp_700: str,
+        filename_tmp_850: str,
+        filename_dew_850: str,
+        model_run_timestamp: datetime,
+        prediction_timestamp: datetime,
+        prediction_model: PredictionModel):
     # Open the grib files.
     grib_tmp_700 = gdal.Open(filename_tmp_700, gdal.GA_ReadOnly)
     grib_tmp_850 = gdal.Open(filename_tmp_850, gdal.GA_ReadOnly)
@@ -288,7 +306,9 @@ def thing(filename_tmp_700: str, filename_tmp_850: str, filename_dew_850: str):
         cols,
         'c-haines.geojson')
 
-    save_geojson_to_database('c-haines.geojson')
+    save_geojson_to_database(session, 'c-haines.geojson', model_run_timestamp,
+                             prediction_timestamp,
+                             prediction_model)
 
 
 def main():
@@ -296,7 +316,19 @@ def main():
     filename_tmp_850 = '/home/sybrand/Workspace/wps/api/scripts/CMC_glb_TMP_ISBL_850_latlon.15x.15_2020122200_P000.grib2'
     filename_dew_850 = '/home/sybrand/Workspace/wps/api/scripts/CMC_glb_DEPR_ISBL_850_latlon.15x.15_2020122200_P000.grib2'
 
-    thing(filename_tmp_700, filename_tmp_850, filename_dew_850)
+    session = app.db.database.get_write_session()
+    prediction_model = get_prediction_model(session, ModelEnum.GDPS, ProjectionEnum.LATLON_15X_15)
+
+    generate_and_store_c_haines(
+        session,
+        filename_tmp_700,
+        filename_tmp_850,
+        filename_dew_850,
+        get_utc_now(),
+        get_utc_now(),
+        prediction_model)
+
+    # for hour in get_model_run_hours(self.model_type):
 
 
 if __name__ == "__main__":
