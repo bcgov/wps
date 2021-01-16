@@ -2,6 +2,7 @@
 
 See README.md for details on how to run.
 """
+from datetime import datetime
 import logging
 from fastapi import FastAPI, Depends, Response
 from fastapi.middleware.cors import CORSMiddleware
@@ -147,10 +148,10 @@ async def get_percentiles(request: schemas.percentiles.PercentileRequest):
 
 
 @api.get('/c-haines/')
-async def get_c_haines():
+async def get_c_haines(model_run_timestamp: datetime, prediction_timestamp: datetime):
     """ Return geojson polygons for c-haines """
-    # return await c_haines.fetch(request.model_run_timestamp, request.prediction_timestamp)
-    return await c_haines.fetch(None, None)
+    return await c_haines.fetch(model_run_timestamp, prediction_timestamp)
+    # return await c_haines.fetch(None, None)
 
 
 if __name__ == "__main__":

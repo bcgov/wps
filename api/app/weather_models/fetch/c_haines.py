@@ -18,6 +18,7 @@ async def fetch(model_run_timestamp: datetime, prediction_timestamp: datetime):
     # higher severity is placed over lower severity. (On the front end,
     # it makes it easier to have the high severity border sit on top and
     # pop nicely.)
+    # TODO: This isn't safe - sql injection could happen! Fix.
     query = """select json_build_object(
         'type', 'FeatureCollection',
         'features', json_agg(ST_AsGeoJSON(t.*)::json)
@@ -25,10 +26,12 @@ async def fetch(model_run_timestamp: datetime, prediction_timestamp: datetime):
         from (
         select geom, severity from prediction_model_c_haines_polygons
         where 
-            prediction_timestamp = '2021-01-15 04:00:00-08' and
-            model_run_timestamp = '2021-01-15 04:00:00-08'
+            prediction_timestamp = '{prediction_timestamp}' and
+            model_run_timestamp = '{model_run_timestamp}'
         order by severity asc
-    ) as t(geom, severity)"""
+    ) as t(geom, severity)""".format(
+        prediction_timestamp=prediction_timestamp.isoformat(),
+        model_run_timestamp=model_run_timestamp.isoformat())
     # something is wrong here.
     logger.info('fetching geojson from db...')
     # pylint: disable=no-member
