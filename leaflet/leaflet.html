@@ -23,7 +23,111 @@
     <div id="model_run_timestamp"></div>
     prediction date:
     <div id="prediction_timestamp"></div>
+    <button onclick="fetchPreviousTimestamp()">
+      Previous:
+      <div id="previous_prediction_timestamp"></div>
+    </button>
+    <button onclick="fetchNextTimestamp()">
+      Next:
+      <div id="next_prediction_timestamp"></div>
+    </button>
     <script type="text/javascript">
+      function getFormattedGDPSTimestamp(timestamp) {
+        const year = timestamp.getUTCFullYear();
+        const month = (timestamp.getUTCMonth() + 1).toString().padStart(2, "0");
+        const day = timestamp.getUTCDate().toString().padStart(2, "0");
+        const hours =
+          timestamp.getUTCHours() % 3 == 0
+            ? timestamp.getUTCHours()
+            : timestamp.getUTCHours() - (timestamp.getUTCHours() % 3);
+        return `${year}-${month}-${day}T${hours
+          .toString()
+          .padStart(2, "0")}:00:00.000Z`;
+      }
+
+      function fetchLayer(map, model_run_timestamp, prediction_timestamp) {
+        let xhr = new XMLHttpRequest();
+        xhr.open(
+          "GET",
+          "/api/c-haines/?model_run_timestamp=" +
+            model_run_timestamp +
+            "&prediction_timestamp=" +
+            getFormattedGDPSTimestamp(prediction_timestamp)
+        );
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.responseType = "json";
+        xhr.onload = function () {
+          if (xhr.status !== 200) return;
+          const geoJsonLayer = L.geoJSON(xhr.response, {
+            style: function (feature) {
+              switch (feature.properties.severity) {
+                case 1:
+                  return { color: "#ffff00" };
+                case 2:
+                  return { color: "#ff0000" };
+                case 3:
+                  return { color: "#800080" };
+              }
+            },
+          });
+          if (currentLayer != null) {
+            map.removeLayer(currentLayer);
+          }
+          geoJsonLayer.addTo(map);
+          currentLayer = geoJsonLayer;
+
+          window["prediction_timestamp"] = prediction_timestamp;
+          next_prediction_timestamp = new Date(prediction_timestamp);
+          next_prediction_timestamp.setHours(
+            next_prediction_timestamp.getHours() + 3
+          );
+          window["next_prediction_timestamp"] = next_prediction_timestamp;
+          updateHTML();
+        };
+        xhr.send();
+      }
+
+      function fetchPreviousTimestamp() {
+        fetchLayer(mymap, model_run_timestamp, _prediction_timestamp);
+      }
+
+      function fetchNextTimestamp() {
+        fetchLayer(mymap, model_run_timestamp, next_prediction_timestamp);
+      }
+
+      function getNextTimestamp(timestamp) {
+        let next_prediction_timestamp = new Date(timestamp);
+        next_prediction_timestamp.setHours(
+          next_prediction_timestamp.getHours() + 3
+        );
+        return next_prediction_timestamp;
+      }
+
+      function getPreviousTimestamp(timestamp) {
+        let previous_prediction_timestamp = new Date(timestamp);
+        previous_prediction_timestamp.setHours(
+          previous_prediction_timestamp.getHours() - 3
+        );
+        return previous_prediction_timestamp;
+      }
+
+      function updateHTML() {
+        document.getElementById(
+          "prediction_timestamp"
+        ).innerText = getFormattedGDPSTimestamp(window["prediction_timestamp"]);
+        document.getElementById(
+          "model_run_timestamp"
+        ).innerText = model_run_timestamp;
+        document.getElementById(
+          "next_prediction_timestamp"
+        ).innerText = getFormattedGDPSTimestamp(next_prediction_timestamp);
+        document.getElementById(
+          "previous_prediction_timestamp"
+        ).innerText = getFormattedGDPSTimestamp(
+          window["previous_prediction_timestamp"]
+        );
+      }
+
       var mymap = L.map("mapid").setView([0, 0], 1);
       const streetLayer = L.tileLayer(
         "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -34,50 +138,19 @@
       );
       streetLayer.addTo(mymap);
 
-      const now = new Date();
-      const year = now.getUTCFullYear();
-      const month = (now.getUTCMonth() + 1).toString().padStart(2, "0");
-      const day = now.getUTCDate().toString().padStart(2, "0");
-      let hour = now.getUTCHours().toString().padStart(2, "0");
-      hour = hour % 3 == 0 ? hour : hour - (hour % 3);
-      const prediction_timestamp = `${year}-${month}-${day}T${hour}:00:00.000Z`;
+      let currentLayer = null;
+
+      let prediction_timestamp = new Date();
+      window["prediction_timestamp"] = prediction_timestamp;
+      let next_prediction_timestamp = getNextTimestamp(prediction_timestamp);
+      let previous_prediction_timestamp = getPreviousTimestamp(
+        prediction_timestamp
+      );
+      window["previous_prediction_timestamp"] = previous_prediction_timestamp;
 
       const model_run_timestamp = "2021-01-15T12:00:00.000Z";
 
-      let xhr = new XMLHttpRequest();
-      xhr.open(
-        "GET",
-        "/api/c-haines/?model_run_timestamp=" +
-          model_run_timestamp +
-          "&prediction_timestamp=" +
-          prediction_timestamp
-      );
-      xhr.setRequestHeader("Content-Type", "application/json");
-      xhr.responseType = "json";
-      xhr.onload = function () {
-        if (xhr.status !== 200) return;
-        const geoJsonLayer = L.geoJSON(xhr.response, {
-          style: function (feature) {
-            switch (feature.properties.severity) {
-              case 1:
-                return { color: "#ffff00" };
-              case 2:
-                return { color: "#ff0000" };
-              case 3:
-                return { color: "#800080" };
-            }
-          },
-        });
-        geoJsonLayer.addTo(mymap);
-      };
-      xhr.send();
-
-      document.getElementById(
-        "prediction_timestamp"
-      ).innerText = prediction_timestamp;
-      document.getElementById(
-        "model_run_timestamp"
-      ).innerText = model_run_timestamp;
+      fetchLayer(mymap, model_run_timestamp, prediction_timestamp);
     </script>
   </body>
 </html>
