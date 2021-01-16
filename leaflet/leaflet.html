@@ -20,9 +20,9 @@
   <body>
     <div id="mapid"></div>
     model date:
-    <div id="model_date"></div>
+    <div id="model_run_timestamp"></div>
     prediction date:
-    <div id="prediction_date"></div>
+    <div id="prediction_timestamp"></div>
     <script type="text/javascript">
       var mymap = L.map("mapid").setView([0, 0], 1);
       const streetLayer = L.tileLayer(
@@ -40,12 +40,18 @@
       const day = now.getUTCDate().toString().padStart(2, "0");
       let hour = now.getUTCHours().toString().padStart(2, "0");
       hour = hour % 3 == 0 ? hour : hour - (hour % 3);
-      const prediction_date = `${year}-${month}-${day}T${hour}:00:00.000Z`;
+      const prediction_timestamp = `${year}-${month}-${day}T${hour}:00:00.000Z`;
 
-      const model_date = "2021-01-15T12:00:00.000Z";
+      const model_run_timestamp = "2021-01-15T12:00:00.000Z";
 
       let xhr = new XMLHttpRequest();
-      xhr.open("GET", "/api/c-haines/");
+      xhr.open(
+        "GET",
+        "/api/c-haines/?model_run_timestamp=" +
+          model_run_timestamp +
+          "&prediction_timestamp=" +
+          prediction_timestamp
+      );
       xhr.setRequestHeader("Content-Type", "application/json");
       xhr.responseType = "json";
       xhr.onload = function () {
@@ -66,8 +72,12 @@
       };
       xhr.send();
 
-      document.getElementById("prediction_date").innerText = prediction_date;
-      document.getElementById("model_date").innerText = model_date;
+      document.getElementById(
+        "prediction_timestamp"
+      ).innerText = prediction_timestamp;
+      document.getElementById(
+        "model_run_timestamp"
+      ).innerText = model_run_timestamp;
     </script>
   </body>
 </html>

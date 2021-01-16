@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 async def fetch(model_run_timestamp: datetime, prediction_timestamp: datetime):
     """ Fetch polygon geojson
     """
+    logger.info('model: %s; prediction: %s', model_run_timestamp, prediction_timestamp)
     # TODO: Add filters for model and timestamp (returning only the most recent model run)
     session = app.db.database.get_read_session()
     # Ordering by severity, ascending is important to ensure that

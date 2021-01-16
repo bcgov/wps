@@ -143,10 +143,13 @@ async def get_percentiles(request: schemas.percentiles.PercentileRequest):
         logger.critical(exception, exc_info=True)
         raise
 
+# request: schemas.weather_models.CHainesRequest
+
 
 @api.get('/c-haines/')
 async def get_c_haines():
     """ Return geojson polygons for c-haines """
+    # return await c_haines.fetch(request.model_run_timestamp, request.prediction_timestamp)
     return await c_haines.fetch(None, None)
 
 

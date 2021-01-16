@@ -6,6 +6,11 @@ from pydantic import BaseModel
 from app.schemas.stations import WeatherStation
 
 
+class CHainesRequest(BaseModel):
+    model_run_timestamp: datetime
+    prediction_timestamp: datetime
+
+
 class WeatherPredictionModel(BaseModel):
     """ The full name & acronym for a weather prediction model """
     name: str
