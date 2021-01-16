@@ -15,11 +15,11 @@ parameters:
   - name: SUFFIX
   - name: VERSION
     description: Output version
-    value: "python3.8-latest"
+    value: "python3.8-numpy"
   - name: GIT_URL
     value: https://github.com/bcgov/wps.git
   - name: GIT_BRANCH
-    value: main
+    value: feature/c-haines
 objects:
   #ImageStream is create if it doesn't already exist
   - apiVersion: v1
