@@ -11,7 +11,8 @@ NEXT:
 - Download all grib files for model run.
 """
 from typing import Final
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
+import tempfile
 import json
 import logging
 import struct
@@ -25,9 +26,52 @@ from app.weather_models import ModelEnum, ProjectionEnum
 from app.db.models import CHainesPoly, PredictionModel
 from app.db.crud.weather_models import get_prediction_model
 from app.time_utils import get_utc_now
+from app.weather_models.env_canada import (get_model_run_hours,
+                                           get_file_date_part, adjust_model_day, download)
 import app.db.database
 
 logger = logging.getLogger(__name__)
+
+
+def get_prediction_date(model_run_timestamp, hour) -> datetime:
+    """ Construct the part of the filename that contains the model run date
+    """
+    return model_run_timestamp + timedelta(hours=hour)
+
+
+def get_global_model_run_download_urls(now: datetime,
+                                       model_run_hour: int):
+    """ Yield urls to download GDPS (global) model runs """
+    # TODO: Re-factor this so it can work for env_canada cronjobs and this job!
+
+    # hh: model run start, in UTC [00, 12]
+    # hhh: prediction hour [000, 003, 006, ..., 240]
+    levels: Final = ['TMP_ISBL_700', 'TMP_ISBL_850', 'DEPR_ISBL_850']
+    # pylint: disable=invalid-name
+    hh = '{:02d}'.format(model_run_hour)
+    # For the global model, we have prediction at 3 hour intervals up to 240 hours.
+    for h in range(0, 241, 3):
+        hhh = format(h, '03d')
+
+        base_url = 'https://dd.weather.gc.ca/model_gem_global/15km/grib2/lat_lon/{}/{}/'.format(
+            hh, hhh)
+        date = get_file_date_part(now, model_run_hour)
+
+        adjusted_model_time = adjust_model_day(now, model_run_hour)
+        model_run_timestamp = datetime(year=adjusted_model_time.year,
+                                       month=adjusted_model_time.month,
+                                       day=adjusted_model_time.day,
+                                       hour=model_run_hour,
+                                       tzinfo=timezone.utc)
+
+        urls = {
+            'model_run_timestamp': model_run_timestamp,
+            'prediction_timestamp': get_prediction_date(model_run_timestamp, h)
+        }
+        for level in levels:
+            filename = 'CMC_glb_{}_latlon.15x.15_{}{}_P{}.grib2'.format(level, date, hh, hhh)
+            urls[level] = base_url + filename
+        yield urls
 
 
 def read_scanline(band, yoff):
@@ -293,8 +337,8 @@ def generate_and_store_c_haines(
     del grib_tmp_700, grib_tmp_850, grib_dew_850
 
     # Save to tiff (for easy debugging)
-    save_data_as_tiff(
-        c_haines_data, 'c-haines.tiff', rows, cols, projection, geotransform)
+    # save_data_as_tiff(
+    # c_haines_data, 'c-haines.tiff', rows, cols, projection, geotransform)
 
     # Save to geojson
     save_data_as_geojson(
@@ -311,7 +355,7 @@ def generate_and_store_c_haines(
                              prediction_model)
 
 
-def main():
+def local_test():
     filename_tmp_700 = '/home/sybrand/Workspace/wps/api/scripts/CMC_glb_TMP_ISBL_700_latlon.15x.15_2020122200_P000.grib2'
     filename_tmp_850 = '/home/sybrand/Workspace/wps/api/scripts/CMC_glb_TMP_ISBL_850_latlon.15x.15_2020122200_P000.grib2'
     filename_dew_850 = '/home/sybrand/Workspace/wps/api/scripts/CMC_glb_DEPR_ISBL_850_latlon.15x.15_2020122200_P000.grib2'
@@ -328,7 +372,33 @@ def main():
         get_utc_now(),
         prediction_model)
 
-    # for hour in get_model_run_hours(self.model_type):
+
+def main():
+    session = app.db.database.get_write_session()
+    prediction_model = get_prediction_model(session, ModelEnum.GDPS, ProjectionEnum.LATLON_15X_15)
+    for hour in get_model_run_hours(ModelEnum.GDPS):
+        print(hour)
+        if hour != 12:
+            continue
+        for urls in get_global_model_run_download_urls(get_utc_now(), hour):
+            # TODO: check if we haven't already downloaded this
+            with tempfile.TemporaryDirectory() as tmp_path:
+                filename_tmp_700 = download(urls['TMP_ISBL_700'], tmp_path)
+                filename_tmp_850 = download(urls['TMP_ISBL_850'], tmp_path)
+                filename_dew_850 = download(urls['DEPR_ISBL_850'], tmp_path)
+
+                if filename_tmp_700 and filename_tmp_850 and filename_dew_850:
+                    logger.info('we got all the files!')
+                    generate_and_store_c_haines(
+                        session,
+                        filename_tmp_700,
+                        filename_tmp_850,
+                        filename_dew_850,
+                        urls['model_run_timestamp'],
+                        urls['prediction_timestamp'],
+                        prediction_model)
+                else:
+                    logger.warning('failed to download all files')
 
 
 if __name__ == "__main__":
