@@ -19,6 +19,10 @@
   </head>
   <body>
     <div id="mapid"></div>
+    model date:
+    <div id="model_date"></div>
+    prediction date:
+    <div id="prediction_date"></div>
     <script type="text/javascript">
       var mymap = L.map("mapid").setView([0, 0], 1);
       const streetLayer = L.tileLayer(
@@ -29,6 +33,16 @@
         }
       );
       streetLayer.addTo(mymap);
+
+      const now = new Date();
+      const year = now.getUTCFullYear();
+      const month = (now.getUTCMonth() + 1).toString().padStart(2, "0");
+      const day = now.getUTCDate().toString().padStart(2, "0");
+      let hour = now.getUTCHours().toString().padStart(2, "0");
+      hour = hour % 3 == 0 ? hour : hour - (hour % 3);
+      const prediction_date = `${year}-${month}-${day}T${hour}:00:00.000Z`;
+
+      const model_date = "2021-01-15T12:00:00.000Z";
 
       let xhr = new XMLHttpRequest();
       xhr.open("GET", "/api/c-haines/");
@@ -51,6 +65,9 @@
         geoJsonLayer.addTo(mymap);
       };
       xhr.send();
+
+      document.getElementById("prediction_date").innerText = prediction_date;
+      document.getElementById("model_date").innerText = model_date;
     </script>
   </body>
 </html>
