@@ -2,7 +2,7 @@ FROM ubuntu:20.04
 
 # Install GDAL
 RUN apt-get -y update
-RUN apt-get -y install libgdal-dev
+RUN TZ="Etc/UTC" DEBIAN_FRONTEND="noninteractive" apt-get -y install libgdal-dev
 
 # Update pip  
 RUN python -m pip install --upgrade pip
