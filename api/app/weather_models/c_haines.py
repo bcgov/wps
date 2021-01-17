@@ -25,7 +25,7 @@ from shapely.geometry import shape
 from app import configure_logging
 from app.weather_models import ModelEnum, ProjectionEnum
 from app.db.models import CHainesPoly, PredictionModel
-from app.db.crud.weather_models import get_prediction_model
+from app.db.crud.weather_models import get_prediction_model, get_c_haines
 from app.time_utils import get_utc_now
 from app.weather_models.env_canada import (get_model_run_hours,
                                            get_file_date_part, adjust_model_day, download)
@@ -40,10 +40,15 @@ def get_prediction_date(model_run_timestamp, hour) -> datetime:
     return model_run_timestamp + timedelta(hours=hour)
 
 
-def get_global_model_run_download_urls(now: datetime,
-                                       model_run_hour: int):
+def global_model_prediction_hour_iterator():
+    for hour in range(0, 241, 3):
+        yield hour
+
+
+def make_global_model_run_download_urls(now: datetime,
+                                        model_run_hour: int,
+                                        prediction_hour: int):
     """ Yield urls to download GDPS (global) model runs """
-    # TODO: Re-factor this so it can work for env_canada cronjobs and this job!
 
     # hh: model run start, in UTC [00, 12]
     # hhh: prediction hour [000, 003, 006, ..., 240]
@@ -51,28 +56,27 @@ def get_global_model_run_download_urls(now: datetime,
     # pylint: disable=invalid-name
     hh = '{:02d}'.format(model_run_hour)
     # For the global model, we have prediction at 3 hour intervals up to 240 hours.
-    for h in range(0, 241, 3):
-        hhh = format(h, '03d')
+    hhh = format(prediction_hour, '03d')
 
-        base_url = 'https://dd.weather.gc.ca/model_gem_global/15km/grib2/lat_lon/{}/{}/'.format(
-            hh, hhh)
-        date = get_file_date_part(now, model_run_hour)
+    base_url = 'https://dd.weather.gc.ca/model_gem_global/15km/grib2/lat_lon/{}/{}/'.format(
+        hh, hhh)
+    date = get_file_date_part(now, model_run_hour)
 
-        adjusted_model_time = adjust_model_day(now, model_run_hour)
-        model_run_timestamp = datetime(year=adjusted_model_time.year,
-                                       month=adjusted_model_time.month,
-                                       day=adjusted_model_time.day,
-                                       hour=model_run_hour,
-                                       tzinfo=timezone.utc)
+    adjusted_model_time = adjust_model_day(now, model_run_hour)
+    model_run_timestamp = datetime(year=adjusted_model_time.year,
+                                   month=adjusted_model_time.month,
+                                   day=adjusted_model_time.day,
+                                   hour=model_run_hour,
+                                   tzinfo=timezone.utc)
 
-        urls = {
-            'model_run_timestamp': model_run_timestamp,
-            'prediction_timestamp': get_prediction_date(model_run_timestamp, h)
-        }
-        for level in levels:
-            filename = 'CMC_glb_{}_latlon.15x.15_{}{}_P{}.grib2'.format(level, date, hh, hhh)
-            urls[level] = base_url + filename
-        yield urls
+    urls = {
+        'model_run_timestamp': model_run_timestamp,
+        'prediction_timestamp': get_prediction_date(model_run_timestamp, prediction_hour)
+    }
+    for level in levels:
+        filename = 'CMC_glb_{}_latlon.15x.15_{}{}_P{}.grib2'.format(level, date, hh, hhh)
+        urls[level] = base_url + filename
+    return urls
 
 
 def read_scanline(band, yoff):
@@ -311,6 +315,7 @@ def save_geojson_to_database(session: Session, filename: str, model_run_timestam
             prediction_timestamp=prediction_timestamp,
             prediction_model=prediction_model)
         session.add(polygon)
+    # Only commit once we have everything.
     session.commit()
     # TODO: simplify geometry: https://shapely.readthedocs.io/en/stable/manual.html#object.simplify
 
@@ -376,14 +381,24 @@ def local_test():
         prediction_model)
 
 
+def record_exists(session, model_run_timestamp, prediction_timestamp):
+    result = get_c_haines(session, model_run_timestamp, prediction_timestamp)
+    return result.count() > 0
+
+
 def main():
     session = app.db.database.get_write_session()
     prediction_model = get_prediction_model(session, ModelEnum.GDPS, ProjectionEnum.LATLON_15X_15)
-    for hour in get_model_run_hours(ModelEnum.GDPS):
-        print(hour)
-        if hour != 12:
-            continue
-        for urls in get_global_model_run_download_urls(get_utc_now(), hour):
+    utc_now = get_utc_now()
+    for model_hour in get_model_run_hours(ModelEnum.GDPS):
+        for prediction_hour in global_model_prediction_hour_iterator():
+            urls = make_global_model_run_download_urls(utc_now, model_hour, prediction_hour)
+            if record_exists(session, urls['model_run_timestamp'], urls['prediction_timestamp']):
+                logger.info('already downloaded %s - %s',
+                            urls['model_run_timestamp'], urls['prediction_timestamp'])
+                continue
+
+        # for urls in get_global_model_run_download_urls(utc_now, model_hour):
             # TODO: check if we haven't already downloaded this
             with tempfile.TemporaryDirectory() as tmp_path:
                 filename_tmp_700 = download(urls['TMP_ISBL_700'], tmp_path)
