@@ -20,7 +20,7 @@
   <body>
     <div id="mapid"></div>
     model date:
-    <div id="model_run_timestamp"></div>
+    <input id="model_run_timestamp" value="2021-01-15T12:00:00.000Z"></div>
     prediction date:
     <div id="prediction_timestamp"></div>
     <button onclick="fetchPreviousTimestamp()">
@@ -88,11 +88,11 @@
       }
 
       function fetchPreviousTimestamp() {
-        fetchLayer(mymap, model_run_timestamp, _prediction_timestamp);
+        fetchLayer(mymap, document.getElementById("model_run_timestamp").value, _prediction_timestamp);
       }
 
       function fetchNextTimestamp() {
-        fetchLayer(mymap, model_run_timestamp, next_prediction_timestamp);
+        fetchLayer(mymap, document.getElementById("model_run_timestamp").value, next_prediction_timestamp);
       }
 
       function getNextTimestamp(timestamp) {
@@ -115,9 +115,6 @@
         document.getElementById(
           "prediction_timestamp"
         ).innerText = getFormattedGDPSTimestamp(window["prediction_timestamp"]);
-        document.getElementById(
-          "model_run_timestamp"
-        ).innerText = model_run_timestamp;
         document.getElementById(
           "next_prediction_timestamp"
         ).innerText = getFormattedGDPSTimestamp(next_prediction_timestamp);
@@ -147,10 +144,7 @@
         prediction_timestamp
       );
       window["previous_prediction_timestamp"] = previous_prediction_timestamp;
-
-      const model_run_timestamp = "2021-01-15T12:00:00.000Z";
-
-      fetchLayer(mymap, model_run_timestamp, prediction_timestamp);
+      fetchLayer(mymap, document.getElementById("model_run_timestamp").value, prediction_timestamp);
     </script>
   </body>
 </html>
