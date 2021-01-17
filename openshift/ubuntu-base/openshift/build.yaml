@@ -43,7 +43,7 @@ objects:
         app: ubuntu-base
       name: ubuntu-base
     spec:
-      completionDeadlineSeconds: 1200 # 20 minutes
+      completionDeadlineSeconds: 2400 # 40 minutes (this build can take a lot of time!)
       output:
         to:
           kind: ImageStreamTag
