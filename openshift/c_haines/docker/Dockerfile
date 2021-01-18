@@ -10,3 +10,5 @@ RUN cd /tmp && \
 
 # Copy the app:
 COPY ./api/app /app/app
+
+WORKDIR /app
