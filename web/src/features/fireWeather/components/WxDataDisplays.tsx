@@ -23,6 +23,10 @@ import {
   selectRegionalModelSummaries,
   selectStations
 } from 'app/rootReducer'
+import { Station } from 'api/stationAPI'
+import { ObservedValue } from 'api/observationAPI'
+import { ModelSummary, ModelValue } from 'api/modelAPI'
+import { ForecastSummary, NoonForecastValue } from 'api/forecastAPI'
 
 const useStyles = makeStyles({
   displays: {
@@ -44,42 +48,42 @@ const useStyles = makeStyles({
   }
 })
 
-interface Props {
+interface WxDataDisplaysProps {
   stationCodes: number[]
+  wxDataLoading: boolean
+  stationsByCode: Record<number, Station | undefined>
+  observationsByStation: Record<number, ObservedValue[] | undefined>
+  allModelsByStation: Record<number, ModelValue[] | undefined>
+  noonModelsByStation: Record<number, ModelValue[] | undefined>
+  modelSummariesByStation: Record<number, ModelSummary[] | undefined>
+  allNoonForecastsByStation: Record<number, NoonForecastValue[] | undefined>
+  forecastSummariesByStation: Record<number, ForecastSummary[] | undefined>
+  allHighResModelsByStation: Record<number, ModelValue[] | undefined>
+  highResModelSummariesByStation: Record<number, ModelSummary[] | undefined>
+  allRegionalModelsByStation: Record<number, ModelValue[] | undefined>
+  regionalModelSummariesByStation: Record<number, ModelSummary[] | undefined>
 }
 
-const WxDataDisplays = ({ stationCodes }: Props) => {
+export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) {
   const classes = useStyles()
-
-  const { stationsByCode } = useSelector(selectStations)
-  const { observationsByStation } = useSelector(selectObservations)
-  const { allModelsByStation, noonModelsByStation } = useSelector(selectModels)
-  const { modelSummariesByStation } = useSelector(selectModelSummaries)
-  const { allNoonForecastsByStation } = useSelector(selectForecasts)
-  const { forecastSummariesByStation } = useSelector(selectForecastSummaries)
-  const { allHighResModelsByStation } = useSelector(selectHighResModels)
-  const { highResModelSummariesByStation } = useSelector(selectHighResModelSummaries)
-  const { allRegionalModelsByStation } = useSelector(selectRegionalModels)
-  const { regionalModelSummariesByStation } = useSelector(selectRegionalModelSummaries)
-  const wxDataLoading = useSelector(selectWxDataLoading)
 
   return (
     <div className={classes.displays}>
-      {!wxDataLoading &&
-        stationCodes.map(code => {
-          const station = stationsByCode[code]
+      {!props.wxDataLoading &&
+        props.stationCodes.map(code => {
+          const station = props.stationsByCode[code]
           if (!station) return null
 
-          const observedValues = observationsByStation[code]
-          const allModelValues = allModelsByStation[code]
-          const modelSummaries = modelSummariesByStation[code]
-          const noonModelValues = noonModelsByStation[code]
-          const allForecasts = allNoonForecastsByStation[code]
-          const forecastSummaries = forecastSummariesByStation[code]
-          const allHighResModelValues = allHighResModelsByStation[code]
-          const highResModelSummaries = highResModelSummariesByStation[code]
-          const allRegionalModelValues = allRegionalModelsByStation[code]
-          const regionalModelSummaries = regionalModelSummariesByStation[code]
+          const observedValues = props.observationsByStation[code]
+          const allModelValues = props.allModelsByStation[code]
+          const modelSummaries = props.modelSummariesByStation[code]
+          const noonModelValues = props.noonModelsByStation[code]
+          const allForecasts = props.allNoonForecastsByStation[code]
+          const forecastSummaries = props.forecastSummariesByStation[code]
+          const allHighResModelValues = props.allHighResModelsByStation[code]
+          const highResModelSummaries = props.highResModelSummariesByStation[code]
+          const allRegionalModelValues = props.allRegionalModelsByStation[code]
+          const regionalModelSummaries = props.regionalModelSummariesByStation[code]
           const nothingToDisplay =
             !observedValues &&
             !allForecasts &&
@@ -141,6 +145,42 @@ const WxDataDisplays = ({ stationCodes }: Props) => {
         })}
     </div>
   )
+})
+
+interface WxDataDisplaysWrapperProps {
+  stationCodes: number[]
 }
 
-export default React.memo(WxDataDisplays)
+const WxDataDisplaysWrapper: React.FunctionComponent<WxDataDisplaysWrapperProps> = props => {
+  const { stationsByCode } = useSelector(selectStations)
+  const { observationsByStation } = useSelector(selectObservations)
+  const { allModelsByStation, noonModelsByStation } = useSelector(selectModels)
+  const { modelSummariesByStation } = useSelector(selectModelSummaries)
+  const { allNoonForecastsByStation } = useSelector(selectForecasts)
+  const { forecastSummariesByStation } = useSelector(selectForecastSummaries)
+  const { allHighResModelsByStation } = useSelector(selectHighResModels)
+  const { highResModelSummariesByStation } = useSelector(selectHighResModelSummaries)
+  const { allRegionalModelsByStation } = useSelector(selectRegionalModels)
+  const { regionalModelSummariesByStation } = useSelector(selectRegionalModelSummaries)
+  const wxDataLoading = useSelector(selectWxDataLoading)
+
+  return (
+    <WxDataDisplays
+      stationCodes={props.stationCodes}
+      wxDataLoading={wxDataLoading}
+      stationsByCode={stationsByCode}
+      observationsByStation={observationsByStation}
+      allModelsByStation={allModelsByStation}
+      noonModelsByStation={noonModelsByStation}
+      modelSummariesByStation={modelSummariesByStation}
+      allNoonForecastsByStation={allNoonForecastsByStation}
+      forecastSummariesByStation={forecastSummariesByStation}
+      allHighResModelsByStation={allHighResModelsByStation}
+      highResModelSummariesByStation={highResModelSummariesByStation}
+      allRegionalModelsByStation={allRegionalModelsByStation}
+      regionalModelSummariesByStation={regionalModelSummariesByStation}
+    />
+  )
+}
+
+export default WxDataDisplaysWrapper
