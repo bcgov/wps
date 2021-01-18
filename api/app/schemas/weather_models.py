@@ -7,7 +7,7 @@ from app.schemas.stations import WeatherStation
 
 
 class CHainesModelRuns(BaseModel):
-    model_run_timestamp: List[datetime]
+    model_run_timestamps: List[datetime]
 
 
 class CHainesRequest(BaseModel):

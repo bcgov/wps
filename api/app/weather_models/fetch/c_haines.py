@@ -3,6 +3,8 @@
 from datetime import datetime
 import logging
 import app.db.database
+from app.schemas.weather_models import CHainesModelRuns
+from app.db.crud.c_haines import get_model_runs
 
 
 logger = logging.getLogger(__name__)
@@ -42,4 +44,10 @@ async def fetch(model_run_timestamp: datetime, prediction_timestamp: datetime):
 
 
 async def fetch_model_runs():
-    pass
+    """ Fetch recent model runs """
+    session = app.db.database.get_read_session()
+    model_runs = get_model_runs(session)
+    timestamps = []
+    for model_run in model_runs:
+        timestamps.append(model_run[0])
+    return CHainesModelRuns(model_run_timestamps=timestamps)
