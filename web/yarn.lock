@@ -3157,6 +3157,13 @@
   resolved "https://registry.yarnpkg.com/@types/json-schema/-/json-schema-7.0.6.tgz#f4c7ec43e81b319a9815115031709f26987891f0"
   integrity sha512-3c+yGKvVP5Y9TYBEibGNR+kLtijnj7mYrXRg+WpFb2X9xm04g/DXYkfg4hmzJQosc9snFNUPkbYIhu+KAm6jJw==
 
+"@types/leaflet@^1.5.21":
+  version "1.5.21"
+  resolved "https://registry.yarnpkg.com/@types/leaflet/-/leaflet-1.5.21.tgz#994c44f2bfc45744120f01924c8973c5e960e051"
+  integrity sha512-b+BOkwJDq6DK4m+jFUOHNCFinIkO4CF1MjnOwYgZFX+oElpYpXCCIsxZ3+zQWIRSLVUbRXvaQq2K935jGIyp7A==
+  dependencies:
+    "@types/geojson" "*"
+
 "@types/markdown-to-jsx@^6.11.0":
   version "6.11.3"
   resolved "https://registry.yarnpkg.com/@types/markdown-to-jsx/-/markdown-to-jsx-6.11.3.tgz#cdd1619308fecbc8be7e6a26f3751260249b020e"
@@ -12003,6 +12010,11 @@ lazy-universal-dotenv@^3.0.1:
     core-js "^3.0.4"
     dotenv "^8.0.0"
     dotenv-expand "^5.1.0"
+
+leaflet@^1.7.1:
+  version "1.7.1"
+  resolved "https://registry.yarnpkg.com/leaflet/-/leaflet-1.7.1.tgz#10d684916edfe1bf41d688a3b97127c0322a2a19"
+  integrity sha512-/xwPEBidtg69Q3HlqPdU3DnrXQOvQU/CCHA1tcDQVzOwm91YMYaILjNp7L4Eaw5Z4sOYdbBz6koWyibppd8Zqw==
 
 left-pad@^1.3.0:
   version "1.3.0"

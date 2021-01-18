@@ -39,3 +39,7 @@ async def fetch(model_run_timestamp: datetime, prediction_timestamp: datetime):
     row = next(response)
     logger.info('returning response...')
     return row[0]
+
+
+async def fetch_model_runs():
+    pass

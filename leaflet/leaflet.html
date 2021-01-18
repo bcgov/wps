@@ -20,7 +20,7 @@
   <body>
     <div id="mapid"></div>
     model date:
-    <input id="model_run_timestamp" value="2021-01-15T12:00:00.000Z"></div>
+    <input id="model_run_timestamp" value="2021-01-18T00:00:00.000Z"></div>
     prediction date:
     <div id="prediction_timestamp"></div>
     <button onclick="fetchPreviousTimestamp()">
@@ -47,12 +47,19 @@
 
       function fetchLayer(map, model_run_timestamp, prediction_timestamp) {
         let xhr = new XMLHttpRequest();
+        // xhr.open(
+        //   "GET",
+        //   "/api/c-haines/?model_run_timestamp=" +
+        //     model_run_timestamp +
+        //     "&prediction_timestamp=" +
+        //     getFormattedGDPSTimestamp(prediction_timestamp)
+        // );
         xhr.open(
           "GET",
           "/api/c-haines/?model_run_timestamp=" +
             model_run_timestamp +
             "&prediction_timestamp=" +
-            getFormattedGDPSTimestamp(prediction_timestamp)
+            '2021-01-23T03:00:00.000Z'
         );
         xhr.setRequestHeader("Content-Type", "application/json");
         xhr.responseType = "json";
@@ -62,11 +69,14 @@
             style: function (feature) {
               switch (feature.properties.severity) {
                 case 1:
+                  // yellow
                   return { color: "#ffff00" };
                 case 2:
-                  return { color: "#ff0000" };
+                  return { color: "#FFA500" };
                 case 3:
-                  return { color: "#800080" };
+                  // red
+                  return { color: "#ff0000" };
+                  // return { color: "#800080" }; // purple
               }
             },
           });

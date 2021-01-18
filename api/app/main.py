@@ -15,8 +15,7 @@ from app import health
 from app import hourlies
 from app import stations
 from app.frontend import frontend
-from app.routers import forecasts, weather_models
-from app.weather_models.fetch import c_haines
+from app.routers import forecasts, weather_models, c_haines
 
 
 configure_logging()
@@ -91,6 +90,7 @@ api.add_middleware(
 
 api.include_router(forecasts.router)
 api.include_router(weather_models.router)
+api.include_router(c_haines.router)
 
 
 @api.get('/health')
@@ -145,13 +145,6 @@ async def get_percentiles(request: schemas.percentiles.PercentileRequest):
         raise
 
 # request: schemas.weather_models.CHainesRequest
-
-
-@api.get('/c-haines/')
-async def get_c_haines(model_run_timestamp: datetime, prediction_timestamp: datetime):
-    """ Return geojson polygons for c-haines """
-    return await c_haines.fetch(model_run_timestamp, prediction_timestamp)
-    # return await c_haines.fetch(None, None)
 
 
 if __name__ == "__main__":
