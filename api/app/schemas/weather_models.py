@@ -6,6 +6,10 @@ from pydantic import BaseModel
 from app.schemas.stations import WeatherStation
 
 
+class CHainesModelRuns(BaseModel):
+    model_run_timestamp: List[datetime]
+
+
 class CHainesRequest(BaseModel):
     model_run_timestamp: datetime
     prediction_timestamp: datetime

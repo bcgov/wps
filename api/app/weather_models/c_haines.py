@@ -22,8 +22,11 @@ import gdal
 import ogr
 from sqlalchemy.orm import Session
 from shapely.geometry import shape
+from pyproj import CRS
 from app import configure_logging
 from app.weather_models import ModelEnum, ProjectionEnum
+from app.weather_models.process_grib import (get_transformer, GEO_CRS, calculate_raster_coordinate,
+                                             get_dataset_geometry)
 from app.db.models import CHainesPoly, PredictionModel
 from app.db.crud.weather_models import get_prediction_model, get_c_haines
 from app.time_utils import get_utc_now
@@ -96,8 +99,7 @@ def calculate_c_haines_index(t700: float, t850: float, td850: float):
     # Temperature at 850mb - Temperature at 700mb.
     ca = (t850-t700)/2-2
     # Dew point depression term (this indicates how dry the air is).
-    # Temperature at 850mb - Dew point at 850mb.
-    cb = (t850-td850)/3-1
+    cb = td850/3-1
 
     # This part limits the extent to which dry air is able to affect the overall index.
     # If there is very dry air (big difference between dew point temperature and temperature),
@@ -110,6 +112,48 @@ def calculate_c_haines_index(t700: float, t850: float, td850: float):
     ch = ca + cb
 
     return ch
+
+
+def get_bucket_value(ch):
+    # OZ BUCKET
+    # if ch < 0:
+    #     return 0
+    # if ch < 5:
+    #     return 1
+    # if ch < 8:
+    #     return 2
+    # if ch < 10:
+    #     return 3
+    # if ch < 12:
+    #     return 4
+    # return 5
+
+    # NEW BUCKET
+    # 0 - 4 : low
+    if ch < 4:
+        return 0
+    # 4 - 8 : moderate
+    if ch < 8:
+        return 1
+    # 8 - 11 : high
+    if ch < 11:
+        return 2
+    # 11 + Extreme
+    return 3
+
+    # OLD BUCKET
+    # # 0 - 7 (Very low, low)
+    # if ch < 7:
+    #     level = 0
+    # # 7 - 9 (Moderate)
+    # elif ch < 9:
+    #     level = 1
+    # # 9 - 11 (High to very high)
+    # elif ch < 11:
+    #     level = 2
+    # # 11 and up (Very high)
+    # else:
+    #     level = 3
 
 
 def calculate_c_haines_data(
@@ -130,6 +174,9 @@ def calculate_c_haines_data(
     rows: Final = tmp_850_raster_band.YSize
     cols: Final = tmp_850_raster_band.XSize
 
+    lowest = None
+    highest = None
+
     # Iterate through rows.
     for row_index in range(rows):
         # Read the scanlines.
@@ -142,22 +189,22 @@ def calculate_c_haines_data(
         # TODO: Look at using numpy to iterate through this faster.
         # Iterate through values in row.
         for t700, t850, td850 in zip(row_tmp_700, row_tmp_850, row_dew_850):
+
             # pylint: disable=invalid-name
             ch = calculate_c_haines_index(t700, t850, td850)
+
+            if lowest is None:
+                lowest = ch
+            if highest is None:
+                highest = ch
+            if ch < lowest:
+                lowest = ch
+            if ch > highest:
+                highest = ch
+
             # We're not interested in such finely grained results, so
             # we bucket them together as such:
-            # 0 - 7 (Very low, low)
-            if ch < 7:
-                level = 0
-            # 7 - 9 (Moderate)
-            elif ch < 9:
-                level = 1
-            # 9 - 11 (High to very high)
-            elif ch < 11:
-                level = 2
-            # 11 and up (Very high)
-            else:
-                level = 3
+            level = get_bucket_value(ch)
             chaines_row.append(level)
 
             # We ignore level 0
@@ -168,6 +215,9 @@ def calculate_c_haines_data(
 
         c_haines_data.append(chaines_row)
         mask_data.append(mask_row)
+
+    # print('lowest c-haines: {}'.format(lowest))
+    # print('highest c-haines: {}'.format(highest))
 
     # TODO: look at creating numpy arrays from the get go
     return numpy.array(c_haines_data), numpy.array(mask_data), rows, cols
@@ -187,14 +237,17 @@ def save_data_as_tiff(
     outdata.SetGeoTransform(source_geotransform)
 
     colors = gdal.ColorTable()
-    # white
-    colors.SetColorEntry(0, (255, 255, 255))
+
+    # for i in range(255):
+    #     colors.SetColorEntry(i, (i+50, i+50, i+50))
+    # green
+    colors.SetColorEntry(0, (0, 255, 0))
     # yellow
     colors.SetColorEntry(1, (255, 255, 0))
+    # orange
+    colors.SetColorEntry(2, (255, 164, 0))
     # red
-    colors.SetColorEntry(2, (255, 0, 0))
-    # purple
-    colors.SetColorEntry(3, (128, 0, 128))
+    colors.SetColorEntry(3, (255, 0, 0))
 
     band = outdata.GetRasterBand(1)
     band.SetRasterColorTable(colors)
@@ -320,6 +373,11 @@ def save_geojson_to_database(session: Session, filename: str, model_run_timestam
     # TODO: simplify geometry: https://shapely.readthedocs.io/en/stable/manual.html#object.simplify
 
 
+# def assertSameProjectionAndTransformation(a, b, c):
+#     # print(a.GetProjection())
+#     pass
+
+
 def generate_and_store_c_haines(
         session: Session,
         filename_tmp_700: str,
@@ -333,6 +391,8 @@ def generate_and_store_c_haines(
     grib_tmp_850 = gdal.Open(filename_tmp_850, gdal.GA_ReadOnly)
     grib_dew_850 = gdal.Open(filename_dew_850, gdal.GA_ReadOnly)
 
+    # assertSameProjectionAndTransformation(grib_tmp_700, grib_tmp_850, grib_dew_850)
+
     # Assume they're all using the same projection and transformation.
     projection = grib_tmp_850.GetProjection()
     geotransform = grib_tmp_850.GetGeoTransform()
@@ -344,7 +404,9 @@ def generate_and_store_c_haines(
 
     # Save to tiff (for easy debugging)
     # save_data_as_tiff(
-    # c_haines_data, 'c-haines.tiff', rows, cols, projection, geotransform)
+    #     c_haines_data, 'c-haines_{}_{}.tiff'.format(
+    #         model_run_timestamp.isoformat(), prediction_timestamp.isoformat()),
+    #     rows, cols, projection, geotransform)
 
     # Save to geojson
     with tempfile.TemporaryDirectory() as tmp_path:
@@ -364,20 +426,27 @@ def generate_and_store_c_haines(
 
 
 def local_test():
-    filename_tmp_700 = '/home/sybrand/Workspace/wps/api/scripts/CMC_glb_TMP_ISBL_700_latlon.15x.15_2020122200_P000.grib2'
-    filename_tmp_850 = '/home/sybrand/Workspace/wps/api/scripts/CMC_glb_TMP_ISBL_850_latlon.15x.15_2020122200_P000.grib2'
-    filename_dew_850 = '/home/sybrand/Workspace/wps/api/scripts/CMC_glb_DEPR_ISBL_850_latlon.15x.15_2020122200_P000.grib2'
+    # filename_tmp_700 = '/home/sybrand/Workspace/wps/api/scripts/CMC_glb_TMP_ISBL_700_latlon.15x.15_2020122200_P000.grib2'
+    # filename_tmp_850 = '/home/sybrand/Workspace/wps/api/scripts/CMC_glb_TMP_ISBL_850_latlon.15x.15_2020122200_P000.grib2'
+    # filename_dew_850 = '/home/sybrand/Workspace/wps/api/scripts/CMC_glb_DEPR_ISBL_850_latlon.15x.15_2020122200_P000.grib2'
+
+    filename_tmp_700 = '/home/sybrand/Downloads/Work/CMC_glb_TMP_ISBL_700_latlon.15x.15_2021011800_P123.grib2'
+    filename_tmp_850 = '/home/sybrand/Downloads/Work/CMC_glb_TMP_ISBL_850_latlon.15x.15_2021011800_P123.grib2'
+    filename_dew_850 = '/home/sybrand/Downloads/Work/CMC_glb_DEPR_ISBL_850_latlon.15x.15_2021011800_P123.grib2'
 
     session = app.db.database.get_write_session()
     prediction_model = get_prediction_model(session, ModelEnum.GDPS, ProjectionEnum.LATLON_15X_15)
+
+    model_run_timestamp = datetime(year=2021, month=1, day=18, hour=0, tzinfo=timezone.utc)
+    prediction_timestamp = datetime(year=2021, month=1, day=23, hour=3, tzinfo=timezone.utc)
 
     generate_and_store_c_haines(
         session,
         filename_tmp_700,
         filename_tmp_850,
         filename_dew_850,
-        get_utc_now(),
-        get_utc_now(),
+        model_run_timestamp,
+        prediction_timestamp,
         prediction_model)
 
 
@@ -422,3 +491,4 @@ def main():
 if __name__ == "__main__":
     configure_logging()
     main()
+    # local_test()

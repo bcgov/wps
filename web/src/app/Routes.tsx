@@ -6,11 +6,13 @@ import AuthWrapper from 'features/auth/AuthWrapper'
 import PercentileCalculatorPageWithDisclaimer from 'features/percentileCalculator/pages/PercentileCalculatorPageWithDisclaimer'
 import MoreCastPage from 'features/fireWeather/pages/MoreCastPage'
 import HfiCalculatorPage from 'features/hfiCalculator/pages/HfiCalculatorPage'
+import CHainesPage from 'features/cHaines/pages/CHainesPage'
 import {
   PERCENTILE_CALC_ROUTE,
   FIRE_WEATHER_ROUTE,
   MORECAST_ROUTE,
-  HFI_CALC_ROUTE
+  HFI_CALC_ROUTE,
+  C_HAINES_ROUTE
 } from 'utils/constants'
 
 const shouldShowDisclaimer = HIDE_DISCLAIMER === 'false' || HIDE_DISCLAIMER === undefined
@@ -40,6 +42,10 @@ const Routes: React.FunctionComponent = () => {
           <AuthWrapper shouldAuthenticate={shouldAuthenticate}>
             <HfiCalculatorPage />
           </AuthWrapper>
+        </Route>
+
+        <Route path={C_HAINES_ROUTE}>
+          <CHainesPage />
         </Route>
 
         <Route>
