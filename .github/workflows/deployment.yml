@@ -54,6 +54,29 @@ jobs:
           AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
           SCRIPT: openshift/scripts/oc_provision_matomo_backup_cronjob.sh ${SUFFIX} apply
 
+  build-and-deploy-c-haines:
+    name: Build and deploy to Dev c-haines cronjob.
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set Variables
+        shell: bash
+        run: echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Build Image
+        uses: bcgov/openshift-launchpad-deployment@master
+        with:
+          AUTH_TOKEN: ${{ secrets.OC_TOOL_TOKEN_EDIT }}
+          SCRIPT: GIT_BRANCH=${GITHUB_HEAD_REF} PATH_BC=./openshift/c_haines/openshift/build.bc.yaml NAME_APP=wps-c-haines openshift/scripts/oc_build.sh ${SUFFIX} apply
+
+      - name: C-Haines Cronjob
+        uses: bcgov/openshift-launchpad-deployment@master
+        with:
+          AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
+          SCRIPT: openshift/scripts/oc_provision_c_haines_cronjob.sh ${SUFFIX} apply
+
   build-and-deploy:
     name: Build, Deploy to Dev & ZAP Baseline Scan
     runs-on: ubuntu-latest
