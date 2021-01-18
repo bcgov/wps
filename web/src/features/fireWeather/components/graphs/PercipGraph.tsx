@@ -91,6 +91,9 @@ const rdpsPrecipColor = '#026200'
 const accumRDPSPrecipColor = rdpsPrecipColor
 
 export interface Props {
+  currDate: Date
+  sliderRange: [string, string]
+  setSliderRange: (range: [string, string]) => void
   toggleValues: ToggleValues
   observedValues: ObservedValue[]
   forecastValues: NoonForecastValue[]
@@ -101,6 +104,9 @@ export interface Props {
 
 const PrecipGraph = (props: Props) => {
   const {
+    currDate,
+    sliderRange,
+    setSliderRange,
     toggleValues,
     observedValues,
     forecastValues,
@@ -129,17 +135,16 @@ const PrecipGraph = (props: Props) => {
     gdps.maxDailyPrecip,
     rdps.maxDailyPrecip
   )
-  const currDate = new Date()
-  // Getting the axis range to persist between toggling different layers is problematic.
-  // TODO: Add event handling that takes changes the range and persist it in the local store.
-  const initialXAxisRange = [
-    moment(currDate).subtract(2, 'days').toDate(), // prettier-ignore
-    moment(currDate).add(2, 'days').toDate() // prettier-ignore
-  ]
 
   return (
     <Plot
       style={{ width: '100%', height: '100%' }}
+      onUpdate={e => {
+        const updatedRange = e.layout.xaxis?.range as [string, string] | undefined
+        if (updatedRange) {
+          setSliderRange(updatedRange)
+        }
+      }}
       config={{ responsive: true }}
       data={[
         {
@@ -298,6 +303,7 @@ const PrecipGraph = (props: Props) => {
         }
       ]}
       layout={{
+        dragmode: 'pan',
         autosize: true,
         title: {
           text: 'Daily Precipitation graph (with accumulated)',
@@ -306,12 +312,12 @@ const PrecipGraph = (props: Props) => {
         height: 600,
         margin: { pad: 10 },
         xaxis: {
-          range: initialXAxisRange,
-          rangeslider: {
-            visible: true,
-            bgcolor: '#dbdbdb',
-            thickness: 0.1
-          },
+          range: sliderRange,
+          // rangeslider: {
+          //   visible: true,
+          //   bgcolor: '#dbdbdb',
+          //   thickness: 0.1
+          // },
           hoverformat: '%a, %b %e', // https://github.com/d3/d3-3.x-api-reference/blob/master/Time-Formatting.md#format
           tickfont: { size: 14 },
           type: 'date',
@@ -338,7 +344,7 @@ const PrecipGraph = (props: Props) => {
         },
         legend: {
           orientation: 'h',
-          y: -0.45
+          y: -0.15 // -0.45
         },
         barmode: 'group',
         bargap: 0.75,

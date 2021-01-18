@@ -1,5 +1,6 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
+import moment from 'moment'
 
 import { ModelSummary, ModelValue } from 'api/modelAPI'
 import { ObservedValue } from 'api/observationAPI'
@@ -9,6 +10,7 @@ import { useGraphToggles } from 'features/fireWeather/components/graphs/useGraph
 import TempRHGraph from 'features/fireWeather/components/graphs/TempRHGraph'
 import PrecipGraph from 'features/fireWeather/components/graphs/PercipGraph'
 import WindGraph from 'features/fireWeather/components/graphs/WindGraph'
+import { formatDateInPST } from 'utils/date'
 
 const useStyles = makeStyles({
   display: {
@@ -51,6 +53,12 @@ const WxDataGraph = ({
   const noHighResModels = allHighResModelValues.length === 0
   const noRegionalModels = allRegionalModelValues.length === 0
 
+  const currDate = new Date()
+  const initialXAxisRange: [string, string] = [
+    formatDateInPST(moment(currDate).subtract(2, 'days').toDate()), // prettier-ignore
+    formatDateInPST(moment(currDate).add(2, 'days').toDate()) // prettier-ignore
+  ]
+  const [sliderRange, setSliderRange] = useState(initialXAxisRange)
   const [toggleValues, setToggleValues] = useGraphToggles({
     showObservations: !noObservations,
     showForecasts: false,
@@ -99,6 +107,9 @@ const WxDataGraph = ({
       />
 
       <PrecipGraph
+        currDate={currDate}
+        sliderRange={sliderRange}
+        setSliderRange={setSliderRange}
         toggleValues={toggleValues}
         observedValues={observedValues}
         forecastValues={allForecasts}
@@ -108,6 +119,9 @@ const WxDataGraph = ({
       />
 
       <WindGraph
+        currDate={currDate}
+        sliderRange={sliderRange}
+        setSliderRange={setSliderRange}
         toggleValues={toggleValues}
         observedValues={observedValues}
         gdpsModelValues={allModelValues}

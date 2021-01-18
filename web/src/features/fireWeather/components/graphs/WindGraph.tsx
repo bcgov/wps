@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import React from 'react'
 import Plot from 'react-plotly.js'
-import moment from 'moment'
 
 import { ObservedValue } from 'api/observationAPI'
 import { ModelValue } from 'api/modelAPI'
@@ -146,6 +145,9 @@ const populateGraphData = (
 }
 
 export interface Props {
+  currDate: Date
+  sliderRange: [string, string]
+  setSliderRange: (range: [string, string]) => void
   toggleValues: ToggleValues
   observedValues: ObservedValue[]
   hrdpsModelValues: ModelValue[]
@@ -164,11 +166,14 @@ const hrdpsArrowColor = hrdpsLineColor
 
 const WindGraph = (props: Props) => {
   const {
+    currDate,
+    sliderRange,
+    setSliderRange,
+    toggleValues,
     observedValues,
     gdpsModelValues,
     rdpsModelValues,
-    hrdpsModelValues,
-    toggleValues
+    hrdpsModelValues
   } = props
   const {
     showObservations,
@@ -203,26 +208,24 @@ const WindGraph = (props: Props) => {
     ...hrdpsData.windSpds
   )
 
-  const currDate = new Date()
-  // Getting the axis range to persist between toggling different layers is problematic.
-  // TODO: Add event handling that takes changes the range and persist it in the local store.
-  const initialXAxisRange = [
-    moment(currDate).subtract(2, 'days').toDate(), // prettier-ignore
-    moment(currDate).add(2, 'days').toDate() // prettier-ignore
-  ]
-
   return (
     <Plot
       style={{ width: '100%', height: '100%' }}
-      onLegendClick={(event: Readonly<Plotly.LegendClickEvent>): boolean => {
+      onUpdate={e => {
+        const updatedRange = e.layout.xaxis?.range as [string, string] | undefined
+        if (updatedRange) {
+          setSliderRange(updatedRange)
+        }
+      }}
+      onLegendClick={e => {
         // We cannot group the shapes (arrows) with the legend (https://github.com/plotly/plotly.js/issues/98)
         // So we loop through the corresponding shapes (arrows) to toggle them on and off.
         // It's not very fast, but it works.
         // NOTE: The alternative would be to just make this function return false, thus disabling
         // toggling of layers using the legend.
-        if (event.layout.shapes) {
+        if (e.layout.shapes) {
           // Get the start and end positions of the arrows.
-          const { start, end } = getLoopExtent(event.expandedIndex, [
+          const { start, end } = getLoopExtent(e.expandedIndex, [
             observedData.windSpds.length,
             gdpsData.windSpds.length,
             rdpsData.windSpds.length,
@@ -230,7 +233,7 @@ const WindGraph = (props: Props) => {
           ])
           for (let i = start; i < end; ++i) {
             // Toggle visibility on the arrows.
-            event.layout.shapes[i].visible = !event.layout.shapes[i].visible
+            e.layout.shapes[i].visible = !e.layout.shapes[i].visible
           }
         }
         return true
@@ -319,6 +322,7 @@ const WindGraph = (props: Props) => {
         }
       ]}
       layout={{
+        dragmode: 'pan',
         autosize: true,
         title: {
           text: 'Wind speed & direction graph',
@@ -327,12 +331,12 @@ const WindGraph = (props: Props) => {
         height: 600,
         margin: { pad: 10 },
         xaxis: {
-          range: initialXAxisRange,
-          rangeslider: {
-            visible: true,
-            bgcolor: '#dbdbdb',
-            thickness: 0.1
-          },
+          range: sliderRange,
+          // rangeslider: {
+          //   visible: true,
+          //   bgcolor: '#dbdbdb',
+          //   thickness: 0.1
+          // },
           hoverformat: '%I:00%p, %a, %b %e', // https://github.com/d3/d3-3.x-api-reference/blob/master/Time-Formatting.md#format
           tickfont: { size: 14 },
           type: 'date',
@@ -352,7 +356,7 @@ const WindGraph = (props: Props) => {
         },
         legend: {
           orientation: 'h',
-          y: -0.45
+          y: -0.15 // -0.45
         },
         shapes: [
           {
