@@ -11,7 +11,7 @@ import {
   resetPercentilesResult
 } from 'features/percentileCalculator/slices/percentilesSlice'
 import { PercentileActionButtons } from 'features/percentileCalculator/components/PercentileActionButtons'
-import { PercentileResults } from 'features/percentileCalculator/components/PercentileResults'
+import PercentileResults from 'features/percentileCalculator/components/PercentileResults'
 import {
   TimeRangeSlider,
   yearWhenTheCalculationIsDone

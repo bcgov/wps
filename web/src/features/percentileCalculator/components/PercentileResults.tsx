@@ -8,6 +8,7 @@ import { PercentileStationResultTable } from 'features/percentileCalculator/comp
 import { ErrorMessage } from 'components/ErrorMessage'
 import { GridItem, GridContainer } from 'components/Grid'
 import { PercentileCalcDocumentation } from 'features/percentileCalculator/components/PercentileCalcDocumentation'
+import { PercentilesResponse } from 'api/percentileAPI'
 
 const useStyles = makeStyles({
   root: {
@@ -18,24 +19,15 @@ const useStyles = makeStyles({
   }
 })
 
-export const PercentileResults: React.FunctionComponent = () => {
+interface PercentileResultsProps {
+  result: PercentilesResponse
+}
+
+export const PercentileResults = React.memo(function _(props: PercentileResultsProps) {
   const classes = useStyles()
-  const { result, error } = useSelector(selectPercentiles)
-
-  if (error) {
-    return (
-      <ErrorMessage
-        error={error}
-        context="while getting the calculation result"
-        marginTop={5}
-      />
-    )
-  }
-
-  if (!result) return null
 
   // Object.entries(result.stations) is an array of station code & station response key value pairs
-  const stationResults = Object.entries(result.stations).map(
+  const stationResults = Object.entries(props.result.stations).map(
     ([stationCode, stationResponse]) => {
       return (
         <GridItem key={stationCode} md lg>
@@ -51,7 +43,7 @@ export const PercentileResults: React.FunctionComponent = () => {
       <GridContainer className={classes.gridContainer}>
         {isMoreThanOneResult && (
           <GridItem lg={12} md={12}>
-            <PercentileMeanResultTable meanValues={result.mean_values} />
+            <PercentileMeanResultTable meanValues={props.result.mean_values} />
           </GridItem>
         )}
         {stationResults}
@@ -63,4 +55,24 @@ export const PercentileResults: React.FunctionComponent = () => {
       </GridContainer>
     </div>
   )
+})
+
+const PercentileResultsWrapper: React.FC = () => {
+  const { result, error } = useSelector(selectPercentiles)
+
+  if (error) {
+    return (
+      <ErrorMessage
+        error={error}
+        context="while getting the calculation result"
+        marginTop={5}
+      />
+    )
+  }
+
+  if (!result) return null
+
+  return <PercentileResults result={result} />
 }
+
+export default PercentileResultsWrapper

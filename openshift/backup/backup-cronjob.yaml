@@ -163,6 +163,13 @@ objects:
             spec:
               containers:
                 - name: "${JOB_NAME}-cronjob"
+                  resources:
+                    limits:
+                      cpu: "1"
+                      memory: 4Gi
+                    requests:
+                      cpu: "0.5"
+                      memory: 2Gi
                   image: "docker-registry.default.svc:5000/${IMAGE_NAMESPACE}/${SOURCE_IMAGE_NAME}:${TAG_NAME}"
                   # image: backup
                   command:
