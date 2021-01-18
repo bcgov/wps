@@ -12,6 +12,9 @@ parameters:
   - name: NAME
     description: Module name
     value: wps-c-haines
+  - name: GLOBAL_NAME
+    description: Name of global Module
+    value: wps
   - name: SUFFIX
     description: Deployment suffix, e.g. pr-###
     required: true
@@ -46,40 +49,40 @@ objects:
                   command: ["python3", "-m", "app.weather_models.c_haines"]
                   env:
                     - name: POSTGRES_READ_USER
-                      value: ${NAME}-${SUFFIX}
+                      value: ${GLOBAL_NAME}-${SUFFIX}
                     - name: POSTGRES_WRITE_USER
-                      value: ${NAME}-${SUFFIX}
+                      value: ${GLOBAL_NAME}-${SUFFIX}
                     - name: POSTGRES_PASSWORD
                       valueFrom:
                         secretKeyRef:
-                          name: ${NAME}-global
+                          name: ${GLOBAL_NAME}-global
                           key: app-db-password
                     - name: POSTGRES_WRITE_HOST
-                      value: patroni-leader-${NAME}-${SUFFIX}
+                      value: patroni-leader-${GLOBAL_NAME}-${SUFFIX}
                     - name: POSTGRES_READ_HOST
-                      value: patroni-replica-${NAME}-${SUFFIX}
+                      value: patroni-replica-${GLOBAL_NAME}-${SUFFIX}
                     - name: POSTGRES_PORT
                       value: "5432"
                     - name: POSTGRES_DATABASE
-                      value: ${NAME}-${SUFFIX}
+                      value: ${GLOBAL_NAME}-${SUFFIX}
                     - name: ROCKET_URL_POST_MESSAGE
                       valueFrom:
                         configMapKeyRef:
-                          name: ${NAME}-global
+                          name: ${GLOBAL_NAME}-global
                           key: rocket.chat-url-post-message
                     - name: ROCKET_CHANNEL
                       valueFrom:
                         configMapKeyRef:
-                          name: ${NAME}-global
+                          name: ${GLOBAL_NAME}-global
                           key: rocket.chat-channel
                     - name: ROCKET_USER_ID
                       valueFrom:
                         secretKeyRef:
-                          name: ${NAME}-global
+                          name: ${GLOBAL_NAME}-global
                           key: rocket.chat-user-id-secret
                     - name: ROCKET_AUTH_TOKEN
                       valueFrom:
                         secretKeyRef:
-                          name: ${NAME}-global
+                          name: ${GLOBAL_NAME}-global
                           key: rocket.chat-auth-token-secret
               restartPolicy: OnFailure
