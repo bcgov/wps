@@ -2,7 +2,6 @@
 
 See README.md for details on how to run.
 """
-from datetime import datetime
 import logging
 from fastapi import FastAPI, Depends, Response
 from fastapi.middleware.cors import CORSMiddleware
