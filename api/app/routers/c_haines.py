@@ -17,4 +17,5 @@ async def get_c_haines(model_run_timestamp: datetime, prediction_timestamp: date
 
 @router.get('/model-runs')
 async def get_model_runs():
+    """ Return a list of recent model runs """
     return await c_haines.fetch_model_runs()
