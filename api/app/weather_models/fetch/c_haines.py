@@ -4,7 +4,7 @@ from datetime import datetime
 import logging
 import app.db.database
 from app.schemas.weather_models import CHainesModelRuns, CHainesModelRunPredictions
-from app.db.crud.c_haines import get_model_runs, get_model_run_predictions
+from app.db.crud.c_haines import get_model_runs
 
 
 logger = logging.getLogger(__name__)
@@ -47,16 +47,26 @@ async def fetch_model_runs():
     """ Fetch recent model runs """
     session = app.db.database.get_read_session()
     model_runs = get_model_runs(session)
-    timestamps = []
-    for model_run in model_runs:
-        timestamps.append(model_run[0])
-    return CHainesModelRuns(model_run_timestamps=timestamps)
+
+    result = CHainesModelRuns(model_runs=[])
+    model_run_predictions = None
+    prev_model_run_timestamp = None
+
+    for model_run_timestamp, prediction_timestamp in model_runs:
+        if model_run_timestamp != prev_model_run_timestamp:
+            model_run_predictions = CHainesModelRunPredictions(
+                model_run_timestamp=model_run_timestamp, prediction_timestamps=[])
+            result.model_runs.append(model_run_predictions)
+            prev_model_run_timestamp = model_run_timestamp
+        model_run_predictions.prediction_timestamps.append(prediction_timestamp)
+
+    return result
 
 
-async def fetch_model_run_predictions(model_run_timestamps):
-    session = app.db.database.get_read_session()
-    model_run_predictions = get_model_run_predictions(session, model_run_timestamps)
-    timestamps = []
-    for prediction in model_run_predictions:
-        timestamps.append(prediction[0])
-    return CHainesModelRunPredictions(prediction_timestamps=timestamps)
+# async def fetch_model_run_predictions(model_run_timestamps):
+#     session = app.db.database.get_read_session()
+#     model_run_predictions = get_model_run_predictions(session, model_run_timestamps)
+#     timestamps = []
+#     for prediction in model_run_predictions:
+#         timestamps.append(prediction[0])
+#     return CHainesModelRunPredictions(prediction_timestamps=timestamps)
