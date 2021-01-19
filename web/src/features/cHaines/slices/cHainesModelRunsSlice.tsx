@@ -9,6 +9,7 @@ interface State {
   error: string | null
   model_runs: ModelRun[]
   model_run_predictions: Record<string, Record<string, FeatureCollection>>
+  model_run_predictions_status: Record<string, Record<string, string>>
   selected_model: string
   selected_prediction: string
 }
@@ -25,7 +26,8 @@ const initialState: State = {
   model_runs: [],
   selected_model: '',
   selected_prediction: '',
-  model_run_predictions: {}
+  model_run_predictions: {},
+  model_run_predictions_status: {}
 }
 
 const cHainesModelRunsSlice = createSlice({

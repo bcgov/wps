@@ -107,6 +107,13 @@ const CHainesPage = () => {
     dispatch(updateSelectedModel(event.target.value))
   }
 
+  const isLoaded = (model_run_timestamp: string, prediction_timestamp: string) => {
+    return (
+      model_run_timestamp in model_run_predictions &&
+      prediction_timestamp in model_run_predictions[model_run_timestamp]
+    )
+  }
+
   const loadModelPrediction = (
     model_run_timestamp: string,
     prediction_timestamp: string
@@ -148,24 +155,17 @@ const CHainesPage = () => {
                 >
                   {prediction_timestamp}
                 </button>
+                {isLoaded(model_run.model_run_timestamp, prediction_timestamp)
+                  ? 'Loaded'
+                  : ''}
+                {/* {model_run.model_run_timestamp in model_run_predictions &&
+                prediction_timestamp in
+                  model_run_predictions[model_run.model_run_timestamp]
+                  ? 'Loaded'
+                  : ''} */}
               </div>
             ))
           )}
-        {/* <div>
-            <button onClick={loadModelPrediction}>Load</button>
-          </div> */}
-        {/* <FormControl>
-          <Select
-            defaultValue={model_runs.length > 0 ? model_runs[0].model_run_timestamp : ''}
-            onChange={handleChange}
-          >
-            {model_runs.map((model_run, i) => (
-              <option value={model_run.model_run_timestamp} key={i}>
-                {model_run.model_run_timestamp}
-              </option>
-            ))}
-          </Select>
-        </FormControl> */}
       </Container>
     </main>
   )
