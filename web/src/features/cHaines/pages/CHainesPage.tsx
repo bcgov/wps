@@ -26,6 +26,7 @@ const CHainesPage = () => {
   const classes = useStyles()
   const dispatch = useDispatch()
   const mapRef = useRef<L.Map | null>(null)
+  const layersRef = useRef<Record<string, L.GeoJSON>>({})
   const {
     model_runs,
     selected_model,
@@ -46,23 +47,27 @@ const CHainesPage = () => {
     if (selected_model in model_run_predictions) {
       if (selected_prediction in model_run_predictions[selected_model]) {
         const data = model_run_predictions[selected_model][selected_prediction]
-        const geoJsonLayer = L.geoJSON(data)
-        // const geoJsonLayer = L.geoJSON(data, {
-        //   style: feature => {
-        //     switch (feature.properties.severity) {
-        //       case 1:
-        //         // yellow
-        //         return { color: '#ffff00' }
-        //       case 2:
-        //         return { color: '#FFA500' }
-        //       case 3:
-        //         // red
-        //         return { color: '#ff0000' }
-        //       // return { color: "#800080" }; // purple
-        //     }
-        //   }
-        // })
-        geoJsonLayer.addTo(mapRef.current)
+        const geoJsonLayer = L.geoJSON(data, {
+          style: feature => {
+            switch (feature?.properties.severity) {
+              case 1:
+                // yellow
+                return { color: '#ffff00' }
+              case 2:
+                return { color: '#FFA500' }
+              case 3:
+                // red
+                return { color: '#ff0000' }
+              // return { color: "#800080" }; // purple
+              default:
+                return {}
+            }
+          }
+        })
+        layersRef.current[`${selected_model}-${selected_prediction}`] = geoJsonLayer
+        if (mapRef.current) {
+          geoJsonLayer.addTo(mapRef.current)
+        }
       }
     }
   }, [model_run_predictions])
