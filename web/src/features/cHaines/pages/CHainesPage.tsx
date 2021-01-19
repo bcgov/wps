@@ -2,17 +2,15 @@ import React, { useRef, useEffect } from 'react'
 import { selectCHainesModelRuns } from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
 import 'leaflet/dist/leaflet.css'
-import L, { StyleFunction } from 'leaflet'
+import L from 'leaflet'
 import { makeStyles } from '@material-ui/core/styles'
-// import FormControl from '@material-ui/core/FormControl'
-// import Select from '@material-ui/core/Select'
 import {
   fetchModelRuns,
   updateSelectedModel,
+  updateSelectedPrediction,
   fetchCHainesGeoJSON
 } from 'features/cHaines/slices/cHainesModelRunsSlice'
 import { Container, PageHeader, PageTitle } from 'components'
-// import { MenuItem } from '@material-ui/core'
 
 const useStyles = makeStyles({
   map: {
@@ -27,6 +25,7 @@ const CHainesPage = () => {
   const dispatch = useDispatch()
   const mapRef = useRef<L.Map | null>(null)
   const layersRef = useRef<Record<string, L.GeoJSON>>({})
+  const currentLayersRef = useRef<L.GeoJSON | null>(null)
   const {
     model_runs,
     selected_model,
@@ -43,9 +42,9 @@ const CHainesPage = () => {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    console.log('have new model run prediction!')
     if (selected_model in model_run_predictions) {
       if (selected_prediction in model_run_predictions[selected_model]) {
+        console.log('have new model run prediction!', selected_model, selected_prediction)
         const data = model_run_predictions[selected_model][selected_prediction]
         const geoJsonLayer = L.geoJSON(data, {
           style: feature => {
@@ -66,7 +65,12 @@ const CHainesPage = () => {
         })
         layersRef.current[`${selected_model}-${selected_prediction}`] = geoJsonLayer
         if (mapRef.current) {
+          if (currentLayersRef.current) {
+            mapRef.current.removeLayer(currentLayersRef.current)
+            currentLayersRef.current = null
+          }
           geoJsonLayer.addTo(mapRef.current)
+          currentLayersRef.current = geoJsonLayer
         }
       }
     }
@@ -108,6 +112,7 @@ const CHainesPage = () => {
     prediction_timestamp: string
   ) => {
     console.log('load', model_run_timestamp, prediction_timestamp)
+    dispatch(updateSelectedPrediction(prediction_timestamp))
     dispatch(fetchCHainesGeoJSON(model_run_timestamp, prediction_timestamp))
   }
 
