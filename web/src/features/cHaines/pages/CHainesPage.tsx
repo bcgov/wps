@@ -136,6 +136,13 @@ const CHainesPage = () => {
     dispatch(updateSelectedModel(event.target.value))
   }
 
+  const handlePredictionChange = (
+    event: React.ChangeEvent<{ name?: string | undefined; value: string }>
+  ) => {
+    console.log(event.target.value)
+    loadModelPrediction(selected_model, event.target.value, false)
+  }
+
   const isLoaded = (model_run_timestamp: string, prediction_timestamp: string) => {
     return (
       model_run_timestamp in model_run_predictions &&
@@ -192,52 +199,80 @@ const CHainesPage = () => {
       <PageTitle title="C-Haines" />
       <Container>
         <div id="map-with-selectable-wx-stations" className={classes.map} />
-        Model runs:
-        <select defaultValue={selected_model} onChange={handleChange}>
-          {model_runs.map((model_run, i) => (
-            <option value={model_run.model_run_timestamp} key={i}>
-              {model_run.model_run_timestamp}
-            </option>
-          ))}
-        </select>
+        <div>Select a model run and prediction from the dropdown:</div>
         <div>
-          (current: {selected_model} : {selected_prediction})
+          Model runs:
+          <select defaultValue={selected_model} onChange={handleChange}>
+            {model_runs.map((model_run, i) => (
+              <option value={model_run.model_run_timestamp} key={i}>
+                {model_run.model_run_timestamp}
+              </option>
+            ))}
+          </select>
         </div>
         <div>
-          <button onClick={() => loadAllModelsPredictions()}>Load all</button>
+          Predictions:
+          <select defaultValue={selected_prediction} onChange={handlePredictionChange}>
+            {model_runs
+              .filter(model_run => {
+                return model_run.model_run_timestamp === selected_model
+              })
+              .map((model_run, i) =>
+                model_run.prediction_timestamps.map((prediction_timestamp, i2) => (
+                  <option key={`${i}-${i2}`} value={prediction_timestamp}>
+                    {prediction_timestamp}
+                  </option>
+                ))
+              )}
+          </select>
         </div>
         <div>
-          <button onClick={() => animate(0)}>Animate</button>
+          (current: {selected_model} : {selected_prediction}) :{' '}
+          {isLoaded(selected_model, selected_prediction) ? 'Loaded' : 'Loading'}
         </div>
-        {model_runs
-          .filter(model_run => {
-            return model_run.model_run_timestamp === selected_model
-          })
-          .map((model_run, i) =>
-            model_run.prediction_timestamps.map((prediction_timestamp, i2) => (
-              <div key={`${i}-${i2}`}>
-                <button
-                  onClick={() =>
-                    loadModelPrediction(
-                      model_run.model_run_timestamp,
-                      prediction_timestamp,
-                      false
-                    )
-                  }
-                >
-                  {prediction_timestamp}
-                </button>
-                {isLoaded(model_run.model_run_timestamp, prediction_timestamp)
-                  ? 'Loaded'
-                  : ''}
-                {/* {model_run.model_run_timestamp in model_run_predictions &&
+        <div>
+          <div>
+            <br />
+            <br />
+            <br />
+            Don't mess with this the stuff down here!
+          </div>
+          <div>
+            <button onClick={() => loadAllModelsPredictions()}>Load all</button>
+          </div>
+          <div>
+            <button onClick={() => animate(0)}>Animate</button>
+          </div>
+          {model_runs
+            .filter(model_run => {
+              return model_run.model_run_timestamp === selected_model
+            })
+            .map((model_run, i) =>
+              model_run.prediction_timestamps.map((prediction_timestamp, i2) => (
+                <div key={`${i}-${i2}`}>
+                  <button
+                    onClick={() =>
+                      loadModelPrediction(
+                        model_run.model_run_timestamp,
+                        prediction_timestamp,
+                        false
+                      )
+                    }
+                  >
+                    {prediction_timestamp}
+                  </button>
+                  {isLoaded(model_run.model_run_timestamp, prediction_timestamp)
+                    ? 'Loaded'
+                    : ''}
+                  {/* {model_run.model_run_timestamp in model_run_predictions &&
                 prediction_timestamp in
                   model_run_predictions[model_run.model_run_timestamp]
                   ? 'Loaded'
                   : ''} */}
-              </div>
-            ))
-          )}
+                </div>
+              ))
+            )}
+        </div>
       </Container>
     </main>
   )
