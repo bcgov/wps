@@ -1,14 +1,18 @@
 import React, { useRef, useEffect } from 'react'
-import { selectCHaines } from 'app/rootReducer'
+import { selectCHainesModelRuns } from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
 import { makeStyles } from '@material-ui/core/styles'
-import FormControl from '@material-ui/core/FormControl'
-import Select from '@material-ui/core/Select'
-import { fetchModelRuns } from 'features/cHaines/slices/cHainesSlice'
+// import FormControl from '@material-ui/core/FormControl'
+// import Select from '@material-ui/core/Select'
+import {
+  fetchModelRuns,
+  updateSelectedModel,
+  fetchCHainesGeoJSON
+} from 'features/cHaines/slices/cHainesModelRunsSlice'
 import { Container, PageHeader, PageTitle } from 'components'
-import { MenuItem } from '@material-ui/core'
+// import { MenuItem } from '@material-ui/core'
 
 const useStyles = makeStyles({
   map: {
@@ -22,7 +26,13 @@ const CHainesPage = () => {
   const classes = useStyles()
   const dispatch = useDispatch()
   const mapRef = useRef<L.Map | null>(null)
-  const { model_runs } = useSelector(selectCHaines)
+  const { model_runs, selected_model, model_run_predictions } = useSelector(
+    selectCHainesModelRuns
+  )
+  // const {} = useSelector(selectChainesPredictions)
+  // const [selectedModel, setSelectedModel] = useState(
+  //   model_runs.length > 0 ? model_runs[0].model_run_timestamp : ''
+  // )
 
   useEffect(() => {
     dispatch(fetchModelRuns())
@@ -53,11 +63,18 @@ const CHainesPage = () => {
   }, []) // Initialize the map only once
 
   const handleChange = (
-    event: React.ChangeEvent<{ name?: string | undefined; value: unknown }>
+    event: React.ChangeEvent<{ name?: string | undefined; value: string }>
   ) => {
     console.log(event.target.value)
-    // TODO: ok - load the predictions
-    // TODO: ok - loop through them
+    dispatch(updateSelectedModel(event.target.value))
+  }
+
+  const loadModelPrediction = (
+    model_run_timestamp: string,
+    prediction_timestamp: string
+  ) => {
+    console.log('load', model_run_timestamp, prediction_timestamp)
+    dispatch(fetchCHainesGeoJSON(model_run_timestamp, prediction_timestamp))
   }
 
   return (
@@ -66,11 +83,39 @@ const CHainesPage = () => {
       <PageTitle title="C-Haines" />
       <Container>
         <div id="map-with-selectable-wx-stations" className={classes.map} />
-        {model_runs.map((model_run, i) => (
-          <div key={i}>{model_run.model_run_timestamp}</div>
-        ))}
-        Model run:
-        <FormControl>
+        Model runs:
+        <select defaultValue={selected_model} onChange={handleChange}>
+          {model_runs.map((model_run, i) => (
+            <option value={model_run.model_run_timestamp} key={i}>
+              {model_run.model_run_timestamp}
+            </option>
+          ))}
+        </select>
+        (current: {selected_model})
+        {model_runs
+          .filter(model_run => {
+            return model_run.model_run_timestamp === selected_model
+          })
+          .map((model_run, i) =>
+            model_run.prediction_timestamps.map((prediction_timestamp, i2) => (
+              <div key={`${i}-${i2}`}>
+                <button
+                  onClick={() =>
+                    loadModelPrediction(
+                      model_run.model_run_timestamp,
+                      prediction_timestamp
+                    )
+                  }
+                >
+                  {prediction_timestamp}
+                </button>
+              </div>
+            ))
+          )}
+        {/* <div>
+            <button onClick={loadModelPrediction}>Load</button>
+          </div> */}
+        {/* <FormControl>
           <Select
             defaultValue={model_runs.length > 0 ? model_runs[0].model_run_timestamp : ''}
             onChange={handleChange}
@@ -81,7 +126,7 @@ const CHainesPage = () => {
               </option>
             ))}
           </Select>
-        </FormControl>
+        </FormControl> */}
       </Container>
     </main>
   )

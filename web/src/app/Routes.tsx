@@ -25,7 +25,7 @@ const Routes: React.FunctionComponent = () => {
   return (
     <Router>
       <Switch>
-        <Redirect exact from="/" to={PERCENTILE_CALC_ROUTE} />
+        <Redirect exact from="/" to={C_HAINES_ROUTE} />
 
         <Route path={PERCENTILE_CALC_ROUTE}>
           <PercentileCalculatorPageWithDisclaimer showDisclaimer={shouldShowDisclaimer} />
