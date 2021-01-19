@@ -13,8 +13,8 @@ export interface ModelRuns {
 
 export async function getModelRuns(): Promise<ModelRuns> {
   const url = `${API_BASE_URL}/c-haines/model-runs/`
-  console.log('API_BASE_URL', API_BASE_URL)
-  console.log(url)
+  // console.log('API_BASE_URL', API_BASE_URL)
+  // console.log(url)
   const { data } = await axios.get(url)
   return data
 }
@@ -23,8 +23,8 @@ export async function getCHainesGeoJSON(
   model_run_timestamp: string,
   prediction_timestamp: string
 ): Promise<FeatureCollection> {
-  console.log('fetching c-haines', model_run_timestamp, prediction_timestamp)
-  console.log('API_BASE_URL', API_BASE_URL)
+  // console.log('fetching c-haines', model_run_timestamp, prediction_timestamp)
+  // console.log('API_BASE_URL', API_BASE_URL)
   const url = `${API_BASE_URL}/c-haines/`
   console.log(url)
   const { data } = await axios.get(url, {
