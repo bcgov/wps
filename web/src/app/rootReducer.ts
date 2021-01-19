@@ -2,6 +2,7 @@ import { combineReducers } from '@reduxjs/toolkit'
 
 import stationsReducer from 'features/stations/slices/stationsSlice'
 import percentilesReducer from 'features/percentileCalculator/slices/percentilesSlice'
+import cHainesReducer from 'features/cHaines/slices/cHainesSlice'
 import authReducer from 'features/auth/slices/authenticationSlice'
 import modelsReducer from 'features/fireWeather/slices/modelsSlice'
 import observationsReducer from 'features/fireWeather/slices/observationsSlice'
@@ -16,6 +17,7 @@ import regionalModelSummariesReducer from 'features/fireWeather/slices/regionalM
 const rootReducer = combineReducers({
   stations: stationsReducer,
   percentiles: percentilesReducer,
+  cHaines: cHainesReducer,
   authentication: authReducer,
   observations: observationsReducer,
   models: modelsReducer,
@@ -36,6 +38,7 @@ export default rootReducer
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 export const selectStations = (state: RootState) => state.stations
 export const selectPercentiles = (state: RootState) => state.percentiles
+export const selectCHaines = (state: RootState) => state.cHaines
 export const selectAuthentication = (state: RootState) => state.authentication
 export const selectToken = (state: RootState) => state.authentication.token
 export const selectModels = (state: RootState) => state.models

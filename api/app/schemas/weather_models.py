@@ -6,14 +6,15 @@ from pydantic import BaseModel
 from app.schemas.stations import WeatherStation
 
 
-class CHainesModelRuns(BaseModel):
-    """ List of model run timestamps """
-    model_run_timestamps: List[datetime]
-
-
 class CHainesModelRunPredictions(BaseModel):
     """ List of predictions """
+    model_run_timestamp: datetime
     prediction_timestamps: List[datetime]
+
+
+class CHainesModelRuns(BaseModel):
+    """ List of model run timestamps """
+    model_runs: List[CHainesModelRunPredictions]
 
 
 class CHainesRequest(BaseModel):
