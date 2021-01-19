@@ -63,8 +63,8 @@ const CHainesPage = () => {
 
   useEffect(() => {
     mapRef.current = L.map('map-with-selectable-wx-stations', {
-      center: [0, 0],
-      zoom: 2,
+      center: [55, -123.6],
+      zoom: 5,
       // scrollWheelZoom: false,
       zoomAnimation: true
       // layers: [topoLayer, stationOverlay]
@@ -175,6 +175,42 @@ const CHainesPage = () => {
     }
   }
 
+  const loadNextPrediction = () => {
+    const model_run = model_runs.find(
+      model_run => model_run.model_run_timestamp === selected_model
+    )
+    if (model_run) {
+      const index = model_run.prediction_timestamps.findIndex(
+        value => value === selected_prediction
+      )
+      if (index + 1 < model_run.prediction_timestamps.length) {
+        loadModelPrediction(
+          selected_model,
+          model_run.prediction_timestamps[index + 1],
+          false
+        )
+      }
+    }
+  }
+
+  const loadPreviousPrediction = () => {
+    const model_run = model_runs.find(
+      model_run => model_run.model_run_timestamp === selected_model
+    )
+    if (model_run) {
+      const index = model_run.prediction_timestamps.findIndex(
+        value => value === selected_prediction
+      )
+      if (index > 0) {
+        loadModelPrediction(
+          selected_model,
+          model_run.prediction_timestamps[index - 1],
+          false
+        )
+      }
+    }
+  }
+
   const animate = (index: number) => {
     const model_run = model_runs.find(
       model_run => model_run.model_run_timestamp === selected_model
@@ -205,14 +241,18 @@ const CHainesPage = () => {
           <select defaultValue={selected_model} onChange={handleChange}>
             {model_runs.map((model_run, i) => (
               <option value={model_run.model_run_timestamp} key={i}>
-                {model_run.model_run_timestamp}
+                GDPS {model_run.model_run_timestamp}
               </option>
             ))}
           </select>
         </div>
         <div>
           Predictions:
-          <select defaultValue={selected_prediction} onChange={handlePredictionChange}>
+          <select
+            defaultValue={selected_prediction}
+            value={selected_prediction}
+            onChange={handlePredictionChange}
+          >
             {model_runs
               .filter(model_run => {
                 return model_run.model_run_timestamp === selected_model
@@ -227,8 +267,12 @@ const CHainesPage = () => {
           </select>
         </div>
         <div>
-          (current: {selected_model} : {selected_prediction}) :{' '}
+          (current: GDPS {selected_model} : {selected_prediction}) :{' '}
           {isLoaded(selected_model, selected_prediction) ? 'Loaded' : 'Loading'}
+        </div>
+        <div>
+          <button onClick={() => loadPreviousPrediction()}>Prev</button>
+          <button onClick={() => loadNextPrediction()}>Next</button>
         </div>
         <div>
           <div>
