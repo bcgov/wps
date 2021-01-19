@@ -12,6 +12,7 @@ import {
 } from 'features/cHaines/slices/cHainesModelRunsSlice'
 import { Container, PageHeader, PageTitle } from 'components'
 import { FeatureCollection } from 'geojson'
+import { createFalse } from 'typescript'
 
 const useStyles = makeStyles({
   map: {
@@ -41,6 +42,48 @@ const CHainesPage = () => {
   useEffect(() => {
     dispatch(fetchModelRuns())
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    console.log('model runs', model_runs)
+    console.log('selected_model', selected_model)
+    console.log('selected_prediction', selected_prediction)
+    if (selected_prediction && selected_model && model_runs.length > 0) {
+      loadModelPrediction(selected_model, selected_prediction, false)
+    }
+  }, [model_runs, selected_model, selected_prediction])
+
+  useEffect(() => {
+    if (selected_model in model_run_predictions) {
+      if (selected_prediction in model_run_predictions[selected_model]) {
+        console.log('have new model run prediction!', selected_model, selected_prediction)
+        showLayer(selected_model, selected_prediction)
+      }
+    }
+  }, [model_run_predictions])
+
+  useEffect(() => {
+    mapRef.current = L.map('map-with-selectable-wx-stations', {
+      center: [0, 0],
+      zoom: 2,
+      // scrollWheelZoom: false,
+      zoomAnimation: true
+      // layers: [topoLayer, stationOverlay]
+    })
+    const streetLayer = L.tileLayer(
+      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      {
+        attribution:
+          '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+      }
+    )
+    streetLayer.addTo(mapRef.current)
+    // L.control.layers(baseMaps, overlays).addTo(mapRef.current)
+
+    // Destroy the map and clear all related event listeners when the component unmounts
+    return () => {
+      mapRef.current?.remove()
+    }
+  }, []) // Initialize the map only once
 
   const createLayer = (data: FeatureCollection) => {
     return L.geoJSON(data, {
@@ -86,39 +129,6 @@ const CHainesPage = () => {
     }
   }
 
-  useEffect(() => {
-    if (selected_model in model_run_predictions) {
-      if (selected_prediction in model_run_predictions[selected_model]) {
-        console.log('have new model run prediction!', selected_model, selected_prediction)
-        showLayer(selected_model, selected_prediction)
-      }
-    }
-  }, [model_run_predictions])
-
-  useEffect(() => {
-    mapRef.current = L.map('map-with-selectable-wx-stations', {
-      center: [0, 0],
-      zoom: 2,
-      // scrollWheelZoom: false,
-      zoomAnimation: true
-      // layers: [topoLayer, stationOverlay]
-    })
-    const streetLayer = L.tileLayer(
-      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      {
-        attribution:
-          '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-      }
-    )
-    streetLayer.addTo(mapRef.current)
-    // L.control.layers(baseMaps, overlays).addTo(mapRef.current)
-
-    // Destroy the map and clear all related event listeners when the component unmounts
-    return () => {
-      mapRef.current?.remove()
-    }
-  }, []) // Initialize the map only once
-
   const handleChange = (
     event: React.ChangeEvent<{ name?: string | undefined; value: string }>
   ) => {
@@ -144,7 +154,8 @@ const CHainesPage = () => {
 
   const loadModelPrediction = (
     model_run_timestamp: string,
-    prediction_timestamp: string
+    prediction_timestamp: string,
+    animate: boolean
   ) => {
     console.log('load', model_run_timestamp, prediction_timestamp)
     dispatch(updateSelectedPrediction(prediction_timestamp))
@@ -164,7 +175,8 @@ const CHainesPage = () => {
     if (model_run) {
       loadModelPrediction(
         model_run.model_run_timestamp,
-        model_run.prediction_timestamps[index]
+        model_run.prediction_timestamps[index],
+        true
       )
       if (index + 1 < model_run.prediction_timestamps.length) {
         setTimeout(() => {
@@ -188,7 +200,9 @@ const CHainesPage = () => {
             </option>
           ))}
         </select>
-        <div>(current: {selected_model})</div>
+        <div>
+          (current: {selected_model} : {selected_prediction})
+        </div>
         <div>
           <button onClick={() => loadAllModelsPredictions()}>Load all</button>
         </div>
@@ -206,7 +220,8 @@ const CHainesPage = () => {
                   onClick={() =>
                     loadModelPrediction(
                       model_run.model_run_timestamp,
-                      prediction_timestamp
+                      prediction_timestamp,
+                      false
                     )
                   }
                 >
