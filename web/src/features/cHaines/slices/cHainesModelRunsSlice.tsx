@@ -57,6 +57,10 @@ const cHainesModelRunsSlice = createSlice({
     setSelectedModel(state: State, action: PayloadAction<string>) {
       state.selected_model = action.payload
     },
+    setSelectedPrediction(state: State, action: PayloadAction<string>) {
+      console.log('setSelectedPrediction', action.payload)
+      state.selected_prediction = action.payload
+    },
     getPredictionStart(state: State) {
       state.loading = true
     },
@@ -77,6 +81,7 @@ const {
   getModelRunsSuccess,
   getModelRunsFailed,
   setSelectedModel,
+  setSelectedPrediction,
   getPredictionStart,
   getPredictionSuccess,
   getPredictionFailed
@@ -108,6 +113,12 @@ export const updateSelectedModel = (
   selected_model: string
 ): AppThunk => async dispatch => {
   dispatch(setSelectedModel(selected_model))
+}
+
+export const updateSelectedPrediction = (
+  selected_prediction: string
+): AppThunk => async dispatch => {
+  dispatch(setSelectedPrediction(selected_prediction))
 }
 
 export const fetchCHainesGeoJSON = (
