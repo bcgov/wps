@@ -133,6 +133,15 @@ const CHainesPage = () => {
     )
   }
 
+  const loadAllModelsPredictions = () => {
+    model_runs.forEach(modelRun => {
+      console.log(modelRun)
+      modelRun.prediction_timestamps.forEach(prediction_timestamp => {
+        dispatch(fetchCHainesGeoJSON(modelRun.model_run_timestamp, prediction_timestamp))
+      })
+    })
+  }
+
   const loadModelPrediction = (
     model_run_timestamp: string,
     prediction_timestamp: string
@@ -148,6 +157,8 @@ const CHainesPage = () => {
     }
   }
 
+  const animate = (index: number) => {}
+
   return (
     <main>
       <PageHeader title="Predictive Services Unit" productName="C-Haines" />
@@ -162,7 +173,13 @@ const CHainesPage = () => {
             </option>
           ))}
         </select>
-        (current: {selected_model})
+        <div>(current: {selected_model})</div>
+        <div>
+          <button onClick={() => loadAllModelsPredictions()}>Load all</button>
+        </div>
+        <div>
+          <button onClick={() => animate(0)}>Animate</button>
+        </div>
         {model_runs
           .filter(model_run => {
             return model_run.model_run_timestamp === selected_model

@@ -124,7 +124,8 @@ async def get_stations(response: Response):
     try:
         logger.info('/stations/')
         weather_stations = await stations.get_stations()
-        response.headers["Cache-Control"] = "max-age=43200"  # let browsers to cache the data for 12 hours
+        # let browsers to cache the data for 12 hours
+        response.headers["Cache-Control"] = "public, max-age=43200, immutable"
         return schemas.stations.WeatherStationsResponse(weather_stations=weather_stations)
     except Exception as exception:
         logger.critical(exception, exc_info=True)

@@ -30,6 +30,9 @@ templates = Jinja2Templates(directory=get_static_foldername())
 def add_security_headers(scope, response):
     """ Add security headers to statically served content
     """
+    if config.get('HOSTNAME') != 'localhost':
+        # For anything else - force https.
+        response.headers.setdefault('Content-Security-Policy', 'upgrade-insecure-requests')
     return
     path = scope.get('path')
 
