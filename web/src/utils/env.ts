@@ -21,4 +21,7 @@ if (process.env.NODE_ENV === 'production') {
   console.log('API_BASE_URL:', ENV.API_BASE_URL)
 }
 
+console.log('process.env.REACT_APP_API_BASE_URL', process.env.REACT_APP_API_BASE_URL)
+console.log('env.ts', ENV.API_BASE_URL)
+
 export const { API_BASE_URL, HIDE_DISCLAIMER, KC_AUTH_URL, KC_REALM, KC_CLIENT } = ENV
