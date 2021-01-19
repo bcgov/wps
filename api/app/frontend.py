@@ -86,6 +86,9 @@ async def get_index(request: Request):
                 'REACT_APP_MATOMO_SITE_ID': config.get('REACT_APP_MATOMO_SITE_ID'),
                 'REACT_APP_MATOMO_CONTAINER': config.get('REACT_APP_MATOMO_CONTAINER'),
             })
+        if config.get('HOSTNAME') != 'localhost':
+            # For anything else - force https.
+            response.headers.setdefault('Content-Security-Policy', 'upgrade-insecure-requests')
         return response
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
         response.headers.setdefault('X-Frame-Options', 'DENY')

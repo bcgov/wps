@@ -157,7 +157,22 @@ const CHainesPage = () => {
     }
   }
 
-  const animate = (index: number) => {}
+  const animate = (index: number) => {
+    const model_run = model_runs.find(
+      model_run => model_run.model_run_timestamp === selected_model
+    )
+    if (model_run) {
+      loadModelPrediction(
+        model_run.model_run_timestamp,
+        model_run.prediction_timestamps[index]
+      )
+      if (index + 1 < model_run.prediction_timestamps.length) {
+        setTimeout(() => {
+          animate(index + 1)
+        }, 1000)
+      }
+    }
+  }
 
   return (
     <main>
