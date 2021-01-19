@@ -18,6 +18,7 @@ if (process.env.NODE_ENV === 'production') {
     KC_REALM: window.env.REACT_APP_KEYCLOAK_REALM,
     KC_CLIENT: window.env.REACT_APP_KEYCLOAK_CLIENT
   }
+  console.log('API_BASE_URL:', ENV.API_BASE_URL)
 }
 
 export const { API_BASE_URL, HIDE_DISCLAIMER, KC_AUTH_URL, KC_REALM, KC_CLIENT } = ENV
