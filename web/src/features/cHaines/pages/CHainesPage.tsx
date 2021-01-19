@@ -11,6 +11,7 @@ import {
   fetchCHainesGeoJSON
 } from 'features/cHaines/slices/cHainesModelRunsSlice'
 import { Container, PageHeader, PageTitle } from 'components'
+import { FeatureCollection } from 'geojson'
 
 const useStyles = makeStyles({
   map: {
@@ -41,37 +42,55 @@ const CHainesPage = () => {
     dispatch(fetchModelRuns())
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
+  const createLayer = (data: FeatureCollection) => {
+    return L.geoJSON(data, {
+      style: feature => {
+        switch (feature?.properties.severity) {
+          case 1:
+            // yellow
+            return { color: '#ffff00' }
+          case 2:
+            return { color: '#FFA500' }
+          case 3:
+            // red
+            return { color: '#ff0000' }
+          // return { color: "#800080" }; // purple
+          default:
+            return {}
+        }
+      }
+    })
+  }
+
+  const getLayer = (selected_model: string, selected_prediction: string) => {
+    const layerKey = `${selected_model}-${selected_prediction}`
+    if (layerKey in layersRef.current) {
+      return layersRef.current[layerKey]
+    } else {
+      const data = model_run_predictions[selected_model][selected_prediction]
+      const geoJsonLayer = createLayer(data)
+      layersRef.current[layerKey] = geoJsonLayer
+      return geoJsonLayer
+    }
+  }
+
+  const showLayer = (selected_model: string, selected_prediction: string) => {
+    const geoJsonLayer = getLayer(selected_model, selected_prediction)
+    if (mapRef.current) {
+      if (currentLayersRef.current) {
+        mapRef.current.removeLayer(currentLayersRef.current)
+        currentLayersRef.current = null
+      }
+      geoJsonLayer.addTo(mapRef.current)
+      currentLayersRef.current = geoJsonLayer
+    }
+  }
+
   useEffect(() => {
     if (selected_model in model_run_predictions) {
       if (selected_prediction in model_run_predictions[selected_model]) {
         console.log('have new model run prediction!', selected_model, selected_prediction)
-        const data = model_run_predictions[selected_model][selected_prediction]
-        const geoJsonLayer = L.geoJSON(data, {
-          style: feature => {
-            switch (feature?.properties.severity) {
-              case 1:
-                // yellow
-                return { color: '#ffff00' }
-              case 2:
-                return { color: '#FFA500' }
-              case 3:
-                // red
-                return { color: '#ff0000' }
-              // return { color: "#800080" }; // purple
-              default:
-                return {}
-            }
-          }
-        })
-        layersRef.current[`${selected_model}-${selected_prediction}`] = geoJsonLayer
-        if (mapRef.current) {
-          if (currentLayersRef.current) {
-            mapRef.current.removeLayer(currentLayersRef.current)
-            currentLayersRef.current = null
-          }
-          geoJsonLayer.addTo(mapRef.current)
-          currentLayersRef.current = geoJsonLayer
-        }
+        showLayer(selected_model, selected_prediction)
       }
     }
   }, [model_run_predictions])
@@ -120,7 +139,13 @@ const CHainesPage = () => {
   ) => {
     console.log('load', model_run_timestamp, prediction_timestamp)
     dispatch(updateSelectedPrediction(prediction_timestamp))
-    dispatch(fetchCHainesGeoJSON(model_run_timestamp, prediction_timestamp))
+    if (isLoaded(model_run_timestamp, prediction_timestamp)) {
+      showLayer(model_run_timestamp, prediction_timestamp)
+      // if it's already loaded, we can just show it
+    } else {
+      // fetch the data
+      dispatch(fetchCHainesGeoJSON(model_run_timestamp, prediction_timestamp))
+    }
   }
 
   return (
