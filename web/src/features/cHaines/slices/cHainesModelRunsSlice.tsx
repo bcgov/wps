@@ -10,6 +10,7 @@ interface State {
   model_runs: ModelRun[]
   model_run_predictions: Record<string, Record<string, FeatureCollection>>
   selected_model: string
+  selected_prediction: string
 }
 
 interface GeoJSONContext {
@@ -23,6 +24,7 @@ const initialState: State = {
   error: null,
   model_runs: [],
   selected_model: '',
+  selected_prediction: '',
   model_run_predictions: {}
 }
 
@@ -32,11 +34,16 @@ const cHainesModelRunsSlice = createSlice({
   reducers: {
     getModelRunsStart(state: State) {
       state.loading = true
+      state.selected_prediction = ''
     },
     getModelRunsSuccess(state: State, action: PayloadAction<ModelRuns>) {
       state.model_runs = action.payload.model_runs
-      state.selected_model =
-        state.model_runs.length > 0 ? state.model_runs[0].model_run_timestamp : ''
+      if (state.model_runs.length > 0) {
+        state.selected_model = state.model_runs[0].model_run_timestamp
+        if (state.model_runs[0].prediction_timestamps.length > 0) {
+          state.selected_prediction = state.model_runs[0].prediction_timestamps[0]
+        }
+      }
       state.model_runs.forEach(e => {
         state.model_run_predictions[e.model_run_timestamp] = {}
       })

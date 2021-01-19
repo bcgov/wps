@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from 'react'
 import { selectCHainesModelRuns } from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
 import 'leaflet/dist/leaflet.css'
-import L from 'leaflet'
+import L, { StyleFunction } from 'leaflet'
 import { makeStyles } from '@material-ui/core/styles'
 // import FormControl from '@material-ui/core/FormControl'
 // import Select from '@material-ui/core/Select'
@@ -26,9 +26,12 @@ const CHainesPage = () => {
   const classes = useStyles()
   const dispatch = useDispatch()
   const mapRef = useRef<L.Map | null>(null)
-  const { model_runs, selected_model, model_run_predictions } = useSelector(
-    selectCHainesModelRuns
-  )
+  const {
+    model_runs,
+    selected_model,
+    model_run_predictions,
+    selected_prediction
+  } = useSelector(selectCHainesModelRuns)
   // const {} = useSelector(selectChainesPredictions)
   // const [selectedModel, setSelectedModel] = useState(
   //   model_runs.length > 0 ? model_runs[0].model_run_timestamp : ''
@@ -37,6 +40,32 @@ const CHainesPage = () => {
   useEffect(() => {
     dispatch(fetchModelRuns())
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    console.log('have new model run prediction!')
+    if (selected_model in model_run_predictions) {
+      if (selected_prediction in model_run_predictions[selected_model]) {
+        const data = model_run_predictions[selected_model][selected_prediction]
+        const geoJsonLayer = L.geoJSON(data)
+        // const geoJsonLayer = L.geoJSON(data, {
+        //   style: feature => {
+        //     switch (feature.properties.severity) {
+        //       case 1:
+        //         // yellow
+        //         return { color: '#ffff00' }
+        //       case 2:
+        //         return { color: '#FFA500' }
+        //       case 3:
+        //         // red
+        //         return { color: '#ff0000' }
+        //       // return { color: "#800080" }; // purple
+        //     }
+        //   }
+        // })
+        geoJsonLayer.addTo(mapRef.current)
+      }
+    }
+  }, [model_run_predictions])
 
   useEffect(() => {
     mapRef.current = L.map('map-with-selectable-wx-stations', {
