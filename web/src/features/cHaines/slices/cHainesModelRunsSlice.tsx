@@ -58,6 +58,14 @@ const cHainesModelRunsSlice = createSlice({
     },
     setSelectedModel(state: State, action: PayloadAction<string>) {
       state.selected_model = action.payload
+      const model_run = state.model_runs.find(
+        model_run => model_run.model_run_timestamp === action.payload
+      )
+      if (model_run) {
+        state.selected_prediction = model_run.prediction_timestamps[0]
+      } else {
+        state.selected_prediction = ''
+      }
     },
     setSelectedPrediction(state: State, action: PayloadAction<string>) {
       console.log('setSelectedPrediction', action.payload)
