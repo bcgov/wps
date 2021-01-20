@@ -67,7 +67,7 @@ const CHainesPage = () => {
     if (selected_prediction && selected_model && model_runs.length > 0) {
       loadModelPrediction(selected_model, selected_prediction, false)
     }
-  }, [model_runs, selected_model, selected_prediction])
+  }, [model_runs])
 
   useEffect(() => {
     if (selected_model in model_run_predictions) {
@@ -155,6 +155,7 @@ const CHainesPage = () => {
   const handlePredictionChange = (
     event: React.ChangeEvent<{ name?: string | undefined; value: string }>
   ) => {
+    console.log('handlePredictionChange')
     loadModelPrediction(selected_model, event.target.value, false)
   }
 
