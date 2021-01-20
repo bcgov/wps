@@ -26,7 +26,7 @@ from pyproj import CRS
 from app import configure_logging
 from app.weather_models import ModelEnum, ProjectionEnum
 from app.weather_models.process_grib import (get_transformer, GEO_CRS, calculate_raster_coordinate,
-                                             get_dataset_geometry)
+                                             get_dataset_geometry, calculate_geographic_coordinate)
 from app.db.models import CHainesPoly, PredictionModel
 from app.db.crud.weather_models import get_prediction_model, get_c_haines
 from app.time_utils import get_utc_now
@@ -35,6 +35,30 @@ from app.weather_models.env_canada import (get_model_run_hours,
 import app.db.database
 
 logger = logging.getLogger(__name__)
+
+
+class BoundingBoxChecker():
+
+    def __init__(self, geo_bounding_box, padf_transform, raster_to_geo_transformer):
+        self.geo_bounding_box = geo_bounding_box
+        self.padf_transform = padf_transform
+        self.raster_to_geo_transformer = raster_to_geo_transformer
+
+    def is_inside(self, raster_x, raster_y):
+        """ Check if raster coordinate is inside the geographic bounding box """
+        lon, lat = calculate_geographic_coordinate(
+            (raster_x, raster_y),
+            self.padf_transform,
+            self.raster_to_geo_transformer)
+        lon0 = self.geo_bounding_box[0][0]
+        lat0 = self.geo_bounding_box[0][1]
+        lon1 = self.geo_bounding_box[1][0]
+        lat1 = self.geo_bounding_box[1][1]
+        if lon > lon0:
+            if lon < lon1:
+                if lat < lat0:
+                    if lat > lat1:
+                        return True
 
 
 def get_prediction_date(model_run_timestamp, hour) -> datetime:
@@ -157,7 +181,10 @@ def get_bucket_value(ch):
 
 
 def calculate_c_haines_data(
-        grib_tmp_700: gdal.Dataset, grib_tmp_850: gdal.Dataset, grib_dew_850: gdal.Dataset):
+        grib_tmp_700: gdal.Dataset,
+        grib_tmp_850: gdal.Dataset,
+        grib_dew_850: gdal.Dataset,
+        bound_checker: BoundingBoxChecker):
     """ Given grib data sets for temperature and dew point, create array of data containing
     c-haines indices and mask """
     logger.info('calculting c-haines data...')
@@ -178,40 +205,45 @@ def calculate_c_haines_data(
     highest = None
 
     # Iterate through rows.
-    for row_index in range(rows):
-        # Read the scanlines.
-        row_tmp_700 = read_scanline(tmp_700_raster_band, row_index)
-        row_tmp_850 = read_scanline(tmp_850_raster_band, row_index)
-        row_dew_850 = read_scanline(dew_850_raster_band, row_index)
+    for y_row_index in range(rows):
 
         chaines_row = []
         mask_row = []
+        # Read the scanlines.
+        row_tmp_700 = read_scanline(tmp_700_raster_band, y_row_index)
+        row_tmp_850 = read_scanline(tmp_850_raster_band, y_row_index)
+        row_dew_850 = read_scanline(dew_850_raster_band, y_row_index)
+
         # TODO: Look at using numpy to iterate through this faster.
         # Iterate through values in row.
-        for t700, t850, td850 in zip(row_tmp_700, row_tmp_850, row_dew_850):
+        for x_column_index, (t700, t850, td850) in enumerate(zip(row_tmp_700, row_tmp_850, row_dew_850)):
 
-            # pylint: disable=invalid-name
-            ch = calculate_c_haines_index(t700, t850, td850)
+            if bound_checker.is_inside(x_column_index, y_row_index):
+                # pylint: disable=invalid-name
+                ch = calculate_c_haines_index(t700, t850, td850)
 
-            if lowest is None:
-                lowest = ch
-            if highest is None:
-                highest = ch
-            if ch < lowest:
-                lowest = ch
-            if ch > highest:
-                highest = ch
+                if lowest is None:
+                    lowest = ch
+                if highest is None:
+                    highest = ch
+                if ch < lowest:
+                    lowest = ch
+                if ch > highest:
+                    highest = ch
 
-            # We're not interested in such finely grained results, so
-            # we bucket them together as such:
-            level = get_bucket_value(ch)
-            chaines_row.append(level)
+                # We're not interested in such finely grained results, so
+                # we bucket them together as such:
+                level = get_bucket_value(ch)
+                chaines_row.append(level)
 
-            # We ignore level 0
-            if level == 0:
-                mask_row.append(0)
+                # We ignore level 0
+                if level == 0:
+                    mask_row.append(0)
+                else:
+                    mask_row.append(1)
             else:
-                mask_row.append(1)
+                mask_row.append(0)
+                chaines_row.append(0)
 
         c_haines_data.append(chaines_row)
         mask_data.append(mask_row)
@@ -396,8 +428,19 @@ def generate_and_store_c_haines(
     # Assume they're all using the same projection and transformation.
     projection = grib_tmp_850.GetProjection()
     geotransform = grib_tmp_850.GetGeoTransform()
+    padf_transform = get_dataset_geometry(grib_tmp_700)
 
-    c_haines_data, mask_data, rows, cols = calculate_c_haines_data(grib_tmp_700, grib_tmp_850, grib_dew_850)
+    # S->N 46->70
+    # E->W -110->-140
+    top_left_geo = (-140, 70)
+    bottom_right_geo = (-110, 46)
+    geographic_bounding_box = (top_left_geo, bottom_right_geo)
+    crs = CRS.from_string(projection)
+    geo_to_raster_transformer = get_transformer(crs, GEO_CRS)
+    bound_checker = BoundingBoxChecker(geographic_bounding_box, padf_transform, geo_to_raster_transformer)
+
+    c_haines_data, mask_data, rows, cols = calculate_c_haines_data(
+        grib_tmp_700, grib_tmp_850, grib_dew_850, bound_checker)
 
     # Expictly release the grib files - they take a lot of memory. (Is this needed?)
     del grib_tmp_700, grib_tmp_850, grib_dew_850
