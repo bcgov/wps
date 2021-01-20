@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react'
+import React, { useRef, useEffect, useState } from 'react'
 import ReactDOMServer from 'react-dom/server'
 import { selectCHainesModelRuns } from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
@@ -62,6 +62,8 @@ const CHainesPage = () => {
   const mapTitleRef = useRef<L.Control | null>(null)
   const loadingLayerRef = useRef<L.Control | null>(null)
   const currentLayersRef = useRef<L.GeoJSON | null>(null)
+  const loopTimeoutRef = useRef<number | null>(null)
+  const [isAnimating, setAnimate] = useState(false)
   const {
     model_runs,
     selected_model,
@@ -75,8 +77,7 @@ const CHainesPage = () => {
 
   const loadModelPrediction = (
     model_run_timestamp: string,
-    prediction_timestamp: string,
-    animate: boolean
+    prediction_timestamp: string
   ) => {
     dispatch(updateSelectedPrediction(prediction_timestamp))
     if (isLoaded(model_run_timestamp, prediction_timestamp)) {
@@ -101,7 +102,7 @@ const CHainesPage = () => {
 
   useEffect(() => {
     if (selected_prediction && selected_model && model_runs.length > 0) {
-      loadModelPrediction(selected_model, selected_prediction, false)
+      loadModelPrediction(selected_model, selected_prediction)
     }
   }, [model_runs])
 
@@ -173,6 +174,7 @@ const CHainesPage = () => {
   useEffect(() => {
     if (mapRef.current && selected_model && selected_prediction) {
       if (isLoaded(selected_model, selected_prediction)) {
+        console.log('show new layer etc.')
         const customControl = L.Control.extend({
           onAdd: function(map: any) {
             const html = (
@@ -199,6 +201,11 @@ const CHainesPage = () => {
         }
         mapTitleRef.current = new customControl({ position: 'topright' })
         mapTitleRef.current.addTo(mapRef.current)
+        if (isAnimating) {
+          loopTimeoutRef.current = window.setTimeout(() => {
+            loadNextPrediction()
+          }, 500)
+        }
       } else {
         const customControl = L.Control.extend({
           onAdd: function(map: any) {
@@ -217,6 +224,9 @@ const CHainesPage = () => {
             //
           }
         })
+        if (loadingLayerRef.current) {
+          mapRef.current.removeControl(loadingLayerRef.current)
+        }
         loadingLayerRef.current = new customControl({ position: 'topright' })
         loadingLayerRef.current.addTo(mapRef.current)
       }
@@ -225,7 +235,8 @@ const CHainesPage = () => {
     selected_model,
     selected_prediction,
     model_run_predictions,
-    isLoaded(selected_model, selected_prediction)
+    isLoaded(selected_model, selected_prediction),
+    isAnimating
   ])
 
   const createLayer = (data: FeatureCollection) => {
@@ -283,7 +294,7 @@ const CHainesPage = () => {
     event: React.ChangeEvent<{ name?: string | undefined; value: string }>
   ) => {
     console.log('handlePredictionChange')
-    loadModelPrediction(selected_model, event.target.value, false)
+    loadModelPrediction(selected_model, event.target.value)
   }
 
   const loadAllModelsPredictions = () => {
@@ -302,13 +313,8 @@ const CHainesPage = () => {
       const index = model_run.prediction_timestamps.findIndex(
         value => value === selected_prediction
       )
-      if (index + 1 < model_run.prediction_timestamps.length) {
-        loadModelPrediction(
-          selected_model,
-          model_run.prediction_timestamps[index + 1],
-          false
-        )
-      }
+      const nextIndex = index + 1 < model_run.prediction_timestamps.length ? index + 1 : 0
+      loadModelPrediction(selected_model, model_run.prediction_timestamps[nextIndex])
     }
   }
 
@@ -320,30 +326,19 @@ const CHainesPage = () => {
       const index = model_run.prediction_timestamps.findIndex(
         value => value === selected_prediction
       )
-      if (index > 0) {
-        loadModelPrediction(
-          selected_model,
-          model_run.prediction_timestamps[index - 1],
-          false
-        )
-      }
+      const nextIndex = index > 0 ? index - 1 : model_run.prediction_timestamps.length - 1
+      loadModelPrediction(selected_model, model_run.prediction_timestamps[nextIndex])
     }
   }
 
-  const animate = (index: number) => {
-    const model_run = model_runs.find(
-      model_run => model_run.model_run_timestamp === selected_model
-    )
-    if (model_run) {
-      loadModelPrediction(
-        model_run.model_run_timestamp,
-        model_run.prediction_timestamps[index],
-        true
-      )
-      if (index + 1 < model_run.prediction_timestamps.length) {
-        setTimeout(() => {
-          animate(index + 1)
-        }, 1000)
+  const toggleAnimate = () => {
+    const animate = !isAnimating
+    setAnimate(animate)
+    if (animate) {
+      loadNextPrediction()
+    } else {
+      if (loopTimeoutRef.current) {
+        window.clearTimeout(loopTimeoutRef.current)
       }
     }
   }
@@ -388,6 +383,9 @@ const CHainesPage = () => {
           </div>
           <div>
             <button onClick={() => loadPreviousPrediction()}>Prev</button>
+            <button onClick={() => toggleAnimate()}>
+              {isAnimating ? 'Stop' : 'Animate'}
+            </button>
             <button onClick={() => loadNextPrediction()}>Next</button>
           </div>
         </div>
@@ -401,9 +399,9 @@ const CHainesPage = () => {
           <div>
             <button onClick={() => loadAllModelsPredictions()}>Load all</button>
           </div>
-          <div>
+          {/* <div>
             <button onClick={() => animate(0)}>Animate</button>
-          </div>
+          </div> */}
           {model_runs
             .filter(model_run => {
               return model_run.model_run_timestamp === selected_model
@@ -415,8 +413,7 @@ const CHainesPage = () => {
                     onClick={() =>
                       loadModelPrediction(
                         model_run.model_run_timestamp,
-                        prediction_timestamp,
-                        false
+                        prediction_timestamp
                       )
                     }
                   >
