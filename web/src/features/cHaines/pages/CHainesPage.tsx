@@ -1,4 +1,5 @@
 import React, { useRef, useEffect } from 'react'
+import ReactDOMServer from 'react-dom/server'
 import { selectCHainesModelRuns } from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
 import 'leaflet/dist/leaflet.css'
@@ -18,10 +19,21 @@ const useStyles = makeStyles({
     height: '640px'
   },
   legend: {
-    display: 'flex'
+    display: 'flex',
+    backgroundColor: 'white'
   },
-  space: {
-    width: 40
+  description: {
+    paddingLeft: 10,
+    paddingRight: 10
+  },
+  loading: {
+    backgroundColor: 'white',
+    opacity: 0.8,
+    width: '100%'
+  },
+  label: {
+    backgroundColor: 'white',
+    opacity: 0.8
   },
   extreme: {
     backgroundColor: '#ff0000',
@@ -47,6 +59,8 @@ const CHainesPage = () => {
   const dispatch = useDispatch()
   const mapRef = useRef<L.Map | null>(null)
   const layersRef = useRef<Record<string, L.GeoJSON>>({})
+  const mapTitleRef = useRef<L.Control | null>(null)
+  const loadingLayerRef = useRef<L.Control | null>(null)
   const currentLayersRef = useRef<L.GeoJSON | null>(null)
   const {
     model_runs,
@@ -58,6 +72,28 @@ const CHainesPage = () => {
   // const [selectedModel, setSelectedModel] = useState(
   //   model_runs.length > 0 ? model_runs[0].model_run_timestamp : ''
   // )
+
+  const loadModelPrediction = (
+    model_run_timestamp: string,
+    prediction_timestamp: string,
+    animate: boolean
+  ) => {
+    dispatch(updateSelectedPrediction(prediction_timestamp))
+    if (isLoaded(model_run_timestamp, prediction_timestamp)) {
+      showLayer(model_run_timestamp, prediction_timestamp)
+      // if it's already loaded, we can just show it
+    } else {
+      // fetch the data
+      dispatch(fetchCHainesGeoJSON(model_run_timestamp, prediction_timestamp))
+    }
+  }
+
+  const isLoaded = (model_run_timestamp: string, prediction_timestamp: string) => {
+    return (
+      model_run_timestamp in model_run_predictions &&
+      prediction_timestamp in model_run_predictions[model_run_timestamp]
+    )
+  }
 
   useEffect(() => {
     dispatch(fetchModelRuns())
@@ -93,13 +129,104 @@ const CHainesPage = () => {
       }
     )
     streetLayer.addTo(mapRef.current)
+
+    // Create and add the legend.
+    const customControl = L.Control.extend({
+      onAdd: function(map: any) {
+        const html = (
+          <div>
+            <div className={classes.legend}>
+              <div className={classes.extreme}></div>
+              <div className={classes.description}>11+ Extreme</div>
+            </div>
+            <div className={classes.legend}>
+              <div className={classes.high}></div>
+              <div className={classes.description}>8-11 High</div>
+            </div>
+            <div className={classes.legend}>
+              <div className={classes.moderate}></div>
+              <div className={classes.description}>4-8 Moderate</div>
+            </div>
+          </div>
+        )
+
+        const div = L.DomUtil.create('div')
+        div.innerHTML = ReactDOMServer.renderToString(html)
+        return div
+      },
+
+      onRemove: function(map: any) {
+        //
+      }
+    })
+    new customControl({ position: 'bottomleft' }).addTo(mapRef.current)
     // L.control.layers(baseMaps, overlays).addTo(mapRef.current)
+
+    // const legend = L.control({position: 'bottomLeft'});
 
     // Destroy the map and clear all related event listeners when the component unmounts
     return () => {
       mapRef.current?.remove()
     }
   }, []) // Initialize the map only once
+
+  useEffect(() => {
+    if (mapRef.current && selected_model && selected_prediction) {
+      if (isLoaded(selected_model, selected_prediction)) {
+        const customControl = L.Control.extend({
+          onAdd: function(map: any) {
+            const html = (
+              <div className={classes.label}>
+                <div>GDPS model run: {selected_model} (UTC)</div>
+                <div>GDPS prediction: {selected_prediction} (UTC)</div>
+              </div>
+            )
+
+            const div = L.DomUtil.create('div')
+            div.innerHTML = ReactDOMServer.renderToString(html)
+            return div
+          },
+
+          onRemove: function(map: any) {
+            //
+          }
+        })
+        if (loadingLayerRef.current) {
+          mapRef.current.removeControl(loadingLayerRef.current)
+        }
+        if (mapTitleRef.current) {
+          mapRef.current.removeControl(mapTitleRef.current)
+        }
+        mapTitleRef.current = new customControl({ position: 'topright' })
+        mapTitleRef.current.addTo(mapRef.current)
+      } else {
+        const customControl = L.Control.extend({
+          onAdd: function(map: any) {
+            const html = (
+              <div className={classes.loading}>
+                <div>LOADING: {selected_prediction} (UTC)</div>
+              </div>
+            )
+
+            const div = L.DomUtil.create('div')
+            div.innerHTML = ReactDOMServer.renderToString(html)
+            return div
+          },
+
+          onRemove: function(map: any) {
+            //
+          }
+        })
+        loadingLayerRef.current = new customControl({ position: 'topright' })
+        loadingLayerRef.current.addTo(mapRef.current)
+      }
+    }
+  }, [
+    selected_model,
+    selected_prediction,
+    model_run_predictions,
+    isLoaded(selected_model, selected_prediction)
+  ])
 
   const createLayer = (data: FeatureCollection) => {
     return L.geoJSON(data, {
@@ -159,34 +286,12 @@ const CHainesPage = () => {
     loadModelPrediction(selected_model, event.target.value, false)
   }
 
-  const isLoaded = (model_run_timestamp: string, prediction_timestamp: string) => {
-    return (
-      model_run_timestamp in model_run_predictions &&
-      prediction_timestamp in model_run_predictions[model_run_timestamp]
-    )
-  }
-
   const loadAllModelsPredictions = () => {
     model_runs.forEach(modelRun => {
       modelRun.prediction_timestamps.forEach(prediction_timestamp => {
         dispatch(fetchCHainesGeoJSON(modelRun.model_run_timestamp, prediction_timestamp))
       })
     })
-  }
-
-  const loadModelPrediction = (
-    model_run_timestamp: string,
-    prediction_timestamp: string,
-    animate: boolean
-  ) => {
-    dispatch(updateSelectedPrediction(prediction_timestamp))
-    if (isLoaded(model_run_timestamp, prediction_timestamp)) {
-      showLayer(model_run_timestamp, prediction_timestamp)
-      // if it's already loaded, we can just show it
-    } else {
-      // fetch the data
-      dispatch(fetchCHainesGeoJSON(model_run_timestamp, prediction_timestamp))
-    }
   }
 
   const loadNextPrediction = () => {
@@ -249,58 +354,41 @@ const CHainesPage = () => {
       <PageTitle title="C-Haines" />
       <Container>
         <div id="map-with-selectable-wx-stations" className={classes.map} />
-        <div className={classes.legend}>
+        <div>
+          <div>Select a model run and prediction from the dropdown:</div>
           <div>
-            <div className={classes.legend}>
-              <div className={classes.extreme}></div>
-              <div>11+ Extreme</div>
-            </div>
-            <div className={classes.legend}>
-              <div className={classes.high}></div>
-              <div>8-11 High</div>
-            </div>
-            <div className={classes.legend}>
-              <div className={classes.moderate}></div>
-              <div>4-8 Moderate</div>
-            </div>
+            Model runs:
+            <select value={selected_model} onChange={handleChangeModel}>
+              {model_runs.map((model_run, i) => (
+                <option value={model_run.model_run_timestamp} key={i}>
+                  GDPS {model_run.model_run_timestamp} (UTC)
+                </option>
+              ))}
+            </select>
           </div>
-          <div className={classes.space}></div>
           <div>
-            <div>Select a model run and prediction from the dropdown:</div>
-            <div>
-              Model runs:
-              <select value={selected_model} onChange={handleChangeModel}>
-                {model_runs.map((model_run, i) => (
-                  <option value={model_run.model_run_timestamp} key={i}>
-                    GDPS {model_run.model_run_timestamp}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              Predictions:
-              <select value={selected_prediction} onChange={handlePredictionChange}>
-                {model_runs
-                  .filter(model_run => {
-                    return model_run.model_run_timestamp === selected_model
-                  })
-                  .map((model_run, i) =>
-                    model_run.prediction_timestamps.map((prediction_timestamp, i2) => (
-                      <option key={`${i}-${i2}`} value={prediction_timestamp}>
-                        {prediction_timestamp}
-                      </option>
-                    ))
-                  )}
-              </select>
-            </div>
-            <div>
-              (current: GDPS {selected_model} : {selected_prediction}) :{' '}
-              {isLoaded(selected_model, selected_prediction) ? 'Loaded' : 'Loading'}
-            </div>
-            <div>
-              <button onClick={() => loadPreviousPrediction()}>Prev</button>
-              <button onClick={() => loadNextPrediction()}>Next</button>
-            </div>
+            Predictions:
+            <select value={selected_prediction} onChange={handlePredictionChange}>
+              {model_runs
+                .filter(model_run => {
+                  return model_run.model_run_timestamp === selected_model
+                })
+                .map((model_run, i) =>
+                  model_run.prediction_timestamps.map((prediction_timestamp, i2) => (
+                    <option key={`${i}-${i2}`} value={prediction_timestamp}>
+                      {prediction_timestamp} (UTC)
+                    </option>
+                  ))
+                )}
+            </select>
+          </div>
+          <div>
+            (current: GDPS {selected_model} : {selected_prediction}) :{' '}
+            {isLoaded(selected_model, selected_prediction) ? 'Loaded' : 'Loading'}
+          </div>
+          <div>
+            <button onClick={() => loadPreviousPrediction()}>Prev</button>
+            <button onClick={() => loadNextPrediction()}>Next</button>
           </div>
         </div>
         <div>
