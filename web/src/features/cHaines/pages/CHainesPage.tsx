@@ -12,11 +12,31 @@ import {
 } from 'features/cHaines/slices/cHainesModelRunsSlice'
 import { Container, PageHeader, PageTitle } from 'components'
 import { FeatureCollection } from 'geojson'
-import { createFalse } from 'typescript'
 
 const useStyles = makeStyles({
   map: {
     height: '640px'
+  },
+  legend: {
+    display: 'flex'
+  },
+  space: {
+    width: 40
+  },
+  extreme: {
+    backgroundColor: '#ff0000',
+    width: 30,
+    height: 30
+  },
+  high: {
+    backgroundColor: '#FFA500',
+    width: 30,
+    height: 30
+  },
+  moderate: {
+    backgroundColor: '#ffff00',
+    width: 30,
+    height: 30
   }
 })
 
@@ -44,9 +64,6 @@ const CHainesPage = () => {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    console.log('model runs', model_runs)
-    console.log('selected_model', selected_model)
-    console.log('selected_prediction', selected_prediction)
     if (selected_prediction && selected_model && model_runs.length > 0) {
       loadModelPrediction(selected_model, selected_prediction, false)
     }
@@ -55,7 +72,6 @@ const CHainesPage = () => {
   useEffect(() => {
     if (selected_model in model_run_predictions) {
       if (selected_prediction in model_run_predictions[selected_model]) {
-        console.log('have new model run prediction!', selected_model, selected_prediction)
         showLayer(selected_model, selected_prediction)
       }
     }
@@ -129,17 +145,16 @@ const CHainesPage = () => {
     }
   }
 
-  const handleChange = (
+  const handleChangeModel = (
     event: React.ChangeEvent<{ name?: string | undefined; value: string }>
   ) => {
-    console.log(event.target.value)
+    console.log('handleChangeModel', event.target.value)
     dispatch(updateSelectedModel(event.target.value))
   }
 
   const handlePredictionChange = (
     event: React.ChangeEvent<{ name?: string | undefined; value: string }>
   ) => {
-    console.log(event.target.value)
     loadModelPrediction(selected_model, event.target.value, false)
   }
 
@@ -152,7 +167,6 @@ const CHainesPage = () => {
 
   const loadAllModelsPredictions = () => {
     model_runs.forEach(modelRun => {
-      console.log(modelRun)
       modelRun.prediction_timestamps.forEach(prediction_timestamp => {
         dispatch(fetchCHainesGeoJSON(modelRun.model_run_timestamp, prediction_timestamp))
       })
@@ -164,7 +178,6 @@ const CHainesPage = () => {
     prediction_timestamp: string,
     animate: boolean
   ) => {
-    console.log('load', model_run_timestamp, prediction_timestamp)
     dispatch(updateSelectedPrediction(prediction_timestamp))
     if (isLoaded(model_run_timestamp, prediction_timestamp)) {
       showLayer(model_run_timestamp, prediction_timestamp)
@@ -235,44 +248,59 @@ const CHainesPage = () => {
       <PageTitle title="C-Haines" />
       <Container>
         <div id="map-with-selectable-wx-stations" className={classes.map} />
-        <div>Select a model run and prediction from the dropdown:</div>
-        <div>
-          Model runs:
-          <select defaultValue={selected_model} onChange={handleChange}>
-            {model_runs.map((model_run, i) => (
-              <option value={model_run.model_run_timestamp} key={i}>
-                GDPS {model_run.model_run_timestamp}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          Predictions:
-          <select
-            defaultValue={selected_prediction}
-            value={selected_prediction}
-            onChange={handlePredictionChange}
-          >
-            {model_runs
-              .filter(model_run => {
-                return model_run.model_run_timestamp === selected_model
-              })
-              .map((model_run, i) =>
-                model_run.prediction_timestamps.map((prediction_timestamp, i2) => (
-                  <option key={`${i}-${i2}`} value={prediction_timestamp}>
-                    {prediction_timestamp}
+        <div className={classes.legend}>
+          <div>
+            <div className={classes.legend}>
+              <div className={classes.extreme}></div>
+              <div>11+ Extreme</div>
+            </div>
+            <div className={classes.legend}>
+              <div className={classes.high}></div>
+              <div>8-11 High</div>
+            </div>
+            <div className={classes.legend}>
+              <div className={classes.moderate}></div>
+              <div>4-8 Moderate</div>
+            </div>
+          </div>
+          <div className={classes.space}></div>
+          <div>
+            <div>Select a model run and prediction from the dropdown:</div>
+            <div>
+              Model runs:
+              <select value={selected_model} onChange={handleChangeModel}>
+                {model_runs.map((model_run, i) => (
+                  <option value={model_run.model_run_timestamp} key={i}>
+                    GDPS {model_run.model_run_timestamp}
                   </option>
-                ))
-              )}
-          </select>
-        </div>
-        <div>
-          (current: GDPS {selected_model} : {selected_prediction}) :{' '}
-          {isLoaded(selected_model, selected_prediction) ? 'Loaded' : 'Loading'}
-        </div>
-        <div>
-          <button onClick={() => loadPreviousPrediction()}>Prev</button>
-          <button onClick={() => loadNextPrediction()}>Next</button>
+                ))}
+              </select>
+            </div>
+            <div>
+              Predictions:
+              <select value={selected_prediction} onChange={handlePredictionChange}>
+                {model_runs
+                  .filter(model_run => {
+                    return model_run.model_run_timestamp === selected_model
+                  })
+                  .map((model_run, i) =>
+                    model_run.prediction_timestamps.map((prediction_timestamp, i2) => (
+                      <option key={`${i}-${i2}`} value={prediction_timestamp}>
+                        {prediction_timestamp}
+                      </option>
+                    ))
+                  )}
+              </select>
+            </div>
+            <div>
+              (current: GDPS {selected_model} : {selected_prediction}) :{' '}
+              {isLoaded(selected_model, selected_prediction) ? 'Loaded' : 'Loading'}
+            </div>
+            <div>
+              <button onClick={() => loadPreviousPrediction()}>Prev</button>
+              <button onClick={() => loadNextPrediction()}>Next</button>
+            </div>
+          </div>
         </div>
         <div>
           <div>
