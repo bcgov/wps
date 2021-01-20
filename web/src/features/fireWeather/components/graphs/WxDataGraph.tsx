@@ -11,6 +11,7 @@ import TempRHGraph from 'features/fireWeather/components/graphs/TempRHGraph'
 import PrecipGraph from 'features/fireWeather/components/graphs/PercipGraph'
 import WindGraph from 'features/fireWeather/components/graphs/WindGraph'
 import { formatDateInPST } from 'utils/date'
+import NewTempRHGraph from './NewTempRHGraph'
 
 const useStyles = makeStyles({
   display: {
@@ -92,7 +93,23 @@ const WxDataGraph = ({
         noRegionalModels={noRegionalModels}
       />
 
-      <TempRHGraph
+      <NewTempRHGraph
+        currDate={currDate}
+        sliderRange={sliderRange}
+        setSliderRange={setSliderRange}
+        toggleValues={toggleValues}
+        observedValues={observedValues}
+        forecastValues={allForecasts}
+        forecastSummaries={forecastSummaries}
+        gdpsValues={allModelValues}
+        gdpsSummaries={modelSummaries}
+        hrdpsValues={allHighResModelValues}
+        hrdpsSummaries={highResModelSummaries}
+        rdpsValues={allRegionalModelValues}
+        rdpsSummaries={regionalModelSummaries}
+      />
+
+      {/* <TempRHGraph
         toggleValues={toggleValues}
         observedValues={observedValues}
         forecastValues={allForecasts}
@@ -104,7 +121,7 @@ const WxDataGraph = ({
         hrdpsSummaries={highResModelSummaries}
         rdpsValues={allRegionalModelValues}
         rdpsSummaries={regionalModelSummaries}
-      />
+      /> */}
 
       <PrecipGraph
         currDate={currDate}
@@ -113,9 +130,9 @@ const WxDataGraph = ({
         toggleValues={toggleValues}
         observedValues={observedValues}
         forecastValues={allForecasts}
+        hrdpsModelValues={allHighResModelValues}
         gdpsModelValues={allModelValues}
         rdpsModelValues={allRegionalModelValues}
-        hrdpsModelValues={allHighResModelValues}
       />
 
       <WindGraph
@@ -124,9 +141,9 @@ const WxDataGraph = ({
         setSliderRange={setSliderRange}
         toggleValues={toggleValues}
         observedValues={observedValues}
+        hrdpsModelValues={allHighResModelValues}
         gdpsModelValues={allModelValues}
         rdpsModelValues={allRegionalModelValues}
-        hrdpsModelValues={allHighResModelValues}
       />
     </div>
   )

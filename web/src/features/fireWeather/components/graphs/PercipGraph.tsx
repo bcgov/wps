@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import React from 'react'
 import Plot from 'react-plotly.js'
+import { Data } from 'plotly.js'
 import moment from 'moment'
 
 import { ObservedValue } from 'api/observationAPI'
@@ -8,21 +9,20 @@ import { ModelValue } from 'api/modelAPI'
 import { NoonForecastValue } from 'api/forecastAPI'
 import { ToggleValues } from 'features/fireWeather/components/graphs/useGraphToggles'
 
-interface PrecipValues {
+interface PrecipValue {
   datetime: string
   precipitation?: number | null
   delta_precipitation?: number | null
   total_precipitation?: number | null
 }
 
-const populateGraphData = (values: PrecipValues[]) => {
+const getDailyAndAccumPrecips = (values: PrecipValue[]) => {
   const dates: Date[] = []
   const dailyPrecips: number[] = []
-  let maxDailyPrecip = 0
-
   const shouldAggregate =
     values.length > 0 &&
     (values[0].precipitation !== undefined || values[0].delta_precipitation !== undefined)
+
   // if the type of the value is observation or one of weather models, then aggregate hourly data to daily
   if (shouldAggregate) {
     const aggregatedPrecips: { [k: string]: number } = {}
@@ -43,10 +43,6 @@ const populateGraphData = (values: PrecipValues[]) => {
         .toDate()
       dates.push(midNightOfTheDay)
       dailyPrecips.push(totalPrecip)
-
-      if (totalPrecip > maxDailyPrecip) {
-        maxDailyPrecip = totalPrecip
-      }
     })
   } else {
     values.forEach(({ datetime, total_precipitation }) => {
@@ -55,12 +51,7 @@ const populateGraphData = (values: PrecipValues[]) => {
           .set({ hour: 0 })
           .toDate()
         dates.push(midNightOfTheDay)
-        const totalPrecip = Number(total_precipitation)
-        dailyPrecips.push(totalPrecip)
-
-        if (totalPrecip > maxDailyPrecip) {
-          maxDailyPrecip = totalPrecip
-        }
+        dailyPrecips.push(Number(total_precipitation))
       }
     })
   }
@@ -76,21 +67,60 @@ const populateGraphData = (values: PrecipValues[]) => {
     accumPrecips.push(prevAccum + daily)
   })
 
-  return { dates, maxDailyPrecip, dailyPrecips, accumPrecips }
+  return { dates, dailyPrecips, accumPrecips }
+}
+
+const populateGraphData = (
+  values: PrecipValue[],
+  name: string,
+  color: string,
+  show: boolean
+) => {
+  const { dates, dailyPrecips, accumPrecips } = getDailyAndAccumPrecips(values)
+
+  const dailyPrecipsBar: Data = {
+    x: dates,
+    y: dailyPrecips,
+    name,
+    type: 'bar',
+    showlegend: show,
+    marker: {
+      color: show ? color : 'transparent'
+    },
+    hoverinfo: show ? 'y' : 'skip',
+    hovertemplate: show ? `${name}: %{y:.2f} (mm/cm)<extra></extra>` : undefined
+  }
+
+  const accumPrecipsline: Data = {
+    x: dates,
+    y: accumPrecips,
+    name: `Accumulated ${name}`,
+    mode: 'lines',
+    yaxis: 'y2',
+    showlegend: show,
+    marker: {
+      color: show ? color : 'transparent'
+    },
+    hoverinfo: show ? 'y' : 'skip',
+    hovertemplate: show
+      ? `Accumulated ${name}: %{y:.2f} (mm/cm)<extra></extra>`
+      : undefined
+  }
+
+  return {
+    dailyPrecipsBar,
+    accumPrecipsline,
+    maxDailyPrecip: Math.max(...dailyPrecips)
+  }
 }
 
 const observedPrecipColor = '#a50b41'
-const accumObservedPrecipColor = observedPrecipColor
 const forecastPrecipColor = '#fb0058'
-const accumForecastPrecipColor = forecastPrecipColor
 const gdpsPrecipColor = '#32e7e7'
-const accumGDPSPrecipColor = gdpsPrecipColor
 const hrdpsPrecipColor = '#a017c2'
-const accumHRDPSPrecipColor = hrdpsPrecipColor
 const rdpsPrecipColor = '#026200'
-const accumRDPSPrecipColor = rdpsPrecipColor
 
-export interface Props {
+interface Props {
   currDate: Date
   sliderRange: [string, string]
   setSliderRange: (range: [string, string]) => void
@@ -114,22 +144,40 @@ const PrecipGraph = (props: Props) => {
     rdpsModelValues,
     hrdpsModelValues
   } = props
-  const {
-    showObservations,
-    showForecasts,
-    showModels,
-    showRegionalModels,
-    showHighResModels
-  } = toggleValues
 
-  const observed = populateGraphData(observedValues)
-  const forecast = populateGraphData(forecastValues)
-  const hrdps = populateGraphData(hrdpsModelValues)
-  const gdps = populateGraphData(gdpsModelValues)
-  const rdps = populateGraphData(rdpsModelValues)
+  const observation = populateGraphData(
+    observedValues,
+    'Observation',
+    observedPrecipColor,
+    toggleValues.showObservations
+  )
+  const forecast = populateGraphData(
+    forecastValues,
+    'Forecast',
+    forecastPrecipColor,
+    toggleValues.showForecasts
+  )
+  const hrdps = populateGraphData(
+    hrdpsModelValues,
+    'HRDPS',
+    hrdpsPrecipColor,
+    toggleValues.showHighResModels
+  )
+  const gdps = populateGraphData(
+    gdpsModelValues,
+    'GDPS',
+    gdpsPrecipColor,
+    toggleValues.showModels
+  )
+  const rdps = populateGraphData(
+    rdpsModelValues,
+    'RDPS',
+    rdpsPrecipColor,
+    toggleValues.showRegionalModels
+  )
 
   const maxY = Math.max(
-    observed.maxDailyPrecip,
+    observation.maxDailyPrecip,
     forecast.maxDailyPrecip,
     hrdps.maxDailyPrecip,
     gdps.maxDailyPrecip,
@@ -139,160 +187,27 @@ const PrecipGraph = (props: Props) => {
   return (
     <Plot
       style={{ width: '100%', height: '100%' }}
+      config={{ responsive: true }}
       onUpdate={e => {
         const updatedRange = e.layout.xaxis?.range as [string, string] | undefined
         if (updatedRange) {
           setSliderRange(updatedRange)
         }
       }}
-      config={{ responsive: true }}
       data={[
-        {
-          x: observed.dates,
-          y: observed.dailyPrecips,
-          name: 'Observed',
-          type: 'bar',
-          showlegend: showObservations,
-          marker: {
-            color: showObservations ? observedPrecipColor : 'transparent'
-          },
-          hoverinfo: showObservations ? 'y' : 'skip',
-          hovertemplate: showObservations
-            ? 'Observation: %{y:.2f} (mm/cm)<extra></extra>'
-            : undefined
-        },
-        {
-          x: observed.dates,
-          y: observed.accumPrecips,
-          name: 'Accumulated Observed',
-          mode: 'lines',
-          yaxis: 'y2',
-          showlegend: showObservations,
-          marker: {
-            color: showObservations ? accumObservedPrecipColor : 'transparent'
-          },
-          hoverinfo: showObservations ? 'y' : 'skip',
-          hovertemplate: showObservations
-            ? 'Accumulated Observation: %{y:.2f} (mm/cm)<extra></extra>'
-            : undefined
-        },
-        {
-          x: forecast.dates,
-          y: forecast.dailyPrecips,
-          name: 'Forecast',
-          type: 'bar',
-          showlegend: showForecasts,
-          marker: {
-            color: showForecasts ? forecastPrecipColor : 'transparent'
-          },
-          hoverinfo: showForecasts ? 'y' : 'skip',
-          hovertemplate: showForecasts
-            ? 'Forecast: %{y:.2f} (mm/cm)<extra></extra>'
-            : undefined
-        },
-        {
-          x: forecast.dates,
-          y: forecast.accumPrecips,
-          name: 'Accumulated Forecast',
-          mode: 'lines',
-          yaxis: 'y2',
-          showlegend: showForecasts,
-          marker: {
-            color: showForecasts ? accumForecastPrecipColor : 'transparent'
-          },
-          hoverinfo: showForecasts ? 'y' : 'skip',
-          hovertemplate: showForecasts
-            ? 'Accumulated Forecast: %{y:.2f} (mm/cm)<extra></extra>'
-            : undefined
-        },
-        {
-          x: hrdps.dates,
-          y: hrdps.dailyPrecips,
-          name: 'HRDPS',
-          type: 'bar',
-          showlegend: showHighResModels,
-          marker: {
-            color: showHighResModels ? hrdpsPrecipColor : 'transparent'
-          },
-          hoverinfo: showHighResModels ? 'y' : 'skip',
-          hovertemplate: showHighResModels
-            ? 'HRDPS: %{y:.2f} (mm/cm)<extra></extra>'
-            : undefined
-        },
-        {
-          x: hrdps.dates,
-          y: hrdps.accumPrecips,
-          name: 'Accumulated HRDPS',
-          mode: 'lines',
-          yaxis: 'y2',
-          showlegend: showHighResModels,
-          marker: {
-            color: showHighResModels ? accumHRDPSPrecipColor : 'transparent'
-          },
-          hoverinfo: showHighResModels ? 'y' : 'skip',
-          hovertemplate: showHighResModels
-            ? 'Accumulated HRDPS: %{y:.2f} (mm/cm)<extra></extra>'
-            : undefined
-        },
-        {
-          x: rdps.dates,
-          y: rdps.dailyPrecips,
-          name: 'RDPS',
-          type: 'bar',
-          showlegend: showRegionalModels,
-          marker: {
-            color: showRegionalModels ? rdpsPrecipColor : 'transparent'
-          },
-          hoverinfo: showRegionalModels ? 'y' : 'skip',
-          hovertemplate: showRegionalModels
-            ? 'RDPS: %{y:.2f} (mm/cm)<extra></extra>'
-            : undefined
-        },
-        {
-          x: rdps.dates,
-          y: rdps.accumPrecips,
-          name: 'Accumulated RDPS',
-          mode: 'lines',
-          yaxis: 'y2',
-          showlegend: showRegionalModels,
-          marker: {
-            color: showRegionalModels ? accumRDPSPrecipColor : 'transparent'
-          },
-          hoverinfo: showRegionalModels ? 'y' : 'skip',
-          hovertemplate: showRegionalModels
-            ? 'Accumulated RDPS: %{y:.2f} (mm/cm)<extra></extra>'
-            : undefined
-        },
-        {
-          x: gdps.dates,
-          y: gdps.dailyPrecips,
-          name: 'GDPS',
-          type: 'bar',
-          showlegend: showModels,
-          marker: {
-            color: showModels ? gdpsPrecipColor : 'transparent'
-          },
-          hoverinfo: showModels ? 'y' : 'skip',
-          hovertemplate: showModels ? 'GDPS: %{y:.2f} (mm/cm)<extra></extra>' : undefined
-        },
-        {
-          x: gdps.dates,
-          y: gdps.accumPrecips,
-          name: 'Accumulated GDPS',
-          mode: 'lines',
-          yaxis: 'y2',
-          showlegend: showModels,
-          marker: {
-            color: showModels ? accumGDPSPrecipColor : 'transparent'
-          },
-          hoverinfo: showModels ? 'y' : 'skip',
-          hovertemplate: showModels
-            ? 'Accumulated GDPS: %{y:.2f} (mm/cm)<extra></extra>'
-            : undefined
-        },
+        observation.dailyPrecipsBar,
+        observation.accumPrecipsline,
+        forecast.dailyPrecipsBar,
+        forecast.accumPrecipsline,
+        hrdps.dailyPrecipsBar,
+        hrdps.accumPrecipsline,
+        gdps.dailyPrecipsBar,
+        gdps.accumPrecipsline,
+        rdps.dailyPrecipsBar,
+        rdps.accumPrecipsline,
         {
           x: [currDate],
-          y: [maxY + 0.6],
+          y: [maxY * 1.02],
           mode: 'text',
           text: ['Now'],
           showlegend: false,
@@ -306,18 +221,18 @@ const PrecipGraph = (props: Props) => {
         dragmode: 'pan',
         autosize: true,
         title: {
-          text: 'Daily Precipitation graph (with accumulated)',
+          text: 'Daily Precipitation (with accumulated)',
           yanchor: 'middle'
         },
         height: 600,
         margin: { pad: 10 },
         xaxis: {
           range: sliderRange,
-          // rangeslider: {
-          //   visible: true,
-          //   bgcolor: '#dbdbdb',
-          //   thickness: 0.1
-          // },
+          rangeslider: {
+            visible: true,
+            bgcolor: '#dbdbdb',
+            thickness: 0.1
+          },
           hoverformat: '%a, %b %e', // https://github.com/d3/d3-3.x-api-reference/blob/master/Time-Formatting.md#format
           tickfont: { size: 14 },
           type: 'date',
@@ -344,7 +259,7 @@ const PrecipGraph = (props: Props) => {
         },
         legend: {
           orientation: 'h',
-          y: -0.15 // -0.45
+          y: -0.45
         },
         barmode: 'group',
         bargap: 0.75,

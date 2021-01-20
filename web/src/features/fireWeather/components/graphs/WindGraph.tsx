@@ -106,22 +106,13 @@ const getLoopExtent = (
   }
 }
 
-interface WindValues {
+interface WindValue {
   datetime: string
   wind_direction?: number | null
   wind_speed?: number | null
 }
 
-const populateGraphData = (
-  values: WindValues[],
-  show: boolean,
-  arrowColor: string
-): {
-  dates: Date[]
-  windSpds: number[]
-  windSpdsTexts: string[]
-  windDirArrows: Partial<Shape>[]
-} => {
+const populateGraphData = (values: WindValue[], show: boolean, arrowColor: string) => {
   const dates: Date[] = []
   const windSpds: number[] = []
   const windSpdsTexts: string[] = []
@@ -211,6 +202,7 @@ const WindGraph = (props: Props) => {
   return (
     <Plot
       style={{ width: '100%', height: '100%' }}
+      config={{ responsive: true }}
       onUpdate={e => {
         const updatedRange = e.layout.xaxis?.range as [string, string] | undefined
         if (updatedRange) {
@@ -238,12 +230,11 @@ const WindGraph = (props: Props) => {
         }
         return true
       }}
-      config={{ responsive: true }}
       data={[
         {
           x: observedData.dates,
           y: observedData.windSpds,
-          name: 'Observed',
+          name: 'Observation',
           mode: 'lines',
           type: 'scatter',
           showlegend: showObservations,
@@ -311,7 +302,7 @@ const WindGraph = (props: Props) => {
         },
         {
           x: [currDate],
-          y: [maxWindSpd + 0.6],
+          y: [maxWindSpd * 1.02],
           mode: 'text',
           text: ['Now'],
           showlegend: false,
@@ -325,18 +316,18 @@ const WindGraph = (props: Props) => {
         dragmode: 'pan',
         autosize: true,
         title: {
-          text: 'Wind speed & direction graph',
+          text: 'Wind Speed & Direction',
           yanchor: 'middle'
         },
         height: 600,
         margin: { pad: 10 },
         xaxis: {
           range: sliderRange,
-          // rangeslider: {
-          //   visible: true,
-          //   bgcolor: '#dbdbdb',
-          //   thickness: 0.1
-          // },
+          rangeslider: {
+            visible: true,
+            bgcolor: '#dbdbdb',
+            thickness: 0.1
+          },
           hoverformat: '%I:00%p, %a, %b %e', // https://github.com/d3/d3-3.x-api-reference/blob/master/Time-Formatting.md#format
           tickfont: { size: 14 },
           type: 'date',
@@ -356,7 +347,7 @@ const WindGraph = (props: Props) => {
         },
         legend: {
           orientation: 'h',
-          y: -0.15 // -0.45
+          y: -0.45
         },
         shapes: [
           {

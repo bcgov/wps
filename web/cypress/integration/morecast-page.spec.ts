@@ -101,7 +101,7 @@ describe('MoreCast Page', () => {
         .should('have.css', 'height', '0px')
     })
 
-    it('Temp & RH graph displays svg graphics with toggles', () => {
+    it.skip('Temp & RH graph displays svg graphics with toggles', () => {
       // Check if svg elements are displayed in the graph
       cy.getByTestId('hourly-observed-temp-symbol').should('have.length', numOfObservations - 1)
       cy.getByTestId('hourly-observed-temp-path').should('not.have.class', 'hidden')
@@ -151,7 +151,7 @@ describe('MoreCast Page', () => {
       cy.getByTestId('regional-model-temp-path').should('have.class', 'hidden')
     })
 
-    it('Temp & RH graph displays a tooltip & sidebar ', () => {
+    it.skip('Temp & RH graph displays a tooltip & sidebar ', () => {
       cy.window().then(win => {
         // Move sidebar all the way to the right
         cy.get('.sidebar')
@@ -191,7 +191,7 @@ describe('MoreCast Page', () => {
         .and('contain', 'Observed RH: 61 (%)')
     })
 
-    it('Precip graph displays svg graphics and a tooltip', () => {
+    it.skip('Precip graph displays svg graphics and a tooltip', () => {
       // Check if svg elements are displayed (or not) in the graph
       cy.getByTestId('observed-precip-line').should('not.have.class', 'precipLine--hidden')
       cy.getByTestId('accum-observed-precip-path').should('not.have.class', 'accumPrecipLine--hidden')
