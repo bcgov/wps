@@ -6,6 +6,7 @@ import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
 import { tiledMapLayer } from 'esri-leaflet'
 import { makeStyles } from '@material-ui/core/styles'
+import { FeatureCollection } from 'geojson'
 import {
   fetchModelRuns,
   updateSelectedModel,
@@ -13,7 +14,7 @@ import {
   fetchCHainesGeoJSON
 } from 'features/cHaines/slices/cHainesModelRunsSlice'
 import { Container, PageHeader, PageTitle } from 'components'
-import { FeatureCollection } from 'geojson'
+import { formatDateInPDT } from 'utils/date'
 
 const useStyles = makeStyles({
   map: {
@@ -65,6 +66,7 @@ const CHainesPage = () => {
   const currentLayersRef = useRef<L.GeoJSON | null>(null)
   const loopTimeoutRef = useRef<number | null>(null)
   const [isAnimating, setAnimate] = useState(false)
+  const [animationInterval, setAnimationInterval] = useState(500)
   const {
     model_runs,
     selected_model,
@@ -118,7 +120,7 @@ const CHainesPage = () => {
   useEffect(() => {
     mapRef.current = L.map('map-with-selectable-wx-stations', {
       center: [55, -123.6],
-      zoom: 6,
+      zoom: 5,
       // scrollWheelZoom: false,
       zoomAnimation: true
       // layers: [topoLayer, stationOverlay]
@@ -233,7 +235,7 @@ const CHainesPage = () => {
             const html = (
               <div className={classes.label}>
                 <div>GDPS model run: {selected_model} (UTC)</div>
-                <div>GDPS prediction: {selected_prediction} (UTC)</div>
+                <div>GDPS prediction: {formatDateInPDT(selected_prediction)} (PDT)</div>
               </div>
             )
 
@@ -257,7 +259,7 @@ const CHainesPage = () => {
         if (isAnimating) {
           loopTimeoutRef.current = window.setTimeout(() => {
             loadNextPrediction()
-          }, 500)
+          }, animationInterval)
         }
       } else {
         const customControl = L.Control.extend({
@@ -350,6 +352,12 @@ const CHainesPage = () => {
     loadModelPrediction(selected_model, event.target.value)
   }
 
+  const handleIntervalChange = (
+    event: React.ChangeEvent<{ name?: string | undefined; value: string }>
+  ) => {
+    setAnimationInterval(Number(event.target.value))
+  }
+
   const loadAllModelsPredictions = () => {
     model_runs.forEach(modelRun => {
       modelRun.prediction_timestamps.forEach(prediction_timestamp => {
@@ -424,22 +432,33 @@ const CHainesPage = () => {
                 .map((model_run, i) =>
                   model_run.prediction_timestamps.map((prediction_timestamp, i2) => (
                     <option key={`${i}-${i2}`} value={prediction_timestamp}>
-                      {prediction_timestamp} (UTC)
+                      {/* {prediction_timestamp} (UTC) */}
+                      {formatDateInPDT(prediction_timestamp)} (PDT)
                     </option>
                   ))
                 )}
             </select>
           </div>
-          <div>
+          {/* <div>
             (current: GDPS {selected_model} : {selected_prediction}) :{' '}
             {isLoaded(selected_model, selected_prediction) ? 'Loaded' : 'Loading'}
-          </div>
+          </div> */}
           <div>
             <button onClick={() => loadPreviousPrediction()}>Prev</button>
             <button onClick={() => toggleAnimate()}>
               {isAnimating ? 'Stop' : 'Animate'}
             </button>
             <button onClick={() => loadNextPrediction()}>Next</button>
+          </div>
+          <div>
+            Animation interval:{' '}
+            <select value={animationInterval} onChange={handleIntervalChange}>
+              <option value="1">1ms</option>
+              <option value="100">100ms</option>
+              <option value="500">500ms</option>
+              <option value="1000">1s</option>
+              <option value="5000">5s</option>
+            </select>
           </div>
         </div>
         <div>
