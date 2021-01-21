@@ -461,48 +461,6 @@ const CHainesPage = () => {
             </select>
           </div>
         </div>
-        <div>
-          <div>
-            <br />
-            <br />
-            <br />
-            Don't mess with this the stuff down here!
-          </div>
-          <div>
-            <button onClick={() => loadAllModelsPredictions()}>Load all</button>
-          </div>
-          {/* <div>
-            <button onClick={() => animate(0)}>Animate</button>
-          </div> */}
-          {model_runs
-            .filter(model_run => {
-              return model_run.model_run_timestamp === selected_model
-            })
-            .map((model_run, i) =>
-              model_run.prediction_timestamps.map((prediction_timestamp, i2) => (
-                <div key={`${i}-${i2}`}>
-                  <button
-                    onClick={() =>
-                      loadModelPrediction(
-                        model_run.model_run_timestamp,
-                        prediction_timestamp
-                      )
-                    }
-                  >
-                    {prediction_timestamp}
-                  </button>
-                  {isLoaded(model_run.model_run_timestamp, prediction_timestamp)
-                    ? 'Loaded'
-                    : ''}
-                  {/* {model_run.model_run_timestamp in model_run_predictions &&
-                prediction_timestamp in
-                  model_run_predictions[model_run.model_run_timestamp]
-                  ? 'Loaded'
-                  : ''} */}
-                </div>
-              ))
-            )}
-        </div>
       </Container>
     </main>
   )
