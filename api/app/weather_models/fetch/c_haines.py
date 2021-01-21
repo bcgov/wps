@@ -5,7 +5,7 @@ import logging
 import app.db.database
 from app.schemas.weather_models import CHainesModelRuns, CHainesModelRunPredictions, WeatherPredictionModel
 from app.weather_models import ModelEnum
-from app.db.crud.c_haines import get_model_runs
+from app.db.crud.c_haines import get_model_run_predictions
 
 
 logger = logging.getLogger(__name__)
@@ -29,11 +29,14 @@ async def fetch(model: ModelEnum, model_run_timestamp: datetime, prediction_time
         from (
         select geom, severity from prediction_model_c_haines_polygons
         inner join prediction_model_c_haines_predictions on
-		    prediction_model_c_haines_predictions.id =
-		    prediction_model_c_haines_polygons.c_haines_prediction_id
+            prediction_model_c_haines_predictions.id =
+            prediction_model_c_haines_polygons.c_haines_prediction_id
+        inner join prediction_model_c_haines_model_runs on
+            prediction_model_c_haines_model_runs.id = 
+            prediction_model_c_haines_predictions.model_run_id
         inner join prediction_models on
-		    prediction_models.id =
-		    prediction_model_c_haines_predictions.prediction_model_id
+            prediction_models.id =
+            prediction_model_c_haines_model_runs.prediction_model_id
         where
             prediction_timestamp = '{prediction_timestamp}' and
             model_run_timestamp = '{model_run_timestamp}' and
@@ -55,20 +58,19 @@ async def fetch(model: ModelEnum, model_run_timestamp: datetime, prediction_time
 async def fetch_model_runs():
     """ Fetch recent model runs """
     session = app.db.database.get_read_session()
-    model_runs = get_model_runs(session)
+    model_runs = get_model_run_predictions(session)
 
     result = CHainesModelRuns(model_runs=[])
-    model_run_predictions = None
-    prev_model_run_timestamp = None
+    prev_model_run_id = None
 
-    for model_run_timestamp, prediction_timestamp, name, abbreviation in model_runs:
-        if model_run_timestamp != prev_model_run_timestamp:
+    for model_run_id, model_run_timestamp, name, abbreviation, prediction_timestamp in model_runs:
+        if prev_model_run_id != model_run_id:
             model_run_predictions = CHainesModelRunPredictions(
                 model=WeatherPredictionModel(name=name, abbrev=abbreviation),
                 model_run_timestamp=model_run_timestamp,
                 prediction_timestamps=[])
             result.model_runs.append(model_run_predictions)
-            prev_model_run_timestamp = model_run_timestamp
+            prev_model_run_id = model_run_id
         model_run_predictions.prediction_timestamps.append(prediction_timestamp)
 
     return result

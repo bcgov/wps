@@ -25,10 +25,12 @@ from shapely.geometry import shape
 from pyproj import CRS
 from app import configure_logging
 from app.weather_models import ModelEnum, ProjectionEnum
-from app.weather_models.process_grib import (get_transformer, GEO_CRS, calculate_raster_coordinate,
+from app.weather_models.process_grib import (get_transformer, GEO_CRS,
                                              get_dataset_geometry, calculate_geographic_coordinate)
-from app.db.models import CHainesPoly, CHainesPrediction, PredictionModel
-from app.db.crud.weather_models import get_prediction_model, get_c_haines_prediction
+from app.db.models import CHainesPoly, CHainesPrediction, CHainesModelRun, PredictionModel
+from app.db.crud.weather_models import get_prediction_model
+from app.db.crud.c_haines import (
+    get_c_haines_model_run, get_c_haines_prediction, get_or_create_c_haines_model_run)
 from app.time_utils import get_utc_now
 from app.weather_models.env_canada import (get_model_run_hours,
                                            get_file_date_part, adjust_model_day, download)
@@ -67,14 +69,44 @@ def get_prediction_date(model_run_timestamp, hour) -> datetime:
     return model_run_timestamp + timedelta(hours=hour)
 
 
-def global_model_prediction_hour_iterator():
-    for hour in range(0, 241, 3):
-        yield hour
+def model_prediction_hour_iterator(model: ModelEnum):
+    if model == ModelEnum.GDPS:
+        for hour in range(0, 241, 3):
+            yield hour
+    elif model == ModelEnum.RDPS:
+        for hour in range(0, 85):
+            yield hour
+    elif model == ModelEnum.HRDPS:
+        for hour in range(0, 49):
+            yield hour
+    else:
+        raise Exception('uhnaldede model')
 
 
-def make_global_model_run_download_urls(now: datetime,
-                                        model_run_hour: int,
-                                        prediction_hour: int):
+def make_model_run_base_url(model: ModelEnum, hh: str, hhh: str):
+    if model == ModelEnum.GDPS:
+        return 'https://dd.weather.gc.ca/model_gem_global/15km/grib2/lat_lon/{}/{}/'.format(
+            hh, hhh)
+    elif model == ModelEnum.RDPS:
+        return 'https://dd.weather.gc.ca/model_gem_regional/10km/grib2/{}/{}/'.format(
+            hh, hhh
+        )
+    raise Exception('unsuported model')
+
+
+def make_model_run_filename(model: ModelEnum, level: str, date: str, hh: str, hhh: str):
+    if model == ModelEnum.GDPS:
+        return 'CMC_glb_{}_latlon.15x.15_{}{}_P{}.grib2'.format(level, date, hh, hhh)
+    elif model == ModelEnum.RDPS:
+        return 'CMC_reg_{}_ps10km_{}{}_P{}.grib2'.format(
+            level, date, hh, hhh)
+    raise Exception('unsupported model')
+
+
+def make_model_run_download_urls(model: ModelEnum,
+                                 now: datetime,
+                                 model_run_hour: int,
+                                 prediction_hour: int):
     """ Yield urls to download GDPS (global) model runs """
 
     # hh: model run start, in UTC [00, 12]
@@ -85,8 +117,7 @@ def make_global_model_run_download_urls(now: datetime,
     # For the global model, we have prediction at 3 hour intervals up to 240 hours.
     hhh = format(prediction_hour, '03d')
 
-    base_url = 'https://dd.weather.gc.ca/model_gem_global/15km/grib2/lat_lon/{}/{}/'.format(
-        hh, hhh)
+    base_url = make_model_run_base_url(model, hh, hhh)
     date = get_file_date_part(now, model_run_hour)
 
     adjusted_model_time = adjust_model_day(now, model_run_hour)
@@ -101,7 +132,7 @@ def make_global_model_run_download_urls(now: datetime,
         'prediction_timestamp': get_prediction_date(model_run_timestamp, prediction_hour)
     }
     for level in levels:
-        filename = 'CMC_glb_{}_latlon.15x.15_{}{}_P{}.grib2'.format(level, date, hh, hhh)
+        filename = make_model_run_filename(model, level, date, hh, hhh)
         urls[level] = base_url + filename
     return urls
 
@@ -380,9 +411,9 @@ def save_data_as_geojson(
     del dst_ds, data_ds, mask_ds
 
 
-def save_geojson_to_database(session: Session, filename: str, model_run_timestamp: datetime,
+def save_geojson_to_database(session: Session, filename: str,
                              prediction_timestamp: datetime,
-                             prediction_model: PredictionModel):
+                             model_run: CHainesModelRun):
     """ Open geojson file, iterate through features, saving them into the
     databse.
     """
@@ -392,9 +423,8 @@ def save_geojson_to_database(session: Session, filename: str, model_run_timestam
         data = json.load(file)
 
     # Create a prediction record to hang everything off of:
-    prediction = CHainesPrediction(model_run_timestamp=model_run_timestamp,
-                                   prediction_timestamp=prediction_timestamp,
-                                   prediction_model=prediction_model)
+    prediction = CHainesPrediction(model_run=model_run,
+                                   prediction_timestamp=prediction_timestamp)
     session.add(prediction)
     # Convert each feature into a shapely geometry and save to database.
     for feature in data['features']:
@@ -419,9 +449,8 @@ def generate_and_store_c_haines(
         filename_tmp_700: str,
         filename_tmp_850: str,
         filename_dew_850: str,
-        model_run_timestamp: datetime,
         prediction_timestamp: datetime,
-        prediction_model: PredictionModel):
+        model_run: CHainesModelRun):
     # Open the grib files.
     grib_tmp_700 = gdal.Open(filename_tmp_700, gdal.GA_ReadOnly)
     grib_tmp_850 = gdal.Open(filename_tmp_850, gdal.GA_ReadOnly)
@@ -467,9 +496,9 @@ def generate_and_store_c_haines(
             cols,
             json_filename)
 
-        save_geojson_to_database(session, json_filename, model_run_timestamp,
+        save_geojson_to_database(session, json_filename,
                                  prediction_timestamp,
-                                 prediction_model)
+                                 model_run)
 
 
 def local_test():
@@ -481,40 +510,43 @@ def local_test():
     filename_tmp_850 = '/home/sybrand/Downloads/Work/CMC_glb_TMP_ISBL_850_latlon.15x.15_2021011800_P123.grib2'
     filename_dew_850 = '/home/sybrand/Downloads/Work/CMC_glb_DEPR_ISBL_850_latlon.15x.15_2021011800_P123.grib2'
 
-    session = app.db.database.get_write_session()
-    prediction_model = get_prediction_model(session, ModelEnum.GDPS, ProjectionEnum.LATLON_15X_15)
-
     model_run_timestamp = datetime(year=2021, month=1, day=18, hour=0, tzinfo=timezone.utc)
     prediction_timestamp = datetime(year=2021, month=1, day=23, hour=3, tzinfo=timezone.utc)
+
+    session = app.db.database.get_write_session()
+    prediction_model = get_prediction_model(session, ModelEnum.GDPS, ProjectionEnum.LATLON_15X_15)
+    model_run = get_or_create_c_haines_model_run(session, model_run_timestamp, prediction_model)
 
     generate_and_store_c_haines(
         session,
         filename_tmp_700,
         filename_tmp_850,
         filename_dew_850,
-        model_run_timestamp,
         prediction_timestamp,
-        prediction_model)
+        model_run)
 
 
 def record_exists(
         session,
-        prediction_model: PredictionModel,
-        model_run_timestamp: datetime,
+        model_run: CHainesModelRun,
         prediction_timestamp: datetime):
     """ Check if we have a c-haines record """
-    result = get_c_haines_prediction(session, prediction_model, model_run_timestamp, prediction_timestamp)
+    result = get_c_haines_prediction(session, model_run, prediction_timestamp)
     return result.count() > 0
 
 
-def main():
+def generate(model: ModelEnum, projection: ProjectionEnum):
     session = app.db.database.get_write_session()
-    prediction_model = get_prediction_model(session, ModelEnum.GDPS, ProjectionEnum.LATLON_15X_15)
+    prediction_model = get_prediction_model(session, model, projection)
     utc_now = get_utc_now()
-    for model_hour in get_model_run_hours(ModelEnum.GDPS):
-        for prediction_hour in global_model_prediction_hour_iterator():
-            urls = make_global_model_run_download_urls(utc_now, model_hour, prediction_hour)
-            if record_exists(session, prediction_model, urls['model_run_timestamp'], urls['prediction_timestamp']):
+    for model_hour in get_model_run_hours(model):
+        model_run = None
+        for prediction_hour in model_prediction_hour_iterator(model):
+            urls = make_model_run_download_urls(model, utc_now, model_hour, prediction_hour)
+            if not model_run:
+                model_run = get_or_create_c_haines_model_run(
+                    session, urls['model_run_timestamp'], prediction_model)
+            if record_exists(session, model_run, urls['prediction_timestamp']):
                 logger.info('already downloaded %s - %s',
                             urls['model_run_timestamp'], urls['prediction_timestamp'])
                 continue
@@ -527,17 +559,24 @@ def main():
                 filename_dew_850 = download(urls['DEPR_ISBL_850'], tmp_path)
 
                 if filename_tmp_700 and filename_tmp_850 and filename_dew_850:
-                    logger.info('we got all the files!')
                     generate_and_store_c_haines(
                         session,
                         filename_tmp_700,
                         filename_tmp_850,
                         filename_dew_850,
-                        urls['model_run_timestamp'],
                         urls['prediction_timestamp'],
-                        prediction_model)
+                        model_run)
                 else:
                     logger.warning('failed to download all files')
+
+
+def main():
+    models = (
+        (ModelEnum.GDPS, ProjectionEnum.LATLON_15X_15),
+        (ModelEnum.RDPS, ProjectionEnum.REGIONAL_PS),
+        (ModelEnum.HRDPS, ProjectionEnum.HIGH_RES_CONTINENTAL))
+    for model, projection in models:
+        generate(model, projection)
 
 
 if __name__ == "__main__":

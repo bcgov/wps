@@ -13,21 +13,36 @@ from app.db.models.common import TZTimeStamp
 logger = logging.getLogger(__name__)
 
 
+class CHainesModelRun(Base):
+    """ C-Haines model run """
+    __tablename__ = 'prediction_model_c_haines_model_runs'
+    __table_args__ = (
+        UniqueConstraint('model_run_timestamp', 'prediction_model_id'),
+        {'comment': 'Identifies the model run and prediction for a particular set of c-haines calculations'}
+    )
+
+    id = Column(Integer, Sequence('prediction_model_c_haines_model_runs_id_seq'),
+                primary_key=True, nullable=False, index=True)
+    model_run_timestamp = Column(TZTimeStamp, nullable=False)
+    prediction_model_id = Column(Integer, ForeignKey(
+        'prediction_models.id'), nullable=False)
+    prediction_model = relationship("PredictionModel")
+
+
 class CHainesPrediction(Base):
     """ C-Haines model run predictions """
     __tablename__ = 'prediction_model_c_haines_predictions'
     __table_args__ = (
-        UniqueConstraint('prediction_timestamp', 'model_run_timestamp', 'prediction_model_id'),
+        UniqueConstraint('prediction_timestamp', 'model_run_id'),
         {'comment': 'Identifies the model run and prediction for a particular set of c-haines calculations'}
     )
 
     id = Column(Integer, Sequence('prediction_model_c_haines_predictions_id_seq'),
                 primary_key=True, nullable=False, index=True)
     prediction_timestamp = Column(TZTimeStamp, nullable=False)
-    model_run_timestamp = Column(TZTimeStamp, nullable=False)
-    prediction_model_id = Column(Integer, ForeignKey(
-        'prediction_models.id'), nullable=False)
-    prediction_model = relationship("PredictionModel")
+    model_run_id = Column(Integer, ForeignKey(
+        'prediction_model_c_haines_model_runs.id'), nullable=False)
+    model_run = relationship("CHainesModelRun")
 
 
 class CHainesPoly(Base):
