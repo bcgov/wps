@@ -4,6 +4,7 @@ import { selectCHainesModelRuns } from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
+import { tiledMapLayer } from 'esri-leaflet'
 import { makeStyles } from '@material-ui/core/styles'
 import {
   fetchModelRuns,
@@ -117,19 +118,71 @@ const CHainesPage = () => {
   useEffect(() => {
     mapRef.current = L.map('map-with-selectable-wx-stations', {
       center: [55, -123.6],
-      zoom: 5,
+      zoom: 6,
       // scrollWheelZoom: false,
       zoomAnimation: true
       // layers: [topoLayer, stationOverlay]
     })
-    const streetLayer = L.tileLayer(
-      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      {
-        attribution:
-          '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-      }
-    )
-    streetLayer.addTo(mapRef.current)
+    L.control.scale().addTo(mapRef.current)
+
+    const baseLayer = tiledMapLayer({
+      //url:  'https://maps.gov.bc.ca/arcserver/rest/services/province/web_mercator_cache/MapServer'
+      url: 'https://maps.gov.bc.ca/arcserver/rest/services/Province/roads_wm/MapServer'
+    })
+    baseLayer.addTo(mapRef.current)
+
+    // Active weather stations layer.
+    L.tileLayer
+      .wms(
+        'https://openmaps.gov.bc.ca/geo/pub/WHSE_LAND_AND_NATURAL_RESOURCE.PROT_WEATHER_STATIONS_SP/ows?',
+        {
+          format: 'image/png',
+          layers: 'pub:WHSE_LAND_AND_NATURAL_RESOURCE.PROT_WEATHER_STATIONS_SP',
+          styles: 'BC_Wildfire_Active_Weather_Stations',
+          transparent: true,
+          minZoom: 0,
+          maxZoom: 18
+        }
+      )
+      .addTo(mapRef.current)
+
+    // Active weather station labels.
+    L.tileLayer
+      .wms(
+        'https://openmaps.gov.bc.ca/geo/pub/WHSE_LAND_AND_NATURAL_RESOURCE.PROT_WEATHER_STATIONS_SP/ows?',
+        {
+          format: 'image/png',
+          layers: 'pub:WHSE_LAND_AND_NATURAL_RESOURCE.PROT_WEATHER_STATIONS_SP',
+          styles: 'BC_Wildfire_Active_Weather_Stations_Labels',
+          transparent: true,
+          minZoom: 0,
+          maxZoom: 18
+        }
+      )
+      .addTo(mapRef.current)
+
+    L.tileLayer
+      .wms(
+        'https://openmaps.gov.bc.ca/geo/pub/WHSE_LAND_AND_NATURAL_RESOURCE.PROT_DANGER_RATING_SP/ows?',
+        {
+          format: 'image/png',
+          layers: 'pub:WHSE_LAND_AND_NATURAL_RESOURCE.PROT_DANGER_RATING_SP',
+          styles: 'BC_Wildfire_Fire_Danger_Rating',
+          transparent: true,
+          minZoom: 0,
+          maxZoom: 18
+        }
+      )
+      .addTo(mapRef.current)
+
+    // const streetLayer = L.tileLayer(
+    //   'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    //   {
+    //     attribution:
+    //       '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+    //   }
+    // )
+    // streetLayer.addTo(mapRef.current)
 
     // Create and add the legend.
     const customControl = L.Control.extend({
