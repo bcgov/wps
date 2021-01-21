@@ -13,6 +13,59 @@ from app.db.models.common import TZTimeStamp
 logger = logging.getLogger(__name__)
 
 
+class CHainesPrediction(Base):
+    """ C-Haines model run predictions """
+    __tablename__ = 'prediction_model_c_haines_predictions'
+    __table_args__ = (
+        UniqueConstraint('prediction_timestamp', 'model_run_timestamp', 'prediction_model_id'),
+        {'comment': 'Identifies the model run and prediction for a particular set of c-haines calculations'}
+    )
+
+    id = Column(Integer, Sequence('prediction_model_c_haines_predictions_id_seq'),
+                primary_key=True, nullable=False, index=True)
+    prediction_timestamp = Column(TZTimeStamp, nullable=False)
+    model_run_timestamp = Column(TZTimeStamp, nullable=False)
+    prediction_model_id = Column(Integer, ForeignKey(
+        'prediction_models.id'), nullable=False)
+    prediction_model = relationship("PredictionModel")
+
+
+class CHainesPoly(Base):
+    """ C-Haines polygons """
+    __tablename__ = 'prediction_model_c_haines_polygons'
+
+    id = Column(Integer, Sequence('prediction_model_c_haines_polygons_id_seq'),
+                primary_key=True, nullable=False, index=True)
+    geom = Column(Geometry('POLYGON'), nullable=False)
+    # Depending on the severity of the C-Haines index, we generate
+    # severity numbers. (Fire Behaviour analysts only care of the
+    # C-Haines is high)
+    severity = Column(Integer, nullable=False)
+
+    c_haines_prediction_id = Column(Integer, ForeignKey(
+        'prediction_model_c_haines_predictions.id'), nullable=False)
+    c_haines_prediction = relationship('CHainesPrediction')
+
+
+# OLD:
+# class CHainesPoly(Base):
+#     """ C-Haines polygons """
+#     __tablename__ = 'prediction_model_c_haines_polygons'
+
+#     id = Column(Integer, Sequence('prediction_model_c_haines_polygons_id_seq'),
+#                 primary_key=True, nullable=False, index=True)
+#     geom = Column(Geometry('POLYGON'), nullable=False)
+#     # Depending on the severity of the C-Haines index, we generate
+#     # severity numbers. (Fire Behaviour analysts only care of the
+#     # C-Haines is high)
+#     severity = Column(Integer, nullable=False)
+#     prediction_timestamp = Column(TZTimeStamp, nullable=False)
+#     model_run_timestamp = Column(TZTimeStamp, nullable=False)
+#     prediction_model_id = Column(Integer, ForeignKey(
+#         'prediction_models.id'), nullable=False)
+#     prediction_model = relationship("PredictionModel")
+
+
 class ProcessedModelRunUrl(Base):
     """ Record to indicate that a particular model run file has been processed.
     NOTE: One could check if values for a particular model run exists, but that would make it more
@@ -87,24 +140,6 @@ class PredictionModelRunTimestamp(Base):
                 'prediction_model:{self.prediction_model.abbreviation}:{self.prediction_model.projection}, '
                 'prediction_run_timestamp:{self.prediction_run_timestamp}, '
                 'complete={self.complete}').format(self=self)
-
-
-class CHainesPoly(Base):
-    """ C-Haines polygons """
-    __tablename__ = 'prediction_model_c_haines_polygons'
-
-    id = Column(Integer, Sequence('prediction_model_c_haines_polygons_id_seq'),
-                primary_key=True, nullable=False, index=True)
-    geom = Column(Geometry('POLYGON'), nullable=False)
-    # Depending on the severity of the C-Haines index, we generate
-    # severity numbers. (Fire Behaviour analysts only care of the
-    # C-Haines is high)
-    severity = Column(Integer, nullable=False)
-    prediction_timestamp = Column(TZTimeStamp, nullable=False)
-    model_run_timestamp = Column(TZTimeStamp, nullable=False)
-    prediction_model_id = Column(Integer, ForeignKey(
-        'prediction_models.id'), nullable=False)
-    prediction_model = relationship("PredictionModel")
 
 
 class PredictionModelGridSubset(Base):

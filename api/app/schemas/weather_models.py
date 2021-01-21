@@ -6,8 +6,15 @@ from pydantic import BaseModel
 from app.schemas.stations import WeatherStation
 
 
+class WeatherPredictionModel(BaseModel):
+    """ The full name & acronym for a weather prediction model """
+    name: str
+    abbrev: str
+
+
 class CHainesModelRunPredictions(BaseModel):
     """ List of predictions """
+    model: WeatherPredictionModel
     model_run_timestamp: datetime
     prediction_timestamps: List[datetime]
 
@@ -21,12 +28,6 @@ class CHainesRequest(BaseModel):
     """ Request for particular model run """
     model_run_timestamp: datetime
     prediction_timestamp: datetime
-
-
-class WeatherPredictionModel(BaseModel):
-    """ The full name & acronym for a weather prediction model """
-    name: str
-    abbrev: str
 
 
 class WeatherModelPredictionSummaryValues(BaseModel):

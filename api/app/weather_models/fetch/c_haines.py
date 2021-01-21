@@ -3,17 +3,18 @@
 from datetime import datetime
 import logging
 import app.db.database
-from app.schemas.weather_models import CHainesModelRuns, CHainesModelRunPredictions
+from app.schemas.weather_models import CHainesModelRuns, CHainesModelRunPredictions, WeatherPredictionModel
+from app.weather_models import ModelEnum
 from app.db.crud.c_haines import get_model_runs
 
 
 logger = logging.getLogger(__name__)
 
 
-async def fetch(model_run_timestamp: datetime, prediction_timestamp: datetime):
+async def fetch(model: ModelEnum, model_run_timestamp: datetime, prediction_timestamp: datetime):
     """ Fetch polygon geojson
     """
-    logger.info('model: %s; prediction: %s', model_run_timestamp, prediction_timestamp)
+    logger.info('model: %s; model_run: %s, prediction: %s', model, model_run_timestamp, prediction_timestamp)
     # TODO: Add filters for model and timestamp (returning only the most recent model run)
     session = app.db.database.get_read_session()
     # Ordering by severity, ascending is important to ensure that
@@ -27,13 +28,21 @@ async def fetch(model_run_timestamp: datetime, prediction_timestamp: datetime):
     )
         from (
         select geom, severity from prediction_model_c_haines_polygons
-        where 
+        inner join prediction_model_c_haines_predictions on
+		    prediction_model_c_haines_predictions.id =
+		    prediction_model_c_haines_polygons.c_haines_prediction_id
+        inner join prediction_models on
+		    prediction_models.id =
+		    prediction_model_c_haines_predictions.prediction_model_id
+        where
             prediction_timestamp = '{prediction_timestamp}' and
-            model_run_timestamp = '{model_run_timestamp}'
-        order by severity asc
+            model_run_timestamp = '{model_run_timestamp}' and
+            prediction_models.abbreviation = '{model}'
     ) as t(geom, severity)""".format(
         prediction_timestamp=prediction_timestamp.isoformat(),
-        model_run_timestamp=model_run_timestamp.isoformat())
+        model_run_timestamp=model_run_timestamp.isoformat(),
+        model=model)
+    # logger.info(query)
     # something is wrong here.
     logger.info('fetching geojson from db...')
     # pylint: disable=no-member
@@ -52,10 +61,12 @@ async def fetch_model_runs():
     model_run_predictions = None
     prev_model_run_timestamp = None
 
-    for model_run_timestamp, prediction_timestamp in model_runs:
+    for model_run_timestamp, prediction_timestamp, name, abbreviation in model_runs:
         if model_run_timestamp != prev_model_run_timestamp:
             model_run_predictions = CHainesModelRunPredictions(
-                model_run_timestamp=model_run_timestamp, prediction_timestamps=[])
+                model=WeatherPredictionModel(name=name, abbrev=abbreviation),
+                model_run_timestamp=model_run_timestamp,
+                prediction_timestamps=[])
             result.model_runs.append(model_run_predictions)
             prev_model_run_timestamp = model_run_timestamp
         model_run_predictions.prediction_timestamps.append(prediction_timestamp)
