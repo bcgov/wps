@@ -27,8 +27,8 @@ from app import configure_logging
 from app.weather_models import ModelEnum, ProjectionEnum
 from app.weather_models.process_grib import (get_transformer, GEO_CRS, calculate_raster_coordinate,
                                              get_dataset_geometry, calculate_geographic_coordinate)
-from app.db.models import CHainesPoly, PredictionModel
-from app.db.crud.weather_models import get_prediction_model, get_c_haines
+from app.db.models import CHainesPoly, CHainesPrediction, PredictionModel
+from app.db.crud.weather_models import get_prediction_model, get_c_haines_prediction
 from app.time_utils import get_utc_now
 from app.weather_models.env_canada import (get_model_run_hours,
                                            get_file_date_part, adjust_model_day, download)
@@ -390,15 +390,19 @@ def save_geojson_to_database(session: Session, filename: str, model_run_timestam
     # Open the geojson file.
     with open(filename) as file:
         data = json.load(file)
+
+    # Create a prediction record to hang everything off of:
+    prediction = CHainesPrediction(model_run_timestamp=model_run_timestamp,
+                                   prediction_timestamp=prediction_timestamp,
+                                   prediction_model=prediction_model)
+    session.add(prediction)
     # Convert each feature into a shapely geometry and save to database.
     for feature in data['features']:
         geometry = shape(feature['geometry'])
         polygon = CHainesPoly(
             geom=geometry.wkt,
             severity=feature['properties']['severity'],
-            model_run_timestamp=model_run_timestamp,
-            prediction_timestamp=prediction_timestamp,
-            prediction_model=prediction_model)
+            c_haines_prediction=prediction)
         session.add(polygon)
     # Only commit once we have everything.
     session.commit()
@@ -493,8 +497,13 @@ def local_test():
         prediction_model)
 
 
-def record_exists(session, model_run_timestamp, prediction_timestamp):
-    result = get_c_haines(session, model_run_timestamp, prediction_timestamp)
+def record_exists(
+        session,
+        prediction_model: PredictionModel,
+        model_run_timestamp: datetime,
+        prediction_timestamp: datetime):
+    """ Check if we have a c-haines record """
+    result = get_c_haines_prediction(session, prediction_model, model_run_timestamp, prediction_timestamp)
     return result.count() > 0
 
 
@@ -505,7 +514,7 @@ def main():
     for model_hour in get_model_run_hours(ModelEnum.GDPS):
         for prediction_hour in global_model_prediction_hour_iterator():
             urls = make_global_model_run_download_urls(utc_now, model_hour, prediction_hour)
-            if record_exists(session, urls['model_run_timestamp'], urls['prediction_timestamp']):
+            if record_exists(session, prediction_model, urls['model_run_timestamp'], urls['prediction_timestamp']):
                 logger.info('already downloaded %s - %s',
                             urls['model_run_timestamp'], urls['prediction_timestamp'])
                 continue

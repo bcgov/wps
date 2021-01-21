@@ -343,6 +343,13 @@ const CHainesPage = () => {
   ) => {
     console.log('handleChangeModel', event.target.value)
     dispatch(updateSelectedModel(event.target.value))
+    // If the model run has been changed, we also have to load a different prediction.
+    const model_run = model_runs.find(
+      model_run => model_run.model_run_timestamp === event.target.value
+    )
+    if (model_run) {
+      loadModelPrediction(event.target.value, model_run.prediction_timestamps[0])
+    }
   }
 
   const handlePredictionChange = (
@@ -356,14 +363,6 @@ const CHainesPage = () => {
     event: React.ChangeEvent<{ name?: string | undefined; value: string }>
   ) => {
     setAnimationInterval(Number(event.target.value))
-  }
-
-  const loadAllModelsPredictions = () => {
-    model_runs.forEach(modelRun => {
-      modelRun.prediction_timestamps.forEach(prediction_timestamp => {
-        dispatch(fetchCHainesGeoJSON(modelRun.model_run_timestamp, prediction_timestamp))
-      })
-    })
   }
 
   const loadNextPrediction = () => {
@@ -439,10 +438,6 @@ const CHainesPage = () => {
                 )}
             </select>
           </div>
-          {/* <div>
-            (current: GDPS {selected_model} : {selected_prediction}) :{' '}
-            {isLoaded(selected_model, selected_prediction) ? 'Loaded' : 'Loading'}
-          </div> */}
           <div>
             <button onClick={() => loadPreviousPrediction()}>Prev</button>
             <button onClick={() => toggleAnimate()}>

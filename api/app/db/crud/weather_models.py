@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from app.weather_models import ModelEnum, ProjectionEnum
 from app.db.models import (
     ProcessedModelRunUrl, PredictionModel, PredictionModelRunTimestamp, PredictionModelGridSubset,
-    ModelRunGridSubsetPrediction, WeatherStationModelPrediction, CHainesPoly)
+    ModelRunGridSubsetPrediction, WeatherStationModelPrediction, CHainesPoly, CHainesPrediction)
 import app.time_utils as time_utils
 
 logger = logging.getLogger(__name__)
@@ -64,9 +64,16 @@ def get_prediction_run(session: Session, prediction_model_id: int,
                prediction_run_timestamp).first()
 
 
-def get_c_haines(session: Session, model_run_timestamp: datetime, prediction_timestamp: datetime):
-    return session.query(CHainesPoly).filter(CHainesPoly.model_run_timestamp == model_run_timestamp,
-                                             CHainesPoly.prediction_timestamp == prediction_timestamp)
+def get_c_haines_prediction(
+        session: Session,
+        prediction_model: PredictionModel,
+        model_run_timestamp: datetime,
+        prediction_timestamp: datetime):
+    """ Get the c-haines prediction """
+    return session.query(CHainesPrediction)\
+        .filter(CHainesPrediction.model_run_timestamp == model_run_timestamp,
+                CHainesPrediction.prediction_timestamp == prediction_timestamp,
+                CHainesPrediction.prediction_model_id == prediction_model.id)
 
 
 def create_prediction_run(
