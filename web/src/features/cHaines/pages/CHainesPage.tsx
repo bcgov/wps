@@ -343,6 +343,7 @@ const CHainesPage = () => {
   ) => {
     console.log('handleChangeModel', event.target.value)
     dispatch(updateSelectedModel(event.target.value))
+    stopAnimation()
     // If the model run has been changed, we also have to load a different prediction.
     const model_run = model_runs.find(
       model_run => model_run.model_run_timestamp === event.target.value
@@ -356,6 +357,7 @@ const CHainesPage = () => {
     event: React.ChangeEvent<{ name?: string | undefined; value: string }>
   ) => {
     console.log('handlePredictionChange')
+    stopAnimation()
     loadModelPrediction(selected_model, event.target.value)
   }
 
@@ -391,15 +393,20 @@ const CHainesPage = () => {
     }
   }
 
+  const stopAnimation = () => {
+    setAnimate(false)
+    if (loopTimeoutRef.current) {
+      window.clearTimeout(loopTimeoutRef.current)
+    }
+  }
+
   const toggleAnimate = () => {
     const animate = !isAnimating
     setAnimate(animate)
     if (animate) {
       loadNextPrediction()
     } else {
-      if (loopTimeoutRef.current) {
-        window.clearTimeout(loopTimeoutRef.current)
-      }
+      stopAnimation()
     }
   }
 
