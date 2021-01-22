@@ -10,6 +10,7 @@ import { FeatureCollection } from 'geojson'
 import {
   fetchModelRuns,
   updateSelectedModel,
+  updateSelectedModelRun,
   updateSelectedPrediction,
   fetchCHainesGeoJSON
 } from 'features/cHaines/slices/cHainesModelRunsSlice'
@@ -69,9 +70,10 @@ const CHainesPage = () => {
   const [animationInterval, setAnimationInterval] = useState(500)
   const {
     model_runs,
-    selected_model,
+    selected_model_timestamp,
     model_run_predictions,
-    selected_prediction
+    selected_prediction_timestamp,
+    selected_model_abbreviation
   } = useSelector(selectCHainesModelRuns)
   // const {} = useSelector(selectChainesPredictions)
   // const [selectedModel, setSelectedModel] = useState(
@@ -79,23 +81,38 @@ const CHainesPage = () => {
   // )
 
   const loadModelPrediction = (
+    model_abbreviation: string,
     model_run_timestamp: string,
     prediction_timestamp: string
   ) => {
+    console.log(
+      'loadMOdelPrediction',
+      model_abbreviation,
+      model_run_timestamp,
+      prediction_timestamp
+    )
     dispatch(updateSelectedPrediction(prediction_timestamp))
-    if (isLoaded(model_run_timestamp, prediction_timestamp)) {
-      showLayer(model_run_timestamp, prediction_timestamp)
+    if (isLoaded(model_abbreviation, model_run_timestamp, prediction_timestamp)) {
+      showLayer(model_abbreviation, model_run_timestamp, prediction_timestamp)
       // if it's already loaded, we can just show it
     } else {
       // fetch the data
-      dispatch(fetchCHainesGeoJSON(model_run_timestamp, prediction_timestamp))
+      dispatch(
+        fetchCHainesGeoJSON(model_abbreviation, model_run_timestamp, prediction_timestamp)
+      )
     }
   }
 
-  const isLoaded = (model_run_timestamp: string, prediction_timestamp: string) => {
+  const isLoaded = (
+    model_abbreviation: string,
+    model_run_timestamp: string,
+    prediction_timestamp: string
+  ) => {
     return (
-      model_run_timestamp in model_run_predictions &&
-      prediction_timestamp in model_run_predictions[model_run_timestamp]
+      model_abbreviation in model_run_predictions &&
+      model_run_timestamp in model_run_predictions[model_abbreviation] &&
+      prediction_timestamp in
+        model_run_predictions[model_abbreviation][model_run_timestamp]
     )
   }
 
@@ -104,15 +121,34 @@ const CHainesPage = () => {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (selected_prediction && selected_model && model_runs.length > 0) {
-      loadModelPrediction(selected_model, selected_prediction)
+    if (
+      selected_prediction_timestamp &&
+      selected_model_timestamp &&
+      model_runs.length > 0
+    ) {
+      loadModelPrediction(
+        selected_model_abbreviation,
+        selected_model_timestamp,
+        selected_prediction_timestamp
+      )
     }
   }, [model_runs])
 
   useEffect(() => {
-    if (selected_model in model_run_predictions) {
-      if (selected_prediction in model_run_predictions[selected_model]) {
-        showLayer(selected_model, selected_prediction)
+    if (selected_model_abbreviation in model_run_predictions) {
+      if (
+        selected_model_timestamp in model_run_predictions[selected_model_abbreviation]
+      ) {
+        if (
+          selected_prediction_timestamp in
+          model_run_predictions[selected_model_abbreviation][selected_model_timestamp]
+        ) {
+          showLayer(
+            selected_model_abbreviation,
+            selected_model_timestamp,
+            selected_prediction_timestamp
+          )
+        }
       }
     }
   }, [model_run_predictions])
@@ -227,15 +263,27 @@ const CHainesPage = () => {
   }, []) // Initialize the map only once
 
   useEffect(() => {
-    if (mapRef.current && selected_model && selected_prediction) {
-      if (isLoaded(selected_model, selected_prediction)) {
-        console.log('show new layer etc.')
+    if (mapRef.current && selected_model_timestamp && selected_prediction_timestamp) {
+      if (
+        isLoaded(
+          selected_model_abbreviation,
+          selected_model_timestamp,
+          selected_prediction_timestamp
+        )
+      ) {
+        console.log('updating info layers.')
         const customControl = L.Control.extend({
           onAdd: function(map: any) {
             const html = (
               <div className={classes.label}>
-                <div>GDPS model run: {selected_model} (UTC)</div>
-                <div>GDPS prediction: {formatDateInPDT(selected_prediction)} (PDT)</div>
+                <div>
+                  {selected_model_abbreviation} model run: {selected_model_timestamp}{' '}
+                  (UTC)
+                </div>
+                <div>
+                  {selected_model_abbreviation} prediction:{' '}
+                  {formatDateInPDT(selected_prediction_timestamp)} (PDT)
+                </div>
               </div>
             )
 
@@ -266,7 +314,7 @@ const CHainesPage = () => {
           onAdd: function(map: any) {
             const html = (
               <div className={classes.loading}>
-                <div>LOADING: {selected_prediction} (UTC)</div>
+                <div>LOADING: {selected_prediction_timestamp} (UTC)</div>
               </div>
             )
 
@@ -287,14 +335,19 @@ const CHainesPage = () => {
       }
     }
   }, [
-    selected_model,
-    selected_prediction,
+    selected_model_timestamp,
+    selected_prediction_timestamp,
     model_run_predictions,
-    isLoaded(selected_model, selected_prediction),
+    isLoaded(
+      selected_model_abbreviation,
+      selected_model_timestamp,
+      selected_prediction_timestamp
+    ),
     isAnimating
   ])
 
   const createLayer = (data: FeatureCollection) => {
+    console.log('creating new layer from FeatureCollection')
     return L.geoJSON(data, {
       style: feature => {
         switch (feature?.properties.severity) {
@@ -314,25 +367,36 @@ const CHainesPage = () => {
     })
   }
 
-  const getLayer = (selected_model: string, selected_prediction: string) => {
-    const layerKey = `${selected_model}-${selected_prediction}`
+  const getLayer = (
+    model: string,
+    model_timestamp: string,
+    prediction_timestamp: string
+  ) => {
+    const layerKey = `${model}-${model_timestamp}-${prediction_timestamp}`
     if (layerKey in layersRef.current) {
       return layersRef.current[layerKey]
     } else {
-      const data = model_run_predictions[selected_model][selected_prediction]
+      const data = model_run_predictions[model][model_timestamp][prediction_timestamp]
       const geoJsonLayer = createLayer(data)
       layersRef.current[layerKey] = geoJsonLayer
       return geoJsonLayer
     }
   }
 
-  const showLayer = (selected_model: string, selected_prediction: string) => {
-    const geoJsonLayer = getLayer(selected_model, selected_prediction)
+  const showLayer = (
+    model: string,
+    model_run_timestamp: string,
+    prediction_timestamp: string
+  ) => {
+    console.log('creating layer...')
+    const geoJsonLayer = getLayer(model, model_run_timestamp, prediction_timestamp)
     if (mapRef.current) {
       if (currentLayersRef.current) {
+        console.log('removing previous layer')
         mapRef.current.removeLayer(currentLayersRef.current)
         currentLayersRef.current = null
       }
+      console.log('adding new layer to map')
       geoJsonLayer.addTo(mapRef.current)
       currentLayersRef.current = geoJsonLayer
     }
@@ -344,12 +408,41 @@ const CHainesPage = () => {
     console.log('handleChangeModel', event.target.value)
     dispatch(updateSelectedModel(event.target.value))
     stopAnimation()
-    // If the model run has been changed, we also have to load a different prediction.
+    // If the model has been changed, we need to load a different prediction.
     const model_run = model_runs.find(
-      model_run => model_run.model_run_timestamp === event.target.value
+      model_run => model_run.model.abbrev === event.target.value
     )
     if (model_run) {
-      loadModelPrediction(event.target.value, model_run.prediction_timestamps[0])
+      if (model_run.prediction_timestamps.length > 0) {
+        loadModelPrediction(
+          event.target.value,
+          model_run.model_run_timestamp,
+          model_run.prediction_timestamps[0]
+        )
+      }
+    }
+  }
+
+  const handleChangeModelRun = (
+    event: React.ChangeEvent<{ name?: string | undefined; value: string }>
+  ) => {
+    console.log('handleChangeModelRun', event.target.value)
+    dispatch(updateSelectedModelRun(event.target.value))
+    stopAnimation()
+    // If the model run has been changed, we also have to load a different prediction.
+    const model_run = model_runs.find(
+      model_run =>
+        model_run.model_run_timestamp === event.target.value &&
+        model_run.model.abbrev === selected_model_abbreviation
+    )
+    if (model_run) {
+      if (model_run.prediction_timestamps.length > 0) {
+        loadModelPrediction(
+          selected_model_abbreviation,
+          event.target.value,
+          model_run.prediction_timestamps[0]
+        )
+      }
     }
   }
 
@@ -358,7 +451,11 @@ const CHainesPage = () => {
   ) => {
     console.log('handlePredictionChange')
     stopAnimation()
-    loadModelPrediction(selected_model, event.target.value)
+    loadModelPrediction(
+      selected_model_abbreviation,
+      selected_model_timestamp,
+      event.target.value
+    )
   }
 
   const handleIntervalChange = (
@@ -369,27 +466,35 @@ const CHainesPage = () => {
 
   const loadNextPrediction = () => {
     const model_run = model_runs.find(
-      model_run => model_run.model_run_timestamp === selected_model
+      model_run => model_run.model_run_timestamp === selected_model_timestamp
     )
     if (model_run) {
       const index = model_run.prediction_timestamps.findIndex(
-        value => value === selected_prediction
+        value => value === selected_prediction_timestamp
       )
       const nextIndex = index + 1 < model_run.prediction_timestamps.length ? index + 1 : 0
-      loadModelPrediction(selected_model, model_run.prediction_timestamps[nextIndex])
+      loadModelPrediction(
+        selected_model_abbreviation,
+        selected_model_timestamp,
+        model_run.prediction_timestamps[nextIndex]
+      )
     }
   }
 
   const loadPreviousPrediction = () => {
     const model_run = model_runs.find(
-      model_run => model_run.model_run_timestamp === selected_model
+      model_run => model_run.model_run_timestamp === selected_model_timestamp
     )
     if (model_run) {
       const index = model_run.prediction_timestamps.findIndex(
-        value => value === selected_prediction
+        value => value === selected_prediction_timestamp
       )
       const nextIndex = index > 0 ? index - 1 : model_run.prediction_timestamps.length - 1
-      loadModelPrediction(selected_model, model_run.prediction_timestamps[nextIndex])
+      loadModelPrediction(
+        selected_model_abbreviation,
+        selected_model_timestamp,
+        model_run.prediction_timestamps[nextIndex]
+      )
     }
   }
 
@@ -419,21 +524,39 @@ const CHainesPage = () => {
         <div>
           <div>Select a model run and prediction from the dropdown:</div>
           <div>
+            Models:
+            <select value={selected_model_abbreviation} onChange={handleChangeModel}>
+              <option value="GDPS">GDPS</option>
+              <option value="RDPS">RDPS</option>
+              <option value="HRDPS">HRDPS</option>
+            </select>
+          </div>
+          <div>
             Model runs:
-            <select value={selected_model} onChange={handleChangeModel}>
-              {model_runs.map((model_run, i) => (
-                <option value={model_run.model_run_timestamp} key={i}>
-                  GDPS {model_run.model_run_timestamp} (UTC)
-                </option>
-              ))}
+            <select value={selected_model_timestamp} onChange={handleChangeModelRun}>
+              {model_runs
+                .filter(model_run => {
+                  return model_run.model.abbrev === selected_model_abbreviation
+                })
+                .map((model_run, i) => (
+                  <option value={model_run.model_run_timestamp} key={i}>
+                    {model_run.model.abbrev} {model_run.model_run_timestamp} (UTC)
+                  </option>
+                ))}
             </select>
           </div>
           <div>
             Predictions:
-            <select value={selected_prediction} onChange={handlePredictionChange}>
+            <select
+              value={selected_prediction_timestamp}
+              onChange={handlePredictionChange}
+            >
               {model_runs
                 .filter(model_run => {
-                  return model_run.model_run_timestamp === selected_model
+                  return (
+                    model_run.model_run_timestamp === selected_model_timestamp &&
+                    model_run.model.abbrev === selected_model_abbreviation
+                  )
                 })
                 .map((model_run, i) =>
                   model_run.prediction_timestamps.map((prediction_timestamp, i2) => (

@@ -91,6 +91,9 @@ def make_model_run_base_url(model: ModelEnum, hh: str, hhh: str):
         return 'https://dd.weather.gc.ca/model_gem_regional/10km/grib2/{}/{}/'.format(
             hh, hhh
         )
+    elif model == ModelEnum.HRDPS:
+        return 'https://dd.weather.gc.ca/model_hrdps/continental/grib2/{}/{}/'.format(
+            hh, hhh)
     raise Exception('unsuported model')
 
 
@@ -100,7 +103,16 @@ def make_model_run_filename(model: ModelEnum, level: str, date: str, hh: str, hh
     elif model == ModelEnum.RDPS:
         return 'CMC_reg_{}_ps10km_{}{}_P{}.grib2'.format(
             level, date, hh, hhh)
+    elif model == ModelEnum.HRDPS:
+        return 'CMC_hrdps_continental_{level}_ps2.5km_{date}{hh}_P{hhh}-00.grib2'.format(
+            level=level, date=date, hh=hh, hhh=hhh)
     raise Exception('unsupported model')
+
+
+def make_model_levels(model: ModelEnum):
+    if model == ModelEnum.HRDPS:
+        return ['TMP_ISBL_0700', 'TMP_ISBL_0850', 'DEPR_ISBL_0850']
+    return ['TMP_ISBL_700', 'TMP_ISBL_850', 'DEPR_ISBL_850']
 
 
 def make_model_run_download_urls(model: ModelEnum,
@@ -111,7 +123,7 @@ def make_model_run_download_urls(model: ModelEnum,
 
     # hh: model run start, in UTC [00, 12]
     # hhh: prediction hour [000, 003, 006, ..., 240]
-    levels: Final = ['TMP_ISBL_700', 'TMP_ISBL_850', 'DEPR_ISBL_850']
+    levels: Final = make_model_levels(model)
     # pylint: disable=invalid-name
     hh = '{:02d}'.format(model_run_hour)
     # For the global model, we have prediction at 3 hour intervals up to 240 hours.
@@ -554,9 +566,14 @@ def generate(model: ModelEnum, projection: ProjectionEnum):
         # for urls in get_global_model_run_download_urls(utc_now, model_hour):
             # TODO: check if we haven't already downloaded this
             with tempfile.TemporaryDirectory() as tmp_path:
-                filename_tmp_700 = download(urls['TMP_ISBL_700'], tmp_path)
-                filename_tmp_850 = download(urls['TMP_ISBL_850'], tmp_path)
-                filename_dew_850 = download(urls['DEPR_ISBL_850'], tmp_path)
+                if model == ModelEnum.HRDPS:
+                    filename_tmp_700 = download(urls['TMP_ISBL_0700'], tmp_path)
+                    filename_tmp_850 = download(urls['TMP_ISBL_0850'], tmp_path)
+                    filename_dew_850 = download(urls['DEPR_ISBL_0850'], tmp_path)
+                else:
+                    filename_tmp_700 = download(urls['TMP_ISBL_700'], tmp_path)
+                    filename_tmp_850 = download(urls['TMP_ISBL_850'], tmp_path)
+                    filename_dew_850 = download(urls['DEPR_ISBL_850'], tmp_path)
 
                 if filename_tmp_700 and filename_tmp_850 and filename_dew_850:
                     generate_and_store_c_haines(
@@ -574,7 +591,7 @@ def main():
     models = (
         (ModelEnum.GDPS, ProjectionEnum.LATLON_15X_15),
         (ModelEnum.RDPS, ProjectionEnum.REGIONAL_PS),
-        (ModelEnum.HRDPS, ProjectionEnum.HIGH_RES_CONTINENTAL))
+        (ModelEnum.HRDPS, ProjectionEnum.HIGH_RES_CONTINENTAL),)
     for model, projection in models:
         generate(model, projection)
 

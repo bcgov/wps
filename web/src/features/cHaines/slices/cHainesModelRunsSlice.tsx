@@ -8,13 +8,16 @@ interface State {
   loading: boolean
   error: string | null
   model_runs: ModelRun[]
-  model_run_predictions: Record<string, Record<string, FeatureCollection>>
-  model_run_predictions_status: Record<string, Record<string, string>>
-  selected_model: string
-  selected_prediction: string
+  model_run_predictions: Record<string, Record<string, Record<string, FeatureCollection>>>
+  model_run_predictions_status: Record<string, Record<string, Record<string, string>>>
+  selected_model_abbreviation: string
+  // TODO: rename selected_model_timestamp to selected_model_run_timestamp
+  selected_model_timestamp: string
+  selected_prediction_timestamp: string
 }
 
 interface GeoJSONContext {
+  model: string
   model_run_timestamp: string
   prediction_timestamp: string
   result: FeatureCollection
@@ -24,8 +27,9 @@ const initialState: State = {
   loading: false,
   error: null,
   model_runs: [],
-  selected_model: '',
-  selected_prediction: '',
+  selected_model_abbreviation: 'GDPS',
+  selected_model_timestamp: '',
+  selected_prediction_timestamp: '',
   model_run_predictions: {},
   model_run_predictions_status: {}
 }
@@ -36,14 +40,16 @@ const cHainesModelRunsSlice = createSlice({
   reducers: {
     getModelRunsStart(state: State) {
       state.loading = true
-      state.selected_prediction = ''
+      state.selected_prediction_timestamp = ''
     },
     getModelRunsSuccess(state: State, action: PayloadAction<ModelRuns>) {
       state.model_runs = action.payload.model_runs
       if (state.model_runs.length > 0) {
-        state.selected_model = state.model_runs[0].model_run_timestamp
+        state.selected_model_abbreviation = state.model_runs[0].model.abbrev
+        state.selected_model_timestamp = state.model_runs[0].model_run_timestamp
         if (state.model_runs[0].prediction_timestamps.length > 0) {
-          state.selected_prediction = state.model_runs[0].prediction_timestamps[0]
+          state.selected_prediction_timestamp =
+            state.model_runs[0].prediction_timestamps[0]
         }
       }
       state.model_runs.forEach(e => {
@@ -57,27 +63,57 @@ const cHainesModelRunsSlice = createSlice({
       state.error = action.payload
     },
     setSelectedModel(state: State, action: PayloadAction<string>) {
-      state.selected_model = action.payload
+      state.selected_model_abbreviation = action.payload
       const model_run = state.model_runs.find(
-        model_run => model_run.model_run_timestamp === action.payload
+        model_run => model_run.model.abbrev === action.payload
       )
       if (model_run) {
-        state.selected_prediction = model_run.prediction_timestamps[0]
+        state.selected_model_timestamp = model_run.model_run_timestamp
+        if (model_run.prediction_timestamps.length > 0) {
+          state.selected_prediction_timestamp = model_run.prediction_timestamps[0]
+        }
       } else {
-        state.selected_prediction = ''
+        state.selected_model_timestamp = ''
+      }
+    },
+    setSelectedModelRun(state: State, action: PayloadAction<string>) {
+      state.selected_model_timestamp = action.payload
+      const model_run = state.model_runs.find(
+        model_run =>
+          model_run.model_run_timestamp === action.payload &&
+          model_run.model.abbrev === state.selected_model_abbreviation
+      )
+      if (model_run) {
+        state.selected_prediction_timestamp = model_run.prediction_timestamps[0]
+      } else {
+        state.selected_prediction_timestamp = ''
       }
     },
     setSelectedPrediction(state: State, action: PayloadAction<string>) {
       console.log('setSelectedPrediction', action.payload)
-      state.selected_prediction = action.payload
+      state.selected_prediction_timestamp = action.payload
     },
     getPredictionStart(state: State) {
       state.loading = true
     },
     getPredictionSuccess(state: State, action: PayloadAction<GeoJSONContext>) {
-      state.model_run_predictions[action.payload.model_run_timestamp][
-        action.payload.prediction_timestamp
-      ] = action.payload.result
+      console.log('getPredictionSuccess', action.payload.model, action.payload.result)
+      if (!(action.payload.model in state.model_run_predictions)) {
+        state.model_run_predictions[action.payload.model] = {}
+      }
+      if (
+        !(
+          action.payload.model_run_timestamp in
+          state.model_run_predictions[action.payload.model]
+        )
+      ) {
+        state.model_run_predictions[action.payload.model][
+          action.payload.model_run_timestamp
+        ] = {}
+      }
+      state.model_run_predictions[action.payload.model][
+        action.payload.model_run_timestamp
+      ][action.payload.prediction_timestamp] = action.payload.result
     },
     getPredictionFailed(state: State, action: PayloadAction<string>) {
       state.loading = false
@@ -91,6 +127,7 @@ const {
   getModelRunsSuccess,
   getModelRunsFailed,
   setSelectedModel,
+  setSelectedModelRun,
   setSelectedPrediction,
   getPredictionStart,
   getPredictionSuccess,
@@ -124,21 +161,32 @@ export const updateSelectedModel = (
 ): AppThunk => async dispatch => {
   dispatch(setSelectedModel(selected_model))
 }
+export const updateSelectedModelRun = (
+  selected_model_run_timestamp: string
+): AppThunk => async dispatch => {
+  dispatch(setSelectedModelRun(selected_model_run_timestamp))
+}
 
 export const updateSelectedPrediction = (
-  selected_prediction: string
+  selected_prediction_timestamp: string
 ): AppThunk => async dispatch => {
-  dispatch(setSelectedPrediction(selected_prediction))
+  dispatch(setSelectedPrediction(selected_prediction_timestamp))
 }
 
 export const fetchCHainesGeoJSON = (
+  model_abbreviation: string,
   model_run_timestamp: string,
   prediction_timestamp: string
 ): AppThunk => async dispatch => {
   try {
     dispatch(getPredictionStart())
-    const geoJSON = await getCHainesGeoJSON(model_run_timestamp, prediction_timestamp)
+    const geoJSON = await getCHainesGeoJSON(
+      model_abbreviation,
+      model_run_timestamp,
+      prediction_timestamp
+    )
     const result = {
+      model: model_abbreviation,
       model_run_timestamp: model_run_timestamp,
       prediction_timestamp: prediction_timestamp,
       result: geoJSON

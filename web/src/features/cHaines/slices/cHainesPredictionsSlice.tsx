@@ -50,13 +50,19 @@ const {
 export default cHainesPredictionsSlice.reducer
 
 export const fetchCHainesGeoJSON = (
+  model_abbreviation: string,
   model_run_timestamp: string,
   prediction_timestamp: string
 ): AppThunk => async dispatch => {
   try {
     dispatch(getPredictionStart())
-    const geoJSON = await getCHainesGeoJSON(model_run_timestamp, prediction_timestamp)
+    const geoJSON = await getCHainesGeoJSON(
+      model_abbreviation,
+      model_run_timestamp,
+      prediction_timestamp
+    )
     const result = {
+      model: model_abbreviation,
       model_run_timestamp: model_run_timestamp,
       prediction_timestamp: prediction_timestamp,
       result: geoJSON
