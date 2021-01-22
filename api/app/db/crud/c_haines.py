@@ -41,11 +41,15 @@ def get_c_haines_prediction(
 def get_model_run_predictions(session: Session):
     """ Get some recent model runs """
     start_date = get_utc_now() - timedelta(days=3)
-    query = session.query(CHainesModelRun.id, CHainesModelRun.model_run_timestamp, PredictionModel.name, PredictionModel.abbreviation, CHainesPrediction.prediction_timestamp)\
+    query = session.query(CHainesModelRun.id,
+                          CHainesModelRun.model_run_timestamp,
+                          PredictionModel.name, PredictionModel.abbreviation,
+                          CHainesPrediction.prediction_timestamp)\
         .join(CHainesModelRun, CHainesModelRun.id == CHainesPrediction.model_run_id)\
         .join(PredictionModel, PredictionModel.id == CHainesModelRun.prediction_model_id)\
         .filter(CHainesModelRun.model_run_timestamp >= start_date)\
-        .order_by(desc(CHainesModelRun.model_run_timestamp), asc(CHainesPrediction.prediction_timestamp))
+        .order_by(CHainesModelRun.id,
+                  desc(CHainesModelRun.model_run_timestamp), asc(CHainesPrediction.prediction_timestamp))
     return query
 
     # return session.query(
