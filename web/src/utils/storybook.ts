@@ -58,12 +58,12 @@ const getPastValues = () => {
       })
       _highResModelSummaries.push({
         datetime,
-        tmp_tgl_2_5th: temp + 3,
+        tmp_tgl_2_5th: temp - 3,
         tmp_tgl_2_median: temp,
-        tmp_tgl_2_90th: temp - 3,
-        rh_tgl_2_5th: rh + 3,
+        tmp_tgl_2_90th: temp + 3,
+        rh_tgl_2_5th: rh - 3,
         rh_tgl_2_median: rh,
-        rh_tgl_2_90th: rh - 3
+        rh_tgl_2_90th: rh + 3
       })
       _pastRegionalModelValues.push({
         datetime,
@@ -75,12 +75,12 @@ const getPastValues = () => {
       })
       _regionalModelSummaries.push({
         datetime,
-        tmp_tgl_2_5th: temp + 4 - Math.random(),
+        tmp_tgl_2_5th: temp - 4 - Math.random(),
         tmp_tgl_2_median: temp,
-        tmp_tgl_2_90th: temp - 4 - Math.random() * 3,
-        rh_tgl_2_5th: rh + 4 - Math.random(),
+        tmp_tgl_2_90th: temp + 4 - Math.random() * 3,
+        rh_tgl_2_5th: rh - 4 - Math.random(),
         rh_tgl_2_median: rh,
-        rh_tgl_2_90th: rh - 4 + Math.random() * 3
+        rh_tgl_2_90th: rh + 4 + Math.random() * 3
       })
 
       if (isNoonInPST(datetime)) {
@@ -92,10 +92,10 @@ const getPastValues = () => {
         })
         _forecastSummaries.push({
           datetime,
-          tmp_min: temp + (Math.random() - 0.5) * 8 - 4,
-          tmp_max: temp + (Math.random() - 0.5) * 8 + 4,
-          rh_min: rh + (Math.random() - 0.5) * 8 - 4,
-          rh_max: rh + (Math.random() - 0.5) * 8 + 4
+          tmp_min: temp + (Math.random() - 1) * 2 - 4,
+          tmp_max: temp + Math.random() * 2 + 4,
+          rh_min: rh + (Math.random() - 1) * 2 - 4,
+          rh_max: rh + Math.random() * 2 + 4
         })
       }
 
@@ -111,12 +111,12 @@ const getPastValues = () => {
         })
         _modelSummaries.push({
           datetime,
-          tmp_tgl_2_5th: temp + 4,
+          tmp_tgl_2_5th: temp - 4,
           tmp_tgl_2_median: temp,
-          tmp_tgl_2_90th: temp - 4,
-          rh_tgl_2_5th: rh + 4,
+          tmp_tgl_2_90th: temp + 4,
+          rh_tgl_2_5th: rh - 4,
           rh_tgl_2_median: rh,
-          rh_tgl_2_90th: rh - 4
+          rh_tgl_2_90th: rh + 4
         })
       }
     }

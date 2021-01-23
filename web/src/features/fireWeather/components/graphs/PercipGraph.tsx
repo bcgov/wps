@@ -1,118 +1,17 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import React from 'react'
 import Plot from 'react-plotly.js'
-import { Data } from 'plotly.js'
-import moment from 'moment'
 
 import { ObservedValue } from 'api/observationAPI'
 import { ModelValue } from 'api/modelAPI'
 import { NoonForecastValue } from 'api/forecastAPI'
 import { ToggleValues } from 'features/fireWeather/components/graphs/useGraphToggles'
-
-interface PrecipValue {
-  datetime: string
-  precipitation?: number | null
-  delta_precipitation?: number | null
-  total_precipitation?: number | null
-}
-
-const getDailyAndAccumPrecips = (values: PrecipValue[]) => {
-  const dates: Date[] = []
-  const dailyPrecips: number[] = []
-  const shouldAggregate =
-    values.length > 0 &&
-    (values[0].precipitation !== undefined || values[0].delta_precipitation !== undefined)
-
-  // if the type of the value is observation or one of weather models, then aggregate hourly data to daily
-  if (shouldAggregate) {
-    const aggregatedPrecips: { [k: string]: number } = {}
-    values.forEach(({ datetime, precipitation, delta_precipitation }) => {
-      const date = moment(datetime).format('YYYY-MM-DD')
-      const precip = Number(precipitation) || Number(delta_precipitation)
-
-      if (!aggregatedPrecips[date]) {
-        aggregatedPrecips[date] = precip
-      } else {
-        aggregatedPrecips[date] = aggregatedPrecips[date] + precip
-      }
-    })
-
-    Object.entries(aggregatedPrecips).forEach(([formattedDate, totalPrecip]) => {
-      const midNightOfTheDay = moment(formattedDate)
-        .set({ hour: 0 })
-        .toDate()
-      dates.push(midNightOfTheDay)
-      dailyPrecips.push(totalPrecip)
-    })
-  } else {
-    values.forEach(({ datetime, total_precipitation }) => {
-      if (total_precipitation !== undefined) {
-        const midNightOfTheDay = moment(datetime)
-          .set({ hour: 0 })
-          .toDate()
-        dates.push(midNightOfTheDay)
-        dailyPrecips.push(Number(total_precipitation))
-      }
-    })
-  }
-
-  // Create a list of accumulated precips for each day in time
-  const accumPrecips: number[] = []
-  dailyPrecips.forEach((daily, idx) => {
-    if (idx === 0) {
-      return accumPrecips.push(daily)
-    }
-
-    const prevAccum = accumPrecips[accumPrecips.length - 1]
-    accumPrecips.push(prevAccum + daily)
-  })
-
-  return { dates, dailyPrecips, accumPrecips }
-}
-
-const populateGraphData = (
-  values: PrecipValue[],
-  name: string,
-  color: string,
-  show: boolean
-) => {
-  const { dates, dailyPrecips, accumPrecips } = getDailyAndAccumPrecips(values)
-
-  const dailyPrecipsBar: Data = {
-    x: dates,
-    y: dailyPrecips,
-    name,
-    type: 'bar',
-    showlegend: show,
-    marker: {
-      color: show ? color : 'transparent'
-    },
-    hoverinfo: show ? 'y' : 'skip',
-    hovertemplate: show ? `${name}: %{y:.2f} (mm/cm)<extra></extra>` : undefined
-  }
-
-  const accumPrecipsline: Data = {
-    x: dates,
-    y: accumPrecips,
-    name: `Accumulated ${name}`,
-    mode: 'lines',
-    yaxis: 'y2',
-    showlegend: show,
-    marker: {
-      color: show ? color : 'transparent'
-    },
-    hoverinfo: show ? 'y' : 'skip',
-    hovertemplate: show
-      ? `Accumulated ${name}: %{y:.2f} (mm/cm)<extra></extra>`
-      : undefined
-  }
-
-  return {
-    dailyPrecipsBar,
-    accumPrecipsline,
-    maxDailyPrecip: Math.max(...dailyPrecips)
-  }
-}
+import {
+  findMaxNumber,
+  layoutLegendConfig,
+  populateGraphDataForPrecip,
+  populateNowLineData
+} from 'features/fireWeather/components/graphs/plotlyHelper'
 
 const observedPrecipColor = '#a50b41'
 const forecastPrecipColor = '#fb0058'
@@ -145,44 +44,46 @@ const PrecipGraph = (props: Props) => {
     hrdpsModelValues
   } = props
 
-  const observation = populateGraphData(
+  const observation = populateGraphDataForPrecip(
     observedValues,
     'Observation',
     observedPrecipColor,
     toggleValues.showObservations
   )
-  const forecast = populateGraphData(
+  const forecast = populateGraphDataForPrecip(
     forecastValues,
     'Forecast',
     forecastPrecipColor,
     toggleValues.showForecasts
   )
-  const hrdps = populateGraphData(
+  const hrdps = populateGraphDataForPrecip(
     hrdpsModelValues,
     'HRDPS',
     hrdpsPrecipColor,
-    toggleValues.showHighResModels
+    toggleValues.showHrdps
   )
-  const gdps = populateGraphData(
+  const gdps = populateGraphDataForPrecip(
     gdpsModelValues,
     'GDPS',
     gdpsPrecipColor,
-    toggleValues.showModels
+    toggleValues.showGdps
   )
-  const rdps = populateGraphData(
+  const rdps = populateGraphDataForPrecip(
     rdpsModelValues,
     'RDPS',
     rdpsPrecipColor,
-    toggleValues.showRegionalModels
+    toggleValues.showRdps
   )
 
-  const maxY = Math.max(
-    observation.maxDailyPrecip,
-    forecast.maxDailyPrecip,
-    hrdps.maxDailyPrecip,
-    gdps.maxDailyPrecip,
-    rdps.maxDailyPrecip
-  )
+  const maxY = findMaxNumber([
+    observation.maxAccumPrecip,
+    forecast.maxAccumPrecip,
+    hrdps.maxAccumPrecip,
+    gdps.maxAccumPrecip,
+    rdps.maxAccumPrecip
+  ])
+  const y2Range = [0, maxY]
+  const nowLine = populateNowLineData(currDate, y2Range[0], y2Range[1], 'y2')
 
   return (
     <Plot
@@ -191,31 +92,21 @@ const PrecipGraph = (props: Props) => {
       onUpdate={e => {
         const updatedRange = e.layout.xaxis?.range as [string, string] | undefined
         if (updatedRange) {
-          setSliderRange(updatedRange)
+          // setSliderRange(updatedRange)
         }
       }}
       data={[
-        observation.dailyPrecipsBar,
-        observation.accumPrecipsline,
-        forecast.dailyPrecipsBar,
-        forecast.accumPrecipsline,
-        hrdps.dailyPrecipsBar,
-        hrdps.accumPrecipsline,
+        nowLine,
         gdps.dailyPrecipsBar,
         gdps.accumPrecipsline,
         rdps.dailyPrecipsBar,
         rdps.accumPrecipsline,
-        {
-          x: [currDate],
-          y: [maxY * 1.02],
-          mode: 'text',
-          text: ['Now'],
-          showlegend: false,
-          hoverinfo: 'skip',
-          textfont: { color: 'green', size: 15 },
-          // a workaround to remove this from the slider: https://github.com/plotly/plotly.js/issues/2010#issuecomment-637697204
-          xaxis: 'x2' // This moves trace to alternative xaxis(x2) which does not have a slider
-        }
+        hrdps.dailyPrecipsBar,
+        hrdps.accumPrecipsline,
+        forecast.dailyPrecipsBar,
+        forecast.accumPrecipsline,
+        observation.dailyPrecipsBar,
+        observation.accumPrecipsline
       ]}
       layout={{
         dragmode: 'pan',
@@ -248,6 +139,7 @@ const PrecipGraph = (props: Props) => {
         yaxis: {
           title: 'Daily Precipitation (mm/cm)',
           tickfont: { size: 14 },
+          gridcolor: 'transparent',
           fixedrange: true
         },
         yaxis2: {
@@ -255,31 +147,13 @@ const PrecipGraph = (props: Props) => {
           tickfont: { size: 14 },
           overlaying: 'y',
           side: 'right',
-          gridcolor: 'transparent'
+          fixedrange: true,
+          range: y2Range
         },
-        legend: {
-          orientation: 'h',
-          y: -0.45
-        },
+        legend: layoutLegendConfig,
         barmode: 'group',
         bargap: 0.75,
-        bargroupgap: 0.3,
-        shapes: [
-          {
-            type: 'line',
-            x0: currDate,
-            y0: 0,
-            x1: currDate,
-            y1: maxY,
-            line: {
-              color: 'green',
-              width: 1.5,
-              dash: 'dot'
-            },
-            xref: 'x2',
-            layer: 'below'
-          }
-        ]
+        bargroupgap: 0.3
       }}
     />
   )

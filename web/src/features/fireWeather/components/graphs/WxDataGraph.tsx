@@ -7,11 +7,10 @@ import { ObservedValue } from 'api/observationAPI'
 import { NoonForecastValue, ForecastSummary } from 'api/forecastAPI'
 import WxDataGraphToggles from 'features/fireWeather/components/graphs/WxDataGraphToggles'
 import { useGraphToggles } from 'features/fireWeather/components/graphs/useGraphToggles'
-import TempRHGraph from 'features/fireWeather/components/graphs/TempRHGraph'
 import PrecipGraph from 'features/fireWeather/components/graphs/PercipGraph'
 import WindGraph from 'features/fireWeather/components/graphs/WindGraph'
+import TempRHGraph from 'features/fireWeather/components/graphs/TempRHGraph'
 import { formatDateInPST } from 'utils/date'
-import NewTempRHGraph from './NewTempRHGraph'
 
 const useStyles = makeStyles({
   display: {
@@ -63,10 +62,10 @@ const WxDataGraph = ({
   const [toggleValues, setToggleValues] = useGraphToggles({
     showObservations: !noObservations,
     showForecasts: false,
-    showModels: false,
-    showBiasAdjModels: false,
-    showHighResModels: !noHighResModels,
-    showRegionalModels: false
+    showHrdps: !noHighResModels,
+    showRdps: false,
+    showGdps: false,
+    showBiasAdjGdps: false
   })
 
   if (
@@ -92,8 +91,7 @@ const WxDataGraph = ({
         noHighResModels={noHighResModels}
         noRegionalModels={noRegionalModels}
       />
-
-      <NewTempRHGraph
+      <TempRHGraph
         currDate={currDate}
         sliderRange={sliderRange}
         setSliderRange={setSliderRange}
@@ -108,20 +106,6 @@ const WxDataGraph = ({
         rdpsValues={allRegionalModelValues}
         rdpsSummaries={regionalModelSummaries}
       />
-
-      {/* <TempRHGraph
-        toggleValues={toggleValues}
-        observedValues={observedValues}
-        forecastValues={allForecasts}
-        forecastSummaries={forecastSummaries}
-        gdpsValues={allModelValues}
-        gdpsSummaries={modelSummaries}
-        biasAdjGdpsValues={allModelValues}
-        hrdpsValues={allHighResModelValues}
-        hrdpsSummaries={highResModelSummaries}
-        rdpsValues={allRegionalModelValues}
-        rdpsSummaries={regionalModelSummaries}
-      /> */}
 
       <PrecipGraph
         currDate={currDate}
