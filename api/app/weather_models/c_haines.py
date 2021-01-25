@@ -21,8 +21,9 @@ import numpy
 import gdal
 import ogr
 from sqlalchemy.orm import Session
+from shapely.ops import transform
 from shapely.geometry import shape
-from pyproj import CRS
+from pyproj import CRS, Transformer, Proj
 from app import configure_logging
 from app.weather_models import ModelEnum, ProjectionEnum
 from app.weather_models.process_grib import (get_transformer, GEO_CRS,
@@ -40,14 +41,22 @@ logger = logging.getLogger(__name__)
 
 
 class BoundingBoxChecker():
+    """ Class used to check if a given raster coordinate lies within a specified
+    geographic bounding box. """
 
     def __init__(self, geo_bounding_box, padf_transform, raster_to_geo_transformer):
         self.geo_bounding_box = geo_bounding_box
         self.padf_transform = padf_transform
         self.raster_to_geo_transformer = raster_to_geo_transformer
+        # self.bad_x = set()
+        # self.bad_y = set()
 
     def is_inside(self, raster_x, raster_y):
         """ Check if raster coordinate is inside the geographic bounding box """
+        # if raster_x in self.bad_x:
+        #     return False
+        # if raster_y in self.bad_y:
+        #     return False
         lon, lat = calculate_geographic_coordinate(
             (raster_x, raster_y),
             self.padf_transform,
@@ -61,6 +70,15 @@ class BoundingBoxChecker():
                 if lat < lat0:
                     if lat > lat1:
                         return True
+        #             else:
+        #                 self.bad_y.add(raster_y)
+        #         else:
+        #             self.bad_y.add(raster_y)
+        #     else:
+        #         self.bad_x.add(raster_x)
+        # else:
+        #     self.bad_x.add(raster_x)
+        return False
 
 
 def get_prediction_date(model_run_timestamp, hour) -> datetime:
@@ -380,8 +398,8 @@ def save_data_as_tiff(
 def save_data_as_geojson(
         ch_data: numpy.ndarray,
         mask_data: numpy.ndarray,
-        projection,
-        geotransform,
+        source_projection,
+        source_geotransform,
         rows: int,
         cols: int,
         target_filename: str):
@@ -392,15 +410,15 @@ def save_data_as_geojson(
 
     # Create data band.
     data_ds = mem_driver.Create('memory', cols, rows, 1, gdal.GDT_Byte)
-    data_ds.SetProjection(projection)
-    data_ds.SetGeoTransform(geotransform)
+    data_ds.SetProjection(source_projection)
+    data_ds.SetGeoTransform(source_geotransform)
     data_band = data_ds.GetRasterBand(1)
     data_band.WriteArray(ch_data)
 
     # Create mask band.
     mask_ds = mem_driver.Create('memory', cols, rows, 1, gdal.GDT_Byte)
-    mask_ds.SetProjection(projection)
-    mask_ds.SetGeoTransform(geotransform)
+    mask_ds.SetProjection(source_projection)
+    mask_ds.SetGeoTransform(source_geotransform)
     mask_band = mask_ds.GetRasterBand(1)
     mask_band.WriteArray(mask_data)
 
@@ -411,7 +429,15 @@ def save_data_as_geojson(
     # Save as geojson
     geojson_driver = ogr.GetDriverByName('GeoJSON')
     dst_ds = geojson_driver.CreateDataSource(target_filename)
-    dst_layer = dst_ds.CreateLayer('C-Haines', srs=None)
+
+    # Setting projection on the data source is not possible:
+    # dst_ds.SetProjection(GEO_CRS.to_string())
+
+    srs = ogr.osr.SpatialReference()
+    srs.SetWellKnownGeogCS("WGS84")
+    print('IsGeographic: {}'.format(srs.IsGeographic()))
+    # setting srs on layer, doesn't help.
+    dst_layer = dst_ds.CreateLayer('C-Haines', srs=srs)
     field_name = ogr.FieldDefn("severity", ogr.OFTInteger)
     field_name.SetWidth(24)
     dst_layer.CreateField(field_name)
@@ -423,7 +449,8 @@ def save_data_as_geojson(
     del dst_ds, data_ds, mask_ds
 
 
-def save_geojson_to_database(session: Session, filename: str,
+def save_geojson_to_database(session: Session,
+                             source_projection, filename: str,
                              prediction_timestamp: datetime,
                              model_run: CHainesModelRun):
     """ Open geojson file, iterate through features, saving them into the
@@ -434,17 +461,28 @@ def save_geojson_to_database(session: Session, filename: str,
     with open(filename) as file:
         data = json.load(file)
 
+    # Source coordinate system, must match source data.
+    proj_from = Proj(projparams=source_projection)
+    # Destination coordinate systems (NAD83, geographic coordinates)
+    proj_to = Proj('epsg:4269')
+    project = Transformer.from_proj(proj_from, proj_to, always_xy=True)
+
     # Create a prediction record to hang everything off of:
     prediction = CHainesPrediction(model_run=model_run,
                                    prediction_timestamp=prediction_timestamp)
     session.add(prediction)
     # Convert each feature into a shapely geometry and save to database.
     for feature in data['features']:
-        geometry = shape(feature['geometry'])
+        # Create polygon:
+        source_geometry = shape(feature['geometry'])
+        # Transform polygon from source to NAD83
+        geometry = transform(project.transform, source_geometry)
+        # Create data model object.
         polygon = CHainesPoly(
             geom=geometry.wkt,
             severity=feature['properties']['severity'],
             c_haines_prediction=prediction)
+        # Add to current session.
         session.add(polygon)
     # Only commit once we have everything.
     session.commit()
@@ -470,9 +508,9 @@ def generate_and_store_c_haines(
 
     # assertSameProjectionAndTransformation(grib_tmp_700, grib_tmp_850, grib_dew_850)
 
-    # Assume they're all using the same projection and transformation.
-    projection = grib_tmp_850.GetProjection()
-    geotransform = grib_tmp_850.GetGeoTransform()
+    # Assume all three the grib files are using the same projection and transformation.
+    source_projection = grib_tmp_850.GetProjection()
+    source_geotransform = grib_tmp_850.GetGeoTransform()
     padf_transform = get_dataset_geometry(grib_tmp_700)
 
     # S->N 46->70
@@ -480,9 +518,10 @@ def generate_and_store_c_haines(
     top_left_geo = (-140, 70)
     bottom_right_geo = (-110, 46)
     geographic_bounding_box = (top_left_geo, bottom_right_geo)
-    crs = CRS.from_string(projection)
-    geo_to_raster_transformer = get_transformer(crs, GEO_CRS)
-    bound_checker = BoundingBoxChecker(geographic_bounding_box, padf_transform, geo_to_raster_transformer)
+    crs = CRS.from_string(source_projection)
+    # Create a transformer to go from whatever the raster is, to geographic coordinates.
+    raster_to_geo_transformer = get_transformer(crs, GEO_CRS)
+    bound_checker = BoundingBoxChecker(geographic_bounding_box, padf_transform, raster_to_geo_transformer)
 
     c_haines_data, mask_data, rows, cols = calculate_c_haines_data(
         grib_tmp_700, grib_tmp_850, grib_dew_850, bound_checker)
@@ -502,13 +541,13 @@ def generate_and_store_c_haines(
         save_data_as_geojson(
             c_haines_data,
             mask_data,
-            projection,
-            geotransform,
+            source_projection,
+            source_geotransform,
             rows,
             cols,
             json_filename)
 
-        save_geojson_to_database(session, json_filename,
+        save_geojson_to_database(session, source_projection, json_filename,
                                  prediction_timestamp,
                                  model_run)
 
@@ -518,15 +557,19 @@ def local_test():
     # filename_tmp_850 = '/home/sybrand/Workspace/wps/api/scripts/CMC_glb_TMP_ISBL_850_latlon.15x.15_2020122200_P000.grib2'
     # filename_dew_850 = '/home/sybrand/Workspace/wps/api/scripts/CMC_glb_DEPR_ISBL_850_latlon.15x.15_2020122200_P000.grib2'
 
-    filename_tmp_700 = '/home/sybrand/Downloads/Work/CMC_glb_TMP_ISBL_700_latlon.15x.15_2021011800_P123.grib2'
-    filename_tmp_850 = '/home/sybrand/Downloads/Work/CMC_glb_TMP_ISBL_850_latlon.15x.15_2021011800_P123.grib2'
-    filename_dew_850 = '/home/sybrand/Downloads/Work/CMC_glb_DEPR_ISBL_850_latlon.15x.15_2021011800_P123.grib2'
+    # filename_tmp_700 = '/home/sybrand/Downloads/Work/CMC_glb_TMP_ISBL_700_latlon.15x.15_2021011800_P123.grib2'
+    # filename_tmp_850 = '/home/sybrand/Downloads/Work/CMC_glb_TMP_ISBL_850_latlon.15x.15_2021011800_P123.grib2'
+    # filename_dew_850 = '/home/sybrand/Downloads/Work/CMC_glb_DEPR_ISBL_850_latlon.15x.15_2021011800_P123.grib2'
 
-    model_run_timestamp = datetime(year=2021, month=1, day=18, hour=0, tzinfo=timezone.utc)
-    prediction_timestamp = datetime(year=2021, month=1, day=23, hour=3, tzinfo=timezone.utc)
+    filename_tmp_700 = '/home/sybrand/Downloads/Work/CMC_hrdps_continental_TMP_ISBL_0700_ps2.5km_2021012500_P000-00.grib2'
+    filename_tmp_850 = '/home/sybrand/Downloads/Work/CMC_hrdps_continental_TMP_ISBL_0850_ps2.5km_2021012500_P000-00.grib2'
+    filename_dew_850 = '/home/sybrand/Downloads/Work/CMC_hrdps_continental_DEPR_ISBL_0850_ps2.5km_2021012500_P000-00.grib2'
+
+    model_run_timestamp = datetime(year=2021, month=1, day=25, hour=0, tzinfo=timezone.utc)
+    prediction_timestamp = datetime(year=2021, month=1, day=25, hour=0, tzinfo=timezone.utc)
 
     session = app.db.database.get_write_session()
-    prediction_model = get_prediction_model(session, ModelEnum.GDPS, ProjectionEnum.LATLON_15X_15)
+    prediction_model = get_prediction_model(session, ModelEnum.HRDPS, ProjectionEnum.HIGH_RES_CONTINENTAL)
     model_run = get_or_create_c_haines_model_run(session, model_run_timestamp, prediction_model)
 
     generate_and_store_c_haines(
