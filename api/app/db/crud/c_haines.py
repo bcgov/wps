@@ -48,8 +48,8 @@ def get_model_run_predictions(session: Session):
         .join(CHainesModelRun, CHainesModelRun.id == CHainesPrediction.model_run_id)\
         .join(PredictionModel, PredictionModel.id == CHainesModelRun.prediction_model_id)\
         .filter(CHainesModelRun.model_run_timestamp >= start_date)\
-        .order_by(CHainesModelRun.id,
-                  desc(CHainesModelRun.model_run_timestamp), asc(CHainesPrediction.prediction_timestamp))
+        .order_by(desc(CHainesModelRun.model_run_timestamp), CHainesModelRun.id,
+                  asc(CHainesPrediction.prediction_timestamp))
     return query
 
     # return session.query(
