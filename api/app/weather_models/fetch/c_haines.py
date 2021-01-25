@@ -52,10 +52,10 @@ async def fetch(model: ModelEnum, model_run_timestamp: datetime, prediction_time
     return row[0]
 
 
-async def fetch_model_runs():
+async def fetch_model_runs(model_run_timestamp: datetime):
     """ Fetch recent model runs """
     session = app.db.database.get_read_session()
-    model_runs = get_model_run_predictions(session)
+    model_runs = get_model_run_predictions(session, model_run_timestamp)
 
     result = CHainesModelRuns(model_runs=[])
     prev_model_run_id = None

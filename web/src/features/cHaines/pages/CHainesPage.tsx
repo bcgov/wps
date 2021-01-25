@@ -69,6 +69,19 @@ const CHainesPage = () => {
   const loopTimeoutRef = useRef<number | null>(null)
   const [isAnimating, setAnimate] = useState(false)
   const [animationInterval, setAnimationInterval] = useState(200)
+  const [selectedDatetime, setSelectedDateTime] = useState(() => {
+    const d = new Date()
+    const month = `${d.getMonth() + 1}`
+    const date = `${d.getDate()}`
+    const hours = `${d.getHours()}`
+    const minutes = `${d.getMinutes()}`
+    const dateString = `${d.getFullYear()}-${month.padStart(2, '0')}-${date.padStart(
+      2,
+      '0'
+    )}T${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`
+    console.log(dateString)
+    return dateString
+  })
   const {
     model_runs,
     selected_model_timestamp,
@@ -118,7 +131,7 @@ const CHainesPage = () => {
   }
 
   useEffect(() => {
-    dispatch(fetchModelRuns())
+    dispatch(fetchModelRuns(selectedDatetime))
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -407,6 +420,14 @@ const CHainesPage = () => {
     }
   }
 
+  const handleChangeDateTime = (
+    event: React.ChangeEvent<{ name?: string | undefined; value: string }>
+  ) => {
+    console.log(event.target.value)
+    setSelectedDateTime(event.target.value)
+    dispatch(fetchModelRuns(event.target.value))
+  }
+
   const handleChangeModel = (
     event: React.ChangeEvent<{ name?: string | undefined; value: string }>
   ) => {
@@ -533,6 +554,14 @@ const CHainesPage = () => {
       <Container>
         <div id="map-with-selectable-wx-stations" className={classes.map} />
         <div>
+          <div>Select date of interest:</div>
+          <div>
+            <input
+              type="datetime-local"
+              value={selectedDatetime}
+              onChange={handleChangeDateTime}
+            ></input>
+          </div>
           <div>Select a model run and prediction from the dropdown:</div>
           <div>
             Models:
