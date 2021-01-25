@@ -38,16 +38,25 @@ def get_c_haines_prediction(
                 CHainesPrediction.prediction_timestamp == prediction_timestamp)
 
 
-def get_model_run_predictions(session: Session):
+def get_model_run_predictions(session: Session, model_run_timestamp: datetime):
     """ Get some recent model runs """
-    start_date = get_utc_now() - timedelta(days=3)
+    if model_run_timestamp:
+        # Get the day before and after the specified timestamp.
+        end_date = model_run_timestamp + timedelta(days=1)
+        start_date = model_run_timestamp - timedelta(days=1)
+    else:
+        # No timestamp? Get the last three days.
+        end_date = get_utc_now()
+        start_date = get_utc_now() - timedelta(days=3)
+
     query = session.query(CHainesModelRun.id,
                           CHainesModelRun.model_run_timestamp,
                           PredictionModel.name, PredictionModel.abbreviation,
                           CHainesPrediction.prediction_timestamp)\
         .join(CHainesModelRun, CHainesModelRun.id == CHainesPrediction.model_run_id)\
         .join(PredictionModel, PredictionModel.id == CHainesModelRun.prediction_model_id)\
-        .filter(CHainesModelRun.model_run_timestamp >= start_date)\
+        .filter(CHainesModelRun.model_run_timestamp >= start_date,
+                CHainesModelRun.model_run_timestamp < end_date)\
         .order_by(desc(CHainesModelRun.model_run_timestamp), CHainesModelRun.id,
                   asc(CHainesPrediction.prediction_timestamp))
     return query

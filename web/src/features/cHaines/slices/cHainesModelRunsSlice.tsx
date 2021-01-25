@@ -136,10 +136,12 @@ const {
 
 export default cHainesModelRunsSlice.reducer
 
-export const fetchModelRuns = (): AppThunk => async dispatch => {
+export const fetchModelRuns = (
+  model_run_timestamp: string | null
+): AppThunk => async dispatch => {
   try {
     dispatch(getModelRunsStart())
-    const modelsRuns = await getModelRuns()
+    const modelsRuns = await getModelRuns(model_run_timestamp)
     dispatch(getModelRunsSuccess(modelsRuns))
     // if (modelsRuns.model_runs.length > 0) {
     //   if (modelsRuns.model_runs[0].prediction_timestamps[0])

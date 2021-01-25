@@ -13,11 +13,19 @@ export interface ModelRuns {
   model_runs: ModelRun[]
 }
 
-export async function getModelRuns(): Promise<ModelRuns> {
+export async function getModelRuns(
+  model_run_timestamp: string | null
+): Promise<ModelRuns> {
   const url = `${API_BASE_URL}/c-haines/model-runs`
   // console.log('API_BASE_URL', API_BASE_URL)
   // console.log(url)
-  const { data } = await axios.get(url)
+  const { data } = await axios.get(url, {
+    params: {
+      model_run_timestamp: model_run_timestamp
+        ? new Date(model_run_timestamp).toISOString()
+        : null
+    }
+  })
   return data
 }
 

@@ -489,7 +489,7 @@ def save_geojson_to_database(session: Session,
         session.add(polygon)
     # Only commit once we have everything.
     session.commit()
-    # TODO: simplify geometry: https://shapely.readthedocs.io/en/stable/manual.html#object.simplify
+    # TODO: simplify geometry?: https://shapely.readthedocs.io/en/stable/manual.html#object.simplify
 
 
 # def assertSameProjectionAndTransformation(a, b, c):
