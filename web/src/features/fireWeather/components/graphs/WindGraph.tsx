@@ -23,14 +23,14 @@ export interface Props {
   gdpsModelValues: ModelValue[]
 }
 
-const observationLineColor = '#fb0058'
+const observationLineColor = '#005f87'
 const observationArrowColor = observationLineColor
-const gdpsLineColor = '#f56c9c'
-const gdpsArrowColor = gdpsLineColor
-const rdpsLineColor = '#ea6d0e'
-const rdpsArrowColor = rdpsLineColor
 const hrdpsLineColor = '#3ac417'
 const hrdpsArrowColor = hrdpsLineColor
+const rdpsLineColor = '#026200'
+const rdpsArrowColor = rdpsLineColor
+const gdpsLineColor = '#32e7e7'
+const gdpsArrowColor = gdpsLineColor
 
 const WindGraph = (props: Props) => {
   const {

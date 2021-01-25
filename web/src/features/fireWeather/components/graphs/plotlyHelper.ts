@@ -429,6 +429,9 @@ export const populateGraphDataForPrecip = (
     marker: {
       color
     },
+    line: {
+      width: 2.5
+    },
     showlegend: false,
     hoverinfo: 'y',
     hovertemplate: show

@@ -13,11 +13,11 @@ import {
   populateNowLineData
 } from 'features/fireWeather/components/graphs/plotlyHelper'
 
-const observedPrecipColor = '#a50b41'
-const forecastPrecipColor = '#fb0058'
-const gdpsPrecipColor = '#32e7e7'
+const observedPrecipColor = '#fb0058'
+const forecastPrecipColor = '#a50b41'
 const hrdpsPrecipColor = '#a017c2'
-const rdpsPrecipColor = '#026200'
+const rdpsPrecipColor = '#ea6d0e'
+const gdpsPrecipColor = '#f56c9c'
 
 interface Props {
   currDate: Date
