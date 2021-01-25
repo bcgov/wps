@@ -1,14 +1,5 @@
 """ Code for generating c-haines charts from grib files.
 
-Process:
-- Open grib files.
-- Calculate c-haines in in memory raster layer.
-- Polygonize the raster to a geojson data source.
-NEXT:
-- Load geojson, iterating through and saving it in the database.
-- Simplify polygons.
-- Load geojson from API and display in web map.
-- Download all grib files for model run.
 """
 from typing import Final
 import os
@@ -28,10 +19,9 @@ from app import configure_logging
 from app.weather_models import ModelEnum, ProjectionEnum
 from app.weather_models.process_grib import (get_transformer, GEO_CRS,
                                              get_dataset_geometry, calculate_geographic_coordinate)
-from app.db.models import CHainesPoly, CHainesPrediction, CHainesModelRun, PredictionModel
+from app.db.models import CHainesPoly, CHainesPrediction, CHainesModelRun
 from app.db.crud.weather_models import get_prediction_model
-from app.db.crud.c_haines import (
-    get_c_haines_model_run, get_c_haines_prediction, get_or_create_c_haines_model_run)
+from app.db.crud.c_haines import (get_c_haines_prediction, get_or_create_c_haines_model_run)
 from app.time_utils import get_utc_now
 from app.weather_models.env_canada import (get_model_run_hours,
                                            get_file_date_part, adjust_model_day, download,
@@ -58,11 +48,13 @@ class BoundingBoxChecker():
 
     def is_inside(self, raster_x, raster_y):
         """ Check if raster coordinate is inside the geographic bounding box """
-        # Try to use the cached results.
+        # Try to use the cached results. Transforming the raster coordinates is very slow. We can save
+        # a considerable amount of time, by caching this response - and then using the cache for the
+        # entire model run.
+        # NOTE: This assumes that all the grib files in the model run will be using the same projection.
         if self.check_cache:
             return self._is_inside_using_cache(raster_x, raster_y)
         # Calculate lat/long and check bounds.
-        # NOTE: This is a very slow calculation - that's why we cache the results.
         lon, lat = calculate_geographic_coordinate(
             (raster_x, raster_y),
             self.padf_transform,
@@ -91,13 +83,18 @@ def get_prediction_date(model_run_timestamp, hour) -> datetime:
 
 
 def model_prediction_hour_iterator(model: ModelEnum):
+    """ Return a prediction hour iterator.
+    Each model has a slightly different set of prediction hours. """
     if model == ModelEnum.GDPS:
+        # GDPS goes out real far, but in 3 hour intervals.
         for hour in range(0, 241, 3):
             yield hour
     elif model == ModelEnum.RDPS:
+        # RDPS goes out 3 1/2 days.
         for hour in range(0, 85):
             yield hour
     elif model == ModelEnum.HRDPS:
+        # HRDPS goes out 2 days.
         for hour in range(0, 49):
             yield hour
     else:
@@ -105,6 +102,8 @@ def model_prediction_hour_iterator(model: ModelEnum):
 
 
 def make_model_run_base_url(model: ModelEnum, hh: str, hhh: str):
+    """ Return the base url for the grib file.
+    The location of the files differs slightly for each model. """
     if model == ModelEnum.GDPS:
         return 'https://dd.weather.gc.ca/model_gem_global/15km/grib2/lat_lon/{}/{}/'.format(
             hh, hhh)
@@ -203,49 +202,41 @@ def calculate_c_haines_index(t700: float, t850: float, td850: float):
     return ch
 
 
-def get_bucket_value(ch):
-    # OZ BUCKET
-    # if ch < 0:
-    #     return 0
-    # if ch < 5:
-    #     return 1
-    # if ch < 8:
-    #     return 2
-    # if ch < 10:
-    #     return 3
-    # if ch < 12:
-    #     return 4
-    # return 5
+def get_severity(c_haines_index):
+    """ Return the "severity" of the continuous haines index.
 
-    # NEW BUCKET
+    Fire behavrious analysts are typically only concerned if there's a high
+    or extreme index - so the c-haines values are lumped together by severity.
+    """
+    # Meteostar
     # 0 - 4 : low
-    if ch < 4:
+    if c_haines_index < 4:
         return 0
     # 4 - 8 : moderate
-    if ch < 8:
+    if c_haines_index < 8:
         return 1
     # 8 - 11 : high
-    if ch < 11:
+    if c_haines_index < 11:
         return 2
     # 11 + Extreme
     return 3
 
-    # OLD BUCKET
-    # # 0 - 7 (Very low, low)
-    # if ch < 7:
-    #     level = 0
-    # # 7 - 9 (Moderate)
-    # elif ch < 9:
-    #     level = 1
-    # # 9 - 11 (High to very high)
-    # elif ch < 11:
-    #     level = 2
-    # # 11 and up (Very high)
-    # else:
-    #     level = 3
+    # Foresight (Australian tool, has the following buckets:
+    # no data
+    # 0-5 (blue)
+    # 5-8 (yellow)
+    # 8-10 (orange)
+    # 10-12 (red)
+
+    # Another example (from R.R.):
+    # 0 - 7 (Very low, low)
+    # 7 - 9 (Moderate)
+    # 9 - 11 (High to very high)
+    # 11 + (Very high)
 
 
 def calculate_c_haines_data(
+        bound_checker: BoundingBoxChecker,
         grib_tmp_700: gdal.Dataset,
         grib_tmp_850: gdal.Dataset,
         grib_dew_850: gdal.Dataset):
@@ -297,11 +288,11 @@ def calculate_c_haines_data(
 
                 # We're not interested in such finely grained results, so
                 # we bucket them together as such:
-                level = get_bucket_value(ch)
-                chaines_row.append(level)
+                severity = get_severity(ch)
+                chaines_row.append(severity)
 
-                # We ignore level 0
-                if level == 0:
+                # We ignore severity 0
+                if severity == 0:
                     mask_row.append(0)
                 else:
                     mask_row.append(1)
@@ -351,51 +342,6 @@ def save_data_as_tiff(
 
     band.WriteArray(numpy.array(c_haines_data))
     outdata.FlushCache()
-
-
-# def convert_to_polygon(ch_data: numpy.ndarray,
-#                        mask_data: numpy.ndarray,
-#                        projection,
-#                        geotransform,
-#                        rows: int,
-#                        cols: int):
-#     """ This doesn't work """
-
-#     mem_driver = gdal.GetDriverByName('MEM')
-
-#     # Create data band.
-#     data_ds = mem_driver.Create('memory', cols, rows, 1, gdal.GDT_Byte)
-#     data_ds.SetProjection(projection)
-#     data_ds.SetGeoTransform(geotransform)
-#     data_band = data_ds.GetRasterBand(1)
-#     data_band.WriteArray(ch_data)
-
-#     # Create mask band.
-#     mask_ds = mem_driver.Create('memory', cols, rows, 1, gdal.GDT_Byte)
-#     mask_ds.SetProjection(projection)
-#     mask_ds.SetGeoTransform(geotransform)
-#     mask_band = mask_ds.GetRasterBand(1)
-#     mask_band.WriteArray(mask_data)
-
-#     # Flush.
-#     data_ds.FlushCache()
-#     mask_ds.FlushCache()
-
-#     # Create polygon data source
-#     # polygon_ds = mem_driver.Create('memory', cols, rows, 1, gdal.GDT_Byte)
-#     # ogr_mem_driver = ogr.GetDriverByName('MEMORY')
-#     polygon_ds = mem_driver.CreateDataSource('memdata')
-#     dst_layer = polygon_ds.CreateLayer('C-Haines', srs=None)
-#     field_name = ogr.FieldDefn("index", ogr.OFTInteger)
-#     field_name.SetWidth(24)
-#     dst_layer.CreateField(field_name)
-#     # Turn the rasters into polygons
-#     gdal.Polygonize(data_band, mask_band, dst_layer, 0, [], callback=None)
-#     polygon_ds.FlushCache()
-
-#     del data_ds, mask_ds
-
-#     return dst_layer
 
 
 def save_data_as_geojson(
@@ -492,76 +438,6 @@ def save_geojson_to_database(session: Session,
     # TODO: simplify geometry?: https://shapely.readthedocs.io/en/stable/manual.html#object.simplify
 
 
-# def assertSameProjectionAndTransformation(a, b, c):
-#     # print(a.GetProjection())
-#     pass
-
-
-def generate_and_store_c_haines(
-        session: Session,
-        filename_tmp_700: str,
-        filename_tmp_850: str,
-        filename_dew_850: str,
-        prediction_timestamp: datetime,
-        model_run: CHainesModelRun):
-    # Open the grib files.
-    grib_tmp_700 = gdal.Open(filename_tmp_700, gdal.GA_ReadOnly)
-    grib_tmp_850 = gdal.Open(filename_tmp_850, gdal.GA_ReadOnly)
-    grib_dew_850 = gdal.Open(filename_dew_850, gdal.GA_ReadOnly)
-
-    # assertSameProjectionAndTransformation(grib_tmp_700, grib_tmp_850, grib_dew_850)
-
-    # Assume all three the grib files are using the same projection and transformation.
-    source_projection = grib_tmp_850.GetProjection()
-    source_geotransform = grib_tmp_850.GetGeoTransform()
-    padf_transform = get_dataset_geometry(grib_tmp_700)
-
-    # S->N 46->70
-    # E->W -110->-140
-    top_left_geo = (-140, 70)
-    bottom_right_geo = (-110, 46)
-    geographic_bounding_box = (top_left_geo, bottom_right_geo)
-    crs = CRS.from_string(source_projection)
-    # Create a transformer to go from whatever the raster is, to geographic coordinates.
-    raster_to_geo_transformer = get_transformer(crs, GEO_CRS)
-    global bound_checker
-    if not bound_checker:
-        logger.info('re-creating bound checker')
-        bound_checker = BoundingBoxChecker(
-            geographic_bounding_box, padf_transform, raster_to_geo_transformer)
-    else:
-        logger.info('re-using bound checker')
-        bound_checker.check_cache = True
-
-    c_haines_data, mask_data, rows, cols = calculate_c_haines_data(
-        grib_tmp_700, grib_tmp_850, grib_dew_850)
-
-    # Expictly release the grib files - they take a lot of memory. (Is this needed?)
-    del grib_tmp_700, grib_tmp_850, grib_dew_850
-
-    # Save to tiff (for easy debugging)
-    # save_data_as_tiff(
-    #     c_haines_data, 'c-haines_{}_{}.tiff'.format(
-    #         model_run_timestamp.isoformat(), prediction_timestamp.isoformat()),
-    #     rows, cols, projection, geotransform)
-
-    # Save to geojson
-    with tempfile.TemporaryDirectory() as tmp_path:
-        json_filename = os.path.join(os.getcwd(), tmp_path, 'c-haines.geojson')
-        save_data_as_geojson(
-            c_haines_data,
-            mask_data,
-            source_projection,
-            source_geotransform,
-            rows,
-            cols,
-            json_filename)
-
-        save_geojson_to_database(session, source_projection, json_filename,
-                                 prediction_timestamp,
-                                 model_run)
-
-
 def local_test():
     # filename_tmp_700 = '/home/sybrand/Workspace/wps/api/scripts/CMC_glb_TMP_ISBL_700_latlon.15x.15_2020122200_P000.grib2'
     # filename_tmp_850 = '/home/sybrand/Workspace/wps/api/scripts/CMC_glb_TMP_ISBL_850_latlon.15x.15_2020122200_P000.grib2'
@@ -583,8 +459,8 @@ def local_test():
     prediction_model = get_prediction_model(session, ModelEnum.HRDPS, ProjectionEnum.HIGH_RES_CONTINENTAL)
     model_run = get_or_create_c_haines_model_run(session, model_run_timestamp, prediction_model)
 
-    generate_and_store_c_haines(
-        session,
+    generator = CHainesSeverityGenerator()
+    generator._generate_and_store_c_haines(
         filename_tmp_700,
         filename_tmp_850,
         filename_dew_850,
@@ -601,59 +477,125 @@ def record_exists(
     return result.count() > 0
 
 
-def generate(model: ModelEnum, projection: ProjectionEnum):
-    session = app.db.database.get_write_session()
-    prediction_model = get_prediction_model(session, model, projection)
-    utc_now = get_utc_now()
-    for model_hour in get_model_run_hours(model):
-        model_run = None
-        for prediction_hour in model_prediction_hour_iterator(model):
-            urls = make_model_run_download_urls(model, utc_now, model_hour, prediction_hour)
-            if not model_run:
-                model_run = get_or_create_c_haines_model_run(
-                    session, urls['model_run_timestamp'], prediction_model)
-            if record_exists(session, model_run, urls['prediction_timestamp']):
-                logger.info('already downloaded %s - %s',
-                            urls['model_run_timestamp'], urls['prediction_timestamp'])
-                continue
+class CHainesSeverityGenerator():
+    """ Class responsible for orchestrating the generation of Continous Haines severity
+    index polygons.
+    """
 
-        # for urls in get_global_model_run_download_urls(utc_now, model_hour):
-            # TODO: check if we haven't already downloaded this
-            with tempfile.TemporaryDirectory() as tmp_path:
-                if model == ModelEnum.HRDPS:
-                    filename_tmp_700 = download(urls['TMP_ISBL_0700'], tmp_path)
-                    filename_tmp_850 = download(urls['TMP_ISBL_0850'], tmp_path)
-                    filename_dew_850 = download(urls['DEPR_ISBL_0850'], tmp_path)
-                else:
-                    filename_tmp_700 = download(urls['TMP_ISBL_700'], tmp_path)
-                    filename_tmp_850 = download(urls['TMP_ISBL_850'], tmp_path)
-                    filename_dew_850 = download(urls['DEPR_ISBL_850'], tmp_path)
+    def __init__(self):
+        self.bound_checker = None
+        self.session = app.db.database.get_write_session()
 
-                if filename_tmp_700 and filename_tmp_850 and filename_dew_850:
-                    generate_and_store_c_haines(
-                        session,
-                        filename_tmp_700,
-                        filename_tmp_850,
-                        filename_dew_850,
-                        urls['prediction_timestamp'],
-                        model_run)
-                else:
-                    logger.warning('failed to download all files')
+    def generate(self, model: ModelEnum, projection: ProjectionEnum):
+        prediction_model = get_prediction_model(self.session, model, projection)
+        utc_now = get_utc_now()
+        for model_hour in get_model_run_hours(model):
+            model_run = None
+            for prediction_hour in model_prediction_hour_iterator(model):
+                urls = make_model_run_download_urls(model, utc_now, model_hour, prediction_hour)
+                if not model_run:
+                    model_run = get_or_create_c_haines_model_run(
+                        self.session, urls['model_run_timestamp'], prediction_model)
+                if record_exists(self.session, model_run, urls['prediction_timestamp']):
+                    logger.info('already downloaded %s - %s',
+                                urls['model_run_timestamp'], urls['prediction_timestamp'])
+                    continue
+
+                with tempfile.TemporaryDirectory() as tmp_path:
+                    if model == ModelEnum.HRDPS:
+                        filename_tmp_700 = download(urls['TMP_ISBL_0700'], tmp_path)
+                        filename_tmp_850 = download(urls['TMP_ISBL_0850'], tmp_path)
+                        filename_dew_850 = download(urls['DEPR_ISBL_0850'], tmp_path)
+                    else:
+                        filename_tmp_700 = download(urls['TMP_ISBL_700'], tmp_path)
+                        filename_tmp_850 = download(urls['TMP_ISBL_850'], tmp_path)
+                        filename_dew_850 = download(urls['DEPR_ISBL_850'], tmp_path)
+
+                    if filename_tmp_700 and filename_tmp_850 and filename_dew_850:
+                        self._generate_and_store_c_haines(
+                            filename_tmp_700,
+                            filename_tmp_850,
+                            filename_dew_850,
+                            urls['prediction_timestamp'],
+                            model_run)
+                    else:
+                        logger.warning('failed to download all files')
+
+    def _generate_and_store_c_haines(
+            self,
+            filename_tmp_700: str,
+            filename_tmp_850: str,
+            filename_dew_850: str,
+            prediction_timestamp: datetime,
+            model_run: CHainesModelRun):
+        # Open the grib files.
+        grib_tmp_700 = gdal.Open(filename_tmp_700, gdal.GA_ReadOnly)
+        grib_tmp_850 = gdal.Open(filename_tmp_850, gdal.GA_ReadOnly)
+        grib_dew_850 = gdal.Open(filename_dew_850, gdal.GA_ReadOnly)
+
+        # assertSameProjectionAndTransformation(grib_tmp_700, grib_tmp_850, grib_dew_850)
+
+        # Assume all three the grib files are using the same projection and transformation.
+        source_projection = grib_tmp_850.GetProjection()
+        source_geotransform = grib_tmp_850.GetGeoTransform()
+        padf_transform = get_dataset_geometry(grib_tmp_700)
+
+        # S->N 46->70
+        # E->W -110->-140
+        top_left_geo = (-140, 70)
+        bottom_right_geo = (-110, 46)
+        geographic_bounding_box = (top_left_geo, bottom_right_geo)
+        crs = CRS.from_string(source_projection)
+        # Create a transformer to go from whatever the raster is, to geographic coordinates.
+        raster_to_geo_transformer = get_transformer(crs, GEO_CRS)
+        if not self.bound_checker:
+            logger.info('re-creating bound checker')
+            self.bound_checker = BoundingBoxChecker(
+                geographic_bounding_box, padf_transform, raster_to_geo_transformer)
+        else:
+            logger.info('re-using bound checker')
+            self.bound_checker.check_cache = True
+
+        c_haines_data, mask_data, rows, cols = calculate_c_haines_data(self.bound_checker,
+                                                                       grib_tmp_700, grib_tmp_850, grib_dew_850)
+
+        # Expictly release the grib files - they take a lot of memory. (Is this needed?)
+        del grib_tmp_700, grib_tmp_850, grib_dew_850
+
+        # Save to tiff (for easy debugging)
+        # save_data_as_tiff(
+        #     c_haines_data, 'c-haines_{}_{}.tiff'.format(
+        #         model_run_timestamp.isoformat(), prediction_timestamp.isoformat()),
+        #     rows, cols, projection, geotransform)
+
+        # Save to geojson
+        with tempfile.TemporaryDirectory() as tmp_path:
+            json_filename = os.path.join(os.getcwd(), tmp_path, 'c-haines.geojson')
+            save_data_as_geojson(
+                c_haines_data,
+                mask_data,
+                source_projection,
+                source_geotransform,
+                rows,
+                cols,
+                json_filename)
+
+            save_geojson_to_database(self.session, source_projection, json_filename,
+                                     prediction_timestamp,
+                                     model_run)
 
 
 def main():
-    global bound_checker
     models = (
         (ModelEnum.GDPS, ProjectionEnum.LATLON_15X_15),
         (ModelEnum.RDPS, ProjectionEnum.REGIONAL_PS),
         (ModelEnum.HRDPS, ProjectionEnum.HIGH_RES_CONTINENTAL),)
     for model, projection in models:
-        bound_checker = None
-        generate(model, projection)
+        generator = CHainesSeverityGenerator()
+        generator.generate(model, projection)
 
 
 if __name__ == "__main__":
     configure_logging()
-    bound_checker = None
     main()
     # local_test()
