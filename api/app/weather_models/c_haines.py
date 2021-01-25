@@ -416,7 +416,8 @@ class CHainesSeverityGenerator():
                     model_run = get_or_create_c_haines_model_run(
                         self.session, urls['model_run_timestamp'], prediction_model)
                 if record_exists(self.session, model_run, urls['prediction_timestamp']):
-                    logger.info('already downloaded %s - %s',
+                    logger.info('%s: already processed %s-%s',
+                                model,
                                 urls['model_run_timestamp'], urls['prediction_timestamp'])
                     continue
 
@@ -507,6 +508,7 @@ def main():
         (ModelEnum.RDPS, ProjectionEnum.REGIONAL_PS),
         (ModelEnum.HRDPS, ProjectionEnum.HIGH_RES_CONTINENTAL),)
     for model, projection in models:
+        logger.info('Generating C-Haines Severity Index for %s', model)
         generator = CHainesSeverityGenerator()
         generator.generate(model, projection)
 
