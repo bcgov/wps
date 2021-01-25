@@ -67,7 +67,7 @@ const CHainesPage = () => {
   const currentLayersRef = useRef<L.GeoJSON | null>(null)
   const loopTimeoutRef = useRef<number | null>(null)
   const [isAnimating, setAnimate] = useState(false)
-  const [animationInterval, setAnimationInterval] = useState(500)
+  const [animationInterval, setAnimationInterval] = useState(200)
   const {
     model_runs,
     selected_model_timestamp,
@@ -388,15 +388,13 @@ const CHainesPage = () => {
     model_run_timestamp: string,
     prediction_timestamp: string
   ) => {
-    console.log('creating layer...')
+    console.log('showLayer', model, model_run_timestamp, prediction_timestamp)
     const geoJsonLayer = getLayer(model, model_run_timestamp, prediction_timestamp)
     if (mapRef.current) {
       if (currentLayersRef.current) {
-        console.log('removing previous layer')
         mapRef.current.removeLayer(currentLayersRef.current)
         currentLayersRef.current = null
       }
-      console.log('adding new layer to map')
       geoJsonLayer.addTo(mapRef.current)
       currentLayersRef.current = geoJsonLayer
     }
@@ -466,13 +464,17 @@ const CHainesPage = () => {
 
   const loadNextPrediction = () => {
     const model_run = model_runs.find(
-      model_run => model_run.model_run_timestamp === selected_model_timestamp
+      model_run =>
+        model_run.model_run_timestamp === selected_model_timestamp &&
+        model_run.model.abbrev === selected_model_abbreviation
     )
     if (model_run) {
       const index = model_run.prediction_timestamps.findIndex(
         value => value === selected_prediction_timestamp
       )
+      console.log('model_run index', index, model_run.prediction_timestamps.length)
       const nextIndex = index + 1 < model_run.prediction_timestamps.length ? index + 1 : 0
+      console.log('model_run next index', nextIndex)
       loadModelPrediction(
         selected_model_abbreviation,
         selected_model_timestamp,
@@ -487,7 +489,9 @@ const CHainesPage = () => {
     )
     if (model_run) {
       const index = model_run.prediction_timestamps.findIndex(
-        value => value === selected_prediction_timestamp
+        value =>
+          value === selected_prediction_timestamp &&
+          model_run.model.abbrev === selected_model_abbreviation
       )
       const nextIndex = index > 0 ? index - 1 : model_run.prediction_timestamps.length - 1
       loadModelPrediction(
@@ -561,7 +565,7 @@ const CHainesPage = () => {
                 .map((model_run, i) =>
                   model_run.prediction_timestamps.map((prediction_timestamp, i2) => (
                     <option key={`${i}-${i2}`} value={prediction_timestamp}>
-                      {/* {prediction_timestamp} (UTC) */}
+                      {/* {prediction_timestamp} (UTC)&nbsp; */}
                       {formatDateInPDT(prediction_timestamp)} (PDT)
                     </option>
                   ))
@@ -580,6 +584,7 @@ const CHainesPage = () => {
             <select value={animationInterval} onChange={handleIntervalChange}>
               <option value="1">1ms</option>
               <option value="100">100ms</option>
+              <option value="200">200ms</option>
               <option value="500">500ms</option>
               <option value="1000">1s</option>
               <option value="5000">5s</option>

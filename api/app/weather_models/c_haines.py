@@ -48,15 +48,20 @@ class BoundingBoxChecker():
         self.geo_bounding_box = geo_bounding_box
         self.padf_transform = padf_transform
         self.raster_to_geo_transformer = raster_to_geo_transformer
-        # self.bad_x = set()
-        # self.bad_y = set()
+        self.good_x = dict()
+        self.check_cache = False
+
+    def _is_inside_using_cache(self, raster_x, raster_y):
+        good_y = self.good_x.get(raster_x)
+        return good_y and raster_y in good_y
 
     def is_inside(self, raster_x, raster_y):
         """ Check if raster coordinate is inside the geographic bounding box """
-        # if raster_x in self.bad_x:
-        #     return False
-        # if raster_y in self.bad_y:
-        #     return False
+        # Try to use the cached results.
+        if self.check_cache:
+            return self._is_inside_using_cache(raster_x, raster_y)
+        # Calculate lat/long and check bounds.
+        # NOTE: This is a very slow calculation - that's why we cache the results.
         lon, lat = calculate_geographic_coordinate(
             (raster_x, raster_y),
             self.padf_transform,
@@ -69,15 +74,12 @@ class BoundingBoxChecker():
             if lon < lon1:
                 if lat < lat0:
                     if lat > lat1:
+                        good_y = self.good_x.get(raster_x)
+                        if not good_y:
+                            good_y = set()
+                            self.good_x[raster_x] = good_y
+                        good_y.add(raster_y)
                         return True
-        #             else:
-        #                 self.bad_y.add(raster_y)
-        #         else:
-        #             self.bad_y.add(raster_y)
-        #     else:
-        #         self.bad_x.add(raster_x)
-        # else:
-        #     self.bad_x.add(raster_x)
         return False
 
 
@@ -244,8 +246,7 @@ def get_bucket_value(ch):
 def calculate_c_haines_data(
         grib_tmp_700: gdal.Dataset,
         grib_tmp_850: gdal.Dataset,
-        grib_dew_850: gdal.Dataset,
-        bound_checker: BoundingBoxChecker):
+        grib_dew_850: gdal.Dataset):
     """ Given grib data sets for temperature and dew point, create array of data containing
     c-haines indices and mask """
     logger.info('calculting c-haines data...')
@@ -521,10 +522,17 @@ def generate_and_store_c_haines(
     crs = CRS.from_string(source_projection)
     # Create a transformer to go from whatever the raster is, to geographic coordinates.
     raster_to_geo_transformer = get_transformer(crs, GEO_CRS)
-    bound_checker = BoundingBoxChecker(geographic_bounding_box, padf_transform, raster_to_geo_transformer)
+    global bound_checker
+    if not bound_checker:
+        logger.info('re-creating bound checker')
+        bound_checker = BoundingBoxChecker(
+            geographic_bounding_box, padf_transform, raster_to_geo_transformer)
+    else:
+        logger.info('re-using bound checker')
+        bound_checker.check_cache = True
 
     c_haines_data, mask_data, rows, cols = calculate_c_haines_data(
-        grib_tmp_700, grib_tmp_850, grib_dew_850, bound_checker)
+        grib_tmp_700, grib_tmp_850, grib_dew_850)
 
     # Expictly release the grib files - they take a lot of memory. (Is this needed?)
     del grib_tmp_700, grib_tmp_850, grib_dew_850
@@ -557,14 +565,15 @@ def local_test():
     # filename_tmp_850 = '/home/sybrand/Workspace/wps/api/scripts/CMC_glb_TMP_ISBL_850_latlon.15x.15_2020122200_P000.grib2'
     # filename_dew_850 = '/home/sybrand/Workspace/wps/api/scripts/CMC_glb_DEPR_ISBL_850_latlon.15x.15_2020122200_P000.grib2'
 
-    # filename_tmp_700 = '/home/sybrand/Downloads/Work/CMC_glb_TMP_ISBL_700_latlon.15x.15_2021011800_P123.grib2'
-    # filename_tmp_850 = '/home/sybrand/Downloads/Work/CMC_glb_TMP_ISBL_850_latlon.15x.15_2021011800_P123.grib2'
-    # filename_dew_850 = '/home/sybrand/Downloads/Work/CMC_glb_DEPR_ISBL_850_latlon.15x.15_2021011800_P123.grib2'
+    filename_tmp_700 = '/home/sybrand/Downloads/Work/CMC_glb_TMP_ISBL_700_latlon.15x.15_2021011800_P123.grib2'
+    filename_tmp_850 = '/home/sybrand/Downloads/Work/CMC_glb_TMP_ISBL_850_latlon.15x.15_2021011800_P123.grib2'
+    filename_dew_850 = '/home/sybrand/Downloads/Work/CMC_glb_DEPR_ISBL_850_latlon.15x.15_2021011800_P123.grib2'
+    model_run_timestamp = datetime(year=2021, month=1, day=18, hour=0, tzinfo=timezone.utc)
+    prediction_timestamp = datetime(year=2021, month=1, day=23, hour=3, tzinfo=timezone.utc)
 
-    filename_tmp_700 = '/home/sybrand/Downloads/Work/CMC_hrdps_continental_TMP_ISBL_0700_ps2.5km_2021012500_P000-00.grib2'
-    filename_tmp_850 = '/home/sybrand/Downloads/Work/CMC_hrdps_continental_TMP_ISBL_0850_ps2.5km_2021012500_P000-00.grib2'
-    filename_dew_850 = '/home/sybrand/Downloads/Work/CMC_hrdps_continental_DEPR_ISBL_0850_ps2.5km_2021012500_P000-00.grib2'
-
+    # filename_tmp_700 = '/home/sybrand/Downloads/Work/CMC_hrdps_continental_TMP_ISBL_0700_ps2.5km_2021012500_P000-00.grib2'
+    # filename_tmp_850 = '/home/sybrand/Downloads/Work/CMC_hrdps_continental_TMP_ISBL_0850_ps2.5km_2021012500_P000-00.grib2'
+    # filename_dew_850 = '/home/sybrand/Downloads/Work/CMC_hrdps_continental_DEPR_ISBL_0850_ps2.5km_2021012500_P000-00.grib2'
     model_run_timestamp = datetime(year=2021, month=1, day=25, hour=0, tzinfo=timezone.utc)
     prediction_timestamp = datetime(year=2021, month=1, day=25, hour=0, tzinfo=timezone.utc)
 
@@ -631,15 +640,18 @@ def generate(model: ModelEnum, projection: ProjectionEnum):
 
 
 def main():
+    global bound_checker
     models = (
         (ModelEnum.GDPS, ProjectionEnum.LATLON_15X_15),
         (ModelEnum.RDPS, ProjectionEnum.REGIONAL_PS),
         (ModelEnum.HRDPS, ProjectionEnum.HIGH_RES_CONTINENTAL),)
     for model, projection in models:
+        bound_checker = None
         generate(model, projection)
 
 
 if __name__ == "__main__":
     configure_logging()
+    bound_checker = None
     main()
     # local_test()
