@@ -101,31 +101,35 @@ def model_prediction_hour_iterator(model: ModelEnum):
         raise UnhandledPredictionModelType()
 
 
-def make_model_run_base_url(model: ModelEnum, hh: str, hhh: str):
+def make_model_run_base_url(model: ModelEnum, model_run_start: str, forecast_hour: str):
     """ Return the base url for the grib file.
     The location of the files differs slightly for each model. """
     if model == ModelEnum.GDPS:
-        return 'https://dd.weather.gc.ca/model_gem_global/15km/grib2/lat_lon/{}/{}/'.format(
-            hh, hhh)
-    elif model == ModelEnum.RDPS:
-        return 'https://dd.weather.gc.ca/model_gem_regional/10km/grib2/{}/{}/'.format(
-            hh, hhh
+        return 'https://dd.weather.gc.ca/model_gem_global/15km/grib2/lat_lon/{HH}/{hhh}/'.format(
+            HH=model_run_start, hhh=forecast_hour)
+    if model == ModelEnum.RDPS:
+        return 'https://dd.weather.gc.ca/model_gem_regional/10km/grib2/{HH}/{hhh}/'.format(
+            HH=model_run_start, hhh=forecast_hour
         )
-    elif model == ModelEnum.HRDPS:
-        return 'https://dd.weather.gc.ca/model_hrdps/continental/grib2/{}/{}/'.format(
-            hh, hhh)
+    if model == ModelEnum.HRDPS:
+        return 'https://dd.weather.gc.ca/model_hrdps/continental/grib2/{HH}/{hhh}/'.format(
+            HH=model_run_start, hhh=forecast_hour)
     raise UnhandledPredictionModelType()
 
 
-def make_model_run_filename(model: ModelEnum, level: str, date: str, hh: str, hhh: str):
+def make_model_run_filename(
+        model: ModelEnum, level: str, date: str, model_run_start: str, forecast_hour: str):
+    """ Return the filename of the grib file.
+    The filename for each model differs slightly. """
     if model == ModelEnum.GDPS:
-        return 'CMC_glb_{}_latlon.15x.15_{}{}_P{}.grib2'.format(level, date, hh, hhh)
+        return 'CMC_glb_{}_latlon.15x.15_{}{HH}_P{hhh}.grib2'.format(
+            level, date, HH=model_run_start, hhh=forecast_hour)
     elif model == ModelEnum.RDPS:
-        return 'CMC_reg_{}_ps10km_{}{}_P{}.grib2'.format(
-            level, date, hh, hhh)
+        return 'CMC_reg_{}_ps10km_{}{HH}_P{hhh}.grib2'.format(
+            level, date, HH=model_run_start, hhh=forecast_hour)
     elif model == ModelEnum.HRDPS:
-        return 'CMC_hrdps_continental_{level}_ps2.5km_{date}{hh}_P{hhh}-00.grib2'.format(
-            level=level, date=date, hh=hh, hhh=hhh)
+        return 'CMC_hrdps_continental_{level}_ps2.5km_{date}{HH}_P{hhh}-00.grib2'.format(
+            level=level, date=date, HH=model_run_start, hhh=forecast_hour)
     raise UnhandledPredictionModelType()
 
 
@@ -262,7 +266,7 @@ def calculate_c_haines_data(
     # Iterate through rows.
     for y_row_index in range(rows):
 
-        chaines_row = []
+        chaines_severity_row = []
         mask_row = []
         # Read the scanlines.
         row_tmp_700 = read_scanline(tmp_700_raster_band, y_row_index)
@@ -277,71 +281,25 @@ def calculate_c_haines_data(
                 # pylint: disable=invalid-name
                 ch = calculate_c_haines_index(t700, t850, td850)
 
-                if lowest is None:
-                    lowest = ch
-                if highest is None:
-                    highest = ch
-                if ch < lowest:
-                    lowest = ch
-                if ch > highest:
-                    highest = ch
-
                 # We're not interested in such finely grained results, so
-                # we bucket them together as such:
+                # we bucket c-haines indices into severity levels.
                 severity = get_severity(ch)
-                chaines_row.append(severity)
+                chaines_severity_row.append(severity)
 
-                # We ignore severity 0
+                # We ignore severity 0.
                 if severity == 0:
                     mask_row.append(0)
                 else:
                     mask_row.append(1)
             else:
                 mask_row.append(0)
-                chaines_row.append(0)
+                chaines_severity_row.append(0)
 
-        c_haines_data.append(chaines_row)
+        c_haines_data.append(chaines_severity_row)
         mask_data.append(mask_row)
-
-    # print('lowest c-haines: {}'.format(lowest))
-    # print('highest c-haines: {}'.format(highest))
 
     # TODO: look at creating numpy arrays from the get go
     return numpy.array(c_haines_data), numpy.array(mask_data), rows, cols
-
-
-def save_data_as_tiff(
-        c_haines_data: numpy.ndarray,
-        target_filename: str,
-        rows: int,
-        cols: int,
-        source_projection,
-        source_geotransform):
-    logger.info('saving output as tiff %s...', target_filename)
-    driver = gdal.GetDriverByName("GTiff")
-    outdata = driver.Create(target_filename, cols, rows, 1, gdal.GDT_Byte)
-    outdata.SetProjection(source_projection)
-    outdata.SetGeoTransform(source_geotransform)
-
-    colors = gdal.ColorTable()
-
-    # for i in range(255):
-    #     colors.SetColorEntry(i, (i+50, i+50, i+50))
-    # green
-    colors.SetColorEntry(0, (0, 255, 0))
-    # yellow
-    colors.SetColorEntry(1, (255, 255, 0))
-    # orange
-    colors.SetColorEntry(2, (255, 164, 0))
-    # red
-    colors.SetColorEntry(3, (255, 0, 0))
-
-    band = outdata.GetRasterBand(1)
-    band.SetRasterColorTable(colors)
-    band.SetRasterColorInterpretation(gdal.GCI_PaletteIndex)
-
-    band.WriteArray(numpy.array(c_haines_data))
-    outdata.FlushCache()
 
 
 def save_data_as_geojson(
@@ -480,6 +438,10 @@ def record_exists(
 class CHainesSeverityGenerator():
     """ Class responsible for orchestrating the generation of Continous Haines severity
     index polygons.
+
+    Steps for generation of severity level as follows:
+    1) Download grib files.
+    2) Iterate through raster rows, generating an in memory raster containing c-haines severity indices.
     """
 
     def __init__(self):
@@ -561,12 +523,6 @@ class CHainesSeverityGenerator():
 
         # Expictly release the grib files - they take a lot of memory. (Is this needed?)
         del grib_tmp_700, grib_tmp_850, grib_dew_850
-
-        # Save to tiff (for easy debugging)
-        # save_data_as_tiff(
-        #     c_haines_data, 'c-haines_{}_{}.tiff'.format(
-        #         model_run_timestamp.isoformat(), prediction_timestamp.isoformat()),
-        #     rows, cols, projection, geotransform)
 
         # Save to geojson
         with tempfile.TemporaryDirectory() as tmp_path:
