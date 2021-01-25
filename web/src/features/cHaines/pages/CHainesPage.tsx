@@ -16,6 +16,7 @@ import {
 } from 'features/cHaines/slices/cHainesModelRunsSlice'
 import { Container, PageHeader, PageTitle } from 'components'
 import { formatDateInPDT } from 'utils/date'
+import { logError } from 'utils/error'
 
 const useStyles = makeStyles({
   map: {
@@ -389,14 +390,20 @@ const CHainesPage = () => {
     prediction_timestamp: string
   ) => {
     console.log('showLayer', model, model_run_timestamp, prediction_timestamp)
-    const geoJsonLayer = getLayer(model, model_run_timestamp, prediction_timestamp)
-    if (mapRef.current) {
-      if (currentLayersRef.current) {
-        mapRef.current.removeLayer(currentLayersRef.current)
-        currentLayersRef.current = null
+    try {
+      const geoJsonLayer = getLayer(model, model_run_timestamp, prediction_timestamp)
+      if (mapRef.current) {
+        if (currentLayersRef.current) {
+          mapRef.current.removeLayer(currentLayersRef.current)
+          currentLayersRef.current = null
+        }
+        geoJsonLayer.addTo(mapRef.current)
+        currentLayersRef.current = geoJsonLayer
       }
-      geoJsonLayer.addTo(mapRef.current)
-      currentLayersRef.current = geoJsonLayer
+    } catch (exception) {
+      // For some reason, the API sometimes returns geosjon data with no features (maybe they're in the
+      // process of being inserted?)
+      logError(exception)
     }
   }
 

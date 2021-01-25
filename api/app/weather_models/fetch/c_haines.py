@@ -45,13 +45,10 @@ async def fetch(model: ModelEnum, model_run_timestamp: datetime, prediction_time
         prediction_timestamp=prediction_timestamp.isoformat(),
         model_run_timestamp=model_run_timestamp.isoformat(),
         model=model)
-    # logger.info(query)
-    # something is wrong here.
     logger.info('fetching geojson from db...')
     # pylint: disable=no-member
     response = session.execute(query)
     row = next(response)
-    logger.info('returning response...')
     return row[0]
 
 

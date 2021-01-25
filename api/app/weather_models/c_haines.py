@@ -34,7 +34,8 @@ from app.db.crud.c_haines import (
     get_c_haines_model_run, get_c_haines_prediction, get_or_create_c_haines_model_run)
 from app.time_utils import get_utc_now
 from app.weather_models.env_canada import (get_model_run_hours,
-                                           get_file_date_part, adjust_model_day, download)
+                                           get_file_date_part, adjust_model_day, download,
+                                           UnhandledPredictionModelType)
 import app.db.database
 
 logger = logging.getLogger(__name__)
@@ -100,7 +101,7 @@ def model_prediction_hour_iterator(model: ModelEnum):
         for hour in range(0, 49):
             yield hour
     else:
-        raise Exception('uhnaldede model')
+        raise UnhandledPredictionModelType()
 
 
 def make_model_run_base_url(model: ModelEnum, hh: str, hhh: str):
@@ -114,7 +115,7 @@ def make_model_run_base_url(model: ModelEnum, hh: str, hhh: str):
     elif model == ModelEnum.HRDPS:
         return 'https://dd.weather.gc.ca/model_hrdps/continental/grib2/{}/{}/'.format(
             hh, hhh)
-    raise Exception('unsuported model')
+    raise UnhandledPredictionModelType()
 
 
 def make_model_run_filename(model: ModelEnum, level: str, date: str, hh: str, hhh: str):
@@ -126,10 +127,11 @@ def make_model_run_filename(model: ModelEnum, level: str, date: str, hh: str, hh
     elif model == ModelEnum.HRDPS:
         return 'CMC_hrdps_continental_{level}_ps2.5km_{date}{hh}_P{hhh}-00.grib2'.format(
             level=level, date=date, hh=hh, hhh=hhh)
-    raise Exception('unsupported model')
+    raise UnhandledPredictionModelType()
 
 
 def make_model_levels(model: ModelEnum):
+    """ Return list of layers. (The layers are named slightly differently for HRDPS) """
     if model == ModelEnum.HRDPS:
         return ['TMP_ISBL_0700', 'TMP_ISBL_0850', 'DEPR_ISBL_0850']
     return ['TMP_ISBL_700', 'TMP_ISBL_850', 'DEPR_ISBL_850']
