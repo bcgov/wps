@@ -492,13 +492,13 @@ const CHainesPage = () => {
 
   const loadPreviousPrediction = () => {
     const model_run = model_runs.find(
-      model_run => model_run.model_run_timestamp === selected_model_timestamp
+      model_run =>
+        model_run.model_run_timestamp === selected_model_timestamp &&
+        model_run.model.abbrev === selected_model_abbreviation
     )
     if (model_run) {
       const index = model_run.prediction_timestamps.findIndex(
-        value =>
-          value === selected_prediction_timestamp &&
-          model_run.model.abbrev === selected_model_abbreviation
+        value => value === selected_prediction_timestamp
       )
       const nextIndex = index > 0 ? index - 1 : model_run.prediction_timestamps.length - 1
       loadModelPrediction(
