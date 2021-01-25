@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.applications import Starlette
 from app import schemas, configure_logging
 from app.percentile import get_precalculated_percentiles
+from app.peak_burniness import get_precalculated_peak_values
 from app.auth import authenticate
 from app import config
 from app import health
@@ -138,6 +139,19 @@ async def get_percentiles(request: schemas.percentiles.PercentileRequest):
         logger.info('/percentiles/')
         percentiles = get_precalculated_percentiles(request)
         return percentiles
+    except Exception as exception:
+        logger.critical(exception, exc_info=True)
+        raise
+
+
+@api.post('/peak-burniness/', response_model=schemas)
+async def get_peak_burniness(request: schemas):
+    """ Return peak weather values for a given set of fire stations for April - Sept burning season.
+    """
+    try:
+        logger.info('/peak-burniness/')
+        peak_values = get_precalculated_peak_values(request)
+        return peak_values
     except Exception as exception:
         logger.critical(exception, exc_info=True)
         raise
