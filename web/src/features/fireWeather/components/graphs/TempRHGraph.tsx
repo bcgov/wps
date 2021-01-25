@@ -34,7 +34,6 @@ const rdpsRHPlumeColor = 'rgba(42, 137, 137, 0.5)'
 interface Props {
   currDate: Date
   sliderRange: [string, string]
-  setSliderRange: (range: [string, string]) => void
   toggleValues: ToggleValues
   observedValues: ObservedValue[]
   forecastValues: NoonForecastValue[]
@@ -51,7 +50,6 @@ const TempRHGraph = (props: Props) => {
   const {
     currDate,
     sliderRange,
-    setSliderRange,
     toggleValues,
     observedValues,
     forecastValues,
@@ -132,13 +130,6 @@ const TempRHGraph = (props: Props) => {
     <Plot
       style={{ width: '100%', height: '100%' }}
       config={{ responsive: true }}
-      onUpdate={e => {
-        const updatedRange = e.layout.xaxis?.range as [string, string] | undefined
-        if (updatedRange) {
-          // NEED lodash DEBOUNCE!!!!
-          // setSliderRange(updatedRange)
-        }
-      }}
       data={[
         nowLine,
         biasAdjGdps.biasAdjRHLine,

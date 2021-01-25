@@ -16,7 +16,6 @@ import {
 export interface Props {
   currDate: Date
   sliderRange: [string, string]
-  setSliderRange: (range: [string, string]) => void
   toggleValues: ToggleValues
   observedValues: ObservedValue[]
   hrdpsModelValues: ModelValue[]
@@ -37,7 +36,6 @@ const WindGraph = (props: Props) => {
   const {
     currDate,
     sliderRange,
-    setSliderRange,
     toggleValues,
     observedValues,
     gdpsModelValues,
@@ -93,12 +91,6 @@ const WindGraph = (props: Props) => {
     <Plot
       style={{ width: '100%', height: '100%' }}
       config={{ responsive: true }}
-      onUpdate={e => {
-        const updatedRange = e.layout.xaxis?.range as [string, string] | undefined
-        if (updatedRange) {
-          // setSliderRange(updatedRange)
-        }
-      }}
       data={[
         nowLine,
         gdps.windSpdLine,

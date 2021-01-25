@@ -157,61 +157,55 @@ export const populateGraphDataForTempAndRH = (
   })
 
   const tempDots: Data = {
-    x: tempDates,
-    y: tempValues,
+    x: show ? tempDates : [],
+    y: show ? tempValues : [],
     name: tempName,
     mode: 'markers',
     type: 'scatter',
-    showlegend: show,
-    marker: { color: show ? tempColor : 'transparent' },
-    hoverinfo: show ? 'all' : 'skip',
-    hovertemplate: show ? `${tempName}: %{y:.2f} (°C)<extra></extra>` : undefined
+    marker: { color: tempColor },
+    hovertemplate: `${tempName}: %{y:.2f} (°C)<extra></extra>`
   }
   const tempVerticalLines: Data[] = tempMinMaxDates.map((date, idx) => ({
-    x: [date, date],
-    y: tempMinMaxValues[idx], // Temp min & max pair
+    x: show ? [date, date] : [],
+    y: show ? tempMinMaxValues[idx] : [], // Temp min & max pair
     mode: 'lines',
     name: tempName,
     line: {
-      color: show ? tempColor : 'transparent',
+      color: tempColor,
       width: 3
     },
     hoverinfo: 'skip',
     showlegend: false
   }))
   const biasAdjTempLine: Data = {
-    x: biasAdjTempDates,
-    y: biasAdjTempValues,
+    x: show ? biasAdjTempDates : [],
+    y: show ? biasAdjTempValues : [],
     name: tempName,
     mode: 'lines+markers',
     type: 'scatter',
-    showlegend: show,
     line: {
-      color: show ? tempColor : 'transparent',
+      color: tempColor,
       width: 2,
       dash
     },
-    hoverinfo: show ? 'all' : 'skip',
-    hovertemplate: show ? `${tempName}: %{y:.2f} (°C)<extra></extra>` : undefined
+    hovertemplate: `${tempName}: %{y:.2f} (°C)<extra></extra>`
   }
   const tempLine: Data = {
-    x: tempDates,
-    y: tempValues,
+    x: show ? tempDates : [],
+    y: show ? tempValues : [],
     name: tempName,
     mode: 'lines+markers',
     type: 'scatter',
-    showlegend: show,
     line: {
-      color: show ? tempColor : 'transparent',
+      color: tempColor,
       width: 2,
       dash
     },
-    hoverinfo: show ? 'all' : 'skip',
-    hovertemplate: show ? `${tempName}: %{y:.2f} (°C)<extra></extra>` : undefined
+    hovertemplate: `${tempName}: %{y:.2f} (°C)<extra></extra>`
   }
   const temp5thLine: Data = {
-    x: tempPercentileDates,
-    y: temp5thValues,
+    x: show ? tempPercentileDates : [],
+    y: show ? temp5thValues : [],
     name: `${tempName} 5th percentile`,
     mode: 'lines',
     type: 'scatter',
@@ -221,79 +215,73 @@ export const populateGraphDataForTempAndRH = (
     showlegend: false
   }
   const temp90thLine: Data = {
-    x: tempPercentileDates,
-    y: temp90thValues,
+    x: show ? tempPercentileDates : [],
+    y: show ? temp90thValues : [],
     name: `${tempName} 5th - 90th percentile`,
     mode: 'lines',
     type: 'scatter',
     line: { width: 0 },
     marker: { color: '444' },
     fill: 'tonexty',
-    fillcolor: show ? tempPlumeColor : 'transparent',
-    hoverinfo: 'skip',
-    showlegend: show
+    fillcolor: tempPlumeColor,
+    hoverinfo: 'skip'
   }
 
   const rtDots: Data = {
-    x: rhDates,
-    y: rhValues,
+    x: show ? rhDates : [],
+    y: show ? rhValues : [],
     name: rhName,
     yaxis: 'y2',
     mode: 'markers',
     type: 'scatter',
     showlegend: show,
-    marker: { color: show ? rhColor : 'transparent' },
-    hoverinfo: show ? 'all' : 'skip',
-    hovertemplate: show ? `${rhName}: %{y:.2f} (°C)<extra></extra>` : undefined
+    marker: { color: rhColor },
+    hovertemplate: `${rhName}: %{y:.2f} (%)<extra></extra>`
   }
   const rhVerticalLines: Data[] = rhMinMaxDates.map((date, idx) => ({
-    x: [date, date],
-    y: rhMinMaxValues[idx], // Temp min & max pair
+    x: show ? [date, date] : [],
+    y: show ? rhMinMaxValues[idx] : [], // Temp min & max pair
     mode: 'lines',
     name: rhName,
     yaxis: 'y2',
     line: {
-      color: show ? rhColor : 'transparent',
+      color: rhColor,
       width: 3
     },
     hoverinfo: 'skip',
     showlegend: false
   }))
   const biasAdjRHLine: Data = {
-    x: biasAdjRHDates,
-    y: biasAdjRHValues,
+    x: show ? biasAdjRHDates : [],
+    y: show ? biasAdjRHValues : [],
     name: rhName,
     yaxis: 'y2',
     mode: 'lines+markers',
     type: 'scatter',
-    showlegend: show,
     line: {
-      color: show ? rhColor : 'transparent',
+      color: rhColor,
       width: 2,
       dash
     },
-    hoverinfo: show ? 'all' : 'skip',
-    hovertemplate: show ? `${rhName}: %{y:.2f} (%)<extra></extra>` : undefined
+    hovertemplate: `${rhName}: %{y:.2f} (%)<extra></extra>`
   }
   const rhLine: Data = {
-    x: rhDates,
-    y: rhValues,
+    x: show ? rhDates : [],
+    y: show ? rhValues : [],
     name: rhName,
     yaxis: 'y2',
     mode: 'lines+markers',
     type: 'scatter',
-    showlegend: show,
     line: {
-      color: show ? rhColor : 'transparent',
+      color: rhColor,
       width: 2,
       dash
     },
-    hoverinfo: show ? 'all' : 'skip',
-    hovertemplate: show ? `${rhName}: %{y:.2f} (%)<extra></extra>` : undefined
+    hovertemplate: `${rhName}: %{y:.2f} (%)<extra></extra>`
   }
   const rh5thLine: Data = {
-    x: rhPercentileDates,
-    y: rh5thValues,
+    x: show ? rhPercentileDates : [],
+    y: show ? rh5thValues : [],
     name: `${rhName} 5th percentile`,
     yaxis: 'y2',
     mode: 'lines',
@@ -304,8 +292,8 @@ export const populateGraphDataForTempAndRH = (
     showlegend: false
   }
   const rh90thLine: Data = {
-    x: rhPercentileDates,
-    y: rh90thValues,
+    x: show ? rhPercentileDates : [],
+    y: show ? rh90thValues : [],
     name: `${rhName} 5th - 90th percentile`,
     yaxis: 'y2',
     mode: 'lines',
@@ -313,9 +301,8 @@ export const populateGraphDataForTempAndRH = (
     line: { width: 0 },
     marker: { color: '444' },
     fill: 'tonexty',
-    fillcolor: show ? rhPlumeColor : 'transparent',
-    hoverinfo: 'skip',
-    showlegend: show
+    fillcolor: rhPlumeColor,
+    hoverinfo: 'skip'
   }
 
   const maxTemp = findMaxNumber(tempValues)
@@ -420,7 +407,7 @@ export const populateGraphDataForPrecip = (
     y: dailyPrecips,
     name,
     type: 'bar',
-    showlegend: show,
+    // showlegend: show,
     marker: {
       color: show ? color : 'transparent'
     },
@@ -429,16 +416,15 @@ export const populateGraphDataForPrecip = (
   }
 
   const accumPrecipsline: Data = {
-    x: dates,
-    y: accumPrecips,
+    x: show ? dates : [],
+    y: show ? accumPrecips : [],
     name: `Accumulated ${name}`,
     mode: 'lines',
     yaxis: 'y2',
-    showlegend: show,
     marker: {
-      color: show ? color : 'transparent'
+      color
     },
-    hoverinfo: show ? 'y' : 'skip',
+    hoverinfo: 'y',
     hovertemplate: show
       ? `Accumulated ${name}: %{y:.2f} (mm/cm)<extra></extra>`
       : undefined
@@ -558,7 +544,7 @@ export const populateGraphDataForWind = (
       windSpds.push(wind_speed)
       windSpdsTexts.push(wind_direction != null ? `${Math.round(wind_direction)}` : '-')
 
-      if (wind_direction != null) {
+      if (wind_direction != null && show) {
         const arrowShape = rotatePoints(arrowPoints, wind_direction)
         const path = createPath(arrowShape, show, datetime, wind_speed, arrowColor)
         windDirArrows.push(path)
@@ -567,19 +553,17 @@ export const populateGraphDataForWind = (
   })
 
   const windSpdLine: Data = {
-    x: dates,
-    y: windSpds,
+    x: show ? dates : [],
+    y: show ? windSpds : [],
     name,
     mode: 'lines',
     type: 'scatter',
-    showlegend: show,
     line: {
-      color: show ? lineColor : 'transparent',
+      color: lineColor,
       width: 2
     },
     text: windSpdsTexts,
-    hoverinfo: show ? 'all' : 'skip',
-    hovertemplate: show ? `${name}: %{y:.2f} km/h, %{text}°<extra></extra>` : ''
+    hovertemplate: `${name}: %{y:.2f} km/h, %{text}°<extra></extra>`
   }
 
   const maxWindSpd = findMaxNumber(windSpds)

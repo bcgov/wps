@@ -58,7 +58,7 @@ const WxDataGraph = ({
     formatDateInPST(moment(currDate).subtract(2, 'days').toDate()), // prettier-ignore
     formatDateInPST(moment(currDate).add(2, 'days').toDate()) // prettier-ignore
   ]
-  const [sliderRange, setSliderRange] = useState(initialXAxisRange)
+  const [sliderRange] = useState(initialXAxisRange)
   const [toggleValues, setToggleValues] = useGraphToggles({
     showObservations: !noObservations,
     showForecasts: false,
@@ -94,7 +94,6 @@ const WxDataGraph = ({
       <TempRHGraph
         currDate={currDate}
         sliderRange={sliderRange}
-        setSliderRange={setSliderRange}
         toggleValues={toggleValues}
         observedValues={observedValues}
         forecastValues={allForecasts}
@@ -110,7 +109,6 @@ const WxDataGraph = ({
       <PrecipGraph
         currDate={currDate}
         sliderRange={sliderRange}
-        setSliderRange={setSliderRange}
         toggleValues={toggleValues}
         observedValues={observedValues}
         forecastValues={allForecasts}
@@ -122,7 +120,6 @@ const WxDataGraph = ({
       <WindGraph
         currDate={currDate}
         sliderRange={sliderRange}
-        setSliderRange={setSliderRange}
         toggleValues={toggleValues}
         observedValues={observedValues}
         hrdpsModelValues={allHighResModelValues}
