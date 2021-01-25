@@ -7,21 +7,33 @@ from app.db.models import CHainesPrediction, CHainesModelRun, PredictionModel
 from app.time_utils import get_utc_now
 
 
-def get_c_haines_model_run(session: Session, model_run_timestamp: datetime, prediction_model: PredictionModel):
+def get_c_haines_model_run(
+        session: Session,
+        model_run_timestamp: datetime,
+        prediction_model: PredictionModel) -> CHainesModelRun:
+    """ Return a single c-haines model run for a given timestamp. """
     return session.query(CHainesModelRun).filter(
         CHainesModelRun.model_run_timestamp == model_run_timestamp,
         CHainesModelRun.prediction_model_id == prediction_model.id
     ).first()
 
 
-def create_c_haines_model_run(session: Session, model_run_timestamp: datetime, prediction_model: PredictionModel):
+def create_c_haines_model_run(
+        session: Session,
+        model_run_timestamp: datetime,
+        prediction_model: PredictionModel) -> CHainesModelRun:
+    """ Create a c-haines model run. """
     model_run = CHainesModelRun(model_run_timestamp=model_run_timestamp,
                                 prediction_model=prediction_model)
     session.add(model_run)
     return model_run
 
 
-def get_or_create_c_haines_model_run(session: Session, model_run_timestamp: datetime, prediction_model: PredictionModel):
+def get_or_create_c_haines_model_run(
+        session: Session,
+        model_run_timestamp: datetime,
+        prediction_model: PredictionModel) -> CHainesModelRun:
+    """ Get a model run, creating on if it doesn't exist. """
     model_run = get_c_haines_model_run(session, model_run_timestamp, prediction_model)
     if not model_run:
         model_run = create_c_haines_model_run(session, model_run_timestamp, prediction_model)
@@ -31,7 +43,7 @@ def get_or_create_c_haines_model_run(session: Session, model_run_timestamp: date
 def get_c_haines_prediction(
         session: Session,
         model_run: CHainesModelRun,
-        prediction_timestamp: datetime):
+        prediction_timestamp: datetime) -> CHainesPrediction:
     """ Get the c-haines prediction """
     return session.query(CHainesPrediction)\
         .filter(CHainesPrediction.model_run_id == model_run.id,
@@ -60,13 +72,3 @@ def get_model_run_predictions(session: Session, model_run_timestamp: datetime):
         .order_by(desc(CHainesModelRun.model_run_timestamp), CHainesModelRun.id,
                   asc(CHainesPrediction.prediction_timestamp))
     return query
-
-    # return session.query(
-    #     CHainesPrediction.model_run_timestamp,
-    #     CHainesPrediction.prediction_timestamp,
-    #     PredictionModel.id,
-    #     PredictionModel.name,
-    #     PredictionModel.abbreviation)
-    # .join(PredictionModel, PredictionModel.id == CHainesPrediction.prediction_model_id)
-    # .filter(CHainesPrediction.model_run_timestamp >= start_date)
-    # .order_by(desc(CHainesPrediction.model_run_timestamp), asc(CHainesPrediction.prediction_timestamp))

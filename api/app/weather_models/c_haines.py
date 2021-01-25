@@ -225,19 +225,6 @@ def get_severity(c_haines_index):
     # 11 + Extreme
     return 3
 
-    # Foresight (Australian tool, has the following buckets:
-    # no data
-    # 0-5 (blue)
-    # 5-8 (yellow)
-    # 8-10 (orange)
-    # 10-12 (red)
-
-    # Another example (from R.R.):
-    # 0 - 7 (Very low, low)
-    # 7 - 9 (Moderate)
-    # 9 - 11 (High to very high)
-    # 11 + (Very high)
-
 
 def calculate_c_haines_data(
         bound_checker: BoundingBoxChecker,
@@ -259,9 +246,6 @@ def calculate_c_haines_data(
     # Assume they're all using the same number of rows/cols.
     rows: Final = tmp_850_raster_band.YSize
     cols: Final = tmp_850_raster_band.XSize
-
-    lowest = None
-    highest = None
 
     # Iterate through rows.
     for y_row_index in range(rows):
@@ -396,36 +380,6 @@ def save_geojson_to_database(session: Session,
     # TODO: simplify geometry?: https://shapely.readthedocs.io/en/stable/manual.html#object.simplify
 
 
-def local_test():
-    # filename_tmp_700 = '/home/sybrand/Workspace/wps/api/scripts/CMC_glb_TMP_ISBL_700_latlon.15x.15_2020122200_P000.grib2'
-    # filename_tmp_850 = '/home/sybrand/Workspace/wps/api/scripts/CMC_glb_TMP_ISBL_850_latlon.15x.15_2020122200_P000.grib2'
-    # filename_dew_850 = '/home/sybrand/Workspace/wps/api/scripts/CMC_glb_DEPR_ISBL_850_latlon.15x.15_2020122200_P000.grib2'
-
-    filename_tmp_700 = '/home/sybrand/Downloads/Work/CMC_glb_TMP_ISBL_700_latlon.15x.15_2021011800_P123.grib2'
-    filename_tmp_850 = '/home/sybrand/Downloads/Work/CMC_glb_TMP_ISBL_850_latlon.15x.15_2021011800_P123.grib2'
-    filename_dew_850 = '/home/sybrand/Downloads/Work/CMC_glb_DEPR_ISBL_850_latlon.15x.15_2021011800_P123.grib2'
-    model_run_timestamp = datetime(year=2021, month=1, day=18, hour=0, tzinfo=timezone.utc)
-    prediction_timestamp = datetime(year=2021, month=1, day=23, hour=3, tzinfo=timezone.utc)
-
-    # filename_tmp_700 = '/home/sybrand/Downloads/Work/CMC_hrdps_continental_TMP_ISBL_0700_ps2.5km_2021012500_P000-00.grib2'
-    # filename_tmp_850 = '/home/sybrand/Downloads/Work/CMC_hrdps_continental_TMP_ISBL_0850_ps2.5km_2021012500_P000-00.grib2'
-    # filename_dew_850 = '/home/sybrand/Downloads/Work/CMC_hrdps_continental_DEPR_ISBL_0850_ps2.5km_2021012500_P000-00.grib2'
-    model_run_timestamp = datetime(year=2021, month=1, day=25, hour=0, tzinfo=timezone.utc)
-    prediction_timestamp = datetime(year=2021, month=1, day=25, hour=0, tzinfo=timezone.utc)
-
-    session = app.db.database.get_write_session()
-    prediction_model = get_prediction_model(session, ModelEnum.HRDPS, ProjectionEnum.HIGH_RES_CONTINENTAL)
-    model_run = get_or_create_c_haines_model_run(session, model_run_timestamp, prediction_model)
-
-    generator = CHainesSeverityGenerator()
-    generator._generate_and_store_c_haines(
-        filename_tmp_700,
-        filename_tmp_850,
-        filename_dew_850,
-        prediction_timestamp,
-        model_run)
-
-
 def record_exists(
         session,
         model_run: CHainesModelRun,
@@ -442,6 +396,8 @@ class CHainesSeverityGenerator():
     Steps for generation of severity level as follows:
     1) Download grib files.
     2) Iterate through raster rows, generating an in memory raster containing c-haines severity indices.
+    3) Turn raster data into polygons, storing in intermediary GeoJSON file.
+    4) Write polygons to database.
     """
 
     def __init__(self):
@@ -449,6 +405,7 @@ class CHainesSeverityGenerator():
         self.session = app.db.database.get_write_session()
 
     def generate(self, model: ModelEnum, projection: ProjectionEnum):
+        """ Entry point for generating and storing c-haines severity index. """
         prediction_model = get_prediction_model(self.session, model, projection)
         utc_now = get_utc_now()
         for model_hour in get_model_run_hours(model):
@@ -519,7 +476,9 @@ class CHainesSeverityGenerator():
             self.bound_checker.check_cache = True
 
         c_haines_data, mask_data, rows, cols = calculate_c_haines_data(self.bound_checker,
-                                                                       grib_tmp_700, grib_tmp_850, grib_dew_850)
+                                                                       grib_tmp_700,
+                                                                       grib_tmp_850,
+                                                                       grib_dew_850)
 
         # Expictly release the grib files - they take a lot of memory. (Is this needed?)
         del grib_tmp_700, grib_tmp_850, grib_dew_850
@@ -542,6 +501,7 @@ class CHainesSeverityGenerator():
 
 
 def main():
+    """ Entry point for generating C-Haines severity index polygons. """
     models = (
         (ModelEnum.GDPS, ProjectionEnum.LATLON_15X_15),
         (ModelEnum.RDPS, ProjectionEnum.REGIONAL_PS),
@@ -554,4 +514,3 @@ def main():
 if __name__ == "__main__":
     configure_logging()
     main()
-    # local_test()
