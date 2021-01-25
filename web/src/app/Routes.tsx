@@ -6,11 +6,13 @@ import AuthWrapper from 'features/auth/AuthWrapper'
 import PercentileCalculatorPageWithDisclaimer from 'features/percentileCalculator/pages/PercentileCalculatorPageWithDisclaimer'
 import MoreCastPage from 'features/fireWeather/pages/MoreCastPage'
 import HfiCalculatorPage from 'features/hfiCalculator/pages/HfiCalculatorPage'
+import PeakBurninessPage from 'features/peakBurniness/pages/PeakBurninessPage'
 import {
   PERCENTILE_CALC_ROUTE,
   FIRE_WEATHER_ROUTE,
   MORECAST_ROUTE,
-  HFI_CALC_ROUTE
+  HFI_CALC_ROUTE,
+  PEAK_BURNINESS_ROUTE
 } from 'utils/constants'
 
 const shouldShowDisclaimer = HIDE_DISCLAIMER === 'false' || HIDE_DISCLAIMER === undefined
@@ -39,6 +41,12 @@ const Routes: React.FunctionComponent = () => {
         <Route path={HFI_CALC_ROUTE}>
           <AuthWrapper shouldAuthenticate={shouldAuthenticate}>
             <HfiCalculatorPage />
+          </AuthWrapper>
+        </Route>
+
+        <Route path={PEAK_BURNINESS_ROUTE}>
+          <AuthWrapper shouldAuthenticate={shouldAuthenticate}>
+            <PeakBurninessPage />
           </AuthWrapper>
         </Route>
 
