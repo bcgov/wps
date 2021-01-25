@@ -54,11 +54,19 @@ const WxDataGraph = ({
   const noRegionalModels = allRegionalModelValues.length === 0
 
   const currDate = new Date()
+
+  /* Note: Plotly isn't updating its props in a correct way
+   * (Plot component may mutate its layout and data props in response to user input, going against React rules) https://github.com/plotly/react-plotly.js#api-reference
+   * This creates a weird/annoying behavior - Plotly modifying our state `sliderRange` directly,
+   * therefore state `sliderRange` automatically keeps track of the range change triggered by user interactions.
+   * (This is bad by the way since it makes impossible for us to capture the change of the state)
+   */
   const initialXAxisRange: [string, string] = [
     formatDateInPST(moment(currDate).subtract(2, 'days').toDate()), // prettier-ignore
     formatDateInPST(moment(currDate).add(2, 'days').toDate()) // prettier-ignore
   ]
   const [sliderRange] = useState(initialXAxisRange)
+
   const [toggleValues, setToggleValues] = useGraphToggles({
     showObservations: !noObservations,
     showForecasts: false,

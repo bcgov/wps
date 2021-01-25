@@ -18,18 +18,18 @@ const forecastTempColor = '#a50b41'
 const forecastRHColor = '#17c4c4'
 const gdpsTempColor = '#f56c9c'
 const gdpsRHColor = '#32e7e7'
-const gdpsTempPlumeColor = 'rgba(255, 150, 169, 0.5)'
-const gdpsRHPlumeColor = 'rgba(148, 255, 235, 0.5)'
+const gdpsTempPlumeColor = 'rgba(255, 150, 169, 0.4)'
+const gdpsRHPlumeColor = 'rgba(148, 255, 235, 0.4)'
 const biasdGdpsTempColor = '#e604d0'
 const biasdGdpsRHColor = '#176bc4'
 const hrdpsTempColor = '#a017c2'
 const hrdpsRHColor = '#3ac417'
-const hrdpsTempPlumeColor = 'rgba(203, 169, 214, 0.5)'
-const hrdpsRHPlumeColor = 'rgba(181, 240, 165, 0.5)'
+const hrdpsTempPlumeColor = 'rgba(203, 169, 214, 0.4)'
+const hrdpsRHPlumeColor = 'rgba(181, 240, 165, 0.4)'
 const rdpsTempColor = '#ea6d0e'
 const rdpsRHColor = '#026200'
-const rdpsTempPlumeColor = 'rgba(244, 143, 65, 0.5)'
-const rdpsRHPlumeColor = 'rgba(42, 137, 137, 0.5)'
+const rdpsTempPlumeColor = 'rgba(244, 143, 65, 0.4)'
+const rdpsRHPlumeColor = 'rgba(42, 137, 137, 0.4)'
 
 interface Props {
   currDate: Date
@@ -67,6 +67,7 @@ const TempRHGraph = (props: Props) => {
     'Observed Temp',
     'Observed RH',
     toggleValues.showObservations,
+    'circle', // https://plotly.com/javascript/reference/scatter/#scatter-marker-symbol
     'solid',
     observedTempColor,
     observedRHColor
@@ -76,6 +77,7 @@ const TempRHGraph = (props: Props) => {
     'Forecast Temp',
     'Forecast RH',
     toggleValues.showForecasts,
+    'pentagon',
     'solid',
     forecastTempColor,
     forecastRHColor
@@ -85,6 +87,7 @@ const TempRHGraph = (props: Props) => {
     'HRDPS Temp',
     'HRDPS RH',
     toggleValues.showHrdps,
+    'square',
     'dash',
     hrdpsTempColor,
     hrdpsRHColor,
@@ -96,6 +99,7 @@ const TempRHGraph = (props: Props) => {
     'GDPS Temp',
     'GDPS RH',
     toggleValues.showGdps,
+    'triangle-up',
     'dashdot',
     gdpsTempColor,
     gdpsRHColor,
@@ -107,6 +111,7 @@ const TempRHGraph = (props: Props) => {
     'RDPS Temp',
     'RDPS RH',
     toggleValues.showRdps,
+    'diamond',
     'longdash',
     rdpsTempColor,
     rdpsRHColor,
@@ -118,6 +123,7 @@ const TempRHGraph = (props: Props) => {
     'Bias Adjusted GDPS Temp',
     'Bias Adjusted GDPS RH',
     toggleValues.showBiasAdjGdps,
+    'star',
     'longdashdot',
     biasdGdpsTempColor,
     biasdGdpsRHColor
@@ -132,29 +138,33 @@ const TempRHGraph = (props: Props) => {
       config={{ responsive: true }}
       data={[
         nowLine,
-        biasAdjGdps.biasAdjRHLine,
-        biasAdjGdps.biasAdjTempLine,
+
+        // Plumes
         gdps.rh5thLine,
         gdps.rh90thLine,
-        gdps.rhLine,
         gdps.temp5thLine,
         gdps.temp90thLine,
-        gdps.tempLine,
         rdps.rh5thLine,
         rdps.rh90thLine,
-        rdps.rhLine,
         rdps.temp5thLine,
         rdps.temp90thLine,
-        rdps.tempLine,
         hrdps.rh5thLine,
         hrdps.rh90thLine,
-        hrdps.rhLine,
         hrdps.temp5thLine,
         hrdps.temp90thLine,
+
+        // Lines & dots
+        biasAdjGdps.biasAdjRHLine,
+        biasAdjGdps.biasAdjTempLine,
+        gdps.rhLine,
+        gdps.tempLine,
+        rdps.rhLine,
+        rdps.tempLine,
+        hrdps.rhLine,
         hrdps.tempLine,
         ...forecast.tempVerticalLines,
         ...forecast.rhVerticalLines,
-        forecast.rtDots,
+        forecast.rhDots,
         forecast.tempDots,
         observation.rhLine,
         observation.tempLine

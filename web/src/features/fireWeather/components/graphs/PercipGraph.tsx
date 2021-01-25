@@ -89,16 +89,16 @@ const PrecipGraph = (props: Props) => {
       config={{ responsive: true }}
       data={[
         nowLine,
-        gdps.dailyPrecipsBar,
         gdps.accumPrecipsline,
-        rdps.dailyPrecipsBar,
+        gdps.dailyPrecipsBar,
         rdps.accumPrecipsline,
-        hrdps.dailyPrecipsBar,
+        rdps.dailyPrecipsBar,
         hrdps.accumPrecipsline,
-        forecast.dailyPrecipsBar,
+        hrdps.dailyPrecipsBar,
         forecast.accumPrecipsline,
-        observation.dailyPrecipsBar,
-        observation.accumPrecipsline
+        forecast.dailyPrecipsBar,
+        observation.accumPrecipsline,
+        observation.dailyPrecipsBar
       ]}
       layout={{
         dragmode: 'pan',
@@ -132,7 +132,8 @@ const PrecipGraph = (props: Props) => {
           title: 'Daily Precipitation (mm/cm)',
           tickfont: { size: 14 },
           gridcolor: 'transparent',
-          fixedrange: true
+          fixedrange: true,
+          range: y2Range
         },
         yaxis2: {
           title: 'Accumulated Precipitation (mm/cm)',

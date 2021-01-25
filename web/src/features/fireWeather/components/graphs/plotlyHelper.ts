@@ -21,7 +21,8 @@ export const findMinNumber = (arr: number[]): number => {
 export const layoutLegendConfig: Partial<Legend> = {
   orientation: 'h',
   yanchor: 'top',
-  y: -0.35
+  y: -0.35,
+  traceorder: 'reversed'
 }
 
 export const populateNowLineData = (
@@ -69,6 +70,7 @@ export const populateGraphDataForTempAndRH = (
   tempName: string,
   rhName: string,
   show: boolean,
+  symbol: string,
   dash: 'solid' | 'dot' | 'dash' | 'longdash' | 'dashdot' | 'longdashdot',
   tempColor: string,
   rhColor: string,
@@ -162,7 +164,7 @@ export const populateGraphDataForTempAndRH = (
     name: tempName,
     mode: 'markers',
     type: 'scatter',
-    marker: { color: tempColor },
+    marker: { color: tempColor, symbol, size: 7 },
     hovertemplate: `${tempName}: %{y:.2f} (°C)<extra></extra>`
   }
   const tempVerticalLines: Data[] = tempMinMaxDates.map((date, idx) => ({
@@ -183,6 +185,7 @@ export const populateGraphDataForTempAndRH = (
     name: tempName,
     mode: 'lines+markers',
     type: 'scatter',
+    marker: { symbol, size: 7 },
     line: {
       color: tempColor,
       width: 2,
@@ -196,6 +199,7 @@ export const populateGraphDataForTempAndRH = (
     name: tempName,
     mode: 'lines+markers',
     type: 'scatter',
+    marker: { symbol, size: 7 },
     line: {
       color: tempColor,
       width: 2,
@@ -227,7 +231,7 @@ export const populateGraphDataForTempAndRH = (
     hoverinfo: 'skip'
   }
 
-  const rtDots: Data = {
+  const rhDots: Data = {
     x: show ? rhDates : [],
     y: show ? rhValues : [],
     name: rhName,
@@ -235,7 +239,7 @@ export const populateGraphDataForTempAndRH = (
     mode: 'markers',
     type: 'scatter',
     showlegend: show,
-    marker: { color: rhColor },
+    marker: { color: rhColor, symbol, size: 7 },
     hovertemplate: `${rhName}: %{y:.2f} (%)<extra></extra>`
   }
   const rhVerticalLines: Data[] = rhMinMaxDates.map((date, idx) => ({
@@ -258,6 +262,7 @@ export const populateGraphDataForTempAndRH = (
     yaxis: 'y2',
     mode: 'lines+markers',
     type: 'scatter',
+    marker: { symbol, size: 7 },
     line: {
       color: rhColor,
       width: 2,
@@ -272,6 +277,7 @@ export const populateGraphDataForTempAndRH = (
     yaxis: 'y2',
     mode: 'lines+markers',
     type: 'scatter',
+    marker: { symbol, size: 7 },
     line: {
       color: rhColor,
       width: 2,
@@ -315,7 +321,7 @@ export const populateGraphDataForTempAndRH = (
     tempLine,
     temp5thLine,
     temp90thLine,
-    rtDots,
+    rhDots,
     rhVerticalLines,
     biasAdjRHLine,
     rhLine,
@@ -403,11 +409,10 @@ export const populateGraphDataForPrecip = (
   const { dates, dailyPrecips, accumPrecips } = getDailyAndAccumPrecips(values)
 
   const dailyPrecipsBar: Data = {
-    x: dates,
-    y: dailyPrecips,
+    x: show ? dates : [],
+    y: show ? dailyPrecips : [],
     name,
     type: 'bar',
-    // showlegend: show,
     marker: {
       color: show ? color : 'transparent'
     },
@@ -424,6 +429,7 @@ export const populateGraphDataForPrecip = (
     marker: {
       color
     },
+    showlegend: false,
     hoverinfo: 'y',
     hovertemplate: show
       ? `Accumulated ${name}: %{y:.2f} (mm/cm)<extra></extra>`
