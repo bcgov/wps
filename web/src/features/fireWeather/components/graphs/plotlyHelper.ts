@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import moment from 'moment'
-import { Data, Shape, Legend, Layout } from 'plotly.js'
+import { Data, Shape, Layout } from 'plotly.js'
 
 export const findMaxNumber = (arr: number[]): number => {
   if (arr.length === 0) {

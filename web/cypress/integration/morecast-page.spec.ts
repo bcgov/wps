@@ -45,7 +45,7 @@ describe('MoreCast Page', () => {
     const numOfRdps = 195
 
     const yearMonth = '2021-01'
-    const day = 21
+    const day = 26
     const now = new Date(`${yearMonth}-${day}T21:00:00+00:00`).getTime()
 
     beforeEach(() => {
@@ -73,8 +73,8 @@ describe('MoreCast Page', () => {
         .should('have.length', numOfObservations)
 
       // Check if the sorting functionality works
-      const earliestDate = `${yearMonth}-${day}`
-      const latestDate = `${yearMonth}-${day + 5}`
+      const earliestDate = `${yearMonth}-${day - 5}`
+      const latestDate = `${yearMonth}-${day}`
       cy.getByTestId(`observations-table-${stationCode}`)
         .find('tbody > tr:first > td:first')
         .should('contain', earliestDate)
