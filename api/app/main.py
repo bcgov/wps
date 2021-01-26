@@ -144,8 +144,8 @@ async def get_percentiles(request: schemas.percentiles.PercentileRequest):
         raise
 
 
-@api.post('/peak-burniness/', response_model=schemas)
-async def get_peak_burniness(request: schemas):
+@api.post('/peak-burniness/', response_model=schemas.peak_burniness.CalculatedResponse)
+async def get_peak_burniness(request: schemas.peak_burniness.PeakValuesRequest):
     """ Return peak weather values for a given set of fire stations for April - Sept burning season.
     """
     try:

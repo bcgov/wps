@@ -16,7 +16,7 @@ export interface PeakWeekValues {
 }
 
 export interface StationPeakValues {
-    station: Station
+    code: number
     weeks: PeakWeekValues[]
 }
 

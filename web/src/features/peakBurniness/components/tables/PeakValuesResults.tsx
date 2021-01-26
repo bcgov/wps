@@ -157,8 +157,6 @@ const PeakValuesResultsWrapper: React.FunctionComponent<PeakValuesResultsWrapper
 
   const peakValuesByStation = peakBurninessValues?.stations
 
-  console.log('asdfaksdjflajsd')
-  console.log(stationsByCode)
   console.log(peakBurninessValues)
   console.log(peakValuesByStation)
 
