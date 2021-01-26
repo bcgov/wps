@@ -139,14 +139,10 @@ const CHainesPage = () => {
   useEffect(() => {
     if (mapRef.current && fire_centres) {
       const layer = L.geoJSON(fire_centres, {
-        style: feature => {
-          console.log(feature?.properties.name)
-          switch (feature?.properties.name) {
-            case 'Southeast Fire Centre':
-              return { color: '#0000dd' }
-            default:
-              return {}
-          }
+        style: {
+          fill: false,
+          color: '#556655',
+          weight: 2
         }
       })
       layer.addTo(mapRef.current)
@@ -383,17 +379,30 @@ const CHainesPage = () => {
 
   const createLayer = (data: FeatureCollection) => {
     console.log('creating new layer from FeatureCollection')
+    const defaults = {
+      fillOpacity: 0.5,
+      weight: 3
+    }
     return L.geoJSON(data, {
       style: feature => {
         switch (feature?.properties.severity) {
           case 1:
             // yellow
-            return { color: '#ffff00' }
+            return {
+              ...defaults,
+              color: '#ffff00'
+            }
           case 2:
-            return { color: '#FFA500' }
+            return {
+              ...defaults,
+              color: '#FFA500'
+            }
           case 3:
             // red
-            return { color: '#ff0000' }
+            return {
+              ...defaults,
+              color: '#ff0000'
+            }
           // return { color: "#800080" }; // purple
           default:
             return {}
