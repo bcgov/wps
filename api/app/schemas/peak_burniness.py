@@ -2,12 +2,13 @@
 """
 from typing import List, Dict
 from pydantic import BaseModel
-from app.schemas.stations import WeatherStation
 
 
 class PeakValuesRequest(BaseModel):
     """ A request for a given set of stations. """
     stations: List[int]
+
+# pylint: disable=too-many-instance-attributes
 
 
 class StationSummary(BaseModel):

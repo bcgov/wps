@@ -39,8 +39,8 @@ def get_precalculated_peak_values(request: app.schemas.peak_burniness.PeakValues
 def parse_json_file(filename: str):
     """ Parse the station's JSON file into StationSummary object
     """
-    with open(filename) as f:
-        data = json.load(f)
+    with open(filename) as results_file:
+        data = json.load(results_file)
 
     months = {
         '04': 'April ',
