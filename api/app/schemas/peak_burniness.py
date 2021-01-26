@@ -22,9 +22,9 @@ class StationSummary(BaseModel):
     hour_max_wind_speed: int = None
     hour_max_ffmc: int = None
     hour_max_fwi: int = None
-    station: WeatherStation
+    week: str = None
 
 
 class CalculatedResponse(BaseModel):
     """ The combined response for a set of stations. """
-    stations: Dict[int, StationSummary] = {}
+    stations: Dict[int, List[StationSummary]] = {}
