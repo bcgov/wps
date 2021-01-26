@@ -133,7 +133,7 @@ const CHainesPage = () => {
       const layer = L.geoJSON(fire_centres, {
         style: {
           fill: false,
-          color: '#777777',
+          color: '#7777FF',
           weight: 2
         }
       })
