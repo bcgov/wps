@@ -17,7 +17,7 @@ def get_precalculated_peak_values(request: app.schemas.peak_burniness.PeakValues
             status_code=status.HTTP_400_BAD_REQUEST, detail='Weather station is not found.')
 
     foldername = os.path.join(
-        os.path.dirname(__file__), 'data/{}'.format(request.stations))
+        os.path.dirname(__file__), 'data/peakValues/{}'.format(request.stations))
     logger.info(foldername)
 
     if not os.path.exists(foldername):
