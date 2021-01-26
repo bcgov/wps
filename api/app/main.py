@@ -149,13 +149,15 @@ async def get_percentiles(request: schemas.percentiles.PercentileRequest):
 
 @api.get('/fire_centres')
 async def get_fire_centres():
+    """ Get fire centre geojson. """
+    # Fetch data from databsae.
     geojson_response = await fire_centers.fetch()
+    # Set some pretty aggressive caching rules.
     headers = {"Cache-Control": "max-age=604800, public, immutable"}
+    # Return the geojson response.
     return JSONResponse(
         content=geojson_response,
         headers=headers)
-
-# request: schemas.weather_models.CHainesRequest
 
 
 if __name__ == "__main__":

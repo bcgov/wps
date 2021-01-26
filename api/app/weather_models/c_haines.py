@@ -1,7 +1,7 @@
 """ Code for generating c-haines charts from grib files.
 
 """
-from typing import Final
+from typing import Final, List
 import os
 from datetime import datetime, timezone, timedelta
 import tempfile
@@ -31,12 +31,22 @@ import app.db.database
 logger = logging.getLogger(__name__)
 
 
+def get_geographic_bounding_box() -> List:
+    """ Get the geographical area (the bounding box) that we want to generate data for.
+    Currently hard coded to be an area around B.C. """
+    # S->N 46->70
+    # E->W -110->-140
+    top_left_geo = (-140, 70)
+    bottom_right_geo = (-110, 46)
+    return (top_left_geo, bottom_right_geo)
+
+
 class BoundingBoxChecker():
     """ Class used to check if a given raster coordinate lies within a specified
     geographic bounding box. """
 
-    def __init__(self, geo_bounding_box, padf_transform, raster_to_geo_transformer):
-        self.geo_bounding_box = geo_bounding_box
+    def __init__(self, padf_transform, raster_to_geo_transformer):
+        self.geo_bounding_box = get_geographic_bounding_box()
         self.padf_transform = padf_transform
         self.raster_to_geo_transformer = raster_to_geo_transformer
         self.good_x = dict()
@@ -257,7 +267,6 @@ def calculate_c_haines_data(
         row_tmp_850 = read_scanline(tmp_850_raster_band, y_row_index)
         row_dew_850 = read_scanline(dew_850_raster_band, y_row_index)
 
-        # TODO: Look at using numpy to iterate through this faster.
         # Iterate through values in row.
         for x_column_index, (t700, t850, td850) in enumerate(zip(row_tmp_700, row_tmp_850, row_dew_850)):
 
@@ -282,7 +291,6 @@ def calculate_c_haines_data(
         c_haines_data.append(chaines_severity_row)
         mask_data.append(mask_row)
 
-    # TODO: look at creating numpy arrays from the get go
     return numpy.array(c_haines_data), numpy.array(mask_data), rows, cols
 
 
@@ -400,29 +408,31 @@ class CHainesSeverityGenerator():
     4) Write polygons to database.
     """
 
-    def __init__(self):
+    def __init__(self, model: ModelEnum, projection: ProjectionEnum):
+        self.model = model
+        self.projection = projection
         self.bound_checker = None
         self.session = app.db.database.get_write_session()
 
-    def generate(self, model: ModelEnum, projection: ProjectionEnum):
+    def generate(self):
         """ Entry point for generating and storing c-haines severity index. """
-        prediction_model = get_prediction_model(self.session, model, projection)
+        prediction_model = get_prediction_model(self.session, self.model, self.projection)
         utc_now = get_utc_now()
-        for model_hour in get_model_run_hours(model):
+        for model_hour in get_model_run_hours(self.model):
             model_run = None
-            for prediction_hour in model_prediction_hour_iterator(model):
-                urls = make_model_run_download_urls(model, utc_now, model_hour, prediction_hour)
+            for prediction_hour in model_prediction_hour_iterator(self.model):
+                urls = make_model_run_download_urls(self.model, utc_now, model_hour, prediction_hour)
                 if not model_run:
                     model_run = get_or_create_c_haines_model_run(
                         self.session, urls['model_run_timestamp'], prediction_model)
                 if record_exists(self.session, model_run, urls['prediction_timestamp']):
                     logger.info('%s: already processed %s-%s',
-                                model,
+                                self.model,
                                 urls['model_run_timestamp'], urls['prediction_timestamp'])
                     continue
 
                 with tempfile.TemporaryDirectory() as tmp_path:
-                    if model == ModelEnum.HRDPS:
+                    if self.model == ModelEnum.HRDPS:
                         filename_tmp_700 = download(urls['TMP_ISBL_0700'], tmp_path)
                         filename_tmp_850 = download(urls['TMP_ISBL_0850'], tmp_path)
                         filename_dew_850 = download(urls['DEPR_ISBL_0850'], tmp_path)
@@ -441,6 +451,19 @@ class CHainesSeverityGenerator():
                     else:
                         logger.warning('failed to download all files')
 
+    def _prepare_bound_checker(self, grib_tmp_700, source_projection):
+        """ Prepare the boundary checker. """
+        if not self.bound_checker:
+            logger.info('re-creating bound checker')
+            padf_transform = get_dataset_geometry(grib_tmp_700)
+            crs = CRS.from_string(source_projection)
+            # Create a transformer to go from whatever the raster is, to geographic coordinates.
+            raster_to_geo_transformer = get_transformer(crs, GEO_CRS)
+            self.bound_checker = BoundingBoxChecker(padf_transform, raster_to_geo_transformer)
+        else:
+            logger.info('re-using bound checker')
+            self.bound_checker.check_cache = True
+
     def _generate_and_store_c_haines(
             self,
             filename_tmp_700: str,
@@ -453,28 +476,12 @@ class CHainesSeverityGenerator():
         grib_tmp_850 = gdal.Open(filename_tmp_850, gdal.GA_ReadOnly)
         grib_dew_850 = gdal.Open(filename_dew_850, gdal.GA_ReadOnly)
 
-        # assertSameProjectionAndTransformation(grib_tmp_700, grib_tmp_850, grib_dew_850)
-
         # Assume all three the grib files are using the same projection and transformation.
         source_projection = grib_tmp_850.GetProjection()
         source_geotransform = grib_tmp_850.GetGeoTransform()
-        padf_transform = get_dataset_geometry(grib_tmp_700)
 
-        # S->N 46->70
-        # E->W -110->-140
-        top_left_geo = (-140, 70)
-        bottom_right_geo = (-110, 46)
-        geographic_bounding_box = (top_left_geo, bottom_right_geo)
-        crs = CRS.from_string(source_projection)
-        # Create a transformer to go from whatever the raster is, to geographic coordinates.
-        raster_to_geo_transformer = get_transformer(crs, GEO_CRS)
-        if not self.bound_checker:
-            logger.info('re-creating bound checker')
-            self.bound_checker = BoundingBoxChecker(
-                geographic_bounding_box, padf_transform, raster_to_geo_transformer)
-        else:
-            logger.info('re-using bound checker')
-            self.bound_checker.check_cache = True
+        # Prepare the boundary checker.
+        self._prepare_bound_checker(grib_tmp_700, source_projection)
 
         c_haines_data, mask_data, rows, cols = calculate_c_haines_data(self.bound_checker,
                                                                        grib_tmp_700,
@@ -509,8 +516,8 @@ def main():
         (ModelEnum.HRDPS, ProjectionEnum.HIGH_RES_CONTINENTAL),)
     for model, projection in models:
         logger.info('Generating C-Haines Severity Index for %s', model)
-        generator = CHainesSeverityGenerator()
-        generator.generate(model, projection)
+        generator = CHainesSeverityGenerator(model, projection)
+        generator.generate()
 
 
 if __name__ == "__main__":
