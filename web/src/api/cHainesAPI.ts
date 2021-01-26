@@ -43,3 +43,9 @@ export async function getCHainesGeoJSON(
   })
   return data
 }
+
+export async function getFireCentresGeoJSON(): Promise<FeatureCollection> {
+  const url = `${API_BASE_URL}/fire_centres`
+  const { data } = await axios.get(url)
+  return data
+}

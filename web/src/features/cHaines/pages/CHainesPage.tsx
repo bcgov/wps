@@ -12,7 +12,8 @@ import {
   updateSelectedModel,
   updateSelectedModelRun,
   updateSelectedPrediction,
-  fetchCHainesGeoJSON
+  fetchCHainesGeoJSON,
+  fetchFireCentresGeoJSON
 } from 'features/cHaines/slices/cHainesModelRunsSlice'
 import { Container, PageHeader, PageTitle } from 'components'
 import { formatDateInPDT } from 'utils/date'
@@ -87,7 +88,8 @@ const CHainesPage = () => {
     selected_model_timestamp,
     model_run_predictions,
     selected_prediction_timestamp,
-    selected_model_abbreviation
+    selected_model_abbreviation,
+    fire_centres
   } = useSelector(selectCHainesModelRuns)
   // const {} = useSelector(selectChainesPredictions)
   // const [selectedModel, setSelectedModel] = useState(
@@ -133,6 +135,13 @@ const CHainesPage = () => {
   useEffect(() => {
     dispatch(fetchModelRuns(selectedDatetime))
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (mapRef.current && fire_centres) {
+      const layer = L.geoJSON(fire_centres)
+      layer.addTo(mapRef.current)
+    }
+  }, [fire_centres])
 
   useEffect(() => {
     if (
@@ -269,6 +278,8 @@ const CHainesPage = () => {
     // L.control.layers(baseMaps, overlays).addTo(mapRef.current)
 
     // const legend = L.control({position: 'bottomLeft'});
+
+    dispatch(fetchFireCentresGeoJSON())
 
     // Destroy the map and clear all related event listeners when the component unmounts
     return () => {

@@ -124,10 +124,10 @@ def make_model_run_filename(
     if model == ModelEnum.GDPS:
         return 'CMC_glb_{}_latlon.15x.15_{}{HH}_P{hhh}.grib2'.format(
             level, date, HH=model_run_start, hhh=forecast_hour)
-    elif model == ModelEnum.RDPS:
+    if model == ModelEnum.RDPS:
         return 'CMC_reg_{}_ps10km_{}{HH}_P{hhh}.grib2'.format(
             level, date, HH=model_run_start, hhh=forecast_hour)
-    elif model == ModelEnum.HRDPS:
+    if model == ModelEnum.HRDPS:
         return 'CMC_hrdps_continental_{level}_ps2.5km_{date}{HH}_P{hhh}-00.grib2'.format(
             level=level, date=date, HH=model_run_start, hhh=forecast_hour)
     raise UnhandledPredictionModelType()

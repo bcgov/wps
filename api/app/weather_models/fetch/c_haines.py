@@ -27,16 +27,16 @@ async def fetch(model: ModelEnum, model_run_timestamp: datetime, prediction_time
         'features', json_agg(ST_AsGeoJSON(t.*)::json)
     )
         from (
-        select geom, severity from prediction_model_c_haines_polygons
-        inner join prediction_model_c_haines_predictions on
-            prediction_model_c_haines_predictions.id =
-            prediction_model_c_haines_polygons.c_haines_prediction_id
-        inner join prediction_model_c_haines_model_runs on
-            prediction_model_c_haines_model_runs.id = 
-            prediction_model_c_haines_predictions.model_run_id
+        select geom, severity from c_haines_polygons
+        inner join c_haines_predictions on
+            c_haines_predictions.id =
+            c_haines_polygons.c_haines_prediction_id
+        inner join c_haines_model_runs on
+            c_haines_model_runs.id = 
+            c_haines_predictions.model_run_id
         inner join prediction_models on
             prediction_models.id =
-            prediction_model_c_haines_model_runs.prediction_model_id
+            c_haines_model_runs.prediction_model_id
         where
             prediction_timestamp = '{prediction_timestamp}' and
             model_run_timestamp = '{model_run_timestamp}' and
@@ -45,6 +45,7 @@ async def fetch(model: ModelEnum, model_run_timestamp: datetime, prediction_time
         prediction_timestamp=prediction_timestamp.isoformat(),
         model_run_timestamp=model_run_timestamp.isoformat(),
         model=model)
+    logger.info(query)
     logger.info('fetching geojson from db...')
     # pylint: disable=no-member
     response = session.execute(query)

@@ -6,5 +6,6 @@ from app.db.models.forecasts import NoonForecast
 from app.db.models.observations import HourlyActual
 from app.db.models.weather_models import (ProcessedModelRunUrl, PredictionModel, PredictionModelRunTimestamp,
                                           PredictionModelGridSubset, ModelRunGridSubsetPrediction,
-                                          WeatherStationModelPrediction, CHainesPrediction, CHainesPoly,
-                                          CHainesModelRun)
+                                          WeatherStationModelPrediction)
+from app.db.models.c_haines import (CHainesModelRun, CHainesPrediction, CHainesPoly)
+from app.db.models.boundaries import FireCentres

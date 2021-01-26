@@ -33,9 +33,7 @@ def add_security_headers(scope, response):
     if config.get('HOSTNAME') != 'localhost':
         # For anything else - force https.
         response.headers.setdefault('Content-Security-Policy', 'upgrade-insecure-requests')
-    return
     path = scope.get('path')
-
     # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options
     if (path and path[path.rfind('.'):] in ('.css', '.js', '.png', '.xml', '.svg', '.json', '.txt'))\
             or response.media_type in ('text/html',):
@@ -89,7 +87,6 @@ async def get_index(request: Request):
         if config.get('HOSTNAME') != 'localhost':
             # For anything else - force https.
             response.headers.setdefault('Content-Security-Policy', 'upgrade-insecure-requests')
-        return response
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
         response.headers.setdefault('X-Frame-Options', 'DENY')
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options
@@ -104,7 +101,7 @@ async def get_index(request: Request):
                                     ('default-src \'self\' \'unsafe-inline\''
                                      ' *.googleapis.com *.gov.bc.ca *.gstatic.com unpkg.com;'
                                      ' img-src \'self\' data: https:;'
-                                     ' script-src \'self\' \'unsafe-inline\' \'unsafe-eval\' *.gov.bc.ca unpkg.com;'
+                                     ' script-src \'self\' \'unsafe-inline\' \'unsafe-eval\' *.gov.bc.ca;'
                                      ' frame-ancestors \'none\''))
         return response
     except TemplateNotFound as exception:

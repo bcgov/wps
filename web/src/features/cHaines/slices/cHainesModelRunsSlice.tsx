@@ -1,5 +1,11 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { ModelRun, ModelRuns, getModelRuns, getCHainesGeoJSON } from 'api/cHainesAPI'
+import {
+  ModelRun,
+  ModelRuns,
+  getModelRuns,
+  getCHainesGeoJSON,
+  getFireCentresGeoJSON
+} from 'api/cHainesAPI'
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 import { FeatureCollection } from 'geojson'
@@ -14,6 +20,7 @@ interface State {
   // TODO: rename selected_model_timestamp to selected_model_run_timestamp
   selected_model_timestamp: string
   selected_prediction_timestamp: string
+  fire_centres: FeatureCollection | null
 }
 
 interface GeoJSONContext {
@@ -31,7 +38,8 @@ const initialState: State = {
   selected_model_timestamp: '',
   selected_prediction_timestamp: '',
   model_run_predictions: {},
-  model_run_predictions_status: {}
+  model_run_predictions_status: {},
+  fire_centres: null
 }
 
 const cHainesModelRunsSlice = createSlice({
@@ -118,6 +126,9 @@ const cHainesModelRunsSlice = createSlice({
     getPredictionFailed(state: State, action: PayloadAction<string>) {
       state.loading = false
       state.error = action.payload
+    },
+    getFireCentresSuccess(state: State, action: PayloadAction<FeatureCollection>) {
+      state.fire_centres = action.payload
     }
   }
 })
@@ -131,7 +142,8 @@ const {
   setSelectedPrediction,
   getPredictionStart,
   getPredictionSuccess,
-  getPredictionFailed
+  getPredictionFailed,
+  getFireCentresSuccess
 } = cHainesModelRunsSlice.actions
 
 export default cHainesModelRunsSlice.reducer
@@ -196,6 +208,15 @@ export const fetchCHainesGeoJSON = (
     dispatch(getPredictionSuccess(result))
   } catch (err) {
     dispatch(getPredictionFailed(err.toString()))
+    logError(err)
+  }
+}
+
+export const fetchFireCentresGeoJSON = (): AppThunk => async dispatch => {
+  try {
+    const geoJSON = await getFireCentresGeoJSON()
+    dispatch(getFireCentresSuccess(geoJSON))
+  } catch (err) {
     logError(err)
   }
 }
