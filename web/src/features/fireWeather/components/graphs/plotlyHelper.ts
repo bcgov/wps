@@ -164,7 +164,7 @@ export const populateGraphDataForTempAndRH = (
     name: tempName,
     mode: 'markers',
     type: 'scatter',
-    marker: { color: tempColor, symbol, size: 7 },
+    marker: { color: tempColor, symbol },
     hovertemplate: `${tempName}: %{y:.2f} (°C)<extra></extra>`
   }
   const tempVerticalLines: Data[] = tempMinMaxDates.map((date, idx) => ({
@@ -185,7 +185,7 @@ export const populateGraphDataForTempAndRH = (
     name: tempName,
     mode: 'lines+markers',
     type: 'scatter',
-    marker: { symbol, size: 7 },
+    marker: { symbol },
     line: {
       color: tempColor,
       width: 2,
@@ -199,7 +199,7 @@ export const populateGraphDataForTempAndRH = (
     name: tempName,
     mode: 'lines+markers',
     type: 'scatter',
-    marker: { symbol, size: 7 },
+    marker: { symbol },
     line: {
       color: tempColor,
       width: 2,
@@ -239,7 +239,7 @@ export const populateGraphDataForTempAndRH = (
     mode: 'markers',
     type: 'scatter',
     showlegend: show,
-    marker: { color: rhColor, symbol, size: 7 },
+    marker: { color: rhColor, symbol },
     hovertemplate: `${rhName}: %{y:.2f} (%)<extra></extra>`
   }
   const rhVerticalLines: Data[] = rhMinMaxDates.map((date, idx) => ({
@@ -262,7 +262,7 @@ export const populateGraphDataForTempAndRH = (
     yaxis: 'y2',
     mode: 'lines+markers',
     type: 'scatter',
-    marker: { symbol, size: 7 },
+    marker: { symbol },
     line: {
       color: rhColor,
       width: 2,
@@ -277,7 +277,7 @@ export const populateGraphDataForTempAndRH = (
     yaxis: 'y2',
     mode: 'lines+markers',
     type: 'scatter',
-    marker: { symbol, size: 7 },
+    marker: { symbol },
     line: {
       color: rhColor,
       width: 2,
