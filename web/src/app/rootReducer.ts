@@ -12,6 +12,7 @@ import highResModelsReducer from 'features/fireWeather/slices/highResModelsSlice
 import highResModelSummariesReducer from 'features/fireWeather/slices/highResModelSummariesSlice'
 import regionalModelsReducer from 'features/fireWeather/slices/regionalModelsSlice'
 import regionalModelSummariesReducer from 'features/fireWeather/slices/regionalModelSummariesSlice'
+import peakBurninessReducer from 'features/peakBurniness/slices/peakBurninessSlice'
 
 const rootReducer = combineReducers({
   stations: stationsReducer,
@@ -25,7 +26,8 @@ const rootReducer = combineReducers({
   highResModels: highResModelsReducer,
   highResModelSummaries: highResModelSummariesReducer,
   regionalModels: regionalModelsReducer,
-  regionalModelSummaries: regionalModelSummariesReducer
+  regionalModelSummaries: regionalModelSummariesReducer,
+  peakBurninessValues: peakBurninessReducer
 })
 
 // Infer whatever gets returned from rootReducer and use it as the type of the root state
@@ -59,3 +61,4 @@ export const selectWxDataLoading = (state: RootState): boolean =>
   state.highResModelSummaries.loading ||
   state.regionalModels.loading ||
   state.regionalModelSummaries.loading
+export const selectPeakBurninessValues = (state: RootState) => state.peakBurninessValues

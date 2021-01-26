@@ -45,9 +45,7 @@ const Routes: React.FunctionComponent = () => {
         </Route>
 
         <Route path={PEAK_BURNINESS_ROUTE}>
-          <AuthWrapper shouldAuthenticate={shouldAuthenticate}>
             <PeakBurninessPage />
-          </AuthWrapper>
         </Route>
 
         <Route>
