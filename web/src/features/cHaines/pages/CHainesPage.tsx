@@ -91,10 +91,6 @@ const CHainesPage = () => {
     selected_model_abbreviation,
     fire_centres
   } = useSelector(selectCHainesModelRuns)
-  // const {} = useSelector(selectChainesPredictions)
-  // const [selectedModel, setSelectedModel] = useState(
-  //   model_runs.length > 0 ? model_runs[0].model_run_timestamp : ''
-  // )
 
   const loadModelPrediction = (
     model_abbreviation: string,
@@ -133,21 +129,21 @@ const CHainesPage = () => {
   }
 
   useEffect(() => {
-    dispatch(fetchModelRuns(selectedDatetime))
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
     if (mapRef.current && fire_centres) {
       const layer = L.geoJSON(fire_centres, {
         style: {
           fill: false,
-          color: '#556655',
+          color: '#777777',
           weight: 2
         }
       })
       layer.addTo(mapRef.current)
     }
   }, [fire_centres])
+
+  useEffect(() => {
+    dispatch(fetchModelRuns(selectedDatetime))
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (
@@ -381,7 +377,7 @@ const CHainesPage = () => {
     console.log('creating new layer from FeatureCollection')
     const defaults = {
       fillOpacity: 0.5,
-      weight: 3
+      weight: 2
     }
     return L.geoJSON(data, {
       style: feature => {
@@ -403,7 +399,6 @@ const CHainesPage = () => {
               ...defaults,
               color: '#ff0000'
             }
-          // return { color: "#800080" }; // purple
           default:
             return {}
         }
