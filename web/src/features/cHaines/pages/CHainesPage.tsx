@@ -18,6 +18,7 @@ import {
 import { Container, PageHeader, PageTitle } from 'components'
 import { formatDateInPDT } from 'utils/date'
 import { logError } from 'utils/error'
+import { getCHainesGeoJSONURI } from 'api/cHainesAPI'
 
 const useStyles = makeStyles({
   map: {
@@ -509,6 +510,16 @@ const CHainesPage = () => {
     )
   }
 
+  const handleCopyClick = () => {
+    const uri = getCHainesGeoJSONURI(
+      selected_model_abbreviation,
+      selected_model_timestamp,
+      selected_prediction_timestamp
+    )
+    console.log(uri)
+    navigator.clipboard.writeText(uri)
+  }
+
   const handleIntervalChange = (
     event: React.ChangeEvent<{ name?: string | undefined; value: string }>
   ) => {
@@ -632,6 +643,7 @@ const CHainesPage = () => {
                   ))
                 )}
             </select>
+            <button onClick={handleCopyClick}>Copy GeoJSON link to clipboard</button>
           </div>
           <div>
             <button onClick={() => loadPreviousPrediction()}>Prev</button>
@@ -639,8 +651,6 @@ const CHainesPage = () => {
               {isAnimating ? 'Stop' : 'Animate'}
             </button>
             <button onClick={() => loadNextPrediction()}>Next</button>
-          </div>
-          <div>
             Animation interval:{' '}
             <select value={animationInterval} onChange={handleIntervalChange}>
               <option value="1">1ms</option>

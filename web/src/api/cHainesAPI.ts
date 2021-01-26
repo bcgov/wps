@@ -29,6 +29,18 @@ export async function getModelRuns(
   return data
 }
 
+export function getCHainesGeoJSONURI(
+  model: string,
+  model_run_timestamp: string,
+  prediction_timestamp: string
+): string {
+  return `${API_BASE_URL}/c-haines/${encodeURIComponent(
+    model
+  )}/?model_run_timestamp=${encodeURIComponent(
+    model_run_timestamp
+  )}&prediction_timestamp=${encodeURIComponent(prediction_timestamp)}`
+}
+
 export async function getCHainesGeoJSON(
   model: string,
   model_run_timestamp: string,
