@@ -7,7 +7,7 @@ import { ModelValue, ModelSummary } from 'api/modelAPI'
 import { NoonForecastValue, ForecastSummary } from 'api/forecastAPI'
 import { ToggleValues } from 'features/fireWeather/components/graphs/useGraphToggles'
 import {
-  layoutLegendConfig,
+  defaultLayoutConfig,
   populateGraphDataForTempAndRH,
   populateNowLineData
 } from 'features/fireWeather/components/graphs/plotlyHelper'
@@ -171,14 +171,7 @@ const TempRHGraph = (props: Props) => {
           observation.tempLine
         ]}
         layout={{
-          dragmode: 'pan',
-          autosize: true,
-          title: {
-            text: 'Temperature & Relative Humidity',
-            yanchor: 'middle'
-          },
-          height: 600,
-          margin: { pad: 10 },
+          ...defaultLayoutConfig,
           xaxis: {
             range: sliderRange,
             rangeslider: {
@@ -209,8 +202,7 @@ const TempRHGraph = (props: Props) => {
             side: 'right',
             gridcolor: 'transparent',
             range: y2Range
-          },
-          legend: layoutLegendConfig
+          }
         }}
       />
     </div>

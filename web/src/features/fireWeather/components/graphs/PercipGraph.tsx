@@ -7,8 +7,8 @@ import { ModelValue } from 'api/modelAPI'
 import { NoonForecastValue } from 'api/forecastAPI'
 import { ToggleValues } from 'features/fireWeather/components/graphs/useGraphToggles'
 import {
+  defaultLayoutConfig,
   findMaxNumber,
-  layoutLegendConfig,
   populateGraphDataForPrecip,
   populateNowLineData
 } from 'features/fireWeather/components/graphs/plotlyHelper'
@@ -84,71 +84,69 @@ const PrecipGraph = (props: Props) => {
   const nowLine = populateNowLineData(currDate, y2Range[0], y2Range[1], 'y2')
 
   return (
-    <Plot
-      style={{ width: '100%', height: '100%' }}
-      config={{ responsive: true }}
-      data={[
-        nowLine,
-        gdps.accumPrecipsline,
-        gdps.dailyPrecipsBar,
-        rdps.accumPrecipsline,
-        rdps.dailyPrecipsBar,
-        hrdps.accumPrecipsline,
-        hrdps.dailyPrecipsBar,
-        forecast.accumPrecipsline,
-        forecast.dailyPrecipsBar,
-        observation.accumPrecipsline,
-        observation.dailyPrecipsBar
-      ]}
-      layout={{
-        dragmode: 'pan',
-        autosize: true,
-        title: {
-          text: 'Daily Precipitation (with accumulated)',
-          yanchor: 'middle'
-        },
-        height: 600,
-        margin: { pad: 10 },
-        xaxis: {
-          range: sliderRange,
-          rangeslider: {
-            visible: true,
-            bgcolor: '#dbdbdb',
-            thickness: 0.1
+    <div data-testid="precipitation-graph">
+      <Plot
+        style={{ width: '100%', height: '100%' }}
+        config={{ responsive: true }}
+        data={[
+          nowLine,
+          gdps.accumPrecipsline,
+          gdps.dailyPrecipsBar,
+          rdps.accumPrecipsline,
+          rdps.dailyPrecipsBar,
+          hrdps.accumPrecipsline,
+          hrdps.dailyPrecipsBar,
+          forecast.accumPrecipsline,
+          forecast.dailyPrecipsBar,
+          observation.accumPrecipsline,
+          observation.dailyPrecipsBar
+        ]}
+        layout={{
+          ...defaultLayoutConfig,
+          title: {
+            text: 'Daily Precipitation (with accumulated)',
+            yanchor: 'middle'
           },
-          hoverformat: '%a, %b %e', // https://github.com/d3/d3-3.x-api-reference/blob/master/Time-Formatting.md#format
-          tickfont: { size: 14 },
-          type: 'date',
-          dtick: 86400000.0 // Set the interval between ticks to one day: https://plotly.com/javascript/reference/#scatter-marker-colorbar-dtick
-        },
-        xaxis2: {
-          type: 'date',
-          showticklabels: false,
-          // @ts-expect-error
-          matches: 'x', // Important for slider to work properly for all traces
-          overlaying: 'x' // Important for hover to work properly for all traces
-        },
-        yaxis: {
-          title: 'Daily Precipitation (mm/cm)',
-          tickfont: { size: 14 },
-          gridcolor: 'transparent',
-          fixedrange: true,
-          range: y2Range
-        },
-        yaxis2: {
-          title: 'Accumulated Precipitation (mm/cm)',
-          tickfont: { size: 14 },
-          overlaying: 'y',
-          side: 'right',
-          fixedrange: true,
-          range: y2Range
-        },
-        legend: layoutLegendConfig,
-        barmode: 'group',
-        bargap: 0.75,
-        bargroupgap: 0.3
-      }}
-    />
+          barmode: 'group',
+          bargap: 0.75,
+          bargroupgap: 0.3,
+          xaxis: {
+            range: sliderRange,
+            rangeslider: {
+              visible: true,
+              bgcolor: '#dbdbdb',
+              thickness: 0.1
+            },
+            hoverformat: '%a, %b %e', // https://github.com/d3/d3-3.x-api-reference/blob/master/Time-Formatting.md#format
+            tickfont: { size: 14 },
+            type: 'date',
+            dtick: 86400000.0 // Set the interval between ticks to one day: https://plotly.com/javascript/reference/#scatter-marker-colorbar-dtick
+          },
+          xaxis2: {
+            type: 'date',
+            showticklabels: false,
+            // @ts-expect-error
+            matches: 'x', // Important for slider to work properly for all traces
+            overlaying: 'x' // Important for hover to work properly for all traces
+          },
+          yaxis: {
+            title: 'Daily Precipitation (mm/cm)',
+            tickfont: { size: 14 },
+            gridcolor: 'transparent',
+            fixedrange: true,
+            range: y2Range
+          },
+          yaxis2: {
+            title: 'Accumulated Precipitation (mm/cm)',
+            tickfont: { size: 14 },
+            overlaying: 'y',
+            side: 'right',
+            fixedrange: true,
+            range: y2Range
+          }
+        }}
+      />
+    </div>
   )
 }
 

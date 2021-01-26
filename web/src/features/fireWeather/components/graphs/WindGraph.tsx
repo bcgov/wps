@@ -6,9 +6,9 @@ import { ObservedValue } from 'api/observationAPI'
 import { ModelValue } from 'api/modelAPI'
 import { ToggleValues } from 'features/fireWeather/components/graphs/useGraphToggles'
 import {
+  defaultLayoutConfig,
   findMaxNumber,
   findMinNumber,
-  layoutLegendConfig,
   populateGraphDataForWind,
   populateNowLineData
 } from 'features/fireWeather/components/graphs/plotlyHelper'
@@ -88,58 +88,56 @@ const WindGraph = (props: Props) => {
   const nowLine = populateNowLineData(currDate, minWindSpd, maxWindSpd)
 
   return (
-    <Plot
-      style={{ width: '100%', height: '100%' }}
-      config={{ responsive: true }}
-      data={[
-        nowLine,
-        gdps.windSpdLine,
-        rdps.windSpdLine,
-        hrdps.windSpdLine,
-        observation.windSpdLine
-      ]}
-      layout={{
-        dragmode: 'pan',
-        autosize: true,
-        title: {
-          text: 'Wind Speed & Direction',
-          yanchor: 'middle'
-        },
-        height: 600,
-        margin: { pad: 10 },
-        xaxis: {
-          range: sliderRange,
-          rangeslider: {
-            visible: true,
-            bgcolor: '#dbdbdb',
-            thickness: 0.1
+    <div data-testid="wind-spd-dir-graph">
+      <Plot
+        style={{ width: '100%', height: '100%' }}
+        config={{ responsive: true }}
+        data={[
+          nowLine,
+          gdps.windSpdLine,
+          rdps.windSpdLine,
+          hrdps.windSpdLine,
+          observation.windSpdLine
+        ]}
+        layout={{
+          ...defaultLayoutConfig,
+          title: {
+            text: 'Wind Speed & Direction',
+            yanchor: 'middle'
           },
-          hoverformat: '%I:00%p, %a, %b %e', // https://github.com/d3/d3-3.x-api-reference/blob/master/Time-Formatting.md#format
-          tickfont: { size: 14 },
-          type: 'date',
-          dtick: 86400000.0 // Set the interval between ticks to one day: https://plotly.com/javascript/reference/#scatter-marker-colorbar-dtick
-        },
-        xaxis2: {
-          type: 'date',
-          showticklabels: false,
-          // @ts-expect-error
-          matches: 'x', // Important for slider to work properly for all traces
-          overlaying: 'x' // Important for hover to work properly for all traces
-        },
-        yaxis: {
-          title: 'Wind Speed (km/h)',
-          tickfont: { size: 14 },
-          fixedrange: true
-        },
-        legend: layoutLegendConfig,
-        shapes: [
-          ...observation.windDirArrows,
-          ...gdps.windDirArrows,
-          ...rdps.windDirArrows,
-          ...hrdps.windDirArrows
-        ]
-      }}
-    />
+          xaxis: {
+            range: sliderRange,
+            rangeslider: {
+              visible: true,
+              bgcolor: '#dbdbdb',
+              thickness: 0.1
+            },
+            hoverformat: '%I:00%p, %a, %b %e', // https://github.com/d3/d3-3.x-api-reference/blob/master/Time-Formatting.md#format
+            tickfont: { size: 14 },
+            type: 'date',
+            dtick: 86400000.0 // Set the interval between ticks to one day: https://plotly.com/javascript/reference/#scatter-marker-colorbar-dtick
+          },
+          xaxis2: {
+            type: 'date',
+            showticklabels: false,
+            // @ts-expect-error
+            matches: 'x', // Important for slider to work properly for all traces
+            overlaying: 'x' // Important for hover to work properly for all traces
+          },
+          yaxis: {
+            title: 'Wind Speed (km/h)',
+            tickfont: { size: 14 },
+            fixedrange: true
+          },
+          shapes: [
+            ...observation.windDirArrows,
+            ...gdps.windDirArrows,
+            ...rdps.windDirArrows,
+            ...hrdps.windDirArrows
+          ]
+        }}
+      />
+    </div>
   )
 }
 

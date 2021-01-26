@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import moment from 'moment'
-import { Data, Shape, Legend } from 'plotly.js'
+import { Data, Shape, Legend, Layout } from 'plotly.js'
 
 export const findMaxNumber = (arr: number[]): number => {
   if (arr.length === 0) {
@@ -18,11 +18,16 @@ export const findMinNumber = (arr: number[]): number => {
   return Math.min(...arr)
 }
 
-export const layoutLegendConfig: Partial<Legend> = {
-  orientation: 'h',
-  yanchor: 'top',
-  y: -0.35,
-  traceorder: 'reversed'
+export const defaultLayoutConfig: Partial<Layout> = {
+  dragmode: 'pan',
+  autosize: true,
+  height: 600,
+  margin: { pad: 10 },
+  legend: { orientation: 'h', yanchor: 'top', y: -0.35, traceorder: 'reversed' }, // Locate the legend at the bottom of the graph
+  title: {
+    text: 'Temperature & Relative Humidity',
+    yanchor: 'middle'
+  }
 }
 
 export const populateNowLineData = (
