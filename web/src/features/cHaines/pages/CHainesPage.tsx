@@ -138,7 +138,17 @@ const CHainesPage = () => {
 
   useEffect(() => {
     if (mapRef.current && fire_centres) {
-      const layer = L.geoJSON(fire_centres)
+      const layer = L.geoJSON(fire_centres, {
+        style: feature => {
+          console.log(feature?.properties.name)
+          switch (feature?.properties.name) {
+            case 'Southeast Fire Centre':
+              return { color: '#0000dd' }
+            default:
+              return {}
+          }
+        }
+      })
       layer.addTo(mapRef.current)
     }
   }, [fire_centres])
