@@ -133,85 +133,87 @@ const TempRHGraph = (props: Props) => {
   const nowLine = populateNowLineData(currDate, y2Range[0], y2Range[1], 'y2')
 
   return (
-    <Plot
-      style={{ width: '100%', height: '100%' }}
-      config={{ responsive: true }}
-      data={[
-        nowLine,
+    <div data-testid="temp-rh-graph">
+      <Plot
+        style={{ width: '100%', height: '100%' }}
+        config={{ responsive: true }}
+        data={[
+          nowLine,
 
-        // Plumes
-        gdps.rh5thLine,
-        gdps.rh90thLine,
-        gdps.temp5thLine,
-        gdps.temp90thLine,
-        rdps.rh5thLine,
-        rdps.rh90thLine,
-        rdps.temp5thLine,
-        rdps.temp90thLine,
-        hrdps.rh5thLine,
-        hrdps.rh90thLine,
-        hrdps.temp5thLine,
-        hrdps.temp90thLine,
+          // Plumes
+          gdps.rh5thLine,
+          gdps.rh90thLine,
+          gdps.temp5thLine,
+          gdps.temp90thLine,
+          rdps.rh5thLine,
+          rdps.rh90thLine,
+          rdps.temp5thLine,
+          rdps.temp90thLine,
+          hrdps.rh5thLine,
+          hrdps.rh90thLine,
+          hrdps.temp5thLine,
+          hrdps.temp90thLine,
 
-        // Lines & dots
-        biasAdjGdps.biasAdjRHLine,
-        biasAdjGdps.biasAdjTempLine,
-        gdps.rhLine,
-        gdps.tempLine,
-        rdps.rhLine,
-        rdps.tempLine,
-        hrdps.rhLine,
-        hrdps.tempLine,
-        ...forecast.tempVerticalLines,
-        ...forecast.rhVerticalLines,
-        forecast.rhDots,
-        forecast.tempDots,
-        observation.rhLine,
-        observation.tempLine
-      ]}
-      layout={{
-        dragmode: 'pan',
-        autosize: true,
-        title: {
-          text: 'Temperature & Relative Humidity',
-          yanchor: 'middle'
-        },
-        height: 600,
-        margin: { pad: 10 },
-        xaxis: {
-          range: sliderRange,
-          rangeslider: {
-            visible: true,
-            bgcolor: '#dbdbdb',
-            thickness: 0.1
+          // Lines & dots
+          biasAdjGdps.biasAdjRHLine,
+          biasAdjGdps.biasAdjTempLine,
+          gdps.rhLine,
+          gdps.tempLine,
+          rdps.rhLine,
+          rdps.tempLine,
+          hrdps.rhLine,
+          hrdps.tempLine,
+          ...forecast.tempVerticalLines,
+          ...forecast.rhVerticalLines,
+          forecast.rhDots,
+          forecast.tempDots,
+          observation.rhLine,
+          observation.tempLine
+        ]}
+        layout={{
+          dragmode: 'pan',
+          autosize: true,
+          title: {
+            text: 'Temperature & Relative Humidity',
+            yanchor: 'middle'
           },
-          hoverformat: '%I:00%p, %a, %b %e', // https://github.com/d3/d3-3.x-api-reference/blob/master/Time-Formatting.md#format
-          tickfont: { size: 14 },
-          type: 'date',
-          dtick: 86400000.0 // Set the interval between ticks to one day: https://plotly.com/javascript/reference/#scatter-marker-colorbar-dtick
-        },
-        xaxis2: {
-          type: 'date',
-          showticklabels: false,
-          // @ts-expect-error
-          matches: 'x', // Important for slider to work properly for all traces
-          overlaying: 'x' // Important for hover to work properly for all traces
-        },
-        yaxis: {
-          title: 'Temperature (°C)',
-          tickfont: { size: 14 }
-        },
-        yaxis2: {
-          title: 'Relative Humidity (%)',
-          tickfont: { size: 14 },
-          overlaying: 'y',
-          side: 'right',
-          gridcolor: 'transparent',
-          range: y2Range
-        },
-        legend: layoutLegendConfig
-      }}
-    />
+          height: 600,
+          margin: { pad: 10 },
+          xaxis: {
+            range: sliderRange,
+            rangeslider: {
+              visible: true,
+              bgcolor: '#dbdbdb',
+              thickness: 0.1
+            },
+            hoverformat: '%I:00%p, %a, %b %e', // https://github.com/d3/d3-3.x-api-reference/blob/master/Time-Formatting.md#format
+            tickfont: { size: 14 },
+            type: 'date',
+            dtick: 86400000.0 // Set the interval between ticks to one day: https://plotly.com/javascript/reference/#scatter-marker-colorbar-dtick
+          },
+          xaxis2: {
+            type: 'date',
+            showticklabels: false,
+            // @ts-expect-error
+            matches: 'x', // Important for slider to work properly for all traces
+            overlaying: 'x' // Important for hover to work properly for all traces
+          },
+          yaxis: {
+            title: 'Temperature (°C)',
+            tickfont: { size: 14 }
+          },
+          yaxis2: {
+            title: 'Relative Humidity (%)',
+            tickfont: { size: 14 },
+            overlaying: 'y',
+            side: 'right',
+            gridcolor: 'transparent',
+            range: y2Range
+          },
+          legend: layoutLegendConfig
+        }}
+      />
+    </div>
   )
 }
 

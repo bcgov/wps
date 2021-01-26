@@ -5,6 +5,8 @@ const stationCode = 328
 const numOfObservations = 119
 const numOfForecasts = 6
 const numOfGdps = 130
+const numOfHrdps = 103
+const numOfRdps = 103
 
 describe('MoreCast Page', () => {
   beforeEach(() => {
@@ -101,6 +103,72 @@ describe('MoreCast Page', () => {
         .should('have.css', 'height', '0px')
     })
 
+    it('Plotly tests', () => {
+      const checkNumOfTempMarkers = (num: number) => {
+        cy.getByTestId('temp-rh-graph')
+          .find(`.cartesianlayer > .subplot > .plot > .scatterlayer > .trace > .points > .point`)
+          .should('have.length', num)
+      }
+      const checkTempPlume = (shouldThere: boolean) => {
+        cy.getByTestId('temp-rh-graph')
+          .find(`.cartesianlayer > .subplot > .plot > .scatterlayer > .trace`)
+          .should('have.length', shouldThere ? 3 : 1) // 2 more traces that make up the plume
+      }
+      const checkNumOfRHMarkers = (num: number) => {
+        cy.getByTestId('temp-rh-graph')
+          .find('.cartesianlayer > .subplot > .overplot > .xy2 > .scatterlayer > .trace > .points > .point')
+          .should('have.length', num)
+      }
+      const checkRHPlume = (shouldThere: boolean) => {
+        cy.getByTestId('temp-rh-graph')
+          .find('.cartesianlayer > .subplot > .overplot > .xy2 > .scatterlayer > .trace')
+          .should('have.length', shouldThere ? 4 : 2) // 2 more traces that make up the plume
+      }
+
+      cy.getByTestId('temp-rh-graph')
+        .find('.infolayer > .legend > .scrollbox > .groups > .traces')
+        .should('have.length', 7)
+
+      cy.getByTestId('wx-graph-hrdps-toggle').click()
+      checkNumOfTempMarkers(numOfObservations - 1)
+      checkNumOfRHMarkers(numOfObservations)
+      checkTempPlume(false)
+      checkRHPlume(false)
+
+      cy.getByTestId('wx-graph-observation-toggle').click()
+      cy.getByTestId('wx-graph-forecast-toggle').click()
+      checkNumOfTempMarkers(numOfForecasts)
+      checkNumOfRHMarkers(numOfForecasts)
+
+      cy.getByTestId('wx-graph-forecast-toggle').click()
+      cy.getByTestId('wx-graph-hrdps-toggle').click()
+      checkNumOfTempMarkers(numOfHrdps)
+      checkNumOfRHMarkers(numOfHrdps)
+      checkTempPlume(true)
+      checkRHPlume(true)
+
+      cy.getByTestId('wx-graph-hrdps-toggle').click()
+      cy.getByTestId('wx-graph-gdps-toggle').click()
+      checkNumOfTempMarkers(numOfGdps)
+      checkNumOfRHMarkers(numOfGdps)
+      checkTempPlume(true)
+      checkRHPlume(true)
+
+      cy.getByTestId('wx-graph-gdps-toggle').click()
+      cy.getByTestId('wx-graph-rdps-toggle').click()
+      checkNumOfTempMarkers(numOfRdps)
+      checkNumOfRHMarkers(numOfRdps)
+      checkTempPlume(true)
+      checkRHPlume(true)
+
+      cy.getByTestId('wx-graph-rdps-toggle').click()
+      cy.getByTestId('wx-graph-bias-adjusted-gdps-toggle').click()
+      checkNumOfTempMarkers(numOfGdps)
+      checkNumOfRHMarkers(numOfGdps)
+      checkTempPlume(false)
+      checkRHPlume(false)
+    })
+
     it.skip('Temp & RH graph displays svg graphics with toggles', () => {
       // Check if svg elements are displayed in the graph
       cy.getByTestId('hourly-observed-temp-symbol').should('have.length', numOfObservations - 1)
@@ -112,10 +180,10 @@ describe('MoreCast Page', () => {
       cy.getByTestId('hourly-observed-rh-symbol').should('have.class', 'hidden')
 
       // Test the toggle buttons
-      cy.getByTestId('wx-graph-global-model-toggle').click()
+      cy.getByTestId('wx-graph-gdps-toggle').click()
       cy.getByTestId('model-summary-temp-area').should('not.have.class', 'hidden')
       cy.getByTestId('model-temp-symbol').should('have.length', numOfGdps)
-      cy.getByTestId('wx-graph-global-model-toggle').click()
+      cy.getByTestId('wx-graph-gdps-toggle').click()
       cy.getByTestId('model-summary-temp-area').should('have.class', 'hidden')
       cy.getByTestId('model-temp-symbol').should('have.class', 'hidden')
 
@@ -126,26 +194,26 @@ describe('MoreCast Page', () => {
       cy.getByTestId('forecast-temp-dot').should('have.class', 'hidden')
       cy.getByTestId('forecast-summary-temp-line').should('have.class', 'hidden')
 
-      cy.getByTestId('wx-graph-bias-toggle').click()
+      cy.getByTestId('wx-graph-bias-adjusted-gdps-toggle').click()
       cy.getByTestId('bias-adjusted-model-temp-symbol').should('have.length', numOfGdps)
       cy.getByTestId('bias-adjusted-model-temp-path').should('not.have.class', 'hidden')
-      cy.getByTestId('wx-graph-bias-toggle').click()
+      cy.getByTestId('wx-graph-bias-adjusted-gdps-toggle').click()
       cy.getByTestId('bias-adjusted-model-temp-symbol').should('have.class', 'hidden')
       cy.getByTestId('bias-adjusted-model-temp-path').should('have.class', 'hidden')
 
       cy.getByTestId('high-res-model-summary-temp-area').should('not.have.class', 'hidden')
       cy.getByTestId('high-res-model-temp-symbol').should('have.length', 103)
       cy.getByTestId('high-res-model-temp-path').should('not.have.class', 'hidden')
-      cy.getByTestId('wx-graph-high-res-model-toggle').click()
+      cy.getByTestId('wx-graph-hrdps-toggle').click()
       cy.getByTestId('high-res-model-summary-temp-area').should('have.class', 'hidden')
       cy.getByTestId('high-res-model-temp-symbol').should('have.class', 'hidden')
       cy.getByTestId('high-res-model-temp-path').should('have.class', 'hidden')
 
-      cy.getByTestId('wx-graph-regional-model-toggle').click()
+      cy.getByTestId('wx-graph-rdps-toggle').click()
       cy.getByTestId('regional-model-summary-temp-area').should('not.have.class', 'hidden')
       cy.getByTestId('regional-model-temp-symbol').should('have.length', 103)
       cy.getByTestId('regional-model-temp-path').should('not.have.class', 'hidden')
-      cy.getByTestId('wx-graph-regional-model-toggle').click()
+      cy.getByTestId('wx-graph-rdps-toggle').click()
       cy.getByTestId('regional-model-summary-temp-area').should('have.class', 'hidden')
       cy.getByTestId('regional-model-temp-symbol').should('have.class', 'hidden')
       cy.getByTestId('regional-model-temp-path').should('have.class', 'hidden')
@@ -209,12 +277,12 @@ describe('MoreCast Page', () => {
       cy.getByTestId('accum-observed-precip-path').should('have.class', 'accumPrecipLine--hidden')
       cy.getByTestId('forecast-precip-line').should('not.have.class', 'precipLine--hidden')
       cy.getByTestId('accum-forecast-precip-path').should('not.have.class', 'accumPrecipLine--hidden')
-      cy.getByTestId('wx-graph-regional-model-toggle').click() // toggle RDPS on
+      cy.getByTestId('wx-graph-rdps-toggle').click() // toggle RDPS on
       cy.getByTestId('rdps-precip-line').should('not.have.class', 'precipLine--hidden')
       cy.getByTestId('accum-rdps-precip-path').should('not.have.class', 'accumPrecipLine--hidden')
       cy.getByTestId('gdps-precip-line').should('have.class', 'precipLine--hidden')
-      cy.getByTestId('wx-graph-high-res-model-toggle').click() // toggle HRDPS off
-      cy.getByTestId('wx-graph-global-model-toggle').click() // toggle GDPS on
+      cy.getByTestId('wx-graph-hrdps-toggle').click() // toggle HRDPS off
+      cy.getByTestId('wx-graph-gdps-toggle').click() // toggle GDPS on
       cy.getByTestId('hrdps-precip-line').should('have.class', 'precipLine--hidden')
       cy.getByTestId('accum-hrdps-precip-path').should('have.class', 'accumPrecipLine--hidden')
       cy.getByTestId('gdps-precip-line').should('not.have.class', 'precipLine--hidden')

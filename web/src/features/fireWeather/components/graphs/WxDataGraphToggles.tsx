@@ -107,7 +107,7 @@ const WxDataToggles = ({
         control={
           <Switch
             name="showHrdps"
-            data-testid="wx-graph-high-res-model-toggle"
+            data-testid="wx-graph-hrdps-toggle"
             checked={toggleValues.showHrdps}
             disabled={noHighResModels}
             size="small"
@@ -126,7 +126,7 @@ const WxDataToggles = ({
         control={
           <Switch
             name="showRdps"
-            data-testid="wx-graph-regional-model-toggle"
+            data-testid="wx-graph-rdps-toggle"
             checked={toggleValues.showRdps}
             disabled={noRegionalModels}
             size="small"
@@ -145,7 +145,7 @@ const WxDataToggles = ({
         control={
           <Switch
             name="showGdps"
-            data-testid="wx-graph-global-model-toggle"
+            data-testid="wx-graph-gdps-toggle"
             checked={toggleValues.showGdps}
             disabled={noModels}
             size="small"
@@ -164,7 +164,7 @@ const WxDataToggles = ({
         control={
           <Switch
             name="showBiasAdjGdps"
-            data-testid="wx-graph-bias-toggle"
+            data-testid="wx-graph-bias-adjusted-gdps-toggle"
             checked={toggleValues.showBiasAdjGdps}
             disabled={noBiasAdjModels}
             size="small"
