@@ -41,6 +41,7 @@ async def fetch(model: ModelEnum, model_run_timestamp: datetime, prediction_time
             prediction_timestamp = '{prediction_timestamp}' and
             model_run_timestamp = '{model_run_timestamp}' and
             prediction_models.abbreviation = '{model}'
+        order by severity asc
     ) as t(geom, severity)""".format(
         prediction_timestamp=prediction_timestamp.isoformat(),
         model_run_timestamp=model_run_timestamp.isoformat(),
