@@ -25,7 +25,7 @@ from app.weather_models.env_canada import (get_model_run_hours,
                                            get_file_date_part, adjust_model_day, download,
                                            UnhandledPredictionModelType)
 from app.c_haines.c_haines_index import CHainesGenerator
-from app.c_haines.gdal import GDALData
+from app.c_haines import GDALData
 
 
 logger = logging.getLogger(__name__)
@@ -36,8 +36,9 @@ def get_severity(c_haines_index):
 
     Fire behavrious analysts are typically only concerned if there's a high
     or extreme index - so the c-haines values are lumped together by severity.
+
+    The severity used here is fairly arbitrary - there's no standard in place.
     """
-    # Meteostar
     # 0 - 4 : low
     if c_haines_index < 4:
         return 0
@@ -268,7 +269,7 @@ def save_geojson_to_database(session: Session,
 
 
 def generate_severity_data(c_haines_data):
-    """ Generate severity index, iterating over c-haines data.
+    """ Generate severity index data, iterating over c-haines data.
     NOTE: Iterating to generate c-haines, and then iterating again to generate severity is a bit slower,
     but results in much cleaner code.
     """
@@ -291,7 +292,7 @@ def generate_severity_data(c_haines_data):
     return numpy.array(severity_data), numpy.array(mask_data)
 
 
-class Payload():
+class EnvCanadaPayload():
     """ Handy class to store payload information in. """
 
     def __init__(self):
@@ -348,7 +349,7 @@ class CHainesSeverityGenerator():
                         filename_dew_850 = download(urls['DEPR_ISBL_850'], tmp_path)
 
                     if filename_tmp_700 and filename_tmp_850 and filename_dew_850:
-                        payload = Payload()
+                        payload = EnvCanadaPayload()
                         payload.filename_tmp_700 = filename_tmp_700
                         payload.filename_tmp_850 = filename_tmp_850
                         payload.filename_dew_850 = filename_dew_850
@@ -358,9 +359,9 @@ class CHainesSeverityGenerator():
                     else:
                         logger.warning('failed to download all files')
 
-    def _generate_c_haines(
+    def _generate_c_haines_data(
             self,
-            payload: Payload):
+            payload: EnvCanadaPayload):
 
         # Open the grib files.
         with open_gdal(payload.filename_tmp_700,
@@ -405,7 +406,7 @@ class CHainesSeverityGenerator():
         # Iterate through payloads that need processing.
         for payload in self._yield_payload():
             # Generate the c_haines data.
-            c_haines_data, source_info = self._generate_c_haines(payload)
+            c_haines_data, source_info = self._generate_c_haines_data(payload)
             # Generate the severity index and mask data.
             c_haines_severity_data, c_haines_mask_data = generate_severity_data(c_haines_data)
             # We're done with the c_haines data, so we can clean up some memory.

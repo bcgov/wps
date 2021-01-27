@@ -7,7 +7,7 @@ from pyproj import CRS
 import gdal
 from app.weather_models.process_grib import (
     calculate_geographic_coordinate, get_dataset_geometry, get_transformer, GEO_CRS)
-from app.c_haines.gdal import GDALData
+from app.c_haines import GDALData
 
 
 logger = logging.getLogger(__name__)

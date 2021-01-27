@@ -5,7 +5,7 @@ import logging
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from app.weather_models import ModelEnum
-from app.weather_models.fetch import c_haines
+from app.c_haines import fetch
 
 logger = logging.getLogger(__name__)
 
@@ -20,11 +20,11 @@ async def get_c_haines(
         model_run_timestamp: datetime,
         prediction_timestamp: datetime):
     """ Return geojson polygons for c-haines """
-    # response.headers["Cache-Control"] = "max-age=43200"  # let browsers to cache the data for 12 hours
     logger.info('/c-haines/%s/?model_run_timestamp=%s&prediction_timestamp=%s',
                 model, model_run_timestamp, prediction_timestamp)
+    # Let the browser cache the data as much as it wants.
     headers = {"Cache-Control": "max-age=604800, public, immutable"}
-    geojson_response = await c_haines.fetch(model, model_run_timestamp, prediction_timestamp)
+    geojson_response = await fetch.fetch_prediction(model, model_run_timestamp, prediction_timestamp)
     # We check for features - if there are no features, we return a 404.
     # NOTE: Technically, we should only return 404 if we're certain there is no record in the database...
     if geojson_response['features']:
@@ -40,10 +40,4 @@ async def get_model_runs(model_run_timestamp: datetime = None):
     logger.info('/c-haines/model-runs')
     # if model_run_timestamp:
     # model_run_timestamp.replace()
-    return await c_haines.fetch_model_runs(model_run_timestamp)
-
-
-# @router.get('/predictions')
-# async def get_predictions(model_run_timestamp: datetime):
-#     """ Return list of predictions for a model run """
-#     return await c_haines.fetch_model_run_predictions(model_run_timestamp)
+    return await fetch.fetch_model_runs(model_run_timestamp)
