@@ -13,7 +13,7 @@ from app.c_haines import GDALData
 logger = logging.getLogger(__name__)
 
 
-def calculate_c_haines_index(t700: float, t850: float, td850: float) -> float:
+def calculate_c_haines_index(t700: float, t850: float, d850: float) -> float:
     """ Given temperature and dew points values, calculate c-haines.
 
     Parameters
@@ -22,7 +22,7 @@ def calculate_c_haines_index(t700: float, t850: float, td850: float) -> float:
         Temperature at 700 mb.
     t850 : float
         Temperature at 850 mb.
-    td850 :float
+    d850 :float
         Dew point depression at 850mb.
 
     Returns
@@ -36,7 +36,7 @@ def calculate_c_haines_index(t700: float, t850: float, td850: float) -> float:
     # Temperature at 850mb - Temperature at 700mb.
     ca = (t850-t700)/2-2
     # Dew point depression term (this indicates how dry the air is).
-    cb = td850/3-1
+    cb = d850/3-1
 
     # This part limits the extent to which dry air is able to affect the overall index.
     # If there is very dry air (big difference between dew point temperature and temperature),
@@ -149,10 +149,10 @@ class CHainesGenerator():
         row_dew_850: Final = read_scanline(dew_850_raster_band, y_row_index)
 
         # Iterate through values in row.
-        for x_column_index, (t700, t850, td850) in enumerate(zip(row_tmp_700, row_tmp_850, row_dew_850)):
+        for x_column_index, (t700, t850, d850) in enumerate(zip(row_tmp_700, row_tmp_850, row_dew_850)):
 
             if self.bound_checker.is_inside(x_column_index, y_row_index):
-                c_haines_row.append(calculate_c_haines_index(t700, t850, td850))
+                c_haines_row.append(calculate_c_haines_index(t700, t850, d850))
             else:
                 c_haines_row.append(0)
         return c_haines_row
