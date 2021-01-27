@@ -25,10 +25,10 @@ parameters:
     value: auzhsi-tools
   - name: CPU_REQUEST
     description: Requested CPU
-    value: 250m
+    value: 300m
   - name: CPU_LIMIT
     description: CPU upper limit
-    value: 250m
+    value: 500m
   - name: MEMORY_REQUEST
     description: Requested memory
     value: 1Gi

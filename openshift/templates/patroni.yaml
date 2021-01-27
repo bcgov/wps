@@ -334,11 +334,11 @@ parameters:
   - description: Maximum amount of memory the container can request.
     displayName: Memory Request
     name: MEMORY_REQUEST
-    value: 2Gi
+    value: 1Gi
   - description: Maximum amount of cpu the container can request.
     displayName: CPU Request
     name: CPU_REQUEST
-    value: 250m
+    value: 50m
   - description: The OpenShift Namespace where the patroni and postgresql ImageStream resides.
     displayName: ImageStream Namespace
     name: IMAGE_NAMESPACE

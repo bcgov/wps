@@ -13,8 +13,23 @@ from app.c_haines import GDALData
 logger = logging.getLogger(__name__)
 
 
-def calculate_c_haines_index(t700: float, t850: float, td850: float):
-    """ Given temperature and dew points values, calculate c-haines.  """
+def calculate_c_haines_index(t700: float, t850: float, td850: float) -> float:
+    """ Given temperature and dew points values, calculate c-haines.
+
+    Parameters
+    ----------
+    t700 : float
+        Temperature at 700 mb.
+    t850 : float
+        Temperature at 850 mb.
+    td850 :float
+        Dew point depression at 850mb.
+
+    Returns
+    -------
+    float
+        The Continous Haines Index.
+    """
     # pylint: disable=invalid-name
 
     # Temperature depression term (this indicates atmospheric instability).
@@ -25,12 +40,14 @@ def calculate_c_haines_index(t700: float, t850: float, td850: float):
 
     # This part limits the extent to which dry air is able to affect the overall index.
     # If there is very dry air (big difference between dew point temperature and temperature),
-    # we want to limit to overall effect on the index, since if there's no atmospheric
+    # we want to limit the overall effect on the index, since if there's no atmospheric
     # instability, that dry air isn't going anywhere.
     if cb > 9:
         cb = 9
     elif cb > 5:
         cb = 5 + (cb-5)/2
+
+    # Combine the two terms for the index.
     ch = ca + cb
 
     return ch
