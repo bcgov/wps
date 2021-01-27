@@ -1,5 +1,4 @@
 import axios from 'api/axios'
-import { Station } from 'api/stationAPI'
 
 export interface PeakWeekValues {
     week: string | null

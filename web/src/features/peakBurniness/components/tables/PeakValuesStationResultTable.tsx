@@ -7,7 +7,7 @@ import TableContainer from '@material-ui/core/TableContainer'
 import TableRow from '@material-ui/core/TableRow'
 import TableHead from '@material-ui/core/TableHead'
 import Paper from '@material-ui/core/Paper'
-import Typography from '@material-ui/core/Typography'
+// import Typography from '@material-ui/core/Typography'
 import { PeakWeekValues, StationPeakValues } from 'api/peakBurninessAPI'
 
 const useStyles = makeStyles({
@@ -25,25 +25,25 @@ const useStyles = makeStyles({
   }
 })
 
-interface TableHeaderProps {
-    title: string
-    testId?: string
-  }
+// interface TableHeaderProps {
+//     title: string
+//     testId?: string
+//   }
 
-  const TableHeader = (tableHeaderProps: TableHeaderProps) => {
-    const tableHeaderClasses = useStyles()
+//   const TableHeader = (tableHeaderProps: TableHeaderProps) => {
+//     const tableHeaderClasses = useStyles()
 
-    return (
-      <Paper
-        data-testid={`${tableHeaderProps.testId}-header`}
-        style={{ paddingLeft: '15px' }}
-      >
-        <Typography className={tableHeaderClasses.title} display="inline">
-          {tableHeaderProps.title}
-        </Typography>
-      </Paper>
-    )
-  }
+//     return (
+//       <Paper
+//         data-testid={`${tableHeaderProps.testId}-header`}
+//         style={{ paddingLeft: '15px' }}
+//       >
+//         <Typography className={tableHeaderClasses.title} display="inline">
+//           {tableHeaderProps.title}
+//         </Typography>
+//       </Paper>
+//     )
+//   }
 
   interface PeakValuesStationResultTableProps {
     stationResponse: StationPeakValues
@@ -51,6 +51,8 @@ interface TableHeaderProps {
 
   export const PeakValuesStationResultTable: React.FunctionComponent<PeakValuesStationResultTableProps> = ({stationResponse}: PeakValuesStationResultTableProps) => {
     const { code, weeks } = stationResponse
+
+    console.log(code, weeks)
 
     return (
       <div data-testid="peak-values-station-result-table">
