@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { Container, PageHeader, PageTitle } from 'components'
-import { Paper, makeStyles } from '@material-ui/core'
+import { makeStyles } from '@material-ui/core'
 import { ErrorBoundary } from 'components'
 import PeakValuesResults from 'features/peakBurniness/components/tables/PeakValuesResults'
 import WxStationDropdown from 'features/stations/components/WxStationDropdown'
@@ -11,27 +11,28 @@ import { ActionButton } from 'features/peakBurniness/components/ActionButton'
 import { getStationCodesFromUrl, stationCodeQueryKey } from 'utils/url'
 import { fetchPeakValues, resetPeakValuesResult } from '../slices/peakBurninessSlice'
 
-// const useStyles = makeStyles({
-//   displays: {
-//     marginTop: 16
-//   },
-//   paper: {
-//     paddingLeft: 18,
-//     paddingRight: 18,
-//     paddingBottom: 8,
-//     marginBottom: 20
-//   },
-//   station: {
-//     fontSize: '1.1rem',
-//     paddingTop: 10,
-//     paddingBottom: 8
-//   },
-//   noDataAvailable: {
-//     paddingBottom: 8
-//   }
-// })
+const useStyles = makeStyles({
+  displays: {
+    marginTop: 16
+  },
+  paper: {
+    paddingLeft: 18,
+    paddingRight: 18,
+    paddingBottom: 8,
+    marginBottom: 20
+  },
+  station: {
+    fontSize: '1.1rem',
+    paddingTop: 10,
+    paddingBottom: 8
+  },
+  noDataAvailable: {
+    paddingBottom: 8
+  }
+})
 
 export const PeakBurninessPage = React.memo(function _() {
+  const classes = useStyles()
   const dispatch = useDispatch()
   const location = useLocation()
   const history = useHistory()
@@ -63,7 +64,7 @@ export const PeakBurninessPage = React.memo(function _() {
     <main data-testid="peak-burniness-page">
       <PageHeader title="Predictive Services Unit" productName="Peak Burniness" />
       <PageTitle title="Peak Burniness" />
-      <Container>
+      <Container className={classes.displays}>
         <WxStationDropdown stationCodes={stationCodes} onChange={setStationCodes} />
         <ActionButton
           onFetchClick={onFetchClick}
