@@ -212,7 +212,7 @@ describe('MoreCast Page', () => {
       // cy.getByTestId('wx-graph-gdps-toggle').click()
       // checkNumOfBars(16) // counts 15 instead of 6
 
-      checkNumOfLegends(2)
+      checkNumOfLegends(1)
     })
 
     it('Wind speed & direction graph should be displayed', () => {
