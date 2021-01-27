@@ -70,7 +70,10 @@ const CHainesPage = () => {
   const currentLayersRef = useRef<L.GeoJSON | null>(null)
   const loopTimeoutRef = useRef<number | null>(null)
   const [isAnimating, setAnimate] = useState(false)
-  const [animationInterval, setAnimationInterval] = useState(200)
+  // Set the default animation speed to 500ms. Faster than that, and for some reason the
+  // animation get's stuck sometimes. The request is being sent, but the response never
+  // comes back. I suspect it's an issue on the back-end - but not sure.
+  const [animationInterval, setAnimationInterval] = useState(500)
   const [selectedDatetime, setSelectedDateTime] = useState(() => {
     const d = new Date()
     const month = `${d.getMonth() + 1}`
