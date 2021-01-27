@@ -49,8 +49,8 @@ export default peakBurninessSlice.reducer
 export const fetchPeakValues = (stationCodes: number[]): AppThunk => async dispatch => {
   try {
     dispatch(getPeakValuesStart())
-    const result = await getPeakValues(stationCodes)
-    dispatch(getPeakValuesSuccess(result))
+    const peakBurninessValues = await getPeakValues(stationCodes)
+    dispatch(getPeakValuesSuccess(peakBurninessValues))
   } catch (err) {
     dispatch(getPeakValuesFailed(err.toString()))
     logError(err)

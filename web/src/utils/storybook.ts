@@ -257,8 +257,8 @@ const getPeakValues = () => {
   const months = ['April', 'May', 'June', 'July', 'August', 'September']
   const date_ranges = ['1-6', '7-13', '14-20', '21-27', '28-31']
   const weeks = []
-  for (var i = 0; i < months.length; i++) {
-    for (var j = 0; j < date_ranges.length; j++) {
+  for (let i = 0; i < months.length; i++) {
+    for (let j = 0; j < date_ranges.length; j++) {
       weeks.push(months[i] + ' ' + date_ranges[j])
     }
   }
