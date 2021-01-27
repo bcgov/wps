@@ -20,10 +20,9 @@ export interface StationPeakValues {
 }
 
 export interface PeakValuesResponse {
-  // stations: {
-  //     [code: number]: StationPeakValues
-  // }
-  [code: number]: PeakWeekValues[]
+  stations: {
+    [code: number]: PeakWeekValues[]
+  }
 }
 
 export async function getPeakValues(stationCodes: number[]): Promise<PeakValuesResponse> {

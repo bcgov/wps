@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
+import { useDispatch } from 'react-redux'
 import { Container, PageHeader, PageTitle } from 'components'
 import { Paper, makeStyles } from '@material-ui/core'
 import { ErrorBoundary } from 'components'

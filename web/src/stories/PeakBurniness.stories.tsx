@@ -1,7 +1,8 @@
 import React from 'react'
 import { Story, Meta } from '@storybook/react/types-6-0'
 
-import {PeakValuesResults, columns as peakValuesTableColumns} from 'features/peakBurniness/components/tables/PeakValuesResults'
+import {PeakValuesResults} from 'features/peakBurniness/components/tables/PeakValuesResults'
+import {columns as peakValuesTableColumns} from 'features/peakBurniness/components/tables/PeakValuesStationResultTable'
 import { peakValues } from 'utils/storybook'
 
 export default {

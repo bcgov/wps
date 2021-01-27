@@ -7,8 +7,88 @@ import TableContainer from '@material-ui/core/TableContainer'
 import TableRow from '@material-ui/core/TableRow'
 import TableHead from '@material-ui/core/TableHead'
 import Paper from '@material-ui/core/Paper'
-// import Typography from '@material-ui/core/Typography'
+import Typography from '@material-ui/core/Typography'
 import { PeakWeekValues, StationPeakValues } from 'api/peakBurninessAPI'
+import { MODEL_VALUE_DECIMAL } from 'utils/constants'
+
+interface Column {
+  id: keyof PeakWeekValues
+  label: string
+  minWidth?: number
+  maxWidth?: number
+  align?: 'left' | 'right' | 'center'
+  format?: (value: number) => string | number
+  formatStr?: (value: string) => string
+}
+
+export const columns: Column[] = [
+  {
+    id: 'week',
+    label: 'Week',
+    align: 'left',
+    formatStr: (value: string): string => value
+  },
+  {
+    id: 'max_temp',
+    label: 'Max Hourly Temp (°C)',
+    align: 'right',
+    format: (value: number): string => value.toFixed(MODEL_VALUE_DECIMAL)
+  },
+  {
+    id: 'hour_max_temp',
+    label: 'Hour of Max Temp',
+    align: 'right',
+    format: (value: number): string => value.toString()
+  },
+  {
+    id: 'min_rh',
+    label: 'Min Hourly RH (%)',
+    align: 'right',
+    format: (value: number): string => value.toFixed(MODEL_VALUE_DECIMAL)
+  },
+  {
+    id: 'hour_min_rh',
+    label: 'Hour of Min RH',
+    align: 'right',
+    format: (value: number): string => value.toString()
+  },
+  {
+    id: 'max_wind_speed',
+    label: 'Max Wind Speed (km/h)',
+    align: 'right',
+    format: (value: number): string => value.toFixed(MODEL_VALUE_DECIMAL)
+  },
+  {
+    id: 'hour_max_wind_speed',
+    label: 'Hour of Max Wind Speed',
+    align: 'right',
+    format: (value: number): string => value.toString()
+  },
+  {
+    id: 'max_ffmc',
+    label: 'Max FFMC',
+    align: 'right',
+    format: (value: number): string => value.toFixed(MODEL_VALUE_DECIMAL)
+  },
+  {
+    id: 'hour_max_ffmc',
+    label: 'Hour of Max FFMC',
+    align: 'right',
+    format: (value: number): string => value.toString()
+  },
+  {
+    id: 'max_fwi',
+    label: 'Max FWI',
+    align: 'right',
+    format: (value: number): string => value.toFixed(MODEL_VALUE_DECIMAL)
+  },
+  {
+    id: 'hour_max_fwi',
+    label: 'Hour of Max FWI',
+    align: 'right',
+    format: (value: number): string => value.toString()
+  }
+]
 
 const useStyles = makeStyles({
   display: {
@@ -25,26 +105,6 @@ const useStyles = makeStyles({
   }
 })
 
-// interface TableHeaderProps {
-//     title: string
-//     testId?: string
-//   }
-
-//   const TableHeader = (tableHeaderProps: TableHeaderProps) => {
-//     const tableHeaderClasses = useStyles()
-
-//     return (
-//       <Paper
-//         data-testid={`${tableHeaderProps.testId}-header`}
-//         style={{ paddingLeft: '15px' }}
-//       >
-//         <Typography className={tableHeaderClasses.title} display="inline">
-//           {tableHeaderProps.title}
-//         </Typography>
-//       </Paper>
-//     )
-//   }
-
 interface PeakValuesStationResultTableProps {
   stationResponse: StationPeakValues
 }
@@ -59,12 +119,18 @@ export const PeakValuesStationResultTable: React.FunctionComponent<PeakValuesSta
   return (
     <div data-testid="peak-values-station-result-table">
       <Paper elevation={1}>
+        <Typography>Station {code}</Typography>
         <TableContainer>
           <Table stickyHeader size="small" aria-label="">
             <TableHead>
               <TableRow>
-                <TableCell>Station</TableCell>
-                <TableCell>{code}</TableCell>
+                {columns.map(column => {
+                  return (
+                    <TableCell key={column.id} align={column.align}>
+                      {column.label}
+                    </TableCell>
+                  )
+                })}
               </TableRow>
             </TableHead>
 
