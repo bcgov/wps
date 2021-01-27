@@ -98,7 +98,10 @@ const useStyles = makeStyles({
     width: '100%'
   },
   tableContainer: {
-    maxHeight: 280
+    maxHeight: 500,
+    paddingBottom: 10,
+    marginTop: 15,
+    marginBottom: 10
   },
   title: {
     paddingBottom: 4
@@ -112,15 +115,14 @@ interface PeakValuesStationResultTableProps {
 export const PeakValuesStationResultTable: React.FunctionComponent<PeakValuesStationResultTableProps> = ({
   stationResponse
 }: PeakValuesStationResultTableProps) => {
+  const classes = useStyles()
   const { code, weeks } = stationResponse
-
-  console.log(code, weeks)
 
   return (
     <div data-testid="peak-values-station-result-table">
-      <Paper elevation={1}>
+      <Paper className={classes.paper} elevation={1}>
         <Typography>Station {code}</Typography>
-        <TableContainer>
+        <TableContainer className={classes.tableContainer}>
           <Table stickyHeader size="small" aria-label="">
             <TableHead>
               <TableRow>
@@ -135,8 +137,8 @@ export const PeakValuesStationResultTable: React.FunctionComponent<PeakValuesSta
             </TableHead>
 
             <TableBody>
-              {weeks.map((row: PeakWeekValues) => (
-                <TableRow hover tabIndex={-1}>
+              {weeks.map((row: PeakWeekValues, idx: number) => (
+                <TableRow key={idx} hover tabIndex={-1}>
                   <TableCell>{row.week}</TableCell>
                   <TableCell>{row.max_temp}</TableCell>
                   <TableCell>{row.hour_max_temp}</TableCell>

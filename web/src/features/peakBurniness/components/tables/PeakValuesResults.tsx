@@ -1,10 +1,11 @@
 import React from 'react'
-// import { makeStyles } from '@material-ui/core/styles'
+import { makeStyles } from '@material-ui/core/styles'
 
 import { PeakValuesResponse, StationPeakValues } from 'api/peakBurninessAPI'
 import { Container } from '@material-ui/core'
 import { ErrorMessage } from 'components/ErrorMessage'
 import { PeakValuesStationResultTable } from 'features/peakBurniness/components/tables/PeakValuesStationResultTable'
+import { PeakBurninessDocumentation } from 'features/peakBurniness/components/PeakBurninessDocumentation'
 import { useSelector } from 'react-redux'
 import { selectPeakBurninessValues, selectStations } from 'app/rootReducer'
 import { Station } from 'api/stationAPI'
@@ -16,26 +17,26 @@ export interface PeakValuesResultsProps {
   peakValuesByStation: PeakValuesResponse
 }
 
-// const useStyles = makeStyles({
-//   display: {
-//     paddingBottom: 12
-//   },
-//   paper: {
-//     width: '100%'
-//   },
-//   tableContainer: {
-//     maxHeight: 280
-//   },
-//   title: {
-//     paddingBottom: 4
-//   },
-//   root: {
-//     marginTop: 15
-//   }
-// })
+const useStyles = makeStyles({
+  display: {
+    paddingBottom: 12
+  },
+  paper: {
+    width: '100%'
+  },
+  tableContainer: {
+    maxHeight: 280
+  },
+  title: {
+    paddingBottom: 4
+  },
+  root: {
+    marginTop: 15
+  }
+})
 
 export const PeakValuesResults = React.memo(function _(props: PeakValuesResultsProps) {
-  // const classes = useStyles()
+  const classes = useStyles()
   const { stationCodes, stationsByCode, peakValuesByStation } = props
 
   const stationResults = stationCodes.map(code => {
@@ -64,7 +65,12 @@ export const PeakValuesResults = React.memo(function _(props: PeakValuesResultsP
     )
   })
 
-  return <Container>{stationResults}</Container>
+  return (
+    <Container>
+      <PeakBurninessDocumentation />
+      {stationResults}
+    </Container>
+  )
 })
 
 interface PeakValuesResultsWrapperProps {
