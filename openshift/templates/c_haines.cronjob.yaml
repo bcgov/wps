@@ -53,7 +53,7 @@ objects:
                       memory: 1Gi
                   image: docker-registry.default.svc:5000/${PROJECT_TOOLS}/${NAME}-${SUFFIX}:${SUFFIX}
                   imagePullPolicy: "Always"
-                  command: ["python3", "-m", "app.weather_models.c_haines"]
+                  command: ["python3", "-m", "app.c_haines.worker"]
                   env:
                     - name: POSTGRES_READ_USER
                       value: ${GLOBAL_NAME}-${SUFFIX}

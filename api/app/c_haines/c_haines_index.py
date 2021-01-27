@@ -109,14 +109,14 @@ class CHainesGenerator():
     def _prepare_bound_checker(self, grib_tmp_700: gdal.Dataset):
         """ Prepare the boundary checker. """
         if not self.bound_checker:
-            logger.info('re-creating bound checker')
+            logger.info('Creating bound checker.')
             padf_transform = get_dataset_geometry(grib_tmp_700)
             crs = CRS.from_string(grib_tmp_700.GetProjection())
             # Create a transformer to go from whatever the raster is, to geographic coordinates.
             raster_to_geo_transformer = get_transformer(crs, GEO_CRS)
             self.bound_checker = BoundingBoxChecker(padf_transform, raster_to_geo_transformer)
         else:
-            logger.info('re-using bound checker')
+            logger.info('Re-using bound checker.')
             self.bound_checker.check_cache = True
 
     def calculate_row_data(self,
@@ -157,6 +157,7 @@ class CHainesGenerator():
         c_haines_data: Final = []
 
         # Iterate through rows (assuming all the raster bands have the same amount of rows)
+        logger.info('Generating c-haines index data.')
         for y_row_index in range(tmp_850_raster_band.YSize):
 
             c_haines_row = self.calculate_row_data(

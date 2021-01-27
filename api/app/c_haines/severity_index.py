@@ -201,7 +201,7 @@ def save_data_as_geojson(
         source_info: SourceInfo,
         target_filename: str):
     """ Save data as geojson polygon """
-    logger.info('saving output as geojson %s...', target_filename)
+    logger.info('Saving output as geojson %s...', target_filename)
 
     # Create data band.
     data_ds, data_band = create_in_memory_band(
@@ -235,7 +235,7 @@ def save_geojson_to_database(session: Session,
     """ Open geojson file, iterate through features, saving them into the
     databse.
     """
-    logger.info('saving geojson %s to database...', filename)
+    logger.info('Saving geojson for prediction %s to database...', prediction_timestamp)
     # Open the geojson file.
     with open(filename) as file:
         data = json.load(file)
@@ -267,11 +267,12 @@ def save_geojson_to_database(session: Session,
     session.commit()
 
 
-def generate_severity_index(c_haines_data):
-    """ Generate severity index.
+def generate_severity_data(c_haines_data):
+    """ Generate severity index, iterating over c-haines data.
     NOTE: Iterating to generate c-haines, and then iterating again to generate severity is a bit slower,
     but results in much cleaner code.
     """
+    logger.info('Generating c-haines severity index data.')
     severity_data = []
     mask_data = []
     for row in c_haines_data:
@@ -286,24 +287,19 @@ def generate_severity_index(c_haines_data):
             else:
                 mask_row.append(1)
         severity_data.append(severity_row)
-        mask_row.append(mask_row)
+        mask_data.append(mask_row)
     return numpy.array(severity_data), numpy.array(mask_data)
 
 
 class Payload():
     """ Handy class to store payload information in. """
 
-    def __init__(self,
-                 filename_tmp_700: str,
-                 filename_tmp_850: str,
-                 filename_dew_850: str,
-                 prediction_timestamp: datetime,
-                 model_run: CHainesModelRun):
-        self.filename_tmp_700 = filename_tmp_700
-        self.filename_tmp_850 = filename_tmp_850
-        self.filename_dew_850 = filename_dew_850
-        self.prediction_timestamp = prediction_timestamp
-        self.model_run = model_run
+    def __init__(self):
+        self.filename_tmp_700: str = None
+        self.filename_tmp_850: str = None
+        self.filename_dew_850: str = None
+        self.prediction_timestamp: datetime = None
+        self.model_run: CHainesModelRun = None
 
 
 class CHainesSeverityGenerator():
@@ -352,12 +348,13 @@ class CHainesSeverityGenerator():
                         filename_dew_850 = download(urls['DEPR_ISBL_850'], tmp_path)
 
                     if filename_tmp_700 and filename_tmp_850 and filename_dew_850:
-                        yield Payload(
-                            filename_tmp_700,
-                            filename_tmp_850,
-                            filename_dew_850,
-                            prediction_timestamp,
-                            model_run)
+                        payload = Payload()
+                        payload.filename_tmp_700 = filename_tmp_700
+                        payload.filename_tmp_850 = filename_tmp_850
+                        payload.filename_dew_850 = filename_dew_850
+                        payload.prediction_timestamp = prediction_timestamp
+                        payload.model_run = model_run
+                        yield payload
                     else:
                         logger.warning('failed to download all files')
 
@@ -410,7 +407,7 @@ class CHainesSeverityGenerator():
             # Generate the c_haines data.
             c_haines_data, source_info = self._generate_c_haines(payload)
             # Generate the severity index and mask data.
-            c_haines_severity_data, c_haines_mask_data = generate_severity_index(c_haines_data)
+            c_haines_severity_data, c_haines_mask_data = generate_severity_data(c_haines_data)
             # We're done with the c_haines data, so we can clean up some memory.
             del c_haines_data
             # Save to database.
