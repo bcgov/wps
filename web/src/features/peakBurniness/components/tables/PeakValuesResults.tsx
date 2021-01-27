@@ -9,22 +9,8 @@ import { useSelector } from 'react-redux'
 import { selectPeakBurninessValues, selectStations } from 'app/rootReducer'
 import { Station } from 'api/stationAPI'
 
-export interface PeakWeatherValue {
-  week: string
-  max_temp?: number | null
-  min_rh?: number | null
-  max_wind_speed?: number | null
-  max_ffmc?: number | null
-  max_fwi?: number | null
-  hour_max_temp?: number | null
-  hour_min_rh?: number | null
-  hour_max_wind_speed?: number | null
-  hour_max_ffmc?: number | null
-  hour_max_fwi?: number | null
-}
-
 interface Column {
-  id: keyof PeakWeatherValue
+  id: keyof PeakWeekValues
   label: string
   minWidth?: number
   maxWidth?: number
@@ -128,14 +114,19 @@ const useStyles = makeStyles({
 
 export const PeakValuesResults = React.memo(function _(props: PeakValuesResultsProps) {
   const classes = useStyles()
+  const { stationCodes, stationsByCode, peakValuesByStation } = props
 
-  const stationResults = props.stationCodes.map(code => {
-    const station = props.stationsByCode[code]
+  const stationResults = stationCodes.map(code => {
+    const station = stationsByCode[code]
     if (!station) return null
 
+    if (peakValuesByStation === undefined) return null
+
+    if (peakValuesByStation[code] === undefined) return null
+
     const peakValues: StationPeakValues = {
-      'code': code,
-      'weeks': props.peakValuesByStation?[code]
+      code: code,
+      weeks: peakValuesByStation[code]
     }
 
     return (
