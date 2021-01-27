@@ -30,7 +30,7 @@ export const columns: Column[] = [
   },
   {
     id: 'max_temp',
-    label: 'Max Hourly Temp (°C)',
+    label: 'Max Temp (°C)',
     align: 'right',
     format: (value: number): string => value.toFixed(MODEL_VALUE_DECIMAL)
   },
@@ -42,7 +42,7 @@ export const columns: Column[] = [
   },
   {
     id: 'min_rh',
-    label: 'Min Hourly RH (%)',
+    label: 'Min RH (%)',
     align: 'right',
     format: (value: number): string => value.toFixed(MODEL_VALUE_DECIMAL)
   },
@@ -90,7 +90,7 @@ export const columns: Column[] = [
   }
 ]
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(theme => ({
   display: {
     paddingBottom: 12
   },
@@ -105,8 +105,13 @@ const useStyles = makeStyles({
   },
   title: {
     paddingBottom: 4
+  },
+  stationTitle: {
+    padding: 5,
+    backgroundColor: theme.palette.primary.light,
+    color: '#ffffff'
   }
-})
+}))
 
 interface PeakValuesStationResultTableProps {
   stationResponse: StationPeakValues
@@ -121,7 +126,9 @@ export const PeakValuesStationResultTable: React.FunctionComponent<PeakValuesSta
   return (
     <div data-testid="peak-values-station-result-table">
       <Paper className={classes.paper} elevation={1}>
-        <Typography>Station {code}</Typography>
+        <Paper className={classes.stationTitle} elevation={2}>
+          <Typography>Station {code}</Typography>
+        </Paper>
         <TableContainer className={classes.tableContainer}>
           <Table stickyHeader size="small" aria-label="">
             <TableHead>
