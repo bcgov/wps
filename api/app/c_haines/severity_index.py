@@ -236,7 +236,8 @@ def save_geojson_to_database(session: Session,
     """ Open geojson file, iterate through features, saving them into the
     databse.
     """
-    logger.info('Saving geojson for prediction %s to database...', prediction_timestamp)
+    logger.info('Saving geojson for model run %s, prediction %s to database...',
+                model_run.model_run_timestamp,  prediction_timestamp)
     # Open the geojson file.
     with open(filename) as file:
         data = json.load(file)

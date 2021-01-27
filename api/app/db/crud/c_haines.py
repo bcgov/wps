@@ -1,10 +1,15 @@
 """ CRUD for CHaines
 """
 from datetime import timedelta, datetime
+import logging
 from sqlalchemy import desc, asc
 from sqlalchemy.orm import Session
+from app.weather_models import ModelEnum
 from app.db.models import CHainesPrediction, CHainesModelRun, PredictionModel
 from app.time_utils import get_utc_now
+
+
+logger = logging.getLogger(__name__)
 
 
 def get_c_haines_model_run(
@@ -72,3 +77,39 @@ def get_model_run_predictions(session: Session, model_run_timestamp: datetime):
         .order_by(desc(CHainesModelRun.model_run_timestamp), CHainesModelRun.id,
                   asc(CHainesPrediction.prediction_timestamp))
     return query
+
+
+def get_prediction_geojson(session: Session,
+                           model: ModelEnum,
+                           model_run_timestamp: datetime,
+                           prediction_timestamp: datetime):
+    """ Get the geojson for a particular prediction """
+    query = """select json_build_object(
+        'type', 'FeatureCollection',
+        'features', json_agg(ST_AsGeoJSON(t.*)::json)
+    )
+        from (
+        select geom, severity from c_haines_polygons
+        inner join c_haines_predictions on
+            c_haines_predictions.id =
+            c_haines_polygons.c_haines_prediction_id
+        inner join c_haines_model_runs on
+            c_haines_model_runs.id = 
+            c_haines_predictions.model_run_id
+        inner join prediction_models on
+            prediction_models.id =
+            c_haines_model_runs.prediction_model_id
+        where
+            prediction_timestamp = '{prediction_timestamp}' and
+            model_run_timestamp = '{model_run_timestamp}' and
+            prediction_models.abbreviation = '{model}'
+        order by severity asc
+    ) as t(geom, severity)""".format(
+        prediction_timestamp=prediction_timestamp.isoformat(),
+        model_run_timestamp=model_run_timestamp.isoformat(),
+        model=model)
+    logger.info('fetching geojson from db...')
+    # pylint: disable=no-member
+    response = session.execute(query)
+    row = next(response)
+    return row[0]

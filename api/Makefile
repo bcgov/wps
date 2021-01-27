@@ -110,7 +110,7 @@ run-all-bots:
 
 
 c-haines:
-	$(POETRY_RUN) python -m app.weather_models.c_haines
+	$(POETRY_RUN) python -m app.c_haines.worker
 
 
 fetch-database-partial:
