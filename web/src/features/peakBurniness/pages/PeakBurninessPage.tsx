@@ -65,9 +65,12 @@ export const PeakBurninessPage = React.memo(function _() {
       <PageTitle title="Peak Burniness" />
       <Container>
         <WxStationDropdown stationCodes={stationCodes} onChange={setStationCodes} />
-        <ActionButton onFetchClick={onFetchClick} fetchDisabled={shouldFetchBtnDisabled} />
+        <ActionButton
+          onFetchClick={onFetchClick}
+          fetchDisabled={shouldFetchBtnDisabled}
+        />
         <ErrorBoundary>
-          <PeakValuesResults stationCodes={stationCodes}/>
+          <PeakValuesResults stationCodes={stationCodes} />
         </ErrorBoundary>
       </Container>
     </main>

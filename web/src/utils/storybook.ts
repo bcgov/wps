@@ -239,13 +239,25 @@ const getFutureValues = () => {
 }
 
 const getPeakValues = () => {
-  const _peakValues: { week: string; max_temp: number; min_rh: number; max_wind_speed: number; max_fwi: number; max_ffmc: number; hour_max_temp: number; hour_min_rh: number; hour_max_wind_speed: number; hour_max_fwi: number; hour_max_ffmc: number }[] = []
+  const _peakValues: {
+    week: string
+    max_temp: number
+    min_rh: number
+    max_wind_speed: number
+    max_fwi: number
+    max_ffmc: number
+    hour_max_temp: number
+    hour_min_rh: number
+    hour_max_wind_speed: number
+    hour_max_fwi: number
+    hour_max_ffmc: number
+  }[] = []
 
   // construct the list of weeks
   const months = ['April', 'May', 'June', 'July', 'August', 'September']
   const date_ranges = ['1-6', '7-13', '14-20', '21-27', '28-31']
   const weeks = []
-  for(var i = 0; i < months.length; i++) {
+  for (var i = 0; i < months.length; i++) {
     for (var j = 0; j < date_ranges.length; j++) {
       weeks.push(months[i] + ' ' + date_ranges[j])
     }
@@ -255,12 +267,12 @@ const getPeakValues = () => {
     _peakValues.push({
       week: week,
       max_temp: Math.random() * (40 - 15) + 15,
-      min_rh: Math.floor(Math.random() * (100)),
-      max_wind_speed: Math.random() * (90),
+      min_rh: Math.floor(Math.random() * 100),
+      max_wind_speed: Math.random() * 90,
       max_fwi: Math.random() * (200 - 50) + 50,
       max_ffmc: Math.random() * (200 - 80) + 80,
       hour_max_temp: Math.floor(Math.random() * (19 - 12) + 12),
-      hour_min_rh: Math.floor(Math.random() * (24)),
+      hour_min_rh: Math.floor(Math.random() * 24),
       hour_max_wind_speed: Math.floor(Math.random() * 24),
       hour_max_fwi: Math.floor(Math.random() * (19 - 12) + 12),
       hour_max_ffmc: Math.floor(Math.random() * (19 - 12) + 12)
