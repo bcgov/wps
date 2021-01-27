@@ -16,7 +16,7 @@ async def fetch_prediction(model: ModelEnum, model_run_timestamp: datetime, pred
     """
     logger.info('model: %s; model_run: %s, prediction: %s', model, model_run_timestamp, prediction_timestamp)
     session = app.db.database.get_read_session()
-    return get_prediction_geojson()
+    return get_prediction_geojson(session, model, model_run_timestamp, prediction_timestamp)
 
 
 async def fetch_model_runs(model_run_timestamp: datetime):

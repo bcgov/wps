@@ -108,7 +108,6 @@ def get_prediction_geojson(session: Session,
         prediction_timestamp=prediction_timestamp.isoformat(),
         model_run_timestamp=model_run_timestamp.isoformat(),
         model=model)
-    logger.info('fetching geojson from db...')
     # pylint: disable=no-member
     response = session.execute(query)
     row = next(response)
