@@ -2,7 +2,11 @@ import React from 'react'
 // import { makeStyles } from '@material-ui/core/styles'
 
 import { MODEL_VALUE_DECIMAL } from 'utils/constants'
-import { PeakValuesResponse, PeakWeekValues, StationPeakValues } from 'api/peakBurninessAPI'
+import {
+  PeakValuesResponse,
+  PeakWeekValues,
+  StationPeakValues
+} from 'api/peakBurninessAPI'
 import { Container } from '@material-ui/core'
 import { ErrorMessage } from 'components/ErrorMessage'
 import { PeakValuesStationResultTable } from 'features/peakBurniness/components/tables/PeakValuesStationResultTable'
@@ -24,7 +28,7 @@ interface Column {
 export interface PeakValuesResultsProps {
   stationCodes: number[]
   stationsByCode: Record<number, Station | undefined>
-  peakValuesByStation: PeakValuesResponse | undefined
+  peakValuesByStation: PeakValuesResponse
 }
 
 export const columns: Column[] = [
@@ -140,11 +144,7 @@ export const PeakValuesResults = React.memo(function _(props: PeakValuesResultsP
     )
   })
 
-  return(
-    <Container>
-      {stationResults}
-    </Container>
-  )
+  return <Container>{stationResults}</Container>
 })
 
 interface PeakValuesResultsWrapperProps {

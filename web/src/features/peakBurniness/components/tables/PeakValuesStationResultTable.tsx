@@ -45,49 +45,51 @@ const useStyles = makeStyles({
 //     )
 //   }
 
-  interface PeakValuesStationResultTableProps {
-    stationResponse: StationPeakValues
-  }
+interface PeakValuesStationResultTableProps {
+  stationResponse: StationPeakValues
+}
 
-  export const PeakValuesStationResultTable: React.FunctionComponent<PeakValuesStationResultTableProps> = ({stationResponse}: PeakValuesStationResultTableProps) => {
-    const { code, weeks } = stationResponse
+export const PeakValuesStationResultTable: React.FunctionComponent<PeakValuesStationResultTableProps> = ({
+  stationResponse
+}: PeakValuesStationResultTableProps) => {
+  const { code, weeks } = stationResponse
 
-    console.log(code, weeks)
+  console.log(code, weeks)
 
-    return (
-      <div data-testid="peak-values-station-result-table">
-        <Paper elevation={1}>
-          <TableContainer >
-              <Table stickyHeader size="small" aria-label="">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Station</TableCell>
-                    <TableCell>{code}</TableCell>
-                  </TableRow>
-                </TableHead>
-  
-                <TableBody>
-                  {weeks.map((row: PeakWeekValues) => (
-                    <TableRow hover tabIndex={-1}>
-                      <TableCell>{row.week}</TableCell>
-                      <TableCell>{row.max_temp}</TableCell>
-                      <TableCell>{row.hour_max_temp}</TableCell>
-                      <TableCell>{row.min_rh}</TableCell>
-                      <TableCell>{row.hour_min_rh}</TableCell>
-                      <TableCell>{row.max_wind_speed}</TableCell>
-                      <TableCell>{row.hour_max_wind_speed}</TableCell>
-                      <TableCell>{row.max_ffmc}</TableCell>
-                      <TableCell>{row.hour_max_ffmc}</TableCell>
-                      <TableCell>{row.max_fwi}</TableCell>
-                      <TableCell>{row.hour_max_fwi}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-          </TableContainer>
-        </Paper>
-      </div>
-    )
-  }
+  return (
+    <div data-testid="peak-values-station-result-table">
+      <Paper elevation={1}>
+        <TableContainer>
+          <Table stickyHeader size="small" aria-label="">
+            <TableHead>
+              <TableRow>
+                <TableCell>Station</TableCell>
+                <TableCell>{code}</TableCell>
+              </TableRow>
+            </TableHead>
 
-  export default React.memo(PeakValuesStationResultTable)
+            <TableBody>
+              {weeks.map((row: PeakWeekValues) => (
+                <TableRow hover tabIndex={-1}>
+                  <TableCell>{row.week}</TableCell>
+                  <TableCell>{row.max_temp}</TableCell>
+                  <TableCell>{row.hour_max_temp}</TableCell>
+                  <TableCell>{row.min_rh}</TableCell>
+                  <TableCell>{row.hour_min_rh}</TableCell>
+                  <TableCell>{row.max_wind_speed}</TableCell>
+                  <TableCell>{row.hour_max_wind_speed}</TableCell>
+                  <TableCell>{row.max_ffmc}</TableCell>
+                  <TableCell>{row.hour_max_ffmc}</TableCell>
+                  <TableCell>{row.max_fwi}</TableCell>
+                  <TableCell>{row.hour_max_fwi}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
+    </div>
+  )
+}
+
+export default React.memo(PeakValuesStationResultTable)

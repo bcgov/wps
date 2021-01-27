@@ -45,7 +45,7 @@ const Routes: React.FunctionComponent = () => {
         </Route>
 
         <Route path={PEAK_BURNINESS_ROUTE}>
-            <PeakBurninessPage />
+          <PeakBurninessPage />
         </Route>
 
         <Route>
