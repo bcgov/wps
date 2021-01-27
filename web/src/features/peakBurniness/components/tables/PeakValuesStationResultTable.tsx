@@ -50,7 +50,7 @@ interface TableHeaderProps {
   }
 
   export const PeakValuesStationResultTable: React.FunctionComponent<PeakValuesStationResultTableProps> = ({stationResponse}: PeakValuesStationResultTableProps) => {
-    const { station, weeks } = stationResponse
+    const { code, weeks } = stationResponse
 
     return (
       <div data-testid="peak-values-station-result-table">
@@ -59,8 +59,8 @@ interface TableHeaderProps {
               <Table stickyHeader size="small" aria-label="">
                 <TableHead>
                   <TableRow>
-                    <TableCell>Station Name</TableCell>
-                    <TableCell>{station.name} ({station.code})</TableCell>
+                    <TableCell>Station</TableCell>
+                    <TableCell>{code}</TableCell>
                   </TableRow>
                 </TableHead>
   
