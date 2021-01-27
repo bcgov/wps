@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 
 import { MODEL_VALUE_DECIMAL } from 'utils/constants'
-import { PeakValuesResponse, StationPeakValues} from 'api/peakBurninessAPI'
+import { PeakValuesResponse, PeakWeekValues, StationPeakValues } from 'api/peakBurninessAPI'
 import { Container } from '@material-ui/core'
 import { PeakValuesStationResultTable } from 'features/peakBurniness/components/tables/PeakValuesStationResultTable'
 import { useSelector } from 'react-redux'
@@ -36,7 +36,7 @@ interface Column {
 export interface PeakValuesResultsProps {
   stationCodes: number[]
   stationsByCode: Record<number, Station | undefined>
-  peakValuesByStation: Record<number, StationPeakValues | undefined>
+  peakValuesByStation: PeakValuesResponse | undefined
 }
 
 export const columns: Column[] = [
@@ -129,21 +129,26 @@ const useStyles = makeStyles({
 export const PeakValuesResults = React.memo(function _(props: PeakValuesResultsProps) {
   const classes = useStyles()
 
-  // props.stationCodes.map(code => {
-  //   const station = props.stationsByCode[code]
-  //   if (!station) return null
+  const stationResults = props.stationCodes.map(code => {
+    const station = props.stationsByCode[code]
+    if (!station) return null
 
-  //   const peakValues = props.peakValuesByStation[code]
+    const peakValues: StationPeakValues = {
+      'code': code,
+      'weeks': props.peakValuesByStation?[code]
+    }
 
-  //   return (
-  //     <Container key={code}>
-  //       <PeakValuesStationResultTable stationResponse={peakValues} />
-  //     </Container>
-  //   )
-  // })
+    return (
+      <Container key={code}>
+        <PeakValuesStationResultTable stationResponse={peakValues} />
+      </Container>
+    )
+  })
 
   return(
-    <div></div>
+    <div>
+      {stationResults}
+    </div>
   )
 })
 
@@ -155,18 +160,12 @@ const PeakValuesResultsWrapper: React.FunctionComponent<PeakValuesResultsWrapper
   const { stationsByCode } = useSelector(selectStations)
   const { peakBurninessValues } = useSelector(selectPeakBurninessValues)
 
-  const peakValuesByStation = peakBurninessValues?.stations
-
-  console.log(peakBurninessValues)
-  console.log(peakValuesByStation)
-
   return (
-    <div></div>
-    // <PeakValuesResults
-    //   stationCodes={props.stationCodes}
-    //   stationsByCode={stationsByCode}
-    //   peakValuesByStation={peakValuesByStation}
-    // />
+    <PeakValuesResults
+      stationCodes={props.stationCodes}
+      stationsByCode={stationsByCode}
+      peakValuesByStation={peakBurninessValues}
+    />
   )
 }
 
