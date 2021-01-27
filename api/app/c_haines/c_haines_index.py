@@ -104,8 +104,6 @@ class CHainesGenerator():
     """ Class for generating c_haines data """
 
     def __init__(self):
-        self.rows: int = None
-        self.cols: int = None
         self.bound_checker: BoundingBoxChecker = None
 
     def _prepare_bound_checker(self, grib_tmp_700: gdal.Dataset):
@@ -158,12 +156,8 @@ class CHainesGenerator():
         # Prepare the resultant data arrays.
         c_haines_data: Final = []
 
-        # Assume they're all using the same number of rows/cols.
-        self.rows = tmp_850_raster_band.YSize
-        self.cols = tmp_850_raster_band.XSize
-
-        # Iterate through rows.
-        for y_row_index in range(self.rows):
+        # Iterate through rows (assuming all the raster bands have the same amount of rows)
+        for y_row_index in range(tmp_850_raster_band.YSize):
 
             c_haines_row = self.calculate_row_data(
                 tmp_700_raster_band, tmp_850_raster_band, dew_850_raster_band, y_row_index)

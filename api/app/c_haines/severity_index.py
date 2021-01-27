@@ -172,13 +172,13 @@ def make_model_run_download_urls(model: ModelEnum,
     return urls, model_run_timestamp, prediction_timestamp
 
 
-def create_in_memory_band(data: numpy.ndarray, cols: int, rows: int, projection, geotransform):
+def create_in_memory_band(data: numpy.ndarray, source_info: SourceInfo):
     """ Create an in memory data band """
     mem_driver = gdal.GetDriverByName('MEM')
 
-    dataset = mem_driver.Create('memory', cols, rows, 1, gdal.GDT_Byte)
-    dataset.SetProjection(projection)
-    dataset.SetGeoTransform(geotransform)
+    dataset = mem_driver.Create('memory', source_info.cols, source_info.rows, 1, gdal.GDT_Byte)
+    dataset.SetProjection(source_info.projection)
+    dataset.SetGeoTransform(source_info.geotransform)
     band = dataset.GetRasterBand(1)
     band.WriteArray(data)
 
@@ -188,19 +188,18 @@ def create_in_memory_band(data: numpy.ndarray, cols: int, rows: int, projection,
 def save_data_as_geojson(
         ch_data: numpy.ndarray,
         mask_data: numpy.ndarray,
-        source_projection,
-        source_geotransform,
-        rows: int,
-        cols: int,
+        source_info: SourceInfo,
         target_filename: str):
     """ Save data as geojson polygon """
     logger.info('saving output as geojson %s...', target_filename)
 
     # Create data band.
-    data_ds, data_band = create_in_memory_band(ch_data, cols, rows, source_projection, source_geotransform)
+    data_ds, data_band = create_in_memory_band(
+        ch_data, source_info)
 
     # Create mask band.
-    mask_ds, mask_band = create_in_memory_band(mask_data, cols, rows, source_projection, source_geotransform)
+    mask_ds, mask_band = create_in_memory_band(
+        mask_data, source_info)
 
     # Create a GeoJSON layer.
     geojson_driver = ogr.GetDriverByName('GeoJSON')
@@ -297,6 +296,16 @@ class Payload():
         self.model_run = model_run
 
 
+class SourceInfo():
+    """ Handy class to store source information in. """
+
+    def __init__(self, projection, geotransform, rows: int, cols: int):
+        self.projection = projection
+        self.geotransform = geotransform
+        self.rows: int = rows
+        self.cols: int = cols
+
+
 class CHainesSeverityGenerator():
     """ Class responsible for orchestrating the generation of Continous Haines severity
     index polygons.
@@ -363,30 +372,33 @@ class CHainesSeverityGenerator():
             # Generate c_haines data
             c_haines_data = self.c_haines_generator.generate_c_haines(source_data)
             # Store the projection and geotransform for later.
-            source_projection = source_data.grib_tmp_700.GetProjection()
-            source_geotransform = source_data.grib_tmp_700.GetGeoTransform()
+            projection = source_data.grib_tmp_700.GetProjection()
+            geotransform = source_data.grib_tmp_700.GetGeoTransform()
+            # Store the dimensions for later.
+            band = source_data.grib_tmp_700.GetRasterBand(1)
+            rows = band.YSize
+            cols = band.XSize
+            # Package source info nicely.
+            source_info = SourceInfo(projection=projection,
+                                     geotransform=geotransform, rows=rows, cols=cols)
 
-        return c_haines_data, source_projection, source_geotransform
+        return c_haines_data, source_info
 
     def _save_severity_data_to_database(self,
                                         payload,
                                         c_haines_severity_data,
                                         c_haines_mask_data,
-                                        source_projection,
-                                        source_geotransform):
+                                        source_info: SourceInfo):
         with tempfile.TemporaryDirectory() as tmp_path:
             json_filename = os.path.join(os.getcwd(), tmp_path, 'c-haines.geojson')
             save_data_as_geojson(
                 c_haines_severity_data,
                 c_haines_mask_data,
-                source_projection,
-                source_geotransform,
-                self.c_haines_generator.rows,
-                self.c_haines_generator.cols,
+                source_info,
                 json_filename)
 
             save_geojson_to_database(self.session,
-                                     source_projection,
+                                     source_info.projection,
                                      json_filename,
                                      payload.prediction_timestamp,
                                      payload.model_run)
@@ -395,13 +407,14 @@ class CHainesSeverityGenerator():
         """ Entry point for generating and storing c-haines severity index. """
         # Iterate through payloads that need processing.
         for payload in self._yield_payload():
-            # Generate the c_haines data
-            c_haines_data, source_projection, source_geotransform = self._generate_c_haines(payload)
-            # Generate the severity index and mask data
+            # Generate the c_haines data.
+            c_haines_data, source_info = self._generate_c_haines(payload)
+            # Generate the severity index and mask data.
             c_haines_severity_data, c_haines_mask_data = generate_severity_index(c_haines_data)
-            # Save to database
+            # We're done with the c_haines data, so we can clean up some memory.
+            del c_haines_data
+            # Save to database.
             self._save_severity_data_to_database(payload,
                                                  c_haines_severity_data,
                                                  c_haines_mask_data,
-                                                 source_projection,
-                                                 source_geotransform)
+                                                 source_info)
