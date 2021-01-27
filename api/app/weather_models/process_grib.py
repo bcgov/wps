@@ -5,7 +5,7 @@ import math
 import struct
 import logging
 import logging.config
-from typing import List
+from typing import Final, List
 from sqlalchemy.dialects.postgresql import array
 import sqlalchemy.exc
 import gdal
@@ -21,7 +21,8 @@ from app.db.crud.weather_models import (
 logger = logging.getLogger(__name__)
 
 # Ensure that grib file uses EPSG: 4269 (NAD83) coordinate system
-GEO_CRS = CRS('epsg:4269')
+NAD83: Final = 'epsg:4269'
+GEO_CRS: Final = CRS(NAD83)
 
 
 class PredictionModelNotFound(Exception):
