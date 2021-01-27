@@ -1,13 +1,15 @@
-import React, { useState } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
+import React from 'react'
+// import { makeStyles } from '@material-ui/core/styles'
 
 import { MODEL_VALUE_DECIMAL } from 'utils/constants'
 import { PeakValuesResponse, PeakWeekValues, StationPeakValues } from 'api/peakBurninessAPI'
 import { Container } from '@material-ui/core'
+import { ErrorMessage } from 'components/ErrorMessage'
 import { PeakValuesStationResultTable } from 'features/peakBurniness/components/tables/PeakValuesStationResultTable'
 import { useSelector } from 'react-redux'
 import { selectPeakBurninessValues, selectStations } from 'app/rootReducer'
 import { Station } from 'api/stationAPI'
+import { GridItem } from 'components'
 
 interface Column {
   id: keyof PeakWeekValues
@@ -94,26 +96,26 @@ export const columns: Column[] = [
   }
 ]
 
-const useStyles = makeStyles({
-  display: {
-    paddingBottom: 12
-  },
-  paper: {
-    width: '100%'
-  },
-  tableContainer: {
-    maxHeight: 280
-  },
-  title: {
-    paddingBottom: 4
-  },
-  root: {
-    marginTop: 15
-  }
-})
+// const useStyles = makeStyles({
+//   display: {
+//     paddingBottom: 12
+//   },
+//   paper: {
+//     width: '100%'
+//   },
+//   tableContainer: {
+//     maxHeight: 280
+//   },
+//   title: {
+//     paddingBottom: 4
+//   },
+//   root: {
+//     marginTop: 15
+//   }
+// })
 
 export const PeakValuesResults = React.memo(function _(props: PeakValuesResultsProps) {
-  const classes = useStyles()
+  // const classes = useStyles()
   const { stationCodes, stationsByCode, peakValuesByStation } = props
 
   const stationResults = stationCodes.map(code => {
@@ -129,17 +131,19 @@ export const PeakValuesResults = React.memo(function _(props: PeakValuesResultsP
       weeks: peakValuesByStation[code]
     }
 
+    console.log(peakValues)
+
     return (
-      <Container key={code}>
+      <GridItem key={code} md lg>
         <PeakValuesStationResultTable stationResponse={peakValues} />
-      </Container>
+      </GridItem>
     )
   })
 
   return(
-    <div>
+    <Container>
       {stationResults}
-    </div>
+    </Container>
   )
 })
 
@@ -149,7 +153,19 @@ interface PeakValuesResultsWrapperProps {
 
 const PeakValuesResultsWrapper: React.FunctionComponent<PeakValuesResultsWrapperProps> = props => {
   const { stationsByCode } = useSelector(selectStations)
-  const { peakBurninessValues } = useSelector(selectPeakBurninessValues)
+  const { peakBurninessValues, error } = useSelector(selectPeakBurninessValues)
+
+  if (error) {
+    return (
+      <ErrorMessage
+        error={error}
+        context="while getting the calculation result"
+        marginTop={5}
+      />
+    )
+  }
+
+  if (!peakBurninessValues) return null
 
   return (
     <PeakValuesResults

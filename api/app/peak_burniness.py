@@ -29,7 +29,6 @@ def get_precalculated_peak_values(request: app.schemas.peak_burniness.PeakValues
                 status_code=status.HTTP_400_BAD_REQUEST, detail='Request failed.')
 
         summary = parse_json_file(filename)
-        logger.info(summary)
 
         response.stations[code] = summary
 
