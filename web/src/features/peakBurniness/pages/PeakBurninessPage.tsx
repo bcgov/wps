@@ -64,7 +64,7 @@ export const PeakBurninessPage = React.memo(function _() {
     <main data-testid="peak-burniness-page">
       <PageHeader title="Predictive Services Unit" productName="Peak Burniness" />
       <PageTitle title="Peak Burniness" />
-      <Container className={classes.displays}>
+      <Container className={classes.paper}>
         <WxStationDropdown stationCodes={stationCodes} onChange={setStationCodes} />
         <ActionButton
           onFetchClick={onFetchClick}

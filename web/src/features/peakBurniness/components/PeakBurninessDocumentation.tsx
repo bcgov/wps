@@ -9,11 +9,9 @@ const useStyles = makeStyles({
   body2: {
     marginBottom: 8
   },
-  pdfLink: {
-    display: 'flex'
-  },
-  pdfIcon: {
-    marginLeft: 2
+  card: {
+    marginTop: 15,
+    marginBottom: 15
   }
 })
 
@@ -21,7 +19,7 @@ export const PeakBurninessDocumentation: React.FunctionComponent = () => {
   const classes = useStyles()
 
   return (
-    <Card data-testid="peak-burniness-documentation-card">
+    <Card className={classes.card} data-testid="peak-burniness-documentation-card">
       <CardContent className={classes.cardContent}>
         <Typography variant="h6">How Are These Values Calculated?</Typography>
         <Typography className={classes.body2} variant="body2">
