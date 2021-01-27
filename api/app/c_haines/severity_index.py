@@ -172,6 +172,16 @@ def make_model_run_download_urls(model: ModelEnum,
     return urls, model_run_timestamp, prediction_timestamp
 
 
+class SourceInfo():
+    """ Handy class to store source information in. """
+
+    def __init__(self, projection, geotransform, rows: int, cols: int):
+        self.projection = projection
+        self.geotransform = geotransform
+        self.rows: int = rows
+        self.cols: int = cols
+
+
 def create_in_memory_band(data: numpy.ndarray, source_info: SourceInfo):
     """ Create an in memory data band """
     mem_driver = gdal.GetDriverByName('MEM')
@@ -294,16 +304,6 @@ class Payload():
         self.filename_dew_850 = filename_dew_850
         self.prediction_timestamp = prediction_timestamp
         self.model_run = model_run
-
-
-class SourceInfo():
-    """ Handy class to store source information in. """
-
-    def __init__(self, projection, geotransform, rows: int, cols: int):
-        self.projection = projection
-        self.geotransform = geotransform
-        self.rows: int = rows
-        self.cols: int = cols
 
 
 class CHainesSeverityGenerator():
