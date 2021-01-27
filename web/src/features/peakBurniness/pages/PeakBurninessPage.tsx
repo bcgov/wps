@@ -13,7 +13,6 @@ import { fetchPeakValues, resetPeakValuesResult } from '../slices/peakBurninessS
 import { StationPeakValues } from 'api/peakBurninessAPI'
 import { Station } from 'api/stationAPI'
 import { selectPeakBurninessValues, selectStations } from 'app/rootReducer'
-import { PeakWeatherValue } from 'features/peakBurniness/components/tables/PeakValuesResults'
 
 const useStyles = makeStyles({
   displays: {
