@@ -190,7 +190,7 @@ describe('MoreCast Page', () => {
           .should('have.length', num)
       }
 
-      checkNumOfLegends(3)
+      checkNumOfLegends(5)
 
       cy.getByTestId('wx-graph-hrdps-toggle').click()
       checkNumOfBars(6)
