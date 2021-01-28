@@ -285,6 +285,14 @@ These templates can be applied to the Openshift project from the command line. F
 
 These are the steps necessary to increase the amount of disk space provisioned for the database hosted in **Openshift 3**:
 
+### The easy way
+
+1. Go to Storage -> Actions -> Expand PVC. Enter the desired size and click on expand.
+
+2. That's it. No pod restarts required, the pods should pick up the increased size after a while.
+
+### The hard way
+
 1. From the Storage tab in the Openshift Cluster Console, delete the PVC of one of the Patroni replicas (note: a secondary replica, NOT the leader). Make a note of the PVC's name before you delete it.
 2. From the Openshift Application Console, delete the pod associated with the PVC you just deleted. A new pod of the same name will immediately be recreated, but will not have any PVC to bind to yet. This is fine.
 3. From the Openshift Cluster Console, create a new PVC.
