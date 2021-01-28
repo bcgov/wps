@@ -5,7 +5,7 @@ import { makeStyles } from '@material-ui/core/styles'
 
 interface CustomProps {
   loading?: boolean
-  noSpinner?: boolean
+  hasSpinner?: boolean
 }
 
 type Props = CustomProps & ButtonProps
@@ -28,7 +28,7 @@ const useStyles = makeStyles(theme => ({
 // Use forwardRef to obtain the ref passed to it, and then forward it to the DOM button that it renders.
 // https://medium.com/@martin_hotell/react-refs-with-typescript-a32d56c4d315
 export const Button = forwardRef<HTMLButtonElement, Props>((props, ref) => {
-  const { loading, className, disabled, noSpinner, ...buttonProps } = props
+  const { loading, className, disabled, hasSpinner = true, ...buttonProps } = props
   const classes = useStyles()
   const buttonClassName = clsx(classes.root, className)
 
@@ -40,7 +40,7 @@ export const Button = forwardRef<HTMLButtonElement, Props>((props, ref) => {
       ref={ref}
     >
       {buttonProps.children}
-      {loading && !noSpinner && (
+      {loading && hasSpinner && (
         <CircularProgress size={20} className={classes.spinner} />
       )}
     </B>
