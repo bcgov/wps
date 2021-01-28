@@ -13,7 +13,7 @@ def test_extract_origin_and_pixel_information():
 
 
 @then('With <t_850> <t_700> and <dp_850>, I expect <c_haines>')
-def given_grib_file(t_850, t_700, dp_850, c_haines):
+def with_temperature_and_dewpoint_values(t_850, t_700, dp_850, c_haines):
     """ Open the dataset. """
     calculated = calculate_c_haines_index(t_700, t_850, dp_850)
     assert calculated == c_haines
