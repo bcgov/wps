@@ -113,20 +113,20 @@ describe('MoreCast Page', () => {
           .find(`.cartesianlayer > .subplot > .plot > .scatterlayer > .trace > .points > .point`)
           .should('have.length', num)
       }
-      const checkTempPlume = (shouldThere: boolean) => {
+      const checkTempPlume = (shouldBeDisplayed: boolean) => {
         cy.getByTestId('temp-rh-graph')
           .find(`.cartesianlayer > .subplot > .plot > .scatterlayer > .trace`)
-          .should('have.length', shouldThere ? 3 : 1) // 2 more traces that make up the plume
+          .should('have.length', shouldBeDisplayed ? 3 : 1) // 2 more traces that make up the plume
       }
       const checkNumOfRHMarkers = (num: number) => {
         cy.getByTestId('temp-rh-graph')
           .find('.cartesianlayer > .subplot > .overplot > .xy2 > .scatterlayer > .trace > .points > .point')
           .should('have.length', num)
       }
-      const checkRHPlume = (shouldThere: boolean) => {
+      const checkRHPlume = (shouldBeDisplayed: boolean) => {
         cy.getByTestId('temp-rh-graph')
           .find('.cartesianlayer > .subplot > .overplot > .xy2 > .scatterlayer > .trace')
-          .should('have.length', shouldThere ? 4 : 2) // 2 more traces that make up the plume
+          .should('have.length', shouldBeDisplayed ? 4 : 2) // 2 more traces that make up the plume
       }
       const checkNumOfLegends = (num: number) => {
         cy.getByTestId('temp-rh-graph')

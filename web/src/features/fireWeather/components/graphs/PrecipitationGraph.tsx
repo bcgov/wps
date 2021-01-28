@@ -10,7 +10,8 @@ import {
   defaultLayoutConfig,
   findMaxNumber,
   populateGraphDataForPrecip,
-  populateNowLineData
+  populateNowLineData,
+  rangeSliderConfig
 } from 'features/fireWeather/components/graphs/plotlyHelper'
 
 const observedPrecipColor = '#fb0058'
@@ -30,7 +31,7 @@ interface Props {
   gdpsModelValues: ModelValue[]
 }
 
-const PrecipGraph = (props: Props) => {
+const PrecipitationGraph = (props: Props) => {
   const {
     currDate,
     sliderRange,
@@ -112,11 +113,7 @@ const PrecipGraph = (props: Props) => {
           bargroupgap: 0.3,
           xaxis: {
             range: sliderRange,
-            rangeslider: {
-              visible: true,
-              bgcolor: '#dbdbdb',
-              thickness: 0.1
-            },
+            rangeslider: rangeSliderConfig,
             hoverformat: '%a, %b %e', // https://github.com/d3/d3-3.x-api-reference/blob/master/Time-Formatting.md#format
             tickfont: { size: 14 },
             type: 'date',
@@ -150,4 +147,4 @@ const PrecipGraph = (props: Props) => {
   )
 }
 
-export default React.memo(PrecipGraph)
+export default React.memo(PrecipitationGraph)

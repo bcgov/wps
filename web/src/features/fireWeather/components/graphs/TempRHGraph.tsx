@@ -9,7 +9,8 @@ import { ToggleValues } from 'features/fireWeather/components/graphs/useGraphTog
 import {
   defaultLayoutConfig,
   populateGraphDataForTempAndRH,
-  populateNowLineData
+  populateNowLineData,
+  rangeSliderConfig
 } from 'features/fireWeather/components/graphs/plotlyHelper'
 
 const observedTempColor = '#fb0058'
@@ -174,11 +175,7 @@ const TempRHGraph = (props: Props) => {
           ...defaultLayoutConfig,
           xaxis: {
             range: sliderRange,
-            rangeslider: {
-              visible: true,
-              bgcolor: '#dbdbdb',
-              thickness: 0.1
-            },
+            rangeslider: rangeSliderConfig,
             hoverformat: '%I:00%p, %a, %b %e', // https://github.com/d3/d3-3.x-api-reference/blob/master/Time-Formatting.md#format
             tickfont: { size: 14 },
             type: 'date',

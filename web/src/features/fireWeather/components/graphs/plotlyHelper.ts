@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import moment from 'moment'
-import { Data, Shape, Layout } from 'plotly.js'
+import { Data, Shape, Layout, RangeSlider } from 'plotly.js'
 
 export const findMaxNumber = (arr: number[]): number => {
   if (arr.length === 0) {
@@ -16,6 +16,12 @@ export const findMinNumber = (arr: number[]): number => {
   }
 
   return Math.min(...arr)
+}
+
+export const rangeSliderConfig: Partial<RangeSlider> = {
+  visible: true,
+  bgcolor: '#dbdbdb',
+  thickness: 0.1
 }
 
 export const defaultLayoutConfig: Partial<Layout> = {

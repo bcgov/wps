@@ -7,7 +7,7 @@ import { ObservedValue } from 'api/observationAPI'
 import { NoonForecastValue, ForecastSummary } from 'api/forecastAPI'
 import WxDataGraphToggles from 'features/fireWeather/components/graphs/WxDataGraphToggles'
 import { useGraphToggles } from 'features/fireWeather/components/graphs/useGraphToggles'
-import PrecipGraph from 'features/fireWeather/components/graphs/PercipGraph'
+import PrecipitationGraph from 'features/fireWeather/components/graphs/PrecipitationGraph'
 import WindGraph from 'features/fireWeather/components/graphs/WindGraph'
 import TempRHGraph from 'features/fireWeather/components/graphs/TempRHGraph'
 import { formatDateInPST } from 'utils/date'
@@ -43,15 +43,15 @@ const WxDataGraph = ({
 }: Props) => {
   const classes = useStyles()
 
-  const noObservations = observedValues.length === 0
-  const noModels = allModelValues.length === 0
-  const noForecasts = allForecasts.length === 0
-  const noBiasAdjModels =
+  const hasObservations = observedValues.length !== 0
+  const hasModels = allModelValues.length !== 0
+  const hasForecasts = allForecasts.length !== 0
+  const hasBiasAdjModels =
     allModelValues.filter(
       v => v.bias_adjusted_temperature || v.bias_adjusted_relative_humidity
-    ).length === 0
-  const noHighResModels = allHighResModelValues.length === 0
-  const noRegionalModels = allRegionalModelValues.length === 0
+    ).length !== 0
+  const hasHighResModels = allHighResModelValues.length !== 0
+  const hasRegionalModels = allRegionalModelValues.length !== 0
 
   const currDate = new Date()
 
@@ -68,21 +68,21 @@ const WxDataGraph = ({
   const [sliderRange] = useState(initialXAxisRange)
 
   const [toggleValues, setToggleValues] = useGraphToggles({
-    showObservations: !noObservations,
+    showObservations: hasObservations,
     showForecasts: false,
-    showHrdps: !noHighResModels,
+    showHrdps: hasHighResModels,
     showRdps: false,
     showGdps: false,
     showBiasAdjGdps: false
   })
 
   if (
-    noObservations &&
-    noForecasts &&
-    noModels &&
-    noBiasAdjModels &&
-    noHighResModels &&
-    noRegionalModels
+    !hasObservations &&
+    !hasForecasts &&
+    !hasModels &&
+    !hasBiasAdjModels &&
+    !hasHighResModels &&
+    !hasRegionalModels
   ) {
     return null
   }
@@ -92,12 +92,12 @@ const WxDataGraph = ({
       <WxDataGraphToggles
         toggleValues={toggleValues}
         setToggleValues={setToggleValues}
-        noObservations={noObservations}
-        noForecasts={noForecasts}
-        noModels={noModels}
-        noBiasAdjModels={noBiasAdjModels}
-        noHighResModels={noHighResModels}
-        noRegionalModels={noRegionalModels}
+        hasObservations={hasObservations}
+        hasForecasts={hasForecasts}
+        hasModels={hasModels}
+        hasBiasAdjModels={hasBiasAdjModels}
+        hasHighResModels={hasHighResModels}
+        hasRegionalModels={hasRegionalModels}
       />
       <TempRHGraph
         currDate={currDate}
@@ -114,7 +114,7 @@ const WxDataGraph = ({
         rdpsSummaries={regionalModelSummaries}
       />
 
-      <PrecipGraph
+      <PrecipitationGraph
         currDate={currDate}
         sliderRange={sliderRange}
         toggleValues={toggleValues}

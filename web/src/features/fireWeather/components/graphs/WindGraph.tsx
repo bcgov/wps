@@ -10,7 +10,8 @@ import {
   findMaxNumber,
   findMinNumber,
   populateGraphDataForWind,
-  populateNowLineData
+  populateNowLineData,
+  rangeSliderConfig
 } from 'features/fireWeather/components/graphs/plotlyHelper'
 
 export interface Props {
@@ -107,11 +108,7 @@ const WindGraph = (props: Props) => {
           },
           xaxis: {
             range: sliderRange,
-            rangeslider: {
-              visible: true,
-              bgcolor: '#dbdbdb',
-              thickness: 0.1
-            },
+            rangeslider: rangeSliderConfig,
             hoverformat: '%I:00%p, %a, %b %e', // https://github.com/d3/d3-3.x-api-reference/blob/master/Time-Formatting.md#format
             tickfont: { size: 14 },
             type: 'date',
