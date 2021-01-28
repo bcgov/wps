@@ -99,6 +99,7 @@ const WxDataGraph = ({
         hasHighResModels={hasHighResModels}
         hasRegionalModels={hasRegionalModels}
       />
+
       <TempRHGraph
         currDate={currDate}
         sliderRange={sliderRange}

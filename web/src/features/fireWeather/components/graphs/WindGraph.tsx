@@ -13,7 +13,6 @@ import {
   populateNowLineData,
   rangeSliderConfig
 } from 'features/fireWeather/components/graphs/plotlyHelper'
-
 export interface Props {
   currDate: Date
   sliderRange: [string, string]
@@ -93,6 +92,43 @@ const WindGraph = (props: Props) => {
       <Plot
         style={{ width: '100%', height: '100%' }}
         config={{ responsive: true }}
+        onLegendClick={event => {
+          // We cannot group the shapes (arrows) with the legend (https://github.com/plotly/plotly.js/issues/98)
+          // So we loop through the corresponding shapes (arrows) to toggle them on and off.
+          // It's not very fast, but it works.
+          // NOTE: The alternative would be to just make this function return false, thus disabling
+          // toggling of layers using the legend.
+
+          const dataIndex = event.expandedIndex // determined by the order of the data array
+
+          let clickedLegend: string | undefined = undefined
+
+          switch (dataIndex) {
+            case 1:
+              clickedLegend = 'GDPS'
+              break
+            case 2:
+              clickedLegend = 'RDPS'
+              break
+            case 3:
+              clickedLegend = 'HRDPS'
+              break
+            case 4:
+              clickedLegend = 'Observation'
+              break
+
+            default:
+              break
+          }
+
+          event.layout.shapes?.forEach(shape => {
+            if (clickedLegend && clickedLegend === shape.name) {
+              shape.visible = !shape.visible
+            }
+          })
+
+          return true
+        }}
         data={[
           nowLine,
           gdps.windSpdLine,
@@ -127,10 +163,10 @@ const WindGraph = (props: Props) => {
             fixedrange: true
           },
           shapes: [
-            ...observation.windDirArrows,
             ...gdps.windDirArrows,
             ...rdps.windDirArrows,
-            ...hrdps.windDirArrows
+            ...hrdps.windDirArrows,
+            ...observation.windDirArrows
           ]
         }}
       />

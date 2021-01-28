@@ -443,7 +443,6 @@ export const populateGraphDataForPrecip = (
     line: {
       width: 2.5
     },
-    showlegend: false,
     hoverinfo: 'y',
     hovertemplate: show
       ? `Accumulated ${name}: %{y:.2f} (mm/cm)<extra></extra>`
@@ -518,6 +517,7 @@ const rotatePoints = (points: Point[], angle: number, cw = true): Point[] => {
 
 const createPath = (
   arrowShape: Point[],
+  name: string,
   show: boolean,
   datetime: string,
   wind_speed: number,
@@ -528,6 +528,7 @@ const createPath = (
     path: buildArrowShapePath(arrowShape),
     visible: show,
     layer: 'above',
+    name,
     xref: 'x', // By setting a reference to the wind spd scale (x & y),
     yref: 'y', // we can position these arrows with wind spd values using xanchor & yanchor
     xsizemode: 'pixel', // https://plotly.com/javascript/reference/layout/shapes/#layout-shapes-items-shape-xsizemode
@@ -566,7 +567,7 @@ export const populateGraphDataForWind = (
 
       if (wind_direction != null && show) {
         const arrowShape = rotatePoints(arrowPoints, wind_direction)
-        const path = createPath(arrowShape, show, datetime, wind_speed, arrowColor)
+        const path = createPath(arrowShape, name, show, datetime, wind_speed, arrowColor)
         windDirArrows.push(path)
       }
     }
