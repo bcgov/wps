@@ -2,6 +2,9 @@
 set -Eeu
 set -o pipefail
 
+# check for disk space. Fails if usage hits above 90%
+# df "${PATRONI_POSTGRESQL_DATA_DIR:-/home/postgres/pgdata}" --output=pcent | tail -n 1 | awk '{if ($1+0 > 90) exit 1; else exit 0;}'
+
 # patronictl list outputs status for each of the pods in the Patroni cluster, but we are only interested in
 # the information for the individual pod that is currently running this script (identified by Openshift $(hostname))
 # if the pod is the Leader, there is no Lag. If the pod is a Replica, there will be a "Lag in MB" attribute

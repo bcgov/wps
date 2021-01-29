@@ -22,7 +22,7 @@ parameters:
   - name: GIT_REF
     value: main
   - name: POSTGRES_VERSION
-    value: "10"
+    value: "11"
 objects:
   #ImageStream is create if it doesn't already exist
   - apiVersion: image.openshift.io/v1
