@@ -18,7 +18,7 @@ import {
 import { Container, PageHeader, PageTitle } from 'components'
 import { formatDateInPDT } from 'utils/date'
 import { logError } from 'utils/error'
-import { getCHainesGeoJSONURI } from 'api/cHainesAPI'
+import { getCHainesGeoJSONURI, getCHainesKMLURI } from 'api/cHainesAPI'
 
 const useStyles = makeStyles({
   map: {
@@ -586,6 +586,16 @@ const CHainesPage = () => {
     }
   }
 
+  const KMLUrl = getCHainesKMLURI(
+    selected_model_abbreviation,
+    selected_model_timestamp,
+    selected_prediction_timestamp
+  )
+
+  const KMLFilename = `${selected_model_abbreviation}-${encodeURIComponent(
+    selected_model_timestamp
+  )}-${encodeURIComponent(selected_prediction_timestamp)}.kml`
+
   return (
     <main>
       <PageHeader title="Predictive Services Unit" productName="C-Haines" />
@@ -647,6 +657,9 @@ const CHainesPage = () => {
                 )}
             </select>
             <button onClick={handleCopyClick}>Copy GeoJSON link to clipboard</button>
+            <a href={KMLUrl} download={KMLFilename}>
+              Download KML file
+            </a>
           </div>
           <div>
             <button onClick={() => loadPreviousPrediction()}>Prev</button>
