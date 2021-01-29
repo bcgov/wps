@@ -5,9 +5,10 @@ import Plot from 'react-plotly.js'
 import { ObservedValue } from 'api/observationAPI'
 import { ModelValue, ModelSummary } from 'api/modelAPI'
 import { NoonForecastValue, ForecastSummary } from 'api/forecastAPI'
+import { Station } from 'api/stationAPI'
 import { ToggleValues } from 'features/fireWeather/components/graphs/useGraphToggles'
 import {
-  defaultLayoutConfig,
+  getLayoutConfig,
   populateGraphDataForTempAndRH,
   populateNowLineData,
   rangeSliderConfig
@@ -33,6 +34,7 @@ const biasdGdpsTempColor = '#e604d0'
 const biasdGdpsRHColor = '#176bc4'
 
 interface Props {
+  station: Station
   currDate: Date
   sliderRange: [string, string]
   toggleValues: ToggleValues
@@ -49,6 +51,7 @@ interface Props {
 
 const TempRHGraph = (props: Props) => {
   const {
+    station,
     currDate,
     sliderRange,
     toggleValues,
@@ -172,7 +175,9 @@ const TempRHGraph = (props: Props) => {
           observation.tempLine
         ]}
         layout={{
-          ...defaultLayoutConfig,
+          ...getLayoutConfig(
+            `Temperature & Relative Humidity - ${station.name} (${station.code})`
+          ),
           xaxis: {
             range: sliderRange,
             rangeslider: rangeSliderConfig,

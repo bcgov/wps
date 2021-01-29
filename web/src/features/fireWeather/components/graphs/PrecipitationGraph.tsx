@@ -6,8 +6,9 @@ import { ObservedValue } from 'api/observationAPI'
 import { ModelValue } from 'api/modelAPI'
 import { NoonForecastValue } from 'api/forecastAPI'
 import { ToggleValues } from 'features/fireWeather/components/graphs/useGraphToggles'
+import { Station } from 'api/stationAPI'
 import {
-  defaultLayoutConfig,
+  getLayoutConfig,
   findMaxNumber,
   populateGraphDataForPrecip,
   populateNowLineData,
@@ -21,6 +22,7 @@ const rdpsPrecipColor = '#ea6d0e'
 const gdpsPrecipColor = '#f56c9c'
 
 interface Props {
+  station: Station
   currDate: Date
   sliderRange: [string, string]
   toggleValues: ToggleValues
@@ -33,6 +35,7 @@ interface Props {
 
 const PrecipitationGraph = (props: Props) => {
   const {
+    station,
     currDate,
     sliderRange,
     toggleValues,
@@ -103,11 +106,9 @@ const PrecipitationGraph = (props: Props) => {
           observation.dailyPrecipsBar
         ]}
         layout={{
-          ...defaultLayoutConfig,
-          title: {
-            text: 'Daily Precipitation (with accumulated)',
-            yanchor: 'middle'
-          },
+          ...getLayoutConfig(
+            `Daily Precipitation (with accumulated) - ${station.name} (${station.code})`
+          ),
           barmode: 'group',
           bargap: 0.75,
           bargroupgap: 0.3,

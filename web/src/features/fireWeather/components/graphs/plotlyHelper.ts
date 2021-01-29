@@ -24,17 +24,17 @@ export const rangeSliderConfig: Partial<RangeSlider> = {
   thickness: 0.1
 }
 
-export const defaultLayoutConfig: Partial<Layout> = {
+export const getLayoutConfig = (title: string): Partial<Layout> => ({
   dragmode: 'pan',
   autosize: true,
   height: 600,
   margin: { pad: 10 },
   legend: { orientation: 'h', yanchor: 'top', y: -0.35, traceorder: 'reversed' }, // Locate the legend at the bottom of the graph
   title: {
-    text: 'Temperature & Relative Humidity',
+    text: title,
     yanchor: 'middle'
   }
-}
+})
 
 export const populateNowLineData = (
   x: Date,

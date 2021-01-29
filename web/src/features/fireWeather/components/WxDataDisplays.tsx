@@ -129,6 +129,7 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
 
               <ErrorBoundary>
                 <WxDataGraph
+                  station={station}
                   observedValues={observedValues}
                   allModelValues={allModelValues}
                   modelSummaries={modelSummaries}

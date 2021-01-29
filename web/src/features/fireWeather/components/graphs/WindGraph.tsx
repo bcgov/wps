@@ -5,8 +5,9 @@ import Plot from 'react-plotly.js'
 import { ObservedValue } from 'api/observationAPI'
 import { ModelValue } from 'api/modelAPI'
 import { ToggleValues } from 'features/fireWeather/components/graphs/useGraphToggles'
+import { Station } from 'api/stationAPI'
 import {
-  defaultLayoutConfig,
+  getLayoutConfig,
   findMaxNumber,
   findMinNumber,
   populateGraphDataForWind,
@@ -14,6 +15,7 @@ import {
   rangeSliderConfig
 } from 'features/fireWeather/components/graphs/plotlyHelper'
 export interface Props {
+  station: Station
   currDate: Date
   sliderRange: [string, string]
   toggleValues: ToggleValues
@@ -34,6 +36,7 @@ const gdpsArrowColor = gdpsLineColor
 
 const WindGraph = (props: Props) => {
   const {
+    station,
     currDate,
     sliderRange,
     toggleValues,
@@ -137,11 +140,9 @@ const WindGraph = (props: Props) => {
           observation.windSpdLine
         ]}
         layout={{
-          ...defaultLayoutConfig,
-          title: {
-            text: 'Wind Speed & Direction',
-            yanchor: 'middle'
-          },
+          ...getLayoutConfig(
+            `Wind Speed & Direction - ${station.name} (${station.code})`
+          ),
           xaxis: {
             range: sliderRange,
             rangeslider: rangeSliderConfig,

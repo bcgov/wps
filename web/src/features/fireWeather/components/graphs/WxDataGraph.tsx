@@ -11,6 +11,7 @@ import PrecipitationGraph from 'features/fireWeather/components/graphs/Precipita
 import WindGraph from 'features/fireWeather/components/graphs/WindGraph'
 import TempRHGraph from 'features/fireWeather/components/graphs/TempRHGraph'
 import { formatDateInPST } from 'utils/date'
+import { Station } from 'api/stationAPI'
 
 const useStyles = makeStyles({
   display: {
@@ -19,6 +20,7 @@ const useStyles = makeStyles({
 })
 
 interface Props {
+  station: Station
   observedValues: ObservedValue[] | undefined
   allModelValues: ModelValue[] | undefined
   modelSummaries: ModelSummary[] | undefined
@@ -31,6 +33,7 @@ interface Props {
 }
 
 const WxDataGraph = ({
+  station,
   observedValues = [],
   allModelValues = [],
   modelSummaries = [],
@@ -101,6 +104,7 @@ const WxDataGraph = ({
       />
 
       <TempRHGraph
+        station={station}
         currDate={currDate}
         sliderRange={sliderRange}
         toggleValues={toggleValues}
@@ -116,6 +120,7 @@ const WxDataGraph = ({
       />
 
       <PrecipitationGraph
+        station={station}
         currDate={currDate}
         sliderRange={sliderRange}
         toggleValues={toggleValues}
@@ -127,6 +132,7 @@ const WxDataGraph = ({
       />
 
       <WindGraph
+        station={station}
         currDate={currDate}
         sliderRange={sliderRange}
         toggleValues={toggleValues}
