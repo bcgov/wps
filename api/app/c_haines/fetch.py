@@ -79,7 +79,7 @@ def fetch_prediction_kml_streamer(model: ModelEnum, model_run_timestamp: datetim
     add_style(kml, get_severity_style(1), '9900ffff')
     add_style(kml, get_severity_style(2), '9900a5ff')
     add_style(kml, get_severity_style(3), '990000ff')
-    kml.append('<name>Test kml</name>')
+    kml.append('<name>{} {} {}</name>'.format(model, model_run_timestamp, prediction_timestamp))
     kml.append('<Folder>')
     yield "".join(kml)
     kml = []
