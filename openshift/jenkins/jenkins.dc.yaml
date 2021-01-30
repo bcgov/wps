@@ -1,0 +1,332 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+labels:
+  app: jenkins
+metadata:
+  name: jenkins
+parameters:
+  - name: NAME
+    value: jenkins-wps
+    required: true
+  - name: NAMESPACE
+    value: e1e498-tools
+    required: true
+  - description: ROUTE_HOST
+    displayName: ROUTE_HOST
+    name: ROUTE_HOST
+    required: true
+    value: "wps-jenkins.apps.silver.devops.gov.bc.ca"
+  - description: ROUTE_PATH
+    displayName: ROUTE_PATH
+    name: ROUTE_PATH
+    required: true
+    value: /
+  - description: Environment Name
+    displayName: ENV_NAME
+    name: ENV_NAME
+    required: true
+    value: prod
+  - description: Environment ID
+    displayName: ENV_ID
+    name: ENV_ID
+    required: true
+    value: prod
+  - name: CPU_REQUEST
+    description: Minimal CPU needed to run
+    displayName: CPU Request
+    value: 300m
+  - name: CPU_LIMIT
+    description: Maximum CPU allowed to use
+    displayName: CPU Limit
+    value: 2000m
+  - name: MEMORY_REQUEST
+    description: Minimal amount of memory needed to run
+    displayName: Memory Request
+    value: 2Gi
+  - name: MEMORY_LIMIT
+    description: Maximum amount of memory allowed to use
+    displayName: Memory Limit
+    value: 4Gi
+  - description: SLAVE_USER_PASSWORD
+    displayName: SLAVE_USER_PASSWORD
+    from: "[a-zA-Z0-9]{16}"
+    generate: expression
+    name: SLAVE_USER_PASSWORD
+  - description: GitHub Username (Same as github secret)
+    displayName: GH_USERNAME
+    name: GH_USERNAME
+    required: true
+    value: "TBD"
+  - description: GitHub Personal Access Token (Same as github secret)
+    displayName: GH_PASSWORD
+    name: GH_PASSWORD
+    required: true
+    value: "TBD"
+objects:
+  - apiVersion: v1
+    kind: Secret
+    metadata:
+      annotations:
+        as-copy-of: template.${NAME}-slave-user
+        as-copy-of/preserve: password
+      name: ${NAME}-slave-user
+    stringData:
+      metadata.name: ${NAME}-slave-user
+      password: ${SLAVE_USER_PASSWORD}
+      username: jenkins-slave
+    type: kubernetes.io/basic-auth
+  - apiVersion: v1
+    kind: Secret
+    metadata:
+      annotations:
+        as-copy-of: template.${NAME}-github
+      name: ${NAME}-github
+    stringData:
+      metadata.name: ${NAME}-github
+      password: ${GH_PASSWORD}
+      username: ${GH_USERNAME}
+    type: kubernetes.io/basic-auth
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      annotations:
+        volume.beta.kubernetes.io/storage-class: netapp-file-standard
+      name: ${NAME}
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi
+  - apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      annotations:
+        serviceaccounts.openshift.io/oauth-redirectreference.jenkins: '{"kind":"OAuthRedirectReference","apiVersion":"v1","reference":{"kind":"Route","name":"${NAME}"}}'
+      name: ${NAME}
+  - apiVersion: v1
+    groupNames: null
+    kind: RoleBinding
+    metadata:
+      name: ${NAME}_edit
+    roleRef:
+      name: edit
+    subjects:
+      - kind: ServiceAccount
+        name: ${NAME}
+  - apiVersion: v1
+    groupNames: null
+    kind: RoleBinding
+    metadata:
+      name: ${NAME}_admin
+    roleRef:
+      name: admin
+    subjects:
+      - kind: ServiceAccount
+        name: ${NAME}
+  - apiVersion: v1
+    kind: DeploymentConfig
+    metadata:
+      annotations:
+        template.alpha.openshift.io/wait-for-ready: "true"
+      name: ${NAME}
+    spec:
+      replicas: 1
+      revisionHistoryLimit: 10
+      selector:
+        deploymentConfig: ${NAME}
+      strategy:
+        activeDeadlineSeconds: 21600
+        recreateParams:
+          timeoutSeconds: 600
+        resources: {}
+        type: Recreate
+      template:
+        metadata:
+          creationTimestamp: null
+          labels:
+            deploymentConfig: ${NAME}
+        spec:
+          containers:
+            - command:
+                - /usr/local/bin/container-entrypoint
+                - /usr/local/bin/jenkins-run
+              env:
+                - name: USE_JAVA_DIAGNOSTICS
+                  value: "true"
+                - name: JENKINS_URL
+                  value: "https://${ROUTE_HOST}${ROUTE_PATH}"
+                - name: ENV_NAME
+                  value: ${ENV_NAME}
+                - name: ENV_ID
+                  value: ${ENV_ID}
+                # - name: APP_TOOLS_NAMESPACE
+                #   valueFrom:
+                #     configMapKeyRef:
+                #       name: ns-config
+                #       key: project.tools
+                # - name: APP_DEV_NAMESPACE
+                #   valueFrom:
+                #     configMapKeyRef:
+                #       name: ns-config
+                #       key: project.dev
+                # - name: APP_STAGING_NAMESPACE
+                #   valueFrom:
+                #     configMapKeyRef:
+                #       name: ns-config
+                #       key: project.test
+                # - name: APP_PROD_NAMESPACE
+                #   valueFrom:
+                #     configMapKeyRef:
+                #       name: ns-config
+                #       key: project.prod
+                # - name: OCP_PLATFORM
+                #   value: "4"
+              imagePullPolicy: Always
+              livenessProbe:
+                failureThreshold: 3
+                httpGet:
+                  path: /login
+                  port: 8080
+                  scheme: HTTP
+                initialDelaySeconds: 420
+                periodSeconds: 360
+                successThreshold: 1
+                timeoutSeconds: 240
+              name: jenkins
+              ports:
+                - containerPort: 50000
+                  protocol: TCP
+                - containerPort: 8080
+                  protocol: TCP
+              readinessProbe:
+                failureThreshold: 3
+                httpGet:
+                  path: /login
+                  port: 8080
+                  scheme: HTTP
+                initialDelaySeconds: 3
+                periodSeconds: 10
+                successThreshold: 1
+                timeoutSeconds: 240
+              resources:
+                limits:
+                  cpu: "${CPU_LIMIT}"
+                  memory: "${MEMORY_LIMIT}"
+                requests:
+                  cpu: "${CPU_REQUEST}"
+                  memory: "${MEMORY_REQUEST}"
+              terminationMessagePath: /dev/termination-log
+              terminationMessagePolicy: File
+              volumeMounts:
+                - mountPath: /var/jenkins-data
+                  name: jenkins-jobs
+                  readOnly: false
+                - mountPath: /var/run/pod
+                  name: pod-metadata
+                - mountPath: /run/secrets/jenkins-slave-user
+                  name: jenkins-slave-user
+                  readOnly: true
+                - mountPath: /run/secrets/github
+                  name: github
+                  readOnly: true
+                # - mountPath: /run/configs/ns
+                #   name: ns-config
+                #   readOnly: true
+                # - mountPath: /run/configs/jobs
+                #   name: jobs-config
+                #   readOnly: true
+          dnsPolicy: ClusterFirst
+          restartPolicy: Always
+          schedulerName: default-scheduler
+          securityContext: {}
+          serviceAccount: ${NAME}
+          serviceAccountName: ${NAME}
+          terminationGracePeriodSeconds: 30
+          volumes:
+            - name: jenkins-jobs
+              persistentVolumeClaim:
+                claimName: ${NAME}
+            - downwardAPI:
+                defaultMode: 420
+                items:
+                  - fieldRef:
+                      apiVersion: v1
+                      fieldPath: metadata.name
+                    path: name
+                  - fieldRef:
+                      apiVersion: v1
+                      fieldPath: metadata.namespace
+                    path: namespace
+                  - fieldRef:
+                      apiVersion: v1
+                      fieldPath: metadata.labels
+                    path: labels
+                  - fieldRef:
+                      apiVersion: v1
+                      fieldPath: metadata.annotations
+                    path: annotations
+              name: pod-metadata
+            - name: jenkins-slave-user
+              secret:
+                defaultMode: 420
+                secretName: ${NAME}-slave-user
+            - name: github
+              secret:
+                defaultMode: 420
+                secretName: ${NAME}-github
+            # - name: ns-config
+            #   configMap:
+            #     defaultMode: 420
+            #     name: ns-config
+            # - name: jobs-config
+            #   configMap:
+            #     defaultMode: 420
+            #     name: jobs-config
+      test: false
+      triggers:
+        - imageChangeParams:
+            automatic: true
+            containerNames:
+              - jenkins
+            from:
+              kind: ImageStreamTag
+              name: "jenkins-2:v2-latest"
+              namespace: ${NAMESPACE}
+          type: ImageChange
+        - type: ConfigChange
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: ${NAME}
+    spec:
+      ports:
+        - name: 8080-tcp
+          port: 8080
+          protocol: TCP
+          targetPort: 8080
+        - name: 50000-tcp
+          port: 50000
+          protocol: TCP
+          targetPort: 50000
+      selector:
+        deploymentconfig: ${NAME}
+      sessionAffinity: None
+      type: ClusterIP
+  - apiVersion: v1
+    kind: Route
+    metadata:
+      creationTimestamp: null
+      name: ${NAME}
+    spec:
+      host: ${ROUTE_HOST}
+      path: ${ROUTE_PATH}
+      port:
+        targetPort: 8080-tcp
+      tls:
+        termination: edge
+      to:
+        kind: Service
+        name: ${NAME}
+        weight: 100
+      wildcardPolicy: None
