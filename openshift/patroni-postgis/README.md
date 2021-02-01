@@ -27,7 +27,7 @@ oc -n e1e498-tools tag patroni:v11-latest patroni:v11
 #### Other examples of building and tagging
 
 ```bash
-# Build a patroni imagestream, overide the git branch:
+# Build a patroni imagestream, override the git branch:
 oc -n e1e498-tools process -f openshift/build.yaml -p GIT_REF="yourbranchnamehere"  | oc -n e1e498-tools apply -f -
 ```
 
