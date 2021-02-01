@@ -160,28 +160,6 @@ objects:
                   value: ${ENV_NAME}
                 - name: ENV_ID
                   value: ${ENV_ID}
-                # - name: APP_TOOLS_NAMESPACE
-                #   valueFrom:
-                #     configMapKeyRef:
-                #       name: ns-config
-                #       key: project.tools
-                # - name: APP_DEV_NAMESPACE
-                #   valueFrom:
-                #     configMapKeyRef:
-                #       name: ns-config
-                #       key: project.dev
-                # - name: APP_STAGING_NAMESPACE
-                #   valueFrom:
-                #     configMapKeyRef:
-                #       name: ns-config
-                #       key: project.test
-                # - name: APP_PROD_NAMESPACE
-                #   valueFrom:
-                #     configMapKeyRef:
-                #       name: ns-config
-                #       key: project.prod
-                # - name: OCP_PLATFORM
-                #   value: "4"
               imagePullPolicy: Always
               livenessProbe:
                 failureThreshold: 3
