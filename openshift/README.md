@@ -17,3 +17,5 @@ Refer to https://developer.gov.bc.ca/Migrating-Your-BC-Gov-Jenkins-to-the-Cloud
 - Build the basic Jenkins image. See: https://developer.gov.bc.ca/Migrating-Your-BC-Gov-Jenkins-to-the-Cloud#building-the-jenkins-image
 
 - Create a primary jenkins server: `oc process -f jenkins.dc.yaml | oc apply -f -`
+- Create a secondary jenkins server: `oc process -f jenkins-secondary.dc.yaml | oc apply -f -`
+- Add GitHub credentials to Jenkins. Use type username/password, with a GitHub token as the password. The bcgov-csnr-cd account can be used.
