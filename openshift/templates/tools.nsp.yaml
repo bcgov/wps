@@ -1,0 +1,18 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+parameters:
+  - name: NAMESPACE
+    required: true
+    value: e1e498-tools
+objects:
+  - apiVersion: security.devops.gov.bc.ca/v1alpha1
+    kind: NetworkSecurityPolicy
+    metadata:
+      name: egress-internet
+      namespace: ${NAMESPACE}
+    spec:
+      description: Allow ${NAMESPACE} to talk to the internet.
+      source:
+        - - $namespace=${NAMESPACE}
+      destination:
+        - - ext:network=any
