@@ -55,7 +55,7 @@
       "displayName": "Output Image Tag",
       "description": "The tag given to the built image.",
       "required": true,
-      "value": "3.14.1-fpm"
+      "value": "4.1.1-fpm"
     },
     {
       "name": "SOURCE_IMAGE_KIND",
@@ -76,7 +76,7 @@
       "displayName": "Source Image Tag",
       "description": "The tag of the source image.",
       "required": true,
-      "value": "3.14.1-fpm"
+      "value": "4.1.1-fpm"
     }
   ]
 }
