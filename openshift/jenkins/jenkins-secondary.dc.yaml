@@ -126,9 +126,9 @@ objects:
           serviceAccountName: ${NAME}
           terminationGracePeriodSeconds: 30
           volumes:
-            - name: jenkins-home
-              persistentVolumeClaim:
-                claimName: ${NAME}
+            # - name: jenkins-home
+            #   persistentVolumeClaim:
+            #     claimName: ${NAME}
             - name: pod-metadata
               downwardAPI:
                 items:

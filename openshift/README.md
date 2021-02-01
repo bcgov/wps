@@ -19,3 +19,9 @@ Refer to https://developer.gov.bc.ca/Migrating-Your-BC-Gov-Jenkins-to-the-Cloud
 - Create a primary jenkins server: `oc process -f jenkins.dc.yaml | oc apply -f -`
 - Create a secondary jenkins server: `oc process -f jenkins-secondary.dc.yaml | oc apply -f -`
 - Add GitHub credentials to Jenkins. Use type username/password, with a GitHub token as the password. The bcgov-csnr-cd account can be used.
+
+#### Known issues
+
+- If the Jenkins secondary binds to the PVC's before the primary, the primary is
+  unable to start up, as it requires to be bound 1st. If this happens, pause deployments
+  of the secondary and wait for the primary to start up.
