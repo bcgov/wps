@@ -13,18 +13,25 @@ Copied from [BCDevOps](https://github.com/bcdevOps/platform-services/) which was
 
 The WPS pipeline currently assumes the existence of an appropriately tagged patroni imagestream in the tools project.
 
-Build and tag an imagestream as follows:
+### Build and tag an imagestream as follows:
 
 ```bash
 # Build a patroni imagestream:
-oc -n auzhsi-tools process -f openshift/build.yaml | oc -n auzhsi-tools apply -f -
+oc -n e1e498-tools process -f openshift/build.yaml | oc -n e1e498-tools apply -f -
 # Tag the old imagestream so we can keep it around if we need to revert:
-oc -n auzhsi-tools tag patroni:v10 patroni:v10-<date deprecated, e.g. 20200826>
+oc -n e1e498-tools tag patroni:v11 patroni:v11-<date deprecated, e.g. 20200826>
 # Tag the new imagestream (it won't be used until the pods get re-created):
-oc -n auzhsi-tools tag patroni:v10-latest patroni:v10
+oc -n e1e498-tools tag patroni:v11-latest patroni:v11
 ```
 
-Allow the production product to pull images from tools
+#### Other examples of building and tagging
+
+```bash
+# Build a patroni imagestream, override the git branch:
+oc -n e1e498-tools process -f openshift/build.yaml -p GIT_REF="yourbranchnamehere"  | oc -n e1e498-tools apply -f -
+```
+
+### Allow the production product to pull images from tools
 
 ```bash
 oc -n auzhsi-prod policy add-role-to-user \

@@ -28,6 +28,11 @@ if [[ -z "$DISK_SPACE_WARNING_LIMIT" ]]; then
     exit 0
 fi
 
+if [[ -z "$ROCKET_URI"]]; then
+    echo "Must provide ROCKET_URI in environment" 1>&2
+    exit 0
+fi
+
 send_notification() {
     local TEXT="$(hostname) is running low on space: $1 < $2"
     echo $TEXT
@@ -35,7 +40,7 @@ send_notification() {
         -H 'X-Auth-Token: ${ROCKET_AUTH_TOKEN}' \
         -H 'X-User-Id: ${ROCKET_USER_ID}' \
         -H 'Content-Type: application/json' \
-        https://chat.developer.gov.bc.ca/api/v1/chat.postMessage \
+        ${ROCKET_URI} \
         -d '{\"channel\": \"${ROCKET_CHANNEL}\", \"text\": \"${TEXT}\"}'"
     eval $COMMAND
 }
