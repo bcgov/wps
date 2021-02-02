@@ -16,13 +16,13 @@ parameters:
   - name: SUFFIX
   - name: VERSION
     description: Output version
-    value: "v10-latest"
+    value: "v11-latest"
   - name: GIT_URI
     value: https://github.com/bcgov/wps.git
   - name: GIT_REF
     value: main
   - name: POSTGRES_VERSION
-    value: "10"
+    value: "11"
 objects:
   #ImageStream is create if it doesn't already exist
   - apiVersion: image.openshift.io/v1
