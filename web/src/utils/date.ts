@@ -8,6 +8,11 @@ export const isNoonInPST = (dt: string): boolean =>
     .hour() ===
   Math.abs(PST_UTC_OFFSET) + 12
 
+export const formatDateInPST = (dt: string | number | Date, format?: string): string =>
+  moment(dt)
+    .utcOffset(PST_UTC_OFFSET)
+    .format(format || 'YYYY-MM-DD HH:mm')
+
 export const formatDateInPDT = (dt: string | number | Date, format?: string): string =>
   moment(dt)
     .utcOffset(PDT_UTC_OFFSET)

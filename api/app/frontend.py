@@ -95,7 +95,7 @@ async def get_index(request: Request):
         response.headers.setdefault('Content-Security-Policy',
                                     ('default-src \'self\' \'unsafe-inline\''
                                      ' *.googleapis.com *.gov.bc.ca *.gstatic.com;'
-                                     ' img-src \'self\' data: https:;'
+                                     ' img-src \'self\' blob: data: https:;'
                                      ' script-src \'self\' \'unsafe-inline\' \'unsafe-eval\' *.gov.bc.ca;'
                                      ' frame-ancestors \'none\''))
         return response
