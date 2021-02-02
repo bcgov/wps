@@ -14,7 +14,7 @@ labels:
   app: ${NAME}-${SUFFIX}
   instance: ${NAME}-${SUFFIX}
   component: database
-  version: "10"
+  version: "${IMAGE_VERSION}"
 objects:
   - apiVersion: v1
     kind: Service
@@ -168,7 +168,7 @@ objects:
                   value: ${DISK_SPACE_WARNING_LIMIT}
                 - name: ROCKET_URI
                   value: ${ROCKET_URI}
-              image: docker-registry.default.svc:5000/${IMAGE_NAMESPACE}/patroni:${IMAGE_VERSION}
+              image: ${IMAGE_SERVER}/${IMAGE_NAMESPACE}/patroni:${IMAGE_VERSION}
               imagePullPolicy: Always
               name: ${APPLICATION_NAME}
               ports:
@@ -341,6 +341,10 @@ parameters:
     displayName: CPU Request
     name: CPU_REQUEST
     value: 50m
+  - description: The server URI where images can be found
+    displayName: Image server URI
+    name: IMAGE_SERVER
+    value: docker-registry.default.svc:5000
   - description: The OpenShift Namespace where the patroni and postgresql ImageStream resides.
     displayName: ImageStream Namespace
     name: IMAGE_NAMESPACE
