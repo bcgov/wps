@@ -29,8 +29,23 @@ type PropTypes = React.ComponentProps<typeof WxDataGraph>
 
 const Template: Story<PropTypes> = args => <WxDataGraph {...args} />
 
+const station = {
+  code: 322,
+  name: 'AFTON',
+  lat: 50.6733333,
+  long: -120.4816667,
+  ecodivision_name: 'SEMI-ARID STEPPE HIGHLANDS',
+  core_season: {
+    start_month: 5,
+    start_day: 1,
+    end_month: 9,
+    end_day: 15
+  }
+}
+
 export const Default = Template.bind({})
 Default.args = {
+  station,
   observedValues: observedValues,
   allModelValues: pastModelValues.concat(modelValues) as ModelValue[],
   modelSummaries: modelSummaries,
