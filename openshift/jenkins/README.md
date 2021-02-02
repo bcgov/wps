@@ -21,5 +21,5 @@ Refer to https://developer.gov.bc.ca, search for "Migrating-Your-BC-Gov-Jenkins-
 - Add GitHub credentials to Jenkins. Use type username/password.
 - Add multibranch pipeline.
 - Discover pull requests from origing -> Merging the pull request with the current branch revision.
-- Disover pull requests from forks -> Remove, we don't do forks.
+- Discover pull requests from forks -> Remove, we don't do forks.
 - Configure build configuration to use Jenkinsfile.
