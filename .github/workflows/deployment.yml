@@ -132,7 +132,7 @@ jobs:
       - name: Build Image
         uses: Sybrand/openshift-launchpad-deployment@ocp4support
         with:
-          AUTH_TOKEN: ${{ secrets.OC_TOOL_TOKEN_EDIT }}
+          AUTH_TOKEN: ${{ secrets.OC_TOOL_TOKEN }}
           SCRIPT: GIT_BRANCH=${GITHUB_HEAD_REF} openshift/scripts/oc_build.sh ${SUFFIX} apply
 
       # - name: Deploy to Dev
