@@ -6,6 +6,24 @@ on:
       - main
 
 jobs:
+  prepare-database-ocp4:
+    name: Prepare Dev Database (OCP4)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set Variables
+        shell: bash
+        run: |
+          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Deploy PostGIS instance
+        uses: Sybrand/openshift-launchpad-deployment@ocp4support
+        with:
+          AUTH_TOKEN: ${{ secrets.OC4_DEV_TOKEN }}
+          SCRIPT: PROJ_DEV=e1e498-dev EPHEMERAL_STORAGE=True openshift/scripts/oc_provision_db.sh ${SUFFIX} apply
+
   prepare-database:
     name: Prepare Dev Database
     runs-on: ubuntu-latest
