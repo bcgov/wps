@@ -20,6 +20,10 @@ Refer to https://developer.gov.bc.ca/Migrating-Your-BC-Gov-Jenkins-to-the-Cloud
 - Create a secondary jenkins server: `oc process -f jenkins-secondary.dc.yaml | oc apply -f -`
 - Add GitHub credentials to Jenkins. Use type username/password, with a GitHub token as the password. The bcgov-csnr-cd account can be used.
 
+- Add multibranch pipeline
+- Discover pull requests from origing -> Merging the pull request with the current branch revision.
+- Disover pull requests from forks -> Remove, we don't do forks.
+
 #### Known issues
 
 - If the Jenkins secondary binds to the PVC's before the primary, the primary is
