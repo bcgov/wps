@@ -16,6 +16,10 @@ Create an imagestream in the tools project:
 oc process -f backup-build.json | oc -n <tools-project> apply -f -
 ```
 
+```bash
+oc process -f backup-build.json -p NAME=backup-mariadb -p DOCKER_FILE_PATH=Dockerfile_MariaDB | oc -n <tools-project> apply -f -
+```
+
 Tag the imagestream for use in our different environments:
 
 ```bash
