@@ -116,3 +116,66 @@ jobs:
           rules_file_name: ".zap/rules.tsv"
           # Do not return failure on warnings - TODO: this has to be resolved!
           cmd_options: "-I"
+
+  build-and-deploy-ocp4:
+    name: Build, Deploy to Dev & ZAP Baseline Scan (OCP4)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set Variables
+        shell: bash
+        run: |
+          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Build Image
+        uses: Sybrand/openshift-launchpad-deployment@ocp4support
+        with:
+          AUTH_TOKEN: ${{ secrets.OC_TOOL_TOKEN_EDIT }}
+          SCRIPT: GIT_BRANCH=${GITHUB_HEAD_REF} openshift/scripts/oc_build.sh ${SUFFIX} apply
+
+      # - name: Deploy to Dev
+      #   uses: Sybrand/openshift-launchpad-deployment@ocp4support
+      #   with:
+      #     AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
+      #     SCRIPT: openshift/scripts/oc_deploy.sh ${SUFFIX} apply
+
+      # - name: Hourly actuals cronjob (Marvin)
+      #   uses: Sybrand/openshift-launchpad-deployment@ocp4support
+      #   with:
+      #     AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
+      #     SCRIPT: openshift/scripts/oc_provision_bcfw_p1_hourly_actuals_cronjob.sh ${SUFFIX} apply
+
+      # - name: Noon forecasts cronjob (Bender)
+      #   uses: Sybrand/openshift-launchpad-deployment@ocp4support
+      #   with:
+      #     AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
+      #     SCRIPT: openshift/scripts/oc_provision_bcfw_p1_forecasts_cronjob.sh ${SUFFIX} apply
+
+      # - name: Environment Canada GDPS cronjob (Donald)
+      #   uses: Sybrand/openshift-launchpad-deployment@ocp4support
+      #   with:
+      #     AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
+      #     SCRIPT: openshift/scripts/oc_provision_ec_gdps_cronjob.sh ${SUFFIX} apply
+
+      # - name: Environment Canada HRDPS cronjob (Donald)
+      #   uses: Sybrand/openshift-launchpad-deployment@ocp4support
+      #   with:
+      #     AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
+      #     SCRIPT: openshift/scripts/oc_provision_ec_hrdps_cronjob.sh ${SUFFIX} apply
+
+      # - name: Environment Canada RDPS cronjob (Donald)
+      #   uses: Sybrand/openshift-launchpad-deployment@ocp4support
+      #   with:
+      #     AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
+      #     SCRIPT: openshift/scripts/oc_provision_ec_rdps_cronjob.sh ${SUFFIX} apply
+
+      # # f.y.i.: ZAP Scan must be able to log an issue or it will fail.
+      # - name: ZAP Scan
+      #   uses: zaproxy/action-baseline@v0.4.0
+      #   with:
+      #     target: "https://wps-pr-${{ github.event.number }}.pathfinder.gov.bc.ca"
+      #     rules_file_name: ".zap/rules.tsv"
+      #     # Do not return failure on warnings - TODO: this has to be resolved!
+      #     cmd_options: "-I"
