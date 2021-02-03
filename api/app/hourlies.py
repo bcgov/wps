@@ -2,7 +2,7 @@
 """
 import math
 from typing import List
-from datetime import timedelta
+from datetime import datetime, timedelta
 import app.db.database
 from app.db.crud.observations import get_hourly_actuals
 import app.stations
@@ -19,15 +19,15 @@ def get(value: object, condition: bool = True):
     return value
 
 
-async def fetch_hourly_readings_from_db(station_codes: List[int]) -> List[WeatherStationHourlyReadings]:
+async def fetch_hourly_readings_from_db(station_codes: List[int], time_of_interest: datetime) -> List[WeatherStationHourlyReadings]:
     """ Fetch the hourly readings from the database.
     """
     stations = await app.stations.get_stations_by_codes(station_codes)
     session = app.db.database.get_read_session()
-    # by default, we want the last 5 days
-    now = app.time_utils.get_utc_now()
-    five_days_ago = now - timedelta(days=5)
-    readings = get_hourly_actuals(session, station_codes, five_days_ago)
+
+    # by default, we want the past 5 days
+    five_days_past = time_of_interest - timedelta(days=5)
+    readings = get_hourly_actuals(session, station_codes, five_days_past)
 
     station_readings = None
     result = []
@@ -55,10 +55,12 @@ async def fetch_hourly_readings_from_db(station_codes: List[int]) -> List[Weathe
     return result
 
 
-async def get_hourly_readings(station_codes: List[int]) -> List[WeatherStationHourlyReadings]:
+async def get_hourly_readings(station_codes: List[int], time_of_interest: datetime) -> List[WeatherStationHourlyReadings]:
     """ Get the hourly readings for the list of station codes provided.
     Depending on configuration, will read from WF1 or from local database.
     """
+
     if wildfire_one.use_wfwx():
-        return await wildfire_one.get_hourly_readings(station_codes)
-    return await fetch_hourly_readings_from_db(station_codes)
+        return await wildfire_one.get_hourly_readings(station_codes, time_of_interest)
+
+    return await fetch_hourly_readings_from_db(station_codes, time_of_interest)
