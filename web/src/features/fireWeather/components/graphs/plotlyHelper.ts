@@ -36,7 +36,7 @@ export const getLayoutConfig = (title: string): Partial<Layout> => ({
   }
 })
 
-export const populateNowLineData = (
+export const populateTimeOfInterestLineData = (
   x: Date,
   y0: number,
   y1: number,
@@ -46,7 +46,7 @@ export const populateNowLineData = (
     x: [x, x],
     y: [y0, y1],
     mode: 'lines',
-    name: 'Now',
+    name: 'Time of Interest',
     line: {
       color: 'green',
       width: 2,

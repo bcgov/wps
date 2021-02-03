@@ -11,12 +11,12 @@ import {
   findMaxNumber,
   findMinNumber,
   populateGraphDataForWind,
-  populateNowLineData,
+  populateTimeOfInterestLineData,
   rangeSliderConfig
 } from 'features/fireWeather/components/graphs/plotlyHelper'
 export interface Props {
   station: Station
-  currDate: Date
+  timeOfInterest: Date
   sliderRange: [string, string]
   toggleValues: ToggleValues
   observedValues: ObservedValue[]
@@ -37,7 +37,7 @@ const gdpsArrowColor = gdpsLineColor
 const WindGraph = (props: Props) => {
   const {
     station,
-    currDate,
+    timeOfInterest,
     sliderRange,
     toggleValues,
     observedValues,
@@ -88,7 +88,11 @@ const WindGraph = (props: Props) => {
     rdps.minWindSpd,
     hrdps.minWindSpd
   ])
-  const nowLine = populateNowLineData(currDate, minWindSpd, maxWindSpd)
+  const timeOfInterestLine = populateTimeOfInterestLineData(
+    timeOfInterest,
+    minWindSpd,
+    maxWindSpd
+  )
 
   return (
     <div data-testid="wind-spd-dir-graph">
@@ -133,7 +137,7 @@ const WindGraph = (props: Props) => {
           return true
         }}
         data={[
-          nowLine,
+          timeOfInterestLine,
           gdps.windSpdLine,
           rdps.windSpdLine,
           hrdps.windSpdLine,

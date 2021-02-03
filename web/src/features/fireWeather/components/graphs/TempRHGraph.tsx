@@ -10,7 +10,7 @@ import { ToggleValues } from 'features/fireWeather/components/graphs/useGraphTog
 import {
   getLayoutConfig,
   populateGraphDataForTempAndRH,
-  populateNowLineData,
+  populateTimeOfInterestLineData,
   rangeSliderConfig
 } from 'features/fireWeather/components/graphs/plotlyHelper'
 
@@ -35,7 +35,7 @@ const biasdGdpsRHColor = '#176bc4'
 
 interface Props {
   station: Station
-  currDate: Date
+  timeOfInterest: Date
   sliderRange: [string, string]
   toggleValues: ToggleValues
   observedValues: ObservedValue[]
@@ -52,7 +52,7 @@ interface Props {
 const TempRHGraph = (props: Props) => {
   const {
     station,
-    currDate,
+    timeOfInterest,
     sliderRange,
     toggleValues,
     observedValues,
@@ -134,7 +134,12 @@ const TempRHGraph = (props: Props) => {
   )
 
   const y2Range = [0, 102]
-  const nowLine = populateNowLineData(currDate, y2Range[0], y2Range[1], 'y2')
+  const timeOfInterestLine = populateTimeOfInterestLineData(
+    timeOfInterest,
+    y2Range[0],
+    y2Range[1],
+    'y2'
+  )
 
   return (
     <div data-testid="temp-rh-graph">
@@ -142,7 +147,7 @@ const TempRHGraph = (props: Props) => {
         style={{ width: '100%', height: '100%' }}
         config={{ responsive: true }}
         data={[
-          nowLine,
+          timeOfInterestLine,
 
           // Plumes
           gdps.rh5thLine,

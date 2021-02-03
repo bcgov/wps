@@ -20,6 +20,7 @@ const useStyles = makeStyles({
 })
 
 interface Props {
+  timeOfInterest: Date
   station: Station
   observedValues: ObservedValue[] | undefined
   allModelValues: ModelValue[] | undefined
@@ -33,6 +34,7 @@ interface Props {
 }
 
 const WxDataGraph = ({
+  timeOfInterest,
   station,
   observedValues = [],
   allModelValues = [],
@@ -56,8 +58,6 @@ const WxDataGraph = ({
   const hasHighResModels = allHighResModelValues.length !== 0
   const hasRegionalModels = allRegionalModelValues.length !== 0
 
-  const currDate = new Date()
-
   /* Note: Plotly isn't updating its props in a correct way
    * (Plot component may mutate its layout and data props in response to user input, going against React rules) https://github.com/plotly/react-plotly.js#api-reference
    * This creates a weird/annoying behavior - Plotly modifying our state `sliderRange` directly,
@@ -65,8 +65,8 @@ const WxDataGraph = ({
    * (This is bad by the way since it makes impossible for us to capture the change of the state)
    */
   const initialXAxisRange: [string, string] = [
-    formatDateInPST(moment(currDate).subtract(2, 'days').toDate()), // prettier-ignore
-    formatDateInPST(moment(currDate).add(2, 'days').toDate()) // prettier-ignore
+    formatDateInPST(moment(timeOfInterest).subtract(2, 'days').toDate()), // prettier-ignore
+    formatDateInPST(moment(timeOfInterest).add(2, 'days').toDate()) // prettier-ignore
   ]
   const [sliderRange] = useState(initialXAxisRange)
 
@@ -105,7 +105,7 @@ const WxDataGraph = ({
 
       <TempRHGraph
         station={station}
-        currDate={currDate}
+        timeOfInterest={timeOfInterest}
         sliderRange={sliderRange}
         toggleValues={toggleValues}
         observedValues={observedValues}
@@ -121,7 +121,7 @@ const WxDataGraph = ({
 
       <PrecipitationGraph
         station={station}
-        currDate={currDate}
+        timeOfInterest={timeOfInterest}
         sliderRange={sliderRange}
         toggleValues={toggleValues}
         observedValues={observedValues}
@@ -133,7 +133,7 @@ const WxDataGraph = ({
 
       <WindGraph
         station={station}
-        currDate={currDate}
+        timeOfInterest={timeOfInterest}
         sliderRange={sliderRange}
         toggleValues={toggleValues}
         observedValues={observedValues}

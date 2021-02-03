@@ -23,3 +23,6 @@ export const formatMonthAndDay = (month: number, day: number): string =>
     .month(month - 1)
     .date(day)
     .format('D MMMM')
+
+export const formatDateInISO = (date: Date, format?: string): string =>
+  moment(date).format(format || 'YYYY-MM-DDTHH:mm:ssZ')

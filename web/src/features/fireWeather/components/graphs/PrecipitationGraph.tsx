@@ -11,7 +11,7 @@ import {
   getLayoutConfig,
   findMaxNumber,
   populateGraphDataForPrecip,
-  populateNowLineData,
+  populateTimeOfInterestLineData,
   rangeSliderConfig
 } from 'features/fireWeather/components/graphs/plotlyHelper'
 
@@ -23,7 +23,7 @@ const gdpsPrecipColor = '#f56c9c'
 
 interface Props {
   station: Station
-  currDate: Date
+  timeOfInterest: Date
   sliderRange: [string, string]
   toggleValues: ToggleValues
   observedValues: ObservedValue[]
@@ -36,7 +36,7 @@ interface Props {
 const PrecipitationGraph = (props: Props) => {
   const {
     station,
-    currDate,
+    timeOfInterest,
     sliderRange,
     toggleValues,
     observedValues,
@@ -85,7 +85,12 @@ const PrecipitationGraph = (props: Props) => {
     rdps.maxAccumPrecip
   ])
   const y2Range = [0, maxY]
-  const nowLine = populateNowLineData(currDate, y2Range[0], y2Range[1], 'y2')
+  const timeOfInterestLine = populateTimeOfInterestLineData(
+    timeOfInterest,
+    y2Range[0],
+    y2Range[1],
+    'y2'
+  )
 
   return (
     <div data-testid="precipitation-graph">
@@ -93,7 +98,7 @@ const PrecipitationGraph = (props: Props) => {
         style={{ width: '100%', height: '100%' }}
         config={{ responsive: true }}
         data={[
-          nowLine,
+          timeOfInterestLine,
           gdps.accumPrecipsline,
           gdps.dailyPrecipsBar,
           rdps.accumPrecipsline,

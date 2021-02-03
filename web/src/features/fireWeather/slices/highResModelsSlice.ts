@@ -57,10 +57,13 @@ export const {
 
 export default highResModelsSlice.reducer
 
-export const fetchHighResModels = (codes: number[]): AppThunk => async dispatch => {
+export const fetchHighResModels = (
+  codes: number[],
+  timeOfInterest: string
+): AppThunk => async dispatch => {
   try {
     dispatch(getHighResModelsStart())
-    const modelsForStations = await getModelsWithBiasAdj(codes, 'HRDPS')
+    const modelsForStations = await getModelsWithBiasAdj(codes, 'HRDPS', timeOfInterest)
     dispatch(getHighResModelsSuccess(modelsForStations))
   } catch (err) {
     dispatch(getHighResModelsFailed(err.toString()))

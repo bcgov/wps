@@ -79,10 +79,13 @@ export const {
 
 export default forecastsSlice.reducer
 
-export const fetchForecasts = (stationCodes: number[]): AppThunk => async dispatch => {
+export const fetchForecasts = (
+  stationCodes: number[],
+  timeOfInterest: string
+): AppThunk => async dispatch => {
   try {
     dispatch(getForecastsStart())
-    const forecasts = await getNoonForecasts(stationCodes)
+    const forecasts = await getNoonForecasts(stationCodes, timeOfInterest)
     dispatch(getForecastsSuccess(forecasts))
   } catch (err) {
     dispatch(getForecastsFailed(err.toString()))

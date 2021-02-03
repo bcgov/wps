@@ -49,6 +49,7 @@ const useStyles = makeStyles({
 })
 
 interface WxDataDisplaysProps {
+  timeOfInterest: Date
   stationCodes: number[]
   wxDataLoading: boolean
   stationsByCode: Record<number, Station | undefined>
@@ -66,6 +67,7 @@ interface WxDataDisplaysProps {
 
 export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) {
   const classes = useStyles()
+  const { timeOfInterest } = props
 
   return (
     <div className={classes.displays}>
@@ -129,6 +131,7 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
 
               <ErrorBoundary>
                 <WxDataGraph
+                  timeOfInterest={timeOfInterest}
                   station={station}
                   observedValues={observedValues}
                   allModelValues={allModelValues}
@@ -149,6 +152,7 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
 })
 
 interface WxDataDisplaysWrapperProps {
+  timeOfInterest: Date
   stationCodes: number[]
 }
 
@@ -167,7 +171,7 @@ const WxDataDisplaysWrapper: React.FunctionComponent<WxDataDisplaysWrapperProps>
 
   return (
     <WxDataDisplays
-      stationCodes={props.stationCodes}
+      {...props}
       wxDataLoading={wxDataLoading}
       stationsByCode={stationsByCode}
       observationsByStation={observationsByStation}

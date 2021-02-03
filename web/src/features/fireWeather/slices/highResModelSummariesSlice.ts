@@ -53,11 +53,12 @@ export const {
 export default highResModelSummariesSlice.reducer
 
 export const fetchHighResModelSummaries = (
-  stationCodes: number[]
+  stationCodes: number[],
+  timeOfInterest: string
 ): AppThunk => async dispatch => {
   try {
     dispatch(getHighResModelSummariesStart())
-    const summaries = await getModelSummaries(stationCodes, 'HRDPS')
+    const summaries = await getModelSummaries(stationCodes, 'HRDPS', timeOfInterest)
     dispatch(getHighResModelSummariesSuccess(summaries))
   } catch (err) {
     dispatch(getHighResModelSummariesFailed(err.toString()))

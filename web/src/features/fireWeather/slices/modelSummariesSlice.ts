@@ -53,11 +53,12 @@ export const {
 export default modelSummariesSlice.reducer
 
 export const fetchGlobalModelSummaries = (
-  stationCodes: number[]
+  stationCodes: number[],
+  timeOfInterest: string
 ): AppThunk => async dispatch => {
   try {
     dispatch(getModelSummariesStart())
-    const modelSummaries = await getModelSummaries(stationCodes, 'GDPS')
+    const modelSummaries = await getModelSummaries(stationCodes, 'GDPS', timeOfInterest)
     dispatch(getModelSummariesSuccess(modelSummaries))
   } catch (err) {
     dispatch(getModelSummariesFailed(err.toString()))
