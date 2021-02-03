@@ -22,8 +22,8 @@ source "$(dirname ${0})/common/common"
 #%
 
 # Process a template (mostly variable substition)
-#
-OC_PROCESS="oc -n ${PROJ_TOOLS} process -f ${PATH_BC} -p NAME=${NAME_APP} -p SUFFIX=${SUFFIX} -p GIT_BRANCH=${GIT_BRANCH}"
+#​​
+OC_PROCESS="oc -n ${PROJ_TOOLS} process -f ${PATH_BC} -p NAME=${NAME_APP} -p SUFFIX=${SUFFIX} -p GIT_BRANCH=${GIT_BRANCH} ${​​DOCKER_IMAGE:+ " -p DOCKER_IMAGE=${DOCKER_​​IMAGE}​​"}​​" 
 
 # Apply a template (apply or use --dry-run)
 #
