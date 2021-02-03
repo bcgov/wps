@@ -80,3 +80,9 @@ class WeatherStationsModelRunsPredictionsResponse(BaseModel):
     """ Response containing a number of weather predictions for a number of weather model runs for a number
     of stations."""
     stations: List[WeatherStationModelRunsPredictions]
+
+
+class WeatherModelRequest(BaseModel):
+    """ A request for weather models for a given set of stations with a time of interest. """
+    stations: List[int]
+    time_of_interest: str

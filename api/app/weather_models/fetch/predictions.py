@@ -46,16 +46,18 @@ def _fetch_delta_precip_for_prev_model_run(
 async def fetch_model_run_predictions_by_station_code(
         model: ModelEnum,
         station_codes: List[int],
-        end_date: datetime) -> List[WeatherStationModelRunsPredictions]:
+        time_of_interest: datetime) -> List[WeatherStationModelRunsPredictions]:
     """ Fetch model predictions from database based on list of station code, up to the specified end_date.
     Predictions are grouped by station and model run.
     """
     # We're only interested in the last 5 days.
-    five_days_ago = app.time_utils.get_utc_now() - datetime.timedelta(days=5)
+    start_date = time_of_interest - datetime.timedelta(days=5)
+    end_date = time_of_interest + datetime.timedelta(days=10)
+
     # send the query (ordered by prediction date.)
     session = app.db.database.get_read_session()
     historic_predictions = get_station_model_predictions(
-        session, station_codes, model, five_days_ago, end_date)
+        session, station_codes, model, start_date, end_date)
 
     # Helper dictionary.
     station_predictions = defaultdict(dict)
