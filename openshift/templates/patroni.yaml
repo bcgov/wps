@@ -345,10 +345,11 @@ parameters:
     displayName: Image server URI
     name: IMAGE_SERVER
     value: docker-registry.default.svc:5000
+    required: true
   - description: The OpenShift Namespace where the patroni and postgresql ImageStream resides.
     displayName: ImageStream Namespace
     name: IMAGE_NAMESPACE
-    value: openshift
+    required: true
   - description: Username of the superuser account for initialization.
     displayName: Superuser Username
     name: PATRONI_SUPERUSER_USERNAME
