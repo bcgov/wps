@@ -22,7 +22,7 @@ jobs:
         uses: Sybrand/openshift-launchpad-deployment@ocp4support_faster
         with:
           AUTH_TOKEN: ${{ secrets.OC4_DEV_TOKEN }}
-          SCRIPT: PROJ_DEV=e1e498-dev IMAGE_NAMESPACE=e1e498-tools IMAGE_SERVER=image-registry.apps.silver.devops.gov.bc.ca IMAGE_VERSION=v11 EPHEMERAL_STORAGE=True openshift/scripts/oc_provision_db.sh ${SUFFIX} apply
+          SCRIPT: PROJ_DEV=e1e498-dev IMAGE_NAMESPACE=e1e498-tools IMAGE_SERVER=image-registry.openshift-image-registry.svc:5000 IMAGE_VERSION=v11 EPHEMERAL_STORAGE=True openshift/scripts/oc_provision_db.sh ${SUFFIX} apply
 
   # prepare-database:
   #   name: Prepare Dev Database
