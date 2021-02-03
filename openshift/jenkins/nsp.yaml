@@ -1,0 +1,38 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+parameters:
+  - name: NAMESPACE
+    required: true
+    value: e1e498-tools
+objects:
+  - apiVersion: security.devops.gov.bc.ca/v1alpha1
+    kind: NetworkSecurityPolicy
+    metadata:
+      name: egress-internet
+      namespace: ${NAMESPACE}
+    spec:
+      description: Allow ${NAMESPACE} to talk to the internet.
+      source:
+        - - $namespace=${NAMESPACE}
+      destination:
+        - - ext:network=any
+  - apiVersion: security.devops.gov.bc.ca/v1alpha1
+    kind: NetworkSecurityPolicy
+    metadata:
+      name: intra-namespace-comms
+    spec:
+      description: "allow ${NAMESPACE} namespace to talk to itself"
+      source:
+        - - $namespace=${NAMESPACE}
+      destination:
+        - - $namespace=${NAMESPACE}
+  - apiVersion: security.devops.gov.bc.ca/v1alpha1
+    kind: NetworkSecurityPolicy
+    metadata:
+      name: int-cluster-k8s-api-comms
+    spec:
+      description: "allow ${NAMESPACE} pods to talk to the k8s api"
+      destination:
+        - - int:network=internal-cluster-api-endpoint
+      source:
+        - - $namespace=${NAMESPACE}
