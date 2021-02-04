@@ -21,7 +21,8 @@ import { logError } from 'utils/error'
 import {
   getCHainesGeoJSONURI,
   getCHainesKMLURI,
-  getCHainesKMLModelRunURI
+  getCHainesKMLModelRunURI,
+  getCHainesModelKMLURI
 } from 'api/cHainesAPI'
 
 const useStyles = makeStyles({
@@ -596,10 +597,14 @@ const CHainesPage = () => {
     selected_prediction_timestamp
   )
 
+  const KMLModelUrl = getCHainesModelKMLURI(selected_model_abbreviation)
+
   const KMLModelRunUrl = getCHainesKMLModelRunURI(
     selected_model_abbreviation,
     selected_model_timestamp
   )
+
+  const KMLModelFilename = `${selected_model_abbreviation}.kml`
 
   const KMLModelRunFilename = `${selected_model_abbreviation}-${encodeURIComponent(
     selected_model_timestamp
@@ -632,6 +637,9 @@ const CHainesPage = () => {
               <option value="RDPS">RDPS</option>
               <option value="HRDPS">HRDPS</option>
             </select>
+            <a href={KMLModelUrl} download={KMLModelFilename}>
+              Download KML file for most recent model run
+            </a>
           </div>
           <div>
             Model runs:

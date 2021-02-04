@@ -1,6 +1,6 @@
 """ Fetch c-haines geojson
 """
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
 import app.db.database
 from app.schemas.weather_models import CHainesModelRuns, CHainesModelRunPredictions, WeatherPredictionModel
@@ -31,12 +31,21 @@ def get_severity_style(severity):
         return 'extreme'
 
 
-def open_placemark(severity, timestamp: datetime):
+def open_placemark(model: ModelEnum, severity, timestamp: datetime):
     kml = []
     kml.append('<Placemark>')
-    kml.append('<TimeStamp>')
-    kml.append('<when>{}</when>'.format(timestamp.isoformat()))
-    kml.append('</TimeStamp>')
+    # kml.append('<TimeStamp>')
+    # kml.append('<when>{}</when>'.format(timestamp.isoformat()))
+    # kml.append('</TimeStamp>')
+
+    if model == ModelEnum.GDPS:
+        end = timestamp + timedelta(hours=3)
+    else:
+        end = timestamp + timedelta(hours=1)
+    kml.append('<TimeSpan>')
+    kml.append('<begin>{}</begin>'.format(timestamp.isoformat()))
+    kml.append('<end>{}</end>'.format(end.isoformat()))
+    kml.append('</TimeSpan>')
     kml.append('<styleUrl>#{}</styleUrl>'.format(get_severity_style(severity)))
     kml.append('<name>{}</name>'.format(get_severity_text(severity)))
     kml.append('<MultiGeometry>')
@@ -71,10 +80,9 @@ async def fetch_prediction_geojson(model: ModelEnum, model_run_timestamp: dateti
     return get_prediction_geojson(session, model, model_run_timestamp, prediction_timestamp)
 
 
-def fetch_model_run_kml_streamer(model: ModelEnum, model_run_timestamp: datetime):
+def fetch_model_run_kml_streamer(session, model: ModelEnum, model_run_timestamp: datetime):
     logger.info('model: %s; model_run: %s', model, model_run_timestamp)
 
-    session = app.db.database.get_read_session()
     result = get_model_run_kml(session, model, model_run_timestamp)
 
     yield get_kml_header()
@@ -96,7 +104,7 @@ def fetch_model_run_kml_streamer(model: ModelEnum, model_run_timestamp: datetime
             if not prev_severity is None:
                 yield close_placemark()
             prev_severity = severity
-            yield open_placemark(severity, prediction_timestamp)
+            yield open_placemark(model, severity, prediction_timestamp)
         yield poly
 
     if not prev_prediction_timestamp is None:
@@ -140,7 +148,7 @@ def fetch_prediction_kml_streamer(model: ModelEnum, model_run_timestamp: datetim
             if not prev_severity is None:
                 kml.append(close_placemark())
             prev_severity = severity
-            kml.append(open_placemark(severity, prediction_timestamp))
+            kml.append(open_placemark(model, severity, prediction_timestamp))
         kml.append(poly)
 
         yield "\n".join(kml)

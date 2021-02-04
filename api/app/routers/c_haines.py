@@ -7,6 +7,8 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse, StreamingResponse
 from app.weather_models import ModelEnum
 from app.c_haines import fetch
+from app.db.crud.c_haines import get_most_recent_model_run
+import app.db.database
 
 logger = logging.getLogger(__name__)
 
@@ -25,13 +27,18 @@ router = APIRouter(
 @router.get('/{model}/predictions')
 async def get_c_haines_model_run(
         model: ModelEnum,
-        model_run_timestamp: datetime,
+        model_run_timestamp: datetime = None,
         response_format: FormatEnum = FormatEnum.geoJSON):
     """ Return geojson polygons for c-haines """
     logger.info('/c-haines/%s/predictions?model_run_timestamp=%s&response_format=%s',
                 model, model_run_timestamp, response_format)
     # Let the browser cache the data as much as it wants.
     headers = {"Cache-Control": "max-age=604800, public, immutable"}
+
+    session = app.db.database.get_read_session()
+    if model_run_timestamp is None:
+        model_run = get_most_recent_model_run(session, model)
+        model_run_timestamp = model_run.model_run_timestamp
 
     if response_format == FormatEnum.geoJSON:
         raise HTTPException(status_code=501)
@@ -40,7 +47,7 @@ async def get_c_haines_model_run(
     headers["Content-Disposition"] = "inline;filename={}-{}.kml".format(
         model, model_run_timestamp)
     return StreamingResponse(
-        fetch.fetch_model_run_kml_streamer(model, model_run_timestamp),
+        fetch.fetch_model_run_kml_streamer(session, model, model_run_timestamp),
         headers=headers)
 
 

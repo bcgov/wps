@@ -12,6 +12,13 @@ from app.time_utils import get_utc_now
 logger = logging.getLogger(__name__)
 
 
+def get_most_recent_model_run(session: Session, model: ModelEnum) -> CHainesModelRun:
+    return session.query(CHainesModelRun)\
+        .join(PredictionModel, PredictionModel.id == CHainesModelRun.prediction_model_id)\
+        .filter(PredictionModel.abbreviation == model)\
+        .order_by(desc(CHainesModelRun.model_run_timestamp)).limit(1).first()
+
+
 def get_c_haines_model_run(
         session: Session,
         model_run_timestamp: datetime,

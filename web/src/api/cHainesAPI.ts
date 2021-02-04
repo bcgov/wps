@@ -41,6 +41,12 @@ export function getCHainesGeoJSONURI(
   )}&prediction_timestamp=${encodeURIComponent(prediction_timestamp)}`
 }
 
+export function getCHainesModelKMLURI(model: string): string {
+  return `${API_BASE_URL}/c-haines/${encodeURIComponent(
+    model
+  )}/predictions?response_format=KML`
+}
+
 export function getCHainesKMLURI(
   model: string,
   model_run_timestamp: string,
