@@ -133,7 +133,7 @@ jobs:
         uses: Sybrand/openshift-launchpad-deployment@ocp4support
         with:
           AUTH_TOKEN: ${{ secrets.OC4_TOOL_TOKEN }}
-          SCRIPT: GIT_BRANCH=${GITHUB_HEAD_REF} PROJ_TOOLS="e1e498-tools" PROJ_DEV="e1e498-dev" DOCKER_IMAGE="image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/uvicorn-gunicorn-fastapi:python3.8-latest" openshift/scripts/oc_build.sh ${SUFFIX} apply
+          SCRIPT: GIT_BRANCH=${GITHUB_HEAD_REF} PROJ_TOOLS="e1e498-tools" PROJ_DEV="e1e498-dev" DOCKER_IMAGE="image-registry.openshift-image-registry.svc:5000/e1e498-tools/uvicorn-gunicorn-fastapi:python3.8-latest" openshift/scripts/oc_build.sh ${SUFFIX} apply
 
       # - name: Deploy to Dev
       #   uses: Sybrand/openshift-launchpad-deployment@ocp4support
