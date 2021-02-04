@@ -24,6 +24,25 @@ oc -n e1e498-tools tag patroni:v11 patroni:v11-<date deprecated, e.g. 20200826>
 oc -n e1e498-tools tag patroni:v11-latest patroni:v11
 ```
 
+#### Common build failures
+
+```text
+E: Version '3.1.0+dfsg-1.pgdg90+1' for 'postgresql-11-postgis-3' was not found
+E: Version '3.1.0+dfsg-1.pgdg90+1' for 'postgresql-11-postgis-3-scripts' was not found
+```
+
+The latest version of the POSTGIS_VERSION available on debian is constantly changing. It is very likely, that when you attempt to build the image,
+it will fail because the version of postgis has changed. The most sure fire way of establishing the which version to us is to:
+
+```bash
+git clone git@github.com:postgis/docker-postgis.git
+cd docker-postgis
+./update.sh
+git status
+# look if 11-3.1/Dockerfile has changed - see what's the latest:
+git diff 11-3.1/Dockerfile
+```
+
 #### Other examples of building and tagging
 
 ```bash
@@ -38,6 +57,12 @@ oc -n auzhsi-prod policy add-role-to-user \
     system:image-puller system:serviceaccount:auzhsi-prod:patroniocp-wps-prod \
     --namespace=auzhsi-tools
 ```
+
+### TBD
+
+Not starting? Maybe this:
+
+https://github.com/BCDevOps/OpenShift4-Migration/issues/6
 
 ## More examples
 
