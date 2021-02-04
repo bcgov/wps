@@ -5,7 +5,8 @@ import logging
 import app.db.database
 from app.schemas.weather_models import CHainesModelRuns, CHainesModelRunPredictions, WeatherPredictionModel
 from app.weather_models import ModelEnum
-from app.db.crud.c_haines import get_model_run_predictions, get_prediction_geojson, get_prediction_kml
+from app.db.crud.c_haines import (get_model_run_predictions,
+                                  get_prediction_geojson, get_prediction_kml, get_model_run_kml)
 
 
 logger = logging.getLogger(__name__)
@@ -30,16 +31,20 @@ def get_severity_style(severity):
         return 'extreme'
 
 
-def open_placemark(kml, severity):
+def open_placemark(severity):
+    kml = []
     kml.append('<Placemark>')
     kml.append('<styleUrl>#{}</styleUrl>'.format(get_severity_style(severity)))
     kml.append('<name>{}</name>'.format(get_severity_text(severity)))
     kml.append('<MultiGeometry>')
+    return "\n".join(kml)
 
 
-def close_placemark(kml):
+def close_placemark():
+    kml = []
     kml.append('</MultiGeometry>')
     kml.append('</Placemark>')
+    return "\n".join(kml)
 
 
 def add_style(kml, style_id, color):
@@ -63,14 +68,43 @@ async def fetch_prediction_geojson(model: ModelEnum, model_run_timestamp: dateti
     return get_prediction_geojson(session, model, model_run_timestamp, prediction_timestamp)
 
 
-def fetch_prediction_kml_streamer(model: ModelEnum, model_run_timestamp: datetime,
-                                  prediction_timestamp: datetime):
-    """ Fetch prediction polygon geojson.
-    """
-    logger.info('model: %s; model_run: %s, prediction: %s', model, model_run_timestamp, prediction_timestamp)
-    session = app.db.database.get_read_session()
-    result = get_prediction_kml(session, model, model_run_timestamp, prediction_timestamp)
+def fetch_model_run_kml_streamer(model: ModelEnum, model_run_timestamp: datetime):
+    logger.info('model: %s; model_run: %s', model, model_run_timestamp)
 
+    session = app.db.database.get_read_session()
+    result = get_model_run_kml(session, model, model_run_timestamp)
+
+    yield get_kml_header()
+    yield '<name>{} {}</name>\n'.format(model, model_run_timestamp)
+
+    prev_prediction_timestamp = None
+    prev_severity = None
+    for poly, severity, prediction_timestamp in result:
+        if prediction_timestamp != prev_prediction_timestamp:
+            if not prev_severity is None:
+                yield close_placemark()
+            prev_severity = None
+            if not prev_prediction_timestamp is None:
+                yield '</Folder>\n'
+            prev_prediction_timestamp = prediction_timestamp
+            yield '<Folder>\n'
+            yield '<name>{} {} {}</name>\n'.format(model, model_run_timestamp, prediction_timestamp)
+        if severity != prev_severity:
+            if not prev_severity is None:
+                yield close_placemark()
+            prev_severity = severity
+            yield open_placemark(severity)
+        yield poly
+
+    if not prev_prediction_timestamp is None:
+        if not prev_severity is None:
+            yield close_placemark()
+        yield '</Folder>\n'
+    yield '</Document>\n'
+    yield '</kml>\n'
+
+
+def get_kml_header():
     kml = []
     kml.append('<?xml version="1.0" encoding="UTF-8"?>')
     kml.append('<kml xmlns="http://www.opengis.net/kml/2.2">')
@@ -79,27 +113,41 @@ def fetch_prediction_kml_streamer(model: ModelEnum, model_run_timestamp: datetim
     add_style(kml, get_severity_style(1), '9900ffff')
     add_style(kml, get_severity_style(2), '9900a5ff')
     add_style(kml, get_severity_style(3), '990000ff')
+    return "\n".join(kml)
+
+
+def fetch_prediction_kml_streamer(model: ModelEnum, model_run_timestamp: datetime,
+                                  prediction_timestamp: datetime):
+    """ Fetch prediction polygon geojson.
+    """
+    logger.info('model: %s; model_run: %s, prediction: %s', model, model_run_timestamp, prediction_timestamp)
+    session = app.db.database.get_read_session()
+    result = get_prediction_kml(session, model, model_run_timestamp, prediction_timestamp)
+
+    yield get_kml_header()
+    kml = []
     kml.append('<name>{} {} {}</name>'.format(model, model_run_timestamp, prediction_timestamp))
     kml.append('<Folder>')
-    yield "".join(kml)
+    kml.append('<name>{} {} {}</name>'.format(model, model_run_timestamp, prediction_timestamp))
+    yield "\n".join(kml)
     kml = []
     prev_severity = None
     for poly, severity in result:
         if severity != prev_severity:
             if not prev_severity is None:
-                close_placemark(kml)
+                kml.append(close_placemark())
             prev_severity = severity
-            open_placemark(kml, severity)
+            kml.append(open_placemark(severity))
         kml.append(poly)
 
-        yield "".join(kml)
+        yield "\n".join(kml)
         kml = []
     if not prev_severity is None:
-        close_placemark(kml)
+        kml.append(close_placemark())
     kml.append('</Folder>')
     kml.append('</Document>')
     kml.append('</kml>')
-    yield "".join(kml)
+    yield "\n".join(kml)
 
 
 async def fetch_model_runs(model_run_timestamp: datetime):

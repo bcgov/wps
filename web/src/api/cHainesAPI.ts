@@ -36,7 +36,7 @@ export function getCHainesGeoJSONURI(
 ): string {
   return `${API_BASE_URL}/c-haines/${encodeURIComponent(
     model
-  )}/?model_run_timestamp=${encodeURIComponent(
+  )}/prediction?model_run_timestamp=${encodeURIComponent(
     model_run_timestamp
   )}&prediction_timestamp=${encodeURIComponent(prediction_timestamp)}`
 }
@@ -48,9 +48,20 @@ export function getCHainesKMLURI(
 ): string {
   return `${API_BASE_URL}/c-haines/${encodeURIComponent(
     model
-  )}/?model_run_timestamp=${encodeURIComponent(
+  )}/prediction?model_run_timestamp=${encodeURIComponent(
     model_run_timestamp
   )}&prediction_timestamp=${encodeURIComponent(prediction_timestamp)}&response_format=KML`
+}
+
+export function getCHainesKMLModelRunURI(
+  model: string,
+  model_run_timestamp: string
+): string {
+  return `${API_BASE_URL}/c-haines/${encodeURIComponent(
+    model
+  )}/predictions?model_run_timestamp=${encodeURIComponent(
+    model_run_timestamp
+  )}&response_format=KML`
 }
 
 export async function getCHainesGeoJSON(
@@ -60,7 +71,7 @@ export async function getCHainesGeoJSON(
 ): Promise<FeatureCollection> {
   // console.log('fetching c-haines', model_run_timestamp, prediction_timestamp)
   // console.log('API_BASE_URL', API_BASE_URL)
-  const url = `${API_BASE_URL}/c-haines/${model}/`
+  const url = `${API_BASE_URL}/c-haines/${model}/prediction`
   console.log(url)
   const { data } = await axios.get(url, {
     params: { model_run_timestamp, prediction_timestamp }

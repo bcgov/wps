@@ -79,6 +79,32 @@ def get_model_run_predictions(session: Session, model_run_timestamp: datetime):
     return query
 
 
+def get_model_run_kml(session: Session,
+                      model: ModelEnum,
+                      model_run_timestamp: datetime):
+    """ Get the kml for a particular prediction """
+    query = """select ST_AsKML(ST_SetSRID(t.geom, 4269)), t.severity, t.prediction_timestamp from (
+        select geom, severity, prediction_timestamp from c_haines_polygons
+        inner join c_haines_predictions on
+            c_haines_predictions.id =
+            c_haines_polygons.c_haines_prediction_id
+        inner join c_haines_model_runs on
+            c_haines_model_runs.id = 
+            c_haines_predictions.model_run_id
+        inner join prediction_models on
+            prediction_models.id =
+            c_haines_model_runs.prediction_model_id
+        where
+            model_run_timestamp = '{model_run_timestamp}' and
+            prediction_models.abbreviation = '{model}'
+        order by prediction_timestamp asc, severity asc
+    ) as t(geom, severity)""".format(
+        model_run_timestamp=model_run_timestamp.isoformat(),
+        model=model)
+    # pylint: disable=no-member
+    return session.execute(query)
+
+
 def get_prediction_kml(session: Session,
                        model: ModelEnum,
                        model_run_timestamp: datetime,

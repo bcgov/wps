@@ -18,7 +18,11 @@ import {
 import { Container, PageHeader, PageTitle } from 'components'
 import { formatDateInPDT } from 'utils/date'
 import { logError } from 'utils/error'
-import { getCHainesGeoJSONURI, getCHainesKMLURI } from 'api/cHainesAPI'
+import {
+  getCHainesGeoJSONURI,
+  getCHainesKMLURI,
+  getCHainesKMLModelRunURI
+} from 'api/cHainesAPI'
 
 const useStyles = makeStyles({
   map: {
@@ -592,6 +596,15 @@ const CHainesPage = () => {
     selected_prediction_timestamp
   )
 
+  const KMLModelRunUrl = getCHainesKMLModelRunURI(
+    selected_model_abbreviation,
+    selected_model_timestamp
+  )
+
+  const KMLModelRunFilename = `${selected_model_abbreviation}-${encodeURIComponent(
+    selected_model_timestamp
+  )}.kml`
+
   const KMLFilename = `${selected_model_abbreviation}-${encodeURIComponent(
     selected_model_timestamp
   )}-${encodeURIComponent(selected_prediction_timestamp)}.kml`
@@ -633,6 +646,9 @@ const CHainesPage = () => {
                   </option>
                 ))}
             </select>
+            <a href={KMLModelRunUrl} download={KMLModelRunFilename}>
+              Download KML file
+            </a>
           </div>
           <div>
             Predictions:
