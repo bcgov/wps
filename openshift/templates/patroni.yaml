@@ -305,7 +305,7 @@ objects:
   - apiVersion: security.devops.gov.bc.ca/v1alpha1
     kind: NetworkSecurityPolicy
     metadata:
-      name: db-to-db
+      name: patroni-db-to-db-${NAME}-${SUFFIX}
       labels:
         app: ${NAME}-${SUFFIX}
     spec:
@@ -313,10 +313,10 @@ objects:
         allow patroni pods to talk to one another for replication etc.
       source:
         - - "$namespace=${IMAGE_NAMESPACE}"
-          - "${NAME}-${SUFFIX}"
+          - "patroni-${NAME}-${SUFFIX}"
       destination:
         - - "$namespace=${IMAGE_NAMESPACE}"
-          - "${NAME}-${SUFFIX}"
+          - "patroni-${NAME}-${SUFFIX}"
 parameters:
   - name: NAME
     description: Module name
