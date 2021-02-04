@@ -312,10 +312,10 @@ objects:
       description: |
         allow patroni pods to talk to one another for replication etc.
       source:
-        - - "$namespace=${IMAGE_NAMESPACE}"
+        - - "$namespace=${TARGET_NAMESPACE}"
           - "patroni-${NAME}-${SUFFIX}"
       destination:
-        - - "$namespace=${IMAGE_NAMESPACE}"
+        - - "$namespace=${TARGET_NAMESPACE}"
           - "patroni-${NAME}-${SUFFIX}"
 parameters:
   - name: NAME
@@ -364,6 +364,10 @@ parameters:
   - description: The OpenShift Namespace where the patroni and postgresql ImageStream resides.
     displayName: ImageStream Namespace
     name: IMAGE_NAMESPACE
+    required: true
+  - description: Namespace into which database resides
+    displayName: Target Namespace
+    name: TARGET_NAMESPACE
     required: true
   - description: Username of the superuser account for initialization.
     displayName: Superuser Username
