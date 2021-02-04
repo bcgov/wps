@@ -13,7 +13,7 @@ ENV PATRONI_HOME=/opt/patroni
 ARG PGHOME=/home/postgres
 
 ENV POSTGIS_MAJOR 3
-ENV POSTGIS_VERSION 3.1.0+dfsg-1.pgdg90+1
+ENV POSTGIS_VERSION 3.1.1+dfsg-1.pgdg90+1
 
 RUN export DEBIAN_FRONTEND=noninteractive \
     && set -x \
