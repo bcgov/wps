@@ -31,9 +31,12 @@ def get_severity_style(severity):
         return 'extreme'
 
 
-def open_placemark(severity):
+def open_placemark(severity, timestamp: datetime):
     kml = []
     kml.append('<Placemark>')
+    kml.append('<TimeStamp>')
+    kml.append('<when>{}</when>'.format(timestamp.isoformat()))
+    kml.append('</TimeStamp>')
     kml.append('<styleUrl>#{}</styleUrl>'.format(get_severity_style(severity)))
     kml.append('<name>{}</name>'.format(get_severity_text(severity)))
     kml.append('<MultiGeometry>')
@@ -93,7 +96,7 @@ def fetch_model_run_kml_streamer(model: ModelEnum, model_run_timestamp: datetime
             if not prev_severity is None:
                 yield close_placemark()
             prev_severity = severity
-            yield open_placemark(severity)
+            yield open_placemark(severity, prediction_timestamp)
         yield poly
 
     if not prev_prediction_timestamp is None:
@@ -137,7 +140,7 @@ def fetch_prediction_kml_streamer(model: ModelEnum, model_run_timestamp: datetim
             if not prev_severity is None:
                 kml.append(close_placemark())
             prev_severity = severity
-            kml.append(open_placemark(severity))
+            kml.append(open_placemark(severity, prediction_timestamp))
         kml.append(poly)
 
         yield "\n".join(kml)
