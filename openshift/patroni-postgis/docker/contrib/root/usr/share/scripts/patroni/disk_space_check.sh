@@ -28,7 +28,7 @@ if [[ -z "$DISK_SPACE_WARNING_LIMIT" ]]; then
     exit 0
 fi
 
-if [[ -z "$ROCKET_URI"]]; then
+if [[ -z "$ROCKET_URI" ]]; then
     echo "Must provide ROCKET_URI in environment" 1>&2
     exit 0
 fi

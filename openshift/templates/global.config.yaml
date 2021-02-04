@@ -40,7 +40,7 @@ parameters:
     required: true
   - name: STATUS_CHECKER_SECRET
     description: Token for status-checker Openshift service account. Used for /health check
-  - name: PATHFINDER_BASE_URI
+  - name: OPENSHIFT_BASE_URI
     description: Base URI for connecting to Pathfinder console in Openshift. Used for /health check
   - name: ROCKET_AUTH_TOKEN
     description: Authentication token for rocket.chat notifications
@@ -73,7 +73,7 @@ objects:
       env.keycloak-public-key: ${KEYCLOAK_PUBLIC_KEY}
       bc-fire-weather-user: ${BC_FIRE_WEATHER_USER}
       bc-fire-weather-filter-id: ${BC_FIRE_WEATHER_FILTER_ID}
-      env.pathfinder-base-uri: ${PATHFINDER_BASE_URI}
+      env.openshift-base-uri: ${OPENSHIFT_BASE_URI}
       env.matomo-url: ${MATOMO_URL}
       env.matomo-site-id: ${MATOMO_SITE_ID}
       rocket.chat-channel: ${ROCKET_CHANNEL}
