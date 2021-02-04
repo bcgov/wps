@@ -25,7 +25,7 @@
             "name": "${OUTPUT_IMAGE_TAG}",
             "from": {
               "kind": "${SOURCE_IMAGE_KIND}",
-              "name": "${SOURCE_IMAGE_NAME}:${SOURCE_IMAGE_TAG}"
+              "name": "${SOURCE_IMAGE_NAME}"
             },
             "importPolicy": {
               "scheduled": true
@@ -55,7 +55,7 @@
       "displayName": "Output Image Tag",
       "description": "The tag given to the built image.",
       "required": true,
-      "value": "1-66"
+      "value": "f31"
     },
     {
       "name": "SOURCE_IMAGE_KIND",
@@ -69,14 +69,14 @@
       "displayName": "Source Image Name",
       "description": "The name of the source image.",
       "required": true,
-      "value": "registry.access.redhat.com/rhscl/mariadb-102-rhel7"
+      "value": "registry.fedoraproject.org/f31/mariadb"
     },
     {
       "name": "SOURCE_IMAGE_TAG",
       "displayName": "Source Image Tag",
       "description": "The tag of the source image.",
       "required": true,
-      "value": "1-66"
+      "value": "f31"
     }
   ]
 }

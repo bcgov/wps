@@ -99,8 +99,8 @@ async def get_index(request: Request):
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
         response.headers.setdefault('Content-Security-Policy',
                                     ('default-src \'self\' \'unsafe-inline\''
-                                     ' *.googleapis.com *.gov.bc.ca *.gstatic.com unpkg.com;'
-                                     ' img-src \'self\' data: https:;'
+                                     ' *.googleapis.com *.gov.bc.ca *.gstatic.com; unpkg.com;'
+                                     ' img-src \'self\' blob: data: https:;'
                                      ' script-src \'self\' \'unsafe-inline\' \'unsafe-eval\' *.gov.bc.ca;'
                                      ' frame-ancestors \'none\''))
         return response

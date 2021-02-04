@@ -36,7 +36,6 @@ IMAGE_NAMESPACE=${PROJ_TOOLS}
 EPHEMERAL_STORAGE=${EPHEMERAL_STORAGE:-'False'}
 
 # Process template
-# Note: A role issue is currenty preventing use of the image if it resides in the tools project.
 OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/patroni.yaml \
 -p NAME=${NAME_APP} \
 -p SUFFIX=${SUFFIX} \

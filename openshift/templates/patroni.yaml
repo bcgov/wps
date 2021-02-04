@@ -166,6 +166,8 @@ objects:
                   value: ${ROCKET_CHANNEL}
                 - name: DISK_SPACE_WARNING_LIMIT
                   value: ${DISK_SPACE_WARNING_LIMIT}
+                - name: ROCKET_URI
+                  value: ${ROCKET_URI}
               image: docker-registry.default.svc:5000/${IMAGE_NAMESPACE}/patroni:${IMAGE_VERSION}
               imagePullPolicy: Always
               name: ${APPLICATION_NAME}
@@ -371,6 +373,10 @@ parameters:
     displayName: Rocket.Chat channel
     name: ROCKET_CHANNEL
     value: "#predictiveservicesteam-dev"
+  - description: Rocket.Chat URI
+    displayName: Rocket.CHat URI
+    name: ROCKET_URI
+    value: "https://chat.developer.gov.bc.ca/api/v1/chat.postMessage"
   - description: Amount of space (in kilobytes) at which to start sending notifications.
     displayName: Disk space warning limit.
     name: DISK_SPACE_WARNING_LIMIT

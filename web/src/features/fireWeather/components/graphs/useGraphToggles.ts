@@ -3,11 +3,11 @@ import { useState } from 'react'
 
 export interface ToggleValues {
   showObservations: boolean
-  showModels: boolean
+  showGdps: boolean
   showForecasts: boolean
-  showBiasAdjModels: boolean
-  showHighResModels: boolean
-  showRegionalModels: boolean
+  showBiasAdjGdps: boolean
+  showHrdps: boolean
+  showRdps: boolean
 }
 
 export type SetToggleValues = (
