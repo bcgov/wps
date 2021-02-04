@@ -313,10 +313,10 @@ objects:
         allow patroni pods to talk to one another for replication etc.
       source:
         - - "$namespace=${TARGET_NAMESPACE}"
-          - "patroni-${NAME}-${SUFFIX}"
+          - "${NAME}-${SUFFIX}"
       destination:
         - - "$namespace=${TARGET_NAMESPACE}"
-          - "patroni-${NAME}-${SUFFIX}"
+          - "${NAME}-${SUFFIX}"
 parameters:
   - name: NAME
     description: Module name
