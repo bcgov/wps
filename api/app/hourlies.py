@@ -27,7 +27,7 @@ async def fetch_hourly_readings_from_db(station_codes: List[int], time_of_intere
 
     # by default, we want the past 5 days
     five_days_past = time_of_interest - timedelta(days=5)
-    readings = get_hourly_actuals(session, station_codes, five_days_past)
+    readings = get_hourly_actuals(session, station_codes, five_days_past, time_of_interest)
 
     station_readings = None
     result = []
