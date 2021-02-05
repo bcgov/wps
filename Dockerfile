@@ -17,7 +17,7 @@ USER 1001
 
 # PHASE 2 - prepare python.
 # Using local docker image to speed up build. See openshift/unicorn-base for details.
-FROM $DOCKER_IMAGE
+FROM ${DOCKER_IMAGE}
 
 # Copy poetry files.
 COPY ./api/pyproject.toml ./api/poetry.lock /tmp/
