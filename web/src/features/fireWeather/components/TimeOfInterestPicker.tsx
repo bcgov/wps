@@ -22,6 +22,7 @@ const TimeOfInterestPicker = (props: Props) => {
 
   return (
     <TextField
+      data-testid="time-of-interest-picker"
       label="Time of Interest (PST-08:00)"
       type="datetime-local"
       value={formatDateInPST(props.timeOfInterest, 'YYYY-MM-DDTHH:mm')}

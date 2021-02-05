@@ -14,16 +14,21 @@ describe('MoreCast Page', () => {
     cy.url().should('contain', MORECAST_ROUTE)
   })
 
-  it('When network errors occurred', () => {
+  it('Should display error messages when network errors occurred', () => {
     cy.visit(MORECAST_ROUTE)
     cy.route('POST', 'api/weather_models/RDPS/predictions/summaries').as('getRdpsSummaries')
     cy.wait('@getStations')
 
     cy.selectStationInDropdown(stationCode)
+    const timeOfInterest = '2021-02-01T12:00:00-08:00'
+    cy.getByTestId('time-of-interest-picker').type(timeOfInterest.slice(0, 16)) // yyyy-MM-ddThh:mm
+
     cy.getByTestId('get-wx-data-button').click({ force: true })
     cy.url().should('contain', `${stationCodeQueryKey}=${stationCode}`)
+    cy.wait('@getRdpsSummaries').then(xhr => {
+      expect(xhr.requestBody).to.eql({ stations: [stationCode], time_of_interest: timeOfInterest })
+    })
 
-    cy.wait('@getRdpsSummaries')
     cy.checkErrorMessage('Error occurred (while fetching hourly observations).')
     cy.checkErrorMessage('Error occurred (while fetching GDPS).')
     cy.checkErrorMessage('Error occurred (while fetching GDPS summaries).')
