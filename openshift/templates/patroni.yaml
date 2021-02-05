@@ -137,6 +137,8 @@ objects:
                     fieldRef:
                       apiVersion: v1
                       fieldPath: metadata.name
+                - name: PATRONI_LOG_LEVEL
+                  value: DEBUG
                 - name: APP_USER
                   value: ${NAME}-${SUFFIX}
                 - name: APP_PASSWORD
