@@ -47,7 +47,6 @@ COPY contrib/root /
 
 VOLUME /home/postgres/pgdata
 EXPOSE 5432 8008
-ENV LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
 USER postgres
 WORKDIR /home/postgres
 CMD ["/bin/bash", "/usr/bin/entrypoint.sh"]
