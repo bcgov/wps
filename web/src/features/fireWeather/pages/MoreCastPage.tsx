@@ -49,7 +49,7 @@ const MoreCastPage = () => {
       <PageTitle title="MoreCast - Weather Forecast Validation Tool" />
       <Container>
         <WxDataForm codesFromQuery={codesFromQuery} toiFromQuery={toiFromQuery} />
-        <WxDataDisplays timeOfInterest={timeOfInterest} stationCodes={codesFromQuery} />
+        <WxDataDisplays stationCodes={codesFromQuery} timeOfInterest={timeOfInterest} />
       </Container>
     </main>
   )

@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
-import { useHistory } from 'react-router-dom'
+import { useHistory, useLocation } from 'react-router-dom'
 
 import WxStationDropdown from 'features/stations/components/WxStationDropdown'
 import TimeOfInterestPicker from 'features/fireWeather/components/TimeOfInterestPicker'
@@ -22,9 +22,17 @@ interface Props {
 const WxDataForm = ({ codesFromQuery, toiFromQuery }: Props) => {
   const classes = useStyles()
   const history = useHistory()
+  const location = useLocation()
+
   const [selectedCodes, setSelectedCodes] = useState<number[]>(codesFromQuery)
   const [timeOfInterest, setTimeOfInterest] = useState(new Date(toiFromQuery))
   const shouldGetBtnDisabled = selectedCodes.length === 0
+
+  useEffect(() => {
+    // Update local state to match with the url query
+    setSelectedCodes(codesFromQuery)
+    setTimeOfInterest(new Date(toiFromQuery))
+  }, [location]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSubmit = () => {
     // Update the url query with the new station codes
@@ -40,7 +48,11 @@ const WxDataForm = ({ codesFromQuery, toiFromQuery }: Props) => {
     if (window._mtm) {
       // Create event, and push list of stations to the matomo data layer.
       // see: https://developer.matomo.org/guides/tagmanager/integration-plugin#supporting-the-data-layer
-      window._mtm.push({ event: 'getWeatherData', stationCodes: selectedCodes })
+      window._mtm.push({
+        event: 'getWeatherData',
+        stationCodes: selectedCodes,
+        timeOfInterest: timeOfInterest
+      })
     }
   }
 
