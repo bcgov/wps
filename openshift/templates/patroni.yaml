@@ -100,6 +100,7 @@ objects:
           labels:
             application: ${APPLICATION_NAME}
             cluster-name: ${PATRONI_CLUSTER_NAME}
+            statefulset: ${APPLICATION_NAME}
         spec:
           containers:
             - env:
