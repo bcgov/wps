@@ -1,4 +1,5 @@
-ARG DOCKER_IMAGE=docker-registry.default.svc:5000/auzhsi-tools/uvicorn-gunicorn-fastapi:python3.8-latest
+ARG DOCKER_IMAGE=docker-registry.default.svc:5000/auzhsi-tools/uvicorn-gunicorn-fastapi
+ARG DOCKER_IMAGE_TAG=python3.8-latest
 
 # PHASE 1 - build static html.
 # Pull from local registry - we can't pull from docker due to limits.
@@ -17,8 +18,7 @@ USER 1001
 
 # PHASE 2 - prepare python.
 # Using local docker image to speed up build. See openshift/unicorn-base for details.
-ARG DOCKER_IMAGE
-FROM $DOCKER_IMAGE
+FROM ${DOCKER_IMAGE}:${DOCKER_IMAGE_TAG}
 
 # Copy poetry files.
 COPY ./api/pyproject.toml ./api/poetry.lock /tmp/
