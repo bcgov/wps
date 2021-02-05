@@ -19,7 +19,9 @@ def get(value: object, condition: bool = True):
     return value
 
 
-async def fetch_hourly_readings_from_db(station_codes: List[int], time_of_interest: datetime) -> List[WeatherStationHourlyReadings]:
+async def fetch_hourly_readings_from_db(
+        station_codes: List[int],
+        time_of_interest: datetime) -> List[WeatherStationHourlyReadings]:
     """ Fetch the hourly readings from the database.
     """
     stations = await app.stations.get_stations_by_codes(station_codes)
@@ -55,7 +57,9 @@ async def fetch_hourly_readings_from_db(station_codes: List[int], time_of_intere
     return result
 
 
-async def get_hourly_readings(station_codes: List[int], time_of_interest: datetime) -> List[WeatherStationHourlyReadings]:
+async def get_hourly_readings(
+        station_codes: List[int],
+        time_of_interest: datetime) -> List[WeatherStationHourlyReadings]:
     """ Get the hourly readings for the list of station codes provided.
     Depending on configuration, will read from WF1 or from local database.
     """

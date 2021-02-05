@@ -1,7 +1,7 @@
 """ Routers for forecasts.
 """
 import logging
-import datetime
+from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends
 from app.auth import authenticate
 from app.schemas.forecasts import NoonForecastResponse, NoonForecastSummariesResponse
@@ -27,9 +27,12 @@ def get_noon_forecasts(request: WeatherDataRequest):
     try:
         logger.info('/noon/')
 
-        time_of_interest = datetime.datetime.fromisoformat(request.time_of_interest)
-        back_5_days = time_of_interest - datetime.timedelta(days=5)
-        forward_5_days = time_of_interest + datetime.timedelta(days=5)
+        if request.time_of_interest is not None:
+            time_of_interest = datetime.fromisoformat(request.time_of_interest)
+        else:
+            time_of_interest = time_utils.get_utc_now()
+        back_5_days = time_of_interest - timedelta(days=5)
+        forward_5_days = time_of_interest + timedelta(days=5)
 
         return fetch_noon_forecasts(request.stations, back_5_days, forward_5_days)
     except Exception as exception:
@@ -43,8 +46,11 @@ async def get_noon_forecasts_summaries(request: WeatherDataRequest):
     try:
         logger.info('/noon/summaries/')
 
-        time_of_interest = datetime.datetime.fromisoformat(request.time_of_interest)
-        back_5_days = time_of_interest - datetime.timedelta(days=5)
+        if request.time_of_interest is not None:
+            time_of_interest = datetime.fromisoformat(request.time_of_interest)
+        else:
+            time_of_interest = time_utils.get_utc_now()
+        back_5_days = time_of_interest - timedelta(days=5)
 
         return await fetch_noon_forecasts_summaries(request.stations, back_5_days, time_of_interest)
 

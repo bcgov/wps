@@ -1,7 +1,7 @@
 """ Routers for weather_models.
 """
 import logging
-import datetime
+from datetime import datetime
 from fastapi import APIRouter, Depends
 from app.auth import authenticate
 import app.time_utils as time_utils
@@ -30,7 +30,11 @@ async def get_model_prediction_summaries(
     try:
         logger.info('/weather_models/%s/predictions/summaries/', model.name)
 
-        time_of_interest = datetime.datetime.fromisoformat(request.time_of_interest)
+        if request.time_of_interest is not None:
+            time_of_interest = datetime.fromisoformat(request.time_of_interest)
+        else:
+            time_of_interest = time_utils.get_utc_now()
+
         summaries = await fetch_model_prediction_summaries(model, request.stations, time_of_interest)
 
         return WeatherModelPredictionSummaryResponse(summaries=summaries)
@@ -49,7 +53,11 @@ async def get_most_recent_model_values(
     try:
         logger.info('/weather_models/%s/predictions/most_recent/', model.name)
 
-        time_of_interest = datetime.datetime.fromisoformat(request.time_of_interest)
+        if request.time_of_interest is not None:
+            time_of_interest = datetime.fromisoformat(request.time_of_interest)
+        else:
+            time_of_interest = time_utils.get_utc_now()
+
         station_predictions = await fetch_model_run_predictions_by_station_code(
             model, request.stations, time_of_interest)
 

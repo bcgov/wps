@@ -14,7 +14,6 @@ from shapely.geometry import Point
 from app import config
 from app.schemas.observations import WeatherStationHourlyReadings, WeatherReading
 from app.schemas.stations import WeatherStation
-import app.time_utils
 
 
 logger = logging.getLogger(__name__)
@@ -269,7 +268,9 @@ async def fetch_hourlies(
         return WeatherStationHourlyReadings(values=hourlies, station=_parse_station(raw_station))
 
 
-async def get_hourly_readings(station_codes: List[int], time_of_interest: datetime) -> List[WeatherStationHourlyReadings]:
+async def get_hourly_readings(
+        station_codes: List[int],
+        time_of_interest: datetime) -> List[WeatherStationHourlyReadings]:
     """ Get the hourly readings for the list of station codes provided.
     """
     # Create a list containing all the tasks to run in parallel.

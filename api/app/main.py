@@ -16,6 +16,7 @@ from app import hourlies
 from app import stations
 from app.frontend import frontend
 from app.routers import forecasts, weather_models
+import app.time_utils as time_utils
 
 
 configure_logging()
@@ -113,7 +114,11 @@ async def get_hourlies(request: schemas.shared.WeatherDataRequest, _: bool = Dep
     try:
         logger.info('/observations/')
 
-        time_of_interest = datetime.fromisoformat(request.time_of_interest)
+        if request.time_of_interest is not None:
+            time_of_interest = datetime.fromisoformat(request.time_of_interest)
+        else:
+            time_of_interest = time_utils.get_utc_now()
+
         readings = await hourlies.get_hourly_readings(request.stations, time_of_interest)
 
         return schemas.observations.WeatherStationHourlyReadingsResponse(hourlies=readings)
