@@ -1,6 +1,6 @@
 import moment from 'moment'
 
-import { formatDateInISO } from 'utils/date'
+import { formatDateInISO } from './date'
 
 export const stationCodeQueryKey = 'codes'
 export const timeOfInterestQueryKey = 'toi'

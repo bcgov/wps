@@ -1,6 +1,6 @@
 import moment from 'moment'
 
-import { PST_UTC_OFFSET, PDT_UTC_OFFSET } from 'utils/constants'
+import { PST_UTC_OFFSET, PDT_UTC_OFFSET } from './constants'
 
 export const isNoonInPST = (dt: string): boolean =>
   moment(dt)
