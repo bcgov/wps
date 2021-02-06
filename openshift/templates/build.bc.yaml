@@ -89,5 +89,5 @@ objects:
               value: "{{REACT_APP_MATOMO_CONTAINER}}"
           buildArgs:
             - name: "DOCKER_IMAGE"
-              value: ${DOCKER_IMAGE}
+              value: "${{DOCKER_IMAGE}}"
       triggers: []
