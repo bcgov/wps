@@ -70,7 +70,7 @@ jobs:
         uses: bcgov/openshift-launchpad-deployment@master
         with:
           AUTH_TOKEN: ${{ secrets.OC_TOOL_TOKEN_EDIT }}
-          SCRIPT: GIT_BRANCH=${GITHUB_HEAD_REF} DOCKER_IMAGE="docker-registry.default.svc:5000/auzhsi-tools/uvicorn-gunicorn-fastapi" openshift/scripts/oc_build.sh ${SUFFIX} apply
+          SCRIPT: GIT_BRANCH=${GITHUB_HEAD_REF} DOCKER_IMAGE="docker-registry.default.svc:5000/auzhsi-tools/uvicorn-gunicorn-fastapi:python3.8-latest" openshift/scripts/oc_build.sh ${SUFFIX} apply
 
       - name: Deploy to Dev
         uses: bcgov/openshift-launchpad-deployment@master
