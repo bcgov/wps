@@ -28,6 +28,7 @@ OC_PROCESS="oc -n ${PROJ_TOOLS} process -f ${PATH_BC} \
  -p SUFFIX=${SUFFIX} \
  -p GIT_BRANCH=${GIT_BRANCH} \
  ${DOCKER_IMAGE:+ "-p DOCKER_IMAGE=${DOCKER_IMAGE}"}"
+ 
 # Apply a template (apply or use --dry-run)
 
 OC_APPLY="oc -n ${PROJ_TOOLS} apply -f -"
