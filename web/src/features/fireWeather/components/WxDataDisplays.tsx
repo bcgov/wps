@@ -76,22 +76,18 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
           const station = props.stationsByCode[code]
           if (!station) return null
 
-          const observedValues = props.observationsByStation[code]
-          const allModelValues = props.allModelsByStation[code]
-          const modelSummaries = props.modelSummariesByStation[code]
-          const noonModelValues = props.noonModelsByStation[code]
-          const allForecasts = props.allNoonForecastsByStation[code]
-          const forecastSummaries = props.forecastSummariesByStation[code]
-          const allHighResModelValues = props.allHighResModelsByStation[code]
-          const highResModelSummaries = props.highResModelSummariesByStation[code]
-          const allRegionalModelValues = props.allRegionalModelsByStation[code]
-          const regionalModelSummaries = props.regionalModelSummariesByStation[code]
+          const observations = props.observationsByStation[code]
+          const noonForecasts = props.allNoonForecastsByStation[code]
+          const noonForecastSummaries = props.forecastSummariesByStation[code]
+          const gdpsModels = props.allModelsByStation[code]
+          const gdpsSummaries = props.modelSummariesByStation[code]
+          const noonOnlyGdpsModels = props.noonModelsByStation[code]
+          const hrdpsModels = props.allHighResModelsByStation[code]
+          const hrdpsSummaries = props.highResModelSummariesByStation[code]
+          const rdpsModels = props.allRegionalModelsByStation[code]
+          const rdpsSummaries = props.regionalModelSummariesByStation[code]
           const nothingToDisplay =
-            !observedValues &&
-            !allForecasts &&
-            !allModelValues &&
-            !allHighResModelValues &&
-            !allRegionalModelValues
+            !observations && !noonForecasts && !gdpsModels && !hrdpsModels && !rdpsModels
 
           return (
             <Paper key={code} className={classes.paper} elevation={3}>
@@ -109,7 +105,7 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
                 <ObservationTable
                   testId={`observations-table-${code}`}
                   title="Past 5 days of hourly observations from station: "
-                  rows={observedValues}
+                  rows={observations}
                 />
               </ErrorBoundary>
 
@@ -117,7 +113,7 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
                 <NoonModelTable
                   testId={`noon-gdps-table-${code}`}
                   title="Interpolated global model noon values: "
-                  rows={noonModelValues}
+                  rows={noonOnlyGdpsModels}
                 />
               </ErrorBoundary>
 
@@ -125,7 +121,7 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
                 <NoonForecastTable
                   testId={`noon-forecasts-table-${code}`}
                   title="Weather forecast noon values: "
-                  rows={allForecasts}
+                  rows={noonForecasts}
                 />
               </ErrorBoundary>
 
@@ -133,15 +129,15 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
                 <WxDataGraph
                   timeOfInterest={timeOfInterest}
                   station={station}
-                  observedValues={observedValues}
-                  allModelValues={allModelValues}
-                  modelSummaries={modelSummaries}
-                  allForecasts={allForecasts}
-                  forecastSummaries={forecastSummaries}
-                  allHighResModelValues={allHighResModelValues}
-                  highResModelSummaries={highResModelSummaries}
-                  allRegionalModelValues={allRegionalModelValues}
-                  regionalModelSummaries={regionalModelSummaries}
+                  observations={observations}
+                  noonForecasts={noonForecasts}
+                  noonForecastSummaries={noonForecastSummaries}
+                  hrdpsModels={hrdpsModels}
+                  hrdpsSummaries={hrdpsSummaries}
+                  rdpsModels={rdpsModels}
+                  rdpsSummaries={rdpsSummaries}
+                  gdpsModels={gdpsModels}
+                  gdpsSummaries={gdpsSummaries}
                 />
               </ErrorBoundary>
             </Paper>

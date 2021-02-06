@@ -26,11 +26,11 @@ interface Props {
   timeOfInterest: Date
   sliderRange: [string, string]
   toggleValues: ToggleValues
-  observedValues: ObservedValue[]
-  forecastValues: NoonForecastValue[]
-  hrdpsModelValues: ModelValue[]
-  rdpsModelValues: ModelValue[]
-  gdpsModelValues: ModelValue[]
+  observations: ObservedValue[]
+  noonForecasts: NoonForecastValue[]
+  hrdpsModels: ModelValue[]
+  rdpsModels: ModelValue[]
+  gdpsModels: ModelValue[]
 }
 
 const PrecipitationGraph = (props: Props) => {
@@ -39,50 +39,50 @@ const PrecipitationGraph = (props: Props) => {
     timeOfInterest,
     sliderRange,
     toggleValues,
-    observedValues,
-    forecastValues,
-    gdpsModelValues,
-    rdpsModelValues,
-    hrdpsModelValues
+    observations,
+    noonForecasts,
+    gdpsModels,
+    rdpsModels,
+    hrdpsModels
   } = props
 
-  const observation = populateGraphDataForPrecip(
-    observedValues,
+  const observationData = populateGraphDataForPrecip(
+    observations,
     'Observation',
     observedPrecipColor,
     toggleValues.showObservations
   )
-  const forecast = populateGraphDataForPrecip(
-    forecastValues,
+  const forecastData = populateGraphDataForPrecip(
+    noonForecasts,
     'Forecast',
     forecastPrecipColor,
     toggleValues.showForecasts
   )
-  const hrdps = populateGraphDataForPrecip(
-    hrdpsModelValues,
+  const hrdpsData = populateGraphDataForPrecip(
+    hrdpsModels,
     'HRDPS',
     hrdpsPrecipColor,
     toggleValues.showHrdps
   )
-  const gdps = populateGraphDataForPrecip(
-    gdpsModelValues,
+  const gdpsData = populateGraphDataForPrecip(
+    gdpsModels,
     'GDPS',
     gdpsPrecipColor,
     toggleValues.showGdps
   )
-  const rdps = populateGraphDataForPrecip(
-    rdpsModelValues,
+  const rdpsData = populateGraphDataForPrecip(
+    rdpsModels,
     'RDPS',
     rdpsPrecipColor,
     toggleValues.showRdps
   )
 
   const maxY = findMaxNumber([
-    observation.maxAccumPrecip,
-    forecast.maxAccumPrecip,
-    hrdps.maxAccumPrecip,
-    gdps.maxAccumPrecip,
-    rdps.maxAccumPrecip
+    observationData.maxAccumPrecip,
+    forecastData.maxAccumPrecip,
+    hrdpsData.maxAccumPrecip,
+    gdpsData.maxAccumPrecip,
+    rdpsData.maxAccumPrecip
   ])
   const y2Range = [0, maxY]
   const timeOfInterestLine = populateTimeOfInterestLineData(
@@ -99,16 +99,16 @@ const PrecipitationGraph = (props: Props) => {
         config={{ responsive: true }}
         data={[
           timeOfInterestLine,
-          gdps.accumPrecipsline,
-          gdps.dailyPrecipsBar,
-          rdps.accumPrecipsline,
-          rdps.dailyPrecipsBar,
-          hrdps.accumPrecipsline,
-          hrdps.dailyPrecipsBar,
-          forecast.accumPrecipsline,
-          forecast.dailyPrecipsBar,
-          observation.accumPrecipsline,
-          observation.dailyPrecipsBar
+          gdpsData.accumPrecipsline,
+          gdpsData.dailyPrecipsBar,
+          rdpsData.accumPrecipsline,
+          rdpsData.dailyPrecipsBar,
+          hrdpsData.accumPrecipsline,
+          hrdpsData.dailyPrecipsBar,
+          forecastData.accumPrecipsline,
+          forecastData.dailyPrecipsBar,
+          observationData.accumPrecipsline,
+          observationData.dailyPrecipsBar
         ]}
         layout={{
           ...getLayoutConfig(

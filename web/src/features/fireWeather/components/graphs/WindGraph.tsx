@@ -20,10 +20,10 @@ export interface Props {
   timeOfInterest: Date
   sliderRange: [string, string]
   toggleValues: ToggleValues
-  observedValues: ObservedValue[]
-  hrdpsModelValues: ModelValue[]
-  rdpsModelValues: ModelValue[]
-  gdpsModelValues: ModelValue[]
+  observations: ObservedValue[]
+  hrdpsModels: ModelValue[]
+  rdpsModels: ModelValue[]
+  gdpsModels: ModelValue[]
 }
 
 const observationLineColor = '#005f87'
@@ -41,36 +41,36 @@ const WindGraph = (props: Props) => {
     timeOfInterest,
     sliderRange,
     toggleValues,
-    observedValues,
-    gdpsModelValues,
-    rdpsModelValues,
-    hrdpsModelValues
+    observations,
+    gdpsModels,
+    rdpsModels,
+    hrdpsModels
   } = props
   const { showObservations, showGdps, showRdps, showHrdps } = toggleValues
 
-  const observation = populateGraphDataForWind(
-    observedValues,
+  const observationData = populateGraphDataForWind(
+    observations,
     'Observation',
     showObservations,
     observationLineColor,
     observationArrowColor
   )
-  const hrdps = populateGraphDataForWind(
-    hrdpsModelValues,
+  const hrdpsData = populateGraphDataForWind(
+    hrdpsModels,
     'HRDPS',
     showHrdps,
     hrdpsLineColor,
     hrdpsArrowColor
   )
-  const rdps = populateGraphDataForWind(
-    rdpsModelValues,
+  const rdpsData = populateGraphDataForWind(
+    rdpsModels,
     'RDPS',
     showRdps,
     rdpsLineColor,
     rdpsArrowColor
   )
-  const gdps = populateGraphDataForWind(
-    gdpsModelValues,
+  const gdpsData = populateGraphDataForWind(
+    gdpsModels,
     'GDPS',
     showGdps,
     gdpsLineColor,
@@ -78,16 +78,16 @@ const WindGraph = (props: Props) => {
   )
 
   const maxWindSpd = findMaxNumber([
-    observation.maxWindSpd,
-    gdps.maxWindSpd,
-    rdps.maxWindSpd,
-    hrdps.maxWindSpd
+    observationData.maxWindSpd,
+    gdpsData.maxWindSpd,
+    rdpsData.maxWindSpd,
+    hrdpsData.maxWindSpd
   ])
   const minWindSpd = findMinNumber([
-    observation.minWindSpd,
-    gdps.minWindSpd,
-    rdps.minWindSpd,
-    hrdps.minWindSpd
+    observationData.minWindSpd,
+    gdpsData.minWindSpd,
+    rdpsData.minWindSpd,
+    hrdpsData.minWindSpd
   ])
   const timeOfInterestLine = populateTimeOfInterestLineData(
     timeOfInterest,
@@ -139,10 +139,10 @@ const WindGraph = (props: Props) => {
         }}
         data={[
           timeOfInterestLine,
-          gdps.windSpdLine,
-          rdps.windSpdLine,
-          hrdps.windSpdLine,
-          observation.windSpdLine
+          gdpsData.windSpdLine,
+          rdpsData.windSpdLine,
+          hrdpsData.windSpdLine,
+          observationData.windSpdLine
         ]}
         layout={{
           ...getLayoutConfig(
@@ -169,10 +169,10 @@ const WindGraph = (props: Props) => {
             fixedrange: true
           },
           shapes: [
-            ...gdps.windDirArrows,
-            ...rdps.windDirArrows,
-            ...hrdps.windDirArrows,
-            ...observation.windDirArrows
+            ...gdpsData.windDirArrows,
+            ...rdpsData.windDirArrows,
+            ...hrdpsData.windDirArrows,
+            ...observationData.windDirArrows
           ]
         }}
       />
