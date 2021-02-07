@@ -30,6 +30,10 @@ const modelsSlice = createSlice({
     getModelsStart(state: State) {
       state.error = null
       state.loading = true
+      state.allModelsByStation = {}
+      state.pastModelsByStation = {}
+      state.modelsByStation = {}
+      state.noonModelsByStation = {}
     },
     getModelsFailed(state: State, action: PayloadAction<string>) {
       state.error = action.payload

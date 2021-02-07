@@ -23,6 +23,7 @@ const regionalModelSummariesSlice = createSlice({
     getRegionalModelSummariesStart(state: State) {
       state.error = null
       state.loading = true
+      state.regionalModelSummariesByStation = {}
     },
     getRegionalModelSummariesFailed(state: State, action: PayloadAction<string>) {
       state.error = action.payload

@@ -28,6 +28,9 @@ const highResModelsSlice = createSlice({
     getHighResModelsStart(state: State) {
       state.error = null
       state.loading = true
+      state.allHighResModelsByStation = {}
+      state.pastHighResModelsByStation = {}
+      state.highResModelsByStation = {}
     },
     getHighResModelsFailed(state: State, action: PayloadAction<string>) {
       state.error = action.payload

@@ -23,6 +23,7 @@ const highResModelSummariesSlice = createSlice({
     getHighResModelSummariesStart(state: State) {
       state.error = null
       state.loading = true
+      state.highResModelSummariesByStation = {}
     },
     getHighResModelSummariesFailed(state: State, action: PayloadAction<string>) {
       state.error = action.payload

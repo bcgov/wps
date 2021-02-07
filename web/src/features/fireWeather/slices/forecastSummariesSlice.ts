@@ -27,6 +27,7 @@ const forecastSummariesSlice = createSlice({
     getForecastSummariesStart(state: State) {
       state.error = null
       state.loading = true
+      state.forecastSummariesByStation = {}
     },
     getForecastSummariesFailed(state: State, action: PayloadAction<string>) {
       state.error = action.payload

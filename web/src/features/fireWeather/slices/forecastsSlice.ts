@@ -27,6 +27,9 @@ const forecastsSlice = createSlice({
     getForecastsStart(state: State) {
       state.loading = true
       state.error = null
+      state.allNoonForecastsByStation = {}
+      state.pastNoonForecastsByStation = {}
+      state.noonForecastsByStation = {}
     },
     getForecastsFailed(state: State, action: PayloadAction<string>) {
       state.loading = false

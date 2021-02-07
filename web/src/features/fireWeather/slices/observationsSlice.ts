@@ -25,6 +25,8 @@ const observationsSlice = createSlice({
     getObservationsStart(state: State) {
       state.error = null
       state.loading = true
+      state.observationsByStation = {}
+      state.observations = []
     },
     getObservationsFailed(state: State, action: PayloadAction<string>) {
       state.error = action.payload

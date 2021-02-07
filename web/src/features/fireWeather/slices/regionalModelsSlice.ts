@@ -27,6 +27,9 @@ const regionalModelsSlice = createSlice({
     getRegionalModelsStart(state: State) {
       state.error = null
       state.loading = true
+      state.allRegionalModelsByStation = {}
+      state.pastRegionalModelsByStation = {}
+      state.regionalModelsByStation = {}
     },
     getRegionalModelsFailed(state: State, action: PayloadAction<string>) {
       state.error = action.payload

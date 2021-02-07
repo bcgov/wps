@@ -23,6 +23,7 @@ const modelSummariesSlice = createSlice({
     getModelSummariesStart(state: State) {
       state.error = null
       state.loading = true
+      state.modelSummariesByStation = {}
     },
     getModelSummariesFailed(state: State, action: PayloadAction<string>) {
       state.error = action.payload
