@@ -30,6 +30,10 @@ parameters:
     description: Location of docker image
     required: true
     value: docker-registry.default.svc:5000/auzhsi-tools/uvicorn-gunicorn-fastapi:python3.8-latest
+  - name: DOCKER_FILE
+    description: Dockerfile to use
+    required: true
+    value: Dockerfile
 objects:
   - apiVersion: v1
     kind: ImageStream
@@ -90,4 +94,5 @@ objects:
           buildArgs:
             - name: "DOCKER_IMAGE"
               value: "${{DOCKER_IMAGE}}"
+          dockerfilePath: ${DOCKER_FILE}
       triggers: []
