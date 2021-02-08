@@ -26,10 +26,6 @@ parameters:
   - name: GIT_BRANCH
     description: PR branch
     required: true
-  - name: DOCKER_IMAGE
-    description: Location of docker image
-    required: true
-    value: docker-registry.default.svc:5000/auzhsi-tools/uvicorn-gunicorn-fastapi:python3.8-latest
   - name: DOCKER_FILE
     description: Dockerfile to use
     required: true

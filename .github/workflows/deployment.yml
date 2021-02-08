@@ -133,7 +133,7 @@ jobs:
         uses: Sybrand/openshift-launchpad-deployment@ocp4support
         with:
           AUTH_TOKEN: ${{ secrets.OC4_TOOL_TOKEN }}
-          SCRIPT: GIT_BRANCH=${GITHUB_HEAD_REF} PROJ_TOOLS="e1e498-tools" PROJ_DEV="e1e498-dev" openshift/scripts/oc_build.sh ${SUFFIX} apply
+          SCRIPT: GIT_BRANCH=${GITHUB_HEAD_REF} PROJ_TOOLS="e1e498-tools" PROJ_DEV="e1e498-dev" DOCKER_FILE="Dockerfile" openshift/scripts/oc_build.sh ${SUFFIX} apply
 
       # - name: Deploy to Dev
       #   uses: Sybrand/openshift-launchpad-deployment@ocp4support
