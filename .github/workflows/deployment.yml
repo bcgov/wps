@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Deploy PostGIS instance
-        uses: Sybrand/openshift-launchpad-deployment@add-jq
+        uses: bcgov/openshift-launchpad-deployment@v1.1
         with:
           AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
           SCRIPT: EPHEMERAL_STORAGE=True openshift/scripts/oc_provision_db.sh ${SUFFIX} apply
