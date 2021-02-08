@@ -24,11 +24,11 @@ describe('MoreCast Page', () => {
     cy.getByTestId('time-of-interest-picker').type(timeOfInterest.slice(0, 16)) // yyyy-MM-ddThh:mm
 
     cy.getByTestId('get-wx-data-button').click({ force: true })
-    cy.url().should('contain', `${stationCodeQueryKey}=${stationCode}`)
-    cy.wait('@getRdpsSummaries').then(xhr => {
-      expect(xhr.requestBody).to.eql({ stations: [stationCode], time_of_interest: timeOfInterest })
-    })
+    cy.url()
+      .should('contain', `${stationCodeQueryKey}=${stationCode}`)
+      .and('contain', `toi=${timeOfInterest}`)
 
+    cy.wait('@getRdpsSummaries')
     cy.checkErrorMessage('Error occurred (while fetching hourly observations).')
     cy.checkErrorMessage('Error occurred (while fetching GDPS).')
     cy.checkErrorMessage('Error occurred (while fetching GDPS summaries).')
