@@ -3,6 +3,7 @@ import React from 'react'
 import { ModelValue } from 'api/modelAPI'
 import { NoonForecastValue } from 'api/forecastAPI'
 import { MODEL_VALUE_DECIMAL } from 'utils/constants'
+import { formatDateInPST } from 'utils/date'
 import SortableTableByDatetime, {
   Column
 } from 'features/fireWeather/components/tables/SortableTableByDatetime'
@@ -15,9 +16,9 @@ import SortableTableByDatetime, {
 const sharedColumns: Column[] = [
   {
     id: 'datetime',
-    label: 'Date (PDT)',
+    label: 'Date (PST)',
     align: 'left',
-    formatDt: (value: string): string => value.slice(0, 10)
+    formatDt: (value: string): string => formatDateInPST(value)
   },
   {
     id: 'temperature',
