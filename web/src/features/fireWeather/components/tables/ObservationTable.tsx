@@ -5,15 +5,15 @@ import SortableTableByDatetime, {
   Column
 } from 'features/fireWeather/components/tables/SortableTableByDatetime'
 import { HOURLY_VALUES_DECIMAL } from 'utils/constants'
-import { formatDateInPDT } from 'utils/date'
+import { formatDateInPST } from 'utils/date'
 
 export const columns: Column[] = [
   {
     id: 'datetime',
-    label: 'Date (PDT)',
+    label: 'Date (PST)',
     minWidth: 120,
     align: 'left',
-    formatDt: (value: string): string => formatDateInPDT(value)
+    formatDt: (value: string): string => formatDateInPST(value)
   },
   {
     id: 'temperature',
