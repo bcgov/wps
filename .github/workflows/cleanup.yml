@@ -20,13 +20,13 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Clean up api
-        uses: bcgov/openshift-launchpad-deployment@master
+        uses: bcgov/openshift-launchpad-deployment@v1.1
         with:
           AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
           SCRIPT: openshift/scripts/oc_cleanup.sh ${SUFFIX} apply
 
       - name: Clean up database
-        uses: bcgov/openshift-launchpad-deployment@master
+        uses: bcgov/openshift-launchpad-deployment@v1.1
         with:
           AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
           SCRIPT: openshift/scripts/oc_cleanup_db.sh ${SUFFIX} apply
