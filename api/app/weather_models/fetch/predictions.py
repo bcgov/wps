@@ -47,10 +47,10 @@ async def fetch_model_run_predictions_by_station_code(
         model: ModelEnum,
         station_codes: List[int],
         time_of_interest: datetime) -> List[WeatherStationModelRunsPredictions]:
-    """ Fetch model predictions from database based on list of station code, up to the specified end_date.
+    """ Fetch model predictions from database based on list of station codes, for a specified datetime.
     Predictions are grouped by station and model run.
     """
-    # We're only interested in the last 5 days.
+    # We're interested in the 5 days prior to and 10 days following the time_of_interest.
     start_date = time_of_interest - datetime.timedelta(days=5)
     end_date = time_of_interest + datetime.timedelta(days=10)
 

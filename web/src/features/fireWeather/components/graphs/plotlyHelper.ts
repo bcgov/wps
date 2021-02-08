@@ -393,15 +393,15 @@ export const getDailyAndAccumPrecips = (values: PrecipValue[]) => {
     })
 
     Object.entries(aggregatedPrecips).forEach(([formattedDate, totalPrecip]) => {
-      const midNightOfTheDay = getMidnightDate(formattedDate)
-      dates.push(midNightOfTheDay)
+      const midnightOfTheDay = getMidnightDate(formattedDate)
+      dates.push(midnightOfTheDay)
       dailyPrecips.push(totalPrecip)
     })
   } else {
     values.forEach(({ datetime, total_precipitation }) => {
       if (total_precipitation !== undefined) {
-        const midNightOfTheDay = getMidnightDate(datetime)
-        dates.push(midNightOfTheDay)
+        const midnightOfTheDay = getMidnightDate(datetime)
+        dates.push(midnightOfTheDay)
         dailyPrecips.push(Number(total_precipitation))
       }
     })
