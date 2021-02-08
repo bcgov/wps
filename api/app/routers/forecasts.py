@@ -6,7 +6,6 @@ from fastapi import APIRouter, Depends
 from app.auth import authenticate
 from app.schemas.forecasts import NoonForecastResponse, NoonForecastSummariesResponse
 from app.schemas.shared import WeatherDataRequest
-from app.schemas.stations import StationCodeList
 from app.forecasts.noon_forecasts import fetch_noon_forecasts
 from app.forecasts.noon_forecasts_summaries import fetch_noon_forecasts_summaries
 import app.time_utils as time_utils
