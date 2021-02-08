@@ -10,7 +10,7 @@ import { ToggleValues } from 'features/fireWeather/components/graphs/useGraphTog
 import {
   getLayoutConfig,
   populateGraphDataForTempAndRH,
-  populateNowLineData,
+  populateTimeOfInterestLineData,
   rangeSliderConfig
 } from 'features/fireWeather/components/graphs/plotlyHelper'
 
@@ -35,39 +35,39 @@ const biasdGdpsRHColor = '#176bc4'
 
 interface Props {
   station: Station
-  currDate: Date
+  timeOfInterest: Date
   sliderRange: [string, string]
   toggleValues: ToggleValues
-  observedValues: ObservedValue[]
-  forecastValues: NoonForecastValue[]
-  forecastSummaries: ForecastSummary[]
-  hrdpsValues: ModelValue[]
+  observations: ObservedValue[]
+  noonForecasts: NoonForecastValue[]
+  NoonForecastSummaries: ForecastSummary[]
+  hrdpsModels: ModelValue[]
   hrdpsSummaries: ModelSummary[]
-  rdpsValues: ModelValue[]
+  rdpsModels: ModelValue[]
   rdpsSummaries: ModelSummary[]
-  gdpsValues: ModelValue[]
+  gdpsModels: ModelValue[]
   gdpsSummaries: ModelSummary[]
 }
 
 const TempRHGraph = (props: Props) => {
   const {
     station,
-    currDate,
+    timeOfInterest,
     sliderRange,
     toggleValues,
-    observedValues,
-    forecastValues,
-    forecastSummaries,
-    hrdpsValues,
+    observations,
+    noonForecasts,
+    NoonForecastSummaries,
+    hrdpsModels,
     hrdpsSummaries,
-    gdpsValues,
+    gdpsModels,
     gdpsSummaries,
-    rdpsValues,
+    rdpsModels,
     rdpsSummaries
   } = props
 
-  const observation = populateGraphDataForTempAndRH(
-    observedValues,
+  const observationData = populateGraphDataForTempAndRH(
+    observations,
     'Observed Temp',
     'Observed RH',
     toggleValues.showObservations,
@@ -76,8 +76,8 @@ const TempRHGraph = (props: Props) => {
     observedTempColor,
     observedRHColor
   )
-  const forecast = populateGraphDataForTempAndRH(
-    [...forecastValues, ...forecastSummaries],
+  const forecastData = populateGraphDataForTempAndRH(
+    [...noonForecasts, ...NoonForecastSummaries],
     'Forecast Temp',
     'Forecast RH',
     toggleValues.showForecasts,
@@ -86,8 +86,8 @@ const TempRHGraph = (props: Props) => {
     forecastTempColor,
     forecastRHColor
   )
-  const hrdps = populateGraphDataForTempAndRH(
-    [...hrdpsValues, ...hrdpsSummaries],
+  const hrdpsData = populateGraphDataForTempAndRH(
+    [...hrdpsModels, ...hrdpsSummaries],
     'HRDPS Temp',
     'HRDPS RH',
     toggleValues.showHrdps,
@@ -98,8 +98,8 @@ const TempRHGraph = (props: Props) => {
     hrdpsTempPlumeColor,
     hrdpsRHPlumeColor
   )
-  const gdps = populateGraphDataForTempAndRH(
-    [...gdpsValues, ...gdpsSummaries],
+  const gdpsData = populateGraphDataForTempAndRH(
+    [...gdpsModels, ...gdpsSummaries],
     'GDPS Temp',
     'GDPS RH',
     toggleValues.showGdps,
@@ -110,8 +110,8 @@ const TempRHGraph = (props: Props) => {
     gdpsTempPlumeColor,
     gdpsRHPlumeColor
   )
-  const rdps = populateGraphDataForTempAndRH(
-    [...rdpsValues, ...rdpsSummaries],
+  const rdpsData = populateGraphDataForTempAndRH(
+    [...rdpsModels, ...rdpsSummaries],
     'RDPS Temp',
     'RDPS RH',
     toggleValues.showRdps,
@@ -122,8 +122,8 @@ const TempRHGraph = (props: Props) => {
     rdpsTempPlumeColor,
     rdpsRHPlumeColor
   )
-  const biasAdjGdps = populateGraphDataForTempAndRH(
-    gdpsValues,
+  const biasAdjGdpsData = populateGraphDataForTempAndRH(
+    gdpsModels,
     'Bias Adjusted GDPS Temp',
     'Bias Adjusted GDPS RH',
     toggleValues.showBiasAdjGdps,
@@ -134,7 +134,12 @@ const TempRHGraph = (props: Props) => {
   )
 
   const y2Range = [0, 102]
-  const nowLine = populateNowLineData(currDate, y2Range[0], y2Range[1], 'y2')
+  const timeOfInterestLine = populateTimeOfInterestLineData(
+    timeOfInterest,
+    y2Range[0],
+    y2Range[1],
+    'y2'
+  )
 
   return (
     <div data-testid="temp-rh-graph">
@@ -142,37 +147,37 @@ const TempRHGraph = (props: Props) => {
         style={{ width: '100%', height: '100%' }}
         config={{ responsive: true }}
         data={[
-          nowLine,
+          timeOfInterestLine,
 
           // Plumes
-          gdps.rh5thLine,
-          gdps.rh90thLine,
-          gdps.temp5thLine,
-          gdps.temp90thLine,
-          rdps.rh5thLine,
-          rdps.rh90thLine,
-          rdps.temp5thLine,
-          rdps.temp90thLine,
-          hrdps.rh5thLine,
-          hrdps.rh90thLine,
-          hrdps.temp5thLine,
-          hrdps.temp90thLine,
+          gdpsData.rh5thLine,
+          gdpsData.rh90thLine,
+          gdpsData.temp5thLine,
+          gdpsData.temp90thLine,
+          rdpsData.rh5thLine,
+          rdpsData.rh90thLine,
+          rdpsData.temp5thLine,
+          rdpsData.temp90thLine,
+          hrdpsData.rh5thLine,
+          hrdpsData.rh90thLine,
+          hrdpsData.temp5thLine,
+          hrdpsData.temp90thLine,
 
           // Lines & dots
-          biasAdjGdps.biasAdjRHLine,
-          biasAdjGdps.biasAdjTempLine,
-          gdps.rhLine,
-          gdps.tempLine,
-          rdps.rhLine,
-          rdps.tempLine,
-          hrdps.rhLine,
-          hrdps.tempLine,
-          ...forecast.tempVerticalLines,
-          ...forecast.rhVerticalLines,
-          forecast.rhDots,
-          forecast.tempDots,
-          observation.rhLine,
-          observation.tempLine
+          biasAdjGdpsData.biasAdjRHLine,
+          biasAdjGdpsData.biasAdjTempLine,
+          gdpsData.rhLine,
+          gdpsData.tempLine,
+          rdpsData.rhLine,
+          rdpsData.tempLine,
+          hrdpsData.rhLine,
+          hrdpsData.tempLine,
+          ...forecastData.tempVerticalLines,
+          ...forecastData.rhVerticalLines,
+          forecastData.rhDots,
+          forecastData.tempDots,
+          observationData.rhLine,
+          observationData.tempLine
         ]}
         layout={{
           ...getLayoutConfig(
@@ -181,7 +186,7 @@ const TempRHGraph = (props: Props) => {
           xaxis: {
             range: sliderRange,
             rangeslider: rangeSliderConfig,
-            hoverformat: '%I:00%p, %a, %b %e', // https://github.com/d3/d3-3.x-api-reference/blob/master/Time-Formatting.md#format
+            hoverformat: '%I:00%p, %a, %b %e (PST)', // https://github.com/d3/d3-3.x-api-reference/blob/master/Time-Formatting.md#format
             tickfont: { size: 14 },
             type: 'date',
             dtick: 86400000.0 // Set the interval between ticks to one day: https://plotly.com/javascript/reference/#scatter-marker-colorbar-dtick

@@ -13,6 +13,7 @@ from app.tests.common import (
 from app.db.models import PredictionModel, PredictionModelRunTimestamp
 import app.db.database
 import app.time_utils as time_utils
+from app.schemas.shared import WeatherDataRequest
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +56,12 @@ def mock_requests(monkeypatch):
 def mock_get_now(monkeypatch):
     """ Patch all calls to app.timeutils: get_utc_now and get_pst_now  """
     timestamp = 1590076213962/1000
+
+    # The default value for WeatherDataRequest cannot be mocked out, as it
+    # is declared prior to test mocks being loaded. We manipulate the class
+    # directly in order to have the desire default be deterministic.
+    WeatherDataRequest.__fields__['time_of_interest'].default = datetime.fromtimestamp(
+        timestamp, tz=timezone.utc)
 
     def mock_utc_now():
         return datetime.fromtimestamp(timestamp, tz=timezone.utc)

@@ -11,18 +11,19 @@ import {
   findMaxNumber,
   findMinNumber,
   populateGraphDataForWind,
-  populateNowLineData,
+  populateTimeOfInterestLineData,
   rangeSliderConfig
 } from 'features/fireWeather/components/graphs/plotlyHelper'
+
 export interface Props {
   station: Station
-  currDate: Date
+  timeOfInterest: Date
   sliderRange: [string, string]
   toggleValues: ToggleValues
-  observedValues: ObservedValue[]
-  hrdpsModelValues: ModelValue[]
-  rdpsModelValues: ModelValue[]
-  gdpsModelValues: ModelValue[]
+  observations: ObservedValue[]
+  hrdpsModels: ModelValue[]
+  rdpsModels: ModelValue[]
+  gdpsModels: ModelValue[]
 }
 
 const observationLineColor = '#005f87'
@@ -37,39 +38,39 @@ const gdpsArrowColor = gdpsLineColor
 const WindGraph = (props: Props) => {
   const {
     station,
-    currDate,
+    timeOfInterest,
     sliderRange,
     toggleValues,
-    observedValues,
-    gdpsModelValues,
-    rdpsModelValues,
-    hrdpsModelValues
+    observations,
+    gdpsModels,
+    rdpsModels,
+    hrdpsModels
   } = props
   const { showObservations, showGdps, showRdps, showHrdps } = toggleValues
 
-  const observation = populateGraphDataForWind(
-    observedValues,
+  const observationData = populateGraphDataForWind(
+    observations,
     'Observation',
     showObservations,
     observationLineColor,
     observationArrowColor
   )
-  const hrdps = populateGraphDataForWind(
-    hrdpsModelValues,
+  const hrdpsData = populateGraphDataForWind(
+    hrdpsModels,
     'HRDPS',
     showHrdps,
     hrdpsLineColor,
     hrdpsArrowColor
   )
-  const rdps = populateGraphDataForWind(
-    rdpsModelValues,
+  const rdpsData = populateGraphDataForWind(
+    rdpsModels,
     'RDPS',
     showRdps,
     rdpsLineColor,
     rdpsArrowColor
   )
-  const gdps = populateGraphDataForWind(
-    gdpsModelValues,
+  const gdpsData = populateGraphDataForWind(
+    gdpsModels,
     'GDPS',
     showGdps,
     gdpsLineColor,
@@ -77,18 +78,22 @@ const WindGraph = (props: Props) => {
   )
 
   const maxWindSpd = findMaxNumber([
-    observation.maxWindSpd,
-    gdps.maxWindSpd,
-    rdps.maxWindSpd,
-    hrdps.maxWindSpd
+    observationData.maxWindSpd,
+    gdpsData.maxWindSpd,
+    rdpsData.maxWindSpd,
+    hrdpsData.maxWindSpd
   ])
   const minWindSpd = findMinNumber([
-    observation.minWindSpd,
-    gdps.minWindSpd,
-    rdps.minWindSpd,
-    hrdps.minWindSpd
+    observationData.minWindSpd,
+    gdpsData.minWindSpd,
+    rdpsData.minWindSpd,
+    hrdpsData.minWindSpd
   ])
-  const nowLine = populateNowLineData(currDate, minWindSpd, maxWindSpd)
+  const timeOfInterestLine = populateTimeOfInterestLineData(
+    timeOfInterest,
+    minWindSpd,
+    maxWindSpd
+  )
 
   return (
     <div data-testid="wind-spd-dir-graph">
@@ -133,11 +138,11 @@ const WindGraph = (props: Props) => {
           return true
         }}
         data={[
-          nowLine,
-          gdps.windSpdLine,
-          rdps.windSpdLine,
-          hrdps.windSpdLine,
-          observation.windSpdLine
+          timeOfInterestLine,
+          gdpsData.windSpdLine,
+          rdpsData.windSpdLine,
+          hrdpsData.windSpdLine,
+          observationData.windSpdLine
         ]}
         layout={{
           ...getLayoutConfig(
@@ -146,7 +151,7 @@ const WindGraph = (props: Props) => {
           xaxis: {
             range: sliderRange,
             rangeslider: rangeSliderConfig,
-            hoverformat: '%I:00%p, %a, %b %e', // https://github.com/d3/d3-3.x-api-reference/blob/master/Time-Formatting.md#format
+            hoverformat: '%I:00%p, %a, %b %e (PST)', // https://github.com/d3/d3-3.x-api-reference/blob/master/Time-Formatting.md#format
             tickfont: { size: 14 },
             type: 'date',
             dtick: 86400000.0 // Set the interval between ticks to one day: https://plotly.com/javascript/reference/#scatter-marker-colorbar-dtick
@@ -164,10 +169,10 @@ const WindGraph = (props: Props) => {
             fixedrange: true
           },
           shapes: [
-            ...gdps.windDirArrows,
-            ...rdps.windDirArrows,
-            ...hrdps.windDirArrows,
-            ...observation.windDirArrows
+            ...gdpsData.windDirArrows,
+            ...rdpsData.windDirArrows,
+            ...hrdpsData.windDirArrows,
+            ...observationData.windDirArrows
           ]
         }}
       />
