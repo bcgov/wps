@@ -3,7 +3,6 @@
 See README.md for details on how to run.
 """
 import logging
-from datetime import datetime
 from fastapi import FastAPI, Depends, Response
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.applications import Starlette
@@ -16,7 +15,6 @@ from app import hourlies
 from app import stations
 from app.frontend import frontend
 from app.routers import forecasts, weather_models
-import app.time_utils as time_utils
 
 
 configure_logging()

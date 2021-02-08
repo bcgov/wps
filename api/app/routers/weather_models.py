@@ -1,10 +1,8 @@
 """ Routers for weather_models.
 """
 import logging
-from datetime import datetime
 from fastapi import APIRouter, Depends
 from app.auth import authenticate
-import app.time_utils as time_utils
 from app.weather_models import ModelEnum
 from app.schemas.weather_models import (
     WeatherModelPredictionSummaryResponse,
