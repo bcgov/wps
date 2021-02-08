@@ -1,6 +1,6 @@
 import moment from 'moment'
 
-import { PST_UTC_OFFSET, PDT_UTC_OFFSET } from 'utils/constants'
+import { PST_UTC_OFFSET, PDT_UTC_OFFSET } from './constants'
 
 export const isNoonInPST = (dt: string): boolean =>
   moment(dt)
@@ -23,3 +23,6 @@ export const formatMonthAndDay = (month: number, day: number): string =>
     .month(month - 1)
     .date(day)
     .format('D MMMM')
+
+export const formatDateInISO = (date: Date, format?: string): string =>
+  moment(date).format(format || 'YYYY-MM-DDTHH:mm:ssZ')

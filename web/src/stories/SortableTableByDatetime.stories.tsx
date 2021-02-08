@@ -28,7 +28,7 @@ ObservationTable.args = {
 
 export const NoonModelTable = Template.bind({})
 NoonModelTable.args = {
-  title: 'Interpolated global model noon values (20:00 UTC): ',
+  title: 'Interpolated global model noon values: ',
   testId: 'test_id_2',
   rows: modelValues.filter(v => isNoonInPST(v.datetime)),
   columns: noonModelTableColumns
@@ -36,7 +36,7 @@ NoonModelTable.args = {
 
 export const NoonForecastTable = Template.bind({})
 NoonForecastTable.args = {
-  title: 'Weather forecast noon values (20:00 UTC): ',
+  title: 'Weather forecast noon values: ',
   testId: 'test_id_3',
   rows: forecastValues,
   columns: noonForecastTableColumns
