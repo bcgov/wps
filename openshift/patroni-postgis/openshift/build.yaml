@@ -9,7 +9,7 @@ labels:
   app.kubernetes.io/component: database
   app.kubernetes.io/name: patroni
   app.kubernetes.io/managed-by: template
-  app.kubernetes.io/version: "10"
+  app.kubernetes.io/version: "11"
 parameters:
   - name: NAME
     value: patroni

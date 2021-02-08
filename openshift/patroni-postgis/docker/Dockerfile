@@ -10,20 +10,21 @@ ENV PATRONI_HOME=/opt/patroni
 # PostGIS adapted from https://github.com/appropriate/docker-postgis
 # PostGIS install further adapted from https://gist.github.com/stephenhillier/17bf0a7365f00c916d80733028f34ae9
 
-ARG PGHOME=/home/postgres
-
 ENV POSTGIS_MAJOR 3
 ENV POSTGIS_VERSION 3.1.1+dfsg-1.pgdg90+1
+
+RUN apt-get update -y \
+    && apt-cache showpkg postgresql-$PG_MAJOR-postgis-$POSTGIS_MAJOR \
+    && apt-get install -y --no-install-recommends \
+    postgresql-$PG_MAJOR-postgis-$POSTGIS_MAJOR=$POSTGIS_VERSION \
+    postgresql-$PG_MAJOR-postgis-$POSTGIS_MAJOR-scripts=$POSTGIS_VERSION
+
+ARG PGHOME=/home/postgres
 
 RUN export DEBIAN_FRONTEND=noninteractive \
     && set -x \
     && echo 'APT::Install-Recommends "0";\nAPT::Install-Suggests "0";' > /etc/apt/apt.conf.d/01norecommend \
-    && apt-get update -y \
     && apt-get install -y curl jq locales git build-essential python3 python3-dev python3-pip python3-wheel python3-setuptools python3-virtualenv \
-    && apt-cache showpkg postgresql-$PG_MAJOR-postgis-$POSTGIS_MAJOR \
-    && apt-get install -y --no-install-recommends \
-    postgresql-$PG_MAJOR-postgis-$POSTGIS_MAJOR=$POSTGIS_VERSION \
-    postgresql-$PG_MAJOR-postgis-$POSTGIS_MAJOR-scripts=$POSTGIS_VERSION \
     && echo 'Make sure we have a en_US.UTF-8 locale available' \
     && localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8 \
     && pip3 --isolated --no-cache-dir install psycopg2-binary \
