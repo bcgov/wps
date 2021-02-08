@@ -82,6 +82,7 @@ jobs:
 
       - name: Install remaining python dependencies (api)
         working-directory: ./api
+        if: steps.cache-poetry.outputs.cache-hit != 'true'
         run: |
           source ~/.poetry/env
           poetry install
