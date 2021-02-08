@@ -27,6 +27,9 @@ const regionalModelsSlice = createSlice({
     getRegionalModelsStart(state: State) {
       state.error = null
       state.loading = true
+      state.allRegionalModelsByStation = {}
+      state.pastRegionalModelsByStation = {}
+      state.regionalModelsByStation = {}
     },
     getRegionalModelsFailed(state: State, action: PayloadAction<string>) {
       state.error = action.payload
@@ -56,10 +59,13 @@ export const {
 
 export default regionalModelsSlice.reducer
 
-export const fetchRegionalModels = (codes: number[]): AppThunk => async dispatch => {
+export const fetchRegionalModels = (
+  codes: number[],
+  timeOfInterest: string
+): AppThunk => async dispatch => {
   try {
     dispatch(getRegionalModelsStart())
-    const modelsForStations = await getModelsWithBiasAdj(codes, 'RDPS')
+    const modelsForStations = await getModelsWithBiasAdj(codes, 'RDPS', timeOfInterest)
     dispatch(getRegionalModelsSuccess(modelsForStations))
   } catch (err) {
     dispatch(getRegionalModelsFailed(err.toString()))

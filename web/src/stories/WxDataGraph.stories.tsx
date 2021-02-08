@@ -46,13 +46,13 @@ const station = {
 export const Default = Template.bind({})
 Default.args = {
   station,
-  observedValues: observedValues,
-  allModelValues: pastModelValues.concat(modelValues) as ModelValue[],
-  modelSummaries: modelSummaries,
-  allForecasts: pastForecastValues.concat(forecastValues) as NoonForecastValue[],
-  forecastSummaries: forecastSummaries,
-  allHighResModelValues: pastHighResModelValues.concat(highResModelValues) as ModelValue[], // prettier-ignore
-  highResModelSummaries: highResModelSummaries,
-  allRegionalModelValues: pastRegionalModelValues.concat(regionalModelValues) as ModelValue[], // prettier-ignore
-  regionalModelSummaries: regionalModelSummaries
+  observations: observedValues,
+  gdpsModels: pastModelValues.concat(modelValues) as ModelValue[],
+  gdpsSummaries: modelSummaries,
+  noonForecasts: pastForecastValues.concat(forecastValues) as NoonForecastValue[],
+  noonForecastSummaries: forecastSummaries,
+  hrdpsModels: pastHighResModelValues.concat(highResModelValues) as ModelValue[], // prettier-ignore
+  hrdpsSummaries: highResModelSummaries,
+  rdpsModels: pastRegionalModelValues.concat(regionalModelValues) as ModelValue[], // prettier-ignore
+  rdpsSummaries: regionalModelSummaries
 }

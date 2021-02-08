@@ -34,11 +34,13 @@ export interface ModelSummariesResponse {
  */
 export async function getModelSummaries(
   stationCodes: number[],
-  model: 'GDPS' | 'HRDPS' | 'RDPS'
+  model: 'GDPS' | 'HRDPS' | 'RDPS',
+  timeOfInterest: string
 ): Promise<ModelSummariesForStation[]> {
   const url = `/weather_models/${model}/predictions/summaries/`
   const { data } = await axios.post<ModelSummariesResponse>(url, {
-    stations: stationCodes
+    stations: stationCodes,
+    time_of_interest: timeOfInterest
   })
 
   return data.summaries
@@ -92,11 +94,13 @@ export interface BiasAdjModelResponse {
  */
 export async function getModelsWithBiasAdj(
   stationCodes: number[],
-  model: 'GDPS' | 'HRDPS' | 'RDPS'
+  model: 'GDPS' | 'HRDPS' | 'RDPS',
+  timeOfInterest: string
 ): Promise<ModelsForStation[]> {
   const url = `/weather_models/${model}/predictions/most_recent/`
   const { data } = await axios.post<BiasAdjModelResponse>(url, {
-    stations: stationCodes
+    stations: stationCodes,
+    time_of_interest: timeOfInterest
   })
 
   return data.stations

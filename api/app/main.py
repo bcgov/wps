@@ -96,8 +96,10 @@ async def get_health():
     """ A simple endpoint for Openshift Healthchecks """
     try:
         health_check = health.patroni_cluster_health_check()
+
         logger.info('/health - healthy: %s. %s',
                     health_check.get('healthy'), health_check.get('message'))
+
         return health_check
     except Exception as exception:
         logger.error(exception, exc_info=True)
@@ -105,11 +107,13 @@ async def get_health():
 
 
 @api.post('/observations/', response_model=schemas.observations.WeatherStationHourlyReadingsResponse)
-async def get_hourlies(request: schemas.stations.StationCodeList, _: bool = Depends(authenticate)):
+async def get_hourlies(request: schemas.shared.WeatherDataRequest, _: bool = Depends(authenticate)):
     """ Returns hourly observations for the last 5 days, for the specified weather stations """
     try:
         logger.info('/observations/')
-        readings = await hourlies.get_hourly_readings(request.stations)
+
+        readings = await hourlies.get_hourly_readings(request.stations, request.time_of_interest)
+
         return schemas.observations.WeatherStationHourlyReadingsResponse(hourlies=readings)
     except Exception as exception:
         logger.critical(exception, exc_info=True)
@@ -122,8 +126,10 @@ async def get_stations(response: Response):
     """
     try:
         logger.info('/stations/')
+
         weather_stations = await stations.get_stations()
         response.headers["Cache-Control"] = "max-age=43200"  # let browsers to cache the data for 12 hours
+
         return schemas.stations.WeatherStationsResponse(weather_stations=weather_stations)
     except Exception as exception:
         logger.critical(exception, exc_info=True)
@@ -136,7 +142,9 @@ async def get_percentiles(request: schemas.percentiles.PercentileRequest):
     """
     try:
         logger.info('/percentiles/')
+
         percentiles = get_precalculated_percentiles(request)
+
         return percentiles
     except Exception as exception:
         logger.critical(exception, exc_info=True)
