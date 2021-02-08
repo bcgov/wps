@@ -26,12 +26,8 @@ def get_noon_forecasts(request: WeatherDataRequest):
     try:
         logger.info('/noon/')
 
-        if request.time_of_interest is not None:
-            time_of_interest = datetime.fromisoformat(request.time_of_interest)
-        else:
-            time_of_interest = time_utils.get_utc_now()
-        back_5_days = time_of_interest - timedelta(days=5)
-        forward_5_days = time_of_interest + timedelta(days=5)
+        back_5_days = request.time_of_interest - timedelta(days=5)
+        forward_5_days = request.time_of_interest + timedelta(days=5)
 
         return fetch_noon_forecasts(request.stations, back_5_days, forward_5_days)
     except Exception as exception:
@@ -45,13 +41,9 @@ async def get_noon_forecasts_summaries(request: WeatherDataRequest):
     try:
         logger.info('/noon/summaries/')
 
-        if request.time_of_interest is not None:
-            time_of_interest = datetime.fromisoformat(request.time_of_interest)
-        else:
-            time_of_interest = time_utils.get_utc_now()
-        back_5_days = time_of_interest - timedelta(days=5)
+        back_5_days = request.time_of_interest - timedelta(days=5)
 
-        return await fetch_noon_forecasts_summaries(request.stations, back_5_days, time_of_interest)
+        return await fetch_noon_forecasts_summaries(request.stations, back_5_days, request.time_of_interest)
 
     except Exception as exception:
         logger.critical(exception, exc_info=True)

@@ -114,12 +114,7 @@ async def get_hourlies(request: schemas.shared.WeatherDataRequest, _: bool = Dep
     try:
         logger.info('/observations/')
 
-        if request.time_of_interest is not None:
-            time_of_interest = datetime.fromisoformat(request.time_of_interest)
-        else:
-            time_of_interest = time_utils.get_utc_now()
-
-        readings = await hourlies.get_hourly_readings(request.stations, time_of_interest)
+        readings = await hourlies.get_hourly_readings(request.stations, request.time_of_interest)
 
         return schemas.observations.WeatherStationHourlyReadingsResponse(hourlies=readings)
     except Exception as exception:

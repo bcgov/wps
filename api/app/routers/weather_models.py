@@ -30,12 +30,7 @@ async def get_model_prediction_summaries(
     try:
         logger.info('/weather_models/%s/predictions/summaries/', model.name)
 
-        if request.time_of_interest is not None:
-            time_of_interest = datetime.fromisoformat(request.time_of_interest)
-        else:
-            time_of_interest = time_utils.get_utc_now()
-
-        summaries = await fetch_model_prediction_summaries(model, request.stations, time_of_interest)
+        summaries = await fetch_model_prediction_summaries(model, request.stations, request.time_of_interest)
 
         return WeatherModelPredictionSummaryResponse(summaries=summaries)
     except Exception as exception:
@@ -53,13 +48,8 @@ async def get_most_recent_model_values(
     try:
         logger.info('/weather_models/%s/predictions/most_recent/', model.name)
 
-        if request.time_of_interest is not None:
-            time_of_interest = datetime.fromisoformat(request.time_of_interest)
-        else:
-            time_of_interest = time_utils.get_utc_now()
-
         station_predictions = await fetch_model_run_predictions_by_station_code(
-            model, request.stations, time_of_interest)
+            model, request.stations, request.time_of_interest)
 
         return WeatherStationsModelRunsPredictionsResponse(
             stations=station_predictions)
