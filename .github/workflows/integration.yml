@@ -61,15 +61,15 @@ jobs:
           sudo apt-get update --fix-missing && sudo apt-get -y install libgdal-dev
 
       # poetry cache folder: /home/runner/.cache/pypoetry
-      # - name: Cache poetry
-      #   uses: actions/cache@v2
-      #   env:
-      #     cache-name: cache-poetry
-      #   with:
-      #     path: ~/.cache/pypoetry
-      #     key: ${{ runner.os }}-poetry-cache-${{ hashFiles('**/poetry.lock') }}
-      #     restore-keys: |
-      #       ${{ runner.os }}-poetry-cache-
+      - name: Cache poetry
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-poetry
+        with:
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-cache-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-cache-
 
       - name: Install gdal python (api)
         # We don't have much control over what version of gdal we're getting, it's pretty much whatever is
@@ -82,7 +82,6 @@ jobs:
 
       - name: Install remaining python dependencies (api)
         working-directory: ./api
-        if: steps.cache-poetry.outputs.cache-hit != 'true'
         run: |
           source ~/.poetry/env
           poetry install
