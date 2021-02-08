@@ -1,6 +1,13 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import moment from 'moment'
 import { Data, Shape, Layout, RangeSlider } from 'plotly.js'
+import { PST_UTC_OFFSET } from 'utils/constants'
+
+const getPSTOffsetDate = (datetime: string) => {
+  return moment(datetime)
+    .utcOffset(PST_UTC_OFFSET)
+    .toDate()
+}
 
 export const findMaxNumber = (arr: number[]): number => {
   if (arr.length === 0) {
@@ -36,7 +43,7 @@ export const getLayoutConfig = (title: string): Partial<Layout> => ({
   }
 })
 
-export const populateNowLineData = (
+export const populateTimeOfInterestLineData = (
   x: Date,
   y0: number,
   y1: number,
@@ -46,7 +53,7 @@ export const populateNowLineData = (
     x: [x, x],
     y: [y0, y1],
     mode: 'lines',
-    name: 'Now',
+    name: 'Time of Interest',
     line: {
       color: 'green',
       width: 2,
@@ -125,7 +132,7 @@ export const populateGraphDataForTempAndRH = (
       bias_adjusted_temperature,
       bias_adjusted_relative_humidity
     } = value
-    const date = new Date(datetime)
+    const date = getPSTOffsetDate(datetime)
 
     if (temperature != null) {
       tempDates.push(date)
@@ -345,6 +352,13 @@ export const populateGraphDataForTempAndRH = (
 
 /* -------------------------- Precipitation -------------------------- */
 
+const getMidnightDate = (formattedDate: string) => {
+  return moment(formattedDate)
+    .utcOffset(PST_UTC_OFFSET)
+    .set({ hour: 0 })
+    .toDate()
+}
+
 interface PrecipValue {
   datetime: string
   precipitation?: number | null
@@ -379,19 +393,15 @@ export const getDailyAndAccumPrecips = (values: PrecipValue[]) => {
     })
 
     Object.entries(aggregatedPrecips).forEach(([formattedDate, totalPrecip]) => {
-      const midNightOfTheDay = moment(formattedDate)
-        .set({ hour: 0 })
-        .toDate()
-      dates.push(midNightOfTheDay)
+      const midnightOfTheDay = getMidnightDate(formattedDate)
+      dates.push(midnightOfTheDay)
       dailyPrecips.push(totalPrecip)
     })
   } else {
     values.forEach(({ datetime, total_precipitation }) => {
       if (total_precipitation !== undefined) {
-        const midNightOfTheDay = moment(datetime)
-          .set({ hour: 0 })
-          .toDate()
-        dates.push(midNightOfTheDay)
+        const midnightOfTheDay = getMidnightDate(datetime)
+        dates.push(midnightOfTheDay)
         dailyPrecips.push(Number(total_precipitation))
       }
     })
@@ -561,7 +571,7 @@ export const populateGraphDataForWind = (
 
   values.forEach(({ wind_direction, wind_speed, datetime }) => {
     if (wind_speed != null) {
-      dates.push(new Date(datetime))
+      dates.push(getPSTOffsetDate(datetime))
       windSpds.push(wind_speed)
       windSpdsTexts.push(wind_direction != null ? `${Math.round(wind_direction)}` : '-')
 

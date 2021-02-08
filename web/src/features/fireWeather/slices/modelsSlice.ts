@@ -30,6 +30,10 @@ const modelsSlice = createSlice({
     getModelsStart(state: State) {
       state.error = null
       state.loading = true
+      state.allModelsByStation = {}
+      state.pastModelsByStation = {}
+      state.modelsByStation = {}
+      state.noonModelsByStation = {}
     },
     getModelsFailed(state: State, action: PayloadAction<string>) {
       state.error = action.payload
@@ -57,11 +61,12 @@ export const { getModelsStart, getModelsFailed, getModelsSuccess } = modelsSlice
 export default modelsSlice.reducer
 
 export const fetchGlobalModelsWithBiasAdj = (
-  codes: number[]
+  codes: number[],
+  timeOfInterest: string
 ): AppThunk => async dispatch => {
   try {
     dispatch(getModelsStart())
-    const modelsForStations = await getModelsWithBiasAdj(codes, 'GDPS')
+    const modelsForStations = await getModelsWithBiasAdj(codes, 'GDPS', timeOfInterest)
     dispatch(getModelsSuccess(modelsForStations))
   } catch (err) {
     dispatch(getModelsFailed(err.toString()))

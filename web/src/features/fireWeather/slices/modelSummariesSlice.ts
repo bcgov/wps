@@ -23,6 +23,7 @@ const modelSummariesSlice = createSlice({
     getModelSummariesStart(state: State) {
       state.error = null
       state.loading = true
+      state.modelSummariesByStation = {}
     },
     getModelSummariesFailed(state: State, action: PayloadAction<string>) {
       state.error = action.payload
@@ -53,11 +54,12 @@ export const {
 export default modelSummariesSlice.reducer
 
 export const fetchGlobalModelSummaries = (
-  stationCodes: number[]
+  stationCodes: number[],
+  timeOfInterest: string
 ): AppThunk => async dispatch => {
   try {
     dispatch(getModelSummariesStart())
-    const modelSummaries = await getModelSummaries(stationCodes, 'GDPS')
+    const modelSummaries = await getModelSummaries(stationCodes, 'GDPS', timeOfInterest)
     dispatch(getModelSummariesSuccess(modelSummaries))
   } catch (err) {
     dispatch(getModelSummariesFailed(err.toString()))

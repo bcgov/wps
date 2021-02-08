@@ -20,43 +20,43 @@ const useStyles = makeStyles({
 })
 
 interface Props {
+  timeOfInterest: Date
   station: Station
-  observedValues: ObservedValue[] | undefined
-  allModelValues: ModelValue[] | undefined
-  modelSummaries: ModelSummary[] | undefined
-  allForecasts: NoonForecastValue[] | undefined
-  forecastSummaries: ForecastSummary[] | undefined
-  allHighResModelValues: ModelValue[] | undefined
-  highResModelSummaries: ModelSummary[] | undefined
-  allRegionalModelValues: ModelValue[] | undefined
-  regionalModelSummaries: ModelSummary[] | undefined
+  observations: ObservedValue[] | undefined
+  noonForecasts: NoonForecastValue[] | undefined
+  noonForecastSummaries: ForecastSummary[] | undefined
+  hrdpsModels: ModelValue[] | undefined
+  hrdpsSummaries: ModelSummary[] | undefined
+  rdpsModels: ModelValue[] | undefined
+  rdpsSummaries: ModelSummary[] | undefined
+  gdpsModels: ModelValue[] | undefined
+  gdpsSummaries: ModelSummary[] | undefined
 }
 
 const WxDataGraph = ({
+  timeOfInterest,
   station,
-  observedValues = [],
-  allModelValues = [],
-  modelSummaries = [],
-  allForecasts = [],
-  forecastSummaries = [],
-  allHighResModelValues = [],
-  highResModelSummaries = [],
-  allRegionalModelValues = [],
-  regionalModelSummaries = []
+  observations = [],
+  noonForecasts = [],
+  noonForecastSummaries = [],
+  hrdpsModels = [],
+  hrdpsSummaries = [],
+  rdpsModels = [],
+  rdpsSummaries = [],
+  gdpsModels = [],
+  gdpsSummaries = []
 }: Props) => {
   const classes = useStyles()
 
-  const hasObservations = observedValues.length !== 0
-  const hasModels = allModelValues.length !== 0
-  const hasForecasts = allForecasts.length !== 0
+  const hasObservations = observations.length !== 0
+  const hasModels = gdpsModels.length !== 0
+  const hasForecasts = noonForecasts.length !== 0
   const hasBiasAdjModels =
-    allModelValues.filter(
+    gdpsModels.filter(
       v => v.bias_adjusted_temperature || v.bias_adjusted_relative_humidity
     ).length !== 0
-  const hasHighResModels = allHighResModelValues.length !== 0
-  const hasRegionalModels = allRegionalModelValues.length !== 0
-
-  const currDate = new Date()
+  const hasHighResModels = hrdpsModels.length !== 0
+  const hasRegionalModels = rdpsModels.length !== 0
 
   /* Note: Plotly isn't updating its props in a correct way
    * (Plot component may mutate its layout and data props in response to user input, going against React rules) https://github.com/plotly/react-plotly.js#api-reference
@@ -65,8 +65,8 @@ const WxDataGraph = ({
    * (This is bad by the way since it makes impossible for us to capture the change of the state)
    */
   const initialXAxisRange: [string, string] = [
-    formatDateInPST(moment(currDate).subtract(2, 'days').toDate()), // prettier-ignore
-    formatDateInPST(moment(currDate).add(2, 'days').toDate()) // prettier-ignore
+    formatDateInPST(moment(timeOfInterest).subtract(2, 'days').toDate()), // prettier-ignore
+    formatDateInPST(moment(timeOfInterest).add(2, 'days').toDate()) // prettier-ignore
   ]
   const [sliderRange] = useState(initialXAxisRange)
 
@@ -105,41 +105,41 @@ const WxDataGraph = ({
 
       <TempRHGraph
         station={station}
-        currDate={currDate}
+        timeOfInterest={timeOfInterest}
         sliderRange={sliderRange}
         toggleValues={toggleValues}
-        observedValues={observedValues}
-        forecastValues={allForecasts}
-        forecastSummaries={forecastSummaries}
-        gdpsValues={allModelValues}
-        gdpsSummaries={modelSummaries}
-        hrdpsValues={allHighResModelValues}
-        hrdpsSummaries={highResModelSummaries}
-        rdpsValues={allRegionalModelValues}
-        rdpsSummaries={regionalModelSummaries}
+        observations={observations}
+        noonForecasts={noonForecasts}
+        NoonForecastSummaries={noonForecastSummaries}
+        gdpsModels={gdpsModels}
+        gdpsSummaries={gdpsSummaries}
+        hrdpsModels={hrdpsModels}
+        hrdpsSummaries={hrdpsSummaries}
+        rdpsModels={rdpsModels}
+        rdpsSummaries={rdpsSummaries}
       />
 
       <PrecipitationGraph
         station={station}
-        currDate={currDate}
+        timeOfInterest={timeOfInterest}
         sliderRange={sliderRange}
         toggleValues={toggleValues}
-        observedValues={observedValues}
-        forecastValues={allForecasts}
-        hrdpsModelValues={allHighResModelValues}
-        gdpsModelValues={allModelValues}
-        rdpsModelValues={allRegionalModelValues}
+        observations={observations}
+        noonForecasts={noonForecasts}
+        hrdpsModels={hrdpsModels}
+        gdpsModels={gdpsModels}
+        rdpsModels={rdpsModels}
       />
 
       <WindGraph
         station={station}
-        currDate={currDate}
+        timeOfInterest={timeOfInterest}
         sliderRange={sliderRange}
         toggleValues={toggleValues}
-        observedValues={observedValues}
-        hrdpsModelValues={allHighResModelValues}
-        gdpsModelValues={allModelValues}
-        rdpsModelValues={allRegionalModelValues}
+        observations={observations}
+        hrdpsModels={hrdpsModels}
+        gdpsModels={gdpsModels}
+        rdpsModels={rdpsModels}
       />
     </div>
   )
