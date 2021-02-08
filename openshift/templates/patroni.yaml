@@ -172,7 +172,7 @@ objects:
                   value: ${DISK_SPACE_WARNING_LIMIT}
                 - name: ROCKET_URI
                   value: ${ROCKET_URI}
-              image: ${IMAGE_SERVER}/${IMAGE_NAMESPACE}/patroni:${IMAGE_VERSION}
+              image: ${IMAGE_SERVER}/${IMAGE_NAMESPACE}/patroni-postgres:${IMAGE_VERSION}
               imagePullPolicy: Always
               name: ${APPLICATION_NAME}
               ports:
