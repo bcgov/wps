@@ -1,0 +1,201 @@
+# Copyright 2020 The Province of British Columbia
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+---
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  annotations:
+    description: |-
+      Patroni Postgresql database cluster, with persistent storage.
+    iconClass: icon-postgresql
+    openshift.io/display-name: Patroni Postgresql (Persistent)
+    openshift.io/long-description: This template deploys a patroni postgresql HA
+      cluster with persistent storage.
+    tags: postgresql
+  name: patroni-pgsql-persistent
+labels:
+  app: ${NAME}
+  phase: deploy
+  app.kubernetes.io/instance: ${NAME}
+  app.kubernetes.io/component: database
+  app.kubernetes.io/name: patroni
+  app.kubernetes.io/managed-by: template
+objects:
+  - apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      labels:
+        app: ${NAME}
+        cluster-name: ${NAME}
+      name: ${NAME}
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+      labels:
+        app: ${NAME}
+        cluster-name: ${NAME}
+      name: ${NAME}
+      annotations:
+        template.alpha.openshift.io/wait-for-ready: "true"
+    rules:
+      - apiGroups:
+          - ""
+        resources:
+          - services
+        verbs:
+          - create
+          - get
+          - list
+          - patch
+          - update
+          - watch
+          - delete
+      - apiGroups:
+          - ""
+        resources:
+          - configmaps
+        verbs:
+          - create
+          - get
+          - list
+          - patch
+          - update
+          - watch
+          - delete
+      - apiGroups:
+          - ""
+        resources:
+          - endpoints
+        verbs:
+          - get
+          - patch
+          - update
+          - create
+          - list
+          - watch
+          - delete
+      - apiGroups:
+          - ""
+        resources:
+          - pods
+        verbs:
+          - get
+          - list
+          - patch
+          - update
+          - watch
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      labels:
+        app: ${NAME}
+        cluster-name: ${NAME}
+      name: ${NAME}
+      annotations:
+        template.alpha.openshift.io/wait-for-ready: "true"
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: Role
+      name: ${NAME}
+    subjects:
+      - kind: ServiceAccount
+        name: ${NAME}
+  - apiVersion: security.devops.gov.bc.ca/v1alpha1
+    kind: NetworkSecurityPolicy
+    metadata:
+      name: patroni-db-to-db-${NAME}
+      labels:
+        app: ${NAME}
+        cluster-name: ${NAME}
+      annotations:
+        template.alpha.openshift.io/wait-for-ready: "true"
+    spec:
+      description: |
+        allow patroni pods to talk to one another for replication etc.
+      source:
+        - - "$namespace=${TARGET_NAMESPACE}"
+          - "statefulset=${NAME}"
+      destination:
+        - - "$namespace=${TARGET_NAMESPACE}"
+          - "statefulset=${NAME}"
+parameters:
+  - name: NAME
+    description: |
+      The name of the application for labelling all artifacts.
+    displayName: Application Name
+    required: true
+  - name: PARENT_NAME
+    description: |
+      The name of the primary application that uses this database.
+    displayName: Parent Application Name
+    required: true
+  - name: REPLICAS
+    description: |
+      The number of StatefulSet replicas to use.
+    displayName: REPLICAS
+    value: "3"
+  - name: CPU_REQUEST
+    description: |
+      Starting amount of CPU the container can use.
+    displayName: CPU REQUEST
+    value: "50m"
+  - name: CPU_LIMIT
+    description: Maximum amount of CPU the container can use.
+    displayName: CPU Limit
+    value: "250m"
+  - name: MEMORY_REQUEST
+    description: Starting amount of memory the container can use.
+    displayName: Memory Request
+    value: 256Mi
+  - name: MEMORY_LIMIT
+    description: Maximum amount of memory the container can use.
+    displayName: Memory Limit
+    value: 1Gi
+  - description: Namespace in which database resides
+    displayName: Target Namespace
+    name: TARGET_NAMESPACE
+    required: true
+  - name: IMAGE_STREAM_NAMESPACE
+    description: |
+      The OpenShift Namespace where the patroni and postgresql
+      ImageStream resides.
+    displayName: ImageStream Namespace
+    required: True
+    value: bcgov
+  - name: IMAGE_NAME
+    description: |
+      The Patroni image stream name
+    value: patroni-postgres
+  - name: IMAGE_TAG
+    description: |
+      The image tag used to specify which image you would like deployed.
+      Don't use `latest`.
+    value: "v12"
+  - name: PVC_SIZE
+    description: The size of the persistent volume to create.
+    displayName: Persistent Volume Size
+    value: 5Gi
+  - name: STORAGE_CLASS
+    value: netapp-file-standard
+  - name: IMAGE_REGISTRY
+    value: image-registry.openshift-image-registry.svc:5000
+  - description: Username of the superuser account for initialization.
+    displayName: Superuser Username
+    name: PATRONI_SUPERUSER_USERNAME
+    value: postgres
+  - description: Username of the replication account for initialization.
+    displayName: Replication Username
+    name: PATRONI_REPLICATION_USERNAME
+    value: replication
