@@ -26,6 +26,7 @@ const TimeOfInterestPicker = (props: Props) => {
       label="Time of Interest (PST-08:00)"
       type="datetime-local"
       value={formatDateInPST(props.timeOfInterest, 'YYYY-MM-DDTHH:mm')}
+      helperText="Disclaimer: not all data may be available."
       className={classes.datePicker}
       InputLabelProps={{
         shrink: true
