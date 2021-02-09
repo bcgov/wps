@@ -22,8 +22,7 @@ jobs:
         uses: Sybrand/openshift-launchpad-deployment@ocp4support_faster
         with:
           AUTH_TOKEN: ${{ secrets.OC4_DEV_TOKEN }}
-          # SCRIPT: PVC_SIZE=2Gi PROJ_DEV=e1e498-dev IMAGE_NAMESPACE=e1e498-tools IMAGE_SERVER=image-registry.openshift-image-registry.svc:5000 IMAGE_VERSION=v10 EPHEMERAL_STORAGE=True openshift/scripts/oc_provision_db.sh ${SUFFIX} apply
-          SCRIPT: PROJ_DEV=e1e498-dev IMAGE_NAMESPACE=bcgov IMAGE_SERVER=image-registry.apps.silver.devops.gov.bc.ca IMAGE_VERSION=v12.4-latest EPHEMERAL_STORAGE=True openshift/scripts/oc_provision_db.sh ${SUFFIX} apply
+          SCRIPT: EPHEMERAL_STORAGE=True PROJ_TARGET=e1e498-dev IMAGE_STREAM_NAMESPACE=e1e498-tools openshift/scripts/oc_provision_db.sh ${SUFFIX} apply
 
   prepare-database:
     name: Prepare Dev Database
@@ -41,7 +40,7 @@ jobs:
         uses: bcgov/openshift-launchpad-deployment@v1.1
         with:
           AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
-          SCRIPT: EPHEMERAL_STORAGE=True openshift/scripts/oc_provision_db.sh ${SUFFIX} apply
+          SCRIPT: EPHEMERAL_STORAGE=True PROJ_TARGET=auzhsi-dev IMAGE_STREAM_NAMESPACE=auzhsi-tools IMAGE_NAME=patroni IMAGE_TAG=v10 IMAGE_REGISTRY=docker-registry.default.svc:5000 openshift/scripts/oc_provision_db.sh ${SUFFIX} apply
 
   # prepare-database-backups:
   #   name: Prepare Dev Database Backups
