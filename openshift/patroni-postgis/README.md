@@ -1,17 +1,11 @@
 # Patroni for Openshift - with PostGIS for the Wildfire Predictive Services Unit
 
-## Source & Credit
-
-Copied from [BCDevOps](https://github.com/bcdevOps/platform-services/) which was in turn sourced from [Patroni](https://github.com/zalando/patroni) and modified for PostGIS with assistence from [Stephen Hillier](https://gist.github.com/stephenhillier/17bf0a7365f00c916d80733028f34ae9).
-
-## Modifications made
-
-- Dockerfile and post_init.sh modified to include PostGIS.
-- post_init.sh modified to escape username and database.
+The WPS project uses an image based on the bcgov patroni image (see: https://github.com/bcgov/patroni-postgres-container),
+adding PostGIS (see: https://github.com/postgis/docker-postgis/).
 
 ## Usage in the WPS project
 
-The WPS pipeline currently assumes the existence of an appropriately tagged patroni imagestream in the tools project.
+The WPS pipeline currently assumes the existence of an appropriately tagged patroni-postgres imagestream in the tools project.
 
 ### Build and tag an imagestream as follows:
 
@@ -19,9 +13,9 @@ The WPS pipeline currently assumes the existence of an appropriately tagged patr
 # Build a patroni imagestream:
 oc -n e1e498-tools process -f openshift/build.yaml | oc -n e1e498-tools apply -f -
 # Tag the old imagestream so we can keep it around if we need to revert:
-oc -n e1e498-tools tag patroni:v11 patroni:v11-<date deprecated, e.g. 20200826>
+oc -n e1e498-tools tag patroni:v12 patroni:v12-<date deprecated, e.g. 20200826>
 # Tag the new imagestream (it won't be used until the pods get re-created):
-oc -n e1e498-tools tag patroni:v11-latest patroni:v11
+oc -n e1e498-tools tag patroni:v12-latest patroni:v12
 ```
 
 #### Common build failures
