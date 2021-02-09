@@ -225,6 +225,7 @@ objects:
               volume.beta.kubernetes.io/storage-class: ${STORAGE_CLASS}
             labels:
               app: ${NAME}
+              cluster-name: ${NAME}
             name: postgresql
           spec:
             storageClassName: ${STORAGE_CLASS}
@@ -289,7 +290,7 @@ parameters:
   - name: PVC_SIZE
     description: The size of the persistent volume to create.
     displayName: Persistent Volume Size
-    value: 5Gi
+    value: 2Gi
   - name: STORAGE_CLASS
     value: netapp-file-standard
   - name: IMAGE_REGISTRY
