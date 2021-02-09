@@ -25,38 +25,38 @@ parameters:
     value: "10"
 objects:
   #ImageStream is create if it doesn't already exist
-  - apiVersion: image.openshift.io/v1
-    kind: ImageStream
-    metadata:
-      annotations: {}
-      creationTimestamp: null
-      generation: 1
-      name: postgres
-    spec:
-      lookupPolicy:
-        local: false
-      tags:
-        - annotations: null
-          from:
-            kind: DockerImage
-            name: registry.hub.docker.com/library/postgres:${POSTGRES_VERSION}
-          generation: 1
-          importPolicy: {}
-          name: "${POSTGRES_VERSION}"
-          referencePolicy:
-            type: Source
-    status:
-      dockerImageRepository: ""
-  - apiVersion: v1
-    kind: ImageStream
-    metadata:
-      creationTimestamp: null
-      name: ${NAME}
-    spec:
-      lookupPolicy:
-        local: false
-    status:
-      dockerImageRepository: ""
+  # - apiVersion: image.openshift.io/v1
+  #   kind: ImageStream
+  #   metadata:
+  #     annotations: {}
+  #     creationTimestamp: null
+  #     generation: 1
+  #     name: postgres
+  #   spec:
+  #     lookupPolicy:
+  #       local: false
+  #     tags:
+  #       - annotations: null
+  #         from:
+  #           kind: DockerImage
+  #           name: registry.hub.docker.com/library/postgres:${POSTGRES_VERSION}
+  #         generation: 1
+  #         importPolicy: {}
+  #         name: "${POSTGRES_VERSION}"
+  #         referencePolicy:
+  #           type: Source
+  #   status:
+  #     dockerImageRepository: ""
+  # - apiVersion: v1
+  #   kind: ImageStream
+  #   metadata:
+  #     creationTimestamp: null
+  #     name: ${NAME}
+  #   spec:
+  #     lookupPolicy:
+  #       local: false
+  #   status:
+  #     dockerImageRepository: ""
   - apiVersion: v1
     kind: BuildConfig
     metadata:
