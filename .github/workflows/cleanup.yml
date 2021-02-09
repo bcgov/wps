@@ -19,14 +19,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Clean up api
+      - name: Clean up api (OCP3)
         uses: bcgov/openshift-launchpad-deployment@v1.1
         with:
           AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
           SCRIPT: openshift/scripts/oc_cleanup.sh ${SUFFIX} apply
 
-      - name: Clean up database
+      - name: Clean up api (OCP4)
+        uses: bcgov/openshift-launchpad-deployment@v1.2
+        with:
+          AUTH_TOKEN: ${{ secrets.OC4_DEV_TOKEN }}
+          SCRIPT: openshift/scripts/oc_cleanup.sh ${SUFFIX} apply
+
+      - name: Clean up database (OCP3)
         uses: bcgov/openshift-launchpad-deployment@v1.1
         with:
           AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
+          SCRIPT: openshift/scripts/oc_cleanup_db_ocp3.sh ${SUFFIX} apply
+
+      - name: Clean up database (OCP4)
+        uses: bcgov/openshift-launchpad-deployment@v1.2
+        with:
+          AUTH_TOKEN: ${{ secrets.OC4_DEV_TOKEN }}
           SCRIPT: openshift/scripts/oc_cleanup_db.sh ${SUFFIX} apply
