@@ -5,6 +5,8 @@ FROM image-registry.openshift-image-registry.svc:5000/bcgov/patroni-postgres:12.
 ENV POSTGIS_MAJOR 3
 ENV POSTGIS_VERSION 3.1.1+dfsg-1.pgdg100+1
 
+RUN mkdir /var/lib/apt/lists/
+
 RUN apt-get update \
     && apt-cache showpkg postgresql-$PG_MAJOR-postgis-$POSTGIS_MAJOR \
     && apt-get install -y --no-install-recommends \
