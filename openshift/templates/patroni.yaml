@@ -34,95 +34,22 @@ labels:
   app.kubernetes.io/managed-by: template
 objects:
   - apiVersion: v1
-    kind: ServiceAccount
+    kind: Service
     metadata:
+      creationTimestamp: null
       labels:
         app: ${NAME}
         cluster-name: ${NAME}
       name: ${NAME}
-  - apiVersion: rbac.authorization.k8s.io/v1
-    kind: Role
-    metadata:
-      labels:
-        app: ${NAME}
-        cluster-name: ${NAME}
-      name: ${NAME}
-    rules:
-      - apiGroups:
-          - ""
-        resources:
-          - services
-        verbs:
-          - create
-          - get
-          - list
-          - patch
-          - update
-          - watch
-          - delete
-      - apiGroups:
-          - ""
-        resources:
-          - configmaps
-        verbs:
-          - create
-          - get
-          - list
-          - patch
-          - update
-          - watch
-          - delete
-      - apiGroups:
-          - ""
-        resources:
-          - endpoints
-        verbs:
-          - get
-          - patch
-          - update
-          - create
-          - list
-          - watch
-          - delete
-      - apiGroups:
-          - ""
-        resources:
-          - pods
-        verbs:
-          - get
-          - list
-          - patch
-          - update
-          - watch
-  - apiVersion: rbac.authorization.k8s.io/v1
-    kind: RoleBinding
-    metadata:
-      labels:
-        app: ${NAME}
-        cluster-name: ${NAME}
-      name: ${NAME}
-    roleRef:
-      apiGroup: rbac.authorization.k8s.io
-      kind: Role
-      name: ${NAME}
-    subjects:
-      - kind: ServiceAccount
-        name: ${NAME}
-  - apiVersion: security.devops.gov.bc.ca/v1alpha1
-    kind: NetworkSecurityPolicy
-    metadata:
-      name: patroni-db-to-db-${NAME}
-      labels:
-        app: ${NAME}
     spec:
-      description: |
-        allow patroni pods to talk to one another for replication etc.
-      source:
-        - - "$namespace=${TARGET_NAMESPACE}"
-          - "statefulset=${NAME}"
-      destination:
-        - - "$namespace=${TARGET_NAMESPACE}"
-          - "statefulset=${NAME}"
+      ports:
+        - port: 5432
+          protocol: TCP
+          targetPort: 5432
+      sessionAffinity: None
+      type: ClusterIP
+    status:
+      loadBalancer: {}
   - apiVersion: v1
     kind: Service
     metadata:
@@ -174,6 +101,8 @@ objects:
         app: ${NAME}
         cluster-name: ${NAME}
       name: ${NAME}
+      annotations:
+        template.alpha.openshift.io/wait-for-ready: "true"
     spec:
       podManagementPolicy: Parallel
       replicas: ${{REPLICAS}}
