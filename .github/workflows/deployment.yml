@@ -40,7 +40,7 @@ jobs:
         uses: bcgov/openshift-launchpad-deployment@v1.1
         with:
           AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
-          SCRIPT: EPHEMERAL_STORAGE=True REMOVE_NSP=True PROJ_TARGET=auzhsi-dev IMAGE_STREAM_NAMESPACE=auzhsi-tools IMAGE_NAME=patroni IMAGE_TAG=v10 IMAGE_REGISTRY=docker-registry.default.svc:5000 openshift/scripts/oc_provision_db.sh ${SUFFIX} apply
+          SCRIPT: REMOVE_NSP=True PROJ_TARGET=auzhsi-dev IMAGE_STREAM_NAMESPACE=auzhsi-tools IMAGE_NAME=patroni IMAGE_TAG=v10 IMAGE_REGISTRY=docker-registry.default.svc:5000 openshift/scripts/oc_provision_db.sh ${SUFFIX} apply
 
   prepare-database-backups:
     name: Prepare Dev Database Backups
