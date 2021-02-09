@@ -9,20 +9,20 @@ labels:
   app.kubernetes.io/component: database
   app.kubernetes.io/name: patroni
   app.kubernetes.io/managed-by: template
-  app.kubernetes.io/version: "10"
+  app.kubernetes.io/version: "12"
 parameters:
   - name: NAME
     value: patroni
   - name: SUFFIX
   - name: VERSION
     description: Output version
-    value: "v10-latest"
+    value: "v12-latest"
   - name: GIT_URI
     value: https://github.com/bcgov/wps.git
   - name: GIT_REF
     value: main
   - name: POSTGRES_VERSION
-    value: "10"
+    value: "12"
 objects:
   #ImageStream is create if it doesn't already exist
   # - apiVersion: image.openshift.io/v1
@@ -78,9 +78,9 @@ objects:
         type: Git
       strategy:
         dockerStrategy:
-          from:
-            kind: ImageStreamTag
-            name: postgres:${POSTGRES_VERSION}
+          # from:
+          #   kind: ImageStreamTag
+          #   name: postgres:${POSTGRES_VERSION}
         type: Docker
       triggers:
         - type: ConfigChange
