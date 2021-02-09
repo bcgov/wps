@@ -27,14 +27,8 @@ source "$(dirname ${0})/common/common"
 PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
  
 # Prepare names for patroni ephemeral instance for this PR.
-# PATRONI_CLUSTER_NAME="patroni-${NAME_APP}-${SUFFIX}"
-# APPLICATION_NAME="patroni-${NAME_APP}-${SUFFIX}"
-# PATRONI_LEADER_SERVICE_NAME="patroni-leader-${NAME_APP}-${SUFFIX}"
-# PATRONI_REPLICA_SERVICE_NAME="patroni-replica-${NAME_APP}-${SUFFIX}"
-# SERVICE_ACCOUNT="patroniocp-${NAME_APP}-${SUFFIX}"
 IMAGE_STREAM_NAMESPACE=${IMAGE_STREAM_NAMESPACE:-${PROJ_TOOLS}}
 EPHEMERAL_STORAGE=${EPHEMERAL_STORAGE:-'False'}
-REMOVE_NSP=${REMOVE_NSP:-'False'}
 
 # Process pre-requisite template
 OC_PROCESS_PREREQUISITE="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/patroni_prerequisite.yaml \
@@ -76,14 +70,6 @@ then
 | del(.items[2].spec.volumeClaimTemplates)'"
 fi
 
-# OCP4 doesn't understand the NSP - so we remove it.
-if [ "$REMOVE_NSP" = "True" ]
-then
-    # Pipe the template to jq, and delete the pvc and volume claim items from the template.
-    OC_PROCESS_PREREQUISITE="${OC_PROCESS_PREREQUISITE} | jq 'del(.items[3]) \
-| del(.items[2].spec.volumeClaimTemplates)'"
-fi
-
 # Apply template (apply or use --dry-run)
 #
 OC_APPLY="oc -n ${PROJ_TARGET} apply -f -"
@@ -93,12 +79,6 @@ OC_APPLY="oc -n ${PROJ_TARGET} apply -f -"
 #
 eval "${OC_PROCESS_PREREQUISITE}"
 eval "${OC_PROCESS_PREREQUISITE} | ${OC_APPLY}"
-
-# For some reason, if the stateful set is created too soon after creating
-# the pre-requisites then postgresql never starts up.
-# Sleep of 15 second seems to usually, but not always be enough.
-# echo "Waiting a while..."
-# sleep 15
 
 eval "${OC_PROCESS}"
 eval "${OC_PROCESS} | ${OC_APPLY}"
