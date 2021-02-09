@@ -40,23 +40,6 @@ objects:
       labels:
         app: ${NAME}
         cluster-name: ${NAME}
-      name: ${NAME}
-    spec:
-      ports:
-        - port: 5432
-          protocol: TCP
-          targetPort: 5432
-      sessionAffinity: None
-      type: ClusterIP
-    status:
-      loadBalancer: {}
-  - apiVersion: v1
-    kind: Service
-    metadata:
-      creationTimestamp: null
-      labels:
-        app: ${NAME}
-        cluster-name: ${NAME}
       name: ${NAME}-master
     spec:
       ports:
