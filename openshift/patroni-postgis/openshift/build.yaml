@@ -12,7 +12,7 @@ labels:
   app.kubernetes.io/version: "12"
 parameters:
   - name: NAME
-    value: patroni
+    value: patroni-postgres
   - name: SUFFIX
   - name: VERSION
     description: Output version

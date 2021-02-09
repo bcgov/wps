@@ -363,6 +363,7 @@ parameters:
       The OpenShift Namespace where the patroni and postgresql
       ImageStream resides.
     displayName: ImageStream Namespace
+    required: True
     value: bcgov
   - name: IMAGE_NAME
     description: |
@@ -372,7 +373,7 @@ parameters:
     description: |
       The image tag used to specify which image you would like deployed.
       Don't use `latest`.
-    value: "12.4-latest"
+    value: "v12"
   - name: PVC_SIZE
     description: The size of the persistent volume to create.
     displayName: Persistent Volume Size
