@@ -22,26 +22,26 @@ jobs:
         uses: Sybrand/openshift-launchpad-deployment@ocp4support_faster
         with:
           AUTH_TOKEN: ${{ secrets.OC4_DEV_TOKEN }}
-          SCRIPT: PVC_SIZE=2Gi PROJ_DEV=e1e498-dev IMAGE_NAMESPACE=e1e498-tools IMAGE_SERVER=image-registry.openshift-image-registry.svc:5000 IMAGE_VERSION=v10 EPHEMERAL_STORAGE=True openshift/scripts/oc_provision_db.sh ${SUFFIX} apply
-          # SCRIPT: EPHEMERAL_STORAGE=True PROJ_DEV=e1e498-dev IMAGE_NAMESPACE=bcgov IMAGE_SERVER=image-registry.apps.silver.devops.gov.bc.ca IMAGE_VERSION=v12.4-latest EPHEMERAL_STORAGE=True openshift/scripts/oc_provision_db.sh ${SUFFIX} apply
+          # SCRIPT: PVC_SIZE=2Gi PROJ_DEV=e1e498-dev IMAGE_NAMESPACE=e1e498-tools IMAGE_SERVER=image-registry.openshift-image-registry.svc:5000 IMAGE_VERSION=v10 EPHEMERAL_STORAGE=True openshift/scripts/oc_provision_db.sh ${SUFFIX} apply
+          SCRIPT: PROJ_DEV=e1e498-dev IMAGE_NAMESPACE=bcgov IMAGE_SERVER=image-registry.apps.silver.devops.gov.bc.ca IMAGE_VERSION=v12.4-latest EPHEMERAL_STORAGE=True openshift/scripts/oc_provision_db.sh ${SUFFIX} apply
 
-  # prepare-database:
-  #   name: Prepare Dev Database
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Set Variables
-  #       shell: bash
-  #       run: |
-  #         echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
+  prepare-database:
+    name: Prepare Dev Database
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set Variables
+        shell: bash
+        run: |
+          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
 
-  #     - name: Checkout
-  #       uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
 
-  #     - name: Deploy PostGIS instance
-  #       uses: bcgov/openshift-launchpad-deployment@v1.1
-  #       with:
-  #         AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
-  #         SCRIPT: EPHEMERAL_STORAGE=True openshift/scripts/oc_provision_db.sh ${SUFFIX} apply
+      - name: Deploy PostGIS instance
+        uses: bcgov/openshift-launchpad-deployment@v1.1
+        with:
+          AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
+          SCRIPT: EPHEMERAL_STORAGE=True openshift/scripts/oc_provision_db.sh ${SUFFIX} apply
 
   # prepare-database-backups:
   #   name: Prepare Dev Database Backups
