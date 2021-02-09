@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Deploy PostGIS instance
-        uses: Sybrand/openshift-launchpad-deployment@ocp4support_faster
+        uses: bcgov/openshift-launchpad-deployment@v1.2
         with:
           AUTH_TOKEN: ${{ secrets.OC4_DEV_TOKEN }}
           SCRIPT: EPHEMERAL_STORAGE=True PROJ_TARGET=e1e498-dev IMAGE_STREAM_NAMESPACE=e1e498-tools openshift/scripts/oc_provision_db.sh ${SUFFIX} apply
@@ -42,95 +42,95 @@ jobs:
           AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
           SCRIPT: EPHEMERAL_STORAGE=True PROJ_TARGET=auzhsi-dev IMAGE_STREAM_NAMESPACE=auzhsi-tools IMAGE_NAME=patroni IMAGE_TAG=v10 IMAGE_REGISTRY=docker-registry.default.svc:5000 openshift/scripts/oc_provision_db.sh ${SUFFIX} apply
 
-  # prepare-database-backups:
-  #   name: Prepare Dev Database Backups
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Set Variables
-  #       shell: bash
-  #       run: |
-  #         echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
+  prepare-database-backups:
+    name: Prepare Dev Database Backups
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set Variables
+        shell: bash
+        run: |
+          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
 
-  #     - name: Checkout
-  #       uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
 
-  #     - name: Prepare Matomo Backup Volume PVC
-  #       uses: bcgov/openshift-launchpad-deployment@v1.1
-  #       with:
-  #         AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
-  #         SCRIPT: openshift/scripts/oc_provision_matomo_backup_pvc.sh ${SUFFIX} apply
+      - name: Prepare Matomo Backup Volume PVC
+        uses: bcgov/openshift-launchpad-deployment@v1.1
+        with:
+          AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
+          SCRIPT: openshift/scripts/oc_provision_matomo_backup_pvc.sh ${SUFFIX} apply
 
-  #     - name: Prepare Matomo Backup Deployment Config
-  #       uses: bcgov/openshift-launchpad-deployment@v1.1
-  #       with:
-  #         AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
-  #         SCRIPT: openshift/scripts/oc_provision_matomo_backup.sh ${SUFFIX} apply
+      - name: Prepare Matomo Backup Deployment Config
+        uses: bcgov/openshift-launchpad-deployment@v1.1
+        with:
+          AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
+          SCRIPT: openshift/scripts/oc_provision_matomo_backup.sh ${SUFFIX} apply
 
-  #     - name: Prepare Matomo Backup Cronjob
-  #       uses: bcgov/openshift-launchpad-deployment@v1.1
-  #       with:
-  #         AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
-  #         SCRIPT: openshift/scripts/oc_provision_matomo_backup_cronjob.sh ${SUFFIX} apply
+      - name: Prepare Matomo Backup Cronjob
+        uses: bcgov/openshift-launchpad-deployment@v1.1
+        with:
+          AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
+          SCRIPT: openshift/scripts/oc_provision_matomo_backup_cronjob.sh ${SUFFIX} apply
 
-  # build-and-deploy:
-  #   name: Build, Deploy to Dev & ZAP Baseline Scan
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Set Variables
-  #       shell: bash
-  #       run: |
-  #         echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
+  build-and-deploy:
+    name: Build, Deploy to Dev & ZAP Baseline Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set Variables
+        shell: bash
+        run: |
+          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
 
-  #     - name: Checkout
-  #       uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
 
-  #     - name: Build Image
-  #       uses: bcgov/openshift-launchpad-deployment@v1.1
-  #       with:
-  #         AUTH_TOKEN: ${{ secrets.OC_TOOL_TOKEN_EDIT }}
-  #         SCRIPT: GIT_BRANCH=${GITHUB_HEAD_REF} openshift/scripts/oc_build.sh ${SUFFIX} apply
+      - name: Build Image
+        uses: bcgov/openshift-launchpad-deployment@v1.1
+        with:
+          AUTH_TOKEN: ${{ secrets.OC_TOOL_TOKEN_EDIT }}
+          SCRIPT: GIT_BRANCH=${GITHUB_HEAD_REF} openshift/scripts/oc_build.sh ${SUFFIX} apply
 
-  #     - name: Deploy to Dev
-  #       uses: bcgov/openshift-launchpad-deployment@v1.1
-  #       with:
-  #         AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
-  #         SCRIPT: openshift/scripts/oc_deploy.sh ${SUFFIX} apply
+      - name: Deploy to Dev
+        uses: bcgov/openshift-launchpad-deployment@v1.1
+        with:
+          AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
+          SCRIPT: openshift/scripts/oc_deploy.sh ${SUFFIX} apply
 
-  #     - name: Hourly actuals cronjob (Marvin)
-  #       uses: bcgov/openshift-launchpad-deployment@v1.1
-  #       with:
-  #         AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
-  #         SCRIPT: openshift/scripts/oc_provision_bcfw_p1_hourly_actuals_cronjob.sh ${SUFFIX} apply
+      - name: Hourly actuals cronjob (Marvin)
+        uses: bcgov/openshift-launchpad-deployment@v1.1
+        with:
+          AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
+          SCRIPT: openshift/scripts/oc_provision_bcfw_p1_hourly_actuals_cronjob.sh ${SUFFIX} apply
 
-  #     - name: Noon forecasts cronjob (Bender)
-  #       uses: bcgov/openshift-launchpad-deployment@v1.1
-  #       with:
-  #         AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
-  #         SCRIPT: openshift/scripts/oc_provision_bcfw_p1_forecasts_cronjob.sh ${SUFFIX} apply
+      - name: Noon forecasts cronjob (Bender)
+        uses: bcgov/openshift-launchpad-deployment@v1.1
+        with:
+          AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
+          SCRIPT: openshift/scripts/oc_provision_bcfw_p1_forecasts_cronjob.sh ${SUFFIX} apply
 
-  #     - name: Environment Canada GDPS cronjob (Donald)
-  #       uses: bcgov/openshift-launchpad-deployment@v1.1
-  #       with:
-  #         AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
-  #         SCRIPT: openshift/scripts/oc_provision_ec_gdps_cronjob.sh ${SUFFIX} apply
+      - name: Environment Canada GDPS cronjob (Donald)
+        uses: bcgov/openshift-launchpad-deployment@v1.1
+        with:
+          AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
+          SCRIPT: openshift/scripts/oc_provision_ec_gdps_cronjob.sh ${SUFFIX} apply
 
-  #     - name: Environment Canada HRDPS cronjob (Donald)
-  #       uses: bcgov/openshift-launchpad-deployment@v1.1
-  #       with:
-  #         AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
-  #         SCRIPT: openshift/scripts/oc_provision_ec_hrdps_cronjob.sh ${SUFFIX} apply
+      - name: Environment Canada HRDPS cronjob (Donald)
+        uses: bcgov/openshift-launchpad-deployment@v1.1
+        with:
+          AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
+          SCRIPT: openshift/scripts/oc_provision_ec_hrdps_cronjob.sh ${SUFFIX} apply
 
-  #     - name: Environment Canada RDPS cronjob (Donald)
-  #       uses: bcgov/openshift-launchpad-deployment@v1.1
-  #       with:
-  #         AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
-  #         SCRIPT: openshift/scripts/oc_provision_ec_rdps_cronjob.sh ${SUFFIX} apply
+      - name: Environment Canada RDPS cronjob (Donald)
+        uses: bcgov/openshift-launchpad-deployment@v1.1
+        with:
+          AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
+          SCRIPT: openshift/scripts/oc_provision_ec_rdps_cronjob.sh ${SUFFIX} apply
 
-  #     # f.y.i.: ZAP Scan must be able to log an issue or it will fail.
-  #     - name: ZAP Scan
-  #       uses: zaproxy/action-baseline@v0.4.0
-  #       with:
-  #         target: "https://wps-pr-${{ github.event.number }}.pathfinder.gov.bc.ca"
-  #         rules_file_name: ".zap/rules.tsv"
-  #         # Do not return failure on warnings - TODO: this has to be resolved!
-  #         cmd_options: "-I"
+      # f.y.i.: ZAP Scan must be able to log an issue or it will fail.
+      - name: ZAP Scan
+        uses: zaproxy/action-baseline@v0.4.0
+        with:
+          target: "https://wps-pr-${{ github.event.number }}.pathfinder.gov.bc.ca"
+          rules_file_name: ".zap/rules.tsv"
+          # Do not return failure on warnings - TODO: this has to be resolved!
+          cmd_options: "-I"
