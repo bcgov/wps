@@ -47,4 +47,4 @@ jobs:
         uses: bcgov/openshift-launchpad-deployment@v1.2
         with:
           AUTH_TOKEN: ${{ secrets.OC4_DEV_TOKEN }}
-          SCRIPT: openshift/scripts/oc_cleanup_db.sh ${SUFFIX} apply
+          SCRIPT: PROJ_TARGET=e1e498-dev PROJ_TOOLS=e1e498-tools PROJ_DEV=e1e498-dev openshift/scripts/oc_cleanup_db.sh ${SUFFIX} apply
