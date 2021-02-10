@@ -40,13 +40,14 @@ objects:
       labels:
         app: ${NAME}
         cluster-name: ${NAME}
-      name: ${NAME}-master
+      name: ${NAME}-leader
     spec:
       ports:
         - port: 5432
           protocol: TCP
           targetPort: 5432
       selector:
+        app: ${NAME}
         cluster-name: ${NAME}
         role: master
         app.kubernetes.io/name: patroni
@@ -68,6 +69,7 @@ objects:
           protocol: TCP
           targetPort: 5432
       selector:
+        app: ${NAME}
         cluster-name: ${NAME}
         role: replica
         app.kubernetes.io/name: patroni
