@@ -36,7 +36,7 @@ IMAGE_NAMESPACE=${PROJ_TOOLS}
 EPHEMERAL_STORAGE=${EPHEMERAL_STORAGE:-'False'}
 
 # Process template
-OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/patroni.yaml \
+OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/patroni_ocp3.yaml \
 -p NAME=${NAME_APP} \
 -p SUFFIX=${SUFFIX} \
 -p PATRONI_CLUSTER_NAME=${PATRONI_CLUSTER_NAME} \
