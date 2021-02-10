@@ -29,7 +29,7 @@ pipeline {
             }
             steps {
                 script {
-                    sh "./openshift/scripts/oc_promote.sh ${suffix} apply"
+                    sh "PROJ_TOOLS=e1e498-tools ./openshift/scripts/oc_promote.sh ${suffix} apply"
                 }
             }
         }
