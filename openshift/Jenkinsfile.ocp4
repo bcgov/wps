@@ -42,19 +42,19 @@ pipeline {
                     // The size of the storage is in fact 30Gi ; The volume claim for a
                     // stateful set cannot be altered. The stateful set needs to be re-created
                     // and data needs to be restored from backup.
-                    sh "CPU_REQUEST=100m CPU_LIMIT=2000m MEMORY_REQUEST=4Gi MEMORY_LIMIT=8Gi PVC_SIZE=30Gi PROJ_TARGET=${projProd} IMAGE_STREAM_NAMESPACE=e1e498-tools ./openshift/scripts/oc_provision_db.sh prod apply"
+                    sh "CPU_REQUEST=100m CPU_LIMIT=2000m MEMORY_REQUEST=4Gi MEMORY_LIMIT=8Gi PVC_SIZE=30Gi PROJ_TARGET=${projProd} PROJ_TOOLS=e1e498-tools PROJ_ IMAGE_STREAM_NAMESPACE=e1e498-tools ./openshift/scripts/oc_provision_db.sh prod apply"
                     // Deploy API
-                    sh "CPU_REQUEST=500m CPU_LIMIT=500m MEMORY_REQUEST=2Gi MEMORY_LIMIT=2Gi REPLICAS=3 PROJ_TARGET=${projProd} ./openshift/scripts/oc_deploy.sh prod apply"
+                    sh "CPU_REQUEST=500m CPU_LIMIT=500m MEMORY_REQUEST=2Gi MEMORY_LIMIT=2Gi REPLICAS=3 PROJ_TARGET=${projProd} PROJ_TOOLS=e1e498-tools ./openshift/scripts/oc_deploy.sh prod apply"
                     // Env Canada Subscriber
-                    sh "PROJ_TARGET=${projProd} ./openshift/scripts/oc_provision_ec_gdps_cronjob.sh prod apply"
-                    sh "PROJ_TARGET=${projProd} ./openshift/scripts/oc_provision_ec_hrdps_cronjob.sh prod apply"
-                    sh "PROJ_TARGET=${projProd} ./openshift/scripts/oc_provision_ec_rdps_cronjob.sh prod apply"
+                    sh "PROJ_TARGET=${projProd} PROJ_TOOLS=e1e498-tools ./openshift/scripts/oc_provision_ec_gdps_cronjob.sh prod apply"
+                    sh "PROJ_TARGET=${projProd} PROJ_TOOLS=e1e498-tools ./openshift/scripts/oc_provision_ec_hrdps_cronjob.sh prod apply"
+                    sh "PROJ_TARGET=${projProd} PROJ_TOOLS=e1e498-tools ./openshift/scripts/oc_provision_ec_rdps_cronjob.sh prod apply"
                     // BC FireWeather cronjobs
-                    sh "PROJ_TARGET=${projProd} SCHEDULE=\"30 8,16 * * *\" ./openshift/scripts/oc_provision_bcfw_p1_forecasts_cronjob.sh prod apply"
-                    sh "PROJ_TARGET=${projProd} SCHEDULE=\"15 * * * *\" ./openshift/scripts/oc_provision_bcfw_p1_hourly_actuals_cronjob.sh prod apply"
+                    sh "PROJ_TARGET=${projProd} PROJ_TOOLS=e1e498-tools SCHEDULE=\"30 8,16 * * *\" ./openshift/scripts/oc_provision_bcfw_p1_forecasts_cronjob.sh prod apply"
+                    sh "PROJ_TARGET=${projProd} PROJ_TOOLS=e1e498-tools SCHEDULE=\"15 * * * *\" ./openshift/scripts/oc_provision_bcfw_p1_hourly_actuals_cronjob.sh prod apply"
                     // Configure backups
-                    sh "PROJ_TARGET=${projProd} BACKUP_VOLUME_NAME=bk-auzhsi-prod-lenk19vmffnx ./openshift/scripts/oc_provision_matomo_backup.sh prod apply"
-                    sh "PROJ_TARGET=${projProd} JOB_PERSISTENT_STORAGE_NAME=bk-auzhsi-prod-lenk19vmffnx ./openshift/scripts/oc_provision_matomo_backup_cronjob.sh prod apply"
+                    sh "PROJ_TARGET=${projProd} PROJ_TOOLS=e1e498-tools BACKUP_VOLUME_NAME=bk-auzhsi-prod-lenk19vmffnx ./openshift/scripts/oc_provision_matomo_backup.sh prod apply"
+                    sh "PROJ_TARGET=${projProd} PROJ_TOOLS=e1e498-tools JOB_PERSISTENT_STORAGE_NAME=bk-auzhsi-prod-lenk19vmffnx ./openshift/scripts/oc_provision_matomo_backup_cronjob.sh prod apply"
                 }
             }
         }
