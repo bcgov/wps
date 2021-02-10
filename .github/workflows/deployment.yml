@@ -25,7 +25,7 @@ jobs:
           SCRIPT: PROJ_TARGET=e1e498-dev IMAGE_STREAM_NAMESPACE=e1e498-tools openshift/scripts/oc_provision_db.sh ${SUFFIX} apply
 
   prepare-database:
-    name: Prepare Dev Database
+    name: Prepare Dev Database (OCP3)
     runs-on: ubuntu-latest
     steps:
       - name: Set Variables
