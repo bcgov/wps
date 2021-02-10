@@ -52,12 +52,6 @@ oc -n auzhsi-prod policy add-role-to-user \
     --namespace=auzhsi-tools
 ```
 
-### TBD
-
-Not starting? Maybe this:
-
-https://github.com/BCDevOps/OpenShift4-Migration/issues/6
-
 ## More examples
 
 ```bash
