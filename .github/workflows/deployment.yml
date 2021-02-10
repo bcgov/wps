@@ -40,7 +40,7 @@ jobs:
         uses: bcgov/openshift-launchpad-deployment@v1.1
         with:
           AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
-          SCRIPT: PVC_SIZE=2Gi openshift/scripts/oc_provision_db_ocp3.sh ${SUFFIX} apply
+          SCRIPT: EPHEMERAL_STORAGE=True openshift/scripts/oc_provision_db_ocp3.sh ${SUFFIX} apply
 
   prepare-database-backups:
     name: Prepare Dev Database Backups
