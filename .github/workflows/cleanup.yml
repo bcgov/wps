@@ -25,11 +25,17 @@ jobs:
           AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
           SCRIPT: openshift/scripts/oc_cleanup.sh ${SUFFIX} apply
 
-      - name: Clean up api (OCP4)
+      - name: Clean up api - dev (OCP4)
         uses: bcgov/openshift-launchpad-deployment@v1.2
         with:
           AUTH_TOKEN: ${{ secrets.OC4_DEV_TOKEN }}
-          SCRIPT: PROJ_TARGET=e1e498-dev PROJ_TOOLS=e1e498-tools PROJ_DEV=e1e498-dev openshift/scripts/oc_cleanup.sh ${SUFFIX} apply
+          SCRIPT: PROJ_TARGET=e1e498-dev PROJ_TOOLS=e1e498-tools PROJ_DEV=e1e498-dev openshift/scripts/oc_cleanup_dev.sh ${SUFFIX} apply
+
+      - name: Clean up api - tools (OCP4)
+        uses: bcgov/openshift-launchpad-deployment@v1.2
+        with:
+          AUTH_TOKEN: ${{ secrets.OC4_TOOL_TOKEN }}
+          SCRIPT: PROJ_TARGET=e1e498-dev PROJ_TOOLS=e1e498-tools PROJ_DEV=e1e498-dev openshift/scripts/oc_cleanup_tools.sh ${SUFFIX} apply
 
       - name: Clean up database (OCP3)
         uses: bcgov/openshift-launchpad-deployment@v1.1
