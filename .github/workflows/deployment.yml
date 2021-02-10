@@ -73,7 +73,7 @@ jobs:
           SCRIPT: openshift/scripts/oc_provision_matomo_backup_cronjob.sh ${SUFFIX} apply
 
   build-and-deploy:
-    name: Build, Deploy to Dev & ZAP Baseline Scan
+    name: Build, Deploy to Dev & ZAP Baseline Scan (OCP3)
     runs-on: ubuntu-latest
     steps:
       - name: Set Variables
