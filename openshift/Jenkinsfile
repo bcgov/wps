@@ -42,7 +42,7 @@ pipeline {
                     // The size of the storage is in fact 30Gi ; The volume claim for a
                     // stateful set cannot be altered. The stateful set needs to be re-created
                     // and data needs to be restored from backup.
-                    // sh "CPU_REQUEST=100m CPU_LIMIT=2000m MEMORY_REQUEST=4Gi MEMORY_LIMIT=8Gi PVC_SIZE=15Gi PROJ_TARGET=${projProd} ./openshift/scripts/oc_provision_db.sh prod apply"
+                    // sh "CPU_REQUEST=100m CPU_LIMIT=2000m MEMORY_REQUEST=4Gi MEMORY_LIMIT=8Gi PVC_SIZE=15Gi PROJ_TARGET=${projProd} ./openshift/scripts/oc_provision_db_ocp3.sh prod apply"
                     // Deploy API
                     sh "CPU_REQUEST=500m CPU_LIMIT=500m MEMORY_REQUEST=2Gi MEMORY_LIMIT=2Gi REPLICAS=3 PROJ_TARGET=${projProd} ./openshift/scripts/oc_deploy.sh prod apply"
                     // Env Canada Subscriber
