@@ -3,9 +3,9 @@ pipeline {
     environment {
         // Pipeline-wide vars
         ver = "0.0.1"
-        projTools = "auzhsi-tools"
-        projDev = "auzhsi-dev"
-        projProd = "auzhsi-prod"
+        projTools = "e1e498-tools"
+        projDev = "e1e498-dev"
+        projProd = "e1e498-prod"
         suffix = "pr-${env.CHANGE_ID}"
     }
     options {
