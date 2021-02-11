@@ -26,7 +26,7 @@ E: Version '3.1.0+dfsg-1.pgdg90+1' for 'postgresql-11-postgis-3-scripts' was not
 ```
 
 The latest version of the POSTGIS_VERSION available on debian is constantly changing. It is very likely, that when you attempt to build the image,
-it will fail because the version of postgis has changed. The most sure fire way of establishing the which version to us is to:
+it will fail because the version of postgis has changed. The most sure fire way of establishing which version to use is to:
 
 ```bash
 git clone git@github.com:postgis/docker-postgis.git
