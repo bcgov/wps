@@ -48,6 +48,7 @@ OC_PROCESS_PREREQUISITE="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/patron
 # Process template
 OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/patroni.yaml \
 -p NAME=\"patroni-${NAME_APP}-${SUFFIX}\" \
+-p APP_USER=\"${NAME_APP}-${SUFFIX}\" \
 -p PARENT_NAME=\"${NAME_APP}\" \
 -p TARGET_NAMESPACE=${PROJ_TARGET} \
 -p IMAGE_STREAM_NAMESPACE=${IMAGE_STREAM_NAMESPACE} \
