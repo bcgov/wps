@@ -21,7 +21,7 @@ parameters:
   - name: SUFFIX
     description: Deployment suffix, e.g. pr-###
     required: true
-  - name: PROJECT_TOOLS
+  - name: PROJ_TOOLS
     value: auzhsi-tools
   - name: CPU_REQUEST
     description: Requested CPU
@@ -46,6 +46,10 @@ parameters:
   - name: PROJECT_NAMESPACE
     description: Openshift project namespace. Used for /health check
     required: true
+  - name: IMAGE_REGISTRY
+    description: Location where images are to be pulled
+    value: docker-registry.default.svc:5000
+    required: true
 objects:
   - apiVersion: v1
     kind: DeploymentConfig
@@ -67,7 +71,7 @@ objects:
         spec:
           automountServiceAccountToken: false
           containers:
-            - image: docker-registry.default.svc:5000/${PROJECT_TOOLS}/${NAME}-${SUFFIX}:${SUFFIX}
+            - image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${NAME}-${SUFFIX}:${SUFFIX}
               imagePullPolicy: Always
               name: ${NAME}
               env:
@@ -116,9 +120,9 @@ objects:
                       name: ${NAME}-global
                       key: app-db-password
                 - name: POSTGRES_WRITE_HOST
-                  value: patroni-leader-${NAME}-${SUFFIX}
+                  value: patroni-${NAME}-${SUFFIX}-leader
                 - name: POSTGRES_READ_HOST
-                  value: patroni-replica-${NAME}-${SUFFIX}
+                  value: patroni-${NAME}-${SUFFIX}-replica
                 - name: POSTGRES_PORT
                   value: "5432"
                 - name: POSTGRES_DATABASE
