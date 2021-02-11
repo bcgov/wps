@@ -6,8 +6,26 @@ on:
       - main
 
 jobs:
+  prepare-database-ocp4:
+    name: Prepare Dev Database (OCP4)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set Variables
+        shell: bash
+        run: |
+          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Deploy PostGIS instance
+        uses: bcgov/openshift-launchpad-deployment@v1.2
+        with:
+          AUTH_TOKEN: ${{ secrets.OC4_DEV_TOKEN }}
+          SCRIPT: EPHEMERAL_STORAGE=True PROJ_TARGET=e1e498-dev IMAGE_STREAM_NAMESPACE=e1e498-tools openshift/scripts/oc_provision_db.sh ${SUFFIX} apply
+
   prepare-database:
-    name: Prepare Dev Database
+    name: Prepare Dev Database (OCP3)
     runs-on: ubuntu-latest
     steps:
       - name: Set Variables
@@ -22,7 +40,7 @@ jobs:
         uses: bcgov/openshift-launchpad-deployment@v1.1
         with:
           AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
-          SCRIPT: EPHEMERAL_STORAGE=True openshift/scripts/oc_provision_db.sh ${SUFFIX} apply
+          SCRIPT: EPHEMERAL_STORAGE=True openshift/scripts/oc_provision_db_ocp3.sh ${SUFFIX} apply
 
   prepare-database-backups:
     name: Prepare Dev Database Backups
@@ -55,7 +73,7 @@ jobs:
           SCRIPT: openshift/scripts/oc_provision_matomo_backup_cronjob.sh ${SUFFIX} apply
 
   build-and-deploy:
-    name: Build, Deploy to Dev & ZAP Baseline Scan
+    name: Build, Deploy to Dev & ZAP Baseline Scan (OCP3)
     runs-on: ubuntu-latest
     steps:
       - name: Set Variables
