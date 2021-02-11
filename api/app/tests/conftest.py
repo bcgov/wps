@@ -32,7 +32,7 @@ def mock_env(monkeypatch):
     monkeypatch.setenv("BC_FIRE_WEATHER_USER", "someuser")
     monkeypatch.setenv("BC_FIRE_WEATHER_SECRET", "password")
     monkeypatch.setenv("BC_FIRE_WEATHER_FILTER_ID", "1")
-    monkeypatch.setenv("PATHFINDER_BASE_URI",
+    monkeypatch.setenv("OPENSHIFT_BASE_URI",
                        "https://console.pathfinder.gov.bc.ca:8443")
     monkeypatch.setenv("PROJECT_NAMESPACE", "project_namespace")
     monkeypatch.setenv("STATUS_CHECKER_SECRET", "some_secret")

@@ -128,11 +128,11 @@ objects:
                     secretKeyRef:
                       name: ${NAME}-global
                       key: status-checker-sa-secret
-                - name: PATHFINDER_BASE_URI
+                - name: OPENSHIFT_BASE_URI
                   valueFrom:
                     configMapKeyRef:
                       name: ${NAME}-global
-                      key: env.pathfinder-base-uri
+                      key: env.openshift-base-uri
                 - name: PATRONI_CLUSTER_NAME
                   value: patroni-wps-${SUFFIX}
                 - name: PROJECT_NAMESPACE
