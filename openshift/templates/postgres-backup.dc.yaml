@@ -1,0 +1,254 @@
+apiVersion: v1
+kind: Template
+parameters:
+  - name: NAME
+    displayName: Name
+    description:
+      The name assigned to all of the resources.  Use 'backup-{database name}'
+      depending on your database provider
+    required: true
+    value: backup-postgres-wps-pr-730
+  - name: IMAGE_NAMESPACE
+    displayName: Image Namespace
+    description:
+      The namespace of the OpenShift project containing the imagestream for
+      the application.
+    required: true
+    value: e1e498-tools
+  - name: SOURCE_IMAGE_NAME
+    displayName: Source Image Name
+    description:
+      The name of the image to use for this resource.  Use 'backup-{database
+      name}' depending on your database provider
+    required: true
+    value: backup-postgres
+  - name: TAG_NAME
+    displayName: Environment TAG name
+    description: The TAG name for this environment, e.g., dev, test, prod
+    required: true
+    value: dev
+  - name: CLUSTER_NAME
+    description: |
+      The name of the patroni cluster to connect to.
+    displayName: Server Name
+    required: true
+    value: patroni-wps-pr-730
+  - name: DATABASE_NAME
+    description: |
+      The name of the postgres database to back-up.
+    displayName: Server Name
+    required: true
+    value: wps
+  - name: BACKUP_VOLUME_NAME
+    displayName: Backup Volume Name
+    description:
+      The name of the persistent volume used to store the backups.  Please
+      note, when using the recommended nfs-backup storage class the name of the pvc
+      MUST be taken from the manually provisioned claim; nfs-backup storage MUST be
+      provisioned manually.
+    required: true
+    value: backup
+  - name: VERIFICATION_VOLUME_NAME
+    displayName: Verification Volume Name
+    description:
+      The name for the verification volume, used for restoring and verifying
+      backups.  When using the recommend nfs-backup storage class for backups, this
+      volume MUST be either netapp-file-standard or netapp-block-standard storage; netapp-block-standard
+      is recommended (it has far better performance).
+    required: false
+    value: backup-verification
+  - name: CONFIG_FILE_NAME
+    displayName: Config File Name
+    description: The name of the configuration file.
+    required: true
+    value: backup.conf
+  - name: BACKUP_STRATEGY
+    displayName: Backup Strategy
+    description: The strategy to use for backups; for example daily, or rolling.
+    required: true
+    value: rolling
+  - name: BACKUP_DIR
+    displayName: The root backup directory
+    description:
+      The name of the root backup directory.  The backup volume will be mounted
+      to this directory.
+    required: true
+    value: "/backups/"
+  - name: TABLE_SCHEMA
+    displayName: Table Schema
+    description: The table schema for your database.  Used for Postgres backups.
+    required: true
+    value: public
+objects:
+  # - kind: PersistentVolumeClaim
+  #   apiVersion: v1
+  #   metadata:
+  #     name: "${BACKUP_VOLUME_NAME}"
+  #     labels:
+  #       app: "${NAME}-persistent"
+  #       template: "${NAME}-persistent-template"
+  #   spec:
+  #     storageClassName: "${BACKUP_VOLUME_CLASS}"
+  #     accessModes:
+  #     - ReadWriteOnce
+  #     resources:
+  #       requests:
+  #         storage: "${BACKUP_VOLUME_SIZE}"
+  # - kind: PersistentVolumeClaim
+  #   apiVersion: v1
+  #   metadata:
+  #     name: "${VERIFICATION_VOLUME_NAME}"
+  #     labels:
+  #       app: "${NAME}-persistent"
+  #       template: "${NAME}-persistent-template"
+  #   spec:
+  #     storageClassName: "${VERIFICATION_VOLUME_CLASS}"
+  #     accessModes:
+  #     - ReadWriteOnce
+  #     resources:
+  #       requests:
+  #         storage: "${VERIFICATION_VOLUME_SIZE}"
+  - apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      annotations:
+      name: ${NAME}-conf
+    data:
+      backup.conf: |
+        # ============================================================
+        # Databases:
+        # ------------------------------------------------------------
+        postgres=${CLUSTER_NAME}-leader/${DATABASE_NAME}
+        # -----------------------------------------------------------
+        # Cron Scheduling:
+        # -----------------------------------------------------------
+        # We're using Openshift cronjobs to do the backup, so we
+        # don't schedule anything here.
+        # 0 1 * * * default ./backup.sh -s
+        # 0 4 * * * default ./backup.sh -s -v all
+        # -----------------------------------------------------------
+        # Full Example:
+        # -----------------------------------------------------------
+        # postgres=postgresql:5432/TheOrgBook_Database
+        # mongo=mender-mongodb:27017/useradm
+        # postgres=wallet-db/tob_issuer
+        # mssql=pims-db-dev:1433/pims
+        #
+        # 0 1 * * * default ./backup.sh -s
+        # 0 4 * * * default ./backup.sh -s -v all
+        # ============================================================
+  - kind: DeploymentConfig
+    apiVersion: v1
+    metadata:
+      name: "${NAME}"
+      labels:
+        template: "${NAME}-deployment"
+        app: "${NAME}"
+      annotations:
+        description: Defines how to deploy the ${NAME} server
+    spec:
+      strategy:
+        type: Recreate
+      triggers:
+        - type: ConfigChange
+        - type: ImageChange
+          imageChangeParams:
+            automatic: true
+            containerNames:
+              - "${NAME}"
+            from:
+              kind: ImageStreamTag
+              namespace: "${IMAGE_NAMESPACE}"
+              name: "${SOURCE_IMAGE_NAME}:${TAG_NAME}"
+      replicas: 0
+      selector:
+        name: "${NAME}"
+      template:
+        metadata:
+          name: "${NAME}"
+          labels:
+            name: "${NAME}"
+        spec:
+          volumes:
+            - name: "${BACKUP_VOLUME_NAME}"
+              # persistentVolumeClaim:
+              # claimName: "${BACKUP_VOLUME_NAME}"
+            - name: "${VERIFICATION_VOLUME_NAME}"
+              # persistentVolumeClaim:
+              # claimName: "${VERIFICATION_VOLUME_NAME}"
+            - name: "${NAME}-config-volume"
+              configMap:
+                name: "${NAME}-conf"
+                items:
+                  - key: "${CONFIG_FILE_NAME}"
+                    path: "${CONFIG_FILE_NAME}"
+          containers:
+            - name: "${NAME}"
+              image: ""
+              ports: []
+              env:
+                - name: BACKUP_STRATEGY
+                  value: "${BACKUP_STRATEGY}"
+                - name: BACKUP_DIR
+                  value: "${BACKUP_DIR}"
+                - name: TABLE_SCHEMA
+                  value: "${TABLE_SCHEMA}"
+                - name: PSUFIDERDEV_POSTGRESQL_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: psufiderdev-postgresql
+                      key: database-user
+                - name: PSUFIDERDEV_POSTGRESQL_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: psufiderdev-postgresql
+                      key: database-password
+                - name: PATRONI_LEADER_WPS_API_DEV_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: wps-dev
+                      key: app-db-username
+                - name: PATRONI_LEADER_WPS_API_DEV_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: wps-dev
+                      key: app-db-password
+                - name: FTP_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: "${FTP_SECRET_KEY}"
+                      key: ftp-url
+                - name: FTP_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: "${FTP_SECRET_KEY}"
+                      key: ftp-user
+                - name: FTP_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: "${FTP_SECRET_KEY}"
+                      key: ftp-password
+                - name: WEBHOOK_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: "${NAME}"
+                      key: webhook-url
+                - name: ENVIRONMENT_FRIENDLY_NAME
+                  value: "${ENVIRONMENT_FRIENDLY_NAME}"
+                - name: ENVIRONMENT_NAME
+                  value: "${ENVIRONMENT_NAME}"
+              resources:
+                requests:
+                  cpu: "${CPU_REQUEST}"
+                  memory: "${MEMORY_REQUEST}"
+                limits:
+                  cpu: "${CPU_LIMIT}"
+                  memory: "${MEMORY_LIMIT}"
+              volumeMounts:
+                - name: "${BACKUP_VOLUME_NAME}"
+                  mountPath: "${BACKUP_DIR}"
+                - name: "${VERIFICATION_VOLUME_NAME}"
+                  mountPath: "${VERIFICATION_VOLUME_MOUNT_PATH}"
+                - name: "${NAME}-config-volume"
+                  mountPath: "${CONFIG_MOUNT_PATH}${CONFIG_FILE_NAME}"
+                  subPath: "${CONFIG_FILE_NAME}"
