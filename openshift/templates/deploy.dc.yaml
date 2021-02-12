@@ -56,6 +56,10 @@ parameters:
   - name: POSTGRES_DATABASE
     description: Postgres DB name
     required: True
+  - name: SECOND_LEVEL_DOMAIN
+    description: The domain of which this application hangs.
+    required: True
+    value: pathfinder.gov.bc.ca
 objects:
   - apiVersion: v1
     kind: DeploymentConfig
@@ -254,7 +258,7 @@ objects:
         # Enable HTTP Strict Transport Security:
         haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
     spec:
-      host: ${NAME}-${SUFFIX}.pathfinder.gov.bc.ca
+      host: ${NAME}-${SUFFIX}.${SECOND_LEVEL_DOMAIN}
       port:
         targetPort: 8080-tcp
       to:
