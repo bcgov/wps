@@ -56,5 +56,5 @@ oc -n auzhsi-prod policy add-role-to-user \
 
 ```bash
 # Build the patroni image, specifying some of the variables (useful if you're testing)
-oc -n auzhsi-tools process -f openshift/build.yaml -p GIT_REF=mybranch -p VERSION=yourtag | oc -n auzhsi-tools apply -f -
+oc -n e1e498-tools process -f openshift/build.yaml -p GIT_REF=mybranch -p VERSION=yourtag | oc -n e1e498-tools apply -f -
 ```
