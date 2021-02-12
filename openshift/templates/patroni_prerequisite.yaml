@@ -112,8 +112,8 @@ objects:
     subjects:
       - kind: ServiceAccount
         name: ${NAME}
-  - apiVersion: security.devops.gov.bc.ca/v1alpha1
-    kind: NetworkPolicy
+  - kind: NetworkPolicy
+    apiVersion: networking.k8s.io/v1
     metadata:
       name: patroni-db-to-db-${NAME}
       labels:
