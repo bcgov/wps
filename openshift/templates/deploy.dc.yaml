@@ -60,6 +60,10 @@ parameters:
     description: The domain of which this application hangs.
     required: True
     value: pathfinder.gov.bc.ca
+  - name: POSTGRES_WRITE_HOST
+    required: True
+  - name: POSTGRES_READ_HOST
+    required: True
 objects:
   - apiVersion: v1
     kind: DeploymentConfig

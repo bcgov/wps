@@ -94,7 +94,7 @@ jobs:
         uses: bcgov/openshift-launchpad-deployment@v1.1
         with:
           AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
-          SCRIPT: openshift/scripts/oc_deploy.sh ${SUFFIX} apply
+          SCRIPT: POSTGRES_WRITE_HOST=patroni-leader-wps-${SUFFIX} POSTGRES_READ_HOST=patroni-replica-wps-${SUFFIX} openshift/scripts/oc_deploy.sh ${SUFFIX} apply
 
       - name: Hourly actuals cronjob (Marvin)
         uses: bcgov/openshift-launchpad-deployment@v1.1
