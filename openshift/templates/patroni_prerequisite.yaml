@@ -124,7 +124,7 @@ objects:
       podSelector:
         matchLabels:
           cluster-name: ${NAME}
-      ingres:
+      ingress:
         - from:
             - podSelector:
                 matchLabels:
