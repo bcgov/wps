@@ -50,8 +50,12 @@ parameters:
     description: Location where images are to be pulled
     value: docker-registry.default.svc:5000
     required: true
-  - name: APP_USER
+  - name: POSTGRES_USER
     description: Postgres DB username
+    required: True
+  - name: POSTGRES_DATABASE
+    description: Postgres DB name
+    required: True
 objects:
   - apiVersion: v1
     kind: DeploymentConfig
@@ -113,9 +117,9 @@ objects:
                       name: ${NAME}-global
                       key: env.keycloak-public-key
                 - name: POSTGRES_READ_USER
-                  value: ${APP_USER}
+                  value: ${POSTGRES_USER}
                 - name: POSTGRES_WRITE_USER
-                  value: ${APP_USER}
+                  value: ${POSTGRES_USER}
                 - name: POSTGRES_PASSWORD
                   valueFrom:
                     secretKeyRef:
@@ -128,7 +132,7 @@ objects:
                 - name: POSTGRES_PORT
                   value: "5432"
                 - name: POSTGRES_DATABASE
-                  value: ${NAME}-${SUFFIX}
+                  value: ${POSTGRES_DATABASE}
                 - name: STATUS_CHECKER_SECRET
                   valueFrom:
                     secretKeyRef:
@@ -139,6 +143,11 @@ objects:
                     configMapKeyRef:
                       name: ${NAME}-global
                       key: env.openshift-base-uri
+                - name: OPENSHIFT_NAMESPACE_API
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-global
+                      key: env.openshift-namespace-api
                 - name: PATRONI_CLUSTER_NAME
                   value: patroni-wps-${SUFFIX}
                 - name: PROJECT_NAMESPACE
