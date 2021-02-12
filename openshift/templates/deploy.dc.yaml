@@ -50,6 +50,8 @@ parameters:
     description: Location where images are to be pulled
     value: docker-registry.default.svc:5000
     required: true
+  - name: APP_USER
+    description: Postgres DB username
 objects:
   - apiVersion: v1
     kind: DeploymentConfig
@@ -111,9 +113,9 @@ objects:
                       name: ${NAME}-global
                       key: env.keycloak-public-key
                 - name: POSTGRES_READ_USER
-                  value: ${NAME}-${SUFFIX}
+                  value: ${APP_USER}
                 - name: POSTGRES_WRITE_USER
-                  value: ${NAME}-${SUFFIX}
+                  value: ${APP_USER}
                 - name: POSTGRES_PASSWORD
                   valueFrom:
                     secretKeyRef:
