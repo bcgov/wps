@@ -96,45 +96,44 @@ jobs:
           AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
           SCRIPT: POSTGRES_WRITE_HOST=patroni-leader-wps-${SUFFIX} POSTGRES_READ_HOST=patroni-replica-wps-${SUFFIX} openshift/scripts/oc_deploy.sh ${SUFFIX} apply
 
-      # TODO: bring this in the moment you have the deploy working again.
-      # - name: Hourly actuals cronjob (Marvin)
-      #   uses: bcgov/openshift-launchpad-deployment@v1.1
-      #   with:
-      #     AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
-      #     SCRIPT: openshift/scripts/oc_provision_bcfw_p1_hourly_actuals_cronjob.sh ${SUFFIX} apply
+      - name: Hourly actuals cronjob (Marvin)
+        uses: bcgov/openshift-launchpad-deployment@v1.1
+        with:
+          AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
+          SCRIPT: openshift/scripts/oc_provision_bcfw_p1_hourly_actuals_cronjob.sh ${SUFFIX} apply
 
-      # - name: Noon forecasts cronjob (Bender)
-      #   uses: bcgov/openshift-launchpad-deployment@v1.1
-      #   with:
-      #     AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
-      #     SCRIPT: openshift/scripts/oc_provision_bcfw_p1_forecasts_cronjob.sh ${SUFFIX} apply
+      - name: Noon forecasts cronjob (Bender)
+        uses: bcgov/openshift-launchpad-deployment@v1.1
+        with:
+          AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
+          SCRIPT: openshift/scripts/oc_provision_bcfw_p1_forecasts_cronjob.sh ${SUFFIX} apply
 
-      # - name: Environment Canada GDPS cronjob (Donald)
-      #   uses: bcgov/openshift-launchpad-deployment@v1.1
-      #   with:
-      #     AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
-      #     SCRIPT: openshift/scripts/oc_provision_ec_gdps_cronjob.sh ${SUFFIX} apply
+      - name: Environment Canada GDPS cronjob (Donald)
+        uses: bcgov/openshift-launchpad-deployment@v1.1
+        with:
+          AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
+          SCRIPT: openshift/scripts/oc_provision_ec_gdps_cronjob.sh ${SUFFIX} apply
 
-      # - name: Environment Canada HRDPS cronjob (Donald)
-      #   uses: bcgov/openshift-launchpad-deployment@v1.1
-      #   with:
-      #     AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
-      #     SCRIPT: openshift/scripts/oc_provision_ec_hrdps_cronjob.sh ${SUFFIX} apply
+      - name: Environment Canada HRDPS cronjob (Donald)
+        uses: bcgov/openshift-launchpad-deployment@v1.1
+        with:
+          AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
+          SCRIPT: openshift/scripts/oc_provision_ec_hrdps_cronjob.sh ${SUFFIX} apply
 
-      # - name: Environment Canada RDPS cronjob (Donald)
-      #   uses: bcgov/openshift-launchpad-deployment@v1.1
-      #   with:
-      #     AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
-      #     SCRIPT: openshift/scripts/oc_provision_ec_rdps_cronjob.sh ${SUFFIX} apply
+      - name: Environment Canada RDPS cronjob (Donald)
+        uses: bcgov/openshift-launchpad-deployment@v1.1
+        with:
+          AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
+          SCRIPT: openshift/scripts/oc_provision_ec_rdps_cronjob.sh ${SUFFIX} apply
 
-      # # f.y.i.: ZAP Scan must be able to log an issue or it will fail.
-      # - name: ZAP Scan
-      #   uses: zaproxy/action-baseline@v0.4.0
-      #   with:
-      #     target: "https://wps-pr-${{ github.event.number }}.pathfinder.gov.bc.ca"
-      #     rules_file_name: ".zap/rules.tsv"
-      #     # Do not return failure on warnings - TODO: this has to be resolved!
-      #     cmd_options: "-I"
+      # f.y.i.: ZAP Scan must be able to log an issue or it will fail.
+      - name: ZAP Scan
+        uses: zaproxy/action-baseline@v0.4.0
+        with:
+          target: "https://wps-pr-${{ github.event.number }}.pathfinder.gov.bc.ca"
+          rules_file_name: ".zap/rules.tsv"
+          # Do not return failure on warnings - TODO: this has to be resolved!
+          cmd_options: "-I"
 
   build-and-deploy-ocp4:
     name: Build, Deploy to Dev & ZAP Baseline Scan (OCP4)
