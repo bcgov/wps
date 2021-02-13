@@ -13,9 +13,9 @@ The WPS pipeline currently assumes the existence of an appropriately tagged patr
 # Build a patroni imagestream:
 oc -n e1e498-tools process -f openshift/build.yaml | oc -n e1e498-tools apply -f -
 # Tag the old imagestream so we can keep it around if we need to revert:
-oc -n e1e498-tools tag patroni:v12 patroni:v12-<date deprecated, e.g. 20200826>
+oc -n e1e498-tools tag patroni-postgres:v12 patroni-postgres:v12-<date deprecated, e.g. 20200826>
 # Tag the new imagestream (it won't be used until the pods get re-created):
-oc -n e1e498-tools tag patroni:v12-latest patroni:v12
+oc -n e1e498-tools tag patroni-postgres:v12-latest patroni-postgres:v12
 ```
 
 #### Common build failures
