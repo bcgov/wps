@@ -134,9 +134,9 @@ objects:
                       name: ${NAME}-global
                       key: app-db-password
                 - name: POSTGRES_WRITE_HOST
-                  value: patroni-${NAME}-${SUFFIX}-leader
+                  value: ${POSTGRES_WRITE_HOST}
                 - name: POSTGRES_READ_HOST
-                  value: patroni-${NAME}-${SUFFIX}-replica
+                  value: ${POSTGRES_READ_HOST}
                 - name: POSTGRES_PORT
                   value: "5432"
                 - name: POSTGRES_DATABASE
