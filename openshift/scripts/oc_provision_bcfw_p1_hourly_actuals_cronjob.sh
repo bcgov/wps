@@ -34,7 +34,9 @@ OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/bcfw_p1_hourly_actu
 -p JOB_NAME=bcfw-p1-hourly-actuals-${NAME_APP}-${SUFFIX} \
 -p NAME=${NAME_APP} \
 -p SUFFIX=${SUFFIX} \
--p SCHEDULE=\"${SCHEDULE}\""
+-p SCHEDULE=\"${SCHEDULE}\" \
+ ${PROJ_TOOLS:+ "-p PROJ_TOOLS=${PROJ_TOOLS}"} \
+ ${IMAGE_REGISTRY:+ "-p IMAGE_REGISTRY=${IMAGE_REGISTRY}"}"
 
 # Apply template (apply or use --dry-run)
 #
