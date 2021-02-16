@@ -1,0 +1,5 @@
+
+if [[ (! -z "$APP_USER") &&  (! -z "$APP_PASSWORD") && (! -z "$APP_DATABASE")]]; then
+    echo "Loading PostGIS extensions into $APP_DATABASE"
+    psql "$1" -w -c "\c ${APP_DATABASE}" -c "CREATE EXTENSION IF NOT EXISTS postgis;"
+fi

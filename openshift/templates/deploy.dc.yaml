@@ -21,7 +21,7 @@ parameters:
   - name: SUFFIX
     description: Deployment suffix, e.g. pr-###
     required: true
-  - name: PROJECT_TOOLS
+  - name: PROJ_TOOLS
     value: auzhsi-tools
   - name: CPU_REQUEST
     description: Requested CPU
@@ -46,6 +46,24 @@ parameters:
   - name: PROJECT_NAMESPACE
     description: Openshift project namespace. Used for /health check
     required: true
+  - name: IMAGE_REGISTRY
+    description: Location where images are to be pulled
+    value: docker-registry.default.svc:5000
+    required: true
+  - name: POSTGRES_USER
+    description: Postgres DB username
+    required: True
+  - name: POSTGRES_DATABASE
+    description: Postgres DB name
+    required: True
+  - name: SECOND_LEVEL_DOMAIN
+    description: The domain of which this application hangs.
+    required: True
+    value: pathfinder.gov.bc.ca
+  - name: POSTGRES_WRITE_HOST
+    required: True
+  - name: POSTGRES_READ_HOST
+    required: True
 objects:
   - apiVersion: v1
     kind: DeploymentConfig
@@ -67,7 +85,7 @@ objects:
         spec:
           automountServiceAccountToken: false
           containers:
-            - image: docker-registry.default.svc:5000/${PROJECT_TOOLS}/${NAME}-${SUFFIX}:${SUFFIX}
+            - image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${NAME}-${SUFFIX}:${SUFFIX}
               imagePullPolicy: Always
               name: ${NAME}
               env:
@@ -107,22 +125,22 @@ objects:
                       name: ${NAME}-global
                       key: env.keycloak-public-key
                 - name: POSTGRES_READ_USER
-                  value: ${NAME}-${SUFFIX}
+                  value: ${POSTGRES_USER}
                 - name: POSTGRES_WRITE_USER
-                  value: ${NAME}-${SUFFIX}
+                  value: ${POSTGRES_USER}
                 - name: POSTGRES_PASSWORD
                   valueFrom:
                     secretKeyRef:
                       name: ${NAME}-global
                       key: app-db-password
                 - name: POSTGRES_WRITE_HOST
-                  value: patroni-leader-${NAME}-${SUFFIX}
+                  value: ${POSTGRES_WRITE_HOST}
                 - name: POSTGRES_READ_HOST
-                  value: patroni-replica-${NAME}-${SUFFIX}
+                  value: ${POSTGRES_READ_HOST}
                 - name: POSTGRES_PORT
                   value: "5432"
                 - name: POSTGRES_DATABASE
-                  value: ${NAME}-${SUFFIX}
+                  value: ${POSTGRES_DATABASE}
                 - name: STATUS_CHECKER_SECRET
                   valueFrom:
                     secretKeyRef:
@@ -133,6 +151,11 @@ objects:
                     configMapKeyRef:
                       name: ${NAME}-global
                       key: env.openshift-base-uri
+                - name: OPENSHIFT_NAMESPACE_API
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-global
+                      key: env.openshift-namespace-api
                 - name: PATRONI_CLUSTER_NAME
                   value: patroni-wps-${SUFFIX}
                 - name: PROJECT_NAMESPACE
@@ -239,7 +262,7 @@ objects:
         # Enable HTTP Strict Transport Security:
         haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
     spec:
-      host: ${NAME}-${SUFFIX}.pathfinder.gov.bc.ca
+      host: ${NAME}-${SUFFIX}.${SECOND_LEVEL_DOMAIN}
       port:
         targetPort: 8080-tcp
       to:
