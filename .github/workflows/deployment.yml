@@ -165,29 +165,29 @@ jobs:
           AUTH_TOKEN: ${{ secrets.OC4_DEV_TOKEN }}
           SCRIPT: PROJ_TARGET="e1e498-dev" openshift/scripts/oc_provision_bcfw_p1_hourly_actuals_cronjob.sh ${SUFFIX} apply
 
-      # - name: Noon forecasts cronjob (Bender)
-      #   uses: Sybrand/openshift-launchpad-deployment@ocp4support
-      #   with:
-      #     AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
-      #     SCRIPT: openshift/scripts/oc_provision_bcfw_p1_forecasts_cronjob.sh ${SUFFIX} apply
+      - name: Noon forecasts cronjob (Bender)
+        uses: bcgov/openshift-launchpad-deployment@v1.2
+        with:
+          AUTH_TOKEN: ${{ secrets.OC4_DEV_TOKEN }}
+          SCRIPT: PROJ_TARGET="e1e498-dev" openshift/scripts/oc_provision_bcfw_p1_forecasts_cronjob.sh ${SUFFIX} apply
 
-      # - name: Environment Canada GDPS cronjob (Donald)
-      #   uses: Sybrand/openshift-launchpad-deployment@ocp4support
-      #   with:
-      #     AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
-      #     SCRIPT: openshift/scripts/oc_provision_ec_gdps_cronjob.sh ${SUFFIX} apply
+      - name: Environment Canada GDPS cronjob (Donald)
+        uses: bcgov/openshift-launchpad-deployment@v1.2
+        with:
+          AUTH_TOKEN: ${{ secrets.OC4_DEV_TOKEN }}
+          SCRIPT: PROJ_TARGET="e1e498-dev" openshift/scripts/oc_provision_ec_gdps_cronjob.sh ${SUFFIX} apply
 
-      # - name: Environment Canada HRDPS cronjob (Donald)
-      #   uses: Sybrand/openshift-launchpad-deployment@ocp4support
-      #   with:
-      #     AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
-      #     SCRIPT: openshift/scripts/oc_provision_ec_hrdps_cronjob.sh ${SUFFIX} apply
+      - name: Environment Canada HRDPS cronjob (Donald)
+        uses: bcgov/openshift-launchpad-deployment@v1.2
+        with:
+          AUTH_TOKEN: ${{ secrets.OC4_DEV_TOKEN }}
+          SCRIPT: PROJ_TARGET="e1e498-dev" openshift/scripts/oc_provision_ec_hrdps_cronjob.sh ${SUFFIX} apply
 
-      # - name: Environment Canada RDPS cronjob (Donald)
-      #   uses: Sybrand/openshift-launchpad-deployment@ocp4support
-      #   with:
-      #     AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
-      #     SCRIPT: openshift/scripts/oc_provision_ec_rdps_cronjob.sh ${SUFFIX} apply
+      - name: Environment Canada RDPS cronjob (Donald)
+        uses: bcgov/openshift-launchpad-deployment@v1.2
+        with:
+          AUTH_TOKEN: ${{ secrets.OC4_DEV_TOKEN }}
+          SCRIPT: PROJ_TARGET="e1e498-dev" openshift/scripts/oc_provision_ec_rdps_cronjob.sh ${SUFFIX} apply
 
       # # f.y.i.: ZAP Scan must be able to log an issue or it will fail.
       # - name: ZAP Scan
