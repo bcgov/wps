@@ -7,7 +7,7 @@ parameters:
       The name assigned to all of the resources.  Use 'backup-{database name}'
       depending on your database provider
     required: true
-    value: backup-postgres-wps-pr-730
+    value: backup-postgres-wps-pr-735
   - name: IMAGE_NAMESPACE
     displayName: Image Namespace
     description:
@@ -79,6 +79,29 @@ parameters:
     description: The table schema for your database.  Used for Postgres backups.
     required: true
     value: public
+  - name: CPU_REQUEST
+    value: 50m
+  - name: CPU_LIMIT
+    value: 250m
+  - name: MEMORY_REQUEST
+    value: 256Mi
+  - name: MEMORY_LIMIT
+    value: 512Mi
+  - name: CONFIG_MOUNT_PATH
+    displayName: Config Mount Path
+    description: The path to use to mount the config file.
+    required: true
+    value: "/"
+  - name: CONFIG_FILE_NAME
+    displayName: Config File Name
+    description: The name of the configuration file.
+    required: true
+    value: "backup.conf"
+  - name: VERIFICATION_VOLUME_MOUNT_PATH
+    displayName: Verification Volume Mount Path
+    description: The path on which to mount the verification volume.  This is used by the database server to contain the database configuration and data files. For Mongo, please use /var/lib/mongodb/data . For MSSQL, please use /var/opt/mssql/data
+    required: true
+    value: "/var/lib/pgsql/data"
 objects:
   # - kind: PersistentVolumeClaim
   #   apiVersion: v1
@@ -160,7 +183,7 @@ objects:
               kind: ImageStreamTag
               namespace: "${IMAGE_NAMESPACE}"
               name: "${SOURCE_IMAGE_NAME}:${TAG_NAME}"
-      replicas: 0
+      replicas: 1
       selector:
         name: "${NAME}"
       template:
@@ -193,50 +216,13 @@ objects:
                   value: "${BACKUP_DIR}"
                 - name: TABLE_SCHEMA
                   value: "${TABLE_SCHEMA}"
-                - name: PSUFIDERDEV_POSTGRESQL_USER
+                - name: PATRONI_WPS_PR_736_LEADER_USER
+                  value: wps
+                - name: PATRONI_WPS_PR_736_LEADER_PASSWORD
                   valueFrom:
                     secretKeyRef:
-                      name: psufiderdev-postgresql
-                      key: database-user
-                - name: PSUFIDERDEV_POSTGRESQL_PASSWORD
-                  valueFrom:
-                    secretKeyRef:
-                      name: psufiderdev-postgresql
-                      key: database-password
-                - name: PATRONI_LEADER_WPS_API_DEV_USER
-                  valueFrom:
-                    secretKeyRef:
-                      name: wps-dev
-                      key: app-db-username
-                - name: PATRONI_LEADER_WPS_API_DEV_PASSWORD
-                  valueFrom:
-                    secretKeyRef:
-                      name: wps-dev
+                      name: wps-global
                       key: app-db-password
-                - name: FTP_URL
-                  valueFrom:
-                    secretKeyRef:
-                      name: "${FTP_SECRET_KEY}"
-                      key: ftp-url
-                - name: FTP_USER
-                  valueFrom:
-                    secretKeyRef:
-                      name: "${FTP_SECRET_KEY}"
-                      key: ftp-user
-                - name: FTP_PASSWORD
-                  valueFrom:
-                    secretKeyRef:
-                      name: "${FTP_SECRET_KEY}"
-                      key: ftp-password
-                - name: WEBHOOK_URL
-                  valueFrom:
-                    secretKeyRef:
-                      name: "${NAME}"
-                      key: webhook-url
-                - name: ENVIRONMENT_FRIENDLY_NAME
-                  value: "${ENVIRONMENT_FRIENDLY_NAME}"
-                - name: ENVIRONMENT_NAME
-                  value: "${ENVIRONMENT_NAME}"
               resources:
                 requests:
                   cpu: "${CPU_REQUEST}"
