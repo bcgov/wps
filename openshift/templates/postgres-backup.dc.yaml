@@ -7,14 +7,12 @@ parameters:
       The name assigned to all of the resources.  Use 'backup-{database name}'
       depending on your database provider
     required: true
-    value: backup-postgres-wps-pr-735
   - name: IMAGE_NAMESPACE
     displayName: Image Namespace
     description:
       The namespace of the OpenShift project containing the imagestream for
       the application.
     required: true
-    value: e1e498-tools
   - name: SOURCE_IMAGE_NAME
     displayName: Source Image Name
     description:
@@ -32,13 +30,18 @@ parameters:
       The name of the patroni cluster to connect to.
     displayName: Server Name
     required: true
-    value: patroni-wps-pr-730
   - name: DATABASE_NAME
     description: |
       The name of the postgres database to back-up.
     displayName: Server Name
     required: true
     value: wps
+  - name: WPS_ENVIRONMENT_USERNAME_KEY
+    description: Name of the environment variable that contains the wps username.
+    required: true
+  - name: WPS_ENVIRONMENT_PASSWORD_KEY
+    description: Name of the environment variable that contains the wps password.
+    required: true
   - name: BACKUP_VOLUME_NAME
     displayName: Backup Volume Name
     description:
@@ -103,34 +106,34 @@ parameters:
     required: true
     value: "/var/lib/pgsql/data"
 objects:
-  # - kind: PersistentVolumeClaim
-  #   apiVersion: v1
-  #   metadata:
-  #     name: "${BACKUP_VOLUME_NAME}"
-  #     labels:
-  #       app: "${NAME}-persistent"
-  #       template: "${NAME}-persistent-template"
-  #   spec:
-  #     storageClassName: "${BACKUP_VOLUME_CLASS}"
-  #     accessModes:
-  #     - ReadWriteOnce
-  #     resources:
-  #       requests:
-  #         storage: "${BACKUP_VOLUME_SIZE}"
-  # - kind: PersistentVolumeClaim
-  #   apiVersion: v1
-  #   metadata:
-  #     name: "${VERIFICATION_VOLUME_NAME}"
-  #     labels:
-  #       app: "${NAME}-persistent"
-  #       template: "${NAME}-persistent-template"
-  #   spec:
-  #     storageClassName: "${VERIFICATION_VOLUME_CLASS}"
-  #     accessModes:
-  #     - ReadWriteOnce
-  #     resources:
-  #       requests:
-  #         storage: "${VERIFICATION_VOLUME_SIZE}"
+  - kind: PersistentVolumeClaim
+    apiVersion: v1
+    metadata:
+      name: "${BACKUP_VOLUME_NAME}"
+      labels:
+        app: "${NAME}-persistent"
+        template: "${NAME}-persistent-template"
+    spec:
+      storageClassName: "${BACKUP_VOLUME_CLASS}"
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: "${BACKUP_VOLUME_SIZE}"
+  - kind: PersistentVolumeClaim
+    apiVersion: v1
+    metadata:
+      name: "${VERIFICATION_VOLUME_NAME}"
+      labels:
+        app: "${NAME}-persistent"
+        template: "${NAME}-persistent-template"
+    spec:
+      storageClassName: "${VERIFICATION_VOLUME_CLASS}"
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: "${VERIFICATION_VOLUME_SIZE}"
   - apiVersion: v1
     kind: ConfigMap
     metadata:
@@ -183,7 +186,7 @@ objects:
               kind: ImageStreamTag
               namespace: "${IMAGE_NAMESPACE}"
               name: "${SOURCE_IMAGE_NAME}:${TAG_NAME}"
-      replicas: 1
+      replicas: 0
       selector:
         name: "${NAME}"
       template:
@@ -194,11 +197,11 @@ objects:
         spec:
           volumes:
             - name: "${BACKUP_VOLUME_NAME}"
-              # persistentVolumeClaim:
-              # claimName: "${BACKUP_VOLUME_NAME}"
+              persistentVolumeClaim:
+              claimName: "${BACKUP_VOLUME_NAME}"
             - name: "${VERIFICATION_VOLUME_NAME}"
-              # persistentVolumeClaim:
-              # claimName: "${VERIFICATION_VOLUME_NAME}"
+              persistentVolumeClaim:
+              claimName: "${VERIFICATION_VOLUME_NAME}"
             - name: "${NAME}-config-volume"
               configMap:
                 name: "${NAME}-conf"
@@ -216,9 +219,9 @@ objects:
                   value: "${BACKUP_DIR}"
                 - name: TABLE_SCHEMA
                   value: "${TABLE_SCHEMA}"
-                - name: PATRONI_WPS_PR_736_LEADER_USER
+                - name: ${WPS_ENVIRONMENT_USERNAME_KEY}
                   value: wps
-                - name: PATRONI_WPS_PR_736_LEADER_PASSWORD
+                - name: ${WPS_ENVIRONMENT_PASSWORD_KEY}
                   valueFrom:
                     secretKeyRef:
                       name: wps-global
