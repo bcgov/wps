@@ -154,7 +154,7 @@ objects:
                       name: ${PARENT_NAME}-global
                       key: patroni-replication-password
                 - name: APP_USER
-                  value: ${PARENT_NAME}
+                  value: ${APP_USER}
                 - name: APP_PASSWORD
                   valueFrom:
                     secretKeyRef:
@@ -246,6 +246,10 @@ parameters:
     description: |
       The name of the primary application that uses this database.
     displayName: Parent Application Name
+    required: true
+  - name: APP_USER
+    description: Username for database.
+    displayName: Username for database.
     required: true
   - name: REPLICAS
     description: |
