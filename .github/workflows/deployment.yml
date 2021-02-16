@@ -163,7 +163,7 @@ jobs:
         uses: bcgov/openshift-launchpad-deployment@v1.2
         with:
           AUTH_TOKEN: ${{ secrets.OC4_DEV_TOKEN }}
-          SCRIPT: PROJ_TARGET="e1e498-dev" openshift/scripts/oc_provision_bcfw_p1_hourly_actuals_cronjob.sh ${SUFFIX} apply
+          SCRIPT: PROJ_TARGET="e1e498-dev" PROJ_TOOLS="e1e498-tools" IMAGE_REGISTRY="image-registry.openshift-image-registry.svc:5000" POSTGRES_WRITE_HOST=patroni-wps-${SUFFIX}-leader POSTGRES_READ_HOST=patroni-wps-${SUFFIX}-replica openshift/scripts/oc_provision_bcfw_p1_hourly_actuals_cronjob.sh ${SUFFIX} apply
 
       - name: Noon forecasts cronjob (Bender)
         uses: bcgov/openshift-launchpad-deployment@v1.2
