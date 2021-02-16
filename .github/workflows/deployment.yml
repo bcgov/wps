@@ -43,7 +43,7 @@ jobs:
           SCRIPT: EPHEMERAL_STORAGE=True openshift/scripts/oc_provision_db_ocp3.sh ${SUFFIX} apply
 
   prepare-database-backups:
-    name: Prepare Dev Database Backups
+    name: Prepare Dev Database Backups (OCP3)
     runs-on: ubuntu-latest
     steps:
       - name: Set Variables
@@ -71,6 +71,24 @@ jobs:
         with:
           AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
           SCRIPT: openshift/scripts/oc_provision_matomo_backup_cronjob.sh ${SUFFIX} apply
+
+  prepare-database-backups:
+    name: Prepare Dev Database Backups (OCP4)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set Variables
+        shell: bash
+        run: |
+          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Provision Postgres Backup
+        uses: bcgov/openshift-launchpad-deployment@v1.2
+        with:
+          AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
+          SCRIPT: PROJ_TARGET=e1e498-dev PROJ_TOOLS=e1e498-tools IMAGE_NAMESPACE=e1e498-tools EPHEMERAL_STORAGE=True openshift/scripts/oc_provision_postgres_backup_pvc.sh ${SUFFIX} apply
 
   build-and-deploy:
     name: Build, Deploy to Dev & ZAP Baseline Scan (OCP3)
