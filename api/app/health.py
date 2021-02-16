@@ -12,7 +12,7 @@ def patroni_cluster_health_check():
     individual Patroni pods, then re-formats response """
     parts = [
         config.get('OPENSHIFT_BASE_URI'),
-        'apis/apps/v1beta1/namespaces/',
+        config.get('OPENSHIFT_NAMESPACE_API'),
         config.get('PROJECT_NAMESPACE'),
         'statefulsets/',
         config.get('PATRONI_CLUSTER_NAME')
