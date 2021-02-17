@@ -3,11 +3,10 @@ apiVersion: v1
 metadata:
   name: ${NAME}-template
   labels:
-    name: ${NAME}${NAME}-template
+    name: ${NAME}-template
     app: ${APP_NAME}
     app-group: ${APP_GROUP}
     role: ${ROLE}
-    env: ${TAG_NAME}
 objects:
   - kind: DeploymentConfig
     apiVersion: v1
@@ -20,7 +19,6 @@ objects:
         template: matomo-template
         app-group: ${APP_GROUP}
         role: ${ROLE}
-        env: ${TAG_NAME}
     spec:
       strategy:
         type: Rolling
@@ -59,7 +57,6 @@ objects:
             template: ${NAME}-template
             app-group: ${APP_GROUP}
             role: ${ROLE}
-            env: ${TAG_NAME}
         spec:
           volumes:
             - name: ${NAME}-source
@@ -130,28 +127,6 @@ objects:
               volumeMounts:
                 - mountPath: /var/www/html
                   name: matomo-source
-  - kind: NetworkSecurityPolicy
-    apiVersion: security.devops.gov.bc.ca/v1alpha1
-    metadata:
-      name: custom-${APP_NAME}-${NAME}${SUFFIX}-policy
-      labels:
-        name: custom-${APP_NAME}-${NAME}${SUFFIX}-policy
-        app: ${APP_NAME}${SUFFIX}
-        app-group: ${APP_GROUP}
-        role: ${ROLE}
-        env: ${TAG_NAME}
-    spec:
-      description: "Allow matomo to talk to the database."
-      source:
-        - - role=${ROLE}
-          - app=${APP_NAME}${SUFFIX}
-          - env=${TAG_NAME}
-          - $namespace=${NAMESPACE_NAME}-${TAG_NAME}
-      destination:
-        - - role=db
-          - app=${APP_NAME}${SUFFIX}
-          - env=${TAG_NAME}
-          - $namespace=${NAMESPACE_NAME}-${TAG_NAME}
   - kind: PersistentVolumeClaim
     apiVersion: v1
     metadata:
@@ -161,7 +136,6 @@ objects:
         app: ${APP_NAME}
         app-group: ${APP_GROUP}
         role: ${ROLE}
-        env: ${TAG_NAME}
     spec:
       storageClassName: ${PERSISTENT_VOLUME_CLASS}
       accessModes:
@@ -178,7 +152,6 @@ objects:
         app: ${APP_NAME}
         app-group: ${APP_GROUP}
         role: ${ROLE}
-        env: ${TAG_NAME}
     spec:
       host: ${MATOMO_URL}
       tls:
@@ -187,20 +160,6 @@ objects:
       to:
         kind: Service
         name: ${NAME}
-  - kind: Secret
-    apiVersion: v1
-    metadata:
-      name: ${NAME}-admin
-      labels:
-        name: ${NAME}-admin
-        app: ${APP_NAME}
-        app-group: ${APP_GROUP}
-        role: ${ROLE}
-        env: ${TAG_NAME}
-    stringData:
-      username: ${MATOMO_ADMIN_USER}
-      password: ${MATOMO_ADMIN_PASSWORD}
-    type: Opaque
   - kind: Service
     apiVersion: v1
     metadata:
@@ -212,7 +171,6 @@ objects:
         template: matomo-template
         app-group: ${APP_GROUP}
         role: ${ROLE}
-        env: ${TAG_NAME}
     spec:
       ports:
         - name: 8080-tcp
@@ -260,11 +218,6 @@ parameters:
       Policies
     required: true
     value: matomo
-  - name: SUFFIX
-    displayName: Suffix
-    description: A suffix applied to all of the objects in this template.
-    required: false
-    value: ""
   - name: APP_GROUP
     displayName: App Group
     description: The name assigned to all of the deployments in this project.
@@ -275,17 +228,6 @@ parameters:
     description: The TAG name for this environment, e.g., dev, test, prod
     required: true
     value: prod
-  - name: MATOMO_ADMIN_USER
-    displayName: Matomo Admin Username
-    description: Admin Username for Matomo
-    required: true
-    value: admin
-  - name: MATOMO_ADMIN_PASSWORD
-    displayName: Matomo Admin Password
-    description: Password for the Matomo Admin user.
-    required: true
-    generate: expression
-    from: "[a-zA-Z0-9]{16}"
   - name: MATOMO_URL
     displayName: Matomo URL
     description:
