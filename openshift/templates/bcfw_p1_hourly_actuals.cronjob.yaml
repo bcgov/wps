@@ -76,6 +76,10 @@ objects:
                       value: "5432"
                     - name: POSTGRES_DATABASE
                       value: ${NAME}-${SUFFIX}
+                    - name: POSTGRES_WRITE_USER
+                      value: ${POSTGRES_USER}
+                    - name: POSTGRES_READ_USER
+                      value: ${POSTGRES_USER}
                     - name: ROCKET_URL_POST_MESSAGE
                       valueFrom:
                         configMapKeyRef:
