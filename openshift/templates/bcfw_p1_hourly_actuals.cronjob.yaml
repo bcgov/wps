@@ -26,6 +26,7 @@ parameters:
   - name: POSTGRES_WRITE_HOST
     required: true
   - name: POSTGRES_USER
+  - name: POSTGRES_DATABASE
 objects:
   - kind: CronJob
     apiVersion: batch/v1beta1
