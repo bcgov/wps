@@ -112,24 +112,26 @@ objects:
     subjects:
       - kind: ServiceAccount
         name: ${NAME}
-  - apiVersion: security.devops.gov.bc.ca/v1alpha1
-    kind: NetworkSecurityPolicy
+  - apiVersion: networking.k8s.io/v1
+    kind: NetworkPolicy
     metadata:
       name: patroni-db-to-db-${NAME}
       labels:
         app: ${NAME}
         cluster-name: ${NAME}
-      annotations:
-        template.alpha.openshift.io/wait-for-ready: "true"
     spec:
-      description: |
-        allow patroni pods to talk to one another for replication etc.
-      source:
-        - - "$namespace=${TARGET_NAMESPACE}"
-          - "statefulset=${NAME}"
-      destination:
-        - - "$namespace=${TARGET_NAMESPACE}"
-          - "statefulset=${NAME}"
+      # allow patroni pods to talk to one another for replication etc.
+      ingress:
+        - from:
+            - podSelector:
+                matchLabels:
+                  cluster-name: ${NAME}
+          ports:
+            - protocol: TCP
+              port: 5432
+      podSelector:
+        matchLabels:
+          cluster-name: ${NAME}
 parameters:
   - name: NAME
     description: |

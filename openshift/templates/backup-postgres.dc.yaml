@@ -95,11 +95,6 @@ parameters:
     description: The path to use to mount the config file.
     required: true
     value: "/"
-  - name: CONFIG_FILE_NAME
-    displayName: Config File Name
-    description: The name of the configuration file.
-    required: true
-    value: "backup.conf"
   - name: VERIFICATION_VOLUME_MOUNT_PATH
     displayName: Verification Volume Mount Path
     description: The path on which to mount the verification volume.  This is used by the database server to contain the database configuration and data files. For Mongo, please use /var/lib/mongodb/data . For MSSQL, please use /var/opt/mssql/data
@@ -145,24 +140,15 @@ objects:
         # Databases:
         # ------------------------------------------------------------
         postgres=${CLUSTER_NAME}-leader/${DATABASE_NAME}
-        # -----------------------------------------------------------
-        # Cron Scheduling:
-        # -----------------------------------------------------------
-        # We're using Openshift cronjobs to do the backup, so we
-        # don't schedule anything here.
-        # 0 1 * * * default ./backup.sh -s
-        # 0 4 * * * default ./backup.sh -s -v all
-        # -----------------------------------------------------------
-        # Full Example:
-        # -----------------------------------------------------------
-        # postgres=postgresql:5432/TheOrgBook_Database
-        # mongo=mender-mongodb:27017/useradm
-        # postgres=wallet-db/tob_issuer
-        # mssql=pims-db-dev:1433/pims
-        #
-        # 0 1 * * * default ./backup.sh -s
-        # 0 4 * * * default ./backup.sh -s -v all
         # ============================================================
+      DATABASE_SERVICE_NAME: "${CLUSTER_NAME}-leader"
+      DEFAULT_PORT: "5432"
+      POSTGRESQL_DATABASE: "${DATABASE_NAME}"
+      BACKUP_STRATEGY: ${BACKUP_STRATEGY}
+      RETENTION.NUM_BACKUPS: "11"
+      RETENTION.DAILY_BACKUPS: "6"
+      RETENTION.WEEKLY_BACKUPS: "4"
+      RETENTION.MONTHLY_BACKUPS: "4"
   - kind: DeploymentConfig
     apiVersion: v1
     metadata:
@@ -214,7 +200,35 @@ objects:
               ports: []
               env:
                 - name: BACKUP_STRATEGY
-                  value: "${BACKUP_STRATEGY}"
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-conf
+                      key: BACKUP_STRATEGY
+                      optional: true
+                - name: NUM_BACKUPS
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-conf
+                      key: RETENTION.NUM_BACKUPS
+                      optional: true
+                - name: DAILY_BACKUPS
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-conf
+                      key: RETENTION.DAILY_BACKUPS
+                      optional: true
+                - name: WEEKLY_BACKUPS
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-conf
+                      key: RETENTION.WEEKLY_BACKUPS
+                      optional: true
+                - name: MONTHLY_BACKUPS
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-conf
+                      key: "RETENTION.MONTHLY_BACKUPS"
+                      optional: true
                 - name: BACKUP_DIR
                   value: "${BACKUP_DIR}"
                 - name: TABLE_SCHEMA
