@@ -15,13 +15,19 @@ parameters:
   - name: SUFFIX
     description: Deployment suffix, e.g. pr-###
     required: true
-  - name: PROJECT_TOOLS
+  - name: PROJ_TOOLS
     value: auzhsi-tools
+  - name: IMAGE_REGISTRY
+    value: docker-registry.default.svc:5000
   - name: JOB_NAME
     value: bcfw-p1-forecasts
   - name: SCHEDULE
     value: "30 8,16 * * *"
     required: true
+  - name: POSTGRES_WRITE_HOST
+    required: true
+  - name: POSTGRES_USER
+  - name: POSTGRES_DATABASE
 objects:
   - kind: CronJob
     apiVersion: batch/v1beta1
@@ -41,7 +47,7 @@ objects:
             spec:
               containers:
                 - name: ${JOB_NAME}
-                  image: docker-registry.default.svc:5000/${PROJECT_TOOLS}/${NAME}-${SUFFIX}:${SUFFIX}
+                  image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${NAME}-${SUFFIX}:${SUFFIX}
                   imagePullPolicy: "Always"
                   command:
                     ["python", "-m", "app.fireweather_bot.noon_forecasts"]
