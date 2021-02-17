@@ -36,19 +36,14 @@ PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 APPLICATION_NAME="patroni-${NAME_APP}-${SUFFIX}"
 
 OC_CLEAN_DEPLOY="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} \
-    all,cm,secret,endpoints,serviceaccounts,rolebinding.rbac.authorization.k8s.io,roles.rbac.authorization.k8s.io,pvc,networksecuritypolicy \
-    -o name -l app=${APPLICATION_NAME} -l cluster-name=${APPLICATION_NAME}"
-
-OC_CLEAN_CONFIGMAPS="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} \
-    configmaps \
-    -o name -l cluster-name=${APPLICATION_NAME}"
+    all,cm,secret,endpoints,serviceaccounts,rolebinding.rbac.authorization.k8s.io,roles.rbac.authorization.k8s.io,pvc \
+    -o name -l application=${APPLICATION_NAME}"
 
 # Execute commands
 #
 echo -e "\n${PROJ_TARGET}:" 
 eval "${OC_CLEAN_DEPLOY}"
-eval "${OC_CLEAN_CONFIGMAPS}"
 
 # Provide oc command instruction
 #
-display_helper "${OC_CLEAN_DEPLOY}" "${OC_CLEAN_CONFIGMAPS}"
+display_helper "${OC_CLEAN_DEPLOY}"
