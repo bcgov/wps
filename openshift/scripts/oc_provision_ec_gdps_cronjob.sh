@@ -25,11 +25,15 @@ source "$(dirname ${0})/common/common"
 #
 PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 
+# Use a random time if schedule not specified.
+SCHEDULE="${SCHEDULE:-$((9 + $RANDOM % 50)) * * * *}"
+
 # Process template
 OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/env_canada_gdps.cronjob.yaml \
 -p JOB_NAME=env-canada-gdps-${NAME_APP}-${SUFFIX} \
 -p NAME=${NAME_APP} \
 -p SUFFIX=${SUFFIX} \
+-p SCHEDULE=\"${SCHEDULE}\" \
 -p POSTGRES_USER=${POSTGRES_USER:-${NAME_APP}-${SUFFIX}} \
 -p POSTGRES_DATABASE=${POSTGRES_DATABASE:-${NAME_APP}-${SUFFIX}} \
 -p POSTGRES_WRITE_HOST=${POSTGRES_WRITE_HOST:-"patroni-leader-${NAME_APP}-${SUFFIX}"} \
