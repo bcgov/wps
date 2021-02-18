@@ -25,11 +25,20 @@ source "$(dirname ${0})/common/common"
 #
 PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 
+# Set default cron schedule here
+SCHEDULE = "07 * * * *"
+
 # Process template
 OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/env_canada_hrdps.cronjob.yaml \
 -p JOB_NAME=env-canada-hrdps-${NAME_APP}-${SUFFIX} \
 -p NAME=${NAME_APP} \
--p SUFFIX=${SUFFIX}"
+-p SUFFIX=${SUFFIX} \
+-p SCHEDULE=\"${SCHEDULE}\" \
+-p POSTGRES_USER=${POSTGRES_USER:-${NAME_APP}-${SUFFIX}} \
+-p POSTGRES_DATABASE=${POSTGRES_DATABASE:-${NAME_APP}-${SUFFIX}} \
+-p POSTGRES_WRITE_HOST=${POSTGRES_WRITE_HOST:-"patroni-leader-${NAME_APP}-${SUFFIX}"} \
+${PROJ_TOOLS:+ "-p PROJ_TOOLS=${PROJ_TOOLS}"} \
+${IMAGE_REGISTRY:+ "-p IMAGE_REGISTRY=${IMAGE_REGISTRY}"}"
 
 # Apply template (apply or use --dry-run)
 #
