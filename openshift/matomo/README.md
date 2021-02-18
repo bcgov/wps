@@ -49,3 +49,12 @@ For full script documentation run `./manage -h`.
 Once everything is up and running in OpenShift, follow the [instructions](https://matomo.org/docs/installation/#the-5-minute-matomo-installation) to create your superuser, set-up the connection to the database and initialize the Matomo dashboard.
 
 To start tracking, copy the snippet for the appropriate website in the Matomo dashboard and place it in your website.
+
+## Migration
+If ever need to migrate from one Matomo instance to another (and potentially requiring version updates on both DB and dashboard), use this guide.
+1. Rsh into the existing db pod and back up the database using
+`MYSQL_PWD=${MYSQL_PASSWORD} mysqldump -u ${MYSQL_USER} -h matomo-db ${MYSQL_DATABASE} | gzip > /tmp/matomo.gz`
+1. Copy the back up and then paste it into the new db pod using `oc cp`
+2. Decompress the back up and restore the data using this command
+`MYSQL_PWD=${MYSQL_PASSWORD} mysql -u ${MYSQL_USER} -h matomo-db ${MYSQL_DATABASE} < ${DECOMPRESSED_FILE}`
+1. Once restoring is done, rsh into the matomo pod - the pod that serves Matomo dashboard. Then run `./console core:update` (this will upgrade the Matomo database from older version used in previous environment.)
