@@ -15,7 +15,7 @@ parameters:
   - name: SUFFIX
     description: Deployment suffix, e.g. pr-###
     required: true
-  - name: PROJECT_TOOLS
+  - name: PROJ_TOOLS
     value: auzhsi-tools
   - name: JOB_NAME
     value: env-canada
@@ -51,7 +51,7 @@ objects:
             spec:
               containers:
                 - name: ${JOB_NAME}
-                  image: ${IMAGE_REGISTRY}/${PROJECT_TOOLS}/${NAME}-${SUFFIX}:${SUFFIX}
+                  image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${NAME}-${SUFFIX}:${SUFFIX}
                   imagePullPolicy: "Always"
                   command:
                     ["python", "-m", "app.weather_models.env_canada", "GDPS"]
