@@ -23,7 +23,8 @@ source "$(dirname ${0})/common/common"
 
 # Source and destination
 #
-IMG_SOURCE="docker-registry.default.svc:5000/${PROJ_TOOLS}/${NAME_APP}-${SUFFIX}:${SUFFIX}"
+IMAGE_REGISTRY="${IMAGE_REGISTRY:-'docker-registry.default.svc:5000'}"
+IMG_SOURCE="${IMAGE_REGISTRY}/${PROJ_TOOLS}/${NAME_APP}-${SUFFIX}:${SUFFIX}"
 IMG_DEST="${NAME_APP}-${TAG_PROD}"
 
 # Import to new image and retag, leaving the original tag in
