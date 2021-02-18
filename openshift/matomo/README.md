@@ -52,7 +52,7 @@ To start tracking, copy the snippet for the appropriate website in the Matomo da
 
 ## Migration
 If ever need to migrate from one Matomo instance to another (and potentially requiring version updates on both DB and dashboard), use this guide.
-1. Rsh into in to the existing db pod and back up the database using
+1. Rsh into the existing db pod and back up the database using
 `MYSQL_PWD=${MYSQL_PASSWORD} mysqldump -u ${MYSQL_USER} -h matomo-db ${MYSQL_DATABASE} | gzip > /tmp/matomo.gz`
 1. Copy the back up and then paste it into the new db pod using `oc cp`
 2. Decompress the back up and restore the data using this command
