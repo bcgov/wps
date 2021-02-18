@@ -27,7 +27,7 @@ PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 
 # Specify a default schedule to run every 2 hours, since one run of the cronjob
 # can sometimes take over an hour
-SCHEDULE = "22 */2 * * *"
+SCHEDULE="${SCHEDULE:-$((24 + $RANDOM % 35)) */2 * * *}"
 
 # Process template
 OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/env_canada_rdps.cronjob.yaml \

@@ -24,8 +24,11 @@ parameters:
     value: docker-registry.default.svc:5000
   - name: POSTGRES_WRITE_HOST
     required: true
+  - name: POSTGRES_READ_HOST
   - name: POSTGRES_USER
+    required: true
   - name: POSTGRES_DATABASE
+    required: true
   - name: SCHEDULE
     required: true
 objects:

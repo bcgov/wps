@@ -26,7 +26,7 @@ source "$(dirname ${0})/common/common"
 PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 
 # Set default cron schedule here
-SCHEDULE = "07 * * * *"
+SCHEDULE="${SCHEDULE:-$((13 + $RANDOM % 46)) * * * *}"
 
 # Process template
 OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/env_canada_hrdps.cronjob.yaml \
