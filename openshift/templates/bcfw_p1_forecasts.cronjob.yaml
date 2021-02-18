@@ -68,22 +68,22 @@ objects:
                           name: ${NAME}-global
                           key: bc-fire-weather-filter-id
                     - name: POSTGRES_READ_USER
-                      value: ${NAME}-${SUFFIX}
+                      value: ${POSTGRES_USER}
                     - name: POSTGRES_WRITE_USER
-                      value: ${NAME}-${SUFFIX}
+                      value: ${POSTGRES_USER}
                     - name: POSTGRES_PASSWORD
                       valueFrom:
                         secretKeyRef:
                           name: ${NAME}-global
                           key: app-db-password
                     - name: POSTGRES_WRITE_HOST
-                      value: patroni-leader-${NAME}-${SUFFIX}
+                      value: ${POSTGRES_WRITE_HOST}
                     - name: POSTGRES_READ_HOST
-                      value: patroni-replica-${NAME}-${SUFFIX}
+                      value: ${POSTGRES_READ_HOST}
                     - name: POSTGRES_PORT
                       value: "5432"
                     - name: POSTGRES_DATABASE
-                      value: ${NAME}-${SUFFIX}
+                      value: ${POSTGRES_DATABASE}
                     - name: ROCKET_URL_POST_MESSAGE
                       valueFrom:
                         configMapKeyRef:
