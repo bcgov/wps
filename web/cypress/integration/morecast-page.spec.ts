@@ -69,7 +69,7 @@ describe('MoreCast Page', () => {
       cy.getByTestId('get-wx-data-button').click({ force: true })
     })
 
-    it('Observation, noon forecast, and noon GDPS should be displayed in tables', () => {
+    it.only('Observation, noon forecast, and noon GDPS should be displayed in tables', () => {
       cy.getByTestId(`observations-table-${stationCode}`)
         .find('tbody > tr')
         .should('have.length', numOfObservations)
@@ -78,6 +78,7 @@ describe('MoreCast Page', () => {
       const day = 26
       const earliestDate = `2021-01-${day - 5}`
       const latestDate = `2021-01-${day}`
+      cy.getByTestId(`observations-table-${stationCode}-accordion`).click() // Expand Observations table
       cy.getByTestId(`observations-table-${stationCode}`)
         .find('tbody > tr:first > td:first')
         .should('contain', earliestDate)
@@ -90,6 +91,7 @@ describe('MoreCast Page', () => {
         .find('tbody > tr:first > td:first')
         .should('contain', earliestDate)
 
+      cy.getByTestId(`noon-gdps-table-${stationCode}-accordion`).click() // Expand interpolated GDPS noon values table
       cy.getByTestId(`noon-gdps-table-${stationCode}`)
         .find('tbody > tr')
         .should('have.length', 14) // Num of noon gdps
@@ -98,16 +100,17 @@ describe('MoreCast Page', () => {
         .should('have.length', numOfForecasts)
 
       // Check that collapse and expand functionality works
-      cy.getByTestId(`observations-table-${stationCode}-collapse`).click() // collapse Observations table
-      cy.wait(500) // wait for animation to complete
+      cy.getByTestId(`observations-table-${stationCode}-accordion`).click() // Collapse Observations table
+      cy.wait(500)
       cy.getByTestId(`observations-table-${stationCode}`)
-        .find('.MuiTableContainer-root')
-        .should('have.css', 'height', '0px') // table should be hidden
-      cy.getByTestId(`noon-gdps-table-${stationCode}-collapse`).click() // collapse Interpolated GDPS noon values table
+        .find('.MuiTableSortLabel-icon')
+        .should('not.be.visible')
+
+      cy.getByTestId(`noon-gdps-table-${stationCode}-accordion`).click() // Collapse Interpolated GDPS noon values table
       cy.wait(500)
       cy.getByTestId(`noon-gdps-table-${stationCode}`)
         .find('.MuiTableContainer-root')
-        .should('have.css', 'height', '0px')
+        .should('not.be.visible')
     })
 
     it('Temp & RH Graph should be displayed', () => {
