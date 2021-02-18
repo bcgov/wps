@@ -10,7 +10,7 @@
     "labels": {
       "name": "${NAME}-persistent-template",
       "app": "${APP_NAME}",
-      "role": "${NAME}"
+      "role": "${ROLE}"
     }
   },
   "objects": [
@@ -23,8 +23,7 @@
           "name": "${NAME}",
           "app": "${APP_NAME}",
           "service": "${NAME}",
-          "template": "matomo-template",
-          "role": "${NAME}"
+          "role": "${ROLE}"
         }
       },
       "spec": {
@@ -213,8 +212,7 @@
         "labels": {
           "name": "${NAME}",
           "app": "${APP_NAME}",
-          "service": "${NAME}",
-          "template": "matomo-template"
+          "service": "${NAME}"
         },
         "annotations": {
           "template.openshift.io/expose-uri": "mysql://{.spec.clusterIP}:{.spec.ports[?(.name==\"mariadb\")].port}"

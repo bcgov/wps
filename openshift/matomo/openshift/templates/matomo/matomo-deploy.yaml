@@ -16,7 +16,6 @@ objects:
         name: ${NAME}
         app: ${APP_NAME}
         service: ${NAME}
-        template: matomo-template
         app-group: ${APP_GROUP}
         role: ${ROLE}
     spec:
@@ -127,6 +126,7 @@ objects:
               volumeMounts:
                 - mountPath: /var/www/html
                   name: matomo-source
+  # TODO: Add KNP (k8t network policy)
   - kind: PersistentVolumeClaim
     apiVersion: v1
     metadata:
@@ -168,7 +168,6 @@ objects:
         name: ${NAME}
         app: ${APP_NAME}
         service: ${NAME}
-        template: matomo-template
         app-group: ${APP_GROUP}
         role: ${ROLE}
     spec:
