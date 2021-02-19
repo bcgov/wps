@@ -1,7 +1,6 @@
 import React from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import TextField from '@material-ui/core/TextField'
-import { formatDateInPST } from 'utils/date'
 
 const useStyles = makeStyles({
   datePicker: {
@@ -13,8 +12,8 @@ const useStyles = makeStyles({
 })
 
 interface Props {
-  timeOfInterest: Date
-  onChange: (d: Date) => void
+  timeOfInterestISO: string
+  onChange: (d: string) => void
 }
 
 const TimeOfInterestPicker = (props: Props) => {
@@ -23,11 +22,11 @@ const TimeOfInterestPicker = (props: Props) => {
   return (
     <TextField
       data-testid="time-of-interest-picker"
+      className={classes.datePicker}
       label="Time of Interest (PST-08:00)"
       type="datetime-local"
-      value={formatDateInPST(props.timeOfInterest, 'YYYY-MM-DDTHH:mm')}
+      value={props.timeOfInterestISO.slice(0, 16)} // 'YYYY-MM-DDTHH:mm'
       helperText="Disclaimer: not all data may be available."
-      className={classes.datePicker}
       InputLabelProps={{
         shrink: true
       }}
@@ -37,7 +36,7 @@ const TimeOfInterestPicker = (props: Props) => {
       onChange={e => {
         const value = e.currentTarget.value
         if (value) {
-          props.onChange(new Date(value))
+          props.onChange(`${value}:00-08:00`) // Append seconds and timezone at the end
         }
       }}
     />
