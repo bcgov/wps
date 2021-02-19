@@ -1,4 +1,4 @@
-#!/bin/bash -l
+#!/bin/sh -l
 #
 source "$(dirname ${0})/common/common"
 
