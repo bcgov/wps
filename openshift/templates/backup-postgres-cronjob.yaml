@@ -165,8 +165,8 @@ objects:
                     - "-c"
                     - "/backup.sh -1"
                   volumeMounts:
-                    - mountPath: "${BACKUP_DIR}"
-                      name: "backup"
+                    - name: "backup"
+                      mountPath: "${BACKUP_DIR}"
                   env:
                     - name: BACKUP_DIR
                       value: "${BACKUP_DIR}"
