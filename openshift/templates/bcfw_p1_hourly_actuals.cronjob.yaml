@@ -26,8 +26,11 @@ parameters:
   - name: POSTGRES_WRITE_HOST
     required: true
     value: patroni-leader-${NAME}-${SUFFIX}
+  - name: POSTGRES_READ_HOST
+    value: patroni-replica-${NAME}-${SUFFIX}
   - name: POSTGRES_USER
     required: true
+    value: ${NAME}-${SUFFIX}
   - name: POSTGRES_DATABASE
     required: true
     value: ${NAME}-${SUFFIX}
