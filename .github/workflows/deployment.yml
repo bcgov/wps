@@ -88,7 +88,7 @@ jobs:
         uses: bcgov/openshift-launchpad-deployment@v1.2
         with:
           AUTH_TOKEN: ${{ secrets.OC4_DEV_TOKEN }}
-          SCRIPT: PROJ_TARGET=e1e498-dev PROJ_TOOLS=e1e498-tools IMAGE_NAMESPACE=e1e498-tools EPHEMERAL_STORAGE=True openshift/scripts/oc_provision_postgres_backup.sh ${SUFFIX} apply
+          SCRIPT: PROJ_TARGET=e1e498-dev PROJ_TOOLS=e1e498-tools IMAGE_NAMESPACE=e1e498-tools EPHEMERAL_STORAGE=True openshift/scripts/oc_provision_backup_postgres.sh ${SUFFIX} apply
 
       - name: Postgres Backup Cronjob
         uses: bcgov/openshift-launchpad-deployment@v1.2
