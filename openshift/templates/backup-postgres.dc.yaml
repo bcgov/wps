@@ -103,21 +103,11 @@ parameters:
     description: The size of the persistent volume used to store the backups, e.g. 512Mi, 1Gi, 2Gi.  Ensure this is sized correctly.  Refer to the container documentation for details.
     required: true
     value: 2Gi
-  - name: VERIFICATION_VOLUME_SIZE
-    displayName: Backup Volume Size
-    description: The size of the persistent volume used for restoring and verifying backups, e.g. 512Mi, 1Gi, 2Gi.  Ensure this is sized correctly.  It should be large enough to contain your largest database.
-    required: true
-    value: 1Gi
   - name: BACKUP_VOLUME_CLASS
     displayName: Backup Volume Class
     description: The class of the persistent volume used to store the backups; netapp-block-standard, netapp-file-standard, nfs-backup.  Please note, nfs-backup storage is the recommended storage type for backups.  It MUST be provisioned manually through the OCP catalog via the 'BC Gov NFS Storage' template.  nfs-backup storage CANNOT be automatically provisioned by this template.
     required: true
-    value: nfs-backup
-  - name: VERIFICATION_VOLUME_CLASS
-    displayName: Backup Volume Class
-    description: The class of the persistent volume used for restoring and verifying backups; should be one of netapp-block-standard or netapp-file-standard.  netapp-block-standard performs better.
-    required: true
-    value: netapp-file-standard
+    value: netapp-file-backup
 objects:
   - kind: PersistentVolumeClaim
     apiVersion: v1
@@ -133,20 +123,6 @@ objects:
       resources:
         requests:
           storage: "${BACKUP_VOLUME_SIZE}"
-  - kind: PersistentVolumeClaim
-    apiVersion: v1
-    metadata:
-      name: "${VERIFICATION_VOLUME_NAME}"
-      labels:
-        app: "${NAME}-persistent"
-        template: "${NAME}-persistent-template"
-    spec:
-      storageClassName: "${VERIFICATION_VOLUME_CLASS}"
-      accessModes:
-        - ReadWriteOnce
-      resources:
-        requests:
-          storage: "${VERIFICATION_VOLUME_SIZE}"
   - apiVersion: v1
     kind: ConfigMap
     metadata:
@@ -204,8 +180,6 @@ objects:
               persistentVolumeClaim:
                 claimName: "${BACKUP_VOLUME_NAME}"
             - name: "${VERIFICATION_VOLUME_NAME}"
-              persistentVolumeClaim:
-                claimName: "${VERIFICATION_VOLUME_NAME}"
             - name: "${NAME}-config-volume"
               configMap:
                 name: "${NAME}-config"

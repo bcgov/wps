@@ -48,9 +48,7 @@ OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/backup-postgres.dc.
     -p WPS_ENVIRONMENT_USERNAME_KEY=${WPS_ENVIRONMENT_USERNAME_KEY} \
     -p WPS_ENVIRONMENT_PASSWORD_KEY=${WPS_ENVIRONMENT_PASSWORD_KEY} \
     ${BACKUP_VOLUME_SIZE:+ " -p BACKUP_VOLUME_SIZE=${BACKUP_VOLUME_SIZE}"} \
-    ${BACKUP_VOLUME_CLASS:+ " -p BACKUP_VOLUME_CLASS=${BACKUP_VOLUME_CLASS}"} \
-    ${VERIFICATION_VOLUME_CLASS:+ " -p VERIFICATION_VOLUME_CLASS=${VERIFICATION_VOLUME_CLASS}"} \
-    ${VERIFICATION_VOLUME_SIZE:+ " -p VERIFICATION_VOLUME_SIZE=${VERIFICATION_VOLUME_SIZE}"}"
+    ${BACKUP_VOLUME_CLASS:+ " -p BACKUP_VOLUME_CLASS=${BACKUP_VOLUME_CLASS}"}"
 
 # In order to avoid running out of storage quote in our development environment, use
 # ephemeral storage by removing the pvc request from the template.
@@ -58,9 +56,7 @@ if [ "$EPHEMERAL_STORAGE" = "True" ]
 then
     # Pipe the template to jq, and delete the pvc and volume claim items from the template.
     OC_PROCESS="${OC_PROCESS} | jq 'del(.items[0]) \
-| del(.items[0]) \
-| del(.items[1].spec.template.spec.volumes[0].persistentVolumeClaim) \
-| del(.items[1].spec.template.spec.volumes[1].persistentVolumeClaim)'"
+| del(.items[1].spec.template.spec.volumes[0].persistentVolumeClaim)'"
 fi
 
 
