@@ -50,7 +50,6 @@ parameters:
       MUST be taken from the manually provisioned claim; nfs-backup storage MUST be
       provisioned manually.
     required: true
-    value: backup
   - name: VERIFICATION_VOLUME_NAME
     displayName: Verification Volume Name
     description:
@@ -58,8 +57,7 @@ parameters:
       backups.  When using the recommend nfs-backup storage class for backups, this
       volume MUST be either netapp-file-standard or netapp-block-standard storage; netapp-block-standard
       is recommended (it has far better performance).
-    required: false
-    value: backup-verification
+    required: true
   - name: CONFIG_FILE_NAME
     displayName: Config File Name
     description: The name of the configuration file.
@@ -100,6 +98,26 @@ parameters:
     description: The path on which to mount the verification volume.  This is used by the database server to contain the database configuration and data files. For Mongo, please use /var/lib/mongodb/data . For MSSQL, please use /var/opt/mssql/data
     required: true
     value: "/var/lib/pgsql/data"
+  - name: BACKUP_VOLUME_SIZE
+    displayName: Backup Volume Size
+    description: The size of the persistent volume used to store the backups, e.g. 512Mi, 1Gi, 2Gi.  Ensure this is sized correctly.  Refer to the container documentation for details.
+    required: true
+    value: 2Gi
+  - name: VERIFICATION_VOLUME_SIZE
+    displayName: Backup Volume Size
+    description: The size of the persistent volume used for restoring and verifying backups, e.g. 512Mi, 1Gi, 2Gi.  Ensure this is sized correctly.  It should be large enough to contain your largest database.
+    required: true
+    value: 1Gi
+  - name: BACKUP_VOLUME_CLASS
+    displayName: Backup Volume Class
+    description: The class of the persistent volume used to store the backups; netapp-block-standard, netapp-file-standard, nfs-backup.  Please note, nfs-backup storage is the recommended storage type for backups.  It MUST be provisioned manually through the OCP catalog via the 'BC Gov NFS Storage' template.  nfs-backup storage CANNOT be automatically provisioned by this template.
+    required: true
+    value: nfs-backup
+  - name: VERIFICATION_VOLUME_CLASS
+    displayName: Backup Volume Class
+    description: The class of the persistent volume used for restoring and verifying backups; should be one of netapp-block-standard or netapp-file-standard.  netapp-block-standard performs better.
+    required: true
+    value: netapp-file-standard
 objects:
   - kind: PersistentVolumeClaim
     apiVersion: v1
@@ -133,7 +151,7 @@ objects:
     kind: ConfigMap
     metadata:
       annotations:
-      name: ${NAME}-conf
+      name: ${NAME}-config
     data:
       backup.conf: |
         # ============================================================
@@ -184,13 +202,13 @@ objects:
           volumes:
             - name: "${BACKUP_VOLUME_NAME}"
               persistentVolumeClaim:
-              claimName: "${BACKUP_VOLUME_NAME}"
+                claimName: "${BACKUP_VOLUME_NAME}"
             - name: "${VERIFICATION_VOLUME_NAME}"
               persistentVolumeClaim:
-              claimName: "${VERIFICATION_VOLUME_NAME}"
+                claimName: "${VERIFICATION_VOLUME_NAME}"
             - name: "${NAME}-config-volume"
               configMap:
-                name: "${NAME}-conf"
+                name: "${NAME}-config"
                 items:
                   - key: "${CONFIG_FILE_NAME}"
                     path: "${CONFIG_FILE_NAME}"
@@ -202,31 +220,31 @@ objects:
                 - name: BACKUP_STRATEGY
                   valueFrom:
                     configMapKeyRef:
-                      name: ${NAME}-conf
+                      name: ${NAME}-config
                       key: BACKUP_STRATEGY
                       optional: true
                 - name: NUM_BACKUPS
                   valueFrom:
                     configMapKeyRef:
-                      name: ${NAME}-conf
+                      name: ${NAME}-config
                       key: RETENTION.NUM_BACKUPS
                       optional: true
                 - name: DAILY_BACKUPS
                   valueFrom:
                     configMapKeyRef:
-                      name: ${NAME}-conf
+                      name: ${NAME}-config
                       key: RETENTION.DAILY_BACKUPS
                       optional: true
                 - name: WEEKLY_BACKUPS
                   valueFrom:
                     configMapKeyRef:
-                      name: ${NAME}-conf
+                      name: ${NAME}-config
                       key: RETENTION.WEEKLY_BACKUPS
                       optional: true
                 - name: MONTHLY_BACKUPS
                   valueFrom:
                     configMapKeyRef:
-                      name: ${NAME}-conf
+                      name: ${NAME}-config
                       key: "RETENTION.MONTHLY_BACKUPS"
                       optional: true
                 - name: BACKUP_DIR
