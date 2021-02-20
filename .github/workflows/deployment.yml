@@ -193,7 +193,7 @@ jobs:
       - name: ZAP Scan
         uses: zaproxy/action-baseline@v0.4.0
         with:
-          target: "https://wps-pr-${{ github.event.number }}.app.silver.devops.gov.bc.ca"
+          target: "https://wps-pr-${{ github.event.number }}.apps.silver.devops.gov.bc.ca"
           rules_file_name: ".zap/rules.tsv"
           # Do not return failure on warnings - TODO: this has to be resolved!
           cmd_options: "-I"
