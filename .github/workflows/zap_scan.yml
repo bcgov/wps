@@ -7,7 +7,7 @@ on:
 jobs:
   zap_scan:
     runs-on: ubuntu-latest
-    name: Scan the webapplication
+    name: Scan the web application in OCP3
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -18,4 +18,18 @@ jobs:
         uses: zaproxy/action-baseline@v0.4.0
         with:
           target: "https://wps-prod.pathfinder.gov.bc.ca/"
+          rules_file_name: ".zap/rules.tsv"
+  zap_scan:
+    runs-on: ubuntu-latest
+    name: Scan the web application in OCP4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: main
+      - name: ZAP Scan
+        # f.y.i.: ZAP Scan must be able to log an issue or it will fail.
+        uses: zaproxy/action-baseline@v0.4.0
+        with:
+          target: "https://wps-prod.apps.silver.devops.gov.bc.ca/"
           rules_file_name: ".zap/rules.tsv"
