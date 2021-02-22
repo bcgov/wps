@@ -75,7 +75,7 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
 
   return (
     <div className={classes.display} data-testid={props.testId}>
-      <Accordion>
+      <Accordion expanded>
         <AccordionSummary
           data-testid={`${props.testId}-accordion`}
           expandIcon={<ExpandMoreIcon />}
