@@ -5,7 +5,7 @@ on:
     - cron: "0 2 * * 0"
 
 jobs:
-  zap_scan:
+  zap_scan_ocp3:
     runs-on: ubuntu-latest
     name: Scan the web application in OCP3
     steps:
@@ -19,7 +19,7 @@ jobs:
         with:
           target: "https://wps-prod.pathfinder.gov.bc.ca/"
           rules_file_name: ".zap/rules.tsv"
-  zap_scan:
+  zap_scan_ocp4:
     runs-on: ubuntu-latest
     name: Scan the web application in OCP4
     steps:
