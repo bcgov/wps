@@ -69,7 +69,7 @@ describe('MoreCast Page', () => {
       cy.getByTestId('get-wx-data-button').click({ force: true })
     })
 
-    it('Observation, noon forecast, and noon GDPS should be displayed in tables', () => {
+    it.only('Observation, noon forecast, and noon GDPS should be displayed in tables', () => {
       cy.getByTestId(`observations-table-${stationCode}`)
         .find('tbody > tr')
         .should('have.length', numOfObservations)
@@ -78,7 +78,6 @@ describe('MoreCast Page', () => {
       const day = 26
       const earliestDate = `2021-01-${day - 5}`
       const latestDate = `2021-01-${day}`
-      cy.getByTestId(`observations-table-${stationCode}-accordion`).click() // Expand Observations table
       cy.getByTestId(`observations-table-${stationCode}`)
         .find('tbody > tr:first > td:first')
         .should('contain', earliestDate)
@@ -91,7 +90,6 @@ describe('MoreCast Page', () => {
         .find('tbody > tr:first > td:first')
         .should('contain', earliestDate)
 
-      cy.getByTestId(`noon-gdps-table-${stationCode}-accordion`).click() // Expand interpolated GDPS noon values table
       cy.getByTestId(`noon-gdps-table-${stationCode}`)
         .find('tbody > tr')
         .should('have.length', 14) // Num of noon gdps
