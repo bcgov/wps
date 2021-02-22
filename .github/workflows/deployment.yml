@@ -190,10 +190,10 @@ jobs:
           SCRIPT: POSTGRES_WRITE_HOST=patroni-wps-${SUFFIX}-leader POSTGRES_READ_HOST=patroni-wps-${SUFFIX}-replica PROJ_TARGET="e1e498-dev" PROJ_TOOLS="e1e498-tools" POSTGRES_USER="wps" POSTGRES_DATABASE="wps" IMAGE_REGISTRY="image-registry.openshift-image-registry.svc:5000" PROJ_DEV="e1e498-dev" openshift/scripts/oc_provision_ec_rdps_cronjob.sh ${SUFFIX} apply
 
       # # f.y.i.: ZAP Scan must be able to log an issue or it will fail.
-      # - name: ZAP Scan
-      #   uses: zaproxy/action-baseline@v0.4.0
-      #   with:
-      #     target: "https://wps-pr-${{ github.event.number }}.pathfinder.gov.bc.ca"
-      #     rules_file_name: ".zap/rules.tsv"
-      #     # Do not return failure on warnings - TODO: this has to be resolved!
-      #     cmd_options: "-I"
+      - name: ZAP Scan
+        uses: zaproxy/action-baseline@v0.4.0
+        with:
+          target: "https://wps-pr-${{ github.event.number }}.apps.silver.devops.gov.bc.ca"
+          rules_file_name: ".zap/rules.tsv"
+          # Do not return failure on warnings - TODO: this has to be resolved!
+          cmd_options: "-I"
