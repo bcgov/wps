@@ -1,3 +1,4 @@
 # We intentionally load keycloak from our SSO provider to ensure we always have the correct version.
 10017	OUTOFSCOPE	.*(.pathfinder.gov.bc.ca/)/?
+10017   OUTOFSCOPE  .*(.apps.silver.devops.gov.bc.ca/)/?
 10017	WARN	(Cross-Domain JavaScript Source File Inclusion)
