@@ -34,7 +34,12 @@ OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/bcfw_p1_forecasts.c
 -p JOB_NAME=bcfw-p1-forecasts-${NAME_APP}-${SUFFIX} \
 -p NAME=${NAME_APP} \
 -p SUFFIX=${SUFFIX} \
--p SCHEDULE=\"${SCHEDULE}\""
+-p SCHEDULE=\"${SCHEDULE}\" \
+-p POSTGRES_USER=${POSTGRES_USER:-${NAME_APP}-${SUFFIX}} \
+-p POSTGRES_DATABASE=${POSTGRES_DATABASE:-${NAME_APP}-${SUFFIX}} \
+-p POSTGRES_WRITE_HOST=${POSTGRES_WRITE_HOST:-"patroni-leader-${NAME_APP}-${SUFFIX}"} \
+${PROJ_TOOLS:+ "-p PROJ_TOOLS=${PROJ_TOOLS}"} \
+${IMAGE_REGISTRY:+ "-p IMAGE_REGISTRY=${IMAGE_REGISTRY}"}"
 
 # Apply template (apply or use --dry-run)
 #
