@@ -52,8 +52,10 @@ pipeline {
                     // BC FireWeather cronjobs
                     sh "PROJ_TARGET=${projProd} PROJ_TOOLS=e1e498-tools IMAGE_REGISTRY=image-registry.openshift-image-registry.svc:5000 POSTGRES_WRITE_HOST=patroni-wps-prod-leader POSTGRES_READ_HOST=patroni-wps-prod-replica POSTGRES_DATABASE=wps POSTGRES_USER=wps SCHEDULE=\"30 8,16 * * *\" ./openshift/scripts/oc_provision_bcfw_p1_forecasts_cronjob.sh prod apply"
                     sh "PROJ_TARGET=${projProd} PROJ_TOOLS=e1e498-tools IMAGE_REGISTRY=image-registry.openshift-image-registry.svc:5000 POSTGRES_WRITE_HOST=patroni-wps-prod-leader POSTGRES_READ_HOST=patroni-wps-prod-replica POSTGRES_DATABASE=wps POSTGRES_USER=wps SCHEDULE=\"15 * * * *\" ./openshift/scripts/oc_provision_bcfw_p1_hourly_actuals_cronjob.sh prod apply"
-                    // TODO: Apply these additional steps:
                     // Configure backups
+                    sh "PROJ_TARGET=${projProd} PROJ_TOOLS=e1e498-tools IMAGE_NAMESPACE=e1e498-tools BACKUP_VOLUME_SIZE=15Gi ./openshift/scripts/oc_provision_backup_postgres.sh prod apply"
+                    sh "PROJ_TARGET=${projProd} PROJ_TOOLS=e1e498-tools IMAGE_NAMESPACE=e1e498-tools ./openshift/scripts/oc_provision_backup_postgres_cronjob.sh prod apply"
+                    // TODO: Apply these additional steps:
                     // sh "PROJ_TARGET=${projProd} PROJ_TOOLS=e1e498-tools BACKUP_VOLUME_NAME=bk-auzhsi-prod-lenk19vmffnx ./openshift/scripts/oc_provision_matomo_backup.sh prod apply"
                     // sh "PROJ_TARGET=${projProd} PROJ_TOOLS=e1e498-tools JOB_PERSISTENT_STORAGE_NAME=bk-auzhsi-prod-lenk19vmffnx ./openshift/scripts/oc_provision_matomo_backup_cronjob.sh prod apply"
                 }
