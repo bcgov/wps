@@ -27,7 +27,7 @@ source "$(dirname ${0})/common/common"
 PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 
 # Prepare variables for backups
-CONFIG_MAP_NAME="backup-mariadb-${NAME_APP}-${SUFFIX}-conf"
+CONFIG_MAP_NAME="backup-mariadb-${NAME_APP}-${SUFFIX}-config"
 CONFIG_VOLUME_NAME="backup-mariadb-${NAME_APP}-${SUFFIX}-config-volume"
 JOB_NAME="backup-mariadb-${NAME_APP}-${SUFFIX}"
 IMAGE_NAMESPACE=${PROJ_TOOLS}
