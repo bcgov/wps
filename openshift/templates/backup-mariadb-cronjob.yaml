@@ -211,11 +211,6 @@ objects:
                           name: "${JOB_NAME}-config"
                           key: DEFAULT_PORT
                           optional: true
-                    - name: POSTGRESQL_DATABASE
-                      valueFrom:
-                        configMapKeyRef:
-                          name: "${JOB_NAME}-config"
-                          key: POSTGRESQL_DATABASE
                     - name: DATABASE_USER
                       valueFrom:
                         secretKeyRef:
