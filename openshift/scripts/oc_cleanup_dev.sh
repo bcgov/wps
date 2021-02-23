@@ -38,6 +38,8 @@ OC_DELETE_EC_PODS="oc -n ${PROJ_DEV} get pods -o name | { grep -E 'env-canada-(g
 OC_CLEAN_MATOMO_BACKUP="oc -n ${PROJ_DEV} ${DELETE_OR_GET} all,cm -o name -l app=${NAME_OBJ}"
 OC_CLEAN_MATOMO_BACKUP_PVC="oc -n ${PROJ_DEV} ${DELETE_OR_GET} pvc -o name -l app=${NAME_OBJ}-persistent"
 OC_CLEAN_MATOMO_CRONJOB="oc -n ${PROJ_DEV} ${DELETE_OR_GET} --ignore-not-found=true cronjob/matomo-backup-${NAME_OBJ}"
+OC_CLEAN_BACKUP_POSTGRES="oc -n ${PROJ_DEV} ${DELETE_OR_GET} all,cm -o name -l app=backup-postgres-${NAME_OBJ}"
+OC_CLEAN_BACKUP_POSTGRES_CRONJOB="oc -n ${PROJ_DEV} ${DELETE_OR_GET} --ignore-not-found=true cronjob/backup-postgres-${NAME_OBJ}"
 
 # Execute commands
 #
@@ -52,10 +54,13 @@ eval "${OC_CLEAN_FORECAST_CRONJOB}"
 eval "${OC_CLEAN_MATOMO_CRONJOB}"
 eval "${OC_CLEAN_MATOMO_BACKUP}"
 eval "${OC_CLEAN_MATOMO_BACKUP_PVC}"
+eval "${OC_CLEAN_BACKUP_POSTGRES}"
+eval "${OC_CLEAN_BACKUP_POSTGRES_CRONJOB}"
 
 # Provide oc command instruction
 #
 display_helper "${OC_CLEAN_DEPLOY}" "${OC_CLEAN_HOURLY_CRONJOB}" \
 	"${OC_CLEAN_FORECAST_CRONJOB}" "${OC_CLEAN_EC_GDPS_CRONJOB}" "${OC_CLEAN_EC_HRDPS_CRONJOB}" \
 	"${OC_CLEAN_EC_RDPS_CRONJOB}" "${OC_DELETE_EC_PODS}" \
-	"${OC_CLEAN_MATOMO_CRONJOB}" "${OC_CLEAN_MATOMO_BACKUP}" "${OC_CLEAN_MATOMO_BACKUP_PVC}"
+	"${OC_CLEAN_MATOMO_CRONJOB}" "${OC_CLEAN_MATOMO_BACKUP}" "${OC_CLEAN_MATOMO_BACKUP_PVC}" \
+	"${OC_CLEAN_BACKUP_POSTGRES}" "${OC_CLEAN_BACKUP_POSTGRES_CRONJOB}"
