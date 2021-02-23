@@ -1,5 +1,5 @@
 import { FIRE_WEATHER_ROUTE, MORECAST_ROUTE } from '../../src/utils/constants'
-import { stationCodeQueryKey } from '../../src/utils/url'
+import { stationCodeQueryKey, timeOfInterestQueryKey } from '../../src/utils/url'
 
 const stationCode = 328
 
@@ -26,7 +26,7 @@ describe('MoreCast Page', () => {
     cy.getByTestId('get-wx-data-button').click({ force: true })
     cy.url()
       .should('contain', `${stationCodeQueryKey}=${stationCode}`)
-      .and('contain', `toi=${timeOfInterest.slice(0, 19)}`)
+      .and('contain', `${timeOfInterestQueryKey}=${timeOfInterest.slice(0, 19)}`)
 
     cy.wait('@getRdpsSummaries')
     cy.checkErrorMessage('Error occurred (while fetching hourly observations).')
@@ -98,16 +98,17 @@ describe('MoreCast Page', () => {
         .should('have.length', numOfForecasts)
 
       // Check that collapse and expand functionality works
-      cy.getByTestId(`observations-table-${stationCode}-collapse`).click() // collapse Observations table
-      cy.wait(500) // wait for animation to complete
+      cy.getByTestId(`observations-table-${stationCode}-accordion`).click() // Collapse Observations table
+      cy.wait(500)
       cy.getByTestId(`observations-table-${stationCode}`)
-        .find('.MuiTableContainer-root')
-        .should('have.css', 'height', '0px') // table should be hidden
-      cy.getByTestId(`noon-gdps-table-${stationCode}-collapse`).click() // collapse Interpolated GDPS noon values table
+        .find('.MuiTableSortLabel-icon')
+        .should('not.be.visible')
+
+      cy.getByTestId(`noon-gdps-table-${stationCode}-accordion`).click() // Collapse Interpolated GDPS noon values table
       cy.wait(500)
       cy.getByTestId(`noon-gdps-table-${stationCode}`)
         .find('.MuiTableContainer-root')
-        .should('have.css', 'height', '0px')
+        .should('not.be.visible')
     })
 
     it('Temp & RH Graph should be displayed', () => {
