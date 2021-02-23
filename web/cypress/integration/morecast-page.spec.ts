@@ -69,7 +69,7 @@ describe('MoreCast Page', () => {
       cy.getByTestId('get-wx-data-button').click({ force: true })
     })
 
-    it.only('Observation, noon forecast, and noon GDPS should be displayed in tables', () => {
+    it('Observation, noon forecast, and noon GDPS should be displayed in tables', () => {
       cy.getByTestId(`observations-table-${stationCode}`)
         .find('tbody > tr')
         .should('have.length', numOfObservations)
