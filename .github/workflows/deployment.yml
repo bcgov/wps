@@ -96,6 +96,12 @@ jobs:
           AUTH_TOKEN: ${{ secrets.OC4_DEV_TOKEN }}
           SCRIPT: PROJ_TARGET=e1e498-dev PROJ_TOOLS=e1e498-tools IMAGE_NAMESPACE=e1e498-tools EPHEMERAL_STORAGE=True openshift/scripts/oc_provision_backup_postgres_cronjob.sh ${SUFFIX} apply
 
+      - name: Prepare Matomo Backup Deployment Config
+        uses: bcgov/openshift-launchpad-deployment@v1.2
+        with:
+          AUTH_TOKEN: ${{ secrets.OC4_DEV_TOKEN }}
+          SCRIPT: PROJ_TARGET=e1e498-dev PROJ_TOOLS=e1e498-tools IMAGE_NAMESPACE=e1e498-tools EPHEMERAL_STORAGE=True openshift/scripts/oc_provision_backup_mariadb.sh ${SUFFIX} apply
+
   build-and-deploy:
     name: Build, Deploy to Dev & ZAP Baseline Scan (OCP3)
     runs-on: ubuntu-latest

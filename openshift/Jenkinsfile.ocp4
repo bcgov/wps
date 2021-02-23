@@ -55,8 +55,8 @@ pipeline {
                     // Configure backups
                     sh "PROJ_TARGET=${projProd} PROJ_TOOLS=e1e498-tools IMAGE_NAMESPACE=e1e498-tools BACKUP_VOLUME_SIZE=15Gi ./openshift/scripts/oc_provision_backup_postgres.sh prod apply"
                     sh "PROJ_TARGET=${projProd} PROJ_TOOLS=e1e498-tools IMAGE_NAMESPACE=e1e498-tools ./openshift/scripts/oc_provision_backup_postgres_cronjob.sh prod apply"
+                    sh "PROJ_TARGET=${projProd} PROJ_TOOLS=e1e498-tools IMAGE_NAMESPACE=e1e498-tools BACKUP_VOLUME_SIZE=5Gi ./openshift/scripts/oc_provision_backup_mariadb.sh prod apply"
                     // TODO: Apply these additional steps:
-                    // sh "PROJ_TARGET=${projProd} PROJ_TOOLS=e1e498-tools BACKUP_VOLUME_NAME=bk-auzhsi-prod-lenk19vmffnx ./openshift/scripts/oc_provision_matomo_backup.sh prod apply"
                     // sh "PROJ_TARGET=${projProd} PROJ_TOOLS=e1e498-tools JOB_PERSISTENT_STORAGE_NAME=bk-auzhsi-prod-lenk19vmffnx ./openshift/scripts/oc_provision_matomo_backup_cronjob.sh prod apply"
                 }
             }
