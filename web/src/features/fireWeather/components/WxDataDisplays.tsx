@@ -104,7 +104,7 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
               <ErrorBoundary>
                 <ObservationTable
                   testId={`observations-table-${code}`}
-                  title="Past 5 days of hourly observations from station: "
+                  title="Hourly observations in past 5 days: "
                   rows={observations}
                 />
               </ErrorBoundary>
@@ -112,7 +112,7 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
               <ErrorBoundary>
                 <NoonModelTable
                   testId={`noon-gdps-table-${code}`}
-                  title="Interpolated global model noon values: "
+                  title="Interpolated GDPS noon values: "
                   rows={noonOnlyGdpsModels}
                 />
               </ErrorBoundary>

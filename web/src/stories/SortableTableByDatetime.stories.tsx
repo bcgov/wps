@@ -20,7 +20,7 @@ const Template: Story<PropTypes> = args => <SortableTableByDatetime {...args} />
 
 export const ObservationTable = Template.bind({})
 ObservationTable.args = {
-  title: 'Past 5 days of hourly observations from station: ',
+  title: 'Hourly observations in past 5 days: ',
   testId: 'test_id_1',
   rows: observedValues,
   columns: observationTableColumns
@@ -28,7 +28,7 @@ ObservationTable.args = {
 
 export const NoonModelTable = Template.bind({})
 NoonModelTable.args = {
-  title: 'Interpolated global model noon values: ',
+  title: 'Interpolated GDPS noon values: ',
   testId: 'test_id_2',
   rows: modelValues.filter(v => isNoonInPST(v.datetime)),
   columns: noonModelTableColumns
