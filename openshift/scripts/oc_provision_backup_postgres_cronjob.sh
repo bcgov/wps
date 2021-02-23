@@ -28,7 +28,7 @@ PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 
 # Prepare variables for backups
 CONFIG_MAP_NAME="backup-postgres-${NAME_APP}-${SUFFIX}-conf"
-CONFIG_VOLUME_NAME="${NAME_APP}-${SUFFIX}-config-volume"
+CONFIG_VOLUME_NAME="backup-mariadb-${NAME_APP}-${SUFFIX}-config-volume"
 JOB_NAME="backup-postgres-${NAME_APP}-${SUFFIX}"
 IMAGE_NAMESPACE=${PROJ_TOOLS}
 EPHEMERAL_STORAGE=${EPHEMERAL_STORAGE:-'False'}
@@ -37,7 +37,6 @@ OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/backup-postgres-cro
     -p CONFIG_VOLUME_NAME=${CONFIG_VOLUME_NAME} \
     -p CONFIG_MAP_NAME=${CONFIG_MAP_NAME} \
     -p DATABASE_SERVICE_NAME=patroni-${NAME_APP}-${SUFFIX}-leader \
-    -p DATABASE_NAME=${NAME_APP} \
     -p DATABASE_DEPLOYMENT_NAME=wps-global \
     -p JOB_NAME=${JOB_NAME} \
     -p JOB_PERSISTENT_STORAGE_NAME=${JOB_NAME} \

@@ -1,5 +1,7 @@
 #!/bin/sh -l
 #
+# TODO: Delete this file! Superceded by oc_provision_backup_mariadb.sh in OCP4
+# TODO: Delete mariadb-backup.dc when deleting this file.
 source "$(dirname ${0})/common/common"
 
 #%
