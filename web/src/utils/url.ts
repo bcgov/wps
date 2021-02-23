@@ -13,11 +13,11 @@ export const getTimeOfInterestFromUrl = (search: string): string => {
     return queryString
   }
 
-  const currInPST = moment(new Date())
+  const currentDateInPST = moment()
     .utcOffset(PST_UTC_OFFSET)
     .toDate()
 
-  return formatDateInISO(currInPST)
+  return formatDateInISO(currentDateInPST)
 }
 
 export const getStationCodesFromUrl = (search: string): number[] => {
