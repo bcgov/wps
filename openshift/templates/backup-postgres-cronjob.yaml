@@ -163,7 +163,7 @@ objects:
                   volumeMounts:
                     - name: "backup"
                       mountPath: "${BACKUP_DIR}"
-                    - name: "${NAME}-config-volume"
+                    - name: "${CONFIG_VOLUME_NAME}"
                       mountPath: "${CONFIG_MOUNT_PATH}${CONFIG_FILE_NAME}"
                       subPath: "${CONFIG_FILE_NAME}"
                   env:
