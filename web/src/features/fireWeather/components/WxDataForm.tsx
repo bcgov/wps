@@ -6,7 +6,6 @@ import WxStationDropdown from 'features/stations/components/WxStationDropdown'
 import TimeOfInterestPicker from 'features/fireWeather/components/TimeOfInterestPicker'
 import GetWxDataButton from 'features/fireWeather/components/GetWxDataButton'
 import { stationCodeQueryKey, timeOfInterestQueryKey } from 'utils/url'
-import { formatDateInISO } from 'utils/date'
 
 const useStyles = makeStyles({
   stationDropdown: {
@@ -25,13 +24,13 @@ const WxDataForm = ({ codesFromQuery, toiFromQuery }: Props) => {
   const location = useLocation()
 
   const [selectedCodes, setSelectedCodes] = useState<number[]>(codesFromQuery)
-  const [timeOfInterest, setTimeOfInterest] = useState(new Date(toiFromQuery))
+  const [timeOfInterestISO, setTimeOfInterestISO] = useState(toiFromQuery)
   const shouldGetBtnDisabled = selectedCodes.length === 0
 
   useEffect(() => {
-    // Update local state to match with the url query
+    // Update local state to match with the query url
     setSelectedCodes(codesFromQuery)
-    setTimeOfInterest(new Date(toiFromQuery))
+    setTimeOfInterestISO(toiFromQuery)
   }, [location]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSubmit = () => {
@@ -39,7 +38,7 @@ const WxDataForm = ({ codesFromQuery, toiFromQuery }: Props) => {
     history.push({
       search:
         `${stationCodeQueryKey}=${selectedCodes.join(',')}&` +
-        `${timeOfInterestQueryKey}=${formatDateInISO(timeOfInterest)}`
+        `${timeOfInterestQueryKey}=${timeOfInterestISO}`
     })
 
     // Create matomo event
@@ -51,7 +50,7 @@ const WxDataForm = ({ codesFromQuery, toiFromQuery }: Props) => {
       window._mtm.push({
         event: 'getWeatherData',
         stationCodes: selectedCodes,
-        timeOfInterest: timeOfInterest
+        timeOfInterest: timeOfInterestISO
       })
     }
   }
@@ -64,8 +63,8 @@ const WxDataForm = ({ codesFromQuery, toiFromQuery }: Props) => {
         onChange={setSelectedCodes}
       />
       <TimeOfInterestPicker
-        timeOfInterest={timeOfInterest}
-        onChange={setTimeOfInterest}
+        timeOfInterestISO={timeOfInterestISO}
+        onChange={setTimeOfInterestISO}
       />
       <GetWxDataButton onBtnClick={handleSubmit} disabled={shouldGetBtnDisabled} />
     </form>
