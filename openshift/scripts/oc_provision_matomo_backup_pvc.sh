@@ -1,5 +1,7 @@
 #!/bin/sh -l
 #
+# TODO: Delete this file! Redundant in OCP4
+# TODO: Delete mariadb-backup-pvc when deleting this file.
 source "$(dirname ${0})/common/common"
 
 #%
