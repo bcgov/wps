@@ -1,5 +1,7 @@
 #!/bin/sh -l
 #
+# TODO: Delete this file! Superceded by oc_provision_backup_mariadb_cronjob.sh in OCP4
+# TODO: Delete mariadb-backup-cronjob.yaml when deleting this file.
 source "$(dirname ${0})/common/common"
 
 #%
