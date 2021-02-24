@@ -67,7 +67,6 @@ interface WxDataDisplaysProps {
 
 export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) {
   const classes = useStyles()
-  const { timeOfInterest } = props
 
   return (
     <div className={classes.displays}>
@@ -127,7 +126,7 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
 
               <ErrorBoundary>
                 <WxDataGraph
-                  timeOfInterest={timeOfInterest}
+                  timeOfInterest={props.timeOfInterest}
                   station={station}
                   observations={observations}
                   noonForecasts={noonForecasts}

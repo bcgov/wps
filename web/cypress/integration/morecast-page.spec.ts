@@ -26,7 +26,7 @@ describe('MoreCast Page', () => {
     cy.getByTestId('get-wx-data-button').click({ force: true })
     cy.url()
       .should('contain', `${stationCodeQueryKey}=${stationCode}`)
-      .and('contain', `${timeOfInterestQueryKey}=${timeOfInterest.slice(0, 19)}`)
+      .and('contain', `${timeOfInterestQueryKey}=${timeOfInterest}`)
 
     cy.wait('@getRdpsSummaries')
     cy.checkErrorMessage('Error occurred (while fetching hourly observations).')
