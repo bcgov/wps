@@ -600,6 +600,7 @@ class ModelValueProcessor:
         # Convert the grid database object to a polygon object.
         poly = to_shape(grid.geom)
         # Extract the vertices of the polygon.
+        # pylint: disable=no-member
         points = list(poly.exterior.coords)[:-1]
 
         machine = StationMachineLearning(

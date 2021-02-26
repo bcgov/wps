@@ -10,7 +10,7 @@ parameters:
   - name: "JOB_NAME"
     displayName: "Job Name"
     description: "Name of the Scheduled Job to Create."
-    value: "backup-postgres"
+    value: "backup-mariadb"
     required: true
   - name: "JOB_PERSISTENT_STORAGE_NAME"
     displayName: "Backup Persistent Storage Name"
@@ -20,13 +20,13 @@ parameters:
   - name: "SCHEDULE"
     displayName: "Cron Schedule"
     description: "Cron Schedule to Execute the Job (using local cluster system TZ)"
-    value: "0 3,9,14,20 * * *"
+    value: "0 2 * * *"
     required: true
   - name: "SOURCE_IMAGE_NAME"
     displayName: "Source Image Name"
     description: "The name of the image to use for this resource."
     required: true
-    value: "backup-postgres"
+    value: "backup-mariadb"
   - name: "IMAGE_NAMESPACE"
     displayName: "Image Namespace"
     description: "The namespace of the OpenShift project containing the imagestream for the application."
@@ -41,20 +41,25 @@ parameters:
     displayName: "Database Service Name"
     description: "The name of the database service."
     required: true
-  - name: DATABASE_USER
-    value: wps
-    required: true
+    value: matomo-db
   - name: "DATABASE_DEPLOYMENT_NAME"
     displayName: "Database Deployment Name"
     description: "The name associated to the database deployment resources.  In particular, this is used to wire up the credentials associated to the database."
     required: true
+  - name: DATABASE_USER_KEY_NAME
+    displayName: Database User Key Name
+    description:
+      The database user key name stored in database deployment resources specified
+      by DATABASE_DEPLOYMENT_NAME.
+    required: true
+    value: database-user
   - name: DATABASE_PASSWORD_KEY_NAME
     displayName: Database Password Key Name
     description:
       The database password key name stored in database deployment resources
       specified by DATABASE_DEPLOYMENT_NAME.
     required: true
-    value: app-db-password
+    value: database-password
   - name: "BACKUP_STRATEGY"
     displayName: "Backup Strategy"
     description: "The strategy to use for backups; for example daily, or rolling."
@@ -209,13 +214,11 @@ objects:
                           name: "${JOB_NAME}-config"
                           key: DEFAULT_PORT
                           optional: true
-                    - name: POSTGRESQL_DATABASE
-                      valueFrom:
-                        configMapKeyRef:
-                          name: "${JOB_NAME}-config"
-                          key: POSTGRESQL_DATABASE
                     - name: DATABASE_USER
-                      value: ${DATABASE_USER}
+                      valueFrom:
+                        secretKeyRef:
+                          name: "${DATABASE_DEPLOYMENT_NAME}"
+                          key: "${DATABASE_USER_KEY_NAME}"
                     - name: DATABASE_PASSWORD
                       valueFrom:
                         secretKeyRef:

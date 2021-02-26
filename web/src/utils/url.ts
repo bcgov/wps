@@ -1,4 +1,5 @@
 import moment from 'moment'
+import { PST_UTC_OFFSET } from './constants'
 
 import { formatDateInISO } from './date'
 
@@ -12,7 +13,11 @@ export const getTimeOfInterestFromUrl = (search: string): string => {
     return queryString
   }
 
-  return formatDateInISO(new Date())
+  const currentDateInPST = moment()
+    .utcOffset(PST_UTC_OFFSET)
+    .toDate()
+
+  return formatDateInISO(currentDateInPST)
 }
 
 export const getStationCodesFromUrl = (search: string): number[] => {
