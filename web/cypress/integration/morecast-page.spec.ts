@@ -247,6 +247,10 @@ describe('MoreCast Page', () => {
 
       cy.getByTestId('wx-graph-gdps-toggle').click()
       checkNumOfArrows(numOfGdps)
+      cy.getByTestId('wx-graph-gdps-toggle').click()
+
+      cy.getByTestId('wx-graph-forecast-toggle').click()
+      checkNumOfArrows(numOfForecasts)
 
       checkNumOfLegends(2)
     })
