@@ -42,59 +42,59 @@ jobs:
           AUTH_TOKEN: ${{ secrets.OC4_TEST_TOKEN }}
           SCRIPT: EPHEMERAL_STORAGE=True PROJ_TARGET=e1e498-test APP_USER="wps" IMAGE_STREAM_NAMESPACE=e1e498-tools openshift/scripts/oc_provision_db.sh ${SUFFIX} apply
 
-  # prepare-dev-database-backups:
-  #   name: Prepare Dev Database Backups (OCP4)
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Set Variables
-  #       shell: bash
-  #       run: |
-  #         echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
+  prepare-dev-database-backups:
+    name: Prepare Dev Database Backups (OCP4)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set Variables
+        shell: bash
+        run: |
+          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
 
-  #     - name: Checkout
-  #       uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
 
-  #     - name: Postgres Backup Deployment Config
-  #       uses: bcgov/openshift-launchpad-deployment@v1.2
-  #       with:
-  #         AUTH_TOKEN: ${{ secrets.OC4_DEV_TOKEN }}
-  #         SCRIPT: PROJ_TARGET=e1e498-dev PROJ_TOOLS=e1e498-tools IMAGE_NAMESPACE=e1e498-tools EPHEMERAL_STORAGE=True openshift/scripts/oc_provision_backup_postgres.sh ${SUFFIX} apply
+      - name: Postgres Backup Deployment Config
+        uses: bcgov/openshift-launchpad-deployment@v1.2
+        with:
+          AUTH_TOKEN: ${{ secrets.OC4_DEV_TOKEN }}
+          SCRIPT: PROJ_TARGET=e1e498-dev PROJ_TOOLS=e1e498-tools IMAGE_NAMESPACE=e1e498-tools EPHEMERAL_STORAGE=True openshift/scripts/oc_provision_backup_postgres.sh ${SUFFIX} apply
 
-  #     - name: Postgres Backup Cronjob
-  #       uses: bcgov/openshift-launchpad-deployment@v1.2
-  #       with:
-  #         AUTH_TOKEN: ${{ secrets.OC4_DEV_TOKEN }}
-  #         SCRIPT: PROJ_TARGET=e1e498-dev PROJ_TOOLS=e1e498-tools IMAGE_NAMESPACE=e1e498-tools EPHEMERAL_STORAGE=True openshift/scripts/oc_provision_backup_postgres_cronjob.sh ${SUFFIX} apply
+      - name: Postgres Backup Cronjob
+        uses: bcgov/openshift-launchpad-deployment@v1.2
+        with:
+          AUTH_TOKEN: ${{ secrets.OC4_DEV_TOKEN }}
+          SCRIPT: PROJ_TARGET=e1e498-dev PROJ_TOOLS=e1e498-tools IMAGE_NAMESPACE=e1e498-tools EPHEMERAL_STORAGE=True openshift/scripts/oc_provision_backup_postgres_cronjob.sh ${SUFFIX} apply
 
-  #     - name: Prepare MariaDB Backup Deployment Config
-  #       uses: bcgov/openshift-launchpad-deployment@v1.2
-  #       with:
-  #         AUTH_TOKEN: ${{ secrets.OC4_DEV_TOKEN }}
-  #         SCRIPT: PROJ_TARGET=e1e498-dev PROJ_TOOLS=e1e498-tools IMAGE_NAMESPACE=e1e498-tools EPHEMERAL_STORAGE=True openshift/scripts/oc_provision_backup_mariadb.sh ${SUFFIX} apply
+      - name: Prepare MariaDB Backup Deployment Config
+        uses: bcgov/openshift-launchpad-deployment@v1.2
+        with:
+          AUTH_TOKEN: ${{ secrets.OC4_DEV_TOKEN }}
+          SCRIPT: PROJ_TARGET=e1e498-dev PROJ_TOOLS=e1e498-tools IMAGE_NAMESPACE=e1e498-tools EPHEMERAL_STORAGE=True openshift/scripts/oc_provision_backup_mariadb.sh ${SUFFIX} apply
 
-  #     - name: Prepare MariaDB Backup Cronjob
-  #       uses: bcgov/openshift-launchpad-deployment@v1.2
-  #       with:
-  #         AUTH_TOKEN: ${{ secrets.OC4_DEV_TOKEN }}
-  #         SCRIPT: PROJ_TARGET=e1e498-dev PROJ_TOOLS=e1e498-tools IMAGE_NAMESPACE=e1e498-tools EPHEMERAL_STORAGE=True openshift/scripts/oc_provision_backup_mariadb_cronjob.sh ${SUFFIX} apply
+      - name: Prepare MariaDB Backup Cronjob
+        uses: bcgov/openshift-launchpad-deployment@v1.2
+        with:
+          AUTH_TOKEN: ${{ secrets.OC4_DEV_TOKEN }}
+          SCRIPT: PROJ_TARGET=e1e498-dev PROJ_TOOLS=e1e498-tools IMAGE_NAMESPACE=e1e498-tools EPHEMERAL_STORAGE=True openshift/scripts/oc_provision_backup_mariadb_cronjob.sh ${SUFFIX} apply
 
-  # build:
-  #   name: Build Image
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Set Variables
-  #       shell: bash
-  #       run: |
-  #         echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
+  build:
+    name: Build Image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set Variables
+        shell: bash
+        run: |
+          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
 
-  #     - name: Checkout
-  #       uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
 
-  #     - name: Build Image
-  #       uses: bcgov/openshift-launchpad-deployment@v1.2
-  #       with:
-  #         AUTH_TOKEN: ${{ secrets.OC4_TOOL_TOKEN }}
-  #         SCRIPT: GIT_BRANCH=${GITHUB_HEAD_REF} PROJ_TOOLS="e1e498-tools" DOCKER_IMAGE="image-registry.openshift-image-registry.svc:5000/e1e498-tools/uvicorn-gunicorn-fastapi:python3.8-latest" openshift/scripts/oc_build.sh ${SUFFIX} apply
+      - name: Build Image
+        uses: bcgov/openshift-launchpad-deployment@v1.2
+        with:
+          AUTH_TOKEN: ${{ secrets.OC4_TOOL_TOKEN }}
+          SCRIPT: GIT_BRANCH=${GITHUB_HEAD_REF} PROJ_TOOLS="e1e498-tools" DOCKER_IMAGE="image-registry.openshift-image-registry.svc:5000/e1e498-tools/uvicorn-gunicorn-fastapi:python3.8-latest" openshift/scripts/oc_build.sh ${SUFFIX} apply
 
   # deploy-dev:
   #   name: Deploy to Dev & ZAP Baseline Scan (OCP4)
