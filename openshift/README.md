@@ -50,3 +50,7 @@ oc policy add-role-to-group system:image-puller system:serviceaccounts:e1e498-de
 ```bash
 oc policy add-role-to-group system:image-puller system:serviceaccounts:e1e498-prod --namespace=e1e498-tools
 ```
+
+```bash
+oc policy add-role-to-group system:image-puller system:serviceaccounts:e1e498-test --namespace=e1e498-tools
+```

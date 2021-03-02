@@ -44,6 +44,7 @@ jobs:
 
   prepare-dev-database-backups:
     name: Prepare Dev Database Backups (OCP4)
+    needs: prepare-dev-database
     runs-on: ubuntu-latest
     steps:
       - name: Set Variables
