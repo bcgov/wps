@@ -68,5 +68,5 @@ objects:
         contextDir: ./
       strategy:
         dockerStrategy:
-          dockerfilePath: openshift/c_haines/docker/Dockerfile
+          dockerfilePath: Dockerfile.ubuntu
       triggers: []
