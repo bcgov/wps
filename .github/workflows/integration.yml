@@ -21,6 +21,9 @@ jobs:
           # For sonar-scanner to work properly we can't use a shallow fetch.
           fetch-depth: 0
 
+      - name: Setup kernel for react, increase watchers
+        run: echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
+
       - name: Setup Python ${{ matrix.python-version }} (api)
         uses: actions/setup-python@v1
         with:
