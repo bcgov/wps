@@ -19,7 +19,7 @@ parameters:
   - name: GIT_URL
     value: https://github.com/bcgov/wps.git
   - name: GIT_BRANCH
-    value: feature/c-haines
+    value: feature/c-haines-re-factor
 objects:
   #ImageStream is create if it doesn't already exist
   - apiVersion: v1

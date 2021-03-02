@@ -1,6 +1,6 @@
 ## apply template
 
 ```bash
-oc -n auzhsi-tools process -f build.yaml | oc -n auzhsi-tools apply -f -
+oc -n e1e498-tools process -f build.yaml | oc -n e1e498-tools apply -f -
 bash
 ```
