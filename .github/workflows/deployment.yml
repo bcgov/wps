@@ -107,6 +107,9 @@ jobs:
         run: |
           echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
 
+      - name: Checkout
+        uses: actions/checkout@v2
+
       - name: Deploy to Dev
         uses: bcgov/openshift-launchpad-deployment@v1.2
         with:
@@ -161,6 +164,9 @@ jobs:
         shell: bash
         run: |
           echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
+
+      - name: Checkout
+        uses: actions/checkout@v2
 
       - name: Deploy to Test
         uses: bcgov/openshift-launchpad-deployment@v1.2
