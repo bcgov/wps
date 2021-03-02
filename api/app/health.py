@@ -11,8 +11,8 @@ def patroni_cluster_health_check():
     """ Makes call to Patroni cluster namespace in Openshift to retrieve the statuses of all
     individual Patroni pods, then re-formats response """
     parts = [
-        config.get('PATHFINDER_BASE_URI'),
-        'apis/apps/v1beta1/namespaces/',
+        config.get('OPENSHIFT_BASE_URI'),
+        config.get('OPENSHIFT_NAMESPACE_API'),
         config.get('PROJECT_NAMESPACE'),
         'statefulsets/',
         config.get('PATRONI_CLUSTER_NAME')

@@ -25,6 +25,8 @@ const observationsSlice = createSlice({
     getObservationsStart(state: State) {
       state.error = null
       state.loading = true
+      state.observationsByStation = {}
+      state.observations = []
     },
     getObservationsFailed(state: State, action: PayloadAction<string>) {
       state.error = action.payload
@@ -51,10 +53,13 @@ export const {
 
 export default observationsSlice.reducer
 
-export const fetchObservations = (stationCodes: number[]): AppThunk => async dispatch => {
+export const fetchObservations = (
+  stationCodes: number[],
+  timeOfInterest: string
+): AppThunk => async dispatch => {
   try {
     dispatch(getObservationsStart())
-    const observations = await getObservations(stationCodes)
+    const observations = await getObservations(stationCodes, timeOfInterest)
     dispatch(getObservationsSuccess(observations))
   } catch (err) {
     dispatch(getObservationsFailed(err.toString()))

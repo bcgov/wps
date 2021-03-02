@@ -1,5 +1,5 @@
 
-""" Class models that reflect resources and map to database tables relating to observed values 
+""" Class models that reflect resources and map to database tables relating to observed values
 (a.k.a. hourlies)
 """
 import math

@@ -15,13 +15,25 @@ parameters:
   - name: SUFFIX
     description: Deployment suffix, e.g. pr-###
     required: true
-  - name: PROJECT_TOOLS
+  - name: PROJ_TOOLS
     value: auzhsi-tools
+  - name: IMAGE_REGISTRY
+    value: docker-registry.default.svc:5000
   - name: JOB_NAME
     value: bcfw-p1-hourly-actuals
   - name: SCHEDULE
-    value: "15 * * * *"
     required: true
+  - name: POSTGRES_WRITE_HOST
+    required: true
+    value: patroni-leader-${NAME}-${SUFFIX}
+  - name: POSTGRES_READ_HOST
+    value: patroni-replica-${NAME}-${SUFFIX}
+  - name: POSTGRES_USER
+    required: true
+    value: ${NAME}-${SUFFIX}
+  - name: POSTGRES_DATABASE
+    required: true
+    value: ${NAME}-${SUFFIX}
 objects:
   - kind: CronJob
     apiVersion: batch/v1beta1
@@ -41,7 +53,7 @@ objects:
             spec:
               containers:
                 - name: ${JOB_NAME}
-                  image: docker-registry.default.svc:5000/${PROJECT_TOOLS}/${NAME}-${SUFFIX}:${SUFFIX}
+                  image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${NAME}-${SUFFIX}:${SUFFIX}
                   imagePullPolicy: "Always"
                   command:
                     ["python", "-m", "app.fireweather_bot.hourly_actuals"]
@@ -61,23 +73,21 @@ objects:
                         configMapKeyRef:
                           name: ${NAME}-global
                           key: bc-fire-weather-filter-id
-                    - name: POSTGRES_READ_USER
-                      value: ${NAME}-${SUFFIX}
-                    - name: POSTGRES_WRITE_USER
-                      value: ${NAME}-${SUFFIX}
                     - name: POSTGRES_PASSWORD
                       valueFrom:
                         secretKeyRef:
                           name: ${NAME}-global
                           key: app-db-password
                     - name: POSTGRES_WRITE_HOST
-                      value: patroni-leader-${NAME}-${SUFFIX}
-                    - name: POSTGRES_READ_HOST
-                      value: patroni-replica-${NAME}-${SUFFIX}
+                      value: ${POSTGRES_WRITE_HOST}
                     - name: POSTGRES_PORT
                       value: "5432"
                     - name: POSTGRES_DATABASE
-                      value: ${NAME}-${SUFFIX}
+                      value: ${POSTGRES_DATABASE}
+                    - name: POSTGRES_WRITE_USER
+                      value: ${POSTGRES_USER}
+                    - name: POSTGRES_READ_USER
+                      value: ${POSTGRES_USER}
                     - name: ROCKET_URL_POST_MESSAGE
                       valueFrom:
                         configMapKeyRef:

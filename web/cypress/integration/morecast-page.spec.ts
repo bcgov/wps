@@ -1,5 +1,5 @@
 import { FIRE_WEATHER_ROUTE, MORECAST_ROUTE } from '../../src/utils/constants'
-import { stationCodeQueryKey } from '../../src/utils/url'
+import { stationCodeQueryKey, timeOfInterestQueryKey } from '../../src/utils/url'
 
 const stationCode = 328
 
@@ -7,7 +7,6 @@ describe('MoreCast Page', () => {
   beforeEach(() => {
     cy.server()
     cy.route('GET', 'api/stations/', 'fixture:weather-stations.json').as('getStations')
-    cy.visit(MORECAST_ROUTE)
   })
 
   it('Should redirect to /morecast when accessing /fire-weather', () => {
@@ -15,13 +14,19 @@ describe('MoreCast Page', () => {
     cy.url().should('contain', MORECAST_ROUTE)
   })
 
-  it('When network errors occurred', () => {
+  it('Should display error messages when network errors occurred', () => {
+    cy.visit(MORECAST_ROUTE)
     cy.route('POST', 'api/weather_models/RDPS/predictions/summaries').as('getRdpsSummaries')
     cy.wait('@getStations')
 
     cy.selectStationInDropdown(stationCode)
+    const timeOfInterest = '2021-02-01T12:00:00-08:00'
+    cy.getByTestId('time-of-interest-picker').type(timeOfInterest.slice(0, 16)) // yyyy-MM-ddThh:mm
+
     cy.getByTestId('get-wx-data-button').click({ force: true })
-    cy.url().should('contain', `${stationCodeQueryKey}=${stationCode}`)
+    cy.url()
+      .should('contain', `${stationCodeQueryKey}=${stationCode}`)
+      .and('contain', `${timeOfInterestQueryKey}=${timeOfInterest}`)
 
     cy.wait('@getRdpsSummaries')
     cy.checkErrorMessage('Error occurred (while fetching hourly observations).')
@@ -44,13 +49,7 @@ describe('MoreCast Page', () => {
     const numOfHrdps = 159
     const numOfRdps = 195
 
-    const yearMonth = '2021-01'
-    const day = 26
-    const now = new Date(`${yearMonth}-${day}T21:00:00+00:00`).getTime()
-
     beforeEach(() => {
-      cy.clock(now)
-
       cy.route('POST', 'api/observations/', 'fixture:weather-data/observations')
       cy.route('POST', 'api/forecasts/noon/', 'fixture:weather-data/noon-forecasts')
       cy.route('POST', 'api/forecasts/noon/summaries/', 'fixture:weather-data/noon-forecast-summaries')
@@ -60,6 +59,9 @@ describe('MoreCast Page', () => {
       cy.route('POST', 'api/weather_models/HRDPS/predictions/summaries', 'fixture:weather-data/high-res-model-summaries') // prettier-ignore
       cy.route('POST', 'api/weather_models/RDPS/predictions/most_recent', 'fixture:weather-data/regional-models-with-bias-adjusted') // prettier-ignore
       cy.route('POST', 'api/weather_models/RDPS/predictions/summaries', 'fixture:weather-data/regional-model-summaries')
+
+      cy.visit(MORECAST_ROUTE)
+
       cy.wait('@getStations')
 
       // Request the weather data
@@ -73,8 +75,9 @@ describe('MoreCast Page', () => {
         .should('have.length', numOfObservations)
 
       // Check if the sorting functionality works
-      const earliestDate = `${yearMonth}-${day - 5}`
-      const latestDate = `${yearMonth}-${day}`
+      const day = 26
+      const earliestDate = `2021-01-${day - 5}`
+      const latestDate = `2021-01-${day}`
       cy.getByTestId(`observations-table-${stationCode}`)
         .find('tbody > tr:first > td:first')
         .should('contain', earliestDate)
@@ -95,16 +98,17 @@ describe('MoreCast Page', () => {
         .should('have.length', numOfForecasts)
 
       // Check that collapse and expand functionality works
-      cy.getByTestId(`observations-table-${stationCode}-collapse`).click() // collapse Observations table
-      cy.wait(500) // wait for animation to complete
+      cy.getByTestId(`observations-table-${stationCode}-accordion`).click() // Collapse Observations table
+      cy.wait(500)
       cy.getByTestId(`observations-table-${stationCode}`)
-        .find('.MuiTableContainer-root')
-        .should('have.css', 'height', '0px') // table should be hidden
-      cy.getByTestId(`noon-gdps-table-${stationCode}-collapse`).click() // collapse Interpolated GDPS noon values table
+        .find('.MuiTableSortLabel-icon')
+        .should('not.be.visible')
+
+      cy.getByTestId(`noon-gdps-table-${stationCode}-accordion`).click() // Collapse Interpolated GDPS noon values table
       cy.wait(500)
       cy.getByTestId(`noon-gdps-table-${stationCode}`)
         .find('.MuiTableContainer-root')
-        .should('have.css', 'height', '0px')
+        .should('not.be.visible')
     })
 
     it('Temp & RH Graph should be displayed', () => {

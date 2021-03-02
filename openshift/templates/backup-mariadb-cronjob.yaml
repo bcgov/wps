@@ -2,7 +2,7 @@
 kind: "Template"
 apiVersion: "v1"
 metadata:
-  name: "{$JOB_NAME}-cronjob-template"
+  name: "${JOB_NAME}-cronjob-template"
   annotations:
     description: "Scheduled Task to perform a Database Backup"
     tags: "cronjob,backup"
@@ -10,7 +10,7 @@ parameters:
   - name: "JOB_NAME"
     displayName: "Job Name"
     description: "Name of the Scheduled Job to Create."
-    value: "backup-postgres"
+    value: "backup-mariadb"
     required: true
   - name: "JOB_PERSISTENT_STORAGE_NAME"
     displayName: "Backup Persistent Storage Name"
@@ -20,19 +20,18 @@ parameters:
   - name: "SCHEDULE"
     displayName: "Cron Schedule"
     description: "Cron Schedule to Execute the Job (using local cluster system TZ)"
-    # Currently targeting 1:00 AM Daily
-    value: "0 1 * * *"
+    value: "0 2 * * *"
     required: true
   - name: "SOURCE_IMAGE_NAME"
     displayName: "Source Image Name"
     description: "The name of the image to use for this resource."
     required: true
-    value: "backup-postgres"
+    value: "backup-mariadb"
   - name: "IMAGE_NAMESPACE"
     displayName: "Image Namespace"
     description: "The namespace of the OpenShift project containing the imagestream for the application."
     required: true
-    value: "auzhsi-tools"
+    value: "e1e498-tools"
   - name: "TAG_NAME"
     displayName: "Environment TAG name"
     description: "The TAG name for this environment, e.g., dev, test, prod"
@@ -42,22 +41,11 @@ parameters:
     displayName: "Database Service Name"
     description: "The name of the database service."
     required: true
-    value: "psufiderdev-postgresql"
-  - name: "DATABASE_DEFAULT_PORT"
-    displayName: "Database Service Port"
-    description: "The configured port for the database service"
-    required: true
-    value: "5432"
-  - name: "DATABASE_NAME"
-    displayName: "Database Name"
-    description: "The name of the database."
-    required: true
-    value: "psufiderdev"
+    value: matomo-db
   - name: "DATABASE_DEPLOYMENT_NAME"
     displayName: "Database Deployment Name"
     description: "The name associated to the database deployment resources.  In particular, this is used to wire up the credentials associated to the database."
     required: true
-    value: "psufiderdev-postgresql"
   - name: DATABASE_USER_KEY_NAME
     displayName: Database User Key Name
     description:
@@ -122,24 +110,25 @@ parameters:
     description: "The number of attempts to try for a successful job outcome"
     value: "0"
     required: false
+  - name: "CONFIG_MAP_NAME"
+    displayName: "Config Map Name"
+    description: "The name of the configuration map."
+    required: true
+  - name: "CONFIG_VOLUME_NAME"
+    displayName: "Name of the config volume"
+    description: "The name assigned to the configuration volument"
+    required: true
+  - name: "CONFIG_MOUNT_PATH"
+    displayName: "Config Mount Path"
+    description: "The path to use to mount the config file."
+    required: true
+    value: "/"
+  - name: "CONFIG_FILE_NAME"
+    displayName: "Config File Name"
+    description: "The name of the configuration file."
+    required: true
+    value: "backup.conf"
 objects:
-  - kind: ConfigMap
-    apiVersion: v1
-    metadata:
-      name: "${JOB_NAME}-config"
-      labels:
-        template: "${JOB_NAME}-config-template"
-        cronjob: "${JOB_NAME}"
-    data:
-      DATABASE_SERVICE_NAME: "${DATABASE_SERVICE_NAME}"
-      DEFAULT_PORT: "${DATABASE_DEFAULT_PORT}"
-      POSTGRESQL_DATABASE: "${DATABASE_NAME}"
-      # BACKUP_STRATEGY: "daily"
-      BACKUP_STRATEGY: "rolling"
-      RETENTION.NUM_BACKUPS: "${NUM_BACKUPS}"
-      RETENTION.DAILY_BACKUPS: "${DAILY_BACKUPS}"
-      RETENTION.WEEKLY_BACKUPS: "${WEEKLY_BACKUPS}"
-      RETENTION.MONTHLY_BACKUPS: "${MONTHLY_BACKUPS}"
   - kind: "CronJob"
     apiVersion: "batch/v1beta1"
     metadata:
@@ -158,7 +147,7 @@ objects:
             template: "${JOB_NAME}-job"
             cronjob: "${JOB_NAME}"
         spec:
-          backoffLimit: ${JOB_BACKOFF_LIMIT}
+          backoffLimit: ${{JOB_BACKOFF_LIMIT}}
           template:
             spec:
               containers:
@@ -170,15 +159,18 @@ objects:
                     requests:
                       cpu: "0.5"
                       memory: 2Gi
-                  image: "docker-registry.default.svc:5000/${IMAGE_NAMESPACE}/${SOURCE_IMAGE_NAME}:${TAG_NAME}"
+                  image: "image-registry.openshift-image-registry.svc:5000/${IMAGE_NAMESPACE}/${SOURCE_IMAGE_NAME}:${TAG_NAME}"
                   # image: backup
                   command:
                     - "/bin/bash"
                     - "-c"
                     - "/backup.sh -1"
                   volumeMounts:
-                    - mountPath: "${BACKUP_DIR}"
-                      name: "backup"
+                    - name: "backup"
+                      mountPath: "${BACKUP_DIR}"
+                    - name: "${CONFIG_VOLUME_NAME}"
+                      mountPath: "${CONFIG_MOUNT_PATH}${CONFIG_FILE_NAME}"
+                      subPath: "${CONFIG_FILE_NAME}"
                   env:
                     - name: BACKUP_DIR
                       value: "${BACKUP_DIR}"
@@ -222,11 +214,6 @@ objects:
                           name: "${JOB_NAME}-config"
                           key: DEFAULT_PORT
                           optional: true
-                    - name: POSTGRESQL_DATABASE
-                      valueFrom:
-                        configMapKeyRef:
-                          name: "${JOB_NAME}-config"
-                          key: POSTGRESQL_DATABASE
                     - name: DATABASE_USER
                       valueFrom:
                         secretKeyRef:
@@ -241,6 +228,12 @@ objects:
                 - name: backup
                   persistentVolumeClaim:
                     claimName: "${JOB_PERSISTENT_STORAGE_NAME}"
+                - name: "${CONFIG_VOLUME_NAME}"
+                  configMap:
+                    name: "${CONFIG_MAP_NAME}"
+                    items:
+                      - key: ${CONFIG_FILE_NAME}
+                        path: ${CONFIG_FILE_NAME}
               restartPolicy: "Never"
               terminationGracePeriodSeconds: 30
               activeDeadlineSeconds: 1600

@@ -49,6 +49,7 @@ const useStyles = makeStyles({
 })
 
 interface WxDataDisplaysProps {
+  timeOfInterest: Date
   stationCodes: number[]
   wxDataLoading: boolean
   stationsByCode: Record<number, Station | undefined>
@@ -74,22 +75,18 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
           const station = props.stationsByCode[code]
           if (!station) return null
 
-          const observedValues = props.observationsByStation[code]
-          const allModelValues = props.allModelsByStation[code]
-          const modelSummaries = props.modelSummariesByStation[code]
-          const noonModelValues = props.noonModelsByStation[code]
-          const allForecasts = props.allNoonForecastsByStation[code]
-          const forecastSummaries = props.forecastSummariesByStation[code]
-          const allHighResModelValues = props.allHighResModelsByStation[code]
-          const highResModelSummaries = props.highResModelSummariesByStation[code]
-          const allRegionalModelValues = props.allRegionalModelsByStation[code]
-          const regionalModelSummaries = props.regionalModelSummariesByStation[code]
+          const observations = props.observationsByStation[code]
+          const noonForecasts = props.allNoonForecastsByStation[code]
+          const noonForecastSummaries = props.forecastSummariesByStation[code]
+          const gdpsModels = props.allModelsByStation[code]
+          const gdpsSummaries = props.modelSummariesByStation[code]
+          const noonOnlyGdpsModels = props.noonModelsByStation[code]
+          const hrdpsModels = props.allHighResModelsByStation[code]
+          const hrdpsSummaries = props.highResModelSummariesByStation[code]
+          const rdpsModels = props.allRegionalModelsByStation[code]
+          const rdpsSummaries = props.regionalModelSummariesByStation[code]
           const nothingToDisplay =
-            !observedValues &&
-            !allForecasts &&
-            !allModelValues &&
-            !allHighResModelValues &&
-            !allRegionalModelValues
+            !observations && !noonForecasts && !gdpsModels && !hrdpsModels && !rdpsModels
 
           return (
             <Paper key={code} className={classes.paper} elevation={3}>
@@ -106,39 +103,40 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
               <ErrorBoundary>
                 <ObservationTable
                   testId={`observations-table-${code}`}
-                  title="Past 5 days of hourly observations from station: "
-                  rows={observedValues}
+                  title="Hourly observations in past 5 days: "
+                  rows={observations}
                 />
               </ErrorBoundary>
 
               <ErrorBoundary>
                 <NoonModelTable
                   testId={`noon-gdps-table-${code}`}
-                  title="Interpolated global model noon values (20:00 UTC): "
-                  rows={noonModelValues}
+                  title="Interpolated GDPS noon values: "
+                  rows={noonOnlyGdpsModels}
                 />
               </ErrorBoundary>
 
               <ErrorBoundary>
                 <NoonForecastTable
                   testId={`noon-forecasts-table-${code}`}
-                  title="Weather forecast noon values (20:00 UTC): "
-                  rows={allForecasts}
+                  title="Weather forecast noon values: "
+                  rows={noonForecasts}
                 />
               </ErrorBoundary>
 
               <ErrorBoundary>
                 <WxDataGraph
+                  timeOfInterest={props.timeOfInterest}
                   station={station}
-                  observedValues={observedValues}
-                  allModelValues={allModelValues}
-                  modelSummaries={modelSummaries}
-                  allForecasts={allForecasts}
-                  forecastSummaries={forecastSummaries}
-                  allHighResModelValues={allHighResModelValues}
-                  highResModelSummaries={highResModelSummaries}
-                  allRegionalModelValues={allRegionalModelValues}
-                  regionalModelSummaries={regionalModelSummaries}
+                  observations={observations}
+                  noonForecasts={noonForecasts}
+                  noonForecastSummaries={noonForecastSummaries}
+                  hrdpsModels={hrdpsModels}
+                  hrdpsSummaries={hrdpsSummaries}
+                  rdpsModels={rdpsModels}
+                  rdpsSummaries={rdpsSummaries}
+                  gdpsModels={gdpsModels}
+                  gdpsSummaries={gdpsSummaries}
                 />
               </ErrorBoundary>
             </Paper>
@@ -149,6 +147,7 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
 })
 
 interface WxDataDisplaysWrapperProps {
+  timeOfInterest: Date
   stationCodes: number[]
 }
 
@@ -167,7 +166,7 @@ const WxDataDisplaysWrapper: React.FunctionComponent<WxDataDisplaysWrapperProps>
 
   return (
     <WxDataDisplays
-      stationCodes={props.stationCodes}
+      {...props}
       wxDataLoading={wxDataLoading}
       stationsByCode={stationsByCode}
       observationsByStation={observationsByStation}
