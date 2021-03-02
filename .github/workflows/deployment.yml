@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  prepare-database:
+  prepare-dev-database:
     name: Prepare Dev Database (OCP4)
     runs-on: ubuntu-latest
     steps:
@@ -24,7 +24,25 @@ jobs:
           AUTH_TOKEN: ${{ secrets.OC4_DEV_TOKEN }}
           SCRIPT: EPHEMERAL_STORAGE=True PROJ_TARGET=e1e498-dev APP_USER="wps" IMAGE_STREAM_NAMESPACE=e1e498-tools openshift/scripts/oc_provision_db.sh ${SUFFIX} apply
 
-  prepare-database-backups:
+  prepare-test-database:
+    name: Prepare Test Database (OCP4)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set Variables
+        shell: bash
+        run: |
+          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Deploy PostGIS instance
+        uses: bcgov/openshift-launchpad-deployment@v1.2
+        with:
+          AUTH_TOKEN: ${{ secrets.OC4_TEST_TOKEN }}
+          SCRIPT: EPHEMERAL_STORAGE=True PROJ_TARGET=e1e498-test APP_USER="wps" IMAGE_STREAM_NAMESPACE=e1e498-tools openshift/scripts/oc_provision_db.sh ${SUFFIX} apply
+
+  prepare-dev-database-backups:
     name: Prepare Dev Database Backups (OCP4)
     runs-on: ubuntu-latest
     steps:
@@ -60,8 +78,8 @@ jobs:
           AUTH_TOKEN: ${{ secrets.OC4_DEV_TOKEN }}
           SCRIPT: PROJ_TARGET=e1e498-dev PROJ_TOOLS=e1e498-tools IMAGE_NAMESPACE=e1e498-tools EPHEMERAL_STORAGE=True openshift/scripts/oc_provision_backup_mariadb_cronjob.sh ${SUFFIX} apply
 
-  build-and-deploy:
-    name: Build, Deploy to Dev & ZAP Baseline Scan (OCP4)
+  build:
+    name: Build Image
     runs-on: ubuntu-latest
     steps:
       - name: Set Variables
@@ -76,7 +94,17 @@ jobs:
         uses: bcgov/openshift-launchpad-deployment@v1.2
         with:
           AUTH_TOKEN: ${{ secrets.OC4_TOOL_TOKEN }}
-          SCRIPT: GIT_BRANCH=${GITHUB_HEAD_REF} PROJ_TOOLS="e1e498-tools" PROJ_DEV="e1e498-dev" DOCKER_IMAGE="image-registry.openshift-image-registry.svc:5000/e1e498-tools/uvicorn-gunicorn-fastapi:python3.8-latest" openshift/scripts/oc_build.sh ${SUFFIX} apply
+          SCRIPT: GIT_BRANCH=${GITHUB_HEAD_REF} PROJ_TOOLS="e1e498-tools" DOCKER_IMAGE="image-registry.openshift-image-registry.svc:5000/e1e498-tools/uvicorn-gunicorn-fastapi:python3.8-latest" openshift/scripts/oc_build.sh ${SUFFIX} apply
+
+  deploy-dev:
+    name: Deploy to Dev & ZAP Baseline Scan (OCP4)
+    needs: build, prepare-dev-database
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set Variables
+        shell: bash
+        run: |
+          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
 
       - name: Deploy to Dev
         uses: bcgov/openshift-launchpad-deployment@v1.2
@@ -114,7 +142,7 @@ jobs:
           AUTH_TOKEN: ${{ secrets.OC4_DEV_TOKEN }}
           SCRIPT: POSTGRES_WRITE_HOST=patroni-wps-${SUFFIX}-leader POSTGRES_READ_HOST=patroni-wps-${SUFFIX}-replica PROJ_TARGET="e1e498-dev" PROJ_TOOLS="e1e498-tools" POSTGRES_USER="wps" POSTGRES_DATABASE="wps" IMAGE_REGISTRY="image-registry.openshift-image-registry.svc:5000" PROJ_DEV="e1e498-dev" openshift/scripts/oc_provision_ec_rdps_cronjob.sh ${SUFFIX} apply
 
-      # # f.y.i.: ZAP Scan must be able to log an issue or it will fail.
+      # f.y.i.: ZAP Scan must be able to log an issue or it will fail.
       - name: ZAP Scan
         uses: zaproxy/action-baseline@v0.4.0
         with:
@@ -122,3 +150,26 @@ jobs:
           rules_file_name: ".zap/rules.tsv"
           # Do not return failure on warnings - TODO: this has to be resolved!
           cmd_options: "-I"
+
+  deploy-test:
+    name: Deploy to Test
+    needs: build, prepare-test-database
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set Variables
+        shell: bash
+        run: |
+          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
+
+      - name: Deploy to Test
+        uses: bcgov/openshift-launchpad-deployment@v1.2
+        with:
+          AUTH_TOKEN: ${{ secrets.OC4_TEST_TOKEN }}
+          SCRIPT: POSTGRES_WRITE_HOST=patroni-wps-${SUFFIX}-leader POSTGRES_READ_HOST=patroni-wps-${SUFFIX}-replica PROJ_TARGET="e1e498-test" PROJ_TOOLS="e1e498-tools"  POSTGRES_USER="wps" POSTGRES_DATABASE="wps" IMAGE_REGISTRY="image-registry.openshift-image-registry.svc:5000" PROJ_DEV="e1e498-dev" SECOND_LEVEL_DOMAIN="apps.silver.devops.gov.bc.ca" openshift/scripts/oc_deploy.sh ${SUFFIX} apply
+
+      # Just run 1/3 EnvCan cronjobs so there's some model data in DB for comparison against P3 actuals and forecasts
+      - name: Environment Canada RDPS cronjob (Donald)
+        uses: bcgov/openshift-launchpad-deployment@v1.2
+        with:
+          AUTH_TOKEN: ${{ secrets.OC4_TEST_TOKEN }}
+          SCRIPT: POSTGRES_WRITE_HOST=patroni-wps-${SUFFIX}-leader POSTGRES_READ_HOST=patroni-wps-${SUFFIX}-replica PROJ_TARGET="e1e498-test" PROJ_TOOLS="e1e498-tools" POSTGRES_USER="wps" POSTGRES_DATABASE="wps" IMAGE_REGISTRY="image-registry.openshift-image-registry.svc:5000" PROJ_DEV="e1e498-dev" openshift/scripts/oc_provision_ec_rdps_cronjob.sh ${SUFFIX} apply
