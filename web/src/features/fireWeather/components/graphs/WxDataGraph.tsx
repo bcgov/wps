@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
-import moment from 'moment'
+import { DateTime } from 'luxon'
 
 import { ModelSummary, ModelValue } from 'api/modelAPI'
 import { ObservedValue } from 'api/observationAPI'
@@ -10,7 +10,6 @@ import { useGraphToggles } from 'features/fireWeather/components/graphs/useGraph
 import PrecipitationGraph from 'features/fireWeather/components/graphs/PrecipitationGraph'
 import WindGraph from 'features/fireWeather/components/graphs/WindGraph'
 import TempRHGraph from 'features/fireWeather/components/graphs/TempRHGraph'
-import { formatDateInPST } from 'utils/date'
 import { Station } from 'api/stationAPI'
 
 const useStyles = makeStyles({
@@ -20,7 +19,7 @@ const useStyles = makeStyles({
 })
 
 interface Props {
-  timeOfInterest: Date
+  timeOfInterestISO: string
   station: Station
   observations: ObservedValue[] | undefined
   noonForecasts: NoonForecastValue[] | undefined
@@ -34,7 +33,7 @@ interface Props {
 }
 
 const WxDataGraph = ({
-  timeOfInterest,
+  timeOfInterestISO,
   station,
   observations = [],
   noonForecasts = [],
@@ -65,8 +64,8 @@ const WxDataGraph = ({
    * (This is bad by the way since it makes impossible for us to capture the change of the state)
    */
   const initialXAxisRange: [string, string] = [
-    formatDateInPST(moment(timeOfInterest).subtract(2, 'days').toDate()), // prettier-ignore
-    formatDateInPST(moment(timeOfInterest).add(2, 'days').toDate()) // prettier-ignore
+    DateTime.fromISO(timeOfInterestISO).minus({ days: 2 }).toISO(), // prettier-ignore
+    DateTime.fromISO(timeOfInterestISO).plus({ days: 2 }).toISO() // prettier-ignore
   ]
   const [sliderRange] = useState(initialXAxisRange)
 
@@ -105,7 +104,7 @@ const WxDataGraph = ({
 
       <TempRHGraph
         station={station}
-        timeOfInterest={timeOfInterest}
+        timeOfInterest={new Date(timeOfInterestISO)}
         sliderRange={sliderRange}
         toggleValues={toggleValues}
         observations={observations}
@@ -119,9 +118,9 @@ const WxDataGraph = ({
         rdpsSummaries={rdpsSummaries}
       />
 
-      <PrecipitationGraph
+      {/* <PrecipitationGraph
         station={station}
-        timeOfInterest={timeOfInterest}
+        timeOfInterest={timeOfInterestISO}
         sliderRange={sliderRange}
         toggleValues={toggleValues}
         observations={observations}
@@ -133,14 +132,14 @@ const WxDataGraph = ({
 
       <WindGraph
         station={station}
-        timeOfInterest={timeOfInterest}
+        timeOfInterest={timeOfInterestISO}
         sliderRange={sliderRange}
         toggleValues={toggleValues}
         observations={observations}
         hrdpsModels={hrdpsModels}
         gdpsModels={gdpsModels}
         rdpsModels={rdpsModels}
-      />
+      /> */}
     </div>
   )
 }

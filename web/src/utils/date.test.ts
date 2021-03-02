@@ -1,4 +1,6 @@
-import { isNoonInPST, formatDateInPDT, formatMonthAndDay } from 'utils/date'
+import { DateTime } from 'luxon'
+
+import { isNoonInPST, formatDateInPST, formatMonthAndDay } from 'utils/date'
 
 describe('Date util functions', () => {
   describe('isNoonInPST', () => {
@@ -10,31 +12,32 @@ describe('Date util functions', () => {
     })
   })
 
-  describe('formatDateInPDT', () => {
+  describe('formatDateInPST', () => {
     it("should format the given date in 'YYYY-MM-DD HH:mm'", () => {
-      expect(formatDateInPDT('2020-11-24T20:00:00+00:00')).toEqual('2020-11-24 13:00')
-      expect(formatDateInPDT('2020-11-25T20:00:00+00:00')).toEqual('2020-11-25 13:00')
+      expect(formatDateInPST('2020-11-24T20:00:00+00:00')).toEqual('2020-11-24 12:00')
+      expect(formatDateInPST('2020-11-25T20:00:00+00:00')).toEqual('2020-11-25 12:00')
       const d = new Date('2020-11-25T20:00:00+00:00')
-      expect(formatDateInPDT(d)).toEqual('2020-11-25 13:00')
+      expect(formatDateInPST(d)).toEqual('2020-11-25 12:00')
     })
 
     it('should format the given date based on the given format', () => {
-      expect(formatDateInPDT('2020-11-25T20:00:00+00:00', 'YYYY-MM-DD')).toEqual(
+      expect(formatDateInPST('2020-11-25T20:00:00+00:00', 'yyyy-MM-dd')).toEqual(
         '2020-11-25'
       )
-      expect(formatDateInPDT('2020-11-25T20:00:00+00:00', 'YYYY-MM-DD HH')).toEqual(
-        '2020-11-25 13'
+      expect(formatDateInPST('2020-11-25T20:00:00+00:00', 'yyyy-MM-dd HH')).toEqual(
+        '2020-11-25 12'
       )
       const d = new Date('2020-11-25T20:00:00+00:00')
-      expect(formatDateInPDT(d, 'YYYY-MM-DD')).toEqual('2020-11-25')
+      expect(formatDateInPST(d, 'yyyy-MM-dd')).toEqual('2020-11-25')
     })
   })
 
   describe('formatMonthAndDay', () => {
     it("should format the given month and date in 'D MMMM'", () => {
+      expect(formatMonthAndDay(1, 1)).toEqual('1 January')
       expect(formatMonthAndDay(1, 10)).toEqual('10 January')
       expect(formatMonthAndDay(4, 15)).toEqual('15 April')
-      expect(formatMonthAndDay(9, 31)).toEqual('1 October')
+      expect(formatMonthAndDay(9, 30)).toEqual('30 September')
     })
   })
 })

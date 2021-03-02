@@ -19,6 +19,7 @@ import {
 } from 'utils/storybook'
 import { ModelValue } from 'api/modelAPI'
 import { NoonForecastValue } from 'api/forecastAPI'
+import { getTimeOfInterestFromUrl } from 'utils/url'
 
 export default {
   title: 'component/WxDataGraph',
@@ -45,6 +46,7 @@ const station = {
 
 export const Default = Template.bind({})
 Default.args = {
+  timeOfInterestISO: getTimeOfInterestFromUrl(''),
   station,
   observations: observedValues,
   gdpsModels: pastModelValues.concat(modelValues) as ModelValue[],

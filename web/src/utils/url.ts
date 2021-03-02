@@ -1,23 +1,21 @@
-import moment from 'moment'
-import { PST_UTC_OFFSET } from './constants'
+import { DateTime } from 'luxon'
 
-import { formatDateInISO } from './date'
+import { PST_UTC_OFFSET } from './constants'
 
 export const stationCodeQueryKey = 'codes'
 export const timeOfInterestQueryKey = 'toi'
 
 export const getTimeOfInterestFromUrl = (search: string): string => {
   const queryString = new URLSearchParams(search).get(timeOfInterestQueryKey)
+  let datetime = null
 
-  if (queryString && moment(queryString).isValid()) {
-    return queryString
+  if (queryString && DateTime.fromISO(queryString).isValid) {
+    datetime = DateTime.fromISO(queryString)
+  } else {
+    datetime = DateTime.fromObject({ second: 0 })
   }
 
-  const currentDateInPST = moment()
-    .utcOffset(PST_UTC_OFFSET)
-    .toDate()
-
-  return formatDateInISO(currentDateInPST)
+  return datetime.setZone(`UTC${PST_UTC_OFFSET}`).toISO()
 }
 
 export const getStationCodesFromUrl = (search: string): number[] => {

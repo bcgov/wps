@@ -37,7 +37,7 @@ const TimeOfInterestPicker = (props: Props) => {
         const value = e.currentTarget.value
 
         if (value) {
-          props.onChange(`${value}:00-08:00`) // Append seconds and timezone (PST) at the end
+          props.onChange(`${value}:00.000-08:00`) // Append seconds and timezone (PST) at the end
         }
       }}
     />

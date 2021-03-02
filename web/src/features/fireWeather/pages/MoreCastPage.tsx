@@ -23,7 +23,6 @@ const MoreCastPage = () => {
 
   const codesFromQuery = getStationCodesFromUrl(location.search)
   const toiFromQuery = getTimeOfInterestFromUrl(location.search)
-  const timeOfInterest = new Date(toiFromQuery)
 
   useEffect(() => {
     dispatch(fetchWxStations())
@@ -49,7 +48,7 @@ const MoreCastPage = () => {
       <PageTitle title="MoreCast - Weather Forecast Validation Tool" />
       <Container>
         <WxDataForm codesFromQuery={codesFromQuery} toiFromQuery={toiFromQuery} />
-        <WxDataDisplays stationCodes={codesFromQuery} timeOfInterest={timeOfInterest} />
+        <WxDataDisplays stationCodes={codesFromQuery} timeOfInterestISO={toiFromQuery} />
       </Container>
     </main>
   )
