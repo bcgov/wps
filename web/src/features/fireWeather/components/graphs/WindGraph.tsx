@@ -3,6 +3,7 @@ import React from 'react'
 import Plot from 'react-plotly.js'
 
 import { ObservedValue } from 'api/observationAPI'
+import { NoonForecastValue } from 'api/forecastAPI'
 import { ModelValue } from 'api/modelAPI'
 import { ToggleValues } from 'features/fireWeather/components/graphs/useGraphToggles'
 import { Station } from 'api/stationAPI'
@@ -21,6 +22,7 @@ export interface Props {
   sliderRange: [string, string]
   toggleValues: ToggleValues
   observations: ObservedValue[]
+  noonForecasts: NoonForecastValue[]
   hrdpsModels: ModelValue[]
   rdpsModels: ModelValue[]
   gdpsModels: ModelValue[]
@@ -34,6 +36,8 @@ const rdpsLineColor = '#026200'
 const rdpsArrowColor = rdpsLineColor
 const gdpsLineColor = '#32e7e7'
 const gdpsArrowColor = gdpsLineColor
+const forecastLineColor = '#a50b41'
+const forecastArrowColor = forecastLineColor
 
 const WindGraph = (props: Props) => {
   const {
@@ -42,11 +46,12 @@ const WindGraph = (props: Props) => {
     sliderRange,
     toggleValues,
     observations,
+    noonForecasts,
     gdpsModels,
     rdpsModels,
     hrdpsModels
   } = props
-  const { showObservations, showGdps, showRdps, showHrdps } = toggleValues
+  const { showObservations, showForecasts, showGdps, showRdps, showHrdps } = toggleValues
 
   const observationData = populateGraphDataForWind(
     observations,
@@ -54,6 +59,13 @@ const WindGraph = (props: Props) => {
     showObservations,
     observationLineColor,
     observationArrowColor
+  )
+  const forecastData = populateGraphDataForWind(
+    noonForecasts,
+    'Noon Forecasts',
+    showForecasts,
+    forecastLineColor,
+    forecastArrowColor
   )
   const hrdpsData = populateGraphDataForWind(
     hrdpsModels,
@@ -79,12 +91,14 @@ const WindGraph = (props: Props) => {
 
   const maxWindSpd = findMaxNumber([
     observationData.maxWindSpd,
+    forecastData.maxWindSpd,
     gdpsData.maxWindSpd,
     rdpsData.maxWindSpd,
     hrdpsData.maxWindSpd
   ])
   const minWindSpd = findMinNumber([
     observationData.minWindSpd,
+    forecastData.minWindSpd,
     gdpsData.minWindSpd,
     rdpsData.minWindSpd,
     hrdpsData.minWindSpd
@@ -122,9 +136,11 @@ const WindGraph = (props: Props) => {
               clickedLegend = 'HRDPS'
               break
             case 4:
+              clickedLegend = 'Noon Forecasts'
+              break
+            case 5:
               clickedLegend = 'Observation'
               break
-
             default:
               break
           }
@@ -142,6 +158,7 @@ const WindGraph = (props: Props) => {
           gdpsData.windSpdLine,
           rdpsData.windSpdLine,
           hrdpsData.windSpdLine,
+          forecastData.windSpdLine,
           observationData.windSpdLine
         ]}
         layout={{
@@ -172,6 +189,7 @@ const WindGraph = (props: Props) => {
             ...gdpsData.windDirArrows,
             ...rdpsData.windDirArrows,
             ...hrdpsData.windDirArrows,
+            ...forecastData.windDirArrows,
             ...observationData.windDirArrows
           ]
         }}

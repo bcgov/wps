@@ -137,6 +137,7 @@ const WxDataGraph = ({
         sliderRange={sliderRange}
         toggleValues={toggleValues}
         observations={observations}
+        noonForecasts={noonForecasts}
         hrdpsModels={hrdpsModels}
         gdpsModels={gdpsModels}
         rdpsModels={rdpsModels}
