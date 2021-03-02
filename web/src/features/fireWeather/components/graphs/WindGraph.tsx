@@ -91,12 +91,14 @@ const WindGraph = (props: Props) => {
 
   const maxWindSpd = findMaxNumber([
     observationData.maxWindSpd,
+    forecastData.maxWindSpd,
     gdpsData.maxWindSpd,
     rdpsData.maxWindSpd,
     hrdpsData.maxWindSpd
   ])
   const minWindSpd = findMinNumber([
     observationData.minWindSpd,
+    forecastData.minWindSpd,
     gdpsData.minWindSpd,
     rdpsData.minWindSpd,
     hrdpsData.minWindSpd
@@ -134,10 +136,10 @@ const WindGraph = (props: Props) => {
               clickedLegend = 'HRDPS'
               break
             case 4:
-              clickedLegend = 'Observation'
+              clickedLegend = 'Noon Forecasts'
               break
             case 5:
-              clickedLegend = 'Noon Forecasts'
+              clickedLegend = 'Observation'
               break
             default:
               break
@@ -156,8 +158,8 @@ const WindGraph = (props: Props) => {
           gdpsData.windSpdLine,
           rdpsData.windSpdLine,
           hrdpsData.windSpdLine,
-          observationData.windSpdLine,
-          forecastData.windSpdLine
+          forecastData.windSpdLine,
+          observationData.windSpdLine
         ]}
         layout={{
           ...getLayoutConfig(
@@ -187,8 +189,8 @@ const WindGraph = (props: Props) => {
             ...gdpsData.windDirArrows,
             ...rdpsData.windDirArrows,
             ...hrdpsData.windDirArrows,
-            ...observationData.windDirArrows,
-            ...forecastData.windDirArrows
+            ...forecastData.windDirArrows,
+            ...observationData.windDirArrows
           ]
         }}
       />
