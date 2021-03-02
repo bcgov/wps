@@ -17,6 +17,12 @@ parameters:
     description: Image registry for imagestream.
     value: image-registry.openshift-image-registry.svc:5000
     required: true
+  - name: IMAGE_NAME
+    required: true
+    # value: ${NAME}-${SUFFIX}
+  - name: IMAGE_TAG
+    required: true
+    # value: ${SUFFIX}
   - name: GLOBAL_NAME
     description: Name of global Module
     value: wps
@@ -64,14 +70,14 @@ objects:
                     requests:
                       cpu: "0.5"
                       memory: 1Gi
-                  image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${NAME}-${SUFFIX}:${SUFFIX}
+                  image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${IMAGE_NAME}:${IMAGE_TAG}
                   imagePullPolicy: "Always"
                   command: ["python3", "-m", "app.c_haines.worker"]
                   env:
                     - name: POSTGRES_READ_USER
-                      value: ${POSTGRES_READ_USER}
+                      value: ${POSTGRES_USER}
                     - name: POSTGRES_WRITE_USER
-                      value: ${POSTGRES_WRITE_USER}
+                      value: ${POSTGRES_USER}
                     - name: POSTGRES_PASSWORD
                       valueFrom:
                         secretKeyRef:
