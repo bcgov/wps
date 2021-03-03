@@ -16,7 +16,7 @@ from shapely.geometry import shape
 from sqlalchemy.orm import Session
 from app.time_utils import get_utc_now
 import app.db.database
-from app.db.models import CHainesPoly, CHainesPrediction, CHainesModelRun
+from app.db.models.c_haines import CHainesPoly, CHainesPrediction, CHainesModelRun, severity_levels
 from app.db.crud.weather_models import get_prediction_model
 from app.db.crud.c_haines import (get_c_haines_prediction, get_or_create_c_haines_model_run)
 from app.weather_models import ModelEnum, ProjectionEnum
@@ -31,7 +31,7 @@ from app.c_haines import GDALData
 logger = logging.getLogger(__name__)
 
 
-def get_severity(c_haines_index):
+def get_severity(c_haines_index) -> int:
     """ Return the "severity" of the continuous haines index.
 
     Fire behavrious analysts are typically only concerned if there's a high
@@ -50,6 +50,12 @@ def get_severity(c_haines_index):
         return 2
     # 11 + Extreme
     return 3
+
+
+def get_severity_string(severity: int) -> str:
+    """ Return the severity level as a string, e.g. severity level 3 maps to "11+"
+    """
+    return severity_levels[severity]
 
 
 @contextmanager
@@ -174,7 +180,7 @@ def make_model_run_download_urls(model: ModelEnum,
 
 
 class SourceInfo():
-    """ Handy class to store source information in. """
+    """ Handy class to store source information in . """
 
     def __init__(self, projection, geotransform, rows: int, cols: int):
         self.projection = projection
@@ -261,7 +267,7 @@ def save_geojson_to_database(session: Session,
         # Create data model object.
         polygon = CHainesPoly(
             geom=geometry.wkt,
-            severity=feature['properties']['severity'],
+            severity=get_severity_string(feature['properties']['severity']),
             c_haines_prediction=prediction)
         # Add to current session.
         session.add(polygon)
@@ -294,7 +300,7 @@ def generate_severity_data(c_haines_data):
 
 
 class EnvCanadaPayload():
-    """ Handy class to store payload information in. """
+    """ Handy class to store payload information in . """
 
     def __init__(self):
         self.filename_tmp_700: str = None

@@ -1,11 +1,13 @@
 """ Class models that reflect resources and map to database tables Continuous Haines.
 """
 from sqlalchemy import (Column, Integer,
-                        Sequence, ForeignKey, UniqueConstraint)
+                        Sequence, ForeignKey, UniqueConstraint, Enum)
 from sqlalchemy.orm import relationship
 from geoalchemy2 import Geometry
 from app.db.database import Base
 from app.db.models.common import TZTimeStamp
+
+severity_levels = "<4", "4-8", "8-11", "11+"
 
 
 class CHainesModelRun(Base):
@@ -50,7 +52,8 @@ class CHainesPoly(Base):
     # Depending on the severity of the C-Haines index, we generate
     # severity numbers. (Fire Behaviour analysts only care of the
     # C-Haines is high)
-    severity = Column(Integer, nullable=False)
+    # severity = Column(Integer, nullable=False)
+    c_haines_index = Column(Enum(*severity_levels, name="c_haines_severity_levels"), nullable=False)
 
     c_haines_prediction_id = Column(Integer, ForeignKey(
         'c_haines_predictions.id'), nullable=False)

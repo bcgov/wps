@@ -239,9 +239,10 @@ jobs:
           # Do not return failure on warnings - TODO: this has to be resolved!
           cmd_options: "-I"
 
-  build-c-haines:
-    # C-Haines relies on a gdal version not currently available in the debian image we use.
-    name: Build ubuntu base image
+  build-ubuntu-image:
+    # C-Haines relies on a gdal version not currently available in the debian image we use,
+    # so we need to crate an ubuntu based image.
+    name: Build ubuntu based image
     runs-on: ubuntu-20.04
 
     steps:
@@ -263,8 +264,10 @@ jobs:
     runs-on: ubuntu-20.04
     # We need
     # - the image to be built before we can deploy.
-    # - the database to be there (so we can write to it.
-    needs: [build-c-haines, prepare-database-ocp4]
+    # - the database to be there (so we can write to it.)
+    # We could also wait for the api deployment, as it's responsible for upgrading the database,
+    # but the db upgrade will probably have completed by the time that the cronjob runs.
+    needs: [build-ubuntu-image, prepare-database-ocp4]
 
     steps:
       - name: Set Variables

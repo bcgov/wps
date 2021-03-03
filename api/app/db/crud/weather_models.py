@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from app.weather_models import ModelEnum, ProjectionEnum
 from app.db.models import (
     ProcessedModelRunUrl, PredictionModel, PredictionModelRunTimestamp, PredictionModelGridSubset,
-    ModelRunGridSubsetPrediction, WeatherStationModelPrediction, CHainesPoly, CHainesPrediction)
+    ModelRunGridSubsetPrediction, WeatherStationModelPrediction, CHainesPrediction)
 import app.time_utils as time_utils
 
 logger = logging.getLogger(__name__)
