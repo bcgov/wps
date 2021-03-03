@@ -98,14 +98,12 @@ const cHainesModelRunsSlice = createSlice({
       }
     },
     setSelectedPrediction(state: State, action: PayloadAction<string>) {
-      console.log('setSelectedPrediction', action.payload)
       state.selected_prediction_timestamp = action.payload
     },
     getPredictionStart(state: State) {
       state.loading = true
     },
     getPredictionSuccess(state: State, action: PayloadAction<GeoJSONContext>) {
-      console.log('getPredictionSuccess', action.payload.model, action.payload.result)
       if (!(action.payload.model in state.model_run_predictions)) {
         state.model_run_predictions[action.payload.model] = {}
       }
