@@ -1,5 +1,6 @@
 """ Class models that reflect resources and map to database tables Continuous Haines.
 """
+import enum
 from sqlalchemy import (Column, Integer,
                         Sequence, ForeignKey, UniqueConstraint, Enum)
 from sqlalchemy.orm import relationship
@@ -7,7 +8,17 @@ from geoalchemy2 import Geometry
 from app.db.database import Base
 from app.db.models.common import TZTimeStamp
 
-severity_levels = ("<4", "4-8", "8-11", ">11")
+
+class SeverityEnum(enum.Enum):
+    """ Enumerated values for severity
+    """
+    LOW = "<4"
+    MODERATE = "4-8"
+    HIGH = "8-11"
+    EXTREME = ">11"
+
+
+severity_levels = [item.value for item in SeverityEnum]
 
 
 class CHainesModelRun(Base):

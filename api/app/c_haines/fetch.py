@@ -3,43 +3,39 @@
 from datetime import datetime, timedelta
 import logging
 import app.db.database
+from app.db.models.c_haines import SeverityEnum
 from app.schemas.weather_models import CHainesModelRuns, CHainesModelRunPredictions, WeatherPredictionModel
 from app.weather_models import ModelEnum
 from app.db.crud.c_haines import (get_model_run_predictions,
                                   get_prediction_geojson, get_prediction_kml, get_model_run_kml)
 
-
 logger = logging.getLogger(__name__)
 
 
-def get_severity_text(c_haines_index: str) -> str:
-    """ Based on the index range, return descriptive text """
-    if c_haines_index == '4-8':
-        return '4 - 8 Moderate'
-    if c_haines_index == '8-11':
-        return '8 - 11 High'
-    if c_haines_index == '>11':
-        return '11+ Extreme'
-    raise Exception('Unexpected severity')
+# Severity enum -> Text description mapping
+severity_text_map = {
+    SeverityEnum.MODERATE: '4 - 8 Moderate',
+    SeverityEnum.HIGH: '8 - 11 High',
+    SeverityEnum.EXTREME: '11+ Extreme'
+}
+
+# Severity enum -> KML style mapping
+severity_style_map = {
+    SeverityEnum.LOW: 'low',
+    SeverityEnum.MODERATE: 'moderate',
+    SeverityEnum.HIGH: 'high',
+    SeverityEnum.EXTREME: 'extreme'
+}
 
 
-def get_severity_style(c_haines_index: str) -> str:
+def get_severity_style(c_haines_index: SeverityEnum) -> str:
     """ Based on the index range, return a style string """
-    if c_haines_index == '4-8':
-        return 'moderate'
-    if c_haines_index == '8-11':
-        return 'high'
-    if c_haines_index == '>11':
-        return 'extreme'
-    raise Exception('Unexpected severity')
+    return severity_style_map[c_haines_index]
 
 
-def open_placemark(model: ModelEnum, severity, timestamp: datetime):
+def open_placemark(model: ModelEnum, severity: SeverityEnum, timestamp: datetime):
     kml = []
     kml.append('<Placemark>')
-    # kml.append('<TimeStamp>')
-    # kml.append('<when>{}</when>'.format(timestamp.isoformat()))
-    # kml.append('</TimeStamp>')
 
     if model == ModelEnum.GDPS:
         end = timestamp + timedelta(hours=3)
@@ -50,7 +46,7 @@ def open_placemark(model: ModelEnum, severity, timestamp: datetime):
     kml.append('<end>{}</end>'.format(end.isoformat()))
     kml.append('</TimeSpan>')
     kml.append('<styleUrl>#{}</styleUrl>'.format(get_severity_style(severity)))
-    kml.append('<name>{}</name>'.format(get_severity_text(severity)))
+    kml.append('<name>{}</name>'.format(severity_text_map[severity]))
     kml.append('<MultiGeometry>')
     return "\n".join(kml)
 
@@ -107,7 +103,7 @@ def fetch_model_run_kml_streamer(session, model: ModelEnum, model_run_timestamp:
             if not prev_severity is None:
                 yield close_placemark()
             prev_severity = severity
-            yield open_placemark(model, severity, prediction_timestamp)
+            yield open_placemark(model, SeverityEnum(severity), prediction_timestamp)
         yield poly
 
     if not prev_prediction_timestamp is None:
@@ -124,9 +120,9 @@ def get_kml_header():
     kml.append('<kml xmlns="http://www.opengis.net/kml/2.2">')
     kml.append('<Document>')
     # color format is aabbggrr
-    add_style(kml, get_severity_style('4-8'), '9900ffff')
-    add_style(kml, get_severity_style('8-11'), '9900a5ff')
-    add_style(kml, get_severity_style('>11'), '990000ff')
+    add_style(kml, get_severity_style(SeverityEnum.MODERATE), '9900ffff')
+    add_style(kml, get_severity_style(SeverityEnum.HIGH), '9900a5ff')
+    add_style(kml, get_severity_style(SeverityEnum.EXTREME), '990000ff')
     return "\n".join(kml)
 
 
