@@ -1,5 +1,3 @@
-import { DateTime } from 'luxon'
-
 import { isNoonInPST, formatDateInPST, formatMonthAndDay } from 'utils/date'
 
 describe('Date util functions', () => {

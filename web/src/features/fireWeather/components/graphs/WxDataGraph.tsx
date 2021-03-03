@@ -11,6 +11,7 @@ import { useGraphToggles } from 'features/fireWeather/components/graphs/useGraph
 import PrecipitationGraph from 'features/fireWeather/components/graphs/PrecipitationGraph'
 import WindGraph from 'features/fireWeather/components/graphs/WindGraph'
 import TempRHGraph from 'features/fireWeather/components/graphs/TempRHGraph'
+import { formatDateInPST } from 'utils/date'
 
 const useStyles = makeStyles({
   display: {
@@ -64,8 +65,8 @@ const WxDataGraph = ({
    * (This is bad by the way since it makes impossible for us to capture the change of the state)
    */
   const initialXAxisRange: [string, string] = [
-    DateTime.fromISO(timeOfInterest).minus({ days: 2 }).toFormat('yyyy-MM-dd HH:mm'), // prettier-ignore
-    DateTime.fromISO(timeOfInterest).plus({ days: 2 }).toFormat('yyyy-MM-dd HH:mm') // prettier-ignore
+    formatDateInPST(DateTime.fromISO(timeOfInterest).minus({ days: 2 })), // prettier-ignore
+    formatDateInPST(DateTime.fromISO(timeOfInterest).plus({ days: 2 })) // prettier-ignore
   ]
   const [sliderRange] = useState(initialXAxisRange)
 

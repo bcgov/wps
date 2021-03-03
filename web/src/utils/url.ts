@@ -1,6 +1,7 @@
 import { DateTime } from 'luxon'
 
 import { PST_UTC_OFFSET } from './constants'
+import { suppressMilliInISO } from './date'
 
 export const stationCodeQueryKey = 'codes'
 export const timeOfInterestQueryKey = 'toi'
@@ -15,7 +16,9 @@ export const getTimeOfInterestFromUrl = (search: string): string => {
     datetime = DateTime.fromObject({ second: 0 })
   }
 
-  return datetime.setZone(`UTC${PST_UTC_OFFSET}`).toISO()
+  const iso = datetime.setZone(`UTC${PST_UTC_OFFSET}`).toISO()
+
+  return suppressMilliInISO(iso)
 }
 
 export const getStationCodesFromUrl = (search: string): number[] => {
