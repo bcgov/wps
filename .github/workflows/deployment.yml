@@ -31,7 +31,7 @@ jobs:
       - name: Set Variables
         shell: bash
         run: |
-          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
+          echo "SUFFIX=pr-${{ github.event.number }}-test" >> $GITHUB_ENV
 
       - name: Checkout
         uses: actions/checkout@v2
@@ -163,7 +163,7 @@ jobs:
       - name: Set Variables
         shell: bash
         run: |
-          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
+          echo "SUFFIX=pr-${{ github.event.number }}-test" >> $GITHUB_ENV
 
       - name: Checkout
         uses: actions/checkout@v2
