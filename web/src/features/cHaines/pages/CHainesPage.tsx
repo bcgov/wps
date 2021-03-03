@@ -240,15 +240,6 @@ const CHainesPage = () => {
       )
       .addTo(mapRef.current)
 
-    // const streetLayer = L.tileLayer(
-    //   'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-    //   {
-    //     attribution:
-    //       '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-    //   }
-    // )
-    // streetLayer.addTo(mapRef.current)
-
     // Create and add the legend.
     const customControl = L.Control.extend({
       onAdd: function(map: any) {
@@ -381,19 +372,19 @@ const CHainesPage = () => {
     }
     return L.geoJSON(data, {
       style: feature => {
-        switch (feature?.properties.severity) {
-          case 1:
+        switch (feature?.properties.c_haines_index) {
+          case '4-8':
             // yellow
             return {
               ...defaults,
               color: '#ffff00'
             }
-          case 2:
+          case '8-11':
             return {
               ...defaults,
               color: '#FFA500'
             }
-          case 3:
+          case '>11':
             // red
             return {
               ...defaults,

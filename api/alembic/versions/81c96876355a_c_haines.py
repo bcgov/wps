@@ -43,7 +43,7 @@ def upgrade():
                     sa.Column('id', sa.Integer(), nullable=False),
                     sa.Column('geom', geoalchemy2.types.Geometry(geometry_type='POLYGON',
                                                                  from_text='ST_GeomFromEWKT', name='geometry'), nullable=False),
-                    sa.Column('c_haines_index', sa.Enum('<4', '4-8', '8-11', '11+',
+                    sa.Column('c_haines_index', sa.Enum('<4', '4-8', '8-11', '>11',
                                                         name='c_haines_severity_levels'), nullable=False),
                     sa.Column('c_haines_prediction_id', sa.Integer(), nullable=False),
                     sa.ForeignKeyConstraint(['c_haines_prediction_id'], ['c_haines_predictions.id'], ),

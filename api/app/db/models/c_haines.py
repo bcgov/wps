@@ -7,7 +7,7 @@ from geoalchemy2 import Geometry
 from app.db.database import Base
 from app.db.models.common import TZTimeStamp
 
-severity_levels = "<4", "4-8", "8-11", "11+"
+severity_levels = ("<4", "4-8", "8-11", ">11")
 
 
 class CHainesModelRun(Base):
@@ -49,10 +49,9 @@ class CHainesPoly(Base):
     id = Column(Integer, Sequence('c_haines_polygons_id_seq'),
                 primary_key=True, nullable=False, index=True)
     geom = Column(Geometry('POLYGON'), nullable=False)
-    # Depending on the severity of the C-Haines index, we generate
-    # severity numbers. (Fire Behaviour analysts only care of the
+    # Depending on the severity of the C-Haines index, we group c-haines
+    # ranges together. (Fire Behaviour analysts only care of the
     # C-Haines is high)
-    # severity = Column(Integer, nullable=False)
     c_haines_index = Column(Enum(*severity_levels, name="c_haines_severity_levels"), nullable=False)
 
     c_haines_prediction_id = Column(Integer, ForeignKey(

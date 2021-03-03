@@ -151,7 +151,7 @@ def get_prediction_geojson(session: Session,
         'features', json_agg(ST_AsGeoJSON(t.*)::json)
     )
         from (
-        select geom, severity from c_haines_polygons
+        select geom, c_haines_index from c_haines_polygons
         inner join c_haines_predictions on
             c_haines_predictions.id =
             c_haines_polygons.c_haines_prediction_id
@@ -165,8 +165,8 @@ def get_prediction_geojson(session: Session,
             prediction_timestamp = '{prediction_timestamp}' and
             model_run_timestamp = '{model_run_timestamp}' and
             prediction_models.abbreviation = '{model}'
-        order by severity asc
-    ) as t(geom, severity)""".format(
+        order by c_haines_index asc
+    ) as t(geom, c_haines_index)""".format(
         prediction_timestamp=prediction_timestamp.isoformat(),
         model_run_timestamp=model_run_timestamp.isoformat(),
         model=model)

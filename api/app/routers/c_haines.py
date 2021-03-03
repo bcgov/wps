@@ -64,7 +64,8 @@ async def get_c_haines_model_run_prediction(
     headers = {"Cache-Control": "max-age=604800, public, immutable"}
 
     if response_format == FormatEnum.geoJSON:
-        geojson_response = await fetch.fetch_prediction_geojson(model, model_run_timestamp, prediction_timestamp)
+        geojson_response = await fetch.fetch_prediction_geojson(
+            model, model_run_timestamp, prediction_timestamp)
         # We check for features - if there are no features, we return a 404.
         # NOTE: Technically, we should only return 404 if we're certain there is no record in the database...
         if geojson_response['features']:
