@@ -8,4 +8,3 @@ from app.db.models.weather_models import (ProcessedModelRunUrl, PredictionModel,
                                           PredictionModelGridSubset, ModelRunGridSubsetPrediction,
                                           WeatherStationModelPrediction)
 from app.db.models.c_haines import (CHainesModelRun, CHainesPrediction, CHainesPoly)
-from app.db.models.boundaries import FireCentres
