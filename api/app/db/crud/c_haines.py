@@ -90,8 +90,8 @@ def get_model_run_kml(session: Session,
                       model: ModelEnum,
                       model_run_timestamp: datetime):
     """ Get the kml for a particular prediction """
-    query = """select ST_AsKML(ST_SetSRID(t.geom, 4269)), t.severity, t.prediction_timestamp from (
-        select geom, severity, prediction_timestamp from c_haines_polygons
+    query = """select ST_AsKML(ST_SetSRID(t.geom, 4269)), t.c_haines_index, t.prediction_timestamp from (
+        select geom, c_haines_index, prediction_timestamp from c_haines_polygons
         inner join c_haines_predictions on
             c_haines_predictions.id =
             c_haines_polygons.c_haines_prediction_id
@@ -104,8 +104,8 @@ def get_model_run_kml(session: Session,
         where
             model_run_timestamp = '{model_run_timestamp}' and
             prediction_models.abbreviation = '{model}'
-        order by prediction_timestamp asc, severity asc
-    ) as t(geom, severity)""".format(
+        order by prediction_timestamp asc, c_haines_index asc
+    ) as t(geom, c_haines_index)""".format(
         model_run_timestamp=model_run_timestamp.isoformat(),
         model=model)
     # pylint: disable=no-member
@@ -117,8 +117,8 @@ def get_prediction_kml(session: Session,
                        model_run_timestamp: datetime,
                        prediction_timestamp: datetime):
     """ Get the kml for a particular prediction """
-    query = """select ST_AsKML(ST_SetSRID(t.geom, 4269)), t.severity from (
-        select geom, severity from c_haines_polygons
+    query = """select ST_AsKML(ST_SetSRID(t.geom, 4269)), t.c_haines_index from (
+        select geom, c_haines_index from c_haines_polygons
         inner join c_haines_predictions on
             c_haines_predictions.id =
             c_haines_polygons.c_haines_prediction_id
@@ -132,8 +132,8 @@ def get_prediction_kml(session: Session,
             prediction_timestamp = '{prediction_timestamp}' and
             model_run_timestamp = '{model_run_timestamp}' and
             prediction_models.abbreviation = '{model}'
-        order by severity asc
-    ) as t(geom, severity)""".format(
+        order by c_haines_index asc
+    ) as t(geom, c_haines_index)""".format(
         prediction_timestamp=prediction_timestamp.isoformat(),
         model_run_timestamp=model_run_timestamp.isoformat(),
         model=model)

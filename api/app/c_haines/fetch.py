@@ -12,23 +12,26 @@ from app.db.crud.c_haines import (get_model_run_predictions,
 logger = logging.getLogger(__name__)
 
 
-def get_severity_text(severity):
-    if severity == 1:
+def get_severity_text(c_haines_index: str) -> str:
+    """ Based on the index range, return descriptive text """
+    if c_haines_index == '4-8':
         return '4 - 8 Moderate'
-    if severity == 2:
+    if c_haines_index == '8-11':
         return '8 - 11 High'
-    if severity == 3:
+    if c_haines_index == '>11':
         return '11+ Extreme'
     raise Exception('Unexpected severity')
 
 
-def get_severity_style(severity):
-    if severity == 1:
+def get_severity_style(c_haines_index: str) -> str:
+    """ Based on the index range, return a style string """
+    if c_haines_index == '4-8':
         return 'moderate'
-    if severity == 2:
+    if c_haines_index == '8-11':
         return 'high'
-    if severity == 3:
+    if c_haines_index == '>11':
         return 'extreme'
+    raise Exception('Unexpected severity')
 
 
 def open_placemark(model: ModelEnum, severity, timestamp: datetime):
@@ -121,9 +124,9 @@ def get_kml_header():
     kml.append('<kml xmlns="http://www.opengis.net/kml/2.2">')
     kml.append('<Document>')
     # color format is aabbggrr
-    add_style(kml, get_severity_style(1), '9900ffff')
-    add_style(kml, get_severity_style(2), '9900a5ff')
-    add_style(kml, get_severity_style(3), '990000ff')
+    add_style(kml, get_severity_style('4-8'), '9900ffff')
+    add_style(kml, get_severity_style('8-11'), '9900a5ff')
+    add_style(kml, get_severity_style('>11'), '990000ff')
     return "\n".join(kml)
 
 
