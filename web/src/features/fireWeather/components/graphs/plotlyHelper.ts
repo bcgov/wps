@@ -1,13 +1,7 @@
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import moment from 'moment'
+import { DateTime } from 'luxon'
 import { Data, Shape, Layout, RangeSlider } from 'plotly.js'
 import { PST_UTC_OFFSET } from 'utils/constants'
-
-const getPSTOffsetDate = (datetime: string) => {
-  return moment(datetime)
-    .utcOffset(PST_UTC_OFFSET)
-    .toDate()
-}
+import { formatDateInPST } from 'utils/date'
 
 export const findMaxNumber = (arr: number[]): number => {
   if (arr.length === 0) {
@@ -44,7 +38,7 @@ export const getLayoutConfig = (title: string): Partial<Layout> => ({
 })
 
 export const populateTimeOfInterestLineData = (
-  x: Date,
+  x: string,
   y0: number,
   y1: number,
   yaxis?: string
@@ -95,24 +89,24 @@ export const populateGraphDataForTempAndRH = (
   tempPlumeColor?: string,
   rhPlumeColor?: string
 ) => {
-  const tempDates: Date[] = []
-  const rhDates: Date[] = []
+  const tempDates: string[] = []
+  const rhDates: string[] = []
   const tempValues: number[] = []
   const rhValues: number[] = []
 
-  const tempMinMaxDates: Date[] = []
+  const tempMinMaxDates: string[] = []
   const tempMinMaxValues: [number, number][] = []
-  const rhMinMaxDates: Date[] = []
+  const rhMinMaxDates: string[] = []
   const rhMinMaxValues: [number, number][] = []
 
-  const tempPercentileDates: Date[] = []
+  const tempPercentileDates: string[] = []
   const temp5thValues: number[] = []
   const temp90thValues: number[] = []
-  const rhPercentileDates: Date[] = []
+  const rhPercentileDates: string[] = []
   const rh5thValues: number[] = []
   const rh90thValues: number[] = []
-  const biasAdjTempDates: Date[] = []
-  const biasAdjRHDates: Date[] = []
+  const biasAdjTempDates: string[] = []
+  const biasAdjRHDates: string[] = []
   const biasAdjTempValues: number[] = []
   const biasAdjRHValues: number[] = []
 
@@ -132,7 +126,7 @@ export const populateGraphDataForTempAndRH = (
       bias_adjusted_temperature,
       bias_adjusted_relative_humidity
     } = value
-    const date = getPSTOffsetDate(datetime)
+    const date = formatDateInPST(datetime)
 
     if (temperature != null) {
       tempDates.push(date)
@@ -353,10 +347,10 @@ export const populateGraphDataForTempAndRH = (
 /* -------------------------- Precipitation -------------------------- */
 
 const getMidnightDate = (formattedDate: string) => {
-  return moment(formattedDate)
-    .utcOffset(PST_UTC_OFFSET)
-    .set({ hour: 0 })
-    .toDate()
+  return DateTime.fromISO(formattedDate)
+    .setZone(`UTC${PST_UTC_OFFSET}`)
+    .set({ hour: 0, minute: 0 })
+    .toFormat('yyyy-MM-dd HH:mm')
 }
 
 interface PrecipValue {
@@ -367,7 +361,7 @@ interface PrecipValue {
 }
 
 export const getDailyAndAccumPrecips = (values: PrecipValue[]) => {
-  const dates: Date[] = []
+  const dates: string[] = []
   const dailyPrecips: number[] = []
   const shouldAggregate =
     values.length > 0 &&
@@ -377,8 +371,11 @@ export const getDailyAndAccumPrecips = (values: PrecipValue[]) => {
   if (shouldAggregate) {
     const aggregatedPrecips: { [k: string]: number } = {}
     values.forEach(({ datetime, precipitation, delta_precipitation }) => {
-      const date = moment(datetime).format('YYYY-MM-DD')
+      const date = DateTime.fromISO(datetime)
+        .setZone(`UTC${PST_UTC_OFFSET}`)
+        .toFormat('yyyy-MM-dd')
       let precip = 0
+
       if (precipitation != null) {
         precip = precipitation
       } else if (delta_precipitation != null) {
@@ -564,14 +561,14 @@ export const populateGraphDataForWind = (
   lineColor: string,
   arrowColor: string
 ) => {
-  const dates: Date[] = []
+  const dates: string[] = []
   const windSpds: number[] = []
   const windSpdsTexts: string[] = []
   const windDirArrows: Partial<Shape>[] = []
 
   values.forEach(({ wind_direction, wind_speed, datetime }) => {
     if (wind_speed != null) {
-      dates.push(getPSTOffsetDate(datetime))
+      dates.push(formatDateInPST(datetime))
       windSpds.push(wind_speed)
       windSpdsTexts.push(wind_direction != null ? `${Math.round(wind_direction)}` : '-')
 

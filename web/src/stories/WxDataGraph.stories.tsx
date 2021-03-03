@@ -46,7 +46,7 @@ const station = {
 
 export const Default = Template.bind({})
 Default.args = {
-  timeOfInterestISO: getTimeOfInterestFromUrl(''),
+  timeOfInterest: getTimeOfInterestFromUrl(''),
   station,
   observations: observedValues,
   gdpsModels: pastModelValues.concat(modelValues) as ModelValue[],

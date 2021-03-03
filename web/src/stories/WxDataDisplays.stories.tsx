@@ -48,7 +48,7 @@ const station322 = {
 }
 
 const defaultArgs: PropTypes = {
-  timeOfInterestISO: getTimeOfInterestFromUrl(''),
+  timeOfInterest: getTimeOfInterestFromUrl(''),
   wxDataLoading: false,
   stationCodes: [322],
   stationsByCode: { 322: station322 },

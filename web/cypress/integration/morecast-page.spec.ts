@@ -20,7 +20,7 @@ describe('MoreCast Page', () => {
     cy.wait('@getStations')
 
     cy.selectStationInDropdown(stationCode)
-    const timeOfInterest = '2021-02-01T12:00:00-08:00'
+    const timeOfInterest = '2021-02-01T12:00:00.000-08:00'
     cy.getByTestId('time-of-interest-picker').type(timeOfInterest.slice(0, 16)) // yyyy-MM-ddThh:mm
 
     cy.getByTestId('get-wx-data-button').click({ force: true })
