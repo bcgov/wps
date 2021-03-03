@@ -267,7 +267,7 @@ def save_geojson_to_database(session: Session,
         # Create data model object.
         polygon = CHainesPoly(
             geom=geometry.wkt,
-            severity=get_severity_string(feature['properties']['severity']),
+            c_haines_index=get_severity_string(feature['properties']['severity']),
             c_haines_prediction=prediction)
         # Add to current session.
         session.add(polygon)
