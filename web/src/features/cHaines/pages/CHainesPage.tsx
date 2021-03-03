@@ -89,7 +89,6 @@ const CHainesPage = () => {
       2,
       '0'
     )}T${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`
-    console.log(dateString)
     return dateString
   })
   const {
@@ -106,12 +105,6 @@ const CHainesPage = () => {
     model_run_timestamp: string,
     prediction_timestamp: string
   ) => {
-    console.log(
-      'loadMOdelPrediction',
-      model_abbreviation,
-      model_run_timestamp,
-      prediction_timestamp
-    )
     dispatch(updateSelectedPrediction(prediction_timestamp))
     if (isLoaded(model_abbreviation, model_run_timestamp, prediction_timestamp)) {
       showLayer(model_abbreviation, model_run_timestamp, prediction_timestamp)
@@ -307,7 +300,6 @@ const CHainesPage = () => {
           selected_prediction_timestamp
         )
       ) {
-        console.log('updating info layers.')
         const customControl = L.Control.extend({
           onAdd: function(map: any) {
             const html = (
@@ -383,7 +375,6 @@ const CHainesPage = () => {
   ])
 
   const createLayer = (data: FeatureCollection) => {
-    console.log('creating new layer from FeatureCollection')
     const defaults = {
       fillOpacity: 0.5,
       weight: 2
@@ -436,7 +427,6 @@ const CHainesPage = () => {
     model_run_timestamp: string,
     prediction_timestamp: string
   ) => {
-    console.log('showLayer', model, model_run_timestamp, prediction_timestamp)
     try {
       const geoJsonLayer = getLayer(model, model_run_timestamp, prediction_timestamp)
       if (mapRef.current) {
@@ -457,7 +447,6 @@ const CHainesPage = () => {
   const handleChangeDateTime = (
     event: React.ChangeEvent<{ name?: string | undefined; value: string }>
   ) => {
-    console.log(event.target.value)
     setSelectedDateTime(event.target.value)
     dispatch(fetchModelRuns(event.target.value))
   }
@@ -465,7 +454,6 @@ const CHainesPage = () => {
   const handleChangeModel = (
     event: React.ChangeEvent<{ name?: string | undefined; value: string }>
   ) => {
-    console.log('handleChangeModel', event.target.value)
     dispatch(updateSelectedModel(event.target.value))
     stopAnimation()
     // If the model has been changed, we need to load a different prediction.
@@ -486,7 +474,6 @@ const CHainesPage = () => {
   const handleChangeModelRun = (
     event: React.ChangeEvent<{ name?: string | undefined; value: string }>
   ) => {
-    console.log('handleChangeModelRun', event.target.value)
     dispatch(updateSelectedModelRun(event.target.value))
     stopAnimation()
     // If the model run has been changed, we also have to load a different prediction.
@@ -509,7 +496,6 @@ const CHainesPage = () => {
   const handlePredictionChange = (
     event: React.ChangeEvent<{ name?: string | undefined; value: string }>
   ) => {
-    console.log('handlePredictionChange')
     stopAnimation()
     loadModelPrediction(
       selected_model_abbreviation,
@@ -524,7 +510,6 @@ const CHainesPage = () => {
       selected_model_timestamp,
       selected_prediction_timestamp
     )
-    console.log(uri)
     navigator.clipboard.writeText(uri)
   }
 
@@ -544,9 +529,7 @@ const CHainesPage = () => {
       const index = model_run.prediction_timestamps.findIndex(
         value => value === selected_prediction_timestamp
       )
-      console.log('model_run index', index, model_run.prediction_timestamps.length)
       const nextIndex = index + 1 < model_run.prediction_timestamps.length ? index + 1 : 0
-      console.log('model_run next index', nextIndex)
       loadModelPrediction(
         selected_model_abbreviation,
         selected_model_timestamp,

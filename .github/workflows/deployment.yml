@@ -261,6 +261,9 @@ jobs:
   deploy-c-haines:
     name: Deploy c-haines cronjob
     runs-on: ubuntu-20.04
+    # We need
+    # - the image to be built before we can deploy.
+    # - the database to be there (so we can write to it.
     needs: [build-c-haines, prepare-database-ocp4]
 
     steps:

@@ -16,7 +16,6 @@ from app import hourlies
 from app import stations
 from app.frontend import frontend
 from app.routers import forecasts, weather_models, c_haines
-from app import fire_centers
 
 
 configure_logging()
@@ -152,19 +151,6 @@ async def get_percentiles(request: schemas.percentiles.PercentileRequest):
     except Exception as exception:
         logger.critical(exception, exc_info=True)
         raise
-
-
-@api.get('/fire_centres')
-async def get_fire_centres():
-    """ Get fire centre geojson. """
-    # Fetch data from databsae.
-    geojson_response = await fire_centers.fetch()
-    # Set some pretty aggressive caching rules.
-    headers = {"Cache-Control": "max-age=604800, public, immutable"}
-    # Return the geojson response.
-    return JSONResponse(
-        content=geojson_response,
-        headers=headers)
 
 
 if __name__ == "__main__":
