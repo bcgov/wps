@@ -140,8 +140,8 @@ jobs:
       - name: Environment Canada GDPS cronjob (Donald)
         uses: bcgov/openshift-launchpad-deployment@v1.1
         with:
-          AUTH_TOKEN: ${{ secrets.OC_TOOL_TOKEN_EDIT }}
-          SCRIPT: GIT_BRANCH=${GITHUB_HEAD_REF} openshift/scripts/oc_provision_ec_gdps_cronjob.sh ${SUFFIX} apply
+          AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
+          SCRIPT: openshift/scripts/oc_provision_ec_gdps_cronjob.sh ${SUFFIX} apply
 
       - name: Environment Canada HRDPS cronjob (Donald)
         uses: bcgov/openshift-launchpad-deployment@v1.1
