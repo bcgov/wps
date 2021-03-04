@@ -1,4 +1,5 @@
-import moment from 'moment'
+import { DateTime } from 'luxon'
+
 import { isNoonInPST } from 'utils/date'
 
 const getPastValues = () => {
@@ -12,14 +13,14 @@ const getPastValues = () => {
   const _pastRegionalModelValues = []
   const _regionalModelSummaries = []
 
-  const days = 3
-  const first = moment()
-    .utc()
-    .set({ minute: 0, second: 0 })
-    .subtract(days, 'days')
-  const last = moment(first).add(days - 1, 'days')
+  let day = DateTime.fromObject({ minute: 0, second: 0 })
+    .setZone('UTC')
+    .minus({ days: 3 })
+  const last = DateTime.fromObject({ minute: 0, second: 0 })
+    .setZone('UTC')
+    .minus({ days: 1 })
 
-  while (last.diff(first, 'days') >= 0) {
+  while (last.diff(day, 'days').days >= 0) {
     for (let length = 0; length < 24; length++) {
       const sineWeight = 7
       const temp = 20 + Math.sin(length) * sineWeight
@@ -28,10 +29,7 @@ const getPastValues = () => {
       const wind_direction = Math.floor(Math.random() * 360)
       const barometric_pressure = 10 + Math.sin(length) * sineWeight
       const precip = Math.random()
-      const datetime = moment(first)
-        .add(length, 'hours')
-        .utc()
-        .format()
+      const datetime = day.plus({ hours: length }).toISO()
 
       // every hour
       _observedValues.push({
@@ -121,7 +119,7 @@ const getPastValues = () => {
       }
     }
 
-    first.add(1, 'days')
+    day = day.plus({ days: 1 })
   }
 
   return {
@@ -143,17 +141,13 @@ const getFutureValues = () => {
   const _regionalModelValues = []
   const _forecastValues = []
 
-  // GDPS goes out 10 days.
-  const days = 10
-  const first = moment()
-    .utc()
-    .set({ minute: 0, second: 0 })
-  const day = moment()
-    .utc()
-    .set({ minute: 0, second: 0 })
-  const last = moment(day).add(days, 'days')
+  const first = DateTime.fromObject({ minute: 0, second: 0 }).setZone('UTC')
+  let day = DateTime.fromObject({ minute: 0, second: 0 }).setZone('UTC')
+  const last = DateTime.fromObject({ minute: 0, second: 0 })
+    .setZone('UTC')
+    .plus({ days: 10 }) // GDPS goes out 10 days.
 
-  while (last.diff(day, 'days') >= 0) {
+  while (last.diff(day, 'days').days >= 0) {
     for (let length = 0; length < 24; length++) {
       const sineWeight = 7
       const temp = 20 + Math.sin(length) * sineWeight
@@ -162,13 +156,10 @@ const getFutureValues = () => {
       const wind_speed = 20 + Math.sin(length) * sineWeight
       const wind_direction = Math.floor(Math.random() * 360)
       const precip = Math.random()
-      const datetime = moment(day)
-        .add(length, 'hours')
-        .utc()
-        .format()
+      const datetime = day.plus({ hours: length }).toISO()
 
       // HRDPS only goes out 48 hours
-      if (day.diff(first, 'days') <= 2) {
+      if (day.diff(first, 'days').days <= 2) {
         // every hour
         _highResModelValues.push({
           datetime,
@@ -183,7 +174,7 @@ const getFutureValues = () => {
       }
 
       // REGIONAL model goes out 84 hours.
-      if (day.diff(first, 'days') <= 4) {
+      if (day.diff(first, 'days').days <= 4) {
         // every hour
         _regionalModelValues.push({
           datetime,
@@ -213,7 +204,7 @@ const getFutureValues = () => {
       }
 
       // every PST noon, 3 days out
-      if (day.diff(first, 'days') <= 3) {
+      if (day.diff(first, 'days').days <= 3) {
         if (isNoonInPST(datetime)) {
           _forecastValues.push({
             datetime,
@@ -227,7 +218,7 @@ const getFutureValues = () => {
       }
     }
 
-    day.add(1, 'days')
+    day = day.plus({ days: 1 })
   }
 
   return {

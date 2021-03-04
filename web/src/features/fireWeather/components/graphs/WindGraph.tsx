@@ -18,7 +18,7 @@ import {
 
 export interface Props {
   station: Station
-  timeOfInterest: Date
+  timeOfInterest: string
   sliderRange: [string, string]
   toggleValues: ToggleValues
   observations: ObservedValue[]
@@ -172,13 +172,6 @@ const WindGraph = (props: Props) => {
             tickfont: { size: 14 },
             type: 'date',
             dtick: 86400000.0 // Set the interval between ticks to one day: https://plotly.com/javascript/reference/#scatter-marker-colorbar-dtick
-          },
-          xaxis2: {
-            type: 'date',
-            showticklabels: false,
-            // @ts-expect-error
-            matches: 'x', // Important for slider to work properly for all traces
-            overlaying: 'x' // Important for hover to work properly for all traces
           },
           yaxis: {
             title: 'Wind Speed (km/h)',
