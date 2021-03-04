@@ -172,7 +172,7 @@ jobs:
         uses: bcgov/openshift-launchpad-deployment@v1.2
         with:
           AUTH_TOKEN: ${{ secrets.OC4_TEST_TOKEN }}
-          SCRIPT: POSTGRES_WRITE_HOST=patroni-wps-${SUFFIX}-leader POSTGRES_READ_HOST=patroni-wps-${SUFFIX}-replica PROJ_TARGET="e1e498-test" PROJ_TOOLS="e1e498-tools"  POSTGRES_USER="wps" POSTGRES_DATABASE="wps" IMAGE_REGISTRY="image-registry.openshift-image-registry.svc:5000" PROJ_DEV="e1e498-dev" SECOND_LEVEL_DOMAIN="apps.silver.devops.gov.bc.ca" ENVIRONMENT="-test" openshift/scripts/oc_deploy.sh ${SUFFIX} apply
+          SCRIPT: POSTGRES_WRITE_HOST=patroni-wps-${SUFFIX}-leader POSTGRES_READ_HOST=patroni-wps-${SUFFIX}-replica PROJ_TARGET="e1e498-test" PROJ_TOOLS="e1e498-tools" POSTGRES_USER="wps" POSTGRES_DATABASE="wps" IMAGE_REGISTRY="image-registry.openshift-image-registry.svc:5000" PROJ_DEV="e1e498-dev" SECOND_LEVEL_DOMAIN="apps.silver.devops.gov.bc.ca" ENVIRONMENT="-test" openshift/scripts/oc_deploy.sh ${SUFFIX} apply
 
       # Just run 1/3 EnvCan cronjobs so there's some model data in DB for comparison against P3 actuals and forecasts
       # Don't need all model data
