@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon'
-import { Data, Shape, Layout, RangeSlider } from 'plotly.js'
+import { Data, Shape, Layout, RangeSlider, PlotData, BoxPlotData } from 'plotly.js'
+
 import { PST_UTC_OFFSET } from 'utils/constants'
 import { formatDateInPST } from 'utils/date'
 
@@ -88,7 +89,22 @@ export const populateGraphDataForTempAndRH = (
   rhColor: string,
   tempPlumeColor?: string,
   rhPlumeColor?: string
-) => {
+): {
+  tempDots: Partial<PlotData>
+  tempVerticalLines: Data[]
+  biasAdjTempLine: Partial<PlotData>
+  tempLine: Partial<PlotData>
+  temp5thLine: Partial<PlotData>
+  temp90thLine: Partial<PlotData>
+  rhDots: Partial<PlotData>
+  rhVerticalLines: Data[]
+  biasAdjRHLine: Partial<PlotData>
+  rhLine: Partial<PlotData>
+  rh5thLine: Partial<PlotData>
+  rh90thLine: Partial<PlotData>
+  maxTemp: number
+  minTemp: number
+} => {
   const tempDates: string[] = []
   const rhDates: string[] = []
   const tempValues: number[] = []
@@ -346,7 +362,7 @@ export const populateGraphDataForTempAndRH = (
 
 /* -------------------------- Precipitation -------------------------- */
 
-const getMidnightDate = (formattedDate: string) => {
+const getMidnightDate = (formattedDate: string): string => {
   return DateTime.fromISO(formattedDate)
     .setZone(`UTC${PST_UTC_OFFSET}`)
     .set({ hour: 0, minute: 0 })
@@ -360,7 +376,13 @@ interface PrecipValue {
   total_precipitation?: number | null
 }
 
-export const getDailyAndAccumPrecips = (values: PrecipValue[]) => {
+export const getDailyAndAccumPrecips = (
+  values: PrecipValue[]
+): {
+  dates: string[]
+  dailyPrecips: number[]
+  accumPrecips: number[]
+} => {
   const dates: string[] = []
   const dailyPrecips: number[] = []
   const shouldAggregate =
@@ -423,7 +445,11 @@ export const populateGraphDataForPrecip = (
   name: string,
   color: string,
   show: boolean
-) => {
+): {
+  dailyPrecipsBar: Partial<PlotData>
+  accumPrecipsline: Partial<PlotData> | Partial<BoxPlotData>
+  maxAccumPrecip: number
+} => {
   const { dates, dailyPrecips, accumPrecips } = getDailyAndAccumPrecips(values)
 
   const dailyPrecipsBar: Data = {
@@ -560,7 +586,12 @@ export const populateGraphDataForWind = (
   show: boolean,
   lineColor: string,
   arrowColor: string
-) => {
+): {
+  windSpdLine: Partial<PlotData>
+  windDirArrows: Partial<Shape>[]
+  maxWindSpd: number
+  minWindSpd: number
+} => {
   const dates: string[] = []
   const windSpds: number[] = []
   const windSpdsTexts: string[] = []
