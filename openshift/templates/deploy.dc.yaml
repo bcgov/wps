@@ -64,6 +64,9 @@ parameters:
     required: True
   - name: POSTGRES_READ_HOST
     required: True
+  - name: ENVIRONMENT
+    description: Can be used to modify route (e.g. when deploying to test)
+    value:
 objects:
   - apiVersion: v1
     kind: DeploymentConfig
@@ -262,7 +265,7 @@ objects:
         # Enable HTTP Strict Transport Security:
         haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
     spec:
-      host: ${NAME}-${SUFFIX}.${SECOND_LEVEL_DOMAIN}
+      host: ${NAME}-${SUFFIX}${ENVIRONMENT}.${SECOND_LEVEL_DOMAIN}
       port:
         targetPort: 8080-tcp
       to:
