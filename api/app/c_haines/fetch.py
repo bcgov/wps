@@ -34,6 +34,7 @@ def get_severity_style(c_haines_index: SeverityEnum) -> str:
 
 
 def open_placemark(model: ModelEnum, severity: SeverityEnum, timestamp: datetime):
+    """ Open kml <Placemark> tag. """
     kml = []
     kml.append('<Placemark>')
 
@@ -52,6 +53,7 @@ def open_placemark(model: ModelEnum, severity: SeverityEnum, timestamp: datetime
 
 
 def close_placemark():
+    """ Close kml </Placemark> tag. """
     kml = []
     kml.append('</MultiGeometry>')
     kml.append('</Placemark>')
@@ -59,6 +61,7 @@ def close_placemark():
 
 
 def add_style(kml, style_id, color):
+    """ Add kml <Style> tag """
     kml.append('<Style id="{}">'.format(style_id))
     kml.append('<LineStyle>')
     kml.append('<width>1.5</width>')

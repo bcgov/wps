@@ -4,7 +4,6 @@ See README.md for details on how to run.
 """
 import logging
 from fastapi import FastAPI, Depends, Response
-from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.applications import Starlette
 from app import schemas, configure_logging
