@@ -1,10 +1,13 @@
 """ Setup database to perform CRUD transactions
 """
+import logging
 from contextlib import contextmanager
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from .. import config
+
+logger = logging.getLogger(__name__)
 
 DB_WRITE_STRING = 'postgres://{}:{}@{}:{}/{}'.format(
     config.get('POSTGRES_WRITE_USER', 'wps'),
@@ -47,10 +50,8 @@ def get_read_session_scope() -> Session:
     session = _read_session()
     try:
         yield session
-    except:
-        session.rollback()
-        raise
     finally:
+        logger.info('session closed by context manager')
         session.close()
 
 

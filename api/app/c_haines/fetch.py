@@ -1,12 +1,15 @@
 """ Fetch c-haines geojson
 """
+from io import StringIO
+from urllib.parse import urljoin
 from datetime import datetime, timedelta
 import logging
+from app import config
 import app.db.database
 from app.db.models.c_haines import SeverityEnum
 from app.schemas.weather_models import CHainesModelRuns, CHainesModelRunPredictions, WeatherPredictionModel
 from app.weather_models import ModelEnum
-from app.db.crud.c_haines import (get_model_run_predictions,
+from app.db.crud.c_haines import (get_model_run_predictions, get_most_recent_model_run,
                                   get_prediction_geojson, get_prediction_kml, get_model_run_kml)
 
 logger = logging.getLogger(__name__)
@@ -83,42 +86,49 @@ async def fetch_prediction_geojson(model: ModelEnum, model_run_timestamp: dateti
     return response
 
 
-def fetch_model_run_kml_streamer(session, model: ModelEnum, model_run_timestamp: datetime):
+def fetch_model_run_kml_streamer(model: ModelEnum, model_run_timestamp: datetime):
     """ Yield model run XML (allows streaming response to start while kml is being
     constructed.)
     """
     logger.info('model: %s; model_run: %s', model, model_run_timestamp)
 
-    result = get_model_run_kml(session, model, model_run_timestamp)
+    with app.db.database.get_read_session_scope() as session:
 
-    yield get_kml_header()
-    yield '<name>{} {}</name>\n'.format(model, model_run_timestamp)
+        if model_run_timestamp is None:
+            model_run = get_most_recent_model_run(session, model)
+            model_run_timestamp = model_run.model_run_timestamp
 
-    prev_prediction_timestamp = None
-    prev_severity = None
-    for poly, severity, prediction_timestamp in result:
-        if prediction_timestamp != prev_prediction_timestamp:
+        result = get_model_run_kml(session, model, model_run_timestamp)
+
+        yield get_kml_header()
+        yield '<name>{} {}</name>\n'.format(model, model_run_timestamp)
+
+        prev_prediction_timestamp = None
+        prev_severity = None
+        for poly, severity, prediction_timestamp in result:
+            if prediction_timestamp != prev_prediction_timestamp:
+                if not prev_severity is None:
+                    yield close_placemark()
+                prev_severity = None
+                if not prev_prediction_timestamp is None:
+                    yield '</Folder>\n'
+                prev_prediction_timestamp = prediction_timestamp
+                yield '<Folder>\n'
+                yield '<name>{} {} {}</name>\n'.format(model, model_run_timestamp, prediction_timestamp)
+            if severity != prev_severity:
+                if not prev_severity is None:
+                    yield close_placemark()
+                prev_severity = severity
+                yield open_placemark(model, SeverityEnum(severity), prediction_timestamp)
+            yield poly
+
+        if not prev_prediction_timestamp is None:
             if not prev_severity is None:
                 yield close_placemark()
-            prev_severity = None
-            if not prev_prediction_timestamp is None:
-                yield '</Folder>\n'
-            prev_prediction_timestamp = prediction_timestamp
-            yield '<Folder>\n'
-            yield '<name>{} {} {}</name>\n'.format(model, model_run_timestamp, prediction_timestamp)
-        if severity != prev_severity:
-            if not prev_severity is None:
-                yield close_placemark()
-            prev_severity = severity
-            yield open_placemark(model, SeverityEnum(severity), prediction_timestamp)
-        yield poly
-
-    if not prev_prediction_timestamp is None:
-        if not prev_severity is None:
-            yield close_placemark()
-        yield '</Folder>\n'
-    yield '</Document>\n'
-    yield '</kml>\n'
+            yield '</Folder>\n'
+        yield '</Document>\n'
+        yield '</kml>\n'
+        logger.info('kml complete')
 
 
 def get_kml_header():
@@ -133,6 +143,31 @@ def get_kml_header():
     add_style(kml, get_severity_style(SeverityEnum.HIGH), '9900a5ff')
     add_style(kml, get_severity_style(SeverityEnum.EXTREME), '990000ff')
     return "\n".join(kml)
+
+
+def fetch_network_link_kml():
+    """ Fetch the kml for the network link """
+    uri = config.get('BASE_URI')
+    writer = StringIO()
+    writer.write('<?xml version="1.0" encoding="UTF-8"?>\n')
+    writer.write('<kml xmlns="http://www.opengis.net/kml/2.2">\n')
+    writer.write('<Folder>\n')
+    writer.write('<name>C-Haines</name>\n')
+    visibility = 1
+    for model in ['HRDPS', 'RDPS', 'GDPS']:
+        kml_url = urljoin(uri, f'/api/c-haines/{model}/predictions?response_format=KML')
+        writer.write('<NetworkLink>\n')
+        # we make the 1st one visible.
+        writer.write(f'<visibility>{visibility}</visibility>\n')
+        writer.write(f'<name>{model}</name>\n')
+        writer.write('<Link>\n')
+        writer.write(f'<href>{kml_url}</href>\n')
+        writer.write('</Link>\n')
+        writer.write('</NetworkLink>\n')
+        visibility = 0
+    writer.write('</Folder>\n')
+    writer.write('</kml>')
+    return writer.getvalue()
 
 
 def fetch_prediction_kml_streamer(model: ModelEnum, model_run_timestamp: datetime,
@@ -155,7 +190,7 @@ def fetch_prediction_kml_streamer(model: ModelEnum, model_run_timestamp: datetim
                 if not prev_severity is None:
                     kml.append(close_placemark())
                 prev_severity = severity
-                kml.append(open_placemark(model, severity, prediction_timestamp))
+                kml.append(open_placemark(model, SeverityEnum(severity), prediction_timestamp))
             kml.append(poly)
 
             yield "\n".join(kml)

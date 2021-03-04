@@ -20,6 +20,7 @@ import { formatDateInPDT } from 'utils/date'
 import { logError } from 'utils/error'
 import {
   getCHainesGeoJSONURI,
+  getKMLNetworkLinkURI,
   getCHainesKMLURI,
   getCHainesKMLModelRunURI,
   getCHainesModelKMLURI
@@ -60,6 +61,9 @@ const useStyles = makeStyles({
     backgroundColor: '#ffff00',
     width: 30,
     height: 30
+  },
+  controls: {
+    display: 'flex'
   }
 })
 
@@ -75,10 +79,8 @@ const CHainesPage = () => {
   const currentLayersRef = useRef<L.GeoJSON | null>(null)
   const loopTimeoutRef = useRef<number | null>(null)
   const [isAnimating, setAnimate] = useState(false)
-  // Set the default animation speed to 500ms. Faster than that, and for some reason the
-  // animation get's stuck sometimes. The request is being sent, but the response never
-  // comes back. I suspect it's an issue on the back-end - but not sure.
-  const [animationInterval, setAnimationInterval] = useState(500)
+  // Set the default animation speed to 200ms.
+  const [animationInterval, setAnimationInterval] = useState(200)
   const [selectedDatetime, setSelectedDateTime] = useState(() => {
     const d = new Date()
     const month = `${d.getMonth() + 1}`
@@ -565,6 +567,8 @@ const CHainesPage = () => {
     }
   }
 
+  const KMLNetworkLinkURL = getKMLNetworkLinkURI()
+
   const KMLUrl = getCHainesKMLURI(
     selected_model_abbreviation,
     selected_model_timestamp,
@@ -594,86 +598,106 @@ const CHainesPage = () => {
       <PageTitle title="C-Haines - Alpha (Experimental)" />
       <Container>
         <div id="map-with-selectable-wx-stations" className={classes.map} />
-        <div>
-          <div>Select date of interest:</div>
+        <div className={classes.controls}>
           <div>
-            <input
-              type="datetime-local"
-              value={selectedDatetime}
-              onChange={handleChangeDateTime}
-            ></input>
-          </div>
-          <div>Select a model run and prediction from the dropdown:</div>
-          <div>
-            Models:
-            <select value={selected_model_abbreviation} onChange={handleChangeModel}>
-              <option value="GDPS">GDPS</option>
-              <option value="RDPS">RDPS</option>
-              <option value="HRDPS">HRDPS</option>
-            </select>
-            <a href={KMLModelUrl} download={KMLModelFilename}>
-              Download KML file for most recent model run
-            </a>
-          </div>
-          <div>
-            Model runs:
-            <select value={selected_model_timestamp} onChange={handleChangeModelRun}>
-              {model_runs
-                .filter(model_run => {
-                  return model_run.model.abbrev === selected_model_abbreviation
-                })
-                .map((model_run, i) => (
-                  <option value={model_run.model_run_timestamp} key={i}>
-                    {model_run.model.abbrev} {model_run.model_run_timestamp} (UTC)
-                  </option>
-                ))}
-            </select>
-            <a href={KMLModelRunUrl} download={KMLModelRunFilename}>
-              Download KML file
-            </a>
-          </div>
-          <div>
-            Predictions:
-            <select
-              value={selected_prediction_timestamp}
-              onChange={handlePredictionChange}
-            >
-              {model_runs
-                .filter(model_run => {
-                  return (
-                    model_run.model_run_timestamp === selected_model_timestamp &&
-                    model_run.model.abbrev === selected_model_abbreviation
-                  )
-                })
-                .map((model_run, i) =>
-                  model_run.prediction_timestamps.map((prediction_timestamp, i2) => (
-                    <option key={`${i}-${i2}`} value={prediction_timestamp}>
-                      {/* {prediction_timestamp} (UTC)&nbsp; */}
-                      {formatDateInPDT(prediction_timestamp)} (PDT)
+            <div>Select date of interest:</div>
+            <div>
+              <input
+                type="datetime-local"
+                value={selectedDatetime}
+                onChange={handleChangeDateTime}
+              ></input>
+            </div>
+            <div>Select a model run and prediction from the dropdown:</div>
+            <div>
+              Models:
+              <select value={selected_model_abbreviation} onChange={handleChangeModel}>
+                <option value="GDPS">GDPS</option>
+                <option value="RDPS">RDPS</option>
+                <option value="HRDPS">HRDPS</option>
+              </select>
+            </div>
+            <div>
+              Model runs:
+              <select value={selected_model_timestamp} onChange={handleChangeModelRun}>
+                {model_runs
+                  .filter(model_run => {
+                    return model_run.model.abbrev === selected_model_abbreviation
+                  })
+                  .map((model_run, i) => (
+                    <option value={model_run.model_run_timestamp} key={i}>
+                      {model_run.model.abbrev} {model_run.model_run_timestamp} (UTC)
                     </option>
-                  ))
-                )}
-            </select>
-            <button onClick={handleCopyClick}>Copy GeoJSON link to clipboard</button>
-            <a href={KMLUrl} download={KMLFilename}>
-              Download KML file
-            </a>
+                  ))}
+              </select>
+            </div>
+            <div>
+              Predictions:
+              <select
+                value={selected_prediction_timestamp}
+                onChange={handlePredictionChange}
+              >
+                {model_runs
+                  .filter(model_run => {
+                    return (
+                      model_run.model_run_timestamp === selected_model_timestamp &&
+                      model_run.model.abbrev === selected_model_abbreviation
+                    )
+                  })
+                  .map((model_run, i) =>
+                    model_run.prediction_timestamps.map((prediction_timestamp, i2) => (
+                      <option key={`${i}-${i2}`} value={prediction_timestamp}>
+                        {/* {prediction_timestamp} (UTC)&nbsp; */}
+                        {formatDateInPDT(prediction_timestamp)} (PDT)
+                      </option>
+                    ))
+                  )}
+              </select>
+              <button onClick={handleCopyClick}>Copy GeoJSON link to clipboard</button>
+            </div>
+            <div>
+              <button onClick={() => loadPreviousPrediction()}>Prev</button>
+              <button onClick={() => toggleAnimate()}>
+                {isAnimating ? 'Stop' : 'Animate'}
+              </button>
+              <button onClick={() => loadNextPrediction()}>Next</button>
+              Animation interval:{' '}
+              <select value={animationInterval} onChange={handleIntervalChange}>
+                <option value="1">1ms</option>
+                <option value="100">100ms</option>
+                <option value="200">200ms</option>
+                <option value="500">500ms</option>
+                <option value="1000">1s</option>
+                <option value="5000">5s</option>
+              </select>
+            </div>
           </div>
           <div>
-            <button onClick={() => loadPreviousPrediction()}>Prev</button>
-            <button onClick={() => toggleAnimate()}>
-              {isAnimating ? 'Stop' : 'Animate'}
-            </button>
-            <button onClick={() => loadNextPrediction()}>Next</button>
-            Animation interval:{' '}
-            <select value={animationInterval} onChange={handleIntervalChange}>
-              <option value="1">1ms</option>
-              <option value="100">100ms</option>
-              <option value="200">200ms</option>
-              <option value="500">500ms</option>
-              <option value="1000">1s</option>
-              <option value="5000">5s</option>
-            </select>
+            <div>KML (For Google Earth)</div>
+            <div>
+              <a href={KMLNetworkLinkURL}>Download kml network link</a> (With this file
+              you can just click refresh from withing Google Earth to always get the
+              latest predictions for all model runs).
+            </div>
+            <div>
+              <a href={KMLModelUrl} download={KMLModelFilename}>
+                Download KML file for most recent {selected_model_abbreviation} model run
+                predictions.
+              </a>
+            </div>
+            <div>
+              <a href={KMLModelRunUrl} download={KMLModelRunFilename}>
+                Download KML file for {selected_model_abbreviation}, model run{' '}
+                {selected_model_timestamp} prediction.
+              </a>
+            </div>
+            <div>
+              <a href={KMLUrl} download={KMLFilename}>
+                Download KML file {selected_model_abbreviation}, model run{' '}
+                {selected_model_timestamp} prediction{' '}
+                {formatDateInPDT(selected_prediction_timestamp)}
+              </a>
+            </div>
           </div>
         </div>
       </Container>

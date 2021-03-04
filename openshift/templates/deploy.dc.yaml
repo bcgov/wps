@@ -91,6 +91,8 @@ objects:
               env:
                 - name: ORIGINS
                   value: ${ALLOWED_ORIGINS}
+                - name: BASE_URI
+                  value: http://${NAME}-${SUFFIX}.${SECOND_LEVEL_DOMAIN}
                 - name: PORT # The port that the API will run on (used by fastapi docker image)
                   value: "8080"
                 - name: WORKERS_PER_CORE # The number of worker per code (used by fastapi docker image)

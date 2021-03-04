@@ -1,16 +1,22 @@
 """ Routes for c-haines
 """
-from datetime import datetime
 from enum import Enum
+from datetime import datetime
 import logging
 from fastapi import APIRouter, HTTPException
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse, Response
 from app.weather_models import ModelEnum
-from app.c_haines import fetch
-from app.db.crud.c_haines import get_most_recent_model_run
-import app.db.database
+from app.c_haines.fetch import (fetch_model_run_kml_streamer,
+                                fetch_prediction_kml_streamer,
+                                fetch_prediction_geojson,
+                                fetch_model_runs,
+                                fetch_network_link_kml)
+
 
 logger = logging.getLogger(__name__)
+
+
+kml_media_type = 'application/vnd.google-earth.kml+xml'
 
 
 class FormatEnum(str, Enum):
@@ -32,23 +38,17 @@ async def get_c_haines_model_run(
     """ Return geojson polygons for c-haines """
     logger.info('/c-haines/%s/predictions?model_run_timestamp=%s&response_format=%s',
                 model, model_run_timestamp, response_format)
+    if response_format == FormatEnum.geoJSON:
+        raise HTTPException(status_code=501)
     # Let the browser cache the data as much as it wants.
-    headers = {"Cache-Control": "max-age=604800, public, immutable"}
-
-    with app.db.database.get_read_session_scope() as session:
-        if model_run_timestamp is None:
-            model_run = get_most_recent_model_run(session, model)
-            model_run_timestamp = model_run.model_run_timestamp
-
-        if response_format == FormatEnum.geoJSON:
-            raise HTTPException(status_code=501)
-
-        headers["Content-Type"] = "application/vnd.google-earth.kml+xml"
-        headers["Content-Disposition"] = "inline;filename={}-{}.kml".format(
-            model, model_run_timestamp)
-        response = StreamingResponse(
-            fetch.fetch_model_run_kml_streamer(session, model, model_run_timestamp),
-            headers=headers)
+    headers = {"Cache-Control": "max-age=3600, public, immutable"}
+    headers["Content-Type"] = kml_media_type
+    headers["Content-Disposition"] = "inline;filename={}-{}.kml".format(
+        model, model_run_timestamp)
+    response = StreamingResponse(
+        fetch_model_run_kml_streamer(model, model_run_timestamp),
+        headers=headers,
+        media_type=kml_media_type)
     return response
 
 
@@ -62,10 +62,10 @@ async def get_c_haines_model_run_prediction(
     logger.info('/c-haines/%s/prediction?model_run_timestamp=%s&prediction_timestamp=%s&response_format=%s',
                 model, model_run_timestamp, prediction_timestamp, response_format)
     # Let the browser cache the data as much as it wants.
-    headers = {"Cache-Control": "max-age=604800, public, immutable"}
+    headers = {"Cache-Control": "max-age=3600, public, immutable"}
 
     if response_format == FormatEnum.geoJSON:
-        geojson_response = await fetch.fetch_prediction_geojson(
+        geojson_response = await fetch_prediction_geojson(
             model, model_run_timestamp, prediction_timestamp)
         # We check for features - if there are no features, we return a 404.
         # NOTE: Technically, we should only return 404 if we're certain there is no record in the database...
@@ -75,19 +75,25 @@ async def get_c_haines_model_run_prediction(
                 headers=headers)
         raise HTTPException(status_code=404)
 
-    headers["Content-Type"] = "application/vnd.google-earth.kml+xml"
+    headers["Content-Type"] = kml_media_type
     headers["Content-Disposition"] = "inline;filename={}-{}-{}.kml".format(
         model, model_run_timestamp, prediction_timestamp)
-    return StreamingResponse(
-        fetch.fetch_prediction_kml_streamer(
-            model, model_run_timestamp, prediction_timestamp),
-        headers=headers)
+    return StreamingResponse(fetch_prediction_kml_streamer(
+        model, model_run_timestamp, prediction_timestamp),
+        headers=headers, media_type=kml_media_type)
 
 
 @router.get('/model-runs')
 async def get_model_runs(model_run_timestamp: datetime = None):
     """ Return a list of recent model runs """
     logger.info('/c-haines/model-runs')
-    # if model_run_timestamp:
-    # model_run_timestamp.replace()
-    return await fetch.fetch_model_runs(model_run_timestamp)
+    return await fetch_model_runs(model_run_timestamp)
+
+
+@router.get('/network-link')
+async def get_kml_network_link():
+    """ Return KML network link file """
+    headers = {"Content-Type": kml_media_type,
+               "Content-Disposition": "inline;filename=c-haines-network-link.kml"}
+
+    return Response(headers=headers, media_type=kml_media_type, content=fetch_network_link_kml())
