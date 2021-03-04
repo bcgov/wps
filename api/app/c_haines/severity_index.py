@@ -15,7 +15,6 @@ from shapely.ops import transform
 from shapely.geometry import shape
 from sqlalchemy.orm import Session
 from app.time_utils import get_utc_now
-import app.db.database
 from app.db.models.c_haines import CHainesPoly, CHainesPrediction, CHainesModelRun, severity_levels
 from app.db.crud.weather_models import get_prediction_model
 from app.db.crud.c_haines import (get_c_haines_prediction, get_or_create_c_haines_model_run)
@@ -321,11 +320,11 @@ class CHainesSeverityGenerator():
     4) Write polygons to database.
     """
 
-    def __init__(self, model: ModelEnum, projection: ProjectionEnum):
+    def __init__(self, model: ModelEnum, projection: ProjectionEnum, session: Session):
         self.model = model
         self.projection = projection
         self.c_haines_generator = CHainesGenerator()
-        self.session = app.db.database.get_write_session()
+        self.session = session
 
     def _yield_payload(self):
         """ Iterator that yields the next to process. """

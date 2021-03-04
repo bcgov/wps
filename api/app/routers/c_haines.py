@@ -36,19 +36,23 @@ async def get_c_haines_model_run(
     headers = {"Cache-Control": "max-age=604800, public, immutable"}
 
     session = app.db.database.get_read_session()
-    if model_run_timestamp is None:
-        model_run = get_most_recent_model_run(session, model)
-        model_run_timestamp = model_run.model_run_timestamp
+    try:
+        if model_run_timestamp is None:
+            model_run = get_most_recent_model_run(session, model)
+            model_run_timestamp = model_run.model_run_timestamp
 
-    if response_format == FormatEnum.geoJSON:
-        raise HTTPException(status_code=501)
+        if response_format == FormatEnum.geoJSON:
+            raise HTTPException(status_code=501)
 
-    headers["Content-Type"] = "application/vnd.google-earth.kml+xml"
-    headers["Content-Disposition"] = "inline;filename={}-{}.kml".format(
-        model, model_run_timestamp)
-    return StreamingResponse(
-        fetch.fetch_model_run_kml_streamer(session, model, model_run_timestamp),
-        headers=headers)
+        headers["Content-Type"] = "application/vnd.google-earth.kml+xml"
+        headers["Content-Disposition"] = "inline;filename={}-{}.kml".format(
+            model, model_run_timestamp)
+        response = StreamingResponse(
+            fetch.fetch_model_run_kml_streamer(session, model, model_run_timestamp),
+            headers=headers)
+    finally:
+        session.close()
+    return response
 
 
 @router.get('/{model}/prediction')

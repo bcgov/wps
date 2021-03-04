@@ -133,10 +133,10 @@ class GribFileProcessor():
     """ Instances of this object can be used to process and ingest a grib file.
     """
 
-    def __init__(self):
+    def __init__(self, session):
         # Get list of stations we're interested in, and store it so that we only call it once.
         self.stations = get_stations_synchronously()
-        self.session = app.db.database.get_write_session()
+        self.session = session
         self.padf_transform = None
         self.raster_to_geo_transformer = None
         self.geo_to_raster_transformer = None
@@ -233,7 +233,8 @@ class GribFileProcessor():
                 logger.error("Database disconnected!")
                 # Try to re-connect, so that subsequent calls to this function may succeed.
                 # NOTE: I'm not sure if this will solve the problem!
-                self.session = app.db.database.get_read_session()
+                # NOTE: This session isn't getting closed!
+                self.session = app.db.database.get_write_session()
                 raise DatabaseException(
                     'Database disconnection') from exception
             # Re-throw the exception.

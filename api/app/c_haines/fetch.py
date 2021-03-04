@@ -76,7 +76,11 @@ async def fetch_prediction_geojson(model: ModelEnum, model_run_timestamp: dateti
     """
     logger.info('model: %s; model_run: %s, prediction: %s', model, model_run_timestamp, prediction_timestamp)
     session = app.db.database.get_read_session()
-    return get_prediction_geojson(session, model, model_run_timestamp, prediction_timestamp)
+    try:
+        response = get_prediction_geojson(session, model, model_run_timestamp, prediction_timestamp)
+    finally:
+        session.close()
+    return response
 
 
 def fetch_model_run_kml_streamer(session, model: ModelEnum, model_run_timestamp: datetime):
@@ -132,50 +136,55 @@ def fetch_prediction_kml_streamer(model: ModelEnum, model_run_timestamp: datetim
     """
     logger.info('model: %s; model_run: %s, prediction: %s', model, model_run_timestamp, prediction_timestamp)
     session = app.db.database.get_read_session()
-    result = get_prediction_kml(session, model, model_run_timestamp, prediction_timestamp)
-
-    yield get_kml_header()
-    kml = []
-    kml.append('<name>{} {} {}</name>'.format(model, model_run_timestamp, prediction_timestamp))
-    kml.append('<Folder>')
-    kml.append('<name>{} {} {}</name>'.format(model, model_run_timestamp, prediction_timestamp))
-    yield "\n".join(kml)
-    kml = []
-    prev_severity = None
-    for poly, severity in result:
-        if severity != prev_severity:
-            if not prev_severity is None:
-                kml.append(close_placemark())
-            prev_severity = severity
-            kml.append(open_placemark(model, severity, prediction_timestamp))
-        kml.append(poly)
-
+    try:
+        result = get_prediction_kml(session, model, model_run_timestamp, prediction_timestamp)
+        yield get_kml_header()
+        kml = []
+        kml.append('<name>{} {} {}</name>'.format(model, model_run_timestamp, prediction_timestamp))
+        kml.append('<Folder>')
+        kml.append('<name>{} {} {}</name>'.format(model, model_run_timestamp, prediction_timestamp))
         yield "\n".join(kml)
         kml = []
-    if not prev_severity is None:
-        kml.append(close_placemark())
-    kml.append('</Folder>')
-    kml.append('</Document>')
-    kml.append('</kml>')
-    yield "\n".join(kml)
+        prev_severity = None
+        for poly, severity in result:
+            if severity != prev_severity:
+                if not prev_severity is None:
+                    kml.append(close_placemark())
+                prev_severity = severity
+                kml.append(open_placemark(model, severity, prediction_timestamp))
+            kml.append(poly)
+
+            yield "\n".join(kml)
+            kml = []
+        if not prev_severity is None:
+            kml.append(close_placemark())
+        kml.append('</Folder>')
+        kml.append('</Document>')
+        kml.append('</kml>')
+        yield "\n".join(kml)
+    finally:
+        session.close()
 
 
 async def fetch_model_runs(model_run_timestamp: datetime):
     """ Fetch recent model runs """
     session = app.db.database.get_read_session()
-    model_runs = get_model_run_predictions(session, model_run_timestamp)
+    try:
+        model_runs = get_model_run_predictions(session, model_run_timestamp)
 
-    result = CHainesModelRuns(model_runs=[])
-    prev_model_run_id = None
+        result = CHainesModelRuns(model_runs=[])
+        prev_model_run_id = None
 
-    for model_run_id, tmp_model_run_timestamp, name, abbreviation, prediction_timestamp in model_runs:
-        if prev_model_run_id != model_run_id:
-            model_run_predictions = CHainesModelRunPredictions(
-                model=WeatherPredictionModel(name=name, abbrev=abbreviation),
-                model_run_timestamp=tmp_model_run_timestamp,
-                prediction_timestamps=[])
-            result.model_runs.append(model_run_predictions)
-            prev_model_run_id = model_run_id
-        model_run_predictions.prediction_timestamps.append(prediction_timestamp)
+        for model_run_id, tmp_model_run_timestamp, name, abbreviation, prediction_timestamp in model_runs:
+            if prev_model_run_id != model_run_id:
+                model_run_predictions = CHainesModelRunPredictions(
+                    model=WeatherPredictionModel(name=name, abbrev=abbreviation),
+                    model_run_timestamp=tmp_model_run_timestamp,
+                    prediction_timestamps=[])
+                result.model_runs.append(model_run_predictions)
+                prev_model_run_id = model_run_id
+            model_run_predictions.prediction_timestamps.append(prediction_timestamp)
+    finally:
+        session.close()
 
     return result

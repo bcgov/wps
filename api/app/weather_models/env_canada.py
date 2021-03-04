@@ -324,15 +324,15 @@ class EnvCanada():
     """
 
     # pylint: disable=too-many-instance-attributes
-    def __init__(self, model_type: ModelEnum):
+    def __init__(self, model_type: ModelEnum, session):
         """ Prep variables """
         self.files_downloaded = 0
         self.files_processed = 0
         self.exception_count = 0
         # We always work in UTC:
         self.now = time_utils.get_utc_now()
-        self.session = app.db.database.get_write_session()
-        self.grib_processor = GribFileProcessor()
+        self.session = session
+        self.grib_processor = GribFileProcessor(session)
         self.model_type = model_type
         # set projection based on model_type
         if self.model_type == ModelEnum.GDPS:
@@ -443,9 +443,9 @@ class ModelValueProcessor:
     """ Iterate through model runs that have completed, and calculate the interpolated weather predictions.
     """
 
-    def __init__(self):
+    def __init__(self, session):
         """ Prepare variables we're going to use throughout """
-        self.session = app.db.database.get_write_session()
+        self.session = session
         self.stations = get_stations_synchronously()
         self.station_count = len(self.stations)
 
@@ -663,12 +663,16 @@ def process_models():
     # grab the start time.
     start_time = datetime.datetime.now()
 
-    env_canada = EnvCanada(model_type)
-    env_canada.process()
+    session = app.db.database.get_write_session()
+    try:
+        env_canada = EnvCanada(model_type, session)
+        env_canada.process()
 
-    # interpolate and machine learn everything that needs interpolating.
-    model_value_processor = ModelValueProcessor()
-    model_value_processor.process(model_type)
+        # interpolate and machine learn everything that needs interpolating.
+        model_value_processor = ModelValueProcessor(session)
+        model_value_processor.process(model_type)
+    finally:
+        session.close()
 
     # calculate the execution time.
     execution_time = datetime.datetime.now() - start_time

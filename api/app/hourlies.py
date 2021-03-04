@@ -26,34 +26,35 @@ async def fetch_hourly_readings_from_db(
     """
     stations = await app.stations.get_stations_by_codes(station_codes)
     session = app.db.database.get_read_session()
+    try:
+        # by default, we want the past 5 days
+        five_days_past = time_of_interest - timedelta(days=5)
+        readings = get_hourly_actuals(session, station_codes, five_days_past, time_of_interest)
+        station_readings = None
+        result = []
 
-    # by default, we want the past 5 days
-    five_days_past = time_of_interest - timedelta(days=5)
-    readings = get_hourly_actuals(session, station_codes, five_days_past, time_of_interest)
-
-    station_readings = None
-    result = []
-
-    for reading in readings:
-        if station_readings is None or reading.station_code != station_readings.station.code:
-            station = next(
-                station for station in stations if station.code == reading.station_code)
-            station_readings = WeatherStationHourlyReadings(
-                station=station, values=[])
-            result.append(station_readings)
-        weather_reading = WeatherReading(
-            datetime=reading.weather_date,
-            temperature=get(reading.temperature, reading.temp_valid),
-            relative_humidity=get(reading.relative_humidity, reading.rh_valid),
-            wind_speed=get(reading.wind_speed, reading.wspeed_valid),
-            wind_direction=get(reading.wind_direction, reading.wdir_valid),
-            precipitation=get(reading.precipitation, reading.precip_valid),
-            dewpoint=get(reading.dewpoint),
-            ffmc=get(reading.ffmc),
-            isi=get(reading.isi),
-            fwi=get(reading.fwi)
-        )
-        station_readings.values.append(weather_reading)
+        for reading in readings:
+            if station_readings is None or reading.station_code != station_readings.station.code:
+                station = next(
+                    station for station in stations if station.code == reading.station_code)
+                station_readings = WeatherStationHourlyReadings(
+                    station=station, values=[])
+                result.append(station_readings)
+            weather_reading = WeatherReading(
+                datetime=reading.weather_date,
+                temperature=get(reading.temperature, reading.temp_valid),
+                relative_humidity=get(reading.relative_humidity, reading.rh_valid),
+                wind_speed=get(reading.wind_speed, reading.wspeed_valid),
+                wind_direction=get(reading.wind_direction, reading.wdir_valid),
+                precipitation=get(reading.precipitation, reading.precip_valid),
+                dewpoint=get(reading.dewpoint),
+                ffmc=get(reading.ffmc),
+                isi=get(reading.isi),
+                fwi=get(reading.fwi)
+            )
+            station_readings.values.append(weather_reading)
+    finally:
+        session.close()
     return result
 
 

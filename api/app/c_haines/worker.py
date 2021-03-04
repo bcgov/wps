@@ -3,6 +3,7 @@
 import logging
 
 from app import configure_logging
+import app.db.database
 from app.weather_models import ModelEnum, ProjectionEnum
 
 from app.c_haines.severity_index import CHainesSeverityGenerator
@@ -16,10 +17,14 @@ def main():
         (ModelEnum.GDPS, ProjectionEnum.LATLON_15X_15),
         (ModelEnum.RDPS, ProjectionEnum.REGIONAL_PS),
         (ModelEnum.HRDPS, ProjectionEnum.HIGH_RES_CONTINENTAL),)
-    for model, projection in models:
-        logger.info('Generating C-Haines Severity Index for %s', model)
-        generator = CHainesSeverityGenerator(model, projection)
-        generator.generate()
+    session = app.db.database.get_write_session()
+    try:
+        for model, projection in models:
+            logger.info('Generating C-Haines Severity Index for %s', model)
+            generator = CHainesSeverityGenerator(model, projection, session)
+            generator.generate()
+    finally:
+        session.close()
 
 
 if __name__ == "__main__":

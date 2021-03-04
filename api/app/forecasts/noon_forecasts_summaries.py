@@ -55,13 +55,16 @@ async def fetch_noon_forecasts_summaries(station_codes: StationCodeList,
     """ Fetch noon forecasts from the database and parse them,
     then calculate min&max and put them in NoonForecastSummariesResponse """
     session = app.db.database.get_read_session()
-    records = query_noon_forecast_records(
-        session, station_codes, start_date, end_date)
+    try:
+        records = query_noon_forecast_records(
+            session, station_codes, start_date, end_date)
 
-    records_by_station = defaultdict(list)
-    for record in records:
-        code = record.station_code
-        records_by_station[code].append(record)
+        records_by_station = defaultdict(list)
+        for record in records:
+            code = record.station_code
+            records_by_station[code].append(record)
+    finally:
+        session.close()
 
     response = NoonForecastSummariesResponse()
     stations = await app.stations.get_stations_by_codes(station_codes)
