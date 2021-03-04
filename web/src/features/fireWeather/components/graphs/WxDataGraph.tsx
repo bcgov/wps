@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
-import moment from 'moment'
+import { DateTime } from 'luxon'
 
+import { Station } from 'api/stationAPI'
 import { ModelSummary, ModelValue } from 'api/modelAPI'
 import { ObservedValue } from 'api/observationAPI'
 import { NoonForecastValue, ForecastSummary } from 'api/forecastAPI'
@@ -11,7 +12,6 @@ import PrecipitationGraph from 'features/fireWeather/components/graphs/Precipita
 import WindGraph from 'features/fireWeather/components/graphs/WindGraph'
 import TempRHGraph from 'features/fireWeather/components/graphs/TempRHGraph'
 import { formatDateInPST } from 'utils/date'
-import { Station } from 'api/stationAPI'
 
 const useStyles = makeStyles({
   display: {
@@ -20,8 +20,8 @@ const useStyles = makeStyles({
 })
 
 interface Props {
-  timeOfInterest: Date
   station: Station
+  timeOfInterest: string
   observations: ObservedValue[] | undefined
   noonForecasts: NoonForecastValue[] | undefined
   noonForecastSummaries: ForecastSummary[] | undefined
@@ -34,8 +34,8 @@ interface Props {
 }
 
 const WxDataGraph = ({
-  timeOfInterest,
   station,
+  timeOfInterest,
   observations = [],
   noonForecasts = [],
   noonForecastSummaries = [],
@@ -65,8 +65,8 @@ const WxDataGraph = ({
    * (This is bad by the way since it makes impossible for us to capture the change of the state)
    */
   const initialXAxisRange: [string, string] = [
-    formatDateInPST(moment(timeOfInterest).subtract(2, 'days').toDate()), // prettier-ignore
-    formatDateInPST(moment(timeOfInterest).add(2, 'days').toDate()) // prettier-ignore
+    formatDateInPST(DateTime.fromISO(timeOfInterest).minus({ days: 2 })), // prettier-ignore
+    formatDateInPST(DateTime.fromISO(timeOfInterest).plus({ days: 2 })) // prettier-ignore
   ]
   const [sliderRange] = useState(initialXAxisRange)
 
