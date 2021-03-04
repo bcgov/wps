@@ -96,6 +96,9 @@ run-donald:
 run-bender:
 	$(POETRY_RUN) python -m app.fireweather_bot.noon_forecasts
 
+run-noon-forecasts:
+	$(POETRY_RUN) python -m app.fireweather_bot.noon_forecasts
+
 run-marvin:
 	$(POETRY_RUN) python -m app.fireweather_bot.hourly_actuals
 

@@ -35,8 +35,7 @@ async def get_c_haines_model_run(
     # Let the browser cache the data as much as it wants.
     headers = {"Cache-Control": "max-age=604800, public, immutable"}
 
-    session = app.db.database.get_read_session()
-    try:
+    with app.db.database.get_read_session_scope() as session:
         if model_run_timestamp is None:
             model_run = get_most_recent_model_run(session, model)
             model_run_timestamp = model_run.model_run_timestamp
@@ -50,8 +49,6 @@ async def get_c_haines_model_run(
         response = StreamingResponse(
             fetch.fetch_model_run_kml_streamer(session, model, model_run_timestamp),
             headers=headers)
-    finally:
-        session.close()
     return response
 
 

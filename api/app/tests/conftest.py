@@ -1,6 +1,7 @@
 """ Global fixtures """
 
 from datetime import timezone, datetime
+from contextlib import contextmanager
 import logging
 import requests
 import pytest
@@ -79,7 +80,8 @@ def mock_session(monkeypatch):
     """ Ensure that all unit tests mock out the database session by default! """
     # pylint: disable=unused-argument
 
-    def mock_get_session(*args):
+    @contextmanager
+    def mock_get_session_scope(*args):
         """ return a session with a bare minimum database that should be good for most unit tests. """
         prediction_model = PredictionModel(id=1,
                                            abbreviation='GDPS',
@@ -100,9 +102,9 @@ def mock_session(monkeypatch):
                 [prediction_model_run]
             )
         ])
-        return session
-    monkeypatch.setattr(app.db.database, 'get_read_session', mock_get_session)
-    monkeypatch.setattr(app.db.database, 'get_write_session', mock_get_session)
+        yield session
+    monkeypatch.setattr(app.db.database, 'get_read_session_scope', mock_get_session_scope)
+    monkeypatch.setattr(app.db.database, 'get_write_session_scope', mock_get_session_scope)
 
 
 @pytest.fixture()

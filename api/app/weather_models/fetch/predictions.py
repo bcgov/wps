@@ -55,8 +55,7 @@ async def fetch_model_run_predictions_by_station_code(
     end_date = time_of_interest + datetime.timedelta(days=10)
 
     # send the query (ordered by prediction date.)
-    session = app.db.database.get_read_session()
-    try:
+    with app.db.database.get_read_session_scope() as session:
         historic_predictions = get_station_model_predictions(
             session, station_codes, model, start_date, end_date)
 
@@ -122,7 +121,5 @@ async def fetch_model_run_predictions_by_station_code(
                 station=stations[station_code],
                 model_runs=list(model_run_dict.values())
             ))
-    finally:
-        session.close()
 
     return response

@@ -66,13 +66,3 @@ def get_write_session_scope() -> Session:
         raise
     finally:
         session.close()
-
-
-def get_read_session() -> Session:
-    """ Wrap getting read session to assist in making unit tests a bit easier """
-    return _read_session()
-
-
-def get_write_session() -> Session:
-    """ Wrap getting write session to assist in making unit test a bit easier"""
-    return _write_session()

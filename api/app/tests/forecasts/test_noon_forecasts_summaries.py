@@ -4,6 +4,7 @@
 from datetime import timedelta
 import json
 import logging
+from contextlib import contextmanager
 from typing import List
 from pytest_bdd import scenario, given, then
 from fastapi.testclient import TestClient
@@ -62,9 +63,10 @@ def test_noon_forecasts():
 def given_request(monkeypatch, codes: List):
     """ Stub forecasts into the database and make a request """
 
-    def mock_get_session(*_):
-        return get_session_with_data()
-    monkeypatch.setattr(app.db.database, 'get_read_session', mock_get_session)
+    @contextmanager
+    def mock_get_session_scope(*_):
+        yield get_session_with_data()
+    monkeypatch.setattr(app.db.database, 'get_read_session_scope', mock_get_session_scope)
 
     client = TestClient(app.main.app)
     endpoint = '/api/forecasts/noon/summaries/'

@@ -17,14 +17,11 @@ def main():
         (ModelEnum.GDPS, ProjectionEnum.LATLON_15X_15),
         (ModelEnum.RDPS, ProjectionEnum.REGIONAL_PS),
         (ModelEnum.HRDPS, ProjectionEnum.HIGH_RES_CONTINENTAL),)
-    session = app.db.database.get_write_session()
-    try:
+    with app.db.database.get_write_session_scope() as session:
         for model, projection in models:
             logger.info('Generating C-Haines Severity Index for %s', model)
             generator = CHainesSeverityGenerator(model, projection, session)
             generator.generate()
-    finally:
-        session.close()
 
 
 if __name__ == "__main__":

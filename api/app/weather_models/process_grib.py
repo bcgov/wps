@@ -7,10 +7,9 @@ import logging
 import logging.config
 from typing import Final, List
 from sqlalchemy.dialects.postgresql import array
-import sqlalchemy.exc
+from sqlalchemy.orm import Session
 import gdal
 from pyproj import CRS, Transformer
-import app.db.database
 from app.stations import get_stations_synchronously
 from app.db.models import (
     PredictionModel, PredictionModelRunTimestamp, ModelRunGridSubsetPrediction)
@@ -133,24 +132,13 @@ class GribFileProcessor():
     """ Instances of this object can be used to process and ingest a grib file.
     """
 
-    def __init__(self, session):
+    def __init__(self):
         # Get list of stations we're interested in, and store it so that we only call it once.
         self.stations = get_stations_synchronously()
-        self.session = session
         self.padf_transform = None
         self.raster_to_geo_transformer = None
         self.geo_to_raster_transformer = None
-        self.prediction_model = None
-
-    def get_prediction_model(self, grib_info: ModelRunInfo) -> PredictionModel:
-        """ Get the prediction model, raising an exception if not found """
-        prediction_model = get_prediction_model(
-            self.session, grib_info.model_abbreviation, grib_info.projection)
-        if not prediction_model:
-            raise PredictionModelNotFound(
-                'Could not find this prediction model in the database',
-                grib_info.model_abbreviation, grib_info.projection)
-        return prediction_model
+        self.prediction_model: PredictionModel = None
 
     def yield_data_for_stations(self, raster_band: gdal.Dataset):
         """ Given a list of stations, and a gdal dataset, yield relevant data
@@ -167,8 +155,13 @@ class GribFileProcessor():
 
             yield (points, values)
 
-    def store_bounding_values(self, points, values, preduction_model_run: PredictionModelRunTimestamp,
-                              grib_info: ModelRunInfo):
+    # pylint: disable=too-many-arguments
+    def store_bounding_values(self,
+                              points,
+                              values,
+                              preduction_model_run: PredictionModelRunTimestamp,
+                              grib_info: ModelRunInfo,
+                              session: Session):
         """ Store the values around the area of interest.
         """
         # Convert points to geographic coordinates:
@@ -177,12 +170,11 @@ class GribFileProcessor():
             geographic_points.append(
                 calculate_geographic_coordinate(point, self.padf_transform, self.raster_to_geo_transformer))
         # Get the grid subset, i.e. the relevant bounding area for this particular model.
-        grid_subset = get_or_create_grid_subset(
-            self.session, self.prediction_model, geographic_points)
+        grid_subset = get_or_create_grid_subset(session, self.prediction_model, geographic_points)
 
         # Load the record if it exists.
         # pylint: disable=no-member
-        prediction = self.session.query(ModelRunGridSubsetPrediction).\
+        prediction = session.query(ModelRunGridSubsetPrediction).\
             filter(
                 ModelRunGridSubsetPrediction.prediction_model_run_timestamp_id == preduction_model_run.id).\
             filter(ModelRunGridSubsetPrediction.prediction_timestamp == grib_info.prediction_timestamp).\
@@ -196,46 +188,37 @@ class GribFileProcessor():
             prediction.prediction_model_grid_subset_id = grid_subset.id
 
         setattr(prediction, grib_info.variable_name.lower(), array(values))
-        self.session.add(prediction)
-        self.session.commit()
+        session.add(prediction)
+        session.commit()
 
-    def process_grib_file(self, filename, grib_info: ModelRunInfo):
+    def process_grib_file(self, filename, grib_info: ModelRunInfo, session: Session):
         """ Process a grib file, extracting and storing relevant information. """
-        try:
-            logger.info('processing %s', filename)
-            # Open grib file
-            dataset = open_grib(filename)
-            # Ensure that grib file uses EPSG:4269 (NAD83) coordinate system
-            # (this step is included because HRDPS grib files are in another coordinate system)
-            wkt = dataset.GetProjection()
-            crs = CRS.from_string(wkt)
-            self.raster_to_geo_transformer = get_transformer(crs, GEO_CRS)
-            self.geo_to_raster_transformer = get_transformer(GEO_CRS, crs)
+        logger.info('processing %s', filename)
+        # Open grib file
+        dataset = open_grib(filename)
+        # Ensure that grib file uses EPSG:4269 (NAD83) coordinate system
+        # (this step is included because HRDPS grib files are in another coordinate system)
+        wkt = dataset.GetProjection()
+        crs = CRS.from_string(wkt)
+        self.raster_to_geo_transformer = get_transformer(crs, GEO_CRS)
+        self.geo_to_raster_transformer = get_transformer(GEO_CRS, crs)
 
-            self.padf_transform = get_dataset_geometry(dataset)
-            # get the model (.e.g. GPDS/RDPS latlon24x.24):
-            self.prediction_model = self.get_prediction_model(grib_info)
+        self.padf_transform = get_dataset_geometry(dataset)
+        # get the model (.e.g. GPDS/RDPS latlon24x.24):
+        self.prediction_model = get_prediction_model(
+            session, grib_info.model_abbreviation, grib_info.projection)
+        if not self.prediction_model:
+            raise PredictionModelNotFound(
+                'Could not find this prediction model in the database',
+                grib_info.model_abbreviation, grib_info.projection)
 
-            # get the model run (e.g. GDPS latlon24x.24 for 2020 07 07 12h00):
-            prediction_run = get_or_create_prediction_run(
-                self.session, self.prediction_model, grib_info.model_run_timestamp)
+        # get the model run (e.g. GDPS latlon24x.24 for 2020 07 07 12h00):
+        prediction_run = get_or_create_prediction_run(
+            session, self.prediction_model, grib_info.model_run_timestamp)
 
-            raster_band = dataset.GetRasterBand(1)
+        raster_band = dataset.GetRasterBand(1)
 
-            # Iterate through stations:
-            for (points, values) in self.yield_data_for_stations(raster_band):
-                self.store_bounding_values(
-                    points, values, prediction_run, grib_info)
-        except sqlalchemy.exc.OperationalError as exception:
-            # Sometimes this exception is thrown with a "server closed the connection unexpectedly" error.
-            # This could happen due to the connection being closed.
-            if self.session.is_disconnect():
-                logger.error("Database disconnected!")
-                # Try to re-connect, so that subsequent calls to this function may succeed.
-                # NOTE: I'm not sure if this will solve the problem!
-                # NOTE: This session isn't getting closed!
-                self.session = app.db.database.get_write_session()
-                raise DatabaseException(
-                    'Database disconnection') from exception
-            # Re-throw the exception.
-            raise
+        # Iterate through stations:
+        for (points, values) in self.yield_data_for_stations(raster_band):
+            self.store_bounding_values(
+                points, values, prediction_run, grib_info, session)

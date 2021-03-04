@@ -25,8 +25,7 @@ async def fetch_hourly_readings_from_db(
     """ Fetch the hourly readings from the database.
     """
     stations = await app.stations.get_stations_by_codes(station_codes)
-    session = app.db.database.get_read_session()
-    try:
+    with app.db.database.get_read_session_scope() as session:
         # by default, we want the past 5 days
         five_days_past = time_of_interest - timedelta(days=5)
         readings = get_hourly_actuals(session, station_codes, five_days_past, time_of_interest)
@@ -53,8 +52,6 @@ async def fetch_hourly_readings_from_db(
                 fwi=get(reading.fwi)
             )
             station_readings.values.append(weather_reading)
-    finally:
-        session.close()
     return result
 
 

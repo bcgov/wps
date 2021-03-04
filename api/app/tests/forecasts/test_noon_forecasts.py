@@ -5,6 +5,7 @@ NOTE: This test currently only handles one station.
 import json
 import os
 import logging
+from contextlib import contextmanager
 from typing import List
 from datetime import datetime
 import pytest
@@ -25,7 +26,8 @@ logger = logging.getLogger(__name__)
 def mock_session(monkeypatch):
     """ Mocked out sqlalchemy session """
     # pylint: disable=unused-argument
-    def mock_get_session(*args):
+    @contextmanager
+    def mock_get_session_scope(*args):
         session = UnifiedAlchemyMagicMock()
         dirname = os.path.dirname(os.path.realpath(__file__))
         filename = os.path.join(dirname, 'test_noon_forecasts.json')
@@ -37,9 +39,9 @@ def mock_session(monkeypatch):
                 forecast['created_at'] = datetime.fromisoformat(
                     forecast['created_at'])
                 session.add(NoonForecast(**forecast))
-        return session
+        yield session
 
-    monkeypatch.setattr(app.db.database, 'get_read_session', mock_get_session)
+    monkeypatch.setattr(app.db.database, 'get_read_session_scope', mock_get_session_scope)
 
 
 @pytest.mark.usefixtures('mock_env_with_use_wfwx', 'mock_jwt_decode')

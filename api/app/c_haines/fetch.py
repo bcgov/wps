@@ -78,15 +78,15 @@ async def fetch_prediction_geojson(model: ModelEnum, model_run_timestamp: dateti
     """ Fetch prediction polygon geojson.
     """
     logger.info('model: %s; model_run: %s, prediction: %s', model, model_run_timestamp, prediction_timestamp)
-    session = app.db.database.get_read_session()
-    try:
+    with app.db.database.get_read_session_scope() as session:
         response = get_prediction_geojson(session, model, model_run_timestamp, prediction_timestamp)
-    finally:
-        session.close()
     return response
 
 
 def fetch_model_run_kml_streamer(session, model: ModelEnum, model_run_timestamp: datetime):
+    """ Yield model run XML (allows streaming response to start while kml is being
+    constructed.)
+    """
     logger.info('model: %s; model_run: %s', model, model_run_timestamp)
 
     result = get_model_run_kml(session, model, model_run_timestamp)
@@ -122,6 +122,8 @@ def fetch_model_run_kml_streamer(session, model: ModelEnum, model_run_timestamp:
 
 
 def get_kml_header():
+    """ Return the kml header (xml header, <xml> tag, <Document> tag and styles.)
+    """
     kml = []
     kml.append('<?xml version="1.0" encoding="UTF-8"?>')
     kml.append('<kml xmlns="http://www.opengis.net/kml/2.2">')
@@ -138,8 +140,7 @@ def fetch_prediction_kml_streamer(model: ModelEnum, model_run_timestamp: datetim
     """ Fetch prediction polygon geojson.
     """
     logger.info('model: %s; model_run: %s, prediction: %s', model, model_run_timestamp, prediction_timestamp)
-    session = app.db.database.get_read_session()
-    try:
+    with app.db.database.get_read_session_scope() as session:
         result = get_prediction_kml(session, model, model_run_timestamp, prediction_timestamp)
         yield get_kml_header()
         kml = []
@@ -165,14 +166,11 @@ def fetch_prediction_kml_streamer(model: ModelEnum, model_run_timestamp: datetim
         kml.append('</Document>')
         kml.append('</kml>')
         yield "\n".join(kml)
-    finally:
-        session.close()
 
 
 async def fetch_model_runs(model_run_timestamp: datetime):
     """ Fetch recent model runs """
-    session = app.db.database.get_read_session()
-    try:
+    with app.db.database.get_read_session_scope() as session:
         model_runs = get_model_run_predictions(session, model_run_timestamp)
 
         result = CHainesModelRuns(model_runs=[])
@@ -187,7 +185,5 @@ async def fetch_model_runs(model_run_timestamp: datetime):
                 result.model_runs.append(model_run_predictions)
                 prev_model_run_id = model_run_id
             model_run_predictions.prediction_timestamps.append(prediction_timestamp)
-    finally:
-        session.close()
 
     return result
