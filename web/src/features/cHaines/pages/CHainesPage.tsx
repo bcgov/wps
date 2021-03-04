@@ -64,6 +64,9 @@ const useStyles = makeStyles({
   },
   controls: {
     display: 'flex'
+  },
+  kml_links: {
+    marginLeft: '10px'
   }
 })
 
@@ -497,6 +500,12 @@ const CHainesPage = () => {
     )
   }
 
+  const geoJSONURI = getCHainesGeoJSONURI(
+    selected_model_abbreviation,
+    selected_model_timestamp,
+    selected_prediction_timestamp
+  )
+
   const handleCopyClick = () => {
     const uri = getCHainesGeoJSONURI(
       selected_model_abbreviation,
@@ -600,17 +609,16 @@ const CHainesPage = () => {
         <div id="map-with-selectable-wx-stations" className={classes.map} />
         <div className={classes.controls}>
           <div>
-            <div>Select date of interest:</div>
             <div>
+              Date of interest:
               <input
                 type="datetime-local"
                 value={selectedDatetime}
                 onChange={handleChangeDateTime}
               ></input>
             </div>
-            <div>Select a model run and prediction from the dropdown:</div>
             <div>
-              Models:
+              Model:
               <select value={selected_model_abbreviation} onChange={handleChangeModel}>
                 <option value="GDPS">GDPS</option>
                 <option value="RDPS">RDPS</option>
@@ -653,7 +661,6 @@ const CHainesPage = () => {
                     ))
                   )}
               </select>
-              <button onClick={handleCopyClick}>Copy GeoJSON link to clipboard</button>
             </div>
             <div>
               <button onClick={() => loadPreviousPrediction()}>Prev</button>
@@ -672,8 +679,10 @@ const CHainesPage = () => {
               </select>
             </div>
           </div>
-          <div>
-            <div>KML (For Google Earth)</div>
+          <div className={classes.kml_links}>
+            <div>
+              <b>KML (For Google Earth)</b>
+            </div>
             <div>
               <a href={KMLNetworkLinkURL}>Download kml network link</a> (With this file
               you can just click refresh from withing Google Earth to always get the
@@ -688,15 +697,26 @@ const CHainesPage = () => {
             <div>
               <a href={KMLModelRunUrl} download={KMLModelRunFilename}>
                 Download KML file for {selected_model_abbreviation}, model run{' '}
-                {selected_model_timestamp} prediction.
+                {selected_model_timestamp} (UTC) predictions.
               </a>
             </div>
             <div>
               <a href={KMLUrl} download={KMLFilename}>
                 Download KML file {selected_model_abbreviation}, model run{' '}
-                {selected_model_timestamp} prediction{' '}
-                {formatDateInPDT(selected_prediction_timestamp)}
+                {selected_model_timestamp} (UTC) prediction{' '}
+                {formatDateInPDT(selected_prediction_timestamp)} (PDT)
               </a>
+            </div>
+            <div>
+              <b>GeoJSON for GIS</b>
+            </div>
+            <div>
+              <a href={geoJSONURI}>
+                Download GeoJSON for {selected_model_abbreviation}, model run{' '}
+                {selected_model_timestamp} (UTC) prediction{' '}
+                {formatDateInPDT(selected_prediction_timestamp)} (PDT)
+              </a>
+              <button onClick={handleCopyClick}>Copy GeoJSON link to clipboard</button>
             </div>
           </div>
         </div>
