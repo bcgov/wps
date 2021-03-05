@@ -67,6 +67,9 @@ const useStyles = makeStyles({
   },
   kml_links: {
     marginLeft: '10px'
+  },
+  animateButton: {
+    width: '70px'
   }
 })
 
@@ -664,7 +667,7 @@ const CHainesPage = () => {
             </div>
             <div>
               <button onClick={() => loadPreviousPrediction()}>Prev</button>
-              <button onClick={() => toggleAnimate()}>
+              <button onClick={() => toggleAnimate()} className={classes.animateButton}>
                 {isAnimating ? 'Stop' : 'Animate'}
               </button>
               <button onClick={() => loadNextPrediction()}>Next</button>
