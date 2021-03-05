@@ -49,7 +49,7 @@ const useStyles = makeStyles({
 })
 
 interface WxDataDisplaysProps {
-  timeOfInterest: Date
+  timeOfInterest: string
   stationCodes: number[]
   wxDataLoading: boolean
   stationsByCode: Record<number, Station | undefined>
@@ -126,8 +126,8 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
 
               <ErrorBoundary>
                 <WxDataGraph
-                  timeOfInterest={props.timeOfInterest}
                   station={station}
+                  timeOfInterest={props.timeOfInterest}
                   observations={observations}
                   noonForecasts={noonForecasts}
                   noonForecastSummaries={noonForecastSummaries}
@@ -147,7 +147,7 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
 })
 
 interface WxDataDisplaysWrapperProps {
-  timeOfInterest: Date
+  timeOfInterest: string
   stationCodes: number[]
 }
 

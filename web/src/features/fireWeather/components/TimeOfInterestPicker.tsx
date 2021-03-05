@@ -12,7 +12,7 @@ const useStyles = makeStyles({
 })
 
 interface Props {
-  timeOfInterestISO: string
+  timeOfInterest: string
   onChange: (d: string) => void
 }
 
@@ -25,7 +25,7 @@ const TimeOfInterestPicker = (props: Props) => {
       className={classes.datePicker}
       label="Time of Interest (PST-08:00)"
       type="datetime-local"
-      value={props.timeOfInterestISO.slice(0, 16)} // 'YYYY-MM-DDTHH:mm'
+      value={props.timeOfInterest.slice(0, 16)} // 'YYYY-MM-DDTHH:mm'
       helperText="Disclaimer: not all data may be available."
       InputLabelProps={{
         shrink: true
