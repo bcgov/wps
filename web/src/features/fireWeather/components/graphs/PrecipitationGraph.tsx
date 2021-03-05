@@ -126,14 +126,14 @@ const PrecipitationGraph = (props: Props) => {
             dtick: 86400000.0 // Set the interval between ticks to one day: https://plotly.com/javascript/reference/#scatter-marker-colorbar-dtick
           },
           yaxis: {
-            title: 'Daily Precipitation (mm/cm)',
+            title: 'Daily Precipitation (mm)',
             tickfont: { size: 14 },
             gridcolor: 'transparent',
             fixedrange: true,
             range: y2Range
           },
           yaxis2: {
-            title: 'Accumulated Precipitation (mm/cm)',
+            title: 'Accumulated Precipitation (mm)',
             tickfont: { size: 14 },
             overlaying: 'y',
             side: 'right',
