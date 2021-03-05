@@ -25,6 +25,7 @@ const getPastValues = () => {
       const sineWeight = 7
       const temp = 20 + Math.sin(length) * sineWeight
       const rh = 20 - Math.sin(length) * sineWeight
+      const dew_point = 25 + Math.sin(length) * sineWeight
       const wind_speed = 20 + Math.sin(length) * sineWeight
       const wind_direction = Math.floor(Math.random() * 360)
       const barometric_pressure = 10 + Math.sin(length) * sineWeight
@@ -36,6 +37,7 @@ const getPastValues = () => {
         datetime,
         temperature: Math.random() <= 0.8 ? temp : null,
         relative_humidity: rh,
+        dew_point: dew_point,
         wind_speed,
         wind_direction,
         barometric_pressure,

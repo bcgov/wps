@@ -5,6 +5,7 @@ export interface ObservedValue {
   datetime: string
   temperature: number | null
   relative_humidity: number | null
+  dew_point: number | null
   wind_speed: number | null
   wind_direction: number | null
   barometric_pressure: number | null
