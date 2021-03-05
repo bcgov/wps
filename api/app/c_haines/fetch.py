@@ -86,6 +86,24 @@ async def fetch_prediction_geojson(model: ModelEnum, model_run_timestamp: dateti
     return response
 
 
+def get_look_at(model: ModelEnum, model_run_timestamp: datetime):
+    if model == ModelEnum.GDPS:
+        end = model_run_timestamp + timedelta(hours=3)
+    else:
+        end = model_run_timestamp + timedelta(hours=1)
+    kml = []
+    kml.append('<LookAt>')
+    kml.append('<gx:TimeSpan>')
+    kml.append(f'<begin>{model_run_timestamp.isoformat()}</begin>')
+    kml.append(f'<end>{end.isoformat()}</end>')
+    kml.append('</gx:TimeSpan>')
+    kml.append('<longitude>-123</longitude>')
+    kml.append('<latitude>54</latitude>')
+    kml.append('<range>3000000</range>')
+    kml.append('</LookAt>')
+    return '\n'.join(kml)
+
+
 def fetch_model_run_kml_streamer(model: ModelEnum, model_run_timestamp: datetime):
     """ Yield model run XML (allows streaming response to start while kml is being
     constructed.)
@@ -101,6 +119,7 @@ def fetch_model_run_kml_streamer(model: ModelEnum, model_run_timestamp: datetime
         result = get_model_run_kml(session, model, model_run_timestamp)
 
         yield get_kml_header()
+        yield get_look_at(model, model_run_timestamp)
         yield '<name>{} {}</name>\n'.format(model, model_run_timestamp)
 
         prev_prediction_timestamp = None

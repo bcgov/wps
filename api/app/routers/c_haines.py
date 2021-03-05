@@ -43,8 +43,12 @@ async def get_c_haines_model_run(
     # Let the browser cache the data as much as it wants.
     headers = {"Cache-Control": "max-age=3600, public, immutable"}
     headers["Content-Type"] = kml_media_type
-    headers["Content-Disposition"] = "inline;filename={}-{}.kml".format(
-        model, model_run_timestamp)
+    if model_run_timestamp is None:
+        filename = f'{model}.kml'
+    else:
+        filename = f'{model}-{model_run_timestamp}.kml'
+    headers["Content-Disposition"] = "inline;filename={}".format(
+        filename)
     response = StreamingResponse(
         fetch_model_run_kml_streamer(model, model_run_timestamp),
         headers=headers,
