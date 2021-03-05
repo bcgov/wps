@@ -16,7 +16,7 @@ import {
   fetchFireCentresGeoJSON
 } from 'features/cHaines/slices/cHainesModelRunsSlice'
 import { Container, PageHeader, PageTitle } from 'components'
-import { formatDateInPDT } from 'utils/date'
+import { formatDateInPST } from 'utils/date'
 import { logError } from 'utils/error'
 import {
   getCHainesGeoJSONURI,
@@ -306,7 +306,7 @@ const CHainesPage = () => {
                 </div>
                 <div>
                   {selected_model_abbreviation} prediction:{' '}
-                  {formatDateInPDT(selected_prediction_timestamp)} (PDT)
+                  {formatDateInPST(selected_prediction_timestamp)} (PST)
                 </div>
               </div>
             )
@@ -656,7 +656,7 @@ const CHainesPage = () => {
                     model_run.prediction_timestamps.map((prediction_timestamp, i2) => (
                       <option key={`${i}-${i2}`} value={prediction_timestamp}>
                         {/* {prediction_timestamp} (UTC)&nbsp; */}
-                        {formatDateInPDT(prediction_timestamp)} (PDT)
+                        {formatDateInPST(prediction_timestamp)} (PST)
                       </option>
                     ))
                   )}
@@ -704,7 +704,7 @@ const CHainesPage = () => {
               <a href={KMLUrl} download={KMLFilename}>
                 Download KML file {selected_model_abbreviation}, model run{' '}
                 {selected_model_timestamp} (UTC) prediction{' '}
-                {formatDateInPDT(selected_prediction_timestamp)} (PDT)
+                {formatDateInPST(selected_prediction_timestamp)} (PST)
               </a>
             </div>
             <div>
@@ -714,7 +714,7 @@ const CHainesPage = () => {
               <a href={geoJSONURI}>
                 Download GeoJSON for {selected_model_abbreviation}, model run{' '}
                 {selected_model_timestamp} (UTC) prediction{' '}
-                {formatDateInPDT(selected_prediction_timestamp)} (PDT)
+                {formatDateInPST(selected_prediction_timestamp)} (PST)
               </a>
               <button onClick={handleCopyClick}>Copy GeoJSON link to clipboard</button>
             </div>
