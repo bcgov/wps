@@ -461,7 +461,7 @@ export const populateGraphDataForPrecip = (
       color: show ? color : 'transparent'
     },
     hoverinfo: show ? 'y' : 'skip',
-    hovertemplate: show ? `${name}: %{y:.2f} (mm/cm)<extra></extra>` : undefined
+    hovertemplate: show ? `${name}: %{y:.2f} (mm)<extra></extra>` : undefined
   }
 
   const accumPrecipsline: Data = {
@@ -478,7 +478,7 @@ export const populateGraphDataForPrecip = (
     },
     hoverinfo: 'y',
     hovertemplate: show
-      ? `Accumulated ${name}: %{y:.2f} (mm/cm)<extra></extra>`
+      ? `Accumulated ${name}: %{y:.2f} (mm)<extra></extra>`
       : undefined
   }
 

@@ -43,7 +43,7 @@ export const columns: Column[] = [
   },
   {
     id: 'precipitation',
-    label: 'Precip (mm/cm)',
+    label: 'Precip (mm)',
     minWidth: 70,
     maxWidth: 100,
     align: 'right',
