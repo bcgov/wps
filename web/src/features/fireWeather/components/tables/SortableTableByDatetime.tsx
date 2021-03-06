@@ -32,7 +32,7 @@ interface WeatherValue {
   datetime: string
   temperature?: number | null
   relative_humidity?: number | null
-  dew_point?: number | null
+  dewpoint?: number | null
   wind_direction?: number | null
   wind_speed?: number | null
   precipitation?: number | null

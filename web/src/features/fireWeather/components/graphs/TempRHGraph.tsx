@@ -16,6 +16,7 @@ import {
 
 const observedTempColor = '#fb0058'
 const observedRHColor = '#005f87'
+const observedDewpointColor = '#02fa44'
 const forecastTempColor = '#a50b41'
 const forecastRHColor = '#17c4c4'
 const hrdpsTempColor = '#a017c2'
@@ -74,7 +75,9 @@ const TempRHGraph = (props: Props) => {
     'circle', // https://plotly.com/javascript/reference/scatter/#scatter-marker-symbol
     'solid',
     observedTempColor,
-    observedRHColor
+    observedRHColor,
+    'Observed Dew Point',
+    observedDewpointColor
   )
 
   const forecastData = populateGraphDataForTempAndRH(
@@ -178,11 +181,12 @@ const TempRHGraph = (props: Props) => {
           forecastData.rhDots,
           forecastData.tempDots,
           observationData.rhLine,
-          observationData.tempLine
+          observationData.tempLine,
+          observationData.dewpointLine
         ]}
         layout={{
           ...getLayoutConfig(
-            `Temperature & Relative Humidity - ${station.name} (${station.code})`
+            `Temperature, Dew Point & Relative Humidity - ${station.name} (${station.code})`
           ),
           xaxis: {
             range: sliderRange,

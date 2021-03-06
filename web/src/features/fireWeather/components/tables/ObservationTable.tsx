@@ -28,7 +28,7 @@ export const columns: Column[] = [
     format: (value: number): number => Math.round(value)
   },
   {
-    id: 'dew_point',
+    id: 'dewpoint',
     label: 'Dew Point (°C)',
     align: 'right',
     format: (value: number): string => value.toFixed(HOURLY_VALUES_DECIMAL)

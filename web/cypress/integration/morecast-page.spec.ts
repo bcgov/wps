@@ -138,7 +138,7 @@ describe('MoreCast Page', () => {
           .should('have.length', num)
       }
 
-      checkNumOfLegends(7)
+      checkNumOfLegends(8)
 
       cy.getByTestId('wx-graph-hrdps-toggle').click()
       checkNumOfTempMarkers(numOfObservations - 1)

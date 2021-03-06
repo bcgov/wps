@@ -66,12 +66,13 @@ interface TempRHValue {
   datetime: string
   temperature?: number | null
   relative_humidity?: number | null
+  dewpoint?: number | null
   tmp_tgl_2_5th?: number
   tmp_tgl_2_90th?: number
   rh_tgl_2_5th?: number
   rh_tgl_2_90th?: number
-  tmp_max?: number
-  tmp_min?: number
+  tmp_dp_max?: number
+  tmp_dp_min?: number
   rh_max?: number
   rh_min?: number
   bias_adjusted_temperature?: number | null
@@ -87,6 +88,8 @@ export const populateGraphDataForTempAndRH = (
   dash: 'solid' | 'dot' | 'dash' | 'longdash' | 'dashdot' | 'longdashdot',
   tempColor: string,
   rhColor: string,
+  dewpointName?: string,
+  dewpointColor?: string,
   tempPlumeColor?: string,
   rhPlumeColor?: string
 ): {
@@ -102,16 +105,20 @@ export const populateGraphDataForTempAndRH = (
   rhLine: Partial<PlotData>
   rh5thLine: Partial<PlotData>
   rh90thLine: Partial<PlotData>
-  maxTemp: number
-  minTemp: number
+  dewpointDots: Partial<PlotData>
+  dewpointLine: Partial<PlotData>
+  maxTempDewpoint: number
+  minTempDewpoint: number
 } => {
   const tempDates: string[] = []
   const rhDates: string[] = []
+  const dewpointDates: string[] = []
   const tempValues: number[] = []
   const rhValues: number[] = []
+  const dewpointValues: number[] = []
 
-  const tempMinMaxDates: string[] = []
-  const tempMinMaxValues: [number, number][] = []
+  const tempDewpointMinMaxDates: string[] = []
+  const tempDewpointMinMaxValues: [number, number][] = []
   const rhMinMaxDates: string[] = []
   const rhMinMaxValues: [number, number][] = []
 
@@ -131,8 +138,9 @@ export const populateGraphDataForTempAndRH = (
       datetime,
       temperature,
       relative_humidity,
-      tmp_max,
-      tmp_min,
+      dewpoint,
+      tmp_dp_max,
+      tmp_dp_min,
       rh_max,
       rh_min,
       tmp_tgl_2_5th,
@@ -152,11 +160,15 @@ export const populateGraphDataForTempAndRH = (
       rhDates.push(date)
       rhValues.push(relative_humidity)
     }
+    if (dewpoint != null) {
+      dewpointDates.push(date)
+      dewpointValues.push(dewpoint)
+    }
 
     // From forecast min & max
-    if (tmp_min && tmp_max) {
-      tempMinMaxDates.push(date)
-      tempMinMaxValues.push([tmp_min, tmp_max])
+    if (tmp_dp_min && tmp_dp_max) {
+      tempDewpointMinMaxDates.push(date)
+      tempDewpointMinMaxValues.push([tmp_dp_min, tmp_dp_max])
     }
     if (rh_min && rh_max) {
       rhMinMaxDates.push(date)
@@ -195,9 +207,9 @@ export const populateGraphDataForTempAndRH = (
     marker: { color: tempColor, symbol },
     hovertemplate: `${tempName}: %{y:.2f} (°C)<extra></extra>`
   }
-  const tempVerticalLines: Data[] = tempMinMaxDates.map((date, idx) => ({
+  const tempVerticalLines: Data[] = tempDewpointMinMaxDates.map((date, idx) => ({
     x: show ? [date, date] : [],
-    y: show ? tempMinMaxValues[idx] : [], // Temp min & max pair
+    y: show ? tempDewpointMinMaxValues[idx] : [], // Temp min & max pair
     mode: 'lines',
     name: tempName,
     line: {
@@ -257,6 +269,30 @@ export const populateGraphDataForTempAndRH = (
     fill: 'tonexty',
     fillcolor: tempPlumeColor,
     hoverinfo: 'skip'
+  }
+
+  const dewpointDots: Data = {
+    x: show ? dewpointDates : [],
+    y: show ? dewpointValues : [],
+    name: dewpointName,
+    mode: 'markers',
+    type: 'scatter',
+    marker: { color: dewpointColor, symbol },
+    hovertemplate: `${dewpointName}: %{y:.2f} (°C)<extra></extra>`
+  }
+  const dewpointLine: Data = {
+    x: show ? dewpointDates : [],
+    y: show ? dewpointValues : [],
+    name: dewpointName,
+    mode: 'lines+markers',
+    type: 'scatter',
+    marker: { symbol },
+    line: {
+      color: dewpointColor,
+      width: 2,
+      dash
+    },
+    hovertemplate: `${dewpointName}: %{y:.2f} (°C)<extra></extra>`
   }
 
   const rhDots: Data = {
@@ -339,8 +375,8 @@ export const populateGraphDataForTempAndRH = (
     hoverinfo: 'skip'
   }
 
-  const maxTemp = findMaxNumber(tempValues)
-  const minTemp = findMinNumber(tempValues)
+  const maxTempDewpoint = findMaxNumber([...tempValues, ...dewpointValues])
+  const minTempDewpoint = findMinNumber([...tempValues, ...dewpointValues])
 
   return {
     tempDots,
@@ -355,8 +391,10 @@ export const populateGraphDataForTempAndRH = (
     rhLine,
     rh5thLine,
     rh90thLine,
-    maxTemp,
-    minTemp
+    dewpointDots,
+    dewpointLine,
+    maxTempDewpoint: maxTempDewpoint,
+    minTempDewpoint: minTempDewpoint
   }
 }
 

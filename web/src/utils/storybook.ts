@@ -25,7 +25,7 @@ const getPastValues = () => {
       const sineWeight = 7
       const temp = 20 + Math.sin(length) * sineWeight
       const rh = 20 - Math.sin(length) * sineWeight
-      const dew_point = 25 + Math.sin(length) * sineWeight
+      const dewpoint = 25 + Math.sin(length) * sineWeight
       const wind_speed = 20 + Math.sin(length) * sineWeight
       const wind_direction = Math.floor(Math.random() * 360)
       const barometric_pressure = 10 + Math.sin(length) * sineWeight
@@ -37,7 +37,7 @@ const getPastValues = () => {
         datetime,
         temperature: Math.random() <= 0.8 ? temp : null,
         relative_humidity: rh,
-        dew_point: dew_point,
+        dewpoint,
         wind_speed,
         wind_direction,
         barometric_pressure,
@@ -154,7 +154,7 @@ const getFutureValues = () => {
       const sineWeight = 7
       const temp = 20 + Math.sin(length) * sineWeight
       const rh = 20 - Math.sin(length) * sineWeight
-      const dew_point = 20 + Math.sin(length) * sineWeight
+      const dewpoint = 20 + Math.sin(length) * sineWeight
       const wind_speed = 20 + Math.sin(length) * sineWeight
       const wind_direction = Math.floor(Math.random() * 360)
       const precip = Math.random()
@@ -196,7 +196,7 @@ const getFutureValues = () => {
           datetime,
           temperature: temp + (Math.random() - 0.5) * 8,
           bias_adjusted_temperature: temp + (Math.random() - 0.5) * 8 - 2,
-          dew_point,
+          dewpoint,
           relative_humidity: rh + (Math.random() - 0.5) * 8,
           bias_adjusted_relative_humidity: rh + (Math.random() - 0.5) * 8 - 5,
           wind_speed,
