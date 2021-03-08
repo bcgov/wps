@@ -40,7 +40,7 @@ A glossary of terms relating to Wildfire that are relevant to Predictive Service
 
 ## Contributing
 
-### Branch naming conventions
+### Branch naming conventions 
 
 Branches must be named in accordance with the rules specified in [.githooks/pre-push](.githooks/pre-push).
 
