@@ -5,6 +5,7 @@ import os
 import datetime
 import json
 import importlib
+import jsonpickle
 from app.db.models.common import TZTimeStamp
 
 
@@ -29,7 +30,19 @@ def json_converter(item: object):
     return None
 
 
-def dump_sqlalchemy_response_to_json(response, target: IO[Any]):
+def dump_sqlalchemy_row_data_to_json(response, target: IO[Any]):
+    """ Useful for dumping sqlalchemy responses to json in for unit tests. """
+    result = []
+    for response_row in response:
+        result_row = []
+        for value in response_row:
+            result_row.append(value)
+        result.append(result_row)
+        # result.append(dict(row._asdict()))
+    target.write(jsonpickle.encode(result))
+
+
+def dump_sqlalchemy_mapped_object_response_to_json(response, target: IO[Any]):
     """ Useful for dumping sqlalchemy responses to json in for unit tests.
 
     e.g. if we want to store the response for GDPS predictions for two stations, we could write the
@@ -42,9 +55,11 @@ def dump_sqlalchemy_response_to_json(response, target: IO[Any]):
     ```
     """
     result = []
-    for rows in response:
+    for row in response:
+        # if isinstance(row, sqlalchemy.util._collections.result)
+
         result_row = []
-        for record in rows:
+        for record in row:
             # Copy the dict so we can safely change it.
             data = dict(record.__dict__)
             # Pop internal value
