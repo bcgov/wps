@@ -687,27 +687,23 @@ const CHainesPage = () => {
               <b>KML (For Google Earth)</b>
             </div>
             <div>
-              <a href={KMLNetworkLinkURL}>Download kml network link</a> (With this file
-              you can just click refresh from withing Google Earth to always get the
-              latest predictions for all model runs).
+              <a href={KMLNetworkLinkURL}>Network link</a>
             </div>
             <div>
               <a href={KMLModelUrl} download={KMLModelFilename}>
-                Download KML file for most recent {selected_model_abbreviation} model run
-                predictions.
+                Most recent {selected_model_abbreviation} model run predictions.
               </a>
             </div>
             <div>
               <a href={KMLModelRunUrl} download={KMLModelRunFilename}>
-                Download KML file for {selected_model_abbreviation}, model run{' '}
-                {selected_model_timestamp} (UTC) predictions.
+                {selected_model_abbreviation}, model run {selected_model_timestamp} (UTC)
+                predictions.
               </a>
             </div>
             <div>
               <a href={KMLUrl} download={KMLFilename}>
-                Download KML file {selected_model_abbreviation}, model run{' '}
-                {selected_model_timestamp} (UTC) prediction{' '}
-                {formatDateInPST(selected_prediction_timestamp)} (PST)
+                {selected_model_abbreviation}, model run {selected_model_timestamp} (UTC)
+                prediction {formatDateInPST(selected_prediction_timestamp)} (PST)
               </a>
             </div>
             <div>
@@ -715,7 +711,7 @@ const CHainesPage = () => {
             </div>
             <div>
               <a href={geoJSONURI}>
-                Download GeoJSON for {selected_model_abbreviation}, model run{' '}
+                GeoJSON for {selected_model_abbreviation}, model run{' '}
                 {selected_model_timestamp} (UTC) prediction{' '}
                 {formatDateInPST(selected_prediction_timestamp)} (PST)
               </a>

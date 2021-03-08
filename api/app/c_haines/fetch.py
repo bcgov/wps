@@ -87,6 +87,8 @@ async def fetch_prediction_geojson(model: ModelEnum, model_run_timestamp: dateti
 
 
 def get_look_at(model: ModelEnum, model_run_timestamp: datetime):
+    """ Return <LookAt> tag to set default position and timespan.
+    If this isn't done, then all the predictions will show as a big overlayed mess. """
     if model == ModelEnum.GDPS:
         end = model_run_timestamp + timedelta(hours=3)
     else:
