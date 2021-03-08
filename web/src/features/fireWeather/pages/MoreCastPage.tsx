@@ -16,6 +16,7 @@ import { fetchHighResModelSummaries } from 'features/fireWeather/slices/highResM
 import { fetchRegionalModels } from 'features/fireWeather/slices/regionalModelsSlice'
 import { fetchRegionalModelSummaries } from 'features/fireWeather/slices/regionalModelSummariesSlice'
 import { getStationCodesFromUrl, getTimeOfInterestFromUrl } from 'utils/url'
+import WeatherMap from 'features/fireWeather/components/WeatherMap'
 
 const MoreCastPage = () => {
   const dispatch = useDispatch()
@@ -48,6 +49,7 @@ const MoreCastPage = () => {
       <PageTitle title="MoreCast - Weather Forecast Validation Tool" />
       <Container>
         <WxDataForm codesFromQuery={codesFromQuery} toiFromQuery={toiFromQuery} />
+        <WeatherMap />
         <WxDataDisplays stationCodes={codesFromQuery} timeOfInterest={toiFromQuery} />
       </Container>
     </main>
