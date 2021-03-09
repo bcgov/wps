@@ -88,10 +88,10 @@ export interface TempRHGraphProperties {
   dash: 'solid' | 'dot' | 'dash' | 'longdash' | 'dashdot' | 'longdashdot'
   tempColor: string
   rhColor: string
-  dewpointName?: string | undefined
-  dewpointColor?: string | undefined
-  tempPlumeColor?: string | undefined
-  rhPlumeColor?: string | undefined
+  dewpointName?: string
+  dewpointColor?: string
+  tempPlumeColor?: string
+  rhPlumeColor?: string
 }
 
 export const populateGraphDataForTempAndRH = (

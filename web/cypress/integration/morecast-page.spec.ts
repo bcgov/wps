@@ -112,11 +112,6 @@ describe('MoreCast Page', () => {
     })
 
     it('Temp & RH Graph should be displayed', () => {
-      const checkNumOfTempMarkers = (num: number) => {
-        cy.getByTestId('temp-rh-graph')
-          .find(`.cartesianlayer > .subplot > .plot > .scatterlayer > .trace > .points > .point`)
-          .should('have.length', num)
-      }
       const checkNumOfTempDewpointMarkers = (num: number) => {
         cy.getByTestId('temp-rh-graph')
           .find(`.cartesianlayer > .subplot > .plot > .scatterlayer > .trace > .points > .point`)
@@ -151,40 +146,40 @@ describe('MoreCast Page', () => {
       checkNumOfLegends(8)
 
       cy.getByTestId('wx-graph-hrdps-toggle').click()
-      checkNumOfTempDewpointMarkers(2*numOfObservations - 1)
+      checkNumOfTempDewpointMarkers(2 * numOfObservations - 1)
       checkNumOfRHMarkers(numOfObservations)
       checkTempDewpointTraces(false)
       checkRHPlume(false)
       cy.getByTestId('wx-graph-observation-toggle').click()
 
       cy.getByTestId('wx-graph-forecast-toggle').click()
-      checkNumOfTempMarkers(numOfForecasts)
+      checkNumOfTempDewpointMarkers(numOfForecasts)
       checkNumOfRHMarkers(numOfForecasts)
       cy.getByTestId('wx-graph-forecast-toggle').click()
 
       cy.getByTestId('wx-graph-hrdps-toggle').click()
-      checkNumOfTempMarkers(numOfHrdps)
+      checkNumOfTempDewpointMarkers(numOfHrdps)
       checkNumOfRHMarkers(numOfHrdps)
       checkTempPlume(true)
       checkRHPlume(true)
       cy.getByTestId('wx-graph-hrdps-toggle').click()
 
       cy.getByTestId('wx-graph-rdps-toggle').click()
-      checkNumOfTempMarkers(numOfRdps)
+      checkNumOfTempDewpointMarkers(numOfRdps)
       checkNumOfRHMarkers(numOfRdps)
       checkTempPlume(true)
       checkRHPlume(true)
       cy.getByTestId('wx-graph-rdps-toggle').click()
 
       cy.getByTestId('wx-graph-gdps-toggle').click()
-      checkNumOfTempMarkers(numOfGdps)
+      checkNumOfTempDewpointMarkers(numOfGdps)
       checkNumOfRHMarkers(numOfGdps)
       checkTempPlume(true)
       checkRHPlume(true)
       cy.getByTestId('wx-graph-gdps-toggle').click()
 
       cy.getByTestId('wx-graph-bias-adjusted-gdps-toggle').click()
-      checkNumOfTempMarkers(numOfGdps)
+      checkNumOfTempDewpointMarkers(numOfGdps)
       checkNumOfRHMarkers(numOfGdps)
       checkTempPlume(false)
       checkRHPlume(false)
