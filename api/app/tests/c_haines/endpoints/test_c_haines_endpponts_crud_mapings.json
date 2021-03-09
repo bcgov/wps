@@ -1,7 +1,0 @@
-[
-    {
-        "module": "app.c_haines.fetch",
-        "function": "get_model_run_predictions",
-        "json": "fetch_model_runs.json"
-    }
-]
