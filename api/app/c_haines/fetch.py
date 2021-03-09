@@ -1,6 +1,5 @@
 """ Fetch c-haines geojson
 """
-import json
 from io import StringIO
 from urllib.parse import urljoin
 from datetime import datetime, timedelta
