@@ -84,8 +84,6 @@ async def fetch_prediction_geojson(model: ModelEnum, model_run_timestamp: dateti
     logger.info('model: %s; model_run: %s, prediction: %s', model, model_run_timestamp, prediction_timestamp)
     with app.db.database.get_read_session_scope() as session:
         response = get_prediction_geojson(session, model, model_run_timestamp, prediction_timestamp)
-        with open('get_prediction_geojson.json', 'w') as f:
-            json.dump(response, f)
     return response
 
 
