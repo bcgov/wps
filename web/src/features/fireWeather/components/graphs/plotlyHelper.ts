@@ -71,8 +71,8 @@ interface TempRHValue {
   tmp_tgl_2_90th?: number
   rh_tgl_2_5th?: number
   rh_tgl_2_90th?: number
-  tmp_dp_max?: number
-  tmp_dp_min?: number
+  tmp_max?: number
+  tmp_min?: number
   rh_max?: number
   rh_min?: number
   bias_adjusted_temperature?: number | null
@@ -121,8 +121,8 @@ export const populateGraphDataForTempAndRH = (
   const rhValues: number[] = []
   const dewpointValues: number[] = []
 
-  const tempDewpointMinMaxDates: string[] = []
-  const tempDewpointMinMaxValues: [number, number][] = []
+  const tempMinMaxDates: string[] = []
+  const tempMinMaxValues: [number, number][] = []
   const rhMinMaxDates: string[] = []
   const rhMinMaxValues: [number, number][] = []
 
@@ -143,8 +143,8 @@ export const populateGraphDataForTempAndRH = (
       temperature,
       relative_humidity,
       dewpoint,
-      tmp_dp_max,
-      tmp_dp_min,
+      tmp_max,
+      tmp_min,
       rh_max,
       rh_min,
       tmp_tgl_2_5th,
@@ -170,9 +170,9 @@ export const populateGraphDataForTempAndRH = (
     }
 
     // From forecast min & max
-    if (tmp_dp_min && tmp_dp_max) {
-      tempDewpointMinMaxDates.push(date)
-      tempDewpointMinMaxValues.push([tmp_dp_min, tmp_dp_max])
+    if (tmp_min && tmp_max) {
+      tempMinMaxDates.push(date)
+      tempMinMaxValues.push([tmp_min, tmp_max])
     }
     if (rh_min && rh_max) {
       rhMinMaxDates.push(date)
@@ -211,9 +211,9 @@ export const populateGraphDataForTempAndRH = (
     marker: { color: graphProps.tempColor, symbol: graphProps.symbol },
     hovertemplate: `${graphProps.tempName}: %{y:.2f} (°C)<extra></extra>`
   }
-  const tempVerticalLines: Data[] = tempDewpointMinMaxDates.map((date, idx) => ({
+  const tempVerticalLines: Data[] = tempMinMaxDates.map((date, idx) => ({
     x: graphProps.show ? [date, date] : [],
-    y: graphProps.show ? tempDewpointMinMaxValues[idx] : [], // Temp min & max pair
+    y: graphProps.show ? tempMinMaxValues[idx] : [], // Temp min & max pair
     mode: 'lines',
     name: graphProps.tempName,
     line: {
