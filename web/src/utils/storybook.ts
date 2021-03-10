@@ -196,7 +196,6 @@ const getFutureValues = () => {
           datetime,
           temperature: temp + (Math.random() - 0.5) * 8,
           bias_adjusted_temperature: temp + (Math.random() - 0.5) * 8 - 2,
-          dewpoint,
           relative_humidity: rh + (Math.random() - 0.5) * 8,
           bias_adjusted_relative_humidity: rh + (Math.random() - 0.5) * 8 - 5,
           wind_speed,
