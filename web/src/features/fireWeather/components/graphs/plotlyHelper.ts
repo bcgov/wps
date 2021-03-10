@@ -461,7 +461,7 @@ export const populateGraphDataForPrecip = (
       color: show ? color : 'transparent'
     },
     hoverinfo: show ? 'y' : 'skip',
-    hovertemplate: show ? `${name}: %{y:.2f} (mm/cm)<extra></extra>` : undefined
+    hovertemplate: show ? `${name}: %{y:.2f} (mm)<extra></extra>` : undefined
   }
 
   const accumPrecipsline: Data = {
@@ -477,9 +477,7 @@ export const populateGraphDataForPrecip = (
       width: 2.5
     },
     hoverinfo: 'y',
-    hovertemplate: show
-      ? `Accumulated ${name}: %{y:.2f} (mm/cm)<extra></extra>`
-      : undefined
+    hovertemplate: show ? `Accumulated ${name}: %{y:.2f} (mm)<extra></extra>` : undefined
   }
 
   const maxAccumPrecip = findMaxNumber(accumPrecips)
