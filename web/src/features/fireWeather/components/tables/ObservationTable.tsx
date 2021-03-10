@@ -11,7 +11,7 @@ export const columns: Column[] = [
   {
     id: 'datetime',
     label: 'Date (PST)',
-    minWidth: 120,
+    minWidth: 140,
     align: 'left',
     formatDt: (value: string): string => formatDateInPST(value)
   },
