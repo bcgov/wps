@@ -10,5 +10,17 @@
         "function": "get_prediction_geojson",
         "json": "get_prediction_geojson.json",
         "serializer": "json"
+    },
+    {
+        "module": "app.c_haines.fetch",
+        "function": "get_model_run_kml",
+        "json": "get_model_run_kml.json",
+        "serializer": "jsonpickle"
+    },
+    {
+        "module": "app.c_haines.fetch",
+        "function": "get_prediction_kml",
+        "json": "get_prediction_kml.json",
+        "serializer": "jsonpickle"
     }
 ]

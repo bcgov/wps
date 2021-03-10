@@ -11,9 +11,11 @@ from app.db.models.common import TZTimeStamp
 
 def _load_json_file(module_path: str, filename: str) -> dict:
     """ Load json file given a module path and a filename """
-    dirname = os.path.dirname(os.path.realpath(module_path))
-    with open(os.path.join(dirname, filename)) as file_pointer:
-        return json.load(file_pointer)
+    if filename:
+        dirname = os.path.dirname(os.path.realpath(module_path))
+        with open(os.path.join(dirname, filename)) as file_pointer:
+            return json.load(file_pointer)
+    return None
 
 
 def load_json_file(module_path: str) -> Callable[[str], dict]:

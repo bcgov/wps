@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 # Severity enum -> Text description mapping
 severity_text_map = {
+    SeverityEnum.LOW: '<4 Low',
     SeverityEnum.MODERATE: '4 - 8 Moderate',
     SeverityEnum.HIGH: '8 - 11 High',
     SeverityEnum.EXTREME: '11+ Extreme'

@@ -1,13 +1,32 @@
 """ BDD tests for c-haines api endpoint.
 """
 import os
+from typing import Callable
 import json
 import importlib
 import jsonpickle
 from pytest_bdd import scenario, given, when, then
 from fastapi.testclient import TestClient
 import app.main
-from app.tests import load_json_file
+from app.tests import load_json_file, _load_json_file
+
+
+def _load_text_file(module_path: str, filename: str) -> str:
+    """ Load json file given a module path and a filename """
+    if filename:
+        dirname = os.path.dirname(os.path.realpath(module_path))
+        with open(os.path.join(dirname, filename)) as file_pointer:
+            return file_pointer.read()
+    return None
+
+
+def load_expected_response(module_path: str) -> Callable[[str], object]:
+    """ Return a loader for the expected response (dict is json, otherwise text) """
+    def _loader(filename: str):
+        if filename and filename.endswith('.json'):
+            return {'type': 'json', 'data': _load_json_file(module_path, filename)}
+        return {'type': 'text', 'data': _load_text_file(module_path, filename)}
+    return _loader
 
 
 def _jsonpickle_patch_function(monkeypatch, module_name: str, function_name: str, json_filename: str):
@@ -37,7 +56,7 @@ def _json_patch_function(monkeypatch, module_name: str, function_name: str, json
               crud_mapping=load_json_file(__file__),
               endpoint=str,
               status_code=int,
-              expected_response=load_json_file(__file__)))
+              expected_response=load_expected_response(__file__)))
 def test_c_haines():
     """ BDD Scenario for c-haines """
 
@@ -46,11 +65,12 @@ def test_c_haines():
 def given_a_crud_mapping(monkeypatch, crud_mapping: dict):
     """ Mock the sql response """
 
-    for item in crud_mapping:
-        if item['serializer'] == "jsonpickle":
-            _jsonpickle_patch_function(monkeypatch, item['module'], item['function'], item['json'])
-        else:
-            _json_patch_function(monkeypatch, item['module'], item['function'], item['json'])
+    if crud_mapping:
+        for item in crud_mapping:
+            if item['serializer'] == "jsonpickle":
+                _jsonpickle_patch_function(monkeypatch, item['module'], item['function'], item['json'])
+            else:
+                _json_patch_function(monkeypatch, item['module'], item['function'], item['json'])
 
     return {}
 
@@ -71,4 +91,9 @@ def then_status_code(collector, status_code: int):
 @then("The <expected_response> is matched")
 def then_expected_response(collector, expected_response):
     """ Assert that the response is as expected """
-    assert collector['response'].json() == expected_response
+    if expected_response['type'] == 'json':
+        assert collector['response'].json() == expected_response['data']
+    else:
+        with open('actual.kml', 'w') as f:
+            f.write(collector['response'].text)
+        assert collector['response'].text == expected_response['data']
