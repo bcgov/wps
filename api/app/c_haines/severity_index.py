@@ -7,7 +7,7 @@ from contextlib import contextmanager
 import tempfile
 import logging
 import json
-import gdal
+from osgeo import gdal
 import ogr
 import numpy
 from pyproj import Transformer, Proj

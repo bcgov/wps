@@ -2,7 +2,7 @@
 Contains some common code.
 """
 
-import gdal
+from osgeo import gdal
 
 
 class GDALData():
