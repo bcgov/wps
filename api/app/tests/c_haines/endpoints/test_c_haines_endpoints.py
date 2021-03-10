@@ -94,6 +94,4 @@ def then_expected_response(collector, expected_response):
     if expected_response['type'] == 'json':
         assert collector['response'].json() == expected_response['data']
     else:
-        with open('actual.kml', 'w') as f:
-            f.write(collector['response'].text)
         assert collector['response'].text == expected_response['data']
