@@ -141,3 +141,6 @@ tmp/
 
 # Static files
 api/static/*
+
+# Intellij
+.idea
