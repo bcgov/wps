@@ -34,7 +34,7 @@ const WxDataForm = ({ codesFromQuery, toiFromQuery }: Props) => {
   }, [location]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSubmit = () => {
-    // Update the url query with the new station codes
+    // Update the url query with the new station codes and time of interest
     history.push({
       search:
         `${stationCodeQueryKey}=${selectedCodes.join(',')}&` +

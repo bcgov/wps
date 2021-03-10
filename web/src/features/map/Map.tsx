@@ -2,6 +2,9 @@ import React, { useRef, useState, useEffect } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import * as ol from 'ol'
 import 'ol/ol.css'
+import { FeatureLike } from 'ol/Feature'
+import OLOverlay from 'ol/Overlay'
+import { MapOptions } from 'ol/PluggableMap'
 
 export const MapContext = React.createContext<ol.Map | null>(null)
 
@@ -15,6 +18,17 @@ const useStyles = makeStyles({
       backgroundColor: 'rgba(255,255,255,0.7)',
       borderRadius: 4,
       padding: 2
+    },
+    '& .ol-popup': {
+      position: 'absolute',
+      backgroundColor: 'white',
+      boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
+      padding: 15,
+      borderRadius: 10,
+      border: '1px solid #cccccc',
+      bottom: 12,
+      left: -100,
+      minWidth: 200
     }
   }
 })
@@ -23,30 +37,57 @@ interface Props {
   children: React.ReactNode
   zoom: number
   center: number[]
+  renderTooltip?: (feature: FeatureLike | null) => React.ReactNode
 }
 
-const Map = ({ children, zoom, center }: Props) => {
+const Map = ({ children, zoom, center, renderTooltip }: Props) => {
   const classes = useStyles()
+  const overlayRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
   const [map, setMap] = useState<ol.Map | null>(null)
+  const [feature, setFeature] = useState<FeatureLike | null>(null)
 
   // on component mount
   useEffect(() => {
-    const options = {
+    if (!mapRef.current) return
+
+    const options: MapOptions = {
       view: new ol.View({ zoom, center }),
       layers: [],
       overlays: []
     }
+    let overlay: OLOverlay | undefined
 
     const mapObject = new ol.Map(options)
+    mapObject.setTarget(mapRef.current)
+    setMap(mapObject)
 
-    if (mapRef.current) {
-      mapObject.setTarget(mapRef.current)
-      setMap(mapObject)
+    if (overlayRef.current) {
+      overlay = new OLOverlay({
+        element: overlayRef.current,
+        autoPan: true,
+        autoPanAnimation: {
+          duration: 250
+        }
+      })
+      mapObject.addOverlay(overlay)
+      mapObject.on('pointermove', e => {
+        overlay?.setPosition(undefined)
+
+        mapObject.forEachFeatureAtPixel(e.pixel, function(feature) {
+          overlay?.setPosition(e.coordinate)
+          setFeature(feature)
+
+          return true
+        })
+      })
     }
 
-    return () => mapObject.setTarget(undefined)
-  }, [mapRef.current]) // eslint-disable-line react-hooks/exhaustive-deps
+    return () => {
+      mapObject.setTarget(undefined)
+      overlay && mapObject.removeOverlay(overlay)
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // zoom change handler
   useEffect(() => {
@@ -67,6 +108,11 @@ const Map = ({ children, zoom, center }: Props) => {
       <div ref={mapRef} className={classes.map}>
         {children}
       </div>
+      {renderTooltip && (
+        <div ref={overlayRef} className="ol-popup">
+          {renderTooltip(feature)}
+        </div>
+      )}
     </MapContext.Provider>
   )
 }

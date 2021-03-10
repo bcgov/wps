@@ -1,9 +1,10 @@
-import React from 'react'
+import React, { useCallback } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import { fromLonLat, get } from 'ol/proj'
 import * as olSource from 'ol/source'
 import GeoJSON from 'ol/format/GeoJSON'
 import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style'
+import { FeatureLike } from 'ol/Feature'
 
 import WeatherStationsGeoJson from 'features/fireWeather/components/weather-stations-geojson.json'
 import Map from 'features/map/Map'
@@ -13,9 +14,9 @@ import VectorLayer from 'features/map/VectorLayer'
 const styles = {
   Point: new Style({
     image: new CircleStyle({
-      radius: 3,
+      radius: 3.5,
       fill: new Fill({
-        color: 'pink' //'rgba(0, 0, 255, 1)'
+        color: '#E59982' //'rgba(0, 0, 255, 1)'
       }),
       stroke: new Stroke({
         color: 'black'
@@ -31,15 +32,20 @@ const useStyles = makeStyles({
   }
 })
 
-const center = [-123.3656, 48.4284] // Victoria
-const zoom = 5
+const center = [-123.3656, 51.4484] // BC
+const zoom = 6
 
 const WeatherMap = () => {
   const classes = useStyles()
+  const renderTooltip = useCallback((f: FeatureLike | null) => {
+    if (!f) return null
+
+    return <div>Station: {f.get('STATION_NAME')}</div>
+  }, [])
 
   return (
     <div className={classes.root}>
-      <Map center={fromLonLat(center)} zoom={zoom}>
+      <Map center={fromLonLat(center)} zoom={zoom} renderTooltip={renderTooltip}>
         <TileLayer
           source={
             new olSource.XYZ({
