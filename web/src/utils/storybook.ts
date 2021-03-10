@@ -154,7 +154,6 @@ const getFutureValues = () => {
       const sineWeight = 7
       const temp = 20 + Math.sin(length) * sineWeight
       const rh = 20 - Math.sin(length) * sineWeight
-      const dewpoint = 20 + Math.sin(length) * sineWeight
       const wind_speed = 20 + Math.sin(length) * sineWeight
       const wind_direction = Math.floor(Math.random() * 360)
       const precip = Math.random()
