@@ -27,8 +27,13 @@ const useStyles = makeStyles({
       borderRadius: 10,
       border: '1px solid #cccccc',
       bottom: 12,
-      left: -100,
-      minWidth: 200
+      whiteSpace: 'nowrap',
+
+      // Center absolutely positioned content of unknown width
+      // https://stackoverflow.com/a/9367930/11903963
+      left: '50%',
+      width: 'auto',
+      transform: 'translateX(-50%)'
     }
   }
 })
