@@ -8,7 +8,8 @@ import logging.config
 from typing import Final, List
 from sqlalchemy.dialects.postgresql import array
 from sqlalchemy.orm import Session
-import gdal
+import sqlalchemy.exc
+from osgeo import gdal
 from pyproj import CRS, Transformer
 from app.stations import get_stations_synchronously
 from app.db.models import (
