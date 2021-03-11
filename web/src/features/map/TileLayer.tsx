@@ -16,7 +16,7 @@ const TileLayer = ({ source, opacity = 1, zIndex = 0 }: Props) => {
   useEffect(() => {
     if (!map) return
 
-    let tileLayer = new OLTileLayer({
+    const tileLayer = new OLTileLayer({
       source,
       zIndex,
       opacity

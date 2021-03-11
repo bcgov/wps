@@ -23,9 +23,10 @@
     ],
     "react/prop-types": "off",
     "no-useless-catch": "off",
+    "@typescript-eslint/ban-ts-comment": "warn",
     "@typescript-eslint/camelcase": "off",
     "@typescript-eslint/explicit-function-return-type": "off",
-    "@typescript-eslint/ban-ts-comment": "warn"
+    "@typescript-eslint/no-non-null-assertion": "off"
   },
   "settings": {
     "react": {
