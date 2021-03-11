@@ -9,11 +9,16 @@ import jsonpickle
 from app.db.models.common import TZTimeStamp
 
 
+def get_complete_filename(module_path: str, filename: str):
+    """ Get the full path of a filename, given it's module path """
+    dirname = os.path.dirname(os.path.realpath(module_path))
+    return os.path.join(dirname, filename)
+
+
 def _load_json_file(module_path: str, filename: str) -> dict:
     """ Load json file given a module path and a filename """
     if filename:
-        dirname = os.path.dirname(os.path.realpath(module_path))
-        with open(os.path.join(dirname, filename)) as file_pointer:
+        with open(get_complete_filename(module_path, filename)) as file_pointer:
             return json.load(file_pointer)
     return None
 

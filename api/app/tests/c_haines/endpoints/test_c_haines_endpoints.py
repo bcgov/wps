@@ -8,14 +8,13 @@ import jsonpickle
 from pytest_bdd import scenario, given, when, then
 from fastapi.testclient import TestClient
 import app.main
-from app.tests import load_json_file, _load_json_file
+from app.tests import load_json_file, _load_json_file, get_complete_filename
 
 
 def _load_text_file(module_path: str, filename: str) -> str:
     """ Load json file given a module path and a filename """
     if filename:
-        dirname = os.path.dirname(os.path.realpath(module_path))
-        with open(os.path.join(dirname, filename)) as file_pointer:
+        with open(get_complete_filename(module_path, filename)) as file_pointer:
             return file_pointer.read()
     return None
 
@@ -32,8 +31,7 @@ def load_expected_response(module_path: str) -> Callable[[str], object]:
 def _jsonpickle_patch_function(monkeypatch, module_name: str, function_name: str, json_filename: str):
     """ Patch module_name.function_name to return de-serialized json_filename """
     def mock_get_data(*_):
-        dirname = os.path.dirname(os.path.realpath(__file__))
-        filename = os.path.join(dirname, json_filename)
+        filename = get_complete_filename(__file__, json_filename)
         with open(filename) as file_pointer:
             return jsonpickle.decode(file_pointer.read())
 
@@ -43,8 +41,7 @@ def _jsonpickle_patch_function(monkeypatch, module_name: str, function_name: str
 def _json_patch_function(monkeypatch, module_name: str, function_name: str, json_filename: str):
     """ Patch module_name.function_name to return de-serialized json_filename """
     def mock_get_data(*_):
-        dirname = os.path.dirname(os.path.realpath(__file__))
-        filename = os.path.join(dirname, json_filename)
+        filename = get_complete_filename(__file__, json_filename)
         with open(filename) as file_pointer:
             return json.load(file_pointer)
 

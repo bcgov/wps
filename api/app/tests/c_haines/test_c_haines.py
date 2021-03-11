@@ -1,11 +1,13 @@
 """ Test c_haines code.
 """
 import json
+import gzip
 from typing import List
 from pytest_bdd import scenario, given, when, then
 import numpy
-from app.c_haines.severity_index import generate_severity_data
-from app.c_haines.c_haines_index import calculate_c_haines_index
+from app.c_haines.severity_index import generate_severity_data, open_gdal
+from app.c_haines.c_haines_index import calculate_c_haines_index, CHainesGenerator
+from app.tests import get_complete_filename
 
 
 @scenario(
@@ -58,3 +60,42 @@ def then_expect_mask_data(mask_data: List, collector: dict):
 def then_expect_severity_data(severity_data: List, collector: dict):
     """ Assert that severity is as expected """
     assert (numpy.array(collector['severity_data']) == numpy.array(severity_data)).all()
+
+
+@scenario(
+    'test_c_haines.feature',
+    'Generate c-haines data',
+    example_converters=dict(
+        tmp_700=str,
+        tmp_850=str,
+        dew_850=str,
+        c_haines_data=str))
+def test_generate_c_haines():
+    """ BDD Scenario. """
+
+
+@given("<tmp_700>, <tmp_850> and <dew_850>", target_fixture='collector')
+def given_grib_files(tmp_700, tmp_850, dew_850):
+    """ Given grib files for calculating c-haines. """
+    return {
+        'tmp_700': get_complete_filename(__file__, tmp_700),
+        'tmp_850': get_complete_filename(__file__, tmp_850),
+        'dew_850': get_complete_filename(__file__, dew_850)}
+
+
+@when("We generate c-haines")
+def generate_c_haines(collector):
+    """ Generate c-haines data using grib files. """
+    with open_gdal(collector['tmp_700'], collector['tmp_850'], collector['dew_850']) as gdal_data:
+        generator = CHainesGenerator()
+        # Generate c-haines data. It's pretty slow.
+        collector['data'] = generator.generate_c_haines(gdal_data)
+
+
+@then("We expect <c_haines_data>")
+def check_c_haines(collector, c_haines_data):
+    """ Compare the c-haines data against expected data. """
+    filename = get_complete_filename(__file__, c_haines_data)
+    with gzip.open(filename, 'rt') as c_haines_data_file:
+        data = json.load(c_haines_data_file)
+    assert (numpy.array(collector['data']) == numpy.array(data)).all()

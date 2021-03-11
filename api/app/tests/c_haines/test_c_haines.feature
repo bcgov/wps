@@ -22,3 +22,12 @@ Feature: C-Haines calculation
             | [[4,5,6,7.9]]   | [[1,1,1,1]] | [[1,1,1,1]]   |
             | [[8,9,10,10.9]] | [[1,1,1,1]] | [[2,2,2,2]]   |
             | [[11,12]]       | [[1,1]]     | [[3,3]]       |
+
+    Scenario: Generate c-haines data
+        Given <tmp_700>, <tmp_850> and <dew_850>
+        When We generate c-haines
+        Then We expect <c_haines_data>
+
+        Examples:
+            | tmp_700                                                              | tmp_850                                                              | dew_850                                                               | c_haines_data         |
+            | CMC_hrdps_continental_TMP_ISBL_0700_ps2.5km_2021012618_P048-00.grib2 | CMC_hrdps_continental_TMP_ISBL_0850_ps2.5km_2021012618_P048-00.grib2 | CMC_hrdps_continental_DEPR_ISBL_0850_ps2.5km_2021012618_P048-00.grib2 | c_haines_data.json.gz |
