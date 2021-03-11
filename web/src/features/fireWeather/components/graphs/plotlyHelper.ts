@@ -66,6 +66,7 @@ interface TempRHValue {
   datetime: string
   temperature?: number | null
   relative_humidity?: number | null
+  dewpoint?: number | null
   tmp_tgl_2_5th?: number
   tmp_tgl_2_90th?: number
   rh_tgl_2_5th?: number
@@ -78,17 +79,23 @@ interface TempRHValue {
   bias_adjusted_relative_humidity?: number | null
 }
 
-export const populateGraphDataForTempAndRH = (
-  values: TempRHValue[],
-  tempName: string,
-  rhName: string,
-  show: boolean,
-  symbol: string,
-  dash: 'solid' | 'dot' | 'dash' | 'longdash' | 'dashdot' | 'longdashdot',
-  tempColor: string,
-  rhColor: string,
-  tempPlumeColor?: string,
+export interface TempRHGraphProperties {
+  values: TempRHValue[]
+  tempName: string
+  rhName: string
+  show: boolean
+  symbol: string
+  dash: 'solid' | 'dot' | 'dash' | 'longdash' | 'dashdot' | 'longdashdot'
+  tempColor: string
+  rhColor: string
+  dewpointName?: string
+  dewpointColor?: string
+  tempPlumeColor?: string
   rhPlumeColor?: string
+}
+
+export const populateGraphDataForTempAndRH = (
+  graphProps: TempRHGraphProperties
 ): {
   tempDots: Partial<PlotData>
   tempVerticalLines: Data[]
@@ -102,13 +109,17 @@ export const populateGraphDataForTempAndRH = (
   rhLine: Partial<PlotData>
   rh5thLine: Partial<PlotData>
   rh90thLine: Partial<PlotData>
-  maxTemp: number
-  minTemp: number
+  dewpointDots: Partial<PlotData>
+  dewpointLine: Partial<PlotData>
+  maxTempDewpoint: number
+  minTempDewpoint: number
 } => {
   const tempDates: string[] = []
   const rhDates: string[] = []
+  const dewpointDates: string[] = []
   const tempValues: number[] = []
   const rhValues: number[] = []
+  const dewpointValues: number[] = []
 
   const tempMinMaxDates: string[] = []
   const tempMinMaxValues: [number, number][] = []
@@ -126,11 +137,12 @@ export const populateGraphDataForTempAndRH = (
   const biasAdjTempValues: number[] = []
   const biasAdjRHValues: number[] = []
 
-  values.forEach(value => {
+  graphProps.values.forEach(value => {
     const {
       datetime,
       temperature,
       relative_humidity,
+      dewpoint,
       tmp_max,
       tmp_min,
       rh_max,
@@ -151,6 +163,10 @@ export const populateGraphDataForTempAndRH = (
     if (relative_humidity != null) {
       rhDates.push(date)
       rhValues.push(relative_humidity)
+    }
+    if (dewpoint != null) {
+      dewpointDates.push(date)
+      dewpointValues.push(dewpoint)
     }
 
     // From forecast min & max
@@ -187,58 +203,58 @@ export const populateGraphDataForTempAndRH = (
   })
 
   const tempDots: Data = {
-    x: show ? tempDates : [],
-    y: show ? tempValues : [],
-    name: tempName,
+    x: graphProps.show ? tempDates : [],
+    y: graphProps.show ? tempValues : [],
+    name: graphProps.tempName,
     mode: 'markers',
     type: 'scatter',
-    marker: { color: tempColor, symbol },
-    hovertemplate: `${tempName}: %{y:.2f} (°C)<extra></extra>`
+    marker: { color: graphProps.tempColor, symbol: graphProps.symbol },
+    hovertemplate: `${graphProps.tempName}: %{y:.2f} (°C)<extra></extra>`
   }
   const tempVerticalLines: Data[] = tempMinMaxDates.map((date, idx) => ({
-    x: show ? [date, date] : [],
-    y: show ? tempMinMaxValues[idx] : [], // Temp min & max pair
+    x: graphProps.show ? [date, date] : [],
+    y: graphProps.show ? tempMinMaxValues[idx] : [], // Temp min & max pair
     mode: 'lines',
-    name: tempName,
+    name: graphProps.tempName,
     line: {
-      color: tempColor,
+      color: graphProps.tempColor,
       width: 3
     },
     hoverinfo: 'skip',
     showlegend: false
   }))
   const biasAdjTempLine: Data = {
-    x: show ? biasAdjTempDates : [],
-    y: show ? biasAdjTempValues : [],
-    name: tempName,
+    x: graphProps.show ? biasAdjTempDates : [],
+    y: graphProps.show ? biasAdjTempValues : [],
+    name: graphProps.tempName,
     mode: 'lines+markers',
     type: 'scatter',
-    marker: { symbol },
+    marker: { symbol: graphProps.symbol },
     line: {
-      color: tempColor,
+      color: graphProps.tempColor,
       width: 2,
-      dash
+      dash: graphProps.dash
     },
-    hovertemplate: `${tempName}: %{y:.2f} (°C)<extra></extra>`
+    hovertemplate: `${graphProps.tempName}: %{y:.2f} (°C)<extra></extra>`
   }
   const tempLine: Data = {
-    x: show ? tempDates : [],
-    y: show ? tempValues : [],
-    name: tempName,
+    x: graphProps.show ? tempDates : [],
+    y: graphProps.show ? tempValues : [],
+    name: graphProps.tempName,
     mode: 'lines+markers',
     type: 'scatter',
-    marker: { symbol },
+    marker: { symbol: graphProps.symbol },
     line: {
-      color: tempColor,
+      color: graphProps.tempColor,
       width: 2,
-      dash
+      dash: graphProps.dash
     },
-    hovertemplate: `${tempName}: %{y:.2f} (°C)<extra></extra>`
+    hovertemplate: `${graphProps.tempName}: %{y:.2f} (°C)<extra></extra>`
   }
   const temp5thLine: Data = {
-    x: show ? tempPercentileDates : [],
-    y: show ? temp5thValues : [],
-    name: `${tempName} 5th percentile`,
+    x: graphProps.show ? tempPercentileDates : [],
+    y: graphProps.show ? temp5thValues : [],
+    name: `${graphProps.tempName} 5th percentile`,
     mode: 'lines',
     type: 'scatter',
     line: { width: 0 },
@@ -247,76 +263,100 @@ export const populateGraphDataForTempAndRH = (
     showlegend: false
   }
   const temp90thLine: Data = {
-    x: show ? tempPercentileDates : [],
-    y: show ? temp90thValues : [],
-    name: `${tempName} 5th - 90th percentile`,
+    x: graphProps.show ? tempPercentileDates : [],
+    y: graphProps.show ? temp90thValues : [],
+    name: `${graphProps.tempName} 5th - 90th percentile`,
     mode: 'lines',
     type: 'scatter',
     line: { width: 0 },
     marker: { color: '444' },
     fill: 'tonexty',
-    fillcolor: tempPlumeColor,
+    fillcolor: graphProps.tempPlumeColor,
     hoverinfo: 'skip'
   }
 
+  const dewpointDots: Data = {
+    x: graphProps.show ? dewpointDates : [],
+    y: graphProps.show ? dewpointValues : [],
+    name: graphProps.dewpointName,
+    mode: 'markers',
+    type: 'scatter',
+    marker: { color: graphProps.dewpointColor, symbol: graphProps.symbol },
+    hovertemplate: `${graphProps.dewpointName}: %{y:.2f} (°C)<extra></extra>`
+  }
+  const dewpointLine: Data = {
+    x: graphProps.show ? dewpointDates : [],
+    y: graphProps.show ? dewpointValues : [],
+    name: graphProps.dewpointName,
+    mode: 'lines+markers',
+    type: 'scatter',
+    marker: { symbol: graphProps.symbol },
+    line: {
+      color: graphProps.dewpointColor,
+      width: 2,
+      dash: graphProps.dash
+    },
+    hovertemplate: `${graphProps.dewpointName}: %{y:.2f} (°C)<extra></extra>`
+  }
+
   const rhDots: Data = {
-    x: show ? rhDates : [],
-    y: show ? rhValues : [],
-    name: rhName,
+    x: graphProps.show ? rhDates : [],
+    y: graphProps.show ? rhValues : [],
+    name: graphProps.rhName,
     yaxis: 'y2',
     mode: 'markers',
     type: 'scatter',
-    showlegend: show,
-    marker: { color: rhColor, symbol },
-    hovertemplate: `${rhName}: %{y:.2f} (%)<extra></extra>`
+    showlegend: graphProps.show,
+    marker: { color: graphProps.rhColor, symbol: graphProps.symbol },
+    hovertemplate: `${graphProps.rhName}: %{y:.2f} (%)<extra></extra>`
   }
   const rhVerticalLines: Data[] = rhMinMaxDates.map((date, idx) => ({
-    x: show ? [date, date] : [],
-    y: show ? rhMinMaxValues[idx] : [], // Temp min & max pair
+    x: graphProps.show ? [date, date] : [],
+    y: graphProps.show ? rhMinMaxValues[idx] : [], // Temp min & max pair
     mode: 'lines',
-    name: rhName,
+    name: graphProps.rhName,
     yaxis: 'y2',
     line: {
-      color: rhColor,
+      color: graphProps.rhColor,
       width: 3
     },
     hoverinfo: 'skip',
     showlegend: false
   }))
   const biasAdjRHLine: Data = {
-    x: show ? biasAdjRHDates : [],
-    y: show ? biasAdjRHValues : [],
-    name: rhName,
+    x: graphProps.show ? biasAdjRHDates : [],
+    y: graphProps.show ? biasAdjRHValues : [],
+    name: graphProps.rhName,
     yaxis: 'y2',
     mode: 'lines+markers',
     type: 'scatter',
-    marker: { symbol },
+    marker: { symbol: graphProps.symbol },
     line: {
-      color: rhColor,
+      color: graphProps.rhColor,
       width: 2,
-      dash
+      dash: graphProps.dash
     },
-    hovertemplate: `${rhName}: %{y:.2f} (%)<extra></extra>`
+    hovertemplate: `${graphProps.rhName}: %{y:.2f} (%)<extra></extra>`
   }
   const rhLine: Data = {
-    x: show ? rhDates : [],
-    y: show ? rhValues : [],
-    name: rhName,
+    x: graphProps.show ? rhDates : [],
+    y: graphProps.show ? rhValues : [],
+    name: graphProps.rhName,
     yaxis: 'y2',
     mode: 'lines+markers',
     type: 'scatter',
-    marker: { symbol },
+    marker: { symbol: graphProps.symbol },
     line: {
-      color: rhColor,
+      color: graphProps.rhColor,
       width: 2,
-      dash
+      dash: graphProps.dash
     },
-    hovertemplate: `${rhName}: %{y:.2f} (%)<extra></extra>`
+    hovertemplate: `${graphProps.rhName}: %{y:.2f} (%)<extra></extra>`
   }
   const rh5thLine: Data = {
-    x: show ? rhPercentileDates : [],
-    y: show ? rh5thValues : [],
-    name: `${rhName} 5th percentile`,
+    x: graphProps.show ? rhPercentileDates : [],
+    y: graphProps.show ? rh5thValues : [],
+    name: `${graphProps.rhName} 5th percentile`,
     yaxis: 'y2',
     mode: 'lines',
     type: 'scatter',
@@ -326,21 +366,21 @@ export const populateGraphDataForTempAndRH = (
     showlegend: false
   }
   const rh90thLine: Data = {
-    x: show ? rhPercentileDates : [],
-    y: show ? rh90thValues : [],
-    name: `${rhName} 5th - 90th percentile`,
+    x: graphProps.show ? rhPercentileDates : [],
+    y: graphProps.show ? rh90thValues : [],
+    name: `${graphProps.rhName} 5th - 90th percentile`,
     yaxis: 'y2',
     mode: 'lines',
     type: 'scatter',
     line: { width: 0 },
     marker: { color: '444' },
     fill: 'tonexty',
-    fillcolor: rhPlumeColor,
+    fillcolor: graphProps.rhPlumeColor,
     hoverinfo: 'skip'
   }
 
-  const maxTemp = findMaxNumber(tempValues)
-  const minTemp = findMinNumber(tempValues)
+  const maxTempDewpoint = findMaxNumber([...tempValues, ...dewpointValues])
+  const minTempDewpoint = findMinNumber([...tempValues, ...dewpointValues])
 
   return {
     tempDots,
@@ -355,8 +395,10 @@ export const populateGraphDataForTempAndRH = (
     rhLine,
     rh5thLine,
     rh90thLine,
-    maxTemp,
-    minTemp
+    dewpointDots,
+    dewpointLine,
+    maxTempDewpoint,
+    minTempDewpoint
   }
 }
 
