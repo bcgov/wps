@@ -37,10 +37,10 @@ interface Props {
   children: React.ReactNode
   zoom: number
   center: number[]
-  renderTooltip?: (feature: FeatureLike | null) => React.ReactNode
+  renderHoverTooltip?: (feature: FeatureLike | null) => React.ReactNode
 }
 
-const Map = ({ children, zoom, center, renderTooltip }: Props) => {
+const Map = ({ children, zoom, center, renderHoverTooltip }: Props) => {
   const classes = useStyles()
   const overlayRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
@@ -62,6 +62,8 @@ const Map = ({ children, zoom, center, renderTooltip }: Props) => {
     mapObject.setTarget(mapRef.current)
     setMap(mapObject)
 
+    // Wish we can separate this part, but adding a listener like this only works
+    // in the context where map object is initialized
     if (overlayRef.current) {
       overlay = new OLOverlay({
         element: overlayRef.current,
@@ -108,9 +110,9 @@ const Map = ({ children, zoom, center, renderTooltip }: Props) => {
       <div ref={mapRef} className={classes.map}>
         {children}
       </div>
-      {renderTooltip && (
+      {renderHoverTooltip && (
         <div ref={overlayRef} className="ol-popup">
-          {renderTooltip(feature)}
+          {renderHoverTooltip(feature)}
         </div>
       )}
     </MapContext.Provider>

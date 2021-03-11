@@ -37,15 +37,23 @@ const zoom = 6
 
 const WeatherMap = () => {
   const classes = useStyles()
-  const renderTooltip = useCallback((f: FeatureLike | null) => {
+  const renderHoverTooltip = useCallback((f: FeatureLike | null) => {
     if (!f) return null
 
-    return <div>Station: {f.get('STATION_NAME')}</div>
+    return (
+      <div>
+        {f.get('STATION_NAME')} ({f.get('STATION_CODE')})
+      </div>
+    )
   }, [])
 
   return (
     <div className={classes.root}>
-      <Map center={fromLonLat(center)} zoom={zoom} renderTooltip={renderTooltip}>
+      <Map
+        center={fromLonLat(center)}
+        zoom={zoom}
+        renderHoverTooltip={renderHoverTooltip}
+      >
         <TileLayer
           source={
             new olSource.XYZ({
