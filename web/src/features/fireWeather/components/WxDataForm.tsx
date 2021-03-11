@@ -24,13 +24,13 @@ const WxDataForm = ({ codesFromQuery, toiFromQuery }: Props) => {
   const location = useLocation()
 
   const [selectedCodes, setSelectedCodes] = useState<number[]>(codesFromQuery)
-  const [timeOfInterestISO, setTimeOfInterestISO] = useState(toiFromQuery)
+  const [timeOfInterest, setTimeOfInterest] = useState(toiFromQuery)
   const shouldGetBtnDisabled = selectedCodes.length === 0
 
   useEffect(() => {
     // Update local state to match with the query url
     setSelectedCodes(codesFromQuery)
-    setTimeOfInterestISO(toiFromQuery)
+    setTimeOfInterest(toiFromQuery)
   }, [location]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSubmit = () => {
@@ -38,7 +38,7 @@ const WxDataForm = ({ codesFromQuery, toiFromQuery }: Props) => {
     history.push({
       search:
         `${stationCodeQueryKey}=${selectedCodes.join(',')}&` +
-        `${timeOfInterestQueryKey}=${timeOfInterestISO}`
+        `${timeOfInterestQueryKey}=${timeOfInterest}`
     })
 
     // Create matomo event
@@ -50,7 +50,7 @@ const WxDataForm = ({ codesFromQuery, toiFromQuery }: Props) => {
       window._mtm.push({
         event: 'getWeatherData',
         stationCodes: selectedCodes,
-        timeOfInterest: timeOfInterestISO
+        timeOfInterest: timeOfInterest
       })
     }
   }
@@ -63,8 +63,8 @@ const WxDataForm = ({ codesFromQuery, toiFromQuery }: Props) => {
         onChange={setSelectedCodes}
       />
       <TimeOfInterestPicker
-        timeOfInterestISO={timeOfInterestISO}
-        onChange={setTimeOfInterestISO}
+        timeOfInterest={timeOfInterest}
+        onChange={setTimeOfInterest}
       />
       <GetWxDataButton onBtnClick={handleSubmit} disabled={shouldGetBtnDisabled} />
     </form>

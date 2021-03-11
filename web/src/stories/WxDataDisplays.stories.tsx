@@ -20,6 +20,7 @@ import {
 import { NoonForecastValue } from 'api/forecastAPI'
 import { ModelValue } from 'api/modelAPI'
 import { isNoonInPST } from 'utils/date'
+import { getTimeOfInterestFromUrl } from 'utils/url'
 
 export default {
   title: 'component/WxDataDisplays',
@@ -46,7 +47,8 @@ const station322 = {
   }
 }
 
-const defaultArgs = {
+const defaultArgs: PropTypes = {
+  timeOfInterest: getTimeOfInterestFromUrl(''),
   wxDataLoading: false,
   stationCodes: [322],
   stationsByCode: { 322: station322 },

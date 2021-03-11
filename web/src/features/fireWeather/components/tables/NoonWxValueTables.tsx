@@ -52,7 +52,7 @@ export const noonModelTableColumns: Column[] = [
   ...sharedColumns,
   {
     id: 'delta_precipitation',
-    label: 'Precip (mm/cm)',
+    label: 'Precip (mm)',
     minWidth: 70,
     maxWidth: 100,
     align: 'right',
@@ -88,7 +88,7 @@ export const noonForecastTableColumns: Column[] = [
   ...sharedColumns,
   {
     id: 'total_precipitation',
-    label: 'Precip (mm/cm)',
+    label: 'Precip (mm)',
     minWidth: 70,
     maxWidth: 100,
     align: 'right',
