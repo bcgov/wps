@@ -94,7 +94,21 @@ def generate_c_haines(collector):
 
 @then("We expect <c_haines_data>")
 def check_c_haines(collector, c_haines_data):
-    """ Compare the c-haines data against expected data. """
+    """ Compare the c-haines data against expected data. 
+
+    This data generated with this code:
+
+    import json
+    import gzip
+    from app.c_haines.severity_index import open_gdal
+    from app.c_haines.c_haines_index import CHainesGenerator
+
+    with open_gdal(tmp_700, tmp_850, dew_850) as gdal_data:
+        generator = CHainesGenerator()
+        data = generator.generate_c_haines(gdal_data)
+        with gzip.open('data.json.gz', 'wt') as f:
+            json.dump(data, f)
+    """
     filename = get_complete_filename(__file__, c_haines_data)
     with gzip.open(filename, 'rt') as c_haines_data_file:
         data = json.load(c_haines_data_file)
