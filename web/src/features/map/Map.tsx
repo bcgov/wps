@@ -42,10 +42,10 @@ interface Props {
   children: React.ReactNode
   zoom: number
   center: number[]
-  renderHoverTooltip?: (feature: FeatureLike | null) => React.ReactNode
+  renderTooltip?: (feature: FeatureLike | null) => React.ReactNode
 }
 
-const Map = ({ children, zoom, center, renderHoverTooltip }: Props) => {
+const Map = ({ children, zoom, center, renderTooltip }: Props) => {
   const classes = useStyles()
   const overlayRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
@@ -78,10 +78,11 @@ const Map = ({ children, zoom, center, renderHoverTooltip }: Props) => {
         }
       })
       mapObject.addOverlay(overlay)
-      mapObject.on('pointermove', e => {
+      mapObject.on('singleclick', e => {
+        // Hide the overlay if displayed
         overlay?.setPosition(undefined)
 
-        mapObject.forEachFeatureAtPixel(e.pixel, function(feature) {
+        mapObject.forEachFeatureAtPixel(e.pixel, feature => {
           overlay?.setPosition(e.coordinate)
           setFeature(feature)
 
@@ -115,9 +116,9 @@ const Map = ({ children, zoom, center, renderHoverTooltip }: Props) => {
       <div ref={mapRef} className={classes.map}>
         {children}
       </div>
-      {renderHoverTooltip && (
+      {renderTooltip && (
         <div ref={overlayRef} className="ol-popup">
-          {renderHoverTooltip(feature)}
+          {renderTooltip(feature)}
         </div>
       )}
     </MapContext.Provider>

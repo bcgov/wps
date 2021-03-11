@@ -14,7 +14,7 @@ import VectorLayer from 'features/map/VectorLayer'
 const styles = {
   Point: new Style({
     image: new CircleStyle({
-      radius: 3.5,
+      radius: 4,
       fill: new Fill({
         color: '#E59982' //'rgba(0, 0, 255, 1)'
       }),
@@ -37,23 +37,19 @@ const zoom = 6
 
 const WeatherMap = () => {
   const classes = useStyles()
-  const renderHoverTooltip = useCallback((f: FeatureLike | null) => {
-    if (!f) return null
+  const renderTooltip = useCallback((feature: FeatureLike | null) => {
+    if (!feature) return null
 
     return (
       <div>
-        {f.get('STATION_NAME')} ({f.get('STATION_CODE')})
+        {feature.get('STATION_NAME')} ({feature.get('STATION_CODE')})
       </div>
     )
   }, [])
 
   return (
     <div className={classes.root}>
-      <Map
-        center={fromLonLat(center)}
-        zoom={zoom}
-        renderHoverTooltip={renderHoverTooltip}
-      >
+      <Map center={fromLonLat(center)} zoom={zoom} renderTooltip={renderTooltip}>
         <TileLayer
           source={
             new olSource.XYZ({
