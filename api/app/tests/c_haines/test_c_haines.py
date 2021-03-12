@@ -5,7 +5,7 @@ import gzip
 from typing import List
 from pytest_bdd import scenario, given, when, then
 import numpy
-from app.c_haines.severity_index import generate_severity_data, open_gdal
+from app.c_haines.severity_index import generate_severity_data, open_gdal, make_model_run_base_url
 from app.c_haines.c_haines_index import calculate_c_haines_index, CHainesGenerator
 from app.tests import get_complete_filename
 
@@ -113,3 +113,20 @@ def check_c_haines(collector, c_haines_data):
     with gzip.open(filename, 'rt') as c_haines_data_file:
         data = json.load(c_haines_data_file)
     assert (numpy.array(collector['data']) == numpy.array(data)).all()
+
+
+@scenario(
+    'test_c_haines.feature',
+    'Make model run base url',
+    example_converters=dict(
+        model=str,
+        model_run_start=str,
+        forecast_hour=str))
+def test_make_model_run_base_url():
+    """ BDD Scenario. """
+
+
+@then("make_model_run_base_url(<model>, <model_run_start>, <forecast_hour>) == <result>")
+def make_model_run_base_url_expect_result(model, model_run_start, forecast_hour, result):
+    """ Check base url """
+    assert make_model_run_base_url(model, model_run_start, forecast_hour) == result

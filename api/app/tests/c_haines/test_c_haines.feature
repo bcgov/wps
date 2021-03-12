@@ -31,3 +31,12 @@ Feature: C-Haines calculation
         Examples:
             | tmp_700                                                              | tmp_850                                                              | dew_850                                                               | c_haines_data         |
             | CMC_hrdps_continental_TMP_ISBL_0700_ps2.5km_2021012618_P048-00.grib2 | CMC_hrdps_continental_TMP_ISBL_0850_ps2.5km_2021012618_P048-00.grib2 | CMC_hrdps_continental_DEPR_ISBL_0850_ps2.5km_2021012618_P048-00.grib2 | c_haines_data.json.gz |
+
+    Scenario: Make model run base url
+        Then make_model_run_base_url(<model>, <model_run_start>, <forecast_hour>) == <result>
+
+        Examples:
+            | model | model_run_start | forecast_hour | result                                                               |
+            | GDPS  | 00              | 120           | https://dd.weather.gc.ca/model_gem_global/15km/grib2/lat_lon/00/120/ |
+            | RDPS  | 12              | 010           | https://dd.weather.gc.ca/model_gem_regional/10km/grib2/12/010/       |
+            | HRDPS | 00              | 001           | https://dd.weather.gc.ca/model_hrdps/continental/grib2/00/001/       |
