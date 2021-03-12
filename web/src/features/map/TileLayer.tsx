@@ -11,7 +11,8 @@ interface Props {
 }
 
 const TileLayer = ({ source, opacity = 1, zIndex = 0 }: Props) => {
-  const map = useContext(MapContext)!
+  const map = useContext(MapContext)
+
   const [layer, setLayer] = useState<OLTileLayer | null>(null)
 
   useEffect(() => {

@@ -13,7 +13,8 @@ interface Props {
 }
 
 const VectorLayer = ({ source, style, opacity, zIndex = 0 }: Props) => {
-  const map = useContext(MapContext)!
+  const map = useContext(MapContext)
+
   const [layer, setLayer] = useState<OLVectorLayer | null>(null)
 
   useEffect(() => {
