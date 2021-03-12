@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from 'react'
+import React, { useState, useContext, useEffect } from 'react'
 import TileSource from 'ol/source/Tile'
 import OLTileLayer from 'ol/layer/Tile'
 
@@ -12,6 +12,7 @@ interface Props {
 
 const TileLayer = ({ source, opacity = 1, zIndex = 0 }: Props) => {
   const map = useContext(MapContext)!
+  const [layer, setLayer] = useState<OLTileLayer | null>(null)
 
   useEffect(() => {
     if (!map) return
@@ -24,6 +25,7 @@ const TileLayer = ({ source, opacity = 1, zIndex = 0 }: Props) => {
 
     map.addLayer(tileLayer)
     tileLayer.setZIndex(zIndex)
+    setLayer(tileLayer)
 
     return () => {
       if (map) {
@@ -31,6 +33,12 @@ const TileLayer = ({ source, opacity = 1, zIndex = 0 }: Props) => {
       }
     }
   }, [map]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!layer) return
+
+    layer.setSource(source)
+  }, [source]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return null
 }

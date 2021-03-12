@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from 'react'
+import React, { useState, useContext, useEffect } from 'react'
 import OLVectorLayer from 'ol/layer/Vector'
 import VectorSource from 'ol/source/Vector'
 import { StyleLike } from 'ol/style/Style'
@@ -14,6 +14,7 @@ interface Props {
 
 const VectorLayer = ({ source, style, opacity, zIndex = 0 }: Props) => {
   const map = useContext(MapContext)!
+  const [layer, setLayer] = useState<OLVectorLayer | null>(null)
 
   useEffect(() => {
     if (!map) return
@@ -27,6 +28,7 @@ const VectorLayer = ({ source, style, opacity, zIndex = 0 }: Props) => {
 
     map.addLayer(vectorLayer)
     vectorLayer.setZIndex(zIndex)
+    setLayer(vectorLayer)
 
     return () => {
       if (map) {
@@ -34,6 +36,12 @@ const VectorLayer = ({ source, style, opacity, zIndex = 0 }: Props) => {
       }
     }
   }, [map]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!layer) return
+
+    layer.setSource(source)
+  }, [source]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return null
 }
