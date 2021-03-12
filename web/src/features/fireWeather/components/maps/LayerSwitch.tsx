@@ -4,7 +4,6 @@ import Radio from '@material-ui/core/Radio'
 import RadioGroup from '@material-ui/core/RadioGroup'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import FormControl from '@material-ui/core/FormControl'
-import FormLabel from '@material-ui/core/FormLabel'
 import Popover from '@material-ui/core/Popover'
 import Fab from '@material-ui/core/Fab'
 import LayersIcon from '@material-ui/icons/Layers'
@@ -24,21 +23,16 @@ const useStyles = makeStyles({
   },
   popOverContent: {
     padding: 12
-  },
-  popOverContentTitle: {
-    paddingTop: 15,
-    paddingBottom: 4
   }
 })
 
 interface Props {
-  title: string
   layersMap: { [k: string]: string }
   layerUrl: string
   setLayerUrl: (url: string) => void
 }
 
-const LayerSwitch = ({ title, layersMap, layerUrl, setLayerUrl }: Props) => {
+const LayerSwitch = ({ layersMap, layerUrl, setLayerUrl }: Props) => {
   const classes = useStyles()
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null)
 
@@ -78,9 +72,6 @@ const LayerSwitch = ({ title, layersMap, layerUrl, setLayerUrl }: Props) => {
           className={classes.popOverContent}
           component="fieldset"
         >
-          <FormLabel className={classes.popOverContentTitle} component="legend">
-            {title}
-          </FormLabel>
           <RadioGroup
             aria-label="base-layer"
             value={layerUrl}

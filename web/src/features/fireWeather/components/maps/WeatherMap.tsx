@@ -57,7 +57,6 @@ const WeatherMap = () => {
   return (
     <Map center={fromLonLat(center)} zoom={zoom} renderTooltip={renderTooltip}>
       <LayerSwitch
-        title="Base Layers"
         layersMap={baseLayersMap}
         layerUrl={tileLayerUrl}
         setLayerUrl={setTileLayerUrl}

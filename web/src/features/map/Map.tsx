@@ -1,10 +1,13 @@
+import 'ol/ol.css'
+
 import React, { useRef, useState, useEffect } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import * as ol from 'ol'
-import 'ol/ol.css'
 import { FeatureLike } from 'ol/Feature'
 import OLOverlay from 'ol/Overlay'
 import { MapOptions } from 'ol/PluggableMap'
+
+import { ErrorBoundary } from 'components'
 
 export const MapContext = React.createContext<ol.Map | null>(null)
 
@@ -83,9 +86,9 @@ const Map = ({ children, zoom, center, renderTooltip }: Props) => {
         // Hide the overlay if displayed
         overlay?.setPosition(undefined)
 
-        mapObject.forEachFeatureAtPixel(e.pixel, feature => {
+        mapObject.forEachFeatureAtPixel(e.pixel, (f: FeatureLike) => {
           overlay?.setPosition(e.coordinate)
-          setFeature(feature)
+          setFeature(f)
 
           return true
         })
@@ -113,16 +116,18 @@ const Map = ({ children, zoom, center, renderTooltip }: Props) => {
   }, [center]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <MapContext.Provider value={map}>
-      <div ref={mapRef} className={classes.map}>
-        {children}
-      </div>
-      {renderTooltip && (
-        <div ref={overlayRef} className="ol-popup">
-          {renderTooltip(feature)}
+    <ErrorBoundary>
+      <MapContext.Provider value={map}>
+        <div ref={mapRef} className={classes.map}>
+          {children}
         </div>
-      )}
-    </MapContext.Provider>
+        {renderTooltip && (
+          <div ref={overlayRef} className="ol-popup">
+            {renderTooltip(feature)}
+          </div>
+        )}
+      </MapContext.Provider>
+    </ErrorBoundary>
   )
 }
 
