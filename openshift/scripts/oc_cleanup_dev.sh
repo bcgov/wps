@@ -43,6 +43,7 @@ OC_CLEAN_MARIADB_CRONJOB="oc -n ${PROJ_DEV} ${DELETE_OR_GET} --ignore-not-found=
 OC_CLEAN_MARIDB_BACKUP="oc -n ${PROJ_DEV} ${DELETE_OR_GET} all,cm -o name -l app=backup-mariadb-${NAME_OBJ}"
 OC_CLEAN_BACKUP_POSTGRES_CRONJOB="oc -n ${PROJ_DEV} ${DELETE_OR_GET} --ignore-not-found=true cronjob/backup-postgres-${NAME_OBJ}"
 OC_CLEAN_BACKUP_POSTGRES="oc -n ${PROJ_DEV} ${DELETE_OR_GET} all,cm -o name -l app=backup-postgres-${NAME_OBJ}"
+OC_CLEAN_PATRONI_NETWORK_POLICY="oc -n ${PROJ_DEV} ${DELETE_OR_GET} networkpolicy patroni-db-to-db-patroni-${NAME_APP}-${SUFFIX}" 
 
 # Execute commands
 #
