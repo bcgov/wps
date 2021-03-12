@@ -5,7 +5,7 @@ import math
 import struct
 import logging
 import logging.config
-from typing import Final, List
+from typing import Final, List, Tuple
 from sqlalchemy.dialects.postgresql import array
 from sqlalchemy.orm import Session
 from osgeo import gdal
@@ -98,7 +98,7 @@ def calculate_raster_coordinate(
 
 
 def calculate_geographic_coordinate(
-        point: List[int],
+        point: Tuple[int],
         padf_transform: List[float],
         transformer: Transformer):
     """ Calculate the geographic coordinates for a given points """
