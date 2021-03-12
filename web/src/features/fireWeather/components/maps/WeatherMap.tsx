@@ -1,5 +1,4 @@
 import React, { useState, useCallback } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
 import { fromLonLat, get } from 'ol/proj'
 import * as olSource from 'ol/source'
 import GeoJSON from 'ol/format/GeoJSON'
@@ -26,13 +25,6 @@ const styles = {
   })
 }
 
-const useStyles = makeStyles({
-  root: {
-    paddingTop: 12,
-    paddingBottom: 12
-  }
-})
-
 const ArcGISAttribution =
   'Tiles © <a href="https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer" target="_blank">ArcGIS</a>'
 const getArcGISMapUrl = (service: string): string =>
@@ -50,7 +42,6 @@ const center = [-123.3656, 51.4484] // BC
 const zoom = 6
 
 const WeatherMap = () => {
-  const classes = useStyles()
   const [tileLayerUrl, setTileLayerUrl] = useState(satelliteLayerUrl)
 
   const renderTooltip = useCallback((feature: FeatureLike | null) => {
@@ -64,57 +55,33 @@ const WeatherMap = () => {
   }, [])
 
   return (
-    <div className={classes.root}>
-      <Map center={fromLonLat(center)} zoom={zoom} renderTooltip={renderTooltip}>
-        <LayerSwitch
-          title="Base Layers"
-          layersMap={baseLayersMap}
-          layerUrl={tileLayerUrl}
-          setLayerUrl={setTileLayerUrl}
-        />
-        {tileLayerUrl === satelliteLayerUrl && (
-          <TileLayer
-            source={
-              new olSource.XYZ({
-                url: satelliteLayerUrl,
-                attributions: ArcGISAttribution
-              })
-            }
-          />
-        )}
-        {tileLayerUrl === terrainLayerUrl && (
-          <TileLayer
-            source={
-              new olSource.XYZ({
-                url: terrainLayerUrl,
-                attributions: ArcGISAttribution
-              })
-            }
-          />
-        )}
-        {tileLayerUrl === topoLayerUrl && (
-          <TileLayer
-            source={
-              new olSource.XYZ({
-                url: topoLayerUrl,
-                attributions: ArcGISAttribution
-              })
-            }
-          />
-        )}
-        <VectorLayer
-          source={
-            new olSource.Vector({
-              features: new GeoJSON().readFeatures(WeatherStationsGeoJson, {
-                featureProjection: get('EPSG:3857')
-              })
+    <Map center={fromLonLat(center)} zoom={zoom} renderTooltip={renderTooltip}>
+      <LayerSwitch
+        title="Base Layers"
+        layersMap={baseLayersMap}
+        layerUrl={tileLayerUrl}
+        setLayerUrl={setTileLayerUrl}
+      />
+      <TileLayer
+        source={
+          new olSource.XYZ({
+            url: tileLayerUrl,
+            attributions: ArcGISAttribution
+          })
+        }
+      />
+      <VectorLayer
+        source={
+          new olSource.Vector({
+            features: new GeoJSON().readFeatures(WeatherStationsGeoJson, {
+              featureProjection: get('EPSG:3857')
             })
-          }
-          style={styles.Point}
-          zIndex={1}
-        />
-      </Map>
-    </div>
+          })
+        }
+        style={styles.Point}
+        zIndex={1}
+      />
+    </Map>
   )
 }
 

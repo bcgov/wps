@@ -42,15 +42,14 @@ const LayerSwitch = ({ title, layersMap, layerUrl, setLayerUrl }: Props) => {
   const classes = useStyles()
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null)
 
-  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+  const openPopover = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget)
   }
-  const handleClose = () => {
+  const closePopover = () => {
     setAnchorEl(null)
   }
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLayerChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setLayerUrl((event.target as HTMLInputElement).value)
-    handleClose()
   }
 
   const open = Boolean(anchorEl)
@@ -58,14 +57,13 @@ const LayerSwitch = ({ title, layersMap, layerUrl, setLayerUrl }: Props) => {
   return (
     <div className={classes.root}>
       <div className={classes.btnWrapper}>
-        <Fab onClick={handleClick} color="primary" size="small">
+        <Fab onMouseOver={openPopover} color="primary" size="small">
           <LayersIcon />
         </Fab>
       </div>
       <Popover
         open={open}
         anchorEl={anchorEl}
-        onClose={handleClose}
         anchorOrigin={{
           vertical: 'top',
           horizontal: 'right'
@@ -75,11 +73,19 @@ const LayerSwitch = ({ title, layersMap, layerUrl, setLayerUrl }: Props) => {
           horizontal: 'right'
         }}
       >
-        <FormControl className={classes.popOverContent} component="fieldset">
+        <FormControl
+          onMouseLeave={closePopover}
+          className={classes.popOverContent}
+          component="fieldset"
+        >
           <FormLabel className={classes.popOverContentTitle} component="legend">
             {title}
           </FormLabel>
-          <RadioGroup aria-label="base-layer" value={layerUrl} onChange={handleChange}>
+          <RadioGroup
+            aria-label="base-layer"
+            value={layerUrl}
+            onChange={handleLayerChange}
+          >
             {Object.keys(layersMap).map(key => {
               return (
                 <FormControlLabel
