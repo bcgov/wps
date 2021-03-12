@@ -2,7 +2,7 @@
 """
 import logging
 import struct
-from typing import List, Final
+from typing import Final, Tuple
 from pyproj import CRS
 from osgeo import gdal
 from app.weather_models.process_grib import (
@@ -62,13 +62,13 @@ def read_scanline(band, yoff):
     return struct.unpack('f' * band.XSize, scanline)
 
 
-def get_geographic_bounding_box() -> List:
+def get_geographic_bounding_box() -> Tuple[float]:
     """ Get the geographical area (the bounding box) that we want to generate data for.
     Currently hard coded to be an area around B.C. """
     # S->N 46->70
     # E->W -110->-140
-    top_left_geo = (-140, 70)
-    bottom_right_geo = (-110, 46)
+    top_left_geo = (-140.0, 70.0)
+    bottom_right_geo = (-110.0, 46.0)
     return (top_left_geo, bottom_right_geo)
 
 
@@ -104,16 +104,13 @@ class BoundingBoxChecker():
         lat0 = self.geo_bounding_box[0][1]
         lon1 = self.geo_bounding_box[1][0]
         lat1 = self.geo_bounding_box[1][1]
-        if lon > lon0:
-            if lon < lon1:
-                if lat < lat0:
-                    if lat > lat1:
-                        good_y = self.good_x.get(raster_x)
-                        if not good_y:
-                            good_y = set()
-                            self.good_x[raster_x] = good_y
-                        good_y.add(raster_y)
-                        return True
+        if lon0 < lon < lon1 and lat0 > lat > lat1:
+            good_y = self.good_x.get(raster_x)
+            if not good_y:
+                good_y = set()
+                self.good_x[raster_x] = good_y
+            good_y.add(raster_y)
+            return True
         return False
 
 

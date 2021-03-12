@@ -14,8 +14,8 @@ logger = logging.getLogger(__name__)
 def main():
     """ Entry point for generating C-Haines severity index polygons. """
     models = (
-        # (ModelEnum.GDPS, ProjectionEnum.LATLON_15X_15),
-        # (ModelEnum.RDPS, ProjectionEnum.REGIONAL_PS),
+        (ModelEnum.GDPS, ProjectionEnum.LATLON_15X_15),
+        (ModelEnum.RDPS, ProjectionEnum.REGIONAL_PS),
         (ModelEnum.HRDPS, ProjectionEnum.HIGH_RES_CONTINENTAL),)
     with app.db.database.get_write_session_scope() as session:
         for model, projection in models:

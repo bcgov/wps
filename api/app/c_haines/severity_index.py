@@ -2,7 +2,7 @@
 """
 import os
 from datetime import datetime, timezone, timedelta
-from typing import Final
+from typing import Final, Tuple
 from contextlib import contextmanager
 import tempfile
 import logging
@@ -148,7 +148,7 @@ def make_model_levels(model: ModelEnum):
 def make_model_run_download_urls(model: ModelEnum,
                                  now: datetime,
                                  model_run_hour: int,
-                                 prediction_hour: int):
+                                 prediction_hour: int) -> Tuple[dict, datetime, datetime]:
     """ Return urls to download model runs """
 
     # hh: model run start, in UTC [00, 12]

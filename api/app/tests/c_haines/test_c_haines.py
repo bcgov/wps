@@ -2,11 +2,14 @@
 """
 import json
 import gzip
+from datetime import datetime
 from typing import List
 from pytest_bdd import scenario, given, when, then
 import numpy
 from app.c_haines.severity_index import (
-    generate_severity_data, open_gdal, make_model_run_base_url, make_model_run_filename)
+    generate_severity_data, open_gdal, make_model_run_base_url, make_model_run_filename,
+    make_model_run_download_urls)
+from app.weather_models import ModelEnum
 from app.c_haines.c_haines_index import calculate_c_haines_index, CHainesGenerator
 from app.tests import get_complete_filename
 
@@ -95,7 +98,7 @@ def generate_c_haines(collector):
 
 @then("We expect <c_haines_data>")
 def check_c_haines(collector, c_haines_data):
-    """ Compare the c-haines data against expected data. 
+    """ Compare the c-haines data against expected data.
 
     This data generated with this code:
 
@@ -151,3 +154,53 @@ def test_make_model_run_filename():
 def make_model_run_filename_expect_result(model, level, date, model_run_start, forecast_hour, result):
     """ Check base url """
     assert make_model_run_filename(model, level, date, model_run_start, forecast_hour) == result
+
+
+@scenario(
+    'test_c_haines.feature',
+    'Make model run download urls',
+    example_converters=dict(
+        model=str,
+        now=datetime.fromisoformat,
+        model_run_hour=int,
+        prediction_hour=int,
+        urls=json.loads,
+        model_run_timestamp=datetime.fromisoformat,
+        prediction_timestamp=datetime.fromisoformat))
+def test_make_model_download_urls():
+    """ BDD Scenario. """
+
+
+@given("We run make_model_run_download_urls(<model>, <now>, <model_run_hour>, <prediction_hour>)",
+       target_fixture='collector')
+def run_make_model_run_download_urls(
+        model: ModelEnum, now: datetime, model_run_hour: int, prediction_hour: int):
+    urls, model_run_timestamp, prediction_timestamp = make_model_run_download_urls(
+        model, now, model_run_hour, prediction_hour)
+    print(urls)
+    return {
+        'urls': urls,
+        'model_run_timestamp': model_run_timestamp,
+        'prediction_timestamp': prediction_timestamp
+    }
+
+
+@then("<urls> are as expected")
+def make_model_run_download_urls_expect_result(
+        collector: dict, urls: dict):
+    """ Assert that result matches expected result """
+    assert urls == collector['urls']
+
+
+@then("<model_run_timestamp> is as expected")
+def make_model_run_download_model_run_timestamp_expect_result(collector: dict,
+                                                              model_run_timestamp: datetime):
+    """ Assert that result matches expected result """
+    assert model_run_timestamp == collector['model_run_timestamp']
+
+
+@then("<prediction_timestamp> is as expected")
+def make_model_run_download_prediction_timestamp_expect_result(collector: dict,
+                                                               prediction_timestamp: datetime):
+    """ Assert that result matches expected result """
+    assert prediction_timestamp == collector['prediction_timestamp']
