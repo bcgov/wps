@@ -40,3 +40,13 @@ Feature: C-Haines calculation
             | GDPS  | 00              | 120           | https://dd.weather.gc.ca/model_gem_global/15km/grib2/lat_lon/00/120/ |
             | RDPS  | 12              | 010           | https://dd.weather.gc.ca/model_gem_regional/10km/grib2/12/010/       |
             | HRDPS | 00              | 001           | https://dd.weather.gc.ca/model_hrdps/continental/grib2/00/001/       |
+
+
+    Scenario: Make model run filename
+        Then make_model_run_filename(<model>, <level>, <date>, <model_run_start>, <forecast_hour>) == <result>
+
+        Examples:
+            | model | level     | date       | model_run_start | forecast_hour | result                                                             |
+            | HRDPS | DEPR_ISBL | 2021012618 | 048             | 00            | CMC_hrdps_continental_DEPR_ISBL_ps2.5km_2021012618048_P00-00.grib2 |
+            | RDPS  | DEPR_ISBL | 2021012618 | 0               | 12            | CMC_reg_DEPR_ISBL_ps10km_20210126180_P12.grib2                     |
+            | GDPS  | DEPR_ISBL | 2021012618 | 0               | 13            | CMC_glb_DEPR_ISBL_latlon.15x.15_20210126180_P13.grib2              |
