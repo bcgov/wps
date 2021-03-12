@@ -90,7 +90,7 @@ jobs:
         working-directory: ./api
         run: |
           source ~/.poetry/env
-          ORIGINS=testorigin poetry run coverage run --source=app -m pytest -n 2 -o log_cli=true --disable-warnings --verbose
+          ORIGINS=testorigin poetry run coverage run --source=app -m pytest -o log_cli=true --disable-warnings --verbose
 
       - name: Create coverage report (api)
         # Create coverage report, and then replace occurrences of
