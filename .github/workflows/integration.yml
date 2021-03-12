@@ -74,6 +74,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-poetry-cache-
 
+      - name: Install remaining python dependencies (api)
+        working-directory: ./api
+        run: |
+          source ~/.poetry/env
+          poetry install
+
       - name: Install gdal python (api)
         # We don't have much control over what version of gdal we're getting, it's pretty much whatever is
         # available to us. As such, gdal is not installed by poetry, since the versio will differ between
@@ -82,12 +88,6 @@ jobs:
         run: |
           source ~/.poetry/env
           CPLUS_INCLUDE_PATH=/usr/include/gdal C_INCLUDE_PATH=/usr/include/gdal poetry run pip install gdal==$(gdal-config --version)
-
-      - name: Install remaining python dependencies (api)
-        working-directory: ./api
-        run: |
-          source ~/.poetry/env
-          poetry install
 
       - name: Lint (api)
         working-directory: ./api
