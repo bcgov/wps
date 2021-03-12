@@ -95,7 +95,7 @@ describe('Percentile Calculator Page', () => {
       const stationCode = 838
       cy.selectStationInDropdown(stationCode)
 
-      cy.intercept('POST', 'api/percentiles/', {fixture: 'percentiles/percentile-result.json'}).as('getPercentiles')
+      cy.intercept('POST', 'api/percentiles/').as('getPercentiles')
       cy.requestPercentilesAndCheckRequestBody('@getPercentiles', {
         stations: [stationCode],
         year_range: { start: 1970, end: 2019 }, // Full was selected
