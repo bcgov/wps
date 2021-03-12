@@ -30,8 +30,8 @@ Cypress.Commands.add(
   'requestPercentilesAndCheckRequestBody',
   (alias: string, body: {}) => {
     cy.getByTestId('calculate-percentiles-button').click()
-    cy.wait(alias).then(xhr => {
-      expect(xhr.requestBody).to.eql(body)
+    cy.wait(alias).then(interception => {
+      expect(interception.response.body).to.eql(body)
     })
   }
 )
