@@ -211,7 +211,7 @@ will execute:
 
 ```bash
 poetry run pylint --rcfile=.pylintrc app/*.py app/**/*.py;
-poetry run python -m pytest -n 2 app;
+poetry run python -m pytest -n 3 app;
 cd app; \
 poetry run uvicorn main:app --reload --port 8080;
 ```

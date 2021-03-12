@@ -56,5 +56,5 @@ def test_c_haines_worker():
     """
     try:
         main()
-    except exception:
+    except Exception as exception:
         pytest.fail(exception)
