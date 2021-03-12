@@ -1,9 +1,6 @@
 import { NOT_AVAILABLE } from '../../src/utils/strings'
 import { PERCENTILE_CALC_ROUTE } from '../../src/utils/constants'
 import { stationCodeQueryKey } from '../../src/utils/url'
-import * as percentileResultFixture from '../fixtures/percentiles/percentile-result.json';
-import * as twoPercentileResultFixture from '../fixtures/percentiles/two-percentiles-result.json';
-
 
 describe('Percentile Calculator Page', () => {
   describe('Weather station dropdown', () => {
@@ -99,7 +96,11 @@ describe('Percentile Calculator Page', () => {
       cy.selectStationInDropdown(stationCode)
 
       cy.intercept('POST', 'api/percentiles/', {fixture: 'percentiles/percentile-result.json'}).as('getPercentiles')
-      cy.requestPercentilesAndCheckRequestBody('@getPercentiles', percentileResultFixture)
+      cy.requestPercentilesAndCheckRequestBody('@getPercentiles', {
+        stations: [stationCode],
+        year_range: { start: 1970, end: 2019 }, // Full was selected
+        percentile: 90
+      })
     })
 
     it('Percentile textfield should have a value of 90', () => {
@@ -146,7 +147,11 @@ describe('Percentile Calculator Page', () => {
       // Select a station
       cy.selectStationInDropdown(stationCode)
 
-      cy.requestPercentilesAndCheckRequestBody('@getPercentiles', percentileResultFixture)
+      cy.requestPercentilesAndCheckRequestBody('@getPercentiles', {
+        stations: [stationCode],
+        year_range: { start: 2010, end: 2019 },
+        percentile: 90
+      })
 
       // Mean table shouldn't be shown
       cy.getByTestId('percentile-mean-result-table').should('not.exist')
@@ -169,7 +174,11 @@ describe('Percentile Calculator Page', () => {
       cy.selectStationInDropdown(stationCodes[0])
       cy.selectStationInDropdown(stationCodes[1])
 
-      cy.requestPercentilesAndCheckRequestBody('@getPercentiles', twoPercentileResultFixture)
+      cy.requestPercentilesAndCheckRequestBody('@getPercentiles', {
+        stations: stationCodes,
+        year_range: { start: 2010, end: 2019 },
+        percentile: 90
+      })
 
       // Mean table & two percentile tables should be shown
       cy.getByTestId('percentile-mean-result-table')
