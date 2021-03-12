@@ -6,7 +6,7 @@ import WxStationDropdown from 'features/stations/components/WxStationDropdown'
 import TimeOfInterestPicker from 'features/fireWeather/components/TimeOfInterestPicker'
 import GetWxDataButton from 'features/fireWeather/components/GetWxDataButton'
 import { stationCodeQueryKey, timeOfInterestQueryKey } from 'utils/url'
-import WeatherMap from 'features/fireWeather/components/WeatherMap'
+import WeatherMap from 'features/fireWeather/components/maps/WeatherMap'
 
 const useStyles = makeStyles({
   stationDropdown: {

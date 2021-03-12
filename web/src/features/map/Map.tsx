@@ -10,6 +10,7 @@ export const MapContext = React.createContext<ol.Map | null>(null)
 
 const useStyles = makeStyles({
   map: {
+    position: 'relative',
     width: '100%',
     height: 500,
 
