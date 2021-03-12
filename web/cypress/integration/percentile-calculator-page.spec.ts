@@ -19,7 +19,7 @@ describe('Percentile Calculator Page', () => {
     })
 
     it('Can select & deselect stations if successfully received stations', () => {
-      cy.intercept('GET', 'api/stations/', {fixture: 'weather-stations.json'}).as('getStations')
+      cy.intercept('GET', 'api/stations/', { fixture: 'weather-stations.json' }).as('getStations')
       cy.visit(PERCENTILE_CALC_ROUTE)
       cy.getByTestId('disclaimer-accept-button').click()
       cy.wait('@getStations')
@@ -44,7 +44,7 @@ describe('Percentile Calculator Page', () => {
 
     it('Should let users know if there were invalid weather stations', () => {
       const invalidCodes = [1, 999]
-      cy.intercept('GET', 'api/stations/', {fixture: 'weather-stations.json'}).as('getStations')
+      cy.intercept('GET', 'api/stations/', { fixture: 'weather-stations.json' }).as('getStations')
       cy.visit(`${PERCENTILE_CALC_ROUTE}?${stationCodeQueryKey}=${invalidCodes.join(',')}`)
       cy.getByTestId('disclaimer-accept-button').click()
 
@@ -73,7 +73,7 @@ describe('Percentile Calculator Page', () => {
 
   describe('Other inputs', () => {
     beforeEach(() => {
-      cy.intercept('GET', 'api/stations/', {fixture: 'weather-stations.json'})
+      cy.intercept('GET', 'api/stations/', { fixture: 'weather-stations.json' })
       cy.visit(PERCENTILE_CALC_ROUTE)
       cy.getByTestId('disclaimer-accept-button').click()
     })
@@ -113,7 +113,7 @@ describe('Percentile Calculator Page', () => {
 
   describe('Calculation result', () => {
     beforeEach(() => {
-      cy.intercept('GET', 'api/stations/', {fixture: 'weather-stations.json'}).as('getStations')
+      cy.intercept('GET', 'api/stations/', { fixture: 'weather-stations.json' }).as('getStations')
       cy.visit(PERCENTILE_CALC_ROUTE, {
         onBeforeLoad: (win: any) => {
           win._mtm = { push: () => {} } // mock Matomo object
@@ -142,7 +142,7 @@ describe('Percentile Calculator Page', () => {
 
     it('Successful with one station', () => {
       const stationCode = 838
-      cy.intercept('POST', 'api/percentiles/', {fixture: 'percentiles/percentile-result.json'}).as('getPercentiles')
+      cy.intercept('POST', 'api/percentiles/', { fixture: 'percentiles/percentile-result.json' }).as('getPercentiles')
 
       // Select a station
       cy.selectStationInDropdown(stationCode)
@@ -168,7 +168,9 @@ describe('Percentile Calculator Page', () => {
 
     it('Successful with two stations', () => {
       const stationCodes = [322, 1275]
-      cy.intercept('POST', 'api/percentiles/', {fixture: 'percentiles/two-percentiles-result.json'}).as('getPercentiles')
+      cy.intercept('POST', 'api/percentiles/', { fixture: 'percentiles/two-percentiles-result.json' }).as(
+        'getPercentiles'
+      )
 
       // Select two weather stations
       cy.selectStationInDropdown(stationCodes[0])

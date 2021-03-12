@@ -5,7 +5,7 @@ const stationCode = 328
 
 describe('MoreCast Page', () => {
   beforeEach(() => {
-    cy.intercept('GET', 'api/stations/', {fixture: 'weather-stations.json'}).as('getStations')
+    cy.intercept('GET', 'api/stations/', { fixture: 'weather-stations.json' }).as('getStations')
   })
 
   it('Should redirect to /morecast when accessing /fire-weather', () => {
@@ -49,15 +49,19 @@ describe('MoreCast Page', () => {
     const numOfRdps = 195
 
     beforeEach(() => {
-      cy.intercept('POST', 'api/observations/', {fixture: 'weather-data/observations'})
-      cy.intercept('POST', 'api/forecasts/noon/', {fixture: 'weather-data/noon-forecasts'})
-      cy.intercept('POST', 'api/forecasts/noon/summaries/', {fixture:'weather-data/noon-forecast-summaries'})
+      cy.intercept('POST', 'api/observations/', { fixture: 'weather-data/observations' })
+      cy.intercept('POST', 'api/forecasts/noon/', { fixture: 'weather-data/noon-forecasts' })
+      cy.intercept('POST', 'api/forecasts/noon/summaries/', { fixture: 'weather-data/noon-forecast-summaries' })
       cy.intercept('POST', 'api/weather_models/GDPS/predictions/most_recent', {fixture:'weather-data/models-with-bias-adjusted'}) // prettier-ignore
-      cy.intercept('POST', 'api/weather_models/GDPS/predictions/summaries/', {fixture:'weather-data/model-summaries'})
+      cy.intercept('POST', 'api/weather_models/GDPS/predictions/summaries/', {
+        fixture: 'weather-data/model-summaries'
+      })
       cy.intercept('POST', 'api/weather_models/HRDPS/predictions/most_recent', {fixture:'weather-data/hr-models-with-bias-adjusted'}) // prettier-ignore
       cy.intercept('POST', 'api/weather_models/HRDPS/predictions/summaries', {fixture:'weather-data/high-res-model-summaries'}) // prettier-ignore
       cy.intercept('POST', 'api/weather_models/RDPS/predictions/most_recent', {fixture:'weather-data/regional-models-with-bias-adjusted'}) // prettier-ignore
-      cy.intercept('POST', 'api/weather_models/RDPS/predictions/summaries', {fixture:'weather-data/regional-model-summaries'})
+      cy.intercept('POST', 'api/weather_models/RDPS/predictions/summaries', {
+        fixture: 'weather-data/regional-model-summaries'
+      })
 
       cy.visit(MORECAST_ROUTE)
 
