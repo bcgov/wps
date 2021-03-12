@@ -1,12 +1,13 @@
 """ BDD tests for API /hourlies. """
 import logging
 from datetime import datetime
-from typing import List
+from typing import List, Generator
 from contextlib import contextmanager
 import json
 from pytest_bdd import scenario, given, then
 from starlette.testclient import TestClient
 from aiohttp import ClientSession
+from sqlalchemy.orm import Session
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
 import pytest
@@ -36,7 +37,7 @@ def given_hourlies_request(monkeypatch, codes: List, use_wfwx):
     """
 
     @contextmanager
-    def mock_get_session_scope(*_):
+    def mock_get_session_scope(*_) -> Generator[Session, None, None]:
         """ Slap some actuals into the database to match the stations being queried """
         hourly_actuals = []
         for code in codes:

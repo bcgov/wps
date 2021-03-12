@@ -1,6 +1,7 @@
 """ Fetch c-haines geojson
 """
 from io import StringIO
+from typing import Final
 from urllib.parse import urljoin
 from datetime import datetime, timedelta
 import logging
@@ -13,6 +14,9 @@ from app.db.crud.c_haines import (get_model_run_predictions, get_most_recent_mod
                                   get_prediction_geojson, get_prediction_kml, get_model_run_kml)
 
 logger = logging.getLogger(__name__)
+
+FOLDER_OPEN: Final = '<Folder>'
+FOLDER_CLOSE: Final = '</Folder>'
 
 
 # Severity enum -> Text description mapping
@@ -133,9 +137,9 @@ def fetch_model_run_kml_streamer(model: ModelEnum, model_run_timestamp: datetime
                     yield close_placemark()
                 prev_severity = None
                 if not prev_prediction_timestamp is None:
-                    yield '</Folder>\n'
+                    yield f'{FOLDER_CLOSE}\n'
                 prev_prediction_timestamp = prediction_timestamp
-                yield '<Folder>\n'
+                yield f'{FOLDER_OPEN}\n'
                 yield '<name>{} {} {}</name>\n'.format(model, model_run_timestamp, prediction_timestamp)
             if severity != prev_severity:
                 if not prev_severity is None:
@@ -147,7 +151,7 @@ def fetch_model_run_kml_streamer(model: ModelEnum, model_run_timestamp: datetime
         if not prev_prediction_timestamp is None:
             if not prev_severity is None:
                 yield close_placemark()
-            yield '</Folder>\n'
+            yield f'{FOLDER_CLOSE}\n'
         yield '</Document>\n'
         yield '</kml>\n'
         logger.info('kml complete')
@@ -173,7 +177,7 @@ def fetch_network_link_kml():
     writer = StringIO()
     writer.write('<?xml version="1.0" encoding="UTF-8"?>\n')
     writer.write('<kml xmlns="http://www.opengis.net/kml/2.2">\n')
-    writer.write('<Folder>\n')
+    writer.write(f'{FOLDER_OPEN}\n')
     writer.write('<name>C-Haines</name>\n')
     visibility = 1
     for model in ['HRDPS', 'RDPS', 'GDPS']:
@@ -187,7 +191,7 @@ def fetch_network_link_kml():
         writer.write('</Link>\n')
         writer.write('</NetworkLink>\n')
         visibility = 0
-    writer.write('</Folder>\n')
+    writer.write(f'{FOLDER_CLOSE}\n')
     writer.write('</kml>')
     return writer.getvalue()
 
@@ -202,7 +206,7 @@ def fetch_prediction_kml_streamer(model: ModelEnum, model_run_timestamp: datetim
         yield get_kml_header()
         kml = []
         kml.append('<name>{} {} {}</name>'.format(model, model_run_timestamp, prediction_timestamp))
-        kml.append('<Folder>')
+        kml.append(f'{FOLDER_OPEN}')
         kml.append('<name>{} {} {}</name>'.format(model, model_run_timestamp, prediction_timestamp))
         yield "\n".join(kml)
         kml = []
@@ -219,7 +223,7 @@ def fetch_prediction_kml_streamer(model: ModelEnum, model_run_timestamp: datetim
             kml = []
         if not prev_severity is None:
             kml.append(close_placemark())
-        kml.append('</Folder>')
+        kml.append(f'{FOLDER_CLOSE}')
         kml.append('</Document>')
         kml.append('</kml>')
         yield "\n".join(kml)

@@ -2,7 +2,7 @@
 """
 import os
 from datetime import datetime, timezone, timedelta
-from typing import Final, Tuple
+from typing import Final, Tuple, Generator
 from contextlib import contextmanager
 import tempfile
 import logging
@@ -58,7 +58,9 @@ def get_severity_string(severity: int) -> str:
 
 
 @contextmanager
-def open_gdal(filename_tmp_700: str, filename_tmp_850: str, filename_dew_850: str) -> GDALData:
+def open_gdal(filename_tmp_700: str,
+              filename_tmp_850: str,
+              filename_dew_850: str) -> Generator[GDALData, None, None]:
     """ Open gdal, and yield handy object containing all the data """
     try:
         # Open the datasets.

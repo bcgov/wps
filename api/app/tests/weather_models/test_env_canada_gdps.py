@@ -3,6 +3,7 @@
 import os
 import sys
 import logging
+from typing import Generator
 from contextlib import contextmanager
 import datetime
 from datetime import datetime
@@ -127,7 +128,7 @@ def mock_session(monkeypatch):
         prediction_model=gdps_prediction_model, complete=True)
 
     @contextmanager
-    def mock_get_session_gdps_scope(*args):
+    def mock_get_session_gdps_scope(*args) -> Generator[Session, None, None]:
 
         yield UnifiedAlchemyMagicMock(data=[
             (

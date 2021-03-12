@@ -1,6 +1,7 @@
 """ Setup database to perform CRUD transactions
 """
 import logging
+from typing import Generator
 from contextlib import contextmanager
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -45,7 +46,7 @@ Base = declarative_base()
 
 
 @contextmanager
-def get_read_session_scope() -> Session:
+def get_read_session_scope() -> Generator[Session, None, None]:
     """Provide a transactional scope around a series of operations."""
     session = _read_session()
     try:
@@ -56,7 +57,7 @@ def get_read_session_scope() -> Session:
 
 
 @contextmanager
-def get_write_session_scope() -> Session:
+def get_write_session_scope() -> Generator[Session, None, None]:
     """Provide a transactional scope around a series of operations."""
     session = _write_session()
     try:

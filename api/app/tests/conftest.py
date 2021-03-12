@@ -2,9 +2,11 @@
 
 from datetime import timezone, datetime
 from contextlib import contextmanager
+from typing import Generator
 import logging
 import requests
 import pytest
+from sqlalchemy.orm import Session
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
 from app.time_utils import get_pst_tz
@@ -82,7 +84,7 @@ def mock_session(monkeypatch):
     # pylint: disable=unused-argument
 
     @contextmanager
-    def mock_get_session_scope(*args):
+    def mock_get_session_scope(*args) -> Generator[Session, None, None]:
         """ return a session with a bare minimum database that should be good for most unit tests. """
         prediction_model = PredictionModel(id=1,
                                            abbreviation='GDPS',

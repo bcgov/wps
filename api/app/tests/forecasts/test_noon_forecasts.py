@@ -6,8 +6,9 @@ import json
 import os
 import logging
 from contextlib import contextmanager
-from typing import List
+from typing import List, Generator
 from datetime import datetime
+from sqlalchemy.orm import Session
 import pytest
 from pytest_bdd import scenario, given, then
 from starlette.testclient import TestClient
@@ -27,7 +28,7 @@ def mock_session(monkeypatch):
     """ Mocked out sqlalchemy session """
     # pylint: disable=unused-argument
     @contextmanager
-    def mock_get_session_scope(*args):
+    def mock_get_session_scope(*args) -> Generator[Session, None, None]:
         session = UnifiedAlchemyMagicMock()
         dirname = os.path.dirname(os.path.realpath(__file__))
         filename = os.path.join(dirname, 'test_noon_forecasts.json')
