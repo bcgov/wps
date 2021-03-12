@@ -25,24 +25,21 @@ const styles = {
   })
 }
 
-const ArcGISAttribution =
-  'Tiles © <a href="https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer" target="_blank">ArcGIS</a>'
+const getArcGISAttribution = (service: string): string =>
+  `Tiles © <a href="https://services.arcgisonline.com/ArcGIS/rest/services/${service}/MapServer" target="_blank">ArcGIS</a>`
 const getArcGISMapUrl = (service: string): string =>
   `https://server.arcgisonline.com/ArcGIS/rest/services/${service}/MapServer/tile/{z}/{y}/{x}`
-const satelliteLayerUrl = getArcGISMapUrl('World_Imagery')
-const terrainLayerUrl = getArcGISMapUrl('World_Terrain_Base')
-const topoLayerUrl = getArcGISMapUrl('World_Topo_Map')
-const baseLayersMap = {
-  Satellite: satelliteLayerUrl,
-  Terrain: terrainLayerUrl,
-  Topographic: topoLayerUrl
+const arcGisServicesMap = {
+  Satellite: 'World_Imagery',
+  Terrain: 'World_Terrain_Base',
+  Topographic: 'World_Topo_Map'
 }
 
 const center = [-123.3656, 51.4484] // BC
 const zoom = 6
 
 const WeatherMap = () => {
-  const [tileLayerUrl, setTileLayerUrl] = useState(satelliteLayerUrl)
+  const [service, setService] = useState(arcGisServicesMap['Satellite'])
 
   const renderTooltip = useCallback((feature: FeatureLike | null) => {
     if (!feature) return null
@@ -56,16 +53,12 @@ const WeatherMap = () => {
 
   return (
     <Map center={fromLonLat(center)} zoom={zoom} renderTooltip={renderTooltip}>
-      <LayerSwitch
-        layersMap={baseLayersMap}
-        layerUrl={tileLayerUrl}
-        setLayerUrl={setTileLayerUrl}
-      />
+      <LayerSwitch map={arcGisServicesMap} value={service} setValue={setService} />
       <TileLayer
         source={
           new olSource.XYZ({
-            url: tileLayerUrl,
-            attributions: ArcGISAttribution
+            url: getArcGISMapUrl(service),
+            attributions: getArcGISAttribution(service)
           })
         }
       />

@@ -118,7 +118,7 @@ const Map = ({ children, zoom, center, renderTooltip }: Props) => {
   return (
     <ErrorBoundary>
       <MapContext.Provider value={map}>
-        <div ref={mapRef} className={classes.map}>
+        <div ref={mapRef} className={classes.map} data-testid="map">
           {children}
         </div>
         {renderTooltip && (

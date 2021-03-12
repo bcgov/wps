@@ -42,6 +42,25 @@ describe('MoreCast Page', () => {
     cy.contains('Data is not available.')
   })
 
+  it('Should display a map with OpenLayers', () => {
+    cy.visit(MORECAST_ROUTE)
+
+    // Should find a zoom control
+    cy.getByTestId('map').find('.ol-zoom')
+
+    // Should find an attribution link
+    cy.getByTestId('map')
+      .find('.ol-attribution')
+      .click()
+      .find('a')
+
+    // Should find the base layer switch
+    cy.getByTestId('layer-switch').trigger('mouseover')
+    cy.getByTestId('layer-switch-form')
+      .find('label:last')
+      .click()
+  })
+
   describe('When wx data successfully fetched', () => {
     const numOfObservations = 119
     const numOfForecasts = 6

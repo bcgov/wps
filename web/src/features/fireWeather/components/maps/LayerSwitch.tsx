@@ -27,12 +27,12 @@ const useStyles = makeStyles({
 })
 
 interface Props {
-  layersMap: { [k: string]: string }
-  layerUrl: string
-  setLayerUrl: (url: string) => void
+  map: { [k: string]: string }
+  value: string
+  setValue: (url: string) => void
 }
 
-const LayerSwitch = ({ layersMap, layerUrl, setLayerUrl }: Props) => {
+const LayerSwitch = ({ map, value, setValue }: Props) => {
   const classes = useStyles()
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null)
 
@@ -43,7 +43,7 @@ const LayerSwitch = ({ layersMap, layerUrl, setLayerUrl }: Props) => {
     setAnchorEl(null)
   }
   const handleLayerChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setLayerUrl((event.target as HTMLInputElement).value)
+    setValue((event.target as HTMLInputElement).value)
   }
 
   const open = Boolean(anchorEl)
@@ -51,7 +51,12 @@ const LayerSwitch = ({ layersMap, layerUrl, setLayerUrl }: Props) => {
   return (
     <div className={classes.root}>
       <div className={classes.btnWrapper}>
-        <Fab onMouseOver={openPopover} color="primary" size="small">
+        <Fab
+          onMouseOver={openPopover}
+          color="primary"
+          size="small"
+          data-testid="layer-switch"
+        >
           <LayersIcon />
         </Fab>
       </div>
@@ -71,18 +76,15 @@ const LayerSwitch = ({ layersMap, layerUrl, setLayerUrl }: Props) => {
           onMouseLeave={closePopover}
           className={classes.popOverContent}
           component="fieldset"
+          data-testid="layer-switch-form"
         >
-          <RadioGroup
-            aria-label="base-layer"
-            value={layerUrl}
-            onChange={handleLayerChange}
-          >
-            {Object.keys(layersMap).map(key => {
+          <RadioGroup aria-label="base-layer" value={value} onChange={handleLayerChange}>
+            {Object.keys(map).map(key => {
               return (
                 <FormControlLabel
                   key={key}
                   label={key}
-                  value={layersMap[key]}
+                  value={map[key]}
                   control={<Radio size="small" />}
                 />
               )
