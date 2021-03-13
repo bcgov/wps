@@ -78,18 +78,8 @@ export async function getCHainesGeoJSON(
   prediction_timestamp: string
 ): Promise<FeatureCollection> {
   const url = `${API_BASE_URL}/c-haines/${model}/prediction`
-  console.log(url)
   const { data } = await axios.get(url, {
     params: { model_run_timestamp, prediction_timestamp }
   })
-  return data
-}
-
-export async function getFireCentresGeoJSON(): Promise<FeatureCollection> {
-  // NOTE: This should rather be loaded as a vector tileset. The entire
-  // dataset is about 21MB big, and probably slow things down terribly.
-  const url =
-    'https://openmaps.gov.bc.ca/geo/pub/wfs?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&outputFormat=json&typeName=WHSE_LEGAL_ADMIN_BOUNDARIES.DRP_MOF_FIRE_CENTRES_SP&srsName=EPSG:4326'
-  const { data } = await axios.get(url)
   return data
 }

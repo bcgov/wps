@@ -102,8 +102,7 @@ const CHainesPage = () => {
     selected_model_run_timestamp,
     model_run_predictions,
     selected_prediction_timestamp,
-    selected_model_abbreviation,
-    fire_centres
+    selected_model_abbreviation
   } = useSelector(selectCHainesModelRuns)
 
   const loadModelPrediction = (
@@ -135,19 +134,6 @@ const CHainesPage = () => {
         model_run_predictions[model_abbreviation][model_run_timestamp]
     )
   }
-
-  useEffect(() => {
-    if (mapRef.current && fire_centres) {
-      const layer = L.geoJSON(fire_centres, {
-        style: {
-          fill: false,
-          color: '#7777FF',
-          weight: 2
-        }
-      })
-      layer.addTo(mapRef.current)
-    }
-  }, [fire_centres])
 
   useEffect(() => {
     dispatch(fetchModelRuns(selectedDatetime))
@@ -442,14 +428,14 @@ const CHainesPage = () => {
   }
 
   const handleChangeDateTime = (
-    event: React.ChangeEvent<{ name?: string | undefined; value: string }>
+    event: React.ChangeEvent<{ name?: string; value: string }>
   ) => {
     setSelectedDateTime(event.target.value)
     dispatch(fetchModelRuns(event.target.value))
   }
 
   const handleChangeModel = (
-    event: React.ChangeEvent<{ name?: string | undefined; value: string }>
+    event: React.ChangeEvent<{ name?: string; value: string }>
   ) => {
     dispatch(updateSelectedModel(event.target.value))
     stopAnimation()
@@ -469,7 +455,7 @@ const CHainesPage = () => {
   }
 
   const handleChangeModelRun = (
-    event: React.ChangeEvent<{ name?: string | undefined; value: string }>
+    event: React.ChangeEvent<{ name?: string; value: string }>
   ) => {
     dispatch(updateSelectedModelRun(event.target.value))
     stopAnimation()
@@ -491,7 +477,7 @@ const CHainesPage = () => {
   }
 
   const handlePredictionChange = (
-    event: React.ChangeEvent<{ name?: string | undefined; value: string }>
+    event: React.ChangeEvent<{ name?: string; value: string }>
   ) => {
     stopAnimation()
     loadModelPrediction(
@@ -517,7 +503,7 @@ const CHainesPage = () => {
   }
 
   const handleIntervalChange = (
-    event: React.ChangeEvent<{ name?: string | undefined; value: string }>
+    event: React.ChangeEvent<{ name?: string; value: string }>
   ) => {
     setAnimationInterval(Number(event.target.value))
   }
