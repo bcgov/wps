@@ -108,6 +108,6 @@ objects:
                       cpu: "1"
                       memory: 512Mi
                     requests:
-                      cpu: "1"
+                      cpu: "500m"
                       memory: 256Mi
               restartPolicy: OnFailure

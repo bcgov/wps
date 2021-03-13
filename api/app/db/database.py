@@ -36,6 +36,9 @@ _read_engine = create_engine(
         'options': '-c timezone=utc'})
 
 # bind session to database
+# avoid using these variables anywhere outside of context manager - if
+# sessions are not closed, it will result in the api running out of
+# connections and becoming non-responsive.
 _write_session = sessionmaker(
     autocommit=False, autoflush=False, bind=_write_engine)
 _read_session = sessionmaker(

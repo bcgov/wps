@@ -97,6 +97,7 @@ async def get_index(request: Request):
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Pragma
         response.headers.setdefault('Pragma', 'no-cache')
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
+        # unpkg.com; - leaflet
         response.headers.setdefault('Content-Security-Policy',
                                     ('default-src \'self\' \'unsafe-inline\''
                                      ' *.googleapis.com *.gov.bc.ca *.gstatic.com; unpkg.com;'

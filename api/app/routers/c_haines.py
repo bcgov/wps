@@ -35,7 +35,7 @@ async def get_c_haines_model_run(
         model: ModelEnum,
         model_run_timestamp: datetime = None,
         response_format: FormatEnum = FormatEnum.geoJSON):
-    """ Return geojson polygons for c-haines """
+    """ Return geojson/kml polygons for c-haines """
     logger.info('/c-haines/%s/predictions?model_run_timestamp=%s&response_format=%s',
                 model, model_run_timestamp, response_format)
     if response_format == FormatEnum.geoJSON:
@@ -62,7 +62,7 @@ async def get_c_haines_model_run_prediction(
         model_run_timestamp: datetime,
         prediction_timestamp: datetime,
         response_format: FormatEnum = FormatEnum.geoJSON):
-    """ Return geojson polygons for c-haines """
+    """ Return geojson/kml polygons for c-haines """
     logger.info('/c-haines/%s/prediction?model_run_timestamp=%s&prediction_timestamp=%s&response_format=%s',
                 model, model_run_timestamp, prediction_timestamp, response_format)
     # Let the browser cache the data as much as it wants.
