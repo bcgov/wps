@@ -131,7 +131,7 @@ def _yield_folder_parts(result, model: ModelEnum, model_run_timestamp: datetime)
             # Start a new folder.
             yield f'{FOLDER_OPEN}\n'
             yield '<name>{} {} {}</name>\n'.format(model, model_run_timestamp, prediction_timestamp)
-        # Close the placemark if neded.
+        # Close the placemark if needed.
         if severity != prev_severity:
             if not prev_severity is None:
                 yield close_placemark()

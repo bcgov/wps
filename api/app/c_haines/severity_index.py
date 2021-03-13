@@ -2,7 +2,7 @@
 """
 import os
 from datetime import datetime, timezone, timedelta
-from typing import Final, Tuple, Generator
+from typing import Final, Tuple, Generator, Union, List
 from contextlib import contextmanager
 import tempfile
 import logging
@@ -328,7 +328,42 @@ class CHainesSeverityGenerator():
         self.c_haines_generator = CHainesGenerator()
         self.session = session
 
-    def _yield_payload(self):
+    def _collect_payload(self,
+                         urls: dict,
+                         prediction_timestamp: datetime,
+                         model_run: CHainesModelRun,
+                         tmp_path: str) -> Union[EnvCanadaPayload, None]:
+        """ Collect all the different things that make up our payload: our downloaded files,
+        model run, and prediction timestamp. """
+
+        def _download_files(urls: dict,
+                            model: ModelEnum,
+                            tmp_path: str) -> Union[List[str], None]:
+            """ Try to download all the files """
+            filenames = []
+            for key in make_model_levels(model):
+                # Try to download this file.
+                filename = download(urls[key], tmp_path)
+                if not filename:
+                    # If we fail to download one of files, quit, don't try the others.
+                    logger.warning('failed to download all files')
+                    return None
+                filenames.append(filename)
+            return filenames
+
+        filenames = _download_files(urls, self.model, tmp_path)
+        if filenames:
+            filename_tmp_700, filename_tmp_850, filename_dew_850 = filenames
+            payload = EnvCanadaPayload()
+            payload.filename_tmp_700 = filename_tmp_700
+            payload.filename_tmp_850 = filename_tmp_850
+            payload.filename_dew_850 = filename_dew_850
+            payload.prediction_timestamp = prediction_timestamp
+            payload.model_run = model_run
+            return payload
+        return None
+
+    def _yield_payload(self, tmp_path):
         """ Iterator that yields the next to process. """
         prediction_model = get_prediction_model(self.session, self.model, self.projection)
         utc_now = get_utc_now()
@@ -346,26 +381,13 @@ class CHainesSeverityGenerator():
                                 model_run_timestamp, prediction_timestamp)
                     continue
 
-                with tempfile.TemporaryDirectory() as tmp_path:
-                    if self.model == ModelEnum.HRDPS:
-                        filename_tmp_700 = download(urls['TMP_ISBL_0700'], tmp_path)
-                        filename_tmp_850 = download(urls['TMP_ISBL_0850'], tmp_path)
-                        filename_dew_850 = download(urls['DEPR_ISBL_0850'], tmp_path)
-                    else:
-                        filename_tmp_700 = download(urls['TMP_ISBL_700'], tmp_path)
-                        filename_tmp_850 = download(urls['TMP_ISBL_850'], tmp_path)
-                        filename_dew_850 = download(urls['DEPR_ISBL_850'], tmp_path)
-
-                    if filename_tmp_700 and filename_tmp_850 and filename_dew_850:
-                        payload = EnvCanadaPayload()
-                        payload.filename_tmp_700 = filename_tmp_700
-                        payload.filename_tmp_850 = filename_tmp_850
-                        payload.filename_dew_850 = filename_dew_850
-                        payload.prediction_timestamp = prediction_timestamp
-                        payload.model_run = model_run
-                        yield payload
-                    else:
-                        logger.warning('failed to download all files')
+                payload = self._collect_payload(urls, prediction_timestamp, model_run, tmp_path)
+                if payload:
+                    yield payload
+                else:
+                    # If you didn't get one of them - you probably won't get the rest either!
+                    logger.info('Failed to download one of the model files - skipping the rest')
+                    return
 
     def _generate_c_haines_data(
             self,
@@ -412,15 +434,20 @@ class CHainesSeverityGenerator():
     def generate(self):
         """ Entry point for generating and storing c-haines severity index. """
         # Iterate through payloads that need processing.
-        for payload in self._yield_payload():
-            # Generate the c_haines data.
-            c_haines_data, source_info = self._generate_c_haines_data(payload)
-            # Generate the severity index and mask data.
-            c_haines_severity_data, c_haines_mask_data = generate_severity_data(c_haines_data)
-            # We're done with the c_haines data, so we can clean up some memory.
-            del c_haines_data
-            # Save to database.
-            self._save_severity_data_to_database(payload,
-                                                 c_haines_severity_data,
-                                                 c_haines_mask_data,
-                                                 source_info)
+        with tempfile.TemporaryDirectory() as tmp_path:
+            for payload in self._yield_payload(tmp_path):
+                # Generate the c_haines data.
+                c_haines_data, source_info = self._generate_c_haines_data(payload)
+                # Generate the severity index and mask data.
+                c_haines_severity_data, c_haines_mask_data = generate_severity_data(c_haines_data)
+                # We're done with the c_haines data, so we can clean up some memory.
+                del c_haines_data
+                # Save to database.
+                self._save_severity_data_to_database(payload,
+                                                     c_haines_severity_data,
+                                                     c_haines_mask_data,
+                                                     source_info)
+                # Delete temporary files
+                os.remove(payload.filename_dew_850)
+                os.remove(payload.filename_tmp_700)
+                os.remove(payload.filename_tmp_850)

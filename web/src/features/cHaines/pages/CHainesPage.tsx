@@ -167,6 +167,7 @@ const CHainesPage = () => {
         selected_prediction_timestamp
       )
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [model_runs])
 
   useEffect(() => {
@@ -186,6 +187,7 @@ const CHainesPage = () => {
         }
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [model_run_predictions])
 
   useEffect(() => {
@@ -250,7 +252,7 @@ const CHainesPage = () => {
 
     // Create and add the legend.
     const customControl = L.Control.extend({
-      onAdd: function(map: any) {
+      onAdd: function() {
         const html = (
           <div>
             <div className={classes.legend}>
@@ -273,14 +275,11 @@ const CHainesPage = () => {
         return div
       },
 
-      onRemove: function(map: any) {
+      onRemove: function() {
         //
       }
     })
     new customControl({ position: 'bottomleft' }).addTo(mapRef.current)
-    // L.control.layers(baseMaps, overlays).addTo(mapRef.current)
-
-    // const legend = L.control({position: 'bottomLeft'});
 
     dispatch(fetchFireCentresGeoJSON())
 
@@ -288,8 +287,14 @@ const CHainesPage = () => {
     return () => {
       mapRef.current?.remove()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []) // Initialize the map only once
 
+  const predictionIsLoadedCheck = isLoaded(
+    selected_model_abbreviation,
+    selected_model_timestamp,
+    selected_prediction_timestamp
+  )
   useEffect(() => {
     if (mapRef.current && selected_model_timestamp && selected_prediction_timestamp) {
       if (
@@ -300,7 +305,7 @@ const CHainesPage = () => {
         )
       ) {
         const customControl = L.Control.extend({
-          onAdd: function(map: any) {
+          onAdd: function() {
             const html = (
               <div className={classes.label}>
                 <div>
@@ -319,7 +324,7 @@ const CHainesPage = () => {
             return div
           },
 
-          onRemove: function(map: any) {
+          onRemove: function() {
             //
           }
         })
@@ -338,7 +343,7 @@ const CHainesPage = () => {
         }
       } else {
         const customControl = L.Control.extend({
-          onAdd: function(map: any) {
+          onAdd: function() {
             const html = (
               <div className={classes.loading}>
                 <div>LOADING: {selected_prediction_timestamp} (UTC)</div>
@@ -350,7 +355,7 @@ const CHainesPage = () => {
             return div
           },
 
-          onRemove: function(map: any) {
+          onRemove: function() {
             //
           }
         })
@@ -361,15 +366,12 @@ const CHainesPage = () => {
         loadingLayerRef.current.addTo(mapRef.current)
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     selected_model_timestamp,
     selected_prediction_timestamp,
     model_run_predictions,
-    isLoaded(
-      selected_model_abbreviation,
-      selected_model_timestamp,
-      selected_prediction_timestamp
-    ),
+    predictionIsLoadedCheck,
     isAnimating
   ])
 

@@ -45,7 +45,6 @@ jobs:
       - name: Download poetry installer
         if: steps.cache-poetry-installer.outputs.cache-hit != 'true'
         run: |
-          echo
           mkdir ~/poetry_installer
           curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py > ~/poetry_installer/get-poetry.py
 
@@ -66,7 +65,8 @@ jobs:
         # We don't have much control over what version of gdal we're getting, it's pretty much whatever is
         # available to us. As such, gdal is not installed by poetry, since the version will differ between
         # platforms.
-        # Also have to be absolutely sure that numpy is installed before gdal
+        # Also have to be absolutely sure that numpy is installed before gdal (otherwise gdal doesn't install
+        # correctly, and you'll run into ndarray errors.)
         working-directory: ./api
         run: |
           source ~/.poetry/env
