@@ -12,8 +12,7 @@ import {
   updateSelectedModel,
   updateSelectedModelRun,
   updateSelectedPrediction,
-  fetchCHainesGeoJSON,
-  fetchFireCentresGeoJSON
+  fetchCHainesGeoJSON
 } from 'features/cHaines/slices/cHainesModelRunsSlice'
 import { Container, PageHeader, PageTitle } from 'components'
 import { formatDateInPST } from 'utils/date'
@@ -93,15 +92,14 @@ const CHainesPage = () => {
     const date = `${d.getDate()}`
     const hours = `${d.getHours()}`
     const minutes = `${d.getMinutes()}`
-    const dateString = `${d.getFullYear()}-${month.padStart(2, '0')}-${date.padStart(
+    return `${d.getFullYear()}-${month.padStart(2, '0')}-${date.padStart(
       2,
       '0'
     )}T${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`
-    return dateString
   })
   const {
     model_runs,
-    selected_model_timestamp,
+    selected_model_run_timestamp,
     model_run_predictions,
     selected_prediction_timestamp,
     selected_model_abbreviation,
@@ -158,12 +156,12 @@ const CHainesPage = () => {
   useEffect(() => {
     if (
       selected_prediction_timestamp &&
-      selected_model_timestamp &&
+      selected_model_run_timestamp &&
       model_runs.length > 0
     ) {
       loadModelPrediction(
         selected_model_abbreviation,
-        selected_model_timestamp,
+        selected_model_run_timestamp,
         selected_prediction_timestamp
       )
     }
@@ -173,15 +171,15 @@ const CHainesPage = () => {
   useEffect(() => {
     if (selected_model_abbreviation in model_run_predictions) {
       if (
-        selected_model_timestamp in model_run_predictions[selected_model_abbreviation]
+        selected_model_run_timestamp in model_run_predictions[selected_model_abbreviation]
       ) {
         if (
           selected_prediction_timestamp in
-          model_run_predictions[selected_model_abbreviation][selected_model_timestamp]
+          model_run_predictions[selected_model_abbreviation][selected_model_run_timestamp]
         ) {
           showLayer(
             selected_model_abbreviation,
-            selected_model_timestamp,
+            selected_model_run_timestamp,
             selected_prediction_timestamp
           )
         }
@@ -281,8 +279,6 @@ const CHainesPage = () => {
     })
     new customControl({ position: 'bottomleft' }).addTo(mapRef.current)
 
-    dispatch(fetchFireCentresGeoJSON())
-
     // Destroy the map and clear all related event listeners when the component unmounts
     return () => {
       mapRef.current?.remove()
@@ -292,15 +288,15 @@ const CHainesPage = () => {
 
   const predictionIsLoadedCheck = isLoaded(
     selected_model_abbreviation,
-    selected_model_timestamp,
+    selected_model_run_timestamp,
     selected_prediction_timestamp
   )
   useEffect(() => {
-    if (mapRef.current && selected_model_timestamp && selected_prediction_timestamp) {
+    if (mapRef.current && selected_model_run_timestamp && selected_prediction_timestamp) {
       if (
         isLoaded(
           selected_model_abbreviation,
-          selected_model_timestamp,
+          selected_model_run_timestamp,
           selected_prediction_timestamp
         )
       ) {
@@ -309,7 +305,7 @@ const CHainesPage = () => {
             const html = (
               <div className={classes.label}>
                 <div>
-                  {selected_model_abbreviation} model run: {selected_model_timestamp}{' '}
+                  {selected_model_abbreviation} model run: {selected_model_run_timestamp}{' '}
                   (UTC)
                 </div>
                 <div>
@@ -368,7 +364,7 @@ const CHainesPage = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    selected_model_timestamp,
+    selected_model_run_timestamp,
     selected_prediction_timestamp,
     model_run_predictions,
     predictionIsLoadedCheck,
@@ -459,7 +455,7 @@ const CHainesPage = () => {
     stopAnimation()
     // If the model has been changed, we need to load a different prediction.
     const model_run = model_runs.find(
-      model_run => model_run.model.abbrev === event.target.value
+      instance => instance.model.abbrev === event.target.value
     )
     if (model_run) {
       if (model_run.prediction_timestamps.length > 0) {
@@ -479,9 +475,9 @@ const CHainesPage = () => {
     stopAnimation()
     // If the model run has been changed, we also have to load a different prediction.
     const model_run = model_runs.find(
-      model_run =>
-        model_run.model_run_timestamp === event.target.value &&
-        model_run.model.abbrev === selected_model_abbreviation
+      instance =>
+        instance.model_run_timestamp === event.target.value &&
+        instance.model.abbrev === selected_model_abbreviation
     )
     if (model_run) {
       if (model_run.prediction_timestamps.length > 0) {
@@ -500,21 +496,21 @@ const CHainesPage = () => {
     stopAnimation()
     loadModelPrediction(
       selected_model_abbreviation,
-      selected_model_timestamp,
+      selected_model_run_timestamp,
       event.target.value
     )
   }
 
   const geoJSONURI = getCHainesGeoJSONURI(
     selected_model_abbreviation,
-    selected_model_timestamp,
+    selected_model_run_timestamp,
     selected_prediction_timestamp
   )
 
   const handleCopyClick = () => {
     const uri = getCHainesGeoJSONURI(
       selected_model_abbreviation,
-      selected_model_timestamp,
+      selected_model_run_timestamp,
       selected_prediction_timestamp
     )
     navigator.clipboard.writeText(uri)
@@ -528,9 +524,9 @@ const CHainesPage = () => {
 
   const loadNextPrediction = () => {
     const model_run = model_runs.find(
-      model_run =>
-        model_run.model_run_timestamp === selected_model_timestamp &&
-        model_run.model.abbrev === selected_model_abbreviation
+      instance =>
+        instance.model_run_timestamp === selected_model_run_timestamp &&
+        instance.model.abbrev === selected_model_abbreviation
     )
     if (model_run) {
       const index = model_run.prediction_timestamps.findIndex(
@@ -539,7 +535,7 @@ const CHainesPage = () => {
       const nextIndex = index + 1 < model_run.prediction_timestamps.length ? index + 1 : 0
       loadModelPrediction(
         selected_model_abbreviation,
-        selected_model_timestamp,
+        selected_model_run_timestamp,
         model_run.prediction_timestamps[nextIndex]
       )
     }
@@ -547,9 +543,9 @@ const CHainesPage = () => {
 
   const loadPreviousPrediction = () => {
     const model_run = model_runs.find(
-      model_run =>
-        model_run.model_run_timestamp === selected_model_timestamp &&
-        model_run.model.abbrev === selected_model_abbreviation
+      instance =>
+        instance.model_run_timestamp === selected_model_run_timestamp &&
+        instance.model.abbrev === selected_model_abbreviation
     )
     if (model_run) {
       const index = model_run.prediction_timestamps.findIndex(
@@ -558,7 +554,7 @@ const CHainesPage = () => {
       const nextIndex = index > 0 ? index - 1 : model_run.prediction_timestamps.length - 1
       loadModelPrediction(
         selected_model_abbreviation,
-        selected_model_timestamp,
+        selected_model_run_timestamp,
         model_run.prediction_timestamps[nextIndex]
       )
     }
@@ -585,7 +581,7 @@ const CHainesPage = () => {
 
   const KMLUrl = getCHainesKMLURI(
     selected_model_abbreviation,
-    selected_model_timestamp,
+    selected_model_run_timestamp,
     selected_prediction_timestamp
   )
 
@@ -593,17 +589,17 @@ const CHainesPage = () => {
 
   const KMLModelRunUrl = getCHainesKMLModelRunURI(
     selected_model_abbreviation,
-    selected_model_timestamp
+    selected_model_run_timestamp
   )
 
   const KMLModelFilename = `${selected_model_abbreviation}.kml`
 
   const KMLModelRunFilename = `${selected_model_abbreviation}-${encodeURIComponent(
-    selected_model_timestamp
+    selected_model_run_timestamp
   )}.kml`
 
   const KMLFilename = `${selected_model_abbreviation}-${encodeURIComponent(
-    selected_model_timestamp
+    selected_model_run_timestamp
   )}-${encodeURIComponent(selected_prediction_timestamp)}.kml`
 
   return (
@@ -632,7 +628,10 @@ const CHainesPage = () => {
             </div>
             <div>
               Model runs:
-              <select value={selected_model_timestamp} onChange={handleChangeModelRun}>
+              <select
+                value={selected_model_run_timestamp}
+                onChange={handleChangeModelRun}
+              >
                 {model_runs
                   .filter(model_run => {
                     return model_run.model.abbrev === selected_model_abbreviation
@@ -653,14 +652,13 @@ const CHainesPage = () => {
                 {model_runs
                   .filter(model_run => {
                     return (
-                      model_run.model_run_timestamp === selected_model_timestamp &&
+                      model_run.model_run_timestamp === selected_model_run_timestamp &&
                       model_run.model.abbrev === selected_model_abbreviation
                     )
                   })
                   .map((model_run, i) =>
                     model_run.prediction_timestamps.map((prediction_timestamp, i2) => (
                       <option key={`${i}-${i2}`} value={prediction_timestamp}>
-                        {/* {prediction_timestamp} (UTC)&nbsp; */}
                         {formatDateInPST(prediction_timestamp)} (PST)
                       </option>
                     ))
@@ -698,14 +696,14 @@ const CHainesPage = () => {
             </div>
             <div>
               <a href={KMLModelRunUrl} download={KMLModelRunFilename}>
-                {selected_model_abbreviation}, model run {selected_model_timestamp} (UTC)
-                predictions.
+                {selected_model_abbreviation}, model run {selected_model_run_timestamp}{' '}
+                (UTC) predictions.
               </a>
             </div>
             <div>
               <a href={KMLUrl} download={KMLFilename}>
-                {selected_model_abbreviation}, model run {selected_model_timestamp} (UTC)
-                prediction {formatDateInPST(selected_prediction_timestamp)} (PST)
+                {selected_model_abbreviation}, model run {selected_model_run_timestamp}{' '}
+                (UTC) prediction {formatDateInPST(selected_prediction_timestamp)} (PST)
               </a>
             </div>
             <div>
@@ -714,7 +712,7 @@ const CHainesPage = () => {
             <div>
               <a href={geoJSONURI}>
                 GeoJSON for {selected_model_abbreviation}, model run{' '}
-                {selected_model_timestamp} (UTC) prediction{' '}
+                {selected_model_run_timestamp} (UTC) prediction{' '}
                 {formatDateInPST(selected_prediction_timestamp)} (PST)
               </a>
               <button onClick={handleCopyClick}>Copy GeoJSON link to clipboard</button>

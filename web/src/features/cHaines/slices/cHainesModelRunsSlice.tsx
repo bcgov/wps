@@ -1,11 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import {
-  ModelRun,
-  ModelRuns,
-  getModelRuns,
-  getCHainesGeoJSON,
-  getFireCentresGeoJSON
-} from 'api/cHainesAPI'
+import { ModelRun, ModelRuns, getModelRuns, getCHainesGeoJSON } from 'api/cHainesAPI'
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 import { FeatureCollection } from 'geojson'
@@ -17,10 +11,8 @@ interface State {
   model_run_predictions: Record<string, Record<string, Record<string, FeatureCollection>>>
   model_run_predictions_status: Record<string, Record<string, Record<string, string>>>
   selected_model_abbreviation: string
-  // TODO: rename selected_model_timestamp to selected_model_run_timestamp
-  selected_model_timestamp: string
+  selected_model_run_timestamp: string
   selected_prediction_timestamp: string
-  fire_centres: FeatureCollection | null
 }
 
 interface GeoJSONContext {
@@ -35,11 +27,10 @@ const initialState: State = {
   error: null,
   model_runs: [],
   selected_model_abbreviation: 'GDPS',
-  selected_model_timestamp: '',
+  selected_model_run_timestamp: '',
   selected_prediction_timestamp: '',
   model_run_predictions: {},
-  model_run_predictions_status: {},
-  fire_centres: null
+  model_run_predictions_status: {}
 }
 
 const cHainesModelRunsSlice = createSlice({
@@ -54,7 +45,7 @@ const cHainesModelRunsSlice = createSlice({
       state.model_runs = action.payload.model_runs
       if (state.model_runs.length > 0) {
         state.selected_model_abbreviation = state.model_runs[0].model.abbrev
-        state.selected_model_timestamp = state.model_runs[0].model_run_timestamp
+        state.selected_model_run_timestamp = state.model_runs[0].model_run_timestamp
         if (state.model_runs[0].prediction_timestamps.length > 0) {
           state.selected_prediction_timestamp =
             state.model_runs[0].prediction_timestamps[0]
@@ -73,23 +64,23 @@ const cHainesModelRunsSlice = createSlice({
     setSelectedModel(state: State, action: PayloadAction<string>) {
       state.selected_model_abbreviation = action.payload
       const model_run = state.model_runs.find(
-        model_run => model_run.model.abbrev === action.payload
+        instance => instance.model.abbrev === action.payload
       )
       if (model_run) {
-        state.selected_model_timestamp = model_run.model_run_timestamp
+        state.selected_model_run_timestamp = model_run.model_run_timestamp
         if (model_run.prediction_timestamps.length > 0) {
           state.selected_prediction_timestamp = model_run.prediction_timestamps[0]
         }
       } else {
-        state.selected_model_timestamp = ''
+        state.selected_model_run_timestamp = ''
       }
     },
     setSelectedModelRun(state: State, action: PayloadAction<string>) {
-      state.selected_model_timestamp = action.payload
+      state.selected_model_run_timestamp = action.payload
       const model_run = state.model_runs.find(
-        model_run =>
-          model_run.model_run_timestamp === action.payload &&
-          model_run.model.abbrev === state.selected_model_abbreviation
+        instance =>
+          instance.model_run_timestamp === action.payload &&
+          instance.model.abbrev === state.selected_model_abbreviation
       )
       if (model_run) {
         state.selected_prediction_timestamp = model_run.prediction_timestamps[0]
@@ -124,9 +115,6 @@ const cHainesModelRunsSlice = createSlice({
     getPredictionFailed(state: State, action: PayloadAction<string>) {
       state.loading = false
       state.error = action.payload
-    },
-    getFireCentresSuccess(state: State, action: PayloadAction<FeatureCollection>) {
-      state.fire_centres = action.payload
     }
   }
 })
@@ -140,8 +128,7 @@ const {
   setSelectedPrediction,
   getPredictionStart,
   getPredictionSuccess,
-  getPredictionFailed,
-  getFireCentresSuccess
+  getPredictionFailed
 } = cHainesModelRunsSlice.actions
 
 export default cHainesModelRunsSlice.reducer
@@ -153,15 +140,6 @@ export const fetchModelRuns = (
     dispatch(getModelRunsStart())
     const modelsRuns = await getModelRuns(model_run_timestamp)
     dispatch(getModelRunsSuccess(modelsRuns))
-    // if (modelsRuns.model_runs.length > 0) {
-    //   if (modelsRuns.model_runs[0].prediction_timestamps[0])
-    //   dispatch(
-    //     fetchCHainesGeoJSON(
-    //       modelsRuns.model_runs[0].model_run_timestamp,
-    //       modelsRuns.model_runs[0].prediction_timestamps[0]
-    //     )
-    //   )
-    // }
   } catch (err) {
     dispatch(getModelRunsFailed(err.toString()))
     logError(err)
@@ -206,15 +184,6 @@ export const fetchCHainesGeoJSON = (
     dispatch(getPredictionSuccess(result))
   } catch (err) {
     dispatch(getPredictionFailed(err.toString()))
-    logError(err)
-  }
-}
-
-export const fetchFireCentresGeoJSON = (): AppThunk => async dispatch => {
-  try {
-    const geoJSON = await getFireCentresGeoJSON()
-    dispatch(getFireCentresSuccess(geoJSON))
-  } catch (err) {
     logError(err)
   }
 }
