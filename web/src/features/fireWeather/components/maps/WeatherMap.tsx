@@ -1,11 +1,10 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import { fromLonLat, get } from 'ol/proj'
 import * as olSource from 'ol/source'
 import GeoJSON from 'ol/format/GeoJSON'
 import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style'
 import { FeatureLike } from 'ol/Feature'
 
-import WeatherStationsGeoJson from 'features/fireWeather/components/maps/weather-stations-geojson.json'
 import Map from 'features/map/Map'
 import TileLayer from 'features/map/TileLayer'
 import VectorLayer from 'features/map/VectorLayer'
@@ -25,6 +24,8 @@ const styles = {
   })
 }
 
+const BC_WEATHER_STATIONS_WEB_FEATURE_SERVICE =
+  'https://openmaps.gov.bc.ca/geo/pub/wfs?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&outputFormat=json&typeName=WHSE_LAND_AND_NATURAL_RESOURCE.PROT_WEATHER_STATIONS_SP&srsName=EPSG:3857'
 const getArcGISAttribution = (service: string): string =>
   `Tiles © <a href="https://services.arcgisonline.com/ArcGIS/rest/services/${service}/MapServer" target="_blank">ArcGIS</a>`
 const getArcGISMapUrl = (service: string): string =>
@@ -40,6 +41,18 @@ const zoom = 6
 
 const WeatherMap = () => {
   const [service, setService] = useState(arcGisServicesMap['Satellite'])
+  const [wxStationsGeoJSON, setWxStationsGeoJSON] = useState({
+    type: 'FeatureCollection',
+    features: []
+  })
+
+  useEffect(() => {
+    fetch(BC_WEATHER_STATIONS_WEB_FEATURE_SERVICE)
+      .then(resp => resp.json())
+      .then(json => {
+        setWxStationsGeoJSON(json)
+      })
+  }, [])
 
   const renderTooltip = useCallback((feature: FeatureLike | null) => {
     if (!feature) return null
@@ -65,13 +78,12 @@ const WeatherMap = () => {
       <VectorLayer
         source={
           new olSource.Vector({
-            features: new GeoJSON().readFeatures(WeatherStationsGeoJson, {
+            features: new GeoJSON().readFeatures(wxStationsGeoJSON, {
               featureProjection: get('EPSG:3857')
             })
           })
         }
         style={styles.Point}
-        zIndex={1}
       />
     </Map>
   )
