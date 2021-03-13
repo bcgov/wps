@@ -5,7 +5,8 @@ import rootReducer, { RootState } from 'app/rootReducer'
 
 const store = configureStore({
   reducer: rootReducer,
-  middleware: getDefaultMiddleware =>
+  // c-haines data is VERY big - so causes huge slowdowns in development
+  middleware: () =>
     getDefaultMiddleware({
       immutableCheck: false,
       serializableCheck: false

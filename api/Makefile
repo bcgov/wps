@@ -48,7 +48,7 @@ test:
 	# Run tests
 	# useful params for pytest:
 	# -s show stdout
-	# -n numprocesses - doesn't really seem to run faster with more proccesses at the moment.
+	# -n numprocesses
 	PYTHONPYCACHEPREFIX=python_cache $(POETRY_RUN) pytest -n 3 app;
 	# ImportMismatchError? run: make clean
 

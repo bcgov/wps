@@ -104,9 +104,9 @@ objects:
                           key: rocket.chat-auth-token-secret
                   resources:
                     limits:
-                      cpu: "500"
+                      cpu: "1"
                       memory: 512Mi
                     requests:
-                      cpu: "500m"
+                      cpu: "1"
                       memory: 256Mi
               restartPolicy: OnFailure

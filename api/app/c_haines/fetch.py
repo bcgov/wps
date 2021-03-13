@@ -1,7 +1,7 @@
 """ Fetch c-haines geojson
 """
 from io import StringIO
-from typing import Final
+from typing import Final, Iterator
 from urllib.parse import urljoin
 from datetime import datetime, timedelta
 import logging
@@ -111,7 +111,44 @@ def get_look_at(model: ModelEnum, model_run_timestamp: datetime):
     return '\n'.join(kml)
 
 
-def fetch_model_run_kml_streamer(model: ModelEnum, model_run_timestamp: datetime):
+def _yield_folder_parts(result, model: ModelEnum, model_run_timestamp: datetime) -> Iterator[str]:
+    """ Yield up all the different parts of the folders with placemarks.
+    """
+    prev_prediction_timestamp = None
+    prev_severity = None
+    # Iterate through the records we get from the database.
+    for poly, severity, prediction_timestamp in result:
+        # If it's a new timestamp.
+        if prediction_timestamp != prev_prediction_timestamp:
+            # Close the previous placemark if needed.
+            if not prev_severity is None:
+                yield close_placemark()
+            prev_severity = None
+            # Close the previous folder if needed.
+            if not prev_prediction_timestamp is None:
+                yield f'{FOLDER_CLOSE}\n'
+            prev_prediction_timestamp = prediction_timestamp
+            # Start a new folder.
+            yield f'{FOLDER_OPEN}\n'
+            yield '<name>{} {} {}</name>\n'.format(model, model_run_timestamp, prediction_timestamp)
+        # Close the placemark if neded.
+        if severity != prev_severity:
+            if not prev_severity is None:
+                yield close_placemark()
+            prev_severity = severity
+            yield open_placemark(model, SeverityEnum(severity), prediction_timestamp)
+        # Yield up the polygon.
+        yield poly
+
+    # Close all tags, if neede.
+    if not prev_prediction_timestamp is None:
+        if not prev_severity is None:
+            yield close_placemark()
+        yield f'{FOLDER_CLOSE}\n'
+
+
+def fetch_model_run_kml_streamer(
+        model: ModelEnum, model_run_timestamp: datetime) -> Iterator[str]:
     """ Yield model run XML (allows streaming response to start while kml is being
     constructed.)
     """
@@ -123,35 +160,21 @@ def fetch_model_run_kml_streamer(model: ModelEnum, model_run_timestamp: datetime
             model_run = get_most_recent_model_run(session, model)
             model_run_timestamp = model_run.model_run_timestamp
 
+        # Fetch the KML results from the database.
         result = get_model_run_kml(session, model, model_run_timestamp)
 
+        # Serve up the kml header.
         yield get_kml_header()
+        # Serve up the "look_at" which tells google earth when and where to take you.
         yield get_look_at(model, model_run_timestamp)
+        # Serve up the name.
         yield '<name>{} {}</name>\n'.format(model, model_run_timestamp)
 
-        prev_prediction_timestamp = None
-        prev_severity = None
-        for poly, severity, prediction_timestamp in result:
-            if prediction_timestamp != prev_prediction_timestamp:
-                if not prev_severity is None:
-                    yield close_placemark()
-                prev_severity = None
-                if not prev_prediction_timestamp is None:
-                    yield f'{FOLDER_CLOSE}\n'
-                prev_prediction_timestamp = prediction_timestamp
-                yield f'{FOLDER_OPEN}\n'
-                yield '<name>{} {} {}</name>\n'.format(model, model_run_timestamp, prediction_timestamp)
-            if severity != prev_severity:
-                if not prev_severity is None:
-                    yield close_placemark()
-                prev_severity = severity
-                yield open_placemark(model, SeverityEnum(severity), prediction_timestamp)
-            yield poly
+        # Iterate through all the different folders and placemarks.
+        for item in _yield_folder_parts(result, model, model_run_timestamp):
+            yield item
 
-        if not prev_prediction_timestamp is None:
-            if not prev_severity is None:
-                yield close_placemark()
-            yield f'{FOLDER_CLOSE}\n'
+        # Close the KML document.
         yield '</Document>\n'
         yield '</kml>\n'
         logger.info('kml complete')
