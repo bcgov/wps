@@ -255,7 +255,7 @@ parameters:
     description: |
       The number of StatefulSet replicas to use.
     displayName: REPLICAS
-    value: "3"
+    value: "2"
   - name: CPU_REQUEST
     description: |
       Starting amount of CPU the container can use.
@@ -268,11 +268,11 @@ parameters:
   - name: MEMORY_REQUEST
     description: Starting amount of memory the container can use.
     displayName: Memory Request
-    value: 256Mi
+    value: 512Mi
   - name: MEMORY_LIMIT
     description: Maximum amount of memory the container can use.
     displayName: Memory Limit
-    value: 1Gi
+    value: 2Gi
   - description: Namespace in which database resides
     displayName: Target Namespace
     name: TARGET_NAMESPACE
