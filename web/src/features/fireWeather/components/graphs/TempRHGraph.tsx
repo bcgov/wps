@@ -18,7 +18,7 @@ import {
 const observedTempColor = '#4291FF'
 const observedRHColor = '#005f87'
 const observedDewpointColor = '#02fa44'
-const forecastTempColor = '1200DE'
+const forecastTempColor = '#1200DE'
 const forecastRHColor = '#17c4c4'
 const hrdpsTempColor = '#B86BFF'
 const hrdpsRHColor = '#3ac417'
