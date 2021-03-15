@@ -44,18 +44,10 @@ def delete_older_than(session: Session, point_in_time: datetime):
         logger.info('deleted %s predictions', predictions)
 
     # Delete model runs.
-    # NOTE: Again isn't a very nice way, but sqlalchemy complains when
-    # trying to delete by time.
-    # Collect all the id's to delete (yuck!)
-    model_run_ids = []
+    # synchronize_session=False ??
+    # NOTE: In a perfect world we'd need only this command, and everything would cascade.
     model_runs = session.query(CHainesModelRun)\
-        .filter(CHainesModelRun.model_run_timestamp < point_in_time)
-    for model_run in model_runs:
-        model_run_ids.append(model_run.id)
-
-    logger.info('delete model runs with id: %s', model_run_ids)
-    model_runs = session.query(CHainesModelRun)\
-        .filter(CHainesModelRun.id.in_(model_run_ids)).delete(synchronize_session=False)
+        .filter(CHainesModelRun.model_run_timestamp < point_in_time).delete()
     logger.info('deleted %s model runs', model_runs)
 
 
