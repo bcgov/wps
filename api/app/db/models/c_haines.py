@@ -2,7 +2,7 @@
 """
 import enum
 from sqlalchemy import (Column, Integer,
-                        Sequence, ForeignKey, UniqueConstraint, Enum)
+                        Sequence, ForeignKey, UniqueConstraint, Enum, Index)
 from sqlalchemy.orm import relationship
 from geoalchemy2 import Geometry
 from app.db.database import Base
@@ -69,7 +69,10 @@ class CHainesPoly(Base):
 
     id = Column(Integer, Sequence('c_haines_polygons_id_seq'),
                 primary_key=True, nullable=False, index=True)
-    geom = Column(Geometry('POLYGON'), nullable=False)
+    # We create the index later, due to issue with alembic + geoalchemy.
+    geom = Column(Geometry('POLYGON', spatial_index=False), nullable=False)
+    idx_c_haines_polygons_geom = Index('geom', postgresql_using='gist')
+    # geom = Column(Geometry('POLYGON'), nullable=False)
     # Depending on the severity of the C-Haines index, we group c-haines
     # ranges together. (Fire Behaviour analysts only care of the
     # C-Haines is high)
@@ -78,3 +81,7 @@ class CHainesPoly(Base):
     c_haines_prediction_id = Column(Integer, ForeignKey(
         'c_haines_predictions.id'), nullable=False)
     c_haines_prediction = relationship('CHainesPrediction')
+
+
+# Explict creation of index due to issue with alembic + geoalchemy.
+Index('idx_c_haines_polygons_geom', CHainesPoly.geom, postgresql_using='gist')
