@@ -4,14 +4,14 @@ import React from "react"
 
 const useStyles = makeStyles(theme => ({
     root: {
-      background: theme.palette.primary.main,
+      background: theme.palette.info.light,
       borderBottomWidth: 2,
       borderBottomStyle: 'solid',
       borderBottomColor: theme.palette.secondary.main
     }
   }))
 
-export const NoMatch: React.FunctionComponent = () => {
+export const NoMatchPage: React.FunctionComponent = () => {
     const classes = useStyles()
   
     return (
@@ -19,7 +19,7 @@ export const NoMatch: React.FunctionComponent = () => {
         <PageHeader title="Not Found" productName="Not Found"/>
         <PageTitle title="Not Found" />
         <Container>
-            <p>404 Not Found</p>
+            <p>404 Not Found. Return <a href="/" >home</a></p>
         </Container>
       </main>
     )
