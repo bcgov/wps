@@ -35,6 +35,12 @@ class CHainesModelRun(Base):
     prediction_model_id = Column(Integer, ForeignKey(
         'prediction_models.id'), nullable=False)
     prediction_model = relationship("PredictionModel")
+    predictions = relationship("CHainesPrediction")
+
+    def __str__(self):
+        return (f'id:{self.id}, '
+                f'model_run_timestamp:{self.model_run_timestamp}, '
+                f'prediction_model_id:{self.prediction_model_id}')
 
 
 class CHainesPrediction(Base):
@@ -50,7 +56,12 @@ class CHainesPrediction(Base):
     prediction_timestamp = Column(TZTimeStamp, nullable=False)
     model_run_id = Column(Integer, ForeignKey(
         'c_haines_model_runs.id'), nullable=False)
-    model_run = relationship("CHainesModelRun")
+    model_run = relationship("CHainesModelRun", back_populates="predictions")
+
+    def __str__(self):
+        return (f'id:{self.id}, '
+                f'prediction_timestamp:{self.prediction_timestamp}, '
+                f'model_run_id:{self.model_run_id}')
 
 
 class CHainesPoly(Base):

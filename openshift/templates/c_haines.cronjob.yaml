@@ -91,6 +91,11 @@ objects:
                       value: "5432"
                     - name: POSTGRES_DATABASE
                       value: ${POSTGRES_DATABASE}
+                    - name: MAX_AGE_C_HAINES
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${GLOBAL_NAME}-global
+                          key: env.max-age-c-haines
                     - name: ROCKET_URL_POST_MESSAGE
                       valueFrom:
                         configMapKeyRef:

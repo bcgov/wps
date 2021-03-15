@@ -5,11 +5,46 @@ import logging
 from sqlalchemy import desc, asc
 from sqlalchemy.orm import Session
 from app.weather_models import ModelEnum
-from app.db.models import CHainesPrediction, CHainesModelRun, PredictionModel
+from app.db.models import CHainesPrediction, CHainesModelRun, PredictionModel, CHainesPoly
 from app.time_utils import get_utc_now
 
 
 logger = logging.getLogger(__name__)
+
+
+def delete_older_than(session: Session, point_in_time: datetime):
+    """ Delete any c-haines data older than the specified point in time """
+    logger.info('deleting c-hains model run data older than %s', point_in_time)
+    # Delete the old polygons.
+    model_runs = session.query(CHainesModelRun)\
+        .filter(CHainesModelRun.model_run_timestamp < point_in_time)
+    for model_run in model_runs:
+        predictions = session.query(CHainesPrediction)\
+            .filter(CHainesPrediction.model_run_id == model_run.id)
+        for prediction in predictions:
+            logger.info('deleting polygons for %s %s %s',
+                        model_run.prediction_model.abbreviation,
+                        model_run.model_run_timestamp,
+                        prediction.prediction_timestamp)
+            # session.query(CHainesPoly)\
+            #     .filter(CHainesPoly.c_haines_prediction_id == prediction.id)\
+            #     .delete()
+
+    # # Delete the old predictions.
+    # model_runs = session.query(CHainesModelRun)\
+    #     .filter(CHainesModelRun.model_run_timestamp < point_in_time)
+    # for model_run in model_runs:
+    #     logger.info('deleting predictions for %s %s',
+    #                 model_run.prediction_model.abbreviation,
+    #                 model_run.model_run_timestamp)
+    #     session.query(CHainesPrediction)\
+    #         .filter(CHainesPrediction.model_run_id == model_run.id)\
+    #         .delete()
+
+    # Delete the old model runs.
+    # session.query(CHainesModelRun)\
+    #     .filter(CHainesModelRun.model_run_timestamp < point_in_time)\
+    #     .delete()
 
 
 def get_most_recent_model_run(session: Session, model: ModelEnum) -> CHainesModelRun:
