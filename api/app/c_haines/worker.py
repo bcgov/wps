@@ -29,6 +29,7 @@ def generate():
 def maintain():
     """ We don't have an infinite amount of storage, so we have to clean
     out the database. """
+    # We default to 26 weeks (that's 6 months of data)
     max_age = int(get('MAX_AGE_C_HAINES', '26'))
     past = get_utc_now() - timedelta(weeks=max_age)
     with app.db.database.get_write_session_scope() as session:

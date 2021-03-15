@@ -35,7 +35,6 @@ class CHainesModelRun(Base):
     prediction_model_id = Column(Integer, ForeignKey(
         'prediction_models.id'), nullable=False)
     prediction_model = relationship("PredictionModel")
-    predictions = relationship("CHainesPrediction")
 
     def __str__(self):
         return (f'id:{self.id}, '
@@ -56,7 +55,7 @@ class CHainesPrediction(Base):
     prediction_timestamp = Column(TZTimeStamp, nullable=False)
     model_run_id = Column(Integer, ForeignKey(
         'c_haines_model_runs.id'), nullable=False)
-    model_run = relationship("CHainesModelRun", back_populates="predictions")
+    model_run = relationship("CHainesModelRun")
 
     def __str__(self):
         return (f'id:{self.id}, '

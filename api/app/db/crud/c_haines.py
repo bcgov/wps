@@ -14,37 +14,49 @@ logger = logging.getLogger(__name__)
 
 def delete_older_than(session: Session, point_in_time: datetime):
     """ Delete any c-haines data older than the specified point in time """
+    # NOTE: I couldn't get cascading to work - and gave up as it was taking too
+    # much time. It seems deleting records in sqlalchmey isn't all that straight
+    # forward.
+
     logger.info('deleting c-hains model run data older than %s', point_in_time)
-    # Delete the old polygons.
+
+    # Fetch all the model runs.
     model_runs = session.query(CHainesModelRun)\
         .filter(CHainesModelRun.model_run_timestamp < point_in_time)
     for model_run in model_runs:
+        # Fetch all the predictions for this model run.
         predictions = session.query(CHainesPrediction)\
             .filter(CHainesPrediction.model_run_id == model_run.id)
+
+        logger.info('delete polygons for model run %s', model_run)
         for prediction in predictions:
-            logger.info('deleting polygons for %s %s %s',
-                        model_run.prediction_model.abbreviation,
-                        model_run.model_run_timestamp,
-                        prediction.prediction_timestamp)
-            # session.query(CHainesPoly)\
-            #     .filter(CHainesPoly.c_haines_prediction_id == prediction.id)\
-            #     .delete()
+            # Delete all the polygons for this prediction.
+            polygons_deleted = session.query(CHainesPoly)\
+                .filter(CHainesPoly.c_haines_prediction_id == prediction.id)\
+                .delete()
+            logger.debug('deleted %s polygons for %s', polygons_deleted, prediction)
 
-    # # Delete the old predictions.
-    # model_runs = session.query(CHainesModelRun)\
-    #     .filter(CHainesModelRun.model_run_timestamp < point_in_time)
-    # for model_run in model_runs:
-    #     logger.info('deleting predictions for %s %s',
-    #                 model_run.prediction_model.abbreviation,
-    #                 model_run.model_run_timestamp)
-    #     session.query(CHainesPrediction)\
-    #         .filter(CHainesPrediction.model_run_id == model_run.id)\
-    #         .delete()
+        logger.info('delete predictions for model run: %s', model_run)
+        # Delete predictions.
+        predictions = session.query(CHainesPrediction)\
+            .filter(CHainesPrediction.model_run_id == model_run.id)\
+            .delete()
+        logger.info('deleted %s predictions', predictions)
 
-    # Delete the old model runs.
-    # session.query(CHainesModelRun)\
-    #     .filter(CHainesModelRun.model_run_timestamp < point_in_time)\
-    #     .delete()
+    # Delete model runs.
+    # NOTE: Again isn't a very nice way, but sqlalchemy complains when
+    # trying to delete by time.
+    # Collect all the id's to delete (yuck!)
+    model_run_ids = []
+    model_runs = session.query(CHainesModelRun)\
+        .filter(CHainesModelRun.model_run_timestamp < point_in_time)
+    for model_run in model_runs:
+        model_run_ids.append(model_run.id)
+
+    logger.info('delete model runs with id: %s', model_run_ids)
+    model_runs = session.query(CHainesModelRun)\
+        .filter(CHainesModelRun.id.in_(model_run_ids)).delete(synchronize_session=False)
+    logger.info('deleted %s model runs', model_runs)
 
 
 def get_most_recent_model_run(session: Session, model: ModelEnum) -> CHainesModelRun:
