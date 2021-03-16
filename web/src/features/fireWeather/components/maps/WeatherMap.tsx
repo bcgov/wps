@@ -8,7 +8,6 @@ import { FeatureLike } from 'ol/Feature'
 import Map from 'features/map/Map'
 import TileLayer from 'features/map/TileLayer'
 import VectorLayer from 'features/map/VectorLayer'
-import LayerSwitch from 'features/fireWeather/components/maps/LayerSwitch'
 
 const styles = {
   Point: new Style({
@@ -26,23 +25,14 @@ const styles = {
 
 const BC_WEATHER_STATIONS_WEB_FEATURE_SERVICE =
   'https://openmaps.gov.bc.ca/geo/pub/wfs?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&outputFormat=json&typeName=WHSE_LAND_AND_NATURAL_RESOURCE.PROT_WEATHER_STATIONS_SP&srsName=EPSG:3857'
-const baseArcGISUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services'
-const getArcGISMapTileUrl = (service: string): string =>
-  `${baseArcGISUrl}/${service}/MapServer/tile/{z}/{y}/{x}`
-const getArcGISMapTileInfoUrl = (service: string): string =>
-  `${baseArcGISUrl}/${service}/MapServer?f=pjson`
-const arcGisServicesMap = {
-  Satellite: 'World_Imagery',
-  Terrain: 'World_Terrain_Base',
-  Topographic: 'World_Topo_Map'
-}
+const BC_ROAD_BASE_MAP_SERVER_URL =
+  'https://maps.gov.bc.ca/arcgis/rest/services/province/roads_wm/MapServer'
 
 const center = [-123.3656, 51.4484] // BC
 const zoom = 6
 
 const WeatherMap = () => {
-  const [service, setService] = useState(arcGisServicesMap['Satellite'])
-  const [baseLayerAttribution, setBaseLayerAttribution] = useState('Not available')
+  const [attributions, setAttributions] = useState('Not available')
   const [wxStationsGeoJSON, setWxStationsGeoJSON] = useState({
     type: 'FeatureCollection',
     features: []
@@ -54,17 +44,15 @@ const WeatherMap = () => {
       .then(json => {
         setWxStationsGeoJSON(json)
       })
-  }, [])
 
-  useEffect(() => {
-    fetch(getArcGISMapTileInfoUrl(service))
+    fetch(`${BC_ROAD_BASE_MAP_SERVER_URL}?f=pjson`)
       .then(resp => resp.json())
       .then(json => {
         if (typeof json.copyrightText === 'string') {
-          setBaseLayerAttribution(json.copyrightText)
+          setAttributions(json.copyrightText)
         }
       })
-  }, [service])
+  }, [])
 
   const renderTooltip = useCallback((feature: FeatureLike | null) => {
     if (!feature) return null
@@ -78,12 +66,11 @@ const WeatherMap = () => {
 
   return (
     <Map center={fromLonLat(center)} zoom={zoom} renderTooltip={renderTooltip}>
-      <LayerSwitch map={arcGisServicesMap} value={service} setValue={setService} />
       <TileLayer
         source={
           new olSource.XYZ({
-            url: getArcGISMapTileUrl(service),
-            attributions: baseLayerAttribution
+            url: `${BC_ROAD_BASE_MAP_SERVER_URL}/tile/{z}/{y}/{x}`,
+            attributions
           })
         }
       />
