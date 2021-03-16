@@ -26,10 +26,11 @@ const styles = {
 
 const BC_WEATHER_STATIONS_WEB_FEATURE_SERVICE =
   'https://openmaps.gov.bc.ca/geo/pub/wfs?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&outputFormat=json&typeName=WHSE_LAND_AND_NATURAL_RESOURCE.PROT_WEATHER_STATIONS_SP&srsName=EPSG:3857'
-const getArcGISAttribution = (service: string): string =>
-  `Tiles © <a href="https://services.arcgisonline.com/ArcGIS/rest/services/${service}/MapServer" target="_blank">ArcGIS</a>`
-const getArcGISMapUrl = (service: string): string =>
-  `https://server.arcgisonline.com/ArcGIS/rest/services/${service}/MapServer/tile/{z}/{y}/{x}`
+const baseArcGISUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services'
+const getArcGISMapTileUrl = (service: string): string =>
+  `${baseArcGISUrl}/${service}/MapServer/tile/{z}/{y}/{x}`
+const getArcGISMapTileInfoUrl = (service: string): string =>
+  `${baseArcGISUrl}/${service}/MapServer?f=pjson`
 const arcGisServicesMap = {
   Satellite: 'World_Imagery',
   Terrain: 'World_Terrain_Base',
@@ -41,6 +42,7 @@ const zoom = 6
 
 const WeatherMap = () => {
   const [service, setService] = useState(arcGisServicesMap['Satellite'])
+  const [baseLayerAttribution, setBaseLayerAttribution] = useState('Not available')
   const [wxStationsGeoJSON, setWxStationsGeoJSON] = useState({
     type: 'FeatureCollection',
     features: []
@@ -53,6 +55,16 @@ const WeatherMap = () => {
         setWxStationsGeoJSON(json)
       })
   }, [])
+
+  useEffect(() => {
+    fetch(getArcGISMapTileInfoUrl(service))
+      .then(resp => resp.json())
+      .then(json => {
+        if (typeof json.copyrightText === 'string') {
+          setBaseLayerAttribution(json.copyrightText)
+        }
+      })
+  }, [service])
 
   const renderTooltip = useCallback((feature: FeatureLike | null) => {
     if (!feature) return null
@@ -70,8 +82,8 @@ const WeatherMap = () => {
       <TileLayer
         source={
           new olSource.XYZ({
-            url: getArcGISMapUrl(service),
-            attributions: getArcGISAttribution(service)
+            url: getArcGISMapTileUrl(service),
+            attributions: baseLayerAttribution
           })
         }
       />
@@ -84,6 +96,7 @@ const WeatherMap = () => {
           })
         }
         style={styles.Point}
+        zIndex={1}
       />
     </Map>
   )

@@ -78,7 +78,7 @@ const LayerSwitch = ({ map, value, setValue }: Props) => {
           component="fieldset"
           data-testid="layer-switch-form"
         >
-          <RadioGroup aria-label="base-layer" value={value} onChange={handleLayerChange}>
+          <RadioGroup aria-label="base-layers" value={value} onChange={handleLayerChange}>
             {Object.keys(map).map(key => {
               return (
                 <FormControlLabel
