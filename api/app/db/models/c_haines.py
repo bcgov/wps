@@ -33,7 +33,7 @@ class CHainesModelRun(Base):
                 primary_key=True, nullable=False, index=True)
     model_run_timestamp = Column(TZTimeStamp, nullable=False)
     prediction_model_id = Column(Integer, ForeignKey(
-        'prediction_models.id'), nullable=False)
+        'prediction_models.id'), nullable=False, index=True)
     prediction_model = relationship("PredictionModel")
 
     def __str__(self):
@@ -54,7 +54,7 @@ class CHainesPrediction(Base):
                 primary_key=True, nullable=False, index=True)
     prediction_timestamp = Column(TZTimeStamp, nullable=False)
     model_run_id = Column(Integer, ForeignKey(
-        'c_haines_model_runs.id'), nullable=False)
+        'c_haines_model_runs.id'), nullable=False, index=True)
     model_run = relationship("CHainesModelRun")
 
     def __str__(self):
@@ -71,15 +71,13 @@ class CHainesPoly(Base):
                 primary_key=True, nullable=False, index=True)
     # We create the index later, due to issue with alembic + geoalchemy.
     geom = Column(Geometry('POLYGON', spatial_index=False), nullable=False)
-    idx_c_haines_polygons_geom = Index('geom', postgresql_using='gist')
-    # geom = Column(Geometry('POLYGON'), nullable=False)
     # Depending on the severity of the C-Haines index, we group c-haines
     # ranges together. (Fire Behaviour analysts only care of the
     # C-Haines is high)
     c_haines_index = Column(Enum(*severity_levels, name="c_haines_severity_levels"), nullable=False)
 
     c_haines_prediction_id = Column(Integer, ForeignKey(
-        'c_haines_predictions.id'), nullable=False)
+        'c_haines_predictions.id'), nullable=False, index=True)
     c_haines_prediction = relationship('CHainesPrediction')
 
 
