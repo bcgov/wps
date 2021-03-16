@@ -229,6 +229,7 @@ objects:
                   port: 8080
                   scheme: HTTP
                 initialDelaySeconds: 10
+                periodSeconds: 360
                 timeoutSeconds: 1
               livenessProbe:
                 successThreshold: 1
