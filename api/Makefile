@@ -54,7 +54,7 @@ test:
 
 test-verbose:
 	# Run tests with verbose output
-	$(POETRY_RUN) pytest app -n 2 -vv;
+	$(POETRY_RUN) pytest app -n 3 -vv;
 
 test-coverage:
 	# run tests with coverate reports
