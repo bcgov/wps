@@ -218,12 +218,6 @@ jobs:
           AUTH_TOKEN: ${{ secrets.OC4_DEV_TOKEN }}
           SCRIPT: POSTGRES_WRITE_HOST=patroni-wps-${SUFFIX}-leader POSTGRES_READ_HOST=patroni-wps-${SUFFIX}-replica PROJ_TARGET="e1e498-dev" PROJ_TOOLS="e1e498-tools" POSTGRES_USER="wps" POSTGRES_DATABASE="wps" IMAGE_REGISTRY="image-registry.openshift-image-registry.svc:5000" PROJ_DEV="e1e498-dev" openshift/scripts/oc_provision_ec_rdps_cronjob.sh ${SUFFIX} apply
 
-      - name: C-Haines Cronjob
-        uses: bcgov/openshift-launchpad-deployment@v1.2
-        with:
-          AUTH_TOKEN: ${{ secrets.OC4_DEV_TOKEN }}
-          SCRIPT: PROJ_TARGET="e1e498-dev" PROJ_TOOLS="e1e498-tools" PROJ_DEV="e1e498-dev" openshift/scripts/oc_provision_c_haines_cronjob.sh ${SUFFIX} apply
-
       # # f.y.i.: ZAP Scan must be able to log an issue or it will fail.
       - name: ZAP Scan
         uses: zaproxy/action-baseline@v0.4.0
@@ -248,10 +242,10 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Build Image
-        uses: bcgov/openshift-launchpad-deployment@v1.2
-        with:
-          AUTH_TOKEN: ${{ secrets.OC4_TOOL_TOKEN }}
-          SCRIPT: GIT_BRANCH=${GITHUB_HEAD_REF} PROJ_TOOLS="e1e498-tools" PROJ_DEV="e1e498-dev" NAME_APP=wps-ubuntu DOCKER_IMAGE=image-registry.openshift-image-registry.svc:5000/e1e498-tools/ubuntu-base:20.04 DOCKER_FILE=Dockerfile.ubuntu openshift/scripts/oc_build.sh ${SUFFIX} apply
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
+          GIT_BRANCH=${GITHUB_HEAD_REF} PROJ_TOOLS="e1e498-tools" PROJ_DEV="e1e498-dev" NAME_APP=wps-ubuntu DOCKER_IMAGE=image-registry.openshift-image-registry.svc:5000/e1e498-tools/ubuntu-base:20.04 DOCKER_FILE=Dockerfile.ubuntu bash openshift/scripts/oc_build.sh ${SUFFIX} apply
 
   deploy-c-haines:
     name: Deploy c-haines cronjob
@@ -272,7 +266,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: C-Haines Cronjob
-        uses: bcgov/openshift-launchpad-deployment@v1.2
-        with:
-          AUTH_TOKEN: ${{ secrets.OC4_DEV_TOKEN }}
-          SCRIPT: PROJ_TARGET="e1e498-dev" PROJ_TOOLS="e1e498-tools" PROJ_DEV="e1e498-dev" openshift/scripts/oc_provision_c_haines_cronjob.sh ${SUFFIX} apply
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+          PROJ_TARGET="e1e498-dev" PROJ_TOOLS="e1e498-tools" PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_c_haines_cronjob.sh ${SUFFIX} apply
