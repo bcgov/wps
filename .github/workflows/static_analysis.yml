@@ -43,7 +43,7 @@ jobs:
       - name: Download poetry installer
         if: steps.cache-poetry-installer.outputs.cache-hit != 'true'
         run: |
-          echo 
+          echo
           mkdir ~/poetry_installer
           curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py > ~/poetry_installer/get-poetry.py
 
