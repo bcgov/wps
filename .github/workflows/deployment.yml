@@ -21,7 +21,7 @@ jobs:
       - name: Deploy PostGIS instance
         shell: bash
         run: |
-          oc login "https://api.silver.devops.gov.bc.ca:6443" --token="${{ secrets.OC4_DEV_TOKEN }}"
+          oc login "${{OPENSHIFT_CLUSTER}}" --token="${{ secrets.OC4_DEV_TOKEN }}"
           EPHEMERAL_STORAGE=True PROJ_TARGET=e1e498-dev APP_USER="wps" IMAGE_STREAM_NAMESPACE=e1e498-tools bash openshift/scripts/oc_provision_db.sh ${SUFFIX} apply
         # uses: bcgov/openshift-launchpad-deployment@v1.2
         # with:
