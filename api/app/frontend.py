@@ -81,6 +81,7 @@ async def get_index(request: Request):
                 'REACT_APP_MATOMO_URL': config.get('REACT_APP_MATOMO_URL'),
                 'REACT_APP_MATOMO_SITE_ID': config.get('REACT_APP_MATOMO_SITE_ID'),
                 'REACT_APP_MATOMO_CONTAINER': config.get('REACT_APP_MATOMO_CONTAINER'),
+                'REACT_APP_WEATHER_STATIONS_WEB_FEATURE_SERVICE': config.get('REACT_APP_WEATHER_STATIONS_WEB_FEATURE_SERVICE'),
             })
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
         response.headers.setdefault('X-Frame-Options', 'DENY')
