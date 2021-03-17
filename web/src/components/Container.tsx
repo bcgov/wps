@@ -6,3 +6,12 @@ export const Container: React.FunctionComponent<ContainerProps> = (
 ) => {
   return <C maxWidth="md" {...props} />
 }
+
+type OptionalContainerProps = ContainerProps & { noContainer?: boolean }
+export const OptionalContainer = (props: OptionalContainerProps) => {
+  if (props.noContainer) {
+    return <div className={props.className}>{props.children}</div>
+  }
+
+  return <C maxWidth="md" {...props} />
+}
