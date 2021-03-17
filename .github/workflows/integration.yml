@@ -4,148 +4,147 @@ on:
   pull_request:
     branches:
       - main
+# jobs:
+#   lint-and-test:
+#     name: Lint, Test with Coverage & SonarQube
+#     # Ubuntu 18.04 (a.k.a. ubuntu-latest) comes with gdal 2.2.3, which has bugs that cause unit tests to fail
+#     runs-on: ubuntu-20.04
+#     strategy:
+#       matrix:
+#         python-version: [3.8]
+#         node-version: [14.x]
+#     steps:
+#       - name: Checkout repo
+#         uses: actions/checkout@v2
+#         with:
+#           # For sonar-scanner to work properly we can't use a shallow fetch.
+#           fetch-depth: 0
 
-jobs:
-  lint-and-test:
-    name: Lint, Test with Coverage & SonarQube
-    # Ubuntu 18.04 (a.k.a. ubuntu-latest) comes with gdal 2.2.3, which has bugs that cause unit tests to fail
-    runs-on: ubuntu-20.04
-    strategy:
-      matrix:
-        python-version: [3.8]
-        node-version: [14.x]
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v2
-        with:
-          # For sonar-scanner to work properly we can't use a shallow fetch.
-          fetch-depth: 0
+#       - name: Setup kernel for react, increase watchers
+#         run: echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
 
-      - name: Setup kernel for react, increase watchers
-        run: echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
+#       - name: Setup Python ${{ matrix.python-version }} (api)
+#         uses: actions/setup-python@v1
+#         with:
+#           python-version: ${{ matrix.python-version }}
 
-      - name: Setup Python ${{ matrix.python-version }} (api)
-        uses: actions/setup-python@v1
-        with:
-          python-version: ${{ matrix.python-version }}
+#       - name: Use Node.js ${{ matrix.node-version }}
+#         uses: actions/setup-node@v1
+#         with:
+#           node-version: ${{ matrix.node-version }}
 
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
-        with:
-          node-version: ${{ matrix.node-version }}
+#       - name: Cache poetry installer
+#         uses: actions/cache@v2
+#         id: cache-poetry-installer
+#         env:
+#           cache-name: cache-poetry-installer
+#         with:
+#           path: "~/poetry_installer"
+#           key: "1.0.8"
 
-      - name: Cache poetry installer
-        uses: actions/cache@v2
-        id: cache-poetry-installer
-        env:
-          cache-name: cache-poetry-installer
-        with:
-          path: "~/poetry_installer"
-          key: "1.0.8"
+#       - name: Download poetry installer
+#         if: steps.cache-poetry-installer.outputs.cache-hit != 'true'
+#         run: |
+#           echo
+#           mkdir ~/poetry_installer
+#           curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py > ~/poetry_installer/get-poetry.py
 
-      - name: Download poetry installer
-        if: steps.cache-poetry-installer.outputs.cache-hit != 'true'
-        run: |
-          echo 
-          mkdir ~/poetry_installer
-          curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py > ~/poetry_installer/get-poetry.py
+#       - name: Install poetry (api)
+#         run: |
+#           cd ~/poetry_installer
+#           python get-poetry.py --version 1.1.4
+#           source ~/.poetry/env
+#           poetry config virtualenvs.create true
+#           poetry config virtualenvs.in-project false
 
-      - name: Install poetry (api)
-        run: |
-          cd ~/poetry_installer
-          python get-poetry.py --version 1.1.4
-          source ~/.poetry/env
-          poetry config virtualenvs.create true
-          poetry config virtualenvs.in-project false
+#       - name: Install libgdal-dev (api)
+#         # The python gdal component relies on libgdal-dev being installed.
+#         run: |
+#           sudo apt-get update --fix-missing && sudo apt-get -y install libgdal-dev
 
-      - name: Install libgdal-dev (api)
-        # The python gdal component relies on libgdal-dev being installed.
-        run: |
-          sudo apt-get update --fix-missing && sudo apt-get -y install libgdal-dev
+#       # poetry cache folder: /home/runner/.cache/pypoetry
+#       - name: Cache poetry
+#         uses: actions/cache@v2
+#         env:
+#           cache-name: cache-poetry
+#         with:
+#           path: ~/.cache/pypoetry
+#           key: ${{ runner.os }}-poetry-cache-${{ hashFiles('**/poetry.lock') }}
+#           restore-keys: |
+#             ${{ runner.os }}-poetry-cache-
 
-      # poetry cache folder: /home/runner/.cache/pypoetry
-      - name: Cache poetry
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-poetry
-        with:
-          path: ~/.cache/pypoetry
-          key: ${{ runner.os }}-poetry-cache-${{ hashFiles('**/poetry.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-poetry-cache-
+#       - name: Install gdal python (api)
+#         # We don't have much control over what version of gdal we're getting, it's pretty much whatever is
+#         # available to us. As such, gdal is not installed by poetry, since the versio will differ between
+#         # platforms.
+#         working-directory: ./api
+#         run: |
+#           source ~/.poetry/env
+#           CPLUS_INCLUDE_PATH=/usr/include/gdal C_INCLUDE_PATH=/usr/include/gdal poetry run pip install gdal==$(gdal-config --version)
 
-      - name: Install gdal python (api)
-        # We don't have much control over what version of gdal we're getting, it's pretty much whatever is
-        # available to us. As such, gdal is not installed by poetry, since the versio will differ between
-        # platforms.
-        working-directory: ./api
-        run: |
-          source ~/.poetry/env
-          CPLUS_INCLUDE_PATH=/usr/include/gdal C_INCLUDE_PATH=/usr/include/gdal poetry run pip install gdal==$(gdal-config --version)
+#       - name: Install remaining python dependencies (api)
+#         working-directory: ./api
+#         run: |
+#           source ~/.poetry/env
+#           poetry install
 
-      - name: Install remaining python dependencies (api)
-        working-directory: ./api
-        run: |
-          source ~/.poetry/env
-          poetry install
+#       - name: Lint (api)
+#         working-directory: ./api
+#         run: |
+#           source ~/.poetry/env
+#           poetry run pylint --rcfile=.pylintrc app/*.py app/**/*.py
 
-      - name: Lint (api)
-        working-directory: ./api
-        run: |
-          source ~/.poetry/env
-          poetry run pylint --rcfile=.pylintrc app/*.py app/**/*.py
+#       - name: Unit Test with coverage (api)
+#         working-directory: ./api
+#         run: |
+#           source ~/.poetry/env
+#           ORIGINS=testorigin poetry run coverage run --source=app -m pytest -o log_cli=true --disable-warnings --verbose
 
-      - name: Unit Test with coverage (api)
-        working-directory: ./api
-        run: |
-          source ~/.poetry/env
-          ORIGINS=testorigin poetry run coverage run --source=app -m pytest -o log_cli=true --disable-warnings --verbose
+#       - name: Create coverage report (api)
+#         # Create coverage report, and then replace occurrences of
+#         # 'filename="app' with 'filename="api/app" in coverage-report.xml
+#         working-directory: ./api
+#         shell: bash
+#         run: |
+#           source ~/.poetry/env
+#           poetry run coverage report
+#           poetry run coverage xml -o coverage-reports/coverage-report.xml
+#           sed -i 's/filename="app/filename="api\/app/' coverage-reports/coverage-report.xml
 
-      - name: Create coverage report (api)
-        # Create coverage report, and then replace occurrences of
-        # 'filename="app' with 'filename="api/app" in coverage-report.xml
-        working-directory: ./api
-        shell: bash
-        run: |
-          source ~/.poetry/env
-          poetry run coverage report
-          poetry run coverage xml -o coverage-reports/coverage-report.xml
-          sed -i 's/filename="app/filename="api\/app/' coverage-reports/coverage-report.xml
+#       - uses: actions/cache@v2
+#         with:
+#           path: |
+#             **/node_modules
+#             ~/.cache/Cypress
+#           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
 
-      - uses: actions/cache@v2
-        with:
-          path: |
-            **/node_modules
-            ~/.cache/Cypress
-          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+#       - name: Install node dependencies (web)
+#         working-directory: ./web
+#         if: steps.yarn-cache.outputs.cache-hit != 'true'
+#         run: yarn install
 
-      - name: Install node dependencies (web)
-        working-directory: ./web
-        if: steps.yarn-cache.outputs.cache-hit != 'true'
-        run: yarn install
+#       - name: Lint (web)
+#         working-directory: ./web
+#         run: yarn run lint
 
-      - name: Lint (web)
-        working-directory: ./web
-        run: yarn run lint
+#       # "Error: ENOSPC: System limit for number of file watchers reached" can be addressed
+#       # with this: https://github.com/guard/listen/wiki/Increasing-the-amount-of-inotify-watchers#the-technical-details
+#       # It seems unnecessary at the moment because tests pass anyway
+#       - name: Cypress tests with coverage (web)
+#         working-directory: ./web
+#         run: yarn run cypress:ci
 
-      # "Error: ENOSPC: System limit for number of file watchers reached" can be addressed
-      # with this: https://github.com/guard/listen/wiki/Increasing-the-amount-of-inotify-watchers#the-technical-details
-      # It seems unnecessary at the moment because tests pass anyway
-      - name: Cypress tests with coverage (web)
-        working-directory: ./web
-        run: yarn run cypress:ci
+#       - name: Unit tests (web)
+#         working-directory: ./web
+#         run: yarn run test:ci
 
-      - name: Unit tests (web)
-        working-directory: ./web
-        run: yarn run test:ci
+#       - name: Fix code coverage paths (web)
+#         # Due to the way sonarscanner mounts thing when running in docker, we need to change the coverage file.
+#         working-directory: ./web/coverage
+#         run: sed -i 's/\/home\/runner\/work\/wps\/wps\/web\//\/github\/workspace\//g' lcov.info
 
-      - name: Fix code coverage paths (web)
-        # Due to the way sonarscanner mounts thing when running in docker, we need to change the coverage file.
-        working-directory: ./web/coverage
-        run: sed -i 's/\/home\/runner\/work\/wps\/wps\/web\//\/github\/workspace\//g' lcov.info
-
-      - name: SonarCloud Scan
-        uses: sonarsource/sonarcloud-github-action@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+#       - name: SonarCloud Scan
+#         uses: sonarsource/sonarcloud-github-action@master
+#         env:
+#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
