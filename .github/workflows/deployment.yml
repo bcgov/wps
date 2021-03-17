@@ -252,10 +252,9 @@ jobs:
     runs-on: ubuntu-20.04
     # We need
     # - the image to be built before we can deploy.
-    # - the database to be there (so we can write to it.)
-    # We could also wait for the api deployment, as it's responsible for upgrading the database,
-    # but the db upgrade will probably have completed by the time that the cronjob runs.
-    needs: [build-ubuntu-image, prepare-database-ocp4]
+    # - the database to be there (so we can write to it).
+    # - wait for the api deployment, as it's responsible for upgrading the database.
+    needs: [build-ubuntu-image, prepare-database-ocp4, build-and-deploy-ocp4]
 
     steps:
       - name: Set Variables
