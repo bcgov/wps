@@ -8,6 +8,7 @@ import { FeatureLike } from 'ol/Feature'
 import Map from 'features/map/Map'
 import TileLayer from 'features/map/TileLayer'
 import VectorLayer from 'features/map/VectorLayer'
+import { WEATHER_STATIONS_WEB_FEATURE_SERVICE } from 'utils/env'
 
 const styles = {
   Point: new Style({
@@ -23,8 +24,6 @@ const styles = {
   })
 }
 
-const BC_WEATHER_STATIONS_WEB_FEATURE_SERVICE =
-  'https://openmaps.gov.bc.ca/geo/pub/wfs?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&outputFormat=json&typeName=WHSE_LAND_AND_NATURAL_RESOURCE.PROT_WEATHER_STATIONS_SP&srsName=EPSG:3857'
 const BC_ROAD_BASE_MAP_SERVER_URL =
   'https://maps.gov.bc.ca/arcgis/rest/services/province/roads_wm/MapServer'
 
@@ -39,7 +38,7 @@ const WeatherMap = () => {
   })
 
   useEffect(() => {
-    fetch(BC_WEATHER_STATIONS_WEB_FEATURE_SERVICE)
+    fetch(WEATHER_STATIONS_WEB_FEATURE_SERVICE)
       .then(resp => resp.json())
       .then(json => {
         setWxStationsGeoJSON(json)

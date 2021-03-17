@@ -4,6 +4,7 @@ interface Window {
     REACT_APP_KEYCLOAK_AUTH_URL: string
     REACT_APP_KEYCLOAK_REALM: string
     REACT_APP_KEYCLOAK_CLIENT: string
+    REACT_APP_WEATHER_STATIONS_WEB_FEATURE_SERVICE: string
   }
   Cypress: {} | undefined
   // TODO: Re-evaluate this way of implementing Matomo once we know more about it.

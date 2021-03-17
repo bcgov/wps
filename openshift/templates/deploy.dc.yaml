@@ -210,7 +210,11 @@ objects:
                     configMapKeyRef:
                       name: ${NAME}-global
                       key: env.matomo-container
-
+                - name: REACT_APP_WEATHER_STATIONS_WEB_FEATURE_SERVICE
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-global
+                      key: env.weather-stations-web-feature-service
               ports:
                 - containerPort: 8080
                   protocol: TCP
