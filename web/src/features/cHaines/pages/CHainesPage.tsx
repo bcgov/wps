@@ -630,20 +630,25 @@ const CHainesPage = () => {
             </div>
             <div>
               Model runs:
-              <select
-                value={selected_model_run_timestamp}
-                onChange={handleChangeModelRun}
-              >
-                {model_runs
-                  .filter(model_run => {
-                    return model_run.model.abbrev === selected_model_abbreviation
-                  })
-                  .map((model_run, i) => (
-                    <option value={model_run.model_run_timestamp} key={i}>
+              {model_runs
+                .filter(model_run => {
+                  return model_run.model.abbrev === selected_model_abbreviation
+                })
+                .map((model_run, i) => (
+                  <div key={i}>
+                    <input
+                      type="radio"
+                      value={model_run.model_run_timestamp}
+                      checked={
+                        model_run.model_run_timestamp == selected_model_run_timestamp
+                      }
+                      onChange={handleChangeModelRun}
+                    />
+                    <label>
                       {model_run.model.abbrev} {model_run.model_run_timestamp} (UTC)
-                    </option>
-                  ))}
-              </select>
+                    </label>
+                  </div>
+                ))}
             </div>
             <div>
               Predictions:
