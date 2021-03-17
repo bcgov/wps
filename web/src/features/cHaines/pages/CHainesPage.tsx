@@ -592,7 +592,7 @@ const CHainesPage = () => {
     <main>
       <PageHeader title="Predictive Services Unit" productName="C-Haines" />
       <PageTitle title="C-Haines - Alpha (Experimental)" />
-      <Container>
+      <Container maxWidth="xl">
         <div id="map-with-selectable-wx-stations" className={classes.map} />
         <div className={classes.controls}>
           <div>
