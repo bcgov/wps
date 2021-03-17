@@ -606,11 +606,27 @@ const CHainesPage = () => {
             </div>
             <div>
               Model:
-              <select value={selected_model_abbreviation} onChange={handleChangeModel}>
-                <option value="GDPS">GDPS</option>
-                <option value="RDPS">RDPS</option>
-                <option value="HRDPS">HRDPS</option>
-              </select>
+              <input
+                type="radio"
+                value="GDPS"
+                checked={selected_model_abbreviation == 'GDPS'}
+                onChange={handleChangeModel}
+              />
+              <label>GDPS</label>
+              <input
+                type="radio"
+                value="RDPS"
+                checked={selected_model_abbreviation == 'RDPS'}
+                onChange={handleChangeModel}
+              />
+              <label>RDPS</label>
+              <input
+                type="radio"
+                value="HRDPS"
+                checked={selected_model_abbreviation == 'HRDPS'}
+                onChange={handleChangeModel}
+              />
+              <label>HRDPS</label>
             </div>
             <div>
               Model runs:
