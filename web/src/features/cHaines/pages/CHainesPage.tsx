@@ -673,11 +673,6 @@ const CHainesPage = () => {
               </select>
             </div>
             <div>
-              <button onClick={() => loadPreviousPrediction()}>Prev</button>
-              <button onClick={() => toggleAnimate()} className={classes.animateButton}>
-                {isAnimating ? 'Stop' : 'Animate'}
-              </button>
-              <button onClick={() => loadNextPrediction()}>Next</button>
               Animation interval:{' '}
               <select value={animationInterval} onChange={handleIntervalChange}>
                 <option value="1">1ms</option>
@@ -687,6 +682,13 @@ const CHainesPage = () => {
                 <option value="1000">1s</option>
                 <option value="5000">5s</option>
               </select>
+            </div>
+            <div>
+              <button onClick={() => loadPreviousPrediction()}>&lt; Prev</button>
+              <button onClick={() => toggleAnimate()} className={classes.animateButton}>
+                {isAnimating ? 'Stop' : 'Animate'}
+              </button>
+              <button onClick={() => loadNextPrediction()}>Next &gt;</button>
             </div>
           </div>
           <div className={classes.kml_links}>
