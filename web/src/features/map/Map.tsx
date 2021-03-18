@@ -81,9 +81,20 @@ const Map = ({ children, zoom, center, renderTooltip }: Props) => {
           duration: 250
         }
       })
+
       mapObject.addOverlay(overlay)
+
+      // Hover listener for changing the mouse cursor when hovering features
+      mapObject.on('pointermove', e => {
+        mapObject.getViewport().style.cursor = ''
+        mapObject.forEachFeatureAtPixel(e.pixel, () => {
+          mapObject.getViewport().style.cursor = 'pointer'
+        })
+      })
+
+      // Click listener for displaying the popup
       mapObject.on('singleclick', e => {
-        // Hide the overlay if displayed
+        // Hide the overlay if previously displayed
         overlay?.setPosition(undefined)
 
         mapObject.forEachFeatureAtPixel(e.pixel, (f: FeatureLike) => {
