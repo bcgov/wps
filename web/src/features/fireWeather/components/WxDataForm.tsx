@@ -8,17 +8,23 @@ import GetWxDataButton from 'features/fireWeather/components/GetWxDataButton'
 import { stationCodeQueryKey, timeOfInterestQueryKey } from 'utils/url'
 
 const useStyles = makeStyles({
+  form: {
+    display: 'flex',
+    alignItems: 'center',
+    flexWrap: 'wrap'
+  },
   stationDropdown: {
-    marginBottom: 10
+    // marginBottom: 10
   }
 })
 
 interface Props {
+  className?: string
   codesFromQuery: number[]
   toiFromQuery: string
 }
 
-const WxDataForm = ({ codesFromQuery, toiFromQuery }: Props) => {
+const WxDataForm = ({ className, codesFromQuery, toiFromQuery }: Props) => {
   const classes = useStyles()
   const history = useHistory()
   const location = useLocation()
@@ -56,7 +62,7 @@ const WxDataForm = ({ codesFromQuery, toiFromQuery }: Props) => {
   }
 
   return (
-    <form noValidate>
+    <form className={classes.form} noValidate>
       <WxStationDropdown
         className={classes.stationDropdown}
         stationCodes={selectedCodes}

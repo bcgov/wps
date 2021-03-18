@@ -4,10 +4,10 @@ import TextField from '@material-ui/core/TextField'
 
 const useStyles = makeStyles({
   datePicker: {
-    display: 'block',
-    width: 300,
-    marginTop: 16,
-    marginBottom: 20
+    display: 'block'
+    // width: 300
+    // marginTop: 16,
+    // marginBottom: 20
   }
 })
 
@@ -26,7 +26,9 @@ const TimeOfInterestPicker = (props: Props) => {
       label="Time of Interest (PST-08:00)"
       type="datetime-local"
       value={props.timeOfInterest.slice(0, 16)} // 'YYYY-MM-DDTHH:mm'
-      helperText="Disclaimer: not all data may be available."
+      // helperText="Disclaimer: not all data may be available."
+      variant="outlined"
+      size="small"
       InputLabelProps={{
         shrink: true
       }}

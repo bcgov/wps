@@ -4,7 +4,7 @@ import { Story, Meta } from '@storybook/react/types-6-0'
 import MoreCastPage from 'features/fireWeather/pages/NewMoreCastPage'
 
 export default {
-  title: 'component/MoreCastPage',
+  title: 'component/NewMoreCastPage',
   component: MoreCastPage
 } as Meta
 

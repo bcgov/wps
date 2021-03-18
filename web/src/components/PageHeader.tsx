@@ -14,8 +14,8 @@ const useStyles = makeStyles(theme => ({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingLeft: props.noContainer ? props.padding : 0,
-    paddingRight: props.noContainer ? props.padding : 0
+    paddingLeft: props.noContainer ? props.padding : 'auto',
+    paddingRight: props.noContainer ? props.padding : 'auto'
   }),
   logo: {
     width: 175,
@@ -51,7 +51,7 @@ interface Props {
 }
 
 export const PageHeader: React.FunctionComponent<Props> = (props: Props) => {
-  const { title, productName, noContainer } = props
+  const { title, productName, noContainer = false } = props
   const classes = useStyles(props)
 
   return (

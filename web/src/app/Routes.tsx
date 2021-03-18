@@ -12,6 +12,7 @@ import {
   MORECAST_ROUTE,
   HFI_CALC_ROUTE
 } from 'utils/constants'
+import NewMoreCastPage from 'features/fireWeather/pages/NewMoreCastPage'
 
 const shouldShowDisclaimer = HIDE_DISCLAIMER === 'false' || HIDE_DISCLAIMER === undefined
 const shouldAuthenticate =
@@ -31,9 +32,10 @@ const Routes: React.FunctionComponent = () => {
 
         <Redirect from={FIRE_WEATHER_ROUTE} to={MORECAST_ROUTE} />
         <Route path={MORECAST_ROUTE}>
-          <AuthWrapper shouldAuthenticate={shouldAuthenticate}>
+          <NewMoreCastPage />
+          {/* <AuthWrapper shouldAuthenticate={shouldAuthenticate}>
             <MoreCastPage />
-          </AuthWrapper>
+          </AuthWrapper> */}
         </Route>
 
         <Route path={HFI_CALC_ROUTE}>
