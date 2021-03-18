@@ -20,43 +20,25 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Clean up api - dev (OCP4)
-        uses: bcgov/openshift-launchpad-deployment@v1.2
-        with:
-          AUTH_TOKEN: ${{ secrets.OC4_DEV_TOKEN }}
-          SCRIPT: PROJ_TARGET=e1e498-dev PROJ_TOOLS=e1e498-tools PROJ_DEV=e1e498-dev openshift/scripts/oc_cleanup_dev.sh ${SUFFIX} apply
-
-      - name: Clean up api - tools (OCP4)
-        uses: bcgov/openshift-launchpad-deployment@v1.2
-        with:
-          AUTH_TOKEN: ${{ secrets.OC4_TOOL_TOKEN }}
-          SCRIPT: PROJ_TOOLS=e1e498-tools PROJ_DEV=e1e498-dev openshift/scripts/oc_cleanup_tools.sh ${SUFFIX} apply
-
-      - name: Clean up api - test (OCP4)
-        uses: bcgov/openshift-launchpad-deployment@v1.2
-        with:
-          AUTH_TOKEN: ${{ secrets.OC4_TEST_TOKEN }}
-          SCRIPT: PROJ_TEST=e1e498-test openshift/scripts/oc_cleanup_test.sh ${SUFFIX} apply
-
-  cleanup-databases:
-    name: Delete databases in dev and test associated with PR
-    needs: cleanup
-    runs-on: ubuntu-latest
-    steps:
-      - name: Set Variables
         shell: bash
         run: |
-          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+          PROJ_TARGET=e1e498-dev PROJ_TOOLS=e1e498-tools PROJ_DEV=e1e498-dev bash openshift/scripts/oc_cleanup_dev.sh ${SUFFIX} apply
 
-      - name: Checkout
-        uses: actions/checkout@v2
+      - name: Clean up api - tools (OCP4)
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
+          PROJ_TOOLS=e1e498-tools PROJ_DEV=e1e498-dev bash openshift/scripts/oc_cleanup_tools.sh ${SUFFIX} apply
 
-      - name: Clean up Dev database
-        uses: bcgov/openshift-launchpad-deployment@v1.2
-        with:
-          AUTH_TOKEN: ${{ secrets.OC4_DEV_TOKEN }}
-          SCRIPT: PROJ_TARGET=e1e498-dev PROJ_TOOLS=e1e498-tools PROJ_DEV=e1e498-dev openshift/scripts/oc_cleanup_db.sh ${SUFFIX} apply
-      - name: Clean up Test database
-        uses: bcgov/openshift-launchpad-deployment@v1.2
-        with:
-          AUTH_TOKEN: ${{ secrets.OC4_TEST_TOKEN }}
-          SCRIPT: PROJ_TARGET=e1e498-test PROJ_TOOLS=e1e498-tools PROJ_DEV=e1e498-dev openshift/scripts/oc_cleanup_db.sh ${SUFFIX} apply
+      - name: Clean up api - test (OCP4)
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TEST_TOKEN }}"
+          PROJ_TEST=e1e498-test PROJ_DEV=e1e498-dev bash openshift/scripts/oc_cleanup_test.sh ${SUFFIX} apply
+
+      - name: Clean up database (OCP4)
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+          PROJ_TARGET=e1e498-dev PROJ_TOOLS=e1e498-tools PROJ_DEV=e1e498-dev bash openshift/scripts/oc_cleanup_db.sh ${SUFFIX} apply
