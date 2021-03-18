@@ -62,8 +62,8 @@
     "lint": "eslint './src/**/*.{ts,tsx}'",
     "lint:fix": "eslint --fix './src/**/*.{ts,tsx}'",
     "format": "prettier --write \"**/*.+(js|jsx|json|yml|yaml|css|md)\"",
-    "storybook": "export $(cat .env | xargs) && start-storybook -p 6006 -s public",
-    "build-storybook": "export $(cat .env | xargs) && build-storybook -s public"
+    "storybook": "start-storybook -p 6006 -s public",
+    "build-storybook": "build-storybook -s public"
   },
   "browserslist": {
     "production": [
