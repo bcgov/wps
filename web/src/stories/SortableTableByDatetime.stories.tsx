@@ -11,7 +11,7 @@ import { isNoonInPST } from 'utils/date'
 import SortableTableByDatetime from 'features/fireWeather/components/tables/SortableTableByDatetime'
 
 export default {
-  title: 'component/WeatherDataTables'
+  title: 'morecast/WeatherDataTables'
 } as Meta
 
 type PropTypes = React.ComponentProps<typeof SortableTableByDatetime>

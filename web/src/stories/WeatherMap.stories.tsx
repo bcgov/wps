@@ -4,7 +4,7 @@ import { Story, Meta } from '@storybook/react/types-6-0'
 import WeatherMap from 'features/fireWeather/components/maps/WeatherMap'
 
 export default {
-  title: 'component/WeatherMap',
+  title: 'morecast/WeatherMap',
   component: WeatherMap
 } as Meta
 

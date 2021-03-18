@@ -4,7 +4,7 @@ import { Story, Meta } from '@storybook/react/types-6-0'
 import { PercentileCalcDocumentation } from 'features/percentileCalculator/components/PercentileCalcDocumentation'
 
 export default {
-  title: 'component/PercentileCalcDocumentation',
+  title: 'percentile/PercentileCalcDocumentation',
   component: PercentileCalcDocumentation
 } as Meta
 
