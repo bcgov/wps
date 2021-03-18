@@ -8,7 +8,6 @@ import { FeatureLike } from 'ol/Feature'
 import Map from 'features/map/Map'
 import TileLayer from 'features/map/TileLayer'
 import VectorLayer from 'features/map/VectorLayer'
-import { WEATHER_STATIONS_WEB_FEATURE_SERVICE } from 'utils/env'
 
 const styles = {
   Point: new Style({
@@ -24,6 +23,9 @@ const styles = {
   })
 }
 
+const WEATHER_STATIONS_WEB_FEATURE_SERVICE =
+  'https://openmaps.gov.bc.ca/geo/pub/wfs?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&outputFormat=json&typeName=WHSE_LAND_AND_NATURAL_RESOURCE.PROT_WEATHER_STATIONS_SP&srsName=EPSG:3857'
+
 const BC_ROAD_BASE_MAP_SERVER_URL =
   'https://maps.gov.bc.ca/arcgis/rest/services/province/roads_wm/MapServer'
 
@@ -31,7 +33,6 @@ const center = [-123.3656, 51.4484] // BC
 const zoom = 6
 
 const WeatherMap = () => {
-  const [attributions, setAttributions] = useState('Not available')
   const [wxStationsGeoJSON, setWxStationsGeoJSON] = useState({
     type: 'FeatureCollection',
     features: []
@@ -42,14 +43,6 @@ const WeatherMap = () => {
       .then(resp => resp.json())
       .then(json => {
         setWxStationsGeoJSON(json)
-      })
-
-    fetch(`${BC_ROAD_BASE_MAP_SERVER_URL}?f=pjson`)
-      .then(resp => resp.json())
-      .then(json => {
-        if (typeof json.copyrightText === 'string') {
-          setAttributions(json.copyrightText)
-        }
       })
   }, [])
 
@@ -69,7 +62,9 @@ const WeatherMap = () => {
         source={
           new olSource.XYZ({
             url: `${BC_ROAD_BASE_MAP_SERVER_URL}/tile/{z}/{y}/{x}`,
-            attributions
+            // Normally we would get attribution text from `${BC_ROAD_BASE_MAP_SERVER_URL}?f=pjson`
+            // however this endpoint only allows the origin of http://localhost:3000, so the text has been just copied from that link
+            attributions: 'Government of British Columbia, DataBC, GeoBC'
           })
         }
       />
