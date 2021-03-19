@@ -10,7 +10,7 @@ export const NoMatchPage: React.FunctionComponent = () => {
       />
       <Container>
         <h1>Page Not Found</h1>
-        <p>If you enetered a web address please check it was correct.</p>
+        <p>If you entered a web address please check it is correct.</p>
         <p>
           You can also reach out the the Predictive Services Unit via TEAMS or{' '}
           <a href="mailto:bcws.predictiveservices@gov.bc.ca">send us an email</a> to find
