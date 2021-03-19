@@ -1,6 +1,6 @@
 import { combineReducers } from '@reduxjs/toolkit'
 
-import stationsReducer from 'features/stations/slices/stationsSlice'
+import stationsReducer from 'features/percentileCalculator/slices/stationsSlice'
 import percentilesReducer from 'features/percentileCalculator/slices/percentilesSlice'
 import authReducer from 'features/auth/slices/authenticationSlice'
 import modelsReducer from 'features/fireWeather/slices/modelsSlice'

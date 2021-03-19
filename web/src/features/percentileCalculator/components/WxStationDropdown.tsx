@@ -67,7 +67,7 @@ const WxStationDropdown = (props: Props) => {
 
   return (
     <div className={props.className}>
-      {/* <div className={classes.wrapper}>
+      <div className={classes.wrapper}>
         <Link
           className={classes.mapLink}
           data-testid="launch-map-link"
@@ -82,7 +82,7 @@ const WxStationDropdown = (props: Props) => {
             <LaunchIcon fontSize="small" />
           </span>
         </Link>
-      </div> */}
+      </div>
 
       <div className={classes.wrapper}>
         <Autocomplete
@@ -106,15 +106,15 @@ const WxStationDropdown = (props: Props) => {
               fullWidth
               size="small"
               error={isThereError}
-              // helperText={
-              //   !isThereError && `Select up to ${maxNumOfSelect} weather stations.`
-              // }
+              helperText={
+                !isThereError && `Select up to ${maxNumOfSelect} weather stations.`
+              }
             />
           )}
         />
       </div>
 
-      {/* {errorFetchingStations && (
+      {errorFetchingStations && (
         <ErrorMessage
           error={errorFetchingStations}
           context="while fetching weather stations"
@@ -126,7 +126,7 @@ const WxStationDropdown = (props: Props) => {
           error="Unknown station code(s)"
           message="Unknown weather station code(s) detected."
         />
-      )} */}
+      )}
     </div>
   )
 }
