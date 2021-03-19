@@ -15,11 +15,11 @@ import {
   rangeSliderConfig
 } from 'features/fireWeather/components/graphs/plotlyHelper'
 
-const observedPrecipColor = '#fb0058'
-const forecastPrecipColor = '#a50b41'
-const hrdpsPrecipColor = '#a017c2'
-const rdpsPrecipColor = '#ea6d0e'
-const gdpsPrecipColor = '#f56c9c'
+const observedPrecipColor = '#4291FF'
+const forecastPrecipColor = '#1200DE'
+const hrdpsPrecipColor = '#B86BFF'
+const rdpsPrecipColor = '#FF64DD'
+const gdpsPrecipColor = '#7556CA'
 
 interface Props {
   station: Station
