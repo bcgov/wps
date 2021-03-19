@@ -1,19 +1,7 @@
-import { makeStyles } from "@material-ui/core"
-import { Container, PageHeader, PageTitle } from "components"
+import { Container, PageHeader } from "components"
 import React from "react"
 
-const useStyles = makeStyles(theme => ({
-    root: {
-      background: theme.palette.info.light,
-      borderBottomWidth: 2,
-      borderBottomStyle: 'solid',
-      borderBottomColor: theme.palette.secondary.main
-    }
-  }))
-
-export const NoMatchPage: React.FunctionComponent = () => {
-    const classes = useStyles()
-  
+export const NoMatchPage: React.FunctionComponent = () => {  
     return (
         <main>
         <PageHeader title="Predictive Services Unit" productName="Predictive Services Unit"/>
