@@ -31,7 +31,9 @@ const Routes: React.FunctionComponent = () => {
 
         <Redirect from={FIRE_WEATHER_ROUTE} to={MORECAST_ROUTE} />
         <Route path={MORECAST_ROUTE}>
-          <NewMoreCastPage />
+          <AuthWrapper shouldAuthenticate={shouldAuthenticate}>
+            <NewMoreCastPage />
+          </AuthWrapper>
         </Route>
 
         <Route path={HFI_CALC_ROUTE}>
