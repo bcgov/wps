@@ -17,12 +17,13 @@ import { fetchRegionalModels } from 'features/fireWeather/slices/regionalModelsS
 import { fetchRegionalModelSummaries } from 'features/fireWeather/slices/regionalModelSummariesSlice'
 import WxDataDisplays from 'features/fireWeather/components/WxDataDisplays'
 import WxDataForm from 'features/fireWeather/components/WxDataForm'
+import SidePanel from 'features/fireWeather/components/SidePanel'
 
 const useStyles = makeStyles(theme => ({
   main: {
     display: 'flex',
     flexDirection: 'column',
-    minHeight: '100vh'
+    height: '100vh'
   },
   nav: {
     background: theme.palette.primary.light,
@@ -36,7 +37,8 @@ const useStyles = makeStyles(theme => ({
   },
   content: {
     display: 'flex',
-    flexGrow: 1
+    flexGrow: 1,
+    overflowY: 'auto'
   },
   map: {
     order: 1,
@@ -45,40 +47,21 @@ const useStyles = makeStyles(theme => ({
     justifyContent: 'center',
     alignItems: 'center',
     fontSize: '2rem'
-  },
-  sidePanel: (props: { showSide: boolean }) => ({
-    order: 2,
-    width: props.showSide ? 700 : 0,
-    overflowX: 'hidden',
-    transition: '0.4s',
-    boxShadow:
-      '0px 3px 3px -2px rgb(0 0 0 / 20%), 0px 3px 4px 0px rgb(0 0 0 / 14%), 0px 1px 8px 0px rgb(0 0 0 / 12%)'
-  }),
-  sidePanelContent: {
-    width: 700,
-    padding: 13,
-    position: 'relative'
-  },
-  sidePanelCloseBtn: {
-    position: 'absolute',
-    top: 0,
-    left: 10,
-    fontSize: 22,
-    cursor: 'pointer',
-    fontWeight: 'bold'
   }
 }))
 
 const MoreCastPage = () => {
+  const classes = useStyles()
   const dispatch = useDispatch()
   const location = useLocation()
 
   const codesFromQuery = getStationCodesFromUrl(location.search)
   const toiFromQuery = getTimeOfInterestFromUrl(location.search)
 
-  const [showSide, setShowSide] = useState(codesFromQuery.length > 0)
-  const classes = useStyles({ showSide })
-  const openSide = () => setShowSide(true)
+  const shouldInitiallyShowSidePanel = codesFromQuery.length > 0
+  const [showSidePanel, setShowSidePanel] = useState(shouldInitiallyShowSidePanel)
+  const openSidePanel = () => setShowSidePanel(true)
+  const closeSidePanel = () => setShowSidePanel(false)
 
   useEffect(() => {
     dispatch(fetchWxStations())
@@ -105,23 +88,14 @@ const MoreCastPage = () => {
         <WxDataForm
           codesFromQuery={codesFromQuery}
           toiFromQuery={toiFromQuery}
-          openSide={openSide}
+          openSidePanel={openSidePanel}
         />
       </div>
       <div className={classes.content}>
         <div className={classes.map}>map</div>
-        <div className={classes.sidePanel}>
-          <div className={classes.sidePanelContent}>
-            <div
-              className={classes.sidePanelCloseBtn}
-              onClick={() => setShowSide(false)}
-              role="button"
-            >
-              &times;
-            </div>
-            <WxDataDisplays stationCodes={codesFromQuery} timeOfInterest={toiFromQuery} />
-          </div>
-        </div>
+        <SidePanel show={showSidePanel} closeSidePanel={closeSidePanel}>
+          <WxDataDisplays stationCodes={codesFromQuery} timeOfInterest={toiFromQuery} />
+        </SidePanel>
       </div>
     </main>
   )

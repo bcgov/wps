@@ -93,13 +93,11 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
               <Typography className={classes.station} variant="subtitle1" component="div">
                 Weather station: {`${station.name} (${station.code})`}
               </Typography>
-
               {nothingToDisplay && (
                 <Typography className={classes.noDataAvailable} variant="body2">
                   Data is not available.
                 </Typography>
               )}
-
               <ErrorBoundary>
                 <ObservationTable
                   testId={`observations-table-${code}`}
@@ -107,7 +105,6 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
                   rows={observations}
                 />
               </ErrorBoundary>
-
               <ErrorBoundary>
                 <NoonModelTable
                   testId={`noon-gdps-table-${code}`}
@@ -115,7 +112,6 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
                   rows={noonOnlyGdpsModels}
                 />
               </ErrorBoundary>
-
               <ErrorBoundary>
                 <NoonForecastTable
                   testId={`noon-forecasts-table-${code}`}
@@ -123,7 +119,6 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
                   rows={noonForecasts}
                 />
               </ErrorBoundary>
-
               <ErrorBoundary>
                 <WxDataGraph
                   station={station}
@@ -139,6 +134,62 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
                   gdpsSummaries={gdpsSummaries}
                 />
               </ErrorBoundary>
+              You need to add min-height: 0 to your .main-content CSS rule. That prevents
+              that element from stretching to contain its children and pushing the footer
+              offscreen (which is the bad behavior that you're trying to avoid). This
+              happens because flex items (children of a flex container) establish a
+              default minimum main-size, based on their contents, and will refuse to be
+              smaller than that minimum. In your case (with the outer flex container being
+              vertically-oriented), "main-size" is height, and the flex item in question
+              (.main-content) is establishing a content-based min-height. (If you want the
+              list items to be scrollable, then you may want to also add overflow-y:auto
+              to .main-contentYou need to add min-height: 0 to your .main-content CSS
+              rule. That prevents that element from stretching to contain its children and
+              pushing the footer offscreen (which is the bad behavior that you're trying
+              to avoid). This happens because flex items (children of a flex container)
+              establish a default minimum main-size, based on their contents, and will
+              refuse to be smaller than that minimum. In your case (with the outer flex
+              container being vertically-oriented), "main-size" is height, and the flex
+              item in question (.main-content) is establishing a content-based min-height.
+              (If you want the list items to be scrollable, then you may want to also add
+              overflow-y:auto to .main-contentYou need to add min-height: 0 to your
+              .main-content CSS rule. That prevents that element from stretching to
+              contain its children and pushing the footer offscreen (which is the bad
+              behavior that you're trying to avoid). This happens because flex items
+              (children of a flex container) establish a default minimum main-size, based
+              on their contents, and will refuse to be smaller than that minimum. In your
+              case (with the outer flex container being vertically-oriented), "main-size"
+              is height, and the flex item in question (.main-content) is establishing a
+              content-based min-height. (If you want the list items to be scrollable, then
+              you may want to also add overflow-y:auto to .main-contentYou need to add
+              min-height: 0 to your .main-content CSS rule. That prevents that element
+              from stretching to contain its children and pushing the footer offscreen
+              (which is the bad behavior that you're trying to avoid). This happens
+              because flex items (children of a flex container) establish a default
+              minimum main-size, based on their contents, and will refuse to be smaller
+              than that minimum. In your case (with the outer flex container being
+              vertically-oriented), "main-size" is height, and the flex item in question
+              (.main-content) is establishing a content-based min-height. (If you want the
+              list items to be scrollable, then you may want to also add overflow-y:auto
+              to .main-contentYou need to add min-height: 0 to your .main-content CSS
+              rule. That prevents that element from stretching to contain its children and
+              pushing the footer offscreen (which is the bad behavior that you're trying
+              to avoid). This happens because flex items (children of a flex container)
+              establish a default minimum main-size, based on their contents, and will
+              refuse to be smaller than that minimum. In your case (with the outer flex
+              container being vertically-oriented), "main-size" is height, and the flex
+              item in question (.main-content) is establishing a content-based min-height.
+              (If you want the list items to be scrollable, then you may want to also add
+              overflow-y:auto to .main-contentYou need to add min-height: 0 to your
+              .main-content CSS rule. That prevents that element from stretching to
+              contain its children and pushing the footer offscreen (which is the bad
+              behavior that you're trying to avoid). This happens because flex items
+              (children of a flex container) establish a default minimum main-size, based
+              on their contents, and will refuse to be smaller than that minimum. In your
+              case (with the outer flex container being vertically-oriented), "main-size"
+              is height, and the flex item in question (.main-content) is establishing a
+              content-based min-height. (If you want the list items to be scrollable, then
+              you may want to also add overflow-y:auto to .main-content
             </Paper>
           )
         })}
