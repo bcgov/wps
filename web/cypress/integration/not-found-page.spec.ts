@@ -1,4 +1,3 @@
-
 describe('Not Found Page', () => {
   beforeEach(() => {
     cy.visit('/notfound')
