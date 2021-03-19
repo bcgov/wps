@@ -32,14 +32,12 @@ const useStyles = makeStyles({
   displays: {
     marginTop: 16
   },
-  paper: {
-    paddingLeft: 18,
-    paddingRight: 18,
+  display: {
     paddingBottom: 8,
     marginBottom: 20
   },
-  station: {
-    fontSize: '1.1rem',
+  title: {
+    fontSize: '1.2rem',
     paddingTop: 10,
     paddingBottom: 8
   },
@@ -89,9 +87,9 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
             !observations && !noonForecasts && !gdpsModels && !hrdpsModels && !rdpsModels
 
           return (
-            <Paper key={code} className={classes.paper} elevation={3}>
-              <Typography className={classes.station} variant="subtitle1" component="div">
-                Weather station: {`${station.name} (${station.code})`}
+            <div key={code} className={classes.display}>
+              <Typography className={classes.title} variant="subtitle1" component="div">
+                {`${station.name} (${station.code})`}
               </Typography>
               {nothingToDisplay && (
                 <Typography className={classes.noDataAvailable} variant="body2">
@@ -134,7 +132,7 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
                   gdpsSummaries={gdpsSummaries}
                 />
               </ErrorBoundary>
-            </Paper>
+            </div>
           )
         })}
     </div>

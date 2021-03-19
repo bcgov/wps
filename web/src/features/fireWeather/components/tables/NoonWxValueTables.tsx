@@ -17,6 +17,7 @@ const sharedColumns: Column[] = [
   {
     id: 'datetime',
     label: 'Date (PST)',
+    minWidth: 160,
     align: 'left',
     formatDt: (value: string): string => formatDateInPST(value)
   },

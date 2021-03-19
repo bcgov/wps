@@ -1,7 +1,7 @@
 import React from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 
-const sidePanelWidth = 700
+const sidePanelWidth = 800
 
 const useStyles = makeStyles({
   root: (props: Props) => ({
