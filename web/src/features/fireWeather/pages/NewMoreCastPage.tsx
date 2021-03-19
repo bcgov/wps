@@ -5,7 +5,7 @@ import { makeStyles } from '@material-ui/core/styles'
 
 import { PageHeader } from 'components'
 import { getStationCodesFromUrl, getTimeOfInterestFromUrl } from 'utils/url'
-import { fetchWxStations } from 'features/stations/slices/stationsSlice'
+import { fetchWxStations } from 'features/percentileCalculator/slices/stationsSlice'
 import { fetchGlobalModelsWithBiasAdj } from 'features/fireWeather/slices/modelsSlice'
 import { fetchObservations } from 'features/fireWeather/slices/observationsSlice'
 import { fetchForecasts } from 'features/fireWeather/slices/forecastsSlice'
@@ -34,10 +34,6 @@ const useStyles = makeStyles(theme => ({
     paddingLeft: 25,
     paddingRight: 25
   },
-  navTitle: {
-    fontSize: '1.3rem',
-    marginRight: 25
-  },
   content: {
     display: 'flex',
     flexGrow: 1
@@ -48,30 +44,41 @@ const useStyles = makeStyles(theme => ({
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'grey',
     fontSize: '2rem'
   },
   sidePanel: (props: { showSide: boolean }) => ({
     order: 2,
-    width: props.showSide ? 650 : 0,
+    width: props.showSide ? 700 : 0,
     overflowX: 'hidden',
-    transition: '0.5s',
-    backgroundColor: 'lightblue'
+    transition: '0.4s',
+    boxShadow:
+      '0px 3px 3px -2px rgb(0 0 0 / 20%), 0px 3px 4px 0px rgb(0 0 0 / 14%), 0px 1px 8px 0px rgb(0 0 0 / 12%)'
   }),
   sidePanelContent: {
-    width: 650,
-    padding: 12
+    width: 700,
+    padding: 13,
+    position: 'relative'
+  },
+  sidePanelCloseBtn: {
+    position: 'absolute',
+    top: 0,
+    left: 10,
+    fontSize: 22,
+    cursor: 'pointer',
+    fontWeight: 'bold'
   }
 }))
 
 const MoreCastPage = () => {
-  const [showSide, setShowSide] = useState(false)
-  const classes = useStyles({ showSide })
   const dispatch = useDispatch()
   const location = useLocation()
 
   const codesFromQuery = getStationCodesFromUrl(location.search)
   const toiFromQuery = getTimeOfInterestFromUrl(location.search)
+
+  const [showSide, setShowSide] = useState(codesFromQuery.length > 0)
+  const classes = useStyles({ showSide })
+  const openSide = () => setShowSide(true)
 
   useEffect(() => {
     dispatch(fetchWxStations())
@@ -93,23 +100,26 @@ const MoreCastPage = () => {
 
   return (
     <main className={classes.main}>
-      <PageHeader
-        title="Predictive Services Unit"
-        productName="MoreCast"
-        noContainer
-        padding={25}
-      />
+      <PageHeader title="MoreCast" productName="MoreCast" noContainer padding={25} />
       <div className={classes.nav}>
-        <div className={classes.navTitle}>MoreCast</div>
-        <WxDataForm codesFromQuery={codesFromQuery} toiFromQuery={toiFromQuery} />
-        <button onClick={() => setShowSide(show => !show)}>toggle</button>
+        <WxDataForm
+          codesFromQuery={codesFromQuery}
+          toiFromQuery={toiFromQuery}
+          openSide={openSide}
+        />
       </div>
       <div className={classes.content}>
         <div className={classes.map}>map</div>
         <div className={classes.sidePanel}>
           <div className={classes.sidePanelContent}>
-            <button onClick={() => setShowSide(false)}>close</button>
-            <h2>Graph and Table here</h2>
+            <div
+              className={classes.sidePanelCloseBtn}
+              onClick={() => setShowSide(false)}
+              role="button"
+            >
+              &times;
+            </div>
+            <WxDataDisplays stationCodes={codesFromQuery} timeOfInterest={toiFromQuery} />
           </div>
         </div>
       </div>

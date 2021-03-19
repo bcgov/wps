@@ -5,7 +5,7 @@ import { useLocation } from 'react-router-dom'
 import { PageHeader, PageTitle, Container } from 'components'
 import WxDataDisplays from 'features/fireWeather/components/WxDataDisplays'
 import WxDataForm from 'features/fireWeather/components/WxDataForm'
-import { fetchWxStations } from 'features/stations/slices/stationsSlice'
+import { fetchWxStations } from 'features/percentileCalculator/slices/stationsSlice'
 import { fetchGlobalModelsWithBiasAdj } from 'features/fireWeather/slices/modelsSlice'
 import { fetchObservations } from 'features/fireWeather/slices/observationsSlice'
 import { fetchForecasts } from 'features/fireWeather/slices/forecastsSlice'
@@ -47,7 +47,7 @@ const MoreCastPage = () => {
       <PageHeader title="Predictive Services Unit" productName="MoreCast" />
       <PageTitle title="MoreCast - Weather Forecast Validation Tool" />
       <Container>
-        <WxDataForm codesFromQuery={codesFromQuery} toiFromQuery={toiFromQuery} />
+        {/* <WxDataForm codesFromQuery={codesFromQuery} toiFromQuery={toiFromQuery} /> */}
         <WxDataDisplays stationCodes={codesFromQuery} timeOfInterest={toiFromQuery} />
       </Container>
     </main>

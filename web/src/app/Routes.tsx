@@ -4,7 +4,6 @@ import { BrowserRouter as Router, Route, Switch, Redirect } from 'react-router-d
 import { HIDE_DISCLAIMER } from 'utils/env'
 import AuthWrapper from 'features/auth/AuthWrapper'
 import PercentileCalculatorPageWithDisclaimer from 'features/percentileCalculator/pages/PercentileCalculatorPageWithDisclaimer'
-import MoreCastPage from 'features/fireWeather/pages/MoreCastPage'
 import HfiCalculatorPage from 'features/hfiCalculator/pages/HfiCalculatorPage'
 import {
   PERCENTILE_CALC_ROUTE,
@@ -33,9 +32,6 @@ const Routes: React.FunctionComponent = () => {
         <Redirect from={FIRE_WEATHER_ROUTE} to={MORECAST_ROUTE} />
         <Route path={MORECAST_ROUTE}>
           <NewMoreCastPage />
-          {/* <AuthWrapper shouldAuthenticate={shouldAuthenticate}>
-            <MoreCastPage />
-          </AuthWrapper> */}
         </Route>
 
         <Route path={HFI_CALC_ROUTE}>

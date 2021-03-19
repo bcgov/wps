@@ -1,32 +1,20 @@
 import React from 'react'
-import { makeStyles } from '@material-ui/core/styles'
 import TextField from '@material-ui/core/TextField'
 
-const useStyles = makeStyles({
-  datePicker: {
-    display: 'block'
-    // width: 300
-    // marginTop: 16,
-    // marginBottom: 20
-  }
-})
-
 interface Props {
+  className?: string
   timeOfInterest: string
   onChange: (d: string) => void
 }
 
 const TimeOfInterestPicker = (props: Props) => {
-  const classes = useStyles()
-
   return (
     <TextField
       data-testid="time-of-interest-picker"
-      className={classes.datePicker}
+      className={props.className}
       label="Time of Interest (PST-08:00)"
       type="datetime-local"
       value={props.timeOfInterest.slice(0, 16)} // 'YYYY-MM-DDTHH:mm'
-      // helperText="Disclaimer: not all data may be available."
       variant="outlined"
       size="small"
       InputLabelProps={{

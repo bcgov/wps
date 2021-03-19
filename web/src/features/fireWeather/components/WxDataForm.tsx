@@ -2,29 +2,41 @@ import React, { useEffect, useState } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import { useHistory, useLocation } from 'react-router-dom'
 
-import WxStationDropdown from 'features/stations/components/WxStationDropdown'
 import TimeOfInterestPicker from 'features/fireWeather/components/TimeOfInterestPicker'
 import GetWxDataButton from 'features/fireWeather/components/GetWxDataButton'
 import { stationCodeQueryKey, timeOfInterestQueryKey } from 'utils/url'
+import WxStationDropdown from 'features/fireWeather/components/WxStationDropdown'
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(theme => ({
   form: {
     display: 'flex',
     alignItems: 'center',
-    flexWrap: 'wrap'
+    flexWrap: 'wrap',
+
+    '& fieldset, label, input': {
+      color: 'white !important',
+      borderColor: 'white !important'
+    },
+    '& .MuiChip-root': {
+      background: '#f0f0f0'
+    }
   },
   stationDropdown: {
-    // marginBottom: 10
+    marginRight: 16
+  },
+  toi: {
+    marginRight: 16
   }
-})
+}))
 
 interface Props {
   className?: string
   codesFromQuery: number[]
   toiFromQuery: string
+  openSide: () => void
 }
 
-const WxDataForm = ({ className, codesFromQuery, toiFromQuery }: Props) => {
+const WxDataForm = ({ className, codesFromQuery, toiFromQuery, openSide }: Props) => {
   const classes = useStyles()
   const history = useHistory()
   const location = useLocation()
@@ -40,6 +52,9 @@ const WxDataForm = ({ className, codesFromQuery, toiFromQuery }: Props) => {
   }, [location]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSubmit = () => {
+    // Open the side panel
+    openSide()
+
     // Update the url query with the new station codes
     history.push({
       search:
@@ -69,6 +84,7 @@ const WxDataForm = ({ className, codesFromQuery, toiFromQuery }: Props) => {
         onChange={setSelectedCodes}
       />
       <TimeOfInterestPicker
+        className={classes.toi}
         timeOfInterest={timeOfInterest}
         onChange={setTimeOfInterest}
       />
