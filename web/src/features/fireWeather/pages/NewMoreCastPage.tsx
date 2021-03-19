@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useDispatch } from 'react-redux'
 import { useLocation } from 'react-router-dom'
 import { makeStyles } from '@material-ui/core/styles'
@@ -44,24 +44,29 @@ const useStyles = makeStyles(theme => ({
   },
   map: {
     order: 1,
-    backgroundColor: 'grey',
     flexGrow: 1,
     display: 'flex',
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
+    backgroundColor: 'grey',
+    fontSize: '2rem'
   },
-  side: {
+  sidePanel: (props: { showSide: boolean }) => ({
     order: 2,
-    backgroundColor: 'lightblue',
+    width: props.showSide ? 650 : 0,
+    overflowX: 'hidden',
+    transition: '0.5s',
+    backgroundColor: 'lightblue'
+  }),
+  sidePanelContent: {
     width: 650,
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center'
+    padding: 12
   }
 }))
 
 const MoreCastPage = () => {
-  const classes = useStyles()
+  const [showSide, setShowSide] = useState(false)
+  const classes = useStyles({ showSide })
   const dispatch = useDispatch()
   const location = useLocation()
 
@@ -97,10 +102,16 @@ const MoreCastPage = () => {
       <div className={classes.nav}>
         <div className={classes.navTitle}>MoreCast</div>
         <WxDataForm codesFromQuery={codesFromQuery} toiFromQuery={toiFromQuery} />
+        <button onClick={() => setShowSide(show => !show)}>toggle</button>
       </div>
       <div className={classes.content}>
         <div className={classes.map}>map</div>
-        <div className={classes.side}>graph {'&'} table</div>
+        <div className={classes.sidePanel}>
+          <div className={classes.sidePanelContent}>
+            <button onClick={() => setShowSide(false)}>close</button>
+            <h2>Graph and Table here</h2>
+          </div>
+        </div>
       </div>
     </main>
   )
