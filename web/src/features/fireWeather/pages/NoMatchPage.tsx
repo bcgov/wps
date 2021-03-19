@@ -15,11 +15,12 @@ export const NoMatchPage: React.FunctionComponent = () => {
     const classes = useStyles()
   
     return (
-        <main className={classes.root}>
-        <PageHeader title="Not Found" productName="Not Found"/>
-        <PageTitle title="Not Found" />
+        <main>
+        <PageHeader title="Predictive Services Unit" productName="Predictive Services Unit"/>
         <Container>
-            <p>404 Not Found. Return <a href="/" >home</a></p>
+          <h1>Page Not Found</h1>
+          <p>If you enetered a web address please check it was correct.</p>
+          <p>You can also reach out the the Predictive Services Unit via TEAMS or <a href="mailto:bcws.predictiveservices@gov.bc.ca">send us an email</a> to find the information you need.</p>
         </Container>
       </main>
     )
