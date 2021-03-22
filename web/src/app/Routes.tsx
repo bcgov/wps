@@ -14,12 +14,11 @@ import {
   HFI_CALC_ROUTE,
   C_HAINES_ROUTE
 } from 'utils/constants'
+import { NoMatchPage } from 'features/fireWeather/pages/NoMatchPage'
 
 const shouldShowDisclaimer = HIDE_DISCLAIMER === 'false' || HIDE_DISCLAIMER === undefined
 const shouldAuthenticate =
   process.env.NODE_ENV === 'production' || window.Cypress === undefined
-
-const NoMatch = () => <div>Page not found.</div>
 
 const Routes: React.FunctionComponent = () => {
   return (
@@ -49,7 +48,7 @@ const Routes: React.FunctionComponent = () => {
         </Route>
 
         <Route>
-          <NoMatch />
+          <NoMatchPage />
         </Route>
       </Switch>
     </Router>
