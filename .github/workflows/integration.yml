@@ -7,7 +7,7 @@ on:
 jobs:
   lint-and-test:
     name: Lint, Test with Coverage & SonarQube
-    # Ubuntu 18.04 (a.k.a. ubuntu-latest) comes with gdal 2.2.3, which has bugs that cause unit tests to fail
+    # Ubuntu 18.04 (a.k.a. ubuntu-20.04) comes with gdal 2.2.3, which has bugs that cause unit tests to fail
     runs-on: ubuntu-20.04
     strategy:
       matrix:

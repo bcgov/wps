@@ -8,7 +8,7 @@ on:
 jobs:
   prepare-dev-database:
     name: Prepare Dev Database (OCP4)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Set Variables
         shell: bash
@@ -27,7 +27,7 @@ jobs:
   prepare-dev-database-backups:
     name: Prepare Dev Database Backups (OCP4)
     needs: prepare-dev-database
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Set Variables
         shell: bash
@@ -82,7 +82,7 @@ jobs:
   deploy-dev:
     name: Deploy to Dev & ZAP Baseline Scan (OCP4)
     needs: [build-image, prepare-dev-database]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Set Variables
         shell: bash
@@ -139,7 +139,7 @@ jobs:
 
   prepare-test-database:
     name: Prepare Test Database (OCP4)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Set Variables
         shell: bash
@@ -158,7 +158,7 @@ jobs:
   deploy-test:
     name: Deploy to Test
     needs: [build-image, prepare-test-database]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Set Variables
         shell: bash
