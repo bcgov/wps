@@ -44,10 +44,10 @@ describe('MoreCast Page', () => {
   it('Should display a map with OpenLayers', () => {
     cy.visit(MORECAST_ROUTE)
 
-    // Should find a zoom control
+    // Should be able to find its zoom control
     cy.getByTestId('map').find('.ol-zoom')
 
-    // Should find an attribution for the base map layer
+    // Should be able to find an attribution for the base map layer
     cy.getByTestId('map')
       .find('.ol-attribution')
       .click()
