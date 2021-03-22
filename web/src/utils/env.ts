@@ -1,10 +1,9 @@
 let ENV = {
-  API_BASE_URL: process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api',
+  API_BASE_URL: process.env.REACT_APP_API_BASE_URL as string,
   HIDE_DISCLAIMER: process.env.REACT_APP_HIDE_DISCLAIMER,
-  KC_AUTH_URL:
-    process.env.REACT_APP_KEYCLOAK_AUTH_URL || 'https://dev.oidc.gov.bc.ca/auth',
-  KC_REALM: process.env.REACT_APP_KEYCLOAK_REALM || '8wl6x4cp',
-  KC_CLIENT: process.env.REACT_APP_KEYCLOAK_CLIENT || 'wps-web'
+  KC_AUTH_URL: process.env.REACT_APP_KEYCLOAK_AUTH_URL as string,
+  KC_REALM: process.env.REACT_APP_KEYCLOAK_REALM as string,
+  KC_CLIENT: process.env.REACT_APP_KEYCLOAK_CLIENT as string
 }
 
 // If the app is built using 'npm run build'

@@ -212,7 +212,6 @@ objects:
                     configMapKeyRef:
                       name: ${NAME}-global
                       key: env.matomo-container
-
               ports:
                 - containerPort: 8080
                   protocol: TCP

@@ -82,7 +82,7 @@ async def get_index(request: Request):
                 'REACT_APP_KEYCLOAK_CLIENT': config.get('REACT_APP_KEYCLOAK_CLIENT'),
                 'REACT_APP_MATOMO_URL': config.get('REACT_APP_MATOMO_URL'),
                 'REACT_APP_MATOMO_SITE_ID': config.get('REACT_APP_MATOMO_SITE_ID'),
-                'REACT_APP_MATOMO_CONTAINER': config.get('REACT_APP_MATOMO_CONTAINER'),
+                'REACT_APP_MATOMO_CONTAINER': config.get('REACT_APP_MATOMO_CONTAINER')
             })
         if config.get('HOSTNAME') != 'localhost':
             # For anything else - force https.

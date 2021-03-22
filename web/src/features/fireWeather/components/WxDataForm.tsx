@@ -6,6 +6,7 @@ import WxStationDropdown from 'features/stations/components/WxStationDropdown'
 import TimeOfInterestPicker from 'features/fireWeather/components/TimeOfInterestPicker'
 import GetWxDataButton from 'features/fireWeather/components/GetWxDataButton'
 import { stationCodeQueryKey, timeOfInterestQueryKey } from 'utils/url'
+import WeatherMap from 'features/fireWeather/components/maps/WeatherMap'
 
 const useStyles = makeStyles({
   stationDropdown: {
@@ -34,7 +35,7 @@ const WxDataForm = ({ codesFromQuery, toiFromQuery }: Props) => {
   }, [location]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSubmit = () => {
-    // Update the url query with the new station codes
+    // Update the url query with the new station codes and time of interest
     history.push({
       search:
         `${stationCodeQueryKey}=${selectedCodes.join(',')}&` +
@@ -62,6 +63,7 @@ const WxDataForm = ({ codesFromQuery, toiFromQuery }: Props) => {
         stationCodes={selectedCodes}
         onChange={setSelectedCodes}
       />
+      <WeatherMap />
       <TimeOfInterestPicker
         timeOfInterest={timeOfInterest}
         onChange={setTimeOfInterest}
