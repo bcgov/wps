@@ -64,7 +64,15 @@ def calculate_c_haines_index(t700: float, t850: float, d850: float) -> float:
 
 
 def read_scanline(band, yoff):
-    """ Read a band scanline, returning an array of values. """
+    """ Read a band scanline (up to the y-offset), returning an array of values.
+
+    A raster (image) may consist of multiple bands (e.g. for a colour image, one may have a band for
+    red, green, blue, and alpha).
+    A scanline, is a single row of a band.
+
+    band, definition: https://gdal.org/user/raster_data_model.html#raster-band
+    fetching a raster band: https://gdal.org/tutorials/raster_api_tut.html#fetching-a-raster-band
+    """
     scanline = band.ReadRaster(xoff=0, yoff=yoff,
                                xsize=band.XSize, ysize=1,
                                buf_xsize=band.XSize, buf_ysize=1,
