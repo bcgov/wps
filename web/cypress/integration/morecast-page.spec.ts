@@ -41,6 +41,18 @@ describe('MoreCast Page', () => {
     cy.contains('Data is not available.')
   })
 
+  it('Should display a map with OpenLayers', () => {
+    cy.visit(MORECAST_ROUTE)
+
+    // Should be able to find its zoom control
+    cy.getByTestId('map').find('.ol-zoom')
+
+    // Should be able to find an attribution for the base map layer
+    cy.getByTestId('map')
+      .find('.ol-attribution')
+      .click()
+  })
+
   describe('When wx data successfully fetched', () => {
     const numOfObservations = 119
     const numOfForecasts = 6

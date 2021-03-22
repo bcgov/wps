@@ -44,7 +44,7 @@ const stationSummaryResponse2 = {
 }
 
 export default {
-  title: 'component/PercentileResults',
+  title: 'percentile/PercentileResults',
   component: PercentileResults
 } as Meta
 

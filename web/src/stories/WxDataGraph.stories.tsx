@@ -22,7 +22,7 @@ import { NoonForecastValue } from 'api/forecastAPI'
 import { getTimeOfInterestFromUrl } from 'utils/url'
 
 export default {
-  title: 'component/WxDataGraph',
+  title: 'morecast/WxDataGraph',
   component: WxDataGraph
 } as Meta
 
