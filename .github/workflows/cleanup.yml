@@ -9,7 +9,7 @@ on:
 jobs:
   cleanup:
     name: Delete non-DB resources associated with pr
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Set Variables
         shell: bash
@@ -37,8 +37,25 @@ jobs:
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TEST_TOKEN }}"
           PROJ_TEST=e1e498-test PROJ_DEV=e1e498-dev bash openshift/scripts/oc_cleanup_test.sh ${SUFFIX} apply
 
-      - name: Clean up database (OCP4)
+    name: Delete DB resources associated with PR
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Set Variables
+        shell: bash
+        run: |
+          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Clean up dev database
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
           PROJ_TARGET=e1e498-dev PROJ_TOOLS=e1e498-tools PROJ_DEV=e1e498-dev bash openshift/scripts/oc_cleanup_db.sh ${SUFFIX} apply
+
+      - name: Clean up test database
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="{{ secrets.OC4_TEST_TOKEN }}"
+          PROJ_TARGET=e1e498-test PROJ_TOOLS=e1e498-tools bash openshift/scripts/oc_cleanup_db.sh ${SUFFIX} apply
