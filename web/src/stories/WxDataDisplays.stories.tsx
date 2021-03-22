@@ -23,7 +23,7 @@ import { isNoonInPST } from 'utils/date'
 import { getTimeOfInterestFromUrl } from 'utils/url'
 
 export default {
-  title: 'component/WxDataDisplays',
+  title: 'morecast/WxDataDisplays',
   component: WxDataDisplays
 } as Meta
 
