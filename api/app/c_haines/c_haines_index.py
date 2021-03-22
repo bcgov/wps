@@ -3,6 +3,7 @@
 import logging
 import struct
 from typing import Final, Tuple
+from functools import lru_cache
 from pyproj import CRS
 from osgeo import gdal
 from app.weather_models.process_grib import (
@@ -98,21 +99,10 @@ class BoundingBoxChecker():
         self.geo_bounding_box = get_geographic_bounding_box()
         self.padf_transform = padf_transform
         self.raster_to_geo_transformer = raster_to_geo_transformer
-        self.good_x = dict()
-        self.check_cache = False
 
-    def _is_inside_using_cache(self, raster_x, raster_y):
-        good_y = self.good_x.get(raster_x)
-        return good_y and raster_y in good_y
-
+    @lru_cache(maxsize=None)
     def is_inside(self, raster_x, raster_y):
         """ Check if raster coordinate is inside the geographic bounding box """
-        # Try to use the cached results. Transforming the raster coordinates is very slow. We can save
-        # a considerable amount of time, by caching this response - and then using the cache for the
-        # entire model run.
-        # NOTE: This assumes that all the grib files in the model run will be using the same projection.
-        if self.check_cache:
-            return self._is_inside_using_cache(raster_x, raster_y)
         # Calculate lat/long and check bounds.
         lon, lat = calculate_geographic_coordinate(
             (raster_x, raster_y),
@@ -123,11 +113,6 @@ class BoundingBoxChecker():
         lon1 = self.geo_bounding_box[1][0]
         lat1 = self.geo_bounding_box[1][1]
         if lon0 < lon < lon1 and lat0 > lat > lat1:
-            good_y = self.good_x.get(raster_x)
-            if not good_y:
-                good_y = set()
-                self.good_x[raster_x] = good_y
-            good_y.add(raster_y)
             return True
         return False
 
@@ -149,7 +134,6 @@ class CHainesGenerator():
             self.bound_checker = BoundingBoxChecker(padf_transform, raster_to_geo_transformer)
         else:
             logger.info('Re-using bound checker.')
-            self.bound_checker.check_cache = True
 
     def calculate_row_data(self,
                            tmp_700_raster_band: gdal.Band,
