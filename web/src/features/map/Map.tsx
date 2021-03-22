@@ -6,6 +6,7 @@ import * as ol from 'ol'
 import { FeatureLike } from 'ol/Feature'
 import OLOverlay from 'ol/Overlay'
 import { MapOptions } from 'ol/PluggableMap'
+import { defaults as defaultControls } from 'ol/control'
 
 import { ErrorBoundary } from 'components'
 
@@ -15,7 +16,7 @@ const useStyles = makeStyles({
   map: {
     position: 'relative',
     width: '100%',
-    height: 500,
+    height: '100%',
 
     '& .ol-control': {
       position: 'absolute',
@@ -32,7 +33,6 @@ const useStyles = makeStyles({
       border: '1px solid #cccccc',
       bottom: 12,
       whiteSpace: 'nowrap',
-
       // Center absolutely positioned content of unknown width
       // https://stackoverflow.com/a/9367930/11903963
       left: '50%',
@@ -46,10 +46,11 @@ interface Props {
   children: React.ReactNode
   zoom: number
   center: number[]
+  redrawFlag?: boolean
   renderTooltip?: (feature: FeatureLike | null) => React.ReactNode
 }
 
-const Map = ({ children, zoom, center, renderTooltip }: Props) => {
+const Map = ({ children, zoom, center, redrawFlag, renderTooltip }: Props) => {
   const classes = useStyles()
   const overlayRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
@@ -63,7 +64,8 @@ const Map = ({ children, zoom, center, renderTooltip }: Props) => {
     const options: MapOptions = {
       view: new ol.View({ zoom, center }),
       layers: [],
-      overlays: []
+      overlays: [],
+      controls: defaultControls()
     }
     let overlay: OLOverlay | undefined
 
@@ -125,6 +127,15 @@ const Map = ({ children, zoom, center, renderTooltip }: Props) => {
 
     map.getView().setCenter(center)
   }, [center]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!map) return
+
+    // Wait for 0.5s for the side panel to collapse then resize the map
+    setTimeout(() => {
+      map.updateSize()
+    }, 500)
+  }, [redrawFlag]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <ErrorBoundary>

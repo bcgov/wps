@@ -13,18 +13,17 @@ const GetWxDataButton = ({ onBtnClick, disabled }: Props) => {
   const wxDataLoading = useSelector(selectWxDataLoading)
 
   return (
-    <>
-      <Button
-        data-testid="get-wx-data-button"
-        onClick={onBtnClick}
-        disabled={disabled}
-        loading={wxDataLoading}
-        variant="contained"
-        color="primary"
-      >
-        Get Weather Data
-      </Button>
-    </>
+    <Button
+      data-testid="get-wx-data-button"
+      onClick={onBtnClick}
+      disabled={disabled}
+      loading={wxDataLoading}
+      variant="contained"
+      color="primary"
+      spinnerColor="white"
+    >
+      Get Weather Data
+    </Button>
   )
 }
 
