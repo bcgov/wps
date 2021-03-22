@@ -125,6 +125,24 @@ jobs:
           # Do not return failure on warnings - TODO: this has to be resolved!
           cmd_options: "-I"
 
+  prepare-test-database:
+    name: Prepare Test Database (OCP4)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set Variables
+        shell: bash
+        run: |
+          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Deploy PostGIS instance
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TEST_TOKEN }}"
+          EPHEMERAL_STORAGE=True PROJ_TARGET=e1e498-test APP_USER="wps" IMAGE_STREAM_NAMESPACE=e1e498-tools bash openshift/scripts/oc_provision_db.sh ${SUFFIX} apply
+
   deploy-test:
     name: Deploy to Test
     needs: prepare-test-database
