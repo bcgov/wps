@@ -128,7 +128,7 @@ def _yield_folder_parts(result, model: ModelEnum, model_run_timestamp: datetime)
                 yield close_placemark()
             prev_severity = None
             # Close the previous folder if needed.
-            if not prev_prediction_timestamp is None:
+            if prev_prediction_timestamp is not None:
                 yield f'{FOLDER_CLOSE}\n'
             prev_prediction_timestamp = prediction_timestamp
             # Start a new folder.
@@ -144,7 +144,7 @@ def _yield_folder_parts(result, model: ModelEnum, model_run_timestamp: datetime)
         yield poly
 
     # Close all tags, if neede.
-    if not prev_prediction_timestamp is None:
+    if prev_prediction_timestamp is not None:
         if not prev_severity is None:
             yield close_placemark()
         yield f'{FOLDER_CLOSE}\n'
