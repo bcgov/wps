@@ -63,7 +63,7 @@ jobs:
 
   deploy-dev:
     name: Deploy to Dev & ZAP Baseline Scan (OCP4)
-    needs: [build, prepare-dev-database]
+    needs: prepare-dev-database
     runs-on: ubuntu-latest
     steps:
       - name: Set Variables
@@ -127,7 +127,7 @@ jobs:
 
   deploy-test:
     name: Deploy to Test
-    needs: [build, prepare-test-database]
+    needs: prepare-test-database
     runs-on: ubuntu-latest
     steps:
       - name: Set Variables
