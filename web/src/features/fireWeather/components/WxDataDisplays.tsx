@@ -30,11 +30,10 @@ import { ForecastSummary, NoonForecastValue } from 'api/forecastAPI'
 
 const useStyles = makeStyles({
   displays: {
-    marginTop: 16
+    marginTop: 4
   },
   display: {
-    paddingBottom: 8,
-    marginBottom: 20
+    marginBottom: 16
   },
   title: {
     fontSize: '1.2rem',
