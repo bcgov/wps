@@ -30,8 +30,8 @@ const useStyles = makeStyles({
 
 interface Props {
   show: boolean
-  children: React.ReactElement
   closeSidePanel: () => void
+  children: React.ReactNode
 }
 
 const SidePanel = (props: Props) => {
