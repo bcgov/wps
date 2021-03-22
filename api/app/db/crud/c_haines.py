@@ -18,7 +18,7 @@ def delete_older_than(session: Session, point_in_time: datetime):
     # much time. It seems deleting records in sqlalchmey isn't all that straight
     # forward.
 
-    logger.info('deleting c-hains model run data older than %s', point_in_time)
+    logger.info('deleting c-haines model run data older than %s', point_in_time)
 
     # Fetch all the model runs.
     model_runs = session.query(CHainesModelRun)\
