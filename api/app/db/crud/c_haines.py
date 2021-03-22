@@ -3,6 +3,7 @@
 from datetime import timedelta, datetime
 import logging
 from sqlalchemy import desc, asc
+from sqlalchemy.sql import text
 from sqlalchemy.orm import Session
 from app.weather_models import ModelEnum
 from app.db.models import CHainesPrediction, CHainesModelRun, PredictionModel, CHainesPoly
@@ -131,7 +132,7 @@ def get_model_run_kml(session: Session,
                       model: ModelEnum,
                       model_run_timestamp: datetime):
     """ Get the kml for a particular prediction """
-    query = """select ST_AsKML(ST_SetSRID(t.geom, 4269)), t.c_haines_index, t.prediction_timestamp from (
+    query = text("""select ST_AsKML(ST_SetSRID(t.geom, 4269)), t.c_haines_index, t.prediction_timestamp from (
         select geom, c_haines_index, prediction_timestamp from c_haines_polygons
         inner join c_haines_predictions on
             c_haines_predictions.id =
@@ -143,14 +144,14 @@ def get_model_run_kml(session: Session,
             prediction_models.id =
             c_haines_model_runs.prediction_model_id
         where
-            model_run_timestamp = '{model_run_timestamp}' and
-            prediction_models.abbreviation = '{model}'
+            model_run_timestamp = :model_run_timestamp and
+            prediction_models.abbreviation = :model
         order by prediction_timestamp asc, c_haines_index asc
-    ) as t(geom, c_haines_index)""".format(
-        model_run_timestamp=model_run_timestamp.isoformat(),
-        model=model)
+    ) as t(geom, c_haines_index)""")
     # pylint: disable=no-member
-    return session.execute(query)
+    return session.execute(query,
+                           {"model_run_timestamp": model_run_timestamp.isoformat(),
+                            "model": model})
 
 
 def get_prediction_kml(session: Session,
@@ -158,7 +159,7 @@ def get_prediction_kml(session: Session,
                        model_run_timestamp: datetime,
                        prediction_timestamp: datetime):
     """ Get the kml for a particular prediction """
-    query = """select ST_AsKML(ST_SetSRID(t.geom, 4269)), t.c_haines_index from (
+    query = text("""select ST_AsKML(ST_SetSRID(t.geom, 4269)), t.c_haines_index from (
         select geom, c_haines_index from c_haines_polygons
         inner join c_haines_predictions on
             c_haines_predictions.id =
@@ -170,16 +171,16 @@ def get_prediction_kml(session: Session,
             prediction_models.id =
             c_haines_model_runs.prediction_model_id
         where
-            prediction_timestamp = '{prediction_timestamp}' and
-            model_run_timestamp = '{model_run_timestamp}' and
-            prediction_models.abbreviation = '{model}'
+            prediction_timestamp = :prediction_timestamp and
+            model_run_timestamp = :model_run_timestamp and
+            prediction_models.abbreviation = :model
         order by c_haines_index asc
-    ) as t(geom, c_haines_index)""".format(
-        prediction_timestamp=prediction_timestamp.isoformat(),
-        model_run_timestamp=model_run_timestamp.isoformat(),
-        model=model)
+    ) as t(geom, c_haines_index)""")
     # pylint: disable=no-member
-    return session.execute(query)
+    return session.execute(query, {
+        "prediction_timestamp": prediction_timestamp.isoformat(),
+        "model_run_timestamp": model_run_timestamp.isoformat(),
+        "model": model})
 
 
 def get_prediction_geojson(session: Session,
@@ -187,7 +188,7 @@ def get_prediction_geojson(session: Session,
                            model_run_timestamp: datetime,
                            prediction_timestamp: datetime):
     """ Get the geojson for a particular prediction """
-    query = """select json_build_object(
+    query = text("""select json_build_object(
         'type', 'FeatureCollection',
         'features', json_agg(ST_AsGeoJSON(t.*)::json)
     )
@@ -203,15 +204,16 @@ def get_prediction_geojson(session: Session,
             prediction_models.id =
             c_haines_model_runs.prediction_model_id
         where
-            prediction_timestamp = '{prediction_timestamp}' and
-            model_run_timestamp = '{model_run_timestamp}' and
-            prediction_models.abbreviation = '{model}'
+            prediction_timestamp = :prediction_timestamp and
+            model_run_timestamp = :model_run_timestamp and
+            prediction_models.abbreviation = :model
         order by c_haines_index asc
-    ) as t(geom, c_haines_index)""".format(
-        prediction_timestamp=prediction_timestamp.isoformat(),
-        model_run_timestamp=model_run_timestamp.isoformat(),
-        model=model)
+    ) as t(geom, c_haines_index)""")
     # pylint: disable=no-member
-    response = session.execute(query)
+    response = session.execute(query, {
+        "prediction_timestamp": prediction_timestamp.isoformat(),
+        "model_run_timestamp": model_run_timestamp.isoformat(),
+        "model": model
+    })
     row = next(response)
     return row[0]

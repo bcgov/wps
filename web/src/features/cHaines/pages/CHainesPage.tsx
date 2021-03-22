@@ -640,7 +640,7 @@ const CHainesPage = () => {
                       type="radio"
                       value={model_run.model_run_timestamp}
                       checked={
-                        model_run.model_run_timestamp == selected_model_run_timestamp
+                        model_run.model_run_timestamp === selected_model_run_timestamp
                       }
                       onChange={handleChangeModelRun}
                     />
