@@ -1,6 +1,6 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
-import { Paper, Typography } from '@material-ui/core'
+import { Typography } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 
 import ObservationTable from 'features/fireWeather/components/tables/ObservationTable'
@@ -38,7 +38,6 @@ const useStyles = makeStyles({
   },
   title: {
     fontSize: '1.2rem',
-    paddingTop: 10,
     paddingBottom: 8
   },
   noDataAvailable: {
@@ -68,6 +67,8 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
 
   return (
     <div className={classes.displays}>
+      {props.wxDataLoading && 'Loading...'}
+
       {!props.wxDataLoading &&
         props.stationCodes.map(code => {
           const station = props.stationsByCode[code]

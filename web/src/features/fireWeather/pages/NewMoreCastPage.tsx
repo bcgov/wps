@@ -18,6 +18,7 @@ import { fetchRegionalModelSummaries } from 'features/fireWeather/slices/regiona
 import WxDataDisplays from 'features/fireWeather/components/WxDataDisplays'
 import WxDataForm from 'features/fireWeather/components/WxDataForm'
 import SidePanel from 'features/fireWeather/components/SidePanel'
+import NetworkErrorMessages from 'features/fireWeather/components/NetworkErrorMessages'
 
 const useStyles = makeStyles(theme => ({
   main: {
@@ -36,8 +37,8 @@ const useStyles = makeStyles(theme => ({
     paddingRight: 25
   },
   content: {
-    display: 'flex',
     flexGrow: 1,
+    display: 'flex',
     overflowY: 'auto'
   },
   map: {
@@ -94,6 +95,7 @@ const MoreCastPage = () => {
       <div className={classes.content}>
         <div className={classes.map}>map</div>
         <SidePanel show={showSidePanel} closeSidePanel={closeSidePanel}>
+          <NetworkErrorMessages />
           <WxDataDisplays stationCodes={codesFromQuery} timeOfInterest={toiFromQuery} />
         </SidePanel>
       </div>
