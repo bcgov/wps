@@ -89,7 +89,7 @@ def get_or_create_c_haines_model_run(
         prediction_model: PredictionModel) -> CHainesModelRun:
     """ Get a model run, creating on if it doesn't exist. """
     model_run = get_c_haines_model_run(session, model_run_timestamp, prediction_model)
-    if not model_run:
+    if model_run is None:
         model_run = create_c_haines_model_run(session, model_run_timestamp, prediction_model)
     return model_run
 

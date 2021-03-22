@@ -191,7 +191,10 @@ class SourceInfo():
 
 
 def create_in_memory_band(data: numpy.ndarray, source_info: SourceInfo):
-    """ Create an in memory data band """
+    """ Create an in memory data band to represent a single raster layer.
+    See https://gdal.org/user/raster_data_model.html#raster-band for a complete
+    description of what a raster band is.
+    """
     mem_driver = gdal.GetDriverByName('MEM')
 
     dataset = mem_driver.Create('memory', source_info.cols, source_info.rows, 1, gdal.GDT_Byte)
@@ -372,7 +375,7 @@ class CHainesSeverityGenerator():
             for prediction_hour in model_prediction_hour_iterator(self.model):
                 urls, model_run_timestamp, prediction_timestamp = make_model_run_download_urls(
                     self.model, utc_now, model_hour, prediction_hour)
-                if not model_run:
+                if model_run is None:
                     model_run = get_or_create_c_haines_model_run(
                         self.session, model_run_timestamp, prediction_model)
                 if record_exists(self.session, model_run, prediction_timestamp):
