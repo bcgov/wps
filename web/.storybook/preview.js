@@ -2,6 +2,7 @@ import React from 'react'
 import { ThemeProvider } from '@material-ui/core/styles'
 
 import { theme } from '../src/app/theme'
+import '../src/index.css'
 
 export const parameters = {
   actions: { argTypesRegex: '^on[A-Z].*' }
