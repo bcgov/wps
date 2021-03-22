@@ -9,7 +9,7 @@ import {
 
 interface Props {
   shouldAuthenticate: boolean
-  children: React.ReactNode
+  children: React.ReactElement
 }
 
 const AuthWrapper = ({ children, shouldAuthenticate }: Props) => {
