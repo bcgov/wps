@@ -126,7 +126,7 @@ jobs:
 
   build-ubuntu-image:
     # C-Haines relies on a gdal version not currently available in the debian image we use,
-    # so we need to crate an ubuntu based image.
+    # so we need to create an ubuntu based image.
     name: Build ubuntu based image
     runs-on: ubuntu-20.04
 
