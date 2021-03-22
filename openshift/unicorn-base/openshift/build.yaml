@@ -21,7 +21,7 @@ parameters:
   - name: GIT_BRANCH
     value: main
 objects:
-  #ImageStream is createed if it doesn't already exist
+  #ImageStream is created if it doesn't already exist
   - apiVersion: v1
     kind: ImageStream
     metadata:
