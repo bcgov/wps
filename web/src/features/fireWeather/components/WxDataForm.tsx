@@ -6,6 +6,7 @@ import TimeOfInterestPicker from 'features/fireWeather/components/TimeOfInterest
 import GetWxDataButton from 'features/fireWeather/components/GetWxDataButton'
 import { stationCodeQueryKey, timeOfInterestQueryKey } from 'utils/url'
 import WxStationDropdown from 'features/fireWeather/components/WxStationDropdown'
+import WeatherMap from 'features/fireWeather/components/maps/WeatherMap'
 
 const useStyles = makeStyles({
   form: {
@@ -55,7 +56,7 @@ const WxDataForm = ({ codesFromQuery, toiFromQuery, openSidePanel }: Props) => {
     // Open the side panel
     openSidePanel()
 
-    // Update the url query with the new station codes
+    // Update the url query with the new station codes and time of interest
     history.push({
       search:
         `${stationCodeQueryKey}=${selectedCodes.join(',')}&` +
@@ -83,6 +84,7 @@ const WxDataForm = ({ codesFromQuery, toiFromQuery, openSidePanel }: Props) => {
         stationCodes={selectedCodes}
         onChange={setSelectedCodes}
       />
+      <WeatherMap />
       <TimeOfInterestPicker
         className={classes.toi}
         timeOfInterest={timeOfInterest}
