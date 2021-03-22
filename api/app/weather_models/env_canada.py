@@ -384,8 +384,8 @@ class EnvCanada():
                         filename = os.path.basename(urlparse(url).path)
                         model_info = parse_env_canada_filename(filename)
                         # download the file:
-                        with tempfile.TemporaryDirectory() as tmp_path:
-                            downloaded = download(url, tmp_path)
+                        with tempfile.TemporaryDirectory() as temporary_path:
+                            downloaded = download(url, temporary_path)
                             if downloaded:
                                 self.files_downloaded += 1
                                 # If we've downloaded the file ok, we can now process it.

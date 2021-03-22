@@ -141,7 +141,11 @@ def make_model_run_filename(
 
 
 def make_model_levels(model: ModelEnum):
-    """ Return list of layers. (The layers are named slightly differently for HRDPS) """
+    """ Return list of layers. (The layers are named slightly differently for HRDPS)
+    TMP_ISBL_0700 : Temperature at 700mb.
+    TMP_ISBL_0850 : Temperature at 850mb.
+    DEPR_ISBL_0850 : Dew point depression at 850mb.
+    """
     if model == ModelEnum.HRDPS:
         return ['TMP_ISBL_0700', 'TMP_ISBL_0850', 'DEPR_ISBL_0850']
     return ['TMP_ISBL_700', 'TMP_ISBL_850', 'DEPR_ISBL_850']
@@ -335,18 +339,18 @@ class CHainesSeverityGenerator():
                          urls: dict,
                          prediction_timestamp: datetime,
                          model_run: CHainesModelRun,
-                         tmp_path: str) -> Union[EnvCanadaPayload, None]:
+                         temporary_path: str) -> Union[EnvCanadaPayload, None]:
         """ Collect all the different things that make up our payload: our downloaded files,
         model run, and prediction timestamp. """
 
         def _download_files(urls: dict,
                             model: ModelEnum,
-                            tmp_path: str) -> Union[List[str], None]:
+                            temporary_path: str) -> Union[List[str], None]:
             """ Try to download all the files """
             filenames = []
             for key in make_model_levels(model):
                 # Try to download this file.
-                filename = download(urls[key], tmp_path)
+                filename = download(urls[key], temporary_path)
                 if not filename:
                     # If we fail to download one of files, quit, don't try the others.
                     logger.warning('failed to download all files')
@@ -354,7 +358,7 @@ class CHainesSeverityGenerator():
                 filenames.append(filename)
             return filenames
 
-        filenames = _download_files(urls, self.model, tmp_path)
+        filenames = _download_files(urls, self.model, temporary_path)
         if filenames:
             filename_tmp_700, filename_tmp_850, filename_dew_850 = filenames
             payload = EnvCanadaPayload()
@@ -366,7 +370,7 @@ class CHainesSeverityGenerator():
             return payload
         return None
 
-    def _yield_payload(self, tmp_path):
+    def _yield_payload(self, temporary_path):
         """ Iterator that yields the next to process. """
         prediction_model = get_prediction_model(self.session, self.model, self.projection)
         utc_now = get_utc_now()
@@ -384,7 +388,7 @@ class CHainesSeverityGenerator():
                                 model_run_timestamp, prediction_timestamp)
                     continue
 
-                payload = self._collect_payload(urls, prediction_timestamp, model_run, tmp_path)
+                payload = self._collect_payload(urls, prediction_timestamp, model_run, temporary_path)
                 if payload:
                     yield payload
                 else:
@@ -420,8 +424,8 @@ class CHainesSeverityGenerator():
                                         c_haines_severity_data,
                                         c_haines_mask_data,
                                         source_info: SourceInfo):
-        with tempfile.TemporaryDirectory() as tmp_path:
-            json_filename = os.path.join(os.getcwd(), tmp_path, 'c-haines.geojson')
+        with tempfile.TemporaryDirectory() as temporary_path:
+            json_filename = os.path.join(os.getcwd(), temporary_path, 'c-haines.geojson')
             save_data_as_geojson(
                 c_haines_severity_data,
                 c_haines_mask_data,
@@ -437,8 +441,8 @@ class CHainesSeverityGenerator():
     def generate(self):
         """ Entry point for generating and storing c-haines severity index. """
         # Iterate through payloads that need processing.
-        with tempfile.TemporaryDirectory() as tmp_path:
-            for payload in self._yield_payload(tmp_path):
+        with tempfile.TemporaryDirectory() as temporary_path:
+            for payload in self._yield_payload(temporary_path):
                 # Generate the c_haines data.
                 c_haines_data, source_info = self._generate_c_haines_data(payload)
                 # Generate the severity index and mask data.
