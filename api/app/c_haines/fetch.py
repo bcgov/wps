@@ -104,8 +104,11 @@ def get_look_at(model: ModelEnum, model_run_timestamp: datetime):
     kml.append(f'<begin>{model_run_timestamp.isoformat()}</begin>')
     kml.append(f'<end>{end.isoformat()}</end>')
     kml.append('</gx:TimeSpan>')
+    # Center at an appropriate coordinate somewhere in the middle of B.C.
     kml.append('<longitude>-123</longitude>')
     kml.append('<latitude>54</latitude>')
+    # https://developers.google.com/kml/documentation/kmlreference#range
+    # Distance in meters from the point specified:
     kml.append('<range>3000000</range>')
     kml.append('</LookAt>')
     return '\n'.join(kml)
