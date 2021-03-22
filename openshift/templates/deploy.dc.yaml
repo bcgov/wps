@@ -68,7 +68,7 @@ parameters:
     description: Can be used to modify route (e.g. when deploying to test)
     value: ""
   - name: USE_WFWX
-    value: False
+    value: "False"
 objects:
   - apiVersion: v1
     kind: DeploymentConfig
