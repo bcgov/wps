@@ -69,7 +69,7 @@ objects:
       labels:
         app.kubernetes.io/part-of: wps
     data:
-      env.origins: wps-*.pathfinder.gov.bc.ca
+      env.origins: wps-*.apps.silver.devops.gov.bc.ca
       env.wfwx-auth-url: ${WFWX_AUTH_URL}
       env.wfwx-base-url: ${WFWX_BASE_URL}
       env.wfwx-user: ${WFWX_USER}

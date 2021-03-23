@@ -11,7 +11,7 @@ export interface ModelSummary {
   rh_tgl_2_90th: number
 }
 
-interface ModelInfo {
+export interface ModelInfo {
   name: string
   abbrev: string
 }

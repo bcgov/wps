@@ -31,6 +31,7 @@ pipeline {
             steps {
                 script {
                     sh "./openshift/scripts/oc_promote.sh ${suffix} apply"
+                    sh "./openshift/scripts/oc_promote_ubuntu.sh ${suffix} apply"
                 }
             }
         }

@@ -45,6 +45,8 @@ OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${PATH_DC} \
  ${MEMORY_LIMIT:+ "-p MEMORY_LIMIT=${MEMORY_LIMIT}"} \
  ${PROJ_TOOLS:+ "-p PROJ_TOOLS=${PROJ_TOOLS}"} \
  ${IMAGE_REGISTRY:+ "-p IMAGE_REGISTRY=${IMAGE_REGISTRY}"} \
+ ${USE_WFWX:+ "-p USE_WFWX=${USE_WFWX}"} \
+ ${ENVIRONMENT:+ "-p ENVIRONMENT=${ENVIRONMENT}"} \
  ${REPLICAS:+ "-p REPLICAS=${REPLICAS}"}"
 
 # Apply a template (apply or use --dry-run)
