@@ -211,7 +211,7 @@ will execute:
 
 ```bash
 poetry run pylint --rcfile=.pylintrc app/*.py app/**/*.py;
-poetry run python -m pytest app;
+poetry run python -m pytest -n 3 app;
 cd app; \
 poetry run uvicorn main:app --reload --port 8080;
 ```
@@ -251,7 +251,7 @@ make test
 
 Or enforce by running [scripts/test.sh](scripts/test.sh) as part of your ci/cd pipeline.
 
-### Making changes to the databse
+### Making changes to the database
 
 After making a change to the model, create migration script:
 

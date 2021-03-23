@@ -76,25 +76,25 @@ class HourlyActualsBot(BaseBot):
         data_df.rename(columns={'display_name': 'station_code'}, inplace=True)
 
         # write to database using _session's engine
-        session = app.db.database.get_write_session()
-        # write the data_df to the database one row at a time, so that if data_df contains >=1 rows that are
-        # duplicates of what is already in the db, the write won't fail for the unique rows
-        # NOTE: iterating over the data_df one Series (row) at a time is ugly, but until pandas is updated
-        # with a fix, this is the easiest work-around.
-        # See https://github.com/pandas-dev/pandas/issues/15988
-        # pylint: disable=unused-variable
-        for index, row in data_df.iterrows():
-            try:
-                # Go from pandas to a python dict.
-                data = row.to_dict()
-                # Format and fix timestamp, make it be tz aware.
-                data['weather_date'] = _fix_datetime(data['weather_date'])
-                # Throw the data into the model, and persist in the database
-                save_hourly_actual(session, HourlyActual(**data))
-            except IntegrityError:
-                logger.info('Skipping duplicate record for %s @ %s',
-                            data['station_code'], data['weather_date'])
-                session.rollback()
+        with app.db.database.get_write_session_scope() as session:
+            # write the data_df to the database one row at a time, so that if data_df contains >=1 rows that
+            # are duplicates of what is already in the db, the write won't fail for the unique rows
+            # NOTE: iterating over the data_df one Series (row) at a time is ugly, but until pandas is
+            # updated with a fix, this is the easiest work-around.
+            # See https://github.com/pandas-dev/pandas/issues/15988
+            # pylint: disable=unused-variable
+            for index, row in data_df.iterrows():
+                try:
+                    # Go from pandas to a python dict.
+                    data = row.to_dict()
+                    # Format and fix timestamp, make it be tz aware.
+                    data['weather_date'] = _fix_datetime(data['weather_date'])
+                    # Throw the data into the model, and persist in the database
+                    save_hourly_actual(session, HourlyActual(**data))
+                except IntegrityError:
+                    logger.info('Skipping duplicate record for %s @ %s',
+                                data['station_code'], data['weather_date'])
+                    session.rollback()
 
     def construct_request_body(self):
         return {

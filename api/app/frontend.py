@@ -30,8 +30,10 @@ templates = Jinja2Templates(directory=get_static_foldername())
 def add_security_headers(scope, response):
     """ Add security headers to statically served content
     """
+    if config.get('HOSTNAME') != 'localhost':
+        # For anything else - force https.
+        response.headers.setdefault('Content-Security-Policy', 'upgrade-insecure-requests')
     path = scope.get('path')
-
     # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options
     if (path and path[path.rfind('.'):] in ('.css', '.js', '.png', '.xml', '.svg', '.json', '.txt'))\
             or response.media_type in ('text/html',):
@@ -82,6 +84,9 @@ async def get_index(request: Request):
                 'REACT_APP_MATOMO_SITE_ID': config.get('REACT_APP_MATOMO_SITE_ID'),
                 'REACT_APP_MATOMO_CONTAINER': config.get('REACT_APP_MATOMO_CONTAINER')
             })
+        if config.get('HOSTNAME') != 'localhost':
+            # For anything else - force https.
+            response.headers.setdefault('Content-Security-Policy', 'upgrade-insecure-requests')
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
         response.headers.setdefault('X-Frame-Options', 'DENY')
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options
@@ -92,9 +97,10 @@ async def get_index(request: Request):
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Pragma
         response.headers.setdefault('Pragma', 'no-cache')
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
+        # unpkg.com; - leaflet
         response.headers.setdefault('Content-Security-Policy',
                                     ('default-src \'self\' \'unsafe-inline\''
-                                     ' *.googleapis.com *.gov.bc.ca *.gstatic.com;'
+                                     ' *.googleapis.com *.gov.bc.ca *.gstatic.com; unpkg.com;'
                                      ' img-src \'self\' blob: data: https:;'
                                      ' script-src \'self\' \'unsafe-inline\' \'unsafe-eval\' *.gov.bc.ca;'
                                      ' frame-ancestors \'none\''))

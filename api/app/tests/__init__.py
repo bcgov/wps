@@ -1,18 +1,27 @@
 """ Util & common files for tests
 """
-from typing import IO, Any, Callable
+from typing import IO, Any, Callable, Union
 import os
 import datetime
 import json
 import importlib
+import jsonpickle
 from app.db.models.common import TZTimeStamp
 
 
-def _load_json_file(module_path: str, filename: str) -> dict:
-    """ Load json file given a module path and a filename """
+def get_complete_filename(module_path: str, filename: str):
+    """ Get the full path of a filename, given it's module path """
     dirname = os.path.dirname(os.path.realpath(module_path))
-    with open(os.path.join(dirname, filename)) as file_pointer:
-        return json.load(file_pointer)
+    return os.path.join(dirname, filename)
+
+
+# TODO: Replace Union[dict, None] with dict | None when python >= 3.10
+def _load_json_file(module_path: str, filename: str) -> Union[dict, None]:
+    """ Load json file given a module path and a filename """
+    if filename:
+        with open(get_complete_filename(module_path, filename)) as file_pointer:
+            return json.load(file_pointer)
+    return None
 
 
 def load_json_file(module_path: str) -> Callable[[str], dict]:
@@ -29,7 +38,18 @@ def json_converter(item: object):
     return None
 
 
-def dump_sqlalchemy_response_to_json(response, target: IO[Any]):
+def dump_sqlalchemy_row_data_to_json(response, target: IO[Any]):
+    """ Useful for dumping sqlalchemy responses to json in for unit tests. """
+    result = []
+    for response_row in response:
+        result_row = []
+        for value in response_row:
+            result_row.append(value)
+        result.append(result_row)
+    target.write(jsonpickle.encode(result))
+
+
+def dump_sqlalchemy_mapped_object_response_to_json(response, target: IO[Any]):
     """ Useful for dumping sqlalchemy responses to json in for unit tests.
 
     e.g. if we want to store the response for GDPS predictions for two stations, we could write the
@@ -42,9 +62,9 @@ def dump_sqlalchemy_response_to_json(response, target: IO[Any]):
     ```
     """
     result = []
-    for rows in response:
+    for row in response:
         result_row = []
-        for record in rows:
+        for record in row:
             # Copy the dict so we can safely change it.
             data = dict(record.__dict__)
             # Pop internal value

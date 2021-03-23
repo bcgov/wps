@@ -1,10 +1,19 @@
-import { configureStore, Action } from '@reduxjs/toolkit'
+import { configureStore, Action, getDefaultMiddleware } from '@reduxjs/toolkit'
 import { ThunkAction } from 'redux-thunk'
 
 import rootReducer, { RootState } from 'app/rootReducer'
 
 const store = configureStore({
   reducer: rootReducer
+  // c-haines data is VERY big - so causes huge slowdowns in development,
+  // when doing c-haines development you may wish to disable immutableCheck
+  // and serializableCheck (see below)
+  // TODO: see if a better solution can be found: https://reactjs.org/docs/hooks-reference.html#usereducer
+  // middleware: () =>
+  //   getDefaultMiddleware({
+  //     immutableCheck: false,
+  //     serializableCheck: false
+  //   })
 })
 
 if (process.env.NODE_ENV === 'development' && module.hot) {

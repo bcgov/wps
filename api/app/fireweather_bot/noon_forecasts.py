@@ -82,24 +82,24 @@ def _parse_csv(temp_path: str):
     dates = dates.transform(lambda x: x.replace(hour=20))
     data_df['weather_date'] = dates
     # write to database using _session's engine
-    session = app.db.database.get_write_session()
-    # write the data_df to the database one row at a time, so that if data_df contains >=1 rows that are
-    # duplicates of what is already in the db, the write won't fail for the unique rows
-    # NOTE: iterating over the data_df one Series (row) at a time is ugly, but until pandas is updated
-    # with a fix, this is the easiest work-around.
-    # See https://github.com/pandas-dev/pandas/issues/15988
-    # pylint: disable=unused-variable
-    for index, row in data_df.iterrows():
-        try:
-            row = row.dropna()
-            data = row.to_dict()
-            # We need to ensure that the timezone is set correctly.
-            data['weather_date'] = data['weather_date'].to_pydatetime().replace(
-                tzinfo=timezone.utc)
-            save_noon_forecast(session, NoonForecast(**data))
-        except IntegrityError:
-            logger.info('Skipping duplicate record')
-            session.rollback()
+    with app.db.database.get_write_session_scope() as session:
+        # write the data_df to the database one row at a time, so that if data_df contains >=1 rows that are
+        # duplicates of what is already in the db, the write won't fail for the unique rows
+        # NOTE: iterating over the data_df one Series (row) at a time is ugly, but until pandas is updated
+        # with a fix, this is the easiest work-around.
+        # See https://github.com/pandas-dev/pandas/issues/15988
+        # pylint: disable=unused-variable
+        for index, row in data_df.iterrows():
+            try:
+                row = row.dropna()
+                data = row.to_dict()
+                # We need to ensure that the timezone is set correctly.
+                data['weather_date'] = data['weather_date'].to_pydatetime().replace(
+                    tzinfo=timezone.utc)
+                save_noon_forecast(session, NoonForecast(**data))
+            except IntegrityError:
+                logger.info('Skipping duplicate record')
+                session.rollback()
 
 
 def _get_start_date():

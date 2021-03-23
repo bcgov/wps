@@ -2,11 +2,14 @@
 
 import os
 import sys
+from contextlib import contextmanager
 import logging
 import pytest
 import requests
 import shapely.wkt
+from sqlalchemy.orm import Session
 from geoalchemy2.shape import from_shape
+# TODO: Get rid of UnifiedAlchemyMagicMock
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
 import app.time_utils as time_utils
@@ -42,9 +45,10 @@ def mock_session(monkeypatch):
         id=1, prediction_model_id=2, prediction_run_timestamp=time_utils.get_utc_now(),
         prediction_model=rdps_prediction_model, complete=True)
 
-    def mock_get_session_rdps(*args):
+    @contextmanager
+    def mock_get_session_rdps_scope(*args):
 
-        return UnifiedAlchemyMagicMock(data=[
+        yield UnifiedAlchemyMagicMock(data=[
             (
                 [mock.call.query(PredictionModel),
                  mock.call.filter(PredictionModel.abbreviation == 'RDPS',
@@ -70,10 +74,25 @@ def mock_session(monkeypatch):
     def mock_get_rdps_prediction_model_run_timestamp_records(*args, **kwargs):
         return [(rdps_prediction_model_run, rdps_prediction_model)]
 
-    monkeypatch.setattr(app.db.database, 'get_write_session',
-                        mock_get_session_rdps)
+    monkeypatch.setattr(app.db.database, 'get_write_session_scope',
+                        mock_get_session_rdps_scope)
     monkeypatch.setattr(env_canada, 'get_prediction_model_run_timestamp_records',
                         mock_get_rdps_prediction_model_run_timestamp_records)
+
+
+@pytest.fixture()
+def mock_get_processed_file_record(monkeypatch):
+    """ Mock "get_processed_file_record" to only return the None on the 1st call. """
+    called = False
+
+    def get_processed_file_record(session: Session, url: str):
+        nonlocal called
+        if called:
+            return ProcessedModelRunUrl()
+        called = True
+        return None
+
+    monkeypatch.setattr(env_canada, 'get_processed_file_record', get_processed_file_record)
 
 
 @pytest.fixture()
@@ -107,6 +126,7 @@ def test_get_rdps_download_urls():
         time_utils.get_utc_now(), 0))) == total_num_of_urls
 
 
+@pytest.mark.usefixtures('mock_get_processed_file_record')
 def test_process_rdps(mock_download,
                       mock_session,
                       mock_get_model_run_predictions_for_grid,

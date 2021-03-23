@@ -29,12 +29,12 @@ def _build_query_to_get_predictions(
     model.
     """
     # Build the query:
-    session = app.db.database.get_read_session()
-
-    # We are only interested in the last 5 days.
-    back_5_days = time_of_interest - datetime.timedelta(days=5)
-    return get_station_model_predictions_order_by_prediction_timestamp(
-        session, station_codes, model, back_5_days, time_of_interest)
+    with app.db.database.get_read_session_scope() as session:
+        # We are only interested in the last 5 days.
+        back_5_days = time_of_interest - datetime.timedelta(days=5)
+        response = get_station_model_predictions_order_by_prediction_timestamp(
+            session, station_codes, model, back_5_days, time_of_interest)
+    return response
 
 
 class ModelPredictionSummaryBuilder():

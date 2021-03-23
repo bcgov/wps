@@ -1,9 +1,12 @@
 """ Global fixtures """
 
 from datetime import timezone, datetime
+from contextlib import contextmanager
+from typing import Generator
 import logging
 import requests
 import pytest
+from sqlalchemy.orm import Session
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
 from app.time_utils import get_pst_tz
@@ -21,7 +24,8 @@ logger = logging.getLogger(__name__)
 @pytest.fixture(autouse=True)
 def mock_env(monkeypatch):
     """ Automatically mock environment variable """
-    monkeypatch.setenv("USE_WFWX", 'False')
+    monkeypatch.setenv("BASE_URI", "https://python-test-base-uri")
+    monkeypatch.setenv("USE_WFWX", "False")
     monkeypatch.setenv("WFWX_USER", "user")
     monkeypatch.setenv("WFWX_SECRET", "secret")
     monkeypatch.setenv(
@@ -79,7 +83,8 @@ def mock_session(monkeypatch):
     """ Ensure that all unit tests mock out the database session by default! """
     # pylint: disable=unused-argument
 
-    def mock_get_session(*args):
+    @contextmanager
+    def mock_get_session_scope(*args) -> Generator[Session, None, None]:
         """ return a session with a bare minimum database that should be good for most unit tests. """
         prediction_model = PredictionModel(id=1,
                                            abbreviation='GDPS',
@@ -100,9 +105,9 @@ def mock_session(monkeypatch):
                 [prediction_model_run]
             )
         ])
-        return session
-    monkeypatch.setattr(app.db.database, 'get_read_session', mock_get_session)
-    monkeypatch.setattr(app.db.database, 'get_write_session', mock_get_session)
+        yield session
+    monkeypatch.setattr(app.db.database, 'get_read_session_scope', mock_get_session_scope)
+    monkeypatch.setattr(app.db.database, 'get_write_session_scope', mock_get_session_scope)
 
 
 @pytest.fixture()

@@ -48,13 +48,13 @@ test:
 	# Run tests
 	# useful params for pytest:
 	# -s show stdout
-	# -n numprocesses - doesn't really seem to run faster with more proccesses at the moment.
-	PYTHONPYCACHEPREFIX=python_cache $(POETRY_RUN) pytest app;
+	# -n numprocesses
+	PYTHONPYCACHEPREFIX=python_cache $(POETRY_RUN) pytest -n 3 app;
 	# ImportMismatchError? run: make clean
 
 test-verbose:
 	# Run tests with verbose output
-	$(POETRY_RUN) pytest app -vv;
+	$(POETRY_RUN) pytest app -n 3 -vv;
 
 test-coverage:
 	# run tests with coverate reports
@@ -71,12 +71,11 @@ run:
 	# Run the application in the virtual environment (after linting and testing).
 	# Not failing on lint or test - just output so developer knows.
 	-poetry run pylint --rcfile=.pylintrc app/*.py app/**/*.py;
-	-poetry run python -m pytest app;
+	-poetry run python -m pytest -n 3 app;
 	${call run-api,$(POETRY_RUN)}
 
 run-fast:
 	${call run-api,$(POETRY_RUN)}
-
 
 run-env-canada:
 	${call run-env-canada}
@@ -97,6 +96,9 @@ run-donald:
 run-bender:
 	$(POETRY_RUN) python -m app.fireweather_bot.noon_forecasts
 
+run-noon-forecasts:
+	$(POETRY_RUN) python -m app.fireweather_bot.noon_forecasts
+
 run-marvin:
 	$(POETRY_RUN) python -m app.fireweather_bot.hourly_actuals
 
@@ -107,6 +109,10 @@ run-all-bots:
 	${call run-env-canada}
 	$(POETRY_RUN) python -m app.fireweather_bot.hourly_actuals
 	$(POETRY_RUN) python -m app.fireweather_bot.noon_forecasts
+
+
+c-haines:
+	$(POETRY_RUN) python -m app.c_haines.worker
 
 
 fetch-database-partial:
@@ -154,7 +160,7 @@ docker-test:
 	# We use the dev instance, because the "production" version doesn't have
 	# a number of the development dependancies.
 	# Make sure that your docker pycache doesn't conflict with your local pycache.
-	docker-compose run --rm api pytest app
+	docker-compose run --rm api pytest -n 3 app
 
 docker-test-coverage:
 	# Run tests with coverage in docker (dev instance).
