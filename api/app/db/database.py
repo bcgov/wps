@@ -10,14 +10,14 @@ from .. import config
 
 logger = logging.getLogger(__name__)
 
-DB_WRITE_STRING = 'postgres://{}:{}@{}:{}/{}'.format(
+DB_WRITE_STRING = 'postgresql://{}:{}@{}:{}/{}'.format(
     config.get('POSTGRES_WRITE_USER', 'wps'),
     config.get('POSTGRES_PASSWORD', 'wps'),
     config.get('POSTGRES_WRITE_HOST', 'localhost'),
     config.get('POSTGRES_PORT', '5432'),
     config.get('POSTGRES_DATABASE', 'wps'))
 
-DB_READ_STRING = 'postgres://{}:{}@{}:{}/{}'.format(
+DB_READ_STRING = 'postgresql://{}:{}@{}:{}/{}'.format(
     config.get('POSTGRES_READ_USER', 'wpsread'),
     config.get('POSTGRES_PASSWORD', 'wps'),
     config.get('POSTGRES_READ_HOST', 'localhost'),
