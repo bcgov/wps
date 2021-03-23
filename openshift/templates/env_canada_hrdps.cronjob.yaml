@@ -24,9 +24,9 @@ parameters:
     value: image-registry.openshift-image-registry.svc:5000
   - name: POSTGRES_WRITE_HOST
     required: true
-    value: patroni-leader-${NAME}-${SUFFIX}
+    value: patroni-${NAME}-${SUFFIX}-leader
   - name: POSTGRES_READ_HOST
-    value: patroni-replica-${NAME}-${SUFFIX}
+    value: patroni-${NAME}-${SUFFIX}-replica
   - name: POSTGRES_USER
     required: true
     value: ${NAME}-${SUFFIX}
