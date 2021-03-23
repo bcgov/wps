@@ -1,4 +1,4 @@
-import { configureStore, Action, getDefaultMiddleware } from '@reduxjs/toolkit'
+import { configureStore, Action } from '@reduxjs/toolkit'
 import { ThunkAction } from 'redux-thunk'
 
 import rootReducer, { RootState } from 'app/rootReducer'
@@ -9,6 +9,7 @@ const store = configureStore({
   // when doing c-haines development you may wish to disable immutableCheck
   // and serializableCheck (see below)
   // TODO: see if a better solution can be found: https://reactjs.org/docs/hooks-reference.html#usereducer
+  // import { configureStore, Action, getDefaultMiddleware } from '@reduxjs/toolkit'
   // middleware: () =>
   //   getDefaultMiddleware({
   //     immutableCheck: false,
