@@ -36,9 +36,9 @@ OC_CLEAN_EC_HRDPS_CRONJOB="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} --ignore-not-fo
 OC_CLEAN_EC_RDPS_CRONJOB="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} --ignore-not-found=true cronjob/env-canada-rdps-${NAME_APP}-${SUFFIX}"
 OC_DELETE_EC_PODS="oc -n ${PROJ_TARGET} get pods -o name | { grep -E 'env-canada-(gdps|rdps|hrdps)-${NAME_APP}-${SUFFIX}' || test \$? = 1; } | { xargs -r oc ${DELETE_OR_GET} || test \$? = 1; } | cat"
 OC_CLEAN_MARIADB_CRONJOB="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} --ignore-not-found=true cronjob/backup-mariadb-${NAME_OBJ}"
-OC_CLEAN_MARIDB_BACKUP="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} all,cm -o name -l --ignore-not-found=true app=backup-mariadb-${NAME_OBJ}"
+OC_CLEAN_MARIDB_BACKUP="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} all,cm -o name -l app=backup-mariadb-${NAME_OBJ}"
 OC_CLEAN_BACKUP_POSTGRES_CRONJOB="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} --ignore-not-found=true cronjob/backup-postgres-${NAME_OBJ}"
-OC_CLEAN_BACKUP_POSTGRES="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} all,cm -o name -l --ignore-not-found=true app=backup-postgres-${NAME_OBJ}"
+OC_CLEAN_BACKUP_POSTGRES="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} all,cm -o name -l app=backup-postgres-${NAME_OBJ}"
 
 # Execute commands
 #

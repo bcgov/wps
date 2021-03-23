@@ -59,5 +59,5 @@ jobs:
       - name: Clean up test database
         shell: bash
         run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="{{ secrets.OC4_TEST_TOKEN }}"
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TEST_TOKEN }}"
           PROJ_TARGET=e1e498-test PROJ_TOOLS=e1e498-tools bash openshift/scripts/oc_cleanup_db.sh ${SUFFIX} apply
