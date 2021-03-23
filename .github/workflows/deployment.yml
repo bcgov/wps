@@ -7,7 +7,7 @@ on:
 
 jobs:
   prepare-dev-database:
-    name: Prepare Dev Database (OCP4)
+    name: Prepare Dev Database
     runs-on: ubuntu-20.04
     steps:
       - name: Set Variables
@@ -25,7 +25,7 @@ jobs:
           EPHEMERAL_STORAGE=True PROJ_TARGET=e1e498-dev APP_USER="wps" IMAGE_STREAM_NAMESPACE=e1e498-tools bash openshift/scripts/oc_provision_db.sh ${SUFFIX} apply
 
   prepare-dev-database-backups:
-    name: Prepare Dev Database Backups (OCP4)
+    name: Prepare Dev Database Backups
     needs: [prepare-dev-database]
     runs-on: ubuntu-20.04
     steps:
@@ -80,7 +80,7 @@ jobs:
           GIT_BRANCH=${GITHUB_HEAD_REF} PROJ_TOOLS="e1e498-tools" PROJ_DEV="e1e498-dev" DOCKER_IMAGE="image-registry.openshift-image-registry.svc:5000/e1e498-tools/uvicorn-gunicorn-fastapi:python3.8-latest" bash openshift/scripts/oc_build.sh ${SUFFIX} apply
 
   deploy-dev:
-    name: Deploy to Dev & ZAP Baseline Scan (OCP4)
+    name: Deploy to Dev
     needs: [build-image, prepare-dev-database]
     runs-on: ubuntu-20.04
     steps:
@@ -128,6 +128,12 @@ jobs:
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
           POSTGRES_WRITE_HOST=patroni-wps-${SUFFIX}-leader POSTGRES_READ_HOST=patroni-wps-${SUFFIX}-replica PROJ_TARGET="e1e498-dev" PROJ_TOOLS="e1e498-tools" POSTGRES_USER="wps" POSTGRES_DATABASE="wps" IMAGE_REGISTRY="image-registry.openshift-image-registry.svc:5000" PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_ec_rdps_cronjob.sh ${SUFFIX} apply
 
+  scan-dev:
+    name: ZAP Baseline Scan Dev
+    needs: [deploy-dev]
+    runs-on: ubuntu-20.04
+
+    steps:
       # f.y.i.: ZAP Scan must be able to log an issue or it will fail.
       - name: ZAP Scan
         uses: zaproxy/action-baseline@v0.4.0
@@ -161,7 +167,7 @@ jobs:
     # - the image to be built before we can deploy.
     # - the database to be there (so we can write to it).
     # - wait for the api deployment, as it's responsible for upgrading the database.
-    needs: [build-ubuntu-image, prepare-database-ocp4, build-and-deploy-ocp4]
+    needs: [build-ubuntu-image, prepare-dev-database, deploy-dev]
 
     steps:
       - name: Set Variables
@@ -175,7 +181,7 @@ jobs:
           PROJ_TARGET="e1e498-dev" PROJ_TOOLS="e1e498-tools" PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_c_haines_cronjob.sh ${SUFFIX} apply
 
   prepare-test-database:
-    name: Prepare Test Database (OCP4)
+    name: Prepare Test Database
     runs-on: ubuntu-20.04
     steps:
       - name: Set Variables
