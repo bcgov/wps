@@ -6,7 +6,7 @@ on:
 
 jobs:
   zap_scan_ocp3:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     name: Scan the web application in OCP3
     steps:
       - name: Checkout
@@ -20,7 +20,7 @@ jobs:
           target: "https://wps-prod.pathfinder.gov.bc.ca/"
           rules_file_name: ".zap/rules.tsv"
   zap_scan_ocp4:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     name: Scan the web application in OCP4
     steps:
       - name: Checkout
