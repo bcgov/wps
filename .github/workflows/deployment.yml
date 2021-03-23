@@ -154,6 +154,9 @@ jobs:
         shell: bash
         run: echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
 
+      - name: Checkout
+        uses: actions/checkout@v2
+
       - name: Build Image
         shell: bash
         run: |
@@ -173,6 +176,9 @@ jobs:
       - name: Set Variables
         shell: bash
         run: echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
+
+      - name: Checkout
+        uses: actions/checkout@v2
 
       - name: C-Haines Cronjob
         shell: bash
