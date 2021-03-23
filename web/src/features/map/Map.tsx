@@ -131,10 +131,10 @@ const Map = ({ children, zoom, center, redrawFlag, renderTooltip }: Props) => {
   useEffect(() => {
     if (!map) return
 
-    // Wait for 0.5s for the side panel to collapse then resize the map
+    // Wait enough time for the side panel to completely collapse then resize the map
     setTimeout(() => {
       map.updateSize()
-    }, 500)
+    }, 700)
   }, [redrawFlag]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
