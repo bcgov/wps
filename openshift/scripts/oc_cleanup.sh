@@ -28,21 +28,21 @@ if [ "${APPLY}" ]; then
 else
 	DELETE_OR_GET="get"
 fi
-OC_CLEAN_DEPLOY="oc -n ${PROJ_DEV} ${DELETE_OR_GET} all,cm -o name -l app=${NAME_OBJ}"
-OC_CLEAN_TOOLS="oc -n ${PROJ_TOOLS} ${DELETE_OR_GET} all,cm -o name -l app=${NAME_OBJ}"
-OC_CLEAN_HOURLY_CRONJOB="oc -n ${PROJ_DEV} ${DELETE_OR_GET} --ignore-not-found=true cronjob/bcfw-p1-hourly-actuals-${NAME_APP}-${SUFFIX}"
-OC_CLEAN_FORECAST_CRONJOB="oc -n ${PROJ_DEV} ${DELETE_OR_GET} --ignore-not-found=true cronjob/bcfw-p1-forecasts-${NAME_APP}-${SUFFIX}"
-OC_CLEAN_EC_GDPS_CRONJOB="oc -n ${PROJ_DEV} ${DELETE_OR_GET} --ignore-not-found=true cronjob/env-canada-gdps-${NAME_APP}-${SUFFIX}"
-OC_CLEAN_EC_HRDPS_CRONJOB="oc -n ${PROJ_DEV} ${DELETE_OR_GET} --ignore-not-found=true cronjob/env-canada-hrdps-${NAME_APP}-${SUFFIX}"
-OC_CLEAN_EC_RDPS_CRONJOB="oc -n ${PROJ_DEV} ${DELETE_OR_GET} --ignore-not-found=true cronjob/env-canada-rdps-${NAME_APP}-${SUFFIX}"
-OC_DELETE_EC_PODS="oc -n ${PROJ_DEV} get pods -o name | { grep -E 'env-canada-(gdps|rdps|hrdps)-${NAME_APP}-${SUFFIX}' || test \$? = 1; } | { xargs -r oc ${DELETE_OR_GET} || test \$? = 1; } | cat"
-OC_CLEAN_MATOMO_BACKUP="oc -n ${PROJ_DEV} ${DELETE_OR_GET} all,cm -o name -l app=${NAME_OBJ}"
-OC_CLEAN_MATOMO_BACKUP_PVC="oc -n ${PROJ_DEV} ${DELETE_OR_GET} pvc -o name -l app=${NAME_OBJ}-persistent"
-OC_CLEAN_MATOMO_CRONJOB="oc -n ${PROJ_DEV} ${DELETE_OR_GET} --ignore-not-found=true cronjob/matomo-backup-${NAME_OBJ}"
+OC_CLEAN_DEPLOY="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} all,cm -o name -l app=${NAME_OBJ}"
+OC_CLEAN_HOURLY_CRONJOB="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} --ignore-not-found=true cronjob/bcfw-p1-hourly-actuals-${NAME_APP}-${SUFFIX}"
+OC_CLEAN_FORECAST_CRONJOB="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} --ignore-not-found=true cronjob/bcfw-p1-forecasts-${NAME_APP}-${SUFFIX}"
+OC_CLEAN_EC_GDPS_CRONJOB="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} --ignore-not-found=true cronjob/env-canada-gdps-${NAME_APP}-${SUFFIX}"
+OC_CLEAN_EC_HRDPS_CRONJOB="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} --ignore-not-found=true cronjob/env-canada-hrdps-${NAME_APP}-${SUFFIX}"
+OC_CLEAN_EC_RDPS_CRONJOB="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} --ignore-not-found=true cronjob/env-canada-rdps-${NAME_APP}-${SUFFIX}"
+OC_DELETE_EC_PODS="oc -n ${PROJ_TARGET} get pods -o name | { grep -E 'env-canada-(gdps|rdps|hrdps)-${NAME_APP}-${SUFFIX}' || test \$? = 1; } | { xargs -r oc ${DELETE_OR_GET} || test \$? = 1; } | cat"
+OC_CLEAN_MARIADB_CRONJOB="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} --ignore-not-found=true cronjob/backup-mariadb-${NAME_OBJ}"
+OC_CLEAN_MARIDB_BACKUP="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} all,cm -o name -l --ignore-not-found=true app=backup-mariadb-${NAME_OBJ}"
+OC_CLEAN_BACKUP_POSTGRES_CRONJOB="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} --ignore-not-found=true cronjob/backup-postgres-${NAME_OBJ}"
+OC_CLEAN_BACKUP_POSTGRES="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} all,cm -o name -l --ignore-not-found=true app=backup-postgres-${NAME_OBJ}"
 
 # Execute commands
 #
-echo -e "\n${PROJ_DEV}:"
+echo -e "\n${PROJ_TARGET}:"
 eval "${OC_CLEAN_EC_GDPS_CRONJOB}"
 eval "${OC_CLEAN_EC_HRDPS_CRONJOB}"
 eval "${OC_CLEAN_EC_RDPS_CRONJOB}"
@@ -50,15 +50,15 @@ eval "${OC_DELETE_EC_PODS}"
 eval "${OC_CLEAN_DEPLOY}"
 eval "${OC_CLEAN_HOURLY_CRONJOB}"
 eval "${OC_CLEAN_FORECAST_CRONJOB}"
-eval "${OC_CLEAN_MATOMO_CRONJOB}"
-eval "${OC_CLEAN_MATOMO_BACKUP}"
-eval "${OC_CLEAN_MATOMO_BACKUP_PVC}"
-echo -e "\n${PROJ_TOOLS}:"
-eval "${OC_CLEAN_TOOLS}"
+eval "${OC_CLEAN_MARIADB_CRONJOB}"
+eval "${OC_CLEAN_MARIDB_BACKUP}"
+eval "${OC_CLEAN_BACKUP_POSTGRES_CRONJOB}"
+eval "${OC_CLEAN_BACKUP_POSTGRES}"
 
 # Provide oc command instruction
 #
-display_helper "${OC_CLEAN_DEPLOY}" "${OC_CLEAN_TOOLS}" "${OC_CLEAN_HOURLY_CRONJOB}" \
+display_helper "${OC_CLEAN_DEPLOY}" "${OC_CLEAN_HOURLY_CRONJOB}" \
 	"${OC_CLEAN_FORECAST_CRONJOB}" "${OC_CLEAN_EC_GDPS_CRONJOB}" "${OC_CLEAN_EC_HRDPS_CRONJOB}" \
 	"${OC_CLEAN_EC_RDPS_CRONJOB}" "${OC_DELETE_EC_PODS}" \
-	"${OC_CLEAN_MATOMO_CRONJOB}" "${OC_CLEAN_MATOMO_BACKUP}" "${OC_CLEAN_MATOMO_BACKUP_PVC}"
+	"${OC_CLEAN_MARIADB_CRONJOB}" "${OC_CLEAN_MARIDB_BACKUP}" \
+	"${OC_CLEAN_BACKUP_POSTGRES_CRONJOB}" "${OC_CLEAN_BACKUP_POSTGRES}"
