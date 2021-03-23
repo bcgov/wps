@@ -39,7 +39,7 @@ jobs:
           cache-name: cache-poetry-installer
         with:
           path: "~/poetry_installer"
-          key: "1.0.8"
+          key: "1.1.5"
 
       - name: Download poetry installer
         if: steps.cache-poetry-installer.outputs.cache-hit != 'true'
@@ -51,7 +51,7 @@ jobs:
       - name: Install poetry (api)
         run: |
           cd ~/poetry_installer
-          python get-poetry.py --version 1.1.4
+          python get-poetry.py --version 1.1.5
           source ~/.poetry/env
           poetry config virtualenvs.create true
           poetry config virtualenvs.in-project false
@@ -60,6 +60,17 @@ jobs:
         # The python gdal component relies on libgdal-dev being installed.
         run: |
           sudo apt-get update --fix-missing && sudo apt-get -y install libgdal-dev
+
+      # poetry cache folder: /home/runner/.cache/pypoetry
+      - name: Cache poetry
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-poetry
+        with:
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-cache-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-cache-
 
       - name: Install gdal python (api)
         # We don't have much control over what version of gdal we're getting, it's pretty much whatever is
@@ -72,17 +83,6 @@ jobs:
           source ~/.poetry/env
           poetry run pip install numpy
           CPLUS_INCLUDE_PATH=/usr/include/gdal C_INCLUDE_PATH=/usr/include/gdal poetry run pip install gdal==$(gdal-config --version)
-
-      # poetry cache folder: /home/runner/.cache/pypoetry
-      - name: Cache poetry
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-poetry
-        with:
-          path: ~/.cache/pypoetry
-          key: ${{ runner.os }}-poetry-cache-${{ hashFiles('**/poetry.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-poetry-cache-
 
       - name: Install remaining python dependencies (api)
         working-directory: ./api

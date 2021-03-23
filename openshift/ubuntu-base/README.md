@@ -7,7 +7,12 @@ that is available in the api.
 
 ```bash
 oc -n e1e498-tools process -f build.yaml | oc -n e1e498-tools apply -f -
-bash
+```
+
+## Apply template using a specified branch.
+
+```bash
+oc -n e1e498-tools -p GIT_BRANCH=my-branch process -f build.yaml | oc -n e1e498-tools apply -f -
 ```
 
 ## The image can also be built locally, and then pushed to Openshift.
