@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 def get_severity(c_haines_index) -> int:
     """ Return the "severity" of the continuous haines index.
 
-    Fire behavrious analysts are typically only concerned if there's a high
+    Fire behaviour analysts are typically only concerned if there's a high
     or extreme index - so the c-haines values are lumped together by severity.
 
     The severity used here is fairly arbitrary - there's no standard in place.
@@ -248,7 +248,7 @@ def save_geojson_to_database(session: Session,
                              prediction_timestamp: datetime,
                              model_run: CHainesModelRun):
     """ Open geojson file, iterate through features, saving them into the
-    databse.
+    database.
     """
     logger.info('Saving geojson for model run %s, prediction %s to database...',
                 model_run.model_run_timestamp,  prediction_timestamp)
@@ -353,7 +353,7 @@ class CHainesSeverityGenerator():
                 filename = download(urls[key], temporary_path)
                 if not filename:
                     # If we fail to download one of files, quit, don't try the others.
-                    logger.warning('failed to download all files')
+                    logger.warning('failed to download %s', urls[key])
                     return None
                 filenames.append(filename)
             return filenames

@@ -26,7 +26,7 @@ const initialState: State = {
   loading: false,
   error: null,
   model_runs: [],
-  selected_model_abbreviation: 'GDPS',
+  selected_model_abbreviation: 'HRDPS',
   selected_model_run_timestamp: '',
   selected_prediction_timestamp: '',
   model_run_predictions: {},

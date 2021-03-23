@@ -46,7 +46,6 @@ def dump_sqlalchemy_row_data_to_json(response, target: IO[Any]):
         for value in response_row:
             result_row.append(value)
         result.append(result_row)
-        # result.append(dict(row._asdict()))
     target.write(jsonpickle.encode(result))
 
 
@@ -64,8 +63,6 @@ def dump_sqlalchemy_mapped_object_response_to_json(response, target: IO[Any]):
     """
     result = []
     for row in response:
-        # if isinstance(row, sqlalchemy.util._collections.result)
-
         result_row = []
         for record in row:
             # Copy the dict so we can safely change it.

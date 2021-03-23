@@ -143,7 +143,7 @@ def _yield_folder_parts(result, model: ModelEnum, model_run_timestamp: datetime)
         # Yield up the polygon.
         yield poly
 
-    # Close all tags, if neede.
+    # Close all tags, if needed.
     if prev_prediction_timestamp is not None:
         if not prev_severity is None:
             yield close_placemark()

@@ -251,7 +251,7 @@ make test
 
 Or enforce by running [scripts/test.sh](scripts/test.sh) as part of your ci/cd pipeline.
 
-### Making changes to the databse
+### Making changes to the database
 
 After making a change to the model, create migration script:
 
