@@ -50,6 +50,8 @@ pipeline {
                     sh "PROJ_TARGET=${projProd} PROJ_TOOLS=e1e498-tools IMAGE_REGISTRY=image-registry.openshift-image-registry.svc:5000 POSTGRES_WRITE_HOST=patroni-wps-prod-leader POSTGRES_READ_HOST=patroni-wps-prod-replica POSTGRES_DATABASE=wps POSTGRES_USER=wps ./openshift/scripts/oc_provision_ec_gdps_cronjob.sh prod apply"
                     sh "PROJ_TARGET=${projProd} PROJ_TOOLS=e1e498-tools IMAGE_REGISTRY=image-registry.openshift-image-registry.svc:5000 POSTGRES_WRITE_HOST=patroni-wps-prod-leader POSTGRES_READ_HOST=patroni-wps-prod-replica POSTGRES_DATABASE=wps POSTGRES_USER=wps ./openshift/scripts/oc_provision_ec_hrdps_cronjob.sh prod apply"
                     sh "PROJ_TARGET=${projProd} PROJ_TOOLS=e1e498-tools IMAGE_REGISTRY=image-registry.openshift-image-registry.svc:5000 POSTGRES_WRITE_HOST=patroni-wps-prod-leader POSTGRES_READ_HOST=patroni-wps-prod-replica POSTGRES_DATABASE=wps POSTGRES_USER=wps ./openshift/scripts/oc_provision_ec_rdps_cronjob.sh prod apply"
+                    // C-Haines
+                    sh "PROJ_TARGET=${projProd} PROJ_TOOLS=e1e498-tools ./openshift/scripts/oc_provision_c_haines_cronjob.sh prod apply"
                     // BC FireWeather cronjobs
                     // TODO: Change cron to: 30 8,16 * * * (was set 2 minutes early to avoid clash with pathfinder instance)
                     sh "PROJ_TARGET=${projProd} PROJ_TOOLS=e1e498-tools IMAGE_REGISTRY=image-registry.openshift-image-registry.svc:5000 POSTGRES_WRITE_HOST=patroni-wps-prod-leader POSTGRES_READ_HOST=patroni-wps-prod-replica POSTGRES_DATABASE=wps POSTGRES_USER=wps SCHEDULE=\"28 8,16 * * *\" ./openshift/scripts/oc_provision_bcfw_p1_forecasts_cronjob.sh prod apply"
