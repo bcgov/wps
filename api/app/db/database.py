@@ -1,9 +1,14 @@
 """ Setup database to perform CRUD transactions
 """
+import logging
+from typing import Generator
+from contextlib import contextmanager
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from .. import config
+
+logger = logging.getLogger(__name__)
 
 DB_WRITE_STRING = 'postgres://{}:{}@{}:{}/{}'.format(
     config.get('POSTGRES_WRITE_USER', 'wps'),
@@ -31,6 +36,9 @@ _read_engine = create_engine(
         'options': '-c timezone=utc'})
 
 # bind session to database
+# avoid using these variables anywhere outside of context manager - if
+# sessions are not closed, it will result in the api running out of
+# connections and becoming non-responsive.
 _write_session = sessionmaker(
     autocommit=False, autoflush=False, bind=_write_engine)
 _read_session = sessionmaker(
@@ -40,11 +48,26 @@ _read_session = sessionmaker(
 Base = declarative_base()
 
 
-def get_read_session() -> Session:
-    """ Wrap getting read session to assist in making unit tests a bit easier """
-    return _read_session()
+@contextmanager
+def get_read_session_scope() -> Generator[Session, None, None]:
+    """Provide a transactional scope around a series of operations."""
+    session = _read_session()
+    try:
+        yield session
+    finally:
+        logger.info('session closed by context manager')
+        session.close()
 
 
-def get_write_session() -> Session:
-    """ Wrap getting write session to assist in making unit test a bit easier"""
-    return _write_session()
+@contextmanager
+def get_write_session_scope() -> Generator[Session, None, None]:
+    """Provide a transactional scope around a series of operations."""
+    session = _write_session()
+    try:
+        yield session
+        session.commit()
+    except:
+        session.rollback()
+        raise
+    finally:
+        session.close()

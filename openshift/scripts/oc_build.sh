@@ -33,7 +33,7 @@ OC_PROCESS="oc -n ${PROJ_TOOLS} process -f ${PATH_BC} \
 # Apply a template (apply or use --dry-run)
 
 OC_APPLY="oc -n ${PROJ_TOOLS} apply -f -"
-[ "${APPLY}" ] || OC_APPLY="${OC_APPLY} --dry-run"
+[ "${APPLY}" ] || OC_APPLY="${OC_APPLY} --dry-run=client"
 
 # Cancel non complete builds and start a new build (apply or don't run)
 #

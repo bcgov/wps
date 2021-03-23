@@ -30,6 +30,7 @@ pipeline {
             steps {
                 script {
                     sh "PROJ_TOOLS=e1e498-tools IMAGE_REGISTRY=image-registry.openshift-image-registry.svc:5000 ./openshift/scripts/oc_promote.sh ${suffix} apply"
+                    sh "PROJ_TOOLS=e1e498-tools ./openshift/scripts/oc_promote_ubuntu.sh ${suffix} apply"
                 }
             }
         }

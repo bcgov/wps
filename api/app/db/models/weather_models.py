@@ -2,7 +2,7 @@
 """
 import logging
 from sqlalchemy import (Column, String, Integer, Float, Boolean,
-                        Sequence, ForeignKey, UniqueConstraint)
+                        Sequence, ForeignKey, UniqueConstraint, Index)
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import ARRAY
 from geoalchemy2 import Geometry
@@ -105,12 +105,17 @@ class PredictionModelGridSubset(Base):
     prediction_model = relationship("PredictionModel")
     # Order of vertices is important!
     # 1st vertex top left, 2nd vertex top right, 3rd vertex bottom right, 4th vertex bottom left.
-    geom = Column(Geometry('POLYGON'), nullable=False)
+    # We create the index later, due to issue with alembic + geoalchemy.
+    geom = Column(Geometry('POLYGON', spatial_index=False), nullable=False)
 
     def __str__(self):
         return ('id: {self.id}, '
                 'prediction_model_id: {self.prediction_model_id}'
                 ).format(self=self)
+
+
+# Explict creation of index due to issue with alembic + geoalchemy.
+Index('idx_prediction_model_grid_subsets_geom', PredictionModelGridSubset.geom, postgresql_using='gist')
 
 
 class ModelRunGridSubsetPrediction(Base):
