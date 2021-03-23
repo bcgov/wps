@@ -7,7 +7,7 @@ on:
       - main
 
 jobs:
-  cleanup:
+  cleanup-non-db:
     name: Delete non-DB resources associated with pr
     runs-on: ubuntu-20.04
     steps:
@@ -37,7 +37,9 @@ jobs:
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TEST_TOKEN }}"
           PROJ_TEST=e1e498-test PROJ_DEV=e1e498-dev bash openshift/scripts/oc_cleanup_test.sh ${SUFFIX} apply
 
+  cleanup-db:
     name: Delete DB resources associated with PR
+    needs: cleanup-non-db
     runs-on: ubuntu-20.04
     steps:
       - name: Set Variables
