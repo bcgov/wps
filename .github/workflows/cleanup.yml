@@ -23,7 +23,7 @@ jobs:
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          PROJ_TARGET=e1e498-dev PROJ_TOOLS=e1e498-tools PROJ_DEV=e1e498-dev bash openshift/scripts/oc_cleanup_dev.sh ${SUFFIX} apply
+          PROJ_TARGET=e1e498-dev bash openshift/scripts/oc_cleanup.sh ${SUFFIX} apply
 
       - name: Clean up api - tools (OCP4)
         shell: bash
@@ -35,7 +35,7 @@ jobs:
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TEST_TOKEN }}"
-          PROJ_TEST=e1e498-test PROJ_DEV=e1e498-dev bash openshift/scripts/oc_cleanup_test.sh ${SUFFIX} apply
+          PROJ_TARGET=e1e498-test bash openshift/scripts/oc_cleanup.sh ${SUFFIX} apply
 
   cleanup-db:
     name: Delete DB resources associated with PR
