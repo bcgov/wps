@@ -22,7 +22,7 @@ parameters:
     description: Deployment suffix, e.g. pr-###
     required: true
   - name: PROJ_TOOLS
-    value: auzhsi-tools
+    value: e1e498-tools
   - name: CPU_REQUEST
     description: Requested CPU
     value: 300m
@@ -48,7 +48,7 @@ parameters:
     required: true
   - name: IMAGE_REGISTRY
     description: Location where images are to be pulled
-    value: docker-registry.default.svc:5000
+    value: image-registry.openshift-image-registry.svc:5000
     required: true
   - name: POSTGRES_USER
     description: Postgres DB username

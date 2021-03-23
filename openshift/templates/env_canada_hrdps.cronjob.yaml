@@ -16,12 +16,12 @@ parameters:
     description: Deployment suffix, e.g. pr-###
     required: true
   - name: PROJ_TOOLS
-    value: auzhsi-tools
+    value: e1e498-tools
   - name: JOB_NAME
     value: env-canada
   - name: IMAGE_REGISTRY
     required: true
-    value: docker-registry.default.svc:5000
+    value: image-registry.openshift-image-registry.svc:5000
   - name: POSTGRES_WRITE_HOST
     required: true
     value: patroni-leader-${NAME}-${SUFFIX}

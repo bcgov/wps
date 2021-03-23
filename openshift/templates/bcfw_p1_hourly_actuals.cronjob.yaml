@@ -16,9 +16,9 @@ parameters:
     description: Deployment suffix, e.g. pr-###
     required: true
   - name: PROJ_TOOLS
-    value: auzhsi-tools
+    value: e1e498-tools
   - name: IMAGE_REGISTRY
-    value: docker-registry.default.svc:5000
+    value: image-registry.openshift-image-registry.svc:5000
   - name: JOB_NAME
     value: bcfw-p1-hourly-actuals
   - name: SCHEDULE
