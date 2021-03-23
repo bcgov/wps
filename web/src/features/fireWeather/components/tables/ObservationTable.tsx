@@ -31,6 +31,7 @@ export const columns: Column[] = [
     id: 'dewpoint',
     label: 'Dew Point (°C)',
     align: 'right',
+    maxWidth: 90,
     format: (value: number): string => value.toFixed(HOURLY_VALUES_DECIMAL)
   },
   {

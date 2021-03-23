@@ -14,8 +14,7 @@ const useStyles = makeStyles({
   }),
   content: {
     width: sidePanelWidth,
-    padding: 12,
-    paddingTop: 22,
+    padding: '22px 24px 12px 12px',
     position: 'relative'
   },
   closeBtn: {
