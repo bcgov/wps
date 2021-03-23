@@ -28,6 +28,7 @@ aiofiles = "^0"
 jinja2 = "^2"
 sklearn = "^0"
 pytest-mock = "^3"
+numpy = "^1.19.5"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6"
@@ -43,6 +44,7 @@ pytest-xdist = "^2"
 rope = "^0"
 docker-compose = "^1"
 pgadmin4 = "^4"
+jsonpickle = "^2.0.0"
 
 [build-system]
 requires = ["poetry>=0.12"]

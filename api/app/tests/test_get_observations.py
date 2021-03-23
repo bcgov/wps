@@ -1,11 +1,13 @@
 """ BDD tests for API /hourlies. """
 import logging
 from datetime import datetime
-from typing import List
+from typing import List, Generator
+from contextlib import contextmanager
 import json
 from pytest_bdd import scenario, given, then
 from starlette.testclient import TestClient
 from aiohttp import ClientSession
+from sqlalchemy.orm import Session
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
 import pytest
@@ -34,7 +36,8 @@ def given_hourlies_request(monkeypatch, codes: List, use_wfwx):
     """ Make /observations/ request using mocked out ClientSession.
     """
 
-    def mock_get_session(*_):
+    @contextmanager
+    def mock_get_session_scope(*_) -> Generator[Session, None, None]:
         """ Slap some actuals into the database to match the stations being queried """
         hourly_actuals = []
         for code in codes:
@@ -47,7 +50,7 @@ def given_hourlies_request(monkeypatch, codes: List, use_wfwx):
                 [mock.call.query(HourlyActual)], hourly_actuals
             )
         ])
-        return session
+        yield session
 
     if use_wfwx == 'True':
         logger.info('running test with WFWX set to True')
@@ -57,7 +60,7 @@ def given_hourlies_request(monkeypatch, codes: List, use_wfwx):
         logger.info('running test with WFWX set to False')
         monkeypatch.setenv("USE_WFWX", 'False')
         monkeypatch.setattr(
-            app.db.database, 'get_read_session', mock_get_session)
+            app.db.database, 'get_read_session_scope', mock_get_session_scope)
 
     # Create API client and get the reppnse.
     client = TestClient(app.main.app)

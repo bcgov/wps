@@ -2,11 +2,14 @@
 
 import os
 import sys
+from contextlib import contextmanager
 import logging
 import pytest
 import requests
 import shapely.wkt
+from sqlalchemy.orm import Session
 from geoalchemy2.shape import from_shape
+# TODO: get rid of alchemy mock
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
 from pytest_mock import MockerFixture
@@ -38,9 +41,10 @@ def mock_session(monkeypatch):
         id=1, prediction_model_id=3, prediction_run_timestamp=time_utils.get_utc_now(),
         prediction_model=hrdps_prediction_model, complete=True)
 
-    def mock_get_session_hrdps(*args):
+    @contextmanager
+    def mock_get_session_hrdps_scope(*args):
 
-        return UnifiedAlchemyMagicMock(data=[
+        yield UnifiedAlchemyMagicMock(data=[
             (
                 [mock.call.query(PredictionModel),
                  mock.call.filter(PredictionModel.abbreviation == 'HRDPS',
@@ -66,10 +70,25 @@ def mock_session(monkeypatch):
     def mock_get_hrdps_prediction_model_run_timestamp_records(*args, **kwargs):
         return [(hrdps_prediction_model_run, hrdps_prediction_model)]
 
-    monkeypatch.setattr(app.db.database, 'get_write_session',
-                        mock_get_session_hrdps)
+    monkeypatch.setattr(app.db.database, 'get_write_session_scope',
+                        mock_get_session_hrdps_scope)
     monkeypatch.setattr(app.weather_models.env_canada, 'get_prediction_model_run_timestamp_records',
                         mock_get_hrdps_prediction_model_run_timestamp_records)
+
+
+@pytest.fixture()
+def mock_get_processed_file_record(monkeypatch):
+    """ Mock "get_processed_file_record" to only return the None on the 1st call. """
+    called = False
+
+    def get_processed_file_record(session: Session, url: str):
+        nonlocal called
+        if called:
+            return ProcessedModelRunUrl()
+        called = True
+        return None
+
+    monkeypatch.setattr(env_canada, 'get_processed_file_record', get_processed_file_record)
 
 
 @pytest.fixture()
@@ -94,6 +113,7 @@ def test_get_hrdps_download_urls():
         time_utils.get_utc_now(), 0))) == total_num_of_urls
 
 
+@pytest.mark.usefixtures('mock_get_processed_file_record')
 def test_process_hrdps(mock_download, mock_session):
     """ run process method to see if it runs successfully. """
     # All files, except one, are marked as already having been downloaded, so we expect one file to

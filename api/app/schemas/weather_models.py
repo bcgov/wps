@@ -12,6 +12,24 @@ class WeatherPredictionModel(BaseModel):
     abbrev: str
 
 
+class CHainesModelRunPredictions(BaseModel):
+    """ List of predictions """
+    model: WeatherPredictionModel
+    model_run_timestamp: datetime
+    prediction_timestamps: List[datetime]
+
+
+class CHainesModelRuns(BaseModel):
+    """ List of model run timestamps """
+    model_runs: List[CHainesModelRunPredictions]
+
+
+class CHainesRequest(BaseModel):
+    """ Request for particular model run """
+    model_run_timestamp: datetime
+    prediction_timestamp: datetime
+
+
 class WeatherModelPredictionSummaryValues(BaseModel):
     """ Summary of model prediction values. """
     datetime: datetime

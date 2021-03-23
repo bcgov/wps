@@ -6,7 +6,7 @@ from decouple import config
 logger = logging.getLogger(__name__)
 
 
-def get(key, default=None):
+def get(key, default=None) -> str:
     """ Use decouple.config to retreive values, logging a warning if the value is not found.
 
     - Using decouple.config in only one module, makes it easier to stub out calls to os.getenv. (No need to

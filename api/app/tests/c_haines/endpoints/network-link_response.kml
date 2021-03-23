@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+<Folder>
+<name>C-Haines</name>
+<NetworkLink>
+<visibility>1</visibility>
+<name>HRDPS</name>
+<Link>
+<href>https://python-test-base-uri/api/c-haines/HRDPS/predictions?response_format=KML</href>
+</Link>
+</NetworkLink>
+<NetworkLink>
+<visibility>0</visibility>
+<name>RDPS</name>
+<Link>
+<href>https://python-test-base-uri/api/c-haines/RDPS/predictions?response_format=KML</href>
+</Link>
+</NetworkLink>
+<NetworkLink>
+<visibility>0</visibility>
+<name>GDPS</name>
+<Link>
+<href>https://python-test-base-uri/api/c-haines/GDPS/predictions?response_format=KML</href>
+</Link>
+</NetworkLink>
+</Folder>
+</kml>
