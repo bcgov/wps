@@ -1,6 +1,6 @@
 import { combineReducers } from '@reduxjs/toolkit'
 
-import stationsReducer from 'features/stations/slices/stationsSlice'
+import stationsReducer from 'features/percentileCalculator/slices/stationsSlice'
 import percentilesReducer from 'features/percentileCalculator/slices/percentilesSlice'
 import cHainesModelRunReducer from 'features/cHaines/slices/cHainesModelRunsSlice'
 import cHainesPredictionReducer from 'features/cHaines/slices/cHainesPredictionsSlice'

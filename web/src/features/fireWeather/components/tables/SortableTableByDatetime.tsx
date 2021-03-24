@@ -18,7 +18,11 @@ import { getDatetimeComparator, Order } from 'utils/table'
 
 const useStyles = makeStyles({
   display: {
-    paddingBottom: 12
+    paddingBottom: 12,
+
+    '& .MuiTableCell-sizeSmall': {
+      padding: '6px 12px 6px 6px'
+    }
   },
   paper: {
     width: '100%'

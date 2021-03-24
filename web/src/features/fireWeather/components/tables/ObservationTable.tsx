@@ -11,7 +11,7 @@ export const columns: Column[] = [
   {
     id: 'datetime',
     label: 'Date (PST)',
-    minWidth: 160,
+    minWidth: 120,
     align: 'left',
     formatDt: (value: string): string => formatDateInPST(value)
   },
@@ -31,6 +31,7 @@ export const columns: Column[] = [
     id: 'dewpoint',
     label: 'Dew Point (°C)',
     align: 'right',
+    maxWidth: 90,
     format: (value: number): string => value.toFixed(HOURLY_VALUES_DECIMAL)
   },
   {
@@ -42,17 +43,15 @@ export const columns: Column[] = [
   {
     id: 'wind_speed',
     label: 'Wind Spd (km/h)',
-    minWidth: 70,
-    maxWidth: 100,
     align: 'right',
+    maxWidth: 80,
     format: (value: number): string => value.toFixed(HOURLY_VALUES_DECIMAL)
   },
   {
     id: 'precipitation',
     label: 'Precip (mm)',
-    minWidth: 70,
-    maxWidth: 100,
     align: 'right',
+    maxWidth: 70,
     format: (value: number): string => value.toFixed(HOURLY_VALUES_DECIMAL)
   },
   {
