@@ -32,7 +32,11 @@ const BC_ROAD_BASE_MAP_SERVER_URL =
 const center = [-123.3656, 51.4484] // BC
 const zoom = 6
 
-const WeatherMap = () => {
+interface Props {
+  redrawFlag?: boolean
+}
+
+const WeatherMap = ({ redrawFlag }: Props) => {
   const [wxStationsGeoJSON, setWxStationsGeoJSON] = useState({
     type: 'FeatureCollection',
     features: []
@@ -57,7 +61,12 @@ const WeatherMap = () => {
   }, [])
 
   return (
-    <Map center={fromLonLat(center)} zoom={zoom} renderTooltip={renderTooltip}>
+    <Map
+      center={fromLonLat(center)}
+      zoom={zoom}
+      renderTooltip={renderTooltip}
+      redrawFlag={redrawFlag}
+    >
       <TileLayer
         source={
           new olSource.XYZ({
