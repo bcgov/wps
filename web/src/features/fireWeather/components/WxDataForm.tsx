@@ -24,7 +24,7 @@ const useStyles = makeStyles({
   stationDropdown: {
     marginRight: 16
   },
-  toi: {
+  timeOfInterest: {
     marginRight: 16
   }
 })
@@ -84,7 +84,7 @@ const WxDataForm = ({ codesFromQuery, toiFromQuery, openSidePanel }: Props) => {
         onChange={setSelectedCodes}
       />
       <TimeOfInterestPicker
-        className={classes.toi}
+        className={classes.timeOfInterest}
         timeOfInterest={timeOfInterest}
         onChange={setTimeOfInterest}
       />
