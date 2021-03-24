@@ -22,7 +22,7 @@ jobs:
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          EPHEMERAL_STORAGE=True PROJ_TARGET=e1e498-dev APP_USER="wps" IMAGE_STREAM_NAMESPACE=e1e498-tools bash openshift/scripts/oc_provision_db.sh ${SUFFIX} apply
+          EPHEMERAL_STORAGE=True bash openshift/scripts/oc_provision_db.sh ${SUFFIX} apply
 
   prepare-dev-database-backups:
     name: Prepare Dev Database Backups
@@ -41,25 +41,25 @@ jobs:
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          PROJ_TARGET=e1e498-dev PROJ_TOOLS=e1e498-tools IMAGE_NAMESPACE=e1e498-tools EPHEMERAL_STORAGE=True bash openshift/scripts/oc_provision_backup_postgres.sh ${SUFFIX} apply
+          EPHEMERAL_STORAGE=True bash openshift/scripts/oc_provision_backup_postgres.sh ${SUFFIX} apply
 
       - name: Postgres Backup Cronjob
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          PROJ_TARGET=e1e498-dev PROJ_TOOLS=e1e498-tools IMAGE_NAMESPACE=e1e498-tools EPHEMERAL_STORAGE=True bash openshift/scripts/oc_provision_backup_postgres_cronjob.sh ${SUFFIX} apply
+          EPHEMERAL_STORAGE=True bash openshift/scripts/oc_provision_backup_postgres_cronjob.sh ${SUFFIX} apply
 
       - name: Prepare MariaDB Backup Deployment Config
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          PROJ_TARGET=e1e498-dev PROJ_TOOLS=e1e498-tools IMAGE_NAMESPACE=e1e498-tools EPHEMERAL_STORAGE=True bash openshift/scripts/oc_provision_backup_mariadb.sh ${SUFFIX} apply
+          EPHEMERAL_STORAGE=True bash openshift/scripts/oc_provision_backup_mariadb.sh ${SUFFIX} apply
 
       - name: Prepare MariaDB Backup Cronjob
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          PROJ_TARGET=e1e498-dev PROJ_TOOLS=e1e498-tools IMAGE_NAMESPACE=e1e498-tools EPHEMERAL_STORAGE=True bash openshift/scripts/oc_provision_backup_mariadb_cronjob.sh ${SUFFIX} apply
+          EPHEMERAL_STORAGE=True bash openshift/scripts/oc_provision_backup_mariadb_cronjob.sh ${SUFFIX} apply
 
   build-image:
     name: Build Image
@@ -77,7 +77,7 @@ jobs:
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
-          GIT_BRANCH=${GITHUB_HEAD_REF} PROJ_TOOLS="e1e498-tools" PROJ_DEV="e1e498-dev" DOCKER_IMAGE="image-registry.openshift-image-registry.svc:5000/e1e498-tools/uvicorn-gunicorn-fastapi:python3.8-latest" bash openshift/scripts/oc_build.sh ${SUFFIX} apply
+          GIT_BRANCH=${GITHUB_HEAD_REF} bash openshift/scripts/oc_build.sh ${SUFFIX} apply
 
   deploy-dev:
     name: Deploy to Dev
@@ -96,37 +96,37 @@ jobs:
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          POSTGRES_WRITE_HOST=patroni-wps-${SUFFIX}-leader POSTGRES_READ_HOST=patroni-wps-${SUFFIX}-replica PROJ_TARGET="e1e498-dev" PROJ_TOOLS="e1e498-tools" POSTGRES_USER="wps" POSTGRES_DATABASE="wps" IMAGE_REGISTRY="image-registry.openshift-image-registry.svc:5000" PROJ_DEV="e1e498-dev" SECOND_LEVEL_DOMAIN="apps.silver.devops.gov.bc.ca" bash openshift/scripts/oc_deploy.sh ${SUFFIX} apply
+          SECOND_LEVEL_DOMAIN="apps.silver.devops.gov.bc.ca" bash openshift/scripts/oc_deploy.sh ${SUFFIX} apply
 
       - name: Hourly actuals cronjob (Marvin)
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          POSTGRES_WRITE_HOST=patroni-wps-${SUFFIX}-leader PROJ_TARGET="e1e498-dev" PROJ_TOOLS="e1e498-tools" POSTGRES_USER="wps" POSTGRES_DATABASE="wps" IMAGE_REGISTRY="image-registry.openshift-image-registry.svc:5000" PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_bcfw_p1_hourly_actuals_cronjob.sh ${SUFFIX} apply
+          bash openshift/scripts/oc_provision_bcfw_p1_hourly_actuals_cronjob.sh ${SUFFIX} apply
 
       - name: Noon forecasts cronjob (Bender)
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          POSTGRES_WRITE_HOST=patroni-wps-${SUFFIX}-leader PROJ_TARGET="e1e498-dev" PROJ_TOOLS="e1e498-tools" POSTGRES_USER="wps" POSTGRES_DATABASE="wps" IMAGE_REGISTRY="image-registry.openshift-image-registry.svc:5000" PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_bcfw_p1_forecasts_cronjob.sh ${SUFFIX} apply
+          bash openshift/scripts/oc_provision_bcfw_p1_forecasts_cronjob.sh ${SUFFIX} apply
 
       - name: Environment Canada GDPS cronjob (Donald)
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          POSTGRES_WRITE_HOST=patroni-wps-${SUFFIX}-leader POSTGRES_READ_HOST=patroni-wps-${SUFFIX}-replica PROJ_TARGET="e1e498-dev" PROJ_TOOLS="e1e498-tools" POSTGRES_USER="wps" POSTGRES_DATABASE="wps" IMAGE_REGISTRY="image-registry.openshift-image-registry.svc:5000" PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_ec_gdps_cronjob.sh ${SUFFIX} apply
+          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_ec_gdps_cronjob.sh ${SUFFIX} apply
 
       - name: Environment Canada HRDPS cronjob (Donald)
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          POSTGRES_WRITE_HOST=patroni-wps-${SUFFIX}-leader POSTGRES_READ_HOST=patroni-wps-${SUFFIX}-replica PROJ_TARGET="e1e498-dev" PROJ_TOOLS="e1e498-tools" POSTGRES_USER="wps" POSTGRES_DATABASE="wps" IMAGE_REGISTRY="image-registry.openshift-image-registry.svc:5000" PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_ec_hrdps_cronjob.sh ${SUFFIX} apply
+          bash openshift/scripts/oc_provision_ec_hrdps_cronjob.sh ${SUFFIX} apply
 
       - name: Environment Canada RDPS cronjob (Donald)
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          POSTGRES_WRITE_HOST=patroni-wps-${SUFFIX}-leader POSTGRES_READ_HOST=patroni-wps-${SUFFIX}-replica PROJ_TARGET="e1e498-dev" PROJ_TOOLS="e1e498-tools" POSTGRES_USER="wps" POSTGRES_DATABASE="wps" IMAGE_REGISTRY="image-registry.openshift-image-registry.svc:5000" PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_ec_rdps_cronjob.sh ${SUFFIX} apply
+          bash openshift/scripts/oc_provision_ec_rdps_cronjob.sh ${SUFFIX} apply
 
   scan-dev:
     name: ZAP Baseline Scan Dev
@@ -221,7 +221,7 @@ jobs:
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TEST_TOKEN }}"
-          POSTGRES_WRITE_HOST=patroni-wps-${SUFFIX}-leader POSTGRES_READ_HOST=patroni-wps-${SUFFIX}-replica PROJ_TARGET="e1e498-test" PROJ_TOOLS="e1e498-tools" POSTGRES_USER="wps" POSTGRES_DATABASE="wps" ENVIRONMENT="-test" IMAGE_REGISTRY="image-registry.openshift-image-registry.svc:5000" SECOND_LEVEL_DOMAIN="apps.silver.devops.gov.bc.ca" USE_WFWX="True" bash openshift/scripts/oc_deploy.sh ${SUFFIX} apply
+          PROJ_TARGET="e1e498-test" ENVIRONMENT="-test" SECOND_LEVEL_DOMAIN="apps.silver.devops.gov.bc.ca" USE_WFWX="True" bash openshift/scripts/oc_deploy.sh ${SUFFIX} apply
 
       # Just run 1/3 EnvCan cronjobs so there's some model data in DB for comparison against P3 actuals and forecasts
       # Don't need all model data
@@ -229,4 +229,4 @@ jobs:
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TEST_TOKEN }}"
-          POSTGRES_WRITE_HOST=patroni-wps-${SUFFIX}-leader POSTGRES_READ_HOST=patroni-wps-${SUFFIX}-replica PROJ_TARGET="e1e498-test" PROJ_TOOLS="e1e498-tools" POSTGRES_USER="wps" POSTGRES_DATABASE="wps" IMAGE_REGISTRY="image-registry.openshift-image-registry.svc:5000" bash openshift/scripts/oc_provision_ec_rdps_cronjob.sh ${SUFFIX} apply
+          PROJ_TARGET="e1e498-test" bash openshift/scripts/oc_provision_ec_rdps_cronjob.sh ${SUFFIX} apply

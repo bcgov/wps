@@ -47,9 +47,9 @@ oc -n e1e498-tools process -f openshift/build.yaml -p GIT_REF="yourbranchnameher
 ### Allow the production product to pull images from tools
 
 ```bash
-oc -n auzhsi-prod policy add-role-to-user \
-    system:image-puller system:serviceaccount:auzhsi-prod:patroniocp-wps-prod \
-    --namespace=auzhsi-tools
+oc -n e1e498-prod policy add-role-to-user \
+    system:image-puller system:serviceaccount:e1e498-prod:patroniocp-wps-prod \
+    --namespace=e1e498-tools
 ```
 
 ## More examples

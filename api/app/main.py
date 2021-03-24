@@ -92,9 +92,16 @@ api.include_router(weather_models.router)
 api.include_router(c_haines.router)
 
 
+@api.get('/ready')
+async def get_ready():
+    """ A simple endpoint for OpenShift readiness """
+    return Response()
+
+
 @api.get('/health')
 async def get_health():
-    """ A simple endpoint for Openshift Healthchecks """
+    """ A simple endpoint for Openshift Healthchecks.
+    It's assumed that if patroni is ok, then all is well.  """
     try:
         health_check = health.patroni_cluster_health_check()
 
