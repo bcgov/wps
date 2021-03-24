@@ -1,4 +1,5 @@
 pipeline {
+    // TODO: Delete this Jenkinsfile.ocp4! Transition to using the default name.
     agent none
     environment {
         // Pipeline-wide vars
