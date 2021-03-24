@@ -10,6 +10,10 @@ export default {
 
 type PropTypes = React.ComponentProps<typeof WeatherMap>
 
-const Template: Story<PropTypes> = args => <WeatherMap />
+const Template: Story<PropTypes> = args => (
+  <div style={{ height: '500px' }}>
+    <WeatherMap />
+  </div>
+)
 
 export const Default = Template.bind({})

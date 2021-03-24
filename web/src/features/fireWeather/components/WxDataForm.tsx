@@ -2,24 +2,41 @@ import React, { useEffect, useState } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import { useHistory, useLocation } from 'react-router-dom'
 
-import WxStationDropdown from 'features/stations/components/WxStationDropdown'
 import TimeOfInterestPicker from 'features/fireWeather/components/TimeOfInterestPicker'
 import GetWxDataButton from 'features/fireWeather/components/GetWxDataButton'
 import { stationCodeQueryKey, timeOfInterestQueryKey } from 'utils/url'
-import WeatherMap from 'features/fireWeather/components/maps/WeatherMap'
+import WxStationDropdown from 'features/fireWeather/components/WxStationDropdown'
 
 const useStyles = makeStyles({
+  form: {
+    display: 'flex',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+
+    '& fieldset, label, input': {
+      color: 'white !important',
+      borderColor: 'white !important'
+    },
+    '& .MuiChip-root': {
+      background: '#f0f0f0'
+    }
+  },
   stationDropdown: {
-    marginBottom: 10
+    marginRight: 16
+  },
+  timeOfInterest: {
+    marginRight: 16
   }
 })
 
 interface Props {
+  className?: string
   codesFromQuery: number[]
   toiFromQuery: string
+  openSidePanel: () => void
 }
 
-const WxDataForm = ({ codesFromQuery, toiFromQuery }: Props) => {
+const WxDataForm = ({ codesFromQuery, toiFromQuery, openSidePanel }: Props) => {
   const classes = useStyles()
   const history = useHistory()
   const location = useLocation()
@@ -35,6 +52,9 @@ const WxDataForm = ({ codesFromQuery, toiFromQuery }: Props) => {
   }, [location]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSubmit = () => {
+    // Open the side panel
+    openSidePanel()
+
     // Update the url query with the new station codes and time of interest
     history.push({
       search:
@@ -57,14 +77,14 @@ const WxDataForm = ({ codesFromQuery, toiFromQuery }: Props) => {
   }
 
   return (
-    <form noValidate>
+    <form className={classes.form} noValidate>
       <WxStationDropdown
         className={classes.stationDropdown}
         stationCodes={selectedCodes}
         onChange={setSelectedCodes}
       />
-      <WeatherMap />
       <TimeOfInterestPicker
+        className={classes.timeOfInterest}
         timeOfInterest={timeOfInterest}
         onChange={setTimeOfInterest}
       />
