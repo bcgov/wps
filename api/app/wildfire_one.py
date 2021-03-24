@@ -122,6 +122,8 @@ def _is_station_valid(station) -> bool:
 
     Returns True if station is good, False is station is bad.
     """
+    # TODO: We could remove this function entirely if we queried the API using RSQL
+    # to filter out inactive stations and stations with lat/long missing
     if station['stationStatus']['id'] != 'ACTIVE':
         return False
     if station['latitude'] is None or station['longitude'] is None:
