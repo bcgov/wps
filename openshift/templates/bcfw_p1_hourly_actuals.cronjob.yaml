@@ -16,18 +16,18 @@ parameters:
     description: Deployment suffix, e.g. pr-###
     required: true
   - name: PROJ_TOOLS
-    value: auzhsi-tools
+    value: e1e498-tools
   - name: IMAGE_REGISTRY
-    value: docker-registry.default.svc:5000
+    value: image-registry.openshift-image-registry.svc:5000
   - name: JOB_NAME
     value: bcfw-p1-hourly-actuals
   - name: SCHEDULE
     required: true
   - name: POSTGRES_WRITE_HOST
     required: true
-    value: patroni-leader-${NAME}-${SUFFIX}
+    value: patroni-${NAME}-${SUFFIX}-leader
   - name: POSTGRES_READ_HOST
-    value: patroni-replica-${NAME}-${SUFFIX}
+    value: patroni-${NAME}-${SUFFIX}-replica
   - name: POSTGRES_USER
     required: true
     value: ${NAME}-${SUFFIX}
