@@ -606,7 +606,7 @@ const createPath = (
     yref: 'y', // we can position these arrows with wind spd values using xanchor & yanchor
     xsizemode: 'pixel', // https://plotly.com/javascript/reference/layout/shapes/#layout-shapes-items-shape-xsizemode
     ysizemode: 'pixel',
-    xanchor: new Date(datetime).valueOf(),
+    xanchor: formatDateInPST(datetime),
     yanchor: wind_speed,
     line: {
       color: show ? colour : 'transparent'
