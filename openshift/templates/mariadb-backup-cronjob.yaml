@@ -140,7 +140,7 @@ objects:
             spec:
               containers:
                 - name: "${JOB_NAME}-cronjob"
-                  image: "docker-registry.default.svc:5000/${IMAGE_NAMESPACE}/${SOURCE_IMAGE_NAME}:${TAG_NAME}"
+                  image: "image-registry.openshift-image-registry.svc:5000/${IMAGE_NAMESPACE}/${SOURCE_IMAGE_NAME}:${TAG_NAME}"
                   # image: backup
                   command:
                     - "/bin/bash"
