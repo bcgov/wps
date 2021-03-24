@@ -4,7 +4,6 @@ import { BrowserRouter as Router, Route, Switch, Redirect } from 'react-router-d
 import { HIDE_DISCLAIMER } from 'utils/env'
 import AuthWrapper from 'features/auth/AuthWrapper'
 import PercentileCalculatorPageWithDisclaimer from 'features/percentileCalculator/pages/PercentileCalculatorPageWithDisclaimer'
-import MoreCastPage from 'features/fireWeather/pages/MoreCastPage'
 import HfiCalculatorPage from 'features/hfiCalculator/pages/HfiCalculatorPage'
 import CHainesPage from 'features/cHaines/pages/CHainesPage'
 import {
@@ -14,6 +13,7 @@ import {
   HFI_CALC_ROUTE,
   C_HAINES_ROUTE
 } from 'utils/constants'
+import MoreCastPage from 'features/fireWeather/pages/MoreCastPage'
 import { NoMatchPage } from 'features/fireWeather/pages/NoMatchPage'
 
 const shouldShowDisclaimer = HIDE_DISCLAIMER === 'false' || HIDE_DISCLAIMER === undefined

@@ -3,8 +3,8 @@ import { useDispatch } from 'react-redux'
 import { useLocation, useHistory } from 'react-router-dom'
 
 import { PageHeader, PageTitle, Container, ErrorBoundary } from 'components'
-import { fetchWxStations } from 'features/stations/slices/stationsSlice'
-import WxStationDropdown from 'features/stations/components/WxStationDropdown'
+import { fetchWxStations } from 'features/percentileCalculator/slices/stationsSlice'
+import WxStationDropdown from 'features/percentileCalculator/components/WxStationDropdown'
 import { PercentileTextfield } from 'features/percentileCalculator/components/PercentileTextfield'
 import {
   fetchPercentiles,

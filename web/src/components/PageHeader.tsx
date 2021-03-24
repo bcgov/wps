@@ -1,7 +1,7 @@
 import React from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 
-import { Container } from 'components/Container'
+import { OptionalContainer } from 'components/Container'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -10,11 +10,13 @@ const useStyles = makeStyles(theme => ({
     borderBottomStyle: 'solid',
     borderBottomColor: theme.palette.secondary.main
   },
-  container: {
+  container: (props: Props) => ({
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'space-between'
-  },
+    justifyContent: 'space-between',
+    paddingLeft: props.noContainer ? props.padding : 'auto',
+    paddingRight: props.noContainer ? props.padding : 'auto'
+  }),
   logo: {
     width: 175,
     marginTop: '10px',
@@ -44,15 +46,17 @@ const useStyles = makeStyles(theme => ({
 interface Props {
   title: string
   productName: string
+  noContainer?: boolean
+  padding?: number
 }
 
 export const PageHeader: React.FunctionComponent<Props> = (props: Props) => {
-  const { title, productName } = props
-  const classes = useStyles()
+  const { title, productName, noContainer = false } = props
+  const classes = useStyles(props)
 
   return (
     <nav className={classes.root}>
-      <Container className={classes.container}>
+      <OptionalContainer className={classes.container} noContainer={noContainer}>
         <div className={classes.titleWrapper}>
           <a href="https://gov.bc.ca">
             <img
@@ -70,7 +74,7 @@ export const PageHeader: React.FunctionComponent<Props> = (props: Props) => {
         >
           Contact
         </a>
-      </Container>
+      </OptionalContainer>
     </nav>
   )
 }

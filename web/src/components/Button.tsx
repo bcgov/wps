@@ -6,6 +6,7 @@ import { makeStyles } from '@material-ui/core/styles'
 interface CustomProps {
   loading?: boolean
   hasSpinner?: boolean
+  spinnerColor?: string
 }
 
 type Props = CustomProps & ButtonProps
@@ -14,14 +15,14 @@ const useStyles = makeStyles(theme => ({
   root: {
     position: 'relative'
   },
-  spinner: {
-    color: theme.palette.primary.light,
+  spinner: (props: Props) => ({
+    color: props.spinnerColor || theme.palette.primary.light,
     position: 'absolute',
     left: '50%',
     marginLeft: -10,
     top: '50%',
     marginTop: -10
-  }
+  })
 }))
 
 /* eslint-disable react/prop-types, react/display-name */
@@ -29,7 +30,7 @@ const useStyles = makeStyles(theme => ({
 // https://medium.com/@martin_hotell/react-refs-with-typescript-a32d56c4d315
 export const Button = forwardRef<HTMLButtonElement, Props>((props, ref) => {
   const { loading, className, disabled, hasSpinner = true, ...buttonProps } = props
-  const classes = useStyles()
+  const classes = useStyles(props)
   const buttonClassName = clsx(classes.root, className)
 
   return (

@@ -1,6 +1,6 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
-import { Paper, Typography } from '@material-ui/core'
+import { Typography } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 
 import ObservationTable from 'features/fireWeather/components/tables/ObservationTable'
@@ -30,17 +30,13 @@ import { ForecastSummary, NoonForecastValue } from 'api/forecastAPI'
 
 const useStyles = makeStyles({
   displays: {
-    marginTop: 16
+    marginTop: 4
   },
-  paper: {
-    paddingLeft: 18,
-    paddingRight: 18,
-    paddingBottom: 8,
-    marginBottom: 20
+  display: {
+    marginBottom: 16
   },
-  station: {
-    fontSize: '1.1rem',
-    paddingTop: 10,
+  title: {
+    fontSize: '1.2rem',
     paddingBottom: 8
   },
   noDataAvailable: {
@@ -70,6 +66,8 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
 
   return (
     <div className={classes.displays}>
+      {props.wxDataLoading && 'Loading...'}
+
       {!props.wxDataLoading &&
         props.stationCodes.map(code => {
           const station = props.stationsByCode[code]
@@ -89,17 +87,15 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
             !observations && !noonForecasts && !gdpsModels && !hrdpsModels && !rdpsModels
 
           return (
-            <Paper key={code} className={classes.paper} elevation={3}>
-              <Typography className={classes.station} variant="subtitle1" component="div">
-                Weather station: {`${station.name} (${station.code})`}
+            <div key={code} className={classes.display}>
+              <Typography className={classes.title} variant="subtitle1" component="div">
+                {`${station.name} (${station.code})`}
               </Typography>
-
               {nothingToDisplay && (
                 <Typography className={classes.noDataAvailable} variant="body2">
                   Data is not available.
                 </Typography>
               )}
-
               <ErrorBoundary>
                 <ObservationTable
                   testId={`observations-table-${code}`}
@@ -107,7 +103,6 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
                   rows={observations}
                 />
               </ErrorBoundary>
-
               <ErrorBoundary>
                 <NoonModelTable
                   testId={`noon-gdps-table-${code}`}
@@ -115,7 +110,6 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
                   rows={noonOnlyGdpsModels}
                 />
               </ErrorBoundary>
-
               <ErrorBoundary>
                 <NoonForecastTable
                   testId={`noon-forecasts-table-${code}`}
@@ -123,7 +117,6 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
                   rows={noonForecasts}
                 />
               </ErrorBoundary>
-
               <ErrorBoundary>
                 <WxDataGraph
                   station={station}
@@ -139,7 +132,7 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
                   gdpsSummaries={gdpsSummaries}
                 />
               </ErrorBoundary>
-            </Paper>
+            </div>
           )
         })}
     </div>
