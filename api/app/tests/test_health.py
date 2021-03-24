@@ -8,6 +8,13 @@ import app.main
 from app.tests.common import MockResponse
 
 
+def test_ready_ok():
+    """ Test health endpoint, given that everything is fine """
+    client = TestClient(app.main.app)
+    response = client.get('/api/ready/')
+    assert response.status_code == 200
+
+
 def test_health_ok():
     """ Test health endpoint, given that everything is fine """
     client = TestClient(app.main.app)

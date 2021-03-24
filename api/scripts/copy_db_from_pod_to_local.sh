@@ -13,7 +13,7 @@
 # Examples:
 #   
 #   Copy database from a pod in production.
-#   PROJECT=auzhsi-prod POD=patroni-wps-prod-2 DATABASE=wps-prod ./copy_db_from_pod_to_local.sh
+#   PROJECT=e1e498-prod POD=patroni-wps-prod-2 DATABASE=wps-prod ./copy_db_from_pod_to_local.sh
 #
 
 set -euo pipefail
