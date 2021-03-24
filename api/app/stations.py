@@ -42,6 +42,7 @@ def _get_stations_by_codes_local(station_codes: List[int]) -> List[WeatherStatio
 async def get_stations_by_codes(station_codes: List[int]) -> List[WeatherStation]:
     """ Get a list of stations by code, from WFWX Fireweather API. """
     if wildfire_one.use_wfwx():
+        logger.info('Fetching stations from WFWX')
         return await wildfire_one.get_stations_by_codes(station_codes)
     return _get_stations_by_codes_local(station_codes)
 
