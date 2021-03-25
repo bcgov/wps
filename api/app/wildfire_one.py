@@ -49,6 +49,17 @@ class BuildQueryAllStations(BuildQuery):
         return [url, params]
 
 
+class BuildQueryAllActiveStations(BuildQuery):
+    """ Class for building a url and RSQL params to request all active stations. """
+
+    def query(self, page) -> [str, dict]:
+        """ Return query url and params with rsql query """
+        params = {'size': self.max_page_size, 'sort': 'displayLabel',
+                  'page': page, 'stationStatus.id': 'ACTIVE'}
+        url = '{base_url}/v1/stations'.format(base_url=self.base_url)
+        return [url, params]
+
+
 class BuildQueryByStationCode(BuildQuery):
     """ Class for building a url and params to request a list of stations by code """
 
@@ -153,6 +164,9 @@ def _parse_station(station) -> WeatherStation:
             if station_coord.within(geom):
                 ecodiv_name = row['CDVSNNM']
                 break
+        logger.error('Ecodivision not found for station %s; lat %f long %f',
+                     station['displayLabel'], station['latitude'], station['longitude'])
+        ecodiv_name = "DEFAULT"
     return WeatherStation(
         code=station['stationCode'],
         name=station['displayLabel'],
@@ -208,7 +222,7 @@ async def get_stations() -> List[WeatherStation]:
         header = await _get_auth_header(session)
         stations = []
         # Iterate through "raw" station data.
-        async for raw_station in _fetch_raw_stations(session, header, BuildQueryAllStations()):
+        async for raw_station in _fetch_raw_stations(session, header, BuildQueryAllActiveStations()):
             # If the station is valid, add it to our list of stations.
             if _is_station_valid(raw_station):
                 logger.info('Processing raw_station %d',
