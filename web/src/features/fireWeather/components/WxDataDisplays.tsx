@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useSelector } from 'react-redux'
-import { Button, Typography } from '@material-ui/core'
+import { Tab, Tabs, Typography } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 
 import ObservationTable from 'features/fireWeather/components/tables/ObservationTable'
@@ -27,6 +27,7 @@ import { Station } from 'api/stationAPI'
 import { ObservedValue } from 'api/observationAPI'
 import { ModelSummary, ModelValue } from 'api/modelAPI'
 import { ForecastSummary, NoonForecastValue } from 'api/forecastAPI'
+import { TrendingUp, ViewHeadline } from '@material-ui/icons'
 
 const useStyles = makeStyles({
   displays: {
@@ -63,6 +64,11 @@ interface WxDataDisplaysProps {
 
 export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) {
   const [showTableView, toggleTableView] = useState(true)
+  const [value, setTabNumber] = React.useState(0)
+
+  const handleChange = (event: React.ChangeEvent<{}>, newValue: number) => {
+    setTabNumber(newValue)
+  }
 
   const classes = useStyles()
 
@@ -99,7 +105,26 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
                 </Typography>
               )}
               <div>
-                <Button
+                <Tabs
+                  value={value}
+                  onChange={handleChange}
+                  variant="fullWidth"
+                  indicatorColor="secondary"
+                  textColor="secondary"
+                  aria-label="icon label tabs example"
+                >
+                  <Tab
+                    icon={<ViewHeadline />}
+                    label="Tables"
+                    onClick={() => toggleTableView(true)}
+                  />
+                  <Tab
+                    icon={<TrendingUp />}
+                    label="Graphs"
+                    onClick={() => toggleTableView(false)}
+                  />
+                </Tabs>
+                {/* <Button
                   data-testid="table-data-tab-button"
                   id="table-data-tab-button"
                   variant="contained"
@@ -116,7 +141,7 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
                   onClick={() => toggleTableView(false)}
                 >
                   Graphs
-                </Button>
+                </Button> */}
               </div>
               {showTableView ? (
                 <React.Fragment>
