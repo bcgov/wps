@@ -66,10 +66,6 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
   const [showTableView, toggleTableView] = useState(true)
   const [value, setTabNumber] = React.useState(0)
 
-  const handleChange = (event: React.ChangeEvent<{}>, newValue: number) => {
-    setTabNumber(newValue)
-  }
-
   const classes = useStyles()
 
   return (
@@ -107,7 +103,7 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
               <div>
                 <Tabs
                   value={value}
-                  onChange={handleChange}
+                  onChange={(changeEvent, tabNumber) => setTabNumber(tabNumber)}
                   variant="fullWidth"
                   indicatorColor="secondary"
                   textColor="secondary"
@@ -124,24 +120,6 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
                     onClick={() => toggleTableView(false)}
                   />
                 </Tabs>
-                {/* <Button
-                  data-testid="table-data-tab-button"
-                  id="table-data-tab-button"
-                  variant="contained"
-                  color="primary"
-                  onClick={() => toggleTableView(true)}
-                >
-                  Tables
-                </Button>
-                <Button
-                  data-testid="graph-data-tab-button"
-                  id="graph-data-tab-button"
-                  variant="contained"
-                  color="primary"
-                  onClick={() => toggleTableView(false)}
-                >
-                  Graphs
-                </Button> */}
               </div>
               {showTableView ? (
                 <React.Fragment>
