@@ -1,5 +1,5 @@
 kind: Template
-apiVersion: v1
+apiVersion: template.openshift.io/v1
 metadata:
   name: ${JOB_NAME}-cronjob-template
   annotations:
@@ -41,7 +41,7 @@ objects:
     metadata:
       name: ${JOB_NAME}
       labels:
-        app: ${NAME}-${SUFFIX}
+        app: "${NAME}-${SUFFIX}"
         cronjob: ${JOB_NAME}
     spec:
       # Don't run on the hour - as a courtesy to env canada, pick a random

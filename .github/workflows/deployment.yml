@@ -132,7 +132,7 @@ jobs:
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          bash CERTBOT_STAGING=true DRYRUN=true CERTBOT_SERVER="https://acme-staging-v02.api.letsencrypt.org/directory" openshift/scripts/oc_provision_certbot_cronjob.sh ${SUFFIX} apply
+          CERTBOT_STAGING=true DRYRUN=true CERTBOT_SERVER="https://acme-staging-v02.api.letsencrypt.org/directory" bash openshift/scripts/oc_provision_certbot_cronjob.sh ${SUFFIX} apply
 
   scan-dev:
     name: ZAP Baseline Scan Dev
@@ -241,4 +241,4 @@ jobs:
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          bash CERTBOT_STAGING=true DRYRUN=true CERTBOT_SERVER="https://acme-staging-v02.api.letsencrypt.org/directory" openshift/scripts/oc_provision_certbot_cronjob.sh ${SUFFIX} apply
+          PROJ_TARGET="e1e498-test" CERTBOT_STAGING=true DRYRUN=true CERTBOT_SERVER="https://acme-staging-v02.api.letsencrypt.org/directory" bash openshift/scripts/oc_provision_certbot_cronjob.sh ${SUFFIX} apply
