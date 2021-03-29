@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useSelector } from 'react-redux'
-import { Tab, Tabs, Typography } from '@material-ui/core'
+import { Paper, Tab, Tabs, Typography } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 
 import ObservationTable from 'features/fireWeather/components/tables/ObservationTable'
@@ -27,7 +27,6 @@ import { Station } from 'api/stationAPI'
 import { ObservedValue } from 'api/observationAPI'
 import { ModelSummary, ModelValue } from 'api/modelAPI'
 import { ForecastSummary, NoonForecastValue } from 'api/forecastAPI'
-import { TrendingUp, ViewHeadline } from '@material-ui/icons'
 
 const useStyles = makeStyles({
   displays: {
@@ -39,6 +38,9 @@ const useStyles = makeStyles({
   title: {
     fontSize: '1.2rem',
     paddingBottom: 8
+  },
+  tabs: {
+    maxHeight: 10
   },
   noDataAvailable: {
     paddingBottom: 8
@@ -73,7 +75,7 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
       {props.wxDataLoading && 'Loading...'}
 
       {!props.wxDataLoading &&
-        props.stationCodes.map(code => {
+        props.stationCodes.map((code, index) => {
           const station = props.stationsByCode[code]
           if (!station) return null
 
@@ -101,25 +103,24 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
                 </Typography>
               )}
               <div>
-                <Tabs
-                  value={value}
-                  onChange={(changeEvent, tabNumber) => setTabNumber(tabNumber)}
-                  variant="fullWidth"
-                  indicatorColor="secondary"
-                  textColor="secondary"
-                  aria-label="icon label tabs example"
-                >
-                  <Tab
-                    icon={<ViewHeadline />}
-                    label="Tables"
-                    onClick={() => toggleTableView(true)}
-                  />
-                  <Tab
-                    icon={<TrendingUp />}
-                    label="Graphs"
-                    onClick={() => toggleTableView(false)}
-                  />
-                </Tabs>
+                // Only show tabs after the first station title
+                {index === 0 ? (
+                  <Paper square>
+                    <Tabs
+                      className={classes.tabs}
+                      value={value}
+                      onChange={(_changeEvent, tabNumber) => setTabNumber(tabNumber)}
+                      variant="fullWidth"
+                      indicatorColor="primary"
+                      textColor="primary"
+                    >
+                      <Tab label="Tables" onClick={() => toggleTableView(true)} />
+                      <Tab label="Graphs" onClick={() => toggleTableView(false)} />
+                    </Tabs>
+                  </Paper>
+                ) : (
+                  ''
+                )}
               </div>
               {showTableView ? (
                 <React.Fragment>

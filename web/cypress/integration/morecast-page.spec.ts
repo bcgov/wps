@@ -84,7 +84,7 @@ describe('MoreCast Page', () => {
       cy.getByTestId('get-wx-data-button').click({ force: true })
     })
 
-    it('Observation, noon forecast, and noon GDPS should be displayed in tables', () => {
+    it('Observation, noon forecast, and noon GDPS should be displayed in tables in default active tab', () => {
       cy.getByTestId(`observations-table-${stationCode}`)
         .find('tbody > tr')
         .should('have.length', numOfObservations)
@@ -126,153 +126,158 @@ describe('MoreCast Page', () => {
         .should('not.be.visible')
     })
 
-    it('Temp & RH Graph should be displayed', () => {
-      const checkNumOfTempDewpointMarkers = (num: number) => {
-        cy.getByTestId('temp-rh-graph')
-          .find(`.cartesianlayer > .subplot > .plot > .scatterlayer > .trace > .points > .point`)
-          .should('have.length', num)
-      }
-      const checkTempPlume = (shouldBeDisplayed: boolean) => {
-        cy.getByTestId('temp-rh-graph')
-          .find(`.cartesianlayer > .subplot > .plot > .scatterlayer > .trace`)
-          .should('have.length', shouldBeDisplayed ? 3 : 1) // 2 more traces that make up the plume
-      }
-      const checkTempDewpointTraces = (shouldBeDisplayed: boolean) => {
-        cy.getByTestId('temp-rh-graph')
-          .find(`.cartesianlayer > .subplot > .plot > .scatterlayer > .trace`)
-          .should('have.length', shouldBeDisplayed ? 4 : 2) // 2 more traces that make up plume
-      }
-      const checkNumOfRHMarkers = (num: number) => {
-        cy.getByTestId('temp-rh-graph')
-          .find('.cartesianlayer > .subplot > .overplot > .xy2 > .scatterlayer > .trace > .points > .point')
-          .should('have.length', num)
-      }
-      const checkRHPlume = (shouldBeDisplayed: boolean) => {
-        cy.getByTestId('temp-rh-graph')
-          .find('.cartesianlayer > .subplot > .overplot > .xy2 > .scatterlayer > .trace')
-          .should('have.length', shouldBeDisplayed ? 4 : 2) // 2 more traces that make up the plume
-      }
-      const checkNumOfLegends = (num: number) => {
-        cy.getByTestId('temp-rh-graph')
-          .find('.infolayer > .legend > .scrollbox > .groups > .traces')
-          .should('have.length', num)
-      }
+    describe('When graphs tab is clicked', () => {
+      beforeEach(() => {
+        cy.contains('Graphs').click()
+      })
+      it('Temp & RH Graph should be displayed', () => {
+        const checkNumOfTempDewpointMarkers = (num: number) => {
+          cy.getByTestId('temp-rh-graph')
+            .find(`.cartesianlayer > .subplot > .plot > .scatterlayer > .trace > .points > .point`)
+            .should('have.length', num)
+        }
+        const checkTempPlume = (shouldBeDisplayed: boolean) => {
+          cy.getByTestId('temp-rh-graph')
+            .find(`.cartesianlayer > .subplot > .plot > .scatterlayer > .trace`)
+            .should('have.length', shouldBeDisplayed ? 3 : 1) // 2 more traces that make up the plume
+        }
+        const checkTempDewpointTraces = (shouldBeDisplayed: boolean) => {
+          cy.getByTestId('temp-rh-graph')
+            .find(`.cartesianlayer > .subplot > .plot > .scatterlayer > .trace`)
+            .should('have.length', shouldBeDisplayed ? 4 : 2) // 2 more traces that make up plume
+        }
+        const checkNumOfRHMarkers = (num: number) => {
+          cy.getByTestId('temp-rh-graph')
+            .find('.cartesianlayer > .subplot > .overplot > .xy2 > .scatterlayer > .trace > .points > .point')
+            .should('have.length', num)
+        }
+        const checkRHPlume = (shouldBeDisplayed: boolean) => {
+          cy.getByTestId('temp-rh-graph')
+            .find('.cartesianlayer > .subplot > .overplot > .xy2 > .scatterlayer > .trace')
+            .should('have.length', shouldBeDisplayed ? 4 : 2) // 2 more traces that make up the plume
+        }
+        const checkNumOfLegends = (num: number) => {
+          cy.getByTestId('temp-rh-graph')
+            .find('.infolayer > .legend > .scrollbox > .groups > .traces')
+            .should('have.length', num)
+        }
 
-      checkNumOfLegends(8)
+        checkNumOfLegends(8)
 
-      cy.getByTestId('wx-graph-hrdps-toggle').click()
-      checkNumOfTempDewpointMarkers(2 * numOfObservations - 1)
-      checkNumOfRHMarkers(numOfObservations)
-      checkTempDewpointTraces(false)
-      checkRHPlume(false)
-      cy.getByTestId('wx-graph-observation-toggle').click()
+        cy.getByTestId('wx-graph-hrdps-toggle').click()
+        checkNumOfTempDewpointMarkers(2 * numOfObservations - 1)
+        checkNumOfRHMarkers(numOfObservations)
+        checkTempDewpointTraces(false)
+        checkRHPlume(false)
+        cy.getByTestId('wx-graph-observation-toggle').click()
 
-      cy.getByTestId('wx-graph-forecast-toggle').click()
-      checkNumOfTempDewpointMarkers(numOfForecasts)
-      checkNumOfRHMarkers(numOfForecasts)
-      cy.getByTestId('wx-graph-forecast-toggle').click()
+        cy.getByTestId('wx-graph-forecast-toggle').click()
+        checkNumOfTempDewpointMarkers(numOfForecasts)
+        checkNumOfRHMarkers(numOfForecasts)
+        cy.getByTestId('wx-graph-forecast-toggle').click()
 
-      cy.getByTestId('wx-graph-hrdps-toggle').click()
-      checkNumOfTempDewpointMarkers(numOfHrdps)
-      checkNumOfRHMarkers(numOfHrdps)
-      checkTempPlume(true)
-      checkRHPlume(true)
-      cy.getByTestId('wx-graph-hrdps-toggle').click()
+        cy.getByTestId('wx-graph-hrdps-toggle').click()
+        checkNumOfTempDewpointMarkers(numOfHrdps)
+        checkNumOfRHMarkers(numOfHrdps)
+        checkTempPlume(true)
+        checkRHPlume(true)
+        cy.getByTestId('wx-graph-hrdps-toggle').click()
 
-      cy.getByTestId('wx-graph-rdps-toggle').click()
-      checkNumOfTempDewpointMarkers(numOfRdps)
-      checkNumOfRHMarkers(numOfRdps)
-      checkTempPlume(true)
-      checkRHPlume(true)
-      cy.getByTestId('wx-graph-rdps-toggle').click()
+        cy.getByTestId('wx-graph-rdps-toggle').click()
+        checkNumOfTempDewpointMarkers(numOfRdps)
+        checkNumOfRHMarkers(numOfRdps)
+        checkTempPlume(true)
+        checkRHPlume(true)
+        cy.getByTestId('wx-graph-rdps-toggle').click()
 
-      cy.getByTestId('wx-graph-gdps-toggle').click()
-      checkNumOfTempDewpointMarkers(numOfGdps)
-      checkNumOfRHMarkers(numOfGdps)
-      checkTempPlume(true)
-      checkRHPlume(true)
-      cy.getByTestId('wx-graph-gdps-toggle').click()
+        cy.getByTestId('wx-graph-gdps-toggle').click()
+        checkNumOfTempDewpointMarkers(numOfGdps)
+        checkNumOfRHMarkers(numOfGdps)
+        checkTempPlume(true)
+        checkRHPlume(true)
+        cy.getByTestId('wx-graph-gdps-toggle').click()
 
-      cy.getByTestId('wx-graph-bias-adjusted-gdps-toggle').click()
-      checkNumOfTempDewpointMarkers(numOfGdps)
-      checkNumOfRHMarkers(numOfGdps)
-      checkTempPlume(false)
-      checkRHPlume(false)
+        cy.getByTestId('wx-graph-bias-adjusted-gdps-toggle').click()
+        checkNumOfTempDewpointMarkers(numOfGdps)
+        checkNumOfRHMarkers(numOfGdps)
+        checkTempPlume(false)
+        checkRHPlume(false)
 
-      checkNumOfLegends(3)
-    })
+        checkNumOfLegends(3)
+      })
 
-    it('Precipitation graph should be displayed', () => {
-      const checkNumOfBars = (num: number) => {
-        cy.getByTestId('precipitation-graph')
-          .find(`.cartesianlayer > .subplot > .plot > .barlayer > .trace > .points > .point`)
-          .should('have.length', num)
-      }
-      const checkNumOfLegends = (num: number) => {
-        cy.getByTestId('precipitation-graph')
-          .find('.infolayer > .legend > .scrollbox > .groups > .traces')
-          .should('have.length', num)
-      }
+      it('Precipitation graph should be displayed', () => {
+        const checkNumOfBars = (num: number) => {
+          cy.getByTestId('precipitation-graph')
+            .find(`.cartesianlayer > .subplot > .plot > .barlayer > .trace > .points > .point`)
+            .should('have.length', num)
+        }
+        const checkNumOfLegends = (num: number) => {
+          cy.getByTestId('precipitation-graph')
+            .find('.infolayer > .legend > .scrollbox > .groups > .traces')
+            .should('have.length', num)
+        }
 
-      checkNumOfLegends(5)
+        checkNumOfLegends(5)
 
-      cy.getByTestId('wx-graph-hrdps-toggle').click()
-      checkNumOfBars(6)
-      cy.getByTestId('wx-graph-observation-toggle').click()
+        cy.getByTestId('wx-graph-hrdps-toggle').click()
+        checkNumOfBars(6)
+        cy.getByTestId('wx-graph-observation-toggle').click()
 
-      cy.getByTestId('wx-graph-forecast-toggle').click()
-      checkNumOfBars(6)
-      cy.getByTestId('wx-graph-forecast-toggle').click()
+        cy.getByTestId('wx-graph-forecast-toggle').click()
+        checkNumOfBars(6)
+        cy.getByTestId('wx-graph-forecast-toggle').click()
 
-      cy.getByTestId('wx-graph-hrdps-toggle').click()
-      checkNumOfBars(8)
-      cy.getByTestId('wx-graph-hrdps-toggle').click()
+        cy.getByTestId('wx-graph-hrdps-toggle').click()
+        checkNumOfBars(8)
+        cy.getByTestId('wx-graph-hrdps-toggle').click()
 
-      // Note: No idea why this fails in GH action (WTH)
-      // cy.getByTestId('wx-graph-rdps-toggle').click()
-      // checkNumOfBars(9) // counts 10 instead of 9
-      // cy.getByTestId('wx-graph-rdps-toggle').click()
+        // Note: No idea why this fails in GH action (WTH)
+        // cy.getByTestId('wx-graph-rdps-toggle').click()
+        // checkNumOfBars(9) // counts 10 instead of 9
+        // cy.getByTestId('wx-graph-rdps-toggle').click()
 
-      // cy.getByTestId('wx-graph-gdps-toggle').click()
-      // checkNumOfBars(16) // counts 15 instead of 6
+        // cy.getByTestId('wx-graph-gdps-toggle').click()
+        // checkNumOfBars(16) // counts 15 instead of 6
 
-      checkNumOfLegends(1)
-    })
+        checkNumOfLegends(1)
+      })
 
-    it('Wind speed & direction graph should be displayed', () => {
-      const checkNumOfArrows = (num: number) => {
-        cy.getByTestId('wind-spd-dir-graph')
-          .find(`.layer-above > .shapelayer > path`)
-          .should('have.length', num)
-      }
-      const checkNumOfLegends = (num: number) => {
-        cy.getByTestId('wind-spd-dir-graph')
-          .find('.infolayer > .legend > .scrollbox > .groups > .traces')
-          .should('have.length', num)
-      }
+      it('Wind speed & direction graph should be displayed', () => {
+        const checkNumOfArrows = (num: number) => {
+          cy.getByTestId('wind-spd-dir-graph')
+            .find(`.layer-above > .shapelayer > path`)
+            .should('have.length', num)
+        }
+        const checkNumOfLegends = (num: number) => {
+          cy.getByTestId('wind-spd-dir-graph')
+            .find('.infolayer > .legend > .scrollbox > .groups > .traces')
+            .should('have.length', num)
+        }
 
-      checkNumOfLegends(3)
+        checkNumOfLegends(3)
 
-      cy.getByTestId('wx-graph-hrdps-toggle').click()
-      checkNumOfArrows(numOfObservations)
-      cy.getByTestId('wx-graph-observation-toggle').click()
+        cy.getByTestId('wx-graph-hrdps-toggle').click()
+        checkNumOfArrows(numOfObservations)
+        cy.getByTestId('wx-graph-observation-toggle').click()
 
-      cy.getByTestId('wx-graph-hrdps-toggle').click()
-      checkNumOfArrows(numOfHrdps)
-      cy.getByTestId('wx-graph-hrdps-toggle').click()
+        cy.getByTestId('wx-graph-hrdps-toggle').click()
+        checkNumOfArrows(numOfHrdps)
+        cy.getByTestId('wx-graph-hrdps-toggle').click()
 
-      cy.getByTestId('wx-graph-rdps-toggle').click()
-      checkNumOfArrows(numOfRdps)
-      cy.getByTestId('wx-graph-rdps-toggle').click()
+        cy.getByTestId('wx-graph-rdps-toggle').click()
+        checkNumOfArrows(numOfRdps)
+        cy.getByTestId('wx-graph-rdps-toggle').click()
 
-      cy.getByTestId('wx-graph-gdps-toggle').click()
-      checkNumOfArrows(numOfGdps)
-      cy.getByTestId('wx-graph-gdps-toggle').click()
+        cy.getByTestId('wx-graph-gdps-toggle').click()
+        checkNumOfArrows(numOfGdps)
+        cy.getByTestId('wx-graph-gdps-toggle').click()
 
-      cy.getByTestId('wx-graph-forecast-toggle').click()
-      checkNumOfArrows(numOfForecasts)
+        cy.getByTestId('wx-graph-forecast-toggle').click()
+        checkNumOfArrows(numOfForecasts)
 
-      checkNumOfLegends(2)
+        checkNumOfLegends(2)
+      })
     })
   })
 })
