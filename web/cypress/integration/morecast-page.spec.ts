@@ -278,6 +278,12 @@ describe('MoreCast Page', () => {
 
         checkNumOfLegends(2)
       })
+      it('Can toggle back to tables', () => {
+        cy.contains('Tables').click()
+        cy.getByTestId(`observations-table-${stationCode}`)
+          .find('tbody > tr')
+          .should('have.length', numOfObservations)
+      })
     })
   })
 })
