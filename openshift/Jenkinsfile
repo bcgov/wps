@@ -45,7 +45,7 @@ pipeline {
                     // and data needs to be restored from backup.
                     sh "CPU_REQUEST=100m CPU_LIMIT=2000m MEMORY_REQUEST=4Gi MEMORY_LIMIT=8Gi PVC_SIZE=25Gi PROJ_TARGET=${projProd} ./openshift/scripts/oc_provision_db.sh prod apply"
                     // Deploy API
-                    sh "CPU_REQUEST=500m CPU_LIMIT=500m MEMORY_REQUEST=2Gi MEMORY_LIMIT=2Gi REPLICAS=3 PROJ_TARGET=${projProd} SECOND_LEVEL_DOMAIN=apps.silver.devops.gov.bc.ca ./openshift/scripts/oc_deploy.sh prod apply"
+                    sh "CPU_REQUEST=500m CPU_LIMIT=500m MEMORY_REQUEST=2Gi MEMORY_LIMIT=2Gi REPLICAS=3 PROJ_TARGET=${projProd} VANITY_DOMAIN=psu.nrs.gov.bc.ca SECOND_LEVEL_DOMAIN=apps.silver.devops.gov.bc.ca ./openshift/scripts/oc_deploy.sh prod apply"
                     // Env Canada Subscriber
                     sh "PROJ_TARGET=${projProd} ./openshift/scripts/oc_provision_ec_gdps_cronjob.sh prod apply"
                     sh "PROJ_TARGET=${projProd} ./openshift/scripts/oc_provision_ec_hrdps_cronjob.sh prod apply"

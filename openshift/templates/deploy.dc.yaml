@@ -69,7 +69,7 @@ parameters:
     value: ""
   - name: USE_WFWX
     value: "False"
-  - name: FRIENDLY_DOMAIN
+  - name: VANITY_DOMAIN
     requests: True
 objects:
   - apiVersion: v1
@@ -285,12 +285,12 @@ objects:
       labels:
         app: ${NAME}-${SUFFIX}
         certbot-managed: true
-      name: ${NAME}-${SUFFIX}
+      name: ${NAME}-${SUFFIX}-vanity
       annotations:
         # Enable HTTP Strict Transport Security:
         haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
     spec:
-      host: ${FRIENDLY_DOMAIN}
+      host: ${VANITY_DOMAIN}
       port:
         targetPort: 8080-tcp
       to:
