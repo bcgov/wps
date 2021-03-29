@@ -128,6 +128,12 @@ jobs:
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
           bash openshift/scripts/oc_provision_ec_rdps_cronjob.sh ${SUFFIX} apply
 
+      - name: Certbot Cronjob
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+          bash CERTBOT_STAGING=true DRYRUN=true CERTBOT_SERVER="https://acme-staging-v02.api.letsencrypt.org/directory" openshift/scripts/oc_provision_certbot_cronjob.sh ${SUFFIX} apply
+
   scan-dev:
     name: ZAP Baseline Scan Dev
     needs: [deploy-dev]
@@ -230,3 +236,9 @@ jobs:
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TEST_TOKEN }}"
           PROJ_TARGET="e1e498-test" bash openshift/scripts/oc_provision_ec_rdps_cronjob.sh ${SUFFIX} apply
+
+      - name: Certbot Cronjob
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+          bash CERTBOT_STAGING=true DRYRUN=true CERTBOT_SERVER="https://acme-staging-v02.api.letsencrypt.org/directory" openshift/scripts/oc_provision_certbot_cronjob.sh ${SUFFIX} apply

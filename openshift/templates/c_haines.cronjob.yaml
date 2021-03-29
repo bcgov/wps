@@ -47,6 +47,7 @@ objects:
     metadata:
       name: ${JOB_NAME}
       labels:
+        app: ${NAME}-${SUFFIX}
         cronjob: ${JOB_NAME}
     spec:
       schedule: ${SCHEDULE}

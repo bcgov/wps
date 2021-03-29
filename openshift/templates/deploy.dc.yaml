@@ -1,4 +1,4 @@
-apiVersion: apps.openshift.io/v1
+apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
   name: ${NAME}
@@ -298,3 +298,4 @@ objects:
         name: ${NAME}-${SUFFIX}
       tls:
         termination: edge
+        insecureEdgeTerminationPolicy: Redirect

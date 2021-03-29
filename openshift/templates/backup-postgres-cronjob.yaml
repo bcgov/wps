@@ -123,12 +123,15 @@ parameters:
     description: "The name of the configuration file."
     required: true
     value: "backup.conf"
+  - name: "APP_LABEL"
+    required: true
 objects:
   - kind: "CronJob"
     apiVersion: "batch/v1beta1"
     metadata:
       name: "${JOB_NAME}"
       labels:
+        app: ${APP_LABEL}
         template: "${JOB_NAME}-cronjob"
         cronjob: "${JOB_NAME}"
     spec:
