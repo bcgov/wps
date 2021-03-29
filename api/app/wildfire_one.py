@@ -53,10 +53,23 @@ class BuildQueryAllActiveStations(BuildQuery):
     """ Class for building a url and RSQL params to request all active stations. """
 
     def query(self, page) -> [str, dict]:
-        """ Return query url and params with rsql query """
+        """ Return query url and params with rsql query for all weather stations marked active. """
         params = {'size': self.max_page_size, 'sort': 'displayLabel',
                   'page': page, 'stationStatus.id': 'ACTIVE'}
         url = '{base_url}/v1/stations'.format(base_url=self.base_url)
+        return [url, params]
+
+
+class BuildQueryAllActiveGSNetStations(BuildQuery):
+    """ Class for building a url and RSQL params to request all active stations whose
+    datasource is AutoCaller GSNet (provincially maintained wx stations). """
+
+    def query(self, page) -> [str, dict]:
+        """ Return query url and params with rsql query for all weather stations marked active and
+        that are maintained by the provincial government (datasource is "AutoCaller GSNet"). """
+        params = {'size': self.max_page_size, 'sort': 'displayLabel', 'page': page,
+                  'stationStatus.id': 'ACTIVE', 'dataSource': 'AutoCaller GSNet'}
+        url = '{base_url}/v1/stations/rsql'.format(base_url=self.base_url)
         return [url, params]
 
 
@@ -145,28 +158,33 @@ def _is_station_valid(station) -> bool:
     return True
 
 
+def fetch_ecodivision_name(latitude: str, longitude: str, ecodivisions: geopandas.GeoDataFrame):
+    """ Returns the ecodivision name for a given lat/long coordinate """
+    station_coord = Point(float(longitude), float(latitude))
+    for _, ecodivision_row in ecodivisions.iterrows():
+        geom = ecodivision_row['geometry']
+        if station_coord.within(geom):
+            return ecodivision_row['CDVSNNM']
+    return None
+
+
 def _parse_station(station) -> WeatherStation:
     """ Transform from the json object returned by wf1, to our station object.
     """
     with open(core_season_file_path) as file_handle:
         core_seasons = json.load(file_handle)
     ecodivisions = geopandas.read_file(ecodiv_shape_file_path)
-    station_coord = Point(
-        float(station['longitude']), float(station['latitude']))
 
     # hacky fix for station 447 (WATSON LAKE FS), which is in the Yukon
     # so ecodivision name has to be hard-coded
     if station['stationCode'] == '447':
         ecodiv_name = "SUB-ARCTIC HIGHLANDS"
     else:
-        for index, row in ecodivisions.iterrows():  # pylint: disable=redefined-outer-name, unused-variable
-            geom = row['geometry']
-            if station_coord.within(geom):
-                ecodiv_name = row['CDVSNNM']
-                break
-        logger.error('Ecodivision not found for station %s; lat %f long %f',
-                     station['displayLabel'], station['latitude'], station['longitude'])
-        ecodiv_name = "DEFAULT"
+        ecodiv_name = fetch_ecodivision_name(station['latitude'], station['longitude'], ecodivisions)
+        if ecodiv_name is None:
+            logger.error('Ecodivision not found for station %s; lat %f long %f',
+                         station['displayLabel'], station['latitude'], station['longitude'])
+            ecodiv_name = "DEFAULT"
     return WeatherStation(
         code=station['stationCode'],
         name=station['displayLabel'],
@@ -222,7 +240,7 @@ async def get_stations() -> List[WeatherStation]:
         header = await _get_auth_header(session)
         stations = []
         # Iterate through "raw" station data.
-        async for raw_station in _fetch_raw_stations(session, header, BuildQueryAllActiveStations()):
+        async for raw_station in _fetch_raw_stations(session, header, BuildQueryAllActiveGSNetStations()):
             # If the station is valid, add it to our list of stations.
             if _is_station_valid(raw_station):
                 logger.info('Processing raw_station %d',

@@ -31,12 +31,11 @@ def status_code(response, status: int):
     assert response.status_code == status
 
 
-@then("there are active 16 weather stations")
-def active_16_weather_stations(response):
-    """ We expect there to be 16 weather stations. Even though we were given 50 stations from the
-    API, some of those stations are inactive/invalid/disabled or don't have lat/long.
+@then("there are at least 60 active weather stations")
+def minimum_60_active_weather_stations(response):
+    """ We expect there to be at least 60 active weather stations.
     """
-    assert len(response.json()['weather_stations']) == 16
+    assert len(response.json()['weather_stations']) >= 60
 
 
 @then("there is a station in <index> has <code>, <name>, <lat> and <long>")

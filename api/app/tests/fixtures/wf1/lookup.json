@@ -16,6 +16,9 @@
          },
          "{'size': '1000', 'sort': 'displayLabel', 'page': 2}": {
             "None": "wfwx/v1/stations__size_1000_sort_displayLabel_page_2.json"
+         },
+         "{'size': '1000', 'sort': 'displayLabel', 'page': 0, 'stationStatus.id': 'ACTIVE'}": {
+            "None": "wfwx/v1/stations__size_1000_sort_displayLabel_page_0_stationStatus.id_ACTIVE.json"
          }
       }
    },
@@ -26,6 +29,9 @@
          },
          "{'size': '1000', 'sort': 'displayLabel', 'page': 0, 'query': 'stationCode==230'}": {
             "None": "wfwx/v1/stations/rsql__size_1000_sort_displayLabel_page_0_query_stationCode==230.json"
+         },
+         "{'size': '1000', 'sort': 'displayLabel', 'page': 0, 'stationStatus.id': 'ACTIVE', 'dataSource': 'AutoCaller GSNet'}": {
+            "None": "wfwx/v1/stations/rsql__size_1000_sort_displayLabel_page_0_stationStatus.id_ACTIVE_dataSource_AutoCaller_GSNet.json"
          }
       }
    },

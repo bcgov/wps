@@ -135,7 +135,7 @@ restore-partial-database-docker:
 	# Restore a partial database to server in docker.
 	# Set environment variable PGPASSWORD=mywpspassword if you want to skip typing password for authentication.
 	# Set environment variable WITH_WPSREAD if you want to grant rights for wpsread user.
-	./scripts/restore_db.sh
+	MODE=docker ./scripts/restore_db.sh
 
 notebook:
 	# Run jupyter notebooks.
