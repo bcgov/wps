@@ -103,8 +103,8 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
                 </Typography>
               )}
               <div>
-                // Only show tabs after the first station title
-                {index === 0 ? (
+                {// Only show tabs after the first station title
+                index === 0 ? (
                   <Paper square>
                     <Tabs
                       className={classes.tabs}
