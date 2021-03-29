@@ -31,7 +31,7 @@ CERTBOT_STAGING="${CERTBOT_STAGING:-true}"
 DRYRUN="${DRYRUN:-true}"
 
 
-OC_PROCESS="oc process -n ${PROJ_TARGET} -f ${TEMPLATE_PATH}/../certbot/certbot.dc.yaml \
+OC_PROCESS="oc process -n ${PROJ_TARGET} -f ${TEMPLATE_PATH}/../certbot/openshift/certbot.dc.yaml \
 -p EMAIL=BCWS.PredictiveServices@gov.bc.ca \
 -p NAMESPACE=${PROJ_TOOLS} \
 -p CERTBOT_SERVER=${CERTBOT_SERVER} \
