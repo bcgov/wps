@@ -32,6 +32,7 @@ rules:
       - list
       - delete
       - patch
+      - update
   - apiGroups:
       - "rbac.authorization.k8s.io"
     resources:
