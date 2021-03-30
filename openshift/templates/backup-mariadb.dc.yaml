@@ -118,6 +118,8 @@ objects:
     metadata:
       annotations:
       name: ${NAME}-config
+      labels:
+        app: "${NAME}"
     data:
       backup.conf: |
         # ============================================================
