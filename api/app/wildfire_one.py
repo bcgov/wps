@@ -68,7 +68,7 @@ class BuildQueryAllActiveGSNetStations(BuildQuery):
         """ Return query url and params with rsql query for all weather stations marked active and
         that are maintained by the provincial government (datasource is "AutoCaller GSNet"). """
         params = {'size': self.max_page_size, 'sort': 'displayLabel', 'page': page,
-                  'stationStatus.id': 'ACTIVE', 'dataSource': 'AutoCaller GSNet'}
+                  'query': 'stationStatus.id=="ACTIVE";dataSource=="AutoCaller GSNet"'}
         url = '{base_url}/v1/stations/rsql'.format(base_url=self.base_url)
         return [url, params]
 
