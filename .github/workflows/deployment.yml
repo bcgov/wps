@@ -6,9 +6,9 @@ on:
       - main
 
 jobs:
-  prepare-dev-database:
-    name: Prepare Dev Database
-    runs-on: ubuntu-20.04
+  # prepare-dev-database:
+  #   name: Prepare Dev Database
+  #   runs-on: ubuntu-20.04
   #   steps:
   #     - name: Set Variables
   #       shell: bash
@@ -24,10 +24,10 @@ jobs:
   #         oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
   #         EPHEMERAL_STORAGE=True bash openshift/scripts/oc_provision_db.sh ${SUFFIX} apply
 
-  prepare-dev-database-backups:
-    name: Prepare Dev Database Backups
-    needs: [prepare-dev-database]
-    runs-on: ubuntu-20.04
+  # prepare-dev-database-backups:
+  #   name: Prepare Dev Database Backups
+  #   needs: [prepare-dev-database]
+  #   runs-on: ubuntu-20.04
   #   steps:
   #     - name: Set Variables
   #       shell: bash
@@ -61,9 +61,9 @@ jobs:
   #         oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
   #         EPHEMERAL_STORAGE=True bash openshift/scripts/oc_provision_backup_mariadb_cronjob.sh ${SUFFIX} apply
 
-  build-image:
-    name: Build Image
-    runs-on: ubuntu-20.04
+  # build-image:
+  #   name: Build Image
+  #   runs-on: ubuntu-20.04
   #   steps:
   #     - name: Set Variables
   #       shell: bash
@@ -81,16 +81,16 @@ jobs:
 
   deploy-dev:
     name: Deploy to Dev
-    needs: [build-image, prepare-dev-database]
+    # needs: [build-image, prepare-dev-database]
     runs-on: ubuntu-20.04
     steps:
-      # - name: Set Variables
-      #   shell: bash
-      #   run: |
-      #     echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
+      - name: Set Variables
+        shell: bash
+        run: |
+          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
 
-      # - name: Checkout
-      #   uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
 
       # - name: Deploy to Dev
       #   shell: bash
@@ -134,10 +134,10 @@ jobs:
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
           CERTBOT_STAGING=true DRYRUN=true CERTBOT_SERVER="https://acme-staging-v02.api.letsencrypt.org/directory" bash openshift/scripts/oc_provision_certbot_cronjob.sh ${SUFFIX} apply
 
-  scan-dev:
-    name: ZAP Baseline Scan Dev
-    needs: [deploy-dev]
-    runs-on: ubuntu-20.04
+  # scan-dev:
+  #   name: ZAP Baseline Scan Dev
+  #   needs: [deploy-dev]
+  #   runs-on: ubuntu-20.04
 
   #   steps:
   #     # f.y.i.: ZAP Scan must be able to log an issue or it will fail.
@@ -149,11 +149,11 @@ jobs:
   #         # Do not return failure on warnings - TODO: this has to be resolved!
   #         cmd_options: "-I"
 
-  build-ubuntu-image:
-    # C-Haines relies on a gdal version not currently available in the debian image we use,
-    # so we need to create an ubuntu based image.
-    name: Build ubuntu based image
-    runs-on: ubuntu-20.04
+  # build-ubuntu-image:
+  #   # C-Haines relies on a gdal version not currently available in the debian image we use,
+  #   # so we need to create an ubuntu based image.
+  #   name: Build ubuntu based image
+  #   runs-on: ubuntu-20.04
 
   #   steps:
   #     - name: Set Variables
@@ -169,9 +169,9 @@ jobs:
   #         oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
   #         GIT_BRANCH=${GITHUB_HEAD_REF} PROJ_TOOLS="e1e498-tools" PROJ_DEV="e1e498-dev" NAME_APP=wps-ubuntu DOCKER_IMAGE=image-registry.openshift-image-registry.svc:5000/e1e498-tools/ubuntu-base:20.04 DOCKER_FILE=Dockerfile.ubuntu bash openshift/scripts/oc_build.sh ${SUFFIX} apply
 
-  deploy-c-haines:
-    name: Deploy c-haines cronjob
-    runs-on: ubuntu-20.04
+  # deploy-c-haines:
+  #   name: Deploy c-haines cronjob
+  #   runs-on: ubuntu-20.04
   #   # We need
   #   # - the image to be built before we can deploy.
   #   # - the database to be there (so we can write to it).
@@ -192,9 +192,9 @@ jobs:
   #         oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
   #         PROJ_TARGET="e1e498-dev" PROJ_TOOLS="e1e498-tools" PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_c_haines_cronjob.sh ${SUFFIX} apply
 
-  prepare-test-database:
-    name: Prepare Test Database
-    runs-on: ubuntu-20.04
+  # prepare-test-database:
+  #   name: Prepare Test Database
+  #   runs-on: ubuntu-20.04
   #   steps:
   #     - name: Set Variables
   #       shell: bash
@@ -212,7 +212,7 @@ jobs:
 
   deploy-test:
     name: Deploy to Test
-    needs: [build-image, prepare-test-database]
+    # needs: [build-image, prepare-test-database]
     runs-on: ubuntu-20.04
     steps:
       - name: Set Variables
