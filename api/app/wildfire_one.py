@@ -147,6 +147,10 @@ def _is_station_valid(station) -> bool:
 
 def fetch_ecodivision_name(latitude: str, longitude: str, ecodivisions: geopandas.GeoDataFrame):
     """ Returns the ecodivision name for a given lat/long coordinate """
+    # if station's latitude >= 60 (approx.), it's in the Yukon, so it won't be captured
+    # in the shapefile, but it's considered to be part of the SUB-ARCTIC HIGHLANDS ecodivision.
+    if latitude >= 60:
+        return 'SUB-ARCTIC HIGHLANDS'
     station_coord = Point(float(longitude), float(latitude))
     for _, ecodivision_row in ecodivisions.iterrows():
         geom = ecodivision_row['geometry']
