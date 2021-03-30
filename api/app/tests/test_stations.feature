@@ -8,6 +8,6 @@ Feature: /stations/
         And the station has <ecodivision_name> with <core_season>
 
         Examples:
-            | status | index | code | name         | lat       | long        | ecodivision_name           | core_season                                                       |
-            | 200    | 0     | 322  | AFTON        | 50.673333 | -120.481666 | SEMI-ARID STEPPE HIGHLANDS | {"start_month": 5, "start_day": 1, "end_month": 9, "end_day": 15} |
-            | 200    | 1     | 836  | AUGUST LAKE  | 49.43348  | -120.45712  | SEMI-ARID STEPPE HIGHLANDS | {"start_month": 5, "start_day": 1, "end_month": 9, "end_day": 15} |
+            | status | index | code | name         | lat       | long        | ecodivision_name                 | core_season                                                        |
+            | 200    | 0     | 1142 | 14G (CRD)    | 49.55     | -124.3625   | COOL HYPERMARITIME AND HIGHLANDS | {"start_month": 5, "start_day": 15, "end_month": 8, "end_day": 31} |
+            | 200    | 1     | 543  | 31N (CRD)    | 45.5297   | -123.6375   | COOL HYPERMARITIME AND HIGHLANDS | {"start_month": 5, "start_day": 15, "end_month": 8, "end_day": 31} |
