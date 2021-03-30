@@ -204,3 +204,6 @@ docker-run-marvin:
 
 database-upgrade:
 	PYTHONPATH=. $(POETRY_RUN) alembic upgrade head
+
+docker-database-upgrade:
+	docker-compose exec -e PYTHONPATH=. api alembic upgrade head
