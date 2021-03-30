@@ -55,7 +55,7 @@ class BuildQueryAllActiveStations(BuildQuery):
     def query(self, page) -> [str, dict]:
         """ Return query url and params with rsql query for all weather stations marked active. """
         params = {'size': self.max_page_size, 'sort': 'displayLabel',
-                  'page': page, 'stationStatus.id': 'ACTIVE'}
+                  'page': page, 'query': 'stationStatus.id=="ACTIVE"'}
         url = '{base_url}/v1/stations'.format(base_url=self.base_url)
         return [url, params]
 
@@ -101,8 +101,7 @@ async def _fetch_access_token(session: ClientSession) -> dict:
 async def _get_auth_header(session: ClientSession) -> dict:
     # Fetch access token
     token = await _fetch_access_token(session)
-    logger.info(token)
-    logger.info(token["access_token"])
+    logger.info('%s', token)
     # Construct the header.
     header = {'Authorization': 'Bearer {}'.format(token['access_token'])}
     return header
