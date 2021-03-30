@@ -4,7 +4,7 @@ kind: Template
 labels:
   app: ${APP_LABEL}
 metadata:
-  name: certbot
+  name: certbot-${APP_LABEL}
 objects:
   - apiVersion: v1
     kind: ServiceAccount
