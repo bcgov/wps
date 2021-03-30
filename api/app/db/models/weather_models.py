@@ -25,7 +25,7 @@ class ProcessedModelRunUrl(Base):
     id = Column(Integer, Sequence('processed_model_run_url_id_seq'),
                 primary_key=True, nullable=False, index=True)
     # Source URL of file processed.
-    url = Column(String, nullable=False, unique=True)
+    url = Column(String, nullable=False, unique=True, index=True)
     # Date this record was created.
     create_date = Column(TZTimeStamp, nullable=False)
     # Date this record was updated.
@@ -45,7 +45,7 @@ class PredictionModel(Base):
     # E.g. Global Deterministic Prediction System
     name = Column(String, nullable=False)
     # E.g. GDPS
-    abbreviation = Column(String, nullable=False)
+    abbreviation = Column(String, nullable=False, index=True)
     # E.g. latlon.15x15
     # NOTE: we may want to consider not bothering with projection, since we would store it as geopgraphical
     # regardles. A better approach may be to just store the resolution: "15x15"
@@ -73,10 +73,10 @@ class PredictionModelRunTimestamp(Base):
                 primary_key=True, nullable=False, index=True)
     # Is it GPDS or RDPS?
     prediction_model_id = Column(Integer, ForeignKey(
-        'prediction_models.id'), nullable=False)
+        'prediction_models.id'), nullable=False, index=True)
     prediction_model = relationship("PredictionModel")
     # The date and time of the model run.
-    prediction_run_timestamp = Column(TZTimeStamp, nullable=False)
+    prediction_run_timestamp = Column(TZTimeStamp, nullable=False, index=True)
     # Indicate if this particular model run is completely downloaded.
     complete = Column(Boolean, nullable=False)
     # Indicate if this model run has been interpolated for weather stations.
@@ -101,7 +101,7 @@ class PredictionModelGridSubset(Base):
                 primary_key=True, nullable=False, index=True)
     # Which model does this grid belong to? e.g. GDPS latlon.15x.15?
     prediction_model_id = Column(Integer, ForeignKey(
-        'prediction_models.id'), nullable=False)
+        'prediction_models.id'), nullable=False, index=True)
     prediction_model = relationship("PredictionModel")
     # Order of vertices is important!
     # 1st vertex top left, 2nd vertex top right, 3rd vertex bottom right, 4th vertex bottom left.
@@ -115,7 +115,8 @@ class PredictionModelGridSubset(Base):
 
 
 # Explict creation of index due to issue with alembic + geoalchemy.
-Index('idx_prediction_model_grid_subsets_geom', PredictionModelGridSubset.geom, postgresql_using='gist')
+Index('idx_prediction_model_grid_subsets_geom',
+      PredictionModelGridSubset.geom, postgresql_using='gist')
 
 
 class ModelRunGridSubsetPrediction(Base):
@@ -132,15 +133,15 @@ class ModelRunGridSubsetPrediction(Base):
                 primary_key=True, nullable=False, index=True)
     # Which model run does this forecacst apply to? E.g. The GDPS 15x.15 run from 2020 07 07 12h00.
     prediction_model_run_timestamp_id = Column(Integer, ForeignKey(
-        'prediction_model_run_timestamps.id'), nullable=False)
+        'prediction_model_run_timestamps.id'), nullable=False, index=True)
     prediction_model_run_timestamp = relationship(
         "PredictionModelRunTimestamp", foreign_keys=[prediction_model_run_timestamp_id])
     # Which grid does this prediction apply to?
     prediction_model_grid_subset_id = Column(Integer, ForeignKey(
-        'prediction_model_grid_subsets.id'), nullable=False)
+        'prediction_model_grid_subsets.id'), nullable=False, index=True)
     prediction_model_grid_subset = relationship("PredictionModelGridSubset")
     # The date and time to which the prediction applies.
-    prediction_timestamp = Column(TZTimeStamp, nullable=False)
+    prediction_timestamp = Column(TZTimeStamp, nullable=False, index=True)
     # Temperature 2m above model layer.
     tmp_tgl_2 = Column(ARRAY(Float), nullable=True)
     # Relative humidity 2m above model layer.
@@ -179,16 +180,16 @@ class WeatherStationModelPrediction(Base):
     id = Column(Integer, Sequence('weather_station_model_predictions_id_seq'),
                 primary_key=True, nullable=False, index=True)
     # The 3-digit code for the weather station to which the prediction applies
-    station_code = Column(Integer, nullable=False)
+    station_code = Column(Integer, nullable=False, index=True)
     # Which PredictionModelRunTimestamp is this station's prediction based on?
     prediction_model_run_timestamp_id = Column(Integer, ForeignKey(
-        'prediction_model_run_timestamps.id'), nullable=False)
+        'prediction_model_run_timestamps.id'), nullable=False, index=True)
     prediction_model_run_timestamp = relationship(
         "PredictionModelRunTimestamp")
     # The date and time to which the prediction applies. Will most often be copied directly from
     # prediction_timestamp for the ModelRunGridSubsetPrediction, but is included again for cases
     # when values are interpolated (e.g., noon interpolations on GDPS model runs)
-    prediction_timestamp = Column(TZTimeStamp, nullable=False)
+    prediction_timestamp = Column(TZTimeStamp, nullable=False, index=True)
     # Temperature 2m above model layer - an interpolated value based on 4 values from
     # model_run_grid_subset_prediction
     tmp_tgl_2 = Column(Float, nullable=True)
