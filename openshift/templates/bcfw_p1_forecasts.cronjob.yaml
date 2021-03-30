@@ -7,7 +7,7 @@ metadata:
     tags: "cronjob,bcfw-p1"
 labels:
   app.kubernetes.io/part-of: "${NAME}"
-  app: ${NAME}
+  app: ${NAME}-${SUFFIX}
 parameters:
   - name: NAME
     description: Module name
@@ -41,7 +41,6 @@ objects:
     metadata:
       name: ${JOB_NAME}
       labels:
-        app: ${NAME}-${SUFFIX}
         cronjob: ${JOB_NAME}
     spec:
       schedule: ${SCHEDULE}
