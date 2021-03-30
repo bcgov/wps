@@ -50,7 +50,7 @@ objects:
           template:
             metadata:
               labels:
-                app: certbot
+                app: ${APP_LABEL}
             spec:
               containers:
                 - name: certbot
