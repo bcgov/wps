@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useSelector } from 'react-redux'
-import { Paper, Tab, Tabs, Typography } from '@material-ui/core'
+import { Button, ButtonGroup, Typography } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 
 import ObservationTable from 'features/fireWeather/components/tables/ObservationTable'
@@ -66,7 +66,6 @@ interface WxDataDisplaysProps {
 
 export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) {
   const [showTableView, toggleTableView] = useState(true)
-  const [value, setTabNumber] = React.useState(0)
 
   const classes = useStyles()
 
@@ -105,19 +104,10 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
               <div>
                 {// Only show tabs after the first station title
                 index === 0 ? (
-                  <Paper square>
-                    <Tabs
-                      className={classes.tabs}
-                      value={value}
-                      onChange={(_changeEvent, tabNumber) => setTabNumber(tabNumber)}
-                      variant="fullWidth"
-                      indicatorColor="primary"
-                      textColor="primary"
-                    >
-                      <Tab label="Tables" onClick={() => toggleTableView(true)} />
-                      <Tab label="Graphs" onClick={() => toggleTableView(false)} />
-                    </Tabs>
-                  </Paper>
+                  <ButtonGroup color="primary" aria-label="outlined primary button group">
+                    <Button onClick={() => toggleTableView(true)}>Tables</Button>
+                    <Button onClick={() => toggleTableView(false)}>Graphs</Button>
+                  </ButtonGroup>
                 ) : (
                   ''
                 )}
