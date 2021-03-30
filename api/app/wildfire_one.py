@@ -60,19 +60,6 @@ class BuildQueryAllActiveStations(BuildQuery):
         return [url, params]
 
 
-class BuildQueryAllActiveGSNetStations(BuildQuery):
-    """ Class for building a url and RSQL params to request all active stations whose
-    datasource is AutoCaller GSNet (provincially maintained wx stations). """
-
-    def query(self, page) -> [str, dict]:
-        """ Return query url and params with rsql query for all weather stations marked active and
-        that are maintained by the provincial government (datasource is "AutoCaller GSNet"). """
-        params = {'size': self.max_page_size, 'sort': 'displayLabel', 'page': page,
-                  'query': 'stationStatus.id=="ACTIVE";dataSource=="AutoCaller GSNet"'}
-        url = '{base_url}/v1/stations/rsql'.format(base_url=self.base_url)
-        return [url, params]
-
-
 class BuildQueryByStationCode(BuildQuery):
     """ Class for building a url and params to request a list of stations by code """
 
@@ -240,7 +227,7 @@ async def get_stations() -> List[WeatherStation]:
         header = await _get_auth_header(session)
         stations = []
         # Iterate through "raw" station data.
-        async for raw_station in _fetch_raw_stations(session, header, BuildQueryAllActiveGSNetStations()):
+        async for raw_station in _fetch_raw_stations(session, header, BuildQueryAllActiveStations()):
             # If the station is valid, add it to our list of stations.
             if _is_station_valid(raw_station):
                 logger.info('Processing raw_station %d',
