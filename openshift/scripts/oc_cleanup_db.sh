@@ -36,7 +36,7 @@ PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 APPLICATION_NAME="patroni-${NAME_APP}-${SUFFIX}"
 
 OC_CLEAN_DEPLOY="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} \
-    all,cm,secret,endpoints,serviceaccounts,rolebinding.rbac.authorization.k8s.io,roles.rbac.authorization.k8s.io,pvc,networksecuritypolicy \
+    all,cm,secret,endpoints,serviceaccounts,rolebinding.rbac.authorization.k8s.io,roles.rbac.authorization.k8s.io,pvc \
     -o name -l app=${APPLICATION_NAME} -l cluster-name=${APPLICATION_NAME}"
 
 OC_CLEAN_CONFIGMAPS="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} \
