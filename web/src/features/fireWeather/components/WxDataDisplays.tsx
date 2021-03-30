@@ -147,23 +147,21 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
                   </ErrorBoundary>
                 </React.Fragment>
               ) : (
-                <React.Fragment>
-                  <ErrorBoundary>
-                    <WxDataGraph
-                      station={station}
-                      timeOfInterest={props.timeOfInterest}
-                      observations={observations}
-                      noonForecasts={noonForecasts}
-                      noonForecastSummaries={noonForecastSummaries}
-                      hrdpsModels={hrdpsModels}
-                      hrdpsSummaries={hrdpsSummaries}
-                      rdpsModels={rdpsModels}
-                      rdpsSummaries={rdpsSummaries}
-                      gdpsModels={gdpsModels}
-                      gdpsSummaries={gdpsSummaries}
-                    />
-                  </ErrorBoundary>
-                </React.Fragment>
+                <ErrorBoundary>
+                  <WxDataGraph
+                    station={station}
+                    timeOfInterest={props.timeOfInterest}
+                    observations={observations}
+                    noonForecasts={noonForecasts}
+                    noonForecastSummaries={noonForecastSummaries}
+                    hrdpsModels={hrdpsModels}
+                    hrdpsSummaries={hrdpsSummaries}
+                    rdpsModels={rdpsModels}
+                    rdpsSummaries={rdpsSummaries}
+                    gdpsModels={gdpsModels}
+                    gdpsSummaries={gdpsSummaries}
+                  />
+                </ErrorBoundary>
               )}
             </div>
           )
