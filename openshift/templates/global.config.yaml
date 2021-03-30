@@ -41,7 +41,7 @@ parameters:
   - name: STATUS_CHECKER_SECRET
     description: Token for status-checker Openshift service account. Used for /health check
   - name: OPENSHIFT_BASE_URI
-    description: Base URI for connecting to Pathfinder console in Openshift. Used for /health check
+    description: Base URI for connecting to console in Openshift. Used for /health check
   - name: OPENSHIFT_NAMESPACE_API
     description: Openshift namespace api
     value: "apis/apps/v1/namespaces/"
