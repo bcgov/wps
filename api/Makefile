@@ -201,3 +201,9 @@ docker-run-marvin:
 	# Run a python script to download hourly actuals from BC Wild Fire on docker.
 	# Needs to run "make docker-run" first
 	docker-compose exec api python -m app.fireweather_bot.hourly_actuals
+
+database-upgrade:
+	PYTHONPATH=. $(POETRY_RUN) alembic upgrade head
+
+docker-database-upgrade:
+	docker-compose exec -e PYTHONPATH=. api alembic upgrade head
