@@ -23,7 +23,7 @@ objects:
   - apiVersion: v1
     kind: PersistentVolumeClaim
     metadata:
-      name: certbot
+      name: certbot-${APP_LABEL}
     spec:
       storageClassName: netapp-file-standard
       accessModes:
@@ -34,7 +34,7 @@ objects:
   - apiVersion: batch/v1beta1
     kind: CronJob
     metadata:
-      name: certbot
+      name: certbot-${APP_LABEL}
     spec:
       concurrencyPolicy: Replace
       failedJobsHistoryLimit: 3
@@ -82,7 +82,7 @@ objects:
               volumes:
                 - name: certbot-config
                   persistentVolumeClaim:
-                    claimName: certbot
+                    claimName: certbot-${APP_LABEL}
       schedule: "${CERTBOT_CRON_SCHEDULE}"
       suspend: "${{CERTBOT_SUSPEND_CRON}}"
 
@@ -94,18 +94,19 @@ parameters:
     # Let's Encrypt Stage environment will help with non-prod cert renewals, so you don't hit limits
   - name: "CERTBOT_STAGING"
     required: false
-    value: "false"
+    value: "true"
     # In environments using wildcard *.apps.silver.devops cert, you might want to create the cronjob for consistency, but suspend it
   - name: "CERTBOT_SUSPEND_CRON"
     required: false
     value: "false"
   - name: "CERTBOT_SERVER"
     required: true
-    value: "https://acme-v02.api.letsencrypt.org/directory"
+    value: https://acme-staging-v02.api.letsencrypt.org/directory
+    # value: "https://acme-v02.api.letsencrypt.org/directory"
     # staging Server: https://acme-staging-v02.api.letsencrypt.org/directory
   - name: "DRYRUN"
     required: false
-    value: "false"
+    value: "true"
   - name: "DEBUG"
     required: false
     value: "false"

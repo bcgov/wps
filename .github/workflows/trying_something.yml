@@ -1,0 +1,24 @@
+name: Set URL
+
+on:
+  pull_request:
+    types: [opened]
+
+jobs:
+  comment-url:
+    name: Put in the URL
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Set Variables
+        shell: bash
+        run: |
+          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Add commit comment
+        run: |
+          jq -nc '{"body": "URL: https://${{ SUFFIX }}.apps.silver.devops.gov.bc.ca/"}' | \
+          curl -sL  -X POST -d @- \
+            -H "Content-Type: application/json" \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/comments"
