@@ -123,6 +123,8 @@ parameters:
     description: "The name of the configuration file."
     required: true
     value: "backup.conf"
+  - name: CPU_LIMIT
+    value: "1"
 objects:
   - kind: "CronJob"
     apiVersion: "batch/v1beta1"
@@ -149,7 +151,7 @@ objects:
                 - name: "${JOB_NAME}-cronjob"
                   resources:
                     limits:
-                      cpu: "1"
+                      cpu: ${CPU_LIMIT}
                       memory: 4Gi
                     requests:
                       cpu: "0.5"
