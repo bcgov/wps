@@ -211,6 +211,7 @@ async def get_stations_by_codes(station_codes: List[int]) -> List[WeatherStation
     async with ClientSession() as session:
         # Get the authentication header
         header = await _get_auth_header(session)
+        header['Content-Type'] = 'application/json'
         stations = []
         # Iterate through "raw" station data.
         iterator = _fetch_raw_stations(
