@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { useSelector } from 'react-redux'
-import { Button, ButtonGroup, Typography } from '@material-ui/core'
+import { Typography } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 
 import ObservationTable from 'features/fireWeather/components/tables/ObservationTable'
@@ -39,15 +39,13 @@ const useStyles = makeStyles({
     fontSize: '1.2rem',
     paddingBottom: 8
   },
-  tabs: {
-    maxHeight: 10
-  },
   noDataAvailable: {
     paddingBottom: 8
   }
 })
 
 interface WxDataDisplaysProps {
+  showTableView: string
   timeOfInterest: string
   stationCodes: number[]
   wxDataLoading: boolean
@@ -65,8 +63,6 @@ interface WxDataDisplaysProps {
 }
 
 export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) {
-  const [showTableView, toggleTableView] = useState(true)
-
   const classes = useStyles()
 
   return (
@@ -74,7 +70,7 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
       {props.wxDataLoading && 'Loading...'}
 
       {!props.wxDataLoading &&
-        props.stationCodes.map((code, index) => {
+        props.stationCodes.map(code => {
           const station = props.stationsByCode[code]
           if (!station) return null
 
@@ -101,18 +97,7 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
                   Data is not available.
                 </Typography>
               )}
-              <div>
-                {// Only show tabs after the first station title
-                index === 0 ? (
-                  <ButtonGroup color="primary" aria-label="outlined primary button group">
-                    <Button onClick={() => toggleTableView(true)}>Tables</Button>
-                    <Button onClick={() => toggleTableView(false)}>Graphs</Button>
-                  </ButtonGroup>
-                ) : (
-                  ''
-                )}
-              </div>
-              {showTableView ? (
+              {props.showTableView === 'true' ? (
                 <React.Fragment>
                   <ErrorBoundary>
                     <ObservationTable
@@ -161,6 +146,7 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
 })
 
 interface WxDataDisplaysWrapperProps {
+  showTableView: string
   timeOfInterest: string
   stationCodes: number[]
 }

@@ -64,6 +64,11 @@ const MoreCastPage = () => {
   const openSidePanel = () => setShowSidePanel(true)
   const closeSidePanel = () => setShowSidePanel(false)
 
+  const [showTableView, toggleTableView] = useState('true')
+  const handleToggleView = (_: React.MouseEvent<HTMLElement>, showTableView: string) => {
+    toggleTableView(showTableView.endsWith('true') ? 'true' : 'false')
+  }
+
   useEffect(() => {
     dispatch(fetchWxStations())
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
@@ -96,9 +101,18 @@ const MoreCastPage = () => {
         <div className={classes.map}>
           <WeatherMap redrawFlag={showSidePanel} />
         </div>
-        <SidePanel show={showSidePanel} closeSidePanel={closeSidePanel}>
+        <SidePanel
+          show={showSidePanel}
+          closeSidePanel={closeSidePanel}
+          handleToggleView={handleToggleView}
+          showTableView={showTableView}
+        >
           <NetworkErrorMessages />
-          <WxDataDisplays stationCodes={codesFromQuery} timeOfInterest={toiFromQuery} />
+          <WxDataDisplays
+            stationCodes={codesFromQuery}
+            timeOfInterest={toiFromQuery}
+            showTableView={showTableView}
+          />
         </SidePanel>
       </div>
     </main>
