@@ -79,7 +79,7 @@ parameters:
     displayName: "Number of Weekly Backups to Retain"
     description: "The number of weekly backup files to be retained.  Used for the `rolling` backup strategy."
     required: false
-    value: "2"
+    value: "1"
   - name: "MONTHLY_BACKUPS"
     displayName: "Number of Monthly Backups to Retain"
     description: "The number of monthly backup files to be retained.  Used for the `rolling` backup strategy."
