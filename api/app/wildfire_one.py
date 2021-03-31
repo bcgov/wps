@@ -118,7 +118,7 @@ async def _fetch_raw_stations(session: ClientSession, headers: dict, query_build
         url, params = query_builder.query(page_count)
         logger.debug('loading station page %d...', page_count)
         async with session.get(url, headers=headers, params=params) as response:
-            station_json = await response.json()
+            station_json = await response.json(content_type='application/xml')
             logger.info('%s', station_json)
             logger.debug('done loading station page %d.', page_count)
         # Update the total page count.
@@ -211,7 +211,6 @@ async def get_stations_by_codes(station_codes: List[int]) -> List[WeatherStation
     async with ClientSession() as session:
         # Get the authentication header
         header = await _get_auth_header(session)
-        header['Content-Type'] = 'application/json'
         stations = []
         # Iterate through "raw" station data.
         iterator = _fetch_raw_stations(
