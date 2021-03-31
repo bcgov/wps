@@ -119,6 +119,7 @@ async def _fetch_raw_stations(session: ClientSession, headers: dict, query_build
         logger.debug('loading station page %d...', page_count)
         async with session.get(url, headers=headers, params=params) as response:
             station_json = await response.json()
+            logger.info('%s', station_json)
             logger.debug('done loading station page %d.', page_count)
         # Update the total page count.
         total_pages = station_json['page']['totalPages']
