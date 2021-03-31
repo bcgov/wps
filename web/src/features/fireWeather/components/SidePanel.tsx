@@ -53,6 +53,7 @@ const SidePanel = (props: Props) => {
             aria-label="outlined primary button group"
             value={props.showTableView}
             onChange={props.handleToggleView}
+            size="small"
           >
             <ToggleButton value="true">Tables</ToggleButton>
             <ToggleButton value="false">Graphs</ToggleButton>
