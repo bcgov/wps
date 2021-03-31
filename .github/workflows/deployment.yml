@@ -92,11 +92,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      # - name: Deploy to Dev
-      #   shell: bash
-      #   run: |
-      #     oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-      #     SECOND_LEVEL_DOMAIN="apps.silver.devops.gov.bc.ca" VANITY_DOMAIN="${SUFFIX}-dev-psu.nrs.gov.bc.ca" bash openshift/scripts/oc_deploy.sh ${SUFFIX} apply
+      - name: Deploy to Dev
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+          SECOND_LEVEL_DOMAIN="apps.silver.devops.gov.bc.ca" VANITY_DOMAIN="${SUFFIX}-dev-psu.nrs.gov.bc.ca" bash openshift/scripts/oc_deploy.sh ${SUFFIX} apply
 
       - name: Hourly actuals cronjob (Marvin)
         shell: bash
