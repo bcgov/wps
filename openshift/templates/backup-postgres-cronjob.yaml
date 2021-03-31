@@ -123,6 +123,8 @@ parameters:
     description: "The name of the configuration file."
     required: true
     value: "backup.conf"
+  - name: CPU_REQUEST
+    value: "0.5"
   - name: CPU_LIMIT
     value: "1"
 objects:
@@ -154,7 +156,7 @@ objects:
                       cpu: ${CPU_LIMIT}
                       memory: 4Gi
                     requests:
-                      cpu: "0.5"
+                      cpu: ${CPU_REQUEST}
                       memory: 2Gi
                   image: "image-registry.openshift-image-registry.svc:5000/${IMAGE_NAMESPACE}/${SOURCE_IMAGE_NAME}:${TAG_NAME}"
                   # image: backup
