@@ -33,7 +33,7 @@ const useStyles = makeStyles({
 interface Props {
   show: boolean
   closeSidePanel: () => void
-  handleToggleView: (_: React.MouseEvent<HTMLElement>, showTableView: string) => void
+  handleToggleView: (_: React.MouseEvent<HTMLElement>, newDataView: string) => void
   showTableView: string
   children: React.ReactNode
 }

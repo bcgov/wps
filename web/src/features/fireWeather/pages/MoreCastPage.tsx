@@ -65,8 +65,8 @@ const MoreCastPage = () => {
   const closeSidePanel = () => setShowSidePanel(false)
 
   const [showTableView, toggleTableView] = useState('true')
-  const handleToggleView = (_: React.MouseEvent<HTMLElement>, showTableView: string) => {
-    toggleTableView(showTableView.endsWith('true') ? 'true' : 'false')
+  const handleToggleView = (_: React.MouseEvent<HTMLElement>, newTableView: string) => {
+    toggleTableView(newTableView.endsWith('true') ? 'true' : 'false')
   }
 
   useEffect(() => {
