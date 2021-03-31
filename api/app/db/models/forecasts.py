@@ -40,8 +40,8 @@ class NoonForecast(Base):
         {'comment': 'The noon_forecast for a weather station and weather date.'}
     )
     id = Column(Integer, primary_key=True)
-    weather_date = Column(TZTimeStamp, nullable=False, index=True)
-    station_code = Column(Integer, nullable=False, index=True)
+    weather_date = Column(TZTimeStamp, nullable=False)
+    station_code = Column(Integer, nullable=False)
     temp_valid = Column(Boolean, default=False, nullable=False)
     temperature = Column(Float, nullable=False)
     rh_valid = Column(Boolean, default=False, nullable=False)
@@ -62,7 +62,7 @@ class NoonForecast(Base):
     fwi = Column(Float, nullable=False, default=math.nan)
     danger_rating = Column(Integer, nullable=False)
     created_at = Column(TZTimeStamp, nullable=False,
-                        default=time_utils.get_utc_now(), index=True)
+                        default=time_utils.get_utc_now())
 
     def __str__(self):
         return (
