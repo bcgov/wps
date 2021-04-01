@@ -32,8 +32,6 @@ OC_CLEAN_DEPLOY="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} all,cm,pvc -o name -l app
 # OC_DELETE_EC_PODS="oc -n ${PROJ_TARGET} get pods -o name | { grep -E 'env-canada-(gdps|rdps|hrdps)-${NAME_APP}-${SUFFIX}' || test \$? = 1; } | { xargs -r oc ${DELETE_OR_GET} || test \$? = 1; } | cat"
 OC_CLEAN_MARIDB_BACKUP="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} all,cm -o name -l app=backup-mariadb-${NAME_OBJ}"
 OC_CLEAN_BACKUP_POSTGRES="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} all,cm -o name -l app=backup-postgres-${NAME_OBJ}"
-# We have to clean everything certbot related, since the certbot repo doesn't take into account pr based pipelines.
-OC_CLEAN_CERTBOT="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} route,svc -l app=certbot,well-known=acme-challenge"
 
 # Execute commands
 #
@@ -42,10 +40,8 @@ echo -e "\n${PROJ_TARGET}:"
 eval "${OC_CLEAN_DEPLOY}"
 eval "${OC_CLEAN_MARIDB_BACKUP}"
 eval "${OC_CLEAN_BACKUP_POSTGRES}"
-eval "${OC_CLEAN_CERTBOT}"
 
 # Provide oc command instruction
 #
 display_helper "${OC_CLEAN_DEPLOY}" \
-	"${OC_CLEAN_MARIDB_BACKUP}" "${OC_CLEAN_BACKUP_POSTGRES}" \
-	"${OC_CLEAN_CERTBOT}"
+	"${OC_CLEAN_MARIDB_BACKUP}" "${OC_CLEAN_BACKUP_POSTGRES}"
