@@ -29,19 +29,19 @@ else
 	DELETE_OR_GET="get"
 fi
 OC_CLEAN_DEPLOY="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} all,cm,pvc -o name -l app=${NAME_OBJ}"
-# OC_DELETE_EC_PODS="oc -n ${PROJ_TARGET} get pods -o name | { grep -E 'env-canada-(gdps|rdps|hrdps)-${NAME_APP}-${SUFFIX}' || test \$? = 1; } | { xargs -r oc ${DELETE_OR_GET} || test \$? = 1; } | cat"
+OC_DELETE_EC_PODS="oc -n ${PROJ_TARGET} get pods -o name | { grep -E 'env-canada-(gdps|rdps|hrdps)-${NAME_APP}-${SUFFIX}' || test \$? = 1; } | { xargs -r oc ${DELETE_OR_GET} || test \$? = 1; } | cat"
 OC_CLEAN_MARIDB_BACKUP="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} all,cm -o name -l app=backup-mariadb-${NAME_OBJ}"
 OC_CLEAN_BACKUP_POSTGRES="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} all,cm -o name -l app=backup-postgres-${NAME_OBJ}"
 
 # Execute commands
 #
 echo -e "\n${PROJ_TARGET}:"
-# eval "${OC_DELETE_EC_PODS}"
 eval "${OC_CLEAN_DEPLOY}"
+eval "${OC_DELETE_EC_PODS}"
 eval "${OC_CLEAN_MARIDB_BACKUP}"
 eval "${OC_CLEAN_BACKUP_POSTGRES}"
 
 # Provide oc command instruction
 #
-display_helper "${OC_CLEAN_DEPLOY}" \
+display_helper "${OC_CLEAN_DEPLOY}" "${OC_DELETE_EC_PODS}" \
 	"${OC_CLEAN_MARIDB_BACKUP}" "${OC_CLEAN_BACKUP_POSTGRES}"
