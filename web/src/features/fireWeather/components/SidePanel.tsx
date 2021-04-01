@@ -1,5 +1,6 @@
 import React from 'react'
 import { makeStyles } from '@material-ui/core/styles'
+import { ToggleButton, ToggleButtonGroup } from '@material-ui/lab'
 
 const sidePanelWidth = 850
 
@@ -16,10 +17,13 @@ const useStyles = makeStyles({
     padding: '22px 24px 12px 12px',
     position: 'relative'
   },
+  actions: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'flex-start'
+  },
   closeBtn: {
-    position: 'absolute',
-    top: 0,
-    left: 10,
+    marginRight: 10,
     fontSize: 28,
     cursor: 'pointer',
     fontWeight: 'bold'
@@ -29,6 +33,8 @@ const useStyles = makeStyles({
 interface Props {
   show: boolean
   closeSidePanel: () => void
+  handleToggleView: (_: React.MouseEvent<HTMLElement>, newDataView: string) => void
+  showTableView: string
   children: React.ReactNode
 }
 
@@ -38,8 +44,20 @@ const SidePanel = (props: Props) => {
   return (
     <div className={classes.root}>
       <div className={classes.content}>
-        <div className={classes.closeBtn} onClick={props.closeSidePanel} role="button">
-          &times;
+        <div className={classes.actions}>
+          <div className={classes.closeBtn} onClick={props.closeSidePanel} role="button">
+            &times;
+          </div>
+          <ToggleButtonGroup
+            color="primary"
+            aria-label="outlined primary button group"
+            value={props.showTableView}
+            onChange={props.handleToggleView}
+            size="small"
+          >
+            <ToggleButton value="true">Tables</ToggleButton>
+            <ToggleButton value="false">Graphs</ToggleButton>
+          </ToggleButtonGroup>
         </div>
         {props.children}
       </div>
