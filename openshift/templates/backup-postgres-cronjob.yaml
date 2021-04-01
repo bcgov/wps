@@ -79,7 +79,7 @@ parameters:
     displayName: "Number of Weekly Backups to Retain"
     description: "The number of weekly backup files to be retained.  Used for the `rolling` backup strategy."
     required: false
-    value: "2"
+    value: "1"
   - name: "MONTHLY_BACKUPS"
     displayName: "Number of Monthly Backups to Retain"
     description: "The number of monthly backup files to be retained.  Used for the `rolling` backup strategy."
@@ -123,6 +123,10 @@ parameters:
     description: "The name of the configuration file."
     required: true
     value: "backup.conf"
+  - name: CPU_REQUEST
+    value: "0.5"
+  - name: CPU_LIMIT
+    value: "1"
 objects:
   - kind: "CronJob"
     apiVersion: "batch/v1beta1"
@@ -149,10 +153,10 @@ objects:
                 - name: "${JOB_NAME}-cronjob"
                   resources:
                     limits:
-                      cpu: "1"
+                      cpu: ${CPU_LIMIT}
                       memory: 4Gi
                     requests:
-                      cpu: "0.5"
+                      cpu: ${CPU_REQUEST}
                       memory: 2Gi
                   image: "image-registry.openshift-image-registry.svc:5000/${IMAGE_NAMESPACE}/${SOURCE_IMAGE_NAME}:${TAG_NAME}"
                   # image: backup
