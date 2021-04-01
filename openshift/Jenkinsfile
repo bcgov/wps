@@ -61,7 +61,7 @@ pipeline {
                     sh "PROJ_TARGET=${projProd} BACKUP_VOLUME_SIZE=3Gi ./openshift/scripts/oc_provision_backup_mariadb.sh prod apply"
                     sh "PROJ_TARGET=${projProd} ./openshift/scripts/oc_provision_backup_mariadb_cronjob.sh prod apply"
                     // Configure 
-                    sh "PROJ_TARGET=${projProd} CERTBOT_STAGING=false DRYRUN=false CERTBOT_SERVER=\"https://www.entrust.net/acme/api/v1/directory/98-YMBC-M0BH\" ./openshift/scripts/oc_provision_certbot_cronjob.sh"
+                    sh "PROJ_TARGET=${projProd} CERTBOT_STAGING=false DRYRUN=false CERTBOT_SERVER=\"https://www.entrust.net/acme/api/v1/directory/98-YMBC-M0BH\" ./openshift/scripts/oc_provision_certbot_cronjob.sh prod apply"
                 }
             }
         }
