@@ -45,26 +45,3 @@ def there_is_a_station(response, index, code, name, lat, long):  # pylint: disab
             response.json()['weather_stations'][index]['name'] == name and
             response.json()['weather_stations'][index]['lat'] == lat and
             response.json()['weather_stations'][index]['long'] == long)
-
-
-# @given("I request a weather station with code <code>", target_fixture='response')
-# def given_request_specific_station(monkeypatch):
-#     """ Mock external requests and make GET /api/stations/ request """
-#     monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
-
-#     client = TestClient(app)
-#     return client.get('/api/stations/')
-
-
-# @then("the station's coordinates are <lat>, <long>")
-# def the_station_coordinates_are(response, lat, long):  # pylint: disable=too-many-arguments
-#     """ We expect a station to have a code, name, lat and long. """
-#     assert (response.json()['weather_stations'][index]['lat'] == lat and
-#             response.json()['weather_stations'][index]['long'] == long)
-
-
-# @then("the station has <ecodivision_name> with <core_season>")
-# def station_ecodivision_data(response, index, ecodivision_name, core_season: dict):
-#     """ We expect station's ecodivision to have name, start_month start_day - end_month end_day """
-#     assert (response.json()['weather_stations'][index]['ecodivision_name'] == ecodivision_name and
-#             response.json()['weather_stations'][index]['core_season'] == core_season)

@@ -157,7 +157,10 @@ def get_ecodivision_name(latitude: str, longitude: str, ecodivisions: geopandas.
         geom = ecodivision_row['geometry']
         if station_coord.within(geom):
             return ecodivision_row['CDVSNNM']
-    return None
+
+    # If we've reached here, the ecodivision for the station has not been found.
+    logger.error('Ecodivision not found for station at lat %f long %f', latitude, longitude)
+    return "DEFAULT"
 
 
 def _parse_station(station) -> WeatherStation:
@@ -168,10 +171,6 @@ def _parse_station(station) -> WeatherStation:
     ecodivisions = geopandas.read_file(ecodiv_shape_file_path)
 
     ecodiv_name = get_ecodivision_name(station['latitude'], station['longitude'], ecodivisions)
-    if ecodiv_name is None:
-        logger.error('Ecodivision not found for station %s; lat %f long %f',
-                     station['displayLabel'], station['latitude'], station['longitude'])
-        ecodiv_name = "DEFAULT"
     return WeatherStation(
         code=station['stationCode'],
         name=station['displayLabel'],
