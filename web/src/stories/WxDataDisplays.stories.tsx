@@ -48,6 +48,7 @@ const station322 = {
 }
 
 const defaultArgs: PropTypes = {
+  showTableView: 'true',
   timeOfInterest: getTimeOfInterestFromUrl(''),
   wxDataLoading: false,
   stationCodes: [322],
