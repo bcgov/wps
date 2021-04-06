@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import * as _ from "lodash"
 import { makeStyles } from '@material-ui/core/styles'
 import Table from '@material-ui/core/Table'
 import TableBody from '@material-ui/core/TableBody'
@@ -29,6 +30,15 @@ const useStyles = makeStyles({
   },
   tableContainer: {
     maxHeight: 280
+  },
+  maxTemperature: {
+    background: '#ffb3b3'
+  },
+  minTemperature: {
+    background: '#84b8e7'
+  },
+  minRH: {
+    background: '#f2994a'
   }
 })
 
@@ -76,6 +86,15 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
   const rowsSortedByDatetime = [...props.rows].sort(getDatetimeComparator(order))
   const toggleDatetimeOrder = () => {
     setOrder(order === 'asc' ? 'desc' : 'asc')
+  }
+  const minMaxValuesToHighlight = {
+    'temperature': {
+      'min_temperature': _.minBy(props.rows, 'temperature').temperature,
+      'max_temperature': _.maxBy(props.rows, 'temperature').temperature,
+    },
+    'relative_humidity': _.minBy(props.rows, 'relative_humidity').relative_humidity,
+    'precipitation': _.maxBy(props.rows, 'precipitation').precipitation,
+    'wind_speed': _.maxBy(props.rows, 'wind_speed')
   }
 
   return (
@@ -128,6 +147,7 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
                       {props.columns.map(column => {
                         const value = row[column.id]
                         let display = null
+                        let className = undefined
 
                         if (typeof value === 'string' && column.formatDt) {
                           display = column.formatDt(value)
@@ -136,8 +156,28 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
                           display = column.format(value)
                         }
 
+                        if (column.id in minMaxValuesToHighlight) {
+                          switch(column.id) {
+                            case 'relative_humidity': {
+                              if (display === column.format(minMaxValuesToHighlight['relative_humidity'])) {
+                                className = classes.minRH
+                              }
+                              break
+                            }
+                            case 'temperature': {
+                              if (display === column.format(minMaxValuesToHighlight['temperature']['min_temperature'])) {
+                                className = classes.minTemperature
+                              }
+                              else if (display === column.format(minMaxValuesToHighlight['temperature']['max_temperature'])) {
+                                className = classes.maxTemperature
+                              }
+                              break
+                            }
+                          }
+                        }
+
                         return (
-                          <TableCell key={column.id} align={column.align}>
+                          <TableCell key={column.id} align={column.align} className={className}>
                             {display}
                           </TableCell>
                         )
