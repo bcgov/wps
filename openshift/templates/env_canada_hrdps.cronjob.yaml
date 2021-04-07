@@ -37,7 +37,7 @@ parameters:
     required: true
   - name: USE_WFWX
     required: true
-    value: False
+    value: "False"
 objects:
   - kind: CronJob
     apiVersion: batch/v1beta1
