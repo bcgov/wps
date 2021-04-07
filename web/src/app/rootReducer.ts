@@ -1,7 +1,6 @@
 import { combineReducers } from '@reduxjs/toolkit'
 
-import percentileStationsReducer from 'features/percentileCalculator/slices/stationsSlice'
-import fireWeatherStationsReducer from 'features/fireWeather/slices/stationsSlice'
+import stationReducer from 'features/stations/slices/stationsSlice'
 import percentilesReducer from 'features/percentileCalculator/slices/percentilesSlice'
 import cHainesModelRunReducer from 'features/cHaines/slices/cHainesModelRunsSlice'
 import cHainesPredictionReducer from 'features/cHaines/slices/cHainesPredictionsSlice'
@@ -17,8 +16,8 @@ import regionalModelsReducer from 'features/fireWeather/slices/regionalModelsSli
 import regionalModelSummariesReducer from 'features/fireWeather/slices/regionalModelSummariesSlice'
 
 const rootReducer = combineReducers({
-  percentileStations: percentileStationsReducer,
-  fireWeatherStations: fireWeatherStationsReducer,
+  percentileStations: stationReducer,
+  fireWeatherStations: stationReducer,
   percentiles: percentilesReducer,
   cHainesModelRuns: cHainesModelRunReducer,
   cHainesPredictions: cHainesPredictionReducer,
