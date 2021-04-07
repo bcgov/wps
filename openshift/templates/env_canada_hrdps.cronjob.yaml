@@ -35,6 +35,9 @@ parameters:
     value: ${NAME}-${SUFFIX}
   - name: SCHEDULE
     required: true
+  - name: USE_WFWX
+    required: true
+    value: False
 objects:
   - kind: CronJob
     apiVersion: batch/v1beta1
@@ -102,6 +105,11 @@ objects:
                         secretKeyRef:
                           name: ${NAME}-global
                           key: rocket.chat-auth-token-secret
+                    - name: USE_WFWX
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${NAME}-global
+                          key: use-wfwx
                   resources:
                     limits:
                       cpu: "1"
