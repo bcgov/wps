@@ -5,7 +5,7 @@ import { makeStyles } from '@material-ui/core/styles'
 
 import { PageHeader } from 'components'
 import { getStationCodesFromUrl, getTimeOfInterestFromUrl } from 'utils/url'
-import { fetchWxStations } from 'features/percentileCalculator/slices/stationsSlice'
+import { fetchWxStations } from 'features/fireWeather/slices/stationsSlice'
 import { fetchGlobalModelsWithBiasAdj } from 'features/fireWeather/slices/modelsSlice'
 import { fetchObservations } from 'features/fireWeather/slices/observationsSlice'
 import { fetchForecasts } from 'features/fireWeather/slices/forecastsSlice'

@@ -3,6 +3,7 @@
 import os
 import asyncio
 import logging
+import enum
 from typing import List
 import json
 from app.schemas.stations import WeatherStation
@@ -13,6 +14,16 @@ logger = logging.getLogger(__name__)
 dirname = os.path.dirname(__file__)
 weather_stations_file_path = os.path.join(
     dirname, 'data/weather_stations.json')
+
+
+class StationSourceEnum(enum.Enum):
+    """ Station list sources.
+    We currently have two sources for station listing, local json file, or wildfire one api.
+    If the source is unspecified, configuration will govern which is used.
+    """
+    Unspecified = 'unspecified'  # Configuration wins.
+    WildfireOne = 'wildfire_one'  # Use wildfire one as source.
+    LocalStorage = 'local_storage'  # Use local storage as source.
 
 
 def _get_stations_local() -> List[WeatherStation]:
@@ -47,12 +58,19 @@ async def get_stations_by_codes(station_codes: List[int]) -> List[WeatherStation
     return _get_stations_by_codes_local(station_codes)
 
 
-async def get_stations() -> List[WeatherStation]:
+async def get_stations(
+        station_source: StationSourceEnum = StationSourceEnum.Unspecified) -> List[WeatherStation]:
     """ Get list of stations from WFWX Fireweather API.
     """
-    # Check if we're really using the api, or loading from pre-generated files.
-    if wildfire_one.use_wfwx():
+    if station_source == StationSourceEnum.Unspecified:
+        # If station source is unspecified, check configuration:
+        if wildfire_one.use_wfwx():
+            return await wildfire_one.get_stations()
+        return _get_stations_local()
+    if station_source == StationSourceEnum.WildfireOne:
+        # Get from wildfire one:
         return await wildfire_one.get_stations()
+    # Get from local:
     return _get_stations_local()
 
 

@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
-import { Station, getStations } from 'api/stationAPI'
+import { Station, StationSource, getStations } from 'api/stationAPI'
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 
@@ -19,7 +19,7 @@ const initialState: State = {
 }
 
 const stationsSlice = createSlice({
-  name: 'stations',
+  name: 'percentilesStations',
   initialState,
   reducers: {
     getStationsStart(state: State) {
@@ -49,7 +49,7 @@ export default stationsSlice.reducer
 export const fetchWxStations = (): AppThunk => async dispatch => {
   try {
     dispatch(getStationsStart())
-    const stations = await getStations()
+    const stations = await getStations(StationSource.local_storage)
     dispatch(getStationsSuccess(stations))
   } catch (err) {
     dispatch(getStationsFailed(err.toString()))

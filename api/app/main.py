@@ -129,13 +129,18 @@ async def get_hourlies(request: schemas.shared.WeatherDataRequest, _: bool = Dep
 
 
 @api.get('/stations/', response_model=schemas.stations.WeatherStationsResponse)
-async def get_stations(response: Response):
+async def get_stations(response: Response,
+                       source: stations.StationSourceEnum = stations.StationSourceEnum.Unspecified):
     """ Return a list of fire weather stations.
+    Stations source can be:
+    -) Unspecified: Use configuration to establish source.
+    -) LocalStorage: Read from json file  (ignore configuration).
+    -) WildfireOne: Use wildfire API (ignore configuration).
     """
     try:
         logger.info('/stations/')
 
-        weather_stations = await stations.get_stations()
+        weather_stations = await stations.get_stations(source)
         response.headers["Cache-Control"] = "max-age=43200"  # let browsers to cache the data for 12 hours
 
         return schemas.stations.WeatherStationsResponse(weather_stations=weather_stations)

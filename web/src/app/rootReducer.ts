@@ -1,6 +1,7 @@
 import { combineReducers } from '@reduxjs/toolkit'
 
-import stationsReducer from 'features/percentileCalculator/slices/stationsSlice'
+import percentileStationsReducer from 'features/percentileCalculator/slices/stationsSlice'
+import fireWeatherStationsReducer from 'features/fireWeather/slices/stationsSlice'
 import percentilesReducer from 'features/percentileCalculator/slices/percentilesSlice'
 import cHainesModelRunReducer from 'features/cHaines/slices/cHainesModelRunsSlice'
 import cHainesPredictionReducer from 'features/cHaines/slices/cHainesPredictionsSlice'
@@ -16,7 +17,8 @@ import regionalModelsReducer from 'features/fireWeather/slices/regionalModelsSli
 import regionalModelSummariesReducer from 'features/fireWeather/slices/regionalModelSummariesSlice'
 
 const rootReducer = combineReducers({
-  stations: stationsReducer,
+  percentileStations: percentileStationsReducer,
+  fireWeatherStations: fireWeatherStationsReducer,
   percentiles: percentilesReducer,
   cHainesModelRuns: cHainesModelRunReducer,
   cHainesPredictions: cHainesPredictionReducer,
@@ -38,7 +40,8 @@ export type RootState = ReturnType<typeof rootReducer>
 export default rootReducer
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-export const selectStations = (state: RootState) => state.stations
+export const selectPercentileStations = (state: RootState) => state.percentileStations
+export const selectFireWeatherStations = (state: RootState) => state.fireWeatherStations
 export const selectPercentiles = (state: RootState) => state.percentiles
 export const selectCHainesModelRuns = (state: RootState) => state.cHainesModelRuns
 export const selectChainesPredictions = (state: RootState) => state.cHainesPredictions
