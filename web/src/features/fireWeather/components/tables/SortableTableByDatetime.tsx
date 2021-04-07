@@ -39,6 +39,30 @@ const useStyles = makeStyles({
   },
   minRH: {
     background: '#f2994a'
+  },
+  maxPrecipitation: {
+    fontWeight: 'bold',
+    borderColor: 'black',
+    borderStyle: 'solid',
+    borderWidth: '2px'
+  },
+  maxWindSpeed: {
+    fontWeight: 'bold',
+    borderColor: 'black',
+    borderStyle: 'solid',
+    borderTopWidth: '2px',
+    borderBottomWidth: '2px',
+    borderRightWidth: '2px',
+    borderLeftWidth: '0px'
+  },
+  directionOfMaxWindSpeed: {
+    fontWeight: 'bold',
+    borderColor: 'black',
+    borderStyle: 'solid',
+    borderTopWidth: '2px',
+    borderBottomWidth: '2px',
+    borderLeftWidth: '2px',
+    borderRightWidth: '0px'
   }
 })
 
@@ -75,6 +99,24 @@ interface Props<R> {
   columns: Column[]
 }
 
+interface MinMaxValues {
+  'relative_humidity': number | null,
+  'precipitation': number | null,
+  'wind_speed': number | null,
+  'temperature': {
+    'min': number | null,
+    'max': number | null
+  }
+}
+
+interface RowIdsOfMinMaxValues {
+  'relative_humidity': number[],
+  'precipitation':  number[],
+  'wind': number[],
+  'max_temp': number[],
+  'min_temp': number[]
+}
+
 function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
   const classes = useStyles()
   const [order, setOrder] = useState<Order>('asc')
@@ -87,15 +129,46 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
   const toggleDatetimeOrder = () => {
     setOrder(order === 'asc' ? 'desc' : 'asc')
   }
-  const minMaxValuesToHighlight = {
+
+  const minMaxValuesToHighlight: MinMaxValues = {
+    'relative_humidity': _.minBy(props.rows, 'relative_humidity')?.relative_humidity ?? null,
+    'precipitation': _.maxBy(props.rows, 'precipitation')?.precipitation ?? null,
+    'wind_speed': _.maxBy(props.rows, 'wind_speed')?.wind_speed ?? null,
     'temperature': {
-      'min_temperature': _.minBy(props.rows, 'temperature').temperature,
-      'max_temperature': _.maxBy(props.rows, 'temperature').temperature,
-    },
-    'relative_humidity': _.minBy(props.rows, 'relative_humidity').relative_humidity,
-    'precipitation': _.maxBy(props.rows, 'precipitation').precipitation,
-    'wind_speed': _.maxBy(props.rows, 'wind_speed')
+      'min': _.minBy(props.rows, 'temperature')?.temperature ?? null,
+      'max': _.maxBy(props.rows, 'temperature')?.temperature ?? null
+    }
   }
+
+  let rowIds: RowIdsOfMinMaxValues = {
+    'relative_humidity': [],
+    'precipitation': [],
+    'wind': [],
+    'max_temp': [],
+    'min_temp': []
+  }
+
+  rowsSortedByDatetime.map((row, idx) => {
+    console.log(row, idx)
+    if (row.relative_humidity === minMaxValuesToHighlight.relative_humidity) {
+      rowIds['relative_humidity'].push(idx)
+    }
+    if (row.precipitation === minMaxValuesToHighlight.precipitation) {
+      rowIds['precipitation'].push(idx)
+    }
+    if (row.temperature === minMaxValuesToHighlight.temperature.max) {
+      rowIds['max_temp'].push(idx)
+    }
+    if (row.temperature === minMaxValuesToHighlight.temperature.min) {
+      rowIds['min_temp'].push(idx)
+    }
+    if (row.wind_speed === minMaxValuesToHighlight.wind_speed) {
+      rowIds['wind'].push(idx)
+    }
+  })
+
+  console.log(minMaxValuesToHighlight)
+  console.log(rowIds)
 
   return (
     <div className={classes.display} data-testid={props.testId}>
@@ -156,23 +229,39 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
                           display = column.format(value)
                         }
 
-                        if (column.id in minMaxValuesToHighlight) {
-                          switch(column.id) {
-                            case 'relative_humidity': {
-                              if (display === column.format(minMaxValuesToHighlight['relative_humidity'])) {
-                                className = classes.minRH
-                              }
-                              break
+                        switch(column.id) {
+                          case 'relative_humidity': {
+                            if (rowIds['relative_humidity'].includes(idx)) {
+                              className = classes.minRH
                             }
-                            case 'temperature': {
-                              if (display === column.format(minMaxValuesToHighlight['temperature']['min_temperature'])) {
-                                className = classes.minTemperature
-                              }
-                              else if (display === column.format(minMaxValuesToHighlight['temperature']['max_temperature'])) {
-                                className = classes.maxTemperature
-                              }
-                              break
+                            break
+                          }
+                          case 'temperature': {
+                            if (rowIds['min_temp'].includes(idx)) {
+                              className = classes.minTemperature
                             }
+                            else if (rowIds['max_temp'].includes(idx)) {
+                              className = classes.maxTemperature
+                            }
+                            break
+                          }
+                          case 'precipitation': {
+                            if (rowIds['precipitation'].includes(idx)) {
+                              className = classes.maxPrecipitation
+                            }
+                            break
+                          }
+                          case 'wind_speed': {
+                            if (rowIds['wind'].includes(idx)) {
+                              className = classes.maxWindSpeed
+                            }
+                            break
+                          }
+                          case 'wind_direction': {
+                            if (rowIds['wind'].includes(idx)) {
+                              className = classes.directionOfMaxWindSpeed
+                            }
+                            break
                           }
                         }
 
