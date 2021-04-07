@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import * as _ from "lodash"
+import * as _ from 'lodash'
 import { makeStyles } from '@material-ui/core/styles'
 import Table from '@material-ui/core/Table'
 import TableBody from '@material-ui/core/TableBody'
@@ -100,21 +100,21 @@ interface Props<R> {
 }
 
 interface MinMaxValues {
-  'relative_humidity': number | null,
-  'precipitation': number | null,
-  'wind_speed': number | null,
-  'temperature': {
-    'min': number | null,
-    'max': number | null
+  relative_humidity: number | null
+  precipitation: number | null
+  wind_speed: number | null
+  temperature: {
+    min: number | null
+    max: number | null
   }
 }
 
 interface RowIdsOfMinMaxValues {
-  'relative_humidity': number[],
-  'precipitation':  number[],
-  'wind': number[],
-  'max_temp': number[],
-  'min_temp': number[]
+  relative_humidity: number[]
+  precipitation: number[]
+  wind: number[]
+  max_temp: number[]
+  min_temp: number[]
 }
 
 function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
@@ -131,21 +131,22 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
   }
 
   const minMaxValuesToHighlight: MinMaxValues = {
-    'relative_humidity': _.minBy(props.rows, 'relative_humidity')?.relative_humidity ?? null,
-    'precipitation': _.maxBy(props.rows, 'precipitation')?.precipitation ?? null,
-    'wind_speed': _.maxBy(props.rows, 'wind_speed')?.wind_speed ?? null,
-    'temperature': {
-      'min': _.minBy(props.rows, 'temperature')?.temperature ?? null,
-      'max': _.maxBy(props.rows, 'temperature')?.temperature ?? null
+    relative_humidity:
+      _.minBy(props.rows, 'relative_humidity')?.relative_humidity ?? null,
+    precipitation: _.maxBy(props.rows, 'precipitation')?.precipitation ?? null,
+    wind_speed: _.maxBy(props.rows, 'wind_speed')?.wind_speed ?? null,
+    temperature: {
+      min: _.minBy(props.rows, 'temperature')?.temperature ?? null,
+      max: _.maxBy(props.rows, 'temperature')?.temperature ?? null
     }
   }
 
   let rowIds: RowIdsOfMinMaxValues = {
-    'relative_humidity': [],
-    'precipitation': [],
-    'wind': [],
-    'max_temp': [],
-    'min_temp': []
+    relative_humidity: [],
+    precipitation: [],
+    wind: [],
+    max_temp: [],
+    min_temp: []
   }
 
   rowsSortedByDatetime.map((row, idx) => {
@@ -229,7 +230,7 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
                           display = column.format(value)
                         }
 
-                        switch(column.id) {
+                        switch (column.id) {
                           case 'relative_humidity': {
                             if (rowIds['relative_humidity'].includes(idx)) {
                               className = classes.minRH
@@ -239,8 +240,7 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
                           case 'temperature': {
                             if (rowIds['min_temp'].includes(idx)) {
                               className = classes.minTemperature
-                            }
-                            else if (rowIds['max_temp'].includes(idx)) {
+                            } else if (rowIds['max_temp'].includes(idx)) {
                               className = classes.maxTemperature
                             }
                             break
@@ -266,7 +266,11 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
                         }
 
                         return (
-                          <TableCell key={column.id} align={column.align} className={className}>
+                          <TableCell
+                            key={column.id}
+                            align={column.align}
+                            className={className}
+                          >
                             {display}
                           </TableCell>
                         )
