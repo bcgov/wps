@@ -17,7 +17,7 @@ class WeatherStationProperties(BaseModel):
     code: int
     name: str
     ecodivision_name: str = None
-    core_season: Season
+    core_season: Season = None
 
 
 class WeatherStationGeometry(BaseModel):
