@@ -600,6 +600,11 @@ class ModelValueProcessor:
         grid = get_grid_for_coordinate(
             self.session, model_run.prediction_model, coordinate)
 
+        if grid is None:
+            # This should only happen if we have a station with bad coordinates.
+            logger.warning('grid not found for station: %s', station)
+            return
+
         # Convert the grid database object to a polygon object.
         poly = to_shape(grid.geom)
         # Extract the vertices of the polygon.

@@ -5,7 +5,7 @@ import { TextField, Link } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 import LaunchIcon from '@material-ui/icons/Launch'
 
-import { selectStations } from 'app/rootReducer'
+import { selectPercentileStations } from 'app/rootReducer'
 import { WEATHER_STATION_MAP_LINK } from 'utils/constants'
 import { ErrorMessage } from 'components/ErrorMessage'
 
@@ -45,7 +45,7 @@ const WxStationDropdown = (props: Props) => {
     stations,
     stationsByCode,
     error: errorFetchingStations
-  } = useSelector(selectStations)
+  } = useSelector(selectPercentileStations)
 
   let isThereUnknownCode = false
   const maxNumOfSelect = props.maxNumOfSelect || 3
