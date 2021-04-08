@@ -89,7 +89,8 @@ def calculate_raster_coordinate(
                    padf_transform[4] + padf_transform[0] / padf_transform[1] *
                    padf_transform[4]) / padf_transform[5]
 
-    denominator = 1 - padf_transform[4]/padf_transform[5]*padf_transform[2]/padf_transform[1]
+    denominator = 1 - \
+        padf_transform[4]/padf_transform[5]*padf_transform[2]/padf_transform[1]
 
     i_index = math.floor(x_numerator/denominator)
     j_index = math.floor(y_numerator/denominator)
@@ -150,8 +151,12 @@ class GribFileProcessor():
             x_coordinate, y_coordinate = calculate_raster_coordinate(
                 longitude, latitude, self.padf_transform, self.geo_to_raster_transformer)
 
-            points, values = get_surrounding_grid(
-                raster_band, x_coordinate, y_coordinate)
+            if 0 <= x_coordinate < raster_band.XSize and 0 <= y_coordinate < raster_band.YSize:
+                points, values = get_surrounding_grid(
+                    raster_band, x_coordinate, y_coordinate)
+            else:
+                logger.warning('coordinate not in raster - %s', station)
+                continue
 
             yield (points, values)
 
@@ -170,7 +175,8 @@ class GribFileProcessor():
             geographic_points.append(
                 calculate_geographic_coordinate(point, self.padf_transform, self.raster_to_geo_transformer))
         # Get the grid subset, i.e. the relevant bounding area for this particular model.
-        grid_subset = get_or_create_grid_subset(session, self.prediction_model, geographic_points)
+        grid_subset = get_or_create_grid_subset(
+            session, self.prediction_model, geographic_points)
 
         # Load the record if it exists.
         # pylint: disable=no-member
