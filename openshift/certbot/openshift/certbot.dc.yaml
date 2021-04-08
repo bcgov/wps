@@ -2,9 +2,9 @@
 apiVersion: template.openshift.io/v1
 kind: Template
 labels:
-  app: ${APP_LABEL}
+  app: certbot
 metadata:
-  name: certbot-${APP_LABEL}
+  name: certbot
 objects:
   - apiVersion: v1
     kind: ServiceAccount
@@ -23,7 +23,7 @@ objects:
   - apiVersion: v1
     kind: PersistentVolumeClaim
     metadata:
-      name: certbot-${APP_LABEL}
+      name: certbot
     spec:
       storageClassName: netapp-file-standard
       accessModes:
@@ -34,7 +34,7 @@ objects:
   - apiVersion: batch/v1beta1
     kind: CronJob
     metadata:
-      name: certbot-${APP_LABEL}
+      name: certbot
     spec:
       concurrencyPolicy: Replace
       failedJobsHistoryLimit: 3
@@ -50,7 +50,7 @@ objects:
           template:
             metadata:
               labels:
-                app: ${APP_LABEL}
+                app: certbot
             spec:
               containers:
                 - name: certbot
@@ -82,7 +82,7 @@ objects:
               volumes:
                 - name: certbot-config
                   persistentVolumeClaim:
-                    claimName: certbot-${APP_LABEL}
+                    claimName: certbot
       schedule: "${CERTBOT_CRON_SCHEDULE}"
       suspend: "${{CERTBOT_SUSPEND_CRON}}"
 
@@ -129,5 +129,3 @@ parameters:
   - name: "TAG_NAME"
     required: false
     value: "latest"
-  - name: "APP_LABEL"
-    required: true

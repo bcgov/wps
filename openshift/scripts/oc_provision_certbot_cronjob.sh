@@ -32,12 +32,12 @@ DRYRUN="${DRYRUN:-true}"
 
 
 OC_PROCESS="oc process -n ${PROJ_TARGET} -f ${TEMPLATE_PATH}/../certbot/openshift/certbot.dc.yaml \
--p EMAIL=BCWS.PredictiveServices@gov.bc.ca \
--p NAMESPACE=${PROJ_TOOLS} \
--p CERTBOT_SERVER=${CERTBOT_SERVER} \
--p CERTBOT_STAGING=${CERTBOT_STAGING} \
--p APP_LABEL=${NAME_APP}-${SUFFIX} \
--p DRYRUN=${DRYRUN}"
+    -p EMAIL=${EMAIL:-BCWS.PredictiveServices@gov.bc.ca} \
+    -p NAMESPACE=${PROJ_TOOLS} \
+    -p CERTBOT_SERVER=${CERTBOT_SERVER} \
+    -p CERTBOT_STAGING=${CERTBOT_STAGING} \
+    -p DRYRUN=${DRYRUN} \
+    ${DEBUG:+ " -p DEBUG=${DEBUG}"}"
 
 # Apply template (apply or use --dry-run)
 #
