@@ -162,7 +162,6 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
   }
 
   rowsSortedByDatetime.forEach((row, idx) => {
-    console.log(row, idx)
     if (
       row.relative_humidity?.toFixed(RH_VALUES_DECIMAL) ===
       minMaxValuesToHighlight.relative_humidity?.toFixed(RH_VALUES_DECIMAL)
@@ -204,9 +203,6 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
       rowIds['wind'].push(idx)
     }
   })
-
-  console.log(minMaxValuesToHighlight)
-  console.log(rowIds)
 
   return (
     <div className={classes.display} data-testid={props.testId}>
