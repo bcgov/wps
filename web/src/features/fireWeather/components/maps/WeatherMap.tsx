@@ -51,7 +51,7 @@ const WeatherMap = ({ redrawFlag }: Props) => {
 
     return (
       <div>
-        {feature.get('STATION_NAME')} ({feature.get('STATION_CODE')})
+        {feature.get('name')} ({feature.get('code')})
       </div>
     )
   }, [])
