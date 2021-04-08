@@ -133,12 +133,18 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
   const minMaxValuesToHighlight: MinMaxValues = {
     relative_humidity:
       _.minBy(props.rows, 'relative_humidity')?.relative_humidity ?? null,
-    precipitation: _.maxBy(props.rows, 'precipitation')?.precipitation ?? null,
     wind_speed: _.maxBy(props.rows, 'wind_speed')?.wind_speed ?? null,
     temperature: {
       min: _.minBy(props.rows, 'temperature')?.temperature ?? null,
       max: _.maxBy(props.rows, 'temperature')?.temperature ?? null
-    }
+    },
+    // depending on the table, the precip label may be 'precipitation',
+    // 'delta_precipitation', or 'total_precipitation' - need to account for all
+    precipitation:
+      _.maxBy(props.rows, 'precipitation')?.precipitation ??
+      _.maxBy(props.rows, 'delta_precipitation')?.delta_precipitation ??
+      _.maxBy(props.rows, 'total_precipitation')?.total_precipitation ??
+      null
   }
 
   const rowIds: RowIdsOfMinMaxValues = {
@@ -155,6 +161,10 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
       rowIds['relative_humidity'].push(idx)
     }
     if (row.precipitation === minMaxValuesToHighlight.precipitation) {
+      rowIds['precipitation'].push(idx)
+    } else if (row.delta_precipitation === minMaxValuesToHighlight.precipitation) {
+      rowIds['precipitation'].push(idx)
+    } else if (row.total_precipitation === minMaxValuesToHighlight.precipitation) {
       rowIds['precipitation'].push(idx)
     }
     if (row.temperature === minMaxValuesToHighlight.temperature.max) {
@@ -246,6 +256,18 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
                             break
                           }
                           case 'precipitation': {
+                            if (rowIds['precipitation'].includes(idx)) {
+                              className = classes.maxPrecipitation
+                            }
+                            break
+                          }
+                          case 'delta_precipitation': {
+                            if (rowIds['precipitation'].includes(idx)) {
+                              className = classes.maxPrecipitation
+                            }
+                            break
+                          }
+                          case 'total_precipitation': {
                             if (rowIds['precipitation'].includes(idx)) {
                               className = classes.maxPrecipitation
                             }
