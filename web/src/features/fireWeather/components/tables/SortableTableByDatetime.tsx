@@ -16,6 +16,12 @@ import AccordionDetails from '@material-ui/core/AccordionDetails'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 
 import { getDatetimeComparator, Order } from 'utils/table'
+import {
+  PRECIP_VALUES_DECIMAL,
+  RH_VALUES_DECIMAL,
+  TEMPERATURE_VALUES_DECIMAL,
+  WIND_SPEED_VALUES_DECIMAL
+} from 'utils/constants'
 
 const useStyles = makeStyles({
   display: {
@@ -155,25 +161,46 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
     min_temp: []
   }
 
-  rowsSortedByDatetime.map((row, idx) => {
+  rowsSortedByDatetime.forEach((row, idx) => {
     console.log(row, idx)
-    if (row.relative_humidity === minMaxValuesToHighlight.relative_humidity) {
+    if (
+      row.relative_humidity?.toFixed(RH_VALUES_DECIMAL) ===
+      minMaxValuesToHighlight.relative_humidity?.toFixed(RH_VALUES_DECIMAL)
+    ) {
       rowIds['relative_humidity'].push(idx)
     }
-    if (row.precipitation === minMaxValuesToHighlight.precipitation) {
+    if (
+      row.precipitation?.toFixed(PRECIP_VALUES_DECIMAL) ===
+      minMaxValuesToHighlight.precipitation?.toFixed(PRECIP_VALUES_DECIMAL)
+    ) {
       rowIds['precipitation'].push(idx)
-    } else if (row.delta_precipitation === minMaxValuesToHighlight.precipitation) {
+    } else if (
+      row.delta_precipitation?.toFixed(PRECIP_VALUES_DECIMAL) ===
+      minMaxValuesToHighlight.precipitation?.toFixed(PRECIP_VALUES_DECIMAL)
+    ) {
       rowIds['precipitation'].push(idx)
-    } else if (row.total_precipitation === minMaxValuesToHighlight.precipitation) {
+    } else if (
+      row.total_precipitation?.toFixed(PRECIP_VALUES_DECIMAL) ===
+      minMaxValuesToHighlight.precipitation?.toFixed(PRECIP_VALUES_DECIMAL)
+    ) {
       rowIds['precipitation'].push(idx)
     }
-    if (row.temperature === minMaxValuesToHighlight.temperature.max) {
+    if (
+      row.temperature?.toFixed(TEMPERATURE_VALUES_DECIMAL) ===
+      minMaxValuesToHighlight.temperature.max?.toFixed(TEMPERATURE_VALUES_DECIMAL)
+    ) {
       rowIds['max_temp'].push(idx)
     }
-    if (row.temperature === minMaxValuesToHighlight.temperature.min) {
+    if (
+      row.temperature?.toFixed(TEMPERATURE_VALUES_DECIMAL) ===
+      minMaxValuesToHighlight.temperature.min?.toFixed(TEMPERATURE_VALUES_DECIMAL)
+    ) {
       rowIds['min_temp'].push(idx)
     }
-    if (row.wind_speed === minMaxValuesToHighlight.wind_speed) {
+    if (
+      row.wind_speed?.toFixed(WIND_SPEED_VALUES_DECIMAL) ===
+      minMaxValuesToHighlight.wind_speed?.toFixed(WIND_SPEED_VALUES_DECIMAL)
+    ) {
       rowIds['wind'].push(idx)
     }
   })
