@@ -6,7 +6,7 @@ import logging
 import enum
 from typing import List
 import json
-from app.schemas.stations import WeatherStation
+from app.schemas.stations import WeatherStation, GeoJsonWeatherStation, WeatherStationProperties, WeatherStationGeometry
 from app import wildfire_one
 
 logger = logging.getLogger(__name__)
@@ -72,6 +72,22 @@ async def get_stations(
         return await wildfire_one.get_stations()
     # Get from local:
     return _get_stations_local()
+
+
+async def get_stations_as_geojson(
+        station_source: StationSourceEnum = StationSourceEnum.Unspecified) -> List[GeoJsonWeatherStation]:
+    """ Format stations to conform to GeoJson spec """
+    geojson_stations = []
+    stations = await get_stations(station_source)
+    for station in stations:
+        geojson_stations.append(GeoJsonWeatherStation(type="Feature",
+                                                      properties=WeatherStationProperties(
+                                                          code=station.code,
+                                                          name=station.name,
+                                                          ecodivision_name=station.ecodivision_name,
+                                                          core_season=station.core_season),
+                                                      geometry=WeatherStationGeometry(type="Point", coordinates=[station.long, station.lat])))
+    return geojson_stations
 
 
 def get_stations_synchronously() -> List[WeatherStation]:
