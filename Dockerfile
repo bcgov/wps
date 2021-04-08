@@ -1,9 +1,33 @@
 ARG DOCKER_IMAGE=image-registry.openshift-image-registry.svc:5000/e1e498-tools/uvicorn-gunicorn-fastapi:python3.8-latest
 
+# PHASE 0.1 - prepare node dependencies
+FROM registry.access.redhat.com/ubi8/nodejs-14 as node_dependencies
+
+COPY ./web/yarn.lock ./web/package.json ./
+
+# Switch to root user for package installs
+USER 0
+
+RUN npm i yarn && yarn install --production
+
+# Switch back to default user
+USER 1001
+
+# PHASE 0.2 - prepare python dependencies
+# Using local docker image to speed up build. See openshift/unicorn-base for details.
+FROM ${DOCKER_IMAGE} as python_dependancies
+
+# Copy poetry files.
+COPY ./api/pyproject.toml ./api/poetry.lock /tmp/
+
+# Install dependancies.
+RUN cd /tmp && \
+    poetry install --no-root --no-dev
+
 # PHASE 1 - build static html.
 # Pull from local registry - we can't pull from docker due to limits.
 # see https://catalog.redhat.com/software/containers/ubi8/nodejs-14/5ed7887dd70cc50e69c2fabb for details
-FROM registry.access.redhat.com/ubi8/nodejs-14 as static
+FROM node_dependencies as static
 
 # Switch to root user for package installs
 USER 0
@@ -16,15 +40,7 @@ RUN yarn run build
 USER 1001
 
 # PHASE 2 - prepare python.
-# Using local docker image to speed up build. See openshift/unicorn-base for details.
-FROM ${DOCKER_IMAGE}
-
-# Copy poetry files.
-COPY ./api/pyproject.toml ./api/poetry.lock /tmp/
-
-# Install dependancies.
-RUN cd /tmp && \
-    poetry install --no-root --no-dev
+FROM python_dependancies
 
 # Copy the app:
 COPY ./api/app /app/app
