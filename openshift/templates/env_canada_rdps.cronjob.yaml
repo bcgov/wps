@@ -35,6 +35,9 @@ parameters:
     value: ${NAME}-${SUFFIX}
   - name: SCHEDULE
     required: true
+  - name: WFWX_MAX_PAGE_SIZE
+    description: Maximum number of entities to request at a time from the WFWX API
+    value: "1000"
 objects:
   - kind: CronJob
     apiVersion: batch/v1beta1
@@ -103,6 +106,33 @@ objects:
                         secretKeyRef:
                           name: ${NAME}-global
                           key: rocket.chat-auth-token-secret
+                    - name: USE_WFWX
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${NAME}-global
+                          key: env.use-wfwx
+                    - name: WFWX_MAX_PAGE_SIZE
+                      value: ${WFWX_MAX_PAGE_SIZE}
+                    - name: WFWX_AUTH_URL
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${NAME}-global
+                          key: env.wfwx-auth-url
+                    - name: WFWX_BASE_URL
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${NAME}-global
+                          key: env.wfwx-base-url
+                    - name: WFWX_USER
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${NAME}-global
+                          key: env.wfwx-user
+                    - name: WFWX_SECRET
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${NAME}-global
+                          key: wfwx-secret
                   resources:
                     limits:
                       cpu: "1"

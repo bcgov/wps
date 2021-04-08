@@ -49,6 +49,17 @@ class BuildQueryAllStations(BuildQuery):
         return [url, params]
 
 
+class BuildQueryAllActiveStations(BuildQuery):
+    """ Class for building a url and RSQL params to request all active stations. """
+
+    def query(self, page) -> [str, dict]:
+        """ Return query url and params with rsql query for all weather stations marked active. """
+        params = {'size': self.max_page_size, 'sort': 'displayLabel',
+                  'page': page, 'query': 'stationStatus.id=="ACTIVE"'}
+        url = '{base_url}/v1/stations'.format(base_url=self.base_url)
+        return [url, params]
+
+
 class BuildQueryByStationCode(BuildQuery):
     """ Class for building a url and params to request a list of stations by code """
 
@@ -108,6 +119,7 @@ async def _fetch_raw_stations(session: ClientSession, headers: dict, query_build
         logger.debug('loading station page %d...', page_count)
         async with session.get(url, headers=headers, params=params) as response:
             station_json = await response.json()
+            logger.info('%s', station_json)
             logger.debug('done loading station page %d.', page_count)
         # Update the total page count.
         total_pages = station_json['page']['totalPages']
@@ -122,6 +134,8 @@ def _is_station_valid(station) -> bool:
 
     Returns True if station is good, False is station is bad.
     """
+    # TODO: We could remove this function entirely if we queried the API using RSQL
+    # to filter out inactive stations and stations with lat/long missing
     if station['stationStatus']['id'] != 'ACTIVE':
         return False
     if station['latitude'] is None or station['longitude'] is None:
@@ -132,25 +146,31 @@ def _is_station_valid(station) -> bool:
     return True
 
 
+def get_ecodivision_name(latitude: str, longitude: str, ecodivisions: geopandas.GeoDataFrame):
+    """ Returns the ecodivision name for a given lat/long coordinate """
+    # if station's latitude >= 60 (approx.), it's in the Yukon, so it won't be captured
+    # in the shapefile, but it's considered to be part of the SUB-ARCTIC HIGHLANDS ecodivision.
+    if latitude >= 60:
+        return 'SUB-ARCTIC HIGHLANDS'
+    station_coord = Point(float(longitude), float(latitude))
+    for _, ecodivision_row in ecodivisions.iterrows():
+        geom = ecodivision_row['geometry']
+        if station_coord.within(geom):
+            return ecodivision_row['CDVSNNM']
+
+    # If we've reached here, the ecodivision for the station has not been found.
+    logger.error('Ecodivision not found for station at lat %f long %f', latitude, longitude)
+    return "DEFAULT"
+
+
 def _parse_station(station) -> WeatherStation:
     """ Transform from the json object returned by wf1, to our station object.
     """
     with open(core_season_file_path) as file_handle:
         core_seasons = json.load(file_handle)
     ecodivisions = geopandas.read_file(ecodiv_shape_file_path)
-    station_coord = Point(
-        float(station['longitude']), float(station['latitude']))
 
-    # hacky fix for station 447 (WATSON LAKE FS), which is in the Yukon
-    # so ecodivision name has to be hard-coded
-    if station['stationCode'] == '447':
-        ecodiv_name = "SUB-ARCTIC HIGHLANDS"
-    else:
-        for index, row in ecodivisions.iterrows():  # pylint: disable=redefined-outer-name, unused-variable
-            geom = row['geometry']
-            if station_coord.within(geom):
-                ecodiv_name = row['CDVSNNM']
-                break
+    ecodiv_name = get_ecodivision_name(station['latitude'], station['longitude'], ecodivisions)
     return WeatherStation(
         code=station['stationCode'],
         name=station['displayLabel'],
@@ -206,12 +226,13 @@ async def get_stations() -> List[WeatherStation]:
         header = await _get_auth_header(session)
         stations = []
         # Iterate through "raw" station data.
-        async for raw_station in _fetch_raw_stations(session, header, BuildQueryAllStations()):
+        async for raw_station in _fetch_raw_stations(session, header, BuildQueryAllActiveStations()):
             # If the station is valid, add it to our list of stations.
             if _is_station_valid(raw_station):
-                logger.info('Processing raw_station %d',
-                            int(raw_station['stationCode']))
-                stations.append(_parse_station(raw_station))
+                stations.append(WeatherStation(code=raw_station['stationCode'],
+                                               name=raw_station['displayLabel'],
+                                               lat=raw_station['latitude'],
+                                               long=raw_station['longitude']))
         logger.debug('total stations: %d', len(stations))
     return stations
 

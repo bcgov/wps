@@ -21,7 +21,7 @@ import {
   selectHighResModelSummaries,
   selectRegionalModels,
   selectRegionalModelSummaries,
-  selectStations
+  selectFireWeatherStations
 } from 'app/rootReducer'
 import { Station } from 'api/stationAPI'
 import { ObservedValue } from 'api/observationAPI'
@@ -152,7 +152,7 @@ interface WxDataDisplaysWrapperProps {
 }
 
 const WxDataDisplaysWrapper: React.FunctionComponent<WxDataDisplaysWrapperProps> = props => {
-  const { stationsByCode } = useSelector(selectStations)
+  const { stationsByCode } = useSelector(selectFireWeatherStations)
   const { observationsByStation } = useSelector(selectObservations)
   const { allModelsByStation, noonModelsByStation } = useSelector(selectModels)
   const { modelSummariesByStation } = useSelector(selectModelSummaries)

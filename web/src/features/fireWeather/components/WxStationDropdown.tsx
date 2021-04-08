@@ -4,7 +4,7 @@ import Autocomplete from '@material-ui/lab/Autocomplete'
 import { TextField } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 
-import { selectStations } from 'app/rootReducer'
+import { selectFireWeatherStations } from 'app/rootReducer'
 
 const useStyles = makeStyles({
   autocomplete: {
@@ -35,7 +35,7 @@ const WxStationDropdown = (props: Props) => {
     stations,
     stationsByCode,
     error: errorFetchingStations
-  } = useSelector(selectStations)
+  } = useSelector(selectFireWeatherStations)
 
   let isThereUnknownCode = false
   const autocompleteValue: Option[] = props.stationCodes.map(code => {
