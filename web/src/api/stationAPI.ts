@@ -14,9 +14,17 @@ export interface StationsResponse {
   weather_stations: Station[]
 }
 
-export async function getStations(): Promise<Station[]> {
+export enum StationSource {
+  unspecified = 'unspecified',
+  local_storage = 'local_storage',
+  wildfire_one = 'wildfire_one'
+}
+
+export async function getStations(
+  source: StationSource = StationSource.unspecified
+): Promise<Station[]> {
   const url = '/stations/'
-  const { data } = await axios.get<StationsResponse>(url)
+  const { data } = await axios.get<StationsResponse>(url, { params: { source } })
 
   return data.weather_stations
 }

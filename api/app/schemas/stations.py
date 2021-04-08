@@ -19,7 +19,7 @@ class WeatherStation(BaseModel):
     lat: float
     long: float
     ecodivision_name: str = None
-    core_season: Season
+    core_season: Season = None
 
 
 class WeatherStationsResponse(BaseModel):
