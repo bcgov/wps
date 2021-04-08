@@ -170,17 +170,11 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
     }
     if (
       row.precipitation?.toFixed(PRECIP_VALUES_DECIMAL) ===
-      minMaxValuesToHighlight.precipitation?.toFixed(PRECIP_VALUES_DECIMAL)
-    ) {
-      rowIds['precipitation'].push(idx)
-    } else if (
+        minMaxValuesToHighlight.precipitation?.toFixed(PRECIP_VALUES_DECIMAL) ||
       row.delta_precipitation?.toFixed(PRECIP_VALUES_DECIMAL) ===
-      minMaxValuesToHighlight.precipitation?.toFixed(PRECIP_VALUES_DECIMAL)
-    ) {
-      rowIds['precipitation'].push(idx)
-    } else if (
+        minMaxValuesToHighlight.precipitation?.toFixed(PRECIP_VALUES_DECIMAL) ||
       row.total_precipitation?.toFixed(PRECIP_VALUES_DECIMAL) ===
-      minMaxValuesToHighlight.precipitation?.toFixed(PRECIP_VALUES_DECIMAL)
+        minMaxValuesToHighlight.precipitation?.toFixed(PRECIP_VALUES_DECIMAL)
     ) {
       rowIds['precipitation'].push(idx)
     }
@@ -278,19 +272,9 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
                             }
                             break
                           }
-                          case 'precipitation': {
-                            if (rowIds['precipitation'].includes(idx)) {
-                              className = classes.maxPrecipitation
-                            }
-                            break
-                          }
-                          case 'delta_precipitation': {
-                            if (rowIds['precipitation'].includes(idx)) {
-                              className = classes.maxPrecipitation
-                            }
-                            break
-                          }
-                          case 'total_precipitation': {
+                          case 'precipitation' ||
+                            'delta_precipitation' ||
+                            'total_precipitation': {
                             if (rowIds['precipitation'].includes(idx)) {
                               className = classes.maxPrecipitation
                             }
