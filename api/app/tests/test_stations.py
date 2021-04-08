@@ -43,8 +43,8 @@ def there_is_a_station(response, index, code, name, lat, long):  # pylint: disab
     """ We expect a station to have a code, name, lat and long. """
     assert (response.json()['features'][index]['properties']['code'] == code and
             response.json()['features'][index]['properties']['name'] == name and
-            response.json()['features'][index]['properties']['lat'] == lat and
-            response.json()['features'][index]['properties']['long'] == long)
+            response.json()['features'][index]['geometry']['coordinates'][1] == lat and
+            response.json()['features'][index]['geometry']['coordinates'][0] == long)
 
 
 @then("the station has <ecodivision_name> with <core_season>")
