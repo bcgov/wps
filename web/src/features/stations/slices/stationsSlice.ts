@@ -32,7 +32,7 @@ const stationsSlice = createSlice({
       state.stations = action.payload
       const stationsByCode: State['stationsByCode'] = {}
       action.payload.forEach(station => {
-        stationsByCode[station.code] = station
+        stationsByCode[station.properties.code] = station
       })
       state.stationsByCode = stationsByCode
       state.loading = false

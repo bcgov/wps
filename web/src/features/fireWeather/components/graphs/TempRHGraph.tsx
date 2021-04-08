@@ -197,7 +197,7 @@ const TempRHGraph = (props: Props) => {
         ]}
         layout={{
           ...getLayoutConfig(
-            `Temperature, Dew Point & Relative Humidity - ${station.name} (${station.code})`
+            `Temperature, Dew Point & Relative Humidity - ${station.properties.name} (${station.properties.code})`
           ),
           xaxis: {
             range: sliderRange,

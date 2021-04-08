@@ -112,7 +112,7 @@ const PrecipitationGraph = (props: Props) => {
         ]}
         layout={{
           ...getLayoutConfig(
-            `Daily Precipitation (with accumulated) - ${station.name} (${station.code})`
+            `Daily Precipitation (with accumulated) - ${station.properties.name} (${station.properties.code})`
           ),
           barmode: 'group',
           bargap: 0.75,

@@ -1,5 +1,5 @@
 import axios from 'api/axios'
-import { Station } from 'api/stationAPI'
+import { WeatherStation } from 'api/stationAPI'
 
 export interface ModelSummary {
   datetime: string
@@ -18,7 +18,7 @@ export interface ModelInfo {
 
 // List of model summaries for each datetime with model & station info
 export interface ModelSummariesForStation {
-  station: Station
+  station: WeatherStation
   model: ModelInfo | null
   values: ModelSummary[]
 }
@@ -65,7 +65,7 @@ export interface ModelValue {
 }
 
 export interface Model {
-  station: Station
+  station: WeatherStation
   values: ModelValue[]
 }
 
@@ -79,7 +79,7 @@ export interface ModelRun {
 }
 
 export interface ModelsForStation {
-  station: Station
+  station: WeatherStation
   model_runs: ModelRun[]
 }
 

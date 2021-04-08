@@ -52,7 +52,7 @@ const WxStationDropdown = (props: Props) => {
   const autocompleteValue: Option[] = props.stationCodes.map(code => {
     const station = stationsByCode[code]
     if (station) {
-      return { name: station.name, code: station.code }
+      return { name: station.properties.name, code: station.properties.code }
     }
 
     isThereUnknownCode = true
@@ -61,8 +61,8 @@ const WxStationDropdown = (props: Props) => {
   const isThereError =
     !fetchingStations && (Boolean(errorFetchingStations) || isThereUnknownCode)
   const autocompleteOptions: Option[] = stations.map(station => ({
-    name: station.name,
-    code: station.code
+    name: station.properties.name,
+    code: station.properties.code
   }))
 
   return (

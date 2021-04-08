@@ -90,7 +90,7 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
           return (
             <div key={code} className={classes.display}>
               <Typography className={classes.title} variant="subtitle1" component="div">
-                {`${station.name} (${station.code})`}
+                {`${station.properties.name} (${station.properties.code})`}
               </Typography>
               {nothingToDisplay && (
                 <Typography className={classes.noDataAvailable} variant="body2">

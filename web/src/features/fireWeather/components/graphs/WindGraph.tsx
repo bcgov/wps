@@ -163,7 +163,7 @@ const WindGraph = (props: Props) => {
         ]}
         layout={{
           ...getLayoutConfig(
-            `Wind Speed & Direction - ${station.name} (${station.code})`
+            `Wind Speed & Direction - ${station.properties.name} (${station.properties.code})`
           ),
           xaxis: {
             range: sliderRange,

@@ -1,5 +1,5 @@
 import axios from 'api/axios'
-import { Station } from 'api/stationAPI'
+import { WeatherStation } from 'api/stationAPI'
 
 export interface NoonForecastValue {
   datetime: string
@@ -52,7 +52,7 @@ export interface ForecastSummary {
 
 // List of noon forecast summaries for each datetime with station info
 export interface ForecastSummariesForStation {
-  station: Station
+  station: WeatherStation
   values: ForecastSummary[]
 }
 

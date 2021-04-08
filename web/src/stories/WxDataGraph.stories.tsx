@@ -20,6 +20,7 @@ import {
 import { ModelValue } from 'api/modelAPI'
 import { NoonForecastValue } from 'api/forecastAPI'
 import { getTimeOfInterestFromUrl } from 'utils/url'
+import { Station } from 'api/stationAPI'
 
 export default {
   title: 'morecast/WxDataGraph',
@@ -30,17 +31,22 @@ type PropTypes = React.ComponentProps<typeof WxDataGraph>
 
 const Template: Story<PropTypes> = args => <WxDataGraph {...args} />
 
-const station = {
-  code: 322,
-  name: 'AFTON',
-  lat: 50.6733333,
-  long: -120.4816667,
-  ecodivision_name: 'SEMI-ARID STEPPE HIGHLANDS',
-  core_season: {
-    start_month: 5,
-    start_day: 1,
-    end_month: 9,
-    end_day: 15
+const station: Station = {
+  type: 'Feature',
+  properties: {
+    code: 322,
+    name: 'AFTON',
+    ecodivision_name: 'SEMI-ARID STEPPE HIGHLANDS',
+    core_season: {
+      start_month: 5,
+      start_day: 1,
+      end_month: 9,
+      end_day: 15
+    }
+  },
+  geometry: {
+    type: 'Point',
+    coordinates: [-120.4816667, 50.6733333]
   }
 }
 
