@@ -141,7 +141,7 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
     }
   }
 
-  let rowIds: RowIdsOfMinMaxValues = {
+  const rowIds: RowIdsOfMinMaxValues = {
     relative_humidity: [],
     precipitation: [],
     wind: [],
