@@ -25,7 +25,7 @@ parameters:
     value: e1e498-tools
   - name: CPU_REQUEST
     description: Requested CPU
-    value: 300m
+    value: 50m
   - name: CPU_LIMIT
     description: CPU upper limit
     value: 500m
