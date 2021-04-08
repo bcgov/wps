@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 def patroni_cluster_health_check():
     """ Makes call to Patroni cluster namespace in Openshift to retrieve the statuses of all
-    individual Patroni pods, then re-formats response """
+    individual Patroni pods, then re-formats response. """
     parts = [
         config.get('OPENSHIFT_BASE_URI'),
         config.get('OPENSHIFT_NAMESPACE_API'),
