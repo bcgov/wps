@@ -25,7 +25,7 @@ source "$(dirname ${0})/common/common"
 ## Step 1:
 # Check if phase 1 build with matching hash exists.
 PHASE_ONE_HASH=$(sha1sum api/poetry.lock | awk '{print $1}')
-CHECK_COMMAND="oc -n ${PROJ_TOOLS} get is -l hash=${NAME_APP}-${SUFFIX}-phase1-${PHASE_ONE_HASH} --ignore-not-found=true"
+CHECK_COMMAND="oc -n ${PROJ_TOOLS} get is -l hash=${NAME_APP}-${SUFFIX}-phase-1-${PHASE_ONE_HASH} --ignore-not-found=true"
 CHECK_RESULT=$(eval "${CHECK_COMMAND}")
 
 ## Step 2:

@@ -77,7 +77,7 @@ jobs:
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
-          GIT_BRANCH=${GITHUB_HEAD_REF} DOCKER_FILE=Dockerfile.python.p1 bash PATH_BC=openshift/templates/build.python.p1.bc.yaml openshift/scripts/oc_build_python_p1.sh ${SUFFIX} apply
+          GIT_BRANCH=${GITHUB_HEAD_REF} PATH_BC=openshift/templates/build.python.p1.bc.yaml bash openshift/scripts/oc_build_python_p1.sh ${SUFFIX} apply
 
   build-image:
     name: Build Image
