@@ -5,20 +5,6 @@ on:
     - cron: "0 2 * * 0"
 
 jobs:
-  zap_scan_ocp3:
-    runs-on: ubuntu-20.04
-    name: Scan the web application in OCP3
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          ref: main
-      - name: ZAP Scan
-        # f.y.i.: ZAP Scan must be able to log an issue or it will fail.
-        uses: zaproxy/action-baseline@v0.4.0
-        with:
-          target: "https://wps-prod.pathfinder.gov.bc.ca/"
-          rules_file_name: ".zap/rules.tsv"
   zap_scan_ocp4:
     runs-on: ubuntu-20.04
     name: Scan the web application in OCP4
