@@ -19,13 +19,13 @@ describe('Dropdown utils', () => {
   }
   it('should return the unknown value when there is no station in the map', () => {
     expect(getSelectedStationOptions([0], { 1: testStation })).toEqual({
-      autocompleteValue: [{ code: 0, name: 'Unknown' }],
+      selectedStationOptions: [{ code: 0, name: 'Unknown' }],
       isThereUnknownCode: true
     })
   })
   it('should return the unknown value when there is no station in the map', () => {
     expect(getSelectedStationOptions([1], { 1: testStation })).toEqual({
-      autocompleteValue: [{ code: 1, name: testStationName }],
+      selectedStationOptions: [{ code: 1, name: testStationName }],
       isThereUnknownCode: false
     })
   })
