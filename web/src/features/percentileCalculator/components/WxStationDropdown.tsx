@@ -8,6 +8,7 @@ import LaunchIcon from '@material-ui/icons/Launch'
 import { selectPercentileStations } from 'app/rootReducer'
 import { WEATHER_STATION_MAP_LINK } from 'utils/constants'
 import { ErrorMessage } from 'components/ErrorMessage'
+import { getAutoCompleteOption, Option } from 'utils/dropdown'
 
 const useStyles = makeStyles({
   root: {
@@ -25,12 +26,6 @@ const useStyles = makeStyles({
     display: 'flex'
   }
 })
-
-interface Option {
-  name: string
-  code: number
-}
-
 interface Props {
   className?: string
   stationCodes: number[]
@@ -46,18 +41,12 @@ const WxStationDropdown = (props: Props) => {
     stationsByCode,
     error: errorFetchingStations
   } = useSelector(selectPercentileStations)
-
-  let isThereUnknownCode = false
   const maxNumOfSelect = props.maxNumOfSelect || 3
-  const autocompleteValue: Option[] = props.stationCodes.map(code => {
-    const station = stationsByCode[code]
-    if (station) {
-      return { name: station.properties.name, code: station.properties.code }
-    }
 
-    isThereUnknownCode = true
-    return { name: 'Unknown', code }
-  })
+  const { isThereUnknownCode, autocompleteValue } = getAutoCompleteOption(
+    props.stationCodes,
+    stationsByCode
+  )
   const isThereError =
     !fetchingStations && (Boolean(errorFetchingStations) || isThereUnknownCode)
   const autocompleteOptions: Option[] = stations.map(station => ({
