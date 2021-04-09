@@ -1,0 +1,65 @@
+---
+apiVersion: v1
+kind: Template
+labels:
+  build: certbot
+metadata:
+  name: certbot
+
+objects:
+  - apiVersion: v1
+    kind: ImageStream
+    metadata:
+      name: certbot
+    spec:
+      lookupPolicy:
+        local: false
+  - apiVersion: v1
+    kind: BuildConfig
+    metadata:
+      name: certbot
+    spec:
+      completionDeadlineSeconds: 300
+      output:
+        to:
+          kind: ImageStreamTag
+          name: certbot:latest
+      postCommit: {}
+      resources:
+        requests:
+          cpu: 1
+        limits:
+          cpu: 1
+      source:
+        contextDir: docker
+        git:
+          ref: "${GIT_REF}"
+          uri: "${GIT_URL}"
+        type: Git
+      strategy:
+        dockerStrategy:
+          from:
+            kind: DockerImage
+            name: "${BASE_IMAGE}"
+        type: Docker
+      triggers:
+        - type: ConfigChange
+        - type: ImageChange
+          imageChange: {}
+
+parameters:
+  - name: BASE_IMAGE
+    description: Base Image to build from
+    displayName: Base Image
+    required: true
+    value: registry.access.redhat.com/ubi8:8.3-227
+  - name: GIT_REF
+    description: Git Pull Request or Branch Reference (i.e. 'pull/CHANGE_ID/head')
+    displayName: Source Repository Reference
+    required: true
+    value: master
+  - name: GIT_URL
+    description: Git Repository URL
+    displayName: Source Repository URL
+    required: true
+    value: https://github.com/BCDevOps/certbot.git

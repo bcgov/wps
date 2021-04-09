@@ -1,4 +1,4 @@
-apiVersion: v1
+apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
   name: ${NAME}
@@ -25,7 +25,7 @@ parameters:
     value: e1e498-tools
   - name: CPU_REQUEST
     description: Requested CPU
-    value: 300m
+    value: 50m
   - name: CPU_LIMIT
     description: CPU upper limit
     value: 500m
@@ -39,7 +39,7 @@ parameters:
     description: Number of replicas (pods)
     value: "2"
   - name: ALLOWED_ORIGINS
-    value: wps-*.pathfinder.gov.bc.ca
+    value: wps-*.apps.silver.devops.gov.bc.ca
   - name: WFWX_MAX_PAGE_SIZE
     description: Maximum number of entities to request at a time from the WFWX API
     value: "1000"
@@ -59,7 +59,7 @@ parameters:
   - name: SECOND_LEVEL_DOMAIN
     description: The domain of which this application hangs.
     required: True
-    value: pathfinder.gov.bc.ca
+    value: apps.silver.devops.gov.bc.ca
   - name: POSTGRES_WRITE_HOST
     required: True
   - name: POSTGRES_READ_HOST
@@ -69,6 +69,8 @@ parameters:
     value: ""
   - name: USE_WFWX
     value: "False"
+  - name: VANITY_DOMAIN
+    requests: True
 objects:
   - apiVersion: v1
     kind: DeploymentConfig
@@ -232,7 +234,9 @@ objects:
                   path: /api/ready
                   port: 8080
                   scheme: HTTP
-                initialDelaySeconds: 40
+                # first probe will fire some time between:
+                # initialDelaySeconds and initialDelaySeconds + periodSeconds
+                initialDelaySeconds: 30
                 periodSeconds: 120
                 timeoutSeconds: 1
               livenessProbe:
@@ -242,7 +246,9 @@ objects:
                   path: /api/health
                   port: 8080
                   scheme: HTTP
-                initialDelaySeconds: 40
+                # first probe will fire some time between:
+                # initialDelaySeconds and initialDelaySeconds + periodSeconds
+                initialDelaySeconds: 30
                 periodSeconds: 120
                 timeoutSeconds: 5
   - apiVersion: v1
@@ -277,3 +283,23 @@ objects:
         name: ${NAME}-${SUFFIX}
       tls:
         termination: edge
+  - apiVersion: route.openshift.io/v1
+    kind: Route
+    metadata:
+      labels:
+        app: ${NAME}-${SUFFIX}
+        certbot-managed: "true"
+      name: ${NAME}-${SUFFIX}-vanity
+      annotations:
+        # Enable HTTP Strict Transport Security:
+        haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+    spec:
+      host: ${VANITY_DOMAIN}
+      port:
+        targetPort: 8080-tcp
+      to:
+        kind: Service
+        name: ${NAME}-${SUFFIX}
+      tls:
+        termination: edge
+        insecureEdgeTerminationPolicy: Redirect
