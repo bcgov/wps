@@ -1,0 +1,103 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: ${NAME}
+  annotations:
+    openshift.io/display-name: "wps"
+    description: "Wildfire Predictive Services - API"
+    openshift.io/long-description: "Wildfire Predictive Services - API"
+    tags: "wps"
+    iconClass: icon-js
+    openshift.io/provider-display-name: "Government of British Columbia"
+    openshift.io/documentation-url: "https://github.com/bcgov/wps"
+    openshift.io/support-url: "https://github.com/bcgov/wps"
+labels:
+  app.kubernetes.io/part-of: "${NAME}"
+  app: ${NAME}-${SUFFIX}
+parameters:
+  - name: NAME
+    description: Module name
+    value: ${NAME}
+  - name: SUFFIX
+    description: Deployment suffix, e.g. pr-### or prod
+    required: true
+  - name: PHASE_ONE_HASH
+    description: Hash used to label this build
+    required: true
+  - name: GIT_URL
+    value: https://github.com/bcgov/wps.git
+  - name: GIT_BRANCH
+    description: PR branch
+    required: true
+  - name: DOCKER_IMAGE
+    description: Location of docker image
+    required: true
+    value: image-registry.openshift-image-registry.svc:5000/e1e498-tools/uvicorn-gunicorn-fastapi:python3.8-latest
+  - name: DOCKER_FILE
+    description: Dockerfile to use
+    required: true
+    value: Dockerfile.python.p1
+objects:
+  - apiVersion: v1
+    kind: ImageStream
+    metadata:
+      annotations:
+        openshift.io/generated-by: OpenShiftNewBuild
+      labels:
+        app: ${NAME}-${SUFFIX}
+        hash: ${NAME}-${SUFFIX}-phase-1-${PHASE_ONE_HASH}
+        common: "true"
+      name: ${NAME}-${SUFFIX}-python-phase-1
+    spec:
+      lookupPolicy:
+        local: false
+  - apiVersion: v1
+    kind: BuildConfig
+    metadata:
+      annotations:
+        openshift.io/generated-by: OpenShiftNewBuild
+      labels:
+        app: ${NAME}-${SUFFIX}
+        hash: ${NAME}-${SUFFIX}-phase-1-${PHASE_ONE_HASH}
+      name: ${NAME}-${SUFFIX}-python-phase-1
+    spec:
+      completionDeadlineSeconds: 1200 # 20 minutes
+      output:
+        to:
+          kind: ImageStreamTag
+          name: ${NAME}-${SUFFIX}-phase-1:${SUFFIX}
+      resources:
+        limits:
+          cpu: "4"
+          memory: 5Gi
+        requests:
+          cpu: "2"
+          memory: 1Gi
+      source:
+        type: Git
+        git:
+          uri: ${GIT_URL}
+          ref: origin/${GIT_BRANCH}
+        contextDir: ./
+      strategy:
+        dockerStrategy:
+          # when npm run build executes, it will replace node tags with
+          # python jinja tags using these environment variables.
+          env:
+            - name: "REACT_APP_KEYCLOAK_AUTH_URL"
+              value: "{{REACT_APP_KEYCLOAK_AUTH_URL}}"
+            - name: "REACT_APP_KEYCLOAK_REALM"
+              value: "{{REACT_APP_KEYCLOAK_REALM}}"
+            - name: "REACT_APP_KEYCLOAK_CLIENT"
+              value: "{{REACT_APP_KEYCLOAK_CLIENT}}"
+            - name: "REACT_APP_MATOMO_URL"
+              value: "{{REACT_APP_MATOMO_URL}}"
+            - name: "REACT_APP_MATOMO_SITE_ID"
+              value: "{{REACT_APP_MATOMO_SITE_ID}}"
+            - name: "REACT_APP_MATOMO_CONTAINER"
+              value: "{{REACT_APP_MATOMO_CONTAINER}}"
+          buildArgs:
+            - name: "DOCKER_IMAGE"
+              value: "${{DOCKER_IMAGE}}"
+          dockerfilePath: ${DOCKER_FILE}
+      triggers: []
