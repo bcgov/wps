@@ -1,12 +1,12 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
-import { Station } from 'api/stationAPI'
+import { GeoJsonStation } from 'api/stationAPI'
 
 interface State {
   loading: boolean
   error: string | null
-  stations: Station[]
-  stationsByCode: Record<number, Station | undefined>
+  stations: GeoJsonStation[]
+  stationsByCode: Record<number, GeoJsonStation | undefined>
 }
 
 const initialState: State = {
@@ -27,12 +27,12 @@ const stationsSlice = createSlice({
       state.loading = false
       state.error = action.payload
     },
-    getStationsSuccess(state: State, action: PayloadAction<Station[]>) {
+    getStationsSuccess(state: State, action: PayloadAction<GeoJsonStation[]>) {
       state.error = null
       state.stations = action.payload
       const stationsByCode: State['stationsByCode'] = {}
       action.payload.forEach(station => {
-        stationsByCode[station.code] = station
+        stationsByCode[station.properties.code] = station
       })
       state.stationsByCode = stationsByCode
       state.loading = false

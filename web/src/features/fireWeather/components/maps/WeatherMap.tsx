@@ -1,13 +1,17 @@
-import React, { useState, useCallback, useEffect } from 'react'
+import React, { useCallback, useEffect } from 'react'
 import { fromLonLat, get } from 'ol/proj'
 import * as olSource from 'ol/source'
 import GeoJSON from 'ol/format/GeoJSON'
 import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style'
 import { FeatureLike } from 'ol/Feature'
+import { fetchWxStations } from 'features/fireWeather/slices/stationsSlice'
 
 import Map from 'features/map/Map'
 import TileLayer from 'features/map/TileLayer'
 import VectorLayer from 'features/map/VectorLayer'
+import { useDispatch, useSelector } from 'react-redux'
+
+import { selectFireWeatherStations } from 'app/rootReducer'
 
 const styles = {
   Point: new Style({
@@ -23,9 +27,6 @@ const styles = {
   })
 }
 
-const WEATHER_STATIONS_WEB_FEATURE_SERVICE =
-  'https://openmaps.gov.bc.ca/geo/pub/wfs?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&outputFormat=json&typeName=WHSE_LAND_AND_NATURAL_RESOURCE.PROT_WEATHER_STATIONS_SP&srsName=EPSG:3857'
-
 const BC_ROAD_BASE_MAP_SERVER_URL =
   'https://maps.gov.bc.ca/arcgis/rest/services/province/roads_wm/MapServer'
 
@@ -37,25 +38,20 @@ interface Props {
 }
 
 const WeatherMap = ({ redrawFlag }: Props) => {
-  const [wxStationsGeoJSON, setWxStationsGeoJSON] = useState({
-    type: 'FeatureCollection',
-    features: []
-  })
+  const dispatch = useDispatch()
+
+  const { stations } = useSelector(selectFireWeatherStations)
 
   useEffect(() => {
-    fetch(WEATHER_STATIONS_WEB_FEATURE_SERVICE)
-      .then(resp => resp.json())
-      .then(json => {
-        setWxStationsGeoJSON(json)
-      })
-  }, [])
+    dispatch(fetchWxStations())
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const renderTooltip = useCallback((feature: FeatureLike | null) => {
     if (!feature) return null
 
     return (
       <div>
-        {feature.get('STATION_NAME')} ({feature.get('STATION_CODE')})
+        {feature.get('name')} ({feature.get('code')})
       </div>
     )
   }, [])
@@ -80,9 +76,12 @@ const WeatherMap = ({ redrawFlag }: Props) => {
       <VectorLayer
         source={
           new olSource.Vector({
-            features: new GeoJSON().readFeatures(wxStationsGeoJSON, {
-              featureProjection: get('EPSG:3857')
-            })
+            features: new GeoJSON().readFeatures(
+              { type: 'FeatureCollection', features: stations },
+              {
+                featureProjection: get('EPSG:3857')
+              }
+            )
           })
         }
         style={styles.Point}

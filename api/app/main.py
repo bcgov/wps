@@ -140,10 +140,10 @@ async def get_stations(response: Response,
     try:
         logger.info('/stations/')
 
-        weather_stations = await stations.get_stations(source)
+        weather_stations = await stations.get_stations_as_geojson(source)
         response.headers["Cache-Control"] = "max-age=43200"  # let browsers to cache the data for 12 hours
 
-        return schemas.stations.WeatherStationsResponse(weather_stations=weather_stations)
+        return schemas.stations.WeatherStationsResponse(type="FeatureCollection", features=weather_stations)
     except Exception as exception:
         logger.critical(exception, exc_info=True)
         raise

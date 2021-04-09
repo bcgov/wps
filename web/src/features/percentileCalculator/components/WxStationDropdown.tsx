@@ -8,6 +8,7 @@ import LaunchIcon from '@material-ui/icons/Launch'
 import { selectPercentileStations } from 'app/rootReducer'
 import { WEATHER_STATION_MAP_LINK } from 'utils/constants'
 import { ErrorMessage } from 'components/ErrorMessage'
+import { getSelectedStationOptions, Option } from 'utils/dropdown'
 
 const useStyles = makeStyles({
   root: {
@@ -25,12 +26,6 @@ const useStyles = makeStyles({
     display: 'flex'
   }
 })
-
-interface Option {
-  name: string
-  code: number
-}
-
 interface Props {
   className?: string
   stationCodes: number[]
@@ -46,23 +41,17 @@ const WxStationDropdown = (props: Props) => {
     stationsByCode,
     error: errorFetchingStations
   } = useSelector(selectPercentileStations)
-
-  let isThereUnknownCode = false
   const maxNumOfSelect = props.maxNumOfSelect || 3
-  const autocompleteValue: Option[] = props.stationCodes.map(code => {
-    const station = stationsByCode[code]
-    if (station) {
-      return { name: station.name, code: station.code }
-    }
 
-    isThereUnknownCode = true
-    return { name: 'Unknown', code }
-  })
+  const { isThereUnknownCode, selectedStationOptions } = getSelectedStationOptions(
+    props.stationCodes,
+    stationsByCode
+  )
   const isThereError =
     !fetchingStations && (Boolean(errorFetchingStations) || isThereUnknownCode)
-  const autocompleteOptions: Option[] = stations.map(station => ({
-    name: station.name,
-    code: station.code
+  const allStationOptions: Option[] = stations.map(station => ({
+    name: station.properties.name,
+    code: station.properties.code
   }))
 
   return (
@@ -90,14 +79,14 @@ const WxStationDropdown = (props: Props) => {
           data-testid="weather-station-dropdown"
           id="weather-station-dropdown"
           multiple
-          options={autocompleteOptions}
+          options={allStationOptions}
           getOptionLabel={option => `${option.name} (${option.code})`}
           onChange={(_, options) => {
             if (options.length <= maxNumOfSelect) {
               props.onChange(options.map(s => s.code))
             }
           }}
-          value={autocompleteValue}
+          value={selectedStationOptions}
           renderInput={params => (
             <TextField
               {...params}
