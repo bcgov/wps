@@ -5,12 +5,18 @@ export interface Option {
   code: number
 }
 
+/**
+ * Returns the selected stations as options based on the selectedStationCodes.
+ *
+ * If stationsByCode map does not contain any of the selected codes a default unknown
+ * option is added.
+ */
 export const getSelectedStationOptions = (
-  stationCodes: number[],
+  selectedStationCodes: number[],
   stationsByCode: Record<number, Station | undefined>
 ): { isThereUnknownCode: boolean; selectedStationOptions: Option[] } => {
   let isThereUnknownCode = false
-  const selectedStationOptions: Option[] = stationCodes.map(code => {
+  const selectedStationOptions: Option[] = selectedStationCodes.map(code => {
     const station = stationsByCode[code]
     if (station) {
       return { name: station.properties.name, code: station.properties.code }
