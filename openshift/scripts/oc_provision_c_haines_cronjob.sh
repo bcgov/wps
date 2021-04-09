@@ -28,7 +28,7 @@ PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 # Process template
 OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/c_haines.cronjob.yaml \
 -p JOB_NAME=${NAME_APP}-c-haines-${SUFFIX} \
--p NAME=${NAME_APP}-c-haines \
+-p NAME=${NAME_APP} \
 -p IMAGE_NAME=${NAME_APP}-ubuntu-${SUFFIX} \
 -p IMAGE_TAG=${SUFFIX} \
 -p SUFFIX=${SUFFIX} \
