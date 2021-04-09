@@ -61,8 +61,27 @@ jobs:
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
           EPHEMERAL_STORAGE=True bash openshift/scripts/oc_provision_backup_mariadb_cronjob.sh ${SUFFIX} apply
 
+  build-python-p1-image:
+    name: Built Python Phase 1 Image
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Set Variables
+        shell: bash
+        run: |
+          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Build Image
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
+          GIT_BRANCH=${GITHUB_HEAD_REF} DOCKER_FILE=Dockerfile.python.p1 bash PATH_BC=openshift/templates/build.python.p1.bc.yaml openshift/scripts/oc_build_python_p1.sh ${SUFFIX} apply
+
   build-image:
     name: Build Image
+    needs: [build-python-p1-image]
     runs-on: ubuntu-20.04
     steps:
       - name: Set Variables

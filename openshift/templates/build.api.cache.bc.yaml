@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: Template
+metadata:
+  creationTimestamp: null
+  name: uvicorn-gunicorn-fastapi
+labels:
+  app: ${NAME}${SUFFIX}
+  phase: build
+  app.kubernetes.io/name: "wps api intermediate cache"
+parameters:
+  - name: NAME
+    value: wps
+  - name: SUFFIX
+    description: e.g. prod or pr-123
+  - name: VERSION
+    description: Tagged version of image
+  - name: GIT_URL
+    value: https://github.com/bcgov/wps.git
+  - name: GIT_BRANCH
+    description: Git branch to build from, e.g. master, or your pr.
+objects:
+  #ImageStream is create if it doesn't already exist
+  - apiVersion: v1
+    kind: ImageStream
+    metadata:
+      annotations:
+        openshift.io/generated-by: OpenShiftNewBuild
+      labels:
+        app: ${NAME}-${SUFFIX}
+        common: "true"
+      name: ${NAME}-api-${SUFFIX}-cache
+    spec:
+      lookupPolicy:
+        local: false
+  - apiVersion: v1
+    kind: BuildConfig
+    metadata:
+      annotations:
+        openshift.io/generated-by: OpenShiftNewBuild
+      labels:
+        app: ${NAME}-${SUFFIX}
+      name: ${NAME}-api-${SUFFIX}-cache
+    spec:
+      completionDeadlineSeconds: 1200 # 20 minutes
+      output:
+        to:
+          kind: ImageStreamTag
+          name: ${NAME}-api-${SUFFIX}-cache:${VERSION}
+      source:
+        type: Git
+        git:
+          uri: ${GIT_URL}
+          ref: origin/${GIT_BRANCH}
+        contextDir: .
+      strategy:
+        dockerStrategy:
+          dockerfilePath: api.cache.Dockerfile
