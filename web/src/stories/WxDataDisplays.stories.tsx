@@ -21,7 +21,7 @@ import { NoonForecastValue } from 'api/forecastAPI'
 import { ModelValue } from 'api/modelAPI'
 import { isNoonInPST } from 'utils/date'
 import { getTimeOfInterestFromUrl } from 'utils/url'
-import { Station } from 'api/stationAPI'
+import { GeoJsonStation } from 'api/stationAPI'
 
 export default {
   title: 'morecast/WxDataDisplays',
@@ -34,7 +34,7 @@ const Template: Story<PropTypes> = args => {
   return <WxDataDisplays {...args} />
 }
 
-const station322: Station = {
+const station322: GeoJsonStation = {
   type: 'Feature',
   properties: {
     code: 322,

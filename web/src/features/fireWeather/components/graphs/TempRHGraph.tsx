@@ -5,7 +5,7 @@ import Plot from 'react-plotly.js'
 import { ObservedValue } from 'api/observationAPI'
 import { ModelValue, ModelSummary } from 'api/modelAPI'
 import { NoonForecastValue, ForecastSummary } from 'api/forecastAPI'
-import { Station } from 'api/stationAPI'
+import { GeoJsonStation } from 'api/stationAPI'
 import { ToggleValues } from 'features/fireWeather/components/graphs/useGraphToggles'
 import {
   getLayoutConfig,
@@ -36,7 +36,7 @@ const biasGdpsTempColor = '#840DA2'
 const biasGdpsRHColor = '#937D65'
 
 interface Props {
-  station: Station
+  station: GeoJsonStation
   timeOfInterest: string
   sliderRange: [string, string]
   toggleValues: ToggleValues

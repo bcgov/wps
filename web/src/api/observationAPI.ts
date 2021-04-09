@@ -1,4 +1,4 @@
-import { WeatherStation } from 'api/stationAPI'
+import { Station } from 'api/stationAPI'
 import axios from 'api/axios'
 
 export interface ObservedValue {
@@ -16,7 +16,7 @@ export interface ObservedValue {
 }
 
 export interface Observation {
-  station: WeatherStation
+  station: Station
   values: ObservedValue[]
 }
 

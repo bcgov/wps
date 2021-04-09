@@ -1,5 +1,5 @@
 import axios from 'api/axios'
-import { WeatherStation } from 'api/stationAPI'
+import { Station } from 'api/stationAPI'
 
 export interface FireSeason {
   start_month: number
@@ -18,7 +18,7 @@ export interface StationSummaryResponse {
   isi: number | null
   bui: number | null
   years: number[]
-  station: WeatherStation
+  station: Station
 }
 
 export interface MeanValues {

@@ -1,4 +1,4 @@
-import { Station } from 'api/stationAPI'
+import { GeoJsonStation } from 'api/stationAPI'
 
 export interface Option {
   name: string
@@ -13,7 +13,7 @@ export interface Option {
  */
 export const getSelectedStationOptions = (
   selectedStationCodes: number[],
-  stationsByCode: Record<number, Station | undefined>
+  stationsByCode: Record<number, GeoJsonStation | undefined>
 ): { isThereUnknownCode: boolean; selectedStationOptions: Option[] } => {
   let isThereUnknownCode = false
   const selectedStationOptions: Option[] = selectedStationCodes.map(code => {

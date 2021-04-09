@@ -23,7 +23,7 @@ import {
   selectRegionalModelSummaries,
   selectFireWeatherStations
 } from 'app/rootReducer'
-import { Station } from 'api/stationAPI'
+import { GeoJsonStation } from 'api/stationAPI'
 import { ObservedValue } from 'api/observationAPI'
 import { ModelSummary, ModelValue } from 'api/modelAPI'
 import { ForecastSummary, NoonForecastValue } from 'api/forecastAPI'
@@ -49,7 +49,7 @@ interface WxDataDisplaysProps {
   timeOfInterest: string
   stationCodes: number[]
   wxDataLoading: boolean
-  stationsByCode: Record<number, Station | undefined>
+  stationsByCode: Record<number, GeoJsonStation | undefined>
   observationsByStation: Record<number, ObservedValue[] | undefined>
   allModelsByStation: Record<number, ModelValue[] | undefined>
   noonModelsByStation: Record<number, ModelValue[] | undefined>

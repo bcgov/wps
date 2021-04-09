@@ -1,10 +1,10 @@
-import { Station } from 'api/stationAPI'
-import { getAutoCompleteValue } from 'utils/dropdown'
+import { GeoJsonStation } from 'api/stationAPI'
+import { getSelectedStationOptions } from 'utils/dropdown'
 
 describe('Dropdown utils', () => {
   const testStationCode = 1
   const testStationName = 'test'
-  const testStation: Station = {
+  const testStation: GeoJsonStation = {
     type: 'Feature',
     geometry: {
       type: 'Point',
@@ -18,13 +18,13 @@ describe('Dropdown utils', () => {
     }
   }
   it('should return the unknown value when there is no station in the map', () => {
-    expect(getAutoCompleteValue([0], { 1: testStation })).toEqual({
+    expect(getSelectedStationOptions([0], { 1: testStation })).toEqual({
       autocompleteValue: [{ code: 0, name: 'Unknown' }],
       isThereUnknownCode: true
     })
   })
   it('should return the unknown value when there is no station in the map', () => {
-    expect(getAutoCompleteValue([1], { 1: testStation })).toEqual({
+    expect(getSelectedStationOptions([1], { 1: testStation })).toEqual({
       autocompleteValue: [{ code: 1, name: testStationName }],
       isThereUnknownCode: false
     })

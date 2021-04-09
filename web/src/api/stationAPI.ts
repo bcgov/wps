@@ -1,7 +1,7 @@
 import axios from 'api/axios'
 import { FireSeason } from 'api/percentileAPI'
 
-export interface WeatherStation {
+export interface Station {
   code: number
   name: string
   lat: number
@@ -10,7 +10,7 @@ export interface WeatherStation {
   core_season: FireSeason
 }
 
-export interface Station {
+export interface GeoJsonStation {
   type: string
   properties: StationProperties
   geometry: StationGeometry
@@ -29,7 +29,7 @@ export interface StationGeometry {
 
 export interface StationsResponse {
   type: string
-  features: Station[]
+  features: GeoJsonStation[]
 }
 
 export enum StationSource {
@@ -40,7 +40,7 @@ export enum StationSource {
 
 export async function getStations(
   source: StationSource = StationSource.unspecified
-): Promise<Station[]> {
+): Promise<GeoJsonStation[]> {
   const url = '/stations/'
   const { data } = await axios.get<StationsResponse>(url, { params: { source } })
 

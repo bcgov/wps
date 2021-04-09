@@ -20,7 +20,7 @@ import {
 import { ModelValue } from 'api/modelAPI'
 import { NoonForecastValue } from 'api/forecastAPI'
 import { getTimeOfInterestFromUrl } from 'utils/url'
-import { Station } from 'api/stationAPI'
+import { GeoJsonStation } from 'api/stationAPI'
 
 export default {
   title: 'morecast/WxDataGraph',
@@ -31,7 +31,7 @@ type PropTypes = React.ComponentProps<typeof WxDataGraph>
 
 const Template: Story<PropTypes> = args => <WxDataGraph {...args} />
 
-const station: Station = {
+const station: GeoJsonStation = {
   type: 'Feature',
   properties: {
     code: 322,

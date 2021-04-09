@@ -6,7 +6,7 @@ import { ObservedValue } from 'api/observationAPI'
 import { NoonForecastValue } from 'api/forecastAPI'
 import { ModelValue } from 'api/modelAPI'
 import { ToggleValues } from 'features/fireWeather/components/graphs/useGraphToggles'
-import { Station } from 'api/stationAPI'
+import { GeoJsonStation } from 'api/stationAPI'
 import {
   getLayoutConfig,
   findMaxNumber,
@@ -17,7 +17,7 @@ import {
 } from 'features/fireWeather/components/graphs/plotlyHelper'
 
 export interface Props {
-  station: Station
+  station: GeoJsonStation
   timeOfInterest: string
   sliderRange: [string, string]
   toggleValues: ToggleValues
