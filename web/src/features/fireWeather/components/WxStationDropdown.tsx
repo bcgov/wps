@@ -5,7 +5,7 @@ import { TextField } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 
 import { selectFireWeatherStations } from 'app/rootReducer'
-import { getAutoCompleteOption } from 'utils/dropdown'
+import { getSelectedStationOptions } from 'utils/dropdown'
 
 const useStyles = makeStyles({
   autocomplete: {
@@ -38,13 +38,13 @@ const WxStationDropdown = (props: Props) => {
     error: errorFetchingStations
   } = useSelector(selectFireWeatherStations)
 
-  const { isThereUnknownCode, autocompleteValue } = getAutoCompleteOption(
+  const { isThereUnknownCode, selectedStationOptions } = getSelectedStationOptions(
     props.stationCodes,
     stationsByCode
   )
   const isThereError =
     !fetchingStations && (Boolean(errorFetchingStations) || isThereUnknownCode)
-  const autocompleteOptions: Option[] = stations.map(station => ({
+  const allStationOptions: Option[] = stations.map(station => ({
     name: station.properties.name,
     code: station.properties.code
   }))
@@ -57,13 +57,13 @@ const WxStationDropdown = (props: Props) => {
           className={classes.autocomplete}
           data-testid="weather-station-dropdown"
           multiple
-          options={autocompleteOptions}
+          options={allStationOptions}
           getOptionLabel={option => `${option.name} (${option.code})`}
           onChange={(_, options) => {
             props.onChange(options.map(s => s.code))
           }}
           size="small"
-          value={autocompleteValue}
+          value={selectedStationOptions}
           renderInput={params => (
             <TextField
               {...params}

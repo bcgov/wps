@@ -8,7 +8,7 @@ import LaunchIcon from '@material-ui/icons/Launch'
 import { selectPercentileStations } from 'app/rootReducer'
 import { WEATHER_STATION_MAP_LINK } from 'utils/constants'
 import { ErrorMessage } from 'components/ErrorMessage'
-import { getAutoCompleteOption, Option } from 'utils/dropdown'
+import { getSelectedStationOptions, Option } from 'utils/dropdown'
 
 const useStyles = makeStyles({
   root: {
@@ -43,13 +43,13 @@ const WxStationDropdown = (props: Props) => {
   } = useSelector(selectPercentileStations)
   const maxNumOfSelect = props.maxNumOfSelect || 3
 
-  const { isThereUnknownCode, autocompleteValue } = getAutoCompleteOption(
+  const { isThereUnknownCode, selectedStationOptions } = getSelectedStationOptions(
     props.stationCodes,
     stationsByCode
   )
   const isThereError =
     !fetchingStations && (Boolean(errorFetchingStations) || isThereUnknownCode)
-  const autocompleteOptions: Option[] = stations.map(station => ({
+  const allStationOptions: Option[] = stations.map(station => ({
     name: station.properties.name,
     code: station.properties.code
   }))
@@ -79,14 +79,14 @@ const WxStationDropdown = (props: Props) => {
           data-testid="weather-station-dropdown"
           id="weather-station-dropdown"
           multiple
-          options={autocompleteOptions}
+          options={allStationOptions}
           getOptionLabel={option => `${option.name} (${option.code})`}
           onChange={(_, options) => {
             if (options.length <= maxNumOfSelect) {
               props.onChange(options.map(s => s.code))
             }
           }}
-          value={autocompleteValue}
+          value={selectedStationOptions}
           renderInput={params => (
             <TextField
               {...params}

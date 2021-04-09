@@ -1,16 +1,16 @@
-import { Station } from '/Users/conor/projects/wps/web/src/api/stationAPI'
+import { Station } from 'api/stationAPI'
 
 export interface Option {
   name: string
   code: number
 }
 
-export const getAutoCompleteOption = (
+export const getSelectedStationOptions = (
   stationCodes: number[],
   stationsByCode: Record<number, Station | undefined>
-): { isThereUnknownCode: boolean; autocompleteValue: Option[] } => {
+): { isThereUnknownCode: boolean; selectedStationOptions: Option[] } => {
   let isThereUnknownCode = false
-  const autocompleteValue: Option[] = stationCodes.map(code => {
+  const selectedStationOptions: Option[] = stationCodes.map(code => {
     const station = stationsByCode[code]
     if (station) {
       return { name: station.properties.name, code: station.properties.code }
@@ -19,5 +19,5 @@ export const getAutoCompleteOption = (
     isThereUnknownCode = true
     return { name: 'Unknown', code }
   })
-  return { isThereUnknownCode, autocompleteValue }
+  return { isThereUnknownCode, selectedStationOptions }
 }
