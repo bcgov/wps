@@ -45,7 +45,6 @@ objects:
         openshift.io/generated-by: OpenShiftNewBuild
       labels:
         app: ${NAME}-${SUFFIX}
-        hash: ${NAME}-${SUFFIX}-phase-1-${PHASE_ONE_HASH}
         common: "true"
       name: ${NAME}-${SUFFIX}-python-phase-1
     spec:
@@ -58,14 +57,13 @@ objects:
         openshift.io/generated-by: OpenShiftNewBuild
       labels:
         app: ${NAME}-${SUFFIX}
-        hash: ${NAME}-${SUFFIX}-phase-1-${PHASE_ONE_HASH}
       name: ${NAME}-${SUFFIX}-python-phase-1
     spec:
       completionDeadlineSeconds: 1200 # 20 minutes
       output:
         to:
           kind: ImageStreamTag
-          name: ${NAME}-${SUFFIX}-phase-1:${SUFFIX}
+          name: ${NAME}-${SUFFIX}-phase-1:${SUFFIX}-${PHASE_ONE_HASH}
       resources:
         limits:
           cpu: "4"
