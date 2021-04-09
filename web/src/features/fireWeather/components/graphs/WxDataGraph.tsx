@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import { DateTime } from 'luxon'
 
-import { Station } from 'api/stationAPI'
+import { GeoJsonStation } from 'api/stationAPI'
 import { ModelSummary, ModelValue } from 'api/modelAPI'
 import { ObservedValue } from 'api/observationAPI'
 import { NoonForecastValue, ForecastSummary } from 'api/forecastAPI'
@@ -20,7 +20,7 @@ const useStyles = makeStyles({
 })
 
 interface Props {
-  station: Station
+  station: GeoJsonStation
   timeOfInterest: string
   observations: ObservedValue[] | undefined
   noonForecasts: NoonForecastValue[] | undefined
