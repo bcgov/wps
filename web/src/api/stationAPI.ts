@@ -10,8 +10,26 @@ export interface Station {
   core_season: FireSeason
 }
 
+export interface GeoJsonStation {
+  type: string
+  properties: StationProperties
+  geometry: StationGeometry
+}
+export interface StationProperties {
+  code: number
+  name: string
+  ecodivision_name: string | null
+  core_season: FireSeason
+}
+
+export interface StationGeometry {
+  type: string
+  coordinates: number[]
+}
+
 export interface StationsResponse {
-  weather_stations: Station[]
+  type: string
+  features: GeoJsonStation[]
 }
 
 export enum StationSource {
@@ -22,9 +40,9 @@ export enum StationSource {
 
 export async function getStations(
   source: StationSource = StationSource.unspecified
-): Promise<Station[]> {
+): Promise<GeoJsonStation[]> {
   const url = '/stations/'
   const { data } = await axios.get<StationsResponse>(url, { params: { source } })
 
-  return data.weather_stations
+  return data.features
 }

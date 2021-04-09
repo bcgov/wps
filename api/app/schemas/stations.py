@@ -12,6 +12,27 @@ class Season(BaseModel):
     end_day: int
 
 
+class WeatherStationProperties(BaseModel):
+    """ Non-geometrical weather station properties """
+    code: int
+    name: str
+    ecodivision_name: str = None
+    core_season: Season = None
+
+
+class WeatherStationGeometry(BaseModel):
+    """ Geometrical coordinates of a weather station """
+    type: str
+    coordinates: List[float]
+
+
+class GeoJsonWeatherStation(BaseModel):
+    """ GeoJson formatted weather station """
+    type: str
+    properties: WeatherStationProperties
+    geometry: WeatherStationGeometry
+
+
 class WeatherStation(BaseModel):
     """ A fire weather station has a code, name and geographical coordinate. """
     code: int
@@ -23,8 +44,9 @@ class WeatherStation(BaseModel):
 
 
 class WeatherStationsResponse(BaseModel):
-    """ List of fire weather stations. """
-    weather_stations: List[WeatherStation]
+    """ List of fire weather stations is geojson format. """
+    type: str
+    features: List[GeoJsonWeatherStation]
 
 
 class StationCodeList(BaseModel):

@@ -6,7 +6,7 @@ import { ObservedValue } from 'api/observationAPI'
 import { ModelValue } from 'api/modelAPI'
 import { NoonForecastValue } from 'api/forecastAPI'
 import { ToggleValues } from 'features/fireWeather/components/graphs/useGraphToggles'
-import { Station } from 'api/stationAPI'
+import { GeoJsonStation } from 'api/stationAPI'
 import {
   getLayoutConfig,
   findMaxNumber,
@@ -22,7 +22,7 @@ const rdpsPrecipColor = '#FF64DD'
 const gdpsPrecipColor = '#7556CA'
 
 interface Props {
-  station: Station
+  station: GeoJsonStation
   timeOfInterest: string
   sliderRange: [string, string]
   toggleValues: ToggleValues
@@ -112,7 +112,7 @@ const PrecipitationGraph = (props: Props) => {
         ]}
         layout={{
           ...getLayoutConfig(
-            `Daily Precipitation (with accumulated) - ${station.name} (${station.code})`
+            `Daily Precipitation (with accumulated) - ${station.properties.name} (${station.properties.code})`
           ),
           barmode: 'group',
           bargap: 0.75,
