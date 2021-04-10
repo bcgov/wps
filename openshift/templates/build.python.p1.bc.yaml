@@ -63,7 +63,8 @@ objects:
       output:
         to:
           kind: ImageStreamTag
-          name: ${NAME}-${SUFFIX}-phase-1:${SUFFIX}-${PHASE_ONE_HASH}
+          name: ${NAME}-${SUFFIX}-python-phase-1:${SUFFIX}-${PHASE_ONE_HASH}
+          # name: ${NAME}-${SUFFIX}-python-phase-1:moo
       resources:
         limits:
           cpu: "4"
