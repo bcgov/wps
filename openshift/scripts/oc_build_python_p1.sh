@@ -22,11 +22,14 @@ source "$(dirname ${0})/common/common"
 # %
 
 
+NAME_OBJ="${NAME_OBJ}-python-phase-1"
+PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
+
 ## Step 1:
 # Check if phase 1 build with matching hash exists.
 PHASE_ONE_HASH=$(sha1sum api/poetry.lock | awk '{print $1}')
 # CHECK_COMMAND="oc -n ${PROJ_TOOLS} get is -l hash=${NAME_APP}-${SUFFIX}-phase-1-${PHASE_ONE_HASH} --ignore-not-found=true"
-CHECK_COMMAND="oc -n ${PROJ_TOOLS} get imagestreams ${NAME_APP}-${SUFFIX}-phase-1 --ignore-not-found=true -o jsonpath='{range .status.tags[*]}{.tag}{\"\\\n\"}' --ignore-not-found=true | { grep ${NAME_APP}-${SUFFIX}-${PHASE_ONE_HASH} || test \$? = 1;  }"
+CHECK_COMMAND="oc -n ${PROJ_TOOLS} get imagestreams ${NAME_APP}-${SUFFIX}-python-phase-1 --ignore-not-found=true -o jsonpath='{range .status.tags[*]}{.tag}{\"\\\n\"}' --ignore-not-found=true | { grep ${SUFFIX}-${PHASE_ONE_HASH} || test \$? = 1;  }"
 CHECK_RESULT=$(eval "${CHECK_COMMAND}")
 
 ## Step 2:
@@ -75,9 +78,8 @@ if ! [ "${CHECK_RESULT}" ]; then
 			exit 1
 		fi
 	fi
+	# Provide oc command instruction
+	display_helper "${CHECK_COMMAND}" "${OC_PROCESS} | ${OC_APPLY}" "${OC_CANCEL_BUILD}" "${OC_START_BUILD}"
+else
+	display_helper "${CHECK_COMMAND}"
 fi
-
-# Provide oc command instruction
-#
-display_helper "${CHECK_COMMAND}"
-#  "${OC_PROCESS} | ${OC_APPLY}" "${OC_CANCEL_BUILD}" "${OC_START_BUILD}"
