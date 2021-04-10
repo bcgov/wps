@@ -29,7 +29,10 @@ parameters:
   - name: DOCKER_IMAGE
     description: Location of docker image
     required: true
-    value: image-registry.openshift-image-registry.svc:5000/e1e498-tools/uvicorn-gunicorn-fastapi:python3.8-latest
+    value: image-registry.openshift-image-registry.svc:5000/e1e498-tools/uvicorn-gunicorn-fastapi
+  - name: DOCKER_IMAGE_TAG
+    required: true
+    value: python3.8-latest
   - name: DOCKER_FILE
     description: Dockerfile to use
     required: true
@@ -93,6 +96,6 @@ objects:
               value: "{{REACT_APP_MATOMO_CONTAINER}}"
           buildArgs:
             - name: "DOCKER_IMAGE"
-              value: "${{DOCKER_IMAGE}}"
+              value: "${{DOCKER_IMAGE}}:${{DOCKER_IMAGE_TAG}}"
           dockerfilePath: ${DOCKER_FILE}
       triggers: []
