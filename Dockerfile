@@ -19,13 +19,6 @@ USER 1001
 # Using local docker image to speed up build. See openshift/unicorn-base for details.
 FROM ${DOCKER_IMAGE}
 
-# Copy poetry files.
-COPY ./api/pyproject.toml ./api/poetry.lock /tmp/
-
-# Install dependancies.
-RUN cd /tmp && \
-    poetry install --no-root --no-dev
-
 # Copy the app:
 COPY ./api/app /app/app
 # Copy the static content:
