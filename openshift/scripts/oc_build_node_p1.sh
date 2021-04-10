@@ -27,7 +27,7 @@ PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 
 ## Step 1:
 # Check if phase 1 build with matching hash exists.
-PHASE_ONE_HASH=$(sha1sum api/poetry.lock | awk '{print $1}')
+PHASE_ONE_HASH=$(sha1sum web/yarn.lock | awk '{print $1}')
 CHECK_COMMAND="oc -n ${PROJ_TOOLS} get imagestreams ${NAME_APP}-${SUFFIX}-node-phase-1 --ignore-not-found=true -o jsonpath='{range .status.tags[*]}{.tag}{\"\\\n\"}' --ignore-not-found=true | { grep ${SUFFIX}-${PHASE_ONE_HASH} || test \$? = 1;  }"
 CHECK_RESULT=$(eval "${CHECK_COMMAND}")
 
