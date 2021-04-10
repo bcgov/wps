@@ -1,0 +1,10 @@
+FROM registry.access.redhat.com/ubi8/nodejs-14 as static
+
+# Switch to root user for package installs
+USER 0
+
+COPY ./web/package.json ./web/yarn.lock ./
+RUN npm i yarn && yarn install --production
+
+# Switch back to default user
+USER 1001
