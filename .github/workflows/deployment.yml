@@ -73,7 +73,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      # TODO: add it in here!
+      - name: Build Image
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
+          GIT_BRANCH=${GITHUB_HEAD_REF} PATH_BC=openshift/templates/build.node.p1.bc.yaml bash openshift/scripts/oc_build_node_p1.sh ${SUFFIX} apply
 
   build-python-p1-image:
     name: Build Python Phase 1 Image
@@ -110,7 +114,7 @@ jobs:
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
-          GIT_BRANCH=${GITHUB_HEAD_REF} DOCKER_IMAGE=image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-pr-${{ github.event.number }}-python-phase-1 bash openshift/scripts/oc_build.sh ${SUFFIX} apply
+          GIT_BRANCH=${GITHUB_HEAD_REF} NODE_DOCKER_IMAGE=image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-pr-${{ github.event.number }}-node-phase-1 DOCKER_IMAGE=image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-pr-${{ github.event.number }}-python-phase-1 bash openshift/scripts/oc_build.sh ${SUFFIX} apply
 
   deploy-dev:
     name: Deploy to Dev

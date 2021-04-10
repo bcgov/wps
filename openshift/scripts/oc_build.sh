@@ -22,7 +22,10 @@ source "$(dirname ${0})/common/common"
 # %
 
 PHASE_ONE_HASH=$(sha1sum api/poetry.lock | awk '{print $1}')
+PHASE_ONE_NODE_HASH=$(sha1sum web/yarn.lock | awk '{print $1}')
 DOCKER_IMAGE_TAG="${DOCKER_IMAGE_TAG:-${SUFFIX}-${PHASE_ONE_HASH}}"
+NODE_DOCKER_IMAGE="image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-pr-${SUFFIX}-node-phase-1"
+NODE_DOCKER_IMAGE_TAG="${SUFFIX}-${PHASE_ONE_NODE_HASH}}"
 
 # Process a template (mostly variable substition)
 #​​
@@ -31,6 +34,8 @@ OC_PROCESS="oc -n ${PROJ_TOOLS} process -f ${PATH_BC} \
  -p SUFFIX=${SUFFIX} \
  -p GIT_BRANCH=${GIT_BRANCH} \
  -p DOCKER_IMAGE_TAG=${DOCKER_IMAGE_TAG} \
+ ${NODE_DOCKER_IMAGE:+ "-p NODE_DOCKER_IMAGE=${NODE_DOCKER_IMAGE}"} \
+ ${NODE_DOCKER_IMAGE_TAG:+ "-p NODE_DOCKER_IMAGE_TAG=${NODE_DOCKER_IMAGE_TAG}"} \
  ${DOCKER_IMAGE:+ "-p DOCKER_IMAGE=${DOCKER_IMAGE}"} \
  ${DOCKER_FILE:+ "-p DOCKER_FILE=${DOCKER_FILE}"}"
 
