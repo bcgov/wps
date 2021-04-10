@@ -96,6 +96,6 @@ objects:
               value: "{{REACT_APP_MATOMO_CONTAINER}}"
           buildArgs:
             - name: "DOCKER_IMAGE"
-              value: "${{DOCKER_IMAGE}}:${{DOCKER_IMAGE_TAG}}"
+              value: "${DOCKER_IMAGE}:${DOCKER_IMAGE_TAG}"
           dockerfilePath: ${DOCKER_FILE}
       triggers: []
