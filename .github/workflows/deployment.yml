@@ -61,8 +61,22 @@ jobs:
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
           EPHEMERAL_STORAGE=True bash openshift/scripts/oc_provision_backup_mariadb_cronjob.sh ${SUFFIX} apply
 
+  build-node-p1-image:
+    name: Build the Node phase 1 Image
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Set Variables
+        shell: bash
+        run: |
+          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      # TODO: add it in here!
+
   build-python-p1-image:
-    name: Built Python Phase 1 Image
+    name: Build Python Phase 1 Image
     runs-on: ubuntu-20.04
     steps:
       - name: Set Variables
@@ -81,7 +95,7 @@ jobs:
 
   build-image:
     name: Build Image
-    needs: [build-python-p1-image]
+    needs: [build-python-p1-image, build-node-p1-image]
     runs-on: ubuntu-20.04
     steps:
       - name: Set Variables
@@ -180,7 +194,7 @@ jobs:
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
-          GIT_BRANCH=${GITHUB_HEAD_REF} PROJ_TOOLS="e1e498-tools" PROJ_DEV="e1e498-dev" NAME_APP=wps-ubuntu DOCKER_IMAGE=image-registry.openshift-image-registry.svc:5000/e1e498-tools/ubuntu-base:20.04 DOCKER_FILE=Dockerfile.ubuntu bash openshift/scripts/oc_build.sh ${SUFFIX} apply
+          GIT_BRANCH=${GITHUB_HEAD_REF} PROJ_TOOLS="e1e498-tools" PROJ_DEV="e1e498-dev" NAME_APP=wps-ubuntu DOCKER_IMAGE=image-registry.openshift-image-registry.svc:5000/e1e498-tools/ubuntu-base DOCKER_IMAGE_TAG=20.04 DOCKER_FILE=Dockerfile.ubuntu bash openshift/scripts/oc_build.sh ${SUFFIX} apply
 
   deploy-c-haines:
     name: Deploy c-haines cronjob
