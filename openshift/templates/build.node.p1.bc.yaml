@@ -21,24 +21,18 @@ parameters:
   - name: SUFFIX
     description: Deployment suffix, e.g. pr-### or prod
     required: true
+  - name: PHASE_ONE_HASH
+    description: Hash used to label this build
+    required: true
   - name: GIT_URL
     value: https://github.com/bcgov/wps.git
   - name: GIT_BRANCH
     description: PR branch
     required: true
-  - name: DOCKER_IMAGE
-    description: Location of docker image
-    required: true
-    value: image-registry.openshift-image-registry.svc:5000/e1e498-tools/uvicorn-gunicorn-fastapi
-  - name: DOCKER_IMAGE_TAG
-    required: true
-    value: python3.8-latest
   - name: DOCKER_FILE
     description: Dockerfile to use
     required: true
-    value: Dockerfile
-  - name: NODE_DOCKER_IMAGE_TAG
-  - name: NODE_DOCKER_IMAGE
+    value: Dockerfile.node.p1
 objects:
   - apiVersion: v1
     kind: ImageStream
@@ -48,7 +42,7 @@ objects:
       labels:
         app: ${NAME}-${SUFFIX}
         common: "true"
-      name: ${NAME}-${SUFFIX}
+      name: ${NAME}-${SUFFIX}-node-phase-1
     spec:
       lookupPolicy:
         local: false
@@ -59,13 +53,13 @@ objects:
         openshift.io/generated-by: OpenShiftNewBuild
       labels:
         app: ${NAME}-${SUFFIX}
-      name: ${NAME}-${SUFFIX}
+      name: ${NAME}-${SUFFIX}-node-phase-1
     spec:
       completionDeadlineSeconds: 1200 # 20 minutes
       output:
         to:
           kind: ImageStreamTag
-          name: ${NAME}-${SUFFIX}:${SUFFIX}
+          name: ${NAME}-${SUFFIX}-node-phase-1:${SUFFIX}-${PHASE_ONE_HASH}
       resources:
         limits:
           cpu: "4"
@@ -96,10 +90,5 @@ objects:
               value: "{{REACT_APP_MATOMO_SITE_ID}}"
             - name: "REACT_APP_MATOMO_CONTAINER"
               value: "{{REACT_APP_MATOMO_CONTAINER}}"
-          buildArgs:
-            - name: "DOCKER_IMAGE"
-              value: "${DOCKER_IMAGE}:${DOCKER_IMAGE_TAG}"
-            - name: "NODE_DOCKER_IMAGE"
-              value: "${NODE_DOCKER_IMAGE}:${NODE_DOCKER_IMAGE_TAG}"
           dockerfilePath: ${DOCKER_FILE}
       triggers: []

@@ -1,15 +1,15 @@
 ARG DOCKER_IMAGE=image-registry.openshift-image-registry.svc:5000/e1e498-tools/uvicorn-gunicorn-fastapi:python3.8-latest
+ARG NODE_DOCKER_IMAGE=registry.access.redhat.com/ubi8/nodejs-14
 
 # PHASE 1 - build static html.
 # Pull from local registry - we can't pull from docker due to limits.
 # see https://catalog.redhat.com/software/containers/ubi8/nodejs-14/5ed7887dd70cc50e69c2fabb for details
-FROM registry.access.redhat.com/ubi8/nodejs-14 as static
+FROM ${NODE_DOCKER_IMAGE} as static
 
 # Switch to root user for package installs
 USER 0
 
 ADD web .
-RUN npm i yarn && yarn install --production
 RUN yarn run build
 
 # Switch back to default user
