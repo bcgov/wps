@@ -44,6 +44,7 @@ WPS_ENVIRONMENT_PASSWORD_KEY=$(echo $WPS_ENVIRONMENT_PASSWORD_KEY | sed 's/-/_/g
 WPS_ENVIRONMENT_PASSWORD_KEY=$(echo $WPS_ENVIRONMENT_PASSWORD_KEY | tr '[:lower:]' '[:upper:]')
 
 OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/backup-postgres.dc.yaml \
+    -p APP_LABEL=${NAME_APP}-${SUFFIX} \
     -p NAME=${NAME} \
     -p BACKUP_VOLUME_NAME=${NAME} \
     -p IMAGE_NAMESPACE=${IMAGE_NAMESPACE} \
