@@ -1,7 +1,14 @@
 """ Test the bounding box logic.
 """
 import os
-import gdal
+try:
+    import gdal
+except ImportError:
+    from osgeo import gdal
+try:
+    import ogr
+except ImportError:
+    from osgeo import ogr
 from pyproj import CRS
 from pytest_bdd import scenario, given, then
 from app.weather_models.process_grib import GEO_CRS, get_transformer

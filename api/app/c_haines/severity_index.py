@@ -8,7 +8,10 @@ import tempfile
 import logging
 import json
 from osgeo import gdal
-import ogr
+try:
+    import ogr
+except ImportError:
+    from osgeo import ogr
 import numpy
 from pyproj import Transformer, Proj
 from shapely.ops import transform
