@@ -64,6 +64,8 @@ parameters:
     description: URL for matomo (analytics) site.
   - name: MATOMO_SITE_ID
     description: ID of application for matomo (analytics) tracking.
+  - name: CERTBOT_SERVER
+    description: Certbot server url
 objects:
   - kind: ConfigMap
     apiVersion: v1
@@ -100,3 +102,4 @@ objects:
       rocket.chat-auth-token-secret: ${ROCKET_AUTH_TOKEN}
       rocket.chat-user-id-secret: ${ROCKET_USER_ID}
       env.openshift-namespace-api: ${OPENSHIFT_NAMESPACE_API}
+      certbot-server: ${CERTBOT_SERVER}

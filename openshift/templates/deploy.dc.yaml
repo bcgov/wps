@@ -302,4 +302,3 @@ objects:
         name: ${NAME}-${SUFFIX}
       tls:
         termination: edge
-        insecureEdgeTerminationPolicy: Redirect
