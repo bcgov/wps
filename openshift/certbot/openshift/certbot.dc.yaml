@@ -68,7 +68,10 @@ objects:
                     - name: CERTBOT_DRY_RUN
                       value: "${DRYRUN}"
                     - name: CERTBOT_SERVER
-                      value: "${CERTBOT_SERVER}"
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${NAME}-global
+                          key: certbot-server
                   resources:
                     requests:
                       cpu: 50m
@@ -99,11 +102,6 @@ parameters:
   - name: "CERTBOT_SUSPEND_CRON"
     required: false
     value: "false"
-  - name: "CERTBOT_SERVER"
-    required: true
-    value: https://acme-staging-v02.api.letsencrypt.org/directory
-    # value: "https://acme-v02.api.letsencrypt.org/directory"
-    # staging Server: https://acme-staging-v02.api.letsencrypt.org/directory
   - name: "DRYRUN"
     required: false
     value: "true"
