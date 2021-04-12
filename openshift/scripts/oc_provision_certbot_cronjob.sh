@@ -1,7 +1,5 @@
 #!/bin/sh -l
 #
-# TODO: Delete this file! Redundant in OCP4
-# TODO: Delete mariadb-backup-pvc when deleting this file.
 source "$(dirname ${0})/common/common"
 
 #%
@@ -23,17 +21,23 @@ source "$(dirname ${0})/common/common"
 #%   ${THIS_FILE} pr-0 apply
 #%
 
-
 # Target project override for Dev or Prod deployments
-#
 PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
+# Default to testing endpoint
+CERTBOT_SERVER="${CERTBOT_SERVER:-"https://acme-staging-v02.api.letsencrypt.org/directory"}"
+# Default to staging
+CERTBOT_STAGING="${CERTBOT_STAGING:-true}"
+# Default to dry run
+DRYRUN="${DRYRUN:-true}"
 
-# Prepare variables for backups
-NAME="${NAME_APP}-${SUFFIX}"
 
-OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/mariadb-backup-pvc.json \
-    -p NAME=${NAME} \
-    -p BACKUP_VOLUME_NAME=${BACKUP_VOLUME_NAME:-"matomo-backup-${NAME_APP}-${SUFFIX}"}"
+OC_PROCESS="oc process -n ${PROJ_TARGET} -f ${TEMPLATE_PATH}/../certbot/openshift/certbot.dc.yaml \
+    -p EMAIL=${EMAIL:-BCWS.PredictiveServices@gov.bc.ca} \
+    -p NAMESPACE=${PROJ_TOOLS} \
+    -p CERTBOT_SERVER=${CERTBOT_SERVER} \
+    -p CERTBOT_STAGING=${CERTBOT_STAGING} \
+    -p DRYRUN=${DRYRUN} \
+    ${DEBUG:+ " -p DEBUG=${DEBUG}"}"
 
 # Apply template (apply or use --dry-run)
 #

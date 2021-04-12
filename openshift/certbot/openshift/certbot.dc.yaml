@@ -1,0 +1,131 @@
+---
+apiVersion: template.openshift.io/v1
+kind: Template
+labels:
+  app: certbot
+metadata:
+  name: certbot
+objects:
+  - apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      name: certbot
+  - apiVersion: v1
+    groupNames: null
+    kind: RoleBinding
+    metadata:
+      name: certbot_edit
+    roleRef:
+      name: edit
+    subjects:
+      - kind: ServiceAccount
+        name: certbot
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: certbot
+    spec:
+      storageClassName: netapp-file-standard
+      accessModes:
+        - ReadWriteMany
+      resources:
+        requests:
+          storage: 1Gi
+  - apiVersion: batch/v1beta1
+    kind: CronJob
+    metadata:
+      name: certbot
+    spec:
+      concurrencyPolicy: Replace
+      failedJobsHistoryLimit: 3
+      successfulJobsHistoryLimit: 3
+      startingDeadlineSeconds: 60
+      jobTemplate:
+        metadata:
+        spec:
+          backoffLimit: 6
+          activeDeadlineSeconds: 300
+          parallelism: 1
+          completions: 1
+          template:
+            metadata:
+              labels:
+                app: certbot
+            spec:
+              containers:
+                - name: certbot
+                  image: "${IMAGE_REGISTRY}/${NAMESPACE}/${SOURCE_IMAGE_NAME}:${TAG_NAME}"
+                  imagePullPolicy: Always
+                  env:
+                    - name: CERTBOT_EMAIL
+                      value: "${EMAIL}"
+                    - name: CERTBOT_DEBUG
+                      value: "${DEBUG}"
+                    - name: CERTBOT_DELETE_ACME_ROUTES
+                      value: "${DELETE_ACME_ROUTES}"
+                    - name: CERTBOT_STAGING
+                      value: "${CERTBOT_STAGING}"
+                    - name: CERTBOT_DRY_RUN
+                      value: "${DRYRUN}"
+                    - name: CERTBOT_SERVER
+                      value: "${CERTBOT_SERVER}"
+                  resources:
+                    requests:
+                      cpu: 50m
+                    limits:
+                      cpu: 250m
+                  volumeMounts:
+                    - mountPath: /etc/letsencrypt
+                      name: certbot-config
+              restartPolicy: Never
+              serviceAccountName: certbot
+              volumes:
+                - name: certbot-config
+                  persistentVolumeClaim:
+                    claimName: certbot
+      schedule: "${CERTBOT_CRON_SCHEDULE}"
+      suspend: "${{CERTBOT_SUSPEND_CRON}}"
+
+parameters:
+  # https://crontab.guru/every-6-hours
+  - name: "CERTBOT_CRON_SCHEDULE"
+    required: false
+    value: "0 */12 * * *"
+    # Let's Encrypt Stage environment will help with non-prod cert renewals, so you don't hit limits
+  - name: "CERTBOT_STAGING"
+    required: false
+    value: "true"
+    # In environments using wildcard *.apps.silver.devops cert, you might want to create the cronjob for consistency, but suspend it
+  - name: "CERTBOT_SUSPEND_CRON"
+    required: false
+    value: "false"
+  - name: "CERTBOT_SERVER"
+    required: true
+    value: https://acme-staging-v02.api.letsencrypt.org/directory
+    # value: "https://acme-v02.api.letsencrypt.org/directory"
+    # staging Server: https://acme-staging-v02.api.letsencrypt.org/directory
+  - name: "DRYRUN"
+    required: false
+    value: "true"
+  - name: "DEBUG"
+    required: false
+    value: "false"
+  - name: "DELETE_ACME_ROUTES"
+    required: false
+    value: "true"
+  - name: "EMAIL"
+    required: true
+  - name: "NAMESPACE"
+    required: true
+    value: ""
+  - name: "IMAGE_REGISTRY"
+    description: The base OpenShift docker registry
+    displayName: Docker Image Registry
+    required: true
+    value: image-registry.openshift-image-registry.svc:5000
+  - name: "SOURCE_IMAGE_NAME"
+    required: false
+    value: "certbot"
+  - name: "TAG_NAME"
+    required: false
+    value: "latest"
