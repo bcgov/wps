@@ -1,0 +1,11 @@
+FROM registry.access.redhat.com/ubi8/nodejs-14
+
+# Switch to root user for package installs
+USER 0
+
+ADD web .
+RUN npm i yarn && yarn install --production
+RUN yarn run build
+
+# Switch back to default user
+USER 1001

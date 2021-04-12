@@ -61,6 +61,24 @@ jobs:
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
           EPHEMERAL_STORAGE=True bash openshift/scripts/oc_provision_backup_mariadb_cronjob.sh ${SUFFIX} apply
 
+  build-html-image:
+    name: Build Html Image
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Set Variables
+        shell: bash
+        run: |
+          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Build Image
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
+          GIT_BRANCH=${GITHUB_HEAD_REF} OUTPUT_SUFFIX=-html DOCKER_FILE=Dockerfile.html bash openshift/scripts/oc_build.sh ${SUFFIX} apply
+
   build-image:
     name: Build Image
     runs-on: ubuntu-20.04
@@ -81,7 +99,7 @@ jobs:
 
   deploy-dev:
     name: Deploy to Dev
-    needs: [build-image, prepare-dev-database]
+    needs: [build-image, build-html-image, prepare-dev-database]
     runs-on: ubuntu-20.04
     steps:
       - name: Set Variables
