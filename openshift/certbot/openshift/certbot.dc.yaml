@@ -70,7 +70,7 @@ objects:
                     - name: CERTBOT_SERVER
                       valueFrom:
                         secretKeyRef:
-                          name: ${NAME}-global
+                          name: wps-global
                           key: certbot-server
                   resources:
                     requests:
