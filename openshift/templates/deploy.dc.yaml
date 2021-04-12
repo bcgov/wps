@@ -92,9 +92,18 @@ objects:
         spec:
           automountServiceAccountToken: false
           containers:
+            - image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${NAME}-${SUFFIX}-html:${SUFFIX}
+              name: ${NAME}-html
+              imagePullPolicy: Always
+              volumeMounts:
+                - name: html
+                - mountPath: /opt/app-root/src/build
             - image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${NAME}-${SUFFIX}:${SUFFIX}
               imagePullPolicy: Always
               name: ${NAME}
+              volumeMounts:
+                - name: html
+                - mountPath: /app/static
               env:
                 - name: ORIGINS
                   value: ${ALLOWED_ORIGINS}

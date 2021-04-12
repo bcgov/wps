@@ -34,6 +34,8 @@ parameters:
     description: Dockerfile to use
     required: true
     value: Dockerfile
+  - name: OUTPUT_SUFFIX
+    required: false
 objects:
   - apiVersion: v1
     kind: ImageStream
@@ -60,7 +62,7 @@ objects:
       output:
         to:
           kind: ImageStreamTag
-          name: ${NAME}-${SUFFIX}:${SUFFIX}
+          name: ${NAME}-${SUFFIX}${OUTPUT_SUFFIX}:${SUFFIX}
       resources:
         limits:
           cpu: "4"
