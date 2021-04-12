@@ -23,8 +23,6 @@ source "$(dirname ${0})/common/common"
 
 # Target project override for Dev or Prod deployments
 PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
-# Default to testing endpoint
-CERTBOT_SERVER="${CERTBOT_SERVER:-"https://acme-staging-v02.api.letsencrypt.org/directory"}"
 # Default to staging
 CERTBOT_STAGING="${CERTBOT_STAGING:-true}"
 # Default to dry run
@@ -34,7 +32,6 @@ DRYRUN="${DRYRUN:-true}"
 OC_PROCESS="oc process -n ${PROJ_TARGET} -f ${TEMPLATE_PATH}/../certbot/openshift/certbot.dc.yaml \
     -p EMAIL=${EMAIL:-BCWS.PredictiveServices@gov.bc.ca} \
     -p NAMESPACE=${PROJ_TOOLS} \
-    -p CERTBOT_SERVER=${CERTBOT_SERVER} \
     -p CERTBOT_STAGING=${CERTBOT_STAGING} \
     -p DRYRUN=${DRYRUN} \
     ${DEBUG:+ " -p DEBUG=${DEBUG}"}"
