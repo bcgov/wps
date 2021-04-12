@@ -7,11 +7,11 @@ from contextlib import contextmanager
 import tempfile
 import logging
 import json
-from osgeo import gdal
 try:
     import ogr
 except ImportError:
     from osgeo import ogr
+from osgeo import gdal
 import numpy
 from pyproj import Transformer, Proj
 from shapely.ops import transform
