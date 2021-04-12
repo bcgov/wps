@@ -1,0 +1,21 @@
+""" Class model that reflect resources and map to database tables relating audits created
+by authenticated user requests.
+"""
+from sqlalchemy import (Column, Integer, String, UniqueConstraint)
+from app.db.database import Base
+from app.db.models.common import TZTimeStamp
+
+
+class Audit(Base):
+    """ Class representing table structure of 'audits' table in DB.
+        Each record is immutably created for each authenticated API request
+        based on IDIR username, request path and timestamp.
+    """
+    __tablename__ = 'audits'
+    __table_args__ = (
+        {'comment': 'The audit log of an authenticated request by a user.'}
+    )
+    id = Column(Integer, primary_key=True)
+    username = Column(String, nullable=False, index=True)
+    path = Column(String, nullable=False, index=True)
+    create_timestamp = Column(TZTimeStamp, nullable=False, index=True)
