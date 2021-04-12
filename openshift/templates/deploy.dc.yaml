@@ -90,20 +90,31 @@ objects:
           labels:
             name: ${NAME}-${SUFFIX}
         spec:
+          volumes:
+            - name: html
           automountServiceAccountToken: false
           containers:
-            - image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${NAME}-${SUFFIX}-html:${SUFFIX}
+            - image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${NAME}-${SUFFIX}-html:${SUFFIX}-html
               name: ${NAME}-html
               imagePullPolicy: Always
               volumeMounts:
                 - name: html
-                - mountPath: /opt/app-root/src/build
+                  mountPath: app/static
+              command: ["/bin/sh"]
+              args:
+                - "-c"
+                - >-
+                  cp -R /opt/app-root/src/build/* /app/static &&
+                  while true; do
+                    sleep 1;
+                  done
             - image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${NAME}-${SUFFIX}:${SUFFIX}
               imagePullPolicy: Always
               name: ${NAME}
               volumeMounts:
                 - name: html
-                - mountPath: /app/static
+                  mountPath: /app/static
+                  readOnly: true
               env:
                 - name: ORIGINS
                   value: ${ALLOWED_ORIGINS}
