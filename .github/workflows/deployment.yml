@@ -77,7 +77,7 @@ jobs:
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
-          GIT_BRANCH=${GITHUB_HEAD_REF} OUTPUT_SUFFIX=-html DOCKER_FILE=Dockerfile.html bash openshift/scripts/oc_build.sh ${SUFFIX} apply
+          GIT_BRANCH=${GITHUB_HEAD_REF} DOCKER_FILE=Dockerfile.html bash openshift/scripts/oc_build.sh ${SUFFIX}-html apply
 
   build-image:
     name: Build Image
