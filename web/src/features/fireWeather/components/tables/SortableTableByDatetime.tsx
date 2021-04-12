@@ -249,6 +249,7 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
                         const value = row[column.id]
                         let display = null
                         let className = undefined
+                        let testId = undefined
 
                         if (typeof value === 'string' && column.formatDt) {
                           display = column.formatDt(value)
@@ -261,14 +262,17 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
                           case 'relative_humidity': {
                             if (rowIds['relative_humidity'].includes(idx)) {
                               className = classes.minRH
+                              testId = `min-RH-td`
                             }
                             break
                           }
                           case 'temperature': {
                             if (rowIds['min_temp'].includes(idx)) {
                               className = classes.minTemperature
+                              testId = `min-temperature-td`
                             } else if (rowIds['max_temp'].includes(idx)) {
                               className = classes.maxTemperature
+                              testId = `max-temperature-td`
                             }
                             break
                           }
@@ -277,18 +281,21 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
                             'total_precipitation': {
                             if (rowIds['precipitation'].includes(idx)) {
                               className = classes.maxPrecipitation
+                              testId = `max-precipitation-td`
                             }
                             break
                           }
                           case 'wind_speed': {
                             if (rowIds['wind'].includes(idx)) {
                               className = classes.maxWindSpeed
+                              testId = `max-wind-speed-td`
                             }
                             break
                           }
                           case 'wind_direction': {
                             if (rowIds['wind'].includes(idx)) {
                               className = classes.directionOfMaxWindSpeed
+                              testId = `direction-max-wind-speed-td`
                             }
                             break
                           }
@@ -299,6 +306,7 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
                             key={column.id}
                             align={column.align}
                             className={className}
+                            data-testid={testId}
                           >
                             {display}
                           </TableCell>
