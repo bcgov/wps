@@ -18,6 +18,10 @@ class MockJWTDecode:
     def __getitem__(self, key):
         return self.decoded_token[key]
 
+    def get(self, key, _):
+        "Returns the mock decoded token"
+        return self.decoded_token[key]
+
     def decode(self):
         "Returns the mock decoded token"
         return self.decoded_token

@@ -16,7 +16,7 @@ class APIAccessAudit(Base):
         {'comment': 'The audit log of an authenticated request by a user.'}
     )
     id = Column(Integer, primary_key=True)
-    create_user = Column(String, nullable=False, index=True)
+    create_user = Column(String, nullable=True, index=True)
     path = Column(String, nullable=False, index=True)
     create_timestamp = Column(TZTimeStamp, nullable=False, index=True)
     success = Column(Boolean, nullable=False, default=False)

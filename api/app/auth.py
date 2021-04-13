@@ -15,7 +15,8 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/token")
 
 
 async def authenticate(token: str = Depends(oauth2_scheme)):
-    """ Returns Decoded token when validation of the token is successful. Returns empty dictionary on failure to decode """
+    """ Returns Decoded token when validation of the token is successful.
+        Returns empty dictionary on failure to decode """
     # RSA public key format
     keycloak_public_key = '-----BEGIN PUBLIC KEY-----\n' + \
         config.get('KEYCLOAK_PUBLIC_KEY') + '\n-----END PUBLIC KEY-----'
@@ -24,17 +25,17 @@ async def authenticate(token: str = Depends(oauth2_scheme)):
         decoded_token = jwt.decode(token, keycloak_public_key, algorithm='RS256')
         return decoded_token
     except InvalidTokenError as exception:
-        logger.error('Could not validate the credential', exception)
-        logger.error(detail)
+        logger.error('Could not validate the credential %s', exception)
         return {}
 
 
 async def audit(request: Request, token=Depends(authenticate)):
     """ Audits attempted requests based on bearer token. """
     path = request.url.path
+    username = token.get('preferred_username', None)
 
     if not token:
-        create_api_access_audit_log(None, False, path)
+        create_api_access_audit_log(username, False, path)
         return False
 
     username = token['preferred_username']
