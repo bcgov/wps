@@ -23,7 +23,7 @@ async def authenticate(token: str = Depends(oauth2_scheme)):
     try:
         decoded_token = jwt.decode(token, keycloak_public_key, algorithm='RS256')
         return decoded_token
-    except InvalidTokenError:
+    except InvalidTokenError as exception:
         logger.error('Could not validate the credential', exception)
         logger.error(detail)
         return {}
