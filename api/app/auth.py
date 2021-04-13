@@ -15,7 +15,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/token")
 
 
 async def authenticate(token: str = Depends(oauth2_scheme)):
-    """ Returns True when validation of the token is successful. """
+    """ Returns Decoded token when validation of the token is successful. Returns empty dictionary on failure to decode """
     # RSA public key format
     keycloak_public_key = '-----BEGIN PUBLIC KEY-----\n' + \
         config.get('KEYCLOAK_PUBLIC_KEY') + '\n-----END PUBLIC KEY-----'
