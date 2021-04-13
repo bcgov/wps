@@ -2,7 +2,7 @@
 """
 import os
 
-from osgeo import gdal, ogr
+from osgeo import gdal
 from pyproj import CRS
 from pytest_bdd import scenario, given, then
 from app.weather_models.process_grib import GEO_CRS, get_transformer
