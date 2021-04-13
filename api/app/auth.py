@@ -5,7 +5,7 @@ from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer
 import jwt
 from app import config
-from app.db.crud.audits import create_audit_log
+from app.db.crud.api_access_audits import create_api_access_audit_log
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +23,7 @@ async def authenticate(request: Request, token: str = Depends(oauth2_scheme)):
         decoded_token = jwt.decode(token, keycloak_public_key, algorithm='RS256')
         username = decoded_token['preferred_username']
         path = request.url.path
-        create_audit_log(username, path)
+        create_api_access_audit_log(username, path)
         return True
     except Exception as exception:
         detail = 'Could not validate the credential ({})'.format(exception)
