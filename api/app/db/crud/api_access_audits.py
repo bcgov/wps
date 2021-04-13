@@ -1,6 +1,6 @@
 """ CRUD create function for audit logs
 """
-from datetime import timezone, datetime
+from app.time_utils import get_utc_now
 import logging
 from sqlalchemy.exc import IntegrityError
 from app.db.models import APIAccessAudit
@@ -16,7 +16,7 @@ def create_api_access_audit_log(
         path: str) -> APIAccessAudit:
     """ Create an audit log. """
     with app.db.database.get_write_session_scope() as session:
-        now = datetime.now(tz=timezone.utc)
+        now = get_utc_now()
         audit_log = APIAccessAudit(create_user=username, path=path, success=success,
                                    create_timestamp=now)
         try:
