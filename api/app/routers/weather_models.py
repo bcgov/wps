@@ -2,7 +2,7 @@
 """
 import logging
 from fastapi import APIRouter, Depends
-from app.auth import authentication_required, audit
+from app.dependency import authentication_required, audit
 from app.weather_models import ModelEnum
 from app.schemas.weather_models import (
     WeatherModelPredictionSummaryResponse,

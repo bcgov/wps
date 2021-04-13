@@ -36,11 +36,8 @@ async def audit(request: Request, token=Depends(authenticate)):
 
     if not token:
         create_api_access_audit_log(username, False, path)
-        return False
 
-    username = token['preferred_username']
     create_api_access_audit_log(username, True, path)
-    return True
 
 
 async def authentication_required(token=Depends(authenticate)):
