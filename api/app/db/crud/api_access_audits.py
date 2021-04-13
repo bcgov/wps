@@ -2,7 +2,6 @@
 """
 from app.time_utils import get_utc_now
 import logging
-from sqlalchemy.exc import IntegrityError
 from app.db.models import APIAccessAudit
 
 import app.db.database
@@ -19,10 +18,5 @@ def create_api_access_audit_log(
         now = get_utc_now()
         audit_log = APIAccessAudit(create_user=username, path=path, success=success,
                                    create_timestamp=now)
-        try:
-            session.add(audit_log)
-            session.commit()
-        except IntegrityError:
-            logger.info('Skipping duplicate record for username=%s @ %s for path=%s',
-                        username, now, path)
-            session.rollback()
+        session.add(audit_log)
+        session.commit()
