@@ -3,7 +3,7 @@
 import logging
 from datetime import timedelta
 from fastapi import APIRouter, Depends
-from app.dependency import authentication_required, audit
+from app.auth import authentication_required, audit
 from app.schemas.forecasts import NoonForecastResponse, NoonForecastSummariesResponse
 from app.schemas.shared import WeatherDataRequest
 from app.forecasts.noon_forecasts import fetch_noon_forecasts
