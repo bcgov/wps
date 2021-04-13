@@ -85,6 +85,59 @@ describe('MoreCast Page', () => {
     })
 
     it('Observation, noon forecast, and noon GDPS should be displayed in tables in default active tab', () => {
+      const checkMaxTempFormattingAndLength = (tableName: string, stationCode: number) => {
+        cy.getByTestId(`${tableName}-${stationCode}`)
+        .getByTestId('max-temperature-td')
+        .should('have.css', 'background-color', 'rgb(255, 179, 179)')
+        .should('have.length.at.least', 1)
+      }
+
+      const checkMinTempFormattingAndLength = (tableName: string, stationCode: number) => {
+        cy.getByTestId(`${tableName}-${stationCode}`)
+        .getByTestId('min-temperature-td')
+        .should('have.css', 'background-color', 'rgb(132, 184, 231)')
+        .should('have.length.at.least', 1)
+      }
+
+      const checkMinRHFormattingAndLength = (tableName: string, stationCode: number) => {
+        cy.getByTestId(`${tableName}-${stationCode}`)
+        .getByTestId('min-RH-td')
+        .should('have.css', 'background-color', 'rgb(242, 153, 74)')
+        .should('have.length.at.least', 1)
+      }
+
+      const checkMaxPrecipFormattingAndLength = (tableName: string, stationCode: number) => {
+        cy.getByTestId(`${tableName}-${stationCode}`)
+        .getByTestId('max-precipitation-td')
+        .should('have.css', 'border-width', '2px')
+        .should('have.length.at.least', 1)
+      }
+
+      const checkMaxWindSpeedFormattingAndLength = (tableName: string, stationCode: number) => {
+        cy.getByTestId(`${tableName}-${stationCode}`)
+        .getByTestId('max-wind-speed-td')
+        .should('have.css', 'border-right', '2px solid rgb(0, 0, 0)')
+        .should('have.css', 'border-left-width', '0px')
+        .should('have.length.at.least', 1)
+      }
+
+      const checkWindDirectionFormattingAndLength = (tableName: string, stationCode: number) => {
+        cy.getByTestId(`${tableName}-${stationCode}`)
+        .getByTestId('direction-max-wind-speed-td')
+        .should('have.css', 'border-left', '2px solid rgb(0, 0, 0)')
+        .should('have.css', 'border-right-width', '0px')
+        .should('have.length.at.least', 1)
+      }
+
+      const checkTableCellHighlighting = (tableName: string, stationCode: number) => {
+        checkMaxTempFormattingAndLength(tableName, stationCode)
+        checkMinTempFormattingAndLength(tableName, stationCode)
+        checkMinRHFormattingAndLength(tableName, stationCode)
+        checkMaxPrecipFormattingAndLength(tableName, stationCode)
+        checkMaxWindSpeedFormattingAndLength(tableName, stationCode)
+        checkWindDirectionFormattingAndLength(tableName, stationCode)
+      }
+      
       cy.getByTestId(`observations-table-${stationCode}`)
         .find('tbody > tr')
         .should('have.length', numOfObservations)
@@ -105,98 +158,21 @@ describe('MoreCast Page', () => {
         .find('tbody > tr:first > td:first')
         .should('contain', earliestDate)
 
-      // Check for min/max highlighting in observations table cells
-      cy.getByTestId(`observations-table-${stationCode}`)
-        .getByTestId('max-temperature-td')
-        .should('have.css', 'background-color', 'rgb(255, 179, 179)')
-        .should('have.length.at.least', 1)
-      cy.getByTestId(`observations-table-${stationCode}`)
-        .getByTestId('min-temperature-td')
-        .should('have.css', 'background-color', 'rgb(132, 184, 231)')
-        .should('have.length.at.least', 1)
-      cy.getByTestId(`observations-table-${stationCode}`)
-        .getByTestId('min-RH-td')
-        .should('have.css', 'background-color', 'rgb(242, 153, 74)')
-        .should('have.length.at.least', 1)
-      cy.getByTestId(`observations-table-${stationCode}`)
-        .getByTestId('max-precipitation-td')
-        .should('have.css', 'border-width', '2px')
-        .should('have.length.at.least', 1)
-      cy.getByTestId(`observations-table-${stationCode}`)
-        .getByTestId('max-wind-speed-td')
-        .should('have.css', 'border-right', '2px solid rgb(0, 0, 0)')
-        .should('have.css', 'border-left-width', '0px')
-        .should('have.length.at.least', 1)
-      cy.getByTestId(`observations-table-${stationCode}`)
-        .getByTestId('direction-max-wind-speed-td')
-        .should('have.css', 'border-left', '2px solid rgb(0, 0, 0)')
-        .should('have.css', 'border-right-width', '0px')
-        .should('have.length.at.least', 1)
+      checkTableCellHighlighting('observations-table', stationCode)
 
       // Check num of interpolated noon GDPS rows
       cy.getByTestId(`noon-gdps-table-${stationCode}`)
         .find('tbody > tr')
         .should('have.length', 14)
-      // Check for min/max highlighting in noon GDPS table cells
-      cy.getByTestId(`noon-gdps-table-${stationCode}`)
-        .getByTestId('max-temperature-td')
-        .should('have.css', 'background-color', 'rgb(255, 179, 179)')
-        .should('have.length.at.least', 1)
-      cy.getByTestId(`noon-gdps-table-${stationCode}`)
-        .getByTestId('min-temperature-td')
-        .should('have.css', 'background-color', 'rgb(132, 184, 231)')
-        .should('have.length.at.least', 1)
-      cy.getByTestId(`noon-gdps-table-${stationCode}`)
-        .getByTestId('min-RH-td')
-        .should('have.css', 'background-color', 'rgb(242, 153, 74)')
-        .should('have.length.at.least', 1)
-      cy.getByTestId(`noon-gdps-table-${stationCode}`)
-        .getByTestId('max-precipitation-td')
-        .should('have.css', 'border-width', '2px')
-        .should('have.length.at.least', 1)
-      cy.getByTestId(`noon-gdps-table-${stationCode}`)
-        .getByTestId('max-wind-speed-td')
-        .should('have.css', 'border-right', '2px solid rgb(0, 0, 0)')
-        .should('have.css', 'border-left-width', '0px')
-        .should('have.length.at.least', 1)
-      cy.getByTestId(`noon-gdps-table-${stationCode}`)
-        .getByTestId('direction-max-wind-speed-td')
-        .should('have.css', 'border-left', '2px solid rgb(0, 0, 0)')
-        .should('have.css', 'border-right-width', '0px')
-        .should('have.length.at.least', 1)
+      checkTableCellHighlighting('noon-gdps-table', stationCode)
+
 
       // Check num of noon forecasts rows
       cy.getByTestId(`noon-forecasts-table-${stationCode}`)
         .find('tbody > tr')
         .should('have.length', numOfForecasts)
-      // Check for min/max highlighting in noon forecasts table cells
-      cy.getByTestId(`noon-forecasts-table-${stationCode}`)
-        .getByTestId('max-temperature-td')
-        .should('have.css', 'background-color', 'rgb(255, 179, 179)')
-        .should('have.length.at.least', 1)
-      cy.getByTestId(`noon-forecasts-table-${stationCode}`)
-        .getByTestId('min-temperature-td')
-        .should('have.css', 'background-color', 'rgb(132, 184, 231)')
-        .should('have.length.at.least', 1)
-      cy.getByTestId(`noon-forecasts-table-${stationCode}`)
-        .getByTestId('min-RH-td')
-        .should('have.css', 'background-color', 'rgb(242, 153, 74)')
-        .should('have.length.at.least', 1)
-      cy.getByTestId(`noon-forecasts-table-${stationCode}`)
-        .getByTestId('max-precipitation-td')
-        .should('have.css', 'border-width', '2px')
-        .should('have.length.at.least', 1)
-      cy.getByTestId(`noon-forecasts-table-${stationCode}`)
-        .getByTestId('max-wind-speed-td')
-        .should('have.css', 'border-right', '2px solid rgb(0, 0, 0)')
-        .should('have.css', 'border-left-width', '0px')
-        .should('have.length.at.least', 1)
-      cy.getByTestId(`noon-forecasts-table-${stationCode}`)
-        .getByTestId('direction-max-wind-speed-td')
-        .should('have.css', 'border-left', '2px solid rgb(0, 0, 0)')
-        .should('have.css', 'border-right-width', '0px')
-        .should('have.length.at.least', 1)
-
+      checkTableCellHighlighting('noon-forecasts-table', stationCode)
+ 
       // Check that collapse and expand functionality works
       cy.getByTestId(`observations-table-${stationCode}-accordion`).click() // Collapse Observations table
       cy.wait(500)

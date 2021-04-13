@@ -276,9 +276,9 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
                             }
                             break
                           }
-                          case 'precipitation' ||
-                            'delta_precipitation' ||
-                            'total_precipitation': {
+                          case 'precipitation':
+                          case 'delta_precipitation':
+                          case 'total_precipitation': {
                             if (rowIds['precipitation'].includes(idx)) {
                               className = classes.maxPrecipitation
                               testId = `max-precipitation-td`
