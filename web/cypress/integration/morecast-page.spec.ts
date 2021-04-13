@@ -85,35 +85,35 @@ describe('MoreCast Page', () => {
     })
 
     it('Observation, noon forecast, and noon GDPS should be displayed in tables in default active tab', () => {
-      const checkMaxTempFormattingAndLength = (tableName: string, stationCode: number) => {
+      const checkMaxTempFormattingAndLength = (tableName: string) => {
         cy.getByTestId(`${tableName}-${stationCode}`)
         .getByTestId('max-temperature-td')
         .should('have.css', 'background-color', 'rgb(255, 179, 179)')
         .should('have.length.at.least', 1)
       }
 
-      const checkMinTempFormattingAndLength = (tableName: string, stationCode: number) => {
+      const checkMinTempFormattingAndLength = (tableName: string) => {
         cy.getByTestId(`${tableName}-${stationCode}`)
         .getByTestId('min-temperature-td')
         .should('have.css', 'background-color', 'rgb(132, 184, 231)')
         .should('have.length.at.least', 1)
       }
 
-      const checkMinRHFormattingAndLength = (tableName: string, stationCode: number) => {
+      const checkMinRHFormattingAndLength = (tableName: string) => {
         cy.getByTestId(`${tableName}-${stationCode}`)
         .getByTestId('min-RH-td')
         .should('have.css', 'background-color', 'rgb(242, 153, 74)')
         .should('have.length.at.least', 1)
       }
 
-      const checkMaxPrecipFormattingAndLength = (tableName: string, stationCode: number) => {
+      const checkMaxPrecipFormattingAndLength = (tableName: string) => {
         cy.getByTestId(`${tableName}-${stationCode}`)
         .getByTestId('max-precipitation-td')
         .should('have.css', 'border-width', '2px')
         .should('have.length.at.least', 1)
       }
 
-      const checkMaxWindSpeedFormattingAndLength = (tableName: string, stationCode: number) => {
+      const checkMaxWindSpeedFormattingAndLength = (tableName: string) => {
         cy.getByTestId(`${tableName}-${stationCode}`)
         .getByTestId('max-wind-speed-td')
         .should('have.css', 'border-right', '2px solid rgb(0, 0, 0)')
@@ -121,7 +121,7 @@ describe('MoreCast Page', () => {
         .should('have.length.at.least', 1)
       }
 
-      const checkWindDirectionFormattingAndLength = (tableName: string, stationCode: number) => {
+      const checkWindDirectionFormattingAndLength = (tableName: string) => {
         cy.getByTestId(`${tableName}-${stationCode}`)
         .getByTestId('direction-max-wind-speed-td')
         .should('have.css', 'border-left', '2px solid rgb(0, 0, 0)')
@@ -129,13 +129,13 @@ describe('MoreCast Page', () => {
         .should('have.length.at.least', 1)
       }
 
-      const checkTableCellHighlighting = (tableName: string, stationCode: number) => {
-        checkMaxTempFormattingAndLength(tableName, stationCode)
-        checkMinTempFormattingAndLength(tableName, stationCode)
-        checkMinRHFormattingAndLength(tableName, stationCode)
-        checkMaxPrecipFormattingAndLength(tableName, stationCode)
-        checkMaxWindSpeedFormattingAndLength(tableName, stationCode)
-        checkWindDirectionFormattingAndLength(tableName, stationCode)
+      const checkTableCellHighlighting = (tableName: string) => {
+        checkMaxTempFormattingAndLength(tableName)
+        checkMinTempFormattingAndLength(tableName)
+        checkMinRHFormattingAndLength(tableName)
+        checkMaxPrecipFormattingAndLength(tableName)
+        checkMaxWindSpeedFormattingAndLength(tableName)
+        checkWindDirectionFormattingAndLength(tableName)
       }
       
       cy.getByTestId(`observations-table-${stationCode}`)
