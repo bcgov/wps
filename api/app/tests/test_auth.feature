@@ -7,10 +7,10 @@ Feature: Authentication
 
         Examples:
             | token        | status | message                                                 | endpoint                                          |
-            | Basic token  | 401    | Not authenticated                                       | /api/weather_models/GDPS/predictions/summaries/   |
-            | just_token   | 401    | Not authenticated                                       | /api/weather_models/GDPS/predictions/summaries/   |
+            | Basic token  | 401    | Could not validate the credential (Not enough segments) | /api/weather_models/GDPS/predictions/summaries/   |
+            | just_token   | 401    | Could not validate the credential (Not enough segments) | /api/weather_models/GDPS/predictions/summaries/   |
             | Bearer token | 401    | Could not validate the credential (Not enough segments) | /api/weather_models/GDPS/predictions/summaries/   |
-            | just_token   | 401    | Not authenticated                                       | /api/weather_models/GDPS/predictions/most_recent/ |
+            | just_token   | 401    | Could not validate the credential (Not enough segments) | /api/weather_models/GDPS/predictions/most_recent/ |
             | Bearer token | 401    | Could not validate the credential (Not enough segments) | /api/weather_models/GDPS/predictions/most_recent/ |
 
     Scenario: Verifying authenticated users
