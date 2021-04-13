@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.applications import Starlette
 from app import schemas, configure_logging
 from app.percentile import get_precalculated_percentiles
-from app.auth import authenticate
+from app.auth import authentication_required
 from app import config
 from app import health
 from app import hourlies
@@ -115,7 +115,7 @@ async def get_health():
 
 
 @api.post('/observations/', response_model=schemas.observations.WeatherStationHourlyReadingsResponse)
-async def get_hourlies(request: schemas.shared.WeatherDataRequest, _: bool = Depends(authenticate)):
+async def get_hourlies(request: schemas.shared.WeatherDataRequest, _=Depends(authentication_required)):
     """ Returns hourly observations for the last 5 days, for the specified weather stations """
     try:
         logger.info('/observations/')

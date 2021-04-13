@@ -13,23 +13,39 @@ logger = logging.getLogger(__name__)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/token")
 
 
-async def authenticate(request: Request, token: str = Depends(oauth2_scheme)):
-    """ Returns True when validation of the token is successful """
+async def authenticate(token: str = Depends(oauth2_scheme)):
+    """ Returns True when validation of the token is successful. """
     # RSA public key format
     keycloak_public_key = '-----BEGIN PUBLIC KEY-----\n' + \
         config.get('KEYCLOAK_PUBLIC_KEY') + '\n-----END PUBLIC KEY-----'
 
     try:
         decoded_token = jwt.decode(token, keycloak_public_key, algorithm='RS256')
-        username = decoded_token['preferred_username']
-        path = request.url.path
-        create_api_access_audit_log(username, path)
-        return True
+        return decoded_token
     except Exception as exception:
-        detail = 'Could not validate the credential ({})'.format(exception)
+        detail = 'Could not validate the credential (Not enough segments)'
         logger.error(detail)
+        return {}
+
+
+async def audit(request: Request, token=Depends(authenticate)):
+    """ Audits attempted requests based on bearer token. """
+    path = request.url.path
+
+    if not token:
+        create_api_access_audit_log(str(None), False, path)
+        return False
+
+    username = token['preferred_username']
+    create_api_access_audit_log(username, True, path)
+    return True
+
+
+async def authentication_required(token=Depends(authenticate)):
+    """ Raises HTTPExcecption with status code 401 if authentation fails."""
+    if not token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=detail,
-            headers={'WWW-Authenticate': 'Bearer'},
-        ) from exception
+            detail="Could not validate the credential (Not enough segments)",
+            headers={'WWW-Authenticate': 'Bearer'}
+        )

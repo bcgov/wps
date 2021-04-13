@@ -1,7 +1,7 @@
 """ Class model that reflect resources and map to database tables relating audits created
 by authenticated user requests.
 """
-from sqlalchemy import (Column, Integer, String, UniqueConstraint)
+from sqlalchemy import (Column, Integer, String, Boolean, UniqueConstraint)
 from app.db.database import Base
 from app.db.models.common import TZTimeStamp
 
@@ -19,3 +19,4 @@ class APIAccessAudit(Base):
     create_user = Column(String, nullable=False, index=True)
     path = Column(String, nullable=False, index=True)
     create_timestamp = Column(TZTimeStamp, nullable=False, index=True)
+    success = Column(Boolean, nullable=False, default=False)

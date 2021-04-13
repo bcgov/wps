@@ -2,7 +2,7 @@
 """
 import logging
 from fastapi import APIRouter, Depends
-from app.auth import authenticate
+from app.auth import authentication_required, audit
 from app.weather_models import ModelEnum
 from app.schemas.weather_models import (
     WeatherModelPredictionSummaryResponse,
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/weather_models",
-    dependencies=[Depends(authenticate)],
+    dependencies=[Depends(authentication_required), Depends(audit)],
 )
 
 
