@@ -13,7 +13,17 @@ logger = logging.getLogger(__name__)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/token")
 
 
-async def authenticate(token: str = Depends(oauth2_scheme)):
+async def permissive_oauth2_scheme(request: Request):
+    """ Returns parsed auth token if authorized, None otherwise. """
+    try:
+        return await oauth2_scheme.__call__(request)
+    except HTTPException as exception:
+        logger.error('Could not validate the credential %s', exception)
+        create_api_access_audit_log(None, False, request.url.path)
+        return None
+
+
+async def authenticate(token: str = Depends(permissive_oauth2_scheme)):
     """ Returns Decoded token when validation of the token is successful.
         Returns empty dictionary on failure to decode """
     # RSA public key format
