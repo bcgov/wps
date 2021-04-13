@@ -115,7 +115,7 @@ async def get_health():
 
 
 @api.post('/observations/', response_model=schemas.observations.WeatherStationHourlyReadingsResponse)
-async def get_hourlies(request: schemas.shared.WeatherDataRequest, _=Depends(authentication_required)):
+async def get_hourlies(request: schemas.shared.WeatherDataRequest, _=Depends(authentication_required), __=Depends(audit)):
     """ Returns hourly observations for the last 5 days, for the specified weather stations """
     try:
         logger.info('/observations/')
