@@ -11,7 +11,7 @@ class APIAccessAudit(Base):
         Each record is immutably created for each authenticated API request
         based on IDIR username, request path and timestamp.
     """
-    __tablename__ = 'audits'
+    __tablename__ = 'api_access_audits'
     __table_args__ = (
         {'comment': 'The audit log of an authenticated request by a user.'}
     )
