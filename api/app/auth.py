@@ -4,6 +4,7 @@ import logging
 from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer
 import jwt
+from jwt import InvalidTokenError
 from app import config
 from app.db.crud.api_access_audits import create_api_access_audit_log
 
@@ -22,7 +23,7 @@ async def authenticate(token: str = Depends(oauth2_scheme)):
     try:
         decoded_token = jwt.decode(token, keycloak_public_key, algorithm='RS256')
         return decoded_token
-    except Exception as exception:
+    except InvalidTokenError:
         detail = 'Could not validate the credential (Not enough segments)'
         logger.error(detail)
         return {}
