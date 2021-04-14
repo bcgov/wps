@@ -15,15 +15,25 @@ def test_auth_1st_scenario():
     """ BDD Scenario #1. """
 
 
+@given("I'm mocking", target_fixture='spy')
+def given_mock(mocker: MockerFixture):
+    return mocker.spy(app.auth, 'create_api_access_audit_log')
+
+
 @given("I am an unauthenticated user <token> when I access a protected <endpoint>", target_fixture='response')
 def given_unauthenticated_user(mocker: MockerFixture, token: str, endpoint: str):
     """ Make POST {endpoint} request which is protected """
     # path where it's used, not where it's defined! (very important, always trips you up!)
     client = TestClient(app.main.app)
-    save_hourly_actuals_spy = mocker.spy(app.auth, 'create_api_access_audit_log')
+    # save_hourly_actuals_spy = mocker.spy(app.auth, 'create_api_access_audit_log')
     response = client.post(endpoint, headers={'Authorization': token})
-    assert save_hourly_actuals_spy.call_count == 1
+
     return response
+
+
+@then("Assert called")
+def assert_called(spy):
+    assert spy.call_count == 1
 
 
 @then("I will get an error with <status> code")

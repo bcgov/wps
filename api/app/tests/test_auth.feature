@@ -1,9 +1,11 @@
 Feature: Authentication
 
     Scenario: Handling unauthenticated users
+        Given I'm mocking
         Given I am an unauthenticated user <token> when I access a protected <endpoint>
         Then I will get an error with <status> code
         And I will see an error <message>
+        And Assert called
 
         Examples:
             | token        | status | message                                                 | endpoint                                          |

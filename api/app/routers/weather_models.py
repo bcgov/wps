@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/weather_models",
-    dependencies=[Depends(authentication_required), Depends(audit)],
+    dependencies=[Depends(audit), Depends(authentication_required)],
 )
 
 

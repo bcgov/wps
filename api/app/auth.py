@@ -19,7 +19,6 @@ async def permissive_oauth2_scheme(request: Request):
         return await oauth2_scheme.__call__(request)
     except HTTPException as exception:
         logger.error('Could not validate the credential %s', exception)
-        create_api_access_audit_log(None, False, request.url.path)
         return None
 
 
@@ -31,7 +30,8 @@ async def authenticate(token: str = Depends(permissive_oauth2_scheme)):
         config.get('KEYCLOAK_PUBLIC_KEY') + '\n-----END PUBLIC KEY-----'
 
     try:
-        decoded_token = jwt.decode(token, keycloak_public_key, algorithm='RS256')
+        decoded_token = jwt.decode(
+            token, keycloak_public_key, algorithm='RS256')
         return decoded_token
     except InvalidTokenError as exception:
         logger.error('Could not validate the credential %s', exception)
@@ -43,10 +43,7 @@ async def audit(request: Request, token=Depends(authenticate)):
     path = request.url.path
     username = token.get('preferred_username', None)
 
-    if not token:
-        create_api_access_audit_log(username, False, path)
-
-    create_api_access_audit_log(username, True, path)
+    create_api_access_audit_log(username, bool(token), path)
 
 
 async def authentication_required(token=Depends(authenticate)):
