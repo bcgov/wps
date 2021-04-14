@@ -1,6 +1,7 @@
 """ Get stations (from wildfire one, or local - depending on configuration.)
 """
 import os
+import math
 import asyncio
 import logging
 import enum
@@ -82,12 +83,6 @@ async def get_stations(
     return _get_stations_local()
 
 
-async def get_stations_details(station_source: StationSourceEnum = StationSourceEnum.Unspecified):
-    # case #1 - get everything from our database
-    with get_read_session_scope() as session:
-        return get_noon_forecast_observation_union(session, get_utc_now())
-
-
 async def fetch_detailed_stations(
         station_source: StationSourceEnum = StationSourceEnum.Unspecified) \
         -> List[GeoJsonDetailedWeatherStation]:
@@ -95,18 +90,32 @@ async def fetch_detailed_stations(
     geojson_stations = []
     # this gets us a list of stations
     stations = await get_stations(station_source)
-    stations_detailed = await get_stations_details(station_source)
-    for thing in stations_detailed:
-        logger.info(thing)
-    for station in stations:
-        geojson_stations.append(
-            GeoJsonDetailedWeatherStation(properties=DetailedWeatherStationProperties(
+    with get_read_session_scope() as session:
+        stations_detailed = get_noon_forecast_observation_union(session, get_utc_now())
+        station_lookup = {}
+        for station in stations:
+            geojson_station = GeoJsonDetailedWeatherStation(properties=DetailedWeatherStationProperties(
                 code=station.code,
                 name=station.name,
                 ecodivision_name=station.ecodivision_name,
                 core_season=station.core_season),
-                geometry=WeatherStationGeometry(coordinates=[station.long, station.lat])))
-    return geojson_stations
+                geometry=WeatherStationGeometry(coordinates=[station.long, station.lat]))
+            station_lookup[station.code] = geojson_station
+            geojson_stations.append(geojson_station)
+        for station_union in stations_detailed:
+            station = station_lookup.get(station_union['station_code'], None)
+            if station:
+                if station_union['record_type'] == 'forecast':
+                    station.properties.forecast_temperature = station_union['temperature']
+                    station.properties.forecast_relative_humidity = station_union['relative_humidity']
+                elif station_union['record_type'] == 'observation':
+                    if not math.isnan(station_union['temperature']):
+                        station.properties.observed_temperature = station_union['temperature']
+                    if not math.isnan(station_union['relative_humidity']):
+                        station.properties.observed_relative_humidity = station_union['relative_humidity']
+                else:
+                    raise Exception(station_union['record_type'])
+        return geojson_stations
 
 
 async def get_stations_as_geojson(
