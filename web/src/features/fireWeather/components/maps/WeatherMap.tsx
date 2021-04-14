@@ -1,4 +1,6 @@
 import React, { useCallback, useEffect } from 'react'
+import { Button } from '@material-ui/core'
+
 import { fromLonLat, get } from 'ol/proj'
 import * as olSource from 'ol/source'
 import GeoJSON from 'ol/format/GeoJSON'
@@ -12,6 +14,9 @@ import VectorLayer from 'features/map/VectorLayer'
 import { useDispatch, useSelector } from 'react-redux'
 
 import { selectFireWeatherStations } from 'app/rootReducer'
+import { getSelectedStationOptions } from 'utils/dropdown'
+import { Option } from 'features/fireWeather/components/WxStationDropdown'
+
 
 const styles = {
   Point: new Style({
@@ -40,7 +45,17 @@ interface Props {
 const WeatherMap = ({ redrawFlag }: Props) => {
   const dispatch = useDispatch()
 
+  const selectedStationCodes: number[] = []
+
   const { stations } = useSelector(selectFireWeatherStations)
+  const { isThereUnknownCode, selectedStationOptions} = getSelectedStationOptions(selectedStationCodes, stations)
+
+  const selectWeatherStations = (name: string, code: number) => {
+    console.log('%d station selected', code)
+    selectedStationCodes.push(code)
+    selectedStationOptions.push()
+    console.log(selectedStationCodes)
+  }
 
   useEffect(() => {
     dispatch(fetchWxStations())
@@ -51,7 +66,19 @@ const WeatherMap = ({ redrawFlag }: Props) => {
 
     return (
       <div>
-        {feature.get('name')} ({feature.get('code')})
+        <p>
+          {feature.get('name')} ({feature.get('code')})
+        </p>
+        <Button
+          variant="outlined"
+          size="small"
+          onClick={() => {
+            selectWeatherStations(feature.get('name'), feature.get('code'))
+          }}
+          data-testid={`select-wx-station-${feature.get('code')}-button`}
+        >
+          Select
+        </Button>
       </div>
     )
   }, [])

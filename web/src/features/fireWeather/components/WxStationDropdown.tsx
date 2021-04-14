@@ -18,7 +18,7 @@ const useStyles = makeStyles({
   }
 })
 
-interface Option {
+export interface Option {
   name: string
   code: number
 }
