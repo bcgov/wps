@@ -109,14 +109,14 @@ describe('MoreCast Page', () => {
       const checkMaxPrecipFormattingAndLength = (tableName: string) => {
         cy.getByTestId(`${tableName}-${stationCode}`)
         .getByTestId('max-precipitation-td')
-        .should('have.css', 'border-width', '2px')
+        .should('have.css', 'border', '1px solid rgba(0, 0, 0, 0.87)')
         .should('have.length.at.least', 1)
       }
 
       const checkMaxWindSpeedFormattingAndLength = (tableName: string) => {
         cy.getByTestId(`${tableName}-${stationCode}`)
         .getByTestId('max-wind-speed-td')
-        .should('have.css', 'border-right', '2px solid rgb(0, 0, 0)')
+        .should('have.css', 'border-right', '1px solid rgba(0, 0, 0, 0.87)')
         .should('have.css', 'border-left-width', '0px')
         .should('have.length.at.least', 1)
       }
@@ -124,7 +124,7 @@ describe('MoreCast Page', () => {
       const checkWindDirectionFormattingAndLength = (tableName: string) => {
         cy.getByTestId(`${tableName}-${stationCode}`)
         .getByTestId('direction-max-wind-speed-td')
-        .should('have.css', 'border-left', '2px solid rgb(0, 0, 0)')
+        .should('have.css', 'border-left', '1px solid rgba(0, 0, 0, 0.87)')
         .should('have.css', 'border-right-width', '0px')
         .should('have.length.at.least', 1)
       }
@@ -158,20 +158,20 @@ describe('MoreCast Page', () => {
         .find('tbody > tr:first > td:first')
         .should('contain', earliestDate)
 
-      checkTableCellHighlighting('observations-table', stationCode)
+      checkTableCellHighlighting('observations-table')
 
       // Check num of interpolated noon GDPS rows
       cy.getByTestId(`noon-gdps-table-${stationCode}`)
         .find('tbody > tr')
         .should('have.length', 14)
-      checkTableCellHighlighting('noon-gdps-table', stationCode)
+      checkTableCellHighlighting('noon-gdps-table')
 
 
       // Check num of noon forecasts rows
       cy.getByTestId(`noon-forecasts-table-${stationCode}`)
         .find('tbody > tr')
         .should('have.length', numOfForecasts)
-      checkTableCellHighlighting('noon-forecasts-table', stationCode)
+      checkTableCellHighlighting('noon-forecasts-table')
  
       // Check that collapse and expand functionality works
       cy.getByTestId(`observations-table-${stationCode}-accordion`).click() // Collapse Observations table
