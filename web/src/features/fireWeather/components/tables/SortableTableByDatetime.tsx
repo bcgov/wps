@@ -136,6 +136,23 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
     setOrder(order === 'asc' ? 'desc' : 'asc')
   }
 
+  const calculateMaxPrecip = (): number | null => {
+    let maxPrecip = null
+    if (_.maxBy(props.rows, 'precipitation') !== undefined) {
+      maxPrecip = _.maxBy(props.rows, 'precipitation')?.precipitation
+    } else if (_.maxBy(props.rows, 'delta_precipitation') !== undefined) {
+      maxPrecip = _.maxBy(props.rows, 'delta_precipitation')?.delta_precipitation
+    } else if (_.maxBy(props.rows, 'total_precipitation') !== undefined) {
+      maxPrecip = _.maxBy(props.rows, 'total_precipitation')?.total_precipitation
+    }
+    maxPrecip = maxPrecip ?? null
+    if (maxPrecip !== null && maxPrecip > 0) {
+      return maxPrecip
+    } else {
+      return null
+    }
+  }
+
   const minMaxValuesToHighlight: MinMaxValues = {
     relative_humidity:
       _.minBy(props.rows, 'relative_humidity')?.relative_humidity ?? null,
@@ -146,14 +163,7 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
     },
     // depending on the table, the precip label may be 'precipitation',
     // 'delta_precipitation', or 'total_precipitation' - need to account for all
-    precipitation:
-      _.maxBy(props.rows, 'precipitation')?.precipitation > 0
-        ? _.maxBy(props.rows, 'precipitation')?.precipitation
-        : _.maxBy(props.rows, 'delta_precipitation')?.delta_precipitation > 0
-        ? _.maxBy(props.rows, 'delta_precipitation')?.delta_precipitation
-        : _.maxBy(props.rows, 'total_precipitation')?.total_precipitation > 0
-        ? _.maxBy(props.rows, 'total_precipitation')?.total_precipitation
-        : null
+    precipitation: calculateMaxPrecip()
   }
 
   const rowIds: RowIdsOfMinMaxValues = {
