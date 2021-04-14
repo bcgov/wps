@@ -20,16 +20,31 @@ class WeatherStationProperties(BaseModel):
     core_season: Season = None
 
 
+class DetailedWeatherStationProperties(WeatherStationProperties):
+    """ Detailed, non-geometrical weather station properties """
+    observed_temperature: float = None
+    forecast_temperature: int = None
+    observed_relative_humidity: float = None
+    forecast_relative_humidity: int = None
+
+
 class WeatherStationGeometry(BaseModel):
     """ Geometrical coordinates of a weather station """
-    type: str
+    type: str = "Point"
     coordinates: List[float]
 
 
 class GeoJsonWeatherStation(BaseModel):
     """ GeoJson formatted weather station """
-    type: str
+    type: str = "Feature"
     properties: WeatherStationProperties
+    geometry: WeatherStationGeometry
+
+
+class GeoJsonDetailedWeatherStation(BaseModel):
+    """ GeoJson formatted weather station with details """
+    type: str = "Feature"
+    properties: DetailedWeatherStationProperties
     geometry: WeatherStationGeometry
 
 
@@ -44,9 +59,15 @@ class WeatherStation(BaseModel):
 
 
 class WeatherStationsResponse(BaseModel):
-    """ List of fire weather stations is geojson format. """
-    type: str
+    """ List of fire weather stations in geojson format. """
+    type: str = "FeatureCollection"
     features: List[GeoJsonWeatherStation]
+
+
+class DetailedWeatherStationsResponse(BaseModel):
+    """ List of fire weather stations, with details, in geojson format. """
+    type: str = "FeatureCollection"
+    features: List[GeoJsonDetailedWeatherStation]
 
 
 class StationCodeList(BaseModel):

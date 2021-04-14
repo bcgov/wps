@@ -9,8 +9,13 @@ import json
 from app import wildfire_one
 from app.schemas.stations import (WeatherStation,
                                   GeoJsonWeatherStation,
+                                  GeoJsonDetailedWeatherStation,
                                   WeatherStationProperties,
+                                  DetailedWeatherStationProperties,
                                   WeatherStationGeometry)
+from app.db.database import get_read_session_scope
+from app.db.crud.stations import get_noon_forecast_observation_union
+from app.time_utils import get_utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +68,7 @@ async def get_stations_by_codes(station_codes: List[int]) -> List[WeatherStation
 
 async def get_stations(
         station_source: StationSourceEnum = StationSourceEnum.Unspecified) -> List[WeatherStation]:
-    """ Get list of stations from WFWX Fireweather API.
+    """ Get list of stations from some source (ideally WFWX Fireweather API)
     """
     if station_source == StationSourceEnum.Unspecified:
         # If station source is unspecified, check configuration:
@@ -77,6 +82,33 @@ async def get_stations(
     return _get_stations_local()
 
 
+async def get_stations_details(station_source: StationSourceEnum = StationSourceEnum.Unspecified):
+    # case #1 - get everything from our database
+    with get_read_session_scope() as session:
+        return get_noon_forecast_observation_union(session, get_utc_now())
+
+
+async def fetch_detailed_stations(
+        station_source: StationSourceEnum = StationSourceEnum.Unspecified) \
+        -> List[GeoJsonDetailedWeatherStation]:
+    """ Format stations to conform to GeoJson spec """
+    geojson_stations = []
+    # this gets us a list of stations
+    stations = await get_stations(station_source)
+    stations_detailed = await get_stations_details(station_source)
+    for thing in stations_detailed:
+        logger.info(thing)
+    for station in stations:
+        geojson_stations.append(
+            GeoJsonDetailedWeatherStation(properties=DetailedWeatherStationProperties(
+                code=station.code,
+                name=station.name,
+                ecodivision_name=station.ecodivision_name,
+                core_season=station.core_season),
+                geometry=WeatherStationGeometry(coordinates=[station.long, station.lat])))
+    return geojson_stations
+
+
 async def get_stations_as_geojson(
         station_source: StationSourceEnum = StationSourceEnum.Unspecified) -> List[GeoJsonWeatherStation]:
     """ Format stations to conform to GeoJson spec """
@@ -84,15 +116,12 @@ async def get_stations_as_geojson(
     stations = await get_stations(station_source)
     for station in stations:
         geojson_stations.append(
-            GeoJsonWeatherStation(type="Feature",
-                                  properties=WeatherStationProperties(
-                                      code=station.code,
-                                      name=station.name,
-                                      ecodivision_name=station.ecodivision_name,
-                                      core_season=station.core_season),
-                                  geometry=WeatherStationGeometry(
-                                      type="Point",
-                                      coordinates=[station.long, station.lat])))
+            GeoJsonWeatherStation(properties=WeatherStationProperties(
+                code=station.code,
+                name=station.name,
+                ecodivision_name=station.ecodivision_name,
+                core_season=station.core_season),
+                geometry=WeatherStationGeometry(coordinates=[station.long, station.lat])))
     return geojson_stations
 
 
