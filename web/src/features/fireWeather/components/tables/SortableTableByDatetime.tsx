@@ -137,6 +137,11 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
   }
 
   const calculateMaxPrecip = (): number | null => {
+    // calculates the maximum precip value from a set of table rows (assuming that
+    // the precip property is named one of 'precipitation', 'delta_precipitation',
+    // or 'total_precipitation'). Returns null if none of these properties can be
+    // found in props.rows, or if no precip values are set in the rows, or if the
+    // maximum value is 0
     let maxPrecip = null
     if (_.maxBy(props.rows, 'precipitation') !== undefined) {
       maxPrecip = _.maxBy(props.rows, 'precipitation')?.precipitation
@@ -161,8 +166,6 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
       min: _.minBy(props.rows, 'temperature')?.temperature ?? null,
       max: _.maxBy(props.rows, 'temperature')?.temperature ?? null
     },
-    // depending on the table, the precip label may be 'precipitation',
-    // 'delta_precipitation', or 'total_precipitation' - need to account for all
     precipitation: calculateMaxPrecip()
   }
 
@@ -182,12 +185,14 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
       rowIds['relative_humidity'].push(idx)
     }
     if (
-      row.precipitation?.toFixed(PRECIP_VALUES_DECIMAL) ===
+      // max precip value may be null if all precip values in props.rows were 0
+      minMaxValuesToHighlight.precipitation !== null &&
+      (row.precipitation?.toFixed(PRECIP_VALUES_DECIMAL) ===
         minMaxValuesToHighlight.precipitation?.toFixed(PRECIP_VALUES_DECIMAL) ||
-      row.delta_precipitation?.toFixed(PRECIP_VALUES_DECIMAL) ===
-        minMaxValuesToHighlight.precipitation?.toFixed(PRECIP_VALUES_DECIMAL) ||
-      row.total_precipitation?.toFixed(PRECIP_VALUES_DECIMAL) ===
-        minMaxValuesToHighlight.precipitation?.toFixed(PRECIP_VALUES_DECIMAL)
+        row.delta_precipitation?.toFixed(PRECIP_VALUES_DECIMAL) ===
+          minMaxValuesToHighlight.precipitation?.toFixed(PRECIP_VALUES_DECIMAL) ||
+        row.total_precipitation?.toFixed(PRECIP_VALUES_DECIMAL) ===
+          minMaxValuesToHighlight.precipitation?.toFixed(PRECIP_VALUES_DECIMAL))
     ) {
       rowIds['precipitation'].push(idx)
     }
