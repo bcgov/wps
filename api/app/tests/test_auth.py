@@ -1,6 +1,12 @@
 """ Functional testing for authentication """
 from pytest_bdd import scenario, given, then
 from fastapi.testclient import TestClient
+from alchemy_mock.mocking import UnifiedAlchemyMagicMock
+from pytest_mock import MockerFixture
+from unittest.mock import patch
+from app.auth import authenticate
+
+from app.db.crud.api_access_audits import create_api_access_audit_log
 import pytest
 import app.main
 
@@ -12,10 +18,19 @@ def test_auth_1st_scenario():
 
 
 @given("I am an unauthenticated user <token> when I access a protected <endpoint>", target_fixture='response')
-def given_unauthenticated_user(token: str, endpoint: str):
+def given_unauthenticated_user(monkeypatch, token: str, endpoint: str):
     """ Make POST {endpoint} request which is protected """
+    def mock_audit_log:
+
+    monkeypatch.setattr('app.db.crud.api_access_audits.create_api_access_audit_log', )
     client = TestClient(app.main.app)
-    return client.post(endpoint, headers={'Authorization': token})
+    response = client.post(endpoint, headers={'Authorization': token})
+    assert mock_access_log.called
+    # with patch('app.db.crud.api_access_audits.create_api_access_audit_log') as mock_access_log:
+    #     client = TestClient(app.main.app)
+    #     response = client.post(endpoint, headers={'Authorization': token})
+    #     assert mock_access_log.called
+    return response
 
 
 @then("I will get an error with <status> code")
@@ -48,3 +63,8 @@ def given_authenticated_user(endpoint: str):
 def status_code_2(response_2, status: int):
     """ Assert that we receive the expected status code """
     assert response_2.status_code == status
+
+
+def test_auth_func():
+    with patch('app.db.crud.api_access_audits.create_api_access_audit_log') as mock_access_log:
+        assert mock_access_log.called

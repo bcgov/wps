@@ -14,6 +14,7 @@ def create_api_access_audit_log(
         success: bool,
         path: str) -> APIAccessAudit:
     """ Create an audit log. """
+    print("in crud method")
     with app.db.database.get_write_session_scope() as session:
         now = get_utc_now()
         audit_log = APIAccessAudit(create_user=username, path=path, success=success,
