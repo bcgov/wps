@@ -1,6 +1,7 @@
 """ Get stations (from wildfire one, or local - depending on configuration.)
 """
 import os
+from datetime import datetime
 import math
 import asyncio
 import logging
@@ -84,14 +85,15 @@ async def get_stations(
 
 
 async def fetch_detailed_stations(
-        station_source: StationSourceEnum = StationSourceEnum.Unspecified) \
+        time_of_interest: datetime,
+        station_source: StationSourceEnum) \
         -> List[GeoJsonDetailedWeatherStation]:
     """ Format stations to conform to GeoJson spec """
     geojson_stations = []
     # this gets us a list of stations
     stations = await get_stations(station_source)
     with get_read_session_scope() as session:
-        stations_detailed = get_noon_forecast_observation_union(session, get_utc_now())
+        stations_detailed = get_noon_forecast_observation_union(session, time_of_interest)
         station_lookup = {}
         for station in stations:
             geojson_station = GeoJsonDetailedWeatherStation(properties=DetailedWeatherStationProperties(

@@ -1,6 +1,8 @@
 """ Routers for stations """
 import logging
+from datetime import datetime
 from fastapi import APIRouter, Response
+from app.time_utils import get_utc_now
 from app.schemas.stations import WeatherStationsResponse, DetailedWeatherStationsResponse
 from app.stations import StationSourceEnum, get_stations_as_geojson, fetch_detailed_stations
 
@@ -14,6 +16,7 @@ router = APIRouter(
 
 @router.get('/details/', response_model=DetailedWeatherStationsResponse)
 async def get_detailed_stations(response: Response,
+                                time_of_interest: datetime = get_utc_now(),
                                 source: StationSourceEnum = StationSourceEnum.Unspecified):
     """ Returns a list of fire weather stations with detailed information.
     -) Unspecified: Use configuration to establish source.
@@ -24,7 +27,7 @@ async def get_detailed_stations(response: Response,
         logger.info('/stations/details/')
         response.headers["Cache-Control"] = "max-age=0"  # don't let the browser cache this
 
-        weather_stations = await fetch_detailed_stations(source)
+        weather_stations = await fetch_detailed_stations(time_of_interest, source)
 
         return DetailedWeatherStationsResponse(features=weather_stations)
 
