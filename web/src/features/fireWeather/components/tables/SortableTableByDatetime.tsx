@@ -48,26 +48,26 @@ const useStyles = makeStyles({
   },
   maxPrecipitation: {
     fontWeight: 'bold',
-    borderColor: 'black',
+    borderColor: 'rgba(0, 0, 0, 0.87)',
     borderStyle: 'solid',
-    borderWidth: '2px'
+    borderWidth: '1px'
   },
   maxWindSpeed: {
     fontWeight: 'bold',
-    borderColor: 'black',
+    borderColor: 'rgba(0, 0, 0, 0.87)',
     borderStyle: 'solid',
-    borderTopWidth: '2px',
-    borderBottomWidth: '2px',
-    borderRightWidth: '2px',
+    borderTopWidth: '1px',
+    borderBottomWidth: '1px',
+    borderRightWidth: '1px',
     borderLeftWidth: '0px'
   },
   directionOfMaxWindSpeed: {
     fontWeight: 'bold',
-    borderColor: 'black',
+    borderColor: 'rgba(0, 0, 0, 0.87)',
     borderStyle: 'solid',
-    borderTopWidth: '2px',
-    borderBottomWidth: '2px',
-    borderLeftWidth: '2px',
+    borderTopWidth: '1px',
+    borderBottomWidth: '1px',
+    borderLeftWidth: '1px',
     borderRightWidth: '0px'
   }
 })
