@@ -147,10 +147,13 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
     // depending on the table, the precip label may be 'precipitation',
     // 'delta_precipitation', or 'total_precipitation' - need to account for all
     precipitation:
-      _.maxBy(props.rows, 'precipitation')?.precipitation > 0 ? _.maxBy(props.rows, 'precipitation')?.precipitation :
-      _.maxBy(props.rows, 'delta_precipitation')?.delta_precipitation > 0 ? _.maxBy(props.rows, 'delta_precipitation')?.delta_precipitation :
-      _.maxBy(props.rows, 'total_precipitation')?.total_precipitation > 0 ? _.maxBy(props.rows, 'total_precipitation')?.total_precipitation : 
-      null
+      _.maxBy(props.rows, 'precipitation')?.precipitation > 0
+        ? _.maxBy(props.rows, 'precipitation')?.precipitation
+        : _.maxBy(props.rows, 'delta_precipitation')?.delta_precipitation > 0
+        ? _.maxBy(props.rows, 'delta_precipitation')?.delta_precipitation
+        : _.maxBy(props.rows, 'total_precipitation')?.total_precipitation > 0
+        ? _.maxBy(props.rows, 'total_precipitation')?.total_precipitation
+        : null
   }
 
   const rowIds: RowIdsOfMinMaxValues = {
