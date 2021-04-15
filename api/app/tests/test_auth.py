@@ -32,12 +32,6 @@ def status_code(response, status: int):
     assert response.status_code == status
 
 
-@then("I will see an error <message>")
-def error_message(response, message: str):
-    """ Assert that we receive the expected message """
-    assert response.json()['detail'] == message
-
-
 @pytest.mark.usefixtures("mock_jwt_decode")
 @scenario("test_auth.feature", "Verifying authenticated users", example_converters=dict(status=int))
 def test_auth_2nd_scenario():

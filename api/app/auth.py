@@ -51,6 +51,5 @@ async def authentication_required(token=Depends(authenticate)):
     if not token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate the credential (Not enough segments)",
             headers={'WWW-Authenticate': 'Bearer'}
         )
