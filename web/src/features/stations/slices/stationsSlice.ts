@@ -1,7 +1,8 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
-import { GeoJsonStation } from 'api/stationAPI'
-
+import { StationSource, DetailedGeoJsonStation, GeoJsonStation } from 'api/stationAPI'
+import { AppThunk } from 'app/store'
+import { logError } from 'utils/error'
 interface State {
   loading: boolean
   error: string | null
@@ -27,7 +28,10 @@ const stationsSlice = createSlice({
       state.loading = false
       state.error = action.payload
     },
-    getStationsSuccess(state: State, action: PayloadAction<GeoJsonStation[]>) {
+    getStationsSuccess(
+      state: State,
+      action: PayloadAction<GeoJsonStation[] | DetailedGeoJsonStation[]>
+    ) {
       state.error = null
       state.stations = action.payload
       const stationsByCode: State['stationsByCode'] = {}
@@ -39,6 +43,21 @@ const stationsSlice = createSlice({
     }
   }
 })
+
+export const fetchWxStations = (
+  stationGetter:
+    | ((source: StationSource) => Promise<GeoJsonStation[]>)
+    | ((source: StationSource) => Promise<DetailedGeoJsonStation[]>)
+): AppThunk => async dispatch => {
+  try {
+    dispatch(getStationsStart())
+    const stations = await stationGetter(StationSource.local_storage)
+    dispatch(getStationsSuccess(stations))
+  } catch (err) {
+    dispatch(getStationsFailed(err.toString()))
+    logError(err)
+  }
+}
 
 export const {
   getStationsStart,

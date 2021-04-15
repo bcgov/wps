@@ -4,7 +4,7 @@ import * as olSource from 'ol/source'
 import GeoJSON from 'ol/format/GeoJSON'
 import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style'
 import { FeatureLike } from 'ol/Feature'
-import { fetchWxStations } from 'features/fireWeather/slices/stationsSlice'
+import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 
 import Map from 'features/map/Map'
 import TileLayer from 'features/map/TileLayer'
@@ -12,6 +12,7 @@ import VectorLayer from 'features/map/VectorLayer'
 import { useDispatch, useSelector } from 'react-redux'
 
 import { selectFireWeatherStations } from 'app/rootReducer'
+import { getDetailedStations } from 'api/stationAPI'
 
 const styles = {
   Point: new Style({
@@ -43,7 +44,7 @@ const WeatherMap = ({ redrawFlag }: Props) => {
   const { stations } = useSelector(selectFireWeatherStations)
 
   useEffect(() => {
-    dispatch(fetchWxStations())
+    dispatch(fetchWxStations(getDetailedStations))
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const renderTooltip = useCallback((feature: FeatureLike | null) => {
