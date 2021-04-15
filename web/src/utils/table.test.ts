@@ -30,4 +30,12 @@ describe('Table util functions', () => {
       expect(arr).toEqual(deepCopy)
     })
   })
+
+  describe('min-max value calculations', () => {
+    it('should correctly calculate min and max wx values to be highlighted', () => {
+      const dummyWeatherData = {
+
+      }
+    })
+  })
 })
