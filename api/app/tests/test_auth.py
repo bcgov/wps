@@ -1,7 +1,6 @@
 """ Functional testing for authentication """
 from pytest_bdd import scenario, given, then
 from fastapi.testclient import TestClient
-from pytest_mock import MockerFixture
 import pytest
 import app.auth
 import app.main
@@ -13,12 +12,6 @@ def test_auth_1st_scenario():
     """ BDD Scenario #1. """
 
 
-@given("Unauthenticated access audit logging is spied", target_fixture='create_audit_logs')
-def spy_on_unauthenticated_access_logs(mocker: MockerFixture):
-    """Spies on access audting logging for tests"""
-    return mocker.spy(app.auth, 'create_api_access_audit_log')
-
-
 @given("I am an unauthenticated user <token> when I access a protected <endpoint>", target_fixture='response')
 def given_unauthenticated_user(token: str, endpoint: str):
     """ Make POST {endpoint} request which is protected """
@@ -28,9 +21,9 @@ def given_unauthenticated_user(token: str, endpoint: str):
 
 
 @then("Unauthenticated access audit logs are created")
-def no_access_is_logged(create_audit_logs, endpoint):
+def no_access_is_logged(spy_access_logging, endpoint):
     """Access audit logs are created"""
-    create_audit_logs.assert_called_once_with(None, False, endpoint)
+    spy_access_logging.assert_called_once_with(None, False, endpoint)
 
 
 @then("I will get an error with <status> code")
@@ -51,16 +44,10 @@ def test_auth_2nd_scenario():
     """ BDD Scenario #2. """
 
 
-@given("Authenticated access audit logging is spied", target_fixture='create_audit_logs')
-def spy_on_authenticated_access_logs(mocker: MockerFixture):
-    """Spies on access audting logging for tests"""
-    return mocker.spy(app.auth, 'create_api_access_audit_log')
-
-
 @then("Authenticated access audit logs are created")
-def access_is_logged(create_audit_logs, endpoint):
+def access_is_logged(spy_access_logging, endpoint):
     """Access audit logs are created"""
-    create_audit_logs.assert_called_once_with("test_username", True, endpoint)
+    spy_access_logging.assert_called_once_with("test_username", True, endpoint)
 
 
 @given("I am an authenticated user when I access a protected <endpoint>", target_fixture='response_2')
