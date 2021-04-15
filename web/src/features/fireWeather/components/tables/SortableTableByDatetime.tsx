@@ -151,7 +151,7 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
       maxPrecip = _.maxBy(props.rows, 'total_precipitation')?.total_precipitation
     }
     maxPrecip = maxPrecip ?? null
-    if (maxPrecip !== null && maxPrecip > 0) {
+    if (maxPrecip !== null && maxPrecip.toFixed(PRECIP_VALUES_DECIMAL) !== '0.0') {
       return maxPrecip
     } else {
       return null
