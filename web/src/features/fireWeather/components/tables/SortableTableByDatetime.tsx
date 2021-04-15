@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import _ from 'lodash'
 import { makeStyles } from '@material-ui/core/styles'
 import Table from '@material-ui/core/Table'
 import TableBody from '@material-ui/core/TableBody'
@@ -15,13 +14,14 @@ import AccordionSummary from '@material-ui/core/AccordionSummary'
 import AccordionDetails from '@material-ui/core/AccordionDetails'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 
-import { getDatetimeComparator, Order } from 'utils/table'
 import {
-  PRECIP_VALUES_DECIMAL,
-  RH_VALUES_DECIMAL,
-  TEMPERATURE_VALUES_DECIMAL,
-  WIND_SPEED_VALUES_DECIMAL
-} from 'utils/constants'
+  getDatetimeComparator,
+  getMinMaxValueCalculator,
+  Order,
+  MinMaxValues,
+  RowIdsOfMinMaxValues,
+  getMinMaxValuesRowIds
+} from 'utils/table'
 
 const useStyles = makeStyles({
   display: {
@@ -72,7 +72,7 @@ const useStyles = makeStyles({
   }
 })
 
-interface WeatherValue {
+export interface WeatherValue {
   datetime: string
   temperature?: number | null
   relative_humidity?: number | null
@@ -105,24 +105,6 @@ interface Props<R> {
   columns: Column[]
 }
 
-interface MinMaxValues {
-  relative_humidity: number | null
-  precipitation: number | null
-  wind_speed: number | null
-  temperature: {
-    min: number | null
-    max: number | null
-  }
-}
-
-interface RowIdsOfMinMaxValues {
-  relative_humidity: number[]
-  precipitation: number[]
-  wind: number[]
-  max_temp: number[]
-  min_temp: number[]
-}
-
 function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
   const classes = useStyles()
   const [order, setOrder] = useState<Order>('asc')
@@ -136,85 +118,13 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
     setOrder(order === 'asc' ? 'desc' : 'asc')
   }
 
-  const calculateMaxPrecip = (): number | null => {
-    // calculates the maximum precip value from a set of table rows (assuming that
-    // the precip property is named one of 'precipitation', 'delta_precipitation',
-    // or 'total_precipitation'). Returns null if none of these properties can be
-    // found in props.rows, or if no precip values are set in the rows, or if the
-    // maximum value is 0
-    let maxPrecip = null
-    if (_.maxBy(props.rows, 'precipitation') !== undefined) {
-      maxPrecip = _.maxBy(props.rows, 'precipitation')?.precipitation
-    } else if (_.maxBy(props.rows, 'delta_precipitation') !== undefined) {
-      maxPrecip = _.maxBy(props.rows, 'delta_precipitation')?.delta_precipitation
-    } else if (_.maxBy(props.rows, 'total_precipitation') !== undefined) {
-      maxPrecip = _.maxBy(props.rows, 'total_precipitation')?.total_precipitation
-    }
-    maxPrecip = maxPrecip ?? null
-    if (maxPrecip !== null && maxPrecip.toFixed(PRECIP_VALUES_DECIMAL) !== '0.0') {
-      return maxPrecip
-    } else {
-      return null
-    }
-  }
-
-  const minMaxValuesToHighlight: MinMaxValues = {
-    relative_humidity:
-      _.minBy(props.rows, 'relative_humidity')?.relative_humidity ?? null,
-    wind_speed: _.maxBy(props.rows, 'wind_speed')?.wind_speed ?? null,
-    temperature: {
-      min: _.minBy(props.rows, 'temperature')?.temperature ?? null,
-      max: _.maxBy(props.rows, 'temperature')?.temperature ?? null
-    },
-    precipitation: calculateMaxPrecip()
-  }
-
-  const rowIds: RowIdsOfMinMaxValues = {
-    relative_humidity: [],
-    precipitation: [],
-    wind: [],
-    max_temp: [],
-    min_temp: []
-  }
-
-  rowsSortedByDatetime.forEach((row, idx) => {
-    if (
-      row.relative_humidity?.toFixed(RH_VALUES_DECIMAL) ===
-      minMaxValuesToHighlight.relative_humidity?.toFixed(RH_VALUES_DECIMAL)
-    ) {
-      rowIds['relative_humidity'].push(idx)
-    }
-    if (
-      // max precip value may be null if all precip values in props.rows were 0
-      minMaxValuesToHighlight.precipitation !== null &&
-      (row.precipitation?.toFixed(PRECIP_VALUES_DECIMAL) ===
-        minMaxValuesToHighlight.precipitation?.toFixed(PRECIP_VALUES_DECIMAL) ||
-        row.delta_precipitation?.toFixed(PRECIP_VALUES_DECIMAL) ===
-          minMaxValuesToHighlight.precipitation?.toFixed(PRECIP_VALUES_DECIMAL) ||
-        row.total_precipitation?.toFixed(PRECIP_VALUES_DECIMAL) ===
-          minMaxValuesToHighlight.precipitation?.toFixed(PRECIP_VALUES_DECIMAL))
-    ) {
-      rowIds['precipitation'].push(idx)
-    }
-    if (
-      row.temperature?.toFixed(TEMPERATURE_VALUES_DECIMAL) ===
-      minMaxValuesToHighlight.temperature.max?.toFixed(TEMPERATURE_VALUES_DECIMAL)
-    ) {
-      rowIds['max_temp'].push(idx)
-    }
-    if (
-      row.temperature?.toFixed(TEMPERATURE_VALUES_DECIMAL) ===
-      minMaxValuesToHighlight.temperature.min?.toFixed(TEMPERATURE_VALUES_DECIMAL)
-    ) {
-      rowIds['min_temp'].push(idx)
-    }
-    if (
-      row.wind_speed?.toFixed(WIND_SPEED_VALUES_DECIMAL) ===
-      minMaxValuesToHighlight.wind_speed?.toFixed(WIND_SPEED_VALUES_DECIMAL)
-    ) {
-      rowIds['wind'].push(idx)
-    }
-  })
+  const minMaxValuesToHighlight: MinMaxValues = getMinMaxValueCalculator(
+    rowsSortedByDatetime
+  )
+  const rowIds: RowIdsOfMinMaxValues = getMinMaxValuesRowIds(
+    rowsSortedByDatetime,
+    minMaxValuesToHighlight
+  )
 
   return (
     <div className={classes.display} data-testid={props.testId}>
