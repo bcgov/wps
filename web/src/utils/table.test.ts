@@ -1,4 +1,25 @@
-import { getDatetimeComparator } from 'utils/table'
+import {
+  getDatetimeComparator,
+  getMinMaxValueCalculator,
+  getMinMaxValuesRowIds,
+  getCellClassNameAndTestId
+} from 'utils/table'
+import {
+  dummyWeatherData,
+  dummyWeatherDataNoPrecip,
+  dummyWeatherDataNoWind,
+  dummyWeatherDataMultiplePrecipLabels,
+  dummyWeatherDataNullValues,
+  correctMinMaxValues,
+  correctMinMaxValuesNoPrecip,
+  correctMinMaxValuesNoWind,
+  correctMinMaxValuesMultiplePrecipLabels,
+  correctMinMaxValuesNullValues,
+  correctMinMaxRowIds,
+  correctMinMaxRowIdsNoPrecip,
+  correctMinMaxRowIdsNoWind
+} from 'utils/table.test.data'
+import { Column } from 'features/fireWeather/components/tables/SortableTableByDatetime'
 
 describe('Table util functions', () => {
   describe('getDatetimeComparator', () => {
@@ -28,6 +49,55 @@ describe('Table util functions', () => {
       ])
 
       expect(arr).toEqual(deepCopy)
+    })
+  })
+
+  describe('getMinMaxValueCalculator', () => {
+    it('should correctly calculate min and max wx values to be highlighted', () => {
+      const minMaxValues = getMinMaxValueCalculator(dummyWeatherData)
+
+      expect(minMaxValues).toEqual(correctMinMaxValues)
+    })
+
+    it('should return null for max precip when all precips are 0.0', () => {
+      const minMaxValues = getMinMaxValueCalculator(dummyWeatherDataNoPrecip)
+      expect(minMaxValues).toEqual(correctMinMaxValuesNoPrecip)
+    })
+
+    it('should return null for max wind_speed when all wind_speeds are 0.0', () => {
+      const minMaxValues = getMinMaxValueCalculator(dummyWeatherDataNoWind)
+      expect(minMaxValues).toEqual(correctMinMaxValuesNoWind)
+    })
+
+    it('should correctly calculate min-max values when different precip labels are used', () => {
+      const minMaxValues = getMinMaxValueCalculator(dummyWeatherDataMultiplePrecipLabels)
+      expect(minMaxValues).toEqual(correctMinMaxValuesMultiplePrecipLabels)
+    })
+
+    it('should calculate min-max wx values when some values are null', () => {
+      const minMaxValues = getMinMaxValueCalculator(dummyWeatherDataNullValues)
+      expect(minMaxValues).toEqual(correctMinMaxValuesNullValues)
+    })
+  })
+
+  describe('getMinMaxValuesRowIds', () => {
+    it('should correctly determine the rows ids of min-max values to be highlighted', () => {
+      const minMaxRowIds = getMinMaxValuesRowIds(dummyWeatherData, correctMinMaxValues)
+      expect(minMaxRowIds).toEqual(correctMinMaxRowIds)
+    })
+
+    it('should return empty rowIds list when min-max value is null', () => {
+      let minMaxRowIds = getMinMaxValuesRowIds(
+        dummyWeatherDataNoPrecip,
+        correctMinMaxValuesNoPrecip
+      )
+      expect(minMaxRowIds).toEqual(correctMinMaxRowIdsNoPrecip)
+
+      minMaxRowIds = getMinMaxValuesRowIds(
+        dummyWeatherDataNoWind,
+        correctMinMaxValuesNoWind
+      )
+      expect(minMaxRowIds).toEqual(correctMinMaxRowIdsNoWind)
     })
   })
 })
