@@ -1,4 +1,4 @@
-import { computeAccuracyColors, StationMetrics } from './stationAccuracy'
+import { computeAccuracyColors, StationMetrics, neutralColor } from './stationAccuracy'
 
 const exactForecast: StationMetrics = {
   observations: {
@@ -10,7 +10,7 @@ const exactForecast: StationMetrics = {
     relative_humidity: 0
   }
 }
-describe('Date util functions', () => {
+describe('Map color accuracy', () => {
   it('should return the correct color codes', () => {
     expect(computeAccuracyColors(exactForecast)).toEqual([
       { temperature: neutralColor, relative_humidity: neutralColor }
