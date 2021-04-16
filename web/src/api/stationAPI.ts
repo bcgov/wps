@@ -23,13 +23,13 @@ export interface DetailedGeoJsonStation {
 }
 
 export interface DetailedStationProperties extends StationProperties {
-  observed: {
+  observations: {
     temperature: number
-    relativeHumidity: number
+    relative_humidity: number
   }
-  forecast: {
+  forecasts: {
     temperature: number
-    relativeHumidity: number
+    relative_humidity: number
   }
 }
 export interface StationProperties {
