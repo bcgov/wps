@@ -17,7 +17,7 @@ export interface ColorResult {
   relative_humidity: string
 }
 
-const neutralColor = '#DFDEDB'
+export const neutralColor = '#DFDEDB'
 
 const rhColorScale = [
   '#07A059',

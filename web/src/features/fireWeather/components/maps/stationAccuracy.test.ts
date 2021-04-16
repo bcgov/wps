@@ -12,8 +12,8 @@ const exactForecast: StationMetrics = {
 }
 describe('Date util functions', () => {
   it('should return the correct color codes', () => {
-    expect(computeAccuracyColors([exactForecast])).toEqual([
-      { temperature: '#fffff', relative_humidity: '#fffff' }
+    expect(computeAccuracyColors(exactForecast)).toEqual([
+      { temperature: neutralColor, relative_humidity: neutralColor }
     ])
   })
 })
