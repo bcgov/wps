@@ -117,7 +117,6 @@ describe('MoreCast Page', () => {
           .getByTestId('max-wind-speed-td')
           .should('have.css', 'border-right', '1px solid rgba(0, 0, 0, 0.87)')
           .should('have.css', 'border-left-width', '0px')
-          .should('have.length.at.least', 1)
       }
 
       const checkWindDirectionFormattingAndLength = (tableName: string) => {
@@ -125,7 +124,6 @@ describe('MoreCast Page', () => {
           .getByTestId('direction-max-wind-speed-td')
           .should('have.css', 'border-left', '1px solid rgba(0, 0, 0, 0.87)')
           .should('have.css', 'border-right-width', '0px')
-          .should('have.length.at.least', 1)
       }
 
       const checkTableCellHighlighting = (tableName: string) => {

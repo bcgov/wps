@@ -5,7 +5,10 @@ import {
   TEMPERATURE_VALUES_DECIMAL,
   WIND_SPEED_VALUES_DECIMAL
 } from 'utils/constants'
-import { WeatherValue } from 'features/fireWeather/components/tables/SortableTableByDatetime'
+import {
+  WeatherValue,
+  Column
+} from 'features/fireWeather/components/tables/SortableTableByDatetime'
 
 export type Order = 'asc' | 'desc'
 
@@ -61,10 +64,25 @@ const calculateMaxPrecip = (rows: WeatherValue[]): number | null => {
   }
 }
 
+const calculateMaxWindSpeed = (rows: WeatherValue[]): number | null => {
+  // calculates the maximum wind speed from a set of table rows.
+  // Returns null if the maximum value is 0.0 (since we don't want every
+  // wind cell in the table to be highlighted).
+  let maxWindSpeed = _.maxBy(rows, 'wind_speed')?.wind_speed ?? null
+  if (
+    maxWindSpeed !== null &&
+    maxWindSpeed.toFixed(WIND_SPEED_VALUES_DECIMAL) !== '0.0'
+  ) {
+    return maxWindSpeed
+  } else {
+    return null
+  }
+}
+
 export const getMinMaxValueCalculator = (rows: WeatherValue[]): MinMaxValues => {
   return {
     relative_humidity: _.minBy(rows, 'relative_humidity')?.relative_humidity ?? null,
-    wind_speed: _.maxBy(rows, 'wind_speed')?.wind_speed ?? null,
+    wind_speed: calculateMaxWindSpeed(rows),
     temperature: {
       min: _.minBy(rows, 'temperature')?.temperature ?? null,
       max: _.maxBy(rows, 'temperature')?.temperature ?? null
@@ -125,4 +143,57 @@ export const getMinMaxValuesRowIds = (
   })
 
   return rowIds
+}
+
+export const getCellClassNameAndTestId = (
+  column: Column,
+  rowIds: RowIdsOfMinMaxValues,
+  idx: number,
+  classes: Record<string, string>
+): { className: string | undefined; testId: string | undefined } => {
+  let className = undefined
+  let testId = undefined
+  switch (column.id) {
+    case 'relative_humidity': {
+      if (rowIds['relative_humidity'].includes(idx)) {
+        className = classes.minRH
+        testId = `min-RH-td`
+      }
+      break
+    }
+    case 'temperature': {
+      if (rowIds['min_temp'].includes(idx)) {
+        className = classes.minTemperature
+        testId = `min-temperature-td`
+      } else if (rowIds['max_temp'].includes(idx)) {
+        className = classes.maxTemperature
+        testId = `max-temperature-td`
+      }
+      break
+    }
+    case 'precipitation':
+    case 'delta_precipitation':
+    case 'total_precipitation': {
+      if (rowIds['precipitation'].includes(idx)) {
+        className = classes.maxPrecipitation
+        testId = `max-precipitation-td`
+      }
+      break
+    }
+    case 'wind_speed': {
+      if (rowIds['wind'].includes(idx)) {
+        className = classes.maxWindSpeed
+        testId = `max-wind-speed-td`
+      }
+      break
+    }
+    case 'wind_direction': {
+      if (rowIds['wind'].includes(idx)) {
+        className = classes.directionOfMaxWindSpeed
+        testId = `direction-max-wind-speed-td`
+      }
+      break
+    }
+  }
+  return { className, testId }
 }
