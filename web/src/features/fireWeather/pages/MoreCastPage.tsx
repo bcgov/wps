@@ -5,7 +5,7 @@ import { makeStyles } from '@material-ui/core/styles'
 
 import { PageHeader } from 'components'
 import { getStationCodesFromUrl, getTimeOfInterestFromUrl } from 'utils/url'
-import { fetchWxStations } from 'features/fireWeather/slices/stationsSlice'
+import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { fetchGlobalModelsWithBiasAdj } from 'features/fireWeather/slices/modelsSlice'
 import { fetchObservations } from 'features/fireWeather/slices/observationsSlice'
 import { fetchForecasts } from 'features/fireWeather/slices/forecastsSlice'
@@ -20,6 +20,7 @@ import WxDataForm from 'features/fireWeather/components/WxDataForm'
 import SidePanel from 'features/fireWeather/components/SidePanel'
 import NetworkErrorMessages from 'features/fireWeather/components/NetworkErrorMessages'
 import WeatherMap from 'features/fireWeather/components/maps/WeatherMap'
+import { getStations } from 'api/stationAPI'
 
 const useStyles = makeStyles(theme => ({
   main: {
@@ -70,7 +71,7 @@ const MoreCastPage = () => {
   }
 
   useEffect(() => {
-    dispatch(fetchWxStations())
+    dispatch(fetchWxStations(getStations))
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {

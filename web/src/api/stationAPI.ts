@@ -15,6 +15,23 @@ export interface GeoJsonStation {
   properties: StationProperties
   geometry: StationGeometry
 }
+
+export interface DetailedGeoJsonStation {
+  type: string
+  properties: DetailedStationProperties
+  geometry: StationGeometry
+}
+
+export interface DetailedStationProperties extends StationProperties {
+  observations: {
+    temperature: number
+    relative_humidity: number
+  }
+  forecasts: {
+    temperature: number
+    relative_humidity: number
+  }
+}
 export interface StationProperties {
   code: number
   name: string
@@ -32,17 +49,34 @@ export interface StationsResponse {
   features: GeoJsonStation[]
 }
 
+export interface DetailedStationsResponse {
+  type: string
+  features: DetailedGeoJsonStation[]
+}
+
 export enum StationSource {
   unspecified = 'unspecified',
   local_storage = 'local_storage',
   wildfire_one = 'wildfire_one'
 }
 
+const url = '/stations/'
+
 export async function getStations(
   source: StationSource = StationSource.unspecified
 ): Promise<GeoJsonStation[]> {
-  const url = '/stations/'
   const { data } = await axios.get<StationsResponse>(url, { params: { source } })
+
+  return data.features
+}
+
+export async function getDetailedStations(
+  source: StationSource = StationSource.unspecified
+): Promise<DetailedGeoJsonStation[]> {
+  const detailedUrl = `${url}details/`
+  const { data } = await axios.get<DetailedStationsResponse>(detailedUrl, {
+    params: { source }
+  })
 
   return data.features
 }
