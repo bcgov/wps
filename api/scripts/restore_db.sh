@@ -77,6 +77,11 @@ then
     COPY="psql -h localhost -d wps -U wps -c \"\copy weather_station_model_predictions FROM '${BACKUP_FOLDER}/weather_station_model_predictions.csv' CSV\""
     echo "${COPY}"
     eval "${COPY}"
+
+    # Restore c-haines table data
+    COPY="psql -h localhost -d wps -U wps -c \"\copy c_haines_polygons FROM '${BACKUP_FOLDER}/c_haines_polygons.csv' CSV\""
+    echo "${COPY}"
+    eval "${COPY}"
 fi
 
 # Ensure wpsread user has appropriate rights:
