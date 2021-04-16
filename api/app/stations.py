@@ -18,7 +18,6 @@ from app.schemas.stations import (WeatherStation,
                                   WeatherStationGeometry)
 from app.db.database import get_read_session_scope
 from app.db.crud.stations import get_noon_forecast_observation_union
-from app.time_utils import get_utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -85,10 +84,19 @@ async def get_stations(
     return _get_stations_local()
 
 
-# TODO: write a function to remove all that crazy duplicate code
-# def set_thing(parent, object_name, variable_name, value):
-#     if not math.isnan(value):
-#         obj = getattr(parent, object_name)
+def set_weather_variables(parent, station_union):
+    """
+    TODO: add a comment! and explain this code - it's difficult to read!
+    """
+    variable_names = ('temperature', 'relative_humidity')
+    for variable_name in variable_names:
+        value = station_union[variable_name]
+        if not math.isnan(value):
+            obj = getattr(parent, station_union['record_type'], None)
+            if obj is None:
+                obj = WeatherVariables()
+                setattr(parent, station_union['record_type'], obj)
+            setattr(obj, variable_name, value)
 
 
 async def fetch_detailed_stations(
@@ -114,27 +122,7 @@ async def fetch_detailed_stations(
         for station_union in stations_detailed:
             station = station_lookup.get(station_union['station_code'], None)
             if station:
-                if station_union['record_type'] == 'forecast':
-                    # TODO: Lots of duplication, remove this.
-                    if not math.isnan(station_union['temperature']):
-                        if station.properties.forecasts is None:
-                            station.properties.forecasts = WeatherVariables()
-                        station.properties.forecasts.temperature = station_union['temperature']
-                    if not math.isnan(station_union['relative_humidity']):
-                        if station.properties.forecasts is None:
-                            station.properties.forecasts = WeatherVariables()
-                        station.properties.forecasts.relative_humidity = station_union['relative_humidity']
-                elif station_union['record_type'] == 'observation':
-                    if not math.isnan(station_union['temperature']):
-                        if station.properties.observations is None:
-                            station.properties.observations = WeatherVariables()
-                        station.properties.observations.temperature = station_union['temperature']
-                    if not math.isnan(station_union['relative_humidity']):
-                        if station.properties.observations is None:
-                            station.properties.observations = WeatherVariables()
-                        station.properties.observations.relative_humidity = station_union['relative_humidity']
-                else:
-                    raise Exception(station_union['record_type'])
+                set_weather_variables(station.properties, station_union)
         return geojson_stations
 
 

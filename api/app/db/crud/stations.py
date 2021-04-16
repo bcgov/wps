@@ -32,7 +32,7 @@ def get_noon_forecast_observation_union(session: Session, date_of_interest: date
 ---
 --- most recent forecasts
 ---
-select 'forecast' as record_type, noon_forecasts.weather_date, noon_forecasts.station_code, 
+select 'forecasts' as record_type, noon_forecasts.weather_date, noon_forecasts.station_code, 
 noon_forecasts.temperature, noon_forecasts.relative_humidity
 from noon_forecasts
 inner join
@@ -56,25 +56,9 @@ union
 ---
 --- hourly actuals
 ---
-select 'observation' as record_type, hourly_actuals.weather_date, hourly_actuals.station_code,
+select 'observations' as record_type, hourly_actuals.weather_date, hourly_actuals.station_code,
 hourly_actuals.temperature, hourly_actuals.relative_humidity 
 from hourly_actuals
 where hourly_actuals.weather_date = :weather_date
 -- order by hourly_actuals.station_code"""
     return session.execute(query, {"weather_date": noon_date})
-
-    # noon_date = _get_noon_date(date_of_interest)
-    # forecast_query = session.query(
-    #     literal('forecast').label('type'),
-    #     NoonForecast.station_code, NoonForecast.temperature, NoonForecast.relative_humidity)\
-    #     .filter(NoonForecast.rh_valid is True, NoonForecast.temp_valid is True)\
-    #     .filter(NoonForecast.weather_date == noon_date)\
-    #     .order_by(NoonForecast.station_code)
-    # observation_query = session.query(
-    #     literal('observation').label('type'),
-    #     HourlyActual.station_code, HourlyActual.temperature, HourlyActual.relative_humidity)\
-    #     .filter(HourlyActual.rh_valid is True, HourlyActual.temp_valid is True)\
-    #     .filter(HourlyActual.weather_date == noon_date)\
-    #     .order_by(HourlyActual.station_code)
-
-    # return forecast_query.union(observation_query)
