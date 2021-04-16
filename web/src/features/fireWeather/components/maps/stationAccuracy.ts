@@ -1,3 +1,6 @@
+import { Style, Fill, Stroke } from 'ol/style'
+import CircleStyle from 'ol/style/Circle'
+
 export interface StationMetrics {
   observations: {
     temperature: number
@@ -14,11 +17,13 @@ export interface ColorResult {
   relative_humidity: string
 }
 
+const neutralColor = '#DFDEDB'
+
 const rhColorScale = [
   '#07A059',
   '#3BAC48',
   '#82C064',
-  '#DFDEDB',
+  neutralColor,
   '#FCCE89',
   '#F4A036',
   '#ED8001'
@@ -27,7 +32,7 @@ const tempColorScale = [
   '#720505',
   '#D05050',
   '#F79191',
-  '#DFDEDB',
+  neutralColor,
   '#60D3F8',
   '#38B0F8',
   '#2F80EE'
@@ -37,11 +42,12 @@ const windColorScale = [
   '#460270',
   '#BC69EF',
   '#D6B2ED',
-  '#DFDEDB',
+  neutralColor,
   '#7AD3CE',
   '#17B8A7',
   '#089E83'
 ]
+
 /**
  *  Calculates the percentage difference between observed and forecasted station metrics.
  *  Uses increments of 3% to determine color code in the associated color arrays.
@@ -49,23 +55,22 @@ const windColorScale = [
  * @param stationMetrics contains forecasted and observered temperature and relative humidity
  * @returns color code to display for temperature and relative humidity on the map
  */
-export const computeAccuracyColors = (
-  stationMetrics: StationMetrics[]
-): ColorResult[] => {
-  return stationMetrics.map(stationMetric => {
-    const tempPercentDifference =
-      ((stationMetric.forecasts.temperature - stationMetric.observations.temperature) /
-        stationMetric.observations.temperature) *
-      100
+export const computeAccuracyColors = (stationMetric: StationMetrics): ColorResult => {
+  if (stationMetric.observations == null || stationMetric.forecasts == null) {
+    return { temperature: '#000000', relative_humidity: '#000000' }
+  }
+  const tempPercentDifference =
+    ((stationMetric.forecasts.temperature - stationMetric.observations.temperature) /
+      stationMetric.observations.temperature) *
+    100
 
-    const rhPercentDifference =
-      ((stationMetric.forecasts.relative_humidity -
-        stationMetric.observations.relative_humidity) /
-        stationMetric.observations.relative_humidity) *
-      100
+  const rhPercentDifference =
+    ((stationMetric.forecasts.relative_humidity -
+      stationMetric.observations.relative_humidity) /
+      stationMetric.observations.relative_humidity) *
+    100
 
-    return determineColor(tempPercentDifference, rhPercentDifference)
-  })
+  return determineColor(tempPercentDifference, rhPercentDifference)
 }
 
 const determineColor = (
@@ -76,5 +81,5 @@ const determineColor = (
   const rhScaleIndex = Math.floor(rhPercentDifference / 3)
 
   // TODO ...
-  return { temperature: '#fffff', relative_humidity: '#fffff' }
+  return { temperature: neutralColor, relative_humidity: neutralColor }
 }

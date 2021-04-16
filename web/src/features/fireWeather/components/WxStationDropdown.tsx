@@ -6,6 +6,7 @@ import { makeStyles } from '@material-ui/core/styles'
 
 import { selectFireWeatherStations } from 'app/rootReducer'
 import { getSelectedStationOptions } from 'utils/dropdown'
+import { GeoJsonStation } from 'api/stationAPI'
 
 const useStyles = makeStyles({
   autocomplete: {
@@ -37,6 +38,7 @@ const WxStationDropdown = (props: Props) => {
     stationsByCode,
     error: errorFetchingStations
   } = useSelector(selectFireWeatherStations)
+  const regStations = stations as GeoJsonStation[]
 
   const { isThereUnknownCode, selectedStationOptions } = getSelectedStationOptions(
     props.stationCodes,
@@ -44,7 +46,7 @@ const WxStationDropdown = (props: Props) => {
   )
   const isThereError =
     !fetchingStations && (Boolean(errorFetchingStations) || isThereUnknownCode)
-  const allStationOptions: Option[] = stations.map(station => ({
+  const allStationOptions: Option[] = regStations.map((station: GeoJsonStation) => ({
     name: station.properties.name,
     code: station.properties.code
   }))

@@ -6,8 +6,8 @@ import { logError } from 'utils/error'
 interface State {
   loading: boolean
   error: string | null
-  stations: GeoJsonStation[]
-  stationsByCode: Record<number, GeoJsonStation | undefined>
+  stations: GeoJsonStation[] | DetailedGeoJsonStation[]
+  stationsByCode: Record<number, GeoJsonStation | DetailedGeoJsonStation | undefined>
 }
 
 const initialState: State = {

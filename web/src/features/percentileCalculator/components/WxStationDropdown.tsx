@@ -9,6 +9,7 @@ import { selectPercentileStations } from 'app/rootReducer'
 import { WEATHER_STATION_MAP_LINK } from 'utils/constants'
 import { ErrorMessage } from 'components/ErrorMessage'
 import { getSelectedStationOptions, Option } from 'utils/dropdown'
+import { GeoJsonStation } from 'api/stationAPI'
 
 const useStyles = makeStyles({
   root: {
@@ -49,7 +50,7 @@ const WxStationDropdown = (props: Props) => {
   )
   const isThereError =
     !fetchingStations && (Boolean(errorFetchingStations) || isThereUnknownCode)
-  const allStationOptions: Option[] = stations.map(station => ({
+  const allStationOptions: Option[] = (stations as GeoJsonStation[]).map(station => ({
     name: station.properties.name,
     code: station.properties.code
   }))

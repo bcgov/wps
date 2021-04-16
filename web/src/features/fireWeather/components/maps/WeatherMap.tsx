@@ -13,6 +13,7 @@ import { useDispatch, useSelector } from 'react-redux'
 
 import { selectFireWeatherStations } from 'app/rootReducer'
 import { getDetailedStations } from 'api/stationAPI'
+import { computeAccuracyColors } from './stationAccuracy'
 
 const styles = {
   Point: new Style({
@@ -24,6 +25,17 @@ const styles = {
       stroke: new Stroke({
         color: 'black'
       })
+    })
+  })
+}
+
+const pointStyleFunction = (feature: any, resolution: any) => {
+  const colorResult = computeAccuracyColors(feature.values_)
+  return new Style({
+    image: new CircleStyle({
+      radius: 4,
+      fill: new Fill({ color: colorResult.temperature }),
+      stroke: new Stroke({ color: 'blue', width: 1 })
     })
   })
 }
@@ -85,7 +97,7 @@ const WeatherMap = ({ redrawFlag }: Props) => {
             )
           })
         }
-        style={styles.Point}
+        style={pointStyleFunction}
         zIndex={1}
       />
     </Map>
