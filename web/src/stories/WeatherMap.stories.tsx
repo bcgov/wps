@@ -2,6 +2,8 @@ import React from 'react'
 import { Story, Meta } from '@storybook/react/types-6-0'
 
 import WeatherMap from 'features/fireWeather/components/maps/WeatherMap'
+import { Provider } from 'react-redux'
+import store from 'app/store'
 
 export default {
   title: 'morecast/WeatherMap',
@@ -10,9 +12,11 @@ export default {
 
 type PropTypes = React.ComponentProps<typeof WeatherMap>
 
-const Template: Story<PropTypes> = args => (
+const Template: Story<PropTypes> = () => (
   <div style={{ height: '500px' }}>
-    <WeatherMap />
+    <Provider store={store}>
+      <WeatherMap />
+    </Provider>
   </div>
 )
 
