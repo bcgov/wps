@@ -13,6 +13,7 @@ from app.schemas.stations import (WeatherStation,
                                   GeoJsonWeatherStation,
                                   GeoJsonDetailedWeatherStation,
                                   WeatherStationProperties,
+                                  WeatherVariables,
                                   DetailedWeatherStationProperties,
                                   WeatherStationGeometry)
 from app.db.database import get_read_session_scope
@@ -84,6 +85,12 @@ async def get_stations(
     return _get_stations_local()
 
 
+# TODO: write a function to remove all that crazy duplicate code
+# def set_thing(parent, object_name, variable_name, value):
+#     if not math.isnan(value):
+#         obj = getattr(parent, object_name)
+
+
 async def fetch_detailed_stations(
         time_of_interest: datetime,
         station_source: StationSourceEnum) \
@@ -108,13 +115,24 @@ async def fetch_detailed_stations(
             station = station_lookup.get(station_union['station_code'], None)
             if station:
                 if station_union['record_type'] == 'forecast':
-                    station.properties.forecast_temperature = station_union['temperature']
-                    station.properties.forecast_relative_humidity = station_union['relative_humidity']
+                    # TODO: Lots of duplication, remove this.
+                    if not math.isnan(station_union['temperature']):
+                        if station.properties.forecasts is None:
+                            station.properties.forecasts = WeatherVariables()
+                        station.properties.forecasts.temperature = station_union['temperature']
+                    if not math.isnan(station_union['relative_humidity']):
+                        if station.properties.forecasts is None:
+                            station.properties.forecasts = WeatherVariables()
+                        station.properties.forecasts.relative_humidity = station_union['relative_humidity']
                 elif station_union['record_type'] == 'observation':
                     if not math.isnan(station_union['temperature']):
-                        station.properties.observed_temperature = station_union['temperature']
+                        if station.properties.observations is None:
+                            station.properties.observations = WeatherVariables()
+                        station.properties.observations.temperature = station_union['temperature']
                     if not math.isnan(station_union['relative_humidity']):
-                        station.properties.observed_relative_humidity = station_union['relative_humidity']
+                        if station.properties.observations is None:
+                            station.properties.observations = WeatherVariables()
+                        station.properties.observations.relative_humidity = station_union['relative_humidity']
                 else:
                     raise Exception(station_union['record_type'])
         return geojson_stations

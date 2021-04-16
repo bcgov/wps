@@ -20,12 +20,16 @@ class WeatherStationProperties(BaseModel):
     core_season: Season = None
 
 
+class WeatherVariables(BaseModel):
+    """ Weather variables """
+    temperature: float = None
+    relative_humidity: float = None
+
+
 class DetailedWeatherStationProperties(WeatherStationProperties):
     """ Detailed, non-geometrical weather station properties """
-    observed_temperature: float = None
-    forecast_temperature: int = None
-    observed_relative_humidity: float = None
-    forecast_relative_humidity: int = None
+    observations: WeatherVariables = None
+    forecasts: WeatherVariables = None
 
 
 class WeatherStationGeometry(BaseModel):
