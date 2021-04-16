@@ -177,7 +177,12 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
                       {props.columns.map(column => {
                         const value = row[column.id]
                         let display = null
-                        const { className, testId } = getCellClassNameAndTestId(column, rowIds, idx, classes)
+                        const { className, testId } = getCellClassNameAndTestId(
+                          column,
+                          rowIds,
+                          idx,
+                          classes
+                        )
 
                         if (typeof value === 'string' && column.formatDt) {
                           display = column.formatDt(value)

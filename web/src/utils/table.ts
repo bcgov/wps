@@ -68,7 +68,7 @@ const calculateMaxWindSpeed = (rows: WeatherValue[]): number | null => {
   // calculates the maximum wind speed from a set of table rows.
   // Returns null if the maximum value is 0.0 (since we don't want every
   // wind cell in the table to be highlighted).
-  let maxWindSpeed = _.maxBy(rows, 'wind_speed')?.wind_speed ?? null
+  const maxWindSpeed = _.maxBy(rows, 'wind_speed')?.wind_speed ?? null
   if (
     maxWindSpeed !== null &&
     maxWindSpeed.toFixed(WIND_SPEED_VALUES_DECIMAL) !== '0.0'
