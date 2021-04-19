@@ -209,7 +209,8 @@ class StationMachineLearning:  # pylint: disable=too-many-instance-attributes
             for hour in sample.hours():
                 regression_model = getattr(
                     self.regression_models[hour], wrapper_key)
-                regression_model.model.fit(sample.np_x(hour), sample.np_y(hour))
+                regression_model.model.fit(
+                    sample.np_x(hour), sample.np_y(hour))
                 # NOTE: We could get fancy here, and evaluate how good the regression actually worked,
                 # how much sample data we actually had etc., and then not mark the model as being "good".
                 regression_model.good_model = True
