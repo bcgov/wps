@@ -15,7 +15,7 @@ export interface ColorResult {
 }
 export const noDataColor = '#000000'
 export const neutralColor = '#DFDEDB'
-const neutralIndex = 3
+export const neutralIndex = 3
 
 export const rhColorScale = [
   '#07A059',
@@ -71,7 +71,7 @@ export const computeAccuracyColors = (stationMetric: StationMetrics): ColorResul
   return determineColor(tempPercentDifference, rhPercentDifference)
 }
 
-const computePercentageDifference = (
+export const computePercentageDifference = (
   metricForecast: number,
   metricObservation: number
 ) => {
@@ -91,7 +91,7 @@ const computePercentageDifference = (
  *  Index is determined by how many multiples of 3 the difference
  *  is from the observed result, bounded by the size of the color array.
  */
-const determineColor = (
+export const determineColor = (
   tempPercentDifference: number,
   rhPercentDifference: number
 ): ColorResult => {
@@ -117,7 +117,7 @@ const determineColor = (
   }
 }
 
-const computeScaleIndex = (
+export const computeScaleIndex = (
   percentDifference: number,
   scaleMagnitude: number,
   scale: string[]
