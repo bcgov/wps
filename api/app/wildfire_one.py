@@ -2,12 +2,11 @@
 """
 import os
 import json
-from typing import Generator, Dict
+from typing import Generator, Dict, List
 from datetime import datetime, timedelta, timezone
 import math
 from abc import abstractmethod, ABC
 import logging
-from typing import List
 import asyncio
 import geopandas
 from aiohttp import ClientSession, BasicAuth, TCPConnector
@@ -39,17 +38,6 @@ class BuildQuery(ABC):
     @abstractmethod
     def query(self, page) -> [str, dict]:
         """ Return query url and params """
-
-
-class BuildQueryAllStations(BuildQuery):
-    """ Class for building a url and params to request all stations.  """
-
-    def query(self, page) -> [str, dict]:
-        """ Return query url and params """
-        params = {'size': self.max_page_size,
-                  'sort': 'displayLabel', 'page': page}
-        url = '{base_url}/v1/stations'.format(base_url=self.base_url)
-        return [url, params]
 
 
 class BuildQueryAllActiveStations(BuildQuery):
@@ -261,7 +249,8 @@ async def get_stations() -> List[WeatherStation]:
         header = await _get_auth_header(session)
         stations = []
         # Iterate through "raw" station data.
-        async for raw_station in _fetch_raw_stations_generator(session, header, BuildQueryAllActiveStations()):
+        async for raw_station in _fetch_raw_stations_generator(
+                session, header, BuildQueryAllActiveStations()):
             # If the station is valid, add it to our list of stations.
             if _is_station_valid(raw_station):
                 stations.append(WeatherStation(code=raw_station['stationCode'],
@@ -359,7 +348,7 @@ def prepare_fetch_hourlies_for_all_stations_query(time_of_interest: datetime, pa
 
 
 def prepare_fetch_dailies_for_all_stations_query(time_of_interest: datetime, page_count: int):
-    """ Prepare url and params for fetching dailies (that's forecast and observations for noo) for all 
+    """ Prepare url and params for fetching dailies (that's forecast and observations for noon) for all.
     stations. """
     base_url = config.get('WFWX_BASE_URL')
     noon_date = _get_noon_date(time_of_interest)
@@ -392,29 +381,6 @@ async def fetch_raw_dailies_for_all_stations(
             total_pages = dailies_json['page']['totalPages']
             hourlies.extend(dailies_json['_embedded']['dailies'])
         logger.info('received dailies')
-        page_count = page_count + 1
-    return hourlies
-
-
-async def fetch_raw_hourlies_for_all_stations(
-        session: ClientSession, headers: dict, time_of_interest: datetime) -> dict:
-    """ Fetch the hourly readings for a given time, for all weather stations.
-    """
-    # We don't know how many pages until our first call - so we assume one page to start with.
-    total_pages = 1
-    page_count = 0
-    hourlies = []
-    while page_count < total_pages:
-        # Build up the request URL.
-        url, params = prepare_fetch_hourlies_for_all_stations_query(time_of_interest, page_count)
-        # Get hourlies
-        logger.info(url)
-        logger.info(params)
-        async with session.get(url, params=params, headers=headers) as response:
-            hourlies_json = await response.json()
-            total_pages = hourlies_json['page']['totalPages']
-            hourlies.extend(hourlies_json['_embedded']['hourlies'])
-        logger.info('received hourlies')
         page_count = page_count + 1
     return hourlies
 

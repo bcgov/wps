@@ -51,7 +51,7 @@ export const fetchWxStations = (
 ): AppThunk => async dispatch => {
   try {
     dispatch(getStationsStart())
-    const stations = await stationGetter(StationSource.local_storage)
+    const stations = await stationGetter(StationSource.wildfire_one)
     dispatch(getStationsSuccess(stations))
   } catch (err) {
     dispatch(getStationsFailed(err.toString()))
