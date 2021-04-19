@@ -55,18 +55,29 @@ export const windColorScale = [
  */
 export const computeAccuracyColors = (stationMetric: StationMetrics): ColorResult => {
   if (stationMetric.observations == null || stationMetric.forecasts == null) {
-    return { temperature: '#000000', relative_humidity: '#000000' }
+    return { temperature: neutralColor, relative_humidity: neutralColor }
   }
-  const tempPercentDifference =
-    ((stationMetric.forecasts.temperature - stationMetric.observations.temperature) /
-      stationMetric.observations.temperature) *
-    100
 
-  const rhPercentDifference =
-    ((stationMetric.forecasts.relative_humidity -
+  const tempDifference =
+    stationMetric.forecasts.temperature - stationMetric.observations.temperature
+
+  const tempDifferenceDenominator =
+    (stationMetric.forecasts.temperature + stationMetric.observations.temperature) / 2
+
+  let tempPercentDifference = (tempDifference / tempDifferenceDenominator) * 100
+  tempPercentDifference = isNaN(tempPercentDifference) ? 0 : tempPercentDifference
+
+  const rhDifference =
+    stationMetric.forecasts.relative_humidity -
+    stationMetric.observations.relative_humidity
+
+  const rhDifferenceDenominator =
+    (stationMetric.forecasts.relative_humidity +
       stationMetric.observations.relative_humidity) /
-      stationMetric.observations.relative_humidity) *
-    100
+    2
+
+  let rhPercentDifference = (rhDifference / rhDifferenceDenominator) * 100
+  rhPercentDifference = isNaN(rhPercentDifference) ? 0 : rhPercentDifference
 
   return determineColor(tempPercentDifference, rhPercentDifference)
 }
@@ -86,14 +97,14 @@ const determineColor = (
   const rhScaleMagnitude = differenceToMagnitude(rhPercentDifference)
 
   const tempScaleIndex =
-    tempPercentDifference < 0
+    tempPercentDifference <= 0
       ? Math.max(neutralIndex - tempScaleMagnitude, 0)
-      : tempScaleMagnitude
+      : Math.min(neutralIndex + tempScaleMagnitude, tempColorScale.length - 1)
 
   const rhScaleIndex =
-    rhPercentDifference < 0
+    rhPercentDifference <= 0
       ? Math.max(neutralIndex - rhScaleMagnitude, 0)
-      : rhScaleMagnitude
+      : Math.min(neutralIndex + rhScaleMagnitude, rhColorScale.length - 1)
 
   return {
     temperature: tempColorScale[tempScaleIndex],
@@ -102,7 +113,5 @@ const determineColor = (
 }
 
 const differenceToMagnitude = (percentDifference: number): number => {
-  return isNaN(percentDifference) || Math.abs(percentDifference) < 3
-    ? neutralIndex
-    : Math.min(Math.floor(Math.abs(percentDifference) / 3), rhColorScale.length - 1)
+  return Math.min(Math.floor(Math.abs(percentDifference) / 3), rhColorScale.length - 1)
 }
