@@ -1,6 +1,3 @@
-import { Style, Fill, Stroke } from 'ol/style'
-import CircleStyle from 'ol/style/Circle'
-
 export interface StationMetrics {
   observations: {
     temperature: number
@@ -18,8 +15,9 @@ export interface ColorResult {
 }
 
 export const neutralColor = '#DFDEDB'
+const neutralIndex = 3
 
-const rhColorScale = [
+export const rhColorScale = [
   '#07A059',
   '#3BAC48',
   '#82C064',
@@ -28,7 +26,7 @@ const rhColorScale = [
   '#F4A036',
   '#ED8001'
 ]
-const tempColorScale = [
+export const tempColorScale = [
   '#720505',
   '#D05050',
   '#F79191',
@@ -38,7 +36,7 @@ const tempColorScale = [
   '#2F80EE'
 ]
 
-const windColorScale = [
+export const windColorScale = [
   '#460270',
   '#BC69EF',
   '#D6B2ED',
@@ -73,13 +71,42 @@ export const computeAccuracyColors = (stationMetric: StationMetrics): ColorResul
   return determineColor(tempPercentDifference, rhPercentDifference)
 }
 
+/**
+ *  Return color code for metric percent differences.
+ *
+ *  Index is determined by how many multiples of 3 the difference
+ *  is from the observed result, bounded by the size of the color array.
+ */
 const determineColor = (
   tempPercentDifference: number,
   rhPercentDifference: number
 ): ColorResult => {
-  const tempScaleIndex = Math.floor(tempPercentDifference / 3)
-  const rhScaleIndex = Math.floor(rhPercentDifference / 3)
+  const tempScaleMagnitude =
+    isNaN(tempPercentDifference) || Math.abs(tempPercentDifference) < 3
+      ? neutralIndex
+      : Math.min(
+          Math.floor(Math.abs(tempPercentDifference) / 3),
+          tempColorScale.length - 1
+        )
+
+  const rhScaleMagnitude =
+    isNaN(rhPercentDifference) || Math.abs(rhPercentDifference) < 3
+      ? neutralIndex
+      : Math.min(Math.floor(Math.abs(rhPercentDifference) / 3), rhColorScale.length - 1)
+
+  const tempScaleIndex =
+    tempPercentDifference < 0
+      ? Math.max(neutralIndex - tempScaleMagnitude, 0)
+      : tempScaleMagnitude
+
+  const rhScaleIndex =
+    rhPercentDifference < 0
+      ? Math.max(neutralIndex - rhScaleMagnitude, 0)
+      : rhScaleMagnitude
 
   // TODO ...
-  return { temperature: neutralColor, relative_humidity: neutralColor }
+  return {
+    temperature: tempColorScale[tempScaleIndex],
+    relative_humidity: rhColorScale[rhScaleIndex]
+  }
 }

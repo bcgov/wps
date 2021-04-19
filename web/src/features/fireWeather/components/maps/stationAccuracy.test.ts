@@ -1,4 +1,10 @@
-import { computeAccuracyColors, StationMetrics, neutralColor } from './stationAccuracy'
+import {
+  computeAccuracyColors,
+  StationMetrics,
+  neutralColor,
+  tempColorScale,
+  rhColorScale
+} from './stationAccuracy'
 
 const exactForecast: StationMetrics = {
   observations: {
@@ -12,8 +18,42 @@ const exactForecast: StationMetrics = {
 }
 describe('Map color accuracy', () => {
   it('should return the correct color codes', () => {
-    expect(computeAccuracyColors(exactForecast)).toEqual([
-      { temperature: neutralColor, relative_humidity: neutralColor }
-    ])
+    expect(computeAccuracyColors(exactForecast)).toEqual({
+      temperature: neutralColor,
+      relative_humidity: neutralColor
+    })
+  })
+
+  it('should return the highest color when metrics are widely over forecasted', () => {
+    const largeDifference: StationMetrics = {
+      observations: {
+        temperature: 0,
+        relative_humidity: 0
+      },
+      forecasts: {
+        temperature: 300,
+        relative_humidity: 300
+      }
+    }
+    expect(computeAccuracyColors(largeDifference)).toEqual({
+      temperature: tempColorScale[tempColorScale.length - 1],
+      relative_humidity: rhColorScale[rhColorScale.length - 1]
+    })
+  })
+  it('should return the lowest color when metrics are widely under forecasted', () => {
+    const largeDifference: StationMetrics = {
+      observations: {
+        temperature: 300,
+        relative_humidity: 300
+      },
+      forecasts: {
+        temperature: 0,
+        relative_humidity: 0
+      }
+    }
+    expect(computeAccuracyColors(largeDifference)).toEqual({
+      temperature: tempColorScale[0],
+      relative_humidity: rhColorScale[0]
+    })
   })
 })
