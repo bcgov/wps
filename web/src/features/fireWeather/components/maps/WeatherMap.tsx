@@ -15,27 +15,14 @@ import { selectFireWeatherStations } from 'app/rootReducer'
 import { getDetailedStations } from 'api/stationAPI'
 import { computeAccuracyColors } from './stationAccuracy'
 
-const styles = {
-  Point: new Style({
-    image: new CircleStyle({
-      radius: 4,
-      fill: new Fill({
-        color: '#E59982'
-      }),
-      stroke: new Stroke({
-        color: 'black'
-      })
-    })
-  })
-}
-
 const pointStyleFunction = (feature: any, resolution: any) => {
   const colorResult = computeAccuracyColors(feature.values_)
+  console.log(colorResult)
   return new Style({
     image: new CircleStyle({
       radius: 4,
       fill: new Fill({ color: colorResult.temperature }),
-      stroke: new Stroke({ color: 'blue', width: 1 })
+      stroke: new Stroke({ color: 'black', width: 1 })
     })
   })
 }

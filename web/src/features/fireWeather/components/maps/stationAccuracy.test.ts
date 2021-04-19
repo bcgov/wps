@@ -6,18 +6,18 @@ import {
   rhColorScale
 } from './stationAccuracy'
 
-const exactForecast: StationMetrics = {
-  observations: {
-    temperature: 0,
-    relative_humidity: 0
-  },
-  forecasts: {
-    temperature: 0,
-    relative_humidity: 0
-  }
-}
 describe('Station map color accuracy', () => {
-  it('should return the correct color codes', () => {
+  it('should return the neutral color code when observed an forecasted are equal', () => {
+    const exactForecast: StationMetrics = {
+      observations: {
+        temperature: 0,
+        relative_humidity: 0
+      },
+      forecasts: {
+        temperature: 0,
+        relative_humidity: 0
+      }
+    }
     expect(computeAccuracyColors(exactForecast)).toEqual({
       temperature: neutralColor,
       relative_humidity: neutralColor
