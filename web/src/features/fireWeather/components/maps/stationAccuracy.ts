@@ -81,18 +81,9 @@ const determineColor = (
   tempPercentDifference: number,
   rhPercentDifference: number
 ): ColorResult => {
-  const tempScaleMagnitude =
-    isNaN(tempPercentDifference) || Math.abs(tempPercentDifference) < 3
-      ? neutralIndex
-      : Math.min(
-          Math.floor(Math.abs(tempPercentDifference) / 3),
-          tempColorScale.length - 1
-        )
+  const tempScaleMagnitude = differenceToMagnitude(tempPercentDifference)
 
-  const rhScaleMagnitude =
-    isNaN(rhPercentDifference) || Math.abs(rhPercentDifference) < 3
-      ? neutralIndex
-      : Math.min(Math.floor(Math.abs(rhPercentDifference) / 3), rhColorScale.length - 1)
+  const rhScaleMagnitude = differenceToMagnitude(rhPercentDifference)
 
   const tempScaleIndex =
     tempPercentDifference < 0
@@ -104,9 +95,14 @@ const determineColor = (
       ? Math.max(neutralIndex - rhScaleMagnitude, 0)
       : rhScaleMagnitude
 
-  // TODO ...
   return {
     temperature: tempColorScale[tempScaleIndex],
     relative_humidity: rhColorScale[rhScaleIndex]
   }
+}
+
+const differenceToMagnitude = (percentDifference: number): number => {
+  return isNaN(percentDifference) || Math.abs(percentDifference) < 3
+    ? neutralIndex
+    : Math.min(Math.floor(Math.abs(percentDifference) / 3), rhColorScale.length - 1)
 }
