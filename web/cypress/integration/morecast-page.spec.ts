@@ -85,6 +85,56 @@ describe('MoreCast Page', () => {
     })
 
     it('Observation, noon forecast, and noon GDPS should be displayed in tables in default active tab', () => {
+      const checkMaxTempFormattingAndLength = (tableName: string) => {
+        cy.getByTestId(`${tableName}-${stationCode}`)
+          .getByTestId('max-temperature-td')
+          .should('have.css', 'background-color', 'rgb(255, 179, 179)')
+          .should('have.length.at.least', 1)
+      }
+
+      const checkMinTempFormattingAndLength = (tableName: string) => {
+        cy.getByTestId(`${tableName}-${stationCode}`)
+          .getByTestId('min-temperature-td')
+          .should('have.css', 'background-color', 'rgb(132, 184, 231)')
+          .should('have.length.at.least', 1)
+      }
+
+      const checkMinRHFormattingAndLength = (tableName: string) => {
+        cy.getByTestId(`${tableName}-${stationCode}`)
+          .getByTestId('min-RH-td')
+          .should('have.css', 'background-color', 'rgb(242, 153, 74)')
+          .should('have.length.at.least', 1)
+      }
+
+      const checkMaxPrecipFormattingAndLength = (tableName: string) => {
+        cy.getByTestId(`${tableName}-${stationCode}`)
+          .getByTestId('max-precipitation-td')
+          .should('have.css', 'border', '1px solid rgba(0, 0, 0, 0.87)')
+      }
+
+      const checkMaxWindSpeedFormattingAndLength = (tableName: string) => {
+        cy.getByTestId(`${tableName}-${stationCode}`)
+          .getByTestId('max-wind-speed-td')
+          .should('have.css', 'border-right', '1px solid rgba(0, 0, 0, 0.87)')
+          .should('have.css', 'border-left-width', '0px')
+      }
+
+      const checkWindDirectionFormattingAndLength = (tableName: string) => {
+        cy.getByTestId(`${tableName}-${stationCode}`)
+          .getByTestId('direction-max-wind-speed-td')
+          .should('have.css', 'border-left', '1px solid rgba(0, 0, 0, 0.87)')
+          .should('have.css', 'border-right-width', '0px')
+      }
+
+      const checkTableCellHighlighting = (tableName: string) => {
+        checkMaxTempFormattingAndLength(tableName)
+        checkMinTempFormattingAndLength(tableName)
+        checkMinRHFormattingAndLength(tableName)
+        checkMaxPrecipFormattingAndLength(tableName)
+        checkMaxWindSpeedFormattingAndLength(tableName)
+        checkWindDirectionFormattingAndLength(tableName)
+      }
+
       cy.getByTestId(`observations-table-${stationCode}`)
         .find('tbody > tr')
         .should('have.length', numOfObservations)
@@ -105,12 +155,19 @@ describe('MoreCast Page', () => {
         .find('tbody > tr:first > td:first')
         .should('contain', earliestDate)
 
+      checkTableCellHighlighting('observations-table')
+
+      // Check num of interpolated noon GDPS rows
       cy.getByTestId(`noon-gdps-table-${stationCode}`)
         .find('tbody > tr')
-        .should('have.length', 14) // Num of noon gdps
+        .should('have.length', 14)
+      checkTableCellHighlighting('noon-gdps-table')
+
+      // Check num of noon forecasts rows
       cy.getByTestId(`noon-forecasts-table-${stationCode}`)
         .find('tbody > tr')
         .should('have.length', numOfForecasts)
+      checkTableCellHighlighting('noon-forecasts-table')
 
       // Check that collapse and expand functionality works
       cy.getByTestId(`observations-table-${stationCode}-accordion`).click() // Collapse Observations table

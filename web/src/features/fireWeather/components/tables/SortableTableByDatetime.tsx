@@ -14,7 +14,15 @@ import AccordionSummary from '@material-ui/core/AccordionSummary'
 import AccordionDetails from '@material-ui/core/AccordionDetails'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 
-import { getDatetimeComparator, Order } from 'utils/table'
+import {
+  getDatetimeComparator,
+  getMinMaxValueCalculator,
+  Order,
+  MinMaxValues,
+  RowIdsOfMinMaxValues,
+  getMinMaxValuesRowIds,
+  getCellClassNameAndTestId
+} from 'utils/table'
 
 const useStyles = makeStyles({
   display: {
@@ -29,10 +37,43 @@ const useStyles = makeStyles({
   },
   tableContainer: {
     maxHeight: 280
+  },
+  maxTemperature: {
+    background: '#ffb3b3'
+  },
+  minTemperature: {
+    background: '#84b8e7'
+  },
+  minRH: {
+    background: '#f2994a'
+  },
+  maxPrecipitation: {
+    fontWeight: 'bold',
+    borderColor: 'rgba(0, 0, 0, 0.87)',
+    borderStyle: 'solid',
+    borderWidth: '1px'
+  },
+  maxWindSpeed: {
+    fontWeight: 'bold',
+    borderColor: 'rgba(0, 0, 0, 0.87)',
+    borderStyle: 'solid',
+    borderTopWidth: '1px',
+    borderBottomWidth: '1px',
+    borderRightWidth: '1px',
+    borderLeftWidth: '0px'
+  },
+  directionOfMaxWindSpeed: {
+    fontWeight: 'bold',
+    borderColor: 'rgba(0, 0, 0, 0.87)',
+    borderStyle: 'solid',
+    borderTopWidth: '1px',
+    borderBottomWidth: '1px',
+    borderLeftWidth: '1px',
+    borderRightWidth: '0px'
   }
 })
 
-interface WeatherValue {
+export interface WeatherValue {
   datetime: string
   temperature?: number | null
   relative_humidity?: number | null
@@ -77,6 +118,14 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
   const toggleDatetimeOrder = () => {
     setOrder(order === 'asc' ? 'desc' : 'asc')
   }
+
+  const minMaxValuesToHighlight: MinMaxValues = getMinMaxValueCalculator(
+    rowsSortedByDatetime
+  )
+  const rowIds: RowIdsOfMinMaxValues = getMinMaxValuesRowIds(
+    rowsSortedByDatetime,
+    minMaxValuesToHighlight
+  )
 
   return (
     <div className={classes.display} data-testid={props.testId}>
@@ -128,6 +177,12 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
                       {props.columns.map(column => {
                         const value = row[column.id]
                         let display = null
+                        const { className, testId } = getCellClassNameAndTestId(
+                          column,
+                          rowIds,
+                          idx,
+                          classes
+                        )
 
                         if (typeof value === 'string' && column.formatDt) {
                           display = column.formatDt(value)
@@ -137,7 +192,12 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
                         }
 
                         return (
-                          <TableCell key={column.id} align={column.align}>
+                          <TableCell
+                            key={column.id}
+                            align={column.align}
+                            className={className}
+                            data-testid={testId}
+                          >
                             {display}
                           </TableCell>
                         )

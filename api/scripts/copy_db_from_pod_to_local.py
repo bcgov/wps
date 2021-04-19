@@ -105,7 +105,8 @@ def dump_database(project: str, pod: str, database: str, mode: Mode) -> List[str
         result = subprocess.run([*oc_rsh(project, pod), 'pg_dump', '--file=/tmp/dump_db.tar',
                                  '--clean', '-Ft', database,
                                  '--exclude-table-data=model_run_grid_subset_predictions',
-                                 '--exclude-table-data=weather_station_model_predictions'],
+                                 '--exclude-table-data=weather_station_model_predictions',
+                                 '--exclude-table-data=c_haines_polygons'],
                                 stdout=subprocess.PIPE, check=True, text=True)
     else:
         print('(complete dump)')
@@ -116,6 +117,7 @@ def dump_database(project: str, pod: str, database: str, mode: Mode) -> List[str
     process = subprocess.Popen([*oc_rsh(project, pod)], stdin=subprocess.PIPE,
                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     if mode == Mode.partial:
+        # partial model data
         tables = ['model_run_grid_subset_predictions', 'weather_station_model_predictions']
         for table in tables:
             csv_file = '/tmp/{}.csv'.format(table)
@@ -126,6 +128,19 @@ def dump_database(project: str, pod: str, database: str, mode: Mode) -> List[str
             print('run: {}'.format(sql_command))
             process.stdin.write(sql_command)
             process.stdin.flush()
+        # partial c-haines
+        csv_file = '/tmp/c_haines_polygons.csv'
+        files.append(csv_file)
+        sql_command = ('psql {database} -c "\\copy (SELECT c_haines_polygons.* '
+                       'FROM c_haines_polygons '
+                       'INNER JOIN c_haines_predictions ON '
+                       'c_haines_predictions.id = c_haines_polygons.c_haines_prediction_id WHERE '
+                       'c_haines_predictions.prediction_timestamp > current_date -5) '
+                       'TO \'{csv_file}\' WITH csv"\n').format(
+            database=database, csv_file=csv_file)
+        print(f'run: {sql_command}')
+        process.stdin.write(sql_command)
+        process.stdin.flush()
 
     for filename in files:
         print('zip: {}'.format(filename))
