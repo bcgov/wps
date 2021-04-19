@@ -58,28 +58,25 @@ export const computeAccuracyColors = (stationMetric: StationMetrics): ColorResul
     return { temperature: noDataColor, relative_humidity: noDataColor }
   }
 
-  const tempPercentDifference = computePercentageDifference(
-    stationMetric.forecasts.temperature,
-    stationMetric.observations.temperature
+  return determineColor(
+    computePercentageDifference(
+      stationMetric.forecasts.temperature,
+      stationMetric.observations.temperature
+    ),
+    computePercentageDifference(
+      stationMetric.forecasts.relative_humidity,
+      stationMetric.observations.relative_humidity
+    )
   )
-
-  const rhPercentDifference = computePercentageDifference(
-    stationMetric.forecasts.relative_humidity,
-    stationMetric.observations.relative_humidity
-  )
-
-  return determineColor(tempPercentDifference, rhPercentDifference)
 }
 
 export const computePercentageDifference = (
   metricForecast: number,
   metricObservation: number
 ) => {
-  const difference = metricForecast - metricObservation
-
-  const differenceDenominator = (metricForecast + metricObservation) / 2
-
-  let percentDifference = (difference / differenceDenominator) * 100
+  let percentDifference =
+    ((metricForecast - metricObservation) / ((metricForecast + metricObservation) / 2)) *
+    100
   percentDifference = isNaN(percentDifference) ? 0 : percentDifference
 
   return percentDifference
@@ -95,25 +92,23 @@ export const determineColor = (
   tempPercentDifference: number,
   rhPercentDifference: number
 ): ColorResult => {
-  const tempScaleMagnitude = differenceToMagnitude(tempPercentDifference)
-
-  const rhScaleMagnitude = differenceToMagnitude(rhPercentDifference)
-
-  const tempScaleIndex = computeScaleIndex(
-    tempPercentDifference,
-    tempScaleMagnitude,
-    tempColorScale
-  )
-
-  const rhScaleIndex = computeScaleIndex(
-    rhPercentDifference,
-    rhScaleMagnitude,
-    rhColorScale
-  )
-
   return {
-    temperature: tempColorScale[tempScaleIndex],
-    relative_humidity: rhColorScale[rhScaleIndex]
+    temperature:
+      tempColorScale[
+        computeScaleIndex(
+          tempPercentDifference,
+          differenceToMagnitude(tempPercentDifference),
+          tempColorScale
+        )
+      ],
+    relative_humidity:
+      rhColorScale[
+        computeScaleIndex(
+          rhPercentDifference,
+          differenceToMagnitude(rhPercentDifference),
+          rhColorScale
+        )
+      ]
   }
 }
 
