@@ -70,13 +70,9 @@ export async function getStations(
   return data.features
 }
 
-export async function getDetailedStations(
-  source: StationSource = StationSource.unspecified
-): Promise<DetailedGeoJsonStation[]> {
+export async function getDetailedStations(): Promise<DetailedGeoJsonStation[]> {
   const detailedUrl = `${url}details/`
-  const { data } = await axios.get<DetailedStationsResponse>(detailedUrl, {
-    params: { source }
-  })
+  const { data } = await axios.get<DetailedStationsResponse>(detailedUrl)
 
   return data.features
 }
