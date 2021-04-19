@@ -2,6 +2,7 @@ import {
   computeAccuracyColors,
   StationMetrics,
   neutralColor,
+  noDataColor,
   tempColorScale,
   rhColorScale
 } from './stationAccuracy'
@@ -21,6 +22,17 @@ describe('Station map color accuracy', () => {
     expect(computeAccuracyColors(exactForecast)).toEqual({
       temperature: neutralColor,
       relative_humidity: neutralColor
+    })
+  })
+
+  it('should return the no data color code when observed or forecasted is null', () => {
+    const nullForecast: StationMetrics = {
+      observations: null,
+      forecasts: null
+    }
+    expect(computeAccuracyColors(nullForecast)).toEqual({
+      temperature: noDataColor,
+      relative_humidity: noDataColor
     })
   })
 

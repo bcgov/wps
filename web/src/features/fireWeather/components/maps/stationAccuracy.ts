@@ -2,11 +2,11 @@ export interface StationMetrics {
   observations: {
     temperature: number
     relative_humidity: number
-  }
+  } | null
   forecasts: {
     temperature: number
     relative_humidity: number
-  }
+  } | null
 }
 
 export interface ColorResult {
@@ -55,7 +55,7 @@ export const windColorScale = [
  */
 export const computeAccuracyColors = (stationMetric: StationMetrics): ColorResult => {
   if (stationMetric.observations == null || stationMetric.forecasts == null) {
-    return { temperature: neutralColor, relative_humidity: neutralColor }
+    return { temperature: noDataColor, relative_humidity: noDataColor }
   }
 
   const tempPercentDifference = computePercentageDifference(
