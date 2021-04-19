@@ -122,12 +122,9 @@ const computeScaleIndex = (
   scaleMagnitude: number,
   scale: string[]
 ): number => {
-  const scaleIndex =
-    percentDifference <= 0
-      ? Math.max(neutralIndex - scaleMagnitude, 0)
-      : Math.min(neutralIndex + scaleMagnitude, scale.length - 1)
-
-  return scaleIndex
+  return percentDifference <= 0
+    ? Math.max(neutralIndex - scaleMagnitude, 0)
+    : Math.min(neutralIndex + scaleMagnitude, scale.length - 1)
 }
 
 const differenceToMagnitude = (percentDifference: number): number => {
