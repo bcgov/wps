@@ -17,7 +17,6 @@ import { computeAccuracyColors } from './stationAccuracy'
 
 const pointStyleFunction = (feature: any, resolution: any) => {
   const colorResult = computeAccuracyColors(feature.values_)
-  console.log(colorResult)
   return new Style({
     image: new CircleStyle({
       radius: 4,
