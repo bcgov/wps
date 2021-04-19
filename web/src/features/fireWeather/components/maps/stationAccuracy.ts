@@ -1,25 +1,23 @@
-import { Style, Fill, Stroke } from 'ol/style'
-import CircleStyle from 'ol/style/Circle'
-
 export interface StationMetrics {
   observations: {
     temperature: number
     relative_humidity: number
-  }
+  } | null
   forecasts: {
     temperature: number
     relative_humidity: number
-  }
+  } | null
 }
 
 export interface ColorResult {
   temperature: string
   relative_humidity: string
 }
-
+export const noDataColor = '#000000'
 export const neutralColor = '#DFDEDB'
+export const neutralIndex = 3
 
-const rhColorScale = [
+export const rhColorScale = [
   '#07A059',
   '#3BAC48',
   '#82C064',
@@ -28,7 +26,7 @@ const rhColorScale = [
   '#F4A036',
   '#ED8001'
 ]
-const tempColorScale = [
+export const tempColorScale = [
   '#720505',
   '#D05050',
   '#F79191',
@@ -38,7 +36,7 @@ const tempColorScale = [
   '#2F80EE'
 ]
 
-const windColorScale = [
+export const windColorScale = [
   '#460270',
   '#BC69EF',
   '#D6B2ED',
@@ -57,29 +55,78 @@ const windColorScale = [
  */
 export const computeAccuracyColors = (stationMetric: StationMetrics): ColorResult => {
   if (stationMetric.observations == null || stationMetric.forecasts == null) {
-    return { temperature: '#000000', relative_humidity: '#000000' }
+    return { temperature: noDataColor, relative_humidity: noDataColor }
   }
-  const tempPercentDifference =
-    ((stationMetric.forecasts.temperature - stationMetric.observations.temperature) /
-      stationMetric.observations.temperature) *
-    100
 
-  const rhPercentDifference =
-    ((stationMetric.forecasts.relative_humidity -
-      stationMetric.observations.relative_humidity) /
-      stationMetric.observations.relative_humidity) *
-    100
+  const tempPercentDifference = computePercentageDifference(
+    stationMetric.forecasts.temperature,
+    stationMetric.observations.temperature
+  )
+
+  const rhPercentDifference = computePercentageDifference(
+    stationMetric.forecasts.relative_humidity,
+    stationMetric.observations.relative_humidity
+  )
 
   return determineColor(tempPercentDifference, rhPercentDifference)
 }
 
-const determineColor = (
+export const computePercentageDifference = (
+  metricForecast: number,
+  metricObservation: number
+) => {
+  const difference = metricForecast - metricObservation
+
+  const differenceDenominator = (metricForecast + metricObservation) / 2
+
+  let percentDifference = (difference / differenceDenominator) * 100
+  percentDifference = isNaN(percentDifference) ? 0 : percentDifference
+
+  return percentDifference
+}
+
+/**
+ *  Return color code for metric percent differences.
+ *
+ *  Index is determined by how many multiples of 3 the difference
+ *  is from the observed result, bounded by the size of the color array.
+ */
+export const determineColor = (
   tempPercentDifference: number,
   rhPercentDifference: number
 ): ColorResult => {
-  const tempScaleIndex = Math.floor(tempPercentDifference / 3)
-  const rhScaleIndex = Math.floor(rhPercentDifference / 3)
+  const tempScaleMagnitude = differenceToMagnitude(tempPercentDifference)
 
-  // TODO ...
-  return { temperature: neutralColor, relative_humidity: neutralColor }
+  const rhScaleMagnitude = differenceToMagnitude(rhPercentDifference)
+
+  const tempScaleIndex = computeScaleIndex(
+    tempPercentDifference,
+    tempScaleMagnitude,
+    tempColorScale
+  )
+
+  const rhScaleIndex = computeScaleIndex(
+    rhPercentDifference,
+    rhScaleMagnitude,
+    rhColorScale
+  )
+
+  return {
+    temperature: tempColorScale[tempScaleIndex],
+    relative_humidity: rhColorScale[rhScaleIndex]
+  }
+}
+
+export const computeScaleIndex = (
+  percentDifference: number,
+  scaleMagnitude: number,
+  scale: string[]
+): number => {
+  return percentDifference <= 0
+    ? Math.max(neutralIndex - scaleMagnitude, 0)
+    : Math.min(neutralIndex + scaleMagnitude, scale.length - 1)
+}
+
+export const differenceToMagnitude = (percentDifference: number): number => {
+  return Math.min(Math.floor(Math.abs(percentDifference) / 3), rhColorScale.length - 1)
 }

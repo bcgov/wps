@@ -38,7 +38,6 @@ const WxStationDropdown = (props: Props) => {
     stationsByCode,
     error: errorFetchingStations
   } = useSelector(selectFireWeatherStations)
-  const regStations = stations as GeoJsonStation[]
 
   const { isThereUnknownCode, selectedStationOptions } = getSelectedStationOptions(
     props.stationCodes,
@@ -46,10 +45,12 @@ const WxStationDropdown = (props: Props) => {
   )
   const isThereError =
     !fetchingStations && (Boolean(errorFetchingStations) || isThereUnknownCode)
-  const allStationOptions: Option[] = regStations.map((station: GeoJsonStation) => ({
-    name: station.properties.name,
-    code: station.properties.code
-  }))
+  const allStationOptions: Option[] = (stations as GeoJsonStation[]).map(
+    (station: GeoJsonStation) => ({
+      name: station.properties.name,
+      code: station.properties.code
+    })
+  )
 
   return (
     <div className={props.className}>
