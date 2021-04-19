@@ -48,6 +48,29 @@ def _get_stations_local() -> List[WeatherStation]:
         return results
 
 
+def _get_detailed_stations_local(time_of_interest: datetime):
+    geojson_stations = []
+    # this gets us a list of stations
+    stations = _get_stations_local()
+    with get_read_session_scope() as session:
+        stations_detailed = get_noon_forecast_observation_union(session, time_of_interest)
+        station_lookup = {}
+        for station in stations:
+            geojson_station = GeoJsonDetailedWeatherStation(properties=DetailedWeatherStationProperties(
+                code=station.code,
+                name=station.name,
+                ecodivision_name=station.ecodivision_name,
+                core_season=station.core_season),
+                geometry=WeatherStationGeometry(coordinates=[station.long, station.lat]))
+            station_lookup[station.code] = geojson_station
+            geojson_stations.append(geojson_station)
+        for station_union in stations_detailed:
+            station = station_lookup.get(station_union['station_code'], None)
+            if station:
+                set_weather_variables(station.properties, station_union)
+    return geojson_stations
+
+
 def _get_stations_by_codes_local(station_codes: List[int]) -> List[WeatherStation]:
     """ Get a list of stations by code, from local json files. """
     logger.info('Using pre-generated json to retrieve station by code')
@@ -76,8 +99,7 @@ async def get_stations(
         # If station source is unspecified, check configuration:
         if wildfire_one.use_wfwx():
             return await wildfire_one.get_stations()
-        return _get_stations_local()
-    if station_source == StationSourceEnum.WildfireOne:
+    elif station_source == StationSourceEnum.WildfireOne:
         # Get from wildfire one:
         return await wildfire_one.get_stations()
     # Get from local:
@@ -99,31 +121,21 @@ def set_weather_variables(parent, station_union):
             setattr(obj, variable_name, value)
 
 
-async def fetch_detailed_stations(
+async def fetch_detailed_stations_as_geojson(
         time_of_interest: datetime,
         station_source: StationSourceEnum) \
         -> List[GeoJsonDetailedWeatherStation]:
-    """ Format stations to conform to GeoJson spec """
-    geojson_stations = []
-    # this gets us a list of stations
-    stations = await get_stations(station_source)
-    with get_read_session_scope() as session:
-        stations_detailed = get_noon_forecast_observation_union(session, time_of_interest)
-        station_lookup = {}
-        for station in stations:
-            geojson_station = GeoJsonDetailedWeatherStation(properties=DetailedWeatherStationProperties(
-                code=station.code,
-                name=station.name,
-                ecodivision_name=station.ecodivision_name,
-                core_season=station.core_season),
-                geometry=WeatherStationGeometry(coordinates=[station.long, station.lat]))
-            station_lookup[station.code] = geojson_station
-            geojson_stations.append(geojson_station)
-        for station_union in stations_detailed:
-            station = station_lookup.get(station_union['station_code'], None)
-            if station:
-                set_weather_variables(station.properties, station_union)
-        return geojson_stations
+    """ TODO: blah """
+    if station_source == StationSourceEnum.WildfireOne or (
+            station_source == StationSourceEnum.Unspecified and wildfire_one.use_wfwx()):
+        # Get from wildfire one:
+        logger.info('requesting detailed stations...')
+        result = await wildfire_one.get_detailed_stations(time_of_interest)
+        logger.info('detailed stations loaded.')
+        return result
+        # logger.info(result)
+    # Get from local:
+    return _get_detailed_stations_local(time_of_interest)
 
 
 async def get_stations_as_geojson(

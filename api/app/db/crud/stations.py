@@ -1,27 +1,23 @@
 from datetime import datetime, timedelta, timezone
-from sqlalchemy.sql.expression import literal
 from sqlalchemy.orm import Session
-from sqlalchemy import func
-from app.db.models.forecasts import NoonForecast
-from app.db.models.observations import HourlyActual
 
 
 def _get_noon_date(date_of_interest: datetime):
-    """ 
+    """
     If before noon today, give noon from day before.
     If after noon today, give noon from date of interest.
     """
-    noon_for_today = datetime(year=date_of_interest.year,
-                              month=date_of_interest.month,
-                              day=date_of_interest.day,
-                              hour=20, tzinfo=timezone.utc)
-    if date_of_interest < noon_for_today:
+    noon_for_date_of_interest = datetime(year=date_of_interest.year,
+                                         month=date_of_interest.month,
+                                         day=date_of_interest.day,
+                                         hour=20, tzinfo=timezone.utc)
+    if date_of_interest < noon_for_date_of_interest:
         # oh - you want noon for the prevous day
-        yesterday = date_of_interest - timedelta(days=1)
+        day_before = date_of_interest - timedelta(days=1)
         return datetime(
-            year=yesterday.year, month=yesterday.month, day=yesterday.day, hour=20, tzinfo=timezone.utc)
+            year=day_before.year, month=day_before.month, day=day_before.day, hour=20, tzinfo=timezone.utc)
     # you want noon for today
-    return noon_for_today
+    return noon_for_date_of_interest
 
 
 def get_noon_forecast_observation_union(session: Session, date_of_interest: datetime):

@@ -4,7 +4,7 @@ from datetime import datetime
 from fastapi import APIRouter, Response
 from app.time_utils import get_utc_now
 from app.schemas.stations import WeatherStationsResponse, DetailedWeatherStationsResponse
-from app.stations import StationSourceEnum, get_stations_as_geojson, fetch_detailed_stations
+from app.stations import StationSourceEnum, get_stations_as_geojson, fetch_detailed_stations_as_geojson
 
 
 logger = logging.getLogger(__name__)
@@ -26,8 +26,7 @@ async def get_detailed_stations(response: Response,
     try:
         logger.info('/stations/details/')
         response.headers["Cache-Control"] = "max-age=0"  # don't let the browser cache this
-
-        weather_stations = await fetch_detailed_stations(time_of_interest, source)
+        weather_stations = await fetch_detailed_stations_as_geojson(time_of_interest, source)
 
         return DetailedWeatherStationsResponse(features=weather_stations)
 

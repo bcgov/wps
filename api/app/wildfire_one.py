@@ -2,6 +2,7 @@
 """
 import os
 import json
+from typing import Generator, Dict
 from datetime import datetime, timedelta, timezone
 import math
 from abc import abstractmethod, ABC
@@ -13,7 +14,9 @@ from aiohttp import ClientSession, BasicAuth, TCPConnector
 from shapely.geometry import Point
 from app import config
 from app.schemas.observations import WeatherStationHourlyReadings, WeatherReading
-from app.schemas.stations import WeatherStation
+from app.schemas.stations import (WeatherStation, GeoJsonDetailedWeatherStation,
+                                  DetailedWeatherStationProperties, WeatherStationGeometry, WeatherVariables)
+from app.db.crud.stations import _get_noon_date
 
 
 logger = logging.getLogger(__name__)
@@ -106,7 +109,10 @@ async def _get_auth_header(session: ClientSession) -> dict:
     return header
 
 
-async def _fetch_raw_stations(session: ClientSession, headers: dict, query_builder: BuildQuery) -> dict:
+async def _fetch_raw_stations_generator(
+        session: ClientSession,
+        headers: dict,
+        query_builder: BuildQuery) -> Generator[dict, None, None]:
     """ Asynchronous generator for iterating through raw stations from the API.
     The station list is a paged response, but this generator abstracts that away.
     """
@@ -119,7 +125,6 @@ async def _fetch_raw_stations(session: ClientSession, headers: dict, query_build
         logger.debug('loading station page %d...', page_count)
         async with session.get(url, headers=headers, params=params) as response:
             station_json = await response.json()
-            logger.info('%s', station_json)
             logger.debug('done loading station page %d.', page_count)
         # Update the total page count.
         total_pages = station_json['page']['totalPages']
@@ -127,6 +132,36 @@ async def _fetch_raw_stations(session: ClientSession, headers: dict, query_build
             yield station
         # Keep track of our page count.
         page_count = page_count + 1
+
+
+async def _fetch_detailed_geojson_stations(
+        session: ClientSession,
+        headers: dict,
+        query_builder: BuildQuery) -> (Dict[int, GeoJsonDetailedWeatherStation], Dict[str, int]):
+    stations = {}
+    id_to_code_map = {}
+    # put the stations in a nice dictionary
+    async for raw_station in _fetch_raw_stations_generator(session, headers, query_builder):
+        station_code = raw_station.get('stationCode')
+        id_to_code_map[raw_station.get('id')] = station_code
+        geojson_station = GeoJsonDetailedWeatherStation(properties=DetailedWeatherStationProperties(
+            code=station_code,
+            name=raw_station.get('displayLabel')),
+            geometry=WeatherStationGeometry(
+                coordinates=[raw_station.get('longitude'), raw_station.get('latitude')]))
+        stations[station_code] = geojson_station
+
+    return stations, id_to_code_map
+
+
+async def _fetch_raw_stations(session: ClientSession, headers: dict, query_builder: BuildQuery) -> list:
+    """ Iterating through raw stations from the API.
+    The station list is a paged response, but this generator abstracts that away.
+    """
+    stations = []
+    async for station in _fetch_raw_stations_generator(session, headers, query_builder):
+        stations.append(station)
+    return stations
 
 
 def _is_station_valid(station) -> bool:
@@ -207,7 +242,7 @@ async def get_stations_by_codes(station_codes: List[int]) -> List[WeatherStation
         header = await _get_auth_header(session)
         stations = []
         # Iterate through "raw" station data.
-        iterator = _fetch_raw_stations(
+        iterator = _fetch_raw_stations_generator(
             session, header, BuildQueryByStationCode(station_codes))
         async for raw_station in iterator:
             # If the station is valid, add it to our list of stations.
@@ -226,7 +261,7 @@ async def get_stations() -> List[WeatherStation]:
         header = await _get_auth_header(session)
         stations = []
         # Iterate through "raw" station data.
-        async for raw_station in _fetch_raw_stations(session, header, BuildQueryAllActiveStations()):
+        async for raw_station in _fetch_raw_stations_generator(session, header, BuildQueryAllActiveStations()):
             # If the station is valid, add it to our list of stations.
             if _is_station_valid(raw_station):
                 stations.append(WeatherStation(code=raw_station['stationCode'],
@@ -235,6 +270,54 @@ async def get_stations() -> List[WeatherStation]:
                                                long=raw_station['longitude']))
         logger.debug('total stations: %d', len(stations))
     return stations
+
+
+async def get_detailed_stations(time_of_interest: datetime):
+    """
+    We do two things in parallel.
+    # 1) list of stations
+    # 2) list of noon values
+    Once we've collected them all, we merge them into one response
+    """
+    # Limit the number of concurrent connections.
+    conn = TCPConnector(limit=10)
+    async with ClientSession(connector=conn) as session:
+        # Get the authentication header
+        header = await _get_auth_header(session)
+        # Fetch the daily (noon) values for all the stations
+        dailies_task = asyncio.create_task(
+            fetch_raw_dailies_for_all_stations(session, header, time_of_interest))
+        # Fetch all the stations
+        stations_task = asyncio.create_task(_fetch_detailed_geojson_stations(
+            session, header, BuildQueryAllActiveStations()))
+
+        # Await completion of concurrent tasks.
+        dailies = await dailies_task
+        stations, id_to_code_map = await stations_task
+
+        # Combine dailies and stations
+        for dailie in dailies:
+            station_id = dailie.get('stationId')
+            station_code = id_to_code_map.get(station_id, None)
+            if station_code:
+                station = stations[station_code]
+                weather_variable = WeatherVariables(
+                    temperature=dailie.get('temperature'),
+                    relative_humidity=dailie.get('relativeHumidity'))
+                record_type = dailie.get('recordType').get('id')
+                if record_type == 'ACTUAL':
+                    station.properties.observations = weather_variable
+                elif record_type == 'FORECAST':
+                    logger.info('FORECAST value for %s', station_code)
+                    station.properties.forecasts = weather_variable
+                else:
+                    logger.info('unexpected record type: %s', record_type)
+            else:
+                logger.warning('Non station found for hourly reading (%s)', station_id)
+
+        # TODO: Combine forecasts and stations
+
+        return list(stations.values())
 
 
 def prepare_fetch_hourlies_query(raw_station: dict, time_of_interest: datetime):
@@ -262,12 +345,87 @@ def prepare_fetch_hourlies_query(raw_station: dict, time_of_interest: datetime):
     return url, params
 
 
+def prepare_fetch_hourlies_for_all_stations_query(time_of_interest: datetime, page_count: int):
+    """ Prepare url and params for fetching hourlies for all stations. """
+    base_url = config.get('WFWX_BASE_URL')
+    noon_date = _get_noon_date(time_of_interest)
+    timestamp = int(noon_date.timestamp()*1000)
+    params = {'query': f'hourlyMeasurementTypeCode.id==ACTUAL;weatherTimestamp=={timestamp}',
+              'page': page_count,
+              'size': 1000}
+    endpoint = ('/v1/hourlies/rsql')
+    url = f'{base_url}{endpoint}'
+    return url, params
+
+
+def prepare_fetch_dailies_for_all_stations_query(time_of_interest: datetime, page_count: int):
+    """ Prepare url and params for fetching dailies (that's forecast and observations for noo) for all 
+    stations. """
+    base_url = config.get('WFWX_BASE_URL')
+    noon_date = _get_noon_date(time_of_interest)
+    timestamp = int(noon_date.timestamp()*1000)
+    # one could filter on recordType.id==FORECAST or recordType.id==ACTUAL but we want it all.
+    params = {'query': f'weatherTimestamp=={timestamp}',
+              'page': page_count,
+              'size': 1000}
+    endpoint = ('/v1/dailies/rsql')
+    url = f'{base_url}{endpoint}'
+    return url, params
+
+
+async def fetch_raw_dailies_for_all_stations(
+        session: ClientSession, headers: dict, time_of_interest: datetime) -> dict:
+    """ Fetch the noon values (observations and forecasts) for a given time, for all weather stations.
+    """
+    # We don't know how many pages until our first call - so we assume one page to start with.
+    total_pages = 1
+    page_count = 0
+    hourlies = []
+    while page_count < total_pages:
+        # Build up the request URL.
+        url, params = prepare_fetch_dailies_for_all_stations_query(time_of_interest, page_count)
+        # Get dailies
+        logger.info(url)
+        logger.info(params)
+        async with session.get(url, params=params, headers=headers) as response:
+            dailies_json = await response.json()
+            total_pages = dailies_json['page']['totalPages']
+            hourlies.extend(dailies_json['_embedded']['dailies'])
+        logger.info('received dailies')
+        page_count = page_count + 1
+    return hourlies
+
+
+async def fetch_raw_hourlies_for_all_stations(
+        session: ClientSession, headers: dict, time_of_interest: datetime) -> dict:
+    """ Fetch the hourly readings for a given time, for all weather stations.
+    """
+    # We don't know how many pages until our first call - so we assume one page to start with.
+    total_pages = 1
+    page_count = 0
+    hourlies = []
+    while page_count < total_pages:
+        # Build up the request URL.
+        url, params = prepare_fetch_hourlies_for_all_stations_query(time_of_interest, page_count)
+        # Get hourlies
+        logger.info(url)
+        logger.info(params)
+        async with session.get(url, params=params, headers=headers) as response:
+            hourlies_json = await response.json()
+            total_pages = hourlies_json['page']['totalPages']
+            hourlies.extend(hourlies_json['_embedded']['hourlies'])
+        logger.info('received hourlies')
+        page_count = page_count + 1
+    return hourlies
+
+
 async def fetch_hourlies(
         session: ClientSession,
         raw_station: dict,
         headers: dict,
         time_of_interest: datetime) -> WeatherStationHourlyReadings:
-    """ Fetch hourly weather readings for a give station.
+    """ Fetch hourly weather readings for the past 5 days for a give station
+    TODO: rename this function, or specify the time range.
     """
     logger.debug('fetching hourlies for %s(%s)',
                  raw_station['displayLabel'], raw_station['stationCode'])
@@ -304,7 +462,7 @@ async def get_hourly_readings(
         header = await _get_auth_header(session)
 
         # Iterate through "raw" station data.
-        iterator = _fetch_raw_stations(
+        iterator = _fetch_raw_stations_generator(
             session, header, BuildQueryByStationCode(station_codes))
         async for raw_station in iterator:
             task = asyncio.create_task(
