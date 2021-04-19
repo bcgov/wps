@@ -205,11 +205,16 @@ class StationMachineLearning:  # pylint: disable=too-many-instance-attributes
             for hour in sample.hours():
                 regression_model = getattr(
                     self.regression_models[hour], wrapper_key)
-                regression_model.model.fit(
-                    sample.np_x(hour), sample.np_y(hour))
-                # NOTE: We could get fancy here, and evaluate how good the regression actually worked,
-                # how much sample data we actually had etc., and then not mark the model as being "good".
-                regression_model.good_model = True
+                sample_x = sample.np_x(hour)
+                sample_y = sample.np_y(hour)
+                if np.isnan(sample_x) or np.isnan(sample_y):
+                    logger.warning('x: %s, y: %s, sample_key: %s, wrapper_key: %s, hour:%s',
+                                   sample_x, sample_y, sample_key, wrapper_key, hour)
+                else:
+                    regression_model.model.fit(sample_x, sample_y)
+                    # NOTE: We could get fancy here, and evaluate how good the regression actually worked,
+                    # how much sample data we actually had etc., and then not mark the model as being "good".
+                    regression_model.good_model = True
 
     def predict_temperature(self, model_temperature, timestamp):
         """ Predict the bias adjusted temperature for a given point in time, given a corresponding model
