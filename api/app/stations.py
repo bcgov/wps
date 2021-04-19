@@ -6,7 +6,7 @@ import math
 import asyncio
 import logging
 import enum
-from typing import List
+from typing import List, Final
 import json
 from app import wildfire_one
 from app.schemas.stations import (WeatherStation,
@@ -48,7 +48,31 @@ def _get_stations_local() -> List[WeatherStation]:
         return results
 
 
-def _get_detailed_stations_local(time_of_interest: datetime):
+def _set_weather_variables(station_properties: DetailedWeatherStationProperties, station_union: object):
+    """
+    Helper function to set the observed and forecast values on the detailed weather station properties.
+    """
+    variable_names: Final = ('temperature', 'relative_humidity')
+    # Iterate through variables (temp, r.h. etc. etc.)
+    for variable_name in variable_names:
+        # Get the variable (e.g. temp)
+        value = station_union[variable_name]
+        if not math.isnan(value):
+            # Is this a forecast or an observation?
+            record_type = station_union['record_type']
+            weather_variables = getattr(station_properties, record_type, None)
+            if weather_variables is None:
+                # Make on if we don't have one yet.
+                weather_variables = WeatherVariables()
+                # Set it on the station_properties.
+                setattr(station_properties, record_type, weather_variables)
+            # Set the value (e.g. temp) on the weather variables (e.g. on observed)
+            setattr(weather_variables, variable_name, value)
+
+
+def _get_detailed_stations(time_of_interest: datetime):
+    """ Get a list of weather stations with details using a combination of static json and database 
+    records. """
     geojson_stations = []
     # this gets us a list of stations
     stations = _get_stations_local()
@@ -67,7 +91,7 @@ def _get_detailed_stations_local(time_of_interest: datetime):
         for station_union in stations_detailed:
             station = station_lookup.get(station_union['station_code'], None)
             if station:
-                set_weather_variables(station.properties, station_union)
+                _set_weather_variables(station.properties, station_union)
     return geojson_stations
 
 
@@ -106,26 +130,12 @@ async def get_stations(
     return _get_stations_local()
 
 
-def set_weather_variables(parent, station_union):
-    """
-    TODO: add a comment! and explain this code - it's difficult to read!
-    """
-    variable_names = ('temperature', 'relative_humidity')
-    for variable_name in variable_names:
-        value = station_union[variable_name]
-        if not math.isnan(value):
-            obj = getattr(parent, station_union['record_type'], None)
-            if obj is None:
-                obj = WeatherVariables()
-                setattr(parent, station_union['record_type'], obj)
-            setattr(obj, variable_name, value)
-
-
 async def fetch_detailed_stations_as_geojson(
         time_of_interest: datetime,
         station_source: StationSourceEnum) \
         -> List[GeoJsonDetailedWeatherStation]:
-    """ TODO: blah """
+    """ Fetch a detailed list of stations. i.e. more than just the fire station name and code,
+    throw some observations and forecast in the mix. """
     if station_source == StationSourceEnum.WildfireOne or (
             station_source == StationSourceEnum.Unspecified and wildfire_one.use_wfwx()):
         # Get from wildfire one:
@@ -133,9 +143,8 @@ async def fetch_detailed_stations_as_geojson(
         result = await wildfire_one.get_detailed_stations(time_of_interest)
         logger.info('detailed stations loaded.')
         return result
-        # logger.info(result)
     # Get from local:
-    return _get_detailed_stations_local(time_of_interest)
+    return _get_detailed_stations(time_of_interest)
 
 
 async def get_stations_as_geojson(
