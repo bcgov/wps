@@ -127,6 +127,6 @@ export const computeScaleIndex = (
     : Math.min(neutralIndex + scaleMagnitude, scale.length - 1)
 }
 
-const differenceToMagnitude = (percentDifference: number): number => {
+export const differenceToMagnitude = (percentDifference: number): number => {
   return Math.min(Math.floor(Math.abs(percentDifference) / 3), rhColorScale.length - 1)
 }

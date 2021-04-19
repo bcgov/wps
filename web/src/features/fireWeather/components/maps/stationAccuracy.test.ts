@@ -7,7 +7,8 @@ import {
   rhColorScale,
   computePercentageDifference,
   computeScaleIndex,
-  neutralIndex
+  neutralIndex,
+  differenceToMagnitude
 } from './stationAccuracy'
 
 describe('Station map color accuracy', () => {
@@ -123,6 +124,20 @@ describe('Station map color accuracy', () => {
     })
     it('returns warmest color index when there is largest positive % difference', () => {
       expect(computeScaleIndex(100, 3, tempColorScale)).toEqual(tempColorScale.length - 1)
+    })
+  })
+  describe('differenceToMagnitude', () => {
+    it('zero difference has zero magnitude', () => {
+      expect(differenceToMagnitude(0)).toBe(0)
+    })
+    it('10% difference has 2 magnitude', () => {
+      expect(differenceToMagnitude(10)).toBe(3)
+    })
+    it('-10% difference has 2 magnitude', () => {
+      expect(differenceToMagnitude(-10)).toBe(3)
+    })
+    it('Extreme difference has maximum magnitude of highest index', () => {
+      expect(differenceToMagnitude(100)).toBe(tempColorScale.length - 1)
     })
   })
 })
