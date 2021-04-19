@@ -99,20 +99,35 @@ const determineColor = (
 
   const rhScaleMagnitude = differenceToMagnitude(rhPercentDifference)
 
-  const tempScaleIndex =
-    tempPercentDifference <= 0
-      ? Math.max(neutralIndex - tempScaleMagnitude, 0)
-      : Math.min(neutralIndex + tempScaleMagnitude, tempColorScale.length - 1)
+  const tempScaleIndex = computeScaleIndex(
+    tempPercentDifference,
+    tempScaleMagnitude,
+    tempColorScale
+  )
 
-  const rhScaleIndex =
-    rhPercentDifference <= 0
-      ? Math.max(neutralIndex - rhScaleMagnitude, 0)
-      : Math.min(neutralIndex + rhScaleMagnitude, rhColorScale.length - 1)
+  const rhScaleIndex = computeScaleIndex(
+    rhPercentDifference,
+    rhScaleMagnitude,
+    rhColorScale
+  )
 
   return {
     temperature: tempColorScale[tempScaleIndex],
     relative_humidity: rhColorScale[rhScaleIndex]
   }
+}
+
+const computeScaleIndex = (
+  percentDifference: number,
+  scaleMagnitude: number,
+  scale: string[]
+): number => {
+  const scaleIndex =
+    percentDifference <= 0
+      ? Math.max(neutralIndex - scaleMagnitude, 0)
+      : Math.min(neutralIndex + scaleMagnitude, scale.length - 1)
+
+  return scaleIndex
 }
 
 const differenceToMagnitude = (percentDifference: number): number => {
