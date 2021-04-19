@@ -43,6 +43,7 @@ def mock_session(monkeypatch):
         yield session
 
     monkeypatch.setattr(app.db.database, 'get_read_session_scope', mock_get_session_scope)
+    monkeypatch.setattr(app.db.database, 'get_write_session_scope', mock_get_session_scope)
 
 
 @pytest.mark.usefixtures('mock_env_with_use_wfwx', 'mock_jwt_decode')
