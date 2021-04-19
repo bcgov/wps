@@ -21,7 +21,7 @@ const pointStyleFunction = (feature: any, resolution: any) => {
   return new Style({
     image: new CircleStyle({
       radius: 4,
-      fill: new Fill({ color: colorResult.temperature }),
+      fill: new Fill({ color: colorResult.relative_humidity }),
       stroke: new Stroke({ color: 'black', width: 1 })
     })
   })

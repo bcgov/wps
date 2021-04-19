@@ -13,7 +13,7 @@ export interface ColorResult {
   temperature: string
   relative_humidity: string
 }
-
+export const noDataColor = '#000000'
 export const neutralColor = '#DFDEDB'
 const neutralIndex = 3
 
@@ -58,28 +58,31 @@ export const computeAccuracyColors = (stationMetric: StationMetrics): ColorResul
     return { temperature: neutralColor, relative_humidity: neutralColor }
   }
 
-  const tempDifference =
-    stationMetric.forecasts.temperature - stationMetric.observations.temperature
+  const tempPercentDifference = computePercentageDifference(
+    stationMetric.forecasts.temperature,
+    stationMetric.observations.temperature
+  )
 
-  const tempDifferenceDenominator =
-    (stationMetric.forecasts.temperature + stationMetric.observations.temperature) / 2
-
-  let tempPercentDifference = (tempDifference / tempDifferenceDenominator) * 100
-  tempPercentDifference = isNaN(tempPercentDifference) ? 0 : tempPercentDifference
-
-  const rhDifference =
-    stationMetric.forecasts.relative_humidity -
+  const rhPercentDifference = computePercentageDifference(
+    stationMetric.forecasts.relative_humidity,
     stationMetric.observations.relative_humidity
-
-  const rhDifferenceDenominator =
-    (stationMetric.forecasts.relative_humidity +
-      stationMetric.observations.relative_humidity) /
-    2
-
-  let rhPercentDifference = (rhDifference / rhDifferenceDenominator) * 100
-  rhPercentDifference = isNaN(rhPercentDifference) ? 0 : rhPercentDifference
+  )
 
   return determineColor(tempPercentDifference, rhPercentDifference)
+}
+
+const computePercentageDifference = (
+  metricForecast: number,
+  metricObservation: number
+) => {
+  const difference = metricForecast - metricObservation
+
+  const differenceDenominator = (metricForecast + metricObservation) / 2
+
+  let percentDifference = (difference / differenceDenominator) * 100
+  percentDifference = isNaN(percentDifference) ? 0 : percentDifference
+
+  return percentDifference
 }
 
 /**
