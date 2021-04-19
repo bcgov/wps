@@ -72,7 +72,7 @@ export async function getStations(
 
 export async function getDetailedStations(): Promise<DetailedGeoJsonStation[]> {
   const detailedUrl = `${url}details/`
-  const { data } = await axios.get<DetailedStationsResponse>(detailedUrl, {})
+  const { data } = await axios.get<DetailedStationsResponse>(detailedUrl)
 
   return data.features
 }
