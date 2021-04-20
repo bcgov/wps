@@ -149,16 +149,6 @@ async def _fetch_detailed_geojson_stations(
     return stations, id_to_code_map
 
 
-async def _fetch_raw_stations(session: ClientSession, headers: dict, query_builder: BuildQuery) -> list:
-    """ Iterating through raw stations from the API.
-    The station list is a paged response, but this generator abstracts that away.
-    """
-    stations = []
-    async for station in _fetch_raw_stations_generator(session, headers, query_builder):
-        stations.append(station)
-    return stations
-
-
 def _is_station_valid(station) -> bool:
     """ Run through a set of conditions to check if the station is valid.
 
@@ -339,19 +329,6 @@ def prepare_fetch_hourlies_query(raw_station: dict, time_of_interest: datetime):
         base_url=base_url,
         endpoint=endpoint)
 
-    return url, params
-
-
-def prepare_fetch_hourlies_for_all_stations_query(time_of_interest: datetime, page_count: int):
-    """ Prepare url and params for fetching hourlies for all stations. """
-    base_url = config.get('WFWX_BASE_URL')
-    noon_date = _get_noon_date(time_of_interest)
-    timestamp = int(noon_date.timestamp()*1000)
-    params = {'query': f'hourlyMeasurementTypeCode.id==ACTUAL;weatherTimestamp=={timestamp}',
-              'page': page_count,
-              'size': config.get('WFWX_MAX_PAGE_SIZE', 1000)}
-    endpoint = ('/v1/hourlies/rsql')
-    url = f'{base_url}{endpoint}'
     return url, params
 
 
