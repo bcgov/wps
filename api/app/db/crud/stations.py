@@ -12,18 +12,20 @@ def _get_noon_date(date_of_interest: datetime):
                                          day=date_of_interest.day,
                                          hour=20, tzinfo=timezone.utc)
     if date_of_interest < noon_for_date_of_interest:
-        # oh - you want noon for the prevous day
+        # Get noon from the day before the date of intereset.
         day_before = date_of_interest - timedelta(days=1)
         return datetime(
             year=day_before.year, month=day_before.month, day=day_before.day, hour=20, tzinfo=timezone.utc)
-    # you want noon for today
+    # Get noon for the date of intereset.
     return noon_for_date_of_interest
 
 
 def get_noon_forecast_observation_union(session: Session, date_of_interest: datetime):
-    """ Return union of forecasts and observations.
+    """ Return union of forecasts and observations. 
     """
     noon_date = _get_noon_date(date_of_interest)
+    # It must be possible to do this using sqlalchemy - but things got a bit complicated, and I opted
+    # for a good old fashioned sql query.
     query = """
 ---
 --- most recent forecasts

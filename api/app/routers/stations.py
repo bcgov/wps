@@ -27,6 +27,9 @@ async def get_detailed_stations(response: Response,
         logger.info('/stations/details/')
         response.headers["Cache-Control"] = "max-age=0"  # don't let the browser cache this
         if time_of_interest is None:
+            # NOTE: Don't be tempted to move this into the function definition. It's not possible
+            # to mock a function if it's part of the function definition, and will cause
+            # tests to fail.
             time_of_interest = get_utc_now()
         weather_stations = await fetch_detailed_stations_as_geojson(time_of_interest, source)
 

@@ -42,7 +42,7 @@ def given_utc_time(monkeypatch, utc_time: int):
 
 @given("A <crud_mapping>", target_fixture='collector')
 def given_a_crud_mapping(monkeypatch, crud_mapping: dict):
-    """ Mock the sql response
+    """ Mock the sql response.
     """
     apply_crud_mapping(monkeypatch, crud_mapping, __file__)
 

@@ -153,7 +153,11 @@ def _jsonpickle_patch_function(
         with open(filename) as file_pointer:
             rows = jsonpickle.decode(file_pointer.read())
             for row in rows:
-                yield jsonpickle.decode(row)
+                # Workaround to remain compatible with old tests. Ideally we would just always pickle the row.
+                if isinstance(row, str):
+                    yield jsonpickle.decode(row)
+                    continue
+                yield row
 
     monkeypatch.setattr(importlib.import_module(module_name), function_name, mock_get_data)
 
