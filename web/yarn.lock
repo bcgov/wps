@@ -8046,10 +8046,10 @@ esrecurse@^4.1.0, esrecurse@^4.3.0:
   dependencies:
     estraverse "^5.2.0"
 
-esri-leaflet@2.5.3:
-  version "2.5.3"
-  resolved "https://registry.yarnpkg.com/esri-leaflet/-/esri-leaflet-2.5.3.tgz#ccf0c7463c7f9b6dfe27aab478740c3dbd8fe25b"
-  integrity sha512-zapunrhhhKyiVP5NCSfFjD7YqWYYYD3OONVjBFWZgX2KbD6ssUQ3KnXVo2U0hswWfJDIoHF7g9PLZ4rDNuQnvA==
+esri-leaflet@3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/esri-leaflet/-/esri-leaflet-3.0.1.tgz#000dfc9f78e27f02c59daaa3fd87654ac94b4e94"
+  integrity sha512-pY/zI9VbZUfX5Do3ujD0LDDtWsn8dG2+tWRc9bKTvnou1p5XpHisvwxYM5w1xbKHANGkzYaCSrD1zxcWWocmhQ==
   dependencies:
     "@terraformer/arcgis" "^2.0.7"
     tiny-binary-search "^1.0.3"
