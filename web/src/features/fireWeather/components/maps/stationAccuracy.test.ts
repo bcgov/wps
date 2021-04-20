@@ -9,11 +9,11 @@ import {
   computeScaleIndex,
   neutralIndex,
   differenceToMagnitude
-} from './stationAccuracy'
+} from 'features/fireWeather/components/maps/stationAccuracy'
 
 describe('Station map color accuracy', () => {
   describe('computeAccuracyColors', () => {
-    it('should return the neutral color code when observed an forecasted are equal', () => {
+    it('should return the neutral color code when observed and forecasted are equal', () => {
       const exactForecast: StationMetrics = {
         observations: {
           temperature: 0,
