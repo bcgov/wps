@@ -28,7 +28,7 @@ aiofiles = "^0"
 jinja2 = "^2"
 sklearn = "^0"
 pytest-mock = "^3"
-numpy = "^1.19.5"
+numpy = "^1.20.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6"
