@@ -34,6 +34,7 @@ def given_wfwx(monkeypatch, use_wfwx: str):
 
 @given("<utc_time>")
 def given_utc_time(monkeypatch, utc_time: int):
+    """ Mock out utc time """
     def mock_get_utc_now():
         return datetime.fromtimestamp(utc_time/1000, tz=timezone.utc)
     monkeypatch.setattr(app.routers.stations, 'get_utc_now', mock_get_utc_now)
@@ -84,6 +85,6 @@ def station_ecodivision_data(response, index, ecodivision_name, core_season: dic
 
 
 @then("the expected response is <expected_response>")
-def assert_expected_response(response, expected_response, use_wfwx):
+def assert_expected_response(response, expected_response):
     """ We expect a certain response """
     assert response.json() == expected_response
