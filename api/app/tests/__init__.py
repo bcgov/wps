@@ -43,10 +43,6 @@ def dump_sqlalchemy_row_data_to_json(response, target: IO[Any]):
     """ Useful for dumping sqlalchemy responses to json in for unit tests. """
     result = []
     for response_row in response:
-        # result_row = []
-        # for value in response_row:
-        #     result_row.append(value)
-        # result.append(result_row)
         result.append(jsonpickle.encode(response_row))
     target.write(jsonpickle.encode(result))
 

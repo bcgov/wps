@@ -371,7 +371,7 @@ def prepare_fetch_dailies_for_all_stations_query(time_of_interest: datetime, pag
 
 
 async def fetch_raw_dailies_for_all_stations(
-        session: ClientSession, headers: dict, time_of_interest: datetime) -> dict:
+        session: ClientSession, headers: dict, time_of_interest: datetime) -> list:
     """ Fetch the noon values (observations and forecasts) for a given time, for all weather stations.
     """
     # We don't know how many pages until our first call - so we assume one page to start with.
