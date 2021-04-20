@@ -5,44 +5,18 @@ const useStyles = makeStyles({
   root: {
     display: 'flex',
     alignItems: 'center',
-    flexWrap: 'wrap',
+    marginLeft: 100,
     flexDirection: 'row',
     height: 65
   },
-  green: {
-    backgroundColor: '#07A059',
-    height: 27,
-    width: 27
-  },
-  lightGreen: {
-    backgroundColor: '#3BAC48',
-    height: 27,
-    width: 27
-  },
-  lightestGreen: {
-    backgroundColor: '#82C064',
-    height: 27,
-    width: 27
-  },
-  neutral: {
-    backgroundColor: '#DFDEDB',
-    height: 27,
-    width: 27
-  },
-  lightestOrange: {
-    backgroundColor: '#FCCE89',
-    height: 27,
-    width: 27
-  },
-  lightOrange: {
-    backgroundColor: '#F4A036',
-    height: 27,
-    width: 27
-  },
-  orange: {
-    backgroundColor: '#ED8001',
-    height: 27,
-    width: 27
+  gradient: {
+    width: 25,
+    height: 170,
+    background:
+      'linear-gradient(180deg, #009E5B 0%, #62B53A 25.23%, #DEDEDE 48.66%, #FECD83 70.02%, #ED8001 91.37%)',
+    border: '2px solid #FFFFFF',
+    borderRadius: 2,
+    transform: 'rotate(-90deg)'
   }
 })
 
@@ -50,13 +24,7 @@ const AccuracyColorLegend = () => {
   const classes = useStyles()
   return (
     <div className={classes.root}>
-      <div className={classes.green}></div>
-      <div className={classes.lightGreen}></div>
-      <div className={classes.lightestGreen}></div>
-      <div className={classes.neutral}></div>
-      <div className={classes.lightestOrange}></div>
-      <div className={classes.lightOrange}></div>
-      <div className={classes.orange}></div>
+      <div className={classes.gradient}></div>
     </div>
   )
 }
