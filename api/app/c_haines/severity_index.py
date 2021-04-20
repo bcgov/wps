@@ -7,8 +7,7 @@ from contextlib import contextmanager
 import tempfile
 import logging
 import json
-from osgeo import gdal
-import ogr
+from osgeo import gdal, ogr
 import numpy
 from pyproj import Transformer, Proj
 from shapely.ops import transform

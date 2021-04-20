@@ -2,6 +2,7 @@
 from pytest_bdd import scenario, given, then
 from fastapi.testclient import TestClient
 import pytest
+import app.auth
 import app.main
 
 
@@ -15,7 +16,14 @@ def test_auth_1st_scenario():
 def given_unauthenticated_user(token: str, endpoint: str):
     """ Make POST {endpoint} request which is protected """
     client = TestClient(app.main.app)
-    return client.post(endpoint, headers={'Authorization': token})
+    response = client.post(endpoint, headers={'Authorization': token})
+    return response
+
+
+@then("Unauthenticated access audit logs are created")
+def no_access_is_logged(spy_access_logging, endpoint):
+    """Access audit logs are created"""
+    spy_access_logging.assert_called_once_with(None, False, endpoint)
 
 
 @then("I will get an error with <status> code")
@@ -24,16 +32,16 @@ def status_code(response, status: int):
     assert response.status_code == status
 
 
-@then("I will see an error <message>")
-def error_message(response, message: str):
-    """ Assert that we receive the expected message """
-    assert response.json()['detail'] == message
-
-
 @pytest.mark.usefixtures("mock_jwt_decode")
 @scenario("test_auth.feature", "Verifying authenticated users", example_converters=dict(status=int))
 def test_auth_2nd_scenario():
     """ BDD Scenario #2. """
+
+
+@then("Authenticated access audit logs are created")
+def access_is_logged(spy_access_logging, endpoint):
+    """Access audit logs are created"""
+    spy_access_logging.assert_called_once_with("test_username", True, endpoint)
 
 
 @given("I am an authenticated user when I access a protected <endpoint>", target_fixture='response_2')
