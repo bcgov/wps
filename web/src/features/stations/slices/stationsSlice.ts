@@ -47,11 +47,12 @@ const stationsSlice = createSlice({
 export const fetchWxStations = (
   stationGetter:
     | ((source: StationSource) => Promise<GeoJsonStation[]>)
-    | ((source: StationSource) => Promise<DetailedGeoJsonStation[]>)
+    | ((source: StationSource) => Promise<DetailedGeoJsonStation[]>),
+  source: StationSource = StationSource.unspecified
 ): AppThunk => async dispatch => {
   try {
     dispatch(getStationsStart())
-    const stations = await stationGetter(StationSource.wildfire_one)
+    const stations = await stationGetter(source)
     dispatch(getStationsSuccess(stations))
   } catch (err) {
     dispatch(getStationsFailed(err.toString()))
