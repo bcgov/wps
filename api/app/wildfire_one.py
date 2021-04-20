@@ -32,7 +32,7 @@ class BuildQuery(ABC):
 
     def __init__(self):
         """ Initialize object """
-        self.max_page_size = config.get('WFWX_MAX_PAGE_SIZE')
+        self.max_page_size = config.get('WFWX_MAX_PAGE_SIZE', 1000)
         self.base_url = config.get('WFWX_BASE_URL')
 
     @abstractmethod
@@ -45,6 +45,7 @@ class BuildQueryAllActiveStations(BuildQuery):
 
     def query(self, page) -> [str, dict]:
         """ Return query url and params with rsql query for all weather stations marked active. """
+        # NOTE: Currently the filter on stationStatus.id doesn't work.
         params = {'size': self.max_page_size, 'sort': 'displayLabel',
                   'page': page, 'query': 'stationStatus.id=="ACTIVE"'}
         url = '{base_url}/v1/stations'.format(base_url=self.base_url)
@@ -128,16 +129,22 @@ async def _fetch_detailed_geojson_stations(
         query_builder: BuildQuery) -> (Dict[int, GeoJsonDetailedWeatherStation], Dict[str, int]):
     stations = {}
     id_to_code_map = {}
-    # put the stations in a nice dictionary
+    # Put the stations in a nice dictionary.
     async for raw_station in _fetch_raw_stations_generator(session, headers, query_builder):
         station_code = raw_station.get('stationCode')
-        id_to_code_map[raw_station.get('id')] = station_code
-        geojson_station = GeoJsonDetailedWeatherStation(properties=DetailedWeatherStationProperties(
-            code=station_code,
-            name=raw_station.get('displayLabel')),
-            geometry=WeatherStationGeometry(
-                coordinates=[raw_station.get('longitude'), raw_station.get('latitude')]))
-        stations[station_code] = geojson_station
+        station_status = raw_station.get('stationStatus', {}).get('id')
+        # Because we can't filter on status in the RSQL, we have to manually exclude stations that are
+        # not active.
+        if _is_station_valid(raw_station):
+            id_to_code_map[raw_station.get('id')] = station_code
+            geojson_station = GeoJsonDetailedWeatherStation(properties=DetailedWeatherStationProperties(
+                code=station_code,
+                name=raw_station.get('displayLabel')),
+                geometry=WeatherStationGeometry(
+                    coordinates=[raw_station.get('longitude'), raw_station.get('latitude')]))
+            stations[station_code] = geojson_station
+        else:
+            logger.debug('station %s, status %s', station_code, station_status)
 
     return stations, id_to_code_map
 
@@ -155,11 +162,12 @@ async def _fetch_raw_stations(session: ClientSession, headers: dict, query_build
 def _is_station_valid(station) -> bool:
     """ Run through a set of conditions to check if the station is valid.
 
+    The RSQL filter is unable to filter on station status.
+
     Returns True if station is good, False is station is bad.
     """
-    # TODO: We could remove this function entirely if we queried the API using RSQL
-    # to filter out inactive stations and stations with lat/long missing
-    if station['stationStatus']['id'] != 'ACTIVE':
+    # In conversation with Dana Hicks, on Apr 20, 2021 - Dana said to show active, test and project.
+    if not station.get('stationStatus', {}).get('id') in ('ACTIVE', 'TEST', 'PROJECT'):
         return False
     if station['latitude'] is None or station['longitude'] is None:
         # We can't use a station if it doesn't have a latitude and longitude.
@@ -302,7 +310,7 @@ async def get_detailed_stations(time_of_interest: datetime):
                 else:
                     logger.info('unexpected record type: %s', record_type)
             else:
-                logger.warning('Non station found for hourly reading (%s)', station_id)
+                logger.debug('No station found for daily reading (%s)', station_id)
 
         # TODO: Combine forecasts and stations
 
@@ -341,7 +349,7 @@ def prepare_fetch_hourlies_for_all_stations_query(time_of_interest: datetime, pa
     timestamp = int(noon_date.timestamp()*1000)
     params = {'query': f'hourlyMeasurementTypeCode.id==ACTUAL;weatherTimestamp=={timestamp}',
               'page': page_count,
-              'size': 1000}
+              'size': config.get('WFWX_MAX_PAGE_SIZE', 1000)}
     endpoint = ('/v1/hourlies/rsql')
     url = f'{base_url}{endpoint}'
     return url, params
@@ -356,7 +364,7 @@ def prepare_fetch_dailies_for_all_stations_query(time_of_interest: datetime, pag
     # one could filter on recordType.id==FORECAST or recordType.id==ACTUAL but we want it all.
     params = {'query': f'weatherTimestamp=={timestamp}',
               'page': page_count,
-              'size': 1000}
+              'size': config.get('WFWX_MAX_PAGE_SIZE', 1000)}
     endpoint = ('/v1/dailies/rsql')
     url = f'{base_url}{endpoint}'
     return url, params
@@ -378,6 +386,8 @@ async def fetch_raw_dailies_for_all_stations(
         logger.info(params)
         async with session.get(url, params=params, headers=headers) as response:
             dailies_json = await response.json()
+            with open('/home/sybrand/Workspace/wps/api/app/tests/fixtures/wf1/wfwx/v1/dailies/rsql__query_weatherTimestamp==1618862400000_page_0_size_1000.json', 'w') as f:
+                json.dump(dailies_json, f, indent=4)
             total_pages = dailies_json['page']['totalPages']
             hourlies.extend(dailies_json['_embedded']['dailies'])
         logger.info('received dailies')

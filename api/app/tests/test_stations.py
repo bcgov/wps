@@ -9,20 +9,32 @@ from app.tests.common import default_mock_client_get
 
 
 @pytest.mark.usefixtures('mock_env_with_use_wfwx')
-@scenario('test_stations.feature', 'Get weather stations from WFWX',
+@scenario('test_stations.feature', 'Get weather stations',
           example_converters=dict(status=int, index=int, code=int, name=str, lat=float,
-                                  long=float, ecodivision_name=str, core_season=json.loads))
+                                  long=float, use_wfwx=str, url=str, ecodivision_name=str, core_season=json.loads))
 def test_stations_scenario():
     """ BDD Scenario. """
 
 
-@given("I request a list of weather stations", target_fixture='response')
-def given_request(monkeypatch):
+@pytest.mark.usefixtures('mock_env_with_use_wfwx')
+@scenario('test_stations.feature', 'Get detailed weather stations',
+          example_converters=dict(status=int, use_wfwx=str, url=str))
+def test_detailed_stations_scenario():
+    """ BDD Scenario. """
+
+
+@given("USE_WFWX=<use_wfwx>")
+def given_wfwx(monkeypatch, use_wfwx: str):
+    """ Toggle between using wfwx or not """
+    monkeypatch.setenv("USE_WFWX", use_wfwx)
+
+
+@given("I request a list of weather stations from <url>", target_fixture='response')
+def given_request(monkeypatch, url: str):
     """ Mock external requests and make GET /api/stations/ request """
     monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
-
     client = TestClient(app)
-    return client.get('/api/stations/')
+    return client.get(url)
 
 
 @then("the response status code is <status>")
