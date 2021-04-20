@@ -17,7 +17,7 @@ import {
   yearWhenTheCalculationIsDone
 } from 'features/percentileCalculator/components/TimeRangeSlider'
 import { getStationCodesFromUrl, stationCodeQueryKey } from 'utils/url'
-import { getStations } from 'api/stationAPI'
+import { getStations, StationSource } from 'api/stationAPI'
 
 const defaultTimeRange = 10
 const defaultPercentile = 90
@@ -36,7 +36,7 @@ const PercentileCalculatorPage = () => {
   }
 
   useEffect(() => {
-    dispatch(fetchWxStations(getStations))
+    dispatch(fetchWxStations(getStations, StationSource.local_storage))
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
