@@ -16,7 +16,7 @@ router = APIRouter(
 
 @router.get('/details/', response_model=DetailedWeatherStationsResponse)
 async def get_detailed_stations(response: Response,
-                                time_of_interest: datetime = get_utc_now(),
+                                time_of_interest: datetime = None,
                                 source: StationSourceEnum = StationSourceEnum.Unspecified):
     """ Returns a list of fire weather stations with detailed information.
     -) Unspecified: Use configuration to establish source.
@@ -26,6 +26,8 @@ async def get_detailed_stations(response: Response,
     try:
         logger.info('/stations/details/')
         response.headers["Cache-Control"] = "max-age=0"  # don't let the browser cache this
+        if time_of_interest is None:
+            time_of_interest = get_utc_now()
         weather_stations = await fetch_detailed_stations_as_geojson(time_of_interest, source)
 
         return DetailedWeatherStationsResponse(features=weather_stations)

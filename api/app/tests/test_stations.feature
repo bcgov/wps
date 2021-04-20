@@ -15,12 +15,15 @@ Feature: /stations/
 
     Scenario: Get detailed weather stations
         Given USE_WFWX=<use_wfwx>
+        Given A <crud_mapping>
+        Given <utc_time>
         Given I request a list of weather stations from <url>
         Then the response status code is <status>
         Then the expected response is <expected_response>
 
         Examples:
-            | url                    | status | use_wfwx | expected_response                            |
-            | /api/stations/details/ | 200    | True     | test_stations_details_expected_response.json |
+            | url                    | status | use_wfwx | expected_response                                 | crud_mapping                     | utc_time      |
+            | /api/stations/details/ | 200    | True     | test_stations_details_expected_response_wfwx.json |                                  | 1618870929583 |
+            | /api/stations/details/ | 200    | False    | test_stations_details_expected_response_db.json   | test_stations_crud_mappings.json | 1618870929583 |
 
 

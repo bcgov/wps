@@ -1,11 +1,12 @@
 """ Functional testing for API - stations using wf1 """
 import json
+from datetime import datetime, timezone
 from pytest_bdd import scenario, given, then
 from fastapi.testclient import TestClient
 from aiohttp import ClientSession
-from app.main import app
+import app.main
 from app.tests.common import default_mock_client_get
-from app.tests import load_json_file
+from app.tests import load_json_file, apply_crud_mapping
 
 
 @scenario('test_stations.feature', 'Get weather stations',
@@ -18,7 +19,9 @@ def test_stations_scenario():
 
 @scenario('test_stations.feature', 'Get detailed weather stations',
           example_converters=dict(status=int, use_wfwx=str, url=str,
-                                  expected_response=load_json_file(__file__)))
+                                  expected_response=load_json_file(__file__),
+                                  crud_mapping=load_json_file(__file__),
+                                  utc_time=int))
 def test_detailed_stations_scenario():
     """ BDD Scenario. """
 
@@ -29,11 +32,25 @@ def given_wfwx(monkeypatch, use_wfwx: str):
     monkeypatch.setenv("USE_WFWX", use_wfwx)
 
 
+@given("<utc_time>")
+def given_utc_time(monkeypatch, utc_time: int):
+    def mock_get_utc_now():
+        return datetime.fromtimestamp(utc_time/1000, tz=timezone.utc)
+    monkeypatch.setattr(app.routers.stations, 'get_utc_now', mock_get_utc_now)
+
+
+@given("A <crud_mapping>", target_fixture='collector')
+def given_a_crud_mapping(monkeypatch, crud_mapping: dict):
+    """ Mock the sql response
+    """
+    apply_crud_mapping(monkeypatch, crud_mapping, __file__)
+
+
 @given("I request a list of weather stations from <url>", target_fixture='response')
 def given_request(monkeypatch, url: str):
     """ Mock external requests and make GET /api/stations/ request """
     monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
-    client = TestClient(app)
+    client = TestClient(app.main.app)
     return client.get(url)
 
 
@@ -67,8 +84,6 @@ def station_ecodivision_data(response, index, ecodivision_name, core_season: dic
 
 
 @then("the expected response is <expected_response>")
-def assert_expected_response(response, expected_response):
+def assert_expected_response(response, expected_response, use_wfwx):
     """ We expect a certain response """
-    # with open('actual_tmp.json', 'w') as f:
-    #     json.dump(response.json(), f, indent=4)
     assert response.json() == expected_response
