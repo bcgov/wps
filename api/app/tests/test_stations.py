@@ -6,9 +6,9 @@ from aiohttp import ClientSession
 import pytest
 from app.main import app
 from app.tests.common import default_mock_client_get
+from app.tests import load_json_file
 
 
-@pytest.mark.usefixtures('mock_env_with_use_wfwx')
 @scenario('test_stations.feature', 'Get weather stations',
           example_converters=dict(status=int, index=int, code=int, name=str, lat=float,
                                   long=float, use_wfwx=str, url=str, ecodivision_name=str, core_season=json.loads))
@@ -16,9 +16,8 @@ def test_stations_scenario():
     """ BDD Scenario. """
 
 
-@pytest.mark.usefixtures('mock_env_with_use_wfwx')
 @scenario('test_stations.feature', 'Get detailed weather stations',
-          example_converters=dict(status=int, use_wfwx=str, url=str))
+          example_converters=dict(status=int, use_wfwx=str, url=str, expected_response=load_json_file(__file__)))
 def test_detailed_stations_scenario():
     """ BDD Scenario. """
 
@@ -64,3 +63,11 @@ def station_ecodivision_data(response, index, ecodivision_name, core_season: dic
     """ We expect station's ecodivision to have name, start_month start_day - end_month end_day """
     assert (response.json()['features'][index]['properties']['ecodivision_name'] == ecodivision_name and
             response.json()['features'][index]['properties']['core_season'] == core_season)
+
+
+@then("the expected response is <expected_response>")
+def assert_expected_response(response, expected_response):
+    """ We expect a certain response """
+    # with open('actual_tmp.json', 'w') as f:
+    #     json.dump(response.json(), f, indent=4)
+    assert response.json() == expected_response

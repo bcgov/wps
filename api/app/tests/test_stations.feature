@@ -17,9 +17,10 @@ Feature: /stations/
         Given USE_WFWX=<use_wfwx>
         Given I request a list of weather stations from <url>
         Then the response status code is <status>
+        Then the expected response is <expected_response>
 
         Examples:
-            | url                    | status | use_wfwx |
-            | /api/stations/details/ | 200    | True     |
+            | url                    | status | use_wfwx | expected_response                            |
+            | /api/stations/details/ | 200    | True     | test_stations_details_expected_response.json |
 
 
