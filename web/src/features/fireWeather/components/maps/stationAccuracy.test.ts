@@ -9,20 +9,18 @@ import {
   computeScaleIndex,
   neutralIndex,
   differenceToMagnitude
-} from './stationAccuracy'
+} from 'features/fireWeather/components/maps/stationAccuracy'
 
 describe('Station map color accuracy', () => {
+  const defaultMetrics = {
+    temperature: 0,
+    relative_humidity: 0
+  }
   describe('computeAccuracyColors', () => {
-    it('should return the neutral color code when observed an forecasted are equal', () => {
+    it('should return the neutral color code when observed and forecasted are equal', () => {
       const exactForecast: StationMetrics = {
-        observations: {
-          temperature: 0,
-          relative_humidity: 0
-        },
-        forecasts: {
-          temperature: 0,
-          relative_humidity: 0
-        }
+        observations: defaultMetrics,
+        forecasts: defaultMetrics
       }
       expect(computeAccuracyColors(exactForecast)).toEqual({
         temperature: neutralColor,
@@ -40,13 +38,30 @@ describe('Station map color accuracy', () => {
         relative_humidity: noDataColor
       })
     })
+    it('should return the no data color code when observations metric is null', () => {
+      const nullForecast: StationMetrics = {
+        observations: null,
+        forecasts: defaultMetrics
+      }
+      expect(computeAccuracyColors(nullForecast)).toEqual({
+        temperature: noDataColor,
+        relative_humidity: noDataColor
+      })
+    })
+    it('should return the no data color code when forecasts metric is null', () => {
+      const nullForecast: StationMetrics = {
+        observations: defaultMetrics,
+        forecasts: null
+      }
+      expect(computeAccuracyColors(nullForecast)).toEqual({
+        temperature: noDataColor,
+        relative_humidity: noDataColor
+      })
+    })
 
-    it('should return the coolest color when metrics are widely over forecasted', () => {
+    it('should return the coolest color when metrics are widely under forecasted', () => {
       const largeDifference: StationMetrics = {
-        observations: {
-          temperature: 0,
-          relative_humidity: 0
-        },
+        observations: defaultMetrics,
         forecasts: {
           temperature: 300,
           relative_humidity: 300
@@ -63,10 +78,7 @@ describe('Station map color accuracy', () => {
           temperature: 300,
           relative_humidity: 300
         },
-        forecasts: {
-          temperature: 0,
-          relative_humidity: 0
-        }
+        forecasts: defaultMetrics
       }
       expect(computeAccuracyColors(largeDifference)).toEqual({
         temperature: tempColorScale[0],

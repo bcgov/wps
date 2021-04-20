@@ -13,7 +13,7 @@ import { useDispatch, useSelector } from 'react-redux'
 
 import { selectFireWeatherStations } from 'app/rootReducer'
 import { getDetailedStations } from 'api/stationAPI'
-import { computeAccuracyColors } from './stationAccuracy'
+import { computeAccuracyColors } from 'features/fireWeather/components/maps/stationAccuracy'
 
 const pointStyleFunction = (feature: any, resolution: any) => {
   const colorResult = computeAccuracyColors(feature.values_)
