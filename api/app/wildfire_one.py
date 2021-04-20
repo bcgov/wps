@@ -386,8 +386,6 @@ async def fetch_raw_dailies_for_all_stations(
         logger.info(params)
         async with session.get(url, params=params, headers=headers) as response:
             dailies_json = await response.json()
-            with open('/home/sybrand/Workspace/wps/api/app/tests/fixtures/wf1/wfwx/v1/dailies/rsql__query_weatherTimestamp==1618862400000_page_0_size_1000.json', 'w') as f:
-                json.dump(dailies_json, f, indent=4)
             total_pages = dailies_json['page']['totalPages']
             hourlies.extend(dailies_json['_embedded']['dailies'])
         logger.info('received dailies')

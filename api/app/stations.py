@@ -71,7 +71,7 @@ def _set_weather_variables(station_properties: DetailedWeatherStationProperties,
 
 
 def _get_detailed_stations(time_of_interest: datetime):
-    """ Get a list of weather stations with details using a combination of static json and database 
+    """ Get a list of weather stations with details using a combination of static json and database
     records. """
     geojson_stations = []
     # this gets us a list of stations

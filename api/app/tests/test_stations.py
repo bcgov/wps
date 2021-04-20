@@ -3,7 +3,6 @@ import json
 from pytest_bdd import scenario, given, then
 from fastapi.testclient import TestClient
 from aiohttp import ClientSession
-import pytest
 from app.main import app
 from app.tests.common import default_mock_client_get
 from app.tests import load_json_file
@@ -11,13 +10,15 @@ from app.tests import load_json_file
 
 @scenario('test_stations.feature', 'Get weather stations',
           example_converters=dict(status=int, index=int, code=int, name=str, lat=float,
-                                  long=float, use_wfwx=str, url=str, ecodivision_name=str, core_season=json.loads))
+                                  long=float, use_wfwx=str, url=str, ecodivision_name=str,
+                                  core_season=json.loads))
 def test_stations_scenario():
     """ BDD Scenario. """
 
 
 @scenario('test_stations.feature', 'Get detailed weather stations',
-          example_converters=dict(status=int, use_wfwx=str, url=str, expected_response=load_json_file(__file__)))
+          example_converters=dict(status=int, use_wfwx=str, url=str,
+                                  expected_response=load_json_file(__file__)))
 def test_detailed_stations_scenario():
     """ BDD Scenario. """
 
