@@ -1,3 +1,5 @@
+""" Methods relating to reading station data from database.
+"""
 from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import Session
 
@@ -21,8 +23,8 @@ def _get_noon_date(date_of_interest: datetime):
 
 
 def get_noon_forecast_observation_union(session: Session, date_of_interest: datetime):
-    """ Return union of forecasts and observations. 
-    """
+    """ Return union of forecasts and observations. One could argue this method doesn't belong
+    in the stations crud - but it's only used to create the detailed stations response. """
     noon_date = _get_noon_date(date_of_interest)
     # It must be possible to do this using sqlalchemy - but things got a bit complicated, and I opted
     # for a good old fashioned sql query.
