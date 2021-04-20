@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react'
+import React, { Dispatch, SetStateAction } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
-import { useHistory, useLocation } from 'react-router-dom'
+import { useHistory } from 'react-router-dom'
 
 import TimeOfInterestPicker from 'features/fireWeather/components/TimeOfInterestPicker'
 import GetWxDataButton from 'features/fireWeather/components/GetWxDataButton'
@@ -31,25 +31,18 @@ const useStyles = makeStyles({
 
 interface Props {
   className?: string
-  codesFromQuery: number[]
-  toiFromQuery: string
+  stationCodesQuery: number[]
+  timeOfInterestQuery: string
+  setSelectedStationCodes: Dispatch<SetStateAction<number[]>>
+  setSelectedTimeOfInterest: Dispatch<SetStateAction<string>>
   openSidePanel: () => void
 }
 
-const WxDataForm = ({ codesFromQuery, toiFromQuery, openSidePanel }: Props) => {
+const WxDataForm = ({ stationCodesQuery, timeOfInterestQuery, setSelectedStationCodes, setSelectedTimeOfInterest, openSidePanel }: Props) => {
   const classes = useStyles()
   const history = useHistory()
-  const location = useLocation()
 
-  const [selectedCodes, setSelectedCodes] = useState<number[]>(codesFromQuery)
-  const [timeOfInterest, setTimeOfInterest] = useState(toiFromQuery)
-  const shouldGetBtnDisabled = selectedCodes.length === 0
-
-  useEffect(() => {
-    // Update local state to match with the query url
-    setSelectedCodes(codesFromQuery)
-    setTimeOfInterest(toiFromQuery)
-  }, [location]) // eslint-disable-line react-hooks/exhaustive-deps
+  const shouldGetBtnDisabled = stationCodesQuery.length === 0
 
   const handleSubmit = () => {
     // Open the side panel
@@ -58,8 +51,8 @@ const WxDataForm = ({ codesFromQuery, toiFromQuery, openSidePanel }: Props) => {
     // Update the url query with the new station codes and time of interest
     history.push({
       search:
-        `${stationCodeQueryKey}=${selectedCodes.join(',')}&` +
-        `${timeOfInterestQueryKey}=${timeOfInterest}`
+        `${stationCodeQueryKey}=${stationCodesQuery.join(',')}&` +
+        `${timeOfInterestQueryKey}=${timeOfInterestQuery}`
     })
 
     // Create matomo event
@@ -70,8 +63,8 @@ const WxDataForm = ({ codesFromQuery, toiFromQuery, openSidePanel }: Props) => {
       // see: https://developer.matomo.org/guides/tagmanager/integration-plugin#supporting-the-data-layer
       window._mtm.push({
         event: 'getWeatherData',
-        stationCodes: selectedCodes,
-        timeOfInterest: timeOfInterest
+        stationCodes: stationCodesQuery,
+        timeOfInterest: timeOfInterestQuery
       })
     }
   }
@@ -80,13 +73,13 @@ const WxDataForm = ({ codesFromQuery, toiFromQuery, openSidePanel }: Props) => {
     <form className={classes.form} noValidate>
       <WxStationDropdown
         className={classes.stationDropdown}
-        stationCodes={selectedCodes}
-        onChange={setSelectedCodes}
+        stationCodes={stationCodesQuery}
+        onChange={setSelectedStationCodes}
       />
       <TimeOfInterestPicker
         className={classes.timeOfInterest}
-        timeOfInterest={timeOfInterest}
-        onChange={setTimeOfInterest}
+        timeOfInterest={timeOfInterestQuery}
+        onChange={setSelectedTimeOfInterest}
       />
       <GetWxDataButton onBtnClick={handleSubmit} disabled={shouldGetBtnDisabled} />
     </form>

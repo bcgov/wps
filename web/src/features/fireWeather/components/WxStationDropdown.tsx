@@ -38,7 +38,7 @@ const WxStationDropdown = (props: Props) => {
     error: errorFetchingStations
   } = useSelector(selectFireWeatherStations)
 
-  const { isThereUnknownCode, selectedStationOptions } = getSelectedStationOptions(
+  let { isThereUnknownCode, selectedStationOptions } = getSelectedStationOptions(
     props.stationCodes,
     stationsByCode
   )

@@ -15,7 +15,7 @@ type PropTypes = React.ComponentProps<typeof WeatherMap>
 const Template: Story<PropTypes> = () => (
   <div style={{ height: '500px' }}>
     <Provider store={store}>
-      <WeatherMap />
+      <WeatherMap selectedStationCodes={[]} setSelectedStationCodes={() => {}}/>
     </Provider>
   </div>
 )

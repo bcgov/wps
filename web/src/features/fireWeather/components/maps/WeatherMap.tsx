@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect } from 'react'
+
 import { Button } from '@material-ui/core'
 
 import { fromLonLat, get } from 'ol/proj'
@@ -14,8 +15,6 @@ import VectorLayer from 'features/map/VectorLayer'
 import { useDispatch, useSelector } from 'react-redux'
 
 import { selectFireWeatherStations } from 'app/rootReducer'
-import { getSelectedStationOptions } from 'utils/dropdown'
-import { Option } from 'features/fireWeather/components/WxStationDropdown'
 
 
 const styles = {
@@ -40,22 +39,14 @@ const zoom = 6
 
 interface Props {
   redrawFlag?: boolean
+  selectedStationCodes: number[]
+  setSelectedStationCodes: (codes: number[]) => void
 }
 
-const WeatherMap = ({ redrawFlag }: Props) => {
+const WeatherMap = ({ redrawFlag, selectedStationCodes, setSelectedStationCodes }: Props) => {
   const dispatch = useDispatch()
 
-  const selectedStationCodes: number[] = []
-
   const { stations } = useSelector(selectFireWeatherStations)
-  const { isThereUnknownCode, selectedStationOptions} = getSelectedStationOptions(selectedStationCodes, stations)
-
-  const selectWeatherStations = (name: string, code: number) => {
-    console.log('%d station selected', code)
-    selectedStationCodes.push(code)
-    selectedStationOptions.push()
-    console.log(selectedStationCodes)
-  }
 
   useEffect(() => {
     dispatch(fetchWxStations())
@@ -73,7 +64,8 @@ const WeatherMap = ({ redrawFlag }: Props) => {
           variant="outlined"
           size="small"
           onClick={() => {
-            selectWeatherStations(feature.get('name'), feature.get('code'))
+            console.log([...selectedStationCodes, feature.get('code')])
+            setSelectedStationCodes([...selectedStationCodes, feature.get('code')])
           }}
           data-testid={`select-wx-station-${feature.get('code')}-button`}
         >
@@ -81,7 +73,7 @@ const WeatherMap = ({ redrawFlag }: Props) => {
         </Button>
       </div>
     )
-  }, [])
+  }, [selectedStationCodes, setSelectedStationCodes])
 
   return (
     <Map

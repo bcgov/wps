@@ -59,7 +59,9 @@ const MoreCastPage = () => {
   const codesFromQuery = getStationCodesFromUrl(location.search)
   const toiFromQuery = getTimeOfInterestFromUrl(location.search)
 
-  const shouldInitiallyShowSidePanel = codesFromQuery.length > 0
+  const [selectedCodes, setSelectedCodes] = useState<number[]>(codesFromQuery)
+  const [timeOfInterest, setTimeOfInterest] = useState(toiFromQuery)
+  const shouldInitiallyShowSidePanel = selectedCodes.length > 0
   const [showSidePanel, setShowSidePanel] = useState(shouldInitiallyShowSidePanel)
   const openSidePanel = () => setShowSidePanel(true)
   const closeSidePanel = () => setShowSidePanel(false)
@@ -74,17 +76,20 @@ const MoreCastPage = () => {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (codesFromQuery.length > 0) {
-      dispatch(fetchObservations(codesFromQuery, toiFromQuery))
-      dispatch(fetchForecasts(codesFromQuery, toiFromQuery))
-      dispatch(fetchForecastSummaries(codesFromQuery, toiFromQuery))
-      dispatch(fetchHighResModels(codesFromQuery, toiFromQuery))
-      dispatch(fetchHighResModelSummaries(codesFromQuery, toiFromQuery))
-      dispatch(fetchRegionalModels(codesFromQuery, toiFromQuery))
-      dispatch(fetchRegionalModelSummaries(codesFromQuery, toiFromQuery))
-      dispatch(fetchGlobalModelsWithBiasAdj(codesFromQuery, toiFromQuery))
-      dispatch(fetchGlobalModelSummaries(codesFromQuery, toiFromQuery))
+    if (selectedCodes.length > 0) {
+      dispatch(fetchObservations(selectedCodes, timeOfInterest))
+      dispatch(fetchForecasts(selectedCodes, timeOfInterest))
+      dispatch(fetchForecastSummaries(selectedCodes, timeOfInterest))
+      dispatch(fetchHighResModels(selectedCodes, timeOfInterest))
+      dispatch(fetchHighResModelSummaries(selectedCodes, timeOfInterest))
+      dispatch(fetchRegionalModels(selectedCodes, timeOfInterest))
+      dispatch(fetchRegionalModelSummaries(selectedCodes, timeOfInterest))
+      dispatch(fetchGlobalModelsWithBiasAdj(selectedCodes, timeOfInterest))
+      dispatch(fetchGlobalModelSummaries(selectedCodes, timeOfInterest))
     }
+    // Update local state to match with the query url
+    setSelectedCodes(selectedCodes)
+    setTimeOfInterest(timeOfInterest)
   }, [location]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
@@ -92,14 +97,16 @@ const MoreCastPage = () => {
       <PageHeader title="MoreCast" productName="MoreCast" noContainer padding={25} />
       <div className={classes.nav}>
         <WxDataForm
-          codesFromQuery={codesFromQuery}
-          toiFromQuery={toiFromQuery}
+          stationCodesQuery={selectedCodes}
+          timeOfInterestQuery={timeOfInterest}
+          setSelectedStationCodes={setSelectedCodes}
+          setSelectedTimeOfInterest={setTimeOfInterest}
           openSidePanel={openSidePanel}
         />
       </div>
       <div className={classes.content}>
         <div className={classes.map}>
-          <WeatherMap redrawFlag={showSidePanel} />
+          <WeatherMap redrawFlag={showSidePanel} selectedStationCodes={selectedCodes} setSelectedStationCodes={setSelectedCodes} />
         </div>
         <SidePanel
           show={showSidePanel}
@@ -109,8 +116,8 @@ const MoreCastPage = () => {
         >
           <NetworkErrorMessages />
           <WxDataDisplays
-            stationCodes={codesFromQuery}
-            timeOfInterest={toiFromQuery}
+            stationCodes={selectedCodes}
+            timeOfInterest={timeOfInterest}
             showTableView={showTableView}
           />
         </SidePanel>
