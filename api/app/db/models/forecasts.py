@@ -66,6 +66,7 @@ class NoonForecast(Base):
 
     def __str__(self):
         return (
+            'station_code:{self.station_code}, '
             'weather_date:{self.weather_date}, '
             'created_at:{self.created_at}, '
             'temp={self.temperature}, '

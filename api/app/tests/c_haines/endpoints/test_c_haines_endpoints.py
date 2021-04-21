@@ -1,13 +1,12 @@
 """ BDD tests for c-haines api endpoint.
 """
 from typing import Callable, Union
-import json
 import importlib
 import jsonpickle
 from pytest_bdd import scenario, given, when, then
 from fastapi.testclient import TestClient
 import app.main
-from app.tests import load_json_file, _load_json_file, get_complete_filename
+from app.tests import load_json_file, _load_json_file, get_complete_filename, apply_crud_mapping
 
 
 def _load_text_file(module_path: str, filename: str) -> Union[str, None]:
@@ -27,26 +26,6 @@ def load_expected_response(module_path: str) -> Callable[[str], object]:
     return _loader
 
 
-def _jsonpickle_patch_function(monkeypatch, module_name: str, function_name: str, json_filename: str):
-    """ Patch module_name.function_name to return de-serialized json_filename """
-    def mock_get_data(*_):
-        filename = get_complete_filename(__file__, json_filename)
-        with open(filename) as file_pointer:
-            return jsonpickle.decode(file_pointer.read())
-
-    monkeypatch.setattr(importlib.import_module(module_name), function_name, mock_get_data)
-
-
-def _json_patch_function(monkeypatch, module_name: str, function_name: str, json_filename: str):
-    """ Patch module_name.function_name to return de-serialized json_filename """
-    def mock_get_data(*_):
-        filename = get_complete_filename(__file__, json_filename)
-        with open(filename) as file_pointer:
-            return json.load(file_pointer)
-
-    monkeypatch.setattr(importlib.import_module(module_name), function_name, mock_get_data)
-
-
 @scenario("test_c_haines_endpoints.feature", "C-Haines endpoint testing",
           example_converters=dict(
               crud_mapping=load_json_file(__file__),
@@ -64,14 +43,7 @@ def given_a_crud_mapping(monkeypatch, crud_mapping: dict):
     "dump_sqlalchemy_row_data_to_json" and "dump_sqlalchemy_mapped_object_response_to_json"
     in code - and saving the database responses.
     """
-
-    if crud_mapping:
-        for item in crud_mapping:
-            if item['serializer'] == "jsonpickle":
-                _jsonpickle_patch_function(monkeypatch, item['module'], item['function'], item['json'])
-            else:
-                _json_patch_function(monkeypatch, item['module'], item['function'], item['json'])
-
+    apply_crud_mapping(monkeypatch, crud_mapping, __file__)
     return {}
 
 

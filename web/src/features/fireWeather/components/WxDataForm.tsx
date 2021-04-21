@@ -38,7 +38,13 @@ interface Props {
   openSidePanel: () => void
 }
 
-const WxDataForm = ({ stationCodesQuery, timeOfInterestQuery, setSelectedStationCodes, setSelectedTimeOfInterest, openSidePanel }: Props) => {
+const WxDataForm = ({
+  stationCodesQuery,
+  timeOfInterestQuery,
+  setSelectedStationCodes,
+  setSelectedTimeOfInterest,
+  openSidePanel
+}: Props) => {
   const classes = useStyles()
   const history = useHistory()
 
