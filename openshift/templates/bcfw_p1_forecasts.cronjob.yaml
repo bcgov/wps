@@ -22,7 +22,7 @@ parameters:
   - name: JOB_NAME
     value: bcfw-p1-forecasts
   - name: SCHEDULE
-    value: "30 8,16 * * *"
+    value: "30 15,23 * * *"
     required: true
   - name: POSTGRES_WRITE_HOST
     required: true
