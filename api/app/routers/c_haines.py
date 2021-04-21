@@ -21,7 +21,7 @@ kml_media_type = 'application/vnd.google-earth.kml+xml'
 
 class FormatEnum(str, Enum):
     """ Enumerator for different kinds of supported weather models """
-    geoJSON = 'geoJSON'
+    GEOJSON = 'geoJSON'
     KML = 'KML'
 
 
@@ -34,11 +34,11 @@ router = APIRouter(
 async def get_c_haines_model_run(
         model: ModelEnum,
         model_run_timestamp: datetime = None,
-        response_format: FormatEnum = FormatEnum.geoJSON):
+        response_format: FormatEnum = FormatEnum.GEOJSON):
     """ Return geojson/kml polygons for c-haines """
     logger.info('/c-haines/%s/predictions?model_run_timestamp=%s&response_format=%s',
                 model, model_run_timestamp, response_format)
-    if response_format == FormatEnum.geoJSON:
+    if response_format == FormatEnum.GEOJSON:
         raise HTTPException(status_code=501)
     # Let the browser cache the data as much as it wants.
     headers = {"Cache-Control": "max-age=3600, public, immutable"}
@@ -61,14 +61,14 @@ async def get_c_haines_model_run_prediction(
         model: ModelEnum,
         model_run_timestamp: datetime,
         prediction_timestamp: datetime,
-        response_format: FormatEnum = FormatEnum.geoJSON):
+        response_format: FormatEnum = FormatEnum.GEOJSON):
     """ Return geojson/kml polygons for c-haines """
     logger.info('/c-haines/%s/prediction?model_run_timestamp=%s&prediction_timestamp=%s&response_format=%s',
                 model, model_run_timestamp, prediction_timestamp, response_format)
     # Let the browser cache the data as much as it wants.
     headers = {"Cache-Control": "max-age=3600, public, immutable"}
 
-    if response_format == FormatEnum.geoJSON:
+    if response_format == FormatEnum.GEOJSON:
         geojson_response = await fetch_prediction_geojson(
             model, model_run_timestamp, prediction_timestamp)
         # We check for features - if there are no features, we return a 404.

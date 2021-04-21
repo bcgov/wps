@@ -1,0 +1,8 @@
+[
+    {
+        "module": "app.stations",
+        "function": "get_noon_forecast_observation_union",
+        "json": "test_stations_get_noon_forecast_observation_union.json",
+        "serializer": "jsonpickle"
+    }
+]
