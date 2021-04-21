@@ -52,7 +52,7 @@ const useStyles = makeStyles(theme => ({
   },
   legend: {
     display: 'flex',
-    alighnItems: 'flex-end',
+    alignItems: 'flex-end',
     backgroundColor: theme.palette.primary.light
   }
 }))
