@@ -8,6 +8,7 @@ import logging
 import enum
 from typing import List, Final
 import json
+from sqlalchemy.engine.row import Row
 from app import wildfire_one
 from app.schemas.stations import (WeatherStation,
                                   GeoJsonWeatherStation,
@@ -48,7 +49,7 @@ def _get_stations_local() -> List[WeatherStation]:
         return results
 
 
-def _set_weather_variables(station_properties: DetailedWeatherStationProperties, station_union: object):
+def _set_weather_variables(station_properties: DetailedWeatherStationProperties, station_union: Row):
     """
     Helper function to set the observed and forecast values on the detailed weather station properties.
     """

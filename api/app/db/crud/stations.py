@@ -2,9 +2,10 @@
 """
 from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import Session
+from sqlalchemy.engine.cursor import CursorResult
 
 
-def _get_noon_date(date_of_interest: datetime):
+def _get_noon_date(date_of_interest: datetime) -> datetime:
     """
     If before noon today, give noon from day before.
     If after noon today, give noon from date of interest.
@@ -22,7 +23,7 @@ def _get_noon_date(date_of_interest: datetime):
     return noon_for_date_of_interest
 
 
-def get_noon_forecast_observation_union(session: Session, date_of_interest: datetime):
+def get_noon_forecast_observation_union(session: Session, date_of_interest: datetime) -> CursorResult:
     """ Return union of forecasts and observations. One could argue this method doesn't belong
     in the stations crud - but it's only used to create the detailed stations response. """
     noon_date = _get_noon_date(date_of_interest)
