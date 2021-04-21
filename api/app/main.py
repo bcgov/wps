@@ -12,9 +12,8 @@ from app.auth import authentication_required, audit
 from app import config
 from app import health
 from app import hourlies
-from app import stations
 from app.frontend import frontend
-from app.routers import forecasts, weather_models, c_haines
+from app.routers import forecasts, weather_models, c_haines, stations
 
 
 configure_logging()
@@ -90,6 +89,7 @@ api.add_middleware(
 api.include_router(forecasts.router)
 api.include_router(weather_models.router)
 api.include_router(c_haines.router)
+api.include_router(stations.router)
 
 
 @api.get('/ready')
@@ -125,27 +125,6 @@ async def get_hourlies(request: schemas.shared.WeatherDataRequest,
         readings = await hourlies.get_hourly_readings(request.stations, request.time_of_interest)
 
         return schemas.observations.WeatherStationHourlyReadingsResponse(hourlies=readings)
-    except Exception as exception:
-        logger.critical(exception, exc_info=True)
-        raise
-
-
-@api.get('/stations/', response_model=schemas.stations.WeatherStationsResponse)
-async def get_stations(response: Response,
-                       source: stations.StationSourceEnum = stations.StationSourceEnum.Unspecified):
-    """ Return a list of fire weather stations.
-    Stations source can be:
-    -) Unspecified: Use configuration to establish source.
-    -) LocalStorage: Read from json file  (ignore configuration).
-    -) WildfireOne: Use wildfire API (ignore configuration).
-    """
-    try:
-        logger.info('/stations/')
-
-        weather_stations = await stations.get_stations_as_geojson(source)
-        response.headers["Cache-Control"] = "max-age=43200"  # let browsers to cache the data for 12 hours
-
-        return schemas.stations.WeatherStationsResponse(type="FeatureCollection", features=weather_stations)
     except Exception as exception:
         logger.critical(exception, exc_info=True)
         raise
