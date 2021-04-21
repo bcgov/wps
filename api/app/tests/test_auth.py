@@ -15,7 +15,7 @@ def test_auth_1st_scenario():
 
 @given("I am an unauthenticated user <token> when I <verb> a protected <endpoint>", target_fixture='response')
 def given_unauthenticated_user(token: str, endpoint: str, verb: str):
-    """ Make POST {endpoint} request which is protected """
+    """ Request (post/get) {endpoint} request which is protected """
     client = TestClient(app.main.app)
     if verb == 'post':
         response = client.post(endpoint, headers={'Authorization': token})
@@ -52,7 +52,7 @@ def access_is_logged(spy_access_logging, endpoint):
 
 @given("I am an authenticated user when I <verb> a protected <endpoint>", target_fixture='response_2')
 def given_authenticated_user(endpoint: str, verb: str):
-    """ Make POST {endpoint} request which is protected """
+    """ Request (post/get) {endpoint} request which is protected """
     client = TestClient(app.main.app)
     if verb == 'post':
         return client.post(
