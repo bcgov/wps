@@ -17,7 +17,7 @@ from app.schemas.stations import (WeatherStation,
                                   WeatherVariables,
                                   DetailedWeatherStationProperties,
                                   WeatherStationGeometry)
-from app.db.database import get_read_session_scope
+import app.db.database
 from app.db.crud.stations import get_noon_forecast_observation_union
 
 logger = logging.getLogger(__name__)
@@ -77,7 +77,7 @@ def _get_detailed_stations(time_of_interest: datetime):
     geojson_stations = []
     # this gets us a list of stations
     stations = _get_stations_local()
-    with get_read_session_scope() as session:
+    with app.db.database.get_read_session_scope() as session:
         stations_detailed = get_noon_forecast_observation_union(session, time_of_interest)
         station_lookup = {}
         for station in stations:
