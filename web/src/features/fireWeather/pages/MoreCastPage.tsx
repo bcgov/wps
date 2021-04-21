@@ -17,6 +17,7 @@ import { fetchRegionalModels } from 'features/fireWeather/slices/regionalModelsS
 import { fetchRegionalModelSummaries } from 'features/fireWeather/slices/regionalModelSummariesSlice'
 import WxDataDisplays from 'features/fireWeather/components/WxDataDisplays'
 import WxDataForm from 'features/fireWeather/components/WxDataForm'
+import AccuracyColorLegend from 'features/fireWeather/components/AccuracyColorLegend'
 import SidePanel from 'features/fireWeather/components/SidePanel'
 import NetworkErrorMessages from 'features/fireWeather/components/NetworkErrorMessages'
 import WeatherMap from 'features/fireWeather/components/maps/WeatherMap'
@@ -49,6 +50,11 @@ const useStyles = makeStyles(theme => ({
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center'
+  },
+  legend: {
+    display: 'flex',
+    alignItems: 'flex-end',
+    backgroundColor: theme.palette.primary.light
   }
 }))
 
@@ -115,6 +121,9 @@ const MoreCastPage = () => {
             showTableView={showTableView}
           />
         </SidePanel>
+      </div>
+      <div className={classes.legend}>
+        <AccuracyColorLegend />
       </div>
     </main>
   )
