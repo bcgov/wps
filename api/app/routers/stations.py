@@ -18,7 +18,7 @@ router = APIRouter(
 @router.get('/details/', response_model=DetailedWeatherStationsResponse)
 async def get_detailed_stations(response: Response,
                                 time_of_interest: datetime = None,
-                                source: StationSourceEnum = StationSourceEnum.Unspecified,
+                                source: StationSourceEnum = StationSourceEnum.UNSPECIFIED,
                                 __=Depends(audit),
                                 _=Depends(authentication_required)):
     """ Returns a list of fire weather stations with detailed information.
@@ -45,7 +45,7 @@ async def get_detailed_stations(response: Response,
 
 @router.get('/', response_model=WeatherStationsResponse)
 async def get_stations(response: Response,
-                       source: StationSourceEnum = StationSourceEnum.Unspecified):
+                       source: StationSourceEnum = StationSourceEnum.UNSPECIFIED):
     """ Return a list of fire weather stations.
     Stations source can be:
     -) Unspecified: Use configuration to establish source.

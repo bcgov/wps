@@ -1,4 +1,5 @@
 """ Functional testing for authentication """
+
 from pytest_bdd import scenario, given, then
 from fastapi.testclient import TestClient
 import pytest
@@ -21,7 +22,7 @@ def given_unauthenticated_user(token: str, endpoint: str, verb: str):
     elif verb == 'get':
         response = client.get(endpoint, headers={'Authorization': token})
     else:
-        raise Exception('unexpected verb', verb)
+        raise NotImplementedError('unexpected verb', verb)
     return response
 
 
@@ -59,7 +60,7 @@ def given_authenticated_user(endpoint: str, verb: str):
     if verb == 'get':
         return client.get(
             endpoint, headers={'Authorization': 'Bearer token'}, json={"stations": []})
-    raise Exception('unexpected verb', verb)
+    raise NotImplementedError('unexpected verb', verb)
 
 
 @then("I shouldn't get an unauthorized error <status> code")

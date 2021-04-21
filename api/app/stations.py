@@ -32,9 +32,9 @@ class StationSourceEnum(enum.Enum):
     We currently have two sources for station listing, local json file, or wildfire one api.
     If the source is unspecified, configuration will govern which is used.
     """
-    Unspecified = 'unspecified'  # Configuration wins.
-    WildfireOne = 'wildfire_one'  # Use wildfire one as source.
-    LocalStorage = 'local_storage'  # Use local storage as source.
+    UNSPECIFIED = 'unspecified'  # Configuration wins.
+    WILDFIRE_ONE = 'wildfire_one'  # Use wildfire one as source.
+    LOCAL_STORAGE = 'local_storage'  # Use local storage as source.
 
 
 def _get_stations_local() -> List[WeatherStation]:
@@ -57,10 +57,10 @@ def _set_weather_variables(station_properties: DetailedWeatherStationProperties,
     # Iterate through variables (temp, r.h. etc. etc.)
     for variable_name in variable_names:
         # Get the variable (e.g. temp)
-        value = station_union[variable_name]
+        value = getattr(station_union, variable_name)
         if not math.isnan(value):
             # Is this a forecast or an observation?
-            record_type = station_union['record_type']
+            record_type = getattr(station_union, 'record_type')
             weather_variables = getattr(station_properties, record_type, None)
             if weather_variables is None:
                 # Make on if we don't have one yet.
@@ -90,7 +90,7 @@ def _get_detailed_stations(time_of_interest: datetime):
             station_lookup[station.code] = geojson_station
             geojson_stations.append(geojson_station)
         for station_union in stations_detailed:
-            station = station_lookup.get(station_union['station_code'], None)
+            station = station_lookup.get(getattr(station_union, 'station_code'), None)
             if station:
                 _set_weather_variables(station.properties, station_union)
     return geojson_stations
@@ -117,14 +117,14 @@ async def get_stations_by_codes(station_codes: List[int]) -> List[WeatherStation
 
 
 async def get_stations(
-        station_source: StationSourceEnum = StationSourceEnum.Unspecified) -> List[WeatherStation]:
+        station_source: StationSourceEnum = StationSourceEnum.UNSPECIFIED) -> List[WeatherStation]:
     """ Get list of stations from some source (ideally WFWX Fireweather API)
     """
-    if station_source == StationSourceEnum.Unspecified:
+    if station_source == StationSourceEnum.UNSPECIFIED:
         # If station source is unspecified, check configuration:
         if wildfire_one.use_wfwx():
             return await wildfire_one.get_stations()
-    elif station_source == StationSourceEnum.WildfireOne:
+    elif station_source == StationSourceEnum.WILDFIRE_ONE:
         # Get from wildfire one:
         return await wildfire_one.get_stations()
     # Get from local:
@@ -137,8 +137,8 @@ async def fetch_detailed_stations_as_geojson(
         -> List[GeoJsonDetailedWeatherStation]:
     """ Fetch a detailed list of stations. i.e. more than just the fire station name and code,
     throw some observations and forecast in the mix. """
-    if station_source == StationSourceEnum.WildfireOne or (
-            station_source == StationSourceEnum.Unspecified and wildfire_one.use_wfwx()):
+    if station_source == StationSourceEnum.WILDFIRE_ONE or (
+            station_source == StationSourceEnum.UNSPECIFIED and wildfire_one.use_wfwx()):
         # Get from wildfire one:
         logger.info('requesting detailed stations...')
         result = await wildfire_one.get_detailed_stations(time_of_interest)
@@ -149,7 +149,7 @@ async def fetch_detailed_stations_as_geojson(
 
 
 async def get_stations_as_geojson(
-        station_source: StationSourceEnum = StationSourceEnum.Unspecified) -> List[GeoJsonWeatherStation]:
+        station_source: StationSourceEnum = StationSourceEnum.UNSPECIFIED) -> List[GeoJsonWeatherStation]:
     """ Format stations to conform to GeoJson spec """
     geojson_stations = []
     stations = await get_stations(station_source)
