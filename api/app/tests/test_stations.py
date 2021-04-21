@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from pytest_bdd import scenario, given, then
 from fastapi.testclient import TestClient
 from aiohttp import ClientSession
+import pytest
 import app.main
 from app.tests.common import default_mock_client_get
 from app.tests import load_json_file, apply_crud_mapping
@@ -12,16 +13,17 @@ from app.tests import load_json_file, apply_crud_mapping
 @scenario('test_stations.feature', 'Get weather stations',
           example_converters=dict(status=int, index=int, code=int, name=str, lat=float,
                                   long=float, use_wfwx=str, url=str, ecodivision_name=str,
-                                  core_season=json.loads))
+                                  core_season=json.loads, authentication=bool))
 def test_stations_scenario():
     """ BDD Scenario. """
 
 
+@pytest.mark.usefixtures("mock_jwt_decode")
 @scenario('test_stations.feature', 'Get detailed weather stations',
           example_converters=dict(status=int, use_wfwx=str, url=str,
                                   expected_response=load_json_file(__file__),
                                   crud_mapping=load_json_file(__file__),
-                                  utc_time=int))
+                                  utc_time=int, authentication=bool))
 def test_detailed_stations_scenario():
     """ BDD Scenario. """
 
@@ -47,11 +49,13 @@ def given_a_crud_mapping(monkeypatch, crud_mapping: dict):
     apply_crud_mapping(monkeypatch, crud_mapping, __file__)
 
 
-@given("I request a list of weather stations from <url>", target_fixture='response')
-def given_request(monkeypatch, url: str):
+@given("I request a list of weather stations from <url> with <authentication>", target_fixture='response')
+def given_request(monkeypatch, url: str, authentication: bool):
     """ Mock external requests and make GET /api/stations/ request """
     monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
     client = TestClient(app.main.app)
+    if authentication:
+        return client.get(url, headers={'Authorization': 'Bearer token'})
     return client.get(url)
 
 

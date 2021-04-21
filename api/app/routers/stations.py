@@ -1,7 +1,8 @@
 """ Routers for stations """
 import logging
 from datetime import datetime
-from fastapi import APIRouter, Response
+from fastapi import APIRouter, Response, Depends
+from app.auth import authentication_required, audit
 from app.time_utils import get_utc_now
 from app.schemas.stations import WeatherStationsResponse, DetailedWeatherStationsResponse
 from app.stations import StationSourceEnum, get_stations_as_geojson, fetch_detailed_stations_as_geojson
@@ -17,7 +18,9 @@ router = APIRouter(
 @router.get('/details/', response_model=DetailedWeatherStationsResponse)
 async def get_detailed_stations(response: Response,
                                 time_of_interest: datetime = None,
-                                source: StationSourceEnum = StationSourceEnum.Unspecified):
+                                source: StationSourceEnum = StationSourceEnum.Unspecified,
+                                __=Depends(audit),
+                                _=Depends(authentication_required)):
     """ Returns a list of fire weather stations with detailed information.
     -) Unspecified: Use configuration to establish source.
     -) LocalStorage: Read from json file  (ignore configuration).
