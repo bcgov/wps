@@ -36,7 +36,7 @@ const useStyles = makeStyles({
     color: 'white',
     marginLeft: '4px'
   },
-  gradientContainer: {
+  rowContainer: {
     display: 'flex',
     flexDirection: 'row',
     width: '300px',
@@ -104,7 +104,7 @@ const AccuracyColorLegend = () => {
   return (
     <div className={classes.root}>
       <div className={classes.title}>Observed RH</div>
-      <div className={classes.gradientContainer}>
+      <div className={classes.rowContainer}>
         <div className={classes.green}></div>
         <div className={classes.lightGreen}></div>
         <div className={classes.lightestGreen}></div>
@@ -113,7 +113,7 @@ const AccuracyColorLegend = () => {
         <div className={classes.lightOrange}></div>
         <div className={classes.orange}></div>
       </div>
-      <div className={classes.gradientContainer}>
+      <div className={classes.rowContainer}>
         <div className={classes.leftLabel}>Higher</div>
         <div className={classes.label}>Forecasted</div>
         <div className={classes.rightLabel}>Drier</div>
