@@ -22,7 +22,8 @@ parameters:
   - name: JOB_NAME
     value: bcfw-p1-forecasts
   - name: SCHEDULE
-    value: "30 8,16 * * *"
+    # run before and after local noon (8h30 PDT and 16h30 PDT)
+    value: "30 15,23 * * *"
     required: true
   - name: POSTGRES_WRITE_HOST
     required: true
