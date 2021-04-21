@@ -8,16 +8,6 @@ const useStyles = makeStyles({
     flexDirection: 'column',
     padding: '5px'
   },
-  gradient: {
-    height: '150px',
-    width: '20px',
-    flex: '150px 1 0',
-    background:
-      'linear-gradient(180deg, #009E5B 0%, #62B53A 25.23%, #DEDEDE 48.66%, #FECD83 70.02%, #ED8001 91.37%)',
-    border: '2px solid #FFFFFF',
-    borderRadius: 2,
-    transform: 'rotate(-90deg)'
-  },
   title: {
     height: '20px',
     width: '150px',
