@@ -1,4 +1,5 @@
 """ Functional testing for authentication """
+
 from pytest_bdd import scenario, given, then
 from fastapi.testclient import TestClient
 import pytest
@@ -7,16 +8,21 @@ import app.main
 
 
 @scenario('test_auth.feature', 'Handling unauthenticated users',
-          example_converters=dict(token=str, status=int, message=str, endpoint=str))
+          example_converters=dict(token=str, status=int, message=str, endpoint=str, verb=str))
 def test_auth_1st_scenario():
     """ BDD Scenario #1. """
 
 
-@given("I am an unauthenticated user <token> when I access a protected <endpoint>", target_fixture='response')
-def given_unauthenticated_user(token: str, endpoint: str):
-    """ Make POST {endpoint} request which is protected """
+@given("I am an unauthenticated user <token> when I <verb> a protected <endpoint>", target_fixture='response')
+def given_unauthenticated_user(token: str, endpoint: str, verb: str):
+    """ Request (post/get) {endpoint} request which is protected """
     client = TestClient(app.main.app)
-    response = client.post(endpoint, headers={'Authorization': token})
+    if verb == 'post':
+        response = client.post(endpoint, headers={'Authorization': token})
+    elif verb == 'get':
+        response = client.get(endpoint, headers={'Authorization': token})
+    else:
+        raise NotImplementedError('unexpected verb', verb)
     return response
 
 
@@ -33,7 +39,7 @@ def status_code(response, status: int):
 
 
 @pytest.mark.usefixtures("mock_jwt_decode")
-@scenario("test_auth.feature", "Verifying authenticated users", example_converters=dict(status=int))
+@scenario("test_auth.feature", "Verifying authenticated users", example_converters=dict(status=int, verb=str))
 def test_auth_2nd_scenario():
     """ BDD Scenario #2. """
 
@@ -44,12 +50,17 @@ def access_is_logged(spy_access_logging, endpoint):
     spy_access_logging.assert_called_once_with("test_username", True, endpoint)
 
 
-@given("I am an authenticated user when I access a protected <endpoint>", target_fixture='response_2')
-def given_authenticated_user(endpoint: str):
-    """ Make POST {endpoint} request which is protected """
+@given("I am an authenticated user when I <verb> a protected <endpoint>", target_fixture='response_2')
+def given_authenticated_user(endpoint: str, verb: str):
+    """ Request (post/get) {endpoint} request which is protected """
     client = TestClient(app.main.app)
-    return client.post(
-        endpoint, headers={'Authorization': 'Bearer token'}, json={"stations": []})
+    if verb == 'post':
+        return client.post(
+            endpoint, headers={'Authorization': 'Bearer token'}, json={"stations": []})
+    if verb == 'get':
+        return client.get(
+            endpoint, headers={'Authorization': 'Bearer token'}, json={"stations": []})
+    raise NotImplementedError('unexpected verb', verb)
 
 
 @then("I shouldn't get an unauthorized error <status> code")
