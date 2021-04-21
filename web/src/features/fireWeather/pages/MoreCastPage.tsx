@@ -106,7 +106,11 @@ const MoreCastPage = () => {
       </div>
       <div className={classes.content}>
         <div className={classes.map}>
-          <WeatherMap redrawFlag={showSidePanel} selectedStationCodes={selectedCodes} setSelectedStationCodes={setSelectedCodes} />
+          <WeatherMap
+            redrawFlag={showSidePanel}
+            selectedStationCodes={selectedCodes}
+            setSelectedStationCodes={setSelectedCodes}
+          />
         </div>
         <SidePanel
           show={showSidePanel}

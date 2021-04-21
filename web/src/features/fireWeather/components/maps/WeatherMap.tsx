@@ -16,7 +16,6 @@ import { useDispatch, useSelector } from 'react-redux'
 
 import { selectFireWeatherStations } from 'app/rootReducer'
 
-
 const styles = {
   Point: new Style({
     image: new CircleStyle({
@@ -43,7 +42,11 @@ interface Props {
   setSelectedStationCodes: (codes: number[]) => void
 }
 
-const WeatherMap = ({ redrawFlag, selectedStationCodes, setSelectedStationCodes }: Props) => {
+const WeatherMap = ({
+  redrawFlag,
+  selectedStationCodes,
+  setSelectedStationCodes
+}: Props) => {
   const dispatch = useDispatch()
 
   const { stations } = useSelector(selectFireWeatherStations)
@@ -52,28 +55,31 @@ const WeatherMap = ({ redrawFlag, selectedStationCodes, setSelectedStationCodes 
     dispatch(fetchWxStations())
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const renderTooltip = useCallback((feature: FeatureLike | null) => {
-    if (!feature) return null
+  const renderTooltip = useCallback(
+    (feature: FeatureLike | null) => {
+      if (!feature) return null
 
-    return (
-      <div>
-        <p>
-          {feature.get('name')} ({feature.get('code')})
-        </p>
-        <Button
-          variant="outlined"
-          size="small"
-          onClick={() => {
-            console.log([...selectedStationCodes, feature.get('code')])
-            setSelectedStationCodes([...selectedStationCodes, feature.get('code')])
-          }}
-          data-testid={`select-wx-station-${feature.get('code')}-button`}
-        >
-          Select
-        </Button>
-      </div>
-    )
-  }, [selectedStationCodes, setSelectedStationCodes])
+      return (
+        <div>
+          <p>
+            {feature.get('name')} ({feature.get('code')})
+          </p>
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => {
+              console.log([...selectedStationCodes, feature.get('code')])
+              setSelectedStationCodes([...selectedStationCodes, feature.get('code')])
+            }}
+            data-testid={`select-wx-station-${feature.get('code')}-button`}
+          >
+            Select
+          </Button>
+        </div>
+      )
+    },
+    [selectedStationCodes, setSelectedStationCodes]
+  )
 
   return (
     <Map
