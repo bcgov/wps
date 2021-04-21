@@ -23,18 +23,36 @@ const useStyles = makeStyles({
     width: '150px',
     color: 'white',
     textAlign: 'center',
-    marginLeft: '20px'
+    marginLeft: '40px'
+  },
+  leftLabel: {
+    height: '15px',
+    width: '80px',
+    fontSize: '10px',
+    color: 'white',
+    marginLeft: '4px'
   },
   label: {
-    height: '20px',
-    width: '150px',
-    fontSize: '12px',
+    height: '15px',
+    width: '105px',
+    fontSize: '10px',
+    color: 'white',
+    marginLeft: '4px'
+  },
+  rightLabel: {
+    height: '15px',
+    width: '20px',
+    fontSize: '10px',
     color: 'white',
     marginLeft: '4px'
   },
   gradientContainer: {
     display: 'flex',
-    flexDirection: 'row'
+    flexDirection: 'row',
+    width: '300px',
+    'div:nth-child(3n)': {
+      marginRight: 0
+    }
   },
   green: {
     backgroundColor: '#07A059',
@@ -43,42 +61,42 @@ const useStyles = makeStyles({
     borderBottom: '2px solid #FFFFFF',
     borderRadius: 2,
     height: 27,
-    width: 27
+    width: 32
   },
   lightGreen: {
     backgroundColor: '#3BAC48',
     borderTop: '2px solid #FFFFFF',
     borderBottom: '2px solid #FFFFFF',
     height: 27,
-    width: 27
+    width: 32
   },
   lightestGreen: {
     backgroundColor: '#82C064',
     borderTop: '2px solid #FFFFFF',
     borderBottom: '2px solid #FFFFFF',
     height: 27,
-    width: 27
+    width: 32
   },
   neutral: {
     backgroundColor: '#DFDEDB',
     borderTop: '2px solid #FFFFFF',
     borderBottom: '2px solid #FFFFFF',
     height: 27,
-    width: 27
+    width: 32
   },
   lightestOrange: {
     backgroundColor: '#FCCE89',
     borderTop: '2px solid #FFFFFF',
     borderBottom: '2px solid #FFFFFF',
     height: 27,
-    width: 27
+    width: 32
   },
   lightOrange: {
     backgroundColor: '#F4A036',
     borderTop: '2px solid #FFFFFF',
     borderBottom: '2px solid #FFFFFF',
     height: 27,
-    width: 27
+    width: 32
   },
   orange: {
     backgroundColor: '#ED8001',
@@ -87,7 +105,7 @@ const useStyles = makeStyles({
     borderBottom: '2px solid #FFFFFF',
     borderRadius: 2,
     height: 27,
-    width: 27
+    width: 32
   }
 })
 
@@ -106,8 +124,9 @@ const AccuracyColorLegend = () => {
         <div className={classes.orange}></div>
       </div>
       <div className={classes.gradientContainer}>
-        <div className={classes.label}>Higher</div>
-        <div className={classes.label}>Drier</div>
+        <div className={classes.leftLabel}>Higher</div>
+        <div className={classes.label}>Forecasted</div>
+        <div className={classes.rightLabel}>Drier</div>
       </div>
     </div>
   )
