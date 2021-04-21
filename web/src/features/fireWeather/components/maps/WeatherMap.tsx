@@ -73,7 +73,7 @@ const WeatherMap = ({ redrawFlag, selectedStationCodes, setSelectedStationCodes 
         </Button>
       </div>
     )
-  }, [selectedStationCodes, setSelectedStationCodes])
+  }, [selectedStationCodes])
 
   return (
     <Map
