@@ -7,7 +7,7 @@ import * as olSource from 'ol/source'
 import GeoJSON from 'ol/format/GeoJSON'
 import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style'
 import { FeatureLike } from 'ol/Feature'
-import { fetchWxStations } from 'features/fireWeather/slices/stationsSlice'
+import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 
 import Map from 'features/map/Map'
 import TileLayer from 'features/map/TileLayer'
@@ -15,17 +15,16 @@ import VectorLayer from 'features/map/VectorLayer'
 import { useDispatch, useSelector } from 'react-redux'
 
 import { selectFireWeatherStations } from 'app/rootReducer'
+import { getDetailedStations } from 'api/stationAPI'
+import { computeAccuracyColors } from 'features/fireWeather/components/maps/stationAccuracy'
 
-const styles = {
-  Point: new Style({
+const pointStyleFunction = (feature: any, resolution: any) => {
+  const colorResult = computeAccuracyColors(feature.values_)
+  return new Style({
     image: new CircleStyle({
       radius: 4,
-      fill: new Fill({
-        color: '#E59982'
-      }),
-      stroke: new Stroke({
-        color: 'black'
-      })
+      fill: new Fill({ color: colorResult.relative_humidity }),
+      stroke: new Stroke({ color: 'black', width: 1 })
     })
   })
 }
@@ -52,7 +51,7 @@ const WeatherMap = ({
   const { stations } = useSelector(selectFireWeatherStations)
 
   useEffect(() => {
-    dispatch(fetchWxStations())
+    dispatch(fetchWxStations(getDetailedStations))
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const renderTooltip = useCallback(
@@ -109,7 +108,7 @@ const WeatherMap = ({
             )
           })
         }
-        style={styles.Point}
+        style={pointStyleFunction}
         zIndex={1}
       />
     </Map>
