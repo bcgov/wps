@@ -283,26 +283,23 @@ async def get_detailed_stations(time_of_interest: datetime):
         stations, id_to_code_map = await stations_task
 
         # Combine dailies and stations
-        for dailie in dailies:
-            station_id = dailie.get('stationId')
+        for daily in dailies:
+            station_id = daily.get('stationId')
             station_code = id_to_code_map.get(station_id, None)
             if station_code:
                 station = stations[station_code]
                 weather_variable = WeatherVariables(
-                    temperature=dailie.get('temperature'),
-                    relative_humidity=dailie.get('relativeHumidity'))
-                record_type = dailie.get('recordType').get('id')
+                    temperature=daily.get('temperature'),
+                    relative_humidity=daily.get('relativeHumidity'))
+                record_type = daily.get('recordType').get('id')
                 if record_type == 'ACTUAL':
                     station.properties.observations = weather_variable
                 elif record_type == 'FORECAST':
-                    logger.info('FORECAST value for %s', station_code)
                     station.properties.forecasts = weather_variable
                 else:
                     logger.info('unexpected record type: %s', record_type)
             else:
                 logger.debug('No station found for daily reading (%s)', station_id)
-
-        # TODO: Combine forecasts and stations
 
         return list(stations.values())
 
@@ -359,13 +356,10 @@ async def fetch_raw_dailies_for_all_stations(
         # Build up the request URL.
         url, params = prepare_fetch_dailies_for_all_stations_query(time_of_interest, page_count)
         # Get dailies
-        logger.info(url)
-        logger.info(params)
         async with session.get(url, params=params, headers=headers) as response:
             dailies_json = await response.json()
             total_pages = dailies_json['page']['totalPages']
             hourlies.extend(dailies_json['_embedded']['dailies'])
-        logger.info('received dailies')
         page_count = page_count + 1
     return hourlies
 

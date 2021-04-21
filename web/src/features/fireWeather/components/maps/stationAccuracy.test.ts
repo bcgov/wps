@@ -59,7 +59,7 @@ describe('Station map color accuracy', () => {
       })
     })
 
-    it('should return the coolest color when metrics are widely under forecasted', () => {
+    it('should return the coolest color when metrics are widely over forecasted', () => {
       const largeDifference: StationMetrics = {
         observations: defaultMetrics,
         forecasts: {
