@@ -26,16 +26,6 @@ def load_expected_response(module_path: str) -> Callable[[str], object]:
     return _loader
 
 
-# def _jsonpickle_patch_function(monkeypatch, module_name: str, function_name: str, json_filename: str):
-#     """ Patch module_name.function_name to return de-serialized json_filename """
-#     def mock_get_data(*_):
-#         filename = get_complete_filename(__file__, json_filename)
-#         with open(filename) as file_pointer:
-#             return jsonpickle.decode(file_pointer.read())
-
-#     monkeypatch.setattr(importlib.import_module(module_name), function_name, mock_get_data)
-
-
 @scenario("test_c_haines_endpoints.feature", "C-Haines endpoint testing",
           example_converters=dict(
               crud_mapping=load_json_file(__file__),
