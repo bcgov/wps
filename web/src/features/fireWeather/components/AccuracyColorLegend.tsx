@@ -49,7 +49,7 @@ const useStyles = makeStyles({
     borderTop: '2px solid #FFFFFF',
     borderLeft: '2px solid #FFFFFF',
     borderBottom: '2px solid #FFFFFF',
-    borderRadius: 2,
+    borderRadius: '2px 0px 0px 2px',
     height: 27,
     width: 32
   },
@@ -93,7 +93,7 @@ const useStyles = makeStyles({
     borderTop: '2px solid #FFFFFF',
     borderRight: '2px solid #FFFFFF',
     borderBottom: '2px solid #FFFFFF',
-    borderRadius: 2,
+    borderRadius: '0px 2px 2px 0px',
     height: 27,
     width: 32
   }
