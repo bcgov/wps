@@ -67,7 +67,6 @@ const WeatherMap = ({
             variant="outlined"
             size="small"
             onClick={() => {
-              console.log([...selectedStationCodes, feature.get('code')])
               setSelectedStationCodes([...selectedStationCodes, feature.get('code')])
             }}
             data-testid={`select-wx-station-${feature.get('code')}-button`}
