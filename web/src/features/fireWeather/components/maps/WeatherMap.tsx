@@ -18,7 +18,7 @@ import { selectFireWeatherStations } from 'app/rootReducer'
 import { getDetailedStations } from 'api/stationAPI'
 import { computeAccuracyColors } from 'features/fireWeather/components/maps/stationAccuracy'
 
-const pointStyleFunction = (feature: any, resolution: any) => {
+const pointStyleFunction = (feature: any) => {
   const colorResult = computeAccuracyColors(feature.values_)
   return new Style({
     image: new CircleStyle({

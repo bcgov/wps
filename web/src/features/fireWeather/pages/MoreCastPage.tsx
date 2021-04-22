@@ -73,14 +73,16 @@ const MoreCastPage = () => {
   // need to customize setSelectedCodes function to remove duplicate station codes
   // (can happen if a station is selected from the map twice, or from the map and
   // the dropdown)
-  const setSelectedCodes = (selectedCodes: number[]) => {
+  const setSelectedCodes = () => {
     const selectedCodesSet = new Set(selectedCodes)
-    selectedCodes = Array.from(selectedCodesSet.values())
-    _setSelectedCodes(selectedCodes)
+    const dedupedSelectedCodes = Array.from(selectedCodesSet.values())
+    _setSelectedCodes(dedupedSelectedCodes)
   }
   // codesOfRetrievedStationData[] represents the station codes for which weather data has
   // been retrieved (and therefore the station should appear in WxDataDisplays)
-  const [codesOfRetrievedStationData, setCodesOfRetrievedStationData] = useState<number[]>(codesFromQuery)
+  const [codesOfRetrievedStationData, setCodesOfRetrievedStationData] = useState<
+    number[]
+  >(codesFromQuery)
   const [timeOfInterest, setTimeOfInterest] = useState(toiFromQuery)
   const shouldInitiallyShowSidePanel = selectedCodes.length > 0
   const [showSidePanel, setShowSidePanel] = useState(shouldInitiallyShowSidePanel)
@@ -109,7 +111,7 @@ const MoreCastPage = () => {
       dispatch(fetchGlobalModelSummaries(selectedCodes, timeOfInterest))
     }
     // Update local state to match with the query url
-    setSelectedCodes(selectedCodes)
+    setSelectedCodes()
     setCodesOfRetrievedStationData(selectedCodes)
     setTimeOfInterest(timeOfInterest)
   }, [location]) // eslint-disable-line react-hooks/exhaustive-deps
