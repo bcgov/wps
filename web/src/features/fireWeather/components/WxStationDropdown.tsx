@@ -62,6 +62,7 @@ const WxStationDropdown = (props: Props) => {
           multiple
           options={allStationOptions}
           getOptionLabel={option => `${option.name} (${option.code})`}
+          getOptionSelected={(option, value) => option.code === value.code}
           onChange={(_, options) => {
             props.onChange(options.map(s => s.code))
           }}

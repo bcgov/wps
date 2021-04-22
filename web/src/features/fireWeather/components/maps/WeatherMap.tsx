@@ -76,7 +76,7 @@ const WeatherMap = ({
         </div>
       )
     },
-    [selectedStationCodes]
+    [selectedStationCodes, setSelectedStationCodes]
   )
 
   return (

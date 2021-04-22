@@ -67,6 +67,9 @@ const MoreCastPage = () => {
   const toiFromQuery = getTimeOfInterestFromUrl(location.search)
 
   const [selectedCodes, _setSelectedCodes] = useState<number[]>(codesFromQuery)
+  // need to customize setSelectedCodes function to remove duplicate station codes
+  // (can happen if a station is selected from the map twice, or from the map and
+  // the dropdown)
   const setSelectedCodes = (selectedCodes: number[]) => {
     const selectedCodesSet = new Set(selectedCodes)
     selectedCodes = Array.from(selectedCodesSet.values())
@@ -111,7 +114,7 @@ const MoreCastPage = () => {
         <WxDataForm
           stationCodesQuery={selectedCodes}
           timeOfInterestQuery={timeOfInterest}
-          setSelectedStationCodes={setSelectedCodes}
+          setSelectedStationCodes={_setSelectedCodes}
           setSelectedTimeOfInterest={setTimeOfInterest}
           openSidePanel={openSidePanel}
         />
