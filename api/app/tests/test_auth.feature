@@ -1,24 +1,26 @@
 Feature: Authentication
 
     Scenario: Handling unauthenticated users
-        Given I am an unauthenticated user <token> when I access a protected <endpoint>
+        Given I am an unauthenticated user <token> when I <verb> a protected <endpoint>
         Then I will get an error with <status> code
         And Unauthenticated access audit logs are created
 
         Examples:
-            | token        | status | endpoint                                          |
-            | Basic token  | 401    | /api/weather_models/GDPS/predictions/summaries/   |
-            | just_token   | 401    | /api/weather_models/GDPS/predictions/summaries/   |
-            | Bearer token | 401    | /api/weather_models/GDPS/predictions/summaries/   |
-            | just_token   | 401    | /api/weather_models/GDPS/predictions/most_recent/ |
-            | Bearer token | 401    | /api/weather_models/GDPS/predictions/most_recent/ |
+            | token        | status | endpoint                                          | verb |
+            | Basic token  | 401    | /api/weather_models/GDPS/predictions/summaries/   | post |
+            | just_token   | 401    | /api/weather_models/GDPS/predictions/summaries/   | post |
+            | Bearer token | 401    | /api/weather_models/GDPS/predictions/summaries/   | post |
+            | just_token   | 401    | /api/weather_models/GDPS/predictions/most_recent/ | post |
+            | Bearer token | 401    | /api/weather_models/GDPS/predictions/most_recent/ | post |
+            | just_token   | 401    | /api/stations/details/                            | get  |
 
     Scenario: Verifying authenticated users
-        Given I am an authenticated user when I access a protected <endpoint>
+        Given I am an authenticated user when I <verb> a protected <endpoint>
         Then I shouldn't get an unauthorized error <status> code
         And Authenticated access audit logs are created
 
         Examples:
-            | status | endpoint                                          |
-            | 200    | /api/weather_models/GDPS/predictions/summaries/   |
-            | 200    | /api/weather_models/GDPS/predictions/most_recent/ |
+            | status | endpoint                                          | verb |
+            | 200    | /api/weather_models/GDPS/predictions/summaries/   | post |
+            | 200    | /api/weather_models/GDPS/predictions/most_recent/ | post |
+            | 200    | /api/stations/details/                            | get  |

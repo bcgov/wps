@@ -3,7 +3,7 @@ import { useDispatch } from 'react-redux'
 import { useLocation, useHistory } from 'react-router-dom'
 
 import { PageHeader, PageTitle, Container, ErrorBoundary } from 'components'
-import { fetchWxStations } from 'features/percentileCalculator/slices/stationsSlice'
+import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import WxStationDropdown from 'features/percentileCalculator/components/WxStationDropdown'
 import { PercentileTextfield } from 'features/percentileCalculator/components/PercentileTextfield'
 import {
@@ -17,6 +17,7 @@ import {
   yearWhenTheCalculationIsDone
 } from 'features/percentileCalculator/components/TimeRangeSlider'
 import { getStationCodesFromUrl, stationCodeQueryKey } from 'utils/url'
+import { getStations, StationSource } from 'api/stationAPI'
 
 const defaultTimeRange = 10
 const defaultPercentile = 90
@@ -35,7 +36,7 @@ const PercentileCalculatorPage = () => {
   }
 
   useEffect(() => {
-    dispatch(fetchWxStations())
+    dispatch(fetchWxStations(getStations, StationSource.local_storage))
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {

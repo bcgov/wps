@@ -106,10 +106,11 @@ run-hourly-observed:
 	$(POETRY_RUN) python -m app.fireweather_bot.hourly_actuals
 
 run-all-bots:
-	${call run-env-canada}
+	# Run hourlies and actuals 1'st - very quick.
 	$(POETRY_RUN) python -m app.fireweather_bot.hourly_actuals
 	$(POETRY_RUN) python -m app.fireweather_bot.noon_forecasts
-
+	${call run-env-canada}
+	$(POETRY_RUN) python -m app.c_haines.worker
 
 c-haines:
 	$(POETRY_RUN) python -m app.c_haines.worker
