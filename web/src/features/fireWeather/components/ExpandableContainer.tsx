@@ -16,15 +16,14 @@ const useStyles = makeStyles({
     boxShadow:
       '0px 3px 3px -2px rgb(0 0 0 / 20%), 0px 3px 4px 0px rgb(0 0 0 / 14%), 0px 1px 8px 0px rgb(0 0 0 / 12%)'
   }),
+  ordering: {
+    display: 'flex',
+    flexDirection: 'row'
+  },
   content: (props: Props) => ({
     width: props.currentWidth,
     position: 'relative'
-  }),
-  actions: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'flex-start'
-  }
+  })
 })
 
 interface Props {
@@ -47,40 +46,21 @@ export const ExpandableContainer = (props: Props) => {
       <CloseIcon />
     </IconButton>
   )
-  return props.currentWidth === partialWidth ? (
+  const collapsed = props.currentWidth === partialWidth
+  return (
     <div className={classes.root}>
-      <div className={classes.content}>
-        <div className={classes.actions}>
-          <React.Fragment>
-            {closeButton}
-            <IconButton
-              color="primary"
-              aria-label="Expand side view"
-              onClick={props.expandSidePanel}
-            >
-              <ArrowBackIosIcon />
-            </IconButton>
-          </React.Fragment>
+      <div className={classes.ordering}>
+        <IconButton
+          color="primary"
+          aria-label="Expand side view"
+          onClick={collapsed ? props.expandSidePanel : props.collapseSidePanel}
+        >
+          {collapsed ? <ArrowBackIosIcon /> : <ArrowForwardIosIcon />}
+        </IconButton>
+        <div className={classes.content}>
+          {closeButton}
+          {props.children}
         </div>
-        {props.children}
-      </div>
-    </div>
-  ) : (
-    <div className={classes.root}>
-      <div className={classes.content}>
-        <div className={classes.actions}>
-          <React.Fragment>
-            {closeButton}
-            <IconButton
-              color="primary"
-              aria-label="Collapse side view"
-              onClick={props.collapseSidePanel}
-            >
-              <ArrowForwardIosIcon />
-            </IconButton>
-          </React.Fragment>
-        </div>
-        {props.children}
       </div>
     </div>
   )
