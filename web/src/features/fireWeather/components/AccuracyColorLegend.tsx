@@ -99,9 +99,13 @@ const useStyles = makeStyles({
   }
 })
 
-const AccuracyColorLegend = () => {
+interface Props {
+  show: boolean
+}
+
+const AccuracyColorLegend = (props: Props) => {
   const classes = useStyles()
-  return (
+  return props.show ? (
     <div className={classes.root}>
       <div className={classes.title}>Observed RH</div>
       <div className={classes.rowContainer}>
@@ -119,6 +123,8 @@ const AccuracyColorLegend = () => {
         <div className={classes.rightLabel}>Drier</div>
       </div>
     </div>
+  ) : (
+    <div></div>
   )
 }
 

@@ -135,7 +135,7 @@ const MoreCastPage = () => {
         </ExpandableContainer>
       </div>
       <div className={classes.legend}>
-        <AccuracyColorLegend />
+        <AccuracyColorLegend show={sidePanelWidth <= partialWidth} />
       </div>
     </main>
   )
