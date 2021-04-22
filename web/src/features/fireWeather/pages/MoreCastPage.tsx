@@ -19,10 +19,10 @@ import WxDataDisplays from 'features/fireWeather/components/WxDataDisplays'
 import WxDataForm from 'features/fireWeather/components/WxDataForm'
 import AccuracyColorLegend from 'features/fireWeather/components/AccuracyColorLegend'
 import SidePanel from 'features/fireWeather/components/SidePanel'
-import { partialSidePanelWidth } from 'features/fireWeather/components/SidePanel'
 import NetworkErrorMessages from 'features/fireWeather/components/NetworkErrorMessages'
 import WeatherMap from 'features/fireWeather/components/maps/WeatherMap'
 import { getStations } from 'api/stationAPI'
+import { ExpandableContainer, partialWidth } from '../components/ExpandableContainer'
 
 const useStyles = makeStyles(theme => ({
   main: {
@@ -70,13 +70,13 @@ const MoreCastPage = () => {
   const shouldInitiallyShowSidePanel = codesFromQuery.length > 0
   const [showSidePanel, setShowSidePanel] = useState(shouldInitiallyShowSidePanel)
   const [sidePanelWidth, setSidePanelWidth] = useState(
-    shouldInitiallyShowSidePanel ? partialSidePanelWidth : 0
+    shouldInitiallyShowSidePanel ? partialWidth : 0
   )
   const expandSidePanel = () => setSidePanelWidth(1200)
-  const collapseSidePanel = () => setSidePanelWidth(partialSidePanelWidth)
+  const collapseSidePanel = () => setSidePanelWidth(partialWidth)
   const openSidePanel = () => {
     setShowSidePanel(true)
-    setSidePanelWidth(partialSidePanelWidth)
+    setSidePanelWidth(partialWidth)
   }
   const closeSidePanel = () => setShowSidePanel(false)
 
@@ -117,22 +117,22 @@ const MoreCastPage = () => {
         <div className={classes.map}>
           <WeatherMap redrawFlag={showSidePanel} />
         </div>
-        <SidePanel
+        <ExpandableContainer
           show={showSidePanel}
           closeSidePanel={closeSidePanel}
-          handleToggleView={handleToggleView}
-          showTableView={showTableView}
-          sidePanelWidth={sidePanelWidth}
           expandSidePanel={expandSidePanel}
           collapseSidePanel={collapseSidePanel}
+          currentWidth={sidePanelWidth}
         >
-          <NetworkErrorMessages />
-          <WxDataDisplays
-            stationCodes={codesFromQuery}
-            timeOfInterest={toiFromQuery}
-            showTableView={showTableView}
-          />
-        </SidePanel>
+          <SidePanel handleToggleView={handleToggleView} showTableView={showTableView}>
+            <NetworkErrorMessages />
+            <WxDataDisplays
+              stationCodes={codesFromQuery}
+              timeOfInterest={toiFromQuery}
+              showTableView={showTableView}
+            />
+          </SidePanel>
+        </ExpandableContainer>
       </div>
       <div className={classes.legend}>
         <AccuracyColorLegend />
