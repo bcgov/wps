@@ -66,7 +66,12 @@ const MoreCastPage = () => {
   const codesFromQuery = getStationCodesFromUrl(location.search)
   const toiFromQuery = getTimeOfInterestFromUrl(location.search)
 
-  const [selectedCodes, setSelectedCodes] = useState<number[]>(codesFromQuery)
+  const [selectedCodes, _setSelectedCodes] = useState<number[]>(codesFromQuery)
+  const setSelectedCodes = (selectedCodes: number[]) => {
+    const selectedCodesSet = new Set(selectedCodes)
+    selectedCodes = Array.from(selectedCodesSet.values())
+    _setSelectedCodes(selectedCodes)
+  }
   const [timeOfInterest, setTimeOfInterest] = useState(toiFromQuery)
   const shouldInitiallyShowSidePanel = selectedCodes.length > 0
   const [showSidePanel, setShowSidePanel] = useState(shouldInitiallyShowSidePanel)
