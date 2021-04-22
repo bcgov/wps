@@ -5,7 +5,7 @@ import { makeStyles } from '@material-ui/core/styles'
 
 import { PageHeader } from 'components'
 import { getStationCodesFromUrl, getTimeOfInterestFromUrl } from 'utils/url'
-import { fetchWxStations } from 'features/fireWeather/slices/stationsSlice'
+import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { fetchGlobalModelsWithBiasAdj } from 'features/fireWeather/slices/modelsSlice'
 import { fetchObservations } from 'features/fireWeather/slices/observationsSlice'
 import { fetchForecasts } from 'features/fireWeather/slices/forecastsSlice'
@@ -17,9 +17,11 @@ import { fetchRegionalModels } from 'features/fireWeather/slices/regionalModelsS
 import { fetchRegionalModelSummaries } from 'features/fireWeather/slices/regionalModelSummariesSlice'
 import WxDataDisplays from 'features/fireWeather/components/WxDataDisplays'
 import WxDataForm from 'features/fireWeather/components/WxDataForm'
+import AccuracyColorLegend from 'features/fireWeather/components/AccuracyColorLegend'
 import SidePanel from 'features/fireWeather/components/SidePanel'
 import NetworkErrorMessages from 'features/fireWeather/components/NetworkErrorMessages'
 import WeatherMap from 'features/fireWeather/components/maps/WeatherMap'
+import { getStations } from 'api/stationAPI'
 
 const useStyles = makeStyles(theme => ({
   main: {
@@ -48,6 +50,11 @@ const useStyles = makeStyles(theme => ({
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center'
+  },
+  legend: {
+    display: 'flex',
+    alignItems: 'flex-end',
+    backgroundColor: theme.palette.primary.light
   }
 }))
 
@@ -70,7 +77,7 @@ const MoreCastPage = () => {
   }
 
   useEffect(() => {
-    dispatch(fetchWxStations())
+    dispatch(fetchWxStations(getStations))
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -114,6 +121,9 @@ const MoreCastPage = () => {
             showTableView={showTableView}
           />
         </SidePanel>
+      </div>
+      <div className={classes.legend}>
+        <AccuracyColorLegend />
       </div>
     </main>
   )
