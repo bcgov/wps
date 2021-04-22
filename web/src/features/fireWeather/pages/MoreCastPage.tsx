@@ -66,6 +66,9 @@ const MoreCastPage = () => {
   const codesFromQuery = getStationCodesFromUrl(location.search)
   const toiFromQuery = getTimeOfInterestFromUrl(location.search)
 
+  // selectedCodes[] represents the station codes that the user has selected from
+  // either the station dropdown or the map. Weather data for these stations
+  // has not necessarily been retrieved
   const [selectedCodes, _setSelectedCodes] = useState<number[]>(codesFromQuery)
   // need to customize setSelectedCodes function to remove duplicate station codes
   // (can happen if a station is selected from the map twice, or from the map and
@@ -75,6 +78,9 @@ const MoreCastPage = () => {
     selectedCodes = Array.from(selectedCodesSet.values())
     _setSelectedCodes(selectedCodes)
   }
+  // codesOfRetrievedStationData[] represents the station codes for which weather data has
+  // been retrieved (and therefore the station should appear in WxDataDisplays)
+  const [codesOfRetrievedStationData, setCodesOfRetrievedStationData] = useState<number[]>(codesFromQuery)
   const [timeOfInterest, setTimeOfInterest] = useState(toiFromQuery)
   const shouldInitiallyShowSidePanel = selectedCodes.length > 0
   const [showSidePanel, setShowSidePanel] = useState(shouldInitiallyShowSidePanel)
@@ -104,6 +110,7 @@ const MoreCastPage = () => {
     }
     // Update local state to match with the query url
     setSelectedCodes(selectedCodes)
+    setCodesOfRetrievedStationData(selectedCodes)
     setTimeOfInterest(timeOfInterest)
   }, [location]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -135,7 +142,7 @@ const MoreCastPage = () => {
         >
           <NetworkErrorMessages />
           <WxDataDisplays
-            stationCodes={selectedCodes}
+            stationCodes={codesOfRetrievedStationData}
             timeOfInterest={timeOfInterest}
             showTableView={showTableView}
           />
