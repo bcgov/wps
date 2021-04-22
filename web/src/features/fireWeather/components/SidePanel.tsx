@@ -1,22 +1,26 @@
 import React from 'react'
 import { makeStyles } from '@material-ui/core/styles'
+import IconButton from '@material-ui/core/IconButton'
+import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos'
+import ArrowForwardIosIcon from '@material-ui/icons/ArrowForwardIos'
+import CloseIcon from '@material-ui/icons/Close'
 import { ToggleButton, ToggleButtonGroup } from '@material-ui/lab'
 
-const sidePanelWidth = 850
+export const partialSidePanelWidth = 850
 
 const useStyles = makeStyles({
   root: (props: Props) => ({
     order: 2,
-    width: props.show ? sidePanelWidth : 0,
+    width: props.show ? props.sidePanelWidth : 0,
     overflowX: 'hidden',
     boxShadow:
       '0px 3px 3px -2px rgb(0 0 0 / 20%), 0px 3px 4px 0px rgb(0 0 0 / 14%), 0px 1px 8px 0px rgb(0 0 0 / 12%)'
   }),
-  content: {
-    width: sidePanelWidth,
+  content: (props: Props) => ({
+    width: props.sidePanelWidth,
     padding: '22px 24px 12px 12px',
     position: 'relative'
-  },
+  }),
   actions: {
     display: 'flex',
     flexDirection: 'row',
@@ -33,21 +37,49 @@ const useStyles = makeStyles({
 interface Props {
   show: boolean
   closeSidePanel: () => void
+  expandSidePanel: () => void
+  collapseSidePanel: () => void
   handleToggleView: (_: React.MouseEvent<HTMLElement>, newDataView: string) => void
   showTableView: string
+  sidePanelWidth: number
   children: React.ReactNode
 }
 
 const SidePanel = (props: Props) => {
   const classes = useStyles(props)
 
+  const expandOrCollapse = () => {
+    return props.sidePanelWidth === partialSidePanelWidth ? (
+      <IconButton
+        color="primary"
+        aria-label="Expand side view"
+        onClick={props.expandSidePanel}
+      >
+        <ArrowBackIosIcon />
+      </IconButton>
+    ) : (
+      <IconButton
+        color="primary"
+        aria-label="Collapse side view"
+        onClick={props.collapseSidePanel}
+      >
+        <ArrowForwardIosIcon />
+      </IconButton>
+    )
+  }
+
   return (
     <div className={classes.root}>
       <div className={classes.content}>
         <div className={classes.actions}>
-          <div className={classes.closeBtn} onClick={props.closeSidePanel} role="button">
-            &times;
-          </div>
+          <IconButton
+            color="primary"
+            aria-label="Close side view"
+            onClick={props.closeSidePanel}
+          >
+            <CloseIcon />
+          </IconButton>
+          {expandOrCollapse()}
           <ToggleButtonGroup
             color="primary"
             aria-label="outlined primary button group"

@@ -19,6 +19,7 @@ import WxDataDisplays from 'features/fireWeather/components/WxDataDisplays'
 import WxDataForm from 'features/fireWeather/components/WxDataForm'
 import AccuracyColorLegend from 'features/fireWeather/components/AccuracyColorLegend'
 import SidePanel from 'features/fireWeather/components/SidePanel'
+import { partialSidePanelWidth } from 'features/fireWeather/components/SidePanel'
 import NetworkErrorMessages from 'features/fireWeather/components/NetworkErrorMessages'
 import WeatherMap from 'features/fireWeather/components/maps/WeatherMap'
 import { getStations } from 'api/stationAPI'
@@ -68,7 +69,15 @@ const MoreCastPage = () => {
 
   const shouldInitiallyShowSidePanel = codesFromQuery.length > 0
   const [showSidePanel, setShowSidePanel] = useState(shouldInitiallyShowSidePanel)
-  const openSidePanel = () => setShowSidePanel(true)
+  const [sidePanelWidth, setSidePanelWidth] = useState(
+    shouldInitiallyShowSidePanel ? partialSidePanelWidth : 0
+  )
+  const expandSidePanel = () => setSidePanelWidth(1200)
+  const collapseSidePanel = () => setSidePanelWidth(partialSidePanelWidth)
+  const openSidePanel = () => {
+    setShowSidePanel(true)
+    setSidePanelWidth(partialSidePanelWidth)
+  }
   const closeSidePanel = () => setShowSidePanel(false)
 
   const [showTableView, toggleTableView] = useState('true')
@@ -113,6 +122,9 @@ const MoreCastPage = () => {
           closeSidePanel={closeSidePanel}
           handleToggleView={handleToggleView}
           showTableView={showTableView}
+          sidePanelWidth={sidePanelWidth}
+          expandSidePanel={expandSidePanel}
+          collapseSidePanel={collapseSidePanel}
         >
           <NetworkErrorMessages />
           <WxDataDisplays
