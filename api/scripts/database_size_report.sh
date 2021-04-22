@@ -18,6 +18,14 @@ SCRIPT_DIR="$(dirname "$0")"
 source "$SCRIPT_DIR/common_oc_checks.sh"
 
 # From https://wiki.postgresql.org/wiki/Disk_Usage
+#
+# Postgres does not support physical row data that cross the size of a data block.
+# To enable values larger than data blocks it breaks them up into smaller pieces 
+# and stores them in a TOAST table that is related to the original table.
+#
+# See https://wiki.postgresql.org/wiki/TOAST for more info.
+
+https://wiki.postgresql.org/wiki/TOAST
 SIZE_REPORT_QUERY="SELECT *, pg_size_pretty(total_bytes) AS total
     , pg_size_pretty(index_bytes) AS index
     , pg_size_pretty(toast_bytes) AS toast
