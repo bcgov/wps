@@ -30,10 +30,6 @@ const useStyles = makeStyles({
     flexDirection: 'column',
     justifyContent: 'center'
   },
-  close: {
-    display: 'flex',
-    flexDirection: 'column'
-  },
   content: (props: Props) => ({
     width: props.currentWidth,
     position: 'relative'
@@ -60,7 +56,6 @@ export const ExpandableContainer = (props: Props) => {
       </IconButton>
       <div className={classes.ordering}>
         <div className={classes.expandCollapse}>
-          <div className={classes.close}></div>
           <IconButton
             color="primary"
             aria-label="Expand side view"
