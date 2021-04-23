@@ -116,7 +116,7 @@ const MoreCastPage = () => {
       </div>
       <div className={classes.content}>
         <div className={classes.map}>
-          <WeatherMap redrawFlag={showSidePanel} />
+          <WeatherMap redrawFlag={showSidePanel && sidePanelWidth === partialWidth} />
         </div>
         <ExpandableContainer
           open={showSidePanel}
