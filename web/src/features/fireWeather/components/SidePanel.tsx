@@ -8,7 +8,6 @@ const useStyles = makeStyles({
     overflowX: 'hidden'
   },
   content: {
-    padding: '22px 24px 12px 12px',
     position: 'relative'
   },
   actions: {
