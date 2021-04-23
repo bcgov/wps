@@ -7,14 +7,19 @@ import ArrowForwardIosIcon from '@material-ui/icons/ArrowForwardIos'
 import CloseIcon from '@material-ui/icons/Close'
 import { partialWidth, fullWidth } from 'utils/constants'
 
+const getRootWidth = (props: Props) => {
+  if (props.open) {
+    return props.fullScreen && props.currentWidth === fullWidth
+      ? '100%'
+      : props.currentWidth
+  }
+  return 0
+}
+
 const useStyles = makeStyles({
   root: (props: Props) => ({
     order: 2,
-    width: props.open
-      ? props.fullScreen && props.currentWidth === fullWidth
-        ? '100%'
-        : props.currentWidth
-      : 0,
+    width: getRootWidth(props),
     overflowX: 'hidden',
     boxShadow:
       '0px 3px 3px -2px rgb(0 0 0 / 20%), 0px 3px 4px 0px rgb(0 0 0 / 14%), 0px 1px 8px 0px rgb(0 0 0 / 12%)'
