@@ -73,8 +73,8 @@ const MoreCastPage = () => {
   // need to customize setSelectedCodes function to remove duplicate station codes
   // (can happen if a station is selected from the map twice, or from the map and
   // the dropdown)
-  const setSelectedCodes = () => {
-    const selectedCodesSet = new Set(selectedCodes)
+  const setSelectedCodes = (codes: number[]) => {
+    const selectedCodesSet = new Set(codes)
     const dedupedSelectedCodes = Array.from(selectedCodesSet.values())
     _setSelectedCodes(dedupedSelectedCodes)
   }
@@ -111,7 +111,7 @@ const MoreCastPage = () => {
       dispatch(fetchGlobalModelSummaries(selectedCodes, timeOfInterest))
     }
     // Update local state to match with the query url
-    setSelectedCodes()
+    setSelectedCodes(selectedCodes)
     setCodesOfRetrievedStationData(selectedCodes)
     setTimeOfInterest(timeOfInterest)
   }, [location]) // eslint-disable-line react-hooks/exhaustive-deps
