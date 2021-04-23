@@ -20,6 +20,15 @@ const useStyles = makeStyles({
     display: 'flex',
     flexDirection: 'row'
   },
+  expandCollapse: {
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center'
+  },
+  close: {
+    display: 'flex',
+    flexDirection: 'column'
+  },
   content: (props: Props) => ({
     width: props.currentWidth,
     position: 'relative'
@@ -37,30 +46,28 @@ interface Props {
 
 export const ExpandableContainer = (props: Props) => {
   const classes = useStyles(props)
-  const closeButton = (
-    <IconButton
-      color="primary"
-      aria-label="Close side view"
-      onClick={props.closeSidePanel}
-    >
-      <CloseIcon />
-    </IconButton>
-  )
   const collapsed = props.currentWidth === partialWidth
   return (
     <div className={classes.root}>
+      <IconButton
+        color="primary"
+        aria-label="Close side view"
+        onClick={props.closeSidePanel}
+      >
+        <CloseIcon />
+      </IconButton>
       <div className={classes.ordering}>
-        <IconButton
-          color="primary"
-          aria-label="Expand side view"
-          onClick={collapsed ? props.expandSidePanel : props.collapseSidePanel}
-        >
-          {collapsed ? <ArrowBackIosIcon /> : <ArrowForwardIosIcon />}
-        </IconButton>
-        <div className={classes.content}>
-          {closeButton}
-          {props.children}
+        <div className={classes.expandCollapse}>
+          <div className={classes.close}></div>
+          <IconButton
+            color="primary"
+            aria-label="Expand side view"
+            onClick={collapsed ? props.expandSidePanel : props.collapseSidePanel}
+          >
+            {collapsed ? <ArrowBackIosIcon /> : <ArrowForwardIosIcon />}
+          </IconButton>
         </div>
+        <div className={classes.content}>{props.children}</div>
       </div>
     </div>
   )
