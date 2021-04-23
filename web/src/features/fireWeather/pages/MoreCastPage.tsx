@@ -22,7 +22,11 @@ import SidePanel from 'features/fireWeather/components/SidePanel'
 import NetworkErrorMessages from 'features/fireWeather/components/NetworkErrorMessages'
 import WeatherMap from 'features/fireWeather/components/maps/WeatherMap'
 import { getStations } from 'api/stationAPI'
-import { ExpandableContainer, partialWidth } from '../components/ExpandableContainer'
+import {
+  ExpandableContainer,
+  partialWidth,
+  fullWidth
+} from '../components/ExpandableContainer'
 
 const useStyles = makeStyles(theme => ({
   main: {
@@ -72,7 +76,7 @@ const MoreCastPage = () => {
   const [sidePanelWidth, setSidePanelWidth] = useState(
     shouldInitiallyShowSidePanel ? partialWidth : 0
   )
-  const expandSidePanel = () => setSidePanelWidth(1200)
+  const expandSidePanel = () => setSidePanelWidth(fullWidth)
   const collapseSidePanel = () => setSidePanelWidth(partialWidth)
   const openSidePanel = () => {
     setShowSidePanel(true)
@@ -123,6 +127,7 @@ const MoreCastPage = () => {
           expand={expandSidePanel}
           collapse={collapseSidePanel}
           currentWidth={sidePanelWidth}
+          fullScreen={true}
         >
           <SidePanel handleToggleView={handleToggleView} showTableView={showTableView}>
             <NetworkErrorMessages />
