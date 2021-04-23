@@ -5,11 +5,11 @@ import IconButton from '@material-ui/core/IconButton'
 import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos'
 import ArrowForwardIosIcon from '@material-ui/icons/ArrowForwardIos'
 import CloseIcon from '@material-ui/icons/Close'
-import { partialWidth, fullWidth } from 'utils/constants'
+import { PARTIAL_WIDTH, FULL_WIDTH } from 'utils/constants'
 
 const getRootWidth = (props: Props) => {
   if (props.open) {
-    return props.fullScreen && props.currentWidth === fullWidth
+    return props.fullScreen && props.currentWidth === FULL_WIDTH
       ? '100%'
       : props.currentWidth
   }
@@ -51,7 +51,7 @@ interface Props {
 
 const ExpandableContainer = (props: Props) => {
   const classes = useStyles(props)
-  const collapsed = props.currentWidth === partialWidth
+  const collapsed = props.currentWidth === PARTIAL_WIDTH
   return (
     <div className={classes.root}>
       <IconButton color="primary" aria-label="Close side view" onClick={props.close}>

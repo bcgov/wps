@@ -23,7 +23,7 @@ import NetworkErrorMessages from 'features/fireWeather/components/NetworkErrorMe
 import WeatherMap from 'features/fireWeather/components/maps/WeatherMap'
 import { getStations } from 'api/stationAPI'
 import ExpandableContainer from '../components/ExpandableContainer'
-import { partialWidth, fullWidth } from 'utils/constants'
+import { PARTIAL_WIDTH, FULL_WIDTH } from 'utils/constants'
 
 const useStyles = makeStyles(theme => ({
   main: {
@@ -71,13 +71,13 @@ const MoreCastPage = () => {
   const shouldInitiallyShowSidePanel = codesFromQuery.length > 0
   const [showSidePanel, setShowSidePanel] = useState(shouldInitiallyShowSidePanel)
   const [sidePanelWidth, setSidePanelWidth] = useState(
-    shouldInitiallyShowSidePanel ? partialWidth : 0
+    shouldInitiallyShowSidePanel ? PARTIAL_WIDTH : 0
   )
-  const expandSidePanel = () => setSidePanelWidth(fullWidth)
-  const collapseSidePanel = () => setSidePanelWidth(partialWidth)
+  const expandSidePanel = () => setSidePanelWidth(FULL_WIDTH)
+  const collapseSidePanel = () => setSidePanelWidth(PARTIAL_WIDTH)
   const openSidePanel = () => {
     setShowSidePanel(true)
-    setSidePanelWidth(partialWidth)
+    setSidePanelWidth(PARTIAL_WIDTH)
   }
   const closeSidePanel = () => setShowSidePanel(false)
 
@@ -116,7 +116,7 @@ const MoreCastPage = () => {
       </div>
       <div className={classes.content}>
         <div className={classes.map}>
-          <WeatherMap redrawFlag={showSidePanel && sidePanelWidth === partialWidth} />
+          <WeatherMap redrawFlag={showSidePanel && sidePanelWidth === PARTIAL_WIDTH} />
         </div>
         <ExpandableContainer
           open={showSidePanel}
@@ -137,7 +137,7 @@ const MoreCastPage = () => {
         </ExpandableContainer>
       </div>
       <div className={classes.legend}>
-        <AccuracyColorLegend show={sidePanelWidth <= partialWidth} />
+        <AccuracyColorLegend show={sidePanelWidth <= PARTIAL_WIDTH} />
       </div>
     </main>
   )

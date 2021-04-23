@@ -19,5 +19,5 @@ export const HFI_CALC_ROUTE = '/hfi-calculator'
 export const C_HAINES_ROUTE = '/c-haines'
 
 // ExpandableContainer widths
-export const partialWidth = 850
-export const fullWidth = 1200
+export const PARTIAL_WIDTH = 850
+export const FULL_WIDTH = 1200
