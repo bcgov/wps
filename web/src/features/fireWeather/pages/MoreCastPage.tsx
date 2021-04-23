@@ -22,11 +22,8 @@ import SidePanel from 'features/fireWeather/components/SidePanel'
 import NetworkErrorMessages from 'features/fireWeather/components/NetworkErrorMessages'
 import WeatherMap from 'features/fireWeather/components/maps/WeatherMap'
 import { getStations } from 'api/stationAPI'
-import {
-  ExpandableContainer,
-  partialWidth,
-  fullWidth
-} from '../components/ExpandableContainer'
+import ExpandableContainer from '../components/ExpandableContainer'
+import { partialWidth, fullWidth } from 'utils/constants'
 
 const useStyles = makeStyles(theme => ({
   main: {

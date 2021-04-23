@@ -1,6 +1,5 @@
-import { FIRE_WEATHER_ROUTE, MORECAST_ROUTE } from '../../src/utils/constants'
+import { FIRE_WEATHER_ROUTE, MORECAST_ROUTE, partialWidth } from '../../src/utils/constants'
 import { stationCodeQueryKey, timeOfInterestQueryKey } from '../../src/utils/url'
-
 const stationCode = 328
 
 describe('MoreCast Page', () => {
@@ -181,6 +180,20 @@ describe('MoreCast Page', () => {
       cy.getByTestId(`noon-gdps-table-${stationCode}`)
         .find('.MuiTableContainer-root')
         .should('not.be.visible')
+    })
+    it('Should expand the side panel when it is collapsed', () => {
+      cy.get(`[value=expand-collapse]`).click()
+      cy.getByTestId('expandable-container-content')
+        .invoke('width')
+        .should('be.gt', partialWidth)
+    })
+    it('Should collapse the side panel when it is expanded', () => {
+      cy.get(`[value=expand-collapse]`)
+        .click()
+        .click()
+      cy.getByTestId('expandable-container-content')
+        .invoke('width')
+        .should('be.lte', partialWidth)
     })
 
     describe('When graphs tab is clicked', () => {

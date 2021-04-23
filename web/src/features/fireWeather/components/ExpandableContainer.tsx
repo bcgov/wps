@@ -5,9 +5,7 @@ import IconButton from '@material-ui/core/IconButton'
 import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos'
 import ArrowForwardIosIcon from '@material-ui/icons/ArrowForwardIos'
 import CloseIcon from '@material-ui/icons/Close'
-
-export const partialWidth = 850
-export const fullWidth = 1200
+import { partialWidth, fullWidth } from 'utils/constants'
 
 const useStyles = makeStyles({
   root: (props: Props) => ({
@@ -46,7 +44,7 @@ interface Props {
   children: React.ReactNode
 }
 
-export const ExpandableContainer = (props: Props) => {
+const ExpandableContainer = (props: Props) => {
   const classes = useStyles(props)
   const collapsed = props.currentWidth === partialWidth
   return (
@@ -57,6 +55,7 @@ export const ExpandableContainer = (props: Props) => {
       <div className={classes.ordering}>
         <div className={classes.expandCollapse}>
           <IconButton
+            value="expand-collapse"
             color="primary"
             aria-label="Expand side view"
             onClick={collapsed ? props.expand : props.collapse}
@@ -64,8 +63,12 @@ export const ExpandableContainer = (props: Props) => {
             {collapsed ? <ArrowBackIosIcon /> : <ArrowForwardIosIcon />}
           </IconButton>
         </div>
-        <div className={classes.content}>{props.children}</div>
+        <div className={classes.content} data-testid="expandable-container-content">
+          {props.children}
+        </div>
       </div>
     </div>
   )
 }
+
+export default React.memo(ExpandableContainer)
