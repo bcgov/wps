@@ -11,7 +11,7 @@ export const partialWidth = 850
 const useStyles = makeStyles({
   root: (props: Props) => ({
     order: 2,
-    width: props.show ? props.currentWidth : 0,
+    width: props.open ? props.currentWidth : 0,
     overflowX: 'hidden',
     boxShadow:
       '0px 3px 3px -2px rgb(0 0 0 / 20%), 0px 3px 4px 0px rgb(0 0 0 / 14%), 0px 1px 8px 0px rgb(0 0 0 / 12%)'
@@ -36,11 +36,11 @@ const useStyles = makeStyles({
 })
 
 interface Props {
-  expandSidePanel: () => void
-  collapseSidePanel: () => void
-  closeSidePanel: () => void
+  expand: () => void
+  collapse: () => void
+  close: () => void
   currentWidth: number
-  show: boolean
+  open: boolean
   children: React.ReactNode
 }
 
@@ -49,11 +49,7 @@ export const ExpandableContainer = (props: Props) => {
   const collapsed = props.currentWidth === partialWidth
   return (
     <div className={classes.root}>
-      <IconButton
-        color="primary"
-        aria-label="Close side view"
-        onClick={props.closeSidePanel}
-      >
+      <IconButton color="primary" aria-label="Close side view" onClick={props.close}>
         <CloseIcon />
       </IconButton>
       <div className={classes.ordering}>
@@ -62,7 +58,7 @@ export const ExpandableContainer = (props: Props) => {
           <IconButton
             color="primary"
             aria-label="Expand side view"
-            onClick={collapsed ? props.expandSidePanel : props.collapseSidePanel}
+            onClick={collapsed ? props.expand : props.collapse}
           >
             {collapsed ? <ArrowBackIosIcon /> : <ArrowForwardIosIcon />}
           </IconButton>

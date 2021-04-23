@@ -118,10 +118,10 @@ const MoreCastPage = () => {
           <WeatherMap redrawFlag={showSidePanel} />
         </div>
         <ExpandableContainer
-          show={showSidePanel}
-          closeSidePanel={closeSidePanel}
-          expandSidePanel={expandSidePanel}
-          collapseSidePanel={collapseSidePanel}
+          open={showSidePanel}
+          close={closeSidePanel}
+          expand={expandSidePanel}
+          collapse={collapseSidePanel}
           currentWidth={sidePanelWidth}
         >
           <SidePanel handleToggleView={handleToggleView} showTableView={showTableView}>
