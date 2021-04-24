@@ -49,14 +49,16 @@ const SidePanel = (props: Props) => {
             &times;
           </div>
           <ToggleButtonGroup
+            exclusive={true}
             color="primary"
             aria-label="outlined primary button group"
             value={props.showTableView}
             onChange={props.handleToggleView}
             size="small"
           >
-            <ToggleButton value="true">Tables</ToggleButton>
-            <ToggleButton value="false">Graphs</ToggleButton>
+            <ToggleButton value="tables">Tables</ToggleButton>
+            <ToggleButton value="graphs">Graphs</ToggleButton>
+            <ToggleButton value="comparison">Station comparison</ToggleButton>
           </ToggleButtonGroup>
         </div>
         {props.children}
