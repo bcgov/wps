@@ -21,8 +21,8 @@ import AccuracyColorLegend from 'features/fireWeather/components/AccuracyColorLe
 import SidePanel from 'features/fireWeather/components/SidePanel'
 import NetworkErrorMessages from 'features/fireWeather/components/NetworkErrorMessages'
 import WeatherMap from 'features/fireWeather/components/maps/WeatherMap'
+import ExpandableContainer from 'features/fireWeather/components/ExpandableContainer'
 import { getStations } from 'api/stationAPI'
-import ExpandableContainer from '../components/ExpandableContainer'
 import { PARTIAL_WIDTH, FULL_WIDTH } from 'utils/constants'
 
 const useStyles = makeStyles(theme => ({
