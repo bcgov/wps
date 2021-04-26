@@ -1,4 +1,4 @@
-import { FIRE_WEATHER_ROUTE, MORECAST_ROUTE, partialWidth } from '../../src/utils/constants'
+import { FIRE_WEATHER_ROUTE, MORECAST_ROUTE, PARTIAL_WIDTH } from '../../src/utils/constants'
 import { stationCodeQueryKey, timeOfInterestQueryKey } from '../../src/utils/url'
 const stationCode = 328
 
@@ -185,7 +185,7 @@ describe('MoreCast Page', () => {
       cy.get(`[value=expand-collapse]`).click()
       cy.getByTestId('expandable-container-content')
         .invoke('width')
-        .should('be.gt', partialWidth)
+        .should('be.gt', PARTIAL_WIDTH)
     })
     it('Should collapse the side panel when it is expanded', () => {
       cy.get(`[value=expand-collapse]`)
@@ -193,7 +193,7 @@ describe('MoreCast Page', () => {
         .click()
       cy.getByTestId('expandable-container-content')
         .invoke('width')
-        .should('be.lte', partialWidth)
+        .should('be.lte', PARTIAL_WIDTH)
     })
 
     describe('When graphs tab is clicked', () => {
