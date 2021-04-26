@@ -12,11 +12,7 @@ import { ObservedValue } from 'api/observationAPI'
 import { NoonForecastValue } from 'api/forecastAPI'
 import { ModelValue } from 'api/modelAPI'
 import { getNoonDate, formatDateInPST, reformatDate } from 'utils/date'
-import {
-  PRECIP_VALUES_DECIMAL,
-  TEMPERATURE_VALUES_DECIMAL,
-  WIND_SPEED_VALUES_DECIMAL
-} from 'utils/constants'
+import { TEMPERATURE_VALUES_DECIMAL } from 'utils/constants'
 
 const useStyles = makeStyles({
   tableContainer: {}

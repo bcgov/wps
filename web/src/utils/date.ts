@@ -1,5 +1,4 @@
-import { noonModelTableColumns } from 'features/fireWeather/components/tables/NoonWxValueTables'
-import { DateTime, FixedOffsetZone } from 'luxon'
+import { DateTime } from 'luxon'
 
 import { PST_UTC_OFFSET } from './constants'
 
