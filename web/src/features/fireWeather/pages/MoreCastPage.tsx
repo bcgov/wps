@@ -77,9 +77,7 @@ const MoreCastPage = () => {
   const [mapCenter, setMapCenter] = useState(CENTER_OF_BC)
   const expandSidePanel = () => setSidePanelWidth(FULL_WIDTH)
   const collapseSidePanel = () => setSidePanelWidth(PARTIAL_WIDTH)
-  const isCollapsed = (): boolean => {
-    return sidePanelWidth === PARTIAL_WIDTH
-  }
+
   const setNewMapCenter = (newMapCenter: number[]) => {
     setMapCenter(newMapCenter)
   }
@@ -125,7 +123,7 @@ const MoreCastPage = () => {
       <div className={classes.content}>
         <div className={classes.map}>
           <WeatherMap
-            redrawFlag={showSidePanel && isCollapsed()}
+            redrawFlag={!showSidePanel || sidePanelWidth === PARTIAL_WIDTH}
             isCollapsed={sidePanelWidth === FULL_WIDTH}
             center={mapCenter}
             setMapCenter={setNewMapCenter}
