@@ -78,6 +78,8 @@ const MoreCastPage = () => {
   const expandSidePanel = () => setSidePanelWidth(FULL_WIDTH)
   const collapseSidePanel = () => setSidePanelWidth(PARTIAL_WIDTH)
 
+  // Callback to set the latest center coordinates when side panel is collapsed
+  // to preserve any panning of the map by the user before panel was expanded.
   const setNewMapCenter = (newMapCenter: number[]) => {
     setMapCenter(newMapCenter)
   }
