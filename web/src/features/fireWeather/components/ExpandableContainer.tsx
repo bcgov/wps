@@ -58,7 +58,10 @@ const ExpandableContainer = (props: Props) => {
         <CloseIcon />
       </IconButton>
       <div className={classes.ordering}>
-        <div className={classes.expandCollapse}>
+        <div
+          className={classes.expandCollapse}
+          onClick={collapsed ? props.expand : props.collapse}
+        >
           <IconButton
             value="expand-collapse"
             color="primary"
