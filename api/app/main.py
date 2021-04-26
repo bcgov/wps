@@ -105,8 +105,8 @@ async def get_health():
     try:
         health_check = health.patroni_cluster_health_check()
 
-        logger.info('/health - healthy: %s. %s',
-                    health_check.get('healthy'), health_check.get('message'))
+        logger.debug('/health - healthy: %s. %s',
+                     health_check.get('healthy'), health_check.get('message'))
 
         return health_check
     except Exception as exception:
