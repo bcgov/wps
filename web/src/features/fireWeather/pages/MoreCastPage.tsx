@@ -137,7 +137,6 @@ const MoreCastPage = () => {
           expand={expandSidePanel}
           collapse={collapseSidePanel}
           currentWidth={sidePanelWidth}
-          fullScreen={true}
         >
           <SidePanel handleToggleView={handleToggleView} showTableView={showTableView}>
             <NetworkErrorMessages />

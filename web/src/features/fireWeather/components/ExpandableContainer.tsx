@@ -5,13 +5,11 @@ import IconButton from '@material-ui/core/IconButton'
 import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos'
 import ArrowForwardIosIcon from '@material-ui/icons/ArrowForwardIos'
 import CloseIcon from '@material-ui/icons/Close'
-import { PARTIAL_WIDTH, FULL_WIDTH } from 'utils/constants'
+import { PARTIAL_WIDTH } from 'utils/constants'
 
 const getRootWidth = (props: Props) => {
   if (props.open) {
-    return props.fullScreen && props.currentWidth === FULL_WIDTH
-      ? '100%'
-      : props.currentWidth
+    return props.currentWidth > PARTIAL_WIDTH ? '100%' : props.currentWidth
   }
   return 0
 }
@@ -45,7 +43,6 @@ interface Props {
   close: () => void
   currentWidth: number
   open: boolean
-  fullScreen: boolean
   children: React.ReactNode
 }
 
