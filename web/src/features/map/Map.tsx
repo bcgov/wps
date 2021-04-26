@@ -3,6 +3,7 @@ import 'ol/ol.css'
 import React, { useRef, useState, useEffect } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import * as ol from 'ol'
+import { toLonLat } from 'ol/proj'
 import { FeatureLike } from 'ol/Feature'
 import OLOverlay from 'ol/Overlay'
 import { MapOptions } from 'ol/PluggableMap'
@@ -46,16 +47,27 @@ interface Props {
   children: React.ReactNode
   zoom: number
   center: number[]
+  isCollapsed: boolean
+  setMapCenter: (newCenter: number[]) => void
   redrawFlag?: boolean
   renderTooltip?: (feature: FeatureLike | null) => React.ReactNode
 }
 
-const Map = ({ children, zoom, center, redrawFlag, renderTooltip }: Props) => {
+const Map = ({
+  children,
+  zoom,
+  center,
+  redrawFlag,
+  isCollapsed,
+  setMapCenter,
+  renderTooltip
+}: Props) => {
   const classes = useStyles()
   const overlayRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
   const [map, setMap] = useState<ol.Map | null>(null)
   const [feature, setFeature] = useState<FeatureLike | null>(null)
+  const [currentCenter, setCurrentCenter] = useState(center)
 
   // on component mount
   useEffect(() => {
@@ -108,6 +120,11 @@ const Map = ({ children, zoom, center, redrawFlag, renderTooltip }: Props) => {
       })
     }
 
+    // Center change listener to update our current center
+    mapObject.getView().on('change:center', blah => {
+      setCurrentCenter(blah.target.values_.center)
+    })
+
     return () => {
       mapObject.setTarget(undefined)
       overlay && mapObject.removeOverlay(overlay)
@@ -127,6 +144,13 @@ const Map = ({ children, zoom, center, redrawFlag, renderTooltip }: Props) => {
 
     map.getView().setCenter(center)
   }, [center]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // center change if side panel collapses
+  useEffect(() => {
+    if (!map) return
+
+    setMapCenter(toLonLat(currentCenter))
+  }, [isCollapsed]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!map) return

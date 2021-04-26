@@ -23,7 +23,7 @@ import NetworkErrorMessages from 'features/fireWeather/components/NetworkErrorMe
 import WeatherMap from 'features/fireWeather/components/maps/WeatherMap'
 import ExpandableContainer from 'features/fireWeather/components/ExpandableContainer'
 import { getStations } from 'api/stationAPI'
-import { PARTIAL_WIDTH, FULL_WIDTH } from 'utils/constants'
+import { PARTIAL_WIDTH, FULL_WIDTH, CENTER_OF_BC } from 'utils/constants'
 
 const useStyles = makeStyles(theme => ({
   main: {
@@ -73,8 +73,16 @@ const MoreCastPage = () => {
   const [sidePanelWidth, setSidePanelWidth] = useState(
     shouldInitiallyShowSidePanel ? PARTIAL_WIDTH : 0
   )
+
+  const [mapCenter, setMapCenter] = useState(CENTER_OF_BC)
   const expandSidePanel = () => setSidePanelWidth(FULL_WIDTH)
   const collapseSidePanel = () => setSidePanelWidth(PARTIAL_WIDTH)
+  const isCollapsed = (): boolean => {
+    return sidePanelWidth === PARTIAL_WIDTH
+  }
+  const setNewMapCenter = (newMapCenter: number[]) => {
+    setMapCenter(newMapCenter)
+  }
   const openSidePanel = () => {
     setShowSidePanel(true)
     setSidePanelWidth(PARTIAL_WIDTH)
@@ -116,7 +124,12 @@ const MoreCastPage = () => {
       </div>
       <div className={classes.content}>
         <div className={classes.map}>
-          <WeatherMap redrawFlag={showSidePanel && sidePanelWidth === PARTIAL_WIDTH} />
+          <WeatherMap
+            redrawFlag={showSidePanel && isCollapsed()}
+            isCollapsed={sidePanelWidth === FULL_WIDTH}
+            center={mapCenter}
+            setMapCenter={setNewMapCenter}
+          />
         </div>
         <ExpandableContainer
           open={showSidePanel}
