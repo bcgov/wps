@@ -20,8 +20,8 @@ const Template: Story<PropTypes> = () => (
         <WeatherMap
           center={CENTER_OF_BC}
           isCollapsed={false}
-          setMapCenter={_ => {
-            /* Do nothing */
+          setMapCenter={function noop() {
+            // No-op
           }}
         />
       }
