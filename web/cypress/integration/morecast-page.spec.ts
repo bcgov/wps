@@ -145,15 +145,15 @@ describe('MoreCast Page', () => {
       const latestDate = `2021-01-${day}`
       cy.getByTestId(`observations-table-${stationCode}`)
         .find('tbody > tr:first > td:first')
-        .should('contain', earliestDate)
-      cy.getByTestId(`observations-table-${stationCode}`).find('.MuiTableSortLabel-icon').click() // prettier-ignore
-      cy.getByTestId(`observations-table-${stationCode}`)
-        .find('tbody > tr:first > td:first')
         .should('contain', latestDate)
       cy.getByTestId(`observations-table-${stationCode}`).find('.MuiTableSortLabel-icon').click() // prettier-ignore
       cy.getByTestId(`observations-table-${stationCode}`)
         .find('tbody > tr:first > td:first')
         .should('contain', earliestDate)
+      cy.getByTestId(`observations-table-${stationCode}`).find('.MuiTableSortLabel-icon').click() // prettier-ignore
+      cy.getByTestId(`observations-table-${stationCode}`)
+        .find('tbody > tr:first > td:first')
+        .should('contain', latestDate)
 
       checkTableCellHighlighting('observations-table')
 
