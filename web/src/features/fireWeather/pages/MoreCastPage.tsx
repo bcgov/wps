@@ -18,7 +18,7 @@ import { fetchRegionalModelSummaries } from 'features/fireWeather/slices/regiona
 import WxDataDisplays from 'features/fireWeather/components/WxDataDisplays'
 import WxDataForm from 'features/fireWeather/components/WxDataForm'
 import AccuracyColorLegend from 'features/fireWeather/components/AccuracyColorLegend'
-import SidePanel from 'features/fireWeather/components/SidePanel'
+import SidePanel, { SidePanelEnum } from 'features/fireWeather/components/SidePanel'
 import NetworkErrorMessages from 'features/fireWeather/components/NetworkErrorMessages'
 import WeatherMap from 'features/fireWeather/components/maps/WeatherMap'
 import { getStations } from 'api/stationAPI'
@@ -71,8 +71,13 @@ const MoreCastPage = () => {
   const openSidePanel = () => setShowSidePanel(true)
   const closeSidePanel = () => setShowSidePanel(false)
 
-  const [showTableView, toggleTableView] = useState('tables')
-  const handleToggleView = (_: React.MouseEvent<HTMLElement>, newTableView: string) => {
+  const [showTableView, toggleTableView] = useState(
+    codesFromQuery.length > 1 ? SidePanelEnum.Comparison : SidePanelEnum.Tables
+  )
+  const handleToggleView = (
+    _: React.MouseEvent<HTMLElement>,
+    newTableView: SidePanelEnum
+  ) => {
     if (newTableView !== null) {
       toggleTableView(newTableView)
     }

@@ -8,6 +8,7 @@ import {
   NoonForecastTable,
   NoonModelTable
 } from 'features/fireWeather/components/tables/NoonWxValueTables'
+import StationComparisonTable from 'features/fireWeather/components/tables/StationComparisonTable'
 import WxDataGraph from 'features/fireWeather/components/graphs/WxDataGraph'
 import { ErrorBoundary } from 'components'
 import {
@@ -27,6 +28,7 @@ import { GeoJsonStation } from 'api/stationAPI'
 import { ObservedValue } from 'api/observationAPI'
 import { ModelSummary, ModelValue } from 'api/modelAPI'
 import { ForecastSummary, NoonForecastValue } from 'api/forecastAPI'
+import { SidePanelEnum } from 'features/fireWeather/components/SidePanel'
 
 const useStyles = makeStyles({
   displays: {
@@ -87,6 +89,7 @@ interface TableFragmentProps {
 }
 
 const TableFragment = (props: TableFragmentProps) => {
+  // Tables for a single station.
   const { code, noonOnlyGdpsModels, observations, noonForecasts } = props
   return (
     <React.Fragment>
@@ -115,7 +118,7 @@ const TableFragment = (props: TableFragmentProps) => {
   )
 }
 
-const Fragment = (props: FragmentProps) => {
+const SingleStationFragment = (props: FragmentProps) => {
   const {
     view,
     code,
@@ -133,7 +136,7 @@ const Fragment = (props: FragmentProps) => {
     gdpsSummaries
   } = props
   switch (view) {
-    case 'tables':
+    case SidePanelEnum.Tables:
       return (
         <TableFragment
           code={code}
@@ -142,7 +145,8 @@ const Fragment = (props: FragmentProps) => {
           noonForecasts={noonForecasts}
         />
       )
-    case 'graphs':
+    default:
+    case SidePanelEnum.Graphs:
       return (
         <ErrorBoundary>
           <WxDataGraph
@@ -160,8 +164,6 @@ const Fragment = (props: FragmentProps) => {
           />
         </ErrorBoundary>
       )
-    case 'comparison':
-      return <div>Comparison</div>
   }
 }
 
@@ -172,7 +174,22 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
     <div className={classes.displays}>
       {props.wxDataLoading && 'Loading...'}
 
+      {!props.wxDataLoading && props.showTableView === SidePanelEnum.Comparison && (
+        <StationComparisonTable
+          timeOfInterest={props.timeOfInterest}
+          stationCodes={props.stationCodes}
+          stationsByCode={props.stationsByCode}
+          allNoonForecastsByStation={props.allNoonForecastsByStation}
+          observationsByStation={props.observationsByStation}
+          allHighResModelsByStation={props.allHighResModelsByStation}
+          allRegionalModelsByStation={props.allRegionalModelsByStation}
+          noonModelsByStation={props.noonModelsByStation}
+        />
+      )}
+
       {!props.wxDataLoading &&
+        (props.showTableView === SidePanelEnum.Tables ||
+          props.showTableView === SidePanelEnum.Graphs) &&
         props.stationCodes.map(code => {
           const station = props.stationsByCode[code]
           if (!station) return null
@@ -200,7 +217,7 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
                   Data is not available.
                 </Typography>
               )}
-              <Fragment
+              <SingleStationFragment
                 view={props.showTableView}
                 code={code}
                 observations={observations}
