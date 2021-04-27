@@ -85,7 +85,7 @@ const MoreCastPage = () => {
     setMapCenter(newMapCenter)
   }
 
-  const getRedrawChange = (): RedrawCommand | undefined => {
+  const getRedrawCommand = (): RedrawCommand | undefined => {
     return !showSidePanel || sidePanelWidth === PARTIAL_WIDTH
       ? { redraw: true }
       : undefined
@@ -132,7 +132,7 @@ const MoreCastPage = () => {
       <div className={classes.content}>
         <div className={classes.map}>
           <WeatherMap
-            redrawFlag={getRedrawChange()}
+            redrawFlag={getRedrawCommand()}
             isCollapsed={sidePanelWidth === FULL_WIDTH}
             center={mapCenter}
             setMapCenter={setNewMapCenter}
@@ -150,6 +150,7 @@ const MoreCastPage = () => {
             <WxDataDisplays
               stationCodes={codesFromQuery}
               timeOfInterest={toiFromQuery}
+              expandedOrCollapsed={getRedrawCommand()}
               showTableView={showTableView}
             />
           </SidePanel>

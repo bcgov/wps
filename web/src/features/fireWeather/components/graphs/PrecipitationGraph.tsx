@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import Plot from 'react-plotly.js'
 
 import { ObservedValue } from 'api/observationAPI'
@@ -14,6 +14,7 @@ import {
   populateTimeOfInterestLineData,
   rangeSliderConfig
 } from 'features/fireWeather/components/graphs/plotlyHelper'
+import { RedrawCommand } from 'features/map/Map'
 
 const observedPrecipColor = '#4291FF'
 const forecastPrecipColor = '#1200DE'
@@ -24,6 +25,7 @@ const gdpsPrecipColor = '#7556CA'
 interface Props {
   station: GeoJsonStation
   timeOfInterest: string
+  expandedOrCollapsed?: RedrawCommand
   sliderRange: [string, string]
   toggleValues: ToggleValues
   observations: ObservedValue[]
@@ -34,9 +36,11 @@ interface Props {
 }
 
 const PrecipitationGraph = (props: Props) => {
+  console.log('New props')
   const {
     station,
     timeOfInterest,
+    expandedOrCollapsed,
     sliderRange,
     toggleValues,
     observations,
@@ -91,6 +95,13 @@ const PrecipitationGraph = (props: Props) => {
     y2Range[1],
     'y2'
   )
+
+  // Update plotly revision to trigger re-drawing of the plot
+  const setRevision = useState(0)[1]
+
+  useEffect(() => {
+    setRevision(revision => revision + 1)
+  }, [expandedOrCollapsed, setRevision])
 
   return (
     <div data-testid="precipitation-graph">

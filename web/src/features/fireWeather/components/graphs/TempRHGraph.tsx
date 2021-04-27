@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import Plot from 'react-plotly.js'
 
 import { ObservedValue } from 'api/observationAPI'
@@ -14,6 +14,7 @@ import {
   populateTimeOfInterestLineData,
   rangeSliderConfig
 } from 'features/fireWeather/components/graphs/plotlyHelper'
+import { RedrawCommand } from 'features/map/Map'
 
 const observedTempColor = '#4291FF'
 const observedRHColor = '#EB5757'
@@ -38,6 +39,7 @@ const biasGdpsRHColor = '#937D65'
 interface Props {
   station: GeoJsonStation
   timeOfInterest: string
+  expandedOrCollapsed?: RedrawCommand
   sliderRange: [string, string]
   toggleValues: ToggleValues
   observations: ObservedValue[]
@@ -55,6 +57,7 @@ const TempRHGraph = (props: Props) => {
   const {
     station,
     timeOfInterest,
+    expandedOrCollapsed,
     sliderRange,
     toggleValues,
     observations,
@@ -156,10 +159,18 @@ const TempRHGraph = (props: Props) => {
     'y2'
   )
 
+  // Update plotly revision to trigger re-drawing of the plot
+  const setRevision = useState(0)[1]
+
+  useEffect(() => {
+    setRevision(revision => revision + 1)
+  }, [expandedOrCollapsed, setRevision])
+
   return (
-    <div data-testid="temp-rh-graph">
+    <div id="temp-rh-graph" data-testid="temp-rh-graph">
       <Plot
         style={{ width: '100%', height: '100%' }}
+        useResizeHandler={true}
         config={{ responsive: true }}
         data={[
           timeOfInterestLine,
