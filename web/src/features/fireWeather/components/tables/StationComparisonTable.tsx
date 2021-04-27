@@ -12,10 +12,26 @@ import { ObservedValue } from 'api/observationAPI'
 import { NoonForecastValue } from 'api/forecastAPI'
 import { ModelValue } from 'api/modelAPI'
 import { getNoonDate, formatDateInPST, reformatDate } from 'utils/date'
-import { TEMPERATURE_VALUES_DECIMAL } from 'utils/constants'
+import {
+  TEMPERATURE_VALUES_DECIMAL,
+  RH_VALUES_DECIMAL,
+  WIND_SPEED_VALUES_DECIMAL
+} from 'utils/constants'
 
 const useStyles = makeStyles({
-  tableContainer: {}
+  tableContainer: {},
+  groupHeader: {
+    textAlign: 'center'
+  },
+  windSpeed: {
+    whiteSpace: 'nowrap'
+  },
+  relativeHumidity: {
+    whiteSpace: 'nowrap'
+  },
+  windDirection: {
+    whiteSpace: 'nowrap'
+  }
 })
 
 interface Props {
@@ -36,6 +52,58 @@ const findNoonMatch = (
   return collection?.find((item: ModelValue) => reformatDate(item.datetime) === noonDate)
 }
 
+const formatTemperature = (
+  source: NoonForecastValue | ObservedValue | ModelValue | undefined
+) => {
+  return (
+    source && (
+      <div>
+        {source?.temperature?.toFixed(TEMPERATURE_VALUES_DECIMAL)}
+        {source?.temperature && `${String.fromCharCode(176)}C`}
+      </div>
+    )
+  )
+}
+
+const formatRelativeHumidity = (
+  source: NoonForecastValue | ObservedValue | ModelValue | undefined,
+  relativeHumidity: any
+) => {
+  return (
+    source && (
+      <div className={relativeHumidity}>
+        {source?.relative_humidity?.toFixed(RH_VALUES_DECIMAL)}
+        {source?.relative_humidity && ' %rh'}
+      </div>
+    )
+  )
+}
+
+const formatWindSpeedDirection = (
+  source: NoonForecastValue | ObservedValue | ModelValue | undefined,
+  windSpeed: any,
+  windDirection: any
+) => {
+  return (
+    source && (
+      <div>
+        {source?.wind_speed && (
+          <div className={windSpeed}>
+            {source?.wind_speed?.toFixed(WIND_SPEED_VALUES_DECIMAL)} km/h
+          </div>
+        )}
+        {source?.wind_speed && source?.wind_direction && ' '}
+        {source?.wind_direction && (
+          <div className={windDirection}>
+            {source?.wind_direction?.toFixed(WIND_SPEED_VALUES_DECIMAL)}
+            {source?.wind_direction && String.fromCharCode(176)}
+          </div>
+        )}
+      </div>
+    )
+  )
+}
+
 const StationComparisonTable = (props: Props) => {
   const classes = useStyles()
   const noonDate = getNoonDate(props.timeOfInterest)
@@ -47,19 +115,32 @@ const StationComparisonTable = (props: Props) => {
           <TableHead>
             <TableRow>
               <TableCell></TableCell>
-              <TableCell colSpan={5}>Temperature</TableCell>
-              <TableCell>Relative Humidity</TableCell>
-              <TableCell>Wind Speed + Direction</TableCell>
+              <TableCell className={classes.groupHeader} colSpan={5}>
+                Temperature
+              </TableCell>
+              <TableCell colSpan={5}>Relative Humidity</TableCell>
+              <TableCell colSpan={5}>Wind Speed + Direction</TableCell>
             </TableRow>
             <TableRow>
               <TableCell>Weather Stations</TableCell>
+              {/* Temperature */}
               <TableCell>Observed</TableCell>
               <TableCell>Forecast</TableCell>
               <TableCell>HRDPS</TableCell>
               <TableCell>RDPS</TableCell>
               <TableCell>GDPS</TableCell>
-              <TableCell></TableCell>
-              <TableCell></TableCell>
+              {/* Relative Humidity */}
+              <TableCell>Observed</TableCell>
+              <TableCell>Forecast</TableCell>
+              <TableCell>HRDPS</TableCell>
+              <TableCell>RDPS</TableCell>
+              <TableCell>GDPS</TableCell>
+              {/* Wind Speed + Direction */}
+              <TableCell>Observed</TableCell>
+              <TableCell>Forecast</TableCell>
+              <TableCell>HRDPS</TableCell>
+              <TableCell>RDPS</TableCell>
+              <TableCell>GDPS</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -71,7 +152,7 @@ const StationComparisonTable = (props: Props) => {
               )
               const observations = props.observationsByStation[stationCode]
               const observation = observations?.find(
-                observation => reformatDate(observation.datetime) == noonDate
+                observation => reformatDate(observation.datetime) === noonDate
               )
               const hrdpsModelPrediction = findNoonMatch(
                 noonDate,
@@ -90,21 +171,71 @@ const StationComparisonTable = (props: Props) => {
                   <TableCell>
                     {station?.properties.name} ({stationCode})
                   </TableCell>
-                  <TableCell>{observation?.temperature}</TableCell>
-                  <TableCell>{noonForecast?.temperature}</TableCell>
+                  {/* Temperature */}
+                  <TableCell>{formatTemperature(observation)}</TableCell>
+                  <TableCell>{formatTemperature(noonForecast)}</TableCell>
+                  <TableCell>{formatTemperature(hrdpsModelPrediction)}</TableCell>
+                  <TableCell>{formatTemperature(rdpsModelPrediction)}</TableCell>
+                  <TableCell>{formatTemperature(gdpsModelPrediction)}</TableCell>
+                  {/* Relative Humidity */}
                   <TableCell>
-                    {hrdpsModelPrediction?.temperature?.toFixed(
-                      TEMPERATURE_VALUES_DECIMAL
+                    {formatRelativeHumidity(observation, classes.relativeHumidity)}
+                  </TableCell>
+                  <TableCell>
+                    {formatRelativeHumidity(noonForecast, classes.relativeHumidity)}
+                  </TableCell>
+                  <TableCell>
+                    {formatRelativeHumidity(
+                      hrdpsModelPrediction,
+                      classes.relativeHumidity
                     )}
                   </TableCell>
                   <TableCell>
-                    {rdpsModelPrediction?.temperature?.toFixed(
-                      TEMPERATURE_VALUES_DECIMAL
+                    {formatRelativeHumidity(
+                      rdpsModelPrediction,
+                      classes.relativeHumidity
                     )}
                   </TableCell>
                   <TableCell>
-                    {gdpsModelPrediction?.temperature?.toFixed(
-                      TEMPERATURE_VALUES_DECIMAL
+                    {formatRelativeHumidity(
+                      gdpsModelPrediction,
+                      classes.relativeHumidity
+                    )}
+                  </TableCell>
+                  {/* Wind Speed + Direction */}
+                  <TableCell>
+                    {formatWindSpeedDirection(
+                      observation,
+                      classes.windSpeed,
+                      classes.windDirection
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {formatWindSpeedDirection(
+                      noonForecast,
+                      classes.windSpeed,
+                      classes.windDirection
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {formatWindSpeedDirection(
+                      hrdpsModelPrediction,
+                      classes.windSpeed,
+                      classes.windDirection
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {formatWindSpeedDirection(
+                      rdpsModelPrediction,
+                      classes.windSpeed,
+                      classes.windDirection
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {formatWindSpeedDirection(
+                      gdpsModelPrediction,
+                      classes.windSpeed,
+                      classes.windDirection
                     )}
                   </TableCell>
                 </TableRow>

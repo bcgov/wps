@@ -42,7 +42,7 @@ describe('Date util functions', () => {
   describe('getNoonDate', () => {
     it('should return the noon date time', () => {
       expect(getNoonDate('2021-04-26T08:37:00-08:00')).toEqual('2021-04-26T20:00:00Z')
-      expect(getNoonDate('2021-04-26T17:37:00-08:00')).toEqual('2021-04-27T20:00:00Z')
+      expect(getNoonDate('2021-04-26T17:37:00-08:00')).toEqual('2021-04-26T20:00:00Z')
     })
   })
 })
