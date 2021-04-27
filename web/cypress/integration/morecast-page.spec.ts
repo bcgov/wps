@@ -1,6 +1,5 @@
-import { FIRE_WEATHER_ROUTE, MORECAST_ROUTE } from '../../src/utils/constants'
+import { FIRE_WEATHER_ROUTE, MORECAST_ROUTE, PARTIAL_WIDTH } from '../../src/utils/constants'
 import { stationCodeQueryKey, timeOfInterestQueryKey } from '../../src/utils/url'
-
 const stationCode = 328
 
 describe('MoreCast Page', () => {
@@ -145,15 +144,15 @@ describe('MoreCast Page', () => {
       const latestDate = `2021-01-${day}`
       cy.getByTestId(`observations-table-${stationCode}`)
         .find('tbody > tr:first > td:first')
-        .should('contain', earliestDate)
-      cy.getByTestId(`observations-table-${stationCode}`).find('.MuiTableSortLabel-icon').click() // prettier-ignore
-      cy.getByTestId(`observations-table-${stationCode}`)
-        .find('tbody > tr:first > td:first')
         .should('contain', latestDate)
       cy.getByTestId(`observations-table-${stationCode}`).find('.MuiTableSortLabel-icon').click() // prettier-ignore
       cy.getByTestId(`observations-table-${stationCode}`)
         .find('tbody > tr:first > td:first')
         .should('contain', earliestDate)
+      cy.getByTestId(`observations-table-${stationCode}`).find('.MuiTableSortLabel-icon').click() // prettier-ignore
+      cy.getByTestId(`observations-table-${stationCode}`)
+        .find('tbody > tr:first > td:first')
+        .should('contain', latestDate)
 
       checkTableCellHighlighting('observations-table')
 
@@ -181,6 +180,20 @@ describe('MoreCast Page', () => {
       cy.getByTestId(`noon-gdps-table-${stationCode}`)
         .find('.MuiTableContainer-root')
         .should('not.be.visible')
+    })
+    it('Should expand the side panel when it is collapsed', () => {
+      cy.get(`[value=expand-collapse]`).click()
+      cy.getByTestId('expandable-container-content')
+        .invoke('width')
+        .should('be.gt', PARTIAL_WIDTH)
+    })
+    it('Should collapse the side panel when it is expanded', () => {
+      cy.get(`[value=expand-collapse]`)
+        .click()
+        .click()
+      cy.getByTestId('expandable-container-content')
+        .invoke('width')
+        .should('be.lte', PARTIAL_WIDTH)
     })
 
     describe('When graphs tab is clicked', () => {

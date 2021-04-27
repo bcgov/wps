@@ -27,6 +27,7 @@ import { GeoJsonStation } from 'api/stationAPI'
 import { ObservedValue } from 'api/observationAPI'
 import { ModelSummary, ModelValue } from 'api/modelAPI'
 import { ForecastSummary, NoonForecastValue } from 'api/forecastAPI'
+import { RedrawCommand } from 'features/map/Map'
 
 const useStyles = makeStyles({
   displays: {
@@ -47,6 +48,7 @@ const useStyles = makeStyles({
 interface WxDataDisplaysProps {
   showTableView: string
   timeOfInterest: string
+  expandedOrCollapsed?: RedrawCommand
   stationCodes: number[]
   wxDataLoading: boolean
   stationsByCode: Record<number, GeoJsonStation | undefined>
@@ -126,6 +128,7 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
                   <WxDataGraph
                     station={station}
                     timeOfInterest={props.timeOfInterest}
+                    expandedOrCollapsed={props.expandedOrCollapsed}
                     observations={observations}
                     noonForecasts={noonForecasts}
                     noonForecastSummaries={noonForecastSummaries}
@@ -148,6 +151,7 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
 interface WxDataDisplaysWrapperProps {
   showTableView: string
   timeOfInterest: string
+  expandedOrCollapsed?: { redraw: boolean }
   stationCodes: number[]
 }
 
