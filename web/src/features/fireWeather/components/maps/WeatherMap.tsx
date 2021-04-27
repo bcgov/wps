@@ -6,7 +6,7 @@ import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style'
 import { FeatureLike } from 'ol/Feature'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 
-import Map from 'features/map/Map'
+import Map, { RedrawCommand } from 'features/map/Map'
 import TileLayer from 'features/map/TileLayer'
 import VectorLayer from 'features/map/VectorLayer'
 import { useDispatch, useSelector } from 'react-redux'
@@ -32,7 +32,7 @@ const BC_ROAD_BASE_MAP_SERVER_URL =
 const zoom = 6
 
 interface Props {
-  redrawFlag?: boolean
+  redrawFlag?: RedrawCommand
   center: number[]
   isCollapsed: boolean
   setMapCenter: (newCenter: number[]) => void

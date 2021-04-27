@@ -24,6 +24,7 @@ import WeatherMap from 'features/fireWeather/components/maps/WeatherMap'
 import ExpandableContainer from 'features/fireWeather/components/ExpandableContainer'
 import { getStations } from 'api/stationAPI'
 import { PARTIAL_WIDTH, FULL_WIDTH, CENTER_OF_BC } from 'utils/constants'
+import { RedrawCommand } from 'features/map/Map'
 
 const useStyles = makeStyles(theme => ({
   main: {
@@ -83,6 +84,12 @@ const MoreCastPage = () => {
   const setNewMapCenter = (newMapCenter: number[]) => {
     setMapCenter(newMapCenter)
   }
+
+  const getRedrawChange = (): RedrawCommand | undefined => {
+    return !showSidePanel || sidePanelWidth === PARTIAL_WIDTH
+      ? { redraw: true }
+      : undefined
+  }
   const openSidePanel = () => {
     setShowSidePanel(true)
     setSidePanelWidth(PARTIAL_WIDTH)
@@ -125,7 +132,7 @@ const MoreCastPage = () => {
       <div className={classes.content}>
         <div className={classes.map}>
           <WeatherMap
-            redrawFlag={!showSidePanel || sidePanelWidth === PARTIAL_WIDTH}
+            redrawFlag={getRedrawChange()}
             isCollapsed={sidePanelWidth === FULL_WIDTH}
             center={mapCenter}
             setMapCenter={setNewMapCenter}

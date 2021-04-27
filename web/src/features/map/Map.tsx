@@ -13,6 +13,10 @@ import { ErrorBoundary } from 'components'
 
 export const MapContext = React.createContext<ol.Map | null>(null)
 
+export interface RedrawCommand {
+  redraw: boolean
+}
+
 const useStyles = makeStyles({
   map: {
     position: 'relative',
@@ -49,7 +53,7 @@ interface Props {
   center: number[]
   isCollapsed: boolean
   setMapCenter: (newCenter: number[]) => void
-  redrawFlag?: boolean
+  redrawFlag?: RedrawCommand
   renderTooltip?: (feature: FeatureLike | null) => React.ReactNode
 }
 
