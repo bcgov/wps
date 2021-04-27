@@ -27,9 +27,20 @@ const useStyles = makeStyles({
     padding: '5px'
   },
   typography: {},
-  tableContainer: {},
-  groupHeader: {
-    textAlign: 'center'
+  tableContainer: {
+    // '& .MuiTableCell-sizeSmall': {
+    //   padding: '1px',
+    //   textAlign: 'right'
+    // }
+  },
+  lightColumnHeader: {
+    textAlign: 'center',
+    padding: '2px',
+    minWidth: '60px'
+  },
+  lightColumn: {
+    textAlign: 'right',
+    padding: '2px'
   },
   windSpeedValue: {
     whiteSpace: 'nowrap'
@@ -42,6 +53,17 @@ const useStyles = makeStyles({
   },
   precipitationValue: {
     whiteSpace: 'nowrap'
+  },
+  darkColumn: {
+    backgroundColor: '#fafafa',
+    padding: '1px',
+    textAlign: 'right'
+  },
+  darkColumnHeader: {
+    backgroundColor: 'rgb(240, 240, 240)',
+    textAlign: 'center',
+    padding: '2px',
+    minWidth: '60px'
   }
 })
 
@@ -154,48 +176,48 @@ const StationComparisonTable = (props: Props) => {
             <TableHead>
               <TableRow>
                 <TableCell></TableCell>
-                <TableCell className={classes.groupHeader} colSpan={5}>
+                <TableCell className={classes.darkColumnHeader} colSpan={5}>
                   Temperature
                 </TableCell>
-                <TableCell className={classes.groupHeader} colSpan={5}>
+                <TableCell className={classes.lightColumnHeader} colSpan={5}>
                   Relative Humidity
                 </TableCell>
-                <TableCell className={classes.groupHeader} colSpan={5}>
+                <TableCell className={classes.darkColumnHeader} colSpan={5}>
                   Wind Speed + Direction
                 </TableCell>
-                <TableCell className={classes.groupHeader} colSpan={5}>
+                <TableCell className={classes.lightColumnHeader} colSpan={5}>
                   Precipitation
                 </TableCell>
-                <TableCell className={classes.groupHeader}>Dew point</TableCell>
+                <TableCell className={classes.darkColumnHeader}>Dew point</TableCell>
               </TableRow>
               <TableRow>
                 <TableCell>Weather Stations</TableCell>
                 {/* Temperature */}
-                <TableCell>Observed</TableCell>
-                <TableCell>Forecast</TableCell>
-                <TableCell>HRDPS</TableCell>
-                <TableCell>RDPS</TableCell>
-                <TableCell>GDPS</TableCell>
+                <TableCell className={classes.darkColumnHeader}>Observed</TableCell>
+                <TableCell className={classes.darkColumnHeader}>Forecast</TableCell>
+                <TableCell className={classes.darkColumnHeader}>HRDPS</TableCell>
+                <TableCell className={classes.darkColumnHeader}>RDPS</TableCell>
+                <TableCell className={classes.darkColumnHeader}>GDPS</TableCell>
                 {/* Relative Humidity */}
-                <TableCell>Observed</TableCell>
-                <TableCell>Forecast</TableCell>
-                <TableCell>HRDPS</TableCell>
-                <TableCell>RDPS</TableCell>
-                <TableCell>GDPS</TableCell>
+                <TableCell className={classes.lightColumnHeader}>Observed</TableCell>
+                <TableCell className={classes.lightColumnHeader}>Forecast</TableCell>
+                <TableCell className={classes.lightColumnHeader}>HRDPS</TableCell>
+                <TableCell className={classes.lightColumnHeader}>RDPS</TableCell>
+                <TableCell className={classes.lightColumnHeader}>GDPS</TableCell>
                 {/* Wind Speed + Direction */}
-                <TableCell>Observed</TableCell>
-                <TableCell>Forecast</TableCell>
-                <TableCell>HRDPS</TableCell>
-                <TableCell>RDPS</TableCell>
-                <TableCell>GDPS</TableCell>
+                <TableCell className={classes.darkColumnHeader}>Observed</TableCell>
+                <TableCell className={classes.darkColumnHeader}>Forecast</TableCell>
+                <TableCell className={classes.darkColumnHeader}>HRDPS</TableCell>
+                <TableCell className={classes.darkColumnHeader}>RDPS</TableCell>
+                <TableCell className={classes.darkColumnHeader}>GDPS</TableCell>
                 {/* Precip */}
-                <TableCell>Observed</TableCell>
-                <TableCell>Forecast</TableCell>
-                <TableCell>HRDPS</TableCell>
-                <TableCell>RDPS</TableCell>
-                <TableCell>GDPS</TableCell>
+                <TableCell className={classes.lightColumnHeader}>Observed</TableCell>
+                <TableCell className={classes.lightColumnHeader}>Forecast</TableCell>
+                <TableCell className={classes.lightColumnHeader}>HRDPS</TableCell>
+                <TableCell className={classes.lightColumnHeader}>RDPS</TableCell>
+                <TableCell className={classes.lightColumnHeader}>GDPS</TableCell>
                 {/* Dew Point */}
-                <TableCell>Observed</TableCell>
+                <TableCell className={classes.darkColumnHeader}>Observed</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -227,69 +249,79 @@ const StationComparisonTable = (props: Props) => {
                       {station?.properties.name} ({stationCode})
                     </TableCell>
                     {/* Temperature */}
-                    <TableCell>{formatTemperature(observation)}</TableCell>
-                    <TableCell>{formatTemperature(noonForecast)}</TableCell>
-                    <TableCell>{formatTemperature(hrdpsModelPrediction)}</TableCell>
-                    <TableCell>{formatTemperature(rdpsModelPrediction)}</TableCell>
-                    <TableCell>{formatTemperature(gdpsModelPrediction)}</TableCell>
+                    <TableCell className={classes.darkColumn}>
+                      {formatTemperature(observation)}
+                    </TableCell>
+                    <TableCell className={classes.darkColumn}>
+                      {formatTemperature(noonForecast)}
+                    </TableCell>
+                    <TableCell className={classes.darkColumn}>
+                      {formatTemperature(hrdpsModelPrediction)}
+                    </TableCell>
+                    <TableCell className={classes.darkColumn}>
+                      {formatTemperature(rdpsModelPrediction)}
+                    </TableCell>
+                    <TableCell className={classes.darkColumn}>
+                      {formatTemperature(gdpsModelPrediction)}
+                    </TableCell>
                     {/* Relative Humidity */}
-                    <TableCell>
+                    <TableCell className={classes.lightColumn}>
                       {formatRelativeHumidity(observation, classes.relativeHumidityValue)}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className={classes.lightColumn}>
                       {formatRelativeHumidity(
                         noonForecast,
                         classes.relativeHumidityValue
                       )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className={classes.lightColumn}>
                       {formatRelativeHumidity(
                         hrdpsModelPrediction,
                         classes.relativeHumidityValue
                       )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className={classes.lightColumn}>
                       {formatRelativeHumidity(
                         rdpsModelPrediction,
                         classes.relativeHumidityValue
                       )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className={classes.lightColumn}>
                       {formatRelativeHumidity(
                         gdpsModelPrediction,
                         classes.relativeHumidityValue
                       )}
                     </TableCell>
                     {/* Wind Speed + Direction */}
-                    <TableCell>
+                    <TableCell className={classes.darkColumn}>
                       {formatWindSpeedDirection(
                         observation,
                         classes.windSpeedValue,
                         classes.windDirectionValue
                       )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className={classes.darkColumn}>
                       {formatWindSpeedDirection(
                         noonForecast,
                         classes.windSpeedValue,
                         classes.windDirectionValue
                       )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className={classes.darkColumn}>
                       {formatWindSpeedDirection(
                         hrdpsModelPrediction,
                         classes.windSpeedValue,
                         classes.windDirectionValue
                       )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className={classes.darkColumn}>
                       {formatWindSpeedDirection(
                         rdpsModelPrediction,
                         classes.windSpeedValue,
                         classes.windDirectionValue
                       )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className={classes.darkColumn}>
                       {formatWindSpeedDirection(
                         gdpsModelPrediction,
                         classes.windSpeedValue,
@@ -297,38 +329,40 @@ const StationComparisonTable = (props: Props) => {
                       )}
                     </TableCell>
                     {/* Precip */}
-                    <TableCell>
+                    <TableCell className={classes.lightColumn}>
                       {formatPrecipitation(
                         observation?.precipitation,
                         classes.precipitationValue
                       )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className={classes.lightColumn}>
                       {formatPrecipitation(
                         noonForecast?.total_precipitation,
                         classes.precipitationValue
                       )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className={classes.lightColumn}>
                       {formatPrecipitation(
                         hrdpsModelPrediction?.delta_precipitation,
                         classes.precipitationValue
                       )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className={classes.lightColumn}>
                       {formatPrecipitation(
                         rdpsModelPrediction?.delta_precipitation,
                         classes.precipitationValue
                       )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className={classes.lightColumn}>
                       {formatPrecipitation(
                         gdpsModelPrediction?.delta_precipitation,
                         classes.precipitationValue
                       )}
                     </TableCell>
                     {/* Dew Point */}
-                    <TableCell>{formatDewPoint(observation?.dewpoint)}</TableCell>
+                    <TableCell className={classes.darkColumn}>
+                      {formatDewPoint(observation?.dewpoint)}
+                    </TableCell>
                   </TableRow>
                 )
               })}
