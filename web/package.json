@@ -34,7 +34,7 @@
     "@typescript-eslint/parser": "^3.10.1",
     "axios": "^0.21.1",
     "clsx": "^1.1.0",
-    "esri-leaflet": "2.5.3",
+    "esri-leaflet": "3.0.1",
     "leaflet": "^1.7.1",
     "lodash": "^4.17.21",
     "luxon": "^1.26.0",
