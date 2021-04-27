@@ -12,6 +12,7 @@ import PrecipitationGraph from 'features/fireWeather/components/graphs/Precipita
 import WindGraph from 'features/fireWeather/components/graphs/WindGraph'
 import TempRHGraph from 'features/fireWeather/components/graphs/TempRHGraph'
 import { formatDateInPST } from 'utils/date'
+import { RedrawCommand } from 'features/map/Map'
 
 const useStyles = makeStyles({
   display: {
@@ -22,6 +23,7 @@ const useStyles = makeStyles({
 interface Props {
   station: GeoJsonStation
   timeOfInterest: string
+  expandedOrCollapsed?: RedrawCommand
   observations: ObservedValue[] | undefined
   noonForecasts: NoonForecastValue[] | undefined
   noonForecastSummaries: ForecastSummary[] | undefined
@@ -36,6 +38,7 @@ interface Props {
 const WxDataGraph = ({
   station,
   timeOfInterest,
+  expandedOrCollapsed,
   observations = [],
   noonForecasts = [],
   noonForecastSummaries = [],
@@ -106,6 +109,7 @@ const WxDataGraph = ({
       <TempRHGraph
         station={station}
         timeOfInterest={timeOfInterest}
+        expandedOrCollapsed={expandedOrCollapsed}
         sliderRange={sliderRange}
         toggleValues={toggleValues}
         observations={observations}
@@ -122,6 +126,7 @@ const WxDataGraph = ({
       <PrecipitationGraph
         station={station}
         timeOfInterest={timeOfInterest}
+        expandedOrCollapsed={expandedOrCollapsed}
         sliderRange={sliderRange}
         toggleValues={toggleValues}
         observations={observations}
@@ -134,6 +139,7 @@ const WxDataGraph = ({
       <WindGraph
         station={station}
         timeOfInterest={timeOfInterest}
+        expandedOrCollapsed={expandedOrCollapsed}
         sliderRange={sliderRange}
         toggleValues={toggleValues}
         observations={observations}
