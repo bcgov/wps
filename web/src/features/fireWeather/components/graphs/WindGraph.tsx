@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import Plot from 'react-plotly.js'
 
 import { ObservedValue } from 'api/observationAPI'
@@ -15,10 +15,12 @@ import {
   populateTimeOfInterestLineData,
   rangeSliderConfig
 } from 'features/fireWeather/components/graphs/plotlyHelper'
+import { RedrawCommand } from 'features/map/Map'
 
 export interface Props {
   station: GeoJsonStation
   timeOfInterest: string
+  expandedOrCollapsed?: RedrawCommand
   sliderRange: [string, string]
   toggleValues: ToggleValues
   observations: ObservedValue[]
@@ -43,6 +45,7 @@ const WindGraph = (props: Props) => {
   const {
     station,
     timeOfInterest,
+    expandedOrCollapsed,
     sliderRange,
     toggleValues,
     observations,
@@ -108,6 +111,13 @@ const WindGraph = (props: Props) => {
     minWindSpd,
     maxWindSpd
   )
+
+  // Update plotly revision to trigger re-drawing of the plot
+  const setRevision = useState(0)[1]
+
+  useEffect(() => {
+    setRevision(revision => revision + 1)
+  }, [expandedOrCollapsed, setRevision])
 
   return (
     <div data-testid="wind-spd-dir-graph">
