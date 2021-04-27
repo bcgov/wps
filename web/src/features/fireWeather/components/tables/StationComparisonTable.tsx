@@ -1,5 +1,6 @@
 import React from 'react'
 import { makeStyles } from '@material-ui/core/styles'
+import Paper from '@material-ui/core/Paper'
 import Typography from '@material-ui/core/Typography'
 import Table from '@material-ui/core/Table'
 import TableBody from '@material-ui/core/TableBody'
@@ -22,10 +23,10 @@ import {
 } from 'utils/constants'
 
 const useStyles = makeStyles({
-  container: {
-    borderRadius: '4px',
-    backgroundColor: 'white'
+  paper: {
+    padding: '5px'
   },
+  typography: {},
   tableContainer: {},
   groupHeader: {
     textAlign: 'center'
@@ -143,194 +144,199 @@ const StationComparisonTable = (props: Props) => {
   const classes = useStyles()
   const noonDate = getNoonDate(props.timeOfInterest)
   return (
-    <div className={classes.container}>
-      <Typography component="div" variant="subtitle2">
+    <Paper className={classes.paper}>
+      <Typography className={classes.typography} component="div" variant="subtitle2">
         Station comparison for {formatDateInPST(noonDate)} PDT
       </Typography>
-      <TableContainer className={classes.tableContainer}>
-        <Table stickyHeader size="small" aria-label="sortable wx table">
-          <TableHead>
-            <TableRow>
-              <TableCell></TableCell>
-              <TableCell className={classes.groupHeader} colSpan={5}>
-                Temperature
-              </TableCell>
-              <TableCell className={classes.groupHeader} colSpan={5}>
-                Relative Humidity
-              </TableCell>
-              <TableCell className={classes.groupHeader} colSpan={5}>
-                Wind Speed + Direction
-              </TableCell>
-              <TableCell className={classes.groupHeader} colSpan={5}>
-                Precipitation
-              </TableCell>
-              <TableCell className={classes.groupHeader}>Dew point</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>Weather Stations</TableCell>
-              {/* Temperature */}
-              <TableCell>Observed</TableCell>
-              <TableCell>Forecast</TableCell>
-              <TableCell>HRDPS</TableCell>
-              <TableCell>RDPS</TableCell>
-              <TableCell>GDPS</TableCell>
-              {/* Relative Humidity */}
-              <TableCell>Observed</TableCell>
-              <TableCell>Forecast</TableCell>
-              <TableCell>HRDPS</TableCell>
-              <TableCell>RDPS</TableCell>
-              <TableCell>GDPS</TableCell>
-              {/* Wind Speed + Direction */}
-              <TableCell>Observed</TableCell>
-              <TableCell>Forecast</TableCell>
-              <TableCell>HRDPS</TableCell>
-              <TableCell>RDPS</TableCell>
-              <TableCell>GDPS</TableCell>
-              {/* Precip */}
-              <TableCell>Observed</TableCell>
-              <TableCell>Forecast</TableCell>
-              <TableCell>HRDPS</TableCell>
-              <TableCell>RDPS</TableCell>
-              <TableCell>GDPS</TableCell>
-              {/* Dew Point */}
-              <TableCell>Observed</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {props.stationCodes.map((stationCode: number, idx: number) => {
-              const station = props.stationsByCode[stationCode]
-              const noonForecasts = props.allNoonForecastsByStation[stationCode]
-              const noonForecast = noonForecasts?.find(
-                forecast => reformatDate(forecast.datetime) === noonDate
-              )
-              const observations = props.observationsByStation[stationCode]
-              const observation = observations?.find(
-                observation => reformatDate(observation.datetime) === noonDate
-              )
-              const hrdpsModelPrediction = findNoonMatch(
-                noonDate,
-                props.allHighResModelsByStation[stationCode]
-              )
-              const rdpsModelPrediction = findNoonMatch(
-                noonDate,
-                props.allRegionalModelsByStation[stationCode]
-              )
-              const gdpsModelPrediction = findNoonMatch(
-                noonDate,
-                props.noonModelsByStation[stationCode]
-              )
-              return (
-                <TableRow key={idx}>
-                  <TableCell>
-                    {station?.properties.name} ({stationCode})
-                  </TableCell>
-                  {/* Temperature */}
-                  <TableCell>{formatTemperature(observation)}</TableCell>
-                  <TableCell>{formatTemperature(noonForecast)}</TableCell>
-                  <TableCell>{formatTemperature(hrdpsModelPrediction)}</TableCell>
-                  <TableCell>{formatTemperature(rdpsModelPrediction)}</TableCell>
-                  <TableCell>{formatTemperature(gdpsModelPrediction)}</TableCell>
-                  {/* Relative Humidity */}
-                  <TableCell>
-                    {formatRelativeHumidity(observation, classes.relativeHumidityValue)}
-                  </TableCell>
-                  <TableCell>
-                    {formatRelativeHumidity(noonForecast, classes.relativeHumidityValue)}
-                  </TableCell>
-                  <TableCell>
-                    {formatRelativeHumidity(
-                      hrdpsModelPrediction,
-                      classes.relativeHumidityValue
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {formatRelativeHumidity(
-                      rdpsModelPrediction,
-                      classes.relativeHumidityValue
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {formatRelativeHumidity(
-                      gdpsModelPrediction,
-                      classes.relativeHumidityValue
-                    )}
-                  </TableCell>
-                  {/* Wind Speed + Direction */}
-                  <TableCell>
-                    {formatWindSpeedDirection(
-                      observation,
-                      classes.windSpeedValue,
-                      classes.windDirectionValue
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {formatWindSpeedDirection(
-                      noonForecast,
-                      classes.windSpeedValue,
-                      classes.windDirectionValue
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {formatWindSpeedDirection(
-                      hrdpsModelPrediction,
-                      classes.windSpeedValue,
-                      classes.windDirectionValue
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {formatWindSpeedDirection(
-                      rdpsModelPrediction,
-                      classes.windSpeedValue,
-                      classes.windDirectionValue
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {formatWindSpeedDirection(
-                      gdpsModelPrediction,
-                      classes.windSpeedValue,
-                      classes.windDirectionValue
-                    )}
-                  </TableCell>
-                  {/* Precip */}
-                  <TableCell>
-                    {formatPrecipitation(
-                      observation?.precipitation,
-                      classes.precipitationValue
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {formatPrecipitation(
-                      noonForecast?.total_precipitation,
-                      classes.precipitationValue
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {formatPrecipitation(
-                      hrdpsModelPrediction?.delta_precipitation,
-                      classes.precipitationValue
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {formatPrecipitation(
-                      rdpsModelPrediction?.delta_precipitation,
-                      classes.precipitationValue
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {formatPrecipitation(
-                      gdpsModelPrediction?.delta_precipitation,
-                      classes.precipitationValue
-                    )}
-                  </TableCell>
-                  {/* Dew Point */}
-                  <TableCell>{formatDewPoint(observation?.dewpoint)}</TableCell>
-                </TableRow>
-              )
-            })}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </div>
+      <Paper>
+        <TableContainer className={classes.tableContainer}>
+          <Table stickyHeader size="small" aria-label="sortable wx table">
+            <TableHead>
+              <TableRow>
+                <TableCell></TableCell>
+                <TableCell className={classes.groupHeader} colSpan={5}>
+                  Temperature
+                </TableCell>
+                <TableCell className={classes.groupHeader} colSpan={5}>
+                  Relative Humidity
+                </TableCell>
+                <TableCell className={classes.groupHeader} colSpan={5}>
+                  Wind Speed + Direction
+                </TableCell>
+                <TableCell className={classes.groupHeader} colSpan={5}>
+                  Precipitation
+                </TableCell>
+                <TableCell className={classes.groupHeader}>Dew point</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Weather Stations</TableCell>
+                {/* Temperature */}
+                <TableCell>Observed</TableCell>
+                <TableCell>Forecast</TableCell>
+                <TableCell>HRDPS</TableCell>
+                <TableCell>RDPS</TableCell>
+                <TableCell>GDPS</TableCell>
+                {/* Relative Humidity */}
+                <TableCell>Observed</TableCell>
+                <TableCell>Forecast</TableCell>
+                <TableCell>HRDPS</TableCell>
+                <TableCell>RDPS</TableCell>
+                <TableCell>GDPS</TableCell>
+                {/* Wind Speed + Direction */}
+                <TableCell>Observed</TableCell>
+                <TableCell>Forecast</TableCell>
+                <TableCell>HRDPS</TableCell>
+                <TableCell>RDPS</TableCell>
+                <TableCell>GDPS</TableCell>
+                {/* Precip */}
+                <TableCell>Observed</TableCell>
+                <TableCell>Forecast</TableCell>
+                <TableCell>HRDPS</TableCell>
+                <TableCell>RDPS</TableCell>
+                <TableCell>GDPS</TableCell>
+                {/* Dew Point */}
+                <TableCell>Observed</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {props.stationCodes.map((stationCode: number, idx: number) => {
+                const station = props.stationsByCode[stationCode]
+                const noonForecasts = props.allNoonForecastsByStation[stationCode]
+                const noonForecast = noonForecasts?.find(
+                  forecast => reformatDate(forecast.datetime) === noonDate
+                )
+                const observations = props.observationsByStation[stationCode]
+                const observation = observations?.find(
+                  observation => reformatDate(observation.datetime) === noonDate
+                )
+                const hrdpsModelPrediction = findNoonMatch(
+                  noonDate,
+                  props.allHighResModelsByStation[stationCode]
+                )
+                const rdpsModelPrediction = findNoonMatch(
+                  noonDate,
+                  props.allRegionalModelsByStation[stationCode]
+                )
+                const gdpsModelPrediction = findNoonMatch(
+                  noonDate,
+                  props.noonModelsByStation[stationCode]
+                )
+                return (
+                  <TableRow key={idx}>
+                    <TableCell>
+                      {station?.properties.name} ({stationCode})
+                    </TableCell>
+                    {/* Temperature */}
+                    <TableCell>{formatTemperature(observation)}</TableCell>
+                    <TableCell>{formatTemperature(noonForecast)}</TableCell>
+                    <TableCell>{formatTemperature(hrdpsModelPrediction)}</TableCell>
+                    <TableCell>{formatTemperature(rdpsModelPrediction)}</TableCell>
+                    <TableCell>{formatTemperature(gdpsModelPrediction)}</TableCell>
+                    {/* Relative Humidity */}
+                    <TableCell>
+                      {formatRelativeHumidity(observation, classes.relativeHumidityValue)}
+                    </TableCell>
+                    <TableCell>
+                      {formatRelativeHumidity(
+                        noonForecast,
+                        classes.relativeHumidityValue
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {formatRelativeHumidity(
+                        hrdpsModelPrediction,
+                        classes.relativeHumidityValue
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {formatRelativeHumidity(
+                        rdpsModelPrediction,
+                        classes.relativeHumidityValue
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {formatRelativeHumidity(
+                        gdpsModelPrediction,
+                        classes.relativeHumidityValue
+                      )}
+                    </TableCell>
+                    {/* Wind Speed + Direction */}
+                    <TableCell>
+                      {formatWindSpeedDirection(
+                        observation,
+                        classes.windSpeedValue,
+                        classes.windDirectionValue
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {formatWindSpeedDirection(
+                        noonForecast,
+                        classes.windSpeedValue,
+                        classes.windDirectionValue
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {formatWindSpeedDirection(
+                        hrdpsModelPrediction,
+                        classes.windSpeedValue,
+                        classes.windDirectionValue
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {formatWindSpeedDirection(
+                        rdpsModelPrediction,
+                        classes.windSpeedValue,
+                        classes.windDirectionValue
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {formatWindSpeedDirection(
+                        gdpsModelPrediction,
+                        classes.windSpeedValue,
+                        classes.windDirectionValue
+                      )}
+                    </TableCell>
+                    {/* Precip */}
+                    <TableCell>
+                      {formatPrecipitation(
+                        observation?.precipitation,
+                        classes.precipitationValue
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {formatPrecipitation(
+                        noonForecast?.total_precipitation,
+                        classes.precipitationValue
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {formatPrecipitation(
+                        hrdpsModelPrediction?.delta_precipitation,
+                        classes.precipitationValue
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {formatPrecipitation(
+                        rdpsModelPrediction?.delta_precipitation,
+                        classes.precipitationValue
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {formatPrecipitation(
+                        gdpsModelPrediction?.delta_precipitation,
+                        classes.precipitationValue
+                      )}
+                    </TableCell>
+                    {/* Dew Point */}
+                    <TableCell>{formatDewPoint(observation?.dewpoint)}</TableCell>
+                  </TableRow>
+                )
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
+    </Paper>
   )
 }
 
