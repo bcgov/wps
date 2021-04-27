@@ -67,14 +67,14 @@ lint:
 	# Run lint.
 	$(POETRY_RUN) pylint --rcfile=.pylintrc app/*.py app/**/*.py;
 
-run:
+run-with-tests:
 	# Run the application in the virtual environment (after linting and testing).
 	# Not failing on lint or test - just output so developer knows.
 	-poetry run pylint --rcfile=.pylintrc app/*.py app/**/*.py;
 	-poetry run python -m pytest -n 3 app;
 	${call run-api,$(POETRY_RUN)}
 
-run-fast:
+run:
 	${call run-api,$(POETRY_RUN)}
 
 run-env-canada:

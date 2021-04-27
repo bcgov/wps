@@ -50,5 +50,5 @@ def patroni_cluster_health_check():
     if ready_count < replica_count:
         logger.error(message)
     else:
-        logger.info(message)
+        logger.debug(message)
     return {"message": message, "healthy": healthy}
