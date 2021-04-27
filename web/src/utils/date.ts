@@ -46,7 +46,7 @@ export const getNoonDate = (dtISO: string): string => {
   const dtDateTime = DateTime.fromISO(dtISO).setZone(`UTC${PST_UTC_OFFSET}`)
   const dtJS = dtDateTime.toJSDate()
   // We want today to stay today (e.g., if it's 11pm in PST, we know it's already tomorrow in UTC, but
-  // we want the noon time for today in PST, not today in UTC, which is tomorrow.
+  // we want the noon time for today in PST, not today in UTC, which is tomorrow. (today!)
   dtJS.setUTCDate(dtDateTime.day)
   dtJS.setUTCHours(UTC_NOON_HOUR)
   dtJS.setMinutes(0)

@@ -1,6 +1,25 @@
 import { DateTime } from 'luxon'
-
+import { GeoJsonStation } from 'api/stationAPI'
 import { isNoonInPST } from 'utils/date'
+
+export const station322: GeoJsonStation = {
+  type: 'Feature',
+  properties: {
+    code: 322,
+    name: 'AFTON',
+    ecodivision_name: 'SEMI-ARID STEPPE HIGHLANDS',
+    core_season: {
+      start_month: 5,
+      start_day: 1,
+      end_month: 9,
+      end_day: 15
+    }
+  },
+  geometry: {
+    type: 'Point',
+    coordinates: [-120.4816667, 50.6733333]
+  }
+}
 
 const getPastValues = () => {
   const _observedValues = []

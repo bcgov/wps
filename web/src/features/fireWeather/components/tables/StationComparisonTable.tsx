@@ -1,5 +1,6 @@
 import React from 'react'
 import { makeStyles } from '@material-ui/core/styles'
+import Typography from '@material-ui/core/Typography'
 import Table from '@material-ui/core/Table'
 import TableBody from '@material-ui/core/TableBody'
 import TableCell from '@material-ui/core/TableCell'
@@ -15,21 +16,30 @@ import { getNoonDate, formatDateInPST, reformatDate } from 'utils/date'
 import {
   TEMPERATURE_VALUES_DECIMAL,
   RH_VALUES_DECIMAL,
-  WIND_SPEED_VALUES_DECIMAL
+  WIND_SPEED_VALUES_DECIMAL,
+  PRECIP_VALUES_DECIMAL,
+  DEW_POINT_VALUES_DECIMAL
 } from 'utils/constants'
 
 const useStyles = makeStyles({
+  container: {
+    borderRadius: '4px',
+    backgroundColor: 'white'
+  },
   tableContainer: {},
   groupHeader: {
     textAlign: 'center'
   },
-  windSpeed: {
+  windSpeedValue: {
     whiteSpace: 'nowrap'
   },
-  relativeHumidity: {
+  relativeHumidityValue: {
     whiteSpace: 'nowrap'
   },
-  windDirection: {
+  windDirectionValue: {
+    whiteSpace: 'nowrap'
+  },
+  precipitationValue: {
     whiteSpace: 'nowrap'
   }
 })
@@ -58,8 +68,10 @@ const formatTemperature = (
   return (
     source && (
       <div>
-        {source?.temperature?.toFixed(TEMPERATURE_VALUES_DECIMAL)}
-        {source?.temperature && `${String.fromCharCode(176)}C`}
+        {typeof source?.temperature === 'number' &&
+          `${source?.temperature?.toFixed(
+            TEMPERATURE_VALUES_DECIMAL
+          )}${String.fromCharCode(176)}C`}
       </div>
     )
   )
@@ -67,13 +79,13 @@ const formatTemperature = (
 
 const formatRelativeHumidity = (
   source: NoonForecastValue | ObservedValue | ModelValue | undefined,
-  relativeHumidity: any
+  valueClassName: any
 ) => {
   return (
     source && (
-      <div className={relativeHumidity}>
-        {source?.relative_humidity?.toFixed(RH_VALUES_DECIMAL)}
-        {source?.relative_humidity && ' %rh'}
+      <div className={valueClassName}>
+        {typeof source?.relative_humidity === 'number' &&
+          `${source?.relative_humidity?.toFixed(RH_VALUES_DECIMAL)}%`}
       </div>
     )
   )
@@ -81,20 +93,22 @@ const formatRelativeHumidity = (
 
 const formatWindSpeedDirection = (
   source: NoonForecastValue | ObservedValue | ModelValue | undefined,
-  windSpeed: any,
-  windDirection: any
+  windSpeedClassName: any,
+  windDirectionClassName: any
 ) => {
   return (
     source && (
       <div>
-        {source?.wind_speed && (
-          <div className={windSpeed}>
+        {typeof source?.wind_speed === 'number' && (
+          <div className={windSpeedClassName}>
             {source?.wind_speed?.toFixed(WIND_SPEED_VALUES_DECIMAL)} km/h
           </div>
         )}
-        {source?.wind_speed && source?.wind_direction && ' '}
-        {source?.wind_direction && (
-          <div className={windDirection}>
+        {typeof source?.wind_speed === 'number' &&
+          typeof source?.wind_direction === 'number' &&
+          ' '}
+        {typeof source?.wind_direction === 'number' && (
+          <div className={windDirectionClassName}>
             {source?.wind_direction?.toFixed(WIND_SPEED_VALUES_DECIMAL)}
             {source?.wind_direction && String.fromCharCode(176)}
           </div>
@@ -104,12 +118,35 @@ const formatWindSpeedDirection = (
   )
 }
 
+const formatPrecipitation = (
+  precipitation: number | null | undefined,
+  precipitationClassName: any
+) => {
+  return (
+    <div className={precipitationClassName}>
+      {typeof precipitation === 'number' &&
+        `${precipitation.toFixed(PRECIP_VALUES_DECIMAL)} mm`}
+    </div>
+  )
+}
+
+const formatDewPoint = (dewpoint: number | null | undefined) => {
+  return (
+    <div>
+      {typeof dewpoint === 'number' &&
+        `${dewpoint.toFixed(DEW_POINT_VALUES_DECIMAL)}${String.fromCharCode(176)}C`}
+    </div>
+  )
+}
+
 const StationComparisonTable = (props: Props) => {
   const classes = useStyles()
   const noonDate = getNoonDate(props.timeOfInterest)
   return (
-    <div>
-      <div>Station comparison for {formatDateInPST(noonDate)} PDT</div>
+    <div className={classes.container}>
+      <Typography component="div" variant="subtitle2">
+        Station comparison for {formatDateInPST(noonDate)} PDT
+      </Typography>
       <TableContainer className={classes.tableContainer}>
         <Table stickyHeader size="small" aria-label="sortable wx table">
           <TableHead>
@@ -118,8 +155,16 @@ const StationComparisonTable = (props: Props) => {
               <TableCell className={classes.groupHeader} colSpan={5}>
                 Temperature
               </TableCell>
-              <TableCell colSpan={5}>Relative Humidity</TableCell>
-              <TableCell colSpan={5}>Wind Speed + Direction</TableCell>
+              <TableCell className={classes.groupHeader} colSpan={5}>
+                Relative Humidity
+              </TableCell>
+              <TableCell className={classes.groupHeader} colSpan={5}>
+                Wind Speed + Direction
+              </TableCell>
+              <TableCell className={classes.groupHeader} colSpan={5}>
+                Precipitation
+              </TableCell>
+              <TableCell className={classes.groupHeader}>Dew point</TableCell>
             </TableRow>
             <TableRow>
               <TableCell>Weather Stations</TableCell>
@@ -141,6 +186,14 @@ const StationComparisonTable = (props: Props) => {
               <TableCell>HRDPS</TableCell>
               <TableCell>RDPS</TableCell>
               <TableCell>GDPS</TableCell>
+              {/* Precip */}
+              <TableCell>Observed</TableCell>
+              <TableCell>Forecast</TableCell>
+              <TableCell>HRDPS</TableCell>
+              <TableCell>RDPS</TableCell>
+              <TableCell>GDPS</TableCell>
+              {/* Dew Point */}
+              <TableCell>Observed</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -179,65 +232,98 @@ const StationComparisonTable = (props: Props) => {
                   <TableCell>{formatTemperature(gdpsModelPrediction)}</TableCell>
                   {/* Relative Humidity */}
                   <TableCell>
-                    {formatRelativeHumidity(observation, classes.relativeHumidity)}
+                    {formatRelativeHumidity(observation, classes.relativeHumidityValue)}
                   </TableCell>
                   <TableCell>
-                    {formatRelativeHumidity(noonForecast, classes.relativeHumidity)}
+                    {formatRelativeHumidity(noonForecast, classes.relativeHumidityValue)}
                   </TableCell>
                   <TableCell>
                     {formatRelativeHumidity(
                       hrdpsModelPrediction,
-                      classes.relativeHumidity
+                      classes.relativeHumidityValue
                     )}
                   </TableCell>
                   <TableCell>
                     {formatRelativeHumidity(
                       rdpsModelPrediction,
-                      classes.relativeHumidity
+                      classes.relativeHumidityValue
                     )}
                   </TableCell>
                   <TableCell>
                     {formatRelativeHumidity(
                       gdpsModelPrediction,
-                      classes.relativeHumidity
+                      classes.relativeHumidityValue
                     )}
                   </TableCell>
                   {/* Wind Speed + Direction */}
                   <TableCell>
                     {formatWindSpeedDirection(
                       observation,
-                      classes.windSpeed,
-                      classes.windDirection
+                      classes.windSpeedValue,
+                      classes.windDirectionValue
                     )}
                   </TableCell>
                   <TableCell>
                     {formatWindSpeedDirection(
                       noonForecast,
-                      classes.windSpeed,
-                      classes.windDirection
+                      classes.windSpeedValue,
+                      classes.windDirectionValue
                     )}
                   </TableCell>
                   <TableCell>
                     {formatWindSpeedDirection(
                       hrdpsModelPrediction,
-                      classes.windSpeed,
-                      classes.windDirection
+                      classes.windSpeedValue,
+                      classes.windDirectionValue
                     )}
                   </TableCell>
                   <TableCell>
                     {formatWindSpeedDirection(
                       rdpsModelPrediction,
-                      classes.windSpeed,
-                      classes.windDirection
+                      classes.windSpeedValue,
+                      classes.windDirectionValue
                     )}
                   </TableCell>
                   <TableCell>
                     {formatWindSpeedDirection(
                       gdpsModelPrediction,
-                      classes.windSpeed,
-                      classes.windDirection
+                      classes.windSpeedValue,
+                      classes.windDirectionValue
                     )}
                   </TableCell>
+                  {/* Precip */}
+                  <TableCell>
+                    {formatPrecipitation(
+                      observation?.precipitation,
+                      classes.precipitationValue
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {formatPrecipitation(
+                      noonForecast?.total_precipitation,
+                      classes.precipitationValue
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {formatPrecipitation(
+                      hrdpsModelPrediction?.delta_precipitation,
+                      classes.precipitationValue
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {formatPrecipitation(
+                      rdpsModelPrediction?.delta_precipitation,
+                      classes.precipitationValue
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {formatPrecipitation(
+                      gdpsModelPrediction?.delta_precipitation,
+                      classes.precipitationValue
+                    )}
+                  </TableCell>
+                  {/* Dew Point */}
+                  <TableCell>{formatDewPoint(observation?.dewpoint)}</TableCell>
                 </TableRow>
               )
             })}
