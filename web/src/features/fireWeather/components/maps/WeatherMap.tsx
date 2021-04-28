@@ -50,7 +50,29 @@ const WeatherMap = ({ redrawFlag }: Props) => {
 
   console.log('whhhyyyyyyy')
 
-  const renderTooltip = useCallback((feature: FeatureLike | null) => {
+  // const renderTooltip = useCallback((feature: FeatureLike | null) => {
+  //   if (!feature) return null
+
+  //   return (
+  //     <div data-testid={`station-${feature.get('code')}-tooltip`}>
+  //       <p>
+  //         {feature.get('name')} ({feature.get('code')})
+  //       </p>
+  //       <Button
+  //         variant="outlined"
+  //         size="small"
+  //         onClick={() => {
+  //           dispatch(selectStation(feature.get('code')))
+  //         }}
+  //         data-testid={`select-wx-station-${feature.get('code')}-button`}
+  //       >
+  //         Select
+  //       </Button>
+  //     </div>
+  //   )
+  // }, [])
+
+  const renderTooltip = (feature: FeatureLike | null) => {
     if (!feature) return null
 
     return (
@@ -70,7 +92,7 @@ const WeatherMap = ({ redrawFlag }: Props) => {
         </Button>
       </div>
     )
-  }, [])
+  }
 
   return (
     <Map

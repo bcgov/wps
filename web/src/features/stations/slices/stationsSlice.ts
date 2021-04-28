@@ -59,6 +59,9 @@ const stationsSlice = createSlice({
     },
     selectStations(state: State, action: PayloadAction<number[]>) {
       state.selectedStationsByCode = action.payload
+    },
+    deselectAllStations(state: State) {
+      state.selectedStationsByCode = []
     }
   }
 })
@@ -85,7 +88,8 @@ export const {
   getStationsSuccess,
   selectStation,
   deselectStation,
-  selectStations
+  selectStations,
+  deselectAllStations
 } = stationsSlice.actions
 
 export default stationsSlice.reducer
