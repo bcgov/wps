@@ -22,9 +22,10 @@ import SidePanel from 'features/fireWeather/components/SidePanel'
 import NetworkErrorMessages from 'features/fireWeather/components/NetworkErrorMessages'
 import WeatherMap from 'features/fireWeather/components/maps/WeatherMap'
 import ExpandableContainer from 'features/fireWeather/components/ExpandableContainer'
-import { getStations } from 'api/stationAPI'
+import { getDetailedStations, getStations, StationSource } from 'api/stationAPI'
 import { PARTIAL_WIDTH, FULL_WIDTH, CENTER_OF_BC } from 'utils/constants'
 import { RedrawCommand } from 'features/map/Map'
+import StationsForTimeOfInterest from '../components/StationsForTimeOfInterest'
 
 const useStyles = makeStyles(theme => ({
   main: {
@@ -103,6 +104,9 @@ const MoreCastPage = () => {
 
   useEffect(() => {
     dispatch(fetchWxStations(getStations))
+    dispatch(
+      fetchWxStations(getDetailedStations, StationSource.unspecified, toiFromQuery)
+    )
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -116,6 +120,9 @@ const MoreCastPage = () => {
       dispatch(fetchRegionalModelSummaries(codesFromQuery, toiFromQuery))
       dispatch(fetchGlobalModelsWithBiasAdj(codesFromQuery, toiFromQuery))
       dispatch(fetchGlobalModelSummaries(codesFromQuery, toiFromQuery))
+      dispatch(
+        fetchWxStations(getDetailedStations, StationSource.unspecified, toiFromQuery)
+      )
     }
   }, [location]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -159,6 +166,7 @@ const MoreCastPage = () => {
       </div>
       <div className={classes.legend}>
         <AccuracyColorLegend show={sidePanelWidth <= PARTIAL_WIDTH} />
+        <StationsForTimeOfInterest toiFromQuery={toiFromQuery} />
       </div>
     </main>
   )
