@@ -89,12 +89,16 @@ const calculateAccumulatedPrecip = (
   from.setHours(from.getHours() - 24)
   const to = DateTime.fromISO(noonDate).toJSDate()
   if (collection) {
-    let accumulatedPrecip = 0
+    let accumulatedPrecip: number | undefined = undefined
     collection.forEach(value => {
       const precipDate = DateTime.fromISO(value.datetime).toJSDate()
       if (precipDate >= from && precipDate <= to) {
         if (value.delta_precipitation) {
-          accumulatedPrecip += value.delta_precipitation
+          if (accumulatedPrecip === undefined) {
+            accumulatedPrecip = value.delta_precipitation
+          } else {
+            accumulatedPrecip += value.delta_precipitation
+          }
         }
       }
     })
