@@ -1,6 +1,6 @@
 """ Routers for stations """
 import logging
-from datetime import datetime
+from datetime import date
 from fastapi import APIRouter, Response, Depends
 from app.auth import authentication_required, audit
 from app.time_utils import get_utc_now
@@ -17,7 +17,7 @@ router = APIRouter(
 
 @router.get('/details/', response_model=DetailedWeatherStationsResponse)
 async def get_detailed_stations(response: Response,
-                                time_of_interest: datetime = None,
+                                time_of_interest: date = None,
                                 source: StationSourceEnum = StationSourceEnum.UNSPECIFIED,
                                 __=Depends(audit),
                                 _=Depends(authentication_required)):

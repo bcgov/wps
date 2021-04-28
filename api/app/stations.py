@@ -1,7 +1,7 @@
 """ Get stations (from wildfire one, or local - depending on configuration.)
 """
 import os
-from datetime import datetime
+from datetime import datetime, date
 import math
 import asyncio
 import logging

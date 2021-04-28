@@ -134,6 +134,7 @@ const MoreCastPage = () => {
           <WeatherMap
             redrawFlag={getRedrawCommand()}
             isCollapsed={sidePanelWidth === FULL_WIDTH}
+            toiFromQuery={toiFromQuery}
             center={mapCenter}
             setMapCenter={setNewMapCenter}
           />

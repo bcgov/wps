@@ -1,11 +1,11 @@
 """ Methods relating to reading station data from database.
 """
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone, date
 from sqlalchemy.orm import Session
 from sqlalchemy.engine.cursor import CursorResult
 
 
-def _get_noon_date(date_of_interest: datetime) -> datetime:
+def _get_noon_date(date_of_interest: date) -> datetime:
     """
     If before noon today, give noon from day before.
     If after noon today, give noon from date of interest.
