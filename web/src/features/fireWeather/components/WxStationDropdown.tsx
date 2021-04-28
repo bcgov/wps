@@ -7,7 +7,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import { selectFireWeatherStations } from 'app/rootReducer'
 import { getSelectedStationOptions } from 'utils/dropdown'
 import { GeoJsonStation } from 'api/stationAPI'
-import { selectStation, deselectStation, selectStations, deselectAllStations } from 'features/stations/slices/stationsSlice'
+import { selectStations, deselectAllStations } from 'features/stations/slices/stationsSlice'
 
 const useStyles = makeStyles({
   autocomplete: {

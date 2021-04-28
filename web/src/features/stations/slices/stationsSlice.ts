@@ -51,12 +51,6 @@ const stationsSlice = createSlice({
       const selectedStationsSet = new Set(selectedStationsList)
       state.selectedStationsByCode = Array.from(selectedStationsSet.values())
     },
-    deselectStation(state: State, action: PayloadAction<number>) {
-      const index = state.selectedStationsByCode.indexOf(action.payload)
-      if (index > -1) {
-        state.selectedStationsByCode.splice(index, 1)
-      }
-    },
     selectStations(state: State, action: PayloadAction<number[]>) {
       state.selectedStationsByCode = action.payload
     },
@@ -87,7 +81,6 @@ export const {
   getStationsFailed,
   getStationsSuccess,
   selectStation,
-  deselectStation,
   selectStations,
   deselectAllStations
 } = stationsSlice.actions
