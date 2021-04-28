@@ -8,7 +8,7 @@ import TableCell from '@material-ui/core/TableCell'
 import TableContainer from '@material-ui/core/TableContainer'
 import TableRow from '@material-ui/core/TableRow'
 import TableHead from '@material-ui/core/TableHead'
-// import TableSortLabel from '@material-ui/core/TableSortLabel'
+import ToolTip from '@material-ui/core/Tooltip'
 import { GeoJsonStation } from 'api/stationAPI'
 import { ObservedValue } from 'api/observationAPI'
 import { NoonForecastValue } from 'api/forecastAPI'
@@ -27,12 +27,6 @@ const useStyles = makeStyles({
     padding: '5px'
   },
   typography: {},
-  tableContainer: {
-    // '& .MuiTableCell-sizeSmall': {
-    //   padding: '1px',
-    //   textAlign: 'right'
-    // }
-  },
   lightColumnHeader: {
     textAlign: 'center',
     padding: '2px',
@@ -89,13 +83,22 @@ const formatTemperature = (
   source: NoonForecastValue | ObservedValue | ModelValue | undefined
 ) => {
   return (
+    <div>
+      {typeof source?.temperature === 'number' &&
+        `${source?.temperature?.toFixed(TEMPERATURE_VALUES_DECIMAL)}${String.fromCharCode(
+          176
+        )}C`}
+    </div>
+  )
+}
+
+const formatModelTemperature = (source: ModelValue | undefined) => {
+  const tooltip = (source as ModelValue)?.model_run_datetime
+  return (
     source && (
-      <div>
-        {typeof source?.temperature === 'number' &&
-          `${source?.temperature?.toFixed(
-            TEMPERATURE_VALUES_DECIMAL
-          )}${String.fromCharCode(176)}C`}
-      </div>
+      <ToolTip title={`model run time: ${tooltip}`} aria-label="temperature">
+        {formatTemperature(source)}
+      </ToolTip>
     )
   )
 }
@@ -105,12 +108,22 @@ const formatRelativeHumidity = (
   valueClassName: any
 ) => {
   return (
-    source && (
-      <div className={valueClassName}>
-        {typeof source?.relative_humidity === 'number' &&
-          `${source?.relative_humidity?.toFixed(RH_VALUES_DECIMAL)}%`}
-      </div>
-    )
+    <div className={valueClassName}>
+      {typeof source?.relative_humidity === 'number' &&
+        `${source?.relative_humidity?.toFixed(RH_VALUES_DECIMAL)}%`}
+    </div>
+  )
+}
+
+const formatModelRelativeHumidity = (
+  source: ModelValue | undefined,
+  valueClassName: any
+) => {
+  const tooltip = (source as ModelValue)?.model_run_datetime
+  return (
+    <ToolTip title={`model run time: ${tooltip}`} aria-label="Relative humidity">
+      {formatRelativeHumidity(source, valueClassName)}
+    </ToolTip>
   )
 }
 
@@ -120,28 +133,53 @@ const formatWindSpeedDirection = (
   windDirectionClassName: any
 ) => {
   return (
+    <div>
+      {typeof source?.wind_speed === 'number' && (
+        <div className={windSpeedClassName}>
+          {source?.wind_speed?.toFixed(WIND_SPEED_VALUES_DECIMAL)} km/h
+        </div>
+      )}
+      {typeof source?.wind_speed === 'number' &&
+        typeof source?.wind_direction === 'number' &&
+        ' '}
+      {typeof source?.wind_direction === 'number' && (
+        <div className={windDirectionClassName}>
+          {source?.wind_direction?.toFixed(WIND_SPEED_VALUES_DECIMAL)}
+          {source?.wind_direction && String.fromCharCode(176)}
+        </div>
+      )}
+    </div>
+  )
+}
+
+const formatModelWindSpeedDirection = (
+  source: ModelValue | undefined,
+  windSpeedClassName: any,
+  windDirectionClassName: any
+) => {
+  const tooltip = (source as ModelValue)?.model_run_datetime
+  return (
     source && (
-      <div>
-        {typeof source?.wind_speed === 'number' && (
-          <div className={windSpeedClassName}>
-            {source?.wind_speed?.toFixed(WIND_SPEED_VALUES_DECIMAL)} km/h
-          </div>
-        )}
-        {typeof source?.wind_speed === 'number' &&
-          typeof source?.wind_direction === 'number' &&
-          ' '}
-        {typeof source?.wind_direction === 'number' && (
-          <div className={windDirectionClassName}>
-            {source?.wind_direction?.toFixed(WIND_SPEED_VALUES_DECIMAL)}
-            {source?.wind_direction && String.fromCharCode(176)}
-          </div>
-        )}
-      </div>
+      <ToolTip title={`model run time: ${tooltip}`} aria-label="Wind speed and direction">
+        {formatWindSpeedDirection(source, windSpeedClassName, windDirectionClassName)}
+      </ToolTip>
     )
   )
 }
 
 const formatPrecipitation = (
+  precipitation: number | null | undefined,
+  precipitationClassName: any
+) => {
+  return (
+    <div className={precipitationClassName}>
+      {typeof precipitation === 'number' &&
+        `${precipitation.toFixed(PRECIP_VALUES_DECIMAL)} mm`}
+    </div>
+  )
+}
+
+const formatModelPrecipitation = (
   precipitation: number | null | undefined,
   precipitationClassName: any
 ) => {
@@ -167,11 +205,11 @@ const StationComparisonTable = (props: Props) => {
   const noonDate = getNoonDate(props.timeOfInterest)
   return (
     <Paper className={classes.paper}>
-      <Typography className={classes.typography} component="div" variant="subtitle2">
+      <Typography component="div" variant="subtitle2">
         Station comparison for {formatDateInPST(noonDate)} PDT
       </Typography>
       <Paper>
-        <TableContainer className={classes.tableContainer}>
+        <TableContainer>
           <Table stickyHeader size="small" aria-label="sortable wx table">
             <TableHead>
               <TableRow>
@@ -256,13 +294,13 @@ const StationComparisonTable = (props: Props) => {
                       {formatTemperature(noonForecast)}
                     </TableCell>
                     <TableCell className={classes.darkColumn}>
-                      {formatTemperature(hrdpsModelPrediction)}
+                      {formatModelTemperature(hrdpsModelPrediction)}
                     </TableCell>
                     <TableCell className={classes.darkColumn}>
-                      {formatTemperature(rdpsModelPrediction)}
+                      {formatModelTemperature(rdpsModelPrediction)}
                     </TableCell>
                     <TableCell className={classes.darkColumn}>
-                      {formatTemperature(gdpsModelPrediction)}
+                      {formatModelTemperature(gdpsModelPrediction)}
                     </TableCell>
                     {/* Relative Humidity */}
                     <TableCell className={classes.lightColumn}>
@@ -275,19 +313,19 @@ const StationComparisonTable = (props: Props) => {
                       )}
                     </TableCell>
                     <TableCell className={classes.lightColumn}>
-                      {formatRelativeHumidity(
+                      {formatModelRelativeHumidity(
                         hrdpsModelPrediction,
                         classes.relativeHumidityValue
                       )}
                     </TableCell>
                     <TableCell className={classes.lightColumn}>
-                      {formatRelativeHumidity(
+                      {formatModelRelativeHumidity(
                         rdpsModelPrediction,
                         classes.relativeHumidityValue
                       )}
                     </TableCell>
                     <TableCell className={classes.lightColumn}>
-                      {formatRelativeHumidity(
+                      {formatModelRelativeHumidity(
                         gdpsModelPrediction,
                         classes.relativeHumidityValue
                       )}
@@ -308,21 +346,21 @@ const StationComparisonTable = (props: Props) => {
                       )}
                     </TableCell>
                     <TableCell className={classes.darkColumn}>
-                      {formatWindSpeedDirection(
+                      {formatModelWindSpeedDirection(
                         hrdpsModelPrediction,
                         classes.windSpeedValue,
                         classes.windDirectionValue
                       )}
                     </TableCell>
                     <TableCell className={classes.darkColumn}>
-                      {formatWindSpeedDirection(
+                      {formatModelWindSpeedDirection(
                         rdpsModelPrediction,
                         classes.windSpeedValue,
                         classes.windDirectionValue
                       )}
                     </TableCell>
                     <TableCell className={classes.darkColumn}>
-                      {formatWindSpeedDirection(
+                      {formatModelWindSpeedDirection(
                         gdpsModelPrediction,
                         classes.windSpeedValue,
                         classes.windDirectionValue
@@ -342,19 +380,19 @@ const StationComparisonTable = (props: Props) => {
                       )}
                     </TableCell>
                     <TableCell className={classes.lightColumn}>
-                      {formatPrecipitation(
+                      {formatModelPrecipitation(
                         hrdpsModelPrediction?.delta_precipitation,
                         classes.precipitationValue
                       )}
                     </TableCell>
                     <TableCell className={classes.lightColumn}>
-                      {formatPrecipitation(
+                      {formatModelPrecipitation(
                         rdpsModelPrediction?.delta_precipitation,
                         classes.precipitationValue
                       )}
                     </TableCell>
                     <TableCell className={classes.lightColumn}>
-                      {formatPrecipitation(
+                      {formatModelPrecipitation(
                         gdpsModelPrediction?.delta_precipitation,
                         classes.precipitationValue
                       )}

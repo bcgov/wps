@@ -20,7 +20,7 @@ from app.db.crud.weather_models import (get_processed_file_record,
                                         get_processed_file_count,
                                         get_prediction_model_run_timestamp_records,
                                         get_model_run_predictions_for_grid,
-                                        get_grid_for_coordinate,
+                                        get_grids_for_coordinate,
                                         get_weather_station_model_prediction)
 from app.weather_models.machine_learning import StationMachineLearning
 from app.weather_models import ModelEnum, ProjectionEnum, construct_interpolated_noon_prediction
@@ -371,7 +371,6 @@ class EnvCanada():
         """ Process the urls for a model run.
         """
         for url in urls:
-            print(url)
             try:
                 with app.db.database.get_write_session_scope() as session:
                     # check the database for a record of this file:
@@ -597,46 +596,44 @@ class ModelValueProcessor:
         # Lookup the grid our weather station is in.
         logger.info("Getting grid for coordinate %s and model %s",
                     coordinate, model_run.prediction_model)
-        grid = get_grid_for_coordinate(
+        # There should never be more than one grid per model - but it can happen.
+        # TODO: Re-factor away the need for the grid table entirely.
+        grid_query = get_grids_for_coordinate(
             self.session, model_run.prediction_model, coordinate)
 
-        if grid is None:
-            # This should only happen if we have a station with bad coordinates.
-            logger.warning('grid not found for station: %s', station)
-            return
+        for grid in grid_query:
+            # Convert the grid database object to a polygon object.
+            poly = to_shape(grid.geom)
+            # Extract the vertices of the polygon.
+            # pylint: disable=no-member
+            points = list(poly.exterior.coords)[:-1]
 
-        # Convert the grid database object to a polygon object.
-        poly = to_shape(grid.geom)
-        # Extract the vertices of the polygon.
-        # pylint: disable=no-member
-        points = list(poly.exterior.coords)[:-1]
+            machine = StationMachineLearning(
+                session=self.session,
+                model=model_run.prediction_model,
+                grid=grid,
+                points=points,
+                target_coordinate=coordinate,
+                station_code=station.code,
+                max_learn_date=model_run.prediction_run_timestamp)
+            machine.learn()
 
-        machine = StationMachineLearning(
-            session=self.session,
-            model=model_run.prediction_model,
-            grid=grid,
-            points=points,
-            target_coordinate=coordinate,
-            station_code=station.code,
-            max_learn_date=model_run.prediction_run_timestamp)
-        machine.learn()
+            # Get all the predictions associated to this particular model run, in the grid.
+            query = get_model_run_predictions_for_grid(
+                self.session, model_run, grid)
 
-        # Get all the predictions associated to this particular model run, in the grid.
-        query = get_model_run_predictions_for_grid(
-            self.session, model_run, grid)
-
-        # Iterate through all the predictions.
-        prev_prediction = None
-        for prediction in query:
-            if (prev_prediction is not None
-                    and prev_prediction.prediction_timestamp.hour == 18
-                    and prediction.prediction_timestamp.hour == 21):
-                noon_prediction = construct_interpolated_noon_prediction(prev_prediction, prediction)
+            # Iterate through all the predictions.
+            prev_prediction = None
+            for prediction in query:
+                if (prev_prediction is not None
+                        and prev_prediction.prediction_timestamp.hour == 18
+                        and prediction.prediction_timestamp.hour == 21):
+                    noon_prediction = construct_interpolated_noon_prediction(prev_prediction, prediction)
+                    self._process_prediction(
+                        noon_prediction, station, model_run, points, coordinate, machine)
                 self._process_prediction(
-                    noon_prediction, station, model_run, points, coordinate, machine)
-            self._process_prediction(
-                prediction, station, model_run, points, coordinate, machine)
-            prev_prediction = prediction
+                    prediction, station, model_run, points, coordinate, machine)
+                prev_prediction = prediction
 
     def _mark_model_run_interpolated(self, model_run: PredictionModelRunTimestamp):
         """ Having completely processed a model run, we can mark it has having been interpolated.

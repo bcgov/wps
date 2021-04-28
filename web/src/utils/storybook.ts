@@ -35,6 +35,7 @@ const getPastValues = () => {
   let day = DateTime.fromObject({ minute: 0, second: 0 })
     .setZone('UTC')
     .minus({ days: 3 })
+  const model_run_datetime = day.toISO()
   const last = DateTime.fromObject({ minute: 0, second: 0 })
     .setZone('UTC')
     .minus({ days: 1 })
@@ -73,7 +74,8 @@ const getPastValues = () => {
         bias_adjusted_relative_humidity: rh + (Math.random() - 0.5) * 6 - 2,
         delta_precipitation: precip,
         wind_speed: wind_speed + (Math.random() - 0.5) * 6,
-        wind_direction: wind_direction + (((Math.random() - 0.5) * 6) % 360)
+        wind_direction: wind_direction + (((Math.random() - 0.5) * 6) % 360),
+        model_run_datetime: model_run_datetime
       })
       _highResModelSummaries.push({
         datetime,
@@ -90,7 +92,8 @@ const getPastValues = () => {
         bias_adjusted_temperature: temp + (Math.random() - 0.7) * 7 - 2,
         relative_humidity: rh + (Math.random() - 0.7) * 7,
         bias_adjusted_relative_humidity: rh - (Math.random() - 0.7) * 7 - 2,
-        delta_precipitation: precip
+        delta_precipitation: precip,
+        model_run_datetime: model_run_datetime
       })
       _regionalModelSummaries.push({
         datetime,
@@ -99,7 +102,8 @@ const getPastValues = () => {
         tmp_tgl_2_90th: temp + 4 - Math.random() * 3,
         rh_tgl_2_5th: rh - 4 - Math.random(),
         rh_tgl_2_median: rh,
-        rh_tgl_2_90th: rh + 4 + Math.random() * 3
+        rh_tgl_2_90th: rh + 4 + Math.random() * 3,
+        model_run_datetime: model_run_datetime
       })
 
       if (isNoonInPST(datetime)) {
@@ -164,6 +168,7 @@ const getFutureValues = () => {
 
   const first = DateTime.fromObject({ minute: 0, second: 0 }).setZone('UTC')
   let day = DateTime.fromObject({ minute: 0, second: 0 }).setZone('UTC')
+  const model_run_datetime = day.toISO()
   const last = DateTime.fromObject({ minute: 0, second: 0 })
     .setZone('UTC')
     .plus({ days: 10 }) // GDPS goes out 10 days.
@@ -189,7 +194,8 @@ const getFutureValues = () => {
           bias_adjusted_relative_humidity: rh + (Math.random() - 0.5) * 6 - 2,
           delta_precipitation: precip * Math.random() * 7,
           wind_speed: wind_speed + (Math.random() - 0.5) * 4,
-          wind_direction: wind_direction + (((Math.random() - 0.5) * 90) % 360)
+          wind_direction: wind_direction + (((Math.random() - 0.5) * 90) % 360),
+          model_run_datetime: model_run_datetime
         })
       }
 
@@ -204,7 +210,8 @@ const getFutureValues = () => {
           bias_adjusted_relative_humidity: rh - (Math.random() - 1.4) * 7 - 4,
           delta_precipitation: precip * Math.random() * 8,
           wind_speed: wind_speed + (Math.random() - 0.5) * 6,
-          wind_direction: wind_direction + (((Math.random() - 0.5) * 90) % 360)
+          wind_direction: wind_direction + (((Math.random() - 0.5) * 90) % 360),
+          model_run_datetime: model_run_datetime
         })
       }
 
@@ -218,7 +225,8 @@ const getFutureValues = () => {
           bias_adjusted_relative_humidity: rh + (Math.random() - 0.5) * 8 - 5,
           wind_speed,
           wind_direction,
-          delta_precipitation: precip * Math.random() * 5
+          delta_precipitation: precip * Math.random() * 5,
+          model_run_datetime: model_run_datetime
         })
       }
 

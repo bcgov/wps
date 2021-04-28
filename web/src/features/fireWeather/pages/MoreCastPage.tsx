@@ -84,6 +84,14 @@ const MoreCastPage = () => {
   }
 
   useEffect(() => {
+    if (codesFromQuery.length > 1) {
+      toggleTableView(SidePanelEnum.Comparison)
+    } else {
+      toggleTableView(SidePanelEnum.Tables)
+    }
+  }, [codesFromQuery.length])
+
+  useEffect(() => {
     dispatch(fetchWxStations(getStations))
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -120,6 +128,7 @@ const MoreCastPage = () => {
           closeSidePanel={closeSidePanel}
           handleToggleView={handleToggleView}
           showTableView={showTableView}
+          stationCodes={codesFromQuery}
         >
           <NetworkErrorMessages />
           <WxDataDisplays

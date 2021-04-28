@@ -41,6 +41,7 @@ interface Props {
   closeSidePanel: () => void
   handleToggleView: (_: React.MouseEvent<HTMLElement>, newDataView: SidePanelEnum) => void
   showTableView: string
+  stationCodes: number[]
   children: React.ReactNode
 }
 
@@ -64,9 +65,11 @@ const SidePanel = (props: Props) => {
           >
             <ToggleButton value={SidePanelEnum.Tables}>Tables</ToggleButton>
             <ToggleButton value={SidePanelEnum.Graphs}>Graphs</ToggleButton>
-            <ToggleButton value={SidePanelEnum.Comparison}>
-              Station comparison
-            </ToggleButton>
+            {props.stationCodes.length > 1 && (
+              <ToggleButton value={SidePanelEnum.Comparison}>
+                Station comparison
+              </ToggleButton>
+            )}
           </ToggleButtonGroup>
         </div>
         {props.children}
