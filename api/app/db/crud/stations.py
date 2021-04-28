@@ -1,19 +1,17 @@
 """ Methods relating to reading station data from database.
 """
-from datetime import datetime, timedelta, timezone, date
+from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import Session
 from sqlalchemy.engine.cursor import CursorResult
+from app.time_utils import get_hour_20
 
 
-def _get_noon_date(date_of_interest: date) -> datetime:
+def _get_noon_date(date_of_interest: datetime) -> datetime:
     """
     If before noon today, give noon from day before.
     If after noon today, give noon from date of interest.
     """
-    noon_for_date_of_interest = datetime(year=date_of_interest.year,
-                                         month=date_of_interest.month,
-                                         day=date_of_interest.day,
-                                         hour=20, tzinfo=timezone.utc)
+    noon_for_date_of_interest = get_hour_20(date_of_interest)
     if date_of_interest < noon_for_date_of_interest:
         # Get noon from the day before the date of intereset.
         day_before = date_of_interest - timedelta(days=1)
