@@ -3,7 +3,7 @@ import logging
 from datetime import datetime
 from fastapi import APIRouter, Response, Depends
 from app.auth import authentication_required, audit
-from app.time_utils import get_utc_now
+from app.time_utils import get_utc_now, get_hour_20
 from app.schemas.stations import WeatherStationsResponse, DetailedWeatherStationsResponse
 from app.stations import StationSourceEnum, get_stations_as_geojson, fetch_detailed_stations_as_geojson
 
@@ -35,7 +35,7 @@ async def get_detailed_stations(response: Response,
             # tests to fail.
             toi = get_utc_now()
         else:
-            toi = datetime(yea)
+            toi = get_hour_20(toi)
         weather_stations = await fetch_detailed_stations_as_geojson(toi, source)
 
         return DetailedWeatherStationsResponse(features=weather_stations)
