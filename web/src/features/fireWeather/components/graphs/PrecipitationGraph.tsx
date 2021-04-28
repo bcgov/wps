@@ -36,7 +36,6 @@ interface Props {
 }
 
 const PrecipitationGraph = (props: Props) => {
-  console.log('New props')
   const {
     station,
     timeOfInterest,
