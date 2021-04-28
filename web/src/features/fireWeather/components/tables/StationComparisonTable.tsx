@@ -9,6 +9,7 @@ import TableContainer from '@material-ui/core/TableContainer'
 import TableRow from '@material-ui/core/TableRow'
 import TableHead from '@material-ui/core/TableHead'
 import ToolTip from '@material-ui/core/Tooltip'
+import { DateTime } from 'luxon'
 import { GeoJsonStation } from 'api/stationAPI'
 import { ObservedValue } from 'api/observationAPI'
 import { NoonForecastValue } from 'api/forecastAPI'
@@ -77,6 +78,29 @@ const findNoonMatch = (
   collection: ModelValue[] | undefined
 ): ModelValue | undefined => {
   return collection?.find((item: ModelValue) => reformatDate(item.datetime) === noonDate)
+}
+
+const calculateAccumulatedPrecip = (
+  noonDate: string,
+  collection: ModelValue[] | undefined
+): number | undefined => {
+  // We are calculating the accumulated precipitation from 24 hours before noon.
+  const from = DateTime.fromISO(noonDate).toJSDate()
+  from.setHours(from.getHours() - 24)
+  const to = DateTime.fromISO(noonDate).toJSDate()
+  if (collection) {
+    let accumulatedPrecip = 0
+    collection.forEach(value => {
+      const precipDate = DateTime.fromISO(value.datetime).toJSDate()
+      if (precipDate >= from && precipDate <= to) {
+        if (value.delta_precipitation) {
+          accumulatedPrecip += value.delta_precipitation
+        }
+      }
+    })
+    return accumulatedPrecip
+  }
+  return undefined
 }
 
 const formatTemperature = (
@@ -273,11 +297,23 @@ const StationComparisonTable = (props: Props) => {
                   noonDate,
                   props.allHighResModelsByStation[stationCode]
                 )
+                const accumulatedHRDPSPrecipitation = calculateAccumulatedPrecip(
+                  noonDate,
+                  props.allHighResModelsByStation[stationCode]
+                )
                 const rdpsModelPrediction = findNoonMatch(
                   noonDate,
                   props.allRegionalModelsByStation[stationCode]
                 )
+                const accumulatedRDPSPrecipitation = calculateAccumulatedPrecip(
+                  noonDate,
+                  props.allRegionalModelsByStation[stationCode]
+                )
                 const gdpsModelPrediction = findNoonMatch(
+                  noonDate,
+                  props.noonModelsByStation[stationCode]
+                )
+                const accumulatedGDPSPrecipitation = calculateAccumulatedPrecip(
                   noonDate,
                   props.noonModelsByStation[stationCode]
                 )
@@ -381,19 +417,19 @@ const StationComparisonTable = (props: Props) => {
                     </TableCell>
                     <TableCell className={classes.lightColumn}>
                       {formatModelPrecipitation(
-                        hrdpsModelPrediction?.delta_precipitation,
+                        accumulatedHRDPSPrecipitation,
                         classes.precipitationValue
                       )}
                     </TableCell>
                     <TableCell className={classes.lightColumn}>
                       {formatModelPrecipitation(
-                        rdpsModelPrediction?.delta_precipitation,
+                        accumulatedRDPSPrecipitation,
                         classes.precipitationValue
                       )}
                     </TableCell>
                     <TableCell className={classes.lightColumn}>
                       {formatModelPrecipitation(
-                        gdpsModelPrediction?.delta_precipitation,
+                        accumulatedGDPSPrecipitation,
                         classes.precipitationValue
                       )}
                     </TableCell>
