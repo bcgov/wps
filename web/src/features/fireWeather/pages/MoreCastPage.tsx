@@ -21,9 +21,12 @@ import AccuracyColorLegend from 'features/fireWeather/components/AccuracyColorLe
 import SidePanel from 'features/fireWeather/components/SidePanel'
 import NetworkErrorMessages from 'features/fireWeather/components/NetworkErrorMessages'
 import WeatherMap from 'features/fireWeather/components/maps/WeatherMap'
+import ExpandableContainer from 'features/fireWeather/components/ExpandableContainer'
 import { getStations } from 'api/stationAPI'
 import { selectFireWeatherStations } from 'app/rootReducer'
 
+import { PARTIAL_WIDTH, FULL_WIDTH, CENTER_OF_BC } from 'utils/constants'
+import { RedrawCommand } from 'features/map/Map'
 
 const useStyles = makeStyles(theme => ({
   main: {
@@ -81,7 +84,29 @@ const MoreCastPage = () => {
   const [timeOfInterest, setTimeOfInterest] = useState(toiFromQuery)
   const shouldInitiallyShowSidePanel = selectedCodes.length > 0
   const [showSidePanel, setShowSidePanel] = useState(shouldInitiallyShowSidePanel)
-  const openSidePanel = () => setShowSidePanel(true)
+  const [sidePanelWidth, setSidePanelWidth] = useState(
+    shouldInitiallyShowSidePanel ? PARTIAL_WIDTH : 0
+  )
+
+  const [mapCenter, setMapCenter] = useState(CENTER_OF_BC)
+  const expandSidePanel = () => setSidePanelWidth(FULL_WIDTH)
+  const collapseSidePanel = () => setSidePanelWidth(PARTIAL_WIDTH)
+
+  // Callback to set the latest center coordinates when side panel is collapsed
+  // to preserve any panning of the map by the user before panel was expanded.
+  const setNewMapCenter = (newMapCenter: number[]) => {
+    setMapCenter(newMapCenter)
+  }
+
+  const getRedrawCommand = (): RedrawCommand | undefined => {
+    return !showSidePanel || sidePanelWidth === PARTIAL_WIDTH
+      ? { redraw: true }
+      : undefined
+  }
+  const openSidePanel = () => {
+    setShowSidePanel(true)
+    setSidePanelWidth(PARTIAL_WIDTH)
+  }
   const closeSidePanel = () => setShowSidePanel(false)
 
   const [showTableView, toggleTableView] = useState('true')
@@ -124,24 +149,34 @@ const MoreCastPage = () => {
       </div>
       <div className={classes.content}>
         <div className={classes.map}>
-          <WeatherMap redrawFlag={showSidePanel} />
+          <WeatherMap
+            redrawFlag={getRedrawCommand()}
+            isCollapsed={sidePanelWidth === FULL_WIDTH}
+            center={mapCenter}
+            setMapCenter={setNewMapCenter}
+          />
         </div>
-        <SidePanel
-          show={showSidePanel}
-          closeSidePanel={closeSidePanel}
-          handleToggleView={handleToggleView}
-          showTableView={showTableView}
+        <ExpandableContainer
+          open={showSidePanel}
+          close={closeSidePanel}
+          expand={expandSidePanel}
+          collapse={collapseSidePanel}
+          currentWidth={sidePanelWidth}
         >
           <NetworkErrorMessages />
-          <WxDataDisplays
-            stationCodes={codesOfRetrievedStationData}
-            timeOfInterest={timeOfInterest}
-            showTableView={showTableView}
-          />
-        </SidePanel>
+          <SidePanel handleToggleView={handleToggleView} showTableView={showTableView}>
+            <NetworkErrorMessages />
+            <WxDataDisplays
+              stationCodes={codesOfRetrievedStationData}
+              timeOfInterest={toiFromQuery}
+              expandedOrCollapsed={getRedrawCommand()}
+              showTableView={showTableView}
+            />
+          </SidePanel>
+        </ExpandableContainer>
       </div>
       <div className={classes.legend}>
-        <AccuracyColorLegend />
+        <AccuracyColorLegend show={sidePanelWidth <= PARTIAL_WIDTH} />
       </div>
     </main>
   )
