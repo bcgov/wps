@@ -11,7 +11,7 @@ import {
   FIRE_WEATHER_ROUTE,
   MORECAST_ROUTE,
   HFI_CALC_ROUTE,
-  C_HAINES_ROUTE
+  C_HAINES_ROUTE,
 } from 'utils/constants'
 import MoreCastPage from 'features/fireWeather/pages/MoreCastPage'
 import { NoMatchPage } from 'features/fireWeather/pages/NoMatchPage'

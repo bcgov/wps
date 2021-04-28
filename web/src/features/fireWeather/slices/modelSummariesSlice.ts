@@ -13,7 +13,7 @@ interface State {
 const initialState: State = {
   loading: false,
   error: null,
-  modelSummariesByStation: {}
+  modelSummariesByStation: {},
 }
 
 const modelSummariesSlice = createSlice({
@@ -34,21 +34,21 @@ const modelSummariesSlice = createSlice({
       action: PayloadAction<ModelSummariesForStation[]>
     ) {
       state.error = null
-      action.payload.forEach(summary => {
+      action.payload.forEach((summary) => {
         if (summary.station) {
           const code = summary.station.code
           state.modelSummariesByStation[code] = summary.values
         }
       })
       state.loading = false
-    }
-  }
+    },
+  },
 })
 
 export const {
   getModelSummariesStart,
   getModelSummariesFailed,
-  getModelSummariesSuccess
+  getModelSummariesSuccess,
 } = modelSummariesSlice.actions
 
 export default modelSummariesSlice.reducer
@@ -56,7 +56,7 @@ export default modelSummariesSlice.reducer
 export const fetchGlobalModelSummaries = (
   stationCodes: number[],
   timeOfInterest: string
-): AppThunk => async dispatch => {
+): AppThunk => async (dispatch) => {
   try {
     dispatch(getModelSummariesStart())
     const modelSummaries = await getModelSummaries(stationCodes, 'GDPS', timeOfInterest)

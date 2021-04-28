@@ -18,12 +18,12 @@ const TimeOfInterestPicker = (props: Props) => {
       variant="outlined"
       size="small"
       InputLabelProps={{
-        shrink: true
+        shrink: true,
       }}
       inputProps={{
-        step: 900 // 15 min
+        step: 900, // 15 min
       }}
-      onChange={e => {
+      onChange={(e) => {
         const value = e.currentTarget.value
 
         if (value) {

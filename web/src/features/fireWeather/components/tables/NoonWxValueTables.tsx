@@ -5,11 +5,11 @@ import { NoonForecastValue } from 'api/forecastAPI'
 import {
   PRECIP_VALUES_DECIMAL,
   TEMPERATURE_VALUES_DECIMAL,
-  WIND_SPEED_VALUES_DECIMAL
+  WIND_SPEED_VALUES_DECIMAL,
 } from 'utils/constants'
 import { formatDateInPST } from 'utils/date'
 import SortableTableByDatetime, {
-  Column
+  Column,
 } from 'features/fireWeather/components/tables/SortableTableByDatetime'
 
 /**
@@ -23,33 +23,33 @@ const sharedColumns: Column[] = [
     label: 'Date (PST)',
     minWidth: 120,
     align: 'left',
-    formatDt: (value: string): string => formatDateInPST(value)
+    formatDt: (value: string): string => formatDateInPST(value),
   },
   {
     id: 'temperature',
     label: 'Temp (°C)',
     align: 'right',
-    format: (value: number): string => value.toFixed(TEMPERATURE_VALUES_DECIMAL)
+    format: (value: number): string => value.toFixed(TEMPERATURE_VALUES_DECIMAL),
   },
   {
     id: 'relative_humidity',
     label: 'RH (%)',
     align: 'right',
-    format: (value: number): number => Math.round(value)
+    format: (value: number): number => Math.round(value),
   },
   {
     id: 'wind_direction',
     label: 'Wind Dir (10m)',
     align: 'right',
-    format: (value: number): number => Math.round(value)
+    format: (value: number): number => Math.round(value),
   },
   {
     id: 'wind_speed',
     label: 'Wind Spd (10m) (km/h)',
     maxWidth: 80,
     align: 'right',
-    format: (value: number): string => value.toFixed(WIND_SPEED_VALUES_DECIMAL)
-  }
+    format: (value: number): string => value.toFixed(WIND_SPEED_VALUES_DECIMAL),
+  },
 ]
 
 export const noonModelTableColumns: Column[] = [
@@ -59,15 +59,15 @@ export const noonModelTableColumns: Column[] = [
     label: 'Precip (mm)',
     maxWidth: 70,
     align: 'right',
-    format: (value: number): string => value.toFixed(PRECIP_VALUES_DECIMAL)
+    format: (value: number): string => value.toFixed(PRECIP_VALUES_DECIMAL),
   },
   {
     id: 'model_run_datetime',
     label: 'Model Run (UTC)',
     minWidth: 120,
     align: 'right',
-    formatDt: (value: string): string => value.slice(0, 13)
-  }
+    formatDt: (value: string): string => value.slice(0, 13),
+  },
 ]
 
 interface NoonModelTableProps {
@@ -93,8 +93,8 @@ export const noonForecastTableColumns: Column[] = [
     label: 'Precip (mm)',
     maxWidth: 70,
     align: 'right',
-    format: (value: number): string => value.toFixed(PRECIP_VALUES_DECIMAL)
-  }
+    format: (value: number): string => value.toFixed(PRECIP_VALUES_DECIMAL),
+  },
 ]
 
 export const NoonForecastTable = React.memo(function _(props: NoonForecastTableProps) {

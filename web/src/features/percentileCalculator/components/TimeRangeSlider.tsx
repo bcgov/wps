@@ -5,11 +5,11 @@ import Slider from 'components/Slider'
 
 const useStyles = makeStyles({
   root: {
-    marginTop: 20
+    marginTop: 20,
   },
   inputLabel: {
-    marginBottom: 5
-  }
+    marginBottom: 5,
+  },
 })
 
 interface Props {
@@ -26,20 +26,20 @@ const MAX_YEARS = yearWhenTheCalculationIsDone - earliestYearAvailableForCalcula
 const TIME_RANGE_OPTIONS = [
   {
     value: MIN_YEARS,
-    label: '0'
+    label: '0',
   },
   {
     value: 10,
-    label: '10'
+    label: '10',
   },
   {
     value: 20,
-    label: '20'
+    label: '20',
   },
   {
     value: MAX_YEARS,
-    label: 'Full'
-  }
+    label: 'Full',
+  },
 ]
 
 export const TimeRangeSlider: React.FunctionComponent<Props> = (props: Props) => {

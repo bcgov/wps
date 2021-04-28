@@ -21,7 +21,7 @@ const TileLayer = ({ source, opacity = 1, zIndex = 0 }: Props) => {
     const tileLayer = new OLTileLayer({
       source,
       zIndex,
-      opacity
+      opacity,
     })
 
     map.addLayer(tileLayer)

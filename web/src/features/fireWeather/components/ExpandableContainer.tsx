@@ -20,21 +20,21 @@ const useStyles = makeStyles({
     width: getRootWidth(props),
     overflowX: 'hidden',
     boxShadow:
-      '0px 3px 3px -2px rgb(0 0 0 / 20%), 0px 3px 4px 0px rgb(0 0 0 / 14%), 0px 1px 8px 0px rgb(0 0 0 / 12%)'
+      '0px 3px 3px -2px rgb(0 0 0 / 20%), 0px 3px 4px 0px rgb(0 0 0 / 14%), 0px 1px 8px 0px rgb(0 0 0 / 12%)',
   }),
   ordering: {
     display: 'flex',
-    flexDirection: 'row'
+    flexDirection: 'row',
   },
   expandCollapse: {
     display: 'flex',
     flexDirection: 'column',
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   content: (props: Props) => ({
     width: props.currentWidth,
-    position: 'relative'
-  })
+    position: 'relative',
+  }),
 })
 
 interface Props {

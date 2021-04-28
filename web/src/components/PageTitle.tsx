@@ -3,7 +3,7 @@ import { makeStyles } from '@material-ui/core/styles'
 
 import { Container } from 'components/Container'
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   root: {
     maxHeight: 60,
     marginBottom: '1rem',
@@ -11,8 +11,8 @@ const useStyles = makeStyles(theme => ({
     paddingTop: '1rem',
     fontSize: '1.3rem',
     background: theme.palette.primary.light,
-    color: theme.palette.primary.contrastText
-  }
+    color: theme.palette.primary.contrastText,
+  },
 }))
 
 interface Props {

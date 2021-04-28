@@ -19,7 +19,7 @@ interface GeoJSONContext {
 const initialState: State = {
   loading: false,
   error: null,
-  model_runs: {}
+  model_runs: {},
 }
 
 const cHainesPredictionsSlice = createSlice({
@@ -37,14 +37,14 @@ const cHainesPredictionsSlice = createSlice({
     getPredictionFailed(state: State, action: PayloadAction<string>) {
       state.loading = false
       state.error = action.payload
-    }
-  }
+    },
+  },
 })
 
 const {
   getPredictionStart,
   getPredictionSuccess,
-  getPredictionFailed
+  getPredictionFailed,
 } = cHainesPredictionsSlice.actions
 
 export default cHainesPredictionsSlice.reducer
@@ -53,7 +53,7 @@ export const fetchCHainesGeoJSON = (
   model_abbreviation: string,
   model_run_timestamp: string,
   prediction_timestamp: string
-): AppThunk => async dispatch => {
+): AppThunk => async (dispatch) => {
   try {
     dispatch(getPredictionStart())
     const geoJSON = await getCHainesGeoJSON(
@@ -65,7 +65,7 @@ export const fetchCHainesGeoJSON = (
       model: model_abbreviation,
       model_run_timestamp: model_run_timestamp,
       prediction_timestamp: prediction_timestamp,
-      result: geoJSON
+      result: geoJSON,
     }
     dispatch(getPredictionSuccess(result))
   } catch (err) {

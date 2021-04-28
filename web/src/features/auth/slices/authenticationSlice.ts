@@ -19,7 +19,7 @@ export const initialState: State = {
   isAuthenticated: false,
   tokenRefreshed: false,
   token: undefined,
-  error: null
+  error: null,
 }
 
 const authSlice = createSlice({
@@ -54,20 +54,20 @@ const authSlice = createSlice({
     ) {
       state.token = action.payload.token
       state.tokenRefreshed = action.payload.tokenRefreshed
-    }
-  }
+    },
+  },
 })
 
 const {
   authenticateStart,
   authenticateFinished,
   authenticateError,
-  refreshTokenFinished
+  refreshTokenFinished,
 } = authSlice.actions
 
 export default authSlice.reducer
 
-export const authenticate = (): AppThunk => dispatch => {
+export const authenticate = (): AppThunk => (dispatch) => {
   dispatch(authenticateStart())
 
   if (!kcInstance) {
@@ -78,10 +78,10 @@ export const authenticate = (): AppThunk => dispatch => {
 
   kcInstance
     .init(kcInitOption)
-    .then(isAuthenticated => {
+    .then((isAuthenticated) => {
       dispatch(authenticateFinished({ isAuthenticated, token: kcInstance?.token }))
     })
-    .catch(err => {
+    .catch((err) => {
       logError(err)
       dispatch(authenticateError('Failed to authenticate.'))
     })
@@ -89,7 +89,7 @@ export const authenticate = (): AppThunk => dispatch => {
   kcInstance.onTokenExpired = () => {
     kcInstance
       ?.updateToken(0)
-      .then(tokenRefreshed => {
+      .then((tokenRefreshed) => {
         dispatch(refreshTokenFinished({ tokenRefreshed, token: kcInstance?.token }))
       })
       .catch(() => {
@@ -101,7 +101,7 @@ export const authenticate = (): AppThunk => dispatch => {
 
 export const setAxiosRequestInterceptors = (): AppThunk => (_, getState) => {
   // Use axios interceptors to intercept any requests and add authorization headers.
-  axios.interceptors.request.use(config => {
+  axios.interceptors.request.use((config) => {
     const token = selectToken(getState())
     if (token) {
       config.headers.Authorization = `Bearer ${token}`

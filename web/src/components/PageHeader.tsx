@@ -3,32 +3,32 @@ import { makeStyles } from '@material-ui/core/styles'
 
 import { OptionalContainer } from 'components/Container'
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   root: {
     background: theme.palette.primary.main,
     borderBottomWidth: 2,
     borderBottomStyle: 'solid',
-    borderBottomColor: theme.palette.secondary.main
+    borderBottomColor: theme.palette.secondary.main,
   },
   container: (props: Props) => ({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingLeft: props.noContainer ? props.padding : 'auto',
-    paddingRight: props.noContainer ? props.padding : 'auto'
+    paddingRight: props.noContainer ? props.padding : 'auto',
   }),
   logo: {
     width: 175,
     marginTop: '10px',
-    marginBottom: '10px'
+    marginBottom: '10px',
   },
   title: {
     color: theme.palette.primary.contrastText,
-    fontSize: '1.7rem'
+    fontSize: '1.7rem',
   },
   titleWrapper: {
     display: 'flex',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   contact: {
     color: 'white',
@@ -38,9 +38,9 @@ const useStyles = makeStyles(theme => ({
     cursor: 'pointer',
 
     '&:hover': {
-      textDecoration: 'underline'
-    }
-  }
+      textDecoration: 'underline',
+    },
+  },
 }))
 
 interface Props {

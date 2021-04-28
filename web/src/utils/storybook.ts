@@ -44,7 +44,7 @@ const getPastValues = () => {
         precipitation: precip,
         ffmc: null,
         isi: null,
-        fwi: null
+        fwi: null,
       })
       _pastHighResModelValues.push({
         datetime,
@@ -54,7 +54,7 @@ const getPastValues = () => {
         bias_adjusted_relative_humidity: rh + (Math.random() - 0.5) * 6 - 2,
         delta_precipitation: precip,
         wind_speed: wind_speed + (Math.random() - 0.5) * 6,
-        wind_direction: wind_direction + (((Math.random() - 0.5) * 6) % 360)
+        wind_direction: wind_direction + (((Math.random() - 0.5) * 6) % 360),
       })
       _highResModelSummaries.push({
         datetime,
@@ -63,7 +63,7 @@ const getPastValues = () => {
         tmp_tgl_2_90th: temp + 3,
         rh_tgl_2_5th: rh - 3,
         rh_tgl_2_median: rh,
-        rh_tgl_2_90th: rh + 3
+        rh_tgl_2_90th: rh + 3,
       })
       _pastRegionalModelValues.push({
         datetime,
@@ -71,7 +71,7 @@ const getPastValues = () => {
         bias_adjusted_temperature: temp + (Math.random() - 0.7) * 7 - 2,
         relative_humidity: rh + (Math.random() - 0.7) * 7,
         bias_adjusted_relative_humidity: rh - (Math.random() - 0.7) * 7 - 2,
-        delta_precipitation: precip
+        delta_precipitation: precip,
       })
       _regionalModelSummaries.push({
         datetime,
@@ -80,7 +80,7 @@ const getPastValues = () => {
         tmp_tgl_2_90th: temp + 4 - Math.random() * 3,
         rh_tgl_2_5th: rh - 4 - Math.random(),
         rh_tgl_2_median: rh,
-        rh_tgl_2_90th: rh + 4 + Math.random() * 3
+        rh_tgl_2_90th: rh + 4 + Math.random() * 3,
       })
 
       if (isNoonInPST(datetime)) {
@@ -88,14 +88,14 @@ const getPastValues = () => {
           datetime,
           temperature: temp + (Math.random() - 0.5) * 8,
           relative_humidity: rh + (Math.random() - 0.5) * 8,
-          total_precipitation: 24 * precip + Math.random() * 4
+          total_precipitation: 24 * precip + Math.random() * 4,
         })
         _forecastSummaries.push({
           datetime,
           tmp_min: temp + (Math.random() - 1) * 2 - 4,
           tmp_max: temp + Math.random() * 2 + 4,
           rh_min: rh + (Math.random() - 1) * 2 - 4,
-          rh_max: rh + Math.random() * 2 + 4
+          rh_max: rh + Math.random() * 2 + 4,
         })
       }
 
@@ -107,7 +107,7 @@ const getPastValues = () => {
           bias_adjusted_temperature: temp + (Math.random() - 0.5) * 8 - 2,
           relative_humidity: rh + (Math.random() - 0.5) * 8,
           bias_adjusted_relative_humidity: rh + (Math.random() - 0.5) * 8 - 2,
-          delta_precipitation: precip
+          delta_precipitation: precip,
         })
         _modelSummaries.push({
           datetime,
@@ -116,7 +116,7 @@ const getPastValues = () => {
           tmp_tgl_2_90th: temp + 4,
           rh_tgl_2_5th: rh - 4,
           rh_tgl_2_median: rh,
-          rh_tgl_2_90th: rh + 4
+          rh_tgl_2_90th: rh + 4,
         })
       }
     }
@@ -133,7 +133,7 @@ const getPastValues = () => {
     pastHighResModelValues: _pastHighResModelValues,
     highResModelSummaries: _highResModelSummaries,
     pastRegionalModelValues: _pastRegionalModelValues,
-    regionalModelSummaries: _regionalModelSummaries
+    regionalModelSummaries: _regionalModelSummaries,
   }
 }
 
@@ -170,7 +170,7 @@ const getFutureValues = () => {
           bias_adjusted_relative_humidity: rh + (Math.random() - 0.5) * 6 - 2,
           delta_precipitation: precip * Math.random() * 7,
           wind_speed: wind_speed + (Math.random() - 0.5) * 4,
-          wind_direction: wind_direction + (((Math.random() - 0.5) * 90) % 360)
+          wind_direction: wind_direction + (((Math.random() - 0.5) * 90) % 360),
         })
       }
 
@@ -185,7 +185,7 @@ const getFutureValues = () => {
           bias_adjusted_relative_humidity: rh - (Math.random() - 1.4) * 7 - 4,
           delta_precipitation: precip * Math.random() * 8,
           wind_speed: wind_speed + (Math.random() - 0.5) * 6,
-          wind_direction: wind_direction + (((Math.random() - 0.5) * 90) % 360)
+          wind_direction: wind_direction + (((Math.random() - 0.5) * 90) % 360),
         })
       }
 
@@ -199,7 +199,7 @@ const getFutureValues = () => {
           bias_adjusted_relative_humidity: rh + (Math.random() - 0.5) * 8 - 5,
           wind_speed,
           wind_direction,
-          delta_precipitation: precip * Math.random() * 5
+          delta_precipitation: precip * Math.random() * 5,
         })
       }
 
@@ -212,7 +212,7 @@ const getFutureValues = () => {
             relative_humidity: rh + (Math.random() - 0.5) * 8,
             total_precipitation: 24 * precip + Math.random() * 4,
             wind_speed: wind_speed + (Math.random() - 0.5) * 10,
-            wind_direction: wind_direction + (((Math.random() - 0.5) * 45) % 360)
+            wind_direction: wind_direction + (((Math.random() - 0.5) * 45) % 360),
           })
         }
       }
@@ -225,7 +225,7 @@ const getFutureValues = () => {
     modelValues: _modelValues,
     highResModelValues: _highResModelValues,
     regionalModelValues: _regionalModelValues,
-    forecastValues: _forecastValues
+    forecastValues: _forecastValues,
   }
 }
 
@@ -233,7 +233,7 @@ export const {
   forecastValues,
   modelValues,
   highResModelValues,
-  regionalModelValues
+  regionalModelValues,
 } = getFutureValues()
 
 export const {
@@ -245,5 +245,5 @@ export const {
   pastHighResModelValues,
   highResModelSummaries,
   pastRegionalModelValues,
-  regionalModelSummaries
+  regionalModelSummaries,
 } = getPastValues()

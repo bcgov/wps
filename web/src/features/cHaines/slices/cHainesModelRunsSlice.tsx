@@ -30,7 +30,7 @@ const initialState: State = {
   selected_model_run_timestamp: '',
   selected_prediction_timestamp: '',
   model_run_predictions: {},
-  model_run_predictions_status: {}
+  model_run_predictions_status: {},
 }
 
 const cHainesModelRunsSlice = createSlice({
@@ -51,7 +51,7 @@ const cHainesModelRunsSlice = createSlice({
             state.model_runs[0].prediction_timestamps[0]
         }
       }
-      state.model_runs.forEach(e => {
+      state.model_runs.forEach((e) => {
         state.model_run_predictions[e.model_run_timestamp] = {}
       })
       state.loading = false
@@ -64,7 +64,7 @@ const cHainesModelRunsSlice = createSlice({
     setSelectedModel(state: State, action: PayloadAction<string>) {
       state.selected_model_abbreviation = action.payload
       const model_run = state.model_runs.find(
-        instance => instance.model.abbrev === action.payload
+        (instance) => instance.model.abbrev === action.payload
       )
       if (model_run) {
         state.selected_model_run_timestamp = model_run.model_run_timestamp
@@ -78,7 +78,7 @@ const cHainesModelRunsSlice = createSlice({
     setSelectedModelRun(state: State, action: PayloadAction<string>) {
       state.selected_model_run_timestamp = action.payload
       const model_run = state.model_runs.find(
-        instance =>
+        (instance) =>
           instance.model_run_timestamp === action.payload &&
           instance.model.abbrev === state.selected_model_abbreviation
       )
@@ -115,8 +115,8 @@ const cHainesModelRunsSlice = createSlice({
     getPredictionFailed(state: State, action: PayloadAction<string>) {
       state.loading = false
       state.error = action.payload
-    }
-  }
+    },
+  },
 })
 
 const {
@@ -128,14 +128,14 @@ const {
   setSelectedPrediction,
   getPredictionStart,
   getPredictionSuccess,
-  getPredictionFailed
+  getPredictionFailed,
 } = cHainesModelRunsSlice.actions
 
 export default cHainesModelRunsSlice.reducer
 
-export const fetchModelRuns = (
-  model_run_timestamp: string | null
-): AppThunk => async dispatch => {
+export const fetchModelRuns = (model_run_timestamp: string | null): AppThunk => async (
+  dispatch
+) => {
   try {
     dispatch(getModelRunsStart())
     const modelsRuns = await getModelRuns(model_run_timestamp)
@@ -146,20 +146,20 @@ export const fetchModelRuns = (
   }
 }
 
-export const updateSelectedModel = (
-  selected_model: string
-): AppThunk => async dispatch => {
+export const updateSelectedModel = (selected_model: string): AppThunk => async (
+  dispatch
+) => {
   dispatch(setSelectedModel(selected_model))
 }
 export const updateSelectedModelRun = (
   selected_model_run_timestamp: string
-): AppThunk => async dispatch => {
+): AppThunk => async (dispatch) => {
   dispatch(setSelectedModelRun(selected_model_run_timestamp))
 }
 
 export const updateSelectedPrediction = (
   selected_prediction_timestamp: string
-): AppThunk => async dispatch => {
+): AppThunk => async (dispatch) => {
   dispatch(setSelectedPrediction(selected_prediction_timestamp))
 }
 
@@ -167,7 +167,7 @@ export const fetchCHainesGeoJSON = (
   model_abbreviation: string,
   model_run_timestamp: string,
   prediction_timestamp: string
-): AppThunk => async dispatch => {
+): AppThunk => async (dispatch) => {
   try {
     dispatch(getPredictionStart())
     const geoJSON = await getCHainesGeoJSON(
@@ -179,7 +179,7 @@ export const fetchCHainesGeoJSON = (
       model: model_abbreviation,
       model_run_timestamp: model_run_timestamp,
       prediction_timestamp: prediction_timestamp,
-      result: geoJSON
+      result: geoJSON,
     }
     dispatch(getPredictionSuccess(result))
   } catch (err) {

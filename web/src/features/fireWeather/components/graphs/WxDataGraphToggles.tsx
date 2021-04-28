@@ -7,23 +7,23 @@ import Switch from '@material-ui/core/Switch'
 
 import {
   ToggleValues,
-  SetToggleValues
+  SetToggleValues,
 } from 'features/fireWeather/components/graphs/useGraphToggles'
 
 const useStyles = makeStyles({
   root: {
-    marginBottom: 5
+    marginBottom: 5,
   },
   switchControl: {
-    marginLeft: -5
+    marginLeft: -5,
   },
   switchLabel: {
-    marginLeft: 2
+    marginLeft: 2,
   },
   selectControl: {
     minWidth: 85,
-    marginRight: 15
-  }
+    marginRight: 15,
+  },
 })
 
 interface Props {
@@ -45,7 +45,7 @@ const WxDataToggles = ({
   hasForecasts,
   hasBiasAdjModels,
   hasHighResModels,
-  hasRegionalModels
+  hasRegionalModels,
 }: Props) => {
   const classes = useStyles()
   const handleSwitch = (e: React.ChangeEvent<{ name: string }>, checked: boolean) => {
@@ -56,8 +56,8 @@ const WxDataToggles = ({
         event: 'tempRHGraphToggle',
         toggle: {
           name: e.target.name,
-          checked: checked ? 'show' : 'hide' // matomo doesn't play nice with booleans
-        }
+          checked: checked ? 'show' : 'hide', // matomo doesn't play nice with booleans
+        },
       })
     }
   }

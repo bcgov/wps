@@ -24,7 +24,7 @@ export const rhColorScale = [
   neutralColor,
   '#FCCE89',
   '#F4A036',
-  '#ED8001'
+  '#ED8001',
 ]
 export const tempColorScale = [
   '#720505',
@@ -33,7 +33,7 @@ export const tempColorScale = [
   neutralColor,
   '#60D3F8',
   '#38B0F8',
-  '#2F80EE'
+  '#2F80EE',
 ]
 
 export const windColorScale = [
@@ -43,7 +43,7 @@ export const windColorScale = [
   neutralColor,
   '#7AD3CE',
   '#17B8A7',
-  '#089E83'
+  '#089E83',
 ]
 
 /**
@@ -73,7 +73,7 @@ export const computeAccuracyColors = (stationMetric: StationMetrics): ColorResul
 export const computePercentageDifference = (
   metricForecast: number,
   metricObservation: number
-) => {
+): number => {
   let percentDifference =
     ((metricForecast - metricObservation) / ((metricForecast + metricObservation) / 2)) *
     100
@@ -108,7 +108,7 @@ export const determineColor = (
           differenceToMagnitude(rhPercentDifference),
           rhColorScale
         )
-      ]
+      ],
   }
 }
 

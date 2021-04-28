@@ -13,7 +13,7 @@ interface State {
 const initialState: State = {
   loading: false,
   error: null,
-  highResModelSummariesByStation: {}
+  highResModelSummariesByStation: {},
 }
 
 const highResModelSummariesSlice = createSlice({
@@ -34,21 +34,21 @@ const highResModelSummariesSlice = createSlice({
       action: PayloadAction<ModelSummariesForStation[]>
     ) {
       state.error = null
-      action.payload.forEach(summary => {
+      action.payload.forEach((summary) => {
         if (summary.station) {
           const code = summary.station.code
           state.highResModelSummariesByStation[code] = summary.values
         }
       })
       state.loading = false
-    }
-  }
+    },
+  },
 })
 
 export const {
   getHighResModelSummariesStart,
   getHighResModelSummariesFailed,
-  getHighResModelSummariesSuccess
+  getHighResModelSummariesSuccess,
 } = highResModelSummariesSlice.actions
 
 export default highResModelSummariesSlice.reducer
@@ -56,7 +56,7 @@ export default highResModelSummariesSlice.reducer
 export const fetchHighResModelSummaries = (
   stationCodes: number[],
   timeOfInterest: string
-): AppThunk => async dispatch => {
+): AppThunk => async (dispatch) => {
   try {
     dispatch(getHighResModelSummariesStart())
     const summaries = await getModelSummaries(stationCodes, 'HRDPS', timeOfInterest)

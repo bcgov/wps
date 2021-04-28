@@ -13,17 +13,17 @@ const useStyles = makeStyles({
     position: 'absolute',
     right: 8,
     top: 8,
-    zIndex: 1
+    zIndex: 1,
   },
   btnWrapper: {
     padding: 3,
     borderRadius: '50%',
     backgroundColor: 'rgba(255,255,255,0.7)',
-    opacity: 0.7
+    opacity: 0.7,
   },
   popOverContent: {
-    padding: 12
-  }
+    padding: 12,
+  },
 })
 
 interface Props {
@@ -65,11 +65,11 @@ const LayerSwitch = ({ map, value, setValue }: Props) => {
         anchorEl={anchorEl}
         anchorOrigin={{
           vertical: 'top',
-          horizontal: 'right'
+          horizontal: 'right',
         }}
         transformOrigin={{
           vertical: 'top',
-          horizontal: 'right'
+          horizontal: 'right',
         }}
       >
         <FormControl
@@ -79,7 +79,7 @@ const LayerSwitch = ({ map, value, setValue }: Props) => {
           data-testid="layer-switch-form"
         >
           <RadioGroup aria-label="base-layers" value={value} onChange={handleLayerChange}>
-            {Object.keys(map).map(key => {
+            {Object.keys(map).map((key) => {
               return (
                 <FormControlLabel
                   key={key}

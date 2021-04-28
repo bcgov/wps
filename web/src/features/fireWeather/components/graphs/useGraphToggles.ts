@@ -23,10 +23,10 @@ export const useGraphToggles = (
   return [
     values,
     (key, value) => {
-      setValues(prevValues => ({
+      setValues((prevValues) => ({
         ...prevValues,
-        [key]: value
+        [key]: value,
       }))
-    }
+    },
   ]
 }

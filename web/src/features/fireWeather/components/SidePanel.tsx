@@ -5,22 +5,22 @@ import { ToggleButton, ToggleButtonGroup } from '@material-ui/lab'
 const useStyles = makeStyles({
   root: {
     order: 2,
-    overflowX: 'hidden'
+    overflowX: 'hidden',
   },
   content: {
-    position: 'relative'
+    position: 'relative',
   },
   actions: {
     display: 'flex',
     flexDirection: 'row',
-    alignItems: 'flex-start'
+    alignItems: 'flex-start',
   },
   closeBtn: {
     marginRight: 10,
     fontSize: 28,
     cursor: 'pointer',
-    fontWeight: 'bold'
-  }
+    fontWeight: 'bold',
+  },
 })
 
 interface Props {

@@ -20,7 +20,7 @@ const initialState: State = {
   allModelsByStation: {},
   pastModelsByStation: {},
   modelsByStation: {},
-  noonModelsByStation: {}
+  noonModelsByStation: {},
 }
 
 const modelsSlice = createSlice({
@@ -52,8 +52,8 @@ const modelsSlice = createSlice({
         }
       })
       state.loading = false
-    }
-  }
+    },
+  },
 })
 
 export const { getModelsStart, getModelsFailed, getModelsSuccess } = modelsSlice.actions
@@ -63,7 +63,7 @@ export default modelsSlice.reducer
 export const fetchGlobalModelsWithBiasAdj = (
   codes: number[],
   timeOfInterest: string
-): AppThunk => async dispatch => {
+): AppThunk => async (dispatch) => {
   try {
     dispatch(getModelsStart())
     const modelsForStations = await getModelsWithBiasAdj(codes, 'GDPS', timeOfInterest)

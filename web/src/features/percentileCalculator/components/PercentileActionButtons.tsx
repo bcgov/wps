@@ -4,11 +4,11 @@ import { makeStyles } from '@material-ui/core/styles'
 
 const useStyles = makeStyles({
   root: {
-    marginTop: 15
+    marginTop: 15,
   },
   calculateBtn: {
-    marginLeft: 15
-  }
+    marginLeft: 15,
+  },
 })
 
 interface Props {
@@ -20,7 +20,7 @@ interface Props {
 export const PercentileActionButtons: React.FunctionComponent<Props> = ({
   calcDisabled,
   onCalculateClick,
-  onResetClick
+  onResetClick,
 }: Props) => {
   const classes = useStyles()
 

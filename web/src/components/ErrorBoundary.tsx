@@ -31,7 +31,7 @@ export class ErrorBoundary extends Component<Props, ErrorBoundaryState> {
             padding: '12px',
             color: 'crimson',
             display: 'flex',
-            alignItems: 'center'
+            alignItems: 'center',
           }}
         >
           <WarningSharp style={{ marginRight: '6px' }} fontSize="small" />

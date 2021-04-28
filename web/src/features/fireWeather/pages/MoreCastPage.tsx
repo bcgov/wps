@@ -26,11 +26,11 @@ import { getStations } from 'api/stationAPI'
 import { PARTIAL_WIDTH, FULL_WIDTH, CENTER_OF_BC } from 'utils/constants'
 import { RedrawCommand } from 'features/map/Map'
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   main: {
     display: 'flex',
     flexDirection: 'column',
-    height: '100vh'
+    height: '100vh',
   },
   nav: {
     background: theme.palette.primary.light,
@@ -40,25 +40,25 @@ const useStyles = makeStyles(theme => ({
     flexWrap: 'wrap',
     alignItems: 'center',
     paddingLeft: 25,
-    paddingRight: 25
+    paddingRight: 25,
   },
   content: {
     flexGrow: 1,
     display: 'flex',
-    overflowY: 'auto'
+    overflowY: 'auto',
   },
   map: {
     order: 1,
     flexGrow: 1,
     display: 'flex',
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   legend: {
     display: 'flex',
     alignItems: 'flex-end',
-    backgroundColor: theme.palette.primary.light
-  }
+    backgroundColor: theme.palette.primary.light,
+  },
 }))
 
 const MoreCastPage = () => {

@@ -5,7 +5,7 @@ import {
   Table,
   TableRow,
   TableCell,
-  TableBody
+  TableBody,
 } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 
@@ -17,15 +17,15 @@ interface Props {
   meanValues: MeanValues
 }
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   tableHeader: {
     backgroundColor: theme.palette.primary.light,
-    color: theme.palette.primary.contrastText
-  }
+    color: theme.palette.primary.contrastText,
+  },
 }))
 
 export const PercentileMeanResultTable: React.FunctionComponent<Props> = ({
-  meanValues
+  meanValues,
 }: Props) => {
   const classes = useStyles()
   const { ffmc, bui, isi } = meanValues

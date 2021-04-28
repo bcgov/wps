@@ -6,7 +6,7 @@ import {
   TableHead,
   TableRow,
   TableCell,
-  TableBody
+  TableBody,
 } from '@material-ui/core'
 
 import { StationSummaryResponse } from 'api/percentileAPI'
@@ -19,7 +19,7 @@ interface Props {
 }
 
 export const PercentileStationResultTable: React.FunctionComponent<Props> = ({
-  stationResponse
+  stationResponse,
 }: Props) => {
   const { ffmc, bui, isi, years, station } = stationResponse
   const { start_month, start_day, end_month, end_day } = station.core_season

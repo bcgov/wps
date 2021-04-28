@@ -36,7 +36,7 @@ export async function getNoonForecasts(
 
   const { data } = await axios.post<ForecastResponse>(url, {
     stations: stationCodes,
-    time_of_interest: timeOfInterest
+    time_of_interest: timeOfInterest,
   })
 
   return data.noon_forecasts
@@ -67,7 +67,7 @@ export async function getForecastSummaries(
   const url = `/forecasts/noon/summaries/`
   const { data } = await axios.post<ForecastSummariesResponse>(url, {
     stations: stationCodes,
-    time_of_interest: timeOfInterest
+    time_of_interest: timeOfInterest,
   })
 
   return data.summaries

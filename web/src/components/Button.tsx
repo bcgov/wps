@@ -11,9 +11,9 @@ interface CustomProps {
 
 type Props = CustomProps & ButtonProps
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   root: {
-    position: 'relative'
+    position: 'relative',
   },
   spinner: (props: Props) => ({
     color: props.spinnerColor || theme.palette.primary.light,
@@ -21,8 +21,8 @@ const useStyles = makeStyles(theme => ({
     left: '50%',
     marginLeft: -10,
     top: '50%',
-    marginTop: -10
-  })
+    marginTop: -10,
+  }),
 }))
 
 /* eslint-disable react/prop-types, react/display-name */

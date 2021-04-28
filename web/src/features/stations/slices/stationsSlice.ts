@@ -14,7 +14,7 @@ const initialState: State = {
   loading: false,
   error: null,
   stations: [],
-  stationsByCode: {}
+  stationsByCode: {},
 }
 
 const stationsSlice = createSlice({
@@ -35,13 +35,13 @@ const stationsSlice = createSlice({
       state.error = null
       state.stations = action.payload
       const stationsByCode: State['stationsByCode'] = {}
-      action.payload.forEach(station => {
+      action.payload.forEach((station) => {
         stationsByCode[station.properties.code] = station
       })
       state.stationsByCode = stationsByCode
       state.loading = false
-    }
-  }
+    },
+  },
 })
 
 export const fetchWxStations = (
@@ -49,7 +49,7 @@ export const fetchWxStations = (
     | ((source: StationSource) => Promise<GeoJsonStation[]>)
     | ((source: StationSource) => Promise<DetailedGeoJsonStation[]>),
   source: StationSource = StationSource.unspecified
-): AppThunk => async dispatch => {
+): AppThunk => async (dispatch) => {
   try {
     dispatch(getStationsStart())
     const stations = await stationGetter(source)
@@ -63,7 +63,7 @@ export const fetchWxStations = (
 export const {
   getStationsStart,
   getStationsFailed,
-  getStationsSuccess
+  getStationsSuccess,
 } = stationsSlice.actions
 
 export default stationsSlice.reducer

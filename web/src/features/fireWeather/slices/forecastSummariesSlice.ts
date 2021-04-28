@@ -3,7 +3,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import {
   ForecastSummary,
   ForecastSummariesForStation,
-  getForecastSummaries
+  getForecastSummaries,
 } from 'api/forecastAPI'
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
@@ -17,7 +17,7 @@ interface State {
 const initialState: State = {
   loading: false,
   error: null,
-  forecastSummariesByStation: {}
+  forecastSummariesByStation: {},
 }
 
 const forecastSummariesSlice = createSlice({
@@ -38,21 +38,21 @@ const forecastSummariesSlice = createSlice({
       action: PayloadAction<ForecastSummariesForStation[]>
     ) {
       state.error = null
-      action.payload.forEach(summary => {
+      action.payload.forEach((summary) => {
         if (summary.station) {
           const code = summary.station.code
           state.forecastSummariesByStation[code] = summary.values
         }
       })
       state.loading = false
-    }
-  }
+    },
+  },
 })
 
 export const {
   getForecastSummariesStart,
   getForecastSummariesFailed,
-  getForecastSummariesSuccess
+  getForecastSummariesSuccess,
 } = forecastSummariesSlice.actions
 
 export default forecastSummariesSlice.reducer
@@ -60,7 +60,7 @@ export default forecastSummariesSlice.reducer
 export const fetchForecastSummaries = (
   stationCodes: number[],
   timeOfInterest: string
-): AppThunk => async dispatch => {
+): AppThunk => async (dispatch) => {
   try {
     dispatch(getForecastSummariesStart())
     const forecastSummaries = await getForecastSummaries(stationCodes, timeOfInterest)

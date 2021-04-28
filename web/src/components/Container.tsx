@@ -8,7 +8,7 @@ export const Container: React.FunctionComponent<ContainerProps> = (
 }
 
 type OptionalContainerProps = ContainerProps & { noContainer?: boolean }
-export const OptionalContainer = (props: OptionalContainerProps) => {
+export const OptionalContainer = (props: OptionalContainerProps): React.ReactElement => {
   if (props.noContainer) {
     return <div className={props.className}>{props.children}</div>
   }

@@ -12,11 +12,11 @@ import { PercentilesResponse } from 'api/percentileAPI'
 
 const useStyles = makeStyles({
   root: {
-    marginTop: 15
+    marginTop: 15,
   },
   gridContainer: {
-    marginBottom: 15
-  }
+    marginBottom: 15,
+  },
 })
 
 interface PercentileResultsProps {

@@ -14,7 +14,7 @@ export const Header: React.FC<HeaderProps> = ({
   user,
   onLogin,
   onLogout,
-  onCreateAccount
+  onCreateAccount,
 }) => (
   <header>
     <div className="wrapper">

@@ -15,18 +15,18 @@ const useStyles = makeStyles({
 
     '& fieldset, label, input': {
       color: 'white !important',
-      borderColor: 'white !important'
+      borderColor: 'white !important',
     },
     '& .MuiChip-root': {
-      background: '#f0f0f0'
-    }
+      background: '#f0f0f0',
+    },
   },
   stationDropdown: {
-    marginRight: 16
+    marginRight: 16,
   },
   timeOfInterest: {
-    marginRight: 16
-  }
+    marginRight: 16,
+  },
 })
 
 interface Props {
@@ -59,7 +59,7 @@ const WxDataForm = ({ codesFromQuery, toiFromQuery, openSidePanel }: Props) => {
     history.push({
       search:
         `${stationCodeQueryKey}=${selectedCodes.join(',')}&` +
-        `${timeOfInterestQueryKey}=${timeOfInterest}`
+        `${timeOfInterestQueryKey}=${timeOfInterest}`,
     })
 
     // Create matomo event
@@ -71,7 +71,7 @@ const WxDataForm = ({ codesFromQuery, toiFromQuery, openSidePanel }: Props) => {
       window._mtm.push({
         event: 'getWeatherData',
         stationCodes: selectedCodes,
-        timeOfInterest: timeOfInterest
+        timeOfInterest: timeOfInterest,
       })
     }
   }

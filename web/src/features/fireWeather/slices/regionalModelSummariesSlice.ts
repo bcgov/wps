@@ -13,7 +13,7 @@ interface State {
 const initialState: State = {
   loading: false,
   error: null,
-  regionalModelSummariesByStation: {}
+  regionalModelSummariesByStation: {},
 }
 
 const regionalModelSummariesSlice = createSlice({
@@ -34,21 +34,21 @@ const regionalModelSummariesSlice = createSlice({
       action: PayloadAction<ModelSummariesForStation[]>
     ) {
       state.error = null
-      action.payload.forEach(summary => {
+      action.payload.forEach((summary) => {
         if (summary.station) {
           const code = summary.station.code
           state.regionalModelSummariesByStation[code] = summary.values
         }
       })
       state.loading = false
-    }
-  }
+    },
+  },
 })
 
 export const {
   getRegionalModelSummariesStart,
   getRegionalModelSummariesFailed,
-  getRegionalModelSummariesSuccess
+  getRegionalModelSummariesSuccess,
 } = regionalModelSummariesSlice.actions
 
 export default regionalModelSummariesSlice.reducer
@@ -56,7 +56,7 @@ export default regionalModelSummariesSlice.reducer
 export const fetchRegionalModelSummaries = (
   stationCodes: number[],
   timeOfInterest: string
-): AppThunk => async dispatch => {
+): AppThunk => async (dispatch) => {
   try {
     dispatch(getRegionalModelSummariesStart())
     const summaries = await getModelSummaries(stationCodes, 'RDPS', timeOfInterest)

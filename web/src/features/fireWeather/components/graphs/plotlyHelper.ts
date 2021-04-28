@@ -23,7 +23,7 @@ export const findMinNumber = (arr: number[]): number => {
 export const rangeSliderConfig: Partial<RangeSlider> = {
   visible: true,
   bgcolor: '#dbdbdb',
-  thickness: 0.1
+  thickness: 0.1,
 }
 
 export const getLayoutConfig = (title: string): Partial<Layout> => ({
@@ -34,8 +34,8 @@ export const getLayoutConfig = (title: string): Partial<Layout> => ({
   legend: { orientation: 'h', yanchor: 'top', y: -0.35, traceorder: 'reversed' }, // Locate the legend at the bottom of the graph
   title: {
     text: title,
-    yanchor: 'middle'
-  }
+    yanchor: 'middle',
+  },
 })
 
 export const populateTimeOfInterestLineData = (
@@ -52,11 +52,11 @@ export const populateTimeOfInterestLineData = (
     line: {
       color: 'green',
       width: 2,
-      dash: 'dot'
+      dash: 'dot',
     },
     showlegend: true,
     hoverinfo: 'skip',
-    yaxis
+    yaxis,
   }
 }
 
@@ -137,7 +137,7 @@ export const populateGraphDataForTempAndRH = (
   const biasAdjTempValues: number[] = []
   const biasAdjRHValues: number[] = []
 
-  graphProps.values.forEach(value => {
+  graphProps.values.forEach((value) => {
     const {
       datetime,
       temperature,
@@ -152,7 +152,7 @@ export const populateGraphDataForTempAndRH = (
       rh_tgl_2_5th,
       rh_tgl_2_90th,
       bias_adjusted_temperature,
-      bias_adjusted_relative_humidity
+      bias_adjusted_relative_humidity,
     } = value
     const date = formatDateInPST(datetime)
 
@@ -209,7 +209,7 @@ export const populateGraphDataForTempAndRH = (
     mode: 'markers',
     type: 'scatter',
     marker: { color: graphProps.tempColor, symbol: graphProps.symbol },
-    hovertemplate: `${graphProps.tempName}: %{y:.2f} (°C)<extra></extra>`
+    hovertemplate: `${graphProps.tempName}: %{y:.2f} (°C)<extra></extra>`,
   }
   const tempVerticalLines: Data[] = tempMinMaxDates.map((date, idx) => ({
     x: graphProps.show ? [date, date] : [],
@@ -218,10 +218,10 @@ export const populateGraphDataForTempAndRH = (
     name: graphProps.tempName,
     line: {
       color: graphProps.tempColor,
-      width: 3
+      width: 3,
     },
     hoverinfo: 'skip',
-    showlegend: false
+    showlegend: false,
   }))
   const biasAdjTempLine: Data = {
     x: graphProps.show ? biasAdjTempDates : [],
@@ -233,9 +233,9 @@ export const populateGraphDataForTempAndRH = (
     line: {
       color: graphProps.tempColor,
       width: 2,
-      dash: graphProps.dash
+      dash: graphProps.dash,
     },
-    hovertemplate: `${graphProps.tempName}: %{y:.2f} (°C)<extra></extra>`
+    hovertemplate: `${graphProps.tempName}: %{y:.2f} (°C)<extra></extra>`,
   }
   const tempLine: Data = {
     x: graphProps.show ? tempDates : [],
@@ -247,9 +247,9 @@ export const populateGraphDataForTempAndRH = (
     line: {
       color: graphProps.tempColor,
       width: 2,
-      dash: graphProps.dash
+      dash: graphProps.dash,
     },
-    hovertemplate: `${graphProps.tempName}: %{y:.2f} (°C)<extra></extra>`
+    hovertemplate: `${graphProps.tempName}: %{y:.2f} (°C)<extra></extra>`,
   }
   const temp5thLine: Data = {
     x: graphProps.show ? tempPercentileDates : [],
@@ -260,7 +260,7 @@ export const populateGraphDataForTempAndRH = (
     line: { width: 0 },
     marker: { color: '444' },
     hoverinfo: 'skip',
-    showlegend: false
+    showlegend: false,
   }
   const temp90thLine: Data = {
     x: graphProps.show ? tempPercentileDates : [],
@@ -272,7 +272,7 @@ export const populateGraphDataForTempAndRH = (
     marker: { color: '444' },
     fill: 'tonexty',
     fillcolor: graphProps.tempPlumeColor,
-    hoverinfo: 'skip'
+    hoverinfo: 'skip',
   }
 
   const dewpointDots: Data = {
@@ -282,7 +282,7 @@ export const populateGraphDataForTempAndRH = (
     mode: 'markers',
     type: 'scatter',
     marker: { color: graphProps.dewpointColor, symbol: graphProps.symbol },
-    hovertemplate: `${graphProps.dewpointName}: %{y:.2f} (°C)<extra></extra>`
+    hovertemplate: `${graphProps.dewpointName}: %{y:.2f} (°C)<extra></extra>`,
   }
   const dewpointLine: Data = {
     x: graphProps.show ? dewpointDates : [],
@@ -294,9 +294,9 @@ export const populateGraphDataForTempAndRH = (
     line: {
       color: graphProps.dewpointColor,
       width: 2,
-      dash: graphProps.dash
+      dash: graphProps.dash,
     },
-    hovertemplate: `${graphProps.dewpointName}: %{y:.2f} (°C)<extra></extra>`
+    hovertemplate: `${graphProps.dewpointName}: %{y:.2f} (°C)<extra></extra>`,
   }
 
   const rhDots: Data = {
@@ -308,7 +308,7 @@ export const populateGraphDataForTempAndRH = (
     type: 'scatter',
     showlegend: graphProps.show,
     marker: { color: graphProps.rhColor, symbol: graphProps.symbol },
-    hovertemplate: `${graphProps.rhName}: %{y:.2f} (%)<extra></extra>`
+    hovertemplate: `${graphProps.rhName}: %{y:.2f} (%)<extra></extra>`,
   }
   const rhVerticalLines: Data[] = rhMinMaxDates.map((date, idx) => ({
     x: graphProps.show ? [date, date] : [],
@@ -318,10 +318,10 @@ export const populateGraphDataForTempAndRH = (
     yaxis: 'y2',
     line: {
       color: graphProps.rhColor,
-      width: 3
+      width: 3,
     },
     hoverinfo: 'skip',
-    showlegend: false
+    showlegend: false,
   }))
   const biasAdjRHLine: Data = {
     x: graphProps.show ? biasAdjRHDates : [],
@@ -334,9 +334,9 @@ export const populateGraphDataForTempAndRH = (
     line: {
       color: graphProps.rhColor,
       width: 2,
-      dash: graphProps.dash
+      dash: graphProps.dash,
     },
-    hovertemplate: `${graphProps.rhName}: %{y:.2f} (%)<extra></extra>`
+    hovertemplate: `${graphProps.rhName}: %{y:.2f} (%)<extra></extra>`,
   }
   const rhLine: Data = {
     x: graphProps.show ? rhDates : [],
@@ -349,9 +349,9 @@ export const populateGraphDataForTempAndRH = (
     line: {
       color: graphProps.rhColor,
       width: 2,
-      dash: graphProps.dash
+      dash: graphProps.dash,
     },
-    hovertemplate: `${graphProps.rhName}: %{y:.2f} (%)<extra></extra>`
+    hovertemplate: `${graphProps.rhName}: %{y:.2f} (%)<extra></extra>`,
   }
   const rh5thLine: Data = {
     x: graphProps.show ? rhPercentileDates : [],
@@ -363,7 +363,7 @@ export const populateGraphDataForTempAndRH = (
     line: { width: 0 },
     marker: { color: '444' },
     hoverinfo: 'skip',
-    showlegend: false
+    showlegend: false,
   }
   const rh90thLine: Data = {
     x: graphProps.show ? rhPercentileDates : [],
@@ -376,7 +376,7 @@ export const populateGraphDataForTempAndRH = (
     marker: { color: '444' },
     fill: 'tonexty',
     fillcolor: graphProps.rhPlumeColor,
-    hoverinfo: 'skip'
+    hoverinfo: 'skip',
   }
 
   const maxTempDewpoint = findMaxNumber([...tempValues, ...dewpointValues])
@@ -398,7 +398,7 @@ export const populateGraphDataForTempAndRH = (
     dewpointDots,
     dewpointLine,
     maxTempDewpoint,
-    minTempDewpoint
+    minTempDewpoint,
   }
 }
 
@@ -500,10 +500,10 @@ export const populateGraphDataForPrecip = (
     name,
     type: 'bar',
     marker: {
-      color: show ? color : 'transparent'
+      color: show ? color : 'transparent',
     },
     hoverinfo: show ? 'y' : 'skip',
-    hovertemplate: show ? `${name}: %{y:.2f} (mm)<extra></extra>` : undefined
+    hovertemplate: show ? `${name}: %{y:.2f} (mm)<extra></extra>` : undefined,
   }
 
   const accumPrecipsline: Data = {
@@ -513,13 +513,13 @@ export const populateGraphDataForPrecip = (
     mode: 'lines',
     yaxis: 'y2',
     marker: {
-      color
+      color,
     },
     line: {
-      width: 2.5
+      width: 2.5,
     },
     hoverinfo: 'y',
-    hovertemplate: show ? `Accumulated ${name}: %{y:.2f} (mm)<extra></extra>` : undefined
+    hovertemplate: show ? `Accumulated ${name}: %{y:.2f} (mm)<extra></extra>` : undefined,
   }
 
   const maxAccumPrecip = findMaxNumber(accumPrecips)
@@ -527,7 +527,7 @@ export const populateGraphDataForPrecip = (
   return {
     dailyPrecipsBar,
     accumPrecipsline,
-    maxAccumPrecip
+    maxAccumPrecip,
   }
 }
 
@@ -582,9 +582,9 @@ const rotatePoints = (points: Point[], angle: number, cw = true): Point[] => {
     theta = -theta
   }
 
-  return points.map(point => [
+  return points.map((point) => [
     point[0] * Math.cos(theta) - point[1] * Math.sin(theta),
-    point[1] * Math.cos(theta) + point[0] * Math.sin(theta)
+    point[1] * Math.cos(theta) + point[0] * Math.sin(theta),
   ])
 }
 
@@ -609,8 +609,8 @@ const createPath = (
     xanchor: formatDateInPST(datetime),
     yanchor: wind_speed,
     line: {
-      color: show ? colour : 'transparent'
-    }
+      color: show ? colour : 'transparent',
+    },
   }
 }
 
@@ -659,10 +659,10 @@ export const populateGraphDataForWind = (
     type: 'scatter',
     line: {
       color: lineColor,
-      width: 2
+      width: 2,
     },
     text: windSpdsTexts,
-    hovertemplate: `${name}: %{y:.2f} km/h, %{text}°<extra></extra>`
+    hovertemplate: `${name}: %{y:.2f} km/h, %{text}°<extra></extra>`,
   }
 
   const maxWindSpd = findMaxNumber(windSpds)
