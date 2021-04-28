@@ -10,7 +10,6 @@ import WxStationDropdown from 'features/fireWeather/components/WxStationDropdown
 import { selectFireWeatherStations } from 'app/rootReducer'
 import { selectStation, selectStations } from 'features/stations/slices/stationsSlice'
 
-
 const useStyles = makeStyles({
   form: {
     display: 'flex',
@@ -49,9 +48,7 @@ const WxDataForm = ({
 }: Props) => {
   const classes = useStyles()
   const history = useHistory()
-  const {
-    selectedStationsByCode
-  } = useSelector(selectFireWeatherStations)
+  const { selectedStationsByCode } = useSelector(selectFireWeatherStations)
 
   selectStations(stationCodesQuery)
   const shouldGetBtnDisabled = selectedStationsByCode.length === 0

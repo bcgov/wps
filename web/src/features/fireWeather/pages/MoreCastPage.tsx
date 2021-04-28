@@ -5,7 +5,7 @@ import { makeStyles } from '@material-ui/core/styles'
 
 import { PageHeader } from 'components'
 import { getStationCodesFromUrl, getTimeOfInterestFromUrl } from 'utils/url'
-import { fetchWxStations, selectStations} from 'features/stations/slices/stationsSlice'
+import { fetchWxStations, selectStations } from 'features/stations/slices/stationsSlice'
 import { fetchGlobalModelsWithBiasAdj } from 'features/fireWeather/slices/modelsSlice'
 import { fetchObservations } from 'features/fireWeather/slices/observationsSlice'
 import { fetchForecasts } from 'features/fireWeather/slices/forecastsSlice'
@@ -72,9 +72,7 @@ const MoreCastPage = () => {
   const toiFromQuery = getTimeOfInterestFromUrl(location.search)
 
   const selectedCodes: number[] = codesFromQuery
-  const {
-    selectedStationsByCode
-  } = useSelector(selectFireWeatherStations)
+  const { selectedStationsByCode } = useSelector(selectFireWeatherStations)
 
   // codesOfRetrievedStationData[] represents the station codes for which weather data has
   // been retrieved (and therefore the station should appear in WxDataDisplays)
