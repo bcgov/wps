@@ -94,6 +94,7 @@ const calculateAccumulatedPrecip = (
       const precipDate = DateTime.fromISO(value.datetime).toJSDate()
       if (precipDate >= from && precipDate <= to) {
         if (value.delta_precipitation) {
+          // TODO: keep track of model runs used
           if (accumulatedPrecip === undefined) {
             accumulatedPrecip = value.delta_precipitation
           } else {

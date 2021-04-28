@@ -6,7 +6,7 @@ import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style'
 import { FeatureLike } from 'ol/Feature'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 
-import Map from 'features/map/Map'
+import Map, { RedrawCommand } from 'features/map/Map'
 import TileLayer from 'features/map/TileLayer'
 import VectorLayer from 'features/map/VectorLayer'
 import { useDispatch, useSelector } from 'react-redux'
@@ -31,14 +31,16 @@ const pointStyleFunction = (feature: any, resolution: number) => {
 const BC_ROAD_BASE_MAP_SERVER_URL =
   'https://maps.gov.bc.ca/arcgis/rest/services/province/roads_wm/MapServer'
 
-const center = [-123.3656, 51.4484] // BC
 const zoom = 6
 
 interface Props {
-  redrawFlag?: boolean
+  redrawFlag?: RedrawCommand
+  center: number[]
+  isCollapsed: boolean
+  setMapCenter: (newCenter: number[]) => void
 }
 
-const WeatherMap = ({ redrawFlag }: Props) => {
+const WeatherMap = ({ redrawFlag, center, isCollapsed, setMapCenter }: Props) => {
   const dispatch = useDispatch()
 
   const { stations } = useSelector(selectFireWeatherStations)
@@ -60,6 +62,8 @@ const WeatherMap = ({ redrawFlag }: Props) => {
   return (
     <Map
       center={fromLonLat(center)}
+      isCollapsed={isCollapsed}
+      setMapCenter={setMapCenter}
       zoom={zoom}
       renderTooltip={renderTooltip}
       redrawFlag={redrawFlag}

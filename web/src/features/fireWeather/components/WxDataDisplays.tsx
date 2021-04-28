@@ -29,6 +29,7 @@ import { ObservedValue } from 'api/observationAPI'
 import { ModelSummary, ModelValue } from 'api/modelAPI'
 import { ForecastSummary, NoonForecastValue } from 'api/forecastAPI'
 import { SidePanelEnum } from 'features/fireWeather/components/SidePanel'
+import { RedrawCommand } from 'features/map/Map'
 
 const useStyles = makeStyles({
   displays: {
@@ -49,6 +50,7 @@ const useStyles = makeStyles({
 interface WxDataDisplaysProps {
   showTableView: string
   timeOfInterest: string
+  expandedOrCollapsed?: RedrawCommand
   stationCodes: number[]
   wxDataLoading: boolean
   stationsByCode: Record<number, GeoJsonStation | undefined>
@@ -220,10 +222,10 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
               <SingleStationFragment
                 view={props.showTableView}
                 code={code}
-                observations={observations}
                 noonOnlyGdpsModels={noonOnlyGdpsModels}
                 station={station}
                 timeOfInterest={props.timeOfInterest}
+                observations={observations}
                 noonForecasts={noonForecasts}
                 noonForecastSummaries={noonForecastSummaries}
                 hrdpsModels={hrdpsModels}
@@ -243,6 +245,7 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
 interface WxDataDisplaysWrapperProps {
   showTableView: string
   timeOfInterest: string
+  expandedOrCollapsed?: { redraw: boolean }
   stationCodes: number[]
 }
 
