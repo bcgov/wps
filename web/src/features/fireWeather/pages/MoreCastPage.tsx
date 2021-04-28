@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { useLocation } from 'react-router-dom'
 import { makeStyles } from '@material-ui/core/styles'
 
 import { PageHeader } from 'components'
 import { getStationCodesFromUrl, getTimeOfInterestFromUrl } from 'utils/url'
-import { fetchWxStations } from 'features/stations/slices/stationsSlice'
+import { fetchWxStations, selectStations} from 'features/stations/slices/stationsSlice'
 import { fetchGlobalModelsWithBiasAdj } from 'features/fireWeather/slices/modelsSlice'
 import { fetchObservations } from 'features/fireWeather/slices/observationsSlice'
 import { fetchForecasts } from 'features/fireWeather/slices/forecastsSlice'
@@ -22,6 +22,8 @@ import SidePanel from 'features/fireWeather/components/SidePanel'
 import NetworkErrorMessages from 'features/fireWeather/components/NetworkErrorMessages'
 import WeatherMap from 'features/fireWeather/components/maps/WeatherMap'
 import { getStations } from 'api/stationAPI'
+import { selectFireWeatherStations } from 'app/rootReducer'
+
 
 const useStyles = makeStyles(theme => ({
   main: {
@@ -66,18 +68,23 @@ const MoreCastPage = () => {
   const codesFromQuery = getStationCodesFromUrl(location.search)
   const toiFromQuery = getTimeOfInterestFromUrl(location.search)
 
-  // selectedCodes[] represents the station codes that the user has selected from
-  // either the station dropdown or the map. Weather data for these stations
-  // has not necessarily been retrieved
-  const [selectedCodes, _setSelectedCodes] = useState<number[]>(codesFromQuery)
-  // need to customize setSelectedCodes function to remove duplicate station codes
-  // (can happen if a station is selected from the map twice, or from the map and
-  // the dropdown)
-  const setSelectedCodes = (codes: number[]) => {
-    const selectedCodesSet = new Set(codes)
-    const dedupedSelectedCodes = Array.from(selectedCodesSet.values())
-    _setSelectedCodes(dedupedSelectedCodes)
-  }
+  const selectedCodes: number[] = codesFromQuery
+  const {
+    selectedStationsByCode
+  } = useSelector(selectFireWeatherStations)
+
+  // // selectedCodes[] represents the station codes that the user has selected from
+  // // either the station dropdown or the map. Weather data for these stations
+  // // has not necessarily been retrieved
+  // const [selectedCodes, _setSelectedCodes] = useState<number[]>(codesFromQuery)
+  // // need to customize setSelectedCodes function to remove duplicate station codes
+  // // (can happen if a station is selected from the map twice, or from the map and
+  // // the dropdown)
+  // const setSelectedCodes = (codes: number[]) => {
+  //   const selectedCodesSet = new Set(codes)
+  //   const dedupedSelectedCodes = Array.from(selectedCodesSet.values())
+  //   _setSelectedCodes(dedupedSelectedCodes)
+  // }
   // codesOfRetrievedStationData[] represents the station codes for which weather data has
   // been retrieved (and therefore the station should appear in WxDataDisplays)
   const [codesOfRetrievedStationData, setCodesOfRetrievedStationData] = useState<
@@ -99,20 +106,19 @@ const MoreCastPage = () => {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (selectedCodes.length > 0) {
-      dispatch(fetchObservations(selectedCodes, timeOfInterest))
-      dispatch(fetchForecasts(selectedCodes, timeOfInterest))
-      dispatch(fetchForecastSummaries(selectedCodes, timeOfInterest))
-      dispatch(fetchHighResModels(selectedCodes, timeOfInterest))
-      dispatch(fetchHighResModelSummaries(selectedCodes, timeOfInterest))
-      dispatch(fetchRegionalModels(selectedCodes, timeOfInterest))
-      dispatch(fetchRegionalModelSummaries(selectedCodes, timeOfInterest))
-      dispatch(fetchGlobalModelsWithBiasAdj(selectedCodes, timeOfInterest))
-      dispatch(fetchGlobalModelSummaries(selectedCodes, timeOfInterest))
+    if (selectedStationsByCode.length > 0) {
+      dispatch(fetchObservations(selectedStationsByCode, timeOfInterest))
+      dispatch(fetchForecasts(selectedStationsByCode, timeOfInterest))
+      dispatch(fetchForecastSummaries(selectedStationsByCode, timeOfInterest))
+      dispatch(fetchHighResModels(selectedStationsByCode, timeOfInterest))
+      dispatch(fetchHighResModelSummaries(selectedStationsByCode, timeOfInterest))
+      dispatch(fetchRegionalModels(selectedStationsByCode, timeOfInterest))
+      dispatch(fetchRegionalModelSummaries(selectedStationsByCode, timeOfInterest))
+      dispatch(fetchGlobalModelsWithBiasAdj(selectedStationsByCode, timeOfInterest))
+      dispatch(fetchGlobalModelSummaries(selectedStationsByCode, timeOfInterest))
     }
     // Update local state to match with the query url
-    setSelectedCodes(selectedCodes)
-    setCodesOfRetrievedStationData(selectedCodes)
+    setCodesOfRetrievedStationData(selectedStationsByCode)
     setTimeOfInterest(timeOfInterest)
   }, [location]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -121,20 +127,15 @@ const MoreCastPage = () => {
       <PageHeader title="MoreCast" productName="MoreCast" noContainer padding={25} />
       <div className={classes.nav}>
         <WxDataForm
-          stationCodesQuery={selectedCodes}
+          stationCodesQuery={selectedStationsByCode}
           timeOfInterestQuery={timeOfInterest}
-          setSelectedStationCodes={_setSelectedCodes}
           setSelectedTimeOfInterest={setTimeOfInterest}
           openSidePanel={openSidePanel}
         />
       </div>
       <div className={classes.content}>
         <div className={classes.map}>
-          <WeatherMap
-            redrawFlag={showSidePanel}
-            selectedStationCodes={selectedCodes}
-            setSelectedStationCodes={setSelectedCodes}
-          />
+          <WeatherMap redrawFlag={showSidePanel} />
         </div>
         <SidePanel
           show={showSidePanel}

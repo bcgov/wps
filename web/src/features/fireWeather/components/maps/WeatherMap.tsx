@@ -7,7 +7,7 @@ import * as olSource from 'ol/source'
 import GeoJSON from 'ol/format/GeoJSON'
 import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style'
 import { FeatureLike } from 'ol/Feature'
-import { fetchWxStations } from 'features/stations/slices/stationsSlice'
+import { fetchWxStations, selectStations, selectStation } from 'features/stations/slices/stationsSlice'
 
 import Map from 'features/map/Map'
 import TileLayer from 'features/map/TileLayer'
@@ -37,47 +37,40 @@ const zoom = 6
 
 interface Props {
   redrawFlag?: boolean
-  selectedStationCodes: number[]
-  setSelectedStationCodes: (codes: number[]) => void
 }
 
-const WeatherMap = ({
-  redrawFlag,
-  selectedStationCodes,
-  setSelectedStationCodes
-}: Props) => {
+const WeatherMap = ({ redrawFlag }: Props) => {
   const dispatch = useDispatch()
 
-  const { stations } = useSelector(selectFireWeatherStations)
+  const { stations, selectedStationsByCode } = useSelector(selectFireWeatherStations)
 
   useEffect(() => {
     dispatch(fetchWxStations(getDetailedStations))
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const renderTooltip = useCallback(
-    (feature: FeatureLike | null) => {
-      if (!feature) return null
+  console.log('whhhyyyyyyy')
 
-      return (
-        <div>
-          <p>
-            {feature.get('name')} ({feature.get('code')})
-          </p>
-          <Button
-            variant="outlined"
-            size="small"
-            onClick={() => {
-              setSelectedStationCodes([...selectedStationCodes, feature.get('code')])
-            }}
-            data-testid={`select-wx-station-${feature.get('code')}-button`}
-          >
-            Select
-          </Button>
-        </div>
-      )
-    },
-    [selectedStationCodes, setSelectedStationCodes]
-  )
+  const renderTooltip = useCallback((feature: FeatureLike | null) => {
+    if (!feature) return null
+
+    return (
+      <div data-testid={`station-${feature.get('code')}-tooltip`}>
+        <p>
+          {feature.get('name')} ({feature.get('code')})
+        </p>
+        <Button
+          variant="outlined"
+          size="small"
+          onClick={() => {
+            dispatch(selectStation(feature.get('code')))
+          }}
+          data-testid={`select-wx-station-${feature.get('code')}-button`}
+        >
+          Select
+        </Button>
+      </div>
+    )
+  }, [])
 
   return (
     <Map

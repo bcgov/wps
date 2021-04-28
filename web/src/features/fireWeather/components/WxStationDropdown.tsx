@@ -1,5 +1,5 @@
 import React from 'react'
-import { useSelector } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
 import Autocomplete from '@material-ui/lab/Autocomplete'
 import { TextField } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
@@ -7,6 +7,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import { selectFireWeatherStations } from 'app/rootReducer'
 import { getSelectedStationOptions } from 'utils/dropdown'
 import { GeoJsonStation } from 'api/stationAPI'
+import { selectStation, deselectStation, selectStations } from 'features/stations/slices/stationsSlice'
 
 const useStyles = makeStyles({
   autocomplete: {
@@ -27,10 +28,12 @@ export interface Option {
 interface Props {
   className?: string
   stationCodes: number[]
-  onChange: (codes: number[]) => void
+  onChange: (code: number) => void
 }
 
 const WxStationDropdown = (props: Props) => {
+  const dispatch = useDispatch()
+
   const classes = useStyles()
   const {
     loading: fetchingStations,
@@ -64,7 +67,9 @@ const WxStationDropdown = (props: Props) => {
           getOptionLabel={option => `${option.name} (${option.code})`}
           getOptionSelected={(option, value) => option.code === value.code}
           onChange={(_, options) => {
-            props.onChange(options.map(s => s.code))
+            options.forEach(option => {
+              dispatch(selectStation(option.code))
+            })
           }}
           size="small"
           value={selectedStationOptions}

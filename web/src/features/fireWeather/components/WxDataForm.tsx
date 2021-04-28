@@ -1,4 +1,5 @@
 import React, { Dispatch, SetStateAction } from 'react'
+import { useSelector } from 'react-redux'
 import { makeStyles } from '@material-ui/core/styles'
 import { useHistory } from 'react-router-dom'
 
@@ -6,6 +7,9 @@ import TimeOfInterestPicker from 'features/fireWeather/components/TimeOfInterest
 import GetWxDataButton from 'features/fireWeather/components/GetWxDataButton'
 import { stationCodeQueryKey, timeOfInterestQueryKey } from 'utils/url'
 import WxStationDropdown from 'features/fireWeather/components/WxStationDropdown'
+import { selectFireWeatherStations } from 'app/rootReducer'
+import { selectStation, selectStations } from 'features/stations/slices/stationsSlice'
+
 
 const useStyles = makeStyles({
   form: {
@@ -33,7 +37,6 @@ interface Props {
   className?: string
   stationCodesQuery: number[]
   timeOfInterestQuery: string
-  setSelectedStationCodes: Dispatch<SetStateAction<number[]>>
   setSelectedTimeOfInterest: Dispatch<SetStateAction<string>>
   openSidePanel: () => void
 }
@@ -41,14 +44,17 @@ interface Props {
 const WxDataForm = ({
   stationCodesQuery,
   timeOfInterestQuery,
-  setSelectedStationCodes,
   setSelectedTimeOfInterest,
   openSidePanel
 }: Props) => {
   const classes = useStyles()
   const history = useHistory()
+  const {
+    selectedStationsByCode
+  } = useSelector(selectFireWeatherStations)
 
-  const shouldGetBtnDisabled = stationCodesQuery.length === 0
+  selectStations(stationCodesQuery)
+  const shouldGetBtnDisabled = selectedStationsByCode.length === 0
 
   const handleSubmit = () => {
     // Open the side panel
@@ -57,7 +63,7 @@ const WxDataForm = ({
     // Update the url query with the new station codes and time of interest
     history.push({
       search:
-        `${stationCodeQueryKey}=${stationCodesQuery.join(',')}&` +
+        `${stationCodeQueryKey}=${selectedStationsByCode.join(',')}&` +
         `${timeOfInterestQueryKey}=${timeOfInterestQuery}`
     })
 
@@ -69,7 +75,7 @@ const WxDataForm = ({
       // see: https://developer.matomo.org/guides/tagmanager/integration-plugin#supporting-the-data-layer
       window._mtm.push({
         event: 'getWeatherData',
-        stationCodes: stationCodesQuery,
+        stationCodes: selectedStationsByCode,
         timeOfInterest: timeOfInterestQuery
       })
     }
@@ -79,8 +85,8 @@ const WxDataForm = ({
     <form className={classes.form} noValidate>
       <WxStationDropdown
         className={classes.stationDropdown}
-        stationCodes={stationCodesQuery}
-        onChange={setSelectedStationCodes}
+        stationCodes={selectedStationsByCode}
+        onChange={selectStation}
       />
       <TimeOfInterestPicker
         className={classes.timeOfInterest}
