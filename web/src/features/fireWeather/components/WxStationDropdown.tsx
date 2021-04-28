@@ -7,10 +7,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import { selectFireWeatherStations } from 'app/rootReducer'
 import { getSelectedStationOptions } from 'utils/dropdown'
 import { GeoJsonStation } from 'api/stationAPI'
-import {
-  selectStations,
-  deselectAllStations
-} from 'features/stations/slices/stationsSlice'
+import { selectStations } from 'features/stations/slices/stationsSlice'
 
 const useStyles = makeStyles({
   autocomplete: {
@@ -31,7 +28,6 @@ export interface Option {
 interface Props {
   className?: string
   stationCodes: number[]
-  onChange: (code: number) => void
 }
 
 const WxStationDropdown = (props: Props) => {
@@ -71,7 +67,6 @@ const WxStationDropdown = (props: Props) => {
           getOptionLabel={option => `${option.name} (${option.code})`}
           getOptionSelected={(option, value) => option.code === value.code}
           onChange={(_, options) => {
-            dispatch(deselectAllStations)
             dispatch(selectStations(options.map(s => s.code)))
           }}
           size="small"
