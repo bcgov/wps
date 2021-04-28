@@ -8,13 +8,13 @@ import WxStationDropdown from 'features/percentileCalculator/components/WxStatio
 import { PercentileTextfield } from 'features/percentileCalculator/components/PercentileTextfield'
 import {
   fetchPercentiles,
-  resetPercentilesResult,
+  resetPercentilesResult
 } from 'features/percentileCalculator/slices/percentilesSlice'
 import { PercentileActionButtons } from 'features/percentileCalculator/components/PercentileActionButtons'
 import PercentileResults from 'features/percentileCalculator/components/PercentileResults'
 import {
   TimeRangeSlider,
-  yearWhenTheCalculationIsDone,
+  yearWhenTheCalculationIsDone
 } from 'features/percentileCalculator/components/TimeRangeSlider'
 import { getStationCodesFromUrl, stationCodeQueryKey } from 'utils/url'
 import { getStations, StationSource } from 'api/stationAPI'
@@ -32,7 +32,7 @@ const PercentileCalculatorPage = () => {
   const [timeRange, setTimeRange] = useState<number>(defaultTimeRange)
   const yearRange = {
     start: yearWhenTheCalculationIsDone - timeRange,
-    end: yearWhenTheCalculationIsDone - 1,
+    end: yearWhenTheCalculationIsDone - 1
   }
 
   useEffect(() => {
@@ -63,7 +63,7 @@ const PercentileCalculatorPage = () => {
         event: 'calculatePercentiles',
         stationCodes,
         percentile: defaultPercentile,
-        yearRange: yearRange,
+        yearRange: yearRange
       })
     }
   }

@@ -1,7 +1,7 @@
 import {
   getDatetimeComparator,
   getMinMaxValueCalculator,
-  getMinMaxValuesRowIds,
+  getMinMaxValuesRowIds
 } from 'utils/table'
 import {
   dummyWeatherData,
@@ -16,7 +16,7 @@ import {
   correctMinMaxValuesNullValues,
   correctMinMaxRowIds,
   correctMinMaxRowIdsNoPrecip,
-  correctMinMaxRowIdsNoWind,
+  correctMinMaxRowIdsNoWind
 } from 'utils/table.test.data'
 
 describe('Table util functions', () => {
@@ -28,7 +28,7 @@ describe('Table util functions', () => {
         { datetime: '2020-12-09T23:00:00+00:00', meta: 'hmm' },
         { datetime: '2020-12-09T21:00:00+00:00' },
         { datetime: '2020-12-09T20:00:00+00:00' },
-        { datetime: '2020-12-09T22:00:00+00:00' },
+        { datetime: '2020-12-09T22:00:00+00:00' }
       ]
       const deepCopy = JSON.parse(JSON.stringify(arr))
 
@@ -36,14 +36,14 @@ describe('Table util functions', () => {
         { datetime: '2020-12-09T20:00:00+00:00' },
         { datetime: '2020-12-09T21:00:00+00:00' },
         { datetime: '2020-12-09T22:00:00+00:00' },
-        { datetime: '2020-12-09T23:00:00+00:00', meta: 'hmm' },
+        { datetime: '2020-12-09T23:00:00+00:00', meta: 'hmm' }
       ])
 
       expect([...arr].sort(descending)).toEqual([
         { datetime: '2020-12-09T23:00:00+00:00', meta: 'hmm' },
         { datetime: '2020-12-09T22:00:00+00:00' },
         { datetime: '2020-12-09T21:00:00+00:00' },
-        { datetime: '2020-12-09T20:00:00+00:00' },
+        { datetime: '2020-12-09T20:00:00+00:00' }
       ])
 
       expect(arr).toEqual(deepCopy)

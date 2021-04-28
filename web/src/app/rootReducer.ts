@@ -30,7 +30,7 @@ const rootReducer = combineReducers({
   highResModels: highResModelsReducer,
   highResModelSummaries: highResModelSummariesReducer,
   regionalModels: regionalModelsReducer,
-  regionalModelSummaries: regionalModelSummariesReducer,
+  regionalModelSummaries: regionalModelSummariesReducer
 })
 
 // Infer whatever gets returned from rootReducer and use it as the type of the root state

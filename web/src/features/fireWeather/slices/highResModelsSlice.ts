@@ -18,7 +18,7 @@ const initialState: State = {
   error: null,
   allHighResModelsByStation: {},
   pastHighResModelsByStation: {},
-  highResModelsByStation: {},
+  highResModelsByStation: {}
 }
 
 const highResModelsSlice = createSlice({
@@ -48,14 +48,14 @@ const highResModelsSlice = createSlice({
         }
       })
       state.loading = false
-    },
-  },
+    }
+  }
 })
 
 export const {
   getHighResModelsStart,
   getHighResModelsFailed,
-  getHighResModelsSuccess,
+  getHighResModelsSuccess
 } = highResModelsSlice.actions
 
 export default highResModelsSlice.reducer
@@ -63,7 +63,7 @@ export default highResModelsSlice.reducer
 export const fetchHighResModels = (
   codes: number[],
   timeOfInterest: string
-): AppThunk => async (dispatch) => {
+): AppThunk => async dispatch => {
   try {
     dispatch(getHighResModelsStart())
     const modelsForStations = await getModelsWithBiasAdj(codes, 'HRDPS', timeOfInterest)

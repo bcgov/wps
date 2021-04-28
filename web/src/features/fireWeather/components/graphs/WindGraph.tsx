@@ -13,7 +13,7 @@ import {
   findMinNumber,
   populateGraphDataForWind,
   populateTimeOfInterestLineData,
-  rangeSliderConfig,
+  rangeSliderConfig
 } from 'features/fireWeather/components/graphs/plotlyHelper'
 import { RedrawCommand } from 'features/map/Map'
 
@@ -52,7 +52,7 @@ const WindGraph = (props: Props) => {
     noonForecasts,
     gdpsModels,
     rdpsModels,
-    hrdpsModels,
+    hrdpsModels
   } = props
   const { showObservations, showForecasts, showGdps, showRdps, showHrdps } = toggleValues
 
@@ -97,14 +97,14 @@ const WindGraph = (props: Props) => {
     forecastData.maxWindSpd,
     gdpsData.maxWindSpd,
     rdpsData.maxWindSpd,
-    hrdpsData.maxWindSpd,
+    hrdpsData.maxWindSpd
   ])
   const minWindSpd = findMinNumber([
     observationData.minWindSpd,
     forecastData.minWindSpd,
     gdpsData.minWindSpd,
     rdpsData.minWindSpd,
-    hrdpsData.minWindSpd,
+    hrdpsData.minWindSpd
   ])
   const timeOfInterestLine = populateTimeOfInterestLineData(
     timeOfInterest,
@@ -116,7 +116,7 @@ const WindGraph = (props: Props) => {
   const setRevision = useState(0)[1]
 
   useEffect(() => {
-    setRevision((revision) => revision + 1)
+    setRevision(revision => revision + 1)
   }, [expandedOrCollapsed, setRevision])
 
   return (
@@ -124,7 +124,7 @@ const WindGraph = (props: Props) => {
       <Plot
         style={{ width: '100%', height: '100%' }}
         config={{ responsive: true }}
-        onLegendClick={(event) => {
+        onLegendClick={event => {
           // We cannot group the shapes (arrows) with the legend (https://github.com/plotly/plotly.js/issues/98)
           // So we loop through the corresponding shapes (arrows) to toggle them on and off.
           // It's not very fast, but it works.
@@ -155,7 +155,7 @@ const WindGraph = (props: Props) => {
               break
           }
 
-          event.layout.shapes?.forEach((shape) => {
+          event.layout.shapes?.forEach(shape => {
             if (clickedLegend && clickedLegend === shape.name) {
               shape.visible = !shape.visible
             }
@@ -169,7 +169,7 @@ const WindGraph = (props: Props) => {
           rdpsData.windSpdLine,
           hrdpsData.windSpdLine,
           forecastData.windSpdLine,
-          observationData.windSpdLine,
+          observationData.windSpdLine
         ]}
         layout={{
           ...getLayoutConfig(
@@ -181,20 +181,20 @@ const WindGraph = (props: Props) => {
             hoverformat: '%I:00%p, %a, %b %e (PST)', // https://github.com/d3/d3-3.x-api-reference/blob/master/Time-Formatting.md#format
             tickfont: { size: 14 },
             type: 'date',
-            dtick: 86400000.0, // Set the interval between ticks to one day: https://plotly.com/javascript/reference/#scatter-marker-colorbar-dtick
+            dtick: 86400000.0 // Set the interval between ticks to one day: https://plotly.com/javascript/reference/#scatter-marker-colorbar-dtick
           },
           yaxis: {
             title: 'Wind Speed (km/h)',
             tickfont: { size: 14 },
-            fixedrange: true,
+            fixedrange: true
           },
           shapes: [
             ...gdpsData.windDirArrows,
             ...rdpsData.windDirArrows,
             ...hrdpsData.windDirArrows,
             ...forecastData.windDirArrows,
-            ...observationData.windDirArrows,
-          ],
+            ...observationData.windDirArrows
+          ]
         }}
       />
     </div>

@@ -10,13 +10,13 @@ import { GeoJsonStation } from 'api/stationAPI'
 
 const useStyles = makeStyles({
   autocomplete: {
-    width: '100%',
+    width: '100%'
   },
   wrapper: {
     display: 'flex',
     alignItems: 'flex-start',
-    minWidth: 300,
-  },
+    minWidth: 300
+  }
 })
 
 interface Option {
@@ -36,7 +36,7 @@ const WxStationDropdown = (props: Props) => {
     loading: fetchingStations,
     stations,
     stationsByCode,
-    error: errorFetchingStations,
+    error: errorFetchingStations
   } = useSelector(selectFireWeatherStations)
 
   const { isThereUnknownCode, selectedStationOptions } = getSelectedStationOptions(
@@ -48,7 +48,7 @@ const WxStationDropdown = (props: Props) => {
   const allStationOptions: Option[] = (stations as GeoJsonStation[]).map(
     (station: GeoJsonStation) => ({
       name: station.properties.name,
-      code: station.properties.code,
+      code: station.properties.code
     })
   )
 
@@ -61,13 +61,13 @@ const WxStationDropdown = (props: Props) => {
           data-testid="weather-station-dropdown"
           multiple
           options={allStationOptions}
-          getOptionLabel={(option) => `${option.name} (${option.code})`}
+          getOptionLabel={option => `${option.name} (${option.code})`}
           onChange={(_, options) => {
-            props.onChange(options.map((s) => s.code))
+            props.onChange(options.map(s => s.code))
           }}
           size="small"
           value={selectedStationOptions}
-          renderInput={(params) => (
+          renderInput={params => (
             <TextField
               {...params}
               label="Weather Stations"

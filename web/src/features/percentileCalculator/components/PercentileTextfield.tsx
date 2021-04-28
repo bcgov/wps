@@ -5,8 +5,8 @@ import { makeStyles } from '@material-ui/core/styles'
 const useStyles = makeStyles({
   root: {
     marginTop: 15,
-    width: 300,
-  },
+    width: 300
+  }
 })
 
 export const PercentileTextfield: React.FunctionComponent = () => {

@@ -27,7 +27,7 @@ const useStyles = makeStyles({
       position: 'absolute',
       backgroundColor: 'rgba(255,255,255,0.7)',
       borderRadius: 4,
-      padding: 2,
+      padding: 2
     },
     '& .ol-popup': {
       position: 'absolute',
@@ -42,9 +42,9 @@ const useStyles = makeStyles({
       // https://stackoverflow.com/a/9367930/11903963
       left: '50%',
       width: 'auto',
-      transform: 'translateX(-50%)',
-    },
-  },
+      transform: 'translateX(-50%)'
+    }
+  }
 })
 
 interface Props {
@@ -64,7 +64,7 @@ const Map = ({
   redrawFlag,
   isCollapsed,
   setMapCenter,
-  renderTooltip,
+  renderTooltip
 }: Props) => {
   const classes = useStyles()
   const overlayRef = useRef<HTMLDivElement | null>(null)
@@ -81,7 +81,7 @@ const Map = ({
       view: new ol.View({ zoom, center }),
       layers: [],
       overlays: [],
-      controls: defaultControls(),
+      controls: defaultControls()
     }
     let overlay: OLOverlay | undefined
 
@@ -96,14 +96,14 @@ const Map = ({
         element: overlayRef.current,
         autoPan: true,
         autoPanAnimation: {
-          duration: 250,
-        },
+          duration: 250
+        }
       })
 
       mapObject.addOverlay(overlay)
 
       // Hover listener for changing the mouse cursor when hovering features
-      mapObject.on('pointermove', (e) => {
+      mapObject.on('pointermove', e => {
         mapObject.getViewport().style.cursor = ''
         mapObject.forEachFeatureAtPixel(e.pixel, () => {
           mapObject.getViewport().style.cursor = 'pointer'
@@ -111,7 +111,7 @@ const Map = ({
       })
 
       // Click listener for displaying the popup
-      mapObject.on('singleclick', (e) => {
+      mapObject.on('singleclick', e => {
         // Hide the overlay if previously displayed
         overlay?.setPosition(undefined)
 
@@ -125,7 +125,7 @@ const Map = ({
     }
 
     // Center change listener to update our current center
-    mapObject.getView().on('change:center', (blah) => {
+    mapObject.getView().on('change:center', blah => {
       setCurrentCenter(blah.target.values_.center)
     })
 

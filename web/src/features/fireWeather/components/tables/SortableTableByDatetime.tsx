@@ -21,7 +21,7 @@ import {
   MinMaxValues,
   RowIdsOfMinMaxValues,
   getMinMaxValuesRowIds,
-  getCellClassNameAndTestId,
+  getCellClassNameAndTestId
 } from 'utils/table'
 
 const useStyles = makeStyles({
@@ -29,29 +29,29 @@ const useStyles = makeStyles({
     paddingBottom: 12,
 
     '& .MuiTableCell-sizeSmall': {
-      padding: '6px 12px 6px 6px',
-    },
+      padding: '6px 12px 6px 6px'
+    }
   },
   paper: {
-    width: '100%',
+    width: '100%'
   },
   tableContainer: {
-    maxHeight: 280,
+    maxHeight: 280
   },
   maxTemperature: {
-    background: '#ffb3b3',
+    background: '#ffb3b3'
   },
   minTemperature: {
-    background: '#84b8e7',
+    background: '#84b8e7'
   },
   minRH: {
-    background: '#f2994a',
+    background: '#f2994a'
   },
   maxPrecipitation: {
     fontWeight: 'bold',
     borderColor: 'rgba(0, 0, 0, 0.87)',
     borderStyle: 'solid',
-    borderWidth: '1px',
+    borderWidth: '1px'
   },
   maxWindSpeed: {
     fontWeight: 'bold',
@@ -60,7 +60,7 @@ const useStyles = makeStyles({
     borderTopWidth: '1px',
     borderBottomWidth: '1px',
     borderRightWidth: '1px',
-    borderLeftWidth: '0px',
+    borderLeftWidth: '0px'
   },
   directionOfMaxWindSpeed: {
     fontWeight: 'bold',
@@ -69,8 +69,8 @@ const useStyles = makeStyles({
     borderTopWidth: '1px',
     borderBottomWidth: '1px',
     borderLeftWidth: '1px',
-    borderRightWidth: '0px',
-  },
+    borderRightWidth: '0px'
+  }
 })
 
 export interface WeatherValue {
@@ -145,7 +145,7 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
               <Table stickyHeader size="small" aria-label="sortable wx table">
                 <TableHead>
                   <TableRow>
-                    {props.columns.map((column) => {
+                    {props.columns.map(column => {
                       const canSort = column.id === 'datetime'
                       return (
                         <TableCell
@@ -174,7 +174,7 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
                 <TableBody>
                   {rowsSortedByDatetime.map((row, idx) => (
                     <TableRow key={idx} hover tabIndex={-1}>
-                      {props.columns.map((column) => {
+                      {props.columns.map(column => {
                         const value = row[column.id]
                         let display = null
                         const { className, testId } = getCellClassNameAndTestId(

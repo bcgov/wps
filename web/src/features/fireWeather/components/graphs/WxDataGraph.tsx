@@ -16,8 +16,8 @@ import { RedrawCommand } from 'features/map/Map'
 
 const useStyles = makeStyles({
   display: {
-    paddingTop: 8,
-  },
+    paddingTop: 8
+  }
 })
 
 interface Props {
@@ -47,7 +47,7 @@ const WxDataGraph = ({
   rdpsModels = [],
   rdpsSummaries = [],
   gdpsModels = [],
-  gdpsSummaries = [],
+  gdpsSummaries = []
 }: Props) => {
   const classes = useStyles()
 
@@ -56,7 +56,7 @@ const WxDataGraph = ({
   const hasForecasts = noonForecasts.length !== 0
   const hasBiasAdjModels =
     gdpsModels.filter(
-      (v) => v.bias_adjusted_temperature || v.bias_adjusted_relative_humidity
+      v => v.bias_adjusted_temperature || v.bias_adjusted_relative_humidity
     ).length !== 0
   const hasHighResModels = hrdpsModels.length !== 0
   const hasRegionalModels = rdpsModels.length !== 0
@@ -69,7 +69,7 @@ const WxDataGraph = ({
    */
   const initialXAxisRange: [string, string] = [
     formatDateInPST(DateTime.fromISO(timeOfInterest).minus({ days: 2 })), // prettier-ignore
-    formatDateInPST(DateTime.fromISO(timeOfInterest).plus({ days: 2 })), // prettier-ignore
+    formatDateInPST(DateTime.fromISO(timeOfInterest).plus({ days: 2 })) // prettier-ignore
   ]
   const [sliderRange] = useState(initialXAxisRange)
 
@@ -79,7 +79,7 @@ const WxDataGraph = ({
     showHrdps: hasHighResModels,
     showRdps: false,
     showGdps: false,
-    showBiasAdjGdps: false,
+    showBiasAdjGdps: false
   })
 
   if (

@@ -21,8 +21,8 @@ export async function getModelRuns(
     params: {
       model_run_timestamp: model_run_timestamp
         ? new Date(model_run_timestamp).toISOString()
-        : null,
-    },
+        : null
+    }
   })
   return data
 }
@@ -79,7 +79,7 @@ export async function getCHainesGeoJSON(
 ): Promise<FeatureCollection> {
   const url = `${API_BASE_URL}/c-haines/${model}/prediction`
   const { data } = await axios.get(url, {
-    params: { model_run_timestamp, prediction_timestamp },
+    params: { model_run_timestamp, prediction_timestamp }
   })
   return data
 }

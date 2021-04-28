@@ -24,7 +24,7 @@ const VectorLayer = ({ source, style, opacity, zIndex = 0 }: Props) => {
       source,
       style,
       opacity,
-      zIndex,
+      zIndex
     })
 
     map.addLayer(vectorLayer)

@@ -26,8 +26,8 @@ export const getStationCodesFromUrl = (search: string): number[] => {
   const stationCodes = queryString // ex. 322,838
     ? queryString
         .split(',')
-        .map((code) => Number(code))
-        .filter((code) => Boolean(code))
+        .map(code => Number(code))
+        .filter(code => Boolean(code))
     : []
 
   return stationCodes

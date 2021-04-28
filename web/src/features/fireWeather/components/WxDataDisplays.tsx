@@ -6,7 +6,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import ObservationTable from 'features/fireWeather/components/tables/ObservationTable'
 import {
   NoonForecastTable,
-  NoonModelTable,
+  NoonModelTable
 } from 'features/fireWeather/components/tables/NoonWxValueTables'
 import WxDataGraph from 'features/fireWeather/components/graphs/WxDataGraph'
 import { ErrorBoundary } from 'components'
@@ -21,7 +21,7 @@ import {
   selectHighResModelSummaries,
   selectRegionalModels,
   selectRegionalModelSummaries,
-  selectFireWeatherStations,
+  selectFireWeatherStations
 } from 'app/rootReducer'
 import { GeoJsonStation } from 'api/stationAPI'
 import { ObservedValue } from 'api/observationAPI'
@@ -31,18 +31,18 @@ import { RedrawCommand } from 'features/map/Map'
 
 const useStyles = makeStyles({
   displays: {
-    marginTop: 4,
+    marginTop: 4
   },
   display: {
-    marginBottom: 16,
+    marginBottom: 16
   },
   title: {
     fontSize: '1.2rem',
-    paddingBottom: 8,
+    paddingBottom: 8
   },
   noDataAvailable: {
-    paddingBottom: 8,
-  },
+    paddingBottom: 8
+  }
 })
 
 interface WxDataDisplaysProps {
@@ -72,7 +72,7 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
       {props.wxDataLoading && 'Loading...'}
 
       {!props.wxDataLoading &&
-        props.stationCodes.map((code) => {
+        props.stationCodes.map(code => {
           const station = props.stationsByCode[code]
           if (!station) return null
 
@@ -155,9 +155,7 @@ interface WxDataDisplaysWrapperProps {
   stationCodes: number[]
 }
 
-const WxDataDisplaysWrapper: React.FunctionComponent<WxDataDisplaysWrapperProps> = (
-  props
-) => {
+const WxDataDisplaysWrapper: React.FunctionComponent<WxDataDisplaysWrapperProps> = props => {
   const { stationsByCode } = useSelector(selectFireWeatherStations)
   const { observationsByStation } = useSelector(selectObservations)
   const { allModelsByStation, noonModelsByStation } = useSelector(selectModels)

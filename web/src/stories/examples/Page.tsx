@@ -14,7 +14,7 @@ export const Page: React.FC<PageProps> = ({
   user,
   onLogin,
   onLogout,
-  onCreateAccount,
+  onCreateAccount
 }) => (
   <article>
     <Header

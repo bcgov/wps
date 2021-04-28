@@ -3,11 +3,11 @@ import {
   PRECIP_VALUES_DECIMAL,
   RH_VALUES_DECIMAL,
   TEMPERATURE_VALUES_DECIMAL,
-  WIND_SPEED_VALUES_DECIMAL,
+  WIND_SPEED_VALUES_DECIMAL
 } from 'utils/constants'
 import {
   WeatherValue,
-  Column,
+  Column
 } from 'features/fireWeather/components/tables/SortableTableByDatetime'
 
 export type Order = 'asc' | 'desc'
@@ -85,9 +85,9 @@ export const getMinMaxValueCalculator = (rows: WeatherValue[]): MinMaxValues => 
     wind_speed: calculateMaxWindSpeed(rows),
     temperature: {
       min: _.minBy(rows, 'temperature')?.temperature ?? null,
-      max: _.maxBy(rows, 'temperature')?.temperature ?? null,
+      max: _.maxBy(rows, 'temperature')?.temperature ?? null
     },
-    precipitation: calculateMaxPrecip(rows),
+    precipitation: calculateMaxPrecip(rows)
   }
 }
 
@@ -100,7 +100,7 @@ export const getMinMaxValuesRowIds = (
     precipitation: [],
     wind: [],
     max_temp: [],
-    min_temp: [],
+    min_temp: []
   }
 
   rows.forEach((row, idx) => {

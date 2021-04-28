@@ -7,17 +7,17 @@ import PDF from 'documents/90th_percentile_calculator_rationale.pdf'
 
 const useStyles = makeStyles({
   cardContent: {
-    maxWidth: 800,
+    maxWidth: 800
   },
   body2: {
-    marginBottom: 8,
+    marginBottom: 8
   },
   pdfLink: {
-    display: 'flex',
+    display: 'flex'
   },
   pdfIcon: {
-    marginLeft: 2,
-  },
+    marginLeft: 2
+  }
 })
 
 export const PercentileCalcDocumentation: React.FunctionComponent = () => {

@@ -12,7 +12,7 @@ import {
   findMaxNumber,
   populateGraphDataForPrecip,
   populateTimeOfInterestLineData,
-  rangeSliderConfig,
+  rangeSliderConfig
 } from 'features/fireWeather/components/graphs/plotlyHelper'
 import { RedrawCommand } from 'features/map/Map'
 
@@ -47,7 +47,7 @@ const PrecipitationGraph = (props: Props) => {
     noonForecasts,
     gdpsModels,
     rdpsModels,
-    hrdpsModels,
+    hrdpsModels
   } = props
 
   const observationData = populateGraphDataForPrecip(
@@ -86,7 +86,7 @@ const PrecipitationGraph = (props: Props) => {
     forecastData.maxAccumPrecip,
     hrdpsData.maxAccumPrecip,
     gdpsData.maxAccumPrecip,
-    rdpsData.maxAccumPrecip,
+    rdpsData.maxAccumPrecip
   ])
   const y2Range = [0, maxY]
   const timeOfInterestLine = populateTimeOfInterestLineData(
@@ -100,7 +100,7 @@ const PrecipitationGraph = (props: Props) => {
   const setRevision = useState(0)[1]
 
   useEffect(() => {
-    setRevision((revision) => revision + 1)
+    setRevision(revision => revision + 1)
   }, [expandedOrCollapsed, setRevision])
 
   return (
@@ -119,7 +119,7 @@ const PrecipitationGraph = (props: Props) => {
           forecastData.accumPrecipsline,
           forecastData.dailyPrecipsBar,
           observationData.accumPrecipsline,
-          observationData.dailyPrecipsBar,
+          observationData.dailyPrecipsBar
         ]}
         layout={{
           ...getLayoutConfig(
@@ -134,14 +134,14 @@ const PrecipitationGraph = (props: Props) => {
             hoverformat: '%a, %b %e', // https://github.com/d3/d3-3.x-api-reference/blob/master/Time-Formatting.md#format
             tickfont: { size: 14 },
             type: 'date',
-            dtick: 86400000.0, // Set the interval between ticks to one day: https://plotly.com/javascript/reference/#scatter-marker-colorbar-dtick
+            dtick: 86400000.0 // Set the interval between ticks to one day: https://plotly.com/javascript/reference/#scatter-marker-colorbar-dtick
           },
           yaxis: {
             title: 'Daily Precipitation (mm)',
             tickfont: { size: 14 },
             gridcolor: 'transparent',
             fixedrange: true,
-            range: y2Range,
+            range: y2Range
           },
           yaxis2: {
             title: 'Accumulated Precipitation (mm)',
@@ -149,8 +149,8 @@ const PrecipitationGraph = (props: Props) => {
             overlaying: 'y',
             side: 'right',
             fixedrange: true,
-            range: y2Range,
-          },
+            range: y2Range
+          }
         }}
       />
     </div>

@@ -12,13 +12,13 @@ import {
   selectHighResModels,
   selectHighResModelSummaries,
   selectRegionalModels,
-  selectRegionalModelSummaries,
+  selectRegionalModelSummaries
 } from 'app/rootReducer'
 
 const useStyles = makeStyles({
   root: {
-    paddingTop: 12,
-  },
+    paddingTop: 12
+  }
 })
 
 const NetworkErrorMessages = () => {

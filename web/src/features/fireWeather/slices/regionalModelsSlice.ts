@@ -17,7 +17,7 @@ const initialState: State = {
   error: null,
   allRegionalModelsByStation: {},
   pastRegionalModelsByStation: {},
-  regionalModelsByStation: {},
+  regionalModelsByStation: {}
 }
 
 const regionalModelsSlice = createSlice({
@@ -47,14 +47,14 @@ const regionalModelsSlice = createSlice({
         }
       })
       state.loading = false
-    },
-  },
+    }
+  }
 })
 
 export const {
   getRegionalModelsStart,
   getRegionalModelsFailed,
-  getRegionalModelsSuccess,
+  getRegionalModelsSuccess
 } = regionalModelsSlice.actions
 
 export default regionalModelsSlice.reducer
@@ -62,7 +62,7 @@ export default regionalModelsSlice.reducer
 export const fetchRegionalModels = (
   codes: number[],
   timeOfInterest: string
-): AppThunk => async (dispatch) => {
+): AppThunk => async dispatch => {
   try {
     dispatch(getRegionalModelsStart())
     const modelsForStations = await getModelsWithBiasAdj(codes, 'RDPS', timeOfInterest)

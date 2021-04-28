@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { selectAuthentication } from 'app/rootReducer'
 import {
   authenticate,
-  setAxiosRequestInterceptors,
+  setAxiosRequestInterceptors
 } from 'features/auth/slices/authenticationSlice'
 
 interface Props {

@@ -9,12 +9,12 @@ interface Props {
   marginBottom?: number
 }
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(theme => ({
   root: {
     color: theme.palette.error.main,
     marginTop: (props: Props) => props.marginTop,
-    marginBottom: (props: Props) => props.marginBottom,
-  },
+    marginBottom: (props: Props) => props.marginBottom
+  }
 }))
 
 const getMessage = ({ message, context }: Props) => {

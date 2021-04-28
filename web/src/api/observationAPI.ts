@@ -31,7 +31,7 @@ export async function getObservations(
   const url = '/observations/'
   const { data } = await axios.post<ObservationsResponse>(url, {
     stations: stationCodes,
-    time_of_interest: timeOfInterest,
+    time_of_interest: timeOfInterest
   })
 
   return data.hourlies

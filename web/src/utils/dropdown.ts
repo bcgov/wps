@@ -16,7 +16,7 @@ export const getSelectedStationOptions = (
   stationsByCode: Record<number, GeoJsonStation | DetailedGeoJsonStation | undefined>
 ): { isThereUnknownCode: boolean; selectedStationOptions: Option[] } => {
   let isThereUnknownCode = false
-  const selectedStationOptions: Option[] = selectedStationCodes.map((code) => {
+  const selectedStationOptions: Option[] = selectedStationCodes.map(code => {
     const station = stationsByCode[code]
     if (station) {
       return { name: station.properties.name, code: station.properties.code }

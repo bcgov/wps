@@ -12,7 +12,7 @@ import {
   updateSelectedModel,
   updateSelectedModelRun,
   updateSelectedPrediction,
-  fetchCHainesGeoJSON,
+  fetchCHainesGeoJSON
 } from 'features/cHaines/slices/cHainesModelRunsSlice'
 import { Container, PageHeader, PageTitle } from 'components'
 import { formatDateInPST } from 'utils/date'
@@ -22,54 +22,54 @@ import {
   getKMLNetworkLinkURI,
   getCHainesKMLURI,
   getCHainesKMLModelRunURI,
-  getCHainesModelKMLURI,
+  getCHainesModelKMLURI
 } from 'api/cHainesAPI'
 
 const useStyles = makeStyles({
   map: {
-    height: '640px',
+    height: '640px'
   },
   legend: {
     display: 'flex',
-    backgroundColor: 'white',
+    backgroundColor: 'white'
   },
   description: {
     paddingLeft: 10,
-    paddingRight: 10,
+    paddingRight: 10
   },
   loading: {
     backgroundColor: 'white',
     opacity: 0.8,
-    width: '100%',
+    width: '100%'
   },
   label: {
     backgroundColor: 'white',
-    opacity: 0.8,
+    opacity: 0.8
   },
   extreme: {
     backgroundColor: '#ff0000',
     width: 30,
-    height: 30,
+    height: 30
   },
   high: {
     backgroundColor: '#FFA500',
     width: 30,
-    height: 30,
+    height: 30
   },
   moderate: {
     backgroundColor: '#ffff00',
     width: 30,
-    height: 30,
+    height: 30
   },
   controls: {
-    display: 'flex',
+    display: 'flex'
   },
   kml_links: {
-    marginLeft: '10px',
+    marginLeft: '10px'
   },
   animateButton: {
-    width: '70px',
-  },
+    width: '70px'
+  }
 })
 
 // interface CHainesPageProps
@@ -102,7 +102,7 @@ const CHainesPage = () => {
     selected_model_run_timestamp,
     model_run_predictions,
     selected_prediction_timestamp,
-    selected_model_abbreviation,
+    selected_model_abbreviation
   } = useSelector(selectCHainesModelRuns)
 
   const loadModelPrediction = (
@@ -179,14 +179,14 @@ const CHainesPage = () => {
       center: [55, -123.6],
       zoom: 5,
       // scrollWheelZoom: false,
-      zoomAnimation: true,
+      zoomAnimation: true
       // layers: [topoLayer, stationOverlay]
     })
     L.control.scale().addTo(mapRef.current)
 
     const baseLayer = tiledMapLayer({
       //url:  'https://maps.gov.bc.ca/arcserver/rest/services/province/web_mercator_cache/MapServer'
-      url: 'https://maps.gov.bc.ca/arcserver/rest/services/Province/roads_wm/MapServer',
+      url: 'https://maps.gov.bc.ca/arcserver/rest/services/Province/roads_wm/MapServer'
     })
     baseLayer.addTo(mapRef.current)
 
@@ -200,7 +200,7 @@ const CHainesPage = () => {
           styles: 'BC_Wildfire_Active_Weather_Stations',
           transparent: true,
           minZoom: 0,
-          maxZoom: 18,
+          maxZoom: 18
         }
       )
       .addTo(mapRef.current)
@@ -215,7 +215,7 @@ const CHainesPage = () => {
           styles: 'BC_Wildfire_Active_Weather_Stations_Labels',
           transparent: true,
           minZoom: 0,
-          maxZoom: 18,
+          maxZoom: 18
         }
       )
       .addTo(mapRef.current)
@@ -229,14 +229,14 @@ const CHainesPage = () => {
           styles: 'BC_Wildfire_Fire_Danger_Rating',
           transparent: true,
           minZoom: 0,
-          maxZoom: 18,
+          maxZoom: 18
         }
       )
       .addTo(mapRef.current)
 
     // Create and add the legend.
     const customControl = L.Control.extend({
-      onAdd: function () {
+      onAdd: function() {
         const html = (
           <div>
             <div className={classes.legend}>
@@ -259,9 +259,9 @@ const CHainesPage = () => {
         return div
       },
 
-      onRemove: function () {
+      onRemove: function() {
         //
-      },
+      }
     })
     new customControl({ position: 'bottomleft' }).addTo(mapRef.current)
 
@@ -287,7 +287,7 @@ const CHainesPage = () => {
         )
       ) {
         const customControl = L.Control.extend({
-          onAdd: function () {
+          onAdd: function() {
             const html = (
               <div className={classes.label}>
                 <div>
@@ -306,9 +306,9 @@ const CHainesPage = () => {
             return div
           },
 
-          onRemove: function () {
+          onRemove: function() {
             //
-          },
+          }
         })
         if (loadingLayerRef.current) {
           mapRef.current.removeControl(loadingLayerRef.current)
@@ -325,7 +325,7 @@ const CHainesPage = () => {
         }
       } else {
         const customControl = L.Control.extend({
-          onAdd: function () {
+          onAdd: function() {
             const html = (
               <div className={classes.loading}>
                 <div>LOADING: {selected_prediction_timestamp} (UTC)</div>
@@ -337,9 +337,9 @@ const CHainesPage = () => {
             return div
           },
 
-          onRemove: function () {
+          onRemove: function() {
             //
-          },
+          }
         })
         if (loadingLayerRef.current) {
           mapRef.current.removeControl(loadingLayerRef.current)
@@ -354,38 +354,38 @@ const CHainesPage = () => {
     selected_prediction_timestamp,
     model_run_predictions,
     predictionIsLoadedCheck,
-    isAnimating,
+    isAnimating
   ])
 
   const createLayer = (data: FeatureCollection) => {
     const defaults = {
       fillOpacity: 0.5,
-      weight: 2,
+      weight: 2
     }
     return L.geoJSON(data, {
-      style: (feature) => {
+      style: feature => {
         switch (feature?.properties.c_haines_index) {
           case '4-8':
             // yellow
             return {
               ...defaults,
-              color: '#ffff00',
+              color: '#ffff00'
             }
           case '8-11':
             return {
               ...defaults,
-              color: '#FFA500',
+              color: '#FFA500'
             }
           case '>11':
             // red
             return {
               ...defaults,
-              color: '#ff0000',
+              color: '#ff0000'
             }
           default:
             return {}
         }
-      },
+      }
     })
   }
 
@@ -441,7 +441,7 @@ const CHainesPage = () => {
     stopAnimation()
     // If the model has been changed, we need to load a different prediction.
     const model_run = model_runs.find(
-      (instance) => instance.model.abbrev === event.target.value
+      instance => instance.model.abbrev === event.target.value
     )
     if (model_run) {
       if (model_run.prediction_timestamps.length > 0) {
@@ -461,7 +461,7 @@ const CHainesPage = () => {
     stopAnimation()
     // If the model run has been changed, we also have to load a different prediction.
     const model_run = model_runs.find(
-      (instance) =>
+      instance =>
         instance.model_run_timestamp === event.target.value &&
         instance.model.abbrev === selected_model_abbreviation
     )
@@ -510,13 +510,13 @@ const CHainesPage = () => {
 
   const loadNextPrediction = () => {
     const model_run = model_runs.find(
-      (instance) =>
+      instance =>
         instance.model_run_timestamp === selected_model_run_timestamp &&
         instance.model.abbrev === selected_model_abbreviation
     )
     if (model_run) {
       const index = model_run.prediction_timestamps.findIndex(
-        (value) => value === selected_prediction_timestamp
+        value => value === selected_prediction_timestamp
       )
       const nextIndex = index + 1 < model_run.prediction_timestamps.length ? index + 1 : 0
       loadModelPrediction(
@@ -529,13 +529,13 @@ const CHainesPage = () => {
 
   const loadPreviousPrediction = () => {
     const model_run = model_runs.find(
-      (instance) =>
+      instance =>
         instance.model_run_timestamp === selected_model_run_timestamp &&
         instance.model.abbrev === selected_model_abbreviation
     )
     if (model_run) {
       const index = model_run.prediction_timestamps.findIndex(
-        (value) => value === selected_prediction_timestamp
+        value => value === selected_prediction_timestamp
       )
       const nextIndex = index > 0 ? index - 1 : model_run.prediction_timestamps.length - 1
       loadModelPrediction(
@@ -631,7 +631,7 @@ const CHainesPage = () => {
             <div>
               Model runs:
               {model_runs
-                .filter((model_run) => {
+                .filter(model_run => {
                   return model_run.model.abbrev === selected_model_abbreviation
                 })
                 .map((model_run, i) => (
@@ -657,7 +657,7 @@ const CHainesPage = () => {
                 onChange={handlePredictionChange}
               >
                 {model_runs
-                  .filter((model_run) => {
+                  .filter(model_run => {
                     return (
                       model_run.model_run_timestamp === selected_model_run_timestamp &&
                       model_run.model.abbrev === selected_model_abbreviation

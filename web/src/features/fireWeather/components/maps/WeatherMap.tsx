@@ -22,8 +22,8 @@ const pointStyleFunction = (feature: any) => {
     image: new CircleStyle({
       radius: 4,
       fill: new Fill({ color: colorResult.relative_humidity }),
-      stroke: new Stroke({ color: 'black', width: 1 }),
-    }),
+      stroke: new Stroke({ color: 'black', width: 1 })
+    })
   })
 }
 
@@ -73,7 +73,7 @@ const WeatherMap = ({ redrawFlag, center, isCollapsed, setMapCenter }: Props) =>
             url: `${BC_ROAD_BASE_MAP_SERVER_URL}/tile/{z}/{y}/{x}`,
             // Normally we would get attribution text from `${BC_ROAD_BASE_MAP_SERVER_URL}?f=pjson`
             // however this endpoint only allows the origin of http://localhost:3000, so the text has been just copied from that link
-            attributions: 'Government of British Columbia, DataBC, GeoBC',
+            attributions: 'Government of British Columbia, DataBC, GeoBC'
           })
         }
       />
@@ -83,9 +83,9 @@ const WeatherMap = ({ redrawFlag, center, isCollapsed, setMapCenter }: Props) =>
             features: new GeoJSON().readFeatures(
               { type: 'FeatureCollection', features: stations },
               {
-                featureProjection: get('EPSG:3857'),
+                featureProjection: get('EPSG:3857')
               }
-            ),
+            )
           })
         }
         style={pointStyleFunction}

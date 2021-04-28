@@ -40,7 +40,7 @@ export async function getModelSummaries(
   const url = `/weather_models/${model}/predictions/summaries/`
   const { data } = await axios.post<ModelSummariesResponse>(url, {
     stations: stationCodes,
-    time_of_interest: timeOfInterest,
+    time_of_interest: timeOfInterest
   })
 
   return data.summaries
@@ -100,7 +100,7 @@ export async function getModelsWithBiasAdj(
   const url = `/weather_models/${model}/predictions/most_recent/`
   const { data } = await axios.post<BiasAdjModelResponse>(url, {
     stations: stationCodes,
-    time_of_interest: timeOfInterest,
+    time_of_interest: timeOfInterest
   })
 
   return data.stations

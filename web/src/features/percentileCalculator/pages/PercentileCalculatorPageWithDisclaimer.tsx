@@ -10,29 +10,29 @@ const useStyles = makeStyles({
     height: '100%',
     display: 'flex',
     justifyContent: 'center',
-    alignItems: 'center',
+    alignItems: 'center'
   },
   card: {
     maxWidth: 600,
     maxHeight: 'calc(100% - 32px)',
     margin: 16,
     overflowY: 'auto',
-    padding: 16,
+    padding: 16
   },
   title: {
     fontSize: '1.5rem',
     fontWeight: 'bold',
-    textAlign: 'center',
+    textAlign: 'center'
   },
   iconWrapper: {
     display: 'flex',
     justifyContent: 'center',
-    marginBottom: 10,
+    marginBottom: 10
   },
   acceptBtnWrapper: {
     display: 'flex',
-    justifyContent: 'center',
-  },
+    justifyContent: 'center'
+  }
 })
 
 interface Props {

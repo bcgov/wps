@@ -12,7 +12,7 @@ import {
   populateGraphDataForTempAndRH,
   TempRHGraphProperties,
   populateTimeOfInterestLineData,
-  rangeSliderConfig,
+  rangeSliderConfig
 } from 'features/fireWeather/components/graphs/plotlyHelper'
 import { RedrawCommand } from 'features/map/Map'
 
@@ -68,7 +68,7 @@ const TempRHGraph = (props: Props) => {
     gdpsModels,
     gdpsSummaries,
     rdpsModels,
-    rdpsSummaries,
+    rdpsSummaries
   } = props
 
   const obsGraphProperties: TempRHGraphProperties = {
@@ -81,7 +81,7 @@ const TempRHGraph = (props: Props) => {
     tempColor: observedTempColor,
     rhColor: observedRHColor,
     dewpointName: 'Observed Dew Point',
-    dewpointColor: observedDewpointColor,
+    dewpointColor: observedDewpointColor
   }
   const observationData = populateGraphDataForTempAndRH(obsGraphProperties)
 
@@ -93,7 +93,7 @@ const TempRHGraph = (props: Props) => {
     symbol: 'pentagon',
     dash: 'solid',
     tempColor: forecastTempColor,
-    rhColor: forecastRHColor,
+    rhColor: forecastRHColor
   }
   const forecastData = populateGraphDataForTempAndRH(forecastGraphProperties)
 
@@ -107,7 +107,7 @@ const TempRHGraph = (props: Props) => {
     tempColor: hrdpsTempColor,
     rhColor: hrdpsRHColor,
     tempPlumeColor: hrdpsTempPlumeColor,
-    rhPlumeColor: hrdpsRHPlumeColor,
+    rhPlumeColor: hrdpsRHPlumeColor
   }
   const hrdpsData = populateGraphDataForTempAndRH(hrdpsGraphProperties)
 
@@ -121,7 +121,7 @@ const TempRHGraph = (props: Props) => {
     tempColor: gdpsTempColor,
     rhColor: gdpsRHColor,
     tempPlumeColor: gdpsTempPlumeColor,
-    rhPlumeColor: gdpsRHPlumeColor,
+    rhPlumeColor: gdpsRHPlumeColor
   }
   const gdpsData = populateGraphDataForTempAndRH(gdpsGraphProperties)
 
@@ -135,7 +135,7 @@ const TempRHGraph = (props: Props) => {
     tempColor: rdpsTempColor,
     rhColor: rdpsRHColor,
     tempPlumeColor: rdpsTempPlumeColor,
-    rhPlumeColor: rdpsRHPlumeColor,
+    rhPlumeColor: rdpsRHPlumeColor
   }
   const rdpsData = populateGraphDataForTempAndRH(rdpsGraphProperties)
 
@@ -147,7 +147,7 @@ const TempRHGraph = (props: Props) => {
     symbol: 'star',
     dash: 'longdashdot',
     tempColor: biasGdpsTempColor,
-    rhColor: biasGdpsRHColor,
+    rhColor: biasGdpsRHColor
   }
   const biasAdjGdpsData = populateGraphDataForTempAndRH(biasAdjGDPSGraphProperties)
 
@@ -163,7 +163,7 @@ const TempRHGraph = (props: Props) => {
   const setRevision = useState(0)[1]
 
   useEffect(() => {
-    setRevision((revision) => revision + 1)
+    setRevision(revision => revision + 1)
   }, [expandedOrCollapsed, setRevision])
 
   return (
@@ -204,7 +204,7 @@ const TempRHGraph = (props: Props) => {
           forecastData.tempDots,
           observationData.rhLine,
           observationData.tempLine,
-          observationData.dewpointLine,
+          observationData.dewpointLine
         ]}
         layout={{
           ...getLayoutConfig(
@@ -216,11 +216,11 @@ const TempRHGraph = (props: Props) => {
             hoverformat: '%I:00%p, %a, %b %e (PST)', // https://github.com/d3/d3-3.x-api-reference/blob/master/Time-Formatting.md#format
             tickfont: { size: 14 },
             type: 'date',
-            dtick: 86400000.0, // Set the interval between ticks to one day: https://plotly.com/javascript/reference/#scatter-marker-colorbar-dtick
+            dtick: 86400000.0 // Set the interval between ticks to one day: https://plotly.com/javascript/reference/#scatter-marker-colorbar-dtick
           },
           yaxis: {
             title: 'Temperature (°C)',
-            tickfont: { size: 14 },
+            tickfont: { size: 14 }
           },
           yaxis2: {
             title: 'Relative Humidity (%)',
@@ -228,8 +228,8 @@ const TempRHGraph = (props: Props) => {
             overlaying: 'y',
             side: 'right',
             gridcolor: 'transparent',
-            range: y2Range,
-          },
+            range: y2Range
+          }
         }}
       />
     </div>

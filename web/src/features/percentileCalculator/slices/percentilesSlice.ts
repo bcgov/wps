@@ -13,7 +13,7 @@ interface PercentilesState {
 export const percentileInitialState: PercentilesState = {
   loading: false,
   error: null,
-  result: null,
+  result: null
 }
 
 const percentiles = createSlice({
@@ -37,15 +37,15 @@ const percentiles = createSlice({
     },
     resetPercentilesResult(state: PercentilesState) {
       state.result = null
-    },
-  },
+    }
+  }
 })
 
 export const {
   getPercentilesStart,
   getPercentilesFailed,
   getPercentilesSuccess,
-  resetPercentilesResult,
+  resetPercentilesResult
 } = percentiles.actions
 
 export default percentiles.reducer
@@ -54,7 +54,7 @@ export const fetchPercentiles = (
   stationCodes: number[],
   percentile: number,
   yearRange: YearRange
-): AppThunk => async (dispatch) => {
+): AppThunk => async dispatch => {
   try {
     dispatch(getPercentilesStart())
     const result = await getPercentiles(stationCodes, percentile, yearRange)

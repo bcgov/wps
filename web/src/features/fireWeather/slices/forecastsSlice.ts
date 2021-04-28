@@ -17,7 +17,7 @@ const initialState: State = {
   error: null,
   allNoonForecastsByStation: {},
   pastNoonForecastsByStation: {},
-  noonForecastsByStation: {},
+  noonForecastsByStation: {}
 }
 
 const forecastsSlice = createSlice({
@@ -36,7 +36,7 @@ const forecastsSlice = createSlice({
       state.error = action.payload
     },
     getForecastsSuccess(state: State, action: PayloadAction<Forecast[]>) {
-      action.payload.forEach((forecast) => {
+      action.payload.forEach(forecast => {
         const sCode = forecast.station_code
         if (sCode) {
           const allForecasts: NoonForecastValue[] = []
@@ -49,7 +49,7 @@ const forecastsSlice = createSlice({
           // issued down to first issued)
           let prevDatetime: string
           const mostRecentForecasts: NoonForecastValue[] = []
-          forecast.values.forEach((value) => {
+          forecast.values.forEach(value => {
             const isDiffDatetime = prevDatetime !== value.datetime
             if (isDiffDatetime) {
               const isFutureForecast = new Date(value.datetime) >= currDate
@@ -70,14 +70,14 @@ const forecastsSlice = createSlice({
       })
       state.loading = false
       state.error = null
-    },
-  },
+    }
+  }
 })
 
 export const {
   getForecastsStart,
   getForecastsFailed,
-  getForecastsSuccess,
+  getForecastsSuccess
 } = forecastsSlice.actions
 
 export default forecastsSlice.reducer
@@ -85,7 +85,7 @@ export default forecastsSlice.reducer
 export const fetchForecasts = (
   stationCodes: number[],
   timeOfInterest: string
-): AppThunk => async (dispatch) => {
+): AppThunk => async dispatch => {
   try {
     dispatch(getForecastsStart())
     const forecasts = await getNoonForecasts(stationCodes, timeOfInterest)

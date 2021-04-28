@@ -4,7 +4,7 @@ import { ThunkAction } from 'redux-thunk'
 import rootReducer, { RootState } from 'app/rootReducer'
 
 const store = configureStore({
-  reducer: rootReducer,
+  reducer: rootReducer
   // c-haines data is VERY big - so causes huge slowdowns in development,
   // when doing c-haines development you may wish to disable immutableCheck
   // and serializableCheck (see below)
