@@ -14,7 +14,7 @@ import { GeoJsonStation } from 'api/stationAPI'
 import { ObservedValue } from 'api/observationAPI'
 import { NoonForecastValue } from 'api/forecastAPI'
 import { ModelValue } from 'api/modelAPI'
-import { getNoonDate, formatDateInPST, reformatDate } from 'utils/date'
+import { formatDateInUTC0, formatDateInPST } from 'utils/date'
 import {
   TEMPERATURE_VALUES_DECIMAL,
   RH_VALUES_DECIMAL,
@@ -77,7 +77,7 @@ const findNoonMatch = (
   noonDate: string,
   collection: ModelValue[] | undefined
 ): ModelValue | undefined => {
-  return collection?.find((item: ModelValue) => reformatDate(item.datetime) === noonDate)
+  return collection?.find((item: ModelValue) => item.datetime === noonDate)
 }
 
 const calculateAccumulatedPrecip = (
@@ -94,7 +94,7 @@ const calculateAccumulatedPrecip = (
       const precipDate = DateTime.fromISO(value.datetime).toJSDate()
       if (precipDate >= from && precipDate <= to) {
         if (value.delta_precipitation) {
-          // TODO: keep track of model runs used
+          // TODO: keep trak of model runs used
           if (accumulatedPrecip === undefined) {
             accumulatedPrecip = value.delta_precipitation
           } else {
@@ -231,7 +231,8 @@ const formatDewPoint = (dewpoint: number | null | undefined) => {
 
 const StationComparisonTable = (props: Props) => {
   const classes = useStyles()
-  const noonDate = getNoonDate(props.timeOfInterest)
+  // format the date to match the ISO format in the API for easy comparison.
+  const noonDate = formatDateInUTC0(props.timeOfInterest)
   return (
     <Paper className={classes.paper}>
       <Typography component="div" variant="subtitle2">
@@ -292,11 +293,11 @@ const StationComparisonTable = (props: Props) => {
                 const station = props.stationsByCode[stationCode]
                 const noonForecasts = props.allNoonForecastsByStation[stationCode]
                 const noonForecast = noonForecasts?.find(
-                  forecast => reformatDate(forecast.datetime) === noonDate
+                  forecast => forecast.datetime === noonDate
                 )
                 const observations = props.observationsByStation[stationCode]
                 const observation = observations?.find(
-                  observation => reformatDate(observation.datetime) === noonDate
+                  observation => observation.datetime === noonDate
                 )
                 const hrdpsModelPrediction = findNoonMatch(
                   noonDate,

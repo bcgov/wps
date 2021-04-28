@@ -34,14 +34,7 @@ export const formatMonthAndDay = (month: number, day: number): string =>
 
 export const suppressMilliInISO = (iso: string): string => iso.replace(/\.\d{0,3}/, '') // Using RegExp to remove the "." and milliseconds
 
-export const reformatDate = (dtISO: string): string => {
-  // Take an ISO formatted datetime string, and re-format it into UTC ISO formatted datetime.
-  // This is especially useful, as there is more than one way of representing the same UTC formatted ISO
-  // date!
-  return toISO(DateTime.fromISO(dtISO).setZone('UTC'))
-}
-
-export const getNoonDate = (dtISO: string): string => {
+export const formatDateInUTC0 = (dtISO: string): string => {
   // Given an ISO formated datetime string, return a ISO formatted datetime string for NOON UTC of that day.
   const dtDateTime = DateTime.fromISO(dtISO).setZone(`UTC${PST_UTC_OFFSET}`)
   const dtJS = dtDateTime.toJSDate()
@@ -52,5 +45,6 @@ export const getNoonDate = (dtISO: string): string => {
   dtJS.setMinutes(0)
   dtJS.setSeconds(0)
   dtJS.setMilliseconds(0)
-  return toISO(DateTime.fromJSDate(dtJS).setZone('UTC'))
+  const isoNoon = toISO(DateTime.fromJSDate(dtJS).setZone('UTC'))
+  return isoNoon.substring(0, isoNoon.length - 1) + '+00:00'
 }

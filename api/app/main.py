@@ -118,7 +118,8 @@ async def get_health():
 async def get_hourlies(request: schemas.shared.WeatherDataRequest,
                        _=Depends(authentication_required),
                        __=Depends(audit)):
-    """ Returns hourly observations for the last 5 days, for the specified weather stations """
+    """ Returns hourly observations for the 5 days before and 10 days after the time of interest
+    is returned for the specified weather stations """
     try:
         logger.info('/observations/')
 
