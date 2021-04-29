@@ -63,7 +63,7 @@ export enum StationSource {
 const url = '/stations/'
 
 export async function getStations(
-  source: StationSource = StationSource.unspecified
+  source: StationSource = StationSource.wildfire_one
 ): Promise<GeoJsonStation[]> {
   const { data } = await axios.get<StationsResponse>(url, { params: { source } })
 
