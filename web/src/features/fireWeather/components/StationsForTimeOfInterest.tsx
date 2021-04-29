@@ -42,14 +42,16 @@ const StationsForTimeOfInterest = (props: Props) => {
   const classes = useStyles()
   const isLoading = useSelector(selectFireWeatherStationsLoading)
 
-  return isLoading ? (
+  return (
     <div className={classes.root}>
-      <CircularProgress />
-    </div>
-  ) : (
-    <div className={classes.root}>
-      <div className={classes.title}>Stations at:</div>
-      <div className={classes.title}>{props.toiFromQuery.slice(0, 10)}</div>
+      {isLoading ? (
+        <CircularProgress />
+      ) : (
+        <div>
+          <div className={classes.title}>Stations at:</div>
+          <div className={classes.title}>{props.toiFromQuery.slice(0, 10)}</div>
+        </div>
+      )}
     </div>
   )
 }
