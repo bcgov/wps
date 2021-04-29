@@ -1,7 +1,10 @@
 import React from 'react'
 import { makeStyles } from '@material-ui/core/styles'
+import { CircularProgress } from '@material-ui/core'
+import { useSelector } from 'react-redux'
+import { selectFireWeatherStationsLoading } from '../../../app/rootReducer'
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(theme => ({
   root: {
     display: 'flex',
     height: '70px',
@@ -27,8 +30,11 @@ const useStyles = makeStyles({
     flexDirection: 'row',
     justifyContent: 'center',
     width: '300px'
+  },
+  spinner: {
+    color: theme.palette.primary.light
   }
-})
+}))
 
 interface Props {
   toiFromQuery: string
@@ -36,7 +42,11 @@ interface Props {
 
 const StationsForTimeOfInterest = (props: Props) => {
   const classes = useStyles()
-  return (
+  const isLoading = useSelector(selectFireWeatherStationsLoading)
+
+  return isLoading ? (
+    <CircularProgress size={20} />
+  ) : (
     <div className={classes.root}>
       <div className={classes.title}>Stations at:</div>
       <div className={classes.title}>{props.toiFromQuery.slice(0, 10)}</div>
