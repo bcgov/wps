@@ -169,4 +169,4 @@ def get_stations_synchronously() -> List[WeatherStation]:
     """
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    return loop.run_until_complete(get_stations())
+    return loop.run_until_complete(get_stations(StationSourceEnum.LOCAL_STORAGE))
