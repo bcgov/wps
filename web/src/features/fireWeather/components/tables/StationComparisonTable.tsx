@@ -70,7 +70,7 @@ interface Props {
   observationsByStation: Record<number, ObservedValue[] | undefined>
   allHighResModelsByStation: Record<number, ModelValue[] | undefined>
   allRegionalModelsByStation: Record<number, ModelValue[] | undefined>
-  noonModelsByStation: Record<number, ModelValue[] | undefined>
+  allModelsByStation: Record<number, ModelValue[] | undefined>
 }
 
 const findNoonMatch = (
@@ -80,30 +80,43 @@ const findNoonMatch = (
   return collection?.find((item: ModelValue) => item.datetime === noonDate)
 }
 
+interface AccumulatedPrecipitation {
+  precipitation: number | undefined
+  modelValues: ModelValue[]
+}
+
 const calculateAccumulatedPrecip = (
   noonDate: string,
   collection: ModelValue[] | undefined
-): number | undefined => {
+): AccumulatedPrecipitation | undefined => {
   // We are calculating the accumulated precipitation from 24 hours before noon.
   const from = DateTime.fromISO(noonDate).toJSDate()
   from.setHours(from.getHours() - 24)
   const to = DateTime.fromISO(noonDate).toJSDate()
+  console.log('noonDate', noonDate)
+  console.log('from', from)
+  console.log('to', to)
   if (collection) {
-    let accumulatedPrecip: number | undefined = undefined
+    const precip = {
+      precipitation: undefined,
+      modelValues: [] as ModelValue[]
+    } as AccumulatedPrecipitation
     collection.forEach(value => {
       const precipDate = DateTime.fromISO(value.datetime).toJSDate()
-      if (precipDate >= from && precipDate <= to) {
-        if (value.delta_precipitation) {
-          // TODO: keep trak of model runs used
-          if (accumulatedPrecip === undefined) {
-            accumulatedPrecip = value.delta_precipitation
+      console.log('precipDate', precipDate)
+      if (precipDate > from && precipDate <= to) {
+        if (typeof value.delta_precipitation === 'number') {
+          if (precip.precipitation === undefined) {
+            precip.precipitation = value.delta_precipitation
           } else {
-            accumulatedPrecip += value.delta_precipitation
+            precip.precipitation += value.delta_precipitation
           }
+          // Keep track of the model run predictions used to calculate this.
+          precip.modelValues.push(value)
         }
       }
     })
-    return accumulatedPrecip
+    return precip
   }
   return undefined
 }
@@ -209,14 +222,27 @@ const formatPrecipitation = (
 }
 
 const formatModelPrecipitation = (
-  precipitation: number | null | undefined,
+  precipitation: AccumulatedPrecipitation | undefined,
   precipitationClassName: any
 ) => {
+  const title: JSX.Element[] = []
+  precipitation?.modelValues.forEach(value => {
+    title.push(
+      <div>
+        prediction: {value.datetime}, precipitation:{' '}
+        {value.delta_precipitation?.toFixed(PRECIP_VALUES_DECIMAL)} mm (model:{' '}
+        {value.model_run_datetime})
+      </div>
+    )
+  })
   return (
-    <div className={precipitationClassName}>
-      {typeof precipitation === 'number' &&
-        `${precipitation.toFixed(PRECIP_VALUES_DECIMAL)} mm`}
-    </div>
+    <ToolTip title={title} aria-label="precipitation">
+      <div className={precipitationClassName}>
+        {precipitation &&
+          typeof precipitation.precipitation === 'number' &&
+          `${precipitation.precipitation.toFixed(PRECIP_VALUES_DECIMAL)} mm`}
+      </div>
+    </ToolTip>
   )
 }
 
@@ -317,11 +343,11 @@ const StationComparisonTable = (props: Props) => {
                 )
                 const gdpsModelPrediction = findNoonMatch(
                   noonDate,
-                  props.noonModelsByStation[stationCode]
+                  props.allModelsByStation[stationCode]
                 )
                 const accumulatedGDPSPrecipitation = calculateAccumulatedPrecip(
                   noonDate,
-                  props.noonModelsByStation[stationCode]
+                  props.allModelsByStation[stationCode]
                 )
                 return (
                   <TableRow key={idx}>

@@ -185,7 +185,7 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
           observationsByStation={props.observationsByStation}
           allHighResModelsByStation={props.allHighResModelsByStation}
           allRegionalModelsByStation={props.allRegionalModelsByStation}
-          noonModelsByStation={props.noonModelsByStation}
+          allModelsByStation={props.allModelsByStation}
         />
       )}
 

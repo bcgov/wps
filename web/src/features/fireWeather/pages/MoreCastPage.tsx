@@ -72,7 +72,11 @@ const MoreCastPage = () => {
   const shouldInitiallyShowSidePanel = codesFromQuery.length > 0
   const [showSidePanel, setShowSidePanel] = useState(shouldInitiallyShowSidePanel)
   const [sidePanelWidth, setSidePanelWidth] = useState(
-    shouldInitiallyShowSidePanel ? PARTIAL_WIDTH : 0
+    shouldInitiallyShowSidePanel
+      ? codesFromQuery.length > 1
+        ? FULL_WIDTH
+        : PARTIAL_WIDTH
+      : 0
   )
 
   const [mapCenter, setMapCenter] = useState(CENTER_OF_BC)
