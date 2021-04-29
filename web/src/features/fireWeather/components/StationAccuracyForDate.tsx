@@ -2,7 +2,7 @@ import React from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import { CircularProgress } from '@material-ui/core'
 import { useSelector } from 'react-redux'
-import { selectFireWeatherStationsLoading } from '../../../app/rootReducer'
+import { selectFireWeatherStationsLoading } from 'app/rootReducer'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -13,20 +13,18 @@ const useStyles = makeStyles(theme => ({
   },
   title: {
     height: '20px',
-    width: '150px',
+    width: '205px',
     color: 'white'
   },
   time: {
     height: '20px',
-    width: '150px',
+    width: '205px',
     color: 'white',
-    textAlign: 'center',
-    marginLeft: '40px'
+    textAlign: 'center'
   },
   rowContainer: {
     display: 'flex',
     flexDirection: 'row',
-    justifyContent: 'center',
     width: '300px'
   },
   spinner: {
@@ -38,7 +36,7 @@ interface Props {
   toiFromQuery: string
 }
 
-const StationsForTimeOfInterest = (props: Props) => {
+const StationAccuracyForDate = (props: Props) => {
   const classes = useStyles()
   const isLoading = useSelector(selectFireWeatherStationsLoading)
 
@@ -48,12 +46,16 @@ const StationsForTimeOfInterest = (props: Props) => {
         <CircularProgress />
       ) : (
         <div>
-          <div className={classes.title}>Stations at:</div>
-          <div className={classes.title}>{props.toiFromQuery.slice(0, 10)}</div>
+          <div className={classes.rowContainer}>
+            <div className={classes.title}>Stations forecast accuracy for:</div>
+          </div>
+          <div className={classes.rowContainer}>
+            <div className={classes.time}>{props.toiFromQuery.slice(0, 10)}</div>
+          </div>
         </div>
       )}
     </div>
   )
 }
 
-export default React.memo(StationsForTimeOfInterest)
+export default React.memo(StationAccuracyForDate)

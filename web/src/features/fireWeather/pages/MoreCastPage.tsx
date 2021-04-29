@@ -25,7 +25,7 @@ import ExpandableContainer from 'features/fireWeather/components/ExpandableConta
 import { getDetailedStations, getStations, StationSource } from 'api/stationAPI'
 import { PARTIAL_WIDTH, FULL_WIDTH, CENTER_OF_BC } from 'utils/constants'
 import { RedrawCommand } from 'features/map/Map'
-import StationsForTimeOfInterest from '../components/StationsForTimeOfInterest'
+import StationAccuracyForDate from '../components/StationAccuracyForDate'
 
 const useStyles = makeStyles(theme => ({
   main: {
@@ -120,10 +120,10 @@ const MoreCastPage = () => {
       dispatch(fetchRegionalModelSummaries(codesFromQuery, toiFromQuery))
       dispatch(fetchGlobalModelsWithBiasAdj(codesFromQuery, toiFromQuery))
       dispatch(fetchGlobalModelSummaries(codesFromQuery, toiFromQuery))
-      dispatch(
-        fetchWxStations(getDetailedStations, StationSource.unspecified, toiFromQuery)
-      )
     }
+    dispatch(
+      fetchWxStations(getDetailedStations, StationSource.unspecified, toiFromQuery)
+    )
   }, [location]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
@@ -166,7 +166,7 @@ const MoreCastPage = () => {
       </div>
       <div className={classes.legend}>
         <AccuracyColorLegend show={sidePanelWidth <= PARTIAL_WIDTH} />
-        <StationsForTimeOfInterest toiFromQuery={toiFromQuery} />
+        <StationAccuracyForDate toiFromQuery={toiFromQuery} />
       </div>
     </main>
   )
