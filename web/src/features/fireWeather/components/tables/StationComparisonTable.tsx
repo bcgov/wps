@@ -147,7 +147,7 @@ const formatModelTemperature = (source: ModelValue | undefined) => {
 
 const formatRelativeHumidity = (
   source: NoonForecastValue | ObservedValue | ModelValue | undefined,
-  valueClassName: any
+  valueClassName: string
 ) => {
   return (
     <div className={valueClassName}>
@@ -159,7 +159,7 @@ const formatRelativeHumidity = (
 
 const formatModelRelativeHumidity = (
   source: ModelValue | undefined,
-  valueClassName: any
+  valueClassName: string
 ) => {
   const tooltip = (source as ModelValue)?.model_run_datetime
   return (
@@ -171,8 +171,8 @@ const formatModelRelativeHumidity = (
 
 const formatWindSpeedDirection = (
   source: NoonForecastValue | ObservedValue | ModelValue | undefined,
-  windSpeedClassName: any,
-  windDirectionClassName: any
+  windSpeedClassName: string,
+  windDirectionClassName: string
 ) => {
   return (
     <div>
@@ -196,8 +196,8 @@ const formatWindSpeedDirection = (
 
 const formatModelWindSpeedDirection = (
   source: ModelValue | undefined,
-  windSpeedClassName: any,
-  windDirectionClassName: any
+  windSpeedClassName: string,
+  windDirectionClassName: string
 ) => {
   const tooltip = (source as ModelValue)?.model_run_datetime
   return (
@@ -211,7 +211,7 @@ const formatModelWindSpeedDirection = (
 
 const formatPrecipitation = (
   precipitation: number | null | undefined,
-  precipitationClassName: any
+  precipitationClassName: string
 ) => {
   return (
     <div className={precipitationClassName}>
@@ -223,7 +223,7 @@ const formatPrecipitation = (
 
 const formatModelPrecipitation = (
   precipitation: AccumulatedPrecipitation | undefined,
-  precipitationClassName: any
+  precipitationClassName: string
 ) => {
   const title: JSX.Element[] = []
   precipitation?.modelValues.forEach(value => {
