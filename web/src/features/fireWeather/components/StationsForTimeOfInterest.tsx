@@ -14,9 +14,7 @@ const useStyles = makeStyles(theme => ({
   title: {
     height: '20px',
     width: '150px',
-    color: 'white',
-    textAlign: 'center',
-    marginLeft: '40px'
+    color: 'white'
   },
   time: {
     height: '20px',
@@ -45,7 +43,9 @@ const StationsForTimeOfInterest = (props: Props) => {
   const isLoading = useSelector(selectFireWeatherStationsLoading)
 
   return isLoading ? (
-    <CircularProgress size={20} />
+    <div className={classes.root}>
+      <CircularProgress />
+    </div>
   ) : (
     <div className={classes.root}>
       <div className={classes.title}>Stations at:</div>
