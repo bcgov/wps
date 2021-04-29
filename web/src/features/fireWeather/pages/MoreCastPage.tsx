@@ -91,9 +91,13 @@ const MoreCastPage = () => {
       ? { redraw: true }
       : undefined
   }
-  const openSidePanel = () => {
-    setShowSidePanel(true)
-    setSidePanelWidth(PARTIAL_WIDTH)
+  const openSidePanel = (openOrClose: boolean) => {
+    if (openOrClose) {
+      setShowSidePanel(true)
+      setSidePanelWidth(PARTIAL_WIDTH)
+    } else {
+      closeSidePanel()
+    }
   }
   const closeSidePanel = () => setShowSidePanel(false)
 
