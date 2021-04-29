@@ -29,6 +29,13 @@ const pointStyleFunction = (feature: any, resolution: any) => {
 const BC_ROAD_BASE_MAP_SERVER_URL =
   'https://maps.gov.bc.ca/arcgis/rest/services/province/roads_wm/MapServer'
 
+const source = new olSource.XYZ({
+  url: `${BC_ROAD_BASE_MAP_SERVER_URL}/tile/{z}/{y}/{x}`,
+  // Normally we would get attribution text from `${BC_ROAD_BASE_MAP_SERVER_URL}?f=pjson`
+  // however this endpoint only allows the origin of http://localhost:3000, so the text has been just copied from that link
+  attributions: 'Government of British Columbia, DataBC, GeoBC'
+})
+
 const zoom = 6
 
 interface Props {
@@ -66,16 +73,7 @@ const WeatherMap = ({ redrawFlag, center, isCollapsed, setMapCenter }: Props) =>
       renderTooltip={renderTooltip}
       redrawFlag={redrawFlag}
     >
-      <TileLayer
-        source={
-          new olSource.XYZ({
-            url: `${BC_ROAD_BASE_MAP_SERVER_URL}/tile/{z}/{y}/{x}`,
-            // Normally we would get attribution text from `${BC_ROAD_BASE_MAP_SERVER_URL}?f=pjson`
-            // however this endpoint only allows the origin of http://localhost:3000, so the text has been just copied from that link
-            attributions: 'Government of British Columbia, DataBC, GeoBC'
-          })
-        }
-      />
+      <TileLayer source={source} />
       <VectorLayer
         source={
           new olSource.Vector({
