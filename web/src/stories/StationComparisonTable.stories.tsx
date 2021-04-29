@@ -45,7 +45,7 @@ const station838: GeoJsonStation = {
 
 export const ComparisonTable = Template.bind({})
 ComparisonTable.args = {
-  timeOfInterest: '2021-04-26T13:51:00-08:00',
+  timeOfInterest: new Date().toISOString(),
   stationCodes: [322, 828],
   stationsByCode: { 322: station322, 828: station838 },
   allNoonForecastsByStation: {
@@ -61,7 +61,7 @@ ComparisonTable.args = {
     322: pastRegionalModelValues.concat(regionalModelValues),
     828: pastRegionalModelValues.concat(regionalModelValues)
   },
-  noonModelsByStation: {
+  allModelsByStation: {
     322: pastModelValues.concat(modelValues),
     828: pastModelValues.concat(modelValues)
   }
