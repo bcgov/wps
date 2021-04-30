@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { useLocation } from 'react-router-dom'
 import { makeStyles } from '@material-ui/core/styles'
 
 import { PageHeader } from 'components'
 import { getStationCodesFromUrl, getTimeOfInterestFromUrl } from 'utils/url'
-import { fetchWxStations } from 'features/stations/slices/stationsSlice'
+import { fetchWxStations, selectStations } from 'features/stations/slices/stationsSlice'
 import { fetchGlobalModelsWithBiasAdj } from 'features/fireWeather/slices/modelsSlice'
 import { fetchObservations } from 'features/fireWeather/slices/observationsSlice'
 import { fetchForecasts } from 'features/fireWeather/slices/forecastsSlice'
@@ -23,6 +23,7 @@ import NetworkErrorMessages from 'features/fireWeather/components/NetworkErrorMe
 import WeatherMap from 'features/fireWeather/components/maps/WeatherMap'
 import ExpandableContainer from 'features/fireWeather/components/ExpandableContainer'
 import { getDetailedStations, getStations, StationSource } from 'api/stationAPI'
+import { selectFireWeatherStations } from 'app/rootReducer'
 import { PARTIAL_WIDTH, FULL_WIDTH, CENTER_OF_BC } from 'utils/constants'
 import { RedrawCommand } from 'features/map/Map'
 import StationAccuracyForDate from '../components/StationAccuracyForDate'
@@ -70,7 +71,16 @@ const MoreCastPage = () => {
   const codesFromQuery = getStationCodesFromUrl(location.search)
   const toiFromQuery = getTimeOfInterestFromUrl(location.search)
 
-  const shouldInitiallyShowSidePanel = codesFromQuery.length > 0
+  const selectedCodes: number[] = codesFromQuery
+  const { selectedStationsByCode } = useSelector(selectFireWeatherStations)
+
+  // retrievedStationDataCodes[] represents the station codes for which weather data has
+  // been retrieved (and therefore the station should appear in WxDataDisplays)
+  const [retrievedStationDataCodes, setRetrievedStationDataCodes] = useState<number[]>(
+    codesFromQuery
+  )
+  const [timeOfInterest, setTimeOfInterest] = useState(toiFromQuery)
+  const shouldInitiallyShowSidePanel = selectedCodes.length > 0
   const [showSidePanel, setShowSidePanel] = useState(shouldInitiallyShowSidePanel)
   const [sidePanelWidth, setSidePanelWidth] = useState(
     shouldInitiallyShowSidePanel ? PARTIAL_WIDTH : 0
@@ -108,23 +118,27 @@ const MoreCastPage = () => {
 
   useEffect(() => {
     dispatch(fetchWxStations(getStations))
+    dispatch(selectStations(codesFromQuery))
     dispatch(
       fetchWxStations(getDetailedStations, StationSource.unspecified, toiFromQuery)
     )
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (codesFromQuery.length > 0) {
-      dispatch(fetchObservations(codesFromQuery, toiFromQuery))
-      dispatch(fetchForecasts(codesFromQuery, toiFromQuery))
-      dispatch(fetchForecastSummaries(codesFromQuery, toiFromQuery))
-      dispatch(fetchHighResModels(codesFromQuery, toiFromQuery))
-      dispatch(fetchHighResModelSummaries(codesFromQuery, toiFromQuery))
-      dispatch(fetchRegionalModels(codesFromQuery, toiFromQuery))
-      dispatch(fetchRegionalModelSummaries(codesFromQuery, toiFromQuery))
-      dispatch(fetchGlobalModelsWithBiasAdj(codesFromQuery, toiFromQuery))
-      dispatch(fetchGlobalModelSummaries(codesFromQuery, toiFromQuery))
+    if (selectedStationsByCode.length > 0) {
+      dispatch(fetchObservations(selectedStationsByCode, timeOfInterest))
+      dispatch(fetchForecasts(selectedStationsByCode, timeOfInterest))
+      dispatch(fetchForecastSummaries(selectedStationsByCode, timeOfInterest))
+      dispatch(fetchHighResModels(selectedStationsByCode, timeOfInterest))
+      dispatch(fetchHighResModelSummaries(selectedStationsByCode, timeOfInterest))
+      dispatch(fetchRegionalModels(selectedStationsByCode, timeOfInterest))
+      dispatch(fetchRegionalModelSummaries(selectedStationsByCode, timeOfInterest))
+      dispatch(fetchGlobalModelsWithBiasAdj(selectedStationsByCode, timeOfInterest))
+      dispatch(fetchGlobalModelSummaries(selectedStationsByCode, timeOfInterest))
     }
+    // Update local state to match with the query url
+    setRetrievedStationDataCodes(selectedStationsByCode)
+    setTimeOfInterest(timeOfInterest)
     dispatch(
       fetchWxStations(getDetailedStations, StationSource.unspecified, toiFromQuery)
     )
@@ -135,7 +149,7 @@ const MoreCastPage = () => {
       <PageHeader title="MoreCast" productName="MoreCast" noContainer padding={25} />
       <div className={classes.nav}>
         <WxDataForm
-          codesFromQuery={codesFromQuery}
+          stationCodesQuery={selectedStationsByCode}
           toiFromQuery={toiFromQuery}
           shouldOpenSidePanel={shouldOpenSidePanel}
         />
@@ -157,10 +171,11 @@ const MoreCastPage = () => {
           collapse={collapseSidePanel}
           currentWidth={sidePanelWidth}
         >
+          <NetworkErrorMessages />
           <SidePanel handleToggleView={handleToggleView} showTableView={showTableView}>
             <NetworkErrorMessages />
             <WxDataDisplays
-              stationCodes={codesFromQuery}
+              stationCodes={retrievedStationDataCodes}
               timeOfInterest={toiFromQuery}
               expandedOrCollapsed={getRedrawCommand()}
               showTableView={showTableView}

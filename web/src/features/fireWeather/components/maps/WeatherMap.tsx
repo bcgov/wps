@@ -1,10 +1,13 @@
 import React, { useCallback, useEffect } from 'react'
+
+import { Button } from '@material-ui/core'
+
 import { fromLonLat, get } from 'ol/proj'
 import * as olSource from 'ol/source'
 import GeoJSON from 'ol/format/GeoJSON'
 import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style'
 import { FeatureLike } from 'ol/Feature'
-import { fetchWxStations } from 'features/stations/slices/stationsSlice'
+import { fetchWxStations, selectStation } from 'features/stations/slices/stationsSlice'
 
 import Map, { RedrawCommand } from 'features/map/Map'
 import TileLayer from 'features/map/TileLayer'
@@ -15,7 +18,7 @@ import { selectFireWeatherStations } from 'app/rootReducer'
 import { getDetailedStations, StationSource } from 'api/stationAPI'
 import { computeAccuracyColors } from 'features/fireWeather/components/maps/stationAccuracy'
 
-const pointStyleFunction = (feature: any, resolution: any) => {
+const pointStyleFunction = (feature: any) => {
   const colorResult = computeAccuracyColors(feature.values_)
   return new Style({
     image: new CircleStyle({
@@ -66,15 +69,30 @@ const WeatherMap = ({
     )
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const renderTooltip = useCallback((feature: FeatureLike | null) => {
-    if (!feature) return null
+  const renderTooltip = useCallback(
+    (feature: FeatureLike | null) => {
+      if (!feature) return null
 
-    return (
-      <div>
-        {feature.get('name')} ({feature.get('code')})
-      </div>
-    )
-  }, [])
+      return (
+        <div data-testid={`station-${feature.get('code')}-tooltip`}>
+          <p>
+            {feature.get('name')} ({feature.get('code')})
+          </p>
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => {
+              dispatch(selectStation(feature.get('code')))
+            }}
+            data-testid={`select-wx-station-${feature.get('code')}-button`}
+          >
+            Select
+          </Button>
+        </div>
+      )
+    },
+    [dispatch]
+  )
 
   return (
     <Map
@@ -82,8 +100,8 @@ const WeatherMap = ({
       isCollapsed={isCollapsed}
       setMapCenter={setMapCenter}
       zoom={zoom}
-      renderTooltip={renderTooltip}
       redrawFlag={redrawFlag}
+      renderTooltip={renderTooltip}
     >
       <TileLayer source={source} />
       <VectorLayer

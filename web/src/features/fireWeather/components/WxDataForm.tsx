@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { useSelector } from 'react-redux'
 import { makeStyles } from '@material-ui/core/styles'
 import { useHistory, useLocation } from 'react-router-dom'
 
@@ -6,7 +7,12 @@ import TimeOfInterestPicker from 'features/fireWeather/components/TimeOfInterest
 import GetWxDataButton from 'features/fireWeather/components/GetWxDataButton'
 import { stationCodeQueryKey, timeOfInterestQueryKey } from 'utils/url'
 import WxStationDropdown from 'features/fireWeather/components/WxStationDropdown'
-import { selectWxDataLoading, selectFireWeatherStationsLoading } from 'app/rootReducer'
+import { selectStations } from 'features/stations/slices/stationsSlice'
+import {
+  selectWxDataLoading,
+  selectFireWeatherStationsLoading,
+  selectFireWeatherStations
+} from 'app/rootReducer'
 
 const useStyles = makeStyles({
   form: {
@@ -32,23 +38,26 @@ const useStyles = makeStyles({
 
 interface Props {
   className?: string
-  codesFromQuery: number[]
+  stationCodesQuery: number[]
   toiFromQuery: string
   shouldOpenSidePanel: (openOrClose: boolean) => void
 }
 
-const WxDataForm = ({ codesFromQuery, toiFromQuery, shouldOpenSidePanel }: Props) => {
+const WxDataForm = ({ stationCodesQuery, toiFromQuery, shouldOpenSidePanel }: Props) => {
   const classes = useStyles()
   const history = useHistory()
   const location = useLocation()
 
-  const [selectedCodes, setSelectedCodes] = useState<number[]>(codesFromQuery)
+  const { selectedStationsByCode } = useSelector(selectFireWeatherStations)
+
+  selectStations(stationCodesQuery)
+
   const [timeOfInterest, setTimeOfInterest] = useState(toiFromQuery)
-  const hasSelectedCodes = selectedCodes.length > 0
+  const hasSelectedCodes = selectedStationsByCode.length > 0
 
   useEffect(() => {
     // Update local state to match with the query url
-    setSelectedCodes(codesFromQuery)
+    selectStations(selectedStationsByCode)
     setTimeOfInterest(toiFromQuery)
   }, [location]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -57,7 +66,7 @@ const WxDataForm = ({ codesFromQuery, toiFromQuery, shouldOpenSidePanel }: Props
     if (hasSelectedCodes) {
       // Open the side panel
       shouldOpenSidePanel(true)
-      potentialCodes = `${stationCodeQueryKey}=${selectedCodes.join(',')}&`
+      potentialCodes = `${stationCodeQueryKey}=${selectedStationsByCode.join(',')}&`
     } else {
       // Close side panel if we do not care about specific stations
       shouldOpenSidePanel(false)
@@ -76,7 +85,7 @@ const WxDataForm = ({ codesFromQuery, toiFromQuery, shouldOpenSidePanel }: Props
       // see: https://developer.matomo.org/guides/tagmanager/integration-plugin#supporting-the-data-layer
       window._mtm.push({
         event: 'getWeatherData',
-        stationCodes: selectedCodes,
+        stationCodes: selectedStationsByCode,
         timeOfInterest: timeOfInterest
       })
     }
@@ -86,8 +95,7 @@ const WxDataForm = ({ codesFromQuery, toiFromQuery, shouldOpenSidePanel }: Props
     <form className={classes.form} noValidate>
       <WxStationDropdown
         className={classes.stationDropdown}
-        stationCodes={selectedCodes}
-        onChange={setSelectedCodes}
+        stationCodes={selectedStationsByCode}
       />
       <TimeOfInterestPicker
         className={classes.timeOfInterest}

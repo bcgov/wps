@@ -8,13 +8,17 @@ interface State {
   error: string | null
   stations: GeoJsonStation[] | DetailedGeoJsonStation[]
   stationsByCode: Record<number, GeoJsonStation | DetailedGeoJsonStation | undefined>
+  selectedStationsByCode: number[]
+  codesOfRetrievedStationData: number[]
 }
 
 const initialState: State = {
   loading: false,
   error: null,
   stations: [],
-  stationsByCode: {}
+  stationsByCode: {},
+  selectedStationsByCode: [],
+  codesOfRetrievedStationData: []
 }
 
 const stationsSlice = createSlice({
@@ -40,6 +44,16 @@ const stationsSlice = createSlice({
       })
       state.stationsByCode = stationsByCode
       state.loading = false
+    },
+    selectStation(state: State, action: PayloadAction<number>) {
+      const selectedStationsList = state.selectedStationsByCode
+      selectedStationsList.push(action.payload)
+      const selectedStationsSet = new Set(selectedStationsList)
+      state.selectedStationsByCode = Array.from(selectedStationsSet.values())
+    },
+    selectStations(state: State, action: PayloadAction<number[]>) {
+      state.selectedStationsByCode = []
+      state.selectedStationsByCode = action.payload
     }
   }
 })
@@ -64,7 +78,9 @@ export const fetchWxStations = (
 export const {
   getStationsStart,
   getStationsFailed,
-  getStationsSuccess
+  getStationsSuccess,
+  selectStation,
+  selectStations
 } = stationsSlice.actions
 
 export default stationsSlice.reducer

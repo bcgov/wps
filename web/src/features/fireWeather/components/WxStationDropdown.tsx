@@ -1,5 +1,5 @@
 import React from 'react'
-import { useSelector } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
 import Autocomplete from '@material-ui/lab/Autocomplete'
 import { TextField } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
@@ -7,6 +7,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import { selectFireWeatherStations } from 'app/rootReducer'
 import { getSelectedStationOptions } from 'utils/dropdown'
 import { GeoJsonStation } from 'api/stationAPI'
+import { selectStations } from 'features/stations/slices/stationsSlice'
 
 const useStyles = makeStyles({
   autocomplete: {
@@ -19,7 +20,7 @@ const useStyles = makeStyles({
   }
 })
 
-interface Option {
+export interface Option {
   name: string
   code: number
 }
@@ -27,10 +28,12 @@ interface Option {
 interface Props {
   className?: string
   stationCodes: number[]
-  onChange: (codes: number[]) => void
 }
 
 const WxStationDropdown = (props: Props) => {
+  const dispatch = useDispatch()
+  const { selectedStationsByCode } = useSelector(selectFireWeatherStations)
+
   const classes = useStyles()
   const {
     loading: fetchingStations,
@@ -40,7 +43,7 @@ const WxStationDropdown = (props: Props) => {
   } = useSelector(selectFireWeatherStations)
 
   const { isThereUnknownCode, selectedStationOptions } = getSelectedStationOptions(
-    props.stationCodes,
+    selectedStationsByCode,
     stationsByCode
   )
   const isThereError =
@@ -62,8 +65,9 @@ const WxStationDropdown = (props: Props) => {
           multiple
           options={allStationOptions}
           getOptionLabel={option => `${option.name} (${option.code})`}
+          getOptionSelected={(option, value) => option.code === value.code}
           onChange={(_, options) => {
-            props.onChange(options.map(s => s.code))
+            dispatch(selectStations(options.map(s => s.code)))
           }}
           size="small"
           value={selectedStationOptions}
