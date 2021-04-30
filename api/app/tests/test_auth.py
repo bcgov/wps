@@ -1,13 +1,13 @@
 """ Functional testing for authentication """
 
 from datetime import datetime, timezone
+from aiohttp import ClientSession
 from pytest_bdd import scenario, given, then
 from fastapi.testclient import TestClient
 import pytest
 import app.auth
 import app.main
 from app.tests.common import default_mock_client_get
-from aiohttp import ClientSession
 
 
 @scenario('test_auth.feature', 'Handling unauthenticated users',
