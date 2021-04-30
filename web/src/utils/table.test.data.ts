@@ -1,4 +1,3 @@
-import { makeStyles } from '@material-ui/core/styles'
 import { WeatherValue } from 'features/fireWeather/components/tables/SortableTableByDatetime'
 import { MinMaxValues, RowIdsOfMinMaxValues } from 'utils/table'
 

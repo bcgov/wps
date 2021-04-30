@@ -43,7 +43,8 @@ def status_code(response, status: int):
 
 
 @pytest.mark.usefixtures("mock_jwt_decode")
-@scenario("test_auth.feature", "Verifying authenticated users", example_converters=dict(status=int, verb=str, utc_time=int))
+@scenario("test_auth.feature", "Verifying authenticated users",
+          example_converters=dict(status=int, verb=str, utc_time=int))
 def test_auth_2nd_scenario():
     """ BDD Scenario #2. """
 
@@ -59,7 +60,6 @@ def given_utc_time(monkeypatch, utc_time: int):
     """ Mock out utc time """
     def mock_get_utc_now():
         return datetime.fromtimestamp(utc_time/1000, tz=timezone.utc)
-    print('in utc_time')
     monkeypatch.setattr(app.routers.stations, 'get_utc_now', mock_get_utc_now)
 
 

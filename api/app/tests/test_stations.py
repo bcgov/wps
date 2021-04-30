@@ -91,6 +91,4 @@ def station_ecodivision_data(response, index, ecodivision_name, core_season: dic
 @then("the expected response is <expected_response>")
 def assert_expected_response(response, expected_response):
     """ We expect a certain response """
-    with open('moo.json', 'w') as f:
-        json.dump(response.json(), f)
     assert response.json() == expected_response
