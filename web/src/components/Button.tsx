@@ -6,7 +6,7 @@ import { makeStyles } from '@material-ui/core/styles'
 interface CustomProps {
   loading?: boolean
   hasSpinner?: boolean
-  spinnercolor?: string
+  spinnerColor?: string
 }
 
 type Props = CustomProps & ButtonProps
@@ -16,7 +16,7 @@ const useStyles = makeStyles(theme => ({
     position: 'relative'
   },
   spinner: (props: Props) => ({
-    color: props.spinnercolor || theme.palette.primary.light,
+    color: props.spinnerColor || theme.palette.primary.light,
     position: 'absolute',
     left: '50%',
     marginLeft: -10,
