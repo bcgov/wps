@@ -1,10 +1,13 @@
 import React, { useCallback, useEffect } from 'react'
+
+import { Button } from '@material-ui/core'
+
 import { fromLonLat, get } from 'ol/proj'
 import * as olSource from 'ol/source'
 import GeoJSON from 'ol/format/GeoJSON'
 import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style'
 import { FeatureLike } from 'ol/Feature'
-import { fetchWxStations } from 'features/stations/slices/stationsSlice'
+import { fetchWxStations, selectStation } from 'features/stations/slices/stationsSlice'
 
 import Map, { RedrawCommand } from 'features/map/Map'
 import TileLayer from 'features/map/TileLayer'
@@ -12,7 +15,7 @@ import VectorLayer from 'features/map/VectorLayer'
 import { useDispatch, useSelector } from 'react-redux'
 
 import { selectFireWeatherStations } from 'app/rootReducer'
-import { getDetailedStations } from 'api/stationAPI'
+import { getDetailedStations, StationSource } from 'api/stationAPI'
 import { computeAccuracyColors } from 'features/fireWeather/components/maps/stationAccuracy'
 
 const pointStyleFunction = (feature: any) => {
@@ -45,27 +48,51 @@ interface Props {
   redrawFlag?: RedrawCommand
   center: number[]
   isCollapsed: boolean
+  toiFromQuery: string
   setMapCenter: (newCenter: number[]) => void
 }
 
-const WeatherMap = ({ redrawFlag, center, isCollapsed, setMapCenter }: Props) => {
+const WeatherMap = ({
+  redrawFlag,
+  center,
+  isCollapsed,
+  toiFromQuery,
+  setMapCenter
+}: Props) => {
   const dispatch = useDispatch()
 
   const { stations } = useSelector(selectFireWeatherStations)
 
   useEffect(() => {
-    dispatch(fetchWxStations(getDetailedStations))
+    dispatch(
+      fetchWxStations(getDetailedStations, StationSource.unspecified, toiFromQuery)
+    )
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const renderTooltip = useCallback((feature: FeatureLike | null) => {
-    if (!feature) return null
+  const renderTooltip = useCallback(
+    (feature: FeatureLike | null) => {
+      if (!feature) return null
 
-    return (
-      <div>
-        {feature.get('name')} ({feature.get('code')})
-      </div>
-    )
-  }, [])
+      return (
+        <div data-testid={`station-${feature.get('code')}-tooltip`}>
+          <p>
+            {feature.get('name')} ({feature.get('code')})
+          </p>
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => {
+              dispatch(selectStation(feature.get('code')))
+            }}
+            data-testid={`select-wx-station-${feature.get('code')}-button`}
+          >
+            Select
+          </Button>
+        </div>
+      )
+    },
+    [dispatch]
+  )
 
   return (
     <Map
@@ -73,8 +100,8 @@ const WeatherMap = ({ redrawFlag, center, isCollapsed, setMapCenter }: Props) =>
       isCollapsed={isCollapsed}
       setMapCenter={setMapCenter}
       zoom={zoom}
-      renderTooltip={renderTooltip}
       redrawFlag={redrawFlag}
+      renderTooltip={renderTooltip}
     >
       <TileLayer source={source} />
       <VectorLayer

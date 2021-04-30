@@ -8,13 +8,17 @@ interface State {
   error: string | null
   stations: GeoJsonStation[] | DetailedGeoJsonStation[]
   stationsByCode: Record<number, GeoJsonStation | DetailedGeoJsonStation | undefined>
+  selectedStationsByCode: number[]
+  codesOfRetrievedStationData: number[]
 }
 
 const initialState: State = {
   loading: false,
   error: null,
   stations: [],
-  stationsByCode: {}
+  stationsByCode: {},
+  selectedStationsByCode: [],
+  codesOfRetrievedStationData: []
 }
 
 const stationsSlice = createSlice({
@@ -40,19 +44,30 @@ const stationsSlice = createSlice({
       })
       state.stationsByCode = stationsByCode
       state.loading = false
+    },
+    selectStation(state: State, action: PayloadAction<number>) {
+      const selectedStationsList = state.selectedStationsByCode
+      selectedStationsList.push(action.payload)
+      const selectedStationsSet = new Set(selectedStationsList)
+      state.selectedStationsByCode = Array.from(selectedStationsSet.values())
+    },
+    selectStations(state: State, action: PayloadAction<number[]>) {
+      state.selectedStationsByCode = []
+      state.selectedStationsByCode = action.payload
     }
   }
 })
 
 export const fetchWxStations = (
   stationGetter:
-    | ((source: StationSource) => Promise<GeoJsonStation[]>)
-    | ((source: StationSource) => Promise<DetailedGeoJsonStation[]>),
-  source: StationSource = StationSource.unspecified
+    | ((source: StationSource, toi?: string) => Promise<GeoJsonStation[]>)
+    | ((source: StationSource, toi?: string) => Promise<DetailedGeoJsonStation[]>),
+  source: StationSource = StationSource.unspecified,
+  toi?: string
 ): AppThunk => async dispatch => {
   try {
     dispatch(getStationsStart())
-    const stations = await stationGetter(source)
+    const stations = await stationGetter(source, toi)
     dispatch(getStationsSuccess(stations))
   } catch (err) {
     dispatch(getStationsFailed(err.toString()))
@@ -63,7 +78,9 @@ export const fetchWxStations = (
 export const {
   getStationsStart,
   getStationsFailed,
-  getStationsSuccess
+  getStationsSuccess,
+  selectStation,
+  selectStations
 } = stationsSlice.actions
 
 export default stationsSlice.reducer
