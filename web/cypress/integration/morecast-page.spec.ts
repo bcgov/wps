@@ -192,19 +192,30 @@ describe('MoreCast Page', () => {
         .find('.MuiTableContainer-root')
         .should('not.be.visible')
     })
-    it('Should expand the side panel when it is collapsed', () => {
-      cy.get(`[value=expand-collapse]`).click()
+    it('Should show the legend', () => {
+      cy.getByTestId('legend').should('be.visible')
+    })
+    it('Should expand the side panel when it is collapsed, and hide the legend', () => {
+      cy.get(`[value=expand-collapse]`).click({ force: true })
       cy.getByTestId('expandable-container-content')
         .invoke('width')
         .should('be.gt', PARTIAL_WIDTH)
+
+      cy.getByTestId('legend').should('not.exist')
     })
-    it('Should collapse the side panel when it is expanded', () => {
+    it('Should collapse the side panel when it is expanded and the legend should be visible', () => {
       cy.get(`[value=expand-collapse]`)
-        .click()
-        .click()
+        .click({ force: true })
+        .click({ force: true })
       cy.getByTestId('expandable-container-content')
         .invoke('width')
         .should('be.lte', PARTIAL_WIDTH)
+
+      cy.getByTestId('legend').should('be.visible')
+    })
+    it('Should close the side panel and the legend should be visible', () => {
+      cy.get(`[value=close]`).click({ force: true })
+      cy.getByTestId('legend').should('be.visible')
     })
 
     describe('When graphs tab is clicked', () => {
