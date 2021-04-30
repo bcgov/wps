@@ -3,7 +3,7 @@ import logging
 from datetime import datetime
 from fastapi import APIRouter, Response, Depends
 from app.auth import authentication_required, audit
-from app.time_utils import get_utc_now
+from app.time_utils import get_utc_now, get_hour_20
 from app.schemas.stations import WeatherStationsResponse, DetailedWeatherStationsResponse
 from app.stations import StationSourceEnum, get_stations_as_geojson, fetch_detailed_stations_as_geojson
 
@@ -17,7 +17,7 @@ router = APIRouter(
 
 @router.get('/details/', response_model=DetailedWeatherStationsResponse)
 async def get_detailed_stations(response: Response,
-                                time_of_interest: datetime = None,
+                                toi: datetime = None,
                                 source: StationSourceEnum = StationSourceEnum.UNSPECIFIED,
                                 __=Depends(audit),
                                 _=Depends(authentication_required)):
@@ -29,12 +29,14 @@ async def get_detailed_stations(response: Response,
     try:
         logger.info('/stations/details/')
         response.headers["Cache-Control"] = "max-age=0"  # don't let the browser cache this
-        if time_of_interest is None:
+        if toi is None:
             # NOTE: Don't be tempted to move this into the function definition. It's not possible
             # to mock a function if it's part of the function definition, and will cause
             # tests to fail.
-            time_of_interest = get_utc_now()
-        weather_stations = await fetch_detailed_stations_as_geojson(time_of_interest, source)
+            toi = get_utc_now()
+        else:
+            toi = get_hour_20(toi)
+        weather_stations = await fetch_detailed_stations_as_geojson(toi, source)
 
         return DetailedWeatherStationsResponse(features=weather_stations)
 

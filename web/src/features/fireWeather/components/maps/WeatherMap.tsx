@@ -15,7 +15,7 @@ import VectorLayer from 'features/map/VectorLayer'
 import { useDispatch, useSelector } from 'react-redux'
 
 import { selectFireWeatherStations } from 'app/rootReducer'
-import { getDetailedStations } from 'api/stationAPI'
+import { getDetailedStations, StationSource } from 'api/stationAPI'
 import { computeAccuracyColors } from 'features/fireWeather/components/maps/stationAccuracy'
 
 const pointStyleFunction = (feature: any) => {
@@ -48,16 +48,25 @@ interface Props {
   redrawFlag?: RedrawCommand
   center: number[]
   isCollapsed: boolean
+  toiFromQuery: string
   setMapCenter: (newCenter: number[]) => void
 }
 
-const WeatherMap = ({ redrawFlag, center, isCollapsed, setMapCenter }: Props) => {
+const WeatherMap = ({
+  redrawFlag,
+  center,
+  isCollapsed,
+  toiFromQuery,
+  setMapCenter
+}: Props) => {
   const dispatch = useDispatch()
 
   const { stations } = useSelector(selectFireWeatherStations)
 
   useEffect(() => {
-    dispatch(fetchWxStations(getDetailedStations))
+    dispatch(
+      fetchWxStations(getDetailedStations, StationSource.unspecified, toiFromQuery)
+    )
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const renderTooltip = useCallback((feature: FeatureLike | null) => {

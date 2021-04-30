@@ -22,11 +22,11 @@ import SidePanel from 'features/fireWeather/components/SidePanel'
 import NetworkErrorMessages from 'features/fireWeather/components/NetworkErrorMessages'
 import WeatherMap from 'features/fireWeather/components/maps/WeatherMap'
 import ExpandableContainer from 'features/fireWeather/components/ExpandableContainer'
-import { getStations } from 'api/stationAPI'
+import { getDetailedStations, getStations, StationSource } from 'api/stationAPI'
 import { selectFireWeatherStations } from 'app/rootReducer'
-
 import { PARTIAL_WIDTH, FULL_WIDTH, CENTER_OF_BC } from 'utils/constants'
 import { RedrawCommand } from 'features/map/Map'
+import StationAccuracyForDate from '../components/StationAccuracyForDate'
 
 const useStyles = makeStyles(theme => ({
   main: {
@@ -101,9 +101,13 @@ const MoreCastPage = () => {
       ? { redraw: true }
       : undefined
   }
-  const openSidePanel = () => {
-    setShowSidePanel(true)
-    setSidePanelWidth(PARTIAL_WIDTH)
+  const shouldOpenSidePanel = (openOrClose: boolean) => {
+    if (openOrClose) {
+      setShowSidePanel(true)
+      setSidePanelWidth(PARTIAL_WIDTH)
+    } else {
+      closeSidePanel()
+    }
   }
   const closeSidePanel = () => setShowSidePanel(false)
 
@@ -115,6 +119,9 @@ const MoreCastPage = () => {
   useEffect(() => {
     dispatch(fetchWxStations(getStations))
     dispatch(selectStations(codesFromQuery))
+    dispatch(
+      fetchWxStations(getDetailedStations, StationSource.unspecified, toiFromQuery)
+    )
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -132,6 +139,9 @@ const MoreCastPage = () => {
     // Update local state to match with the query url
     setCodesOfRetrievedStationData(selectedStationsByCode)
     setTimeOfInterest(timeOfInterest)
+    dispatch(
+      fetchWxStations(getDetailedStations, StationSource.unspecified, toiFromQuery)
+    )
   }, [location]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
@@ -140,9 +150,8 @@ const MoreCastPage = () => {
       <div className={classes.nav}>
         <WxDataForm
           stationCodesQuery={selectedStationsByCode}
-          timeOfInterestQuery={timeOfInterest}
-          setSelectedTimeOfInterest={setTimeOfInterest}
-          openSidePanel={openSidePanel}
+          toiFromQuery={toiFromQuery}
+          shouldOpenSidePanel={shouldOpenSidePanel}
         />
       </div>
       <div className={classes.content}>
@@ -150,6 +159,7 @@ const MoreCastPage = () => {
           <WeatherMap
             redrawFlag={getRedrawCommand()}
             isCollapsed={sidePanelWidth === FULL_WIDTH}
+            toiFromQuery={toiFromQuery}
             center={mapCenter}
             setMapCenter={setNewMapCenter}
           />
@@ -175,6 +185,7 @@ const MoreCastPage = () => {
       </div>
       <div className={classes.legend}>
         <AccuracyColorLegend show={sidePanelWidth <= PARTIAL_WIDTH} />
+        <StationAccuracyForDate toiFromQuery={toiFromQuery} />
       </div>
     </main>
   )

@@ -2,21 +2,20 @@ import React from 'react'
 import { useSelector } from 'react-redux'
 
 import { Button } from 'components'
-import { selectWxDataLoading } from 'app/rootReducer'
+import { RootState } from 'app/rootReducer'
 
 interface Props {
   onBtnClick: () => void
-  disabled: boolean
+  selector: (root: RootState) => boolean
 }
 
-const GetWxDataButton = ({ onBtnClick, disabled }: Props) => {
-  const wxDataLoading = useSelector(selectWxDataLoading)
+const GetWxDataButton = ({ onBtnClick, selector }: Props) => {
+  const wxDataLoading = useSelector(selector)
 
   return (
     <Button
       data-testid="get-wx-data-button"
       onClick={onBtnClick}
-      disabled={disabled}
       loading={wxDataLoading}
       variant="contained"
       color="primary"
