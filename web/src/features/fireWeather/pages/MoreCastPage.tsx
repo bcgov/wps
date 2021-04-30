@@ -185,7 +185,10 @@ const MoreCastPage = () => {
       </div>
       <div className={classes.legend}>
         <AccuracyColorLegend show={sidePanelWidth <= PARTIAL_WIDTH} />
-        <StationAccuracyForDate toiFromQuery={toiFromQuery} />
+        <StationAccuracyForDate
+          show={sidePanelWidth <= PARTIAL_WIDTH}
+          toiFromQuery={toiFromQuery}
+        />
       </div>
     </main>
   )

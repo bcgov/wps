@@ -33,6 +33,7 @@ const useStyles = makeStyles(theme => ({
 }))
 
 interface Props {
+  show: boolean
   toiFromQuery: string
 }
 
@@ -40,7 +41,7 @@ const StationAccuracyForDate = (props: Props) => {
   const classes = useStyles()
   const isLoading = useSelector(selectFireWeatherStationsLoading)
 
-  return (
+  return props.show ? (
     <div className={classes.root}>
       {isLoading ? (
         <CircularProgress />
@@ -58,6 +59,8 @@ const StationAccuracyForDate = (props: Props) => {
         </div>
       )}
     </div>
+  ) : (
+    <div></div>
   )
 }
 
