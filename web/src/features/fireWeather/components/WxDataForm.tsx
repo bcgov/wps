@@ -34,10 +34,10 @@ interface Props {
   className?: string
   codesFromQuery: number[]
   toiFromQuery: string
-  openSidePanel: (openOrClose: boolean) => void
+  shouldOpenSidePanel: (openOrClose: boolean) => void
 }
 
-const WxDataForm = ({ codesFromQuery, toiFromQuery, openSidePanel }: Props) => {
+const WxDataForm = ({ codesFromQuery, toiFromQuery, shouldOpenSidePanel }: Props) => {
   const classes = useStyles()
   const history = useHistory()
   const location = useLocation()
@@ -56,11 +56,11 @@ const WxDataForm = ({ codesFromQuery, toiFromQuery, openSidePanel }: Props) => {
     let potentialCodes = ''
     if (hasSelectedCodes) {
       // Open the side panel
-      openSidePanel(true)
+      shouldOpenSidePanel(true)
       potentialCodes = `${stationCodeQueryKey}=${selectedCodes.join(',')}&`
     } else {
       // Close side panel if we do not care about specific stations
-      openSidePanel(false)
+      shouldOpenSidePanel(false)
     }
 
     // Update the url query with the new station codes and time of interest

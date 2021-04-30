@@ -91,7 +91,7 @@ const MoreCastPage = () => {
       ? { redraw: true }
       : undefined
   }
-  const openSidePanel = (openOrClose: boolean) => {
+  const shouldOpenSidePanel = (openOrClose: boolean) => {
     if (openOrClose) {
       setShowSidePanel(true)
       setSidePanelWidth(PARTIAL_WIDTH)
@@ -137,7 +137,7 @@ const MoreCastPage = () => {
         <WxDataForm
           codesFromQuery={codesFromQuery}
           toiFromQuery={toiFromQuery}
-          openSidePanel={openSidePanel}
+          shouldOpenSidePanel={shouldOpenSidePanel}
         />
       </div>
       <div className={classes.content}>
