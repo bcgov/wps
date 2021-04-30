@@ -14,7 +14,6 @@ Feature: /stations/
             | /api/stations/ | 200    | 3     | 317  | ALLISON PASS | 49.0623139 | -120.7674194 | False    |                |
 
     Scenario: Get detailed weather stations
-        Given USE_WFWX=<use_wfwx>
         Given A <crud_mapping>
         Given <utc_time>
         Given I request a list of weather stations from <url> with <authentication>
@@ -22,8 +21,7 @@ Feature: /stations/
         Then the expected response is <expected_response>
 
         Examples:
-            | url                    | status | use_wfwx | expected_response                                 | crud_mapping                     | utc_time      | authentication |
-            | /api/stations/details/ | 200    | True     | test_stations_details_expected_response_wfwx.json |                                  | 1618870929583 | True           |
-            | /api/stations/details/ | 200    | False    | test_stations_details_expected_response_db.json   | test_stations_crud_mappings.json | 1618870929583 | True           |
+            | url                    | status | expected_response                                 | crud_mapping                     | utc_time      | authentication |
+            | /api/stations/details/ | 200    | test_stations_details_expected_response.json   | test_stations_crud_mappings.json | 1618870929583 | True           |
 
 

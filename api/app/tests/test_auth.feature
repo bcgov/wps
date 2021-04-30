@@ -15,8 +15,8 @@ Feature: Authentication
             | just_token   | 401    | /api/stations/details/                            | get  |
 
     Scenario: Verifying authenticated users
-        Given I am an authenticated user when I <verb> a protected <endpoint>
         Given <utc_time>
+        Given I am an authenticated user when I <verb> a protected <endpoint>
         Then I shouldn't get an unauthorized error <status> code
         And Authenticated access audit logs are created
 
