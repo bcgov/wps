@@ -52,6 +52,17 @@ describe('MoreCast Page', () => {
       .click()
   })
 
+  it('Should display the station accuracy for date label', () => {
+    cy.visit(MORECAST_ROUTE)
+
+    const timeOfInterest = '2021-02-01T12:00:00-08:00'
+    cy.getByTestId('time-of-interest-picker').type(timeOfInterest.slice(0, 16)) // yyyy-MM-ddThh:mm
+
+    cy.getByTestId('get-wx-data-button').click({ force: true })
+    cy.getByTestId('station-forecast-accuracy-for-date').should('have.text', timeOfInterest.slice(0, 10))
+    cy.url().should('contain', `${timeOfInterestQueryKey}=${timeOfInterest}`)
+  })
+
   describe('When wx data successfully fetched', () => {
     const numOfObservations = 119
     const numOfForecasts = 6
