@@ -72,7 +72,7 @@ export async function getStations(
 }
 
 export async function getDetailedStations(
-  source: StationSource = StationSource.unspecified,
+  source: StationSource = StationSource.wildfire_one,
   toi?: string
 ): Promise<DetailedGeoJsonStation[]> {
   const detailedUrl = `${url}details/`
