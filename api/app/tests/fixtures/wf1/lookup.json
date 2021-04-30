@@ -49,9 +49,6 @@
       "get": {
          "{'query': 'weatherTimestamp==1618862400000', 'page': 0, 'size': '1000'}": {
             "None": "wfwx/v1/dailies/rsql__query_weatherTimestamp==1618862400000_page_0_size_1000.json"
-         },
-         "{'query': 'weatherTimestamp==1619726400000', 'page': 0, 'size': '1000'}": {
-            "None": "wfwx/v1/dailies/rsql__query_weatherTimestamp==1619726400000_page_0_size_1000.json"
          }
       }
    }
