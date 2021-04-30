@@ -144,8 +144,7 @@ async def fetch_detailed_stations_as_geojson(
         result = await wildfire_one.get_detailed_stations(time_of_interest)
         logger.info('detailed stations loaded.')
         return result
-    # Get from local:
-    return _get_detailed_stations(time_of_interest)
+    return await _get_detailed_stations(time_of_interest)
 
 
 async def get_stations_as_geojson(
