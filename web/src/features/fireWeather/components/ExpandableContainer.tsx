@@ -51,7 +51,12 @@ const ExpandableContainer = (props: Props) => {
   const collapsed = props.currentWidth === PARTIAL_WIDTH
   return (
     <div className={classes.root}>
-      <IconButton color="primary" aria-label="Close side view" onClick={props.close}>
+      <IconButton
+        value="close"
+        color="primary"
+        aria-label="Close side view"
+        onClick={props.close}
+      >
         <CloseIcon />
       </IconButton>
       <div className={classes.ordering}>
