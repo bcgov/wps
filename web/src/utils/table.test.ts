@@ -1,8 +1,7 @@
 import {
   getDatetimeComparator,
   getMinMaxValueCalculator,
-  getMinMaxValuesRowIds,
-  getCellClassNameAndTestId
+  getMinMaxValuesRowIds
 } from 'utils/table'
 import {
   dummyWeatherData,
@@ -19,7 +18,6 @@ import {
   correctMinMaxRowIdsNoPrecip,
   correctMinMaxRowIdsNoWind
 } from 'utils/table.test.data'
-import { Column } from 'features/fireWeather/components/tables/SortableTableByDatetime'
 
 describe('Table util functions', () => {
   describe('getDatetimeComparator', () => {

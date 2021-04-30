@@ -19,7 +19,7 @@ const GetWxDataButton = ({ onBtnClick, selector }: Props) => {
       loading={wxDataLoading}
       variant="contained"
       color="primary"
-      spinnerColor="white"
+      spinnercolor="white"
     >
       Get Weather Data
     </Button>
