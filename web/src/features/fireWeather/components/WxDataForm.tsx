@@ -8,7 +8,11 @@ import GetWxDataButton from 'features/fireWeather/components/GetWxDataButton'
 import { stationCodeQueryKey, timeOfInterestQueryKey } from 'utils/url'
 import WxStationDropdown from 'features/fireWeather/components/WxStationDropdown'
 import { selectStations } from 'features/stations/slices/stationsSlice'
-import { selectWxDataLoading, selectFireWeatherStationsLoading, selectFireWeatherStations } from 'app/rootReducer'
+import {
+  selectWxDataLoading,
+  selectFireWeatherStationsLoading,
+  selectFireWeatherStations
+} from 'app/rootReducer'
 
 const useStyles = makeStyles({
   form: {

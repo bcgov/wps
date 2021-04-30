@@ -89,7 +89,7 @@ const WeatherMap = ({
         </Button>
       </div>
     )
-  }, [])
+  }, [dispatch])
 
   return (
     <Map

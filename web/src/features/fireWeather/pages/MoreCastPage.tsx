@@ -74,11 +74,11 @@ const MoreCastPage = () => {
   const selectedCodes: number[] = codesFromQuery
   const { selectedStationsByCode } = useSelector(selectFireWeatherStations)
 
-  // codesOfRetrievedStationData[] represents the station codes for which weather data has
+  // retrievedStationDataCodes[] represents the station codes for which weather data has
   // been retrieved (and therefore the station should appear in WxDataDisplays)
-  const [codesOfRetrievedStationData, setCodesOfRetrievedStationData] = useState<
-    number[]
-  >(codesFromQuery)
+  const [retrievedStationDataCodes, setRetrievedStationDataCodes] = useState<number[]>(
+    codesFromQuery
+  )
   const [timeOfInterest, setTimeOfInterest] = useState(toiFromQuery)
   const shouldInitiallyShowSidePanel = selectedCodes.length > 0
   const [showSidePanel, setShowSidePanel] = useState(shouldInitiallyShowSidePanel)
@@ -137,7 +137,7 @@ const MoreCastPage = () => {
       dispatch(fetchGlobalModelSummaries(selectedStationsByCode, timeOfInterest))
     }
     // Update local state to match with the query url
-    setCodesOfRetrievedStationData(selectedStationsByCode)
+    setRetrievedStationDataCodes(selectedStationsByCode)
     setTimeOfInterest(timeOfInterest)
     dispatch(
       fetchWxStations(getDetailedStations, StationSource.unspecified, toiFromQuery)
@@ -175,7 +175,7 @@ const MoreCastPage = () => {
           <SidePanel handleToggleView={handleToggleView} showTableView={showTableView}>
             <NetworkErrorMessages />
             <WxDataDisplays
-              stationCodes={codesOfRetrievedStationData}
+              stationCodes={retrievedStationDataCodes}
               timeOfInterest={toiFromQuery}
               expandedOrCollapsed={getRedrawCommand()}
               showTableView={showTableView}
