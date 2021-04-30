@@ -63,16 +63,22 @@ export enum StationSource {
 const url = '/stations/'
 
 export async function getStations(
-  source: StationSource = StationSource.unspecified
+  source: StationSource = StationSource.unspecified,
+  toi?: string
 ): Promise<GeoJsonStation[]> {
-  const { data } = await axios.get<StationsResponse>(url, { params: { source } })
+  const { data } = await axios.get<StationsResponse>(url, { params: { source, toi } })
 
   return data.features
 }
 
-export async function getDetailedStations(): Promise<DetailedGeoJsonStation[]> {
+export async function getDetailedStations(
+  source: StationSource = StationSource.unspecified,
+  toi?: string
+): Promise<DetailedGeoJsonStation[]> {
   const detailedUrl = `${url}details/`
-  const { data } = await axios.get<DetailedStationsResponse>(detailedUrl)
+  const { data } = await axios.get<DetailedStationsResponse>(detailedUrl, {
+    params: { source, toi }
+  })
 
   return data.features
 }
