@@ -22,9 +22,10 @@ import SidePanel from 'features/fireWeather/components/SidePanel'
 import NetworkErrorMessages from 'features/fireWeather/components/NetworkErrorMessages'
 import WeatherMap from 'features/fireWeather/components/maps/WeatherMap'
 import ExpandableContainer from 'features/fireWeather/components/ExpandableContainer'
-import { getStations } from 'api/stationAPI'
+import { getDetailedStations, getStations, StationSource } from 'api/stationAPI'
 import { PARTIAL_WIDTH, FULL_WIDTH, CENTER_OF_BC } from 'utils/constants'
 import { RedrawCommand } from 'features/map/Map'
+import StationAccuracyForDate from '../components/StationAccuracyForDate'
 
 const useStyles = makeStyles(theme => ({
   main: {
@@ -90,9 +91,13 @@ const MoreCastPage = () => {
       ? { redraw: true }
       : undefined
   }
-  const openSidePanel = () => {
-    setShowSidePanel(true)
-    setSidePanelWidth(PARTIAL_WIDTH)
+  const shouldOpenSidePanel = (openOrClose: boolean) => {
+    if (openOrClose) {
+      setShowSidePanel(true)
+      setSidePanelWidth(PARTIAL_WIDTH)
+    } else {
+      closeSidePanel()
+    }
   }
   const closeSidePanel = () => setShowSidePanel(false)
 
@@ -103,6 +108,9 @@ const MoreCastPage = () => {
 
   useEffect(() => {
     dispatch(fetchWxStations(getStations))
+    dispatch(
+      fetchWxStations(getDetailedStations, StationSource.unspecified, toiFromQuery)
+    )
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -117,6 +125,9 @@ const MoreCastPage = () => {
       dispatch(fetchGlobalModelsWithBiasAdj(codesFromQuery, toiFromQuery))
       dispatch(fetchGlobalModelSummaries(codesFromQuery, toiFromQuery))
     }
+    dispatch(
+      fetchWxStations(getDetailedStations, StationSource.unspecified, toiFromQuery)
+    )
   }, [location]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
@@ -126,7 +137,7 @@ const MoreCastPage = () => {
         <WxDataForm
           codesFromQuery={codesFromQuery}
           toiFromQuery={toiFromQuery}
-          openSidePanel={openSidePanel}
+          shouldOpenSidePanel={shouldOpenSidePanel}
         />
       </div>
       <div className={classes.content}>
@@ -134,6 +145,7 @@ const MoreCastPage = () => {
           <WeatherMap
             redrawFlag={getRedrawCommand()}
             isCollapsed={sidePanelWidth === FULL_WIDTH}
+            toiFromQuery={toiFromQuery}
             center={mapCenter}
             setMapCenter={setNewMapCenter}
           />
@@ -158,6 +170,7 @@ const MoreCastPage = () => {
       </div>
       <div className={classes.legend}>
         <AccuracyColorLegend show={sidePanelWidth <= PARTIAL_WIDTH} />
+        <StationAccuracyForDate toiFromQuery={toiFromQuery} />
       </div>
     </main>
   )
