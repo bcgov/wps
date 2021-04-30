@@ -33,7 +33,7 @@ const SidePanel = (props: Props) => {
   const classes = useStyles(props)
 
   return (
-    <div className={classes.root}>
+    <div className={classes.root} data-testid="sidepanel">
       <div className={classes.content}>
         <div className={classes.actions}>
           <ToggleButtonGroup
