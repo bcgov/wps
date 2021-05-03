@@ -251,12 +251,22 @@ const formatDewPoint = (dewpoint: number | null | undefined) => {
   )
 }
 
-const SubHeadings = (className: string) => [
-  <TableCell className={className}>Observed</TableCell>,
-  <TableCell className={className}>Forecast</TableCell>,
-  <TableCell className={className}>HRDPS</TableCell>,
-  <TableCell className={className}>RDPS</TableCell>,
-  <TableCell className={className}>GDPS</TableCell>
+const SubHeadings = (index: number, className: string) => [
+  <TableCell key={index} className={className}>
+    Observed
+  </TableCell>,
+  <TableCell key={index} className={className}>
+    Forecast
+  </TableCell>,
+  <TableCell key={index} className={className}>
+    HRDPS
+  </TableCell>,
+  <TableCell key={index} className={className}>
+    RDPS
+  </TableCell>,
+  <TableCell key={index} className={className}>
+    GDPS
+  </TableCell>
 ]
 
 const StationComparisonTable = (props: Props) => {
@@ -290,8 +300,8 @@ const StationComparisonTable = (props: Props) => {
               </TableRow>
               <TableRow>
                 <TableCell>Weather Stations</TableCell>
-                {['temp', 'rh', 'wind', 'precip'].map(() => {
-                  return SubHeadings(classes.darkColumnHeader)
+                {['temp', 'rh', 'wind', 'precip'].map((value, index) => {
+                  return SubHeadings(index, classes.darkColumnHeader)
                 })}
                 {/* Dew Point */}
                 <TableCell className={classes.darkColumnHeader}>Observed</TableCell>
