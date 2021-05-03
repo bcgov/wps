@@ -147,8 +147,8 @@ const SingleStationFragment = (props: FragmentProps) => {
           noonForecasts={noonForecasts}
         />
       )
-    default:
     case SidePanelEnum.Graphs:
+    default:
       return (
         <ErrorBoundary>
           <WxDataGraph

@@ -117,9 +117,9 @@ const calculateAccumulatedPrecip = (
   return undefined
 }
 
-const formatTemperature = (
-  source: NoonForecastValue | ObservedValue | ModelValue | undefined
-) => {
+type TemperatureSourceType = NoonForecastValue | ObservedValue | ModelValue | undefined
+
+const formatTemperature = (source: TemperatureSourceType) => {
   return (
     <div>
       {typeof source?.temperature === 'number' &&
@@ -318,9 +318,7 @@ const StationComparisonTable = (props: Props) => {
                   forecast => forecast.datetime === noonDate
                 )
                 const observations = props.observationsByStation[stationCode]
-                const observation = observations?.find(
-                  observation => observation.datetime === noonDate
-                )
+                const observation = observations?.find(item => item.datetime === noonDate)
                 const hrdpsModelPrediction = findNoonMatch(
                   noonDate,
                   props.allHighResModelsByStation[stationCode]
