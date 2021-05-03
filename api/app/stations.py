@@ -71,12 +71,12 @@ def _set_weather_variables(station_properties: DetailedWeatherStationProperties,
             setattr(weather_variables, variable_name, value)
 
 
-def _get_detailed_stations(time_of_interest: datetime):
+async def _get_detailed_stations(time_of_interest: datetime):
     """ Get a list of weather stations with details using a combination of static json and database
     records. """
     geojson_stations = []
     # this gets us a list of stations
-    stations = _get_stations_local()
+    stations = await wildfire_one.get_stations()
     with app.db.database.get_read_session_scope() as session:
         stations_detailed = get_noon_forecast_observation_union(session, time_of_interest)
         station_lookup = {}
@@ -117,7 +117,7 @@ async def get_stations_by_codes(station_codes: List[int]) -> List[WeatherStation
 
 
 async def get_stations(
-        station_source: StationSourceEnum = StationSourceEnum.UNSPECIFIED) -> List[WeatherStation]:
+        station_source: StationSourceEnum = StationSourceEnum.WILDFIRE_ONE) -> List[WeatherStation]:
     """ Get list of stations from some source (ideally WFWX Fireweather API)
     """
     if station_source == StationSourceEnum.UNSPECIFIED:
@@ -144,8 +144,7 @@ async def fetch_detailed_stations_as_geojson(
         result = await wildfire_one.get_detailed_stations(time_of_interest)
         logger.info('detailed stations loaded.')
         return result
-    # Get from local:
-    return _get_detailed_stations(time_of_interest)
+    return await _get_detailed_stations(time_of_interest)
 
 
 async def get_stations_as_geojson(
@@ -169,4 +168,4 @@ def get_stations_synchronously() -> List[WeatherStation]:
     """
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    return loop.run_until_complete(get_stations())
+    return loop.run_until_complete(get_stations(StationSourceEnum.LOCAL_STORAGE))

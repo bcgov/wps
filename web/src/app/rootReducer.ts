@@ -67,3 +67,5 @@ export const selectWxDataLoading = (state: RootState): boolean =>
   state.highResModelSummaries.loading ||
   state.regionalModels.loading ||
   state.regionalModelSummaries.loading
+export const selectFireWeatherStationsLoading = (state: RootState): boolean =>
+  state.fireWeatherStations.loading

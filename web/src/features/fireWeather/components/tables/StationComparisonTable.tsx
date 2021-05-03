@@ -93,9 +93,6 @@ const calculateAccumulatedPrecip = (
   const from = DateTime.fromISO(noonDate).toJSDate()
   from.setHours(from.getHours() - 24)
   const to = DateTime.fromISO(noonDate).toJSDate()
-  console.log('noonDate', noonDate)
-  console.log('from', from)
-  console.log('to', to)
   if (collection) {
     const precip = {
       precipitation: undefined,
@@ -103,7 +100,6 @@ const calculateAccumulatedPrecip = (
     } as AccumulatedPrecipitation
     collection.forEach(value => {
       const precipDate = DateTime.fromISO(value.datetime).toJSDate()
-      console.log('precipDate', precipDate)
       if (precipDate > from && precipDate <= to) {
         if (typeof value.delta_precipitation === 'number') {
           if (precip.precipitation === undefined) {

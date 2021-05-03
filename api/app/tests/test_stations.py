@@ -20,7 +20,7 @@ def test_stations_scenario():
 
 @pytest.mark.usefixtures("mock_jwt_decode")
 @scenario('test_stations.feature', 'Get detailed weather stations',
-          example_converters=dict(status=int, use_wfwx=str, url=str,
+          example_converters=dict(status=int, url=str,
                                   expected_response=load_json_file(__file__),
                                   crud_mapping=load_json_file(__file__),
                                   utc_time=int, authentication=bool))

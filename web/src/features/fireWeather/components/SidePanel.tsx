@@ -30,8 +30,6 @@ export enum SidePanelEnum {
 }
 
 interface Props {
-  show: boolean
-  closeSidePanel: () => void
   handleToggleView: (_: React.MouseEvent<HTMLElement>, newDataView: SidePanelEnum) => void
   showTableView: string
   stationCodes: number[]
@@ -42,7 +40,7 @@ const SidePanel = (props: Props) => {
   const classes = useStyles(props)
 
   return (
-    <div className={classes.root}>
+    <div className={classes.root} data-testid="sidepanel">
       <div className={classes.content}>
         <div className={classes.actions}>
           <ToggleButtonGroup
