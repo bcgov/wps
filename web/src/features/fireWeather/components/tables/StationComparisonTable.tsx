@@ -290,14 +290,9 @@ const StationComparisonTable = (props: Props) => {
               </TableRow>
               <TableRow>
                 <TableCell>Weather Stations</TableCell>
-                {/* Temperature */}
-                {SubHeadings(classes.darkColumnHeader)}
-                {/* Relative Humidity */}
-                {SubHeadings(classes.darkColumnHeader)}
-                {/* Wind Speed + Direction */}
-                {SubHeadings(classes.darkColumnHeader)}
-                {/* Precip */}
-                {SubHeadings(classes.darkColumnHeader)}
+                {['temp', 'rh', 'wind', 'precip'].map(() => {
+                  return SubHeadings(classes.darkColumnHeader)
+                })}
                 {/* Dew Point */}
                 <TableCell className={classes.darkColumnHeader}>Observed</TableCell>
               </TableRow>
