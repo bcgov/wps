@@ -251,6 +251,14 @@ const formatDewPoint = (dewpoint: number | null | undefined) => {
   )
 }
 
+const SubHeadings = (className: string) => [
+  <TableCell className={className}>Observed</TableCell>,
+  <TableCell className={className}>Forecast</TableCell>,
+  <TableCell className={className}>HRDPS</TableCell>,
+  <TableCell className={className}>RDPS</TableCell>,
+  <TableCell className={className}>GDPS</TableCell>
+]
+
 const StationComparisonTable = (props: Props) => {
   const classes = useStyles()
   // format the date to match the ISO format in the API for easy comparison.
@@ -283,29 +291,13 @@ const StationComparisonTable = (props: Props) => {
               <TableRow>
                 <TableCell>Weather Stations</TableCell>
                 {/* Temperature */}
-                <TableCell className={classes.darkColumnHeader}>Observed</TableCell>
-                <TableCell className={classes.darkColumnHeader}>Forecast</TableCell>
-                <TableCell className={classes.darkColumnHeader}>HRDPS</TableCell>
-                <TableCell className={classes.darkColumnHeader}>RDPS</TableCell>
-                <TableCell className={classes.darkColumnHeader}>GDPS</TableCell>
+                {SubHeadings(classes.darkColumnHeader)}
                 {/* Relative Humidity */}
-                <TableCell className={classes.lightColumnHeader}>Observed</TableCell>
-                <TableCell className={classes.lightColumnHeader}>Forecast</TableCell>
-                <TableCell className={classes.lightColumnHeader}>HRDPS</TableCell>
-                <TableCell className={classes.lightColumnHeader}>RDPS</TableCell>
-                <TableCell className={classes.lightColumnHeader}>GDPS</TableCell>
+                {SubHeadings(classes.darkColumnHeader)}
                 {/* Wind Speed + Direction */}
-                <TableCell className={classes.darkColumnHeader}>Observed</TableCell>
-                <TableCell className={classes.darkColumnHeader}>Forecast</TableCell>
-                <TableCell className={classes.darkColumnHeader}>HRDPS</TableCell>
-                <TableCell className={classes.darkColumnHeader}>RDPS</TableCell>
-                <TableCell className={classes.darkColumnHeader}>GDPS</TableCell>
+                {SubHeadings(classes.darkColumnHeader)}
                 {/* Precip */}
-                <TableCell className={classes.lightColumnHeader}>Observed</TableCell>
-                <TableCell className={classes.lightColumnHeader}>Forecast</TableCell>
-                <TableCell className={classes.lightColumnHeader}>HRDPS</TableCell>
-                <TableCell className={classes.lightColumnHeader}>RDPS</TableCell>
-                <TableCell className={classes.lightColumnHeader}>GDPS</TableCell>
+                {SubHeadings(classes.darkColumnHeader)}
                 {/* Dew Point */}
                 <TableCell className={classes.darkColumnHeader}>Observed</TableCell>
               </TableRow>
