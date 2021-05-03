@@ -4,7 +4,12 @@ import { useHistory, useLocation } from 'react-router-dom'
 import { makeStyles } from '@material-ui/core/styles'
 
 import { PageHeader } from 'components'
-import { getStationCodesFromUrl, getTimeOfInterestFromUrl } from 'utils/url'
+import {
+  getStationCodesFromUrl,
+  getTimeOfInterestFromUrl,
+  stationCodeQueryKey,
+  timeOfInterestQueryKey
+} from 'utils/url'
 import { fetchWxStations, selectStations } from 'features/stations/slices/stationsSlice'
 import { fetchGlobalModelsWithBiasAdj } from 'features/fireWeather/slices/modelsSlice'
 import { fetchObservations } from 'features/fireWeather/slices/observationsSlice'
@@ -27,7 +32,6 @@ import { selectFireWeatherStations } from 'app/rootReducer'
 import { PARTIAL_WIDTH, FULL_WIDTH, CENTER_OF_BC } from 'utils/constants'
 import { RedrawCommand } from 'features/map/Map'
 import StationAccuracyForDate from '../components/StationAccuracyForDate'
-import { stationCodeQueryKey, timeOfInterestQueryKey } from 'utils/url'
 
 const useStyles = makeStyles(theme => ({
   main: {
