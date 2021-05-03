@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { useLocation } from 'react-router-dom'
+import { useHistory, useLocation } from 'react-router-dom'
 import { makeStyles } from '@material-ui/core/styles'
 
 import { PageHeader } from 'components'
@@ -27,6 +27,7 @@ import { selectFireWeatherStations } from 'app/rootReducer'
 import { PARTIAL_WIDTH, FULL_WIDTH, CENTER_OF_BC } from 'utils/constants'
 import { RedrawCommand } from 'features/map/Map'
 import StationAccuracyForDate from '../components/StationAccuracyForDate'
+import { stationCodeQueryKey, timeOfInterestQueryKey } from 'utils/url'
 
 const useStyles = makeStyles(theme => ({
   main: {
@@ -67,6 +68,7 @@ const MoreCastPage = () => {
   const classes = useStyles()
   const dispatch = useDispatch()
   const location = useLocation()
+  const history = useHistory()
 
   const codesFromQuery = getStationCodesFromUrl(location.search)
   const toiFromQuery = getTimeOfInterestFromUrl(location.search)
@@ -122,6 +124,14 @@ const MoreCastPage = () => {
     dispatch(
       fetchWxStations(getDetailedStations, StationSource.unspecified, toiFromQuery)
     )
+    // Update the url query with the new station codes and time of interest
+    let potentialCodes = ''
+    if (selectedStationsByCode.length > 0) {
+      potentialCodes = `${stationCodeQueryKey}=${selectedStationsByCode.join(',')}&`
+    }
+    history.push({
+      search: potentialCodes + `${timeOfInterestQueryKey}=${timeOfInterest}`
+    })
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
