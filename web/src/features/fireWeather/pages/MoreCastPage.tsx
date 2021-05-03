@@ -18,7 +18,7 @@ import { fetchRegionalModelSummaries } from 'features/fireWeather/slices/regiona
 import WxDataDisplays from 'features/fireWeather/components/WxDataDisplays'
 import WxDataForm from 'features/fireWeather/components/WxDataForm'
 import AccuracyColorLegend from 'features/fireWeather/components/AccuracyColorLegend'
-import SidePanel from 'features/fireWeather/components/SidePanel'
+import SidePanel, { SidePanelEnum } from 'features/fireWeather/components/SidePanel'
 import NetworkErrorMessages from 'features/fireWeather/components/NetworkErrorMessages'
 import WeatherMap from 'features/fireWeather/components/maps/WeatherMap'
 import ExpandableContainer from 'features/fireWeather/components/ExpandableContainer'
@@ -83,7 +83,11 @@ const MoreCastPage = () => {
   const shouldInitiallyShowSidePanel = selectedCodes.length > 0
   const [showSidePanel, setShowSidePanel] = useState(shouldInitiallyShowSidePanel)
   const [sidePanelWidth, setSidePanelWidth] = useState(
-    shouldInitiallyShowSidePanel ? PARTIAL_WIDTH : 0
+    shouldInitiallyShowSidePanel
+      ? codesFromQuery.length > 1
+        ? FULL_WIDTH
+        : PARTIAL_WIDTH
+      : 0
   )
 
   const [mapCenter, setMapCenter] = useState(CENTER_OF_BC)
@@ -111,10 +115,25 @@ const MoreCastPage = () => {
   }
   const closeSidePanel = () => setShowSidePanel(false)
 
-  const [showTableView, toggleTableView] = useState('true')
-  const handleToggleView = (_: React.MouseEvent<HTMLElement>, newTableView: string) => {
-    toggleTableView(newTableView.endsWith('true') ? 'true' : 'false')
+  const [showTableView, toggleTableView] = useState(
+    codesFromQuery.length > 1 ? SidePanelEnum.Comparison : SidePanelEnum.Tables
+  )
+  const handleToggleView = (
+    _: React.MouseEvent<HTMLElement>,
+    newTableView: SidePanelEnum
+  ) => {
+    if (newTableView !== null) {
+      toggleTableView(newTableView)
+    }
   }
+
+  useEffect(() => {
+    if (codesFromQuery.length > 1) {
+      toggleTableView(SidePanelEnum.Comparison)
+    } else {
+      toggleTableView(SidePanelEnum.Tables)
+    }
+  }, [codesFromQuery.length])
 
   useEffect(() => {
     dispatch(fetchWxStations(getStations))
@@ -171,8 +190,13 @@ const MoreCastPage = () => {
           collapse={collapseSidePanel}
           currentWidth={sidePanelWidth}
         >
-          <NetworkErrorMessages />
-          <SidePanel handleToggleView={handleToggleView} showTableView={showTableView}>
+          <SidePanel
+            show={showSidePanel}
+            closeSidePanel={closeSidePanel}
+            handleToggleView={handleToggleView}
+            showTableView={showTableView}
+            stationCodes={codesFromQuery}
+          >
             <NetworkErrorMessages />
             <WxDataDisplays
               stationCodes={retrievedStationDataCodes}

@@ -8,6 +8,7 @@ import {
   NoonForecastTable,
   NoonModelTable
 } from 'features/fireWeather/components/tables/NoonWxValueTables'
+import StationComparisonTable from 'features/fireWeather/components/tables/StationComparisonTable'
 import WxDataGraph from 'features/fireWeather/components/graphs/WxDataGraph'
 import { ErrorBoundary } from 'components'
 import {
@@ -27,6 +28,7 @@ import { GeoJsonStation } from 'api/stationAPI'
 import { ObservedValue } from 'api/observationAPI'
 import { ModelSummary, ModelValue } from 'api/modelAPI'
 import { ForecastSummary, NoonForecastValue } from 'api/forecastAPI'
+import { SidePanelEnum } from 'features/fireWeather/components/SidePanel'
 import { RedrawCommand } from 'features/map/Map'
 
 const useStyles = makeStyles({
@@ -64,6 +66,109 @@ interface WxDataDisplaysProps {
   regionalModelSummariesByStation: Record<number, ModelSummary[] | undefined>
 }
 
+interface FragmentProps {
+  view: string
+  code: number
+  noonOnlyGdpsModels: ModelValue[] | undefined
+  observations: ObservedValue[] | undefined
+  noonForecasts: NoonForecastValue[] | undefined
+  station: GeoJsonStation
+  timeOfInterest: string
+  noonForecastSummaries: ForecastSummary[] | undefined
+  hrdpsModels: ModelValue[] | undefined
+  hrdpsSummaries: ModelSummary[] | undefined
+  rdpsModels: ModelValue[] | undefined
+  rdpsSummaries: ModelSummary[] | undefined
+  gdpsModels: ModelValue[] | undefined
+  gdpsSummaries: ModelSummary[] | undefined
+}
+
+interface TableFragmentProps {
+  code: number
+  noonOnlyGdpsModels: ModelValue[] | undefined
+  observations: ObservedValue[] | undefined
+  noonForecasts: NoonForecastValue[] | undefined
+}
+
+const TableFragment = (props: TableFragmentProps) => {
+  // Tables for a single station.
+  const { code, noonOnlyGdpsModels, observations, noonForecasts } = props
+  return (
+    <React.Fragment>
+      <ErrorBoundary>
+        <ObservationTable
+          testId={`observations-table-${code}`}
+          title="Hourly observations in past 5 days: "
+          rows={observations}
+        />
+      </ErrorBoundary>
+      <ErrorBoundary>
+        <NoonModelTable
+          testId={`noon-gdps-table-${code}`}
+          title="Interpolated GDPS noon values: "
+          rows={noonOnlyGdpsModels}
+        />
+      </ErrorBoundary>
+      <ErrorBoundary>
+        <NoonForecastTable
+          testId={`noon-forecasts-table-${code}`}
+          title="Weather forecast noon values: "
+          rows={noonForecasts}
+        />
+      </ErrorBoundary>
+    </React.Fragment>
+  )
+}
+
+const SingleStationFragment = (props: FragmentProps) => {
+  const {
+    view,
+    code,
+    noonOnlyGdpsModels,
+    observations,
+    noonForecasts,
+    station,
+    timeOfInterest,
+    noonForecastSummaries,
+    hrdpsModels,
+    hrdpsSummaries,
+    rdpsModels,
+    rdpsSummaries,
+    gdpsModels,
+    gdpsSummaries
+  } = props
+  switch (view) {
+    case SidePanelEnum.Tables:
+      return (
+        <TableFragment
+          code={code}
+          noonOnlyGdpsModels={noonOnlyGdpsModels}
+          observations={observations}
+          noonForecasts={noonForecasts}
+        />
+      )
+    default:
+    case SidePanelEnum.Graphs:
+      return (
+        <ErrorBoundary>
+          <WxDataGraph
+            station={station}
+            timeOfInterest={timeOfInterest}
+            observations={observations}
+            noonForecasts={noonForecasts}
+            noonForecastSummaries={noonForecastSummaries}
+            hrdpsModels={hrdpsModels}
+            hrdpsSummaries={hrdpsSummaries}
+            rdpsModels={rdpsModels}
+            rdpsSummaries={rdpsSummaries}
+            gdpsModels={gdpsModels}
+            gdpsSummaries={gdpsSummaries}
+          />
+        </ErrorBoundary>
+      )
+  }
+}
+
 export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) {
   const classes = useStyles()
 
@@ -71,7 +176,22 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
     <div className={classes.displays}>
       {props.wxDataLoading && 'Loading...'}
 
+      {!props.wxDataLoading && props.showTableView === SidePanelEnum.Comparison && (
+        <StationComparisonTable
+          timeOfInterest={props.timeOfInterest}
+          stationCodes={props.stationCodes}
+          stationsByCode={props.stationsByCode}
+          allNoonForecastsByStation={props.allNoonForecastsByStation}
+          observationsByStation={props.observationsByStation}
+          allHighResModelsByStation={props.allHighResModelsByStation}
+          allRegionalModelsByStation={props.allRegionalModelsByStation}
+          allModelsByStation={props.allModelsByStation}
+        />
+      )}
+
       {!props.wxDataLoading &&
+        (props.showTableView === SidePanelEnum.Tables ||
+          props.showTableView === SidePanelEnum.Graphs) &&
         props.stationCodes.map(code => {
           const station = props.stationsByCode[code]
           if (!station) return null
@@ -99,48 +219,22 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
                   Data is not available.
                 </Typography>
               )}
-              {props.showTableView === 'true' ? (
-                <React.Fragment>
-                  <ErrorBoundary>
-                    <ObservationTable
-                      testId={`observations-table-${code}`}
-                      title="Hourly observations in past 5 days: "
-                      rows={observations}
-                    />
-                  </ErrorBoundary>
-                  <ErrorBoundary>
-                    <NoonModelTable
-                      testId={`noon-gdps-table-${code}`}
-                      title="Interpolated GDPS noon values: "
-                      rows={noonOnlyGdpsModels}
-                    />
-                  </ErrorBoundary>
-                  <ErrorBoundary>
-                    <NoonForecastTable
-                      testId={`noon-forecasts-table-${code}`}
-                      title="Weather forecast noon values: "
-                      rows={noonForecasts}
-                    />
-                  </ErrorBoundary>
-                </React.Fragment>
-              ) : (
-                <ErrorBoundary>
-                  <WxDataGraph
-                    station={station}
-                    timeOfInterest={props.timeOfInterest}
-                    expandedOrCollapsed={props.expandedOrCollapsed}
-                    observations={observations}
-                    noonForecasts={noonForecasts}
-                    noonForecastSummaries={noonForecastSummaries}
-                    hrdpsModels={hrdpsModels}
-                    hrdpsSummaries={hrdpsSummaries}
-                    rdpsModels={rdpsModels}
-                    rdpsSummaries={rdpsSummaries}
-                    gdpsModels={gdpsModels}
-                    gdpsSummaries={gdpsSummaries}
-                  />
-                </ErrorBoundary>
-              )}
+              <SingleStationFragment
+                view={props.showTableView}
+                code={code}
+                noonOnlyGdpsModels={noonOnlyGdpsModels}
+                station={station}
+                timeOfInterest={props.timeOfInterest}
+                observations={observations}
+                noonForecasts={noonForecasts}
+                noonForecastSummaries={noonForecastSummaries}
+                hrdpsModels={hrdpsModels}
+                hrdpsSummaries={hrdpsSummaries}
+                rdpsModels={rdpsModels}
+                rdpsSummaries={rdpsSummaries}
+                gdpsModels={gdpsModels}
+                gdpsSummaries={gdpsSummaries}
+              />
             </div>
           )
         })}

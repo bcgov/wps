@@ -88,7 +88,7 @@ const TempRHGraph = (props: Props) => {
   const forecastGraphProperties: TempRHGraphProperties = {
     values: [...noonForecasts, ...NoonForecastSummaries],
     tempName: 'Forecast Temp',
-    rhName: 'Forecash RH',
+    rhName: 'Forecast RH',
     show: toggleValues.showForecasts,
     symbol: 'pentagon',
     dash: 'solid',

@@ -26,6 +26,7 @@ export const parseModelValuesHelper = (
       pastModelValues.push(v)
     }
     if (separate_noon_values && isNoonInPST(v.datetime)) {
+      // NOTE: When using noonModelValues - keep in mind that precipitation is for that noon sample ONLY!
       noonModelValues.push(v)
     }
   })

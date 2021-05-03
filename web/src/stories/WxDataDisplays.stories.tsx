@@ -15,13 +15,13 @@ import {
   highResModelSummaries,
   pastRegionalModelValues,
   regionalModelValues,
-  regionalModelSummaries
+  regionalModelSummaries,
+  station322
 } from 'utils/storybook'
 import { NoonForecastValue } from 'api/forecastAPI'
 import { ModelValue } from 'api/modelAPI'
 import { isNoonInPST } from 'utils/date'
 import { getTimeOfInterestFromUrl } from 'utils/url'
-import { GeoJsonStation } from 'api/stationAPI'
 
 export default {
   title: 'morecast/WxDataDisplays',
@@ -32,25 +32,6 @@ type PropTypes = React.ComponentProps<typeof WxDataDisplays>
 
 const Template: Story<PropTypes> = args => {
   return <WxDataDisplays {...args} />
-}
-
-const station322: GeoJsonStation = {
-  type: 'Feature',
-  properties: {
-    code: 322,
-    name: 'AFTON',
-    ecodivision_name: 'SEMI-ARID STEPPE HIGHLANDS',
-    core_season: {
-      start_month: 5,
-      start_day: 1,
-      end_month: 9,
-      end_day: 15
-    }
-  },
-  geometry: {
-    type: 'Point',
-    coordinates: [-120.4816667, 50.6733333]
-  }
 }
 
 const defaultArgs: PropTypes = {

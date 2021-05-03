@@ -1,4 +1,9 @@
-import { isNoonInPST, formatDateInPST, formatMonthAndDay } from 'utils/date'
+import {
+  isNoonInPST,
+  formatDateInPST,
+  formatMonthAndDay,
+  formatDateInUTC0
+} from 'utils/date'
 
 describe('Date util functions', () => {
   describe('isNoonInPST', () => {
@@ -36,6 +41,23 @@ describe('Date util functions', () => {
       expect(formatMonthAndDay(1, 10)).toEqual('10 January')
       expect(formatMonthAndDay(4, 15)).toEqual('15 April')
       expect(formatMonthAndDay(9, 30)).toEqual('30 September')
+    })
+  })
+
+  describe('formatDateInUTC0', () => {
+    it('should return the noon date time', () => {
+      expect(formatDateInUTC0('2021-04-26T00:37:00-08:00')).toEqual(
+        '2021-04-26T20:00:00+00:00'
+      )
+      expect(formatDateInUTC0('2021-04-26T08:37:00-08:00')).toEqual(
+        '2021-04-26T20:00:00+00:00'
+      )
+      expect(formatDateInUTC0('2021-04-26T17:37:00-08:00')).toEqual(
+        '2021-04-26T20:00:00+00:00'
+      )
+      expect(formatDateInUTC0('2021-04-26T23:37:00-08:00')).toEqual(
+        '2021-04-26T20:00:00+00:00'
+      )
     })
   })
 })
