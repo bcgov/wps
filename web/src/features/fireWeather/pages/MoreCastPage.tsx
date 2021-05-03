@@ -63,7 +63,7 @@ const useStyles = makeStyles(theme => ({
   }
 }))
 
-const calculateSidePanelWidth = (codesFromQuery: Number[]) => {
+const calculateSidePanelWidth = (codesFromQuery: number[]) => {
   return codesFromQuery.length > 1 ? FULL_WIDTH : PARTIAL_WIDTH
 }
 
