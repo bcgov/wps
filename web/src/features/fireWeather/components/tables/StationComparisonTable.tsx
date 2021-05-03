@@ -23,7 +23,7 @@ import {
   DEW_POINT_VALUES_DECIMAL
 } from 'utils/constants'
 
-const useStyles = makeStyles({
+export const comparisonTableStyles = makeStyles({
   paper: {
     padding: '5px'
   },
@@ -121,7 +121,7 @@ const calculateAccumulatedPrecip = (
   return undefined
 }
 
-const formatTemperature = (
+export const formatTemperature = (
   source: NoonForecastValue | ObservedValue | ModelValue | undefined
 ) => {
   return (
@@ -145,7 +145,7 @@ const formatModelTemperature = (source: ModelValue | undefined) => {
   )
 }
 
-const formatRelativeHumidity = (
+export const formatRelativeHumidity = (
   source: NoonForecastValue | ObservedValue | ModelValue | undefined,
   valueClassName: string
 ) => {
@@ -169,7 +169,7 @@ const formatModelRelativeHumidity = (
   )
 }
 
-const formatWindSpeedDirection = (
+export const formatWindSpeedDirection = (
   source: NoonForecastValue | ObservedValue | ModelValue | undefined,
   windSpeedClassName: string,
   windDirectionClassName: string
@@ -209,7 +209,7 @@ const formatModelWindSpeedDirection = (
   )
 }
 
-const formatPrecipitation = (
+export const formatPrecipitation = (
   precipitation: number | null | undefined,
   precipitationClassName: string
 ) => {
@@ -256,7 +256,7 @@ const formatDewPoint = (dewpoint: number | null | undefined) => {
 }
 
 const StationComparisonTable = (props: Props) => {
-  const classes = useStyles()
+  const classes = comparisonTableStyles()
   // format the date to match the ISO format in the API for easy comparison.
   const noonDate = formatDateInUTC0(props.timeOfInterest)
   return (
