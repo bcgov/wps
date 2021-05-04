@@ -25,7 +25,11 @@ import {
 
 const useStyles = makeStyles({
   paper: {
-    padding: '5px'
+    padding: '5px',
+    // There's a formating issues that causes the last cell in the table to be cut off
+    // when in 100%, on a small screen. Setting the width to 95% is a workaround, as the
+    // true source of the problem remains a mystery.
+    width: '95%'
   },
   typography: {},
   lightColumnHeader: {
@@ -281,7 +285,6 @@ const StationComparisonTable = (props: Props) => {
       <Paper>
         <TableContainer>
           <Table
-            stickyHeader
             size="small"
             aria-label="sortable wx table"
             data-testid="station-comparison-table"
