@@ -86,6 +86,8 @@ describe('MoreCast Page', () => {
       // Request the weather data
       cy.selectStationInDropdown(stationCode)
       cy.selectStationInDropdown(380)
+      const timeOfInterest = '2021-01-22T12:00:00-08:00'
+      cy.getByTestId('time-of-interest-picker').type(timeOfInterest.slice(0, 16)) // yyyy-MM-ddThh:mm
       cy.getByTestId('get-wx-data-button').click({ force: true })
     })
 
@@ -94,12 +96,18 @@ describe('MoreCast Page', () => {
         cy.contains('Station comparison').click()
       })
       it('Should display station comparison table', () => {
+        // expect the table to exist.
         cy.getByTestId('station-comparison-table').should('exist')
 
         // expecting 2 rows, one for each station.
         cy.getByTestId('station-comparison-table')
           .find('tbody > tr')
           .should('have.length', 2)
+
+        // expect some observed data
+        cy.getByTestId('comparison-table-row-0')
+          .find('td[data-testid="temperature-observation"] > div')
+          .should('contain', '-3.8°C')
       })
     })
   })

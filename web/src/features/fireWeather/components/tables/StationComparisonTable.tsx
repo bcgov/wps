@@ -346,12 +346,15 @@ const StationComparisonTable = (props: Props) => {
                   props.allModelsByStation[stationCode]
                 )
                 return (
-                  <TableRow key={idx}>
+                  <TableRow data-testid={`comparison-table-row-${idx}`} key={idx}>
                     <TableCell>
                       {station?.properties.name} ({stationCode})
                     </TableCell>
                     {/* Temperature */}
-                    <TableCell className={classes.darkColumn}>
+                    <TableCell
+                      data-testid="temperature-observation"
+                      className={classes.darkColumn}
+                    >
                       {formatTemperature(observation)}
                     </TableCell>
                     <TableCell className={classes.darkColumn}>
