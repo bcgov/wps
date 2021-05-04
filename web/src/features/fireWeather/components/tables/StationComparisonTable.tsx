@@ -280,7 +280,12 @@ const StationComparisonTable = (props: Props) => {
       </Typography>
       <Paper>
         <TableContainer>
-          <Table stickyHeader size="small" aria-label="sortable wx table">
+          <Table
+            stickyHeader
+            size="small"
+            aria-label="sortable wx table"
+            data-testid="station-comparison-table"
+          >
             <TableHead>
               <TableRow>
                 <TableCell></TableCell>

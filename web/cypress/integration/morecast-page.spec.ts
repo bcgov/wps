@@ -63,6 +63,47 @@ describe('MoreCast Page', () => {
     cy.url().should('contain', `${timeOfInterestQueryKey}=${timeOfInterest}`)
   })
 
+  describe('When wx data for multiple stations fetched', () => {
+    beforeEach(() => {
+      cy.intercept('POST', 'api/observations/', { fixture: 'weather-data/observations' })
+      cy.intercept('POST', 'api/forecasts/noon/', { fixture: 'weather-data/noon-forecasts' })
+      cy.intercept('POST', 'api/forecasts/noon/summaries/', { fixture: 'weather-data/noon-forecast-summaries' })
+      cy.intercept('POST', 'api/weather_models/GDPS/predictions/most_recent', {fixture:'weather-data/models-with-bias-adjusted'}) // prettier-ignore
+      cy.intercept('POST', 'api/weather_models/GDPS/predictions/summaries/', {
+        fixture: 'weather-data/model-summaries'
+      })
+      cy.intercept('POST', 'api/weather_models/HRDPS/predictions/most_recent', {fixture:'weather-data/hr-models-with-bias-adjusted'}) // prettier-ignore
+      cy.intercept('POST', 'api/weather_models/HRDPS/predictions/summaries', {fixture:'weather-data/high-res-model-summaries'}) // prettier-ignore
+      cy.intercept('POST', 'api/weather_models/RDPS/predictions/most_recent', {fixture:'weather-data/regional-models-with-bias-adjusted'}) // prettier-ignore
+      cy.intercept('POST', 'api/weather_models/RDPS/predictions/summaries', {
+        fixture: 'weather-data/regional-model-summaries'
+      })
+
+      cy.visit(MORECAST_ROUTE)
+
+      cy.wait('@getStations')
+
+      // Request the weather data
+      cy.selectStationInDropdown(stationCode)
+      cy.selectStationInDropdown(380)
+      cy.getByTestId('get-wx-data-button').click({ force: true })
+    })
+
+    describe('When station comparison is clicked', () => {
+      beforeEach(() => {
+        cy.contains('Station comparison').click()
+      })
+      it('Should display station comparison table', () => {
+        cy.getByTestId('station-comparison-table').should('exist')
+
+        // expecting 2 rows, one for each station.
+        cy.getByTestId('station-comparison-table')
+          .find('tbody > tr')
+          .should('have.length', 2)
+      })
+    })
+  })
+
   describe('When wx data successfully fetched', () => {
     const numOfObservations = 119
     const numOfForecasts = 6
