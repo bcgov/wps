@@ -468,7 +468,10 @@ const StationComparisonTable = (props: Props) => {
                       )}
                     </TableCell>
                     {/* Dew Point */}
-                    <TableCell className={classes.darkColumn}>
+                    <TableCell
+                      className={classes.darkColumn}
+                      data-testid="dewpoint-observation"
+                    >
                       {formatDewPoint(observation?.dewpoint)}
                     </TableCell>
                   </TableRow>

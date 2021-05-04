@@ -99,6 +99,10 @@ describe('MoreCast Page', () => {
         // expect the table to exist.
         cy.getByTestId('station-comparison-table').should('exist')
 
+        // expect the sidepanel to be fully expanded.
+        // this test fails with cypress.
+        // cy.getByTestId('expandable-container-content').should('have.css', 'width', '100%')
+
         // expecting 2 rows, one for each station.
         cy.getByTestId('station-comparison-table')
           .find('tbody > tr')
@@ -108,6 +112,10 @@ describe('MoreCast Page', () => {
         cy.getByTestId('comparison-table-row-0')
           .find('td[data-testid="temperature-observation"] > div')
           .should('contain', '-3.8°C')
+
+        cy.getByTestId('comparison-table-row-0')
+          .find('td[data-testid="dewpoint-observation"] > div')
+          .should('contain', '-8.3°C')
       })
     })
   })
