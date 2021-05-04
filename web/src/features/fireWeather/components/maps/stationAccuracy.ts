@@ -73,7 +73,7 @@ export const computeAccuracyColors = (stationMetric: StationMetrics): ColorResul
 export const computePercentageDifference = (
   metricForecast: number,
   metricObservation: number
-) => {
+): number => {
   let percentDifference =
     ((metricForecast - metricObservation) / ((metricForecast + metricObservation) / 2)) *
     100
