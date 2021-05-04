@@ -14,7 +14,7 @@ import { GeoJsonStation } from 'api/stationAPI'
 import { ObservedValue } from 'api/observationAPI'
 import { NoonForecastValue } from 'api/forecastAPI'
 import { ModelValue } from 'api/modelAPI'
-import { formatDateInUTC0, formatDateInPST } from 'utils/date'
+import { formatDateInUTC00Suffix, formatDateInPST } from 'utils/date'
 import {
   TEMPERATURE_VALUES_DECIMAL,
   RH_VALUES_DECIMAL,
@@ -55,7 +55,7 @@ const useStyles = makeStyles({
   },
   darkColumn: {
     backgroundColor: '#fafafa',
-    padding: '1px',
+    padding: '2px',
     textAlign: 'right'
   },
   darkColumnHeader: {
@@ -276,7 +276,7 @@ const SubHeadings = (value: string, index: number, className: string) => [
 const StationComparisonTable = (props: Props) => {
   const classes = useStyles()
   // format the date to match the ISO format in the API for easy comparison.
-  const noonDate = formatDateInUTC0(props.timeOfInterest)
+  const noonDate = formatDateInUTC00Suffix(props.timeOfInterest)
   return (
     <Paper className={classes.paper}>
       <Typography component="div" variant="subtitle2">
