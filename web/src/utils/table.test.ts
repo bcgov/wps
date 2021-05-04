@@ -1,8 +1,10 @@
 import {
+  calculateAccumulatedPrecip,
   getDatetimeComparator,
   getMinMaxValueCalculator,
   getMinMaxValuesRowIds
 } from 'utils/table'
+import { ModelValue } from 'api/modelAPI'
 import {
   dummyWeatherData,
   dummyWeatherDataNoPrecip,
@@ -20,6 +22,14 @@ import {
 } from 'utils/table.test.data'
 
 describe('Table util functions', () => {
+  describe('calculateAccumulatedPrecip', () => {
+    it('should add up precipitation correctly', () => {
+      const noonDate = '2020-12-09T20:00:00+00:00'
+      calculateAccumulatedPrecip(noonDate, [{}, {}] as ModelValue[])
+      // TODO: write a test here.
+    })
+  })
+
   describe('getDatetimeComparator', () => {
     it('should return the correct compare function', () => {
       const ascending = getDatetimeComparator('asc')

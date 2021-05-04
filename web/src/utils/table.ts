@@ -1,10 +1,12 @@
 import _ from 'lodash'
+import { DateTime } from 'luxon'
 import {
   PRECIP_VALUES_DECIMAL,
   RH_VALUES_DECIMAL,
   TEMPERATURE_VALUES_DECIMAL,
   WIND_SPEED_VALUES_DECIMAL
 } from 'utils/constants'
+import { ModelValue } from 'api/modelAPI'
 import {
   WeatherValue,
   Column
@@ -62,6 +64,43 @@ const calculateMaxPrecip = (rows: WeatherValue[]): number | null => {
   } else {
     return null
   }
+}
+
+export interface AccumulatedPrecipitation {
+  precipitation: number | undefined
+  modelValues: ModelValue[]
+}
+
+export const calculateAccumulatedPrecip = (
+  noonDate: string,
+  collection: ModelValue[] | undefined
+): AccumulatedPrecipitation | undefined => {
+  // We are calculating the accumulated precipitation from 24 hours before noon.
+  const from = DateTime.fromISO(noonDate).toJSDate()
+  from.setHours(from.getHours() - 24)
+  const to = DateTime.fromISO(noonDate).toJSDate()
+  if (collection) {
+    const precip = {
+      precipitation: undefined,
+      modelValues: [] as ModelValue[]
+    } as AccumulatedPrecipitation
+    collection.forEach(value => {
+      const precipDate = DateTime.fromISO(value.datetime).toJSDate()
+      if (precipDate > from && precipDate <= to) {
+        if (typeof value.delta_precipitation === 'number') {
+          if (precip.precipitation === undefined) {
+            precip.precipitation = value.delta_precipitation
+          } else {
+            precip.precipitation += value.delta_precipitation
+          }
+          // Keep track of the model run predictions used to calculate this.
+          precip.modelValues.push(value)
+        }
+      }
+    })
+    return precip
+  }
+  return undefined
 }
 
 const calculateMaxWindSpeed = (rows: WeatherValue[]): number | null => {

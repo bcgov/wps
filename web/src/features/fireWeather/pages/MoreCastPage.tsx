@@ -63,7 +63,8 @@ const useStyles = makeStyles(theme => ({
 }))
 
 const calculateSidePanelWidth = (codesFromQuery: number[]) => {
-  return codesFromQuery.length > 1 ? FULL_WIDTH : PARTIAL_WIDTH
+  const result = codesFromQuery.length > 1 ? FULL_WIDTH : PARTIAL_WIDTH
+  return result
 }
 
 const MoreCastPage = () => {
@@ -120,14 +121,6 @@ const MoreCastPage = () => {
     }
   }
 
-  useEffect(() => {
-    if (codesFromQuery.length > 1) {
-      toggleTableView(SidePanelEnum.Comparison)
-    } else {
-      toggleTableView(SidePanelEnum.Tables)
-    }
-  }, [codesFromQuery.length])
-
   const dispatch = useDispatch()
   useEffect(() => {
     const codesFromQuery = getStationCodesFromUrl(location.search)
@@ -147,6 +140,12 @@ const MoreCastPage = () => {
     dispatch(
       fetchWxStations(getDetailedStations, StationSource.unspecified, toiFromQuery)
     )
+    if (codesFromQuery.length > 1) {
+      toggleTableView(SidePanelEnum.Comparison)
+      setSidePanelState(true)
+    } else {
+      toggleTableView(SidePanelEnum.Tables)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location])
 

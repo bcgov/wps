@@ -9,12 +9,12 @@ import TableContainer from '@material-ui/core/TableContainer'
 import TableRow from '@material-ui/core/TableRow'
 import TableHead from '@material-ui/core/TableHead'
 import ToolTip from '@material-ui/core/Tooltip'
-import { DateTime } from 'luxon'
 import { GeoJsonStation } from 'api/stationAPI'
 import { ObservedValue } from 'api/observationAPI'
 import { NoonForecastValue } from 'api/forecastAPI'
 import { ModelValue } from 'api/modelAPI'
 import { formatDateInUTC00Suffix, formatDateInPST } from 'utils/date'
+import { calculateAccumulatedPrecip, AccumulatedPrecipitation } from 'utils/table'
 import {
   TEMPERATURE_VALUES_DECIMAL,
   RH_VALUES_DECIMAL,
@@ -28,7 +28,8 @@ const useStyles = makeStyles({
     padding: '5px',
     // There's a formating issues that causes the last cell in the table to be cut off
     // when in 100%, on a small screen. Setting the width to 95% is a workaround, as the
-    // true source of the problem remains a mystery.
+    // true source of the problem remains a mystery. (suspicion: it's something to do with using
+    // flex boxes, and having a table that needs to scroll.)
     width: '95%'
   },
   typography: {},
@@ -82,43 +83,6 @@ const findNoonMatch = (
   collection: ModelValue[] | undefined
 ): ModelValue | undefined => {
   return collection?.find((item: ModelValue) => item.datetime === noonDate)
-}
-
-interface AccumulatedPrecipitation {
-  precipitation: number | undefined
-  modelValues: ModelValue[]
-}
-
-const calculateAccumulatedPrecip = (
-  noonDate: string,
-  collection: ModelValue[] | undefined
-): AccumulatedPrecipitation | undefined => {
-  // We are calculating the accumulated precipitation from 24 hours before noon.
-  const from = DateTime.fromISO(noonDate).toJSDate()
-  from.setHours(from.getHours() - 24)
-  const to = DateTime.fromISO(noonDate).toJSDate()
-  if (collection) {
-    const precip = {
-      precipitation: undefined,
-      modelValues: [] as ModelValue[]
-    } as AccumulatedPrecipitation
-    collection.forEach(value => {
-      const precipDate = DateTime.fromISO(value.datetime).toJSDate()
-      if (precipDate > from && precipDate <= to) {
-        if (typeof value.delta_precipitation === 'number') {
-          if (precip.precipitation === undefined) {
-            precip.precipitation = value.delta_precipitation
-          } else {
-            precip.precipitation += value.delta_precipitation
-          }
-          // Keep track of the model run predictions used to calculate this.
-          precip.modelValues.push(value)
-        }
-      }
-    })
-    return precip
-  }
-  return undefined
 }
 
 type TemperatureSourceType = NoonForecastValue | ObservedValue | ModelValue | undefined

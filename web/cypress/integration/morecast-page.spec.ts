@@ -63,7 +63,7 @@ describe('MoreCast Page', () => {
     cy.url().should('contain', `${timeOfInterestQueryKey}=${timeOfInterest}`)
   })
 
-  describe('When wx data for multiple stations fetched', () => {
+  describe.only('When wx data for multiple stations fetched', () => {
     beforeEach(() => {
       cy.intercept('POST', 'api/observations/', { fixture: 'weather-data/observations' })
       cy.intercept('POST', 'api/forecasts/noon/', { fixture: 'weather-data/noon-forecasts' })
@@ -91,32 +91,30 @@ describe('MoreCast Page', () => {
       cy.getByTestId('get-wx-data-button').click({ force: true })
     })
 
-    describe('When station comparison is clicked', () => {
-      beforeEach(() => {
-        cy.contains('Station comparison').click()
-      })
-      it('Should display station comparison table', () => {
-        // expect the table to exist.
-        cy.getByTestId('station-comparison-table').should('exist')
+    it('Should display station comparison table', () => {
+      // expect Station Comparison to be selected
+      cy.getByTestId('station-comparison-button').should('have.attr', 'aria-pressed', 'true')
 
-        // expect the sidepanel to be fully expanded.
-        // this test fails with cypress.
-        // cy.getByTestId('expandable-container-content').should('have.css', 'width', '100%')
+      // expect the table to exist.
+      cy.getByTestId('station-comparison-table').should('exist')
 
-        // expecting 2 rows, one for each station.
-        cy.getByTestId('station-comparison-table')
-          .find('tbody > tr')
-          .should('have.length', 2)
+      // expect the sidepanel to be fully expanded (we compare the calculated width, en expect
+      // it to match the width of our browser window)
+      cy.getByTestId('expandable-container-content').should('have.css', 'width', '1000px')
 
-        // expect some observed data
-        cy.getByTestId('comparison-table-row-0')
-          .find('td[data-testid="temperature-observation"] > div')
-          .should('contain', '-3.8°C')
+      // expecting 2 rows, one for each station.
+      cy.getByTestId('station-comparison-table')
+        .find('tbody > tr')
+        .should('have.length', 2)
 
-        cy.getByTestId('comparison-table-row-0')
-          .find('td[data-testid="dewpoint-observation"] > div')
-          .should('contain', '-8.3°C')
-      })
+      // expect some observed data
+      cy.getByTestId('comparison-table-row-0')
+        .find('td[data-testid="temperature-observation"] > div')
+        .should('contain', '-3.8°C')
+
+      cy.getByTestId('comparison-table-row-0')
+        .find('td[data-testid="dewpoint-observation"] > div')
+        .should('contain', '-8.3°C')
     })
   })
 
