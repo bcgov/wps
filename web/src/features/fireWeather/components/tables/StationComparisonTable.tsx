@@ -252,19 +252,19 @@ const formatDewPoint = (dewpoint: number | null | undefined) => {
 }
 
 const SubHeadings = (index: number, className: string) => [
-  <TableCell key={index} className={className}>
+  <TableCell key={`observered-${index}`} className={className}>
     Observed
   </TableCell>,
-  <TableCell key={index} className={className}>
+  <TableCell key={`forecast-${index}`} className={className}>
     Forecast
   </TableCell>,
-  <TableCell key={index} className={className}>
+  <TableCell key={`HRDPS-${index}`} className={className}>
     HRDPS
   </TableCell>,
-  <TableCell key={index} className={className}>
+  <TableCell key={`RDPS-${index}`} className={className}>
     RDPS
   </TableCell>,
-  <TableCell key={index} className={className}>
+  <TableCell key={`GDPS-${index}`} className={className}>
     GDPS
   </TableCell>
 ]
