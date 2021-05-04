@@ -68,7 +68,6 @@ const calculateSidePanelWidth = (codesFromQuery: number[]) => {
 
 const MoreCastPage = () => {
   const classes = useStyles()
-  const dispatch = useDispatch()
   const location = useLocation()
 
   // We base our station & toi list entirely from the URL.
@@ -129,7 +128,10 @@ const MoreCastPage = () => {
     }
   }, [codesFromQuery.length])
 
+  const dispatch = useDispatch()
   useEffect(() => {
+    const codesFromQuery = getStationCodesFromUrl(location.search)
+    const toiFromQuery = getTimeOfInterestFromUrl(location.search)
     if (codesFromQuery.length > 0) {
       dispatch(fetchObservations(codesFromQuery, toiFromQuery))
       dispatch(fetchForecasts(codesFromQuery, toiFromQuery))
@@ -145,7 +147,8 @@ const MoreCastPage = () => {
     dispatch(
       fetchWxStations(getDetailedStations, StationSource.unspecified, toiFromQuery)
     )
-  }, [toiFromQuery, codesFromQuery, dispatch])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location])
 
   return (
     <main className={classes.main}>
