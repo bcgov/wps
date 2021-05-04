@@ -1,15 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { useHistory, useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { makeStyles } from '@material-ui/core/styles'
 
 import { PageHeader } from 'components'
-import {
-  getStationCodesFromUrl,
-  getTimeOfInterestFromUrl,
-  stationCodeQueryKey,
-  timeOfInterestQueryKey
-} from 'utils/url'
+import { getStationCodesFromUrl, getTimeOfInterestFromUrl } from 'utils/url'
 import { fetchWxStations, selectStations } from 'features/stations/slices/stationsSlice'
 import { fetchGlobalModelsWithBiasAdj } from 'features/fireWeather/slices/modelsSlice'
 import { fetchObservations } from 'features/fireWeather/slices/observationsSlice'
