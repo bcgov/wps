@@ -123,7 +123,7 @@ const MoreCastPage = () => {
     dispatch(
       fetchWxStations(getDetailedStations, StationSource.unspecified, toiFromQuery)
     )
-  }, [toiFromQuery, codesFromQuery]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [toiFromQuery, codesFromQuery, dispatch])
 
   return (
     <main className={classes.main}>
