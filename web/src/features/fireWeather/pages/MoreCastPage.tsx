@@ -101,10 +101,10 @@ const MoreCastPage = () => {
     setMapCenter(newMapCenter)
   }
 
+  const shouldRedraw = !showSidePanel || sidePanelWidth === PARTIAL_WIDTH
+
   const getRedrawCommand = (): RedrawCommand | undefined => {
-    return !showSidePanel || sidePanelWidth === PARTIAL_WIDTH
-      ? { redraw: true }
-      : undefined
+    return shouldRedraw ? { redraw: true } : undefined
   }
 
   const setSidePanelState = (show: boolean) => {
