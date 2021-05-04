@@ -72,12 +72,10 @@ const MoreCastPage = () => {
   const classes = useStyles()
   const dispatch = useDispatch()
   const location = useLocation()
-  const history = useHistory()
 
   const codesFromQuery = getStationCodesFromUrl(location.search)
   const toiFromQuery = getTimeOfInterestFromUrl(location.search)
 
-  const selectedCodes: number[] = codesFromQuery
   const { selectedStationsByCode } = useSelector(selectFireWeatherStations)
 
   // retrievedStationDataCodes[] represents the station codes for which weather data has
@@ -86,7 +84,7 @@ const MoreCastPage = () => {
     codesFromQuery
   )
   const [timeOfInterest, setTimeOfInterest] = useState(toiFromQuery)
-  const shouldInitiallyShowSidePanel = selectedCodes.length > 0
+  const shouldInitiallyShowSidePanel = codesFromQuery.length > 0
   const [showSidePanel, setShowSidePanel] = useState(shouldInitiallyShowSidePanel)
   const [sidePanelWidth, setSidePanelWidth] = useState(
     shouldInitiallyShowSidePanel ? PARTIAL_WIDTH : 0
@@ -125,33 +123,47 @@ const MoreCastPage = () => {
   useEffect(() => {
     dispatch(fetchWxStations(getStations))
     dispatch(selectStations(codesFromQuery))
+    setTimeOfInterest(toiFromQuery)
     dispatch(
       fetchWxStations(getDetailedStations, StationSource.unspecified, toiFromQuery)
     )
-    // Update the url query with the new station codes and time of interest
-    let potentialCodes = ''
-    if (selectedStationsByCode.length > 0) {
-      potentialCodes = `${stationCodeQueryKey}=${selectedStationsByCode.join(',')}&`
+    if (codesFromQuery.length > 0) {
+      dispatch(fetchObservations(codesFromQuery, timeOfInterest))
+      dispatch(fetchForecasts(codesFromQuery, timeOfInterest))
+      dispatch(fetchForecastSummaries(codesFromQuery, timeOfInterest))
+      dispatch(fetchHighResModels(codesFromQuery, timeOfInterest))
+      dispatch(fetchHighResModelSummaries(codesFromQuery, timeOfInterest))
+      dispatch(fetchRegionalModels(codesFromQuery, timeOfInterest))
+      dispatch(fetchRegionalModelSummaries(codesFromQuery, timeOfInterest))
+      dispatch(fetchGlobalModelsWithBiasAdj(codesFromQuery, timeOfInterest))
+      dispatch(fetchGlobalModelSummaries(codesFromQuery, timeOfInterest))
+      setRetrievedStationDataCodes(codesFromQuery)
     }
-    history.push({
-      search: potentialCodes + `${timeOfInterestQueryKey}=${timeOfInterest}`
-    })
+
+    if (codesFromQuery.length > 0) {
+      // Open the side panel
+      shouldOpenSidePanel(true)
+    } else {
+      // Close side panel if we do not care about specific stations
+      shouldOpenSidePanel(false)
+    }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (selectedStationsByCode.length > 0) {
-      dispatch(fetchObservations(selectedStationsByCode, timeOfInterest))
-      dispatch(fetchForecasts(selectedStationsByCode, timeOfInterest))
-      dispatch(fetchForecastSummaries(selectedStationsByCode, timeOfInterest))
-      dispatch(fetchHighResModels(selectedStationsByCode, timeOfInterest))
-      dispatch(fetchHighResModelSummaries(selectedStationsByCode, timeOfInterest))
-      dispatch(fetchRegionalModels(selectedStationsByCode, timeOfInterest))
-      dispatch(fetchRegionalModelSummaries(selectedStationsByCode, timeOfInterest))
-      dispatch(fetchGlobalModelsWithBiasAdj(selectedStationsByCode, timeOfInterest))
-      dispatch(fetchGlobalModelSummaries(selectedStationsByCode, timeOfInterest))
+    dispatch(selectStations(codesFromQuery))
+    if (codesFromQuery.length > 0) {
+      dispatch(fetchObservations(codesFromQuery, timeOfInterest))
+      dispatch(fetchForecasts(codesFromQuery, timeOfInterest))
+      dispatch(fetchForecastSummaries(codesFromQuery, timeOfInterest))
+      dispatch(fetchHighResModels(codesFromQuery, timeOfInterest))
+      dispatch(fetchHighResModelSummaries(codesFromQuery, timeOfInterest))
+      dispatch(fetchRegionalModels(codesFromQuery, timeOfInterest))
+      dispatch(fetchRegionalModelSummaries(codesFromQuery, timeOfInterest))
+      dispatch(fetchGlobalModelsWithBiasAdj(codesFromQuery, timeOfInterest))
+      dispatch(fetchGlobalModelSummaries(codesFromQuery, timeOfInterest))
     }
     // Update local state to match with the query url
-    setRetrievedStationDataCodes(selectedStationsByCode)
+    setRetrievedStationDataCodes(codesFromQuery)
     setTimeOfInterest(timeOfInterest)
     dispatch(
       fetchWxStations(getDetailedStations, StationSource.unspecified, toiFromQuery)

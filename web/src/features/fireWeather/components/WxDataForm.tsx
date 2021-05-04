@@ -57,7 +57,7 @@ const WxDataForm = ({ stationCodesQuery, toiFromQuery, shouldOpenSidePanel }: Pr
 
   useEffect(() => {
     // Update local state to match with the query url
-    selectStations(selectedStationsByCode)
+    selectStations(stationCodesQuery)
     setTimeOfInterest(toiFromQuery)
   }, [location]) // eslint-disable-line react-hooks/exhaustive-deps
 
