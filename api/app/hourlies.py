@@ -55,14 +55,25 @@ async def fetch_hourly_readings_from_db(
     return result
 
 
+def _get_five_day_interval(time_of_interest: datetime):
+    five_days_past = time_of_interest - timedelta(days=5)
+
+    # Prepare query params and query:
+    start_time_stamp = math.floor(five_days_past.timestamp()*1000)
+    end_time_stamp = math.floor(time_of_interest.timestamp()*1000)
+
+    return start_time_stamp, end_time_stamp
+
+
 async def get_hourly_readings(
         station_codes: List[int],
         time_of_interest: datetime) -> List[WeatherStationHourlyReadings]:
     """ Get the hourly readings for the list of station codes provided.
     Depending on configuration, will read from WF1 or from local database.
     """
+    start_time_stamp, end_time_stamp = _get_five_day_interval(time_of_interest)
 
     if wildfire_one.use_wfwx():
-        return await wildfire_one.get_hourly_readings(station_codes, time_of_interest)
+        return await wildfire_one.get_hourly_readings(station_codes, start_time_stamp, end_time_stamp)
 
     return await fetch_hourly_readings_from_db(station_codes, time_of_interest)

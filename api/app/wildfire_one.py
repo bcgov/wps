@@ -3,8 +3,7 @@
 import os
 import json
 from typing import Generator, Dict, List
-from datetime import datetime, timedelta, timezone
-import math
+from datetime import datetime, timezone
 from abc import abstractmethod, ABC
 import logging
 import asyncio
@@ -304,22 +303,15 @@ async def get_detailed_stations(time_of_interest: datetime):
         return list(stations.values())
 
 
-def prepare_fetch_hourlies_query(raw_station: dict, time_of_interest: datetime):
+def prepare_fetch_hourlies_query(raw_station: dict, start_timestamp: int, end_timestamp: int):
     """ Prepare url and params to fetch hourly readings from the WFWX Fireweather API.
     """
     base_url = config.get('WFWX_BASE_URL')
 
-    # By default we're concerned with the last 5 days only.
-    five_days_past = time_of_interest - timedelta(days=5)
-
-    logger.debug('requesting historic data from %s to %s', five_days_past, time_of_interest)
-
-    # Prepare query params and query:
-    start_time_stamp = math.floor(five_days_past.timestamp()*1000)
-    end_time_stamp = math.floor(time_of_interest.timestamp()*1000)
+    logger.debug('requesting historic data from %s to %s', start_timestamp, end_timestamp)
     station_id = raw_station['id']
-    params = {'startTimestamp': start_time_stamp,
-              'endTimestamp': end_time_stamp, 'stationId': station_id}
+    params = {'startTimestamp': start_timestamp,
+              'endTimestamp': end_timestamp, 'stationId': station_id}
     endpoint = ('/v1/hourlies/search/'
                 'findHourliesByWeatherTimestampBetweenAndStationIdEqualsOrderByWeatherTimestampAsc')
     url = '{base_url}{endpoint}'.format(
@@ -369,15 +361,14 @@ async def fetch_hourlies(
         raw_station: dict,
         headers: dict,
         start_timestamp: int,
-        end_timestamp: int,
-        time_of_interest: datetime) -> WeatherStationHourlyReadings:
+        end_timestamp: int) -> WeatherStationHourlyReadings:
     """ Fetch hourly weather readings for the past 5 days for a give station
     TODO: rename this function, or specify the time range.
     """
     logger.debug('fetching hourlies for %s(%s)',
                  raw_station['displayLabel'], raw_station['stationCode'])
 
-    url, params = prepare_fetch_hourlies_query(raw_station, time_of_interest)
+    url, params = prepare_fetch_hourlies_query(raw_station, start_timestamp, end_timestamp)
 
     # Get hourlies
     async with session.get(url, params=params, headers=headers) as response:
@@ -397,8 +388,7 @@ async def fetch_hourlies(
 async def get_hourly_readings(
         station_codes: List[int],
         start_timestamp: int,
-        end_timestamp: int,
-        time_of_interest: datetime) -> List[WeatherStationHourlyReadings]:
+        end_timestamp: int) -> List[WeatherStationHourlyReadings]:
     """ Get the hourly readings for the list of station codes provided.
     """
     # Create a list containing all the tasks to run in parallel.
@@ -415,7 +405,11 @@ async def get_hourly_readings(
             session, header, BuildQueryByStationCode(station_codes))
         async for raw_station in iterator:
             task = asyncio.create_task(
-                fetch_hourlies(session, raw_station, header, start_timestamp, end_timestamp, time_of_interest))
+                fetch_hourlies(session,
+                               raw_station,
+                               header,
+                               start_timestamp,
+                               end_timestamp))
             tasks.append(task)
 
         # Run the tasks concurrently, waiting for them all to complete.

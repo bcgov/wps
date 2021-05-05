@@ -6,7 +6,7 @@ import logging
 import sys
 from sqlalchemy.exc import IntegrityError
 import pandas as pd
-from requests import Session, HTTPError
+from requests import Session
 from app import configure_logging, config
 import app.db.database
 from app.db.crud.observations import save_hourly_actual
@@ -115,11 +115,13 @@ class HourlyActualsBot(BaseBot):
 
             station_codes = get_station_names_to_codes()
 
-            start_date = _get_start_date()
-            end_date = _get_end_date()
+            start_date = self._get_start_date()
+            end_date = self._get_end_date()
 
             hourly_readings = wildfire_one.get_hourly_readings(
-                station_codes, start_date, end_date, start_date)
+                station_codes, start_date, end_date)
+
+            logger.info("Hourly readings: %s", hourly_readings)
 
             # TODO: format and save result
 
