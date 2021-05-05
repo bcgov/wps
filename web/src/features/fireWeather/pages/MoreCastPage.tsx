@@ -63,8 +63,7 @@ const useStyles = makeStyles(theme => ({
 }))
 
 const calculateSidePanelWidth = (codesFromQuery: number[]) => {
-  const result = codesFromQuery.length > 1 ? FULL_WIDTH : PARTIAL_WIDTH
-  return result
+  return codesFromQuery.length > 1 ? FULL_WIDTH : PARTIAL_WIDTH
 }
 
 const MoreCastPage = () => {
