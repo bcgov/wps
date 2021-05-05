@@ -6,12 +6,14 @@ import logging
 import sys
 from sqlalchemy.exc import IntegrityError
 import pandas as pd
+from requests import Session, HTTPError
 from app import configure_logging, config
 import app.db.database
 from app.db.crud.observations import save_hourly_actual
 from app.db.models.observations import HourlyActual
 import app.time_utils
-from app.fireweather_bot.common import (BaseBot, get_station_names_to_codes)
+from app.fireweather_bot.common import (BaseBot, get_station_names_to_codes, authenticate_session)
+from app import wildfire_one
 from app.rocketchat_notifications import send_rocketchat_notification
 
 # If running as it's own process, configure logging appropriately.
@@ -104,6 +106,22 @@ class HourlyActualsBot(BaseBot):
             'cboFilters': config.get('BC_FIRE_WEATHER_FILTER_ID'),
             'rdoReport': 'OSBH',
         }
+
+    def run_wfwx(self):
+        """ Entry point for running the bot """
+        with Session() as session:
+            # Authenticate with idir.
+            authenticate_session(session)
+
+            station_codes = get_station_names_to_codes()
+
+            start_date = _get_start_date()
+            end_date = _get_end_date()
+
+            hourly_readings = wildfire_one.get_hourly_readings(
+                station_codes, start_date, end_date, start_date)
+
+            # TODO: format and save result
 
 
 def main():

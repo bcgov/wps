@@ -368,6 +368,8 @@ async def fetch_hourlies(
         session: ClientSession,
         raw_station: dict,
         headers: dict,
+        start_timestamp: int,
+        end_timestamp: int,
         time_of_interest: datetime) -> WeatherStationHourlyReadings:
     """ Fetch hourly weather readings for the past 5 days for a give station
     TODO: rename this function, or specify the time range.
@@ -394,6 +396,8 @@ async def fetch_hourlies(
 
 async def get_hourly_readings(
         station_codes: List[int],
+        start_timestamp: int,
+        end_timestamp: int,
         time_of_interest: datetime) -> List[WeatherStationHourlyReadings]:
     """ Get the hourly readings for the list of station codes provided.
     """
@@ -411,7 +415,7 @@ async def get_hourly_readings(
             session, header, BuildQueryByStationCode(station_codes))
         async for raw_station in iterator:
             task = asyncio.create_task(
-                fetch_hourlies(session, raw_station, header, time_of_interest))
+                fetch_hourlies(session, raw_station, header, start_timestamp, end_timestamp, time_of_interest))
             tasks.append(task)
 
         # Run the tasks concurrently, waiting for them all to complete.
