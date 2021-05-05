@@ -34,7 +34,7 @@ export const formatMonthAndDay = (month: number, day: number): string =>
 
 export const suppressMilliInISO = (iso: string): string => iso.replace(/\.\d{0,3}/, '') // Using RegExp to remove the "." and milliseconds
 
-export const formatDateInUTC0 = (dtISO: string): string => {
+export const formatDateInUTC00Suffix = (dtISO: string): string => {
   // Given an ISO formated datetime string, return a ISO formatted datetime string for NOON UTC of that day.
   const dtDateTime = DateTime.fromISO(dtISO).setZone(`UTC${PST_UTC_OFFSET}`)
   const dtJS = dtDateTime.toJSDate()

@@ -63,6 +63,61 @@ describe('MoreCast Page', () => {
     cy.url().should('contain', `${timeOfInterestQueryKey}=${timeOfInterest}`)
   })
 
+  describe.only('When wx data for multiple stations fetched', () => {
+    beforeEach(() => {
+      cy.intercept('POST', 'api/observations/', { fixture: 'weather-data/observations' })
+      cy.intercept('POST', 'api/forecasts/noon/', { fixture: 'weather-data/noon-forecasts' })
+      cy.intercept('POST', 'api/forecasts/noon/summaries/', { fixture: 'weather-data/noon-forecast-summaries' })
+      cy.intercept('POST', 'api/weather_models/GDPS/predictions/most_recent', {fixture:'weather-data/models-with-bias-adjusted'}) // prettier-ignore
+      cy.intercept('POST', 'api/weather_models/GDPS/predictions/summaries/', {
+        fixture: 'weather-data/model-summaries'
+      })
+      cy.intercept('POST', 'api/weather_models/HRDPS/predictions/most_recent', {fixture:'weather-data/hr-models-with-bias-adjusted'}) // prettier-ignore
+      cy.intercept('POST', 'api/weather_models/HRDPS/predictions/summaries', {fixture:'weather-data/high-res-model-summaries'}) // prettier-ignore
+      cy.intercept('POST', 'api/weather_models/RDPS/predictions/most_recent', {fixture:'weather-data/regional-models-with-bias-adjusted'}) // prettier-ignore
+      cy.intercept('POST', 'api/weather_models/RDPS/predictions/summaries', {
+        fixture: 'weather-data/regional-model-summaries'
+      })
+
+      cy.visit(MORECAST_ROUTE)
+
+      cy.wait('@getStations')
+
+      // Request the weather data
+      cy.selectStationInDropdown(stationCode)
+      cy.selectStationInDropdown(380)
+      const timeOfInterest = '2021-01-22T12:00:00-08:00'
+      cy.getByTestId('time-of-interest-picker').type(timeOfInterest.slice(0, 16)) // yyyy-MM-ddThh:mm
+      cy.getByTestId('get-wx-data-button').click({ force: true })
+    })
+
+    it('Should display station comparison table', () => {
+      // expect Station Comparison to be selected
+      cy.getByTestId('station-comparison-button').should('have.attr', 'aria-pressed', 'true')
+
+      // expect the table to exist.
+      cy.getByTestId('station-comparison-table').should('exist')
+
+      // expect the sidepanel to be fully expanded (we compare the calculated width, en expect
+      // it to match the width of our browser window)
+      cy.getByTestId('expandable-container-content').should('have.css', 'width', '1000px')
+
+      // expecting 2 rows, one for each station.
+      cy.getByTestId('station-comparison-table')
+        .find('tbody > tr')
+        .should('have.length', 2)
+
+      // expect some observed data
+      cy.getByTestId('comparison-table-row-0')
+        .find('td[data-testid="temperature-observation"] > div')
+        .should('contain', '-3.8°C')
+
+      cy.getByTestId('comparison-table-row-0')
+        .find('td[data-testid="dewpoint-observation"] > div')
+        .should('contain', '-8.3°C')
+    })
+  })
+
   describe('When wx data successfully fetched', () => {
     const numOfObservations = 119
     const numOfForecasts = 6

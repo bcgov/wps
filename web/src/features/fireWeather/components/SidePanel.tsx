@@ -30,8 +30,6 @@ export enum SidePanelEnum {
 }
 
 interface Props {
-  show: boolean
-  closeSidePanel: () => void
   handleToggleView: (_: React.MouseEvent<HTMLElement>, newDataView: SidePanelEnum) => void
   showTableView: string
   stationCodes: number[]
@@ -56,7 +54,10 @@ const SidePanel = (props: Props) => {
             <ToggleButton value={SidePanelEnum.Tables}>Tables</ToggleButton>
             <ToggleButton value={SidePanelEnum.Graphs}>Graphs</ToggleButton>
             {props.stationCodes.length > 1 && (
-              <ToggleButton value={SidePanelEnum.Comparison}>
+              <ToggleButton
+                value={SidePanelEnum.Comparison}
+                data-testid="station-comparison-button"
+              >
                 Station comparison
               </ToggleButton>
             )}

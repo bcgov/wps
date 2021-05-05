@@ -62,6 +62,10 @@ const useStyles = makeStyles(theme => ({
   }
 }))
 
+const calculateSidePanelWidth = (codesFromQuery: number[]) => {
+  return codesFromQuery.length > 1 ? FULL_WIDTH : PARTIAL_WIDTH
+}
+
 const MoreCastPage = () => {
   const classes = useStyles()
   const location = useLocation()
@@ -73,16 +77,14 @@ const MoreCastPage = () => {
   const shouldInitiallyShowSidePanel = codesFromQuery.length > 0
   const [showSidePanel, setShowSidePanel] = useState(shouldInitiallyShowSidePanel)
   const [sidePanelWidth, setSidePanelWidth] = useState(
-    shouldInitiallyShowSidePanel
-      ? codesFromQuery.length > 1
-        ? FULL_WIDTH
-        : PARTIAL_WIDTH
-      : 0
+    calculateSidePanelWidth(codesFromQuery)
   )
 
   const [mapCenter, setMapCenter] = useState(CENTER_OF_BC)
   const expandSidePanel = () => setSidePanelWidth(FULL_WIDTH)
-  const collapseSidePanel = () => setSidePanelWidth(PARTIAL_WIDTH)
+  const collapseSidePanel = () => {
+    return setSidePanelWidth(PARTIAL_WIDTH)
+  }
 
   // Callback to set the latest center coordinates when side panel is collapsed
   // to preserve any panning of the map by the user before panel was expanded.
@@ -90,15 +92,16 @@ const MoreCastPage = () => {
     setMapCenter(newMapCenter)
   }
 
+  const shouldRedraw = !showSidePanel || sidePanelWidth === PARTIAL_WIDTH
+
   const getRedrawCommand = (): RedrawCommand | undefined => {
-    return !showSidePanel || sidePanelWidth === PARTIAL_WIDTH
-      ? { redraw: true }
-      : undefined
+    return shouldRedraw ? { redraw: true } : undefined
   }
-  const shouldOpenSidePanel = (openOrClose: boolean) => {
-    if (openOrClose) {
+
+  const setSidePanelState = (show: boolean) => {
+    if (show) {
       setShowSidePanel(true)
-      setSidePanelWidth(PARTIAL_WIDTH)
+      setSidePanelWidth(calculateSidePanelWidth(codesFromQuery))
     } else {
       closeSidePanel()
     }
@@ -136,6 +139,12 @@ const MoreCastPage = () => {
     dispatch(
       fetchWxStations(getDetailedStations, StationSource.unspecified, toiFromQuery)
     )
+    if (codesFromQuery.length > 1) {
+      toggleTableView(SidePanelEnum.Comparison)
+      setSidePanelState(true)
+    } else {
+      toggleTableView(SidePanelEnum.Tables)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location])
 
@@ -146,7 +155,7 @@ const MoreCastPage = () => {
         <WxDataForm
           stationCodesQuery={codesFromQuery}
           toiFromQuery={toiFromQuery}
-          shouldOpenSidePanel={shouldOpenSidePanel}
+          setSidePanelState={setSidePanelState}
         />
       </div>
       <div className={classes.content}>
@@ -167,8 +176,6 @@ const MoreCastPage = () => {
           currentWidth={sidePanelWidth}
         >
           <SidePanel
-            show={showSidePanel}
-            closeSidePanel={closeSidePanel}
             handleToggleView={handleToggleView}
             showTableView={showTableView}
             stationCodes={codesFromQuery}

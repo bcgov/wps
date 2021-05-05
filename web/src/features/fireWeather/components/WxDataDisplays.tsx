@@ -73,6 +73,7 @@ interface FragmentProps {
   observations: ObservedValue[] | undefined
   noonForecasts: NoonForecastValue[] | undefined
   station: GeoJsonStation
+  expandedOrCollapsed?: { redraw: boolean }
   timeOfInterest: string
   noonForecastSummaries: ForecastSummary[] | undefined
   hrdpsModels: ModelValue[] | undefined
@@ -129,6 +130,7 @@ const SingleStationFragment = (props: FragmentProps) => {
     noonForecasts,
     station,
     timeOfInterest,
+    expandedOrCollapsed,
     noonForecastSummaries,
     hrdpsModels,
     hrdpsSummaries,
@@ -147,13 +149,14 @@ const SingleStationFragment = (props: FragmentProps) => {
           noonForecasts={noonForecasts}
         />
       )
-    default:
     case SidePanelEnum.Graphs:
+    default:
       return (
         <ErrorBoundary>
           <WxDataGraph
             station={station}
             timeOfInterest={timeOfInterest}
+            expandedOrCollapsed={expandedOrCollapsed}
             observations={observations}
             noonForecasts={noonForecasts}
             noonForecastSummaries={noonForecastSummaries}
@@ -225,6 +228,7 @@ export const WxDataDisplays = React.memo(function _(props: WxDataDisplaysProps) 
                 noonOnlyGdpsModels={noonOnlyGdpsModels}
                 station={station}
                 timeOfInterest={props.timeOfInterest}
+                expandedOrCollapsed={props.expandedOrCollapsed}
                 observations={observations}
                 noonForecasts={noonForecasts}
                 noonForecastSummaries={noonForecastSummaries}

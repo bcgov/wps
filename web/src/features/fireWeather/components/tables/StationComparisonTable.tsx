@@ -1,5 +1,6 @@
 import React from 'react'
 import { makeStyles } from '@material-ui/core/styles'
+import { ClassNameMap } from '@material-ui/styles/withStyles'
 import Paper from '@material-ui/core/Paper'
 import Typography from '@material-ui/core/Typography'
 import Table from '@material-ui/core/Table'
@@ -9,12 +10,12 @@ import TableContainer from '@material-ui/core/TableContainer'
 import TableRow from '@material-ui/core/TableRow'
 import TableHead from '@material-ui/core/TableHead'
 import ToolTip from '@material-ui/core/Tooltip'
-import { DateTime } from 'luxon'
 import { GeoJsonStation } from 'api/stationAPI'
 import { ObservedValue } from 'api/observationAPI'
 import { NoonForecastValue } from 'api/forecastAPI'
 import { ModelValue } from 'api/modelAPI'
-import { formatDateInUTC0, formatDateInPST } from 'utils/date'
+import { formatDateInUTC00Suffix, formatDateInPST } from 'utils/date'
+import { calculateAccumulatedPrecip, AccumulatedPrecipitation } from 'utils/table'
 import {
   TEMPERATURE_VALUES_DECIMAL,
   RH_VALUES_DECIMAL,
@@ -25,7 +26,12 @@ import {
 
 export const comparisonTableStyles = makeStyles({
   paper: {
-    padding: '5px'
+    padding: '5px',
+    // There's a formating issues that causes the last cell in the table to be cut off
+    // when in 100%, on a small screen. Setting the width to 95% is a workaround, as the
+    // true source of the problem remains a mystery. (suspicion: it's something to do with using
+    // flex boxes, and having a table that needs to scroll.)
+    width: '95%'
   },
   typography: {},
   lightColumnHeader: {
@@ -80,50 +86,9 @@ const findNoonMatch = (
   return collection?.find((item: ModelValue) => item.datetime === noonDate)
 }
 
-interface AccumulatedPrecipitation {
-  precipitation: number | undefined
-  modelValues: ModelValue[]
-}
+type TemperatureSourceType = NoonForecastValue | ObservedValue | ModelValue | undefined
 
-const calculateAccumulatedPrecip = (
-  noonDate: string,
-  collection: ModelValue[] | undefined
-): AccumulatedPrecipitation | undefined => {
-  // We are calculating the accumulated precipitation from 24 hours before noon.
-  const from = DateTime.fromISO(noonDate).toJSDate()
-  from.setHours(from.getHours() - 24)
-  const to = DateTime.fromISO(noonDate).toJSDate()
-  console.log('noonDate', noonDate)
-  console.log('from', from)
-  console.log('to', to)
-  if (collection) {
-    const precip = {
-      precipitation: undefined,
-      modelValues: [] as ModelValue[]
-    } as AccumulatedPrecipitation
-    collection.forEach(value => {
-      const precipDate = DateTime.fromISO(value.datetime).toJSDate()
-      console.log('precipDate', precipDate)
-      if (precipDate > from && precipDate <= to) {
-        if (typeof value.delta_precipitation === 'number') {
-          if (precip.precipitation === undefined) {
-            precip.precipitation = value.delta_precipitation
-          } else {
-            precip.precipitation += value.delta_precipitation
-          }
-          // Keep track of the model run predictions used to calculate this.
-          precip.modelValues.push(value)
-        }
-      }
-    })
-    return precip
-  }
-  return undefined
-}
-
-export const formatTemperature = (
-  source: NoonForecastValue | ObservedValue | ModelValue | undefined
-) => {
+export const formatTemperature = (source: TemperatureSourceType) => {
   return (
     <div>
       {typeof source?.temperature === 'number' &&
@@ -221,19 +186,28 @@ export const formatPrecipitation = (
   )
 }
 
-const formatModelPrecipitation = (
+const formatAccumulatedPrecipitation = (
   precipitation: AccumulatedPrecipitation | undefined,
   precipitationClassName: string
 ) => {
   const title: JSX.Element[] = []
-  precipitation?.modelValues.forEach(value => {
-    title.push(
-      <div>
-        prediction: {value.datetime}, precipitation:{' '}
-        {value.delta_precipitation?.toFixed(PRECIP_VALUES_DECIMAL)} mm (model:{' '}
-        {value.model_run_datetime})
-      </div>
-    )
+  precipitation?.values.forEach((value, index) => {
+    if ('delta_precipitation' in value && 'model_run_datetime' in value) {
+      title.push(
+        <div key={index}>
+          prediction: {value.datetime}, precipitation:{' '}
+          {value.delta_precipitation?.toFixed(PRECIP_VALUES_DECIMAL)} mm (model:{' '}
+          {value.model_run_datetime})
+        </div>
+      )
+    } else if ('precipitation' in value) {
+      title.push(
+        <div key={index}>
+          observation: {value.datetime}, precipitation:{' '}
+          {value.precipitation?.toFixed(PRECIP_VALUES_DECIMAL)} mm
+        </div>
+      )
+    }
   })
   return (
     <ToolTip title={title} aria-label="precipitation">
@@ -255,10 +229,35 @@ const formatDewPoint = (dewpoint: number | null | undefined) => {
   )
 }
 
+const SubHeadings = (
+  value: string,
+  index: number,
+  classes: ClassNameMap<'darkColumnHeader' | 'lightColumnHeader'>
+) => {
+  const className = index % 2 === 0 ? classes.darkColumnHeader : classes.lightColumnHeader
+  return [
+    <TableCell key={`${value}-observered-${index}`} className={className}>
+      Observed
+    </TableCell>,
+    <TableCell key={`${value}-forecast-${index}`} className={className}>
+      Forecast
+    </TableCell>,
+    <TableCell key={`${value}-HRDPS-${index}`} className={className}>
+      HRDPS
+    </TableCell>,
+    <TableCell key={`${value}-RDPS-${index}`} className={className}>
+      RDPS
+    </TableCell>,
+    <TableCell key={`${value}-GDPS-${index}`} className={className}>
+      GDPS
+    </TableCell>
+  ]
+}
+
 const StationComparisonTable = (props: Props) => {
   const classes = comparisonTableStyles()
   // format the date to match the ISO format in the API for easy comparison.
-  const noonDate = formatDateInUTC0(props.timeOfInterest)
+  const noonDate = formatDateInUTC00Suffix(props.timeOfInterest)
   return (
     <Paper className={classes.paper}>
       <Typography component="div" variant="subtitle2">
@@ -266,7 +265,11 @@ const StationComparisonTable = (props: Props) => {
       </Typography>
       <Paper>
         <TableContainer>
-          <Table stickyHeader size="small" aria-label="sortable wx table">
+          <Table
+            size="small"
+            aria-label="sortable wx table"
+            data-testid="station-comparison-table"
+          >
             <TableHead>
               <TableRow>
                 <TableCell></TableCell>
@@ -286,30 +289,9 @@ const StationComparisonTable = (props: Props) => {
               </TableRow>
               <TableRow>
                 <TableCell>Weather Stations</TableCell>
-                {/* Temperature */}
-                <TableCell className={classes.darkColumnHeader}>Observed</TableCell>
-                <TableCell className={classes.darkColumnHeader}>Forecast</TableCell>
-                <TableCell className={classes.darkColumnHeader}>HRDPS</TableCell>
-                <TableCell className={classes.darkColumnHeader}>RDPS</TableCell>
-                <TableCell className={classes.darkColumnHeader}>GDPS</TableCell>
-                {/* Relative Humidity */}
-                <TableCell className={classes.lightColumnHeader}>Observed</TableCell>
-                <TableCell className={classes.lightColumnHeader}>Forecast</TableCell>
-                <TableCell className={classes.lightColumnHeader}>HRDPS</TableCell>
-                <TableCell className={classes.lightColumnHeader}>RDPS</TableCell>
-                <TableCell className={classes.lightColumnHeader}>GDPS</TableCell>
-                {/* Wind Speed + Direction */}
-                <TableCell className={classes.darkColumnHeader}>Observed</TableCell>
-                <TableCell className={classes.darkColumnHeader}>Forecast</TableCell>
-                <TableCell className={classes.darkColumnHeader}>HRDPS</TableCell>
-                <TableCell className={classes.darkColumnHeader}>RDPS</TableCell>
-                <TableCell className={classes.darkColumnHeader}>GDPS</TableCell>
-                {/* Precip */}
-                <TableCell className={classes.lightColumnHeader}>Observed</TableCell>
-                <TableCell className={classes.lightColumnHeader}>Forecast</TableCell>
-                <TableCell className={classes.lightColumnHeader}>HRDPS</TableCell>
-                <TableCell className={classes.lightColumnHeader}>RDPS</TableCell>
-                <TableCell className={classes.lightColumnHeader}>GDPS</TableCell>
+                {['temp', 'rh', 'wind', 'precip'].map((value, index) => {
+                  return SubHeadings(value, index, classes)
+                })}
                 {/* Dew Point */}
                 <TableCell className={classes.darkColumnHeader}>Observed</TableCell>
               </TableRow>
@@ -322,8 +304,10 @@ const StationComparisonTable = (props: Props) => {
                   forecast => forecast.datetime === noonDate
                 )
                 const observations = props.observationsByStation[stationCode]
-                const observation = observations?.find(
-                  observation => observation.datetime === noonDate
+                const observation = observations?.find(item => item.datetime === noonDate)
+                const accumulatedObservedPrecipitation = calculateAccumulatedPrecip(
+                  noonDate,
+                  observations
                 )
                 const hrdpsModelPrediction = findNoonMatch(
                   noonDate,
@@ -350,12 +334,15 @@ const StationComparisonTable = (props: Props) => {
                   props.allModelsByStation[stationCode]
                 )
                 return (
-                  <TableRow key={idx}>
+                  <TableRow data-testid={`comparison-table-row-${idx}`} key={idx}>
                     <TableCell>
                       {station?.properties.name} ({stationCode})
                     </TableCell>
                     {/* Temperature */}
-                    <TableCell className={classes.darkColumn}>
+                    <TableCell
+                      data-testid="temperature-observation"
+                      className={classes.darkColumn}
+                    >
                       {formatTemperature(observation)}
                     </TableCell>
                     <TableCell className={classes.darkColumn}>
@@ -436,8 +423,8 @@ const StationComparisonTable = (props: Props) => {
                     </TableCell>
                     {/* Precip */}
                     <TableCell className={classes.lightColumn}>
-                      {formatPrecipitation(
-                        observation?.precipitation,
+                      {formatAccumulatedPrecipitation(
+                        accumulatedObservedPrecipitation,
                         classes.precipitationValue
                       )}
                     </TableCell>
@@ -448,25 +435,28 @@ const StationComparisonTable = (props: Props) => {
                       )}
                     </TableCell>
                     <TableCell className={classes.lightColumn}>
-                      {formatModelPrecipitation(
+                      {formatAccumulatedPrecipitation(
                         accumulatedHRDPSPrecipitation,
                         classes.precipitationValue
                       )}
                     </TableCell>
                     <TableCell className={classes.lightColumn}>
-                      {formatModelPrecipitation(
+                      {formatAccumulatedPrecipitation(
                         accumulatedRDPSPrecipitation,
                         classes.precipitationValue
                       )}
                     </TableCell>
                     <TableCell className={classes.lightColumn}>
-                      {formatModelPrecipitation(
+                      {formatAccumulatedPrecipitation(
                         accumulatedGDPSPrecipitation,
                         classes.precipitationValue
                       )}
                     </TableCell>
                     {/* Dew Point */}
-                    <TableCell className={classes.darkColumn}>
+                    <TableCell
+                      className={classes.darkColumn}
+                      data-testid="dewpoint-observation"
+                    >
                       {formatDewPoint(observation?.dewpoint)}
                     </TableCell>
                   </TableRow>
