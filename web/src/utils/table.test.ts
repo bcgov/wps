@@ -25,8 +25,37 @@ describe('Table util functions', () => {
   describe('calculateAccumulatedPrecip', () => {
     it('should add up precipitation correctly', () => {
       const noonDate = '2020-12-09T20:00:00+00:00'
-      calculateAccumulatedPrecip(noonDate, [{}, {}] as ModelValue[])
-      // TODO: write a test here.
+      const precip = calculateAccumulatedPrecip(noonDate, [
+        {
+          datetime: '2020-12-08T20:00:00+00:00',
+          delta_precipitation: 1.1
+        },
+        { datetime: '2020-12-08T19:00:00+00:00', delta_precipitation: 1.1 },
+        {
+          datetime: '2020-12-09T19:00:00+00:00',
+          delta_precipitation: 1.1
+        },
+        {
+          datetime: '2020-12-09T18:00:00+00:00',
+          delta_precipitation: 1.1
+        }
+      ] as ModelValue[])
+      // we expect that only two of the records to summed up.
+      expect(precip?.precipitation).toEqual(2.2)
+      expect(precip?.modelValues.length).toEqual(2)
+      // expect only the relevant records.
+      expect(precip?.modelValues).toEqual(
+        expect.arrayContaining([
+          {
+            datetime: '2020-12-09T19:00:00+00:00',
+            delta_precipitation: 1.1
+          },
+          {
+            datetime: '2020-12-09T18:00:00+00:00',
+            delta_precipitation: 1.1
+          }
+        ] as ModelValue[])
+      )
     })
   })
 
