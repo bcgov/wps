@@ -135,7 +135,7 @@ const NoonForecastTable = (props: NoonForecastTableProps) => {
                       {/* Precipitation  */}
                       {/* TODO: stop inserting fake numbers */}
                       <TableCell className={classes.lightColumn}>
-                        {formatPrecipitation(0.0, classes.precipitationValue)}
+                        {formatPrecipitation(forecast.total_precipitation, classes.precipitationValue)}
                       </TableCell>
                       <TableCell className={classes.lightColumn}>
                         {formatPrecipitation(0.1, classes.precipitationValue)}
