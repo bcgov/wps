@@ -1,11 +1,7 @@
 import React, { useState } from 'react'
 
-import { Forecast, NoonForecastValue } from 'api/forecastAPI'
+import { NoonForecastValue } from 'api/forecastAPI'
 import { formatDateInPST } from 'utils/date'
-import {
-  Column,
-  WeatherValue
-} from 'features/fireWeather/components/tables/SortableTableByDatetime'
 import {
   comparisonTableStyles,
   formatPrecipitation,
@@ -21,6 +17,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TableSortLabel,
   Typography
 } from '@material-ui/core'
 import { ObservedValue } from 'api/observationAPI'
@@ -40,7 +37,7 @@ const NoonForecastTable = (props: NoonForecastTableProps) => {
     return null
   }
 
-  if ( props.noonForecasts.length === 0 && props.noonObservations.length === 0 ) {
+  if (props.noonForecasts.length === 0 && props.noonObservations.length === 0) {
     return null
   }
 
@@ -79,7 +76,11 @@ const NoonForecastTable = (props: NoonForecastTableProps) => {
                 </TableCell>
               </TableRow>
               <TableRow>
-                <TableCell>Date</TableCell>
+                <TableCell sortDirection={order}>
+                  <TableSortLabel direction={order} onClick={toggleDatetimeOrder}>
+                    Date (PST)
+                  </TableSortLabel>
+                </TableCell>
                 {/* Temperature */}
                 <TableCell className={classes.darkColumnHeader}>Forecast</TableCell>
                 <TableCell className={classes.darkColumnHeader}>Observed</TableCell>
@@ -95,28 +96,54 @@ const NoonForecastTable = (props: NoonForecastTableProps) => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {forecastRowsSortedByDatetime.map((forecast: NoonForecastValue, idx: number) => {
-                const observation = observationsRowsSortedByDatetime.find(obs => obs.datetime === forecast.datetime)
-                return (
-                  <TableRow key={idx}>
-                    <TableCell>
-                      {forecast.datetime}
-                    </TableCell>
-                    {/* Temperature */}
-                    <TableCell>{formatTemperature(forecast)}</TableCell>
-                    <TableCell>{formatTemperature(observation)}</TableCell>
-                    {/* Relative Humidity */}
-                    <TableCell>{formatRelativeHumidity(forecast, classes.relativeHumidityValue)}</TableCell>
-                    <TableCell>{formatRelativeHumidity(observation, classes.relativeHumidityValue)}</TableCell>
-                    {/* Wind Speed + Direction */}
-                    <TableCell>{formatWindSpeedDirection(forecast, classes.windSpeedValue, classes.windDirectionValue)}</TableCell>
-                    <TableCell>{formatWindSpeedDirection(observation, classes.windSpeedValue, classes.windDirectionValue)}</TableCell>
-                    {/* Precipitation  */}
-                    <TableCell>{formatPrecipitation(0.0, classes.precipitationValue)}</TableCell>
-                    <TableCell>{formatPrecipitation(0.1, classes.precipitationValue)}</TableCell>
-                  </TableRow>
-                )
-              })}
+              {forecastRowsSortedByDatetime.map(
+                (forecast: NoonForecastValue, idx: number) => {
+                  const observation = observationsRowsSortedByDatetime.find(
+                    obs => obs.datetime === forecast.datetime
+                  )
+                  return (
+                    <TableRow key={idx}>
+                      <TableCell>{formatDateInPST(forecast.datetime)}</TableCell>
+                      {/* Temperature */}
+                      <TableCell className={classes.darkColumn}>{formatTemperature(forecast)}</TableCell>
+                      <TableCell className={classes.darkColumn}>{formatTemperature(observation)}</TableCell>
+                      {/* Relative Humidity */}
+                      <TableCell className={classes.lightColumn}>
+                        {formatRelativeHumidity(forecast, classes.relativeHumidityValue)}
+                      </TableCell>
+                      <TableCell className={classes.lightColumn}>
+                        {formatRelativeHumidity(
+                          observation,
+                          classes.relativeHumidityValue
+                        )}
+                      </TableCell>
+                      {/* Wind Speed + Direction */}
+                      <TableCell className={classes.darkColumn}>
+                        {formatWindSpeedDirection(
+                          forecast,
+                          classes.windSpeedValue,
+                          classes.windDirectionValue
+                        )}
+                      </TableCell>
+                      <TableCell className={classes.darkColumn}>
+                        {formatWindSpeedDirection(
+                          observation,
+                          classes.windSpeedValue,
+                          classes.windDirectionValue
+                        )}
+                      </TableCell>
+                      {/* Precipitation  */}
+                      {/* TODO: stop inserting fake numbers */}
+                      <TableCell className={classes.lightColumn}>
+                        {formatPrecipitation(0.0, classes.precipitationValue)}
+                      </TableCell>
+                      <TableCell className={classes.lightColumn}>
+                        {formatPrecipitation(0.1, classes.precipitationValue)}
+                      </TableCell>
+                    </TableRow>
+                  )
+                }
+              )}
             </TableBody>
           </Table>
         </TableContainer>

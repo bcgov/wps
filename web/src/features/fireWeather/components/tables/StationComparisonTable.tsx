@@ -51,7 +51,7 @@ export const comparisonTableStyles = makeStyles({
   },
   darkColumn: {
     backgroundColor: '#fafafa',
-    padding: '1px',
+    padding: '2px',
     textAlign: 'right'
   },
   darkColumnHeader: {
