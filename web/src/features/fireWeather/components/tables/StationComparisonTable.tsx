@@ -1,5 +1,6 @@
 import React from 'react'
 import { makeStyles } from '@material-ui/core/styles'
+import { ClassNameMap } from '@material-ui/styles/withStyles'
 import Paper from '@material-ui/core/Paper'
 import Typography from '@material-ui/core/Typography'
 import Table from '@material-ui/core/Table'
@@ -219,23 +220,30 @@ const formatDewPoint = (dewpoint: number | null | undefined) => {
   )
 }
 
-const SubHeadings = (value: string, index: number, className: string) => [
-  <TableCell key={`${value}-observered-${index}`} className={className}>
-    Observed
-  </TableCell>,
-  <TableCell key={`${value}-forecast-${index}`} className={className}>
-    Forecast
-  </TableCell>,
-  <TableCell key={`${value}-HRDPS-${index}`} className={className}>
-    HRDPS
-  </TableCell>,
-  <TableCell key={`${value}-RDPS-${index}`} className={className}>
-    RDPS
-  </TableCell>,
-  <TableCell key={`${value}-GDPS-${index}`} className={className}>
-    GDPS
-  </TableCell>
-]
+const SubHeadings = (
+  value: string,
+  index: number,
+  classes: ClassNameMap<'darkColumnHeader' | 'lightColumnHeader'>
+) => {
+  const className = index % 2 === 0 ? classes.darkColumnHeader : classes.lightColumnHeader
+  return [
+    <TableCell key={`${value}-observered-${index}`} className={className}>
+      Observed
+    </TableCell>,
+    <TableCell key={`${value}-forecast-${index}`} className={className}>
+      Forecast
+    </TableCell>,
+    <TableCell key={`${value}-HRDPS-${index}`} className={className}>
+      HRDPS
+    </TableCell>,
+    <TableCell key={`${value}-RDPS-${index}`} className={className}>
+      RDPS
+    </TableCell>,
+    <TableCell key={`${value}-GDPS-${index}`} className={className}>
+      GDPS
+    </TableCell>
+  ]
+}
 
 const StationComparisonTable = (props: Props) => {
   const classes = useStyles()
@@ -273,7 +281,7 @@ const StationComparisonTable = (props: Props) => {
               <TableRow>
                 <TableCell>Weather Stations</TableCell>
                 {['temp', 'rh', 'wind', 'precip'].map((value, index) => {
-                  return SubHeadings(value, index, classes.darkColumnHeader)
+                  return SubHeadings(value, index, classes)
                 })}
                 {/* Dew Point */}
                 <TableCell className={classes.darkColumnHeader}>Observed</TableCell>
