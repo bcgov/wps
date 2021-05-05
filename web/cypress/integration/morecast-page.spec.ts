@@ -2,6 +2,7 @@ import { FIRE_WEATHER_ROUTE, MORECAST_ROUTE, PARTIAL_WIDTH } from '../../src/uti
 import { stationCodeQueryKey, timeOfInterestQueryKey } from '../../src/utils/url'
 const stationCode = 328
 const stationCode2 = 380
+const numOfObservations = 119
 
 const interceptData = () => {
   cy.intercept('POST', 'api/observations/', { fixture: 'weather-data/observations' })
@@ -88,12 +89,12 @@ describe('MoreCast Page', () => {
       cy.wait('@getStations')
     })
 
-    it('It should load with an observation table', () => {
+    it('should load with an observation table', () => {
       cy.getByTestId(`observations-table-${stationCode}`)
         .find('tbody > tr')
-        .should('have.length', 119)
+        .should('have.length', numOfObservations)
 
-      // expect the sidepanel to be partially expanded (we compare the calculated width, en expect
+      // expect the sidepanel to be partially expanded (we compare the calculated width, and expect
       // it to match the width of our browser window)
       cy.getByTestId('expandable-container-content').should('have.css', 'width', '790px')
     })
@@ -114,7 +115,7 @@ describe('MoreCast Page', () => {
       // expect the table to exist.
       cy.getByTestId('station-comparison-table').should('exist')
 
-      // expect the sidepanel to be fully expanded (we compare the calculated width, en expect
+      // expect the sidepanel to be fully expanded (we compare the calculated width, and expect
       // it to match the width of our browser window)
       cy.getByTestId('expandable-container-content').should('have.css', 'width', '1000px')
     })
@@ -143,7 +144,7 @@ describe('MoreCast Page', () => {
       // expect the table to exist.
       cy.getByTestId('station-comparison-table').should('exist')
 
-      // expect the sidepanel to be fully expanded (we compare the calculated width, en expect
+      // expect the sidepanel to be fully expanded (we compare the calculated width, and expect
       // it to match the width of our browser window)
       cy.getByTestId('expandable-container-content').should('have.css', 'width', '1000px')
 
@@ -164,7 +165,6 @@ describe('MoreCast Page', () => {
   })
 
   describe('When wx data successfully fetched', () => {
-    const numOfObservations = 119
     const numOfForecasts = 6
     const numOfGdps = 131
     const numOfHrdps = 159
