@@ -42,9 +42,9 @@ describe('Table util functions', () => {
       ] as ModelValue[])
       // we expect that only two of the records to summed up.
       expect(precip?.precipitation).toEqual(2.2)
-      expect(precip?.modelValues.length).toEqual(2)
+      expect(precip?.values.length).toEqual(2)
       // expect only the relevant records.
-      expect(precip?.modelValues).toEqual(
+      expect(precip?.values).toEqual(
         expect.arrayContaining([
           {
             datetime: '2020-12-09T19:00:00+00:00',

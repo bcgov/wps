@@ -7,6 +7,7 @@ import {
   WIND_SPEED_VALUES_DECIMAL
 } from 'utils/constants'
 import { ModelValue } from 'api/modelAPI'
+import { ObservedValue } from 'api/observationAPI'
 import {
   WeatherValue,
   Column
@@ -68,12 +69,12 @@ const calculateMaxPrecip = (rows: WeatherValue[]): number | null => {
 
 export interface AccumulatedPrecipitation {
   precipitation: number | undefined
-  modelValues: ModelValue[]
+  values: (ModelValue | ObservedValue)[]
 }
 
 export const calculateAccumulatedPrecip = (
   noonDate: string,
-  collection: ModelValue[] | undefined
+  collection: ModelValue[] | ObservedValue[] | undefined
 ): AccumulatedPrecipitation | undefined => {
   // We are calculating the accumulated precipitation from 24 hours before noon.
   const from = DateTime.fromISO(noonDate).toJSDate()
@@ -82,19 +83,25 @@ export const calculateAccumulatedPrecip = (
   if (collection) {
     const precip = {
       precipitation: undefined,
-      modelValues: [] as ModelValue[]
+      values: [] as (ModelValue | ObservedValue)[]
     } as AccumulatedPrecipitation
-    collection.forEach(value => {
+    collection.forEach((value: ModelValue | ObservedValue) => {
       const precipDate = DateTime.fromISO(value.datetime).toJSDate()
       if (precipDate > from && precipDate <= to) {
-        if (typeof value.delta_precipitation === 'number') {
+        let precipitate = undefined
+        if ('delta_precipitation' in value) {
+          precipitate = value.delta_precipitation
+        } else if ('precipitation' in value) {
+          precipitate = value.precipitation
+        }
+        if (typeof precipitate === 'number') {
           if (precip.precipitation === undefined) {
-            precip.precipitation = value.delta_precipitation
+            precip.precipitation = precipitate
           } else {
-            precip.precipitation += value.delta_precipitation
+            precip.precipitation += precipitate
           }
           // Keep track of the model run predictions used to calculate this.
-          precip.modelValues.push(value)
+          precip.values.push(value)
         }
       }
     })

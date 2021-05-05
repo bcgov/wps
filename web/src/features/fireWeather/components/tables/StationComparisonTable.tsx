@@ -186,19 +186,28 @@ const formatPrecipitation = (
   )
 }
 
-const formatModelPrecipitation = (
+const formatAccumulatedPrecipitation = (
   precipitation: AccumulatedPrecipitation | undefined,
   precipitationClassName: string
 ) => {
   const title: JSX.Element[] = []
-  precipitation?.modelValues.forEach((value, index) => {
-    title.push(
-      <div key={index}>
-        prediction: {value.datetime}, precipitation:{' '}
-        {value.delta_precipitation?.toFixed(PRECIP_VALUES_DECIMAL)} mm (model:{' '}
-        {value.model_run_datetime})
-      </div>
-    )
+  precipitation?.values.forEach((value, index) => {
+    if ('delta_precipitation' in value && 'model_run_datetime' in value) {
+      title.push(
+        <div key={index}>
+          prediction: {value.datetime}, precipitation:{' '}
+          {value.delta_precipitation?.toFixed(PRECIP_VALUES_DECIMAL)} mm (model:{' '}
+          {value.model_run_datetime})
+        </div>
+      )
+    } else if ('precipitation' in value) {
+      title.push(
+        <div key={index}>
+          observation: {value.datetime}, precipitation:{' '}
+          {value.precipitation?.toFixed(PRECIP_VALUES_DECIMAL)} mm
+        </div>
+      )
+    }
   })
   return (
     <ToolTip title={title} aria-label="precipitation">
@@ -296,6 +305,10 @@ const StationComparisonTable = (props: Props) => {
                 )
                 const observations = props.observationsByStation[stationCode]
                 const observation = observations?.find(item => item.datetime === noonDate)
+                const accumulatedObservedPrecipitation = calculateAccumulatedPrecip(
+                  noonDate,
+                  observations
+                )
                 const hrdpsModelPrediction = findNoonMatch(
                   noonDate,
                   props.allHighResModelsByStation[stationCode]
@@ -410,8 +423,8 @@ const StationComparisonTable = (props: Props) => {
                     </TableCell>
                     {/* Precip */}
                     <TableCell className={classes.lightColumn}>
-                      {formatPrecipitation(
-                        observation?.precipitation,
+                      {formatAccumulatedPrecipitation(
+                        accumulatedObservedPrecipitation,
                         classes.precipitationValue
                       )}
                     </TableCell>
@@ -422,19 +435,19 @@ const StationComparisonTable = (props: Props) => {
                       )}
                     </TableCell>
                     <TableCell className={classes.lightColumn}>
-                      {formatModelPrecipitation(
+                      {formatAccumulatedPrecipitation(
                         accumulatedHRDPSPrecipitation,
                         classes.precipitationValue
                       )}
                     </TableCell>
                     <TableCell className={classes.lightColumn}>
-                      {formatModelPrecipitation(
+                      {formatAccumulatedPrecipitation(
                         accumulatedRDPSPrecipitation,
                         classes.precipitationValue
                       )}
                     </TableCell>
                     <TableCell className={classes.lightColumn}>
-                      {formatModelPrecipitation(
+                      {formatAccumulatedPrecipitation(
                         accumulatedGDPSPrecipitation,
                         classes.precipitationValue
                       )}
