@@ -102,17 +102,19 @@ def get_or_create_prediction_run(session, prediction_model: PredictionModel,
     return prediction_run
 
 
-def get_grid_for_coordinate(session: Session,
-                            prediction_model: PredictionModel,
-                            coordinate) -> PredictionModelGridSubset:
-    """ Given a specified coordinate and model, return the appropriate grid. """
+def get_grids_for_coordinate(session: Session,
+                             prediction_model: PredictionModel,
+                             coordinate) -> PredictionModelGridSubset:
+    """ Given a specified coordinate and model, return the appropriate grids.
+    There should only every be one grid per coordinate - but it's conceivable that there are more than one.
+    """
     logger.info("Model %s, coords %s,%s", prediction_model.id,
                 coordinate[1], coordinate[0])
     query = session.query(PredictionModelGridSubset).\
         filter(PredictionModelGridSubset.geom.ST_Contains(
             'POINT({longitude} {latitude})'.format(longitude=coordinate[0], latitude=coordinate[1]))).\
         filter(PredictionModelGridSubset.prediction_model_id == prediction_model.id)
-    return query.first()
+    return query
 
 
 def get_model_run_predictions_for_grid(session: Session,

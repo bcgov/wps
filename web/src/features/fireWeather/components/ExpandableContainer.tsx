@@ -32,7 +32,7 @@ const useStyles = makeStyles({
     justifyContent: 'center'
   },
   content: (props: Props) => ({
-    width: props.currentWidth,
+    width: getRootWidth(props),
     position: 'relative'
   })
 })
