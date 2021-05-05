@@ -92,6 +92,10 @@ describe('MoreCast Page', () => {
       cy.getByTestId(`observations-table-${stationCode}`)
         .find('tbody > tr')
         .should('have.length', 119)
+
+      // expect the sidepanel to be partially expanded (we compare the calculated width, en expect
+      // it to match the width of our browser window)
+      cy.getByTestId('expandable-container-content').should('have.css', 'width', '790px')
     })
   })
 
@@ -109,6 +113,10 @@ describe('MoreCast Page', () => {
 
       // expect the table to exist.
       cy.getByTestId('station-comparison-table').should('exist')
+
+      // expect the sidepanel to be fully expanded (we compare the calculated width, en expect
+      // it to match the width of our browser window)
+      cy.getByTestId('expandable-container-content').should('have.css', 'width', '1000px')
     })
   })
 
