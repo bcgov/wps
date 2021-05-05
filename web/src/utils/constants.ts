@@ -5,6 +5,7 @@ export const FWI_VALUES_DECIMAL = 2
 export const TEMPERATURE_VALUES_DECIMAL = 1
 export const WIND_SPEED_VALUES_DECIMAL = 1
 export const PRECIP_VALUES_DECIMAL = 1
+export const DEW_POINT_VALUES_DECIMAL = 1
 export const RH_VALUES_DECIMAL = 0
 export const FFMC_VALUES_DECIMAL = 1
 export const ISI_VALUES_DECIMAL = 1

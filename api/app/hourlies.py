@@ -26,9 +26,11 @@ async def fetch_hourly_readings_from_db(
     """
     stations = await app.stations.get_stations_by_codes(station_codes)
     with app.db.database.get_read_session_scope() as session:
-        # by default, we want the past 5 days
-        five_days_past = time_of_interest - timedelta(days=5)
-        readings = get_hourly_actuals(session, station_codes, five_days_past, time_of_interest)
+        # by default, we want the past 5 days, and if available the next 10 days.
+        date_from = time_of_interest - timedelta(days=5)
+        # the UI is interested in hourly reading before and after the time of interest.
+        date_to = time_of_interest + timedelta(days=10)
+        readings = get_hourly_actuals(session, station_codes, date_from, date_to)
         station_readings = None
         result = []
 
@@ -69,6 +71,7 @@ async def get_hourly_readings(
         station_codes: List[int],
         time_of_interest: datetime) -> List[WeatherStationHourlyReadings]:
     """ Get the hourly readings for the list of station codes provided.
+    Reading 5 days before, and 10 days after the time of interest are returned.
     Depending on configuration, will read from WF1 or from local database.
     """
     start_time_stamp, end_time_stamp = _get_five_day_interval(time_of_interest)
