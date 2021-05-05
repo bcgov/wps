@@ -26,6 +26,7 @@ Cypress.Commands.add('selectStationInDropdown', (code: number | string) => {
   if (typeof code === 'number') {
     return cy
       .getByTestId('weather-station-dropdown')
+      .get('button[title="Open"]')
       .click()
       .get('li')
       .contains(code)

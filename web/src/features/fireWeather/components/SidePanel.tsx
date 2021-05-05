@@ -23,9 +23,16 @@ const useStyles = makeStyles({
   }
 })
 
+export enum SidePanelEnum {
+  Tables = 'tables',
+  Graphs = 'graphs',
+  Comparison = 'comparison'
+}
+
 interface Props {
-  handleToggleView: (_: React.MouseEvent<HTMLElement>, newDataView: string) => void
+  handleToggleView: (_: React.MouseEvent<HTMLElement>, newDataView: SidePanelEnum) => void
   showTableView: string
+  stationCodes: number[]
   children: React.ReactNode
 }
 
@@ -37,14 +44,23 @@ const SidePanel = (props: Props) => {
       <div className={classes.content}>
         <div className={classes.actions}>
           <ToggleButtonGroup
+            exclusive={true}
             color="primary"
             aria-label="outlined primary button group"
             value={props.showTableView}
             onChange={props.handleToggleView}
             size="small"
           >
-            <ToggleButton value="true">Tables</ToggleButton>
-            <ToggleButton value="false">Graphs</ToggleButton>
+            <ToggleButton value={SidePanelEnum.Tables}>Tables</ToggleButton>
+            <ToggleButton value={SidePanelEnum.Graphs}>Graphs</ToggleButton>
+            {props.stationCodes.length > 1 && (
+              <ToggleButton
+                value={SidePanelEnum.Comparison}
+                data-testid="station-comparison-button"
+              >
+                Station comparison
+              </ToggleButton>
+            )}
           </ToggleButtonGroup>
         </div>
         {props.children}

@@ -1,8 +1,10 @@
 import {
+  calculateAccumulatedPrecip,
   getDatetimeComparator,
   getMinMaxValueCalculator,
   getMinMaxValuesRowIds
 } from 'utils/table'
+import { ModelValue } from 'api/modelAPI'
 import {
   dummyWeatherData,
   dummyWeatherDataNoPrecip,
@@ -20,6 +22,43 @@ import {
 } from 'utils/table.test.data'
 
 describe('Table util functions', () => {
+  describe('calculateAccumulatedPrecip', () => {
+    it('should add up precipitation correctly', () => {
+      const noonDate = '2020-12-09T20:00:00+00:00'
+      const precip = calculateAccumulatedPrecip(noonDate, [
+        {
+          datetime: '2020-12-08T20:00:00+00:00',
+          delta_precipitation: 1.1
+        },
+        { datetime: '2020-12-08T19:00:00+00:00', delta_precipitation: 1.1 },
+        {
+          datetime: '2020-12-09T19:00:00+00:00',
+          delta_precipitation: 1.1
+        },
+        {
+          datetime: '2020-12-09T18:00:00+00:00',
+          delta_precipitation: 1.1
+        }
+      ] as ModelValue[])
+      // we expect that only two of the records to summed up.
+      expect(precip?.precipitation).toEqual(2.2)
+      expect(precip?.values.length).toEqual(2)
+      // expect only the relevant records.
+      expect(precip?.values).toEqual(
+        expect.arrayContaining([
+          {
+            datetime: '2020-12-09T19:00:00+00:00',
+            delta_precipitation: 1.1
+          },
+          {
+            datetime: '2020-12-09T18:00:00+00:00',
+            delta_precipitation: 1.1
+          }
+        ] as ModelValue[])
+      )
+    })
+  })
+
   describe('getDatetimeComparator', () => {
     it('should return the correct compare function', () => {
       const ascending = getDatetimeComparator('asc')
