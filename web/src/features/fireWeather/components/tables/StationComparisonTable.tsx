@@ -191,9 +191,9 @@ const formatModelPrecipitation = (
   precipitationClassName: string
 ) => {
   const title: JSX.Element[] = []
-  precipitation?.modelValues.forEach(value => {
+  precipitation?.modelValues.forEach((value, index) => {
     title.push(
-      <div>
+      <div key={index}>
         prediction: {value.datetime}, precipitation:{' '}
         {value.delta_precipitation?.toFixed(PRECIP_VALUES_DECIMAL)} mm (model:{' '}
         {value.model_run_datetime})
