@@ -11,8 +11,6 @@ import { formatDateInPST } from 'utils/date'
 import SortableTableByDatetime, {
   Column
 } from 'features/fireWeather/components/tables/SortableTableByDatetime'
-import { comparisonTableStyles } from 'features/fireWeather/components/tables/StationComparisonTable'
-import { Theme } from '@material-ui/core'
 
 /**
  * Reusable component used to display noon forecasts (issued by forecasters)

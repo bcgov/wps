@@ -4,9 +4,7 @@ import { Typography } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 
 import ObservationTable from 'features/fireWeather/components/tables/ObservationTable'
-import {
-  NoonModelTable
-} from 'features/fireWeather/components/tables/NoonWxValueTables'
+import { NoonModelTable } from 'features/fireWeather/components/tables/NoonWxValueTables'
 import StationComparisonTable from 'features/fireWeather/components/tables/StationComparisonTable'
 import NoonForecastTable from 'features/fireWeather/components/tables/NoonForecastTable'
 import WxDataGraph from 'features/fireWeather/components/graphs/WxDataGraph'

@@ -131,7 +131,8 @@ const NoonForecastTable = (props: NoonForecastTableProps) => {
                     const yesterdaysDatetime = forecastDatetime
                     yesterdaysDatetime.setHours(forecastDatetime.getHours() - 24)
                     const yesterdaysObservation = observationsRowsSortedByDatetime.find(
-                      obs => DateTime.fromISO(obs.datetime).toJSDate() === yesterdaysDatetime
+                      obs =>
+                        DateTime.fromISO(obs.datetime).toJSDate() === yesterdaysDatetime
                     )
 
                     console.log(forecastDatetime)
