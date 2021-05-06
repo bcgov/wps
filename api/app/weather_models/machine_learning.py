@@ -19,7 +19,7 @@ from app.db.crud.observations import get_actuals_left_outer_join_with_prediction
 logger = getLogger(__name__)
 
 # Corresponding key values on HourlyActual and SampleCollection
-SAMPLE_VALUE_KEYS = ('temperature', 'relative_humidity')
+SAMPLE_VALUE_KEYS = ('temperature', 'relative_humidity', 'wind_speed')
 
 
 class LinearRegressionWrapper:
@@ -37,11 +37,12 @@ class RegressionModels:
     For each different reading, we have a seperate LinearRegression model.
     """
 
-    keys = ('temperature_wrapper', 'relative_humidity_wrapper')
+    keys = ('temperature_wrapper', 'relative_humidity_wrapper', 'wind_speed_kmh_wrapper')
 
     def __init__(self):
         self.temperature_wrapper = LinearRegressionWrapper()
         self.relative_humidity_wrapper = LinearRegressionWrapper()
+        self.wind_speed_kmh_wrapper = LinearRegressionWrapper()
 
 
 class Samples:
@@ -239,4 +240,15 @@ class StationMachineLearning:  # pylint: disable=too-many-instance-attributes
         hour = timestamp.hour
         if self.regression_models[hour].relative_humidity_wrapper.good_model and model_rh is not None:
             return self.regression_models[hour].relative_humidity_wrapper.model.predict([[model_rh]])[0]
+        return None
+
+    def predict_wind_speed(self, model_wind_speed: float, timestamp: datetime):
+        """ Predict the bias adjusted wind speed for a given point in time, given a corresponding model rh.
+        : param model_wind_speed: Wind speed as provided by model.
+        : param timestamp: Datetime value for the predicted value.
+        : return: The bias adjusted wind speed as predicted by the linear regression model.
+        """
+        hour = timestamp.hour
+        if self.regression_models[hour].wind_speed_kmh_wrapper.good_model and model_wind_speed is not None:
+            return self.regression_models[hour].wind_speed_kmh_wrapper.model.predict([[model_wind_speed]])[0]
         return None
