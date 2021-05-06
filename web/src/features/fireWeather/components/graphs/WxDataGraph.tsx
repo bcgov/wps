@@ -75,7 +75,7 @@ const WxDataGraph = ({
 
   const [toggleValues, setToggleValues] = useGraphToggles({
     showObservations: hasObservations,
-    showForecasts: false,
+    showForecasts: hasForecasts,
     showHrdps: hasHighResModels,
     showRdps: false,
     showGdps: false,

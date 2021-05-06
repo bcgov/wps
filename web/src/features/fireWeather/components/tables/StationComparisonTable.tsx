@@ -24,7 +24,7 @@ import {
   DEW_POINT_VALUES_DECIMAL
 } from 'utils/constants'
 
-const useStyles = makeStyles({
+export const comparisonTableStyles = makeStyles({
   paper: {
     padding: '5px',
     // There's a formating issues that causes the last cell in the table to be cut off
@@ -88,7 +88,7 @@ const findNoonMatch = (
 
 type TemperatureSourceType = NoonForecastValue | ObservedValue | ModelValue | undefined
 
-const formatTemperature = (source: TemperatureSourceType) => {
+export const formatTemperature = (source: TemperatureSourceType) => {
   return (
     <div>
       {typeof source?.temperature === 'number' &&
@@ -110,7 +110,7 @@ const formatModelTemperature = (source: ModelValue | undefined) => {
   )
 }
 
-const formatRelativeHumidity = (
+export const formatRelativeHumidity = (
   source: NoonForecastValue | ObservedValue | ModelValue | undefined,
   valueClassName: string
 ) => {
@@ -134,7 +134,7 @@ const formatModelRelativeHumidity = (
   )
 }
 
-const formatWindSpeedDirection = (
+export const formatWindSpeedDirection = (
   source: NoonForecastValue | ObservedValue | ModelValue | undefined,
   windSpeedClassName: string,
   windDirectionClassName: string
@@ -178,7 +178,7 @@ const formatModelWindSpeedDirection = (
   )
 }
 
-const formatPrecipitation = (
+export const formatPrecipitation = (
   precipitation: number | null | undefined,
   precipitationClassName: string
 ) => {
@@ -259,7 +259,7 @@ const SubHeadings = (
 }
 
 const StationComparisonTable = (props: Props) => {
-  const classes = useStyles()
+  const classes = comparisonTableStyles()
   // format the date to match the ISO format in the API for easy comparison.
   const noonDate = formatDateInUTC00Suffix(props.timeOfInterest)
   return (

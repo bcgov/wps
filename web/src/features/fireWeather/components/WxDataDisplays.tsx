@@ -4,11 +4,9 @@ import { Typography } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 
 import ObservationTable from 'features/fireWeather/components/tables/ObservationTable'
-import {
-  NoonForecastTable,
-  NoonModelTable
-} from 'features/fireWeather/components/tables/NoonWxValueTables'
+import { NoonModelTable } from 'features/fireWeather/components/tables/NoonWxValueTables'
 import StationComparisonTable from 'features/fireWeather/components/tables/StationComparisonTable'
+import NoonForecastTable from 'features/fireWeather/components/tables/NoonForecastTable'
 import WxDataGraph from 'features/fireWeather/components/graphs/WxDataGraph'
 import { ErrorBoundary } from 'components'
 import {
@@ -113,8 +111,8 @@ const TableFragment = (props: TableFragmentProps) => {
       <ErrorBoundary>
         <NoonForecastTable
           testId={`noon-forecasts-table-${code}`}
-          title="Weather forecast noon values: "
-          rows={noonForecasts}
+          noonForecasts={noonForecasts}
+          noonObservations={observations}
         />
       </ErrorBoundary>
     </React.Fragment>
