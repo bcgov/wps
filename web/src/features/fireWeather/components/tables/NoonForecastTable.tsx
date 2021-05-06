@@ -27,6 +27,7 @@ import { ObservedValue } from 'api/observationAPI'
 import { getDatetimeComparator, Order } from 'utils/table'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import { DateTime } from 'luxon'
+import { calculateAccumulatedPrecip } from 'utils/table'
 
 interface NoonForecastTableProps {
   testId?: string
@@ -54,19 +55,6 @@ const NoonForecastTable = (props: NoonForecastTableProps) => {
   )
   const toggleDatetimeOrder = () => {
     setOrder(order === 'asc' ? 'desc' : 'asc')
-  }
-
-  const calculateAccumulatedPrecip = (
-    today: ObservedValue | undefined,
-    yesterday: ObservedValue | undefined
-  ): number | undefined => {
-    if (!today || !yesterday) {
-      return undefined
-    }
-    if (!today.precipitation || !yesterday.precipitation) {
-      return undefined
-    }
-    return today.precipitation - yesterday.precipitation
   }
 
   return (
@@ -128,17 +116,12 @@ const NoonForecastTable = (props: NoonForecastTableProps) => {
                     const forecastDatetime = DateTime.fromISO(
                       forecast.datetime
                     ).toJSDate()
-                    const yesterdaysDatetime = forecastDatetime
-                    yesterdaysDatetime.setHours(forecastDatetime.getHours() - 24)
-                    const yesterdaysObservation = observationsRowsSortedByDatetime.find(
-                      obs =>
-                        DateTime.fromISO(obs.datetime).toJSDate() === yesterdaysDatetime
-                    )
 
-                    console.log(forecastDatetime)
-                    console.log(yesterdaysDatetime)
-                    console.log(observation)
-                    console.log(yesterdaysObservation)
+                    const accumPrecip = calculateAccumulatedPrecip(
+                      forecastDatetime.toString(),
+                      observationsRowsSortedByDatetime
+                    )
+                    console.log(accumPrecip)
 
                     return (
                       <TableRow key={idx}>
@@ -187,10 +170,7 @@ const NoonForecastTable = (props: NoonForecastTableProps) => {
                         </TableCell>
                         <TableCell className={classes.lightColumn}>
                           {formatPrecipitation(
-                            calculateAccumulatedPrecip(
-                              observation,
-                              yesterdaysObservation
-                            ),
+                            accumPrecip,
                             classes.precipitationValue
                           )}
                         </TableCell>
