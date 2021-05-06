@@ -7,13 +7,13 @@ import { ErrorMessage } from 'components/ErrorMessage'
 import { PeakValuesStationResultTable } from 'features/peakBurniness/components/tables/PeakValuesStationResultTable'
 import { PeakBurninessDocumentation } from 'features/peakBurniness/components/PeakBurninessDocumentation'
 import { useSelector } from 'react-redux'
-import { selectPeakBurninessValues, selectStations } from 'app/rootReducer'
-import { Station } from 'api/stationAPI'
+import { selectPeakBurninessValues, selectPercentileStations } from 'app/rootReducer'
+import { DetailedGeoJsonStation, GeoJsonStation } from 'api/stationAPI'
 import { GridItem } from 'components'
 
 export interface PeakValuesResultsProps {
   stationCodes: number[]
-  stationsByCode: Record<number, Station | undefined>
+  stationsByCode: Record<number, GeoJsonStation | DetailedGeoJsonStation | undefined>
   peakValuesByStation: PeakValuesResponse
 }
 
@@ -78,7 +78,7 @@ interface PeakValuesResultsWrapperProps {
 }
 
 const PeakValuesResultsWrapper: React.FunctionComponent<PeakValuesResultsWrapperProps> = props => {
-  const { stationsByCode } = useSelector(selectStations)
+  const { stationsByCode } = useSelector(selectPercentileStations)
   const { peakBurninessValues, error } = useSelector(selectPeakBurninessValues)
 
   if (error) {

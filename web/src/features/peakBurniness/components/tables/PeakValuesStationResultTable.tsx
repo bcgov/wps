@@ -9,7 +9,7 @@ import TableHead from '@material-ui/core/TableHead'
 import Paper from '@material-ui/core/Paper'
 import Typography from '@material-ui/core/Typography'
 import { PeakWeekValues, StationPeakValues } from 'api/peakBurninessAPI'
-import { MODEL_VALUE_DECIMAL } from 'utils/constants'
+import { TEMPERATURE_VALUES_DECIMAL, RH_VALUES_DECIMAL, WIND_SPEED_VALUES_DECIMAL, FFMC_VALUES_DECIMAL, FWI_VALUES_DECIMAL } from 'utils/constants'
 
 interface Column {
   id: keyof PeakWeekValues
@@ -32,7 +32,7 @@ export const columns: Column[] = [
     id: 'max_temp',
     label: 'Max Temp (°C)',
     align: 'right',
-    format: (value: number): string => value.toFixed(MODEL_VALUE_DECIMAL)
+    format: (value: number): string => value.toFixed(TEMPERATURE_VALUES_DECIMAL)
   },
   {
     id: 'hour_max_temp',
@@ -44,7 +44,7 @@ export const columns: Column[] = [
     id: 'min_rh',
     label: 'Min RH (%)',
     align: 'right',
-    format: (value: number): string => value.toFixed(MODEL_VALUE_DECIMAL)
+    format: (value: number): string => value.toFixed(RH_VALUES_DECIMAL)
   },
   {
     id: 'hour_min_rh',
@@ -56,7 +56,7 @@ export const columns: Column[] = [
     id: 'max_wind_speed',
     label: 'Max Wind Speed (km/h)',
     align: 'right',
-    format: (value: number): string => value.toFixed(MODEL_VALUE_DECIMAL)
+    format: (value: number): string => value.toFixed(WIND_SPEED_VALUES_DECIMAL)
   },
   {
     id: 'hour_max_wind_speed',
@@ -68,7 +68,7 @@ export const columns: Column[] = [
     id: 'max_ffmc',
     label: 'Max FFMC',
     align: 'right',
-    format: (value: number): string => value.toFixed(MODEL_VALUE_DECIMAL)
+    format: (value: number): string => value.toFixed(FFMC_VALUES_DECIMAL)
   },
   {
     id: 'hour_max_ffmc',
@@ -80,7 +80,7 @@ export const columns: Column[] = [
     id: 'max_fwi',
     label: 'Max FWI',
     align: 'right',
-    format: (value: number): string => value.toFixed(MODEL_VALUE_DECIMAL)
+    format: (value: number): string => value.toFixed(FWI_VALUES_DECIMAL)
   },
   {
     id: 'hour_max_fwi',

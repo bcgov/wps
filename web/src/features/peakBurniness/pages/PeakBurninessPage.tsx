@@ -4,12 +4,13 @@ import { Container, PageHeader, PageTitle } from 'components'
 import { makeStyles } from '@material-ui/core'
 import { ErrorBoundary } from 'components'
 import PeakValuesResults from 'features/peakBurniness/components/tables/PeakValuesResults'
-import WxStationDropdown from 'features/stations/components/WxStationDropdown'
+import WxStationDropdown from 'features/percentileCalculator/components/WxStationDropdown'
 import { useHistory, useLocation } from 'react-router-dom'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { ActionButton } from 'features/peakBurniness/components/ActionButton'
 import { getStationCodesFromUrl, stationCodeQueryKey } from 'utils/url'
 import { fetchPeakValues, resetPeakValuesResult } from '../slices/peakBurninessSlice'
+import { getStations, StationSource } from 'api/stationAPI'
 
 const useStyles = makeStyles({
   displays: {
@@ -40,7 +41,7 @@ export const PeakBurninessPage = React.memo(function _() {
   const [stationCodes, setStationCodes] = useState<number[]>(codesFromQuery)
 
   useEffect(() => {
-    dispatch(fetchWxStations())
+    dispatch(fetchWxStations(getStations, StationSource.local_storage))
   }, [])
 
   useEffect(() => {
