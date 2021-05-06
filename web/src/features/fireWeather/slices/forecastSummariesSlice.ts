@@ -27,6 +27,7 @@ const forecastSummariesSlice = createSlice({
     getForecastSummariesStart(state: State) {
       state.error = null
       state.loading = true
+      state.forecastSummariesByStation = {}
     },
     getForecastSummariesFailed(state: State, action: PayloadAction<string>) {
       state.error = action.payload
@@ -57,11 +58,12 @@ export const {
 export default forecastSummariesSlice.reducer
 
 export const fetchForecastSummaries = (
-  stationCodes: number[]
+  stationCodes: number[],
+  timeOfInterest: string
 ): AppThunk => async dispatch => {
   try {
     dispatch(getForecastSummariesStart())
-    const forecastSummaries = await getForecastSummaries(stationCodes)
+    const forecastSummaries = await getForecastSummaries(stationCodes, timeOfInterest)
     dispatch(getForecastSummariesSuccess(forecastSummaries))
   } catch (err) {
     dispatch(getForecastSummariesFailed(err.toString()))

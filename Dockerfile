@@ -1,3 +1,5 @@
+ARG DOCKER_IMAGE=image-registry.openshift-image-registry.svc:5000/e1e498-tools/uvicorn-gunicorn-fastapi:python3.8-latest
+
 # PHASE 1 - build static html.
 # Pull from local registry - we can't pull from docker due to limits.
 # see https://catalog.redhat.com/software/containers/ubi8/nodejs-14/5ed7887dd70cc50e69c2fabb for details
@@ -15,7 +17,7 @@ USER 1001
 
 # PHASE 2 - prepare python.
 # Using local docker image to speed up build. See openshift/unicorn-base for details.
-FROM docker-registry.default.svc:5000/auzhsi-tools/uvicorn-gunicorn-fastapi:python3.8-latest
+FROM ${DOCKER_IMAGE}
 
 # Copy poetry files.
 COPY ./api/pyproject.toml ./api/poetry.lock /tmp/

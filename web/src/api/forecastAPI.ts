@@ -28,12 +28,17 @@ export interface ForecastResponse {
   noon_forecasts: Forecast[]
 }
 
-export async function getNoonForecasts(stationCodes: number[]): Promise<Forecast[]> {
+export async function getNoonForecasts(
+  stationCodes: number[],
+  timeOfInterest: string
+): Promise<Forecast[]> {
   const url = '/forecasts/noon/'
 
   const { data } = await axios.post<ForecastResponse>(url, {
-    stations: stationCodes
+    stations: stationCodes,
+    time_of_interest: timeOfInterest
   })
+
   return data.noon_forecasts
 }
 
@@ -56,11 +61,13 @@ export interface ForecastSummariesResponse {
 }
 
 export async function getForecastSummaries(
-  stationCodes: number[]
+  stationCodes: number[],
+  timeOfInterest: string
 ): Promise<ForecastSummariesForStation[]> {
   const url = `/forecasts/noon/summaries/`
   const { data } = await axios.post<ForecastSummariesResponse>(url, {
-    stations: stationCodes
+    stations: stationCodes,
+    time_of_interest: timeOfInterest
   })
 
   return data.summaries

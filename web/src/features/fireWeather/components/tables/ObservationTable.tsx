@@ -4,28 +4,41 @@ import { ObservedValue } from 'api/observationAPI'
 import SortableTableByDatetime, {
   Column
 } from 'features/fireWeather/components/tables/SortableTableByDatetime'
-import { HOURLY_VALUES_DECIMAL } from 'utils/constants'
-import { formatDateInPDT } from 'utils/date'
+import {
+  FFMC_VALUES_DECIMAL,
+  ISI_VALUES_DECIMAL,
+  PRECIP_VALUES_DECIMAL,
+  TEMPERATURE_VALUES_DECIMAL,
+  WIND_SPEED_VALUES_DECIMAL
+} from 'utils/constants'
+import { formatDateInPST } from 'utils/date'
 
 export const columns: Column[] = [
   {
     id: 'datetime',
-    label: 'Date (PDT)',
-    minWidth: 120,
+    label: 'Date (PST)',
+    minWidth: 135,
     align: 'left',
-    formatDt: (value: string): string => formatDateInPDT(value)
+    formatDt: (value: string): string => formatDateInPST(value)
   },
   {
     id: 'temperature',
     label: 'Temp (°C)',
     align: 'right',
-    format: (value: number): string => value.toFixed(HOURLY_VALUES_DECIMAL)
+    format: (value: number): string => value.toFixed(TEMPERATURE_VALUES_DECIMAL)
   },
   {
     id: 'relative_humidity',
     label: 'RH (%)',
     align: 'right',
     format: (value: number): number => Math.round(value)
+  },
+  {
+    id: 'dewpoint',
+    label: 'Dew Point (°C)',
+    align: 'right',
+    maxWidth: 90,
+    format: (value: number): string => value.toFixed(TEMPERATURE_VALUES_DECIMAL)
   },
   {
     id: 'wind_direction',
@@ -36,36 +49,34 @@ export const columns: Column[] = [
   {
     id: 'wind_speed',
     label: 'Wind Spd (km/h)',
-    minWidth: 70,
-    maxWidth: 100,
     align: 'right',
-    format: (value: number): string => value.toFixed(HOURLY_VALUES_DECIMAL)
+    maxWidth: 80,
+    format: (value: number): string => value.toFixed(WIND_SPEED_VALUES_DECIMAL)
   },
   {
     id: 'precipitation',
-    label: 'Precip (mm/cm)',
-    minWidth: 70,
-    maxWidth: 100,
+    label: 'Precip (mm)',
     align: 'right',
-    format: (value: number): string => value.toFixed(HOURLY_VALUES_DECIMAL)
+    maxWidth: 70,
+    format: (value: number): string => value.toFixed(PRECIP_VALUES_DECIMAL)
   },
   {
     id: 'ffmc',
     label: 'FFMC',
     align: 'right',
-    format: (value: number): string => value.toFixed(HOURLY_VALUES_DECIMAL)
+    format: (value: number): string => value.toFixed(FFMC_VALUES_DECIMAL)
   },
   {
     id: 'isi',
     label: 'ISI',
     align: 'right',
-    format: (value: number): string => value.toFixed(HOURLY_VALUES_DECIMAL)
+    format: (value: number): string => value.toFixed(ISI_VALUES_DECIMAL)
   },
   {
     id: 'fwi',
     label: 'FWI',
     align: 'right',
-    format: (value: number): string => value.toFixed(HOURLY_VALUES_DECIMAL)
+    format: (value: number): string => value.toFixed(FFMC_VALUES_DECIMAL)
   }
 ]
 

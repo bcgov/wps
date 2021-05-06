@@ -9,7 +9,8 @@
     "name": "${NAME}-persistent-template",
     "labels": {
       "name": "${NAME}-persistent-template",
-      "app": "${APP_NAME}"
+      "app": "${APP_NAME}",
+      "role": "${ROLE}"
     }
   },
   "objects": [
@@ -22,7 +23,7 @@
           "name": "${NAME}",
           "app": "${APP_NAME}",
           "service": "${NAME}",
-          "template": "matomo-template"
+          "role": "${ROLE}"
         }
       },
       "spec": {
@@ -39,9 +40,7 @@
             "type": "ImageChange",
             "imageChangeParams": {
               "automatic": true,
-              "containerNames": [
-                "mariadb"
-              ],
+              "containerNames": ["mariadb"],
               "from": {
                 "kind": "ImageStreamTag",
                 "namespace": "${IMAGE_NAMESPACE}",
@@ -197,33 +196,13 @@
       },
       "spec": {
         "storageClassName": "${PERSISTENT_VOLUME_CLASS}",
-        "accessModes": [
-          "ReadWriteOnce"
-        ],
+        "accessModes": ["ReadWriteOnce"],
         "resources": {
           "requests": {
             "storage": "${PERSISTENT_VOLUME_SIZE}"
           }
         }
       }
-    },
-    {
-      "kind": "Secret",
-      "apiVersion": "v1",
-      "metadata": {
-        "name": "${NAME}",
-        "labels": {
-          "name": "${NAME}",
-          "app": "${APP_NAME}"
-        }
-      },
-      "stringData": {
-        "database-root-password": "${MYSQL_ROOT_PASSWORD}",
-        "database-password": "${MYSQL_PASSWORD}",
-        "database-user": "${MYSQL_USER}",
-        "database-name": "${MYSQL_DATABASE}"
-      },
-      "type": "Opaque"
     },
     {
       "kind": "Service",
@@ -233,8 +212,7 @@
         "labels": {
           "name": "${NAME}",
           "app": "${APP_NAME}",
-          "service": "${NAME}",
-          "template": "matomo-template"
+          "service": "${NAME}"
         },
         "annotations": {
           "template.openshift.io/expose-uri": "mysql://{.spec.clusterIP}:{.spec.ports[?(.name==\"mariadb\")].port}"
@@ -277,7 +255,7 @@
       "displayName": "Image Namespace",
       "required": true,
       "description": "The namespace of the OpenShift project containing the imagestream for the application.",
-      "value": "auzhsi-tools"
+      "value": "e1e498-tools"
     },
     {
       "name": "SOURCE_IMAGE_NAME",
@@ -294,35 +272,11 @@
       "value": "prod"
     },
     {
-      "name": "MYSQL_DATABASE",
-      "displayName": "MariaDB Database Name",
-      "description": "The name of the MariaDB database.",
+      "name": "ROLE",
+      "displayName": "Role",
+      "description": "The role of this service within the application - used for Network Policies",
       "required": true,
-      "value": "matomo"
-    },
-    {
-      "name": "MYSQL_USER",
-      "displayName": "MariaDB Connection Username",
-      "description": "Username for MariaDB user that will be used for accessing the database.  Needs to be base64 encoded/",
-      "required": true,
-      "generate": "expression",
-      "from": "[a-zA-Z0-9]{10}"
-    },
-    {
-      "name": "MYSQL_PASSWORD",
-      "displayName": "MariaDB Connection Password",
-      "description": "Password for the MariaDB connection user.  Needs to be base64 encoded/",
-      "required": true,
-      "generate": "expression",
-      "from": "[a-zA-Z0-9]{10}"
-    },
-    {
-      "name": "MYSQL_ROOT_PASSWORD",
-      "displayName": "MariaDB Admin Password",
-      "description": "Password for the MariaDB administrative account.  Needs to be base64 encoded.",
-      "required": true,
-      "generate": "expression",
-      "from": "[a-zA-Z0-9]{16}"
+      "value": "matomo-db"
     },
     {
       "name": "MOUNT_PATH",

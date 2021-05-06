@@ -5,6 +5,8 @@ import { makeStyles } from '@material-ui/core/styles'
 
 interface CustomProps {
   loading?: boolean
+  hasSpinner?: boolean
+  spinnercolor?: string
 }
 
 type Props = CustomProps & ButtonProps
@@ -13,22 +15,22 @@ const useStyles = makeStyles(theme => ({
   root: {
     position: 'relative'
   },
-  spinner: {
-    color: theme.palette.primary.light,
+  spinner: (props: Props) => ({
+    color: props.spinnercolor || theme.palette.primary.light,
     position: 'absolute',
     left: '50%',
     marginLeft: -10,
     top: '50%',
     marginTop: -10
-  }
+  })
 }))
 
 /* eslint-disable react/prop-types, react/display-name */
 // Use forwardRef to obtain the ref passed to it, and then forward it to the DOM button that it renders.
 // https://medium.com/@martin_hotell/react-refs-with-typescript-a32d56c4d315
 export const Button = forwardRef<HTMLButtonElement, Props>((props, ref) => {
-  const { loading, className, disabled, ...buttonProps } = props
-  const classes = useStyles()
+  const { loading, className, disabled, hasSpinner = true, ...buttonProps } = props
+  const classes = useStyles(props)
   const buttonClassName = clsx(classes.root, className)
 
   return (
@@ -39,7 +41,9 @@ export const Button = forwardRef<HTMLButtonElement, Props>((props, ref) => {
       ref={ref}
     >
       {buttonProps.children}
-      {loading && <CircularProgress size={20} className={classes.spinner} />}
+      {loading && hasSpinner && (
+        <CircularProgress size={20} className={classes.spinner} />
+      )}
     </B>
   )
 })

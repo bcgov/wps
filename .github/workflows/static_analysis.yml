@@ -38,19 +38,19 @@ jobs:
           cache-name: cache-poetry-installer
         with:
           path: "~/poetry_installer"
-          key: "1.0.8"
+          key: "1.1.5"
 
       - name: Download poetry installer
         if: steps.cache-poetry-installer.outputs.cache-hit != 'true'
         run: |
-          echo 
+          echo
           mkdir ~/poetry_installer
           curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py > ~/poetry_installer/get-poetry.py
 
       - name: Install poetry (api)
         run: |
           cd ~/poetry_installer
-          python get-poetry.py --version 1.1.4
+          python get-poetry.py --version 1.1.5
           source ~/.poetry/env
           poetry config virtualenvs.create true
           poetry config virtualenvs.in-project false
@@ -78,6 +78,7 @@ jobs:
         working-directory: ./api
         run: |
           source ~/.poetry/env
+          poetry run pip install numpy
           CPLUS_INCLUDE_PATH=/usr/include/gdal C_INCLUDE_PATH=/usr/include/gdal poetry run pip install gdal==$(gdal-config --version)
 
       - name: Install remaining python dependencies (api)

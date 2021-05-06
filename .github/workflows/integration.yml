@@ -4,11 +4,9 @@ on:
   pull_request:
     branches:
       - main
-
 jobs:
   lint-and-test:
     name: Lint, Test with Coverage & SonarQube
-    # Ubuntu 18.04 (a.k.a. ubuntu-latest) comes with gdal 2.2.3, which has bugs that cause unit tests to fail
     runs-on: ubuntu-20.04
     strategy:
       matrix:
@@ -20,6 +18,9 @@ jobs:
         with:
           # For sonar-scanner to work properly we can't use a shallow fetch.
           fetch-depth: 0
+
+      - name: Setup kernel for react, increase watchers
+        run: echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
 
       - name: Setup Python ${{ matrix.python-version }} (api)
         uses: actions/setup-python@v1
@@ -38,19 +39,19 @@ jobs:
           cache-name: cache-poetry-installer
         with:
           path: "~/poetry_installer"
-          key: "1.0.8"
+          key: "1.1.5"
 
       - name: Download poetry installer
         if: steps.cache-poetry-installer.outputs.cache-hit != 'true'
         run: |
-          echo 
+          echo
           mkdir ~/poetry_installer
           curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py > ~/poetry_installer/get-poetry.py
 
       - name: Install poetry (api)
         run: |
           cd ~/poetry_installer
-          python get-poetry.py --version 1.1.4
+          python get-poetry.py --version 1.1.5
           source ~/.poetry/env
           poetry config virtualenvs.create true
           poetry config virtualenvs.in-project false
@@ -73,11 +74,14 @@ jobs:
 
       - name: Install gdal python (api)
         # We don't have much control over what version of gdal we're getting, it's pretty much whatever is
-        # available to us. As such, gdal is not installed by poetry, since the versio will differ between
+        # available to us. As such, gdal is not installed by poetry, since the version will differ between
         # platforms.
+        # Also have to be absolutely sure that numpy is installed before gdal (otherwise gdal doesn't install
+        # correctly, and you'll run into ndarray errors.)
         working-directory: ./api
         run: |
           source ~/.poetry/env
+          poetry run pip install numpy
           CPLUS_INCLUDE_PATH=/usr/include/gdal C_INCLUDE_PATH=/usr/include/gdal poetry run pip install gdal==$(gdal-config --version)
 
       - name: Install remaining python dependencies (api)
@@ -111,12 +115,15 @@ jobs:
 
       - uses: actions/cache@v2
         with:
-          path: "**/node_modules"
+          path: |
+            **/node_modules
+            ~/.cache/Cypress
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
 
       - name: Install node dependencies (web)
         working-directory: ./web
-        run: npm install yarn --no-package-lock && yarn
+        if: steps.yarn-cache.outputs.cache-hit != 'true'
+        run: yarn install
 
       - name: Lint (web)
         working-directory: ./web

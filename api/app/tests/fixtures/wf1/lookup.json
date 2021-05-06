@@ -16,6 +16,12 @@
          },
          "{'size': '1000', 'sort': 'displayLabel', 'page': 2}": {
             "None": "wfwx/v1/stations__size_1000_sort_displayLabel_page_2.json"
+         },
+         "{'size': '1000', 'sort': 'displayLabel', 'page': 0, 'stationStatus.id': 'ACTIVE'}": {
+            "None": "wfwx/v1/stations__size_1000_sort_displayLabel_page_0_stationStatus.id_ACTIVE.json"
+         },
+         "{'size': '1000', 'sort': 'displayLabel', 'page': 0, 'query': 'stationStatus.id==\"ACTIVE\"'}": {
+            "None": "wfwx/v1/stations__size_1000_sort_displayLabel_page_0_query_stationStatus.id==\"ACTIVE\".json"
          }
       }
    },
@@ -36,6 +42,13 @@
          },
          "{'startTimestamp': 1589644213962, 'endTimestamp': 1590076213962, 'stationId': '45d948f7-c57b-4069-92b7-50ac3bff3ad1'}": {
             "None": "wfwx/v1/hourlies/search/findHourliesByWeatherTimestampBetweenAndStationIdEqualsOrderByWeatherTimestampAsc__startTimestamp_1589644213962_endTimestamp_1590076213962_stationId_45d948f7-c57b-4069-92b7-50a.json"
+         }
+      }
+   },
+   "https://wf1/wfwx/v1/dailies/rsql": {
+      "get": {
+         "{'query': 'weatherTimestamp==1618862400000', 'page': 0, 'size': '1000'}": {
+            "None": "wfwx/v1/dailies/rsql__query_weatherTimestamp==1618862400000_page_0_size_1000.json"
          }
       }
    }

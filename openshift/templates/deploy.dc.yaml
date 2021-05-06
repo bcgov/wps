@@ -1,4 +1,4 @@
-apiVersion: v1
+apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
   name: ${NAME}
@@ -21,11 +21,11 @@ parameters:
   - name: SUFFIX
     description: Deployment suffix, e.g. pr-###
     required: true
-  - name: PROJECT_TOOLS
-    value: auzhsi-tools
+  - name: PROJ_TOOLS
+    value: e1e498-tools
   - name: CPU_REQUEST
     description: Requested CPU
-    value: 300m
+    value: 50m
   - name: CPU_LIMIT
     description: CPU upper limit
     value: 500m
@@ -39,13 +39,38 @@ parameters:
     description: Number of replicas (pods)
     value: "2"
   - name: ALLOWED_ORIGINS
-    value: wps-*.pathfinder.gov.bc.ca
+    value: wps-*.apps.silver.devops.gov.bc.ca
   - name: WFWX_MAX_PAGE_SIZE
     description: Maximum number of entities to request at a time from the WFWX API
     value: "1000"
   - name: PROJECT_NAMESPACE
     description: Openshift project namespace. Used for /health check
     required: true
+  - name: IMAGE_REGISTRY
+    description: Location where images are to be pulled
+    value: image-registry.openshift-image-registry.svc:5000
+    required: true
+  - name: POSTGRES_USER
+    description: Postgres DB username
+    required: True
+  - name: POSTGRES_DATABASE
+    description: Postgres DB name
+    required: True
+  - name: SECOND_LEVEL_DOMAIN
+    description: The domain of which this application hangs.
+    required: True
+    value: apps.silver.devops.gov.bc.ca
+  - name: POSTGRES_WRITE_HOST
+    required: True
+  - name: POSTGRES_READ_HOST
+    required: True
+  - name: ENVIRONMENT
+    description: Can be used to modify route (e.g. when deploying to test)
+    value: ""
+  - name: USE_WFWX
+    value: "False"
+  - name: VANITY_DOMAIN
+    requests: True
 objects:
   - apiVersion: v1
     kind: DeploymentConfig
@@ -67,18 +92,20 @@ objects:
         spec:
           automountServiceAccountToken: false
           containers:
-            - image: docker-registry.default.svc:5000/${PROJECT_TOOLS}/${NAME}-${SUFFIX}:${SUFFIX}
+            - image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${NAME}-${SUFFIX}:${SUFFIX}
               imagePullPolicy: Always
               name: ${NAME}
               env:
                 - name: ORIGINS
                   value: ${ALLOWED_ORIGINS}
+                - name: BASE_URI
+                  value: https://${NAME}-${SUFFIX}.${SECOND_LEVEL_DOMAIN}
                 - name: PORT # The port that the API will run on (used by fastapi docker image)
                   value: "8080"
                 - name: WORKERS_PER_CORE # The number of worker per code (used by fastapi docker image)
                   value: "0.25"
                 - name: USE_WFWX
-                  value: "False"
+                  value: ${USE_WFWX}
                 - name: WFWX_MAX_PAGE_SIZE
                   value: ${WFWX_MAX_PAGE_SIZE}
                 - name: WFWX_AUTH_URL
@@ -107,32 +134,37 @@ objects:
                       name: ${NAME}-global
                       key: env.keycloak-public-key
                 - name: POSTGRES_READ_USER
-                  value: ${NAME}-${SUFFIX}
+                  value: ${POSTGRES_USER}
                 - name: POSTGRES_WRITE_USER
-                  value: ${NAME}-${SUFFIX}
+                  value: ${POSTGRES_USER}
                 - name: POSTGRES_PASSWORD
                   valueFrom:
                     secretKeyRef:
                       name: ${NAME}-global
                       key: app-db-password
                 - name: POSTGRES_WRITE_HOST
-                  value: patroni-leader-${NAME}-${SUFFIX}
+                  value: ${POSTGRES_WRITE_HOST}
                 - name: POSTGRES_READ_HOST
-                  value: patroni-replica-${NAME}-${SUFFIX}
+                  value: ${POSTGRES_READ_HOST}
                 - name: POSTGRES_PORT
                   value: "5432"
                 - name: POSTGRES_DATABASE
-                  value: ${NAME}-${SUFFIX}
+                  value: ${POSTGRES_DATABASE}
                 - name: STATUS_CHECKER_SECRET
                   valueFrom:
                     secretKeyRef:
                       name: ${NAME}-global
                       key: status-checker-sa-secret
-                - name: PATHFINDER_BASE_URI
+                - name: OPENSHIFT_BASE_URI
                   valueFrom:
                     configMapKeyRef:
                       name: ${NAME}-global
-                      key: env.pathfinder-base-uri
+                      key: env.openshift-base-uri
+                - name: OPENSHIFT_NAMESPACE_API
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-global
+                      key: env.openshift-namespace-api
                 - name: PATRONI_CLUSTER_NAME
                   value: patroni-wps-${SUFFIX}
                 - name: PROJECT_NAMESPACE
@@ -187,7 +219,6 @@ objects:
                     configMapKeyRef:
                       name: ${NAME}-global
                       key: env.matomo-container
-
               ports:
                 - containerPort: 8080
                   protocol: TCP
@@ -200,10 +231,13 @@ objects:
                   memory: ${MEMORY_REQUEST}
               readinessProbe:
                 httpGet:
-                  path: /api/health
+                  path: /api/ready
                   port: 8080
                   scheme: HTTP
-                initialDelaySeconds: 10
+                # first probe will fire some time between:
+                # initialDelaySeconds and initialDelaySeconds + periodSeconds
+                initialDelaySeconds: 30
+                periodSeconds: 120
                 timeoutSeconds: 1
               livenessProbe:
                 successThreshold: 1
@@ -212,9 +246,11 @@ objects:
                   path: /api/health
                   port: 8080
                   scheme: HTTP
-                initialDelaySeconds: 10
-                periodSeconds: 360
-                timeoutSeconds: 1
+                # first probe will fire some time between:
+                # initialDelaySeconds and initialDelaySeconds + periodSeconds
+                initialDelaySeconds: 30
+                periodSeconds: 120
+                timeoutSeconds: 5
   - apiVersion: v1
     kind: Service
     metadata:
@@ -239,7 +275,26 @@ objects:
         # Enable HTTP Strict Transport Security:
         haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
     spec:
-      host: ${NAME}-${SUFFIX}.pathfinder.gov.bc.ca
+      host: ${NAME}-${SUFFIX}${ENVIRONMENT}.${SECOND_LEVEL_DOMAIN}
+      port:
+        targetPort: 8080-tcp
+      to:
+        kind: Service
+        name: ${NAME}-${SUFFIX}
+      tls:
+        termination: edge
+  - apiVersion: route.openshift.io/v1
+    kind: Route
+    metadata:
+      labels:
+        app: ${NAME}-${SUFFIX}
+        certbot-managed: "true"
+      name: ${NAME}-${SUFFIX}-vanity
+      annotations:
+        # Enable HTTP Strict Transport Security:
+        haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+    spec:
+      host: ${VANITY_DOMAIN}
       port:
         targetPort: 8080-tcp
       to:

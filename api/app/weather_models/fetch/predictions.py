@@ -46,78 +46,80 @@ def _fetch_delta_precip_for_prev_model_run(
 async def fetch_model_run_predictions_by_station_code(
         model: ModelEnum,
         station_codes: List[int],
-        end_date: datetime) -> List[WeatherStationModelRunsPredictions]:
-    """ Fetch model predictions from database based on list of station code, up to the specified end_date.
+        time_of_interest: datetime) -> List[WeatherStationModelRunsPredictions]:
+    """ Fetch model predictions from database based on list of station codes, for a specified datetime.
     Predictions are grouped by station and model run.
     """
-    # We're only interested in the last 5 days.
-    five_days_ago = app.time_utils.get_utc_now() - datetime.timedelta(days=5)
+    # We're interested in the 5 days prior to and 10 days following the time_of_interest.
+    start_date = time_of_interest - datetime.timedelta(days=5)
+    end_date = time_of_interest + datetime.timedelta(days=10)
+
     # send the query (ordered by prediction date.)
-    session = app.db.database.get_read_session()
-    historic_predictions = get_station_model_predictions(
-        session, station_codes, model, five_days_ago, end_date)
+    with app.db.database.get_read_session_scope() as session:
+        historic_predictions = get_station_model_predictions(
+            session, station_codes, model, start_date, end_date)
 
-    # Helper dictionary.
-    station_predictions = defaultdict(dict)
+        # Helper dictionary.
+        station_predictions = defaultdict(dict)
 
-    # NOTE: The query could be optimized to only return the latest predictions.
-    for prediction, prediction_model_run_timestamp, prediction_model in historic_predictions:
-        # If this is true, it means that we are at hour 000 of the model run but not at the 0th hour of the
-        # day, so we need to look at the accumulated precip from the previous model run to calculate the
-        # delta_precip
-        precip_value = None
-        if prediction.prediction_timestamp == prediction_model_run_timestamp.prediction_run_timestamp and \
-                prediction.prediction_timestamp.hour > 0:
-            precip_value = _fetch_delta_precip_for_prev_model_run(
-                session,
-                model,
-                prediction,
-                station_predictions,
-                prediction_model_run_timestamp.prediction_run_timestamp)
-        # This condition catches situations where we are not at hour 000 of the model run, or where it is
-        # hour 000 but there was nothing returned from _fetch_delta_precip_for_prev_model_run()
-        if precip_value is None:
-            precip_value = prediction.delta_precip
-        station_predictions[prediction.station_code][prediction.prediction_timestamp] = {
-            'model_run': WeatherModelRun(
-                datetime=prediction_model_run_timestamp.prediction_run_timestamp,
-                name=prediction_model.name,
-                abbreviation=model,
-                projection=prediction_model.projection
-            ),
-            'prediction': WeatherModelPredictionValues(
-                temperature=prediction.tmp_tgl_2,
-                bias_adjusted_temperature=prediction.bias_adjusted_temperature,
-                relative_humidity=prediction.rh_tgl_2,
-                bias_adjusted_relative_humidity=prediction.bias_adjusted_rh,
-                delta_precipitation=precip_value,
-                wind_speed=prediction.wind_tgl_10,
-                wind_direction=prediction.wdir_tgl_10,
-                datetime=prediction.prediction_timestamp
-            )
-        }
-
-    # Re-structure the data, grouping data by station and model run.
-    # NOTE: It means looping through twice, but the code reads easier this way.
-    stations = {station.code: station for station in await app.stations.get_stations_by_codes(station_codes)}
-    response = []
-    for station_code, predictions in station_predictions.items():
-        model_run_dict = {}
-        for prediction in predictions.values():
-
-            if prediction['model_run'].datetime in model_run_dict:
-                model_run_predictions = model_run_dict[prediction['model_run'].datetime]
-            else:
-                model_run_predictions = ModelRunPredictions(
-                    model_run=prediction['model_run'],
-                    values=[]
+        # NOTE: The query could be optimized to only return the latest predictions.
+        for prediction, prediction_model_run_timestamp, prediction_model in historic_predictions:
+            # If this is true, it means that we are at hour 000 of the model run but not at the 0th hour of the
+            # day, so we need to look at the accumulated precip from the previous model run to calculate the
+            # delta_precip
+            precip_value = None
+            if prediction.prediction_timestamp == prediction_model_run_timestamp.prediction_run_timestamp and \
+                    prediction.prediction_timestamp.hour > 0:
+                precip_value = _fetch_delta_precip_for_prev_model_run(
+                    session,
+                    model,
+                    prediction,
+                    station_predictions,
+                    prediction_model_run_timestamp.prediction_run_timestamp)
+            # This condition catches situations where we are not at hour 000 of the model run, or where it is
+            # hour 000 but there was nothing returned from _fetch_delta_precip_for_prev_model_run()
+            if precip_value is None:
+                precip_value = prediction.delta_precip
+            station_predictions[prediction.station_code][prediction.prediction_timestamp] = {
+                'model_run': WeatherModelRun(
+                    datetime=prediction_model_run_timestamp.prediction_run_timestamp,
+                    name=prediction_model.name,
+                    abbreviation=model,
+                    projection=prediction_model.projection
+                ),
+                'prediction': WeatherModelPredictionValues(
+                    temperature=prediction.tmp_tgl_2,
+                    bias_adjusted_temperature=prediction.bias_adjusted_temperature,
+                    relative_humidity=prediction.rh_tgl_2,
+                    bias_adjusted_relative_humidity=prediction.bias_adjusted_rh,
+                    delta_precipitation=precip_value,
+                    wind_speed=prediction.wind_tgl_10,
+                    wind_direction=prediction.wdir_tgl_10,
+                    datetime=prediction.prediction_timestamp
                 )
-                model_run_dict[prediction['model_run'].datetime] = model_run_predictions
-            model_run_predictions.values.append(prediction['prediction'])
+            }
 
-        response.append(WeatherStationModelRunsPredictions(
-            station=stations[station_code],
-            model_runs=list(model_run_dict.values())
-        ))
+        # Re-structure the data, grouping data by station and model run.
+        # NOTE: It means looping through twice, but the code reads easier this way.
+        stations = {station.code: station for station in await app.stations.get_stations_by_codes(station_codes)}
+        response = []
+        for station_code, predictions in station_predictions.items():
+            model_run_dict = {}
+            for prediction in predictions.values():
+
+                if prediction['model_run'].datetime in model_run_dict:
+                    model_run_predictions = model_run_dict[prediction['model_run'].datetime]
+                else:
+                    model_run_predictions = ModelRunPredictions(
+                        model_run=prediction['model_run'],
+                        values=[]
+                    )
+                    model_run_dict[prediction['model_run'].datetime] = model_run_predictions
+                model_run_predictions.values.append(prediction['prediction'])
+
+            response.append(WeatherStationModelRunsPredictions(
+                station=stations[station_code],
+                model_runs=list(model_run_dict.values())
+            ))
 
     return response

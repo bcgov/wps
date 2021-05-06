@@ -1,0 +1,249 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+labels:
+  app: ${APP_LABEL}
+parameters:
+  - name: APP_LABEL
+    description: Application label
+    required: true
+  - name: NAME
+    displayName: Name
+    description:
+      The name assigned to all of the resources.  Use 'backup-{database name}'
+      depending on your database provider
+    required: true
+  - name: IMAGE_NAMESPACE
+    displayName: Image Namespace
+    description:
+      The namespace of the OpenShift project containing the imagestream for
+      the application.
+    required: true
+  - name: SOURCE_IMAGE_NAME
+    displayName: Source Image Name
+    description:
+      The name of the image to use for this resource.  Use 'backup-{database
+      name}' depending on your database provider
+    required: true
+    value: backup-postgres
+  - name: TAG_NAME
+    displayName: Environment TAG name
+    description: The TAG name for this environment, e.g., dev, test, prod
+    required: true
+    value: dev
+  - name: CLUSTER_NAME
+    description: |
+      The name of the patroni cluster to connect to.
+    displayName: Server Name
+    required: true
+  - name: DATABASE_NAME
+    description: |
+      The name of the postgres database to back-up.
+    displayName: Server Name
+    required: true
+    value: wps
+  - name: WPS_ENVIRONMENT_USERNAME_KEY
+    description: Name of the environment variable that contains the wps username.
+    required: true
+  - name: WPS_ENVIRONMENT_PASSWORD_KEY
+    description: Name of the environment variable that contains the wps password.
+    required: true
+  - name: BACKUP_VOLUME_NAME
+    displayName: Backup Volume Name
+    description: The name of the persistent volume used to store the backups.
+    required: true
+  - name: VERIFICATION_VOLUME_NAME
+    displayName: Verification Volume Name
+    description:
+      The name for the verification volume, used for restoring and verifying
+      backups.
+    required: true
+    value: backup-verification
+  - name: CONFIG_FILE_NAME
+    displayName: Config File Name
+    description: The name of the configuration file.
+    required: true
+    value: backup.conf
+  - name: BACKUP_STRATEGY
+    displayName: Backup Strategy
+    description: The strategy to use for backups; for example daily, or rolling.
+    required: true
+    value: rolling
+  - name: BACKUP_DIR
+    displayName: The root backup directory
+    description:
+      The name of the root backup directory.  The backup volume will be mounted
+      to this directory.
+    required: true
+    value: "/backups/"
+  - name: TABLE_SCHEMA
+    displayName: Table Schema
+    description: The table schema for your database.  Used for Postgres backups.
+    required: true
+    value: public
+  - name: CPU_REQUEST
+    value: 50m
+  - name: CPU_LIMIT
+    value: 250m
+  - name: MEMORY_REQUEST
+    value: 256Mi
+  - name: MEMORY_LIMIT
+    value: 512Mi
+  - name: CONFIG_MOUNT_PATH
+    displayName: Config Mount Path
+    description: The path to use to mount the config file.
+    required: true
+    value: "/"
+  - name: VERIFICATION_VOLUME_MOUNT_PATH
+    displayName: Verification Volume Mount Path
+    description: The path on which to mount the verification volume.  This is used by the database server to contain the database configuration and data files. For Mongo, please use /var/lib/mongodb/data . For MSSQL, please use /var/opt/mssql/data
+    required: true
+    value: "/var/lib/pgsql/data"
+  - name: BACKUP_VOLUME_SIZE
+    displayName: Backup Volume Size
+    description: The size of the persistent volume used to store the backups, e.g. 512Mi, 1Gi, 2Gi.  Ensure this is sized correctly.  Refer to the container documentation for details.
+    required: true
+    value: 2Gi
+  - name: BACKUP_VOLUME_CLASS
+    displayName: Backup Volume Class
+    description: The class of the persistent volume used to store the backups; netapp-block-standard, netapp-file-standard, nfs-backup.  Please note, nfs-backup storage is the recommended storage type for backups.  It MUST be provisioned manually through the OCP catalog via the 'BC Gov NFS Storage' template.  nfs-backup storage CANNOT be automatically provisioned by this template.
+    required: true
+    value: netapp-file-backup
+objects:
+  - kind: PersistentVolumeClaim
+    apiVersion: v1
+    metadata:
+      name: "${BACKUP_VOLUME_NAME}"
+      labels:
+        app: "${NAME}-persistent"
+        template: "${NAME}-persistent-template"
+    spec:
+      storageClassName: "${BACKUP_VOLUME_CLASS}"
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: "${BACKUP_VOLUME_SIZE}"
+  - apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      annotations:
+      name: ${NAME}-config
+    data:
+      backup.conf: |
+        # ============================================================
+        # Databases:
+        # ------------------------------------------------------------
+        postgres=${CLUSTER_NAME}-leader/${DATABASE_NAME}
+        # ============================================================
+      DATABASE_SERVICE_NAME: "${CLUSTER_NAME}-leader"
+      DEFAULT_PORT: "5432"
+      POSTGRESQL_DATABASE: "${DATABASE_NAME}"
+      BACKUP_STRATEGY: ${BACKUP_STRATEGY}
+      RETENTION.NUM_BACKUPS: "5"
+      RETENTION.DAILY_BACKUPS: "3"
+      RETENTION.WEEKLY_BACKUPS: "1"
+      RETENTION.MONTHLY_BACKUPS: "1"
+  - kind: DeploymentConfig
+    apiVersion: v1
+    metadata:
+      name: "${NAME}"
+      labels:
+        template: "${NAME}-deployment"
+        app: "${NAME}"
+      annotations:
+        description: Defines how to deploy the ${NAME} server
+    spec:
+      strategy:
+        type: Recreate
+      triggers:
+        - type: ConfigChange
+        - type: ImageChange
+          imageChangeParams:
+            automatic: true
+            containerNames:
+              - "${NAME}"
+            from:
+              kind: ImageStreamTag
+              namespace: "${IMAGE_NAMESPACE}"
+              name: "${SOURCE_IMAGE_NAME}:${TAG_NAME}"
+      replicas: 0
+      selector:
+        name: "${NAME}"
+      template:
+        metadata:
+          name: "${NAME}"
+          labels:
+            name: "${NAME}"
+        spec:
+          volumes:
+            - name: "${BACKUP_VOLUME_NAME}"
+              persistentVolumeClaim:
+                claimName: "${BACKUP_VOLUME_NAME}"
+            - name: "${VERIFICATION_VOLUME_NAME}"
+            - name: "${NAME}-config-volume"
+              configMap:
+                name: "${NAME}-config"
+                items:
+                  - key: "${CONFIG_FILE_NAME}"
+                    path: "${CONFIG_FILE_NAME}"
+          containers:
+            - name: "${NAME}"
+              image: ""
+              ports: []
+              env:
+                - name: BACKUP_STRATEGY
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-config
+                      key: BACKUP_STRATEGY
+                      optional: true
+                - name: NUM_BACKUPS
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-config
+                      key: RETENTION.NUM_BACKUPS
+                      optional: true
+                - name: DAILY_BACKUPS
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-config
+                      key: RETENTION.DAILY_BACKUPS
+                      optional: true
+                - name: WEEKLY_BACKUPS
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-config
+                      key: RETENTION.WEEKLY_BACKUPS
+                      optional: true
+                - name: MONTHLY_BACKUPS
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-config
+                      key: "RETENTION.MONTHLY_BACKUPS"
+                      optional: true
+                - name: BACKUP_DIR
+                  value: "${BACKUP_DIR}"
+                - name: TABLE_SCHEMA
+                  value: "${TABLE_SCHEMA}"
+                - name: ${WPS_ENVIRONMENT_USERNAME_KEY}
+                  value: wps
+                - name: ${WPS_ENVIRONMENT_PASSWORD_KEY}
+                  valueFrom:
+                    secretKeyRef:
+                      name: wps-global
+                      key: app-db-password
+              resources:
+                requests:
+                  cpu: "${CPU_REQUEST}"
+                  memory: "${MEMORY_REQUEST}"
+                limits:
+                  cpu: "${CPU_LIMIT}"
+                  memory: "${MEMORY_LIMIT}"
+              volumeMounts:
+                - name: "${BACKUP_VOLUME_NAME}"
+                  mountPath: "${BACKUP_DIR}"
+                - name: "${VERIFICATION_VOLUME_NAME}"
+                  mountPath: "${VERIFICATION_VOLUME_MOUNT_PATH}"
+                - name: "${NAME}-config-volume"
+                  mountPath: "${CONFIG_MOUNT_PATH}${CONFIG_FILE_NAME}"
+                  subPath: "${CONFIG_FILE_NAME}"

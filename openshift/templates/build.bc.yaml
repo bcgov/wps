@@ -1,4 +1,4 @@
-apiVersion: v1
+apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
   name: ${NAME}
@@ -26,6 +26,14 @@ parameters:
   - name: GIT_BRANCH
     description: PR branch
     required: true
+  - name: DOCKER_IMAGE
+    description: Location of docker image
+    required: true
+    value: image-registry.openshift-image-registry.svc:5000/e1e498-tools/uvicorn-gunicorn-fastapi:python3.8-latest
+  - name: DOCKER_FILE
+    description: Dockerfile to use
+    required: true
+    value: Dockerfile
 objects:
   - apiVersion: v1
     kind: ImageStream
@@ -83,4 +91,8 @@ objects:
               value: "{{REACT_APP_MATOMO_SITE_ID}}"
             - name: "REACT_APP_MATOMO_CONTAINER"
               value: "{{REACT_APP_MATOMO_CONTAINER}}"
+          buildArgs:
+            - name: "DOCKER_IMAGE"
+              value: "${{DOCKER_IMAGE}}"
+          dockerfilePath: ${DOCKER_FILE}
       triggers: []

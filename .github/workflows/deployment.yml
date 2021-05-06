@@ -6,9 +6,9 @@ on:
       - main
 
 jobs:
-  prepare-database:
+  prepare-dev-database:
     name: Prepare Dev Database
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Set Variables
         shell: bash
@@ -19,14 +19,15 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Deploy PostGIS instance
-        uses: Sybrand/openshift-launchpad-deployment@add-jq
-        with:
-          AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
-          SCRIPT: EPHEMERAL_STORAGE=True openshift/scripts/oc_provision_db.sh ${SUFFIX} apply
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+          EPHEMERAL_STORAGE=True bash openshift/scripts/oc_provision_db.sh ${SUFFIX} apply
 
-  prepare-database-backups:
+  prepare-dev-database-backups:
     name: Prepare Dev Database Backups
-    runs-on: ubuntu-latest
+    needs: [prepare-dev-database]
+    runs-on: ubuntu-20.04
     steps:
       - name: Set Variables
         shell: bash
@@ -36,27 +37,33 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Prepare Matomo Backup Volume PVC
-        uses: bcgov/openshift-launchpad-deployment@master
-        with:
-          AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
-          SCRIPT: openshift/scripts/oc_provision_matomo_backup_pvc.sh ${SUFFIX} apply
+      - name: Postgres Backup Deployment Config
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+          EPHEMERAL_STORAGE=True bash openshift/scripts/oc_provision_backup_postgres.sh ${SUFFIX} apply
 
-      - name: Prepare Matomo Backup Deployment Config
-        uses: bcgov/openshift-launchpad-deployment@master
-        with:
-          AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
-          SCRIPT: openshift/scripts/oc_provision_matomo_backup.sh ${SUFFIX} apply
+      - name: Postgres Backup Cronjob
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+          EPHEMERAL_STORAGE=True bash openshift/scripts/oc_provision_backup_postgres_cronjob.sh ${SUFFIX} apply
 
-      - name: Prepare Matomo Backup Cronjob
-        uses: bcgov/openshift-launchpad-deployment@master
-        with:
-          AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
-          SCRIPT: openshift/scripts/oc_provision_matomo_backup_cronjob.sh ${SUFFIX} apply
+      - name: Prepare MariaDB Backup Deployment Config
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+          EPHEMERAL_STORAGE=True bash openshift/scripts/oc_provision_backup_mariadb.sh ${SUFFIX} apply
 
-  build-and-deploy:
-    name: Build, Deploy to Dev & ZAP Baseline Scan
-    runs-on: ubuntu-latest
+      - name: Prepare MariaDB Backup Cronjob
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+          EPHEMERAL_STORAGE=True bash openshift/scripts/oc_provision_backup_mariadb_cronjob.sh ${SUFFIX} apply
+
+  build-image:
+    name: Build Image
+    runs-on: ubuntu-20.04
     steps:
       - name: Set Variables
         shell: bash
@@ -67,52 +74,159 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Build Image
-        uses: bcgov/openshift-launchpad-deployment@master
-        with:
-          AUTH_TOKEN: ${{ secrets.OC_TOOL_TOKEN_EDIT }}
-          SCRIPT: GIT_BRANCH=${GITHUB_HEAD_REF} openshift/scripts/oc_build.sh ${SUFFIX} apply
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
+          GIT_BRANCH=${GITHUB_HEAD_REF} bash openshift/scripts/oc_build.sh ${SUFFIX} apply
+
+  deploy-dev:
+    name: Deploy to Dev
+    needs: [build-image, prepare-dev-database]
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Set Variables
+        shell: bash
+        run: |
+          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
+
+      - name: Checkout
+        uses: actions/checkout@v2
 
       - name: Deploy to Dev
-        uses: bcgov/openshift-launchpad-deployment@master
-        with:
-          AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
-          SCRIPT: openshift/scripts/oc_deploy.sh ${SUFFIX} apply
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+          SECOND_LEVEL_DOMAIN="apps.silver.devops.gov.bc.ca" VANITY_DOMAIN="${SUFFIX}-dev-psu.nrs.gov.bc.ca" bash openshift/scripts/oc_deploy.sh ${SUFFIX} apply
 
       - name: Hourly actuals cronjob (Marvin)
-        uses: bcgov/openshift-launchpad-deployment@master
-        with:
-          AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
-          SCRIPT: openshift/scripts/oc_provision_bcfw_p1_hourly_actuals_cronjob.sh ${SUFFIX} apply
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+          bash openshift/scripts/oc_provision_bcfw_p1_hourly_actuals_cronjob.sh ${SUFFIX} apply
 
       - name: Noon forecasts cronjob (Bender)
-        uses: bcgov/openshift-launchpad-deployment@master
-        with:
-          AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
-          SCRIPT: openshift/scripts/oc_provision_bcfw_p1_forecasts_cronjob.sh ${SUFFIX} apply
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+          bash openshift/scripts/oc_provision_bcfw_p1_forecasts_cronjob.sh ${SUFFIX} apply
 
       - name: Environment Canada GDPS cronjob (Donald)
-        uses: bcgov/openshift-launchpad-deployment@master
-        with:
-          AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
-          SCRIPT: openshift/scripts/oc_provision_ec_gdps_cronjob.sh ${SUFFIX} apply
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_ec_gdps_cronjob.sh ${SUFFIX} apply
 
       - name: Environment Canada HRDPS cronjob (Donald)
-        uses: bcgov/openshift-launchpad-deployment@master
-        with:
-          AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
-          SCRIPT: openshift/scripts/oc_provision_ec_hrdps_cronjob.sh ${SUFFIX} apply
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+          bash openshift/scripts/oc_provision_ec_hrdps_cronjob.sh ${SUFFIX} apply
 
       - name: Environment Canada RDPS cronjob (Donald)
-        uses: bcgov/openshift-launchpad-deployment@master
-        with:
-          AUTH_TOKEN: ${{ secrets.OC_DEV_TOKEN_EDIT }}
-          SCRIPT: openshift/scripts/oc_provision_ec_rdps_cronjob.sh ${SUFFIX} apply
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+          bash openshift/scripts/oc_provision_ec_rdps_cronjob.sh ${SUFFIX} apply
 
+  scan-dev:
+    name: ZAP Baseline Scan Dev
+    needs: [deploy-dev]
+    runs-on: ubuntu-20.04
+
+    steps:
       # f.y.i.: ZAP Scan must be able to log an issue or it will fail.
       - name: ZAP Scan
         uses: zaproxy/action-baseline@v0.4.0
         with:
-          target: "https://wps-pr-${{ github.event.number }}.pathfinder.gov.bc.ca"
+          target: "https://wps-pr-${{ github.event.number }}.apps.silver.devops.gov.bc.ca"
           rules_file_name: ".zap/rules.tsv"
           # Do not return failure on warnings - TODO: this has to be resolved!
           cmd_options: "-I"
+
+  build-ubuntu-image:
+    # C-Haines relies on a gdal version not currently available in the debian image we use,
+    # so we need to create an ubuntu based image.
+    name: Build ubuntu based image
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Set Variables
+        shell: bash
+        run: echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Build Image
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
+          GIT_BRANCH=${GITHUB_HEAD_REF} PROJ_TOOLS="e1e498-tools" PROJ_DEV="e1e498-dev" NAME_APP=wps-ubuntu DOCKER_IMAGE=image-registry.openshift-image-registry.svc:5000/e1e498-tools/ubuntu-base:20.04 DOCKER_FILE=Dockerfile.ubuntu bash openshift/scripts/oc_build.sh ${SUFFIX} apply
+
+  deploy-c-haines:
+    name: Deploy c-haines cronjob
+    runs-on: ubuntu-20.04
+    # We need
+    # - the image to be built before we can deploy.
+    # - the database to be there (so we can write to it).
+    # - wait for the api deployment, as it's responsible for upgrading the database.
+    needs: [build-ubuntu-image, prepare-dev-database, deploy-dev]
+
+    steps:
+      - name: Set Variables
+        shell: bash
+        run: echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: C-Haines Cronjob
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+          PROJ_TARGET="e1e498-dev" PROJ_TOOLS="e1e498-tools" PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_c_haines_cronjob.sh ${SUFFIX} apply
+
+  prepare-test-database:
+    name: Prepare Test Database
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Set Variables
+        shell: bash
+        run: |
+          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Deploy PostGIS instance
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TEST_TOKEN }}"
+          EPHEMERAL_STORAGE=True PROJ_TARGET=e1e498-test APP_USER="wps" IMAGE_STREAM_NAMESPACE=e1e498-tools bash openshift/scripts/oc_provision_db.sh ${SUFFIX} apply
+
+  deploy-test:
+    name: Deploy to Test
+    needs: [build-image, prepare-test-database]
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Set Variables
+        shell: bash
+        run: |
+          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Deploy to Test
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TEST_TOKEN }}"
+          PROJ_TARGET="e1e498-test" ENVIRONMENT="-test" VANITY_DOMAIN="${SUFFIX}-test-psu.nrs.gov.bc.ca" SECOND_LEVEL_DOMAIN="apps.silver.devops.gov.bc.ca" USE_WFWX="True" bash openshift/scripts/oc_deploy.sh ${SUFFIX} apply
+
+      # Just run 1/3 EnvCan cronjobs so there's some model data in DB for comparison against P3 actuals and forecasts
+      # Don't need all model data
+      - name: Environment Canada RDPS cronjob (Donald)
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TEST_TOKEN }}"
+          PROJ_TARGET="e1e498-test" bash openshift/scripts/oc_provision_ec_rdps_cronjob.sh ${SUFFIX} apply

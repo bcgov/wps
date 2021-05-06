@@ -17,6 +17,7 @@ const Template: Story<PropTypes> = args => {
       <Button {...args} color="secondary" />
       <Button {...args} loading />
       <Button {...args} disabled />
+      <Button {...args} loading spinnercolor="white" />
     </>
   )
 }

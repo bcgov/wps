@@ -12,10 +12,19 @@ logger = logging.getLogger(__name__)
 class MockJWTDecode:
     """ Mock pyjwt module """
 
-    @staticmethod
-    def decode():
-        """ Return something and don't raise any exception """
-        return {}
+    def __init__(self):
+        self.decoded_token = {"preferred_username": "test_username"}
+
+    def __getitem__(self, key):
+        return self.decoded_token[key]
+
+    def get(self, key, _):
+        "Returns the mock decoded token"
+        return self.decoded_token[key]
+
+    def decode(self):
+        "Returns the mock decoded token"
+        return self.decoded_token
 
 
 class MockClientSession:

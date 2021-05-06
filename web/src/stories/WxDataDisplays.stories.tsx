@@ -15,14 +15,16 @@ import {
   highResModelSummaries,
   pastRegionalModelValues,
   regionalModelValues,
-  regionalModelSummaries
+  regionalModelSummaries,
+  station322
 } from 'utils/storybook'
 import { NoonForecastValue } from 'api/forecastAPI'
 import { ModelValue } from 'api/modelAPI'
 import { isNoonInPST } from 'utils/date'
+import { getTimeOfInterestFromUrl } from 'utils/url'
 
 export default {
-  title: 'component/WxDataDisplays',
+  title: 'morecast/WxDataDisplays',
   component: WxDataDisplays
 } as Meta
 
@@ -32,21 +34,9 @@ const Template: Story<PropTypes> = args => {
   return <WxDataDisplays {...args} />
 }
 
-const station322 = {
-  code: 322,
-  name: 'AFTON',
-  lat: 50.6733333,
-  long: -120.4816667,
-  ecodivision_name: 'SEMI-ARID STEPPE HIGHLANDS',
-  core_season: {
-    start_month: 5,
-    start_day: 1,
-    end_month: 9,
-    end_day: 15
-  }
-}
-
-const defaultArgs = {
+const defaultArgs: PropTypes = {
+  showTableView: 'true',
+  timeOfInterest: getTimeOfInterestFromUrl(''),
   wxDataLoading: false,
   stationCodes: [322],
   stationsByCode: { 322: station322 },

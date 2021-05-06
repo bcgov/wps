@@ -2,7 +2,12 @@ import React from 'react'
 
 import { ModelValue } from 'api/modelAPI'
 import { NoonForecastValue } from 'api/forecastAPI'
-import { MODEL_VALUE_DECIMAL } from 'utils/constants'
+import {
+  PRECIP_VALUES_DECIMAL,
+  TEMPERATURE_VALUES_DECIMAL,
+  WIND_SPEED_VALUES_DECIMAL
+} from 'utils/constants'
+import { formatDateInPST } from 'utils/date'
 import SortableTableByDatetime, {
   Column
 } from 'features/fireWeather/components/tables/SortableTableByDatetime'
@@ -15,15 +20,16 @@ import SortableTableByDatetime, {
 const sharedColumns: Column[] = [
   {
     id: 'datetime',
-    label: 'Date (PDT)',
+    label: 'Date (PST)',
+    minWidth: 120,
     align: 'left',
-    formatDt: (value: string): string => value.slice(0, 10)
+    formatDt: (value: string): string => formatDateInPST(value)
   },
   {
     id: 'temperature',
     label: 'Temp (°C)',
     align: 'right',
-    format: (value: number): string => value.toFixed(MODEL_VALUE_DECIMAL)
+    format: (value: number): string => value.toFixed(TEMPERATURE_VALUES_DECIMAL)
   },
   {
     id: 'relative_humidity',
@@ -40,10 +46,9 @@ const sharedColumns: Column[] = [
   {
     id: 'wind_speed',
     label: 'Wind Spd (10m) (km/h)',
-    minWidth: 70,
-    maxWidth: 120,
+    maxWidth: 80,
     align: 'right',
-    format: (value: number): string => value.toFixed(MODEL_VALUE_DECIMAL)
+    format: (value: number): string => value.toFixed(WIND_SPEED_VALUES_DECIMAL)
   }
 ]
 
@@ -51,18 +56,16 @@ export const noonModelTableColumns: Column[] = [
   ...sharedColumns,
   {
     id: 'delta_precipitation',
-    label: 'Precip (mm/cm)',
-    minWidth: 70,
-    maxWidth: 100,
+    label: 'Precip (mm)',
+    maxWidth: 70,
     align: 'right',
-    format: (value: number): string => value.toFixed(MODEL_VALUE_DECIMAL)
+    format: (value: number): string => value.toFixed(PRECIP_VALUES_DECIMAL)
   },
   {
     id: 'model_run_datetime',
     label: 'Model Run (UTC)',
-    minWidth: 70,
-    maxWidth: 100,
-    align: 'left',
+    minWidth: 120,
+    align: 'right',
     formatDt: (value: string): string => value.slice(0, 13)
   }
 ]
@@ -87,11 +90,10 @@ export const noonForecastTableColumns: Column[] = [
   ...sharedColumns,
   {
     id: 'total_precipitation',
-    label: 'Precip (mm/cm)',
-    minWidth: 70,
-    maxWidth: 100,
+    label: 'Precip (mm)',
+    maxWidth: 70,
     align: 'right',
-    format: (value: number): string => value.toFixed(MODEL_VALUE_DECIMAL)
+    format: (value: number): string => value.toFixed(PRECIP_VALUES_DECIMAL)
   }
 ]
 

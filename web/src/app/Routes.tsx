@@ -4,22 +4,23 @@ import { BrowserRouter as Router, Route, Switch, Redirect } from 'react-router-d
 import { HIDE_DISCLAIMER } from 'utils/env'
 import AuthWrapper from 'features/auth/AuthWrapper'
 import PercentileCalculatorPageWithDisclaimer from 'features/percentileCalculator/pages/PercentileCalculatorPageWithDisclaimer'
-import MoreCastPage from 'features/fireWeather/pages/MoreCastPage'
 import HfiCalculatorPage from 'features/hfiCalculator/pages/HfiCalculatorPage'
 import PeakBurninessPage from 'features/peakBurniness/pages/PeakBurninessPage'
+import CHainesPage from 'features/cHaines/pages/CHainesPage'
 import {
   PERCENTILE_CALC_ROUTE,
   FIRE_WEATHER_ROUTE,
   MORECAST_ROUTE,
   HFI_CALC_ROUTE,
-  PEAK_BURNINESS_ROUTE
+  PEAK_BURNINESS_ROUTE,
+  C_HAINES_ROUTE
 } from 'utils/constants'
+import MoreCastPage from 'features/fireWeather/pages/MoreCastPage'
+import { NoMatchPage } from 'features/fireWeather/pages/NoMatchPage'
 
 const shouldShowDisclaimer = HIDE_DISCLAIMER === 'false' || HIDE_DISCLAIMER === undefined
 const shouldAuthenticate =
   process.env.NODE_ENV === 'production' || window.Cypress === undefined
-
-const NoMatch = () => <div>Page not found.</div>
 
 const Routes: React.FunctionComponent = () => {
   return (
@@ -48,8 +49,12 @@ const Routes: React.FunctionComponent = () => {
           <PeakBurninessPage />
         </Route>
 
+        <Route path={C_HAINES_ROUTE}>
+          <CHainesPage />
+        </Route>
+
         <Route>
-          <NoMatch />
+          <NoMatchPage />
         </Route>
       </Switch>
     </Router>

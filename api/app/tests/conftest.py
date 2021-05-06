@@ -1,11 +1,15 @@
 """ Global fixtures """
 
 from datetime import timezone, datetime
+from contextlib import contextmanager
+from typing import Generator
 import logging
 import requests
 import pytest
+from sqlalchemy.orm import Session
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
+from pytest_mock import MockerFixture
 from app.time_utils import get_pst_tz
 from app.tests.common import (
     MockJWTDecode, default_mock_requests_get, default_mock_requests_post,
@@ -13,6 +17,7 @@ from app.tests.common import (
 from app.db.models import PredictionModel, PredictionModelRunTimestamp
 import app.db.database
 import app.time_utils as time_utils
+from app.schemas.shared import WeatherDataRequest
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +25,8 @@ logger = logging.getLogger(__name__)
 @pytest.fixture(autouse=True)
 def mock_env(monkeypatch):
     """ Automatically mock environment variable """
-    monkeypatch.setenv("USE_WFWX", 'False')
+    monkeypatch.setenv("BASE_URI", "https://python-test-base-uri")
+    monkeypatch.setenv("USE_WFWX", "False")
     monkeypatch.setenv("WFWX_USER", "user")
     monkeypatch.setenv("WFWX_SECRET", "secret")
     monkeypatch.setenv(
@@ -31,7 +37,7 @@ def mock_env(monkeypatch):
     monkeypatch.setenv("BC_FIRE_WEATHER_USER", "someuser")
     monkeypatch.setenv("BC_FIRE_WEATHER_SECRET", "password")
     monkeypatch.setenv("BC_FIRE_WEATHER_FILTER_ID", "1")
-    monkeypatch.setenv("PATHFINDER_BASE_URI",
+    monkeypatch.setenv("OPENSHIFT_BASE_URI",
                        "https://console.pathfinder.gov.bc.ca:8443")
     monkeypatch.setenv("PROJECT_NAMESPACE", "project_namespace")
     monkeypatch.setenv("STATUS_CHECKER_SECRET", "some_secret")
@@ -41,6 +47,7 @@ def mock_env(monkeypatch):
     monkeypatch.setenv("ROCKET_AUTH_TOKEN", "sometoken")
     monkeypatch.setenv("ROCKET_USER_ID", "someid")
     monkeypatch.setenv("ROCKET_CHANNEL", "#channel")
+    monkeypatch.setenv("OPENSHIFT_NAMESPACE_API", "apis/apps/v1beta1/namespaces/")
 
 
 @pytest.fixture(autouse=True)
@@ -55,6 +62,12 @@ def mock_requests(monkeypatch):
 def mock_get_now(monkeypatch):
     """ Patch all calls to app.timeutils: get_utc_now and get_pst_now  """
     timestamp = 1590076213962/1000
+
+    # The default value for WeatherDataRequest cannot be mocked out, as it
+    # is declared prior to test mocks being loaded. We manipulate the class
+    # directly in order to have the desire default be deterministic.
+    WeatherDataRequest.__fields__['time_of_interest'].default = datetime.fromtimestamp(
+        timestamp, tz=timezone.utc)
 
     def mock_utc_now():
         return datetime.fromtimestamp(timestamp, tz=timezone.utc)
@@ -71,7 +84,8 @@ def mock_session(monkeypatch):
     """ Ensure that all unit tests mock out the database session by default! """
     # pylint: disable=unused-argument
 
-    def mock_get_session(*args):
+    @contextmanager
+    def mock_get_session_scope(*args) -> Generator[Session, None, None]:
         """ return a session with a bare minimum database that should be good for most unit tests. """
         prediction_model = PredictionModel(id=1,
                                            abbreviation='GDPS',
@@ -92,9 +106,9 @@ def mock_session(monkeypatch):
                 [prediction_model_run]
             )
         ])
-        return session
-    monkeypatch.setattr(app.db.database, 'get_read_session', mock_get_session)
-    monkeypatch.setattr(app.db.database, 'get_write_session', mock_get_session)
+        yield session
+    monkeypatch.setattr(app.db.database, 'get_read_session_scope', mock_get_session_scope)
+    monkeypatch.setattr(app.db.database, 'get_write_session_scope', mock_get_session_scope)
 
 
 @pytest.fixture()
@@ -122,3 +136,9 @@ def mock_requests_session(monkeypatch):
     monkeypatch.setattr(requests.Session, 'post',
                         default_mock_requests_session_post)
     return monkeypatch
+
+
+@pytest.fixture(autouse=True)
+def spy_access_logging(mocker: MockerFixture):
+    """Spies on access audting logging for tests"""
+    return mocker.spy(app.auth, 'create_api_access_audit_log')

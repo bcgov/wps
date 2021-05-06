@@ -1,0 +1,171 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+labels:
+  app: jenkins
+metadata:
+  name: jenkins
+parameters:
+  - name: NAME
+    value: jenkins-wps
+    required: true
+  - name: SECONDARY_NAME
+    value: secondary
+    required: true
+  - name: SECONDARY_LABELS
+    value: "build deploy test ui-test"
+  - name: NAMESPACE
+    value: e1e498-tools
+    required: true
+  - name: SECONDARY_EXECUTORS
+    value: "3"
+  - name: REPLICAS
+    value: "1"
+  - name: CPU_REQUEST
+    description: Minimal CPU needed to run
+    displayName: CPU Request
+    value: 300m
+  - name: CPU_LIMIT
+    description: Maximum CPU allowed to use
+    displayName: CPU Limit
+    value: 2000m
+  - name: MEMORY_REQUEST
+    description: Minimal amount of memory needed to run
+    displayName: Memory Request
+    value: 2Gi
+  - name: MEMORY_LIMIT
+    description: Maximum amount of memory allowed to use
+    displayName: Memory Limit
+    value: 4Gi
+objects:
+  - apiVersion: v1
+    kind: DeploymentConfig
+    metadata:
+      annotations:
+        template.alpha.openshift.io/wait-for-ready: "true"
+      name: ${NAME}-${SECONDARY_NAME}
+    spec:
+      replicas: "${{REPLICAS}}"
+      revisionHistoryLimit: 10
+      selector:
+        deploymentConfig: ${NAME}-${SECONDARY_NAME}
+      strategy:
+        activeDeadlineSeconds: 21600
+        recreateParams:
+          timeoutSeconds: 600
+        resources: {}
+        type: Recreate
+      template:
+        metadata:
+          creationTimestamp: null
+          labels:
+            deploymentConfig: ${NAME}-${SECONDARY_NAME}
+        spec:
+          initContainers:
+            - name: init
+              image: " "
+              command:
+                - curl
+                - "-sSf"
+                - "http://${NAME}:8080/login"
+          containers:
+            - command:
+                - bash
+                - -c
+                - cd $HOME && java -XshowSettings:vm -version && exec java -jar
+                  /usr/lib/jenkins/swarm-client.jar -name "$(cat /etc/hostname)"
+                  -deleteExistingClients -fsroot "$JENKINS_HOME/$(cat
+                  /etc/hostname)" -master http://$JENKINS_MASTER_SERVICE:8080
+                  -disableSslVerification -username  "$(cat
+                  /var/run/secrets/jenkins-slave-user/username)" -passwordFile
+                  /var/run/secrets/jenkins-slave-user/password -description "$(cat
+                  /etc/hostname)" -executors ${SECONDARY_EXECUTORS} -labels '${SECONDARY_LABELS}'
+                  -mode 'normal' -retry 10 -tunnel $JENKINS_MASTER_SERVICE:50000
+                  -disableClientsUniqueId
+              env:
+                - name: JENKINS_MASTER_SERVICE
+                  value: ${NAME}
+                - name: JAVA_TOOL_OPTIONS
+                  value:
+                    -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap
+                    -XX:MaxRAMFraction=5 -XX:MaxHeapFreeRatio=20 -XX:MinHeapFreeRatio=10
+                    -XX:+UseParallelGC -XX:ParallelGCThreads=2
+                - name: ENV_NAME
+                  value: "${ENV_NAME}"
+                - name: ENV_ID
+                  value: "${ENV_ID}"
+              imagePullPolicy: Always
+              name: jenkins
+              ports:
+                - containerPort: 50000
+                  protocol: TCP
+                - containerPort: 8080
+                  protocol: TCP
+              resources:
+                limits:
+                  cpu: "${CPU_LIMIT}"
+                  memory: "${MEMORY_LIMIT}"
+                requests:
+                  cpu: "${CPU_REQUEST}"
+                  memory: "${MEMORY_REQUEST}"
+              terminationMessagePath: /dev/termination-log
+              terminationMessagePolicy: File
+              volumeMounts:
+                - mountPath: /var/run/pod
+                  name: pod-metadata
+                - mountPath: /run/secrets/jenkins-slave-user
+                  name: jenkins-slave-user
+                  readOnly: true
+                - mountPath: /run/secrets/github
+                  name: github
+                  readOnly: true
+          dnsPolicy: ClusterFirst
+          restartPolicy: Always
+          schedulerName: default-scheduler
+          securityContext: {}
+          serviceAccount: ${NAME}
+          serviceAccountName: ${NAME}
+          terminationGracePeriodSeconds: 30
+          volumes:
+            # - name: jenkins-home
+            #   persistentVolumeClaim:
+            #     claimName: ${NAME}
+            - name: pod-metadata
+              downwardAPI:
+                items:
+                  - fieldRef:
+                      fieldPath: metadata.name
+                    name: name
+                    path: name
+                  - fieldRef:
+                      fieldPath: metadata.namespace
+                    name: namespace
+                    path: namespace
+                  - fieldRef:
+                      fieldPath: metadata.labels
+                    name: labels
+                    path: labels
+                  - fieldRef:
+                      fieldPath: metadata.annotations
+                    name: annotations
+                    path: annotations
+            - name: jenkins-slave-user
+              secret:
+                defaultMode: 420
+                secretName: ${NAME}-slave-user
+            - name: github
+              secret:
+                defaultMode: 420
+                secretName: ${NAME}-github
+      test: false
+      triggers:
+        - imageChangeParams:
+            automatic: true
+            containerNames:
+              - jenkins
+              - init
+            from:
+              kind: ImageStreamTag
+              name: "jenkins-2:v2-latest"
+              namespace: ${NAMESPACE}
+          type: ImageChange
+        - type: ConfigChange

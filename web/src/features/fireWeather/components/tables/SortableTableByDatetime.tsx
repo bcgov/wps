@@ -9,14 +9,28 @@ import TableHead from '@material-ui/core/TableHead'
 import TableSortLabel from '@material-ui/core/TableSortLabel'
 import Paper from '@material-ui/core/Paper'
 import Typography from '@material-ui/core/Typography'
-import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp'
-import { Collapse, IconButton, Tooltip } from '@material-ui/core'
+import Accordion from '@material-ui/core/Accordion'
+import AccordionSummary from '@material-ui/core/AccordionSummary'
+import AccordionDetails from '@material-ui/core/AccordionDetails'
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 
-import { getDatetimeComparator, Order } from 'utils/table'
+import {
+  getDatetimeComparator,
+  getMinMaxValueCalculator,
+  Order,
+  MinMaxValues,
+  RowIdsOfMinMaxValues,
+  getMinMaxValuesRowIds,
+  getCellClassNameAndTestId
+} from 'utils/table'
 
 const useStyles = makeStyles({
   display: {
-    paddingBottom: 12
+    paddingBottom: 12,
+
+    '& .MuiTableCell-sizeSmall': {
+      padding: '6px 12px 6px 6px'
+    }
   },
   paper: {
     width: '100%'
@@ -24,29 +38,46 @@ const useStyles = makeStyles({
   tableContainer: {
     maxHeight: 280
   },
-  title: {
-    paddingBottom: 4
+  maxTemperature: {
+    background: '#ffb3b3'
   },
-  clockwiseAnimation: {
-    animation: '$rotateCW 250ms forwards'
+  minTemperature: {
+    background: '#84b8e7'
   },
-  counterClockwiseAnimation: {
-    animation: '$rotateCCW 250ms forwards'
+  minRH: {
+    background: '#f2994a'
   },
-  '@keyframes rotateCW': {
-    from: { transform: 'rotate(0deg)' },
-    to: { transform: 'rotate(180deg)' }
+  maxPrecipitation: {
+    fontWeight: 'bold',
+    borderColor: 'rgba(0, 0, 0, 0.87)',
+    borderStyle: 'solid',
+    borderWidth: '1px'
   },
-  '@keyframes rotateCCW': {
-    from: { transform: 'rotate(180deg)' },
-    to: { transform: 'rotate(0deg)' }
+  maxWindSpeed: {
+    fontWeight: 'bold',
+    borderColor: 'rgba(0, 0, 0, 0.87)',
+    borderStyle: 'solid',
+    borderTopWidth: '1px',
+    borderBottomWidth: '1px',
+    borderRightWidth: '1px',
+    borderLeftWidth: '0px'
+  },
+  directionOfMaxWindSpeed: {
+    fontWeight: 'bold',
+    borderColor: 'rgba(0, 0, 0, 0.87)',
+    borderStyle: 'solid',
+    borderTopWidth: '1px',
+    borderBottomWidth: '1px',
+    borderLeftWidth: '1px',
+    borderRightWidth: '0px'
   }
 })
 
-interface WeatherValue {
+export interface WeatherValue {
   datetime: string
   temperature?: number | null
   relative_humidity?: number | null
+  dewpoint?: number | null
   wind_direction?: number | null
   wind_speed?: number | null
   precipitation?: number | null
@@ -77,8 +108,7 @@ interface Props<R> {
 
 function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
   const classes = useStyles()
-  const [order, setOrder] = useState<Order>('asc')
-  const [open, setOpen] = useState(true)
+  const [order, setOrder] = useState<Order>('desc')
 
   if (!props.rows || props.rows.length === 0) {
     return null
@@ -89,107 +119,97 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
     setOrder(order === 'asc' ? 'desc' : 'asc')
   }
 
-  const animate = () => {
-    if (open) {
-      return classes.counterClockwiseAnimation
-    } else if (!open) {
-      return classes.clockwiseAnimation
-    }
-  }
-
-  interface TableHeaderProps {
-    title: string
-    testId?: string
-  }
-
-  const TableHeader = (tableHeaderProps: TableHeaderProps) => {
-    const tableHeaderClasses = useStyles()
-    return (
-      <Paper
-        data-testid={`${tableHeaderProps.testId}-header`}
-        style={{ paddingLeft: '15px' }}
-      >
-        <Typography className={tableHeaderClasses.title} display="inline">
-          {tableHeaderProps.title}
-        </Typography>
-        <Tooltip title={open ? 'Collapse table' : 'Expand table'}>
-          <IconButton
-            className={animate()}
-            aria-label={open ? 'collapse table' : 'expand table'}
-            size="small"
-            onClick={() => setOpen(!open)}
-            data-testid={`${tableHeaderProps.testId}-collapse`}
-          >
-            <KeyboardArrowUpIcon />
-          </IconButton>
-        </Tooltip>
-      </Paper>
-    )
-  }
+  const minMaxValuesToHighlight: MinMaxValues = getMinMaxValueCalculator(
+    rowsSortedByDatetime
+  )
+  const rowIds: RowIdsOfMinMaxValues = getMinMaxValuesRowIds(
+    rowsSortedByDatetime,
+    minMaxValuesToHighlight
+  )
 
   return (
     <div className={classes.display} data-testid={props.testId}>
-      <TableHeader title={props.title} testId={props.testId}></TableHeader>
-      <Paper className={classes.paper} elevation={1}>
-        <TableContainer className={classes.tableContainer}>
-          <Collapse in={open} timeout={250} unmountOnExit>
-            <Table stickyHeader size="small" aria-label="sortable wx table">
-              <TableHead>
-                <TableRow>
-                  {props.columns.map(column => {
-                    const canSort = column.id === 'datetime'
+      <Accordion defaultExpanded>
+        <AccordionSummary
+          data-testid={`${props.testId}-accordion`}
+          expandIcon={<ExpandMoreIcon />}
+        >
+          <Typography component="div" variant="subtitle2">
+            {props.title}
+          </Typography>
+        </AccordionSummary>
 
-                    return (
-                      <TableCell
-                        key={column.id}
-                        align={column.align}
-                        style={{ minWidth: column.minWidth, maxWidth: column.maxWidth }}
-                        sortDirection={canSort ? order : false}
-                      >
-                        {canSort ? (
-                          <TableSortLabel
-                            active={canSort}
-                            direction={order}
-                            onClick={toggleDatetimeOrder}
-                          >
-                            {column.label}
-                          </TableSortLabel>
-                        ) : (
-                          column.label
-                        )}
-                      </TableCell>
-                    )
-                  })}
-                </TableRow>
-              </TableHead>
-
-              <TableBody>
-                {rowsSortedByDatetime.map((row, idx) => (
-                  <TableRow key={idx} hover tabIndex={-1}>
+        <AccordionDetails>
+          <Paper className={classes.paper} elevation={1}>
+            <TableContainer className={classes.tableContainer}>
+              <Table stickyHeader size="small" aria-label="sortable wx table">
+                <TableHead>
+                  <TableRow>
                     {props.columns.map(column => {
-                      const value = row[column.id]
-                      let display = null
-
-                      if (typeof value === 'string' && column.formatDt) {
-                        display = column.formatDt(value)
-                      }
-                      if (typeof value === 'number' && column.format) {
-                        display = column.format(value)
-                      }
-
+                      const canSort = column.id === 'datetime'
                       return (
-                        <TableCell key={column.id} align={column.align}>
-                          {display}
+                        <TableCell
+                          key={column.id}
+                          align={column.align}
+                          style={{ minWidth: column.minWidth, maxWidth: column.maxWidth }}
+                          sortDirection={canSort ? order : false}
+                        >
+                          {canSort ? (
+                            <TableSortLabel
+                              active={canSort}
+                              direction={order}
+                              onClick={toggleDatetimeOrder}
+                            >
+                              {column.label}
+                            </TableSortLabel>
+                          ) : (
+                            column.label
+                          )}
                         </TableCell>
                       )
                     })}
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </Collapse>
-        </TableContainer>
-      </Paper>
+                </TableHead>
+
+                <TableBody>
+                  {rowsSortedByDatetime.map((row, idx) => (
+                    <TableRow key={idx} hover tabIndex={-1}>
+                      {props.columns.map(column => {
+                        const value = row[column.id]
+                        let display = null
+                        const { className, testId } = getCellClassNameAndTestId(
+                          column,
+                          rowIds,
+                          idx,
+                          classes
+                        )
+
+                        if (typeof value === 'string' && column.formatDt) {
+                          display = column.formatDt(value)
+                        }
+                        if (typeof value === 'number' && column.format) {
+                          display = column.format(value)
+                        }
+
+                        return (
+                          <TableCell
+                            key={column.id}
+                            align={column.align}
+                            className={className}
+                            data-testid={testId}
+                          >
+                            {display}
+                          </TableCell>
+                        )
+                      })}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Paper>
+        </AccordionDetails>
+      </Accordion>
     </div>
   )
 }

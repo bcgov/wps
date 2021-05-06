@@ -1,7 +1,9 @@
 import { combineReducers } from '@reduxjs/toolkit'
 
-import stationsReducer from 'features/stations/slices/stationsSlice'
+import stationReducer from 'features/stations/slices/stationsSlice'
 import percentilesReducer from 'features/percentileCalculator/slices/percentilesSlice'
+import cHainesModelRunReducer from 'features/cHaines/slices/cHainesModelRunsSlice'
+import cHainesPredictionReducer from 'features/cHaines/slices/cHainesPredictionsSlice'
 import authReducer from 'features/auth/slices/authenticationSlice'
 import modelsReducer from 'features/fireWeather/slices/modelsSlice'
 import observationsReducer from 'features/fireWeather/slices/observationsSlice'
@@ -15,8 +17,11 @@ import regionalModelSummariesReducer from 'features/fireWeather/slices/regionalM
 import peakBurninessReducer from 'features/peakBurniness/slices/peakBurninessSlice'
 
 const rootReducer = combineReducers({
-  stations: stationsReducer,
+  percentileStations: stationReducer,
+  fireWeatherStations: stationReducer,
   percentiles: percentilesReducer,
+  cHainesModelRuns: cHainesModelRunReducer,
+  cHainesPredictions: cHainesPredictionReducer,
   authentication: authReducer,
   observations: observationsReducer,
   models: modelsReducer,
@@ -36,8 +41,11 @@ export type RootState = ReturnType<typeof rootReducer>
 export default rootReducer
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-export const selectStations = (state: RootState) => state.stations
+export const selectPercentileStations = (state: RootState) => state.percentileStations
+export const selectFireWeatherStations = (state: RootState) => state.fireWeatherStations
 export const selectPercentiles = (state: RootState) => state.percentiles
+export const selectCHainesModelRuns = (state: RootState) => state.cHainesModelRuns
+export const selectChainesPredictions = (state: RootState) => state.cHainesPredictions
 export const selectAuthentication = (state: RootState) => state.authentication
 export const selectToken = (state: RootState) => state.authentication.token
 export const selectModels = (state: RootState) => state.models
@@ -62,3 +70,5 @@ export const selectWxDataLoading = (state: RootState): boolean =>
   state.regionalModels.loading ||
   state.regionalModelSummaries.loading
 export const selectPeakBurninessValues = (state: RootState) => state.peakBurninessValues
+export const selectFireWeatherStationsLoading = (state: RootState): boolean =>
+  state.fireWeatherStations.loading

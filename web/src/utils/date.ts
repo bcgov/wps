@@ -1,20 +1,50 @@
-import moment from 'moment'
+import { DateTime } from 'luxon'
 
-import { PST_UTC_OFFSET, PDT_UTC_OFFSET } from 'utils/constants'
+import { PST_UTC_OFFSET } from './constants'
+
+const UTC_NOON_HOUR = Math.abs(PST_UTC_OFFSET) + 12
+
+const toISO = (dtDateTime: DateTime): string => {
+  // Use for consistent ISO formatting.
+  return dtDateTime.toISO({ suppressMilliseconds: true, includeOffset: true })
+}
 
 export const isNoonInPST = (dt: string): boolean =>
-  moment(dt)
-    .utc()
-    .hour() ===
-  Math.abs(PST_UTC_OFFSET) + 12
+  DateTime.fromISO(dt).setZone('UTC').hour === UTC_NOON_HOUR
 
-export const formatDateInPDT = (dt: string | number | Date, format?: string): string =>
-  moment(dt)
-    .utcOffset(PDT_UTC_OFFSET)
-    .format(format || 'YYYY-MM-DD HH:mm')
+export const formatDateInPST = (
+  dt: string | Date | DateTime,
+  format?: string
+): string => {
+  let datetime = undefined
+
+  if (typeof dt === 'string') {
+    datetime = DateTime.fromISO(dt)
+  } else if (dt instanceof Date) {
+    datetime = DateTime.fromJSDate(dt)
+  } else {
+    datetime = dt
+  }
+
+  return datetime.setZone(`UTC${PST_UTC_OFFSET}`).toFormat(format || 'yyyy-MM-dd HH:mm')
+}
 
 export const formatMonthAndDay = (month: number, day: number): string =>
-  moment()
-    .month(month - 1)
-    .date(day)
-    .format('D MMMM')
+  DateTime.fromObject({ month, day }).toFormat('d LLLL')
+
+export const suppressMilliInISO = (iso: string): string => iso.replace(/\.\d{0,3}/, '') // Using RegExp to remove the "." and milliseconds
+
+export const formatDateInUTC00Suffix = (dtISO: string): string => {
+  // Given an ISO formated datetime string, return a ISO formatted datetime string for NOON UTC of that day.
+  const dtDateTime = DateTime.fromISO(dtISO).setZone(`UTC${PST_UTC_OFFSET}`)
+  const dtJS = dtDateTime.toJSDate()
+  // We want today to stay today (e.g., if it's 11pm in PST, we know it's already tomorrow in UTC, but
+  // we want the noon time for today in PST, not today in UTC, which is tomorrow. (today!)
+  dtJS.setUTCDate(dtDateTime.day)
+  dtJS.setUTCHours(UTC_NOON_HOUR)
+  dtJS.setMinutes(0)
+  dtJS.setSeconds(0)
+  dtJS.setMilliseconds(0)
+  const isoNoon = toISO(DateTime.fromJSDate(dtJS).setZone('UTC'))
+  return isoNoon.substring(0, isoNoon.length - 1) + '+00:00'
+}

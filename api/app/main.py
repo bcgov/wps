@@ -9,13 +9,12 @@ from starlette.applications import Starlette
 from app import schemas, configure_logging
 from app.percentile import get_precalculated_percentiles
 from app.peak_burniness import get_precalculated_peak_values
-from app.auth import authenticate
+from app.auth import authentication_required, audit
 from app import config
 from app import health
 from app import hourlies
-from app import stations
 from app.frontend import frontend
-from app.routers import forecasts, weather_models
+from app.routers import forecasts, weather_models, c_haines, stations
 
 
 configure_logging()
@@ -90,15 +89,26 @@ api.add_middleware(
 
 api.include_router(forecasts.router)
 api.include_router(weather_models.router)
+api.include_router(c_haines.router)
+api.include_router(stations.router)
+
+
+@api.get('/ready')
+async def get_ready():
+    """ A simple endpoint for OpenShift readiness """
+    return Response()
 
 
 @api.get('/health')
 async def get_health():
-    """ A simple endpoint for Openshift Healthchecks """
+    """ A simple endpoint for Openshift Healthchecks.
+    It's assumed that if patroni is ok, then all is well.  """
     try:
         health_check = health.patroni_cluster_health_check()
-        logger.info('/health - healthy: %s. %s',
-                    health_check.get('healthy'), health_check.get('message'))
+
+        logger.debug('/health - healthy: %s. %s',
+                     health_check.get('healthy'), health_check.get('message'))
+
         return health_check
     except Exception as exception:
         logger.error(exception, exc_info=True)
@@ -106,26 +116,17 @@ async def get_health():
 
 
 @api.post('/observations/', response_model=schemas.observations.WeatherStationHourlyReadingsResponse)
-async def get_hourlies(request: schemas.stations.StationCodeList, _: bool = Depends(authenticate)):
-    """ Returns hourly observations for the last 5 days, for the specified weather stations """
+async def get_hourlies(request: schemas.shared.WeatherDataRequest,
+                       _=Depends(authentication_required),
+                       __=Depends(audit)):
+    """ Returns hourly observations for the 5 days before and 10 days after the time of interest
+    for the specified weather stations """
     try:
         logger.info('/observations/')
-        readings = await hourlies.get_hourly_readings(request.stations)
+
+        readings = await hourlies.get_hourly_readings(request.stations, request.time_of_interest)
+
         return schemas.observations.WeatherStationHourlyReadingsResponse(hourlies=readings)
-    except Exception as exception:
-        logger.critical(exception, exc_info=True)
-        raise
-
-
-@api.get('/stations/', response_model=schemas.stations.WeatherStationsResponse)
-async def get_stations(response: Response):
-    """ Return a list of fire weather stations.
-    """
-    try:
-        logger.info('/stations/')
-        weather_stations = await stations.get_stations()
-        response.headers["Cache-Control"] = "max-age=43200"  # let browsers to cache the data for 12 hours
-        return schemas.stations.WeatherStationsResponse(weather_stations=weather_stations)
     except Exception as exception:
         logger.critical(exception, exc_info=True)
         raise
@@ -137,7 +138,9 @@ async def get_percentiles(request: schemas.percentiles.PercentileRequest):
     """
     try:
         logger.info('/percentiles/')
+
         percentiles = get_precalculated_percentiles(request)
+
         return percentiles
     except Exception as exception:
         logger.critical(exception, exc_info=True)

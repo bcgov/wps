@@ -24,17 +24,17 @@ KEYS = ('tmp_tgl_2', 'rh_tgl_2')
 
 def _build_query_to_get_predictions(
         station_codes: List[int],
-        model: ModelEnum) -> List[Union[WeatherStationModelPrediction, PredictionModel]]:
+        model: ModelEnum, time_of_interest: datetime) -> List[Union[WeatherStationModelPrediction, PredictionModel]]:
     """ Build a query to get the predictions for a given list of weather stations for a specified
     model.
     """
     # Build the query:
-    session = app.db.database.get_read_session()
-    # We are only interested in the last 5 days.
-    now = time_utils.get_utc_now()
-    back_5_days = now - datetime.timedelta(days=5)
-    return get_station_model_predictions_order_by_prediction_timestamp(
-        session, station_codes, model, back_5_days, now)
+    with app.db.database.get_read_session_scope() as session:
+        # We are only interested in the last 5 days.
+        back_5_days = time_of_interest - datetime.timedelta(days=5)
+        response = get_station_model_predictions_order_by_prediction_timestamp(
+            session, station_codes, model, back_5_days, time_of_interest)
+    return response
 
 
 class ModelPredictionSummaryBuilder():
@@ -105,7 +105,8 @@ class ModelPredictionSummaryBuilder():
     async def get_summaries(
             self,
             model: ModelEnum,
-            station_codes: List[int]) -> List[WeatherModelPredictionSummary]:
+            station_codes: List[int],
+            time_of_interest: datetime) -> List[WeatherModelPredictionSummary]:
         """ Given a model and station codes, return list of weather summaries. """
         # Get list of stations.
         self.stations = {
@@ -113,7 +114,7 @@ class ModelPredictionSummaryBuilder():
             app.stations.get_stations_by_codes(station_codes)}
 
         # Build database query
-        new_query = _build_query_to_get_predictions(station_codes, model)
+        new_query = _build_query_to_get_predictions(station_codes, model, time_of_interest)
 
         # Iterate through the result of our query.
         for prediction, prediction_model in new_query:
@@ -138,8 +139,9 @@ class ModelPredictionSummaryBuilder():
 
 async def fetch_model_prediction_summaries(
         model: ModelEnum,
-        station_codes: List[int]) -> List[WeatherModelPredictionSummary]:
+        station_codes: List[int],
+        time_of_interest: datetime) -> List[WeatherModelPredictionSummary]:
     """ Given a model type (e.g. GDPS) and a  list of station codes, return a corresponding list of model
     prediction summaries containing various percentiles. """
     builder = ModelPredictionSummaryBuilder()
-    return await builder.get_summaries(model, station_codes)
+    return await builder.get_summaries(model, station_codes, time_of_interest)

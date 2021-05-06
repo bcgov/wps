@@ -149,6 +149,10 @@ class StationMachineLearning:  # pylint: disable=too-many-instance-attributes
             model_value = getattr(prediction, model_key)
             if model_value is not None:
                 actual_value = getattr(actual, sample_key)
+                if np.isnan(actual_value):
+                    # If for whatever reason we don't have an actual value, we skip this one.
+                    logger.warning('no actual value for %s', sample_key)
+                    continue
                 sample_value = getattr(sample_collection, sample_key)
                 sample_value.add_sample(self.points, self.target_coordinate, model_value,
                                         actual_value, actual.weather_date, model_key, sample_key)

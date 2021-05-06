@@ -12,6 +12,9 @@ parameters:
   - name: WFWX_USER
     description: The username to be used for authentication to the Wildfire One API
     required: true
+  - name: USE_WFWX
+    description: Boolean value indicating whether Wildfire One API should be used for data retrieval
+    required: true
   - name: WFWX_SECRET
     description: Password for authentication to access Wildfire One API
     required: true
@@ -40,8 +43,11 @@ parameters:
     required: true
   - name: STATUS_CHECKER_SECRET
     description: Token for status-checker Openshift service account. Used for /health check
-  - name: PATHFINDER_BASE_URI
-    description: Base URI for connecting to Pathfinder console in Openshift. Used for /health check
+  - name: OPENSHIFT_BASE_URI
+    description: Base URI for connecting to console in Openshift. Used for /health check
+  - name: OPENSHIFT_NAMESPACE_API
+    description: Openshift namespace api
+    value: "apis/apps/v1/namespaces/"
   - name: ROCKET_AUTH_TOKEN
     description: Authentication token for rocket.chat notifications
     required: true
@@ -58,6 +64,8 @@ parameters:
     description: URL for matomo (analytics) site.
   - name: MATOMO_SITE_ID
     description: ID of application for matomo (analytics) tracking.
+  - name: CERTBOT_SERVER
+    description: Certbot server url
 objects:
   - kind: ConfigMap
     apiVersion: v1
@@ -66,14 +74,15 @@ objects:
       labels:
         app.kubernetes.io/part-of: wps
     data:
-      env.origins: wps-*.pathfinder.gov.bc.ca
+      env.origins: wps-*.apps.silver.devops.gov.bc.ca
       env.wfwx-auth-url: ${WFWX_AUTH_URL}
       env.wfwx-base-url: ${WFWX_BASE_URL}
       env.wfwx-user: ${WFWX_USER}
+      env.use-wfwx: ${USE_WFWX}
       env.keycloak-public-key: ${KEYCLOAK_PUBLIC_KEY}
       bc-fire-weather-user: ${BC_FIRE_WEATHER_USER}
       bc-fire-weather-filter-id: ${BC_FIRE_WEATHER_FILTER_ID}
-      env.pathfinder-base-uri: ${PATHFINDER_BASE_URI}
+      env.openshift-base-uri: ${OPENSHIFT_BASE_URI}
       env.matomo-url: ${MATOMO_URL}
       env.matomo-site-id: ${MATOMO_SITE_ID}
       rocket.chat-channel: ${ROCKET_CHANNEL}
@@ -92,3 +101,5 @@ objects:
       status-checker-sa-secret: ${STATUS_CHECKER_SECRET}
       rocket.chat-auth-token-secret: ${ROCKET_AUTH_TOKEN}
       rocket.chat-user-id-secret: ${ROCKET_USER_ID}
+      env.openshift-namespace-api: ${OPENSHIFT_NAMESPACE_API}
+      certbot-server: ${CERTBOT_SERVER}

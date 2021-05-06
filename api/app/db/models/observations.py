@@ -1,5 +1,5 @@
 
-""" Class models that reflect resources and map to database tables relating to observed values 
+""" Class models that reflect resources and map to database tables relating to observed values
 (a.k.a. hourlies)
 """
 import math
@@ -22,12 +22,12 @@ class HourlyActual(Base):
         {'comment': 'The hourly_actuals for a weather station and weather date.'}
     )
     id = Column(Integer, primary_key=True)
-    weather_date = Column(TZTimeStamp, nullable=False)
-    station_code = Column(Integer, nullable=False)
-    temp_valid = Column(Boolean, default=False, nullable=False)
+    weather_date = Column(TZTimeStamp, nullable=False, index=True)
+    station_code = Column(Integer, nullable=False, index=True)
+    temp_valid = Column(Boolean, default=False, nullable=False, index=True)
     temperature = Column(Float, nullable=False)
     dewpoint = Column(Float, nullable=False)
-    rh_valid = Column(Boolean, default=False, nullable=False)
+    rh_valid = Column(Boolean, default=False, nullable=False, index=True)
     relative_humidity = Column(Float, nullable=False)
     wdir_valid = Column(Boolean, default=False, nullable=False)
     # Set default wind_direction to NaN because some stations don't report it

@@ -34,12 +34,17 @@ OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/bcfw_p1_hourly_actu
 -p JOB_NAME=bcfw-p1-hourly-actuals-${NAME_APP}-${SUFFIX} \
 -p NAME=${NAME_APP} \
 -p SUFFIX=${SUFFIX} \
--p SCHEDULE=\"${SCHEDULE}\""
+-p SCHEDULE=\"${SCHEDULE}\" \
+-p POSTGRES_USER=${POSTGRES_USER:-${NAME_APP}} \
+-p POSTGRES_DATABASE=${POSTGRES_DATABASE:-${NAME_APP}} \
+-p POSTGRES_WRITE_HOST=${POSTGRES_WRITE_HOST:-"patroni-${NAME_APP}-${SUFFIX}-leader"} \
+${PROJ_TOOLS:+ "-p PROJ_TOOLS=${PROJ_TOOLS}"} \
+${IMAGE_REGISTRY:+ "-p IMAGE_REGISTRY=${IMAGE_REGISTRY}"}"
 
 # Apply template (apply or use --dry-run)
 #
 OC_APPLY="oc -n ${PROJ_TARGET} apply -f -"
-[ "${APPLY}" ] || OC_APPLY="${OC_APPLY} --dry-run"
+[ "${APPLY}" ] || OC_APPLY="${OC_APPLY} --dry-run=client"
 
 # Execute commands
 #

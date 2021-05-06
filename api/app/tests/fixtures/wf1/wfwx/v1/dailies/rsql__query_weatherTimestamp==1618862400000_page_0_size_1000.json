@@ -1,0 +1,262 @@
+{
+    "_embedded": {
+        "dailies": [
+            {
+                "id": "6745b86a-1d8d-46f7-8897-e7d09a9d6a9b",
+                "createdBy": "WFWX_FIREWEATHER_API",
+                "lastEntityUpdateTimestamp": 1618864723564,
+                "updateDate": "2021-04-19T20:38:43.000+0000",
+                "lastModifiedBy": "WFWX_WEATHER_API",
+                "archive": true,
+                "startIndices": false,
+                "station": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/bb7cb089-2aac-4734-e053-1d09228eeca8",
+                "stationId": "bb7cb089-2aac-4734-e053-1d09228eeca8",
+                "weatherTimestamp": 1618862400000,
+                "temperature": 20.2,
+                "temperatureMin": -60.0,
+                "temperatureMax": 55.0,
+                "relativeHumidity": 28.0,
+                "relativeHumidityMin": 0.0,
+                "relativeHumidityMax": 105.0,
+                "windSpeed": 10.8,
+                "precipitation": 0.0,
+                "dangerForest": 3,
+                "dangerGrassland": 1,
+                "dangerScrub": 5,
+                "recordType": {
+                    "id": "ACTUAL",
+                    "displayLabel": "Actual",
+                    "displayOrder": 1,
+                    "createdBy": "DATA_LOAD",
+                    "lastModifiedBy": "DATA_LOAD"
+                },
+                "windDirection": 349.0,
+                "fineFuelMoistureCode": 93.117,
+                "duffMoistureCode": 38.461,
+                "droughtCode": 51.702,
+                "initialSpreadIndex": 11.494,
+                "buildUpIndex": 38.11,
+                "fireWeatherIndex": 21.436,
+                "dailySeverityRating": null,
+                "grasslandCuring": null,
+                "observationValidInd": true,
+                "observationValidComment": null,
+                "missingHourlyData": false,
+                "previousState": null,
+                "businessKey": "1618862400000-bfe0a6e2-e104-0210-e053-259e228e58c7",
+                "_links": {
+                    "self": {
+                        "href": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/dailies/rsql/6745b86a-1d8d-46f7-8897-e7d09a9d6a9b"
+                    }
+                }
+            },
+            {
+                "id": "6a1675c2-fbd0-4641-9a26-c6cf3a8861f5",
+                "createdBy": "WFWX_FIREWEATHER_API",
+                "lastEntityUpdateTimestamp": 1618864737939,
+                "updateDate": "2021-04-19T20:38:57.000+0000",
+                "lastModifiedBy": "WFWX_WEATHER_API",
+                "archive": true,
+                "startIndices": false,
+                "station": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/bb7cb089-2aac-4734-e053-1d09228eeca8",
+                "stationId": "bb7cb089-2aac-4734-e053-1d09228eeca8",
+                "weatherTimestamp": 1618862400000,
+                "temperature": 20.4,
+                "temperatureMin": -60.0,
+                "temperatureMax": 55.0,
+                "relativeHumidity": 28.0,
+                "relativeHumidityMin": 0.0,
+                "relativeHumidityMax": 105.0,
+                "windSpeed": 13.2,
+                "precipitation": 0.0,
+                "dangerForest": null,
+                "dangerGrassland": null,
+                "dangerScrub": null,
+                "recordType": {
+                    "id": "FORECAST",
+                    "displayLabel": "Forecast",
+                    "displayOrder": 1,
+                    "createdBy": "DATA_LOAD",
+                    "lastModifiedBy": "DATA_LOAD"
+                },
+                "windDirection": 140.0,
+                "fineFuelMoistureCode": null,
+                "duffMoistureCode": null,
+                "droughtCode": null,
+                "initialSpreadIndex": null,
+                "buildUpIndex": null,
+                "fireWeatherIndex": null,
+                "dailySeverityRating": null,
+                "grasslandCuring": null,
+                "observationValidInd": true,
+                "observationValidComment": null,
+                "missingHourlyData": false,
+                "previousState": null,
+                "businessKey": "1618862400000-bfe0a6e2-e105-0210-e053-259e228e58c7",
+                "_links": {
+                    "self": {
+                        "href": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/dailies/rsql/6a1675c2-fbd0-4641-9a26-c6cf3a8861f5"
+                    }
+                }
+            },
+            {
+                "id": "207e6606-a34e-474e-8726-90d0526cbb34",
+                "createdBy": "WFWX_FIREWEATHER_API",
+                "lastEntityUpdateTimestamp": 1618863782578,
+                "updateDate": "2021-04-19T20:23:02.000+0000",
+                "lastModifiedBy": "WFWX_WEATHER_API",
+                "archive": true,
+                "startIndices": false,
+                "station": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/bfe0a6e2-e10a-0210-e053-259e228e58c7",
+                "stationId": "bfe0a6e2-e10a-0210-e053-259e228e58c7",
+                "weatherTimestamp": 1618862400000,
+                "temperature": 20.4,
+                "temperatureMin": -60.0,
+                "temperatureMax": 55.0,
+                "relativeHumidity": 27.0,
+                "relativeHumidityMin": 0.0,
+                "relativeHumidityMax": 105.0,
+                "windSpeed": 9.9,
+                "precipitation": 0.0,
+                "dangerForest": null,
+                "dangerGrassland": null,
+                "dangerScrub": null,
+                "recordType": {
+                    "id": "ACTUAL",
+                    "displayLabel": "Actual",
+                    "displayOrder": 1,
+                    "createdBy": "DATA_LOAD",
+                    "lastModifiedBy": "DATA_LOAD"
+                },
+                "windDirection": 200.0,
+                "fineFuelMoistureCode": null,
+                "duffMoistureCode": null,
+                "droughtCode": null,
+                "initialSpreadIndex": null,
+                "buildUpIndex": null,
+                "fireWeatherIndex": null,
+                "dailySeverityRating": null,
+                "grasslandCuring": null,
+                "observationValidInd": true,
+                "observationValidComment": null,
+                "missingHourlyData": false,
+                "previousState": null,
+                "businessKey": "1618862400000-bfe0a6e2-e10a-0210-e053-259e228e58c7",
+                "_links": {
+                    "self": {
+                        "href": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/dailies/rsql/207e6606-a34e-474e-8726-90d0526cbb34"
+                    }
+                }
+            },
+            {
+                "id": "a4838fa3-5114-4ac9-b2da-aa3809cc88b8",
+                "createdBy": "WFWX_FIREWEATHER_API",
+                "lastEntityUpdateTimestamp": 1618863811856,
+                "updateDate": "2021-04-19T20:23:31.000+0000",
+                "lastModifiedBy": "WFWX_WEATHER_API",
+                "archive": true,
+                "startIndices": false,
+                "station": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/bfe0a6e2-e114-0210-e053-259e228e58c7",
+                "stationId": "bfe0a6e2-e114-0210-e053-259e228e58c7",
+                "weatherTimestamp": 1618862400000,
+                "temperature": 17.2,
+                "temperatureMin": -60.0,
+                "temperatureMax": 55.0,
+                "relativeHumidity": 17.0,
+                "relativeHumidityMin": 0.0,
+                "relativeHumidityMax": 105.0,
+                "windSpeed": 9.2,
+                "precipitation": 0.0,
+                "dangerForest": 2,
+                "dangerGrassland": 1,
+                "dangerScrub": 5,
+                "recordType": {
+                    "id": "ACTUAL",
+                    "displayLabel": "Actual",
+                    "displayOrder": 1,
+                    "createdBy": "DATA_LOAD",
+                    "lastModifiedBy": "DATA_LOAD"
+                },
+                "windDirection": 234.0,
+                "fineFuelMoistureCode": 93.637,
+                "duffMoistureCode": 30.285,
+                "droughtCode": 41.457,
+                "initialSpreadIndex": 11.402,
+                "buildUpIndex": 29.968,
+                "fireWeatherIndex": 18.926,
+                "dailySeverityRating": null,
+                "grasslandCuring": null,
+                "observationValidInd": true,
+                "observationValidComment": null,
+                "missingHourlyData": false,
+                "previousState": null,
+                "businessKey": "1618862400000-bfe0a6e2-e114-0210-e053-259e228e58c7",
+                "_links": {
+                    "self": {
+                        "href": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/dailies/rsql/a4838fa3-5114-4ac9-b2da-aa3809cc88b8"
+                    }
+                }
+            },
+            {
+                "id": "e64ddb27-2a9f-4fed-923f-a6f9db7b91ed",
+                "createdBy": "WFWX_FIREWEATHER_API",
+                "lastEntityUpdateTimestamp": 1618864725882,
+                "updateDate": "2021-04-19T20:38:45.000+0000",
+                "lastModifiedBy": "WFWX_WEATHER_API",
+                "archive": true,
+                "startIndices": false,
+                "station": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/bfe0a6e2-e11d-0210-e053-259e228e58c7",
+                "stationId": "bfe0a6e2-e11d-0210-e053-259e228e58c7",
+                "weatherTimestamp": 1618862400000,
+                "temperature": 21.6,
+                "temperatureMin": -60.0,
+                "temperatureMax": 55.0,
+                "relativeHumidity": 33.0,
+                "relativeHumidityMin": 0.0,
+                "relativeHumidityMax": 105.0,
+                "windSpeed": 3.4,
+                "precipitation": 0.0,
+                "dangerForest": 2,
+                "dangerGrassland": 1,
+                "dangerScrub": 5,
+                "recordType": {
+                    "id": "ACTUAL",
+                    "displayLabel": "Actual",
+                    "displayOrder": 1,
+                    "createdBy": "DATA_LOAD",
+                    "lastModifiedBy": "DATA_LOAD"
+                },
+                "windDirection": 285.0,
+                "fineFuelMoistureCode": 90.103,
+                "duffMoistureCode": 19.999,
+                "droughtCode": 44.914,
+                "initialSpreadIndex": 5.164,
+                "buildUpIndex": 19.946,
+                "fireWeatherIndex": 8.145,
+                "dailySeverityRating": null,
+                "grasslandCuring": null,
+                "observationValidInd": true,
+                "observationValidComment": null,
+                "missingHourlyData": false,
+                "previousState": null,
+                "businessKey": "1618862400000-bfe0a6e2-e11d-0210-e053-259e228e58c7",
+                "_links": {
+                    "self": {
+                        "href": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/dailies/rsql/e64ddb27-2a9f-4fed-923f-a6f9db7b91ed"
+                    }
+                }
+            }
+        ]
+    },
+    "_links": {
+        "self": {
+            "href": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1dailies/rsql?query=weatherTimestamp%3D%3D1618862400000"
+        }
+    },
+    "page": {
+        "size": 1000,
+        "totalElements": 5,
+        "totalPages": 1,
+        "number": 0
+    }
+}

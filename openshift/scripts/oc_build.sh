@@ -2,33 +2,38 @@
 #
 source "$(dirname ${0})/common/common"
 
-#%
-#% OpenShift Build Helper
-#%
-#%   Intended for use with a pull request-based pipeline.
-#%   Suffixes incl.: pr-###, test and prod.
-#%
-#% Usage:
-#%
-#%   ${THIS_FILE} [SUFFIX] [apply]
-#%
-#% Examples:
-#%
-#%   Provide a PR number. Defaults to a dry-run.
-#%   ${THIS_FILE} pr-0
-#%
-#%   Apply when satisfied.
-#%   ${THIS_FILE} pr-0 apply
-#%
+# %
+# % OpenShift Build Helper
+# %
+# %   Intended for use with a pull request-based pipeline.
+# %   Suffixes incl.: pr-###, test and prod.
+# %
+# % Usage:
+# %
+# %   ${THIS_FILE} [SUFFIX] [apply]
+# %
+# % Examples:
+# %
+# %   Provide a PR number. Defaults to a dry-run.
+# %   ${THIS_FILE} pr-0
+# %
+# %   Apply when satisfied.
+# %   ${THIS_FILE} pr-0 apply
+# %
 
 # Process a template (mostly variable substition)
-#
-OC_PROCESS="oc -n ${PROJ_TOOLS} process -f ${PATH_BC} -p NAME=${NAME_APP} -p SUFFIX=${SUFFIX} -p GIT_BRANCH=${GIT_BRANCH}"
+#​​
+OC_PROCESS="oc -n ${PROJ_TOOLS} process -f ${PATH_BC} \
+ -p NAME=${NAME_APP} \
+ -p SUFFIX=${SUFFIX} \
+ -p GIT_BRANCH=${GIT_BRANCH} \
+ ${DOCKER_IMAGE:+ "-p DOCKER_IMAGE=${DOCKER_IMAGE}"} \
+ ${DOCKER_FILE:+ "-p DOCKER_FILE=${DOCKER_FILE}"}"
 
 # Apply a template (apply or use --dry-run)
-#
+
 OC_APPLY="oc -n ${PROJ_TOOLS} apply -f -"
-[ "${APPLY}" ] || OC_APPLY="${OC_APPLY} --dry-run"
+[ "${APPLY}" ] || OC_APPLY="${OC_APPLY} --dry-run=client"
 
 # Cancel non complete builds and start a new build (apply or don't run)
 #

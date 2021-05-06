@@ -20,7 +20,7 @@ from app.db.crud.weather_models import (get_processed_file_record,
                                         get_processed_file_count,
                                         get_prediction_model_run_timestamp_records,
                                         get_model_run_predictions_for_grid,
-                                        get_grid_for_coordinate,
+                                        get_grids_for_coordinate,
                                         get_weather_station_model_prediction)
 from app.weather_models.machine_learning import StationMachineLearning
 from app.weather_models import ModelEnum, ProjectionEnum, construct_interpolated_noon_prediction
@@ -256,7 +256,7 @@ def download(url: str, path: str) -> str:
     # It's important to have a timeout on the get, otherwise the call may get stuck for an indefinite
     # amount of time - there is no default value for timeout. During testing, it was observed that
     # downloads usually complete in less than a second.
-    logger.info('downloading %s', url)
+    logger.info('Downloading %s', url)
     response = requests.get(url, timeout=60)
     # If the response is 200/OK.
     if response.status_code == 200:
@@ -318,6 +318,32 @@ def mark_prediction_model_run_processed(session: Session,
     app.db.crud.weather_models.update_prediction_run(session, prediction_run)
 
 
+def flag_file_as_processed(url: str, session: Session):
+    """ Flag the file as processed in the database """
+    processed_file = get_processed_file_record(session, url)
+    if processed_file:
+        logger.info('re-procesed %s', url)
+    else:
+        logger.info('file processed %s', url)
+        processed_file = ProcessedModelRunUrl(
+            url=url,
+            create_date=time_utils.get_utc_now())
+    processed_file.update_date = time_utils.get_utc_now()
+    # pylint: disable=no-member
+    session.add(processed_file)
+    session.commit()
+
+
+def check_if_model_run_complete(session: Session, urls):
+    """ Check if a particular model run is complete """
+    # pylint: disable=no-member
+    actual_count = get_processed_file_count(session, urls)
+    expected_count = len(urls)
+    logger.info('we have processed %s/%s files',
+                actual_count, expected_count)
+    return actual_count == expected_count
+
+
 class EnvCanada():
     """ Class that orchestrates downloading and processing of weather model grib files from environment
     Canada.
@@ -331,7 +357,6 @@ class EnvCanada():
         self.exception_count = 0
         # We always work in UTC:
         self.now = time_utils.get_utc_now()
-        self.session = app.db.database.get_write_session()
         self.grib_processor = GribFileProcessor()
         self.model_type = model_type
         # set projection based on model_type
@@ -342,60 +367,36 @@ class EnvCanada():
         elif self.model_type == ModelEnum.RDPS:
             self.projection = ProjectionEnum.REGIONAL_PS
 
-    def flag_file_as_processed(self, url):
-        """ Flag the file as processed in the database """
-        processed_file = get_processed_file_record(self.session, url)
-        if processed_file:
-            logger.info('re-procesed %s', url)
-        else:
-            logger.info('file processed %s', url)
-            processed_file = ProcessedModelRunUrl(
-                url=url,
-                create_date=time_utils.get_utc_now())
-        processed_file.update_date = time_utils.get_utc_now()
-        # pylint: disable=no-member
-        self.session.add(processed_file)
-        self.session.commit()
-
-    def check_if_model_run_complete(self, urls):
-        """ Check if a particular model run is complete """
-        # pylint: disable=no-member
-        actual_count = get_processed_file_count(self.session, urls)
-        expected_count = len(urls)
-        logger.info('we have processed %s/%s files',
-                    actual_count, expected_count)
-        return actual_count == expected_count
-
     def process_model_run_urls(self, urls):
         """ Process the urls for a model run.
         """
         for url in urls:
             try:
-                # check the database for a record of this file:
-                processed_file_record = get_processed_file_record(
-                    self.session, url)
-                if processed_file_record:
-                    # This file has already been processed - so we skip it.
-                    logger.info('file already processed %s', url)
-                else:
-                    # extract model info from filename:
-                    filename = os.path.basename(urlparse(url).path)
-                    model_info = parse_env_canada_filename(filename)
-                    # download the file:
-                    with tempfile.TemporaryDirectory() as tmp_path:
-                        downloaded = download(url, tmp_path)
-                        if downloaded:
-                            self.files_downloaded += 1
-                            # If we've downloaded the file ok, we can now process it.
-                            try:
-                                self.grib_processor.process_grib_file(
-                                    downloaded, model_info)
-                                # Flag the file as processed
-                                self.flag_file_as_processed(url)
-                                self.files_processed += 1
-                            finally:
-                                # delete the file when done.
-                                os.remove(downloaded)
+                with app.db.database.get_write_session_scope() as session:
+                    # check the database for a record of this file:
+                    processed_file_record = get_processed_file_record(session, url)
+                    if processed_file_record:
+                        # This file has already been processed - so we skip it.
+                        logger.info('file already processed %s', url)
+                    else:
+                        # extract model info from filename:
+                        filename = os.path.basename(urlparse(url).path)
+                        model_info = parse_env_canada_filename(filename)
+                        # download the file:
+                        with tempfile.TemporaryDirectory() as temporary_path:
+                            downloaded = download(url, temporary_path)
+                            if downloaded:
+                                self.files_downloaded += 1
+                                # If we've downloaded the file ok, we can now process it.
+                                try:
+                                    self.grib_processor.process_grib_file(
+                                        downloaded, model_info, session)
+                                    # Flag the file as processed
+                                    flag_file_as_processed(url, session)
+                                    self.files_processed += 1
+                                finally:
+                                    # delete the file when done.
+                                    os.remove(downloaded)
             # pylint: disable=broad-except
             except Exception as exception:
                 self.exception_count += 1
@@ -417,12 +418,13 @@ class EnvCanada():
         self.process_model_run_urls(urls)
 
         # Having completed processing, check if we're all done.
-        if self.check_if_model_run_complete(urls):
-            logger.info(
-                '{} model run {:02d}:00 completed with SUCCESS'.format(self.model_type, model_run_hour))
+        with app.db.database.get_write_session_scope() as session:
+            if check_if_model_run_complete(session, urls):
+                logger.info(
+                    '{} model run {:02d}:00 completed with SUCCESS'.format(self.model_type, model_run_hour))
 
-            mark_prediction_model_run_processed(
-                self.session, self.model_type, self.projection, self.now, model_run_hour)
+                mark_prediction_model_run_processed(
+                    session, self.model_type, self.projection, self.now, model_run_hour)
 
     def process(self):
         """ Entry point for downloading and processing weather model grib files """
@@ -443,9 +445,9 @@ class ModelValueProcessor:
     """ Iterate through model runs that have completed, and calculate the interpolated weather predictions.
     """
 
-    def __init__(self):
+    def __init__(self, session):
         """ Prepare variables we're going to use throughout """
-        self.session = app.db.database.get_write_session()
+        self.session = session
         self.stations = get_stations_synchronously()
         self.station_count = len(self.stations)
 
@@ -594,40 +596,44 @@ class ModelValueProcessor:
         # Lookup the grid our weather station is in.
         logger.info("Getting grid for coordinate %s and model %s",
                     coordinate, model_run.prediction_model)
-        grid = get_grid_for_coordinate(
+        # There should never be more than one grid per model - but it can happen.
+        # TODO: Re-factor away the need for the grid table entirely.
+        grid_query = get_grids_for_coordinate(
             self.session, model_run.prediction_model, coordinate)
 
-        # Convert the grid database object to a polygon object.
-        poly = to_shape(grid.geom)
-        # Extract the vertices of the polygon.
-        points = list(poly.exterior.coords)[:-1]
+        for grid in grid_query:
+            # Convert the grid database object to a polygon object.
+            poly = to_shape(grid.geom)
+            # Extract the vertices of the polygon.
+            # pylint: disable=no-member
+            points = list(poly.exterior.coords)[:-1]
 
-        machine = StationMachineLearning(
-            session=self.session,
-            model=model_run.prediction_model,
-            grid=grid,
-            points=points,
-            target_coordinate=coordinate,
-            station_code=station.code,
-            max_learn_date=model_run.prediction_run_timestamp)
-        machine.learn()
+            machine = StationMachineLearning(
+                session=self.session,
+                model=model_run.prediction_model,
+                grid=grid,
+                points=points,
+                target_coordinate=coordinate,
+                station_code=station.code,
+                max_learn_date=model_run.prediction_run_timestamp)
+            machine.learn()
 
-        # Get all the predictions associated to this particular model run, in the grid.
-        query = get_model_run_predictions_for_grid(
-            self.session, model_run, grid)
+            # Get all the predictions associated to this particular model run, in the grid.
+            query = get_model_run_predictions_for_grid(
+                self.session, model_run, grid)
 
-        # Iterate through all the predictions.
-        prev_prediction = None
-        for prediction in query:
-            if (prev_prediction is not None
-                    and prev_prediction.prediction_timestamp.hour == 18
-                    and prediction.prediction_timestamp.hour == 21):
-                noon_prediction = construct_interpolated_noon_prediction(prev_prediction, prediction)
+            # Iterate through all the predictions.
+            prev_prediction = None
+            for prediction in query:
+                if (prev_prediction is not None
+                        and prev_prediction.prediction_timestamp.hour == 18
+                        and prediction.prediction_timestamp.hour == 21):
+                    noon_prediction = construct_interpolated_noon_prediction(prev_prediction, prediction)
+                    self._process_prediction(
+                        noon_prediction, station, model_run, points, coordinate, machine)
                 self._process_prediction(
-                    noon_prediction, station, model_run, points, coordinate, machine)
-            self._process_prediction(
-                prediction, station, model_run, points, coordinate, machine)
-            prev_prediction = prediction
+                    prediction, station, model_run, points, coordinate, machine)
+                prev_prediction = prediction
 
     def _mark_model_run_interpolated(self, model_run: PredictionModelRunTimestamp):
         """ Having completely processed a model run, we can mark it has having been interpolated.
@@ -665,9 +671,10 @@ def process_models():
     env_canada = EnvCanada(model_type)
     env_canada.process()
 
-    # interpolate and machine learn everything that needs interpolating.
-    model_value_processor = ModelValueProcessor()
-    model_value_processor.process(model_type)
+    with app.db.database.get_write_session_scope() as session:
+        # interpolate and machine learn everything that needs interpolating.
+        model_value_processor = ModelValueProcessor(session)
+        model_value_processor.process(model_type)
 
     # calculate the execution time.
     execution_time = datetime.datetime.now() - start_time

@@ -12,59 +12,13 @@
 #
 # Examples:
 #   
-#   Copy database from a pod in production.
-#   PROJECT=auzhsi-prod POD=patroni-wps-prod-2 DATABASE=wps-prod ./copy_db_from_pod_to_local.sh
+#   Copy partial database from a pod in production.
+#   PROJECT=e1e498-prod POD=patroni-wps-prod-2 DATABASE=wps ./copy_partial_db_from_pod_to_local.sh
 #
 
 set -euo pipefail
 
-
-################
-# Variable check
-################
-if [ -z ${PROJECT+0} ]
-then
-    echo "---------------------"
-    echo "PROJECT not specified"
-    printf "\nSpecify a project:\n\n"
-    RSH="oc get projects"
-    eval "${RSH}"
-    exit 1
-fi
-
-if [ -z ${POD+0} ]
-then
-    echo "-----------------"
-    echo "POD not specified"
-    printf "\nSpecify a pod:\n\n"
-    RSH="oc -n ${PROJECT} get pods"
-    eval $RSH
-    exit 1
-fi
-
-# openshift rsh command.
-RSH="oc -n ${PROJECT} rsh ${POD}"
-
-# Check that the pod specified is a replica, not a leader. We don't want to bog
-# down the leader, since it's getting a lot of stuff written to it.
-if eval "${RSH} patronictl list" | grep ${POD} | grep -q 'Leader'; then
-    echo "-------------------------"
-    echo "Please specify a Replica!"
-    printf "\n\n"
-    eval "${RSH} patronictl list"
-    exit 1
-fi
-
-if [ -z ${DATABASE+0} ]
-then
-    echo "----------------------"
-    echo "DATABASE not specified"
-    echo "Specify a database:"
-    echo ""
-    eval "${RSH} psql -c '\l'"
-    exit 1
-fi
-
+source "$SCRIPT_DIR/common_oc_checks.sh"
 
 #####################
 # Backup the database

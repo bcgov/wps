@@ -1,15 +1,13 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useDispatch } from 'react-redux'
+import { useLocation } from 'react-router-dom'
 import { makeStyles } from '@material-ui/core/styles'
-import { useLocation, useHistory } from 'react-router-dom'
 
-import { PageHeader, PageTitle, Container } from 'components'
-import WxStationDropdown from 'features/stations/components/WxStationDropdown'
-import WxDataDisplays from 'features/fireWeather/components/WxDataDisplays'
+import { PageHeader } from 'components'
+import { getStationCodesFromUrl, getTimeOfInterestFromUrl } from 'utils/url'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { fetchGlobalModelsWithBiasAdj } from 'features/fireWeather/slices/modelsSlice'
 import { fetchObservations } from 'features/fireWeather/slices/observationsSlice'
-import GetWxDataButton from 'features/fireWeather/components/GetWxDataButton'
 import { fetchForecasts } from 'features/fireWeather/slices/forecastsSlice'
 import { fetchGlobalModelSummaries } from 'features/fireWeather/slices/modelSummariesSlice'
 import { fetchForecastSummaries } from 'features/fireWeather/slices/forecastSummariesSlice'
@@ -17,75 +15,187 @@ import { fetchHighResModels } from 'features/fireWeather/slices/highResModelsSli
 import { fetchHighResModelSummaries } from 'features/fireWeather/slices/highResModelSummariesSlice'
 import { fetchRegionalModels } from 'features/fireWeather/slices/regionalModelsSlice'
 import { fetchRegionalModelSummaries } from 'features/fireWeather/slices/regionalModelSummariesSlice'
-import { getStationCodesFromUrl, stationCodeQueryKey } from 'utils/url'
+import WxDataDisplays from 'features/fireWeather/components/WxDataDisplays'
+import WxDataForm from 'features/fireWeather/components/WxDataForm'
+import AccuracyColorLegend from 'features/fireWeather/components/AccuracyColorLegend'
+import SidePanel, { SidePanelEnum } from 'features/fireWeather/components/SidePanel'
+import NetworkErrorMessages from 'features/fireWeather/components/NetworkErrorMessages'
+import WeatherMap from 'features/fireWeather/components/maps/WeatherMap'
+import ExpandableContainer from 'features/fireWeather/components/ExpandableContainer'
+import { getDetailedStations, StationSource } from 'api/stationAPI'
+import { PARTIAL_WIDTH, FULL_WIDTH, CENTER_OF_BC } from 'utils/constants'
+import { RedrawCommand } from 'features/map/Map'
+import StationAccuracyForDate from '../components/StationAccuracyForDate'
 
-const useStyles = makeStyles({
-  stationDropdown: {
-    marginBottom: 10
+const useStyles = makeStyles(theme => ({
+  main: {
+    display: 'flex',
+    flexDirection: 'column',
+    height: '100vh'
+  },
+  nav: {
+    background: theme.palette.primary.light,
+    color: theme.palette.primary.contrastText,
+    minHeight: 60,
+    display: 'flex',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    paddingLeft: 25,
+    paddingRight: 25
+  },
+  content: {
+    flexGrow: 1,
+    display: 'flex',
+    overflowY: 'auto'
+  },
+  map: {
+    order: 1,
+    flexGrow: 1,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  legend: {
+    display: 'flex',
+    alignItems: 'flex-end',
+    backgroundColor: theme.palette.primary.light
   }
-})
+}))
+
+const calculateSidePanelWidth = (codesFromQuery: number[]) => {
+  return codesFromQuery.length > 1 ? FULL_WIDTH : PARTIAL_WIDTH
+}
 
 const MoreCastPage = () => {
   const classes = useStyles()
-  const dispatch = useDispatch()
   const location = useLocation()
-  const history = useHistory()
 
+  // We base our station & toi list entirely from the URL.
   const codesFromQuery = getStationCodesFromUrl(location.search)
-  const [selectedCodes, setSelectedCodes] = useState<number[]>(codesFromQuery)
+  const toiFromQuery = getTimeOfInterestFromUrl(location.search)
 
-  useEffect(() => {
-    dispatch(fetchWxStations())
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  const shouldInitiallyShowSidePanel = codesFromQuery.length > 0
+  const [showSidePanel, setShowSidePanel] = useState(shouldInitiallyShowSidePanel)
+  const [sidePanelWidth, setSidePanelWidth] = useState(
+    calculateSidePanelWidth(codesFromQuery)
+  )
 
-  useEffect(() => {
-    if (codesFromQuery.length > 0) {
-      dispatch(fetchObservations(codesFromQuery))
-      dispatch(fetchForecasts(codesFromQuery))
-      dispatch(fetchForecastSummaries(codesFromQuery))
-      dispatch(fetchGlobalModelsWithBiasAdj(codesFromQuery))
-      dispatch(fetchGlobalModelSummaries(codesFromQuery))
-      dispatch(fetchHighResModels(codesFromQuery))
-      dispatch(fetchHighResModelSummaries(codesFromQuery))
-      dispatch(fetchRegionalModels(codesFromQuery))
-      dispatch(fetchRegionalModelSummaries(codesFromQuery))
+  const [mapCenter, setMapCenter] = useState(CENTER_OF_BC)
+  const expandSidePanel = () => setSidePanelWidth(FULL_WIDTH)
+  const collapseSidePanel = () => {
+    return setSidePanelWidth(PARTIAL_WIDTH)
+  }
+
+  // Callback to set the latest center coordinates when side panel is collapsed
+  // to preserve any panning of the map by the user before panel was expanded.
+  const setNewMapCenter = (newMapCenter: number[]) => {
+    setMapCenter(newMapCenter)
+  }
+
+  const shouldRedraw = !showSidePanel || sidePanelWidth === PARTIAL_WIDTH
+
+  const getRedrawCommand = (): RedrawCommand | undefined => {
+    return shouldRedraw ? { redraw: true } : undefined
+  }
+
+  const setSidePanelState = (show: boolean) => {
+    if (show) {
+      setShowSidePanel(true)
+      setSidePanelWidth(calculateSidePanelWidth(codesFromQuery))
+    } else {
+      closeSidePanel()
     }
+  }
+  const closeSidePanel = () => setShowSidePanel(false)
 
-    // Update local state to match with the url query
-    setSelectedCodes(codesFromQuery)
-  }, [location]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const onSubmitClick = () => {
-    // Update the url query with the new station codes
-    history.push({ search: `${stationCodeQueryKey}=${selectedCodes.join(',')}` })
-
-    // Create matomo event
-    // NOTE: This section is proof of concept - strongly consider re-factoring when adding other events.
-    // TODO: Re-evaluate this way of implementing Matomo once we know more about it.
-    if (window._mtm) {
-      // Create event, and push list of stations to the matomo data layer.
-      // see: https://developer.matomo.org/guides/tagmanager/integration-plugin#supporting-the-data-layer
-      window._mtm.push({ event: 'getWeatherData', stationCodes: selectedCodes })
+  const [showTableView, toggleTableView] = useState(
+    codesFromQuery.length > 1 ? SidePanelEnum.Comparison : SidePanelEnum.Tables
+  )
+  const handleToggleView = (
+    _: React.MouseEvent<HTMLElement>,
+    newTableView: SidePanelEnum
+  ) => {
+    if (newTableView !== null) {
+      toggleTableView(newTableView)
     }
   }
 
-  const shouldGetBtnDisabled = selectedCodes.length === 0
+  const dispatch = useDispatch()
+  useEffect(() => {
+    const codesFromQuery = getStationCodesFromUrl(location.search)
+    const toiFromQuery = getTimeOfInterestFromUrl(location.search)
+    if (codesFromQuery.length > 0) {
+      dispatch(fetchObservations(codesFromQuery, toiFromQuery))
+      dispatch(fetchForecasts(codesFromQuery, toiFromQuery))
+      dispatch(fetchForecastSummaries(codesFromQuery, toiFromQuery))
+      dispatch(fetchHighResModels(codesFromQuery, toiFromQuery))
+      dispatch(fetchHighResModelSummaries(codesFromQuery, toiFromQuery))
+      dispatch(fetchRegionalModels(codesFromQuery, toiFromQuery))
+      dispatch(fetchRegionalModelSummaries(codesFromQuery, toiFromQuery))
+      dispatch(fetchGlobalModelsWithBiasAdj(codesFromQuery, toiFromQuery))
+      dispatch(fetchGlobalModelSummaries(codesFromQuery, toiFromQuery))
+    }
+    // Update local state to match with the query url
+    dispatch(
+      fetchWxStations(getDetailedStations, StationSource.unspecified, toiFromQuery)
+    )
+    if (codesFromQuery.length > 1) {
+      toggleTableView(SidePanelEnum.Comparison)
+      setSidePanelState(true)
+    } else {
+      toggleTableView(SidePanelEnum.Tables)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location])
 
   return (
-    <main>
-      <PageHeader title="Predictive Services Unit" productName="MoreCast" />
-      <PageTitle title="MoreCast - Weather Forecast Validation Tool" />
-      <Container>
-        <WxStationDropdown
-          className={classes.stationDropdown}
-          stationCodes={selectedCodes}
-          onChange={setSelectedCodes}
+    <main className={classes.main}>
+      <PageHeader title="MoreCast" productName="MoreCast" noContainer padding={25} />
+      <div className={classes.nav}>
+        <WxDataForm
+          stationCodesQuery={codesFromQuery}
+          toiFromQuery={toiFromQuery}
+          setSidePanelState={setSidePanelState}
         />
-
-        <GetWxDataButton onBtnClick={onSubmitClick} disabled={shouldGetBtnDisabled} />
-
-        <WxDataDisplays stationCodes={codesFromQuery} />
-      </Container>
+      </div>
+      <div className={classes.content}>
+        <div className={classes.map}>
+          <WeatherMap
+            redrawFlag={getRedrawCommand()}
+            isCollapsed={sidePanelWidth === FULL_WIDTH}
+            toiFromQuery={toiFromQuery}
+            center={mapCenter}
+            setMapCenter={setNewMapCenter}
+          />
+        </div>
+        <ExpandableContainer
+          open={showSidePanel}
+          close={closeSidePanel}
+          expand={expandSidePanel}
+          collapse={collapseSidePanel}
+          currentWidth={sidePanelWidth}
+        >
+          <SidePanel
+            handleToggleView={handleToggleView}
+            showTableView={showTableView}
+            stationCodes={codesFromQuery}
+          >
+            <NetworkErrorMessages />
+            <WxDataDisplays
+              stationCodes={codesFromQuery}
+              timeOfInterest={toiFromQuery}
+              expandedOrCollapsed={getRedrawCommand()}
+              showTableView={showTableView}
+            />
+          </SidePanel>
+        </ExpandableContainer>
+      </div>
+      {(sidePanelWidth <= PARTIAL_WIDTH || showSidePanel === false) && (
+        <div className={classes.legend} data-testid="legend">
+          <AccuracyColorLegend />
+          <StationAccuracyForDate toiFromQuery={toiFromQuery} />
+        </div>
+      )}
     </main>
   )
 }

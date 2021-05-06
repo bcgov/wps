@@ -1,0 +1,18 @@
+# Currenly only used by the c-haines cronjob, which needs a new version of gdal than is provided
+# by the debian image used to serve up the api.
+ARG DOCKER_IMAGE=image-registry.openshift-image-registry.svc:5000/e1e498-tools/ubuntu-base:20.04
+
+# Using local docker image to speed up build. See openshift/unicorn-base for details.
+FROM ${DOCKER_IMAGE}
+
+# Copy poetry files.
+COPY ./api/pyproject.toml ./api/poetry.lock /tmp/
+
+# Install dependancies.
+RUN cd /tmp && \
+    poetry install --no-root --no-dev
+
+# Copy the app:
+COPY ./api/app /app/app
+
+WORKDIR /app

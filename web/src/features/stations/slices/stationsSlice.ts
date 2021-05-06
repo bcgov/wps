@@ -1,21 +1,24 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
-import { Station, getStations } from 'api/stationAPI'
+import { StationSource, DetailedGeoJsonStation, GeoJsonStation } from 'api/stationAPI'
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
-
 interface State {
   loading: boolean
   error: string | null
-  stations: Station[]
-  stationsByCode: Record<number, Station | undefined>
+  stations: GeoJsonStation[] | DetailedGeoJsonStation[]
+  stationsByCode: Record<number, GeoJsonStation | DetailedGeoJsonStation | undefined>
+  selectedStationsByCode: number[]
+  codesOfRetrievedStationData: number[]
 }
 
 const initialState: State = {
   loading: false,
   error: null,
   stations: [],
-  stationsByCode: {}
+  stationsByCode: {},
+  selectedStationsByCode: [],
+  codesOfRetrievedStationData: []
 }
 
 const stationsSlice = createSlice({
@@ -29,30 +32,55 @@ const stationsSlice = createSlice({
       state.loading = false
       state.error = action.payload
     },
-    getStationsSuccess(state: State, action: PayloadAction<Station[]>) {
+    getStationsSuccess(
+      state: State,
+      action: PayloadAction<GeoJsonStation[] | DetailedGeoJsonStation[]>
+    ) {
       state.error = null
       state.stations = action.payload
       const stationsByCode: State['stationsByCode'] = {}
       action.payload.forEach(station => {
-        stationsByCode[station.code] = station
+        stationsByCode[station.properties.code] = station
       })
       state.stationsByCode = stationsByCode
       state.loading = false
+    },
+    selectStation(state: State, action: PayloadAction<number>) {
+      const selectedStationsList = state.selectedStationsByCode
+      selectedStationsList.push(action.payload)
+      const selectedStationsSet = new Set(selectedStationsList)
+      state.selectedStationsByCode = Array.from(selectedStationsSet.values())
+    },
+    selectStations(state: State, action: PayloadAction<number[]>) {
+      state.selectedStationsByCode = []
+      state.selectedStationsByCode = action.payload
     }
   }
 })
 
-const { getStationsStart, getStationsFailed, getStationsSuccess } = stationsSlice.actions
-
-export default stationsSlice.reducer
-
-export const fetchWxStations = (): AppThunk => async dispatch => {
+export const fetchWxStations = (
+  stationGetter:
+    | ((source: StationSource, toi?: string) => Promise<GeoJsonStation[]>)
+    | ((source: StationSource, toi?: string) => Promise<DetailedGeoJsonStation[]>),
+  source: StationSource = StationSource.unspecified,
+  toi?: string
+): AppThunk => async dispatch => {
   try {
     dispatch(getStationsStart())
-    const stations = await getStations()
+    const stations = await stationGetter(source, toi)
     dispatch(getStationsSuccess(stations))
   } catch (err) {
     dispatch(getStationsFailed(err.toString()))
     logError(err)
   }
 }
+
+export const {
+  getStationsStart,
+  getStationsFailed,
+  getStationsSuccess,
+  selectStation,
+  selectStations
+} = stationsSlice.actions
+
+export default stationsSlice.reducer

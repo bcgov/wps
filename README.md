@@ -1,3 +1,7 @@
+[![Issues](https://img.shields.io/github/issues/bcgov/wps.svg?style=for-the-badge)](/../../issues)
+[![MIT License](https://img.shields.io/github/license/bcgov/wps.svg?style=for-the-badge)](/LICENSE)
+[![Lifecycle](https://img.shields.io/badge/Lifecycle-Stable-97ca00?style=for-the-badge)](https://github.com/bcgov/repomountie/blob/master/doc/lifecycle-badges.md)
+
 # Wildfire Predictive Services
 
 ## Description
@@ -40,7 +44,7 @@ A glossary of terms relating to Wildfire that are relevant to Predictive Service
 
 ## Contributing
 
-### Branch naming conventions
+### Branch naming conventions 
 
 Branches must be named in accordance with the rules specified in [.githooks/pre-push](.githooks/pre-push).
 

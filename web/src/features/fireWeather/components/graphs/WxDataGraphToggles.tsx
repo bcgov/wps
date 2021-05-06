@@ -29,23 +29,23 @@ const useStyles = makeStyles({
 interface Props {
   toggleValues: ToggleValues
   setToggleValues: SetToggleValues
-  noObservations: boolean
-  noModels: boolean
-  noForecasts: boolean
-  noBiasAdjModels: boolean
-  noHighResModels: boolean
-  noRegionalModels: boolean
+  hasObservations: boolean
+  hasModels: boolean
+  hasForecasts: boolean
+  hasBiasAdjModels: boolean
+  hasHighResModels: boolean
+  hasRegionalModels: boolean
 }
 
 const WxDataToggles = ({
   toggleValues,
   setToggleValues,
-  noObservations,
-  noModels,
-  noForecasts,
-  noBiasAdjModels,
-  noHighResModels,
-  noRegionalModels
+  hasObservations,
+  hasModels,
+  hasForecasts,
+  hasBiasAdjModels,
+  hasHighResModels,
+  hasRegionalModels
 }: Props) => {
   const classes = useStyles()
   const handleSwitch = (e: React.ChangeEvent<{ name: string }>, checked: boolean) => {
@@ -71,7 +71,7 @@ const WxDataToggles = ({
             name="showObservations"
             data-testid="wx-graph-observation-toggle"
             checked={toggleValues.showObservations}
-            disabled={noObservations}
+            disabled={!hasObservations}
             size="small"
             onChange={handleSwitch}
           />
@@ -90,7 +90,7 @@ const WxDataToggles = ({
             name="showForecasts"
             data-testid="wx-graph-forecast-toggle"
             checked={toggleValues.showForecasts}
-            disabled={noForecasts}
+            disabled={!hasForecasts}
             size="small"
             onChange={handleSwitch}
           />
@@ -106,10 +106,10 @@ const WxDataToggles = ({
         className={classes.switchControl}
         control={
           <Switch
-            name="showHighResModels"
-            data-testid="wx-graph-high-res-model-toggle"
-            checked={toggleValues.showHighResModels}
-            disabled={noHighResModels}
+            name="showHrdps"
+            data-testid="wx-graph-hrdps-toggle"
+            checked={toggleValues.showHrdps}
+            disabled={!hasHighResModels}
             size="small"
             onChange={handleSwitch}
           />
@@ -125,10 +125,10 @@ const WxDataToggles = ({
         className={classes.switchControl}
         control={
           <Switch
-            name="showRegionalModels"
-            data-testid="wx-graph-regional-model-toggle"
-            checked={toggleValues.showRegionalModels}
-            disabled={noRegionalModels}
+            name="showRdps"
+            data-testid="wx-graph-rdps-toggle"
+            checked={toggleValues.showRdps}
+            disabled={!hasRegionalModels}
             size="small"
             onChange={handleSwitch}
           />
@@ -144,10 +144,10 @@ const WxDataToggles = ({
         className={classes.switchControl}
         control={
           <Switch
-            name="showModels"
-            data-testid="wx-graph-global-model-toggle"
-            checked={toggleValues.showModels}
-            disabled={noModels}
+            name="showGdps"
+            data-testid="wx-graph-gdps-toggle"
+            checked={toggleValues.showGdps}
+            disabled={!hasModels}
             size="small"
             onChange={handleSwitch}
           />
@@ -163,10 +163,10 @@ const WxDataToggles = ({
         className={classes.switchControl}
         control={
           <Switch
-            name="showBiasAdjModels"
-            data-testid="wx-graph-bias-toggle"
-            checked={toggleValues.showBiasAdjModels}
-            disabled={noBiasAdjModels}
+            name="showBiasAdjGdps"
+            data-testid="wx-graph-bias-adjusted-gdps-toggle"
+            checked={toggleValues.showBiasAdjGdps}
+            disabled={!hasBiasAdjModels}
             size="small"
             onChange={handleSwitch}
           />

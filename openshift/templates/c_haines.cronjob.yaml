@@ -1,0 +1,116 @@
+kind: Template
+apiVersion: template.openshift.io/v1
+metadata:
+  name: ${JOB_NAME}-cronjob-template
+  annotations:
+    description: "Scheduled task to run c-haines."
+    tags: "cronjob,c-haines"
+labels:
+  app.kubernetes.io/part-of: "${NAME}"
+  app: ${NAME}-${SUFFIX}
+parameters:
+  - name: NAME
+    description: Module name
+    value: wps
+  - name: IMAGE_REGISTRY
+    description: Image registry for imagestream.
+    value: image-registry.openshift-image-registry.svc:5000
+    required: true
+  - name: IMAGE_NAME
+    required: true
+  - name: IMAGE_TAG
+    required: true
+  - name: GLOBAL_NAME
+    description: Name of global Module
+    value: wps
+  - name: SUFFIX
+    description: Deployment suffix, e.g. pr-###
+    required: true
+  - name: PROJ_TOOLS
+    required: true
+  - name: JOB_NAME
+    value: c-haines
+  - name: SCHEDULE
+    value: "27 * * * *"
+    required: true
+  - name: POSTGRES_WRITE_HOST
+    required: true
+  - name: POSTGRES_READ_HOST
+    required: true
+  - name: POSTGRES_USER
+    required: true
+  - name: POSTGRES_DATABASE
+    required: true
+objects:
+  - kind: CronJob
+    apiVersion: batch/v1beta1
+    metadata:
+      name: ${JOB_NAME}
+      labels:
+        cronjob: ${JOB_NAME}
+    spec:
+      schedule: ${SCHEDULE}
+      concurrencyPolicy: "Replace"
+      jobTemplate:
+        metadata:
+          labels:
+            cronjob: ${JOB_NAME}
+        spec:
+          template:
+            spec:
+              containers:
+                - name: ${JOB_NAME}
+                  resources:
+                    limits:
+                      cpu: "0.5"
+                      memory: 2Gi
+                    requests:
+                      cpu: "0.5"
+                      memory: 1Gi
+                  image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${IMAGE_NAME}:${IMAGE_TAG}
+                  imagePullPolicy: "Always"
+                  command: ["python3", "-m", "app.c_haines.worker"]
+                  env:
+                    - name: POSTGRES_READ_USER
+                      value: ${POSTGRES_USER}
+                    - name: POSTGRES_WRITE_USER
+                      value: ${POSTGRES_USER}
+                    - name: POSTGRES_PASSWORD
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}-global
+                          key: app-db-password
+                    - name: POSTGRES_WRITE_HOST
+                      value: ${POSTGRES_WRITE_HOST}
+                    - name: POSTGRES_READ_HOST
+                      value: ${POSTGRES_READ_HOST}
+                    - name: POSTGRES_PORT
+                      value: "5432"
+                    - name: POSTGRES_DATABASE
+                      value: ${POSTGRES_DATABASE}
+                    - name: MAX_WEEKS_C_HAINES
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${GLOBAL_NAME}-global
+                          key: env.max-weeks-c-haines
+                    - name: ROCKET_URL_POST_MESSAGE
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${GLOBAL_NAME}-global
+                          key: rocket.chat-url-post-message
+                    - name: ROCKET_CHANNEL
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${GLOBAL_NAME}-global
+                          key: rocket.chat-channel
+                    - name: ROCKET_USER_ID
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}-global
+                          key: rocket.chat-user-id-secret
+                    - name: ROCKET_AUTH_TOKEN
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}-global
+                          key: rocket.chat-auth-token-secret
+              restartPolicy: OnFailure

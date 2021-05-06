@@ -2,19 +2,20 @@
 """
 import os
 import json
+from typing import Generator, Dict, List
 from datetime import datetime, timedelta, timezone
 import math
 from abc import abstractmethod, ABC
 import logging
-from typing import List
 import asyncio
 import geopandas
 from aiohttp import ClientSession, BasicAuth, TCPConnector
 from shapely.geometry import Point
 from app import config
 from app.schemas.observations import WeatherStationHourlyReadings, WeatherReading
-from app.schemas.stations import WeatherStation
-import app.time_utils
+from app.schemas.stations import (WeatherStation, GeoJsonDetailedWeatherStation,
+                                  DetailedWeatherStationProperties, WeatherStationGeometry, WeatherVariables)
+from app.db.crud.stations import _get_noon_date
 
 
 logger = logging.getLogger(__name__)
@@ -31,7 +32,7 @@ class BuildQuery(ABC):
 
     def __init__(self):
         """ Initialize object """
-        self.max_page_size = config.get('WFWX_MAX_PAGE_SIZE')
+        self.max_page_size = config.get('WFWX_MAX_PAGE_SIZE', 1000)
         self.base_url = config.get('WFWX_BASE_URL')
 
     @abstractmethod
@@ -39,13 +40,14 @@ class BuildQuery(ABC):
         """ Return query url and params """
 
 
-class BuildQueryAllStations(BuildQuery):
-    """ Class for building a url and params to request all stations.  """
+class BuildQueryAllActiveStations(BuildQuery):
+    """ Class for building a url and RSQL params to request all active stations. """
 
     def query(self, page) -> [str, dict]:
-        """ Return query url and params """
-        params = {'size': self.max_page_size,
-                  'sort': 'displayLabel', 'page': page}
+        """ Return query url and params with rsql query for all weather stations marked active. """
+        # NOTE: Currently the filter on stationStatus.id doesn't work.
+        params = {'size': self.max_page_size, 'sort': 'displayLabel',
+                  'page': page, 'query': 'stationStatus.id=="ACTIVE"'}
         url = '{base_url}/v1/stations'.format(base_url=self.base_url)
         return [url, params]
 
@@ -96,7 +98,10 @@ async def _get_auth_header(session: ClientSession) -> dict:
     return header
 
 
-async def _fetch_raw_stations(session: ClientSession, headers: dict, query_builder: BuildQuery) -> dict:
+async def _fetch_raw_stations_generator(
+        session: ClientSession,
+        headers: dict,
+        query_builder: BuildQuery) -> Generator[dict, None, None]:
     """ Asynchronous generator for iterating through raw stations from the API.
     The station list is a paged response, but this generator abstracts that away.
     """
@@ -118,12 +123,41 @@ async def _fetch_raw_stations(session: ClientSession, headers: dict, query_build
         page_count = page_count + 1
 
 
+async def _fetch_detailed_geojson_stations(
+        session: ClientSession,
+        headers: dict,
+        query_builder: BuildQuery) -> (Dict[int, GeoJsonDetailedWeatherStation], Dict[str, int]):
+    stations = {}
+    id_to_code_map = {}
+    # Put the stations in a nice dictionary.
+    async for raw_station in _fetch_raw_stations_generator(session, headers, query_builder):
+        station_code = raw_station.get('stationCode')
+        station_status = raw_station.get('stationStatus', {}).get('id')
+        # Because we can't filter on status in the RSQL, we have to manually exclude stations that are
+        # not active.
+        if _is_station_valid(raw_station):
+            id_to_code_map[raw_station.get('id')] = station_code
+            geojson_station = GeoJsonDetailedWeatherStation(properties=DetailedWeatherStationProperties(
+                code=station_code,
+                name=raw_station.get('displayLabel')),
+                geometry=WeatherStationGeometry(
+                    coordinates=[raw_station.get('longitude'), raw_station.get('latitude')]))
+            stations[station_code] = geojson_station
+        else:
+            logger.debug('station %s, status %s', station_code, station_status)
+
+    return stations, id_to_code_map
+
+
 def _is_station_valid(station) -> bool:
     """ Run through a set of conditions to check if the station is valid.
 
+    The RSQL filter is unable to filter on station status.
+
     Returns True if station is good, False is station is bad.
     """
-    if station['stationStatus']['id'] != 'ACTIVE':
+    # In conversation with Dana Hicks, on Apr 20, 2021 - Dana said to show active, test and project.
+    if not station.get('stationStatus', {}).get('id') in ('ACTIVE', 'TEST', 'PROJECT'):
         return False
     if station['latitude'] is None or station['longitude'] is None:
         # We can't use a station if it doesn't have a latitude and longitude.
@@ -133,25 +167,31 @@ def _is_station_valid(station) -> bool:
     return True
 
 
+def get_ecodivision_name(latitude: str, longitude: str, ecodivisions: geopandas.GeoDataFrame):
+    """ Returns the ecodivision name for a given lat/long coordinate """
+    # if station's latitude >= 60 (approx.), it's in the Yukon, so it won't be captured
+    # in the shapefile, but it's considered to be part of the SUB-ARCTIC HIGHLANDS ecodivision.
+    if latitude >= 60:
+        return 'SUB-ARCTIC HIGHLANDS'
+    station_coord = Point(float(longitude), float(latitude))
+    for _, ecodivision_row in ecodivisions.iterrows():
+        geom = ecodivision_row['geometry']
+        if station_coord.within(geom):
+            return ecodivision_row['CDVSNNM']
+
+    # If we've reached here, the ecodivision for the station has not been found.
+    logger.error('Ecodivision not found for station at lat %f long %f', latitude, longitude)
+    return "DEFAULT"
+
+
 def _parse_station(station) -> WeatherStation:
     """ Transform from the json object returned by wf1, to our station object.
     """
     with open(core_season_file_path) as file_handle:
         core_seasons = json.load(file_handle)
     ecodivisions = geopandas.read_file(ecodiv_shape_file_path)
-    station_coord = Point(
-        float(station['longitude']), float(station['latitude']))
 
-    # hacky fix for station 447 (WATSON LAKE FS), which is in the Yukon
-    # so ecodivision name has to be hard-coded
-    if station['stationCode'] == '447':
-        ecodiv_name = "SUB-ARCTIC HIGHLANDS"
-    else:
-        for index, row in ecodivisions.iterrows():  # pylint: disable=redefined-outer-name, unused-variable
-            geom = row['geometry']
-            if station_coord.within(geom):
-                ecodiv_name = row['CDVSNNM']
-                break
+    ecodiv_name = get_ecodivision_name(station['latitude'], station['longitude'], ecodivisions)
     return WeatherStation(
         code=station['stationCode'],
         name=station['displayLabel'],
@@ -188,7 +228,7 @@ async def get_stations_by_codes(station_codes: List[int]) -> List[WeatherStation
         header = await _get_auth_header(session)
         stations = []
         # Iterate through "raw" station data.
-        iterator = _fetch_raw_stations(
+        iterator = _fetch_raw_stations_generator(
             session, header, BuildQueryByStationCode(station_codes))
         async for raw_station in iterator:
             # If the station is valid, add it to our list of stations.
@@ -207,27 +247,76 @@ async def get_stations() -> List[WeatherStation]:
         header = await _get_auth_header(session)
         stations = []
         # Iterate through "raw" station data.
-        async for raw_station in _fetch_raw_stations(session, header, BuildQueryAllStations()):
+        async for raw_station in _fetch_raw_stations_generator(
+                session, header, BuildQueryAllActiveStations()):
             # If the station is valid, add it to our list of stations.
             if _is_station_valid(raw_station):
-                logger.info('Processing raw_station %d',
-                            int(raw_station['stationCode']))
-                stations.append(_parse_station(raw_station))
+                stations.append(WeatherStation(code=raw_station['stationCode'],
+                                               name=raw_station['displayLabel'],
+                                               lat=raw_station['latitude'],
+                                               long=raw_station['longitude']))
         logger.debug('total stations: %d', len(stations))
     return stations
 
 
-def prepare_fetch_hourlies_query(raw_station):
+async def get_detailed_stations(time_of_interest: datetime):
+    """
+    We do two things in parallel.
+    # 1) list of stations
+    # 2) list of noon values
+    Once we've collected them all, we merge them into one response
+    """
+    # Limit the number of concurrent connections.
+    conn = TCPConnector(limit=10)
+    async with ClientSession(connector=conn) as session:
+        # Get the authentication header
+        header = await _get_auth_header(session)
+        # Fetch the daily (noon) values for all the stations
+        dailies_task = asyncio.create_task(
+            fetch_raw_dailies_for_all_stations(session, header, time_of_interest))
+        # Fetch all the stations
+        stations_task = asyncio.create_task(_fetch_detailed_geojson_stations(
+            session, header, BuildQueryAllActiveStations()))
+
+        # Await completion of concurrent tasks.
+        dailies = await dailies_task
+        stations, id_to_code_map = await stations_task
+
+        # Combine dailies and stations
+        for daily in dailies:
+            station_id = daily.get('stationId')
+            station_code = id_to_code_map.get(station_id, None)
+            if station_code:
+                station = stations[station_code]
+                weather_variable = WeatherVariables(
+                    temperature=daily.get('temperature'),
+                    relative_humidity=daily.get('relativeHumidity'))
+                record_type = daily.get('recordType').get('id')
+                if record_type == 'ACTUAL':
+                    station.properties.observations = weather_variable
+                elif record_type == 'FORECAST':
+                    station.properties.forecasts = weather_variable
+                else:
+                    logger.info('unexpected record type: %s', record_type)
+            else:
+                logger.debug('No station found for daily reading (%s)', station_id)
+
+        return list(stations.values())
+
+
+def prepare_fetch_hourlies_query(raw_station: dict, time_of_interest: datetime):
     """ Prepare url and params to fetch hourly readings from the WFWX Fireweather API.
     """
     base_url = config.get('WFWX_BASE_URL')
+
     # By default we're concerned with the last 5 days only.
-    now = app.time_utils.get_utc_now()
-    five_days_ago = now - timedelta(days=5)
-    logger.debug('requesting historic data from %s to %s', five_days_ago, now)
+    five_days_past = time_of_interest - timedelta(days=5)
+
+    logger.debug('requesting historic data from %s to %s', five_days_past, time_of_interest)
+
     # Prepare query params and query:
-    start_time_stamp = math.floor(five_days_ago.timestamp()*1000)
-    end_time_stamp = math.floor(now.timestamp()*1000)
+    start_time_stamp = math.floor(five_days_past.timestamp()*1000)
+    end_time_stamp = math.floor(time_of_interest.timestamp()*1000)
     station_id = raw_station['id']
     params = {'startTimestamp': start_time_stamp,
               'endTimestamp': end_time_stamp, 'stationId': station_id}
@@ -236,18 +325,58 @@ def prepare_fetch_hourlies_query(raw_station):
     url = '{base_url}{endpoint}'.format(
         base_url=base_url,
         endpoint=endpoint)
+
     return url, params
+
+
+def prepare_fetch_dailies_for_all_stations_query(time_of_interest: datetime, page_count: int):
+    """ Prepare url and params for fetching dailies (that's forecast and observations for noon) for all.
+    stations. """
+    base_url = config.get('WFWX_BASE_URL')
+    noon_date = _get_noon_date(time_of_interest)
+    timestamp = int(noon_date.timestamp()*1000)
+    # one could filter on recordType.id==FORECAST or recordType.id==ACTUAL but we want it all.
+    params = {'query': f'weatherTimestamp=={timestamp}',
+              'page': page_count,
+              'size': config.get('WFWX_MAX_PAGE_SIZE', 1000)}
+    endpoint = ('/v1/dailies/rsql')
+    url = f'{base_url}{endpoint}'
+    return url, params
+
+
+async def fetch_raw_dailies_for_all_stations(
+        session: ClientSession, headers: dict, time_of_interest: datetime) -> list:
+    """ Fetch the noon values (observations and forecasts) for a given time, for all weather stations.
+    """
+    # We don't know how many pages until our first call - so we assume one page to start with.
+    total_pages = 1
+    page_count = 0
+    hourlies = []
+    while page_count < total_pages:
+        # Build up the request URL.
+        url, params = prepare_fetch_dailies_for_all_stations_query(time_of_interest, page_count)
+        # Get dailies
+        async with session.get(url, params=params, headers=headers) as response:
+            dailies_json = await response.json()
+            total_pages = dailies_json['page']['totalPages']
+            hourlies.extend(dailies_json['_embedded']['dailies'])
+        page_count = page_count + 1
+    return hourlies
 
 
 async def fetch_hourlies(
         session: ClientSession,
         raw_station: dict,
-        headers: dict) -> WeatherStationHourlyReadings:
-    """ Fetch hourly weather readings for a give station.
+        headers: dict,
+        time_of_interest: datetime) -> WeatherStationHourlyReadings:
+    """ Fetch hourly weather readings for the past 5 days for a give station
+    TODO: rename this function, or specify the time range.
     """
-    url, params = prepare_fetch_hourlies_query(raw_station)
     logger.debug('fetching hourlies for %s(%s)',
                  raw_station['displayLabel'], raw_station['stationCode'])
+
+    url, params = prepare_fetch_hourlies_query(raw_station, time_of_interest)
+
     # Get hourlies
     async with session.get(url, params=params, headers=headers) as response:
         hourlies_json = await response.json()
@@ -256,16 +385,21 @@ async def fetch_hourlies(
             # We only accept "ACTUAL" values:
             if hourly.get('hourlyMeasurementTypeCode', '').get('id') == 'ACTUAL':
                 hourlies.append(_parse_hourly(hourly))
+
         logger.debug('fetched %d hourlies for %s(%s)', len(
             hourlies), raw_station['displayLabel'], raw_station['stationCode'])
+
         return WeatherStationHourlyReadings(values=hourlies, station=_parse_station(raw_station))
 
 
-async def get_hourly_readings(station_codes: List[int]) -> List[WeatherStationHourlyReadings]:
+async def get_hourly_readings(
+        station_codes: List[int],
+        time_of_interest: datetime) -> List[WeatherStationHourlyReadings]:
     """ Get the hourly readings for the list of station codes provided.
     """
     # Create a list containing all the tasks to run in parallel.
     tasks = []
+
     # Limit the number of concurrent connections.
     conn = TCPConnector(limit=10)
     async with ClientSession(connector=conn) as session:
@@ -273,11 +407,12 @@ async def get_hourly_readings(station_codes: List[int]) -> List[WeatherStationHo
         header = await _get_auth_header(session)
 
         # Iterate through "raw" station data.
-        iterator = _fetch_raw_stations(
+        iterator = _fetch_raw_stations_generator(
             session, header, BuildQueryByStationCode(station_codes))
         async for raw_station in iterator:
             task = asyncio.create_task(
-                fetch_hourlies(session, raw_station, header))
+                fetch_hourlies(session, raw_station, header, time_of_interest))
             tasks.append(task)
+
         # Run the tasks concurrently, waiting for them all to complete.
         return await asyncio.gather(*tasks)
