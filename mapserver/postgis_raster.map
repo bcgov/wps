@@ -1,0 +1,29 @@
+MAP
+    # -- displaying raster with standard raster options
+    LAYER
+        NAME demo
+        TYPE raster
+        STATUS ON
+        DATA "PG:host=localhost port=5432 dbname='wps' user='wps' password='wps'
+            schema='public' table='25m-utm-elevation' mode='2'"
+        PROCESSING "NODATA=0"
+        PROCESSING "SCALE=AUTO"
+        #... other standard raster processing functions here
+        #... classes are optional but useful for 1 band data
+        CLASS
+            NAME "boring"
+            EXPRESSION ([pixel] < 20)
+            COLOR 250 250 250
+        END
+        CLASS
+            NAME "mildly interesting"
+            EXPRESSION ([pixel] > 20 AND [pixel] < 1000)
+            COLOR 255 0 0
+        END
+        CLASS
+            NAME "very interesting"
+            EXPRESSION ([pixel] >= 1000)
+            COLOR 0 255 0
+        END
+    END
+MAP

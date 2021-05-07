@@ -1,0 +1,51 @@
+MAP
+    NAME "mymap"
+    EXTENT -180 -90 180 90
+    SIZE 800 400
+    IMAGECOLOR 128 128 255
+
+    WEB
+        METADATA 
+            WMS_ENABLE_REQUEST "*" 
+        END
+    END # end web
+#     
+#     OUTPUTFORMAT
+#         NAME "GEOTIFFINT16"
+#         DRIVER "GDAL/GTiff"
+#         MIMETYPE "image/tiff"
+#         IMAGEMODE "INT16"
+#         EXTENSION "tif"
+#     END
+# 
+#     PROJECTION
+#         "init=epsg:4326"
+#     END
+# 
+#     WEB
+#         METADATA
+#         ows_title "MapServer Quickstart"
+#         ows_enable_request "*"
+#         ows_srs "EPSG:4326 EPSG:25832 EPSG:25833"
+#         END
+#     END
+# 
+#     LAYER
+#         NAME "srtm"
+#         STATUS OFF
+#         TYPE RASTER
+#         DATA "srtm.tif"
+#         PROJECTION
+#             "init=epsg:4326"
+#         END
+#         METADATA
+#             "wcs_label" "SRTM WCS TIF Server"
+#             "ows_extent" "-180 -90 180 90"
+#             "wcs_resolution" "0.00083 -0.00083"
+#             "ows_srs" "EPSG:4326"
+#             "wcs_formats" "GEOTIFFINT16"
+#             "wcs_nativeformat" "geotiff"
+#             "wcs_enable_request" "*"
+#         END
+#     END
+MAP

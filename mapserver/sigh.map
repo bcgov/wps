@@ -1,0 +1,140 @@
+MAP
+  NAME           mymap
+  IMAGETYPE      PNG24
+  #IMAGETYPE      JPEG
+  EXTENT         -97.238976 41.619778 -82.122902 49.385620
+  SIZE           400 300
+  IMAGECOLOR     255 255 255
+  PROJECTION
+    "init=epsg:4326"
+  END
+
+  WEB
+    METADATA 
+      WMS_ENABLE_REQUEST "*"
+      WMS_TITLE          "map title"
+    END
+  END # end web
+
+  # In addition to vector data (shapefiles are vector data), MapServer supports
+  # a host of raster formats.  In GIS world, one of the most common raster
+  # formats is GeoTIFF, a TIFF image with geospatial headers.  MapServer also
+  # supports JPEG, PNG, GIF, and other common formats.  Other raster formats
+  # supported by MapServer include ESRI Arc/Info grid, HDF and HDF-EOS, NetCDF,
+  # Generic raster binaries, OGC Web Map Service (WMS) layers, etc.  Pretty much
+  # any raster format you can think of is probably supported, thanks to the
+  # impressive Geospatial Data Abstraction Library (GDAL, pronounced "GOODALL"
+  # or GOODLE?).  More information on GDAL is available at https://gdal.org.
+  #
+  # MapServer can read and display bitmapped (like GIFs), RGB/A (true
+  # color), and multispectral (images with more than 3 bands, like raw LandSat
+  ## images) rasters.
+  LAYER # DEM raster layer begins here
+        PROJECTION
+          "init=epsg:26910"
+        END
+        NAME         DEM
+        DATA         "/home/sybrand/Downloads/Work/topo/mtec-1E623991-89890-25005/92p-utm-elevation.dem/imgwhse/dem/elevation/trim_25m/utm/usgs/92p-utm-elevation.dem"
+        #STATUS       OFF
+        TYPE         RASTER
+        METADATA 
+          WMS_ENABLE_REQUEST "*"
+          WMS_TITLE          "dem layer"
+        END
+  END # DEM raster layer ends here
+
+  LAYER # FTL raster layer begins here
+        PROJECTION
+          "init=epsg:3005"
+        END
+        NAME         FTL
+        DATA         "/home/sybrand/Downloads/Work/topo/2018_ftl_clip.tif"
+        # STATUS       OFF
+        TYPE         RASTER
+        METADATA 
+          WMS_ENABLE_REQUEST "*"
+          WMS_TITLE          "FTL layer"
+        END
+
+  END # FTL raster layer ends here
+
+  LAYER # SLOPE raster layer begins here
+        PROJECTION
+          "init=epsg:26910"
+        END
+        NAME         SLOPE
+        DATA         "/home/sybrand/Downloads/Work/topo/my_qgis_slope.tif"
+        # STATUS       OFF
+        TYPE         RASTER
+        METADATA 
+          WMS_ENABLE_REQUEST "*"
+          WMS_TITLE          "SLOPE layer"
+        END
+
+  END # SLOPE raster layer ends here
+
+  LAYER # ASPECT raster layer begins here
+        PROJECTION
+          "init=epsg:26910"
+        END
+        NAME         ASPECT
+        DATA         "/home/sybrand/Downloads/Work/topo/my_qgis_aspect.tif"
+        # STATUS       OFF
+        TYPE         RASTER
+        METADATA 
+          WMS_ENABLE_REQUEST "*"
+          WMS_TITLE          "ASPECT layer"
+        END
+
+  END # ASPECT raster layer ends here
+
+  LAYER # ELEVATION raster layer begins here
+        PROJECTION
+          "init=epsg:26910"
+        END
+        NAME         DEM2
+        DATA         "/home/sybrand/Workspace/wps/api/scripts/92p-utm-elevation-3band.tif"
+        # STATUS       OFF
+        TYPE         RASTER
+        METADATA 
+          WMS_ENABLE_REQUEST "*"
+          WMS_TITLE          "ELEVATION layer"
+        END
+
+  END # ELEVATION raster layer ends here
+
+  LAYER # ELEVATION raster layer begins here
+        PROJECTION
+          "init=epsg:4326"
+        END
+        NAME         DEM3
+        DATA         "/home/sybrand/elevation_wgs84.tif"
+        # STATUS       OFF
+        TYPE         RASTER
+        CLASSITEM "[pixel]"
+        CLASS
+          EXPRESSION ([pixel] >= 0 AND [pixel] <= 1000)
+          STYLE
+            COLOR 0 0 255
+          END
+        END
+        CLASS
+          EXPRESSION ([pixel] > 1000 AND [pixel] <= 2000)
+          STYLE
+            COLOR 0 255 0
+          END
+        END
+        CLASS
+          EXPRESSION ([pixel] > 2000)
+          STYLE
+            COLOR 255 0 0
+          END
+        END
+        METADATA 
+          WMS_ENABLE_REQUEST "*"
+          WMS_TITLE          "ELEVATION layer"
+        END
+
+  END # ELEVATION raster layer ends here
+
+END # All map files must come to an end just as all other things must come to...
