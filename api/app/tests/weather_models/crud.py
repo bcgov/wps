@@ -15,6 +15,7 @@ def get_actuals_left_outer_join_with_predictions(*args):  # pylint: disable=unus
             temperature=20,
             temp_valid=True,
             relative_humidity=50,
+            wind_speed=0,
             rh_valid=True),
             ModelRunGridSubsetPrediction(
             tmp_tgl_2=[2, 3, 4, 5],
@@ -26,12 +27,14 @@ def get_actuals_left_outer_join_with_predictions(*args):  # pylint: disable=unus
                       temperature=25,
                       temp_valid=True,
                       relative_humidity=70,
+                      wind_speed=0,
                       rh_valid=True), None],
         [HourlyActual(
             weather_date=datetime(2020, 10, 10, 21),
             temperature=30,
             temp_valid=True,
             relative_humidity=100,
+            wind_speed=0,
             rh_valid=True),
             ModelRunGridSubsetPrediction(
             tmp_tgl_2=[1, 2, 3, 4],
@@ -44,6 +47,7 @@ def get_actuals_left_outer_join_with_predictions(*args):  # pylint: disable=unus
             temperature=20,
             temp_valid=True,
             relative_humidity=50,
+            wind_speed=0,
             rh_valid=True),
             ModelRunGridSubsetPrediction(
             tmp_tgl_2=[2, 3, 4, 5],
@@ -54,6 +58,7 @@ def get_actuals_left_outer_join_with_predictions(*args):  # pylint: disable=unus
         [HourlyActual(weather_date=datetime(2020, 10, 11, 20),
                       temperature=27,
                       temp_valid=True,
+                      wind_speed=0,
                       relative_humidity=60,
                       rh_valid=True), None],
         [HourlyActual(
@@ -61,6 +66,7 @@ def get_actuals_left_outer_join_with_predictions(*args):  # pylint: disable=unus
             temperature=30,
             temp_valid=True,
             relative_humidity=100,
+            wind_speed=0,
             rh_valid=True),
             ModelRunGridSubsetPrediction(
             tmp_tgl_2=[1, 2, 3, 4],

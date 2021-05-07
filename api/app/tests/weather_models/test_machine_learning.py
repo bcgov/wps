@@ -24,6 +24,7 @@ def mock_get_actuals_left_outer_join_with_predictions(monkeypatch):
                                   points=json.loads,
                                   model_temp=float,
                                   model_rh=float,
+                                  model_wind_speed=float,
                                   timestamp=datetime.fromisoformat,
                                   bias_adjusted_temp=lambda value: None if value == 'None' else float(
                                       value),
