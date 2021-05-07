@@ -18,10 +18,11 @@ export const FIRE_WEATHER_ROUTE = '/fire-weather'
 export const MORECAST_ROUTE = '/morecast'
 export const HFI_CALC_ROUTE = '/hfi-calculator'
 export const C_HAINES_ROUTE = '/c-haines'
+export const RATE_OF_SPREAD_ROUTE = '/rate-of-spread'
 
 // ExpandableContainer widths
 export const PARTIAL_WIDTH = 850
 export const FULL_WIDTH = 1200
 
 // Map center
-export const CENTER_OF_BC = [-123.3656, 51.4484]
+export const CENTER_OF_BC = [-127.5, 54.4]

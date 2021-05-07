@@ -5,13 +5,15 @@ import { HIDE_DISCLAIMER } from 'utils/env'
 import AuthWrapper from 'features/auth/AuthWrapper'
 import PercentileCalculatorPageWithDisclaimer from 'features/percentileCalculator/pages/PercentileCalculatorPageWithDisclaimer'
 import HfiCalculatorPage from 'features/hfiCalculator/pages/HfiCalculatorPage'
+import RateOfSpreadPage from 'features/rateOfSpread/pages/RateOfSpreadPage'
 import CHainesPage from 'features/cHaines/pages/CHainesPage'
 import {
   PERCENTILE_CALC_ROUTE,
   FIRE_WEATHER_ROUTE,
   MORECAST_ROUTE,
   HFI_CALC_ROUTE,
-  C_HAINES_ROUTE
+  C_HAINES_ROUTE,
+  RATE_OF_SPREAD_ROUTE
 } from 'utils/constants'
 import MoreCastPage from 'features/fireWeather/pages/MoreCastPage'
 import { NoMatchPage } from 'features/fireWeather/pages/NoMatchPage'
@@ -24,7 +26,7 @@ const Routes: React.FunctionComponent = () => {
   return (
     <Router>
       <Switch>
-        <Redirect exact from="/" to={PERCENTILE_CALC_ROUTE} />
+        <Redirect exact from="/" to={RATE_OF_SPREAD_ROUTE} />
 
         <Route path={PERCENTILE_CALC_ROUTE}>
           <PercentileCalculatorPageWithDisclaimer showDisclaimer={shouldShowDisclaimer} />
@@ -45,6 +47,10 @@ const Routes: React.FunctionComponent = () => {
 
         <Route path={C_HAINES_ROUTE}>
           <CHainesPage />
+        </Route>
+
+        <Route path={RATE_OF_SPREAD_ROUTE}>
+          <RateOfSpreadPage />
         </Route>
 
         <Route>
