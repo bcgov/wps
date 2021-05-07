@@ -90,29 +90,29 @@ function blendColor(p1: number, p2: number): number {
 const raster = new olSource.Raster({
   sources: [dem2Source],
 
-  operation: (pixels: any, data: any): number[] | ImageData => {
-    const pixel = pixels[0]
+  operation: (layers: any, data: any): number[] | ImageData => {
+    const elevation = layers[0]
     const height =
-      ((pixel[0] & 0xff) << 16) | ((pixel[1] & 0xff) << 8) | (pixel[2] & 0xff)
+      ((elevation[0] & 0xff) << 16) | ((elevation[1] & 0xff) << 8) | (elevation[2] & 0xff)
     if (height === 0 || height == 0xffffff || height > data.snowLine) {
-      pixel[3] = 0
+      elevation[3] = 0
     } else {
       if (height >= 0 && height <= 1000) {
-        pixel[0] = 0
-        pixel[1] = 0
-        pixel[2] = 255
+        elevation[0] = 0
+        elevation[1] = 0
+        elevation[2] = 255
       } else if (height > 1000 && height <= 2000) {
-        pixel[0] = 0
-        pixel[1] = 255
-        pixel[2] = 0
+        elevation[0] = 0
+        elevation[1] = 255
+        elevation[2] = 0
       } else {
-        pixel[0] = 255
-        pixel[1] = 0
-        pixel[2] = 0
+        elevation[0] = 255
+        elevation[1] = 0
+        elevation[2] = 0
       }
-      pixel[3] = data.opacity
+      elevation[3] = data.opacity
     }
-    return pixel
+    return elevation
     // const slopePixels = pixels[0]
     // const ftlPixels = pixels[1]
     // // var value = vgi(pixel)
@@ -186,36 +186,7 @@ const RateOfSpreadMap = ({ snowLine }: Props) => {
       redrawFlag={{ redraw: false } as RedrawCommand}
     >
       <TileLayer source={source} />
-      {/* <TileLayer source={ftlSource} opacity={0.5} /> */}
       <ImageLayer source={raster} />
-      {/* <div>
-        <Typography id="discrete-slider-small-steps" gutterBottom>
-          Snow line
-        </Typography>
-        <Slider
-          aria-label="Snow line"
-          step={100}
-          min={0}
-          max={5000}
-          defaultValue={5000}
-          marks={true}
-          valueLabelDisplay="auto"
-        ></Slider>
-        <button
-          onClick={() => {
-            increaseOpacity()
-          }}
-        >
-          Increase
-        </button>
-        <button
-          onClick={() => {
-            decreaseOpacity()
-          }}
-        >
-          Decrease
-        </button>
-      </div> */}
     </Map>
   )
 }
