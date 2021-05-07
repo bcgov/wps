@@ -1,0 +1,15 @@
+version: "3.7"
+services:
+  mapserver:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8081:80"
+    networks:
+      - mapserver_network
+    volumes:
+      - ./etc/mapserver:/etc/mapserver:delegated
+networks:
+  mapserver_network:
+    driver: bridge

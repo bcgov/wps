@@ -1,0 +1,3 @@
+FROM camptocamp/mapserver:latest
+
+# doesn't work not compiled with correct flags for tileserver
