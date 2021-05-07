@@ -28,6 +28,8 @@ def mock_get_actuals_left_outer_join_with_predictions(monkeypatch):
                                   timestamp=datetime.fromisoformat,
                                   bias_adjusted_temp=lambda value: None if value == 'None' else float(
                                       value),
+                                  bias_adjusted_wind_speed=lambda value: None if value == 'None' else float(
+                                      value),
                                   bias_adjusted_rh=lambda value: None if value == 'None' else float(value)))
 def test_machine_learning():
     """ BDD Scenario for predictions """
@@ -69,6 +71,9 @@ def assert_rh(instance: machine_learning.StationMachineLearning,
     assert result == bias_adjusted_rh
 
 
-@then("The <model_wind_speed> for <timestamp> results in")
-def assert_wind(model_wind_speed):
-    pass
+@then("The <model_wind_speed> for <timestamp> results in <bias_adjusted_wind_speed>")
+def assert_wind(instance: machine_learning.StationMachineLearning,
+                model_wind_speed: float, timestamp: datetime, bias_adjusted_wind_speed: float):
+    """ Assert that the ML algorithm predicts the relative humidity correctly """
+    result = instance.predict_wind_speed(model_wind_speed, timestamp)
+    assert result == bias_adjusted_wind_speed

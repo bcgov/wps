@@ -14,6 +14,7 @@ from app.db.models import (
     PredictionModel, PredictionModelGridSubset, ModelRunGridSubsetPrediction)
 from app.db.models.observations import HourlyActual
 from app.db.crud.observations import get_actuals_left_outer_join_with_predictions
+from pprint import pprint
 
 
 logger = getLogger(__name__)
@@ -250,6 +251,9 @@ class StationMachineLearning:  # pylint: disable=too-many-instance-attributes
         : return: The bias adjusted wind speed as predicted by the linear regression model.
         """
         hour = timestamp.hour
+        print('Model is good %s and wind speed is %s',
+              self.regression_models[hour].wind_speed_kmh_wrapper.good_model, model_wind_speed)
         if self.regression_models[hour].wind_speed_kmh_wrapper.good_model and model_wind_speed is not None:
+            print(self.regression_models[hour].wind_speed_kmh_wrapper.model.predict([[model_wind_speed]])[0])
             return self.regression_models[hour].wind_speed_kmh_wrapper.model.predict([[model_wind_speed]])[0]
         return None
