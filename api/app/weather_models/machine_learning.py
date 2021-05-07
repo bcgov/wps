@@ -105,6 +105,7 @@ class SampleCollection:
     def __init__(self):
         self.temperature = Samples()
         self.relative_humidity = Samples()
+        self.wind_speed = Samples()
 
 
 class StationMachineLearning:  # pylint: disable=too-many-instance-attributes

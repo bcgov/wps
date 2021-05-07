@@ -18,6 +18,7 @@ from app.db.models import PredictionModel, PredictionModelRunTimestamp
 import app.db.database
 import app.time_utils as time_utils
 from app.schemas.shared import WeatherDataRequest
+import app.auth
 
 logger = logging.getLogger(__name__)
 
