@@ -67,3 +67,8 @@ def assert_rh(instance: machine_learning.StationMachineLearning,
     """ Assert that the ML algorithm predicts the relative humidity correctly """
     result = instance.predict_rh(model_rh, timestamp)
     assert result == bias_adjusted_rh
+
+
+@then("The <model_wind_speed> for <timestamp> results in")
+def assert_wind(model_wind_speed):
+    pass
