@@ -3,8 +3,11 @@ import struct
 import numpy
 from osgeo import gdal
 
+inputfilename = '92p-utm-slope.tif'
+outputfilename = '92p-utm-slope-3band.tif'
+
 # read input file
-raster_in = gdal.Open('92p-utm-elevation.tif')
+raster_in = gdal.Open(inputfilename)
 projection = raster_in.GetProjection()
 geotransform = raster_in.GetGeoTransform()
 band = raster_in.GetRasterBand(1)
@@ -15,7 +18,7 @@ print(f'band.YSize: {band.YSize}')
 
 # create output file
 driver = gdal.GetDriverByName("GTiff")
-outdata = driver.Create('92p-utm-elevation-3band.tif', band.XSize, band.YSize, 3, gdal.GDT_Byte)
+outdata = driver.Create(outputfilename, band.XSize, band.YSize, 3, gdal.GDT_Byte)
 outdata.SetProjection(projection)
 outdata.SetGeoTransform(geotransform)
 
@@ -34,15 +37,25 @@ b_rows = []
 
 for y in range(band.YSize):
     if y % 200 == 0:
-        print(f'{y / band.XSize * 100}%')
+        print(f'{y / band.YSize * 100}%')
+    if band.DataType == gdal.GDT_Float32:
+        buffer_type = gdal.GDT_Float32
+    else:
+        buffer_type = gdal.GDT_Int32
     scanline = band.ReadRaster(xoff=0, yoff=y,
                                xsize=band.XSize, ysize=1,
                                buf_xsize=band.XSize, buf_ysize=1,
-                               buf_type=gdal.GDT_Int32)
-    array = struct.unpack('i' * band.XSize, scanline)
+                               buf_type=buffer_type)
+    if buffer_type == gdal.GDT_Int32:
+        array = struct.unpack('i' * band.XSize, scanline)
+    else:
+        array = struct.unpack('f' * band.XSize, scanline)
 
     r_array, g_array, b_array = [], [], []
     for x in array:
+        if buffer_type != gdal.GDT_Int32:
+            # convert floating point to int - we don't care that much.
+            x = int(x)
         r_array.append((x >> 16) & 0xff)
         g_array.append((x >> 8) & 0xff)
         b_array.append(x & 0xff)

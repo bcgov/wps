@@ -89,31 +89,52 @@ function blendColor(p1: number, p2: number): number {
 }
 
 const raster = new olSource.Raster({
-  sources: [dem2Source],
+  sources: [dem2Source, ftlSource, aspectSource, slopeSource],
 
   operation: (layers: any, data: any): number[] | ImageData => {
     const elevation = layers[0]
+    const ftl = layers[1]
+    const aspect = layers[2]
+    const slope = layers[3]
+    const result = [0, 0, 0, 0]
+
     const height =
       ((elevation[0] & 0xff) << 16) | ((elevation[1] & 0xff) << 8) | (elevation[2] & 0xff)
     if (height === 0 || height == 0xffffff || height > data.snowLine) {
-      elevation[3] = 0
+      result[3] = 0
+      // const fuel_type = ((ftl[0] & 0xff) << 16) | ((ftl[1] & 0xff) << 8) | (ftl[2] & 0xff)
+      // if (fuel_type == 0 || fuel_type == 0xffffff) {
+      //   result[3] = 0
+      // } else {
+      //   result[0] = ftl[0]
+      //   result[1] = ftl[1]
+      //   result[2] = ftl[2]
+      //   result[3] = ftl[3]
+      // }
     } else {
-      if (height >= 0 && height <= 1000) {
-        elevation[0] = 0
-        elevation[1] = 0
-        elevation[2] = 255
-      } else if (height > 1000 && height <= 2000) {
-        elevation[0] = 0
-        elevation[1] = 255
-        elevation[2] = 0
-      } else {
-        elevation[0] = 255
-        elevation[1] = 0
-        elevation[2] = 0
-      }
-      elevation[3] = data.opacity
+      // 257 to 2390
+      const adjust = ((height - 257) / 2133) * 255
+      result[0] = adjust
+      result[1] = adjust
+      result[2] = adjust
+      result[3] = 255
+      // if (height >= 0 && height <= 1000) {
+      //   result[0] = 0
+      //   result[1] = 0
+      //   result[2] = 255
+      // } else if (height > 1000 && height <= 2000) {
+      //   result[0] = 0
+      //   result[1] = 255
+      //   result[2] = 0
+      // } else {
+      //   result[0] = 255
+      //   result[1] = 0
+      //   result[2] = 0
+      // }
+      // result[3] = data.opacity
     }
-    return elevation
+
+    return result
     // const slopePixels = pixels[0]
     // const ftlPixels = pixels[1]
     // // var value = vgi(pixel)

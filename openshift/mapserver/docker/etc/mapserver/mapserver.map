@@ -48,7 +48,7 @@ MAP
           "init=epsg:3005"
         END
         NAME         FTL
-        DATA         "/home/sybrand/Downloads/Work/topo/2018_ftl_clip.tif"
+        DATA         "/etc/mapserver/2018_ftl_clip-3band.tif"
         # STATUS       OFF
         TYPE         RASTER
         METADATA 
@@ -63,7 +63,7 @@ MAP
           "init=epsg:26910"
         END
         NAME         SLOPE
-        DATA         "/home/sybrand/Downloads/Work/topo/my_qgis_slope.tif"
+        DATA         "/etc/mapserver/92p-utm-slope-3band.tif"
         # STATUS       OFF
         TYPE         RASTER
         METADATA 
@@ -78,7 +78,7 @@ MAP
           "init=epsg:26910"
         END
         NAME         ASPECT
-        DATA         "/home/sybrand/Downloads/Work/topo/my_qgis_aspect.tif"
+        DATA         "/etc/mapserver/92p-utm-aspect-3band.tif"
         # STATUS       OFF
         TYPE         RASTER
         METADATA 
