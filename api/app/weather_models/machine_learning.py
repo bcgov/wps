@@ -14,8 +14,6 @@ from app.db.models import (
     PredictionModel, PredictionModelGridSubset, ModelRunGridSubsetPrediction)
 from app.db.models.observations import HourlyActual
 from app.db.crud.observations import get_actuals_left_outer_join_with_predictions
-from pprint import pprint
-
 
 logger = getLogger(__name__)
 
