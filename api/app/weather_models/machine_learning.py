@@ -254,6 +254,5 @@ class StationMachineLearning:  # pylint: disable=too-many-instance-attributes
         print('Model is good %s and wind speed is %s',
               self.regression_models[hour].wind_speed_kmh_wrapper.good_model, model_wind_speed)
         if self.regression_models[hour].wind_speed_kmh_wrapper.good_model and model_wind_speed is not None:
-            print(self.regression_models[hour].wind_speed_kmh_wrapper.model.predict([[model_wind_speed]])[0])
             return self.regression_models[hour].wind_speed_kmh_wrapper.model.predict([[model_wind_speed]])[0]
         return None
