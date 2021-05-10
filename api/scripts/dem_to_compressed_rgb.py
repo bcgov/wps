@@ -69,8 +69,8 @@ def main():
     # degrees: gdaldem slope 92p-utm-elevation.dem 92p-utm-slope-degree.tif -of GTiff -b 1 -s 1.0
     slope_file = '92p-utm-slope-degree.tif'
 
-    outputfilename = '92p-utm-eas-3band.tif'
-    # outputfilename = '/home/sybrand/Workspace/wps/openshift/mapserver/docker/etc/mapserver/92p-utm-eas-3band.tif'
+    # outputfilename = '92p-utm-eas-3band.tif'
+    outputfilename = '/home/sybrand/Workspace/wps/openshift/mapserver/docker/etc/mapserver/92p-utm-eas-3band.tif'
 
     # read input file
     elevation_ds = gdal.Open(elevation_file)
@@ -136,11 +136,6 @@ def main():
                     value = (elevation << 11)
                     # is the aspect valid? (flat ground doesn't have an aspect!)
                     valid_aspect = aspect >= 0 and aspect <= 360
-                    if valid_aspect:
-                        aspects += 1
-                        print(f'{aspect}/45={int(aspect/45)}')
-                        if aspects > 10:
-                            raise 'moo'
                     value = value | valid_aspect << 10
                     # simplify the aspect
                     aspect = int(aspect / 45) & 0x7
@@ -149,7 +144,7 @@ def main():
                     if slope < 0 or slope > 360:
                         # we just assume 0 for the slope if there is none.
                         slope = 0
-                    value = value | int(slope) | 0x7F
+                    value = value | int(slope) & 0x7F
 
                     # print(f'value:{value}'')
 
