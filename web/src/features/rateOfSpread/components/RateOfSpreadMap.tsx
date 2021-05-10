@@ -4,6 +4,7 @@ import { fromLonLat } from 'ol/proj'
 import Map, { RedrawCommand } from 'features/map/Map'
 import TileLayer from 'features/map/TileLayer'
 import ImageLayer from 'features/map/ImageLayer'
+// import * as thing from 'utils/fbp.js'
 
 export const CENTER_OF_BC = [-121.5, 51.4]
 const zoom = 9
@@ -20,6 +21,10 @@ const source = new olSource.XYZ({
   // however this endpoint only allows the origin of http://localhost:3000, so the text has been just copied from that link
   attributions: 'Government of British Columbia, DataBC, GeoBC'
 })
+
+// function rateOfSpread(fuelType: FuelType, isi: number, bui: number): number {
+
+// }
 
 // const demSource = new olSource.TileImage({
 //   tileUrlFunction: (coordinate, pixelRatio, projection): string => {
@@ -41,38 +46,13 @@ const getUrl = (layer: string) => {
   // return `http://localhost:80/cgi-bin/mapserv?map=/home/sybrand/Workspace/wps/mapserver/sigh.map&MODE=tile&TILEMODE=gmap&LAYERS=${layer}&TILE={x}+{y}+{z}`
 }
 
-// const layers = 'FTL'
-// const layers = 'DEM'
-// const layers = 'DEM2'
-// const layers = 'SLOPE'
-// const layers = 'ASPECT'
 const ftlSource = new olSource.XYZ({
   url: getUrl('FTL'),
   crossOrigin: 'anonymous'
 })
 
-const slopeSource = new olSource.XYZ({
-  url: getUrl('SLOPE'),
-  crossOrigin: 'anonymous'
-})
-
-const aspectSource = new olSource.XYZ({
-  url: getUrl('ASPECT'),
-  crossOrigin: 'anonymous'
-})
-
-const demSource = new olSource.XYZ({
-  url: getUrl('DEM'),
-  crossOrigin: 'anonymous'
-})
-
-const dem2Source = new olSource.XYZ({
-  url: getUrl('DEM2'),
-  crossOrigin: 'anonymous'
-})
-
-const dem3Source = new olSource.XYZ({
-  url: getUrl('DEM3'),
+const easSource = new olSource.XYZ({
+  url: getUrl('EAS'),
   crossOrigin: 'anonymous'
 })
 
@@ -88,114 +68,167 @@ function blendColor(p1: number, p2: number): number {
   return result === 255 ? 254 : result
 }
 
+function calcROS(ftlNumber: number, isi: number, bui: number): number {
+  if (ftlNumber !== 7) {
+    throw 'not handling this ftl yet'
+  }
+  // C-7 Ponderosa pine/Douglas-fir
+
+  return isi
+}
+
+function calcISI(
+  ffmc: number,
+  slope: number,
+  aspect: number,
+  windSpeed: number,
+  ftlNumber: number
+): number {
+  const _isi = (ffmcs: number, wspd: number): number => {
+    /*
+    TODO: credit:
+    *   Created for Alaska Fire & Fuels, by MesoWest
+    *
+    *   Author: Joe Young 
+    *   Date: 25 January 2016
+    *   Mod: 28 June 2016
+    *   Mod: 27 April 2017
+    */
+    // initial spread index
+    const fm = (147.2 * (101.0 - ffmcs)) / (59.5 + ffmcs)
+    const sf = 19.115 * Math.exp(-0.1386 * fm) * (1.0 + Math.pow(fm, 5.31) / 4.93e7)
+    return sf * Math.exp(0.05039 * wspd)
+  }
+  return _isi(ffmc, windSpeed)
+}
+
 const raster = new olSource.Raster({
-  sources: [dem2Source, ftlSource, aspectSource, slopeSource],
+  sources: [easSource, ftlSource],
 
   operation: (layers: any, data: any): number[] | ImageData => {
-    const elevation = layers[0]
+    const eas = layers[0]
     const ftl = layers[1]
-    const aspect = layers[2]
-    const slope = layers[3]
     const result = [0, 0, 0, 0]
 
-    const height =
-      ((elevation[0] & 0xff) << 16) | ((elevation[1] & 0xff) << 8) | (elevation[2] & 0xff)
-    if (height === 0 || height == 0xffffff || height > data.snowLine) {
+    const recover = (eas[0] << 16) | (eas[1] << 8) | eas[2]
+    const height = recover >> 11
+    const aspectValid = (recover >> 10) & 0x1
+    const aspect = (recover >> 7) & 0x7
+    const slope = recover & 0x7f
+    if (height === 0 || height === 0xffffff || height > data.snowLine) {
       result[3] = 0
-      // const fuel_type = ((ftl[0] & 0xff) << 16) | ((ftl[1] & 0xff) << 8) | (ftl[2] & 0xff)
-      // if (fuel_type == 0 || fuel_type == 0xffffff) {
-      //   result[3] = 0
-      // } else {
-      //   result[0] = ftl[0]
-      //   result[1] = ftl[1]
-      //   result[2] = ftl[2]
-      //   result[3] = ftl[3]
-      // }
     } else {
-      // 257 to 2390
-      const adjust = ((height - 257) / 2133) * 255
-      result[0] = adjust
-      result[1] = adjust
-      result[2] = adjust
-      result[3] = 255
-      // if (height >= 0 && height <= 1000) {
-      //   result[0] = 0
-      //   result[1] = 0
-      //   result[2] = 255
-      // } else if (height > 1000 && height <= 2000) {
-      //   result[0] = 0
-      //   result[1] = 255
-      //   result[2] = 0
+      const ftlNumber = (ftl[0] << 16) | (ftl[1] << 8) | ftl[2]
+      if (ftlNumber === 7) {
+        const isi = calcISI(data.ffmc, slope, aspect, data.windSpeed, ftlNumber)
+        const r = calcROS(ftlNumber, isi, data.bui)
+        // for C7, ROS maxes out at 36
+        result[0] = (r / 36) * 255
+        result[1] = 0
+        result[2] = 0
+        result[3] = data.opacity
+      } else {
+        // not doing this right now
+        result[0] = 0
+        result[1] = 0
+        result[2] = 128
+        result[3] = data.opacity
+      }
+      // if (aspectValid) {
+      //   switch (aspect) {
+      //     case 7:
+      //     case 0:
+      //       // north
+      //       result[0] = 255
+      //       break
+      //     case 1:
+      //     case 2:
+      //       // east
+      //       result[1] = 255
+      //       break
+      //     case 3:
+      //     case 4:
+      //       // south
+      //       result[2] = 255
+      //       break
+      //     case 5:
+      //     case 6:
+      //       // west
+      //       result[0] = 255
+      //       result[2] = 255
+      //       break
+      //     default:
+      //       // error!
+      //       result[0] = 255
+      //       result[1] = 255
+      //       result[2] = 255
+      //   }
+      //   result[3] = 255
       // } else {
-      //   result[0] = 255
+      //   result[0] = 0
       //   result[1] = 0
       //   result[2] = 0
+      //   result[3] = 255
       // }
-      // result[3] = data.opacity
-    }
 
+      // 257 to 2390
+      // const adjust = ((height - 257) / 2133) * 255
+      // result[0] = adjust
+      // result[1] = adjust
+      // result[2] = adjust
+      // result[3] = 255
+    }
     return result
-    // const slopePixels = pixels[0]
-    // const ftlPixels = pixels[1]
-    // // var value = vgi(pixel)
-    // // summarize(value, data.counts)
-    // // if (value >= data.threshold) {
-    // //   pixel[0] = 0
-    // //   pixel[1] = 255
-    // //   pixel[2] = 0
-    // //   pixel[3] = 128
-    // // } else {
-    // //   pixel[3] = 0
-    // // }
-    // // return it unchanged
-    // // if (pixel[1] !== 0) {
-    // //   pixel[0] = 255
-    // //   pixel[1] = 128
-    // // }
-    // // pixel[1] = 100
-    // const pixel = [
-    //   blendColor(slopePixels[0], ftlPixels[0]),
-    //   blendColor(slopePixels[1], ftlPixels[1]),
-    //   blendColor(slopePixels[2], ftlPixels[2]),
-    //   255
-    // ]
-    // if (pixel[0] === 255 && pixel[1] === 255 && pixel[2] === 255) {
-    //   pixel[3] = 0
-    // } else {
-    //   pixel[3] = data.moo
-    // }
-    // // if (pixel[0] !== 0 || pixel[1] !== 0 || pixel[2] !== 0) {
-    // //   pixel[0] = 255
-    // //   pixel[1] = 0
-    // //   pixel[2] = 0
-    // //   pixel[3] = 128
-    // //   // console.log(pixel)
-    // // }
-    // // pixel[3] = 128
-    // return pixel
   },
   lib: {
-    blendColor: blendColor
+    blendColor: blendColor,
+    calcROS: calcROS,
+    calcISI: calcISI
   }
 })
 raster.on('beforeoperations', function(event) {
   event.data.opacity = raster.get('opacity')
   event.data.snowLine = raster.get('snowLine')
+  event.data.bui = raster.get('bui')
+  event.data.ffmc = raster.get('ffmc')
+  event.data.windSpeed = raster.get('windSpeed')
 })
 
 interface Props {
   snowLine: number
+  bui: number
+  ffmc: number
+  windSpeed: number
+  opacity: number
 }
 
-const RateOfSpreadMap = ({ snowLine }: Props) => {
-  raster.set('opacity', 128)
-
+const RateOfSpreadMap = ({ snowLine, bui, ffmc, windSpeed, opacity }: Props) => {
   const [center, setCenter] = useState(fromLonLat(CENTER_OF_BC))
 
   useEffect(() => {
     raster.set('snowLine', snowLine)
     raster.changed()
   }, [snowLine])
+
+  useEffect(() => {
+    raster.set('bui', bui)
+    raster.changed()
+  }, [bui])
+
+  useEffect(() => {
+    raster.set('ffmc', ffmc)
+    raster.changed()
+  }, [ffmc])
+
+  useEffect(() => {
+    raster.set('windSpeed', windSpeed)
+    raster.changed()
+  }, [windSpeed])
+
+  useEffect(() => {
+    raster.set('opacity', opacity)
+    raster.changed()
+  }, [opacity])
 
   return (
     <Map

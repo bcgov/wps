@@ -103,6 +103,22 @@ MAP
 
   END # ELEVATION raster layer ends here
 
+
+  LAYER # ELEVATION raster layer begins here
+        PROJECTION
+          "init=epsg:26910"
+        END
+        NAME         EAS
+        DATA         "/etc/mapserver/92p-utm-eas-3band.tif"
+        # STATUS       OFF
+        TYPE         RASTER
+        METADATA 
+          WMS_ENABLE_REQUEST "*"
+          WMS_TITLE          "Elevation+Aspect+Slope"
+        END
+
+  END # ELEVATION raster layer ends here
+
   LAYER # ELEVATION raster layer begins here
         PROJECTION
           "init=epsg:4326"

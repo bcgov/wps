@@ -49,13 +49,39 @@ function valuetext(value: number) {
 
 const RateOfSpreadPage: React.FunctionComponent = () => {
   const classes = useStyles()
-  const [snowLine, setSnowline] = useState(4671)
+  const [snowLine, setSnowline] = useState(1500)
+  const [bui, setBui] = useState(35)
+  const [ffmc, setFfmc] = useState(50)
+  const [windSpeed, setWindSpeed] = useState(15)
+  const [opacity, setOpacity] = useState(200)
 
   const handleChangeSnowline = (
     event: React.ChangeEvent<{}>,
     value: number | number[]
   ) => {
     setSnowline(value as number)
+  }
+
+  const handleChangeBui = (event: React.ChangeEvent<{}>, value: number | number[]) => {
+    setBui(value as number)
+  }
+
+  const handleChangeFfmc = (event: React.ChangeEvent<{}>, value: number | number[]) => {
+    setFfmc(value as number)
+  }
+
+  const handleChangeOpacity = (
+    event: React.ChangeEvent<{}>,
+    value: number | number[]
+  ) => {
+    setOpacity(value as number)
+  }
+
+  const handleChangeWindSpeed = (
+    event: React.ChangeEvent<{}>,
+    value: number | number[]
+  ) => {
+    setWindSpeed(value as number)
   }
   return (
     <main data-testid="rate-of-spread-page" className={classes.main}>
@@ -77,9 +103,74 @@ const RateOfSpreadPage: React.FunctionComponent = () => {
             getAriaValueText={valuetext}
             onChange={handleChangeSnowline}
           ></Slider>
+
+          <Typography id="discrete-slider-small-steps" gutterBottom>
+            BUI {bui}
+          </Typography>
+          <Slider
+            aria-label="BUI"
+            step={1}
+            min={0}
+            max={200}
+            value={bui}
+            marks={true}
+            valueLabelDisplay="auto"
+            getAriaValueText={valuetext}
+            onChange={handleChangeBui}
+          ></Slider>
+
+          <Typography id="discrete-slider-small-steps" gutterBottom>
+            FFMC {ffmc}
+          </Typography>
+          <Slider
+            aria-label="FFMC"
+            step={1}
+            min={0}
+            max={100}
+            value={ffmc}
+            marks={true}
+            valueLabelDisplay="auto"
+            getAriaValueText={valuetext}
+            onChange={handleChangeFfmc}
+          ></Slider>
+
+          <Typography id="discrete-slider-small-steps" gutterBottom>
+            Wind Speed {windSpeed}
+          </Typography>
+          <Slider
+            aria-label="Wind Speed"
+            step={1}
+            min={0}
+            max={50}
+            value={windSpeed}
+            marks={true}
+            valueLabelDisplay="auto"
+            getAriaValueText={valuetext}
+            onChange={handleChangeWindSpeed}
+          ></Slider>
+          <Typography id="discrete-slider-small-steps" gutterBottom>
+            Opacity {opacity}
+          </Typography>
+          <Slider
+            aria-label="Wind Speed"
+            step={1}
+            min={0}
+            max={255}
+            value={opacity}
+            marks={true}
+            valueLabelDisplay="auto"
+            getAriaValueText={valuetext}
+            onChange={handleChangeOpacity}
+          ></Slider>
         </div>
         <div className={classes.map}>
-          <RateOfSpreadMap snowLine={snowLine} />
+          <RateOfSpreadMap
+            snowLine={snowLine}
+            bui={bui}
+            ffmc={ffmc}
+            windSpeed={windSpeed}
+            opacity={opacity}
+          />
         </div>
       </div>
     </main>
