@@ -19,7 +19,7 @@ from app.db.models import PredictionModel, WeatherStationModelPrediction
 logger = logging.getLogger(__name__)
 
 
-KEYS = ('tmp_tgl_2', 'rh_tgl_2')
+KEYS = ('tmp_tgl_2', 'rh_tgl_2', 'wind_tgl_10')
 
 
 def _build_query_to_get_predictions(
