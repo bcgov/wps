@@ -39,9 +39,6 @@ class WeatherModelPredictionSummaryValues(BaseModel):
     rh_tgl_2_5th: float
     rh_tgl_2_90th: float
     rh_tgl_2_median: float
-    wind_tgl_10_5th: float
-    wind_tgl_10_90th: float
-    wind_tgl_10_median: float
 
 
 class WeatherModelPredictionSummary(BaseModel):
