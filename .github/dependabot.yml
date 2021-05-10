@@ -1,4 +1,5 @@
 version: 2
+# https://docs.github.com/en/code-security/supply-chain-security/configuration-options-for-dependency-updates
 updates:
   # Enable version updates for npm
   - package-ecosystem: "npm"
@@ -7,6 +8,10 @@ updates:
     # Check the npm registry for updates every day (weekdays)
     schedule:
       interval: "daily"
+    # Limit to only 1 pr at a time.
+    # If there's one thing out of date, there's probably more. Consider running `poetry update`
+    # and saving yourself a bunch of time.
+    open-pull-requests-limit: 1
 
   # Enable version updates for Poetry (pip value also checks for poetry)
   - package-ecosystem: "pip"
@@ -15,3 +20,6 @@ updates:
     # Check for updates every day (weekdays)
     schedule:
       interval: "daily"
+    # Limit to only 2 pr's at a time. If there are too many PR's - we just end up running out of compute
+    # space on our cluster.
+    open-pull-requests-limit: 2
