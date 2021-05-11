@@ -52,6 +52,11 @@ interface ModelRunInfo {
   abbreviation: string
 }
 
+interface WindModelValue {
+  wind_speed?: number | null
+  linear_wind_speed?: number | null
+}
+
 export interface ModelValue {
   datetime: string
   temperature: number | null
@@ -59,7 +64,7 @@ export interface ModelValue {
   relative_humidity: number | null
   bias_adjusted_relative_humidity: number | null
   wind_direction?: number | null
-  wind_speed?: number | null
+  wind: WindModelValue
   delta_precipitation?: number | null
   model_run_datetime?: string | null
 }

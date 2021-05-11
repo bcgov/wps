@@ -135,7 +135,9 @@ const formatModelRelativeHumidity = (
 }
 
 const formatWindSpeedDirection = (
-  source: NoonForecastValue | ObservedValue | ModelValue | undefined,
+  source:
+    | Pick<NoonForecastValue | ObservedValue, 'wind_speed' | 'wind_direction'>
+    | undefined,
   windSpeedClassName: string,
   windDirectionClassName: string
 ) => {
@@ -172,7 +174,14 @@ const formatModelWindSpeedDirection = (
         aria-label="Wind speed and direction"
         arrow
       >
-        {formatWindSpeedDirection(source, windSpeedClassName, windDirectionClassName)}
+        {formatWindSpeedDirection(
+          {
+            wind_speed: source.wind.wind_speed ? source.wind.wind_speed : null,
+            wind_direction: source.wind_direction ? source.wind_direction : null
+          },
+          windSpeedClassName,
+          windDirectionClassName
+        )}
       </ToolTip>
     )
   )
