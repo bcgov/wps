@@ -18,6 +18,8 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(dirname "$0")"
+
 source "$SCRIPT_DIR/common_oc_checks.sh"
 
 #####################
@@ -36,9 +38,9 @@ FILENAME="dump_db.tar"
 
 # command to dump database (excluding the giant tables)
 # --clean clean (drop) database objects before recreating
-# -Ft output file format (custom, directory, tar, plain text (default))
+# -Fc output file format (custom, directory, tar, plain text (default))
 # --exclude-table-data get the table definitions, but not the data
-PG_DUMP="pg_dump --file=/tmp/${FILENAME} --clean -Ft ${DATABASE} --exclude-table-data=model_run_grid_subset_predictions --exclude-table-data=weather_station_model_predictions"
+PG_DUMP="pg_dump --file=/tmp/${FILENAME} --clean -Fc ${DATABASE} --exclude-table-data=model_run_grid_subset_predictions --exclude-table-data=weather_station_model_predictions --exclude-table-data=c_haines_polygons"
 # command to dump database on pod.
 BACKUP_COMMAND="${RSH} ${PG_DUMP}"
 
@@ -82,12 +84,15 @@ do
 done
 printf "\n\n"
 
+# make tmp dir
+eval "mkdir tmp"
+
 # copy the data dump from server to local.
 # you'll get a weird message that says: "tar: Removing leading `/' from member names" - just ignore it.
 echo "copy *.gz files locally... (you can ignore the error message re leading '/')"
 for file in "${FILES[@]}"
 do
-    COPY_COMMAND="oc -n ${PROJECT} cp ${POD}:/tmp/${file}.gz ./${file}.gz"
+    COPY_COMMAND="oc -n ${PROJECT} cp ${POD}:/tmp/${file}.gz ./tmp/${file}.gz"
     echo "${COPY_COMMAND}"
     eval "${COPY_COMMAND}"
 done
@@ -116,7 +121,7 @@ printf "\n\n"
 echo "unzip local files..."
 for file in "${FILES[@]}"
 do
-    UNZIP_COMMAND="gunzip ${file}.gz"
+    UNZIP_COMMAND="gunzip tmp/${file}.gz"
     echo "${UNZIP_COMMAND}"
     eval "${UNZIP_COMMAND}"
 done

@@ -25,7 +25,6 @@ source "$SCRIPT_DIR/common_oc_checks.sh"
 #
 # See https://wiki.postgresql.org/wiki/TOAST for more info.
 
-https://wiki.postgresql.org/wiki/TOAST
 SIZE_REPORT_QUERY="SELECT *, pg_size_pretty(total_bytes) AS total
     , pg_size_pretty(index_bytes) AS index
     , pg_size_pretty(toast_bytes) AS toast
