@@ -289,13 +289,6 @@ const raster = new olSource.Raster({
       //   result[2] = 0
       //   result[3] = 255
       // }
-
-      // 257 to 2390
-      // const adjust = ((height - 257) / 2133) * 255
-      // result[0] = adjust
-      // result[1] = adjust
-      // result[2] = adjust
-      // result[3] = 255
     }
     return result
   },
