@@ -55,6 +55,12 @@ class WeatherModelPredictionSummaryResponse(BaseModel):
     summaries: List[WeatherModelPredictionSummary]
 
 
+class WeatherWindModelPredictionValues(BaseModel):
+    """ The predicted wind values """
+    wind_speed: float = None
+    linear_wind_speed: float = None
+
+
 class WeatherModelPredictionValues(BaseModel):
     """ The predicted weather values. """
     datetime: datetime
@@ -62,7 +68,7 @@ class WeatherModelPredictionValues(BaseModel):
     bias_adjusted_temperature: float = None
     relative_humidity: float = None
     bias_adjusted_relative_humidity: float = None
-    wind_speed: float = None
+    wind: WeatherWindModelPredictionValues
     wind_direction: float = None
     delta_precipitation: float = None
 

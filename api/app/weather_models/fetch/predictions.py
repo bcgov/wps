@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 import app.db.database
 from app.schemas.weather_models import (WeatherModelPredictionValues, WeatherModelRun,
                                         ModelRunPredictions,
-                                        WeatherStationModelRunsPredictions)
+                                        WeatherStationModelRunsPredictions, WeatherWindModelPredictionValues)
 from app.db.models import WeatherStationModelPrediction
 from app.db.crud.weather_models import (get_station_model_predictions,
                                         get_station_model_prediction_from_previous_model_run)
@@ -93,7 +93,8 @@ async def fetch_model_run_predictions_by_station_code(
                     relative_humidity=prediction.rh_tgl_2,
                     bias_adjusted_relative_humidity=prediction.bias_adjusted_rh,
                     delta_precipitation=precip_value,
-                    wind_speed=prediction.wind_tgl_10,
+                    wind=WeatherWindModelPredictionValues(
+                        wind_speed=prediction.wind_tgl_10, linear_wind_speed=prediction.linear_wind_tgl_10),
                     wind_direction=prediction.wdir_tgl_10,
                     datetime=prediction.prediction_timestamp
                 )
