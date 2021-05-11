@@ -41,14 +41,14 @@ then
 fi
 
 
-if [ "$MODE" = "$NATIVE" ]
-then
-    # Temporarily elevate roles in order to easily do restore:
-    echo "You may be prompted for your sudo password..."
-    ALTER="sudo -u postgres psql -U postgres -c \"alter role wps superuser;\""
-    echo "${ALTER}"
-    eval "${ALTER}"
-fi
+# if [ "$MODE" = "$NATIVE" ]
+# then
+#     # Temporarily elevate roles in order to easily do restore:
+#     echo "You may be prompted for your sudo password..."
+#     ALTER="sudo -u postgres psql -U postgres -c \"alter role wps superuser;\""
+#     echo "${ALTER}"
+#     eval "${ALTER}"
+# fi
 
 
 # Restore pg dump:
