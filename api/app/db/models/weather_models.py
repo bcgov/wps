@@ -208,6 +208,8 @@ class WeatherStationModelPrediction(Base):
     wdir_tgl_10 = Column(Float, nullable=True)
     # Wind speed 10m above ground.
     wind_tgl_10 = Column(Float, nullable=True)
+    # Wind speed linear regression prediction.
+    linear_wind_tgl_10 = Column(Float, nullable=True)
     # Date this record was created.
     create_date = Column(TZTimeStamp, nullable=False,
                          default=time_utils.get_utc_now())

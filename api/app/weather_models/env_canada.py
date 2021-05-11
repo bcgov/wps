@@ -551,7 +551,11 @@ class ModelValueProcessor:
 
         # Get the closest wind speed
         if prediction.wind_tgl_10 is not None:
-            station_prediction.wind_tgl_10 = machine.predict_wind_speed(
+            station_prediction.wind_tgl_10 = prediction.wind_tgl_10[get_closest_index(coordinate, points)]
+
+        # Get the wind speed based on linear regresion
+        if prediction.wind_tgl_10 is not None:
+            station_prediction.linear_wind_tgl_10 = machine.predict_wind_speed(
                 station_prediction.wind_tgl_10, station_prediction.prediction_timestamp)
         # Get the closest wind direcion
         if prediction.wdir_tgl_10 is not None:
