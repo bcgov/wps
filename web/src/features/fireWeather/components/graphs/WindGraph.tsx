@@ -56,15 +56,20 @@ const WindGraph = (props: Props) => {
   } = props
   const { showObservations, showForecasts, showGdps, showRdps, showHrdps } = toggleValues
 
+  const getWindValues = (
+    data: Array<ObservedValue | NoonForecastValue>
+  ): Array<Pick<ModelValue, 'datetime' | 'wind' | 'wind_direction'>> => {
+    return []
+  }
   const observationData = populateGraphDataForWind(
-    observations,
+    getWindValues(observations),
     'Observation',
     showObservations,
     observationLineColor,
     observationArrowColor
   )
   const forecastData = populateGraphDataForWind(
-    noonForecasts,
+    getWindValues(noonForecasts),
     'Noon Forecasts',
     showForecasts,
     forecastLineColor,
