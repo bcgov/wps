@@ -1,0 +1,1873 @@
+{
+    "stations": [
+        {
+            "station": {
+                "code": 322,
+                "name": "AFTON",
+                "lat": 50.6733333,
+                "long": -120.4816667,
+                "ecodivision_name": "SEMI-ARID STEPPE HIGHLANDS",
+                "core_season": {
+                    "start_month": 5,
+                    "start_day": 1,
+                    "end_month": 9,
+                    "end_day": 15
+                }
+            },
+            "model_runs": [
+                {
+                    "model_run": {
+                        "datetime": "2021-05-06T12:00:00+00:00",
+                        "name": "Global Deterministic Prediction System",
+                        "abbreviation": "GDPS",
+                        "projection": "latlon.15x.15"
+                    },
+                    "values": [
+                        {
+                            "datetime": "2021-05-06T18:00:00+00:00",
+                            "temperature": 16.099623242065412,
+                            "bias_adjusted_temperature": 15.32374439664245,
+                            "relative_humidity": 33.07802681119767,
+                            "bias_adjusted_relative_humidity": 36.684320849249566,
+                            "wind": {
+                                "wind_speed": 2.3522987365722656,
+                                "linear_wind_speed": 0.4943255547307164
+                            },
+                            "wind_direction": 127.0,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-06T20:00:00+00:00",
+                            "temperature": 17.98890907454422,
+                            "bias_adjusted_temperature": 19.71494253300657,
+                            "relative_humidity": 28.510227383300613,
+                            "bias_adjusted_relative_humidity": 20.02326649246244,
+                            "wind": {
+                                "wind_speed": 2.8188578287760415,
+                                "linear_wind_speed": 23.441314983953276
+                            },
+                            "wind_direction": 134.33333333333334,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-06T21:00:00+00:00",
+                            "temperature": 18.933551990783627,
+                            "bias_adjusted_temperature": 19.32192275355149,
+                            "relative_humidity": 26.226327669352084,
+                            "bias_adjusted_relative_humidity": 22.83259609737471,
+                            "wind": {
+                                "wind_speed": 3.0521373748779297,
+                                "linear_wind_speed": 11.174586299009551
+                            },
+                            "wind_direction": 138.0,
+                            "delta_precipitation": 0.0
+                        }
+                    ]
+                },
+                {
+                    "model_run": {
+                        "datetime": "2021-05-07T00:00:00+00:00",
+                        "name": "Global Deterministic Prediction System",
+                        "abbreviation": "GDPS",
+                        "projection": "latlon.15x.15"
+                    },
+                    "values": [
+                        {
+                            "datetime": "2021-05-07T00:00:00+00:00",
+                            "temperature": 16.466502036743034,
+                            "bias_adjusted_temperature": 19.22088529147534,
+                            "relative_humidity": 41.07183573616506,
+                            "bias_adjusted_relative_humidity": 40.311121147326006,
+                            "wind": {
+                                "wind_speed": 2.452653646469116,
+                                "linear_wind_speed": null
+                            },
+                            "wind_direction": 227.0,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-07T03:00:00+00:00",
+                            "temperature": 9.915544374063952,
+                            "bias_adjusted_temperature": 12.786843378928488,
+                            "relative_humidity": 71.331861977051,
+                            "bias_adjusted_relative_humidity": 61.94780632217894,
+                            "wind": {
+                                "wind_speed": 2.5022366046905518,
+                                "linear_wind_speed": -21.741487138776023
+                            },
+                            "wind_direction": 198.00009155273438,
+                            "delta_precipitation": 0.6486145000617023
+                        },
+                        {
+                            "datetime": "2021-05-07T06:00:00+00:00",
+                            "temperature": 7.007978521612892,
+                            "bias_adjusted_temperature": 10.055779085488421,
+                            "relative_humidity": 68.72336382486988,
+                            "bias_adjusted_relative_humidity": 58.75797963987681,
+                            "wind": {
+                                "wind_speed": 2.5512921810150146,
+                                "linear_wind_speed": -12.795807148402334
+                            },
+                            "wind_direction": 203.0,
+                            "delta_precipitation": 0.11226957604618659
+                        },
+                        {
+                            "datetime": "2021-05-07T09:00:00+00:00",
+                            "temperature": 4.221328745737521,
+                            "bias_adjusted_temperature": 7.3956042722172475,
+                            "relative_humidity": 72.96687477913437,
+                            "bias_adjusted_relative_humidity": 64.49341132489045,
+                            "wind": {
+                                "wind_speed": 2.0538647174835205,
+                                "linear_wind_speed": 33.98244453620477
+                            },
+                            "wind_direction": 201.5,
+                            "delta_precipitation": -2.0530267552665293e-07
+                        }
+                    ]
+                },
+                {
+                    "model_run": {
+                        "datetime": "2021-05-07T12:00:00+00:00",
+                        "name": "Global Deterministic Prediction System",
+                        "abbreviation": "GDPS",
+                        "projection": "latlon.15x.15"
+                    },
+                    "values": [
+                        {
+                            "datetime": "2021-05-07T12:00:00+00:00",
+                            "temperature": 3.522842067413165,
+                            "bias_adjusted_temperature": 6.057233731990889,
+                            "relative_humidity": 81.88897539274075,
+                            "bias_adjusted_relative_humidity": 70.26838225162123,
+                            "wind": {
+                                "wind_speed": 1.7521177530288696,
+                                "linear_wind_speed": null
+                            },
+                            "wind_direction": 204.50006103515625,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-07T15:00:00+00:00",
+                            "temperature": 5.532982814178301,
+                            "bias_adjusted_temperature": 6.995491369420792,
+                            "relative_humidity": 52.228542517089544,
+                            "bias_adjusted_relative_humidity": 50.48247914610193,
+                            "wind": {
+                                "wind_speed": 2.303565502166748,
+                                "linear_wind_speed": -16.42968967651352
+                            },
+                            "wind_direction": 223.00003051757812,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-07T18:00:00+00:00",
+                            "temperature": 8.75657640844714,
+                            "bias_adjusted_temperature": 10.51107180128213,
+                            "relative_humidity": 37.36330246289063,
+                            "bias_adjusted_relative_humidity": 41.27081331714444,
+                            "wind": {
+                                "wind_speed": 1.6023811101913452,
+                                "linear_wind_speed": 4.582457731048482
+                            },
+                            "wind_direction": 280.500244140625,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-07T20:00:00+00:00",
+                            "temperature": 7.175953721239724,
+                            "bias_adjusted_temperature": 9.96628919778285,
+                            "relative_humidity": 62.43139493836868,
+                            "bias_adjusted_relative_humidity": 90.91567683828288,
+                            "wind": {
+                                "wind_speed": 2.1372282902399697,
+                                "linear_wind_speed": 22.25623669934602
+                            },
+                            "wind_direction": 280.50034586588544,
+                            "delta_precipitation": 0.731111882249186
+                        },
+                        {
+                            "datetime": "2021-05-07T21:00:00+00:00",
+                            "temperature": 6.3856423776360165,
+                            "bias_adjusted_temperature": 10.870760252382919,
+                            "relative_humidity": 74.96544117610772,
+                            "bias_adjusted_relative_humidity": 101.28652698393674,
+                            "wind": {
+                                "wind_speed": 2.4046518802642822,
+                                "linear_wind_speed": 12.82256392021497
+                            },
+                            "wind_direction": 280.5003967285156,
+                            "delta_precipitation": 0.3655559411245932
+                        }
+                    ]
+                },
+                {
+                    "model_run": {
+                        "datetime": "2021-05-08T00:00:00+00:00",
+                        "name": "Global Deterministic Prediction System",
+                        "abbreviation": "GDPS",
+                        "projection": "latlon.15x.15"
+                    },
+                    "values": [
+                        {
+                            "datetime": "2021-05-08T00:00:00+00:00",
+                            "temperature": 7.905941436494387,
+                            "bias_adjusted_temperature": 10.572988042543797,
+                            "relative_humidity": 52.89504379394555,
+                            "bias_adjusted_relative_humidity": 51.52189536806522,
+                            "wind": {
+                                "wind_speed": 0.8542433977127075,
+                                "linear_wind_speed": null
+                            },
+                            "wind_direction": 282.0000305175781,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-08T03:00:00+00:00",
+                            "temperature": 5.875142063503443,
+                            "bias_adjusted_temperature": 8.644595688260821,
+                            "relative_humidity": 64.7555350361332,
+                            "bias_adjusted_relative_humidity": 49.14221034230835,
+                            "wind": {
+                                "wind_speed": 1.9045084714889526,
+                                "linear_wind_speed": -6.608244933990706
+                            },
+                            "wind_direction": 222.00021362304688,
+                            "delta_precipitation": 0.5899760552291308
+                        },
+                        {
+                            "datetime": "2021-05-08T06:00:00+00:00",
+                            "temperature": 3.2708772357685727,
+                            "bias_adjusted_temperature": 5.709887503742918,
+                            "relative_humidity": 81.0259454778636,
+                            "bias_adjusted_relative_humidity": 64.75870762088218,
+                            "wind": {
+                                "wind_speed": 1.403128743171692,
+                                "linear_wind_speed": 9.70598449581187
+                            },
+                            "wind_direction": 233.50006103515625,
+                            "delta_precipitation": 0.35876580285317505
+                        },
+                        {
+                            "datetime": "2021-05-08T09:00:00+00:00",
+                            "temperature": 1.4342696019872498,
+                            "bias_adjusted_temperature": 4.2984952773179845,
+                            "relative_humidity": 84.55870484033139,
+                            "bias_adjusted_relative_humidity": 71.67915439201573,
+                            "wind": {
+                                "wind_speed": 1.6514949798583984,
+                                "linear_wind_speed": 22.664811210710994
+                            },
+                            "wind_direction": 221.00018310546875,
+                            "delta_precipitation": 0.01948611911594944
+                        }
+                    ]
+                },
+                {
+                    "model_run": {
+                        "datetime": "2021-05-08T12:00:00+00:00",
+                        "name": "Global Deterministic Prediction System",
+                        "abbreviation": "GDPS",
+                        "projection": "latlon.15x.15"
+                    },
+                    "values": [
+                        {
+                            "datetime": "2021-05-08T12:00:00+00:00",
+                            "temperature": 0.5933774283589742,
+                            "bias_adjusted_temperature": 2.7452738922535347,
+                            "relative_humidity": 87.39592050960206,
+                            "bias_adjusted_relative_humidity": 75.85292588981471,
+                            "wind": {
+                                "wind_speed": 1.201564073562622,
+                                "linear_wind_speed": null
+                            },
+                            "wind_direction": 238.5,
+                            "delta_precipitation": -8.566678682986328e-06
+                        },
+                        {
+                            "datetime": "2021-05-08T15:00:00+00:00",
+                            "temperature": 3.665945533844048,
+                            "bias_adjusted_temperature": 5.633313308644859,
+                            "relative_humidity": 68.67540100732253,
+                            "bias_adjusted_relative_humidity": 68.76028414959063,
+                            "wind": {
+                                "wind_speed": 0.8522963523864746,
+                                "linear_wind_speed": 0.30497733682071804
+                            },
+                            "wind_direction": 246.5001220703125,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-08T18:00:00+00:00",
+                            "temperature": 8.572010225292455,
+                            "bias_adjusted_temperature": 10.37752763439998,
+                            "relative_humidity": 42.76187034651603,
+                            "bias_adjusted_relative_humidity": 46.88074561396909,
+                            "wind": {
+                                "wind_speed": 1.2019572257995605,
+                                "linear_wind_speed": 6.6908271503966255
+                            },
+                            "wind_direction": 298.5001220703125,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-08T20:00:00+00:00",
+                            "temperature": 9.875485008853905,
+                            "bias_adjusted_temperature": 11.53467258472306,
+                            "relative_humidity": 38.38489298719592,
+                            "bias_adjusted_relative_humidity": 40.90493961188328,
+                            "wind": {
+                                "wind_speed": 0.8344855308532715,
+                                "linear_wind_speed": 19.38583864794079
+                            },
+                            "wind_direction": 287.50018310546875,
+                            "delta_precipitation": 1.1296299714631861e-05
+                        },
+                        {
+                            "datetime": "2021-05-08T21:00:00+00:00",
+                            "temperature": 10.527222400634631,
+                            "bias_adjusted_temperature": 12.519383702914212,
+                            "relative_humidity": 36.19640430753586,
+                            "bias_adjusted_relative_humidity": 39.00412974074833,
+                            "wind": {
+                                "wind_speed": 0.650749683380127,
+                                "linear_wind_speed": 14.77980819405278
+                            },
+                            "wind_direction": 282.0002136230469,
+                            "delta_precipitation": 5.648149857315932e-06
+                        }
+                    ]
+                },
+                {
+                    "model_run": {
+                        "datetime": "2021-05-09T00:00:00+00:00",
+                        "name": "Global Deterministic Prediction System",
+                        "abbreviation": "GDPS",
+                        "projection": "latlon.15x.15"
+                    },
+                    "values": [
+                        {
+                            "datetime": "2021-05-09T00:00:00+00:00",
+                            "temperature": 9.902319167602373,
+                            "bias_adjusted_temperature": 12.94248144292054,
+                            "relative_humidity": 45.657825447428664,
+                            "bias_adjusted_relative_humidity": 41.767354366162024,
+                            "wind": {
+                                "wind_speed": 2.151036500930786,
+                                "linear_wind_speed": null
+                            },
+                            "wind_direction": 183.00009155273438,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-09T03:00:00+00:00",
+                            "temperature": 7.383898678702284,
+                            "bias_adjusted_temperature": 10.101483151419473,
+                            "relative_humidity": 58.32607908325172,
+                            "bias_adjusted_relative_humidity": 46.38591351017311,
+                            "wind": {
+                                "wind_speed": 2.001695394515991,
+                                "linear_wind_speed": 0.7506304706230154
+                            },
+                            "wind_direction": 201.0,
+                            "delta_precipitation": 0.013917559214077885
+                        },
+                        {
+                            "datetime": "2021-05-09T06:00:00+00:00",
+                            "temperature": 3.3497493938293688,
+                            "bias_adjusted_temperature": 5.57199279120615,
+                            "relative_humidity": 71.1688295209958,
+                            "bias_adjusted_relative_humidity": 57.916057878371284,
+                            "wind": {
+                                "wind_speed": 1.952699899673462,
+                                "linear_wind_speed": 4.468414049504121
+                            },
+                            "wind_direction": 205.50039672851562,
+                            "delta_precipitation": -9.665772409088794e-06
+                        },
+                        {
+                            "datetime": "2021-05-09T09:00:00+00:00",
+                            "temperature": 1.0737207053743945,
+                            "bias_adjusted_temperature": 3.5944309367502028,
+                            "relative_humidity": 80.36398779036448,
+                            "bias_adjusted_relative_humidity": 69.57972824108182,
+                            "wind": {
+                                "wind_speed": 1.5520731210708618,
+                                "linear_wind_speed": 13.57255857868791
+                            },
+                            "wind_direction": 198.0,
+                            "delta_precipitation": -2.4977736878123435e-07
+                        }
+                    ]
+                },
+                {
+                    "model_run": {
+                        "datetime": "2021-05-09T12:00:00+00:00",
+                        "name": "Global Deterministic Prediction System",
+                        "abbreviation": "GDPS",
+                        "projection": "latlon.15x.15"
+                    },
+                    "values": [
+                        {
+                            "datetime": "2021-05-09T12:00:00+00:00",
+                            "temperature": 1.2278474267693276,
+                            "bias_adjusted_temperature": 3.54819977940126,
+                            "relative_humidity": 81.21384148128203,
+                            "bias_adjusted_relative_humidity": 70.41323713209408,
+                            "wind": {
+                                "wind_speed": 1.3028068542480469,
+                                "linear_wind_speed": null
+                            },
+                            "wind_direction": 237.00003051757812,
+                            "delta_precipitation": 8.471105955540695e-06
+                        },
+                        {
+                            "datetime": "2021-05-09T15:00:00+00:00",
+                            "temperature": 4.649661354156539,
+                            "bias_adjusted_temperature": 6.454402534317664,
+                            "relative_humidity": 66.46569536572248,
+                            "bias_adjusted_relative_humidity": 65.76953196146462,
+                            "wind": {
+                                "wind_speed": 0.30353206396102905,
+                                "linear_wind_speed": 5.920440567222553
+                            },
+                            "wind_direction": 244.50006103515625,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-09T18:00:00+00:00",
+                            "temperature": 10.240970180297792,
+                            "bias_adjusted_temperature": 11.425883977741067,
+                            "relative_humidity": 47.79110685302699,
+                            "bias_adjusted_relative_humidity": 50.63650733651483,
+                            "wind": {
+                                "wind_speed": 1.5031781196594238,
+                                "linear_wind_speed": 4.68968660840396
+                            },
+                            "wind_direction": 353.5000915527344,
+                            "delta_precipitation": 0.003456667609116186
+                        },
+                        {
+                            "datetime": "2021-05-09T20:00:00+00:00",
+                            "temperature": 11.681556472846056,
+                            "bias_adjusted_temperature": 13.148116856745148,
+                            "relative_humidity": 41.89633217952438,
+                            "bias_adjusted_relative_humidity": 46.258081223079145,
+                            "wind": {
+                                "wind_speed": 1.5348433653513591,
+                                "linear_wind_speed": 22.341049098935386
+                            },
+                            "wind_direction": 347.83338419596356,
+                            "delta_precipitation": 0.00017777796638492873
+                        },
+                        {
+                            "datetime": "2021-05-09T21:00:00+00:00",
+                            "temperature": 12.401849619120187,
+                            "bias_adjusted_temperature": 14.009101957732307,
+                            "relative_humidity": 38.94894484277308,
+                            "bias_adjusted_relative_humidity": 42.26245855526932,
+                            "wind": {
+                                "wind_speed": 1.5506759881973267,
+                                "linear_wind_speed": 12.21608208848166
+                            },
+                            "wind_direction": 345.0000305175781,
+                            "delta_precipitation": 8.888898319246458e-05
+                        }
+                    ]
+                },
+                {
+                    "model_run": {
+                        "datetime": "2021-05-10T00:00:00+00:00",
+                        "name": "Global Deterministic Prediction System",
+                        "abbreviation": "GDPS",
+                        "projection": "latlon.15x.15"
+                    },
+                    "values": [
+                        {
+                            "datetime": "2021-05-10T00:00:00+00:00",
+                            "temperature": 13.255380425130062,
+                            "bias_adjusted_temperature": 15.988834213057663,
+                            "relative_humidity": 36.26463217008453,
+                            "bias_adjusted_relative_humidity": 32.632341243438546,
+                            "wind": {
+                                "wind_speed": 1.1513317823410034,
+                                "linear_wind_speed": null
+                            },
+                            "wind_direction": 330.0000305175781,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-10T03:00:00+00:00",
+                            "temperature": 10.080156062499944,
+                            "bias_adjusted_temperature": 13.160362690259591,
+                            "relative_humidity": 49.11583175325432,
+                            "bias_adjusted_relative_humidity": 40.40473086583657,
+                            "wind": {
+                                "wind_speed": 0.7524313926696777,
+                                "linear_wind_speed": 9.660634941611168
+                            },
+                            "wind_direction": 250.50033569335938,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-10T06:00:00+00:00",
+                            "temperature": 5.3909176178284195,
+                            "bias_adjusted_temperature": 8.29501726086944,
+                            "relative_humidity": 73.24487350374346,
+                            "bias_adjusted_relative_humidity": 58.27233069705273,
+                            "wind": {
+                                "wind_speed": 2.052018880844116,
+                                "linear_wind_speed": 3.9432482104609807
+                            },
+                            "wind_direction": 222.5,
+                            "delta_precipitation": 0.0001629998888518435
+                        },
+                        {
+                            "datetime": "2021-05-10T09:00:00+00:00",
+                            "temperature": 4.911650704457699,
+                            "bias_adjusted_temperature": 8.290080906242562,
+                            "relative_humidity": 81.88233662499978,
+                            "bias_adjusted_relative_humidity": 69.59590204303281,
+                            "wind": {
+                                "wind_speed": 1.1523298025131226,
+                                "linear_wind_speed": 12.177135927474914
+                            },
+                            "wind_direction": 233.50015258789062,
+                            "delta_precipitation": 0.004886553237734137
+                        }
+                    ]
+                },
+                {
+                    "model_run": {
+                        "datetime": "2021-05-10T12:00:00+00:00",
+                        "name": "Global Deterministic Prediction System",
+                        "abbreviation": "GDPS",
+                        "projection": "latlon.15x.15"
+                    },
+                    "values": [
+                        {
+                            "datetime": "2021-05-10T12:00:00+00:00",
+                            "temperature": 2.236529378977606,
+                            "bias_adjusted_temperature": 4.699620567831783,
+                            "relative_humidity": 97.8461647823892,
+                            "bias_adjusted_relative_humidity": 82.59576443369136,
+                            "wind": {
+                                "wind_speed": 1.4010627269744873,
+                                "linear_wind_speed": null
+                            },
+                            "wind_direction": 286.0007019042969,
+                            "delta_precipitation": 0.006316557731721154
+                        },
+                        {
+                            "datetime": "2021-05-10T15:00:00+00:00",
+                            "temperature": 6.722789148061122,
+                            "bias_adjusted_temperature": 7.975855251943036,
+                            "relative_humidity": 73.59485116731769,
+                            "bias_adjusted_relative_humidity": 73.17358795083406,
+                            "wind": {
+                                "wind_speed": 0.8532374501228333,
+                                "linear_wind_speed": 0.6065315500136101
+                            },
+                            "wind_direction": 282.00006103515625,
+                            "delta_precipitation": 0.0009895558402072992
+                        },
+                        {
+                            "datetime": "2021-05-10T18:00:00+00:00",
+                            "temperature": 10.733477214477412,
+                            "bias_adjusted_temperature": 11.62157033625894,
+                            "relative_humidity": 52.78367337060539,
+                            "bias_adjusted_relative_humidity": 55.26697102326709,
+                            "wind": {
+                                "wind_speed": 0.6010355353355408,
+                                "linear_wind_speed": 10.71617148350813
+                            },
+                            "wind_direction": 289.5,
+                            "delta_precipitation": 0.09139347162583772
+                        },
+                        {
+                            "datetime": "2021-05-10T20:00:00+00:00",
+                            "temperature": 11.437098874620066,
+                            "bias_adjusted_temperature": 13.026267207834533,
+                            "relative_humidity": 51.23253072102869,
+                            "bias_adjusted_relative_humidity": 61.25494148001292,
+                            "wind": {
+                                "wind_speed": 1.4008398652076721,
+                                "linear_wind_speed": 21.89030547342498
+                            },
+                            "wind_direction": 312.8333333333333,
+                            "delta_precipitation": 0.05047680217492198
+                        },
+                        {
+                            "datetime": "2021-05-10T21:00:00+00:00",
+                            "temperature": 11.788909704691394,
+                            "bias_adjusted_temperature": 13.521854381132894,
+                            "relative_humidity": 50.45695939624034,
+                            "bias_adjusted_relative_humidity": 57.22374651278095,
+                            "wind": {
+                                "wind_speed": 1.8007420301437378,
+                                "linear_wind_speed": 11.843188520753591
+                            },
+                            "wind_direction": 324.5,
+                            "delta_precipitation": 0.025238401087461032
+                        }
+                    ]
+                },
+                {
+                    "model_run": {
+                        "datetime": "2021-05-11T00:00:00+00:00",
+                        "name": "Global Deterministic Prediction System",
+                        "abbreviation": "GDPS",
+                        "projection": "latlon.15x.15"
+                    },
+                    "values": [
+                        {
+                            "datetime": "2021-05-11T00:00:00+00:00",
+                            "temperature": 12.33750626851391,
+                            "bias_adjusted_temperature": 15.118696601381915,
+                            "relative_humidity": 45.10601119995078,
+                            "bias_adjusted_relative_humidity": 41.43900936219938,
+                            "wind": {
+                                "wind_speed": 0.5020169615745544,
+                                "linear_wind_speed": null
+                            },
+                            "wind_direction": 337.0003967285156,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-11T03:00:00+00:00",
+                            "temperature": 8.985116819347523,
+                            "bias_adjusted_temperature": 11.951965433296724,
+                            "relative_humidity": 67.95484960709699,
+                            "bias_adjusted_relative_humidity": 51.002674707222425,
+                            "wind": {
+                                "wind_speed": 1.5018471479415894,
+                                "linear_wind_speed": 5.701101046329059
+                            },
+                            "wind_direction": 264.00030517578125,
+                            "delta_precipitation": 0.6948290814329611
+                        },
+                        {
+                            "datetime": "2021-05-11T06:00:00+00:00",
+                            "temperature": 5.437936823252245,
+                            "bias_adjusted_temperature": 8.444295978921087,
+                            "relative_humidity": 87.28395882487052,
+                            "bias_adjusted_relative_humidity": 66.92511147969377,
+                            "wind": {
+                                "wind_speed": 1.4029014110565186,
+                                "linear_wind_speed": 6.380646315751078
+                            },
+                            "wind_direction": 215.0001220703125,
+                            "delta_precipitation": 0.5854071517626157
+                        },
+                        {
+                            "datetime": "2021-05-11T09:00:00+00:00",
+                            "temperature": 3.1223911689553874,
+                            "bias_adjusted_temperature": 6.125239756740564,
+                            "relative_humidity": 93.05383100585952,
+                            "bias_adjusted_relative_humidity": 77.38397652458491,
+                            "wind": {
+                                "wind_speed": 1.351681113243103,
+                                "linear_wind_speed": 12.913050959310677
+                            },
+                            "wind_direction": 215.00048828125,
+                            "delta_precipitation": -3.868683461139e-06
+                        }
+                    ]
+                },
+                {
+                    "model_run": {
+                        "datetime": "2021-05-11T12:00:00+00:00",
+                        "name": "Global Deterministic Prediction System",
+                        "abbreviation": "GDPS",
+                        "projection": "latlon.15x.15"
+                    },
+                    "values": [
+                        {
+                            "datetime": "2021-05-11T12:00:00+00:00",
+                            "temperature": 0.3410121546636799,
+                            "bias_adjusted_temperature": 2.5655988836530326,
+                            "relative_humidity": 88.04072790917971,
+                            "bias_adjusted_relative_humidity": 76.03214201623166,
+                            "wind": {
+                                "wind_speed": 1.4012879133224487,
+                                "linear_wind_speed": null
+                            },
+                            "wind_direction": 253.0001220703125,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-11T15:00:00+00:00",
+                            "temperature": 5.309790627614269,
+                            "bias_adjusted_temperature": 6.957015965555547,
+                            "relative_humidity": 73.71426980973328,
+                            "bias_adjusted_relative_humidity": 73.05956023826232,
+                            "wind": {
+                                "wind_speed": 0.2005842924118042,
+                                "linear_wind_speed": 6.742639543664067
+                            },
+                            "wind_direction": 261.5007019042969,
+                            "delta_precipitation": 6.1000020924754055e-05
+                        },
+                        {
+                            "datetime": "2021-05-11T18:00:00+00:00",
+                            "temperature": 11.036860457560133,
+                            "bias_adjusted_temperature": 11.840467896370699,
+                            "relative_humidity": 46.102417342773236,
+                            "bias_adjusted_relative_humidity": 48.90855278810522,
+                            "wind": {
+                                "wind_speed": 1.102342963218689,
+                                "linear_wind_speed": 7.619347714635154
+                            },
+                            "wind_direction": 16.50006103515625,
+                            "delta_precipitation": -1.69444803937228e-06
+                        },
+                        {
+                            "datetime": "2021-05-11T20:00:00+00:00",
+                            "temperature": 12.99283735952409,
+                            "bias_adjusted_temperature": 14.47850254607292,
+                            "relative_humidity": 36.43025684225377,
+                            "bias_adjusted_relative_humidity": 35.924197510179155,
+                            "wind": {
+                                "wind_speed": 1.2377644777297974,
+                                "linear_wind_speed": 20.915716697434554
+                            },
+                            "wind_direction": 24.166849772135414,
+                            "delta_precipitation": 5.648150268272927e-06
+                        },
+                        {
+                            "datetime": "2021-05-11T21:00:00+00:00",
+                            "temperature": 13.970825810506067,
+                            "bias_adjusted_temperature": 15.220850070075597,
+                            "relative_humidity": 31.594176591994035,
+                            "bias_adjusted_relative_humidity": 32.54366572723219,
+                            "wind": {
+                                "wind_speed": 1.3054752349853516,
+                                "linear_wind_speed": 12.697240826326476
+                            },
+                            "wind_direction": 28.000244140625,
+                            "delta_precipitation": 2.8240751341364735e-06
+                        },
+                        {
+                            "datetime": "2021-05-12T00:00:00+00:00",
+                            "temperature": 14.532548257100284,
+                            "bias_adjusted_temperature": 17.117498651062327,
+                            "relative_humidity": 30.80760329307077,
+                            "bias_adjusted_relative_humidity": 27.54646685867163,
+                            "wind": {
+                                "wind_speed": 1.3022209405899048,
+                                "linear_wind_speed": null
+                            },
+                            "wind_direction": 43.0001220703125,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-12T03:00:00+00:00",
+                            "temperature": 11.335223436808189,
+                            "bias_adjusted_temperature": 14.411861968142157,
+                            "relative_humidity": 49.0841447934567,
+                            "bias_adjusted_relative_humidity": 41.69470725158689,
+                            "wind": {
+                                "wind_speed": 0.7016010284423828,
+                                "linear_wind_speed": 10.35965202325359
+                            },
+                            "wind_direction": 70.500244140625,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-12T06:00:00+00:00",
+                            "temperature": 6.152953183583535,
+                            "bias_adjusted_temperature": 9.176098551303244,
+                            "relative_humidity": 52.475502919840785,
+                            "bias_adjusted_relative_humidity": 43.83247484083869,
+                            "wind": {
+                                "wind_speed": 1.2020601034164429,
+                                "linear_wind_speed": 6.9652720845892535
+                            },
+                            "wind_direction": 197.00003051757812,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-12T09:00:00+00:00",
+                            "temperature": 4.963286691090948,
+                            "bias_adjusted_temperature": 7.979632084395027,
+                            "relative_humidity": 55.225296438151375,
+                            "bias_adjusted_relative_humidity": 49.43953114685046,
+                            "wind": {
+                                "wind_speed": 1.5514219999313354,
+                                "linear_wind_speed": 7.729477214698122
+                            },
+                            "wind_direction": 188.5,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-12T12:00:00+00:00",
+                            "temperature": 4.407928165679937,
+                            "bias_adjusted_temperature": 7.070647437125398,
+                            "relative_humidity": 58.53090646940128,
+                            "bias_adjusted_relative_humidity": 52.16972721795137,
+                            "wind": {
+                                "wind_speed": 1.4045790433883667,
+                                "linear_wind_speed": null
+                            },
+                            "wind_direction": 194.50051879882812,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-12T15:00:00+00:00",
+                            "temperature": 8.049661946890826,
+                            "bias_adjusted_temperature": 8.974787937703415,
+                            "relative_humidity": 55.32052584814422,
+                            "bias_adjusted_relative_humidity": 53.04378641442597,
+                            "wind": {
+                                "wind_speed": 0.6010656356811523,
+                                "linear_wind_speed": 2.9974237389051197
+                            },
+                            "wind_direction": 230.50021362304688,
+                            "delta_precipitation": 0.0026611117693964405
+                        },
+                        {
+                            "datetime": "2021-05-12T18:00:00+00:00",
+                            "temperature": 7.979557956086706,
+                            "bias_adjusted_temperature": 10.252900858467026,
+                            "relative_humidity": 69.76701487451193,
+                            "bias_adjusted_relative_humidity": 70.50258947061872,
+                            "wind": {
+                                "wind_speed": 1.0008302927017212,
+                                "linear_wind_speed": 8.259841040809132
+                            },
+                            "wind_direction": 119.500244140625,
+                            "delta_precipitation": 0.4699564826922
+                        },
+                        {
+                            "datetime": "2021-05-12T20:00:00+00:00",
+                            "temperature": 7.612311018139117,
+                            "bias_adjusted_temperature": 9.798004334282716,
+                            "relative_humidity": 84.89412587993684,
+                            "bias_adjusted_relative_humidity": 111.93310616266979,
+                            "wind": {
+                                "wind_speed": 0.6344571312268574,
+                                "linear_wind_speed": 18.05967606592901
+                            },
+                            "wind_direction": 80.83359781901041,
+                            "delta_precipitation": 1.053632559186246
+                        },
+                        {
+                            "datetime": "2021-05-12T21:00:00+00:00",
+                            "temperature": 7.428687549165322,
+                            "bias_adjusted_temperature": 9.72722272735015,
+                            "relative_humidity": 92.45768138264928,
+                            "bias_adjusted_relative_humidity": 116.78791557558664,
+                            "wind": {
+                                "wind_speed": 0.45127055048942566,
+                                "linear_wind_speed": 14.475052608862544
+                            },
+                            "wind_direction": 61.500274658203125,
+                            "delta_precipitation": 0.5268162795931228
+                        },
+                        {
+                            "datetime": "2021-05-13T00:00:00+00:00",
+                            "temperature": 8.833750944315561,
+                            "bias_adjusted_temperature": 11.928182087308087,
+                            "relative_humidity": 84.9628369596348,
+                            "bias_adjusted_relative_humidity": 80.164484920613,
+                            "wind": {
+                                "wind_speed": 1.0531927347183228,
+                                "linear_wind_speed": null
+                            },
+                            "wind_direction": 12.500213623046875,
+                            "delta_precipitation": 0.7419190829740243
+                        },
+                        {
+                            "datetime": "2021-05-13T03:00:00+00:00",
+                            "temperature": 8.623672788463855,
+                            "bias_adjusted_temperature": 11.527541272830321,
+                            "relative_humidity": 82.6154608717443,
+                            "bias_adjusted_relative_humidity": 62.13353072083966,
+                            "wind": {
+                                "wind_speed": 0.802020251750946,
+                                "linear_wind_speed": 9.737290125876271
+                            },
+                            "wind_direction": 39.5,
+                            "delta_precipitation": 0.014923537342707682
+                        },
+                        {
+                            "datetime": "2021-05-13T06:00:00+00:00",
+                            "temperature": 4.64408839419552,
+                            "bias_adjusted_temperature": 7.390454818699736,
+                            "relative_humidity": 97.31344169238282,
+                            "bias_adjusted_relative_humidity": 75.77418157236666,
+                            "wind": {
+                                "wind_speed": 1.403067946434021,
+                                "linear_wind_speed": 6.244388472169555
+                            },
+                            "wind_direction": 215.5,
+                            "delta_precipitation": 0.012661620124181816
+                        },
+                        {
+                            "datetime": "2021-05-13T09:00:00+00:00",
+                            "temperature": 3.262983383148187,
+                            "bias_adjusted_temperature": 6.064638357393317,
+                            "relative_humidity": 97.93411254882812,
+                            "bias_adjusted_relative_humidity": 80.89467057796321,
+                            "wind": {
+                                "wind_speed": 1.2024372816085815,
+                                "linear_wind_speed": 7.8645667048615655
+                            },
+                            "wind_direction": 215.0001220703125,
+                            "delta_precipitation": 0.0011183980793951775
+                        },
+                        {
+                            "datetime": "2021-05-13T12:00:00+00:00",
+                            "temperature": 3.2636792337342277,
+                            "bias_adjusted_temperature": 5.803127532187358,
+                            "relative_humidity": 98.17629801432287,
+                            "bias_adjusted_relative_humidity": 84.22802956368918,
+                            "wind": {
+                                "wind_speed": 0.8520169258117676,
+                                "linear_wind_speed": null
+                            },
+                            "wind_direction": 216.0,
+                            "delta_precipitation": 0.013409393745423603
+                        },
+                        {
+                            "datetime": "2021-05-13T15:00:00+00:00",
+                            "temperature": 6.645710961903948,
+                            "bias_adjusted_temperature": 7.940851443005588,
+                            "relative_humidity": 86.89287322786444,
+                            "bias_adjusted_relative_humidity": 87.40030271473645,
+                            "wind": {
+                                "wind_speed": 0.45044955611228943,
+                                "linear_wind_speed": 4.405953077743138
+                            },
+                            "wind_direction": 19.0006103515625,
+                            "delta_precipitation": 0.014651703460853316
+                        },
+                        {
+                            "datetime": "2021-05-13T18:00:00+00:00",
+                            "temperature": 12.186244925089476,
+                            "bias_adjusted_temperature": 12.437309358296252,
+                            "relative_humidity": 63.7334619408489,
+                            "bias_adjusted_relative_humidity": 64.9969491063292,
+                            "wind": {
+                                "wind_speed": 1.5016402006149292,
+                                "linear_wind_speed": 5.099985211318382
+                            },
+                            "wind_direction": 35.500213623046875,
+                            "delta_precipitation": 0.00044890755732884813
+                        },
+                        {
+                            "datetime": "2021-05-13T20:00:00+00:00",
+                            "temperature": 14.446303115003705,
+                            "bias_adjusted_temperature": 15.74286655765576,
+                            "relative_humidity": 52.997700611847634,
+                            "bias_adjusted_relative_humidity": 61.90795293649865,
+                            "wind": {
+                                "wind_speed": 1.435730258623759,
+                                "linear_wind_speed": 21.852881340229306
+                            },
+                            "wind_direction": 38.833587646484375,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-13T21:00:00+00:00",
+                            "temperature": 15.576332209960821,
+                            "bias_adjusted_temperature": 16.56904136512746,
+                            "relative_humidity": 47.629819947347,
+                            "bias_adjusted_relative_humidity": 54.73940930056111,
+                            "wind": {
+                                "wind_speed": 1.4027752876281738,
+                                "linear_wind_speed": 12.494735287350338
+                            },
+                            "wind_direction": 40.500274658203125,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-14T00:00:00+00:00",
+                            "temperature": 16.60618717311591,
+                            "bias_adjusted_temperature": 19.005751239022327,
+                            "relative_humidity": 41.52020971964559,
+                            "bias_adjusted_relative_humidity": 37.954992134632214,
+                            "wind": {
+                                "wind_speed": 1.2014789581298828,
+                                "linear_wind_speed": null
+                            },
+                            "wind_direction": 59.00006103515625,
+                            "delta_precipitation": 0.003784415194985513
+                        },
+                        {
+                            "datetime": "2021-05-14T03:00:00+00:00",
+                            "temperature": 13.705990003885828,
+                            "bias_adjusted_temperature": 16.933685072331905,
+                            "relative_humidity": 55.786755984618885,
+                            "bias_adjusted_relative_humidity": 45.78024587462677,
+                            "wind": {
+                                "wind_speed": 0.7525668144226074,
+                                "linear_wind_speed": 10.043784580557745
+                            },
+                            "wind_direction": 92.00030517578125,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-14T06:00:00+00:00",
+                            "temperature": 8.854793303324326,
+                            "bias_adjusted_temperature": 12.37355130534932,
+                            "relative_humidity": 64.32058564215887,
+                            "bias_adjusted_relative_humidity": 52.27068964028147,
+                            "wind": {
+                                "wind_speed": 1.1519187688827515,
+                                "linear_wind_speed": 7.145096243823832
+                            },
+                            "wind_direction": 182.500244140625,
+                            "delta_precipitation": 0.000603370862961139
+                        },
+                        {
+                            "datetime": "2021-05-14T09:00:00+00:00",
+                            "temperature": 6.418960670562667,
+                            "bias_adjusted_temperature": 9.619108127419816,
+                            "relative_humidity": 73.57764746695992,
+                            "bias_adjusted_relative_humidity": 62.95607908870703,
+                            "wind": {
+                                "wind_speed": 1.3539830446243286,
+                                "linear_wind_speed": 7.805904423141557
+                            },
+                            "wind_direction": 207.5,
+                            "delta_precipitation": 0.021409438474970344
+                        },
+                        {
+                            "datetime": "2021-05-14T12:00:00+00:00",
+                            "temperature": 4.699967069020587,
+                            "bias_adjusted_temperature": 7.394147955820321,
+                            "relative_humidity": 82.14694126415984,
+                            "bias_adjusted_relative_humidity": 71.2662717129146,
+                            "wind": {
+                                "wind_speed": 1.4027628898620605,
+                                "linear_wind_speed": null
+                            },
+                            "wind_direction": 211.00009155273438,
+                            "delta_precipitation": 0.014085543063155015
+                        },
+                        {
+                            "datetime": "2021-05-14T15:00:00+00:00",
+                            "temperature": 9.097203965169246,
+                            "bias_adjusted_temperature": 9.746247863305875,
+                            "relative_humidity": 64.07958461669891,
+                            "bias_adjusted_relative_humidity": 62.57525209032065,
+                            "wind": {
+                                "wind_speed": 0.20036020874977112,
+                                "linear_wind_speed": 6.74473512610939
+                            },
+                            "wind_direction": 61.5,
+                            "delta_precipitation": -1.6689300537109375e-06
+                        },
+                        {
+                            "datetime": "2021-05-14T18:00:00+00:00",
+                            "temperature": 14.697296640909702,
+                            "bias_adjusted_temperature": 13.74122447058443,
+                            "relative_humidity": 50.91615109488951,
+                            "bias_adjusted_relative_humidity": 53.30110343612018,
+                            "wind": {
+                                "wind_speed": 1.0511869192123413,
+                                "linear_wind_speed": 7.942116336647235
+                            },
+                            "wind_direction": 30.500274658203125,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-14T20:00:00+00:00",
+                            "temperature": 16.70358828351495,
+                            "bias_adjusted_temperature": 17.706469841864923,
+                            "relative_humidity": 45.8734281946615,
+                            "bias_adjusted_relative_humidity": 50.73451214182521,
+                            "wind": {
+                                "wind_speed": 1.0519546270370483,
+                                "linear_wind_speed": 20.03609789884284
+                            },
+                            "wind_direction": 10.833526611328125,
+                            "delta_precipitation": 0.10907707435131542
+                        },
+                        {
+                            "datetime": "2021-05-14T21:00:00+00:00",
+                            "temperature": 17.706734104817578,
+                            "bias_adjusted_temperature": 18.358002960411852,
+                            "relative_humidity": 43.3520667445475,
+                            "bias_adjusted_relative_humidity": 48.818355117996674,
+                            "wind": {
+                                "wind_speed": 1.0523384809494019,
+                                "linear_wind_speed": 13.22408118682346
+                            },
+                            "wind_direction": 1.000152587890625,
+                            "delta_precipitation": 0.05453853717565682
+                        },
+                        {
+                            "datetime": "2021-05-15T00:00:00+00:00",
+                            "temperature": 18.10710522424302,
+                            "bias_adjusted_temperature": 20.372485038464248,
+                            "relative_humidity": 39.18947449926768,
+                            "bias_adjusted_relative_humidity": 35.690415663989704,
+                            "wind": {
+                                "wind_speed": 0.35147327184677124,
+                                "linear_wind_speed": null
+                            },
+                            "wind_direction": 229.50027465820312,
+                            "delta_precipitation": 0.12247452777815315
+                        },
+                        {
+                            "datetime": "2021-05-15T03:00:00+00:00",
+                            "temperature": 15.236774647033625,
+                            "bias_adjusted_temperature": 18.562005689906464,
+                            "relative_humidity": 51.59113726236872,
+                            "bias_adjusted_relative_humidity": 43.222830287116004,
+                            "wind": {
+                                "wind_speed": 1.2028213739395142,
+                                "linear_wind_speed": 7.25327024743369
+                            },
+                            "wind_direction": 262.00018310546875,
+                            "delta_precipitation": 0.044811606242335156
+                        },
+                        {
+                            "datetime": "2021-05-15T06:00:00+00:00",
+                            "temperature": 11.265130379842075,
+                            "bias_adjusted_temperature": 15.226029091573928,
+                            "relative_humidity": 69.66031532454375,
+                            "bias_adjusted_relative_humidity": 56.07461292956569,
+                            "wind": {
+                                "wind_speed": 1.3516887426376343,
+                                "linear_wind_speed": 6.42865205850508
+                            },
+                            "wind_direction": 277.00030517578125,
+                            "delta_precipitation": 0.23172406219340802
+                        },
+                        {
+                            "datetime": "2021-05-15T09:00:00+00:00",
+                            "temperature": 9.763999028279557,
+                            "bias_adjusted_temperature": 13.386510944131615,
+                            "relative_humidity": 81.5434411297201,
+                            "bias_adjusted_relative_humidity": 68.82290409486674,
+                            "wind": {
+                                "wind_speed": 1.1524264812469482,
+                                "linear_wind_speed": 7.883925528239243
+                            },
+                            "wind_direction": 297.5001525878906,
+                            "delta_precipitation": 0.05560820940208622
+                        },
+                        {
+                            "datetime": "2021-05-15T12:00:00+00:00",
+                            "temperature": 7.514152915986695,
+                            "bias_adjusted_temperature": 10.511508590939272,
+                            "relative_humidity": 92.61110784000617,
+                            "bias_adjusted_relative_humidity": 79.72787097608588,
+                            "wind": {
+                                "wind_speed": 1.3523460626602173,
+                                "linear_wind_speed": null
+                            },
+                            "wind_direction": 279.00018310546875,
+                            "delta_precipitation": 1.4464049339579788e-05
+                        },
+                        {
+                            "datetime": "2021-05-15T15:00:00+00:00",
+                            "temperature": 11.157083266906712,
+                            "bias_adjusted_temperature": 11.26324126800009,
+                            "relative_humidity": 73.05777193538368,
+                            "bias_adjusted_relative_humidity": 72.34516990009891,
+                            "wind": {
+                                "wind_speed": 1.4028400182724,
+                                "linear_wind_speed": -4.5005986783639145
+                            },
+                            "wind_direction": 323.5001525878906,
+                            "delta_precipitation": 3.3338864642296073e-06
+                        },
+                        {
+                            "datetime": "2021-05-15T18:00:00+00:00",
+                            "temperature": 15.35110016526274,
+                            "bias_adjusted_temperature": 14.080725361983927,
+                            "relative_humidity": 47.12726417919908,
+                            "bias_adjusted_relative_humidity": 49.843729486126655,
+                            "wind": {
+                                "wind_speed": 1.601658821105957,
+                                "linear_wind_speed": 4.468918581001299
+                            },
+                            "wind_direction": 333.5001525878906,
+                            "delta_precipitation": 1.664956410962759e-06
+                        },
+                        {
+                            "datetime": "2021-05-15T20:00:00+00:00",
+                            "temperature": 17.348425302279892,
+                            "bias_adjusted_temperature": 18.267410969503477,
+                            "relative_humidity": 40.07026960872373,
+                            "bias_adjusted_relative_humidity": 41.63305657063484,
+                            "wind": {
+                                "wind_speed": 1.5672775904337566,
+                                "linear_wind_speed": 22.47562284469342
+                            },
+                            "wind_direction": 338.5001525878906,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-15T21:00:00+00:00",
+                            "temperature": 18.34708787078847,
+                            "bias_adjusted_temperature": 18.895726991489415,
+                            "relative_humidity": 36.54177232348605,
+                            "bias_adjusted_relative_humidity": 39.391882772670236,
+                            "wind": {
+                                "wind_speed": 1.5500869750976562,
+                                "linear_wind_speed": 12.188143133921606
+                            },
+                            "wind_direction": 341.0001525878906,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-16T00:00:00+00:00",
+                            "temperature": 19.313402262308674,
+                            "bias_adjusted_temperature": 21.47093737092365,
+                            "relative_humidity": 31.98638265230908,
+                            "bias_adjusted_relative_humidity": 28.691786145766496,
+                            "wind": {
+                                "wind_speed": 1.353868842124939,
+                                "linear_wind_speed": null
+                            },
+                            "wind_direction": 357.50018310546875,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-16T03:00:00+00:00",
+                            "temperature": 16.34757796968582,
+                            "bias_adjusted_temperature": 19.743585319961753,
+                            "relative_humidity": 49.292255874347916,
+                            "bias_adjusted_relative_humidity": 41.82156018018654,
+                            "wind": {
+                                "wind_speed": 0.45353561639785767,
+                                "linear_wind_speed": 11.897071407979618
+                            },
+                            "wind_direction": 69.00079345703125,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-16T06:00:00+00:00",
+                            "temperature": 10.808682771525017,
+                            "bias_adjusted_temperature": 14.685852916223055,
+                            "relative_humidity": 52.85645475659145,
+                            "bias_adjusted_relative_humidity": 44.10385778531468,
+                            "wind": {
+                                "wind_speed": 1.5008251667022705,
+                                "linear_wind_speed": 5.893797286128515
+                            },
+                            "wind_direction": 199.00027465820312,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-16T09:00:00+00:00",
+                            "temperature": 8.720434746032737,
+                            "bias_adjusted_temperature": 12.211180022354112,
+                            "relative_humidity": 55.47592367928012,
+                            "bias_adjusted_relative_humidity": 49.62411867544199,
+                            "wind": {
+                                "wind_speed": 1.7537180185317993,
+                                "linear_wind_speed": 7.6511698717686905
+                            },
+                            "wind_direction": 198.50015258789062,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-16T12:00:00+00:00",
+                            "temperature": 7.660556168243434,
+                            "bias_adjusted_temperature": 10.673683998057665,
+                            "relative_humidity": 66.30180935904966,
+                            "bias_adjusted_relative_humidity": 58.45348289869522,
+                            "wind": {
+                                "wind_speed": 1.551146388053894,
+                                "linear_wind_speed": null
+                            },
+                            "wind_direction": 192.00015258789062,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-16T15:00:00+00:00",
+                            "temperature": 11.912176172526003,
+                            "bias_adjusted_temperature": 11.819327712865903,
+                            "relative_humidity": 59.69834743530279,
+                            "bias_adjusted_relative_humidity": 57.80766085524993,
+                            "wind": {
+                                "wind_speed": 1.0510252714157104,
+                                "linear_wind_speed": -1.2105024668438684
+                            },
+                            "wind_direction": 165.50033569335938,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-16T18:00:00+00:00",
+                            "temperature": 18.24466261260971,
+                            "bias_adjusted_temperature": 15.583267018005873,
+                            "relative_humidity": 40.08525380664093,
+                            "bias_adjusted_relative_humidity": 43.41786781238752,
+                            "wind": {
+                                "wind_speed": 1.1021345853805542,
+                                "linear_wind_speed": 7.620662472822168
+                            },
+                            "wind_direction": 156.0,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-16T20:00:00+00:00",
+                            "temperature": 20.96470032848425,
+                            "bias_adjusted_temperature": 21.41319406200558,
+                            "relative_humidity": 34.039692282900795,
+                            "bias_adjusted_relative_humidity": 32.17492600487574,
+                            "wind": {
+                                "wind_speed": 1.6686131556828816,
+                                "linear_wind_speed": 22.95534266485754
+                            },
+                            "wind_direction": 183.6668904622396,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-16T21:00:00+00:00",
+                            "temperature": 22.324719186421518,
+                            "bias_adjusted_temperature": 22.2358618651239,
+                            "relative_humidity": 31.01691152103072,
+                            "bias_adjusted_relative_humidity": 31.744643997638526,
+                            "wind": {
+                                "wind_speed": 1.9518524408340454,
+                                "linear_wind_speed": 11.351969565962612
+                            },
+                            "wind_direction": 197.50033569335938,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-17T00:00:00+00:00",
+                            "temperature": 21.81185726135242,
+                            "bias_adjusted_temperature": 23.74602686765762,
+                            "relative_humidity": 31.78000324930183,
+                            "bias_adjusted_relative_humidity": 28.491264895652257,
+                            "wind": {
+                                "wind_speed": 3.3528900146484375,
+                                "linear_wind_speed": null
+                            },
+                            "wind_direction": 199.5001220703125,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-17T03:00:00+00:00",
+                            "temperature": 17.432418421183186,
+                            "bias_adjusted_temperature": 20.897547820081698,
+                            "relative_humidity": 34.871320331054584,
+                            "bias_adjusted_relative_humidity": 33.031360739678995,
+                            "wind": {
+                                "wind_speed": 3.551409959793091,
+                                "linear_wind_speed": -7.302429351628049
+                            },
+                            "wind_direction": 200.00006103515625,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-17T06:00:00+00:00",
+                            "temperature": 14.40940783355704,
+                            "bias_adjusted_temperature": 18.94707776888442,
+                            "relative_humidity": 38.261676747151895,
+                            "bias_adjusted_relative_humidity": 33.70681162861772,
+                            "wind": {
+                                "wind_speed": 3.1012814044952393,
+                                "linear_wind_speed": 0.15400794806303075
+                            },
+                            "wind_direction": 202.5001220703125,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-17T09:00:00+00:00",
+                            "temperature": 11.9896249217732,
+                            "bias_adjusted_temperature": 15.893157614042334,
+                            "relative_humidity": 50.745084877767,
+                            "bias_adjusted_relative_humidity": 46.139845223747955,
+                            "wind": {
+                                "wind_speed": 2.400726556777954,
+                                "linear_wind_speed": 7.400717490979244
+                            },
+                            "wind_direction": 195.00015258789062,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-17T12:00:00+00:00",
+                            "temperature": 11.541931416951504,
+                            "bias_adjusted_temperature": 14.973203314982609,
+                            "relative_humidity": 54.71989742838497,
+                            "bias_adjusted_relative_humidity": 49.08804545575192,
+                            "wind": {
+                                "wind_speed": 3.3009583950042725,
+                                "linear_wind_speed": null
+                            },
+                            "wind_direction": 206.00015258789062,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-17T15:00:00+00:00",
+                            "temperature": 13.434390501566396,
+                            "bias_adjusted_temperature": 12.940358977046067,
+                            "relative_humidity": 49.6725233112791,
+                            "bias_adjusted_relative_humidity": 46.89772166706283,
+                            "wind": {
+                                "wind_speed": 3.6024155616760254,
+                                "linear_wind_speed": -25.070558371532513
+                            },
+                            "wind_direction": 208.00033569335938,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-17T18:00:00+00:00",
+                            "temperature": 14.680586827412766,
+                            "bias_adjusted_temperature": 13.732547557160107,
+                            "relative_humidity": 38.47120907071947,
+                            "bias_adjusted_relative_humidity": 41.9450457545452,
+                            "wind": {
+                                "wind_speed": 3.352579116821289,
+                                "linear_wind_speed": -6.578498045485627
+                            },
+                            "wind_direction": 205.50039672851562,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-17T20:00:00+00:00",
+                            "temperature": 14.460407511508393,
+                            "bias_adjusted_temperature": 15.755135915415575,
+                            "relative_humidity": 37.29799331231012,
+                            "bias_adjusted_relative_humidity": 37.285122739563214,
+                            "wind": {
+                                "wind_speed": 3.6513733863830566,
+                                "linear_wind_speed": 32.34167587335827
+                            },
+                            "wind_direction": 203.50013224283853,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-17T21:00:00+00:00",
+                            "temperature": 14.350317853556207,
+                            "bias_adjusted_temperature": 15.539520783039059,
+                            "relative_humidity": 36.711385433105455,
+                            "bias_adjusted_relative_humidity": 39.62665284109599,
+                            "wind": {
+                                "wind_speed": 3.8007705211639404,
+                                "linear_wind_speed": 7.503912527860367
+                            },
+                            "wind_direction": 202.5,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-18T00:00:00+00:00",
+                            "temperature": 13.147905280578541,
+                            "bias_adjusted_temperature": 15.856644765834545,
+                            "relative_humidity": 36.823775148844184,
+                            "bias_adjusted_relative_humidity": 33.39186753259164,
+                            "wind": {
+                                "wind_speed": 3.8527183532714844,
+                                "linear_wind_speed": null
+                            },
+                            "wind_direction": 199.50003051757812,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-18T03:00:00+00:00",
+                            "temperature": 10.362799826537964,
+                            "bias_adjusted_temperature": 13.377479097431314,
+                            "relative_humidity": 41.981398255940725,
+                            "bias_adjusted_relative_humidity": 37.36526839842068,
+                            "wind": {
+                                "wind_speed": 3.553504228591919,
+                                "linear_wind_speed": -7.315408869496377
+                            },
+                            "wind_direction": 213.000244140625,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-18T06:00:00+00:00",
+                            "temperature": 7.361383926810084,
+                            "bias_adjusted_temperature": 10.606198052666176,
+                            "relative_humidity": 45.88999788435842,
+                            "bias_adjusted_relative_humidity": 39.14108455214874,
+                            "wind": {
+                                "wind_speed": 3.0016775131225586,
+                                "linear_wind_speed": 0.5112219350690896
+                            },
+                            "wind_direction": 209.0,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-18T09:00:00+00:00",
+                            "temperature": 5.1954130739439215,
+                            "bias_adjusted_temperature": 8.241068126399131,
+                            "relative_humidity": 42.62789306640612,
+                            "bias_adjusted_relative_humidity": 40.16151513953815,
+                            "wind": {
+                                "wind_speed": 3.1028804779052734,
+                                "linear_wind_speed": 7.128918726617224
+                            },
+                            "wind_direction": 214.00033569335938,
+                            "delta_precipitation": 0.0002410820666942648
+                        },
+                        {
+                            "datetime": "2021-05-18T12:00:00+00:00",
+                            "temperature": 3.1147463876646246,
+                            "bias_adjusted_temperature": 5.638150015825341,
+                            "relative_humidity": 46.82903473657251,
+                            "bias_adjusted_relative_humidity": 42.70728713593075,
+                            "wind": {
+                                "wind_speed": 3.0005440711975098,
+                                "linear_wind_speed": null
+                            },
+                            "wind_direction": 211.50030517578125,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-18T15:00:00+00:00",
+                            "temperature": 5.657218396168873,
+                            "bias_adjusted_temperature": 7.212878351793621,
+                            "relative_humidity": 40.77497886279323,
+                            "bias_adjusted_relative_humidity": 37.21555812056981,
+                            "wind": {
+                                "wind_speed": 2.7022624015808105,
+                                "linear_wind_speed": -16.652518683663892
+                            },
+                            "wind_direction": 214.5,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-18T18:00:00+00:00",
+                            "temperature": 9.485277751586787,
+                            "bias_adjusted_temperature": 11.034776748897546,
+                            "relative_humidity": 30.549747965372784,
+                            "bias_adjusted_relative_humidity": 34.71668188913226,
+                            "wind": {
+                                "wind_speed": 2.4008967876434326,
+                                "linear_wind_speed": -0.5738665312921434
+                            },
+                            "wind_direction": 213.00091552734375,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-18T20:00:00+00:00",
+                            "temperature": 9.506694231838475,
+                            "bias_adjusted_temperature": 11.445920668409036,
+                            "relative_humidity": 36.32459005415891,
+                            "bias_adjusted_relative_humidity": 35.758473695647154,
+                            "wind": {
+                                "wind_speed": 2.2005743185679116,
+                                "linear_wind_speed": 25.473632396267565
+                            },
+                            "wind_direction": 245.00030517578125,
+                            "delta_precipitation": 0.18891033499061427
+                        },
+                        {
+                            "datetime": "2021-05-18T21:00:00+00:00",
+                            "temperature": 9.517402471964319,
+                            "bias_adjusted_temperature": 11.481178537005514,
+                            "relative_humidity": 39.212011098551976,
+                            "bias_adjusted_relative_humidity": 43.08789507585847,
+                            "wind": {
+                                "wind_speed": 2.1004130840301514,
+                                "linear_wind_speed": 11.042778025938421
+                            },
+                            "wind_direction": 261.0,
+                            "delta_precipitation": 0.09445516749530691
+                        },
+                        {
+                            "datetime": "2021-05-19T00:00:00+00:00",
+                            "temperature": 10.13365263212067,
+                            "bias_adjusted_temperature": 13.111870677994759,
+                            "relative_humidity": 35.87352614371696,
+                            "bias_adjusted_relative_humidity": 32.46859168407477,
+                            "wind": {
+                                "wind_speed": 0.8017180562019348,
+                                "linear_wind_speed": null
+                            },
+                            "wind_direction": 264.00006103515625,
+                            "delta_precipitation": 0.13670765420737663
+                        },
+                        {
+                            "datetime": "2021-05-19T03:00:00+00:00",
+                            "temperature": 4.0918588990986215,
+                            "bias_adjusted_temperature": 6.7069768491567245,
+                            "relative_humidity": 93.70824270491616,
+                            "bias_adjusted_relative_humidity": 68.89507295025257,
+                            "wind": {
+                                "wind_speed": 0.9522185325622559,
+                                "linear_wind_speed": 8.80641569816531
+                            },
+                            "wind_direction": 327.0001220703125,
+                            "delta_precipitation": 1.6153879867004162
+                        },
+                        {
+                            "datetime": "2021-05-19T06:00:00+00:00",
+                            "temperature": 2.979561226613304,
+                            "bias_adjusted_temperature": 5.4205947454542205,
+                            "relative_humidity": 96.54396067952507,
+                            "bias_adjusted_relative_humidity": 75.22601772895571,
+                            "wind": {
+                                "wind_speed": 0.6530142426490784,
+                                "linear_wind_speed": 8.934340343579766
+                            },
+                            "wind_direction": 211.500244140625,
+                            "delta_precipitation": 0.5059067592315571
+                        },
+                        {
+                            "datetime": "2021-05-19T09:00:00+00:00",
+                            "temperature": 2.1606037878794795,
+                            "bias_adjusted_temperature": 4.823065750992598,
+                            "relative_humidity": 95.2072989129229,
+                            "bias_adjusted_relative_humidity": 78.88636618250104,
+                            "wind": {
+                                "wind_speed": 0.951770007610321,
+                                "linear_wind_speed": 7.961598215031498
+                            },
+                            "wind_direction": 251.50009155273438,
+                            "delta_precipitation": 0.13558004633713328
+                        },
+                        {
+                            "datetime": "2021-05-19T12:00:00+00:00",
+                            "temperature": 1.5717203910085729,
+                            "bias_adjusted_temperature": 3.928892432099495,
+                            "relative_humidity": 92.1887310595697,
+                            "bias_adjusted_relative_humidity": 79.386326044799,
+                            "wind": {
+                                "wind_speed": 1.5545142889022827,
+                                "linear_wind_speed": null
+                            },
+                            "wind_direction": 271.0,
+                            "delta_precipitation": 0.0010976371081659053
+                        },
+                        {
+                            "datetime": "2021-05-19T15:00:00+00:00",
+                            "temperature": 3.984920602610174,
+                            "bias_adjusted_temperature": 5.981318463127598,
+                            "relative_humidity": 74.23405388151002,
+                            "bias_adjusted_relative_humidity": 73.62518083402801,
+                            "wind": {
+                                "wind_speed": 2.0517191886901855,
+                                "linear_wind_speed": -10.568777796493551
+                            },
+                            "wind_direction": 320.5,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-19T18:00:00+00:00",
+                            "temperature": 7.641578835867722,
+                            "bias_adjusted_temperature": 10.07739826737545,
+                            "relative_humidity": 48.91254821459974,
+                            "bias_adjusted_relative_humidity": 51.47280806637475,
+                            "wind": {
+                                "wind_speed": 2.4017887115478516,
+                                "linear_wind_speed": -0.5794941175365622
+                            },
+                            "wind_direction": 328.5,
+                            "delta_precipitation": 0.004947711659433196
+                        },
+                        {
+                            "datetime": "2021-05-19T20:00:00+00:00",
+                            "temperature": 8.922261198313755,
+                            "bias_adjusted_temperature": 10.93752472445024,
+                            "relative_humidity": 42.637476067572955,
+                            "bias_adjusted_relative_humidity": 45.65936658461724,
+                            "wind": {
+                                "wind_speed": 2.5017665227254233,
+                                "linear_wind_speed": 26.899468129833217
+                            },
+                            "wind_direction": 319.8333333333333,
+                            "delta_precipitation": 0.013519419226536655
+                        },
+                        {
+                            "datetime": "2021-05-19T21:00:00+00:00",
+                            "temperature": 9.56260237953677,
+                            "bias_adjusted_temperature": 11.519134238675107,
+                            "relative_humidity": 39.49993999405957,
+                            "bias_adjusted_relative_humidity": 43.486431997041926,
+                            "wind": {
+                                "wind_speed": 2.551755428314209,
+                                "linear_wind_speed": 10.103422679158566
+                            },
+                            "wind_direction": 315.5,
+                            "delta_precipitation": 0.006759709613269216
+                        },
+                        {
+                            "datetime": "2021-05-20T00:00:00+00:00",
+                            "temperature": 10.560963029642569,
+                            "bias_adjusted_temperature": 13.50097890592737,
+                            "relative_humidity": 32.20555158903023,
+                            "bias_adjusted_relative_humidity": 28.904733894122902,
+                            "wind": {
+                                "wind_speed": 2.2027182579040527,
+                                "linear_wind_speed": null
+                            },
+                            "wind_direction": 330.5,
+                            "delta_precipitation": 0.006499787047068217
+                        },
+                        {
+                            "datetime": "2021-05-20T03:00:00+00:00",
+                            "temperature": 8.031314934866774,
+                            "bias_adjusted_temperature": 10.897440552711448,
+                            "relative_humidity": 38.83842910555039,
+                            "bias_adjusted_relative_humidity": 35.44948938503052,
+                            "wind": {
+                                "wind_speed": 1.9515472650527954,
+                                "linear_wind_speed": 2.612938935798768
+                            },
+                            "wind_direction": 296.0000305175781,
+                            "delta_precipitation": 0.06134791699950348
+                        },
+                        {
+                            "datetime": "2021-05-20T06:00:00+00:00",
+                            "temperature": 3.7159301972757905,
+                            "bias_adjusted_temperature": 6.292039719579753,
+                            "relative_humidity": 52.92746676188185,
+                            "bias_adjusted_relative_humidity": 44.154445406188835,
+                            "wind": {
+                                "wind_speed": 1.6014814376831055,
+                                "linear_wind_speed": 5.532809102045494
+                            },
+                            "wind_direction": 263.00018310546875,
+                            "delta_precipitation": -1.1862660090677934e-05
+                        },
+                        {
+                            "datetime": "2021-05-20T09:00:00+00:00",
+                            "temperature": 2.3454730592288398,
+                            "bias_adjusted_temperature": 5.031277717231576,
+                            "relative_humidity": 58.589865304849816,
+                            "bias_adjusted_relative_humidity": 51.91754370878433,
+                            "wind": {
+                                "wind_speed": 1.6530979871749878,
+                                "linear_wind_speed": 7.690119166745126
+                            },
+                            "wind_direction": 269.0001525878906,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-20T12:00:00+00:00",
+                            "temperature": 0.8750331857921291,
+                            "bias_adjusted_temperature": 3.1571504837579663,
+                            "relative_humidity": 72.28169828369118,
+                            "bias_adjusted_relative_humidity": 63.288977761266295,
+                            "wind": {
+                                "wind_speed": 1.5521730184555054,
+                                "linear_wind_speed": null
+                            },
+                            "wind_direction": 273.5000915527344,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-20T15:00:00+00:00",
+                            "temperature": 5.663944325551437,
+                            "bias_adjusted_temperature": 7.217831647117857,
+                            "relative_humidity": 55.94068222908514,
+                            "bias_adjusted_relative_humidity": 53.71863052893815,
+                            "wind": {
+                                "wind_speed": 2.2021167278289795,
+                                "linear_wind_speed": -11.975263392005123
+                            },
+                            "wind_direction": 320.0,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-20T18:00:00+00:00",
+                            "temperature": 10.53519092380766,
+                            "bias_adjusted_temperature": 11.57996570029357,
+                            "relative_humidity": 41.83403497469085,
+                            "bias_adjusted_relative_humidity": 45.01363738513902,
+                            "wind": {
+                                "wind_speed": 2.0510482788085938,
+                                "linear_wind_speed": 1.6334996422061518
+                            },
+                            "wind_direction": 334.5000305175781,
+                            "delta_precipitation": 0.0
+                        },
+                        {
+                            "datetime": "2021-05-20T20:00:00+00:00",
+                            "temperature": 12.405803181647268,
+                            "bias_adjusted_temperature": 13.967843877109885,
+                            "relative_humidity": 35.17314248125545,
+                            "bias_adjusted_relative_humidity": 33.95258664773317,
+                            "wind": {
+                                "wind_speed": 1.8510222434997559,
+                                "linear_wind_speed": 23.81886234413981
+                            },
+                            "wind_direction": 338.5001525878906,
+                            "delta_precipitation": 0.0004824495230781878
+                        },
+                        {
+                            "datetime": "2021-05-20T21:00:00+00:00",
+                            "temperature": 13.341109310567074,
+                            "bias_adjusted_temperature": 14.692058466469035,
+                            "relative_humidity": 31.842696234537748,
+                            "bias_adjusted_relative_humidity": 32.88765431169982,
+                            "wind": {
+                                "wind_speed": 1.751009225845337,
+                                "linear_wind_speed": 11.769974103434865
+                            },
+                            "wind_direction": 340.5002136230469,
+                            "delta_precipitation": 0.0002412247615390939
+                        },
+                        {
+                            "datetime": "2021-05-21T00:00:00+00:00",
+                            "temperature": 13.936937907836786,
+                            "bias_adjusted_temperature": 16.575136731286275,
+                            "relative_humidity": 28.882449849446527,
+                            "bias_adjusted_relative_humidity": 25.67595958152971,
+                            "wind": {
+                                "wind_speed": 1.701734185218811,
+                                "linear_wind_speed": null
+                            },
+                            "wind_direction": 338.5,
+                            "delta_precipitation": 0.0015166588878621212
+                        },
+                        {
+                            "datetime": "2021-05-21T03:00:00+00:00",
+                            "temperature": 11.640519381835809,
+                            "bias_adjusted_temperature": 14.736610249342666,
+                            "relative_humidity": 40.480234924640875,
+                            "bias_adjusted_relative_humidity": 36.45024280696111,
+                            "wind": {
+                                "wind_speed": 0.8509003520011902,
+                                "linear_wind_speed": 9.434349006303389
+                            },
+                            "wind_direction": 335.5000915527344,
+                            "delta_precipitation": 0.07096400394820712
+                        },
+                        {
+                            "datetime": "2021-05-21T06:00:00+00:00",
+                            "temperature": 7.115215791310523,
+                            "bias_adjusted_temperature": 10.31487401129878,
+                            "relative_humidity": 62.356666817125,
+                            "bias_adjusted_relative_humidity": 50.8716306988795,
+                            "wind": {
+                                "wind_speed": 0.9037382006645203,
+                                "linear_wind_speed": 8.035157556177133
+                            },
+                            "wind_direction": 227.00003051757812,
+                            "delta_precipitation": 0.2061524962161343
+                        },
+                        {
+                            "datetime": "2021-05-21T09:00:00+00:00",
+                            "temperature": 3.746726735951786,
+                            "bias_adjusted_temperature": 6.609462026070701,
+                            "relative_humidity": 67.11399823974408,
+                            "bias_adjusted_relative_humidity": 58.1955868486739,
+                            "wind": {
+                                "wind_speed": 1.4028019905090332,
+                                "linear_wind_speed": 7.787006958113354
+                            },
+                            "wind_direction": 230.50006103515625,
+                            "delta_precipitation": 0.005290515207291513
+                        },
+                        {
+                            "datetime": "2021-05-21T12:00:00+00:00",
+                            "temperature": 1.7920756927261947,
+                            "bias_adjusted_temperature": 4.172986809894348,
+                            "relative_humidity": 68.9983440813782,
+                            "bias_adjusted_relative_humidity": 60.63397152664175,
+                            "wind": {
+                                "wind_speed": 1.2505605220794678,
+                                "linear_wind_speed": null
+                            },
+                            "wind_direction": 233.5,
+                            "delta_precipitation": 0.0
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
