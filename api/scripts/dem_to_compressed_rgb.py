@@ -170,4 +170,5 @@ def main():
         del slope_ds
 
 
-main()
+if __name__ == '__main__':
+    main()
