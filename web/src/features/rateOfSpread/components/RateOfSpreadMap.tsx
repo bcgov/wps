@@ -148,6 +148,11 @@ const ftlSource = new olSource.XYZ({
   crossOrigin: 'anonymous'
 })
 
+const ftlFullSource = new olSource.XYZ({
+  url: getUrl('FTLFULL'),
+  crossOrigin: 'anonymous'
+})
+
 const easSource = new olSource.XYZ({
   url: getUrl('EAS'),
   crossOrigin: 'anonymous'
@@ -180,11 +185,12 @@ function lookupROS(data: any, ftlNumber: number, isi: number, bui: number) {
       } else if (ftlNumber > 106 && ftlNumber < 425) {
         // what is this?
         return -1
-      } else if (ftlNumber >= 500 && ftlNumber < 600) {
+      } else if (ftlNumber >= 400 && ftlNumber < 600) {
         // I think this is M1, with percentage conifer
-        if (ftlNumber >= 500 && ftlNumber <= 525) {
+        const conifer = ftlNumber % 100
+        if (conifer >= 0 && conifer <= 25) {
           return ['M1'][2]
-        } else if (ftlNumber > 525 && ftlNumber < 550) {
+        } else if (conifer > 25 && conifer < 50) {
           return ['M1'][1]
         }
         return ['M1'][0]

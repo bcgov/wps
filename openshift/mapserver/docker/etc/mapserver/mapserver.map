@@ -47,8 +47,24 @@ MAP
         PROJECTION
           "init=epsg:3005"
         END
+        NAME         FTLFULL
+        DATA         "/etc/mapserver/2018_ftl.tif"
+        # STATUS       OFF
+        TYPE         RASTER
+        METADATA 
+          WMS_ENABLE_REQUEST "*"
+          WMS_TITLE          "FTL Full layer"
+        END
+
+  END # FTL raster layer ends here
+
+
+  LAYER # FTL raster layer begins here
+        PROJECTION
+          "init=epsg:3005"
+        END
         NAME         FTL
-        DATA         "/etc/mapserver/2018_ftl_clip-3band.tif"
+        DATA         "/etc/mapserver/2018_ftl-3band.tif"
         # STATUS       OFF
         TYPE         RASTER
         METADATA 

@@ -3,8 +3,8 @@ import struct
 import numpy
 from osgeo import gdal
 
-inputfilename = '92p-utm-slope.tif'
-outputfilename = '92p-utm-slope-3band.tif'
+inputfilename = '/home/sybrand/Workspace/wps/openshift/mapserver/docker/etc/mapserver/2018_ftl.tif'
+outputfilename = '/home/sybrand/Workspace/wps/openshift/mapserver/docker/etc/mapserver/2018_ftl-3band.tif'
 
 # read input file
 raster_in = gdal.Open(inputfilename)
@@ -31,9 +31,6 @@ g_band.SetColorInterpretation(gdal.GCI_GreenBand)
 b_band = outdata.GetRasterBand(3)
 b_band.SetColorInterpretation(gdal.GCI_BlueBand)
 
-r_rows = []
-g_rows = []
-b_rows = []
 
 for y in range(band.YSize):
     if y % 200 == 0:
@@ -52,20 +49,20 @@ for y in range(band.YSize):
         array = struct.unpack('f' * band.XSize, scanline)
 
     r_array, g_array, b_array = [], [], []
+    r_array.append([])
+    g_array.append([])
+    b_array.append([])
     for x in array:
         if buffer_type != gdal.GDT_Int32:
             # convert floating point to int - we don't care that much.
             x = int(x)
-        r_array.append((x >> 16) & 0xff)
-        g_array.append((x >> 8) & 0xff)
-        b_array.append(x & 0xff)
-    r_rows.append(r_array)
-    g_rows.append(g_array)
-    b_rows.append(b_array)
+        r_array[0].append((x >> 16) & 0xff)
+        g_array[0].append((x >> 8) & 0xff)
+        b_array[0].append(x & 0xff)
 
-r_band.WriteArray(numpy.array(r_rows))
-g_band.WriteArray(numpy.array(g_rows))
-b_band.WriteArray(numpy.array(b_rows))
+    r_band.WriteArray(numpy.array(r_array), xoff=0, yoff=y)
+    g_band.WriteArray(numpy.array(g_array), xoff=0, yoff=y)
+    b_band.WriteArray(numpy.array(b_array), xoff=0, yoff=y)
 
 outdata.FlushCache()
 
