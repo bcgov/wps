@@ -3,7 +3,6 @@ import { Data, Shape, Layout, RangeSlider, PlotData, BoxPlotData } from 'plotly.
 
 import { PST_UTC_OFFSET } from 'utils/constants'
 import { formatDateInPST } from 'utils/date'
-import { ModelValue } from '../../../../api/modelAPI'
 
 export const findMaxNumber = (arr: number[]): number => {
   if (arr.length === 0) {
@@ -622,7 +621,11 @@ interface WindValue {
 }
 
 export const populateGraphDataForWind = (
-  values: Pick<ModelValue, 'datetime' | 'wind' | 'wind_direction'>[],
+  values: {
+    datetime: string
+    wind_speed: number | null | undefined
+    wind_direction: number | null | undefined
+  }[],
   name: string,
   show: boolean,
   lineColor: string,
@@ -638,22 +641,17 @@ export const populateGraphDataForWind = (
   const windSpdsTexts: string[] = []
   const windDirArrows: Partial<Shape>[] = []
 
-  values.forEach(({ wind, wind_direction, datetime }) => {
-    if (wind.wind_speed != null) {
+  console.log(`${name} - values: ${values.map(value => value.wind_speed)}`)
+
+  values.forEach(({ wind_speed, wind_direction, datetime }) => {
+    if (wind_speed != null) {
       dates.push(formatDateInPST(datetime))
-      windSpds.push(wind.wind_speed)
+      windSpds.push(wind_speed)
       windSpdsTexts.push(wind_direction != null ? `${Math.round(wind_direction)}` : '-')
 
       if (wind_direction != null && show) {
         const arrowShape = rotatePoints(arrowPoints, wind_direction)
-        const path = createPath(
-          arrowShape,
-          name,
-          show,
-          datetime,
-          wind.wind_speed,
-          arrowColor
-        )
+        const path = createPath(arrowShape, name, show, datetime, wind_speed, arrowColor)
         windDirArrows.push(path)
       }
     }
@@ -676,5 +674,10 @@ export const populateGraphDataForWind = (
   const maxWindSpd = findMaxNumber(windSpds)
   const minWindSpd = findMinNumber(windSpds)
 
-  return { windSpdLine, windDirArrows, maxWindSpd, minWindSpd }
+  return {
+    windSpdLine,
+    windDirArrows,
+    maxWindSpd,
+    minWindSpd
+  }
 }

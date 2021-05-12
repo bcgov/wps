@@ -40,6 +40,7 @@ const gdpsLineColor = '#32e7e7'
 const gdpsArrowColor = gdpsLineColor
 const forecastLineColor = '#a50b41'
 const forecastArrowColor = forecastLineColor
+const linearWindSpeedColor = 'red'
 
 const WindGraph = (props: Props) => {
   const {
@@ -56,60 +57,84 @@ const WindGraph = (props: Props) => {
   } = props
   const { showObservations, showForecasts, showGdps, showRdps, showHrdps } = toggleValues
 
-  const getWindValues = (
-    data: Array<ObservedValue | NoonForecastValue>
-  ): Array<Pick<ModelValue, 'datetime' | 'wind' | 'wind_direction'>> => {
-    return []
-  }
   const observationData = populateGraphDataForWind(
-    getWindValues(observations),
+    observations,
     'Observation',
     showObservations,
     observationLineColor,
     observationArrowColor
   )
   const forecastData = populateGraphDataForWind(
-    getWindValues(noonForecasts),
+    noonForecasts,
     'Noon Forecasts',
     showForecasts,
     forecastLineColor,
     forecastArrowColor
   )
   const hrdpsData = populateGraphDataForWind(
-    hrdpsModels,
+    hrdpsModels.map(model => ({
+      datetime: model.datetime,
+      wind_speed: model.wind.wind_speed,
+      wind_direction: model.wind_direction
+    })),
     'HRDPS',
     showHrdps,
     hrdpsLineColor,
     hrdpsArrowColor
   )
+
   const rdpsData = populateGraphDataForWind(
-    rdpsModels,
+    rdpsModels.map(model => ({
+      datetime: model.datetime,
+      wind_speed: model.wind.wind_speed,
+      wind_direction: model.wind_direction
+    })),
     'RDPS',
     showRdps,
     rdpsLineColor,
     rdpsArrowColor
   )
   const gdpsData = populateGraphDataForWind(
-    gdpsModels,
+    gdpsModels.map(model => ({
+      datetime: model.datetime,
+      wind_speed: model.wind.wind_speed,
+      wind_direction: model.wind_direction
+    })),
     'GDPS',
     showGdps,
     gdpsLineColor,
     gdpsArrowColor
   )
 
+  const linearGdpsData = populateGraphDataForWind(
+    gdpsModels.map(model => ({
+      datetime: model.datetime,
+      wind_speed: model.wind.linear_wind_speed,
+      wind_direction: model.wind_direction
+    })),
+    'GDPS - Linear Regression',
+    showGdps,
+    linearWindSpeedColor,
+    linearWindSpeedColor
+  )
+
+  console.log(linearGdpsData)
+
   const maxWindSpd = findMaxNumber([
     observationData.maxWindSpd,
     forecastData.maxWindSpd,
     gdpsData.maxWindSpd,
     rdpsData.maxWindSpd,
-    hrdpsData.maxWindSpd
+    hrdpsData.maxWindSpd,
+    linearGdpsData.maxWindSpd
   ])
   const minWindSpd = findMinNumber([
     observationData.minWindSpd,
     forecastData.minWindSpd,
     gdpsData.minWindSpd,
     rdpsData.minWindSpd,
-    hrdpsData.minWindSpd
+    hrdpsData.minWindSpd,
+    linearGdpsData.minWindSpd
   ])
   const timeOfInterestLine = populateTimeOfInterestLineData(
     timeOfInterest,
@@ -174,7 +199,8 @@ const WindGraph = (props: Props) => {
           rdpsData.windSpdLine,
           hrdpsData.windSpdLine,
           forecastData.windSpdLine,
-          observationData.windSpdLine
+          observationData.windSpdLine,
+          linearGdpsData.windSpdLine
         ]}
         layout={{
           ...getLayoutConfig(
@@ -198,7 +224,8 @@ const WindGraph = (props: Props) => {
             ...rdpsData.windDirArrows,
             ...hrdpsData.windDirArrows,
             ...forecastData.windDirArrows,
-            ...observationData.windDirArrows
+            ...observationData.windDirArrows,
+            ...linearGdpsData.windDirArrows
           ]
         }}
       />
