@@ -174,12 +174,12 @@ export function ROScalc(
   FUELTYPE: string,
   ISI: number,
   BUI: number,
-  FMC: number | undefined = undefined,
+  FMC: number,
   SFC: number | undefined = undefined,
   PC: number | undefined = undefined,
   PDF: number | undefined = undefined,
   CC: number | undefined = undefined,
-  CBH: number | undefined = undefined
+  CBH: number
 ): number {
   const NoBUI = -1
   const d = [
@@ -374,11 +374,203 @@ export function ROScalc(
   return ros <= 0 ? 0.000001 : ros
 }
 
+export function CFBcalc(
+  FUELTYPE: string,
+  FMC: number,
+  SFC: number,
+  ROS: number,
+  CBH: number,
+  option = 'CFB'
+): number {
+  // .CFBcalc <- function(FUELTYPE, FMC, SFC, ROS, CBH, option="CFB"){
+  //   #############################################################################
+  //   # Description:
+  //   #   Calculate Calculate Crown Fraction Burned. To calculate CFB, we also
+  //   #     need to calculate Critical surface intensity (CSI), and Surface fire
+  //   #     rate of spread (RSO). The value of each of these equations can be
+  //   #     returned to the calling function without unecessary additional
+  //   #     calculations.
+  //   #
+  //   #   All variables names are laid out in the same manner as Forestry Canada
+  //   #   Fire Danger Group (FCFDG) (1992). Development and Structure of the
+  //   #   Canadian Forest Fire Behavior Prediction System." Technical Report
+  //   #   ST-X-3, Forestry Canada, Ottawa, Ontario.
+  //   #
+  //   # Args:
+  //   #   FUELTYPE: The Fire Behaviour Prediction FuelType
+  //   #   FMC:      Foliar Moisture Content
+  //   #   SFC:      Surface Fuel Consumption
+  //   #   CBH:      Crown Base Height
+  //   #   ROS:      Rate of Spread
+  //   #   option:   Which variable to calculate(ROS, CFB, RSC, or RSI)
+
+  //   # Returns:
+  //   #   CFB, CSI, RSO depending on which option was selected.
+  //   #
+  //   #############################################################################
+  //   CFB <- 0
+  let CFB = 0
+  //   #Eq. 56 (FCFDG 1992) Critical surface intensity
+  //   CSI <- 0.001 * (CBH**1.5) * (460 + 25.9 * FMC)**1.5
+  const CSI = 0.001 * CBH ** 1.5 * (460 + 25.9 * FMC) ** 1.5
+  //   #Return at this point, if specified by caller
+  //   if(option=="CSI"){
+  //     return(CSI)
+  //   }
+  if (option === 'CSI') {
+    return CSI
+  }
+  //   #Eq. 57 (FCFDG 1992) Surface fire rate of spread (m/min)
+  //   RSO <- CSI / (300 * SFC)
+  const RSO = CSI / (300 * SFC)
+  //   #Return at this point, if specified by caller
+  //   if(option=="RSO"){
+  //     return(RSO)
+  //   }
+  if (option === 'RSO') {
+    return RSO
+  }
+  //   #Eq. 58 (FCFDG 1992) Crown fraction burned
+  //   CFB <- ifelse(ROS > RSO, 1 - exp(-0.23 * (ROS - RSO)), CFB)
+  CFB = ROS > RSO ? 1 - Math.exp(-0.23 * (ROS - RSO)) : CFB
+  //   return(CFB)
+  // }
+  return CFB
+}
+
+export function SFCCalc(
+  FUELTYPE: string,
+  FFMC: number,
+  BUI: number,
+  PC: number,
+  GFL: number | undefined
+): number {
+  // .SFCcalc <- function(FUELTYPE, FFMC, BUI, PC, GFL) {
+  //   #############################################################################
+  //   # Description:
+  //   #   Computes the Surface Fuel Consumption by Fuel Type.
+  //   #   All variables names are laid out in the same manner as FCFDG (1992) or
+  //   #   Wotton et. al (2009)
+  //   #   Forestry Canada Fire Danger Group (FCFDG) (1992). "Development and
+  //   #   Structure of the Canadian Forest Fire Behavior Prediction System."
+  //   #   Technical Report ST-X-3, Forestry Canada, Ottawa, Ontario.
+  //   #
+  //   #   Wotton, B.M., Alexander, M.E., Taylor, S.W. 2009. Updates and revisions to
+  //   #   the 1992 Canadian forest fire behavior prediction system. Nat. Resour.
+  //   #   Can., Can. For. Serv., Great Lakes For. Cent., Sault Ste. Marie, Ontario,
+  //   #   Canada. Information Report GLC-X-10, 45p.
+  //   #
+  //   # Args:
+  //   #   FUELTYPE: The Fire Behaviour Prediction FuelType
+  //   #        BUI: Buildup Index
+  //   #       FFMC: Fine Fuel Moisture Code
+  //   #         PC: Percent Conifer (%)
+  //   #        GFL: Grass Fuel Load (kg/m^2)
+  //   # Returns:
+  //   #        SFC: Surface Fuel Consumption (kg/m^2)
+  //   #
+  //   #############################################################################
+  //   SFC <- rep(-999,length(FFMC))
+  let SFC = -999
+  //   #Eqs. 9a, 9b (Wotton et. al. 2009) - Solving the lower bound of FFMC value
+  //   # for the C1 fuel type SFC calculation
+  //   SFC <- ifelse(FUELTYPE=="C1",
+  //           ifelse(FFMC > 84,
+  //             0.75 + 0.75 * (1 - exp(-0.23 * (FFMC - 84)))**0.5,
+  //             0.75 - 0.75 * (1 - exp(-0.23 * (84 - FFMC)))**0.5),
+  //           SFC)
+  if (FUELTYPE === 'C1') {
+    SFC =
+      FFMC > 84
+        ? 0.75 + 0.75 * Math.pow(1 - Math.exp(-0.23 * (FFMC - 84)), 0.5)
+        : 0.75 - 0.75 * Math.pow(1 - Math.exp(-0.23 * (84 - FFMC)), 0.5)
+  }
+  //   #Eq. 10 (FCFDG 1992) - C2, M3, and M4 Fuel Types
+  //   SFC <- ifelse(FUELTYPE == "C2" | FUELTYPE == "M3" | FUELTYPE == "M4",
+  //           5.0 * (1 - exp(-0.0115 * BUI)),
+  //           SFC)
+  else if (FUELTYPE === 'C2' || FUELTYPE === 'M3' || FUELTYPE === 'M4') {
+    SFC = 5.0 * (1 - Math.exp(-0.0115 * BUI))
+  }
+  //   #Eq. 11 (FCFDG 1992) - C3, C4 Fuel Types
+  //   SFC <- ifelse(FUELTYPE == "C3" | FUELTYPE == "C4",
+  //           5.0 * (1 - exp(-0.0164 * BUI))**2.24,
+  //           SFC)
+  else if (FUELTYPE === 'C3' || FUELTYPE === 'C4') {
+    SFC = 5.0 * (1 - Math.exp(-0.0164 * BUI)) ** 2.24
+  }
+  //   #Eq. 12 (FCFDG 1992) - C5, C6 Fuel Types
+  //   SFC <- ifelse(FUELTYPE == "C5" | FUELTYPE == "C6",
+  //           5.0 * (1 - exp(-0.0149 * BUI))**2.48,
+  //           SFC)
+  else if (FUELTYPE === 'C5' || FUELTYPE === 'C6') {
+    SFC = 5.0 * (1 - Math.exp(-0.0149 * BUI)) ** 2.48
+  }
+  //   #Eqs. 13, 14, 15 (FCFDG 1992) - C7 Fuel Types
+  // SFC <- ifelse(FUELTYPE == "C7",
+  //         ifelse(FFMC > 70, 2 * (1 - exp(-0.104 * (FFMC - 70))),
+  //           0) + 1.5 * (1 - exp(-0.0201 * BUI)),
+  //         SFC)
+  else if (FUELTYPE === 'C7') {
+    const tmp = FFMC > 70 ? 2 * (1 - Math.exp(-0.104 * (FFMC - 70))) : 0
+    SFC = tmp + 1.5 * (1 - Math.exp(-0.0201 * BUI))
+  }
+  //   #Eq. 16 (FCFDG 1992) - D1 Fuel Type
+  //   SFC <- ifelse(FUELTYPE == "D1", 1.5 * (1 - exp(-0.0183 * BUI)), SFC)
+  else if (FUELTYPE === 'D1') {
+    SFC = 1.5 * (1 - Math.exp(-0.0183 * BUI))
+  }
+  //   #Eq. 17 (FCFDG 1992) - M1 and M2 Fuel Types
+  //   SFC <- ifelse(FUELTYPE == "M1" | FUELTYPE == "M2",
+  //           PC / 100 * (5.0 * (1 - exp(-0.0115 * BUI))) +
+  //            ((100 - PC) / 100 * (1.5 * (1 - exp(-0.0183 * BUI)))),
+  //           SFC)
+  else if (FUELTYPE === 'M1' || FUELTYPE === 'M2') {
+    SFC =
+      (PC / 100) * (5.0 * (1 - Math.exp(-0.0115 * BUI))) +
+      ((100 - PC) / 100) * (1.5 * (1 - Math.exp(-0.0183 * BUI)))
+  }
+  //   #Eq. 18 (FCFDG 1992) - Grass Fuel Types
+  //   SFC <- ifelse(FUELTYPE == "O1A" | FUELTYPE == "O1B", GFL, SFC)
+  else if (FUELTYPE === 'O1A' || FUELTYPE === 'O1B') {
+    if (!GFL) {
+      throw 'GFL not provided'
+    }
+    SFC = GFL
+  }
+  //   #Eq. 19, 20, 25 (FCFDG 1992) - S1 Fuel Type
+  //   SFC <- ifelse(FUELTYPE == "S1",
+  //           4.0 * (1 - exp(-0.025 * BUI)) + 4.0 * (1 - exp(-0.034 * BUI)),
+  //           SFC)
+  else if (FUELTYPE === 'S1') {
+    SFC = 4.0 * (1 - Math.exp(-0.025 * BUI)) + 4.0 * (1 - Math.exp(-0.034 * BUI))
+  }
+  //   #Eq. 21, 22, 25 (FCFDG 1992) - S2 Fuel Type
+  //   SFC <- ifelse(FUELTYPE == "S2",
+  //           10.0 * (1 - exp(-0.013 * BUI)) + 6.0 * (1 - exp(-0.060 * BUI)),
+  //           SFC)
+  else if (FUELTYPE === 'S2') {
+    SFC = 10.0 * (1 - Math.exp(-0.013 * BUI)) + 6.0 * (1 - Math.exp(-0.06 * BUI))
+  }
+  //   #Eq. 23, 24, 25 (FCFDG 1992) - S3 Fuel Type
+  //   SFC <- ifelse(FUELTYPE == "S3",
+  //           12.0 * (1 - exp(-0.0166 * BUI)) + 20.0 * (1-exp(-0.0210 * BUI)),
+  //           SFC)
+  else if (FUELTYPE === 'S3') {
+    SFC = 12.0 * (1 - Math.exp(-0.0166 * BUI)) + 20.0 * (1 - Math.exp(-0.021 * BUI))
+  }
+  //   #Constrain SFC value
+  //   SFC <- ifelse(SFC <= 0, 0.000001, SFC)
+  //   return(SFC)
+  // }
+  return SFC <= 0 ? 0.000001 : SFC
+}
+
 export function C6calc(
   FUELTYPE: string,
   ISI: number,
   BUI: number,
-  FMC: number | undefined,
+  FMC: number,
   SFC: number | undefined,
   CBH: number | undefined,
   ROS: number | undefined,
@@ -418,37 +610,60 @@ export function C6calc(
   // #############################################################################
   // #Average foliar moisture effect
   // FMEavg <- 0.778
+  const FMEavg = 0.778
   // #Eq. 59 (FCFDG 1992) Crown flame temperature (degrees K)
   // tt <- 1500 - 2.75 * FMC
+  // const tt = 1500 - 2.75 * FMC
   // #Eq. 60 (FCFDG 1992) Head of ignition (kJ/kg)
   // H <- 460 + 25.9 * FMC
+  // const H = 460 + 25.9 * FMC
   // #Eq. 61 (FCFDG 1992) Average foliar moisture effect
   // FME <- ((1.5 - 0.00275 * FMC)**4.)/(460 + 25.9 * FMC) * 1000
+  const FME = (Math.pow(1.5 - 0.00275 * FMC, 4.0) / (460 + 25.9 * FMC)) * 1000
   // #Eq. 62 (FCFDG 1992) Intermediate surface fire spread rate
   // RSI <- 30 * (1 - exp(-0.08 * ISI))**3.0
+  const RSI = 30 * Math.pow(1 - Math.exp(-0.08 * ISI), 3.0)
   // #Return at this point, if specified by caller
   // if(option=="RSI"){
   // return(RSI)
   // }
+  if (option === 'RSI') {
+    return RSI
+  }
   // #Eq. 63 (FCFDG 1992) Surface fire spread rate (m/min)
   // RSS <- RSI * .BEcalc(FUELTYPE, BUI)
+  const RSS = RSI * BEcalc(FUELTYPE, BUI)
   // #Eq. 64 (FCFDG 1992) Crown fire spread rate (m/min)
   // RSC <- 60 * (1 - exp(-0.0497 * ISI)) * FME / FMEavg
+  RSC = (60 * (1 - Math.exp(-0.0497 * ISI)) * FME) / FMEavg
   // #Return at this point, if specified by caller
   // if(option=="RSC"){
   // return(RSC)
   // }
+  if (option === 'RSC') {
+    return RSC
+  }
   // #Crown Fraction Burned
   // CFB    <- ifelse(RSC > RSS,.CFBcalc(FUELTYPE, FMC, SFC, RSS, CBH),0)
+  if (!SFC) {
+    throw 'SFC not specified'
+  }
+  if (!CBH) {
+    throw 'CBH not specified'
+  }
+  CFB = RSC > RSS ? CFBcalc(FUELTYPE, FMC, SFC, RSS, CBH) : 0
   // #Return at this point, if specified by caller
   // if(option=="CFB"){
   // return(CFB)
   // }
+  if (option === 'CFB') {
+    return CFB
+  }
   // #Eq. 65 (FCFDG 1992) Calculate Rate of spread (m/min)
   // ROS    <- ifelse(RSC > RSS,RSS + (CFB)*(RSC-RSS),RSS)
   // return(ROS)
   // }
-  throw 'not implemented'
+  return RSC > RSS ? RSS + CFB * (RSC - RSS) : RSS
 }
 
 export function BEcalc(FUELTYPE: string, BUI: number): number {
@@ -550,13 +765,14 @@ const raster = new olSource.Raster({
         const slopeEquivalentWindSpeed = calcSlopeEquivalentWindSpeed(ftlNumber, slope)
         const slopeAdjustedWindSpeed = slopeEquivalentWindSpeed + data.windSpeed
         const isi = ISIcalc(data.ffmc, slopeAdjustedWindSpeed)
-        const FMC = undefined
-        const SFC = undefined
         const PC = ftlNumber % 100
+        const SFC =
+          ftlCode === 'C6'
+            ? SFCCalc(ftlCode, data.ffmc, data.bui, PC, undefined)
+            : undefined
         const PDF = undefined
         const CC = undefined
-        const CBH = undefined
-        ros = ROScalc(ftlCode, isi, data.bui, FMC, SFC, PC, PDF, CC, CBH)
+        ros = ROScalc(ftlCode, isi, data.bui, data.fmc, SFC, PC, PDF, CC, data.cbh)
         if (ftlNumber in data.info['known']) {
           data.info['known'][ftlNumber]++
         } else {
@@ -594,6 +810,8 @@ const raster = new olSource.Raster({
     ROScalc: ROScalc,
     BEcalc: BEcalc,
     C6calc: C6calc,
+    CFBcalc: CFBcalc,
+    SFCCalc: SFCCalc,
     isNonFuel: isNonFuel
   }
 })
@@ -602,11 +820,14 @@ raster.on('beforeoperations', function(event) {
   event.data.snowLine = raster.get('snowLine')
   event.data.bui = raster.get('bui')
   event.data.ffmc = raster.get('ffmc')
+  event.data.fmc = raster.get('fmc')
+  event.data.cbh = raster.get('cbh')
   event.data.windSpeed = raster.get('windSpeed')
   event.data.info = raster.get('info')
   event.data.maxRos = 0
 })
 raster.on('afteroperations', function(event) {
+  console.log('after')
   if (event.data.info) {
     console.log('maxros', event.data.maxRos)
     // console.log('known:')
@@ -633,11 +854,21 @@ interface Props {
   snowLine: number
   bui: number
   ffmc: number
+  fmc: number
+  cbh: number
   windSpeed: number
   opacity: number
 }
 
-const RateOfSpreadMap = ({ snowLine, bui, ffmc, windSpeed, opacity }: Props) => {
+const RateOfSpreadMap = ({
+  snowLine,
+  bui,
+  ffmc,
+  fmc,
+  cbh,
+  windSpeed,
+  opacity
+}: Props) => {
   console.log('RateOfSpreadMap')
   const [center, setCenter] = useState(fromLonLat(CENTER_OF_BC))
 
@@ -653,10 +884,12 @@ const RateOfSpreadMap = ({ snowLine, bui, ffmc, windSpeed, opacity }: Props) => 
     raster.set('snowLine', snowLine)
     raster.set('bui', bui)
     raster.set('ffmc', ffmc)
+    raster.set('fmc', fmc)
+    raster.set('cbh', cbh)
     raster.set('windSpeed', windSpeed)
     raster.set('opacity', opacity)
     raster.changed()
-  }, [snowLine, bui, ffmc, windSpeed, opacity])
+  }, [snowLine, bui, ffmc, fmc, windSpeed, opacity])
 
   return (
     <Map

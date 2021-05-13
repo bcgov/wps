@@ -27,7 +27,7 @@ const useStyles = makeStyles(theme => ({
     overflowY: 'auto'
   },
   controls: {
-    minWidth: '200px',
+    minWidth: '275px',
     margin: '10px'
   },
   map: {
@@ -59,6 +59,8 @@ const RateOfSpreadPage: React.FunctionComponent = () => {
   const [snowLine, setSnowline] = useState(1500)
   const [bui, setBui] = useState(35)
   const [ffmc, setFfmc] = useState(50)
+  const [fmc, setFmc] = useState(97)
+  const [cbh, setCbh] = useState(7)
   const [windSpeed, setWindSpeed] = useState(15)
   const [opacity, setOpacity] = useState(200)
 
@@ -90,6 +92,15 @@ const RateOfSpreadPage: React.FunctionComponent = () => {
   ) => {
     setWindSpeed(value as number)
   }
+
+  const handleChangeFmc = (event: React.ChangeEvent<{}>, value: number | number[]) => {
+    setFmc(value as number)
+  }
+
+  const handleChangeCbh = (event: React.ChangeEvent<{}>, value: number | number[]) => {
+    setCbh(value as number)
+  }
+
   return (
     <main data-testid="rate-of-spread-page" className={classes.main}>
       <PageHeader title="Predictive Services Unit" productName="Rate Of Spread" />
@@ -135,6 +146,32 @@ const RateOfSpreadPage: React.FunctionComponent = () => {
             onChange={handleChangeFfmc}
           ></Slider>
 
+          <Typography gutterBottom>FMC {fmc} (Foliar Moisture Content)</Typography>
+          <Slider
+            aria-label="FMC"
+            step={1}
+            min={0}
+            max={100}
+            value={fmc}
+            marks={true}
+            valueLabelDisplay="auto"
+            getAriaValueText={valuetext}
+            onChange={handleChangeFmc}
+          ></Slider>
+
+          <Typography gutterBottom>CBH {cbh} (Crown Burn Height)</Typography>
+          <Slider
+            aria-label="FMC"
+            step={1}
+            min={2}
+            max={7}
+            value={cbh}
+            marks={true}
+            valueLabelDisplay="auto"
+            getAriaValueText={valuetext}
+            onChange={handleChangeCbh}
+          ></Slider>
+
           <Typography gutterBottom>Wind Speed {windSpeed}</Typography>
           <Slider
             aria-label="Wind Speed"
@@ -149,7 +186,7 @@ const RateOfSpreadPage: React.FunctionComponent = () => {
           ></Slider>
           <Typography gutterBottom>Opacity {opacity}</Typography>
           <Slider
-            aria-label="Wind Speed"
+            aria-label="Opacity"
             step={1}
             min={0}
             max={255}
@@ -163,7 +200,7 @@ const RateOfSpreadPage: React.FunctionComponent = () => {
           <div>
             <div>Rate of spread (m/min)</div>
             <div>
-              <Canvas width={200} height={20} />
+              <Canvas width={275} height={20} />
             </div>
             <div>
               <div className={classes.floatLeft}>0</div>
@@ -176,6 +213,8 @@ const RateOfSpreadPage: React.FunctionComponent = () => {
             snowLine={snowLine}
             bui={bui}
             ffmc={ffmc}
+            fmc={fmc}
+            cbh={cbh}
             windSpeed={windSpeed}
             opacity={opacity}
           />
