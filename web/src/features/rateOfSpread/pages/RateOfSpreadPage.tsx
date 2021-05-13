@@ -3,6 +3,7 @@ import { PageHeader, PageTitle } from 'components'
 import { makeStyles } from '@material-ui/core/styles'
 import { Slider, Typography } from '@material-ui/core'
 import RateOfSpreadMap from 'features/rateOfSpread/components/RateOfSpreadMap'
+import Canvas from 'features/rateOfSpread/components/GradientCanvas'
 
 const useStyles = makeStyles(theme => ({
   main: {
@@ -40,6 +41,12 @@ const useStyles = makeStyles(theme => ({
     display: 'flex',
     alignItems: 'flex-end',
     backgroundColor: theme.palette.primary.light
+  },
+  floatLeft: {
+    float: 'left'
+  },
+  floatRight: {
+    float: 'right'
   }
 }))
 
@@ -89,9 +96,7 @@ const RateOfSpreadPage: React.FunctionComponent = () => {
       <PageTitle title="Rate Of Spread" />
       <div className={classes.content}>
         <div className={classes.controls}>
-          <Typography id="discrete-slider-small-steps" gutterBottom>
-            Snow line {snowLine}M
-          </Typography>
+          <Typography gutterBottom>Snow line {snowLine}M</Typography>
           <Slider
             aria-label="Snow line"
             step={20}
@@ -104,9 +109,7 @@ const RateOfSpreadPage: React.FunctionComponent = () => {
             onChange={handleChangeSnowline}
           ></Slider>
 
-          <Typography id="discrete-slider-small-steps" gutterBottom>
-            BUI {bui}
-          </Typography>
+          <Typography gutterBottom>BUI {bui}</Typography>
           <Slider
             aria-label="BUI"
             step={1}
@@ -119,9 +122,7 @@ const RateOfSpreadPage: React.FunctionComponent = () => {
             onChange={handleChangeBui}
           ></Slider>
 
-          <Typography id="discrete-slider-small-steps" gutterBottom>
-            FFMC {ffmc}
-          </Typography>
+          <Typography gutterBottom>FFMC {ffmc}</Typography>
           <Slider
             aria-label="FFMC"
             step={1}
@@ -134,9 +135,7 @@ const RateOfSpreadPage: React.FunctionComponent = () => {
             onChange={handleChangeFfmc}
           ></Slider>
 
-          <Typography id="discrete-slider-small-steps" gutterBottom>
-            Wind Speed {windSpeed}
-          </Typography>
+          <Typography gutterBottom>Wind Speed {windSpeed}</Typography>
           <Slider
             aria-label="Wind Speed"
             step={1}
@@ -148,9 +147,7 @@ const RateOfSpreadPage: React.FunctionComponent = () => {
             getAriaValueText={valuetext}
             onChange={handleChangeWindSpeed}
           ></Slider>
-          <Typography id="discrete-slider-small-steps" gutterBottom>
-            Opacity {opacity}
-          </Typography>
+          <Typography gutterBottom>Opacity {opacity}</Typography>
           <Slider
             aria-label="Wind Speed"
             step={1}
@@ -162,6 +159,17 @@ const RateOfSpreadPage: React.FunctionComponent = () => {
             getAriaValueText={valuetext}
             onChange={handleChangeOpacity}
           ></Slider>
+          <Typography gutterBottom>Legend</Typography>
+          <div>
+            <div>Rate of spread (m/min)</div>
+            <div>
+              <Canvas width={200} height={20} />
+            </div>
+            <div>
+              <div className={classes.floatLeft}>0</div>
+              <div className={classes.floatRight}>100&gt;</div>
+            </div>
+          </div>
         </div>
         <div className={classes.map}>
           <RateOfSpreadMap

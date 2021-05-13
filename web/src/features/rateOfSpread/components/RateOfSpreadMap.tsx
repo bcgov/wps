@@ -32,116 +32,11 @@ const ftlSource = new olSource.XYZ({
   crossOrigin: 'anonymous'
 })
 
-const elevationSource = new olSource.XYZ({
-  url: getUrl('ELEVATION'),
-  crossOrigin: 'anonymous'
-})
-
 const easSource = new olSource.XYZ({
   url: getUrl('EAS'),
   // url: getUrl('EAS_WEB_MERCATOR'),
   crossOrigin: 'anonymous'
 })
-
-function lookupROS(data: any, ftlNumber: number, isi: number, bui: number) {
-  // isi = Math.min(1, isi)
-  isi = isi - 1
-  if (isi < 0) {
-    isi = 0
-  } else if (isi > 68) {
-    isi = 68
-  }
-  if (data) {
-    if (!('count' in data)) {
-      data['count'] = {}
-    }
-    const count = data['count']
-    if (!(ftlNumber in count)) {
-      // console.log('there is ftl', ftlNumber)
-      count[ftlNumber] = 0
-    }
-    try {
-      if (ftlNumber >= 14 && ftlNumber < 31) {
-        // what is this?
-        return -1
-      } else if (ftlNumber > 31 && ftlNumber < 100) {
-        // what is this?
-        return -1
-      } else if (ftlNumber > 106 && ftlNumber < 425) {
-        // what is this?
-        return -1
-      } else if (ftlNumber >= 400 && ftlNumber < 600) {
-        // I think this is M1, with percentage conifer
-        const conifer = ftlNumber % 100
-        if (conifer >= 0 && conifer <= 25) {
-          return ['M1'][2]
-        } else if (conifer > 25 && conifer < 50) {
-          return ['M1'][1]
-        }
-        return ['M1'][0]
-      }
-      switch (ftlNumber) {
-        case 0:
-          // TODO: what is this?
-          // I'm going to assume no data.
-          return -2
-        case 1:
-          return data['C1'][isi][bui]
-        case 2:
-          return data['C2'][isi][bui]
-        case 3:
-          return data['C3'][isi][bui]
-        case 4:
-          return data['C4'][isi][bui]
-        case 5:
-          return data['C5'][isi][bui]
-        case 6:
-          // what is this?
-          return -1
-        case 7:
-          return data['C7'][isi][bui]
-        case 8:
-        case 9:
-        case 10:
-          // what are these?
-          return -1
-        case 11:
-          return data['D1'][isi][bui]
-        case 12:
-          // D2
-          // no lookup
-          return -1
-        case 13:
-          // D1/2
-          return data['D1'][isi][bui]
-        case 31:
-          // grass! need to get the correct lookup
-          return -1
-        case 99:
-          // what are these?
-          return -1
-        case 100:
-          // what is this?
-          return -1
-        case 101:
-          // no fuel
-          return -2
-        case 102:
-          // water!
-          return -2
-        default:
-          count[ftlNumber]++
-      }
-    } catch (e) {
-      console.log(e)
-      console.log('ftlNumber', ftlNumber)
-      console.log('isi', isi)
-      console.log('bui', bui)
-      throw e
-    }
-  }
-  return -1
-}
 
 function ISIcalc(ffmc: number, ws: number, fbpMod: boolean = false): number {
   /*
@@ -191,31 +86,6 @@ function ISIcalc(ffmc: number, ws: number, fbpMod: boolean = false): number {
   // return(isi)
 }
 
-// function calcISI(
-//   ffmc: number,
-//   slope: number,
-//   aspect: number,
-//   windSpeed: number,
-//   ftlNumber: number
-// ): number {
-//   const _isi = (ffmcs: number, wspd: number): number => {
-//     /*
-//     TODO: credit:
-//     *   Created for Alaska Fire & Fuels, by MesoWest
-//     *
-//     *   Author: Joe Young
-//     *   Date: 25 January 2016
-//     *   Mod: 28 June 2016
-//     *   Mod: 27 April 2017
-//     */
-//     // initial spread index
-//     const fm = (147.2 * (101.0 - ffmcs)) / (59.5 + ffmcs)
-//     const sf = 19.115 * Math.exp(-0.1386 * fm) * (1.0 + Math.pow(fm, 5.31) / 4.93e7)
-//     return sf * Math.exp(0.05039 * wspd)
-//   }
-//   return _isi(ffmc, windSpeed)
-// }
-
 function calcROSColour(ros: number, opacity: number): number[] {
   if (ros < 0) {
     if (ros === -2) {
@@ -252,22 +122,31 @@ function ftlNumberToFtlCode(ftlNumber: number): string | undefined {
       return 'C4'
     case 5:
       return 'C5'
+    case 6:
+      // Not sure - but seems logical?
+      return 'C6'
     case 7:
       return 'C7'
     case 11:
       return 'D1'
+    case 12:
+      return 'D1'
     case 13:
-      return 'D2'
+      return 'D1'
+  }
+  if (ftlNumber >= 500 && ftlNumber < 700) {
+    return 'M1'
   }
   return undefined
 }
 
 function isNonFuel(ftlNumber: number): boolean {
-  switch (ftlNumber) {
-    case 101:
-    case 102:
-    case 106:
-      return true
+  if (ftlNumber >= 99 && ftlNumber < 200) {
+    // case 101: // NonFuel
+    // case 102: // Water
+    // case 106: // Urban
+    // the rest - no idea!
+    return true
   }
   return false
 }
@@ -403,11 +282,250 @@ export function ROScalc(
     rsi =
       (PC / 100) * ROScalc('C2', ISI, NoBUI, FMC, SFC, PC, PDF, CC, CBH) +
       ((0.2 * (100 - PC)) / 100) * ROScalc('D1', ISI, NoBUI, FMC, SFC, PC, PDF, CC, CBH)
-  } else {
-    // throw 'not implemented for ' + FUELTYPE
   }
 
-  return rsi
+  // #Initial Rate of Spread for M3 Mixedwood
+  // RSI_m3 <- rep(-99,length(ISI))
+  // #Eq. 30 (Wotton et. al 2009)
+  // RSI_m3 <-
+  //   ifelse(FUELTYPE %in% c("M3"),
+  //     as.numeric(a[["M3"]] * ((1 - exp(-b[["M3"]] * ISI))**c0[["M3"]])), RSI_m3)
+  // #Eq. 29 (Wotton et. al 2009)
+  // RSI <-
+  //   ifelse(FUELTYPE %in% c("M3"),
+  //     PDF/100* RSI_m3 + (1-PDF/100) *
+  //       .ROScalc(rep("D1", length(ISI)), ISI, NoBUI, FMC, SFC, PC, PDF, CC,CBH),
+  //     RSI)
+  else if (FUELTYPE === 'M3') {
+    if (!PDF) {
+      throw 'PDF not specified'
+    }
+    const RSI_m3 = a[index] * Math.pow(1 - Math.exp(-b[index] * ISI), c0[index])
+    rsi =
+      (PDF / 100) * RSI_m3 +
+      (1 - PDF / 100) * ROScalc('D1', ISI, NoBUI, FMC, SFC, PC, PDF, CC, CBH)
+  }
+  // #Initial Rate of Spread for M4 Mixedwood
+  // RSI_m4 <- rep(-99,length(ISI))
+  // #Eq. 30 (Wotton et. al 2009)
+  // RSI_m4 <-
+  //   ifelse(FUELTYPE %in% c("M4"),
+  //     as.numeric(a[["M4"]] * ((1 - exp(-b[["M4"]] * ISI))**c0[["M4"]])), RSI_m4)
+  // #Eq. 33 (Wotton et. al 2009)
+  // RSI <-
+  //   ifelse(FUELTYPE %in% c("M4"),
+  //     PDF / 100* RSI_m4 + 0.2 * (1 - PDF / 100)*
+  //       .ROScalc(rep("D1", length(ISI)), ISI, NoBUI, FMC, SFC, PC, PDF, CC,CBH),
+  //     RSI)
+  else if (FUELTYPE === 'M4') {
+    if (!PDF) {
+      throw 'PDF not specified'
+    }
+    const RSI_m4 = a[index] * Math.pow(1 - Math.exp(-b[index] * ISI), c0[index])
+    rsi =
+      (PDF / 100) * RSI_m4 +
+      0.2 * (1 - PDF / 100) * ROScalc('D1', ISI, NoBUI, FMC, SFC, PC, PDF, CC, CBH)
+  }
+  // #Eq. 35b (Wotton et. al. 2009) - Calculate Curing function for grass
+  // CF <- rep(-99,length(ISI))
+  // CF <-
+  //   ifelse(FUELTYPE %in% c("O1A", "O1B"),
+  //          ifelse(CC < 58.8,
+  //                 0.005 * (exp(0.061 * CC) - 1),
+  //                 0.176 + 0.02 * (CC - 58.8)),
+  //          CF)
+  // #Eq. 36 (FCFDG 1992) - Calculate Initial Rate of Spread for Grass
+  // RSI <-
+  //   ifelse(FUELTYPE %in% c("O1A", "O1B"),
+  //     a[FUELTYPE] * ((1 - exp(-b[FUELTYPE] * ISI))**c0[FUELTYPE]) * CF,
+  //   RSI)
+  else if (FUELTYPE === 'O1A' || FUELTYPE === 'O1B') {
+    if (!CC) {
+      throw 'CC not specified'
+    }
+    const CF = CC < 58.8 ? 0.005 * (Math.exp(0.061 * CC) - 1) : 0.176 + 0.02 * (CC - 58.8)
+    rsi = a[index] * Math.pow(1 - Math.exp(-b[index] * ISI), c0[index]) * CF
+  }
+  // #Calculate C6 separately
+  // ROS <-
+  //   ifelse(FUELTYPE %in% c("C6"),
+  //     .C6calc(FUELTYPE, ISI, BUI, FMC, SFC, CBH, option = "ROS"),
+  //     .BEcalc(FUELTYPE, BUI) * RSI)
+  // #add a constraint
+  // ROS <- ifelse(ROS <= 0,0.000001,ROS)
+  let ros: number
+  if (FUELTYPE === 'C6') {
+    ros = C6calc(
+      FUELTYPE,
+      ISI,
+      BUI,
+      FMC,
+      SFC,
+      CBH,
+      undefined,
+      undefined,
+      undefined,
+      'ROS'
+    )
+  } else {
+    ros = BEcalc(FUELTYPE, BUI) * rsi
+  }
+
+  return ros <= 0 ? 0.000001 : ros
+}
+
+export function C6calc(
+  FUELTYPE: string,
+  ISI: number,
+  BUI: number,
+  FMC: number | undefined,
+  SFC: number | undefined,
+  CBH: number | undefined,
+  ROS: number | undefined,
+  CFB: number | undefined,
+  RSC: number | undefined,
+  option: string = 'CFB'
+): number {
+  //     .C6calc<-function(FUELTYPE, ISI, BUI, FMC, SFC, CBH, ROS, CFB, RSC,
+  //       option="CFB"){
+  // #############################################################################
+  // # Description:
+  // #   Calculate c6 (Conifer plantation) Fire Spread. C6 is a special case, and
+  // #     thus has it's own function. To calculate C6 fire spread, this function
+  // #     also calculates and can return ROS, CFB, RSC, or RSI by specifying in
+  // #     the option parameter.
+  // #
+  // #   All variables names are laid out in the same manner as Forestry Canada
+  // #   Fire Danger Group (FCFDG) (1992). Development and Structure of the
+  // #   Canadian Forest Fire Behavior Prediction System." Technical Report
+  // #   ST-X-3, Forestry Canada, Ottawa, Ontario.
+  // #
+  // # Args:
+  // #   FUELTYPE: The Fire Behaviour Prediction FuelType
+  // #   ISI:      Initial Spread Index
+  // #   BUI:      Buildup Index
+  // #   FMC:      Foliar Moisture Content
+  // #   SFC:      Surface Fuel Consumption
+  // #   CBH:      Crown Base Height
+  // #   ROS:      Rate of Spread
+  // #   CFB:      Crown Fraction Burned
+  // #   RSC:      Crown Fire Spread Rate (m/min)
+  // #   option:   Which variable to calculate(ROS, CFB, RSC, or RSI)
+  // #
+  // # Returns:
+  // #   ROS, CFB, RSC or RSI depending on which option was selected
+  // #
+  // #############################################################################
+  // #Average foliar moisture effect
+  // FMEavg <- 0.778
+  // #Eq. 59 (FCFDG 1992) Crown flame temperature (degrees K)
+  // tt <- 1500 - 2.75 * FMC
+  // #Eq. 60 (FCFDG 1992) Head of ignition (kJ/kg)
+  // H <- 460 + 25.9 * FMC
+  // #Eq. 61 (FCFDG 1992) Average foliar moisture effect
+  // FME <- ((1.5 - 0.00275 * FMC)**4.)/(460 + 25.9 * FMC) * 1000
+  // #Eq. 62 (FCFDG 1992) Intermediate surface fire spread rate
+  // RSI <- 30 * (1 - exp(-0.08 * ISI))**3.0
+  // #Return at this point, if specified by caller
+  // if(option=="RSI"){
+  // return(RSI)
+  // }
+  // #Eq. 63 (FCFDG 1992) Surface fire spread rate (m/min)
+  // RSS <- RSI * .BEcalc(FUELTYPE, BUI)
+  // #Eq. 64 (FCFDG 1992) Crown fire spread rate (m/min)
+  // RSC <- 60 * (1 - exp(-0.0497 * ISI)) * FME / FMEavg
+  // #Return at this point, if specified by caller
+  // if(option=="RSC"){
+  // return(RSC)
+  // }
+  // #Crown Fraction Burned
+  // CFB    <- ifelse(RSC > RSS,.CFBcalc(FUELTYPE, FMC, SFC, RSS, CBH),0)
+  // #Return at this point, if specified by caller
+  // if(option=="CFB"){
+  // return(CFB)
+  // }
+  // #Eq. 65 (FCFDG 1992) Calculate Rate of spread (m/min)
+  // ROS    <- ifelse(RSC > RSS,RSS + (CFB)*(RSC-RSS),RSS)
+  // return(ROS)
+  // }
+  throw 'not implemented'
+}
+
+export function BEcalc(FUELTYPE: string, BUI: number): number {
+  // #############################################################################
+  // # Description:
+  // #   Computes the Buildup Effect on Fire Spread Rate.
+  // #
+  // #   All variables names are laid out in the same manner as Forestry Canada
+  // #   Fire Danger Group (FCFDG) (1992). Development and Structure of the
+  // #   Canadian Forest Fire Behavior Prediction System." Technical Report
+  // #   ST-X-3, Forestry Canada, Ottawa, Ontario.
+  // #
+  // # Args:
+  // #   FUELTYPE: The Fire Behaviour Prediction FuelType
+  // #   BUI:      The Buildup Index value
+  // # Returns:
+  // #   BE: The Buildup Effect
+  // #
+  // #############################################################################
+  // #Fuel Type String represenations
+  // d <- c("C1", "C2", "C3", "C4", "C5", "C6", "C7", "D1", "M1", "M2", "M3",
+  //        "M4","S1", "S2", "S3", "O1A", "O1B")
+  const d = [
+    'C1',
+    'C2',
+    'C3',
+    'C4',
+    'C5',
+    'C6',
+    'C7',
+    'D1',
+    'M1',
+    'M2',
+    'M3',
+    'M4',
+    'S1',
+    'S2',
+    'S3',
+    'O1A',
+    'O1B'
+  ]
+  // #The average BUI for the fuel type - as referenced by the "d" list above
+  // BUIo <- c(72, 64, 62, 66, 56, 62, 106, 32, 50, 50, 50, 50, 38, 63, 31, 01,
+  //           01)
+  const BUIo = [72, 64, 62, 66, 56, 62, 106, 32, 50, 50, 50, 50, 38, 63, 31, 1, 1]
+  // #Proportion of maximum possible spread rate that is reached at a standard BUI
+  // Q <- c(0.9, 0.7, 0.75, 0.8, 0.8, 0.8, 0.85, 0.9, 0.8, 0.8, 0.8, 0.8, 0.75,
+  //        0.75, 0.75, 1.0, 1.0)
+  const Q = [
+    0.9,
+    0.7,
+    0.75,
+    0.8,
+    0.8,
+    0.8,
+    0.85,
+    0.9,
+    0.8,
+    0.8,
+    0.8,
+    0.8,
+    0.75,
+    0.75,
+    0.75,
+    1.0,
+    1.0
+  ]
+  // names(BUIo) <- names(Q)<-d
+  const index = d.indexOf(FUELTYPE)
+
+  // #Eq. 54 (FCFDG 1992) The Buildup Effect
+  // BE<- ifelse(BUI > 0 & BUIo[FUELTYPE] > 0,
+  //   exp(50 * log(Q[FUELTYPE]) * (1 / BUI - 1 / BUIo[FUELTYPE])), 1)
+  // return(as.numeric(BE))
+  return BUI > 0 && BUIo[index] > 0
+    ? Math.exp(50 * Math.log(Q[index]) * (1 / BUI - 1 / BUIo[index]))
+    : 1
 }
 
 const raster = new olSource.Raster({
@@ -419,22 +537,26 @@ const raster = new olSource.Raster({
 
     const recover = (eas[0] << 16) | (eas[1] << 8) | eas[2]
     const height = recover >> 11
-    const aspectValid = (recover >> 10) & 0x1
-    const aspect = (recover >> 7) & 0x7
-    const slope = recover & 0x7f
+    // const aspectValid = (recover >> 10) & 0x1
+    // const aspect = (recover >> 7) & 0x7
     if (height === 0 || height === 0xffffff || height > data.snowLine) {
       return [0, 0, 0, 0]
     } else {
       const ftlNumber = (ftl[0] << 16) | (ftl[1] << 8) | ftl[2]
-
-      const slopeEquivalentWindSpeed = calcSlopeEquivalentWindSpeed(ftlNumber, slope)
-      const slopeAdjustedWindSpeed = slopeEquivalentWindSpeed + data.windSpeed
-      const isi = ISIcalc(data.ffmc, slopeAdjustedWindSpeed)
       const ftlCode = ftlNumberToFtlCode(ftlNumber)
-
       let ros = -1
       if (ftlCode) {
-        ros = ROScalc(ftlCode, isi, data.bui)
+        const slope = recover & 0x7f
+        const slopeEquivalentWindSpeed = calcSlopeEquivalentWindSpeed(ftlNumber, slope)
+        const slopeAdjustedWindSpeed = slopeEquivalentWindSpeed + data.windSpeed
+        const isi = ISIcalc(data.ffmc, slopeAdjustedWindSpeed)
+        const FMC = undefined
+        const SFC = undefined
+        const PC = ftlNumber % 100
+        const PDF = undefined
+        const CC = undefined
+        const CBH = undefined
+        ros = ROScalc(ftlCode, isi, data.bui, FMC, SFC, PC, PDF, CC, CBH)
         if (ftlNumber in data.info['known']) {
           data.info['known'][ftlNumber]++
         } else {
@@ -457,51 +579,11 @@ const raster = new olSource.Raster({
         }
       }
 
-      // ros = lookupROS(data.rosLookup, ftlNumber, Math.round(isi), Math.round(data.bui))
-      // const ros = calcROS(ftlNumber, isi, data.bui)
-
       if (ros > data.maxRos) {
         data.maxRos = ros
         // console.log('max ros:', ros)
       }
       return calcROSColour(ros, data.opacity)
-      // for C7, ROS maxes out at 36
-      // if (aspectValid) {
-      //   switch (aspect) {
-      //     case 7:
-      //     case 0:
-      //       // north
-      //       result[0] = 255
-      //       break
-      //     case 1:
-      //     case 2:
-      //       // east
-      //       result[1] = 255
-      //       break
-      //     case 3:
-      //     case 4:
-      //       // south
-      //       result[2] = 255
-      //       break
-      //     case 5:
-      //     case 6:
-      //       // west
-      //       result[0] = 255
-      //       result[2] = 255
-      //       break
-      //     default:
-      //       // error!
-      //       result[0] = 255
-      //       result[1] = 255
-      //       result[2] = 255
-      //   }
-      //   result[3] = 255
-      // } else {
-      //   result[0] = 0
-      //   result[1] = 0
-      //   result[2] = 0
-      //   result[3] = 255
-      // }
     }
   },
   lib: {
@@ -509,8 +591,9 @@ const raster = new olSource.Raster({
     calcROSColour: calcROSColour,
     calcSlopeEquivalentWindSpeed: calcSlopeEquivalentWindSpeed,
     ftlNumberToFtlCode: ftlNumberToFtlCode,
-    lookupROS: lookupROS,
     ROScalc: ROScalc,
+    BEcalc: BEcalc,
+    C6calc: C6calc,
     isNonFuel: isNonFuel
   }
 })
@@ -520,12 +603,12 @@ raster.on('beforeoperations', function(event) {
   event.data.bui = raster.get('bui')
   event.data.ffmc = raster.get('ffmc')
   event.data.windSpeed = raster.get('windSpeed')
-  event.data.rosLookup = raster.get('rosLookup')
   event.data.info = raster.get('info')
   event.data.maxRos = 0
 })
 raster.on('afteroperations', function(event) {
   if (event.data.info) {
+    console.log('maxros', event.data.maxRos)
     // console.log('known:')
     // for (let key in event.data.info['known']) {
     //   console.log(`${key}: ${event.data.info['known'][key]}`)
@@ -555,32 +638,18 @@ interface Props {
 }
 
 const RateOfSpreadMap = ({ snowLine, bui, ffmc, windSpeed, opacity }: Props) => {
+  console.log('RateOfSpreadMap')
   const [center, setCenter] = useState(fromLonLat(CENTER_OF_BC))
 
   useEffect(() => {
+    console.log('useEffect info')
+    raster.set('calls', 0)
     raster.set('info', { known: {}, unknown: {} })
     raster.changed()
   }, [])
 
   useEffect(() => {
-    console.log('fetching lookup data')
-    fetch('ros_lookup.json', {
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json'
-      }
-    })
-      .then(response => {
-        return response.json()
-      })
-      .then(json => {
-        raster.set('rosLookup', json)
-        raster.changed()
-      })
-  }, [])
-
-  useEffect(() => {
-    console.log('input changed')
+    console.log('useEffect: [snowLine, bui, ffmc, windSpeed, opacity]')
     raster.set('snowLine', snowLine)
     raster.set('bui', bui)
     raster.set('ffmc', ffmc)
