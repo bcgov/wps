@@ -889,7 +889,7 @@ const RateOfSpreadMap = ({
     raster.set('windSpeed', windSpeed)
     raster.set('opacity', opacity)
     raster.changed()
-  }, [snowLine, bui, ffmc, fmc, windSpeed, opacity])
+  }, [snowLine, bui, ffmc, fmc, cbh, windSpeed, opacity])
 
   return (
     <Map
