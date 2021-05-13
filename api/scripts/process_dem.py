@@ -208,5 +208,14 @@ def main():
     print('remember to run: gdaltindex eas-3band-tif.shp *.tif')
 
 
+def another_main():
+    mega_topo = '/home/sybrand/Workspace/wps/openshift/mapserver/docker/etc/mapserver/mega_merged_topo.tif'
+    slope_path = generate_slope(mega_topo)
+    aspect_path = generate_aspect(mega_topo)
+    generate_rgb(mega_topo, slope_path, aspect_path,
+                 '/home/sybrand/Workspace/wps/openshift/mapserver/docker/etc/mapserver/mega_merged_topo_eas.tif')
+
+
 if __name__ == '__main__':
-    main()
+    # main()
+    another_main()

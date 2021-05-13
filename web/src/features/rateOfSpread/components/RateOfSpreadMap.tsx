@@ -22,37 +22,6 @@ const source = new olSource.XYZ({
   attributions: 'Government of British Columbia, DataBC, GeoBC'
 })
 
-// function blendColor(p1: number, p2: number): number {
-//   if (p1 === 255 && p2 === 255) {
-//     return 255
-//   } else if (p1 === 255) {
-//     return p2
-//   } else if (p2 === 255) {
-//     return p1
-//   }
-//   const result = p1 + p2
-//   return result === 255 ? 254 : result
-// }
-
-// function rateOfSpread(fuelType: FuelType, isi: number, bui: number): number {
-
-// }
-
-// const demSource = new olSource.TileImage({
-//   tileUrlFunction: (coordinate, pixelRatio, projection): string => {
-//     console.log('coordinate, pixelRatio, projection', coordinate, pixelRatio, projection)
-//     return (
-//       'http://0.0.0.0:8000/' +
-//       coordinate[0] +
-//       '/' +
-//       coordinate[1] +
-//       '/' +
-//       (-coordinate[2] - 1) +
-//       '.png'
-//     )
-//   }
-// })
-
 // function calcROS(ftlNumber: number, isi: number, bui: number): number {
 //   if (ftlNumber !== 7) {
 //     throw 'not handling this ftl yet'
@@ -150,6 +119,11 @@ const ftlSource = new olSource.XYZ({
 
 const ftlFullSource = new olSource.XYZ({
   url: getUrl('FTLFULL'),
+  crossOrigin: 'anonymous'
+})
+
+const elevationSource = new olSource.XYZ({
+  url: getUrl('ELEVATION'),
   crossOrigin: 'anonymous'
 })
 
@@ -519,7 +493,7 @@ export function ROScalc(
       (PC / 100) * ROScalc('C2', ISI, NoBUI, FMC, SFC, PC, PDF, CC, CBH) +
       ((0.2 * (100 - PC)) / 100) * ROScalc('D1', ISI, NoBUI, FMC, SFC, PC, PDF, CC, CBH)
   } else {
-    throw 'not implemented for ' + FUELTYPE
+    // throw 'not implemented for ' + FUELTYPE
   }
 
   return rsi
@@ -714,6 +688,7 @@ const RateOfSpreadMap = ({ snowLine, bui, ffmc, windSpeed, opacity }: Props) => 
       zoom={zoom}
       redrawFlag={{ redraw: false } as RedrawCommand}
     >
+      {/* <TileLayer source={elevationSource} /> */}
       <TileLayer source={source} />
       <ImageLayer source={raster} />
     </Map>
