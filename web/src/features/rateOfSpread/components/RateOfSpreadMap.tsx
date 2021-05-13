@@ -22,91 +22,6 @@ const source = new olSource.XYZ({
   attributions: 'Government of British Columbia, DataBC, GeoBC'
 })
 
-// function calcROS(ftlNumber: number, isi: number, bui: number): number {
-//   if (ftlNumber !== 7) {
-//     throw 'not handling this ftl yet'
-//   }
-//   // C-7 Ponderosa pine/Douglas-fir
-//   const column = (bui: number): number => {
-//     if (bui < 20) {
-//       return 0
-//     } else if (bui <= 30) {
-//       return 1
-//     } else if (bui <= 40) {
-//       return 2
-//     } else if (bui <= 60) {
-//       return 3
-//     } else if (bui <= 80) {
-//       return 4
-//     } else if (bui <= 120) {
-//       return 5
-//     } else if (bui <= 160) {
-//       return 6
-//     }
-//     return 7
-//   }
-//   const row = (isi: number): number => {
-//     if (isi <= 1) {
-//       return 0
-//     } else if (isi <= 20) {
-//       return Math.round(isi) - 1
-//     } else if (isi <= 25) {
-//       return 20
-//     } else if (isi <= 30) {
-//       return 21
-//     } else if (isi <= 35) {
-//       return 22
-//     } else if (isi <= 40) {
-//       return 23
-//     } else if (isi <= 45) {
-//       return 24
-//     } else if (isi <= 50) {
-//       return 25
-//     } else if (isi <= 55) {
-//       return 26
-//     } else if (isi <= 60) {
-//       return 27
-//     } else if (isi <= 65) {
-//       return 28
-//     }
-//     return 29
-//   }
-//   const c7 = [
-//     [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
-//     [0.1, 0.1, 0.1, 0.1, 0.2, 0.2, 0.2, 0.2],
-//     [0.2, 0.3, 0.3, 0.3, 0.3, 0.3, 0.4, 0.4],
-//     [0.3, 0.5, 0.5, 0.5, 0.6, 0.6, 0.6, 0.6],
-//     [0.4, 0.7, 0.8, 0.8, 0.9, 0.9, 0.9, 0.9],
-//     [0.6, 1, 1, 1, 1, 1, 1, 1],
-//     [0.8, 1, 1, 2, 2, 2, 2, 2],
-//     [1, 2, 2, 2, 2, 2, 2, 2],
-//     [1, 2, 2, 2, 2, 3, 3, 3],
-//     [2, 2, 3, 3, 3, 3, 3, 3],
-//     [2, 3, 3, 3, 4, 4, 4, 4],
-//     [2, 3, 4, 4, 4, 4, 4, 4],
-//     [2, 4, 4, 4, 5, 5, 5, 5],
-//     [3, 4, 5, 5, 5, 5, 6, 6],
-//     [3, 5, 5, 6, 6, 6, 6, 6],
-//     [3, 5, 6, 6, 6, 7, 7, 7],
-//     [4, 6, 6, 7, 7, 7, 8, 8],
-//     [4, 6, 7, 7, 8, 8, 8, 8],
-//     [4, 7, 7, 8, 8, 9, 9, 9],
-//     [5, 7, 8, 9, 9, 9, 10, 10],
-//     [6, 9, 10, 11, 11, 11, 12, 12],
-//     [7, 12, 13, 14, 14, 15, 15, 15],
-//     [9, 14, 16, 17, 17, 18, 18, 19],
-//     [10, 17, 18, 19, 20, 21, 22, 22],
-//     [12, 19, 21, 22, 23, 24, 24, 25],
-//     [13, 21, 23, 24, 26, 26, 27, 27],
-//     [14, 23, 25, 27, 28, 29, 28, 30],
-//     [15, 24, 27, 28, 30, 31, 32, 32],
-//     [16, 26, 28, 30, 32, 33, 33, 34],
-//     [17, 27, 30, 32, 33, 34, 35, 36]
-//   ]
-
-//   return c7[row(isi)][column(bui)]
-// }
-
 const getUrl = (layer: string) => {
   return `http://localhost:8081/cgi-bin/mapserv?map=/etc/mapserver/mapserver.map&MODE=tile&TILEMODE=gmap&LAYERS=${layer}&TILE={x}+{y}+{z}`
   // return `http://localhost:80/cgi-bin/mapserv?map=/home/sybrand/Workspace/wps/mapserver/sigh.map&MODE=tile&TILEMODE=gmap&LAYERS=${layer}&TILE={x}+{y}+{z}`
@@ -117,11 +32,6 @@ const ftlSource = new olSource.XYZ({
   crossOrigin: 'anonymous'
 })
 
-const ftlFullSource = new olSource.XYZ({
-  url: getUrl('FTLFULL'),
-  crossOrigin: 'anonymous'
-})
-
 const elevationSource = new olSource.XYZ({
   url: getUrl('ELEVATION'),
   crossOrigin: 'anonymous'
@@ -129,6 +39,7 @@ const elevationSource = new olSource.XYZ({
 
 const easSource = new olSource.XYZ({
   url: getUrl('EAS'),
+  // url: getUrl('EAS_WEB_MERCATOR'),
   crossOrigin: 'anonymous'
 })
 
