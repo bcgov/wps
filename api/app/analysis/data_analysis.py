@@ -4,6 +4,7 @@ Experiment 3 - data analysis with Streamlit library
 
 import datetime
 import re
+from numpy import select
 
 import pandas as pd
 import streamlit as st
@@ -67,11 +68,17 @@ fires_df = fires_df[(pd.Timestamp(selected_year, 4, 1) <= fires_df['IGNITION_DAT
     fires_df['IGNITION_DATE'] <= pd.Timestamp(selected_year, 9, 30))]
 fires_df.reset_index(drop=True, inplace=True)
 fires_df['CURRENT_SIZE'].fillna(value=0, inplace=True)
-st.dataframe(fires_df)
 
-fig = px.scatter(fires_df, x="IGNITION_DATE", y="STATION_DISTANCE", color="FIRE_CAUSE",
-                 size=fires_df["CURRENT_SIZE"], hover_data=['LATITUDE', 'LONGITUDE', 'FIRE_NUMBER'])
-st.plotly_chart(fig, use_container_width=True)
+if st.checkbox("Show Raw Fire Data", False):
+    st.subheader('Raw Fire Data for {}'.format(selected_year))
+    st.dataframe(fires_df)
+
+if (fires_df.shape[0] > 0):
+    fig = px.scatter(fires_df, x="IGNITION_DATE", y="STATION_DISTANCE", color="FIRE_CAUSE",
+                     size=fires_df["CURRENT_SIZE"], hover_data=['LATITUDE', 'LONGITUDE', 'FIRE_NUMBER'])
+    st.plotly_chart(fig, use_container_width=True)
+else:
+    st.write('No historic fires found for station {} in {}'.format(selected_code, selected_year))
 
 
 hourlies_filename = '../../sourceData/hourlies/'+str(selected_year)+'/'+selected_code+'.csv'
@@ -83,14 +90,15 @@ station_hourlies_df['weather_date'] = station_hourlies_df['weather_date'].apply(
     lambda row: convert_to_datetime(str(row)))
 
 ffmc_df = station_hourlies_df[['weather_date', 'ffmc']].copy()
-ffmc_df.set_index('weather_date', inplace=True)
+# ffmc_df.set_index('weather_date', inplace=True)
 isi_df = station_hourlies_df[['weather_date', 'isi']].copy()
 isi_df.set_index('weather_date', inplace=True)
 fwi_df = station_hourlies_df[['weather_date', 'fwi']].copy()
 fwi_df.set_index('weather_date', inplace=True)
 
 st.write(selected_station, """ Hourly FFMC for fire season """, str(selected_year))
-st.line_chart(ffmc_df)
+ffmc_fig = px.scatter(ffmc_df, x='weather_date', y='ffmc')
+st.plotly_chart(ffmc_fig, use_container_width=True)
 
 st.write(selected_station, """ Hourly ISI for fire season """, str(selected_year))
 st.line_chart(isi_df)
