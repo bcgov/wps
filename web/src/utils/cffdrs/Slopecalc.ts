@@ -184,7 +184,7 @@ export function Slopecalc(
   ) {
     ISF =
       1 - Math.pow(RSF / a[index], 1 / c0[index]) >= 0.01
-        ? Math.log(1 - (RSF / a[index]) ** (1 / c0[index])) / -b[index]
+        ? Math.log(1 - Math.pow(RSF / a[index], 1 / c0[index])) / -b[index]
         : Math.log(0.01) / -b[index]
     console.log(ISF)
   }
@@ -219,7 +219,7 @@ export function Slopecalc(
     //             ISF_C2)
     const ISF_C2 =
       RSF0 >= 0.01
-        ? Math.log(1 - (RSF_C2 / a[c2_index]) ** (1 / c0[c2_index])) / -b[c2_index]
+        ? Math.log(1 - Math.pow(RSF_C2 / a[c2_index], 1 / c0[c2_index])) / -b[c2_index]
         : Math.log(0.01) / -b[c2_index]
     // RSF0 <- 1 - (RSF_D1 / a[["D1"]])^(1 / c0[["D1"]])
     RSF0 = (1 - RSF_D1 / a[d1_index]) ^ (1 / c0[d1_index])
@@ -233,7 +233,7 @@ export function Slopecalc(
     //             ISF_D1)
     const ISF_D1 =
       RSF0 >= 0.01
-        ? Math.log(1 - (RSF_D1 / a[d1_index]) ** (1 / c0[d1_index])) / -b[d1_index]
+        ? Math.log(1 - Math.pow(RSF_D1 / a[d1_index], 1 / c0[d1_index])) / -b[d1_index]
         : Math.log(0.01) / -b[d1_index]
     // #Eq. 42a (Wotton 2009) - Calculate weighted average for the M1/M2 types
     // ISF <- ifelse(FUELTYPE %in% c("M1", "M2"), PC / 100 * ISF_C2 +

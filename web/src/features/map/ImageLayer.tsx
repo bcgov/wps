@@ -11,6 +11,7 @@ interface Props {
 }
 
 const ImageLayer = ({ source, opacity = 1, zIndex = 0 }: Props) => {
+  console.log('ImageLayer created')
   const map = useContext(MapContext)
 
   const [layer, setLayer] = useState<OLImageLayer | null>(null)

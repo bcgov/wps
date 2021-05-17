@@ -82,7 +82,7 @@ export function ROScalc(
   //         as.numeric(a[FUELTYPE] * (1 - exp(-b[FUELTYPE] * ISI))**c0[FUELTYPE]),
   //         RSI)
   if (['C1', 'C2', 'C3', 'C4', 'C5', 'C7', 'D1', 'S1', 'S2', 'S3'].includes(FUELTYPE)) {
-    rsi = Math.pow(a[index] * (1 - Math.exp(-b[index] * ISI)), c0[index])
+    rsi = a[index] * Math.pow(1 - Math.exp(-b[index] * ISI), c0[index])
   }
   // #Eq. 27 (FCFDG 1992) - Initial Rate of Spread for M1 Mixedwood type
   // RSI <- ifelse(FUELTYPE %in% c("M1"),

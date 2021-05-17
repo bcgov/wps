@@ -36,7 +36,7 @@ export function CFBcalc(
   let CFB = 0
   //   #Eq. 56 (FCFDG 1992) Critical surface intensity
   //   CSI <- 0.001 * (CBH**1.5) * (460 + 25.9 * FMC)**1.5
-  const CSI = 0.001 * CBH ** 1.5 * (460 + 25.9 * FMC) ** 1.5
+  const CSI = 0.001 * Math.pow(CBH, 1.5) * Math.pow(460 + 25.9 * FMC, 1.5)
   //   #Return at this point, if specified by caller
   //   if(option=="CSI"){
   //     return(CSI)
