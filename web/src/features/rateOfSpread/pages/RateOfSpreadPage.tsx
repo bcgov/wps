@@ -1,7 +1,13 @@
 import React, { useState } from 'react'
 import { PageHeader, PageTitle } from 'components'
 import { makeStyles } from '@material-ui/core/styles'
-import { Slider, Typography } from '@material-ui/core'
+import {
+  FormControlLabel,
+  RadioGroup,
+  Slider,
+  Typography,
+  Radio
+} from '@material-ui/core'
 import RateOfSpreadMap from 'features/rateOfSpread/components/RateOfSpreadMap'
 import Canvas from 'features/rateOfSpread/components/GradientCanvas'
 
@@ -62,6 +68,8 @@ const RateOfSpreadPage: React.FunctionComponent = () => {
   const [fmc, setFmc] = useState(97)
   const [cbh, setCbh] = useState(7)
   const [windSpeed, setWindSpeed] = useState(15)
+  const [windAzimuth, setWindAzimuth] = useState(0)
+  const [useNetEffectiveWindSpeed, setUseNetEffectiveWindSpeed] = useState(true)
   const [opacity, setOpacity] = useState(200)
 
   const handleChangeSnowline = (
@@ -93,12 +101,26 @@ const RateOfSpreadPage: React.FunctionComponent = () => {
     setWindSpeed(value as number)
   }
 
+  const handleChangeWindAzimuth = (
+    event: React.ChangeEvent<{}>,
+    value: number | number[]
+  ) => {
+    setWindAzimuth(value as number)
+  }
+
   const handleChangeFmc = (event: React.ChangeEvent<{}>, value: number | number[]) => {
     setFmc(value as number)
   }
 
   const handleChangeCbh = (event: React.ChangeEvent<{}>, value: number | number[]) => {
     setCbh(value as number)
+  }
+
+  const handleChangeUseNetEffectiveWindSpeed = (
+    event: React.ChangeEvent<{}>,
+    value: string | string[]
+  ) => {
+    setUseNetEffectiveWindSpeed(value === 'true')
   }
 
   return (
@@ -184,6 +206,27 @@ const RateOfSpreadPage: React.FunctionComponent = () => {
             getAriaValueText={valuetext}
             onChange={handleChangeWindSpeed}
           ></Slider>
+          <Typography gutterBottom>Wind Azimuth {windAzimuth}</Typography>
+          <Slider
+            aria-label="Wind Speed"
+            step={1}
+            min={0}
+            max={359}
+            value={windAzimuth}
+            marks={true}
+            valueLabelDisplay="auto"
+            getAriaValueText={valuetext}
+            onChange={handleChangeWindAzimuth}
+          ></Slider>
+          <Typography gutterBottom>Use net effective windspeed</Typography>
+          <RadioGroup
+            aria-label="use net effective windspeed"
+            value={useNetEffectiveWindSpeed ? 'true' : 'false'}
+            onChange={handleChangeUseNetEffectiveWindSpeed}
+          >
+            <FormControlLabel value="true" control={<Radio />} label="True" />
+            <FormControlLabel value="false" control={<Radio />} label="False" />
+          </RadioGroup>
           <Typography gutterBottom>Opacity {opacity}</Typography>
           <Slider
             aria-label="Opacity"
@@ -216,6 +259,8 @@ const RateOfSpreadPage: React.FunctionComponent = () => {
             fmc={fmc}
             cbh={cbh}
             windSpeed={windSpeed}
+            windAzimuth={windAzimuth}
+            useNetEffectiveWindSpeed={useNetEffectiveWindSpeed}
             opacity={opacity}
           />
         </div>
