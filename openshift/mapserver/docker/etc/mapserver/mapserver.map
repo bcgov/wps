@@ -1,6 +1,6 @@
 MAP
   NAME           mymap
-  IMAGETYPE      PNG32
+  IMAGETYPE      PNG24
   # EXTENT         -97.238976 41.619778 -82.122902 49.385620
   SIZE           400 300
   IMAGECOLOR     255 255 255
@@ -16,14 +16,14 @@ MAP
     END
   END # end web
 
-  OUTPUTFORMAT
-    NAME "PNG32"
-    DRIVER AGG/PNG
-    MIMETYPE "image/png"
-    IMAGEMODE RGBA
-    EXTENSION "png"
-    FORMATOPTION "GAMMA=0.75"
-  END
+  #OUTPUTFORMAT
+  #  NAME "PNG32"
+  #  DRIVER AGG/PNG
+  #  MIMETYPE "image/png"
+  #  IMAGEMODE RGBA
+  #  EXTENSION "png"
+  #  FORMATOPTION "GAMMA=0.75"
+  #END
 
 
   LAYER # FTL raster layer begins here

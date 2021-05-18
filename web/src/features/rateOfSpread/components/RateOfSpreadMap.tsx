@@ -1128,11 +1128,25 @@ function createRaster() {
 
     operation: (layers: any, data: any): number[] | ImageData => {
       const eas = layers[0]
+      if (eas[0] === 0xff && eas[1] == 0xff && eas[2] == 0xff) {
+        // no data - get out of here
+        return [0, 0, 0, 0]
+      }
       const ftl = layers[1]
 
-      const height = (eas[0] << 5) | (eas[1] >> 3)
-      const aspect = ((eas[1] & 0x7) << 6) | ((eas[2] & 0xfc) >> 2)
-      const slope = ((eas[2] & 0x3) << 8) | eas[3]
+      const height = eas[0] == 0xff ? 0xff : eas[0] * 20
+      const aspect = eas[1] == 0xff ? 0xff : eas[1] * 2
+      const slope = eas[2] == 0xff ? 0xff : eas[2] * 2
+
+      // 0xff means no-data
+      // the raster should have no values large than 233, and as such the aspect should never
+      // be greater than 4671 - but it seems as if some error is introduced by openlayers?
+      const heightValid = height !== 0xff && height <= 4671
+      // 0xff means no-data
+      // the raster should have no values large than 180, and as such the aspect should never
+      // be greater than 360 - but it seems as if some error is introduced by openlayers?
+      const aspectValid = aspect !== 0xff && aspect <= 360
+      const slopeValid = slope !== 0xff
 
       if (data.mode === 'ROS') {
         if (height === 0 || height === 0xffffff || height > data.snowLine) {
@@ -1222,31 +1236,19 @@ function createRaster() {
           return calcROSColour(ros, data.opacity)
         }
       } else if (data.mode === 'Elevation') {
-        if (height === 0x1fff) {
-          // this means the height is invalid.
-          return [0, 0, 0, 0]
-        }
-        if (eas[0] === 0 && eas[1] === 0 && eas[2] === 0 && eas[3] === 0) {
-          // this means there's no data at all.
+        if (!heightValid) {
           return [0, 0, 0, 0]
         }
         const adjustedHeight = Math.round(Math.min(255, (height / 2500) * 255))
         return [adjustedHeight, adjustedHeight, adjustedHeight, data.opacity]
       } else if (data.mode === 'Aspect') {
-        if (aspect === 0x1ff) {
-          return [0, 0, 0, 0]
-        }
-        if (aspect > 360) {
-          return [0xff, 0, 0, 0xff]
-        }
-        if (eas[0] === 0 && eas[1] === 0 && eas[2] === 0 && eas[3] === 0) {
-          // this means there's no data at all.
+        if (!aspectValid) {
           return [0, 0, 0, 0]
         }
         const adjustedAspect = Math.round(Math.min(255, (aspect / 360) * 255))
         return [adjustedAspect, adjustedAspect, adjustedAspect, data.opacity]
       } else if (data.mode === 'Slope') {
-        if (slope === 0x3ff) {
+        if (!slopeValid) {
           return [0, 0, 0, 0]
         }
         const adjustedSlope = Math.round(Math.min(255, (slope / 100) * 255))
@@ -1370,7 +1372,7 @@ const RateOfSpreadMap = ({
       redrawFlag={{ redraw: false } as RedrawCommand}
     >
       {/* <TileLayer source={easSource} /> */}
-      {/* <TileLayer source={source} /> */}
+      <TileLayer source={source} />
       {raster && <ImageLayer source={raster} />}
     </Map>
   )

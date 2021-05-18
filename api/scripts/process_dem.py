@@ -5,7 +5,6 @@
 - generate 3 band raster
 """
 import os
-import sys
 import struct
 from pathlib import Path
 import tempfile
@@ -37,8 +36,8 @@ def dem_files(path) -> os.DirEntry:
         if entry.is_dir(follow_symlinks=False):
             yield from dem_files(entry.path)
         elif entry.path.endswith('.dem'):
-            if entry.path.endswith('82g-utm-elevation.dem'):
-                yield entry
+            # if entry.path.endswith('82g-utm-elevation.dem'):
+            yield entry
 
 
 def generate_aspect(dem_path: str) -> str:
@@ -93,7 +92,7 @@ def reproject_raster(raster_path: str):
     EPSG:3857 - Pseudo-Mercator -- Spherical Mercator, Google Maps, OpenStreetMap, Bing, ArcGIS, ESRI
 
     """
-    target = f'{os.path.splitext(os.path.join(Path(raster_path).parent, Path(raster_path).name))[0]}_wgs84.tif'
+    target = f'{os.path.splitext(os.path.join(Path(raster_path).parent, Path(raster_path).name))[0]}_epsg_3857.tif'
     if os.path.exists(target):
         os.remove(target)
     command = f'gdalwarp -t_srs EPSG:3857 -dstnodata -9999 -r near -of GTiff {raster_path} {target}'
@@ -128,15 +127,10 @@ def generate_rgb(elevation_path: str, slope_path: str, aspect_path: str, output_
         print(f'band.XSize: {elevation_band.XSize}')
         print(f'band.YSize: {elevation_band.YSize}')
 
-        min_aspect = sys.maxsize
-        max_aspect = -sys.maxsize
-        min_slope = sys.maxsize
-        max_slope = -sys.maxsize
-
         # create output file
         driver = gdal.GetDriverByName("GTiff")
         print(f'creating file {output_path}')
-        outdata = driver.Create(output_path, elevation_band.XSize, elevation_band.YSize, 4, gdal.GDT_Byte)
+        outdata = driver.Create(output_path, elevation_band.XSize, elevation_band.YSize, 3, gdal.GDT_Byte)
         try:
             outdata.SetProjection(projection)
             outdata.SetGeoTransform(geotransform)
@@ -158,55 +152,41 @@ def generate_rgb(elevation_path: str, slope_path: str, aspect_path: str, output_
                 aspect_array = get_float32_array(aspect_band, y)
                 slope_array = get_float32_array(slope_band, y)
 
-                r_array, g_array, b_array, a_array = [], [], [], []
+                r_array, g_array, b_array = [], [], []
                 r_array.append([])
                 g_array.append([])
                 b_array.append([])
-                a_array.append([])
 
                 for elevation, aspect, slope in zip(elevation_array, aspect_array, slope_array):
-                    # we have a total of 32 bits if we use RGBA
+                    # we have a total of 24 bits. (RGBA causes issues)
                     # - max altitude in BC is 4671m (Mount Fairweather) - so 13 bits is enough to store that.
-                    # that leaves us with 19 more bits.
-                    # print(f'elevation:{elevation}')
-                    # shift elevation left 19 bits
+                    # we don't have 13 bits to spare, so instead, divide by 20 - so we can put it in a byte
+                    # (4671/20 = 233.55)
                     if elevation == -9999:
-                        value = 0x1FFF << 19
+                        red = 0xFF
                     else:
-                        value = (elevation << 19)
-                    # - max aspect is 360 degrees, so we only need 9 bits for aspect
+                        red = int(elevation / 20)
+
+                    # max aspect is 360 degrees, so we only need 9 bits for aspect
+                    # if we divide by two, then we can fit it in 8 bits.
                     if aspect == -9999:
-                        value = value | 0x1FF << 10
+                        green = 0xFF
                     else:
-                        if aspect < min_aspect:
-                            min_aspect = aspect
-                            print(f'min aspect: {min_aspect}')
-                        if aspect > max_aspect:
-                            max_aspect = aspect
-                            print(f'max aspect: {max_aspect}')
-                        if aspect > 360:
+                        green = int(aspect/2)
+                        if green > 180:
                             raise 'impossible aspect!'
-                        value = value | (int(aspect) & 0x1FF) << 10
-                    # - 10 bits for slope, because that's what's left.
-                    # slope is in terms of percentage
+
+                    # slope can go real high, we'll divide by two, and just max out at 0xFF-1
                     if slope == -9999:
-                        value = value | 0x3FF
+                        blue = 0xFF
                     else:
-                        if slope < min_slope:
-                            min_slope = slope
-                            print(f'min slope: {min_slope}')
-                        if slope > max_slope:
-                            max_slope = slope
-                            print(f'max slope: {max_slope}')
-                        value = value | int(slope) & 0x3FF
+                        blue = int(slope/2)
+                        if blue > 0xFE:
+                            blue = 0xFE
 
-                    r = (value >> 16) & 0xff
-                    g = (value >> 8) & 0xff
-                    b = value & 0xff
-
-                    r_array[0].append((value >> 16) & 0xff)
-                    g_array[0].append((value >> 8) & 0xff)
-                    b_array[0].append(value & 0xff)
+                    r_array[0].append(red)
+                    g_array[0].append(green)
+                    b_array[0].append(blue)
 
                 r_band.WriteArray(numpy.array(r_array), xoff=0, yoff=y)
                 g_band.WriteArray(numpy.array(g_array), xoff=0, yoff=y)
@@ -233,8 +213,8 @@ def main():
     # create 3 band raster
     """
     dem_dir = '/home/sybrand/Work/topo'
-    # target_dir = '/home/sybrand/Work/topo_tiff'
-    target_dir = '/home/sybrand/Workspace/wps/openshift/mapserver/docker/etc/mapserver'
+    target_dir = '/home/sybrand/Work/topo_tiff'
+    # target_dir = '/home/sybrand/Workspace/wps/openshift/mapserver/docker/etc/mapserver'
     with tempfile.TemporaryDirectory() as temporary_path:
         for dem_entry in dem_files(dem_dir):
             print(f'processing: {dem_entry.path}')

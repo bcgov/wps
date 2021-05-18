@@ -316,15 +316,15 @@ const RateOfSpreadPage: React.FunctionComponent = () => {
             />
             <FormControlLabel
               className={classes.formLabel}
-              value="Slope"
-              control={<Radio />}
-              label="Slope"
-            />
-            <FormControlLabel
-              className={classes.formLabel}
               value="Aspect"
               control={<Radio />}
               label="Aspect"
+            />
+            <FormControlLabel
+              className={classes.formLabel}
+              value="Slope"
+              control={<Radio />}
+              label="Slope"
             />
           </RadioGroup>
         </div>
