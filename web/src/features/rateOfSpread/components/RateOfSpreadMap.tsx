@@ -30,13 +30,19 @@ const getUrl = (layer: string) => {
 
 const ftlSource = new olSource.XYZ({
   url: getUrl('FTL'),
-  crossOrigin: 'anonymous'
+  crossOrigin: 'anonymous',
+  // we don't want image smoothing! you can't
+  // interpolate between fuel types!
+  imageSmoothing: false
 })
 
 const easSource = new olSource.XYZ({
   url: getUrl('EAS'),
   // url: getUrl('EAS_WEB_MERCATOR'),
-  crossOrigin: 'anonymous'
+  crossOrigin: 'anonymous',
+  // we don't want image smoothing! you can't
+  // interpolate if each channel has a different meaning.
+  imageSmoothing: false
 })
 
 export function ISIcalc(ffmc: number, ws: number, fbpMod: boolean = false): number {
@@ -342,7 +348,7 @@ export function ROScalc(
   //   RSI)
   else if (FUELTYPE === 'O1A' || FUELTYPE === 'O1B') {
     if (!CC) {
-      throw 'CC not specified'
+      throw Error('CC not specified')
     }
     const CF = CC < 58.8 ? 0.005 * (Math.exp(0.061 * CC) - 1) : 0.176 + 0.02 * (CC - 58.8)
     rsi = a[index] * Math.pow(1 - Math.exp(-b[index] * ISI), c0[index]) * CF
@@ -535,7 +541,7 @@ export function SFCCalc(
   //   SFC <- ifelse(FUELTYPE == "O1A" | FUELTYPE == "O1B", GFL, SFC)
   else if (FUELTYPE === 'O1A' || FUELTYPE === 'O1B') {
     if (!GFL) {
-      throw 'GFL not provided'
+      throw new Error('GFL not provided')
     }
     SFC = GFL
   }
@@ -1128,15 +1134,19 @@ function createRaster() {
 
     operation: (layers: any, data: any): number[] | ImageData => {
       const eas = layers[0]
-      if (eas[0] === 0xff && eas[1] == 0xff && eas[2] == 0xff) {
+      if (eas[0] === 0xff && eas[1] === 0xff && eas[2] === 0xff) {
         // no data - get out of here
         return [0, 0, 0, 0]
       }
-      const ftl = layers[1]
+      const height = eas[0] === 0xff ? 0xff : eas[0] * 20
 
-      const height = eas[0] == 0xff ? 0xff : eas[0] * 20
-      const aspect = eas[1] == 0xff ? 0xff : eas[1] * 2
-      const slope = eas[2] == 0xff ? 0xff : eas[2] * 2
+      if (height > data.snowLine) {
+        return [0, 0, 0, 0]
+      }
+
+      const aspect = eas[1] === 0xff ? 0xff : eas[1] * 2
+      const slope = eas[2] === 0xff ? 0xff : eas[2] * 2
+      const ftl = layers[1]
 
       // 0xff means no-data
       // the raster should have no values large than 233, and as such the aspect should never
