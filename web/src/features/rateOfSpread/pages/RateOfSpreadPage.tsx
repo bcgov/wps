@@ -17,6 +17,17 @@ const useStyles = makeStyles(theme => ({
     flexDirection: 'column',
     height: '100vh'
   },
+  typography: {
+    height: '12px',
+    fontSize: '12px'
+  },
+  formLabel: {
+    fontSize: '12px',
+    '& span': {
+      fontSize: '12px',
+      height: '21px'
+    }
+  },
   nav: {
     background: theme.palette.primary.light,
     color: theme.palette.primary.contrastText,
@@ -132,7 +143,9 @@ const RateOfSpreadPage: React.FunctionComponent = () => {
       <PageTitle title="Rate Of Spread" />
       <div className={classes.content}>
         <div className={classes.controls}>
-          <Typography gutterBottom>Snow line {snowLine}M</Typography>
+          <Typography className={classes.typography} gutterBottom>
+            Snow line {snowLine}M
+          </Typography>
           <Slider
             aria-label="Snow line"
             step={20}
@@ -145,7 +158,9 @@ const RateOfSpreadPage: React.FunctionComponent = () => {
             onChange={handleChangeSnowline}
           ></Slider>
 
-          <Typography gutterBottom>BUI {bui}</Typography>
+          <Typography className={classes.typography} gutterBottom>
+            BUI {bui}
+          </Typography>
           <Slider
             aria-label="BUI"
             step={1}
@@ -158,7 +173,9 @@ const RateOfSpreadPage: React.FunctionComponent = () => {
             onChange={handleChangeBui}
           ></Slider>
 
-          <Typography gutterBottom>FFMC {ffmc}</Typography>
+          <Typography className={classes.typography} gutterBottom>
+            FFMC {ffmc}
+          </Typography>
           <Slider
             aria-label="FFMC"
             step={1}
@@ -171,7 +188,9 @@ const RateOfSpreadPage: React.FunctionComponent = () => {
             onChange={handleChangeFfmc}
           ></Slider>
 
-          <Typography gutterBottom>FMC {fmc} (Foliar Moisture Content)</Typography>
+          <Typography className={classes.typography} gutterBottom>
+            FMC {fmc} (Foliar Moisture Content)
+          </Typography>
           <Slider
             aria-label="FMC"
             step={1}
@@ -184,7 +203,9 @@ const RateOfSpreadPage: React.FunctionComponent = () => {
             onChange={handleChangeFmc}
           ></Slider>
 
-          <Typography gutterBottom>CBH {cbh} (Crown Burn Height)</Typography>
+          <Typography className={classes.typography} gutterBottom>
+            CBH {cbh} (Crown Burn Height)
+          </Typography>
           <Slider
             aria-label="FMC"
             step={1}
@@ -197,7 +218,9 @@ const RateOfSpreadPage: React.FunctionComponent = () => {
             onChange={handleChangeCbh}
           ></Slider>
 
-          <Typography gutterBottom>Wind Speed {windSpeed}</Typography>
+          <Typography className={classes.typography} gutterBottom>
+            Wind Speed {windSpeed}
+          </Typography>
           <Slider
             aria-label="Wind Speed"
             step={1}
@@ -209,7 +232,9 @@ const RateOfSpreadPage: React.FunctionComponent = () => {
             getAriaValueText={valuetext}
             onChange={handleChangeWindSpeed}
           ></Slider>
-          <Typography gutterBottom>Wind Azimuth {windAzimuth}</Typography>
+          <Typography className={classes.typography} gutterBottom>
+            Wind Azimuth {windAzimuth}
+          </Typography>
           <Slider
             aria-label="Wind Speed"
             step={1}
@@ -221,16 +246,30 @@ const RateOfSpreadPage: React.FunctionComponent = () => {
             getAriaValueText={valuetext}
             onChange={handleChangeWindAzimuth}
           ></Slider>
-          <Typography gutterBottom>Use net effective windspeed</Typography>
+          <Typography className={classes.typography} gutterBottom>
+            Use net effective windspeed
+          </Typography>
           <RadioGroup
             aria-label="use net effective windspeed"
             value={useNetEffectiveWindSpeed ? 'true' : 'false'}
             onChange={handleChangeUseNetEffectiveWindSpeed}
           >
-            <FormControlLabel value="true" control={<Radio />} label="True" />
-            <FormControlLabel value="false" control={<Radio />} label="False" />
+            <FormControlLabel
+              className={classes.formLabel}
+              value="true"
+              control={<Radio />}
+              label="True"
+            />
+            <FormControlLabel
+              className={classes.formLabel}
+              value="false"
+              control={<Radio />}
+              label="False"
+            />
           </RadioGroup>
-          <Typography gutterBottom>Legend</Typography>
+          <Typography className={classes.typography} gutterBottom>
+            Legend
+          </Typography>
           <div>
             <div>Rate of spread (m/min)</div>
             <div>
@@ -241,7 +280,9 @@ const RateOfSpreadPage: React.FunctionComponent = () => {
               <div className={classes.floatRight}>100&gt;</div>
             </div>
           </div>
-          <Typography gutterBottom>Opacity {opacity}</Typography>
+          <Typography className={classes.typography} gutterBottom>
+            Opacity {opacity}
+          </Typography>
           <Slider
             aria-label="Opacity"
             step={1}
@@ -253,16 +294,38 @@ const RateOfSpreadPage: React.FunctionComponent = () => {
             getAriaValueText={valuetext}
             onChange={handleChangeOpacity}
           ></Slider>
-          <Typography gutterBottom>Mode</Typography>
+          <Typography className={classes.typography} gutterBottom>
+            Mode
+          </Typography>
           <RadioGroup
             aria-label="use net effective windspeed"
             value={mode}
             onChange={handleChangeMode}
           >
-            <FormControlLabel value="ROS" control={<Radio />} label="Rate of Spread" />
-            <FormControlLabel value="Elevation" control={<Radio />} label="Elevation" />
-            <FormControlLabel value="Slope" control={<Radio />} label="Slope" />
-            <FormControlLabel value="Aspect" control={<Radio />} label="Aspect" />
+            <FormControlLabel
+              className={classes.formLabel}
+              value="ROS"
+              control={<Radio />}
+              label="Rate of Spread"
+            />
+            <FormControlLabel
+              className={classes.formLabel}
+              value="Elevation"
+              control={<Radio />}
+              label="Elevation"
+            />
+            <FormControlLabel
+              className={classes.formLabel}
+              value="Slope"
+              control={<Radio />}
+              label="Slope"
+            />
+            <FormControlLabel
+              className={classes.formLabel}
+              value="Aspect"
+              control={<Radio />}
+              label="Aspect"
+            />
           </RadioGroup>
         </div>
         <div className={classes.map}>
