@@ -52,7 +52,7 @@ station_peak_json = pd.read_json(station_filename)
 
 st.table(data=station_peak_json)
 
-# The code necessary to render 3D histograms in Plotly is ugly because Plot doesn't officially support 3D histograms,
+# The code necessary to render 3D histograms in Plotly is ugly because Plotly doesn't officially support 3D histograms,
 # but a hacky solution has been copied from https://stackoverflow.com/a/60403270 (which includes explanation
 # for why we're repeating, inserting, and popping values from lists before graphing)
 look_at = st.radio('Examine', ('maximum values', 'minimum values', 'noon values'))
@@ -92,7 +92,8 @@ if look_at == 'noon values':
         a0.pop()
         a1 = np.histogram(years_temps['temperature'], bins='auto', density=False)[1].tolist()
         a1 = np.repeat(a1, 2)
-        temperature_fig.add_traces(go.Scatter3d(x=[year]*len(a0), y=a1, z=a0, mode='lines', name=str(year)))
+        temperature_fig.add_traces(go.Scatter3d(x=[year]*len(a0), y=a1, z=a0, mode='lines', name=str(year),
+                                                hovertemplate='Temperature: %{y:.1f}°C<br>Frequency: %{z:.0f}<br>Year: %{x:.0f}'))
     temperature_fig.update_layout(scene=dict(yaxis_title='TEMPERATURE (°C)',
                                              xaxis_title='YEAR', zaxis_title='FREQUENCY'))
     temperature_fig.update_layout(title='Observed Noon Temperature in ' +
@@ -109,7 +110,8 @@ if look_at == 'noon values':
         a0.pop()
         a1 = np.histogram(year_rh['relative_humidity'], bins='auto', density=False)[1].tolist()
         a1 = np.repeat(a1, 2)
-        rh_fig.add_traces(go.Scatter3d(x=[year]*len(a0), y=a1, z=a0, mode='lines', name=str(year)))
+        rh_fig.add_traces(go.Scatter3d(x=[year]*len(a0), y=a1, z=a0, mode='lines', name=str(year),
+                          hovertemplate='RH: %{y:.0f}%<br>Frequency: %{z:.0f}<br>Year: %{x:.0f}'))
     rh_fig.update_layout(scene=dict(yaxis_title='RELATIVE HUMIDITY (%)',
                          xaxis_title='YEAR', zaxis_title='FREQUENCY'))
     rh_fig.update_layout(title='Observed Noon RH in ' + selected_month + ' - Distribution by Year')
@@ -125,10 +127,12 @@ if look_at == 'noon values':
         a0.pop()
         a1 = np.histogram(year_wind['wind_speed'], bins='auto', density=False)[1].tolist()
         a1 = np.repeat(a1, 2)
-        wind_fig.add_traces(go.Scatter3d(x=[year]*len(a0), y=a1, z=a0, mode='lines', name=str(year)))
+        wind_fig.add_traces(go.Scatter3d(x=[year]*len(a0), y=a1, z=a0, mode='lines', name=str(
+            year), hovertemplate='Wind Speed: %{y:.1f}km/h<br>Frequency: %{z:.0f}<br>Year: %{x:.0f}'))
     wind_fig.update_layout(scene=dict(yaxis_title='WIND SPEED (km/h)',
                            xaxis_title='YEAR', zaxis_title='FREQUENCY'))
-    wind_fig.update_layout(title='Observed Noon Wind Speed in ' + selected_month + ' - Distribution by Year')
+    wind_fig.update_layout(title='Observed Noon Wind Speed in ' +
+                           selected_month + ' - Distribution by Year')
 
     # FFMC
     ffmc_fig = go.Figure()
@@ -141,7 +145,8 @@ if look_at == 'noon values':
         a0.pop()
         a1 = np.histogram(year_ffmc['ffmc'], bins='auto', density=False)[1].tolist()
         a1 = np.repeat(a1, 2)
-        ffmc_fig.add_traces(go.Scatter3d(x=[year]*len(a0), y=a1, z=a0, mode='lines', name=str(year)))
+        ffmc_fig.add_traces(go.Scatter3d(x=[year]*len(a0), y=a1, z=a0, mode='lines', name=str(
+            year), hovertemplate='FFMC: %{y:.0f}<br>Frequency: %{z:.0f}<br>Year: %{x:.0f}'))
     ffmc_fig.update_layout(scene=dict(yaxis_title='FFMC', xaxis_title='YEAR', zaxis_title='FREQUENCY'))
     ffmc_fig.update_layout(title='Observed Noon FFMC in ' + selected_month + ' - Distribution by Year')
 
@@ -156,7 +161,8 @@ if look_at == 'noon values':
         a0.pop()
         a1 = np.histogram(year_fwi['fwi'], bins='auto', density=False)[1].tolist()
         a1 = np.repeat(a1, 2)
-        fwi_fig.add_traces(go.Scatter3d(x=[year]*len(a0), y=a1, z=a0, mode='lines', name=str(year)))
+        fwi_fig.add_traces(go.Scatter3d(x=[year]*len(a0), y=a1, z=a0, mode='lines', name=str(year),
+                           hovertemplate='FWI: %{y:.0f}<br>Frequency: %{z:.0f}<br>Year: %{x:.0f}'))
     fwi_fig.update_layout(scene=dict(yaxis_title='FWI', xaxis_title='YEAR', zaxis_title='FREQUENCY'))
     fwi_fig.update_layout(title='Observed Noon FWI in ' + selected_month + ' - Distribution by Year')
 
@@ -216,7 +222,8 @@ elif look_at == 'maximum values' or 'minimum values':
         a1 = np.histogram(years_temps.iloc[2:, 4 if to_display ==
                           'Max' else 3], bins='auto', density=False)[1].tolist()
         a1 = np.repeat(a1, 2)
-        temperature_fig.add_traces(go.Scatter3d(x=[year]*len(a0), y=a1, z=a0, mode='lines', name=str(year)))
+        temperature_fig.add_traces(go.Scatter3d(x=[year]*len(a0), y=a1, z=a0, mode='lines', name=str(
+            year), hovertemplate='Temperature: %{y:.1f}°C<br>Frequency: %{z:.0f}<br>Year: %{x:.0f}'))
     temperature_fig.update_layout(scene=dict(yaxis_title='TEMPERATURE (°C)',
                                              xaxis_title='YEAR', zaxis_title='FREQUENCY'))
     temperature_fig.update_layout(
@@ -236,7 +243,8 @@ elif look_at == 'maximum values' or 'minimum values':
         a1 = np.histogram(year_rh.iloc[2:, 6 if to_display == 'Max' else 5],
                           bins='auto', density=False)[1].tolist()
         a1 = np.repeat(a1, 2)
-        rh_fig.add_traces(go.Scatter3d(x=[year]*len(a0), y=a1, z=a0, mode='lines', name=str(year)))
+        rh_fig.add_traces(go.Scatter3d(x=[year]*len(a0), y=a1, z=a0, mode='lines', name=str(year),
+                          hovertemplate='RH: %{y:.0f}%<br>Frequency: %{z:.0f}<br>Year: %{x:.0f}'))
     rh_fig.update_layout(scene=dict(yaxis_title='RELATIVE HUMIDITY (%)',
                          xaxis_title='YEAR', zaxis_title='FREQUENCY'))
     rh_fig.update_layout(title=to_display + ' Daily Observed RH in ' +
@@ -256,7 +264,8 @@ elif look_at == 'maximum values' or 'minimum values':
         a1 = np.histogram(year_wind.iloc[2:, 8 if to_display == 'Max' else 7],
                           bins='auto', density=False)[1].tolist()
         a1 = np.repeat(a1, 2)
-        wind_fig.add_traces(go.Scatter3d(x=[year]*len(a0), y=a1, z=a0, mode='lines', name=str(year)))
+        wind_fig.add_traces(go.Scatter3d(x=[year]*len(a0), y=a1, z=a0, mode='lines', name=str(
+            year), hovertemplate='Wind Speed: %{y:.1f}km/h<br>Frequency: %{z:.0f}<br>Year: %{x:.0f}'))
     wind_fig.update_layout(scene=dict(yaxis_title='WIND SPEED (km/h)',
                                       xaxis_title='YEAR', zaxis_title='FREQUENCY'))
     wind_fig.update_layout(title=to_display + ' Daily Wind Speed in ' +
@@ -276,7 +285,8 @@ elif look_at == 'maximum values' or 'minimum values':
         a1 = np.histogram(year_ffmc.iloc[2:, 10 if to_display == 'Max' else 9],
                           bins='auto', density=False)[1].tolist()
         a1 = np.repeat(a1, 2)
-        ffmc_fig.add_traces(go.Scatter3d(x=[year]*len(a0), y=a1, z=a0, mode='lines', name=str(year)))
+        ffmc_fig.add_traces(go.Scatter3d(x=[year]*len(a0), y=a1, z=a0, mode='lines', name=str(
+            year), hovertemplate='FFMC: %{y:.0f}<br>Frequency: %{z:.0f}<br>Year: %{x:.0f}'))
     ffmc_fig.update_layout(scene=dict(yaxis_title='FFMC',
                                       xaxis_title='YEAR', zaxis_title='FREQUENCY'))
     ffmc_fig.update_layout(title=to_display + ' Daily Observed FFMC in ' +
@@ -296,7 +306,8 @@ elif look_at == 'maximum values' or 'minimum values':
         a1 = np.histogram(year_fwi.iloc[2:, 12 if to_display == 'Max' else 11],
                           bins='auto', density=False)[1].tolist()
         a1 = np.repeat(a1, 2)
-        fwi_fig.add_traces(go.Scatter3d(x=[year]*len(a0), y=a1, z=a0, mode='lines', name=str(year)))
+        fwi_fig.add_traces(go.Scatter3d(x=[year]*len(a0), y=a1, z=a0, mode='lines', name=str(year),
+                           hovertemplate='FWI: %{y:.0f}<br>Frequency: %{z:.0f}<br>Year: %{x:.0f}'))
     fwi_fig.update_layout(scene=dict(yaxis_title='FWI',
                                      xaxis_title='YEAR', zaxis_title='FREQUENCY'))
     fwi_fig.update_layout(title=to_display + ' Daily Observed FWI in ' +
