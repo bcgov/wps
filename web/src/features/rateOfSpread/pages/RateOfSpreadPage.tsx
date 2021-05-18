@@ -18,13 +18,13 @@ const useStyles = makeStyles(theme => ({
     height: '100vh'
   },
   typography: {
-    height: '12px',
-    fontSize: '12px'
+    height: '14px',
+    fontSize: '14px'
   },
   formLabel: {
-    fontSize: '12px',
+    fontSize: '14px',
     '& span': {
-      fontSize: '12px',
+      fontSize: '14px',
       height: '21px'
     }
   },
