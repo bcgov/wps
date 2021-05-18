@@ -50,7 +50,8 @@ MAP
           "init=epsg:4326"
         END
         NAME         EAS
-        DATA    "/etc/mapserver/mega_merged_topo_eas.tif"
+        # DATA    "/etc/mapserver/mega_merged_topo_eas.tif"
+        DATA      "/etc/mapserver/93j-utm-elevation-eas-3band.tif"
         # STATUS       OFF
         TYPE         RASTER
         METADATA 

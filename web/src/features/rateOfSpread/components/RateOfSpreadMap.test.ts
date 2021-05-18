@@ -1,16 +1,9 @@
-// import { ROScalc } from 'utils/cffdrs/ROScalc'
-// import { ISIcalc } from 'utils/cffdrs/ISIcalc'
-// import { Slopecalc } from 'utils/cffdrs/Slopecalc'
-// import { BEcalc } from 'utils/cffdrs/BEcalc'
 import {
   ROScalc,
   ISIcalc,
   Slopecalc,
   BEcalc
 } from 'features/rateOfSpread/components/RateOfSpreadMap'
-// C1
-// 0.3493834417391343
-// 35
 
 describe('something', () => {
   it('ISIcalc', () => {
@@ -27,7 +20,7 @@ describe('something', () => {
       0.00004206635402158481
     )
   })
-  it('calc slope', () => {
+  it('Slopecalc C3', () => {
     //   #   FUELTYPE: The Fire Behaviour Prediction FuelType
     //   #       FFMC: Fine Fuel Moisture Code
     //   #        BUI: The Buildup Index value

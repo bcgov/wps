@@ -44,9 +44,7 @@ const useStyles = makeStyles(theme => ({
     alignItems: 'center'
   },
   legend: {
-    display: 'flex',
-    alignItems: 'flex-end',
-    backgroundColor: theme.palette.primary.light
+    height: '30px'
   },
   floatLeft: {
     float: 'left'
@@ -71,6 +69,7 @@ const RateOfSpreadPage: React.FunctionComponent = () => {
   const [windAzimuth, setWindAzimuth] = useState(0)
   const [useNetEffectiveWindSpeed, setUseNetEffectiveWindSpeed] = useState(true)
   const [opacity, setOpacity] = useState(200)
+  const [mode, setMode] = useState('Slope')
 
   const handleChangeSnowline = (
     event: React.ChangeEvent<{}>,
@@ -121,6 +120,10 @@ const RateOfSpreadPage: React.FunctionComponent = () => {
     value: string | string[]
   ) => {
     setUseNetEffectiveWindSpeed(value === 'true')
+  }
+
+  const handleChangeMode = (event: React.ChangeEvent<{}>, value: string) => {
+    setMode(value)
   }
 
   return (
@@ -227,6 +230,17 @@ const RateOfSpreadPage: React.FunctionComponent = () => {
             <FormControlLabel value="true" control={<Radio />} label="True" />
             <FormControlLabel value="false" control={<Radio />} label="False" />
           </RadioGroup>
+          <Typography gutterBottom>Legend</Typography>
+          <div>
+            <div>Rate of spread (m/min)</div>
+            <div>
+              <Canvas width={275} height={20} />
+            </div>
+            <div className={classes.legend}>
+              <div className={classes.floatLeft}>0</div>
+              <div className={classes.floatRight}>100&gt;</div>
+            </div>
+          </div>
           <Typography gutterBottom>Opacity {opacity}</Typography>
           <Slider
             aria-label="Opacity"
@@ -239,17 +253,17 @@ const RateOfSpreadPage: React.FunctionComponent = () => {
             getAriaValueText={valuetext}
             onChange={handleChangeOpacity}
           ></Slider>
-          <Typography gutterBottom>Legend</Typography>
-          <div>
-            <div>Rate of spread (m/min)</div>
-            <div>
-              <Canvas width={275} height={20} />
-            </div>
-            <div>
-              <div className={classes.floatLeft}>0</div>
-              <div className={classes.floatRight}>100&gt;</div>
-            </div>
-          </div>
+          <Typography gutterBottom>Mode</Typography>
+          <RadioGroup
+            aria-label="use net effective windspeed"
+            value={mode}
+            onChange={handleChangeMode}
+          >
+            <FormControlLabel value="ROS" control={<Radio />} label="Rate of Spread" />
+            <FormControlLabel value="Elevation" control={<Radio />} label="Elevation" />
+            <FormControlLabel value="Slope" control={<Radio />} label="Slope" />
+            <FormControlLabel value="Aspect" control={<Radio />} label="Aspect" />
+          </RadioGroup>
         </div>
         <div className={classes.map}>
           <RateOfSpreadMap
@@ -262,6 +276,7 @@ const RateOfSpreadPage: React.FunctionComponent = () => {
             windAzimuth={windAzimuth}
             useNetEffectiveWindSpeed={useNetEffectiveWindSpeed}
             opacity={opacity}
+            mode={mode}
           />
         </div>
       </div>

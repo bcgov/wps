@@ -44,6 +44,10 @@ def generate_aspect(dem_path: str) -> str:
     """
     gdaldem aspect [source file] [target file] -of GTiff -b 1 -zero_for_flat
     """
+    if not dem_path.endswith('dem'):
+        # There's a bug, whereby creating aspect from tif file doesn't give the same results as doing
+        # it from dem file. (Probably related to NODATA)
+        raise f'filename does not end with dem {dem_path}'
     target = f'{os.path.splitext(os.path.join(Path(dem_path).parent, Path(dem_path).name))[0]}-aspect.tif'
     if os.path.exists(target):
         os.remove(target)
@@ -59,8 +63,13 @@ def generate_slope(dem_path: str) -> str:
 
     gdaldem slope [source file] [target file] -of GTiff -b 1 -s 1.0 -p
     """
+    if not dem_path.endswith('dem'):
+        # There's a bug, whereby creating slope from tif file doesn't give the same results as doing
+        # it from dem file. (Probably related to NODATA)
+        raise f'filename does not end with dem {dem_path}'
     target = f'{os.path.splitext(os.path.join(Path(dem_path).parent, Path(dem_path).name))[0]}-slope.tif'
     if os.path.exists(target):
+        print(f'{target} exists, deleting it')
         os.remove(target)
     command = f'gdaldem slope {dem_path} {target} -of GTiff -b 1 -s 1.0 -p'
     print(command)
@@ -68,18 +77,18 @@ def generate_slope(dem_path: str) -> str:
     return target
 
 
-def reproject_dem(dem_path: str):
+def reproject_raster(raster_path: str):
     """
-    gdalwarp -t_srs EPSG:3857 -r near -of GTiff [source]] [target]
+    gdalwarp -t_srs EPSG:3857 -r near -of GTiff [source] [target]
 
     EPSG:4326 - WGS84
     EPSG:3857 - Pseudo-Mercator -- Spherical Mercator, Google Maps, OpenStreetMap, Bing, ArcGIS, ESRI
 
     """
-    target = f'{os.path.splitext(os.path.join(Path(dem_path).parent, Path(dem_path).name))[0]}.tif'
+    target = f'{os.path.splitext(os.path.join(Path(raster_path).parent, Path(raster_path).name))[0]}_wgs84.tif'
     if os.path.exists(target):
         os.remove(target)
-    command = f'gdalwarp -t_srs EPSG:4326 -r near -of GTiff {dem_path} {target}'
+    command = f'gdalwarp -t_srs EPSG:4326 -r near -of GTiff {raster_path} {target}'
     print(command)
     os.system(command)
     return target
@@ -89,9 +98,9 @@ def make_target_eas_path(dem_path: str, target_path: str):
     return f'{os.path.join(target_path, os.path.splitext(Path(dem_path).name)[0])}-eas-3band.tif'
 
 
-def generate_rgb(dem_path: str, slope_path: str, aspect_path: str, output_path: str):
+def generate_rgb(elevation_path: str, slope_path: str, aspect_path: str, output_path: str):
     # read input file
-    elevation_ds = gdal.Open(dem_path)
+    elevation_ds = gdal.Open(elevation_path)
     aspect_ds = gdal.Open(aspect_path)
     slope_ds = gdal.Open(slope_path)
     try:
@@ -113,6 +122,7 @@ def generate_rgb(dem_path: str, slope_path: str, aspect_path: str, output_path: 
 
         # create output file
         driver = gdal.GetDriverByName("GTiff")
+        print(f'creating file {output_path}')
         outdata = driver.Create(output_path, elevation_band.XSize, elevation_band.YSize, 3, gdal.GDT_Byte)
         try:
             outdata.SetProjection(projection)
@@ -151,9 +161,14 @@ def generate_rgb(dem_path: str, slope_path: str, aspect_path: str, output_path: 
                     aspect = int(aspect / 45) & 0x7
                     value = value | aspect << 7
                     # 7 bits left for the slope
-                    if slope < 0 or slope > 360:
+                    # slope is in terms of percentage
+                    slope = slope / 3
+                    if slope < 0:
                         # we just assume 0 for the slope if there is none.
                         slope = 0
+                    elif slope > 127:
+                        # anything greater than 127, we take to be 127
+                        slope = 127
                     value = value | int(slope) & 0x7F
 
                     # print(f'value:{value}'')
@@ -186,20 +201,22 @@ def main():
     # generate aspec
     # create 3 band raster
     """
-    dem_dir = '/home/sybrand/Downloads/Work/topo/mtec'
-    target_dir = '/home/sybrand/Workspace/wps/openshift/mapserver/docker/etc/mapserver/eas'
+    dem_dir = '/home/sybrand/Work/topo'
+    target_dir = '/home/sybrand/Work/topo_tiff'
     with tempfile.TemporaryDirectory() as temporary_path:
         for dem_entry in dem_files(dem_dir):
-            print(dem_entry.path)
+            print(f'processing: {dem_entry.path}')
             output_path = make_target_eas_path(dem_entry.path, target_dir)
             if os.path.exists(output_path):
-                print(f'{output_path} alread exists - skipping')
+                print(f'{output_path} already exists - skipping')
             else:
-                reprojected_dem = reproject_dem(dem_entry.path)
-                slope_path = generate_slope(reprojected_dem)
-                aspect_path = generate_aspect(reprojected_dem)
-                intermediate_path = make_target_eas_path(reprojected_dem, temporary_path)
-                generate_rgb(reprojected_dem, slope_path, aspect_path, intermediate_path)
+                altitude_wgs84 = reproject_raster(dem_entry.path)
+                slope_utm_path = generate_slope(dem_entry.path)
+                slope_wgs84_path = reproject_raster(slope_utm_path)
+                aspect_utm_path = generate_aspect(dem_entry.path)
+                aspect_wgs84_path = reproject_raster(aspect_utm_path)
+                intermediate_path = make_target_eas_path(altitude_wgs84, temporary_path)
+                generate_rgb(altitude_wgs84, slope_wgs84_path, aspect_wgs84_path, intermediate_path)
                 os.rename(intermediate_path, output_path)
                 # p = subprocess.Popen(['gdaltindex eas-3band-tif.shp *.tif', ], cwd=target_dir)
                 # p.wait()
@@ -217,5 +234,5 @@ def another_main():
 
 
 if __name__ == '__main__':
-    # main()
-    another_main()
+    main()
+    # another_main()

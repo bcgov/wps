@@ -1123,7 +1123,6 @@ export function BEcalc(FUELTYPE: string, BUI: number): number {
 }
 
 function createRaster() {
-  console.log('create raster')
   const raster = new olSource.Raster({
     sources: [easSource, ftlSource],
 
@@ -1133,94 +1132,110 @@ function createRaster() {
 
       const recover = (eas[0] << 16) | (eas[1] << 8) | eas[2]
       const height = recover >> 11
+      const slope = (recover & 0x7f) * 3
       const aspectValid = (recover >> 10) & 0x1
-      if (height === 0 || height === 0xffffff || height > data.snowLine) {
-        return [0, 0, 0, 0]
-      } else {
-        const ftlNumber = (ftl[0] << 16) | (ftl[1] << 8) | ftl[2]
-        const ftlCode = ftlNumberToFtlCode(ftlNumber)
-        let ros = -1
-        if (ftlCode) {
-          const PC = ftlNumber % 100
-          const SFC =
-            ftlCode === 'C6'
-              ? SFCCalc(ftlCode, data.ffmc, data.bui, PC, undefined)
-              : undefined
+      const aspect = ((recover >> 7) & 0x7) * 45
 
-          let windSpeed = data.windSpeed
-          if (data.useNetEffectiveWindSpeed && aspectValid) {
-            // console.log('windSpeed', windSpeed)
-            const slope = recover & 0x7f
-            const aspect = ((recover >> 7) & 0x7) * 45
-            const WAZ = data.windAzimuth // Wind Azimuth
-
-            // console.log('ftlCode', ftlCode)
-            // console.log('slope', slope)
-            // console.log('aspect', aspect)
-            // console.log('SFC', SFC)
-            // console.log('PC', PC)
-
-            // get the nett effective wind speed
-            windSpeed = Slopecalc(
-              ftlCode,
-              data.ffmc,
-              data.bui,
-              windSpeed,
-              WAZ,
-              slope,
-              aspect,
-              data.fmc,
-              SFC,
-              PC,
-              undefined,
-              undefined,
-              data.cbh,
-              undefined,
-              'WSV'
-            )
-            // console.log('WSV', windSpeed)
-            // throw new Error('blah')
-            // const slopeEquivalentWindSpeed = calcSlopeEquivalentWindSpeed(ftlNumber, slope)
-            // windSpeed = windSpeed += slopeEquivalentWindSpeed
-            // if (slopeEquivalentWindSpeed > 0) {
-            //   // console.log('slope', slope)
-            //   // console.log('slopeEquivalentWindSpeed', slopeEquivalentWindSpeed)
-            //   // console.log('windSpeed', windSpeed)
-            //   throw new Error('blah')
-            // }
-          }
-          const PDF = undefined
-          const CC = undefined
-          const isi = ISIcalc(data.ffmc, windSpeed)
-          ros = ROScalc(ftlCode, isi, data.bui, data.fmc, SFC, PC, PDF, CC, data.cbh)
-          // if (ftlNumber in data.info['known']) {
-          //   data.info['known'][ftlNumber]++
-          // } else {
-          //   data.info['known'][ftlNumber] = 1
-          // }
+      if (data.mode === 'ROS') {
+        if (height === 0 || height === 0xffffff || height > data.snowLine) {
+          return [0, 0, 0, 0]
         } else {
-          if (isNonFuel(ftlNumber)) {
-            ros = -2
+          const ftlNumber = (ftl[0] << 16) | (ftl[1] << 8) | ftl[2]
+          const ftlCode = ftlNumberToFtlCode(ftlNumber)
+          let ros = -1
+          if (ftlCode) {
+            const PC = ftlNumber % 100
+            const SFC =
+              ftlCode === 'C6'
+                ? SFCCalc(ftlCode, data.ffmc, data.bui, PC, undefined)
+                : undefined
+
+            let windSpeed = data.windSpeed
+            if (data.useNetEffectiveWindSpeed && aspectValid) {
+              // console.log('windSpeed', windSpeed)
+              const WAZ = data.windAzimuth // Wind Azimuth
+
+              // console.log('ftlCode', ftlCode)
+              // console.log('slope', slope)
+              // console.log('aspect', aspect)
+              // console.log('SFC', SFC)
+              // console.log('PC', PC)
+
+              // get the nett effective wind speed
+              windSpeed = Slopecalc(
+                ftlCode,
+                data.ffmc,
+                data.bui,
+                windSpeed,
+                WAZ,
+                slope,
+                aspect,
+                data.fmc,
+                SFC,
+                PC,
+                undefined,
+                undefined,
+                data.cbh,
+                undefined,
+                'WSV'
+              )
+              // console.log('WSV', windSpeed)
+              // throw new Error('blah')
+              // const slopeEquivalentWindSpeed = calcSlopeEquivalentWindSpeed(ftlNumber, slope)
+              // windSpeed = windSpeed += slopeEquivalentWindSpeed
+              // if (slopeEquivalentWindSpeed > 0) {
+              //   // console.log('slope', slope)
+              //   // console.log('slopeEquivalentWindSpeed', slopeEquivalentWindSpeed)
+              //   // console.log('windSpeed', windSpeed)
+              //   throw new Error('blah')
+              // }
+            }
+            const PDF = undefined
+            const CC = undefined
+            const isi = ISIcalc(data.ffmc, windSpeed)
+            ros = ROScalc(ftlCode, isi, data.bui, data.fmc, SFC, PC, PDF, CC, data.cbh)
             // if (ftlNumber in data.info['known']) {
             //   data.info['known'][ftlNumber]++
             // } else {
             //   data.info['known'][ftlNumber] = 1
             // }
           } else {
-            // if (ftlNumber in data.info['unknown']) {
-            //   data.info['unknown'][ftlNumber]++
-            // } else {
-            //   data.info['unknown'][ftlNumber] = 1
-            // }
+            if (isNonFuel(ftlNumber)) {
+              ros = -2
+              // if (ftlNumber in data.info['known']) {
+              //   data.info['known'][ftlNumber]++
+              // } else {
+              //   data.info['known'][ftlNumber] = 1
+              // }
+            } else {
+              // if (ftlNumber in data.info['unknown']) {
+              //   data.info['unknown'][ftlNumber]++
+              // } else {
+              //   data.info['unknown'][ftlNumber] = 1
+              // }
+            }
           }
-        }
 
-        if (ros > data.maxRos) {
-          data.maxRos = ros
-          // console.log('max ros:', ros)
+          if (ros > data.maxRos) {
+            data.maxRos = ros
+            // console.log('max ros:', ros)
+          }
+          return calcROSColour(ros, data.opacity)
         }
-        return calcROSColour(ros, data.opacity)
+      } else if (data.mode === 'Elevation') {
+        if (height === 0x1fff) {
+          return [0, 0, 0, 0]
+        }
+        const adjustedHeight = Math.min(255, (height / 2500) * 255)
+        return [adjustedHeight, adjustedHeight, adjustedHeight, data.opacity]
+      } else if (data.mode === 'Slope') {
+        if (slope === 0 || slope === 0x7f * 3) {
+          return [0, 0, 0, 0]
+        }
+        const adjustedSlope = Math.min(255, (slope / 100) * 255)
+        return [adjustedSlope, adjustedSlope, adjustedSlope, data.opacity]
       }
+      return [0, 0, 0, 0]
     },
     lib: {
       ISIcalc: ISIcalc,
@@ -1246,6 +1261,7 @@ function createRaster() {
     event.data.windSpeed = raster.get('windSpeed')
     event.data.windAzimuth = raster.get('windAzimuth')
     event.data.useNetEffectiveWindSpeed = raster.get('useNetEffectiveWindSpeed')
+    event.data.mode = raster.get('mode')
     // event.data.info = raster.get('info')
     event.data.maxRos = 0
   })
@@ -1275,6 +1291,7 @@ interface Props {
   windAzimuth: number
   useNetEffectiveWindSpeed: boolean
   opacity: number
+  mode: string
 }
 
 const RateOfSpreadMap = ({
@@ -1286,6 +1303,7 @@ const RateOfSpreadMap = ({
   windSpeed,
   windAzimuth,
   useNetEffectiveWindSpeed,
+  mode,
   opacity
 }: Props) => {
   const [center, setCenter] = useState(fromLonLat(CENTER_OF_BC))
@@ -1307,6 +1325,7 @@ const RateOfSpreadMap = ({
       raster.set('windAzimuth', windAzimuth)
       raster.set('useNetEffectiveWindSpeed', useNetEffectiveWindSpeed)
       raster.set('opacity', opacity)
+      raster.set('mode', mode)
       raster.changed()
     }
   }, [
@@ -1319,6 +1338,7 @@ const RateOfSpreadMap = ({
     windAzimuth,
     useNetEffectiveWindSpeed,
     opacity,
+    mode,
     raster
   ])
 

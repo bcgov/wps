@@ -118,8 +118,6 @@ def main():
             g_rows = []
             b_rows = []
 
-            aspects = 0
-
             for y in range(elevation_band.YSize):
                 if y % 200 == 0:
                     print(f'{y / elevation_band.YSize * 100}% done')
