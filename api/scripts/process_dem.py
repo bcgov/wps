@@ -5,7 +5,6 @@
 - generate 3 band raster
 """
 import os
-import subprocess
 import struct
 from pathlib import Path
 import tempfile
@@ -37,12 +36,17 @@ def dem_files(path) -> os.DirEntry:
         if entry.is_dir(follow_symlinks=False):
             yield from dem_files(entry.path)
         elif entry.path.endswith('.dem'):
-            yield entry
+            if entry.path.endswith('82g-utm-elevation.dem'):
+                yield entry
 
 
 def generate_aspect(dem_path: str) -> str:
     """
     gdaldem aspect [source file] [target file] -of GTiff -b 1 -zero_for_flat
+
+    https://gdal.org/programs/gdaldem.html#aspect:
+    "The aspect value -9999 is used as the nodata value to indicate undefined aspect in flat areas with
+    slope=0."
     """
     if not dem_path.endswith('dem'):
         # There's a bug, whereby creating aspect from tif file doesn't give the same results as doing
@@ -62,6 +66,9 @@ def generate_slope(dem_path: str) -> str:
     Slope in percentage.
 
     gdaldem slope [source file] [target file] -of GTiff -b 1 -s 1.0 -p
+
+    https://gdal.org/programs/gdaldem.html#slope
+    "The value -9999 is used as the output nodata value."
     """
     if not dem_path.endswith('dem'):
         # There's a bug, whereby creating slope from tif file doesn't give the same results as doing
@@ -202,7 +209,8 @@ def main():
     # create 3 band raster
     """
     dem_dir = '/home/sybrand/Work/topo'
-    target_dir = '/home/sybrand/Work/topo_tiff'
+    # target_dir = '/home/sybrand/Work/topo_tiff'
+    target_dir = '/home/sybrand/Workspace/wps/openshift/mapserver/docker/etc/mapserver'
     with tempfile.TemporaryDirectory() as temporary_path:
         for dem_entry in dem_files(dem_dir):
             print(f'processing: {dem_entry.path}')
@@ -222,7 +230,7 @@ def main():
                 # p.wait()
     # gdaltindex eas-3band-tif.shp *.tif
     print(target_dir)
-    print('remember to run: gdaltindex eas-3band-tif.shp *.tif')
+    print('now you have to merge them all into a mega file!')
 
 
 def another_main():

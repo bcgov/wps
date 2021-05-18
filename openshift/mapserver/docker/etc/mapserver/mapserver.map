@@ -51,7 +51,8 @@ MAP
         END
         NAME         EAS
         # DATA    "/etc/mapserver/mega_merged_topo_eas.tif"
-        DATA      "/etc/mapserver/93j-utm-elevation-eas-3band.tif"
+        # DATA      "/etc/mapserver/93j-utm-elevation-eas-3band.tif"
+        DATA      "/etc/mapserver/82g-utm-elevation-eas-3band.tif"
         # STATUS       OFF
         TYPE         RASTER
         METADATA 
