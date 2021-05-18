@@ -52,9 +52,30 @@ station_peak_json = pd.read_json(station_filename)
 
 st.table(data=station_peak_json)
 
+# The code necessary to render 3D histograms in Plotly is ugly because Plot doesn't officially support 3D histograms,
+# but a hacky solution has been copied from https://stackoverflow.com/a/60403270 (which includes explanation
+# for why we're repeating, inserting, and popping values from lists before graphing)
 look_at = st.radio('Examine', ('maximum values', 'minimum values', 'noon values'))
 if look_at == 'noon values':
     noon_df = pd.read_csv('../data/minMaxNoonValues/byDay/noon/'+selected_code+'.csv')
+
+    noon_df['weather_date'] = pd.to_datetime(noon_df['weather_date'])
+
+    selected_month = st.selectbox('Select month:', [
+                                  'April-Sept', 'April', 'May', 'June', 'July', 'August', 'September'])
+
+    if selected_month == 'April':
+        noon_df = noon_df[noon_df['weather_date'].dt.month == 4]
+    elif selected_month == 'May':
+        noon_df = noon_df[noon_df['weather_date'].dt.month == 5]
+    elif selected_month == 'June':
+        noon_df = noon_df[noon_df['weather_date'].dt.month == 6]
+    elif selected_month == 'July':
+        noon_df = noon_df[noon_df['weather_date'].dt.month == 7]
+    elif selected_month == 'August':
+        noon_df = noon_df[noon_df['weather_date'].dt.month == 8]
+    elif selected_month == 'September':
+        noon_df = noon_df[noon_df['weather_date'].dt.month == 9]
 
     if st.checkbox("Show Raw Data for Noon Observed Weather Conditions", False):
         st.subheader('Noon values for {}'.format(selected_station))
@@ -74,7 +95,8 @@ if look_at == 'noon values':
         temperature_fig.add_traces(go.Scatter3d(x=[year]*len(a0), y=a1, z=a0, mode='lines', name=str(year)))
     temperature_fig.update_layout(scene=dict(yaxis_title='TEMPERATURE (°C)',
                                              xaxis_title='YEAR', zaxis_title='FREQUENCY'))
-    temperature_fig.update_layout(title='Observed Noon Temperature Distribution by Year')
+    temperature_fig.update_layout(title='Observed Noon Temperature in ' +
+                                  selected_month + ' - Distribution by Year')
 
     # RELATIVE HUMIDITY
     rh_fig = go.Figure()
@@ -90,7 +112,7 @@ if look_at == 'noon values':
         rh_fig.add_traces(go.Scatter3d(x=[year]*len(a0), y=a1, z=a0, mode='lines', name=str(year)))
     rh_fig.update_layout(scene=dict(yaxis_title='RELATIVE HUMIDITY (%)',
                          xaxis_title='YEAR', zaxis_title='FREQUENCY'))
-    rh_fig.update_layout(title='Observed Noon RH Distribution by Year')
+    rh_fig.update_layout(title='Observed Noon RH in ' + selected_month + ' - Distribution by Year')
 
     # WIND SPEED
     wind_fig = go.Figure()
@@ -106,7 +128,7 @@ if look_at == 'noon values':
         wind_fig.add_traces(go.Scatter3d(x=[year]*len(a0), y=a1, z=a0, mode='lines', name=str(year)))
     wind_fig.update_layout(scene=dict(yaxis_title='WIND SPEED (km/h)',
                            xaxis_title='YEAR', zaxis_title='FREQUENCY'))
-    wind_fig.update_layout(title='Observed Noon Wind Speed Distribution by Year')
+    wind_fig.update_layout(title='Observed Noon Wind Speed in ' + selected_month + ' - Distribution by Year')
 
     # FFMC
     ffmc_fig = go.Figure()
@@ -121,7 +143,7 @@ if look_at == 'noon values':
         a1 = np.repeat(a1, 2)
         ffmc_fig.add_traces(go.Scatter3d(x=[year]*len(a0), y=a1, z=a0, mode='lines', name=str(year)))
     ffmc_fig.update_layout(scene=dict(yaxis_title='FFMC', xaxis_title='YEAR', zaxis_title='FREQUENCY'))
-    ffmc_fig.update_layout(title='Observed Noon FFMC Distribution by Year')
+    ffmc_fig.update_layout(title='Observed Noon FFMC in ' + selected_month + ' - Distribution by Year')
 
     # FWI
     fwi_fig = go.Figure()
@@ -136,11 +158,8 @@ if look_at == 'noon values':
         a1 = np.repeat(a1, 2)
         fwi_fig.add_traces(go.Scatter3d(x=[year]*len(a0), y=a1, z=a0, mode='lines', name=str(year)))
     fwi_fig.update_layout(scene=dict(yaxis_title='FWI', xaxis_title='YEAR', zaxis_title='FREQUENCY'))
-    fwi_fig.update_layout(title='Observed Noon FWI Distribution by Year')
+    fwi_fig.update_layout(title='Observed Noon FWI in ' + selected_month + ' - Distribution by Year')
 
-    # noon_fig.add_trace(temperature_fig, row=1, col=1)
-    # noon_fig.add_trace(rh_fig, row=1, col=2)
-    # st.plotly_chart(noon_fig, use_container_width=True)
     st.plotly_chart(temperature_fig, use_container_width=True)
     st.plotly_chart(rh_fig, use_container_width=True)
     st.plotly_chart(wind_fig, use_container_width=True)
@@ -153,6 +172,26 @@ elif look_at == 'maximum values' or 'minimum values':
                      'relative_humidity.1', 'wind_speed', 'wind_speed.1', 'ffmc', 'ffmc.1', 'fwi', 'fwi.1']
     for col_name in float_columns:
         min_max_df[col_name] = pd.to_numeric(min_max_df[col_name], errors='coerce')
+    min_max_df.rename(columns={'Unnamed: 0': 'weather_date', 'temperature': 'min_temp',
+                      'temperature.1': 'max_temp', 'relative_humidity': 'min_RH', 'relative_humidity.1': 'max_RH', 'wind_speed': 'min_wind_speed', 'wind_speed.1': 'max_wind_speed', 'ffmc': 'min_ffmc', 'ffmc.1': 'max_ffmc', 'fwi': 'min_fwi', 'fwi.1': 'max_fwi'}, inplace=True)
+    min_max_df = min_max_df.iloc[2:, :]
+    min_max_df['weather_date'] = pd.to_datetime(min_max_df['weather_date'])
+
+    selected_month = st.selectbox('Select month:', [
+                                  'April-Sept', 'April', 'May', 'June', 'July', 'August', 'September'])
+
+    if selected_month == 'April':
+        min_max_df = min_max_df[min_max_df['weather_date'].dt.month == 4]
+    elif selected_month == 'May':
+        min_max_df = min_max_df[min_max_df['weather_date'].dt.month == 5]
+    elif selected_month == 'June':
+        min_max_df = min_max_df[min_max_df['weather_date'].dt.month == 6]
+    elif selected_month == 'July':
+        min_max_df = min_max_df[min_max_df['weather_date'].dt.month == 7]
+    elif selected_month == 'August':
+        min_max_df = min_max_df[min_max_df['weather_date'].dt.month == 8]
+    elif selected_month == 'September':
+        min_max_df = min_max_df[min_max_df['weather_date'].dt.month == 9]
 
     if st.checkbox("Show Raw Data for Min & Max Observed Weather Conditions", False):
         st.subheader('Min & Max values for {}'.format(selected_station))
@@ -168,7 +207,7 @@ elif look_at == 'maximum values' or 'minimum values':
 
     for year in min_max_df['year'].unique():
         years_temps = min_max_df[min_max_df['year'] == year]
-        years_temps.dropna(subset=['temperature.1', 'temperature'], inplace=True)
+        years_temps.dropna(subset=['min_temp', 'max_temp'], inplace=True)
         a0 = np.histogram(years_temps.iloc[2:, 4 if to_display ==
                           'Max' else 3], bins='auto', density=False)[0].tolist()
         a0 = np.repeat(a0, 2).tolist()
@@ -180,14 +219,15 @@ elif look_at == 'maximum values' or 'minimum values':
         temperature_fig.add_traces(go.Scatter3d(x=[year]*len(a0), y=a1, z=a0, mode='lines', name=str(year)))
     temperature_fig.update_layout(scene=dict(yaxis_title='TEMPERATURE (°C)',
                                              xaxis_title='YEAR', zaxis_title='FREQUENCY'))
-    temperature_fig.update_layout(title=to_display + ' Daily Observed Temperature - Distribution by Year')
+    temperature_fig.update_layout(
+        title=to_display + ' Daily Observed Temperature in ' + selected_month + ' - Distribution by Year')
 
     # RELATIVE HUMIDITY
     rh_fig = go.Figure()
 
     for year in min_max_df['year'].unique():
         year_rh = min_max_df[min_max_df['year'] == year]
-        year_rh.dropna(subset=['relative_humidity.1', 'relative_humidity'], inplace=True)
+        year_rh.dropna(subset=['min_RH', 'max_RH'], inplace=True)
         a0 = np.histogram(year_rh.iloc[2:, 6 if to_display == 'Max' else 5],
                           bins='auto', density=False)[0].tolist()
         a0 = np.repeat(a0, 2).tolist()
@@ -199,14 +239,15 @@ elif look_at == 'maximum values' or 'minimum values':
         rh_fig.add_traces(go.Scatter3d(x=[year]*len(a0), y=a1, z=a0, mode='lines', name=str(year)))
     rh_fig.update_layout(scene=dict(yaxis_title='RELATIVE HUMIDITY (%)',
                          xaxis_title='YEAR', zaxis_title='FREQUENCY'))
-    rh_fig.update_layout(title=to_display + ' Daily Observed RH - Distribution by Year')
+    rh_fig.update_layout(title=to_display + ' Daily Observed RH in ' +
+                         selected_month + ' - Distribution by Year')
 
     # WIND SPEED
     wind_fig = go.Figure()
 
     for year in min_max_df['year'].unique():
         year_wind = min_max_df[min_max_df['year'] == year]
-        year_wind.dropna(subset=['wind_speed.1', 'wind_speed'], inplace=True)
+        year_wind.dropna(subset=['max_wind_speed', 'min_wind_speed'], inplace=True)
         a0 = np.histogram(year_wind.iloc[2:, 8 if to_display == 'Max' else 7],
                           bins='auto', density=False)[0].tolist()
         a0 = np.repeat(a0, 2).tolist()
@@ -218,14 +259,15 @@ elif look_at == 'maximum values' or 'minimum values':
         wind_fig.add_traces(go.Scatter3d(x=[year]*len(a0), y=a1, z=a0, mode='lines', name=str(year)))
     wind_fig.update_layout(scene=dict(yaxis_title='WIND SPEED (km/h)',
                                       xaxis_title='YEAR', zaxis_title='FREQUENCY'))
-    wind_fig.update_layout(title=to_display + ' Daily Wind Speed - Distribution by Year')
+    wind_fig.update_layout(title=to_display + ' Daily Wind Speed in ' +
+                           selected_month + ' - Distribution by Year')
 
     # FFMC
     ffmc_fig = go.Figure()
 
     for year in min_max_df['year'].unique():
         year_ffmc = min_max_df[min_max_df['year'] == year]
-        year_ffmc.dropna(subset=['ffmc.1', 'ffmc'], inplace=True)
+        year_ffmc.dropna(subset=['max_ffmc', 'min_ffmc'], inplace=True)
         a0 = np.histogram(year_ffmc.iloc[2:, 10 if to_display == 'Max' else 9],
                           bins='auto', density=False)[0].tolist()
         a0 = np.repeat(a0, 2).tolist()
@@ -237,14 +279,15 @@ elif look_at == 'maximum values' or 'minimum values':
         ffmc_fig.add_traces(go.Scatter3d(x=[year]*len(a0), y=a1, z=a0, mode='lines', name=str(year)))
     ffmc_fig.update_layout(scene=dict(yaxis_title='FFMC',
                                       xaxis_title='YEAR', zaxis_title='FREQUENCY'))
-    ffmc_fig.update_layout(title=to_display + ' Daily Observed FFMC - Distribution by Year')
+    ffmc_fig.update_layout(title=to_display + ' Daily Observed FFMC in ' +
+                           selected_month + ' - Distribution by Year')
 
     # FWI
     fwi_fig = go.Figure()
 
     for year in min_max_df['year'].unique():
         year_fwi = min_max_df[min_max_df['year'] == year]
-        year_fwi.dropna(subset=['fwi.1', 'fwi'], inplace=True)
+        year_fwi.dropna(subset=['max_fwi', 'min_fwi'], inplace=True)
         a0 = np.histogram(year_fwi.iloc[2:, 12 if to_display == 'Max' else 11],
                           bins='auto', density=False)[0].tolist()
         a0 = np.repeat(a0, 2).tolist()
@@ -256,7 +299,8 @@ elif look_at == 'maximum values' or 'minimum values':
         fwi_fig.add_traces(go.Scatter3d(x=[year]*len(a0), y=a1, z=a0, mode='lines', name=str(year)))
     fwi_fig.update_layout(scene=dict(yaxis_title='FWI',
                                      xaxis_title='YEAR', zaxis_title='FREQUENCY'))
-    fwi_fig.update_layout(title=to_display + ' Daily Observed FWI - Distribution by Year')
+    fwi_fig.update_layout(title=to_display + ' Daily Observed FWI in ' +
+                          selected_month + ' - Distribution by Year')
 
     st.plotly_chart(temperature_fig, use_container_width=True)
     st.plotly_chart(rh_fig, use_container_width=True)
