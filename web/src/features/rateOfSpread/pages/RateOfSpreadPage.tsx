@@ -80,7 +80,7 @@ const RateOfSpreadPage: React.FunctionComponent = () => {
   const [windAzimuth, setWindAzimuth] = useState(0)
   const [useNetEffectiveWindSpeed, setUseNetEffectiveWindSpeed] = useState(true)
   const [opacity, setOpacity] = useState(200)
-  const [mode, setMode] = useState('Elevation')
+  const [mode, setMode] = useState('Aspect')
 
   const handleChangeSnowline = (
     event: React.ChangeEvent<{}>,

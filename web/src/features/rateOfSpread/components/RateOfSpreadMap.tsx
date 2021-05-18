@@ -1130,11 +1130,9 @@ function createRaster() {
       const eas = layers[0]
       const ftl = layers[1]
 
-      const recover = (eas[0] << 16) | (eas[1] << 8) | eas[2]
-      const height = recover >> 11
-      const slope = (recover & 0x7f) * 3
-      const aspectValid = (recover >> 10) & 0x1
-      const aspect = ((recover >> 7) & 0x7) * 45
+      const height = (eas[0] << 5) | (eas[1] >> 3)
+      const aspect = ((eas[1] & 0x7) << 6) | ((eas[2] & 0xfc) >> 2)
+      const slope = ((eas[2] & 0x3) << 8) | eas[3]
 
       if (data.mode === 'ROS') {
         if (height === 0 || height === 0xffffff || height > data.snowLine) {
@@ -1151,6 +1149,7 @@ function createRaster() {
                 : undefined
 
             let windSpeed = data.windSpeed
+            const aspectValid = aspect !== 0x3ff
             if (data.useNetEffectiveWindSpeed && aspectValid) {
               // console.log('windSpeed', windSpeed)
               const WAZ = data.windAzimuth // Wind Azimuth
@@ -1224,15 +1223,33 @@ function createRaster() {
         }
       } else if (data.mode === 'Elevation') {
         if (height === 0x1fff) {
+          // this means the height is invalid.
           return [0, 0, 0, 0]
         }
-        const adjustedHeight = Math.min(255, (height / 2500) * 255)
+        if (eas[0] === 0 && eas[1] === 0 && eas[2] === 0 && eas[3] === 0) {
+          // this means there's no data at all.
+          return [0, 0, 0, 0]
+        }
+        const adjustedHeight = Math.round(Math.min(255, (height / 2500) * 255))
         return [adjustedHeight, adjustedHeight, adjustedHeight, data.opacity]
-      } else if (data.mode === 'Slope') {
-        if (slope === 0 || slope === 0x7f * 3) {
+      } else if (data.mode === 'Aspect') {
+        if (aspect === 0x1ff) {
           return [0, 0, 0, 0]
         }
-        const adjustedSlope = Math.min(255, (slope / 100) * 255)
+        if (aspect > 360) {
+          return [0xff, 0, 0, 0xff]
+        }
+        if (eas[0] === 0 && eas[1] === 0 && eas[2] === 0 && eas[3] === 0) {
+          // this means there's no data at all.
+          return [0, 0, 0, 0]
+        }
+        const adjustedAspect = Math.round(Math.min(255, (aspect / 360) * 255))
+        return [adjustedAspect, adjustedAspect, adjustedAspect, data.opacity]
+      } else if (data.mode === 'Slope') {
+        if (slope === 0x3ff) {
+          return [0, 0, 0, 0]
+        }
+        const adjustedSlope = Math.round(Math.min(255, (slope / 100) * 255))
         return [adjustedSlope, adjustedSlope, adjustedSlope, data.opacity]
       }
       return [0, 0, 0, 0]
@@ -1352,8 +1369,8 @@ const RateOfSpreadMap = ({
       zoom={zoom}
       redrawFlag={{ redraw: false } as RedrawCommand}
     >
-      {/* <TileLayer source={elevationSource} /> */}
-      <TileLayer source={source} />
+      {/* <TileLayer source={easSource} /> */}
+      {/* <TileLayer source={source} /> */}
       {raster && <ImageLayer source={raster} />}
     </Map>
   )

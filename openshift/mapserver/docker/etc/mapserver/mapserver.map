@@ -1,11 +1,12 @@
 MAP
   NAME           mymap
-  IMAGETYPE      PNG24
+  IMAGETYPE      PNG32
   # EXTENT         -97.238976 41.619778 -82.122902 49.385620
   SIZE           400 300
   IMAGECOLOR     255 255 255
   PROJECTION
-    "init=epsg:4326"
+    #"init=epsg:4326"
+    "init=epsg:3857"
   END
 
   WEB
@@ -14,6 +15,15 @@ MAP
       WMS_TITLE          "map title"
     END
   END # end web
+
+  OUTPUTFORMAT
+    NAME "PNG32"
+    DRIVER AGG/PNG
+    MIMETYPE "image/png"
+    IMAGEMODE RGBA
+    EXTENSION "png"
+    FORMATOPTION "GAMMA=0.75"
+  END
 
 
   LAYER # FTL raster layer begins here
@@ -47,7 +57,7 @@ MAP
 
   LAYER # ELEVATION raster layer begins here
         PROJECTION
-          "init=epsg:4326"
+          "init=epsg:3857"
         END
         NAME         EAS
         # DATA    "/etc/mapserver/mega_merged_topo_eas.tif"

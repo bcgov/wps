@@ -5,6 +5,7 @@
 - generate 3 band raster
 """
 import os
+import sys
 import struct
 from pathlib import Path
 import tempfile
@@ -55,7 +56,7 @@ def generate_aspect(dem_path: str) -> str:
     target = f'{os.path.splitext(os.path.join(Path(dem_path).parent, Path(dem_path).name))[0]}-aspect.tif'
     if os.path.exists(target):
         os.remove(target)
-    command = f'gdaldem aspect {dem_path} {target} -of GTiff -b 1 -zero_for_flat'
+    command = f'gdaldem aspect {dem_path} {target} -of GTiff -b 1 -compute_edges'
     print(command)
     os.system(command)
     return target
@@ -78,7 +79,7 @@ def generate_slope(dem_path: str) -> str:
     if os.path.exists(target):
         print(f'{target} exists, deleting it')
         os.remove(target)
-    command = f'gdaldem slope {dem_path} {target} -of GTiff -b 1 -s 1.0 -p'
+    command = f'gdaldem slope {dem_path} {target} -of GTiff -b 1 -s 1.0 -p -compute_edges'
     print(command)
     os.system(command)
     return target
@@ -95,7 +96,7 @@ def reproject_raster(raster_path: str):
     target = f'{os.path.splitext(os.path.join(Path(raster_path).parent, Path(raster_path).name))[0]}_wgs84.tif'
     if os.path.exists(target):
         os.remove(target)
-    command = f'gdalwarp -t_srs EPSG:4326 -r near -of GTiff {raster_path} {target}'
+    command = f'gdalwarp -t_srs EPSG:3857 -dstnodata -9999 -r near -of GTiff {raster_path} {target}'
     print(command)
     os.system(command)
     return target
@@ -127,10 +128,15 @@ def generate_rgb(elevation_path: str, slope_path: str, aspect_path: str, output_
         print(f'band.XSize: {elevation_band.XSize}')
         print(f'band.YSize: {elevation_band.YSize}')
 
+        min_aspect = sys.maxsize
+        max_aspect = -sys.maxsize
+        min_slope = sys.maxsize
+        max_slope = -sys.maxsize
+
         # create output file
         driver = gdal.GetDriverByName("GTiff")
         print(f'creating file {output_path}')
-        outdata = driver.Create(output_path, elevation_band.XSize, elevation_band.YSize, 3, gdal.GDT_Byte)
+        outdata = driver.Create(output_path, elevation_band.XSize, elevation_band.YSize, 4, gdal.GDT_Byte)
         try:
             outdata.SetProjection(projection)
             outdata.SetGeoTransform(geotransform)
@@ -152,33 +158,51 @@ def generate_rgb(elevation_path: str, slope_path: str, aspect_path: str, output_
                 aspect_array = get_float32_array(aspect_band, y)
                 slope_array = get_float32_array(slope_band, y)
 
-                r_array, g_array, b_array = [], [], []
+                r_array, g_array, b_array, a_array = [], [], [], []
                 r_array.append([])
                 g_array.append([])
                 b_array.append([])
+                a_array.append([])
 
                 for elevation, aspect, slope in zip(elevation_array, aspect_array, slope_array):
+                    # we have a total of 32 bits if we use RGBA
+                    # - max altitude in BC is 4671m (Mount Fairweather) - so 13 bits is enough to store that.
+                    # that leaves us with 19 more bits.
                     # print(f'elevation:{elevation}')
-                    # shift elevation left 11 bits
-                    value = (elevation << 11)
-                    # is the aspect valid? (flat ground doesn't have an aspect!)
-                    valid_aspect = aspect >= 0 and aspect <= 360
-                    value = value | valid_aspect << 10
-                    # simplify the aspect
-                    aspect = int(aspect / 45) & 0x7
-                    value = value | aspect << 7
-                    # 7 bits left for the slope
+                    # shift elevation left 19 bits
+                    if elevation == -9999:
+                        value = 0x1FFF << 19
+                    else:
+                        value = (elevation << 19)
+                    # - max aspect is 360 degrees, so we only need 9 bits for aspect
+                    if aspect == -9999:
+                        value = value | 0x1FF << 10
+                    else:
+                        if aspect < min_aspect:
+                            min_aspect = aspect
+                            print(f'min aspect: {min_aspect}')
+                        if aspect > max_aspect:
+                            max_aspect = aspect
+                            print(f'max aspect: {max_aspect}')
+                        if aspect > 360:
+                            raise 'impossible aspect!'
+                        value = value | (int(aspect) & 0x1FF) << 10
+                    # - 10 bits for slope, because that's what's left.
                     # slope is in terms of percentage
-                    slope = slope / 3
-                    if slope < 0:
-                        # we just assume 0 for the slope if there is none.
-                        slope = 0
-                    elif slope > 127:
-                        # anything greater than 127, we take to be 127
-                        slope = 127
-                    value = value | int(slope) & 0x7F
+                    if slope == -9999:
+                        value = value | 0x3FF
+                    else:
+                        if slope < min_slope:
+                            min_slope = slope
+                            print(f'min slope: {min_slope}')
+                        if slope > max_slope:
+                            max_slope = slope
+                            print(f'max slope: {max_slope}')
+                        value = value | int(slope) & 0x3FF
 
-                    # print(f'value:{value}'')
+                    r = (value >> 16) & 0xff
+                    g = (value >> 8) & 0xff
+                    b = value & 0xff
 
                     r_array[0].append((value >> 16) & 0xff)
                     g_array[0].append((value >> 8) & 0xff)
