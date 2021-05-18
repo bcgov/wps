@@ -9,7 +9,7 @@ import {
   Radio
 } from '@material-ui/core'
 import RateOfSpreadMap from 'features/rateOfSpread/components/RateOfSpreadMap'
-import Canvas from 'features/rateOfSpread/components/GradientCanvas'
+import ROSLegend from 'features/rateOfSpread/components/ROSLegend'
 
 const useStyles = makeStyles(theme => ({
   main: {
@@ -80,7 +80,7 @@ const RateOfSpreadPage: React.FunctionComponent = () => {
   const [windAzimuth, setWindAzimuth] = useState(0)
   const [useNetEffectiveWindSpeed, setUseNetEffectiveWindSpeed] = useState(true)
   const [opacity, setOpacity] = useState(200)
-  const [mode, setMode] = useState('Aspect')
+  const [mode, setMode] = useState('ROS')
 
   const handleChangeSnowline = (
     event: React.ChangeEvent<{}>,
@@ -268,17 +268,10 @@ const RateOfSpreadPage: React.FunctionComponent = () => {
             />
           </RadioGroup>
           <Typography className={classes.typography} gutterBottom>
-            Legend
+            Rate Of Spread Legend
           </Typography>
           <div>
-            <div>Rate of spread (m/min)</div>
-            <div>
-              <Canvas width={275} height={20} />
-            </div>
-            <div className={classes.legend}>
-              <div className={classes.floatLeft}>0</div>
-              <div className={classes.floatRight}>100&gt;</div>
-            </div>
+            <ROSLegend />
           </div>
           <Typography className={classes.typography} gutterBottom>
             Opacity {opacity}

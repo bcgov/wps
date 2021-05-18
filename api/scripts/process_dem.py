@@ -11,6 +11,10 @@ import tempfile
 from osgeo import gdal
 import numpy
 
+# EPSG:4326 - WGS84
+# EPSG:3857 - Pseudo-Mercator -- Spherical Mercator, Google Maps, OpenStreetMap, Bing, ArcGIS, ESRI
+TARGET_EPSG = '3857'
+
 
 def get_int32_array(band, y: int):
     """ get row y in band as int array """
@@ -36,7 +40,7 @@ def dem_files(path) -> os.DirEntry:
         if entry.is_dir(follow_symlinks=False):
             yield from dem_files(entry.path)
         elif entry.path.endswith('.dem'):
-            # if entry.path.endswith('82g-utm-elevation.dem'):
+            # if '92e' in entry.path or '92f' in entry.path or '92c' in entry.path:
             yield entry
 
 
@@ -92,10 +96,10 @@ def reproject_raster(raster_path: str):
     EPSG:3857 - Pseudo-Mercator -- Spherical Mercator, Google Maps, OpenStreetMap, Bing, ArcGIS, ESRI
 
     """
-    target = f'{os.path.splitext(os.path.join(Path(raster_path).parent, Path(raster_path).name))[0]}_epsg_3857.tif'
+    target = f'{os.path.splitext(os.path.join(Path(raster_path).parent, Path(raster_path).name))[0]}_epsg_{TARGET_EPSG}.tif'
     if os.path.exists(target):
         os.remove(target)
-    command = f'gdalwarp -t_srs EPSG:3857 -dstnodata -9999 -r near -of GTiff {raster_path} {target}'
+    command = f'gdalwarp -t_srs EPSG:{TARGET_EPSG} -dstnodata -9999 -r near -of GTiff {raster_path} {target}'
     print(command)
     os.system(command)
     return target
@@ -116,8 +120,11 @@ def generate_rgb(elevation_path: str, slope_path: str, aspect_path: str, output_
         geotransform = elevation_ds.GetGeoTransform()
 
         elevation_band = elevation_ds.GetRasterBand(1)
+        elevation_nodata = elevation_band.GetNoDataValue()
         aspect_band = aspect_ds.GetRasterBand(1)
+        aspect_nodata = elevation_band.GetNoDataValue()
         slope_band = slope_ds.GetRasterBand(1)
+        slope_nodata = elevation_band.GetNoDataValue()
 
         print("Projection={}".format(projection))
         print("Geogransform={}".format(geotransform))
@@ -137,12 +144,15 @@ def generate_rgb(elevation_path: str, slope_path: str, aspect_path: str, output_
 
             r_band = outdata.GetRasterBand(1)
             r_band.SetColorInterpretation(gdal.GCI_RedBand)
+            r_band.SetNoDataValue(0xff)
 
             g_band = outdata.GetRasterBand(2)
             g_band.SetColorInterpretation(gdal.GCI_GreenBand)
+            g_band.SetNoDataValue(0xff)
 
             b_band = outdata.GetRasterBand(3)
             b_band.SetColorInterpretation(gdal.GCI_BlueBand)
+            b_band.SetNoDataValue(0xff)
 
             for y in range(elevation_band.YSize):
                 if y % 200 == 0:
@@ -162,14 +172,14 @@ def generate_rgb(elevation_path: str, slope_path: str, aspect_path: str, output_
                     # - max altitude in BC is 4671m (Mount Fairweather) - so 13 bits is enough to store that.
                     # we don't have 13 bits to spare, so instead, divide by 20 - so we can put it in a byte
                     # (4671/20 = 233.55)
-                    if elevation == -9999:
+                    if elevation == elevation_nodata:
                         red = 0xFF
                     else:
                         red = int(elevation / 20)
 
                     # max aspect is 360 degrees, so we only need 9 bits for aspect
                     # if we divide by two, then we can fit it in 8 bits.
-                    if aspect == -9999:
+                    if aspect == aspect_nodata:
                         green = 0xFF
                     else:
                         green = int(aspect/2)
@@ -177,7 +187,7 @@ def generate_rgb(elevation_path: str, slope_path: str, aspect_path: str, output_
                             raise 'impossible aspect!'
 
                     # slope can go real high, we'll divide by two, and just max out at 0xFF-1
-                    if slope == -9999:
+                    if slope == slope_nodata:
                         blue = 0xFF
                     else:
                         blue = int(slope/2)
@@ -213,8 +223,8 @@ def main():
     # create 3 band raster
     """
     dem_dir = '/home/sybrand/Work/topo'
-    target_dir = '/home/sybrand/Work/topo_tiff'
-    # target_dir = '/home/sybrand/Workspace/wps/openshift/mapserver/docker/etc/mapserver'
+    # target_dir = '/home/sybrand/Work/topo_tiff'
+    target_dir = '/home/sybrand/Workspace/wps/openshift/mapserver/docker/etc/mapserver/eas'
     with tempfile.TemporaryDirectory() as temporary_path:
         for dem_entry in dem_files(dem_dir):
             print(f'processing: {dem_entry.path}')
@@ -222,14 +232,19 @@ def main():
             if os.path.exists(output_path):
                 print(f'{output_path} already exists - skipping')
             else:
-                altitude_wgs84 = reproject_raster(dem_entry.path)
+                altitude_reproj_path = reproject_raster(dem_entry.path)
                 slope_utm_path = generate_slope(dem_entry.path)
-                slope_wgs84_path = reproject_raster(slope_utm_path)
+                slope_reproj_path = reproject_raster(slope_utm_path)
                 aspect_utm_path = generate_aspect(dem_entry.path)
-                aspect_wgs84_path = reproject_raster(aspect_utm_path)
-                intermediate_path = make_target_eas_path(altitude_wgs84, temporary_path)
-                generate_rgb(altitude_wgs84, slope_wgs84_path, aspect_wgs84_path, intermediate_path)
+                aspect_reproj_path = reproject_raster(aspect_utm_path)
+                intermediate_path = make_target_eas_path(altitude_reproj_path, temporary_path)
+                generate_rgb(altitude_reproj_path, slope_reproj_path, aspect_reproj_path, intermediate_path)
                 os.rename(intermediate_path, output_path)
+                os.remove(altitude_reproj_path)
+                os.remove(slope_utm_path)
+                os.remove(slope_reproj_path)
+                os.remove(aspect_utm_path)
+                os.remove(aspect_reproj_path)
                 # p = subprocess.Popen(['gdaltindex eas-3band-tif.shp *.tif', ], cwd=target_dir)
                 # p.wait()
     # gdaltindex eas-3band-tif.shp *.tif

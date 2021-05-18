@@ -103,7 +103,22 @@ function calcROSColour(ros: number, opacity: number): number[] {
     return [0x0, 0x0, 0x0, opacity]
   }
   // return [0xff, 0x00, 0x00, 0xff]
-  return [0xff, Math.max(0, 255 - (ros / 100) * 255), 0x00, opacity]
+  if (ros < 3) {
+    // low, green
+    return [0, 128, 0, opacity]
+  } else if (ros < 8) {
+    // moderate, yellow
+    return [255, 255, 0x0, opacity]
+  } else if (ros < 15) {
+    // high, orange
+    return [255, 165, 0, opacity]
+  }
+  // extreme, red
+  return [255, 0, 0, opacity]
+
+  // gradient:
+  // return [0xff, Math.max(0, 255 - (ros / 100) * 255), 0x00, opacity]
+  // matching redbook:
   // if (ros <= 0.8) {
   //   // dark grey
   //   return [0xa9, 0xa9, 0xa9]

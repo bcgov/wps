@@ -58,11 +58,14 @@ MAP
   LAYER # ELEVATION raster layer begins here
         PROJECTION
           "init=epsg:3857"
+          #"init=epsg:4326"
         END
         NAME         EAS
         # DATA    "/etc/mapserver/mega_merged_topo_eas.tif"
         # DATA      "/etc/mapserver/93j-utm-elevation-eas-3band.tif"
-        DATA      "/etc/mapserver/82g-utm-elevation-eas-3band.tif"
+        # DATA      "/etc/mapserver/82g-utm-elevation-eas-3band.tif"
+        # DATA      "/etc/mapserver/merged_topo.tif"
+        TILEINDEX "/etc/mapserver/eas/eas-3band-tif.shp"
         # STATUS       OFF
         TYPE         RASTER
         METADATA 
