@@ -22,8 +22,8 @@ const source = new olSource.XYZ({
 })
 
 const getUrl = (layer: string) => {
-  // return `https://wps-mapserver-dev.apps.silver.devops.gov.bc.ca/cgi-bin/mapserv?map=/etc/mapserver/mapserver.map&MODE=tile&TILEMODE=gmap&LAYERS=${layer}&TILE={x}+{y}+{z}`
-  return `http://localhost:8081/cgi-bin/mapserv?map=/etc/mapserver/mapserver.map&MODE=tile&TILEMODE=gmap&LAYERS=${layer}&TILE={x}+{y}+{z}`
+  return `https://wps-mapserver-dev.apps.silver.devops.gov.bc.ca/cgi-bin/mapserv?map=/etc/mapserver/mapserver.map&MODE=tile&TILEMODE=gmap&LAYERS=${layer}&TILE={x}+{y}+{z}`
+  // return `http://localhost:8081/cgi-bin/mapserv?map=/etc/mapserver/mapserver.map&MODE=tile&TILEMODE=gmap&LAYERS=${layer}&TILE={x}+{y}+{z}`
   // return `http://localhost:80/cgi-bin/mapserv?map=/home/sybrand/Workspace/wps/mapserver/sigh.map&MODE=tile&TILEMODE=gmap&LAYERS=${layer}&TILE={x}+{y}+{z}`
 }
 
@@ -163,14 +163,21 @@ function ftlNumberToFtlCode(ftlNumber: number): string | undefined {
 }
 
 function isNonFuel(ftlNumber: number): boolean {
-  if (ftlNumber >= 99 && ftlNumber < 200) {
-    // case 101: // NonFuel
-    // case 102: // Water
-    // case 106: // Urban
-    // the rest - no idea!
-    return true
+  switch (ftlNumber) {
+    case 101:
+    case 102:
+    case 106:
+      return true
   }
   return false
+  // if (ftlNumber >= 99 && ftlNumber < 200) {
+  //   // case 101: // NonFuel
+  //   // case 102: // Water
+  //   // case 106: // Urban
+  //   // the rest - no idea!
+  //   return true
+  // }
+  // return false
 }
 
 // function calcSlopeEquivalentWindSpeed(ftlNumber: number, slope: number): number {
@@ -1236,6 +1243,10 @@ function createRaster() {
               const CC = undefined
               const isi = ISIcalc(data.ffmc, windSpeed)
               ros = ROScalc(ftlCode, isi, data.bui, data.fmc, SFC, PC, PDF, CC, data.cbh)
+              if (ros < 0) {
+                // this shouldn't be!
+                return [0, 0, 0, 255]
+              }
               // if (ftlNumber in data.info['known']) {
               //   data.info['known'][ftlNumber]++
               // } else {
@@ -1255,6 +1266,7 @@ function createRaster() {
                 // } else {
                 //   data.info['unknown'][ftlNumber] = 1
                 // }
+                return [0, 0, 0, 255]
               }
             }
 
@@ -1265,7 +1277,7 @@ function createRaster() {
             return calcROSColour(ros, data.opacity)
           }
         } catch (e) {
-          return [0, 0, 0, 0]
+          return [0, 0, 0, 255]
         }
       } else if (data.mode === 'Elevation') {
         if (!heightValid) {
@@ -1996,14 +2008,21 @@ function createRaster() {
         return SFC <= 0 ? 0.000001 : SFC
       },
       isNonFuel: (ftlNumber: number): boolean => {
-        if (ftlNumber >= 99 && ftlNumber < 200) {
-          // case 101: // NonFuel
-          // case 102: // Water
-          // case 106: // Urban
-          // the rest - no idea!
-          return true
+        switch (ftlNumber) {
+          case 101:
+          case 102:
+          case 103:
+            return true
         }
         return false
+        // if (ftlNumber >= 99 && ftlNumber < 200) {
+        //   // case 101: // NonFuel
+        //   // case 102: // Water
+        //   // case 106: // Urban
+        //   // the rest - no idea!
+        //   return true
+        // }
+        // return false
       },
       Slopecalc
     }
