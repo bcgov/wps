@@ -54,6 +54,19 @@ selected_code = re.search(r'\(\d*\)', selected_station).group(0).strip('()')
 
 st.subheader("Peak burning values for {}".format(selected_station))
 medians_df = pd.read_csv('../data/minMaxNoonValues/byWeek/'+selected_code+'.csv')
+
+# apply necessary formatting on dataframe - doesn't seem possible to format the Plotly table by column
+medians_df['median_max_temp'] = medians_df['median_max_temp'].map('{:,.1f}'.format)
+medians_df['median_min_temp'] = medians_df['median_min_temp'].map('{:,.1f}'.format)
+medians_df['median_max_rh'] = medians_df['median_max_rh'].map('{:,.0f}'.format)
+medians_df['median_min_rh'] = medians_df['median_min_rh'].map('{:,.0f}'.format)
+medians_df['median_max_wind_speed'] = medians_df['median_max_wind_speed'].map('{:,.1f}'.format)
+medians_df['median_min_wind_speed'] = medians_df['median_min_wind_speed'].map('{:,.1f}'.format)
+medians_df['median_max_ffmc'] = medians_df['median_max_ffmc'].map('{:,.0f}'.format)
+medians_df['median_min_ffmc'] = medians_df['median_min_ffmc'].map('{:,.0f}'.format)
+medians_df['median_max_fwi'] = medians_df['median_max_fwi'].map('{:,.0f}'.format)
+medians_df['median_min_fwi'] = medians_df['median_min_fwi'].map('{:,.0f}'.format)
+
 weeks = []
 for e in medians_df['week_start_day']:
     weeks.append(convert_day_of_year_to_week_string(e))
@@ -102,11 +115,15 @@ if look_at == 'noon values':
 
     for year in noon_df['year'].unique():
         years_temps = noon_df[noon_df['year'] == year]
-        a0 = np.histogram(years_temps['temperature'], bins='auto', density=False)[0].tolist()
+        lowest = round(np.min(years_temps.iloc[2:, 3]))
+        highest = round(np.max(years_temps.iloc[2:, 3]))
+        a0 = np.histogram(years_temps['temperature'], bins=np.arange(
+            lowest, highest+1, 1), density=False)[0].tolist()
         a0 = np.repeat(a0, 2).tolist()
         a0.insert(0, 0)
         a0.pop()
-        a1 = np.histogram(years_temps['temperature'], bins='auto', density=False)[1].tolist()
+        a1 = np.histogram(years_temps['temperature'], bins=np.arange(
+            lowest, highest+1, 1), density=False)[1].tolist()
         a1 = np.repeat(a1, 2)
         temperature_fig.add_traces(go.Scatter3d(x=[year]*len(a0), y=a1, z=a0, mode='lines', name=str(year),
                                                 hovertemplate='Temperature: %{y:.1f}°C<br>Frequency: %{z:.0f}<br>Year: %{x:.0f}'))
@@ -120,11 +137,11 @@ if look_at == 'noon values':
 
     for year in noon_df['year'].unique():
         year_rh = noon_df[noon_df['year'] == year]
-        a0 = np.histogram(year_rh['relative_humidity'], bins='auto', density=False)[0].tolist()
+        a0 = np.histogram(year_rh['relative_humidity'], bins=np.arange(0, 105, 5), density=False)[0].tolist()
         a0 = np.repeat(a0, 2).tolist()
         a0.insert(0, 0)
         a0.pop()
-        a1 = np.histogram(year_rh['relative_humidity'], bins='auto', density=False)[1].tolist()
+        a1 = np.histogram(year_rh['relative_humidity'], bins=np.arange(0, 105, 5), density=False)[1].tolist()
         a1 = np.repeat(a1, 2)
         rh_fig.add_traces(go.Scatter3d(x=[year]*len(a0), y=a1, z=a0, mode='lines', name=str(year),
                           hovertemplate='RH: %{y:.0f}%<br>Frequency: %{z:.0f}<br>Year: %{x:.0f}'))
@@ -137,11 +154,15 @@ if look_at == 'noon values':
 
     for year in noon_df['year'].unique():
         year_wind = noon_df[noon_df['year'] == year]
-        a0 = np.histogram(year_wind['wind_speed'], bins='auto', density=False)[0].tolist()
+        lowest = round(np.min(year_wind.iloc[2:, 5]))
+        highest = round(np.max(year_wind.iloc[2:, 5]))
+        a0 = np.histogram(year_wind['wind_speed'], bins=np.arange(
+            lowest, highest+3, 3), density=False)[0].tolist()
         a0 = np.repeat(a0, 2).tolist()
         a0.insert(0, 0)
         a0.pop()
-        a1 = np.histogram(year_wind['wind_speed'], bins='auto', density=False)[1].tolist()
+        a1 = np.histogram(year_wind['wind_speed'], bins=np.arange(
+            lowest, highest+3, 3), density=False)[1].tolist()
         a1 = np.repeat(a1, 2)
         wind_fig.add_traces(go.Scatter3d(x=[year]*len(a0), y=a1, z=a0, mode='lines', name=str(
             year), hovertemplate='Wind Speed: %{y:.1f}km/h<br>Frequency: %{z:.0f}<br>Year: %{x:.0f}'))
@@ -155,11 +176,13 @@ if look_at == 'noon values':
 
     for year in noon_df['year'].unique():
         year_ffmc = noon_df[noon_df['year'] == year]
-        a0 = np.histogram(year_ffmc['ffmc'], bins='auto', density=False)[0].tolist()
+        lowest = round(np.min(year_ffmc.iloc[2:, 6]))
+        highest = round(np.max(year_ffmc.iloc[2:, 6]))
+        a0 = np.histogram(year_ffmc['ffmc'], bins=np.arange(lowest, highest+5, 5), density=False)[0].tolist()
         a0 = np.repeat(a0, 2).tolist()
         a0.insert(0, 0)
         a0.pop()
-        a1 = np.histogram(year_ffmc['ffmc'], bins='auto', density=False)[1].tolist()
+        a1 = np.histogram(year_ffmc['ffmc'], bins=np.arange(lowest, highest+5, 5), density=False)[1].tolist()
         a1 = np.repeat(a1, 2)
         ffmc_fig.add_traces(go.Scatter3d(x=[year]*len(a0), y=a1, z=a0, mode='lines', name=str(
             year), hovertemplate='FFMC: %{y:.0f}<br>Frequency: %{z:.0f}<br>Year: %{x:.0f}'))
@@ -171,11 +194,13 @@ if look_at == 'noon values':
 
     for year in noon_df['year'].unique():
         year_fwi = noon_df[noon_df['year'] == year]
-        a0 = np.histogram(year_fwi['fwi'], bins='auto', density=False)[0].tolist()
+        lowest = round(np.min(year_fwi.iloc[2:, 7]))
+        highest = round(np.max(year_fwi.iloc[2:, 7]))
+        a0 = np.histogram(year_fwi['fwi'], bins=np.arange(lowest, highest+10, 10), density=False)[0].tolist()
         a0 = np.repeat(a0, 2).tolist()
         a0.insert(0, 0)
         a0.pop()
-        a1 = np.histogram(year_fwi['fwi'], bins='auto', density=False)[1].tolist()
+        a1 = np.histogram(year_fwi['fwi'], bins=np.arange(lowest, highest+10, 10), density=False)[1].tolist()
         a1 = np.repeat(a1, 2)
         fwi_fig.add_traces(go.Scatter3d(x=[year]*len(a0), y=a1, z=a0, mode='lines', name=str(year),
                            hovertemplate='FWI: %{y:.0f}<br>Frequency: %{z:.0f}<br>Year: %{x:.0f}'))
@@ -230,13 +255,16 @@ elif look_at == 'maximum values' or 'minimum values':
     for year in min_max_df['year'].unique():
         years_temps = min_max_df[min_max_df['year'] == year]
         years_temps.dropna(subset=['min_temp', 'max_temp'], inplace=True)
+        lowest = round(np.min(years_temps.iloc[2:, 4 if to_display == 'Max' else 3]))
+        highest = round(np.max(years_temps.iloc[2:, 4 if to_display == 'Max' else 3]))
+
         a0 = np.histogram(years_temps.iloc[2:, 4 if to_display ==
-                          'Max' else 3], bins='auto', density=False)[0].tolist()
+                          'Max' else 3], bins=np.arange(lowest, highest+1), density=False)[0].tolist()
         a0 = np.repeat(a0, 2).tolist()
         a0.insert(0, 0)
         a0.pop()
         a1 = np.histogram(years_temps.iloc[2:, 4 if to_display ==
-                          'Max' else 3], bins='auto', density=False)[1].tolist()
+                          'Max' else 3], bins=np.arange(lowest, highest+1), density=False)[1].tolist()
         a1 = np.repeat(a1, 2)
         temperature_fig.add_traces(go.Scatter3d(x=[year]*len(a0), y=a1, z=a0, mode='lines', name=str(
             year), hovertemplate='Temperature: %{y:.1f}°C<br>Frequency: %{z:.0f}<br>Year: %{x:.0f}'))
@@ -252,12 +280,12 @@ elif look_at == 'maximum values' or 'minimum values':
         year_rh = min_max_df[min_max_df['year'] == year]
         year_rh.dropna(subset=['min_RH', 'max_RH'], inplace=True)
         a0 = np.histogram(year_rh.iloc[2:, 6 if to_display == 'Max' else 5],
-                          bins='auto', density=False)[0].tolist()
+                          bins=np.arange(0, 105, 5), density=False)[0].tolist()
         a0 = np.repeat(a0, 2).tolist()
         a0.insert(0, 0)
         a0.pop()
         a1 = np.histogram(year_rh.iloc[2:, 6 if to_display == 'Max' else 5],
-                          bins='auto', density=False)[1].tolist()
+                          bins=np.arange(0, 105, 5), density=False)[1].tolist()
         a1 = np.repeat(a1, 2)
         rh_fig.add_traces(go.Scatter3d(x=[year]*len(a0), y=a1, z=a0, mode='lines', name=str(year),
                           hovertemplate='RH: %{y:.0f}%<br>Frequency: %{z:.0f}<br>Year: %{x:.0f}'))
@@ -272,13 +300,15 @@ elif look_at == 'maximum values' or 'minimum values':
     for year in min_max_df['year'].unique():
         year_wind = min_max_df[min_max_df['year'] == year]
         year_wind.dropna(subset=['max_wind_speed', 'min_wind_speed'], inplace=True)
+        lowest = round(np.min(year_wind.iloc[2:, 8 if to_display == 'Max' else 7]))
+        highest = round(np.max(year_wind.iloc[2:, 8 if to_display == 'Max' else 7]))
         a0 = np.histogram(year_wind.iloc[2:, 8 if to_display == 'Max' else 7],
-                          bins='auto', density=False)[0].tolist()
+                          bins=np.arange(lowest, highest+3, 3), density=False)[0].tolist()
         a0 = np.repeat(a0, 2).tolist()
         a0.insert(0, 0)
         a0.pop()
         a1 = np.histogram(year_wind.iloc[2:, 8 if to_display == 'Max' else 7],
-                          bins='auto', density=False)[1].tolist()
+                          bins=np.arange(lowest, highest+3, 3), density=False)[1].tolist()
         a1 = np.repeat(a1, 2)
         wind_fig.add_traces(go.Scatter3d(x=[year]*len(a0), y=a1, z=a0, mode='lines', name=str(
             year), hovertemplate='Wind Speed: %{y:.1f}km/h<br>Frequency: %{z:.0f}<br>Year: %{x:.0f}'))
@@ -293,13 +323,15 @@ elif look_at == 'maximum values' or 'minimum values':
     for year in min_max_df['year'].unique():
         year_ffmc = min_max_df[min_max_df['year'] == year]
         year_ffmc.dropna(subset=['max_ffmc', 'min_ffmc'], inplace=True)
+        lowest = round(np.min(year_ffmc.iloc[2:, 10 if to_display == 'Max' else 9]))
+        highest = round(np.max(year_ffmc.iloc[2:, 10 if to_display == 'Max' else 9]))
         a0 = np.histogram(year_ffmc.iloc[2:, 10 if to_display == 'Max' else 9],
-                          bins='auto', density=False)[0].tolist()
+                          bins=np.arange(lowest, highest+5, 5), density=False)[0].tolist()
         a0 = np.repeat(a0, 2).tolist()
         a0.insert(0, 0)
         a0.pop()
         a1 = np.histogram(year_ffmc.iloc[2:, 10 if to_display == 'Max' else 9],
-                          bins='auto', density=False)[1].tolist()
+                          bins=np.arange(lowest, highest+5, 5), density=False)[1].tolist()
         a1 = np.repeat(a1, 2)
         ffmc_fig.add_traces(go.Scatter3d(x=[year]*len(a0), y=a1, z=a0, mode='lines', name=str(
             year), hovertemplate='FFMC: %{y:.0f}<br>Frequency: %{z:.0f}<br>Year: %{x:.0f}'))
@@ -314,13 +346,15 @@ elif look_at == 'maximum values' or 'minimum values':
     for year in min_max_df['year'].unique():
         year_fwi = min_max_df[min_max_df['year'] == year]
         year_fwi.dropna(subset=['max_fwi', 'min_fwi'], inplace=True)
+        lowest = round(np.min(year_fwi.iloc[2:, 12 if to_display == 'Max' else 11]))
+        highest = round(np.max(year_fwi.iloc[2:, 12 if to_display == 'Max' else 11]))
         a0 = np.histogram(year_fwi.iloc[2:, 12 if to_display == 'Max' else 11],
-                          bins='auto', density=False)[0].tolist()
+                          bins=np.arange(lowest, highest+10, 10), density=False)[0].tolist()
         a0 = np.repeat(a0, 2).tolist()
         a0.insert(0, 0)
         a0.pop()
         a1 = np.histogram(year_fwi.iloc[2:, 12 if to_display == 'Max' else 11],
-                          bins='auto', density=False)[1].tolist()
+                          bins=np.arange(lowest, highest+10, 10), density=False)[1].tolist()
         a1 = np.repeat(a1, 2)
         fwi_fig.add_traces(go.Scatter3d(x=[year]*len(a0), y=a1, z=a0, mode='lines', name=str(year),
                            hovertemplate='FWI: %{y:.0f}<br>Frequency: %{z:.0f}<br>Year: %{x:.0f}'))
