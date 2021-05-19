@@ -44,6 +44,10 @@ st.write("""
 # Peak Burniness 2.0
 """)
 
+# my_button = st.sidebar.radio("Navigate to", ('Burning Scenarios', 'Distributions', '3'))
+# if my_button == 'Burning Scenarios':
+
+
 stations_dropdown_list = []
 stations_json = pd.read_json('../data/weather_stations.json')
 for row in stations_json.weather_stations:
@@ -52,7 +56,7 @@ for row in stations_json.weather_stations:
 selected_station = st.selectbox('Select weather station:', stations_dropdown_list)
 selected_code = re.search(r'\(\d*\)', selected_station).group(0).strip('()')
 
-st.subheader("Peak burning values for {}".format(selected_station))
+st.subheader("Worst- and best-case burning scenarios by week for {}".format(selected_station))
 medians_df = pd.read_csv('../data/minMaxNoonValues/byWeek/'+selected_code+'.csv')
 
 # apply necessary formatting on dataframe - doesn't seem possible to format the Plotly table by column
@@ -80,6 +84,14 @@ table_fig = go.Figure(data=[go.Table(header=dict(values=['Week of', 'Median Maxi
                                                         medians_df.median_min_fwi]))])
 table_fig.update_layout({'width': 1100, 'height': 600})
 st.plotly_chart(table_fig)
+
+st.write("""These values were calculated by examining hourly observed values for the station for April 1 - September 30 of every year between 2011 and 2020.
+The minimum and maximum observed values were calculated for each day in the relevant date range, and then those values were grouped into
+weeks of the fire season. The table outputs the median value for each week's list of minimum and maximum weather conditions and fire indices.""")
+
+st.write("""---""")
+
+st.subheader("Weather Values Distribution by Month and Year")
 
 # The code necessary to render 3D histograms in Plotly is ugly because Plotly doesn't officially support 3D histograms,
 # but a hacky solution has been copied from https://stackoverflow.com/a/60403270 (which includes explanation
@@ -369,10 +381,11 @@ elif look_at == 'maximum values' or 'minimum values':
     st.plotly_chart(ffmc_fig, use_container_width=True)
     st.plotly_chart(fwi_fig, use_container_width=True)
 
+st.write("""---""")
 
 # Chart Fire Indices for station by year
 
-st.subheader('Fire Indices by Year')
+st.subheader('Fire Indices & Reported Fire Incidents by Year')
 years = list(range(2011, 2021))
 
 selected_year = st.selectbox('Select year:', years)
