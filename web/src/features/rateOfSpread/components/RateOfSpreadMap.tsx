@@ -2342,7 +2342,7 @@ function createRaster() {
               ros = ROScalc(ftlCode, isi, data.bui, data.fmc, SFC, PC, PDF, CC, data.cbh)
               if (ros < 0) {
                 // this shouldn't be!
-                return [0, 0, 0, 255]
+                return [0, 0, 0, data.opacity]
               }
               // if (ftlNumber in data.info['known']) {
               //   data.info['known'][ftlNumber]++
@@ -2363,7 +2363,7 @@ function createRaster() {
                 // } else {
                 //   data.info['unknown'][ftlNumber] = 1
                 // }
-                return [0, 0, 0, 255]
+                return [0, 0, 0, data.opacity]
               }
             }
 
@@ -2374,7 +2374,7 @@ function createRaster() {
             return calcROSColour(ros, data.opacity)
           }
         } catch (e) {
-          return [0, 0, 0, 255]
+          return [0, 0, 0, data.opacity]
         }
       } else if (data.mode === 'Elevation') {
         if (!heightValid) {
