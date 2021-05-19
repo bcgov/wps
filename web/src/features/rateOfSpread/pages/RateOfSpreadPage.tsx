@@ -140,7 +140,7 @@ const RateOfSpreadPage: React.FunctionComponent = () => {
   return (
     <main data-testid="rate-of-spread-page" className={classes.main}>
       <PageHeader title="Predictive Services Unit" productName="Rate Of Spread" />
-      <PageTitle title="Rate Of Spread" />
+      <PageTitle title="Rate Of Spread - Prototype" />
       <div className={classes.content}>
         <div className={classes.controls}>
           <Typography className={classes.typography} gutterBottom>

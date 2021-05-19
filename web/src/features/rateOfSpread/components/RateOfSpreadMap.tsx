@@ -133,6 +133,7 @@ function calcROSColour(ros: number, opacity: number): number[] {
 }
 
 function ftlNumberToFtlCode(ftlNumber: number): string | undefined {
+  // TODO: all these fuel type mappings are suspect!
   switch (ftlNumber) {
     case 1:
       return 'C1'
@@ -1174,91 +1175,96 @@ function createRaster() {
       const slopeValid = slope !== 0xff
 
       if (data.mode === 'ROS') {
-        if (height === 0 || height === 0xffffff || height > data.snowLine) {
-          return [0, 0, 0, 0]
-        } else {
-          const ftlNumber = (ftl[0] << 16) | (ftl[1] << 8) | ftl[2]
-          const ftlCode = ftlNumberToFtlCode(ftlNumber)
-          let ros = -1
-          if (ftlCode) {
-            const PC = ftlNumber % 100
-            const SFC =
-              ftlCode === 'C6'
-                ? SFCCalc(ftlCode, data.ffmc, data.bui, PC, undefined)
-                : undefined
-
-            let windSpeed = data.windSpeed
-            const aspectValid = aspect !== 0x3ff
-            if (data.useNetEffectiveWindSpeed && aspectValid) {
-              // console.log('windSpeed', windSpeed)
-              const WAZ = data.windAzimuth // Wind Azimuth
-
-              // console.log('ftlCode', ftlCode)
-              // console.log('slope', slope)
-              // console.log('aspect', aspect)
-              // console.log('SFC', SFC)
-              // console.log('PC', PC)
-
-              // get the nett effective wind speed
-              windSpeed = Slopecalc(
-                ftlCode,
-                data.ffmc,
-                data.bui,
-                windSpeed,
-                WAZ,
-                slope,
-                aspect,
-                data.fmc,
-                SFC,
-                PC,
-                undefined,
-                undefined,
-                data.cbh,
-                undefined,
-                'WSV'
-              )
-              // console.log('WSV', windSpeed)
-              // throw new Error('blah')
-              // const slopeEquivalentWindSpeed = calcSlopeEquivalentWindSpeed(ftlNumber, slope)
-              // windSpeed = windSpeed += slopeEquivalentWindSpeed
-              // if (slopeEquivalentWindSpeed > 0) {
-              //   // console.log('slope', slope)
-              //   // console.log('slopeEquivalentWindSpeed', slopeEquivalentWindSpeed)
-              //   // console.log('windSpeed', windSpeed)
-              //   throw new Error('blah')
-              // }
-            }
-            const PDF = undefined
-            const CC = undefined
-            const isi = ISIcalc(data.ffmc, windSpeed)
-            ros = ROScalc(ftlCode, isi, data.bui, data.fmc, SFC, PC, PDF, CC, data.cbh)
-            // if (ftlNumber in data.info['known']) {
-            //   data.info['known'][ftlNumber]++
-            // } else {
-            //   data.info['known'][ftlNumber] = 1
-            // }
+        try {
+          if (height === 0 || height === 0xffffff || height > data.snowLine) {
+            return [0, 0, 0, 0]
           } else {
-            if (isNonFuel(ftlNumber)) {
-              ros = -2
+            const ftlNumber = (ftl[0] << 16) | (ftl[1] << 8) | ftl[2]
+            const ftlCode = ftlNumberToFtlCode(ftlNumber)
+            let ros = -1
+            if (ftlCode) {
+              const PC = ftlNumber % 100
+              const SFC =
+                ftlCode === 'C6'
+                  ? SFCCalc(ftlCode, data.ffmc, data.bui, PC, undefined)
+                  : undefined
+
+              let windSpeed = data.windSpeed
+              const aspectValid = aspect !== 0x3ff
+              if (data.useNetEffectiveWindSpeed && aspectValid) {
+                // console.log('windSpeed', windSpeed)
+                const WAZ = data.windAzimuth // Wind Azimuth
+
+                // console.log('ftlCode', ftlCode)
+                // console.log('slope', slope)
+                // console.log('aspect', aspect)
+                // console.log('SFC', SFC)
+                // console.log('PC', PC)
+
+                // get the nett effective wind speed
+                windSpeed = Slopecalc(
+                  ftlCode,
+                  data.ffmc,
+                  data.bui,
+                  windSpeed,
+                  WAZ,
+                  slope,
+                  aspect,
+                  data.fmc,
+                  SFC,
+                  PC,
+                  undefined,
+                  undefined,
+                  data.cbh,
+                  undefined,
+                  'WSV'
+                )
+                // console.log('WSV', windSpeed)
+                // throw new Error('blah')
+                // const slopeEquivalentWindSpeed = calcSlopeEquivalentWindSpeed(ftlNumber, slope)
+                // windSpeed = windSpeed += slopeEquivalentWindSpeed
+                // if (slopeEquivalentWindSpeed > 0) {
+                //   // console.log('slope', slope)
+                //   // console.log('slopeEquivalentWindSpeed', slopeEquivalentWindSpeed)
+                //   // console.log('windSpeed', windSpeed)
+                //   throw new Error('blah')
+                // }
+              }
+              const PDF = undefined
+              const CC = undefined
+              const isi = ISIcalc(data.ffmc, windSpeed)
+              ros = ROScalc(ftlCode, isi, data.bui, data.fmc, SFC, PC, PDF, CC, data.cbh)
               // if (ftlNumber in data.info['known']) {
               //   data.info['known'][ftlNumber]++
               // } else {
               //   data.info['known'][ftlNumber] = 1
               // }
             } else {
-              // if (ftlNumber in data.info['unknown']) {
-              //   data.info['unknown'][ftlNumber]++
-              // } else {
-              //   data.info['unknown'][ftlNumber] = 1
-              // }
+              if (isNonFuel(ftlNumber)) {
+                ros = -2
+                // if (ftlNumber in data.info['known']) {
+                //   data.info['known'][ftlNumber]++
+                // } else {
+                //   data.info['known'][ftlNumber] = 1
+                // }
+              } else {
+                // if (ftlNumber in data.info['unknown']) {
+                //   data.info['unknown'][ftlNumber]++
+                // } else {
+                //   data.info['unknown'][ftlNumber] = 1
+                // }
+              }
             }
-          }
 
-          if (ros > data.maxRos) {
-            data.maxRos = ros
-            // console.log('max ros:', ros)
+            if (ros > data.maxRos) {
+              data.maxRos = ros
+              // console.log('max ros:', ros)
+            }
+            return calcROSColour(ros, data.opacity)
           }
-          return calcROSColour(ros, data.opacity)
+        } catch (e) {
+          throw e
+          return [0, 0, 0, 0]
         }
       } else if (data.mode === 'Elevation') {
         if (!heightValid) {
