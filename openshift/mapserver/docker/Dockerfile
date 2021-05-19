@@ -9,6 +9,8 @@ RUN DEBIAN_FRONTEND="noninteractive" apt-get -y install cgi-mapserver \
     mapserver-bin mapserver-doc libmapscript-perl\
     libapache2-mod-fcgid
 
+RUN DEBIAN_FRONTEND="noninteractive" apt-get -y install rsync
+
 RUN sed -i 's/80/8080/g' /etc/apache2/ports.conf
 
 COPY mapserver.conf /etc/apache2/sites-available/000-default.conf
