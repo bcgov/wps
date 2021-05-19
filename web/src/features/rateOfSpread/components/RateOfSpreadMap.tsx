@@ -22,8 +22,8 @@ const source = new olSource.XYZ({
 })
 
 const getUrl = (layer: string) => {
-  return `https://wps-mapserver-dev.apps.silver.devops.gov.bc.ca/cgi-bin/mapserv?map=/etc/mapserver/mapserver.map&MODE=tile&TILEMODE=gmap&LAYERS=${layer}&TILE={x}+{y}+{z}`
-  // return `http://localhost:8081/cgi-bin/mapserv?map=/etc/mapserver/mapserver.map&MODE=tile&TILEMODE=gmap&LAYERS=${layer}&TILE={x}+{y}+{z}`
+  // return `https://wps-mapserver-dev.apps.silver.devops.gov.bc.ca/cgi-bin/mapserv?map=/etc/mapserver/mapserver.map&MODE=tile&TILEMODE=gmap&LAYERS=${layer}&TILE={x}+{y}+{z}`
+  return `http://localhost:8081/cgi-bin/mapserv?map=/etc/mapserver/mapserver.map&MODE=tile&TILEMODE=gmap&LAYERS=${layer}&TILE={x}+{y}+{z}`
   // return `http://localhost:80/cgi-bin/mapserv?map=/home/sybrand/Workspace/wps/mapserver/sigh.map&MODE=tile&TILEMODE=gmap&LAYERS=${layer}&TILE={x}+{y}+{z}`
 }
 
@@ -1179,6 +1179,9 @@ function createRaster() {
             return [0, 0, 0, 0]
           } else {
             const ftlNumber = (ftl[0] << 16) | (ftl[1] << 8) | ftl[2]
+            if (ftlNumber === 0) {
+              return [0, 0, 0, 0]
+            }
             const ftlCode = ftlNumberToFtlCode(ftlNumber)
             let ros = -1
             if (ftlCode) {
