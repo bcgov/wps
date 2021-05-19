@@ -33,6 +33,13 @@ def convert_to_datetime(timestamp_string):
         raise Exception
 
 
+def convert_day_of_year_to_week_string(day_of_year):
+    day_num = str(day_of_year)
+    day_num.rjust(3 + len(day_num), '0')
+    year = '2011'
+    return datetime.datetime.strptime(year + '-' + day_num, '%Y-%j').strftime('%b %d')
+
+
 st.write("""
 # Peak Burniness 2.0
 """)
@@ -44,13 +51,22 @@ for row in stations_json.weather_stations:
 
 selected_station = st.selectbox('Select weather station:', stations_dropdown_list)
 selected_code = re.search(r'\(\d*\)', selected_station).group(0).strip('()')
-station_filename = '../data/peakValues/'+selected_code+'.json'
 
 st.subheader("Peak burning values for {}".format(selected_station))
-
-station_peak_json = pd.read_json(station_filename)
-
-st.table(data=station_peak_json)
+medians_df = pd.read_csv('../data/minMaxNoonValues/byWeek/'+selected_code+'.csv')
+weeks = []
+for e in medians_df['week_start_day']:
+    weeks.append(convert_day_of_year_to_week_string(e))
+table_fig = go.Figure(data=[go.Table(header=dict(values=['Week of', 'Median Maximum Temperature (°C)',
+                                                         'Median Minimum Temperature (°C)', 'Median Maximum RH (%)', 'Median Minimum RH (%)',
+                                                         'Median Maximum Wind Speed (km/h)', 'Median Minimum Wind Speed (km/h)', 'Median Maximum FFMC',
+                                                         'Median Minimum FFMC', 'Median Maximum FWI', 'Median Minimum FWI']),
+                                     cells=dict(values=[weeks, medians_df.median_max_temp, medians_df.median_min_temp, medians_df.median_max_rh,
+                                                        medians_df.median_min_rh, medians_df.median_max_wind_speed, medians_df.median_min_wind_speed,
+                                                        medians_df.median_max_ffmc, medians_df.median_min_ffmc, medians_df.median_max_fwi,
+                                                        medians_df.median_min_fwi]))])
+table_fig.update_layout({'width': 1100, 'height': 600})
+st.plotly_chart(table_fig)
 
 # The code necessary to render 3D histograms in Plotly is ugly because Plotly doesn't officially support 3D histograms,
 # but a hacky solution has been copied from https://stackoverflow.com/a/60403270 (which includes explanation
