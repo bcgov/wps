@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 
 import { NoonForecastValue } from 'api/forecastAPI'
-import { formatDateInPST } from 'utils/date'
+import { formatDateInPST, formatDateInUTC00Suffix } from 'utils/date'
 import {
   comparisonTableStyles,
   formatPrecipitation,
@@ -26,7 +26,6 @@ import {
 import { ObservedValue } from 'api/observationAPI'
 import { getDatetimeComparator, Order } from 'utils/table'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
-import { DateTime } from 'luxon'
 import { calculateAccumulatedPrecip } from 'utils/table'
 
 interface NoonForecastTableProps {
@@ -113,15 +112,12 @@ const NoonForecastTable = (props: NoonForecastTableProps) => {
                     const observation = observationsRowsSortedByDatetime.find(
                       obs => obs.datetime === forecast.datetime
                     )
-                    const forecastDatetime = DateTime.fromISO(
-                      forecast.datetime
-                    ).toJSDate()
+                    const forecastDatetime = formatDateInUTC00Suffix(forecast.datetime)
 
                     const accumPrecip = calculateAccumulatedPrecip(
-                      forecastDatetime.toString(),
+                      forecastDatetime,
                       observationsRowsSortedByDatetime
                     )
-                    console.log(accumPrecip)
 
                     return (
                       <TableRow key={idx}>
@@ -170,7 +166,7 @@ const NoonForecastTable = (props: NoonForecastTableProps) => {
                         </TableCell>
                         <TableCell className={classes.lightColumn}>
                           {formatPrecipitation(
-                            accumPrecip,
+                            accumPrecip?.precipitation,
                             classes.precipitationValue
                           )}
                         </TableCell>
