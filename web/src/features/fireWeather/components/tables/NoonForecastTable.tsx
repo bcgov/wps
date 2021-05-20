@@ -24,9 +24,8 @@ import {
   Typography
 } from '@material-ui/core'
 import { ObservedValue } from 'api/observationAPI'
-import { getDatetimeComparator, Order } from 'utils/table'
+import { getDatetimeComparator, Order, calculateAccumulatedPrecip } from 'utils/table'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
-import { calculateAccumulatedPrecip } from 'utils/table'
 
 interface NoonForecastTableProps {
   testId?: string
