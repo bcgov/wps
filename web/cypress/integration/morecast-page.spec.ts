@@ -63,7 +63,7 @@ describe('MoreCast Page', () => {
     cy.url().should('contain', `${timeOfInterestQueryKey}=${timeOfInterest}`)
   })
 
-  describe.only('When wx data for multiple stations fetched', () => {
+  describe('When wx data for multiple stations fetched', () => {
     beforeEach(() => {
       cy.intercept('POST', 'api/observations/', { fixture: 'weather-data/observations' })
       cy.intercept('POST', 'api/forecasts/noon/', { fixture: 'weather-data/noon-forecasts' })
