@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { ReactElement } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import { ClassNameMap } from '@material-ui/styles/withStyles'
 import Paper from '@material-ui/core/Paper'
@@ -88,7 +88,7 @@ const findNoonMatch = (
 
 type TemperatureSourceType = NoonForecastValue | ObservedValue | ModelValue | undefined
 
-export const formatTemperature = (source: TemperatureSourceType) => {
+export const formatTemperature = (source: TemperatureSourceType): ReactElement => {
   return (
     <div>
       {typeof source?.temperature === 'number' &&
@@ -113,7 +113,7 @@ const formatModelTemperature = (source: ModelValue | undefined) => {
 export const formatRelativeHumidity = (
   source: NoonForecastValue | ObservedValue | ModelValue | undefined,
   valueClassName: string
-) => {
+): ReactElement => {
   return (
     <div className={valueClassName}>
       {typeof source?.relative_humidity === 'number' &&
@@ -125,7 +125,7 @@ export const formatRelativeHumidity = (
 const formatModelRelativeHumidity = (
   source: ModelValue | undefined,
   valueClassName: string
-) => {
+): ReactElement => {
   const tooltip = (source as ModelValue)?.model_run_datetime
   return (
     <ToolTip title={`model run time: ${tooltip}`} aria-label="Relative humidity" arrow>
@@ -138,7 +138,7 @@ export const formatWindSpeedDirection = (
   source: NoonForecastValue | ObservedValue | ModelValue | undefined,
   windSpeedClassName: string,
   windDirectionClassName: string
-) => {
+): ReactElement => {
   return (
     <div>
       {typeof source?.wind_speed === 'number' && (
@@ -181,7 +181,7 @@ const formatModelWindSpeedDirection = (
 export const formatPrecipitation = (
   precipitation: number | null | undefined,
   precipitationClassName: string
-) => {
+): ReactElement => {
   return (
     <div className={precipitationClassName}>
       {typeof precipitation === 'number' &&
