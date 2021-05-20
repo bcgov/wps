@@ -103,7 +103,7 @@ const formatModelTemperature = (source: ModelValue | undefined) => {
   const tooltip = (source as ModelValue)?.model_run_datetime
   return (
     source && (
-      <ToolTip title={`model run time: ${tooltip}`} aria-label="temperature">
+      <ToolTip title={`model run time: ${tooltip}`} aria-label="temperature" arrow>
         {formatTemperature(source)}
       </ToolTip>
     )
@@ -128,7 +128,7 @@ const formatModelRelativeHumidity = (
 ) => {
   const tooltip = (source as ModelValue)?.model_run_datetime
   return (
-    <ToolTip title={`model run time: ${tooltip}`} aria-label="Relative humidity">
+    <ToolTip title={`model run time: ${tooltip}`} aria-label="Relative humidity" arrow>
       {formatRelativeHumidity(source, valueClassName)}
     </ToolTip>
   )
@@ -167,7 +167,11 @@ const formatModelWindSpeedDirection = (
   const tooltip = (source as ModelValue)?.model_run_datetime
   return (
     source && (
-      <ToolTip title={`model run time: ${tooltip}`} aria-label="Wind speed and direction">
+      <ToolTip
+        title={`model run time: ${tooltip}`}
+        aria-label="Wind speed and direction"
+        arrow
+      >
         {formatWindSpeedDirection(source, windSpeedClassName, windDirectionClassName)}
       </ToolTip>
     )
@@ -210,7 +214,7 @@ const formatAccumulatedPrecipitation = (
     }
   })
   return (
-    <ToolTip title={title} aria-label="precipitation">
+    <ToolTip title={title} aria-label="precipitation" arrow>
       <div className={precipitationClassName}>
         {precipitation &&
           typeof precipitation.precipitation === 'number' &&
