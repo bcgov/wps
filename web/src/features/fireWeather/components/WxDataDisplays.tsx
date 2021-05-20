@@ -110,7 +110,7 @@ const TableFragment = (props: TableFragmentProps) => {
       </ErrorBoundary>
       <ErrorBoundary>
         <NoonForecastTable
-          testId={`noon-forecasts-table-${code}`}
+          testId={`noon-forecasts-obs-table-${code}`}
           noonForecasts={noonForecasts}
           noonObservations={observations}
         />

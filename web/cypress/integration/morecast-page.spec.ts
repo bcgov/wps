@@ -229,10 +229,9 @@ describe('MoreCast Page', () => {
       checkTableCellHighlighting('noon-gdps-table')
 
       // Check num of noon forecasts rows
-      cy.getByTestId(`noon-forecasts-table-${stationCode}`)
+      cy.getByTestId(`noon-forecasts-obs-table-${stationCode}`)
         .find('tbody > tr')
         .should('have.length', numOfForecasts)
-      checkTableCellHighlighting('noon-forecasts-table')
 
       // Check that collapse and expand functionality works
       cy.getByTestId(`observations-table-${stationCode}-accordion`).click() // Collapse Observations table
@@ -309,9 +308,13 @@ describe('MoreCast Page', () => {
             .should('have.length', num)
         }
 
-        checkNumOfLegends(8)
+        // the 10 Legend items should be: 
+        // Observed Dew Point, Observed Temp, Observed RH, Forecast Temp, Forecast RH, HRDPS Temp, HRDPS RH,
+        // HRDPS Temp 5th - 90th percentile, HRDPS RH 5th - 90th percentile, Time of Interest
+        checkNumOfLegends(10)
 
         cy.getByTestId('wx-graph-hrdps-toggle').click()
+        cy.getByTestId('wx-graph-forecast-toggle').click()
         checkNumOfTempDewpointMarkers(2 * numOfObservations - 1)
         checkNumOfRHMarkers(numOfObservations)
         checkTempDewpointTraces(false)
@@ -365,13 +368,12 @@ describe('MoreCast Page', () => {
             .should('have.length', num)
         }
 
-        checkNumOfLegends(5)
+        checkNumOfLegends(7)
 
         cy.getByTestId('wx-graph-hrdps-toggle').click()
-        checkNumOfBars(6)
+        checkNumOfBars(12)
         cy.getByTestId('wx-graph-observation-toggle').click()
 
-        cy.getByTestId('wx-graph-forecast-toggle').click()
         checkNumOfBars(6)
         cy.getByTestId('wx-graph-forecast-toggle').click()
 
@@ -402,9 +404,10 @@ describe('MoreCast Page', () => {
             .should('have.length', num)
         }
 
-        checkNumOfLegends(3)
+        checkNumOfLegends(4)
 
         cy.getByTestId('wx-graph-hrdps-toggle').click()
+        cy.getByTestId('wx-graph-forecast-toggle').click()
         checkNumOfArrows(numOfObservations)
         cy.getByTestId('wx-graph-observation-toggle').click()
 

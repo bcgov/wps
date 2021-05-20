@@ -69,7 +69,7 @@ const NoonForecastTable = (props: NoonForecastTableProps) => {
       <AccordionDetails>
         <Paper>
           <TableContainer>
-            <Table stickyHeader size="small">
+            <Table stickyHeader size="small" data-testid={`${props.testId}`}>
               <TableHead>
                 <TableRow>
                   <TableCell></TableCell>
