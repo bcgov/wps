@@ -1,16 +1,33 @@
 """ Unit testing for hourly actuals bot (Marvin) """
 from app.time_utils import get_utc_now
+import asyncio
 import os
 import logging
 import pytest
 from pytest_mock import MockerFixture
 from app.fireweather_bot import hourly_actuals
-from app.schemas.observations import WeatherReading
+from app.schemas.observations import WeatherReading, WeatherStationHourlyReadings
+from app.schemas.stations import WeatherStation
 import nest_asyncio
 nest_asyncio.apply()
 
 
 logger = logging.getLogger(__name__)
+
+
+@pytest.fixture()
+def mock_hourly_actuals(mocker: MockerFixture):
+    """ Mocks out hourly actuals as async result """
+    reading_1 = WeatherReading(datetime=get_utc_now())
+    reading_2 = WeatherReading(datetime=get_utc_now())
+    station_1 = WeatherStation(code=1, name="one", lat=0, long=0)
+    station_2 = WeatherStation(code=1, name="one", lat=0, long=0)
+    readings_1 = WeatherStationHourlyReadings(values=[reading_1, reading_2], station=station_1)
+    readings_2 = WeatherStationHourlyReadings(values=[reading_1, reading_2], station=station_2)
+
+    future_hourly = asyncio.Future()
+    future_hourly.set_result([readings_1, readings_2])
+    mocker.patch('app.wildfire_one.get_hourly_readings', return_value=future_hourly)
 
 
 @pytest.mark.asyncio
@@ -25,9 +42,8 @@ async def test_hourly_actuals_bot(mocker: MockerFixture, mock_requests_session, 
     # Assert that we exited without errors.
     assert excinfo.value.code == 0
     # Assert that we got called the expected number of times.
-    # There are 535 records in the csv fixture, one of which doesn't have a valid station name,
-    # so we expect 534 records.
-    assert save_hourly_actuals_spy.call_count == 0
+    # There are 2 records for 2 stations in the fixture above so we expect 4 save calls.
+    assert save_hourly_actuals_spy.call_count == 4
 
 
 @pytest.mark.asyncio

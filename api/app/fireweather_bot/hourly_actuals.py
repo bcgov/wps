@@ -153,8 +153,8 @@ class HourlyActualsBot(BaseBot):
             logger.info("Station hourly readings: %s", station_hourly_readings)
 
             with app.db.database.get_write_session_scope() as session:
-                for station_hourly_reading in station_hourly_readings:
-                    for hourly_reading in station_hourly_reading:
+                for station_hourly_reading in station_hourly_readings.result():
+                    for hourly_reading in station_hourly_reading.values:
                         save_hourly_actual(session, parse_hourly_actual(
                             station_hourly_reading.station.code, hourly_reading))
 
