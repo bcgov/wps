@@ -3,6 +3,7 @@
 from datetime import timezone, datetime
 from contextlib import contextmanager
 from typing import Generator
+import asyncio
 import logging
 import requests
 import pytest
@@ -10,7 +11,9 @@ from sqlalchemy.orm import Session
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
 from pytest_mock import MockerFixture
-from app.time_utils import get_pst_tz
+from app.schemas.observations import WeatherReading, WeatherStationHourlyReadings
+from app.schemas.stations import WeatherStation
+from app.time_utils import get_pst_tz, get_utc_now
 from app.tests.common import (
     MockJWTDecode, default_mock_requests_get, default_mock_requests_post,
     default_mock_requests_session_get, default_mock_requests_session_post)
@@ -142,3 +145,18 @@ def mock_requests_session(monkeypatch):
 def spy_access_logging(mocker: MockerFixture):
     """Spies on access audting logging for tests"""
     return mocker.spy(app.auth, 'create_api_access_audit_log')
+
+
+@pytest.fixture()
+def mock_hourly_actuals(mocker: MockerFixture):
+    """ Mocks out hourly actuals as async result """
+    reading_1 = WeatherReading(datetime=get_utc_now())
+    reading_2 = WeatherReading(datetime=get_utc_now())
+    station_1 = WeatherStation(code=1, name="one", lat=0, long=0)
+    station_2 = WeatherStation(code=1, name="one", lat=0, long=0)
+    readings_1 = WeatherStationHourlyReadings(values=[reading_1, reading_2], station=station_1)
+    readings_2 = WeatherStationHourlyReadings(values=[reading_1, reading_2], station=station_2)
+
+    future_hourly = asyncio.Future()
+    future_hourly.set_result([readings_1, readings_2])
+    mocker.patch('app.wildfire_one.get_hourly_readings', return_value=future_hourly)

@@ -136,7 +136,7 @@ class HourlyActualsBot(BaseBot):
             'rdoReport': 'OSBH',
         }
 
-    def run_wfwx(self):
+    async def run_wfwx(self):
         """ Entry point for running the bot """
         with Session() as session:
             # Authenticate with idir.
@@ -147,7 +147,7 @@ class HourlyActualsBot(BaseBot):
             start_date = self._get_start_date()
             end_date = self._get_end_date()
 
-            station_hourly_readings = wildfire_one.get_hourly_readings(
+            station_hourly_readings = await wildfire_one.get_hourly_readings(
                 station_codes, start_date, end_date)
 
             logger.info("Station hourly readings: %s", station_hourly_readings)
@@ -159,7 +159,7 @@ class HourlyActualsBot(BaseBot):
                             station_hourly_reading.station.code, hourly_reading))
 
 
-def main():
+async def main():
     """ Makes the appropriate method calls in order to submit a query to the BC FireWeather Phase 1 API
     to get hourly values for all weather stations, downloads the resulting CSV file, writes
     the CSV file to the database, then deletes the local copy of the CSV file.
@@ -167,7 +167,7 @@ def main():
     try:
         logger.debug('Retrieving hourly actuals...')
         bot = HourlyActualsBot()
-        bot.run_wfwx()
+        await bot.run_wfwx()
         # Exit with 0 - success.
         sys.exit(os.EX_OK)
     # pylint: disable=broad-except
