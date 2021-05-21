@@ -1,9 +1,11 @@
 """ Unit testing for hourly actuals bot (Marvin) """
+from datetime import datetime
 import os
 import logging
 import pytest
 from pytest_mock import MockerFixture
 from app.fireweather_bot import hourly_actuals
+from app.schemas.observations import WeatherReading
 
 
 logger = logging.getLogger(__name__)
@@ -44,3 +46,27 @@ def test_hourly_actuals_bot_fail(mocker: MockerFixture,
     assert excinfo.value.code == os.EX_SOFTWARE
     # Assert that rocket chat was called.
     assert rocket_chat_spy.call_count == 1
+
+
+def test_parse_hourly_actual():
+    """ Valid fields are set when values exist """
+    weather_reading = WeatherReading(
+        datetime=datetime.now(tz=datetime.timezone.utc),
+        temperature=0.0,
+        relative_humidity=0.0,
+        wind_speed=0.0,
+        wind_direction=0.0,
+        barometric_pressure=0.0,
+        precipitation=0.0,
+        dewpoint=0.0,
+        ffmc=0.0,
+        isi=0.0,
+        fwi=0.0
+    )
+
+    hourly_actual = hourly_actuals.parse_hourly_actual(1, weather_reading)
+    assert hourly_actual.rh_valid is True
+    assert hourly_actual.temp_valid is True
+    assert hourly_actual.wdir_valid is True
+    assert hourly_actual.precip_valid is True
+    assert hourly_actual.wspeed_valid is True

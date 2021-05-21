@@ -11,6 +11,7 @@ from app import configure_logging, config
 import app.db.database
 from app.db.crud.observations import save_hourly_actual
 from app.db.models.observations import HourlyActual
+from app.schemas.observations import WeatherReading
 import app.time_utils
 from app.fireweather_bot.common import (BaseBot, get_station_names_to_codes, authenticate_session)
 from app import wildfire_one
@@ -44,6 +45,34 @@ def _fix_datetime(source_date):
     # we've add the offset, so set the timezone to utc:
     python_date = python_date.replace(tzinfo=timezone.utc)
     return python_date
+
+
+def parse_hourly_actual(station_code: int, hourly_reading: WeatherReading):
+    """ Maps WeatherReading to HourlyActual """
+    temp_valid = hourly_reading.temperature is not None
+    rh_valid = hourly_reading.relative_humidity is not None
+    wdir_valid = hourly_reading.wind_direction is not None
+    wspeed_valid = hourly_reading.wind_speed is not None
+    precip_valid = hourly_reading.precipitation is not None
+
+    return HourlyActual(
+        station_code=station_code,
+        weather_date=hourly_reading.datetime,
+        temp_valid=temp_valid,
+        temperature=hourly_reading.temperature,
+        rh_valid=rh_valid,
+        relative_humidity=hourly_reading.relative_humidity,
+        wspeed_valid=wspeed_valid,
+        wind_speed=hourly_reading.wind_speed,
+        wdir_valid=wdir_valid,
+        wind_direction=hourly_reading.wind_direction,
+        precip_valid=precip_valid,
+        precipitation=hourly_reading.precipitation,
+        dewpoint=hourly_reading.dewpoint,
+        ffmc=hourly_reading.ffmc,
+        isi=hourly_reading.isi,
+        fwi=hourly_reading.fwi,
+    )
 
 
 class HourlyActualsBot(BaseBot):
@@ -118,12 +147,16 @@ class HourlyActualsBot(BaseBot):
             start_date = self._get_start_date()
             end_date = self._get_end_date()
 
-            hourly_readings = wildfire_one.get_hourly_readings(
+            station_hourly_readings = wildfire_one.get_hourly_readings(
                 station_codes, start_date, end_date)
 
-            logger.info("Hourly readings: %s", hourly_readings)
+            logger.info("Station hourly readings: %s", station_hourly_readings)
 
-            # TODO: format and save result
+            with app.db.database.get_write_session_scope() as session:
+                for station_hourly_reading in station_hourly_readings:
+                    for hourly_reading in station_hourly_reading:
+                        save_hourly_actual(session, parse_hourly_actual(
+                            station_hourly_reading.station.code, hourly_reading))
 
 
 def main():
@@ -134,7 +167,7 @@ def main():
     try:
         logger.debug('Retrieving hourly actuals...')
         bot = HourlyActualsBot()
-        bot.run()
+        bot.run_wfwx()
         # Exit with 0 - success.
         sys.exit(os.EX_OK)
     # pylint: disable=broad-except
