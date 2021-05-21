@@ -7,7 +7,6 @@ import {
   observedValues
 } from 'utils/storybook'
 import NoonForecastTable from 'features/fireWeather/components/tables/NoonForecastTable'
-import { GeoJsonStation } from 'api/stationAPI'
 
 export default {
   title: 'morecast/StationComparisonTable'
