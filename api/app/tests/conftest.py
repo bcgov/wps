@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
 from pytest_mock import MockerFixture
-from app.time_utils import get_pst_tz, get_utc_now
+from app.time_utils import get_pst_tz
 from app.tests.common import (
     MockJWTDecode, default_mock_requests_get, default_mock_requests_post,
     default_mock_requests_session_get, default_mock_requests_session_post)
