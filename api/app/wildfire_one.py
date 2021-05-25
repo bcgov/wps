@@ -362,9 +362,7 @@ async def fetch_hourlies(
         headers: dict,
         start_timestamp: int,
         end_timestamp: int) -> WeatherStationHourlyReadings:
-    """ Fetch hourly weather readings for the past 5 days for a give station
-    TODO: rename this function, or specify the time range.
-    """
+    """ Fetch hourly weather readings for the specified time range for a give station """
     logger.debug('fetching hourlies for %s(%s)',
                  raw_station['displayLabel'], raw_station['stationCode'])
 
