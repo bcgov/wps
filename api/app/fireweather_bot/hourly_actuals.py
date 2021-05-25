@@ -3,6 +3,7 @@
 import os
 from datetime import timedelta, timezone, datetime
 import logging
+import math
 import sys
 from sqlalchemy.exc import IntegrityError
 import pandas as pd
@@ -50,10 +51,14 @@ def _fix_datetime(source_date):
 def parse_hourly_actual(station_code: int, hourly_reading: WeatherReading):
     """ Maps WeatherReading to HourlyActual """
     temp_valid = hourly_reading.temperature is not None
-    rh_valid = hourly_reading.relative_humidity is not None
-    wdir_valid = hourly_reading.wind_direction is not None
-    wspeed_valid = hourly_reading.wind_speed is not None
-    precip_valid = hourly_reading.precipitation is not None
+    rh_valid = hourly_reading.relative_humidity is not None and validate_metric(
+        hourly_reading.relative_humidity, 0, 100)
+    wdir_valid = hourly_reading.wind_direction is not None and validate_metric(
+        hourly_reading.wind_direction, 0, 360)
+    wspeed_valid = hourly_reading.wind_speed is not None and validate_metric(
+        hourly_reading.wind_speed, 0, math.inf)
+    precip_valid = hourly_reading.precipitation is not None and validate_metric(
+        hourly_reading.precipitation, 0, math.inf)
 
     return HourlyActual(
         station_code=station_code,
@@ -73,6 +78,11 @@ def parse_hourly_actual(station_code: int, hourly_reading: WeatherReading):
         isi=hourly_reading.isi,
         fwi=hourly_reading.fwi,
     )
+
+
+def validate_metric(value, low, high):
+    """ Validate metric with it's range of accepted values """
+    return low <= value <= high
 
 
 class HourlyActualsBot(BaseBot):
