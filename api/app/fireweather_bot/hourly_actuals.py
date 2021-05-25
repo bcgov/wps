@@ -5,16 +5,14 @@ from datetime import timedelta, timezone, datetime
 import logging
 import math
 import sys
-from sqlalchemy.exc import IntegrityError
-import pandas as pd
 from requests import Session
-from app import configure_logging, config
+from app import configure_logging
 import app.db.database
 from app.db.crud.observations import save_hourly_actual
 from app.db.models.observations import HourlyActual
 from app.schemas.observations import WeatherReading
 import app.time_utils
-from app.fireweather_bot.common import (BaseBot, get_station_names_to_codes, authenticate_session)
+from app.fireweather_bot.common import (get_station_names_to_codes, authenticate_session)
 from app import wildfire_one
 from app.rocketchat_notifications import send_rocketchat_notification
 
@@ -85,7 +83,7 @@ def validate_metric(value, low, high):
     return low <= value <= high
 
 
-class HourlyActualsBot(BaseBot):
+class HourlyActualsBot():
     """ Bot that downloads the hourly actuals from the wildfire website and stores it in a database. """
 
     def __init__(self):
@@ -103,48 +101,6 @@ class HourlyActualsBot(BaseBot):
     def _get_end_date(self) -> int:
         """ Return now. E.g. if it's 17h15 now, we'd get YYYYMMDD17 """
         return int(self.now.strftime('%Y%m%d%H'))
-
-    def process_csv(self, filename: str):
-        with open(filename, 'r') as csv_file:
-            data_df = pd.read_csv(csv_file)
-        station_codes = get_station_names_to_codes()
-        # drop any rows where 'display_name' is not found in the station_codes lookup:
-        data_df.drop(index=data_df[~data_df['display_name'].isin(
-            station_codes.keys())].index, inplace=True)
-        # replace 'display_name' column (station name) in df with station_id
-        # and rename the column appropriately
-        data_df['display_name'].replace(station_codes, inplace=True)
-        data_df.rename(columns={'display_name': 'station_code'}, inplace=True)
-
-        # write to database using _session's engine
-        with app.db.database.get_write_session_scope() as session:
-            # write the data_df to the database one row at a time, so that if data_df contains >=1 rows that
-            # are duplicates of what is already in the db, the write won't fail for the unique rows
-            # NOTE: iterating over the data_df one Series (row) at a time is ugly, but until pandas is
-            # updated with a fix, this is the easiest work-around.
-            # See https://github.com/pandas-dev/pandas/issues/15988
-            # pylint: disable=unused-variable
-            for index, row in data_df.iterrows():
-                try:
-                    # Go from pandas to a python dict.
-                    data = row.to_dict()
-                    # Format and fix timestamp, make it be tz aware.
-                    data['weather_date'] = _fix_datetime(data['weather_date'])
-                    # Throw the data into the model, and persist in the database
-                    save_hourly_actual(session, HourlyActual(**data))
-                except IntegrityError:
-                    logger.info('Skipping duplicate record for %s @ %s',
-                                data['station_code'], data['weather_date'])
-                    session.rollback()
-
-    def construct_request_body(self):
-        return {
-            'Start_Date': self._get_start_date(),
-            'End_Date': self._get_end_date(),
-            'Format': 'CSV',
-            'cboFilters': config.get('BC_FIRE_WEATHER_FILTER_ID'),
-            'rdoReport': 'OSBH',
-        }
 
     async def run_wfwx(self):
         """ Entry point for running the bot """
@@ -170,9 +126,8 @@ class HourlyActualsBot(BaseBot):
 
 
 async def main():
-    """ Makes the appropriate method calls in order to submit a query to the BC FireWeather Phase 1 API
-    to get hourly values for all weather stations, downloads the resulting CSV file, writes
-    the CSV file to the database, then deletes the local copy of the CSV file.
+    """ Makes the appropriate method calls in order to submit
+    asynchronous queries to the Wildfire 1 API to get hourly values for all weather stations.
     """
     try:
         logger.debug('Retrieving hourly actuals...')

@@ -8,6 +8,7 @@ from pytest_mock import MockerFixture
 from app.fireweather_bot import hourly_actuals
 from app.schemas.observations import WeatherReading, WeatherStationHourlyReadings
 from app.schemas.stations import WeatherStation
+from app import wildfire_one
 import nest_asyncio
 nest_asyncio.apply()
 
@@ -54,10 +55,10 @@ async def test_hourly_actuals_bot_fail(mocker: MockerFixture,
     Test that when the bot fails, a message is sent to rocket-chat, and our exit code is 1.
     """
 
-    def mock_process_csv(self, filename: str):
+    def mock_get_hourly_readings(self, filename: str):
         raise Exception()
 
-    monkeypatch.setattr(hourly_actuals.HourlyActualsBot, 'process_csv', mock_process_csv)
+    monkeypatch.setattr(wildfire_one, 'get_hourly_readings', mock_get_hourly_readings)
     rocket_chat_spy = mocker.spy(hourly_actuals, 'send_rocketchat_notification')
 
     with pytest.raises(SystemExit) as excinfo:
