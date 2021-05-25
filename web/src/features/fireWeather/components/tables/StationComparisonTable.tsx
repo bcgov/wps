@@ -190,7 +190,7 @@ export const formatPrecipitation = (
   )
 }
 
-const formatAccumulatedPrecipitation = (
+export const formatAccumulatedPrecipitation = (
   precipitation: AccumulatedPrecipitation | undefined,
   precipitationClassName: string
 ) => {

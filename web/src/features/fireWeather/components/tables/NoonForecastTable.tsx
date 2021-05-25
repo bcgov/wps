@@ -5,6 +5,7 @@ import { formatDateInPST, formatDateInUTC00Suffix } from 'utils/date'
 import {
   comparisonTableStyles,
   formatPrecipitation,
+  formatAccumulatedPrecipitation,
   formatRelativeHumidity,
   formatTemperature,
   formatWindSpeedDirection
@@ -164,8 +165,8 @@ const NoonForecastTable = (props: NoonForecastTableProps) => {
                           )}
                         </TableCell>
                         <TableCell className={classes.lightColumn}>
-                          {formatPrecipitation(
-                            accumPrecip?.precipitation,
+                          {formatAccumulatedPrecipitation(
+                            accumPrecip,
                             classes.precipitationValue
                           )}
                         </TableCell>
