@@ -90,3 +90,25 @@ def test_parse_hourly_actual():
     assert hourly_actual.wdir_valid is True
     assert hourly_actual.precip_valid is True
     assert hourly_actual.wspeed_valid is True
+
+
+def test_invalid_metrics():
+    """ Metric valid flags should be false """
+    weather_reading = WeatherReading(
+        datetime=get_utc_now(),
+        temperature=0.0,
+        relative_humidity=101,
+        wind_speed=-1,
+        wind_direction=361,
+        barometric_pressure=0.0,
+        precipitation=-1,
+        dewpoint=0.0,
+        ffmc=0.0,
+        isi=0.0,
+        fwi=0.0)
+
+    hourly_actual = hourly_actuals.parse_hourly_actual(1, weather_reading)
+    assert hourly_actual.rh_valid is False
+    assert hourly_actual.wdir_valid is False
+    assert hourly_actual.precip_valid is False
+    assert hourly_actual.wspeed_valid is False
