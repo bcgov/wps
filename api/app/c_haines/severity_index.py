@@ -246,7 +246,7 @@ def save_data_as_geojson(
 
 
 def save_geojson_to_object_store(session: Session,
-                                 source_projection, filename: str,
+                                 filename: str,
                                  prediction_timestamp: datetime,
                                  model_run: CHainesModelRun):
     """ Open geojson file, iterate through features, saving them into the
@@ -279,10 +279,10 @@ def save_geojson_to_object_store(session: Session,
     # proj_to = Proj(NAD83)
     # project = Transformer.from_proj(proj_from, proj_to, always_xy=True)
 
-    # # Create a prediction record to hang everything off of:
-    # prediction = CHainesPrediction(model_run=model_run,
-    #                                prediction_timestamp=prediction_timestamp)
-    # session.add(prediction)
+    # Create a prediction record to hang everything off of:
+    prediction = CHainesPrediction(model_run=model_run,
+                                   prediction_timestamp=prediction_timestamp)
+    session.add(prediction)
     # # Convert each feature into a shapely geometry and save to database.
     # for feature in data['features']:
     #     # Create polygon:
@@ -296,8 +296,7 @@ def save_geojson_to_object_store(session: Session,
     #         c_haines_prediction=prediction)
     #     # Add to current session.
     #     session.add(polygon)
-    # # Only commit once we have everything.
-    # session.commit()
+    session.commit()
 
 
 def generate_severity_data(c_haines_data):
@@ -449,11 +448,10 @@ class CHainesSeverityGenerator():
                 source_info,
                 json_filename)
 
-            save_geojson_to_database(self.session,
-                                     source_info.projection,
-                                     json_filename,
-                                     payload.prediction_timestamp,
-                                     payload.model_run)
+            save_geojson_to_object_store(self.session,
+                                         json_filename,
+                                         payload.prediction_timestamp,
+                                         payload.model_run)
 
     def generate(self):
         """ Entry point for generating and storing c-haines severity index. """
