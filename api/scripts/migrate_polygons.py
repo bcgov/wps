@@ -5,9 +5,11 @@ from minio import Minio
 from app.db.crud.c_haines import get_all_kml, get_all_geojson
 
 root_bucket = "gpdqha"
-c_haines_polygons_bucket = "c-haines-polygons"
-kml_bucket = "kml"
-geo_json_bucket = "geo-json"
+c_haines_polygons_folder = "c-haines-polygons"
+kml_folder = "kml"
+geo_json_folder = "geo-json"
+placeholder_file = ".placeholder.txt"
+placeholder_content = io.BytesIO(b"")
 
 
 def migrate_kml(client):
@@ -15,15 +17,16 @@ def migrate_kml(client):
     with app.db.database.get_read_session_scope() as session:
         result = get_all_kml(session)
         for row in result:
-            client.put_object(root_bucket, c_haines_polygons_bucket + '/' + kml_bucket + '/' +
+            client.put_object(root_bucket, c_haines_polygons_folder + '/' + kml_folder + '/' +
                               row['c_haines_prediction_id'], io.BytesIO(row))
 
 
 def migrate_geo_json(client):
+    """Query db for all geojson and store in object store"""
     with app.db.database.get_read_session_scope() as session:
         result = get_all_geojson(session)
         for row in result:
-            client.put_object(root_bucket, c_haines_polygons_bucket + '/' + geo_json_bucket + '/' +
+            client.put_object(root_bucket, c_haines_polygons_folder + '/' + geo_json_folder + '/' +
                               row['c_haines_prediction_id'], io.BytesIO(row))
 
 
@@ -55,15 +58,15 @@ def main():
         exit(1)
 
     # Create c-haines folder
-    client.put_object(root_bucket, c_haines_polygons_bucket + '/' +
-                      '.placeholder.txt', io.BytesIO(b"test"), 4,)
+    client.put_object(root_bucket, c_haines_polygons_folder + '/' +
+                      placeholder_file, placeholder_content, 0,)
     # Create kml folder
-    client.put_object(root_bucket, c_haines_polygons_bucket + '/' + kml_bucket + '/' +
-                      '.placeholder.txt', io.BytesIO(b"test"), 4,)
+    client.put_object(root_bucket, c_haines_polygons_folder + '/' + kml_folder + '/' +
+                      placeholder_file, placeholder_content, 0,)
 
     # Create geo-json folder
-    client.put_object(root_bucket, c_haines_polygons_bucket + '/' + geo_json_bucket + '/' +
-                      '.placeholder.txt', io.BytesIO(b"test"), 4,)
+    client.put_object(root_bucket, c_haines_polygons_folder + '/' + geo_json_folder + '/' +
+                      placeholder_file, placeholder_content, 0,)
 
     migrate_kml(client)
     migrate_geo_json(client)
