@@ -2,11 +2,29 @@
 import argparse
 import io
 from minio import Minio
+from app.db.crud.c_haines import get_all_kml, get_all_geojson
 
 root_bucket = "gpdqha"
 c_haines_polygons_bucket = "c-haines-polygons"
 kml_bucket = "kml"
 geo_json_bucket = "geo-json"
+
+
+def migrate_kml(client):
+    """Query db for all kml polygons and store in object store"""
+    with app.db.database.get_read_session_scope() as session:
+        result = get_all_kml(session)
+        for row in result:
+            client.put_object(root_bucket, c_haines_polygons_bucket + '/' + kml_bucket + '/' +
+                              row['c_haines_prediction_id'], io.BytesIO(row))
+
+
+def migrate_geo_json(client):
+    with app.db.database.get_read_session_scope() as session:
+        result = get_all_geojson(session)
+        for row in result:
+            client.put_object(root_bucket, c_haines_polygons_bucket + '/' + geo_json_bucket + '/' +
+                              row['c_haines_prediction_id'], io.BytesIO(row))
 
 
 def main():
@@ -46,6 +64,9 @@ def main():
     # Create geo-json folder
     client.put_object(root_bucket, c_haines_polygons_bucket + '/' + geo_json_bucket + '/' +
                       '.placeholder.txt', io.BytesIO(b"test"), 4,)
+
+    migrate_kml(client)
+    migrate_geo_json(client)
 
 
 if __name__ == '__main__':

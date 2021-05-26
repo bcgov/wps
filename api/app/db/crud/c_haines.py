@@ -217,3 +217,43 @@ def get_prediction_geojson(session: Session,
     })
     row = next(response)
     return row[0]
+
+
+def get_all_kml(session: Session):
+    """ Get the kml for all models and predictions """
+    query = text("""select ST_AsKML(ST_SetSRID(t.geom, 4269)), t.c_haines_index, t.prediction_timestamp from (
+        select geom, c_haines_index, prediction_timestamp from c_haines_polygons
+        inner join c_haines_predictions on
+            c_haines_predictions.id =
+            c_haines_polygons.c_haines_prediction_id
+        inner join c_haines_model_runs on
+            c_haines_model_runs.id = 
+            c_haines_predictions.model_run_id
+        inner join prediction_models on
+            prediction_models.id =
+            c_haines_model_runs.prediction_model_id
+        order by prediction_timestamp asc, c_haines_index asc
+    ) as t(geom, c_haines_index)""")
+    return session.execute(query)
+
+
+def get_all_geojson(session: Session):
+    """ Get the geojson for a particular prediction """
+    query = text("""select json_build_object(
+        'type', 'FeatureCollection',
+        'features', json_agg(ST_AsGeoJSON(t.*)::json)
+    )
+        from (
+        select geom, c_haines_index from c_haines_polygons
+        inner join c_haines_predictions on
+            c_haines_predictions.id =
+            c_haines_polygons.c_haines_prediction_id
+        inner join c_haines_model_runs on
+            c_haines_model_runs.id = 
+            c_haines_predictions.model_run_id
+        inner join prediction_models on
+            prediction_models.id =
+            c_haines_model_runs.prediction_model_id
+        order by c_haines_index asc
+    ) as t(geom, c_haines_index)""")
+    return session.execute(query)
