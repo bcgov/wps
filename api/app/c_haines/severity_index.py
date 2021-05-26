@@ -4,6 +4,9 @@ import os
 from datetime import datetime, timezone, timedelta
 from typing import Final, Tuple, Generator, Union, List
 from contextlib import contextmanager
+from app import config
+from minio import Minio
+import io
 import tempfile
 import logging
 import json
@@ -242,10 +245,10 @@ def save_data_as_geojson(
     del dst_ds, data_ds, mask_ds
 
 
-def save_geojson_to_database(session: Session,
-                             source_projection, filename: str,
-                             prediction_timestamp: datetime,
-                             model_run: CHainesModelRun):
+def save_geojson_to_object_store(session: Session,
+                                 source_projection, filename: str,
+                                 prediction_timestamp: datetime,
+                                 model_run: CHainesModelRun):
     """ Open geojson file, iterate through features, saving them into the
     database.
     """
@@ -255,31 +258,45 @@ def save_geojson_to_database(session: Session,
     with open(filename) as file:
         data = json.load(file)
 
-    # Source coordinate system, must match source data.
-    proj_from = Proj(projparams=source_projection)
-    # Destination coordinate systems (NAD83, geographic coordinates)
-    proj_to = Proj(NAD83)
-    project = Transformer.from_proj(proj_from, proj_to, always_xy=True)
+    server = config.get('OBJECT_STORE_SERVER')
+    user_id = config.get('OBJECT_STORE_USER_ID')
+    secret_key = config.get('OBJECT_STORE_SECRET')
+    bucket = config.get('OBJECT_STORE_BUCKET')
 
-    # Create a prediction record to hang everything off of:
-    prediction = CHainesPrediction(model_run=model_run,
-                                   prediction_timestamp=prediction_timestamp)
-    session.add(prediction)
-    # Convert each feature into a shapely geometry and save to database.
-    for feature in data['features']:
-        # Create polygon:
-        source_geometry = shape(feature['geometry'])
-        # Transform polygon from source to NAD83
-        geometry = transform(project.transform, source_geometry)
-        # Create data model object.
-        polygon = CHainesPoly(
-            geom=geometry.wkt,
-            c_haines_index=get_severity_string(feature['properties']['severity']),
-            c_haines_prediction=prediction)
-        # Add to current session.
-        session.add(polygon)
-    # Only commit once we have everything.
-    session.commit()
+    client = Minio(server, user_id, secret_key, secure=True)
+    if not client.bucket_exists(bucket):
+        print("Bucket specified does not exist")
+        exit(1)
+
+    # Push data to object store
+    client.put_object(bucket, 'c-haines' + '/' + model_run.model_run_timestamp + '/' +
+                      'hour.json', io.BytesIO(data))
+
+    # # Source coordinate system, must match source data.
+    # proj_from = Proj(projparams=source_projection)
+    # # Destination coordinate systems (NAD83, geographic coordinates)
+    # proj_to = Proj(NAD83)
+    # project = Transformer.from_proj(proj_from, proj_to, always_xy=True)
+
+    # # Create a prediction record to hang everything off of:
+    # prediction = CHainesPrediction(model_run=model_run,
+    #                                prediction_timestamp=prediction_timestamp)
+    # session.add(prediction)
+    # # Convert each feature into a shapely geometry and save to database.
+    # for feature in data['features']:
+    #     # Create polygon:
+    #     source_geometry = shape(feature['geometry'])
+    #     # Transform polygon from source to NAD83
+    #     geometry = transform(project.transform, source_geometry)
+    #     # Create data model object.
+    #     polygon = CHainesPoly(
+    #         geom=geometry.wkt,
+    #         c_haines_index=get_severity_string(feature['properties']['severity']),
+    #         c_haines_prediction=prediction)
+    #     # Add to current session.
+    #     session.add(polygon)
+    # # Only commit once we have everything.
+    # session.commit()
 
 
 def generate_severity_data(c_haines_data):
