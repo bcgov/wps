@@ -96,9 +96,10 @@ describe('MoreCast Page', () => {
 
       // expect the sidepanel to be partially expanded (we compare the calculated width, and expect
       // it to match the width of our browser window)
-      // NOTE: Using an exact pixel width is an issue, as the pixel width can be slightly different
-      // from platform to platform.
-      cy.getByTestId('expandable-container-content').should('have.css', 'width', '787px')
+      cy.getByTestId('expandable-container-content')
+        .invoke('css', 'width')
+        .then(str => parseInt(str))
+        .should('be.lt', 790)
     })
   })
 
