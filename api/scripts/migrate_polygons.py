@@ -4,6 +4,9 @@ import io
 from minio import Minio
 
 root_bucket = "gpdqha"
+c_haines_polygons_bucket = "c-haines-polygons"
+kml_bucket = "kml"
+geo_json_bucket = "geo-json"
 
 
 def main():
@@ -33,7 +36,16 @@ def main():
         print("Bucket specified does not exist")
         exit(1)
 
-    client.put_object(root_bucket, 'c_haines_polygons' + '/' + 'test.txt', io.BytesIO(b"test"), 4,)
+    # Create c-haines folder
+    client.put_object(root_bucket, c_haines_polygons_bucket + '/' +
+                      '.placeholder.txt', io.BytesIO(b"test"), 4,)
+    # Create kml folder
+    client.put_object(root_bucket, c_haines_polygons_bucket + '/' + kml_bucket + '/' +
+                      '.placeholder.txt', io.BytesIO(b"test"), 4,)
+
+    # Create geo-json folder
+    client.put_object(root_bucket, c_haines_polygons_bucket + '/' + geo_json_bucket + '/' +
+                      '.placeholder.txt', io.BytesIO(b"test"), 4,)
 
 
 if __name__ == '__main__':
