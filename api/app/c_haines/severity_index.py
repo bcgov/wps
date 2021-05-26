@@ -269,8 +269,9 @@ def save_geojson_to_object_store(session: Session,
         exit(1)
 
     # Push data to object store
+    data_as_bytes = json.dumps(data).encode('utf-8')
     client.put_object(bucket, 'c-haines' + '/' + model_run.model_run_timestamp + '/' +
-                      'hour.json', io.BytesIO(data))
+                      'hour.json', data_as_bytes, len(data_as_bytes))
 
     # # Source coordinate system, must match source data.
     # proj_from = Proj(projparams=source_projection)
