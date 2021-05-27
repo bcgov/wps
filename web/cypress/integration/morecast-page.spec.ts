@@ -1,6 +1,24 @@
 import { FIRE_WEATHER_ROUTE, MORECAST_ROUTE, PARTIAL_WIDTH } from '../../src/utils/constants'
 import { stationCodeQueryKey, timeOfInterestQueryKey } from '../../src/utils/url'
 const stationCode = 328
+const stationCode2 = 380
+const numOfObservations = 119
+
+const interceptData = () => {
+  cy.intercept('POST', 'api/observations/', { fixture: 'weather-data/observations' })
+  cy.intercept('POST', 'api/forecasts/noon/', { fixture: 'weather-data/noon-forecasts' })
+  cy.intercept('POST', 'api/forecasts/noon/summaries/', { fixture: 'weather-data/noon-forecast-summaries' })
+  cy.intercept('POST', 'api/weather_models/GDPS/predictions/most_recent', {fixture:'weather-data/models-with-bias-adjusted'}) // prettier-ignore
+  cy.intercept('POST', 'api/weather_models/GDPS/predictions/summaries/', {
+    fixture: 'weather-data/model-summaries'
+  })
+  cy.intercept('POST', 'api/weather_models/HRDPS/predictions/most_recent', {fixture:'weather-data/hr-models-with-bias-adjusted'}) // prettier-ignore
+  cy.intercept('POST', 'api/weather_models/HRDPS/predictions/summaries', {fixture:'weather-data/high-res-model-summaries'}) // prettier-ignore
+  cy.intercept('POST', 'api/weather_models/RDPS/predictions/most_recent', {fixture:'weather-data/regional-models-with-bias-adjusted'}) // prettier-ignore
+  cy.intercept('POST', 'api/weather_models/RDPS/predictions/summaries', {
+    fixture: 'weather-data/regional-model-summaries'
+  })
+}
 
 describe('MoreCast Page', () => {
   beforeEach(() => {
@@ -63,21 +81,52 @@ describe('MoreCast Page', () => {
     cy.url().should('contain', `${timeOfInterestQueryKey}=${timeOfInterest}`)
   })
 
+  describe('When loading a single station from url', () => {
+    beforeEach(() => {
+      interceptData()
+
+      cy.visit(`${MORECAST_ROUTE}?codes=${stationCode}`)
+      cy.wait('@getStations')
+    })
+
+    it('should load with an observation table', () => {
+      cy.getByTestId(`observations-table-${stationCode}`)
+        .find('tbody > tr')
+        .should('have.length', numOfObservations)
+
+      // expect the sidepanel to be partially expanded (we compare the calculated width, and expect
+      // it to match the width of our browser window)
+      cy.getByTestId('expandable-container-content')
+        .invoke('css', 'width')
+        .then(str => parseInt(str))
+        .should('be.lt', 790)
+    })
+  })
+
+  describe('When loading multiple stations from url', () => {
+    beforeEach(() => {
+      interceptData()
+
+      cy.visit(`${MORECAST_ROUTE}?codes=${stationCode},${stationCode2}`)
+      cy.wait('@getStations')
+    })
+
+    it('Should display station comparison table', () => {
+      // expect Station Comparison to be selected
+      cy.getByTestId('station-comparison-button').should('have.attr', 'aria-pressed', 'true')
+
+      // expect the table to exist.
+      cy.getByTestId('station-comparison-table').should('exist')
+
+      // expect the sidepanel to be fully expanded (we compare the calculated width, and expect
+      // it to match the width of our browser window)
+      cy.getByTestId('expandable-container-content').should('have.css', 'width', '1000px')
+    })
+  })
+
   describe('When wx data for multiple stations fetched', () => {
     beforeEach(() => {
-      cy.intercept('POST', 'api/observations/', { fixture: 'weather-data/observations' })
-      cy.intercept('POST', 'api/forecasts/noon/', { fixture: 'weather-data/noon-forecasts' })
-      cy.intercept('POST', 'api/forecasts/noon/summaries/', { fixture: 'weather-data/noon-forecast-summaries' })
-      cy.intercept('POST', 'api/weather_models/GDPS/predictions/most_recent', {fixture:'weather-data/models-with-bias-adjusted'}) // prettier-ignore
-      cy.intercept('POST', 'api/weather_models/GDPS/predictions/summaries/', {
-        fixture: 'weather-data/model-summaries'
-      })
-      cy.intercept('POST', 'api/weather_models/HRDPS/predictions/most_recent', {fixture:'weather-data/hr-models-with-bias-adjusted'}) // prettier-ignore
-      cy.intercept('POST', 'api/weather_models/HRDPS/predictions/summaries', {fixture:'weather-data/high-res-model-summaries'}) // prettier-ignore
-      cy.intercept('POST', 'api/weather_models/RDPS/predictions/most_recent', {fixture:'weather-data/regional-models-with-bias-adjusted'}) // prettier-ignore
-      cy.intercept('POST', 'api/weather_models/RDPS/predictions/summaries', {
-        fixture: 'weather-data/regional-model-summaries'
-      })
+      interceptData()
 
       cy.visit(MORECAST_ROUTE)
 
@@ -85,7 +134,7 @@ describe('MoreCast Page', () => {
 
       // Request the weather data
       cy.selectStationInDropdown(stationCode)
-      cy.selectStationInDropdown(380)
+      cy.selectStationInDropdown(stationCode2)
       const timeOfInterest = '2021-01-22T12:00:00-08:00'
       cy.getByTestId('time-of-interest-picker').type(timeOfInterest.slice(0, 16)) // yyyy-MM-ddThh:mm
       cy.getByTestId('get-wx-data-button').click({ force: true })
@@ -98,7 +147,7 @@ describe('MoreCast Page', () => {
       // expect the table to exist.
       cy.getByTestId('station-comparison-table').should('exist')
 
-      // expect the sidepanel to be fully expanded (we compare the calculated width, en expect
+      // expect the sidepanel to be fully expanded (we compare the calculated width, and expect
       // it to match the width of our browser window)
       cy.getByTestId('expandable-container-content').should('have.css', 'width', '1000px')
 
@@ -119,26 +168,13 @@ describe('MoreCast Page', () => {
   })
 
   describe('When wx data successfully fetched', () => {
-    const numOfObservations = 119
     const numOfForecasts = 6
     const numOfGdps = 131
     const numOfHrdps = 159
     const numOfRdps = 195
 
     beforeEach(() => {
-      cy.intercept('POST', 'api/observations/', { fixture: 'weather-data/observations' })
-      cy.intercept('POST', 'api/forecasts/noon/', { fixture: 'weather-data/noon-forecasts' })
-      cy.intercept('POST', 'api/forecasts/noon/summaries/', { fixture: 'weather-data/noon-forecast-summaries' })
-      cy.intercept('POST', 'api/weather_models/GDPS/predictions/most_recent', {fixture:'weather-data/models-with-bias-adjusted'}) // prettier-ignore
-      cy.intercept('POST', 'api/weather_models/GDPS/predictions/summaries/', {
-        fixture: 'weather-data/model-summaries'
-      })
-      cy.intercept('POST', 'api/weather_models/HRDPS/predictions/most_recent', {fixture:'weather-data/hr-models-with-bias-adjusted'}) // prettier-ignore
-      cy.intercept('POST', 'api/weather_models/HRDPS/predictions/summaries', {fixture:'weather-data/high-res-model-summaries'}) // prettier-ignore
-      cy.intercept('POST', 'api/weather_models/RDPS/predictions/most_recent', {fixture:'weather-data/regional-models-with-bias-adjusted'}) // prettier-ignore
-      cy.intercept('POST', 'api/weather_models/RDPS/predictions/summaries', {
-        fixture: 'weather-data/regional-model-summaries'
-      })
+      interceptData()
 
       cy.visit(MORECAST_ROUTE)
 
