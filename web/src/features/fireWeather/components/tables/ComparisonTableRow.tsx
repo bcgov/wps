@@ -1,19 +1,11 @@
 import React, { ReactElement } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
-import { ClassNameMap } from '@material-ui/styles/withStyles'
-import Paper from '@material-ui/core/Paper'
-import Typography from '@material-ui/core/Typography'
-import Table from '@material-ui/core/Table'
-import TableBody from '@material-ui/core/TableBody'
 import TableCell from '@material-ui/core/TableCell'
-import TableContainer from '@material-ui/core/TableContainer'
 import TableRow from '@material-ui/core/TableRow'
-import TableHead from '@material-ui/core/TableHead'
 import ToolTip from '@material-ui/core/Tooltip'
 import { ModelValue } from 'api/modelAPI'
 import { NoonForecastValue } from 'api/forecastAPI'
 import { ObservedValue } from 'api/observationAPI'
-import { GeoJsonStation } from 'api/stationAPI'
 import {
   DEW_POINT_VALUES_DECIMAL,
   PRECIP_VALUES_DECIMAL,
@@ -21,9 +13,9 @@ import {
   TEMPERATURE_VALUES_DECIMAL,
   WIND_SPEED_VALUES_DECIMAL
 } from 'utils/constants'
-import { AccumulatedPrecipitation, calculateAccumulatedPrecip } from 'utils/table'
+import { AccumulatedPrecipitation } from 'utils/table'
 
-enum DataSource {
+export enum DataSource {
   Observed,
   Forecast,
   HRDPS,
@@ -31,7 +23,7 @@ enum DataSource {
   GDPS
 }
 
-enum WeatherVariable {
+export enum WeatherVariable {
   'Temperature',
   'Relative Humidity',
   'Wind Speed + Direction',
@@ -40,16 +32,19 @@ enum WeatherVariable {
 }
 
 interface Props {
+  index: ReactElement
   headers: WeatherVariable[]
-  subheaders: [DataSource[]]
+  subheaders: DataSource[][]
   forecast?: NoonForecastValue | undefined
   observation?: ObservedValue | undefined
+  accumulatedObsPrecip?: AccumulatedPrecipitation
   highResModel?: ModelValue
   accumulatedHRDPSPrecip?: AccumulatedPrecipitation
   regionalModel?: ModelValue
   accumulatedRDPSPrecip?: AccumulatedPrecipitation
   globalModel?: ModelValue
   accumulatedGDPSPrecip?: AccumulatedPrecipitation
+  testId?: string
 }
 
 const useStyles = makeStyles({
@@ -212,13 +207,14 @@ const formatAccumulatedPrecipitation = (
 const ComparisonTableRow = (props: Props) => {
   const classes = useStyles()
 
-  return (
-    <TableRow>
-      {props.headers.map((variable: WeatherVariable, idx: number) => {
-        {
-          let cellContent: ReactElement
+  console.log(props.headers)
 
-          props.subheaders[idx].map((source: DataSource) => {
+  return (
+    <TableRow data-testid={props.testId}>
+      {props.index}
+      {props.headers.map((variable: WeatherVariable, idx: number) => {
+          return props.subheaders[idx].map((source: DataSource) => {
+            let cellContent = undefined
             switch (source) {
               case DataSource.Observed: {
                 switch (variable) {
@@ -234,10 +230,15 @@ const ComparisonTableRow = (props: Props) => {
                     break
                   }
                   case WeatherVariable.Precipitation: {
-                    cellContent = formatPrecipitation(
-                      props.observation?.precipitation,
-                      classes.precipitationValue
-                    )
+                    if (
+                      props.accumulatedObsPrecip &&
+                      props.accumulatedObsPrecip !== undefined
+                    ) {
+                      cellContent = formatAccumulatedPrecipitation(
+                        props.accumulatedObsPrecip,
+                        classes.precipitationValue
+                      )
+                    }
                     break
                   }
                   case WeatherVariable['Dew point']: {
@@ -304,7 +305,10 @@ const ComparisonTableRow = (props: Props) => {
                     break
                   }
                   case WeatherVariable.Precipitation: {
-                    if (props.accumulatedHRDPSPrecip && props.accumulatedHRDPSPrecip !== undefined) {
+                    if (
+                      props.accumulatedHRDPSPrecip &&
+                      props.accumulatedHRDPSPrecip !== undefined
+                    ) {
                       cellContent = formatAccumulatedPrecipitation(
                         props.accumulatedHRDPSPrecip,
                         classes.precipitationValue
@@ -343,9 +347,15 @@ const ComparisonTableRow = (props: Props) => {
                     break
                   }
                   case WeatherVariable.Precipitation: {
-                      if(props.accumulatedRDPSPrecip && props.accumulatedRDPSPrecip !== undefined) {
-                          cellContent = formatAccumulatedPrecipitation(props.accumulatedRDPSPrecip, classes.precipitationValue)
-                      }
+                    if (
+                      props.accumulatedRDPSPrecip &&
+                      props.accumulatedRDPSPrecip !== undefined
+                    ) {
+                      cellContent = formatAccumulatedPrecipitation(
+                        props.accumulatedRDPSPrecip,
+                        classes.precipitationValue
+                      )
+                    }
                     break
                   }
                   case WeatherVariable['Wind Speed + Direction']: {
@@ -379,9 +389,15 @@ const ComparisonTableRow = (props: Props) => {
                     break
                   }
                   case WeatherVariable.Precipitation: {
-                      if (props.accumulatedGDPSPrecip && props.accumulatedGDPSPrecip !== undefined) {
-                          cellContent = formatAccumulatedPrecipitation(props.accumulatedGDPSPrecip, classes.precipitationValue)
-                      }
+                    if (
+                      props.accumulatedGDPSPrecip &&
+                      props.accumulatedGDPSPrecip !== undefined
+                    ) {
+                      cellContent = formatAccumulatedPrecipitation(
+                        props.accumulatedGDPSPrecip,
+                        classes.precipitationValue
+                      )
+                    }
                     break
                   }
                   case WeatherVariable['Wind Speed + Direction']: {
@@ -397,10 +413,12 @@ const ComparisonTableRow = (props: Props) => {
                 }
                 break
               }
+              default: {
+                cellContent = 'error'
+              }
             }
             return <TableCell>{cellContent}</TableCell>
           })
-        }
       })}
     </TableRow>
   )

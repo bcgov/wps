@@ -4,14 +4,6 @@ import { makeStyles } from '@material-ui/core/styles'
 import { NoonForecastValue } from 'api/forecastAPI'
 import { formatDateInPST, formatDateInUTC00Suffix } from 'utils/date'
 import {
-  comparisonTableStyles,
-  formatPrecipitation,
-  formatAccumulatedPrecipitation,
-  formatRelativeHumidity,
-  formatTemperature,
-  formatWindSpeedDirection
-} from 'features/fireWeather/components/tables/StationComparisonTable'
-import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
@@ -28,6 +20,7 @@ import {
 import { ObservedValue } from 'api/observationAPI'
 import { getDatetimeComparator, Order, calculateAccumulatedPrecip } from 'utils/table'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
+import ComparisonTableRow, { DataSource, WeatherVariable } from './ComparisonTableRow'
 
 interface NoonForecastTableProps {
   testId?: string
@@ -37,9 +30,46 @@ interface NoonForecastTableProps {
 
 const useStyles = makeStyles({
   paper: {
-    width: '100%'
+    padding: '5px',
+    // There's a formating issues that causes the last cell in the table to be cut off
+    // when in 100%, on a small screen. Setting the width to 95% is a workaround, as the
+    // true source of the problem remains a mystery. (suspicion: it's something to do with using
+    // flex boxes, and having a table that needs to scroll.)
+    width: '95%'
   },
-  ...comparisonTableStyles
+  typography: {},
+  lightColumnHeader: {
+    textAlign: 'center',
+    padding: '2px',
+    minWidth: '60px'
+  },
+  lightColumn: {
+    textAlign: 'right',
+    padding: '2px'
+  },
+  windSpeedValue: {
+    whiteSpace: 'nowrap'
+  },
+  relativeHumidityValue: {
+    whiteSpace: 'nowrap'
+  },
+  windDirectionValue: {
+    whiteSpace: 'nowrap'
+  },
+  precipitationValue: {
+    whiteSpace: 'nowrap'
+  },
+  darkColumn: {
+    backgroundColor: '#fafafa',
+    padding: '2px',
+    textAlign: 'right'
+  },
+  darkColumnHeader: {
+    backgroundColor: 'rgb(240, 240, 240)',
+    textAlign: 'center',
+    padding: '2px',
+    minWidth: '60px'
+  }
 })
 
 const NoonForecastTable = (props: NoonForecastTableProps) => {
@@ -63,6 +93,18 @@ const NoonForecastTable = (props: NoonForecastTableProps) => {
   const toggleDatetimeOrder = () => {
     setOrder(order === 'asc' ? 'desc' : 'asc')
   }
+  const headers = [
+    WeatherVariable.Temperature,
+    WeatherVariable['Relative Humidity'],
+    WeatherVariable['Wind Speed + Direction'],
+    WeatherVariable.Precipitation
+  ]
+  const subheaders = [
+    [DataSource.Forecast, DataSource.Observed],
+    [DataSource.Forecast, DataSource.Observed],
+    [DataSource.Forecast, DataSource.Observed],
+    [DataSource.Forecast, DataSource.Observed]
+  ]
 
   return (
     <Accordion defaultExpanded>
@@ -127,58 +169,23 @@ const NoonForecastTable = (props: NoonForecastTableProps) => {
                       observationsRowsSortedByDatetime
                     )
 
+                    const indexCell = (
+                      <TableCell>
+                        {formatDateInPST(forecast.datetime)}
+                      </TableCell>
+                    )
+
                     return (
-                      <TableRow key={idx}>
-                        <TableCell>{formatDateInPST(forecast.datetime)}</TableCell>
-                        {/* Temperature */}
-                        <TableCell className={classes.darkColumn}>
-                          {formatTemperature(forecast)}
-                        </TableCell>
-                        <TableCell className={classes.darkColumn}>
-                          {formatTemperature(observation)}
-                        </TableCell>
-                        {/* Relative Humidity */}
-                        <TableCell className={classes.lightColumn}>
-                          {formatRelativeHumidity(
-                            forecast,
-                            classes.relativeHumidityValue
-                          )}
-                        </TableCell>
-                        <TableCell className={classes.lightColumn}>
-                          {formatRelativeHumidity(
-                            observation,
-                            classes.relativeHumidityValue
-                          )}
-                        </TableCell>
-                        {/* Wind Speed + Direction */}
-                        <TableCell className={classes.darkColumn}>
-                          {formatWindSpeedDirection(
-                            forecast,
-                            classes.windSpeedValue,
-                            classes.windDirectionValue
-                          )}
-                        </TableCell>
-                        <TableCell className={classes.darkColumn}>
-                          {formatWindSpeedDirection(
-                            observation,
-                            classes.windSpeedValue,
-                            classes.windDirectionValue
-                          )}
-                        </TableCell>
-                        {/* Precipitation  */}
-                        <TableCell className={classes.lightColumn}>
-                          {formatPrecipitation(
-                            forecast.total_precipitation,
-                            classes.precipitationValue
-                          )}
-                        </TableCell>
-                        <TableCell className={classes.lightColumn}>
-                          {formatAccumulatedPrecipitation(
-                            accumPrecip,
-                            classes.precipitationValue
-                          )}
-                        </TableCell>
-                      </TableRow>
+                      <ComparisonTableRow
+                        key={idx}
+                        index={indexCell}
+                        headers={headers}
+                        subheaders={subheaders}
+                        observation={observation}
+                        forecast={forecast}
+                        accumulatedObsPrecip={accumPrecip}
+                        testId={`forecast-obs-comparison-table-row-${idx}`}
+                      ></ComparisonTableRow>
                     )
                   }
                 )}
