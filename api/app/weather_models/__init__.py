@@ -59,8 +59,7 @@ def interpolate_between_two_points(  # pylint: disable=invalid-name
     try:
         result = function(xn)
     except Exception as exception:
-        logger.error('Error interpolating, x_axis: %s, y_axis: %s, xn: %s, exception: %s',
-                     x_axis, y_axis, xn, str(exception))
+        logger.error(exception, exc_info=True)
         raise
     return result
 
