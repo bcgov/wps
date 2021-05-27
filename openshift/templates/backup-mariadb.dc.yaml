@@ -78,7 +78,9 @@ parameters:
   - name: CPU_REQUEST
     value: 50m
   - name: CPU_LIMIT
-    value: 250m
+    # rarely, if ever do we need to fire up this pod, and if we need it to be fast, we can always
+    # manually increase the CPU limit.
+    value: 25m
   - name: MEMORY_REQUEST
     value: 256Mi
   - name: MEMORY_LIMIT
