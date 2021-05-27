@@ -55,6 +55,7 @@ async def fetch_hourly_readings_from_db(
 
 
 def _get_time_interval(time_of_interest: datetime):
+    """ Returns the start and end datetimes for hourly readings based on given time of interest """
     # by default, we want the past 5 days, and if available the next 10 days.
     start_time_stamp = time_of_interest - timedelta(days=5)
     # the UI is interested in hourly reading before and after the time of interest.
