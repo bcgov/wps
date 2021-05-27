@@ -130,6 +130,10 @@ parameters:
     value: "backup.conf"
   - name: "APP_LABEL"
     required: true
+  - name: CPU_REQUEST
+    value: "50m"
+  - name: CPU_LIMIT
+    value: "250m"
 objects:
   - kind: "CronJob"
     apiVersion: "batch/v1beta1"
@@ -156,11 +160,13 @@ objects:
               containers:
                 - name: "${JOB_NAME}-cronjob"
                   resources:
+                    # The mariadb cronjob doesn't have much to back up, so we can give it a pretty low
+                    # cpu quota.
                     limits:
-                      cpu: "1"
+                      cpu: ${CPU_LIMIT}
                       memory: 4Gi
                     requests:
-                      cpu: "0.5"
+                      cpu: ${CPU_REQUEST}
                       memory: 2Gi
                   image: "image-registry.openshift-image-registry.svc:5000/${IMAGE_NAMESPACE}/${SOURCE_IMAGE_NAME}:${TAG_NAME}"
                   # image: backup
