@@ -1,7 +1,7 @@
 """ Bot for loading hourly actual values.
 """
 import os
-from datetime import timedelta, timezone, datetime
+from datetime import timedelta
 import asyncio
 import logging
 import math
