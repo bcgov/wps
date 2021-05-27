@@ -2,6 +2,7 @@
 """
 import os
 import json
+import math
 from typing import Generator, Dict, List
 from datetime import datetime, timezone
 from abc import abstractmethod, ABC
@@ -305,15 +306,20 @@ async def get_detailed_stations(time_of_interest: datetime):
         return list(stations.values())
 
 
-def prepare_fetch_hourlies_query(raw_station: dict, start_timestamp: int, end_timestamp: int):
+def prepare_fetch_hourlies_query(raw_station: dict, start_timestamp: datetime, end_timestamp: datetime):
     """ Prepare url and params to fetch hourly readings from the WFWX Fireweather API.
     """
     base_url = config.get('WFWX_BASE_URL')
 
     logger.debug('requesting historic data from %s to %s', start_timestamp, end_timestamp)
+
+    # Prepare query params and query:
+    query_start_timestamp = math.floor(start_timestamp.timestamp()*1000)
+    query_end_timestamp = math.floor(end_timestamp.timestamp()*1000)
+
     station_id = raw_station['id']
-    params = {'startTimestamp': start_timestamp,
-              'endTimestamp': end_timestamp, 'stationId': station_id}
+    params = {'startTimestamp': query_start_timestamp,
+              'endTimestamp': query_end_timestamp, 'stationId': station_id}
     endpoint = ('/v1/hourlies/search/'
                 'findHourliesByWeatherTimestampBetweenAndStationIdEqualsOrderByWeatherTimestampAsc')
     url = '{base_url}{endpoint}'.format(
@@ -362,8 +368,8 @@ async def fetch_hourlies(
         session: ClientSession,
         raw_station: dict,
         headers: dict,
-        start_timestamp: int,
-        end_timestamp: int) -> WeatherStationHourlyReadings:
+        start_timestamp: datetime,
+        end_timestamp: datetime) -> WeatherStationHourlyReadings:
     """ Fetch hourly weather readings for the specified time range for a give station """
     logger.debug('fetching hourlies for %s(%s)',
                  raw_station['displayLabel'], raw_station['stationCode'])
@@ -387,8 +393,8 @@ async def fetch_hourlies(
 
 async def get_hourly_readings(
         station_codes: List[int],
-        start_timestamp: int,
-        end_timestamp: int) -> List[WeatherStationHourlyReadings]:
+        start_timestamp: datetime,
+        end_timestamp: datetime) -> List[WeatherStationHourlyReadings]:
     """ Get the hourly readings for the list of station codes provided.
     """
     # Create a list containing all the tasks to run in parallel.
