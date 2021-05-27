@@ -62,6 +62,17 @@ const useStyles = makeStyles({
     padding: '2px',
     minWidth: '60px'
   },
+  darkColumn: {
+    backgroundColor: '#fafafa',
+    padding: '2px',
+    paddingRight: '6px',
+    textAlign: 'right'
+  },
+  lightColumn: {
+    textAlign: 'right',
+    padding: '2px',
+    paddingRight: '6px'
+  },
   windSpeedValue: {
     whiteSpace: 'nowrap'
   },
@@ -207,218 +218,221 @@ const formatAccumulatedPrecipitation = (
 const ComparisonTableRow = (props: Props) => {
   const classes = useStyles()
 
-  console.log(props.headers)
-
   return (
     <TableRow data-testid={props.testId}>
       {props.index}
       {props.headers.map((variable: WeatherVariable, idx: number) => {
-          return props.subheaders[idx].map((source: DataSource) => {
-            let cellContent = undefined
-            switch (source) {
-              case DataSource.Observed: {
-                switch (variable) {
-                  case WeatherVariable.Temperature: {
-                    cellContent = formatTemperature(props.observation)
-                    break
-                  }
-                  case WeatherVariable['Relative Humidity']: {
-                    cellContent = formatRelativeHumidity(
-                      props.observation,
-                      classes.relativeHumidityValue
-                    )
-                    break
-                  }
-                  case WeatherVariable.Precipitation: {
-                    if (
-                      props.accumulatedObsPrecip &&
-                      props.accumulatedObsPrecip !== undefined
-                    ) {
-                      cellContent = formatAccumulatedPrecipitation(
-                        props.accumulatedObsPrecip,
-                        classes.precipitationValue
-                      )
-                    }
-                    break
-                  }
-                  case WeatherVariable['Dew point']: {
-                    cellContent = formatDewPoint(props.observation?.dewpoint)
-                    break
-                  }
-                  case WeatherVariable['Wind Speed + Direction']: {
-                    cellContent = formatWindSpeedDirection(
-                      props.observation,
-                      classes.windSpeedValue,
-                      classes.windDirectionValue
-                    )
-                    break
-                  }
+        const colStyle = idx % 2 === 0 ? classes.darkColumn : classes.lightColumn
+        return props.subheaders[idx].map((source: DataSource) => {
+          let cellContent = undefined
+          switch (source) {
+            case DataSource.Observed: {
+              switch (variable) {
+                case WeatherVariable.Temperature: {
+                  cellContent = formatTemperature(props.observation)
+                  break
                 }
-                break
-              }
-              case DataSource.Forecast: {
-                switch (variable) {
-                  case WeatherVariable.Temperature: {
-                    cellContent = formatTemperature(props.forecast)
-                    break
-                  }
-                  case WeatherVariable['Relative Humidity']: {
-                    cellContent = formatRelativeHumidity(
-                      props.forecast,
-                      classes.relativeHumidityValue
-                    )
-                    break
-                  }
-                  case WeatherVariable.Precipitation: {
-                    cellContent = formatPrecipitation(
-                      props.forecast?.total_precipitation,
+                case WeatherVariable['Relative Humidity']: {
+                  cellContent = formatRelativeHumidity(
+                    props.observation,
+                    classes.relativeHumidityValue
+                  )
+                  break
+                }
+                case WeatherVariable.Precipitation: {
+                  if (
+                    props.accumulatedObsPrecip &&
+                    props.accumulatedObsPrecip !== undefined
+                  ) {
+                    cellContent = formatAccumulatedPrecipitation(
+                      props.accumulatedObsPrecip,
                       classes.precipitationValue
                     )
-                    break
                   }
-                  case WeatherVariable['Wind Speed + Direction']: {
+                  break
+                }
+                case WeatherVariable['Dew point']: {
+                  cellContent = formatDewPoint(props.observation?.dewpoint)
+                  break
+                }
+                case WeatherVariable['Wind Speed + Direction']: {
+                  cellContent = formatWindSpeedDirection(
+                    props.observation,
+                    classes.windSpeedValue,
+                    classes.windDirectionValue
+                  )
+                  break
+                }
+              }
+              break
+            }
+            case DataSource.Forecast: {
+              switch (variable) {
+                case WeatherVariable.Temperature: {
+                  cellContent = formatTemperature(props.forecast)
+                  break
+                }
+                case WeatherVariable['Relative Humidity']: {
+                  cellContent = formatRelativeHumidity(
+                    props.forecast,
+                    classes.relativeHumidityValue
+                  )
+                  break
+                }
+                case WeatherVariable.Precipitation: {
+                  cellContent = formatPrecipitation(
+                    props.forecast?.total_precipitation,
+                    classes.precipitationValue
+                  )
+                  break
+                }
+                case WeatherVariable['Wind Speed + Direction']: {
+                  cellContent = formatWindSpeedDirection(
+                    props.forecast,
+                    classes.windSpeedValue,
+                    classes.windDirectionValue
+                  )
+                  break
+                }
+              }
+              break
+            }
+            case DataSource.HRDPS: {
+              switch (variable) {
+                case WeatherVariable.Temperature: {
+                  if (props.highResModel && props.highResModel !== undefined) {
+                    cellContent = formatModelTemperature(props.highResModel)
+                  }
+                  break
+                }
+                case WeatherVariable['Relative Humidity']: {
+                  if (props.highResModel && props.highResModel !== undefined) {
+                    cellContent = formatModelRelativeHumidity(
+                      props.highResModel,
+                      classes.relativeHumidityValue
+                    )
+                  }
+                  break
+                }
+                case WeatherVariable.Precipitation: {
+                  if (
+                    props.accumulatedHRDPSPrecip &&
+                    props.accumulatedHRDPSPrecip !== undefined
+                  ) {
+                    cellContent = formatAccumulatedPrecipitation(
+                      props.accumulatedHRDPSPrecip,
+                      classes.precipitationValue
+                    )
+                  }
+                  break
+                }
+                case WeatherVariable['Wind Speed + Direction']: {
+                  if (props.highResModel && props.highResModel !== undefined) {
                     cellContent = formatWindSpeedDirection(
-                      props.forecast,
+                      props.highResModel,
                       classes.windSpeedValue,
                       classes.windDirectionValue
                     )
-                    break
                   }
+                  break
                 }
-                break
               }
-              case DataSource.HRDPS: {
-                switch (variable) {
-                  case WeatherVariable.Temperature: {
-                    if (props.highResModel && props.highResModel !== undefined) {
-                      cellContent = formatModelTemperature(props.highResModel)
-                    }
-                    break
-                  }
-                  case WeatherVariable['Relative Humidity']: {
-                    if (props.highResModel && props.highResModel !== undefined) {
-                      cellContent = formatModelRelativeHumidity(
-                        props.highResModel,
-                        classes.relativeHumidityValue
-                      )
-                    }
-                    break
-                  }
-                  case WeatherVariable.Precipitation: {
-                    if (
-                      props.accumulatedHRDPSPrecip &&
-                      props.accumulatedHRDPSPrecip !== undefined
-                    ) {
-                      cellContent = formatAccumulatedPrecipitation(
-                        props.accumulatedHRDPSPrecip,
-                        classes.precipitationValue
-                      )
-                    }
-                    break
-                  }
-                  case WeatherVariable['Wind Speed + Direction']: {
-                    if (props.highResModel && props.highResModel !== undefined) {
-                      cellContent = formatWindSpeedDirection(
-                        props.highResModel,
-                        classes.windSpeedValue,
-                        classes.windDirectionValue
-                      )
-                    }
-                    break
-                  }
-                }
-                break
-              }
-              case DataSource.RDPS: {
-                switch (variable) {
-                  case WeatherVariable.Temperature: {
-                    if (props.regionalModel && props.regionalModel !== undefined) {
-                      cellContent = formatTemperature(props.regionalModel)
-                    }
-                    break
-                  }
-                  case WeatherVariable['Relative Humidity']: {
-                    if (props.regionalModel && props.regionalModel !== undefined) {
-                      cellContent = formatModelRelativeHumidity(
-                        props.regionalModel,
-                        classes.relativeHumidityValue
-                      )
-                    }
-                    break
-                  }
-                  case WeatherVariable.Precipitation: {
-                    if (
-                      props.accumulatedRDPSPrecip &&
-                      props.accumulatedRDPSPrecip !== undefined
-                    ) {
-                      cellContent = formatAccumulatedPrecipitation(
-                        props.accumulatedRDPSPrecip,
-                        classes.precipitationValue
-                      )
-                    }
-                    break
-                  }
-                  case WeatherVariable['Wind Speed + Direction']: {
-                    if (props.regionalModel && props.regionalModel !== undefined) {
-                      cellContent = formatWindSpeedDirection(
-                        props.regionalModel,
-                        classes.windSpeedValue,
-                        classes.windDirectionValue
-                      )
-                    }
-                    break
-                  }
-                }
-                break
-              }
-              case DataSource.GDPS: {
-                switch (variable) {
-                  case WeatherVariable.Temperature: {
-                    if (props.globalModel && props.globalModel !== undefined) {
-                      cellContent = formatTemperature(props.globalModel)
-                    }
-                    break
-                  }
-                  case WeatherVariable['Relative Humidity']: {
-                    if (props.globalModel && props.globalModel !== undefined) {
-                      cellContent = formatModelRelativeHumidity(
-                        props.globalModel,
-                        classes.relativeHumidityValue
-                      )
-                    }
-                    break
-                  }
-                  case WeatherVariable.Precipitation: {
-                    if (
-                      props.accumulatedGDPSPrecip &&
-                      props.accumulatedGDPSPrecip !== undefined
-                    ) {
-                      cellContent = formatAccumulatedPrecipitation(
-                        props.accumulatedGDPSPrecip,
-                        classes.precipitationValue
-                      )
-                    }
-                    break
-                  }
-                  case WeatherVariable['Wind Speed + Direction']: {
-                    if (props.globalModel && props.globalModel !== undefined) {
-                      cellContent = formatWindSpeedDirection(
-                        props.globalModel,
-                        classes.windSpeedValue,
-                        classes.windDirectionValue
-                      )
-                    }
-                    break
-                  }
-                }
-                break
-              }
-              default: {
-                cellContent = 'error'
-              }
+              break
             }
-            return <TableCell>{cellContent}</TableCell>
-          })
+            case DataSource.RDPS: {
+              switch (variable) {
+                case WeatherVariable.Temperature: {
+                  if (props.regionalModel && props.regionalModel !== undefined) {
+                    cellContent = formatTemperature(props.regionalModel)
+                  }
+                  break
+                }
+                case WeatherVariable['Relative Humidity']: {
+                  if (props.regionalModel && props.regionalModel !== undefined) {
+                    cellContent = formatModelRelativeHumidity(
+                      props.regionalModel,
+                      classes.relativeHumidityValue
+                    )
+                  }
+                  break
+                }
+                case WeatherVariable.Precipitation: {
+                  if (
+                    props.accumulatedRDPSPrecip &&
+                    props.accumulatedRDPSPrecip !== undefined
+                  ) {
+                    cellContent = formatAccumulatedPrecipitation(
+                      props.accumulatedRDPSPrecip,
+                      classes.precipitationValue
+                    )
+                  }
+                  break
+                }
+                case WeatherVariable['Wind Speed + Direction']: {
+                  if (props.regionalModel && props.regionalModel !== undefined) {
+                    cellContent = formatWindSpeedDirection(
+                      props.regionalModel,
+                      classes.windSpeedValue,
+                      classes.windDirectionValue
+                    )
+                  }
+                  break
+                }
+              }
+              break
+            }
+            case DataSource.GDPS: {
+              switch (variable) {
+                case WeatherVariable.Temperature: {
+                  if (props.globalModel && props.globalModel !== undefined) {
+                    cellContent = formatTemperature(props.globalModel)
+                  }
+                  break
+                }
+                case WeatherVariable['Relative Humidity']: {
+                  if (props.globalModel && props.globalModel !== undefined) {
+                    cellContent = formatModelRelativeHumidity(
+                      props.globalModel,
+                      classes.relativeHumidityValue
+                    )
+                  }
+                  break
+                }
+                case WeatherVariable.Precipitation: {
+                  if (
+                    props.accumulatedGDPSPrecip &&
+                    props.accumulatedGDPSPrecip !== undefined
+                  ) {
+                    cellContent = formatAccumulatedPrecipitation(
+                      props.accumulatedGDPSPrecip,
+                      classes.precipitationValue
+                    )
+                  }
+                  break
+                }
+                case WeatherVariable['Wind Speed + Direction']: {
+                  if (props.globalModel && props.globalModel !== undefined) {
+                    cellContent = formatWindSpeedDirection(
+                      props.globalModel,
+                      classes.windSpeedValue,
+                      classes.windDirectionValue
+                    )
+                  }
+                  break
+                }
+              }
+              break
+            }
+            default: {
+              cellContent = 'error'
+            }
+          }
+          return (
+            <TableCell className={colStyle} key={`${idx}-${variable}-${source}`}>
+              {cellContent}
+            </TableCell>
+          )
+        })
       })}
     </TableRow>
   )

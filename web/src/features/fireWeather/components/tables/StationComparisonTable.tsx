@@ -189,43 +189,43 @@ const StationComparisonTable = (props: Props) => {
                 )
 
                 const headers = [
-                    WeatherVariable.Temperature,
-                    WeatherVariable['Relative Humidity'],
-                    WeatherVariable['Wind Speed + Direction'],
-                    WeatherVariable.Precipitation,
-                    WeatherVariable['Dew point']
-                  ]
+                  WeatherVariable.Temperature,
+                  WeatherVariable['Relative Humidity'],
+                  WeatherVariable['Wind Speed + Direction'],
+                  WeatherVariable.Precipitation,
+                  WeatherVariable['Dew point']
+                ]
                 const subheaders = [
-                    [
-                      DataSource.Observed,
-                      DataSource.Forecast,
-                      DataSource.HRDPS,
-                      DataSource.RDPS,
-                      DataSource.GDPS
-                    ],
-                    [
-                      DataSource.Observed,
-                      DataSource.Forecast,
-                      DataSource.HRDPS,
-                      DataSource.RDPS,
-                      DataSource.GDPS
-                    ],
-                    [
-                      DataSource.Observed,
-                      DataSource.Forecast,
-                      DataSource.HRDPS,
-                      DataSource.RDPS,
-                      DataSource.GDPS
-                    ],
-                    [
-                      DataSource.Observed,
-                      DataSource.Forecast,
-                      DataSource.HRDPS,
-                      DataSource.RDPS,
-                      DataSource.GDPS
-                    ],
-                    [DataSource.Observed]
-                  ]
+                  [
+                    DataSource.Observed,
+                    DataSource.Forecast,
+                    DataSource.HRDPS,
+                    DataSource.RDPS,
+                    DataSource.GDPS
+                  ],
+                  [
+                    DataSource.Observed,
+                    DataSource.Forecast,
+                    DataSource.HRDPS,
+                    DataSource.RDPS,
+                    DataSource.GDPS
+                  ],
+                  [
+                    DataSource.Observed,
+                    DataSource.Forecast,
+                    DataSource.HRDPS,
+                    DataSource.RDPS,
+                    DataSource.GDPS
+                  ],
+                  [
+                    DataSource.Observed,
+                    DataSource.Forecast,
+                    DataSource.HRDPS,
+                    DataSource.RDPS,
+                    DataSource.GDPS
+                  ],
+                  [DataSource.Observed]
+                ]
 
                 return (
                   <ComparisonTableRow

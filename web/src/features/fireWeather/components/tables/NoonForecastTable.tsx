@@ -117,7 +117,7 @@ const NoonForecastTable = (props: NoonForecastTableProps) => {
         </Typography>
       </AccordionSummary>
       <AccordionDetails>
-        <Paper>
+        <Paper className={classes.paper}>
           <TableContainer>
             <Table stickyHeader size="small" data-testid={`${props.testId}`}>
               <TableHead>
@@ -170,9 +170,7 @@ const NoonForecastTable = (props: NoonForecastTableProps) => {
                     )
 
                     const indexCell = (
-                      <TableCell>
-                        {formatDateInPST(forecast.datetime)}
-                      </TableCell>
+                      <TableCell>{formatDateInPST(forecast.datetime)}</TableCell>
                     )
 
                     return (
