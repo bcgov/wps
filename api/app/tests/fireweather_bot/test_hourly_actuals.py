@@ -9,8 +9,6 @@ from app.fireweather_bot import hourly_actuals
 from app.schemas.observations import WeatherReading, WeatherStationHourlyReadings
 from app.schemas.stations import WeatherStation
 from app import wildfire_one
-import nest_asyncio
-nest_asyncio.apply()
 
 
 logger = logging.getLogger(__name__)
@@ -26,20 +24,21 @@ def mock_hourly_actuals(mocker: MockerFixture):
     readings_1 = WeatherStationHourlyReadings(values=[reading_1, reading_2], station=station_1)
     readings_2 = WeatherStationHourlyReadings(values=[reading_1, reading_2], station=station_2)
 
-    future_hourly = asyncio.Future()
-    future_hourly.set_result([readings_1, readings_2])
-    mocker.patch('app.wildfire_one.get_hourly_readings', return_value=future_hourly)
+    future_station_codes = asyncio.Future()
+    future_station_codes.set_result([station_1, station_2])
+
+    mocker.patch('app.wildfire_one.get_stations', return_value=future_station_codes)
+    mocker.patch('app.wildfire_one.get_hourly_readings', return_value=[readings_1, readings_2])
 
 
-@pytest.mark.asyncio
-async def test_hourly_actuals_bot(mocker: MockerFixture, mock_requests_session, mock_hourly_actuals):  # pylint: disable=unused-argument
+def test_hourly_actuals_bot(mocker: MockerFixture, mock_requests_session, mock_hourly_actuals):  # pylint: disable=unused-argument
     """ Very simple test that checks that:
     - the bot exits with a success code
     - the expected number of records are saved.
     """
     save_hourly_actuals_spy = mocker.spy(hourly_actuals, 'save_hourly_actual')
     with pytest.raises(SystemExit) as excinfo:
-        await hourly_actuals.main()
+        hourly_actuals.main()
     # Assert that we exited without errors.
     assert excinfo.value.code == 0
     # Assert that we got called the expected number of times.
@@ -47,10 +46,9 @@ async def test_hourly_actuals_bot(mocker: MockerFixture, mock_requests_session, 
     assert save_hourly_actuals_spy.call_count == 4
 
 
-@pytest.mark.asyncio
-async def test_hourly_actuals_bot_fail(mocker: MockerFixture,
-                                       monkeypatch,
-                                       mock_requests_session):  # pylint: disable=unused-argument
+def test_hourly_actuals_bot_fail(mocker: MockerFixture,
+                                 monkeypatch,
+                                 mock_requests_session):  # pylint: disable=unused-argument
     """
     Test that when the bot fails, a message is sent to rocket-chat, and our exit code is 1.
     """
@@ -62,7 +60,7 @@ async def test_hourly_actuals_bot_fail(mocker: MockerFixture,
     rocket_chat_spy = mocker.spy(hourly_actuals, 'send_rocketchat_notification')
 
     with pytest.raises(SystemExit) as excinfo:
-        await hourly_actuals.main()
+        hourly_actuals.main()
     # Assert that we exited with an error code.
     assert excinfo.value.code == os.EX_SOFTWARE
     # Assert that rocket chat was called.

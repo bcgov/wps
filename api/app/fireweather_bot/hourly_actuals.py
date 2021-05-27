@@ -2,6 +2,7 @@
 """
 import os
 from datetime import timedelta, timezone, datetime
+import asyncio
 import logging
 import math
 import sys
@@ -12,7 +13,7 @@ from app.db.crud.observations import save_hourly_actual
 from app.db.models.observations import HourlyActual
 from app.schemas.observations import WeatherReading
 import app.time_utils
-from app.fireweather_bot.common import (get_station_names_to_codes, authenticate_session)
+from app.fireweather_bot.common import (get_station_names_to_codes_wfwx, authenticate_session)
 from app import wildfire_one
 from app.rocketchat_notifications import send_rocketchat_notification
 
@@ -83,6 +84,14 @@ def validate_metric(value, low, high):
     return low <= value <= high
 
 
+def get_hourly_readings_synchronously_wfwx(station_codes, start_date, end_date):
+    """ Synchronously get hourly readings for given station codes and date range from wfwx """
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    return loop.run_until_complete(wildfire_one.get_hourly_readings(
+        station_codes, start_date, end_date))
+
+
 class HourlyActualsBot():
     """ Bot that downloads the hourly actuals from the wildfire website and stores it in a database. """
 
@@ -102,37 +111,37 @@ class HourlyActualsBot():
         """ Return now. E.g. if it's 17h15 now, we'd get YYYYMMDD17 """
         return int(self.now.strftime('%Y%m%d%H'))
 
-    async def run_wfwx(self):
+    def run_wfwx(self):
         """ Entry point for running the bot """
         with Session() as session:
             # Authenticate with idir.
             authenticate_session(session)
 
-            station_codes = get_station_names_to_codes()
+            station_codes = get_station_names_to_codes_wfwx()
 
             start_date = self._get_start_date()
             end_date = self._get_end_date()
 
-            station_hourly_readings = await wildfire_one.get_hourly_readings(
+            station_hourly_readings = get_hourly_readings_synchronously_wfwx(
                 station_codes, start_date, end_date)
 
             logger.info("Station hourly readings: %s", station_hourly_readings)
 
             with app.db.database.get_write_session_scope() as session:
-                for station_hourly_reading in station_hourly_readings.result():
+                for station_hourly_reading in station_hourly_readings:
                     for hourly_reading in station_hourly_reading.values:
                         save_hourly_actual(session, parse_hourly_actual(
                             station_hourly_reading.station.code, hourly_reading))
 
 
-async def main():
+def main():
     """ Makes the appropriate method calls in order to submit
     asynchronous queries to the Wildfire 1 API to get hourly values for all weather stations.
     """
     try:
         logger.debug('Retrieving hourly actuals...')
         bot = HourlyActualsBot()
-        await bot.run_wfwx()
+        bot.run_wfwx()
         # Exit with 0 - success.
         sys.exit(os.EX_OK)
     # pylint: disable=broad-except
