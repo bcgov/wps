@@ -29,7 +29,6 @@ jinja2 = "^2"
 sklearn = "^0"
 pytest-mock = "^3"
 numpy = "^1.19.5"
-pytest-asyncio = "^0.15.1"
 nest-asyncio = "^1.5.1"
 
 [tool.poetry.dev-dependencies]
