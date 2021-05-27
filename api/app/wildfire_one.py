@@ -215,7 +215,9 @@ def _parse_hourly(hourly) -> WeatherReading:
         precipitation=hourly.get('precipitation', None),
         ffmc=hourly.get('ffmc', None),
         isi=hourly.get('isi', None),
-        fwi=hourly.get('fwi', None)
+        fwi=hourly.get('fwi', None),
+        observation_valid_ind=hourly.get('observationValidInd'),
+        observation_valid_comment=hourly.get('observationValidComment')
     )
 
 

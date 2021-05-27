@@ -17,8 +17,30 @@ logger = logging.getLogger(__name__)
 @pytest.fixture()
 def mock_hourly_actuals(mocker: MockerFixture):
     """ Mocks out hourly actuals as async result """
-    reading_1 = WeatherReading(datetime=get_utc_now())
-    reading_2 = WeatherReading(datetime=get_utc_now())
+    reading_1 = WeatherReading(datetime=get_utc_now(),
+                               temperature=0.0,
+                               relative_humidity=0.0,
+                               wind_speed=0.0,
+                               wind_direction=0.0,
+                               barometric_pressure=0.0,
+                               precipitation=0.0,
+                               dewpoint=0.0,
+                               ffmc=0.0,
+                               isi=0.0,
+                               fwi=0.0,
+                               observation_valid_ind=True)
+    reading_2 = WeatherReading(datetime=get_utc_now(),
+                               temperature=0.0,
+                               relative_humidity=0.0,
+                               wind_speed=0.0,
+                               wind_direction=0.0,
+                               barometric_pressure=0.0,
+                               precipitation=0.0,
+                               dewpoint=0.0,
+                               ffmc=0.0,
+                               isi=0.0,
+                               fwi=0.0,
+                               observation_valid_ind=True)
     station_1 = WeatherStation(code=1, name="one", lat=0, long=0)
     station_2 = WeatherStation(code=1, name="one", lat=0, long=0)
     readings_1 = WeatherStationHourlyReadings(values=[reading_1, reading_2], station=station_1)
@@ -107,7 +129,26 @@ def test_invalid_metrics():
         fwi=0.0)
 
     hourly_actual = hourly_actuals.parse_hourly_actual(1, weather_reading)
-    assert hourly_actual.rh_valid is False
-    assert hourly_actual.wdir_valid is False
-    assert hourly_actual.precip_valid is False
-    assert hourly_actual.wspeed_valid is False
+    assert hourly_actual is None
+
+
+def test_invalid_metrics_from_wfwx():
+    """ Metric valid flags should be false """
+    weather_reading = WeatherReading(
+        datetime=get_utc_now(),
+        temperature=1,
+        relative_humidity=1,
+        wind_speed=1,
+        wind_direction=1,
+        barometric_pressure=0.0,
+        precipitation=1,
+        dewpoint=0.0,
+        ffmc=0.0,
+        isi=0.0,
+        fwi=0.0,
+        observation_valid_ind=False,
+        observation_valid_comment="Not valid"
+    )
+
+    hourly_actual = hourly_actuals.parse_hourly_actual(1, weather_reading)
+    assert hourly_actual is None

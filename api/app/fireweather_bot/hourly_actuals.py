@@ -24,29 +24,6 @@ if __name__ == "__main__":
 logger = logging.getLogger(__name__)
 
 
-def _fix_datetime(source_date):
-    """ We want to be explicit about timezones, the csv file gives us a timezone naive date - this is no
-    good! We know the date we get is in PST, and we know we need to store it in UTC.
-    Furthermore, the csv has discovered another hour. 24. Presumably this means 00 the next day.
-    """
-    # build a date using year, month and day.
-    python_date = datetime.strptime(str(source_date)[:-2], '%Y%m%d')
-    # handle the mysterious 24th hour.
-    if str(source_date)[-2:] == '24':
-        # if it's 24, just push to hour 00 on the next day.
-        python_date = python_date + timedelta(days=1)
-    else:
-        # anything else, we trust.
-        python_date = python_date + timedelta(hours=int(str(source_date)[-2:]))
-    # but alse need to adjust our time, because it's in PST. PST_UTC_OFFSET is -8, so we have
-    # to subtract it, to add 8 hours to our current date.
-    # e.g. 12h00 PST, becomes 20h00 UTC
-    python_date = python_date - timedelta(hours=app.time_utils.PST_UTC_OFFSET)
-    # we've add the offset, so set the timezone to utc:
-    python_date = python_date.replace(tzinfo=timezone.utc)
-    return python_date
-
-
 def parse_hourly_actual(station_code: int, hourly_reading: WeatherReading):
     """ Maps WeatherReading to HourlyActual """
     temp_valid = hourly_reading.temperature is not None
@@ -59,7 +36,13 @@ def parse_hourly_actual(station_code: int, hourly_reading: WeatherReading):
     precip_valid = hourly_reading.precipitation is not None and validate_metric(
         hourly_reading.precipitation, 0, math.inf)
 
-    return HourlyActual(
+    is_valid_wfwx = hourly_reading.observation_valid_ind
+    if is_valid_wfwx is False:
+        logger.warning("Invalid hourly received from WF1 API: %s", hourly_reading.observation_valid_comment)
+
+    is_valid = temp_valid and rh_valid and wdir_valid and wspeed_valid and precip_valid and is_valid_wfwx
+
+    return None if (is_valid is False) else HourlyActual(
         station_code=station_code,
         weather_date=hourly_reading.datetime,
         temp_valid=temp_valid,
@@ -130,8 +113,10 @@ class HourlyActualsBot():
             with app.db.database.get_write_session_scope() as session:
                 for station_hourly_reading in station_hourly_readings:
                     for hourly_reading in station_hourly_reading.values:
-                        save_hourly_actual(session, parse_hourly_actual(
-                            station_hourly_reading.station.code, hourly_reading))
+                        hourly_actual = parse_hourly_actual(
+                            station_hourly_reading.station.code, hourly_reading)
+                        if hourly_actual is not None:
+                            save_hourly_actual(session, hourly_actual)
 
 
 def main():
