@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { makeStyles } from '@material-ui/core/styles'
 
 import { NoonForecastValue } from 'api/forecastAPI'
 import { formatDateInPST, formatDateInUTC00Suffix } from 'utils/date'
@@ -34,8 +35,15 @@ interface NoonForecastTableProps {
   noonObservations: ObservedValue[] | undefined
 }
 
+const useStyles = makeStyles({
+  paper: {
+    width: '100%'
+  },
+  ...comparisonTableStyles
+})
+
 const NoonForecastTable = (props: NoonForecastTableProps) => {
-  const classes = comparisonTableStyles()
+  const classes = useStyles()
   const [order, setOrder] = useState<Order>('desc')
 
   if (props.noonForecasts === undefined || props.noonObservations === undefined) {

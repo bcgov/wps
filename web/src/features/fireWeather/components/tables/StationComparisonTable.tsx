@@ -24,7 +24,7 @@ import {
   DEW_POINT_VALUES_DECIMAL
 } from 'utils/constants'
 
-export const comparisonTableStyles = makeStyles({
+export const comparisonTableStyles = {
   paper: {
     padding: '5px',
     // There's a formating issues that causes the last cell in the table to be cut off
@@ -66,7 +66,9 @@ export const comparisonTableStyles = makeStyles({
     padding: '2px',
     minWidth: '60px'
   }
-})
+}
+
+const useStyles = makeStyles(comparisonTableStyles)
 
 interface Props {
   timeOfInterest: string
@@ -259,7 +261,7 @@ const SubHeadings = (
 }
 
 const StationComparisonTable = (props: Props) => {
-  const classes = comparisonTableStyles()
+  const classes = useStyles()
   // format the date to match the ISO format in the API for easy comparison.
   const noonDate = formatDateInUTC00Suffix(props.timeOfInterest)
   return (
