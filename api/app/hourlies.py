@@ -21,15 +21,12 @@ def get(value: object, condition: bool = True):
 
 async def fetch_hourly_readings_from_db(
         station_codes: List[int],
-        time_of_interest: datetime) -> List[WeatherStationHourlyReadings]:
+        date_from: datetime,
+        date_to: datetime) -> List[WeatherStationHourlyReadings]:
     """ Fetch the hourly readings from the database.
     """
     stations = await app.stations.get_stations_by_codes(station_codes)
     with app.db.database.get_read_session_scope() as session:
-        # by default, we want the past 5 days, and if available the next 10 days.
-        date_from = time_of_interest - timedelta(days=5)
-        # the UI is interested in hourly reading before and after the time of interest.
-        date_to = time_of_interest + timedelta(days=10)
         readings = get_hourly_actuals(session, station_codes, date_from, date_to)
         station_readings = None
         result = []
@@ -57,12 +54,11 @@ async def fetch_hourly_readings_from_db(
     return result
 
 
-def _get_five_day_interval(time_of_interest: datetime):
-    five_days_past = time_of_interest - timedelta(days=5)
-
-    # Prepare query params and query:
-    start_time_stamp = math.floor(five_days_past.timestamp()*1000)
-    end_time_stamp = math.floor(time_of_interest.timestamp()*1000)
+def _get_time_interval(time_of_interest: datetime):
+    # by default, we want the past 5 days, and if available the next 10 days.
+    start_time_stamp = time_of_interest - timedelta(days=5)
+    # the UI is interested in hourly reading before and after the time of interest.
+    end_time_stamp = time_of_interest + timedelta(days=10)
 
     return start_time_stamp, end_time_stamp
 
@@ -74,9 +70,9 @@ async def get_hourly_readings(
     Reading 5 days before, and 10 days after the time of interest are returned.
     Depending on configuration, will read from WF1 or from local database.
     """
-    start_time_stamp, end_time_stamp = _get_five_day_interval(time_of_interest)
+    start_time_stamp, end_time_stamp = _get_time_interval(time_of_interest)
 
     if wildfire_one.use_wfwx():
         return await wildfire_one.get_hourly_readings(station_codes, start_time_stamp, end_time_stamp)
 
-    return await fetch_hourly_readings_from_db(station_codes, time_of_interest)
+    return await fetch_hourly_readings_from_db(station_codes, start_time_stamp, end_time_stamp)
