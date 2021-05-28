@@ -241,7 +241,8 @@ const StationComparisonTable = (props: Props) => {
                     accumulatedRDPSPrecip={accumulatedRDPSPrecipitation}
                     accumulatedGDPSPrecip={accumulatedGDPSPrecipitation}
                     accumulatedObsPrecip={accumulatedObservedPrecipitation}
-                    testId={`comparison-table-row-${idx}`}
+                    testId={`comparison-table-row-${stationCode}`}
+                    testIdRowNumber={stationCode}
                     key={idx}
                   />
                 )

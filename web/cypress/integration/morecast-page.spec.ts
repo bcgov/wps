@@ -3,6 +3,7 @@ import { stationCodeQueryKey, timeOfInterestQueryKey } from '../../src/utils/url
 const stationCode = 328
 const stationCode2 = 380
 const numOfObservations = 119
+const numOfForecasts = 6
 
 const interceptData = () => {
   cy.intercept('POST', 'api/observations/', { fixture: 'weather-data/observations' })
@@ -101,6 +102,18 @@ describe('MoreCast Page', () => {
         .then(str => parseInt(str))
         .should('be.lt', 790)
     })
+
+    it('should load a table comparing forecasts to noon observations', () => {
+      cy.getByTestId(`noon-forecasts-obs-table-${stationCode}`)
+        .find('tbody > tr')
+        .should('have.length', numOfForecasts)
+
+      cy.getByTestId(`expand-collapse-button`).click({ force: true })
+      cy.getByTestId(`noon-forecasts-obs-table-${stationCode}`)
+        .invoke('css', 'width')
+        .then(str => parseInt(str))
+        .should('be.gt', 790)
+    })
   })
 
   describe('When loading multiple stations from url', () => {
@@ -157,13 +170,9 @@ describe('MoreCast Page', () => {
         .should('have.length', 2)
 
       // expect some observed data
-      cy.getByTestId('comparison-table-row-0')
-        .find('td[data-testid="temperature-observation"] > div')
-        .should('contain', '-3.8°C')
+      cy.getByTestId(`${stationCode}-Temperature-Observed`).should('contain', '-3.8°C')
 
-      cy.getByTestId('comparison-table-row-0')
-        .find('td[data-testid="dewpoint-observation"] > div')
-        .should('contain', '-8.3°C')
+      cy.getByTestId(`${stationCode}-Dew-point-Observed`).should('contain', '-8.3°C')
     })
   })
 
@@ -286,7 +295,7 @@ describe('MoreCast Page', () => {
       cy.getByTestId('legend').should('be.visible')
     })
     it('Should expand the side panel when it is collapsed, and hide the legend', () => {
-      cy.get(`[value=expand-collapse]`).click({ force: true })
+      cy.getByTestId(`expand-collapse-button`).click({ force: true })
       cy.getByTestId('expandable-container-content')
         .invoke('width')
         .should('be.gt', PARTIAL_WIDTH)
@@ -294,7 +303,7 @@ describe('MoreCast Page', () => {
       cy.getByTestId('legend').should('not.exist')
     })
     it('Should collapse the side panel when it is expanded and the legend should be visible', () => {
-      cy.get(`[value=expand-collapse]`)
+      cy.getByTestId(`expand-collapse-button`)
         .click({ force: true })
         .click({ force: true })
       cy.getByTestId('expandable-container-content')
@@ -344,7 +353,7 @@ describe('MoreCast Page', () => {
             .should('have.length', num)
         }
 
-        // the 10 Legend items should be: 
+        // the 10 Legend items should be:
         // Observed Dew Point, Observed Temp, Observed RH, Forecast Temp, Forecast RH, HRDPS Temp, HRDPS RH,
         // HRDPS Temp 5th - 90th percentile, HRDPS RH 5th - 90th percentile, Time of Interest
         checkNumOfLegends(10)

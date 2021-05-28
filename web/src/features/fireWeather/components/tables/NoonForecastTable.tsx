@@ -182,7 +182,8 @@ const NoonForecastTable = (props: NoonForecastTableProps) => {
                         observation={observation}
                         forecast={forecast}
                         accumulatedObsPrecip={accumPrecip}
-                        testId={`forecast-obs-comparison-table-row-${idx}`}
+                        testId={`forecast-obs-comparison-table-row`}
+                        testIdRowNumber={idx}
                       ></ComparisonTableRow>
                     )
                   }

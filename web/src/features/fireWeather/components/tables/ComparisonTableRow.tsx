@@ -45,6 +45,7 @@ interface Props {
   globalModel?: ModelValue
   accumulatedGDPSPrecip?: AccumulatedPrecipitation
   testId?: string
+  testIdRowNumber?: number
 }
 
 const useStyles = makeStyles({
@@ -219,7 +220,7 @@ const ComparisonTableRow = (props: Props) => {
   const classes = useStyles()
 
   return (
-    <TableRow data-testid={props.testId}>
+    <TableRow data-testid={`${props.testId}-${props.testIdRowNumber}`}>
       {props.index}
       {props.headers.map((variable: WeatherVariable, idx: number) => {
         const colStyle = idx % 2 === 0 ? classes.darkColumn : classes.lightColumn
@@ -428,7 +429,13 @@ const ComparisonTableRow = (props: Props) => {
             }
           }
           return (
-            <TableCell className={colStyle} key={`${idx}-${variable}-${source}`}>
+            <TableCell
+              className={colStyle}
+              data-testid={`${props.testIdRowNumber}-${WeatherVariable[variable]
+                .split(' ')
+                .join('-')}-${DataSource[source]}`}
+              key={`${variable}-${source}`}
+            >
               {cellContent}
             </TableCell>
           )
