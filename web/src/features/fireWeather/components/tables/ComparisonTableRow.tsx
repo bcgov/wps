@@ -195,7 +195,6 @@ const formatAccumulatedPrecipitation = (
   precipitationClassName: string[]
 ): ReactElement => {
   const title: JSX.Element[] = []
-  console.log(precipitation)
   precipitation?.values.forEach((value, index) => {
     if ('delta_precipitation' in value && 'model_run_datetime' in value) {
       title.push(
