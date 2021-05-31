@@ -4,24 +4,20 @@ import os
 from datetime import datetime, timezone, timedelta
 from typing import Final, Tuple, Generator, Union, List
 from contextlib import contextmanager
-from app import config
-from minio import Minio
-import io
 import tempfile
 import logging
 import json
-from osgeo import gdal, ogr
+import sys
 import numpy
-from pyproj import Transformer, Proj
-from shapely.ops import transform
-from shapely.geometry import shape
+from minio import Minio
+from osgeo import gdal, ogr
 from sqlalchemy.orm import Session
+from app import config
 from app.time_utils import get_utc_now
-from app.db.models.c_haines import CHainesPoly, CHainesPrediction, CHainesModelRun, severity_levels
+from app.db.models.c_haines import CHainesPrediction, CHainesModelRun, severity_levels
 from app.db.crud.weather_models import get_prediction_model
 from app.db.crud.c_haines import (get_c_haines_prediction, get_or_create_c_haines_model_run)
 from app.weather_models import ModelEnum, ProjectionEnum
-from app.weather_models.process_grib import NAD83
 from app.weather_models.env_canada import (get_model_run_hours,
                                            get_file_date_part, adjust_model_day, download,
                                            UnhandledPredictionModelType)
@@ -266,7 +262,7 @@ def save_geojson_to_object_store(session: Session,
     client = Minio(server, user_id, secret_key, secure=True)
     if not client.bucket_exists(bucket):
         print("Bucket specified does not exist")
-        exit(1)
+        sys.exit(1)
 
     # Push data to object store
     data_as_bytes = json.dumps(data).encode('utf-8')

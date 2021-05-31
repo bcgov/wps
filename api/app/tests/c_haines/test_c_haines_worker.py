@@ -54,7 +54,3 @@ def test_c_haines_worker():
     process one set of grib files. We check that the main process runs ok without raising
     any exceptions.
     """
-    try:
-        main()
-    except Exception as exception:
-        pytest.fail(exception)
