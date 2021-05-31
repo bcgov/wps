@@ -95,7 +95,6 @@ class HourlyActualsBot():
     async def run_wfwx(self):
         """ Entry point for running the bot """
         with Session() as session:
-            # Authenticate with idir.
             session, header = await wildfire_one.get_session_and_auth_header()
             station_codes = await wildfire_one.get_stations(
                 session, header, mapper=wildfire_one.station_codes_list_mapper)

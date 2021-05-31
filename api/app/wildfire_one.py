@@ -91,7 +91,7 @@ async def _fetch_access_token(session: ClientSession) -> dict:
 
 
 async def get_session_and_auth_header():
-    """ Return a client session and auth header
+    """ Return a client session and auth header for WFWX API
     """
     async with ClientSession() as session:
         return session, await _get_auth_header(session)
