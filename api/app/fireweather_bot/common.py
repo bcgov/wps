@@ -28,7 +28,7 @@ class AuthenticationException(Exception):
     """ Exception thrown if there's any issue authenticating """
 
 
-def authenticate_session(session: Session) -> Session:
+def _authenticate_session(session: Session) -> Session:
     """ Authenticate the session using NTLM auth
     """
     password = config.get('BC_FIRE_WEATHER_SECRET')
@@ -129,7 +129,7 @@ class BaseBot(ABC):
         """ Entry point for running the bot """
         with Session() as session:
             # Authenticate with idir.
-            authenticate_session(session)
+            _authenticate_session(session)
             # Build the request body.
             request_body = self.construct_request_body()
             # Get the CSV url.
