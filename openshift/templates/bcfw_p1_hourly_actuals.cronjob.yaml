@@ -71,6 +71,21 @@ objects:
                         configMapKeyRef:
                           name: ${NAME}-global
                           key: bc-fire-weather-filter-id
+                    - name: WFWX_AUTH_URL
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${NAME}-global
+                          key: env.wfwx-auth-url
+                    - name: WFWX_USER
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${NAME}-global
+                          key: env.wfwx-user
+                    - name: WFWX_SECRET
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${NAME}-global
+                          key: wfwx-secret
                     - name: POSTGRES_PASSWORD
                       valueFrom:
                         secretKeyRef:
