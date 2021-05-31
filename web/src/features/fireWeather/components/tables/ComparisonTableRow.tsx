@@ -15,32 +15,25 @@ import {
 } from 'utils/constants'
 import { AccumulatedPrecipitation } from 'utils/table'
 
-export enum DataSource {
-  'Observed',
-  'Forecast',
-  'HRDPS',
-  'RDPS',
-  'GDPS'
-}
+export type DataSource = 'Observed' | 'Forecast' | 'HRDPS' | 'RDPS' | 'GDPS'
 
-export enum WeatherVariable {
-  'Temperature',
-  'Relative Humidity',
-  'Wind Speed + Direction',
-  'Precipitation',
-  'Dew point'
-}
+export type WeatherVariable =
+  | 'Temperature'
+  | 'Relative Humidity'
+  | 'Wind Speed + Direction'
+  | 'Precipitation'
+  | 'Dew point'
 
 interface CellFormattingInfo {
-  formatFn: (source: any, valueClassName?: string, windSpeedClassName?: string, windDirectionClassName?: string) => ReactElement
-    // formatFn: object
+  formatFn: (source: any, valueClassName: string[]) => ReactElement | void
   data:
     | NoonForecastValue
     | ObservedValue
     | ModelValue
     | AccumulatedPrecipitation
+    | number
     | undefined
-  styling?: string[]
+  styling: string[]
 }
 
 interface Props {
@@ -102,13 +95,12 @@ const useStyles = makeStyles({
 
 const formatWindSpeedDirection = (
   source: NoonForecastValue | ObservedValue | ModelValue | undefined,
-  windSpeedClassName: string,
-  windDirectionClassName: string
+  valueClassName: string[]
 ): ReactElement => {
   return (
     <div>
       {typeof source?.wind_speed === 'number' && (
-        <div className={windSpeedClassName}>
+        <div className={valueClassName[0]}>
           {source?.wind_speed?.toFixed(WIND_SPEED_VALUES_DECIMAL)} km/h
         </div>
       )}
@@ -116,7 +108,7 @@ const formatWindSpeedDirection = (
         typeof source?.wind_direction === 'number' &&
         ' '}
       {typeof source?.wind_direction === 'number' && (
-        <div className={windDirectionClassName}>
+        <div className={valueClassName[1]}>
           {source?.wind_direction?.toFixed(WIND_SPEED_VALUES_DECIMAL)}
           {source?.wind_direction && String.fromCharCode(176)}
         </div>
@@ -140,10 +132,10 @@ const formatTemperature = (
 
 const formatRelativeHumidity = (
   source: NoonForecastValue | ObservedValue | ModelValue | undefined,
-  valueClassName: string
+  valueClassName: string[]
 ): ReactElement => {
   return (
-    <div className={valueClassName}>
+    <div className={valueClassName[0]}>
       {typeof source?.relative_humidity === 'number' &&
         `${source?.relative_humidity?.toFixed(RH_VALUES_DECIMAL)}%`}
     </div>
@@ -152,17 +144,18 @@ const formatRelativeHumidity = (
 
 const formatPrecipitation = (
   precipitation: number | null | undefined,
-  precipitationClassName: string
+  valueClassName: string[]
 ): ReactElement => {
   return (
-    <div className={precipitationClassName}>
+    <div className={valueClassName[0]}>
       {typeof precipitation === 'number' &&
         `${precipitation.toFixed(PRECIP_VALUES_DECIMAL)} mm`}
     </div>
   )
 }
 
-const formatDewPoint = (dewpoint: number | null | undefined) => {
+const formatDewPoint = (observation: ObservedValue | undefined) => {
+  const dewpoint = observation?.dewpoint
   return (
     <div>
       {typeof dewpoint === 'number' &&
@@ -172,6 +165,9 @@ const formatDewPoint = (dewpoint: number | null | undefined) => {
 }
 
 const formatModelTemperature = (source: ModelValue): ReactElement => {
+  if (source === undefined) {
+    return <div></div>
+  }
   const tooltip = (source as ModelValue).model_run_datetime
   return (
     source && (
@@ -184,7 +180,7 @@ const formatModelTemperature = (source: ModelValue): ReactElement => {
 
 const formatModelRelativeHumidity = (
   source: ModelValue | undefined,
-  valueClassName: string
+  valueClassName: string[]
 ): ReactElement => {
   const tooltip = (source as ModelValue)?.model_run_datetime
   return (
@@ -196,9 +192,10 @@ const formatModelRelativeHumidity = (
 
 const formatAccumulatedPrecipitation = (
   precipitation: AccumulatedPrecipitation,
-  precipitationClassName: string
+  precipitationClassName: string[]
 ): ReactElement => {
   const title: JSX.Element[] = []
+  console.log(precipitation)
   precipitation?.values.forEach((value, index) => {
     if ('delta_precipitation' in value && 'model_run_datetime' in value) {
       title.push(
@@ -219,7 +216,7 @@ const formatAccumulatedPrecipitation = (
   })
   return (
     <ToolTip title={title} aria-label="precipitation" arrow>
-      <div className={precipitationClassName}>
+      <div className={precipitationClassName[0]}>
         {precipitation &&
           typeof precipitation.precipitation === 'number' &&
           `${precipitation.precipitation.toFixed(PRECIP_VALUES_DECIMAL)} mm`}
@@ -232,100 +229,100 @@ const ComparisonTableRow = (props: Props) => {
   const classes = useStyles()
 
   const formattingMap: Record<WeatherVariable, Record<DataSource, CellFormattingInfo>> = {
-    0: {
-      0: { formatFn: formatTemperature, data: props.observation },
-      1: { formatFn: formatTemperature, data: props.forecast },
-      2: { formatFn: formatModelTemperature, data: props.highResModel },
-      3: { formatFn: formatModelTemperature, data: props.regionalModel },
-      4: { formatFn: formatModelTemperature, data: props.globalModel }
+    Temperature: {
+      Observed: { formatFn: formatTemperature, data: props.observation, styling: [] },
+      Forecast: { formatFn: formatTemperature, data: props.forecast, styling: [] },
+      HRDPS: { formatFn: formatModelTemperature, data: props.highResModel, styling: [] },
+      RDPS: { formatFn: formatModelTemperature, data: props.regionalModel, styling: [] },
+      GDPS: { formatFn: formatModelTemperature, data: props.globalModel, styling: [] }
     },
-    1: {
-      0: {
+    'Relative Humidity': {
+      Observed: {
         formatFn: formatRelativeHumidity,
         data: props.observation,
         styling: [classes.relativeHumidityValue]
       },
-      1: {
+      Forecast: {
         formatFn: formatRelativeHumidity,
         data: props.forecast,
         styling: [classes.relativeHumidityValue]
       },
-      2: {
+      HRDPS: {
         formatFn: formatModelRelativeHumidity,
         data: props.highResModel,
         styling: [classes.relativeHumidityValue]
       },
-      3: {
+      RDPS: {
         formatFn: formatModelRelativeHumidity,
         data: props.regionalModel,
         styling: [classes.relativeHumidityValue]
       },
-      4: {
+      GDPS: {
         formatFn: formatModelRelativeHumidity,
         data: props.globalModel,
         styling: [classes.relativeHumidityValue]
       }
     },
-    2: {
-      0: {
+    'Wind Speed + Direction': {
+      Observed: {
         formatFn: formatWindSpeedDirection,
         data: props.observation,
         styling: [classes.windSpeedValue, classes.windDirectionValue]
       },
-      1: {
+      Forecast: {
         formatFn: formatWindSpeedDirection,
         data: props.forecast,
         styling: [classes.windSpeedValue, classes.windDirectionValue]
       },
-      2: {
+      HRDPS: {
         formatFn: formatWindSpeedDirection,
         data: props.highResModel,
         styling: [classes.windSpeedValue, classes.windDirectionValue]
       },
-      3: {
+      RDPS: {
         formatFn: formatWindSpeedDirection,
         data: props.regionalModel,
         styling: [classes.windSpeedValue, classes.windDirectionValue]
       },
-      4: {
+      GDPS: {
         formatFn: formatWindSpeedDirection,
         data: props.globalModel,
         styling: [classes.windSpeedValue, classes.windDirectionValue]
       }
     },
-    3: {
-      0: {
+    Precipitation: {
+      Observed: {
         formatFn: formatAccumulatedPrecipitation,
         data: props.accumulatedObsPrecip,
         styling: [classes.precipitationValue]
       },
-      1: {
+      Forecast: {
         formatFn: formatPrecipitation,
-        data: props.forecast,
+        data: props.forecast?.total_precipitation,
         styling: [classes.precipitationValue]
       },
-      2: {
+      HRDPS: {
         formatFn: formatAccumulatedPrecipitation,
         data: props.accumulatedHRDPSPrecip,
         styling: [classes.precipitationValue]
       },
-      3: {
+      RDPS: {
         formatFn: formatAccumulatedPrecipitation,
         data: props.accumulatedRDPSPrecip,
         styling: [classes.precipitationValue]
       },
-      4: {
+      GDPS: {
         formatFn: formatAccumulatedPrecipitation,
         data: props.accumulatedGDPSPrecip,
         styling: [classes.precipitationValue]
       }
     },
-    4: {
-      0: { formatFn: formatDewPoint, data: props.observation },
-      1: { formatFn: {}, data: undefined },
-      2: { formatFn: {}, data: undefined },
-      3: { formatFn: {}, data: undefined },
-      4: { formatFn: {}, data: undefined }
+    'Dew point': {
+      Observed: { formatFn: formatDewPoint, data: props.observation, styling: [] },
+      Forecast: { formatFn: () => undefined, data: undefined, styling: [] },
+      HRDPS: { formatFn: () => undefined, data: undefined, styling: [] },
+      RDPS: { formatFn: () => undefined, data: undefined, styling: [] },
+      GDPS: { formatFn: () => undefined, data: undefined, styling: [] }
     }
   }
 
@@ -336,21 +333,26 @@ const ComparisonTableRow = (props: Props) => {
         const colStyle = idx % 2 === 0 ? classes.darkColumn : classes.lightColumn
         return props.subheaders[idx].map((source: DataSource) => {
           const formattingInfo = formattingMap[variable][source]
-          const bleh = formattingInfo.formatFn
-          bleh(formattingInfo.data)
-          const cellContent = formattingInfo.formatFn(formattingInfo.data, formattingInfo.styling)
-
-          return (
-            <TableCell
-              className={colStyle}
-              data-testid={`${props.testIdRowNumber}-${WeatherVariable[variable]
-                .split(' ')
-                .join('-')}-${DataSource[source]}`}
-              key={`${variable}-${source}`}
-            >
-              {cellContent}
-            </TableCell>
+          const cellContent = formattingInfo.formatFn(
+            formattingInfo.data,
+            formattingInfo.styling
           )
+
+          if (cellContent instanceof Object) {
+            return (
+              <TableCell
+                className={colStyle}
+                data-testid={`${props.testIdRowNumber}-${variable
+                  .split(' ')
+                  .join('-')}-${source}`}
+                key={`${variable}-${source}`}
+              >
+                {cellContent}
+              </TableCell>
+            )
+          } else {
+            return null
+          }
         })
       })}
     </TableRow>

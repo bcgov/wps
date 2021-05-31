@@ -66,7 +66,7 @@ const ExpandableContainer = (props: Props) => {
         >
           <IconButton
             value="expand-collapse"
-            data-testId="expand-collapse-button"
+            data-testid="expand-collapse-button"
             color="primary"
             aria-label="Expand side view"
             onClick={collapsed ? props.expand : props.collapse}

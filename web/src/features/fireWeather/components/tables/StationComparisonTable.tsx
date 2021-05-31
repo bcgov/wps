@@ -188,43 +188,19 @@ const StationComparisonTable = (props: Props) => {
                   </TableCell>
                 )
 
-                const headers = [
-                  WeatherVariable.Temperature,
-                  WeatherVariable['Relative Humidity'],
-                  WeatherVariable['Wind Speed + Direction'],
-                  WeatherVariable.Precipitation,
-                  WeatherVariable['Dew point']
+                const headers: WeatherVariable[] = [
+                  'Temperature',
+                  'Relative Humidity',
+                  'Wind Speed + Direction',
+                  'Precipitation',
+                  'Dew point'
                 ]
-                const subheaders = [
-                  [
-                    DataSource.Observed,
-                    DataSource.Forecast,
-                    DataSource.HRDPS,
-                    DataSource.RDPS,
-                    DataSource.GDPS
-                  ],
-                  [
-                    DataSource.Observed,
-                    DataSource.Forecast,
-                    DataSource.HRDPS,
-                    DataSource.RDPS,
-                    DataSource.GDPS
-                  ],
-                  [
-                    DataSource.Observed,
-                    DataSource.Forecast,
-                    DataSource.HRDPS,
-                    DataSource.RDPS,
-                    DataSource.GDPS
-                  ],
-                  [
-                    DataSource.Observed,
-                    DataSource.Forecast,
-                    DataSource.HRDPS,
-                    DataSource.RDPS,
-                    DataSource.GDPS
-                  ],
-                  [DataSource.Observed]
+                const subheaders: DataSource[][] = [
+                  ['Observed', 'Forecast', 'HRDPS', 'RDPS', 'GDPS'],
+                  ['Observed', 'Forecast', 'HRDPS', 'RDPS', 'GDPS'],
+                  ['Observed', 'Forecast', 'HRDPS', 'RDPS', 'GDPS'],
+                  ['Observed', 'Forecast', 'HRDPS', 'RDPS', 'GDPS'],
+                  ['Observed']
                 ]
 
                 return (

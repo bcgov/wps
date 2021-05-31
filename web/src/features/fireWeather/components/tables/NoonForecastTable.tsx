@@ -93,17 +93,17 @@ const NoonForecastTable = (props: NoonForecastTableProps) => {
   const toggleDatetimeOrder = () => {
     setOrder(order === 'asc' ? 'desc' : 'asc')
   }
-  const headers = [
-    WeatherVariable.Temperature,
-    WeatherVariable['Relative Humidity'],
-    WeatherVariable['Wind Speed + Direction'],
-    WeatherVariable.Precipitation
+  const headers: WeatherVariable[] = [
+    'Temperature',
+    'Relative Humidity',
+    'Wind Speed + Direction',
+    'Precipitation'
   ]
-  const subheaders = [
-    [DataSource.Forecast, DataSource.Observed],
-    [DataSource.Forecast, DataSource.Observed],
-    [DataSource.Forecast, DataSource.Observed],
-    [DataSource.Forecast, DataSource.Observed]
+  const subheaders: DataSource[][] = [
+    ['Forecast', 'Observed'],
+    ['Forecast', 'Observed'],
+    ['Forecast', 'Observed'],
+    ['Forecast', 'Observed']
   ]
 
   return (
