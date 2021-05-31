@@ -90,6 +90,13 @@ async def _fetch_access_token(session: ClientSession) -> dict:
         return await response.json()
 
 
+async def get_session_and_auth_header():
+    """ Return a client session and auth header
+    """
+    async with ClientSession() as session:
+        return session, await _get_auth_header(session)
+
+
 async def _get_auth_header(session: ClientSession) -> dict:
     # Fetch access token
     token = await _fetch_access_token(session)
@@ -225,39 +232,56 @@ def _parse_hourly(hourly) -> WeatherReading:
 async def get_stations_by_codes(station_codes: List[int]) -> List[WeatherStation]:
     """ Get a list of stations by code, from WFWX Fireweather API. """
     logger.info('Using WFWX to retrieve stations by code')
-    async with ClientSession() as session:
-        # Get the authentication header
-        header = await _get_auth_header(session)
-        stations = []
-        # Iterate through "raw" station data.
-        iterator = _fetch_raw_stations_generator(
-            session, header, BuildQueryByStationCode(station_codes))
-        async for raw_station in iterator:
-            # If the station is valid, add it to our list of stations.
-            if _is_station_valid(raw_station):
-                stations.append(_parse_station(raw_station))
-        logger.debug('total stations: %d', len(stations))
-        return stations
+    session, header = get_session_and_auth_header()
+    stations = []
+    # Iterate through "raw" station data.
+    iterator = _fetch_raw_stations_generator(
+        session, header, BuildQueryByStationCode(station_codes))
+    async for raw_station in iterator:
+        # If the station is valid, add it to our list of stations.
+        if _is_station_valid(raw_station):
+            stations.append(_parse_station(raw_station))
+    logger.debug('total stations: %d', len(stations))
+    return stations
 
 
-async def get_stations() -> List[WeatherStation]:
+async def station_list_mapper(raw_stations: Generator[dict, None, None]):
+    """ Maps raw stations to WeatherStation list"""
+    stations = []
+    # Iterate through "raw" station data.
+    async for raw_station in raw_stations:
+        # If the station is valid, add it to our list of stations.
+        if _is_station_valid(raw_station):
+            stations.append(WeatherStation(code=raw_station['stationCode'],
+                                           name=raw_station['displayLabel'],
+                                           lat=raw_station['latitude'],
+                                           long=raw_station['longitude']))
+    return stations
+
+
+async def station_codes_mapper(raw_stations: dict):
+    """ Maps raw stations to station codes"""
+    station_codes = []
+    # Iterate through "raw" station data.
+    async for raw_station in raw_stations:
+        # If the station is valid, add it to our list of stations.
+        if _is_station_valid(raw_station):
+            station_codes.append(raw_station['stationCode'])
+    return station_codes
+
+
+async def get_stations(session: ClientSession,
+                       header: dict,
+                       mapper=station_list_mapper) -> List[WeatherStation]:
     """ Get list of stations from WFWX Fireweather API.
     """
     logger.info('Using WFWX to retrieve station list')
-    async with ClientSession() as session:
-        # Get the authentication header
-        header = await _get_auth_header(session)
-        stations = []
-        # Iterate through "raw" station data.
-        async for raw_station in _fetch_raw_stations_generator(
-                session, header, BuildQueryAllActiveStations()):
-            # If the station is valid, add it to our list of stations.
-            if _is_station_valid(raw_station):
-                stations.append(WeatherStation(code=raw_station['stationCode'],
-                                               name=raw_station['displayLabel'],
-                                               lat=raw_station['latitude'],
-                                               long=raw_station['longitude']))
-        logger.debug('total stations: %d', len(stations))
+    # Iterate through "raw" station data.
+    raw_stations = _fetch_raw_stations_generator(
+        session, header, BuildQueryAllActiveStations())
+    # If the station is valid, add it to our list of stations.
+    stations = await mapper(raw_stations)
+    logger.debug('total stations: %d', len(stations))
     return stations
 
 

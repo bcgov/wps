@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
 from pytest_mock import MockerFixture
+from app import auth
 from app.time_utils import get_pst_tz
 from app.tests.common import (
     MockJWTDecode, default_mock_requests_get, default_mock_requests_post,
@@ -141,4 +142,4 @@ def mock_requests_session(monkeypatch):
 @pytest.fixture(autouse=True)
 def spy_access_logging(mocker: MockerFixture):
     """Spies on access audting logging for tests"""
-    return mocker.spy(app.auth, 'create_api_access_audit_log')
+    return mocker.spy(auth, 'create_api_access_audit_log')

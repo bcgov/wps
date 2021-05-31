@@ -53,11 +53,17 @@ def mock_hourly_actuals(mocker: MockerFixture):
     mocker.patch('app.wildfire_one.get_hourly_readings', return_value=[readings_1, readings_2])
 
 
-def test_hourly_actuals_bot(mocker: MockerFixture, mock_requests_session, mock_hourly_actuals):  # pylint: disable=unused-argument
+def test_hourly_actuals_bot(monkeypatch, mocker: MockerFixture, mock_requests_session, mock_hourly_actuals):  # pylint: disable=unused-argument
     """ Very simple test that checks that:
     - the bot exits with a success code
     - the expected number of records are saved.
     """
+
+    @asyncio.coroutine
+    def mock_get_session_auth_header():
+        return None, None
+
+    monkeypatch.setattr(wildfire_one, 'get_session_and_auth_header', mock_get_session_auth_header)
     save_hourly_actuals_spy = mocker.spy(hourly_actuals, 'save_hourly_actual')
     with pytest.raises(SystemExit) as excinfo:
         hourly_actuals.main()

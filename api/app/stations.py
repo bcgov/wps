@@ -76,7 +76,8 @@ async def _get_detailed_stations(time_of_interest: datetime):
     records. """
     geojson_stations = []
     # this gets us a list of stations
-    stations = await wildfire_one.get_stations()
+    session, header = wildfire_one.get_session_and_auth_header()
+    stations = await wildfire_one.get_stations(session, header)
     with app.db.database.get_read_session_scope() as session:
         stations_detailed = get_noon_forecast_observation_union(session, time_of_interest)
         station_lookup = {}
@@ -123,10 +124,12 @@ async def get_stations(
     if station_source == StationSourceEnum.UNSPECIFIED:
         # If station source is unspecified, check configuration:
         if wildfire_one.use_wfwx():
-            return await wildfire_one.get_stations()
+            session, header = wildfire_one.get_session_and_auth_header()
+            return await wildfire_one.get_stations(session, header)
     elif station_source == StationSourceEnum.WILDFIRE_ONE:
         # Get from wildfire one:
-        return await wildfire_one.get_stations()
+        session, header = wildfire_one.get_session_and_auth_header()
+        return await wildfire_one.get_stations(session, header)
     # Get from local:
     return _get_stations_local()
 

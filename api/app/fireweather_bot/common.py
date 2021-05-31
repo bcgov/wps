@@ -1,7 +1,6 @@
 """ Code common to fireweather bots
 """
 from abc import ABC, abstractmethod
-import asyncio
 import logging
 import re
 import os
@@ -11,7 +10,6 @@ from pathlib import PurePath
 from requests import Session, HTTPError
 from requests_ntlm import HttpNtlmAuth
 from app import config
-from app import wildfire_one
 from app.stations import get_stations_synchronously
 
 
@@ -92,15 +90,6 @@ def get_station_names_to_codes_local() -> dict:
     # while our weather_stations.json spells the station 'D'ARCY'
     station_codes['DARCY'] = station_codes.pop('D\'ARCY')
     return station_codes
-
-
-def get_station_names_to_codes_wfwx() -> dict:
-    """ Helper function to create dictionary of (station_name: station_code) key-value pairs
-        specifically from WFWX API
-    """
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    return loop.run_until_complete(wildfire_one.get_stations())
 
 
 def _download_csv(

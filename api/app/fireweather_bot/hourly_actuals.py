@@ -1,21 +1,19 @@
 """ Bot for loading hourly actual values.
 """
-import os
-from datetime import timedelta
 import asyncio
 import logging
 import math
+import os
 import sys
+from datetime import timedelta
 from requests import Session
-from app import configure_logging
 import app.db.database
+import app.time_utils
+from app import configure_logging, wildfire_one
 from app.db.crud.observations import save_hourly_actual
 from app.db.models.observations import HourlyActual
-from app.schemas.observations import WeatherReading
-import app.time_utils
-from app.fireweather_bot.common import (get_station_names_to_codes_wfwx, authenticate_session)
-from app import wildfire_one
 from app.rocketchat_notifications import send_rocketchat_notification
+from app.schemas.observations import WeatherReading
 
 # If running as it's own process, configure logging appropriately.
 if __name__ == "__main__":
@@ -94,18 +92,18 @@ class HourlyActualsBot():
         """ Return now. E.g. if it's 17h15 now, we'd get YYYYMMDD17 """
         return int(self.now.strftime('%Y%m%d%H'))
 
-    def run_wfwx(self):
+    async def run_wfwx(self):
         """ Entry point for running the bot """
         with Session() as session:
             # Authenticate with idir.
-            authenticate_session(session)
-
-            station_codes = get_station_names_to_codes_wfwx()
+            session, header = await wildfire_one.get_session_and_auth_header()
+            station_codes = await wildfire_one.get_stations(
+                session, header, mapper=wildfire_one.station_codes_mapper)
 
             start_date = self._get_start_date()
             end_date = self._get_end_date()
 
-            station_hourly_readings = get_hourly_readings_synchronously_wfwx(
+            station_hourly_readings = await wildfire_one.get_hourly_readings(
                 station_codes, start_date, end_date)
 
             logger.info("Station hourly readings: %s", station_hourly_readings)
@@ -126,7 +124,11 @@ def main():
     try:
         logger.debug('Retrieving hourly actuals...')
         bot = HourlyActualsBot()
-        bot.run_wfwx()
+
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(bot.run_wfwx())
+
         # Exit with 0 - success.
         sys.exit(os.EX_OK)
     # pylint: disable=broad-except
