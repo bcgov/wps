@@ -259,7 +259,7 @@ async def station_list_mapper(raw_stations: Generator[dict, None, None]):
     return stations
 
 
-async def station_codes_mapper(raw_stations: dict):
+async def station_codes_list_mapper(raw_stations: dict):
     """ Maps raw stations to station codes"""
     station_codes = []
     # Iterate through "raw" station data.

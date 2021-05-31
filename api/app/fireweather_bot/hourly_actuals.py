@@ -98,7 +98,7 @@ class HourlyActualsBot():
             # Authenticate with idir.
             session, header = await wildfire_one.get_session_and_auth_header()
             station_codes = await wildfire_one.get_stations(
-                session, header, mapper=wildfire_one.station_codes_mapper)
+                session, header, mapper=wildfire_one.station_codes_list_mapper)
 
             start_date = self._get_start_date()
             end_date = self._get_end_date()
