@@ -71,6 +71,11 @@ objects:
                         configMapKeyRef:
                           name: ${NAME}-global
                           key: bc-fire-weather-filter-id
+                    - name: WFWX_BASE_URL
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${NAME}-global
+                          key: env.wfwx-base-url
                     - name: WFWX_AUTH_URL
                       valueFrom:
                         configMapKeyRef:
