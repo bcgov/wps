@@ -403,7 +403,8 @@ async def fetch_hourlies(
         hourlies = []
         for hourly in hourlies_json['_embedded']['hourlies']:
             # We only accept "ACTUAL" values and values that have a dewpoint:
-            if hourly.get('hourlyMeasurementTypeCode', '').get('id') == 'ACTUAL' and hourly.get('dewpoint') is not None:
+            if hourly.get('hourlyMeasurementTypeCode', '').get('id') == 'ACTUAL' and \
+               hourly.get('dewpoint') is not None:
                 hourlies.append(_parse_hourly(hourly))
 
         logger.debug('fetched %d hourlies for %s(%s)', len(
@@ -456,10 +457,10 @@ async def get_hourly_readings_all_stations(
         if _is_station_valid(raw_station):
             task = asyncio.create_task(
                 fetch_hourlies(session,
-                            raw_station,
-                            header,
-                            start_timestamp,
-                            end_timestamp))
+                               raw_station,
+                               header,
+                               start_timestamp,
+                               end_timestamp))
             tasks.append(task)
 
     # Run the tasks concurrently, waiting for them all to complete.
