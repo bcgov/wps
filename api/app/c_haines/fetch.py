@@ -48,6 +48,7 @@ def fetch_model_run_kml_streamer(model: ModelEnum, model_run_timestamp: datetime
     yield f'<name>{model_run_timestamp} model run</name>\n'
 
     client, bucket = get_minio_client()
+
     predictions = client.list_objects(bucket, prefix=generate_kml_model_run_path(
         model, model_run_timestamp), recursive=True)
     for prediction in predictions:
@@ -98,17 +99,6 @@ def fetch_network_link_kml() -> str:
     writer.write(f'{FOLDER_CLOSE}\n')
     writer.write('</kml>')
     return writer.getvalue()
-
-
-def fetch_prediction_kml_streamer(model: ModelEnum, model_run_timestamp: datetime,
-                                  prediction_timestamp: datetime):
-    """ Fetch prediction polygon geojson.
-    """
-    logger.info('model: %s; model_run: %s, prediction: %s', model, model_run_timestamp, prediction_timestamp)
-    with app.db.database.get_read_session_scope() as session:
-        result = get_prediction_kml(session, model, model_run_timestamp, prediction_timestamp)
-        for part in kml_prediction(result, model, model_run_timestamp, prediction_timestamp):
-            yield part
 
 
 async def fetch_model_runs(model_run_timestamp: datetime):

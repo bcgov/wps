@@ -76,6 +76,7 @@ def record_exists(
         model_run: CHainesModelRun,
         prediction_timestamp: datetime):
     """ Check if we have a c-haines record """
+    # TODO: check for c-haines!
     result = get_c_haines_prediction(session, model_run, prediction_timestamp)
     return result.count() > 0
 

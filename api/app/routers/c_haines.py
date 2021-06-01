@@ -1,7 +1,7 @@
 """ Routes for c-haines
 """
 from enum import Enum
-from datetime import datetime
+from datetime import datetime, timezone
 import logging
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse, StreamingResponse, Response
@@ -34,6 +34,37 @@ router = APIRouter(
 )
 
 
+def _get_most_recent_kml_model_run(model: ModelEnum) -> datetime:
+    """ Get the most recent model run date """
+    # NOTE: This is a nasty, slow, brute force way of doing it!
+    client, bucket = get_minio_client()
+
+    def get_most_recent(result, depth):
+        last_object = None
+        for last_object in result:
+            pass
+        if last_object is None:
+            return None
+        if depth == 3:
+            return last_object
+        return get_most_recent(client.list_objects(bucket, last_object.object_name), depth+1)
+
+    most_recent = get_most_recent(client.list_objects(bucket, f'c-haines-polygons/kml/{model}/'), 0)
+
+    if most_recent is None:
+        # Could not find a most recent record
+        return None
+
+    logger.info('most record model run: %s', most_recent.object_name)
+
+    name_split = most_recent.object_name.strip('/').split('/')
+    hour = int(name_split[-1])
+    day = int(name_split[-2])
+    month = int(name_split[-3])
+    year = int(name_split[-4])
+    return datetime(year=year, month=month, day=day, hour=hour, tzinfo=timezone.utc)
+
+
 @router.get('/{model}/predictions')
 async def get_c_haines_model_run(
         model: ModelEnum,
@@ -47,13 +78,14 @@ async def get_c_haines_model_run(
         raise HTTPException(status_code=501)
     headers = {"Content-Type": kml_media_type}
     if model_run_timestamp is None:
-        with app.db.database.get_read_session_scope() as session:
-            model_run = get_most_recent_model_run(session, model)
-            model_run_timestamp = model_run.model_run_timestamp
+        model_run_timestamp = _get_most_recent_kml_model_run(model)
+        # with app.db.database.get_read_session_scope() as session:
+        #     model_run = get_most_recent_model_run(session, model)
+        #     model_run_timestamp = model_run.model_run_timestamp
     if model_run_timestamp is None:
-        filename = f'{model}.kml'
-    else:
-        filename = f'{model}-{model_run_timestamp}.kml'
+        # most recent model not found
+        raise HTTPException(status_code=404)
+    filename = f'{model}-{model_run_timestamp}.kml'
     headers["Content-Disposition"] = "inline;filename={}".format(
         filename)
     response = StreamingResponse(
