@@ -114,8 +114,10 @@ async def _fetch_raw_stations_generator(
         url, params = query_builder.query(page_count)
         logger.debug('loading station page %d...', page_count)
         async with session.get(url, headers=headers, params=params) as response:
-            station_json = await response.json()
+            response_bytes = await response.read()
             logger.debug('done loading station page %d.', page_count)
+
+        station_json = json.loads(response_bytes.decode('utf-8'))
         # Update the total page count.
         total_pages = station_json['page']['totalPages']
         for station in station_json['_embedded']['stations']:
@@ -400,8 +402,8 @@ async def fetch_hourlies(
         hourlies_json = await response.json()
         hourlies = []
         for hourly in hourlies_json['_embedded']['hourlies']:
-            # We only accept "ACTUAL" values:
-            if hourly.get('hourlyMeasurementTypeCode', '').get('id') == 'ACTUAL':
+            # We only accept "ACTUAL" values and values that have a dewpoint:
+            if hourly.get('hourlyMeasurementTypeCode', '').get('id') == 'ACTUAL' and hourly.get('dewpoint') is not None:
                 hourlies.append(_parse_hourly(hourly))
 
         logger.debug('fetched %d hourlies for %s(%s)', len(
@@ -432,6 +434,33 @@ async def get_hourly_readings(
                            start_timestamp,
                            end_timestamp))
         tasks.append(task)
+
+    # Run the tasks concurrently, waiting for them all to complete.
+    return await asyncio.gather(*tasks)
+
+
+async def get_hourly_readings_all_stations(
+        session: ClientSession,
+        header: dict,
+        start_timestamp: datetime,
+        end_timestamp: datetime) -> List[WeatherStationHourlyReadings]:
+    """ Get the hourly readings for the list of station codes provided.
+    """
+    # Create a list containing all the tasks to run in parallel.
+    tasks = []
+
+    # Iterate through "raw" station data.
+    iterator = _fetch_raw_stations_generator(
+        session, header, BuildQueryAllActiveStations())
+    async for raw_station in iterator:
+        if _is_station_valid(raw_station):
+            task = asyncio.create_task(
+                fetch_hourlies(session,
+                            raw_station,
+                            header,
+                            start_timestamp,
+                            end_timestamp))
+            tasks.append(task)
 
     # Run the tasks concurrently, waiting for them all to complete.
     return await asyncio.gather(*tasks)

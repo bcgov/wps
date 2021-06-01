@@ -5,7 +5,7 @@ import logging
 import math
 import os
 import sys
-from datetime import timedelta
+from datetime import datetime, timedelta
 from aiohttp.client import ClientSession
 import app.db.database
 import app.time_utils
@@ -85,31 +85,29 @@ class HourlyActualsBot():
     def __init__(self):
         self.now = app.time_utils.get_pst_now()
 
-    def _get_start_date(self) -> int:
+    def _get_start_date(self) -> datetime:
         """ Return time N hour ago. E.g. if it's 17h15 now, we'd get YYYYMMDD16. The intention is that
         this bot runs every hour, so if we ask for everything from an hour back, we should be fine.
         However, just to be on the safe side, we're asking for the last three hours - just in case there
         was a station that came in late, or if for whatever reason we missed a run.
         """
         hour_ago = self.now - timedelta(hours=3)
-        return int(hour_ago.strftime('%Y%m%d%H'))
+        return hour_ago
 
-    def _get_end_date(self) -> int:
+    def _get_end_date(self) -> datetime:
         """ Return now. E.g. if it's 17h15 now, we'd get YYYYMMDD17 """
-        return int(self.now.strftime('%Y%m%d%H'))
+        return self.now
 
     async def run_wfwx(self):
         """ Entry point for running the bot """
         async with ClientSession() as session:
             header = await wildfire_one.get_auth_header(session)
-            station_codes = await wildfire_one.get_stations(
-                session, header, mapper=wildfire_one.station_codes_list_mapper)
 
             start_date = self._get_start_date()
             end_date = self._get_end_date()
 
-            station_hourly_readings = await wildfire_one.get_hourly_readings(
-                session, header, station_codes, start_date, end_date)
+            station_hourly_readings = await wildfire_one.get_hourly_readings_all_stations(
+                session, header, start_date, end_date)
 
         logger.info("Station hourly readings: %s", station_hourly_readings)
 
