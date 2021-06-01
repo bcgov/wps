@@ -177,7 +177,6 @@ describe('MoreCast Page', () => {
   })
 
   describe('When wx data successfully fetched', () => {
-    const numOfForecasts = 6
     const numOfGdps = 131
     const numOfHrdps = 159
     const numOfRdps = 195

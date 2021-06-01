@@ -40,8 +40,8 @@ interface Props {
   index: ReactElement
   headers: WeatherVariable[]
   subheaders: DataSource[][]
-  forecast?: NoonForecastValue | undefined
-  observation?: ObservedValue | undefined
+  forecast?: NoonForecastValue
+  observation?: ObservedValue
   accumulatedObsPrecip?: AccumulatedPrecipitation
   highResModel?: ModelValue
   accumulatedHRDPSPrecip?: AccumulatedPrecipitation
@@ -168,7 +168,7 @@ const formatModelTemperature = (source: ModelValue): ReactElement => {
   if (source === undefined) {
     return <div></div>
   }
-  const tooltip = (source as ModelValue).model_run_datetime
+  const tooltip = source.model_run_datetime
   return (
     source && (
       <ToolTip title={`model run time: ${tooltip}`} aria-label="temperature" arrow>

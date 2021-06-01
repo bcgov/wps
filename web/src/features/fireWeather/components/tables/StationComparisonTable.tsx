@@ -32,27 +32,6 @@ const useStyles = makeStyles({
     padding: '2px',
     minWidth: '60px'
   },
-  lightColumn: {
-    textAlign: 'right',
-    padding: '2px'
-  },
-  windSpeedValue: {
-    whiteSpace: 'nowrap'
-  },
-  relativeHumidityValue: {
-    whiteSpace: 'nowrap'
-  },
-  windDirectionValue: {
-    whiteSpace: 'nowrap'
-  },
-  precipitationValue: {
-    whiteSpace: 'nowrap'
-  },
-  darkColumn: {
-    backgroundColor: '#fafafa',
-    padding: '2px',
-    textAlign: 'right'
-  },
   darkColumnHeader: {
     backgroundColor: 'rgb(240, 240, 240)',
     textAlign: 'center',
