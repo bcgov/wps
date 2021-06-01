@@ -217,9 +217,9 @@ def _parse_hourly(hourly) -> WeatherReading:
         wind_direction=hourly.get('windDirection', None),
         barometric_pressure=hourly.get('barometricPressure', None),
         precipitation=hourly.get('precipitation', None),
-        ffmc=hourly.get('ffmc', None),
-        isi=hourly.get('isi', None),
-        fwi=hourly.get('fwi', None),
+        ffmc=hourly.get('fineFuelMoistureCode', None),
+        isi=hourly.get('initialSpreadIndex', None),
+        fwi=hourly.get('fireWeatherIndex', None),
         observation_valid_ind=hourly.get('observationValidInd'),
         observation_valid_comment=hourly.get('observationValidComment')
     )
