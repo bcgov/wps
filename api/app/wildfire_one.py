@@ -403,8 +403,7 @@ async def fetch_hourlies(
         hourlies = []
         for hourly in hourlies_json['_embedded']['hourlies']:
             # We only accept "ACTUAL" values and values that have a dewpoint:
-            if hourly.get('hourlyMeasurementTypeCode', '').get('id') == 'ACTUAL' and \
-               hourly.get('dewpoint') is not None:
+            if hourly.get('hourlyMeasurementTypeCode', '').get('id') == 'ACTUAL':
                 hourlies.append(_parse_hourly(hourly))
 
         logger.debug('fetched %d hourlies for %s(%s)', len(
