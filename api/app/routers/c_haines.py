@@ -72,8 +72,6 @@ async def get_c_haines_model_run_prediction(
     """ Return geojson/kml polygons for c-haines """
     logger.info('/c-haines/%s/prediction?model_run_timestamp=%s&prediction_timestamp=%s&response_format=%s',
                 model, model_run_timestamp, prediction_timestamp, response_format)
-    # Let the browser cache the data as much as it wants.
-    headers = {"Cache-Control": "max-age=3600, public, immutable"}
 
     if response_format == FormatEnum.GEOJSON:
         geojson_response = await fetch_prediction_geojson(
@@ -81,12 +79,15 @@ async def get_c_haines_model_run_prediction(
         # We check for features - if there are no features, we return a 404.
         # NOTE: Technically, we should only return 404 if we're certain there is no record in the database...
         if geojson_response['features']:
+            # Let the browser cache the data as much as it wants.
+            headers = {"Cache-Control": "max-age=3600, public, immutable"}
             return JSONResponse(
                 content=geojson_response,
                 headers=headers)
         raise HTTPException(status_code=404)
 
-    headers["Content-Type"] = kml_media_type
+    # else KML:
+    headers = {"Content-Type": kml_media_type}
     headers["Content-Disposition"] = "inline;filename={}-{}-{}.kml".format(
         model, model_run_timestamp, prediction_timestamp)
 
