@@ -51,8 +51,6 @@ def fetch_model_run_kml_streamer(model: ModelEnum, model_run_timestamp: datetime
     predictions = client.list_objects(bucket, prefix=generate_kml_model_run_path(
         model, model_run_timestamp), recursive=True)
     for prediction in predictions:
-        # kml_url = client.get_presigned_url("GET", bucket, prediction.object_name)
-        # http://localhost:8080/api/c-haines/GDPS/prediction?model_run_timestamp=2021-06-01T12%3A00%3A00%2B00%3A00&prediction_timestamp=2021-06-11T12%3A00%3A00%2B00%3A00&response_format=KML
         prediction_timestamp = prediction.object_name.split('/')[-1].split('.')[0]
 
         kml_params = {'model_run_timestamp': model_run_timestamp,

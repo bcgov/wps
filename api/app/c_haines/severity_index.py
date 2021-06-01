@@ -320,33 +320,46 @@ def generate_kml_model_run_path(prediction_model: str, model_run_timestamp: date
                         f'{model_run_timestamp.hour}')
 
 
-def generate_kml_path(prediction_model: str,
-                      model_run_timestamp: datetime,
-                      prediction_timestamp: datetime) -> str:
+def generate_full_kml_path(prediction_model: str,
+                           model_run_timestamp: datetime,
+                           prediction_timestamp: datetime) -> str:
     """ Generate the path for a kml model run prediction. """
 
-    kml_filename = f'{prediction_timestamp.isoformat()[:19]}.kml'
+    kml_filename = generate_kml_filename(prediction_timestamp)
 
     return os.path.join(generate_kml_model_run_path(prediction_model, model_run_timestamp), kml_filename)
 
 
-def save_kml_to_s3(json_filename: str,
-                   source_projection,
-                   prediction_model: str,
-                   model_run_timestamp: datetime,
-                   prediction_timestamp: datetime):
+def save_as_kml_to_s3(json_filename: str,
+                      source_projection,
+                      prediction_model: str,
+                      model_run_timestamp: datetime,
+                      prediction_timestamp: datetime):
     """ Given a geojson file, generate KML and store to S3 """
-    kml_filename = generate_kml_filename(prediction_timestamp)
+    target_kml_path = generate_full_kml_path(
+        prediction_model, model_run_timestamp, prediction_timestamp)
+    # let's save some time, and check if the file doesn't already exists.
+    # it's super important we do this, since there are many c-haines cronjobs running in dev, all
+    # pointing to the same s3 bucket.
+    client, bucket = get_minio_client()
+    item_gen = client.list_objects(bucket, target_kml_path)
+    item = None
+    try:
+        item = next(item_gen)
+    except StopIteration:
+        # this means the item doesn't exist
+        pass
+    if item:
+        logger.info('kml (%s) already exists', target_kml_path)
+
     with tempfile.TemporaryDirectory() as temporary_path:
+        kml_filename = generate_kml_filename(prediction_timestamp)
         tmp_kml_path = os.path.join(temporary_path, kml_filename)
         # generate the kml file
-        shutil.copyfile(json_filename, kml_filename + '.json')
         severity_geojson_to_kml(json_filename, source_projection, tmp_kml_path, ModelEnum(
             prediction_model), model_run_timestamp, prediction_timestamp)
         # save it to s3
-        client, bucket = get_minio_client()
-        client.fput_object(bucket, generate_kml_path(
-            prediction_model, model_run_timestamp, prediction_timestamp), tmp_kml_path)
+        client.fput_object(bucket, target_kml_path, tmp_kml_path)
 
 
 class EnvCanadaPayload():
@@ -461,11 +474,11 @@ class CHainesSeverityGenerator():
 
         return c_haines_data, source_info
 
-    def _save_severity_data_to_database(self,
-                                        payload: EnvCanadaPayload,
-                                        c_haines_severity_data,
-                                        c_haines_mask_data,
-                                        source_info: SourceInfo):
+    def _persist_severity_data(self,
+                               payload: EnvCanadaPayload,
+                               c_haines_severity_data,
+                               c_haines_mask_data,
+                               source_info: SourceInfo):
         with tempfile.TemporaryDirectory() as temporary_path:
             json_filename = os.path.join(os.getcwd(), temporary_path, 'c-haines.geojson')
             save_data_as_geojson(
@@ -474,9 +487,9 @@ class CHainesSeverityGenerator():
                 source_info,
                 json_filename)
 
-            save_kml_to_s3(json_filename, source_info.projection,
-                           payload.model_run.prediction_model.abbreviation,
-                           payload.model_run.model_run_timestamp, payload.prediction_timestamp)
+            save_as_kml_to_s3(json_filename, source_info.projection,
+                              payload.model_run.prediction_model.abbreviation,
+                              payload.model_run.model_run_timestamp, payload.prediction_timestamp)
 
             save_geojson_to_database(self.session,
                                      source_info.projection,
@@ -495,11 +508,11 @@ class CHainesSeverityGenerator():
                 c_haines_severity_data, c_haines_mask_data = generate_severity_data(c_haines_data)
                 # We're done with the c_haines data, so we can clean up some memory.
                 del c_haines_data
-                # Save to database.
-                self._save_severity_data_to_database(payload,
-                                                     c_haines_severity_data,
-                                                     c_haines_mask_data,
-                                                     source_info)
+                # Save to database and s3.
+                self._persist_severity_data(payload,
+                                            c_haines_severity_data,
+                                            c_haines_mask_data,
+                                            source_info)
                 # Delete temporary files
                 os.remove(payload.filename_dew_850)
                 os.remove(payload.filename_tmp_700)

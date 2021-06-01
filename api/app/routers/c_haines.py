@@ -9,7 +9,7 @@ from starlette.responses import RedirectResponse
 import app.db.database
 from app.minio_utils import get_minio_client
 from app.weather_models import ModelEnum
-from app.c_haines.severity_index import generate_kml_path
+from app.c_haines.severity_index import generate_full_kml_path
 from app.c_haines.fetch import (fetch_prediction_geojson,
                                 fetch_model_runs,
                                 fetch_model_run_kml_streamer,
@@ -91,7 +91,7 @@ async def get_c_haines_model_run_prediction(
         model, model_run_timestamp, prediction_timestamp)
 
     client, bucket = get_minio_client()
-    url = client.get_presigned_url("GET", bucket, generate_kml_path(
+    url = client.get_presigned_url("GET", bucket, generate_full_kml_path(
         model, model_run_timestamp, prediction_timestamp))
     return RedirectResponse(url=url)
 

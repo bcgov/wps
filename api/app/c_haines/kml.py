@@ -271,11 +271,3 @@ def severity_geojson_to_kml(geojson_filename: str,
         with open(kml_filename, 'w') as kml_file_pointer:
             for part in kml_prediction(kml_file_result, model, model_run_timestamp, prediction_timestamp):
                 kml_file_pointer.write(part)
-
-
-# if __name__ == '__main__':
-#     # test code - please delete me
-#     the_projection = """PROJCS["unnamed",GEOGCS["Coordinate System imported from GRIB file",DATUM["unnamed",SPHEROID["Sphere",6371229,0]],PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433,AUTHORITY["EPSG","9122"]]],PROJECTION["Polar_Stereographic"],PARAMETER["latitude_of_origin",60],PARAMETER["central_meridian",249],PARAMETER["false_easting",0],PARAMETER["false_northing",0],UNIT["Metre",1],AXIS["Easting",SOUTH],AXIS["Northing",SOUTH]]"""
-#     severity_geojson_to_kml('/home/sybrand/Workspace/wps/api/real_json.json',
-#                             the_projection,
-#                             '/home/sybrand/Workspace/wps/model_run_prediction_from_json.kml', ModelEnum.GDPS, datetime.now(), datetime.now())
