@@ -3,6 +3,9 @@
 import math
 from typing import List
 from datetime import datetime, timedelta
+from aiohttp.client import ClientSession
+
+from aiohttp.connector import TCPConnector
 import app.db.database
 from app.db.crud.observations import get_hourly_actuals
 import app.stations
@@ -74,6 +77,10 @@ async def get_hourly_readings(
     start_time_stamp, end_time_stamp = _get_time_interval(time_of_interest)
 
     if wildfire_one.use_wfwx():
-        return await wildfire_one.get_hourly_readings(station_codes, start_time_stamp, end_time_stamp)
+        # Limit the number of concurrent connections.
+        async with ClientSession(connector=TCPConnector(limit=10)) as session:
+            header = await wildfire_one.get_auth_header(session)
+            return await wildfire_one.get_hourly_readings(
+                session, header, station_codes, start_time_stamp, end_time_stamp)
 
     return await fetch_hourly_readings_from_db(station_codes, start_time_stamp, end_time_stamp)

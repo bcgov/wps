@@ -6,7 +6,7 @@ import math
 import os
 import sys
 from datetime import timedelta
-from requests import Session
+from aiohttp.client import ClientSession
 import app.db.database
 import app.time_utils
 from app import configure_logging, wildfire_one
@@ -67,10 +67,16 @@ def validate_metric(value, low, high):
 
 def get_hourly_readings_synchronously_wfwx(station_codes, start_date, end_date):
     """ Synchronously get hourly readings for given station codes and date range from wfwx """
+
+    async def authenticate_and_get_hourly_readings():
+        async with ClientSession() as session:
+            header = await wildfire_one.get_auth_header(session)
+            return wildfire_one.get_hourly_readings(session, header,
+                                                    station_codes, start_date, end_date)
+
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    return loop.run_until_complete(wildfire_one.get_hourly_readings(
-        station_codes, start_date, end_date))
+    return loop.run_until_complete(authenticate_and_get_hourly_readings())
 
 
 class HourlyActualsBot():
@@ -94,8 +100,8 @@ class HourlyActualsBot():
 
     async def run_wfwx(self):
         """ Entry point for running the bot """
-        with Session() as session:
-            session, header = await wildfire_one.get_session_and_auth_header()
+        async with ClientSession() as session:
+            header = await wildfire_one.get_auth_header(session)
             station_codes = await wildfire_one.get_stations(
                 session, header, mapper=wildfire_one.station_codes_list_mapper)
 
@@ -103,17 +109,17 @@ class HourlyActualsBot():
             end_date = self._get_end_date()
 
             station_hourly_readings = await wildfire_one.get_hourly_readings(
-                station_codes, start_date, end_date)
+                session, header, station_codes, start_date, end_date)
 
-            logger.info("Station hourly readings: %s", station_hourly_readings)
+        logger.info("Station hourly readings: %s", station_hourly_readings)
 
-            with app.db.database.get_write_session_scope() as session:
-                for station_hourly_reading in station_hourly_readings:
-                    for hourly_reading in station_hourly_reading.values:
-                        hourly_actual = parse_hourly_actual(
-                            station_hourly_reading.station.code, hourly_reading)
-                        if hourly_actual is not None:
-                            save_hourly_actual(session, hourly_actual)
+        with app.db.database.get_write_session_scope() as session:
+            for station_hourly_reading in station_hourly_readings:
+                for hourly_reading in station_hourly_reading.values:
+                    hourly_actual = parse_hourly_actual(
+                        station_hourly_reading.station.code, hourly_reading)
+                    if hourly_actual is not None:
+                        save_hourly_actual(session, hourly_actual)
 
 
 def main():

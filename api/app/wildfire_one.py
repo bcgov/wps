@@ -90,14 +90,8 @@ async def _fetch_access_token(session: ClientSession) -> dict:
         return await response.json()
 
 
-async def get_session_and_auth_header():
-    """ Return a client session and auth header for WFWX API
-    """
-    async with ClientSession() as session:
-        return session, await _get_auth_header(session)
-
-
-async def _get_auth_header(session: ClientSession) -> dict:
+async def get_auth_header(session: ClientSession) -> dict:
+    """Get WFWX auth header"""
     # Fetch access token
     token = await _fetch_access_token(session)
     # Construct the header.
@@ -232,17 +226,18 @@ def _parse_hourly(hourly) -> WeatherReading:
 async def get_stations_by_codes(station_codes: List[int]) -> List[WeatherStation]:
     """ Get a list of stations by code, from WFWX Fireweather API. """
     logger.info('Using WFWX to retrieve stations by code')
-    session, header = get_session_and_auth_header()
-    stations = []
-    # Iterate through "raw" station data.
-    iterator = _fetch_raw_stations_generator(
-        session, header, BuildQueryByStationCode(station_codes))
-    async for raw_station in iterator:
-        # If the station is valid, add it to our list of stations.
-        if _is_station_valid(raw_station):
-            stations.append(_parse_station(raw_station))
-    logger.debug('total stations: %d', len(stations))
-    return stations
+    async with ClientSession() as session:
+        header = get_auth_header(session)
+        stations = []
+        # Iterate through "raw" station data.
+        iterator = _fetch_raw_stations_generator(
+            session, header, BuildQueryByStationCode(station_codes))
+        async for raw_station in iterator:
+            # If the station is valid, add it to our list of stations.
+            if _is_station_valid(raw_station):
+                stations.append(_parse_station(raw_station))
+        logger.debug('total stations: %d', len(stations))
+        return stations
 
 
 async def station_list_mapper(raw_stations: Generator[dict, None, None]):
@@ -259,7 +254,7 @@ async def station_list_mapper(raw_stations: Generator[dict, None, None]):
     return stations
 
 
-async def station_codes_list_mapper(raw_stations: dict):
+async def station_codes_list_mapper(raw_stations: Generator[dict, None, None]):
     """ Maps raw stations to station codes"""
     station_codes = []
     # Iterate through "raw" station data.
@@ -296,7 +291,7 @@ async def get_detailed_stations(time_of_interest: datetime):
     conn = TCPConnector(limit=10)
     async with ClientSession(connector=conn) as session:
         # Get the authentication header
-        header = await _get_auth_header(session)
+        header = await get_auth_header(session)
         # Fetch the daily (noon) values for all the stations
         dailies_task = asyncio.create_task(
             fetch_raw_dailies_for_all_stations(session, header, time_of_interest))
@@ -416,6 +411,8 @@ async def fetch_hourlies(
 
 
 async def get_hourly_readings(
+        session: ClientSession,
+        header: dict,
         station_codes: List[int],
         start_timestamp: datetime,
         end_timestamp: datetime) -> List[WeatherStationHourlyReadings]:
@@ -424,23 +421,17 @@ async def get_hourly_readings(
     # Create a list containing all the tasks to run in parallel.
     tasks = []
 
-    # Limit the number of concurrent connections.
-    conn = TCPConnector(limit=10)
-    async with ClientSession(connector=conn) as session:
-        # Get the authentication header
-        header = await _get_auth_header(session)
+    # Iterate through "raw" station data.
+    iterator = _fetch_raw_stations_generator(
+        session, header, BuildQueryByStationCode(station_codes))
+    async for raw_station in iterator:
+        task = asyncio.create_task(
+            fetch_hourlies(session,
+                           raw_station,
+                           header,
+                           start_timestamp,
+                           end_timestamp))
+        tasks.append(task)
 
-        # Iterate through "raw" station data.
-        iterator = _fetch_raw_stations_generator(
-            session, header, BuildQueryByStationCode(station_codes))
-        async for raw_station in iterator:
-            task = asyncio.create_task(
-                fetch_hourlies(session,
-                               raw_station,
-                               header,
-                               start_timestamp,
-                               end_timestamp))
-            tasks.append(task)
-
-        # Run the tasks concurrently, waiting for them all to complete.
-        return await asyncio.gather(*tasks)
+    # Run the tasks concurrently, waiting for them all to complete.
+    return await asyncio.gather(*tasks)

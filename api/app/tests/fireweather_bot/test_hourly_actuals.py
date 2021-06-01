@@ -60,10 +60,10 @@ def test_hourly_actuals_bot(monkeypatch, mocker: MockerFixture, mock_requests_se
     """
 
     @asyncio.coroutine
-    def mock_get_session_auth_header():
+    def mock_get_auth_header(session):
         return None, None
 
-    monkeypatch.setattr(wildfire_one, 'get_session_and_auth_header', mock_get_session_auth_header)
+    monkeypatch.setattr(wildfire_one, 'get_auth_header', mock_get_auth_header)
     save_hourly_actuals_spy = mocker.spy(hourly_actuals, 'save_hourly_actual')
     with pytest.raises(SystemExit) as excinfo:
         hourly_actuals.main()
