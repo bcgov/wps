@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 # Ensure that grib file uses EPSG: 4269 (NAD83) coordinate system
 NAD83: Final = 'epsg:4269'
 GEO_CRS: Final = CRS(NAD83)
+WGS84: Final = 'epsg:4326'
 
 
 class PredictionModelNotFound(Exception):

@@ -1,6 +1,8 @@
+
 """ Logic pertaining to the generation of c_haines severity index from GDAL datasets.
 """
 import os
+import shutil
 from datetime import datetime, timezone, timedelta
 from typing import Final, Tuple, Generator, Union, List
 from contextlib import contextmanager
@@ -13,8 +15,9 @@ from pyproj import Transformer, Proj
 from shapely.ops import transform
 from shapely.geometry import shape
 from sqlalchemy.orm import Session
+from app.minio_utils import get_minio_client
 from app.time_utils import get_utc_now
-from app.db.models.c_haines import CHainesPoly, CHainesPrediction, CHainesModelRun, severity_levels
+from app.db.models.c_haines import CHainesPoly, CHainesPrediction, CHainesModelRun, get_severity_string
 from app.db.crud.weather_models import get_prediction_model
 from app.db.crud.c_haines import (get_c_haines_prediction, get_or_create_c_haines_model_run)
 from app.weather_models import ModelEnum, ProjectionEnum
@@ -24,6 +27,7 @@ from app.weather_models.env_canada import (get_model_run_hours,
                                            UnhandledPredictionModelType)
 from app.c_haines.c_haines_index import CHainesGenerator
 from app.c_haines import GDALData
+from app.c_haines.kml import severity_geojson_to_kml
 
 
 logger = logging.getLogger(__name__)
@@ -48,12 +52,6 @@ def get_severity(c_haines_index) -> int:
         return 2
     # 11 + Extreme
     return 3
-
-
-def get_severity_string(severity: int) -> str:
-    """ Return the severity level as a string, e.g. severity level 3 maps to "11+"
-    """
-    return severity_levels[severity]
 
 
 @contextmanager
@@ -306,6 +304,51 @@ def generate_severity_data(c_haines_data):
     return numpy.array(severity_data), numpy.array(mask_data)
 
 
+def generate_kml_filename(prediction_timestamp: datetime) -> str:
+    """ Generate the filename for a kml model run prediction """
+    return f'{prediction_timestamp.isoformat()[:19]}.kml'
+
+
+def generate_kml_model_run_path(prediction_model: str, model_run_timestamp: datetime) -> str:
+    """ Generate a path where model runs will be stored. """
+    return os.path.join('c-haines-polygons',
+                        'kml',
+                        prediction_model,
+                        f'{model_run_timestamp.year}',
+                        f'{model_run_timestamp.month}',
+                        f'{model_run_timestamp.day}',
+                        f'{model_run_timestamp.hour}')
+
+
+def generate_kml_path(prediction_model: str,
+                      model_run_timestamp: datetime,
+                      prediction_timestamp: datetime) -> str:
+    """ Generate the path for a kml model run prediction. """
+
+    kml_filename = f'{prediction_timestamp.isoformat()[:19]}.kml'
+
+    return os.path.join(generate_kml_model_run_path(prediction_model, model_run_timestamp), kml_filename)
+
+
+def save_kml_to_s3(json_filename: str,
+                   source_projection,
+                   prediction_model: str,
+                   model_run_timestamp: datetime,
+                   prediction_timestamp: datetime):
+    """ Given a geojson file, generate KML and store to S3 """
+    kml_filename = generate_kml_filename(prediction_timestamp)
+    with tempfile.TemporaryDirectory() as temporary_path:
+        tmp_kml_path = os.path.join(temporary_path, kml_filename)
+        # generate the kml file
+        shutil.copyfile(json_filename, kml_filename + '.json')
+        severity_geojson_to_kml(json_filename, source_projection, tmp_kml_path, ModelEnum(
+            prediction_model), model_run_timestamp, prediction_timestamp)
+        # save it to s3
+        client, bucket = get_minio_client()
+        client.fput_object(bucket, generate_kml_path(
+            prediction_model, model_run_timestamp, prediction_timestamp), tmp_kml_path)
+
+
 class EnvCanadaPayload():
     """ Handy class to store payload information in . """
 
@@ -369,7 +412,7 @@ class CHainesSeverityGenerator():
             return payload
         return None
 
-    def _yield_payload(self, temporary_path):
+    def _yield_payload(self, temporary_path) -> EnvCanadaPayload:
         """ Iterator that yields the next to process. """
         prediction_model = get_prediction_model(self.session, self.model, self.projection)
         utc_now = get_utc_now()
@@ -419,7 +462,7 @@ class CHainesSeverityGenerator():
         return c_haines_data, source_info
 
     def _save_severity_data_to_database(self,
-                                        payload,
+                                        payload: EnvCanadaPayload,
                                         c_haines_severity_data,
                                         c_haines_mask_data,
                                         source_info: SourceInfo):
@@ -430,6 +473,10 @@ class CHainesSeverityGenerator():
                 c_haines_mask_data,
                 source_info,
                 json_filename)
+
+            save_kml_to_s3(json_filename, source_info.projection,
+                           payload.model_run.prediction_model.abbreviation,
+                           payload.model_run.model_run_timestamp, payload.prediction_timestamp)
 
             save_geojson_to_database(self.session,
                                      source_info.projection,

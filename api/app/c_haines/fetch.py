@@ -3,16 +3,19 @@
 from io import StringIO
 from datetime import datetime
 from typing import Iterator
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlencode
 import logging
+
 from app import config
-from app.c_haines.kml import (get_look_at, kml_prediction, _yield_folder_parts,
+from app.minio_utils import get_minio_client
+from app.c_haines.severity_index import generate_kml_model_run_path
+from app.c_haines.kml import (get_look_at, kml_prediction,
                               get_kml_header, FOLDER_OPEN, FOLDER_CLOSE)
 import app.db.database
 from app.schemas.weather_models import CHainesModelRuns, CHainesModelRunPredictions, WeatherPredictionModel
 from app.weather_models import ModelEnum
-from app.db.crud.c_haines import (get_model_run_predictions, get_most_recent_model_run,
-                                  get_prediction_geojson, get_prediction_kml, get_model_run_kml)
+from app.db.crud.c_haines import (get_model_run_predictions,
+                                  get_prediction_geojson, get_prediction_kml)
 
 logger = logging.getLogger(__name__)
 
@@ -27,37 +30,51 @@ async def fetch_prediction_geojson(model: ModelEnum, model_run_timestamp: dateti
     return response
 
 
-def fetch_model_run_kml_streamer(
-        model: ModelEnum, model_run_timestamp: datetime) -> Iterator[str]:
+def fetch_model_run_kml_streamer(model: ModelEnum, model_run_timestamp: datetime) -> Iterator[str]:
     """ Yield model run XML (allows streaming response to start while kml is being
     constructed.)
     """
-    logger.info('model: %s; model_run: %s', model, model_run_timestamp)
 
-    with app.db.database.get_read_session_scope() as session:
+    uri = config.get('BASE_URI')
 
-        if model_run_timestamp is None:
-            model_run = get_most_recent_model_run(session, model)
-            model_run_timestamp = model_run.model_run_timestamp
+    yield get_kml_header()
+    # Serve up the "look_at" which tells google earth when and where to take you.
+    yield get_look_at(model, model_run_timestamp)
+    # Serve up the name.
+    yield '<name>{} {}</name>\n'.format(model, model_run_timestamp)
+    yield '<Folder>'
+    yield f'<name>{model}</name>\n'
+    yield '<Folder>'
+    yield f'<name>{model_run_timestamp} model run</name>\n'
 
-        # Fetch the KML results from the database.
-        result = get_model_run_kml(session, model, model_run_timestamp)
+    client, bucket = get_minio_client()
+    predictions = client.list_objects(bucket, prefix=generate_kml_model_run_path(
+        model, model_run_timestamp), recursive=True)
+    for prediction in predictions:
+        # kml_url = client.get_presigned_url("GET", bucket, prediction.object_name)
+        # http://localhost:8080/api/c-haines/GDPS/prediction?model_run_timestamp=2021-06-01T12%3A00%3A00%2B00%3A00&prediction_timestamp=2021-06-11T12%3A00%3A00%2B00%3A00&response_format=KML
+        prediction_timestamp = prediction.object_name.split('/')[-1].split('.')[0]
 
-        # Serve up the kml header.
-        yield get_kml_header()
-        # Serve up the "look_at" which tells google earth when and where to take you.
-        yield get_look_at(model, model_run_timestamp)
-        # Serve up the name.
-        yield '<name>{} {}</name>\n'.format(model, model_run_timestamp)
+        kml_params = {'model_run_timestamp': model_run_timestamp,
+                      'prediction_timestamp': prediction_timestamp,
+                      'response_format': 'KML'}
+        # create url (remembering to escape & for xml)
+        kml_url = urljoin(uri, f'/api/c-haines/{model}/prediction') + \
+            '?' + urlencode(kml_params).replace('&', '&amp;')
+        yield '<NetworkLink>\n'
+        yield '<visibility>1</visibility>\n'
+        yield f'<name>{prediction_timestamp}</name>\n'
+        yield '<Link>\n'
+        yield f'<href>{kml_url}</href>\n'
+        yield '</Link>\n'
+        yield '</NetworkLink>\n'
 
-        # Iterate through all the different folders and placemarks.
-        for item in _yield_folder_parts(result, model, model_run_timestamp):
-            yield item
-
-        # Close the KML document.
-        yield '</Document>\n'
-        yield '</kml>\n'
-        logger.info('kml complete')
+    yield '</Folder>'
+    yield '</Folder>'
+    # Close the KML document.
+    yield '</Document>\n'
+    yield '</kml>\n'
+    logger.info('kml complete')
 
 
 def fetch_network_link_kml() -> str:

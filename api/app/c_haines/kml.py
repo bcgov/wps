@@ -1,0 +1,281 @@
+""" KML related code
+"""
+from datetime import datetime, timedelta
+from typing import Final, Iterator
+import json
+import logging
+from pyproj import Transformer, Proj
+from shapely.ops import transform
+from shapely.geometry import shape, Polygon
+from app.weather_models.process_grib import WGS84
+from app.db.models.c_haines import get_severity_string
+from app.db.models.c_haines import SeverityEnum
+from app.weather_models import ModelEnum
+
+logger = logging.getLogger(__name__)
+
+FOLDER_OPEN: Final = '<Folder>'
+FOLDER_CLOSE: Final = '</Folder>'
+
+
+# Severity enum -> Text description mapping
+severity_text_map = {
+    SeverityEnum.LOW: '<4 Low',
+    SeverityEnum.MODERATE: '4 - 8 Moderate',
+    SeverityEnum.HIGH: '8 - 11 High',
+    SeverityEnum.EXTREME: '11+ Extreme'
+}
+
+# Severity enum -> KML style mapping
+severity_style_map = {
+    SeverityEnum.LOW: 'low',
+    SeverityEnum.MODERATE: 'moderate',
+    SeverityEnum.HIGH: 'high',
+    SeverityEnum.EXTREME: 'extreme'
+}
+
+
+def get_severity_style(c_haines_index: SeverityEnum) -> str:
+    """ Based on the index range, return a style string """
+    return severity_style_map[c_haines_index]
+
+
+def open_placemark(model: ModelEnum, severity: SeverityEnum, timestamp: datetime) -> str:
+    """ Open kml <Placemark> tag. """
+    kml = []
+    kml.append('<Placemark>')
+
+    if model == ModelEnum.GDPS:
+        end = timestamp + timedelta(hours=3)
+    else:
+        end = timestamp + timedelta(hours=1)
+    kml.append('<TimeSpan>')
+    kml.append('<begin>{}</begin>'.format(timestamp.isoformat()))
+    kml.append('<end>{}</end>'.format(end.isoformat()))
+    kml.append('</TimeSpan>')
+    kml.append('<styleUrl>#{}</styleUrl>'.format(get_severity_style(severity)))
+    kml.append('<name>{}</name>'.format(severity_text_map[severity]))
+    kml.append('<MultiGeometry>')
+    return "\n".join(kml)
+
+
+def close_placemark() -> str:
+    """ Close kml </Placemark> tag. """
+    kml = []
+    kml.append('</MultiGeometry>')
+    kml.append('</Placemark>')
+    return "\n".join(kml)
+
+
+def add_style(kml, style_id, color):
+    """ Add kml <Style> tag """
+    kml.append('<Style id="{}">'.format(style_id))
+    kml.append('<LineStyle>')
+    kml.append('<width>1.5</width>')
+    kml.append('<color>{}</color>'.format(color))
+    kml.append('</LineStyle>')
+    kml.append('<PolyStyle>')
+    kml.append('<color>{}</color>'.format(color))
+    kml.append('</PolyStyle>')
+    kml.append('</Style>')
+
+
+def get_look_at(model: ModelEnum, model_run_timestamp: datetime):
+    """ Return <LookAt> tag to set default position and timespan.
+    If this isn't done, then all the predictions will show as a big overlayed mess. """
+    if model == ModelEnum.GDPS:
+        end = model_run_timestamp + timedelta(hours=3)
+    else:
+        end = model_run_timestamp + timedelta(hours=1)
+    kml = []
+    kml.append('<LookAt>')
+    kml.append('<gx:TimeSpan>')
+    kml.append(f'<begin>{model_run_timestamp.isoformat()}</begin>')
+    kml.append(f'<end>{end.isoformat()}</end>')
+    kml.append('</gx:TimeSpan>')
+    # Center at an appropriate coordinate somewhere in the middle of B.C.
+    kml.append('<longitude>-123</longitude>')
+    kml.append('<latitude>54</latitude>')
+    # https://developers.google.com/kml/documentation/kmlreference#range
+    # Distance in meters from the point specified:
+    kml.append('<range>3000000</range>')
+    kml.append('</LookAt>')
+    return '\n'.join(kml)
+
+
+def _yield_folder_parts(result, model: ModelEnum, model_run_timestamp: datetime) -> Iterator[str]:
+    """ Yield up all the different parts of the folders with placemarks.
+    """
+    prev_prediction_timestamp = None
+    prev_severity = None
+    # Iterate through the records we get from the database.
+    for poly, severity, prediction_timestamp in result:
+        # If it's a new timestamp.
+        if prediction_timestamp != prev_prediction_timestamp:
+            # Close the previous placemark if needed.
+            if not prev_severity is None:
+                yield close_placemark()
+            prev_severity = None
+            # Close the previous folder if needed.
+            if prev_prediction_timestamp is not None:
+                yield f'{FOLDER_CLOSE}\n'
+            prev_prediction_timestamp = prediction_timestamp
+            # Start a new folder.
+            yield f'{FOLDER_OPEN}\n'
+            yield '<name>{} {} {}</name>\n'.format(model, model_run_timestamp, prediction_timestamp)
+        # Close the placemark if needed.
+        if severity != prev_severity:
+            if not prev_severity is None:
+                yield close_placemark()
+            prev_severity = severity
+            yield open_placemark(model, SeverityEnum(severity), prediction_timestamp)
+        # Yield up the polygon.
+        yield poly
+
+    # Close all tags, if needed.
+    if prev_prediction_timestamp is not None:
+        if not prev_severity is None:
+            yield close_placemark()
+        yield f'{FOLDER_CLOSE}\n'
+
+
+def get_kml_header() -> str:
+    """ Return the kml header (xml header, <xml> tag, <Document> tag and styles.)
+    """
+    kml = []
+    kml.append('<?xml version="1.0" encoding="UTF-8"?>')
+    kml.append('<kml xmlns="http://www.opengis.net/kml/2.2">')
+    kml.append('<Document>')
+    # color format is aabbggrr
+    add_style(kml, get_severity_style(SeverityEnum.MODERATE), '9900ffff')
+    add_style(kml, get_severity_style(SeverityEnum.HIGH), '9900a5ff')
+    add_style(kml, get_severity_style(SeverityEnum.EXTREME), '990000ff')
+    return "\n".join(kml)
+
+
+def format_coordinates(coordinates: Polygon) -> str:
+    """ Format geojson coordinates for kml """
+    result = []
+    result.append('<coordinates>')
+    # all coordinates have a space at the end.
+    x_array = coordinates.exterior.coords.xy[0]
+    y_array = coordinates.exterior.coords.xy[1]
+    for x_coordinate, y_coordinate in zip(x_array[:-1], y_array[:-1]):
+        result.append(f'{x_coordinate},{y_coordinate} ')
+    # except for the very last one.
+    x_coordinate = x_array[-1]
+    y_coordinate = y_array[-1]
+    result.append(f'{x_coordinate},{y_coordinate}')
+    result.append('</coordinates>')
+    return ''.join(result)
+
+
+def feature_2_kml_polygon(feature: dict, project: Transformer) -> str:
+    """ Given a geojson file, yield kml polygons """
+    polygon = []
+    polygon.append('<Polygon>')
+    polygon.append('<outerBoundaryIs>')
+    polygon.append('<LinearRing>')
+    source_geometry = shape(feature['geometry'])
+    geometry = transform(project.transform, source_geometry)
+    polygon.append(format_coordinates(geometry))
+    polygon.append('</LinearRing>')
+    polygon.append('</outerBoundaryIs>')
+    polygon.append('</Polygon>')
+    return '\n'.join(polygon)
+
+
+class CHainesIndexIterator:
+    """ Iterator that matches the result the crud function get_prediction_kml would give you """
+
+    def __init__(self, file_pointer):
+        geojson = json.load(file_pointer)
+        self.features = iter(geojson['features'])
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        feature = next(self.features)
+        severity = feature['properties']['c_haines_index']
+        return feature_2_kml_polygon(feature, None), severity
+
+
+class SeverityIndexIterator:
+    """ Iterator that matches the result the crud function get_prediction_kml would give you """
+
+    def __init__(self, file_pointer, projection):
+        geojson = json.load(file_pointer)
+        # We need to sort the geojson by severity
+        geojson['features'].sort(key=lambda feature: feature['properties']['severity'])
+        self.features = iter(geojson['features'])
+        # Source coordinate system, must match source data.
+        proj_from = Proj(projparams=projection)
+        # Destination coordinate systems (NAD83, geographic coordinates)
+        proj_to = Proj(WGS84)
+        self.project = Transformer.from_proj(proj_from, proj_to, always_xy=True)
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        feature = next(self.features)
+        severity = get_severity_string(feature['properties']['severity'])
+        return feature_2_kml_polygon(feature, self.project), severity
+
+
+def kml_prediction(result: Iterator[list], model: ModelEnum, model_run_timestamp: datetime,
+                   prediction_timestamp: datetime) -> Iterator[str]:
+    """
+    Create KML prediction given some result iterator
+    """
+    logger.info('model: %s; model_run: %s, prediction: %s', model, model_run_timestamp, prediction_timestamp)
+    yield get_kml_header()
+    kml = []
+    kml.append('<name>{} {} {}</name>'.format(model, model_run_timestamp, prediction_timestamp))
+    kml.append(f'{FOLDER_OPEN}')
+    kml.append('<name>{} {} {}</name>'.format(model, model_run_timestamp, prediction_timestamp))
+    yield "\n".join(kml)
+    kml = []
+    prev_severity = None
+    for poly, severity in result:
+        if severity != prev_severity:
+            if not prev_severity is None:
+                kml.append(close_placemark())
+            prev_severity = severity
+            kml.append(open_placemark(model, SeverityEnum(severity), prediction_timestamp))
+        kml.append(poly)
+
+        yield "\n".join(kml)
+        kml = []
+    if not prev_severity is None:
+        kml.append(close_placemark())
+    kml.append(f'{FOLDER_CLOSE}')
+    kml.append('</Document>')
+    kml.append('</kml>')
+    yield "\n".join(kml)
+
+
+def severity_geojson_to_kml(geojson_filename: str,
+                            geojson_projection,
+                            kml_filename: str,
+                            model: ModelEnum,
+                            model_run_timestamp: datetime,
+                            prediction_timestamp: datetime):
+    """ Given a geojson file, create a KML file.
+    model, model run timestamp and prediction timestamp are required for context in the KML.
+    """
+    with open(geojson_filename) as geojson_file_pointer:
+        kml_file_result = SeverityIndexIterator(geojson_file_pointer, geojson_projection)
+
+        with open(kml_filename, 'w') as kml_file_pointer:
+            for part in kml_prediction(kml_file_result, model, model_run_timestamp, prediction_timestamp):
+                kml_file_pointer.write(part)
+
+
+# if __name__ == '__main__':
+#     # test code - please delete me
+#     the_projection = """PROJCS["unnamed",GEOGCS["Coordinate System imported from GRIB file",DATUM["unnamed",SPHEROID["Sphere",6371229,0]],PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433,AUTHORITY["EPSG","9122"]]],PROJECTION["Polar_Stereographic"],PARAMETER["latitude_of_origin",60],PARAMETER["central_meridian",249],PARAMETER["false_easting",0],PARAMETER["false_northing",0],UNIT["Metre",1],AXIS["Easting",SOUTH],AXIS["Northing",SOUTH]]"""
+#     severity_geojson_to_kml('/home/sybrand/Workspace/wps/api/real_json.json',
+#                             the_projection,
+#                             '/home/sybrand/Workspace/wps/model_run_prediction_from_json.kml', ModelEnum.GDPS, datetime.now(), datetime.now())

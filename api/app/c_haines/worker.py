@@ -1,7 +1,7 @@
 """ Entry point for generating c-haines charts from grib files.
 """
 import logging
-from datetime import timedelta
+from datetime import date, datetime, timedelta
 from app.time_utils import get_utc_now
 from app import configure_logging
 from app.config import get
@@ -47,3 +47,6 @@ def main():
 if __name__ == "__main__":
     configure_logging()
     main()
+    # from app.c_haines.severity_index import save_kml_to_s3
+    # save_kml_to_s3('/home/sybrand/Workspace/wps/gdps_model_run_prediction.json',
+    #    'GDPS', datetime.now(), datetime.now())

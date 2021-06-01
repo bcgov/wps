@@ -5,12 +5,16 @@ from datetime import datetime
 import logging
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse, StreamingResponse, Response
+from starlette.responses import RedirectResponse
+import app.db.database
+from app.minio_utils import get_minio_client
 from app.weather_models import ModelEnum
+from app.c_haines.severity_index import generate_kml_path
 from app.c_haines.fetch import (fetch_prediction_geojson,
                                 fetch_model_runs,
                                 fetch_model_run_kml_streamer,
-                                fetch_prediction_kml_streamer,
                                 fetch_network_link_kml)
+from app.db.crud.c_haines import get_most_recent_model_run
 
 
 logger = logging.getLogger(__name__)
@@ -39,10 +43,13 @@ async def get_c_haines_model_run(
     logger.info('/c-haines/%s/predictions?model_run_timestamp=%s&response_format=%s',
                 model, model_run_timestamp, response_format)
     if response_format == FormatEnum.GEOJSON:
+        # Not implemented for GeoJSON
         raise HTTPException(status_code=501)
-    # Let the browser cache the data as much as it wants.
-    headers = {"Cache-Control": "max-age=3600, public, immutable"}
-    headers["Content-Type"] = kml_media_type
+    headers = {"Content-Type": kml_media_type}
+    if model_run_timestamp is None:
+        with app.db.database.get_read_session_scope() as session:
+            model_run = get_most_recent_model_run(session, model)
+            model_run_timestamp = model_run.model_run_timestamp
     if model_run_timestamp is None:
         filename = f'{model}.kml'
     else:
@@ -82,9 +89,11 @@ async def get_c_haines_model_run_prediction(
     headers["Content-Type"] = kml_media_type
     headers["Content-Disposition"] = "inline;filename={}-{}-{}.kml".format(
         model, model_run_timestamp, prediction_timestamp)
-    return StreamingResponse(fetch_prediction_kml_streamer(
-        model, model_run_timestamp, prediction_timestamp),
-        headers=headers, media_type=kml_media_type)
+
+    client, bucket = get_minio_client()
+    url = client.get_presigned_url("GET", bucket, generate_kml_path(
+        model, model_run_timestamp, prediction_timestamp))
+    return RedirectResponse(url=url)
 
 
 @router.get('/model-runs')
