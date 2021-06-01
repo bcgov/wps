@@ -6,10 +6,10 @@ import logging
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse, StreamingResponse, Response
 from app.weather_models import ModelEnum
-from app.c_haines.fetch import (fetch_model_run_kml_streamer,
-                                fetch_prediction_kml_streamer,
-                                fetch_prediction_geojson,
+from app.c_haines.fetch import (fetch_prediction_geojson,
                                 fetch_model_runs,
+                                fetch_model_run_kml_streamer,
+                                fetch_prediction_kml_streamer,
                                 fetch_network_link_kml)
 
 

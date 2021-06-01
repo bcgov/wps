@@ -1,84 +1,20 @@
 """ Fetch c-haines geojson
 """
 from io import StringIO
-from typing import Final, Iterator
+from datetime import datetime
+from typing import Iterator
 from urllib.parse import urljoin
-from datetime import datetime, timedelta
 import logging
 from app import config
+from app.c_haines.kml import (get_look_at, kml_prediction, _yield_folder_parts,
+                              get_kml_header, FOLDER_OPEN, FOLDER_CLOSE)
 import app.db.database
-from app.db.models.c_haines import SeverityEnum
 from app.schemas.weather_models import CHainesModelRuns, CHainesModelRunPredictions, WeatherPredictionModel
 from app.weather_models import ModelEnum
 from app.db.crud.c_haines import (get_model_run_predictions, get_most_recent_model_run,
                                   get_prediction_geojson, get_prediction_kml, get_model_run_kml)
 
 logger = logging.getLogger(__name__)
-
-FOLDER_OPEN: Final = '<Folder>'
-FOLDER_CLOSE: Final = '</Folder>'
-
-
-# Severity enum -> Text description mapping
-severity_text_map = {
-    SeverityEnum.LOW: '<4 Low',
-    SeverityEnum.MODERATE: '4 - 8 Moderate',
-    SeverityEnum.HIGH: '8 - 11 High',
-    SeverityEnum.EXTREME: '11+ Extreme'
-}
-
-# Severity enum -> KML style mapping
-severity_style_map = {
-    SeverityEnum.LOW: 'low',
-    SeverityEnum.MODERATE: 'moderate',
-    SeverityEnum.HIGH: 'high',
-    SeverityEnum.EXTREME: 'extreme'
-}
-
-
-def get_severity_style(c_haines_index: SeverityEnum) -> str:
-    """ Based on the index range, return a style string """
-    return severity_style_map[c_haines_index]
-
-
-def open_placemark(model: ModelEnum, severity: SeverityEnum, timestamp: datetime):
-    """ Open kml <Placemark> tag. """
-    kml = []
-    kml.append('<Placemark>')
-
-    if model == ModelEnum.GDPS:
-        end = timestamp + timedelta(hours=3)
-    else:
-        end = timestamp + timedelta(hours=1)
-    kml.append('<TimeSpan>')
-    kml.append('<begin>{}</begin>'.format(timestamp.isoformat()))
-    kml.append('<end>{}</end>'.format(end.isoformat()))
-    kml.append('</TimeSpan>')
-    kml.append('<styleUrl>#{}</styleUrl>'.format(get_severity_style(severity)))
-    kml.append('<name>{}</name>'.format(severity_text_map[severity]))
-    kml.append('<MultiGeometry>')
-    return "\n".join(kml)
-
-
-def close_placemark():
-    """ Close kml </Placemark> tag. """
-    kml = []
-    kml.append('</MultiGeometry>')
-    kml.append('</Placemark>')
-    return "\n".join(kml)
-
-
-def add_style(kml, style_id, color):
-    """ Add kml <Style> tag """
-    kml.append('<Style id="{}">'.format(style_id))
-    kml.append('<LineStyle>')
-    kml.append('<width>1.5</width>')
-    kml.append('<color>{}</color>'.format(color))
-    kml.append('</LineStyle>')
-    kml.append('<PolyStyle>')
-    kml.append('<color>{}</color>'.format(color))
-    kml.append('</PolyStyle>')
-    kml.append('</Style>')
 
 
 async def fetch_prediction_geojson(model: ModelEnum, model_run_timestamp: datetime,
@@ -89,65 +25,6 @@ async def fetch_prediction_geojson(model: ModelEnum, model_run_timestamp: dateti
     with app.db.database.get_read_session_scope() as session:
         response = get_prediction_geojson(session, model, model_run_timestamp, prediction_timestamp)
     return response
-
-
-def get_look_at(model: ModelEnum, model_run_timestamp: datetime):
-    """ Return <LookAt> tag to set default position and timespan.
-    If this isn't done, then all the predictions will show as a big overlayed mess. """
-    if model == ModelEnum.GDPS:
-        end = model_run_timestamp + timedelta(hours=3)
-    else:
-        end = model_run_timestamp + timedelta(hours=1)
-    kml = []
-    kml.append('<LookAt>')
-    kml.append('<gx:TimeSpan>')
-    kml.append(f'<begin>{model_run_timestamp.isoformat()}</begin>')
-    kml.append(f'<end>{end.isoformat()}</end>')
-    kml.append('</gx:TimeSpan>')
-    # Center at an appropriate coordinate somewhere in the middle of B.C.
-    kml.append('<longitude>-123</longitude>')
-    kml.append('<latitude>54</latitude>')
-    # https://developers.google.com/kml/documentation/kmlreference#range
-    # Distance in meters from the point specified:
-    kml.append('<range>3000000</range>')
-    kml.append('</LookAt>')
-    return '\n'.join(kml)
-
-
-def _yield_folder_parts(result, model: ModelEnum, model_run_timestamp: datetime) -> Iterator[str]:
-    """ Yield up all the different parts of the folders with placemarks.
-    """
-    prev_prediction_timestamp = None
-    prev_severity = None
-    # Iterate through the records we get from the database.
-    for poly, severity, prediction_timestamp in result:
-        # If it's a new timestamp.
-        if prediction_timestamp != prev_prediction_timestamp:
-            # Close the previous placemark if needed.
-            if not prev_severity is None:
-                yield close_placemark()
-            prev_severity = None
-            # Close the previous folder if needed.
-            if prev_prediction_timestamp is not None:
-                yield f'{FOLDER_CLOSE}\n'
-            prev_prediction_timestamp = prediction_timestamp
-            # Start a new folder.
-            yield f'{FOLDER_OPEN}\n'
-            yield '<name>{} {} {}</name>\n'.format(model, model_run_timestamp, prediction_timestamp)
-        # Close the placemark if needed.
-        if severity != prev_severity:
-            if not prev_severity is None:
-                yield close_placemark()
-            prev_severity = severity
-            yield open_placemark(model, SeverityEnum(severity), prediction_timestamp)
-        # Yield up the polygon.
-        yield poly
-
-    # Close all tags, if needed.
-    if prev_prediction_timestamp is not None:
-        if not prev_severity is None:
-            yield close_placemark()
-        yield f'{FOLDER_CLOSE}\n'
 
 
 def fetch_model_run_kml_streamer(
@@ -183,21 +60,7 @@ def fetch_model_run_kml_streamer(
         logger.info('kml complete')
 
 
-def get_kml_header():
-    """ Return the kml header (xml header, <xml> tag, <Document> tag and styles.)
-    """
-    kml = []
-    kml.append('<?xml version="1.0" encoding="UTF-8"?>')
-    kml.append('<kml xmlns="http://www.opengis.net/kml/2.2">')
-    kml.append('<Document>')
-    # color format is aabbggrr
-    add_style(kml, get_severity_style(SeverityEnum.MODERATE), '9900ffff')
-    add_style(kml, get_severity_style(SeverityEnum.HIGH), '9900a5ff')
-    add_style(kml, get_severity_style(SeverityEnum.EXTREME), '990000ff')
-    return "\n".join(kml)
-
-
-def fetch_network_link_kml():
+def fetch_network_link_kml() -> str:
     """ Fetch the kml for the network link """
     uri = config.get('BASE_URI')
     writer = StringIO()
@@ -229,30 +92,8 @@ def fetch_prediction_kml_streamer(model: ModelEnum, model_run_timestamp: datetim
     logger.info('model: %s; model_run: %s, prediction: %s', model, model_run_timestamp, prediction_timestamp)
     with app.db.database.get_read_session_scope() as session:
         result = get_prediction_kml(session, model, model_run_timestamp, prediction_timestamp)
-        yield get_kml_header()
-        kml = []
-        kml.append('<name>{} {} {}</name>'.format(model, model_run_timestamp, prediction_timestamp))
-        kml.append(f'{FOLDER_OPEN}')
-        kml.append('<name>{} {} {}</name>'.format(model, model_run_timestamp, prediction_timestamp))
-        yield "\n".join(kml)
-        kml = []
-        prev_severity = None
-        for poly, severity in result:
-            if severity != prev_severity:
-                if not prev_severity is None:
-                    kml.append(close_placemark())
-                prev_severity = severity
-                kml.append(open_placemark(model, SeverityEnum(severity), prediction_timestamp))
-            kml.append(poly)
-
-            yield "\n".join(kml)
-            kml = []
-        if not prev_severity is None:
-            kml.append(close_placemark())
-        kml.append(f'{FOLDER_CLOSE}')
-        kml.append('</Document>')
-        kml.append('</kml>')
-        yield "\n".join(kml)
+        for part in kml_prediction(result, model, model_run_timestamp, prediction_timestamp):
+            yield part
 
 
 async def fetch_model_runs(model_run_timestamp: datetime):
