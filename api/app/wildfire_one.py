@@ -8,9 +8,7 @@ from datetime import datetime, timezone
 from abc import abstractmethod, ABC
 import logging
 import asyncio
-import geopandas
 from aiohttp import ClientSession, BasicAuth, TCPConnector
-from shapely.geometry import Point
 from app import config
 from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.schemas.observations import WeatherStationHourlyReadings, WeatherReading
