@@ -77,9 +77,7 @@ async def _get_detailed_stations(time_of_interest: datetime):
     records. """
     geojson_stations = []
     # this gets us a list of stations
-    async with ClientSession() as session:
-        header = wildfire_one.get_auth_header(session)
-        stations = await wildfire_one.get_stations(session, header)
+    stations = await get_stations_asynchronously()
     with app.db.database.get_read_session_scope() as session:
         stations_detailed = get_noon_forecast_observation_union(session, time_of_interest)
         station_lookup = {}
@@ -126,14 +124,10 @@ async def get_stations(
     if station_source == StationSourceEnum.UNSPECIFIED:
         # If station source is unspecified, check configuration:
         if wildfire_one.use_wfwx():
-            async with ClientSession() as session:
-                header = wildfire_one.get_auth_header(session)
-                return await wildfire_one.get_stations(session, header)
+            return await get_stations_asynchronously()
     elif station_source == StationSourceEnum.WILDFIRE_ONE:
         # Get from wildfire one:
-        async with ClientSession() as session:
-            header = wildfire_one.get_auth_header(session)
-            return await wildfire_one.get_stations(session, header)
+        return await get_stations_asynchronously()
     # Get from local:
     return _get_stations_local()
 
@@ -168,6 +162,13 @@ async def get_stations_as_geojson(
                 core_season=station.core_season),
                 geometry=WeatherStationGeometry(coordinates=[station.long, station.lat])))
     return geojson_stations
+
+
+async def get_stations_asynchronously():
+    """ Get list of stations asynchronously """
+    async with ClientSession() as session:
+        header = await wildfire_one.get_auth_header(session)
+        return await wildfire_one.get_stations(session, header)
 
 
 def get_stations_synchronously() -> List[WeatherStation]:
