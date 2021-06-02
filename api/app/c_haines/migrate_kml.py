@@ -14,7 +14,7 @@ import os
 from sqlalchemy import asc
 from pyproj import Transformer, Proj
 from app import configure_logging
-from app.minio_utils import get_minio_client
+from app.minio_utils import get_minio_client, object_exists
 import app.db.database
 from app.weather_models.process_grib import NAD83, WGS84
 from app.db.crud.c_haines import get_prediction_geojson
@@ -22,7 +22,7 @@ from app.db.models.weather_models import PredictionModel
 from app.db.models.c_haines import CHainesPrediction, CHainesModelRun
 from app.weather_models import ModelEnum
 from app.c_haines.kml import generate_kml_prediction, feature_2_kml_polygon
-from app.c_haines.severity_index import is_existing, generate_full_kml_path
+from app.c_haines.severity_index import generate_full_kml_path
 
 logger = logging.getLogger(__name__)
 
@@ -74,7 +74,7 @@ def main():
             # let's save some time, and check if the file doesn't already exists.
             # it's duper important we do this, since this is a mega migration and we expect to restart
             # it a few times before it's all done.
-            if is_existing(client, bucket, target_kml_path):
+            if object_exists(client, bucket, target_kml_path):
                 logger.info('kml (%s) already exists, skipping', target_kml_path)
                 continue
 

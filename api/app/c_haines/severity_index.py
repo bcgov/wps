@@ -331,7 +331,7 @@ def generate_full_kml_path(prediction_model: str,
     return os.path.join(generate_kml_model_run_path(prediction_model, model_run_timestamp), kml_filename)
 
 
-def save_as_kml_to_s3(client: Minio,
+def save_as_kml_to_s3(client: Minio,  # pylint: disable=too-many-arguments
                       bucket: str,
                       json_filename: str,
                       source_projection,
