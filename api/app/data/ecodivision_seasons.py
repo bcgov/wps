@@ -57,7 +57,7 @@ class EcodivisionSeasons:
         """Returns core seasons"""
         return self.core_seasons
 
-    def get_ecodivision_name(self, latitude: str, longitude: str):
+    def get_ecodivision_name(self, station_code: str,  latitude: str, longitude: str):
         """ Returns the ecodivision name for a given lat/long coordinate """
         # if station's latitude >= 60 (approx.), it's in the Yukon, so it won't be captured
         # in the shapefile, but it's considered to be part of the SUB-ARCTIC HIGHLANDS ecodivision.
@@ -70,5 +70,6 @@ class EcodivisionSeasons:
                 return ecodivision_row['CDVSNNM']
 
         # If we've reached here, the ecodivision for the station has not been found.
-        logger.error('Ecodivision not found for station at lat %f long %f', latitude, longitude)
+        logger.error('Ecodivision not found for station code %s at lat %f long %f',
+                     station_code, latitude, longitude)
         return "DEFAULT"

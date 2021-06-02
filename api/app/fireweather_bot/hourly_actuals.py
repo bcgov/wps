@@ -39,7 +39,10 @@ def parse_hourly_actual(station_code: int, hourly_reading: WeatherReading):
 
     is_valid_wfwx = hourly_reading.observation_valid_ind
     if is_valid_wfwx is False:
-        logger.warning("Invalid hourly received from WF1 API: %s", hourly_reading.observation_valid_comment)
+        logger.warning("Invalid hourly received from WF1 API for station code %s at time %s: %s",
+                       station_code,
+                       hourly_reading.datetime.strftime("%b %d %Y %H:%M:%S"),
+                       hourly_reading.observation_valid_comment)
 
     is_valid = temp_valid and rh_valid and wdir_valid and wspeed_valid and precip_valid and is_valid_wfwx
 
@@ -66,20 +69,6 @@ def parse_hourly_actual(station_code: int, hourly_reading: WeatherReading):
 def validate_metric(value, low, high):
     """ Validate metric with it's range of accepted values """
     return low <= value <= high
-
-
-def get_hourly_readings_synchronously_wfwx(station_codes, start_date, end_date):
-    """ Synchronously get hourly readings for given station codes and date range from wfwx """
-
-    async def authenticate_and_get_hourly_readings():
-        async with ClientSession() as session:
-            header = await wildfire_one.get_auth_header(session)
-            return wildfire_one.get_hourly_readings(session, header,
-                                                    station_codes, start_date, end_date)
-
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    return loop.run_until_complete(authenticate_and_get_hourly_readings())
 
 
 class HourlyActualsBot():
@@ -111,8 +100,6 @@ class HourlyActualsBot():
 
             station_hourly_readings = await wildfire_one.get_hourly_readings_all_stations(
                 session, header, start_date, end_date)
-
-        logger.info("Station hourly readings: %s", station_hourly_readings)
 
         with app.db.database.get_write_session_scope() as session:
             for station_hourly_reading in station_hourly_readings:
