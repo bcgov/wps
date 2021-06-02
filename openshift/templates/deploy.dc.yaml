@@ -220,10 +220,10 @@ objects:
                       name: ${NAME}-global
                       key: env.matomo-container
                 - name: OBJECT_STORE_SERVER
-                      valueFrom:
-                        secretKeyRef:
-                          name: ${GLOBAL_NAME}-global
-                          key: object-store-server
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}-global
+                      key: object-store-server
                 - name: OBJECT_STORE_USER_ID
                   valueFrom:
                     secretKeyRef:

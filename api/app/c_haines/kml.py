@@ -103,42 +103,6 @@ def get_look_at(model: ModelEnum, model_run_timestamp: datetime):
     return '\n'.join(kml)
 
 
-# def _yield_folder_parts(result, model: ModelEnum, model_run_timestamp: datetime) -> Iterator[str]:
-#     """ Yield up all the different parts of the folders with placemarks.
-#     """
-#     prev_prediction_timestamp = None
-#     prev_severity = None
-#     # Iterate through the records we get from the database.
-#     for poly, severity, prediction_timestamp in result:
-#         # If it's a new timestamp.
-#         if prediction_timestamp != prev_prediction_timestamp:
-#             # Close the previous placemark if needed.
-#             if not prev_severity is None:
-#                 yield close_placemark()
-#             prev_severity = None
-#             # Close the previous folder if needed.
-#             if prev_prediction_timestamp is not None:
-#                 yield f'{FOLDER_CLOSE}\n'
-#             prev_prediction_timestamp = prediction_timestamp
-#             # Start a new folder.
-#             yield f'{FOLDER_OPEN}\n'
-#             yield '<name>{} {} {}</name>\n'.format(model, model_run_timestamp, prediction_timestamp)
-#         # Close the placemark if needed.
-#         if severity != prev_severity:
-#             if not prev_severity is None:
-#                 yield close_placemark()
-#             prev_severity = severity
-#             yield open_placemark(model, SeverityEnum(severity), prediction_timestamp)
-#         # Yield up the polygon.
-#         yield poly
-
-#     # Close all tags, if needed.
-#     if prev_prediction_timestamp is not None:
-#         if not prev_severity is None:
-#             yield close_placemark()
-#         yield f'{FOLDER_CLOSE}\n'
-
-
 def get_kml_header() -> str:
     """ Return the kml header (xml header, <xml> tag, <Document> tag and styles.)
     """
@@ -185,22 +149,6 @@ def feature_2_kml_polygon(feature: dict, project: Transformer) -> str:
     return '\n'.join(polygon)
 
 
-class CHainesIndexIterator:
-    """ Iterator that matches the result the crud function get_prediction_kml would give you """
-
-    def __init__(self, file_pointer):
-        geojson = json.load(file_pointer)
-        self.features = iter(geojson['features'])
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        feature = next(self.features)
-        severity = feature['properties']['c_haines_index']
-        return feature_2_kml_polygon(feature, None), severity
-
-
 class SeverityIndexIterator:
     """ Iterator that matches the result the crud function get_prediction_kml would give you """
 
@@ -229,7 +177,6 @@ def kml_prediction(result: Iterator[list], model: ModelEnum, model_run_timestamp
     """
     Create KML prediction given some result iterator
     """
-    logger.info('model: %s; model_run: %s, prediction: %s', model, model_run_timestamp, prediction_timestamp)
     yield get_kml_header()
     kml = []
     kml.append('<name>{} {} {}</name>'.format(model, model_run_timestamp, prediction_timestamp))

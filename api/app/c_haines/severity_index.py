@@ -2,7 +2,6 @@
 """ Logic pertaining to the generation of c_haines severity index from GDAL datasets.
 """
 import os
-import shutil
 from datetime import datetime, timezone, timedelta
 from typing import Final, Tuple, Generator, Union, List
 from contextlib import contextmanager
@@ -331,6 +330,20 @@ def generate_full_kml_path(prediction_model: str,
     return os.path.join(generate_kml_model_run_path(prediction_model, model_run_timestamp), kml_filename)
 
 
+def is_existing(client, bucket, target_kml_path: str):
+    """ Check if KML doesn't already exist """
+    item_gen = client.list_objects(bucket, target_kml_path)
+    item = None
+    try:
+        item = next(item_gen)
+    except StopIteration:
+        # this means the item doesn't exist
+        return False
+    if item:
+        return True
+    return False
+
+
 def save_as_kml_to_s3(json_filename: str,
                       source_projection,
                       prediction_model: str,
@@ -339,19 +352,13 @@ def save_as_kml_to_s3(json_filename: str,
     """ Given a geojson file, generate KML and store to S3 """
     target_kml_path = generate_full_kml_path(
         prediction_model, model_run_timestamp, prediction_timestamp)
+    client, bucket = get_minio_client()
     # let's save some time, and check if the file doesn't already exists.
     # it's super important we do this, since there are many c-haines cronjobs running in dev, all
     # pointing to the same s3 bucket.
-    client, bucket = get_minio_client()
-    item_gen = client.list_objects(bucket, target_kml_path)
-    item = None
-    try:
-        item = next(item_gen)
-    except StopIteration:
-        # this means the item doesn't exist
-        pass
-    if item:
-        logger.info('kml (%s) already exists', target_kml_path)
+    if is_existing(client, bucket, target_kml_path):
+        logger.info('kml (%s) already exists - skipping', target_kml_path)
+        return
 
     with tempfile.TemporaryDirectory() as temporary_path:
         kml_filename = generate_kml_filename(prediction_timestamp)

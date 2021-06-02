@@ -9,13 +9,11 @@ import logging
 from app import config
 from app.minio_utils import get_minio_client
 from app.c_haines.severity_index import generate_kml_model_run_path
-from app.c_haines.kml import (get_look_at, kml_prediction,
-                              get_kml_header, FOLDER_OPEN, FOLDER_CLOSE)
+from app.c_haines.kml import (get_look_at, get_kml_header, FOLDER_OPEN, FOLDER_CLOSE)
 import app.db.database
 from app.schemas.weather_models import CHainesModelRuns, CHainesModelRunPredictions, WeatherPredictionModel
 from app.weather_models import ModelEnum
-from app.db.crud.c_haines import (get_model_run_predictions,
-                                  get_prediction_geojson, get_prediction_kml)
+from app.db.crud.c_haines import (get_model_run_predictions, get_prediction_geojson)
 
 logger = logging.getLogger(__name__)
 
