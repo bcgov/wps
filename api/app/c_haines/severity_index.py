@@ -11,10 +11,11 @@ import json
 from osgeo import gdal, ogr
 import numpy
 from pyproj import Transformer, Proj
+from minio import Minio
 from shapely.ops import transform
 from shapely.geometry import shape
 from sqlalchemy.orm import Session
-from app.minio_utils import get_minio_client
+from app.minio_utils import get_minio_client, object_exists
 from app.time_utils import get_utc_now
 from app.db.models.c_haines import CHainesPoly, CHainesPrediction, CHainesModelRun, get_severity_string
 from app.db.crud.weather_models import get_prediction_model
@@ -330,21 +331,9 @@ def generate_full_kml_path(prediction_model: str,
     return os.path.join(generate_kml_model_run_path(prediction_model, model_run_timestamp), kml_filename)
 
 
-def is_existing(client, bucket, target_kml_path: str):
-    """ Check if KML doesn't already exist """
-    item_gen = client.list_objects(bucket, target_kml_path)
-    item = None
-    try:
-        item = next(item_gen)
-    except StopIteration:
-        # this means the item doesn't exist
-        return False
-    if item:
-        return True
-    return False
-
-
-def save_as_kml_to_s3(json_filename: str,
+def save_as_kml_to_s3(client: Minio,
+                      bucket: str,
+                      json_filename: str,
                       source_projection,
                       prediction_model: str,
                       model_run_timestamp: datetime,
@@ -352,11 +341,10 @@ def save_as_kml_to_s3(json_filename: str,
     """ Given a geojson file, generate KML and store to S3 """
     target_kml_path = generate_full_kml_path(
         prediction_model, model_run_timestamp, prediction_timestamp)
-    client, bucket = get_minio_client()
     # let's save some time, and check if the file doesn't already exists.
     # it's super important we do this, since there are many c-haines cronjobs running in dev, all
     # pointing to the same s3 bucket.
-    if is_existing(client, bucket, target_kml_path):
+    if object_exists(client, bucket, target_kml_path):
         logger.info('kml (%s) already exists - skipping', target_kml_path)
         return
 
@@ -397,6 +385,9 @@ class CHainesSeverityGenerator():
         self.projection = projection
         self.c_haines_generator = CHainesGenerator()
         self.session = session
+        client, bucket = get_minio_client()
+        self.client: Minio = client
+        self.bucket: str = bucket
 
     def _collect_payload(self,
                          urls: dict,
@@ -440,8 +431,23 @@ class CHainesSeverityGenerator():
         for model_hour in get_model_run_hours(self.model):
             model_run = None
             for prediction_hour in model_prediction_hour_iterator(self.model):
+
                 urls, model_run_timestamp, prediction_timestamp = make_model_run_download_urls(
                     self.model, utc_now, model_hour, prediction_hour)
+
+                # If the GeoJSON and the KML already exist, then we can skip this one.
+                kml_path = generate_full_kml_path(
+                    prediction_model.abbreviation,
+                    model_run_timestamp,
+                    prediction_timestamp)
+                kml_exists = object_exists(self.client, self.bucket, kml_path)
+                json_exists = False  # TODO: Implement this check
+                if kml_exists and json_exists:
+                    logger.info('%s: already processed %s-%s',
+                                self.model,
+                                model_run_timestamp, prediction_timestamp)
+                    continue
+
                 if model_run is None:
                     model_run = get_or_create_c_haines_model_run(
                         self.session, model_run_timestamp, prediction_model)
@@ -495,7 +501,7 @@ class CHainesSeverityGenerator():
                 source_info,
                 json_filename)
 
-            save_as_kml_to_s3(json_filename, source_info.projection,
+            save_as_kml_to_s3(self.client, self.bucket, json_filename, source_info.projection,
                               payload.model_run.prediction_model.abbreviation,
                               payload.model_run.model_run_timestamp, payload.prediction_timestamp)
 

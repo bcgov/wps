@@ -14,3 +14,17 @@ def get_minio_client() -> Tuple[Minio, str]:
     bucket = config.get('OBJECT_STORE_BUCKET')
 
     return Minio(server, user_id, secret_key, secure=True), bucket
+
+
+def object_exists(client, bucket, target_path: str):
+    """ Check if and object exists """
+    item_gen = client.list_objects(bucket, target_path)
+    item = None
+    try:
+        item = next(item_gen)
+    except StopIteration:
+        # this means the item doesn't exist
+        return False
+    if item:
+        return True
+    return False
