@@ -9,7 +9,6 @@ from datetime import datetime, timedelta
 from aiohttp.client import ClientSession
 from aiohttp.connector import TCPConnector
 from sqlalchemy.exc import IntegrityError
-from psycopg2 import errors
 import app.db.database
 import app.time_utils
 from app import configure_logging, wildfire_one
@@ -107,7 +106,12 @@ class HourlyActualsBot():
                     hourly_actual = parse_hourly_actual(
                         station_hourly_reading.station.code, hourly_reading)
                     if hourly_actual is not None:
-                        save_hourly_actual(session, hourly_actual)
+                        try:
+                            save_hourly_actual(session, hourly_actual)
+                        except IntegrityError:
+                            logger.info('Skipping duplicate record for %s @ %s',
+                                        hourly_actual.station_code, hourly_actual.weather_date)
+                            session.rollback()
 
 
 def main():
@@ -124,12 +128,6 @@ def main():
 
         # Exit with 0 - success.
         sys.exit(os.EX_OK)
-    except IntegrityError as exception:
-        # UniqueViolation error
-        if isinstance(exception.orig, errors.lookup('23505')):
-            logger.warning("Attempt to save duplicate hourly actual", exc_info=exception)
-        else:
-            raise
     except Exception as exception:  # pylint: disable=broad-except
         # Exit non 0 - failure.
         logger.error('Failed to retrieve hourly actuals.', exc_info=exception)
