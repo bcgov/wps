@@ -55,13 +55,7 @@ def interpolate_between_two_points(  # pylint: disable=invalid-name
     # Create interpolation function.
     function = interp1d(x_axis, y_axis, kind='linear')
     # Use iterpolation function to derive values at the time of interest.
-
-    try:
-        result = function(xn)
-    except Exception as exception:
-        logger.error(exception, exc_info=True)
-        raise
-    return result
+    return function(xn)
 
 
 def interpolate_bearing(time_a: datetime, time_b: datetime, target_time: datetime,
