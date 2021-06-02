@@ -36,7 +36,7 @@ def parse_hourly_actual(station_code: int, hourly_reading: WeatherReading):
     precip_valid = hourly_reading.precipitation is not None and validate_metric(
         hourly_reading.precipitation, 0, math.inf)
 
-    is_valid_wfwx = hourly_reading.observation_valid_ind
+    is_valid_wfwx = hourly_reading.observation_valid
     if is_valid_wfwx is False:
         logger.warning("Invalid hourly received from WF1 API for station code %s at time %s: %s",
                        station_code,

@@ -152,7 +152,7 @@ def test_invalid_metrics_from_wfwx():
         ffmc=0.0,
         isi=0.0,
         fwi=0.0,
-        observation_valid_ind=False,
+        observation_valid=False,
         observation_valid_comment="Not valid"
     )
 

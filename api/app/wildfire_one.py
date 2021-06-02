@@ -192,7 +192,7 @@ def _parse_hourly(hourly) -> WeatherReading:
         ffmc=hourly.get('fineFuelMoistureCode', None),
         isi=hourly.get('initialSpreadIndex', None),
         fwi=hourly.get('fireWeatherIndex', None),
-        observation_valid_ind=hourly.get('observationValidInd'),
+        observation_valid=hourly.get('observationValidInd'),
         observation_valid_comment=hourly.get('observationValidComment')
     )
 

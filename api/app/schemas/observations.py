@@ -19,7 +19,7 @@ class WeatherReading(BaseModel):
     ffmc: float = None
     isi: float = None
     fwi: float = None
-    observation_valid_ind: bool = None
+    observation_valid: bool = None
     observation_valid_comment: str = None
 
 
