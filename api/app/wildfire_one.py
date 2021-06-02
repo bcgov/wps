@@ -12,6 +12,7 @@ import geopandas
 from aiohttp import ClientSession, BasicAuth, TCPConnector
 from shapely.geometry import Point
 from app import config
+from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.schemas.observations import WeatherStationHourlyReadings, WeatherReading
 from app.schemas.stations import (WeatherStation, GeoJsonDetailedWeatherStation,
                                   DetailedWeatherStationProperties, WeatherStationGeometry, WeatherVariables)
@@ -170,31 +171,13 @@ def _is_station_valid(station) -> bool:
     return True
 
 
-def get_ecodivision_name(latitude: str, longitude: str, ecodivisions: geopandas.GeoDataFrame):
-    """ Returns the ecodivision name for a given lat/long coordinate """
-    # if station's latitude >= 60 (approx.), it's in the Yukon, so it won't be captured
-    # in the shapefile, but it's considered to be part of the SUB-ARCTIC HIGHLANDS ecodivision.
-    if latitude >= 60:
-        return 'SUB-ARCTIC HIGHLANDS'
-    station_coord = Point(float(longitude), float(latitude))
-    for _, ecodivision_row in ecodivisions.iterrows():
-        geom = ecodivision_row['geometry']
-        if station_coord.within(geom):
-            return ecodivision_row['CDVSNNM']
-
-    # If we've reached here, the ecodivision for the station has not been found.
-    logger.error('Ecodivision not found for station at lat %f long %f', latitude, longitude)
-    return "DEFAULT"
-
-
 def _parse_station(station) -> WeatherStation:
     """ Transform from the json object returned by wf1, to our station object.
     """
-    with open(core_season_file_path) as file_handle:
-        core_seasons = json.load(file_handle)
-    ecodivisions = geopandas.read_file(ecodiv_shape_file_path)
-
-    ecodiv_name = get_ecodivision_name(station['latitude'], station['longitude'], ecodivisions)
+    # pylint: disable=no-member
+    core_seasons = EcodivisionSeasons.instance().get_core_seasons()
+    ecodiv_name = EcodivisionSeasons.instance().get_ecodivision_name(
+        station['latitude'], station['longitude'])
     return WeatherStation(
         code=station['stationCode'],
         name=station['displayLabel'],

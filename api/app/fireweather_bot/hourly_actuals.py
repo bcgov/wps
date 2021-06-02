@@ -7,6 +7,7 @@ import os
 import sys
 from datetime import datetime, timedelta
 from aiohttp.client import ClientSession
+from aiohttp.connector import TCPConnector
 import app.db.database
 import app.time_utils
 from app import configure_logging, wildfire_one
@@ -100,7 +101,7 @@ class HourlyActualsBot():
 
     async def run_wfwx(self):
         """ Entry point for running the bot """
-        async with ClientSession() as session:
+        async with ClientSession(connector=TCPConnector(limit=100)) as session:
             header = await wildfire_one.get_auth_header(session)
 
             start_date = self._get_start_date()
