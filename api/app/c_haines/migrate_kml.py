@@ -19,13 +19,13 @@ from app.db.crud.c_haines import get_prediction_geojson
 from app.db.models.weather_models import PredictionModel
 from app.db.models.c_haines import CHainesPrediction, CHainesModelRun
 from app.weather_models import ModelEnum
-from app.c_haines.kml import kml_prediction, feature_2_kml_polygon
+from app.c_haines.kml import generate_kml_prediction, feature_2_kml_polygon
 from app.c_haines.severity_index import is_existing, generate_full_kml_path
 
 logger = logging.getLogger(__name__)
 
 
-class CHainesIndexIterator:
+class KMLGeojsonPolygonIterator:
     """ Iterator that matches the result the crud function get_prediction_kml would give you """
 
     def __init__(self, geojson):
@@ -47,39 +47,50 @@ class CHainesIndexIterator:
 
 def main():
     """ entry point for migration """
+    # create the client for our object store.
     client, bucket = get_minio_client()
+    # open db connection.
     with app.db.database.get_read_session_scope() as session:
-        # iterate through all c_haines model run predictions ever
+        # iterate through all c_haines model run predictions ever.
         for model_run, model, prediction in session.query(CHainesModelRun, PredictionModel, CHainesPrediction)\
                 .join(PredictionModel, CHainesModelRun.prediction_model_id == PredictionModel.id)\
                 .join(CHainesPrediction, CHainesModelRun.id == CHainesPrediction.model_run_id):
-            # some output
+            # log some output.
             logger.info('processing %s; model run: %s; prediction: %s', model.abbreviation,
                         model_run.model_run_timestamp, prediction.prediction_timestamp)
 
             prediction_model = ModelEnum(model.abbreviation)
 
-            target_kml_path = generate_full_kml_path(
-                prediction_model, model_run.model_run_timestamp, prediction.prediction_timestamp)
+            # create path that this is going to live on on the object store.
+            target_kml_path = generate_full_kml_path(prediction_model,
+                                                     model_run.model_run_timestamp,
+                                                     prediction.prediction_timestamp)
 
             # let's save some time, and check if the file doesn't already exists.
-            # it's super important we do this, since there are many c-haines cronjobs running in dev, all
-            # pointing to the same s3 bucket.
+            # it's duper important we do this, since this is a mega migration and we expect to restart
+            # it a few times before it's all done.
             if is_existing(client, bucket, target_kml_path):
                 logger.info('kml (%s) already exists, skipping', target_kml_path)
                 continue
 
-            # fetch geojson for this prediction
+            # fetch geojson for this prediction.
             geojson = get_prediction_geojson(session, prediction_model,
-                                             model_run.model_run_timestamp, prediction.prediction_timestamp)
+                                             model_run.model_run_timestamp,
+                                             prediction.prediction_timestamp)
 
-            # generate it
+            # generate the kml file.
+            # we're going to put it in a temporary folder.
             with tempfile.TemporaryDirectory() as temporary_path:
-                kml_file_result = CHainesIndexIterator(geojson)
+                # construct an iterator that will eat geojson features and produce kml polygons.
+                polygon_iterator = KMLGeojsonPolygonIterator(geojson)
+                # we store the file temporarily
                 tmp_filename = os.path.join(temporary_path, 'kml.kml')
                 with open(tmp_filename, 'w') as kml_file:
-                    for part in kml_prediction(kml_file_result, model, model_run.model_run_timestamp, prediction.prediction_timestamp):
-                        kml_file.write(part)
+                    for polygon in generate_kml_prediction(polygon_iterator,
+                                                           model,
+                                                           model_run.model_run_timestamp,
+                                                           prediction.prediction_timestamp):
+                        kml_file.write(polygon)
                     kml_file.flush()
                 client.fput_object(bucket, target_kml_path, tmp_filename)
 

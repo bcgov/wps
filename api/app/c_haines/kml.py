@@ -172,8 +172,8 @@ class SeverityIndexIterator:
         return feature_2_kml_polygon(feature, self.project), severity
 
 
-def kml_prediction(result: Iterator[list], model: ModelEnum, model_run_timestamp: datetime,
-                   prediction_timestamp: datetime) -> Iterator[str]:
+def generate_kml_prediction(result: Iterator[list], model: ModelEnum, model_run_timestamp: datetime,
+                            prediction_timestamp: datetime) -> Iterator[str]:
     """
     Create KML prediction given some result iterator
     """
@@ -216,5 +216,5 @@ def severity_geojson_to_kml(geojson_filename: str,
         kml_file_result = SeverityIndexIterator(geojson_file_pointer, geojson_projection)
 
         with open(kml_filename, 'w') as kml_file_pointer:
-            for part in kml_prediction(kml_file_result, model, model_run_timestamp, prediction_timestamp):
+            for part in generate_kml_prediction(kml_file_result, model, model_run_timestamp, prediction_timestamp):
                 kml_file_pointer.write(part)
