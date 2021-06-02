@@ -8,6 +8,8 @@ import sys
 from datetime import datetime, timedelta
 from aiohttp.client import ClientSession
 from aiohttp.connector import TCPConnector
+from sqlalchemy.exc import IntegrityError
+from psycopg2 import errors
 import app.db.database
 import app.time_utils
 from app import configure_logging, wildfire_one
@@ -135,6 +137,12 @@ def main():
 
         # Exit with 0 - success.
         sys.exit(os.EX_OK)
+    except IntegrityError as exception:
+        # UniqueViolation error
+        if isinstance(exception.orig, errors.lookup('23505')):
+            logger.warning("Attempt to save duplicate hourly actual", exc_info=exception)
+        else:
+            raise
     # pylint: disable=broad-except
     except Exception as exception:
         # Exit non 0 - failure.
