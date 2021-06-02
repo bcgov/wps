@@ -143,8 +143,7 @@ def main():
             logger.warning("Attempt to save duplicate hourly actual", exc_info=exception)
         else:
             raise
-    # pylint: disable=broad-except
-    except Exception as exception:
+    except Exception as exception:  # pylint: disable=broad-except
         # Exit non 0 - failure.
         logger.error('Failed to retrieve hourly actuals.', exc_info=exception)
         rc_message = ':scream: Encountered error retrieving hourly actuals'
