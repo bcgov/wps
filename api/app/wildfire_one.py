@@ -1,7 +1,5 @@
 """ This module contains methods for retrieving information from the WFWX Fireweather API.
 """
-import os
-import json
 import math
 from typing import Generator, Dict, List
 from datetime import datetime, timezone
@@ -18,12 +16,6 @@ from app.db.crud.stations import _get_noon_date
 
 
 logger = logging.getLogger(__name__)
-
-dirname = os.path.dirname(__file__)
-core_season_file_path = os.path.join(
-    dirname, 'data/ecodivisions_core_seasons.json')
-ecodiv_shape_file_path = os.path.join(
-    dirname, 'data/ERC_ECODIV_polygon/ERC_ECODIV_polygon.shp')
 
 
 class BuildQuery(ABC):
@@ -113,10 +105,9 @@ async def _fetch_raw_stations_generator(
         url, params = query_builder.query(page_count)
         logger.debug('loading station page %d...', page_count)
         async with session.get(url, headers=headers, params=params) as response:
-            response_bytes = await response.read()
+            station_json = await response.json()
             logger.debug('done loading station page %d.', page_count)
 
-        station_json = json.loads(response_bytes.decode('utf-8'))
         # Update the total page count.
         total_pages = station_json['page']['totalPages']
         for station in station_json['_embedded']['stations']:
