@@ -185,7 +185,7 @@ class SourceInfo():
     """ Handy class to store source information in . """
 
     def __init__(self, projection, geotransform, rows: int, cols: int):
-        self.projection = projection
+        self.projection: str = projection
         self.geotransform = geotransform
         self.rows: int = rows
         self.cols: int = cols

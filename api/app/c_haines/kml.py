@@ -1,7 +1,7 @@
 """ KML related code
 """
 from datetime import datetime, timedelta
-from typing import Final, Iterator
+from typing import Final, Iterator, IO
 import json
 import logging
 from pyproj import Transformer, Proj
@@ -149,10 +149,11 @@ def feature_2_kml_polygon(feature: dict, project: Transformer) -> str:
     return '\n'.join(polygon)
 
 
-class SeverityIndexIterator:
-    """ Iterator that matches the result the crud function get_prediction_kml would give you """
+class KMLGeojsonPolygonIterator:
+    """ Generator that produces a kml polygon for every geojson feature. This generator assumes
+    GeoJSON as produced by the process that generates GeoJSON by severity level. """
 
-    def __init__(self, file_pointer, projection):
+    def __init__(self, file_pointer: IO, projection: str):
         geojson = json.load(file_pointer)
         # We need to sort the geojson by severity
         geojson['features'].sort(key=lambda feature: feature['properties']['severity'])
@@ -203,18 +204,20 @@ def generate_kml_prediction(result: Iterator[list], model: ModelEnum, model_run_
     yield "\n".join(kml)
 
 
-def severity_geojson_to_kml(geojson_filename: str,
-                            geojson_projection,
+def severity_geojson_to_kml(geojson_filename: str,  # pylint: disable=too-many-arguments
+                            geojson_projection: str,
                             kml_filename: str,
                             model: ModelEnum,
                             model_run_timestamp: datetime,
                             prediction_timestamp: datetime):
-    """ Given a geojson file, create a KML file.
-    model, model run timestamp and prediction timestamp are required for context in the KML.
+    """ Given a severity geojson file, create a KML file.
     """
     with open(geojson_filename) as geojson_file_pointer:
-        kml_file_result = SeverityIndexIterator(geojson_file_pointer, geojson_projection)
+        kml_file_result = KMLGeojsonPolygonIterator(geojson_file_pointer, geojson_projection)
 
         with open(kml_filename, 'w') as kml_file_pointer:
-            for part in generate_kml_prediction(kml_file_result, model, model_run_timestamp, prediction_timestamp):
+            for part in generate_kml_prediction(kml_file_result,
+                                                model,
+                                                model_run_timestamp,
+                                                prediction_timestamp):
                 kml_file_pointer.write(part)

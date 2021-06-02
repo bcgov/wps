@@ -3,6 +3,7 @@ Code to migrate geometries from database to object storage.
 
 NOTE: Once migration is complete - this script can be safely deleted.
 
+This code can be run against the live database, or agains a copy of the live database.
 run:
 poetry shell
 python -m app.c_haines.migrate
@@ -10,6 +11,7 @@ python -m app.c_haines.migrate
 import logging
 import tempfile
 import os
+from sqlalchemy import asc
 from pyproj import Transformer, Proj
 from app import configure_logging
 from app.minio_utils import get_minio_client
@@ -26,13 +28,14 @@ logger = logging.getLogger(__name__)
 
 
 class KMLGeojsonPolygonIterator:
-    """ Iterator that matches the result the crud function get_prediction_kml would give you """
+    """ Generator that produces a kml polygon for every geojson feature. This generator assumes GeoJSON
+    as provided by DB query. """
 
     def __init__(self, geojson):
         self.features = iter(geojson['features'])
-        # Source coordinate system, must match source data.
+        # Source coordinate system is NAD83 as stored in the databse.
         proj_from = Proj(NAD83)
-        # Destination coordinate systems (NAD83, geographic coordinates)
+        # Destination coordinate systems is WGS84 for google earth KML.
         proj_to = Proj(WGS84)
         self.project = Transformer.from_proj(proj_from, proj_to, always_xy=True)
 
@@ -52,9 +55,11 @@ def main():
     # open db connection.
     with app.db.database.get_read_session_scope() as session:
         # iterate through all c_haines model run predictions ever.
-        for model_run, model, prediction in session.query(CHainesModelRun, PredictionModel, CHainesPrediction)\
-                .join(PredictionModel, CHainesModelRun.prediction_model_id == PredictionModel.id)\
-                .join(CHainesPrediction, CHainesModelRun.id == CHainesPrediction.model_run_id):
+        query = session.query(CHainesModelRun, PredictionModel, CHainesPrediction)\
+            .join(PredictionModel, CHainesModelRun.prediction_model_id == PredictionModel.id)\
+            .join(CHainesPrediction, CHainesModelRun.id == CHainesPrediction.model_run_id)\
+            .order_by(asc(CHainesModelRun.model_run_timestamp))
+        for model_run, model, prediction in query:
             # log some output.
             logger.info('processing %s; model run: %s; prediction: %s', model.abbreviation,
                         model_run.model_run_timestamp, prediction.prediction_timestamp)
@@ -83,15 +88,18 @@ def main():
             with tempfile.TemporaryDirectory() as temporary_path:
                 # construct an iterator that will eat geojson features and produce kml polygons.
                 polygon_iterator = KMLGeojsonPolygonIterator(geojson)
-                # we store the file temporarily
+                # we store the kml file temporarily.
                 tmp_filename = os.path.join(temporary_path, 'kml.kml')
                 with open(tmp_filename, 'w') as kml_file:
+                    # iterate through the parts of the kml generator, writing each part to file
                     for polygon in generate_kml_prediction(polygon_iterator,
                                                            model,
                                                            model_run.model_run_timestamp,
                                                            prediction.prediction_timestamp):
                         kml_file.write(polygon)
+                    # flush to disk
                     kml_file.flush()
+                # smash it into the object store.
                 client.fput_object(bucket, target_kml_path, tmp_filename)
 
 

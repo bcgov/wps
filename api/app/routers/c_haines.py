@@ -6,7 +6,6 @@ import logging
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse, StreamingResponse, Response
 from starlette.responses import RedirectResponse
-import app.db.database
 from app.minio_utils import get_minio_client
 from app.weather_models import ModelEnum
 from app.c_haines.severity_index import generate_full_kml_path
@@ -14,7 +13,6 @@ from app.c_haines.fetch import (fetch_prediction_geojson,
                                 fetch_model_runs,
                                 fetch_model_run_kml_streamer,
                                 fetch_network_link_kml)
-from app.db.crud.c_haines import get_most_recent_model_run
 
 
 logger = logging.getLogger(__name__)
@@ -79,9 +77,6 @@ async def get_c_haines_model_run(
     headers = {"Content-Type": kml_media_type}
     if model_run_timestamp is None:
         model_run_timestamp = _get_most_recent_kml_model_run(model)
-        # with app.db.database.get_read_session_scope() as session:
-        #     model_run = get_most_recent_model_run(session, model)
-        #     model_run_timestamp = model_run.model_run_timestamp
     if model_run_timestamp is None:
         # most recent model not found
         raise HTTPException(status_code=404)
@@ -139,6 +134,7 @@ async def get_model_runs(model_run_timestamp: datetime = None):
 @router.get('/network-link')
 async def get_kml_network_link():
     """ Return KML network link file """
+    logger.info('/c-haines/network-link')
     headers = {"Content-Type": kml_media_type,
                "Content-Disposition": "inline;filename=c-haines-network-link.kml"}
 
