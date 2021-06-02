@@ -219,6 +219,26 @@ objects:
                     configMapKeyRef:
                       name: ${NAME}-global
                       key: env.matomo-container
+                - name: OBJECT_STORE_SERVER
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}-global
+                          key: object-store-server
+                - name: OBJECT_STORE_USER_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}-global
+                      key: object-store-user-id
+                - name: OBJECT_STORE_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}-global
+                      key: object-store-secret
+                - name: OBJECT_STORE_BUCKET
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}-global
+                      key: object-store-bucket
               ports:
                 - containerPort: 8080
                   protocol: TCP
