@@ -91,7 +91,7 @@ class HourlyActualsBot():
 
     async def run_wfwx(self):
         """ Entry point for running the bot """
-        async with ClientSession(connector=TCPConnector(limit=100)) as session:
+        async with ClientSession(connector=TCPConnector(limit=10)) as session:
             header = await wildfire_one.get_auth_header(session)
 
             start_date = self._get_start_date()
