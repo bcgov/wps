@@ -6,8 +6,8 @@ import logging
 import pytest
 from pytest_mock import MockerFixture
 from app.fireweather_bot import hourly_actuals
-from app.schemas.observations import WeatherReading, WeatherStationHourlyReadings
-from app.schemas.stations import WeatherStation
+from app.schemas.observations import WeatherReading
+from app.schemas.stations import WFWXWeatherStation
 from app import wildfire_one
 
 
@@ -17,40 +17,82 @@ logger = logging.getLogger(__name__)
 @pytest.fixture()
 def mock_hourly_actuals(mocker: MockerFixture):
     """ Mocks out hourly actuals as async result """
-    reading_1 = WeatherReading(datetime=get_utc_now(),
-                               temperature=0.0,
-                               relative_humidity=0.0,
-                               wind_speed=0.0,
-                               wind_direction=0.0,
-                               barometric_pressure=0.0,
-                               precipitation=0.0,
-                               dewpoint=0.0,
-                               ffmc=0.0,
-                               isi=0.0,
-                               fwi=0.0,
-                               observation_valid_ind=True)
-    reading_2 = WeatherReading(datetime=get_utc_now(),
-                               temperature=0.0,
-                               relative_humidity=0.0,
-                               wind_speed=0.0,
-                               wind_direction=0.0,
-                               barometric_pressure=0.0,
-                               precipitation=0.0,
-                               dewpoint=0.0,
-                               ffmc=0.0,
-                               isi=0.0,
-                               fwi=0.0,
-                               observation_valid_ind=True)
-    station_1 = WeatherStation(code=1, name="one", lat=0, long=0)
-    station_2 = WeatherStation(code=1, name="one", lat=0, long=0)
-    readings_1 = WeatherStationHourlyReadings(values=[reading_1, reading_2], station=station_1)
-    readings_2 = WeatherStationHourlyReadings(values=[reading_1, reading_2], station=station_2)
+    station_1 = WFWXWeatherStation(id='ba28973a-0a79-04ea-e053-1d09228e8c64', code=1)
+    station_2 = WFWXWeatherStation(id='ba28973a-0a79-04ea-e053-1d09228e8c65', code=2)
+
+    class MockWFWXHourlyResponse(object):
+        def __init__(self, **kwargs):
+            self.__dict__.update(kwargs)
+
+    wfwx_hourly_1 = MockWFWXHourlyResponse(
+        id="ba289776-ef86-04ea-e053-1d09228e8c64",
+        station="https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/ba28973a-0a79-04ea-e053-1d09228e8c64",
+        stationId="ba28973a-0a79-04ea-e053-1d09228e8c64",
+        createdBy="LEGACY_DATA_LOAD",
+        lastModifiedBy="LEGACY_DATA_LOAD",
+        lastEntityUpdateTimestamp=1455788589000,
+        updateDate="2021-01-31T01:10:34.000+0000",
+        archive=False,
+        weatherTimestamp=1455771600000,
+        temperature=6.7,
+        relativeHumidity=100.0,
+        windSpeed=1.5,
+        hourlyMeasurementTypeCode=MockWFWXHourlyResponse(
+                id="ACTUAL",
+                displayLabel="Actual",
+                displayOrder=1,
+                createdBy="DATA_LOAD",
+                lastModifiedBy="DATA_LOAD"
+        ),
+        windDirection=165.0,
+        barometricPressure=None,
+        precipitation=0.26,
+        observationValidInd=True,
+        observationValidComment=None,
+        calculate=True,
+        businessKey="1455771600000-ba28973a-0a79-04ea-e053-1d09228e8c64",
+        fineFuelMoistureCode=5.603,
+        initialSpreadIndex=0.0,
+        fireWeatherIndex=0.0)
+
+    wfwx_hourly_2 = MockWFWXHourlyResponse(
+        id="ba289776-ef86-04ea-e053-1d09228e8c64",
+        station="https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/ba28973a-0a79-04ea-e053-1d09228e8c64",
+        stationId="ba28973a-0a79-04ea-e053-1d09228e8c65",
+        createdBy="LEGACY_DATA_LOAD",
+        lastModifiedBy="LEGACY_DATA_LOAD",
+        lastEntityUpdateTimestamp=1455788589000,
+        updateDate="2021-01-31T01:10:34.000+0000",
+        archive=False,
+        weatherTimestamp=1455771600000,
+        temperature=6.7,
+        relativeHumidity=100.0,
+        windSpeed=1.5,
+        hourlyMeasurementTypeCode=MockWFWXHourlyResponse(
+                id="ACTUAL",
+                displayLabel="Actual",
+                displayOrder=1,
+                createdBy="DATA_LOAD",
+                lastModifiedBy="DATA_LOAD"
+        ),
+        windDirection=165.0,
+        barometricPressure=None,
+        precipitation=0.26,
+        observationValidInd=True,
+        observationValidComment=None,
+        calculate=True,
+        businessKey="1455771600000-ba28973a-0a79-04ea-e053-1d09228e8c64",
+        fineFuelMoistureCode=5.603,
+        initialSpreadIndex=0.0,
+        fireWeatherIndex=0.0)
 
     future_station_codes = asyncio.Future()
     future_station_codes.set_result([station_1, station_2])
 
-    mocker.patch('app.wildfire_one.get_stations', return_value=future_station_codes)
-    mocker.patch('app.wildfire_one.get_hourly_readings_all_stations', return_value=[readings_1, readings_2])
+    mocker.patch('app.wildfire_one.wfwx_station_list_mapper', return_value=future_station_codes)
+    mocker.patch('app.wildfire_one.get_hourly_actuals_all_stations',
+                 return_value=[wfwx_hourly_1, wfwx_hourly_2])
+    mocker.patch('app.wildfire_one._fetch_hourlies_all_stations', return_value=[wfwx_hourly_1, wfwx_hourly_2])
 
 
 def test_hourly_actuals_bot(monkeypatch, mocker: MockerFixture, mock_requests_session, mock_hourly_actuals):  # pylint: disable=unused-argument
@@ -70,8 +112,8 @@ def test_hourly_actuals_bot(monkeypatch, mocker: MockerFixture, mock_requests_se
     # Assert that we exited without errors.
     assert excinfo.value.code == 0
     # Assert that we got called the expected number of times.
-    # There are 2 records for 2 stations in the fixture above so we expect 4 save calls.
-    assert save_hourly_actuals_spy.call_count == 4
+    # There 1 records for 2 stations in the fixture above so we expect 2 save calls.
+    assert save_hourly_actuals_spy.call_count == 2
 
 
 def test_hourly_actuals_bot_fail(mocker: MockerFixture,
@@ -111,7 +153,7 @@ def test_parse_hourly_actual():
         fwi=0.0
     )
 
-    hourly_actual = hourly_actuals.parse_hourly_actual(1, weather_reading)
+    hourly_actual = wildfire_one.parse_hourly_actual(1, weather_reading)
     assert hourly_actual.rh_valid is True
     assert hourly_actual.temp_valid is True
     assert hourly_actual.wdir_valid is True
@@ -134,7 +176,7 @@ def test_invalid_metrics():
         isi=0.0,
         fwi=0.0)
 
-    hourly_actual = hourly_actuals.parse_hourly_actual(1, weather_reading)
+    hourly_actual = wildfire_one.parse_hourly_actual(1, weather_reading)
     assert hourly_actual is None
 
 
@@ -156,5 +198,5 @@ def test_invalid_metrics_from_wfwx():
         observation_valid_comment="Not valid"
     )
 
-    hourly_actual = hourly_actuals.parse_hourly_actual(1, weather_reading)
+    hourly_actual = wildfire_one.parse_hourly_actual(1, weather_reading)
     assert hourly_actual is None

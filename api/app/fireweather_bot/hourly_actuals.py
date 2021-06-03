@@ -2,7 +2,6 @@
 """
 import asyncio
 import logging
-import math
 import os
 import sys
 from datetime import datetime, timedelta
@@ -13,9 +12,7 @@ import app.db.database
 import app.time_utils
 from app import configure_logging, wildfire_one
 from app.db.crud.observations import save_hourly_actual
-from app.db.models.observations import HourlyActual
 from app.rocketchat_notifications import send_rocketchat_notification
-from app.schemas.observations import WeatherReading
 
 # If running as it's own process, configure logging appropriately.
 if __name__ == "__main__":
