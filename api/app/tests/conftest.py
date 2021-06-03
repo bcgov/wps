@@ -11,14 +11,14 @@ from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
 from pytest_mock import MockerFixture
 from app import minio_utils
-from app.time_utils import get_pst_tz
+from app.utils.time import get_pst_tz
 from app.tests.common import (
     MockJWTDecode, DefaultMockMinio, default_mock_requests_get, default_mock_requests_post,
     default_mock_requests_session_get, default_mock_requests_session_post)
 from app.db.models import PredictionModel, PredictionModelRunTimestamp
 import app.auth
 import app.db.database
-import app.time_utils as time_utils
+import app.utils.time as time_utils
 from app.schemas.shared import WeatherDataRequest
 
 logger = logging.getLogger(__name__)
@@ -87,8 +87,8 @@ def mock_get_now(monkeypatch):
     def mock_pst_now():
         return datetime.fromtimestamp(timestamp, tz=get_pst_tz())
 
-    monkeypatch.setattr(app.time_utils, 'get_utc_now', mock_utc_now)
-    monkeypatch.setattr(app.time_utils, 'get_pst_now', mock_pst_now)
+    monkeypatch.setattr(app.utils.time, 'get_utc_now', mock_utc_now)
+    monkeypatch.setattr(app.utils.time, 'get_pst_now', mock_pst_now)
 
 
 @pytest.fixture(autouse=True)

@@ -7,7 +7,7 @@ from sqlalchemy.sql import text
 from sqlalchemy.orm import Session
 from app.weather_models import ModelEnum
 from app.db.models import CHainesPrediction, CHainesModelRun, PredictionModel, CHainesPoly
-from app.time_utils import get_utc_now
+from app.utils.time import get_utc_now
 
 
 logger = logging.getLogger(__name__)

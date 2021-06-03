@@ -26,7 +26,7 @@ from app.weather_models.machine_learning import StationMachineLearning
 from app.weather_models import ModelEnum, ProjectionEnum, construct_interpolated_noon_prediction
 from app.schemas.stations import WeatherStation
 from app import configure_logging
-import app.time_utils as time_utils
+import app.utils.time as time_utils
 from app.stations import get_stations_synchronously
 from app.weather_models.process_grib import GribFileProcessor, ModelRunInfo
 from app.db.models import (ProcessedModelRunUrl, PredictionModelRunTimestamp,

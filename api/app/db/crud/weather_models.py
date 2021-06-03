@@ -9,7 +9,7 @@ from app.weather_models import ModelEnum, ProjectionEnum
 from app.db.models import (
     ProcessedModelRunUrl, PredictionModel, PredictionModelRunTimestamp, PredictionModelGridSubset,
     ModelRunGridSubsetPrediction, WeatherStationModelPrediction)
-import app.time_utils as time_utils
+import app.utils.time as time_utils
 
 logger = logging.getLogger(__name__)
 

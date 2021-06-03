@@ -10,7 +10,7 @@ from app import configure_logging, config
 import app.db.database
 from app.db.crud.observations import save_hourly_actual
 from app.db.models.observations import HourlyActual
-import app.time_utils
+import app.utils.time
 from app.fireweather_bot.common import (BaseBot, get_station_names_to_codes)
 from app.rocketchat_notifications import send_rocketchat_notification
 
@@ -38,7 +38,7 @@ def _fix_datetime(source_date):
     # but alse need to adjust our time, because it's in PST. PST_UTC_OFFSET is -8, so we have
     # to subtract it, to add 8 hours to our current date.
     # e.g. 12h00 PST, becomes 20h00 UTC
-    python_date = python_date - timedelta(hours=app.time_utils.PST_UTC_OFFSET)
+    python_date = python_date - timedelta(hours=app.utils.time.PST_UTC_OFFSET)
     # we've add the offset, so set the timezone to utc:
     python_date = python_date.replace(tzinfo=timezone.utc)
     return python_date
@@ -48,7 +48,7 @@ class HourlyActualsBot(BaseBot):
     """ Bot that downloads the hourly actuals from the wildfire website and stores it in a database. """
 
     def __init__(self):
-        self.now = app.time_utils.get_pst_now()
+        self.now = app.utils.time.get_pst_now()
 
     def _get_start_date(self) -> int:
         """ Return time N hour ago. E.g. if it's 17h15 now, we'd get YYYYMMDD16. The intention is that

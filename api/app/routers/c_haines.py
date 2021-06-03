@@ -7,7 +7,7 @@ import logging
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse, StreamingResponse, Response
 from starlette.responses import RedirectResponse
-from app.minio_utils import get_minio_client
+from app.utils.minio import get_minio_client
 from app.weather_models import ModelEnum
 from app.c_haines.severity_index import generate_full_kml_path
 from app.c_haines.fetch import (fetch_prediction_geojson,

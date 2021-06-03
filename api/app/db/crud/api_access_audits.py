@@ -1,6 +1,6 @@
 """ CRUD create function for audit logs
 """
-from app.time_utils import get_utc_now
+from app.utils.time import get_utc_now
 import logging
 from app.db.models import APIAccessAudit
 

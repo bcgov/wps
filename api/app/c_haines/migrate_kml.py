@@ -14,7 +14,7 @@ import os
 from sqlalchemy import asc
 from pyproj import Transformer, Proj
 from app import configure_logging
-from app.minio_utils import get_minio_client, object_exists
+from app.utils.minio import get_minio_client, object_exists
 import app.db.database
 from app.geospatial import NAD83, WGS84
 from app.db.crud.c_haines import get_prediction_geojson

@@ -7,7 +7,7 @@ from urllib.parse import urljoin, urlencode
 import logging
 
 from app import config
-from app.minio_utils import get_minio_client
+from app.utils.minio import get_minio_client
 from app.c_haines.severity_index import generate_kml_model_run_path
 from app.c_haines.kml import (get_look_at, get_kml_header, FOLDER_OPEN, FOLDER_CLOSE)
 import app.db.database
