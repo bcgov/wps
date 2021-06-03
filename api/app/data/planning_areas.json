@@ -6,33 +6,21 @@
                     "Kamloops (K2)": {
                         "stations": [{
                             "322": {
-                                "station_name": "AFTON",
-                                "elevation": 780,
                                 "fuel_type": "O1B"
                             },
                             "239": {
-                                "station_name": "CLEARWATER HUB",
-                                "elevation": 453,
                                 "fuel_type": "C7"
                             },
                             "1108": {
-                                "station_name": "BLUE RIVER 2",
-                                "elevation": 695,
                                 "fuel_type": "C5"
                             },
                             "305": {
-                                "station_name": "SPARKS LAKE",
-                                "elevation": 972,
                                 "fuel_type": "C7"
                             },
                             "1082": {
-                                "station_name": "MAYSON",
-                                "elevation": 1315,
                                 "fuel_type": "C3"
                             },
                             "266": {
-                                "station_name": "WELLS GRAY",
-                                "elevation": 959,
                                 "fuel_type": "C5"
                             }
                         }]
@@ -42,28 +30,18 @@
                     "Vernon (K4)": {
                         "stations": [{
                             "346": {
-                                "station_name": "SALMON ARM",
-                                "elevation": 527,
                                 "fuel_type": "C7"
                             },
                             "286": {
-                                "station_name": "TURTLE",
-                                "elevation": 640,
                                 "fuel_type": "C7"
                             },
                             "344": {
-                                "station_name": "SEYMOUR ARM",
-                                "elevation": 511,
                                 "fuel_type": "C5"
                             },
                             "298": {
-                                "station_name": "FINTRY",
-                                "elevation": 670,
                                 "fuel_type": "C7"
                             },
                             "388": {
-                                "station_name": "KETTLE 2",
-                                "elevation": 1389,
                                 "fuel_type": "C5"
                             }
                         }]
@@ -73,13 +51,9 @@
                     "Penticton (K5)": {
                         "stations": [{
                             "328": {
-                                "station_name": "PENTICTON RS",
-                                "elevation": 427,
                                 "fuel_type": "C7"
                             },
                             "334": {
-                                "station_name": "MCCUDDY",
-                                "elevation": 1067,
                                 "fuel_type": "C7"
                             }
                         }]
@@ -89,13 +63,9 @@
                     "Merritt (K6)": {
                         "stations": [{
                             "836": {
-                                "station_name": "AUGUST LAKE",
-                                "elevation": 855,
                                 "fuel_type": "C7"
                             },
                             "1399": {
-                                "station_name": "MERRITT 2 HUB",
-                                "elevation": 640,
                                 "fuel_type": "C7"
                             }
                         }]
@@ -105,28 +75,18 @@
                     "Lillooet (K7)": {
                         "stations": [{
                             "280": {
-                                "station_name": "LILLOOET",
-                                "elevation": 408,
                                 "fuel_type": "C7"
                             },
                             "1055": {
-                                "station_name": "SPLINTLUM",
-                                "elevation": 424,
                                 "fuel_type": "C7"
                             },
                             "1029": {
-                                "station_name": "FIVE MILE",
-                                "elevation": 865,
                                 "fuel_type": "C7"
                             },
                             "309": {
-                                "station_name": "GWYNETH LAKE",
-                                "elevation": 1205,
                                 "fuel_type": "C7"
                             },
                             "306": {
-                                "station_name": "FRENCH BAR",
-                                "elevation": 1320,
                                 "fuel_type": "C7"
                             }
                         }]

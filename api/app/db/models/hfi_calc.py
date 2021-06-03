@@ -59,15 +59,11 @@ class PlanningWeatherStation(Base):
     id = Column(Integer, Sequence('planning_weather_station_id_seq'),
                 primary_key=True, nullable=False, index=True)
     station_code = Column(Integer, nullable=False, index=True)
-    station_name = Column(String, nullable=False)
     fuel_type_id = Column(Integer, ForeignKey('fuel_types.id'), nullable=False, index=True)
     planning_area_id = Column(Integer, ForeignKey('planning_areas.id'), nullable=False, index=True)
-    elevation = Column(Integer, nullable=False)
 
     def __str__(self):
         return (f'id:{self.id}, '
                 f'station_code:{self.station_code}, '
-                f'station_name:{self.station_name}, '
-                f'elevation:{self.elevation}, '
                 f'fuel_type_id:{self.fuel_type_id}, '
                 f'planning_area_id:{self.planning_area_id}')
