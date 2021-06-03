@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+<Document>
+<Style id="moderate">
+<LineStyle>
+<width>1.5</width>
+<color>9900ffff</color>
+</LineStyle>
+<PolyStyle>
+<color>9900ffff</color>
+</PolyStyle>
+</Style>
+<Style id="high">
+<LineStyle>
+<width>1.5</width>
+<color>9900a5ff</color>
+</LineStyle>
+<PolyStyle>
+<color>9900a5ff</color>
+</PolyStyle>
+</Style>
+<Style id="extreme">
+<LineStyle>
+<width>1.5</width>
+<color>990000ff</color>
+</LineStyle>
+<PolyStyle>
+<color>990000ff</color>
+</PolyStyle>
+</Style><LookAt>
+<gx:TimeSpan>
+<begin>2021-03-03T03:00:00+00:00</begin>
+<end>2021-03-03T06:00:00+00:00</end>
+</gx:TimeSpan>
+<longitude>-123</longitude>
+<latitude>54</latitude>
+<range>3000000</range>
+</LookAt><name>GDPS 2021-03-03 03:00:00+00:00</name>
+<Folder><name>GDPS</name>
+<Folder><name>2021-03-03 03:00:00+00:00 model run</name>
+<NetworkLink>
+<visibility>1</visibility>
+<name>2021-04-01T19:00:00</name>
+<Link>
+<href>https://python-test-base-uri/api/c-haines/GDPS/prediction?model_run_timestamp=2021-03-03+03%3A00%3A00%2B00%3A00&amp;prediction_timestamp=2021-04-01T19%3A00%3A00&amp;response_format=KML</href>
+</Link>
+</NetworkLink>
+<NetworkLink>
+<visibility>1</visibility>
+<name>2021-04-01T21:00:00</name>
+<Link>
+<href>https://python-test-base-uri/api/c-haines/GDPS/prediction?model_run_timestamp=2021-03-03+03%3A00%3A00%2B00%3A00&amp;prediction_timestamp=2021-04-01T21%3A00%3A00&amp;response_format=KML</href>
+</Link>
+</NetworkLink>
+</Folder></Folder></Document>
+</kml>

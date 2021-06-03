@@ -1,6 +1,6 @@
 """ BDD tests for c-haines api endpoint.
 """
-from typing import Callable, Union
+from typing import Callable, Union, Iterator
 from pytest_bdd import scenario, given, when, then
 from fastapi.testclient import TestClient
 from minio.datatypes import Object
@@ -32,9 +32,22 @@ def load_expected_response(module_path: str) -> Callable[[str], object]:
 @pytest.fixture()
 def mock_get_minio_client(monkeypatch):
     """ Mock getting the Minio client """
-    def _mock_get_minio_client_get_presigned_url():
-        mock_minio = DefaultMockMinio('some_endpoint')
-        mock_minio.mock_presigned_url = 'https://some.mock.url'
+    def _mock_get_minio_client_for_router():
+        class MockMinio(DefaultMockMinio):
+            """ Mock class with list objects """
+
+            def list_objects(self, bucket_name, prefix=None, recursive=False,
+                             start_after=None, include_user_meta=False,
+                             include_version=False, use_api_v1=False) -> Iterator[Object]:
+                if prefix == 'c-haines-polygons/kml/GDPS/':
+                    return iter([Object(bucket_name, prefix + '2019/'),
+                                 Object(bucket_name, prefix + '2020/'),
+                                 Object(bucket_name, prefix + '2021/')])
+                return iter([Object(bucket_name, prefix + '1/'),
+                             Object(bucket_name, prefix + '2/'),
+                             Object(bucket_name, prefix + '3/')])
+        mock_minio = MockMinio('some_endpoint')
+        mock_minio.mock_get_presigned_url = 'https://some.mock.url'
         return mock_minio, 'some_bucket'
 
     def _mock_get_minio_client_list_objects():
@@ -46,7 +59,7 @@ def mock_get_minio_client(monkeypatch):
             ])
         return mock_minio, 'some_bucket'
 
-    monkeypatch.setattr(app.routers.c_haines, 'get_minio_client', _mock_get_minio_client_get_presigned_url)
+    monkeypatch.setattr(app.routers.c_haines, 'get_minio_client', _mock_get_minio_client_for_router)
     monkeypatch.setattr(app.c_haines.fetch, 'get_minio_client', _mock_get_minio_client_list_objects)
 
 
@@ -104,9 +117,4 @@ def then_expected_response(collector, expected_response):
     else:
         # We don't always check the respone, when it's a redirect we don't bother.
         if not expected_response['data'] is None:
-            with open('expected.kml', 'w') as expected_kml:
-                expected_kml.write(expected_response['data'])
-            with open('actual.kml', 'w') as actual_kml:
-                actual_kml.write(collector['response'].text)
-
             assert collector['response'].text == expected_response['data']

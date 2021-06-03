@@ -102,12 +102,12 @@ class DefaultMockMinio:
                  http_client=None,
                  credentials=None):
         self.mock_get_presigned_url = None
-        self.mock_list_objects = iter([])
+        self.mock_list_objects = []
 
     def list_objects(self, bucket_name, prefix=None, recursive=False,
                      start_after=None, include_user_meta=False,
                      include_version=False, use_api_v1=False) -> Iterator[Object]:
-        return self.mock_list_objects
+        return iter(self.mock_list_objects)
 
     def fput_object(self, bucket_name, object_name, file_path,
                     content_type="application/octet-stream",
