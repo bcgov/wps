@@ -69,7 +69,8 @@ class BuildQueryAllHourliesByRange(BuildQuery):
     def __init__(self, start_timestamp: int, end_timestamp: int):
         """ Initialize object """
         super().__init__()
-        self.querystring = "weatherTimestamp >=" + start_timestamp + ";" + "weatherTimestamp <" + end_timestamp
+        self.querystring: str = ("weatherTimestamp >=" +
+                                 start_timestamp + ";" + "weatherTimestamp <" + end_timestamp)
 
     def query(self, _):
         """ Return query url for hourlies between start_timestamp, end_timestamp"""
