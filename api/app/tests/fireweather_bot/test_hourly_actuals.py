@@ -65,7 +65,8 @@ def mock_hourly_actuals(mocker: MockerFixture):
     mocker.patch('app.wildfire_one.wfwx_station_list_mapper', return_value=future_station_codes)
     mocker.patch('app.wildfire_one.get_hourly_actuals_all_stations',
                  return_value=[wfwx_hourly_1, wfwx_hourly_2])
-    mocker.patch('app.wildfire_one._fetch_hourlies_all_stations', return_value=[wfwx_hourly_1, wfwx_hourly_2])
+    mocker.patch('app.wildfire_one._fetch_paged_response_generator',
+                 return_value=iter([wfwx_hourly_1, wfwx_hourly_2]))
 
 
 def test_hourly_actuals_bot(monkeypatch, mocker: MockerFixture, mock_requests_session, mock_hourly_actuals):  # pylint: disable=unused-argument
