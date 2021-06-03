@@ -424,7 +424,16 @@ class CHainesSeverityGenerator():
             return payload
         return None
 
-    def _yield_payload(self, temporary_path) -> EnvCanadaPayload:
+    def _assets_exist(self, prediction_model_abbreviation: str, model_run_timestamp: datetime, prediction_timestamp: datetime):
+        kml_path = generate_full_kml_path(
+            prediction_model_abbreviation,
+            model_run_timestamp,
+            prediction_timestamp)
+        kml_exists = object_exists(self.client, self.bucket, kml_path)
+        json_exists = False  # TODO: Implement this check
+        return kml_exists and json_exists
+
+    def _get_payloads(self, temporary_path) -> Generator[EnvCanadaPayload, None, None]:
         """ Iterator that yields the next to process. """
         prediction_model = get_prediction_model(self.session, self.model, self.projection)
         utc_now = get_utc_now()
@@ -436,13 +445,9 @@ class CHainesSeverityGenerator():
                     self.model, utc_now, model_hour, prediction_hour)
 
                 # If the GeoJSON and the KML already exist, then we can skip this one.
-                kml_path = generate_full_kml_path(
-                    prediction_model.abbreviation,
-                    model_run_timestamp,
-                    prediction_timestamp)
-                kml_exists = object_exists(self.client, self.bucket, kml_path)
-                json_exists = False  # TODO: Implement this check
-                if kml_exists and json_exists:
+                if self._assets_exist(prediction_model.abbreviation,
+                                      model_run_timestamp,
+                                      prediction_timestamp):
                     logger.info('%s: already processed %s-%s',
                                 self.model,
                                 model_run_timestamp, prediction_timestamp)
@@ -515,7 +520,7 @@ class CHainesSeverityGenerator():
         """ Entry point for generating and storing c-haines severity index. """
         # Iterate through payloads that need processing.
         with tempfile.TemporaryDirectory() as temporary_path:
-            for payload in self._yield_payload(temporary_path):
+            for payload in self._get_payloads(temporary_path):
                 # Generate the c_haines data.
                 c_haines_data, source_info = self._generate_c_haines_data(payload)
                 # Generate the severity index and mask data.

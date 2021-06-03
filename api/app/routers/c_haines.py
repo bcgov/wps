@@ -1,7 +1,8 @@
 """ Routes for c-haines
 """
 from enum import Enum
-from datetime import datetime, timezone
+from functools import reduce
+from datetime import datetime
 import logging
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse, StreamingResponse, Response
@@ -32,15 +33,18 @@ router = APIRouter(
 )
 
 
+class NoModelRunFound(Exception):
+    pass
+
+
 def _get_most_recent_kml_model_run(model: ModelEnum) -> datetime:
-    """ Get the most recent model run date """
+    """ Get the most recent model run date - if none exists, return None """
     # NOTE: This is a nasty, slow, brute force way of doing it!
     client, bucket = get_minio_client()
 
     def get_most_recent(result, depth):
-        last_object = None
-        for last_object in result:
-            pass
+        # use a reducer to iterate through the list of objects, returning the last one.
+        last_object = reduce(lambda _, y: y, result)
         if last_object is None:
             return None
         if depth == 3:
@@ -50,8 +54,7 @@ def _get_most_recent_kml_model_run(model: ModelEnum) -> datetime:
     most_recent = get_most_recent(client.list_objects(bucket, f'c-haines-polygons/kml/{model}/'), 0)
 
     if most_recent is None:
-        # Could not find a most recent record
-        return None
+        raise NoModelRunFound(f'no model run found for {model}')
 
     logger.info('most record model run: %s', most_recent.object_name)
 
