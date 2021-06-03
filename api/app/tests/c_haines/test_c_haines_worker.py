@@ -63,8 +63,7 @@ def mock_download(monkeypatch):
     monkeypatch.setattr(requests, 'get', mock_requests_get)
 
 
-@pytest.mark.usefixtures('mock_download', 'mock_get_c_haines_model_run', 'mock_get_prediction_model',
-                         'mock_get_minio_client')
+@pytest.mark.usefixtures('mock_download', 'mock_get_c_haines_model_run', 'mock_get_prediction_model')
 def test_c_haines_worker():
     """ Test the c-haines worked.
     This is not a very focused test. Through the magic of sqlalchmy, it will only
