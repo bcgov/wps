@@ -72,11 +72,12 @@ class BuildQueryAllHourliesByRange(BuildQuery):
         self.querystring: str = ("weatherTimestamp >=" +
                                  start_timestamp + ";" + "weatherTimestamp <" + end_timestamp)
 
-    def query(self, _):
+    def query(self, _) -> List[str, dict]:
+        params = {}
         """ Return query url for hourlies between start_timestamp, end_timestamp"""
         url = '{base_url}/v1/hourlies/rsql?query={querystring}'.format(
             base_url=self.base_url, query_string=self.querystring)
-        return url
+        return [url, params]
 
 
 def use_wfwx():
@@ -128,6 +129,32 @@ async def _fetch_raw_stations_generator(
         total_pages = station_json['page']['totalPages']
         for station in station_json['_embedded']['stations']:
             yield station
+        # Keep track of our page count.
+        page_count = page_count + 1
+
+
+async def _fetch_hourlies_generator(
+        session: ClientSession,
+        headers: dict,
+        query_builder: BuildQuery) -> Generator[dict, None, None]:
+    """ Asynchronous generator for iterating through hourlies from the API.
+    The hourlies is a paged response, but this generator abstracts that away.
+    """
+    # We don't know how many pages until our first call - so we assume one page to start with.
+    total_pages = 1
+    page_count = 0
+    while page_count < total_pages:
+        # Build up the request URL.
+        url, params = query_builder.query(page_count)
+        logger.debug('loading hourlies page %d...', page_count)
+        async with session.get(url, headers=headers, params=params) as response:
+            hourlies = await response.json()
+            logger.debug('done loading hourlies page %d.', page_count)
+
+        # Update the total page count.
+        total_pages = hourlies['totalPages']
+        for hourly in hourlies['content']:
+            yield hourly
         # Keep track of our page count.
         page_count = page_count + 1
 
@@ -438,7 +465,7 @@ async def get_hourly_readings_all_stations(
     tasks = []
 
     # Iterate through "raw" station data.
-    iterator = _fetch_raw_stations_generator(
+    iterator = _fetch_hourlies_generator(
         session, header, BuildQueryAllActiveStations())
     async for raw_station in iterator:
         if _is_station_valid(raw_station):
