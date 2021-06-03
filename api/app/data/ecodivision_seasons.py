@@ -7,7 +7,9 @@ from shapely.geometry import Point
 
 
 class Singleton:
-    """ Non thread-safe singleton decorator """
+    """ Non thread-safe singleton decorator.
+        Stolen from: https://stackoverflow.com/a/7346105
+    """
 
     def __init__(self, decorated):
         self._decorated = decorated
