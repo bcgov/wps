@@ -1,7 +1,7 @@
 """ This module contains methods for retrieving information from the WFWX Fireweather API.
 """
 import math
-from typing import Generator, Dict, List
+from typing import Generator, Dict, List, Tuple
 from datetime import datetime, timezone
 from abc import abstractmethod, ABC
 import logging
@@ -11,7 +11,7 @@ from app import config
 from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.db.models.observations import HourlyActual
 from app.schemas.observations import WeatherStationHourlyReadings, WeatherReading
-from app.schemas.stations import (WFWXWeatherStation, WeatherStation, GeoJsonDetailedWeatherStation,
+from app.schemas.stations import (WeatherStation, GeoJsonDetailedWeatherStation,
                                   DetailedWeatherStationProperties, WeatherStationGeometry, WeatherVariables)
 from app.db.crud.stations import _get_noon_date
 
@@ -28,14 +28,14 @@ class BuildQuery(ABC):
         self.base_url = config.get('WFWX_BASE_URL')
 
     @abstractmethod
-    def query(self, page) -> [str, dict]:
+    def query(self, page) -> Tuple[str, dict]:
         """ Return query url and params """
 
 
 class BuildQueryAllActiveStations(BuildQuery):
     """ Class for building a url and RSQL params to request all active stations. """
 
-    def query(self, page) -> [str, dict]:
+    def query(self, page) -> Tuple[str, dict]:
         """ Return query url and params with rsql query for all weather stations marked active. """
         # NOTE: Currently the filter on stationStatus.id doesn't work.
         params = {'size': self.max_page_size, 'sort': 'displayLabel',
@@ -56,7 +56,7 @@ class BuildQueryByStationCode(BuildQuery):
                 self.querystring += ' or '
             self.querystring += 'stationCode=={}'.format(code)
 
-    def query(self, page) -> [str, dict]:
+    def query(self, page) -> Tuple[str, dict]:
         """ Return query url and params for a list of stations """
         params = {'size': self.max_page_size,
                   'sort': 'displayLabel', 'page': page, 'query': self.querystring}
@@ -73,7 +73,7 @@ class BuildQueryAllHourliesByRange(BuildQuery):
         self.querystring: str = "weatherTimestamp >=" + \
             str(start_timestamp) + ";" + "weatherTimestamp <" + str(end_timestamp)
 
-    def query(self, page) -> [str, dict]:
+    def query(self, page) -> Tuple[str, dict]:
         """ Return query url for hourlies between start_timestamp, end_timestamp"""
         params = {'size': self.max_page_size, 'page': page, 'query': self.querystring}
         url = '{base_url}/v1/hourlies/rsql'.format(
@@ -139,7 +139,7 @@ async def _fetch_paged_response_generator(
 async def _fetch_detailed_geojson_stations(
         session: ClientSession,
         headers: dict,
-        query_builder: BuildQuery) -> (Dict[int, GeoJsonDetailedWeatherStation], Dict[str, int]):
+        query_builder: BuildQuery) -> Tuple[Dict[int, GeoJsonDetailedWeatherStation], Dict[str, int]]:
     stations = {}
     id_to_code_map = {}
     # Put the stations in a nice dictionary.
@@ -248,6 +248,14 @@ async def station_list_mapper(raw_stations: Generator[dict, None, None]):
     return stations
 
 
+class WFWXWeatherStation():
+    """ A WFWX station includes a code and WFWX API specific id """
+
+    def __init__(self, station_id: str, code: int):
+        self.id = station_id
+        self.code = code
+
+
 async def wfwx_station_list_mapper(raw_stations: Generator[dict, None, None]):
     """ Maps raw stations to WFWXWeatherStation list"""
     stations = []
@@ -255,7 +263,7 @@ async def wfwx_station_list_mapper(raw_stations: Generator[dict, None, None]):
     async for raw_station in raw_stations:
         # If the station is valid, add it to our list of stations.
         if _is_station_valid(raw_station):
-            stations.append(WFWXWeatherStation(id=raw_station['id'],
+            stations.append(WFWXWeatherStation(station_id=raw_station['id'],
                                                code=raw_station['stationCode']))
     return stations
 
@@ -439,7 +447,7 @@ async def get_hourly_actuals_all_stations(
         end_timestamp: datetime) -> List[HourlyActual]:
     """ Get the hourly actuals for all stations.
     """
-    # Create a list containing all the tasks to run in parallel.
+
     hourly_actuals: List[HourlyActual] = []
 
     # Iterate through "raw" station data.
@@ -454,9 +462,7 @@ async def get_hourly_actuals_all_stations(
 
     stations: List[WFWXWeatherStation] = await get_stations(session, header, mapper=wfwx_station_list_mapper)
 
-    station_code_dict = {}
-    for station in stations:
-        station_code_dict[station.id] = station.code
+    station_code_dict = {station.id: station.code for station in stations}
 
     for hourly in hourlies:
         if hourly.get('hourlyMeasurementTypeCode', '').get('id') == 'ACTUAL':

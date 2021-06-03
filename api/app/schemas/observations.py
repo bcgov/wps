@@ -1,26 +1,26 @@
 """ This module contains pydandict schemas relating to observations (a.k.a. hourlies) for the API.
 """
 from datetime import datetime
-from typing import List
+from typing import List, Union
 from pydantic import BaseModel
 from app.schemas.stations import WeatherStation
 
 
 class WeatherReading(BaseModel):
     """ Weather reading for a particular point in time """
-    datetime: datetime
-    temperature: float = None
-    relative_humidity: float = None
-    wind_speed: float = None
-    wind_direction: float = None
-    barometric_pressure: float = None
-    precipitation: float = None
-    dewpoint: float = None
-    ffmc: float = None
-    isi: float = None
-    fwi: float = None
-    observation_valid: bool = None
-    observation_valid_comment: str = None
+    datetime: Union[datetime, None]
+    temperature: Union[float, None] = None
+    relative_humidity: Union[float, None] = None
+    wind_speed: Union[float, None] = None
+    wind_direction: Union[float, None] = None
+    barometric_pressure: Union[float, None] = None
+    precipitation: Union[float, None] = None
+    dewpoint: Union[float, None] = None
+    ffmc: Union[float, None] = None
+    isi: Union[float, None] = None
+    fwi: Union[float, None] = None
+    observation_valid: Union[bool, None] = None
+    observation_valid_comment: Union[str, None] = None
 
 
 class WeatherStationHourlyReadings(BaseModel):
