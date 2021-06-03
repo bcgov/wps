@@ -12,7 +12,7 @@ class FireCentre(Base):
 
     id = Column(Integer, Sequence('fire_centres_id_seq'),
                 primary_key=True, nullable=False, index=True)
-    name = Column(String, nullable=False)
+    name = Column(String, nullable=False, index=True)
 
     def __str__(self):
         return (f'id:{self.id}, '
@@ -25,7 +25,7 @@ class PlanningArea(Base):
 
     id = Column(Integer, Sequence('planning_areas_id_seq'),
                 primary_key=True, nullable=False, index=True)
-    name = Column(String, nullable=False)
+    name = Column(String, nullable=False, index=True)
     fire_centre_id = Column(Integer, ForeignKey('fire_centres.id'), nullable=False, index=True)
 
     def __str__(self):
