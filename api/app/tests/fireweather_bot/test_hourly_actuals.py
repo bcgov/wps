@@ -24,67 +24,40 @@ def mock_hourly_actuals(mocker: MockerFixture):
         def __init__(self, **kwargs):
             self.__dict__.update(kwargs)
 
-    wfwx_hourly_1 = MockWFWXHourlyResponse(
-        id="ba289776-ef86-04ea-e053-1d09228e8c64",
-        station="https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/ba28973a-0a79-04ea-e053-1d09228e8c64",
-        stationId="ba28973a-0a79-04ea-e053-1d09228e8c64",
-        createdBy="LEGACY_DATA_LOAD",
-        lastModifiedBy="LEGACY_DATA_LOAD",
-        lastEntityUpdateTimestamp=1455788589000,
-        updateDate="2021-01-31T01:10:34.000+0000",
-        archive=False,
-        weatherTimestamp=1455771600000,
-        temperature=6.7,
-        relativeHumidity=100.0,
-        windSpeed=1.5,
-        hourlyMeasurementTypeCode=MockWFWXHourlyResponse(
+    def build_mock_wfwx_response(station_id: str) -> MockWFWXHourlyResponse:
+        return MockWFWXHourlyResponse(
+            stationId=station_id,
+            id="ba289776-ef86-04ea-e053-1d09228e8c64",
+            station="https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/ba28973a-0a79-04ea-e053-1d09228e8c64",
+            createdBy="LEGACY_DATA_LOAD",
+            lastModifiedBy="LEGACY_DATA_LOAD",
+            lastEntityUpdateTimestamp=1455788589000,
+            updateDate="2021-01-31T01:10:34.000+0000",
+            archive=False,
+            weatherTimestamp=1455771600000,
+            temperature=6.7,
+            relativeHumidity=100.0,
+            windSpeed=1.5,
+            hourlyMeasurementTypeCode=MockWFWXHourlyResponse(
                 id="ACTUAL",
                 displayLabel="Actual",
                 displayOrder=1,
                 createdBy="DATA_LOAD",
                 lastModifiedBy="DATA_LOAD"
-        ),
-        windDirection=165.0,
-        barometricPressure=None,
-        precipitation=0.26,
-        observationValidInd=True,
-        observationValidComment=None,
-        calculate=True,
-        businessKey="1455771600000-ba28973a-0a79-04ea-e053-1d09228e8c64",
-        fineFuelMoistureCode=5.603,
-        initialSpreadIndex=0.0,
-        fireWeatherIndex=0.0)
+            ),
+            windDirection=165.0,
+            barometricPressure=None,
+            precipitation=0.26,
+            observationValidInd=True,
+            observationValidComment=None,
+            calculate=True,
+            businessKey="1455771600000-ba28973a-0a79-04ea-e053-1d09228e8c64",
+            fineFuelMoistureCode=5.603,
+            initialSpreadIndex=0.0,
+            fireWeatherIndex=0.0)
 
-    wfwx_hourly_2 = MockWFWXHourlyResponse(
-        id="ba289776-ef86-04ea-e053-1d09228e8c64",
-        station="https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/ba28973a-0a79-04ea-e053-1d09228e8c64",
-        stationId="ba28973a-0a79-04ea-e053-1d09228e8c65",
-        createdBy="LEGACY_DATA_LOAD",
-        lastModifiedBy="LEGACY_DATA_LOAD",
-        lastEntityUpdateTimestamp=1455788589000,
-        updateDate="2021-01-31T01:10:34.000+0000",
-        archive=False,
-        weatherTimestamp=1455771600000,
-        temperature=6.7,
-        relativeHumidity=100.0,
-        windSpeed=1.5,
-        hourlyMeasurementTypeCode=MockWFWXHourlyResponse(
-                id="ACTUAL",
-                displayLabel="Actual",
-                displayOrder=1,
-                createdBy="DATA_LOAD",
-                lastModifiedBy="DATA_LOAD"
-        ),
-        windDirection=165.0,
-        barometricPressure=None,
-        precipitation=0.26,
-        observationValidInd=True,
-        observationValidComment=None,
-        calculate=True,
-        businessKey="1455771600000-ba28973a-0a79-04ea-e053-1d09228e8c64",
-        fineFuelMoistureCode=5.603,
-        initialSpreadIndex=0.0,
-        fireWeatherIndex=0.0)
+    wfwx_hourly_1 = build_mock_wfwx_response('1')
+    wfwx_hourly_2 = build_mock_wfwx_response('2')
 
     future_station_codes = asyncio.Future()
     future_station_codes.set_result([station_1, station_2])

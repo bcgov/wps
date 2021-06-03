@@ -275,7 +275,7 @@ async def station_list_mapper(raw_stations: Generator[dict, None, None]):
 
 
 async def wfwx_station_list_mapper(raw_stations: Generator[dict, None, None]):
-    """ Maps raw stations to WeatherStation list"""
+    """ Maps raw stations to WFWXWeatherStation list"""
     stations = []
     # Iterate through "raw" station data.
     async for raw_station in raw_stations:
