@@ -7,6 +7,7 @@ from app.db.database import Session
 from app.db.models.weather_models import PredictionModel
 from app.db.models.c_haines import CHainesModelRun
 import app.db.crud.c_haines
+import app.c_haines.severity_index
 from app.c_haines.worker import main
 from app.tests.common import MockResponse
 
@@ -23,6 +24,17 @@ def mock_get_c_haines_model_run(monkeypatch):
                                      prediction_model: PredictionModel):
         return CHainesModelRun(id=1, model_run_timestamp=datetime.now(), prediction_model_id=1)
     monkeypatch.setattr(app.db.crud.c_haines, 'get_c_haines_model_run', _mock_get_c_haines_model_run)
+
+
+@pytest.fixture()
+def mock_get_minio_client(monkeypatch):
+    """ mock calls to minio client """
+
+    def _mock_get_minio_client():
+        class MockMinio:
+            pass
+        return MockMinio(), 'some_bucket'
+    monkeypatch.setattr(app.c_haines.severity_index, 'get_minio_client', _mock_get_minio_client)
 
 
 @pytest.fixture()
@@ -47,7 +59,7 @@ def mock_download(monkeypatch):
     monkeypatch.setattr(requests, 'get', mock_requests_get)
 
 
-@pytest.mark.usefixtures('mock_download', 'mock_get_c_haines_model_run')
+@pytest.mark.usefixtures('mock_download', 'mock_get_c_haines_model_run', 'mock_get_minio_client')
 def test_c_haines_worker():
     """ Test the c-haines worked.
     This is not a very focused test. Through the magic of sqlalchmy, it will only
@@ -56,5 +68,5 @@ def test_c_haines_worker():
     """
     try:
         main()
-    except Exception as exception:
+    except Exception as exception:  # pylint: disable=broad-except
         pytest.fail(exception)

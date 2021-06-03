@@ -15,6 +15,7 @@ from app.tests.common import (
     MockJWTDecode, default_mock_requests_get, default_mock_requests_post,
     default_mock_requests_session_get, default_mock_requests_session_post)
 from app.db.models import PredictionModel, PredictionModelRunTimestamp
+import app.auth
 import app.db.database
 import app.time_utils as time_utils
 from app.schemas.shared import WeatherDataRequest
@@ -48,6 +49,10 @@ def mock_env(monkeypatch):
     monkeypatch.setenv("ROCKET_USER_ID", "someid")
     monkeypatch.setenv("ROCKET_CHANNEL", "#channel")
     monkeypatch.setenv("OPENSHIFT_NAMESPACE_API", "apis/apps/v1beta1/namespaces/")
+    monkeypatch.setenv("OBJECT_STORE_SERVER", "some server")
+    monkeypatch.setenv("OBJECT_STORE_USER_ID", "some user id")
+    monkeypatch.setenv("OBJECT_STORE_SECRET", "some secret")
+    monkeypatch.setenv("OBJECT_STORE_BUCKET", "some bucket")
 
 
 @pytest.fixture(autouse=True)

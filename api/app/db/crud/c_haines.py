@@ -52,15 +52,6 @@ def delete_older_than(session: Session, point_in_time: datetime):
     logger.info('deleted %s model runs', model_runs)
 
 
-def get_most_recent_model_run(session: Session, model: ModelEnum) -> CHainesModelRun:
-    """ Return the most recent model run for which we have at least one prediction. """
-    return session.query(CHainesModelRun)\
-        .join(PredictionModel, PredictionModel.id == CHainesModelRun.prediction_model_id)\
-        .join(CHainesPrediction, CHainesPrediction.model_run_id == CHainesModelRun.id)\
-        .filter(PredictionModel.abbreviation == model)\
-        .order_by(desc(CHainesModelRun.model_run_timestamp)).limit(1).first()
-
-
 def get_c_haines_model_run(
         session: Session,
         model_run_timestamp: datetime,
