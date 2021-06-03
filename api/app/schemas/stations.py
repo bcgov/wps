@@ -62,6 +62,12 @@ class WeatherStation(BaseModel):
     core_season: Season = None
 
 
+class WFWXWeatherStation(BaseModel):
+    """ A WFWX station includes a code and WFWX API specific id """
+    id: str
+    code: int
+
+
 class WeatherStationsResponse(BaseModel):
     """ List of fire weather stations in geojson format. """
     type: str = "FeatureCollection"

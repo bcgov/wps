@@ -9,8 +9,9 @@ import asyncio
 from aiohttp import ClientSession, BasicAuth, TCPConnector
 from app import config
 from app.data.ecodivision_seasons import EcodivisionSeasons
+from app.db.models.observations import HourlyActual
 from app.schemas.observations import WeatherStationHourlyReadings, WeatherReading
-from app.schemas.stations import (WeatherStation, GeoJsonDetailedWeatherStation,
+from app.schemas.stations import (WFWXWeatherStation, WeatherStation, GeoJsonDetailedWeatherStation,
                                   DetailedWeatherStationProperties, WeatherStationGeometry, WeatherVariables)
 from app.db.crud.stations import _get_noon_date
 
@@ -69,14 +70,14 @@ class BuildQueryAllHourliesByRange(BuildQuery):
     def __init__(self, start_timestamp: int, end_timestamp: int):
         """ Initialize object """
         super().__init__()
-        self.querystring: str = ("weatherTimestamp >=" +
-                                 start_timestamp + ";" + "weatherTimestamp <" + end_timestamp)
+        self.querystring: str = "weatherTimestamp >=" + \
+            str(start_timestamp) + ";" + "weatherTimestamp <" + str(end_timestamp)
 
-    def query(self, _) -> List[str, dict]:
-        params = {}
+    def query(self, page) -> [str, dict]:
         """ Return query url for hourlies between start_timestamp, end_timestamp"""
-        url = '{base_url}/v1/hourlies/rsql?query={querystring}'.format(
-            base_url=self.base_url, query_string=self.querystring)
+        params = {'size': self.max_page_size, 'page': page, 'query': self.querystring}
+        url = '{base_url}/v1/hourlies/rsql'.format(
+            base_url=self.base_url)
         return [url, params]
 
 
@@ -133,30 +134,32 @@ async def _fetch_raw_stations_generator(
         page_count = page_count + 1
 
 
-async def _fetch_hourlies_generator(
+async def _fetch_hourlies_all_stations(
         session: ClientSession,
         headers: dict,
-        query_builder: BuildQuery) -> Generator[dict, None, None]:
+        query_builder: BuildQuery):
     """ Asynchronous generator for iterating through hourlies from the API.
     The hourlies is a paged response, but this generator abstracts that away.
     """
     # We don't know how many pages until our first call - so we assume one page to start with.
     total_pages = 1
     page_count = 0
+    hourlies = []
     while page_count < total_pages:
         # Build up the request URL.
         url, params = query_builder.query(page_count)
         logger.debug('loading hourlies page %d...', page_count)
         async with session.get(url, headers=headers, params=params) as response:
-            hourlies = await response.json()
+            hourlies_json = await response.json()
             logger.debug('done loading hourlies page %d.', page_count)
 
         # Update the total page count.
-        total_pages = hourlies['totalPages']
-        for hourly in hourlies['content']:
-            yield hourly
+        total_pages = hourlies_json['page']['totalPages']
+        for hourly in hourlies_json['_embedded']['hourlies']:
+            hourlies.append(hourly)
         # Keep track of our page count.
         page_count = page_count + 1
+    return hourlies
 
 
 async def _fetch_detailed_geojson_stations(
@@ -271,27 +274,28 @@ async def station_list_mapper(raw_stations: Generator[dict, None, None]):
     return stations
 
 
-async def station_codes_list_mapper(raw_stations: Generator[dict, None, None]):
-    """ Maps raw stations to station codes"""
-    station_codes = []
+async def wfwx_station_list_mapper(raw_stations: Generator[dict, None, None]):
+    """ Maps raw stations to WeatherStation list"""
+    stations = []
     # Iterate through "raw" station data.
     async for raw_station in raw_stations:
         # If the station is valid, add it to our list of stations.
         if _is_station_valid(raw_station):
-            station_codes.append(raw_station['stationCode'])
-    return station_codes
+            stations.append(WFWXWeatherStation(id=raw_station['id'],
+                                               code=raw_station['stationCode']))
+    return stations
 
 
 async def get_stations(session: ClientSession,
                        header: dict,
-                       mapper=station_list_mapper) -> List[WeatherStation]:
+                       mapper=station_list_mapper):
     """ Get list of stations from WFWX Fireweather API.
     """
     logger.info('Using WFWX to retrieve station list')
     # Iterate through "raw" station data.
     raw_stations = _fetch_raw_stations_generator(
         session, header, BuildQueryAllActiveStations())
-    # If the station is valid, add it to our list of stations.
+    # Map list of stations into desired shape
     stations = await mapper(raw_stations)
     logger.debug('total stations: %d', len(stations))
     return stations
@@ -454,28 +458,82 @@ async def get_hourly_readings(
     return await asyncio.gather(*tasks)
 
 
-async def get_hourly_readings_all_stations(
+async def get_hourly_actuals_all_stations(
         session: ClientSession,
         header: dict,
         start_timestamp: datetime,
-        end_timestamp: datetime) -> List[WeatherStationHourlyReadings]:
-    """ Get the hourly readings for the list of station codes provided.
+        end_timestamp: datetime) -> List[HourlyActual]:
+    """ Get the hourly actuals for all stations.
     """
     # Create a list containing all the tasks to run in parallel.
-    tasks = []
+    hourly_actuals: List[HourlyActual] = []
 
     # Iterate through "raw" station data.
-    iterator = _fetch_hourlies_generator(
-        session, header, BuildQueryAllActiveStations())
-    async for raw_station in iterator:
-        if _is_station_valid(raw_station):
-            task = asyncio.create_task(
-                fetch_hourlies(session,
-                               raw_station,
-                               header,
-                               start_timestamp,
-                               end_timestamp))
-            tasks.append(task)
+    hourlies = await _fetch_hourlies_all_stations(
+        session, header, BuildQueryAllHourliesByRange(
+            math.floor(start_timestamp.timestamp()*1000),
+            math.floor(end_timestamp.timestamp()*1000)))
 
-    # Run the tasks concurrently, waiting for them all to complete.
-    return await asyncio.gather(*tasks)
+    stations: List[WFWXWeatherStation] = await get_stations(session, header, mapper=wfwx_station_list_mapper)
+
+    station_code_dict = {}
+    for station in stations:
+        station_code_dict[station.id] = station.code
+
+    for hourly in hourlies:
+        if hourly.get('hourlyMeasurementTypeCode', '').get('id') == 'ACTUAL':
+            parsed_hourly = _parse_hourly(hourly)
+            try:
+                station_code = station_code_dict[(hourly['stationId'])]
+                hourly_actual = parse_hourly_actual(station_code, parsed_hourly)
+                if hourly_actual is not None:
+                    hourly_actuals.append(hourly_actual)
+            except KeyError as exception:
+                logger.warning("Missing hourly for station code", exc_info=exception)
+    return hourly_actuals
+
+
+def parse_hourly_actual(station_code: int, hourly_reading: WeatherReading):
+    """ Maps WeatherReading to HourlyActual """
+    temp_valid = hourly_reading.temperature is not None
+    rh_valid = hourly_reading.relative_humidity is not None and validate_metric(
+        hourly_reading.relative_humidity, 0, 100)
+    wdir_valid = hourly_reading.wind_direction is not None and validate_metric(
+        hourly_reading.wind_direction, 0, 360)
+    wspeed_valid = hourly_reading.wind_speed is not None and validate_metric(
+        hourly_reading.wind_speed, 0, math.inf)
+    precip_valid = hourly_reading.precipitation is not None and validate_metric(
+        hourly_reading.precipitation, 0, math.inf)
+
+    is_valid_wfwx = hourly_reading.observation_valid
+    if is_valid_wfwx is False:
+        logger.warning("Invalid hourly received from WF1 API for station code %s at time %s: %s",
+                       station_code,
+                       hourly_reading.datetime.strftime("%b %d %Y %H:%M:%S"),
+                       hourly_reading.observation_valid_comment)
+
+    is_valid = temp_valid and rh_valid and wdir_valid and wspeed_valid and precip_valid and is_valid_wfwx
+
+    return None if (is_valid is False) else HourlyActual(
+        station_code=station_code,
+        weather_date=hourly_reading.datetime,
+        temp_valid=temp_valid,
+        temperature=hourly_reading.temperature,
+        rh_valid=rh_valid,
+        relative_humidity=hourly_reading.relative_humidity,
+        wspeed_valid=wspeed_valid,
+        wind_speed=hourly_reading.wind_speed,
+        wdir_valid=wdir_valid,
+        wind_direction=hourly_reading.wind_direction,
+        precip_valid=precip_valid,
+        precipitation=hourly_reading.precipitation,
+        dewpoint=hourly_reading.dewpoint,
+        ffmc=hourly_reading.ffmc,
+        isi=hourly_reading.isi,
+        fwi=hourly_reading.fwi,
+    )
+
+
+def validate_metric(value, low, high):
+    """ Validate metric with it's range of accepted values """
+    return low <= value <= high

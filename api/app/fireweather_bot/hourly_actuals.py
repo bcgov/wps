@@ -24,52 +24,6 @@ if __name__ == "__main__":
 logger = logging.getLogger(__name__)
 
 
-def parse_hourly_actual(station_code: int, hourly_reading: WeatherReading):
-    """ Maps WeatherReading to HourlyActual """
-    temp_valid = hourly_reading.temperature is not None
-    rh_valid = hourly_reading.relative_humidity is not None and validate_metric(
-        hourly_reading.relative_humidity, 0, 100)
-    wdir_valid = hourly_reading.wind_direction is not None and validate_metric(
-        hourly_reading.wind_direction, 0, 360)
-    wspeed_valid = hourly_reading.wind_speed is not None and validate_metric(
-        hourly_reading.wind_speed, 0, math.inf)
-    precip_valid = hourly_reading.precipitation is not None and validate_metric(
-        hourly_reading.precipitation, 0, math.inf)
-
-    is_valid_wfwx = hourly_reading.observation_valid
-    if is_valid_wfwx is False:
-        logger.warning("Invalid hourly received from WF1 API for station code %s at time %s: %s",
-                       station_code,
-                       hourly_reading.datetime.strftime("%b %d %Y %H:%M:%S"),
-                       hourly_reading.observation_valid_comment)
-
-    is_valid = temp_valid and rh_valid and wdir_valid and wspeed_valid and precip_valid and is_valid_wfwx
-
-    return None if (is_valid is False) else HourlyActual(
-        station_code=station_code,
-        weather_date=hourly_reading.datetime,
-        temp_valid=temp_valid,
-        temperature=hourly_reading.temperature,
-        rh_valid=rh_valid,
-        relative_humidity=hourly_reading.relative_humidity,
-        wspeed_valid=wspeed_valid,
-        wind_speed=hourly_reading.wind_speed,
-        wdir_valid=wdir_valid,
-        wind_direction=hourly_reading.wind_direction,
-        precip_valid=precip_valid,
-        precipitation=hourly_reading.precipitation,
-        dewpoint=hourly_reading.dewpoint,
-        ffmc=hourly_reading.ffmc,
-        isi=hourly_reading.isi,
-        fwi=hourly_reading.fwi,
-    )
-
-
-def validate_metric(value, low, high):
-    """ Validate metric with it's range of accepted values """
-    return low <= value <= high
-
-
 class HourlyActualsBot():
     """ Bot that downloads the hourly actuals from the wildfire website and stores it in a database. """
 
@@ -97,21 +51,17 @@ class HourlyActualsBot():
             start_date = self._get_start_date()
             end_date = self._get_end_date()
 
-            station_hourly_readings = await wildfire_one.get_hourly_readings_all_stations(
+            hourly_actuals = await wildfire_one.get_hourly_actuals_all_stations(
                 session, header, start_date, end_date)
 
         with app.db.database.get_write_session_scope() as session:
-            for station_hourly_reading in station_hourly_readings:
-                for hourly_reading in station_hourly_reading.values:
-                    hourly_actual = parse_hourly_actual(
-                        station_hourly_reading.station.code, hourly_reading)
-                    if hourly_actual is not None:
-                        try:
-                            save_hourly_actual(session, hourly_actual)
-                        except IntegrityError:
-                            logger.info('Skipping duplicate record for %s @ %s',
-                                        hourly_actual.station_code, hourly_actual.weather_date)
-                            session.rollback()
+            for hourly_actual in hourly_actuals:
+                try:
+                    save_hourly_actual(session, hourly_actual)
+                except IntegrityError:
+                    logger.info('Skipping duplicate record for %s @ %s',
+                                hourly_actual.station_code, hourly_actual.weather_date)
+                    session.rollback()
 
 
 def main():
