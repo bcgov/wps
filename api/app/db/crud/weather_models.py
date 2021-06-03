@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from app.weather_models import ModelEnum, ProjectionEnum
 from app.db.models import (
     ProcessedModelRunUrl, PredictionModel, PredictionModelRunTimestamp, PredictionModelGridSubset,
-    ModelRunGridSubsetPrediction, WeatherStationModelPrediction, CHainesPrediction)
+    ModelRunGridSubsetPrediction, WeatherStationModelPrediction)
 import app.time_utils as time_utils
 
 logger = logging.getLogger(__name__)
@@ -273,7 +273,9 @@ def get_processed_file_record(session: Session, url: str) -> ProcessedModelRunUr
     return processed_file
 
 
-def get_prediction_model(session: Session, abbreviation: ModelEnum, projection: ProjectionEnum) -> PredictionModel:
+def get_prediction_model(session: Session,
+                         abbreviation: ModelEnum,
+                         projection: ProjectionEnum) -> PredictionModel:
     """ Get the prediction model corresponding to a particular abbreviation and projection. """
     return session.query(PredictionModel).\
         filter(PredictionModel.abbreviation == abbreviation).\

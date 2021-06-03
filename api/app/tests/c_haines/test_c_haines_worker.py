@@ -1,17 +1,31 @@
+""" Very basic test for worker - essential just testing if it runs without exceptions """
 import os
 from datetime import datetime
 import pytest
 import requests
 from app import configure_logging
+from app.weather_models import ModelEnum, ProjectionEnum
 from app.db.database import Session
 from app.db.models.weather_models import PredictionModel
 from app.db.models.c_haines import CHainesModelRun
 import app.db.crud.c_haines
 import app.c_haines.severity_index
 from app.c_haines.worker import main
-from app.tests.common import MockResponse
+from app.tests.common import MockResponse, DefaultMockMinio
 
 configure_logging()
+
+
+@pytest.fixture()
+def mock_get_prediction_model(monkeypatch):
+    """ fixture for crud """
+    # pylint: disable=unused-argument
+    def _mock_get_prediction_model(session: Session,
+                                   abbreviation: ModelEnum,
+                                   projection: ProjectionEnum) -> PredictionModel:
+        return PredictionModel(abbreviation='GDPS')
+
+    monkeypatch.setattr(app.c_haines.severity_index, 'get_prediction_model', _mock_get_prediction_model)
 
 
 @pytest.fixture()
@@ -22,7 +36,8 @@ def mock_get_c_haines_model_run(monkeypatch):
     def _mock_get_c_haines_model_run(session: Session,
                                      model_run_timestamp: datetime,
                                      prediction_model: PredictionModel):
-        return CHainesModelRun(id=1, model_run_timestamp=datetime.now(), prediction_model_id=1)
+        return CHainesModelRun(id=1, model_run_timestamp=datetime.now(), prediction_model_id=1,
+                               prediction_model=PredictionModel(abbreviation='GDPS'))
     monkeypatch.setattr(app.db.crud.c_haines, 'get_c_haines_model_run', _mock_get_c_haines_model_run)
 
 
@@ -31,9 +46,9 @@ def mock_get_minio_client(monkeypatch):
     """ mock calls to minio client """
 
     def _mock_get_minio_client():
-        class MockMinio:
+        class MockMinio(DefaultMockMinio):
             pass
-        return MockMinio(), 'some_bucket'
+        return MockMinio('some_server'), 'some_bucket'
     monkeypatch.setattr(app.c_haines.severity_index, 'get_minio_client', _mock_get_minio_client)
 
 
@@ -59,7 +74,8 @@ def mock_download(monkeypatch):
     monkeypatch.setattr(requests, 'get', mock_requests_get)
 
 
-@pytest.mark.usefixtures('mock_download', 'mock_get_c_haines_model_run', 'mock_get_minio_client')
+@pytest.mark.usefixtures('mock_download', 'mock_get_c_haines_model_run', 'mock_get_prediction_model',
+                         'mock_get_minio_client')
 def test_c_haines_worker():
     """ Test the c-haines worked.
     This is not a very focused test. Through the magic of sqlalchmy, it will only

@@ -3,6 +3,8 @@
 import logging
 import os
 import json
+from typing import Iterator
+from minio.helpers import ObjectWriteResult
 from app.tests.fixtures.loader import FixtureFinder
 
 
@@ -82,6 +84,34 @@ class MockAsyncResponse:
     async def json(self) -> dict:
         """ Return json response """
         return self._json
+
+
+class DefaultMockMinio:
+    """ Stubbed Minio object
+    """
+    # It's a stubbed object, so we don't care about pyling warnings:
+    # pylint: disable=unused-argument, missing-function-docstring, too-many-arguments, no-self-use
+
+    def __init__(self, endpoint, access_key=None,
+                 secret_key=None,
+                 session_token=None,
+                 secure=True,
+                 region=None,
+                 http_client=None,
+                 credentials=None):
+        pass
+
+    def list_objects(self, bucket_name, prefix=None, recursive=False,
+                     start_after=None, include_user_meta=False,
+                     include_version=False, use_api_v1=False) -> Iterator[object]:
+        return enumerate([])
+
+    def fput_object(self, bucket_name, object_name, file_path,
+                    content_type="application/octet-stream",
+                    metadata=None, sse=None, progress=None,
+                    part_size=0, num_parallel_uploads=3,
+                    tags=None, retention=None, legal_hold=False) -> ObjectWriteResult:
+        pass
 
 
 def is_json(filename):
