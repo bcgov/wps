@@ -6,7 +6,6 @@ import os
 import sys
 from datetime import datetime, timedelta
 from aiohttp.client import ClientSession
-from aiohttp.connector import TCPConnector
 from sqlalchemy.exc import IntegrityError
 import app.db.database
 import app.time_utils
