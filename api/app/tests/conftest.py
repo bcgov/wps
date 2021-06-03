@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
 from pytest_mock import MockerFixture
-from app import minio_utils
+import app.utils.minio
 from app.utils.time import get_pst_tz
 from app.tests.common import (
     MockJWTDecode, DefaultMockMinio, default_mock_requests_get, default_mock_requests_post,
@@ -59,7 +59,7 @@ def mock_env(monkeypatch):
 @pytest.fixture(autouse=True)
 def mock_minio(monkeypatch):
     """ Patch minio by default """
-    monkeypatch.setattr(minio_utils, 'Minio', DefaultMockMinio)
+    monkeypatch.setattr(app.utils.minio, 'Minio', DefaultMockMinio)
 
 
 @pytest.fixture(autouse=True)

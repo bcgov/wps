@@ -47,8 +47,8 @@ def fetch_model_run_kml_streamer(model: ModelEnum, model_run_timestamp: datetime
 
     client, bucket = get_minio_client()
 
-    predictions = client.list_objects(bucket, prefix=generate_kml_model_run_path(
-        model, model_run_timestamp), recursive=True)
+    model_run_path = generate_kml_model_run_path(model, model_run_timestamp)
+    predictions = client.list_objects(bucket, prefix=model_run_path, recursive=True)
     for prediction in predictions:
         prediction_timestamp = prediction.object_name.split('/')[-1].split('.')[0]
 
