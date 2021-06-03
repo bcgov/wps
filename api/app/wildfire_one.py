@@ -108,12 +108,14 @@ async def get_auth_header(session: ClientSession) -> dict:
     return header
 
 
-async def _fetch_raw_stations_generator(
+async def _fetch_paged_response_generator(
         session: ClientSession,
         headers: dict,
-        query_builder: BuildQuery) -> Generator[dict, None, None]:
-    """ Asynchronous generator for iterating through raw stations from the API.
-    The station list is a paged response, but this generator abstracts that away.
+        query_builder: BuildQuery,
+        content_key: str
+) -> Generator[dict, None, None]:
+    """ Asynchronous generator for iterating through responses from the API.
+    The response is a paged response, but this generator abstracts that away.
     """
     # We don't know how many pages until our first call - so we assume one page to start with.
     total_pages = 1
@@ -128,38 +130,10 @@ async def _fetch_raw_stations_generator(
 
         # Update the total page count.
         total_pages = station_json['page']['totalPages']
-        for station in station_json['_embedded']['stations']:
+        for station in station_json['_embedded'][content_key]:
             yield station
         # Keep track of our page count.
         page_count = page_count + 1
-
-
-async def _fetch_hourlies_all_stations(
-        session: ClientSession,
-        headers: dict,
-        query_builder: BuildQuery):
-    """ Asynchronous generator for iterating through hourlies from the API.
-    The hourlies is a paged response, but this generator abstracts that away.
-    """
-    # We don't know how many pages until our first call - so we assume one page to start with.
-    total_pages = 1
-    page_count = 0
-    hourlies = []
-    while page_count < total_pages:
-        # Build up the request URL.
-        url, params = query_builder.query(page_count)
-        logger.debug('loading hourlies page %d...', page_count)
-        async with session.get(url, headers=headers, params=params) as response:
-            hourlies_json = await response.json()
-            logger.debug('done loading hourlies page %d.', page_count)
-
-        # Update the total page count.
-        total_pages = hourlies_json['page']['totalPages']
-        for hourly in hourlies_json['_embedded']['hourlies']:
-            hourlies.append(hourly)
-        # Keep track of our page count.
-        page_count = page_count + 1
-    return hourlies
 
 
 async def _fetch_detailed_geojson_stations(
@@ -169,7 +143,7 @@ async def _fetch_detailed_geojson_stations(
     stations = {}
     id_to_code_map = {}
     # Put the stations in a nice dictionary.
-    async for raw_station in _fetch_raw_stations_generator(session, headers, query_builder):
+    async for raw_station in _fetch_paged_response_generator(session, headers, query_builder, 'stations'):
         station_code = raw_station.get('stationCode')
         station_status = raw_station.get('stationStatus', {}).get('id')
         # Because we can't filter on status in the RSQL, we have to manually exclude stations that are
@@ -250,8 +224,8 @@ async def get_stations_by_codes(station_codes: List[int]) -> List[WeatherStation
         header = get_auth_header(session)
         stations = []
         # Iterate through "raw" station data.
-        iterator = _fetch_raw_stations_generator(
-            session, header, BuildQueryByStationCode(station_codes))
+        iterator = _fetch_paged_response_generator(
+            session, header, BuildQueryByStationCode(station_codes), 'stations')
         async for raw_station in iterator:
             # If the station is valid, add it to our list of stations.
             if _is_station_valid(raw_station):
@@ -293,8 +267,8 @@ async def get_stations(session: ClientSession,
     """
     logger.info('Using WFWX to retrieve station list')
     # Iterate through "raw" station data.
-    raw_stations = _fetch_raw_stations_generator(
-        session, header, BuildQueryAllActiveStations())
+    raw_stations = _fetch_paged_response_generator(
+        session, header, BuildQueryAllActiveStations(), 'stations')
     # Map list of stations into desired shape
     stations = await mapper(raw_stations)
     logger.debug('total stations: %d', len(stations))
@@ -443,8 +417,8 @@ async def get_hourly_readings(
     tasks = []
 
     # Iterate through "raw" station data.
-    iterator = _fetch_raw_stations_generator(
-        session, header, BuildQueryByStationCode(station_codes))
+    iterator = _fetch_paged_response_generator(
+        session, header, BuildQueryByStationCode(station_codes), 'stations')
     async for raw_station in iterator:
         task = asyncio.create_task(
             fetch_hourlies(session,
@@ -469,10 +443,14 @@ async def get_hourly_actuals_all_stations(
     hourly_actuals: List[HourlyActual] = []
 
     # Iterate through "raw" station data.
-    hourlies = await _fetch_hourlies_all_stations(
+    hourlies_iterator = _fetch_paged_response_generator(
         session, header, BuildQueryAllHourliesByRange(
             math.floor(start_timestamp.timestamp()*1000),
-            math.floor(end_timestamp.timestamp()*1000)))
+            math.floor(end_timestamp.timestamp()*1000)), 'hourlies')
+
+    hourlies = []
+    async for hourly in hourlies_iterator:
+        hourlies.append(hourly)
 
     stations: List[WFWXWeatherStation] = await get_stations(session, header, mapper=wfwx_station_list_mapper)
 
