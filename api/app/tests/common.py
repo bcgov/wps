@@ -101,12 +101,14 @@ class DefaultMockMinio:
                  region=None,
                  http_client=None,
                  credentials=None):
+        """ you can set the values below for some default behaviour """
         self.mock_get_presigned_url = None
         self.mock_list_objects = []
 
     def list_objects(self, bucket_name, prefix=None, recursive=False,
                      start_after=None, include_user_meta=False,
                      include_version=False, use_api_v1=False) -> Iterator[Object]:
+        """ mock list objects """
         return iter(self.mock_list_objects)
 
     def fput_object(self, bucket_name, object_name, file_path,
@@ -114,12 +116,13 @@ class DefaultMockMinio:
                     metadata=None, sse=None, progress=None,
                     part_size=0, num_parallel_uploads=3,
                     tags=None, retention=None, legal_hold=False) -> ObjectWriteResult:
-        pass
+        """ mock put object """
 
     def get_presigned_url(self, method, bucket_name, object_name,
                           expires=timedelta(days=7), response_headers=None,
                           request_date=None, version_id=None,
                           extra_query_params=None) -> str:
+        """ mock presigned url """
         return self.get_presigned_url
 
 
