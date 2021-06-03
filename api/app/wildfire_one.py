@@ -251,8 +251,8 @@ async def station_list_mapper(raw_stations: Generator[dict, None, None]):
 class WFWXWeatherStation():
     """ A WFWX station includes a code and WFWX API specific id """
 
-    def __init__(self, station_id: str, code: int):
-        self.id = station_id
+    def __init__(self, wfwx_id: str, code: int):
+        self.wfwx_id = wfwx_id
         self.code = code
 
 
@@ -263,7 +263,7 @@ async def wfwx_station_list_mapper(raw_stations: Generator[dict, None, None]):
     async for raw_station in raw_stations:
         # If the station is valid, add it to our list of stations.
         if _is_station_valid(raw_station):
-            stations.append(WFWXWeatherStation(station_id=raw_station['id'],
+            stations.append(WFWXWeatherStation(wfwx_id=raw_station['id'],
                                                code=raw_station['stationCode']))
     return stations
 
@@ -462,7 +462,7 @@ async def get_hourly_actuals_all_stations(
 
     stations: List[WFWXWeatherStation] = await get_stations(session, header, mapper=wfwx_station_list_mapper)
 
-    station_code_dict = {station.id: station.code for station in stations}
+    station_code_dict = {station.wfwx_id: station.code for station in stations}
 
     for hourly in hourlies:
         if hourly.get('hourlyMeasurementTypeCode', '').get('id') == 'ACTUAL':
