@@ -7,7 +7,7 @@ import pytest
 from pytest_mock import MockerFixture
 from app.fireweather_bot import hourly_actuals
 from app.schemas.observations import WeatherReading
-from app.schemas.stations import WFWXWeatherStation
+from app.wildfire_one import WFWXWeatherStation
 from app import wildfire_one
 
 
@@ -17,8 +17,8 @@ logger = logging.getLogger(__name__)
 @pytest.fixture()
 def mock_hourly_actuals(mocker: MockerFixture):
     """ Mocks out hourly actuals as async result """
-    station_1 = WFWXWeatherStation(id='ba28973a-0a79-04ea-e053-1d09228e8c64', code=1)
-    station_2 = WFWXWeatherStation(id='ba28973a-0a79-04ea-e053-1d09228e8c65', code=2)
+    station_1 = WFWXWeatherStation(wfwx_id='ba28973a-0a79-04ea-e053-1d09228e8c64', code=1)
+    station_2 = WFWXWeatherStation(wfwx_id='ba28973a-0a79-04ea-e053-1d09228e8c65', code=2)
 
     class MockWFWXHourlyResponse(object):
         def __init__(self, **kwargs):
