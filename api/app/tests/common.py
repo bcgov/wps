@@ -3,8 +3,10 @@
 import logging
 import os
 import json
+from datetime import timedelta
 from typing import Iterator
 from minio.helpers import ObjectWriteResult
+from minio.datatypes import Object
 from app.tests.fixtures.loader import FixtureFinder
 
 
@@ -99,12 +101,13 @@ class DefaultMockMinio:
                  region=None,
                  http_client=None,
                  credentials=None):
-        pass
+        self.mock_get_presigned_url = None
+        self.mock_list_objects = iter([])
 
     def list_objects(self, bucket_name, prefix=None, recursive=False,
                      start_after=None, include_user_meta=False,
-                     include_version=False, use_api_v1=False) -> Iterator[object]:
-        return enumerate([])
+                     include_version=False, use_api_v1=False) -> Iterator[Object]:
+        return self.mock_list_objects
 
     def fput_object(self, bucket_name, object_name, file_path,
                     content_type="application/octet-stream",
@@ -112,6 +115,12 @@ class DefaultMockMinio:
                     part_size=0, num_parallel_uploads=3,
                     tags=None, retention=None, legal_hold=False) -> ObjectWriteResult:
         pass
+
+    def get_presigned_url(self, method, bucket_name, object_name,
+                          expires=timedelta(days=7), response_headers=None,
+                          request_date=None, version_id=None,
+                          extra_query_params=None) -> str:
+        return self.get_presigned_url
 
 
 def is_json(filename):

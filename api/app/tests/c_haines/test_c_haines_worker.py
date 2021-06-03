@@ -11,7 +11,7 @@ from app.db.models.c_haines import CHainesModelRun
 import app.db.crud.c_haines
 import app.c_haines.severity_index
 from app.c_haines.worker import main
-from app.tests.common import MockResponse, DefaultMockMinio
+from app.tests.common import MockResponse
 
 configure_logging()
 
@@ -39,17 +39,6 @@ def mock_get_c_haines_model_run(monkeypatch):
         return CHainesModelRun(id=1, model_run_timestamp=datetime.now(), prediction_model_id=1,
                                prediction_model=PredictionModel(abbreviation='GDPS'))
     monkeypatch.setattr(app.db.crud.c_haines, 'get_c_haines_model_run', _mock_get_c_haines_model_run)
-
-
-@pytest.fixture()
-def mock_get_minio_client(monkeypatch):
-    """ mock calls to minio client """
-
-    def _mock_get_minio_client():
-        class MockMinio(DefaultMockMinio):
-            pass
-        return MockMinio('some_server'), 'some_bucket'
-    monkeypatch.setattr(app.c_haines.severity_index, 'get_minio_client', _mock_get_minio_client)
 
 
 @pytest.fixture()
