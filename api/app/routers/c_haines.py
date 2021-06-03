@@ -2,7 +2,7 @@
 """
 from enum import Enum
 from functools import reduce
-from datetime import datetime
+from datetime import datetime, timezone
 import logging
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse, StreamingResponse, Response
