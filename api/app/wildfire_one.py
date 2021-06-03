@@ -63,6 +63,17 @@ class BuildQueryByStationCode(BuildQuery):
         return [url, params]
 
 
+class BuildQueryAllHourliesByRange(BuildQuery):
+    """ Builds query for requesting all hourlies in a time range"""
+
+    def query(self, start_timestamp: int, end_timestamp: int):
+        """ Return query url for hourlies between start_timestamp, end_timestamp"""
+        query_string = "weatherTimestamp >=" + start_timestamp + ";" + "weatherTimestamp <" + end_timestamp
+        url = '{base_url}/v1/hourlies/rsql?query={query_string}'.format(
+            base_url=self.base_url, query_string=query_string)
+        return url
+
+
 def use_wfwx():
     """ Return True if configured to use WFWX """
     using_wfwx = config.get('USE_WFWX') == 'True'
