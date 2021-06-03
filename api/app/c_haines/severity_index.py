@@ -424,7 +424,10 @@ class CHainesSeverityGenerator():
             return payload
         return None
 
-    def _assets_exist(self, prediction_model_abbreviation: str, model_run_timestamp: datetime, prediction_timestamp: datetime):
+    def _assets_exist(self, prediction_model_abbreviation: str,
+                      model_run_timestamp: datetime,
+                      prediction_timestamp: datetime) -> bool:
+        """ Return True if kml and geojson assets already exist, otherwise False """
         kml_path = generate_full_kml_path(
             prediction_model_abbreviation,
             model_run_timestamp,

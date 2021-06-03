@@ -34,7 +34,7 @@ router = APIRouter(
 
 
 class NoModelRunFound(Exception):
-    pass
+    """ Exception thrown when no model run can be found """
 
 
 def _get_most_recent_kml_model_run(model: ModelEnum) -> datetime:
