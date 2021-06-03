@@ -7,7 +7,7 @@ import logging
 from pyproj import Transformer, Proj
 from shapely.ops import transform
 from shapely.geometry import shape, Polygon
-from app.weather_models.process_grib import WGS84
+from app.geospatial import WGS84
 from app.db.models.c_haines import get_severity_string
 from app.db.models.c_haines import SeverityEnum
 from app.weather_models import ModelEnum

@@ -16,7 +16,7 @@ from pyproj import Transformer, Proj
 from app import configure_logging
 from app.minio_utils import get_minio_client, object_exists
 import app.db.database
-from app.weather_models.process_grib import NAD83, WGS84
+from app.geospatial import NAD83, WGS84
 from app.db.crud.c_haines import get_prediction_geojson
 from app.db.models.weather_models import PredictionModel
 from app.db.models.c_haines import CHainesPrediction, CHainesModelRun

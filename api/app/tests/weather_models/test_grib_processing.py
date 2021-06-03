@@ -5,6 +5,7 @@ import json
 from operator import itemgetter
 from pytest_bdd import scenario, given, then, when
 from pyproj import CRS
+from app.geospatial import NAD83_CRS
 import app.weather_models.process_grib as process_grib
 
 logger = logging.getLogger(__name__)
@@ -113,7 +114,7 @@ def when_calculate_raster_coordinate(data, geographic_coordinate):
     """ calculate the raster coordinate """
     longitude, latitude = geographic_coordinate
     proj_crs = CRS.from_string(data['wkt_projection_string'])
-    transformer = process_grib.get_transformer(process_grib.GEO_CRS, proj_crs)
+    transformer = process_grib.get_transformer(NAD83_CRS, proj_crs)
     data['raster_coordinate'] = process_grib.calculate_raster_coordinate(
         longitude, latitude, data['geotransform'], transformer)
 
@@ -140,7 +141,7 @@ def test_calculate_geographic_coordinates():
 def calculate_geographic_coordinate(data, raster_coordinate):
     """ calculate the geographic coordinate """
     proj_crs = CRS.from_string(data['wkt_projection_string'])
-    transformer = process_grib.get_transformer(proj_crs, process_grib.GEO_CRS)
+    transformer = process_grib.get_transformer(proj_crs, NAD83_CRS)
     data['geographic_coordinate'] = \
         process_grib.calculate_geographic_coordinate(
         raster_coordinate, data['geotransform'], transformer)

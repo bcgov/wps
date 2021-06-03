@@ -21,7 +21,7 @@ from app.db.models.c_haines import CHainesPoly, CHainesPrediction, CHainesModelR
 from app.db.crud.weather_models import get_prediction_model
 from app.db.crud.c_haines import (get_c_haines_prediction, get_or_create_c_haines_model_run)
 from app.weather_models import ModelEnum, ProjectionEnum
-from app.weather_models.process_grib import NAD83
+from app.geospatial import NAD83
 from app.weather_models.env_canada import (get_model_run_hours,
                                            get_file_date_part, adjust_model_day, download,
                                            UnhandledPredictionModelType)

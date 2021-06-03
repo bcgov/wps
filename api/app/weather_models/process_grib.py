@@ -5,11 +5,12 @@ import math
 import struct
 import logging
 import logging.config
-from typing import Final, List, Tuple
+from typing import List, Tuple
 from sqlalchemy.dialects.postgresql import array
 from sqlalchemy.orm import Session
 from osgeo import gdal
 from pyproj import CRS, Transformer
+from app.geospatial import NAD83_CRS
 from app.stations import get_stations_synchronously
 from app.db.models import (
     PredictionModel, PredictionModelRunTimestamp, ModelRunGridSubsetPrediction)
@@ -18,11 +19,6 @@ from app.db.crud.weather_models import (
 
 
 logger = logging.getLogger(__name__)
-
-# Ensure that grib file uses EPSG: 4269 (NAD83) coordinate system
-NAD83: Final = 'epsg:4269'
-GEO_CRS: Final = CRS(NAD83)
-WGS84: Final = 'epsg:4326'
 
 
 class PredictionModelNotFound(Exception):
@@ -207,8 +203,8 @@ class GribFileProcessor():
         # (this step is included because HRDPS grib files are in another coordinate system)
         wkt = dataset.GetProjection()
         crs = CRS.from_string(wkt)
-        self.raster_to_geo_transformer = get_transformer(crs, GEO_CRS)
-        self.geo_to_raster_transformer = get_transformer(GEO_CRS, crs)
+        self.raster_to_geo_transformer = get_transformer(crs, NAD83_CRS)
+        self.geo_to_raster_transformer = get_transformer(NAD83_CRS, crs)
 
         self.padf_transform = get_dataset_geometry(dataset)
         # get the model (.e.g. GPDS/RDPS latlon24x.24):
