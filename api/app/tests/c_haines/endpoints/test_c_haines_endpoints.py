@@ -34,7 +34,7 @@ def mock_get_minio_client(monkeypatch):
     """ Mock getting the Minio client """
     def _mock_get_minio_client_get_presigned_url():
         mock_minio = DefaultMockMinio('some_endpoint')
-        mock_minio.mock_presigned_url = 'http://some.mock.url'
+        mock_minio.mock_presigned_url = 'https://some.mock.url'
         return mock_minio, 'some_bucket'
 
     def _mock_get_minio_client_list_objects():
