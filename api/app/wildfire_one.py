@@ -66,11 +66,15 @@ class BuildQueryByStationCode(BuildQuery):
 class BuildQueryAllHourliesByRange(BuildQuery):
     """ Builds query for requesting all hourlies in a time range"""
 
-    def query(self, start_timestamp: int, end_timestamp: int):
+    def __init__(self, start_timestamp: int, end_timestamp: int):
+        """ Initialize object """
+        super().__init__()
+        self.querystring = "weatherTimestamp >=" + start_timestamp + ";" + "weatherTimestamp <" + end_timestamp
+
+    def query(self, _):
         """ Return query url for hourlies between start_timestamp, end_timestamp"""
-        query_string = "weatherTimestamp >=" + start_timestamp + ";" + "weatherTimestamp <" + end_timestamp
-        url = '{base_url}/v1/hourlies/rsql?query={query_string}'.format(
-            base_url=self.base_url, query_string=query_string)
+        url = '{base_url}/v1/hourlies/rsql?query={querystring}'.format(
+            base_url=self.base_url, query_string=self.querystring)
         return url
 
 
