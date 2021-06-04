@@ -115,6 +115,6 @@ def then_expected_response(collector, expected_response):
     if expected_response['type'] == 'json':
         assert collector['response'].json() == expected_response['data']
     else:
-        # We don't always check the respone, when it's a redirect we don't bother.
+        # We don't always check the response, when it's a redirect we don't bother.
         if not expected_response['data'] is None:
             assert collector['response'].text == expected_response['data']

@@ -91,7 +91,7 @@ class MockAsyncResponse:
 class DefaultMockMinio:
     """ Stubbed Minio object
     """
-    # It's a stubbed object, so we don't care about pyling warnings:
+    # It's a stubbed object, so we don't care about pylint warnings:
     # pylint: disable=unused-argument, missing-function-docstring, too-many-arguments, no-self-use
 
     def __init__(self, endpoint, access_key=None,
