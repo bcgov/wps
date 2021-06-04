@@ -312,6 +312,7 @@ def re_project_geojson(source_json_filename: str,
     """ Given a geojson file in a specified projection, re-project it and save it
     to a new file.
     """
+    # pylint: disable=too-many-locals
     geojson_driver = ogr.GetDriverByName('GeoJSON')
 
     # prepare spatial references & coordinate transformation.

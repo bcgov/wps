@@ -26,6 +26,7 @@ logger = logging.getLogger(__name__)
 
 def main():
     """ entry point for migration """
+    # pylint disable=R0801
     # create the client for our object store.
     client, bucket = get_minio_client()
     # open db connection.

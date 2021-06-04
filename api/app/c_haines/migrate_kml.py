@@ -23,6 +23,8 @@ from app.c_haines.object_store import ObjectTypeEnum, generate_full_object_store
 
 logger = logging.getLogger(__name__)
 
+# pylint disable=R0801
+
 
 class KMLGeojsonPolygonIterator:
     """ Generator that produces a kml polygon for every geojson feature. This generator assumes GeoJSON

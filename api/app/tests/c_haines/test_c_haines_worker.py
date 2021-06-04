@@ -17,18 +17,6 @@ configure_logging()
 
 
 @pytest.fixture()
-def mock_get_prediction_model(monkeypatch):
-    """ fixture for crud """
-    # pylint: disable=unused-argument
-    def _mock_get_prediction_model(session: Session,
-                                   abbreviation: ModelEnum,
-                                   projection: ProjectionEnum) -> PredictionModel:
-        return PredictionModel(abbreviation='GDPS')
-
-    monkeypatch.setattr(app.c_haines.severity_index, 'get_prediction_model', _mock_get_prediction_model)
-
-
-@pytest.fixture()
 def mock_get_c_haines_model_run(monkeypatch):
     """ fixture for crud """
 
@@ -63,7 +51,7 @@ def mock_download(monkeypatch):
     monkeypatch.setattr(requests, 'get', mock_requests_get)
 
 
-@pytest.mark.usefixtures('mock_download', 'mock_get_c_haines_model_run', 'mock_get_prediction_model')
+@pytest.mark.usefixtures('mock_download', 'mock_get_c_haines_model_run')
 def test_c_haines_worker():
     """ Test the c-haines worked.
     This is not a very focused test. Through the magic of sqlalchmy, it will only
