@@ -1,12 +1,16 @@
 """ KML related code
 """
+import os
+import tempfile
 from datetime import datetime, timedelta
 from typing import Final, Iterator, IO
 import json
 import logging
+from minio import Minio
 from pyproj import Transformer, Proj
 from shapely.ops import transform
 from shapely.geometry import shape, Polygon
+from app.utils.minio import object_exists
 from app.geospatial import WGS84
 from app.db.models.c_haines import get_severity_string
 from app.db.models.c_haines import SeverityEnum
@@ -38,6 +42,59 @@ severity_style_map = {
 def get_severity_style(c_haines_index: SeverityEnum) -> str:
     """ Based on the index range, return a style string """
     return severity_style_map[c_haines_index]
+
+
+def generate_kml_filename(prediction_timestamp: datetime) -> str:
+    """ Generate the filename for a kml model run prediction """
+    return f'{prediction_timestamp.isoformat()[:19]}.kml'
+
+
+def generate_full_kml_path(prediction_model: str,
+                           model_run_timestamp: datetime,
+                           prediction_timestamp: datetime) -> str:
+    """ Generate the path for a kml model run prediction. """
+
+    kml_filename = generate_kml_filename(prediction_timestamp)
+
+    return os.path.join(generate_kml_model_run_path(prediction_model, model_run_timestamp), kml_filename)
+
+
+def generate_kml_model_run_path(prediction_model: str, model_run_timestamp: datetime) -> str:
+    """ Generate a path where model runs will be stored. """
+    return os.path.join('c-haines-polygons',
+                        'kml',
+                        prediction_model,
+                        f'{model_run_timestamp.year}',
+                        f'{model_run_timestamp.month}',
+                        f'{model_run_timestamp.day}',
+                        f'{model_run_timestamp.hour}')
+
+
+def save_as_kml_to_s3(client: Minio,  # pylint: disable=too-many-arguments
+                      bucket: str,
+                      json_filename: str,
+                      source_projection,
+                      prediction_model: str,
+                      model_run_timestamp: datetime,
+                      prediction_timestamp: datetime):
+    """ Given a geojson file, generate KML and store to S3 """
+    target_kml_path = generate_full_kml_path(
+        prediction_model, model_run_timestamp, prediction_timestamp)
+    # let's save some time, and check if the file doesn't already exists.
+    # it's super important we do this, since there are many c-haines cronjobs running in dev, all
+    # pointing to the same s3 bucket.
+    if object_exists(client, bucket, target_kml_path):
+        logger.info('kml (%s) already exists - skipping', target_kml_path)
+        return
+
+    with tempfile.TemporaryDirectory() as temporary_path:
+        kml_filename = generate_kml_filename(prediction_timestamp)
+        tmp_kml_path = os.path.join(temporary_path, kml_filename)
+        # generate the kml file
+        severity_geojson_to_kml(json_filename, source_projection, tmp_kml_path, ModelEnum(
+            prediction_model), model_run_timestamp, prediction_timestamp)
+        # save it to s3
+        client.fput_object(bucket, target_kml_path, tmp_kml_path)
 
 
 def open_placemark(model: ModelEnum, severity: SeverityEnum, timestamp: datetime) -> str:

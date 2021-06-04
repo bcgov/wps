@@ -8,8 +8,8 @@ import logging
 
 from app import config
 from app.utils.minio import get_minio_client
-from app.c_haines.severity_index import generate_kml_model_run_path
-from app.c_haines.kml import (get_look_at, get_kml_header, FOLDER_OPEN, FOLDER_CLOSE)
+from app.c_haines.kml import (generate_kml_model_run_path, get_look_at,
+                              get_kml_header, FOLDER_OPEN, FOLDER_CLOSE)
 import app.db.database
 from app.schemas.weather_models import CHainesModelRuns, CHainesModelRunPredictions, WeatherPredictionModel
 from app.weather_models import ModelEnum

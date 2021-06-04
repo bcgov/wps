@@ -27,7 +27,7 @@ from app.weather_models.env_canada import (get_model_run_hours,
                                            UnhandledPredictionModelType)
 from app.c_haines.c_haines_index import CHainesGenerator
 from app.c_haines import GDALData
-from app.c_haines.kml import severity_geojson_to_kml
+from app.c_haines.kml import generate_full_kml_path, save_as_kml_to_s3
 
 
 logger = logging.getLogger(__name__)
@@ -76,7 +76,7 @@ def record_exists(
         model_run: CHainesModelRun,
         prediction_timestamp: datetime):
     """ Check if we have a c-haines record """
-    # TODO: check for c-haines!
+    # TODO: this function will soon be made redundant.
     result = get_c_haines_prediction(session, model_run, prediction_timestamp)
     return result.count() > 0
 
@@ -305,59 +305,6 @@ def generate_severity_data(c_haines_data):
     return numpy.array(severity_data), numpy.array(mask_data)
 
 
-def generate_kml_filename(prediction_timestamp: datetime) -> str:
-    """ Generate the filename for a kml model run prediction """
-    return f'{prediction_timestamp.isoformat()[:19]}.kml'
-
-
-def generate_kml_model_run_path(prediction_model: str, model_run_timestamp: datetime) -> str:
-    """ Generate a path where model runs will be stored. """
-    return os.path.join('c-haines-polygons',
-                        'kml',
-                        prediction_model,
-                        f'{model_run_timestamp.year}',
-                        f'{model_run_timestamp.month}',
-                        f'{model_run_timestamp.day}',
-                        f'{model_run_timestamp.hour}')
-
-
-def generate_full_kml_path(prediction_model: str,
-                           model_run_timestamp: datetime,
-                           prediction_timestamp: datetime) -> str:
-    """ Generate the path for a kml model run prediction. """
-
-    kml_filename = generate_kml_filename(prediction_timestamp)
-
-    return os.path.join(generate_kml_model_run_path(prediction_model, model_run_timestamp), kml_filename)
-
-
-def save_as_kml_to_s3(client: Minio,  # pylint: disable=too-many-arguments
-                      bucket: str,
-                      json_filename: str,
-                      source_projection,
-                      prediction_model: str,
-                      model_run_timestamp: datetime,
-                      prediction_timestamp: datetime):
-    """ Given a geojson file, generate KML and store to S3 """
-    target_kml_path = generate_full_kml_path(
-        prediction_model, model_run_timestamp, prediction_timestamp)
-    # let's save some time, and check if the file doesn't already exists.
-    # it's super important we do this, since there are many c-haines cronjobs running in dev, all
-    # pointing to the same s3 bucket.
-    if object_exists(client, bucket, target_kml_path):
-        logger.info('kml (%s) already exists - skipping', target_kml_path)
-        return
-
-    with tempfile.TemporaryDirectory() as temporary_path:
-        kml_filename = generate_kml_filename(prediction_timestamp)
-        tmp_kml_path = os.path.join(temporary_path, kml_filename)
-        # generate the kml file
-        severity_geojson_to_kml(json_filename, source_projection, tmp_kml_path, ModelEnum(
-            prediction_model), model_run_timestamp, prediction_timestamp)
-        # save it to s3
-        client.fput_object(bucket, target_kml_path, tmp_kml_path)
-
-
 class EnvCanadaPayload():
     """ Handy class to store payload information in . """
 
@@ -456,6 +403,7 @@ class CHainesSeverityGenerator():
                                 model_run_timestamp, prediction_timestamp)
                     continue
 
+                # TODO: section below soon to be redundant
                 if model_run is None:
                     model_run = get_or_create_c_haines_model_run(
                         self.session, model_run_timestamp, prediction_model)
@@ -464,6 +412,7 @@ class CHainesSeverityGenerator():
                                 self.model,
                                 model_run_timestamp, prediction_timestamp)
                     continue
+                # TODO: ^^ section above soon to be redundant.
 
                 payload = self._collect_payload(urls, prediction_timestamp, model_run, temporary_path)
                 if payload:
