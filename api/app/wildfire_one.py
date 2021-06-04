@@ -256,7 +256,7 @@ class WFWXWeatherStation():
         self.code = code
 
 
-async def wfwx_station_list_mapper(raw_stations: Generator[dict, None, None]):
+async def wfwx_station_list_mapper(raw_stations: Generator[dict, None, None]) -> List[WFWXWeatherStation]:
     """ Maps raw stations to WFWXWeatherStation list"""
     stations = []
     # Iterate through "raw" station data.
