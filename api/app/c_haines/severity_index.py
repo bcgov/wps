@@ -1,4 +1,3 @@
-
 """ Logic pertaining to the generation of c_haines severity index from GDAL datasets.
 """
 import os
