@@ -221,7 +221,7 @@ async def get_stations_by_codes(station_codes: List[int]) -> List[WeatherStation
     """ Get a list of stations by code, from WFWX Fireweather API. """
     logger.info('Using WFWX to retrieve stations by code')
     async with ClientSession() as session:
-        header = get_auth_header(session)
+        header = await get_auth_header(session)
         stations = []
         # Iterate through "raw" station data.
         iterator = _fetch_paged_response_generator(
