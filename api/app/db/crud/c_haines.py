@@ -123,13 +123,13 @@ def get_prediction_geojson(session: Session,
                            model: ModelEnum,
                            model_run_timestamp: datetime,
                            prediction_timestamp: datetime):
-    """ Get the geojson for a particular prediction """
+    """ Get the geojson for a particular prediction, in WGS84 """
     query = text("""select json_build_object(
         'type', 'FeatureCollection',
         'features', json_agg(ST_AsGeoJSON(t.*)::json)
     )
         from (
-        select geom, c_haines_index from c_haines_polygons
+        select ST_Transform(geom, 'epsg:4269', 'epsg:4326'), c_haines_index from c_haines_polygons
         inner join c_haines_predictions on
             c_haines_predictions.id =
             c_haines_polygons.c_haines_prediction_id

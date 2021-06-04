@@ -15,6 +15,8 @@ from app.geospatial import WGS84
 from app.db.models.c_haines import get_severity_string
 from app.db.models.c_haines import SeverityEnum
 from app.weather_models import ModelEnum
+from app.c_haines.object_store import (ObjectTypeEnum,
+                                       generate_full_object_store_path, generate_object_store_filename)
 
 logger = logging.getLogger(__name__)
 
@@ -44,32 +46,6 @@ def get_severity_style(c_haines_index: SeverityEnum) -> str:
     return severity_style_map[c_haines_index]
 
 
-def generate_kml_filename(prediction_timestamp: datetime) -> str:
-    """ Generate the filename for a kml model run prediction """
-    return f'{prediction_timestamp.isoformat()[:19]}.kml'
-
-
-def generate_full_kml_path(prediction_model: str,
-                           model_run_timestamp: datetime,
-                           prediction_timestamp: datetime) -> str:
-    """ Generate the path for a kml model run prediction. """
-
-    kml_filename = generate_kml_filename(prediction_timestamp)
-
-    return os.path.join(generate_kml_model_run_path(prediction_model, model_run_timestamp), kml_filename)
-
-
-def generate_kml_model_run_path(prediction_model: str, model_run_timestamp: datetime) -> str:
-    """ Generate a path where model runs will be stored. """
-    return os.path.join('c-haines-polygons',
-                        'kml',
-                        prediction_model,
-                        f'{model_run_timestamp.year}',
-                        f'{model_run_timestamp.month}',
-                        f'{model_run_timestamp.day}',
-                        f'{model_run_timestamp.hour}')
-
-
 def save_as_kml_to_s3(client: Minio,  # pylint: disable=too-many-arguments
                       bucket: str,
                       json_filename: str,
@@ -78,8 +54,8 @@ def save_as_kml_to_s3(client: Minio,  # pylint: disable=too-many-arguments
                       model_run_timestamp: datetime,
                       prediction_timestamp: datetime):
     """ Given a geojson file, generate KML and store to S3 """
-    target_kml_path = generate_full_kml_path(
-        prediction_model, model_run_timestamp, prediction_timestamp)
+    target_kml_path = generate_full_object_store_path(
+        prediction_model, model_run_timestamp, prediction_timestamp, ObjectTypeEnum.KML)
     # let's save some time, and check if the file doesn't already exists.
     # it's super important we do this, since there are many c-haines cronjobs running in dev, all
     # pointing to the same s3 bucket.
@@ -88,7 +64,7 @@ def save_as_kml_to_s3(client: Minio,  # pylint: disable=too-many-arguments
         return
 
     with tempfile.TemporaryDirectory() as temporary_path:
-        kml_filename = generate_kml_filename(prediction_timestamp)
+        kml_filename = generate_object_store_filename(prediction_timestamp, ObjectTypeEnum.KML)
         tmp_kml_path = os.path.join(temporary_path, kml_filename)
         # generate the kml file
         severity_geojson_to_kml(json_filename, source_projection, tmp_kml_path, ModelEnum(
@@ -198,7 +174,10 @@ def feature_2_kml_polygon(feature: dict, project: Transformer) -> str:
     polygon.append('<outerBoundaryIs>')
     polygon.append('<LinearRing>')
     source_geometry = shape(feature['geometry'])
-    geometry = transform(project.transform, source_geometry)
+    if project:
+        geometry = transform(project.transform, source_geometry)
+    else:
+        geometry = source_geometry
     polygon.append(format_coordinates(geometry))
     polygon.append('</LinearRing>')
     polygon.append('</outerBoundaryIs>')

@@ -6,23 +6,20 @@ NOTE: Once migration is complete - this script can be safely deleted.
 This code can be run against the live database, or agains a copy of the live database.
 run:
 poetry shell
-python -m app.c_haines.migrate
+python -m app.c_haines.migrate_kml
 """
 import logging
-import tempfile
-import os
-from sqlalchemy import asc
-from pyproj import Transformer, Proj
+import io
+from sqlalchemy import desc
 from app import configure_logging
 from app.utils.minio import get_minio_client, object_exists
 import app.db.database
-from app.geospatial import NAD83, WGS84
 from app.db.crud.c_haines import get_prediction_geojson
 from app.db.models.weather_models import PredictionModel
 from app.db.models.c_haines import CHainesPrediction, CHainesModelRun
 from app.weather_models import ModelEnum
 from app.c_haines.kml import generate_kml_prediction, feature_2_kml_polygon
-from app.c_haines.severity_index import generate_full_kml_path
+from app.c_haines.object_store import ObjectTypeEnum, generate_full_object_store_path
 
 logger = logging.getLogger(__name__)
 
@@ -33,11 +30,6 @@ class KMLGeojsonPolygonIterator:
 
     def __init__(self, geojson):
         self.features = iter(geojson['features'])
-        # Source coordinate system is NAD83 as stored in the databse.
-        proj_from = Proj(NAD83)
-        # Destination coordinate systems is WGS84 for google earth KML.
-        proj_to = Proj(WGS84)
-        self.project = Transformer.from_proj(proj_from, proj_to, always_xy=True)
 
     def __iter__(self):
         return self
@@ -45,7 +37,7 @@ class KMLGeojsonPolygonIterator:
     def __next__(self):
         feature = next(self.features)
         severity = feature['properties']['c_haines_index']
-        return feature_2_kml_polygon(feature, self.project), severity
+        return feature_2_kml_polygon(feature, None), severity
 
 
 def main():
@@ -58,7 +50,7 @@ def main():
         query = session.query(CHainesModelRun, PredictionModel, CHainesPrediction)\
             .join(PredictionModel, CHainesModelRun.prediction_model_id == PredictionModel.id)\
             .join(CHainesPrediction, CHainesModelRun.id == CHainesPrediction.model_run_id)\
-            .order_by(asc(CHainesModelRun.model_run_timestamp))
+            .order_by(desc(CHainesModelRun.model_run_timestamp))
         for model_run, model, prediction in query:
             # log some output.
             logger.info('processing %s; model run: %s; prediction: %s', model.abbreviation,
@@ -67,9 +59,10 @@ def main():
             prediction_model = ModelEnum(model.abbreviation)
 
             # create path that this is going to live on on the object store.
-            target_kml_path = generate_full_kml_path(prediction_model,
-                                                     model_run.model_run_timestamp,
-                                                     prediction.prediction_timestamp)
+            target_kml_path = generate_full_object_store_path(prediction_model,
+                                                              model_run.model_run_timestamp,
+                                                              prediction.prediction_timestamp,
+                                                              ObjectTypeEnum.KML)
 
             # let's save some time, and check if the file doesn't already exists.
             # it's duper important we do this, since this is a mega migration and we expect to restart
@@ -83,24 +76,25 @@ def main():
                                              model_run.model_run_timestamp,
                                              prediction.prediction_timestamp)
 
-            # generate the kml file.
-            # we're going to put it in a temporary folder.
-            with tempfile.TemporaryDirectory() as temporary_path:
-                # construct an iterator that will eat geojson features and produce kml polygons.
-                polygon_iterator = KMLGeojsonPolygonIterator(geojson)
-                # we store the kml file temporarily.
-                tmp_filename = os.path.join(temporary_path, 'kml.kml')
-                with open(tmp_filename, 'w') as kml_file:
-                    # iterate through the parts of the kml generator, writing each part to file
-                    for polygon in generate_kml_prediction(polygon_iterator,
-                                                           model,
-                                                           model_run.model_run_timestamp,
-                                                           prediction.prediction_timestamp):
-                        kml_file.write(polygon)
-                    # flush to disk
-                    kml_file.flush()
+            # construct an iterator that will eat geojson features and produce kml polygons.
+            polygon_iterator = KMLGeojsonPolygonIterator(geojson)
+            # create in memory file object
+            with io.StringIO() as kml_file:
+                # iterate through the parts of the kml generator, writing each part to file.
+                for part in generate_kml_prediction(polygon_iterator,
+                                                    model,
+                                                    model_run.model_run_timestamp,
+                                                    prediction.prediction_timestamp):
+                    kml_file.write(part)
+                # smash it into binary
+                bio = io.BytesIO(kml_file.read().encode('utf8'))
+                # get file size.
+                size = bio.seek(0, io.SEEK_END)
+                # go back to start
+                bio.seek(0)
                 # smash it into the object store.
-                client.fput_object(bucket, target_kml_path, tmp_filename)
+                logger.info('writing %s', target_kml_path)
+                client.put_object(bucket, target_kml_path, bio, size)
 
 
 if __name__ == '__main__':
