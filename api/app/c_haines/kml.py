@@ -50,7 +50,7 @@ def save_as_kml_to_s3(client: Minio,  # pylint: disable=too-many-arguments
                       bucket: str,
                       json_filename: str,
                       source_projection,
-                      prediction_model: str,
+                      prediction_model: ModelEnum,
                       model_run_timestamp: datetime,
                       prediction_timestamp: datetime):
     """ Given a geojson file, generate KML and store to S3 """
@@ -67,8 +67,8 @@ def save_as_kml_to_s3(client: Minio,  # pylint: disable=too-many-arguments
         kml_filename = generate_object_store_filename(prediction_timestamp, ObjectTypeEnum.KML)
         tmp_kml_path = os.path.join(temporary_path, kml_filename)
         # generate the kml file
-        severity_geojson_to_kml(json_filename, source_projection, tmp_kml_path, ModelEnum(
-            prediction_model), model_run_timestamp, prediction_timestamp)
+        severity_geojson_to_kml(json_filename, source_projection, tmp_kml_path,
+                                prediction_model, model_run_timestamp, prediction_timestamp)
         # save it to s3
         client.fput_object(bucket, target_kml_path, tmp_kml_path)
 
@@ -216,9 +216,9 @@ def generate_kml_prediction(result: Iterator[list], model: ModelEnum, model_run_
     """
     yield get_kml_header()
     kml = []
-    kml.append('<name>{} {} {}</name>'.format(model, model_run_timestamp, prediction_timestamp))
+    kml.append('<name>{} {} {}</name>'.format(model.value, model_run_timestamp, prediction_timestamp))
     kml.append(f'{FOLDER_OPEN}')
-    kml.append('<name>{} {} {}</name>'.format(model, model_run_timestamp, prediction_timestamp))
+    kml.append('<name>{} {} {}</name>'.format(model.value, model_run_timestamp, prediction_timestamp))
     yield "\n".join(kml)
     kml = []
     prev_severity = None

@@ -8,8 +8,9 @@ import logging
 
 from app import config
 from app.utils.minio import get_minio_client
-from app.c_haines.kml import (generate_kml_model_run_path, get_look_at,
+from app.c_haines.kml import (get_look_at,
                               get_kml_header, FOLDER_OPEN, FOLDER_CLOSE)
+from app.c_haines.object_store import ObjectTypeEnum, generate_object_store_model_run_path
 import app.db.database
 from app.schemas.weather_models import CHainesModelRuns, CHainesModelRunPredictions, WeatherPredictionModel
 from app.weather_models import ModelEnum
@@ -47,7 +48,7 @@ def fetch_model_run_kml_streamer(model: ModelEnum, model_run_timestamp: datetime
 
     client, bucket = get_minio_client()
 
-    model_run_path = generate_kml_model_run_path(model, model_run_timestamp)
+    model_run_path = generate_object_store_model_run_path(model, model_run_timestamp, ObjectTypeEnum.KML)
     predictions = client.list_objects(bucket, prefix=model_run_path, recursive=True)
     for prediction in predictions:
         prediction_timestamp = prediction.object_name.split('/')[-1].split('.')[0]
