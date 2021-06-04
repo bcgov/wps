@@ -70,6 +70,7 @@ def save_as_kml_to_s3(client: Minio,  # pylint: disable=too-many-arguments
         severity_geojson_to_kml(json_filename, source_projection, tmp_kml_path,
                                 prediction_model, model_run_timestamp, prediction_timestamp)
         # save it to s3
+        logger.info('uploading %s', target_kml_path)
         client.fput_object(bucket, target_kml_path, tmp_kml_path)
 
 

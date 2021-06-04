@@ -384,6 +384,7 @@ def save_as_geojson_to_s3(client: Minio,  # pylint: disable=too-many-arguments
     tmp_geojson_filename = os.path.join(temporary_path, 'reprojected.json')
     re_project_geojson(source_json_filename, source_projection, tmp_geojson_filename, WGS84_EPSG)
     # smash the file into the object store.
+    logger.info('uploading %s', target_path)
     client.fput_object(bucket, target_path, tmp_geojson_filename)
 
 
