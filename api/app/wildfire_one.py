@@ -41,7 +41,7 @@ class BuildQueryAllActiveStations(BuildQuery):
         params = {'size': self.max_page_size, 'sort': 'displayLabel',
                   'page': page, 'query': 'stationStatus.id=="ACTIVE"'}
         url = '{base_url}/v1/stations'.format(base_url=self.base_url)
-        return [url, params]
+        return url, params
 
 
 class BuildQueryByStationCode(BuildQuery):
@@ -61,7 +61,7 @@ class BuildQueryByStationCode(BuildQuery):
         params = {'size': self.max_page_size,
                   'sort': 'displayLabel', 'page': page, 'query': self.querystring}
         url = '{base_url}/v1/stations/rsql'.format(base_url=self.base_url)
-        return [url, params]
+        return url, params
 
 
 class BuildQueryAllHourliesByRange(BuildQuery):
@@ -78,7 +78,7 @@ class BuildQueryAllHourliesByRange(BuildQuery):
         params = {'size': self.max_page_size, 'page': page, 'query': self.querystring}
         url = '{base_url}/v1/hourlies/rsql'.format(
             base_url=self.base_url)
-        return [url, params]
+        return url, params
 
 
 def use_wfwx():
