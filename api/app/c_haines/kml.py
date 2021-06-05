@@ -10,7 +10,7 @@ from minio import Minio
 from pyproj import Transformer, Proj
 from shapely.ops import transform
 from shapely.geometry import shape, Polygon
-from app.utils.minio import object_exists
+from app.utils.s3 import object_exists
 from app.geospatial import WGS84
 from app.db.models.c_haines import get_severity_string
 from app.db.models.c_haines import SeverityEnum

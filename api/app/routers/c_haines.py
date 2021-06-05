@@ -2,18 +2,18 @@
 """
 from enum import Enum
 from functools import reduce
-from datetime import datetime, timezone
+from datetime import datetime
 import logging
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse, StreamingResponse, Response
 from starlette.responses import RedirectResponse
-from app.utils.minio import get_minio_client
+from app.utils.s3 import get_minio_client
 from app.weather_models import ModelEnum
 from app.c_haines.object_store import generate_full_object_store_path, ObjectTypeEnum
 from app.c_haines.fetch import (fetch_prediction_geojson,
                                 fetch_model_runs,
                                 fetch_model_run_kml_streamer,
-                                fetch_network_link_kml)
+                                fetch_network_link_kml, parse_model_run_path)
 
 
 logger = logging.getLogger(__name__)
@@ -58,12 +58,7 @@ def _get_most_recent_kml_model_run(model: ModelEnum) -> datetime:
 
     logger.info('most record model run: %s', most_recent.object_name)
 
-    name_split = most_recent.object_name.strip('/').split('/')
-    hour = int(name_split[-1])
-    day = int(name_split[-2])
-    month = int(name_split[-3])
-    year = int(name_split[-4])
-    return datetime(year=year, month=month, day=day, hour=hour, tzinfo=timezone.utc)
+    return parse_model_run_path(most_recent.object_name)
 
 
 @router.get('/{model}/predictions')

@@ -1,13 +1,13 @@
 """ Fetch c-haines geojson
 """
 from io import StringIO
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from typing import Iterator
 from urllib.parse import urljoin, urlencode
 import logging
 
 from app import config
-from app.utils.minio import get_minio_client
+from app.utils.s3 import get_minio_client, get_client
 from app.c_haines.kml import (get_look_at,
                               get_kml_header, FOLDER_OPEN, FOLDER_CLOSE)
 from app.c_haines.object_store import ObjectTypeEnum, generate_object_store_model_run_path
@@ -100,8 +100,47 @@ def fetch_network_link_kml() -> str:
     return writer.getvalue()
 
 
+def parse_model_run_path(input: str) -> datetime:
+    name_split = input.strip('/').split('/')
+    hour = int(name_split[-1])
+    day = int(name_split[-2])
+    month = int(name_split[-3])
+    year = int(name_split[-4])
+    return datetime(year=year, month=month, day=day, hour=hour, tzinfo=timezone.utc)
+
+
 async def fetch_model_runs(model_run_timestamp: datetime):
-    """ Fetch recent model runs """
+    """ Fetch recent model runs."""
+    # TODO: this is a horribly inefficient way of listing model runs - we're making 6 calls just to
+    # list model runs.
+    result = CHainesModelRuns(model_runs=[])
+    async with get_client() as (client, bucket):
+        dates = [model_run_timestamp, model_run_timestamp-timedelta(days=1)]
+        for date in dates:
+            for model in ['GDPS', 'RDPS', 'HRDPS']:
+                try:
+                    prefix = 'c-haines-polygons/json/{model}/{year}/{month}/{day}/'.format(
+                        model=model,
+                        year=date.year, month=date.month, day=date.day)
+                    model_runs = await client.list_objects(
+                        Bucket=bucket,
+                        Prefix=prefix,
+                        Delimiter='/')
+                    if 'CommonPrefixes' in model_runs:
+                        for model_run in model_runs['CommonPrefixes']:
+                            print(model_run['Prefix'])
+                            model_run_predictions = CHainesModelRunPredictions(
+                                model=WeatherPredictionModel(name=model, abbrev=model),
+                                model_run_timestamp=parse_model_run_path(model_run['Prefix']),
+                                prediction_timestamps=[])
+                            result.model_runs.append(model_run_predictions)
+                except Exception as exception:
+                    print(exception)
+                print('got it')
+                logger.info(model_runs)
+    result.model_runs.sort(key=lambda model_run: model_run.model_run_timestamp)
+    return result
+    # print(model_runs)
     with app.db.database.get_read_session_scope() as session:
         model_runs = get_model_run_predictions(session, model_run_timestamp)
 

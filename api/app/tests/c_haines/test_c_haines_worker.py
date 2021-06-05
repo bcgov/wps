@@ -4,7 +4,6 @@ from datetime import datetime
 import pytest
 import requests
 from app import configure_logging
-from app.weather_models import ModelEnum, ProjectionEnum
 from app.db.database import Session
 from app.db.models.weather_models import PredictionModel
 from app.db.models.c_haines import CHainesModelRun

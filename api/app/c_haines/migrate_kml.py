@@ -23,8 +23,6 @@ from app.c_haines.object_store import ObjectTypeEnum, generate_full_object_store
 
 logger = logging.getLogger(__name__)
 
-# pylint disable=R0801
-
 
 class KMLGeojsonPolygonIterator:
     """ Generator that produces a kml polygon for every geojson feature. This generator assumes GeoJSON
@@ -44,6 +42,7 @@ class KMLGeojsonPolygonIterator:
 
 def main():
     """ entry point for migration """
+    # pylint disable=R0801
     # create the client for our object store.
     client, bucket = get_minio_client()
     # open db connection.
