@@ -2,8 +2,9 @@
 """
 from io import StringIO
 from datetime import datetime, timedelta, timezone
-from typing import Iterator
+from typing import Iterator, Tuple
 from urllib.parse import urljoin, urlencode
+import asyncio
 import logging
 
 from app import config
@@ -14,7 +15,7 @@ from app.c_haines.object_store import ObjectTypeEnum, generate_object_store_mode
 import app.db.database
 from app.schemas.weather_models import CHainesModelRuns, CHainesModelRunPredictions, WeatherPredictionModel
 from app.weather_models import ModelEnum
-from app.db.crud.c_haines import (get_model_run_predictions, get_prediction_geojson)
+from app.db.crud.c_haines import get_prediction_geojson
 
 logger = logging.getLogger(__name__)
 
@@ -100,8 +101,26 @@ def fetch_network_link_kml() -> str:
     return writer.getvalue()
 
 
-def parse_model_run_path(input: str) -> datetime:
-    name_split = input.strip('/').split('/')
+def extract_model_run_prediction_from_path(prediction_path: str) -> Tuple[str, datetime, datetime]:
+    """ Extract model abbreviation, model run timestamp and prediction timestamp from prediction path """
+    name_split = prediction_path.strip('/').split('/')
+
+    prediction_timestamp = datetime.fromisoformat(name_split[-1].rstrip('.json')+'+00:00')
+
+    hour = int(name_split[-2])
+    day = int(name_split[-3])
+    month = int(name_split[-4])
+    year = int(name_split[-5])
+    model_run_timestamp = datetime(year=year, month=month, day=day, hour=hour, tzinfo=timezone.utc)
+
+    model = name_split[-6]
+
+    return model, model_run_timestamp, prediction_timestamp
+
+
+def extract_model_run_timestamp_from_path(model_run_path: str) -> datetime:
+    """ Take the model run path, and get back the model run datetime """
+    name_split = model_run_path.strip('/').split('/')
     hour = int(name_split[-1])
     day = int(name_split[-2])
     month = int(name_split[-3])
@@ -109,52 +128,45 @@ def parse_model_run_path(input: str) -> datetime:
     return datetime(year=year, month=month, day=day, hour=hour, tzinfo=timezone.utc)
 
 
+def extract_model_from_path(model_run_path: str) -> str:
+    """ Take the model run path, and get back the model abbreviation """
+    name_split = model_run_path.strip('/').split('/')
+    return name_split[-5]
+
+
 async def fetch_model_runs(model_run_timestamp: datetime):
     """ Fetch recent model runs."""
-    # TODO: this is a horribly inefficient way of listing model runs - we're making 6 calls just to
+    # NOTE: This is a horribly inefficient way of listing model runs - we're making 6 calls just to
     # list model runs.
     result = CHainesModelRuns(model_runs=[])
     async with get_client() as (client, bucket):
-        dates = [model_run_timestamp, model_run_timestamp-timedelta(days=1)]
-        for date in dates:
+        # create tasks for listing all the model runs
+        tasks = []
+        for date in [model_run_timestamp, model_run_timestamp-timedelta(days=1)]:
             for model in ['GDPS', 'RDPS', 'HRDPS']:
-                try:
-                    prefix = 'c-haines-polygons/json/{model}/{year}/{month}/{day}/'.format(
-                        model=model,
-                        year=date.year, month=date.month, day=date.day)
-                    model_runs = await client.list_objects(
-                        Bucket=bucket,
-                        Prefix=prefix,
-                        Delimiter='/')
-                    if 'CommonPrefixes' in model_runs:
-                        for model_run in model_runs['CommonPrefixes']:
-                            print(model_run['Prefix'])
-                            model_run_predictions = CHainesModelRunPredictions(
-                                model=WeatherPredictionModel(name=model, abbrev=model),
-                                model_run_timestamp=parse_model_run_path(model_run['Prefix']),
-                                prediction_timestamps=[])
-                            result.model_runs.append(model_run_predictions)
-                except Exception as exception:
-                    print(exception)
-                print('got it')
-                logger.info(model_runs)
-    result.model_runs.sort(key=lambda model_run: model_run.model_run_timestamp)
-    return result
-    # print(model_runs)
-    with app.db.database.get_read_session_scope() as session:
-        model_runs = get_model_run_predictions(session, model_run_timestamp)
+                prefix = 'c-haines-polygons/json/{model}/{year}/{month}/{day}/'.format(
+                    model=model,
+                    year=date.year, month=date.month, day=date.day)
+                logger.info(prefix)
+                tasks.append(asyncio.create_task(client.list_objects_v2(
+                    Bucket=bucket,
+                    Prefix=prefix)))
 
-        result = CHainesModelRuns(model_runs=[])
-        prev_model_run_id = None
+        model_run_prediction_results = await asyncio.gather(*tasks)
+        for prediction_result in model_run_prediction_results:
+            if 'Contents' in prediction_result:
+                model_run_predictions = None
+                for prediction in prediction_result['Contents']:
+                    model, model_run_timestamp, prediction_timestamp = extract_model_run_prediction_from_path(
+                        prediction['Key'])
+                    if model_run_predictions:
+                        model_run_predictions.prediction_timestamps.append(prediction_timestamp)
+                    else:
+                        model_run_predictions = CHainesModelRunPredictions(
+                            model=WeatherPredictionModel(name=model, abbrev=model),
+                            model_run_timestamp=model_run_timestamp,
+                            prediction_timestamps=[prediction_timestamp, ])
+                        result.model_runs.append(model_run_predictions)
 
-        for model_run_id, tmp_model_run_timestamp, name, abbreviation, prediction_timestamp in model_runs:
-            if prev_model_run_id != model_run_id:
-                model_run_predictions = CHainesModelRunPredictions(
-                    model=WeatherPredictionModel(name=name, abbrev=abbreviation),
-                    model_run_timestamp=tmp_model_run_timestamp,
-                    prediction_timestamps=[])
-                result.model_runs.append(model_run_predictions)
-                prev_model_run_id = model_run_id
-            model_run_predictions.prediction_timestamps.append(prediction_timestamp)
-
+    result.model_runs.sort(key=lambda model_run: model_run.model_run_timestamp, reverse=True)
     return result

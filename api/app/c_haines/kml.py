@@ -197,7 +197,7 @@ class KMLGeojsonPolygonIterator:
         self.features = iter(geojson['features'])
         # Source coordinate system, must match source data.
         proj_from = Proj(projparams=projection)
-        # Destination coordinate systems (NAD83, geographic coordinates)
+        # Destination coordinate systems (WGS84, geographic coordinates)
         proj_to = Proj(WGS84)
         self.project = Transformer.from_proj(proj_from, proj_to, always_xy=True)
 

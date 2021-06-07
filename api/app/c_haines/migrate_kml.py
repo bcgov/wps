@@ -12,7 +12,7 @@ import logging
 import io
 from sqlalchemy import desc
 from app import configure_logging
-from app.utils.minio import get_minio_client, object_exists
+from app.utils.s3 import get_minio_client, object_exists
 import app.db.database
 from app.db.crud.c_haines import get_prediction_geojson
 from app.db.models.weather_models import PredictionModel
@@ -26,7 +26,8 @@ logger = logging.getLogger(__name__)
 
 class KMLGeojsonPolygonIterator:
     """ Generator that produces a kml polygon for every geojson feature. This generator assumes GeoJSON
-    as provided by DB query. """
+    as provided by DB query. No projection transformation is required, as the geojson from the database
+    is already in WGS84. """
 
     def __init__(self, geojson):
         self.features = iter(geojson['features'])

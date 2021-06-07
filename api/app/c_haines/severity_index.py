@@ -14,7 +14,7 @@ from minio import Minio
 from shapely.ops import transform
 from shapely.geometry import shape
 from sqlalchemy.orm import Session
-from app.utils.minio import get_minio_client, object_exists
+from app.utils.s3 import get_minio_client, object_exists
 from app.utils.time import get_utc_now
 from app.db.models.c_haines import CHainesPoly, CHainesPrediction, CHainesModelRun, get_severity_string
 from app.weather_models import ModelEnum, ProjectionEnum

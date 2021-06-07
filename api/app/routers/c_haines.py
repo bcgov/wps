@@ -13,7 +13,7 @@ from app.c_haines.object_store import generate_full_object_store_path, ObjectTyp
 from app.c_haines.fetch import (fetch_prediction_geojson,
                                 fetch_model_runs,
                                 fetch_model_run_kml_streamer,
-                                fetch_network_link_kml, parse_model_run_path)
+                                fetch_network_link_kml, extract_model_run_timestamp_from_path)
 
 
 logger = logging.getLogger(__name__)
@@ -58,7 +58,7 @@ def _get_most_recent_kml_model_run(model: ModelEnum) -> datetime:
 
     logger.info('most record model run: %s', most_recent.object_name)
 
-    return parse_model_run_path(most_recent.object_name)
+    return extract_model_run_timestamp_from_path(most_recent.object_name)
 
 
 @router.get('/{model}/predictions')
