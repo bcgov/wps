@@ -1,5 +1,6 @@
 """ Read a grib file, and store values relevant to weather stations in database.
 """
+# TODO: remove the pylint disable command below once c-haines migration is complete.
 
 import math
 import struct

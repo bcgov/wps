@@ -305,12 +305,12 @@ class EnvCanadaPayload():
         self.prediction_timestamp: datetime = None
 
 
-def re_project_geojson(source_json_filename: str,
-                       source_projection: str,
-                       target_json_filename: str,
-                       target_epsg: int):
+def re_project_and_classify_geojson(source_json_filename: str,
+                                    source_projection: str,
+                                    target_json_filename: str,
+                                    target_epsg: int):
     """ Given a geojson file in a specified projection, re-project it and save it
-    to a new file.
+    to a new file. While you're at it, re-classify the "severity index" as a c_haines_index string.
     """
     # pylint: disable=too-many-locals
     geojson_driver = ogr.GetDriverByName('GeoJSON')
@@ -330,9 +330,9 @@ def re_project_geojson(source_json_filename: str,
         geojson_driver.DeleteDataSource(target_json_filename)
     target_data_set = geojson_driver.CreateDataSource(target_json_filename)
     target_layer = target_data_set.CreateLayer('C-Haines')
-    field_def = ogr.FieldDefn("severity", ogr.OFTInteger)
-    field_def.SetWidth(24)
-    target_layer.CreateField(field_def)
+    target_field_def = ogr.FieldDefn("c_haines_index", ogr.OFTString)
+    target_field_def.SetWidth(24)
+    target_layer.CreateField(target_field_def)
     target_layer_definition = target_layer.GetLayerDefn()
 
     # Iterate through features.
@@ -342,12 +342,11 @@ def re_project_geojson(source_json_filename: str,
         geom = source_feature.GetGeometryRef()
         # reproject to target projection.
         geom.Transform(coordinate_transformation)
-        # copy the feature.
+        # copy the feature - reclassifying with severity string.
         target_feature = ogr.Feature(target_layer_definition)
         target_feature.SetGeometry(geom)
-        for i in range(0, target_layer_definition.GetFieldCount()):
-            target_feature.SetField(target_layer_definition.GetFieldDefn(
-                i).GetNameRef(), source_feature.GetField(i))
+        target_feature.SetField(target_field_def.GetNameRef(),
+                                get_severity_string(source_feature.GetField(0)))
         # add the feature to the target.
         target_layer.CreateFeature(target_feature)
 
@@ -383,7 +382,11 @@ def save_as_geojson_to_s3(client: Minio,  # pylint: disable=too-many-arguments
 
     # re-project the geojson file from whatever it was, to WGS84.
     tmp_geojson_filename = os.path.join(temporary_path, 'reprojected.json')
-    re_project_geojson(source_json_filename, source_projection, tmp_geojson_filename, WGS84_EPSG)
+    re_project_and_classify_geojson(
+        source_json_filename,
+        source_projection,
+        tmp_geojson_filename,
+        WGS84_EPSG)
     # smash the file into the object store.
     logger.info('uploading %s', target_path)
     client.fput_object(bucket, target_path, tmp_geojson_filename)
@@ -552,7 +555,7 @@ class CHainesSeverityGenerator():
                 c_haines_severity_data, c_haines_mask_data = generate_severity_data(c_haines_data)
                 # We're done with the c_haines data, so we can clean up some memory.
                 del c_haines_data
-                # Save to database and s3.
+                # Save to s3.
                 self._persist_severity_data(payload,
                                             c_haines_severity_data,
                                             c_haines_mask_data,
