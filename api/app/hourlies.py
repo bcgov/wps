@@ -11,6 +11,7 @@ from app.db.crud.observations import get_hourly_actuals
 import app.stations
 from app import wildfire_one
 from app.schemas.observations import WeatherStationHourlyReadings, WeatherReading
+from app.utils.dewpoint import compute_dewpoint
 
 
 def get(value: object, condition: bool = True):
@@ -48,7 +49,7 @@ async def fetch_hourly_readings_from_db(
                 wind_speed=get(reading.wind_speed, reading.wspeed_valid),
                 wind_direction=get(reading.wind_direction, reading.wdir_valid),
                 precipitation=get(reading.precipitation, reading.precip_valid),
-                dewpoint=get(reading.dewpoint),
+                dewpoint=compute_dewpoint(get(reading.temperature), get(reading.relative_humidity)),
                 ffmc=get(reading.ffmc),
                 isi=get(reading.isi),
                 fwi=get(reading.fwi)

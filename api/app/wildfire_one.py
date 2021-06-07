@@ -14,6 +14,7 @@ from app.schemas.observations import WeatherStationHourlyReadings, WeatherReadin
 from app.schemas.stations import (WeatherStation, GeoJsonDetailedWeatherStation,
                                   DetailedWeatherStationProperties, WeatherStationGeometry, WeatherVariables)
 from app.db.crud.stations import _get_noon_date
+from app.utils.dewpoint import compute_dewpoint
 
 
 logger = logging.getLogger(__name__)
@@ -197,7 +198,7 @@ def _parse_station(station) -> WeatherStation:
 
 
 def _parse_hourly(hourly) -> WeatherReading:
-    """ Transform from the raw hourly json object returned by wf1, to our hourly obkect.
+    """ Transform from the raw hourly json object returned by wf1, to our hourly object.
     """
     timestamp = datetime.fromtimestamp(
         int(hourly['weatherTimestamp'])/1000, tz=timezone.utc).isoformat()
@@ -205,6 +206,7 @@ def _parse_hourly(hourly) -> WeatherReading:
         datetime=timestamp,
         temperature=hourly.get('temperature', None),
         relative_humidity=hourly.get('relativeHumidity', None),
+        dewpoint=compute_dewpoint(hourly.get('temperature'), hourly.get('relativeHumidity')),
         wind_speed=hourly.get('windSpeed', None),
         wind_direction=hourly.get('windDirection', None),
         barometric_pressure=hourly.get('barometricPressure', None),
@@ -352,7 +354,7 @@ def prepare_fetch_hourlies_query(raw_station: dict, start_timestamp: datetime, e
 
 
 def prepare_fetch_dailies_for_all_stations_query(time_of_interest: datetime, page_count: int):
-    """ Prepare url and params for fetching dailies (that's forecast and observations for noon) for all.
+    """ Prepare url and params for fetching dailies(that's forecast and observations for noon) for all.
     stations. """
     base_url = config.get('WFWX_BASE_URL')
     noon_date = _get_noon_date(time_of_interest)
@@ -368,7 +370,7 @@ def prepare_fetch_dailies_for_all_stations_query(time_of_interest: datetime, pag
 
 async def fetch_raw_dailies_for_all_stations(
         session: ClientSession, headers: dict, time_of_interest: datetime) -> list:
-    """ Fetch the noon values (observations and forecasts) for a given time, for all weather stations.
+    """ Fetch the noon values(observations and forecasts) for a given time, for all weather stations.
     """
     # We don't know how many pages until our first call - so we assume one page to start with.
     total_pages = 1
@@ -407,7 +409,7 @@ async def fetch_hourlies(
             if hourly.get('hourlyMeasurementTypeCode', '').get('id') == 'ACTUAL':
                 hourlies.append(_parse_hourly(hourly))
 
-        logger.debug('fetched %d hourlies for %s(%s)', len(
+        logger.error('fetched %d hourlies for %s(%s)', len(
             hourlies), raw_station['displayLabel'], raw_station['stationCode'])
 
         return WeatherStationHourlyReadings(values=hourlies, station=_parse_station(raw_station))
