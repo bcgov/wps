@@ -274,12 +274,16 @@ def get_processed_file_record(session: Session, url: str) -> ProcessedModelRunUr
 
 
 def get_prediction_model(session: Session,
-                         abbreviation: ModelEnum,
+                         model_enum: ModelEnum,
                          projection: ProjectionEnum) -> PredictionModel:
     """ Get the prediction model corresponding to a particular abbreviation and projection. """
-    return session.query(PredictionModel).\
-        filter(PredictionModel.abbreviation == abbreviation).\
-        filter(PredictionModel.projection == projection).first()
+    try:
+        return session.query(PredictionModel).\
+            filter(PredictionModel.abbreviation == model_enum.value).\
+            filter(PredictionModel.projection == projection.value).first()
+    except:
+        logger.error('wtf')
+        raise
 
 
 def get_prediction_model_run_timestamp_records(
@@ -288,7 +292,7 @@ def get_prediction_model_run_timestamp_records(
     query = session.query(PredictionModelRunTimestamp, PredictionModel) \
         .join(PredictionModelRunTimestamp,
               PredictionModelRunTimestamp.prediction_model_id == PredictionModel.id)\
-        .filter(PredictionModel.abbreviation == model_type)
+        .filter(PredictionModel.abbreviation == model_type.value)
     if interpolated is not None:
         query = query.filter(
             PredictionModelRunTimestamp.interpolated == interpolated)

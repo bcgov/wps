@@ -62,7 +62,7 @@ def parse_gdps_rdps_filename(filename):
     level = parts[4]
     variable_name = '_'.join(
         [variable, level_type, level])
-    projection = parts[5]
+    projection = ProjectionEnum(parts[5])
     prediction_start = parts[6][:-2]
     run_time = parts[6][-2:]
     model_run_timestamp = datetime.datetime(
@@ -87,7 +87,7 @@ def parse_high_res_model_filename(filename):
     level = parts[5]
     variable_name = '_'.join(
         [variable, level_type, level])
-    projection = parts[6]
+    projection = ProjectionEnum(parts[6])
     prediction_start = parts[7][:-2]
     run_time = parts[7][-2:]
     model_run_timestamp = datetime.datetime(
@@ -113,21 +113,21 @@ def parse_env_canada_filename(filename):
     if model == 'glb':
         model, variable_name, projection, model_run_timestamp, prediction_timestamp = \
             parse_gdps_rdps_filename(filename)
-        model_abbreviation = ModelEnum.GDPS
+        model_enum = ModelEnum.GDPS
     elif model == 'hrdps':
         model, variable_name, projection, model_run_timestamp, prediction_timestamp = \
             parse_high_res_model_filename(filename)
-        model_abbreviation = ModelEnum.HRDPS
+        model_enum = ModelEnum.HRDPS
     elif model == 'reg':
         model, variable_name, projection, model_run_timestamp, prediction_timestamp = \
             parse_gdps_rdps_filename(filename)
-        model_abbreviation = ModelEnum.RDPS
+        model_enum = ModelEnum.RDPS
     else:
         raise UnhandledPredictionModelType(
             'Unhandled prediction model type found', model)
 
     info = ModelRunInfo()
-    info.model_abbreviation = model_abbreviation
+    info.model_enum = model_enum
     info.projection = projection
     info.model_run_timestamp = model_run_timestamp
     info.prediction_timestamp = prediction_timestamp
@@ -155,12 +155,12 @@ def get_file_date_part(now, model_run_hour) -> str:
     return date
 
 
-def get_model_run_hours(model_abbreviation: str):
+def get_model_run_hours(model_type: ModelEnum):
     """ Yield model run hours for GDPS (00h00 and 12h00) """
-    if model_abbreviation == ModelEnum.GDPS:
+    if model_type == ModelEnum.GDPS:
         for hour in [0, 12]:
             yield hour
-    elif model_abbreviation in (ModelEnum.HRDPS, ModelEnum.RDPS):
+    elif model_type in (ModelEnum.HRDPS, ModelEnum.RDPS):
         for hour in [0, 6, 12, 18]:
             yield hour
 
@@ -358,7 +358,7 @@ class EnvCanada():
         # We always work in UTC:
         self.now = time_utils.get_utc_now()
         self.grib_processor = GribFileProcessor()
-        self.model_type = model_type
+        self.model_type: ModelEnum = model_type
         # set projection based on model_type
         if self.model_type == ModelEnum.GDPS:
             self.projection = ProjectionEnum.LATLON_15X_15
@@ -643,7 +643,7 @@ class ModelValueProcessor:
         self.session.add(model_run)
         self.session.commit()
 
-    def process(self, model_type: str):
+    def process(self, model_type: ModelEnum):
         """ Entry point to start processing model runs that have not yet had their predictions interpolated
         """
         # Get model runs that are complete (fully downloaded), but not yet interpolated.
