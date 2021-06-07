@@ -37,11 +37,19 @@
    },
    "https://wf1/wfwx/v1/hourlies/search/findHourliesByWeatherTimestampBetweenAndStationIdEqualsOrderByWeatherTimestampAsc": {
       "get": {
-         "{'startTimestamp': 1589644213962, 'endTimestamp': 1590076213962, 'stationId': 'df4832f9-5318-4aee-94bc-f24c8f039f2e'}": {
-            "None": "wfwx/v1/hourlies/search/findHourliesByWeatherTimestampBetweenAndStationIdEqualsOrderByWeatherTimestampAsc__startTimestamp_1589644213962_endTimestamp_1590076213962_stationId_df4832f9-5318-4aee-94bc-f24.json"
+         "{'startTimestamp': 1589644213962, 'endTimestamp': 1590940213962, 'stationId': 'df4832f9-5318-4aee-94bc-f24c8f039f2e'}": {
+            "None": "wfwx/v1/hourlies/search/findHourliesByWeatherTimestampBetweenAndStationIdEqualsOrderByWeatherTimestampAsc__startTimestamp_1589644213962_endTimestamp_1590940213962_stationId_df4832f9-5318-4aee-94bc-f24.json"
          },
-         "{'startTimestamp': 1589644213962, 'endTimestamp': 1590076213962, 'stationId': '45d948f7-c57b-4069-92b7-50ac3bff3ad1'}": {
-            "None": "wfwx/v1/hourlies/search/findHourliesByWeatherTimestampBetweenAndStationIdEqualsOrderByWeatherTimestampAsc__startTimestamp_1589644213962_endTimestamp_1590076213962_stationId_45d948f7-c57b-4069-92b7-50a.json"
+         "{'startTimestamp': 1589644213962, 'endTimestamp': 1590940213962, 'stationId': '45d948f7-c57b-4069-92b7-50ac3bff3ad1'}": {
+            "None": "wfwx/v1/hourlies/search/findHourliesByWeatherTimestampBetweenAndStationIdEqualsOrderByWeatherTimestampAsc__startTimestamp_1589644213962_endTimestamp_1590940213962_stationId_45d948f7-c57b-4069-92b7-50a.json"
+         }
+      },
+      "post": {
+         "{'startTimestamp': 1589644213962, 'endTimestamp': 1590940213962, 'stationId': 'df4832f9-5318-4aee-94bc-f24c8f039f2e'}": {
+            "None": "wfwx/v1/hourlies/search/findHourliesByWeatherTimestampBetweenAndStationIdEqualsOrderByWeatherTimestampAsc__startTimestamp_1589644213962_endTimestamp_1590940213962_stationId_df4832f9-5318-4aee-94bc-f24.json"
+         },
+         "{'startTimestamp': 1589644213962, 'endTimestamp': 1590940213962, 'stationId': '45d948f7-c57b-4069-92b7-50ac3bff3ad1'}": {
+            "None": "wfwx/v1/hourlies/search/findHourliesByWeatherTimestampBetweenAndStationIdEqualsOrderByWeatherTimestampAsc__startTimestamp_1589644213962_endTimestamp_1590940213962_stationId_45d948f7-c57b-4069-92b7-50a.json"
          }
       }
    },
