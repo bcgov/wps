@@ -8,7 +8,7 @@ import asyncio
 import logging
 
 from app import config
-from app.utils.s3 import get_minio_client, get_client
+from app.utils.s3 import get_client
 from app.c_haines.kml import (get_look_at,
                               get_kml_header, FOLDER_OPEN, FOLDER_CLOSE)
 from app.c_haines.object_store import ObjectTypeEnum, generate_object_store_model_run_path
@@ -30,7 +30,7 @@ async def fetch_prediction_geojson(model: ModelEnum, model_run_timestamp: dateti
     return response
 
 
-def fetch_model_run_kml_streamer(model: ModelEnum, model_run_timestamp: datetime) -> Iterator[str]:
+async def fetch_model_run_kml_streamer(model: ModelEnum, model_run_timestamp: datetime) -> Iterator[str]:
     """ Yield model run XML (allows streaming response to start while kml is being
     constructed.)
     """
@@ -47,33 +47,35 @@ def fetch_model_run_kml_streamer(model: ModelEnum, model_run_timestamp: datetime
     yield '<Folder>'
     yield f'<name>{model_run_timestamp} model run</name>\n'
 
-    client, bucket = get_minio_client()
+    async with get_client() as (client, bucket):
 
-    model_run_path = generate_object_store_model_run_path(model, model_run_timestamp, ObjectTypeEnum.KML)
-    predictions = client.list_objects(bucket, prefix=model_run_path, recursive=True)
-    for prediction in predictions:
-        prediction_timestamp = prediction.object_name.split('/')[-1].split('.')[0]
+        model_run_path = generate_object_store_model_run_path(model, model_run_timestamp, ObjectTypeEnum.KML)
+        predictions = await client.list_objects_v2(Bucket=bucket, Prefix=model_run_path)
+        if 'Contents' in predictions:
+            for prediction in predictions['Contents']:
+                object_name = prediction['Key']
+                prediction_timestamp = object_name.split('/')[-1].split('.')[0]
 
-        kml_params = {'model_run_timestamp': model_run_timestamp,
-                      'prediction_timestamp': prediction_timestamp,
-                      'response_format': 'KML'}
-        # create url (remembering to escape & for xml)
-        kml_url = urljoin(uri, f'/api/c-haines/{model}/prediction') + \
-            '?' + urlencode(kml_params).replace('&', '&amp;')
-        yield '<NetworkLink>\n'
-        yield '<visibility>1</visibility>\n'
-        yield f'<name>{prediction_timestamp}</name>\n'
-        yield '<Link>\n'
-        yield f'<href>{kml_url}</href>\n'
-        yield '</Link>\n'
-        yield '</NetworkLink>\n'
+                kml_params = {'model_run_timestamp': model_run_timestamp,
+                              'prediction_timestamp': prediction_timestamp,
+                              'response_format': 'KML'}
+                # create url (remembering to escape & for xml)
+                kml_url = urljoin(uri, f'/api/c-haines/{model}/prediction') + \
+                    '?' + urlencode(kml_params).replace('&', '&amp;')
+                yield '<NetworkLink>\n'
+                yield '<visibility>1</visibility>\n'
+                yield f'<name>{prediction_timestamp}</name>\n'
+                yield '<Link>\n'
+                yield f'<href>{kml_url}</href>\n'
+                yield '</Link>\n'
+                yield '</NetworkLink>\n'
 
-    yield '</Folder>'
-    yield '</Folder>'
-    # Close the KML document.
-    yield '</Document>\n'
-    yield '</kml>\n'
-    logger.info('kml complete')
+        yield '</Folder>'
+        yield '</Folder>'
+        # Close the KML document.
+        yield '</Document>\n'
+        yield '</kml>\n'
+        logger.info('kml complete')
 
 
 def fetch_network_link_kml() -> str:

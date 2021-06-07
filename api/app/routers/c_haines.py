@@ -1,7 +1,6 @@
 """ Routes for c-haines
 """
 from enum import Enum
-from functools import reduce
 from datetime import datetime
 import logging
 from fastapi import APIRouter, HTTPException
@@ -110,28 +109,30 @@ async def get_c_haines_model_run_prediction(
     logger.info('/c-haines/%s/prediction?model_run_timestamp=%s&prediction_timestamp=%s&response_format=%s',
                 model, model_run_timestamp, prediction_timestamp, response_format)
 
-    if response_format == FormatEnum.GEOJSON:
-        geojson_response = await fetch_prediction_geojson(
-            model, model_run_timestamp, prediction_timestamp)
-        # We check for features - if there are no features, we return a 404.
-        # NOTE: Technically, we should only return 404 if we're certain there is no record in the database...
-        if geojson_response['features']:
-            # Let the browser cache the data as much as it wants.
-            headers = {"Cache-Control": "max-age=3600, public, immutable"}
-            return JSONResponse(
-                content=geojson_response,
-                headers=headers)
-        raise HTTPException(status_code=404)
+    # if response_format == FormatEnum.GEOJSON:
+    #     geojson_response = await fetch_prediction_geojson(
+    #         model, model_run_timestamp, prediction_timestamp)
+    #     # We check for features - if there are no features, we return a 404.
+    #     # NOTE: Technically, we should only return 404 if we're certain there is no record in the database...
+    #     if geojson_response['features']:
+    #         # Let the browser cache the data as much as it wants.
+    #         headers = {"Cache-Control": "max-age=3600, public, immutable"}
+    #         return JSONResponse(
+    #             content=geojson_response,
+    #             headers=headers)
+    #     raise HTTPException(status_code=404)
 
-    # else KML:
-    headers = {"Content-Type": kml_media_type}
-    headers["Content-Disposition"] = "inline;filename={}-{}-{}.kml".format(
-        model, model_run_timestamp, prediction_timestamp)
-
-    client, bucket = get_minio_client()
-    url = client.get_presigned_url("GET", bucket, generate_full_object_store_path(
-        model, model_run_timestamp, prediction_timestamp, ObjectTypeEnum.KML))
-    return RedirectResponse(url=url)
+    async with get_client() as (client, bucket):
+        if response_format == FormatEnum.GEOJSON:
+            key = generate_full_object_store_path(
+                model, model_run_timestamp, prediction_timestamp, ObjectTypeEnum.GEOJSON)
+        else:
+            key = generate_full_object_store_path(
+                model, model_run_timestamp, prediction_timestamp, ObjectTypeEnum.KML)
+        response = await client.generate_presigned_url(
+            'get_object',
+            Params={'Bucket': bucket, 'Key': key})
+        return RedirectResponse(url=response)
 
 
 @router.get('/model-runs')
