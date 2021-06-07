@@ -17,7 +17,7 @@ def get_minio_client() -> Tuple[Minio, str]:
 
 
 def object_exists(client, bucket, target_path: str):
-    """ Check if and object exists in the object store """
+    """ Check if an object exists in the object store """
     # using list_objects, but could be using stat as well? don't know what's best.
     item_gen = client.list_objects(bucket, target_path)
     item = None
