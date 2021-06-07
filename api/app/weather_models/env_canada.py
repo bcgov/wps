@@ -643,7 +643,7 @@ class ModelValueProcessor:
         self.session.add(model_run)
         self.session.commit()
 
-    def process(self, model_type: str):
+    def process(self, model_type: ModelEnum):
         """ Entry point to start processing model runs that have not yet had their predictions interpolated
         """
         # Get model runs that are complete (fully downloaded), but not yet interpolated.

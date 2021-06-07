@@ -288,7 +288,7 @@ def get_prediction_model_run_timestamp_records(
     query = session.query(PredictionModelRunTimestamp, PredictionModel) \
         .join(PredictionModelRunTimestamp,
               PredictionModelRunTimestamp.prediction_model_id == PredictionModel.id)\
-        .filter(PredictionModel.abbreviation == model_type)
+        .filter(PredictionModel.abbreviation == model_type.value)
     if interpolated is not None:
         query = query.filter(
             PredictionModelRunTimestamp.interpolated == interpolated)
