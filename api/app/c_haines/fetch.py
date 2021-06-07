@@ -12,22 +12,10 @@ from app.utils.s3 import get_client
 from app.c_haines.kml import (get_look_at,
                               get_kml_header, FOLDER_OPEN, FOLDER_CLOSE)
 from app.c_haines.object_store import ObjectTypeEnum, generate_object_store_model_run_path
-import app.db.database
 from app.schemas.weather_models import CHainesModelRuns, CHainesModelRunPredictions, WeatherPredictionModel
 from app.weather_models import ModelEnum
-from app.db.crud.c_haines import get_prediction_geojson
 
 logger = logging.getLogger(__name__)
-
-
-async def fetch_prediction_geojson(model: ModelEnum, model_run_timestamp: datetime,
-                                   prediction_timestamp: datetime):
-    """ Fetch prediction polygon geojson.
-    """
-    logger.info('model: %s; model_run: %s, prediction: %s', model, model_run_timestamp, prediction_timestamp)
-    with app.db.database.get_read_session_scope() as session:
-        response = get_prediction_geojson(session, model, model_run_timestamp, prediction_timestamp)
-    return response
 
 
 async def fetch_model_run_kml_streamer(model: ModelEnum, model_run_timestamp: datetime) -> Iterator[str]:
