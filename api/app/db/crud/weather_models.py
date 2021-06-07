@@ -277,13 +277,9 @@ def get_prediction_model(session: Session,
                          model_enum: ModelEnum,
                          projection: ProjectionEnum) -> PredictionModel:
     """ Get the prediction model corresponding to a particular abbreviation and projection. """
-    try:
-        return session.query(PredictionModel).\
-            filter(PredictionModel.abbreviation == model_enum.value).\
-            filter(PredictionModel.projection == projection.value).first()
-    except:
-        logger.error('wtf')
-        raise
+    return session.query(PredictionModel).\
+        filter(PredictionModel.abbreviation == model_enum.value).\
+        filter(PredictionModel.projection == projection.value).first()
 
 
 def get_prediction_model_run_timestamp_records(
