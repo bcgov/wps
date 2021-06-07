@@ -7,7 +7,7 @@ import logging
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse, StreamingResponse, Response
 from starlette.responses import RedirectResponse
-from app.utils.s3 import get_minio_client
+from app.utils.s3 import get_client
 from app.weather_models import ModelEnum
 from app.c_haines.object_store import generate_full_object_store_path, ObjectTypeEnum
 from app.c_haines.fetch import (fetch_prediction_geojson,
@@ -37,28 +37,40 @@ class NoModelRunFound(Exception):
     """ Exception thrown when no model run can be found """
 
 
-def _get_most_recent_kml_model_run(model: ModelEnum) -> datetime:
+async def _get_most_recent_kml_model_run(model: ModelEnum) -> datetime:
     """ Get the most recent model run date - if none exists, return None """
     # NOTE: This is a nasty, slow, brute force way of doing it!
-    client, bucket = get_minio_client()
+    async with get_client() as (client, bucket):
 
-    def get_most_recent(result, depth):
-        # use a reducer to iterate through the list of objects, returning the last one.
-        last_object = reduce(lambda _, y: y, result)
-        if last_object is None:
-            return None
-        if depth == 3:
-            return last_object
-        return get_most_recent(client.list_objects(bucket, last_object.object_name), depth+1)
+        async def get_most_recent(result, depth):
+            # use a reducer to iterate through the list of objects, returning the last one.
+            if 'CommonPrefixes' in result:
+                last_object = result['CommonPrefixes'][-1]
+                object_name = last_object['Prefix']
+            else:
+                return None
+            if depth == 3:
+                return object_name
+            return await get_most_recent(
+                await client.list_objects_v2(
+                    Bucket=bucket,
+                    Prefix=object_name,
+                    Delimiter='/'),
+                depth+1)
 
-    most_recent = get_most_recent(client.list_objects(bucket, f'c-haines-polygons/kml/{model}/'), 0)
+        most_recent = await get_most_recent(
+            await client.list_objects_v2(
+                Bucket=bucket,
+                Prefix=f'c-haines-polygons/kml/{model}/',
+                Delimiter='/'),
+            0)
 
-    if most_recent is None:
-        raise NoModelRunFound(f'no model run found for {model}')
+        if most_recent is None:
+            raise NoModelRunFound(f'no model run found for {model}')
 
-    logger.info('most record model run: %s', most_recent.object_name)
+        logger.info('most record model run: %s', most_recent)
 
-    return extract_model_run_timestamp_from_path(most_recent.object_name)
+        return extract_model_run_timestamp_from_path(most_recent)
 
 
 @router.get('/{model}/predictions')
@@ -74,7 +86,7 @@ async def get_c_haines_model_run(
         raise HTTPException(status_code=501)
     headers = {"Content-Type": kml_media_type}
     if model_run_timestamp is None:
-        model_run_timestamp = _get_most_recent_kml_model_run(model)
+        model_run_timestamp = await _get_most_recent_kml_model_run(model)
     if model_run_timestamp is None:
         # most recent model not found
         raise HTTPException(status_code=404)

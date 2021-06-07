@@ -10,6 +10,7 @@ from app import config
 
 def get_minio_client() -> Tuple[Minio, str]:
     """ Return minio client and bucket
+    TODO: Deprecated! Please stop using this!
     """
     server = config.get('OBJECT_STORE_SERVER')
     user_id = config.get('OBJECT_STORE_USER_ID')
@@ -40,7 +41,9 @@ async def get_client() -> Tuple[AioBaseClient, str]:
 
 
 def object_exists(client, bucket, target_path: str):
-    """ Check if and object exists in the object store """
+    """ Check if and object exists in the object store
+    TODO: Change this to use async
+    """
     # using list_objects, but could be using stat as well? don't know what's best.
     item_gen = client.list_objects(bucket, target_path)
     item = None
