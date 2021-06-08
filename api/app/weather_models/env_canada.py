@@ -366,6 +366,8 @@ class EnvCanada():
             self.projection = ProjectionEnum.HIGH_RES_CONTINENTAL
         elif self.model_type == ModelEnum.RDPS:
             self.projection = ProjectionEnum.REGIONAL_PS
+        else:
+            raise UnhandledPredictionModelType('Unknown model type: {}'.format(self.model_type))
 
     def process_model_run_urls(self, urls):
         """ Process the urls for a model run.
@@ -653,9 +655,9 @@ class ModelValueProcessor:
             logger.info('model %s', model)
             logger.info('model_run %s', model_run)
             # Process the model run.
-            self._process_model_run(model_run)
+            # self._process_model_run(model_run)
             # Mark the model run as interpolated.
-            self._mark_model_run_interpolated(model_run)
+            # self._mark_model_run_interpolated(model_run)
 
 
 def process_models():
@@ -669,7 +671,7 @@ def process_models():
     start_time = datetime.datetime.now()
 
     env_canada = EnvCanada(model_type)
-    env_canada.process()
+    # env_canada.process()
 
     with app.db.database.get_write_session_scope() as session:
         # interpolate and machine learn everything that needs interpolating.

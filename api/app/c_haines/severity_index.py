@@ -18,7 +18,7 @@ from app.utils.s3 import get_minio_client, object_exists
 from app.utils.time import get_utc_now
 from app.db.models.c_haines import CHainesPoly, CHainesPrediction, CHainesModelRun, get_severity_string
 from app.weather_models import ModelEnum, ProjectionEnum
-from app.geospatial import NAD83, WGS84_EPSG
+from app.geospatial import NAD83, WGS84
 from app.weather_models.env_canada import (get_model_run_hours,
                                            get_file_date_part, adjust_model_day, download,
                                            UnhandledPredictionModelType)
@@ -308,7 +308,7 @@ class EnvCanadaPayload():
 def re_project_and_classify_geojson(source_json_filename: str,
                                     source_projection: str,
                                     target_json_filename: str,
-                                    target_epsg: int):
+                                    target_epsg: str):
     """ Given a geojson file in a specified projection, re-project it and save it
     to a new file. While you're at it, re-classify the "severity index" as a c_haines_index string.
     """
@@ -319,7 +319,9 @@ def re_project_and_classify_geojson(source_json_filename: str,
     source_spatial_reference = osr.SpatialReference()
     source_spatial_reference.ImportFromWkt(source_projection)
     target_spatial_reference = osr.SpatialReference()
-    target_spatial_reference.ImportFromEPSG(target_epsg)
+    # target_spatial_reference.ImportFromEPSGA(target_epsg)
+    target_spatial_reference.SetWellKnownGeogCS(target_epsg)
+    # target_spatial_reference.ImportFromEPSG(target_epsg)
     coordinate_transformation = osr.CoordinateTransformation(
         source_spatial_reference, target_spatial_reference)
 
@@ -386,7 +388,7 @@ def save_as_geojson_to_s3(client: Minio,  # pylint: disable=too-many-arguments
         source_json_filename,
         source_projection,
         tmp_geojson_filename,
-        WGS84_EPSG)
+        WGS84)
     # smash the file into the object store.
     logger.info('uploading %s', target_path)
     client.fput_object(bucket, target_path, tmp_geojson_filename)
