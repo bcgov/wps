@@ -62,6 +62,7 @@ class WeatherStation(BaseModel):
     ecodivision_name: str = None
     core_season: Season = None
     elevation: int = NaN
+    wfwx_station_uuid: str = None
 
 
 class WeatherStationsResponse(BaseModel):

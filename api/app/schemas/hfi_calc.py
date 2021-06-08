@@ -28,6 +28,7 @@ class WeatherStationProperties(BaseModel):
     name: str
     elevation: int
     fuel_type: FuelType
+    wfwx_station_uuid: str
 
 
 class WeatherStation(BaseModel):

@@ -40,7 +40,7 @@ async def get_fire_centres(response: Response):
             fuel_type = FuelType(abbrev=fuel.abbrev, description=fuel.description)
             wfwx_station = get_wfwx_station(wfwx_stations_data, station.station_code)
             station_properties = WeatherStationProperties(
-                name=wfwx_station.name, fuel_type=fuel_type, elevation=wfwx_station.elevation)
+                name=wfwx_station.name, fuel_type=fuel_type, elevation=wfwx_station.elevation, wfwx_station_uuid=wfwx_station.wfwx_station_uuid)
             zone = await fetch_planning_area_by_id(station.planning_area_id)
             fc = await fetch_fire_centre_by_id(zone.fire_centre_id)
             fire_centre = FireCentre(name=fc.name)
