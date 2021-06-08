@@ -38,7 +38,7 @@ class WeatherStation(BaseModel):
     planning_area: PlanningArea
 
 
-class PlanningAreasResponse(BaseModel):
+class HFIWeatherStationsResponse(BaseModel):
     """ A list of WeatherStations, where each WeatherStation has nested within it all relevant information
     specific to BCWS planning operations. """
     stations: List[WeatherStation]
