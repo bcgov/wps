@@ -40,7 +40,6 @@ async def get_fire_centres(response: Response):
             planning_area = PlanningArea(name=zone.name, fire_centre=fire_centre)
             weather_station = WeatherStation(code=station.station_code,
                                              station_props=station_properties, planning_area=planning_area)
-            print(str(weather_station))
             stations_list.append(weather_station)
         return PlanningAreasResponse(stations=stations_list)
 
