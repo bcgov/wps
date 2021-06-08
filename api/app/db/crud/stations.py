@@ -3,7 +3,7 @@
 from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import Session
 from sqlalchemy.engine.cursor import CursorResult
-from app.time_utils import get_hour_20
+from app.utils.time import get_hour_20
 
 
 def _get_noon_date(date_of_interest: datetime) -> datetime:

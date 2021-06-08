@@ -13,7 +13,7 @@ from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
 import pytest
 import app.main
-import app.time_utils
+import app.utils.time
 from app.db.models.observations import HourlyActual
 from app.schemas.stations import WeatherStation
 from app.tests.common import default_mock_client_get
