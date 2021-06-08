@@ -12,7 +12,7 @@ from app import config, configure_logging
 import app.db.database
 from app.db.crud.forecasts import save_noon_forecast
 from app.db.models.forecasts import NoonForecast
-from app.fireweather_bot.common import BaseBot, get_station_names_to_codes
+from app.fireweather_bot.common import BaseBot, get_station_names_to_codes_local
 import app.utils.time
 from app.rocketchat_notifications import send_rocketchat_notification
 
@@ -60,7 +60,7 @@ def _parse_csv(temp_path: str):
     """
     with open(temp_path, 'r') as csv_file:
         data_df = pd.read_csv(csv_file)
-    station_codes = get_station_names_to_codes()
+    station_codes = get_station_names_to_codes_local()
     # drop any rows where 'display_name' is not found in the station_codes lookup:
     data_df.drop(index=data_df[~data_df['display_name'].isin(
         station_codes.keys())].index, inplace=True)

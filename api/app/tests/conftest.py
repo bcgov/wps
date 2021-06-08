@@ -12,11 +12,11 @@ from alchemy_mock.compat import mock
 from pytest_mock import MockerFixture
 import app.utils.s3
 from app.utils.time import get_pst_tz
+from app import auth
 from app.tests.common import (
     MockJWTDecode, default_aiobotocore_get_session, default_mock_requests_get, default_mock_requests_post,
     default_mock_requests_session_get, default_mock_requests_session_post)
 from app.db.models import PredictionModel, PredictionModelRunTimestamp
-import app.auth
 import app.db.database
 import app.utils.time as time_utils
 from app.schemas.shared import WeatherDataRequest
@@ -153,4 +153,4 @@ def mock_requests_session(monkeypatch):
 @pytest.fixture(autouse=True)
 def spy_access_logging(mocker: MockerFixture):
     """Spies on access audting logging for tests"""
-    return mocker.spy(app.auth, 'create_api_access_audit_log')
+    return mocker.spy(auth, 'create_api_access_audit_log')
