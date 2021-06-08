@@ -129,7 +129,6 @@ async def fetch_model_runs(model_run_timestamp: datetime):
     # NOTE: This is a horribly inefficient way of listing model runs - we're making 6 calls just to
     # list model runs.
     result = CHainesModelRuns(model_runs=[])
-    # TODO: implement fetching most recent model runs
     async with get_client() as (client, bucket):
         # create tasks for listing all the model runs
         tasks = []
@@ -147,17 +146,19 @@ async def fetch_model_runs(model_run_timestamp: datetime):
         for prediction_result in model_run_prediction_results:
             if 'Contents' in prediction_result:
                 model_run_predictions = None
+                prev_model_run_timestamp = None
                 for prediction in prediction_result['Contents']:
                     model, model_run_timestamp, prediction_timestamp = extract_model_run_prediction_from_path(
                         prediction['Key'])
-                    if model_run_predictions:
-                        model_run_predictions.prediction_timestamps.append(prediction_timestamp)
-                    else:
+                    if prev_model_run_timestamp != model_run_timestamp:
+                        prev_model_run_timestamp = model_run_timestamp
                         model_run_predictions = CHainesModelRunPredictions(
                             model=WeatherPredictionModel(name=model, abbrev=model),
                             model_run_timestamp=model_run_timestamp,
                             prediction_timestamps=[prediction_timestamp, ])
                         result.model_runs.append(model_run_predictions)
+                    else:
+                        model_run_predictions.prediction_timestamps.append(prediction_timestamp)
 
     result.model_runs.sort(key=lambda model_run: model_run.model_run_timestamp, reverse=True)
     return result
