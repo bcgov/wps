@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from aiohttp.client import ClientSession
 from sqlalchemy.exc import IntegrityError
 import app.db.database
-import app.time_utils
+import app.utils.time
 from app import configure_logging, wildfire_one
 from app.db.crud.observations import save_hourly_actual
 from app.rocketchat_notifications import send_rocketchat_notification
@@ -24,7 +24,7 @@ class HourlyActualsBot():
     """ Bot that downloads the hourly actuals from the wildfire website and stores it in a database. """
 
     def __init__(self):
-        self.now = app.time_utils.get_pst_now()
+        self.now = app.utils.time.get_pst_now()
 
     def _get_start_date(self) -> datetime:
         """ Return time N hour ago. E.g. if it's 17h15 now, we'd get YYYYMMDD16. The intention is that

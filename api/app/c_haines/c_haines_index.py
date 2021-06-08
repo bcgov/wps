@@ -6,8 +6,9 @@ from typing import Final, Tuple
 from functools import lru_cache
 from pyproj import CRS
 from osgeo import gdal
+from app.geospatial import NAD83_CRS
 from app.weather_models.process_grib import (
-    calculate_geographic_coordinate, get_dataset_geometry, get_transformer, GEO_CRS)
+    calculate_geographic_coordinate, get_dataset_geometry, get_transformer)
 from app.c_haines import GDALData
 
 
@@ -130,7 +131,7 @@ class CHainesGenerator():
             padf_transform = get_dataset_geometry(grib_tmp_700)
             crs = CRS.from_string(grib_tmp_700.GetProjection())
             # Create a transformer to go from whatever the raster is, to geographic coordinates.
-            raster_to_geo_transformer = get_transformer(crs, GEO_CRS)
+            raster_to_geo_transformer = get_transformer(crs, NAD83_CRS)
             self.bound_checker = BoundingBoxChecker(padf_transform, raster_to_geo_transformer)
         else:
             logger.info('Re-using bound checker.')

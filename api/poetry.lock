@@ -681,7 +681,7 @@ WTForms = "*"
 
 [[package]]
 name = "geoalchemy2"
-version = "0.8.5"
+version = "0.9.0"
 description = "Using SQLAlchemy with Spatial Databases"
 category = "main"
 optional = false
@@ -1081,6 +1081,18 @@ description = "McCabe checker, plugin for flake8"
 category = "main"
 optional = false
 python-versions = "*"
+
+[[package]]
+name = "minio"
+version = "7.0.3"
+description = "MinIO Python SDK for Amazon S3 Compatible Cloud Storage"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+certifi = "*"
+urllib3 = "*"
 
 [[package]]
 name = "mistune"
@@ -2218,7 +2230,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "ef7768a9b5716db35c93dd80ba2e1b813700a870cdbba2033a1492bc2bcaa44c"
+content-hash = "d9efd0179a9bfc78589580d9a3707d220b52d08481a322b43029a7da665a94c5"
 
 [metadata.files]
 aiodns = [
@@ -2621,8 +2633,8 @@ flask-wtf = [
     {file = "Flask_WTF-0.14.3-py2.py3-none-any.whl", hash = "sha256:57b3faf6fe5d6168bda0c36b0df1d05770f8e205e18332d0376ddb954d17aef2"},
 ]
 geoalchemy2 = [
-    {file = "GeoAlchemy2-0.8.5-py2.py3-none-any.whl", hash = "sha256:56dff13365ac2ea5ab828a697e240984f7ac448a32a3feba25356b4aa8e24d34"},
-    {file = "GeoAlchemy2-0.8.5.tar.gz", hash = "sha256:567e105e6b0d5fd94a5a869d358b0c47956570bb3f3d19e98086344b1abefed8"},
+    {file = "GeoAlchemy2-0.9.0-py2.py3-none-any.whl", hash = "sha256:5e54d979d49574e176b5eef6a9e7ab0d217a9f1098071dd578dbddc4b1f7ad9d"},
+    {file = "GeoAlchemy2-0.9.0.tar.gz", hash = "sha256:c32023bc2fb8fbb136f00a0e9c2feba21f3e1040af0f619c888661f6ee72dd28"},
 ]
 geopandas = [
     {file = "geopandas-0.9.0-py2.py3-none-any.whl", hash = "sha256:79f6e557ba0dba76eec44f8351b1c6b42a17c38f5f08fef347e98fe4dae563c7"},
@@ -2896,6 +2908,10 @@ matplotlib-inline = [
 mccabe = [
     {file = "mccabe-0.6.1-py2.py3-none-any.whl", hash = "sha256:ab8a6258860da4b6677da4bd2fe5dc2c659cff31b3ee4f7f5d64e79735b80d42"},
     {file = "mccabe-0.6.1.tar.gz", hash = "sha256:dd8d182285a0fe56bace7f45b5e7d1a6ebcbf524e8f3bd87eb0f125271b8831f"},
+]
+minio = [
+    {file = "minio-7.0.3-py3-none-any.whl", hash = "sha256:0c92711535253958e06f0ec3bb36889595eafa93bad41addfa7641c9f613aa3b"},
+    {file = "minio-7.0.3.tar.gz", hash = "sha256:5ce9eb66cc464b1860c379a69f25926dabd16f4d6acb8dd45f68d7ccd7629fcc"},
 ]
 mistune = [
     {file = "mistune-0.8.4-py2.py3-none-any.whl", hash = "sha256:88a1051873018da288eee8538d476dffe1262495144b33ecb586c4ab266bb8d4"},
