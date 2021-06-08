@@ -7,7 +7,7 @@ from app import wildfire_one
 from app.auth import authentication_required, audit
 from app.db.models.hfi_calc import FireCentre, FuelType, PlanningArea, PlanningWeatherStation
 from app.hfi_calc import fetch_fire_centre_by_id, fetch_fuel_type_by_id, fetch_hfi_station_data, fetch_planning_area_by_id
-from app.schemas.hfi_calc import PlanningAreasResponse, WeatherStationProperties, FuelType, FireCentre, PlanningArea, WeatherStation
+from app.schemas.hfi_calc import HFIWeatherStationsResponse, WeatherStationProperties, FuelType, FireCentre, PlanningArea, WeatherStation
 
 
 logger = logging.getLogger(__name__)
@@ -17,7 +17,7 @@ router = APIRouter(
 )
 
 
-@router.get('/', response_model=PlanningAreasResponse)
+@router.get('/', response_model=HFIWeatherStationsResponse)
 async def get_fire_centres(response: Response):
     """ Returns list of fire centres and planning area for each fire centre,
     and weather stations within each planning area. Also returns the assigned fuel type
@@ -48,7 +48,7 @@ async def get_fire_centres(response: Response):
             weather_station = WeatherStation(code=station.station_code,
                                              station_props=station_properties, planning_area=planning_area)
             stations_list.append(weather_station)
-        return PlanningAreasResponse(stations=stations_list)
+        return HFIWeatherStationsResponse(stations=stations_list)
 
     except Exception as exc:
         logger.critical(exc, exc_info=True)
