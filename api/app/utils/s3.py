@@ -4,7 +4,7 @@ from typing import Tuple
 from contextlib import asynccontextmanager
 from minio import Minio
 from aiobotocore.client import AioBaseClient
-import aiobotocore
+from aiobotocore import get_session
 from app import config
 
 
@@ -29,7 +29,7 @@ async def get_client() -> Tuple[AioBaseClient, str]:
     secret_key = config.get('OBJECT_STORE_SECRET')
     bucket = config.get('OBJECT_STORE_BUCKET')
 
-    session = aiobotocore.get_session()
+    session = get_session()
     async with session.create_client('s3',
                                      endpoint_url=f'https://{server}',
                                      aws_secret_access_key=secret_key,

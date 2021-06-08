@@ -3,10 +3,7 @@
 import logging
 import os
 import json
-from datetime import timedelta
-from typing import Iterator
-from minio.helpers import ObjectWriteResult
-from minio.datatypes import Object
+from contextlib import asynccontextmanager
 from app.tests.fixtures.loader import FixtureFinder
 
 
@@ -88,42 +85,48 @@ class MockAsyncResponse:
         return self._json
 
 
-class DefaultMockMinio:
-    """ Stubbed Minio object
+class DefaultMockAioBaseClient:
+    """ Stubbed AioBaseClient object
     """
     # It's a stubbed object, so we don't care about pylint warnings:
     # pylint: disable=unused-argument, missing-function-docstring, too-many-arguments, no-self-use
 
-    def __init__(self, endpoint, access_key=None,
-                 secret_key=None,
-                 session_token=None,
-                 secure=True,
-                 region=None,
-                 http_client=None,
-                 credentials=None):
+    def __init__(self, *args, **kwargs):
         """ you can set the values below for some default behaviour """
-        self.mock_get_presigned_url = None
-        self.mock_list_objects = []
+        self.mock_generate_presigned_url: str = None
+        self.mock_list_objects_v2: dict = {}
 
-    def list_objects(self, bucket_name, prefix=None, recursive=False,
-                     start_after=None, include_user_meta=False,
-                     include_version=False, use_api_v1=False) -> Iterator[Object]:
+    async def list_objects_v2(self, *args, **kwargs) -> dict:
         """ mock list objects """
-        return iter(self.mock_list_objects)
+        return self.mock_list_objects_v2
 
-    def fput_object(self, bucket_name, object_name, file_path,
-                    content_type="application/octet-stream",
-                    metadata=None, sse=None, progress=None,
-                    part_size=0, num_parallel_uploads=3,
-                    tags=None, retention=None, legal_hold=False) -> ObjectWriteResult:
+    async def fput_object(self, *args, **kwargs) -> dict:
         """ mock put object """
 
-    def get_presigned_url(self, method, bucket_name, object_name,
-                          expires=timedelta(days=7), response_headers=None,
-                          request_date=None, version_id=None,
-                          extra_query_params=None) -> str:
+    async def generate_presigned_url(self, *args, **kwargs) -> str:
         """ mock presigned url """
-        return self.get_presigned_url
+        return self.mock_generate_presigned_url
+
+    async def __aenter__(self):
+        """ Enter context """
+
+    async def __aexit__(self, *error_info):
+        """ Clean up anything you need to clean up """
+
+
+class DefaultMockAioSession:
+    """ Mock aiobotocore.session.AioSession """
+    # pylint: disable=unused-argument
+
+    @asynccontextmanager
+    async def create_client(self, *args, **kwargs):
+        """ Mock create client """
+        yield DefaultMockAioBaseClient()
+
+
+def default_aiobotocore_get_session():
+    """ Default session stub """
+    return DefaultMockAioSession()
 
 
 def is_json(filename):

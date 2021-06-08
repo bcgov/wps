@@ -129,6 +129,7 @@ async def fetch_model_runs(model_run_timestamp: datetime):
     # NOTE: This is a horribly inefficient way of listing model runs - we're making 6 calls just to
     # list model runs.
     result = CHainesModelRuns(model_runs=[])
+    # TODO: implement fetching most recent model runs
     async with get_client() as (client, bucket):
         # create tasks for listing all the model runs
         tasks = []
