@@ -5,23 +5,21 @@ import math
 import struct
 import logging
 import logging.config
-from typing import Final, List, Tuple
+from typing import List, Tuple
 from sqlalchemy.dialects.postgresql import array
 from sqlalchemy.orm import Session
 from osgeo import gdal
 from pyproj import CRS, Transformer
+from app.geospatial import NAD83_CRS
 from app.stations import get_stations_synchronously
 from app.db.models import (
     PredictionModel, PredictionModelRunTimestamp, ModelRunGridSubsetPrediction)
 from app.db.crud.weather_models import (
     get_prediction_model, get_or_create_prediction_run, get_or_create_grid_subset)
+from app.weather_models import ModelEnum, ProjectionEnum
 
 
 logger = logging.getLogger(__name__)
-
-# Ensure that grib file uses EPSG: 4269 (NAD83) coordinate system
-NAD83: Final = 'epsg:4269'
-GEO_CRS: Final = CRS(NAD83)
 
 
 class PredictionModelNotFound(Exception):
@@ -37,15 +35,15 @@ class ModelRunInfo():
     """
 
     def __init__(self):
-        self.model_abbreviation = None
-        self.projection = None
+        self.model_enum: ModelEnum = None
+        self.projection: ProjectionEnum = None
         self.model_run_timestamp = None
         self.prediction_timestamp = None
         self.variable_name = None
 
 
 def get_surrounding_grid(
-        band: gdal.Dataset, x_index: int, y_index: int) -> (List[int], List[float]):
+        band: gdal.Dataset, x_index: int, y_index: int) -> Tuple[List[int], List[float]]:
     """ Get the grid and values surrounding a given station
     NOTE: Order of the points is super important! Vertices are ordered clockwise, values are also
     ordered clockwise.
@@ -206,17 +204,17 @@ class GribFileProcessor():
         # (this step is included because HRDPS grib files are in another coordinate system)
         wkt = dataset.GetProjection()
         crs = CRS.from_string(wkt)
-        self.raster_to_geo_transformer = get_transformer(crs, GEO_CRS)
-        self.geo_to_raster_transformer = get_transformer(GEO_CRS, crs)
+        self.raster_to_geo_transformer = get_transformer(crs, NAD83_CRS)
+        self.geo_to_raster_transformer = get_transformer(NAD83_CRS, crs)
 
         self.padf_transform = get_dataset_geometry(dataset)
         # get the model (.e.g. GPDS/RDPS latlon24x.24):
         self.prediction_model = get_prediction_model(
-            session, grib_info.model_abbreviation, grib_info.projection)
+            session, grib_info.model_enum, grib_info.projection)
         if not self.prediction_model:
             raise PredictionModelNotFound(
                 'Could not find this prediction model in the database',
-                grib_info.model_abbreviation, grib_info.projection)
+                grib_info.model_enum, grib_info.projection)
 
         # get the model run (e.g. GDPS latlon24x.24 for 2020 07 07 12h00):
         prediction_run = get_or_create_prediction_run(

@@ -10,20 +10,23 @@ import json
 from osgeo import gdal, ogr
 import numpy
 from pyproj import Transformer, Proj
+from minio import Minio
 from shapely.ops import transform
 from shapely.geometry import shape
 from sqlalchemy.orm import Session
-from app.time_utils import get_utc_now
-from app.db.models.c_haines import CHainesPoly, CHainesPrediction, CHainesModelRun, severity_levels
+from app.utils.minio import get_minio_client, object_exists
+from app.utils.time import get_utc_now
+from app.db.models.c_haines import CHainesPoly, CHainesPrediction, CHainesModelRun, get_severity_string
 from app.db.crud.weather_models import get_prediction_model
 from app.db.crud.c_haines import (get_c_haines_prediction, get_or_create_c_haines_model_run)
 from app.weather_models import ModelEnum, ProjectionEnum
-from app.weather_models.process_grib import NAD83
+from app.geospatial import NAD83
 from app.weather_models.env_canada import (get_model_run_hours,
                                            get_file_date_part, adjust_model_day, download,
                                            UnhandledPredictionModelType)
 from app.c_haines.c_haines_index import CHainesGenerator
 from app.c_haines import GDALData
+from app.c_haines.kml import generate_full_kml_path, save_as_kml_to_s3
 
 
 logger = logging.getLogger(__name__)
@@ -50,12 +53,6 @@ def get_severity(c_haines_index) -> int:
     return 3
 
 
-def get_severity_string(severity: int) -> str:
-    """ Return the severity level as a string, e.g. severity level 3 maps to "11+"
-    """
-    return severity_levels[severity]
-
-
 @contextmanager
 def open_gdal(filename_tmp_700: str,
               filename_tmp_850: str,
@@ -78,6 +75,7 @@ def record_exists(
         model_run: CHainesModelRun,
         prediction_timestamp: datetime):
     """ Check if we have a c-haines record """
+    # TODO: this function will soon be made redundant.
     result = get_c_haines_prediction(session, model_run, prediction_timestamp)
     return result.count() > 0
 
@@ -187,7 +185,7 @@ class SourceInfo():
     """ Handy class to store source information in . """
 
     def __init__(self, projection, geotransform, rows: int, cols: int):
-        self.projection = projection
+        self.projection: str = projection
         self.geotransform = geotransform
         self.rows: int = rows
         self.cols: int = cols
@@ -333,6 +331,9 @@ class CHainesSeverityGenerator():
         self.projection = projection
         self.c_haines_generator = CHainesGenerator()
         self.session = session
+        client, bucket = get_minio_client()
+        self.client: Minio = client
+        self.bucket: str = bucket
 
     def _collect_payload(self,
                          urls: dict,
@@ -369,15 +370,39 @@ class CHainesSeverityGenerator():
             return payload
         return None
 
-    def _yield_payload(self, temporary_path):
+    def _assets_exist(self, prediction_model_abbreviation: str,
+                      model_run_timestamp: datetime,
+                      prediction_timestamp: datetime) -> bool:
+        """ Return True if kml and geojson assets already exist, otherwise False """
+        kml_path = generate_full_kml_path(
+            prediction_model_abbreviation,
+            model_run_timestamp,
+            prediction_timestamp)
+        kml_exists = object_exists(self.client, self.bucket, kml_path)
+        json_exists = False  # TODO: Implement this check
+        return kml_exists and json_exists
+
+    def _get_payloads(self, temporary_path) -> Generator[EnvCanadaPayload, None, None]:
         """ Iterator that yields the next to process. """
         prediction_model = get_prediction_model(self.session, self.model, self.projection)
         utc_now = get_utc_now()
         for model_hour in get_model_run_hours(self.model):
             model_run = None
             for prediction_hour in model_prediction_hour_iterator(self.model):
+
                 urls, model_run_timestamp, prediction_timestamp = make_model_run_download_urls(
                     self.model, utc_now, model_hour, prediction_hour)
+
+                # If the GeoJSON and the KML already exist, then we can skip this one.
+                if self._assets_exist(prediction_model.abbreviation,
+                                      model_run_timestamp,
+                                      prediction_timestamp):
+                    logger.info('%s: already processed %s-%s',
+                                self.model,
+                                model_run_timestamp, prediction_timestamp)
+                    continue
+
+                # TODO: section below soon to be redundant
                 if model_run is None:
                     model_run = get_or_create_c_haines_model_run(
                         self.session, model_run_timestamp, prediction_model)
@@ -386,6 +411,7 @@ class CHainesSeverityGenerator():
                                 self.model,
                                 model_run_timestamp, prediction_timestamp)
                     continue
+                # TODO: ^^ section above soon to be redundant.
 
                 payload = self._collect_payload(urls, prediction_timestamp, model_run, temporary_path)
                 if payload:
@@ -418,11 +444,11 @@ class CHainesSeverityGenerator():
 
         return c_haines_data, source_info
 
-    def _save_severity_data_to_database(self,
-                                        payload,
-                                        c_haines_severity_data,
-                                        c_haines_mask_data,
-                                        source_info: SourceInfo):
+    def _persist_severity_data(self,
+                               payload: EnvCanadaPayload,
+                               c_haines_severity_data,
+                               c_haines_mask_data,
+                               source_info: SourceInfo):
         with tempfile.TemporaryDirectory() as temporary_path:
             json_filename = os.path.join(os.getcwd(), temporary_path, 'c-haines.geojson')
             save_data_as_geojson(
@@ -430,6 +456,10 @@ class CHainesSeverityGenerator():
                 c_haines_mask_data,
                 source_info,
                 json_filename)
+
+            save_as_kml_to_s3(self.client, self.bucket, json_filename, source_info.projection,
+                              payload.model_run.prediction_model.abbreviation,
+                              payload.model_run.model_run_timestamp, payload.prediction_timestamp)
 
             save_geojson_to_database(self.session,
                                      source_info.projection,
@@ -441,18 +471,18 @@ class CHainesSeverityGenerator():
         """ Entry point for generating and storing c-haines severity index. """
         # Iterate through payloads that need processing.
         with tempfile.TemporaryDirectory() as temporary_path:
-            for payload in self._yield_payload(temporary_path):
+            for payload in self._get_payloads(temporary_path):
                 # Generate the c_haines data.
                 c_haines_data, source_info = self._generate_c_haines_data(payload)
                 # Generate the severity index and mask data.
                 c_haines_severity_data, c_haines_mask_data = generate_severity_data(c_haines_data)
                 # We're done with the c_haines data, so we can clean up some memory.
                 del c_haines_data
-                # Save to database.
-                self._save_severity_data_to_database(payload,
-                                                     c_haines_severity_data,
-                                                     c_haines_mask_data,
-                                                     source_info)
+                # Save to database and s3.
+                self._persist_severity_data(payload,
+                                            c_haines_severity_data,
+                                            c_haines_mask_data,
+                                            source_info)
                 # Delete temporary files
                 os.remove(payload.filename_dew_850)
                 os.remove(payload.filename_tmp_700)

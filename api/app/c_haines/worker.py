@@ -2,7 +2,7 @@
 """
 import logging
 from datetime import timedelta
-from app.time_utils import get_utc_now
+from app.utils.time import get_utc_now
 from app import configure_logging
 from app.config import get
 import app.db.database

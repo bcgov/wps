@@ -15,7 +15,7 @@ from geoalchemy2.shape import from_shape
 # TODO: get rid of alchemy mock!
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
-import app.time_utils as time_utils
+import app.utils.time as time_utils
 import app.db.database
 from app.schemas.stations import WeatherStation, Season
 from app.weather_models import env_canada, machine_learning

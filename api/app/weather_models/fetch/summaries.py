@@ -10,7 +10,6 @@ from app.schemas.weather_models import (
     WeatherModelPredictionSummary,
     WeatherModelPredictionSummaryValues,
     WeatherPredictionModel)
-import app.time_utils as time_utils
 import app.db.database
 from app.db.crud.weather_models import get_station_model_predictions_order_by_prediction_timestamp
 from app.db.models import PredictionModel, WeatherStationModelPrediction

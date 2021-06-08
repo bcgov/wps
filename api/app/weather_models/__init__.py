@@ -26,6 +26,7 @@ class ProjectionEnum(str, Enum):
     """ Enumerator for different projections based on the different
     kinds of weather models
     """
+    LATLON_24X_24 = 'latlon.24x.24'
     LATLON_15X_15 = 'latlon.15x.15'
     HIGH_RES_CONTINENTAL = 'ps2.5km'
     REGIONAL_PS = 'ps10km'
