@@ -78,7 +78,7 @@ def _get_csv_response(session: Session, url: str):
     )
 
 
-def get_station_names_to_codes() -> dict:
+def get_station_names_to_codes_local() -> dict:
     """ Helper function to create dictionary of (station_name: station_code) key-value pairs
     Is used when replacing station names with station IDs in dataframe
     """
