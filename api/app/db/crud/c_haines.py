@@ -7,7 +7,7 @@ from sqlalchemy.sql import text
 from sqlalchemy.orm import Session
 from app.weather_models import ModelEnum
 from app.db.models import CHainesPrediction, CHainesModelRun, PredictionModel, CHainesPoly
-from app.time_utils import get_utc_now
+from app.utils.time import get_utc_now
 
 
 logger = logging.getLogger(__name__)
@@ -50,15 +50,6 @@ def delete_older_than(session: Session, point_in_time: datetime):
     model_runs = session.query(CHainesModelRun)\
         .filter(CHainesModelRun.model_run_timestamp < point_in_time).delete()
     logger.info('deleted %s model runs', model_runs)
-
-
-def get_most_recent_model_run(session: Session, model: ModelEnum) -> CHainesModelRun:
-    """ Return the most recent model run for which we have at least one prediction. """
-    return session.query(CHainesModelRun)\
-        .join(PredictionModel, PredictionModel.id == CHainesModelRun.prediction_model_id)\
-        .join(CHainesPrediction, CHainesPrediction.model_run_id == CHainesModelRun.id)\
-        .filter(PredictionModel.abbreviation == model)\
-        .order_by(desc(CHainesModelRun.model_run_timestamp)).limit(1).first()
 
 
 def get_c_haines_model_run(
@@ -126,61 +117,6 @@ def get_model_run_predictions(session: Session, model_run_timestamp: datetime):
         .order_by(desc(CHainesModelRun.model_run_timestamp), CHainesModelRun.id,
                   asc(CHainesPrediction.prediction_timestamp))
     return query
-
-
-def get_model_run_kml(session: Session,
-                      model: ModelEnum,
-                      model_run_timestamp: datetime):
-    """ Get the kml for a particular prediction """
-    query = text("""select ST_AsKML(ST_SetSRID(t.geom, 4269)), t.c_haines_index, t.prediction_timestamp from (
-        select geom, c_haines_index, prediction_timestamp from c_haines_polygons
-        inner join c_haines_predictions on
-            c_haines_predictions.id =
-            c_haines_polygons.c_haines_prediction_id
-        inner join c_haines_model_runs on
-            c_haines_model_runs.id = 
-            c_haines_predictions.model_run_id
-        inner join prediction_models on
-            prediction_models.id =
-            c_haines_model_runs.prediction_model_id
-        where
-            model_run_timestamp = :model_run_timestamp and
-            prediction_models.abbreviation = :model
-        order by prediction_timestamp asc, c_haines_index asc
-    ) as t(geom, c_haines_index)""")
-    # pylint: disable=no-member
-    return session.execute(query,
-                           {"model_run_timestamp": model_run_timestamp.isoformat(),
-                            "model": model})
-
-
-def get_prediction_kml(session: Session,
-                       model: ModelEnum,
-                       model_run_timestamp: datetime,
-                       prediction_timestamp: datetime):
-    """ Get the kml for a particular prediction """
-    query = text("""select ST_AsKML(ST_SetSRID(t.geom, 4269)), t.c_haines_index from (
-        select geom, c_haines_index from c_haines_polygons
-        inner join c_haines_predictions on
-            c_haines_predictions.id =
-            c_haines_polygons.c_haines_prediction_id
-        inner join c_haines_model_runs on
-            c_haines_model_runs.id = 
-            c_haines_predictions.model_run_id
-        inner join prediction_models on
-            prediction_models.id =
-            c_haines_model_runs.prediction_model_id
-        where
-            prediction_timestamp = :prediction_timestamp and
-            model_run_timestamp = :model_run_timestamp and
-            prediction_models.abbreviation = :model
-        order by c_haines_index asc
-    ) as t(geom, c_haines_index)""")
-    # pylint: disable=no-member
-    return session.execute(query, {
-        "prediction_timestamp": prediction_timestamp.isoformat(),
-        "model_run_timestamp": model_run_timestamp.isoformat(),
-        "model": model})
 
 
 def get_prediction_geojson(session: Session,

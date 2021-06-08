@@ -29,6 +29,7 @@ jinja2 = "^3"
 sklearn = "^0"
 pytest-mock = "^3"
 numpy = "^1.19.5"
+minio = "^7.0.3"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6"

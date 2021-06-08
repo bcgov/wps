@@ -1,10 +1,10 @@
 """ Unit testing for hourly actuals bot (Marvin) """
-from app.time_utils import get_utc_now
 import asyncio
 import os
 import logging
 import pytest
 from pytest_mock import MockerFixture
+from app.utils.time import get_utc_now
 from app.fireweather_bot import hourly_actuals
 from app.schemas.observations import WeatherReading
 from app.wildfire_one import WFWXWeatherStation
