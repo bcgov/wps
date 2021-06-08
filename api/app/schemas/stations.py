@@ -1,6 +1,7 @@
 """ This module contains pydandict schemas relating to weather stations for the API.
 """
 from typing import List
+from numpy import NaN
 from pydantic import BaseModel
 
 
@@ -60,6 +61,7 @@ class WeatherStation(BaseModel):
     long: float
     ecodivision_name: str = None
     core_season: Season = None
+    elevation: int = NaN
 
 
 class WeatherStationsResponse(BaseModel):
