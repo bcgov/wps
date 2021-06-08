@@ -1,12 +1,15 @@
 """ BDD tests for c-haines api endpoint.
 """
-from typing import Callable, Union
-import importlib
-import jsonpickle
+from typing import Callable, Union, Iterator
 from pytest_bdd import scenario, given, when, then
 from fastapi.testclient import TestClient
+from minio.datatypes import Object
+import pytest
 import app.main
+import app.routers.c_haines
+import app.c_haines.fetch
 from app.tests import load_json_file, _load_json_file, get_complete_filename, apply_crud_mapping
+from app.tests.common import DefaultMockMinio
 
 
 def _load_text_file(module_path: str, filename: str) -> Union[str, None]:
@@ -26,6 +29,41 @@ def load_expected_response(module_path: str) -> Callable[[str], object]:
     return _loader
 
 
+@pytest.fixture()
+def mock_get_minio_client(monkeypatch):
+    """ Mock getting the Minio client """
+    def _mock_get_minio_client_for_router():
+        class MockMinio(DefaultMockMinio):
+            """ Mock class with list objects """
+
+            def list_objects(self, bucket_name, prefix=None, recursive=False,
+                             start_after=None, include_user_meta=False,
+                             include_version=False, use_api_v1=False) -> Iterator[Object]:
+                if prefix == 'c-haines-polygons/kml/GDPS/':
+                    return iter([Object(bucket_name, prefix + '2019/'),
+                                 Object(bucket_name, prefix + '2020/'),
+                                 Object(bucket_name, prefix + '2021/')])
+                return iter([Object(bucket_name, prefix + '1/'),
+                             Object(bucket_name, prefix + '2/'),
+                             Object(bucket_name, prefix + '3/')])
+        mock_minio = MockMinio('some_endpoint')
+        mock_minio.mock_get_presigned_url = 'https://some.mock.url'
+        return mock_minio, 'some_bucket'
+
+    def _mock_get_minio_client_list_objects():
+        mock_minio = DefaultMockMinio('some_endpoint')
+        mock_minio.mock_list_objects = iter(
+            [
+                Object('some_bucket', 'c-haines-polygons/kml/GDPS/2021/3/30/0/2021-04-01T19:00:00.kml'),
+                Object('some_bucket', 'c-haines-polygons/kml/GDPS/2021/3/30/0/2021-04-01T21:00:00.kml')
+            ])
+        return mock_minio, 'some_bucket'
+
+    monkeypatch.setattr(app.routers.c_haines, 'get_minio_client', _mock_get_minio_client_for_router)
+    monkeypatch.setattr(app.c_haines.fetch, 'get_minio_client', _mock_get_minio_client_list_objects)
+
+
+@pytest.mark.usefixtures('mock_get_minio_client')
 @scenario("test_c_haines_endpoints.feature", "C-Haines endpoint testing",
           example_converters=dict(
               crud_mapping=load_json_file(__file__),
@@ -51,7 +89,8 @@ def given_a_crud_mapping(monkeypatch, crud_mapping: dict):
 def when_endpoint(collector, endpoint: str):
     """ Call the API endpoint and store the response """
     client = TestClient(app.main.app)
-    collector['response'] = client.get(endpoint)
+    # For the test, we set allow_redirects=False, so that we can test when we get a redirect.
+    collector['response'] = client.get(endpoint, allow_redirects=False)
 
 
 @then("I expect <status_code>")
@@ -76,4 +115,6 @@ def then_expected_response(collector, expected_response):
     if expected_response['type'] == 'json':
         assert collector['response'].json() == expected_response['data']
     else:
-        assert collector['response'].text == expected_response['data']
+        # We don't always check the response, when it's a redirect we don't bother.
+        if not expected_response['data'] is None:
+            assert collector['response'].text == expected_response['data']

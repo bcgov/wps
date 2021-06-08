@@ -5,7 +5,8 @@ import os
 from osgeo import gdal
 from pyproj import CRS
 from pytest_bdd import scenario, given, then
-from app.weather_models.process_grib import GEO_CRS, get_transformer
+from app.geospatial import NAD83_CRS
+from app.weather_models.process_grib import get_transformer
 from app.c_haines.c_haines_index import BoundingBoxChecker
 
 
@@ -26,7 +27,7 @@ def given_a_grib_file(grib_file: str):
     crs = CRS.from_string(dataset.GetProjection())
     return {
         'padf_transform': dataset.GetGeoTransform(),
-        'raster_to_geo_transformer': get_transformer(crs, GEO_CRS)
+        'raster_to_geo_transformer': get_transformer(crs, NAD83_CRS)
     }
 
 

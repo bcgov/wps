@@ -7,7 +7,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import ARRAY
 from geoalchemy2 import Geometry
 from app.db.database import Base
-import app.time_utils as time_utils
+import app.utils.time as time_utils
 from app.db.models.common import TZTimeStamp
 
 logger = logging.getLogger(__name__)

@@ -5,7 +5,7 @@ import datetime
 import pytest
 from pytest_mock import MockerFixture
 from app.fireweather_bot import noon_forecasts
-from app import time_utils
+import app.utils.time
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +41,7 @@ def test_noon_forecasts_bot_fail_in_season(mocker: MockerFixture,
         return datetime.datetime(2020, 7, 1)
 
     monkeypatch.setattr(noon_forecasts.NoonForecastBot, 'process_csv', mock_process_csv)
-    monkeypatch.setattr(time_utils, 'get_utc_now', mock_get_utc_now)
+    monkeypatch.setattr(app.utils.time, 'get_utc_now', mock_get_utc_now)
     rocket_chat_spy = mocker.spy(noon_forecasts, 'send_rocketchat_notification')
 
     with pytest.raises(SystemExit) as excinfo:
@@ -67,7 +67,7 @@ def test_noon_forecasts_bot_fail_outside_season(mocker: MockerFixture,
         return datetime.datetime(2020, 12, 31)
 
     monkeypatch.setattr(noon_forecasts.NoonForecastBot, 'process_csv', mock_process_csv)
-    monkeypatch.setattr(time_utils, 'get_utc_now', mock_get_utc_now)
+    monkeypatch.setattr(app.utils.time, 'get_utc_now', mock_get_utc_now)
     rocket_chat_spy = mocker.spy(noon_forecasts, 'send_rocketchat_notification')
 
     with pytest.raises(SystemExit) as excinfo:
