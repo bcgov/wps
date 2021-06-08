@@ -4,7 +4,7 @@ import os
 import logging
 import pytest
 from pytest_mock import MockerFixture
-from app.utils import get_utc_now
+from app.utils.time import get_utc_now
 from app.fireweather_bot import hourly_actuals
 from app.schemas.observations import WeatherReading
 from app.wildfire_one import WFWXWeatherStation
