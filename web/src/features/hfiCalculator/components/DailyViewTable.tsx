@@ -1,5 +1,4 @@
 import {
-  Divider,
   makeStyles,
   Paper,
   Table,
@@ -13,8 +12,8 @@ import {
 import React from 'react'
 
 export interface Ros {
-  type01a: string
-  type01b: string
+  type01a: number
+  type01b: number
 }
 
 export interface StationData {
@@ -33,6 +32,9 @@ const DailyViewTable = (props: Props) => {
   const useStyles = makeStyles({
     paper: {
       width: '100%'
+    },
+    borderless: {
+      border: 'none'
     }
   })
   const classes = useStyles()
@@ -89,6 +91,20 @@ const DailyViewTable = (props: Props) => {
                   {data.metrics.map(metric => (
                     <TableCell align="right">{metric}</TableCell>
                   ))}
+                  <TableCell align="right">
+                    <TableContainer>
+                      <Table>
+                        <TableRow>
+                          <TableCell align="right" className={classes.borderless}>
+                            {data.ros.type01a}
+                          </TableCell>
+                          <TableCell align="right" className={classes.borderless}>
+                            {data.ros.type01b}
+                          </TableCell>
+                        </TableRow>
+                      </Table>
+                    </TableContainer>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
