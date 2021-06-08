@@ -486,6 +486,7 @@ class CHainesSeverityGenerator():
                                 self.model,
                                 model_run_timestamp, prediction_timestamp)
                     continue
+                # TODO: ^^ section above soon to be redundant.
 
                 payload = self._collect_payload(urls,
                                                 self.model,

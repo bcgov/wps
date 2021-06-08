@@ -1,7 +1,8 @@
 """ Routes for c-haines
 """
 from enum import Enum
-from datetime import datetime
+from functools import reduce
+from datetime import datetime, timezone
 import logging
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse, Response
