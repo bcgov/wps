@@ -10,6 +10,7 @@ from aiohttp import ClientSession, BasicAuth, TCPConnector
 from app import config
 from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.db.models.observations import HourlyActual
+from app.schemas.hfi_calc import StationDaily
 from app.schemas.observations import WeatherStationHourlyReadings, WeatherReading
 from app.schemas.stations import (WeatherStation, GeoJsonDetailedWeatherStation,
                                   DetailedWeatherStationProperties, WeatherStationGeometry, WeatherVariables)
@@ -78,6 +79,25 @@ class BuildQueryAllHourliesByRange(BuildQuery):
         """ Return query url for hourlies between start_timestamp, end_timestamp"""
         params = {'size': self.max_page_size, 'page': page, 'query': self.querystring}
         url = '{base_url}/v1/hourlies/rsql'.format(
+            base_url=self.base_url)
+        return url, params
+
+
+class BuildQueryDailesByStationCode(BuildQuery):
+    """ Builds query for requesting all hourlies in a time range"""
+
+    def __init__(self, start_timestamp: int, end_timestamp: int, station_ids: List[str]):
+        """ Initialize object """
+        super().__init__()
+        self.start_timestamp = start_timestamp
+        self.end_timestamp = end_timestamp
+        self.station_ids = station_ids
+
+    def query(self, page) -> Tuple[str, dict]:
+        """ Return query url for dailies between start_timestamp, end_timestamp"""
+        params = {'size': self.max_page_size, 'page': page,
+                  'startingTimestamp': self.start_timestamp, 'endingTimestamp': self.end_timestamp, 'stationIds': self.station_ids}
+        url = '{base_url}/v1/dailies/search/findDailiesByStationIdIsInAndWeatherTimestampBetweenOrderByStationIdAscWeatherTimestampAsc'.format(
             base_url=self.base_url)
         return url, params
 
@@ -216,6 +236,27 @@ def _parse_hourly(hourly) -> WeatherReading:
         fwi=hourly.get('fireWeatherIndex', None),
         observation_valid=hourly.get('observationValidInd'),
         observation_valid_comment=hourly.get('observationValidComment')
+    )
+
+
+def _parse_daily(station_code: int, daily) -> StationDaily:
+    """ Transform from the raw hourly json object returned by wf1, to our hourly object.
+    """
+    return StationDaily(
+        code=station_code,
+        temperature=daily.get('temperature', None),
+        relative_humidity=daily.get('relativeHumidity', None),
+        wind_speed=daily.get('windSpeed', None),
+        wind_direction=daily.get('windDirection', None),
+        precipitation=daily.get('precipitation', None),
+        ffmc=daily.get('fineFuelMoistureCode', None),
+        dmc=daily.get('duffMoistureCode', None),
+        dc=daily.get('droughtCode', None),
+        isi=daily.get('initialSpreadIndex', None),
+        fwi=daily.get('fireWeatherIndex', None),
+        danger_cl=daily.get('dailySeverityRating', None),
+        observation_valid=daily.get('observationValidInd'),
+        observation_valid_comment=daily.get('observationValidComment')
     )
 
 
@@ -477,6 +518,32 @@ async def get_hourly_actuals_all_stations(
             except KeyError as exception:
                 logger.warning("Missing hourly for station code", exc_info=exception)
     return hourly_actuals
+
+
+async def get_dailies(
+        session: ClientSession,
+        header: dict,
+        station_ids: List[str],
+        start_timestamp: datetime,
+        end_timestamp: datetime) -> List[StationDaily]:
+    """ Get the daily actuals for the given station ids.
+    """
+    dailies_iterator = _fetch_paged_response_generator(
+        session, header, BuildQueryDailesByStationCode(
+            math.floor(start_timestamp.timestamp()*1000),
+            math.floor(end_timestamp.timestamp()*1000), station_ids), 'dailies')
+
+    stations: List[WFWXWeatherStation] = await get_stations(session, header, mapper=wfwx_station_list_mapper)
+
+    station_code_dict = {station.wfwx_id: station.code for station in stations}
+
+    dailies = []
+    async for daily in dailies_iterator:
+        if daily.get('recordType', '').get('id') == 'ACTUAL':
+            station_code = station_code_dict[(daily['stationId'])]
+            parsed_daily = _parse_daily(station_code, daily)
+            dailies.append(parsed_daily)
+    return dailies
 
 
 def parse_hourly_actual(station_code: int, hourly_reading: WeatherReading):
