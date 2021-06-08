@@ -26,7 +26,7 @@ class HourlyActual(Base):
     station_code = Column(Integer, nullable=False, index=True)
     temp_valid = Column(Boolean, default=False, nullable=False, index=True)
     temperature = Column(Float, nullable=False)
-    dewpoint = Column(Float, nullable=False)
+    dewpoint = Column(Float, nullable=True)
     rh_valid = Column(Boolean, default=False, nullable=False, index=True)
     relative_humidity = Column(Float, nullable=False)
     wdir_valid = Column(Boolean, default=False, nullable=False)

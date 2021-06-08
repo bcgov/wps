@@ -12,6 +12,7 @@ from alchemy_mock.compat import mock
 from pytest_mock import MockerFixture
 import app.utils.minio
 from app.utils.time import get_pst_tz
+from app import auth
 from app.tests.common import (
     MockJWTDecode, DefaultMockMinio, default_mock_requests_get, default_mock_requests_post,
     default_mock_requests_session_get, default_mock_requests_session_post)
@@ -153,4 +154,4 @@ def mock_requests_session(monkeypatch):
 @pytest.fixture(autouse=True)
 def spy_access_logging(mocker: MockerFixture):
     """Spies on access audting logging for tests"""
-    return mocker.spy(app.auth, 'create_api_access_audit_log')
+    return mocker.spy(auth, 'create_api_access_audit_log')
