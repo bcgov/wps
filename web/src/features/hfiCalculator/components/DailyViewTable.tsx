@@ -53,7 +53,7 @@ const DailyViewTable = (props: Props) => {
                 <TableCell align="right">RH</TableCell>
                 <TableCell align="right">Wind Dir</TableCell>
                 <TableCell align="right">Wind Speed</TableCell>
-                <TableCell align="right">Predp</TableCell>
+                <TableCell align="right">Precip</TableCell>
                 <TableCell align="right">Grass Cure %</TableCell>
                 <TableCell align="right">FFMC</TableCell>
                 <TableCell align="right">DMC</TableCell>
@@ -86,8 +86,8 @@ const DailyViewTable = (props: Props) => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {props.stationData.map(data => (
-                <TableRow>
+              {props.stationData.map((data, index) => (
+                <TableRow key={index}>
                   {data.metrics.map((metric, index) => (
                     <TableCell align="right" key={index}>
                       {metric}
