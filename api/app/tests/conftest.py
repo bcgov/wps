@@ -10,14 +10,15 @@ from sqlalchemy.orm import Session
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
 from pytest_mock import MockerFixture
+import app.utils.minio
+from app.utils.time import get_pst_tz
 from app import auth
-from app.time_utils import get_pst_tz
 from app.tests.common import (
-    MockJWTDecode, default_mock_requests_get, default_mock_requests_post,
+    MockJWTDecode, DefaultMockMinio, default_mock_requests_get, default_mock_requests_post,
     default_mock_requests_session_get, default_mock_requests_session_post)
 from app.db.models import PredictionModel, PredictionModelRunTimestamp
 import app.db.database
-import app.time_utils as time_utils
+import app.utils.time as time_utils
 from app.schemas.shared import WeatherDataRequest
 
 logger = logging.getLogger(__name__)
@@ -49,6 +50,16 @@ def mock_env(monkeypatch):
     monkeypatch.setenv("ROCKET_USER_ID", "someid")
     monkeypatch.setenv("ROCKET_CHANNEL", "#channel")
     monkeypatch.setenv("OPENSHIFT_NAMESPACE_API", "apis/apps/v1beta1/namespaces/")
+    monkeypatch.setenv("OBJECT_STORE_SERVER", "some server")
+    monkeypatch.setenv("OBJECT_STORE_USER_ID", "some user id")
+    monkeypatch.setenv("OBJECT_STORE_SECRET", "some secret")
+    monkeypatch.setenv("OBJECT_STORE_BUCKET", "some bucket")
+
+
+@pytest.fixture(autouse=True)
+def mock_minio(monkeypatch):
+    """ Patch minio by default """
+    monkeypatch.setattr(app.utils.minio, 'Minio', DefaultMockMinio)
 
 
 @pytest.fixture(autouse=True)
@@ -76,8 +87,8 @@ def mock_get_now(monkeypatch):
     def mock_pst_now():
         return datetime.fromtimestamp(timestamp, tz=get_pst_tz())
 
-    monkeypatch.setattr(app.time_utils, 'get_utc_now', mock_utc_now)
-    monkeypatch.setattr(app.time_utils, 'get_pst_now', mock_pst_now)
+    monkeypatch.setattr(app.utils.time, 'get_utc_now', mock_utc_now)
+    monkeypatch.setattr(app.utils.time, 'get_pst_now', mock_pst_now)
 
 
 @pytest.fixture(autouse=True)

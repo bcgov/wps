@@ -3,7 +3,7 @@ import logging
 from datetime import datetime
 from fastapi import APIRouter, Response, Depends
 from app.auth import authentication_required, audit
-from app.time_utils import get_utc_now, get_hour_20
+from app.utils.time import get_utc_now, get_hour_20
 from app.schemas.stations import WeatherStationsResponse, DetailedWeatherStationsResponse
 from app.stations import StationSourceEnum, get_stations_as_geojson, fetch_detailed_stations_as_geojson
 

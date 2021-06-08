@@ -13,7 +13,7 @@ from geoalchemy2.shape import from_shape
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
 from pytest_mock import MockerFixture
-import app.time_utils as time_utils
+import app.utils.time as time_utils
 import app.db.database
 from app.weather_models import env_canada
 from app.db.models import (PredictionModel, ProcessedModelRunUrl, PredictionModelRunTimestamp,

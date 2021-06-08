@@ -4,7 +4,7 @@
 from typing import List
 from datetime import datetime
 from pydantic import BaseModel
-import app.time_utils as time_utils
+import app.utils.time as time_utils
 
 
 class WeatherDataRequest(BaseModel):
