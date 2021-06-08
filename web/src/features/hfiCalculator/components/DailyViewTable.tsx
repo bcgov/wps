@@ -88,8 +88,10 @@ const DailyViewTable = (props: Props) => {
             <TableBody>
               {props.stationData.map(data => (
                 <TableRow>
-                  {data.metrics.map(metric => (
-                    <TableCell align="right">{metric}</TableCell>
+                  {data.metrics.map((metric, index) => (
+                    <TableCell align="right" key={index}>
+                      {metric}
+                    </TableCell>
                   ))}
                   <TableCell align="right">
                     <TableContainer>
