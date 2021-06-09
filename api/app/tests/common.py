@@ -4,7 +4,7 @@ import logging
 import os
 import json
 from datetime import timedelta
-from typing import Iterator
+from typing import Iterator, Optional
 from contextlib import asynccontextmanager
 from minio.helpers import ObjectWriteResult
 from minio.datatypes import Object
@@ -138,7 +138,7 @@ class DefaultMockAioBaseClient:
 
     def __init__(self, *args, **kwargs):
         """ you can set the values below for some default behaviour """
-        self.mock_generate_presigned_url: str = None
+        self.mock_generate_presigned_url: Optional[str] = None
         self.mock_list_objects_v2_lookup: dict = {}
 
     async def list_objects_v2(self, *args, **kwargs) -> dict:

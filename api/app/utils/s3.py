@@ -1,6 +1,6 @@
 """ Utils to help with minio
 """
-from typing import Tuple
+from typing import Generator, Tuple
 from contextlib import asynccontextmanager
 from minio import Minio
 from aiobotocore.client import AioBaseClient
@@ -21,7 +21,7 @@ def get_minio_client() -> Tuple[Minio, str]:
 
 
 @asynccontextmanager
-async def get_client() -> Tuple[AioBaseClient, str]:
+async def get_client() -> Generator[Tuple[AioBaseClient, str], None, None]:
     """ Return minio client and bucket
     """
     server = config.get('OBJECT_STORE_SERVER')

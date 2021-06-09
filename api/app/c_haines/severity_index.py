@@ -257,12 +257,12 @@ class EnvCanadaPayload():
     """ Handy class to store payload information in . """
 
     def __init__(self):
-        self.filename_tmp_700: str = None
-        self.filename_tmp_850: str = None
-        self.filename_dew_850: str = None
-        self.model: ModelEnum = None
-        self.model_run_timestamp: datetime = None
-        self.prediction_timestamp: datetime = None
+        self.filename_tmp_700: Optional[str] = None
+        self.filename_tmp_850: Optional[str] = None
+        self.filename_dew_850: Optional[str] = None
+        self.model: Optional[ModelEnum] = None
+        self.model_run_timestamp: Optional[datetime] = None
+        self.prediction_timestamp: Optional[datetime] = None
 
 
 def re_project_and_classify_geojson(source_json_filename: str,
