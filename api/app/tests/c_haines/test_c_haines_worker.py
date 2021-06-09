@@ -1,10 +1,8 @@
 """ Very basic test for worker - essential just testing if it runs without exceptions """
 import os
-from datetime import datetime
 import pytest
 import requests
 from app import configure_logging
-import app.c_haines.severity_index
 from app.c_haines.worker import main
 from app.tests.common import MockResponse
 

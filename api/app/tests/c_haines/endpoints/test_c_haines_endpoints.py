@@ -34,42 +34,250 @@ def mock_get_s3_client(monkeypatch):
     """ Mock getting the s3 client """
     @asynccontextmanager
     async def _mock_get_client_for_router() -> Generator[Tuple, None, None]:
-        class MockAioBaseClient(DefaultMockAioBaseClient):
-            """ Mock class with list objects """
-            # It's a stubbed object, so we don't care about pylint warnings:
-            # pylint: disable=unused-argument, missing-function-docstring, too-many-arguments, no-self-use
-
-            async def list_objects(self, *args, **kwargs) -> dict:
-                """ mock list objects """
-                prefix = kwargs.get('Prefix')
-                bucket_name = kwargs.get('Bucket')
-                if prefix == 'c-haines-polygons/kml/GDPS/':
-                    return {
-
-                    }
-                    # return iter([Object(bucket_name, prefix + '2019/'),
-                    #              Object(bucket_name, prefix + '2020/'),
-                    #              Object(bucket_name, prefix + '2021/')])
-                return {}
-                # return iter([Object(bucket_name, prefix + '1/'),
-                #              Object(bucket_name, prefix + '2/'),
-                #              Object(bucket_name, prefix + '3/')])
-        mock_aio_base_client = MockAioBaseClient('some_endpoint')
-        mock_aio_base_client.mock_get_presigned_url = 'https://some.mock.url'
+        mock_aio_base_client = DefaultMockAioBaseClient('some_endpoint')
+        mock_aio_base_client.mock_generate_presigned_url = 'https://some.mock.url'
+        mock_aio_base_client.mock_list_objects_v2_lookup = {
+            'c-haines-polygons/kml/GDPS/': {
+                'ResponseMetadata':
+                {
+                    'HTTPStatusCode': 200
+                },
+                'Name': 'gpdqha',
+                'Prefix': 'c-haines-polygons/kml/GDPS/',
+                'Delimiter': '/',
+                'MaxKeys': 1000,
+                'CommonPrefixes': [
+                    {'Prefix': 'c-haines-polygons/kml/GDPS/2021/'}
+                ],
+                'KeyCount': 1
+            },
+            'c-haines-polygons/json/GDPS/': {
+                'ResponseMetadata':
+                {
+                    'HTTPStatusCode': 200
+                },
+                'Name': 'gpdqha',
+                'Prefix': 'c-haines-polygons/json/GDPS/',
+                'Delimiter': '/',
+                'MaxKeys': 1000,
+                'CommonPrefixes': [
+                    {'Prefix': 'c-haines-polygons/json/GDPS/2021/'}
+                ],
+                'KeyCount': 1
+            },
+            'c-haines-polygons/json/GDPS/2021/': {
+                'ResponseMetadata':
+                {
+                    'HTTPStatusCode': 200
+                },
+                'Name': 'gpdqha',
+                'Prefix': 'c-haines-polygons/json/GDPS/2021/',
+                'Delimiter': '/',
+                'MaxKeys': 1000,
+                'CommonPrefixes': [
+                    {'Prefix': 'c-haines-polygons/json/GDPS/2021/5/'},
+                    {'Prefix': 'c-haines-polygons/json/GDPS/2021/6/'}
+                ],
+                'KeyCount': 2
+            },
+            'c-haines-polygons/kml/GDPS/2021/': {
+                'ResponseMetadata':
+                {
+                    'HTTPStatusCode': 200
+                },
+                'Name': 'gpdqha',
+                'Prefix': 'c-haines-polygons/kml/GDPS/2021/',
+                'Delimiter': '/',
+                'MaxKeys': 1000,
+                'CommonPrefixes': [
+                    {'Prefix': 'c-haines-polygons/kml/GDPS/2021/5/'},
+                    {'Prefix': 'c-haines-polygons/kml/GDPS/2021/6/'}
+                ],
+                'KeyCount': 2
+            },
+            'c-haines-polygons/json/GDPS/2021/6/': {
+                'ResponseMetadata':
+                {
+                    'HTTPStatusCode': 200
+                },
+                'Name': 'gpdqha',
+                'Prefix': 'c-haines-polygons/json/GDPS/2021/6/',
+                'Delimiter': '/',
+                'MaxKeys': 1000,
+                'CommonPrefixes': [
+                    {'Prefix': 'c-haines-polygons/json/GDPS/2021/6/1/'},
+                    {'Prefix': 'c-haines-polygons/json/GDPS/2021/6/2/'},
+                    {'Prefix': 'c-haines-polygons/json/GDPS/2021/6/3/'},
+                    {'Prefix': 'c-haines-polygons/json/GDPS/2021/6/4/'},
+                    {'Prefix': 'c-haines-polygons/json/GDPS/2021/6/5/'},
+                    {'Prefix': 'c-haines-polygons/json/GDPS/2021/6/6/'},
+                    {'Prefix': 'c-haines-polygons/json/GDPS/2021/6/7/'},
+                    {'Prefix': 'c-haines-polygons/json/GDPS/2021/6/8/'},
+                ],
+                'KeyCount': 8
+            },
+            'c-haines-polygons/kml/GDPS/2021/6/': {
+                'ResponseMetadata':
+                {
+                    'HTTPStatusCode': 200
+                },
+                'Name': 'gpdqha',
+                'Prefix': 'c-haines-polygons/kml/GDPS/2021/6/',
+                'Delimiter': '/',
+                'MaxKeys': 1000,
+                'CommonPrefixes': [
+                    {'Prefix': 'c-haines-polygons/kml/GDPS/2021/6/1/'},
+                    {'Prefix': 'c-haines-polygons/kml/GDPS/2021/6/2/'},
+                    {'Prefix': 'c-haines-polygons/kml/GDPS/2021/6/3/'},
+                    {'Prefix': 'c-haines-polygons/kml/GDPS/2021/6/4/'},
+                    {'Prefix': 'c-haines-polygons/kml/GDPS/2021/6/5/'},
+                    {'Prefix': 'c-haines-polygons/kml/GDPS/2021/6/6/'},
+                    {'Prefix': 'c-haines-polygons/kml/GDPS/2021/6/7/'},
+                    {'Prefix': 'c-haines-polygons/kml/GDPS/2021/6/8/'},
+                ],
+                'KeyCount': 8
+            },
+            'c-haines-polygons/json/GDPS/2021/6/8/': {
+                'ResponseMetadata':
+                {
+                    'HTTPStatusCode': 200
+                },
+                'Name': 'gpdqha',
+                'Prefix': 'c-haines-polygons/json/GDPS/2021/6/8/',
+                'Delimiter': '/',
+                'MaxKeys': 1000,
+                'CommonPrefixes': [
+                    {'Prefix': 'c-haines-polygons/json/GDPS/2021/6/8/0/'},
+                    {'Prefix': 'c-haines-polygons/json/GDPS/2021/6/8/12/'}
+                ],
+                'KeyCount': 2
+            },
+            'c-haines-polygons/kml/GDPS/2021/6/8/': {
+                'ResponseMetadata':
+                {
+                    'HTTPStatusCode': 200
+                },
+                'Name': 'gpdqha',
+                'Prefix': 'c-haines-polygons/kml/GDPS/2021/6/8/',
+                'Delimiter': '/',
+                'MaxKeys': 1000,
+                'CommonPrefixes': [
+                    {'Prefix': 'c-haines-polygons/kml/GDPS/2021/6/8/0/'},
+                    {'Prefix': 'c-haines-polygons/kml/GDPS/2021/6/8/12/'}
+                ],
+                'KeyCount': 2
+            }
+        }
         yield mock_aio_base_client, 'some_bucket'
 
     @asynccontextmanager
     async def _mock_get_client_list_objects() -> Generator[Tuple, None, None]:
-        mock_minio = DefaultMockAioBaseClient('some_endpoint')
-        mock_minio.mock_list_objects = {
-            'Something': {}
+        mock_aio_base_client = DefaultMockAioBaseClient('some_endpoint')
+        mock_aio_base_client.mock_list_objects_v2_lookup = {
+            'c-haines-polygons/json/GDPS/2021/6/8/': {
+                'ResponseMetadata': {
+                    'HTTPStatusCode': 200,
+                },
+                'IsTruncated': False,
+                'Contents': [
+                    {
+                        'Key': 'c-haines-polygons/json/GDPS/2021/6/8/12/2021-06-09T00:00:00.json',
+                        'LastModified': '2021-06-09T04:01:24.467000+00:00',
+                        'ETag': '"ade03d4476ef91e127e82523267aa620"',
+                        'Size': 124774,
+                        'StorageClass': 'STANDARD'
+                    },
+                    {
+                        'Key': 'c-haines-polygons/json/GDPS/2021/6/8/12/2021-06-09T03:00:00.json',
+                        'LastModified': '2021-06-09T04:27:57.679000+00:00',
+                        'ETag': '"9a60a4a94489915dc4dd4d5eb9f24435"',
+                        'Size': 113355,
+                        'StorageClass': 'STANDARD'
+                    }
+                ],
+                'Name': 'gpdqha',
+                'Prefix': 'c-haines-polygons/json/GDPS/2021/6/8/',
+                'MaxKeys': 1000,
+                'EncodingType': 'url',
+                'KeyCount': 2
+            },
+            'c-haines-polygons/json/RDPS/2021/6/8/': {
+                'ResponseMetadata': {
+                    'HTTPStatusCode': 200,
+                },
+                'IsTruncated': False,
+                'Contents': [
+                    {
+                        'Key': 'c-haines-polygons/json/RDPS/2021/6/8/0/2021-06-09T00:00:00.json',
+                        'LastModified': '2021-06-09T04:01:24.467000+00:00',
+                        'ETag': '"ade03d4476ef91e127e82523267aa620"',
+                        'Size': 124774,
+                        'StorageClass': 'STANDARD'
+                    },
+                    {
+                        'Key': 'c-haines-polygons/json/RDPS/2021/6/8/0/2021-06-09T03:00:00.json',
+                        'LastModified': '2021-06-09T04:27:57.679000+00:00',
+                        'ETag': '"9a60a4a94489915dc4dd4d5eb9f24435"',
+                        'Size': 113355,
+                        'StorageClass': 'STANDARD'
+                    }
+                ],
+                'Name': 'gpdqha',
+                'Prefix': 'c-haines-polygons/json/RDPS/2021/6/8/',
+                'MaxKeys': 1000,
+                'EncodingType': 'url',
+                'KeyCount': 2
+            },
+            'c-haines-polygons/json/HRDPS/2021/6/8/': {
+                'ResponseMetadata': {
+                    'HTTPStatusCode': 200,
+                },
+                'IsTruncated': False,
+                'Contents': [],
+                'Name': 'gpdqha',
+                'Prefix': 'c-haines-polygons/json/HRDPS/2021/6/8/',
+                'MaxKeys': 1000,
+                'EncodingType': 'url',
+                'KeyCount': 0
+            },
+            'c-haines-polygons/json/GDPS/2021/6/7/': {
+                'Contents': []
+            },
+            'c-haines-polygons/json/RDPS/2021/6/7/': {
+                'Contents': []
+            },
+            'c-haines-polygons/json/HRDPS/2021/6/7/': {
+                'Contents': []
+            },
+            'c-haines-polygons/kml/GDPS/2021/6/8/12': {
+                'ResponseMetadata': {
+                    'HTTPStatusCode': 200,
+                },
+                'IsTruncated': False,
+                'Contents': [
+                    {
+                        'Key': 'c-haines-polygons/kml/GDPS/2021/6/8/12/2021-06-09T00:00:00.kml',
+                        'LastModified': '2021-06-09T04:01:24.467000+00:00',
+                        'ETag': '"ade03d4476ef91e127e82523267aa620"',
+                        'Size': 124774,
+                        'StorageClass': 'STANDARD'
+                    },
+                    {
+                        'Key': 'c-haines-polygons/kml/GDPS/2021/6/8/12/2021-06-09T03:00:00.kml',
+                        'LastModified': '2021-06-09T04:27:57.679000+00:00',
+                        'ETag': '"9a60a4a94489915dc4dd4d5eb9f24435"',
+                        'Size': 113355,
+                        'StorageClass': 'STANDARD'
+                    }
+                ],
+                'Name': 'gpdqha',
+                'Prefix': 'c-haines-polygons/kml/GDPS/2021/6/8/12',
+                'MaxKeys': 1000,
+                'EncodingType': 'url',
+                'KeyCount': 2
+            }
         }
-        #  iter(
-        #     [
-        #         Object('some_bucket', 'c-haines-polygons/kml/GDPS/2021/3/30/0/2021-04-01T19:00:00.kml'),
-        #         Object('some_bucket', 'c-haines-polygons/kml/GDPS/2021/3/30/0/2021-04-01T21:00:00.kml')
-        #     ])
-        yield mock_minio, 'some_bucket'
+        yield mock_aio_base_client, 'some_bucket'
 
     monkeypatch.setattr(app.routers.c_haines, 'get_client', _mock_get_client_for_router)
     monkeypatch.setattr(app.c_haines.fetch, 'get_client', _mock_get_client_list_objects)
@@ -111,11 +319,13 @@ def then_expected_response(collector, expected_response):
         json.dump(collector['response'].json(), f)
     # for kml
     with open('expected_response.kml', 'w') as f:
-        json.dump(collector['response'].text(), f)
+        f.write(collector['response'].text())
     """
     if expected_response['type'] == 'json':
         assert collector['response'].json() == expected_response['data']
     else:
         # We don't always check the response, when it's a redirect we don't bother.
         if not expected_response['data'] is None:
+            with open('expected_response.kml', 'w') as f:
+                f.write(collector['response'].text)
             assert collector['response'].text == expected_response['data']

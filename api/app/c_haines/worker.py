@@ -10,7 +10,6 @@ logger = logging.getLogger(__name__)
 
 def main():
     """ Entry point for generating C-Haines severity index polygons. """
-    """ Generate c-haines data """
     models = (
         (ModelEnum.GDPS, ProjectionEnum.LATLON_15X_15),
         (ModelEnum.RDPS, ProjectionEnum.REGIONAL_PS),
