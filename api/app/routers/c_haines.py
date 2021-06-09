@@ -1,6 +1,5 @@
 """ Routes for c-haines
 """
-from enum import Enum
 from datetime import datetime
 import logging
 from fastapi import APIRouter, HTTPException
