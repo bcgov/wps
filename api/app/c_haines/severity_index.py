@@ -12,8 +12,8 @@ from osgeo import gdal, ogr
 import numpy
 from pyproj import Transformer, Proj
 from shapely.ops import transform
-from minio import Minio
 from shapely.geometry import shape, mapping
+from minio import Minio
 from sqlalchemy.orm import Session
 from app.utils.s3 import get_minio_client, object_exists
 from app.utils.time import get_utc_now
