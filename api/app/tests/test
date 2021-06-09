@@ -1,0 +1,3 @@
+'https://wf1/wfwx/v1/dailies/search'
+                      'findDailiesByStationIdIsInAndWeather'
+                      'TimestampBetweenOrderByStationIdAscWeatherTimestampAsc
