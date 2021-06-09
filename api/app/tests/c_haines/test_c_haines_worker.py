@@ -1,10 +1,13 @@
 """ Very basic test for worker - essential just testing if it runs without exceptions """
 import os
+from typing import Iterator
 import pytest
 import requests
+from minio.datatypes import Object
 from app import configure_logging
+import app.c_haines.severity_index
 from app.c_haines.worker import main
-from app.tests.common import MockResponse
+from app.tests.common import MockResponse, DefaultMockMinio
 
 configure_logging()
 
@@ -15,7 +18,6 @@ def mock_download(monkeypatch):
     # pylint: disable=unused-argument
     def mock_requests_get(*args, **kwargs):
         """ mock env_canada download method """
-        print('mock download {}'.format(args[0]))
         dirname = os.path.dirname(os.path.realpath(__file__))
         if 'TMP_ISBL' in args[0]:
             if '700' in args[0]:
@@ -31,7 +33,34 @@ def mock_download(monkeypatch):
     monkeypatch.setattr(requests, 'get', mock_requests_get)
 
 
-@pytest.mark.usefixtures('mock_download')
+@pytest.fixture()
+def mock_minio(monkeypatch):
+    """ mock minio """
+    def mock_get_minio_client(*args, **kwargs):
+        """ mock get client """
+        class MockMinio(DefaultMockMinio):
+            """ Mock minio object """
+
+            def list_objects(self, bucket_name, prefix=None, recursive=False,
+                             start_after=None, include_user_meta=False,
+                             include_version=False, use_api_v1=False) -> Iterator[Object]:
+                """ mock list objects.
+                """
+                if prefix in ('c-haines-polygons/kml/GDPS/2021/6/9/0/2021-06-09T00:00:00.kml',
+                              'c-haines-polygons/json/GDPS/2021/6/9/0/2021-06-09T00:00:00.json'):
+                    # The worker checks if the objects already exist - we want to of those checks
+                    # to come back with nothing, so that it will try to generate them.
+                    return iter([])
+                else:
+                    # We want all other checks do come back with a match, so it doesn't generate them.
+                    return iter([prefix])
+
+        return MockMinio('blah'), 'blah'
+
+    monkeypatch.setattr(app.c_haines.severity_index, 'get_minio_client', mock_get_minio_client)
+
+
+@pytest.mark.usefixtures('mock_download', 'mock_minio')
 def test_c_haines_worker():
     """ Test the c-haines worked.
     This is not a very focused test. Through the magic of sqlalchmy, it will only
