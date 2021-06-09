@@ -1,18 +1,19 @@
 """ Logic pertaining to the generation of c_haines severity index from GDAL datasets.
 """
 import os
+import io
 from datetime import datetime, timezone, timedelta
 from typing import Final, Tuple, Generator, Union, List
 from contextlib import contextmanager
 import tempfile
 import logging
 import json
-from osgeo import gdal, ogr, osr
+from osgeo import gdal, ogr
 import numpy
 from pyproj import Transformer, Proj
-from minio import Minio
 from shapely.ops import transform
-from shapely.geometry import shape
+from minio import Minio
+from shapely.geometry import shape, mapping
 from sqlalchemy.orm import Session
 from app.utils.s3 import get_minio_client, object_exists
 from app.utils.time import get_utc_now
@@ -306,72 +307,39 @@ class EnvCanadaPayload():
 
 
 def re_project_and_classify_geojson(source_json_filename: str,
-                                    source_projection: str,
-                                    target_json_filename: str,
-                                    target_epsg: str):
-    """ Given a geojson file in a specified projection, re-project it and save it
-    to a new file. While you're at it, re-classify the "severity index" as a c_haines_index string.
+                                    source_projection: str) -> dict:
+    """ Given a geojson file in a specified projection
+    - order by severity.
+    - re-project to wgs84.
+    - re-classify the "severity index" as a c_haines_index string.
+    - return as a dictionary
     """
-    # pylint: disable=too-many-locals
-    geojson_driver = ogr.GetDriverByName('GeoJSON')
-
-    # prepare spatial references & coordinate transformation.
-    source_spatial_reference = osr.SpatialReference()
-    source_spatial_reference.ImportFromWkt(source_projection)
-    target_spatial_reference = osr.SpatialReference()
-    # target_spatial_reference.ImportFromEPSGA(target_epsg)
-    target_spatial_reference.SetWellKnownGeogCS(target_epsg)
-    # target_spatial_reference.ImportFromEPSG(target_epsg)
-    coordinate_transformation = osr.CoordinateTransformation(
-        source_spatial_reference, target_spatial_reference)
-
-    # open source and target data set & layer.
-    source_data_set = geojson_driver.Open(source_json_filename)
-    source_layer = source_data_set.GetLayer()
-    if os.path.exists(target_json_filename):
-        geojson_driver.DeleteDataSource(target_json_filename)
-    target_data_set = geojson_driver.CreateDataSource(target_json_filename)
-    target_layer = target_data_set.CreateLayer('C-Haines')
-    target_field_def = ogr.FieldDefn("c_haines_index", ogr.OFTString)
-    target_field_def.SetWidth(24)
-    target_layer.CreateField(target_field_def)
-    target_layer_definition = target_layer.GetLayerDefn()
-
-    # Iterate through features.
-    source_feature = source_layer.GetNextFeature()
-    while source_feature:
-        # get input geom.
-        geom = source_feature.GetGeometryRef()
-        # reproject to target projection.
-        geom.Transform(coordinate_transformation)
-        # copy the feature - reclassifying with severity string.
-        target_feature = ogr.Feature(target_layer_definition)
-        target_feature.SetGeometry(geom)
-        target_feature.SetField(target_field_def.GetNameRef(),
-                                get_severity_string(source_feature.GetField(0)))
-        # add the feature to the target.
-        target_layer.CreateFeature(target_feature)
-
-        # explicit delete to ensure flushing happens nicely.
-        del target_feature
-
-        # get next feature
-        source_feature = source_layer.GetNextFeature()
-
-    # be explicit about freeing resources here, or else flush on output might
-    # not happen!
-    del source_data_set
-    del target_data_set
+    proj_from = Proj(projparams=source_projection)
+    proj_to = Proj(WGS84)
+    project = Transformer.from_proj(proj_from, proj_to, always_xy=True)
+    with open(source_json_filename) as source_file:
+        geojson_data = json.load(source_file)
+        # We need to sort the geojson by severity.
+        geojson_data['features'].sort(key=lambda feature: feature['properties']['severity'])
+        # Iterate through features.
+        for feature in geojson_data['features']:
+            # Replace "severity" with c-haines.
+            feature['properties'] = {"c_haines_index": get_severity_string(feature['properties']['severity'])}
+            # Re-project to WGS84
+            source_geometry = shape(feature['geometry'])
+            geometry = transform(project.transform, source_geometry)
+            geojson_geometry = mapping(geometry)
+            feature['geometry']['coordinates'] = geojson_geometry['coordinates']
+    return geojson_data
 
 
 def save_as_geojson_to_s3(client: Minio,  # pylint: disable=too-many-arguments
                           bucket: str,
                           source_json_filename: str,
                           source_projection: str,
-                          prediction_model: str,
+                          prediction_model: ModelEnum,
                           model_run_timestamp: datetime,
-                          prediction_timestamp: datetime,
-                          temporary_path: str):
+                          prediction_timestamp: datetime):
     """ Given a geojson file, ensure it's in the correct projection and then store to S3 """
     target_path = generate_full_object_store_path(
         prediction_model, model_run_timestamp, prediction_timestamp, ObjectTypeEnum.GEOJSON)
@@ -383,15 +351,20 @@ def save_as_geojson_to_s3(client: Minio,  # pylint: disable=too-many-arguments
         return
 
     # re-project the geojson file from whatever it was, to WGS84.
-    tmp_geojson_filename = os.path.join(temporary_path, 'reprojected.json')
-    re_project_and_classify_geojson(
-        source_json_filename,
-        source_projection,
-        tmp_geojson_filename,
-        WGS84)
-    # smash the file into the object store.
-    logger.info('uploading %s', target_path)
-    client.fput_object(bucket, target_path, tmp_geojson_filename)
+    re_projected_data = re_project_and_classify_geojson(source_json_filename, source_projection)
+
+    with io.StringIO() as sio:
+        json.dump(re_projected_data, sio)
+        # smash it into binary
+        sio.seek(0)
+        bio = io.BytesIO(sio.read().encode('utf8'))
+        # get file size.
+        size = bio.seek(0, io.SEEK_END)
+        # go back to start
+        bio.seek(0)
+        # smash it into the object store.
+        logger.info('uploading %s (%s)', target_path, size)
+        client.put_object(bucket, target_path, bio, size)
 
 
 class CHainesSeverityGenerator():
@@ -538,14 +511,19 @@ class CHainesSeverityGenerator():
                 source_info,
                 json_filename)
 
+            # if payload.model == ModelEnum.RDPS or payload.model == ModelEnum.HRDPS:
+            #     print(source_info.projection)
+            #     import shutil
+            #     shutil.copyfile(json_filename, './source_file.json')
+            #     raise Exception('blah!')
+
             save_as_kml_to_s3(self.client, self.bucket, json_filename, source_info.projection,
                               payload.model,
                               payload.model_run_timestamp, payload.prediction_timestamp)
 
             save_as_geojson_to_s3(self.client, self.bucket, json_filename, source_info.projection,
                                   payload.model,
-                                  payload.model_run_timestamp, payload.prediction_timestamp,
-                                  temporary_path)
+                                  payload.model_run_timestamp, payload.prediction_timestamp)
 
     def generate(self):
         """ Entry point for generating and storing c-haines severity index. """
