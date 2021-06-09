@@ -3,6 +3,7 @@
 from enum import Enum
 from datetime import datetime
 import logging
+from re import M
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse, Response
 from starlette.responses import RedirectResponse
@@ -35,7 +36,7 @@ class NoModelRunFound(Exception):
     """ Exception thrown when no model run can be found """
 
 
-async def _get_most_recent_kml_model_run(model: ModelEnum) -> datetime:
+async def _get_most_recent_model_run(model: ModelEnum, data_type: FormatEnum) -> datetime:
     """ Get the most recent model run date - if none exists, return None """
     # NOTE: This is a nasty, slow, brute force way of doing it!
     async with get_client() as (client, bucket):
@@ -56,10 +57,11 @@ async def _get_most_recent_kml_model_run(model: ModelEnum) -> datetime:
                     Delimiter='/'),
                 depth+1)
 
+        format_string = 'kml' if data_type == FormatEnum.KML else 'json'
         most_recent = await get_most_recent(
             await client.list_objects_v2(
                 Bucket=bucket,
-                Prefix=f'c-haines-polygons/kml/{model}/',
+                Prefix=f'c-haines-polygons/{format_string}/{model}/',
                 Delimiter='/'),
             0)
 
@@ -84,7 +86,7 @@ async def get_c_haines_model_run(
         raise HTTPException(status_code=501)
     headers = {"Content-Type": kml_media_type}
     if model_run_timestamp is None:
-        model_run_timestamp = await _get_most_recent_kml_model_run(model)
+        model_run_timestamp = await _get_most_recent_model_run(model, response_format)
     if model_run_timestamp is None:
         # most recent model not found
         raise HTTPException(status_code=404)
@@ -123,9 +125,12 @@ async def get_c_haines_model_run_prediction(
 
 
 @router.get('/model-runs')
-async def get_model_runs(model_run_timestamp: datetime = None):
+async def get_model_runs(model_run_timestamp: datetime = None,
+                         response_format: FormatEnum = FormatEnum.GEOJSON):
     """ Return a list of recent model runs """
     logger.info('/c-haines/model-runs')
+    if model_run_timestamp is None:
+        model_run_timestamp = await _get_most_recent_model_run(ModelEnum.GDPS, response_format)
     return await fetch_model_runs(model_run_timestamp)
 
 

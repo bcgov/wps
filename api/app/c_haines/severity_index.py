@@ -14,12 +14,11 @@ from pyproj import Transformer, Proj
 from shapely.ops import transform
 from shapely.geometry import shape, mapping
 from minio import Minio
-from sqlalchemy.orm import Session
 from app.utils.s3 import get_minio_client, object_exists
 from app.utils.time import get_utc_now
-from app.db.models.c_haines import CHainesPoly, CHainesPrediction, CHainesModelRun, get_severity_string
+from app.db.models.c_haines import get_severity_string
 from app.weather_models import ModelEnum, ProjectionEnum
-from app.geospatial import NAD83, WGS84
+from app.geospatial import WGS84
 from app.weather_models.env_canada import (get_model_run_hours,
                                            get_file_date_part, adjust_model_day, download,
                                            UnhandledPredictionModelType)
@@ -230,46 +229,6 @@ def save_data_as_geojson(
     del dst_ds, data_ds, mask_ds
 
 
-def save_geojson_to_database(session: Session,
-                             source_projection, filename: str,
-                             prediction_timestamp: datetime,
-                             model_run: CHainesModelRun):
-    """ Open geojson file, iterate through features, saving them into the
-    database.
-    """
-    logger.info('Saving geojson for model run %s, prediction %s to database...',
-                model_run.model_run_timestamp,  prediction_timestamp)
-    # Open the geojson file.
-    with open(filename) as file:
-        data = json.load(file)
-
-    # Source coordinate system, must match source data.
-    proj_from = Proj(projparams=source_projection)
-    # Destination coordinate systems (NAD83, geographic coordinates)
-    proj_to = Proj(NAD83)
-    project = Transformer.from_proj(proj_from, proj_to, always_xy=True)
-
-    # Create a prediction record to hang everything off of:
-    prediction = CHainesPrediction(model_run=model_run,
-                                   prediction_timestamp=prediction_timestamp)
-    session.add(prediction)
-    # Convert each feature into a shapely geometry and save to database.
-    for feature in data['features']:
-        # Create polygon:
-        source_geometry = shape(feature['geometry'])
-        # Transform polygon from source to NAD83
-        geometry = transform(project.transform, source_geometry)
-        # Create data model object.
-        polygon = CHainesPoly(
-            geom=geometry.wkt,
-            c_haines_index=get_severity_string(feature['properties']['severity']),
-            c_haines_prediction=prediction)
-        # Add to current session.
-        session.add(polygon)
-    # Only commit once we have everything.
-    session.commit()
-
-
 def generate_severity_data(c_haines_data):
     """ Generate severity index data, iterating over c-haines data.
     NOTE: Iterating to generate c-haines, and then iterating again to generate severity is a bit slower,
@@ -378,11 +337,10 @@ class CHainesSeverityGenerator():
     4) Write polygons to database.
     """
 
-    def __init__(self, model: ModelEnum, projection: ProjectionEnum, session: Session):
+    def __init__(self, model: ModelEnum, projection: ProjectionEnum):
         self.model = model
         self.projection = projection
         self.c_haines_generator = CHainesGenerator()
-        self.session = session
         client, bucket = get_minio_client()
         self.client: Minio = client
         self.bucket: str = bucket
@@ -461,7 +419,6 @@ class CHainesSeverityGenerator():
                                 self.model,
                                 model_run_timestamp, prediction_timestamp)
                     continue
-                # TODO: ^^ section above soon to be redundant.
 
                 payload = self._collect_payload(urls,
                                                 self.model,
@@ -510,12 +467,6 @@ class CHainesSeverityGenerator():
                 c_haines_mask_data,
                 source_info,
                 json_filename)
-
-            # if payload.model == ModelEnum.RDPS or payload.model == ModelEnum.HRDPS:
-            #     print(source_info.projection)
-            #     import shutil
-            #     shutil.copyfile(json_filename, './source_file.json')
-            #     raise Exception('blah!')
 
             save_as_kml_to_s3(self.client, self.bucket, json_filename, source_info.projection,
                               payload.model,
