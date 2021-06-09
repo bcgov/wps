@@ -95,9 +95,13 @@ class BuildQueryDailesByStationCode(BuildQuery):
 
     def query(self, page) -> Tuple[str, dict]:
         """ Return query url for dailies between start_timestamp, end_timestamp"""
-        params = {'size': self.max_page_size, 'page': page,
-                  'startingTimestamp': self.start_timestamp, 'endingTimestamp': self.end_timestamp, 'stationIds': self.station_ids}
-        url = '{base_url}/v1/dailies/search/findDailiesByStationIdIsInAndWeatherTimestampBetweenOrderByStationIdAscWeatherTimestampAsc'.format(
+        params = {'size': self.max_page_size,
+                  'page': page,
+                  'startingTimestamp': self.start_timestamp,
+                  'endingTimestamp': self.end_timestamp,
+                  'stationIds': self.station_ids}
+        url = '{base_url}/v1/dailies/search/'
+        'findDailiesByStationIdIsInAndWeatherTimestampBetweenOrderByStationIdAscWeatherTimestampAsc'.format(
             base_url=self.base_url)
         return url, params
 
