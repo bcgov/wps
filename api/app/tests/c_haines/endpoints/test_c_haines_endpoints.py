@@ -1,6 +1,6 @@
 """ BDD tests for c-haines api endpoint.
 """
-from typing import Callable, Generator, Union, Tuple
+from typing import Callable, Generator, Optional, Tuple
 from contextlib import asynccontextmanager
 from pytest_bdd import scenario, given, then
 from fastapi.testclient import TestClient
@@ -12,7 +12,7 @@ from app.tests import load_json_file, _load_json_file, get_complete_filename
 from app.tests.common import DefaultMockAioBaseClient
 
 
-def _load_text_file(module_path: str, filename: str) -> Union[str, None]:
+def _load_text_file(module_path: str, filename: str) -> Optional[str]:
     """ Load json file given a module path and a filename """
     if filename:
         with open(get_complete_filename(module_path, filename)) as file_pointer:

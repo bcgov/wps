@@ -1,11 +1,10 @@
 """ Util & common files for tests
 """
-from typing import IO, Any, Callable, Union
+from typing import IO, Any, Callable, Optional
 import os
 import datetime
 import json
 import importlib
-from sqlalchemy.engine.row import Row
 import jsonpickle
 from app.db.models.common import TZTimeStamp
 
@@ -16,8 +15,7 @@ def get_complete_filename(module_path: str, filename: str):
     return os.path.join(dirname, filename)
 
 
-# TODO: Replace Union[dict, None] with dict | None when python >= 3.10
-def _load_json_file(module_path: str, filename: str) -> Union[dict, None]:
+def _load_json_file(module_path: str, filename: str) -> Optional[dict]:
     """ Load json file given a module path and a filename """
     if filename:
         with open(get_complete_filename(module_path, filename)) as file_pointer:

@@ -3,7 +3,7 @@
 import os
 import io
 from datetime import datetime, timezone, timedelta
-from typing import Final, Tuple, Generator, Union, List
+from typing import Final, Tuple, Generator, Optional, List
 from contextlib import contextmanager
 import tempfile
 import logging
@@ -350,13 +350,13 @@ class CHainesSeverityGenerator():
                          model: ModelEnum,
                          model_run_timestamp: datetime,
                          prediction_timestamp: datetime,
-                         temporary_path: str) -> Union[EnvCanadaPayload, None]:
+                         temporary_path: str) -> Optional[EnvCanadaPayload]:
         """ Collect all the different things that make up our payload: our downloaded files,
         model run, and prediction timestamp. """
 
         def _download_files(urls: dict,
                             model: ModelEnum,
-                            temporary_path: str) -> Union[List[str], None]:
+                            temporary_path: str) -> Optional[List[str]]:
             """ Try to download all the files """
             filenames = []
             for key in make_model_levels(model):
