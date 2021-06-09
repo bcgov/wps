@@ -326,6 +326,4 @@ def then_expected_response(collector, expected_response):
     else:
         # We don't always check the response, when it's a redirect we don't bother.
         if not expected_response['data'] is None:
-            with open('expected_response.kml', 'w') as f:
-                f.write(collector['response'].text)
             assert collector['response'].text == expected_response['data']

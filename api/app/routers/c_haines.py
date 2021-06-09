@@ -20,12 +20,6 @@ logger = logging.getLogger(__name__)
 kml_media_type = 'application/vnd.google-earth.kml+xml'
 
 
-class FormatEnum(str, Enum):
-    """ Enumerator for different kinds of supported weather models """
-    GEOJSON = 'geoJSON'
-    KML = 'KML'
-
-
 router = APIRouter(
     prefix="/c-haines",
 )
@@ -35,7 +29,7 @@ class NoModelRunFound(Exception):
     """ Exception thrown when no model run can be found """
 
 
-async def _get_most_recent_model_run(model: ModelEnum, data_type: FormatEnum) -> datetime:
+async def _get_most_recent_model_run(model: ModelEnum, data_type: ObjectTypeEnum) -> datetime:
     """ Get the most recent model run date - if none exists, return None """
     # NOTE: This is a nasty, slow, brute force way of doing it!
     async with get_client() as (client, bucket):
@@ -56,7 +50,7 @@ async def _get_most_recent_model_run(model: ModelEnum, data_type: FormatEnum) ->
                     Delimiter='/'),
                 depth+1)
 
-        format_string = 'kml' if data_type == FormatEnum.KML else 'json'
+        format_string = 'kml' if data_type == ObjectTypeEnum.KML else 'json'
         most_recent = await get_most_recent(
             await client.list_objects_v2(
                 Bucket=bucket,
@@ -76,11 +70,11 @@ async def _get_most_recent_model_run(model: ModelEnum, data_type: FormatEnum) ->
 async def get_c_haines_model_run(
         model: ModelEnum,
         model_run_timestamp: datetime = None,
-        response_format: FormatEnum = FormatEnum.GEOJSON):
+        response_format: ObjectTypeEnum = ObjectTypeEnum.GEOJSON):
     """ Return geojson/kml polygons for c-haines """
     logger.info('/c-haines/%s/predictions?model_run_timestamp=%s&response_format=%s',
                 model, model_run_timestamp, response_format)
-    if response_format == FormatEnum.GEOJSON:
+    if response_format == ObjectTypeEnum.GEOJSON:
         # Not implemented for GeoJSON
         raise HTTPException(status_code=501)
     headers = {"Content-Type": kml_media_type}
@@ -104,19 +98,14 @@ async def get_c_haines_model_run_prediction(
         model: ModelEnum,
         model_run_timestamp: datetime,
         prediction_timestamp: datetime,
-        response_format: FormatEnum = FormatEnum.GEOJSON):
+        response_format: ObjectTypeEnum = ObjectTypeEnum.GEOJSON):
     """ Return geojson/kml polygons for c-haines """
     logger.info('/c-haines/%s/prediction?model_run_timestamp=%s&prediction_timestamp=%s&response_format=%s',
                 model, model_run_timestamp, prediction_timestamp, response_format)
 
-    # TODO: re-use the same enum!
-    if response_format == FormatEnum.GEOJSON:
-        object_type = ObjectTypeEnum.GEOJSON
-    else:
-        object_type = ObjectTypeEnum.KML
-
     async with get_client() as (client, bucket):
-        key = generate_full_object_store_path(model, model_run_timestamp, prediction_timestamp, object_type)
+        key = generate_full_object_store_path(
+            model, model_run_timestamp, prediction_timestamp, response_format)
         response = await client.generate_presigned_url(
             'get_object',
             Params={'Bucket': bucket, 'Key': key})
@@ -125,7 +114,7 @@ async def get_c_haines_model_run_prediction(
 
 @router.get('/model-runs')
 async def get_model_runs(model_run_timestamp: datetime = None,
-                         response_format: FormatEnum = FormatEnum.GEOJSON):
+                         response_format: ObjectTypeEnum = ObjectTypeEnum.GEOJSON):
     """ Return a list of recent model runs """
     logger.info('/c-haines/model-runs')
     if model_run_timestamp is None:
