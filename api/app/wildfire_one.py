@@ -100,9 +100,9 @@ class BuildQueryDailesByStationCode(BuildQuery):
                   'startingTimestamp': self.start_timestamp,
                   'endingTimestamp': self.end_timestamp,
                   'stationIds': self.station_ids}
-        url = ('{base_url}/v1/dailies/search/findDailiesByStationIdIsInAndWeather'
-               'TimestampBetweenOrderByStationIdAscWeatherTimestampAsc'.format(
-                   base_url=self.base_url))
+        url = ('{base_url}/v1/dailies/search/findDailiesByStationIdIsInAndWeather' +
+               'TimestampBetweenOrderByStationIdAscWeatherTimestampAsc').format(
+                   base_url=self.base_url)
         return url, params
 
 
