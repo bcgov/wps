@@ -188,7 +188,7 @@ def feature_2_kml_polygon(feature: dict, project: Transformer) -> str:
 
 class KMLGeojsonPolygonIterator:
     """ Generator that produces a kml polygon for every geojson feature. This generator assumes
-    GeoJSON as produced by the process that generates GeoJSON by severity level. """
+    GeoJSON is produced by the process that generates GeoJSON by severity level. """
 
     def __init__(self, file_pointer: IO, projection: str):
         geojson = json.load(file_pointer)

@@ -129,28 +129,42 @@ async def fetch_model_runs(model_run_timestamp: datetime):
     # NOTE: This is a horribly inefficient way of listing model runs - we're making 6 calls just to
     # list model runs.
     result = CHainesModelRuns(model_runs=[])
+    # Get an async S3 client.
     async with get_client() as (client, bucket):
-        # create tasks for listing all the model runs
+        # Create tasks for listing all the model runs.
         tasks = []
+        # Iterate for date of interest and day before. If you only look for today, you may have an empty
+        # list until the latest model runs come in, so better to also list data from the day before.
         for date in [model_run_timestamp, model_run_timestamp-timedelta(days=1)]:
+            # We're interested in all the model runs.
             for model in ['GDPS', 'RDPS', 'HRDPS']:
+                # Construct a prefix to search for in S3 (basically path matching).
                 prefix = 'c-haines-polygons/json/{model}/{year}/{month}/{day}/'.format(
                     model=model,
                     year=date.year, month=date.month, day=date.day)
                 logger.info(prefix)
+                # Create the task to go and fetch the listing from S3.
                 tasks.append(asyncio.create_task(client.list_objects_v2(
                     Bucket=bucket,
                     Prefix=prefix)))
 
+        # Run all the tasks at once. (Basically listing folder contents on S3.)
         model_run_prediction_results = await asyncio.gather(*tasks)
+        # Iterate through results.
         for prediction_result in model_run_prediction_results:
+            # S3 data comes back as a dictionary with "Contents"
             if 'Contents' in prediction_result:
                 model_run_predictions = None
                 prev_model_run_timestamp = None
+                # Iterate through all the contents.
                 for prediction in prediction_result['Contents']:
+                    # The path is stored in the "Key" field. We infer the model, model run timestamp and
+                    # prediction timestamp from the path.
                     model, model_run_timestamp, prediction_timestamp = extract_model_run_prediction_from_path(
                         prediction['Key'])
+                    # Check for new model runs to add to our list.
                     if prev_model_run_timestamp != model_run_timestamp:
+                        # New model run? Make it and add it to the list.
                         prev_model_run_timestamp = model_run_timestamp
                         model_run_predictions = CHainesModelRunPredictions(
                             model=WeatherPredictionModel(name=model, abbrev=model),
@@ -158,7 +172,9 @@ async def fetch_model_runs(model_run_timestamp: datetime):
                             prediction_timestamps=[prediction_timestamp, ])
                         result.model_runs.append(model_run_predictions)
                     else:
+                        # Already have a model run, just at the prediction
                         model_run_predictions.prediction_timestamps.append(prediction_timestamp)
 
+    # Sort evertyhign by model run timestamp.
     result.model_runs.sort(key=lambda model_run: model_run.model_run_timestamp, reverse=True)
     return result
