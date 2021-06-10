@@ -1,18 +1,19 @@
 """ KML related code
 """
 import os
+import io
 import tempfile
 from datetime import datetime, timedelta
 from typing import Final, Iterator, IO
 import json
 import logging
 from pyproj import Transformer, Proj
-from aiobotocore.client import AioBaseClient
 from shapely.ops import transform
 from shapely.geometry import shape, Polygon
 from app.utils.s3 import object_exists
 from app.geospatial import WGS84
 from app.weather_models import ModelEnum
+from app.utils.s3 import get_client
 from app.c_haines import get_severity_string, SeverityEnum
 from app.c_haines.object_store import (ObjectTypeEnum,
                                        generate_full_object_store_path, generate_object_store_filename)
@@ -45,9 +46,7 @@ def get_severity_style(c_haines_index: SeverityEnum) -> str:
     return severity_style_map[c_haines_index]
 
 
-async def save_as_kml_to_s3(client: AioBaseClient,  # pylint: disable=too-many-arguments
-                            bucket: str,
-                            json_filename: str,
+async def save_as_kml_to_s3(json_filename: str,
                             source_projection,
                             prediction_model: ModelEnum,
                             model_run_timestamp: datetime,
@@ -55,22 +54,26 @@ async def save_as_kml_to_s3(client: AioBaseClient,  # pylint: disable=too-many-a
     """ Given a geojson file, generate KML and store to S3 """
     target_kml_path = generate_full_object_store_path(
         prediction_model, model_run_timestamp, prediction_timestamp, ObjectTypeEnum.KML)
-    # let's save some time, and check if the file doesn't already exists.
-    # it's super important we do this, since there are many c-haines cronjobs running in dev, all
-    # pointing to the same s3 bucket.
-    if await object_exists(client, bucket, target_kml_path):
-        logger.info('kml (%s) already exists - skipping', target_kml_path)
-        return
+    async with get_client() as (client, bucket):
+        # let's save some time, and check if the file doesn't already exists.
+        # it's super important we do this, since there are many c-haines cronjobs running in dev, all
+        # pointing to the same s3 bucket.
+        if await object_exists(client, bucket, target_kml_path):
+            logger.info('kml (%s) already exists - skipping', target_kml_path)
+            return
 
-    with tempfile.TemporaryDirectory() as temporary_path:
-        kml_filename = generate_object_store_filename(prediction_timestamp, ObjectTypeEnum.KML)
-        tmp_kml_path = os.path.join(temporary_path, kml_filename)
         # generate the kml file
-        severity_geojson_to_kml(json_filename, source_projection, tmp_kml_path,
-                                prediction_model, model_run_timestamp, prediction_timestamp)
-        # save it to s3
-        logger.info('uploading %s', target_kml_path)
-        await client.fput_object(bucket, target_kml_path, tmp_kml_path)
+        with io.StringIO() as sio:
+            severity_geojson_to_kml(json_filename, source_projection, sio,
+                                    prediction_model, model_run_timestamp, prediction_timestamp)
+            # smash it into binary
+            sio.seek(0)
+            bio = io.BytesIO(sio.read().encode('utf8'))
+            # go back to start
+            bio.seek(0)
+            # save it to s3
+            logger.info('uploading %s', target_kml_path)
+            await client.put_object(Bucket=bucket, Key=target_kml_path, Body=bio)
 
 
 def open_placemark(model: ModelEnum, severity: SeverityEnum, timestamp: datetime) -> str:
@@ -242,7 +245,7 @@ def generate_kml_prediction(result: Iterator[list], model: ModelEnum, model_run_
 
 def severity_geojson_to_kml(geojson_filename: str,  # pylint: disable=too-many-arguments
                             geojson_projection: str,
-                            kml_filename: str,
+                            sio: io.StringIO,
                             model: ModelEnum,
                             model_run_timestamp: datetime,
                             prediction_timestamp: datetime):
@@ -250,10 +253,8 @@ def severity_geojson_to_kml(geojson_filename: str,  # pylint: disable=too-many-a
     """
     with open(geojson_filename) as geojson_file_pointer:
         kml_file_result = KMLGeojsonPolygonIterator(geojson_file_pointer, geojson_projection)
-
-        with open(kml_filename, 'w') as kml_file_pointer:
-            for part in generate_kml_prediction(kml_file_result,
-                                                model,
-                                                model_run_timestamp,
-                                                prediction_timestamp):
-                kml_file_pointer.write(part)
+        for part in generate_kml_prediction(kml_file_result,
+                                            model,
+                                            model_run_timestamp,
+                                            prediction_timestamp):
+            sio.write(part)
