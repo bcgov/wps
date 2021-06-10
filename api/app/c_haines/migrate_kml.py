@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 class KMLGeojsonPolygonIterator:
     """ Generator that produces a kml polygon for every geojson feature. This generator assumes GeoJSON
-    as provided by DB query. No projection transformation is required, as the geojson from the database
+    is provided by DB query. No projection transformation is required, as the geojson from the database
     is already in WGS84. """
 
     def __init__(self, geojson):
