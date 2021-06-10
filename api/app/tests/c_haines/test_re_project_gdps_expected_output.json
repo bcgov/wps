@@ -1,0 +1,39 @@
+{
+    "type": "FeatureCollection",
+    "name": "C-Haines",
+    "features": [
+        {
+            "type": "Feature",
+            "properties": {
+                "c_haines_index": "8-11"
+            },
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [
+                            -139.875,
+                            69.975
+                        ],
+                        [
+                            -139.875,
+                            69.075
+                        ],
+                        [
+                            -139.575,
+                            69.075
+                        ],
+                        [
+                            -139.575,
+                            68.775
+                        ],
+                        [
+                            -139.875,
+                            69.975
+                        ]
+                    ]
+                ]
+            }
+        }
+    ]
+}
