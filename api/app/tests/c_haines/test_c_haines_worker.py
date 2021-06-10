@@ -45,6 +45,7 @@ def mock_minio(monkeypatch):
                              start_after=None, include_user_meta=False,
                              include_version=False, use_api_v1=False) -> Iterator[Object]:
                 """ mock list objects.
+                We want it to not find two files for the test, but find all others.
                 """
                 if prefix in ('c-haines-polygons/kml/GDPS/2020/5/21/0/2020-05-21T00:00:00.kml',
                               'c-haines-polygons/json/GDPS/2021/5/21/0/2021-05-21T00:00:00.json'):
