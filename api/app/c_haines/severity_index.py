@@ -15,7 +15,7 @@ from shapely.ops import transform
 from shapely.geometry import shape, mapping
 from minio import Minio
 from app.utils.s3 import get_minio_client, object_exists
-from app.utils.time import get_utc_now
+import app.utils.time as time_utils
 from app.db.models.c_haines import get_severity_string
 from app.weather_models import ModelEnum, ProjectionEnum
 from app.geospatial import WGS84
@@ -404,7 +404,7 @@ class CHainesSeverityGenerator():
 
     def _get_payloads(self, temporary_path) -> Generator[EnvCanadaPayload, None, None]:
         """ Iterator that yields the next to process. """
-        utc_now = get_utc_now()
+        utc_now = time_utils.get_utc_now()
         for model_hour in get_model_run_hours(self.model):
             for prediction_hour in model_prediction_hour_iterator(self.model):
 
