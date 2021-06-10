@@ -12,8 +12,8 @@ from app import config, configure_logging
 import app.db.database
 from app.db.crud.forecasts import save_noon_forecast
 from app.db.models.forecasts import NoonForecast
-from app.fireweather_bot.common import BaseBot, get_station_names_to_codes
-import app.time_utils
+from app.fireweather_bot.common import BaseBot, get_station_names_to_codes_local
+import app.utils.time
 from app.rocketchat_notifications import send_rocketchat_notification
 
 
@@ -60,7 +60,7 @@ def _parse_csv(temp_path: str):
     """
     with open(temp_path, 'r') as csv_file:
         data_df = pd.read_csv(csv_file)
-    station_codes = get_station_names_to_codes()
+    station_codes = get_station_names_to_codes_local()
     # drop any rows where 'display_name' is not found in the station_codes lookup:
     data_df.drop(index=data_df[~data_df['display_name'].isin(
         station_codes.keys())].index, inplace=True)
@@ -107,7 +107,7 @@ def _get_start_date():
     use tomorrow's date, since we only want forecasts, not actuals)
     Strip out time, we just want yyyymmdd """
     date = ''
-    now = app.time_utils.get_utc_now()    # returns time in UTC
+    now = app.utils.time.get_utc_now()    # returns time in UTC
     if now.hour == 23:
         # this is the evening run during Pacific Daylight Savings
         date = now + timedelta(days=1)
@@ -122,7 +122,7 @@ def _get_start_date():
 def _get_end_date():
     """ Helper function to get the end date for query (5 days in future).
     Strip out time, we just want <year><month><date> """
-    five_days_ahead = app.time_utils.get_utc_now() + timedelta(days=5)
+    five_days_ahead = app.utils.time.get_utc_now() + timedelta(days=5)
     return five_days_ahead.strftime('%Y%m%d')
 
 
@@ -156,7 +156,7 @@ def main():
                      exc_info=exception)
         # If and only if current date is during fire season, send a message to Rocketchat to notify
         # us of the error.
-        now = app.time_utils.get_utc_now()
+        now = app.utils.time.get_utc_now()
         if (FIRE_SEASON_START_MONTH <= now.month <= FIRE_SEASON_END_MONTH)\
                 and (FIRE_SEASON_START_DAY <= now.day <= FIRE_SEASON_END_DAY):
             rc_message = ':confounded: Encountered error retrieving noon forecasts'

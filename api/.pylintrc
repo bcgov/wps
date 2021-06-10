@@ -138,7 +138,10 @@ disable=print-statement,
         xreadlines-attribute,
         deprecated-sys-function,
         exception-escape,
-        comprehension-escape
+        comprehension-escape,
+        R0801
+
+# TODO ^^^ remove R0801 exception - just there during c-haines migration.
 
 # Ratinale behind disabled messages:
 
@@ -548,7 +551,7 @@ valid-metaclass-classmethod-first-arg=cls
 [DESIGN]
 
 # Maximum number of arguments for function / method.
-max-args=5
+max-args=6
 
 # Maximum number of attributes for a class (see R0902).
 max-attributes=7

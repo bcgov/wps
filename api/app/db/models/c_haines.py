@@ -21,6 +21,12 @@ class SeverityEnum(enum.Enum):
 severity_levels = [item.value for item in SeverityEnum]
 
 
+def get_severity_string(severity: int) -> str:
+    """ Return the severity level as a string, e.g. severity level 3 maps to "11+"
+    """
+    return severity_levels[severity]
+
+
 class CHainesModelRun(Base):
     """ C-Haines model run """
     __tablename__ = 'c_haines_model_runs'

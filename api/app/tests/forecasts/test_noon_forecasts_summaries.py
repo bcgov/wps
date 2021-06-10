@@ -13,7 +13,7 @@ from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 import pytest
 import app.main
 from app.db.models.forecasts import NoonForecast
-import app.time_utils as time_utils
+import app.utils.time as time_utils
 
 
 logger = logging.getLogger(__name__)

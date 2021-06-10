@@ -1,6 +1,25 @@
 import { FIRE_WEATHER_ROUTE, MORECAST_ROUTE, PARTIAL_WIDTH } from '../../src/utils/constants'
 import { stationCodeQueryKey, timeOfInterestQueryKey } from '../../src/utils/url'
 const stationCode = 328
+const stationCode2 = 380
+const numOfObservations = 119
+const numOfForecasts = 6
+
+const interceptData = () => {
+  cy.intercept('POST', 'api/observations/', { fixture: 'weather-data/observations' })
+  cy.intercept('POST', 'api/forecasts/noon/', { fixture: 'weather-data/noon-forecasts' })
+  cy.intercept('POST', 'api/forecasts/noon/summaries/', { fixture: 'weather-data/noon-forecast-summaries' })
+  cy.intercept('POST', 'api/weather_models/GDPS/predictions/most_recent', {fixture:'weather-data/models-with-bias-adjusted'}) // prettier-ignore
+  cy.intercept('POST', 'api/weather_models/GDPS/predictions/summaries/', {
+    fixture: 'weather-data/model-summaries'
+  })
+  cy.intercept('POST', 'api/weather_models/HRDPS/predictions/most_recent', {fixture:'weather-data/hr-models-with-bias-adjusted'}) // prettier-ignore
+  cy.intercept('POST', 'api/weather_models/HRDPS/predictions/summaries', {fixture:'weather-data/high-res-model-summaries'}) // prettier-ignore
+  cy.intercept('POST', 'api/weather_models/RDPS/predictions/most_recent', {fixture:'weather-data/regional-models-with-bias-adjusted'}) // prettier-ignore
+  cy.intercept('POST', 'api/weather_models/RDPS/predictions/summaries', {
+    fixture: 'weather-data/regional-model-summaries'
+  })
+}
 
 describe('MoreCast Page', () => {
   beforeEach(() => {
@@ -63,21 +82,64 @@ describe('MoreCast Page', () => {
     cy.url().should('contain', `${timeOfInterestQueryKey}=${timeOfInterest}`)
   })
 
+  describe('When loading a single station from url', () => {
+    beforeEach(() => {
+      interceptData()
+
+      cy.visit(`${MORECAST_ROUTE}?codes=${stationCode}`)
+      cy.wait('@getStations')
+    })
+
+    it('should load with an observation table', () => {
+      cy.getByTestId(`observations-table-${stationCode}`)
+        .find('tbody > tr')
+        .should('have.length', numOfObservations)
+
+      // expect the sidepanel to be partially expanded (we compare the calculated width, and expect
+      // it to match the width of our browser window)
+      cy.getByTestId('expandable-container-content')
+        .invoke('css', 'width')
+        .then(str => parseInt(str))
+        .should('be.lt', 790)
+    })
+
+    it('should load a table comparing forecasts to noon observations', () => {
+      cy.getByTestId(`noon-forecasts-obs-table-${stationCode}`)
+        .find('tbody > tr')
+        .should('have.length', numOfForecasts)
+
+      cy.getByTestId(`expand-collapse-button`).click({ force: true })
+      cy.getByTestId(`noon-forecasts-obs-table-${stationCode}`)
+        .invoke('css', 'width')
+        .then(str => parseInt(str))
+        .should('be.gt', 790)
+    })
+  })
+
+  describe('When loading multiple stations from url', () => {
+    beforeEach(() => {
+      interceptData()
+
+      cy.visit(`${MORECAST_ROUTE}?codes=${stationCode},${stationCode2}`)
+      cy.wait('@getStations')
+    })
+
+    it('Should display station comparison table', () => {
+      // expect Station Comparison to be selected
+      cy.getByTestId('station-comparison-button').should('have.attr', 'aria-pressed', 'true')
+
+      // expect the table to exist.
+      cy.getByTestId('station-comparison-table').should('exist')
+
+      // expect the sidepanel to be fully expanded (we compare the calculated width, and expect
+      // it to match the width of our browser window)
+      cy.getByTestId('expandable-container-content').should('have.css', 'width', '1000px')
+    })
+  })
+
   describe('When wx data for multiple stations fetched', () => {
     beforeEach(() => {
-      cy.intercept('POST', 'api/observations/', { fixture: 'weather-data/observations' })
-      cy.intercept('POST', 'api/forecasts/noon/', { fixture: 'weather-data/noon-forecasts' })
-      cy.intercept('POST', 'api/forecasts/noon/summaries/', { fixture: 'weather-data/noon-forecast-summaries' })
-      cy.intercept('POST', 'api/weather_models/GDPS/predictions/most_recent', {fixture:'weather-data/models-with-bias-adjusted'}) // prettier-ignore
-      cy.intercept('POST', 'api/weather_models/GDPS/predictions/summaries/', {
-        fixture: 'weather-data/model-summaries'
-      })
-      cy.intercept('POST', 'api/weather_models/HRDPS/predictions/most_recent', {fixture:'weather-data/hr-models-with-bias-adjusted'}) // prettier-ignore
-      cy.intercept('POST', 'api/weather_models/HRDPS/predictions/summaries', {fixture:'weather-data/high-res-model-summaries'}) // prettier-ignore
-      cy.intercept('POST', 'api/weather_models/RDPS/predictions/most_recent', {fixture:'weather-data/regional-models-with-bias-adjusted'}) // prettier-ignore
-      cy.intercept('POST', 'api/weather_models/RDPS/predictions/summaries', {
-        fixture: 'weather-data/regional-model-summaries'
-      })
+      interceptData()
 
       cy.visit(MORECAST_ROUTE)
 
@@ -85,7 +147,7 @@ describe('MoreCast Page', () => {
 
       // Request the weather data
       cy.selectStationInDropdown(stationCode)
-      cy.selectStationInDropdown(380)
+      cy.selectStationInDropdown(stationCode2)
       const timeOfInterest = '2021-01-22T12:00:00-08:00'
       cy.getByTestId('time-of-interest-picker').type(timeOfInterest.slice(0, 16)) // yyyy-MM-ddThh:mm
       cy.getByTestId('get-wx-data-button').click({ force: true })
@@ -98,7 +160,7 @@ describe('MoreCast Page', () => {
       // expect the table to exist.
       cy.getByTestId('station-comparison-table').should('exist')
 
-      // expect the sidepanel to be fully expanded (we compare the calculated width, en expect
+      // expect the sidepanel to be fully expanded (we compare the calculated width, and expect
       // it to match the width of our browser window)
       cy.getByTestId('expandable-container-content').should('have.css', 'width', '1000px')
 
@@ -108,37 +170,19 @@ describe('MoreCast Page', () => {
         .should('have.length', 2)
 
       // expect some observed data
-      cy.getByTestId('comparison-table-row-0')
-        .find('td[data-testid="temperature-observation"] > div')
-        .should('contain', '-3.8°C')
+      cy.getByTestId(`${stationCode}-Temperature-Observed`).should('contain', '-3.8°C')
 
-      cy.getByTestId('comparison-table-row-0')
-        .find('td[data-testid="dewpoint-observation"] > div')
-        .should('contain', '-8.3°C')
+      cy.getByTestId(`${stationCode}-Dew-point-Observed`).should('contain', '-8.3°C')
     })
   })
 
   describe('When wx data successfully fetched', () => {
-    const numOfObservations = 119
-    const numOfForecasts = 6
     const numOfGdps = 131
     const numOfHrdps = 159
     const numOfRdps = 195
 
     beforeEach(() => {
-      cy.intercept('POST', 'api/observations/', { fixture: 'weather-data/observations' })
-      cy.intercept('POST', 'api/forecasts/noon/', { fixture: 'weather-data/noon-forecasts' })
-      cy.intercept('POST', 'api/forecasts/noon/summaries/', { fixture: 'weather-data/noon-forecast-summaries' })
-      cy.intercept('POST', 'api/weather_models/GDPS/predictions/most_recent', {fixture:'weather-data/models-with-bias-adjusted'}) // prettier-ignore
-      cy.intercept('POST', 'api/weather_models/GDPS/predictions/summaries/', {
-        fixture: 'weather-data/model-summaries'
-      })
-      cy.intercept('POST', 'api/weather_models/HRDPS/predictions/most_recent', {fixture:'weather-data/hr-models-with-bias-adjusted'}) // prettier-ignore
-      cy.intercept('POST', 'api/weather_models/HRDPS/predictions/summaries', {fixture:'weather-data/high-res-model-summaries'}) // prettier-ignore
-      cy.intercept('POST', 'api/weather_models/RDPS/predictions/most_recent', {fixture:'weather-data/regional-models-with-bias-adjusted'}) // prettier-ignore
-      cy.intercept('POST', 'api/weather_models/RDPS/predictions/summaries', {
-        fixture: 'weather-data/regional-model-summaries'
-      })
+      interceptData()
 
       cy.visit(MORECAST_ROUTE)
 
@@ -229,10 +273,9 @@ describe('MoreCast Page', () => {
       checkTableCellHighlighting('noon-gdps-table')
 
       // Check num of noon forecasts rows
-      cy.getByTestId(`noon-forecasts-table-${stationCode}`)
+      cy.getByTestId(`noon-forecasts-obs-table-${stationCode}`)
         .find('tbody > tr')
         .should('have.length', numOfForecasts)
-      checkTableCellHighlighting('noon-forecasts-table')
 
       // Check that collapse and expand functionality works
       cy.getByTestId(`observations-table-${stationCode}-accordion`).click() // Collapse Observations table
@@ -251,7 +294,7 @@ describe('MoreCast Page', () => {
       cy.getByTestId('legend').should('be.visible')
     })
     it('Should expand the side panel when it is collapsed, and hide the legend', () => {
-      cy.get(`[value=expand-collapse]`).click({ force: true })
+      cy.getByTestId(`expand-collapse-button`).click({ force: true })
       cy.getByTestId('expandable-container-content')
         .invoke('width')
         .should('be.gt', PARTIAL_WIDTH)
@@ -259,7 +302,7 @@ describe('MoreCast Page', () => {
       cy.getByTestId('legend').should('not.exist')
     })
     it('Should collapse the side panel when it is expanded and the legend should be visible', () => {
-      cy.get(`[value=expand-collapse]`)
+      cy.getByTestId(`expand-collapse-button`)
         .click({ force: true })
         .click({ force: true })
       cy.getByTestId('expandable-container-content')
@@ -309,9 +352,13 @@ describe('MoreCast Page', () => {
             .should('have.length', num)
         }
 
-        checkNumOfLegends(8)
+        // the 10 Legend items should be:
+        // Observed Dew Point, Observed Temp, Observed RH, Forecast Temp, Forecast RH, HRDPS Temp, HRDPS RH,
+        // HRDPS Temp 5th - 90th percentile, HRDPS RH 5th - 90th percentile, Time of Interest
+        checkNumOfLegends(10)
 
         cy.getByTestId('wx-graph-hrdps-toggle').click()
+        cy.getByTestId('wx-graph-forecast-toggle').click()
         checkNumOfTempDewpointMarkers(2 * numOfObservations - 1)
         checkNumOfRHMarkers(numOfObservations)
         checkTempDewpointTraces(false)
@@ -365,13 +412,12 @@ describe('MoreCast Page', () => {
             .should('have.length', num)
         }
 
-        checkNumOfLegends(5)
+        checkNumOfLegends(7)
 
         cy.getByTestId('wx-graph-hrdps-toggle').click()
-        checkNumOfBars(6)
+        checkNumOfBars(12)
         cy.getByTestId('wx-graph-observation-toggle').click()
 
-        cy.getByTestId('wx-graph-forecast-toggle').click()
         checkNumOfBars(6)
         cy.getByTestId('wx-graph-forecast-toggle').click()
 
@@ -402,9 +448,10 @@ describe('MoreCast Page', () => {
             .should('have.length', num)
         }
 
-        checkNumOfLegends(3)
+        checkNumOfLegends(4)
 
         cy.getByTestId('wx-graph-hrdps-toggle').click()
+        cy.getByTestId('wx-graph-forecast-toggle').click()
         checkNumOfArrows(numOfObservations)
         cy.getByTestId('wx-graph-observation-toggle').click()
 

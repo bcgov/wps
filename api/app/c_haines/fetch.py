@@ -1,203 +1,76 @@
 """ Fetch c-haines geojson
 """
 from io import StringIO
-from typing import Final, Iterator
-from urllib.parse import urljoin
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+from typing import Iterator, Tuple
+from urllib.parse import urljoin, urlencode
+import asyncio
 import logging
+
 from app import config
-import app.db.database
-from app.db.models.c_haines import SeverityEnum
+from app.utils.s3 import get_client
+from app.c_haines.kml import (get_look_at,
+                              get_kml_header, FOLDER_OPEN, FOLDER_CLOSE)
+from app.c_haines.object_store import ObjectTypeEnum, generate_object_store_model_run_path
 from app.schemas.weather_models import CHainesModelRuns, CHainesModelRunPredictions, WeatherPredictionModel
 from app.weather_models import ModelEnum
-from app.db.crud.c_haines import (get_model_run_predictions, get_most_recent_model_run,
-                                  get_prediction_geojson, get_prediction_kml, get_model_run_kml)
 
 logger = logging.getLogger(__name__)
 
-FOLDER_OPEN: Final = '<Folder>'
-FOLDER_CLOSE: Final = '</Folder>'
 
-
-# Severity enum -> Text description mapping
-severity_text_map = {
-    SeverityEnum.LOW: '<4 Low',
-    SeverityEnum.MODERATE: '4 - 8 Moderate',
-    SeverityEnum.HIGH: '8 - 11 High',
-    SeverityEnum.EXTREME: '11+ Extreme'
-}
-
-# Severity enum -> KML style mapping
-severity_style_map = {
-    SeverityEnum.LOW: 'low',
-    SeverityEnum.MODERATE: 'moderate',
-    SeverityEnum.HIGH: 'high',
-    SeverityEnum.EXTREME: 'extreme'
-}
-
-
-def get_severity_style(c_haines_index: SeverityEnum) -> str:
-    """ Based on the index range, return a style string """
-    return severity_style_map[c_haines_index]
-
-
-def open_placemark(model: ModelEnum, severity: SeverityEnum, timestamp: datetime):
-    """ Open kml <Placemark> tag. """
-    kml = []
-    kml.append('<Placemark>')
-
-    if model == ModelEnum.GDPS:
-        end = timestamp + timedelta(hours=3)
-    else:
-        end = timestamp + timedelta(hours=1)
-    kml.append('<TimeSpan>')
-    kml.append('<begin>{}</begin>'.format(timestamp.isoformat()))
-    kml.append('<end>{}</end>'.format(end.isoformat()))
-    kml.append('</TimeSpan>')
-    kml.append('<styleUrl>#{}</styleUrl>'.format(get_severity_style(severity)))
-    kml.append('<name>{}</name>'.format(severity_text_map[severity]))
-    kml.append('<MultiGeometry>')
-    return "\n".join(kml)
-
-
-def close_placemark():
-    """ Close kml </Placemark> tag. """
-    kml = []
-    kml.append('</MultiGeometry>')
-    kml.append('</Placemark>')
-    return "\n".join(kml)
-
-
-def add_style(kml, style_id, color):
-    """ Add kml <Style> tag """
-    kml.append('<Style id="{}">'.format(style_id))
-    kml.append('<LineStyle>')
-    kml.append('<width>1.5</width>')
-    kml.append('<color>{}</color>'.format(color))
-    kml.append('</LineStyle>')
-    kml.append('<PolyStyle>')
-    kml.append('<color>{}</color>'.format(color))
-    kml.append('</PolyStyle>')
-    kml.append('</Style>')
-
-
-async def fetch_prediction_geojson(model: ModelEnum, model_run_timestamp: datetime,
-                                   prediction_timestamp: datetime):
-    """ Fetch prediction polygon geojson.
+async def fetch_model_run_kml_streamer(model: ModelEnum, model_run_timestamp: datetime) -> Iterator[str]:
+    """ Yield model run XML.
+    Yielding allows streaming response to start while kml is being constructed.
+    The KML we're making is essentially a list of network links for each prediction.
     """
-    logger.info('model: %s; model_run: %s, prediction: %s', model, model_run_timestamp, prediction_timestamp)
-    with app.db.database.get_read_session_scope() as session:
-        response = get_prediction_geojson(session, model, model_run_timestamp, prediction_timestamp)
-    return response
+    # We need to pass the API's url in, so that the KML know where to ask for network links.
+    uri = config.get('BASE_URI')
+    # Starting serving up the kml.
+    yield get_kml_header()
+    # Serve up the "look_at" which tells google earth when and where to take you.
+    yield get_look_at(model, model_run_timestamp)
+    # Serve up model folder and model run folder.
+    yield '<name>{} {}</name>\n'.format(model, model_run_timestamp)
+    yield '<Folder>'  # Open model run folder.
+    yield f'<name>{model} {model_run_timestamp} model run</name>\n'
 
+    # Get an async S3 client.
+    async with get_client() as (client, bucket):
+        # Construct model run path - so we can list contents that match that path.
+        model_run_path = generate_object_store_model_run_path(model, model_run_timestamp, ObjectTypeEnum.KML)
+        # List all files in folder (e.g. list all the prediction kml files).
+        predictions = await client.list_objects_v2(Bucket=bucket, Prefix=model_run_path)
+        # File listing is in the "Contents" entry.
+        if 'Contents' in predictions:
+            # Iterate through each entry.
+            for prediction in predictions['Contents']:
+                # Filename is in the "Key" entry.
+                object_name = prediction['Key']
+                # Infer timestamp from filename.
+                prediction_timestamp = object_name.split('/')[-1].split('.')[0]
+                # Construct params for URL.
+                kml_params = {'model_run_timestamp': model_run_timestamp,
+                              'prediction_timestamp': prediction_timestamp,
+                              'response_format': 'KML'}
+                # Create url (remembering to escape & for xml)
+                kml_url = urljoin(uri, f'/api/c-haines/{model}/prediction') + \
+                    '?' + urlencode(kml_params).replace('&', '&amp;')
+                yield '<NetworkLink>\n'
+                yield '<visibility>1</visibility>\n'
+                yield f'<name>{prediction_timestamp}</name>\n'
+                yield '<Link>\n'
+                yield f'<href>{kml_url}</href>\n'
+                yield '</Link>\n'
+                yield '</NetworkLink>\n'
 
-def get_look_at(model: ModelEnum, model_run_timestamp: datetime):
-    """ Return <LookAt> tag to set default position and timespan.
-    If this isn't done, then all the predictions will show as a big overlayed mess. """
-    if model == ModelEnum.GDPS:
-        end = model_run_timestamp + timedelta(hours=3)
-    else:
-        end = model_run_timestamp + timedelta(hours=1)
-    kml = []
-    kml.append('<LookAt>')
-    kml.append('<gx:TimeSpan>')
-    kml.append(f'<begin>{model_run_timestamp.isoformat()}</begin>')
-    kml.append(f'<end>{end.isoformat()}</end>')
-    kml.append('</gx:TimeSpan>')
-    # Center at an appropriate coordinate somewhere in the middle of B.C.
-    kml.append('<longitude>-123</longitude>')
-    kml.append('<latitude>54</latitude>')
-    # https://developers.google.com/kml/documentation/kmlreference#range
-    # Distance in meters from the point specified:
-    kml.append('<range>3000000</range>')
-    kml.append('</LookAt>')
-    return '\n'.join(kml)
-
-
-def _yield_folder_parts(result, model: ModelEnum, model_run_timestamp: datetime) -> Iterator[str]:
-    """ Yield up all the different parts of the folders with placemarks.
-    """
-    prev_prediction_timestamp = None
-    prev_severity = None
-    # Iterate through the records we get from the database.
-    for poly, severity, prediction_timestamp in result:
-        # If it's a new timestamp.
-        if prediction_timestamp != prev_prediction_timestamp:
-            # Close the previous placemark if needed.
-            if not prev_severity is None:
-                yield close_placemark()
-            prev_severity = None
-            # Close the previous folder if needed.
-            if prev_prediction_timestamp is not None:
-                yield f'{FOLDER_CLOSE}\n'
-            prev_prediction_timestamp = prediction_timestamp
-            # Start a new folder.
-            yield f'{FOLDER_OPEN}\n'
-            yield '<name>{} {} {}</name>\n'.format(model, model_run_timestamp, prediction_timestamp)
-        # Close the placemark if needed.
-        if severity != prev_severity:
-            if not prev_severity is None:
-                yield close_placemark()
-            prev_severity = severity
-            yield open_placemark(model, SeverityEnum(severity), prediction_timestamp)
-        # Yield up the polygon.
-        yield poly
-
-    # Close all tags, if needed.
-    if prev_prediction_timestamp is not None:
-        if not prev_severity is None:
-            yield close_placemark()
-        yield f'{FOLDER_CLOSE}\n'
-
-
-def fetch_model_run_kml_streamer(
-        model: ModelEnum, model_run_timestamp: datetime) -> Iterator[str]:
-    """ Yield model run XML (allows streaming response to start while kml is being
-    constructed.)
-    """
-    logger.info('model: %s; model_run: %s', model, model_run_timestamp)
-
-    with app.db.database.get_read_session_scope() as session:
-
-        if model_run_timestamp is None:
-            model_run = get_most_recent_model_run(session, model)
-            model_run_timestamp = model_run.model_run_timestamp
-
-        # Fetch the KML results from the database.
-        result = get_model_run_kml(session, model, model_run_timestamp)
-
-        # Serve up the kml header.
-        yield get_kml_header()
-        # Serve up the "look_at" which tells google earth when and where to take you.
-        yield get_look_at(model, model_run_timestamp)
-        # Serve up the name.
-        yield '<name>{} {}</name>\n'.format(model, model_run_timestamp)
-
-        # Iterate through all the different folders and placemarks.
-        for item in _yield_folder_parts(result, model, model_run_timestamp):
-            yield item
-
+        yield '</Folder>'  # Close model run folder.
         # Close the KML document.
         yield '</Document>\n'
         yield '</kml>\n'
         logger.info('kml complete')
 
 
-def get_kml_header():
-    """ Return the kml header (xml header, <xml> tag, <Document> tag and styles.)
-    """
-    kml = []
-    kml.append('<?xml version="1.0" encoding="UTF-8"?>')
-    kml.append('<kml xmlns="http://www.opengis.net/kml/2.2">')
-    kml.append('<Document>')
-    # color format is aabbggrr
-    add_style(kml, get_severity_style(SeverityEnum.MODERATE), '9900ffff')
-    add_style(kml, get_severity_style(SeverityEnum.HIGH), '9900a5ff')
-    add_style(kml, get_severity_style(SeverityEnum.EXTREME), '990000ff')
-    return "\n".join(kml)
-
-
-def fetch_network_link_kml():
+def fetch_network_link_kml() -> str:
     """ Fetch the kml for the network link """
     uri = config.get('BASE_URI')
     writer = StringIO()
@@ -222,55 +95,90 @@ def fetch_network_link_kml():
     return writer.getvalue()
 
 
-def fetch_prediction_kml_streamer(model: ModelEnum, model_run_timestamp: datetime,
-                                  prediction_timestamp: datetime):
-    """ Fetch prediction polygon geojson.
-    """
-    logger.info('model: %s; model_run: %s, prediction: %s', model, model_run_timestamp, prediction_timestamp)
-    with app.db.database.get_read_session_scope() as session:
-        result = get_prediction_kml(session, model, model_run_timestamp, prediction_timestamp)
-        yield get_kml_header()
-        kml = []
-        kml.append('<name>{} {} {}</name>'.format(model, model_run_timestamp, prediction_timestamp))
-        kml.append(f'{FOLDER_OPEN}')
-        kml.append('<name>{} {} {}</name>'.format(model, model_run_timestamp, prediction_timestamp))
-        yield "\n".join(kml)
-        kml = []
-        prev_severity = None
-        for poly, severity in result:
-            if severity != prev_severity:
-                if not prev_severity is None:
-                    kml.append(close_placemark())
-                prev_severity = severity
-                kml.append(open_placemark(model, SeverityEnum(severity), prediction_timestamp))
-            kml.append(poly)
+def extract_model_run_prediction_from_path(prediction_path: str) -> Tuple[str, datetime, datetime]:
+    """ Extract model abbreviation, model run timestamp and prediction timestamp from prediction path """
+    name_split = prediction_path.strip('/').split('/')
 
-            yield "\n".join(kml)
-            kml = []
-        if not prev_severity is None:
-            kml.append(close_placemark())
-        kml.append(f'{FOLDER_CLOSE}')
-        kml.append('</Document>')
-        kml.append('</kml>')
-        yield "\n".join(kml)
+    prediction_timestamp = datetime.fromisoformat(name_split[-1].rstrip('.json')+'+00:00')
+
+    hour = int(name_split[-2])
+    day = int(name_split[-3])
+    month = int(name_split[-4])
+    year = int(name_split[-5])
+    model_run_timestamp = datetime(year=year, month=month, day=day, hour=hour, tzinfo=timezone.utc)
+
+    model = name_split[-6]
+
+    return model, model_run_timestamp, prediction_timestamp
+
+
+def extract_model_run_timestamp_from_path(model_run_path: str) -> datetime:
+    """ Take the model run path, and get back the model run datetime """
+    name_split = model_run_path.strip('/').split('/')
+    hour = int(name_split[-1])
+    day = int(name_split[-2])
+    month = int(name_split[-3])
+    year = int(name_split[-4])
+    return datetime(year=year, month=month, day=day, hour=hour, tzinfo=timezone.utc)
+
+
+def extract_model_from_path(model_run_path: str) -> str:
+    """ Take the model run path, and get back the model abbreviation """
+    name_split = model_run_path.strip('/').split('/')
+    return name_split[-5]
 
 
 async def fetch_model_runs(model_run_timestamp: datetime):
-    """ Fetch recent model runs """
-    with app.db.database.get_read_session_scope() as session:
-        model_runs = get_model_run_predictions(session, model_run_timestamp)
+    """ Fetch recent model runs."""
+    # NOTE: This is a horribly inefficient way of listing model runs - we're making 6 calls just to
+    # list model runs.
+    result = CHainesModelRuns(model_runs=[])
+    # Get an async S3 client.
+    async with get_client() as (client, bucket):
+        # Create tasks for listing all the model runs.
+        tasks = []
+        # Iterate for date of interest and day before. If you only look for today, you may have an empty
+        # list until the latest model runs come in, so better to also list data from the day before.
+        for date in [model_run_timestamp, model_run_timestamp-timedelta(days=1)]:
+            # We're interested in all the model runs.
+            for model in ['GDPS', 'RDPS', 'HRDPS']:
+                # Construct a prefix to search for in S3 (basically path matching).
+                prefix = 'c-haines-polygons/json/{model}/{year}/{month}/{day}/'.format(
+                    model=model,
+                    year=date.year, month=date.month, day=date.day)
+                logger.info(prefix)
+                # Create the task to go and fetch the listing from S3.
+                tasks.append(asyncio.create_task(client.list_objects_v2(
+                    Bucket=bucket,
+                    Prefix=prefix)))
 
-        result = CHainesModelRuns(model_runs=[])
-        prev_model_run_id = None
+        # Run all the tasks at once. (Basically listing folder contents on S3.)
+        model_run_prediction_results = await asyncio.gather(*tasks)
+        # Iterate through results.
+        for prediction_result in model_run_prediction_results:
+            # S3 data comes back as a dictionary with "Contents"
+            if 'Contents' in prediction_result:
+                model_run_predictions = None
+                prev_model_run_timestamp = None
+                # Iterate through all the contents.
+                for prediction in prediction_result['Contents']:
+                    # The path is stored in the "Key" field. We infer the model, model run timestamp and
+                    # prediction timestamp from the path.
+                    model, model_run_timestamp, prediction_timestamp = extract_model_run_prediction_from_path(
+                        prediction['Key'])
+                    # Check for new model runs to add to our list.
+                    if prev_model_run_timestamp != model_run_timestamp:
+                        # New model run? Make it and add it to the list.
+                        prev_model_run_timestamp = model_run_timestamp
+                        model_run_predictions = CHainesModelRunPredictions(
+                            model=WeatherPredictionModel(name=model, abbrev=model),
+                            model_run_timestamp=model_run_timestamp,
+                            prediction_timestamps=[prediction_timestamp, ])
+                        result.model_runs.append(model_run_predictions)
+                    else:
+                        # Already have a model run, just at the prediction
+                        model_run_predictions.prediction_timestamps.append(prediction_timestamp)
 
-        for model_run_id, tmp_model_run_timestamp, name, abbreviation, prediction_timestamp in model_runs:
-            if prev_model_run_id != model_run_id:
-                model_run_predictions = CHainesModelRunPredictions(
-                    model=WeatherPredictionModel(name=name, abbrev=abbreviation),
-                    model_run_timestamp=tmp_model_run_timestamp,
-                    prediction_timestamps=[])
-                result.model_runs.append(model_run_predictions)
-                prev_model_run_id = model_run_id
-            model_run_predictions.prediction_timestamps.append(prediction_timestamp)
-
+    # Sort evertyhign by model run timestamp.
+    result.model_runs.sort(key=lambda model_run: model_run.model_run_timestamp, reverse=True)
     return result

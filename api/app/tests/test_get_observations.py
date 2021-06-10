@@ -1,5 +1,6 @@
 """ BDD tests for API /hourlies. """
 import logging
+import asyncio
 from datetime import datetime
 from typing import List, Generator
 from contextlib import contextmanager
@@ -12,8 +13,9 @@ from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
 import pytest
 import app.main
-import app.time_utils
+import app.utils.time
 from app.db.models.observations import HourlyActual
+from app.schemas.stations import WeatherStation
 from app.tests.common import default_mock_client_get
 import app.wildfire_one
 
@@ -35,6 +37,15 @@ def test_hourlies():
 def given_hourlies_request(monkeypatch, codes: List, use_wfwx):
     """ Make /observations/ request using mocked out ClientSession.
     """
+
+    def build_mock_stations(codes: List):
+        stations = []
+        for code in codes:
+            station = WeatherStation(code=code, name="one", lat=0, long=0)
+            stations.append(station)
+        result = asyncio.Future()
+        result.set_result(stations)
+        return result
 
     @contextmanager
     def mock_get_session_scope(*_) -> Generator[Session, None, None]:
@@ -59,6 +70,7 @@ def given_hourlies_request(monkeypatch, codes: List, use_wfwx):
     else:
         logger.info('running test with WFWX set to False')
         monkeypatch.setenv("USE_WFWX", 'False')
+        monkeypatch.setattr('app.wildfire_one.get_stations_by_codes', lambda _: build_mock_stations(codes))
         monkeypatch.setattr(
             app.db.database, 'get_read_session_scope', mock_get_session_scope)
 

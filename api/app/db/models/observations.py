@@ -6,7 +6,7 @@ import math
 from sqlalchemy import (Column, Integer, Float, Boolean, UniqueConstraint)
 from app.db.database import Base
 from app.db.models.common import TZTimeStamp
-import app.time_utils as time_utils
+import app.utils.time as time_utils
 
 
 class HourlyActual(Base):
@@ -26,7 +26,7 @@ class HourlyActual(Base):
     station_code = Column(Integer, nullable=False, index=True)
     temp_valid = Column(Boolean, default=False, nullable=False, index=True)
     temperature = Column(Float, nullable=False)
-    dewpoint = Column(Float, nullable=False)
+    dewpoint = Column(Float, nullable=True)
     rh_valid = Column(Boolean, default=False, nullable=False, index=True)
     relative_humidity = Column(Float, nullable=False)
     wdir_valid = Column(Boolean, default=False, nullable=False)
