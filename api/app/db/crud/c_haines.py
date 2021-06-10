@@ -74,17 +74,6 @@ def create_c_haines_model_run(
     return model_run
 
 
-def get_or_create_c_haines_model_run(
-        session: Session,
-        model_run_timestamp: datetime,
-        prediction_model: PredictionModel) -> CHainesModelRun:
-    """ Get a model run, creating one if it doesn't exist. """
-    model_run = get_c_haines_model_run(session, model_run_timestamp, prediction_model)
-    if model_run is None:
-        model_run = create_c_haines_model_run(session, model_run_timestamp, prediction_model)
-    return model_run
-
-
 def get_c_haines_prediction(
         session: Session,
         model_run: CHainesModelRun,
@@ -123,13 +112,15 @@ def get_prediction_geojson(session: Session,
                            model: ModelEnum,
                            model_run_timestamp: datetime,
                            prediction_timestamp: datetime):
-    """ Get the geojson for a particular prediction """
+    """ Get the geojson for a particular prediction, in WGS84. (Stored as NAD83 in DB, but KML and GeoJSON
+    expect WGS84)
+    """
     query = text("""select json_build_object(
         'type', 'FeatureCollection',
         'features', json_agg(ST_AsGeoJSON(t.*)::json)
     )
         from (
-        select geom, c_haines_index from c_haines_polygons
+        select ST_Transform(geom, 'epsg:4269', 'epsg:4326'), c_haines_index from c_haines_polygons
         inner join c_haines_predictions on
             c_haines_predictions.id =
             c_haines_polygons.c_haines_prediction_id
