@@ -528,14 +528,14 @@ async def get_dailies(
         session: ClientSession,
         header: dict,
         station_ids: List[str],
-        start_timestamp: datetime,
-        end_timestamp: datetime) -> List[StationDaily]:
+        start_timestamp: int,
+        end_timestamp: int) -> List[StationDaily]:
     """ Get the daily actuals for the given station ids.
     """
     dailies_iterator = _fetch_paged_response_generator(
         session, header, BuildQueryDailesByStationCode(
-            math.floor(start_timestamp.timestamp()*1000),
-            math.floor(end_timestamp.timestamp()*1000), station_ids), 'dailies')
+            start_timestamp,
+            end_timestamp, station_ids), 'dailies')
 
     stations: List[WFWXWeatherStation] = await get_stations(session, header, mapper=wfwx_station_list_mapper)
 

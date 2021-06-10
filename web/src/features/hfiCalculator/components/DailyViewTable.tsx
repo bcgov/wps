@@ -10,21 +10,16 @@ import {
   Typography
 } from '@material-ui/core'
 import React from 'react'
+import { StationDaily } from 'api/hfiCalculatorAPI'
 
 export interface Ros {
   type01a: number
   type01b: number
 }
 
-export interface StationData {
-  name: string
-  metrics: number[]
-  ros: Ros
-}
-
 interface Props {
   title: string
-  stationData: StationData[]
+  stationData: StationDaily[]
   testId?: string
 }
 
@@ -88,20 +83,37 @@ const DailyViewTable = (props: Props) => {
             <TableBody>
               {props.stationData.map((data, dataIdx) => (
                 <TableRow key={dataIdx}>
-                  {data.metrics.map((metric, metricIdx) => (
-                    <TableCell align="right" key={metricIdx}>
-                      {metric}
-                    </TableCell>
-                  ))}
+                  <TableCell align="right">GOOD</TableCell>
+                  <TableCell align="right">{data.temperature}</TableCell>
+                  <TableCell align="right">{data.relative_humidity}</TableCell>
+                  <TableCell align="right">{data.wind_direction}</TableCell>
+                  <TableCell align="right">{data.wind_speed}</TableCell>
+                  <TableCell align="right">{data.precipitation}</TableCell>
+                  <TableCell align="right">{data.grass_cure_percentage}</TableCell>
+                  <TableCell align="right">{data.ffmc}</TableCell>
+                  <TableCell align="right">{data.dc}</TableCell>
+                  <TableCell align="right">{data.isi}</TableCell>
+                  <TableCell align="right">{data.bui}</TableCell>
+                  <TableCell align="right">{data.fwi}</TableCell>
+                  <TableCell align="right">{data.danger_cl}</TableCell>
+                  <TableCell align="right">{data.fbp_fuel_type}</TableCell>
+                  <TableCell align="right">{data.ros}</TableCell>
+                  <TableCell align="right">{data.hr_size}</TableCell>
+                  <TableCell align="right">{data.fire_type}</TableCell>
+                  <TableCell align="right">{data.hfi}</TableCell>
+                  <TableCell align="right">TBD</TableCell>
+                  <TableCell align="right">TBD</TableCell>
+                  <TableCell align="right">TBD</TableCell>
+
                   <TableCell align="right">
                     <TableContainer>
                       <Table>
                         <TableRow>
                           <TableCell align="right" className={classes.borderless}>
-                            {data.ros.type01a}
+                            {data.ros_01a}
                           </TableCell>
                           <TableCell align="right" className={classes.borderless}>
-                            {data.ros.type01b}
+                            {data.ros_01b}
                           </TableCell>
                         </TableRow>
                       </Table>
