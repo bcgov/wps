@@ -2,7 +2,6 @@
 """
 import os
 import io
-from enum import Enum
 from datetime import datetime, timezone, timedelta
 from typing import Final, Tuple, Generator, Optional, List
 from contextlib import contextmanager
@@ -14,14 +13,15 @@ import numpy
 from pyproj import Transformer, Proj
 from shapely.ops import transform
 from shapely.geometry import shape, mapping
-from minio import Minio
-from app.utils.s3 import get_minio_client, object_exists
+from aiobotocore.client import AioBaseClient
+from app.utils.s3 import object_exists
 import app.utils.time as time_utils
 from app.weather_models import ModelEnum, ProjectionEnum
 from app.geospatial import WGS84
 from app.weather_models.env_canada import (get_model_run_hours,
                                            get_file_date_part, adjust_model_day, download,
                                            UnhandledPredictionModelType)
+from app.c_haines import get_severity_string
 from app.c_haines.c_haines_index import CHainesGenerator
 from app.c_haines import GDALData
 from app.c_haines.object_store import (ObjectTypeEnum, generate_full_object_store_path)
@@ -29,24 +29,6 @@ from app.c_haines.kml import save_as_kml_to_s3
 
 
 logger = logging.getLogger(__name__)
-
-
-class SeverityEnum(Enum):
-    """ Enumerated values for severity
-    """
-    LOW = "<4"
-    MODERATE = "4-8"
-    HIGH = "8-11"
-    EXTREME = ">11"
-
-
-severity_levels = [item.value for item in SeverityEnum]
-
-
-def get_severity_string(severity: int) -> str:
-    """ Return the severity level as a string, e.g. severity level 3 maps to "11+"
-    """
-    return severity_levels[severity]
 
 
 def get_severity(c_haines_index) -> int:
@@ -310,20 +292,20 @@ def re_project_and_classify_geojson(source_json_filename: str,
     return geojson_data
 
 
-def save_as_geojson_to_s3(client: Minio,  # pylint: disable=too-many-arguments
-                          bucket: str,
-                          source_json_filename: str,
-                          source_projection: str,
-                          prediction_model: ModelEnum,
-                          model_run_timestamp: datetime,
-                          prediction_timestamp: datetime):
+async def save_as_geojson_to_s3(client: AioBaseClient,  # pylint: disable=too-many-arguments
+                                bucket: str,
+                                source_json_filename: str,
+                                source_projection: str,
+                                prediction_model: ModelEnum,
+                                model_run_timestamp: datetime,
+                                prediction_timestamp: datetime):
     """ Given a geojson file, ensure it's in the correct projection and then store to S3 """
     target_path = generate_full_object_store_path(
         prediction_model, model_run_timestamp, prediction_timestamp, ObjectTypeEnum.GEOJSON)
     # let's save some time, and check if the file doesn't already exists.
     # it's super important we do this, since there are many c-haines cronjobs running in dev, all
     # pointing to the same s3 bucket.
-    if object_exists(client, bucket, target_path):
+    if await object_exists(client, bucket, target_path):
         logger.info('json (%s) already exists - skipping', target_path)
         return
 
@@ -341,7 +323,7 @@ def save_as_geojson_to_s3(client: Minio,  # pylint: disable=too-many-arguments
         bio.seek(0)
         # smash it into the object store.
         logger.info('uploading %s (%s)', target_path, size)
-        client.put_object(bucket, target_path, bio, size)
+        await client.put_object(bucket, target_path, bio, size)
 
 
 class CHainesSeverityGenerator():
@@ -355,12 +337,11 @@ class CHainesSeverityGenerator():
     4) Write polygons to database.
     """
 
-    def __init__(self, model: ModelEnum, projection: ProjectionEnum):
+    def __init__(self, model: ModelEnum, projection: ProjectionEnum, client: AioBaseClient, bucket: str):
         self.model = model
         self.projection = projection
         self.c_haines_generator = CHainesGenerator()
-        client, bucket = get_minio_client()
-        self.client: Minio = client
+        self.client: AioBaseClient = client
         self.bucket: str = bucket
 
     def _collect_payload(self,
