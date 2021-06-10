@@ -6,7 +6,7 @@ import math
 import struct
 import logging
 import logging.config
-from typing import List, Tuple, Union
+from typing import List, Tuple, Optional
 from sqlalchemy.dialects.postgresql import array
 from sqlalchemy.orm import Session
 from osgeo import gdal
@@ -36,11 +36,11 @@ class ModelRunInfo():
     """
 
     def __init__(self):
-        self.model_enum: Union(ModelEnum, None) = None
-        self.projection: Union(ProjectionEnum, None) = None
-        self.model_run_timestamp: Union(datetime, None) = None
-        self.prediction_timestamp: Union(datetime, None) = None
-        self.variable_name: Union(str, None) = None
+        self.model_enum: Optional[ModelEnum] = None
+        self.projection: Optional[ProjectionEnum] = None
+        self.model_run_timestamp: Optional[datetime] = None
+        self.prediction_timestamp: Optional[datetime] = None
+        self.variable_name: Optional[str] = None
 
 
 def get_surrounding_grid(
