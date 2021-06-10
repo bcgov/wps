@@ -12,9 +12,8 @@ from shapely.ops import transform
 from shapely.geometry import shape, Polygon
 from app.utils.s3 import object_exists
 from app.geospatial import WGS84
-from app.db.models.c_haines import get_severity_string
-from app.db.models.c_haines import SeverityEnum
 from app.weather_models import ModelEnum
+from app.c_haines.severity_index import get_severity_string, SeverityEnum
 from app.c_haines.object_store import (ObjectTypeEnum,
                                        generate_full_object_store_path, generate_object_store_filename)
 

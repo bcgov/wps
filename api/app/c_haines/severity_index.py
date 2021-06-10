@@ -2,6 +2,7 @@
 """
 import os
 import io
+from enum import Enum
 from datetime import datetime, timezone, timedelta
 from typing import Final, Tuple, Generator, Optional, List
 from contextlib import contextmanager
@@ -16,7 +17,6 @@ from shapely.geometry import shape, mapping
 from minio import Minio
 from app.utils.s3 import get_minio_client, object_exists
 import app.utils.time as time_utils
-from app.db.models.c_haines import get_severity_string
 from app.weather_models import ModelEnum, ProjectionEnum
 from app.geospatial import WGS84
 from app.weather_models.env_canada import (get_model_run_hours,
@@ -29,6 +29,24 @@ from app.c_haines.kml import save_as_kml_to_s3
 
 
 logger = logging.getLogger(__name__)
+
+
+class SeverityEnum(Enum):
+    """ Enumerated values for severity
+    """
+    LOW = "<4"
+    MODERATE = "4-8"
+    HIGH = "8-11"
+    EXTREME = ">11"
+
+
+severity_levels = [item.value for item in SeverityEnum]
+
+
+def get_severity_string(severity: int) -> str:
+    """ Return the severity level as a string, e.g. severity level 3 maps to "11+"
+    """
+    return severity_levels[severity]
 
 
 def get_severity(c_haines_index) -> int:
