@@ -112,7 +112,9 @@ def get_prediction_geojson(session: Session,
                            model: ModelEnum,
                            model_run_timestamp: datetime,
                            prediction_timestamp: datetime):
-    """ Get the geojson for a particular prediction, in WGS84 """
+    """ Get the geojson for a particular prediction, in WGS84. (Stored as NAD83 in DB, but KML and GeoJSON
+    expect WGS84)
+    """
     query = text("""select json_build_object(
         'type', 'FeatureCollection',
         'features', json_agg(ST_AsGeoJSON(t.*)::json)
