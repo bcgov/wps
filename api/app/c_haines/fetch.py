@@ -19,35 +19,40 @@ logger = logging.getLogger(__name__)
 
 
 async def fetch_model_run_kml_streamer(model: ModelEnum, model_run_timestamp: datetime) -> Iterator[str]:
-    """ Yield model run XML (allows streaming response to start while kml is being
-    constructed.)
+    """ Yield model run XML.
+    Yielding allows streaming response to start while kml is being constructed.
+    The KML we're making is essentially a list of network links for each prediction.
     """
-
+    # We need to pass the API's url in, so that the KML know where to ask for network links.
     uri = config.get('BASE_URI')
-
+    # Starting serving up the kml.
     yield get_kml_header()
     # Serve up the "look_at" which tells google earth when and where to take you.
     yield get_look_at(model, model_run_timestamp)
-    # Serve up the name.
+    # Serve up model folder and model run folder.
     yield '<name>{} {}</name>\n'.format(model, model_run_timestamp)
-    yield '<Folder>'
-    yield f'<name>{model}</name>\n'
-    yield '<Folder>'
-    yield f'<name>{model_run_timestamp} model run</name>\n'
+    yield '<Folder>'  # Open model run folder.
+    yield f'<name>{model} {model_run_timestamp} model run</name>\n'
 
+    # Get an async S3 client.
     async with get_client() as (client, bucket):
-
+        # Construct model run path - so we can list contents that match that path.
         model_run_path = generate_object_store_model_run_path(model, model_run_timestamp, ObjectTypeEnum.KML)
+        # List all files in folder (e.g. list all the prediction kml files).
         predictions = await client.list_objects_v2(Bucket=bucket, Prefix=model_run_path)
+        # File listing is in the "Contents" entry.
         if 'Contents' in predictions:
+            # Iterate through each entry.
             for prediction in predictions['Contents']:
+                # Filename is in the "Key" entry.
                 object_name = prediction['Key']
+                # Infer timestamp from filename.
                 prediction_timestamp = object_name.split('/')[-1].split('.')[0]
-
+                # Construct params for URL.
                 kml_params = {'model_run_timestamp': model_run_timestamp,
                               'prediction_timestamp': prediction_timestamp,
                               'response_format': 'KML'}
-                # create url (remembering to escape & for xml)
+                # Create url (remembering to escape & for xml)
                 kml_url = urljoin(uri, f'/api/c-haines/{model}/prediction') + \
                     '?' + urlencode(kml_params).replace('&', '&amp;')
                 yield '<NetworkLink>\n'
@@ -58,8 +63,7 @@ async def fetch_model_run_kml_streamer(model: ModelEnum, model_run_timestamp: da
                 yield '</Link>\n'
                 yield '</NetworkLink>\n'
 
-        yield '</Folder>'
-        yield '</Folder>'
+        yield '</Folder>'  # Close model run folder.
         # Close the KML document.
         yield '</Document>\n'
         yield '</kml>\n'
@@ -129,28 +133,42 @@ async def fetch_model_runs(model_run_timestamp: datetime):
     # NOTE: This is a horribly inefficient way of listing model runs - we're making 6 calls just to
     # list model runs.
     result = CHainesModelRuns(model_runs=[])
+    # Get an async S3 client.
     async with get_client() as (client, bucket):
-        # create tasks for listing all the model runs
+        # Create tasks for listing all the model runs.
         tasks = []
+        # Iterate for date of interest and day before. If you only look for today, you may have an empty
+        # list until the latest model runs come in, so better to also list data from the day before.
         for date in [model_run_timestamp, model_run_timestamp-timedelta(days=1)]:
+            # We're interested in all the model runs.
             for model in ['GDPS', 'RDPS', 'HRDPS']:
+                # Construct a prefix to search for in S3 (basically path matching).
                 prefix = 'c-haines-polygons/json/{model}/{year}/{month}/{day}/'.format(
                     model=model,
                     year=date.year, month=date.month, day=date.day)
                 logger.info(prefix)
+                # Create the task to go and fetch the listing from S3.
                 tasks.append(asyncio.create_task(client.list_objects_v2(
                     Bucket=bucket,
                     Prefix=prefix)))
 
+        # Run all the tasks at once. (Basically listing folder contents on S3.)
         model_run_prediction_results = await asyncio.gather(*tasks)
+        # Iterate through results.
         for prediction_result in model_run_prediction_results:
+            # S3 data comes back as a dictionary with "Contents"
             if 'Contents' in prediction_result:
                 model_run_predictions = None
                 prev_model_run_timestamp = None
+                # Iterate through all the contents.
                 for prediction in prediction_result['Contents']:
+                    # The path is stored in the "Key" field. We infer the model, model run timestamp and
+                    # prediction timestamp from the path.
                     model, model_run_timestamp, prediction_timestamp = extract_model_run_prediction_from_path(
                         prediction['Key'])
+                    # Check for new model runs to add to our list.
                     if prev_model_run_timestamp != model_run_timestamp:
+                        # New model run? Make it and add it to the list.
                         prev_model_run_timestamp = model_run_timestamp
                         model_run_predictions = CHainesModelRunPredictions(
                             model=WeatherPredictionModel(name=model, abbrev=model),
@@ -158,7 +176,9 @@ async def fetch_model_runs(model_run_timestamp: datetime):
                             prediction_timestamps=[prediction_timestamp, ])
                         result.model_runs.append(model_run_predictions)
                     else:
+                        # Already have a model run, just at the prediction
                         model_run_predictions.prediction_timestamps.append(prediction_timestamp)
 
+    # Sort evertyhign by model run timestamp.
     result.model_runs.sort(key=lambda model_run: model_run.model_run_timestamp, reverse=True)
     return result
