@@ -132,6 +132,52 @@ def default_aiobotocore_get_session():
     return DefaultMockAioSession()
 
 
+class DefaultMockAioBaseClient:
+    """ Stubbed AioBaseClient object
+    """
+    # It's a stubbed object, so we don't care about pylint warnings:
+    # pylint: disable=unused-argument, missing-function-docstring, too-many-arguments, no-self-use
+
+    def __init__(self, *args, **kwargs):
+        """ you can set the values below for some default behaviour """
+        self.mock_generate_presigned_url: Optional[str] = None
+        self.mock_list_objects_v2_lookup: dict = {}
+
+    async def list_objects_v2(self, *args, **kwargs) -> dict:
+        """ mock list objects """
+        if kwargs.get('Prefix') in self.mock_list_objects_v2_lookup:
+            return self.mock_list_objects_v2_lookup[kwargs.get('Prefix')]
+        raise NotImplementedError('no lookup for {}'.format(kwargs.get('Prefix')))
+
+    async def fput_object(self, *args, **kwargs) -> dict:
+        """ mock put object """
+
+    async def generate_presigned_url(self, *args, **kwargs) -> str:
+        """ mock presigned url """
+        return self.mock_generate_presigned_url
+
+    async def __aenter__(self):
+        """ Enter context """
+
+    async def __aexit__(self, *error_info):
+        """ Clean up anything you need to clean up """
+
+
+class DefaultMockAioSession:
+    """ Mock aiobotocore.session.AioSession """
+    # pylint: disable=unused-argument
+
+    @asynccontextmanager
+    async def create_client(self, *args, **kwargs):
+        """ Mock create client """
+        yield DefaultMockAioBaseClient()
+
+
+def default_aiobotocore_get_session():
+    """ Default session stub """
+    return DefaultMockAioSession()
+
+
 def is_json(filename):
     """ Check if file is a json file (look if the extension is .json) """
     extension = os.path.splitext(filename)[1]

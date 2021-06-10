@@ -2,6 +2,7 @@
 import os
 import pytest
 import requests
+from minio.datatypes import Object
 from app import configure_logging
 import app.c_haines.worker
 from app.tests.common import MockResponse
