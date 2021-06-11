@@ -3,11 +3,8 @@
 import logging
 import os
 import json
-from datetime import timedelta
-from typing import Iterator, Optional
+from typing import Optional
 from contextlib import asynccontextmanager
-from minio.helpers import ObjectWriteResult
-from minio.datatypes import Object
 from app.tests.fixtures.loader import FixtureFinder
 
 
@@ -89,45 +86,14 @@ class MockAsyncResponse:
         return self._json
 
 
-class DefaultMockMinio:
-    """ Stubbed Minio object
-    """
-    # It's a stubbed object, so we don't care about pylint warnings:
-    # pylint: disable=unused-argument, missing-function-docstring, too-many-arguments, no-self-use
+class DefaultMockAioSession:
+    """ Mock aiobotocore.session.AioSession """
+    # pylint: disable=unused-argument
 
-    def __init__(self, endpoint, access_key=None,
-                 secret_key=None,
-                 session_token=None,
-                 secure=True,
-                 region=None,
-                 http_client=None,
-                 credentials=None):
-        """ you can set the values below for some default behaviour """
-        self.mock_get_presigned_url = None
-        self.mock_list_objects = []
-
-    def list_objects(self, bucket_name, prefix=None, recursive=False,
-                     start_after=None, include_user_meta=False,
-                     include_version=False, use_api_v1=False) -> Iterator[Object]:
-        """ mock list objects """
-        return iter(self.mock_list_objects)
-
-    def fput_object(self, bucket_name, object_name, file_path,
-                    content_type="application/octet-stream",
-                    metadata=None, sse=None, progress=None,
-                    part_size=0, num_parallel_uploads=3,
-                    tags=None, retention=None, legal_hold=False) -> ObjectWriteResult:
-        """ mock put object """
-
-    def put_object(self, *args, **kwargs):
-        """ mock put object """
-
-    def get_presigned_url(self, method, bucket_name, object_name,
-                          expires=timedelta(days=7), response_headers=None,
-                          request_date=None, version_id=None,
-                          extra_query_params=None) -> str:
-        """ mock presigned url """
-        return self.get_presigned_url
+    @asynccontextmanager
+    async def create_client(self, *args, **kwargs):
+        """ Mock create client """
+        yield DefaultMockAioBaseClient()
 
 
 class DefaultMockAioBaseClient:
@@ -147,7 +113,7 @@ class DefaultMockAioBaseClient:
             return self.mock_list_objects_v2_lookup[kwargs.get('Prefix')]
         raise NotImplementedError('no lookup for {}'.format(kwargs.get('Prefix')))
 
-    async def fput_object(self, *args, **kwargs) -> dict:
+    async def put_object(self, *args, **kwargs) -> dict:
         """ mock put object """
 
     async def generate_presigned_url(self, *args, **kwargs) -> str:
@@ -160,15 +126,8 @@ class DefaultMockAioBaseClient:
     async def __aexit__(self, *error_info):
         """ Clean up anything you need to clean up """
 
-
-class DefaultMockAioSession:
-    """ Mock aiobotocore.session.AioSession """
-    # pylint: disable=unused-argument
-
-    @asynccontextmanager
-    async def create_client(self, *args, **kwargs):
-        """ Mock create client """
-        yield DefaultMockAioBaseClient()
+    async def close(self, *args, **kwargs):
+        """Close all http connections."""
 
 
 def default_aiobotocore_get_session():

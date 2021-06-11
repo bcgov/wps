@@ -247,6 +247,7 @@ def download(url: str, path: str) -> str:
     NOTE: was using wget library initially, but has the drawback of not being able to control where the
     temporary files are stored. This is problematic, as giving the application write access to /app
     is a security concern.
+    TODO: Would be nice to make this an async
     """
     # Infer filename from url.
     filename = os.path.split(url)[-1]

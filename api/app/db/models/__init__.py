@@ -8,5 +8,4 @@ from app.db.models.api_access_audits import APIAccessAudit
 from app.db.models.weather_models import (ProcessedModelRunUrl, PredictionModel, PredictionModelRunTimestamp,
                                           PredictionModelGridSubset, ModelRunGridSubsetPrediction,
                                           WeatherStationModelPrediction)
-from app.db.models.c_haines import (CHainesModelRun, CHainesPrediction, CHainesPoly)
 from app.db.models.hfi_calc import (FireCentre, FuelType, PlanningArea, PlanningWeatherStation)
