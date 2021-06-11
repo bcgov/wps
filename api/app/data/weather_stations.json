@@ -11,7 +11,9 @@
         "start_day": "1",
         "end_month": "9",
         "end_day": "15"
-      }
+      },
+      "elevation": 780,
+      "wfwx_station_uuid": ""
     },
     {
       "code": "838",
@@ -24,7 +26,9 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 821,
+      "wfwx_station_uuid": ""
     },
     {
       "code": "209",
@@ -37,7 +41,9 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 791,
+      "wfwx_station_uuid": ""
     },
     {
       "code": "317",
@@ -2975,7 +2981,9 @@
         "start_day": "15",
         "end_month": "8",
         "end_day": "31"
-      }
+      },
+      "elevation": 632,
+      "wfwx_station_uuid": ""
     },
     {
       "code": "1002",
