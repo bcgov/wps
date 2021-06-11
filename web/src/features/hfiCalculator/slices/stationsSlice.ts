@@ -53,16 +53,20 @@ const stationsSlice = createSlice({
         // if the fire centre has no planning areas assigned to it yet, create a new array
         // with the station's planning area as the first element in the new array
         if (
-          state.planningAreasByFireCentre[station.planning_area.fire_centre.name] === undefined
+          state.planningAreasByFireCentre[station.planning_area.fire_centre.name] ===
+          undefined
         ) {
           state.planningAreasByFireCentre[station.planning_area.fire_centre.name] = [
             station.planning_area
           ]
-        } 
-        else {
+        } else {
           // else if there's already 1+ planning areas assigned to the fire centre, but this station's planning area isn't in the array yet,
           // add it to the fire centre's array
-          if (state.planningAreasByFireCentre[station.planning_area.fire_centre.name]?.find(pa => pa.name === station.planning_area.name) === undefined) {
+          if (
+            state.planningAreasByFireCentre[station.planning_area.fire_centre.name]?.find(
+              pa => pa.name === station.planning_area.name
+            ) === undefined
+          ) {
             state.planningAreasByFireCentre[station.planning_area.fire_centre.name]?.push(
               station.planning_area
             )

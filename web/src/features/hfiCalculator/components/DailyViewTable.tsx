@@ -40,7 +40,7 @@ const useStyles = makeStyles({
   },
   planningArea: {
     backgroundColor: '#d6faff',
-    
+
     '& .MuiTableCell-sizeSmall': {
       paddingLeft: '12px'
     }
@@ -85,28 +85,42 @@ const DailyViewTable = (props: Props) => {
                 <TableBody>
                   {fireCentres.map((centre: FireCentre, idf: number) => {
                     return (
-                      <React.Fragment>
+                      <React.Fragment key={`fire-centre-${idf}`}>
                         <TableRow key={`fire-centre-${idf}`}>
-                          <TableCell colSpan={3} className={classes.fireCentre}>{centre.name}</TableCell>
+                          <TableCell colSpan={3} className={classes.fireCentre}>
+                            {centre.name}
+                          </TableCell>
                         </TableRow>
                         {planningAreasByFireCentre[centre.name]?.map(
                           (area: PlanningArea, idp: number) => {
                             return (
                               <React.Fragment key={`zone-${idp}`}>
-                                <TableRow className={classes.planningArea} key={`zone-${idp}`}>
-                                  <TableCell className={classes.planningArea} colSpan={3}>{area.name}</TableCell>
+                                <TableRow
+                                  className={classes.planningArea}
+                                  key={`zone-${idp}`}
+                                >
+                                  <TableCell className={classes.planningArea} colSpan={3}>
+                                    {area.name}
+                                  </TableCell>
                                 </TableRow>
                                 {stationsByPlanningArea[area.name]?.map(
                                   (station: WeatherStation) => {
                                     return (
-                                      <TableRow className={classes.station} key={`station-${station.code}`}>
+                                      <TableRow
+                                        className={classes.station}
+                                        key={`station-${station.code}`}
+                                      >
                                         <TableCell key={`station-${station.code}-name`}>
                                           {station.station_props.name} ({station.code})
                                         </TableCell>
-                                        <TableCell key={`station-${station.code}-elevation`}>
+                                        <TableCell
+                                          key={`station-${station.code}-elevation`}
+                                        >
                                           {station.station_props.elevation}
                                         </TableCell>
-                                        <TableCell key={`station-${station.code}-fuel-type`}>
+                                        <TableCell
+                                          key={`station-${station.code}-fuel-type`}
+                                        >
                                           {station.station_props.fuel_type.abbrev}
                                         </TableCell>
                                       </TableRow>
