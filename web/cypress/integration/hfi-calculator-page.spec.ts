@@ -1,8 +1,5 @@
 import { HFI_CALC_ROUTE } from '../../src/utils/constants'
 
-const interceptData = () => {
-}
-
 describe('HFI Calculator Page', () => {
   beforeEach(() => {
     cy.intercept('GET', 'api/hfi-calc/', { fixture: 'hfi-calc/stations.json' }).as('getFireCentres')
