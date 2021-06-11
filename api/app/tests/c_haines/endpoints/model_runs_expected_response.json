@@ -2,13 +2,24 @@
     "model_runs": [
         {
             "model": {
-                "name": "Global Deterministic Prediction System",
+                "name": "GDPS",
                 "abbrev": "GDPS"
             },
-            "model_run_timestamp": "2021-03-08T12:00:00",
+            "model_run_timestamp": "2021-06-08T12:00:00+00:00",
             "prediction_timestamps": [
-                "2021-03-08T12:00:00",
-                "2021-03-08T15:00:00"
+                "2021-06-09T00:00:00+00:00",
+                "2021-06-09T03:00:00+00:00"
+            ]
+        },
+        {
+            "model": {
+                "name": "RDPS",
+                "abbrev": "RDPS"
+            },
+            "model_run_timestamp": "2021-06-08T00:00:00+00:00",
+            "prediction_timestamps": [
+                "2021-06-09T00:00:00+00:00",
+                "2021-06-09T03:00:00+00:00"
             ]
         }
     ]

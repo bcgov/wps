@@ -366,6 +366,8 @@ class EnvCanada():
             self.projection = ProjectionEnum.HIGH_RES_CONTINENTAL
         elif self.model_type == ModelEnum.RDPS:
             self.projection = ProjectionEnum.REGIONAL_PS
+        else:
+            raise UnhandledPredictionModelType('Unknown model type: {}'.format(self.model_type))
 
     def process_model_run_urls(self, urls):
         """ Process the urls for a model run.
