@@ -139,9 +139,6 @@ disable=print-statement,
         deprecated-sys-function,
         exception-escape,
         comprehension-escape,
-        R0801
-
-# TODO ^^^ remove R0801 exception - just there during c-haines migration.
 
 # Ratinale behind disabled messages:
 
