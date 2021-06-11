@@ -23,44 +23,70 @@ const initialState: State = {
 }
 
 const stationsSlice = createSlice({
-    name: 'hfiStations',
-    initialState,
-    reducers: {
-        getHFIStationsStart(state: State) {
-            state.error = null
-            state.loading = true
-            state.weatherStations = []
-            state.fireCentres = []
-            state.planningAreasByFireCentre = {}
-            state.stationsByPlanningArea = {}
-        },
-        getHFIStationsFailed(state: State, action: PayloadAction<string>) {
-            state.error = action.payload
-            state.loading = false
-        },
-        getHFIStationsSuccess(state: State, action: PayloadAction<WeatherStation[]>) {
-            state.error = null
-            state.weatherStations = action.payload
-            action.payload.forEach(station => {
-                if (station.planning_area && station.planning_area.fire_centre) {
-                    state.fireCentres.push(station.planning_area.fire_centre)
-                    const planningAreaName = station.planning_area.name
-                    const fireCentreName = station.planning_area.fire_centre.name
-                    if (state.planningAreasByFireCentre[fireCentreName] == undefined) {
-                        state.planningAreasByFireCentre[fireCentreName] = [station.planning_area]
-                    } else {
-                        state.planningAreasByFireCentre[fireCentreName]?.push(station.planning_area)
-                    }
-                    if (state.stationsByPlanningArea[planningAreaName] == undefined) {
-                        state.stationsByPlanningArea[planningAreaName] = [station]
-                    } else {
-                        state.stationsByPlanningArea[planningAreaName]?.push(station)
-                    }
-                }
-            })
-            state.loading = false
+  name: 'hfiStations',
+  initialState,
+  reducers: {
+    getHFIStationsStart(state: State) {
+      state.error = null
+      state.loading = true
+      state.weatherStations = []
+      state.fireCentres = []
+      state.planningAreasByFireCentre = {}
+      state.stationsByPlanningArea = {}
+    },
+    getHFIStationsFailed(state: State, action: PayloadAction<string>) {
+      state.error = action.payload
+      state.loading = false
+    },
+    getHFIStationsSuccess(state: State, action: PayloadAction<WeatherStation[]>) {
+      state.error = null
+      state.weatherStations = action.payload
+      action.payload.forEach(station => {
+        // if the station's fire centre isn't already in state.fireCentres array, add it
+        if (
+          state.fireCentres.find(
+            fc => fc.name === station.planning_area.fire_centre.name
+          ) === undefined
+        ) {
+          state.fireCentres.push(station.planning_area.fire_centre)
         }
+        // if the fire centre has no planning areas assigned to it yet, create a new array
+        // with the station's planning area as the first element in the new array
+        if (
+          state.planningAreasByFireCentre[station.planning_area.fire_centre.name] === undefined
+        ) {
+          state.planningAreasByFireCentre[station.planning_area.fire_centre.name] = [
+            station.planning_area
+          ]
+        } 
+        else {
+          // else if there's already 1+ planning areas assigned to the fire centre, but this station's planning area isn't in the array yet,
+          // add it to the fire centre's array
+          if (state.planningAreasByFireCentre[station.planning_area.fire_centre.name]?.find(pa => pa.name === station.planning_area.name) === undefined) {
+            state.planningAreasByFireCentre[station.planning_area.fire_centre.name]?.push(
+              station.planning_area
+            )
+          }
+        }
+        // if there are no stations assigned to the planning area yet, create a new array
+        // with the station as the first element in the new array
+        if (state.stationsByPlanningArea[station.planning_area.name] === undefined) {
+          state.stationsByPlanningArea[station.planning_area.name] = [station]
+        } else {
+          // else if there's already 1+ stations assigned to the planning area, but this station isn't in the array yet,
+          // add it to the planning area's array
+          if (
+            state.stationsByPlanningArea[station.planning_area.name]?.find(
+              st => st.code === station.code
+            ) === undefined
+          ) {
+            state.stationsByPlanningArea[station.planning_area.name]?.push(station)
+          }
+        }
+      })
+      state.loading = false
     }
+  }
 })
 
 export const {

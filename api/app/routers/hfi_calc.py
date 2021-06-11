@@ -1,11 +1,10 @@
 """ Routers for HFI Calculator """
 import logging
-from datetime import datetime
 from typing import List
 from fastapi import APIRouter, Response, Depends
 from app import wildfire_one
 from app.auth import authentication_required, audit
-from app.db.models.hfi_calc import FireCentre, FuelType, PlanningArea, PlanningWeatherStation
+from app.db.models.hfi_calc import FireCentre, FuelType, PlanningArea
 from app.hfi_calc import fetch_fire_centre_by_id, fetch_fuel_type_by_id, fetch_hfi_station_data, fetch_planning_area_by_id
 from app.schemas.hfi_calc import HFIWeatherStationsResponse, WeatherStationProperties, FuelType, FireCentre, PlanningArea, WeatherStation
 
@@ -14,6 +13,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/hfi-calc",
+    dependencies=[Depends(authentication_required), Depends(audit)]
 )
 
 
@@ -43,8 +43,8 @@ async def get_fire_centres(response: Response):
                 name=wfwx_station.name, fuel_type=fuel_type, elevation=wfwx_station.elevation, wfwx_station_uuid=wfwx_station.wfwx_station_uuid)
             zone = await fetch_planning_area_by_id(station.planning_area_id)
             fc = await fetch_fire_centre_by_id(zone.fire_centre_id)
-            fire_centre = FireCentre(name=fc.name)
-            planning_area = PlanningArea(name=zone.name, fire_centre=fire_centre)
+            fire_centre = FireCentre(name=fc.name, id=zone.fire_centre_id)
+            planning_area = PlanningArea(name=zone.name, fire_centre=fire_centre, id=station.planning_area_id)
             weather_station = WeatherStation(code=station.station_code,
                                              station_props=station_properties, planning_area=planning_area)
             stations_list.append(weather_station)
