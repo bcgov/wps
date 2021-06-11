@@ -13,17 +13,19 @@ export interface WeatherStationProperties {
 }
 
 export interface FireCentre {
+    id: number
     name: string
 }
 
 export interface PlanningArea {
+    id: number
     name: string
     fire_centre: FireCentre
 }
 
 export interface WeatherStation {
     code: number
-    properties: WeatherStationProperties
+    station_props: WeatherStationProperties
     planning_area: PlanningArea
 }
 
