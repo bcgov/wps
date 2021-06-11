@@ -47,7 +47,7 @@ def mock_s3_client(monkeypatch):
                                     'c-haines-polygons/json/GDPS/2021/5/21/0/2021-05-21T00:00:00.json'))
 
     monkeypatch.setattr(app.c_haines.severity_index, 'object_exists_v2', mock_object_exists_v2)
-    monkeypatch.setattr(app.c_haines.severity_index, 'object_exists', mock_object_exists_v2)
+    monkeypatch.setattr(app.c_haines.severity_index, 'object_exists', mock_object_exists)
     monkeypatch.setattr(app.c_haines.kml, 'object_exists', mock_object_exists)
 
 
