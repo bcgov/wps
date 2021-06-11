@@ -11,7 +11,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     dispatch(fetchHFIStations())
   })
 
-
   return (
     <main data-testid="hfi-calculator-page">
       <PageHeader title="Predictive Services Unit" productName="HFI Calculator" />

@@ -72,4 +72,5 @@ export const selectWxDataLoading = (state: RootState): boolean =>
   state.regionalModelSummaries.loading
 export const selectFireWeatherStationsLoading = (state: RootState): boolean =>
   state.fireWeatherStations.loading
-export const selectHFIStationsLoading = (state: RootState): boolean => state.hfiStations.loading
+export const selectHFIStationsLoading = (state: RootState): boolean =>
+  state.hfiStations.loading
