@@ -113,7 +113,7 @@ class DefaultMockAioBaseClient:
             return self.mock_list_objects_v2_lookup[kwargs.get('Prefix')]
         raise NotImplementedError('no lookup for {}'.format(kwargs.get('Prefix')))
 
-    async def fput_object(self, *args, **kwargs) -> dict:
+    async def put_object(self, *args, **kwargs) -> dict:
         """ mock put object """
 
     async def generate_presigned_url(self, *args, **kwargs) -> str:
@@ -125,6 +125,9 @@ class DefaultMockAioBaseClient:
 
     async def __aexit__(self, *error_info):
         """ Clean up anything you need to clean up """
+
+    async def close(self, *args, **kwargs):
+        """Close all http connections."""
 
 
 def default_aiobotocore_get_session():

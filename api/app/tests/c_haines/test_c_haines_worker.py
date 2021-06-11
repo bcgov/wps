@@ -1,10 +1,12 @@
 """ Very basic test for worker - essential just testing if it runs without exceptions """
 import os
+import asyncio
 import pytest
 import requests
-from minio.datatypes import Object
+from aiobotocore.client import AioBaseClient
 from app import configure_logging
 import app.c_haines.worker
+import app.c_haines.kml
 from app.tests.common import MockResponse
 
 configure_logging()
@@ -34,31 +36,19 @@ def mock_download(monkeypatch):
 @pytest.fixture()
 def mock_s3_client(monkeypatch):
     """ mock s3 client """
-    def mock_get_client(*args, **kwargs):
-        """ mock get client """
-        # class MockMinio(DefaultMockMinio):
-        #     """ Mock minio object """
+    async def mock_object_exists_v2(target_path: str):
+        """ mock object exists """
+        return not (target_path in ('c-haines-polygons/kml/GDPS/2020/5/21/0/2020-05-21T00:00:00.kml',
+                                    'c-haines-polygons/json/GDPS/2021/5/21/0/2021-05-21T00:00:00.json'))
 
-        #     def list_objects(self, bucket_name, prefix=None, recursive=False,
-        #                      start_after=None, include_user_meta=False,
-        #                      include_version=False, use_api_v1=False) -> Iterator[Object]:
-        #         """ mock list objects.
-        #         We want it to not find two files for the test, but find all others.
-        #         """
-        #         if prefix in ('c-haines-polygons/kml/GDPS/2020/5/21/0/2020-05-21T00:00:00.kml',
-        #                       'c-haines-polygons/json/GDPS/2021/5/21/0/2021-05-21T00:00:00.json'):
-        #             # The worker checks if the objects already exist.
-        #             # We want two of those checks to come back with nothing (.e.g. no match found),
-        #             # so that it will try to generate them.
-        #             return iter([])
-        #         else:
-        #             # We want all other checks do come back with a match, so it doesn't generate them.
-        #             return iter([prefix])
+    async def mock_object_exists(client: AioBaseClient, bucket: str, target_path: str):
+        """ mock object exists """
+        return not (target_path in ('c-haines-polygons/kml/GDPS/2020/5/21/0/2020-05-21T00:00:00.kml',
+                                    'c-haines-polygons/json/GDPS/2021/5/21/0/2021-05-21T00:00:00.json'))
 
-        # return MockMinio('blah'), 'blah'
-        raise NotImplementedError()
-
-    monkeypatch.setattr(app.c_haines.worker, 'get_client', mock_get_client)
+    monkeypatch.setattr(app.c_haines.severity_index, 'object_exists_v2', mock_object_exists_v2)
+    monkeypatch.setattr(app.c_haines.severity_index, 'object_exists', mock_object_exists_v2)
+    monkeypatch.setattr(app.c_haines.kml, 'object_exists', mock_object_exists)
 
 
 @pytest.mark.usefixtures('mock_download', 'mock_s3_client')
@@ -69,6 +59,8 @@ def test_c_haines_worker():
     any exceptions.
     """
     try:
-        app.c_haines.worker.main()
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(app.c_haines.worker.main())
     except Exception as exception:  # pylint: disable=broad-except
         pytest.fail(exception)

@@ -1,8 +1,6 @@
 """ KML related code
 """
-import os
 import io
-import tempfile
 from datetime import datetime, timedelta
 from typing import Final, Iterator, IO
 import json
@@ -16,7 +14,7 @@ from app.weather_models import ModelEnum
 from app.utils.s3 import get_client
 from app.c_haines import get_severity_string, SeverityEnum
 from app.c_haines.object_store import (ObjectTypeEnum,
-                                       generate_full_object_store_path, generate_object_store_filename)
+                                       generate_full_object_store_path)
 
 logger = logging.getLogger(__name__)
 

@@ -15,7 +15,7 @@ from pyproj import Transformer, Proj
 from shapely.ops import transform
 from shapely.geometry import shape, mapping
 from aiobotocore.client import AioBaseClient
-from app.utils.s3 import object_exists
+from app.utils.s3 import object_exists, object_exists_v2
 import app.utils.time as time_utils
 from app.weather_models import ModelEnum, ProjectionEnum
 from app.geospatial import WGS84
@@ -385,21 +385,24 @@ class CHainesSeverityGenerator():
                             model_run_timestamp: datetime,
                             prediction_timestamp: datetime) -> bool:
         """ Return True if kml and geojson assets already exist, otherwise False """
+        tasks = []
         kml_path = generate_full_object_store_path(
             model,
             model_run_timestamp,
             prediction_timestamp,
             ObjectTypeEnum.KML)
-        kml_exists = await object_exists(self.client, self.bucket, kml_path)
+        tasks.append(asyncio.create_task(object_exists_v2(kml_path)))
 
         json_path = generate_full_object_store_path(
             model,
             model_run_timestamp,
             prediction_timestamp,
             ObjectTypeEnum.GEOJSON)
-        json_exists = await object_exists(self.client, self.bucket, json_path)
+        tasks.append(asyncio.create_task(object_exists_v2(json_path)))
 
-        return kml_exists is True and json_exists is True
+        if False in await asyncio.gather(*tasks):
+            return False
+        return True
 
     async def _get_payloads(self, temporary_path) -> Generator[EnvCanadaPayload, None, None]:
         """ Iterator that yields the next to process. """

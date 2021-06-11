@@ -40,3 +40,10 @@ async def object_exists(client: AioBaseClient, bucket: str, target_path: str):
             if key == target_path:
                 return True
     return False
+
+
+async def object_exists_v2(target_path: str):
+    """ Check if and object exists in the object store
+    """
+    async with get_client() as (client, bucket):
+        return await object_exists(client, bucket, target_path)
