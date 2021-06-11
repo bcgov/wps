@@ -1,11 +1,12 @@
 """ Read a grib file, and store values relevant to weather stations in database.
 """
 
+from datetime import datetime
 import math
 import struct
 import logging
 import logging.config
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 from sqlalchemy.dialects.postgresql import array
 from sqlalchemy.orm import Session
 from osgeo import gdal
@@ -35,11 +36,11 @@ class ModelRunInfo():
     """
 
     def __init__(self):
-        self.model_enum: ModelEnum = None
-        self.projection: ProjectionEnum = None
-        self.model_run_timestamp = None
-        self.prediction_timestamp = None
-        self.variable_name = None
+        self.model_enum: Optional[ModelEnum] = None
+        self.projection: Optional[ProjectionEnum] = None
+        self.model_run_timestamp: Optional[datetime] = None
+        self.prediction_timestamp: Optional[datetime] = None
+        self.variable_name: Optional[str] = None
 
 
 def get_surrounding_grid(

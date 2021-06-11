@@ -2,13 +2,15 @@
 """
 import json
 import gzip
+import os
 from datetime import datetime
 from typing import List
+import tempfile
 from pytest_bdd import scenario, given, when, then
 import numpy
 from app.c_haines.severity_index import (
     generate_severity_data, open_gdal, make_model_run_base_url, make_model_run_filename,
-    make_model_run_download_urls)
+    make_model_run_download_urls, re_project_and_classify_geojson)
 from app.weather_models import ModelEnum
 from app.c_haines.c_haines_index import calculate_c_haines_index, CHainesGenerator
 from app.tests import get_complete_filename
@@ -175,9 +177,9 @@ def test_make_model_download_urls():
        target_fixture='collector')
 def run_make_model_run_download_urls(
         model: ModelEnum, now: datetime, model_run_hour: int, prediction_hour: int):
+    """ Collect url's """
     urls, model_run_timestamp, prediction_timestamp = make_model_run_download_urls(
         model, now, model_run_hour, prediction_hour)
-    print(urls)
     return {
         'urls': urls,
         'model_run_timestamp': model_run_timestamp,
@@ -204,3 +206,40 @@ def make_model_run_download_prediction_timestamp_expect_result(collector: dict,
                                                                prediction_timestamp: datetime):
     """ Assert that result matches expected result """
     assert prediction_timestamp == collector['prediction_timestamp']
+
+
+@scenario(
+    'test_c_haines.feature',
+    'Re-project',
+    example_converters=dict(
+        input_geojson=str,
+        expected_output_geojson=str))
+def test_re_project():
+    """ BDD Scenario. """
+
+
+@given("<input_geojson> with <source_projection> and <expected_output_geojson>", target_fixture='collector')
+def prepare_input(input_geojson: str, source_projection: str, expected_output_geojson: str):
+    """ Collect url's """
+    return {
+        'input_geojson': input_geojson,
+        'source_projection': source_projection,
+        'expected_output_geojson': expected_output_geojson
+    }
+
+
+@then("Compare expected geojson with actual")
+def compare_expected_output(collector: dict):
+    """ Assert that result matches expected result """
+
+    input_geojson = get_complete_filename(__file__, collector['input_geojson'])
+    source_projection = collector['source_projection']
+
+    dict_out = re_project_and_classify_geojson(input_geojson, source_projection)
+
+    expected_output_geojson = get_complete_filename(__file__, collector['expected_output_geojson'])
+
+    with open(expected_output_geojson) as expected_output_file:
+        expected_json = json.load(expected_output_file)
+        # silly chain for comparison:  not a json dict-> json string -> json dict
+        assert json.loads(json.dumps(dict_out)) == expected_json
