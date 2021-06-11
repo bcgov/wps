@@ -14,7 +14,7 @@ import app.utils.s3
 from app.utils.time import get_pst_tz
 from app import auth
 from app.tests.common import (
-    MockJWTDecode, DefaultMockMinio, default_aiobotocore_get_session, default_mock_requests_get,
+    MockJWTDecode, default_aiobotocore_get_session, default_mock_requests_get,
     default_mock_requests_post, default_mock_requests_session_get, default_mock_requests_session_post)
 from app.db.models import PredictionModel, PredictionModelRunTimestamp
 import app.db.database
@@ -57,14 +57,8 @@ def mock_env(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
-def mock_minio(monkeypatch):
-    """ Patch minio by default """
-    monkeypatch.setattr(app.utils.s3, 'Minio', DefaultMockMinio)
-
-
-@pytest.fixture(autouse=True)
 def mock_aiobotocore_get_session(monkeypatch):
-    """ Patch minio by default """
+    """ Patch the session by default """
     monkeypatch.setattr(app.utils.s3, 'get_session', default_aiobotocore_get_session)
 
 
