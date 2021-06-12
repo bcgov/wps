@@ -35,7 +35,6 @@ class BasicTestCase(unittest.TestCase):
                                        "end": 2019
                                    }
                                })
-        print(str(response))
         self.assertEqual(response.status_code, 200)
 
     def test_percentile_no_stations_errors(self):
