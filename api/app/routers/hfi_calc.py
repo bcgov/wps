@@ -7,8 +7,7 @@ from app import wildfire_one
 from app.auth import authentication_required, audit
 from app.schemas.hfi_calc import HFIWeatherStationsResponse, WeatherStationProperties,\
     FuelType, FireCentre, PlanningArea, WeatherStation
-from app.db.crud.hfi_calc import get_fire_centre_by_id, get_fuel_type_by_id,\
-    get_planning_area_by_id, get_planning_weather_stations
+from app.db.crud.hfi_calc import get_fire_weather_stations
 
 
 logger = logging.getLogger(__name__)
@@ -30,32 +29,43 @@ async def get_fire_centres(response: Response):
         response.headers["Cache-Control"] = "max-age=0"  # don't let the browser cache this
 
         with app.db.database.get_read_session_scope() as session:
-            station_data = get_planning_weather_stations(session)
+            # Fetch all fire weather stations from the database.
+            station_query = get_fire_weather_stations(session)
+            # Prepare a dictionary for storing station info in.
+            station_info_dict = {}
+            # Iterate through all the database records, collecting all the data we need.
+            for (station_record, fuel_type_record, planning_area_record, fire_centre_record) in station_query:
+                station_info_dict[station_record.station_code] = {
+                    'fuel_type': FuelType(
+                        abbrev=fuel_type_record.abbrev,
+                        description=fuel_type_record.description),
+                    'planning_area': PlanningArea(
+                        name=planning_area_record.name,
+                        fire_centre=FireCentre(name=fire_centre_record.name)
+                    )
 
-            # compile list of station codes from station_data, then send request to WFWX to retrieve
-            # station data (station name and elevation)
-            station_codes_list = []
-            for station in station_data:
-                station_codes_list.append(station.station_code)
-            wfwx_stations_data = await wildfire_one.get_stations_by_codes(station_codes_list)
+                }
 
-            stations_list = []
-            for station in station_data:
-                fuel = get_fuel_type_by_id(session, station.fuel_type_id)
-                fuel_type = FuelType(abbrev=fuel.abbrev, description=fuel.description)
-                wfwx_station = get_wfwx_station(wfwx_stations_data, station.station_code)
+            # We're still missing some data that we need from wfwx, so give it the list of stations
+            wfwx_stations_data = await wildfire_one.get_stations_by_codes(list(station_info_dict.keys()))
+            # Prepare a list to store our final station objects in.
+            stations_list: List[WeatherStation] = []
+            # Iterate through all the stations from wildfire one.
+            for wfwx_station in wfwx_stations_data:
+                station_info = station_info_dict[wfwx_station.code]
+                # Combine everything.
                 station_properties = WeatherStationProperties(
-                    name=wfwx_station.name, fuel_type=fuel_type, elevation=wfwx_station.elevation,
+                    name=wfwx_station.name,
+                    fuel_type=station_info['fuel_type'],
+                    elevation=wfwx_station.elevation,
                     wfwx_station_uuid=wfwx_station.wfwx_station_uuid)
-                zone = get_planning_area_by_id(session, station.planning_area_id)
-                fire_centre_from_db = get_fire_centre_by_id(session, zone.fire_centre_id)
-                fire_centre = FireCentre(name=fire_centre_from_db.name, id=zone.fire_centre_id)
-                planning_area = PlanningArea(
-                    name=zone.name, fire_centre=fire_centre, id=station.planning_area_id)
-                weather_station = WeatherStation(code=station.station_code,
+
+                weather_station = WeatherStation(code=wfwx_station.code,
                                                  station_props=station_properties,
-                                                 planning_area=planning_area)
+                                                 planning_area=station_info['planning_area'])
+
                 stations_list.append(weather_station)
+
             return HFIWeatherStationsResponse(stations=stations_list)
 
     except Exception as exc:
