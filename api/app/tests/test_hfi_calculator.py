@@ -3,10 +3,10 @@ import logging
 from pytest_bdd import scenario, given, then
 import pytest
 from starlette.testclient import TestClient
+from aiohttp import ClientSession
+from app.tests.common import default_mock_client_get
 from app import wildfire_one
 import app.main
-from app.tests.common import default_mock_client_get
-
 
 logger = logging.getLogger(__name__)
 
@@ -38,27 +38,48 @@ def test_hfi_planning_areas():
 def given_time_range_metrics_request(monkeypatch):
     """ Make /hfi-calc/daily request using mocked out ClientSession.
     """
+    class AsyncIter:
+        """Mock class for async iterators"""
 
-    raw_response = {'stationCode': 322,
-                    'temperature': 1,
-                    'relativeHumdity': 1,
-                    'windSpeed': 1,
-                    'windDirection': 1,
-                    'precipitation': 1,
-                    'grasslandCuring': 1,
-                    'fineFuelMoistureCode': 1,
-                    'duffMoistureCode': 1,
-                    'droughtCode': 1,
-                    'initialSpreadIndex': 1,
-                    'fireWeatherIndex': 1,
-                    'buildUpIndex': 1,
-                    'dailySeverityRating': 1,
-                    'fbpFuelType': "TBD",
-                    'observationValidInd': True,
-                    'observationValidComment': ""
-                    }
+        def __init__(self, items):
+            self.items = items
 
-    monkeypatch.setattr(wildfire_one, '_fetch_paged_response_generator', iter([raw_response]))
+        async def __aiter__(self):
+            for item in self.items:
+                yield item
+
+    raw_response = AsyncIter([{'stationCode': 322,
+                               'temperature': 1,
+                               'relativeHumdity': 1,
+                               'windSpeed': 1,
+                               'windDirection': 1,
+                               'precipitation': 1,
+                               'grasslandCuring': 1,
+                               'fineFuelMoistureCode': 1,
+                               'duffMoistureCode': 1,
+                               'droughtCode': 1,
+                               'initialSpreadIndex': 1,
+                               'fireWeatherIndex': 1,
+                               'buildUpIndex': 1,
+                               'dailySeverityRating': 1,
+                               "recordType": {
+                                   "id": "ACTUAL",
+                                   "displayLabel": "Actual",
+                                   "displayOrder": 1,
+                                   "createdBy": "DATA_LOAD",
+                                   "lastModifiedBy": "DATA_LOAD"
+                               },
+                               'fbpFuelType': "TBD",
+                               'observationValidInd': True,
+                               'observationValidComment': ""
+                               }])
+
+    def mock_paged_response_generator(*_):
+        """Mock out the paged response from WFWX"""
+        return raw_response
+
+    monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
+    monkeypatch.setattr(wildfire_one, '_fetch_paged_response_generator', mock_paged_response_generator)
     # Create API client and get the response.
     client = TestClient(app.main.app)
     headers = {'Content-Type': 'application/json',
@@ -67,9 +88,9 @@ def given_time_range_metrics_request(monkeypatch):
 
 
 @then('the response status code is <status_code>')
-def assert_status_code(response, status_code):
+def assert_status_code(response, status_code: int):
     """ Assert that we receive the expected status code """
-    assert response.status_code == status_code
+    assert response.status_code == int(status_code)
 
 # pylint: disable=invalid-name, too-many-arguments, line-too-long, too-many-locals
 
