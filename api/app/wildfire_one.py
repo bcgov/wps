@@ -248,6 +248,7 @@ def _parse_daily(raw_daily) -> StationDaily:
     """
     return StationDaily(
         code=raw_daily.get('stationCode', None),
+        status="Observed" if raw_daily.get('recordType', '').get('id') == 'ACTUAL' else "Forecasted",
         temperature=raw_daily.get('temperature', None),
         relative_humidity=raw_daily.get('relativeHumidity', None),
         wind_speed=raw_daily.get('windSpeed', None),
@@ -565,9 +566,8 @@ async def get_dailies(
 
     dailies = []
     async for daily in dailies_iterator:
-        if daily.get('recordType', '').get('id') == 'ACTUAL':
-            parsed_daily = _parse_daily(daily)
-            dailies.append(parsed_daily)
+        parsed_daily = _parse_daily(daily)
+        dailies.append(parsed_daily)
     return dailies
 
 
