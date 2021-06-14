@@ -32,27 +32,16 @@ export interface StationDailyResponse {
   dailies: StationDaily[]
 }
 
-const buildParams = (
-  start_time_stamp: number,
-  end_time_stamp: number,
-  station_codes: number[]
-) => ({
-  start_time_stamp,
-  end_time_stamp,
-  station_codes: station_codes.join(',')
-})
-
 const url = '/hfi-calc/daily'
 
 export async function getDailies(
   startTime: number,
   endTime: number
 ): Promise<StationDaily[]> {
-  const stationCodes: number[] = []
-  const builtParams = buildParams(startTime, endTime, stationCodes)
   const { data } = await axios.get<StationDailyResponse>(url, {
     params: {
-      ...builtParams
+      start_time_stamp: startTime,
+      end_time_stamp: endTime
     }
   })
 

@@ -1,13 +1,14 @@
 """ Routers for HFI Calculator """
-from os import stat
-from api.app.utils.time import get_utc_now
 import logging
-from datetime import datetime, timedelta
+import math
 from typing import List, Optional
 from aiohttp.client import ClientSession
-from fastapi import APIRouter, Response, Depends
-from app import wildfire_one
+from fastapi import APIRouter, Response, Depends, Query
+from app.wildfire_one import (get_ids_from_station_codes,
+                              get_dailies,
+                              get_auth_header)
 from app.auth import authentication_required
+from app.utils.time import get_utc_today_start_and_end
 from app.schemas.hfi_calc import StationDailyResponse
 
 
@@ -19,38 +20,31 @@ router = APIRouter(
 
 
 def validate_time_range(start_time_stamp: Optional[int], end_time_stamp: Optional[int]):
-    """ Sets timestamp to today if they are None. """
+    """ Sets timestamp to today if they are None.
+        Defaults to start of today and end of today if no range is given. """
     if start_time_stamp is None or end_time_stamp is None:
-        return get_utc_now(), get_utc_now() + timedelta(days=1)
-    else:
-        return int(start_time_stamp), int(end_time_stamp)
-
-
-def validate_station_codes(station_codes: Optional[List[int]]):
-    """ Validates empty or missing station lists """
-    if station_codes is None:
-        return []
-    else:
-        return [station_code for station_code in station_codes]
+        today_start, today_end = get_utc_today_start_and_end()
+        return math.floor(today_start.timestamp()*1000), math.floor(today_end.timestamp()*1000)
+    return int(start_time_stamp), int(end_time_stamp)
 
 
 @router.get('/daily', response_model=StationDailyResponse)
 async def get_daily_view(response: Response,
-                         station_codes: Optional[List[int]],
+                         station_codes: Optional[List[int]] = Query(None),
                          start_time_stamp: Optional[int] = None,
-                         end_time_stamp: Optional[int] = None,
-                         _=Depends(authentication_required)):
+                         end_time_stamp: Optional[int] = None):
     """ Returns daily metrics for each station code. """
     try:
         logger.info('/hfi-calc/daily')
         response.headers["Cache-Control"] = "max-age=0"  # don't let the browser cache this
         valid_start_time, valid_end_time = validate_time_range(start_time_stamp, end_time_stamp)
-        valid_station_codes = validate_station_codes(station_codes)
 
         async with ClientSession() as session:
-            header = await wildfire_one.get_auth_header(session)
-            return await wildfire_one.get_dailies(
+            header = await get_auth_header(session)
+            valid_station_codes = await get_ids_from_station_codes(session, header, station_codes)
+            dailies = await get_dailies(
                 session, header, valid_station_codes, valid_start_time, valid_end_time)
+            return StationDailyResponse(dailies=dailies)
 
     except Exception as exc:
         logger.critical(exc, exc_info=True)

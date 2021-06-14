@@ -23,12 +23,6 @@ class StationDaily(BaseModel):
     fwi: Union[float, None] = None
     danger_cl: Union[int, None] = None
     fbp_fuel_type: Union[str, None] = None
-    ros: Union[float, None] = None
-    hr_size: Union[float, None] = None
-    fire_type: Union[str, None] = None
-    hfi: Union[float, None] = None
-    ros_01a: Union[str, None] = None
-    ros_01b: Union[str, None] = None
     observation_valid: Union[bool, None] = None
     observation_valid_comment: Union[str, None] = None
 
