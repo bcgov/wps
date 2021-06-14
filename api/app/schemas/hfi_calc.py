@@ -7,7 +7,6 @@ from pydantic import BaseModel
 class StationDaily(BaseModel):
     """ Station Daily metrics for HFI daily table """
     code: Union[int, None] = None
-    elevation: Union[float, None] = None
     status: Union[str, None] = None
     temperature: Union[float, None] = None
     relative_humidity: Union[float, None] = None
