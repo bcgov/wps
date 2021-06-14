@@ -2,7 +2,6 @@ import axios from 'api/axios'
 
 export interface StationDaily {
   code: number
-  elevation: number
   status: string
   temperature: number
   relative_humidity: number
@@ -18,12 +17,6 @@ export interface StationDaily {
   fwi: number
   danger_cl: number
   fbp_fuel_type: string
-  ros: number
-  hr_size: number
-  fire_type: string
-  hfi: number
-  ros_01a: string
-  ros_01b: string
   observation_valid: number
   observation_valid_comment: string
 }
