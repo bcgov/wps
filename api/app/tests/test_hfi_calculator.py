@@ -33,6 +33,8 @@ logger = logging.getLogger(__name__)
 def test_hfi_planning_areas():
     """ BDD Scenario. """
 
+# pylint: disable=line-too-long
+
 
 @given('I request metrics for all stations beginning at time <start_time_stamp> and ending at time <end_time_stamp>.', target_fixture='response')
 def given_time_range_metrics_request(monkeypatch):
