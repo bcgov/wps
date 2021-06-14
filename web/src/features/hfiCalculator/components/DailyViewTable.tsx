@@ -80,10 +80,11 @@ const DailyViewTable = (props: Props) => {
                 aria-label="daily table view of HFI by planning area"
               >
                 <TableHead>
-                  <TableRow className={classes.tableHeader}>
-                    <TableCell key="header-location">Location</TableCell>
-                    <TableCell key="header-elevation">Elev. (m)</TableCell>
-                    <TableCell key="header-fuel-type">FBP Fuel Type</TableCell>
+                  <TableRow>
+                    {/* TableHead and TableRow don't apply classes.tableHeader styling - has to be assigned to TableCell */}
+                    <TableCell className={classes.tableHeader} key="header-location">Location</TableCell>
+                    <TableCell className={classes.tableHeader} key="header-elevation">Elev. (m)</TableCell>
+                    <TableCell className={classes.tableHeader} key="header-fuel-type">FBP Fuel Type</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
