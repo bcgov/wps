@@ -36,6 +36,7 @@ const useStyles = makeStyles({
   },
   fireCentre: {
     fontSize: 16,
+    fontWeight: 'bold',
     backgroundColor: '#dbd9d9'
   },
   planningArea: {
@@ -49,6 +50,9 @@ const useStyles = makeStyles({
     '& .MuiTableCell-sizeSmall': {
       paddingLeft: '20px'
     }
+  },
+  tableHeader: {
+    fontWeight: 'bold'
   }
 })
 
@@ -76,7 +80,7 @@ const DailyViewTable = (props: Props) => {
                 aria-label="daily table view of HFI by planning area"
               >
                 <TableHead>
-                  <TableRow>
+                  <TableRow className={classes.tableHeader}>
                     <TableCell key="header-location">Location</TableCell>
                     <TableCell key="header-elevation">Elev. (m)</TableCell>
                     <TableCell key="header-fuel-type">FBP Fuel Type</TableCell>
