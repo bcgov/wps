@@ -1,8 +1,10 @@
 """ Logic pertaining to the generation of c_haines severity index from GDAL datasets.
 """
 import os
+import io
+import asyncio
 from datetime import datetime, timezone, timedelta
-from typing import Final, Tuple, Generator, Union, List
+from typing import Final, Tuple, Generator, Optional, List
 from contextlib import contextmanager
 import tempfile
 import logging
@@ -10,23 +12,22 @@ import json
 from osgeo import gdal, ogr
 import numpy
 from pyproj import Transformer, Proj
-from minio import Minio
 from shapely.ops import transform
-from shapely.geometry import shape
-from sqlalchemy.orm import Session
-from app.utils.minio import get_minio_client, object_exists
-from app.utils.time import get_utc_now
-from app.db.models.c_haines import CHainesPoly, CHainesPrediction, CHainesModelRun, get_severity_string
-from app.db.crud.weather_models import get_prediction_model
-from app.db.crud.c_haines import (get_c_haines_prediction, get_or_create_c_haines_model_run)
+from shapely.geometry import shape, mapping
+from aiobotocore.client import AioBaseClient
+from app.utils.s3 import object_exists, object_exists_v2
+import app.utils.time as time_utils
 from app.weather_models import ModelEnum, ProjectionEnum
-from app.geospatial import NAD83
+from app.geospatial import WGS84
 from app.weather_models.env_canada import (get_model_run_hours,
                                            get_file_date_part, adjust_model_day, download,
                                            UnhandledPredictionModelType)
+from app.utils.s3 import get_client
+from app.c_haines import get_severity_string
 from app.c_haines.c_haines_index import CHainesGenerator
 from app.c_haines import GDALData
-from app.c_haines.kml import generate_full_kml_path, save_as_kml_to_s3
+from app.c_haines.object_store import (ObjectTypeEnum, generate_full_object_store_path)
+from app.c_haines.kml import save_as_kml_to_s3
 
 
 logger = logging.getLogger(__name__)
@@ -68,16 +69,6 @@ def open_gdal(filename_tmp_700: str,
     finally:
         # Clean up memory.
         del grib_tmp_700, grib_tmp_850, grib_dew_850
-
-
-def record_exists(
-        session,
-        model_run: CHainesModelRun,
-        prediction_timestamp: datetime):
-    """ Check if we have a c-haines record """
-    # TODO: this function will soon be made redundant.
-    result = get_c_haines_prediction(session, model_run, prediction_timestamp)
-    return result.count() > 0
 
 
 def get_prediction_date(model_run_timestamp, hour) -> datetime:
@@ -240,46 +231,6 @@ def save_data_as_geojson(
     del dst_ds, data_ds, mask_ds
 
 
-def save_geojson_to_database(session: Session,
-                             source_projection, filename: str,
-                             prediction_timestamp: datetime,
-                             model_run: CHainesModelRun):
-    """ Open geojson file, iterate through features, saving them into the
-    database.
-    """
-    logger.info('Saving geojson for model run %s, prediction %s to database...',
-                model_run.model_run_timestamp,  prediction_timestamp)
-    # Open the geojson file.
-    with open(filename) as file:
-        data = json.load(file)
-
-    # Source coordinate system, must match source data.
-    proj_from = Proj(projparams=source_projection)
-    # Destination coordinate systems (NAD83, geographic coordinates)
-    proj_to = Proj(NAD83)
-    project = Transformer.from_proj(proj_from, proj_to, always_xy=True)
-
-    # Create a prediction record to hang everything off of:
-    prediction = CHainesPrediction(model_run=model_run,
-                                   prediction_timestamp=prediction_timestamp)
-    session.add(prediction)
-    # Convert each feature into a shapely geometry and save to database.
-    for feature in data['features']:
-        # Create polygon:
-        source_geometry = shape(feature['geometry'])
-        # Transform polygon from source to NAD83
-        geometry = transform(project.transform, source_geometry)
-        # Create data model object.
-        polygon = CHainesPoly(
-            geom=geometry.wkt,
-            c_haines_index=get_severity_string(feature['properties']['severity']),
-            c_haines_prediction=prediction)
-        # Add to current session.
-        session.add(polygon)
-    # Only commit once we have everything.
-    session.commit()
-
-
 def generate_severity_data(c_haines_data):
     """ Generate severity index data, iterating over c-haines data.
     NOTE: Iterating to generate c-haines, and then iterating again to generate severity is a bit slower,
@@ -308,11 +259,70 @@ class EnvCanadaPayload():
     """ Handy class to store payload information in . """
 
     def __init__(self):
-        self.filename_tmp_700: str = None
-        self.filename_tmp_850: str = None
-        self.filename_dew_850: str = None
-        self.prediction_timestamp: datetime = None
-        self.model_run: CHainesModelRun = None
+        self.filename_tmp_700: Optional[str] = None
+        self.filename_tmp_850: Optional[str] = None
+        self.filename_dew_850: Optional[str] = None
+        self.model: Optional[ModelEnum] = None
+        self.model_run_timestamp: Optional[datetime] = None
+        self.prediction_timestamp: Optional[datetime] = None
+
+
+def re_project_and_classify_geojson(source_json_filename: str,
+                                    source_projection: str) -> dict:
+    """ Given a geojson file in a specified projection
+    - order by severity.
+    - re-project to wgs84.
+    - re-classify the "severity index" as a c_haines_index string.
+    - return as a dictionary
+    """
+    proj_from = Proj(projparams=source_projection)
+    proj_to = Proj(WGS84)
+    project = Transformer.from_proj(proj_from, proj_to, always_xy=True)
+    with open(source_json_filename) as source_file:
+        geojson_data = json.load(source_file)
+        # We need to sort the geojson by severity.
+        geojson_data['features'].sort(key=lambda feature: feature['properties']['severity'])
+        # Iterate through features.
+        for feature in geojson_data['features']:
+            # Replace "severity" with c-haines.
+            feature['properties'] = {"c_haines_index": get_severity_string(feature['properties']['severity'])}
+            # Re-project to WGS84
+            source_geometry = shape(feature['geometry'])
+            geometry = transform(project.transform, source_geometry)
+            geojson_geometry = mapping(geometry)
+            feature['geometry']['coordinates'] = geojson_geometry['coordinates']
+    return geojson_data
+
+
+async def save_as_geojson_to_s3(source_json_filename: str,
+                                source_projection: str,
+                                prediction_model: ModelEnum,
+                                model_run_timestamp: datetime,
+                                prediction_timestamp: datetime):
+    """ Given a geojson file, ensure it's in the correct projection and then store to S3 """
+    target_path = generate_full_object_store_path(
+        prediction_model, model_run_timestamp, prediction_timestamp, ObjectTypeEnum.GEOJSON)
+    # let's save some time, and check if the file doesn't already exists.
+    # it's super important we do this, since there are many c-haines cronjobs running in dev, all
+    # pointing to the same s3 bucket.
+    async with get_client() as (client, bucket):
+        if await object_exists(client, bucket, target_path):
+            logger.info('json (%s) already exists - skipping', target_path)
+            return
+
+        # re-project the geojson file from whatever it was, to WGS84.
+        re_projected_data = re_project_and_classify_geojson(source_json_filename, source_projection)
+
+        with io.StringIO() as sio:
+            json.dump(re_projected_data, sio)
+            # smash it into binary
+            sio.seek(0)
+            bio = io.BytesIO(sio.read().encode('utf8'))
+            # go back to start
+            bio.seek(0)
+            # smash it into the object store.
+            logger.info('uploading %s', target_path)
+            await client.put_object(Bucket=bucket, Key=target_path, Body=bio)
 
 
 class CHainesSeverityGenerator():
@@ -326,30 +336,30 @@ class CHainesSeverityGenerator():
     4) Write polygons to database.
     """
 
-    def __init__(self, model: ModelEnum, projection: ProjectionEnum, session: Session):
+    def __init__(self, model: ModelEnum, projection: ProjectionEnum, client: AioBaseClient, bucket: str):
         self.model = model
         self.projection = projection
         self.c_haines_generator = CHainesGenerator()
-        self.session = session
-        client, bucket = get_minio_client()
-        self.client: Minio = client
+        self.client: AioBaseClient = client
         self.bucket: str = bucket
 
     def _collect_payload(self,
                          urls: dict,
+                         model: ModelEnum,
+                         model_run_timestamp: datetime,
                          prediction_timestamp: datetime,
-                         model_run: CHainesModelRun,
-                         temporary_path: str) -> Union[EnvCanadaPayload, None]:
+                         temporary_path: str) -> Optional[EnvCanadaPayload]:
         """ Collect all the different things that make up our payload: our downloaded files,
         model run, and prediction timestamp. """
 
         def _download_files(urls: dict,
                             model: ModelEnum,
-                            temporary_path: str) -> Union[List[str], None]:
+                            temporary_path: str) -> Optional[List[str]]:
             """ Try to download all the files """
             filenames = []
             for key in make_model_levels(model):
                 # Try to download this file.
+                # TODO: would be nice to make the file download async
                 filename = download(urls[key], temporary_path)
                 if not filename:
                     # If we fail to download one of files, quit, don't try the others.
@@ -365,55 +375,58 @@ class CHainesSeverityGenerator():
             payload.filename_tmp_700 = filename_tmp_700
             payload.filename_tmp_850 = filename_tmp_850
             payload.filename_dew_850 = filename_dew_850
+            payload.model = model
+            payload.model_run_timestamp = model_run_timestamp
             payload.prediction_timestamp = prediction_timestamp
-            payload.model_run = model_run
             return payload
         return None
 
-    def _assets_exist(self, prediction_model_abbreviation: str,
-                      model_run_timestamp: datetime,
-                      prediction_timestamp: datetime) -> bool:
+    async def _assets_exist(self, model: ModelEnum,
+                            model_run_timestamp: datetime,
+                            prediction_timestamp: datetime) -> bool:
         """ Return True if kml and geojson assets already exist, otherwise False """
-        kml_path = generate_full_kml_path(
-            prediction_model_abbreviation,
+        tasks = []
+        kml_path = generate_full_object_store_path(
+            model,
             model_run_timestamp,
-            prediction_timestamp)
-        kml_exists = object_exists(self.client, self.bucket, kml_path)
-        json_exists = False  # TODO: Implement this check
-        return kml_exists and json_exists
+            prediction_timestamp,
+            ObjectTypeEnum.KML)
+        tasks.append(asyncio.create_task(object_exists_v2(kml_path)))
 
-    def _get_payloads(self, temporary_path) -> Generator[EnvCanadaPayload, None, None]:
+        json_path = generate_full_object_store_path(
+            model,
+            model_run_timestamp,
+            prediction_timestamp,
+            ObjectTypeEnum.GEOJSON)
+        tasks.append(asyncio.create_task(object_exists_v2(json_path)))
+
+        if False in await asyncio.gather(*tasks):
+            return False
+        return True
+
+    async def _get_payloads(self, temporary_path) -> Generator[EnvCanadaPayload, None, None]:
         """ Iterator that yields the next to process. """
-        prediction_model = get_prediction_model(self.session, self.model, self.projection)
-        utc_now = get_utc_now()
+        utc_now = time_utils.get_utc_now()
         for model_hour in get_model_run_hours(self.model):
-            model_run = None
             for prediction_hour in model_prediction_hour_iterator(self.model):
 
                 urls, model_run_timestamp, prediction_timestamp = make_model_run_download_urls(
                     self.model, utc_now, model_hour, prediction_hour)
 
                 # If the GeoJSON and the KML already exist, then we can skip this one.
-                if self._assets_exist(prediction_model.abbreviation,
-                                      model_run_timestamp,
-                                      prediction_timestamp):
+                if await self._assets_exist(self.model,
+                                            model_run_timestamp,
+                                            prediction_timestamp):
                     logger.info('%s: already processed %s-%s',
                                 self.model,
                                 model_run_timestamp, prediction_timestamp)
                     continue
 
-                # TODO: section below soon to be redundant
-                if model_run is None:
-                    model_run = get_or_create_c_haines_model_run(
-                        self.session, model_run_timestamp, prediction_model)
-                if record_exists(self.session, model_run, prediction_timestamp):
-                    logger.info('%s: already processed %s-%s',
-                                self.model,
-                                model_run_timestamp, prediction_timestamp)
-                    continue
-                # TODO: ^^ section above soon to be redundant.
-
-                payload = self._collect_payload(urls, prediction_timestamp, model_run, temporary_path)
+                payload = self._collect_payload(urls,
+                                                self.model,
+                                                model_run_timestamp,
+                                                prediction_timestamp,
+                                                temporary_path)
                 if payload:
                     yield payload
                 else:
@@ -444,11 +457,11 @@ class CHainesSeverityGenerator():
 
         return c_haines_data, source_info
 
-    def _persist_severity_data(self,
-                               payload: EnvCanadaPayload,
-                               c_haines_severity_data,
-                               c_haines_mask_data,
-                               source_info: SourceInfo):
+    async def _persist_severity_data(self,
+                                     payload: EnvCanadaPayload,
+                                     c_haines_severity_data,
+                                     c_haines_mask_data,
+                                     source_info: SourceInfo):
         with tempfile.TemporaryDirectory() as temporary_path:
             json_filename = os.path.join(os.getcwd(), temporary_path, 'c-haines.geojson')
             save_data_as_geojson(
@@ -457,32 +470,35 @@ class CHainesSeverityGenerator():
                 source_info,
                 json_filename)
 
-            save_as_kml_to_s3(self.client, self.bucket, json_filename, source_info.projection,
-                              payload.model_run.prediction_model.abbreviation,
-                              payload.model_run.model_run_timestamp, payload.prediction_timestamp)
+            tasks = []
+            tasks.append(asyncio.create_task(
+                save_as_kml_to_s3(json_filename, source_info.projection,
+                                  payload.model,
+                                  payload.model_run_timestamp, payload.prediction_timestamp)
+            ))
+            tasks.append(asyncio.create_task(
+                save_as_geojson_to_s3(json_filename, source_info.projection,
+                                      payload.model,
+                                      payload.model_run_timestamp, payload.prediction_timestamp)
+            ))
+            await asyncio.gather(*tasks)
 
-            save_geojson_to_database(self.session,
-                                     source_info.projection,
-                                     json_filename,
-                                     payload.prediction_timestamp,
-                                     payload.model_run)
-
-    def generate(self):
+    async def generate(self):
         """ Entry point for generating and storing c-haines severity index. """
         # Iterate through payloads that need processing.
         with tempfile.TemporaryDirectory() as temporary_path:
-            for payload in self._get_payloads(temporary_path):
+            async for payload in self._get_payloads(temporary_path):
                 # Generate the c_haines data.
                 c_haines_data, source_info = self._generate_c_haines_data(payload)
                 # Generate the severity index and mask data.
                 c_haines_severity_data, c_haines_mask_data = generate_severity_data(c_haines_data)
                 # We're done with the c_haines data, so we can clean up some memory.
                 del c_haines_data
-                # Save to database and s3.
-                self._persist_severity_data(payload,
-                                            c_haines_severity_data,
-                                            c_haines_mask_data,
-                                            source_info)
+                # Save to s3.
+                await self._persist_severity_data(payload,
+                                                  c_haines_severity_data,
+                                                  c_haines_mask_data,
+                                                  source_info)
                 # Delete temporary files
                 os.remove(payload.filename_dew_850)
                 os.remove(payload.filename_tmp_700)
