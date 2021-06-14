@@ -63,12 +63,13 @@ def upgrade():
                     planning_area_results = planning_area_query.fetchall()
                     planning_area_id = str(planning_area_results[0]).replace(
                         '(', '').replace(')', '').replace(',', '')
-                    op.execute('INSERT INTO planning_weather_stations (station_code, fuel_type_id, planning_area_id) VALUES ({}, {}, {})'.format(
-                        station_code, fuel_type_id, planning_area_id))
+                    op.execute('INSERT INTO planning_weather_stations (station_code, fuel_type_id, '
+                               'planning_area_id) VALUES ({}, {}, {})'.format(
+                                   station_code, fuel_type_id, planning_area_id))
 
 
 def downgrade():
-    op.delete('planning_weather_stations')
-    op.delete('planning_areas')
-    op.delete('fire_centres')
-    op.delete('fuel_types')
+    op.execute('DELETE FROM planning_weather_stations')
+    op.execute('DELETE FROM planning_areas')
+    op.execute('DELETE FROM fire_centres')
+    op.execute('DELETE FROM fuel_types')
