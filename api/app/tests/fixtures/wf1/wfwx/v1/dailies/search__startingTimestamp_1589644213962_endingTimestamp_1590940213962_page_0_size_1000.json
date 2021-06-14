@@ -1,0 +1,32 @@
+{
+    "_embedded": {
+        "dailies": [
+            {
+                "stationCode": 322,
+                "temperature": 1,
+                "relativeHumidity": 1,
+                "windSpeed": 1,
+                "windDirection": 1,
+                "precipitation": 1,
+                "grasslandCuring": 1,
+                "fineFuelMoistureCode": 1,
+                "duffMoistureCode": 1,
+                "droughtCode": 1,
+                "initialSpreadIndex": 1,
+                "fireWeatherIndex": 1,
+                "buildUpIndex": 1,
+                "dailySeverityRating": 1,
+                "recordType": {
+                    "id": "ACTUAL",
+                    "displayLabel": "Actual",
+                    "displayOrder": 1,
+                    "createdBy": "DATA_LOAD",
+                    "lastModifiedBy": "DATA_LOAD"
+                },
+                "fbpFuelType": "TBD",
+                "observationValidInd": "True",
+                "observationValidComment": ""
+            }
+        ]
+    }
+}

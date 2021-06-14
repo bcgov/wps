@@ -6,5 +6,5 @@ Feature: /hfi-calc/daily
         And the status <status>, with temperature <temperature> and relative humidity <relative_humidity>, and wind_direction <wind_direction> and wind_speed <wind_speed> and precipitation <precipitation> and grass_cure_percentage <grass_cure_percentage> and ffmc <ffmc> and dc <dc> and <dmc> and isi <isi> and <bui> and fwi <fwi> and danger_cl <danger_cl> and fbp_fuel_type <fbp_fuel_type>
 
         Examples:
-            | status_code | start_time_stamp | end_time_stamp | status   | temperature | relative_humidity | wind_direction | wind_speed | precipitation | grass_cure_percentage | ffmc | dc | dmc | isi | bui | fwi | danger_cl | fbp_fuel_type |
-            | 200         | 15               | 0              | observed | 1           | 1                 | 1              | 1          | 1             | 1                     | 1    | 1  | 1   | 1   | 1   | 1   | 1         | 01A           |
+            | status_code | start_time_stamp | end_time_stamp | status   | temperature | relative_humidity | wind_direction | wind_speed | precipitation | grass_cure_percentage | ffmc | dc  | dmc | isi | bui | fwi | danger_cl | fbp_fuel_type |
+            | 200         | 0                | 1              | observed | 1.0         | 1.0               | 1.0            | 1.0        | 1.0           | 1.0                   | 1.0  | 1.0 | 1.0 | 1.0 | 1.0 | 1.0 | 1.0       | TBD           |
