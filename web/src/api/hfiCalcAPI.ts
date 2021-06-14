@@ -30,7 +30,7 @@ export interface WeatherStation {
 }
 
 export async function getHFIStations(): Promise<WeatherStation[]> {
-  const url = '/hfi-calc/'
+  const url = '/hfi-calc/fire-centres'
   const { data } = await axios.get(url)
 
   return data.stations
