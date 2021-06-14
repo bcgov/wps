@@ -19,7 +19,6 @@ router = APIRouter(
 
 
 @router.get('/', response_model=HFIWeatherStationsResponse)
-# pylint: disable=too-many-locals
 async def get_fire_centres(response: Response):
     """ Returns list of fire centres and planning area for each fire centre,
     and weather stations within each planning area. Also returns the assigned fuel type
