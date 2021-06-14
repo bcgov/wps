@@ -38,7 +38,7 @@ jobs:
           cache-name: cache-poetry-installer
         with:
           path: "~/poetry_installer"
-          key: "1.1.5"
+          key: "1.1.6"
 
       - name: Download poetry installer
         if: steps.cache-poetry-installer.outputs.cache-hit != 'true'
@@ -50,7 +50,7 @@ jobs:
       - name: Install poetry (api)
         run: |
           cd ~/poetry_installer
-          python get-poetry.py --version 1.1.5
+          python get-poetry.py --version 1.1.6
           source ~/.poetry/env
           poetry config virtualenvs.create true
           poetry config virtualenvs.in-project false
