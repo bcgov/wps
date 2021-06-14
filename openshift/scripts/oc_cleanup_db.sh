@@ -43,7 +43,7 @@ OC_CLEAN_CONFIGMAPS="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} \
     configmaps \
     -o name -l cluster-name=${APPLICATION_NAME}"
 
-OC_CLEAN_PATRONI_NETWORK_POLICY="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} networkpolicy patroni-db-to-db-patroni-${NAME_APP}-${SUFFIX}" 
+OC_CLEAN_PATRONI_NETWORK_POLICY="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} networkpolicy patroni-db-to-db-patroni-${NAME_APP}-${SUFFIX} --ignore-not-found=true" 
 
 # Execute commands
 #

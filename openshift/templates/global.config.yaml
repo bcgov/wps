@@ -66,6 +66,14 @@ parameters:
     description: ID of application for matomo (analytics) tracking.
   - name: CERTBOT_SERVER
     description: Certbot server url
+  - name: OBJECT_STORE_SERVER
+    description: s3 compatible object store server
+  - name: OBJECT_STORE_USER_ID
+    description: User ID for s3 compatible object store
+  - name: OBJECT_STORE_SECRET
+    description: Secret for s3 compatible object store
+  - name: OBJECT_STORE_BUCKET
+    description: Bucket for s3 compatible object store
 objects:
   - kind: ConfigMap
     apiVersion: v1
@@ -93,6 +101,10 @@ objects:
       name: wps-global
     type: Opaque
     stringData:
+      object-store-server: ${OBJECT_STORE_SERVER}
+      object-store-user-id: ${OBJECT_STORE_USER_ID}
+      object-store-bucket: ${OBJECT_STORE_SECRET}
+      object-store-secret: ${OBJECT_STORE_BUCKET}
       wfwx-secret: ${WFWX_SECRET}
       app-db-password: ${APP_DB_PASSWORD}
       patroni-replication-password: ${PATRONI_REPLICATION_PASSWORD}
