@@ -6,8 +6,17 @@ import { fetchHFIDailies } from '../slices/hfiCalculatorSlice'
 import { useDispatch, useSelector } from 'react-redux'
 import { DateTime } from 'luxon'
 import { selectHFIDailies } from 'app/rootReducer'
+import { makeStyles, CircularProgress } from '@material-ui/core'
 
 const HfiCalculatorPage: React.FunctionComponent = () => {
+  const useStyles = makeStyles({
+    container: {
+      display: 'flex',
+      justifyContent: 'center'
+    }
+  })
+  const classes = useStyles()
+
   const dispatch = useDispatch()
   const { dailies, loading } = useSelector(selectHFIDailies)
   useEffect(() => {
@@ -27,8 +36,15 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     <main data-testid="hfi-calculator-page">
       <PageHeader title="Predictive Services Unit" productName="HFI Calculator" />
       <PageTitle title="HFI Calculator" />
-      <Container maxWidth={'xl'}>
-        <DailyViewTable title={'Daily View Table'} stationData={dailies}></DailyViewTable>
+      <Container className={classes.container} maxWidth={'xl'}>
+        {loading ? (
+          <CircularProgress />
+        ) : (
+          <DailyViewTable
+            title={'Daily View Table'}
+            stationData={dailies}
+          ></DailyViewTable>
+        )}
       </Container>
     </main>
   )
