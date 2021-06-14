@@ -1,0 +1,269 @@
+{
+    "_embedded": {
+        "stations": [
+            {
+                "id": "bfe0a6e2-e3d0-0210-e053-259e228e58c7",
+                "displayLabel": "AFTON",
+                "createdBy": "LEGACY_DATA_LOAD",
+                "lastModifiedBy": "WFWX_WEATHER_API",
+                "lastEntityUpdateTimestamp": 1623695817314,
+                "updateDate": "2021-06-14T18:36:57.000+0000",
+                "stationCode": 322,
+                "stationAcronym": "FAF",
+                "stationStatus": {
+                    "id": "ACTIVE",
+                    "displayLabel": "Active",
+                    "displayOrder": 1
+                },
+                "dataSource": "AutoCaller GSNet",
+                "dataLoggerType": {
+                    "id": "a48a0ad5-ae6c-15c4-e053-e60a0a0aaa40",
+                    "displayLabel": "FWS12S",
+                    "displayOrder": 5,
+                    "dataLoggerType": "FWS12S",
+                    "createdBy": "DATA_LOAD",
+                    "lastModifiedBy": "DATA_LOAD"
+                },
+                "siteType": {
+                    "id": "a48a0ad5-ae7a-15c4-e053-e60a0a0aaa40",
+                    "displayLabel": "Weather Station - UHF",
+                    "displayOrder": 11,
+                    "siteType": "WXSTN_UHF",
+                    "createdBy": "DATA_LOAD",
+                    "lastModifiedBy": "DATA_LOAD"
+                },
+                "weatherZone": {
+                    "id": 20,
+                    "displayLabel": "Zone 20",
+                    "dangerRegion": 3,
+                    "displayOrder": 20
+                },
+                "hourly": true,
+                "latitude": 50.6733333,
+                "longitude": -120.4816667,
+                "geometry": {
+                    "crs": {
+                        "type": "name",
+                        "properties": {
+                            "name": "EPSG:4326"
+                        }
+                    },
+                    "coordinates": [
+                        -120.4816667,
+                        50.6733333
+                    ],
+                    "type": "Point"
+                },
+                "elevation": 780,
+                "windspeedAdjRoughness": 1.0,
+                "windspeedAdjHeight": 1.0,
+                "overWinterPrecipAdj": true,
+                "influencingSlope": 1,
+                "installationDate": 606121200000,
+                "decommissionDate": null,
+                "influencingAspect": null,
+                "owner": null,
+                "fireCentre": {
+                    "id": 25,
+                    "displayLabel": "Kamloops Fire Centre",
+                    "alias": 5
+                },
+                "zone": {
+                    "id": 27,
+                    "displayLabel": "Kamloops Zone (Kamloops)",
+                    "alias": 2,
+                    "fireCentre": "Kamloops Fire Centre",
+                    "fireCentreAlias": 5
+                },
+                "comments": "1st Daily 19880910; Grnstn 96.1.70.251-0141-0142",
+                "ecccFileBaseUrlTemplate": null,
+                "lastProcessedSourceTime": "2021-06-14T11:36:57",
+                "crdStationName": null,
+                "_links": {
+                    "self": {
+                        "href": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/rsql/bfe0a6e2-e3d0-0210-e053-259e228e58c7"
+                    }
+                }
+            },
+            {
+                "id": "bfe0a6e2-e3dc-0210-e053-259e228e58c7",
+                "displayLabel": "MCCUDDY",
+                "createdBy": "LEGACY_DATA_LOAD",
+                "lastModifiedBy": "WFWX_WEATHER_API",
+                "lastEntityUpdateTimestamp": 1623695818581,
+                "updateDate": "2021-06-14T18:36:58.000+0000",
+                "stationCode": 334,
+                "stationAcronym": "FMC",
+                "stationStatus": {
+                    "id": "ACTIVE",
+                    "displayLabel": "Active",
+                    "displayOrder": 1
+                },
+                "dataSource": "AutoCaller GSNet",
+                "dataLoggerType": {
+                    "id": "a48a0ad5-ae6c-15c4-e053-e60a0a0aaa40",
+                    "displayLabel": "FWS12S",
+                    "displayOrder": 5,
+                    "dataLoggerType": "FWS12S",
+                    "createdBy": "DATA_LOAD",
+                    "lastModifiedBy": "DATA_LOAD"
+                },
+                "siteType": {
+                    "id": "a48a0ad5-ae78-15c4-e053-e60a0a0aaa40",
+                    "displayLabel": "Weather Station - Telephone",
+                    "displayOrder": 9,
+                    "siteType": "WXSTN_TEL",
+                    "createdBy": "DATA_LOAD",
+                    "lastModifiedBy": "DATA_LOAD"
+                },
+                "weatherZone": {
+                    "id": 21,
+                    "displayLabel": "Zone 21",
+                    "dangerRegion": 3,
+                    "displayOrder": 21
+                },
+                "hourly": true,
+                "latitude": 49.1483333,
+                "longitude": -119.415,
+                "geometry": {
+                    "crs": {
+                        "type": "name",
+                        "properties": {
+                            "name": "EPSG:4326"
+                        }
+                    },
+                    "coordinates": [
+                        -119.415,
+                        49.1483333
+                    ],
+                    "type": "Point"
+                },
+                "elevation": 1067,
+                "windspeedAdjRoughness": 1.0,
+                "windspeedAdjHeight": 1.0,
+                "overWinterPrecipAdj": false,
+                "influencingSlope": 5,
+                "installationDate": 618732000000,
+                "decommissionDate": null,
+                "influencingAspect": null,
+                "owner": null,
+                "fireCentre": {
+                    "id": 25,
+                    "displayLabel": "Kamloops Fire Centre",
+                    "alias": 5
+                },
+                "zone": {
+                    "id": 30,
+                    "displayLabel": "Penticton Zone",
+                    "alias": 5,
+                    "fireCentre": "Kamloops Fire Centre",
+                    "fireCentreAlias": 5
+                },
+                "comments": "1st Daily 19840501; BCF04BB0",
+                "ecccFileBaseUrlTemplate": null,
+                "lastProcessedSourceTime": "2021-06-14T11:36:58",
+                "crdStationName": null,
+                "_links": {
+                    "self": {
+                        "href": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/rsql/bfe0a6e2-e3dc-0210-e053-259e228e58c7"
+                    }
+                }
+            },
+            {
+                "id": "bfe0a6e2-e3e8-0210-e053-259e228e58c7",
+                "displayLabel": "SALMON ARM",
+                "createdBy": "LEGACY_DATA_LOAD",
+                "lastModifiedBy": "WFWX_WEATHER_API",
+                "lastEntityUpdateTimestamp": 1623695820274,
+                "updateDate": "2021-06-14T18:37:00.000+0000",
+                "stationCode": 346,
+                "stationAcronym": "FSA",
+                "stationStatus": {
+                    "id": "ACTIVE",
+                    "displayLabel": "Active",
+                    "displayOrder": 1
+                },
+                "dataSource": "AutoCaller GSNet",
+                "dataLoggerType": {
+                    "id": "a48a0ad5-ae6c-15c4-e053-e60a0a0aaa40",
+                    "displayLabel": "FWS12S",
+                    "displayOrder": 5,
+                    "dataLoggerType": "FWS12S",
+                    "createdBy": "DATA_LOAD",
+                    "lastModifiedBy": "DATA_LOAD"
+                },
+                "siteType": {
+                    "id": "a48a0ad5-ae7a-15c4-e053-e60a0a0aaa40",
+                    "displayLabel": "Weather Station - UHF",
+                    "displayOrder": 11,
+                    "siteType": "WXSTN_UHF",
+                    "createdBy": "DATA_LOAD",
+                    "lastModifiedBy": "DATA_LOAD"
+                },
+                "weatherZone": {
+                    "id": 22,
+                    "displayLabel": "Zone 22",
+                    "dangerRegion": 1,
+                    "displayOrder": 22
+                },
+                "hourly": true,
+                "latitude": 50.685,
+                "longitude": -119.235,
+                "geometry": {
+                    "crs": {
+                        "type": "name",
+                        "properties": {
+                            "name": "EPSG:4326"
+                        }
+                    },
+                    "coordinates": [
+                        -119.235,
+                        50.685
+                    ],
+                    "type": "Point"
+                },
+                "elevation": 527,
+                "windspeedAdjRoughness": 1.0,
+                "windspeedAdjHeight": 1.0,
+                "overWinterPrecipAdj": false,
+                "influencingSlope": 0,
+                "installationDate": 623570400000,
+                "decommissionDate": null,
+                "influencingAspect": null,
+                "owner": null,
+                "fireCentre": {
+                    "id": 25,
+                    "displayLabel": "Kamloops Fire Centre",
+                    "alias": 5
+                },
+                "zone": {
+                    "id": 28,
+                    "displayLabel": "Vernon Zone (Salmon Arm)",
+                    "alias": 3,
+                    "fireCentre": "Kamloops Fire Centre",
+                    "fireCentreAlias": 5
+                },
+                "comments": "1st Daily 19760501; Salmon Arm",
+                "ecccFileBaseUrlTemplate": null,
+                "lastProcessedSourceTime": "2021-06-14T11:37:00",
+                "crdStationName": null,
+                "_links": {
+                    "self": {
+                        "href": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/rsql/bfe0a6e2-e3e8-0210-e053-259e228e58c7"
+                    }
+                }
+            }
+        ]
+    },
+    "_links": {
+        "self": {
+            "href": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1stations/rsql?query=stationCode%3D%3D322%20or%20stationCode%3D%3D346%20or%20stationCode%3D%3D334"
+        }
+    },
+    "page": {
+        "size": 1000,
+        "totalElements": 3,
+        "totalPages": 1,
+        "number": 0
+    }
+}

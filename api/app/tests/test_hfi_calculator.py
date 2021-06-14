@@ -1,21 +1,14 @@
 """ BDD tests for API /hfi-calc/ """
 import logging
-import asyncio
-from datetime import datetime
-from os import name
-from typing import List, Generator
-from contextlib import contextmanager
-import json
+from aiohttp.client import ClientSession
 from pytest_bdd import scenario, given, then
 from starlette.testclient import TestClient
-from aiohttp import ClientSession
 from sqlalchemy.orm import Session
-from alchemy_mock.mocking import UnifiedAlchemyMagicMock
-from alchemy_mock.compat import mock
 import pytest
+from app.db.models.hfi_calc import PlanningWeatherStation, FireCentre, FuelType, PlanningArea
 import app.main
-from app.schemas.hfi_calc import WeatherStation, FireCentre, FuelType, PlanningArea, WeatherStationProperties
 from app.tests.common import default_mock_client_get
+import app.routers.hfi_calc
 
 logger = logging.getLogger(__name__)
 
@@ -39,40 +32,36 @@ def given_hfi_planning_areas_request(monkeypatch):
     """ Make /hfi-calc/ request using mocked out ClientSession.
     """
 
-    @contextmanager
-    def mock_get_session_scope(*_) -> Generator[Session, None, None]:
-        """ Slap some data into the database to match the query """
-        kam_fire_centre = FireCentre(name='Kamloops Fire Centre')
-        kam_pa = PlanningArea(name='Kamloops (K2)', fire_centre=kam_fire_centre)
-        vernon_pa = PlanningArea(name='Vernon (K4)', fire_centre=kam_fire_centre)
-        planning_areas = [kam_pa, vernon_pa]
-        c7_fuel = FuelType(abbrev='C7', description='moo')
-        o1b_fuel = FuelType(abbrev='O1B', description='meow')
-        fuel_types = [c7_fuel, o1b_fuel]
-        station_props_1 = WeatherStationProperties(
-            name='AFTON', elevation=780, wfwx_station_uuid='dfasdf', fuel_type=o1b_fuel)
-        station_props_2 = WeatherStationProperties(
-            name='SALMON ARM', elevation=527, wfwx_station_uuid='asdfn', fuel_type=c7_fuel)
-        station_1 = WeatherStation(code=322, station_props=station_props_1, planning_area=kam_pa)
-        station_2 = WeatherStation(code=346, station_props=station_props_2, planning_area=vernon_pa)
-        stations = [station_1, station_2]
+    def mock_get_planning_weather_stations(*_, **__):
+        return [
+            PlanningWeatherStation(station_code=322, fuel_type_id=1, planning_area_id=1),
+            PlanningWeatherStation(station_code=346, fuel_type_id=2, planning_area_id=2),
+            PlanningWeatherStation(station_code=334, fuel_type_id=2, planning_area_id=2)
+        ]
 
-        # Create a mock session - no filters, this is what you'll get on any query
-        session = UnifiedAlchemyMagicMock(data=[
-            (
-                [mock.call.query(WeatherStation)], stations
-            ),
-            (
-                [mock.call.query(FuelType)], fuel_types
-            ),
-            (
-                [mock.call.query(FireCentre)], kam_fire_centre
-            ),
-            (
-                [mock.call.query(PlanningArea)], planning_areas
-            )
-        ])
-        yield session
+    def mock_get_fuel_type_by_id(_: Session, fuel_type_id: int):
+        if fuel_type_id == 1:
+            return FuelType(abbrev='O1B', description='neigh')
+        if fuel_type_id == 2:
+            return FuelType(abbrev='C7', description='moo')
+        return None
+
+    def mock_get_fire_centre_by_id(*_, **__):
+        return FireCentre(name='Kamloops Fire Centre')
+
+    def mock_get_planning_area_by_id(_: Session, planning_area_id: int):
+        if planning_area_id == 1:
+            return PlanningArea(name='Kamloops (K2)', fire_centre_id=1)
+        if planning_area_id == 2:
+            return PlanningArea(name='Vernon (K4)', fire_centre_id=1)
+        return None
+
+    monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
+    monkeypatch.setattr(app.routers.hfi_calc, 'get_fuel_type_by_id', mock_get_fuel_type_by_id)
+    monkeypatch.setattr(app.routers.hfi_calc, 'get_planning_area_by_id', mock_get_planning_area_by_id)
+    monkeypatch.setattr(app.routers.hfi_calc, 'get_fire_centre_by_id', mock_get_fire_centre_by_id)
+    monkeypatch.setattr(
+        app.routers.hfi_calc, 'get_planning_weather_stations', mock_get_planning_weather_stations)
 
     # Create API client and get the response.
     client = TestClient(app.main.app)
@@ -93,10 +82,14 @@ def assert_number_of_weather_stations(response, num_weather_stations):
     assert len(response.json()['stations']) >= num_weather_stations
 
 
-@then('the station with index <index> has code <code>, named <station_name>, with fuel type <fuel_type> and elevation <elevation>, assigned to planning area <planning_area_name> and fire centre <fire_centre_name>')
-def assert_individual_station_data(response, index, code, station_name, fuel_type, elevation, planning_area_name, fire_centre_name):
+@then('the station with index <index> has code <code>, named <station_name>, with fuel type <fuel_type> and '
+      'elevation <elevation>, assigned to planning area <planning_area_name> and fire centre '
+      '<fire_centre_name>')
+# pylint: disable=too-many-arguments
+def assert_individual_station_data(response, index, code, station_name, fuel_type, elevation,
+                                   planning_area_name, fire_centre_name):
     """ Assert that the response includes specific data for an individual weather station """
-    station = response.json(['stations'][index])
+    station = response.json()['stations'][index]
     assert station['code'] == code
     assert station['station_props']['name'] == station_name
     assert station['station_props']['fuel_type']['abbrev'] == fuel_type

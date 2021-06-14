@@ -8,7 +8,7 @@ Feature: /hfi-calc/
 
         Examples:
             | status | num_weather_stations | index | code | station_name | fuel_type | elevation | planning_area_name | fire_centre_name     |
-            | 200    | 15                   | 0     | 322  | AFTON        | O1B       | 780       | Kamloops (K2)      | Kamloops Fire Centre |
-            | 200    | 15                   | 6     | 346  | SALMON ARM   | C7        | 527       | Vernon (K4)        | Kamloops Fire Centre |
+            | 200    | 3                    | 0     | 322  | AFTON        | O1B       | 780       | Kamloops (K2)      | Kamloops Fire Centre |
+            | 200    | 3                    | 1     | 346  | SALMON ARM   | C7        | 527       | Vernon (K4)        | Kamloops Fire Centre |
 
     

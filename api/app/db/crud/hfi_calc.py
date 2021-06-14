@@ -1,27 +1,12 @@
 """ CRUD operations relating to HFI Calculator
 """
-import datetime
-from typing import List
-from sqlalchemy import and_
 from sqlalchemy.orm import Session
 from app.db.models.hfi_calc import FireCentre, FuelType, PlanningArea, PlanningWeatherStation
-
-
-def get_fire_centres(
-        session: Session):
-    """ Query for all fire centres in database.
-    """
-    return session.query(FireCentre)
 
 
 def get_fire_centre_by_id(session: Session, id: int):
     """ Query to return a specific fire centre identified by the id number provided. """
     return session.query(FireCentre).filter(FireCentre.id == id).first()
-
-
-def get_planning_areas(session: Session):
-    """ Query for all planning areas in database. """
-    return session.query(PlanningArea)
 
 
 def get_planning_area_by_id(session: Session, id: int):
