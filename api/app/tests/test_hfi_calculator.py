@@ -32,30 +32,6 @@ def given_hfi_planning_areas_request(monkeypatch):
     """ Make /hfi-calc/ request using mocked out ClientSession.
     """
 
-    # def mock_get_planning_weather_stations(*_, **__):
-    #     return [
-    #         PlanningWeatherStation(station_code=322, fuel_type_id=1, planning_area_id=1),
-    #         PlanningWeatherStation(station_code=346, fuel_type_id=2, planning_area_id=2),
-    #         PlanningWeatherStation(station_code=334, fuel_type_id=2, planning_area_id=2)
-    #     ]
-
-    # def mock_get_fuel_type_by_id(_: Session, fuel_type_id: int):
-    #     if fuel_type_id == 1:
-    #         return FuelType(abbrev='O1B', description='neigh')
-    #     if fuel_type_id == 2:
-    #         return FuelType(abbrev='C7', description='moo')
-    #     return None
-
-    # def mock_get_fire_centre_by_id(*_, **__):
-    #     return FireCentre(name='Kamloops Fire Centre')
-
-    # def mock_get_planning_area_by_id(_: Session, planning_area_id: int):
-    #     if planning_area_id == 1:
-    #         return PlanningArea(name='Kamloops (K2)', fire_centre_id=1)
-    #     if planning_area_id == 2:
-    #         return PlanningArea(name='Vernon (K4)', fire_centre_id=1)
-    #     return None
-
     def mock_get_fire_weather_stations(_: Session):
         fire_centre = FireCentre(name='Kamloops Fire Centre')
         planning_area_1 = PlanningArea(name='Kamloops (K2)', fire_centre_id=1)
@@ -78,7 +54,7 @@ def given_hfi_planning_areas_request(monkeypatch):
     client = TestClient(app.main.app)
     headers = {'Content-Type': 'application/json',
                'Authorization': 'Bearer token'}
-    return client.get('/api/hfi-calc/', headers=headers)
+    return client.get('/api/hfi-calc/fire-centres/', headers=headers)
 
 
 @then('the response status code is <status>')
