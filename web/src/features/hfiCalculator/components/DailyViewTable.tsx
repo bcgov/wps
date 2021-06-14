@@ -42,7 +42,6 @@ const DailyViewTable = (props: Props) => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Elev. (m)</TableCell>
                 <TableCell align="right">Status</TableCell>
                 <TableCell align="right">Temp</TableCell>
                 <TableCell align="right">RH</TableCell>
@@ -83,8 +82,7 @@ const DailyViewTable = (props: Props) => {
             <TableBody>
               {props.stationData.map((data, dataIdx) => (
                 <TableRow key={dataIdx}>
-                  <TableCell align="right">GOOD</TableCell>{' '}
-                  {/* Observed versus forcasted? */}
+                  <TableCell align="right">{data.status}</TableCell>
                   <TableCell align="right">{data.temperature}</TableCell>
                   <TableCell align="right">{data.relative_humidity}</TableCell>
                   <TableCell align="right">{data.wind_direction}</TableCell>
@@ -92,6 +90,7 @@ const DailyViewTable = (props: Props) => {
                   <TableCell align="right">{data.precipitation}</TableCell>
                   <TableCell align="right">{data.grass_cure_percentage}</TableCell>
                   <TableCell align="right">{data.ffmc}</TableCell>
+                  <TableCell align="right">{data.dmc}</TableCell>
                   <TableCell align="right">{data.dc}</TableCell>
                   <TableCell align="right">{data.isi}</TableCell>
                   <TableCell align="right">{data.bui}</TableCell>
