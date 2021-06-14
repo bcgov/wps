@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
               isi=float,
               bui=float,
               fwi=float,
-              danger_cl=int,
+              danger_cl=float,
               fbp_fuel_type=str))
 def test_hfi_planning_areas():
     """ BDD Scenario. """
@@ -50,7 +50,7 @@ def given_time_range_metrics_request(monkeypatch):
 
     raw_response = AsyncIter([{'stationCode': 322,
                                'temperature': 1,
-                               'relativeHumdity': 1,
+                               'relativeHumidity': 1,
                                'windSpeed': 1,
                                'windDirection': 1,
                                'precipitation': 1,
@@ -95,12 +95,12 @@ def assert_status_code(response, status_code: int):
 # pylint: disable=invalid-name, too-many-arguments, line-too-long, too-many-locals
 
 
-@then('the station with status <status>has code <code>, named <station_name>, with fuel type <fuel_type> and elevation <elevation>, assigned to planning area <planning_area_name> and fire centre <fire_centre_name>')
+@then('the status <status>, with temperature <temperature> and relative humidity <relative_humidity>, and wind_direction <wind_direction> and wind_speed <wind_speed> and precipitation <precipitation> and grass_cure_percentage <grass_cure_percentage> and ffmc <ffmc> and dc <dc> and <dmc> and isi <isi> and <bui> and fwi <fwi> and danger_cl <danger_cl> and fbp_fuel_type <fbp_fuel_type>')
 def assert_individual_station_data(
-    response,
-    temperature,
-    relative_humidity,
-    wind_direction,
+        response,
+        temperature,
+        relative_humidity,
+        wind_direction,
         wind_speed,
         precipitation,
         grass_cure_percentage,
@@ -113,18 +113,18 @@ def assert_individual_station_data(
         danger_cl,
         fbp_fuel_type):
     """ Assert that the response includes specific data for an individual weather station """
-    dailies = response.json(['dailies'])
-    assert dailies['temperature'] == temperature
-    assert dailies['relative_humidity'] == relative_humidity
-    assert dailies['wind_direction'] == wind_direction
-    assert dailies['wind_speed'] == wind_speed
-    assert dailies['precipitation'] == precipitation
-    assert dailies['grass_cure_percentage'] == grass_cure_percentage
-    assert dailies['ffmc'] == ffmc
-    assert dailies['dmc'] == dmc
-    assert dailies['dc'] == dc
-    assert dailies['isi'] == isi
-    assert dailies['bui'] == bui
-    assert dailies['fwi'] == fwi
-    assert dailies['danger_cl'] == danger_cl
-    assert dailies['fbp_fuel_type'] == fbp_fuel_type
+    daily = response.json()['dailies'][0]
+    assert daily['temperature'] == float(temperature)
+    assert daily['relative_humidity'] == float(relative_humidity)
+    assert daily['wind_direction'] == float(wind_direction)
+    assert daily['wind_speed'] == float(wind_speed)
+    assert daily['precipitation'] == float(precipitation)
+    assert daily['grass_cure_percentage'] == float(grass_cure_percentage)
+    assert daily['ffmc'] == float(ffmc)
+    assert daily['dmc'] == float(dmc)
+    assert daily['dc'] == float(dc)
+    assert daily['isi'] == float(isi)
+    assert daily['bui'] == float(bui)
+    assert daily['fwi'] == float(fwi)
+    assert daily['danger_cl'] == float(danger_cl)
+    assert daily['fbp_fuel_type'] == fbp_fuel_type
