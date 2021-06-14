@@ -35,8 +35,9 @@ def test_build_dailies_by_station_code():
 
 @asyncio.coroutine
 def mock_get_stations(_, __, **___):
-    all_stations = [WFWXWeatherStation(code=1, wfwx_id="one"),
-                    WFWXWeatherStation(code=2, wfwx_id="two")]
+    """ Returns mocked WFWXWeatherStations. """
+    all_stations = [WFWXWeatherStation(code=322, wfwx_id="one"),
+                    WFWXWeatherStation(code=239, wfwx_id="two")]
     return all_stations
 
 
@@ -48,7 +49,7 @@ def test_get_ids_from_station_codes_no_stations(mocker: MockFixture):
     async def run_test():
         """ Async function to run test and assert result """
         result = await get_ids_from_station_codes(None, {}, None)
-        assert result == ["1", "2"]
+        assert result == ["one", "two"]
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
@@ -62,7 +63,7 @@ def test_get_ids_from_station_codes(mocker: MockFixture):
 
     async def run_test():
         """ Async function to run test and assert result """
-        result = await get_ids_from_station_codes(None, {}, [1])
+        result = await get_ids_from_station_codes(None, {}, [322])
         assert result == ["one"]
 
     loop = asyncio.new_event_loop()
