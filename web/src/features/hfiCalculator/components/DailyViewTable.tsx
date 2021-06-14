@@ -83,7 +83,8 @@ const DailyViewTable = (props: Props) => {
             <TableBody>
               {props.stationData.map((data, dataIdx) => (
                 <TableRow key={dataIdx}>
-                  <TableCell align="right">GOOD</TableCell>
+                  <TableCell align="right">GOOD</TableCell>{' '}
+                  {/* Observed versus forcasted? */}
                   <TableCell align="right">{data.temperature}</TableCell>
                   <TableCell align="right">{data.relative_humidity}</TableCell>
                   <TableCell align="right">{data.wind_direction}</TableCell>
@@ -97,23 +98,22 @@ const DailyViewTable = (props: Props) => {
                   <TableCell align="right">{data.fwi}</TableCell>
                   <TableCell align="right">{data.danger_cl}</TableCell>
                   <TableCell align="right">{data.fbp_fuel_type}</TableCell>
-                  <TableCell align="right">{data.ros}</TableCell>
-                  <TableCell align="right">{data.hr_size}</TableCell>
-                  <TableCell align="right">{data.fire_type}</TableCell>
-                  <TableCell align="right">{data.hfi}</TableCell>
                   <TableCell align="right">TBD</TableCell>
                   <TableCell align="right">TBD</TableCell>
                   <TableCell align="right">TBD</TableCell>
-
+                  <TableCell align="right">TBD</TableCell>
+                  <TableCell align="right">TBD</TableCell>
+                  <TableCell align="right">TBD</TableCell>
+                  <TableCell align="right">TBD</TableCell>
                   <TableCell align="right">
                     <TableContainer>
                       <Table>
                         <TableRow>
                           <TableCell align="right" className={classes.borderless}>
-                            {data.ros_01a}
+                            TBD
                           </TableCell>
                           <TableCell align="right" className={classes.borderless}>
-                            {data.ros_01b}
+                            TBD
                           </TableCell>
                         </TableRow>
                       </Table>

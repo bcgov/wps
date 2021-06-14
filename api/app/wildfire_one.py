@@ -1,7 +1,7 @@
 """ This module contains methods for retrieving information from the WFWX Fireweather API.
 """
 import math
-from typing import Generator, Dict, List, Tuple
+from typing import Generator, Dict, List, Optional, Tuple
 from datetime import datetime, timezone
 from abc import abstractmethod, ABC
 import logging
@@ -150,13 +150,13 @@ async def _fetch_paged_response_generator(
         url, params = query_builder.query(page_count)
         logger.debug('loading station page %d...', page_count)
         async with session.get(url, headers=headers, params=params) as response:
-            station_json = await response.json()
+            response_json = await response.json()
             logger.debug('done loading station page %d.', page_count)
 
         # Update the total page count.
-        total_pages = station_json['page']['totalPages']
-        for station in station_json['_embedded'][content_key]:
-            yield station
+        total_pages = response_json['page']['totalPages'] if 'page' in response_json else 1
+        for response_object in response_json['_embedded'][content_key]:
+            yield response_object
         # Keep track of our page count.
         page_count = page_count + 1
 
@@ -243,24 +243,25 @@ def _parse_hourly(hourly) -> WeatherReading:
     )
 
 
-def _parse_daily(station_code: int, daily) -> StationDaily:
+def _parse_daily(raw_daily) -> StationDaily:
     """ Transform from the raw hourly json object returned by wf1, to our hourly object.
     """
     return StationDaily(
-        code=station_code,
-        temperature=daily.get('temperature', None),
-        relative_humidity=daily.get('relativeHumidity', None),
-        wind_speed=daily.get('windSpeed', None),
-        wind_direction=daily.get('windDirection', None),
-        precipitation=daily.get('precipitation', None),
-        ffmc=daily.get('fineFuelMoistureCode', None),
-        dmc=daily.get('duffMoistureCode', None),
-        dc=daily.get('droughtCode', None),
-        isi=daily.get('initialSpreadIndex', None),
-        fwi=daily.get('fireWeatherIndex', None),
-        danger_cl=daily.get('dailySeverityRating', None),
-        observation_valid=daily.get('observationValidInd'),
-        observation_valid_comment=daily.get('observationValidComment')
+        code=raw_daily.get('stationCode', None),
+        temperature=raw_daily.get('temperature', None),
+        relative_humidity=raw_daily.get('relativeHumidity', None),
+        wind_speed=raw_daily.get('windSpeed', None),
+        wind_direction=raw_daily.get('windDirection', None),
+        precipitation=raw_daily.get('precipitation', None),
+        ffmc=raw_daily.get('fineFuelMoistureCode', None),
+        dmc=raw_daily.get('duffMoistureCode', None),
+        dc=raw_daily.get('droughtCode', None),
+        isi=raw_daily.get('initialSpreadIndex', None),
+        fwi=raw_daily.get('fireWeatherIndex', None),
+        danger_cl=raw_daily.get('dailySeverityRating', None),
+        fbp_fuel_type="TBD",
+        observation_valid=raw_daily.get('observationValidInd', None),
+        observation_valid_comment=raw_daily.get('observationValidComment', None)
     )
 
 
@@ -524,6 +525,30 @@ async def get_hourly_actuals_all_stations(
     return hourly_actuals
 
 
+async def get_ids_from_station_codes(session, header, station_codes: Optional[List[int]]):
+    """ Return the WFWX station ids from WFWX API given a list of station codes. """
+    kamloops_station_codes = (322, 239, 1108, 305, 1082, 266, 346, 286, 344,
+                              298, 388, 836, 1399, 280, 1055, 1029, 309, 306)
+    wfwx_stations = await get_stations(session, header, mapper=wfwx_station_list_mapper)
+
+    # Default to all Kamloops WFWX station ids if no station codes are specified
+    if station_codes is None:
+        res = list(map(lambda x: (x.wfwx_id), filter(lambda x: (x.code in kamloops_station_codes),
+                                                     [station for station in wfwx_stations])))
+        return res
+
+    requested_station_ids = []
+    station_code_dict = {station.code: station.wfwx_id for station in wfwx_stations}
+    for station_code in station_codes:
+        wfwx_station_id = station_code_dict.get(station_code)
+        if wfwx_station_id is not None:
+            requested_station_ids.append(station_code_dict[station_code])
+        else:
+            logger.error("No WFWX station id for station code: %s", station_code)
+
+    return requested_station_ids
+
+
 async def get_dailies(
         session: ClientSession,
         header: dict,
@@ -537,15 +562,10 @@ async def get_dailies(
             start_timestamp,
             end_timestamp, station_ids), 'dailies')
 
-    stations: List[WFWXWeatherStation] = await get_stations(session, header, mapper=wfwx_station_list_mapper)
-
-    station_code_dict = {station.wfwx_id: station.code for station in stations}
-
     dailies = []
     async for daily in dailies_iterator:
         if daily.get('recordType', '').get('id') == 'ACTUAL':
-            station_code = station_code_dict[(daily['stationId'])]
-            parsed_daily = _parse_daily(station_code, daily)
+            parsed_daily = _parse_daily(daily)
             dailies.append(parsed_daily)
     return dailies
 

@@ -16,6 +16,15 @@ def get_utc_now():
     return datetime.now(tz=timezone.utc)
 
 
+def get_utc_today_start_and_end():
+    """ Get the start and end datetime range for today in UTC"""
+    today = datetime.now(tz=timezone.utc)
+    start = today.replace(hour=0, minute=0, second=0, microsecond=0)
+    end = start + timedelta(days=1)
+
+    return start, end
+
+
 def get_pst_now():
     """ Helper function to get the current PST time (easy function to mock out in testing) """
     return datetime.now(tz=get_pst_tz())
