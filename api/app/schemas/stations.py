@@ -60,8 +60,8 @@ class WeatherStation(BaseModel):
     long: float
     ecodivision_name: str = None
     core_season: Season = None
-    elevation: Optional[int]
-    wfwx_station_uuid: Optional[str] = ''
+    elevation: Optional[int] = None
+    wfwx_station_uuid: Optional[str] = None
 
 
 class WeatherStationsResponse(BaseModel):

@@ -36,6 +36,7 @@ const useStyles = makeStyles({
   },
   fireCentre: {
     fontSize: 16,
+    fontWeight: 'bold',
     backgroundColor: '#dbd9d9'
   },
   planningArea: {
@@ -49,6 +50,9 @@ const useStyles = makeStyles({
     '& .MuiTableCell-sizeSmall': {
       paddingLeft: '20px'
     }
+  },
+  tableHeader: {
+    fontWeight: 'bold'
   }
 })
 
@@ -77,9 +81,10 @@ const DailyViewTable = (props: Props) => {
               >
                 <TableHead>
                   <TableRow>
-                    <TableCell key="header-location">Location</TableCell>
-                    <TableCell key="header-elevation">Elev. (m)</TableCell>
-                    <TableCell key="header-fuel-type">FBP Fuel Type</TableCell>
+                    {/* TableHead and TableRow don't apply classes.tableHeader styling - has to be assigned to TableCell */}
+                    <TableCell className={classes.tableHeader} key="header-location">Location</TableCell>
+                    <TableCell className={classes.tableHeader} key="header-elevation">Elev. (m)</TableCell>
+                    <TableCell className={classes.tableHeader} key="header-fuel-type">FBP Fuel Type</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>

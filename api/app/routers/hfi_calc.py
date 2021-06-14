@@ -18,13 +18,13 @@ router = APIRouter(
 )
 
 
-@router.get('/', response_model=HFIWeatherStationsResponse)
+@router.get('/fire-centres', response_model=HFIWeatherStationsResponse)
 async def get_fire_centres(response: Response):
     """ Returns list of fire centres and planning area for each fire centre,
     and weather stations within each planning area. Also returns the assigned fuel type
     for each weather station. """
     try:
-        logger.info('/hfi-calc/')
+        logger.info('/hfi-calc/fire-centres')
         response.headers["Cache-Control"] = "max-age=0"  # don't let the browser cache this
 
         with app.db.database.get_read_session_scope() as session:

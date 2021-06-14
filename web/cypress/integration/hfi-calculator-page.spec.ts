@@ -2,7 +2,7 @@ import { HFI_CALC_ROUTE } from '../../src/utils/constants'
 
 describe('HFI Calculator Page', () => {
   beforeEach(() => {
-    cy.intercept('GET', 'api/hfi-calc/', { fixture: 'hfi-calc/stations.json' }).as('getFireCentres')
+    cy.intercept('GET', 'api/hfi-calc/fire-centres', { fixture: 'hfi-calc/stations.json' }).as('getFireCentres')
   })
 
   it('should display Daily View Table after landing on page', () => {
