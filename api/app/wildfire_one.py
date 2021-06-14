@@ -535,10 +535,9 @@ async def get_ids_from_station_codes(session, header, station_codes: Optional[Li
 
     # Default to all Kamloops WFWX station ids if no station codes are specified
     if station_codes is None:
-        res = list(map(lambda x: (x.wfwx_id), filter(lambda x: (x.code in kamloops_station_codes),
-                                                     [station for station in wfwx_stations])))
-        return res
-
+        return list(map(lambda x: (x.wfwx_id),
+                    filter(lambda x: (x.code in kamloops_station_codes),
+                           wfwx_stations)))
     requested_station_ids = []
     station_code_dict = {station.code: station.wfwx_id for station in wfwx_stations}
     for station_code in station_codes:

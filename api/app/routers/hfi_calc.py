@@ -30,6 +30,7 @@ def validate_time_range(start_time_stamp: Optional[int], end_time_stamp: Optiona
 
 @router.get('/daily', response_model=StationDailyResponse)
 async def get_daily_view(response: Response,
+                         _=Depends(authentication_required),
                          station_codes: Optional[List[int]] = Query(None),
                          start_time_stamp: Optional[int] = None,
                          end_time_stamp: Optional[int] = None):
