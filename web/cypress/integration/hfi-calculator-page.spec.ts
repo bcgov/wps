@@ -4,8 +4,4 @@ describe('HFI Calculator Page', () => {
   beforeEach(() => {
     cy.visit(HFI_CALC_ROUTE)
   })
-
-  it('Basic Page', () => {
-    cy.contains('Hello World!')
-  })
 })
