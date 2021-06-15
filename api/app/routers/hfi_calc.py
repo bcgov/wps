@@ -42,7 +42,10 @@ async def get_fire_centres(response: Response):
                 fire_centre = FireCentre(name=fire_centre_record.name)
                 planning_area = PlanningArea(name=planning_area_record.name, fire_centre=fire_centre)
                 fire_centres_list.append(fire_centre)
-                planning_areas_by_fire_center.get(fire_centre.name).append(planning_area)
+                if planning_areas_by_fire_center.get(fire_centre.name):
+                    planning_areas_by_fire_center.get(fire_centre.name).append(planning_area)
+                else:
+                    planning_areas_by_fire_center[fire_centre.name] = [planning_area]
                 station_info_dict[station_record.station_code] = {
                     'fuel_type': FuelType(
                         abbrev=fuel_type_record.abbrev,
@@ -66,7 +69,10 @@ async def get_fire_centres(response: Response):
                                                  station_props=station_properties,
                                                  planning_area=station_info['planning_area'])
 
-                stations_by_planning_area.get(station_info['planning_area']).append(weather_station)
+                if stations_by_planning_area.get(station_info['planning_area']):
+                    stations_by_planning_area.get(station_info['planning_area']).append(weather_station)
+                else:
+                    stations_by_planning_area[station_info['planning_area']] = [weather_station]
 
             return HFIWeatherStationsResponse(fire_centres=fire_centres_list,
                                               planning_areas_by_fire_center=planning_areas_by_fire_center,
