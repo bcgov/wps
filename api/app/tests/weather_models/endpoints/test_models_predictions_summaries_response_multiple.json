@@ -12,7 +12,9 @@
           "start_day": 1,
           "end_month": 9,
           "end_day": 15
-        }
+        },
+        "elevation": 780,
+        "wfwx_station_uuid": ""
       },
       "model": {
         "name": "Global Deterministic Prediction System",
@@ -438,7 +440,9 @@
           "start_day": 15,
           "end_month": 8,
           "end_day": 31
-        }
+        },
+        "elevation": 821,
+        "wfwx_station_uuid": ""
       },
       "model": {
         "name": "Global Deterministic Prediction System",

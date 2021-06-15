@@ -1,0 +1,76 @@
+{
+    "fuel_types": [
+        {
+            "abbrev": "C1",
+            "description": "Spruce-lichen woodland"
+        },
+        {
+            "abbrev": "C2",
+            "description": "Boreal spruce"
+        },        
+        {
+            "abbrev": "C3",
+            "description": "Mature jack or lodgepole pine"
+        },        
+        {
+            "abbrev": "C4",
+            "description": "Immature jack or lodgepole pine"
+        },
+        {
+            "abbrev": "C5",
+            "description": "Red and white pine"
+        },        
+        {
+            "abbrev": "C6",
+            "description": "Conifer plantation"
+        },        
+        {
+            "abbrev": "C7",
+            "description": "Ponderosa pine/Douglas fir"
+        },
+        {
+            "abbrev": "D1",
+            "description": "Leafless aspen"
+        },
+        {
+            "abbrev": "D2",
+            "description": "Green aspen"
+        },
+        {
+            "abbrev": "M1",
+            "description": "Boreal mixedwood - leafless"
+        },
+        {
+            "abbrev": "M2",
+            "description": "Boreal mixedwood - green"
+        },
+        {
+            "abbrev": "M3",
+            "description": "Dead balsam fir mixedwood - leafless"
+        },
+        {
+            "abbrev": "M4",
+            "description": "Dead balsam fir mixedwood - green"
+        },        
+        {
+            "abbrev": "O1A",
+            "description": "Matted grass"
+        },        
+        {
+            "abbrev": "O1B",
+            "description": "Standing grass"
+        },        
+        {
+            "abbrev": "S1",
+            "description": "Jack or lodgepole pine slash"
+        },
+        {
+            "abbrev": "S2",
+            "description": "White spruce/balsam slash"
+        },
+        {
+            "abbrev": "S3",
+            "description": "Coastal cedar/hemlock/Douglas fir slash"
+        }
+    ]
+}
