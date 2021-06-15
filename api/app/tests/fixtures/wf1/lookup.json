@@ -32,6 +32,9 @@
          },
          "{'size': '1000', 'sort': 'displayLabel', 'page': 0, 'query': 'stationCode==230'}": {
             "None": "wfwx/v1/stations/rsql__size_1000_sort_displayLabel_page_0_query_stationCode==230.json"
+         },
+         "{'size': '1000', 'sort': 'displayLabel', 'page': 0, 'query': 'stationCode==322 or stationCode==346 or stationCode==334'}": {
+            "None": "wfwx/v1/stations/rsql__size_1000_sort_displayLabel_page_0_query_stationCode==322_or_stationCode==346_or_stationCode==334.json"
          }
       }
    },

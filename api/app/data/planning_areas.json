@@ -1,0 +1,99 @@
+{
+    "fire_centres": [
+        {"Kamloops Fire Centre": {
+            "zones": [
+                {
+                    "Kamloops (K2)": {
+                        "stations": [{
+                            "322": {
+                                "fuel_type": "O1B"
+                            },
+                            "239": {
+                                "fuel_type": "C7"
+                            },
+                            "1108": {
+                                "fuel_type": "C5"
+                            },
+                            "305": {
+                                "fuel_type": "C7"
+                            },
+                            "1082": {
+                                "fuel_type": "C3"
+                            },
+                            "266": {
+                                "fuel_type": "C5"
+                            }
+                        }]
+                    }
+                },
+                {
+                    "Vernon (K4)": {
+                        "stations": [{
+                            "346": {
+                                "fuel_type": "C7"
+                            },
+                            "286": {
+                                "fuel_type": "C7"
+                            },
+                            "344": {
+                                "fuel_type": "C5"
+                            },
+                            "298": {
+                                "fuel_type": "C7"
+                            },
+                            "388": {
+                                "fuel_type": "C5"
+                            }
+                        }]
+                    }
+                },
+                {
+                    "Penticton (K5)": {
+                        "stations": [{
+                            "328": {
+                                "fuel_type": "C7"
+                            },
+                            "334": {
+                                "fuel_type": "C7"
+                            }
+                        }]
+                    }
+                },
+                {
+                    "Merritt (K6)": {
+                        "stations": [{
+                            "836": {
+                                "fuel_type": "C7"
+                            },
+                            "1399": {
+                                "fuel_type": "C7"
+                            }
+                        }]
+                    }
+                },
+                {
+                    "Lillooet (K7)": {
+                        "stations": [{
+                            "280": {
+                                "fuel_type": "C7"
+                            },
+                            "1055": {
+                                "fuel_type": "C7"
+                            },
+                            "1029": {
+                                "fuel_type": "C7"
+                            },
+                            "309": {
+                                "fuel_type": "C7"
+                            },
+                            "306": {
+                                "fuel_type": "C7"
+                            }
+                        }]
+                    }
+                }
+            ]
+        }
+        }
+    ]
+}

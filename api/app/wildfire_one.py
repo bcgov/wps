@@ -194,7 +194,9 @@ def _parse_station(station) -> WeatherStation:
         lat=station['latitude'],
         long=station['longitude'],
         ecodivision_name=ecodiv_name,
-        core_season=core_seasons[ecodiv_name]['core_season'])
+        core_season=core_seasons[ecodiv_name]['core_season'],
+        elevation=station['elevation'],
+        wfwx_station_uuid=station['id'])
 
 
 def _parse_hourly(hourly) -> WeatherReading:
