@@ -1,6 +1,6 @@
 """ Routers for HFI Calculator """
 import logging
-from typing import Dict, List
+from typing import List
 from fastapi import APIRouter, Response, Depends
 import app
 from app import wildfire_one
@@ -19,6 +19,7 @@ router = APIRouter(
 
 
 @router.get('/fire-centres', response_model=HFIWeatherStationsResponse)
+# pylint: disable=too-many-locals
 async def get_fire_centres(response: Response):
     """ Returns list of fire centres and planning area for each fire centre,
     and weather stations within each planning area. Also returns the assigned fuel type
