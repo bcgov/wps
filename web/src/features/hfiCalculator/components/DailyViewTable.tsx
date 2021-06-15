@@ -58,9 +58,7 @@ const useStyles = makeStyles({
 
 const DailyViewTable = (props: Props) => {
   const classes = useStyles()
-  const { fireCentres } = useSelector(
-    selectHFIStations
-  )
+  const { fireCentres } = useSelector(selectHFIStations)
   const stationDataLoading = useSelector(selectHFIStationsLoading)
 
   return (
@@ -102,46 +100,38 @@ const DailyViewTable = (props: Props) => {
                             {centre.name}
                           </TableCell>
                         </TableRow>
-                        {centre.planning_areas.map(
-                          (area: PlanningArea, idp: number) => {
-                            return (
-                              <React.Fragment key={`zone-${idp}`}>
-                                <TableRow
-                                  className={classes.planningArea}
-                                  key={`zone-${idp}`}
-                                >
-                                  <TableCell className={classes.planningArea} colSpan={3}>
-                                    {area.name}
-                                  </TableCell>
-                                </TableRow>
-                                {area.stations.map(
-                                  (station: WeatherStation) => {
-                                    return (
-                                      <TableRow
-                                        className={classes.station}
-                                        key={`station-${station.code}`}
-                                      >
-                                        <TableCell key={`station-${station.code}-name`}>
-                                          {station.station_props.name} ({station.code})
-                                        </TableCell>
-                                        <TableCell
-                                          key={`station-${station.code}-elevation`}
-                                        >
-                                          {station.station_props.elevation}
-                                        </TableCell>
-                                        <TableCell
-                                          key={`station-${station.code}-fuel-type`}
-                                        >
-                                          {station.station_props.fuel_type.abbrev}
-                                        </TableCell>
-                                      </TableRow>
-                                    )
-                                  }
-                                )}
-                              </React.Fragment>
-                            )
-                          }
-                        )}
+                        {centre.planning_areas.map((area: PlanningArea, idp: number) => {
+                          return (
+                            <React.Fragment key={`zone-${idp}`}>
+                              <TableRow
+                                className={classes.planningArea}
+                                key={`zone-${idp}`}
+                              >
+                                <TableCell className={classes.planningArea} colSpan={3}>
+                                  {area.name}
+                                </TableCell>
+                              </TableRow>
+                              {area.stations.map((station: WeatherStation) => {
+                                return (
+                                  <TableRow
+                                    className={classes.station}
+                                    key={`station-${station.code}`}
+                                  >
+                                    <TableCell key={`station-${station.code}-name`}>
+                                      {station.station_props.name} ({station.code})
+                                    </TableCell>
+                                    <TableCell key={`station-${station.code}-elevation`}>
+                                      {station.station_props.elevation}
+                                    </TableCell>
+                                    <TableCell key={`station-${station.code}-fuel-type`}>
+                                      {station.station_props.fuel_type.abbrev}
+                                    </TableCell>
+                                  </TableRow>
+                                )
+                              })}
+                            </React.Fragment>
+                          )
+                        })}
                       </React.Fragment>
                     )
                   })}
