@@ -6,6 +6,7 @@ import logging
 from fastapi import FastAPI, Depends, Response
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.applications import Starlette
+from app.db.database import database
 from app import schemas, configure_logging
 from app.percentile import get_precalculated_percentiles
 from app.auth import authentication_required, audit
@@ -92,11 +93,16 @@ api.include_router(c_haines.router)
 api.include_router(stations.router)
 
 
-api.on_event('startup')
-
-
+@app.on_event('startup')
 async def startup():
+    """ Connect to database when app starts up """
     await database.connect()
+
+
+@app.on_event("shutdown")
+async def shutdown():
+    """ Close connection when app shuts down """
+    await database.disconnect()
 
 
 @api.get('/ready')

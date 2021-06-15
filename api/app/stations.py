@@ -8,8 +8,8 @@ import logging
 import enum
 from typing import List, Final
 import json
+from databases.backends.postgres import Record
 from aiohttp.client import ClientSession
-from sqlalchemy.engine.row import Row
 from app import wildfire_one
 from app.schemas.stations import (WeatherStation,
                                   GeoJsonWeatherStation,
@@ -18,7 +18,6 @@ from app.schemas.stations import (WeatherStation,
                                   WeatherVariables,
                                   DetailedWeatherStationProperties,
                                   WeatherStationGeometry)
-import app.db.database
 from app.db.crud.stations import get_noon_forecast_observation_union
 
 logger = logging.getLogger(__name__)
@@ -50,7 +49,7 @@ def _get_stations_local() -> List[WeatherStation]:
         return results
 
 
-def _set_weather_variables(station_properties: DetailedWeatherStationProperties, station_union: Row):
+def _set_weather_variables(station_properties: DetailedWeatherStationProperties, station_union: Record):
     """
     Helper function to set the observed and forecast values on the detailed weather station properties.
     """
@@ -58,10 +57,10 @@ def _set_weather_variables(station_properties: DetailedWeatherStationProperties,
     # Iterate through variables (temp, r.h. etc. etc.)
     for variable_name in variable_names:
         # Get the variable (e.g. temp)
-        value = getattr(station_union, variable_name)
+        value = station_union.get(variable_name)
         if not math.isnan(value):
             # Is this a forecast or an observation?
-            record_type = getattr(station_union, 'record_type')
+            record_type = station_union.get('record_type')
             weather_variables = getattr(station_properties, record_type, None)
             if weather_variables is None:
                 # Make on if we don't have one yet.
@@ -75,25 +74,27 @@ def _set_weather_variables(station_properties: DetailedWeatherStationProperties,
 async def _get_detailed_stations(time_of_interest: datetime):
     """ Get a list of weather stations with details using a combination of static json and database
     records. """
+    # get list of stations and noon forecasts in parallel.
+    tasks = []
+    tasks.append(asyncio.create_task(get_stations_asynchronously()))
+    tasks.append(asyncio.create_task(get_noon_forecast_observation_union(time_of_interest)))
+    stations, stations_detailed = await asyncio.gather(*tasks)
+    # merge the two result sets
+    station_lookup = {}
     geojson_stations = []
-    # this gets us a list of stations
-    stations = await get_stations_asynchronously()
-    with app.db.database.get_read_session_scope() as session:
-        stations_detailed = get_noon_forecast_observation_union(session, time_of_interest)
-        station_lookup = {}
-        for station in stations:
-            geojson_station = GeoJsonDetailedWeatherStation(properties=DetailedWeatherStationProperties(
-                code=station.code,
-                name=station.name,
-                ecodivision_name=station.ecodivision_name,
-                core_season=station.core_season),
-                geometry=WeatherStationGeometry(coordinates=[station.long, station.lat]))
-            station_lookup[station.code] = geojson_station
-            geojson_stations.append(geojson_station)
-        for station_union in stations_detailed:
-            station = station_lookup.get(getattr(station_union, 'station_code'), None)
-            if station:
-                _set_weather_variables(station.properties, station_union)
+    for station in stations:
+        geojson_station = GeoJsonDetailedWeatherStation(properties=DetailedWeatherStationProperties(
+            code=station.code,
+            name=station.name,
+            ecodivision_name=station.ecodivision_name,
+            core_season=station.core_season),
+            geometry=WeatherStationGeometry(coordinates=[station.long, station.lat]))
+        station_lookup[station.code] = geojson_station
+        geojson_stations.append(geojson_station)
+    for station_union in stations_detailed:
+        station = station_lookup.get(station_union.get('station_code'), None)
+        if station:
+            _set_weather_variables(station.properties, station_union)
     return geojson_stations
 
 

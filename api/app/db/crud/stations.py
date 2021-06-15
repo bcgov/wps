@@ -1,8 +1,9 @@
 """ Methods relating to reading station data from database.
 """
 from datetime import datetime, timedelta, timezone
-from sqlalchemy.orm import Session
-from sqlalchemy.engine.cursor import CursorResult
+from typing import List
+from databases.backends.postgres import Record
+from app.db.database import database
 from app.utils.time import get_hour_20
 
 
@@ -21,7 +22,7 @@ def _get_noon_date(date_of_interest: datetime) -> datetime:
     return noon_for_date_of_interest
 
 
-def get_noon_forecast_observation_union(session: Session, date_of_interest: datetime) -> CursorResult:
+async def get_noon_forecast_observation_union(date_of_interest: datetime) -> List[Record]:
     """ Return union of forecasts and observations. One could argue this method doesn't belong
     in the stations crud - but it's only used to create the detailed stations response. """
     noon_date = _get_noon_date(date_of_interest)
@@ -60,4 +61,4 @@ hourly_actuals.temperature, hourly_actuals.relative_humidity
 from hourly_actuals
 where hourly_actuals.weather_date = :weather_date
 -- order by hourly_actuals.station_code"""
-    return session.execute(query, {"weather_date": noon_date})
+    return await database.fetch_all(query=query, values={"weather_date": noon_date})

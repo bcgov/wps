@@ -3,12 +3,14 @@
 import logging
 from typing import Generator
 from contextlib import contextmanager
+import databases
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from .. import config
 
 logger = logging.getLogger(__name__)
+
 
 DB_WRITE_STRING = 'postgresql://{}:{}@{}:{}/{}'.format(
     config.get('POSTGRES_WRITE_USER', 'wps'),
@@ -23,6 +25,8 @@ DB_READ_STRING = 'postgresql://{}:{}@{}:{}/{}'.format(
     config.get('POSTGRES_READ_HOST', 'localhost'),
     config.get('POSTGRES_PORT', '5432'),
     config.get('POSTGRES_DATABASE', 'wps'))
+
+database = databases.Database(f'{DB_READ_STRING}?timezone=utc')
 
 # connect to database - defaulting to always use utc timezone
 _write_engine = create_engine(DB_WRITE_STRING, connect_args={
