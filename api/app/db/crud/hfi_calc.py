@@ -1,29 +1,15 @@
 """ CRUD operations relating to HFI Calculator
 """
+from sqlalchemy.engine.cursor import CursorResult
 from sqlalchemy.orm import Session
 from app.db.models.hfi_calc import FireCentre, FuelType, PlanningArea, PlanningWeatherStation
 
 
-def get_fire_centre_by_id(session: Session, id: int):
-    """ Query to return a specific fire centre identified by the id number provided. """
-    return session.query(FireCentre).filter(FireCentre.id == id).first()
-
-
-def get_planning_area_by_id(session: Session, id: int):
-    """ Query to return a specific planning area based on the id provided. """
-    return session.query(PlanningArea).filter(PlanningArea.id == id).first()
-
-
-def get_planning_weather_stations(session: Session):
-    """ Query for all planning weather stations in database. """
-    return session.query(PlanningWeatherStation).all()
-
-
-def get_fuel_types(session: Session):
-    """ Query for all fuel types in database. """
-    return session.query(FuelType).all()
-
-
-def get_fuel_type_by_id(session: Session, id: int):
-    """ Query to return a specific fuel type based on the id provided. """
-    return session.query(FuelType).filter(FuelType.id == id).first()
+def get_fire_weather_stations(session: Session) -> CursorResult:
+    """ Get all PlanningWeatherStation with joined FuelType, PlanningArea and FireCentre
+    for the provided list of station_codes. """
+    return session.query(PlanningWeatherStation, FuelType, PlanningArea, FireCentre)\
+        .join(FuelType, FuelType.id == PlanningWeatherStation.fuel_type_id)\
+        .join(PlanningArea, PlanningArea.id == PlanningWeatherStation.planning_area_id)\
+        .join(FireCentre, FireCentre.id == PlanningArea.fire_centre_id)\
+        .order_by(FireCentre.name, PlanningArea.name)
