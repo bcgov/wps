@@ -92,6 +92,13 @@ api.include_router(c_haines.router)
 api.include_router(stations.router)
 
 
+api.on_event('startup')
+
+
+async def startup():
+    await database.connect()
+
+
 @api.get('/ready')
 async def get_ready():
     """ A simple endpoint for OpenShift readiness """
