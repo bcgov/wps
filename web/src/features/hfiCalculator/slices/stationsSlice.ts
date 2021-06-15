@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
-import { WeatherStation, PlanningArea, FireCentre, getHFIStations } from 'api/hfiCalcAPI'
+import { WeatherStation, PlanningArea, FireCentre, getHFIStations, HFIWeatherStationsResponse } from 'api/hfiCalcAPI'
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 
@@ -29,7 +29,6 @@ const stationsSlice = createSlice({
     getHFIStationsStart(state: State) {
       state.error = null
       state.loading = true
-      state.weatherStations = []
       state.fireCentres = []
       state.planningAreasByFireCentre = {}
       state.stationsByPlanningArea = {}
@@ -38,39 +37,14 @@ const stationsSlice = createSlice({
       state.error = action.payload
       state.loading = false
     },
-    getHFIStationsSuccess(state: State, action: PayloadAction<WeatherStation[]>) {
+    getHFIStationsSuccess(
+      state: State,
+      action: PayloadAction<HFIWeatherStationsResponse>
+    ) {
       state.error = null
-      state.weatherStations = action.payload
-      action.payload.forEach(station => {
-        // if the station's fire centre isn't already in state.fireCentres array, add it
-        if (
-          state.fireCentres.find(
-            fc => fc.name === station.planning_area.fire_centre.name
-          ) === undefined
-        ) {
-          state.fireCentres.push(station.planning_area.fire_centre)
-        }
-        // if the fire centre has no planning areas assigned to it yet, create a new array
-        // with the station's planning area as the first element in the new array
-        if (
-          state.planningAreasByFireCentre[station.planning_area.fire_centre.name]?.find(
-            pa => pa.name === station.planning_area.name
-          ) === undefined
-        ) {
-          state.planningAreasByFireCentre[station.planning_area.fire_centre.name]?.push(
-            station.planning_area
-          )
-        }
-        // if there's already 1+ stations assigned to the planning area, but this station isn't in the array yet,
-        // add it to the planning area's array
-        if (
-          state.stationsByPlanningArea[station.planning_area.name]?.find(
-            st => st.code === station.code
-          ) === undefined
-        ) {
-          state.stationsByPlanningArea[station.planning_area.name]?.push(station)
-        }
-      })
+      state.fireCentres = action.payload.fire_centres
+      state.planningAreasByFireCentre = action.payload.planning_areas_by_fire_centre
+      state.stationsByPlanningArea = action.payload.stations_by_planning_area
       state.loading = false
     }
   }

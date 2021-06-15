@@ -41,7 +41,6 @@ class WeatherStation(BaseModel):
 class HFIWeatherStationsResponse(BaseModel):
     """ A list of WeatherStations, where each WeatherStation has nested within it all relevant information
     specific to BCWS planning operations. """
-    stations: List[WeatherStation]
     fire_centres: List[FireCentre]
-    planningAreasByFireCentre: Dict()
-    stationsByPlanningArea: Dict()
+    planning_areas_by_fire_centre: Dict[str, List[PlanningArea]]
+    stations_by_planning_area: Dict[str, List[WeatherStation]]
