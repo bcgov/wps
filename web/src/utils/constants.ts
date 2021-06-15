@@ -3,7 +3,7 @@ export const WEATHER_STATION_MAP_LINK =
 
 export const FWI_VALUES_DECIMAL = 2
 export const TEMPERATURE_VALUES_DECIMAL = 1
-export const WIND_SPEED_VALUES_DECIMAL = 1
+export const WIND_SPEED_VALUES_DECIMAL = 0 // Feedback from forecasters: no decimal places for wind.
 export const PRECIP_VALUES_DECIMAL = 1
 export const DEW_POINT_VALUES_DECIMAL = 1
 export const RH_VALUES_DECIMAL = 0

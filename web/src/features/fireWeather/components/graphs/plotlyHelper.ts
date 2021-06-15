@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon'
 import { Data, Shape, Layout, RangeSlider, PlotData, BoxPlotData } from 'plotly.js'
-
+import { WIND_SPEED_VALUES_DECIMAL } from 'utils/constants'
 import { PST_UTC_OFFSET } from 'utils/constants'
 import { formatDateInPST } from 'utils/date'
 
@@ -662,7 +662,7 @@ export const populateGraphDataForWind = (
       width: 2
     },
     text: windSpdsTexts,
-    hovertemplate: `${name}: %{y:.2f} km/h, %{text}°<extra></extra>`
+    hovertemplate: `${name}: %{y:.${WIND_SPEED_VALUES_DECIMAL}f} km/h, %{text}°<extra></extra>`
   }
 
   const maxWindSpd = findMaxNumber(windSpds)
