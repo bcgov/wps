@@ -229,7 +229,9 @@ const TempRHGraph = (props: Props) => {
             side: 'right',
             gridcolor: 'transparent',
             range: y2Range
-          }
+          },
+          // MOO: You here!
+          hovermode: 'x'
         }}
       />
     </div>
