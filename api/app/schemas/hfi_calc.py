@@ -1,6 +1,6 @@
 """ This module contains pydandict schemas relating to the HFI Calculator for the API.
 """
-from typing import List
+from typing import Dict, List
 from pydantic import BaseModel
 
 
@@ -42,3 +42,6 @@ class HFIWeatherStationsResponse(BaseModel):
     """ A list of WeatherStations, where each WeatherStation has nested within it all relevant information
     specific to BCWS planning operations. """
     stations: List[WeatherStation]
+    fire_centres: List[FireCentre]
+    planningAreasByFireCentre: Dict()
+    stationsByPlanningArea: Dict()

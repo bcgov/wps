@@ -53,39 +53,22 @@ const stationsSlice = createSlice({
         // if the fire centre has no planning areas assigned to it yet, create a new array
         // with the station's planning area as the first element in the new array
         if (
-          state.planningAreasByFireCentre[station.planning_area.fire_centre.name] ===
-          undefined
+          state.planningAreasByFireCentre[station.planning_area.fire_centre.name]?.find(
+            pa => pa.name === station.planning_area.name
+          ) === undefined
         ) {
-          state.planningAreasByFireCentre[station.planning_area.fire_centre.name] = [
+          state.planningAreasByFireCentre[station.planning_area.fire_centre.name]?.push(
             station.planning_area
-          ]
-        } else {
-          // else if there's already 1+ planning areas assigned to the fire centre, but this station's planning area isn't in the array yet,
-          // add it to the fire centre's array
-          if (
-            state.planningAreasByFireCentre[station.planning_area.fire_centre.name]?.find(
-              pa => pa.name === station.planning_area.name
-            ) === undefined
-          ) {
-            state.planningAreasByFireCentre[station.planning_area.fire_centre.name]?.push(
-              station.planning_area
-            )
-          }
+          )
         }
-        // if there are no stations assigned to the planning area yet, create a new array
-        // with the station as the first element in the new array
-        if (state.stationsByPlanningArea[station.planning_area.name] === undefined) {
-          state.stationsByPlanningArea[station.planning_area.name] = [station]
-        } else {
-          // else if there's already 1+ stations assigned to the planning area, but this station isn't in the array yet,
-          // add it to the planning area's array
-          if (
-            state.stationsByPlanningArea[station.planning_area.name]?.find(
-              st => st.code === station.code
-            ) === undefined
-          ) {
-            state.stationsByPlanningArea[station.planning_area.name]?.push(station)
-          }
+        // if there's already 1+ stations assigned to the planning area, but this station isn't in the array yet,
+        // add it to the planning area's array
+        if (
+          state.stationsByPlanningArea[station.planning_area.name]?.find(
+            st => st.code === station.code
+          ) === undefined
+        ) {
+          state.stationsByPlanningArea[station.planning_area.name]?.push(station)
         }
       })
       state.loading = false

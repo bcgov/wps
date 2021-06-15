@@ -67,7 +67,7 @@ def given_hfi_planning_areas_request(monkeypatch):
     client = TestClient(app.main.app)
     headers = {'Content-Type': 'application/json',
                'Authorization': 'Bearer token'}
-    return client.get('/api/hfi-calc/', headers=headers)
+    return client.get('/api/hfi-calc/fire-centres', headers=headers)
 
 
 @then('the response status code is <status>')
