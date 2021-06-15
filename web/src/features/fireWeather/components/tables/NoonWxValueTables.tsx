@@ -39,7 +39,7 @@ const sharedColumns: Column[] = [
   },
   {
     id: 'wind_direction',
-    label: 'Wind Dir (10m)',
+    label: 'Wind Dir (10m) °',
     align: 'right',
     format: (value: number): number => Math.round(value)
   },

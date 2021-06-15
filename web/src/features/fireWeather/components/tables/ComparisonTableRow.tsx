@@ -20,7 +20,8 @@ export type DataSource = 'Observed' | 'Forecast' | 'HRDPS' | 'RDPS' | 'GDPS'
 export type WeatherVariable =
   | 'Temperature'
   | 'Relative Humidity'
-  | 'Wind Speed + Direction'
+  | 'Wind Speed'
+  | 'Wind Direction'
   | 'Precipitation'
   | 'Dew point'
 
@@ -99,20 +100,13 @@ const formatWindSpeedDirection = (
 ): ReactElement => {
   return (
     <div>
-      {typeof source?.wind_speed === 'number' && (
-        <div className={valueClassName[0]}>
-          {source?.wind_speed?.toFixed(WIND_SPEED_VALUES_DECIMAL)} km/h
-        </div>
-      )}
       {typeof source?.wind_speed === 'number' &&
-        typeof source?.wind_direction === 'number' &&
-        ' '}
-      {typeof source?.wind_direction === 'number' && (
-        <div className={valueClassName[1]}>
-          {source?.wind_direction?.toFixed(WIND_SPEED_VALUES_DECIMAL)}
-          {source?.wind_direction && String.fromCharCode(176)}
-        </div>
-      )}
+        typeof source?.wind_direction === 'number' && (
+          <div className={valueClassName[0]}>
+            {source?.wind_speed?.toFixed(WIND_SPEED_VALUES_DECIMAL)},{' '}
+            {source?.wind_direction?.toFixed(WIND_SPEED_VALUES_DECIMAL)}
+          </div>
+        )}
     </div>
   )
 }
@@ -123,9 +117,7 @@ const formatTemperature = (
   return (
     <div>
       {typeof source?.temperature === 'number' &&
-        `${source?.temperature?.toFixed(TEMPERATURE_VALUES_DECIMAL)}${String.fromCharCode(
-          176
-        )}C`}
+        `${source?.temperature?.toFixed(TEMPERATURE_VALUES_DECIMAL)}`}
     </div>
   )
 }
@@ -137,7 +129,7 @@ const formatRelativeHumidity = (
   return (
     <div className={valueClassName[0]}>
       {typeof source?.relative_humidity === 'number' &&
-        `${source?.relative_humidity?.toFixed(RH_VALUES_DECIMAL)}%`}
+        `${source?.relative_humidity?.toFixed(RH_VALUES_DECIMAL)}`}
     </div>
   )
 }
@@ -149,7 +141,7 @@ const formatPrecipitation = (
   return (
     <div className={valueClassName[0]}>
       {typeof precipitation === 'number' &&
-        `${precipitation.toFixed(PRECIP_VALUES_DECIMAL)} mm`}
+        `${precipitation.toFixed(PRECIP_VALUES_DECIMAL)}`}
     </div>
   )
 }
@@ -158,8 +150,7 @@ const formatDewPoint = (observation: ObservedValue | undefined) => {
   const dewpoint = observation?.dewpoint
   return (
     <div>
-      {typeof dewpoint === 'number' &&
-        `${dewpoint.toFixed(DEW_POINT_VALUES_DECIMAL)}${String.fromCharCode(176)}C`}
+      {typeof dewpoint === 'number' && `${dewpoint.toFixed(DEW_POINT_VALUES_DECIMAL)}`}
     </div>
   )
 }
@@ -200,7 +191,7 @@ const formatAccumulatedPrecipitation = (
       title.push(
         <div key={index}>
           prediction: {value.datetime}, precipitation:{' '}
-          {value.delta_precipitation?.toFixed(PRECIP_VALUES_DECIMAL)} mm (model:{' '}
+          {value.delta_precipitation?.toFixed(PRECIP_VALUES_DECIMAL)} (model:{' '}
           {value.model_run_datetime})
         </div>
       )
@@ -208,7 +199,7 @@ const formatAccumulatedPrecipitation = (
       title.push(
         <div key={index}>
           observation: {value.datetime}, precipitation:{' '}
-          {value.precipitation?.toFixed(PRECIP_VALUES_DECIMAL)} mm
+          {value.precipitation?.toFixed(PRECIP_VALUES_DECIMAL)}
         </div>
       )
     }
@@ -218,7 +209,7 @@ const formatAccumulatedPrecipitation = (
       <div className={precipitationClassName[0]}>
         {precipitation &&
           typeof precipitation.precipitation === 'number' &&
-          `${precipitation.precipitation.toFixed(PRECIP_VALUES_DECIMAL)} mm`}
+          `${precipitation.precipitation.toFixed(PRECIP_VALUES_DECIMAL)}`}
       </div>
     </ToolTip>
   )
@@ -262,7 +253,34 @@ const ComparisonTableRow = (props: Props) => {
         styling: [classes.relativeHumidityValue]
       }
     },
-    'Wind Speed + Direction': {
+    'Wind Speed': {
+      Observed: {
+        formatFn: formatWindSpeedDirection,
+        data: props.observation,
+        styling: [classes.windSpeedValue, classes.windDirectionValue]
+      },
+      Forecast: {
+        formatFn: formatWindSpeedDirection,
+        data: props.forecast,
+        styling: [classes.windSpeedValue, classes.windDirectionValue]
+      },
+      HRDPS: {
+        formatFn: formatWindSpeedDirection,
+        data: props.highResModel,
+        styling: [classes.windSpeedValue, classes.windDirectionValue]
+      },
+      RDPS: {
+        formatFn: formatWindSpeedDirection,
+        data: props.regionalModel,
+        styling: [classes.windSpeedValue, classes.windDirectionValue]
+      },
+      GDPS: {
+        formatFn: formatWindSpeedDirection,
+        data: props.globalModel,
+        styling: [classes.windSpeedValue, classes.windDirectionValue]
+      }
+    },
+    'Wind Direction': {
       Observed: {
         formatFn: formatWindSpeedDirection,
         data: props.observation,

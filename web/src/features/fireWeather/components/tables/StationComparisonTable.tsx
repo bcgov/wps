@@ -102,18 +102,23 @@ const StationComparisonTable = (props: Props) => {
               <TableRow>
                 <TableCell></TableCell>
                 <TableCell className={classes.darkColumnHeader} colSpan={5}>
-                  Temperature
+                  Temperature &deg;C
                 </TableCell>
                 <TableCell className={classes.lightColumnHeader} colSpan={5}>
-                  Relative Humidity
+                  Relative Humidity (%)
                 </TableCell>
                 <TableCell className={classes.darkColumnHeader} colSpan={5}>
-                  Wind Speed + Direction
+                  Wind Speed (km/h)
+                </TableCell>
+                <TableCell className={classes.darkColumnHeader} colSpan={5}>
+                  Wind Direction &deg;
                 </TableCell>
                 <TableCell className={classes.lightColumnHeader} colSpan={5}>
-                  Precipitation
+                  Precipitation (mm)
                 </TableCell>
-                <TableCell className={classes.darkColumnHeader}>Dew point</TableCell>
+                <TableCell className={classes.darkColumnHeader}>
+                  Dew point &deg;C
+                </TableCell>
               </TableRow>
               <TableRow>
                 <TableCell>Weather Stations</TableCell>
@@ -170,11 +175,13 @@ const StationComparisonTable = (props: Props) => {
                 const headers: WeatherVariable[] = [
                   'Temperature',
                   'Relative Humidity',
-                  'Wind Speed + Direction',
+                  'Wind Speed',
+                  'Wind Direction',
                   'Precipitation',
                   'Dew point'
                 ]
                 const subheaders: DataSource[][] = [
+                  ['Observed', 'Forecast', 'HRDPS', 'RDPS', 'GDPS'],
                   ['Observed', 'Forecast', 'HRDPS', 'RDPS', 'GDPS'],
                   ['Observed', 'Forecast', 'HRDPS', 'RDPS', 'GDPS'],
                   ['Observed', 'Forecast', 'HRDPS', 'RDPS', 'GDPS'],
