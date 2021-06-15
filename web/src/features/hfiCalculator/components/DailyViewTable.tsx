@@ -12,7 +12,6 @@ import {
 } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 import { selectHFIStations, selectHFIStationsLoading } from 'app/rootReducer'
-import { WeatherStation, PlanningArea, FireCentre } from 'api/hfiCalcAPI'
 import { useSelector } from 'react-redux'
 
 interface Props {
@@ -92,43 +91,49 @@ const DailyViewTable = (props: Props) => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {fireCentres.map((centre: FireCentre, idf: number) => {
+                  {Object.entries(fireCentres).map(([centreName, centre]) => {
                     return (
-                      <React.Fragment key={`fire-centre-${idf}`}>
-                        <TableRow key={`fire-centre-${idf}`}>
+                      <React.Fragment key={`fire-centre-${centreName}`}>
+                        <TableRow key={`fire-centre-${centreName}`}>
                           <TableCell colSpan={3} className={classes.fireCentre}>
                             {centre.name}
                           </TableCell>
                         </TableRow>
-                        {centre.planning_areas.map((area: PlanningArea, idp: number) => {
+                        {Object.entries(centre.planning_areas).map(([areaName, area]) => {
                           return (
-                            <React.Fragment key={`zone-${idp}`}>
+                            <React.Fragment key={`zone-${areaName}`}>
                               <TableRow
                                 className={classes.planningArea}
-                                key={`zone-${idp}`}
+                                key={`zone-${areaName}`}
                               >
                                 <TableCell className={classes.planningArea} colSpan={3}>
                                   {area.name}
                                 </TableCell>
                               </TableRow>
-                              {area.stations.map((station: WeatherStation) => {
-                                return (
-                                  <TableRow
-                                    className={classes.station}
-                                    key={`station-${station.code}`}
-                                  >
-                                    <TableCell key={`station-${station.code}-name`}>
-                                      {station.station_props.name} ({station.code})
-                                    </TableCell>
-                                    <TableCell key={`station-${station.code}-elevation`}>
-                                      {station.station_props.elevation}
-                                    </TableCell>
-                                    <TableCell key={`station-${station.code}-fuel-type`}>
-                                      {station.station_props.fuel_type.abbrev}
-                                    </TableCell>
-                                  </TableRow>
-                                )
-                              })}
+                              {Object.entries(area.stations).map(
+                                ([stationCode, station]) => {
+                                  return (
+                                    <TableRow
+                                      className={classes.station}
+                                      key={`station-${stationCode}`}
+                                    >
+                                      <TableCell key={`station-${station.code}-name`}>
+                                        {station.station_props.name} ({station.code})
+                                      </TableCell>
+                                      <TableCell
+                                        key={`station-${station.code}-elevation`}
+                                      >
+                                        {station.station_props.elevation}
+                                      </TableCell>
+                                      <TableCell
+                                        key={`station-${station.code}-fuel-type`}
+                                      >
+                                        {station.station_props.fuel_type.abbrev}
+                                      </TableCell>
+                                    </TableRow>
+                                  )
+                                }
+                              )}
                             </React.Fragment>
                           )
                         })}

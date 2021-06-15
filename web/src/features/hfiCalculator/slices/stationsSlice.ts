@@ -1,31 +1,19 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
-import {
-  WeatherStation,
-  PlanningArea,
-  FireCentre,
-  getHFIStations,
-  HFIWeatherStationsResponse
-} from 'api/hfiCalcAPI'
+import { FireCentre, getHFIStations, HFIWeatherStationsResponse } from 'api/hfiCalcAPI'
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 
 interface State {
   loading: boolean
   error: string | null
-  weatherStations: WeatherStation[]
-  fireCentres: FireCentre[]
-  planningAreasByFireCentre: Record<string, PlanningArea[] | undefined>
-  stationsByPlanningArea: Record<string, WeatherStation[] | undefined>
+  fireCentres: Record<string, FireCentre>
 }
 
 const initialState: State = {
   loading: false,
   error: null,
-  weatherStations: [],
-  fireCentres: [],
-  planningAreasByFireCentre: {},
-  stationsByPlanningArea: {}
+  fireCentres: {}
 }
 
 const stationsSlice = createSlice({
@@ -35,7 +23,7 @@ const stationsSlice = createSlice({
     getHFIStationsStart(state: State) {
       state.error = null
       state.loading = true
-      state.fireCentres = []
+      state.fireCentres = {}
     },
     getHFIStationsFailed(state: State, action: PayloadAction<string>) {
       state.error = action.payload
