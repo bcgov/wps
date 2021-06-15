@@ -1,5 +1,6 @@
+import React from 'react'
+
 import {
-  makeStyles,
   Paper,
   Table,
   TableBody,
@@ -9,121 +10,142 @@ import {
   TableRow,
   Typography
 } from '@material-ui/core'
-import React from 'react'
-import { StationDaily } from 'api/hfiCalculatorAPI'
-
-export interface Ros {
-  type01a: number
-  type01b: number
-}
+import { makeStyles } from '@material-ui/core/styles'
+import { selectHFIStations, selectHFIStationsLoading } from 'app/rootReducer'
+import { useSelector } from 'react-redux'
 
 interface Props {
   title: string
-  stationData: StationDaily[]
   testId?: string
 }
 
-const DailyViewTable = (props: Props) => {
-  const useStyles = makeStyles({
-    paper: {
-      width: '100%'
-    },
-    borderless: {
-      border: 'none'
+const useStyles = makeStyles({
+  display: {
+    paddingBottom: 12,
+
+    '& .MuiTableCell-sizeSmall': {
+      padding: '6px 12px 6px 6px'
     }
-  })
+  },
+  paper: {
+    width: '100%'
+  },
+  tableContainer: {
+    maxHeight: 480
+  },
+  fireCentre: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    backgroundColor: '#dbd9d9'
+  },
+  planningArea: {
+    backgroundColor: '#d6faff',
+
+    '& .MuiTableCell-sizeSmall': {
+      paddingLeft: '12px'
+    }
+  },
+  station: {
+    '& .MuiTableCell-sizeSmall': {
+      paddingLeft: '20px'
+    }
+  },
+  tableHeader: {
+    fontWeight: 'bold'
+  }
+})
+
+const DailyViewTable = (props: Props) => {
   const classes = useStyles()
+  const { fireCentres } = useSelector(selectHFIStations)
+  const stationDataLoading = useSelector(selectHFIStationsLoading)
 
   return (
-    <div data-testid={props.testId}>
-      <Typography>{props.title}</Typography>
-      <Paper className={classes.paper}>
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell align="right">Status</TableCell>
-                <TableCell align="right">Temp</TableCell>
-                <TableCell align="right">RH</TableCell>
-                <TableCell align="right">Wind Dir</TableCell>
-                <TableCell align="right">Wind Speed</TableCell>
-                <TableCell align="right">Precip</TableCell>
-                <TableCell align="right">Grass Cure %</TableCell>
-                <TableCell align="right">FFMC</TableCell>
-                <TableCell align="right">DMC</TableCell>
-                <TableCell align="right">DC</TableCell>
-                <TableCell align="right">ISI</TableCell>
-                <TableCell align="right">BUI</TableCell>
-                <TableCell align="right">FWI</TableCell>
-                <TableCell align="right">DGR CL</TableCell>
-                <TableCell align="right">FBP Fuel Type</TableCell>
-                <TableCell align="right">ROS (m/min)</TableCell>
-                <TableCell align="right">1 HR Size</TableCell>
-                <TableCell align="right">Fire Type</TableCell>
-                <TableCell align="right">Head Fire Intensity</TableCell>
-                <TableCell align="right">Prep Level</TableCell>
-                <TableCell align="right">(Mean) Intensity Group</TableCell>
-                <TableCell align="right">Predicted Fire Starts</TableCell>
-                <TableCell align="right">
-                  ROS (m/min)
-                  <TableContainer>
-                    <Table>
-                      <TableHead>
-                        <TableRow>
-                          <TableCell align="right">01A</TableCell>
-                          <TableCell align="right">01B</TableCell>
-                        </TableRow>
-                      </TableHead>
-                    </Table>
-                  </TableContainer>
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {props.stationData.map((data, dataIdx) => (
-                <TableRow key={dataIdx}>
-                  <TableCell align="right">{data.status}</TableCell>
-                  <TableCell align="right">{data.temperature}</TableCell>
-                  <TableCell align="right">{data.relative_humidity}</TableCell>
-                  <TableCell align="right">{data.wind_direction}</TableCell>
-                  <TableCell align="right">{data.wind_speed}</TableCell>
-                  <TableCell align="right">{data.precipitation}</TableCell>
-                  <TableCell align="right">{data.grass_cure_percentage}</TableCell>
-                  <TableCell align="right">{data.ffmc}</TableCell>
-                  <TableCell align="right">{data.dmc}</TableCell>
-                  <TableCell align="right">{data.dc}</TableCell>
-                  <TableCell align="right">{data.isi}</TableCell>
-                  <TableCell align="right">{data.bui}</TableCell>
-                  <TableCell align="right">{data.fwi}</TableCell>
-                  <TableCell align="right">{data.danger_cl}</TableCell>
-                  <TableCell align="right">{data.fbp_fuel_type}</TableCell>
-                  <TableCell align="right">TBD</TableCell>
-                  <TableCell align="right">TBD</TableCell>
-                  <TableCell align="right">TBD</TableCell>
-                  <TableCell align="right">TBD</TableCell>
-                  <TableCell align="right">TBD</TableCell>
-                  <TableCell align="right">TBD</TableCell>
-                  <TableCell align="right">TBD</TableCell>
-                  <TableCell align="right">
-                    <TableContainer>
-                      <Table>
-                        <TableRow>
-                          <TableCell align="right" className={classes.borderless}>
-                            TBD
-                          </TableCell>
-                          <TableCell align="right" className={classes.borderless}>
-                            TBD
+    <div className={classes.display} data-testid={props.testId}>
+      {stationDataLoading && 'Loading...'}
+
+      {!stationDataLoading && (
+        <div>
+          <Typography component="div" variant="subtitle2">
+            {props.title}
+          </Typography>
+          <Paper className={classes.paper} elevation={1}>
+            <TableContainer className={classes.tableContainer}>
+              <Table
+                stickyHeader
+                size="small"
+                aria-label="daily table view of HFI by planning area"
+              >
+                <TableHead>
+                  <TableRow>
+                    {/* TableHead and TableRow don't apply classes.tableHeader styling - has to be assigned to TableCell */}
+                    <TableCell className={classes.tableHeader} key="header-location">
+                      Location
+                    </TableCell>
+                    <TableCell className={classes.tableHeader} key="header-elevation">
+                      Elev. (m)
+                    </TableCell>
+                    <TableCell className={classes.tableHeader} key="header-fuel-type">
+                      FBP Fuel Type
+                    </TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {Object.entries(fireCentres).map(([centreName, centre]) => {
+                    return (
+                      <React.Fragment key={`fire-centre-${centreName}`}>
+                        <TableRow key={`fire-centre-${centreName}`}>
+                          <TableCell colSpan={3} className={classes.fireCentre}>
+                            {centre.name}
                           </TableCell>
                         </TableRow>
-                      </Table>
-                    </TableContainer>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Paper>
+                        {Object.entries(centre.planning_areas).map(([areaName, area]) => {
+                          return (
+                            <React.Fragment key={`zone-${areaName}`}>
+                              <TableRow
+                                className={classes.planningArea}
+                                key={`zone-${areaName}`}
+                              >
+                                <TableCell className={classes.planningArea} colSpan={3}>
+                                  {area.name}
+                                </TableCell>
+                              </TableRow>
+                              {Object.entries(area.stations).map(
+                                ([stationCode, station]) => {
+                                  return (
+                                    <TableRow
+                                      className={classes.station}
+                                      key={`station-${stationCode}`}
+                                    >
+                                      <TableCell key={`station-${station.code}-name`}>
+                                        {station.station_props.name} ({station.code})
+                                      </TableCell>
+                                      <TableCell
+                                        key={`station-${station.code}-elevation`}
+                                      >
+                                        {station.station_props.elevation}
+                                      </TableCell>
+                                      <TableCell
+                                        key={`station-${station.code}-fuel-type`}
+                                      >
+                                        {station.station_props.fuel_type.abbrev}
+                                      </TableCell>
+                                    </TableRow>
+                                  )
+                                }
+                              )}
+                            </React.Fragment>
+                          )
+                        })}
+                      </React.Fragment>
+                    )
+                  })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Paper>
+        </div>
+      )}
     </div>
   )
 }
