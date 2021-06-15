@@ -11,7 +11,6 @@ from .. import config
 
 logger = logging.getLogger(__name__)
 
-
 DB_WRITE_STRING = 'postgresql://{}:{}@{}:{}/{}'.format(
     config.get('POSTGRES_WRITE_USER', 'wps'),
     config.get('POSTGRES_PASSWORD', 'wps'),
