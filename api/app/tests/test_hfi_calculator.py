@@ -17,12 +17,7 @@ logger = logging.getLogger(__name__)
 @scenario('test_hfi_calculator.feature', 'Get fire centres, planning areas, and weather stations',
           example_converters=dict(
               status=int,
-              num_weather_stations=int,
-              index=int,
-              code=int,
-              station_name=str,
-              fuel_type=str,
-              elevation=int))
+              num_fire_centres=int))
 def test_hfi_planning_areas():
     """ BDD Scenario. """
 
@@ -63,23 +58,31 @@ def assert_status_code(response, status):
     assert response.status_code == status
 
 
-@then('there are at least <num_weather_stations> weather stations')
-def assert_number_of_weather_stations(response, num_weather_stations):
-    """ Assert that we receive the minimum expected number of weather stations """
-    assert len(response.json()['stations']) >= num_weather_stations
+@then('there are at least <num_fire_centres> fire centres')
+def assert_number_of_fire_centres(response, num_fire_centres):
+    """ Assert that we receive the minimum expected number of fire centres """
+    assert len(response.json()['fire_centres']) >= num_fire_centres
 
 
-@then('the station with index <index> has code <code>, named <station_name>, with fuel type <fuel_type> and '
-      'elevation <elevation>, assigned to planning area <planning_area_name> and fire centre '
-      '<fire_centre_name>')
-# pylint: disable=too-many-arguments
-def assert_individual_station_data(response, index, code, station_name, fuel_type, elevation,
-                                   planning_area_name, fire_centre_name):
-    """ Assert that the response includes specific data for an individual weather station """
-    station = response.json()['stations'][index]
-    assert station['code'] == code
-    assert station['station_props']['name'] == station_name
-    assert station['station_props']['fuel_type']['abbrev'] == fuel_type
-    assert station['station_props']['elevation'] == elevation
-    assert station['planning_area']['name'] == planning_area_name
-    assert station['planning_area']['fire_centre']['name'] == fire_centre_name
+@then('each fire centre has at least 1 planning area')
+def assert_min_num_planning_areas_in_fire_centre(response):
+    """ Assert that each fire centre returned has at least 1 planning area assigned to it """
+    for fire_centre in response.json()['fire_centres']:
+        assert len(fire_centre['planning_areas']) >= 1
+
+
+@then('each planning area has at least 1 weather station')
+def assert_min_num_stations_in_planning_area(response):
+    """ Assert that each planning area returned has at least 1 weather station assigned to it """
+    for fire_centre in response.json()['fire_centres']:
+        for planning_area in fire_centre['planning_areas']:
+            assert len(planning_area['stations']) >= 1
+
+
+@then('each weather station has a fuel_type assigned to it')
+def assert_station_has_fuel_type(response):
+    """ Assert that each weather station has one assigned fuel type """
+    for fire_centre in response.json()['fire_centres']:
+        for planning_area in fire_centre['planning_areas']:
+            for wx_station in planning_area['stations']:
+                assert wx_station['station_props']['fuel_type'] is not None

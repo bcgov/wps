@@ -58,7 +58,7 @@ const useStyles = makeStyles({
 
 const DailyViewTable = (props: Props) => {
   const classes = useStyles()
-  const { planningAreasByFireCentre, stationsByPlanningArea, fireCentres } = useSelector(
+  const { fireCentres } = useSelector(
     selectHFIStations
   )
   const stationDataLoading = useSelector(selectHFIStationsLoading)
@@ -82,9 +82,15 @@ const DailyViewTable = (props: Props) => {
                 <TableHead>
                   <TableRow>
                     {/* TableHead and TableRow don't apply classes.tableHeader styling - has to be assigned to TableCell */}
-                    <TableCell className={classes.tableHeader} key="header-location">Location</TableCell>
-                    <TableCell className={classes.tableHeader} key="header-elevation">Elev. (m)</TableCell>
-                    <TableCell className={classes.tableHeader} key="header-fuel-type">FBP Fuel Type</TableCell>
+                    <TableCell className={classes.tableHeader} key="header-location">
+                      Location
+                    </TableCell>
+                    <TableCell className={classes.tableHeader} key="header-elevation">
+                      Elev. (m)
+                    </TableCell>
+                    <TableCell className={classes.tableHeader} key="header-fuel-type">
+                      FBP Fuel Type
+                    </TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -96,7 +102,7 @@ const DailyViewTable = (props: Props) => {
                             {centre.name}
                           </TableCell>
                         </TableRow>
-                        {planningAreasByFireCentre[centre.name]?.map(
+                        {centre.planning_areas.map(
                           (area: PlanningArea, idp: number) => {
                             return (
                               <React.Fragment key={`zone-${idp}`}>
@@ -108,7 +114,7 @@ const DailyViewTable = (props: Props) => {
                                     {area.name}
                                   </TableCell>
                                 </TableRow>
-                                {stationsByPlanningArea[area.name]?.map(
+                                {area.stations.map(
                                   (station: WeatherStation) => {
                                     return (
                                       <TableRow

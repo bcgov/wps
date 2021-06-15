@@ -15,29 +15,27 @@ export interface WeatherStationProperties {
 export interface FireCentre {
   id: number
   name: string
+  planning_areas: PlanningArea[]
 }
 
 export interface PlanningArea {
   id: number
   name: string
-  fire_centre: FireCentre
+  stations: WeatherStation[]
 }
 
 export interface WeatherStation {
   code: number
   station_props: WeatherStationProperties
-  planning_area: PlanningArea
 }
 
 export interface HFIWeatherStationsResponse {
-    fire_centres: FireCentre[]
-    planning_areas_by_fire_centre: Record<string, PlanningArea[]>
-    stations_by_planning_area: Record<string, WeatherStation[]>
+  fire_centres: FireCentre[]
 }
 
 export async function getHFIStations(): Promise<HFIWeatherStationsResponse> {
   const url = '/hfi-calc/fire-centres'
   const { data } = await axios.get(url)
 
-  return data.stations
+  return data
 }

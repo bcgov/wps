@@ -19,8 +19,7 @@ router = APIRouter(
 
 
 @router.get('/fire-centres', response_model=HFIWeatherStationsResponse)
-# pylint: disable=too-many-locals
-async def get_fire_centres(response: Response):
+async def get_fire_centres(response: Response):  # pylint: disable=too-many-locals
     """ Returns list of fire centres and planning area for each fire centre,
     and weather stations within each planning area. Also returns the assigned fuel type
     for each weather station. """
@@ -35,27 +34,45 @@ async def get_fire_centres(response: Response):
             station_info_dict = {}
             # Prepare empty data structures to be used in HFIWeatherStationsResponse
             fire_centres_list = []
-            planning_areas_by_fire_center = {}
-            stations_by_planning_area = {}
+            planning_areas_dict = {}
+            fire_centres_dict = {}
+
             # Iterate through all the database records, collecting all the data we need.
             for (station_record, fuel_type_record, planning_area_record, fire_centre_record) in station_query:
-                fire_centre = FireCentre(name=fire_centre_record.name)
-                planning_area = PlanningArea(name=planning_area_record.name, fire_centre=fire_centre)
-                fire_centres_list.append(fire_centre)
-                if planning_areas_by_fire_center.get(fire_centre.name):
-                    planning_areas_by_fire_center.get(fire_centre.name).append(planning_area)
-                else:
-                    planning_areas_by_fire_center[fire_centre.name] = [planning_area]
                 station_info_dict[station_record.station_code] = {
                     'fuel_type': FuelType(
                         abbrev=fuel_type_record.abbrev,
                         description=fuel_type_record.description),
-                    'planning_area': planning_area
+                    'planning_area': planning_area_record,
+                    'fire_centre': fire_centre_record
                 }
+
+                if fire_centres_dict.get(fire_centre_record.name) is None:
+                    fire_centres_dict[fire_centre_record.name] = {
+                        'fire_centre_record': fire_centre_record,
+                        'planning_area_records': [planning_area_record],
+                        'planning_area_objects': []
+                    }
+                else:
+                    fire_centres_dict.get(fire_centre_record.name)[
+                        'planning_area_records'].append(planning_area_record)
+                    fire_centres_dict[fire_centre_record.name]['planning_area_records'] = list(
+                        set(fire_centres_dict.get(fire_centre_record.name).get('planning_area_records')))
+
+                if planning_areas_dict.get(planning_area_record.name) is None:
+                    planning_areas_dict[planning_area_record.name] = {
+                        'planning_area_record': planning_area_record,
+                        'station_codes': [station_record.station_code],
+                        'station_objects': []
+                    }
+                else:
+                    planning_areas_dict[planning_area_record.name]['station_codes'].append(
+                        station_record.station_code)
 
             # We're still missing some data that we need from wfwx, so give it the list of stations
             wfwx_stations_data = await wildfire_one.get_stations_by_codes(list(station_info_dict.keys()))
             # Iterate through all the stations from wildfire one.
+
             for wfwx_station in wfwx_stations_data:
                 station_info = station_info_dict[wfwx_station.code]
                 # Combine everything.
@@ -66,17 +83,28 @@ async def get_fire_centres(response: Response):
                     wfwx_station_uuid=wfwx_station.wfwx_station_uuid)
 
                 weather_station = WeatherStation(code=wfwx_station.code,
-                                                 station_props=station_properties,
-                                                 planning_area=station_info['planning_area'])
+                                                 station_props=station_properties)
 
-                if stations_by_planning_area.get(station_info['planning_area']):
-                    stations_by_planning_area.get(station_info['planning_area']).append(weather_station)
-                else:
-                    stations_by_planning_area[station_info['planning_area']] = [weather_station]
+                station_info_dict[wfwx_station.code]['station'] = weather_station
 
-            return HFIWeatherStationsResponse(fire_centres=fire_centres_list,
-                                              planning_areas_by_fire_center=planning_areas_by_fire_center,
-                                              stations_by_planning_area=stations_by_planning_area)
+                planning_areas_dict[station_info_dict[wfwx_station.code]
+                                    ['planning_area'].name]['station_objects'].append(weather_station)
+
+        # create PlanningArea objects containing all corresponding WeatherStation objects
+        for key, val in planning_areas_dict.items():
+            planning_area = PlanningArea(name=key, stations=val['station_objects'])
+            planning_areas_dict[key]['planning_area_object'] = planning_area
+
+        # create FireCentre objects containing all corresponding PlanningArea objects
+        for key, val in fire_centres_dict.items():
+            planning_area_objects_list = []
+            for pa_record in val['planning_area_records']:
+                pa_object = planning_areas_dict.get(pa_record.name).get('planning_area_object')
+                planning_area_objects_list.append(pa_object)
+            fire_centre = FireCentre(name=key, planning_areas=planning_area_objects_list)
+            fire_centres_list.append(fire_centre)
+
+        return HFIWeatherStationsResponse(fire_centres=fire_centres_list)
 
     except Exception as exc:
         logger.critical(exc, exc_info=True)

@@ -3,11 +3,13 @@ Feature: /hfi-calc/
     Scenario: Get fire centres, planning areas, and weather stations
         Given I request all fire centres, planning areas, etc.
         Then the response status code is <status>
-        And there are at least <num_weather_stations> weather stations
-        And the station with index <index> has code <code>, named <station_name>, with fuel type <fuel_type> and elevation <elevation>, assigned to planning area <planning_area_name> and fire centre <fire_centre_name>
+        And there are at least <num_fire_centres> fire centres
+        And each fire centre has at least 1 planning area
+        And each planning area has at least 1 weather station
+        And each weather station has a fuel_type assigned to it
 
         Examples:
-            | status | num_weather_stations | index | code | station_name | fuel_type | elevation | planning_area_name | fire_centre_name     |
-            | 200    | 3                    | 0     | 322  | AFTON        | O1B       | 780       | Kamloops (K2)      | Kamloops Fire Centre |
-            | 200    | 3                    | 2     | 346  | SALMON ARM   | C7        | 527       | Vernon (K4)        | Kamloops Fire Centre |
+            | status | num_fire_centres | 
+            | 200    | 1                | 
+
 
