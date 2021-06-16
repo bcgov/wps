@@ -139,9 +139,6 @@ const DailyViewTable = (props: Props) => {
                   DGR CL
                 </TableCell>
                 <TableCell className={classes.tableHeader} align="right">
-                  FBP Fuel Type
-                </TableCell>
-                <TableCell className={classes.tableHeader} align="right">
                   ROS (m/min)
                 </TableCell>
                 <TableCell className={classes.tableHeader} align="right">
