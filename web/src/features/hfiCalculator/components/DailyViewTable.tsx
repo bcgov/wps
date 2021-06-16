@@ -240,74 +240,90 @@ const DailyViewTable = (props: Props) => {
                     <TableRow key={`fire-centre-${centreName}`}>
                       <TableCell className={classes.fireCentre}>{centre.name}</TableCell>
                     </TableRow>
-                    {Object.entries(centre.planning_areas).map(([areaName, area]) => {
-                      return (
-                        <React.Fragment key={`zone-${areaName}`}>
-                          <TableRow
-                            className={classes.planningArea}
-                            key={`zone-${areaName}`}
-                          >
-                            <TableCell className={classes.planningArea}>
-                              {area.name}
-                            </TableCell>
-                          </TableRow>
-                          {Object.entries(area.stations).map(([stationCode, station]) => {
-                            const daily = props.dailiesMap.get(station.code)
-                            return (
-                              <TableRow
-                                className={classes.station}
-                                key={`station-${stationCode}`}
-                              >
-                                <TableCell key={`station-${station.code}-name`}>
-                                  {station.station_props.name} ({station.code})
-                                </TableCell>
-                                <TableCell key={`station-${station.code}-elevation`}>
-                                  {station.station_props.elevation}
-                                </TableCell>
-                                <TableCell key={`station-${station.code}-fuel-type`}>
-                                  {station.station_props.fuel_type.abbrev}
-                                </TableCell>
-                                <TableCell align="right">{daily?.status}</TableCell>
-                                <TableCell align="right">{daily?.temperature}</TableCell>
-                                <TableCell align="right">
-                                  {daily?.relative_humidity}
-                                </TableCell>
-                                <TableCell align="right">
-                                  {daily?.wind_direction}
-                                </TableCell>
-                                <TableCell align="right">{daily?.wind_speed}</TableCell>
-                                <TableCell align="right">
-                                  {daily?.precipitation}
-                                </TableCell>
-                                <TableCell align="right">
-                                  {daily?.grass_cure_percentage}
-                                </TableCell>
-                                <TableCell align="right">{daily?.ffmc}</TableCell>
-                                <TableCell align="right">{daily?.dmc}</TableCell>
-                                <TableCell align="right">{daily?.dc}</TableCell>
-                                <TableCell align="right">{daily?.isi}</TableCell>
-                                <TableCell align="right">{daily?.bui}</TableCell>
-                                <TableCell align="right">{daily?.fwi}</TableCell>
-                                <TableCell align="right">{daily?.danger_cl}</TableCell>
-                                <TableCell align="right">TBD</TableCell>
-                                <TableCell align="right">TBD</TableCell>
-                                <TableCell align="right">TBD</TableCell>
-                                <TableCell align="right">TBD</TableCell>
-                                <TableCell align="right">TBD</TableCell>
-                                <TableCell align="right">TBD</TableCell>
-                                <TableCell align="right">TBD</TableCell>
-                                <TableCell align="right" className={classes.borderless}>
-                                  TBD
-                                </TableCell>
-                                <TableCell align="right" className={classes.borderless}>
-                                  TBD
-                                </TableCell>
-                              </TableRow>
-                            )
-                          })}
-                        </React.Fragment>
-                      )
-                    })}
+                    {Object.entries(centre.planning_areas)
+                      .sort((a, b) => (a[1].name < b[1].name ? -1 : 1))
+                      .map(([areaName, area]) => {
+                        return (
+                          <React.Fragment key={`zone-${areaName}`}>
+                            <TableRow
+                              className={classes.planningArea}
+                              key={`zone-${areaName}`}
+                            >
+                              <TableCell className={classes.planningArea}>
+                                {area.name}
+                              </TableCell>
+                            </TableRow>
+                            {Object.entries(area.stations)
+                              .sort((a, b) => (a[1].code < b[1].code ? -1 : 1))
+                              .map(([stationCode, station]) => {
+                                const daily = props.dailiesMap.get(station.code)
+                                return (
+                                  <TableRow
+                                    className={classes.station}
+                                    key={`station-${stationCode}`}
+                                  >
+                                    <TableCell key={`station-${station.code}-name`}>
+                                      {station.station_props.name} ({station.code})
+                                    </TableCell>
+                                    <TableCell key={`station-${station.code}-elevation`}>
+                                      {station.station_props.elevation}
+                                    </TableCell>
+                                    <TableCell key={`station-${station.code}-fuel-type`}>
+                                      {station.station_props.fuel_type.abbrev}
+                                    </TableCell>
+                                    <TableCell align="right">{daily?.status}</TableCell>
+                                    <TableCell align="right">
+                                      {daily?.temperature}
+                                    </TableCell>
+                                    <TableCell align="right">
+                                      {daily?.relative_humidity}
+                                    </TableCell>
+                                    <TableCell align="right">
+                                      {daily?.wind_direction}
+                                    </TableCell>
+                                    <TableCell align="right">
+                                      {daily?.wind_speed}
+                                    </TableCell>
+                                    <TableCell align="right">
+                                      {daily?.precipitation}
+                                    </TableCell>
+                                    <TableCell align="right">
+                                      {daily?.grass_cure_percentage}
+                                    </TableCell>
+                                    <TableCell align="right">{daily?.ffmc}</TableCell>
+                                    <TableCell align="right">{daily?.dmc}</TableCell>
+                                    <TableCell align="right">{daily?.dc}</TableCell>
+                                    <TableCell align="right">{daily?.isi}</TableCell>
+                                    <TableCell align="right">{daily?.bui}</TableCell>
+                                    <TableCell align="right">{daily?.fwi}</TableCell>
+                                    <TableCell align="right">
+                                      {daily?.danger_cl}
+                                    </TableCell>
+                                    <TableCell align="right">TBD</TableCell>
+                                    <TableCell align="right">TBD</TableCell>
+                                    <TableCell align="right">TBD</TableCell>
+                                    <TableCell align="right">TBD</TableCell>
+                                    <TableCell align="right">TBD</TableCell>
+                                    <TableCell align="right">TBD</TableCell>
+                                    <TableCell align="right">TBD</TableCell>
+                                    <TableCell
+                                      align="right"
+                                      className={classes.borderless}
+                                    >
+                                      TBD
+                                    </TableCell>
+                                    <TableCell
+                                      align="right"
+                                      className={classes.borderless}
+                                    >
+                                      TBD
+                                    </TableCell>
+                                  </TableRow>
+                                )
+                              })}
+                          </React.Fragment>
+                        )
+                      })}
                   </React.Fragment>
                 )
               })}
