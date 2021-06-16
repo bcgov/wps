@@ -38,10 +38,8 @@ const useStyles = makeStyles({
   },
   tableContainer: {
     maxHeight: 1080,
-    maxWidth: 1910,
-    '& .MuiTableCell-body': {
-      padding: '3px'
-    }
+    maxWidth: 1900,
+    minWidth: 1600
   },
   fireCentre: {
     fontSize: 16,
@@ -191,62 +189,6 @@ const DailyViewTable = (props: Props) => {
                   <br />
                   CL
                 </TableCell>
-                <TableCell className={classes.tableHeader} align="right">
-                  ROS
-                  <br />
-                  (m/min)
-                </TableCell>
-                <TableCell className={classes.tableHeader} align="right">
-                  1<br />
-                  HR
-                  <br />
-                  Size
-                </TableCell>
-                <TableCell className={classes.tableHeader} align="right">
-                  Fire
-                  <br />
-                  Type
-                </TableCell>
-                <TableCell className={classes.tableHeader} align="right">
-                  Head
-                  <br />
-                  Fire
-                  <br />
-                  Intensity
-                </TableCell>
-                <TableCell className={classes.tableHeader} align="right">
-                  Prep
-                  <br />
-                  Level
-                </TableCell>
-                <TableCell className={classes.tableHeader} align="right">
-                  (Mean)
-                  <br />
-                  Intensity
-                  <br />
-                  Group
-                </TableCell>
-                <TableCell className={classes.tableHeader} align="right">
-                  Predicted
-                  <br />
-                  Fire
-                  <br />
-                  Starts
-                </TableCell>
-                <TableCell className={classes.tableHeader} align="right">
-                  ROS
-                  <br />
-                  (m/min)
-                  <br />
-                  O1A
-                </TableCell>
-                <TableCell className={classes.tableHeader} align="right">
-                  ROS
-                  <br />
-                  (m/min)
-                  <br />
-                  O1B
-                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -328,25 +270,6 @@ const DailyViewTable = (props: Props) => {
                                     </TableCell>
                                     <TableCell align="right">
                                       {daily?.danger_cl}
-                                    </TableCell>
-                                    <TableCell align="right">TBD</TableCell>
-                                    <TableCell align="right">TBD</TableCell>
-                                    <TableCell align="right">TBD</TableCell>
-                                    <TableCell align="right">TBD</TableCell>
-                                    <TableCell align="right">TBD</TableCell>
-                                    <TableCell align="right">TBD</TableCell>
-                                    <TableCell align="right">TBD</TableCell>
-                                    <TableCell
-                                      align="right"
-                                      className={classes.borderless}
-                                    >
-                                      TBD
-                                    </TableCell>
-                                    <TableCell
-                                      align="right"
-                                      className={classes.borderless}
-                                    >
-                                      TBD
                                     </TableCell>
                                   </TableRow>
                                 )
