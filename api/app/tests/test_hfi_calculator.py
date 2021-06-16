@@ -4,9 +4,9 @@ from pytest_bdd import scenario, given, then
 import pytest
 from starlette.testclient import TestClient
 from aiohttp import ClientSession
+from sqlalchemy.orm import Session
 from app.tests.common import default_mock_client_get
 import app.main
-from sqlalchemy.orm import Session
 from app.db.models.hfi_calc import PlanningWeatherStation, FireCentre, FuelType, PlanningArea
 import app.routers.hfi_calc
 

@@ -41,19 +41,16 @@ async def get_daily_view(response: Response,
                          start_time_stamp: Optional[int] = None,
                          end_time_stamp: Optional[int] = None):
     """ Returns daily metrics for each station code. """
-    try:
-        logger.info('/hfi-calc/daily')
-        response.headers["Cache-Control"] = "max-age=0"  # don't let the browser cache this
-        valid_start_time, valid_end_time = validate_time_range(start_time_stamp, end_time_stamp)
+    logger.info('/hfi-calc/daily')
+    response.headers["Cache-Control"] = "max-age=0"  # don't let the browser cache this
+    valid_start_time, valid_end_time = validate_time_range(start_time_stamp, end_time_stamp)
 
-        async with ClientSession() as session:
-            header = await get_auth_header(session)
-            wfwx_stations = await get_wfwx_stations_from_station_codes(session, header, station_codes)
-            dailies = await get_dailies(
-                session, header, wfwx_stations, valid_start_time, valid_end_time)
-            return StationDailyResponse(dailies=dailies)
-    except Exception as exc:
-        logger.critical(exc, exc_info=True)
+    async with ClientSession() as session:
+        header = await get_auth_header(session)
+        wfwx_stations = await get_wfwx_stations_from_station_codes(session, header, station_codes)
+        dailies = await get_dailies(
+            session, header, wfwx_stations, valid_start_time, valid_end_time)
+        return StationDailyResponse(dailies=dailies)
 
 
 @router.get('/fire-centres', response_model=HFIWeatherStationsResponse)
