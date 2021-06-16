@@ -16,7 +16,6 @@ export interface StationDaily {
   bui: number
   fwi: number
   danger_cl: number
-  fbp_fuel_type: string
   observation_valid: number
   observation_valid_comment: string
 }

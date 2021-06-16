@@ -2,7 +2,9 @@
 import asyncio
 from pytest_mock import MockFixture
 from app.wildfire_one import (BuildQueryAllHourliesByRange,
-                              BuildQueryDailesByStationCode, WFWXWeatherStation, get_ids_from_station_codes)
+                              BuildQueryDailesByStationCode,
+                              WFWXWeatherStation,
+                              get_wfwx_stations_from_station_codes)
 
 
 def test_build_all_hourlies_query():
@@ -33,11 +35,14 @@ def test_build_dailies_by_station_code():
                       })
 
 
+station_1 = WFWXWeatherStation(code=322, wfwx_id="one")
+station_2 = WFWXWeatherStation(code=239, wfwx_id="two")
+all_stations = [station_1, station_2]
+
+
 @asyncio.coroutine
 def mock_get_stations(_, __, **___):
     """ Returns mocked WFWXWeatherStations. """
-    all_stations = [WFWXWeatherStation(code=322, wfwx_id="one"),
-                    WFWXWeatherStation(code=239, wfwx_id="two")]
     return all_stations
 
 
@@ -48,8 +53,8 @@ def test_get_ids_from_station_codes_no_stations(mocker: MockFixture):
 
     async def run_test():
         """ Async function to run test and assert result """
-        result = await get_ids_from_station_codes(None, {}, None)
-        assert result == ["one", "two"]
+        result = await get_wfwx_stations_from_station_codes(None, {}, None)
+        assert result == all_stations
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
@@ -63,8 +68,8 @@ def test_get_ids_from_station_codes(mocker: MockFixture):
 
     async def run_test():
         """ Async function to run test and assert result """
-        result = await get_ids_from_station_codes(None, {}, [322])
-        assert result == ["one"]
+        result = await get_wfwx_stations_from_station_codes(None, {}, [322])
+        assert result == [station_1]
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
