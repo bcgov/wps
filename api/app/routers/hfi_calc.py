@@ -4,14 +4,11 @@ import math
 from typing import List, Optional
 from aiohttp.client import ClientSession
 from fastapi import APIRouter, Response, Depends, Query
-from app.wildfire_one import (get_ids_from_station_codes,
+from app.wildfire_one import (get_wfwx_stations_from_station_codes,
                               get_dailies,
                               get_auth_header)
-from app.auth import authentication_required
 from app.utils.time import get_utc_today_start_and_end
 from app.schemas.hfi_calc import StationDailyResponse
-from typing import List
-from fastapi import APIRouter, Response, Depends
 import app
 from app import wildfire_one
 from app.auth import authentication_required, audit
@@ -51,9 +48,9 @@ async def get_daily_view(response: Response,
 
         async with ClientSession() as session:
             header = await get_auth_header(session)
-            valid_station_codes = await get_ids_from_station_codes(session, header, station_codes)
+            wfwx_stations = await get_wfwx_stations_from_station_codes(session, header, station_codes)
             dailies = await get_dailies(
-                session, header, valid_station_codes, valid_start_time, valid_end_time)
+                session, header, wfwx_stations, valid_start_time, valid_end_time)
             return StationDailyResponse(dailies=dailies)
     except Exception as exc:
         logger.critical(exc, exc_info=True)

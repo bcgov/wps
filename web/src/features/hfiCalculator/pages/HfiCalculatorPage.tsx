@@ -9,6 +9,7 @@ import { DateTime } from 'luxon'
 import { selectHFIDailies } from 'app/rootReducer'
 import { selectHFIStations, selectHFIStationsLoading } from 'app/rootReducer'
 import { makeStyles, CircularProgress } from '@material-ui/core'
+import { StationDaily } from 'api/hfiCalculatorAPI'
 
 const HfiCalculatorPage: React.FunctionComponent = () => {
   const useStyles = makeStyles({
@@ -38,6 +39,12 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  let dailiesMap = new Map<number, StationDaily>()
+  dailies.forEach(daily => {
+    dailiesMap.set(daily.code, daily)
+  })
+  console.log(dailiesMap)
+
   return (
     <main data-testid="hfi-calculator-page">
       <PageHeader title="Predictive Services Unit" productName="HFI Calculator" />
@@ -50,7 +57,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
             title="HFI Calculator Daily View"
             testId="hfi-calc-daily-table"
             fireCentres={fireCentres}
-            dailies={dailies}
+            dailiesMap={dailiesMap}
           />
         )}
       </Container>

@@ -17,7 +17,7 @@ import { StationDaily } from 'api/hfiCalculatorAPI'
 interface Props {
   title: string
   fireCentres: Record<string, FireCentre>
-  dailies: StationDaily[]
+  dailiesMap: Map<number, StationDaily>
   testId?: string
 }
 
@@ -54,6 +54,9 @@ const useStyles = makeStyles({
   },
   tableHeader: {
     fontWeight: 'bold'
+  },
+  borderless: {
+    border: 'none'
   }
 })
 
@@ -71,14 +74,105 @@ const DailyViewTable = (props: Props) => {
             <TableHead>
               <TableRow>
                 {/* TableHead and TableRow don't apply classes.tableHeader styling - has to be assigned to TableCell */}
-                <TableCell className={classes.tableHeader} key="header-location">
+                <TableCell
+                  className={classes.tableHeader}
+                  align="right"
+                  key="header-location"
+                >
                   Location
                 </TableCell>
-                <TableCell className={classes.tableHeader} key="header-elevation">
+                <TableCell
+                  className={classes.tableHeader}
+                  align="right"
+                  key="header-elevation"
+                >
                   Elev. (m)
                 </TableCell>
-                <TableCell className={classes.tableHeader} key="header-fuel-type">
+                <TableCell
+                  className={classes.tableHeader}
+                  align="right"
+                  key="header-fuel-type"
+                >
                   FBP Fuel Type
+                </TableCell>
+                <TableCell className={classes.tableHeader} align="right">
+                  Status
+                </TableCell>
+                <TableCell className={classes.tableHeader} align="right">
+                  Temp
+                </TableCell>
+                <TableCell className={classes.tableHeader} align="right">
+                  RH
+                </TableCell>
+                <TableCell className={classes.tableHeader} align="right">
+                  Wind Dir
+                </TableCell>
+                <TableCell className={classes.tableHeader} align="right">
+                  Wind Speed
+                </TableCell>
+                <TableCell className={classes.tableHeader} align="right">
+                  Precip
+                </TableCell>
+                <TableCell className={classes.tableHeader} align="right">
+                  Grass Cure %
+                </TableCell>
+                <TableCell className={classes.tableHeader} align="right">
+                  FFMC
+                </TableCell>
+                <TableCell className={classes.tableHeader} align="right">
+                  DMC
+                </TableCell>
+                <TableCell className={classes.tableHeader} align="right">
+                  DC
+                </TableCell>
+                <TableCell className={classes.tableHeader} align="right">
+                  ISI
+                </TableCell>
+                <TableCell className={classes.tableHeader} align="right">
+                  BUI
+                </TableCell>
+                <TableCell className={classes.tableHeader} align="right">
+                  FWI
+                </TableCell>
+                <TableCell className={classes.tableHeader} align="right">
+                  DGR CL
+                </TableCell>
+                <TableCell className={classes.tableHeader} align="right">
+                  FBP Fuel Type
+                </TableCell>
+                <TableCell className={classes.tableHeader} align="right">
+                  ROS (m/min)
+                </TableCell>
+                <TableCell className={classes.tableHeader} align="right">
+                  1 HR Size
+                </TableCell>
+                <TableCell className={classes.tableHeader} align="right">
+                  Fire Type
+                </TableCell>
+                <TableCell className={classes.tableHeader} align="right">
+                  Head Fire Intensity
+                </TableCell>
+                <TableCell className={classes.tableHeader} align="right">
+                  Prep Level
+                </TableCell>
+                <TableCell className={classes.tableHeader} align="right">
+                  (Mean) Intensity Group
+                </TableCell>
+                <TableCell className={classes.tableHeader} align="right">
+                  Predicted Fire Starts
+                </TableCell>
+                <TableCell className={classes.tableHeader} align="right">
+                  ROS (m/min)
+                  <TableContainer>
+                    <Table>
+                      <TableHead>
+                        <TableRow>
+                          <TableCell align="right">01A</TableCell>
+                          <TableCell align="right">01B</TableCell>
+                        </TableRow>
+                      </TableHead>
+                    </Table>
+                  </TableContainer>
                 </TableCell>
               </TableRow>
             </TableHead>
@@ -103,6 +197,7 @@ const DailyViewTable = (props: Props) => {
                             </TableCell>
                           </TableRow>
                           {Object.entries(area.stations).map(([stationCode, station]) => {
+                            const daily = props.dailiesMap.get(station.code)
                             return (
                               <TableRow
                                 className={classes.station}
@@ -116,6 +211,55 @@ const DailyViewTable = (props: Props) => {
                                 </TableCell>
                                 <TableCell key={`station-${station.code}-fuel-type`}>
                                   {station.station_props.fuel_type.abbrev}
+                                </TableCell>
+                                <TableCell align="right">{daily?.status}</TableCell>
+                                <TableCell align="right">{daily?.temperature}</TableCell>
+                                <TableCell align="right">
+                                  {daily?.relative_humidity}
+                                </TableCell>
+                                <TableCell align="right">
+                                  {daily?.wind_direction}
+                                </TableCell>
+                                <TableCell align="right">{daily?.wind_speed}</TableCell>
+                                <TableCell align="right">
+                                  {daily?.precipitation}
+                                </TableCell>
+                                <TableCell align="right">
+                                  {daily?.grass_cure_percentage}
+                                </TableCell>
+                                <TableCell align="right">{daily?.ffmc}</TableCell>
+                                <TableCell align="right">{daily?.dmc}</TableCell>
+                                <TableCell align="right">{daily?.dc}</TableCell>
+                                <TableCell align="right">{daily?.isi}</TableCell>
+                                <TableCell align="right">{daily?.bui}</TableCell>
+                                <TableCell align="right">{daily?.fwi}</TableCell>
+                                <TableCell align="right">{daily?.danger_cl}</TableCell>
+                                <TableCell align="right">TBD</TableCell>
+                                <TableCell align="right">TBD</TableCell>
+                                <TableCell align="right">TBD</TableCell>
+                                <TableCell align="right">TBD</TableCell>
+                                <TableCell align="right">TBD</TableCell>
+                                <TableCell align="right">TBD</TableCell>
+                                <TableCell align="right">TBD</TableCell>
+                                <TableCell align="right">
+                                  <TableContainer>
+                                    <Table>
+                                      <TableRow>
+                                        <TableCell
+                                          align="right"
+                                          className={classes.borderless}
+                                        >
+                                          TBD
+                                        </TableCell>
+                                        <TableCell
+                                          align="right"
+                                          className={classes.borderless}
+                                        >
+                                          TBD
+                                        </TableCell>
+                                      </TableRow>
+                                    </Table>
+                                  </TableContainer>
                                 </TableCell>
                               </TableRow>
                             )
