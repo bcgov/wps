@@ -43,7 +43,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   dailies.forEach(daily => {
     dailiesMap.set(daily.code, daily)
   })
-  console.log(dailiesMap)
 
   return (
     <main data-testid="hfi-calculator-page">
