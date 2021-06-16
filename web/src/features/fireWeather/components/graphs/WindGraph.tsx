@@ -194,7 +194,8 @@ const WindGraph = (props: Props) => {
             ...hrdpsData.windDirArrows,
             ...forecastData.windDirArrows,
             ...observationData.windDirArrows
-          ]
+          ],
+          hovermode: 'closest'
         }}
       />
     </div>

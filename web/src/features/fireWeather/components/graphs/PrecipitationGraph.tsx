@@ -149,7 +149,8 @@ const PrecipitationGraph = (props: Props) => {
             side: 'right',
             fixedrange: true,
             range: y2Range
-          }
+          },
+          hovermode: 'closest'
         }}
       />
     </div>
