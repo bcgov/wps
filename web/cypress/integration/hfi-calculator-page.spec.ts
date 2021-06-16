@@ -12,13 +12,6 @@ describe('HFI Calculator Page', () => {
     cy.getByTestId('hfi-calc-daily-table')
   })
 
-  it('should have a fire centre label as the first row of the Daily View Table', () => {
-    cy.visit(HFI_CALC_ROUTE)
-    cy.get('tr')
-      .eq(1)
-      .should('contain', 'Fire Centre')
-  })
-
   it('should have at least 15 rows in Daily Table View', () => {
     cy.visit(HFI_CALC_ROUTE)
     cy.getByTestId('hfi-calc-daily-table')
