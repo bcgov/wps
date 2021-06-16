@@ -161,16 +161,13 @@ const DailyViewTable = (props: Props) => {
                 </TableCell>
                 <TableCell className={classes.tableHeader} align="right">
                   ROS (m/min)
-                  <TableContainer>
-                    <Table>
-                      <TableHead>
-                        <TableRow>
-                          <TableCell align="right">01A</TableCell>
-                          <TableCell align="right">01B</TableCell>
-                        </TableRow>
-                      </TableHead>
-                    </Table>
-                  </TableContainer>
+                  <br />
+                  O1A
+                </TableCell>
+                <TableCell className={classes.tableHeader} align="right">
+                  ROS (m/min)
+                  <br />
+                  O1B
                 </TableCell>
               </TableRow>
             </TableHead>
@@ -239,25 +236,11 @@ const DailyViewTable = (props: Props) => {
                                 <TableCell align="right">TBD</TableCell>
                                 <TableCell align="right">TBD</TableCell>
                                 <TableCell align="right">TBD</TableCell>
-                                <TableCell align="right">
-                                  <TableContainer>
-                                    <Table>
-                                      <TableRow>
-                                        <TableCell
-                                          align="right"
-                                          className={classes.borderless}
-                                        >
-                                          TBD
-                                        </TableCell>
-                                        <TableCell
-                                          align="right"
-                                          className={classes.borderless}
-                                        >
-                                          TBD
-                                        </TableCell>
-                                      </TableRow>
-                                    </Table>
-                                  </TableContainer>
+                                <TableCell align="right" className={classes.borderless}>
+                                  TBD
+                                </TableCell>
+                                <TableCell align="right" className={classes.borderless}>
+                                  TBD
                                 </TableCell>
                               </TableRow>
                             )
