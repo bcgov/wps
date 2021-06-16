@@ -13,6 +13,7 @@ import {
 import { makeStyles } from '@material-ui/core/styles'
 import { FireCentre } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
+import { Button } from 'components'
 
 interface Props {
   title: string
@@ -62,6 +63,11 @@ const useStyles = makeStyles({
   },
   borderless: {
     border: 'none'
+  },
+  controls: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'baseline'
   }
 })
 
@@ -70,9 +76,17 @@ const DailyViewTable = (props: Props) => {
 
   return (
     <div className={classes.display} data-testid={props.testId}>
-      <Typography component="div" variant="subtitle2">
-        {props.title}
-      </Typography>
+      <div className={classes.controls}>
+        <Typography component="div" variant="subtitle2">
+          {props.title}
+        </Typography>
+
+        <div className={classes.controls}>
+          <Button>Previous</Button>
+          <Button>Next</Button>
+        </div>
+      </div>
+
       <Paper className={classes.paper} elevation={1}>
         <TableContainer className={classes.tableContainer}>
           <Table stickyHeader aria-label="daily table view of HFI by planning area">
