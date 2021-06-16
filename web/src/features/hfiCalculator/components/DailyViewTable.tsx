@@ -77,6 +77,13 @@ const useStyles = makeStyles({
 const DailyViewTable = (props: Props) => {
   const classes = useStyles()
 
+  const roundToOneDecimalPlace = (value: number | undefined): number | undefined => {
+    if (value !== undefined) {
+      return Math.round(value * 10) / 10
+    }
+    return undefined
+  }
+
   return (
     <div className={classes.display} data-testid={props.testId}>
       <div className={classes.controls}>
@@ -129,9 +136,13 @@ const DailyViewTable = (props: Props) => {
                 </TableCell>
                 <TableCell className={classes.tableHeader} align="right">
                   Temp
+                  <br />
+                  (°C)
                 </TableCell>
                 <TableCell className={classes.tableHeader} align="right">
                   RH
+                  <br />
+                  (%)
                 </TableCell>
                 <TableCell className={classes.tableHeader} align="right">
                   Wind
@@ -142,15 +153,19 @@ const DailyViewTable = (props: Props) => {
                   Wind
                   <br />
                   Speed
+                  <br />
+                  (km/h)
                 </TableCell>
                 <TableCell className={classes.tableHeader} align="right">
                   Precip
+                  <br />
+                  (mm)
                 </TableCell>
                 <TableCell className={classes.tableHeader} align="right">
                   Grass
                   <br />
                   Cure
-                  <br />%
+                  <br />(%)
                 </TableCell>
                 <TableCell className={classes.tableHeader} align="right">
                   FFMC
@@ -238,7 +253,7 @@ const DailyViewTable = (props: Props) => {
                 return (
                   <React.Fragment key={`fire-centre-${centreName}`}>
                     <TableRow key={`fire-centre-${centreName}`}>
-                      <TableCell className={classes.fireCentre}>{centre.name}</TableCell>
+                      <TableCell className={classes.fireCentre} colSpan={26}>{centre.name}</TableCell>
                     </TableRow>
                     {Object.entries(centre.planning_areas).map(([areaName, area]) => {
                       return (
@@ -247,7 +262,7 @@ const DailyViewTable = (props: Props) => {
                             className={classes.planningArea}
                             key={`zone-${areaName}`}
                           >
-                            <TableCell className={classes.planningArea}>
+                            <TableCell className={classes.planningArea} colSpan={26}>
                               {area.name}
                             </TableCell>
                           </TableRow>
@@ -282,12 +297,12 @@ const DailyViewTable = (props: Props) => {
                                 <TableCell align="right">
                                   {daily?.grass_cure_percentage}
                                 </TableCell>
-                                <TableCell align="right">{daily?.ffmc}</TableCell>
-                                <TableCell align="right">{daily?.dmc}</TableCell>
-                                <TableCell align="right">{daily?.dc}</TableCell>
-                                <TableCell align="right">{daily?.isi}</TableCell>
-                                <TableCell align="right">{daily?.bui}</TableCell>
-                                <TableCell align="right">{daily?.fwi}</TableCell>
+                                <TableCell align="right">{roundToOneDecimalPlace(daily?.ffmc)}</TableCell>
+                                <TableCell align="right">{roundToOneDecimalPlace(daily?.dmc)}</TableCell>
+                                <TableCell align="right">{roundToOneDecimalPlace(daily?.dc)}</TableCell>
+                                <TableCell align="right">{roundToOneDecimalPlace(daily?.isi)}</TableCell>
+                                <TableCell align="right">{roundToOneDecimalPlace(daily?.bui)}</TableCell>
+                                <TableCell align="right">{roundToOneDecimalPlace(daily?.fwi)}</TableCell>
                                 <TableCell align="right">{daily?.danger_cl}</TableCell>
                                 <TableCell align="right">TBD</TableCell>
                                 <TableCell align="right">TBD</TableCell>
