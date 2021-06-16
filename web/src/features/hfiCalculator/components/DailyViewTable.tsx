@@ -34,7 +34,10 @@ const useStyles = makeStyles({
   },
   tableContainer: {
     maxHeight: 1080,
-    maxWidth: 1910
+    maxWidth: 1910,
+    '& .MuiTableCell-body': {
+      padding: '1px'
+    }
   },
   fireCentre: {
     fontSize: 16,
@@ -54,7 +57,8 @@ const useStyles = makeStyles({
     }
   },
   tableHeader: {
-    fontWeight: 'bold'
+    fontWeight: 'bold',
+    padding: '1px'
   },
   borderless: {
     border: 'none'
