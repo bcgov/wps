@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import { Container, PageHeader, PageTitle } from 'components'
 import DailyViewTable from 'features/hfiCalculator/components/DailyViewTable'
@@ -24,20 +24,34 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const { dailies, loading } = useSelector(selectHFIDailies)
   const { fireCentres } = useSelector(selectHFIStations)
   const stationDataLoading = useSelector(selectHFIStationsLoading)
+  const [currentDay, setCurrentDay] = useState(DateTime.now())
+
   useEffect(() => {
     // For now just give dailies for today
-    const startTime = DateTime.now()
+    fetchData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentDay])
+
+  const fetchData = () => {
+    const startTime = currentDay
       .startOf('day')
       .toUTC()
       .valueOf()
-    const endTime = DateTime.now()
+    const endTime = currentDay
       .endOf('day')
       .toUTC()
       .valueOf()
     dispatch(fetchHFIDailies(startTime, endTime))
     dispatch(fetchHFIStations())
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }
+
+  const previousDay = () => {
+    setCurrentDay(currentDay.minus({ days: 1 }))
+  }
+
+  const nextDay = () => {
+    setCurrentDay(currentDay.plus({ days: 1 }))
+  }
 
   const dailiesMap = new Map<number, StationDaily>()
   dailies.forEach(daily => {
@@ -57,6 +71,9 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
             testId="hfi-calc-daily-table"
             fireCentres={fireCentres}
             dailiesMap={dailiesMap}
+            currentDay={currentDay.toLocaleString()}
+            previousDay={previousDay}
+            nextDay={nextDay}
           />
         )}
       </Container>
