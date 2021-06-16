@@ -39,7 +39,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  let dailiesMap = new Map<number, StationDaily>()
+  const dailiesMap = new Map<number, StationDaily>()
   dailies.forEach(daily => {
     dailiesMap.set(daily.code, daily)
   })
