@@ -36,7 +36,7 @@ const useStyles = makeStyles({
     maxHeight: 1080,
     maxWidth: 1910,
     '& .MuiTableCell-body': {
-      padding: '1px'
+      padding: '3px'
     }
   },
   fireCentre: {
@@ -91,14 +91,20 @@ const DailyViewTable = (props: Props) => {
                   align="right"
                   key="header-elevation"
                 >
-                  Elev. (m)
+                  Elev.
+                  <br />
+                  (m)
                 </TableCell>
                 <TableCell
                   className={classes.tableHeader}
                   align="right"
                   key="header-fuel-type"
                 >
-                  FBP Fuel Type
+                  FBP
+                  <br />
+                  Fuel
+                  <br />
+                  Type
                 </TableCell>
                 <TableCell className={classes.tableHeader} align="right">
                   Status
@@ -110,16 +116,23 @@ const DailyViewTable = (props: Props) => {
                   RH
                 </TableCell>
                 <TableCell className={classes.tableHeader} align="right">
-                  Wind Dir
+                  Wind
+                  <br />
+                  Dir
                 </TableCell>
                 <TableCell className={classes.tableHeader} align="right">
-                  Wind Speed
+                  Wind
+                  <br />
+                  Speed
                 </TableCell>
                 <TableCell className={classes.tableHeader} align="right">
                   Precip
                 </TableCell>
                 <TableCell className={classes.tableHeader} align="right">
-                  Grass Cure %
+                  Grass
+                  <br />
+                  Cure
+                  <br />%
                 </TableCell>
                 <TableCell className={classes.tableHeader} align="right">
                   FFMC
@@ -140,36 +153,63 @@ const DailyViewTable = (props: Props) => {
                   FWI
                 </TableCell>
                 <TableCell className={classes.tableHeader} align="right">
-                  DGR CL
+                  DGR
+                  <br />
+                  CL
                 </TableCell>
                 <TableCell className={classes.tableHeader} align="right">
-                  ROS (m/min)
+                  ROS
+                  <br />
+                  (m/min)
                 </TableCell>
                 <TableCell className={classes.tableHeader} align="right">
-                  1 HR Size
+                  1<br />
+                  HR
+                  <br />
+                  Size
                 </TableCell>
                 <TableCell className={classes.tableHeader} align="right">
-                  Fire Type
+                  Fire
+                  <br />
+                  Type
                 </TableCell>
                 <TableCell className={classes.tableHeader} align="right">
-                  Head Fire Intensity
+                  Head
+                  <br />
+                  Fire
+                  <br />
+                  Intensity
                 </TableCell>
                 <TableCell className={classes.tableHeader} align="right">
-                  Prep Level
+                  Prep
+                  <br />
+                  Level
                 </TableCell>
                 <TableCell className={classes.tableHeader} align="right">
-                  (Mean) Intensity Group
+                  (Mean)
+                  <br />
+                  Intensity
+                  <br />
+                  Group
                 </TableCell>
                 <TableCell className={classes.tableHeader} align="right">
-                  Predicted Fire Starts
+                  Predicted
+                  <br />
+                  Fire
+                  <br />
+                  Starts
                 </TableCell>
                 <TableCell className={classes.tableHeader} align="right">
-                  ROS (m/min)
+                  ROS
+                  <br />
+                  (m/min)
                   <br />
                   O1A
                 </TableCell>
                 <TableCell className={classes.tableHeader} align="right">
-                  ROS (m/min)
+                  ROS
+                  <br />
+                  (m/min)
                   <br />
                   O1B
                 </TableCell>
@@ -180,9 +220,7 @@ const DailyViewTable = (props: Props) => {
                 return (
                   <React.Fragment key={`fire-centre-${centreName}`}>
                     <TableRow key={`fire-centre-${centreName}`}>
-                      <TableCell colSpan={3} className={classes.fireCentre}>
-                        {centre.name}
-                      </TableCell>
+                      <TableCell className={classes.fireCentre}>{centre.name}</TableCell>
                     </TableRow>
                     {Object.entries(centre.planning_areas).map(([areaName, area]) => {
                       return (
@@ -191,7 +229,7 @@ const DailyViewTable = (props: Props) => {
                             className={classes.planningArea}
                             key={`zone-${areaName}`}
                           >
-                            <TableCell className={classes.planningArea} colSpan={3}>
+                            <TableCell className={classes.planningArea}>
                               {area.name}
                             </TableCell>
                           </TableRow>
