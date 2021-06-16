@@ -33,7 +33,8 @@ const useStyles = makeStyles({
     width: '100%'
   },
   tableContainer: {
-    maxHeight: 480
+    maxHeight: 1080,
+    maxWidth: 1910
   },
   fireCentre: {
     fontSize: 16,
@@ -69,7 +70,7 @@ const DailyViewTable = (props: Props) => {
         {props.title}
       </Typography>
       <Paper className={classes.paper} elevation={1}>
-        <TableContainer>
+        <TableContainer className={classes.tableContainer}>
           <Table stickyHeader aria-label="daily table view of HFI by planning area">
             <TableHead>
               <TableRow>
