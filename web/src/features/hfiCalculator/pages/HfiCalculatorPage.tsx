@@ -27,12 +27,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const [currentDay, setCurrentDay] = useState(DateTime.now())
 
   useEffect(() => {
-    // For now just give dailies for today
-    fetchData()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentDay])
-
-  const fetchData = () => {
     const startTime = currentDay
       .startOf('day')
       .toUTC()
@@ -43,7 +37,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       .valueOf()
     dispatch(fetchHFIDailies(startTime, endTime))
     dispatch(fetchHFIStations())
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentDay])
 
   const previousDay = () => {
     setCurrentDay(currentDay.minus({ days: 1 }))
