@@ -38,7 +38,8 @@
 # # pylint: disable=line-too-long
 
 
-# @given('I request metrics for all stations beginning at time <start_time_stamp> and ending at time <end_time_stamp>.', target_fixture='response')
+# @given('I request metrics for all stations beginning at time
+# <start_time_stamp> and ending at time <end_time_stamp>.', target_fixture='response')
 # def given_time_range_metrics_request(monkeypatch):
 #     """ Make /hfi-calc/daily request using mocked out ClientSession.
 #     """
@@ -60,7 +61,11 @@
 # # pylint: disable=invalid-name, too-many-arguments, line-too-long, too-many-locals
 
 
-# @then('the status <status>, with temperature <temperature> and relative humidity <relative_humidity>, and wind_direction <wind_direction> and wind_speed <wind_speed> and precipitation <precipitation> and grass_cure_percentage <grass_cure_percentage> and ffmc <ffmc> and dc <dc> and <dmc> and isi <isi> and <bui> and fwi <fwi> and danger_cl <danger_cl> and fbp_fuel_type <fbp_fuel_type>')
+# @then('the status <status>, with temperature <temperature>
+# and relative humidity <relative_humidity>, and wind_direction
+# <wind_direction> and wind_speed <wind_speed> and precipitation <precipitation>
+# and grass_cure_percentage <grass_cure_percentage> and ffmc <ffmc> and dc <dc> and
+# <dmc> and isi <isi> and <bui> and fwi <fwi> and danger_cl <danger_cl> and fbp_fuel_type <fbp_fuel_type>')
 # def assert_individual_station_data(
 #         response,
 #         temperature,
