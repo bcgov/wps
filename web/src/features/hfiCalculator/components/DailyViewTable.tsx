@@ -19,6 +19,9 @@ interface Props {
   title: string
   fireCentres: Record<string, FireCentre>
   dailiesMap: Map<number, StationDaily>
+  currentDay: string
+  previousDay: () => void
+  nextDay: () => void
   testId?: string
 }
 
@@ -80,13 +83,14 @@ const DailyViewTable = (props: Props) => {
         <Typography component="div" variant="subtitle2">
           {props.title}
         </Typography>
-
-        <div className={classes.controls}>
-          <Button>Previous</Button>
-          <Button>Next</Button>
-        </div>
+        <Button color="primary" onClick={props.previousDay}>
+          Previous
+        </Button>
+        {props.currentDay}
+        <Button color="primary" onClick={props.nextDay}>
+          Next
+        </Button>
       </div>
-
       <Paper className={classes.paper} elevation={1}>
         <TableContainer className={classes.tableContainer}>
           <Table stickyHeader aria-label="daily table view of HFI by planning area">
