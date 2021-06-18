@@ -350,19 +350,19 @@ async def wfwx_station_list_mapper(raw_stations: Generator[dict, None, None]) ->
 
 async def get_stations(session: ClientSession,
                        header: dict,
-                       mapper=station_list_mapper,
-                       use_cache: bool = False) -> List[WeatherStation]:
+                       mapper=station_list_mapper) -> List[WeatherStation]:
     """ Get list of stations from WFWX Fireweather API.
     """
     logger.info('Using WFWX to retrieve station list')
     # 1 day seems a reasonable period to cache stations for.
     redis_station_cache_expiry: Final = 86400
     # Iterate through "raw" station data.
-    raw_stations = _fetch_paged_response_generator(
-        session, header, BuildQueryAllActiveStations(),
-        'stations',
-        use_cache,
-        redis_station_cache_expiry)
+    raw_stations = _fetch_paged_response_generator(session,
+                                                   header,
+                                                   BuildQueryAllActiveStations(),
+                                                   'stations',
+                                                   use_cache=True,
+                                                   cache_expiry_seconds=redis_station_cache_expiry)
     # Map list of stations into desired shape
     stations = await mapper(raw_stations)
     logger.debug('total stations: %d', len(stations))
@@ -565,15 +565,13 @@ async def get_hourly_actuals_all_stations(
 
 async def get_wfwx_stations_from_station_codes(session,
                                                header,
-                                               station_codes: Optional[List[int]],
-                                               use_cache: bool = False):
+                                               station_codes: Optional[List[int]]):
     """ Return the WFWX station ids from WFWX API given a list of station codes. """
     kamloops_station_codes = (322, 239, 1108, 305, 1082, 266, 346, 286, 344,
                               298, 388, 836, 1399, 280, 1055, 1029, 309, 306)
     wfwx_stations = await get_stations(session,
                                        header,
-                                       mapper=wfwx_station_list_mapper,
-                                       use_cache=use_cache)
+                                       mapper=wfwx_station_list_mapper)
 
     # Default to all Kamloops WFWX station ids if no station codes are specified
     if station_codes is None:
