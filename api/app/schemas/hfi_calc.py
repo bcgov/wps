@@ -21,7 +21,6 @@ class StationDaily(BaseModel):
     bui: Union[float, None] = None
     fwi: Union[float, None] = None
     danger_cl: Union[int, None] = None
-    fbp_fuel_type: Union[str, None] = None
     observation_valid: Union[bool, None] = None
     observation_valid_comment: Union[str, None] = None
 
