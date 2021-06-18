@@ -1,4 +1,4 @@
-""" BDD tests for API /hfi-calc/ """
+""" BDD tests for API /hfi-calc/daily """
 import logging
 from pytest_bdd import scenario, given, then
 import pytest
@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 @pytest.mark.usefixtures("mock_jwt_decode")
-@scenario('test_hfi_calculator.feature', 'Get metrics for stations',
+@scenario('test_hfi_dailies.feature', 'Get metrics for stations',
           example_converters=dict(
               code=int,
               status=str,
@@ -35,7 +35,7 @@ def test_hfi_daily_metrics():
 # pylint: disable=line-too-long
 
 
-@given('I request metrics for all stations beginning at time <start_time_stamp> and ending at time <end_time_stamp> .', target_fixture='response')
+@given('I request metrics for all stations beginning at time <start_time_stamp> and ending at time <end_time_stamp>.', target_fixture='response')
 def given_time_range_metrics_request(monkeypatch):
     """ Make /hfi-calc/daily request using mocked out ClientSession.
     """
@@ -57,9 +57,10 @@ def assert_status_code_200(response, status_code: int):
 # pylint: disable=invalid-name, too-many-arguments, line-too-long, too-many-locals
 
 
-@then('the status <status> , with temperature <temperature> and relative humidity <relative_humidity>, and wind_direction <wind_direction> and wind_speed <wind_speed> and precipitation <precipitation> and grass_cure_percentage <grass_cure_percentage> and ffmc <ffmc> and dc <dc> and <dmc> and isi <isi> and <bui> and fwi <fwi> and danger_cl <danger_cl> and fbp_fuel_type <fbp_fuel_type>')
+@then('the response has status <status> and temperature <temperature> and relative humidity <relative_humidity>, and wind_direction <wind_direction> and wind_speed <wind_speed> and precipitation <precipitation> and grass_cure_percentage <grass_cure_percentage> and ffmc <ffmc> and dc <dc> and <dmc> and isi <isi> and <bui> and fwi <fwi> and danger_cl <danger_cl>')
 def assert_individual_station_data(
         response,
+        status,
         temperature,
         relative_humidity,
         wind_direction,
@@ -72,10 +73,10 @@ def assert_individual_station_data(
         isi,
         bui,
         fwi,
-        danger_cl,
-        fbp_fuel_type):
+        danger_cl):
     """ Assert that the response includes specific data for an individual weather station """
     daily = response.json()['dailies'][0]
+    assert daily['status'] == status
     assert daily['temperature'] == float(temperature)
     assert daily['relative_humidity'] == float(relative_humidity)
     assert daily['wind_direction'] == float(wind_direction)
@@ -89,4 +90,3 @@ def assert_individual_station_data(
     assert daily['bui'] == float(bui)
     assert daily['fwi'] == float(fwi)
     assert daily['danger_cl'] == float(danger_cl)
-    assert daily['fbp_fuel_type'] == fbp_fuel_type
