@@ -18,7 +18,7 @@ def get_utc_now():
 
 def get_utc_today_start_and_end():
     """ Get the start and end datetime range for today in UTC"""
-    today = datetime.now(tz=timezone.utc)
+    today = datetime.now(tz=get_pst_tz())
     start = today.replace(hour=0, minute=0, second=0, microsecond=0)
     end = start + timedelta(days=1)
 
