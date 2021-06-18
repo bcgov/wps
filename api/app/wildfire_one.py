@@ -9,6 +9,7 @@ import asyncio
 from aiohttp import ClientSession, BasicAuth, TCPConnector
 from app import config
 from app.data.ecodivision_seasons import EcodivisionSeasons
+from app.utils.hfi_calculator import get_fire_centre_station_codes
 from app.db.models.observations import HourlyActual
 from app.schemas.hfi_calc import StationDaily
 from app.schemas.observations import WeatherStationHourlyReadings, WeatherReading
@@ -531,13 +532,12 @@ async def get_hourly_actuals_all_stations(
 
 async def get_wfwx_stations_from_station_codes(session, header, station_codes: Optional[List[int]]):
     """ Return the WFWX station ids from WFWX API given a list of station codes. """
-    kamloops_station_codes = (322, 239, 1108, 305, 1082, 266, 346, 286, 344,
-                              298, 388, 836, 1399, 280, 1055, 1029, 309, 306)
+    fire_centre_station_codes = await get_fire_centre_station_codes()
     wfwx_stations = await get_stations(session, header, mapper=wfwx_station_list_mapper)
 
-    # Default to all Kamloops WFWX station ids if no station codes are specified
+    # Default to all known WFWX station ids if no station codes are specified
     if station_codes is None:
-        return list(filter(lambda x: (x.code in kamloops_station_codes),
+        return list(filter(lambda x: (x.code in fire_centre_station_codes),
                            wfwx_stations))
     requested_stations = []
     station_code_dict = {station.code: station for station in wfwx_stations}
