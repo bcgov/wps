@@ -15,7 +15,7 @@ export interface StationDaily {
   isi: number
   bui: number
   fwi: number
-  danger_cl: number
+  danger_class: number
   observation_valid: number
   observation_valid_comment: string
 }

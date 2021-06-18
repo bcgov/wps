@@ -219,7 +219,7 @@ const DailyViewTable = (props: Props) => {
                                     <TableCell>
                                       {daily?.ffmc?.toFixed(DECIMAL_PLACES)}
                                     </TableCell>
-                                    <TableCell>{daily?.danger_cl}</TableCell>
+                                    <TableCell>{daily?.danger_class}</TableCell>
                                   </TableRow>
                                 )
                               })}

@@ -263,7 +263,7 @@ def _parse_daily(raw_daily, station_code) -> StationDaily:
         isi=raw_daily.get('initialSpreadIndex', None),
         bui=raw_daily.get('buildUpIndex', None),
         fwi=raw_daily.get('fireWeatherIndex', None),
-        danger_cl=raw_daily.get('dailySeverityRating', None),
+        danger_class=raw_daily.get('dailySeverityRating', None),
         observation_valid=raw_daily.get('observationValidInd', None),
         observation_valid_comment=raw_daily.get('observationValidComment', None)
     )

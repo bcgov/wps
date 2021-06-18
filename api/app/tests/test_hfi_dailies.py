@@ -57,7 +57,7 @@ def assert_status_code_200(response, status_code: int):
 # pylint: disable=invalid-name, too-many-arguments, line-too-long, too-many-locals
 
 
-@then('the response has status <status> and temperature <temperature> and relative humidity <relative_humidity>, and wind_direction <wind_direction> and wind_speed <wind_speed> and precipitation <precipitation> and grass_cure_percentage <grass_cure_percentage> and ffmc <ffmc> and dc <dc> and <dmc> and isi <isi> and <bui> and fwi <fwi> and danger_cl <danger_cl>')
+@then('the response has status <status> and temperature <temperature> and relative humidity <relative_humidity>, and wind_direction <wind_direction> and wind_speed <wind_speed> and precipitation <precipitation> and grass_cure_percentage <grass_cure_percentage> and ffmc <ffmc> and dc <dc> and <dmc> and isi <isi> and <bui> and fwi <fwi> and danger_class <danger_class>')
 def assert_individual_station_data(
         response,
         status,
@@ -73,7 +73,7 @@ def assert_individual_station_data(
         isi,
         bui,
         fwi,
-        danger_cl):
+        danger_class):
     """ Assert that the response includes specific data for an individual weather station """
     daily = response.json()['dailies'][0]
     assert daily['status'] == status
@@ -89,4 +89,4 @@ def assert_individual_station_data(
     assert daily['isi'] == float(isi)
     assert daily['bui'] == float(bui)
     assert daily['fwi'] == float(fwi)
-    assert daily['danger_cl'] == float(danger_cl)
+    assert daily['danger_class'] == float(danger_class)
