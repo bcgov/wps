@@ -6,7 +6,11 @@ import { fetchHFIStations } from '../slices/stationsSlice'
 import { fetchHFIDailies } from '../slices/hfiCalculatorSlice'
 import { useDispatch, useSelector } from 'react-redux'
 import { DateTime } from 'luxon'
-import { selectHFIDailies, selectHFIStations, selectHFIStationsLoading } from 'app/rootReducer'
+import {
+  selectHFIDailies,
+  selectHFIStations,
+  selectHFIStationsLoading
+} from 'app/rootReducer'
 import { makeStyles, CircularProgress } from '@material-ui/core'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 
