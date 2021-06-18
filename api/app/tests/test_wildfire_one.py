@@ -35,8 +35,11 @@ def test_build_dailies_by_station_code():
                       })
 
 
-station_1 = WFWXWeatherStation(code=322, wfwx_id="one")
-station_2 = WFWXWeatherStation(code=239, wfwx_id="two")
+code1 = 322
+code2 = 239
+all_station_codes = [code1, code2]
+station_1 = WFWXWeatherStation(code=code1, wfwx_id="one")
+station_2 = WFWXWeatherStation(code=code2, wfwx_id="two")
 all_stations = [station_1, station_2]
 
 
@@ -46,29 +49,35 @@ def mock_get_stations(_, __, **___):
     return all_stations
 
 
-def test_get_ids_from_station_codes_no_stations(mocker: MockFixture):
-    """ Verifies the query builder returns the correct url and parameters for dailies by station code """
+@asyncio.coroutine
+def mock_get_fire_centre_station_codes(__):
+    """ Returns mocked WFWXWeatherStations codes. """
+    return all_station_codes
 
+
+def test_get_ids_from_station_codes_no_stations(mocker: MockFixture, mock_session):
+    """ Verifies the query builder returns the correct url and parameters for dailies by station code """
+    mocker.patch('app.utils.hfi_calculator.get_all_stations', mock_get_fire_centre_station_codes)
     mocker.patch('app.wildfire_one.get_stations', mock_get_stations)
 
     async def run_test():
         """ Async function to run test and assert result """
         result = await get_wfwx_stations_from_station_codes(None, {}, None)
-        assert result == all_stations
+        assert result == []
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     loop.run_until_complete(run_test())
 
 
-def test_get_ids_from_station_codes(mocker: MockFixture):
+def test_get_ids_from_station_codes(mocker: MockFixture, mock_session):
     """ Verifies the query builder returns the correct url and parameters for dailies by station code """
-
+    mocker.patch('app.utils.hfi_calculator.get_all_stations', mock_get_fire_centre_station_codes)
     mocker.patch('app.wildfire_one.get_stations', mock_get_stations)
 
     async def run_test():
         """ Async function to run test and assert result """
-        result = await get_wfwx_stations_from_station_codes(None, {}, [322])
+        result = await get_wfwx_stations_from_station_codes(None, {}, [code1])
         assert result == [station_1]
 
     loop = asyncio.new_event_loop()

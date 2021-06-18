@@ -1,13 +1,21 @@
 """ BDD tests for API /hfi-calc/daily """
 import logging
+import asyncio
 from pytest_bdd import scenario, given, then
 import pytest
 from aiohttp import ClientSession
 from starlette.testclient import TestClient
+from pytest_mock import MockerFixture
 from app.tests.common import default_mock_client_get
 import app.main
 
 logger = logging.getLogger(__name__)
+
+
+@asyncio.coroutine
+def mock_get_fire_centre_station_codes(__):
+    """ Returns mocked WFWXWeatherStation codes. """
+    return []
 
 
 @pytest.mark.usefixtures("mock_jwt_decode")
@@ -36,10 +44,11 @@ def test_hfi_daily_metrics():
 
 
 @given('I request metrics for all stations beginning at time <start_time_stamp> and ending at time <end_time_stamp>.', target_fixture='response')
-def given_time_range_metrics_request(monkeypatch):
+def given_time_range_metrics_request(monkeypatch, mocker: MockerFixture):
     """ Make /hfi-calc/daily request using mocked out ClientSession.
     """
 
+    mocker.patch('app.utils.hfi_calculator.get_all_stations', mock_get_fire_centre_station_codes)
     monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
     # Create API client and get the response.
     client = TestClient(app.main.app)
