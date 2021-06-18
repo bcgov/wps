@@ -110,23 +110,25 @@ const StationComparisonTable = (props: Props) => {
                 <TableCell className={classes.darkColumnHeader} colSpan={5}>
                   Wind Speed (km/h)
                 </TableCell>
-                <TableCell className={classes.darkColumnHeader} colSpan={5}>
+                <TableCell className={classes.lightColumnHeader} colSpan={5}>
                   Wind Direction &deg;
                 </TableCell>
-                <TableCell className={classes.lightColumnHeader} colSpan={5}>
+                <TableCell className={classes.darkColumnHeader} colSpan={5}>
                   Precipitation (mm)
                 </TableCell>
-                <TableCell className={classes.darkColumnHeader}>
+                <TableCell className={classes.lightColumnHeader}>
                   Dew point &deg;C
                 </TableCell>
               </TableRow>
               <TableRow>
                 <TableCell>Weather Stations</TableCell>
-                {['temp', 'rh', 'wind', 'precip'].map((value, index) => {
-                  return SubHeadings(value, index, classes)
-                })}
+                {['temp', 'rh', 'wind speed', 'wind direction', 'precip'].map(
+                  (value, index) => {
+                    return SubHeadings(value, index, classes)
+                  }
+                )}
                 {/* Dew Point */}
-                <TableCell className={classes.darkColumnHeader}>Observed</TableCell>
+                <TableCell className={classes.lightColumnHeader}>Observed</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>

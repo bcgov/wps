@@ -11,7 +11,9 @@ import {
   PRECIP_VALUES_DECIMAL,
   RH_VALUES_DECIMAL,
   TEMPERATURE_VALUES_DECIMAL,
-  WIND_SPEED_VALUES_DECIMAL
+  WIND_SPEED_VALUES_DECIMAL,
+  WIND_SPEED_FORECAST_VALUES_DECIMAL,
+  WIND_DIRECTION_VALUES_DECIMAL
 } from 'utils/constants'
 import { AccumulatedPrecipitation } from 'utils/table'
 
@@ -94,19 +96,49 @@ const useStyles = makeStyles({
   }
 })
 
-const formatWindSpeedDirection = (
+const formatWindSpeedForecast = (
+  source: NoonForecastValue | undefined,
+  valueClassName: string[]
+): ReactElement => {
+  return (
+    <div>
+      {typeof source?.wind_speed === 'number' && (
+        <div className={valueClassName[0]}>
+          {source?.wind_speed?.toFixed(WIND_SPEED_FORECAST_VALUES_DECIMAL)}
+        </div>
+      )}
+    </div>
+  )
+}
+
+const formatWindSpeed = (
+  source: ObservedValue | ModelValue | undefined,
+  valueClassName: string[]
+): ReactElement => {
+  return (
+    <div>
+      {typeof source?.wind_speed === 'number' && (
+        <div className={valueClassName[0]}>
+          {source?.wind_speed?.toFixed(WIND_SPEED_VALUES_DECIMAL)}
+        </div>
+      )}
+    </div>
+  )
+}
+
+const formatWindDirection = (
   source: NoonForecastValue | ObservedValue | ModelValue | undefined,
   valueClassName: string[]
 ): ReactElement => {
   return (
     <div>
-      {typeof source?.wind_speed === 'number' &&
-        typeof source?.wind_direction === 'number' && (
-          <div className={valueClassName[0]}>
-            {source?.wind_speed?.toFixed(WIND_SPEED_VALUES_DECIMAL)},{' '}
-            {source?.wind_direction?.toFixed(WIND_SPEED_VALUES_DECIMAL)}
-          </div>
-        )}
+      {typeof source?.wind_direction === 'number' && (
+        <div className={valueClassName[0]}>
+          {source?.wind_direction
+            ?.toFixed(WIND_DIRECTION_VALUES_DECIMAL)
+            .padStart(3, '0')}
+        </div>
+      )}
     </div>
   )
 }
@@ -255,56 +287,56 @@ const ComparisonTableRow = (props: Props) => {
     },
     'Wind Speed': {
       Observed: {
-        formatFn: formatWindSpeedDirection,
+        formatFn: formatWindSpeed,
         data: props.observation,
-        styling: [classes.windSpeedValue, classes.windDirectionValue]
+        styling: [classes.windSpeedValue]
       },
       Forecast: {
-        formatFn: formatWindSpeedDirection,
+        formatFn: formatWindSpeedForecast,
         data: props.forecast,
-        styling: [classes.windSpeedValue, classes.windDirectionValue]
+        styling: [classes.windSpeedValue]
       },
       HRDPS: {
-        formatFn: formatWindSpeedDirection,
+        formatFn: formatWindSpeed,
         data: props.highResModel,
-        styling: [classes.windSpeedValue, classes.windDirectionValue]
+        styling: [classes.windSpeedValue]
       },
       RDPS: {
-        formatFn: formatWindSpeedDirection,
+        formatFn: formatWindSpeed,
         data: props.regionalModel,
-        styling: [classes.windSpeedValue, classes.windDirectionValue]
+        styling: [classes.windSpeedValue]
       },
       GDPS: {
-        formatFn: formatWindSpeedDirection,
+        formatFn: formatWindSpeed,
         data: props.globalModel,
-        styling: [classes.windSpeedValue, classes.windDirectionValue]
+        styling: [classes.windSpeedValue]
       }
     },
     'Wind Direction': {
       Observed: {
-        formatFn: formatWindSpeedDirection,
+        formatFn: formatWindDirection,
         data: props.observation,
-        styling: [classes.windSpeedValue, classes.windDirectionValue]
+        styling: [classes.windDirectionValue]
       },
       Forecast: {
-        formatFn: formatWindSpeedDirection,
+        formatFn: formatWindDirection,
         data: props.forecast,
-        styling: [classes.windSpeedValue, classes.windDirectionValue]
+        styling: [classes.windDirectionValue]
       },
       HRDPS: {
-        formatFn: formatWindSpeedDirection,
+        formatFn: formatWindDirection,
         data: props.highResModel,
-        styling: [classes.windSpeedValue, classes.windDirectionValue]
+        styling: [classes.windDirectionValue]
       },
       RDPS: {
-        formatFn: formatWindSpeedDirection,
+        formatFn: formatWindDirection,
         data: props.regionalModel,
-        styling: [classes.windSpeedValue, classes.windDirectionValue]
+        styling: [classes.windDirectionValue]
       },
       GDPS: {
-        formatFn: formatWindSpeedDirection,
+        formatFn: formatWindDirection,
         data: props.globalModel,
-        styling: [classes.windSpeedValue, classes.windDirectionValue]
+        styling: [classes.windDirectionValue]
       }
     },
     Precipitation: {

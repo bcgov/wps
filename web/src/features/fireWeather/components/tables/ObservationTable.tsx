@@ -9,7 +9,8 @@ import {
   ISI_VALUES_DECIMAL,
   PRECIP_VALUES_DECIMAL,
   TEMPERATURE_VALUES_DECIMAL,
-  WIND_SPEED_VALUES_DECIMAL
+  WIND_SPEED_VALUES_DECIMAL,
+  WIND_DIRECTION_VALUES_DECIMAL
 } from 'utils/constants'
 import { formatDateInPST } from 'utils/date'
 
@@ -44,7 +45,8 @@ export const columns: Column[] = [
     id: 'wind_direction',
     label: 'Wind Dir °',
     align: 'right',
-    format: (value: number): number => Math.round(value)
+    format: (value: number): string =>
+      value.toFixed(WIND_DIRECTION_VALUES_DECIMAL).padStart(3, '0')
   },
   {
     id: 'wind_speed',
