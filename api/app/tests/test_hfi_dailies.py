@@ -54,39 +54,86 @@ def assert_status_code_200(response, status_code: int):
     """ Assert that we receive the expected status code """
     assert response.status_code == int(status_code)
 
-# pylint: disable=invalid-name, too-many-arguments, line-too-long, too-many-locals
+
+@then('the response has status <status>')
+def assert_status(response, status):
+    """ Assert expected status """
+    assert status == response.json()['dailies'][0]['status']
 
 
-@then('the response has status <status> and temperature <temperature> and relative humidity <relative_humidity>, and wind_direction <wind_direction> and wind_speed <wind_speed> and precipitation <precipitation> and grass_cure_percentage <grass_cure_percentage> and ffmc <ffmc> and dc <dc> and <dmc> and isi <isi> and <bui> and fwi <fwi> and danger_class <danger_class>')
-def assert_individual_station_data(
-        response,
-        status,
-        temperature,
-        relative_humidity,
-        wind_direction,
-        wind_speed,
-        precipitation,
-        grass_cure_percentage,
-        ffmc,
-        dc,
-        dmc,
-        isi,
-        bui,
-        fwi,
-        danger_class):
-    """ Assert that the response includes specific data for an individual weather station """
-    daily = response.json()['dailies'][0]
-    assert daily['status'] == status
-    assert daily['temperature'] == float(temperature)
-    assert daily['relative_humidity'] == float(relative_humidity)
-    assert daily['wind_direction'] == float(wind_direction)
-    assert daily['wind_speed'] == float(wind_speed)
-    assert daily['precipitation'] == float(precipitation)
-    assert daily['grass_cure_percentage'] == float(grass_cure_percentage)
-    assert daily['ffmc'] == float(ffmc)
-    assert daily['dmc'] == float(dmc)
-    assert daily['dc'] == float(dc)
-    assert daily['isi'] == float(isi)
-    assert daily['bui'] == float(bui)
-    assert daily['fwi'] == float(fwi)
-    assert daily['danger_class'] == float(danger_class)
+@then('<temperature>')
+def assert_temperature(response, temperature):
+    """ Assert expected temperature """
+    assert float(temperature) == response.json()['dailies'][0]['temperature']
+
+
+@then('<relative_humidity>')
+def assert_relative_humidity(response, relative_humidity):
+    """ Assert expected relative_humidity """
+    assert relative_humidity == response.json()['dailies'][0]['relative_humidity']
+
+
+@then('<wind_direction>')
+def assert_wind_direction(response, wind_direction):
+    """ Assert expected wind_direction """
+    assert wind_direction == response.json()['dailies'][0]['wind_direction']
+
+
+@then('<wind_speed>')
+def assert_wind_speed(response, wind_speed):
+    """ Assert expected wind_speed """
+    assert wind_speed == response.json()['dailies'][0]['wind_speed']
+
+
+@then('<precipitation>')
+def assert_precipitation(response, precipitation):
+    """ Assert expected precipitation """
+    assert precipitation == response.json()['dailies'][0]['precipitation']
+
+
+@then('<grass_cure_percentage>')
+def assert_grass_cure_percentage(response, grass_cure_percentage):
+    """ Assert expected grass_cure_percentage """
+    assert grass_cure_percentage == response.json()['dailies'][0]['grass_cure_percentage']
+
+
+@then('<ffmc>')
+def assert_ffmc(response, ffmc):
+    """ Assert expected ffmc """
+    assert ffmc == response.json()['dailies'][0]['ffmc']
+
+
+@then('<dc>')
+def assert_dc(response, dc):
+    """ Assert expected dc """
+    assert dc == response.json()['dailies'][0]['dc']
+
+
+@then('<dmc>')
+def assert_dmc(response, dmc):
+    """ Assert expected dmc """
+    assert dmc == response.json()['dailies'][0]['dmc']
+
+
+@then('<isi>')
+def assert_isi(response, isi):
+    """ Assert expected isi """
+    assert isi == response.json()['dailies'][0]['isi']
+
+
+@then('<bui>')
+def assert_bui(response, bui):
+    """ Assert expected bui """
+    assert bui == response.json()['dailies'][0]['bui']
+
+
+@then('<fwi>')
+def assert_fwi(response, fwi):
+    """ Assert expected fwi """
+    assert fwi == response.json()['dailies'][0]['fwi']
+
+
+@then('<danger_class>')
+def assert_danger_class(response, danger_class):
+    """ Assert expected danger_class """
+    assert float(danger_class) == response.json()['dailies'][0]['danger_class']

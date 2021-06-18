@@ -3,7 +3,20 @@ Feature: /hfi-calc/daily
     Scenario: Get metrics for stations
         Given I request metrics for all stations beginning at time <start_time_stamp> and ending at time <end_time_stamp>.
         Then the response status code is <status_code>
-        And the response has status <status> and temperature <temperature> and relative humidity <relative_humidity>, and wind_direction <wind_direction> and wind_speed <wind_speed> and precipitation <precipitation> and grass_cure_percentage <grass_cure_percentage> and ffmc <ffmc> and dc <dc> and <dmc> and isi <isi> and <bui> and fwi <fwi> and danger_class <danger_class>
+        And the response has status <status>
+        And <temperature>
+        And <relative_humidity>
+        And <wind_direction>
+        And <wind_speed>
+        And <precipitation>
+        And <grass_cure_percentage>
+        And <ffmc>
+        And <dc>
+        And <dmc>
+        And <isi>
+        And <bui>
+        And <fwi>
+        And <danger_class>
 
         Examples:
             | status_code | start_time_stamp | end_time_stamp | status   | temperature | relative_humidity | wind_direction | wind_speed | precipitation | grass_cure_percentage | ffmc | dc  | dmc | isi | bui | fwi | danger_class |
