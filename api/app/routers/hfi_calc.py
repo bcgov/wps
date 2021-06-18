@@ -47,7 +47,11 @@ async def get_daily_view(response: Response,
 
     async with ClientSession() as session:
         header = await get_auth_header(session)
-        wfwx_stations = await get_wfwx_stations_from_station_codes(session, header, station_codes)
+        # Get the stations (using cache if possible)
+        wfwx_stations = await get_wfwx_stations_from_station_codes(session,
+                                                                   header,
+                                                                   station_codes,
+                                                                   use_cache=True)
         dailies = await get_dailies(
             session, header, wfwx_stations, valid_start_time, valid_end_time)
         return StationDailyResponse(dailies=dailies)
