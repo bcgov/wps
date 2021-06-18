@@ -137,6 +137,30 @@ async def get_auth_header(session: ClientSession) -> dict:
     return header
 
 
+async def _fetch_cached_response(session: ClientSession, headers: dict, url: str, params: dict,
+                                 cache_expiry_seconds: int):
+    cache = Redis(host=config.get('REDIS_HOST'), port=config.get('REDIS_PORT', 6379), db=0)
+
+    key = f'{url}?{urlencode(params)}'
+    try:
+        cached_json = cache.get(key)
+    except redis.exceptions.ConnectionError as error:
+        cached_json = None
+        logger.warning(error)
+    if cached_json:
+        logger.info('redis cache hit')
+        response_json = json.loads(cached_json.decode())
+    else:
+        logger.info('cache miss')
+        async with session.get(url, headers=headers, params=params) as response:
+            response_json = await response.json()
+        try:
+            cache.set(key, json.dumps(response_json).encode(), ex=cache_expiry_seconds)
+        except ConnectionError as error:
+            logger.warning(error)
+    return response_json
+
+
 async def _fetch_paged_response_generator(
         session: ClientSession,
         headers: dict,
@@ -151,31 +175,13 @@ async def _fetch_paged_response_generator(
     # We don't know how many pages until our first call - so we assume one page to start with.
     total_pages = 1
     page_count = 0
-    cache = Redis(host=config.get('REDIS_HOST'),
-                  port=config.get('REDIS_PORT', 6379),
-                  db=0) if use_cache and config.get('REDIS_USE') == 'True' else None
     while page_count < total_pages:
         # Build up the request URL.
         url, params = query_builder.query(page_count)
         logger.debug('loading station page %d...', page_count)
-        if cache:
-            key = f'{url}?{urlencode(params)}'
-            try:
-                cached_json = cache.get(key)
-            except redis.exceptions.ConnectionError as error:
-                cached_json = None
-                logger.warning(error)
-            if cached_json:
-                logger.info('redis cache hit')
-                response_json = json.loads(cached_json.decode())
-            else:
-                logger.info('cache miss')
-                async with session.get(url, headers=headers, params=params) as response:
-                    response_json = await response.json()
-                try:
-                    cache.set(key, json.dumps(response_json).encode(), ex=cache_expiry_seconds)
-                except ConnectionError as error:
-                    logger.warning(error)
+        if use_cache and config.get('REDIS_USE') == 'True':
+            # We've been told and configured to use the redis cache.
+            response_json = await _fetch_cached_response(session, headers, url, params, cache_expiry_seconds)
         else:
             async with session.get(url, headers=headers, params=params) as response:
                 response_json = await response.json()
