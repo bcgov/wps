@@ -114,8 +114,10 @@ async def get_auth_header(session: ClientSession) -> dict:
 
 async def _fetch_cached_response(session: ClientSession, headers: dict, url: str, params: dict,
                                  cache_expiry_seconds: int):
-    cache = StrictRedis(host=config.get('REDIS_HOST'), port=config.get(
-        'REDIS_PORT', 6379), db=0, password=config.get('REDIS_PASSWORD'))
+    cache = StrictRedis(host=config.get('REDIS_HOST'),
+                        port=config.get('REDIS_PORT', 6379),
+                        db=0,
+                        password=config.get('REDIS_PASSWORD'))
 
     key = f'{url}?{urlencode(params)}'
     try:
