@@ -9,8 +9,7 @@ import logging
 import asyncio
 from urllib.parse import urlencode
 from aiohttp import ClientSession, BasicAuth, TCPConnector
-from redis import Redis
-import redis.exceptions
+from redis import StrictRedis
 from app import config
 from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.db.models.observations import HourlyActual
@@ -139,14 +138,15 @@ async def get_auth_header(session: ClientSession) -> dict:
 
 async def _fetch_cached_response(session: ClientSession, headers: dict, url: str, params: dict,
                                  cache_expiry_seconds: int):
-    cache = Redis(host=config.get('REDIS_HOST'), port=config.get('REDIS_PORT', 6379), db=0)
+    cache = StrictRedis(host=config.get('REDIS_HOST'), port=config.get(
+        'REDIS_PORT', 6379), db=0, password=config.get('REDIS_PASSWORD'))
 
     key = f'{url}?{urlencode(params)}'
     try:
         cached_json = cache.get(key)
-    except redis.exceptions.ConnectionError as error:
+    except Exception as error:  # pylint: disable=broad-except
         cached_json = None
-        logger.warning(error)
+        logger.error(error)
     if cached_json:
         logger.info('redis cache hit')
         response_json = json.loads(cached_json.decode())
@@ -156,8 +156,8 @@ async def _fetch_cached_response(session: ClientSession, headers: dict, url: str
             response_json = await response.json()
         try:
             cache.set(key, json.dumps(response_json).encode(), ex=cache_expiry_seconds)
-        except ConnectionError as error:
-            logger.warning(error)
+        except Exception as error:  # pylint: disable=broad-except
+            logger.error(error)
     return response_json
 
 

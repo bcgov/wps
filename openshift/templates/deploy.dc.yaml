@@ -254,6 +254,11 @@ objects:
                     configMapKeyRef:
                       name: ${NAME}-global
                       key: env.redis-use
+                - name: REDIS_PASSWORD
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-redis
+                      key: database-password
               ports:
                 - containerPort: 8080
                   protocol: TCP
