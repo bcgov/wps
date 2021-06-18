@@ -256,7 +256,7 @@ objects:
                       key: env.redis-use
                 - name: REDIS_PASSWORD
                   valueFrom:
-                    configMapKeyRef:
+                    secretKeyRef:
                       name: ${NAME}-redis
                       key: database-password
               ports:
