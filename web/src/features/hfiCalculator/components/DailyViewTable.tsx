@@ -39,7 +39,8 @@ const useStyles = makeStyles({
   tableContainer: {
     maxHeight: 1080,
     maxWidth: 1900,
-    minWidth: 1600
+    minWidth: 1600,
+    '& .MuiTableCell-head': { fontWeight: 'bold', padding: '1px' }
   },
   fireCentre: {
     fontSize: 16,
@@ -58,10 +59,6 @@ const useStyles = makeStyles({
       paddingLeft: '20px'
     }
   },
-  tableHeader: {
-    fontWeight: 'bold',
-    padding: '1px'
-  },
   borderless: {
     border: 'none'
   },
@@ -75,12 +72,7 @@ const useStyles = makeStyles({
 const DailyViewTable = (props: Props) => {
   const classes = useStyles()
 
-  const roundToOneDecimalPlace = (value: number | undefined): number | undefined => {
-    if (value !== undefined) {
-      return Math.round(value * 10) / 10
-    }
-    return undefined
-  }
+  const DECIMAL_PLACES = 1
 
   return (
     <div className={classes.display} data-testid={props.testId}>
@@ -101,90 +93,61 @@ const DailyViewTable = (props: Props) => {
           <Table stickyHeader aria-label="daily table view of HFI by planning area">
             <TableHead>
               <TableRow>
-                {/* TableHead and TableRow don't apply classes.tableHeader styling - has to be assigned to TableCell */}
-                <TableCell
-                  className={classes.tableHeader}
-                  align="right"
-                  key="header-location"
-                >
-                  Location
-                </TableCell>
-                <TableCell
-                  className={classes.tableHeader}
-                  align="right"
-                  key="header-elevation"
-                >
+                <TableCell key="header-location">Location</TableCell>
+                <TableCell key="header-elevation">
                   Elev.
                   <br />
                   (m)
                 </TableCell>
-                <TableCell
-                  className={classes.tableHeader}
-                  align="right"
-                  key="header-fuel-type"
-                >
+                <TableCell key="header-fuel-type">
                   FBP
                   <br />
                   Fuel
                   <br />
                   Type
                 </TableCell>
-                <TableCell className={classes.tableHeader} align="right">
-                  Status
-                </TableCell>
-                <TableCell className={classes.tableHeader} align="right">
+                <TableCell>Status</TableCell>
+                <TableCell>
                   Temp
                   <br />
                   (°C)
                 </TableCell>
-                <TableCell className={classes.tableHeader} align="right">
+                <TableCell>
                   RH
                   <br />
                   (%)
                 </TableCell>
-                <TableCell className={classes.tableHeader} align="right">
+                <TableCell>
                   Wind
                   <br />
                   Dir
                 </TableCell>
-                <TableCell className={classes.tableHeader} align="right">
+                <TableCell>
                   Wind
                   <br />
                   Speed
                   <br />
                   (km/h)
                 </TableCell>
-                <TableCell className={classes.tableHeader} align="right">
+                <TableCell>
                   Precip
                   <br />
                   (mm)
                 </TableCell>
-                <TableCell className={classes.tableHeader} align="right">
+                <TableCell>
                   Grass
                   <br />
                   Cure
                   <br />
                   (%)
                 </TableCell>
-                <TableCell className={classes.tableHeader} align="right">
-                  FFMC
-                </TableCell>
-                <TableCell className={classes.tableHeader} align="right">
-                  DMC
-                </TableCell>
-                <TableCell className={classes.tableHeader} align="right">
-                  DC
-                </TableCell>
-                <TableCell className={classes.tableHeader} align="right">
-                  ISI
-                </TableCell>
-                <TableCell className={classes.tableHeader} align="right">
-                  BUI
-                </TableCell>
-                <TableCell className={classes.tableHeader} align="right">
-                  FWI
-                </TableCell>
-                <TableCell className={classes.tableHeader} align="right">
+                <TableCell>FFMC</TableCell>
+                <TableCell>DMC</TableCell>
+                <TableCell>DC</TableCell>
+                <TableCell>ISI</TableCell>
+                <TableCell>BUI</TableCell>
+                <TableCell>FWI</TableCell>
+                <TableCell>
                   DGR
                   <br />
                   CL
@@ -231,46 +194,32 @@ const DailyViewTable = (props: Props) => {
                                     <TableCell key={`station-${station.code}-fuel-type`}>
                                       {station.station_props.fuel_type.abbrev}
                                     </TableCell>
-                                    <TableCell align="right">{daily?.status}</TableCell>
-                                    <TableCell align="right">
-                                      {daily?.temperature}
+                                    <TableCell>{daily?.status}</TableCell>
+                                    <TableCell>{daily?.temperature}</TableCell>
+                                    <TableCell>{daily?.relative_humidity}</TableCell>
+                                    <TableCell>{daily?.wind_direction}</TableCell>
+                                    <TableCell>{daily?.wind_speed}</TableCell>
+                                    <TableCell>{daily?.precipitation}</TableCell>
+                                    <TableCell>{daily?.grass_cure_percentage}</TableCell>
+                                    <TableCell>
+                                      {daily?.ffmc?.toFixed(DECIMAL_PLACES)}
                                     </TableCell>
-                                    <TableCell align="right">
-                                      {daily?.relative_humidity}
+                                    <TableCell>
+                                      {daily?.dmc?.toFixed(DECIMAL_PLACES)}
                                     </TableCell>
-                                    <TableCell align="right">
-                                      {daily?.wind_direction}
+                                    <TableCell>
+                                      {daily?.dc?.toFixed(DECIMAL_PLACES)}
                                     </TableCell>
-                                    <TableCell align="right">
-                                      {daily?.wind_speed}
+                                    <TableCell>
+                                      {daily?.isi?.toFixed(DECIMAL_PLACES)}
                                     </TableCell>
-                                    <TableCell align="right">
-                                      {daily?.precipitation}
+                                    <TableCell>
+                                      {daily?.bui?.toFixed(DECIMAL_PLACES)}
                                     </TableCell>
-                                    <TableCell align="right">
-                                      {daily?.grass_cure_percentage}
+                                    <TableCell>
+                                      {daily?.ffmc?.toFixed(DECIMAL_PLACES)}
                                     </TableCell>
-                                    <TableCell align="right">
-                                      {roundToOneDecimalPlace(daily?.ffmc)}
-                                    </TableCell>
-                                    <TableCell align="right">
-                                      {roundToOneDecimalPlace(daily?.dmc)}
-                                    </TableCell>
-                                    <TableCell align="right">
-                                      {roundToOneDecimalPlace(daily?.dc)}
-                                    </TableCell>
-                                    <TableCell align="right">
-                                      {roundToOneDecimalPlace(daily?.isi)}
-                                    </TableCell>
-                                    <TableCell align="right">
-                                      {roundToOneDecimalPlace(daily?.bui)}
-                                    </TableCell>
-                                    <TableCell align="right">
-                                      {roundToOneDecimalPlace(daily?.fwi)}
-                                    </TableCell>
-                                    <TableCell align="right">
-                                      {daily?.danger_cl}
-                                    </TableCell>
+                                    <TableCell>{daily?.danger_cl}</TableCell>
                                   </TableRow>
                                 )
                               })}
