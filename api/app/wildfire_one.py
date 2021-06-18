@@ -1,12 +1,16 @@
 """ This module contains methods for retrieving information from the WFWX Fireweather API.
 """
 import math
-from typing import Generator, Dict, List, Optional, Tuple
+import json
+from typing import Generator, Dict, List, Optional, Tuple, Final
 from datetime import datetime, timezone
 from abc import abstractmethod, ABC
 import logging
 import asyncio
+from urllib.parse import urlencode
 from aiohttp import ClientSession, BasicAuth, TCPConnector
+from redis import Redis
+import redis.exceptions
 from app import config
 from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.db.models.observations import HourlyActual
@@ -137,7 +141,9 @@ async def _fetch_paged_response_generator(
         session: ClientSession,
         headers: dict,
         query_builder: BuildQuery,
-        content_key: str
+        content_key: str,
+        use_cache: bool = False,
+        cache_expiry_seconds: int = 86400
 ) -> Generator[dict, None, None]:
     """ Asynchronous generator for iterating through responses from the API.
     The response is a paged response, but this generator abstracts that away.
@@ -145,13 +151,35 @@ async def _fetch_paged_response_generator(
     # We don't know how many pages until our first call - so we assume one page to start with.
     total_pages = 1
     page_count = 0
+    cache = Redis(host=config.get('REDIS_HOST'),
+                  port=config.get('REDIS_PORT', 6379),
+                  db=0) if use_cache and config.get('REDIS_USE') == 'True' else None
     while page_count < total_pages:
         # Build up the request URL.
         url, params = query_builder.query(page_count)
         logger.debug('loading station page %d...', page_count)
-        async with session.get(url, headers=headers, params=params) as response:
-            response_json = await response.json()
-            logger.debug('done loading station page %d.', page_count)
+        if cache:
+            key = f'{url}?{urlencode(params)}'
+            try:
+                cached_json = cache.get(key)
+            except redis.exceptions.ConnectionError as error:
+                cached_json = None
+                logger.warning(error)
+            if cached_json:
+                logger.info('redis cache hit')
+                response_json = json.loads(cached_json.decode())
+            else:
+                logger.info('cache miss')
+                async with session.get(url, headers=headers, params=params) as response:
+                    response_json = await response.json()
+                try:
+                    cache.set(key, json.dumps(response_json).encode(), ex=cache_expiry_seconds)
+                except ConnectionError as error:
+                    logger.warning(error)
+        else:
+            async with session.get(url, headers=headers, params=params) as response:
+                response_json = await response.json()
+        logger.debug('done loading station page %d.', page_count)
 
         # Update the total page count.
         total_pages = response_json['page']['totalPages'] if 'page' in response_json else 1
@@ -322,13 +350,19 @@ async def wfwx_station_list_mapper(raw_stations: Generator[dict, None, None]) ->
 
 async def get_stations(session: ClientSession,
                        header: dict,
-                       mapper=station_list_mapper):
+                       mapper=station_list_mapper,
+                       use_cache: bool = False) -> List[WeatherStation]:
     """ Get list of stations from WFWX Fireweather API.
     """
     logger.info('Using WFWX to retrieve station list')
+    # 1 day seems a reasonable period to cache stations for.
+    redis_station_cache_expiry: Final = 86400
     # Iterate through "raw" station data.
     raw_stations = _fetch_paged_response_generator(
-        session, header, BuildQueryAllActiveStations(), 'stations')
+        session, header, BuildQueryAllActiveStations(),
+        'stations',
+        use_cache,
+        redis_station_cache_expiry)
     # Map list of stations into desired shape
     stations = await mapper(raw_stations)
     logger.debug('total stations: %d', len(stations))
@@ -529,11 +563,17 @@ async def get_hourly_actuals_all_stations(
     return hourly_actuals
 
 
-async def get_wfwx_stations_from_station_codes(session, header, station_codes: Optional[List[int]]):
+async def get_wfwx_stations_from_station_codes(session,
+                                               header,
+                                               station_codes: Optional[List[int]],
+                                               use_cache: bool = False):
     """ Return the WFWX station ids from WFWX API given a list of station codes. """
     kamloops_station_codes = (322, 239, 1108, 305, 1082, 266, 346, 286, 344,
                               298, 388, 836, 1399, 280, 1055, 1029, 309, 306)
-    wfwx_stations = await get_stations(session, header, mapper=wfwx_station_list_mapper)
+    wfwx_stations = await get_stations(session,
+                                       header,
+                                       mapper=wfwx_station_list_mapper,
+                                       use_cache=use_cache)
 
     # Default to all Kamloops WFWX station ids if no station codes are specified
     if station_codes is None:
