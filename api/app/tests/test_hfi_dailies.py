@@ -102,6 +102,8 @@ def assert_ffmc(response, ffmc):
     """ Assert expected ffmc """
     assert ffmc == response.json()['dailies'][0]['ffmc']
 
+# pylint: disable= invalid-name
+
 
 @then('<dc>')
 def assert_dc(response, dc):
