@@ -6,7 +6,7 @@ from app.db.crud.hfi_calc import get_all_stations
 from app.db.database import get_read_session_scope
 
 
-async def get_fire_centre_station_codes() -> List[int]:
+def get_fire_centre_station_codes() -> List[int]:
     """ Retrieves station codes for fire centers
     """
     station_codes = []

@@ -1,6 +1,5 @@
 """ BDD tests for API /hfi-calc/daily """
 import logging
-import asyncio
 from pytest_bdd import scenario, given, then
 import pytest
 from aiohttp import ClientSession
@@ -12,7 +11,6 @@ import app.main
 logger = logging.getLogger(__name__)
 
 
-@asyncio.coroutine
 def mock_get_fire_centre_station_codes(__):
     """ Returns mocked WFWXWeatherStation codes. """
     return []

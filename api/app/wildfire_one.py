@@ -532,7 +532,7 @@ async def get_hourly_actuals_all_stations(
 
 async def get_wfwx_stations_from_station_codes(session, header, station_codes: Optional[List[int]]):
     """ Return the WFWX station ids from WFWX API given a list of station codes. """
-    fire_centre_station_codes = await get_fire_centre_station_codes()
+    fire_centre_station_codes = get_fire_centre_station_codes()
     wfwx_stations = await get_stations(session, header, mapper=wfwx_station_list_mapper)
 
     # Default to all known WFWX station ids if no station codes are specified
