@@ -197,7 +197,9 @@ const DailyViewTable = (props: Props) => {
                                     <TableCell>{daily?.status}</TableCell>
                                     <TableCell>{daily?.temperature}</TableCell>
                                     <TableCell>{daily?.relative_humidity}</TableCell>
-                                    <TableCell>{daily?.wind_direction}</TableCell>
+                                    <TableCell>
+                                      {daily?.wind_direction?.toFixed(0).padStart(3, '0')}
+                                    </TableCell>
                                     <TableCell>{daily?.wind_speed}</TableCell>
                                     <TableCell>{daily?.precipitation}</TableCell>
                                     <TableCell>{daily?.grass_cure_percentage}</TableCell>
