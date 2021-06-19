@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
 import { Data, Shape, Layout, RangeSlider, PlotData, BoxPlotData } from 'plotly.js'
-import { WIND_SPEED_VALUES_DECIMAL } from 'utils/constants'
-import { PST_UTC_OFFSET } from 'utils/constants'
+import { WIND_SPEED_VALUES_DECIMAL, PST_UTC_OFFSET } from 'utils/constants'
+import { formatWindDirection } from 'utils/format'
 import { formatDateInPST } from 'utils/date'
 
 export const findMaxNumber = (arr: number[]): number => {
@@ -641,7 +641,9 @@ export const populateGraphDataForWind = (
     if (wind_speed != null) {
       dates.push(formatDateInPST(datetime))
       windSpds.push(wind_speed)
-      windSpdsTexts.push(wind_direction != null ? `${Math.round(wind_direction)}` : '-')
+      windSpdsTexts.push(
+        wind_direction != null ? `${formatWindDirection(wind_direction)}` : '-'
+      )
 
       if (wind_direction != null && show) {
         const arrowShape = rotatePoints(arrowPoints, wind_direction)
