@@ -7,14 +7,14 @@ import { ModelValue } from 'api/modelAPI'
 import { NoonForecastValue } from 'api/forecastAPI'
 import { ObservedValue } from 'api/observationAPI'
 import {
-  DEW_POINT_VALUES_DECIMAL,
-  PRECIP_VALUES_DECIMAL,
-  RH_VALUES_DECIMAL,
-  TEMPERATURE_VALUES_DECIMAL,
-  WIND_SPEED_VALUES_DECIMAL,
-  WIND_SPEED_FORECAST_VALUES_DECIMAL,
-  WIND_DIRECTION_VALUES_DECIMAL
-} from 'utils/constants'
+  formatWindDirection as formatWindDirectionValue,
+  formatWindSpeed as formatWindSpeedValue,
+  formatTemperature as formatTemperatureValue,
+  formatForecastWindSpeed as formatForecastWindSpeedValue,
+  formatRelativeHumidity as formatRelativeHumidityValue,
+  formatPrecipitation as formatPrecipitationValue,
+  formatDewPoint as formatDewPointValue
+} from 'utils/format'
 import { AccumulatedPrecipitation } from 'utils/table'
 
 export type DataSource = 'Observed' | 'Forecast' | 'HRDPS' | 'RDPS' | 'GDPS'
@@ -104,7 +104,7 @@ const formatWindSpeedForecast = (
     <div>
       {typeof source?.wind_speed === 'number' && (
         <div className={valueClassName[0]}>
-          {source?.wind_speed?.toFixed(WIND_SPEED_FORECAST_VALUES_DECIMAL)}
+          {formatForecastWindSpeedValue(source.wind_speed)}
         </div>
       )}
     </div>
@@ -118,9 +118,7 @@ const formatWindSpeed = (
   return (
     <div>
       {typeof source?.wind_speed === 'number' && (
-        <div className={valueClassName[0]}>
-          {source?.wind_speed?.toFixed(WIND_SPEED_VALUES_DECIMAL)}
-        </div>
+        <div className={valueClassName[0]}>{formatWindSpeedValue(source.wind_speed)}</div>
       )}
     </div>
   )
@@ -134,9 +132,7 @@ const formatWindDirection = (
     <div>
       {typeof source?.wind_direction === 'number' && (
         <div className={valueClassName[0]}>
-          {source?.wind_direction
-            ?.toFixed(WIND_DIRECTION_VALUES_DECIMAL)
-            .padStart(3, '0')}
+          {formatWindDirectionValue(source.wind_direction)}
         </div>
       )}
     </div>
@@ -149,7 +145,7 @@ const formatTemperature = (
   return (
     <div>
       {typeof source?.temperature === 'number' &&
-        `${source?.temperature?.toFixed(TEMPERATURE_VALUES_DECIMAL)}`}
+        `${formatTemperatureValue(source.temperature)}`}
     </div>
   )
 }
@@ -161,7 +157,7 @@ const formatRelativeHumidity = (
   return (
     <div className={valueClassName[0]}>
       {typeof source?.relative_humidity === 'number' &&
-        `${source?.relative_humidity?.toFixed(RH_VALUES_DECIMAL)}`}
+        `${formatRelativeHumidityValue(source.relative_humidity)}`}
     </div>
   )
 }
@@ -172,19 +168,14 @@ const formatPrecipitation = (
 ): ReactElement => {
   return (
     <div className={valueClassName[0]}>
-      {typeof precipitation === 'number' &&
-        `${precipitation.toFixed(PRECIP_VALUES_DECIMAL)}`}
+      {typeof precipitation === 'number' && `${formatPrecipitationValue(precipitation)}`}
     </div>
   )
 }
 
 const formatDewPoint = (observation: ObservedValue | undefined) => {
   const dewpoint = observation?.dewpoint
-  return (
-    <div>
-      {typeof dewpoint === 'number' && `${dewpoint.toFixed(DEW_POINT_VALUES_DECIMAL)}`}
-    </div>
-  )
+  return <div>{typeof dewpoint === 'number' && `${formatDewPointValue(dewpoint)}`}</div>
 }
 
 const formatModelTemperature = (source: ModelValue): ReactElement => {
@@ -223,15 +214,17 @@ const formatAccumulatedPrecipitation = (
       title.push(
         <div key={index}>
           prediction: {value.datetime}, precipitation:{' '}
-          {value.delta_precipitation?.toFixed(PRECIP_VALUES_DECIMAL)} (model:{' '}
-          {value.model_run_datetime})
+          {typeof value.delta_precipitation === 'number' &&
+            formatPrecipitationValue(value.delta_precipitation)}{' '}
+          (model: {value.model_run_datetime})
         </div>
       )
     } else if ('precipitation' in value) {
       title.push(
         <div key={index}>
           observation: {value.datetime}, precipitation:{' '}
-          {value.precipitation?.toFixed(PRECIP_VALUES_DECIMAL)}
+          {typeof value.precipitation === 'number' &&
+            formatPrecipitationValue(value.precipitation)}
         </div>
       )
     }
@@ -241,7 +234,7 @@ const formatAccumulatedPrecipitation = (
       <div className={precipitationClassName[0]}>
         {precipitation &&
           typeof precipitation.precipitation === 'number' &&
-          `${precipitation.precipitation.toFixed(PRECIP_VALUES_DECIMAL)}`}
+          `${formatPrecipitationValue(precipitation.precipitation)}`}
       </div>
     </ToolTip>
   )
