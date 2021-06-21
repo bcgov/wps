@@ -147,7 +147,7 @@ async def _fetch_paged_response_generator(
         use_cache: bool = False,
         cache_expiry_seconds: int = 86400
 ) -> Generator[dict, None, None]:
-    """ Asynchronous generator for iterating through responses from the API.
+    """ Asynchronous generator for iterating through responses from the WFWX API.
     The response is a paged response, but this generator abstracts that away.
     """
     # We don't know how many pages until our first call - so we assume one page to start with.
