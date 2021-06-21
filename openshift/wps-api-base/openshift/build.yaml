@@ -11,7 +11,7 @@ labels:
   app.kubernetes.io/version: "python3.8"
 parameters:
   - name: NAME
-    value: uvicorn-gunicorn-fastapi
+    value: wps-api-base
   - name: SUFFIX
   - name: VERSION
     description: Output version
@@ -28,9 +28,9 @@ objects:
       annotations:
         openshift.io/generated-by: OpenShiftNewBuild
       labels:
-        app: uvicorn-gunicorn-fastapi
+        app: wps-api-base
         common: "true"
-      name: uvicorn-gunicorn-fastapi
+      name: wps-api-base
     spec:
       lookupPolicy:
         local: false
@@ -40,8 +40,8 @@ objects:
       annotations:
         openshift.io/generated-by: OpenShiftNewBuild
       labels:
-        app: uvicorn-gunicorn-fastapi
-      name: uvicorn-gunicorn-fastapi
+        app: wps-api-base
+      name: wps-api-base
     spec:
       completionDeadlineSeconds: 1200 # 20 minutes
       output:
@@ -53,6 +53,6 @@ objects:
         git:
           uri: ${GIT_URL}
           ref: origin/${GIT_BRANCH}
-        contextDir: openshift/unicorn-base/docker
+        contextDir: openshift/wps-api-base/docker
       strategy:
         type: Docker

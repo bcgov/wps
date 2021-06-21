@@ -1,5 +1,16 @@
-# As per https://fastapi.tiangolo.com/deployment/, we use the provided docker image:
-FROM tiangolo/uvicorn-gunicorn-fastapi:python3.8
+# As per https://fastapi.tiangolo.com/deployment/, we use the provided docker image from docker
+# tianglo/uvicorn-gunicorn-fastapi:python3.8 - except, we use a copy of it that's been placed
+# on openshift:
+# If you need to update it, do the following - all from your local machine
+# 1) get the latest:
+# docker pull tiangolo/uvicorn-gunicorn-fastapi:python3.8
+# 2) tag it for upload:
+# docker tag tiangolo/uvicorn-gunicorn-fastapi:python3.8 image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/uvicorn-gunicorn-fastapi:python3.8
+# 3) log into openshift:
+# docker login -u developer -p $(oc whoami -t) image-registry.apps.silver.devops.gov.bc.ca
+# 4) push to openshift:
+# docker push image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/uvicorn-gunicorn-fastapi:python3.8
+FROM image-registry.openshift-image-registry.svc:5000/e1e498-tools/uvicorn-gunicorn-fastapi:python3.8
 # see: https://github.com/tiangolo/uvicorn-gunicorn-fastapi-docker for available images.
 
 # Install old (2.4.*; current debian) version of gdal
