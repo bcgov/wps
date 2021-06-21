@@ -7,7 +7,7 @@ from fastapi import APIRouter, Response, Depends, Query
 from app.wildfire_one import (get_wfwx_stations_from_station_codes,
                               get_dailies,
                               get_auth_header)
-from app.utils.time import get_pst_today_start_and_end
+import app.utils.time
 from app.schemas.hfi_calc import StationDailyResponse
 import app
 from app import wildfire_one
@@ -29,7 +29,7 @@ def validate_time_range(start_time_stamp: Optional[int], end_time_stamp: Optiona
     """ Sets timestamp to today if they are None.
         Defaults to start of today and end of today if no range is given. """
     if start_time_stamp is None or end_time_stamp is None:
-        today_start, today_end = get_pst_today_start_and_end()
+        today_start, today_end = app.utils.time.get_pst_today_start_and_end()
         return math.floor(today_start.timestamp()*1000), math.floor(today_end.timestamp()*1000)
     return int(start_time_stamp), int(end_time_stamp)
 
