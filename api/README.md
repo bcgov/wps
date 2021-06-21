@@ -114,6 +114,11 @@ make LDFLAGS="-L/usr/local/opt/gettext/lib" CPPFLAGS="-I/usr/local/opt/gettext/i
 sudo make install
 ```
 
+##### Gdal - from brew
+
+brew install gdal
+
+````
 ##### Poetry
 
 ```bash
@@ -121,7 +126,7 @@ brew update
 brew install pyenv
 pyenv install 3.8.2
 curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
-```
+````
 
 ##### Install project python requirements
 
@@ -173,6 +178,23 @@ Install system dependancies:
 
 ```bash
 sudo dnf install unixODBC-devel
+```
+
+#### R modules for cffdrs (MacOS Big Sur)
+
+Make sure [GDAL is installed](#gdal-from-brew) on your system
+
+```bash
+- brew install r
+- brew install udunits
+- brew install proj
+```
+
+Within an R interpreter instance:
+
+```R
+- install.packages(c("rgdal","sf", "units"),,"https://mac.R-project.org")
+- install.packages('cffdrs')
 ```
 
 ### Executing program
@@ -316,3 +338,7 @@ This project is licensed under the [Apache License, Version 2.0](https://github.
 Template copied from
 
 - [DomPizzie](https://gist.github.com/DomPizzie/7a5ff55ffa9081f2de27c315f5018afc)
+
+```
+
+```
