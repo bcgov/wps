@@ -10,8 +10,8 @@ FROM python:3.8-buster
 # NOTE: Once we no longer need pyodbc, please remove the apt-get update and install commands below.
 RUN apt-get -y update
 RUN apt-get -y install unixodbc-dev
-# Install old (2.4.*; current debian) version of gdal
-RUN apt-get -y install libgdal-dev
+# Install old (2.4.*; current debian) version of gdal and R
+RUN apt-get -y install libgdal-dev r-base
 
 # Update pip  
 RUN python -m pip install --upgrade pip
@@ -34,6 +34,8 @@ COPY pyproject.toml poetry.lock /tmp/
 # Install dependancies.
 RUN cd /tmp && \
     poetry install --no-root
+
+RUN R -e "install.packages('cffdrs')"
 
 WORKDIR /app
 COPY ./app /app/app
