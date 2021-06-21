@@ -45,7 +45,7 @@ export const columns: Column[] = [
   },
   {
     id: 'wind_direction',
-    label: 'Wind Dir °',
+    label: 'Wind Dir (°)',
     align: 'right',
     format: formatWindDirection,
     maxWidth: 70

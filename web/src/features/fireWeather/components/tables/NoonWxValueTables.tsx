@@ -43,7 +43,7 @@ const sharedColumns: Column[] = [
   },
   {
     id: 'wind_direction',
-    label: 'Wind Dir (10m) °',
+    label: 'Wind Dir (10m) (°)',
     align: 'right',
     format: formatWindDirection,
     maxWidth: 70
