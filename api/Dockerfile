@@ -11,7 +11,8 @@ FROM python:3.8-buster
 RUN apt-get -y update
 RUN apt-get -y install unixodbc-dev
 # Install old (2.4.*; current debian) version of gdal and R
-RUN apt-get -y install libgdal-dev r-base
+RUN apt-get -y install libgdal-dev
+RUN apt-get -y install --fix-missing r-base
 
 # Update pip  
 RUN python -m pip install --upgrade pip

@@ -16,7 +16,8 @@ FROM image-registry.openshift-image-registry.svc:5000/e1e498-tools/uvicorn-gunic
 
 # Install old (2.4.*; current debian) version of gdal and R
 RUN apt-get -y update
-RUN apt-get -y install libgdal-dev r-base
+RUN apt-get -y install libgdal-dev
+RUN apt-get -y install --fix-missing r-base
 
 # wildfire one may have an old certificate, so we have to make debian more forgiving.
 # RUN sed -i 's/TLSv1.2/TLSv1.0/g' /etc/ssl/openssl.cnf
