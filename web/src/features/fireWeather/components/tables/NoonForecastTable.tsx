@@ -126,19 +126,19 @@ const NoonForecastTable = (props: NoonForecastTableProps) => {
                 <TableRow>
                   <TableCell></TableCell>
                   <TableCell className={classes.darkColumnHeader} colSpan={2}>
-                    Temperature
+                    Temperature (&deg;C)
                   </TableCell>
                   <TableCell className={classes.lightColumnHeader} colSpan={2}>
-                    Relative Humidity
+                    Relative Humidity (%)
                   </TableCell>
                   <TableCell className={classes.darkColumnHeader} colSpan={2}>
-                    Wind Speed
+                    Wind Speed (km/h)
                   </TableCell>
                   <TableCell className={classes.darkColumnHeader} colSpan={2}>
-                    Wind Direction
+                    Wind Direction (&deg;)
                   </TableCell>
                   <TableCell className={classes.lightColumnHeader} colSpan={2}>
-                    Precipitation
+                    Precipitation (mm)
                   </TableCell>
                 </TableRow>
                 <TableRow>

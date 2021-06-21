@@ -95,7 +95,7 @@ export interface Column {
   minWidth?: number
   maxWidth?: number
   align?: 'left' | 'right' | 'center'
-  format?: (value: number) => string | number
+  format?: (value: number) => string | number | undefined
   formatDt?: (dt: string) => string
 }
 

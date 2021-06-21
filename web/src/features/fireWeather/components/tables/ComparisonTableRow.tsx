@@ -101,12 +101,8 @@ const formatWindSpeedForecast = (
   valueClassName: string[]
 ): ReactElement => {
   return (
-    <div>
-      {typeof source?.wind_speed === 'number' && (
-        <div className={valueClassName[0]}>
-          {formatForecastWindSpeedValue(source.wind_speed)}
-        </div>
-      )}
+    <div className={valueClassName[0]}>
+      {formatForecastWindSpeedValue(source?.wind_speed)}
     </div>
   )
 }
@@ -116,11 +112,7 @@ const formatWindSpeed = (
   valueClassName: string[]
 ): ReactElement => {
   return (
-    <div>
-      {typeof source?.wind_speed === 'number' && (
-        <div className={valueClassName[0]}>{formatWindSpeedValue(source.wind_speed)}</div>
-      )}
-    </div>
+    <div className={valueClassName[0]}>{formatWindSpeedValue(source?.wind_speed)}</div>
   )
 }
 
@@ -129,12 +121,8 @@ const formatWindDirection = (
   valueClassName: string[]
 ): ReactElement => {
   return (
-    <div>
-      {typeof source?.wind_direction === 'number' && (
-        <div className={valueClassName[0]}>
-          {formatWindDirectionValue(source.wind_direction)}
-        </div>
-      )}
+    <div className={valueClassName[0]}>
+      {formatWindDirectionValue(source?.wind_direction)}
     </div>
   )
 }
@@ -142,12 +130,7 @@ const formatWindDirection = (
 const formatTemperature = (
   source: NoonForecastValue | ObservedValue | ModelValue | undefined
 ): ReactElement => {
-  return (
-    <div>
-      {typeof source?.temperature === 'number' &&
-        `${formatTemperatureValue(source.temperature)}`}
-    </div>
-  )
+  return <div>{formatTemperatureValue(source?.temperature)}</div>
 }
 
 const formatRelativeHumidity = (
@@ -156,8 +139,7 @@ const formatRelativeHumidity = (
 ): ReactElement => {
   return (
     <div className={valueClassName[0]}>
-      {typeof source?.relative_humidity === 'number' &&
-        `${formatRelativeHumidityValue(source.relative_humidity)}`}
+      {formatRelativeHumidityValue(source?.relative_humidity)}
     </div>
   )
 }
@@ -167,15 +149,13 @@ const formatPrecipitation = (
   valueClassName: string[]
 ): ReactElement => {
   return (
-    <div className={valueClassName[0]}>
-      {typeof precipitation === 'number' && `${formatPrecipitationValue(precipitation)}`}
-    </div>
+    <div className={valueClassName[0]}>{formatPrecipitationValue(precipitation)}</div>
   )
 }
 
 const formatDewPoint = (observation: ObservedValue | undefined) => {
   const dewpoint = observation?.dewpoint
-  return <div>{typeof dewpoint === 'number' && `${formatDewPointValue(dewpoint)}`}</div>
+  return <div>{formatDewPointValue(dewpoint)}</div>
 }
 
 const formatModelTemperature = (source: ModelValue): ReactElement => {
@@ -214,17 +194,15 @@ const formatAccumulatedPrecipitation = (
       title.push(
         <div key={index}>
           prediction: {value.datetime}, precipitation:{' '}
-          {typeof value.delta_precipitation === 'number' &&
-            formatPrecipitationValue(value.delta_precipitation)}{' '}
-          (model: {value.model_run_datetime})
+          {formatPrecipitationValue(value.delta_precipitation)} (model:{' '}
+          {value.model_run_datetime})
         </div>
       )
     } else if ('precipitation' in value) {
       title.push(
         <div key={index}>
           observation: {value.datetime}, precipitation:{' '}
-          {typeof value.precipitation === 'number' &&
-            formatPrecipitationValue(value.precipitation)}
+          {formatPrecipitationValue(value.precipitation)}
         </div>
       )
     }
@@ -232,9 +210,7 @@ const formatAccumulatedPrecipitation = (
   return (
     <ToolTip title={title} aria-label="precipitation" arrow>
       <div className={precipitationClassName[0]}>
-        {precipitation &&
-          typeof precipitation.precipitation === 'number' &&
-          `${formatPrecipitationValue(precipitation.precipitation)}`}
+        {formatPrecipitationValue(precipitation?.precipitation)}
       </div>
     </ToolTip>
   )
