@@ -82,7 +82,7 @@ describe('MoreCast Page', () => {
     cy.url().should('contain', `${timeOfInterestQueryKey}=${timeOfInterest}`)
   })
 
-  describe.only('When loading a single station from url', () => {
+  describe('When loading a single station from url', () => {
     beforeEach(() => {
       interceptData()
 
