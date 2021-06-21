@@ -35,6 +35,12 @@ services:
       - POSTGRES_HOST_AUTH_METHOD="trust"
     networks:
       - wps_network
+  redis:
+    image: redis
+    ports:
+      - 6379:6379
+    networks:
+      - wps_network
   web:
     build:
       context: web

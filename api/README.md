@@ -155,6 +155,14 @@ export CPLUS_INCLUDE_PATH=/usr/include/gdal
 export C_INCLUDE_PATH=/usr/include/gdal
 ```
 
+#### Redis
+
+The API uses redis to cache some responses from WFWX.
+
+```bash
+docker run -p 127.0.0.1:6379:6379/tcp redis
+```
+
 #### Local machine, running Linux
 
 ##### Ubuntu
