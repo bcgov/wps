@@ -116,9 +116,11 @@ sudo make install
 
 ##### Gdal - from brew
 
+```bash
 brew install gdal
 
-````
+```
+
 ##### Poetry
 
 ```bash
@@ -126,7 +128,7 @@ brew update
 brew install pyenv
 pyenv install 3.8.2
 curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
-````
+```
 
 ##### Install project python requirements
 
@@ -338,7 +340,3 @@ This project is licensed under the [Apache License, Version 2.0](https://github.
 Template copied from
 
 - [DomPizzie](https://gist.github.com/DomPizzie/7a5ff55ffa9081f2de27c315f5018afc)
-
-```
-
-```
