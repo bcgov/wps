@@ -26,32 +26,35 @@ export const columns: Column[] = [
     id: 'temperature',
     label: 'Temp (°C)',
     align: 'right',
-    format: formatTemperature
+    format: formatTemperature,
+    maxWidth: 70
   },
   {
     id: 'relative_humidity',
     label: 'RH (%)',
     align: 'right',
-    format: formatRelativeHumidity
+    format: formatRelativeHumidity,
+    maxWidth: 70
   },
   {
     id: 'dewpoint',
     label: 'Dew Point (°C)',
     align: 'right',
-    maxWidth: 90,
+    maxWidth: 70,
     format: formatTemperature
   },
   {
     id: 'wind_direction',
     label: 'Wind Dir °',
     align: 'right',
-    format: formatWindDirection
+    format: formatWindDirection,
+    maxWidth: 70
   },
   {
     id: 'wind_speed',
     label: 'Wind Spd (km/h)',
     align: 'right',
-    maxWidth: 80,
+    maxWidth: 70,
     format: formatWindSpeed
   },
   {

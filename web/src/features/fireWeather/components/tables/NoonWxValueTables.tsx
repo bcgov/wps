@@ -31,24 +31,27 @@ const sharedColumns: Column[] = [
     id: 'temperature',
     label: 'Temp (°C)',
     align: 'right',
-    format: formatTemperature
+    format: formatTemperature,
+    maxWidth: 70
   },
   {
     id: 'relative_humidity',
     label: 'RH (%)',
     align: 'right',
-    format: formatRelativeHumidity
+    format: formatRelativeHumidity,
+    maxWidth: 70
   },
   {
     id: 'wind_direction',
     label: 'Wind Dir (10m) °',
     align: 'right',
-    format: formatWindDirection
+    format: formatWindDirection,
+    maxWidth: 70
   },
   {
     id: 'wind_speed',
     label: 'Wind Spd (10m) (km/h)',
-    maxWidth: 80,
+    maxWidth: 70,
     align: 'right',
     format: formatWindSpeed
   }

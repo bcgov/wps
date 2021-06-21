@@ -29,7 +29,7 @@ const useStyles = makeStyles({
     paddingBottom: 12,
 
     '& .MuiTableCell-sizeSmall': {
-      padding: '6px 12px 6px 6px'
+      padding: '3px 6px 3px 2px'
     }
   },
   paper: {
