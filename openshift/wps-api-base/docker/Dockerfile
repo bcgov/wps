@@ -18,7 +18,7 @@ FROM image-registry.openshift-image-registry.svc:5000/e1e498-tools/uvicorn-gunic
 RUN apt-get -y update
 RUN apt-get -y install libgdal-dev
 RUN apt-get update --fix-missing && apt-get -y install r-base-dev texlive-full
-RUN apt-get update --fix-missing && apt-get -y install build-dep r-base-core r-base
+RUN apt-get update --fix-missing && apt-get -y install r-base-core r-base
 
 # wildfire one may have an old certificate, so we have to make debian more forgiving.
 # RUN sed -i 's/TLSv1.2/TLSv1.0/g' /etc/ssl/openssl.cnf
