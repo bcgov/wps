@@ -13,3 +13,8 @@ def get_fire_weather_stations(session: Session) -> CursorResult:
         .join(PlanningArea, PlanningArea.id == PlanningWeatherStation.planning_area_id)\
         .join(FireCentre, FireCentre.id == PlanningArea.fire_centre_id)\
         .order_by(FireCentre.name, PlanningArea.name)
+
+
+def get_all_stations(session: Session) -> CursorResult:
+    """ Get all known planning weather stations """
+    return session.query(PlanningWeatherStation.station_code).all()
