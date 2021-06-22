@@ -4,17 +4,17 @@ import math
 from typing import List, Optional
 from aiohttp.client import ClientSession
 from fastapi import APIRouter, Response, Depends, Query
-from app.wildfire_one import (get_wfwx_stations_from_station_codes,
-                              get_dailies,
-                              get_auth_header)
 import app.utils.time
 from app.schemas.hfi_calc import StationDailyResponse
 import app
-from app import wildfire_one
 from app.auth import authentication_required, audit
 from app.schemas.hfi_calc import (HFIWeatherStationsResponse, WeatherStationProperties,
                                   FuelType, FireCentre, PlanningArea, WeatherStation)
 from app.db.crud.hfi_calc import get_fire_weather_stations
+from app.wildfire_one.wildfire_api import (get_auth_header,
+                                           get_dailies,
+                                           get_stations_by_codes,
+                                           get_wfwx_stations_from_station_codes)
 
 
 logger = logging.getLogger(__name__)
@@ -105,7 +105,7 @@ async def get_fire_centres(response: Response):  # pylint: disable=too-many-loca
                         station_record.station_code)
 
             # We're still missing some data that we need from wfwx, so give it the list of stations
-            wfwx_stations_data = await wildfire_one.get_stations_by_codes(list(station_info_dict.keys()))
+            wfwx_stations_data = await get_stations_by_codes(list(station_info_dict.keys()))
             # Iterate through all the stations from wildfire one.
 
             for wfwx_station in wfwx_stations_data:

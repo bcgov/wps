@@ -154,6 +154,11 @@ const DailyViewTable = (props: Props) => {
                   <br />
                   CL
                 </TableCell>
+                <TableCell>
+                  ROS
+                  <br />
+                  (m/min)
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -224,6 +229,9 @@ const DailyViewTable = (props: Props) => {
                                       {daily?.ffmc?.toFixed(DECIMAL_PLACES)}
                                     </TableCell>
                                     <TableCell>{daily?.danger_class}</TableCell>
+                                    <TableCell>
+                                      {daily?.ros?.toFixed(DECIMAL_PLACES)}
+                                    </TableCell>
                                   </TableRow>
                                 )
                               })}

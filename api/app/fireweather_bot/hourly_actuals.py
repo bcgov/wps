@@ -42,12 +42,12 @@ class HourlyActualsBot():
     async def run_wfwx(self):
         """ Entry point for running the bot """
         async with ClientSession() as session:
-            header = await wildfire_one.get_auth_header(session)
+            header = await wildfire_one.wildfire_api.get_auth_header(session)
 
             start_date = self._get_start_date()
             end_date = self._get_end_date()
 
-            hourly_actuals = await wildfire_one.get_hourly_actuals_all_stations(
+            hourly_actuals = await wildfire_one.wildfire_api.get_hourly_actuals_all_stations(
                 session, header, start_date, end_date)
 
         with app.db.database.get_write_session_scope() as session:

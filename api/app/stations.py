@@ -10,7 +10,6 @@ from typing import List, Final
 import json
 from aiohttp.client import ClientSession
 from sqlalchemy.engine.row import Row
-from app import wildfire_one
 from app.schemas.stations import (WeatherStation,
                                   GeoJsonWeatherStation,
                                   GeoJsonDetailedWeatherStation,
@@ -20,6 +19,10 @@ from app.schemas.stations import (WeatherStation,
                                   WeatherStationGeometry)
 import app.db.database
 from app.db.crud.stations import get_noon_forecast_observation_union
+from app.wildfire_one.wildfire_api import (get_auth_header,
+                                           get_detailed_stations,
+                                           get_stations,
+                                           use_wfwx)
 
 logger = logging.getLogger(__name__)
 
@@ -111,19 +114,19 @@ def _get_stations_by_codes_local(station_codes: List[int]) -> List[WeatherStatio
 
 async def get_stations_by_codes(station_codes: List[int]) -> List[WeatherStation]:
     """ Get a list of stations by code, from WFWX Fireweather API. """
-    if wildfire_one.use_wfwx():
+    if use_wfwx():
         logger.info('Fetching stations from WFWX')
-        return await wildfire_one.get_stations_by_codes(station_codes)
+        return await get_stations_by_codes(station_codes)
     return _get_stations_by_codes_local(station_codes)
 
 
-async def get_stations(
+async def get_stations_from_source(
         station_source: StationSourceEnum = StationSourceEnum.WILDFIRE_ONE) -> List[WeatherStation]:
     """ Get list of stations from some source (ideally WFWX Fireweather API)
     """
     if station_source == StationSourceEnum.UNSPECIFIED:
         # If station source is unspecified, check configuration:
-        if wildfire_one.use_wfwx():
+        if use_wfwx():
             return await get_stations_asynchronously()
     elif station_source == StationSourceEnum.WILDFIRE_ONE:
         # Get from wildfire one:
@@ -139,10 +142,10 @@ async def fetch_detailed_stations_as_geojson(
     """ Fetch a detailed list of stations. i.e. more than just the fire station name and code,
     throw some observations and forecast in the mix. """
     if station_source == StationSourceEnum.WILDFIRE_ONE or (
-            station_source == StationSourceEnum.UNSPECIFIED and wildfire_one.use_wfwx()):
+            station_source == StationSourceEnum.UNSPECIFIED and use_wfwx()):
         # Get from wildfire one:
         logger.info('requesting detailed stations...')
-        result = await wildfire_one.get_detailed_stations(time_of_interest)
+        result = await get_detailed_stations(time_of_interest)
         logger.info('detailed stations loaded.')
         return result
     return await _get_detailed_stations(time_of_interest)
@@ -152,7 +155,7 @@ async def get_stations_as_geojson(
         station_source: StationSourceEnum = StationSourceEnum.UNSPECIFIED) -> List[GeoJsonWeatherStation]:
     """ Format stations to conform to GeoJson spec """
     geojson_stations = []
-    stations = await get_stations(station_source)
+    stations = await get_stations_from_source(station_source)
     for station in stations:
         geojson_stations.append(
             GeoJsonWeatherStation(properties=WeatherStationProperties(
@@ -167,8 +170,8 @@ async def get_stations_as_geojson(
 async def get_stations_asynchronously():
     """ Get list of stations asynchronously """
     async with ClientSession() as session:
-        header = await wildfire_one.get_auth_header(session)
-        return await wildfire_one.get_stations(session, header)
+        header = await get_auth_header(session)
+        return await get_stations(session, header)
 
 
 def get_stations_synchronously() -> List[WeatherStation]:
@@ -176,4 +179,4 @@ def get_stations_synchronously() -> List[WeatherStation]:
     """
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    return loop.run_until_complete(get_stations(StationSourceEnum.LOCAL_STORAGE))
+    return loop.run_until_complete(get_stations_from_source(StationSourceEnum.LOCAL_STORAGE))
