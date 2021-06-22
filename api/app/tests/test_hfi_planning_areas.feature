@@ -1,4 +1,4 @@
-Feature: /hfi-calc/
+Feature: /hfi-calc/fire-centres
 
     Scenario: Get fire centres, planning areas, and weather stations
         Given I request all fire centres, planning areas, etc.
@@ -9,7 +9,5 @@ Feature: /hfi-calc/
         And each weather station has a fuel_type assigned to it
 
         Examples:
-            | status | num_fire_centres | 
-            | 200    | 1                | 
-
-
+            | status | num_fire_centres |
+            | 200    | 1                |
