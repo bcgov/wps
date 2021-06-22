@@ -21,6 +21,19 @@ parameters:
   - name: GIT_BRANCH
     value: main
 objects:
+  - kind: PersistentVolumeClaim
+    apiVersion: v1
+    metadata:
+      name: wps-api-base
+      labels:
+        app: wps-api-base
+    spec:
+      storageClassName: netapp-file-standard
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 20Gi
   #ImageStream is created if it doesn't already exist
   - apiVersion: v1
     kind: ImageStream
@@ -51,6 +64,13 @@ objects:
         requests:
           memory: 1Gi
           cpu: 500m
+      volumes:
+        - name: wps-api-base
+          persistentVolumeClaim:
+            claimName: wps-api-base
+      volumeMounts:
+        - mountPath: /var/tmp
+          name: wps-api-base
       output:
         to:
           kind: ImageStreamTag
