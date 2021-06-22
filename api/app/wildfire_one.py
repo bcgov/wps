@@ -582,7 +582,10 @@ async def get_wfwx_stations_from_station_codes(session, header, station_codes: O
 
     # Default to all known WFWX station ids if no station codes are specified
     if station_codes is None:
-        return list(filter(lambda x: (x.code in get_fire_centre_station_codes()),
+        # NOTE: IMPORTANT! get_fire_centre_station_codes has to be called outside of the
+        # list(filter(lambda)) statement, or else it is repeatedly called.
+        fire_centre_station_codes = get_fire_centre_station_codes()
+        return list(filter(lambda x: (x.code in fire_centre_station_codes),
                            wfwx_stations))
     requested_stations = []
     station_code_dict = {station.code: station for station in wfwx_stations}
