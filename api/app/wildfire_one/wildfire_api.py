@@ -13,15 +13,15 @@ from app.schemas.hfi_calc import StationDaily
 from app.schemas.observations import WeatherStationHourlyReadings
 from app.schemas.stations import (WeatherStation,
                                   WeatherVariables)
-from app.wildfire_one.schema_parsers import _parse_station, _parse_daily, _parse_hourly, parse_hourly_actual
+from app.wildfire_one.schema_parsers import parse_station, parse_daily, parse_hourly, parse_hourly_actual
 from app.wildfire_one.query_builders import (BuildQueryAllActiveStations,
                                              BuildQueryAllHourliesByRange,
                                              BuildQueryByStationCode,
                                              BuildQueryDailesByStationCode)
 from app.wildfire_one.util import _is_station_valid
-from app.wildfire_one.wildfire_fetchers import (_fetch_access_token,
-                                                _fetch_detailed_geojson_stations,
-                                                _fetch_paged_response_generator,
+from app.wildfire_one.wildfire_fetchers import (fetch_access_token,
+                                                fetch_detailed_geojson_stations,
+                                                fetch_paged_response_generator,
                                                 fetch_hourlies,
                                                 fetch_raw_dailies_for_all_stations)
 
@@ -39,7 +39,7 @@ def use_wfwx():
 async def get_auth_header(session: ClientSession) -> dict:
     """Get WFWX auth header"""
     # Fetch access token
-    token = await _fetch_access_token(session)
+    token = await fetch_access_token(session)
     # Construct the header.
     header = {'Authorization': 'Bearer {}'.format(token['access_token'])}
     return header
@@ -52,12 +52,12 @@ async def get_stations_by_codes(station_codes: List[int]) -> List[WeatherStation
         header = await get_auth_header(session)
         stations = []
         # Iterate through "raw" station data.
-        iterator = _fetch_paged_response_generator(
+        iterator = fetch_paged_response_generator(
             session, header, BuildQueryByStationCode(station_codes), 'stations')
         async for raw_station in iterator:
             # If the station is valid, add it to our list of stations.
             if _is_station_valid(raw_station):
-                stations.append(_parse_station(raw_station))
+                stations.append(parse_station(raw_station))
         logger.debug('total stations: %d', len(stations))
         return stations
 
@@ -103,7 +103,7 @@ async def get_stations(session: ClientSession,
     """
     logger.info('Using WFWX to retrieve station list')
     # Iterate through "raw" station data.
-    raw_stations = _fetch_paged_response_generator(
+    raw_stations = fetch_paged_response_generator(
         session, header, BuildQueryAllActiveStations(), 'stations')
     # Map list of stations into desired shape
     stations = await mapper(raw_stations)
@@ -127,7 +127,7 @@ async def get_detailed_stations(time_of_interest: datetime):
         dailies_task = asyncio.create_task(
             fetch_raw_dailies_for_all_stations(session, header, time_of_interest))
         # Fetch all the stations
-        stations_task = asyncio.create_task(_fetch_detailed_geojson_stations(
+        stations_task = asyncio.create_task(fetch_detailed_geojson_stations(
             session, header, BuildQueryAllActiveStations()))
 
         # Await completion of concurrent tasks.
@@ -168,7 +168,7 @@ async def get_hourly_readings(
     tasks = []
 
     # Iterate through "raw" station data.
-    iterator = _fetch_paged_response_generator(
+    iterator = fetch_paged_response_generator(
         session, header, BuildQueryByStationCode(station_codes), 'stations')
     async for raw_station in iterator:
         task = asyncio.create_task(
@@ -194,7 +194,7 @@ async def get_hourly_actuals_all_stations(
     hourly_actuals: List[HourlyActual] = []
 
     # Iterate through "raw" station data.
-    hourlies_iterator = _fetch_paged_response_generator(
+    hourlies_iterator = fetch_paged_response_generator(
         session, header, BuildQueryAllHourliesByRange(
             math.floor(start_timestamp.timestamp()*1000),
             math.floor(end_timestamp.timestamp()*1000)), 'hourlies')
@@ -209,7 +209,7 @@ async def get_hourly_actuals_all_stations(
 
     for hourly in hourlies:
         if hourly.get('hourlyMeasurementTypeCode', '').get('id') == 'ACTUAL':
-            parsed_hourly = _parse_hourly(hourly)
+            parsed_hourly = parse_hourly(hourly)
             try:
                 station_code = station_code_dict[(hourly['stationId'])]
                 hourly_actual = parse_hourly_actual(station_code, parsed_hourly)
@@ -252,7 +252,7 @@ async def get_dailies(
     """ Get the daily actuals for the given station ids.
     """
     wfwx_station_ids = [wfwx_station.wfwx_id for wfwx_station in wfwx_stations]
-    dailies_iterator = _fetch_paged_response_generator(
+    dailies_iterator = fetch_paged_response_generator(
         session, header, BuildQueryDailesByStationCode(
             start_timestamp,
             end_timestamp, wfwx_station_ids), 'dailies')
@@ -262,6 +262,6 @@ async def get_dailies(
     async for raw_daily in dailies_iterator:
         wfwx_id = raw_daily.get('stationId', None)
         station_code = station_code_dict.get(wfwx_id, None)
-        daily = _parse_daily(raw_daily, station_code)
+        daily = parse_daily(raw_daily, station_code)
         dailies.append(daily)
     return dailies

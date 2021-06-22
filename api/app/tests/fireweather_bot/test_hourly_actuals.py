@@ -65,7 +65,7 @@ def mock_hourly_actuals(mocker: MockerFixture):
     mocker.patch('app.wildfire_one.wildfire_api.wfwx_station_list_mapper', return_value=future_station_codes)
     mocker.patch('app.wildfire_one.wildfire_api.get_hourly_actuals_all_stations',
                  return_value=[wfwx_hourly_1, wfwx_hourly_2])
-    mocker.patch('app.wildfire_one.wildfire_api._fetch_paged_response_generator',
+    mocker.patch('app.wildfire_one.wildfire_fetchers.fetch_paged_response_generator',
                  return_value=iter([wfwx_hourly_1, wfwx_hourly_2]))
 
 

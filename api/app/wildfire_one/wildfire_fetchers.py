@@ -12,13 +12,13 @@ from app.schemas.stations import (DetailedWeatherStationProperties,
 from app.db.crud.stations import _get_noon_date
 from app.wildfire_one.query_builders import BuildQuery
 from app import config
-from app.wildfire_one.schema_parsers import _parse_hourly, _parse_station
+from app.wildfire_one.schema_parsers import parse_hourly, parse_station
 from app.wildfire_one.util import _is_station_valid
 
 logger = logging.getLogger(__name__)
 
 
-async def _fetch_paged_response_generator(
+async def fetch_paged_response_generator(
         session: ClientSession,
         headers: dict,
         query_builder: BuildQuery,
@@ -46,14 +46,15 @@ async def _fetch_paged_response_generator(
         page_count = page_count + 1
 
 
-async def _fetch_detailed_geojson_stations(
+async def fetch_detailed_geojson_stations(
         session: ClientSession,
         headers: dict,
         query_builder: BuildQuery) -> Tuple[Dict[int, GeoJsonDetailedWeatherStation], Dict[str, int]]:
+    """ Fetch and marshall geojson station data"""
     stations = {}
     id_to_code_map = {}
     # Put the stations in a nice dictionary.
-    async for raw_station in _fetch_paged_response_generator(session, headers, query_builder, 'stations'):
+    async for raw_station in fetch_paged_response_generator(session, headers, query_builder, 'stations'):
         station_code = raw_station.get('stationCode')
         station_status = raw_station.get('stationStatus', {}).get('id')
         # Because we can't filter on status in the RSQL, we have to manually exclude stations that are
@@ -149,15 +150,15 @@ async def fetch_hourlies(
         for hourly in hourlies_json['_embedded']['hourlies']:
             # We only accept "ACTUAL" values
             if hourly.get('hourlyMeasurementTypeCode', '').get('id') == 'ACTUAL':
-                hourlies.append(_parse_hourly(hourly))
+                hourlies.append(parse_hourly(hourly))
 
         logger.error('fetched %d hourlies for %s(%s)', len(
             hourlies), raw_station['displayLabel'], raw_station['stationCode'])
 
-        return WeatherStationHourlyReadings(values=hourlies, station=_parse_station(raw_station))
+        return WeatherStationHourlyReadings(values=hourlies, station=parse_station(raw_station))
 
 
-async def _fetch_access_token(session: ClientSession) -> dict:
+async def fetch_access_token(session: ClientSession) -> dict:
     """ Fetch an access token for WFWX Fireweather API
     """
     logger.debug('fetching access token...')

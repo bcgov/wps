@@ -13,7 +13,7 @@ from app.schemas.hfi_calc import StationDaily
 logger = logging.getLogger(__name__)
 
 
-def _parse_station(station) -> WeatherStation:
+def parse_station(station) -> WeatherStation:
     """ Transform from the json object returned by wf1, to our station object.
     """
     # pylint: disable=no-member
@@ -31,7 +31,7 @@ def _parse_station(station) -> WeatherStation:
         wfwx_station_uuid=station['id'])
 
 
-def _parse_hourly(hourly) -> WeatherReading:
+def parse_hourly(hourly) -> WeatherReading:
     """ Transform from the raw hourly json object returned by wf1, to our hourly object.
     """
     timestamp = datetime.fromtimestamp(
@@ -53,7 +53,7 @@ def _parse_hourly(hourly) -> WeatherReading:
     )
 
 
-def _parse_daily(raw_daily, station_code) -> StationDaily:
+def parse_daily(raw_daily, station_code) -> StationDaily:
     """ Transform from the raw hourly json object returned by wf1, to our hourly object.
     """
     return StationDaily(
