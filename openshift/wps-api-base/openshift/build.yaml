@@ -43,7 +43,12 @@ objects:
         app: wps-api-base
       name: wps-api-base
     spec:
-      completionDeadlineSeconds: 1200 # 20 minutes
+      completionDeadlineSeconds: 2400 # 40 minutes
+      resources:
+        limits:
+          memory: 2Gi
+        requests:
+          memory: 1Gi
       output:
         to:
           kind: ImageStreamTag
