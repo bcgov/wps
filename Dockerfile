@@ -1,4 +1,4 @@
-ARG DOCKER_IMAGE=image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-api-base:python3.8-latest
+ARG DOCKER_IMAGE=image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-api-base:python3.8plusR
 
 # PHASE 1 - build static html.
 # Pull from local registry - we can't pull from docker due to limits.

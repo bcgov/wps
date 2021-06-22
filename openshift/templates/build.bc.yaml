@@ -29,7 +29,7 @@ parameters:
   - name: DOCKER_IMAGE
     description: Location of docker image
     required: true
-    value: image-registry.openshift-image-registry.svc:5000/e1e498-tools/uvicorn-gunicorn-fastapi:python3.8-latest
+    value: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-api-base:python3.8plusR
   - name: DOCKER_FILE
     description: Dockerfile to use
     required: true
