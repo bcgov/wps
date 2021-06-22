@@ -7,12 +7,14 @@ import { ModelValue } from 'api/modelAPI'
 import { NoonForecastValue } from 'api/forecastAPI'
 import { ObservedValue } from 'api/observationAPI'
 import {
-  DEW_POINT_VALUES_DECIMAL,
-  PRECIP_VALUES_DECIMAL,
-  RH_VALUES_DECIMAL,
-  TEMPERATURE_VALUES_DECIMAL,
-  WIND_SPEED_VALUES_DECIMAL
-} from 'utils/constants'
+  formatWindDirection as formatWindDirectionValue,
+  formatWindSpeed as formatWindSpeedValue,
+  formatTemperature as formatTemperatureValue,
+  formatForecastWindSpeed as formatForecastWindSpeedValue,
+  formatRelativeHumidity as formatRelativeHumidityValue,
+  formatPrecipitation as formatPrecipitationValue,
+  formatDewPoint as formatDewPointValue
+} from 'utils/format'
 import { AccumulatedPrecipitation } from 'utils/table'
 
 export type DataSource = 'Observed' | 'Forecast' | 'HRDPS' | 'RDPS' | 'GDPS'
@@ -20,7 +22,8 @@ export type DataSource = 'Observed' | 'Forecast' | 'HRDPS' | 'RDPS' | 'GDPS'
 export type WeatherVariable =
   | 'Temperature'
   | 'Relative Humidity'
-  | 'Wind Speed + Direction'
+  | 'Wind Speed'
+  | 'Wind Direction'
   | 'Precipitation'
   | 'Dew point'
 
@@ -93,26 +96,33 @@ const useStyles = makeStyles({
   }
 })
 
-const formatWindSpeedDirection = (
+const formatWindSpeedForecast = (
+  source: NoonForecastValue | undefined,
+  valueClassName: string[]
+): ReactElement => {
+  return (
+    <div className={valueClassName[0]}>
+      {formatForecastWindSpeedValue(source?.wind_speed)}
+    </div>
+  )
+}
+
+const formatWindSpeed = (
+  source: ObservedValue | ModelValue | undefined,
+  valueClassName: string[]
+): ReactElement => {
+  return (
+    <div className={valueClassName[0]}>{formatWindSpeedValue(source?.wind_speed)}</div>
+  )
+}
+
+const formatWindDirection = (
   source: NoonForecastValue | ObservedValue | ModelValue | undefined,
   valueClassName: string[]
 ): ReactElement => {
   return (
-    <div>
-      {typeof source?.wind_speed === 'number' && (
-        <div className={valueClassName[0]}>
-          {source?.wind_speed?.toFixed(WIND_SPEED_VALUES_DECIMAL)} km/h
-        </div>
-      )}
-      {typeof source?.wind_speed === 'number' &&
-        typeof source?.wind_direction === 'number' &&
-        ' '}
-      {typeof source?.wind_direction === 'number' && (
-        <div className={valueClassName[1]}>
-          {source?.wind_direction?.toFixed(WIND_SPEED_VALUES_DECIMAL)}
-          {source?.wind_direction && String.fromCharCode(176)}
-        </div>
-      )}
+    <div className={valueClassName[0]}>
+      {formatWindDirectionValue(source?.wind_direction)}
     </div>
   )
 }
@@ -120,14 +130,7 @@ const formatWindSpeedDirection = (
 const formatTemperature = (
   source: NoonForecastValue | ObservedValue | ModelValue | undefined
 ): ReactElement => {
-  return (
-    <div>
-      {typeof source?.temperature === 'number' &&
-        `${source?.temperature?.toFixed(TEMPERATURE_VALUES_DECIMAL)}${String.fromCharCode(
-          176
-        )}C`}
-    </div>
-  )
+  return <div>{formatTemperatureValue(source?.temperature)}</div>
 }
 
 const formatRelativeHumidity = (
@@ -136,8 +139,7 @@ const formatRelativeHumidity = (
 ): ReactElement => {
   return (
     <div className={valueClassName[0]}>
-      {typeof source?.relative_humidity === 'number' &&
-        `${source?.relative_humidity?.toFixed(RH_VALUES_DECIMAL)}%`}
+      {formatRelativeHumidityValue(source?.relative_humidity)}
     </div>
   )
 }
@@ -147,21 +149,13 @@ const formatPrecipitation = (
   valueClassName: string[]
 ): ReactElement => {
   return (
-    <div className={valueClassName[0]}>
-      {typeof precipitation === 'number' &&
-        `${precipitation.toFixed(PRECIP_VALUES_DECIMAL)} mm`}
-    </div>
+    <div className={valueClassName[0]}>{formatPrecipitationValue(precipitation)}</div>
   )
 }
 
 const formatDewPoint = (observation: ObservedValue | undefined) => {
   const dewpoint = observation?.dewpoint
-  return (
-    <div>
-      {typeof dewpoint === 'number' &&
-        `${dewpoint.toFixed(DEW_POINT_VALUES_DECIMAL)}${String.fromCharCode(176)}C`}
-    </div>
-  )
+  return <div>{formatDewPointValue(dewpoint)}</div>
 }
 
 const formatModelTemperature = (source: ModelValue): ReactElement => {
@@ -200,7 +194,7 @@ const formatAccumulatedPrecipitation = (
       title.push(
         <div key={index}>
           prediction: {value.datetime}, precipitation:{' '}
-          {value.delta_precipitation?.toFixed(PRECIP_VALUES_DECIMAL)} mm (model:{' '}
+          {formatPrecipitationValue(value.delta_precipitation)} (model:{' '}
           {value.model_run_datetime})
         </div>
       )
@@ -208,7 +202,7 @@ const formatAccumulatedPrecipitation = (
       title.push(
         <div key={index}>
           observation: {value.datetime}, precipitation:{' '}
-          {value.precipitation?.toFixed(PRECIP_VALUES_DECIMAL)} mm
+          {formatPrecipitationValue(value.precipitation)}
         </div>
       )
     }
@@ -216,9 +210,7 @@ const formatAccumulatedPrecipitation = (
   return (
     <ToolTip title={title} aria-label="precipitation" arrow>
       <div className={precipitationClassName[0]}>
-        {precipitation &&
-          typeof precipitation.precipitation === 'number' &&
-          `${precipitation.precipitation.toFixed(PRECIP_VALUES_DECIMAL)} mm`}
+        {formatPrecipitationValue(precipitation?.precipitation)}
       </div>
     </ToolTip>
   )
@@ -262,31 +254,58 @@ const ComparisonTableRow = (props: Props) => {
         styling: [classes.relativeHumidityValue]
       }
     },
-    'Wind Speed + Direction': {
+    'Wind Speed': {
       Observed: {
-        formatFn: formatWindSpeedDirection,
+        formatFn: formatWindSpeed,
         data: props.observation,
-        styling: [classes.windSpeedValue, classes.windDirectionValue]
+        styling: [classes.windSpeedValue]
       },
       Forecast: {
-        formatFn: formatWindSpeedDirection,
+        formatFn: formatWindSpeedForecast,
         data: props.forecast,
-        styling: [classes.windSpeedValue, classes.windDirectionValue]
+        styling: [classes.windSpeedValue]
       },
       HRDPS: {
-        formatFn: formatWindSpeedDirection,
+        formatFn: formatWindSpeed,
         data: props.highResModel,
-        styling: [classes.windSpeedValue, classes.windDirectionValue]
+        styling: [classes.windSpeedValue]
       },
       RDPS: {
-        formatFn: formatWindSpeedDirection,
+        formatFn: formatWindSpeed,
         data: props.regionalModel,
-        styling: [classes.windSpeedValue, classes.windDirectionValue]
+        styling: [classes.windSpeedValue]
       },
       GDPS: {
-        formatFn: formatWindSpeedDirection,
+        formatFn: formatWindSpeed,
         data: props.globalModel,
-        styling: [classes.windSpeedValue, classes.windDirectionValue]
+        styling: [classes.windSpeedValue]
+      }
+    },
+    'Wind Direction': {
+      Observed: {
+        formatFn: formatWindDirection,
+        data: props.observation,
+        styling: [classes.windDirectionValue]
+      },
+      Forecast: {
+        formatFn: formatWindDirection,
+        data: props.forecast,
+        styling: [classes.windDirectionValue]
+      },
+      HRDPS: {
+        formatFn: formatWindDirection,
+        data: props.highResModel,
+        styling: [classes.windDirectionValue]
+      },
+      RDPS: {
+        formatFn: formatWindDirection,
+        data: props.regionalModel,
+        styling: [classes.windDirectionValue]
+      },
+      GDPS: {
+        formatFn: formatWindDirection,
+        data: props.globalModel,
+        styling: [classes.windDirectionValue]
       }
     },
     Precipitation: {

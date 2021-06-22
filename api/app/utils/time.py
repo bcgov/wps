@@ -16,6 +16,15 @@ def get_utc_now():
     return datetime.now(tz=timezone.utc)
 
 
+def get_pst_today_start_and_end():
+    """ Get the start and end datetime range for today in PST since app assumes all is in PST."""
+    today = datetime.now(tz=get_pst_tz())
+    start = today.replace(hour=0, minute=0, second=0, microsecond=0)
+    end = start + timedelta(days=1)
+
+    return start, end
+
+
 def get_pst_now():
     """ Helper function to get the current PST time (easy function to mock out in testing) """
     return datetime.now(tz=get_pst_tz())
