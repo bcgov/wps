@@ -1,20 +1,17 @@
 """ BDD tests for API /hfi-calc/ """
-import logging
-from aiohttp.client import ClientSession
 from pytest_bdd import scenario, given, then
-from starlette.testclient import TestClient
-from sqlalchemy.orm import Session
 import pytest
-from app.db.models.hfi_calc import PlanningWeatherStation, FireCentre, FuelType, PlanningArea
-import app.main
+from starlette.testclient import TestClient
+from aiohttp import ClientSession
+from sqlalchemy.orm import Session
 from app.tests.common import default_mock_client_get
+import app.main
+from app.db.models.hfi_calc import PlanningWeatherStation, FireCentre, FuelType, PlanningArea
 import app.routers.hfi_calc
-
-logger = logging.getLogger(__name__)
 
 
 @pytest.mark.usefixtures("mock_jwt_decode")
-@scenario('test_hfi_calculator.feature', 'Get fire centres, planning areas, and weather stations',
+@scenario('test_hfi_planning_areas.feature', 'Get fire centres, planning areas, and weather stations',
           example_converters=dict(
               status=int,
               num_fire_centres=int))
@@ -49,6 +46,7 @@ def given_hfi_planning_areas_request(monkeypatch):
     client = TestClient(app.main.app)
     headers = {'Content-Type': 'application/json',
                'Authorization': 'Bearer token'}
+
     return client.get('/api/hfi-calc/fire-centres/', headers=headers)
 
 
