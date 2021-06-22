@@ -22,6 +22,8 @@ FROM tiangolo/uvicorn-gunicorn-fastapi:python3.8
 # Install old (2.4.*; current debian) version of gdal and R
 RUN apt-get -y update
 RUN apt-get -y install libgdal-dev
+
+# Install R
 RUN apt-get update --fix-missing && apt-get -y install r-base
 
 # Install cffdrs
