@@ -5,6 +5,9 @@ RUN apt-get -y update
 RUN apt-get -y upgrade
 RUN TZ="Etc/UTC" DEBIAN_FRONTEND="noninteractive" apt-get -y install libgdal-dev
 
+# Install R
+RUN apt-get update --fix-missing && apt-get -y install r-base
+
 RUN apt-get -y install python3.8
 RUN apt-get -y install python3-pip
 
