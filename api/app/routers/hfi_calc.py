@@ -1,12 +1,19 @@
 """ Routers for HFI Calculator """
 import logging
-from typing import List
-from fastapi import APIRouter, Response, Depends
+import math
+from typing import List, Optional
+from aiohttp.client import ClientSession
+from fastapi import APIRouter, Response, Depends, Query
+from app.wildfire_one import (get_wfwx_stations_from_station_codes,
+                              get_dailies,
+                              get_auth_header)
+import app.utils.time
+from app.schemas.hfi_calc import StationDailyResponse
 import app
 from app import wildfire_one
 from app.auth import authentication_required, audit
-from app.schemas.hfi_calc import HFIWeatherStationsResponse, WeatherStationProperties,\
-    FuelType, FireCentre, PlanningArea, WeatherStation
+from app.schemas.hfi_calc import (HFIWeatherStationsResponse, WeatherStationProperties,
+                                  FuelType, FireCentre, PlanningArea, WeatherStation)
 from app.db.crud.hfi_calc import get_fire_weather_stations
 
 
@@ -16,6 +23,34 @@ router = APIRouter(
     prefix="/hfi-calc",
     dependencies=[Depends(authentication_required), Depends(audit)]
 )
+
+
+def validate_time_range(start_time_stamp: Optional[int], end_time_stamp: Optional[int]):
+    """ Sets timestamp to today if they are None.
+        Defaults to start of today and end of today if no range is given. """
+    if start_time_stamp is None or end_time_stamp is None:
+        today_start, today_end = app.utils.time.get_pst_today_start_and_end()
+        return math.floor(today_start.timestamp()*1000), math.floor(today_end.timestamp()*1000)
+    return int(start_time_stamp), int(end_time_stamp)
+
+
+@router.get('/daily', response_model=StationDailyResponse)
+async def get_daily_view(response: Response,
+                         _=Depends(authentication_required),
+                         station_codes: Optional[List[int]] = Query(None),
+                         start_time_stamp: Optional[int] = None,
+                         end_time_stamp: Optional[int] = None):
+    """ Returns daily metrics for each station code. """
+    logger.info('/hfi-calc/daily')
+    response.headers["Cache-Control"] = "max-age=0"  # don't let the browser cache this
+    valid_start_time, valid_end_time = validate_time_range(start_time_stamp, end_time_stamp)
+
+    async with ClientSession() as session:
+        header = await get_auth_header(session)
+        wfwx_stations = await get_wfwx_stations_from_station_codes(session, header, station_codes)
+        dailies = await get_dailies(
+            session, header, wfwx_stations, valid_start_time, valid_end_time)
+        return StationDailyResponse(dailies=dailies)
 
 
 @router.get('/fire-centres', response_model=HFIWeatherStationsResponse)
