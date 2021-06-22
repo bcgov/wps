@@ -110,7 +110,7 @@ const DailyViewTable = (props: Props) => {
                 <TableCell>
                   Temp
                   <br />
-                  (°C)
+                  (&deg;C)
                 </TableCell>
                 <TableCell>
                   RH
@@ -121,6 +121,7 @@ const DailyViewTable = (props: Props) => {
                   Wind
                   <br />
                   Dir
+                  (&deg;)
                 </TableCell>
                 <TableCell>
                   Wind
