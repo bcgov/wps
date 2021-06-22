@@ -12,10 +12,17 @@ RUN apt-get -y update
 RUN apt-get -y install unixodbc-dev
 # Install old (2.4.*; current debian) version of gdal and R
 RUN apt-get -y install libgdal-dev
-RUN apt-get update --fix-missing && apt-get -y install r-base-dev texlive-full
-RUN apt-get update --fix-missing && apt-get -y install r-base-core r-base
 
-# Update pip  
+# Install R
+RUN apt-get update --fix-missing && apt-get -y install r-base
+
+# Install cffdrs
+RUN R -e "install.packages('cffdrs')"
+
+# RUN apt-get update --fix-missing && apt-get -y install r-base-dev texlive-full
+# RUN apt-get update --fix-missing && apt-get -y install r-base-core r-base
+
+# Update pip
 RUN python -m pip install --upgrade pip
 
 # Install gdal

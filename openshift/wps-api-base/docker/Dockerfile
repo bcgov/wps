@@ -2,10 +2,7 @@
 # tianglo/uvicorn-gunicorn-fastapi:python3.8
 # see: https://github.com/tiangolo/uvicorn-gunicorn-fastapi-docker for available images.
 #
-# ###########################
-# When building in openshift:
-# ###########################
-# If you need to update the openshift image, do the following - all from your local machine
+# When building in openshift, you'll need the latest image in openshift:
 # 1) get the latest:
 # docker pull tiangolo/uvicorn-gunicorn-fastapi:python3.8
 # 2) tag it for upload:
@@ -14,14 +11,12 @@
 # docker login -u developer -p $(oc whoami -t) image-registry.apps.silver.devops.gov.bc.ca
 # 4) push to openshift:
 # docker push image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/uvicorn-gunicorn-fastapi:python3.8
+
+
+# When building in openshift, you can reference the image there:
 # FROM image-registry.openshift-image-registry.svc:5000/e1e498-tools/uvicorn-gunicorn-fastapi:python3.8
-# ####################
-# When building local:
-# ####################
-# 1) build it locally
-# 2) tag it for upload
-# 3) login
-# 4) push to openshift
+#
+# When building local, you can reference the docker image:
 FROM tiangolo/uvicorn-gunicorn-fastapi:python3.8
 
 # Install old (2.4.*; current debian) version of gdal and R
