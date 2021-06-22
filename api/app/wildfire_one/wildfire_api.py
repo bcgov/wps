@@ -18,7 +18,7 @@ from app.wildfire_one.query_builders import (BuildQueryAllActiveStations,
                                              BuildQueryAllHourliesByRange,
                                              BuildQueryByStationCode,
                                              BuildQueryDailesByStationCode)
-from app.wildfire_one.util import _is_station_valid
+from app.wildfire_one.util import is_station_valid
 from app.wildfire_one.wildfire_fetchers import (fetch_access_token,
                                                 fetch_detailed_geojson_stations,
                                                 fetch_paged_response_generator,
@@ -56,7 +56,7 @@ async def get_stations_by_codes(station_codes: List[int]) -> List[WeatherStation
             session, header, BuildQueryByStationCode(station_codes), 'stations')
         async for raw_station in iterator:
             # If the station is valid, add it to our list of stations.
-            if _is_station_valid(raw_station):
+            if is_station_valid(raw_station):
                 stations.append(parse_station(raw_station))
         logger.debug('total stations: %d', len(stations))
         return stations
@@ -68,7 +68,7 @@ async def station_list_mapper(raw_stations: Generator[dict, None, None]):
     # Iterate through "raw" station data.
     async for raw_station in raw_stations:
         # If the station is valid, add it to our list of stations.
-        if _is_station_valid(raw_station):
+        if is_station_valid(raw_station):
             stations.append(WeatherStation(code=raw_station['stationCode'],
                                            name=raw_station['displayLabel'],
                                            lat=raw_station['latitude'],
@@ -90,7 +90,7 @@ async def wfwx_station_list_mapper(raw_stations: Generator[dict, None, None]) ->
     # Iterate through "raw" station data.
     async for raw_station in raw_stations:
         # If the station is valid, add it to our list of stations.
-        if _is_station_valid(raw_station):
+        if is_station_valid(raw_station):
             stations.append(WFWXWeatherStation(wfwx_id=raw_station['id'],
                                                code=raw_station['stationCode']))
     return stations

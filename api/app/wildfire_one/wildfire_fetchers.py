@@ -13,7 +13,7 @@ from app.db.crud.stations import _get_noon_date
 from app.wildfire_one.query_builders import BuildQuery
 from app import config
 from app.wildfire_one.schema_parsers import parse_hourly, parse_station
-from app.wildfire_one.util import _is_station_valid
+from app.wildfire_one.util import is_station_valid
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +59,7 @@ async def fetch_detailed_geojson_stations(
         station_status = raw_station.get('stationStatus', {}).get('id')
         # Because we can't filter on status in the RSQL, we have to manually exclude stations that are
         # not active.
-        if _is_station_valid(raw_station):
+        if is_station_valid(raw_station):
             id_to_code_map[raw_station.get('id')] = station_code
             geojson_station = GeoJsonDetailedWeatherStation(properties=DetailedWeatherStationProperties(
                 code=station_code,
