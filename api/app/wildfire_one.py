@@ -1,11 +1,7 @@
 """ This module contains methods for retrieving information from the WFWX Fireweather API.
 """
 import math
-<<<<<<< HEAD
-from typing import Generator, Dict, List, Tuple, Final
-=======
-from typing import Generator, Dict, List, Optional, Tuple
->>>>>>> origin/main
+from typing import Generator, Dict, List, Optional, Tuple, Final
 from datetime import datetime, timezone
 from abc import abstractmethod, ABC
 import json
