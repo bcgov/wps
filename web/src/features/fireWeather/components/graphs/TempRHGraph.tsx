@@ -230,7 +230,11 @@ const TempRHGraph = (props: Props) => {
             gridcolor: 'transparent',
             range: y2Range
           },
-          hovermode: 'closest'
+          // hovermode: 'x' // obstructs to the right
+          // hovermode: 'closest' // x axis not shown
+          // hovermode: 'x
+          // 'closest' | 'x' | 'y' | 'x unified' | 'y unified'
+          hovermode: 'x unified'
         }}
       />
     </div>
