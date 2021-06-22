@@ -158,7 +158,8 @@ async def _fetch_cached_response(session: ClientSession, headers: dict, url: str
         async with session.get(url, headers=headers, params=params) as response:
             response_json = await response.json()
         try:
-            cache.set(key, json.dumps(response_json).encode(), ex=cache_expiry_seconds)
+            if response.status == 200:
+                cache.set(key, json.dumps(response_json).encode(), ex=cache_expiry_seconds)
         except Exception as error:  # pylint: disable=broad-except
             logger.error(error)
     return response_json
