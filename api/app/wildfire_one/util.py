@@ -1,7 +1,7 @@
 """ Utility functions used in several places within the wildfire_one module"""
 
 
-def _is_station_valid(station) -> bool:
+def is_station_valid(station) -> bool:
     """ Run through a set of conditions to check if the station is valid.
 
     The RSQL filter is unable to filter on station status.
