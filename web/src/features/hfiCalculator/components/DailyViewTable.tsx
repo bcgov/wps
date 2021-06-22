@@ -120,8 +120,7 @@ const DailyViewTable = (props: Props) => {
                 <TableCell>
                   Wind
                   <br />
-                  Dir
-                  (&deg;)
+                  Dir(&deg;)
                 </TableCell>
                 <TableCell>
                   Wind
