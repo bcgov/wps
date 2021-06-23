@@ -23,7 +23,8 @@ const interceptData = () => {
 
 describe('MoreCast Page', () => {
   beforeEach(() => {
-    cy.intercept('GET', 'api/stations/', { fixture: 'weather-stations.json' }).as('getStations')
+    cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
+    cy.intercept('GET', 'api/stations/details/*', { fixture: 'weather-stations-details.json' }).as('getStationsDetails')
   })
 
   it('Should redirect to /morecast when accessing /fire-weather', () => {
@@ -34,7 +35,15 @@ describe('MoreCast Page', () => {
   it('Should display error messages when network errors occurred', () => {
     cy.visit(MORECAST_ROUTE)
     cy.intercept('POST', 'api/weather_models/RDPS/predictions/summaries').as('getRdpsSummaries')
-    cy.wait('@getStations')
+    cy.intercept('POST', 'api/weather_models/RDPS/predictions/most_recent/', { statusCode: 500 }).as('getRdps')
+    cy.intercept('POST', 'api/observations/', { statusCode: 500 }).as('getHourlyObservations')
+    cy.intercept('POST', 'api/forecasts/noon/', { statusCode: 500 }).as('getNoonForecasts')
+    cy.intercept('POST', 'api/forecasts/noon/summaries/', { statusCode: 500 }).as('getNoonForecastSummaries')
+    cy.intercept('POST', 'api/weather_models/HRDPS/predictions/most_recent/', { statusCode: 500 }).as('getHrdps')
+    cy.intercept('POST', 'api/weather_models/HRDPS/predictions/summaries/', { statusCode: 500 }).as('getHrdpsSummaries')
+    cy.intercept('POST', 'api/weather_models/GDPS/predictions/most_recent/', { statusCode: 500 }).as('getGdps')
+    cy.intercept('POST', 'api/weather_models/GDPS/predictions/summaries/', { statusCode: 500 }).as('getGdpsSummaries')
+    cy.wait('@getStationsDetails')
 
     cy.selectStationInDropdown(stationCode)
     const timeOfInterest = '2021-02-01T12:00:00-08:00'
@@ -45,15 +54,23 @@ describe('MoreCast Page', () => {
       .should('contain', `${stationCodeQueryKey}=${stationCode}`)
       .and('contain', `${timeOfInterestQueryKey}=${timeOfInterest}`)
 
-    cy.wait('@getRdpsSummaries')
+    cy.wait('@getHourlyObservations')
     cy.checkErrorMessage('Error occurred (while fetching hourly observations).')
+    cy.wait('@getGdps')
     cy.checkErrorMessage('Error occurred (while fetching GDPS).')
+    cy.wait('@getGdpsSummaries')
     cy.checkErrorMessage('Error occurred (while fetching GDPS summaries).')
+    cy.wait('@getNoonForecasts')
     cy.checkErrorMessage('Error occurred (while fetching noon forecasts).')
+    cy.wait('@getNoonForecastSummaries')
     cy.checkErrorMessage('Error occurred (while fetching noon forecast summaries).')
+    cy.wait('@getHrdps')
     cy.checkErrorMessage('Error occurred (while fetching HRDPS).')
+    cy.wait('@getHrdpsSummaries')
     cy.checkErrorMessage('Error occurred (while fetching HRDPS summaries).')
+    cy.wait('@getRdps')
     cy.checkErrorMessage('Error occurred (while fetching RDPS).')
+    cy.wait('@getRdpsSummaries')
     cy.checkErrorMessage('Error occurred (while fetching RDPS summaries).')
 
     cy.contains('Data is not available.')
