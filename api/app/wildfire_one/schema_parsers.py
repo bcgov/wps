@@ -5,6 +5,7 @@ import logging
 from datetime import datetime, timezone
 from app.db.models.observations import HourlyActual
 from app.schemas.stations import WeatherStation
+from app.utils.cffdrs import rate_of_spread
 from app.utils.dewpoint import compute_dewpoint
 from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.schemas.observations import WeatherReading
@@ -56,6 +57,10 @@ def parse_hourly(hourly) -> WeatherReading:
 def parse_daily(raw_daily, station_code) -> StationDaily:
     """ Transform from the raw hourly json object returned by wf1, to our hourly object.
     """
+
+    isi = raw_daily.get('initialSpreadIndex', None)
+    bui = raw_daily.get('buildUpIndex', None)
+    ros = rate_of_spread("C7", isi, bui)
     return StationDaily(
         code=station_code,
         status="Observed" if raw_daily.get('recordType', '').get('id') == 'ACTUAL' else "Forecasted",
@@ -68,10 +73,11 @@ def parse_daily(raw_daily, station_code) -> StationDaily:
         ffmc=raw_daily.get('fineFuelMoistureCode', None),
         dmc=raw_daily.get('duffMoistureCode', None),
         dc=raw_daily.get('droughtCode', None),
-        isi=raw_daily.get('initialSpreadIndex', None),
-        bui=raw_daily.get('buildUpIndex', None),
         fwi=raw_daily.get('fireWeatherIndex', None),
         danger_class=raw_daily.get('dailySeverityRating', None),
+        isi=isi,
+        bui=bui,
+        ros=ros,
         observation_valid=raw_daily.get('observationValidInd', None),
         observation_valid_comment=raw_daily.get('observationValidComment', None)
     )
