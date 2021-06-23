@@ -26,6 +26,7 @@ def rate_of_spread(fuel_type: str, isi: float, bui: float):
     """ Computes ROS by delegating to cffdrs R package """
     if isi is None or bui is None:
         return None
+    # pylint: disable=protected-access, no-member
     result = cffdrs._ROScalc(FUELTYPE=fuel_type, ISI=isi, BUI=bui, CBH=6, SFC=1.5, PC=2)
     return result[0]
 
