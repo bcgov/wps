@@ -104,7 +104,7 @@ describe('MoreCast Page', () => {
       interceptData()
 
       cy.visit(`${MORECAST_ROUTE}?codes=${stationCode}`)
-      cy.wait('@getStations')
+      cy.wait('@getStationsDetails')
     })
 
     it('should load with an observation table', () => {
@@ -117,7 +117,7 @@ describe('MoreCast Page', () => {
       cy.getByTestId('expandable-container-content')
         .invoke('css', 'width')
         .then(str => parseInt(str))
-        .should('be.lt', 790)
+        .should('be.lte', 790)
     })
 
     it('should load a table comparing forecasts to noon observations', () => {
@@ -138,7 +138,7 @@ describe('MoreCast Page', () => {
       interceptData()
 
       cy.visit(`${MORECAST_ROUTE}?codes=${stationCode},${stationCode2}`)
-      cy.wait('@getStations')
+      cy.wait('@getStationsDetails')
     })
 
     it('Should display station comparison table', () => {
@@ -160,7 +160,7 @@ describe('MoreCast Page', () => {
 
       cy.visit(MORECAST_ROUTE)
 
-      cy.wait('@getStations')
+      cy.wait('@getStationsDetails')
 
       // Request the weather data
       cy.selectStationInDropdown(stationCode)
@@ -203,7 +203,7 @@ describe('MoreCast Page', () => {
 
       cy.visit(MORECAST_ROUTE)
 
-      cy.wait('@getStations')
+      cy.wait('@getStationsDetails')
 
       // Request the weather data
       cy.selectStationInDropdown(stationCode)
