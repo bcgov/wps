@@ -11,7 +11,7 @@ cffdrs = importr('cffdrs')
 #        SFC: Surface Fuel Consumption (kg/m^2)
 #         PC: Percent Conifer (%)
 #        PDF: Percent Dead Balsam Fir (%)
-#         CC: Constant
+#         CC: Constant (crown closure)
 #        CBH: Crown to base height(m)
 
 # Returns:
@@ -19,12 +19,12 @@ cffdrs = importr('cffdrs')
 #
 
 # Computable: SFC, FMC
-# To store in DB: PC, PDF, CC, CBH
+# To store in DB: PC, PDF, CC, CBH (attached to fuel type, red book)
 
 
 def rate_of_spread(fuel_type: str, isi: float, bui: float):
     """ Computes ROS by delegating to cffdrs R package """
-    if isi is None or bui is None:
+    if fuel_type is None or isi is None or bui is None:
         return None
     # pylint: disable=protected-access, no-member
     result = cffdrs._ROScalc(FUELTYPE=fuel_type, ISI=isi, BUI=bui, CBH=6, SFC=1.5, PC=2)
@@ -35,7 +35,7 @@ def rate_of_spread(fuel_type: str, isi: float, bui: float):
 #        BUI: Buildup Index
 #       FFMC: Fine Fuel Moisture Code
 #         PC: Percent Conifer (%)
-#        GFL: Grass Fuel Load (kg/m^2)
+#        GFL: Grass Fuel Load (kg/m^2) (3.5 kg/m^2)
 # Returns:
 #        SFC: Surface Fuel Consumption (kg/m^2)
 
@@ -53,7 +53,7 @@ def surface_fuel_consumption(fuel_type: str, bui: float, ffmc: float, p_c: float
   #   LONG:   Longitude (decimal degrees)
   #   ELV:    Elevation (metres)
   #   DJ:     Day of year (offeren referred to as julian date)
-  #   D0:     Date of minimum foliar moisture content
+  #   D0:     Date of minimum foliar moisture content (constant date, set by geography across province, 5 different dates)
   #
   # Returns:
   #   FMC:    Foliar Moisture Content

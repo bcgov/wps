@@ -1,12 +1,14 @@
 """ This module contains methods for retrieving information from the WFWX Fireweather API.
 """
 import math
-from typing import Generator, List, Optional
+from typing import Dict, Generator, List, Optional
 from datetime import datetime
 import logging
 import asyncio
 from aiohttp import ClientSession, TCPConnector
+import app
 from app import config
+from app.db.crud.hfi_calc import get_stations_with_fuel_types
 from app.utils.hfi_calculator import get_fire_centre_station_codes
 from app.db.models.observations import HourlyActual
 from app.schemas.hfi_calc import StationDaily
@@ -79,9 +81,12 @@ async def station_list_mapper(raw_stations: Generator[dict, None, None]):
 class WFWXWeatherStation():
     """ A WFWX station includes a code and WFWX API specific id """
 
-    def __init__(self, wfwx_id: str, code: int):
+    def __init__(self, wfwx_id: str, code: int, latitude: float, longitude: float, elevation: int):
         self.wfwx_id = wfwx_id
         self.code = code
+        self.lat = latitude
+        self.long = longitude
+        self.elevation = elevation
 
 
 async def wfwx_station_list_mapper(raw_stations: Generator[dict, None, None]) -> List[WFWXWeatherStation]:
@@ -92,7 +97,11 @@ async def wfwx_station_list_mapper(raw_stations: Generator[dict, None, None]) ->
         # If the station is valid, add it to our list of stations.
         if is_station_valid(raw_station):
             stations.append(WFWXWeatherStation(wfwx_id=raw_station['id'],
-                                               code=raw_station['stationCode']))
+                                               code=raw_station['stationCode'],
+                                               latitude=raw_station['latitude'],
+                                               longitude=raw_station['longitude'],
+                                               elevation=raw_station['elevation']
+                                               ))
     return stations
 
 
@@ -251,17 +260,27 @@ async def get_dailies(
         end_timestamp: int) -> List[StationDaily]:
     """ Get the daily actuals for the given station ids.
     """
+
     wfwx_station_ids = [wfwx_station.wfwx_id for wfwx_station in wfwx_stations]
+    station_codes = [wfwx_station.code for wfwx_station in wfwx_stations]
+
+    fuel_type_dict: Dict[int, str] = {}
+    with app.db.database.get_read_session_scope() as session:
+        result = get_stations_with_fuel_types(session, station_codes)
+        for (planning_station_record, fuel_type_record) in result:
+            fuel_type_dict[planning_station_record.station_code] = fuel_type_record.abbrev
+
     dailies_iterator = fetch_paged_response_generator(
         session, header, BuildQueryDailesByStationCode(
             start_timestamp,
             end_timestamp, wfwx_station_ids), 'dailies')
 
     dailies = []
-    station_code_dict = {station.wfwx_id: station.code for station in wfwx_stations}
+    station_dict: Dict[str, WFWXWeatherStation] = {station.wfwx_id: station for station in wfwx_stations}
     async for raw_daily in dailies_iterator:
         wfwx_id = raw_daily.get('stationId', None)
-        station_code = station_code_dict.get(wfwx_id, None)
-        daily = parse_daily(raw_daily, station_code)
+        station = station_dict.get(wfwx_id, None)
+        fuel_type = fuel_type_dict.get(station.code, None)
+        daily = parse_daily(raw_daily, station, fuel_type)
         dailies.append(daily)
     return dailies

@@ -10,6 +10,7 @@ from app.utils.dewpoint import compute_dewpoint
 from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.schemas.observations import WeatherReading
 from app.schemas.hfi_calc import StationDaily
+from app.wildfire_one.wildfire_api import WFWXWeatherStation
 
 logger = logging.getLogger(__name__)
 
@@ -54,15 +55,15 @@ def parse_hourly(hourly) -> WeatherReading:
     )
 
 
-def parse_daily(raw_daily, station_code) -> StationDaily:
+def parse_daily(raw_daily, station: WFWXWeatherStation, fuel_type: str) -> StationDaily:
     """ Transform from the raw hourly json object returned by wf1, to our hourly object.
     """
 
     isi = raw_daily.get('initialSpreadIndex', None)
     bui = raw_daily.get('buildUpIndex', None)
-    ros = rate_of_spread("C7", isi, bui)
+    ros = rate_of_spread(fuel_type, isi, bui)
     return StationDaily(
-        code=station_code,
+        code=station.code,
         status="Observed" if raw_daily.get('recordType', '').get('id') == 'ACTUAL' else "Forecasted",
         temperature=raw_daily.get('temperature', None),
         relative_humidity=raw_daily.get('relativeHumidity', None),
