@@ -1,7 +1,7 @@
 # Ubuntu base image
 
 This image is currently only needed for the c-haines cronjob, as it uses a more up to date version of gdal
-that is available in the api.
+than is available in the api.
 
 ## Apply template to build the base image on Openshift
 
