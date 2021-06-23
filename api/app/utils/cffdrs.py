@@ -1,5 +1,7 @@
 """ This module contains functions for computing fire weather metrics.
 """
+from rpy2.robjects.packages import importr
+cffdrs = importr('cffdrs')
 
 #   From cffdrs R package comments:
 #   FUELTYPE: The Fire Behaviour Prediction FuelType
@@ -22,18 +24,18 @@
 
 def rate_of_spread(fuel_type: str, isi: float, bui: float):
     """ Computes ROS by delegating to cffdrs R package """
-    print(fuel_type)
-    print(isi)
-    print(bui)
+    # - note the underscore
+    result = cffdrs._ROScalc(FUELTYPE=fuel_type, ISI=isi, BUI=bui, CBH=6, SFC=1.5, PC=2)
+    return result[0]
 
-  # Args:
-  #   FUELTYPE: The Fire Behaviour Prediction FuelType
-  #        BUI: Buildup Index
-  #       FFMC: Fine Fuel Moisture Code
-  #         PC: Percent Conifer (%)
-  #        GFL: Grass Fuel Load (kg/m^2)
-  # Returns:
-  #        SFC: Surface Fuel Consumption (kg/m^2)
+# Args:
+#   FUELTYPE: The Fire Behaviour Prediction FuelType
+#        BUI: Buildup Index
+#       FFMC: Fine Fuel Moisture Code
+#         PC: Percent Conifer (%)
+#        GFL: Grass Fuel Load (kg/m^2)
+# Returns:
+#        SFC: Surface Fuel Consumption (kg/m^2)
 
 
 def surface_fuel_consumption(fuel_type: str, bui: float, ffmc: float, p_c: float, gfl: float):
