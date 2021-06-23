@@ -8,6 +8,9 @@ RUN TZ="Etc/UTC" DEBIAN_FRONTEND="noninteractive" apt-get -y install libgdal-dev
 # Install R
 RUN apt-get update --fix-missing && apt-get -y install r-base
 
+# Install cffdrs
+RUN R -e "install.packages('cffdrs')"
+
 RUN apt-get -y install python3.8
 RUN apt-get -y install python3-pip
 

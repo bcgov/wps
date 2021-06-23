@@ -13,7 +13,7 @@
 # docker push image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/uvicorn-gunicorn-fastapi:python3.8
 
 
-# When building in openshift, you can reference the image there:
+# When building in openshift, you can reference the image in openshift:
 # FROM image-registry.openshift-image-registry.svc:5000/e1e498-tools/uvicorn-gunicorn-fastapi:python3.8
 #
 # When building local, you can reference the docker image:
