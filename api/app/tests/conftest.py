@@ -72,7 +72,7 @@ def mock_requests(monkeypatch):
 
 @pytest.fixture(autouse=True)
 def mock_get_now(monkeypatch):
-    """ Patch all calls to app.timeutils: get_utc_now and get_pst_now  """
+    """ Patch all calls to app.util.time: get_utc_now and get_pst_now  """
     timestamp = 1590076213962/1000
 
     # The default value for WeatherDataRequest cannot be mocked out, as it
@@ -89,6 +89,18 @@ def mock_get_now(monkeypatch):
 
     monkeypatch.setattr(app.utils.time, 'get_utc_now', mock_utc_now)
     monkeypatch.setattr(app.utils.time, 'get_pst_now', mock_pst_now)
+
+
+@pytest.fixture(autouse=True)
+def mock_get_pst_today_start_and_end(monkeypatch):
+    """ Patch all calls to app.util.time: get_pst_today_start_and_end  """
+
+    def mock_get_pst_today():
+        start = datetime.fromtimestamp(1623974400, tz=get_pst_tz())
+        end = datetime.fromtimestamp(1624060800, tz=get_pst_tz())
+        return start, end
+
+    monkeypatch.setattr(app.utils.time, 'get_pst_today_start_and_end', mock_get_pst_today)
 
 
 @pytest.fixture(autouse=True)

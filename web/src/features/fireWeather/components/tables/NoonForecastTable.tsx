@@ -96,10 +96,12 @@ const NoonForecastTable = (props: NoonForecastTableProps) => {
   const headers: WeatherVariable[] = [
     'Temperature',
     'Relative Humidity',
-    'Wind Speed + Direction',
+    'Wind Speed',
+    'Wind Direction',
     'Precipitation'
   ]
   const subheaders: DataSource[][] = [
+    ['Forecast', 'Observed'],
     ['Forecast', 'Observed'],
     ['Forecast', 'Observed'],
     ['Forecast', 'Observed'],
@@ -124,16 +126,19 @@ const NoonForecastTable = (props: NoonForecastTableProps) => {
                 <TableRow>
                   <TableCell></TableCell>
                   <TableCell className={classes.darkColumnHeader} colSpan={2}>
-                    Temperature
+                    Temperature (&deg;C)
                   </TableCell>
                   <TableCell className={classes.lightColumnHeader} colSpan={2}>
-                    Relative Humidity
+                    Relative Humidity (%)
                   </TableCell>
                   <TableCell className={classes.darkColumnHeader} colSpan={2}>
-                    Wind Speed + Direction
+                    Wind Speed (km/h)
+                  </TableCell>
+                  <TableCell className={classes.darkColumnHeader} colSpan={2}>
+                    Wind Direction (&deg;)
                   </TableCell>
                   <TableCell className={classes.lightColumnHeader} colSpan={2}>
-                    Precipitation
+                    Precipitation (mm)
                   </TableCell>
                 </TableRow>
                 <TableRow>
@@ -143,17 +148,20 @@ const NoonForecastTable = (props: NoonForecastTableProps) => {
                     </TableSortLabel>
                   </TableCell>
                   {/* Temperature */}
-                  <TableCell className={classes.darkColumnHeader}>Forecast</TableCell>
-                  <TableCell className={classes.darkColumnHeader}>Observed</TableCell>
+                  <TableCell className={classes.darkColumnHeader}>FCST</TableCell>
+                  <TableCell className={classes.darkColumnHeader}>OBS</TableCell>
                   {/* Relative Humidity */}
-                  <TableCell className={classes.lightColumnHeader}>Forecast</TableCell>
-                  <TableCell className={classes.lightColumnHeader}>Observed</TableCell>
-                  {/* Wind Speed + Direction */}
-                  <TableCell className={classes.darkColumnHeader}>Forecast</TableCell>
-                  <TableCell className={classes.darkColumnHeader}>Observed</TableCell>
+                  <TableCell className={classes.lightColumnHeader}>FCST</TableCell>
+                  <TableCell className={classes.lightColumnHeader}>OBS</TableCell>
+                  {/* Wind Speed */}
+                  <TableCell className={classes.darkColumnHeader}>FCST</TableCell>
+                  <TableCell className={classes.darkColumnHeader}>OBS</TableCell>
+                  {/* Wind Direction */}
+                  <TableCell className={classes.darkColumnHeader}>FCST</TableCell>
+                  <TableCell className={classes.darkColumnHeader}>OBS</TableCell>
                   {/* Precip */}
-                  <TableCell className={classes.lightColumnHeader}>Forecast</TableCell>
-                  <TableCell className={classes.lightColumnHeader}>Observed</TableCell>
+                  <TableCell className={classes.lightColumnHeader}>FCST</TableCell>
+                  <TableCell className={classes.lightColumnHeader}>OBS</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>

@@ -170,9 +170,9 @@ describe('MoreCast Page', () => {
         .should('have.length', 2)
 
       // expect some observed data
-      cy.getByTestId(`${stationCode}-Temperature-Observed`).should('contain', '-3.8°C')
+      cy.getByTestId(`${stationCode}-Temperature-Observed`).should('contain', '-3.8')
 
-      cy.getByTestId(`${stationCode}-Dew-point-Observed`).should('contain', '-8.3°C')
+      cy.getByTestId(`${stationCode}-Dew-point-Observed`).should('contain', '-8.3')
     })
   })
 

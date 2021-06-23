@@ -14,6 +14,7 @@ import highResModelsReducer from 'features/fireWeather/slices/highResModelsSlice
 import highResModelSummariesReducer from 'features/fireWeather/slices/highResModelSummariesSlice'
 import regionalModelsReducer from 'features/fireWeather/slices/regionalModelsSlice'
 import regionalModelSummariesReducer from 'features/fireWeather/slices/regionalModelSummariesSlice'
+import hfiCalculatorDailiesReducer from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import hfiStationsReducer from 'features/hfiCalculator/slices/stationsSlice'
 
 const rootReducer = combineReducers({
@@ -32,6 +33,7 @@ const rootReducer = combineReducers({
   highResModelSummaries: highResModelSummariesReducer,
   regionalModels: regionalModelsReducer,
   regionalModelSummaries: regionalModelSummariesReducer,
+  hfiCalculatorDailies: hfiCalculatorDailiesReducer,
   hfiStations: hfiStationsReducer
 })
 
@@ -42,6 +44,7 @@ export default rootReducer
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 export const selectPercentileStations = (state: RootState) => state.percentileStations
+export const selectHFIDailies = (state: RootState) => state.hfiCalculatorDailies
 export const selectFireWeatherStations = (state: RootState) => state.fireWeatherStations
 export const selectPercentiles = (state: RootState) => state.percentiles
 export const selectCHainesModelRuns = (state: RootState) => state.cHainesModelRuns
@@ -72,5 +75,7 @@ export const selectWxDataLoading = (state: RootState): boolean =>
   state.regionalModelSummaries.loading
 export const selectFireWeatherStationsLoading = (state: RootState): boolean =>
   state.fireWeatherStations.loading
+export const selectHFIDailiesLoading = (state: RootState): boolean =>
+  state.hfiCalculatorDailies.loading
 export const selectHFIStationsLoading = (state: RootState): boolean =>
   state.hfiStations.loading

@@ -29,7 +29,7 @@ const useStyles = makeStyles({
     paddingBottom: 12,
 
     '& .MuiTableCell-sizeSmall': {
-      padding: '6px 12px 6px 6px'
+      padding: '3px 6px 3px 2px'
     }
   },
   paper: {
@@ -95,7 +95,7 @@ export interface Column {
   minWidth?: number
   maxWidth?: number
   align?: 'left' | 'right' | 'center'
-  format?: (value: number) => string | number
+  format?: (value: number) => string | number | undefined
   formatDt?: (dt: string) => string
 }
 
