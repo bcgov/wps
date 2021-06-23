@@ -29,9 +29,6 @@ RUN apt-get update --fix-missing && apt-get -y install r-base
 # Install cffdrs
 RUN R -e "install.packages('cffdrs')"
 
-# RUN apt-get update --fix-missing && apt-get -y install r-base-dev texlive-full
-# RUN apt-get update --fix-missing && apt-get -y install r-base-core r-base
-
 # Update pip  
 RUN python -m pip install --upgrade pip
 
