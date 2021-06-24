@@ -62,32 +62,6 @@ jobs:
         run: |
           sudo apt-get update --fix-missing && sudo apt-get -y install libgdal-dev
 
-      # - name: Install R
-      #   uses: r-lib/actions/setup-r@v1
-      #   with:
-      #     r-version: "3.5.2" # The R version to download (if necessary) and use.
-
-      - name: Set up R ${{ matrix.r-version }}
-        uses: r-lib/actions/setup-r@v1
-        with:
-          r-version: ${{ matrix.r-version }}
-      - name: Install R dependencies
-        run: |
-          install.packages(c("cffdrs", "remotes", "rcmdcheck"))
-          remotes::install_deps(dependencies = TRUE)
-        shell: Rscript {0}
-      - name: Check R
-        run: rcmdcheck::rcmdcheck(args = "--no-manual", error_on = "error")
-        shell: Rscript {0}
-
-      # - name: Install R (api)
-      # run: |
-      # sudo apt-get update --fix-missing && apt-get -y install r-base
-      # sudo R -e "install.packages('cffdrs')"
-
-      # - name: Install cffdrs
-      #   run: Rscript -e "install.packages('cffdrs')"
-
       # poetry cache folder: /home/runner/.cache/pypoetry
       - name: Cache poetry
         uses: actions/cache@v2
