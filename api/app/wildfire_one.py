@@ -1,15 +1,20 @@
 """ This module contains methods for retrieving information from the WFWX Fireweather API.
 """
 import math
-from typing import Generator, Dict, List, Tuple
+from typing import Generator, Dict, List, Optional, Tuple, Final
 from datetime import datetime, timezone
 from abc import abstractmethod, ABC
+import json
 import logging
 import asyncio
+from urllib.parse import urlencode
 from aiohttp import ClientSession, BasicAuth, TCPConnector
+from redis import StrictRedis
 from app import config
 from app.data.ecodivision_seasons import EcodivisionSeasons
+from app.utils.hfi_calculator import get_fire_centre_station_codes
 from app.db.models.observations import HourlyActual
+from app.schemas.hfi_calc import StationDaily
 from app.schemas.observations import WeatherStationHourlyReadings, WeatherReading
 from app.schemas.stations import (WeatherStation, GeoJsonDetailedWeatherStation,
                                   DetailedWeatherStationProperties, WeatherStationGeometry, WeatherVariables)
@@ -82,6 +87,29 @@ class BuildQueryAllHourliesByRange(BuildQuery):
         return url, params
 
 
+class BuildQueryDailesByStationCode(BuildQuery):
+    """ Builds query for requesting all hourlies in a time range"""
+
+    def __init__(self, start_timestamp: int, end_timestamp: int, station_ids: List[str]):
+        """ Initialize object """
+        super().__init__()
+        self.start_timestamp = start_timestamp
+        self.end_timestamp = end_timestamp
+        self.station_ids = station_ids
+
+    def query(self, page) -> Tuple[str, dict]:
+        """ Return query url for dailies between start_timestamp, end_timestamp"""
+        params = {'size': self.max_page_size,
+                  'page': page,
+                  'startingTimestamp': self.start_timestamp,
+                  'endingTimestamp': self.end_timestamp,
+                  'stationIds': self.station_ids}
+        url = ('{base_url}/v1/dailies/search/findDailiesByStationIdIsInAndWeather' +
+               'TimestampBetweenOrderByStationIdAscWeatherTimestampAsc').format(
+                   base_url=self.base_url)
+        return url, params
+
+
 def use_wfwx():
     """ Return True if configured to use WFWX """
     using_wfwx = config.get('USE_WFWX') == 'True'
@@ -109,13 +137,43 @@ async def get_auth_header(session: ClientSession) -> dict:
     return header
 
 
+async def _fetch_cached_response(session: ClientSession, headers: dict, url: str, params: dict,
+                                 cache_expiry_seconds: int):
+    cache = StrictRedis(host=config.get('REDIS_HOST'),
+                        port=config.get('REDIS_PORT', 6379),
+                        db=0,
+                        password=config.get('REDIS_PASSWORD'))
+
+    key = f'{url}?{urlencode(params)}'
+    try:
+        cached_json = cache.get(key)
+    except Exception as error:  # pylint: disable=broad-except
+        cached_json = None
+        logger.error(error)
+    if cached_json:
+        logger.info('redis cache hit')
+        response_json = json.loads(cached_json.decode())
+    else:
+        logger.info('cache miss')
+        async with session.get(url, headers=headers, params=params) as response:
+            response_json = await response.json()
+        try:
+            if response.status == 200:
+                cache.set(key, json.dumps(response_json).encode(), ex=cache_expiry_seconds)
+        except Exception as error:  # pylint: disable=broad-except
+            logger.error(error)
+    return response_json
+
+
 async def _fetch_paged_response_generator(
         session: ClientSession,
         headers: dict,
         query_builder: BuildQuery,
-        content_key: str
+        content_key: str,
+        use_cache: bool = False,
+        cache_expiry_seconds: int = 86400
 ) -> Generator[dict, None, None]:
-    """ Asynchronous generator for iterating through responses from the API.
+    """ Asynchronous generator for iterating through responses from the WFWX API.
     The response is a paged response, but this generator abstracts that away.
     """
     # We don't know how many pages until our first call - so we assume one page to start with.
@@ -125,14 +183,18 @@ async def _fetch_paged_response_generator(
         # Build up the request URL.
         url, params = query_builder.query(page_count)
         logger.debug('loading station page %d...', page_count)
-        async with session.get(url, headers=headers, params=params) as response:
-            station_json = await response.json()
+        if use_cache and config.get('REDIS_USE') == 'True':
+            # We've been told and configured to use the redis cache.
+            response_json = await _fetch_cached_response(session, headers, url, params, cache_expiry_seconds)
+        else:
+            async with session.get(url, headers=headers, params=params) as response:
+                response_json = await response.json()
             logger.debug('done loading station page %d.', page_count)
 
         # Update the total page count.
-        total_pages = station_json['page']['totalPages']
-        for station in station_json['_embedded'][content_key]:
-            yield station
+        total_pages = response_json['page']['totalPages'] if 'page' in response_json else 1
+        for response_object in response_json['_embedded'][content_key]:
+            yield response_object
         # Keep track of our page count.
         page_count = page_count + 1
 
@@ -221,6 +283,30 @@ def _parse_hourly(hourly) -> WeatherReading:
     )
 
 
+def _parse_daily(raw_daily, station_code) -> StationDaily:
+    """ Transform from the raw hourly json object returned by wf1, to our hourly object.
+    """
+    return StationDaily(
+        code=station_code,
+        status="Observed" if raw_daily.get('recordType', '').get('id') == 'ACTUAL' else "Forecasted",
+        temperature=raw_daily.get('temperature', None),
+        relative_humidity=raw_daily.get('relativeHumidity', None),
+        wind_speed=raw_daily.get('windSpeed', None),
+        wind_direction=raw_daily.get('windDirection', None),
+        precipitation=raw_daily.get('precipitation', None),
+        grass_cure_percentage=raw_daily.get('grasslandCuring', None),
+        ffmc=raw_daily.get('fineFuelMoistureCode', None),
+        dmc=raw_daily.get('duffMoistureCode', None),
+        dc=raw_daily.get('droughtCode', None),
+        isi=raw_daily.get('initialSpreadIndex', None),
+        bui=raw_daily.get('buildUpIndex', None),
+        fwi=raw_daily.get('fireWeatherIndex', None),
+        danger_class=raw_daily.get('dailySeverityRating', None),
+        observation_valid=raw_daily.get('observationValidInd', None),
+        observation_valid_comment=raw_daily.get('observationValidComment', None)
+    )
+
+
 async def get_stations_by_codes(station_codes: List[int]) -> List[WeatherStation]:
     """ Get a list of stations by code, from WFWX Fireweather API. """
     logger.info('Using WFWX to retrieve stations by code')
@@ -278,9 +364,15 @@ async def get_stations(session: ClientSession,
     """ Get list of stations from WFWX Fireweather API.
     """
     logger.info('Using WFWX to retrieve station list')
+    # 1 day seems a reasonable period to cache stations for.
+    redis_station_cache_expiry: Final = 86400
     # Iterate through "raw" station data.
-    raw_stations = _fetch_paged_response_generator(
-        session, header, BuildQueryAllActiveStations(), 'stations')
+    raw_stations = _fetch_paged_response_generator(session,
+                                                   header,
+                                                   BuildQueryAllActiveStations(),
+                                                   'stations',
+                                                   use_cache=True,
+                                                   cache_expiry_seconds=redis_station_cache_expiry)
     # Map list of stations into desired shape
     stations = await mapper(raw_stations)
     logger.debug('total stations: %d', len(stations))
@@ -479,6 +571,56 @@ async def get_hourly_actuals_all_stations(
             except KeyError as exception:
                 logger.warning("Missing hourly for station code", exc_info=exception)
     return hourly_actuals
+
+
+async def get_wfwx_stations_from_station_codes(session, header, station_codes: Optional[List[int]]):
+    """ Return the WFWX station ids from WFWX API given a list of station codes. """
+
+    # All WFWX stations are requested because WFWX returns a malformed JSON response when too
+    # many station codes are added as query parameters.
+    wfwx_stations = await get_stations(session, header, mapper=wfwx_station_list_mapper)
+
+    # Default to all known WFWX station ids if no station codes are specified
+    if station_codes is None:
+        # NOTE: IMPORTANT! get_fire_centre_station_codes has to be called outside of the
+        # list(filter(lambda)) statement, or else it is repeatedly called.
+        fire_centre_station_codes = get_fire_centre_station_codes()
+        return list(filter(lambda x: (x.code in fire_centre_station_codes),
+                           wfwx_stations))
+    requested_stations = []
+    station_code_dict = {station.code: station for station in wfwx_stations}
+    for station_code in station_codes:
+        wfwx_station = station_code_dict.get(station_code)
+        if wfwx_station is not None:
+            requested_stations.append(wfwx_station)
+        else:
+            logger.error("No WFWX station id for station code: %s", station_code)
+
+    return requested_stations
+
+
+async def get_dailies(
+        session: ClientSession,
+        header: dict,
+        wfwx_stations: List[WFWXWeatherStation],
+        start_timestamp: int,
+        end_timestamp: int) -> List[StationDaily]:
+    """ Get the daily actuals for the given station ids.
+    """
+    wfwx_station_ids = [wfwx_station.wfwx_id for wfwx_station in wfwx_stations]
+    dailies_iterator = _fetch_paged_response_generator(
+        session, header, BuildQueryDailesByStationCode(
+            start_timestamp,
+            end_timestamp, wfwx_station_ids), 'dailies')
+
+    dailies = []
+    station_code_dict = {station.wfwx_id: station.code for station in wfwx_stations}
+    async for daily in dailies_iterator:
+        wfwx_id = daily.get('stationId', None)
+        station_code = station_code_dict.get(wfwx_id, None)
+        parsed_daily = _parse_daily(daily, station_code)
+        dailies.append(parsed_daily)
+    return dailies
 
 
 def parse_hourly_actual(station_code: int, hourly_reading: WeatherReading):

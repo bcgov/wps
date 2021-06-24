@@ -1,7 +1,33 @@
-""" This module contains pydandict schemas relating to the HFI Calculator for the API.
+""" This module contains pydandict schemas the HFI Calculator.
 """
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel
+
+
+class StationDaily(BaseModel):
+    """ Station Daily metrics for HFI daily table """
+    code: Optional[int] = None
+    status: Optional[str] = None
+    temperature: Optional[float] = None
+    relative_humidity: Optional[float] = None
+    wind_speed: Optional[float] = None
+    wind_direction: Optional[float] = None
+    grass_cure_percentage: Optional[float] = None
+    precipitation: Optional[float] = None
+    ffmc: Optional[float] = None
+    dmc: Optional[float] = None
+    dc: Optional[float] = None
+    isi: Optional[float] = None
+    bui: Optional[float] = None
+    fwi: Optional[float] = None
+    danger_class: Optional[int] = None
+    observation_valid: Optional[bool] = None
+    observation_valid_comment: Optional[str] = None
+
+
+class StationDailyResponse(BaseModel):
+    """ Response that includes list of station daily data."""
+    dailies: List[StationDaily]
 
 
 class FuelType(BaseModel):

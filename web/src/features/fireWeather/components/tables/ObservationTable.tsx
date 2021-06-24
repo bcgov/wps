@@ -4,13 +4,14 @@ import { ObservedValue } from 'api/observationAPI'
 import SortableTableByDatetime, {
   Column
 } from 'features/fireWeather/components/tables/SortableTableByDatetime'
+import { FFMC_VALUES_DECIMAL, ISI_VALUES_DECIMAL } from 'utils/constants'
 import {
-  FFMC_VALUES_DECIMAL,
-  ISI_VALUES_DECIMAL,
-  PRECIP_VALUES_DECIMAL,
-  TEMPERATURE_VALUES_DECIMAL,
-  WIND_SPEED_VALUES_DECIMAL
-} from 'utils/constants'
+  formatWindDirection,
+  formatWindSpeed,
+  formatTemperature,
+  formatRelativeHumidity,
+  formatPrecipitation
+} from 'utils/format'
 import { formatDateInPST } from 'utils/date'
 
 export const columns: Column[] = [
@@ -25,40 +26,43 @@ export const columns: Column[] = [
     id: 'temperature',
     label: 'Temp (°C)',
     align: 'right',
-    format: (value: number): string => value.toFixed(TEMPERATURE_VALUES_DECIMAL)
+    format: formatTemperature,
+    maxWidth: 70
   },
   {
     id: 'relative_humidity',
     label: 'RH (%)',
     align: 'right',
-    format: (value: number): number => Math.round(value)
+    format: formatRelativeHumidity,
+    maxWidth: 70
   },
   {
     id: 'dewpoint',
     label: 'Dew Point (°C)',
     align: 'right',
-    maxWidth: 90,
-    format: (value: number): string => value.toFixed(TEMPERATURE_VALUES_DECIMAL)
+    maxWidth: 70,
+    format: formatTemperature
   },
   {
     id: 'wind_direction',
-    label: 'Wind Dir',
+    label: 'Wind Dir (°)',
     align: 'right',
-    format: (value: number): number => Math.round(value)
+    format: formatWindDirection,
+    maxWidth: 70
   },
   {
     id: 'wind_speed',
     label: 'Wind Spd (km/h)',
     align: 'right',
-    maxWidth: 80,
-    format: (value: number): string => value.toFixed(WIND_SPEED_VALUES_DECIMAL)
+    maxWidth: 70,
+    format: formatWindSpeed
   },
   {
     id: 'precipitation',
     label: 'Precip (mm)',
     align: 'right',
     maxWidth: 70,
-    format: (value: number): string => value.toFixed(PRECIP_VALUES_DECIMAL)
+    format: formatPrecipitation
   },
   {
     id: 'ffmc',
