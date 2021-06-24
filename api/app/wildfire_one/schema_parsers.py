@@ -124,7 +124,7 @@ def parse_daily(raw_daily, station: WFWXWeatherStation, fuel_type: str) -> Stati
         danger_class=raw_daily.get('dailySeverityRating', None),
         isi=isi,
         bui=bui,
-        ros=ros,
+        rate_of_spread=ros,
         observation_valid=raw_daily.get('observationValidInd', None),
         observation_valid_comment=raw_daily.get('observationValidComment', None)
     )

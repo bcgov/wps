@@ -6,6 +6,10 @@ cffdrs = importr('cffdrs')
 
 logger = logging.getLogger(__name__)
 
+
+class CFFDRSException(Exception):
+    """ CFFDRS contextual exception """
+
 #   From cffdrs R package comments:
 #   FUELTYPE: The Fire Behaviour Prediction FuelType
 #        ISI: Initial Spread Index
@@ -20,6 +24,7 @@ logger = logging.getLogger(__name__)
 # Returns:
 #   ROS: Rate of spread (m/min)
 #
+
 
 # Computable: SFC, FMC
 # To store in DB: PC, PDF, CC, CBH (attached to fuel type, red book)
@@ -53,10 +58,9 @@ FUEL_TYPE_LOOKUP = {"C1": DEFAULT_METRICS,
 def rate_of_spread(fuel_type: str, isi: float, bui: float, fmc: float, sfc: float):
     """ Computes ROS by delegating to cffdrs R package """
     if fuel_type is None or isi is None or bui is None or sfc is None:
-        logger.error(
-            "%s fuel_type: %s. isi: %s, bui: %s, sfc: %s",
-            PARAMS_ERROR_MESSAGE, fuel_type, isi, bui, sfc)
-        return None
+        message = PARAMS_ERROR_MESSAGE + \
+            "fuel_type: {fuel_type}, isi: {isi}, bui: {bui}, fmc: {fmc}, sfc: {sfc}"
+        raise CFFDRSException(message)
     # pylint: disable=protected-access, no-member, line-too-long
     result = cffdrs._ROScalc(FUELTYPE=fuel_type, ISI=isi, BUI=bui, FMC=fmc, SFC=sfc,
                              PC=FUEL_TYPE_LOOKUP[fuel_type]["PC"],
@@ -79,11 +83,10 @@ def surface_fuel_consumption(fuel_type: str, bui: float, ffmc: float):
     """ Computes SFC by delegating to cffdrs R package
         Assumes a standard GFL of 3.5 kg/m^2.
     """
-    if ffmc is None:
-        logger.error(
-            "%s fuel_type: %s. bui: %s, ffmc: %s",
-            PARAMS_ERROR_MESSAGE, fuel_type, bui, ffmc)
-        return None
+    if fuel_type is None or bui is None or ffmc is None:
+        message = PARAMS_ERROR_MESSAGE + \
+            "fuel_type: {fuel_type}, bui: {bui}, ffmc: {ffmc}"
+        raise CFFDRSException(message)
     # pylint: disable=protected-access, no-member, line-too-long
     result = cffdrs._SFCcalc(FUELTYPE=fuel_type, BUI=bui, FFMC=ffmc, PC=1, GFL=3.5)
     return result[0]

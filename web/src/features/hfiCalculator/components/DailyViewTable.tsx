@@ -230,7 +230,7 @@ const DailyViewTable = (props: Props) => {
                                     </TableCell>
                                     <TableCell>{daily?.danger_class}</TableCell>
                                     <TableCell>
-                                      {daily?.ros?.toFixed(DECIMAL_PLACES)}
+                                      {daily?.rate_of_spread?.toFixed(DECIMAL_PLACES)}
                                     </TableCell>
                                   </TableRow>
                                 )
