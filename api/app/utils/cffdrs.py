@@ -25,6 +25,30 @@ logger = logging.getLogger(__name__)
 # To store in DB: PC, PDF, CC, CBH (attached to fuel type, red book)
 PARAMS_ERROR_MESSAGE = "One or more params passed to R call is None."
 
+DEFAULT_METRICS = {"PC": 1, "PDF": 1, "CC": 1, "CBH": 1}
+
+# TODO: Once PC, PDF, CC, CDH are confirmed, replace these defaults
+# and potentially store then in the DB as columns in FuelType
+FUEL_TYPE_LOOKUP = {"C1": DEFAULT_METRICS,
+                    "C2": DEFAULT_METRICS,
+                    "C3": DEFAULT_METRICS,
+                    "C4": DEFAULT_METRICS,
+                    "C5": DEFAULT_METRICS,
+                    "C6": DEFAULT_METRICS,
+                    "C7": DEFAULT_METRICS,
+                    "D1": DEFAULT_METRICS,
+                    "D2": DEFAULT_METRICS,
+                    "M1": DEFAULT_METRICS,
+                    "M2": DEFAULT_METRICS,
+                    "M3": DEFAULT_METRICS,
+                    "M4": DEFAULT_METRICS,
+                    "O1A": DEFAULT_METRICS,
+                    "O1B": DEFAULT_METRICS,
+                    "S1": DEFAULT_METRICS,
+                    "S2": DEFAULT_METRICS,
+                    "S3": DEFAULT_METRICS
+                    }
+
 
 def rate_of_spread(fuel_type: str, isi: float, bui: float, fmc: float, sfc: float):
     """ Computes ROS by delegating to cffdrs R package """
@@ -34,7 +58,11 @@ def rate_of_spread(fuel_type: str, isi: float, bui: float, fmc: float, sfc: floa
             PARAMS_ERROR_MESSAGE, fuel_type, isi, bui, sfc)
         return None
     # pylint: disable=protected-access, no-member, line-too-long
-    result = cffdrs._ROScalc(FUELTYPE=fuel_type, ISI=isi, BUI=bui, FMC=fmc, SFC=sfc, PC=1, PDF=1, CC=1, CBH=1)
+    result = cffdrs._ROScalc(FUELTYPE=fuel_type, ISI=isi, BUI=bui, FMC=fmc, SFC=sfc,
+                             PC=FUEL_TYPE_LOOKUP[fuel_type]["PC"],
+                             PDF=FUEL_TYPE_LOOKUP[fuel_type]["PDF"],
+                             CC=FUEL_TYPE_LOOKUP[fuel_type]["CC"],
+                             CBH=FUEL_TYPE_LOOKUP[fuel_type]["CBH"])
     return result[0]
 
 # Args:
