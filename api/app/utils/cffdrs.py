@@ -26,8 +26,8 @@ def rate_of_spread(fuel_type: str, isi: float, bui: float):
     """ Computes ROS by delegating to cffdrs R package """
     if fuel_type is None or isi is None or bui is None:
         return None
-    # pylint: disable=protected-access, no-member
-    result = cffdrs._ROScalc(FUELTYPE="C7", ISI=isi, BUI=bui, CBH=6, SFC=1.5, PC=2)
+    # pylint: disable=protected-access, no-member, line-too-long
+    result = cffdrs._ROScalc(FUELTYPE=fuel_type, ISI=isi, BUI=bui, CBH=6, SFC=1.5, PC=2, PDF=1, CC=1)
     return result[0]
 
 # Args:
@@ -53,7 +53,8 @@ def surface_fuel_consumption(fuel_type: str, bui: float, ffmc: float, p_c: float
   #   LONG:   Longitude (decimal degrees)
   #   ELV:    Elevation (metres)
   #   DJ:     Day of year (offeren referred to as julian date)
-  #   D0:     Date of minimum foliar moisture content (constant date, set by geography across province, 5 different dates)
+  #   D0:     Date of minimum foliar moisture content
+  #           (constant date, set by geography across province, 5 different dates)
   #
   # Returns:
   #   FMC:    Foliar Moisture Content

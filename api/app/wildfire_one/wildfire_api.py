@@ -177,7 +177,10 @@ async def get_hourly_actuals_all_stations(
     async for hourly in hourlies_iterator:
         hourlies.append(hourly)
 
-    stations: List[HFIWeatherStationsResponse] = await get_stations(session, header, mapper=wfwx_station_list_mapper)
+    stations: List[HFIWeatherStationsResponse] = await get_stations(
+        session,
+        header,
+        mapper=wfwx_station_list_mapper)
 
     station_code_dict = {station.wfwx_id: station.code for station in stations}
 
@@ -215,6 +218,8 @@ async def get_wfwx_stations_from_station_codes(session, header, station_codes: O
             logger.error("No WFWX station id for station code: %s", station_code)
 
     return requested_stations
+
+# pylint: disable=too-many-locals
 
 
 async def get_dailies(
