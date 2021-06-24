@@ -26,6 +26,7 @@ import { getDetailedStations, StationSource } from 'api/stationAPI'
 import { PARTIAL_WIDTH, FULL_WIDTH, CENTER_OF_BC } from 'utils/constants'
 import { RedrawCommand } from 'features/map/Map'
 import StationAccuracyForDate from '../components/StationAccuracyForDate'
+import AccuracyVariablePicker from '../components/AccuracyVariablePicker'
 
 const useStyles = makeStyles(theme => ({
   main: {
@@ -192,6 +193,7 @@ const MoreCastPage = () => {
       </div>
       {(sidePanelWidth <= PARTIAL_WIDTH || showSidePanel === false) && (
         <div className={classes.legend} data-testid="legend">
+          <AccuracyVariablePicker />
           <AccuracyColorLegend />
           <StationAccuracyForDate toiFromQuery={toiFromQuery} />
         </div>
