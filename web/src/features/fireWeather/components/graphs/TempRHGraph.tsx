@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import React, { useEffect, useState } from 'react'
-import Plot from 'react-plotly.js'
+import Plot, { PlotParams } from 'react-plotly.js'
 
 import { ObservedValue } from 'api/observationAPI'
 import { ModelValue, ModelSummary } from 'api/modelAPI'
@@ -161,7 +161,20 @@ const TempRHGraph = (props: Props) => {
 
   // Update plotly revision to trigger re-drawing of the plot
   const setRevision = useState(0)[1]
-  // const [hoverMode, setHoverMode] = useState('closest')
+  const [hoverMode, setHoverMode] = useState<
+    'closest' | 'x' | 'y' | 'x unified' | 'y unified' | false
+  >('closest')
+
+  const handleHoverModeChange = (
+    event: React.ChangeEvent<{ name?: string; value: string }>
+  ) => {
+    switch (event.target.value) {
+      case 'closest':
+      case 'x':
+      case 'x unified':
+        setHoverMode(event.target.value)
+    }
+  }
 
   useEffect(() => {
     setRevision(revision => revision + 1)
@@ -169,6 +182,14 @@ const TempRHGraph = (props: Props) => {
 
   return (
     <div id="temp-rh-graph" data-testid="temp-rh-graph">
+      <div style={{ textAlign: 'right', paddingRight: '30px' }}>
+        Hover mode:{' '}
+        <select value={hoverMode as string} onChange={handleHoverModeChange}>
+          <option>closest</option>
+          <option>x</option>
+          <option>x unified</option>
+        </select>
+      </div>
       <Plot
         style={{ width: '100%', height: '100%' }}
         useResizeHandler={true}
@@ -231,7 +252,7 @@ const TempRHGraph = (props: Props) => {
             gridcolor: 'transparent',
             range: y2Range
           },
-          hovermode: 'closest'
+          hovermode: hoverMode
         }}
       />
     </div>
