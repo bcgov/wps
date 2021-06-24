@@ -6,11 +6,12 @@ from datetime import datetime, timezone
 from typing import Generator, List
 from app.db.models.observations import HourlyActual
 from app.schemas.stations import WeatherStation
-from app.utils.cffdrs import rate_of_spread
+from app.utils.cffdrs import foliar_moisture_content, rate_of_spread
 from app.utils.dewpoint import compute_dewpoint
 from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.schemas.observations import WeatherReading
 from app.schemas.hfi_calc import StationDaily
+from app.utils.time import get_julian_date_now
 from app.wildfire_one.util import is_station_valid
 
 logger = logging.getLogger(__name__)
@@ -103,7 +104,8 @@ def parse_daily(raw_daily, station: WFWXWeatherStation, fuel_type: str) -> Stati
 
     isi = raw_daily.get('initialSpreadIndex', None)
     bui = raw_daily.get('buildUpIndex', None)
-    ros = rate_of_spread(fuel_type, isi, bui)
+    fmc = foliar_moisture_content(station.lat, station.long, station.elevation, get_julian_date_now())
+    ros = rate_of_spread(fuel_type, isi, bui, fmc)
     return StationDaily(
         code=station.code,
         status="Observed" if raw_daily.get('recordType', '').get('id') == 'ACTUAL' else "Forecasted",

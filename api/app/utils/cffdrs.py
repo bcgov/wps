@@ -22,12 +22,12 @@ cffdrs = importr('cffdrs')
 # To store in DB: PC, PDF, CC, CBH (attached to fuel type, red book)
 
 
-def rate_of_spread(fuel_type: str, isi: float, bui: float):
+def rate_of_spread(fuel_type: str, isi: float, bui: float, fmc: float):
     """ Computes ROS by delegating to cffdrs R package """
     if fuel_type is None or isi is None or bui is None:
         return None
     # pylint: disable=protected-access, no-member, line-too-long
-    result = cffdrs._ROScalc(FUELTYPE=fuel_type, ISI=isi, BUI=bui, CBH=6, SFC=1.5, PC=2, PDF=1, CC=1)
+    result = cffdrs._ROScalc(FUELTYPE=fuel_type, ISI=isi, BUI=bui, FMC=fmc, CBH=6, SFC=1.5, PC=2, PDF=1, CC=1)
     return result[0]
 
 # Args:
@@ -60,10 +60,10 @@ def surface_fuel_consumption(fuel_type: str, bui: float, ffmc: float, p_c: float
   #   FMC:    Foliar Moisture Content
 
 
-def fuel_moisture_content(lat: int, long: int, elv: float, day_of_year: int, minimum_fmc_date: float):
-    """ Computes FMC by delegating to cffdrs R package """
-    print(lat)
-    print(long)
-    print(elv)
-    print(day_of_year)
-    print(minimum_fmc_date)
+def foliar_moisture_content(lat: int, long: int, elv: float, day_of_year: int):
+    """ Computes FMC by delegating to cffdrs R package
+        TODO: Find out the minimum fmc date that is passed as D0, for now it's 1.
+     """
+    # pylint: disable=protected-access, no-member, line-too-long
+    result = cffdrs._FMCcalc(LAT=lat, LONG=long, ELV=elv, DJ=day_of_year, D0=1)
+    return result[0]
