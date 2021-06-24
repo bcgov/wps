@@ -212,21 +212,25 @@ const TempRHGraph = (props: Props) => {
           hrdpsData.temp90thLine,
 
           // Lines & dots
-          biasAdjGdpsData.biasAdjRHLine,
-          biasAdjGdpsData.biasAdjTempLine,
-          gdpsData.rhLine,
-          gdpsData.tempLine,
-          rdpsData.rhLine,
-          rdpsData.tempLine,
-          hrdpsData.rhLine,
-          hrdpsData.tempLine,
+
           ...forecastData.tempVerticalLines,
           ...forecastData.rhVerticalLines,
+
+          observationData.dewpointLine,
+
+          biasAdjGdpsData.biasAdjRHLine,
+          gdpsData.rhLine,
+          rdpsData.rhLine,
+          hrdpsData.rhLine,
           forecastData.rhDots,
-          forecastData.tempDots,
           observationData.rhLine,
-          observationData.tempLine,
-          observationData.dewpointLine
+
+          biasAdjGdpsData.biasAdjTempLine,
+          gdpsData.tempLine,
+          rdpsData.tempLine,
+          hrdpsData.tempLine,
+          forecastData.tempDots,
+          observationData.tempLine
         ]}
         layout={{
           ...getLayoutConfig(
