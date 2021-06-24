@@ -68,15 +68,15 @@ jobs:
       #     r-version: "3.5.2" # The R version to download (if necessary) and use.
 
       - name: Set up R ${{ matrix.r-version }}
-        uses: r-lib/actions/setup-r@ffe45a39586f073cc2e9af79c4ba563b657dc6e3
+        uses: r-lib/actions/setup-r@v1
         with:
           r-version: ${{ matrix.r-version }}
-      - name: Install dependencies
+      - name: Install R dependencies
         run: |
           install.packages(c("cffdrs", "rcmdcheck"))
           remotes::install_deps(dependencies = TRUE)
         shell: Rscript {0}
-      - name: Check
+      - name: Check R
         run: rcmdcheck::rcmdcheck(args = "--no-manual", error_on = "error")
         shell: Rscript {0}
 
