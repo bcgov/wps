@@ -73,7 +73,7 @@ jobs:
           r-version: ${{ matrix.r-version }}
       - name: Install R dependencies
         run: |
-          install.packages(c("cffdrs", "rcmdcheck"))
+          install.packages(c("cffdrs", "remotes", "rcmdcheck"))
           remotes::install_deps(dependencies = TRUE)
         shell: Rscript {0}
       - name: Check R
