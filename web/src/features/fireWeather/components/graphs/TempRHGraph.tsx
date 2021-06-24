@@ -216,6 +216,9 @@ const TempRHGraph = (props: Props) => {
           ...forecastData.tempVerticalLines,
           ...forecastData.rhVerticalLines,
 
+          // Order and grouping is very important. For x-unified, everything here is displayed in
+          // reverse order. It is desirable that temp, rh and dew point are grouped together.
+
           observationData.dewpointLine,
 
           biasAdjGdpsData.biasAdjRHLine,
