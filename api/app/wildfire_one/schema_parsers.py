@@ -3,6 +3,7 @@
 import math
 import logging
 from datetime import datetime, timezone
+from typing import Generator, List
 from app.db.models.observations import HourlyActual
 from app.schemas.stations import WeatherStation
 from app.utils.cffdrs import rate_of_spread
@@ -10,9 +11,50 @@ from app.utils.dewpoint import compute_dewpoint
 from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.schemas.observations import WeatherReading
 from app.schemas.hfi_calc import StationDaily
-from app.wildfire_one.wildfire_api import WFWXWeatherStation
+from app.wildfire_one.util import is_station_valid
 
 logger = logging.getLogger(__name__)
+
+
+async def station_list_mapper(raw_stations: Generator[dict, None, None]):
+    """ Maps raw stations to WeatherStation list"""
+    stations = []
+    # Iterate through "raw" station data.
+    async for raw_station in raw_stations:
+        # If the station is valid, add it to our list of stations.
+        if is_station_valid(raw_station):
+            stations.append(WeatherStation(code=raw_station['stationCode'],
+                                           name=raw_station['displayLabel'],
+                                           lat=raw_station['latitude'],
+                                           long=raw_station['longitude']))
+    return stations
+
+
+class WFWXWeatherStation():
+    """ A WFWX station includes a code and WFWX API specific id """
+
+    def __init__(self, wfwx_id: str, code: int, latitude: float, longitude: float, elevation: int):
+        self.wfwx_id = wfwx_id
+        self.code = code
+        self.lat = latitude
+        self.long = longitude
+        self.elevation = elevation
+
+
+async def wfwx_station_list_mapper(raw_stations: Generator[dict, None, None]) -> List[WFWXWeatherStation]:
+    """ Maps raw stations to WFWXWeatherStation list"""
+    stations = []
+    # Iterate through "raw" station data.
+    async for raw_station in raw_stations:
+        # If the station is valid, add it to our list of stations.
+        if is_station_valid(raw_station):
+            stations.append(WFWXWeatherStation(wfwx_id=raw_station['id'],
+                                               code=raw_station['stationCode'],
+                                               latitude=raw_station['latitude'],
+                                               longitude=raw_station['longitude'],
+                                               elevation=raw_station['elevation']
+                                               ))
+    return stations
 
 
 def parse_station(station) -> WeatherStation:
