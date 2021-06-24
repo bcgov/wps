@@ -34,7 +34,7 @@ parameters:
     value: 1Gi
   - name: MEMORY_LIMIT
     description: Memory upper limit
-    value: 1Gi
+    value: 1.5Gi
   - name: REPLICAS
     description: Number of replicas (pods)
     value: "2"
