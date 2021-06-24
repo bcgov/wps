@@ -161,6 +161,7 @@ const TempRHGraph = (props: Props) => {
 
   // Update plotly revision to trigger re-drawing of the plot
   const setRevision = useState(0)[1]
+  // const [hoverMode, setHoverMode] = useState('closest')
 
   useEffect(() => {
     setRevision(revision => revision + 1)
@@ -230,11 +231,7 @@ const TempRHGraph = (props: Props) => {
             gridcolor: 'transparent',
             range: y2Range
           },
-          // hovermode: 'x' // obstructs to the right
-          // hovermode: 'closest' // x axis not shown
-          // hovermode: 'x
-          // 'closest' | 'x' | 'y' | 'x unified' | 'y unified'
-          hovermode: 'x unified'
+          hovermode: 'closest'
         }}
       />
     </div>
