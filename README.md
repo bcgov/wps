@@ -40,11 +40,15 @@ A glossary of terms relating to Wildfire that are relevant to Predictive Service
 
 ## Architecture
 
-![FWI calculator container diagram](container_diagram.jpg)
+![FWI calculator container diagram](./architecture/container_diagram.jpg)
+
+### Imagestream flow
+
+![Imagestream flow](./architecture/imagestream_flow.png)
 
 ## Contributing
 
-### Branch naming conventions 
+### Branch naming conventions
 
 Branches must be named in accordance with the rules specified in [.githooks/pre-push](.githooks/pre-push).
 
