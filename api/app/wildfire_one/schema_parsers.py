@@ -104,7 +104,7 @@ def parse_daily(raw_daily, station: WFWXWeatherStation, fuel_type: str) -> Stati
 
     isi = raw_daily.get('initialSpreadIndex', None)
     bui = raw_daily.get('buildUpIndex', None)
-    ffmc = raw_daily.get('fineFuelMoistureCode', None),
+    ffmc = raw_daily.get('fineFuelMoistureCode', None)
     fmc = foliar_moisture_content(station.lat, station.long, station.elevation, get_julian_date_now())
     sfc = surface_fuel_consumption(fuel_type, bui, ffmc[0])
     ros = rate_of_spread(fuel_type, isi, bui, fmc, sfc)
@@ -117,7 +117,7 @@ def parse_daily(raw_daily, station: WFWXWeatherStation, fuel_type: str) -> Stati
         wind_direction=raw_daily.get('windDirection', None),
         precipitation=raw_daily.get('precipitation', None),
         grass_cure_percentage=raw_daily.get('grasslandCuring', None),
-        ffmc=raw_daily.get('fineFuelMoistureCode', None),
+        ffmc=ffmc,
         dmc=raw_daily.get('duffMoistureCode', None),
         dc=raw_daily.get('droughtCode', None),
         fwi=raw_daily.get('fireWeatherIndex', None),
