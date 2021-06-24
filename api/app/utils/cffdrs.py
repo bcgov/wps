@@ -2,9 +2,19 @@
 """
 import logging
 from rpy2.robjects.packages import importr
-cffdrs = importr('cffdrs')
+
+from app.utils.singleton import Singleton
+
 
 logger = logging.getLogger(__name__)
+
+
+@Singleton
+class CFFDRS():
+    """ Singleton that loads CFFDRS R lib once in memory for reuse."""
+
+    def __init__(self):
+        self.cffdrs = importr('cffdrs')
 
 
 class CFFDRSException(Exception):
@@ -62,11 +72,11 @@ def rate_of_spread(fuel_type: str, isi: float, bui: float, fmc: float, sfc: floa
             "fuel_type: {fuel_type}, isi: {isi}, bui: {bui}, fmc: {fmc}, sfc: {sfc}"
         raise CFFDRSException(message)
     # pylint: disable=protected-access, no-member, line-too-long
-    result = cffdrs._ROScalc(FUELTYPE=fuel_type, ISI=isi, BUI=bui, FMC=fmc, SFC=sfc,
-                             PC=FUEL_TYPE_LOOKUP[fuel_type]["PC"],
-                             PDF=FUEL_TYPE_LOOKUP[fuel_type]["PDF"],
-                             CC=FUEL_TYPE_LOOKUP[fuel_type]["CC"],
-                             CBH=FUEL_TYPE_LOOKUP[fuel_type]["CBH"])
+    result = CFFDRS.instance().cffdrs._ROScalc(FUELTYPE=fuel_type, ISI=isi, BUI=bui, FMC=fmc, SFC=sfc,
+                                               PC=FUEL_TYPE_LOOKUP[fuel_type]["PC"],
+                                               PDF=FUEL_TYPE_LOOKUP[fuel_type]["PDF"],
+                                               CC=FUEL_TYPE_LOOKUP[fuel_type]["CC"],
+                                               CBH=FUEL_TYPE_LOOKUP[fuel_type]["CBH"])
     return result[0]
 
 # Args:
@@ -81,14 +91,14 @@ def rate_of_spread(fuel_type: str, isi: float, bui: float, fmc: float, sfc: floa
 
 def surface_fuel_consumption(fuel_type: str, bui: float, ffmc: float):
     """ Computes SFC by delegating to cffdrs R package
-        Assumes a standard GFL of 3.5 kg/m^2.
+        Assumes a standard GFL of 3.5 kg/m ^ 2.
     """
     if fuel_type is None or bui is None or ffmc is None:
         message = PARAMS_ERROR_MESSAGE + \
             "fuel_type: {fuel_type}, bui: {bui}, ffmc: {ffmc}"
         raise CFFDRSException(message)
     # pylint: disable=protected-access, no-member, line-too-long
-    result = cffdrs._SFCcalc(FUELTYPE=fuel_type, BUI=bui, FFMC=ffmc, PC=1, GFL=3.5)
+    result = CFFDRS.instance().cffdrs._SFCcalc(FUELTYPE=fuel_type, BUI=bui, FFMC=ffmc, PC=1, GFL=3.5)
     return result[0]
 
   # Args:
@@ -108,5 +118,5 @@ def foliar_moisture_content(lat: int, long: int, elv: float, day_of_year: int):
         TODO: Find out the minimum fmc date that is passed as D0, for now it's 1.
      """
     # pylint: disable=protected-access, no-member, line-too-long
-    result = cffdrs._FMCcalc(LAT=lat, LONG=long, ELV=elv, DJ=day_of_year, D0=1)
+    result = CFFDRS.instance().cffdrs._FMCcalc(LAT=lat, LONG=long, ELV=elv, DJ=day_of_year, D0=1)
     return result[0]
