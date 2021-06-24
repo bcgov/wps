@@ -52,9 +52,11 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   }
 
   const dailiesMap = new Map<number, StationDaily>()
-  dailies.forEach(daily => {
-    dailiesMap.set(daily.code, daily)
-  })
+  if (dailies !== undefined) {
+    dailies.forEach(daily => {
+      dailiesMap.set(daily.code, daily)
+    })
+  }
 
   return (
     <main data-testid="hfi-calculator-page">
