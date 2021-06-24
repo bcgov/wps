@@ -39,7 +39,7 @@ def get_hour_20(time_of_interest: datetime):
 
 
 def get_julian_date_now():
-    """ Returns current day of year 
+    """ Returns current day of year
         Source: https://rafatieppo.github.io/post/2018_12_01_juliandate/
     """
     fmt = '%Y-%m-%d'
