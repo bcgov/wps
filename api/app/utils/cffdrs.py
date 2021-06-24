@@ -1,7 +1,10 @@
 """ This module contains functions for computing fire weather metrics.
 """
+import logging
 from rpy2.robjects.packages import importr
 cffdrs = importr('cffdrs')
+
+logger = logging.getLogger(__name__)
 
 #   From cffdrs R package comments:
 #   FUELTYPE: The Fire Behaviour Prediction FuelType
@@ -20,14 +23,18 @@ cffdrs = importr('cffdrs')
 
 # Computable: SFC, FMC
 # To store in DB: PC, PDF, CC, CBH (attached to fuel type, red book)
+PARAMS_ERROR_MESSAGE = "One or more params passed to R call is None."
 
 
-def rate_of_spread(fuel_type: str, isi: float, bui: float, fmc: float):
+def rate_of_spread(fuel_type: str, isi: float, bui: float, fmc: float, sfc: float):
     """ Computes ROS by delegating to cffdrs R package """
-    if fuel_type is None or isi is None or bui is None:
+    if fuel_type is None or isi is None or bui is None or sfc is None:
+        logger.error(
+            "%s fuel_type: %s. isi: %s, bui: %s, sfc: %s",
+            PARAMS_ERROR_MESSAGE, fuel_type, isi, bui, sfc)
         return None
     # pylint: disable=protected-access, no-member, line-too-long
-    result = cffdrs._ROScalc(FUELTYPE=fuel_type, ISI=isi, BUI=bui, FMC=fmc, CBH=6, SFC=1.5, PC=2, PDF=1, CC=1)
+    result = cffdrs._ROScalc(FUELTYPE=fuel_type, ISI=isi, BUI=bui, FMC=fmc, SFC=sfc, PC=1, PDF=1, CC=1, CBH=1)
     return result[0]
 
 # Args:
@@ -40,13 +47,18 @@ def rate_of_spread(fuel_type: str, isi: float, bui: float, fmc: float):
 #        SFC: Surface Fuel Consumption (kg/m^2)
 
 
-def surface_fuel_consumption(fuel_type: str, bui: float, ffmc: float, p_c: float, gfl: float):
-    """ Computes SFC by delegating to cffdrs R package """
-    print(fuel_type)
-    print(bui)
-    print(ffmc)
-    print(p_c)
-    print(gfl)
+def surface_fuel_consumption(fuel_type: str, bui: float, ffmc: float):
+    """ Computes SFC by delegating to cffdrs R package
+        Assumes a standard GFL of 3.5 kg/m^2.
+    """
+    if ffmc is None:
+        logger.error(
+            "%s fuel_type: %s. bui: %s, ffmc: %s",
+            PARAMS_ERROR_MESSAGE, fuel_type, bui, ffmc)
+        return None
+    # pylint: disable=protected-access, no-member, line-too-long
+    result = cffdrs._SFCcalc(FUELTYPE=fuel_type, BUI=bui, FFMC=ffmc, PC=1, GFL=3.5)
+    return result[0]
 
   # Args:
   #   LAT:    Latitude (decimal degrees)

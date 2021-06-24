@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from typing import Generator, List
 from app.db.models.observations import HourlyActual
 from app.schemas.stations import WeatherStation
-from app.utils.cffdrs import foliar_moisture_content, rate_of_spread
+from app.utils.cffdrs import foliar_moisture_content, rate_of_spread, surface_fuel_consumption
 from app.utils.dewpoint import compute_dewpoint
 from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.schemas.observations import WeatherReading
@@ -104,8 +104,10 @@ def parse_daily(raw_daily, station: WFWXWeatherStation, fuel_type: str) -> Stati
 
     isi = raw_daily.get('initialSpreadIndex', None)
     bui = raw_daily.get('buildUpIndex', None)
+    ffmc = raw_daily.get('fineFuelMoistureCode', None),
     fmc = foliar_moisture_content(station.lat, station.long, station.elevation, get_julian_date_now())
-    ros = rate_of_spread(fuel_type, isi, bui, fmc)
+    sfc = surface_fuel_consumption(fuel_type, bui, ffmc[0])
+    ros = rate_of_spread(fuel_type, isi, bui, fmc, sfc)
     return StationDaily(
         code=station.code,
         status="Observed" if raw_daily.get('recordType', '').get('id') == 'ACTUAL' else "Forecasted",
