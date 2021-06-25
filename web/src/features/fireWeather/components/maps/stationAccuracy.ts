@@ -82,6 +82,10 @@ export const computePercentageDifference = (
   return percentDifference
 }
 
+export const computeDifference = (metricForecast: number, metricObservation: number): number => {
+  return metricObservation - metricForecast
+}
+
 /**
  *  Return color code for metric percent differences.
  *
