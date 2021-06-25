@@ -13,28 +13,25 @@ const useStyles = makeStyles({
     width: '150px',
     color: 'white',
     textAlign: 'center',
-    marginLeft: '40px'
+    marginLeft: '50px'
   },
   leftLabel: {
     height: '15px',
     width: '80px',
     fontSize: '10px',
-    color: 'white',
-    marginLeft: '4px'
+    color: 'white'
   },
   label: {
     height: '15px',
     width: '105px',
     fontSize: '10px',
-    color: 'white',
-    marginLeft: '4px'
+    color: 'white'
   },
   rightLabel: {
     height: '15px',
     width: '20px',
     fontSize: '10px',
-    color: 'white',
-    marginLeft: '4px'
+    color: 'white'
   },
   rowContainer: {
     display: 'flex',
@@ -43,6 +40,15 @@ const useStyles = makeStyles({
     'div:nth-child(3n)': {
       marginRight: 0
     }
+  },
+  labelContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    width: '260px',
+    'div:nth-child(3n)': {
+      marginRight: 0
+    },
+    justifyContent: 'space-evenly'
   },
   green: {
     backgroundColor: '#07A059',
@@ -72,7 +78,7 @@ const useStyles = makeStyles({
     borderTop: '2px solid #FFFFFF',
     borderBottom: '2px solid #FFFFFF',
     height: 27,
-    width: 32
+    width: 64
   },
   lightestOrange: {
     backgroundColor: '#FCCE89',
@@ -113,7 +119,7 @@ const AccuracyColorLegend = () => {
         <div className={classes.lightOrange}></div>
         <div className={classes.orange}></div>
       </div>
-      <div className={classes.rowContainer}>
+      <div className={classes.labelContainer}>
         <div className={classes.leftLabel}>Higher</div>
         <div className={classes.label}>Forecasted</div>
         <div className={classes.rightLabel}>Drier</div>
