@@ -46,6 +46,9 @@ export const windColorScale = [
   '#089E83'
 ]
 
+export const tempGradientStepInDegrees = 2
+export const rhGradientStepInPercentagePoints = 3
+
 /**
  *  Calculates the percentage difference between observed and forecasted station metrics.
  *  Uses increments of 3% to determine color code in the associated color arrays.
@@ -59,73 +62,51 @@ export const computeAccuracyColors = (stationMetric: StationMetrics): ColorResul
   }
 
   return determineColor(
-    computePercentageDifference(
+    computeTempScaleIndex(
       stationMetric.forecasts.temperature,
       stationMetric.observations.temperature
     ),
-    computePercentageDifference(
+    computeRHScaleIndex(
       stationMetric.forecasts.relative_humidity,
       stationMetric.observations.relative_humidity
     )
   )
 }
 
-export const computePercentageDifference = (
+export const computeRHScaleIndex = (
   metricForecast: number,
   metricObservation: number
 ): number => {
-  let percentDifference =
-    ((metricForecast - metricObservation) / ((metricForecast + metricObservation) / 2)) *
-    100
-  percentDifference = isNaN(percentDifference) ? 0 : percentDifference
-
-  return percentDifference
+  const percentagePointDifference = metricObservation - metricForecast
+  const gradient = Math.floor(
+    percentagePointDifference / rhGradientStepInPercentagePoints
+  )
+  const scaleIndex = Math.min(gradient + neutralIndex, (rhColorScale.length - 1) / 2)
+  return scaleIndex
 }
 
-export const computeDifference = (metricForecast: number, metricObservation: number): number => {
-  return metricObservation - metricForecast
+export const computeTempScaleIndex = (
+  metricForecast: number,
+  metricObservation: number
+): number => {
+  const tempDifference = metricObservation - metricForecast
+  const gradient = Math.floor(tempDifference / tempGradientStepInDegrees)
+  const scaleIndex = Math.min(gradient + neutralIndex, (tempColorScale.length - 1) / 2)
+  return scaleIndex
 }
 
 /**
  *  Return color code for metric percent differences.
  *
- *  Index is determined by how many multiples of 3 the difference
- *  is from the observed result, bounded by the size of the color array.
+ *  Index is determined by the magnitude of the difference between observed
+ *  and forecasted, bounded by the size of the color array.
  */
 export const determineColor = (
-  tempPercentDifference: number,
-  rhPercentDifference: number
+  tempScaleIndex: number,
+  rhScaleIndex: number
 ): ColorResult => {
   return {
-    temperature:
-      tempColorScale[
-        computeScaleIndex(
-          tempPercentDifference,
-          differenceToMagnitude(tempPercentDifference),
-          tempColorScale
-        )
-      ],
-    relative_humidity:
-      rhColorScale[
-        computeScaleIndex(
-          rhPercentDifference,
-          differenceToMagnitude(rhPercentDifference),
-          rhColorScale
-        )
-      ]
+    temperature: tempColorScale[tempScaleIndex],
+    relative_humidity: rhColorScale[rhScaleIndex]
   }
-}
-
-export const computeScaleIndex = (
-  percentDifference: number,
-  scaleMagnitude: number,
-  scale: string[]
-): number => {
-  return percentDifference <= 0
-    ? Math.max(neutralIndex - scaleMagnitude, 0)
-    : Math.min(neutralIndex + scaleMagnitude, scale.length - 1)
-}
-
-export const differenceToMagnitude = (percentDifference: number): number => {
-  return Math.min(Math.floor(Math.abs(percentDifference) / 3), rhColorScale.length - 1)
 }
