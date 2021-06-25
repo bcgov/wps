@@ -678,6 +678,8 @@ def validate_metric(value, low, high):
 def parse_observation_valid_comment(comment):
     """ Parse observation_valid_comment from WFWX API, and return list of wx variables
     mentioned in comment. """
+    if comment is None or len(comment) == 0:
+        return []
     # TODO: confirm that "relative humidity" and "wind direction" are spelled out as in list -
     # I haven't encountered error messages for these from the API yet, so I'm taking an
     # educated guess that they're spelled out and not shortened to "RH", "wind dir", or similar
@@ -689,4 +691,4 @@ def parse_observation_valid_comment(comment):
     for var in wx_variables:
         if var in comment:
             invalid_variables.append(var)
-    return invalid_variables if len(invalid_variables) > 0 else None
+    return invalid_variables
