@@ -625,15 +625,18 @@ async def get_dailies(
 
 def parse_hourly_actual(station_code: int, hourly_reading: WeatherReading):
     """ Maps WeatherReading to HourlyActual """
-    temp_valid = hourly_reading.temperature is not None
+    invalid_variables = parse_observation_valid_comment(hourly_reading.observation_valid_comment)
+    temp_valid = hourly_reading.temperature is not None and 'temperature' not in invalid_variables
+    # NOTE: it might not be necessary for us to perform our own validation,
+    # since WFWX API also performs validation.
     rh_valid = hourly_reading.relative_humidity is not None and validate_metric(
-        hourly_reading.relative_humidity, 0, 100)
+        hourly_reading.relative_humidity, 0, 100) and 'relative humidity' not in invalid_variables
     wdir_valid = hourly_reading.wind_direction is not None and validate_metric(
-        hourly_reading.wind_direction, 0, 360)
+        hourly_reading.wind_direction, 0, 360) and 'wind direction' not in invalid_variables
     wspeed_valid = hourly_reading.wind_speed is not None and validate_metric(
-        hourly_reading.wind_speed, 0, math.inf)
+        hourly_reading.wind_speed, 0, math.inf) and 'wind speed' not in invalid_variables
     precip_valid = hourly_reading.precipitation is not None and validate_metric(
-        hourly_reading.precipitation, 0, math.inf)
+        hourly_reading.precipitation, 0, math.inf) and 'precipitation' not in invalid_variables
 
     is_valid_wfwx = hourly_reading.observation_valid
     if is_valid_wfwx is False:
@@ -642,9 +645,7 @@ def parse_hourly_actual(station_code: int, hourly_reading: WeatherReading):
                        hourly_reading.datetime.strftime("%b %d %Y %H:%M:%S"),
                        hourly_reading.observation_valid_comment)
 
-    is_valid = temp_valid and rh_valid and wdir_valid and wspeed_valid and precip_valid and is_valid_wfwx
-
-    return None if (is_valid is False) else HourlyActual(
+    return HourlyActual(
         station_code=station_code,
         weather_date=hourly_reading.datetime,
         temp_valid=temp_valid,
@@ -667,3 +668,20 @@ def parse_hourly_actual(station_code: int, hourly_reading: WeatherReading):
 def validate_metric(value, low, high):
     """ Validate metric with it's range of accepted values """
     return low <= value <= high
+
+
+def parse_observation_valid_comment(comment):
+    """ Parse observation_valid_comment from WFWX API, and return list of wx variables
+    mentioned in comment. """
+    # TODO: confirm that "relative humidity" and "wind direction" are spelled out as in list -
+    # I haven't encountered error messages for these from the API yet, so I'm taking an
+    # educated guess that they're spelled out and not shortened to "RH", "wind dir", or similar
+    wx_variables = ['precipitation', 'temperature', 'barometric pressure',
+                    'wind speed', 'relative humidity', 'wind direction']
+    # capitalization is used inconsistently in WFWX API, so make comment case-agnostic
+    comment = comment.lower()
+    invalid_variables = []
+    for var in wx_variables:
+        if var in comment:
+            invalid_variables.append(var)
+    return invalid_variables if len(invalid_variables) > 0 else None
