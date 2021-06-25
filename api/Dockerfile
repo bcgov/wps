@@ -13,7 +13,13 @@ RUN apt-get -y install unixodbc-dev
 # Install old (2.4.*; current debian) version of gdal
 RUN apt-get -y install libgdal-dev
 
-# Update pip  
+# Install R
+RUN apt-get update --fix-missing && apt-get -y install r-base
+
+# Install cffdrs
+RUN R -e "install.packages('cffdrs')"
+
+# Update pip
 RUN python -m pip install --upgrade pip
 
 # Install gdal
