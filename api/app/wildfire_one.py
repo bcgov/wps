@@ -645,7 +645,11 @@ def parse_hourly_actual(station_code: int, hourly_reading: WeatherReading):
                        hourly_reading.datetime.strftime("%b %d %Y %H:%M:%S"),
                        hourly_reading.observation_valid_comment)
 
-    return HourlyActual(
+    is_obs_invalid = not temp_valid and not rh_valid and not wdir_valid and not wspeed_valid and not precip_valid
+
+    # don't write the HourlyActual to our database if every value is invalid. If even one
+    # weather variable observed is valid, write the HourlyActual to DB.
+    return None if is_obs_invalid else HourlyActual(
         station_code=station_code,
         weather_date=hourly_reading.datetime,
         temp_valid=temp_valid,
