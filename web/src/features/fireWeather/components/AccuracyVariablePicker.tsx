@@ -1,9 +1,9 @@
-import React from 'react'
+import React, { ChangeEvent, ChangeEventHandler, ReactNode } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import { FormControl, InputLabel, Select } from '@material-ui/core'
 import { MenuItem } from '@material-ui/core'
 
-enum AccuracyWeatherVariable {
+export enum AccuracyWeatherVariableEnum {
   'Relative Humidity' = 1,
   'Temperature'
 }
@@ -19,14 +19,16 @@ const useStyles = makeStyles({
   }
 })
 
-const AccuracyVariablePicker = () => {
+interface Props {
+  selectedWxVariable: AccuracyWeatherVariableEnum,
+  changeHandler: any
+}
+
+const AccuracyVariablePicker = (
+  props: Props
+  // changeHandler: ChangeEvent<{ name?: string | undefined; value: unknown; }>
+) => {
   const classes = useStyles()
-
-  const [selectedAccuracyWxVariable, setSelectedAccuracyWxVariable] = React.useState(0)
-
-  const handleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    setSelectedAccuracyWxVariable(event.target.value as AccuracyWeatherVariable)
-  }
 
   return (
     <div>
@@ -37,14 +39,16 @@ const AccuracyVariablePicker = () => {
         <Select
           labelId="variable-dropdown-label"
           id="accuracy-variable-dropdown"
-          value={selectedAccuracyWxVariable}
-          onChange={handleChange}
+          value={props.selectedWxVariable}
           className={classes.select}
+          onChange={props.changeHandler}
         >
-          <MenuItem value={AccuracyWeatherVariable['Relative Humidity']}>
+          <MenuItem value={AccuracyWeatherVariableEnum['Relative Humidity']}>
             Relative Humidity
           </MenuItem>
-          <MenuItem value={AccuracyWeatherVariable['Temperature']}>Temperature</MenuItem>
+          <MenuItem value={AccuracyWeatherVariableEnum['Temperature']}>
+            Temperature
+          </MenuItem>
         </Select>
       </FormControl>
     </div>

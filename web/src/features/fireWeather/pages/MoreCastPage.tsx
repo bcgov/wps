@@ -26,7 +26,10 @@ import { getDetailedStations, StationSource } from 'api/stationAPI'
 import { PARTIAL_WIDTH, FULL_WIDTH, CENTER_OF_BC } from 'utils/constants'
 import { RedrawCommand } from 'features/map/Map'
 import StationAccuracyForDate from '../components/StationAccuracyForDate'
-import AccuracyVariablePicker from '../components/AccuracyVariablePicker'
+import AccuracyVariablePicker, {
+  AccuracyWeatherVariableEnum
+} from '../components/AccuracyVariablePicker'
+import State from 'ol/source/State'
 
 const useStyles = makeStyles(theme => ({
   main: {
@@ -80,6 +83,16 @@ const MoreCastPage = () => {
   const [sidePanelWidth, setSidePanelWidth] = useState(
     calculateSidePanelWidth(codesFromQuery)
   )
+  const [selectedAccuracyWxVariable, setSelectedAccuracyWxVariable] = useState(
+    AccuracyWeatherVariableEnum['Relative Humidity']
+  )
+  const accuracyWxVariableChangeHandler = (
+    event: React.ChangeEvent<{ value: AccuracyWeatherVariableEnum }>
+  ) => {
+    console.log('change detected')
+    console.log(event.target.value)
+    setSelectedAccuracyWxVariable(event.target.value)
+  }
 
   const [mapCenter, setMapCenter] = useState(CENTER_OF_BC)
   const expandSidePanel = () => setSidePanelWidth(FULL_WIDTH)
@@ -193,8 +206,11 @@ const MoreCastPage = () => {
       </div>
       {(sidePanelWidth <= PARTIAL_WIDTH || showSidePanel === false) && (
         <div className={classes.legend} data-testid="legend">
-          <AccuracyVariablePicker />
-          <AccuracyColorLegend />
+          <AccuracyVariablePicker
+            selectedWxVariable={selectedAccuracyWxVariable}
+            changeHandler={accuracyWxVariableChangeHandler}
+          />
+          <AccuracyColorLegend selectedWxVariable={selectedAccuracyWxVariable}/>
           <StationAccuracyForDate toiFromQuery={toiFromQuery} />
         </div>
       )}
