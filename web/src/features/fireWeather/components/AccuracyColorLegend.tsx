@@ -1,6 +1,6 @@
 import React from 'react'
 import { makeStyles } from '@material-ui/core/styles'
-import { AccuracyWeatherVariableEnum } from './AccuracyVariablePicker'
+import { AccuracyWeatherVariableEnum } from 'features/fireWeather/components/AccuracyVariablePicker'
 
 const useStyles = makeStyles({
   root: {
@@ -198,6 +198,7 @@ const AccuracyColorLegend = (props: Props) => {
       </div>
     )
   }
+  return undefined
 }
 
 export default React.memo(AccuracyColorLegend)

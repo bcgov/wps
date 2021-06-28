@@ -20,14 +20,11 @@ const useStyles = makeStyles({
 })
 
 interface Props {
-  selectedWxVariable: AccuracyWeatherVariableEnum,
+  selectedWxVariable: AccuracyWeatherVariableEnum
   changeHandler: any
 }
 
-const AccuracyVariablePicker = (
-  props: Props
-  // changeHandler: ChangeEvent<{ name?: string | undefined; value: unknown; }>
-) => {
+const AccuracyVariablePicker = (props: Props) => {
   const classes = useStyles()
 
   return (
