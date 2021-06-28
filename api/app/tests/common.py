@@ -6,6 +6,7 @@ import json
 from typing import Optional
 from contextlib import asynccontextmanager
 from app.tests.fixtures.loader import FixtureFinder
+from app.utils.singleton import Singleton
 
 
 logger = logging.getLogger(__name__)
@@ -130,17 +131,25 @@ class DefaultMockAioBaseClient:
         """Close all http connections."""
 
 
+@Singleton
 class MockCFFDRS():
+    """ Mock singleton R CFFDRS wrapper."""
+
+    def __init__(self):
+        self.cffdrs = MockRLibCFFDRS()
+
+
+class MockRLibCFFDRS():
     """ CFFDRS library mock."""
-    # pylint: disable=invalid-name, no-method-argument, no-self-use
-    def _ROScalc(**kwargs):
-        return 1
 
-    def _FMCcalc(**kwargs):  # pylint: disable=invalid-name, no-method-argument, no-self-use
-        return 1
+    def _ROScalc(self, **kwargs):  # pylint: disable=invalid-name, no-self-use, unused-argument
+        return [1.2966988409822604e-05]
 
-    def _SFCcalc(**kwargs):  # pylint: disable=invalid-name, no-method-argument, no-self-use
-        return 1
+    def _FMCcalc(self, **kwargs):  # pylint: disable=invalid-name, no-self-use, unused-argument
+        return [1]
+
+    def _SFCcalc(self, **kwargs):  # pylint: disable=invalid-name, no-self-use, unused-argument
+        return [1]
 
 
 def get_mock_cffdrs(**kwargs):  # pylint: disable=unused-argument

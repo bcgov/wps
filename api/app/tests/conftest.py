@@ -10,14 +10,13 @@ from sqlalchemy.orm import Session
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
 from pytest_mock import MockerFixture
-import rpy2.robjects.packages
 import app.utils.s3
 from app.utils.time import get_pst_tz
 from app import auth
 from app.tests.common import (
-    MockJWTDecode, default_aiobotocore_get_session, default_mock_requests_get,
+    MockCFFDRS, MockJWTDecode, default_aiobotocore_get_session, default_mock_requests_get,
     default_mock_requests_post, default_mock_requests_session_get,
-    default_mock_requests_session_post, get_mock_cffdrs)
+    default_mock_requests_session_post)
 from app.db.models import PredictionModel, PredictionModelRunTimestamp
 import app.db.database
 import app.utils.time as time_utils
@@ -165,11 +164,9 @@ def mock_requests_session(monkeypatch):
 
 
 @pytest.fixture()
-def mock_cffdrs(monkeypatch):
+def mock_cffdrs():
     """ Patch all calls to CFFDRS singleton """
-    monkeypatch.setattr(rpy2.robjects.packages, 'importr',
-                        get_mock_cffdrs)
-    return monkeypatch
+    app.utils.cffdrs.CFFDRS = MockCFFDRS
 
 
 @pytest.fixture(autouse=True)
