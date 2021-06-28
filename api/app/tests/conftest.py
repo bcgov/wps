@@ -6,6 +6,7 @@ from typing import Generator
 import logging
 import requests
 import pytest
+import rpy2.robjects.packages
 from sqlalchemy.orm import Session
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
@@ -164,8 +165,12 @@ def mock_requests_session(monkeypatch):
 
 
 @pytest.fixture()
-def mock_cffdrs():
+def mock_cffdrs(monkeypatch):
     """ Patch all calls to CFFDRS singleton """
+    # pylint: disable=unused-argument
+    def mock_function(*args, **kwargs):
+        pass
+    monkeypatch.setattr(rpy2.robjects.packages, "importr", mock_function)
     app.utils.cffdrs.CFFDRS = MockCFFDRS
 
 
