@@ -11,7 +11,7 @@ from app.db.crud.observations import get_hourly_actuals
 import app.stations
 from app.schemas.observations import WeatherStationHourlyReadings, WeatherReading
 from app.utils.dewpoint import compute_dewpoint
-from app.wildfire_one import wildfire_api
+from app.wildfire_one import wfwx_api
 
 
 def get(value: object, condition: bool = True):
@@ -29,7 +29,7 @@ async def fetch_hourly_readings_from_db(
         date_to: datetime) -> List[WeatherStationHourlyReadings]:
     """ Fetch the hourly readings from the database.
     """
-    stations = await wildfire_api.get_stations_by_codes(station_codes)
+    stations = await wfwx_api.get_stations_by_codes(station_codes)
     with app.db.database.get_read_session_scope() as session:
         readings = get_hourly_actuals(session, station_codes, date_from, date_to)
         station_readings = None
@@ -77,11 +77,11 @@ async def get_hourly_readings(
     """
     start_time_stamp, end_time_stamp = _get_time_interval(time_of_interest)
 
-    if wildfire_api.use_wfwx():
+    if wfwx_api.use_wfwx():
         # Limit the number of concurrent connections.
         async with ClientSession(connector=TCPConnector(limit=10)) as session:
-            header = await wildfire_api.get_auth_header(session)
-            return await wildfire_api.get_hourly_readings(
+            header = await wfwx_api.get_auth_header(session)
+            return await wfwx_api.get_hourly_readings(
                 session, header, station_codes, start_time_stamp, end_time_stamp)
 
     return await fetch_hourly_readings_from_db(station_codes, start_time_stamp, end_time_stamp)

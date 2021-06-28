@@ -105,7 +105,7 @@ def surface_fuel_consumption(fuel_type: str, bui: float, ffmc: float):
   #   LAT:    Latitude (decimal degrees)
   #   LONG:   Longitude (decimal degrees)
   #   ELV:    Elevation (metres)
-  #   DJ:     Day of year (offeren referred to as julian date)
+  #   DJ:     Day of year (often referred to as julian date)
   #   D0:     Date of minimum foliar moisture content
   #           (constant date, set by geography across province, 5 different dates)
   #

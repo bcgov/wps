@@ -7,8 +7,8 @@ from pytest_mock import MockerFixture
 from app.utils.time import get_utc_now
 from app.fireweather_bot import hourly_actuals
 from app.schemas.observations import WeatherReading
-from app.wildfire_one.wildfire_api import WFWXWeatherStation
-from app.wildfire_one import wildfire_api
+from app.wildfire_one.wfwx_api import WFWXWeatherStation
+from app.wildfire_one import wfwx_api
 
 
 logger = logging.getLogger(__name__)
@@ -17,8 +17,10 @@ logger = logging.getLogger(__name__)
 @pytest.fixture()
 def mock_hourly_actuals(mocker: MockerFixture):
     """ Mocks out hourly actuals as async result """
-    station_1 = WFWXWeatherStation(wfwx_id='ba28973a-0a79-04ea-e053-1d09228e8c64', code=1)
-    station_2 = WFWXWeatherStation(wfwx_id='ba28973a-0a79-04ea-e053-1d09228e8c65', code=2)
+    station_1 = WFWXWeatherStation(latitude=1, longitude=1, elevation=1,
+                                   wfwx_id='ba28973a-0a79-04ea-e053-1d09228e8c64', code=1)
+    station_2 = WFWXWeatherStation(latitude=1, longitude=1, elevation=1,
+                                   wfwx_id='ba28973a-0a79-04ea-e053-1d09228e8c65', code=2)
 
     class MockWFWXHourlyResponse(object):
         def __init__(self, **kwargs):
@@ -62,8 +64,8 @@ def mock_hourly_actuals(mocker: MockerFixture):
     future_station_codes = asyncio.Future()
     future_station_codes.set_result([station_1, station_2])
 
-    mocker.patch('app.wildfire_one.wildfire_api.wfwx_station_list_mapper', return_value=future_station_codes)
-    mocker.patch('app.wildfire_one.wildfire_api.get_hourly_actuals_all_stations',
+    mocker.patch('app.wildfire_one.wfwx_api.wfwx_station_list_mapper', return_value=future_station_codes)
+    mocker.patch('app.wildfire_one.wfwx_api.get_hourly_actuals_all_stations',
                  return_value=[wfwx_hourly_1, wfwx_hourly_2])
     mocker.patch('app.wildfire_one.wildfire_fetchers.fetch_paged_response_generator',
                  return_value=iter([wfwx_hourly_1, wfwx_hourly_2]))
@@ -79,7 +81,7 @@ def test_hourly_actuals_bot(monkeypatch, mocker: MockerFixture, mock_requests_se
     def mock_get_auth_header(_):
         return dict()
 
-    monkeypatch.setattr(wildfire_api, 'get_auth_header', mock_get_auth_header)
+    monkeypatch.setattr(wfwx_api, 'get_auth_header', mock_get_auth_header)
     save_hourly_actuals_spy = mocker.spy(hourly_actuals, 'save_hourly_actual')
     with pytest.raises(SystemExit) as excinfo:
         hourly_actuals.main()
@@ -100,7 +102,7 @@ def test_hourly_actuals_bot_fail(mocker: MockerFixture,
     def mock_get_hourly_readings(self, filename: str):
         raise Exception()
 
-    monkeypatch.setattr(wildfire_api, 'get_hourly_readings', mock_get_hourly_readings)
+    monkeypatch.setattr(wfwx_api, 'get_hourly_readings', mock_get_hourly_readings)
     rocket_chat_spy = mocker.spy(hourly_actuals, 'send_rocketchat_notification')
 
     with pytest.raises(SystemExit) as excinfo:
@@ -127,7 +129,7 @@ def test_parse_hourly_actual():
         fwi=0.0
     )
 
-    hourly_actual = wildfire_api.parse_hourly_actual(1, weather_reading)
+    hourly_actual = wfwx_api.parse_hourly_actual(1, weather_reading)
     assert hourly_actual.rh_valid is True
     assert hourly_actual.temp_valid is True
     assert hourly_actual.wdir_valid is True
@@ -150,7 +152,7 @@ def test_invalid_metrics():
         isi=0.0,
         fwi=0.0)
 
-    hourly_actual = wildfire_api.parse_hourly_actual(1, weather_reading)
+    hourly_actual = wfwx_api.parse_hourly_actual(1, weather_reading)
     assert hourly_actual is None
 
 
@@ -172,5 +174,5 @@ def test_invalid_metrics_from_wfwx():
         observation_valid_comment="Not valid"
     )
 
-    hourly_actual = wildfire_api.parse_hourly_actual(1, weather_reading)
+    hourly_actual = wfwx_api.parse_hourly_actual(1, weather_reading)
     assert hourly_actual is None

@@ -19,10 +19,10 @@ from app.schemas.stations import (WeatherStation,
                                   WeatherStationGeometry)
 import app.db.database
 from app.db.crud.stations import get_noon_forecast_observation_union
-from app.wildfire_one.wildfire_api import (get_auth_header,
-                                           get_detailed_stations,
-                                           get_stations,
-                                           use_wfwx)
+from app.wildfire_one.wfwx_api import (get_auth_header,
+                                       get_detailed_stations,
+                                       get_stations,
+                                       use_wfwx)
 
 logger = logging.getLogger(__name__)
 

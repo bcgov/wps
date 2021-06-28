@@ -11,10 +11,9 @@ from app.auth import authentication_required, audit
 from app.schemas.hfi_calc import (HFIWeatherStationsResponse, WeatherStationProperties,
                                   FuelType, FireCentre, PlanningArea, WeatherStation)
 from app.db.crud.hfi_calc import get_fire_weather_stations
-from app.wildfire_one.wildfire_api import (get_auth_header,
-                                           get_dailies,
-                                           get_stations_by_codes,
-                                           get_wfwx_stations_from_station_codes)
+from app.wildfire_one.wfwx_api import (get_auth_header,
+                                       get_dailies,
+                                       get_stations_by_codes)
 
 
 logger = logging.getLogger(__name__)
@@ -47,7 +46,8 @@ async def get_daily_view(response: Response,
 
     async with ClientSession() as session:
         header = await get_auth_header(session)
-        wfwx_stations = await get_wfwx_stations_from_station_codes(session, header, station_codes)
+        wfwx_stations = await app.wildfire_one.wfwx_api.get_wfwx_stations_from_station_codes(
+            session, header, station_codes)
         dailies = await get_dailies(
             session, header, wfwx_stations, valid_start_time, valid_end_time)
         return StationDailyResponse(dailies=dailies)
