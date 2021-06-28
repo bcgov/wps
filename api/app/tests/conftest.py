@@ -6,7 +6,6 @@ from typing import Generator
 import logging
 import requests
 import pytest
-import rpy2.robjects.packages
 from sqlalchemy.orm import Session
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
@@ -170,7 +169,7 @@ def mock_cffdrs(monkeypatch):
     # pylint: disable=unused-argument
     def mock_function(*args, **kwargs):
         pass
-    monkeypatch.setattr(rpy2.robjects.packages, "importr", mock_function)
+    monkeypatch.setattr(app.utils.r_importer, "import_cffsdrs", mock_function)
     app.utils.cffdrs.CFFDRS = MockCFFDRS
 
 

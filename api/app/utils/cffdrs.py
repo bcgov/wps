@@ -1,8 +1,7 @@
 """ This module contains functions for computing fire weather metrics.
 """
 import logging
-from rpy2.robjects.packages import importr
-
+import app.utils.r_importer
 from app.utils.singleton import Singleton
 
 
@@ -14,7 +13,8 @@ class CFFDRS():
     """ Singleton that loads CFFDRS R lib once in memory for reuse."""
 
     def __init__(self):
-        self.cffdrs = importr('cffdrs')
+        # pylint: disable=too-many-function-args
+        self.cffdrs = app.utils.r_importer.import_cffsdrs('cffdrs')
 
 
 class CFFDRSException(Exception):
