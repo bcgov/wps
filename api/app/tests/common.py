@@ -135,19 +135,15 @@ class MockCFFDRS():
     # pylint: disable=invalid-name, no-method-argument, no-self-use
     def _ROScalc(**kwargs):
         return 1
-    # pylint: disable=invalid-name, no-method-argument, no-self-use
 
-    def _FMCcalc(**kwargs):
-        return 1
-    # pylint: disable=invalid-name, no-method-argument, no-self-use
-
-    def _SFCcalc(**kwargs):
+    def _FMCcalc(**kwargs):  # pylint: disable=invalid-name, no-method-argument, no-self-use
         return 1
 
-# pylint: disable=unused-argument
+    def _SFCcalc(**kwargs):  # pylint: disable=invalid-name, no-method-argument, no-self-use
+        return 1
 
 
-def get_mock_cffdrs(**kwargs):
+def get_mock_cffdrs(**kwargs):  # pylint: disable=unused-argument
     """ Returns CFFDRS library mock."""
     return MockCFFDRS()
 

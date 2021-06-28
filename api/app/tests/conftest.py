@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
 from pytest_mock import MockerFixture
+import rpy2.robjects.packages
 import app.utils.s3
 from app.utils.time import get_pst_tz
 from app import auth
@@ -166,7 +167,7 @@ def mock_requests_session(monkeypatch):
 @pytest.fixture()
 def mock_cffdrs(monkeypatch):
     """ Patch all calls to CFFDRS singleton """
-    monkeypatch.setattr("rpy2.robjects.packages", 'importr',
+    monkeypatch.setattr(rpy2.robjects.packages, 'importr',
                         get_mock_cffdrs)
     return monkeypatch
 
