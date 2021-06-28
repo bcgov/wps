@@ -17,16 +17,32 @@ import { useDispatch, useSelector } from 'react-redux'
 import { selectFireWeatherStations } from 'app/rootReducer'
 import { getDetailedStations, StationSource } from 'api/stationAPI'
 import { computeAccuracyColors } from 'features/fireWeather/components/maps/stationAccuracy'
+import { AccuracyWeatherVariableEnum } from '../AccuracyVariablePicker'
 
-const pointStyleFunction = (feature: any) => {
+const pointStyleFunction = (feature: any, selectedWxVariable: AccuracyWeatherVariableEnum) => {
   const colorResult = computeAccuracyColors(feature.values_)
-  return new Style({
-    image: new CircleStyle({
-      radius: 4,
-      fill: new Fill({ color: colorResult.relative_humidity }),
-      stroke: new Stroke({ color: 'black', width: 1 })
-    })
-  })
+  switch(selectedWxVariable) {
+    case AccuracyWeatherVariableEnum['Relative Humidity']: {
+      return new Style({
+        image: new CircleStyle({
+          radius: 4,
+          fill: new Fill({ color: colorResult.relative_humidity }),
+          stroke: new Stroke({ color: 'black', width: 1 })
+        })
+      })
+    }
+    case AccuracyWeatherVariableEnum.Temperature: {
+      return new Style({
+        image: new CircleStyle({
+          radius: 4,
+          fill: new Fill({ color: colorResult.temperature }),
+          stroke: new Stroke({ color: 'black', width: 1 })
+        })
+      })
+    }
+  }
+
+
 }
 
 const BC_ROAD_BASE_MAP_SERVER_URL =
@@ -50,6 +66,7 @@ interface Props {
   isCollapsed: boolean
   toiFromQuery: string
   setMapCenter: (newCenter: number[]) => void
+  selectedWxVariable: AccuracyWeatherVariableEnum
 }
 
 const WeatherMap = ({

@@ -89,8 +89,6 @@ const MoreCastPage = () => {
   const accuracyWxVariableChangeHandler = (
     event: React.ChangeEvent<{ value: AccuracyWeatherVariableEnum }>
   ) => {
-    console.log('change detected')
-    console.log(event.target.value)
     setSelectedAccuracyWxVariable(event.target.value)
   }
 
@@ -180,6 +178,7 @@ const MoreCastPage = () => {
             toiFromQuery={toiFromQuery}
             center={mapCenter}
             setMapCenter={setNewMapCenter}
+            selectedWxVariable={selectedAccuracyWxVariable}
           />
         </div>
         <ExpandableContainer
