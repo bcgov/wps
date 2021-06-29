@@ -10,7 +10,7 @@ import asyncio
 from urllib.parse import urlencode
 from aiohttp import ClientSession, BasicAuth, TCPConnector
 from redis import StrictRedis
-from app import auth, config
+from app import config
 from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.utils.hfi_calculator import get_fire_centre_station_codes
 from app.db.models.observations import HourlyActual
