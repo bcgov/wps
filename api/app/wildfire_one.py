@@ -625,7 +625,9 @@ async def get_dailies(
 
 def replace_nones_in_hourly_actual_with_nan(hourly_reading: WeatherReading):
     """ Returns WeatherReading where any and all None values are replaced with math.nan
-    in preparation for entry into database. """
+    in preparation for entry into database. Have to do this because Postgres doesn't
+    handle None gracefully (it thinks None != None), but it can handle math.nan ok.
+    (See HourlyActual db model) """
     if hourly_reading.temperature is None:
         hourly_reading.temperature = math.nan
     if hourly_reading.relative_humidity is None:

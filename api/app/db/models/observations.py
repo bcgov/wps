@@ -13,7 +13,9 @@ class HourlyActual(Base):
     """ Class representing table structure of 'hourly_actuals' table in DB.
     Default float values of math.nan are used for the weather variables that are
     sometimes null (None), because Postgres evaluates None != None, so the unique
-    constraint doesn't work on records with >=1 None values. But math.nan == math.nan
+    constraint doesn't work on records with >=1 None values. But math.nan == math.nan.
+    WFWX API returns None values when stations have an error reporting out >=1
+    weather variables (i.e., equipment malfunction).
     """
     __tablename__ = 'hourly_actuals'
     __table_args__ = (
@@ -30,7 +32,6 @@ class HourlyActual(Base):
     rh_valid = Column(Boolean, default=False, nullable=False, index=True)
     relative_humidity = Column(Float, nullable=False, default=math.nan)
     wdir_valid = Column(Boolean, default=False, nullable=False)
-    # Set default wind_direction to NaN because some stations don't report it
     wind_direction = Column(Float, nullable=False, default=math.nan)
     wspeed_valid = Column(Boolean, default=False, nullable=False)
     wind_speed = Column(Float, nullable=False, default=math.nan)
