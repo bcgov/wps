@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import React, { useEffect, useState } from 'react'
-import Plot, { PlotParams } from 'react-plotly.js'
-
+import Plot from 'react-plotly.js'
+import FormControl from '@material-ui/core/FormControl'
+import Select from '@material-ui/core/Select'
+import MenuItem from '@material-ui/core/MenuItem'
 import { ObservedValue } from 'api/observationAPI'
 import { ModelValue, ModelSummary } from 'api/modelAPI'
 import { NoonForecastValue, ForecastSummary } from 'api/forecastAPI'
@@ -161,12 +163,10 @@ const TempRHGraph = (props: Props) => {
 
   // Update plotly revision to trigger re-drawing of the plot
   const setRevision = useState(0)[1]
-  const [hoverMode, setHoverMode] = useState<
-    'closest' | 'x' | 'y' | 'x unified' | 'y unified' | false
-  >('closest')
+  const [hoverMode, setHoverMode] = useState<'closest' | 'x' | 'x unified'>('closest')
 
   const handleHoverModeChange = (
-    event: React.ChangeEvent<{ name?: string; value: string }>
+    event: React.ChangeEvent<{ name?: string; value: unknown }>
   ) => {
     switch (event.target.value) {
       case 'closest':
@@ -182,13 +182,19 @@ const TempRHGraph = (props: Props) => {
 
   return (
     <div id="temp-rh-graph" data-testid="temp-rh-graph">
-      <div style={{ textAlign: 'right', paddingRight: '30px' }}>
+      <div style={{ textAlign: 'right', paddingRight: '30px', lineHeight: '40px' }}>
         Hover mode:{' '}
-        <select value={hoverMode as string} onChange={handleHoverModeChange}>
-          <option>closest</option>
-          <option>x</option>
-          <option>x unified</option>
-        </select>
+        <FormControl size="small">
+          <Select
+            variant="outlined"
+            value={hoverMode as string}
+            onChange={handleHoverModeChange}
+          >
+            <MenuItem value={'closest'}>closest</MenuItem>
+            <MenuItem value={'x'}>x</MenuItem>
+            <MenuItem value={'x unified'}>x unified</MenuItem>
+          </Select>
+        </FormControl>
       </div>
       <Plot
         style={{ width: '100%', height: '100%' }}
