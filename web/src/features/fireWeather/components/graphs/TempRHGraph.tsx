@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import React, { useEffect, useState } from 'react'
 import Plot from 'react-plotly.js'
+
 import { ObservedValue } from 'api/observationAPI'
 import { ModelValue, ModelSummary } from 'api/modelAPI'
 import { NoonForecastValue, ForecastSummary } from 'api/forecastAPI'

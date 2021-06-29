@@ -109,8 +109,6 @@ const WxDataGraph = ({
   return (
     <div className={classes.display}>
       <WxDataGraphToggles
-        handleHoverModeChange={handleHoverModeChange}
-        hoverMode={hoverMode}
         toggleValues={toggleValues}
         setToggleValues={setToggleValues}
         hasObservations={hasObservations}
@@ -119,6 +117,8 @@ const WxDataGraph = ({
         hasBiasAdjModels={hasBiasAdjModels}
         hasHighResModels={hasHighResModels}
         hasRegionalModels={hasRegionalModels}
+        handleHoverModeChange={handleHoverModeChange}
+        hoverMode={hoverMode}
       />
 
       <TempRHGraph
