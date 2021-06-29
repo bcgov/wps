@@ -45,7 +45,7 @@ class AsyncIter:
 def test_hfi_daily_metrics():
     """ BDD Scenario. """
 
-# pylint: disable=line-too-long
+# pylint: disable=line-too-long, unused-argument
 
 
 @given('I request metrics for all stations beginning at time <start_time_stamp> and ending at time <end_time_stamp>.', target_fixture='response')
