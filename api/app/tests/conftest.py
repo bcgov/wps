@@ -14,7 +14,7 @@ import app.utils.s3
 from app.utils.time import get_pst_tz
 from app import auth
 from app.tests.common import (
-    MockCFFDRS, MockJWTDecode, default_aiobotocore_get_session, default_mock_requests_get,
+    MockJWTDecode, MockRLibCFFDRS, default_aiobotocore_get_session, default_mock_requests_get,
     default_mock_requests_post, default_mock_requests_session_get,
     default_mock_requests_session_post)
 from app.db.models import PredictionModel, PredictionModelRunTimestamp
@@ -168,9 +168,8 @@ def mock_cffdrs(monkeypatch):
     """ Patch all calls to CFFDRS singleton """
     # pylint: disable=unused-argument
     def mock_function(*args, **kwargs):
-        pass
+        return MockRLibCFFDRS()
     monkeypatch.setattr(app.utils.r_importer, "import_cffsdrs", mock_function)
-    app.utils.cffdrs.CFFDRS = MockCFFDRS
 
 
 @pytest.fixture(autouse=True)

@@ -6,8 +6,6 @@ import json
 from typing import Optional
 from contextlib import asynccontextmanager
 from app.tests.fixtures.loader import FixtureFinder
-from app.utils.singleton import Singleton
-
 
 logger = logging.getLogger(__name__)
 
@@ -131,14 +129,6 @@ class DefaultMockAioBaseClient:
         """Close all http connections."""
 
 
-@Singleton
-class MockCFFDRS():
-    """ Mock singleton R CFFDRS wrapper."""
-
-    def __init__(self):
-        self.cffdrs = MockRLibCFFDRS()
-
-
 class MockRLibCFFDRS():
     """ CFFDRS library mock."""
 
@@ -150,11 +140,6 @@ class MockRLibCFFDRS():
 
     def _SFCcalc(self, **kwargs):  # pylint: disable=invalid-name, no-self-use, unused-argument
         return [1]
-
-
-def get_mock_cffdrs(**kwargs):  # pylint: disable=unused-argument
-    """ Returns CFFDRS library mock."""
-    return MockCFFDRS()
 
 
 def default_aiobotocore_get_session():
