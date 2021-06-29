@@ -1,5 +1,7 @@
 """ This module contains methods for retrieving information from the WFWX Fireweather API.
 """
+import os
+import base64
 import math
 from typing import Generator, Dict, List, Optional, Tuple, Final
 from datetime import datetime, timezone
@@ -7,6 +9,7 @@ from abc import abstractmethod, ABC
 import json
 import logging
 import asyncio
+import hashlib
 from urllib.parse import urlencode
 from aiohttp import ClientSession, BasicAuth, TCPConnector
 from redis import StrictRedis
@@ -132,7 +135,9 @@ async def _fetch_access_token(session: ClientSession) -> dict:
     user = config.get('WFWX_USER')
     auth_url = config.get('WFWX_AUTH_URL')
     cache = _create_redis()
-    key = f'{auth_url}?{urlencode({user: user, password: password})}'
+    hashed_password = hashlib.pbkdf2_hmac('sha256', password.encode(), os.urandom(42), 100000)
+    params = {'user': user, 'password': base64.b64encode(hashed_password).decode()}
+    key = f'{auth_url}?{urlencode(params)}'
     try:
         cached_json = cache.get(key)
     except Exception as error:  # pylint: disable=broad-except
@@ -150,7 +155,7 @@ async def _fetch_access_token(session: ClientSession) -> dict:
                     # We expire when the token expires, or 10 minutes, whichever is less.
                     # NOTE: only caching for 10 minutes right now, since we aren't handling cases
                     # where the token is invalidated.
-                    redis_auth_cache_expiry: Final = config.get('REDIS_AUTH_CACHE_EXPIRY', 600)
+                    redis_auth_cache_expiry: Final = int(config.get('REDIS_AUTH_CACHE_EXPIRY', 600))
                     expires = min(response_json['expires_in'], redis_auth_cache_expiry)
                     cache.set(key, json.dumps(response_json).encode(), ex=expires)
             except Exception as error:  # pylint: disable=broad-except
@@ -391,7 +396,7 @@ async def get_stations(session: ClientSession,
     """
     logger.info('Using WFWX to retrieve station list')
     # 1 day seems a reasonable period to cache stations for.
-    redis_station_cache_expiry: Final = config.get('REDIS_STATION_CACHE_EXPIRY', 86400)
+    redis_station_cache_expiry: Final = int(config.get('REDIS_STATION_CACHE_EXPIRY', 86400))
     # Iterate through "raw" station data.
     raw_stations = _fetch_paged_response_generator(session,
                                                    header,
