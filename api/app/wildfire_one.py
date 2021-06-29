@@ -623,6 +623,22 @@ async def get_dailies(
     return dailies
 
 
+def replace_nones_in_hourly_actual_with_nan(hourly_reading: WeatherReading):
+    """ Returns WeatherReading where any and all None values are replaced with math.nan
+    in preparation for entry into database. """
+    if hourly_reading.temperature is None:
+        hourly_reading.temperature = math.nan
+    if hourly_reading.relative_humidity is None:
+        hourly_reading.relative_humidity = math.nan
+    if hourly_reading.precipitation is None:
+        hourly_reading.precipitation = math.nan
+    if hourly_reading.wind_direction is None:
+        hourly_reading.wind_direction = math.nan
+    if hourly_reading.wind_speed is None:
+        hourly_reading.wind_speed = math.nan
+    return hourly_reading
+
+
 def parse_hourly_actual(station_code: int, hourly_reading: WeatherReading):
     """ Maps WeatherReading to HourlyActual """
     temp_valid = hourly_reading.temperature is not None
@@ -634,6 +650,7 @@ def parse_hourly_actual(station_code: int, hourly_reading: WeatherReading):
         hourly_reading.wind_speed, 0, math.inf)
     precip_valid = hourly_reading.precipitation is not None and validate_metric(
         hourly_reading.precipitation, 0, math.inf)
+    hourly_reading = replace_nones_in_hourly_actual_with_nan(hourly_reading)
 
     is_valid_wfwx = hourly_reading.observation_valid
     if is_valid_wfwx is False:

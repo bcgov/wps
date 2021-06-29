@@ -1,5 +1,6 @@
 """ Unit testing for hourly actuals bot (Marvin) """
 import asyncio
+import math
 import os
 import logging
 import pytest
@@ -181,3 +182,4 @@ def test_invalid_metrics_from_wfwx():
     assert isinstance(hourly_actual, HourlyActual)
     assert hourly_actual.temp_valid is True
     assert hourly_actual.precip_valid is False
+    assert hourly_actual.precipitation is math.nan
