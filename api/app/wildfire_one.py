@@ -150,7 +150,8 @@ async def _fetch_access_token(session: ClientSession) -> dict:
                     # We expire when the token expires, or 10 minutes, whichever is less.
                     # NOTE: only caching for 10 minutes right now, since we aren't handling cases
                     # where the token is invalidated.
-                    expires = min(response_json['expires_in'], 600)
+                    redis_auth_cache_expiry: Final = config.get('REDIS_AUTH_CACHE_EXPIRY', 600)
+                    expires = min(response_json['expires_in'], redis_auth_cache_expiry)
                     cache.set(key, json.dumps(response_json).encode(), ex=expires)
             except Exception as error:  # pylint: disable=broad-except
                 logger.error(error)
@@ -390,7 +391,7 @@ async def get_stations(session: ClientSession,
     """
     logger.info('Using WFWX to retrieve station list')
     # 1 day seems a reasonable period to cache stations for.
-    redis_station_cache_expiry: Final = 86400
+    redis_station_cache_expiry: Final = config.get('REDIS_STATION_CACHE_EXPIRY', 86400)
     # Iterate through "raw" station data.
     raw_stations = _fetch_paged_response_generator(session,
                                                    header,
