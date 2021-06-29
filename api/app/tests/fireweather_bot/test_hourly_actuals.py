@@ -4,7 +4,6 @@ import os
 import logging
 import pytest
 from pytest_mock import MockerFixture
-from app.db.models.observations import HourlyActual
 from app.utils.time import get_utc_now
 from app.fireweather_bot import hourly_actuals
 from app.schemas.observations import WeatherReading
@@ -154,11 +153,7 @@ def test_invalid_metrics():
         fwi=0.0)
 
     hourly_actual = wfwx_api.parse_hourly_actual(1, weather_reading)
-    assert isinstance(hourly_actual, HourlyActual)
-    assert hourly_actual.temp_valid is True
-    assert hourly_actual.precip_valid is False
-    assert hourly_actual.wspeed_valid is False
-    assert hourly_actual.wdir_valid is False
+    assert hourly_actual is None
 
 
 def test_invalid_metrics_from_wfwx():
@@ -170,16 +165,14 @@ def test_invalid_metrics_from_wfwx():
         wind_speed=1,
         wind_direction=1,
         barometric_pressure=0.0,
-        precipitation=None,
+        precipitation=1,
         dewpoint=0.0,
         ffmc=0.0,
         isi=0.0,
         fwi=0.0,
         observation_valid=False,
-        observation_valid_comment="Precipitation can not be null."
+        observation_valid_comment="Not valid"
     )
 
     hourly_actual = wfwx_api.parse_hourly_actual(1, weather_reading)
-    assert isinstance(hourly_actual, HourlyActual)
-    assert hourly_actual.temp_valid is True
-    assert hourly_actual.precip_valid is False
+    assert hourly_actual is None
