@@ -10,7 +10,7 @@ import asyncio
 from urllib.parse import urlencode
 from aiohttp import ClientSession, BasicAuth, TCPConnector
 from redis import StrictRedis
-from app import config
+from app import auth, config
 from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.utils.hfi_calculator import get_fire_centre_station_codes
 from app.db.models.observations import HourlyActual
@@ -117,6 +117,13 @@ def use_wfwx():
     return using_wfwx
 
 
+def _create_redis():
+    return StrictRedis(host=config.get('REDIS_HOST'),
+                       port=config.get('REDIS_PORT', 6379),
+                       db=0,
+                       password=config.get('REDIS_PASSWORD'))
+
+
 async def _fetch_access_token(session: ClientSession) -> dict:
     """ Fetch an access token for WFWX Fireweather API
     """
@@ -124,8 +131,30 @@ async def _fetch_access_token(session: ClientSession) -> dict:
     password = config.get('WFWX_SECRET')
     user = config.get('WFWX_USER')
     auth_url = config.get('WFWX_AUTH_URL')
-    async with session.get(auth_url, auth=BasicAuth(login=user, password=password)) as response:
-        return await response.json()
+    cache = _create_redis()
+    key = f'{auth_url}?{urlencode({user: user, password: password})}'
+    try:
+        cached_json = cache.get(key)
+    except Exception as error:  # pylint: disable=broad-except
+        cached_json = None
+        logger.error(error)
+    if cached_json:
+        logger.info('redis cache hit %s', auth_url)
+        response_json = json.loads(cached_json.decode())
+    else:
+        logger.info('redis cache miss %s', auth_url)
+        async with session.get(auth_url, auth=BasicAuth(login=user, password=password)) as response:
+            response_json = await response.json()
+            try:
+                if response.status == 200:
+                    # We expire when the token expires, or 10 minutes, whichever is less.
+                    # NOTE: only caching for 10 minutes right now, since we aren't handling cases
+                    # where the token is invalidated.
+                    expires = min(response_json['expires_in'], 600)
+                    cache.set(key, json.dumps(response_json).encode(), ex=expires)
+            except Exception as error:  # pylint: disable=broad-except
+                logger.error(error)
+    return response_json
 
 
 async def get_auth_header(session: ClientSession) -> dict:
@@ -139,11 +168,7 @@ async def get_auth_header(session: ClientSession) -> dict:
 
 async def _fetch_cached_response(session: ClientSession, headers: dict, url: str, params: dict,
                                  cache_expiry_seconds: int):
-    cache = StrictRedis(host=config.get('REDIS_HOST'),
-                        port=config.get('REDIS_PORT', 6379),
-                        db=0,
-                        password=config.get('REDIS_PASSWORD'))
-
+    cache = _create_redis()
     key = f'{url}?{urlencode(params)}'
     try:
         cached_json = cache.get(key)
@@ -151,10 +176,10 @@ async def _fetch_cached_response(session: ClientSession, headers: dict, url: str
         cached_json = None
         logger.error(error)
     if cached_json:
-        logger.info('redis cache hit')
+        logger.info('redis cache hit %s', key)
         response_json = json.loads(cached_json.decode())
     else:
-        logger.info('cache miss')
+        logger.info('redis cache miss %s', key)
         async with session.get(url, headers=headers, params=params) as response:
             response_json = await response.json()
         try:
@@ -315,7 +340,7 @@ async def get_stations_by_codes(station_codes: List[int]) -> List[WeatherStation
         stations = []
         # Iterate through "raw" station data.
         iterator = _fetch_paged_response_generator(
-            session, header, BuildQueryByStationCode(station_codes), 'stations')
+            session, header, BuildQueryByStationCode(station_codes), 'stations', use_cache=True)
         async for raw_station in iterator:
             # If the station is valid, add it to our list of stations.
             if _is_station_valid(raw_station):
