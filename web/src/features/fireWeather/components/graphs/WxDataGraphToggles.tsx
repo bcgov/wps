@@ -206,9 +206,9 @@ const WxDataToggles = ({
               value={hoverMode as string}
               onChange={handleHoverModeChange}
             >
-              <MenuItem value={'closest'}>closest</MenuItem>
-              <MenuItem value={'x'}>x</MenuItem>
-              <MenuItem value={'x unified'}>x unified</MenuItem>
+              <MenuItem value={'closest'}>Closest</MenuItem>
+              <MenuItem value={'x'}>X</MenuItem>
+              <MenuItem value={'x unified'}>X Unified</MenuItem>
             </Select>
           </FormControl>
         </Typography>
