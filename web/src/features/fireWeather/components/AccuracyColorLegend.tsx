@@ -19,19 +19,22 @@ const useStyles = makeStyles({
     height: '15px',
     width: '80px',
     fontSize: '10px',
-    color: 'white'
+    color: 'white',
+    justifyContent: 'flex-start'
   },
   label: {
     height: '15px',
     width: '105px',
     fontSize: '10px',
-    color: 'white'
+    color: 'white',
+    justifyContent: 'center'
   },
   rightLabel: {
     height: '15px',
     width: '20px',
     fontSize: '10px',
-    color: 'white'
+    color: 'white',
+    justifyContent: 'flex-end'
   },
   rowContainer: {
     display: 'flex',
@@ -171,9 +174,9 @@ const AccuracyColorLegend = (props: Props) => {
           <div className={classes.orange}></div>
         </div>
         <div className={classes.labelContainer}>
-          <div className={classes.leftLabel}>Higher</div>
-          <div className={classes.label}>Forecasted</div>
-          <div className={classes.rightLabel}>Drier</div>
+          <div className={classes.leftLabel}>+12%</div>
+          <div className={classes.label}>+/-3%</div>
+          <div className={classes.rightLabel}>-12%</div>
         </div>
       </div>
     )
@@ -191,9 +194,9 @@ const AccuracyColorLegend = (props: Props) => {
           <div className={classes.darkBlue}></div>
         </div>
         <div className={classes.labelContainer}>
-          <div className={classes.leftLabel}>Warmer</div>
-          <div className={classes.label}>Forecasted</div>
-          <div className={classes.rightLabel}>Cooler</div>
+          <div className={classes.leftLabel}>+8&deg;C</div>
+          <div className={classes.label}>+/-2&deg;C</div>
+          <div className={classes.rightLabel}>-8&deg;C</div>
         </div>
       </div>
     )
