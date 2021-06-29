@@ -130,6 +130,24 @@ def parse_daily(raw_daily, station: WFWXWeatherStation, fuel_type: str) -> Stati
     )
 
 
+def replace_nones_in_hourly_actual_with_nan(hourly_reading: WeatherReading):
+    """ Returns WeatherReading where any and all None values are replaced with math.nan
+    in preparation for entry into database. Have to do this because Postgres doesn't
+    handle None gracefully (it thinks None != None), but it can handle math.nan ok.
+    (See HourlyActual db model) """
+    if hourly_reading.temperature is None:
+        hourly_reading.temperature = math.nan
+    if hourly_reading.relative_humidity is None:
+        hourly_reading.relative_humidity = math.nan
+    if hourly_reading.precipitation is None:
+        hourly_reading.precipitation = math.nan
+    if hourly_reading.wind_direction is None:
+        hourly_reading.wind_direction = math.nan
+    if hourly_reading.wind_speed is None:
+        hourly_reading.wind_speed = math.nan
+    return hourly_reading
+
+
 def parse_hourly_actual(station_code: int, hourly_reading: WeatherReading):
     """ Maps WeatherReading to HourlyActual """
     temp_valid = hourly_reading.temperature is not None
@@ -141,6 +159,7 @@ def parse_hourly_actual(station_code: int, hourly_reading: WeatherReading):
         hourly_reading.wind_speed, 0, math.inf)
     precip_valid = hourly_reading.precipitation is not None and validate_metric(
         hourly_reading.precipitation, 0, math.inf)
+    hourly_reading = replace_nones_in_hourly_actual_with_nan(hourly_reading)
 
     is_valid_wfwx = hourly_reading.observation_valid
     if is_valid_wfwx is False:
@@ -149,9 +168,17 @@ def parse_hourly_actual(station_code: int, hourly_reading: WeatherReading):
                        hourly_reading.datetime.strftime("%b %d %Y %H:%M:%S"),
                        hourly_reading.observation_valid_comment)
 
-    is_valid = temp_valid and rh_valid and wdir_valid and wspeed_valid and precip_valid and is_valid_wfwx
+    is_obs_invalid = not temp_valid and not rh_valid and not wdir_valid\
+        and not wspeed_valid and not precip_valid
 
-    return None if (is_valid is False) else HourlyActual(
+    if is_obs_invalid:
+        logger.error("Hourly actual not written to DB for station code %s at time %s: %s",
+                     station_code, hourly_reading.datetime.strftime("%b %d %Y %H:%M:%S"),
+                     hourly_reading.observation_valid_comment)
+
+    # don't write the HourlyActual to our database if every value is invalid. If even one
+    # weather variable observed is valid, write the HourlyActual to DB.
+    return None if is_obs_invalid else HourlyActual(
         station_code=station_code,
         weather_date=hourly_reading.datetime,
         temp_valid=temp_valid,
