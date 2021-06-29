@@ -3,6 +3,9 @@ import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core/styles'
 import FormGroup from '@material-ui/core/FormGroup'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
+import FormControl from '@material-ui/core/FormControl'
+import Select from '@material-ui/core/Select'
+import MenuItem from '@material-ui/core/MenuItem'
 import Switch from '@material-ui/core/Switch'
 
 import {
@@ -35,6 +38,10 @@ interface Props {
   hasBiasAdjModels: boolean
   hasHighResModels: boolean
   hasRegionalModels: boolean
+  handleHoverModeChange: (
+    event: React.ChangeEvent<{ name?: string; value: unknown }>
+  ) => void
+  hoverMode: 'closest' | 'x' | 'x unified'
 }
 
 const WxDataToggles = ({
@@ -45,7 +52,9 @@ const WxDataToggles = ({
   hasForecasts,
   hasBiasAdjModels,
   hasHighResModels,
-  hasRegionalModels
+  hasRegionalModels,
+  handleHoverModeChange,
+  hoverMode
 }: Props) => {
   const classes = useStyles()
   const handleSwitch = (e: React.ChangeEvent<{ name: string }>, checked: boolean) => {
@@ -177,6 +186,33 @@ const WxDataToggles = ({
           </Typography>
         }
       />
+
+      <div
+        style={{
+          marginLeft: 'auto',
+          lineHeight: '40px',
+          minWidth: '220px'
+        }}
+      >
+        <Typography
+          className={classes.switchLabel}
+          style={{ lineHeight: '41px' }}
+          variant="body2"
+        >
+          Hover mode:{' '}
+          <FormControl size="small">
+            <Select
+              variant="outlined"
+              value={hoverMode as string}
+              onChange={handleHoverModeChange}
+            >
+              <MenuItem value={'closest'}>closest</MenuItem>
+              <MenuItem value={'x'}>x</MenuItem>
+              <MenuItem value={'x unified'}>x unified</MenuItem>
+            </Select>
+          </FormControl>
+        </Typography>
+      </div>
     </FormGroup>
   )
 }

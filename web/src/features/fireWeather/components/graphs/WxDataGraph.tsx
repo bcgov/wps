@@ -82,6 +82,19 @@ const WxDataGraph = ({
     showBiasAdjGdps: false
   })
 
+  const [hoverMode, setHoverMode] = useState<'closest' | 'x' | 'x unified'>('closest')
+
+  const handleHoverModeChange = (
+    event: React.ChangeEvent<{ name?: string; value: unknown }>
+  ) => {
+    switch (event.target.value) {
+      case 'closest':
+      case 'x':
+      case 'x unified':
+        setHoverMode(event.target.value)
+    }
+  }
+
   if (
     !hasObservations &&
     !hasForecasts &&
@@ -96,6 +109,8 @@ const WxDataGraph = ({
   return (
     <div className={classes.display}>
       <WxDataGraphToggles
+        handleHoverModeChange={handleHoverModeChange}
+        hoverMode={hoverMode}
         toggleValues={toggleValues}
         setToggleValues={setToggleValues}
         hasObservations={hasObservations}
@@ -121,6 +136,7 @@ const WxDataGraph = ({
         hrdpsSummaries={hrdpsSummaries}
         rdpsModels={rdpsModels}
         rdpsSummaries={rdpsSummaries}
+        hoverMode={hoverMode}
       />
 
       <PrecipitationGraph
