@@ -12,7 +12,6 @@ jobs:
       matrix:
         python-version: [3.8]
         node-version: [14.x]
-        r-version: [3.5]
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
