@@ -99,7 +99,7 @@ def parse_hourly(hourly) -> WeatherReading:
 
 
 def parse_daily(raw_daily, station: WFWXWeatherStation, fuel_type: str) -> StationDaily:
-    """ Transform from the raw hourly json object returned by wf1, to our hourly object.
+    """ Transform from the raw daily json object returned by wf1, to our daily object.
     """
 
     isi = raw_daily.get('initialSpreadIndex', None)

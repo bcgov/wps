@@ -218,10 +218,8 @@ async def get_wfwx_stations_from_station_codes(session, header, station_codes: O
 
     return requested_stations
 
-# pylint: disable=too-many-locals
 
-
-async def get_dailies(
+async def get_dailies(  # pylint: disable=too-many-locals
         session: ClientSession,
         header: dict,
         wfwx_stations: List[WFWXWeatherStation],
