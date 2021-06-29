@@ -49,7 +49,7 @@ def test_hfi_daily_metrics():
 
 
 @given('I request metrics for all stations beginning at time <start_time_stamp> and ending at time <end_time_stamp>.', target_fixture='response')
-def given_time_range_metrics_request(monkeypatch, mocker: MockerFixture):
+def given_time_range_metrics_request(monkeypatch, mocker: MockerFixture, mock_cffdrs):
     """ Make /hfi-calc/daily request using mocked out ClientSession.
     """
 
