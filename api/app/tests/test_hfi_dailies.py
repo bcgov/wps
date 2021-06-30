@@ -6,14 +6,21 @@ from aiohttp import ClientSession
 from starlette.testclient import TestClient
 from pytest_mock import MockerFixture
 from app.tests.common import default_mock_client_get
+from app.wildfire_one.wfwx_api import WFWXWeatherStation
 import app.main
 
 logger = logging.getLogger(__name__)
 
 
-def mock_get_fire_centre_station_codes(__):
-    """ Returns mocked WFWXWeatherStation codes. """
-    return []
+class AsyncIter:
+    """ Async itereable use for mocking out raw dailies."""
+
+    def __init__(self, items):
+        self.items = items
+
+    async def __aiter__(self):
+        for item in self.items:
+            yield item
 
 
 @pytest.mark.usefixtures("mock_jwt_decode")
@@ -38,15 +45,40 @@ def mock_get_fire_centre_station_codes(__):
 def test_hfi_daily_metrics():
     """ BDD Scenario. """
 
-# pylint: disable=line-too-long
 
-
-@given('I request metrics for all stations beginning at time <start_time_stamp> and ending at time <end_time_stamp>.', target_fixture='response')
-def given_time_range_metrics_request(monkeypatch, mocker: MockerFixture):
+@given('I request metrics for all stations beginning at time <start_time_stamp> and ending at time <end_time_stamp>.', target_fixture='response')  # pylint: disable=line-too-long
+def given_time_range_metrics_request(monkeypatch, mocker: MockerFixture, mock_cffdrs):  # pylint: disable=unused-argument
     """ Make /hfi-calc/daily request using mocked out ClientSession.
     """
 
-    mocker.patch('app.utils.hfi_calculator.get_all_stations', mock_get_fire_centre_station_codes)
+    mocker.patch('app.wildfire_one.wfwx_api.get_wfwx_stations_from_station_codes',
+                 return_value=[WFWXWeatherStation(
+                     wfwx_id='1', code=322, latitude=1, longitude=1, elevation=1)])
+    mocker.patch('app.wildfire_one.wfwx_api.fetch_paged_response_generator',
+                 return_value=AsyncIter([{'stationCode': 322,
+                                          "stationId": '1',
+                                          "initialSpreadIndex": 1,
+                                          "buildUpIndex": 1,
+                                          "fineFuelMoistureCode": 1,
+                                          "recordType": {"id": "ACTUAL"},
+                                          "temperature": 1.0,
+                                          "relativeHumidity": 1.0,
+                                          "windSpeed": 1.0,
+                                          "windDirection": 1.0,
+                                          "precipitation": 1.0,
+                                          "grasslandCuring": 1.0,
+                                          "dailySeverityRating": 1.0,
+                                          "droughtCode": 1.0,
+                                          "duffMoistureCode": 1.0,
+                                          "fireWeatherIndex": 1.0
+                                          }]))
+
+    # To build generic objects with attributes
+    object_builder = lambda **kwargs: type("Object", (), kwargs)()
+    planning_station = object_builder(station_code=322)
+    fuel_type = object_builder(abbrev="C7")
+    mocker.patch('app.db.crud.hfi_calc.get_stations_with_fuel_types',
+                 return_value=[(planning_station, fuel_type)])
     monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
     # Create API client and get the response.
     client = TestClient(app.main.app)

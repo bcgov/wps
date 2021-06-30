@@ -144,3 +144,6 @@ api/static/*
 
 # Intellij
 .idea
+
+#R command history
+.Rhistory
