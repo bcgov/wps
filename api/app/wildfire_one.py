@@ -1,7 +1,5 @@
 """ This module contains methods for retrieving information from the WFWX Fireweather API.
 """
-import os
-import base64
 import math
 from typing import Generator, Dict, List, Optional, Tuple, Final
 from datetime import datetime, timezone
@@ -9,7 +7,6 @@ from abc import abstractmethod, ABC
 import json
 import logging
 import asyncio
-import hashlib
 from urllib.parse import urlencode
 from aiohttp import ClientSession, BasicAuth, TCPConnector
 from redis import StrictRedis
@@ -135,8 +132,8 @@ async def _fetch_access_token(session: ClientSession) -> dict:
     user = config.get('WFWX_USER')
     auth_url = config.get('WFWX_AUTH_URL')
     cache = _create_redis()
-    hashed_password = hashlib.pbkdf2_hmac('sha256', password.encode(), os.urandom(42), 100000)
-    params = {'user': user, 'password': base64.b64encode(hashed_password).decode()}
+    # NOTE: Consider using a hashed version of the password as part of the key.
+    params = {'user': user}
     key = f'{auth_url}?{urlencode(params)}'
     try:
         cached_json = cache.get(key)
