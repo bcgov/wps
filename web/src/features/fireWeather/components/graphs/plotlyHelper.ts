@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
 import { Data, Shape, Layout, RangeSlider, PlotData, BoxPlotData } from 'plotly.js'
-
-import { PST_UTC_OFFSET } from 'utils/constants'
+import { WIND_SPEED_VALUES_DECIMAL, PST_UTC_OFFSET } from 'utils/constants'
+import { formatWindDirection } from 'utils/format'
 import { formatDateInPST } from 'utils/date'
 
 export const findMaxNumber = (arr: number[]): number => {
@@ -209,7 +209,7 @@ export const populateGraphDataForTempAndRH = (
     mode: 'markers',
     type: 'scatter',
     marker: { color: graphProps.tempColor, symbol: graphProps.symbol },
-    hovertemplate: `${graphProps.tempName}: %{y:.2f} (°C)<extra></extra>`
+    hovertemplate: `%{y:.2f} (°C)<extra>${graphProps.tempName}, %{x}</extra>`
   }
   const tempVerticalLines: Data[] = tempMinMaxDates.map((date, idx) => ({
     x: graphProps.show ? [date, date] : [],
@@ -235,7 +235,7 @@ export const populateGraphDataForTempAndRH = (
       width: 2,
       dash: graphProps.dash
     },
-    hovertemplate: `${graphProps.tempName}: %{y:.2f} (°C)<extra></extra>`
+    hovertemplate: `%{y:.2f} (°C)<extra>${graphProps.tempName}, %{x}</extra>`
   }
   const tempLine: Data = {
     x: graphProps.show ? tempDates : [],
@@ -249,7 +249,7 @@ export const populateGraphDataForTempAndRH = (
       width: 2,
       dash: graphProps.dash
     },
-    hovertemplate: `${graphProps.tempName}: %{y:.2f} (°C)<extra></extra>`
+    hovertemplate: `%{y:.2f} (°C)<extra>${graphProps.tempName}, %{x}</extra>`
   }
   const temp5thLine: Data = {
     x: graphProps.show ? tempPercentileDates : [],
@@ -282,7 +282,7 @@ export const populateGraphDataForTempAndRH = (
     mode: 'markers',
     type: 'scatter',
     marker: { color: graphProps.dewpointColor, symbol: graphProps.symbol },
-    hovertemplate: `${graphProps.dewpointName}: %{y:.2f} (°C)<extra></extra>`
+    hovertemplate: `%{y:.2f} (°C)<extra>${graphProps.dewpointName}, %{x}</extra>`
   }
   const dewpointLine: Data = {
     x: graphProps.show ? dewpointDates : [],
@@ -296,7 +296,7 @@ export const populateGraphDataForTempAndRH = (
       width: 2,
       dash: graphProps.dash
     },
-    hovertemplate: `${graphProps.dewpointName}: %{y:.2f} (°C)<extra></extra>`
+    hovertemplate: `%{y:.2f} (°C)<extra>${graphProps.dewpointName}, %{x}</extra>`
   }
 
   const rhDots: Data = {
@@ -308,7 +308,7 @@ export const populateGraphDataForTempAndRH = (
     type: 'scatter',
     showlegend: graphProps.show,
     marker: { color: graphProps.rhColor, symbol: graphProps.symbol },
-    hovertemplate: `${graphProps.rhName}: %{y:.2f} (%)<extra></extra>`
+    hovertemplate: `%{y:.2f} (%)<extra>${graphProps.rhName}, %{x}</extra>`
   }
   const rhVerticalLines: Data[] = rhMinMaxDates.map((date, idx) => ({
     x: graphProps.show ? [date, date] : [],
@@ -336,7 +336,7 @@ export const populateGraphDataForTempAndRH = (
       width: 2,
       dash: graphProps.dash
     },
-    hovertemplate: `${graphProps.rhName}: %{y:.2f} (%)<extra></extra>`
+    hovertemplate: `%{y:.2f} (%)<extra>${graphProps.rhName}, %{x}</extra>`
   }
   const rhLine: Data = {
     x: graphProps.show ? rhDates : [],
@@ -351,7 +351,7 @@ export const populateGraphDataForTempAndRH = (
       width: 2,
       dash: graphProps.dash
     },
-    hovertemplate: `${graphProps.rhName}: %{y:.2f} (%)<extra></extra>`
+    hovertemplate: `%{y:.2f} (%)<extra>${graphProps.rhName}, %{x}</extra>`
   }
   const rh5thLine: Data = {
     x: graphProps.show ? rhPercentileDates : [],
@@ -641,7 +641,9 @@ export const populateGraphDataForWind = (
     if (wind_speed != null) {
       dates.push(formatDateInPST(datetime))
       windSpds.push(wind_speed)
-      windSpdsTexts.push(wind_direction != null ? `${Math.round(wind_direction)}` : '-')
+      windSpdsTexts.push(
+        wind_direction != null ? `${formatWindDirection(wind_direction)}` : '-'
+      )
 
       if (wind_direction != null && show) {
         const arrowShape = rotatePoints(arrowPoints, wind_direction)
@@ -662,7 +664,7 @@ export const populateGraphDataForWind = (
       width: 2
     },
     text: windSpdsTexts,
-    hovertemplate: `${name}: %{y:.2f} km/h, %{text}°<extra></extra>`
+    hovertemplate: `${name}: %{y:.${WIND_SPEED_VALUES_DECIMAL}f} km/h, %{text}°<extra></extra>`
   }
 
   const maxWindSpd = findMaxNumber(windSpds)

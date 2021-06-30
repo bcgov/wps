@@ -8,3 +8,8 @@ grib
 **/__pycache__
 **/*.pyc
 python_cache
+junk/**/*
+junk
+scripts/**/*
+scripts
+*/nbconvert/*

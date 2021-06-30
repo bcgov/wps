@@ -34,7 +34,7 @@ parameters:
     value: 1Gi
   - name: MEMORY_LIMIT
     description: Memory upper limit
-    value: 1Gi
+    value: 1.5Gi
   - name: REPLICAS
     description: Number of replicas (pods)
     value: "2"
@@ -239,6 +239,36 @@ objects:
                     secretKeyRef:
                       name: ${NAME}-global
                       key: object-store-bucket
+                - name: REDIS_HOST
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-global
+                      key: env.redis-host
+                - name: REDIS_PORT
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-global
+                      key: env.redis-port
+                - name: REDIS_USE
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-global
+                      key: env.redis-use
+                - name: REDIS_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${NAME}-redis
+                      key: database-password
+                - name: REDIS_STATION_CACHE_EXPIRY
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-global
+                      key: env.redis-station-cache-expiry
+                - name: REDIS_AUTH_CACHE_EXPIRY
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-global
+                      key: env.redis-auth-cache-expiry
               ports:
                 - containerPort: 8080
                   protocol: TCP
