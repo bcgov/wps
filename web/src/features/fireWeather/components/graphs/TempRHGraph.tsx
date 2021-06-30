@@ -51,6 +51,7 @@ interface Props {
   rdpsSummaries: ModelSummary[]
   gdpsModels: ModelValue[]
   gdpsSummaries: ModelSummary[]
+  hoverMode: 'closest' | 'x' | 'x unified'
 }
 
 const TempRHGraph = (props: Props) => {
@@ -68,7 +69,8 @@ const TempRHGraph = (props: Props) => {
     gdpsModels,
     gdpsSummaries,
     rdpsModels,
-    rdpsSummaries
+    rdpsSummaries,
+    hoverMode
   } = props
 
   const obsGraphProperties: TempRHGraphProperties = {
@@ -190,21 +192,28 @@ const TempRHGraph = (props: Props) => {
           hrdpsData.temp90thLine,
 
           // Lines & dots
-          biasAdjGdpsData.biasAdjRHLine,
-          biasAdjGdpsData.biasAdjTempLine,
-          gdpsData.rhLine,
-          gdpsData.tempLine,
-          rdpsData.rhLine,
-          rdpsData.tempLine,
-          hrdpsData.rhLine,
-          hrdpsData.tempLine,
+
           ...forecastData.tempVerticalLines,
           ...forecastData.rhVerticalLines,
+
+          // Order and grouping is very important. For x-unified, everything here is displayed in
+          // reverse order. It is desirable that temp, rh and dew point are grouped together.
+
+          observationData.dewpointLine,
+
+          biasAdjGdpsData.biasAdjRHLine,
+          gdpsData.rhLine,
+          rdpsData.rhLine,
+          hrdpsData.rhLine,
           forecastData.rhDots,
-          forecastData.tempDots,
           observationData.rhLine,
-          observationData.tempLine,
-          observationData.dewpointLine
+
+          biasAdjGdpsData.biasAdjTempLine,
+          gdpsData.tempLine,
+          rdpsData.tempLine,
+          hrdpsData.tempLine,
+          forecastData.tempDots,
+          observationData.tempLine
         ]}
         layout={{
           ...getLayoutConfig(
@@ -229,7 +238,8 @@ const TempRHGraph = (props: Props) => {
             side: 'right',
             gridcolor: 'transparent',
             range: y2Range
-          }
+          },
+          hovermode: hoverMode
         }}
       />
     </div>

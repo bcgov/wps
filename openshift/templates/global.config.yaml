@@ -74,6 +74,25 @@ parameters:
     description: Secret for s3 compatible object store
   - name: OBJECT_STORE_BUCKET
     description: Bucket for s3 compatible object store
+  - name: REDIS_HOST
+    description: Host of redis server.
+    required: True
+  - name: REDIS_PORT
+    description: Port redis server is running on.
+    required: True
+    value: "6379"
+  - name: REDIS_USE
+    description: Indicate if redis should be used.
+    required: True
+    value: "True"
+  - name: REDIS_STATION_CACHE_EXPIRY
+    description: How long to cache station lists for.
+    required: True
+    value: "86400"
+  - name: REDIS_AUTH_CACHE_EXPIRY
+    description: How long to cache auth response for.
+    required: True
+    value: "600"
 objects:
   - kind: ConfigMap
     apiVersion: v1
@@ -95,6 +114,9 @@ objects:
       env.matomo-site-id: ${MATOMO_SITE_ID}
       rocket.chat-channel: ${ROCKET_CHANNEL}
       rocket.chat-url-post-message: ${ROCKET_URL_POST_MESSAGE}
+      env.redis-host: ${REDIS_HOST}
+      env.redis-port: ${REDIS_PORT}
+      env.redis-use: ${REDIS_USE}
   - kind: Secret
     apiVersion: v1
     metadata:

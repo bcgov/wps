@@ -1,3 +1,6 @@
 **/.gitignore
 **/node_modules
 **/Dockerfile*
+**/openshift
+**/junk
+**/scripts

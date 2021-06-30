@@ -5,9 +5,7 @@ import { stationCodeQueryKey } from '../../src/utils/url'
 describe('Percentile Calculator Page', () => {
   describe('Weather station dropdown', () => {
     it('Renders error message when fetching stations failed', () => {
-      cy.intercept({
-        method: 'GET',
-        url: 'api/stations/',
+      cy.intercept('GET', 'api/stations/*', {
         statusCode: 404,
         response: 'error'
       }).as('getStations')
@@ -19,7 +17,7 @@ describe('Percentile Calculator Page', () => {
     })
 
     it('Can select & deselect stations if successfully received stations', () => {
-      cy.intercept('GET', 'api/stations/', { fixture: 'weather-stations.json' }).as('getStations')
+      cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
       cy.visit(PERCENTILE_CALC_ROUTE)
       cy.getByTestId('disclaimer-accept-button').click()
       cy.wait('@getStations')
@@ -44,7 +42,8 @@ describe('Percentile Calculator Page', () => {
 
     it('Should let users know if there were invalid weather stations', () => {
       const invalidCodes = [1, 999]
-      cy.intercept('GET', 'api/stations/', { fixture: 'weather-stations.json' }).as('getStations')
+      cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
+      cy.intercept('POST', 'api/percentiles/', { statusCode: 500 }).as('getPercentiles')
       cy.visit(`${PERCENTILE_CALC_ROUTE}?${stationCodeQueryKey}=${invalidCodes.join(',')}`)
       cy.getByTestId('disclaimer-accept-button').click()
 
@@ -73,7 +72,7 @@ describe('Percentile Calculator Page', () => {
 
   describe('Other inputs', () => {
     beforeEach(() => {
-      cy.intercept('GET', 'api/stations/', { fixture: 'weather-stations.json' })
+      cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' })
       cy.visit(PERCENTILE_CALC_ROUTE)
       cy.getByTestId('disclaimer-accept-button').click()
     })
@@ -113,7 +112,7 @@ describe('Percentile Calculator Page', () => {
 
   describe('Calculation result', () => {
     beforeEach(() => {
-      cy.intercept('GET', 'api/stations/', { fixture: 'weather-stations.json' }).as('getStations')
+      cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
       cy.visit(PERCENTILE_CALC_ROUTE, {
         onBeforeLoad: (win: any) => {
           win._mtm = { push: () => {} } // mock Matomo object
@@ -123,9 +122,7 @@ describe('Percentile Calculator Page', () => {
     })
 
     it('Failed due to network error', () => {
-      cy.intercept({
-        method: 'POST',
-        url: 'api/percentiles/',
+      cy.intercept('POST', 'api/percentiles/', {
         statusCode: 404,
         response: 'error'
       }).as('getPercentiles')

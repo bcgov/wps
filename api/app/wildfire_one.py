@@ -1,15 +1,20 @@
 """ This module contains methods for retrieving information from the WFWX Fireweather API.
 """
 import math
-from typing import Generator, Dict, List, Tuple
+from typing import Generator, Dict, List, Optional, Tuple, Final
 from datetime import datetime, timezone
 from abc import abstractmethod, ABC
+import json
 import logging
 import asyncio
+from urllib.parse import urlencode
 from aiohttp import ClientSession, BasicAuth, TCPConnector
+from redis import StrictRedis
 from app import config
 from app.data.ecodivision_seasons import EcodivisionSeasons
+from app.utils.hfi_calculator import get_fire_centre_station_codes
 from app.db.models.observations import HourlyActual
+from app.schemas.hfi_calc import StationDaily
 from app.schemas.observations import WeatherStationHourlyReadings, WeatherReading
 from app.schemas.stations import (WeatherStation, GeoJsonDetailedWeatherStation,
                                   DetailedWeatherStationProperties, WeatherStationGeometry, WeatherVariables)
@@ -82,11 +87,41 @@ class BuildQueryAllHourliesByRange(BuildQuery):
         return url, params
 
 
+class BuildQueryDailesByStationCode(BuildQuery):
+    """ Builds query for requesting all hourlies in a time range"""
+
+    def __init__(self, start_timestamp: int, end_timestamp: int, station_ids: List[str]):
+        """ Initialize object """
+        super().__init__()
+        self.start_timestamp = start_timestamp
+        self.end_timestamp = end_timestamp
+        self.station_ids = station_ids
+
+    def query(self, page) -> Tuple[str, dict]:
+        """ Return query url for dailies between start_timestamp, end_timestamp"""
+        params = {'size': self.max_page_size,
+                  'page': page,
+                  'startingTimestamp': self.start_timestamp,
+                  'endingTimestamp': self.end_timestamp,
+                  'stationIds': self.station_ids}
+        url = ('{base_url}/v1/dailies/search/findDailiesByStationIdIsInAndWeather' +
+               'TimestampBetweenOrderByStationIdAscWeatherTimestampAsc').format(
+                   base_url=self.base_url)
+        return url, params
+
+
 def use_wfwx():
     """ Return True if configured to use WFWX """
     using_wfwx = config.get('USE_WFWX') == 'True'
     logger.info('USE_WFWX = %s', using_wfwx)
     return using_wfwx
+
+
+def _create_redis():
+    return StrictRedis(host=config.get('REDIS_HOST'),
+                       port=config.get('REDIS_PORT', 6379),
+                       db=0,
+                       password=config.get('REDIS_PASSWORD'))
 
 
 async def _fetch_access_token(session: ClientSession) -> dict:
@@ -96,8 +131,33 @@ async def _fetch_access_token(session: ClientSession) -> dict:
     password = config.get('WFWX_SECRET')
     user = config.get('WFWX_USER')
     auth_url = config.get('WFWX_AUTH_URL')
-    async with session.get(auth_url, auth=BasicAuth(login=user, password=password)) as response:
-        return await response.json()
+    cache = _create_redis()
+    # NOTE: Consider using a hashed version of the password as part of the key.
+    params = {'user': user}
+    key = f'{auth_url}?{urlencode(params)}'
+    try:
+        cached_json = cache.get(key)
+    except Exception as error:  # pylint: disable=broad-except
+        cached_json = None
+        logger.error(error)
+    if cached_json:
+        logger.info('redis cache hit %s', auth_url)
+        response_json = json.loads(cached_json.decode())
+    else:
+        logger.info('redis cache miss %s', auth_url)
+        async with session.get(auth_url, auth=BasicAuth(login=user, password=password)) as response:
+            response_json = await response.json()
+            try:
+                if response.status == 200:
+                    # We expire when the token expires, or 10 minutes, whichever is less.
+                    # NOTE: only caching for 10 minutes right now, since we aren't handling cases
+                    # where the token is invalidated.
+                    redis_auth_cache_expiry: Final = int(config.get('REDIS_AUTH_CACHE_EXPIRY', 600))
+                    expires = min(response_json['expires_in'], redis_auth_cache_expiry)
+                    cache.set(key, json.dumps(response_json).encode(), ex=expires)
+            except Exception as error:  # pylint: disable=broad-except
+                logger.error(error)
+    return response_json
 
 
 async def get_auth_header(session: ClientSession) -> dict:
@@ -109,13 +169,39 @@ async def get_auth_header(session: ClientSession) -> dict:
     return header
 
 
+async def _fetch_cached_response(session: ClientSession, headers: dict, url: str, params: dict,
+                                 cache_expiry_seconds: int):
+    cache = _create_redis()
+    key = f'{url}?{urlencode(params)}'
+    try:
+        cached_json = cache.get(key)
+    except Exception as error:  # pylint: disable=broad-except
+        cached_json = None
+        logger.error(error)
+    if cached_json:
+        logger.info('redis cache hit %s', key)
+        response_json = json.loads(cached_json.decode())
+    else:
+        logger.info('redis cache miss %s', key)
+        async with session.get(url, headers=headers, params=params) as response:
+            response_json = await response.json()
+        try:
+            if response.status == 200:
+                cache.set(key, json.dumps(response_json).encode(), ex=cache_expiry_seconds)
+        except Exception as error:  # pylint: disable=broad-except
+            logger.error(error)
+    return response_json
+
+
 async def _fetch_paged_response_generator(
         session: ClientSession,
         headers: dict,
         query_builder: BuildQuery,
-        content_key: str
+        content_key: str,
+        use_cache: bool = False,
+        cache_expiry_seconds: int = 86400
 ) -> Generator[dict, None, None]:
-    """ Asynchronous generator for iterating through responses from the API.
+    """ Asynchronous generator for iterating through responses from the WFWX API.
     The response is a paged response, but this generator abstracts that away.
     """
     # We don't know how many pages until our first call - so we assume one page to start with.
@@ -125,14 +211,18 @@ async def _fetch_paged_response_generator(
         # Build up the request URL.
         url, params = query_builder.query(page_count)
         logger.debug('loading station page %d...', page_count)
-        async with session.get(url, headers=headers, params=params) as response:
-            station_json = await response.json()
+        if use_cache and config.get('REDIS_USE') == 'True':
+            # We've been told and configured to use the redis cache.
+            response_json = await _fetch_cached_response(session, headers, url, params, cache_expiry_seconds)
+        else:
+            async with session.get(url, headers=headers, params=params) as response:
+                response_json = await response.json()
             logger.debug('done loading station page %d.', page_count)
 
         # Update the total page count.
-        total_pages = station_json['page']['totalPages']
-        for station in station_json['_embedded'][content_key]:
-            yield station
+        total_pages = response_json['page']['totalPages'] if 'page' in response_json else 1
+        for response_object in response_json['_embedded'][content_key]:
+            yield response_object
         # Keep track of our page count.
         page_count = page_count + 1
 
@@ -194,7 +284,9 @@ def _parse_station(station) -> WeatherStation:
         lat=station['latitude'],
         long=station['longitude'],
         ecodivision_name=ecodiv_name,
-        core_season=core_seasons[ecodiv_name]['core_season'])
+        core_season=core_seasons[ecodiv_name]['core_season'],
+        elevation=station['elevation'],
+        wfwx_station_uuid=station['id'])
 
 
 def _parse_hourly(hourly) -> WeatherReading:
@@ -219,6 +311,30 @@ def _parse_hourly(hourly) -> WeatherReading:
     )
 
 
+def _parse_daily(raw_daily, station_code) -> StationDaily:
+    """ Transform from the raw hourly json object returned by wf1, to our hourly object.
+    """
+    return StationDaily(
+        code=station_code,
+        status="Observed" if raw_daily.get('recordType', '').get('id') == 'ACTUAL' else "Forecasted",
+        temperature=raw_daily.get('temperature', None),
+        relative_humidity=raw_daily.get('relativeHumidity', None),
+        wind_speed=raw_daily.get('windSpeed', None),
+        wind_direction=raw_daily.get('windDirection', None),
+        precipitation=raw_daily.get('precipitation', None),
+        grass_cure_percentage=raw_daily.get('grasslandCuring', None),
+        ffmc=raw_daily.get('fineFuelMoistureCode', None),
+        dmc=raw_daily.get('duffMoistureCode', None),
+        dc=raw_daily.get('droughtCode', None),
+        isi=raw_daily.get('initialSpreadIndex', None),
+        bui=raw_daily.get('buildUpIndex', None),
+        fwi=raw_daily.get('fireWeatherIndex', None),
+        danger_class=raw_daily.get('dailySeverityRating', None),
+        observation_valid=raw_daily.get('observationValidInd', None),
+        observation_valid_comment=raw_daily.get('observationValidComment', None)
+    )
+
+
 async def get_stations_by_codes(station_codes: List[int]) -> List[WeatherStation]:
     """ Get a list of stations by code, from WFWX Fireweather API. """
     logger.info('Using WFWX to retrieve stations by code')
@@ -227,7 +343,7 @@ async def get_stations_by_codes(station_codes: List[int]) -> List[WeatherStation
         stations = []
         # Iterate through "raw" station data.
         iterator = _fetch_paged_response_generator(
-            session, header, BuildQueryByStationCode(station_codes), 'stations')
+            session, header, BuildQueryByStationCode(station_codes), 'stations', use_cache=True)
         async for raw_station in iterator:
             # If the station is valid, add it to our list of stations.
             if _is_station_valid(raw_station):
@@ -276,9 +392,15 @@ async def get_stations(session: ClientSession,
     """ Get list of stations from WFWX Fireweather API.
     """
     logger.info('Using WFWX to retrieve station list')
+    # 1 day seems a reasonable period to cache stations for.
+    redis_station_cache_expiry: Final = int(config.get('REDIS_STATION_CACHE_EXPIRY', 86400))
     # Iterate through "raw" station data.
-    raw_stations = _fetch_paged_response_generator(
-        session, header, BuildQueryAllActiveStations(), 'stations')
+    raw_stations = _fetch_paged_response_generator(session,
+                                                   header,
+                                                   BuildQueryAllActiveStations(),
+                                                   'stations',
+                                                   use_cache=True,
+                                                   cache_expiry_seconds=redis_station_cache_expiry)
     # Map list of stations into desired shape
     stations = await mapper(raw_stations)
     logger.debug('total stations: %d', len(stations))
@@ -479,6 +601,74 @@ async def get_hourly_actuals_all_stations(
     return hourly_actuals
 
 
+async def get_wfwx_stations_from_station_codes(session, header, station_codes: Optional[List[int]]):
+    """ Return the WFWX station ids from WFWX API given a list of station codes. """
+
+    # All WFWX stations are requested because WFWX returns a malformed JSON response when too
+    # many station codes are added as query parameters.
+    wfwx_stations = await get_stations(session, header, mapper=wfwx_station_list_mapper)
+
+    # Default to all known WFWX station ids if no station codes are specified
+    if station_codes is None:
+        # NOTE: IMPORTANT! get_fire_centre_station_codes has to be called outside of the
+        # list(filter(lambda)) statement, or else it is repeatedly called.
+        fire_centre_station_codes = get_fire_centre_station_codes()
+        return list(filter(lambda x: (x.code in fire_centre_station_codes),
+                           wfwx_stations))
+    requested_stations = []
+    station_code_dict = {station.code: station for station in wfwx_stations}
+    for station_code in station_codes:
+        wfwx_station = station_code_dict.get(station_code)
+        if wfwx_station is not None:
+            requested_stations.append(wfwx_station)
+        else:
+            logger.error("No WFWX station id for station code: %s", station_code)
+
+    return requested_stations
+
+
+async def get_dailies(
+        session: ClientSession,
+        header: dict,
+        wfwx_stations: List[WFWXWeatherStation],
+        start_timestamp: int,
+        end_timestamp: int) -> List[StationDaily]:
+    """ Get the daily actuals for the given station ids.
+    """
+    wfwx_station_ids = [wfwx_station.wfwx_id for wfwx_station in wfwx_stations]
+    dailies_iterator = _fetch_paged_response_generator(
+        session, header, BuildQueryDailesByStationCode(
+            start_timestamp,
+            end_timestamp, wfwx_station_ids), 'dailies')
+
+    dailies = []
+    station_code_dict = {station.wfwx_id: station.code for station in wfwx_stations}
+    async for daily in dailies_iterator:
+        wfwx_id = daily.get('stationId', None)
+        station_code = station_code_dict.get(wfwx_id, None)
+        parsed_daily = _parse_daily(daily, station_code)
+        dailies.append(parsed_daily)
+    return dailies
+
+
+def replace_nones_in_hourly_actual_with_nan(hourly_reading: WeatherReading):
+    """ Returns WeatherReading where any and all None values are replaced with math.nan
+    in preparation for entry into database. Have to do this because Postgres doesn't
+    handle None gracefully (it thinks None != None), but it can handle math.nan ok.
+    (See HourlyActual db model) """
+    if hourly_reading.temperature is None:
+        hourly_reading.temperature = math.nan
+    if hourly_reading.relative_humidity is None:
+        hourly_reading.relative_humidity = math.nan
+    if hourly_reading.precipitation is None:
+        hourly_reading.precipitation = math.nan
+    if hourly_reading.wind_direction is None:
+        hourly_reading.wind_direction = math.nan
+    if hourly_reading.wind_speed is None:
+        hourly_reading.wind_speed = math.nan
+    return hourly_reading
+
+
 def parse_hourly_actual(station_code: int, hourly_reading: WeatherReading):
     """ Maps WeatherReading to HourlyActual """
     temp_valid = hourly_reading.temperature is not None
@@ -490,6 +680,7 @@ def parse_hourly_actual(station_code: int, hourly_reading: WeatherReading):
         hourly_reading.wind_speed, 0, math.inf)
     precip_valid = hourly_reading.precipitation is not None and validate_metric(
         hourly_reading.precipitation, 0, math.inf)
+    hourly_reading = replace_nones_in_hourly_actual_with_nan(hourly_reading)
 
     is_valid_wfwx = hourly_reading.observation_valid
     if is_valid_wfwx is False:
@@ -498,9 +689,17 @@ def parse_hourly_actual(station_code: int, hourly_reading: WeatherReading):
                        hourly_reading.datetime.strftime("%b %d %Y %H:%M:%S"),
                        hourly_reading.observation_valid_comment)
 
-    is_valid = temp_valid and rh_valid and wdir_valid and wspeed_valid and precip_valid and is_valid_wfwx
+    is_obs_invalid = not temp_valid and not rh_valid and not wdir_valid\
+        and not wspeed_valid and not precip_valid
 
-    return None if (is_valid is False) else HourlyActual(
+    if is_obs_invalid:
+        logger.error("Hourly actual not written to DB for station code %s at time %s: %s",
+                     station_code, hourly_reading.datetime.strftime("%b %d %Y %H:%M:%S"),
+                     hourly_reading.observation_valid_comment)
+
+    # don't write the HourlyActual to our database if every value is invalid. If even one
+    # weather variable observed is valid, write the HourlyActual to DB.
+    return None if is_obs_invalid else HourlyActual(
         station_code=station_code,
         weather_date=hourly_reading.datetime,
         temp_valid=temp_valid,

@@ -181,8 +181,9 @@ export const getMinMaxValuesRowIds = (
       rowIds['min_temp'].push(idx)
     }
     if (
+      minMaxValuesToHighlight.wind_speed !== null &&
       row.wind_speed?.toFixed(WIND_SPEED_VALUES_DECIMAL) ===
-      minMaxValuesToHighlight.wind_speed?.toFixed(WIND_SPEED_VALUES_DECIMAL)
+        minMaxValuesToHighlight.wind_speed?.toFixed(WIND_SPEED_VALUES_DECIMAL)
     ) {
       rowIds['wind'].push(idx)
     }
