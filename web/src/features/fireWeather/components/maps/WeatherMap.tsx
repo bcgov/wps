@@ -19,34 +19,6 @@ import { getDetailedStations, StationSource } from 'api/stationAPI'
 import { computeAccuracyColors } from 'features/fireWeather/components/maps/stationAccuracy'
 import { AccuracyWeatherVariableEnum } from '../AccuracyVariablePicker'
 
-const pointStyleFunction = (
-  feature: any,
-  selectedWxVariable: AccuracyWeatherVariableEnum
-) => {
-  const colorResult = computeAccuracyColors(feature.values_)
-  switch (selectedWxVariable) {
-    case AccuracyWeatherVariableEnum['Relative Humidity']: {
-      return new Style({
-        image: new CircleStyle({
-          radius: 4,
-          fill: new Fill({ color: colorResult.relative_humidity }),
-          stroke: new Stroke({ color: 'black', width: 1 })
-        })
-      })
-    }
-    case AccuracyWeatherVariableEnum.Temperature:
-    default: {
-      return new Style({
-        image: new CircleStyle({
-          radius: 4,
-          fill: new Fill({ color: colorResult.temperature }),
-          stroke: new Stroke({ color: 'black', width: 1 })
-        })
-      })
-    }
-  }
-}
-
 const BC_ROAD_BASE_MAP_SERVER_URL =
   'https://maps.gov.bc.ca/arcgis/rest/services/province/roads_wm/MapServer'
 
@@ -76,7 +48,8 @@ const WeatherMap = ({
   center,
   isCollapsed,
   toiFromQuery,
-  setMapCenter
+  setMapCenter,
+  selectedWxVariable
 }: Props) => {
   const dispatch = useDispatch()
 
@@ -87,6 +60,34 @@ const WeatherMap = ({
       fetchWxStations(getDetailedStations, StationSource.unspecified, toiFromQuery)
     )
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const pointStyleFunction = (
+    feature: any,
+  ) => {
+    const colorResult = computeAccuracyColors(feature.values_)
+    console.log(colorResult)
+    console.log(feature.values_)
+    switch (selectedWxVariable) {
+      case AccuracyWeatherVariableEnum['Relative Humidity']: 
+        return new Style({
+          image: new CircleStyle({
+            radius: 4,
+            fill: new Fill({ color: colorResult.relative_humidity }),
+            stroke: new Stroke({ color: 'black', width: 1 })
+          })
+        })
+      
+      case AccuracyWeatherVariableEnum.Temperature:
+      default: 
+        return new Style({
+          image: new CircleStyle({
+            radius: 4,
+            fill: new Fill({ color: colorResult.temperature }),
+            stroke: new Stroke({ color: 'black', width: 1 })
+          })
+        })
+    }
+  }
 
   const renderTooltip = useCallback(
     (feature: FeatureLike | null) => {
