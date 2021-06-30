@@ -61,14 +61,12 @@ const WeatherMap = ({
     )
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const pointStyleFunction = (
-    feature: any,
-  ) => {
+  const pointStyleFunction = (feature: any) => {
     const colorResult = computeAccuracyColors(feature.values_)
     console.log(colorResult)
     console.log(feature.values_)
     switch (selectedWxVariable) {
-      case AccuracyWeatherVariableEnum['Relative Humidity']: 
+      case AccuracyWeatherVariableEnum['Relative Humidity']:
         return new Style({
           image: new CircleStyle({
             radius: 4,
@@ -76,9 +74,9 @@ const WeatherMap = ({
             stroke: new Stroke({ color: 'black', width: 1 })
           })
         })
-      
+
       case AccuracyWeatherVariableEnum.Temperature:
-      default: 
+      default:
         return new Style({
           image: new CircleStyle({
             radius: 4,
