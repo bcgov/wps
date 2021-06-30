@@ -159,6 +159,10 @@ const MoreCastPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location])
 
+  useEffect(() => {
+    getRedrawCommand()
+  }, [selectedAccuracyWxVariable])
+
   return (
     <main className={classes.main}>
       <PageHeader title="MoreCast" productName="MoreCast" noContainer padding={25} />

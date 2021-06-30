@@ -63,7 +63,6 @@ const WeatherMap = ({
 
   const pointStyleFunction = (feature: any) => {
     const colorResult = computeAccuracyColors(feature.values_)
-    console.log(colorResult)
     console.log(feature.values_)
     switch (selectedWxVariable) {
       case AccuracyWeatherVariableEnum['Relative Humidity']:
