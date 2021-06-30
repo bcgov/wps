@@ -1,7 +1,7 @@
 """ This module contains methods for retrieving information from the WFWX Fireweather API.
 """
 import math
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Final
 from datetime import datetime
 import logging
 import asyncio
@@ -58,9 +58,14 @@ async def get_stations_by_codes(station_codes: List[int]) -> List[WeatherStation
     async with ClientSession() as session:
         header = await get_auth_header(session)
         stations = []
+        # 1 day seems a reasonable period to cache stations for.
+        redis_station_cache_expiry: Final = int(config.get('REDIS_STATION_CACHE_EXPIRY', 86400))
         # Iterate through "raw" station data.
-        iterator = fetch_paged_response_generator(
-            session, header, BuildQueryByStationCode(station_codes), 'stations')
+        iterator = fetch_paged_response_generator(session,
+                                                  header,
+                                                  BuildQueryByStationCode(station_codes), 'stations',
+                                                  use_cache=True,
+                                                  cache_expiry_seconds=redis_station_cache_expiry)
         async for raw_station in iterator:
             # If the station is valid, add it to our list of stations.
             if is_station_valid(raw_station):
@@ -75,9 +80,15 @@ async def get_stations(session: ClientSession,
     """ Get list of stations from WFWX Fireweather API.
     """
     logger.info('Using WFWX to retrieve station list')
+    # 1 day seems a reasonable period to cache stations for.
+    redis_station_cache_expiry: Final = int(config.get('REDIS_STATION_CACHE_EXPIRY', 86400))
     # Iterate through "raw" station data.
-    raw_stations = fetch_paged_response_generator(
-        session, header, BuildQueryAllActiveStations(), 'stations')
+    raw_stations = fetch_paged_response_generator(session,
+                                                  header,
+                                                  BuildQueryAllActiveStations(),
+                                                  'stations',
+                                                  use_cache=True,
+                                                  cache_expiry_seconds=redis_station_cache_expiry)
     # Map list of stations into desired shape
     stations = await mapper(raw_stations)
     logger.debug('total stations: %d', len(stations))
@@ -139,10 +150,15 @@ async def get_hourly_readings(
     """
     # Create a list containing all the tasks to run in parallel.
     tasks = []
-
+    # 1 day seems a reasonable period to cache stations for.
+    redis_station_cache_expiry: Final = int(config.get('REDIS_STATION_CACHE_EXPIRY', 86400))
     # Iterate through "raw" station data.
-    iterator = fetch_paged_response_generator(
-        session, header, BuildQueryByStationCode(station_codes), 'stations')
+    iterator = fetch_paged_response_generator(session,
+                                              header,
+                                              BuildQueryByStationCode(station_codes),
+                                              'stations',
+                                              True,
+                                              redis_station_cache_expiry)
     async for raw_station in iterator:
         task = asyncio.create_task(
             fetch_hourlies(session,
