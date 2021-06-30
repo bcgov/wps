@@ -25,11 +25,10 @@ import ExpandableContainer from 'features/fireWeather/components/ExpandableConta
 import { getDetailedStations, StationSource } from 'api/stationAPI'
 import { PARTIAL_WIDTH, FULL_WIDTH, CENTER_OF_BC } from 'utils/constants'
 import { RedrawCommand } from 'features/map/Map'
-import StationAccuracyForDate from '../components/StationAccuracyForDate'
+import StationAccuracyForDate from 'features/fireWeather/components/StationAccuracyForDate'
 import AccuracyVariablePicker, {
   AccuracyWeatherVariableEnum
-} from '../components/AccuracyVariablePicker'
-import State from 'ol/source/State'
+} from 'features/fireWeather/components/AccuracyVariablePicker'
 
 const useStyles = makeStyles(theme => ({
   main: {
@@ -209,7 +208,7 @@ const MoreCastPage = () => {
             selectedWxVariable={selectedAccuracyWxVariable}
             changeHandler={accuracyWxVariableChangeHandler}
           />
-          <AccuracyColorLegend selectedWxVariable={selectedAccuracyWxVariable}/>
+          <AccuracyColorLegend selectedWxVariable={selectedAccuracyWxVariable} />
           <StationAccuracyForDate toiFromQuery={toiFromQuery} />
         </div>
       )}

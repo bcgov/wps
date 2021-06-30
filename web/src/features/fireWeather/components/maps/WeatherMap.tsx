@@ -19,9 +19,12 @@ import { getDetailedStations, StationSource } from 'api/stationAPI'
 import { computeAccuracyColors } from 'features/fireWeather/components/maps/stationAccuracy'
 import { AccuracyWeatherVariableEnum } from '../AccuracyVariablePicker'
 
-const pointStyleFunction = (feature: any, selectedWxVariable: AccuracyWeatherVariableEnum) => {
+const pointStyleFunction = (
+  feature: any,
+  selectedWxVariable: AccuracyWeatherVariableEnum
+) => {
   const colorResult = computeAccuracyColors(feature.values_)
-  switch(selectedWxVariable) {
+  switch (selectedWxVariable) {
     case AccuracyWeatherVariableEnum['Relative Humidity']: {
       return new Style({
         image: new CircleStyle({
@@ -31,7 +34,8 @@ const pointStyleFunction = (feature: any, selectedWxVariable: AccuracyWeatherVar
         })
       })
     }
-    case AccuracyWeatherVariableEnum.Temperature: {
+    case AccuracyWeatherVariableEnum.Temperature:
+    default: {
       return new Style({
         image: new CircleStyle({
           radius: 4,
@@ -41,8 +45,6 @@ const pointStyleFunction = (feature: any, selectedWxVariable: AccuracyWeatherVar
       })
     }
   }
-
-
 }
 
 const BC_ROAD_BASE_MAP_SERVER_URL =

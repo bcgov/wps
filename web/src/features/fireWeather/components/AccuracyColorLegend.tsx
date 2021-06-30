@@ -13,7 +13,7 @@ const useStyles = makeStyles({
     height: '20px',
     width: '260px',
     color: 'white',
-    textAlign: 'center',
+    textAlign: 'center'
   },
   leftLabel: {
     height: '15px',
