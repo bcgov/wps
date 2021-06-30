@@ -180,7 +180,8 @@ const AccuracyColorLegend = (props: Props) => {
         </div>
       </div>
     )
-  } else if (props.selectedWxVariable === AccuracyWeatherVariableEnum.Temperature) {
+  } else {
+    // assume Temperature has been selected
     return (
       <div className={classes.root}>
         <div className={classes.title}>Observed Temperature</div>
@@ -201,7 +202,6 @@ const AccuracyColorLegend = (props: Props) => {
       </div>
     )
   }
-  return undefined
 }
 
 export default React.memo(AccuracyColorLegend)
