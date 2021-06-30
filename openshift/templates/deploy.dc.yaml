@@ -259,6 +259,16 @@ objects:
                     secretKeyRef:
                       name: ${NAME}-redis
                       key: database-password
+                - name: REDIS_STATION_CACHE_EXPIRY
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-global
+                      key: env.redis-station-cache-expiry
+                - name: REDIS_AUTH_CACHE_EXPIRY
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-global
+                      key: env.redis-auth-cache-expiry
               ports:
                 - containerPort: 8080
                   protocol: TCP

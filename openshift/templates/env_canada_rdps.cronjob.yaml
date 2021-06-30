@@ -133,6 +133,36 @@ objects:
                         secretKeyRef:
                           name: ${NAME}-global
                           key: wfwx-secret
+                    - name: REDIS_HOST
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${NAME}-global
+                          key: env.redis-host
+                    - name: REDIS_PORT
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${NAME}-global
+                          key: env.redis-port
+                    - name: REDIS_USE
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${NAME}-global
+                          key: env.redis-use
+                    - name: REDIS_PASSWORD
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${NAME}-redis
+                          key: database-password
+                    - name: REDIS_STATION_CACHE_EXPIRY
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${NAME}-global
+                          key: env.redis-station-cache-expiry
+                    - name: REDIS_AUTH_CACHE_EXPIRY
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${NAME}-global
+                          key: env.redis-auth-cache-expiry
                   resources:
                     limits:
                       cpu: "1"

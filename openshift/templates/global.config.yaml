@@ -85,6 +85,14 @@ parameters:
     description: Indicate if redis should be used.
     required: True
     value: "True"
+  - name: REDIS_STATION_CACHE_EXPIRY
+    description: How long to cache station lists for.
+    required: True
+    value: "86400"
+  - name: REDIS_AUTH_CACHE_EXPIRY
+    description: How long to cache auth response for.
+    required: True
+    value: "600"
 objects:
   - kind: ConfigMap
     apiVersion: v1
