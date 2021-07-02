@@ -9,10 +9,6 @@ export interface StationMetrics {
   } | null
 }
 
-export interface ColorResult {
-  temperature: string
-  relative_humidity: string
-}
 export const noDataColor = '#000000'
 export const neutralColor = '#DFDEDB'
 export const neutralIndex = 3
@@ -49,28 +45,24 @@ export const windColorScale = [
 export const tempGradientStepInDegrees = 2
 export const rhGradientStepInPercentagePoints = 3
 
-/**
- *  Calculates the percentage difference between observed and forecasted station metrics.
- *  Uses increments of 3% to determine color code in the associated color arrays.
- *
- * @param stationMetrics contains forecasted and observered temperature and relative humidity
- * @returns color code to display for temperature and relative humidity on the map
- */
-export const computeAccuracyColors = (stationMetric: StationMetrics): ColorResult => {
+export const computeTempAccuracyColor = (stationMetric: StationMetrics): string => {
   if (stationMetric.observations == null || stationMetric.forecasts == null) {
-    return { temperature: noDataColor, relative_humidity: noDataColor }
+    return noDataColor
   }
+  return tempColorScale[computeTempScaleIndex(
+    stationMetric.forecasts.temperature,
+    stationMetric.observations.temperature
+  )]
+}
 
-  return determineColor(
-    computeTempScaleIndex(
-      stationMetric.forecasts.temperature,
-      stationMetric.observations.temperature
-    ),
-    computeRHScaleIndex(
-      stationMetric.forecasts.relative_humidity,
-      stationMetric.observations.relative_humidity
-    )
-  )
+export const computeRHAccuracyColor = (stationMetric: StationMetrics): string => {
+  if (stationMetric.observations == null || stationMetric.forecasts == null) {
+    return noDataColor
+  }
+  return rhColorScale[computeRHScaleIndex(
+    stationMetric.forecasts.relative_humidity,
+    stationMetric.observations.relative_humidity
+  )]
 }
 
 export const computeRHScaleIndex = (
@@ -93,20 +85,4 @@ export const computeTempScaleIndex = (
   const gradient = Math.floor(tempDifference / tempGradientStepInDegrees)
   const scaleIndex = Math.min(gradient + neutralIndex, (tempColorScale.length - 1) / 2)
   return scaleIndex
-}
-
-/**
- *  Return color code for metric percent differences.
- *
- *  Index is determined by the magnitude of the difference between observed
- *  and forecasted, bounded by the size of the color array.
- */
-export const determineColor = (
-  tempScaleIndex: number,
-  rhScaleIndex: number
-): ColorResult => {
-  return {
-    temperature: tempColorScale[tempScaleIndex],
-    relative_humidity: rhColorScale[rhScaleIndex]
-  }
 }

@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from 'react'
+import { useState, useContext, useEffect } from 'react'
 import OLVectorLayer from 'ol/layer/Vector'
 import VectorSource from 'ol/source/Vector'
 import { StyleLike } from 'ol/style/Style'
@@ -44,7 +44,13 @@ const VectorLayer = ({ source, style, opacity, zIndex = 0 }: Props) => {
     layer.setSource(source)
   }, [source]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    if (!layer) return
+
+    layer.setStyle(style)
+  }, [style]) // eslint-disable-line react-hooks/exhaustive-deps
+
   return null
 }
 
-export default React.memo(VectorLayer)
+export default VectorLayer
