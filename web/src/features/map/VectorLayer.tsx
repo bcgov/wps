@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect } from 'react'
+import React, { useState, useContext, useEffect } from 'react'
 import OLVectorLayer from 'ol/layer/Vector'
 import VectorSource from 'ol/source/Vector'
 import { StyleLike } from 'ol/style/Style'
@@ -53,4 +53,4 @@ const VectorLayer = ({ source, style, opacity, zIndex = 0 }: Props) => {
   return null
 }
 
-export default VectorLayer
+export default React.memo(VectorLayer)
