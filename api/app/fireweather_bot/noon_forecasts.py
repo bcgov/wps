@@ -58,6 +58,7 @@ def _parse_csv(temp_path: str):
     pandas dataframe, then insert the dataframe into the DB. (This 2-step process is
     the neatest way to write CSVs into a DB.)
     """
+    # pylint: disable=unsubscriptable-object, no-member
     with open(temp_path, 'r') as csv_file:
         data_df = pd.read_csv(csv_file)
     station_codes = get_station_names_to_codes_local()
