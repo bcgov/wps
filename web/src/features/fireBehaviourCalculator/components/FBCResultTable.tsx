@@ -31,31 +31,6 @@ const useStyles = makeStyles({
     maxWidth: 1900,
     minWidth: 1600,
     '& .MuiTableCell-head': { fontWeight: 'bold', padding: '1px' }
-  },
-  fireCentre: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    backgroundColor: '#dbd9d9'
-  },
-  planningArea: {
-    backgroundColor: '#d6faff',
-
-    '& .MuiTableCell-sizeSmall': {
-      paddingLeft: '12px'
-    }
-  },
-  station: {
-    '& .MuiTableCell-sizeSmall': {
-      paddingLeft: '20px'
-    }
-  },
-  borderless: {
-    border: 'none'
-  },
-  controls: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'baseline'
   }
 })
 
