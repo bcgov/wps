@@ -12,7 +12,6 @@ import {
 import { makeStyles } from '@material-ui/core/styles'
 
 interface Props {
-  title: string
   testId?: string
 }
 
