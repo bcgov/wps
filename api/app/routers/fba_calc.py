@@ -41,11 +41,11 @@ async def get_stations_data(response: Response, request: Request,  _=Depends(aut
 
 def get_fire_type(crown_fraction_burned: int):
     """ Returns Fire Type (as str) based on percentage Crown Fraction Burned (CFB).
-    These definitions come from the Red Book (p. 69).
-    Abbreviations for fire types have been chosen arbitrarily.
+    These definitions come from the Red Book (p.69).
+    Abbreviations for fire types have been taken from the red book (p.9).
 
     CROWN FRACTION BURNED           TYPE OF FIRE                ABBREV.
-    < 10%                           Surface fire                SUR
+    < 10%                           Surface fire                S
     10-89%                          Intermittent crown fire     IC
     > 90%                           Continuous crown fire       CC
     """
