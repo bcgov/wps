@@ -9,6 +9,7 @@ import { selectFireWeatherStations } from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
 import { GeoJsonStation, getStations } from 'api/stationAPI'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
+import { FuelTypes } from '../fuelTypes'
 
 const useStyles = makeStyles(theme => ({
   formControl: {
@@ -35,6 +36,10 @@ const FBCInputForm = (props: FBCInputFormProps) => {
     )
   )
 
+  const fuelTypeMenuItems = FuelTypes.get().map(fuelType => (
+    <MenuItem value={fuelType.name}>{fuelType.friendlyName}</MenuItem>
+  ))
+
   useEffect(() => {
     dispatch(fetchWxStations(getStations))
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
@@ -57,12 +62,10 @@ const FBCInputForm = (props: FBCInputFormProps) => {
         <Select
           labelId="fbc-weather-fuel-type-select"
           id="fuel-type-select"
-          value={'C5'}
+          value={'c2'}
           variant="outlined"
         >
-          <MenuItem value={10}>C5</MenuItem>
-          <MenuItem value={20}>C6</MenuItem>
-          <MenuItem value={30}>C7</MenuItem>
+          {fuelTypeMenuItems}
         </Select>
       </FormControl>
       <FormControl className={classes.formControl}>

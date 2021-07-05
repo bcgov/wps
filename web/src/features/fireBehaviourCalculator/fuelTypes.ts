@@ -4,7 +4,7 @@ export interface FBCFuelType {
 }
 
 export class FuelTypes {
-  get(): FBCFuelType[] {
+  static get(): FBCFuelType[] {
     return [
       { name: 'c2', friendlyName: 'C2' },
       { name: 'c3', friendlyName: 'C3' },
