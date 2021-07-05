@@ -3,8 +3,10 @@ Unit tests for fire behavour calculator.
 """
 from pytest_bdd import scenario, given, then
 from fastapi.testclient import TestClient
+from aiohttp import ClientSession
 import pytest
 import app.main
+from app.tests.common import default_mock_client_get
 from app.tests import load_json_file
 
 
@@ -18,13 +20,16 @@ def test_fire_behaviour_calculator_scenario():
 
 
 @given("I received a <request_json>", target_fixture='response')
-def given_request(request_json: dict):
+def given_request(monkeypatch, request_json: dict):
     """ Handle request
     Our request should result in
     1) station list requests to WFWX, to map station codes to GUIDs.
     2) dailies call to WFWX.
     3) call to the R code to caclulate values.
     """
+    # mock anything that uses aiohttp.ClientSession::get
+    monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)
+
     client = TestClient(app.main.app)
     headers = {'Content-Type': 'application/json',
                'Authorization': 'Bearer token'}

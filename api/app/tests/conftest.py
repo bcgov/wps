@@ -21,6 +21,7 @@ from app.db.models import PredictionModel, PredictionModelRunTimestamp
 import app.db.database
 import app.utils.time as time_utils
 from app.schemas.shared import WeatherDataRequest
+import app.wildfire_one.wildfire_fetchers
 
 logger = logging.getLogger(__name__)
 
@@ -69,6 +70,28 @@ def mock_requests(monkeypatch):
     """
     monkeypatch.setattr(requests, 'get', default_mock_requests_get)
     monkeypatch.setattr(requests, 'post', default_mock_requests_post)
+
+
+@pytest.fixture(autouse=True)
+def mock_redis(monkeypatch):
+    """ Patch redis by default """
+    class MockRedis():
+        """ mocked redis class """
+
+        def __init__(self) -> None:
+            pass
+
+        def get(self, name):  # pylint: disable=unused-argument
+            """ mock get """
+            return None
+
+        def set(self, name, value,  # pylint: disable=unused-argument
+                ex=None, px=None, nx=False, xx=False, keepttl=False):  # pylint: disable=unused-argument
+            """ mock set """
+
+    def create_mock_redis():
+        return MockRedis()
+    monkeypatch.setattr(app.wildfire_one.wildfire_fetchers, '_create_redis', create_mock_redis)
 
 
 @pytest.fixture(autouse=True)

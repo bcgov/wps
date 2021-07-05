@@ -1,6 +1,8 @@
 Feature: /fbc/
 
     Scenario: Fire Behaviour Calculation
+        # NOTE: When writing requests, we already have stubs in place for the following station combinations:
+        # (230,), (146,230), (322,346,335)
         Given I received a <request_json>
         Then the response status code is <status_code>
         And the response is <response_json>

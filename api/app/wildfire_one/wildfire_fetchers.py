@@ -93,8 +93,8 @@ async def fetch_detailed_geojson_stations(
     """ Fetch and marshall geojson station data"""
     stations = {}
     id_to_code_map = {}
-    # 1 day seems a reasonable period to cache stations for.
-    redis_station_cache_expiry: Final = int(config.get('REDIS_STATION_CACHE_EXPIRY', 86400))
+    # 1 week seems a reasonable period to cache stations for.
+    redis_station_cache_expiry: Final = int(config.get('REDIS_STATION_CACHE_EXPIRY', 604800))
     # Put the stations in a nice dictionary.
     async for raw_station in fetch_paged_response_generator(session,
                                                             headers,
