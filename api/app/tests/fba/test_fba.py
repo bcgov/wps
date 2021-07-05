@@ -28,7 +28,7 @@ def given_request(request_json: dict):
     client = TestClient(app.main.app)
     headers = {'Content-Type': 'application/json',
                'Authorization': 'Bearer token'}
-    return client.post('/fba-calc', headers=headers, json=request_json)
+    return client.post('/api/fba-calc/stations', headers=headers, json={})
 
 
 @then("the response status code is <status_code>")
