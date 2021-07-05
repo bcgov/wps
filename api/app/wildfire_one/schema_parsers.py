@@ -3,10 +3,8 @@
 import math
 import logging
 from datetime import datetime, timezone
-from os import stat
 from typing import Generator, List
 from app.db.models.observations import HourlyActual
-from app.routers.fba_calc import get_30_minutes_fire_size, get_60_minutes_fire_size, get_fire_type
 from app.schemas.fba_calc import StationResponse
 from app.schemas.stations import WeatherStation
 from app.utils.cffdrs import crown_fraction_burned, foliar_moisture_content, head_fire_intensity, length_to_breadth_ratio, rate_of_spread, surface_fuel_consumption
@@ -14,6 +12,7 @@ from app.utils.dewpoint import compute_dewpoint
 from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.schemas.observations import WeatherReading
 from app.schemas.hfi_calc import StationDaily
+from app.utils.fba_calculator import FBACalculatorWeatherStation, get_30_minutes_fire_size, get_60_minutes_fire_size, get_fire_type
 from app.utils.time import get_julian_date, get_julian_date_now
 from app.wildfire_one.util import is_station_valid
 
@@ -43,23 +42,6 @@ class WFWXWeatherStation():
         self.lat = latitude
         self.long = longitude
         self.elevation = elevation
-
-
-class FBACalculatorWeatherStation():
-    """ A combination of station data from WFWX API and user-specified inputs for
-    Fire Behaviour Advisory Calculator """
-
-    def __init__(self, wfwx_id: str, code: int, elevation: int, fuel_type: str,
-                 time_of_interest: str, percentage_conifer: int, grass_cure: int,
-                 crown_burn_height: int):
-        self.wfwx_id = wfwx_id
-        self.code = code
-        self.elevation = elevation
-        self.fuel_type = fuel_type
-        self.time_of_interest = time_of_interest
-        self.percentage_conifer = percentage_conifer
-        self.grass_cure = grass_cure
-        self.crown_burn_height = crown_burn_height
 
 
 async def wfwx_station_list_mapper(raw_stations: Generator[dict, None, None]) -> List[WFWXWeatherStation]:

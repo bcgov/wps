@@ -3,11 +3,10 @@
 import datetime
 import logging
 from typing import Optional
-from app.schemas.hfi_calc import WeatherStation
+from app.utils.fba_calculator import FBACalculatorWeatherStation
 import app.utils.r_importer
 from app.utils.singleton import Singleton
 from app.utils.time import get_julian_date
-from app.wildfire_one.schema_parsers import FBACalculatorWeatherStation
 
 
 logger = logging.getLogger(__name__)
