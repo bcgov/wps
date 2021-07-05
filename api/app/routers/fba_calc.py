@@ -4,6 +4,7 @@ import logging
 from typing import List
 from aiohttp.client import ClientSession
 from fastapi import APIRouter, Response, Request, Depends
+import math
 import app
 from app.auth import authentication_required, audit
 from app.schemas.fba_calc import StationsListResponse, StationResponse
@@ -57,3 +58,23 @@ def get_fire_type(crown_fraction_burned: int):
     else:
         logger.error('Cannot calculate fire type. Invalid Crown Fraction Burned percentage received.')
         raise Exception
+
+
+def get_30_minutes_fire_size(length_breadth_ratio: float, rate_of_spread: float):
+    """ Returns estimated fire size after 30 minutes, based on LB ratio and ROS.
+    Formula derived from sample HFI workbook (see HFI_spreadsheet.md).
+
+    30 min fire size = (pi * spread^2) / (40,000 * LB ratio)
+    where spread = 30 * ROS
+    """
+    return (math.pi * (30 * rate_of_spread) ^ 2) / (40000 * length_breadth_ratio)
+
+
+def get_60_minutes_fire_size(length_breadth_ratio: float, rate_of_spread: float):
+    """ Returns estimated fire size after 60 minutes, based on LB ratio and ROS.
+    Formula derived from sample HFI workbook (see HFI_spreadsheet.md)
+
+    60 min fire size = (pi * spread^2) / (40,000 * LB ratio)
+    where spread = 60 * ROS
+    """
+    return (math.pi * (60 * rate_of_spread) ^ 2) / (40000 * length_breadth_ratio)
