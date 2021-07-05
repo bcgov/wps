@@ -4,7 +4,6 @@ import { makeStyles } from '@material-ui/core/styles'
 import { DateTime } from 'luxon'
 import { FormControl, InputLabel, MenuItem, Select, TextField } from '@material-ui/core'
 import { Button } from 'components'
-import TimeOfInterestPicker from 'features/fireWeather/components/TimeOfInterestPicker'
 import DatePicker from './DatePicker'
 
 const useStyles = makeStyles(theme => ({
@@ -30,12 +29,7 @@ const FBCFormControl = (props: FBCFormControlProps) => {
     <div>
       <FormControl className={classes.formControl}>
         <InputLabel id="fbc-date-input">Weather Station</InputLabel>
-        <Select
-          labelId="fbc-weather-date-select"
-          id="demo-date-select"
-          value={322}
-          variant="outlined"
-        >
+        <Select labelId="fbc-date-select" id="date-select" value={322} variant="outlined">
           <MenuItem value={10}>Ten</MenuItem>
           <MenuItem value={20}>Twenty</MenuItem>
           <MenuItem value={30}>Thirty</MenuItem>
@@ -47,8 +41,8 @@ const FBCFormControl = (props: FBCFormControlProps) => {
       <FormControl className={classes.formControl}>
         <InputLabel id="fbc-date-input">Input Fuel Type</InputLabel>
         <Select
-          labelId="fbc-weather-date-select"
-          id="demo-date-select"
+          labelId="fbc-weather-fuel-type-select"
+          id="fuel-type-select"
           value={'C5'}
           variant="outlined"
         >
@@ -58,7 +52,7 @@ const FBCFormControl = (props: FBCFormControlProps) => {
         </Select>
       </FormControl>
       <FormControl className={classes.formControl}>
-        <TextField id="standard-basic" label="Input Grass Cure %" variant="outlined" />
+        <TextField id="input-grass-cure" label="Input Grass Cure %" variant="outlined" />
       </FormControl>
       <FormControl className={classes.formControl}>
         <Button
