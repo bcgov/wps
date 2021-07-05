@@ -19,8 +19,11 @@ router = APIRouter(
 )
 
 
-@router.get('/stations', response_model=StationsListResponse)
-async def get_stations_data(response: Response, request: Request,  _=Depends(authentication_required)):
+@router.post('/stations', response_model=StationsListResponse)
+async def get_stations_data(
+        response: Response,
+        request: Request,
+        _=Depends(authentication_required)):
     """ Returns per-station data for a list of requested stations """
     logger.info('/fba-calc/stations')
 
