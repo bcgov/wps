@@ -73,7 +73,9 @@ class MockAsyncResponse:
         """ Initialize client response """
         self._text = text
         self._json = json
-        self.status_code = status_code
+        # NOTE: there is no status_code response!
+        # self.status_code = status_code
+        self.status = status_code
 
     async def text(self) -> str:
         """ Return text response """

@@ -50,7 +50,9 @@ const Routes: React.FunctionComponent = () => {
         </Route>
 
         <Route path={FIRE_BEHAVIOR_CALC_ROUTE}>
-          <FireBehaviourCalculator />
+          <AuthWrapper shouldAuthenticate={shouldAuthenticate}>
+            <FireBehaviourCalculator />
+          </AuthWrapper>
         </Route>
 
         <Route>

@@ -60,7 +60,7 @@ async def get_stations_by_codes(station_codes: List[int]) -> List[WeatherStation
         header = await get_auth_header(session)
         stations = []
         # 1 day seems a reasonable period to cache stations for.
-        redis_station_cache_expiry: Final = int(config.get('REDIS_STATION_CACHE_EXPIRY', 86400))
+        redis_station_cache_expiry: Final = int(config.get('REDIS_STATION_CACHE_EXPIRY', 604800))
         # Iterate through "raw" station data.
         iterator = fetch_paged_response_generator(session,
                                                   header,
@@ -82,7 +82,7 @@ async def get_stations(session: ClientSession,
     """
     logger.info('Using WFWX to retrieve station list')
     # 1 day seems a reasonable period to cache stations for.
-    redis_station_cache_expiry: Final = int(config.get('REDIS_STATION_CACHE_EXPIRY', 86400))
+    redis_station_cache_expiry: Final = int(config.get('REDIS_STATION_CACHE_EXPIRY', 604800))
     # Iterate through "raw" station data.
     raw_stations = fetch_paged_response_generator(session,
                                                   header,
@@ -152,7 +152,7 @@ async def get_hourly_readings(
     # Create a list containing all the tasks to run in parallel.
     tasks = []
     # 1 day seems a reasonable period to cache stations for.
-    redis_station_cache_expiry: Final = int(config.get('REDIS_STATION_CACHE_EXPIRY', 86400))
+    redis_station_cache_expiry: Final = int(config.get('REDIS_STATION_CACHE_EXPIRY', 604800))
     # Iterate through "raw" station data.
     iterator = fetch_paged_response_generator(session,
                                               header,

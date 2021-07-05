@@ -2,9 +2,9 @@
 
 import logging
 from typing import List
+import math
 from aiohttp.client import ClientSession
 from fastapi import APIRouter, Request, Depends
-import math
 from app.auth import authentication_required, audit
 from app.schemas.fba_calc import StationsListResponse
 from app.wildfire_one.wfwx_api import (get_auth_header,
@@ -19,8 +19,10 @@ router = APIRouter(
 )
 
 
-@router.get('/stations', response_model=StationsListResponse)
-async def get_stations_data(request: Request,  _=Depends(authentication_required)):
+@router.post('/stations', response_model=StationsListResponse)
+async def get_stations_data(
+        request: Request,
+        _=Depends(authentication_required)):
     """ Returns per-station data for a list of requested stations """
     logger.info('/fba-calc/stations')
 
