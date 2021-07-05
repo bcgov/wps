@@ -1,6 +1,7 @@
 import { Container, PageHeader } from 'components'
 import React from 'react'
-import FBCFormControl from './components/FBCFormControl'
+import FBCInputForm from './components/FBCFormControl'
+import FBCResultTable from './components/FBCResultTable'
 
 export const FireBehaviourCalculator: React.FunctionComponent = () => {
   return (
@@ -9,9 +10,10 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
         title="Predictive Services Unit"
         productName="Predictive Services Unit"
       />
-      <Container>
-        <h1>Fire Behavior Calculator WIP</h1>
-        <FBCFormControl />
+      <Container maxWidth={'xl'}>
+        <h1>Fire Behavior Calculator Prototype</h1>
+        <FBCInputForm />
+        <FBCResultTable title="HFI Calculator Daily View" testId="hfi-calc-daily-table" />
       </Container>
     </main>
   )

@@ -1,28 +1,43 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 
 import { DateTime } from 'luxon'
 import { FormControl, InputLabel, MenuItem, Select, TextField } from '@material-ui/core'
 import { Button } from 'components'
-import TimeOfInterestPicker from 'features/fireWeather/components/TimeOfInterestPicker'
 import DatePicker from './DatePicker'
+import { selectFireWeatherStations } from 'app/rootReducer'
+import { useDispatch, useSelector } from 'react-redux'
+import { GeoJsonStation, getStations } from 'api/stationAPI'
+import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 
 const useStyles = makeStyles(theme => ({
   formControl: {
     margin: theme.spacing(1),
     minWidth: 180
-  },
-  timeOfInterest: {
-    marginRight: 16
   }
 }))
 
-interface FBCFormControlProps {
+interface FBCInputFormProps {
   testId?: string
 }
 
-const FBCFormControl = (props: FBCFormControlProps) => {
+const FBCInputForm = (props: FBCInputFormProps) => {
   const classes = useStyles()
+  const dispatch = useDispatch()
+
+  const { stations } = useSelector(selectFireWeatherStations)
+
+  const stationMenuItems = (stations as GeoJsonStation[]).map(
+    (station: GeoJsonStation) => (
+      <MenuItem value={station.properties.code}>
+        {station.properties.code} - {station.properties.name}
+      </MenuItem>
+    )
+  )
+
+  useEffect(() => {
+    dispatch(fetchWxStations(getStations))
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().toISODate())
 
@@ -30,15 +45,8 @@ const FBCFormControl = (props: FBCFormControlProps) => {
     <div>
       <FormControl className={classes.formControl}>
         <InputLabel id="fbc-date-input">Weather Station</InputLabel>
-        <Select
-          labelId="fbc-weather-date-select"
-          id="demo-date-select"
-          value={322}
-          variant="outlined"
-        >
-          <MenuItem value={10}>Ten</MenuItem>
-          <MenuItem value={20}>Twenty</MenuItem>
-          <MenuItem value={30}>Thirty</MenuItem>
+        <Select labelId="fbc-date-select" id="date-select" value={322} variant="outlined">
+          {stationMenuItems}
         </Select>
       </FormControl>
       <FormControl className={classes.formControl}>
@@ -47,8 +55,8 @@ const FBCFormControl = (props: FBCFormControlProps) => {
       <FormControl className={classes.formControl}>
         <InputLabel id="fbc-date-input">Input Fuel Type</InputLabel>
         <Select
-          labelId="fbc-weather-date-select"
-          id="demo-date-select"
+          labelId="fbc-weather-fuel-type-select"
+          id="fuel-type-select"
           value={'C5'}
           variant="outlined"
         >
@@ -58,7 +66,7 @@ const FBCFormControl = (props: FBCFormControlProps) => {
         </Select>
       </FormControl>
       <FormControl className={classes.formControl}>
-        <TextField id="standard-basic" label="Input Grass Cure %" variant="outlined" />
+        <TextField id="input-grass-cure" label="Input Grass Cure %" variant="outlined" />
       </FormControl>
       <FormControl className={classes.formControl}>
         <Button
@@ -74,4 +82,4 @@ const FBCFormControl = (props: FBCFormControlProps) => {
   )
 }
 
-export default React.memo(FBCFormControl)
+export default React.memo(FBCInputForm)
