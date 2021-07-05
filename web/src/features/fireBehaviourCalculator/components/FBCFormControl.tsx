@@ -7,7 +7,7 @@ import { Button } from 'components'
 import DatePicker from './DatePicker'
 import { selectFireWeatherStations } from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
-import { getDetailedStations, StationSource } from 'api/stationAPI'
+import { GeoJsonStation, getStations } from 'api/stationAPI'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 
 const useStyles = makeStyles(theme => ({
@@ -29,10 +29,17 @@ const FBCInputControls = (props: FBCInputControlProps) => {
   const dispatch = useDispatch()
 
   const { stations } = useSelector(selectFireWeatherStations)
-  console.log(stations)
+
+  const stationMenuItems = (stations as GeoJsonStation[]).map(
+    (station: GeoJsonStation) => (
+      <MenuItem value={station.properties.code}>
+        {station.properties.code} - {station.properties.name}
+      </MenuItem>
+    )
+  )
 
   useEffect(() => {
-    dispatch(fetchWxStations(getDetailedStations, StationSource.local_storage))
+    dispatch(fetchWxStations(getStations))
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().toISODate())
@@ -42,9 +49,7 @@ const FBCInputControls = (props: FBCInputControlProps) => {
       <FormControl className={classes.formControl}>
         <InputLabel id="fbc-date-input">Weather Station</InputLabel>
         <Select labelId="fbc-date-select" id="date-select" value={322} variant="outlined">
-          <MenuItem value={10}>Ten</MenuItem>
-          <MenuItem value={20}>Twenty</MenuItem>
-          <MenuItem value={30}>Thirty</MenuItem>
+          {stationMenuItems}
         </Select>
       </FormControl>
       <FormControl className={classes.formControl}>
