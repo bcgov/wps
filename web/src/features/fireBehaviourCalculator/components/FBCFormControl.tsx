@@ -16,11 +16,11 @@ const useStyles = makeStyles(theme => ({
   }
 }))
 
-interface FBCFormControlProps {
+interface FBCInputControlProps {
   testId?: string
 }
 
-const FBCFormControl = (props: FBCFormControlProps) => {
+const FBCInputControls = (props: FBCInputControlProps) => {
   const classes = useStyles()
 
   const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().toISODate())
@@ -68,4 +68,4 @@ const FBCFormControl = (props: FBCFormControlProps) => {
   )
 }
 
-export default React.memo(FBCFormControl)
+export default React.memo(FBCInputControls)
