@@ -17,11 +17,11 @@ const useStyles = makeStyles(theme => ({
   }
 }))
 
-interface FBCInputControlProps {
+interface FBCInputFormProps {
   testId?: string
 }
 
-const FBCInputControls = (props: FBCInputControlProps) => {
+const FBCInputForm = (props: FBCInputFormProps) => {
   const classes = useStyles()
   const dispatch = useDispatch()
 
@@ -82,4 +82,4 @@ const FBCInputControls = (props: FBCInputControlProps) => {
   )
 }
 
-export default React.memo(FBCInputControls)
+export default React.memo(FBCInputForm)
