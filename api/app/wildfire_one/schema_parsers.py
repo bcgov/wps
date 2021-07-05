@@ -109,7 +109,7 @@ def parse_to_StationDaily(raw_daily, station: WFWXWeatherStation, fuel_type: str
     ffmc = raw_daily.get('fineFuelMoistureCode', None)
     fmc = foliar_moisture_content(station.lat, station.long, station.elevation, get_julian_date_now())
     sfc = surface_fuel_consumption(fuel_type, bui, ffmc, None)
-    ros = rate_of_spread(fuel_type, isi, bui, fmc, sfc, None)
+    ros = rate_of_spread(fuel_type, isi, bui, fmc, sfc, None, raw_daily.get('grasslandCuring', None))
     return StationDaily(
         code=station.code,
         status="Observed" if raw_daily.get('recordType', '').get('id') == 'ACTUAL' else "Forecasted",
@@ -142,7 +142,8 @@ def parse_to_StationResponse(raw_daily, station: FBACalculatorWeatherStation) ->
                                   get_julian_date(station.time_of_interest))
     sfc = surface_fuel_consumption(station.fuel_type, bui, ffmc, station.percentage_conifer)
     lb_ratio = length_to_breadth_ratio(station.fuel_type, raw_daily.get('windSpeed', None))
-    ros = rate_of_spread(station.fuel_type, isi, bui, fmc, sfc, station.percentage_conifer)
+    ros = rate_of_spread(station.fuel_type, isi, bui, fmc, sfc,
+                         station.percentage_conifer, station.grass_cure)
     cfb = crown_fraction_burned(station.fuel_type, fmc, sfc, ros)
     return StationResponse(
         station_code=station.code,
