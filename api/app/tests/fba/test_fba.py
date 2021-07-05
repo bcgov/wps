@@ -9,7 +9,7 @@ from app.tests import load_json_file
 
 
 @pytest.mark.usefixtures('mock_jwt_decode')
-@scenario('test_fbc.feature', 'Fire Behaviour Calculation',
+@scenario('test_fba.feature', 'Fire Behaviour Calculation',
           example_converters=dict(request_json=load_json_file(__file__),
                                   status_code=int,
                                   response_json=load_json_file(__file__)))
@@ -28,7 +28,7 @@ def given_request(request_json: dict):
     client = TestClient(app.main.app)
     headers = {'Content-Type': 'application/json',
                'Authorization': 'Bearer token'}
-    return client.post('/fire_behaviour_calculator', headers=headers, json=request_json)
+    return client.post('/fba-calc', headers=headers, json=request_json)
 
 
 @then("the response status code is <status_code>")
