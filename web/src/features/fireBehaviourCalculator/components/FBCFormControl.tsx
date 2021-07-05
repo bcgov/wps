@@ -5,6 +5,8 @@ import { DateTime } from 'luxon'
 import { FormControl, InputLabel, MenuItem, Select, TextField } from '@material-ui/core'
 import { Button } from 'components'
 import DatePicker from './DatePicker'
+import { selectFireWeatherStations } from 'app/rootReducer'
+import { useSelector } from 'react-redux'
 
 const useStyles = makeStyles(theme => ({
   formControl: {
@@ -22,6 +24,9 @@ interface FBCInputControlProps {
 
 const FBCInputControls = (props: FBCInputControlProps) => {
   const classes = useStyles()
+
+  const { selectedStationsByCode } = useSelector(selectFireWeatherStations)
+  console.log(selectedStationsByCode)
 
   const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().toISODate())
 
