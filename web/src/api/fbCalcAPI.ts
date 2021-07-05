@@ -37,7 +37,7 @@ export async function postFBCStations(
     stationCodes: number[],
     fuelType: string,
     grassCurePercentage: number): Promise<FBCWeatherStationsResponse> {
-  const url = 'fire-behaviour-calculator'
+  const url = 'fba-calc/stations'
   const { data } = await axios.get(url)
 
   return data
