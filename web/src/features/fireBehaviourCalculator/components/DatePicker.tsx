@@ -16,7 +16,6 @@ const DatePicker = (props: DatePickerProps) => {
       type="date"
       value={props.date.slice(0, 10)} // 'YYYY-MM-DD'
       variant="outlined"
-      size="small"
       onChange={e => {
         const value = e.currentTarget.value
 

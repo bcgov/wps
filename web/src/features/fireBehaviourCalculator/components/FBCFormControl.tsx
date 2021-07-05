@@ -30,7 +30,12 @@ const FBCFormControl = (props: FBCFormControlProps) => {
     <div>
       <FormControl className={classes.formControl}>
         <InputLabel id="fbc-date-input">Weather Station</InputLabel>
-        <Select labelId="fbc-weather-date-select" id="demo-date-select" value={322}>
+        <Select
+          labelId="fbc-weather-date-select"
+          id="demo-date-select"
+          value={322}
+          variant="outlined"
+        >
           <MenuItem value={10}>Ten</MenuItem>
           <MenuItem value={20}>Twenty</MenuItem>
           <MenuItem value={30}>Thirty</MenuItem>
@@ -41,14 +46,19 @@ const FBCFormControl = (props: FBCFormControlProps) => {
       </FormControl>
       <FormControl className={classes.formControl}>
         <InputLabel id="fbc-date-input">Input Fuel Type</InputLabel>
-        <Select labelId="fbc-weather-date-select" id="demo-date-select" value={'C5'}>
+        <Select
+          labelId="fbc-weather-date-select"
+          id="demo-date-select"
+          value={'C5'}
+          variant="outlined"
+        >
           <MenuItem value={10}>C5</MenuItem>
           <MenuItem value={20}>C6</MenuItem>
           <MenuItem value={30}>C7</MenuItem>
         </Select>
       </FormControl>
       <FormControl className={classes.formControl}>
-        <TextField id="standard-basic" label="Input Grass Cure %" />
+        <TextField id="standard-basic" label="Input Grass Cure %" variant="outlined" />
       </FormControl>
       <FormControl className={classes.formControl}>
         <Button
