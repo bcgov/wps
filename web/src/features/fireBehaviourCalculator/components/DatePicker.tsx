@@ -13,18 +13,14 @@ const DatePicker = (props: DatePickerProps) => {
     <TextField
       data-testid="date-of-interest-picker"
       label="Date of Interest (PST-08:00)"
-      type="datetime-local"
-      value={props.date.slice(0, 16)} // 'YYYY-MM-DDTHH:mm'
+      type="date"
+      value={props.date.slice(0, 10)} // 'YYYY-MM-DD'
       variant="outlined"
-      size="small"
-      InputLabelProps={{
-        shrink: true
-      }}
       onChange={e => {
         const value = e.currentTarget.value
 
         if (value) {
-          props.onChange(`${value}:00-08:00`) // Append seconds and timezone (PST) at the end
+          props.onChange(value)
         }
       }}
     />

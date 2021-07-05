@@ -47,3 +47,11 @@ def get_julian_date_now():
     formatted_date = formatted_date.timetuple()
     julian_date = formatted_date.tm_yday
     return julian_date
+
+
+def get_julian_date(time_of_interest: datetime):
+    """ Returns Julian day of year for time_of_interest specified in arg. """
+    fmt = '%Y-%m-%d'
+    formatted_date = datetime.strptime(time_of_interest, fmt)
+    formatted_date = formatted_date.timetuple()
+    return formatted_date.tm_yday
