@@ -31,7 +31,7 @@ class CFFDRSException(Exception):
 #        SFC: Surface Fuel Consumption (kg/m^2)
 #         PC: Percent Conifer (%)
 #        PDF: Percent Dead Balsam Fir (%)
-#         CC: Constant (crown closure)
+#         CC: Constant (we think this is grass cure.)
 #        CBH: Crown to base height(m)
 
 # Returns:
@@ -43,35 +43,36 @@ class CFFDRSException(Exception):
 # To store in DB: PC, PDF, CC, CBH (attached to fuel type, red book)
 PARAMS_ERROR_MESSAGE = "One or more params passed to R call is None."
 
-# PC, PDF, CC, CDH from the Red Book. Assumes values of 1 for unknown CC and CBH.
+# PC, PDF, CC, CDH from the Red Book. Assumes values of 1 CBH.
+# CC: Assume values of None for non grass types, and 0 for O1A and O1B.
 # TODO: Store then in the DB as columns in FuelType
-FUEL_TYPE_LOOKUP = {"C1": {"PC": 100, "PDF": 0, "CC": 1, "CBH": 2},
-                    "C2": {"PC": 100, "PDF": 0, "CC": 1, "CBH": 3},
-                    "C3": {"PC": 100, "PDF": 0, "CC": 1, "CBH": 8},
-                    "C4": {"PC": 100, "PDF": 0, "CC": 1, "CBH": 4},
-                    "C5": {"PC": 100, "PDF": 0, "CC": 1, "CBH": 18},
+FUEL_TYPE_LOOKUP = {"C1": {"PC": 100, "PDF": 0, "CC": None, "CBH": 2},
+                    "C2": {"PC": 100, "PDF": 0, "CC": None, "CBH": 3},
+                    "C3": {"PC": 100, "PDF": 0, "CC": None, "CBH": 8},
+                    "C4": {"PC": 100, "PDF": 0, "CC": None, "CBH": 4},
+                    "C5": {"PC": 100, "PDF": 0, "CC": None, "CBH": 18},
                     # There's a 2m and 7m C6 in RB. Opted for 7m.
-                    "C6": {"PC": 100, "PDF": 0, "CC": 1, "CBH": 7},
-                    "C7": {"PC": 100, "PDF": 0, "CC": 1, "CBH": 10},
+                    "C6": {"PC": 100, "PDF": 0, "CC": None, "CBH": 7},
+                    "C7": {"PC": 100, "PDF": 0, "CC": None, "CBH": 10},
                     # No CBH listed in RB fire intensity class table for D1.
                     # Using default CBH value of 3, as specified in fbp.Rd in cffdrs R package.
-                    "D1": {"PC": 0, "PDF": 0, "CC": 1, "CBH": 3},
+                    "D1": {"PC": 0, "PDF": 0, "CC": None, "CBH": 3},
                     # No CBH listed in RB fire intensity class table for D2.
                     # Using default CBH value of 3, as specified in fbp.Rd in cffdrs R package.
-                    "D2": {"PC": 0, "PDF": 0, "CC": 1, "CBH": 3},
+                    "D2": {"PC": 0, "PDF": 0, "CC": None, "CBH": 3},
                     # 3 different PC configurations for M1. Opted for 50%.
-                    "M1": {"PC": 50, "PDF": 0, "CC": 1, "CBH": 6},
+                    "M1": {"PC": 50, "PDF": 0, "CC": None, "CBH": 6},
                     # 3 different PC configurations for M2. Opted for 50%.
-                    "M2": {"PC": 50, "PDF": 0, "CC": 1, "CBH": 6},
+                    "M2": {"PC": 50, "PDF": 0, "CC": None, "CBH": 6},
                     # 3 different PDF configurations for M3. Opted for 60%.
-                    "M3": {"PC": 0, "PDF": 60, "CC": 1, "CBH": 6},
+                    "M3": {"PC": 0, "PDF": 60, "CC": None, "CBH": 6},
                     # 3 different PDF configurations for M4. Opted for 60%.
-                    "M4": {"PC": 0, "PDF": 60, "CC": 1, "CBH": 6},
-                    "O1A": {"PC": 0, "PDF": 0, "CC": 1, "CBH": 1},
-                    "O1B": {"PC": 0, "PDF": 0, "CC": 1, "CBH": 1},
-                    "S1": {"PC": 0, "PDF": 0, "CC": 1, "CBH": 1},
-                    "S2": {"PC": 0, "PDF": 0, "CC": 1, "CBH": 1},
-                    "S3": {"PC": 0, "PDF": 0, "CC": 1, "CBH": 1}
+                    "M4": {"PC": 0, "PDF": 60, "CC": None, "CBH": 6},
+                    "O1A": {"PC": 0, "PDF": 0, "CC": 0, "CBH": 1},
+                    "O1B": {"PC": 0, "PDF": 0, "CC": 0, "CBH": 1},
+                    "S1": {"PC": 0, "PDF": 0, "CC": None, "CBH": 1},
+                    "S2": {"PC": 0, "PDF": 0, "CC": None, "CBH": 1},
+                    "S3": {"PC": 0, "PDF": 0, "CC": None, "CBH": 1}
                     }
 
 
