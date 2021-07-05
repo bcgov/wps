@@ -5,6 +5,7 @@ import { DateTime } from 'luxon'
 import { FormControl, InputLabel, MenuItem, Select, TextField } from '@material-ui/core'
 import { Button } from 'components'
 import TimeOfInterestPicker from 'features/fireWeather/components/TimeOfInterestPicker'
+import DatePicker from './DatePicker'
 
 const useStyles = makeStyles(theme => ({
   formControl: {
@@ -23,6 +24,8 @@ interface FBCFormControlProps {
 const FBCFormControl = (props: FBCFormControlProps) => {
   const classes = useStyles()
 
+  const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().toISODate())
+
   return (
     <div>
       <FormControl className={classes.formControl}>
@@ -34,19 +37,7 @@ const FBCFormControl = (props: FBCFormControlProps) => {
         </Select>
       </FormControl>
       <FormControl className={classes.formControl}>
-        <TextField
-          data-testid="date-of-interest-picker"
-          label="Date of Interest (PST-08:00)"
-          type="datetime-local"
-          value={DateTime.now()
-            .toISODate()
-            .slice(0, 16)} // 'YYYY-MM-DDTHH:mm'
-          variant="outlined"
-          size="small"
-          InputLabelProps={{
-            shrink: true
-          }}
-        />
+        <DatePicker date={dateOfInterest} onChange={setDateOfInterest} />
       </FormControl>
       <FormControl className={classes.formControl}>
         <InputLabel id="fbc-date-input">Input Fuel Type</InputLabel>
