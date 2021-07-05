@@ -157,3 +157,33 @@ def crown_fraction_burned(fuel_type: str, fmc: float, sfc: float, ros: float):
     result = CFFDRS.instance().cffdrs._CFBcalc(FUELTYPE=fuel_type, FMC=fmc, SFC=sfc,
                                                ROS=ros, CBH=FUEL_TYPE_LOOKUP[fuel_type]["CBH"], option="CFB")
     return result[0]
+
+  # Args:
+  #   FUELTYPE: The Fire Behaviour Prediction FuelType
+  #        CFL: Crown Fuel Load (kg/m^2)
+  #        CFB: Crown Fraction Burned (0-1)
+  #        SFC: Surface Fuel Consumption (kg/m^2)
+  #         PC: Percent Conifer (%)
+  #        PDF: Percent Dead Balsam Fir (%)
+  #     option: Type of output (TFC, CFC, default=TFC)
+  # Returns:
+  #        TFC: Total (Surface + Crown) Fuel Consumption (kg/m^2)
+  #       OR
+  #        CFC: Crown Fuel Consumption (kg/m^2)
+
+
+def total_fuel_consumption(fuel_type: str, cfl: float, cfb: float, sfc: float, pc: float, pdf: float):
+    """ Computes Total Fuel Consumption (TFC), which is a required input to calculate Head Fire Intensity.
+    TFC is calculated by delegating to cffdrs R package.
+    """
+    # pylint: disable=protected-access, no-member
+    result = CFFDRS.instance().cffdrs._TFCcalc(FUELTYPE=fuel_type, CFL=cfl, CFB=cfb, SFC=sfc,
+                                               PC=FUEL_TYPE_LOOKUP[fuel_type]["PC"], PDF=FUEL_TYPE_LOOKUP[fuel_type]["PDF"], option="TFC")
+    return result[0]
+
+
+def head_fire_intensity(fuel_type: str, rate_of_spread: float):
+    """  """
+    total_fuel_consumption = total_fuel_consumption(fuel_type)
+    # pylint: disable=protected-access, no-member
+    result = CFFDRS.instance().cffdrs._FIcalc(FC=total_fuel_consumption, ROS=rate_of_spread)
