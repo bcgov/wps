@@ -12,12 +12,42 @@ jobs:
       matrix:
         python-version: [3.8]
         node-version: [14.x]
+        R: ["3.5.2"]
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
         with:
           # For sonar-scanner to work properly we can't use a shallow fetch.
           fetch-depth: 0
+
+      - uses: r-lib/actions/setup-r@v1
+        with:
+          r-version: ${{ matrix.R }}
+
+      - uses: actions/cache@v2
+        with:
+          path: ~/.local/share/renv
+          key: ${{ runner.os }}-renv-${{ hashFiles('**/renv.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-renv-
+
+      - name: Install renv
+        run: |
+          install.packages("renv")
+          renv::install("cffdrs")
+        shell: Rscript {0}
+
+      - name: Restore environment
+        run: |
+          renv::consent(TRUE)
+          renv::restore()
+        shell: Rscript {0}
+
+      # - name: Restore packages
+      #   shell: Rscript {0}
+      #   run: |
+      #     if (!requireNamespace("renv", quietly = TRUE)) install.packages("renv")
+      #     renv::restore()
 
       - name: Setup kernel for react, increase watchers
         run: echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
