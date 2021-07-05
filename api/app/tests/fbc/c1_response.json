@@ -1,0 +1,21 @@
+[
+    {
+        "station_code": 123,
+        "date": "2021-07-05",
+        "fuel_type": "C1",
+        "temperature": 25,
+        "relative_humidity": 25,
+        "wind_speed": 25,
+        "wind_direction": 25,
+        "grass_cure_percentage": 25,
+        "precipitation": 25,
+        "ffmc": 25,
+        "dmc": 25,
+        "dc": 25,
+        "isi": 25,
+        "bui": 25,
+        "fwi": 25,
+        "danger_class": 25,
+        "rate_of_spread": 25
+    }
+]
