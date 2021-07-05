@@ -3,15 +3,18 @@
 import math
 import logging
 from datetime import datetime, timezone
+from os import stat
 from typing import Generator, List
 from app.db.models.observations import HourlyActual
+from app.routers.fba_calc import get_30_minutes_fire_size, get_60_minutes_fire_size, get_fire_type
+from app.schemas.fba_calc import StationResponse
 from app.schemas.stations import WeatherStation
-from app.utils.cffdrs import foliar_moisture_content, rate_of_spread, surface_fuel_consumption
+from app.utils.cffdrs import crown_fraction_burned, foliar_moisture_content, head_fire_intensity, length_to_breadth_ratio, rate_of_spread, surface_fuel_consumption
 from app.utils.dewpoint import compute_dewpoint
 from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.schemas.observations import WeatherReading
 from app.schemas.hfi_calc import StationDaily
-from app.utils.time import get_julian_date_now
+from app.utils.time import get_julian_date, get_julian_date_now
 from app.wildfire_one.util import is_station_valid
 
 logger = logging.getLogger(__name__)
@@ -40,6 +43,23 @@ class WFWXWeatherStation():
         self.lat = latitude
         self.long = longitude
         self.elevation = elevation
+
+
+class FBACalculatorWeatherStation():
+    """ A combination of station data from WFWX API and user-specified inputs for
+    Fire Behaviour Advisory Calculator """
+
+    def __init__(self, wfwx_id: str, code: int, elevation: int, fuel_type: str,
+                 time_of_interest: str, percentage_conifer: int, grass_cure: int,
+                 crown_burn_height: int):
+        self.wfwx_id = wfwx_id
+        self.code = code
+        self.elevation = elevation
+        self.fuel_type = fuel_type
+        self.time_of_interest = time_of_interest
+        self.percentage_conifer = percentage_conifer
+        self.grass_cure = grass_cure
+        self.crown_burn_height = crown_burn_height
 
 
 async def wfwx_station_list_mapper(raw_stations: Generator[dict, None, None]) -> List[WFWXWeatherStation]:
@@ -98,7 +118,7 @@ def parse_hourly(hourly) -> WeatherReading:
     )
 
 
-def parse_daily(raw_daily, station: WFWXWeatherStation, fuel_type: str) -> StationDaily:
+def parse_to_StationDaily(raw_daily, station: WFWXWeatherStation, fuel_type: str) -> StationDaily:
     """ Transform from the raw daily json object returned by wf1, to our daily object.
     """
 
@@ -106,8 +126,8 @@ def parse_daily(raw_daily, station: WFWXWeatherStation, fuel_type: str) -> Stati
     bui = raw_daily.get('buildUpIndex', None)
     ffmc = raw_daily.get('fineFuelMoistureCode', None)
     fmc = foliar_moisture_content(station.lat, station.long, station.elevation, get_julian_date_now())
-    sfc = surface_fuel_consumption(fuel_type, bui, ffmc)
-    ros = rate_of_spread(fuel_type, isi, bui, fmc, sfc)
+    sfc = surface_fuel_consumption(fuel_type, bui, ffmc, None)
+    ros = rate_of_spread(fuel_type, isi, bui, fmc, sfc, None)
     return StationDaily(
         code=station.code,
         status="Observed" if raw_daily.get('recordType', '').get('id') == 'ACTUAL' else "Forecasted",
@@ -127,6 +147,47 @@ def parse_daily(raw_daily, station: WFWXWeatherStation, fuel_type: str) -> Stati
         rate_of_spread=ros,
         observation_valid=raw_daily.get('observationValidInd', None),
         observation_valid_comment=raw_daily.get('observationValidComment', None)
+    )
+
+
+def parse_to_StationResponse(raw_daily, station: FBACalculatorWeatherStation) -> StationResponse:
+    """ Transform from the raw daily json object returned by wf1, to our fba_calc.StationResponse object.
+    """
+    bui = raw_daily.get('buildUpIndex', None)
+    ffmc = raw_daily.get('fineFuelMoistureCode', None)
+    isi = raw_daily.get('initialSpreadIndex', None)
+    fmc = foliar_moisture_content(station.lat, station.long, station.elevation,
+                                  get_julian_date(station.time_of_interest))
+    sfc = surface_fuel_consumption(station.fuel_type, bui, ffmc, station.percentage_conifer)
+    lb_ratio = length_to_breadth_ratio(station.fuel_type, raw_daily.get('windSpeed', None))
+    ros = rate_of_spread(station.fuel_type, isi, bui, fmc, sfc, station.percentage_conifer)
+    cfb = crown_fraction_burned(station.fuel_type, fmc, sfc, ros)
+    return StationResponse(
+        station_code=station.code,
+        date=station.time_of_interest,
+        elevation=station.elevation,
+        fuel_type=station.fuel_type,
+        status="Observed" if raw_daily.get('recordType', '').get('id') == 'ACTUAL' else "Forecasted",
+        temp=raw_daily.get('temperature', None),
+        rh=raw_daily.get('relativeHumidity', None),
+        wind_speed=raw_daily.get('windSpeed', None),
+        wind_direction=raw_daily.get('windDirection', None),
+        precipitation=raw_daily.get('precipitation', None),
+        grass_cure=raw_daily.get('grasslandCuring', None),
+        fine_fuel_moisture_code=ffmc,
+        drought_code=raw_daily.get('droughtCode', None),
+        initial_spread_index=isi,
+        build_up_index=bui,
+        duff_moisture_code=raw_daily.get('duffMoistureCode', None),
+        fire_weather_index=raw_daily.get('fireWeatherIndex', None),
+        head_fire_intensity=head_fire_intensity(
+            station, bui, ffmc, isi),
+        rate_of_spread=ros,
+        fire_type=get_fire_type(cfb),
+        percentage_crown_fraction_burned=cfb,
+        flame_length=0.0,
+        sixty_minute_fire_size=get_60_minutes_fire_size(lb_ratio, ros),
+        thirty_minute_fire_size=get_30_minutes_fire_size(lb_ratio, ros),
     )
 
 

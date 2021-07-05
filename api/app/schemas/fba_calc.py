@@ -4,6 +4,16 @@ from typing import List
 from pydantic import BaseModel
 
 
+class StationRequest(BaseModel):
+    """ Request for one individual weather station. """
+    station_code: int
+    date: str
+    fuel_type: str
+    percentage_conifer: int
+    grass_cure: int
+    crown_burn_height: int
+
+
 class StationResponse(BaseModel):
     """ Response for one individual weather station. """
     station_code: int

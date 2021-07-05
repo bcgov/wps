@@ -3,13 +3,13 @@
 import logging
 from typing import List
 from aiohttp.client import ClientSession
-from fastapi import APIRouter, Response, Request, Depends
+from fastapi import APIRouter, Request, Depends
 import math
 from app.auth import authentication_required, audit
-from app.schemas.fba_calc import StationsListResponse, StationResponse
+from app.schemas.fba_calc import StationsListResponse
 from app.wildfire_one.wfwx_api import (get_auth_header,
                                        get_dailies,
-                                       get_stations_by_codes)
+                                       get_wfwx_stations_from_station_codes)
 
 logger = logging.getLogger(__name__)
 
@@ -20,12 +20,13 @@ router = APIRouter(
 
 
 @router.get('/stations', response_model=StationsListResponse)
-async def get_stations_data(response: Response, request: Request,  _=Depends(authentication_required)):
+async def get_stations_data(request: Request,  _=Depends(authentication_required)):
     """ Returns per-station data for a list of requested stations """
     logger.info('/fba-calc/stations')
 
     # parse the request
     station_requests = List
+    station_codes = List[int]
     for station in request.json:
         station_request = {
             'station_code': station['station_code'],
@@ -36,6 +37,15 @@ async def get_stations_data(response: Response, request: Request,  _=Depends(aut
             'crown_burn_height': station['crown_burn_height']
         }
         station_requests.append(station_request)
+        station_codes.append(station['station_code'])
+
+    async with ClientSession() as session:
+        header = await get_auth_header(session)
+        wfwx_stations = await get_wfwx_stations_from_station_codes(
+            session, header, station_codes)
+        dailies = await get_dailies(
+            session, header, wfwx_stations, station_requests)
+        return StationsListResponse(stations=dailies)
 
 
 def get_fire_type(crown_fraction_burned: int):
@@ -49,7 +59,7 @@ def get_fire_type(crown_fraction_burned: int):
     > 90%                           Continuous crown fire       CC
     """
     if crown_fraction_burned < 10:
-        return 'SUR'
+        return 'S'
     elif crown_fraction_burned < 90:
         return 'IC'
     elif crown_fraction_burned >= 90:

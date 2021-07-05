@@ -2,10 +2,12 @@
 """
 import datetime
 import logging
+from typing import Optional
 from app.schemas.hfi_calc import WeatherStation
 import app.utils.r_importer
 from app.utils.singleton import Singleton
 from app.utils.time import get_julian_date
+from app.wildfire_one.schema_parsers import FBACalculatorWeatherStation
 
 
 logger = logging.getLogger(__name__)
@@ -76,7 +78,7 @@ FUEL_TYPE_LOOKUP = {"C1": {"PC": 100, "PDF": 0, "CC": None, "CBH": 2},
                     }
 
 
-def rate_of_spread(fuel_type: str, isi: float, bui: float, fmc: float, sfc: float):
+def rate_of_spread(fuel_type: str, isi: float, bui: float, fmc: float, sfc: float, pc: Optional[float]):
     """ Computes ROS by delegating to cffdrs R package """
     if fuel_type is None or isi is None or bui is None or sfc is None:
         message = PARAMS_ERROR_MESSAGE + \
@@ -84,7 +86,7 @@ def rate_of_spread(fuel_type: str, isi: float, bui: float, fmc: float, sfc: floa
         raise CFFDRSException(message)
     # pylint: disable=protected-access, no-member, line-too-long
     result = CFFDRS.instance().cffdrs._ROScalc(FUELTYPE=fuel_type, ISI=isi, BUI=bui, FMC=fmc, SFC=sfc,
-                                               PC=FUEL_TYPE_LOOKUP[fuel_type]["PC"],
+                                               PC=pc if pc is not None else FUEL_TYPE_LOOKUP[fuel_type]["PC"],
                                                PDF=FUEL_TYPE_LOOKUP[fuel_type]["PDF"],
                                                CC=FUEL_TYPE_LOOKUP[fuel_type]["CC"],
                                                CBH=FUEL_TYPE_LOOKUP[fuel_type]["CBH"])
@@ -100,7 +102,7 @@ def rate_of_spread(fuel_type: str, isi: float, bui: float, fmc: float, sfc: floa
 #        SFC: Surface Fuel Consumption (kg/m^2)
 
 
-def surface_fuel_consumption(fuel_type: str, bui: float, ffmc: float):
+def surface_fuel_consumption(fuel_type: str, bui: float, ffmc: float, pc: Optional[float]):
     """ Computes SFC by delegating to cffdrs R package
         Assumes a standard GFL of 3.5 kg/m ^ 2.
         NOTE: according to cffdrs R documentation, the default value for GFL is 0.35 kg/m^2, not 3.5
@@ -110,7 +112,8 @@ def surface_fuel_consumption(fuel_type: str, bui: float, ffmc: float):
             "fuel_type: {fuel_type}, bui: {bui}, ffmc: {ffmc}"
         raise CFFDRSException(message)
     # pylint: disable=protected-access, no-member, line-too-long
-    result = CFFDRS.instance().cffdrs._SFCcalc(FUELTYPE=fuel_type, BUI=bui, FFMC=ffmc, PC=1, GFL=3.5)
+    result = CFFDRS.instance().cffdrs._SFCcalc(FUELTYPE=fuel_type, BUI=bui, FFMC=ffmc,
+                                               PC=pc if pc is not None else FUEL_TYPE_LOOKUP[fuel_type]["PC"], GFL=3.5)
     return result[0]
 
   # Args:
@@ -181,7 +184,7 @@ def crown_fraction_burned(fuel_type: str, fmc: float, sfc: float, ros: float):
   #        CFC: Crown Fuel Consumption (kg/m^2)
 
 
-def total_fuel_consumption(fuel_type: str, cfb: float, sfc: float):
+def total_fuel_consumption(fuel_type: str, cfb: float, sfc: float, pc: Optional[float]):
     """ Computes Total Fuel Consumption (TFC), which is a required input to calculate Head Fire Intensity.
     TFC is calculated by delegating to cffdrs R package.
     """
@@ -190,21 +193,21 @@ def total_fuel_consumption(fuel_type: str, cfb: float, sfc: float):
     cfl = 1.0
     # pylint: disable=protected-access, no-member
     result = CFFDRS.instance().cffdrs._TFCcalc(FUELTYPE=fuel_type, CFL=cfl, CFB=cfb, SFC=sfc,
-                                               PC=FUEL_TYPE_LOOKUP[fuel_type]["PC"], PDF=FUEL_TYPE_LOOKUP[fuel_type]["PDF"], option="TFC")
+                                               PC=pc if pc is not None else FUEL_TYPE_LOOKUP[fuel_type]["PC"], PDF=FUEL_TYPE_LOOKUP[fuel_type]["PDF"], option="TFC")
     return result[0]
 
 
-def head_fire_intensity(station: WeatherStation, fuel_type: str, bui: float, ffmc: float, isi: float, time_of_interest: datetime):
+def head_fire_intensity(station: FBACalculatorWeatherStation, bui: float, ffmc: float, isi: float,):
     """ Computes Head Fire Intensity (HFI) by delegating to cffdrs R package.
     Calculating HFI requires a number of inputs that must be calculated first. This function
     first makes method calls to calculate the necessary intermediary values.
     """
-    sfc = surface_fuel_consumption(fuel_type, bui, ffmc)
+    sfc = surface_fuel_consumption(station.fuel_type, bui, ffmc, station.percentage_conifer)
     fmc = foliar_moisture_content(station.lat, station.long, station.elevation,
-                                  get_julian_date(time_of_interest))
-    ros = rate_of_spread(fuel_type, isi, bui, fmc, sfc)
-    cfb = crown_fraction_burned(fuel_type, fmc, sfc, ros)
-    tfc = total_fuel_consumption(fuel_type, cfb, sfc)
+                                  get_julian_date(datetime.datetime.strptime(station.time_of_interest)))
+    ros = rate_of_spread(station.fuel_type, isi, bui, fmc, sfc, station.percentage_conifer)
+    cfb = crown_fraction_burned(station.fuel_type, fmc, sfc, ros)
+    tfc = total_fuel_consumption(station.fuel_type, cfb, sfc, station.percentage_conifer)
     # pylint: disable=protected-access, no-member
     result = CFFDRS.instance().cffdrs._FIcalc(FC=tfc, ROS=ros)
     return result[0]
