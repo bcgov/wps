@@ -2,10 +2,10 @@
 """
 import datetime
 import logging
+from app.schemas.hfi_calc import WeatherStation
 import app.utils.r_importer
 from app.utils.singleton import Singleton
-from app.utils.time import get_julian_date, get_julian_date_now
-from app.wildfire_one.schema_parsers import WFWXWeatherStation
+from app.utils.time import get_julian_date
 
 
 logger = logging.getLogger(__name__)
@@ -54,9 +54,11 @@ FUEL_TYPE_LOOKUP = {"C1": {"PC": 100, "PDF": 0, "CC": 1, "CBH": 2},
                     "C6": {"PC": 100, "PDF": 0, "CC": 1, "CBH": 7},
                     "C7": {"PC": 100, "PDF": 0, "CC": 1, "CBH": 10},
                     # No CBH listed in RB fire intensity class table for D1.
-                    "D1": {"PC": 0, "PDF": 0, "CC": 1, "CBH": 1},
+                    # Using default CBH value of 3, as specified in fbp.Rd in cffdrs R package.
+                    "D1": {"PC": 0, "PDF": 0, "CC": 1, "CBH": 3},
                     # No CBH listed in RB fire intensity class table for D2.
-                    "D2": {"PC": 0, "PDF": 0, "CC": 1, "CBH": 1},
+                    # Using default CBH value of 3, as specified in fbp.Rd in cffdrs R package.
+                    "D2": {"PC": 0, "PDF": 0, "CC": 1, "CBH": 3},
                     # 3 different PC configurations for M1. Opted for 50%.
                     "M1": {"PC": 50, "PDF": 0, "CC": 1, "CBH": 6},
                     # 3 different PC configurations for M2. Opted for 50%.
@@ -191,7 +193,7 @@ def total_fuel_consumption(fuel_type: str, cfb: float, sfc: float):
     return result[0]
 
 
-def head_fire_intensity(station: WFWXWeatherStation, fuel_type: str, bui: float, ffmc: float, isi: float, time_of_interest: datetime):
+def head_fire_intensity(station: WeatherStation, fuel_type: str, bui: float, ffmc: float, isi: float, time_of_interest: datetime):
     """ Computes Head Fire Intensity (HFI) by delegating to cffdrs R package.
     Calculating HFI requires a number of inputs that must be calculated first. This function
     first makes method calls to calculate the necessary intermediary values.

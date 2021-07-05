@@ -5,7 +5,6 @@ from typing import List
 from aiohttp.client import ClientSession
 from fastapi import APIRouter, Response, Request, Depends
 import math
-import app
 from app.auth import authentication_required, audit
 from app.schemas.fba_calc import StationsListResponse, StationResponse
 from app.wildfire_one.wfwx_api import (get_auth_header,
