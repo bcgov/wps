@@ -1,5 +1,6 @@
 import { Container, PageHeader } from 'components'
 import React from 'react'
+import FBCFormControl from './components/FBCFormControl'
 
 export const FireBehaviourCalculator: React.FunctionComponent = () => {
   return (
@@ -10,6 +11,7 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
       />
       <Container>
         <h1>Fire Behavior Calculator WIP</h1>
+        <FBCFormControl />
       </Container>
     </main>
   )
