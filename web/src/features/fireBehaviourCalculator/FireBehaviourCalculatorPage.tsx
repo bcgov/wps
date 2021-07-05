@@ -13,7 +13,7 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
       <Container maxWidth={'xl'}>
         <h1>Fire Behavior Calculator Prototype</h1>
         <FBCInputForm />
-        <FBCResultTable title="HFI Calculator Daily View" testId="hfi-calc-daily-table" />
+        <FBCResultTable testId="hfi-calc-daily-table" />
       </Container>
     </main>
   )
