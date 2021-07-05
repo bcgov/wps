@@ -39,7 +39,7 @@ export async function postFBCStations(
   grassCurePercentage: number,
   crownBurnHeight: number
 ): Promise<FBCWeatherStationsResponse> {
-  const url = 'fba-calc/stations'
+  const url = '/fba-calc/stations'
 
   const { data } = await axios.post(url, {
     data: {

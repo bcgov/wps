@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 
 import { DateTime } from 'luxon'
@@ -6,7 +6,9 @@ import { FormControl, InputLabel, MenuItem, Select, TextField } from '@material-
 import { Button } from 'components'
 import DatePicker from './DatePicker'
 import { selectFireWeatherStations } from 'app/rootReducer'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
+import { getDetailedStations, StationSource } from 'api/stationAPI'
+import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 
 const useStyles = makeStyles(theme => ({
   formControl: {
@@ -24,9 +26,14 @@ interface FBCInputControlProps {
 
 const FBCInputControls = (props: FBCInputControlProps) => {
   const classes = useStyles()
+  const dispatch = useDispatch()
 
-  const { selectedStationsByCode } = useSelector(selectFireWeatherStations)
-  console.log(selectedStationsByCode)
+  const { stations } = useSelector(selectFireWeatherStations)
+  console.log(stations)
+
+  useEffect(() => {
+    dispatch(fetchWxStations(getDetailedStations, StationSource.local_storage))
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().toISODate())
 
