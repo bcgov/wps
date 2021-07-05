@@ -20,6 +20,11 @@ jobs:
           # For sonar-scanner to work properly we can't use a shallow fetch.
           fetch-depth: 0
 
+      - name: Install libgdal-dev (api)
+        # The python gdal and R component relies on libgdal-dev being installed.
+        run: |
+          sudo apt-get update --fix-missing && sudo apt-get -y install libgdal-dev
+
       - uses: r-lib/actions/setup-r@v1
         with:
           r-version: ${{ matrix.R }}
@@ -85,11 +90,6 @@ jobs:
           source ~/.poetry/env
           poetry config virtualenvs.create true
           poetry config virtualenvs.in-project false
-
-      - name: Install libgdal-dev (api)
-        # The python gdal component relies on libgdal-dev being installed.
-        run: |
-          sudo apt-get update --fix-missing && sudo apt-get -y install libgdal-dev
 
       # poetry cache folder: /home/runner/.cache/pypoetry
       - name: Cache poetry
