@@ -126,3 +126,35 @@ def foliar_moisture_content(lat: int, long: int, elv: float, day_of_year: int):
     # pylint: disable=protected-access, no-member, line-too-long
     result = CFFDRS.instance().cffdrs._FMCcalc(LAT=lat, LONG=long, ELV=elv, DJ=day_of_year, D0=1)
     return result[0]
+
+  # Args:
+  #   FUELTYPE: The Fire Behaviour Prediction FuelType
+  #        WSV: The Wind Speed (km/h)
+  # Returns:
+  #   LB: Length to Breadth ratio
+
+
+def length_to_breadth_ratio(fuel_type: str, wind_speed: float):
+    """ Computes L/B ratio by delegating to cffdrs R package """
+    # pylint: disable=protected-access, no-member
+    result = CFFDRS.instance().cffdrs._LBcalc(FUELTYPE=fuel_type, WSV=wind_speed)
+    return result[0]
+
+  # Args:
+  #   FUELTYPE: The Fire Behaviour Prediction FuelType
+  #   FMC:      Foliar Moisture Content
+  #   SFC:      Surface Fuel Consumption
+  #   CBH:      Crown Base Height
+  #   ROS:      Rate of Spread
+  #   option:   Which variable to calculate(ROS, CFB, RSC, or RSI)
+
+  # Returns:
+  #   CFB, CSI, RSO depending on which option was selected.
+
+
+def crown_fraction_burned(fuel_type: str, fmc: float, sfc: float, ros: float):
+    """ Computes percentage Crown Fraction Burned (CFB) by delegating to cffdrs R package """
+    # pylint: disable=protected-access, no-member
+    result = CFFDRS.instance().cffdrs._CFBcalc(FUELTYPE=fuel_type, FMC=fmc, SFC=sfc,
+                                               ROS=ros, CBH=FUEL_TYPE_LOOKUP[fuel_type]["CBH"], option="CFB")
+    return result[0]

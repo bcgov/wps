@@ -11,10 +11,12 @@ import {
   FIRE_WEATHER_ROUTE,
   MORECAST_ROUTE,
   HFI_CALC_ROUTE,
-  C_HAINES_ROUTE
+  C_HAINES_ROUTE,
+  FIRE_BEHAVIOR_CALC_ROUTE
 } from 'utils/constants'
 import MoreCastPage from 'features/fireWeather/pages/MoreCastPage'
 import { NoMatchPage } from 'features/fireWeather/pages/NoMatchPage'
+import { FireBehaviourCalculator } from 'features/fireBehaviourCalculator/FireBehaviourCalculatorPage'
 
 const shouldShowDisclaimer = HIDE_DISCLAIMER === 'false' || HIDE_DISCLAIMER === undefined
 const shouldAuthenticate =
@@ -45,6 +47,10 @@ const Routes: React.FunctionComponent = () => {
 
         <Route path={C_HAINES_ROUTE}>
           <CHainesPage />
+        </Route>
+
+        <Route path={FIRE_BEHAVIOR_CALC_ROUTE}>
+          <FireBehaviourCalculator />
         </Route>
 
         <Route>
