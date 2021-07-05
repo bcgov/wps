@@ -4,11 +4,15 @@ import { makeStyles } from '@material-ui/core/styles'
 import { DateTime } from 'luxon'
 import { FormControl, InputLabel, MenuItem, Select, TextField } from '@material-ui/core'
 import { Button } from 'components'
+import TimeOfInterestPicker from 'features/fireWeather/components/TimeOfInterestPicker'
 
 const useStyles = makeStyles(theme => ({
   formControl: {
     margin: theme.spacing(1),
     minWidth: 180
+  },
+  timeOfInterest: {
+    marginRight: 16
   }
 }))
 
@@ -21,18 +25,6 @@ const FBCFormControl = (props: FBCFormControlProps) => {
 
   return (
     <div>
-      {/* <FormControl className={classes.form}>
-        <InputLabel id="fbc-station-code-input">Weather Station</InputLabel>
-        <Select
-          labelId="fbc-weather-station-select"
-          id="fbc-weather-station-select"
-          value={322}
-        >
-          <MenuItem value={10}>Ten</MenuItem>
-          <MenuItem value={20}>Twenty</MenuItem>
-          <MenuItem value={30}>Thirty</MenuItem>
-        </Select>
-      </FormControl> */}
       <FormControl className={classes.formControl}>
         <InputLabel id="fbc-date-input">Weather Station</InputLabel>
         <Select labelId="fbc-weather-date-select" id="demo-date-select" value={322}>
@@ -42,18 +34,19 @@ const FBCFormControl = (props: FBCFormControlProps) => {
         </Select>
       </FormControl>
       <FormControl className={classes.formControl}>
-        <InputLabel id="fbc-date-input">Date</InputLabel>
-        <Select
-          labelId="fbc-weather-date-select"
-          id="demo-date-select"
+        <TextField
+          data-testid="date-of-interest-picker"
+          label="Date of Interest (PST-08:00)"
+          type="datetime-local"
           value={DateTime.now()
-            .startOf('day')
-            .toISODate()}
-        >
-          <MenuItem value={10}>Ten</MenuItem>
-          <MenuItem value={20}>Twenty</MenuItem>
-          <MenuItem value={30}>Thirty</MenuItem>
-        </Select>
+            .toISODate()
+            .slice(0, 16)} // 'YYYY-MM-DDTHH:mm'
+          variant="outlined"
+          size="small"
+          InputLabelProps={{
+            shrink: true
+          }}
+        />
       </FormControl>
       <FormControl className={classes.formControl}>
         <InputLabel id="fbc-date-input">Input Fuel Type</InputLabel>
