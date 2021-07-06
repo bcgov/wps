@@ -1,6 +1,6 @@
 import axios from 'api/axios'
 
-export interface FBCStationResponse {
+export interface FBCStation {
   station_code: number
   date: string
   elevation: number
@@ -28,7 +28,7 @@ export interface FBCStationResponse {
 }
 
 export interface FBCWeatherStationsResponse {
-  stations: FBCStationResponse[]
+  stations: FBCStation[]
 }
 
 export async function postFBCStations(
@@ -38,7 +38,7 @@ export async function postFBCStations(
   percentageConifer: number,
   grassCurePercentage: number,
   crownBaseHeight: number
-): Promise<FBCWeatherStationsResponse> {
+): Promise<FBCStation[]> {
   const url = '/fba-calc/stations'
 
   const { data } = await axios.post(url, {
@@ -55,5 +55,5 @@ export async function postFBCStations(
       ]
     }
   })
-  return data
+  return data.stations
 }
