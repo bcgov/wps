@@ -59,7 +59,8 @@ jobs:
       - name: Install renv
         run: |
           install.packages("renv")
-          renv::install("cffdrs", dep = TRUE)
+          renv::install("Rcpp", dependencies = TRUE)
+          renv::install("cffdrs", dependencies = TRUE)
         shell: Rscript {0}
 
       - name: Restore environment
