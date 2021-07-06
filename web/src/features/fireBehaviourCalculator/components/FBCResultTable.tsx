@@ -10,9 +10,11 @@ import {
   TableRow
 } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
+import { FBCStation } from 'api/fbCalcAPI'
 
 interface Props {
   testId?: string
+  fireBehaviourResultStations: FBCStation[]
 }
 
 const useStyles = makeStyles({

@@ -30,7 +30,7 @@ class StationResponse(BaseModel):
     status: str
     temp: int
     rh: int
-    wind_direction: int
+    wind_direction: Optional[int]
     wind_speed: float
     precipitation: float
     grass_cure: Optional[int]

@@ -3,17 +3,18 @@ import { FBCStation, postFBCStations } from 'api/fbCalcAPI'
 
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
+import { FuelTypes } from '../fuelTypes'
 
 interface State {
   loading: boolean
   error: string | null
-  fireBehaviourStations: FBCStation[]
+  fireBehaviourResultStations: FBCStation[]
 }
 
 const initialState: State = {
   loading: false,
   error: null,
-  fireBehaviourStations: []
+  fireBehaviourResultStations: []
 }
 
 const fireBehaviourStationsSlice = createSlice({
@@ -23,7 +24,7 @@ const fireBehaviourStationsSlice = createSlice({
     getFireBehaviourStationsStart(state: State) {
       state.error = null
       state.loading = true
-      state.fireBehaviourStations = []
+      state.fireBehaviourResultStations = []
     },
     getFireBehaviourStationsFailed(state: State, action: PayloadAction<string>) {
       state.error = action.payload
@@ -31,7 +32,7 @@ const fireBehaviourStationsSlice = createSlice({
     },
     getFireBehaviourStationsSuccess(state: State, action: PayloadAction<FBCStation[]>) {
       state.error = null
-      state.fireBehaviourStations = action.payload
+      state.fireBehaviourResultStations = action.payload
       state.loading = false
     }
   }
@@ -53,15 +54,16 @@ export const fetchFireBehaviourStations = (
   grassCurePercentage: number,
   crownBurnHeight: number
 ): AppThunk => async dispatch => {
+  const fuelTypeDetails = FuelTypes.lookup(fuelType)
   try {
     dispatch(getFireBehaviourStationsStart())
     const fireBehaviourStations = await postFBCStations(
       date,
       stationCodes,
-      fuelType,
-      percentageConifer,
-      grassCurePercentage,
-      crownBurnHeight
+      fuelTypeDetails.name,
+      fuelTypeDetails.percentage_conifer,
+      fuelTypeDetails.grass_cure,
+      fuelTypeDetails.crown_base_height
     )
     dispatch(getFireBehaviourStationsSuccess(fireBehaviourStations))
   } catch (err) {

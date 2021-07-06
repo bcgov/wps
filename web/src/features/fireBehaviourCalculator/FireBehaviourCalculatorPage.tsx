@@ -1,6 +1,8 @@
+import { selectFireBehaviourCalcResult } from 'app/rootReducer'
 import { Container, PageHeader } from 'components'
 import { DateTime } from 'luxon'
 import React, { useState } from 'react'
+import { useSelector } from 'react-redux'
 import FBCInputForm from './components/FBCFormControl'
 import FBCResultTable from './components/FBCResultTable'
 
@@ -9,6 +11,8 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
   const [stationsOfInterest, setStationsOfInterest] = useState(322)
   const [fuelType, setFuelType] = useState('')
   const [grassCurePercentage, setGrassCurePercentage] = useState(0)
+
+  const { fireBehaviourResultStations } = useSelector(selectFireBehaviourCalcResult)
 
   return (
     <main>
@@ -28,7 +32,13 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
           grassCurePercentage={grassCurePercentage}
           setGrassCurePercentage={setGrassCurePercentage}
         />
-        <FBCResultTable testId="hfi-calc-daily-table" />
+
+        {fireBehaviourResultStations.length > 0 && (
+          <FBCResultTable
+            testId="fb-calc-result-table"
+            fireBehaviourResultStations={fireBehaviourResultStations}
+          />
+        )}
       </Container>
     </main>
   )
