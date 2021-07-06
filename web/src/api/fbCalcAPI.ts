@@ -37,6 +37,7 @@ export async function postFBCStations(
   fuelType: string,
   percentageConifer: number | undefined,
   grassCurePercentage: number | undefined,
+  percentageDeadBalsamFir: number | undefined,
   crownBaseHeight: number | undefined
 ): Promise<FBCStation[]> {
   const url = '/fba-calc/stations'
@@ -49,6 +50,7 @@ export async function postFBCStations(
         fuel_type: fuelType,
         percentage_conifer: percentageConifer,
         grass_cure: grassCurePercentage,
+        percentage_dead_balsam_fir: percentageDeadBalsamFir,
         crown_base_height: crownBaseHeight
       }
     ]

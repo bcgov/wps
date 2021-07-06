@@ -60,6 +60,7 @@ export const fetchFireBehaviourStations = (
       fuelTypeDetails.name,
       fuelTypeDetails.percentage_conifer,
       fuelTypeDetails.grass_cure,
+      fuelTypeDetails.percentage_dead_balsam_fir,
       fuelTypeDetails.crown_base_height
     )
     dispatch(getFireBehaviourStationsSuccess(fireBehaviourStations))
