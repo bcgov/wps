@@ -115,10 +115,7 @@ const FBCInputForm = (props: FBCInputFormProps) => {
               fetchFireBehaviourStations(
                 props.dateOfInterest,
                 [props.stationsOfInterest],
-                props.fuelType,
-                0,
-                0,
-                0
+                props.fuelType
               )
             )
           }}
