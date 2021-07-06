@@ -76,14 +76,6 @@ export class FuelTypes {
         grass_cure: undefined,
         crown_base_height: undefined
       },
-      d2: {
-        name: 'D2',
-        friendlyName: 'D2',
-        percentage_conifer: undefined,
-        percentage_dead_balsam_fir: undefined,
-        grass_cure: undefined,
-        crown_base_height: undefined
-      },
       m1_75conifer: {
         name: 'M1',
         friendlyName: 'M1 75% conifer / 25% deciduous',
