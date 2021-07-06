@@ -65,12 +65,8 @@ const FBCInputForm = (props: FBCInputFormProps) => {
           id="station-select"
           value={props.stationsOfInterest}
           variant="outlined"
-          onChange={e => {
-            const value = e.currentTarget.value
-
-            if (value) {
-              props.setStationsOfInterest(value as number)
-            }
+          onChange={event => {
+            props.setStationsOfInterest(event.target.value as number)
           }}
         >
           {stationMenuItems}
@@ -86,12 +82,8 @@ const FBCInputForm = (props: FBCInputFormProps) => {
           id="fuel-type-select"
           value={props.fuelType}
           variant="outlined"
-          onChange={e => {
-            const value = e.currentTarget.value
-
-            if (value) {
-              props.setFuelType(value as string)
-            }
+          onChange={event => {
+            props.setFuelType(event.target.value as string)
           }}
         >
           {fuelTypeMenuItems}
