@@ -1,11 +1,10 @@
 """ This module contains functions for computing fire weather metrics.
 """
-import rpy2.robjects as robjs
-import rpy2.robjects.conversion as cv
-import datetime
+
 import logging
 from typing import Optional
-
+import rpy2.robjects as robjs
+import rpy2.robjects.conversion as cv
 from rpy2.rinterface import NULL
 from app.utils.fba_calculator import FBACalculatorWeatherStation
 import app.utils.r_importer
@@ -36,21 +35,6 @@ class CFFDRS():
 
 class CFFDRSException(Exception):
     """ CFFDRS contextual exception """
-
-#   From cffdrs R package comments:
-#   FUELTYPE: The Fire Behaviour Prediction FuelType
-#        ISI: Initial Spread Index
-#        BUI: Buildup Index
-#        FMC: Foliar Moisture Content
-#        SFC: Surface Fuel Consumption (kg/m^2)
-#         PC: Percent Conifer (%)
-#        PDF: Percent Dead Balsam Fir (%)
-#         CC: Constant (we think this is grass cure.)
-#        CBH: Crown to base height(m)
-
-# Returns:
-#   ROS: Rate of spread (m/min)
-#
 
 
 # Computable: SFC, FMC
@@ -88,6 +72,21 @@ FUEL_TYPE_LOOKUP = {"C1": {"PC": 100, "PDF": 0, "CC": None, "CBH": 2},
                     "S2": {"PC": 0, "PDF": 0, "CC": None, "CBH": 1},
                     "S3": {"PC": 0, "PDF": 0, "CC": None, "CBH": 1}
                     }
+
+#   From cffdrs R package comments:
+#   FUELTYPE: The Fire Behaviour Prediction FuelType
+#        ISI: Initial Spread Index
+#        BUI: Buildup Index
+#        FMC: Foliar Moisture Content
+#        SFC: Surface Fuel Consumption (kg/m^2)
+#         PC: Percent Conifer (%)
+#        PDF: Percent Dead Balsam Fir (%)
+#         CC: Constant (we think this is grass cure.)
+#        CBH: Crown to base height(m)
+
+# Returns:
+#   ROS: Rate of spread (m/min)
+#
 
 
 def rate_of_spread(fuel_type: str,  # pylint: disable=too-many-arguments, disable=invalid-name
@@ -239,7 +238,7 @@ def total_fuel_consumption(fuel_type: str, cfb: float, sfc: float, pc: Optional[
     return result[0]
 
 
-def head_fire_intensity(station: FBACalculatorWeatherStation, bui: float, ffmc: float, isi: float, ros: float):
+def head_fire_intensity(station: FBACalculatorWeatherStation, bui: float, ffmc: float, ros: float):
     """ Computes Head Fire Intensity (HFI) by delegating to cffdrs R package.
     Calculating HFI requires a number of inputs that must be calculated first. This function
     first makes method calls to calculate the necessary intermediary values.
