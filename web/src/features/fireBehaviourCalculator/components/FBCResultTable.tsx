@@ -126,13 +126,27 @@ const FBCResultTable = (props: Props) => {
                     <TableCell>{stationResult.wind_speed}</TableCell>
                     <TableCell>{stationResult.precipitation}</TableCell>
                     <TableCell>{stationResult.grass_cure}</TableCell>
-                    <TableCell>{stationResult.fine_fuel_moisture_code}</TableCell>
-                    <TableCell>{stationResult.duff_moisture_code}</TableCell>
-                    <TableCell>{stationResult.drought_code}</TableCell>
-                    <TableCell>{stationResult.initial_spread_index}</TableCell>
-                    <TableCell>{stationResult.build_up_index}</TableCell>
-                    <TableCell>{stationResult.fire_weather_index}</TableCell>
-                    <TableCell>{stationResult.rate_of_spread}</TableCell>
+                    <TableCell>
+                      {stationResult.fine_fuel_moisture_code.toFixed(DECIMAL_PLACES)}
+                    </TableCell>
+                    <TableCell>
+                      {stationResult.duff_moisture_code.toFixed(DECIMAL_PLACES)}
+                    </TableCell>
+                    <TableCell>
+                      {stationResult.drought_code.toFixed(DECIMAL_PLACES)}
+                    </TableCell>
+                    <TableCell>
+                      {stationResult.initial_spread_index.toFixed(DECIMAL_PLACES)}
+                    </TableCell>
+                    <TableCell>
+                      {stationResult.build_up_index.toFixed(DECIMAL_PLACES)}
+                    </TableCell>
+                    <TableCell>
+                      {stationResult.fire_weather_index.toFixed(DECIMAL_PLACES)}
+                    </TableCell>
+                    <TableCell>
+                      {stationResult.rate_of_spread.toFixed(DECIMAL_PLACES)}
+                    </TableCell>
                   </TableRow>
                 )
               })}
