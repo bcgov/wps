@@ -8,8 +8,9 @@ Feature: /fbc/
         And the response is <response_json>
 
         Examples:
-            | request_json    | status_code | response_json    |
-            | c1_request.json | 200         | c1_response.json |
+            | request_json             | status_code | response_json             |
+            | c1_request.json          | 200         | c1_response.json          |
+            | c1_request_forecast.json | 200         | c1_response_forecast.json |
 # | c2_request.json            | 200         | c2_response.json            |
 # | c3_request.json            | 200         | c3_response.json            |
 # | c4_request.json            | 200         | c4_response.json            |

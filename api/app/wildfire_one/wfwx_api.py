@@ -291,8 +291,13 @@ async def get_dailies(session: ClientSession, header: dict, wfwx_stations: List[
     time_of_interest = get_hour_20_from_date(stations[0].date)
     timestamp_of_intereset = math.floor(time_of_interest.timestamp()*1000)
 
+    # for local dev, we can use redis to reduce load in prod, and generally just makes development faster
+    cache_expiry_seconds = config.get('REDIS_DAILIES_BY_STATION_CODE', None)
+
     dailies_iterator = fetch_paged_response_generator(session, header, BuildQueryDailesByStationCode(
-        timestamp_of_intereset, timestamp_of_intereset, wfwx_station_ids), 'dailies')
+        timestamp_of_intereset, timestamp_of_intereset, wfwx_station_ids), 'dailies',
+        use_cache=cache_expiry_seconds is not None,
+        cache_expiry_seconds=cache_expiry_seconds)
 
     station_responses = []
     station_dict = {}

@@ -1,5 +1,5 @@
 """ Functions that request and marshall WFWX API responses into our schemas"""
-
+import random
 import math
 import logging
 from datetime import datetime
@@ -69,14 +69,22 @@ async def fetch_paged_response_generator(
     while page_count < total_pages:
         # Build up the request URL.
         url, params = query_builder.query(page_count)
-        logger.debug('loading station page %d...', page_count)
+        logger.debug('loading page %d...', page_count)
         if use_cache and config.get('REDIS_USE') == 'True':
             # We've been told and configured to use the redis cache.
             response_json = await _fetch_cached_response(session, headers, url, params, cache_expiry_seconds)
         else:
             async with session.get(url, headers=headers, params=params) as response:
                 response_json = await response.json()
-                logger.debug('done loading station page %d.', page_count)
+                logger.debug('done loading page %d.', page_count)
+
+        # keep this code around for dumping responses to a json file - useful for when you're writing
+        # tests to grab actual responses to use in fixtures.
+        # import base64
+        # TODO: write a beter way to make a temporary filename
+        # fname = 'thing_{}_{}.json'.format(base64.urlsafe_b64encode(url.encode()), random.randint(0, 1000))
+        # with open(fname, 'w') as f:
+        #     json.dump(response_json, f)
 
         # Update the total page count.
         total_pages = response_json['page']['totalPages'] if 'page' in response_json else 1

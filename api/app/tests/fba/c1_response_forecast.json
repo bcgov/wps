@@ -2,10 +2,10 @@
     "stations": [
         {
             "station_code": 230,
-            "date": "2021-07-05",
+            "date": "2021-07-06",
             "elevation": 701,
             "fuel_type": "C1",
-            "status": "Observed",
+            "status": "Forecasted",
             "temp": 25,
             "rh": 31,
             "wind_direction": 282,
