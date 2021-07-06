@@ -12,7 +12,7 @@ from app.utils.dewpoint import compute_dewpoint
 from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.schemas.observations import WeatherReading
 from app.schemas.hfi_calc import StationDaily
-from app.utils.fba_calculator import FBACalculatorWeatherStation, get_30_minutes_fire_size, get_60_minutes_fire_size, get_fire_type
+from app.utils.fba_calculator import FBACalculatorWeatherStation, get_30_minutes_fire_size, get_60_minutes_fire_size, get_approx_flame_length, get_fire_type
 from app.utils.time import get_julian_date, get_julian_date_now, get_hour_20_from_date
 from app.wildfire_one.util import is_station_valid
 
@@ -148,6 +148,7 @@ def parse_to_StationResponse(raw_daily, station: FBACalculatorWeatherStation) ->
     ros = rate_of_spread(station.fuel_type, isi, bui, fmc, sfc,
                          station.percentage_conifer, station.grass_cure)
     cfb = crown_fraction_burned(station.fuel_type, fmc, sfc, ros)
+    hfi = head_fire_intensity(station, bui, ffmc, isi)
     return StationResponse(
         station_code=station.code,
         date=station.time_of_interest,
@@ -166,12 +167,11 @@ def parse_to_StationResponse(raw_daily, station: FBACalculatorWeatherStation) ->
         build_up_index=bui,
         duff_moisture_code=raw_daily.get('duffMoistureCode', None),
         fire_weather_index=raw_daily.get('fireWeatherIndex', None),
-        head_fire_intensity=head_fire_intensity(
-            station, bui, ffmc, isi),
+        head_fire_intensity=hfi,
         rate_of_spread=ros,
         fire_type=get_fire_type(cfb),
         percentage_crown_fraction_burned=cfb,
-        flame_length=0.0,
+        flame_length=get_approx_flame_length(hfi),
         sixty_minute_fire_size=get_60_minutes_fire_size(lb_ratio, ros),
         thirty_minute_fire_size=get_30_minutes_fire_size(lb_ratio, ros),
     )

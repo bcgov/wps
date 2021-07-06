@@ -25,23 +25,27 @@ class FBACalculatorWeatherStation():
 
 
 def get_30_minutes_fire_size(length_breadth_ratio: float, rate_of_spread: float):
-    """ Returns estimated fire size after 30 minutes, based on LB ratio and ROS.
+    """ Returns estimated fire size in hectares after 30 minutes, based on LB ratio and ROS.
     Formula derived from sample HFI workbook (see HFI_spreadsheet.md).
 
     30 min fire size = (pi * spread^2) / (40,000 * LB ratio)
     where spread = 30 * ROS
     """
-    return (math.pi * math.pow(30 * rate_of_spread, 2)) / (40000 * length_breadth_ratio)
+    size_in_square_meters = (math.pi * math.pow(30 * rate_of_spread, 2)) / (40000 * length_breadth_ratio)
+    size_in_hectares = size_in_square_meters / 10000
+    return size_in_hectares
 
 
 def get_60_minutes_fire_size(length_breadth_ratio: float, rate_of_spread: float):
-    """ Returns estimated fire size after 60 minutes, based on LB ratio and ROS.
+    """ Returns estimated fire size in hectares after 60 minutes, based on LB ratio and ROS.
     Formula derived from sample HFI workbook (see HFI_spreadsheet.md)
 
     60 min fire size = (pi * spread^2) / (40,000 * LB ratio)
     where spread = 60 * ROS
     """
-    return (math.pi * math.pow(60 * rate_of_spread, 2)) / (40000 * length_breadth_ratio)
+    size_in_square_meters = (math.pi * math.pow(60 * rate_of_spread, 2)) / (40000 * length_breadth_ratio)
+    size_in_hectares = size_in_square_meters / 10000
+    return size_in_hectares
 
 
 def get_fire_type(crown_fraction_burned: int):
@@ -63,3 +67,11 @@ def get_fire_type(crown_fraction_burned: int):
     else:
         logger.error('Cannot calculate fire type. Invalid Crown Fraction Burned percentage received.')
         raise Exception
+
+
+def get_approx_flame_length(head_fire_intensity: float):
+    """ Returns an approximation of flame length (in meters).
+    Formula used is a field-use approximation of
+    L = (I / 300)^(1/2), where L is flame length in m and I is Fire Intensity in kW/m
+    """
+    return math.sqrt(head_fire_intensity / 300)
