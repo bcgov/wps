@@ -161,9 +161,9 @@ export class FuelTypes {
       o1a: {
         name: 'O1A',
         friendlyName: 'O1A',
-        percentage_conifer: 0,
+        percentage_conifer: undefined,
         percentage_dead_balsam_fir: undefined,
-        crown_base_height: 1
+        crown_base_height: undefined
       },
       o1b: {
         name: 'O1B',

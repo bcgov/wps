@@ -50,7 +50,7 @@ export const fetchFireBehaviourStations = (
   date: string,
   stationCodes: number[],
   fuelType: string,
-  grassCurePercentage: number | undefined
+  grassCurePercentage: number | null
 ): AppThunk => async dispatch => {
   const fuelTypeDetails = FuelTypes.lookup(fuelType)
   try {
