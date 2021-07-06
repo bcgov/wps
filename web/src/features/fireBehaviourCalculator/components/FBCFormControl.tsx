@@ -14,6 +14,7 @@ import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { FuelTypes } from '../fuelTypes'
 import GetWxDataButton from 'features/fireWeather/components/GetWxDataButton'
 import { fetchFireBehaviourStations } from '../slices/fireBehaviourCalcSlice'
+import { isNull } from 'lodash'
 
 const useStyles = makeStyles(theme => ({
   formControl: {
@@ -39,6 +40,14 @@ const FBCInputForm = (props: FBCInputFormProps) => {
   const dispatch = useDispatch()
 
   const { stations } = useSelector(selectFireWeatherStations)
+
+  const isGrassFuelType = () => props.fuelType === 'o1a' || props.fuelType === 'o1b'
+  const isValidFuelSetting = () => {
+    if (isGrassFuelType()) {
+      return !isNull(props.grassCurePercentage)
+    }
+    return true
+  }
 
   const stationMenuItems = (stations as GeoJsonStation[]).map(
     (station: GeoJsonStation, index) => (
@@ -99,6 +108,7 @@ const FBCInputForm = (props: FBCInputFormProps) => {
           type="number"
           label="Input Grass Cure %"
           variant="outlined"
+          required={isGrassFuelType()}
           onChange={e => {
             const value = e.currentTarget.value
 
@@ -110,6 +120,7 @@ const FBCInputForm = (props: FBCInputFormProps) => {
       </FormControl>
       <FormControl className={classes.formControl}>
         <GetWxDataButton
+          disabled={!isValidFuelSetting()}
           onBtnClick={() => {
             dispatch(
               fetchFireBehaviourStations(
