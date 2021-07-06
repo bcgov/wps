@@ -42,18 +42,16 @@ export async function postFBCStations(
   const url = '/fba-calc/stations'
 
   const { data } = await axios.post(url, {
-    data: {
-      stations: [
-        {
-          station_code: stationCodes[0],
-          date,
-          fuel_type: fuelType,
-          percentage_conifer: percentageConifer,
-          grass_cure: grassCurePercentage,
-          crown_base_height: crownBaseHeight
-        }
-      ]
-    }
+    stations: [
+      {
+        station_code: stationCodes[0],
+        date,
+        fuel_type: fuelType,
+        percentage_conifer: percentageConifer,
+        grass_cure: grassCurePercentage,
+        crown_base_height: crownBaseHeight
+      }
+    ]
   })
   return data.stations
 }
