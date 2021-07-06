@@ -36,7 +36,7 @@ export async function postFBCStations(
   stationCodes: number[],
   fuelType: string,
   percentageConifer: number | undefined,
-  grassCurePercentage: number | undefined,
+  grassCurePercentage: number | null,
   percentageDeadBalsamFir: number | undefined,
   crownBaseHeight: number | undefined
 ): Promise<FBCStation[]> {

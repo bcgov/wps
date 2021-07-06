@@ -1,8 +1,8 @@
 """
 Unit tests for fire behavour calculator.
 """
-from pytest_bdd import scenario, given, then
 import json
+from pytest_bdd import scenario, given, then
 from fastapi.testclient import TestClient
 from aiohttp import ClientSession
 import pytest
@@ -46,6 +46,7 @@ def then_status(response, status_code: int):
 @then("the response is <response_json>")
 def then_response(response, response_json: dict):
     """ Check entire response """
-    print('actual:\n{}'.format(json.dumps(response.json(), indent=4)))
-    print('expected:\n{}'.format(json.dumps(response_json, indent=4)))
-    assert response.json() == response_json
+    if response_json is not None:
+        print('actual:\n{}'.format(json.dumps(response.json(), indent=4)))
+        print('expected:\n{}'.format(json.dumps(response_json, indent=4)))
+        assert response.json() == response_json

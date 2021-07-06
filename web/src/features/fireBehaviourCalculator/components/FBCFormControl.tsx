@@ -30,7 +30,7 @@ interface FBCInputFormProps {
   setDateOfInterest: (date: string) => void
   fuelType: string
   setFuelType: (fuelType: string) => void
-  grassCurePercentage: number | undefined
+  grassCurePercentage: number | null
   setGrassCurePercentage: (percentage: number) => void
 }
 
