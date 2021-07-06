@@ -20,6 +20,14 @@ const useStyles = makeStyles(theme => ({
 
 interface FBCInputFormProps {
   testId?: string
+  stationsOfInterest: number
+  setStationsOfInterest: (stations: number) => void
+  dateOfInterest: string
+  setDateOfInterest: (date: string) => void
+  fuelType: string
+  setFuelType: (fuelType: string) => void
+  grassCurePercentage: number
+  setGrassCurePercentage: (percentage: number) => void
 }
 
 const FBCInputForm = (props: FBCInputFormProps) => {
@@ -29,15 +37,17 @@ const FBCInputForm = (props: FBCInputFormProps) => {
   const { stations } = useSelector(selectFireWeatherStations)
 
   const stationMenuItems = (stations as GeoJsonStation[]).map(
-    (station: GeoJsonStation) => (
-      <MenuItem value={station.properties.code}>
+    (station: GeoJsonStation, index) => (
+      <MenuItem value={station.properties.code} key={index}>
         {station.properties.code} - {station.properties.name}
       </MenuItem>
     )
   )
 
-  const fuelTypeMenuItems = FuelTypes.get().map(fuelType => (
-    <MenuItem value={fuelType.name}>{fuelType.friendlyName}</MenuItem>
+  const fuelTypeMenuItems = FuelTypes.get().map((fuelType, index) => (
+    <MenuItem value={fuelType.name} key={index}>
+      {fuelType.friendlyName}
+    </MenuItem>
   ))
 
   useEffect(() => {
@@ -49,8 +59,16 @@ const FBCInputForm = (props: FBCInputFormProps) => {
   return (
     <div>
       <FormControl className={classes.formControl}>
-        <InputLabel id="fbc-date-input">Weather Station</InputLabel>
-        <Select labelId="fbc-date-select" id="date-select" value={322} variant="outlined">
+        <InputLabel id="fbc-station-input">Weather Station</InputLabel>
+        <Select
+          labelId="fbc-station-select"
+          id="station-select"
+          value={props.stationsOfInterest}
+          variant="outlined"
+          onChange={event => {
+            props.setStationsOfInterest(event.target.value as number)
+          }}
+        >
           {stationMenuItems}
         </Select>
       </FormControl>
@@ -58,18 +76,33 @@ const FBCInputForm = (props: FBCInputFormProps) => {
         <DatePicker date={dateOfInterest} onChange={setDateOfInterest} />
       </FormControl>
       <FormControl className={classes.formControl}>
-        <InputLabel id="fbc-date-input">Input Fuel Type</InputLabel>
+        <InputLabel id="fbc-fuel-input">Input Fuel Type</InputLabel>
         <Select
-          labelId="fbc-weather-fuel-type-select"
+          labelId="fbc-fuel-type-select"
           id="fuel-type-select"
-          value={'c2'}
+          value={props.fuelType}
           variant="outlined"
+          onChange={event => {
+            props.setFuelType(event.target.value as string)
+          }}
         >
           {fuelTypeMenuItems}
         </Select>
       </FormControl>
       <FormControl className={classes.formControl}>
-        <TextField id="input-grass-cure" label="Input Grass Cure %" variant="outlined" />
+        <TextField
+          id="input-grass-cure"
+          type="number"
+          label="Input Grass Cure %"
+          variant="outlined"
+          onChange={e => {
+            const value = e.currentTarget.value
+
+            if (value) {
+              props.setGrassCurePercentage((value as unknown) as number)
+            }
+          }}
+        />
       </FormControl>
       <FormControl className={classes.formControl}>
         <Button
