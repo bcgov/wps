@@ -77,7 +77,7 @@ FUEL_TYPE_LOOKUP = {"C1": {"PC": 100, "PDF": 0, "CC": None, "CBH": 2},
                     }
 
 
-def rate_of_spread(fuel_type: str, isi: float, bui: float, fmc: float, sfc: float, pc: Optional[float]):
+def rate_of_spread(fuel_type: str, isi: float, bui: float, fmc: float, sfc: float, pc: Optional[float], cc: Optional[int]):
     """ Computes ROS by delegating to cffdrs R package """
     if fuel_type is None or isi is None or bui is None or sfc is None:
         message = PARAMS_ERROR_MESSAGE + \
@@ -87,7 +87,7 @@ def rate_of_spread(fuel_type: str, isi: float, bui: float, fmc: float, sfc: floa
     result = CFFDRS.instance().cffdrs._ROScalc(FUELTYPE=fuel_type, ISI=isi, BUI=bui, FMC=fmc, SFC=sfc,
                                                PC=pc if pc is not None else FUEL_TYPE_LOOKUP[fuel_type]["PC"],
                                                PDF=FUEL_TYPE_LOOKUP[fuel_type]["PDF"],
-                                               CC=FUEL_TYPE_LOOKUP[fuel_type]["CC"],
+                                               CC=cc if cc is not None else FUEL_TYPE_LOOKUP[fuel_type]["CC"],
                                                CBH=FUEL_TYPE_LOOKUP[fuel_type]["CBH"])
     return result[0]
 
@@ -192,7 +192,8 @@ def total_fuel_consumption(fuel_type: str, cfb: float, sfc: float, pc: Optional[
     cfl = 1.0
     # pylint: disable=protected-access, no-member
     result = CFFDRS.instance().cffdrs._TFCcalc(FUELTYPE=fuel_type, CFL=cfl, CFB=cfb, SFC=sfc,
-                                               PC=pc if pc is not None else FUEL_TYPE_LOOKUP[fuel_type]["PC"], PDF=FUEL_TYPE_LOOKUP[fuel_type]["PDF"], option="TFC")
+                                               PC=pc if pc is not None else FUEL_TYPE_LOOKUP[fuel_type]["PC"],
+                                               PDF=FUEL_TYPE_LOOKUP[fuel_type]["PDF"], option="TFC")
     return result[0]
 
 
@@ -204,7 +205,8 @@ def head_fire_intensity(station: FBACalculatorWeatherStation, bui: float, ffmc: 
     sfc = surface_fuel_consumption(station.fuel_type, bui, ffmc, station.percentage_conifer)
     fmc = foliar_moisture_content(station.lat, station.long, station.elevation,
                                   get_julian_date(datetime.datetime.strptime(station.time_of_interest)))
-    ros = rate_of_spread(station.fuel_type, isi, bui, fmc, sfc, station.percentage_conifer)
+    ros = rate_of_spread(station.fuel_type, isi, bui, fmc, sfc,
+                         station.percentage_conifer, station.grass_cure)
     cfb = crown_fraction_burned(station.fuel_type, fmc, sfc, ros)
     tfc = total_fuel_consumption(station.fuel_type, cfb, sfc, station.percentage_conifer)
     # pylint: disable=protected-access, no-member
