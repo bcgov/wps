@@ -49,7 +49,8 @@ export default fireBehaviourStationsSlice.reducer
 export const fetchFireBehaviourStations = (
   date: string,
   stationCodes: number[],
-  fuelType: string
+  fuelType: string,
+  grassCurePercentage: number | undefined
 ): AppThunk => async dispatch => {
   const fuelTypeDetails = FuelTypes.lookup(fuelType)
   try {
@@ -59,7 +60,7 @@ export const fetchFireBehaviourStations = (
       stationCodes,
       fuelTypeDetails.name,
       fuelTypeDetails.percentage_conifer,
-      fuelTypeDetails.grass_cure,
+      grassCurePercentage,
       fuelTypeDetails.percentage_dead_balsam_fir,
       fuelTypeDetails.crown_base_height
     )

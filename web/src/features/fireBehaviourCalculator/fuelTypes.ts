@@ -3,7 +3,6 @@ export interface FBCFuelType {
   friendlyName: string
   percentage_conifer: number | undefined
   percentage_dead_balsam_fir: number | undefined
-  grass_cure: number | undefined
   crown_base_height: number | undefined
 }
 export class FuelTypes {
@@ -17,7 +16,6 @@ export class FuelTypes {
         friendlyName: 'C1',
         percentage_conifer: 100,
         percentage_dead_balsam_fir: undefined,
-        grass_cure: undefined,
         crown_base_height: 2
       },
       c2: {
@@ -25,7 +23,6 @@ export class FuelTypes {
         friendlyName: 'C2',
         percentage_conifer: 100,
         percentage_dead_balsam_fir: undefined,
-        grass_cure: undefined,
         crown_base_height: 3
       },
       c3: {
@@ -33,7 +30,6 @@ export class FuelTypes {
         friendlyName: 'C3',
         percentage_conifer: 100,
         percentage_dead_balsam_fir: undefined,
-        grass_cure: undefined,
         crown_base_height: 8
       },
       c4: {
@@ -41,7 +37,6 @@ export class FuelTypes {
         friendlyName: 'C4',
         percentage_conifer: 100,
         percentage_dead_balsam_fir: undefined,
-        grass_cure: undefined,
         crown_base_height: 4
       },
       c5: {
@@ -49,7 +44,6 @@ export class FuelTypes {
         friendlyName: 'C5',
         percentage_conifer: 100,
         percentage_dead_balsam_fir: undefined,
-        grass_cure: undefined,
         crown_base_height: 18
       },
       c6_7mcbh: {
@@ -57,7 +51,6 @@ export class FuelTypes {
         friendlyName: 'C6 7-m CBH',
         percentage_conifer: 100,
         percentage_dead_balsam_fir: undefined,
-        grass_cure: undefined,
         crown_base_height: 7
       },
       c6_2mcbh: {
@@ -65,7 +58,6 @@ export class FuelTypes {
         friendlyName: 'C6 2-m CBH',
         percentage_conifer: 100,
         percentage_dead_balsam_fir: undefined,
-        grass_cure: undefined,
         crown_base_height: 2
       },
       c7: {
@@ -73,7 +65,6 @@ export class FuelTypes {
         friendlyName: 'C7',
         percentage_conifer: 100,
         percentage_dead_balsam_fir: undefined,
-        grass_cure: undefined,
         crown_base_height: 10
       },
       d1: {
@@ -81,7 +72,6 @@ export class FuelTypes {
         friendlyName: 'D1',
         percentage_conifer: undefined,
         percentage_dead_balsam_fir: undefined,
-        grass_cure: undefined,
         crown_base_height: undefined
       },
       m1_75conifer: {
@@ -89,7 +79,6 @@ export class FuelTypes {
         friendlyName: 'M1 75% conifer / 25% deciduous',
         percentage_conifer: 75,
         percentage_dead_balsam_fir: undefined,
-        grass_cure: undefined,
         crown_base_height: 6
       },
       m1_50conifer: {
@@ -97,7 +86,6 @@ export class FuelTypes {
         friendlyName: 'M1 50% conifer / 50% deciduous',
         percentage_conifer: 50,
         percentage_dead_balsam_fir: undefined,
-        grass_cure: undefined,
         crown_base_height: 6
       },
       m1_25conifer: {
@@ -105,7 +93,6 @@ export class FuelTypes {
         friendlyName: 'M1 25% conifer / 75% deciduous',
         percentage_conifer: 25,
         percentage_dead_balsam_fir: undefined,
-        grass_cure: undefined,
         crown_base_height: 6
       },
       m2_75conifer: {
@@ -113,7 +100,6 @@ export class FuelTypes {
         friendlyName: 'M2 75% conifer / 25% deciduous',
         percentage_conifer: 75,
         percentage_dead_balsam_fir: undefined,
-        grass_cure: undefined,
         crown_base_height: 6
       },
       m2_50conider: {
@@ -121,7 +107,6 @@ export class FuelTypes {
         friendlyName: 'M2 50% conifer / 50% deciduous',
         percentage_conifer: 50,
         percentage_dead_balsam_fir: undefined,
-        grass_cure: undefined,
         crown_base_height: 6
       },
       m2_25confier: {
@@ -129,7 +114,6 @@ export class FuelTypes {
         friendlyName: 'M2 25% conifer / 75% deciduous',
         percentage_conifer: 25,
         percentage_dead_balsam_fir: undefined,
-        grass_cure: undefined,
         crown_base_height: 6
       },
       m3_30deadfir: {
@@ -137,7 +121,6 @@ export class FuelTypes {
         friendlyName: 'M3 30% dead fir',
         percentage_conifer: undefined,
         percentage_dead_balsam_fir: 30,
-        grass_cure: undefined,
         crown_base_height: 6
       },
       m3_60deadfir: {
@@ -145,7 +128,6 @@ export class FuelTypes {
         friendlyName: 'M3 60% dead fir',
         percentage_conifer: undefined,
         percentage_dead_balsam_fir: 60,
-        grass_cure: undefined,
         crown_base_height: 6
       },
       m3_100deadfir: {
@@ -153,7 +135,6 @@ export class FuelTypes {
         friendlyName: 'M3 100% dead fir',
         percentage_conifer: undefined,
         percentage_dead_balsam_fir: 100,
-        grass_cure: undefined,
         crown_base_height: 6
       },
       m4_30deadfir: {
@@ -161,7 +142,6 @@ export class FuelTypes {
         friendlyName: 'M4 30% dead fir',
         percentage_conifer: undefined,
         percentage_dead_balsam_fir: 30,
-        grass_cure: undefined,
         crown_base_height: 6
       },
       m4_60deadfir: {
@@ -169,7 +149,6 @@ export class FuelTypes {
         friendlyName: 'M4 60% dead fir',
         percentage_conifer: undefined,
         percentage_dead_balsam_fir: 60,
-        grass_cure: undefined,
         crown_base_height: 6
       },
       m4_100deadfir: {
@@ -177,55 +156,20 @@ export class FuelTypes {
         friendlyName: 'M4 100% dead fir',
         percentage_conifer: undefined,
         percentage_dead_balsam_fir: 100,
-        grass_cure: undefined,
         crown_base_height: 6
       },
-      o1a_0curing: {
+      o1a: {
         name: 'O1A',
-        friendlyName: 'O1A 0% curing',
+        friendlyName: 'O1A',
         percentage_conifer: 0,
         percentage_dead_balsam_fir: undefined,
-        grass_cure: 0,
         crown_base_height: 1
       },
-      o1a_30curing: {
-        name: 'O1A',
-        friendlyName: 'O1A 30% curing',
-        percentage_conifer: undefined,
-        percentage_dead_balsam_fir: undefined,
-        grass_cure: 30,
-        crown_base_height: undefined
-      },
-      o1a_90curing: {
-        name: 'O1A',
-        friendlyName: 'O1A 90% curing',
-        percentage_conifer: undefined,
-        percentage_dead_balsam_fir: undefined,
-        grass_cure: 90,
-        crown_base_height: undefined
-      },
-      o1b_0curing: {
+      o1b: {
         name: 'O1B',
-        friendlyName: 'O1B 0% curing',
+        friendlyName: 'O1B',
         percentage_conifer: undefined,
         percentage_dead_balsam_fir: undefined,
-        grass_cure: 0,
-        crown_base_height: undefined
-      },
-      o1b_30curing: {
-        name: 'O1B',
-        friendlyName: 'O1B 30% curing',
-        percentage_conifer: undefined,
-        percentage_dead_balsam_fir: undefined,
-        grass_cure: 30,
-        crown_base_height: undefined
-      },
-      o1b_90curing: {
-        name: 'O1B',
-        friendlyName: 'O1B 90% curing',
-        percentage_conifer: undefined,
-        percentage_dead_balsam_fir: undefined,
-        grass_cure: 90,
         crown_base_height: undefined
       },
       s1: {
@@ -233,7 +177,6 @@ export class FuelTypes {
         friendlyName: 'S1',
         percentage_conifer: undefined,
         percentage_dead_balsam_fir: undefined,
-        grass_cure: undefined,
         crown_base_height: undefined
       },
       s2: {
@@ -241,7 +184,6 @@ export class FuelTypes {
         friendlyName: 'S2',
         percentage_conifer: undefined,
         percentage_dead_balsam_fir: undefined,
-        grass_cure: undefined,
         crown_base_height: undefined
       },
       s3: {
@@ -249,7 +191,6 @@ export class FuelTypes {
         friendlyName: 'S3',
         percentage_conifer: undefined,
         percentage_dead_balsam_fir: undefined,
-        grass_cure: undefined,
         crown_base_height: undefined
       }
     }

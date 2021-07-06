@@ -30,7 +30,7 @@ interface FBCInputFormProps {
   setDateOfInterest: (date: string) => void
   fuelType: string
   setFuelType: (fuelType: string) => void
-  grassCurePercentage: number
+  grassCurePercentage: number | undefined
   setGrassCurePercentage: (percentage: number) => void
 }
 
@@ -115,7 +115,8 @@ const FBCInputForm = (props: FBCInputFormProps) => {
               fetchFireBehaviourStations(
                 props.dateOfInterest,
                 [props.stationsOfInterest],
-                props.fuelType
+                props.fuelType,
+                props.grassCurePercentage
               )
             )
           }}
