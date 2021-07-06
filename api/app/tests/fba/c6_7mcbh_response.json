@@ -1,1 +1,30 @@
-[]
+{
+    "stations": [
+        {
+            "station_code": 230,
+            "date": "2021-07-05",
+            "elevation": 701,
+            "fuel_type": "C6",
+            "status": "Observed",
+            "temp": 25,
+            "rh": 31,
+            "wind_direction": 282,
+            "wind_speed": 9.2,
+            "precipitation": 0.0,
+            "grass_cure": null,
+            "fine_fuel_moisture_code": 93.348,
+            "drought_code": 340.544,
+            "initial_spread_index": 10.951,
+            "build_up_index": 117.899,
+            "duff_moisture_code": 103.923,
+            "fire_weather_index": 35.947,
+            "head_fire_intensity": 12636.602279247525,
+            "rate_of_spread": 10.786852004316788,
+            "fire_type": "S",
+            "percentage_crown_fraction_burned": 0.7796827205050423,
+            "flame_length": 6.490146962703676,
+            "sixty_minute_fire_size": 0.002337698397014722,
+            "thirty_minute_fire_size": 0.0005844245992536805
+        }
+    ]
+}

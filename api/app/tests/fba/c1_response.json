@@ -21,7 +21,7 @@
             "head_fire_intensity": 2598.4301967340966,
             "rate_of_spread": 4.4231116865619,
             "fire_type": "S",
-            "percentage_crown_fraction_burned": 0,
+            "percentage_crown_fraction_burned": 0.5032535744705282,
             "flame_length": 2.9430314284957366,
             "sixty_minute_fire_size": 0.00039305637998089427,
             "thirty_minute_fire_size": 9.826409499522357e-05

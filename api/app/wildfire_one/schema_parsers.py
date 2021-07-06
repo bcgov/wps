@@ -152,7 +152,7 @@ def parse_to_StationResponse(raw_daily, station: FBACalculatorWeatherStation) ->
                          cbh=station.crown_base_height
                          )
     cfb = crown_fraction_burned(station.fuel_type, fmc, sfc, ros)
-    hfi = head_fire_intensity(station, bui, ffmc, isi)
+    hfi = head_fire_intensity(station, bui, ffmc, isi, ros)
     return StationResponse(
         station_code=station.code,
         date=station.time_of_interest,

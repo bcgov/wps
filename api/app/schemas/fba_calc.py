@@ -33,7 +33,7 @@ class StationResponse(BaseModel):
     wind_direction: Optional[int]
     wind_speed: float
     precipitation: float
-    grass_cure: Optional[int]
+    grass_cure: Optional[float]
     fine_fuel_moisture_code: float
     drought_code: float
     initial_spread_index: float
@@ -43,7 +43,7 @@ class StationResponse(BaseModel):
     head_fire_intensity: float
     rate_of_spread: float
     fire_type: str
-    percentage_crown_fraction_burned: int
+    percentage_crown_fraction_burned: float
     flame_length: float
     sixty_minute_fire_size: float
     thirty_minute_fire_size: float

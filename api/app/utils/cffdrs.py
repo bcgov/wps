@@ -107,6 +107,9 @@ def rate_of_spread(fuel_type: str,  # pylint: disable=too-many-arguments, disabl
             "fuel_type: {fuel_type}, isi: {isi}, bui: {bui}, fmc: {fmc}, sfc: {sfc}"
         raise CFFDRSException(message)
 
+    logger.info('calling _ROScalc(FUELTYPE=%s, ISI=%s, BUI=%s, FMC=%s, SFC=%s, PC=%s, PDF=%s, CC=%s, CBH=%s)',
+                fuel_type, isi, bui, fmc, sfc, pc, pdf, cc, cbh)
+
     # For some reason, the registered converter can't turn a None to a NULL, but we need to
     # set these to NULL, despite setting a converter for None to NULL, because it it can only
     # convert a NULL to NULL. Doesn't make sense? Exactly.
@@ -236,7 +239,7 @@ def total_fuel_consumption(fuel_type: str, cfb: float, sfc: float, pc: Optional[
     return result[0]
 
 
-def head_fire_intensity(station: FBACalculatorWeatherStation, bui: float, ffmc: float, isi: float,):
+def head_fire_intensity(station: FBACalculatorWeatherStation, bui: float, ffmc: float, isi: float, ros: float):
     """ Computes Head Fire Intensity (HFI) by delegating to cffdrs R package.
     Calculating HFI requires a number of inputs that must be calculated first. This function
     first makes method calls to calculate the necessary intermediary values.
@@ -244,8 +247,6 @@ def head_fire_intensity(station: FBACalculatorWeatherStation, bui: float, ffmc: 
     sfc = surface_fuel_consumption(station.fuel_type, bui, ffmc, station.percentage_conifer)
     fmc = foliar_moisture_content(station.lat, station.long, station.elevation,
                                   get_julian_date(station.time_of_interest))
-    ros = rate_of_spread(station.fuel_type, isi, bui, fmc, sfc,
-                         station.percentage_conifer, station.grass_cure)
     cfb = crown_fraction_burned(station.fuel_type, fmc, sfc, ros)
     tfc = total_fuel_consumption(station.fuel_type, cfb, sfc, station.percentage_conifer)
     # pylint: disable=protected-access, no-member
