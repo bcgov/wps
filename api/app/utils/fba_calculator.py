@@ -34,9 +34,7 @@ def get_30_minutes_fire_size(length_breadth_ratio: float, rate_of_spread: float)
     30 min fire size = (pi * spread^2) / (40,000 * LB ratio)
     where spread = 30 * ROS
     """
-    size_in_square_meters = (math.pi * math.pow(30 * rate_of_spread, 2)) / (40000 * length_breadth_ratio)
-    size_in_hectares = size_in_square_meters / 10000
-    return size_in_hectares
+    return (math.pi * math.pow(30 * rate_of_spread, 2)) / (40000 * length_breadth_ratio)
 
 
 def get_60_minutes_fire_size(length_breadth_ratio: float, rate_of_spread: float):
@@ -46,9 +44,7 @@ def get_60_minutes_fire_size(length_breadth_ratio: float, rate_of_spread: float)
     60 min fire size = (pi * spread^2) / (40,000 * LB ratio)
     where spread = 60 * ROS
     """
-    size_in_square_meters = (math.pi * math.pow(60 * rate_of_spread, 2)) / (40000 * length_breadth_ratio)
-    size_in_hectares = size_in_square_meters / 10000
-    return size_in_hectares
+    return (math.pi * math.pow(60 * rate_of_spread, 2)) / (40000 * length_breadth_ratio)
 
 
 def get_fire_type(crown_fraction_burned: int):
