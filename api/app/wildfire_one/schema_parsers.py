@@ -36,9 +36,10 @@ async def station_list_mapper(raw_stations: Generator[dict, None, None]):
 class WFWXWeatherStation():
     """ A WFWX station includes a code and WFWX API specific id """
 
-    def __init__(self, wfwx_id: str, code: int, latitude: float, longitude: float, elevation: int):
+    def __init__(self, wfwx_id: str, code: int, latitude: float, longitude: float, elevation: int, name: str):
         self.wfwx_id = wfwx_id
         self.code = code
+        self.name = name
         self.lat = latitude
         self.long = longitude
         self.elevation = elevation
@@ -55,7 +56,8 @@ async def wfwx_station_list_mapper(raw_stations: Generator[dict, None, None]) ->
                                                code=raw_station['stationCode'],
                                                latitude=raw_station['latitude'],
                                                longitude=raw_station['longitude'],
-                                               elevation=raw_station['elevation']
+                                               elevation=raw_station['elevation'],
+                                               name=raw_station['displayLabel']
                                                ))
     return stations
 
@@ -155,6 +157,7 @@ def parse_to_StationResponse(raw_daily, station: FBACalculatorWeatherStation) ->
     hfi = head_fire_intensity(station, bui, ffmc, ros)
     return StationResponse(
         station_code=station.code,
+        station_name=station.name,
         date=station.time_of_interest,
         elevation=station.elevation,
         fuel_type=station.fuel_type,

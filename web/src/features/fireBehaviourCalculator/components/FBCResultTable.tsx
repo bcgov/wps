@@ -37,7 +37,6 @@ const useStyles = makeStyles({
 
 const FBCResultTable = (props: Props) => {
   const classes = useStyles()
-  console.log(props.fireBehaviourResultStations)
 
   const DECIMAL_PLACES = 1
 
@@ -132,7 +131,9 @@ const FBCResultTable = (props: Props) => {
               {props.fireBehaviourResultStations.map(stationResult => {
                 return (
                   <TableRow>
-                    <TableCell>Name todo</TableCell>
+                    <TableCell>
+                      {stationResult.station_code} - {stationResult.station_name}
+                    </TableCell>
                     <TableCell>{stationResult.elevation}</TableCell>
                     <TableCell>{stationResult.fuel_type}</TableCell>
                     <TableCell>{stationResult.status}</TableCell>

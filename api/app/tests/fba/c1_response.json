@@ -2,6 +2,7 @@
     "stations": [
         {
             "station_code": 230,
+            "station_name": "HORSEFLY",
             "date": "2021-07-05",
             "elevation": 701,
             "fuel_type": "C1",

@@ -316,13 +316,14 @@ async def get_dailies(session: ClientSession, header: dict, wfwx_stations: List[
                                                                              grass_cure=station.grass_cure,
                                                                              crown_base_height=station.crown_base_height,
                                                                              lat=wfwx_station.lat,
-                                                                             long=wfwx_station.long)
+                                                                             long=wfwx_station.long,
+                                                                             name=wfwx_station.name)
         else:
             logger.error('Error parsing stations requested.')
 
     async for raw_daily in dailies_iterator:
         wfwx_id = raw_daily.get('stationId', None)
-        station = station_dict.get(wfwx_id, None)
+        station: FBACalculatorWeatherStation = station_dict.get(wfwx_id, None)
         daily = parse_to_StationResponse(raw_daily, station)
         station_responses.append(daily)
     return station_responses

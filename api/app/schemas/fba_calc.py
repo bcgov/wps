@@ -24,6 +24,7 @@ class StationListRequest(BaseModel):
 class StationResponse(BaseModel):
     """ Response for one individual weather station. """
     station_code: int
+    station_name: str
     date: date
     elevation: int
     fuel_type: str
