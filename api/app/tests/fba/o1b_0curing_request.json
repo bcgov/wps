@@ -1,1 +1,10 @@
-[]
+{
+    "stations": [
+        {
+            "station_code": 230,
+            "date": "2021-07-06",
+            "fuel_type": "O1B",
+            "grass_cure": "0"
+        }
+    ]
+}
