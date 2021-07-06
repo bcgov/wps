@@ -48,9 +48,9 @@ const FBCInputForm = (props: FBCInputFormProps) => {
     )
   )
 
-  const fuelTypeMenuItems = FuelTypes.get().map((fuelType, index) => (
-    <MenuItem value={fuelType.name} key={index}>
-      {fuelType.friendlyName}
+  const fuelTypeMenuItems = Object.entries(FuelTypes.get()).map(([key, value], index) => (
+    <MenuItem value={key} key={index}>
+      {value.friendlyName}
     </MenuItem>
   ))
 

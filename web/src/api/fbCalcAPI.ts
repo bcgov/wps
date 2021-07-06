@@ -35,9 +35,9 @@ export async function postFBCStations(
   date: string,
   stationCodes: number[],
   fuelType: string,
-  percentageConifer: number,
-  grassCurePercentage: number,
-  crownBaseHeight: number
+  percentageConifer: number | undefined,
+  grassCurePercentage: number | undefined,
+  crownBaseHeight: number | undefined
 ): Promise<FBCStation[]> {
   const url = '/fba-calc/stations'
 

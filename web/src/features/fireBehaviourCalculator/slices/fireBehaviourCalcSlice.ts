@@ -3,6 +3,7 @@ import { FBCStation, postFBCStations } from 'api/fbCalcAPI'
 
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
+import { FuelTypes } from '../fuelTypes'
 
 interface State {
   loading: boolean
@@ -53,15 +54,16 @@ export const fetchFireBehaviourStations = (
   grassCurePercentage: number,
   crownBurnHeight: number
 ): AppThunk => async dispatch => {
+  const fuelTypeDetails = FuelTypes.lookup(fuelType)
   try {
     dispatch(getFireBehaviourStationsStart())
     const fireBehaviourStations = await postFBCStations(
       date,
       stationCodes,
-      fuelType,
-      percentageConifer,
-      grassCurePercentage,
-      crownBurnHeight
+      fuelTypeDetails.name,
+      fuelTypeDetails.percentage_conifer,
+      fuelTypeDetails.grass_cure,
+      fuelTypeDetails.crown_base_height
     )
     dispatch(getFireBehaviourStationsSuccess(fireBehaviourStations))
   } catch (err) {
