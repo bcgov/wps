@@ -11,7 +11,7 @@ class FBACalculatorWeatherStation():
 
     def __init__(self, wfwx_id: str, code: int, elevation: int, fuel_type: str,
                  time_of_interest: date, percentage_conifer: int, grass_cure: int,
-                 crown_burn_height: int, lat: float, long: float):
+                 crown_base_height: int, lat: float, long: float):
         self.wfwx_id = wfwx_id
         self.code = code
         self.elevation = elevation
@@ -19,7 +19,7 @@ class FBACalculatorWeatherStation():
         self.time_of_interest = time_of_interest
         self.percentage_conifer = percentage_conifer
         self.grass_cure = grass_cure
-        self.crown_burn_height = crown_burn_height
+        self.crown_base_height = crown_base_height
         self.lat = lat
         self.long = long
 

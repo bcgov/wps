@@ -10,9 +10,9 @@ class StationRequest(BaseModel):
     station_code: int
     date: date
     fuel_type: str
-    percentage_conifer: int
-    grass_cure: int
-    crown_burn_height: int
+    percentage_conifer: Optional[float]
+    grass_cure: Optional[float]
+    crown_base_height: Optional[float]
 
 
 class StationListRequest(BaseModel):

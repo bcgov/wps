@@ -4,9 +4,7 @@
             "station_code": 230,
             "date": "2021-07-05",
             "fuel_type": "C1",
-            "foliar_moisture_content": 97,
-            "crown_base_height": 2,
-            "surface_fuel_consumption": 90
+            "crown_base_height": 2
         }
     ]
 }
