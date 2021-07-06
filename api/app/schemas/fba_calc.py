@@ -47,6 +47,10 @@ class StationResponse(BaseModel):
     flame_length: float
     sixty_minute_fire_size: float
     thirty_minute_fire_size: float
+    wind_speed_for_hfi_4000: float
+    ffmc_for_hfi_4000: float
+    wind_speed_for_hfi_10000: float
+    ffmc_for_hfi_10000: float
 
 
 class StationsListResponse(BaseModel):

@@ -77,3 +77,30 @@ def get_approx_flame_length(head_fire_intensity: float):
     L = (I / 300)^(1/2), where L is flame length in m and I is Fire Intensity in kW/m
     """
     return math.sqrt(head_fire_intensity / 300)
+
+
+def get_wind_speed_for_hfi_4000(station: FBACalculatorWeatherStation, bui: float, ffmc: float, isi: float, ros: float):
+    """ Returns a floating point value for minimum wind speed (in km/h) required (holding all other
+    values constant) before HFI reaches 4000 kW/m.
+    """
+    return 0.0
+
+
+def get_ffmc_for_hfi_4000():
+    """ Returns a floating point value for minimum FFMC required (holding all other values constant)
+    before HFI reaches 4000 kW/m.
+    """
+
+    return 0.0
+
+
+def get_wind_speed_for_hfi_10000():
+    """ Returns a floating point value for minimum wind speed (in km/h) required (holding all other
+    values constant) before HFI reaches 10,000 kW/m. """
+    return 0.0
+
+
+def get_ffmc_for_hfi_10000():
+    """ Returns a floating point value for minimum FFMC required (holding all other values constant)
+    before HFI reaches 10,000 kW/m. """
+    return 0.0
