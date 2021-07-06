@@ -105,10 +105,27 @@ const FBCResultTable = (props: Props) => {
                 <TableCell>ISI</TableCell>
                 <TableCell>BUI</TableCell>
                 <TableCell>FWI</TableCell>
+                <TableCell>HFI</TableCell>
                 <TableCell>
                   ROS
                   <br />
                   (m/min)
+                </TableCell>
+                <TableCell>Fire Type</TableCell>
+                <TableCell>CFB</TableCell>
+                <TableCell>
+                  Flame <br />
+                  Length <br /> (m)
+                </TableCell>
+                <TableCell>
+                  30 min <br />
+                  fire size <br />
+                  (hectares)
+                </TableCell>
+                <TableCell>
+                  60 min <br />
+                  fire size <br />
+                  (hectares)
                 </TableCell>
               </TableRow>
             </TableHead>
@@ -145,7 +162,25 @@ const FBCResultTable = (props: Props) => {
                       {stationResult.fire_weather_index.toFixed(DECIMAL_PLACES)}
                     </TableCell>
                     <TableCell>
+                      {stationResult.head_fire_intensity.toFixed(DECIMAL_PLACES)}
+                    </TableCell>
+                    <TableCell>
                       {stationResult.rate_of_spread.toFixed(DECIMAL_PLACES)}
+                    </TableCell>
+                    <TableCell>{stationResult.fire_type}</TableCell>
+                    <TableCell>
+                      {stationResult.percentage_crown_fraction_burned.toFixed(
+                        DECIMAL_PLACES
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {stationResult.flame_length.toFixed(DECIMAL_PLACES)}
+                    </TableCell>
+                    <TableCell>
+                      {stationResult.thirty_minute_fire_size.toFixed(DECIMAL_PLACES)}
+                    </TableCell>
+                    <TableCell>
+                      {stationResult.sixty_minute_fire_size.toFixed(DECIMAL_PLACES)}
                     </TableCell>
                   </TableRow>
                 )
