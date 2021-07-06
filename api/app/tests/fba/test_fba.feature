@@ -19,7 +19,6 @@ Feature: /fbc/
 # | c6_2mcbh_request.json      | 200         | c6_2mcbh_response.json      |
 # | c7_request.json            | 200         | c7_response.json            |
 # | d1_request.json            | 200         | d1_response.json            |
-# | d2_request.json            | 200         | d2_response.json            |
 # | m1_75conifer_request.json  | 200         | m1_75conifer_response.json  |
 # | m1_50conider_request.json  | 200         | m1_50conifer_response.json  |
 # | m1_25confier_request.json  | 200         | m1_25conifer_response.json  |
