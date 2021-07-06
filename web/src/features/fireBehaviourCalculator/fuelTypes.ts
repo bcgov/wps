@@ -12,6 +12,14 @@ export class FuelTypes {
   }
   static get(): Record<string, FBCFuelType> {
     return {
+      c1: {
+        name: 'C1',
+        friendlyName: 'C1',
+        percentage_conifer: 100,
+        percentage_dead_balsam_fir: undefined,
+        grass_cure: undefined,
+        crown_base_height: 2
+      },
       c2: {
         name: 'C2',
         friendlyName: 'C2',
