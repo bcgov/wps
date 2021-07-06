@@ -7,13 +7,13 @@ import { logError } from 'utils/error'
 interface State {
   loading: boolean
   error: string | null
-  fireBehaviourStations: FBCStation[]
+  fireBehaviourResultStations: FBCStation[]
 }
 
 const initialState: State = {
   loading: false,
   error: null,
-  fireBehaviourStations: []
+  fireBehaviourResultStations: []
 }
 
 const fireBehaviourStationsSlice = createSlice({
@@ -23,7 +23,7 @@ const fireBehaviourStationsSlice = createSlice({
     getFireBehaviourStationsStart(state: State) {
       state.error = null
       state.loading = true
-      state.fireBehaviourStations = []
+      state.fireBehaviourResultStations = []
     },
     getFireBehaviourStationsFailed(state: State, action: PayloadAction<string>) {
       state.error = action.payload
@@ -31,7 +31,7 @@ const fireBehaviourStationsSlice = createSlice({
     },
     getFireBehaviourStationsSuccess(state: State, action: PayloadAction<FBCStation[]>) {
       state.error = null
-      state.fireBehaviourStations = action.payload
+      state.fireBehaviourResultStations = action.payload
       state.loading = false
     }
   }

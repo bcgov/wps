@@ -3,13 +3,17 @@ import { makeStyles } from '@material-ui/core/styles'
 
 import { DateTime } from 'luxon'
 import { FormControl, InputLabel, MenuItem, Select, TextField } from '@material-ui/core'
-import { Button } from 'components'
 import DatePicker from './DatePicker'
-import { selectFireWeatherStations } from 'app/rootReducer'
+import {
+  selectFireBehaviourStationsLoading,
+  selectFireWeatherStations
+} from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
 import { GeoJsonStation, getStations } from 'api/stationAPI'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { FuelTypes } from '../fuelTypes'
+import GetWxDataButton from 'features/fireWeather/components/GetWxDataButton'
+import { fetchFireBehaviourStations } from '../slices/fireBehaviourCalcSlice'
 
 const useStyles = makeStyles(theme => ({
   formControl: {
@@ -105,14 +109,21 @@ const FBCInputForm = (props: FBCInputFormProps) => {
         />
       </FormControl>
       <FormControl className={classes.formControl}>
-        <Button
-          data-testid="get-wx-data-button"
-          variant="contained"
-          color="primary"
-          spinnercolor="white"
-        >
-          Calculate
-        </Button>
+        <GetWxDataButton
+          onBtnClick={() => {
+            dispatch(
+              fetchFireBehaviourStations(
+                props.dateOfInterest,
+                [props.stationsOfInterest],
+                props.fuelType,
+                0,
+                0,
+                0
+              )
+            )
+          }}
+          selector={selectFireBehaviourStationsLoading}
+        />
       </FormControl>
     </div>
   )
