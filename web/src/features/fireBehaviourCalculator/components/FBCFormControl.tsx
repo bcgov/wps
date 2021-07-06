@@ -20,8 +20,8 @@ const useStyles = makeStyles(theme => ({
 
 interface FBCInputFormProps {
   testId?: string
-  stationsOfInterest: number[]
-  setStationsOfInterest: (stations: number[]) => void
+  stationsOfInterest: number
+  setStationsOfInterest: (stations: number) => void
   dateOfInterest: string
   setDateOfInterest: (date: string) => void
   fuelType: string
@@ -63,13 +63,13 @@ const FBCInputForm = (props: FBCInputFormProps) => {
         <Select
           labelId="fbc-station-select"
           id="station-select"
-          value={322}
+          value={props.stationsOfInterest}
           variant="outlined"
           onChange={e => {
             const value = e.currentTarget.value
 
             if (value) {
-              props.setStationsOfInterest([value as number])
+              props.setStationsOfInterest(value as number)
             }
           }}
         >

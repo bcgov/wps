@@ -6,7 +6,7 @@ import FBCResultTable from './components/FBCResultTable'
 
 export const FireBehaviourCalculator: React.FunctionComponent = () => {
   const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().toISODate())
-  const [stationsOfInterest, setStationsOfInterest] = useState([] as number[])
+  const [stationsOfInterest, setStationsOfInterest] = useState(322)
   const [fuelType, setFuelType] = useState('')
   const [grassCurePercentage, setGrassCurePercentage] = useState(0)
 
