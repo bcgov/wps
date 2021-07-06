@@ -120,6 +120,7 @@ const FBCInputForm = (props: FBCInputFormProps) => {
             )
           }}
           selector={selectFireBehaviourStationsLoading}
+          buttonLabel="Calculate"
         />
       </FormControl>
     </div>
