@@ -105,10 +105,27 @@ const FBCResultTable = (props: Props) => {
                 <TableCell>ISI</TableCell>
                 <TableCell>BUI</TableCell>
                 <TableCell>FWI</TableCell>
+                <TableCell>HFI</TableCell>
                 <TableCell>
                   ROS
                   <br />
                   (m/min)
+                </TableCell>
+                <TableCell>Fire Type</TableCell>
+                <TableCell>CFB</TableCell>
+                <TableCell>
+                  Flame <br />
+                  Length <br /> (m)
+                </TableCell>
+                <TableCell>
+                  30 min <br />
+                  fire size <br />
+                  (hectares)
+                </TableCell>
+                <TableCell>
+                  60 min <br />
+                  fire size <br />
+                  (hectares)
                 </TableCell>
               </TableRow>
             </TableHead>
@@ -126,13 +143,45 @@ const FBCResultTable = (props: Props) => {
                     <TableCell>{stationResult.wind_speed}</TableCell>
                     <TableCell>{stationResult.precipitation}</TableCell>
                     <TableCell>{stationResult.grass_cure}</TableCell>
-                    <TableCell>{stationResult.fine_fuel_moisture_code}</TableCell>
-                    <TableCell>{stationResult.duff_moisture_code}</TableCell>
-                    <TableCell>{stationResult.drought_code}</TableCell>
-                    <TableCell>{stationResult.initial_spread_index}</TableCell>
-                    <TableCell>{stationResult.build_up_index}</TableCell>
-                    <TableCell>{stationResult.fire_weather_index}</TableCell>
-                    <TableCell>{stationResult.rate_of_spread}</TableCell>
+                    <TableCell>
+                      {stationResult.fine_fuel_moisture_code.toFixed(DECIMAL_PLACES)}
+                    </TableCell>
+                    <TableCell>
+                      {stationResult.duff_moisture_code.toFixed(DECIMAL_PLACES)}
+                    </TableCell>
+                    <TableCell>
+                      {stationResult.drought_code.toFixed(DECIMAL_PLACES)}
+                    </TableCell>
+                    <TableCell>
+                      {stationResult.initial_spread_index.toFixed(DECIMAL_PLACES)}
+                    </TableCell>
+                    <TableCell>
+                      {stationResult.build_up_index.toFixed(DECIMAL_PLACES)}
+                    </TableCell>
+                    <TableCell>
+                      {stationResult.fire_weather_index.toFixed(DECIMAL_PLACES)}
+                    </TableCell>
+                    <TableCell>
+                      {stationResult.head_fire_intensity.toFixed(DECIMAL_PLACES)}
+                    </TableCell>
+                    <TableCell>
+                      {stationResult.rate_of_spread.toFixed(DECIMAL_PLACES)}
+                    </TableCell>
+                    <TableCell>{stationResult.fire_type}</TableCell>
+                    <TableCell>
+                      {stationResult.percentage_crown_fraction_burned.toFixed(
+                        DECIMAL_PLACES
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {stationResult.flame_length.toFixed(DECIMAL_PLACES)}
+                    </TableCell>
+                    <TableCell>
+                      {stationResult.thirty_minute_fire_size.toFixed(DECIMAL_PLACES)}
+                    </TableCell>
+                    <TableCell>
+                      {stationResult.sixty_minute_fire_size.toFixed(DECIMAL_PLACES)}
+                    </TableCell>
                   </TableRow>
                 )
               })}
