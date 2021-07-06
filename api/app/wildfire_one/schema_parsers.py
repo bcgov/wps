@@ -13,7 +13,7 @@ from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.schemas.observations import WeatherReading
 from app.schemas.hfi_calc import StationDaily
 from app.utils.fba_calculator import FBACalculatorWeatherStation, get_30_minutes_fire_size, get_60_minutes_fire_size, get_fire_type
-from app.utils.time import get_julian_date, get_julian_date_now
+from app.utils.time import get_julian_date, get_julian_date_now, get_hour_20_from_date
 from app.wildfire_one.util import is_station_valid
 
 logger = logging.getLogger(__name__)
@@ -138,8 +138,11 @@ def parse_to_StationResponse(raw_daily, station: FBACalculatorWeatherStation) ->
     bui = raw_daily.get('buildUpIndex', None)
     ffmc = raw_daily.get('fineFuelMoistureCode', None)
     isi = raw_daily.get('initialSpreadIndex', None)
+    # time of interest will be the same for all stations
+    time_of_interest = get_hour_20_from_date(station.time_of_interest)
+
     fmc = foliar_moisture_content(station.lat, station.long, station.elevation,
-                                  get_julian_date(station.time_of_interest))
+                                  get_julian_date(time_of_interest))
     sfc = surface_fuel_consumption(station.fuel_type, bui, ffmc, station.percentage_conifer)
     lb_ratio = length_to_breadth_ratio(station.fuel_type, raw_daily.get('windSpeed', None))
     ros = rate_of_spread(station.fuel_type, isi, bui, fmc, sfc,

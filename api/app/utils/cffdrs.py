@@ -204,7 +204,7 @@ def head_fire_intensity(station: FBACalculatorWeatherStation, bui: float, ffmc: 
     """
     sfc = surface_fuel_consumption(station.fuel_type, bui, ffmc, station.percentage_conifer)
     fmc = foliar_moisture_content(station.lat, station.long, station.elevation,
-                                  get_julian_date(datetime.datetime.strptime(station.time_of_interest)))
+                                  get_julian_date(station.time_of_interest))
     ros = rate_of_spread(station.fuel_type, isi, bui, fmc, sfc,
                          station.percentage_conifer, station.grass_cure)
     cfb = crown_fraction_burned(station.fuel_type, fmc, sfc, ros)

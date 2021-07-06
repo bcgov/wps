@@ -1,4 +1,5 @@
 import math
+from datetime import date
 import logging
 
 logger = logging.getLogger(__name__)
@@ -9,8 +10,8 @@ class FBACalculatorWeatherStation():
     Fire Behaviour Advisory Calculator """
 
     def __init__(self, wfwx_id: str, code: int, elevation: int, fuel_type: str,
-                 time_of_interest: str, percentage_conifer: int, grass_cure: int,
-                 crown_burn_height: int):
+                 time_of_interest: date, percentage_conifer: int, grass_cure: int,
+                 crown_burn_height: int, lat: float, long: float):
         self.wfwx_id = wfwx_id
         self.code = code
         self.elevation = elevation
@@ -19,6 +20,8 @@ class FBACalculatorWeatherStation():
         self.percentage_conifer = percentage_conifer
         self.grass_cure = grass_cure
         self.crown_burn_height = crown_burn_height
+        self.lat = lat
+        self.long = long
 
 
 def get_30_minutes_fire_size(length_breadth_ratio: float, rate_of_spread: float):
@@ -28,7 +31,7 @@ def get_30_minutes_fire_size(length_breadth_ratio: float, rate_of_spread: float)
     30 min fire size = (pi * spread^2) / (40,000 * LB ratio)
     where spread = 30 * ROS
     """
-    return (math.pi * (30 * rate_of_spread) ^ 2) / (40000 * length_breadth_ratio)
+    return (math.pi * math.pow(30 * rate_of_spread, 2)) / (40000 * length_breadth_ratio)
 
 
 def get_60_minutes_fire_size(length_breadth_ratio: float, rate_of_spread: float):
@@ -38,7 +41,7 @@ def get_60_minutes_fire_size(length_breadth_ratio: float, rate_of_spread: float)
     60 min fire size = (pi * spread^2) / (40,000 * LB ratio)
     where spread = 60 * ROS
     """
-    return (math.pi * (60 * rate_of_spread) ^ 2) / (40000 * length_breadth_ratio)
+    return (math.pi * math.pow(60 * rate_of_spread, 2)) / (40000 * length_breadth_ratio)
 
 
 def get_fire_type(crown_fraction_burned: int):

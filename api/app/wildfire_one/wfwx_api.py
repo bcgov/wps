@@ -10,6 +10,7 @@ import app
 from app import config
 from app.schemas.fba_calc import StationRequest, StationResponse
 from app.utils.hfi_calculator import get_fire_centre_station_codes
+from app.utils.time import get_hour_20_from_date
 from app.db.models.observations import HourlyActual
 from app.schemas.hfi_calc import HFIWeatherStationsResponse, StationDaily
 from app.schemas.observations import WeatherStationHourlyReadings
@@ -287,12 +288,14 @@ async def get_dailies(session: ClientSession, header: dict, wfwx_stations: List[
     station_dict: Dict[str, FBACalculatorWeatherStation]
 
     # time of interest will be the same for all stations
-    time_of_interest = stations[0].date
+    time_of_interest = get_hour_20_from_date(stations[0].date)
+    timestamp_of_intereset = math.floor(time_of_interest.timestamp()*1000)
 
     dailies_iterator = fetch_paged_response_generator(session, header, BuildQueryDailesByStationCode(
-        time_of_interest, time_of_interest, wfwx_station_ids), 'dailies')
+        timestamp_of_intereset, timestamp_of_intereset, wfwx_station_ids), 'dailies')
 
     station_responses = []
+    station_dict = {}
 
     for i in range(len(stations)):
         wfwx_station = wfwx_stations[i]
@@ -305,7 +308,9 @@ async def get_dailies(session: ClientSession, header: dict, wfwx_stations: List[
                                                                              time_of_interest=station.date,
                                                                              percentage_conifer=station.percentage_conifer,
                                                                              grass_cure=station.grass_cure,
-                                                                             crown_burn_height=station.crown_burn_height)
+                                                                             crown_burn_height=station.crown_burn_height,
+                                                                             lat=wfwx_station.lat,
+                                                                             long=wfwx_station.long)
         else:
             logger.error('Error parsing stations requested.')
 
