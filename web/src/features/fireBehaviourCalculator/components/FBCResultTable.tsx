@@ -31,8 +31,7 @@ const useStyles = makeStyles({
   tableContainer: {
     maxHeight: 1080,
     maxWidth: 1900,
-    minWidth: 1600,
-    '& .MuiTableCell-head': { fontWeight: 'bold', padding: '1px' }
+    minWidth: 1600
   }
 })
 
