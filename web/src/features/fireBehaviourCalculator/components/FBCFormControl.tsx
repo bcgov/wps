@@ -32,7 +32,7 @@ interface FBCInputFormProps {
   fuelType: string
   setFuelType: (fuelType: string) => void
   grassCurePercentage: number | null
-  setGrassCurePercentage: (percentage: number) => void
+  setGrassCurePercentage: (percentage: number | null) => void
 }
 
 const FBCInputForm = (props: FBCInputFormProps) => {
@@ -114,6 +114,8 @@ const FBCInputForm = (props: FBCInputFormProps) => {
 
             if (value) {
               props.setGrassCurePercentage((value as unknown) as number)
+            } else {
+              props.setGrassCurePercentage(null)
             }
           }}
         />
