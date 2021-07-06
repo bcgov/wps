@@ -38,6 +38,7 @@ const useStyles = makeStyles({
 
 const FBCResultTable = (props: Props) => {
   const classes = useStyles()
+  console.log(props.fireBehaviourResultStations)
 
   const DECIMAL_PLACES = 1
 
@@ -105,18 +106,37 @@ const FBCResultTable = (props: Props) => {
                 <TableCell>BUI</TableCell>
                 <TableCell>FWI</TableCell>
                 <TableCell>
-                  DGR
-                  <br />
-                  CL
-                </TableCell>
-                <TableCell>
                   ROS
                   <br />
                   (m/min)
                 </TableCell>
               </TableRow>
             </TableHead>
-            <TableBody>{/** TODO */}</TableBody>
+            <TableBody>
+              {props.fireBehaviourResultStations.map(stationResult => {
+                return (
+                  <TableRow>
+                    <TableCell>Name todo</TableCell>
+                    <TableCell>{stationResult.elevation}</TableCell>
+                    <TableCell>{stationResult.fuel_type}</TableCell>
+                    <TableCell>{stationResult.status}</TableCell>
+                    <TableCell>{stationResult.temp}</TableCell>
+                    <TableCell>{stationResult.rh}</TableCell>
+                    <TableCell>{stationResult.wind_direction}</TableCell>
+                    <TableCell>{stationResult.wind_speed}</TableCell>
+                    <TableCell>{stationResult.precipitation}</TableCell>
+                    <TableCell>{stationResult.grass_cure}</TableCell>
+                    <TableCell>{stationResult.fine_fuel_moisture_code}</TableCell>
+                    <TableCell>{stationResult.duff_moisture_code}</TableCell>
+                    <TableCell>{stationResult.drought_code}</TableCell>
+                    <TableCell>{stationResult.initial_spread_index}</TableCell>
+                    <TableCell>{stationResult.build_up_index}</TableCell>
+                    <TableCell>{stationResult.fire_weather_index}</TableCell>
+                    <TableCell>{stationResult.rate_of_spread}</TableCell>
+                  </TableRow>
+                )
+              })}
+            </TableBody>
           </Table>
         </TableContainer>
       </Paper>
