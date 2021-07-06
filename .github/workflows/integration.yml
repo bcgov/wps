@@ -49,24 +49,32 @@ jobs:
         with:
           r-version: ${{ matrix.R }}
 
-      - uses: actions/cache@v2
-        with:
-          path: ~/.local/share/renv
-          key: ${{ runner.os }}-renv-${{ hashFiles('**/renv.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-renv-
+      # - uses: actions/cache@v2
+      #   with:
+      #     path: ~/.local/share/renv
+      #     key: ${{ runner.os }}-renv-${{ hashFiles('**/renv.lock') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-renv-
 
-      - name: Install renv
-        run: |
-          install.packages("renv")
-          renv::install("Rcpp", dependencies = TRUE)
-          renv::install("cffdrs", dependencies = TRUE)
-        shell: Rscript {0}
+      # - name: Install renv
+      #   run: |
+      #     install.packages("renv")
+      #     renv::install("devtools", dependencies = TRUE)
+      #     renv::install("Rcpp", dependencies = TRUE)
+      #     renv::install("cffdrs", dependencies = TRUE)
+      #   shell: Rscript {0}
 
-      - name: Restore environment
+      # - name: Restore environment
+      #   run: |
+      #     renv::consent(TRUE)
+      #     renv::restore()
+      #   shell: Rscript {0}
+
+      - name: Install R stuff
         run: |
-          renv::consent(TRUE)
-          renv::restore()
+          install.packages("devtools", dep = TRUE)
+          install.packages("Rcpp", dep = TRUE)
+          install.packages("cffdrs", dep = TRUE)
         shell: Rscript {0}
 
       - name: Setup kernel for react, increase watchers
