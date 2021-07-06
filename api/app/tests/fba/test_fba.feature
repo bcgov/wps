@@ -39,3 +39,4 @@ Feature: /fbc/
             | o1b_90curing_request.json  | 200         |                            |
             | s1_request.json            | 200         |                            |
             | s2_request.json            | 200         |                            |
+            | s3_request.json            | 200         |                            |
