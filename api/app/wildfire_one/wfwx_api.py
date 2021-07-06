@@ -307,6 +307,7 @@ async def get_dailies(session: ClientSession, header: dict, wfwx_stations: List[
                                                                              fuel_type=station.fuel_type,
                                                                              time_of_interest=station.date,
                                                                              percentage_conifer=station.percentage_conifer,
+                                                                             percentage_dead_balsam_fir=station.percentage_dead_balsam_fir,
                                                                              grass_cure=station.grass_cure,
                                                                              crown_base_height=station.crown_base_height,
                                                                              lat=wfwx_station.lat,

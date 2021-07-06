@@ -11,6 +11,7 @@ class StationRequest(BaseModel):
     date: date
     fuel_type: str
     percentage_conifer: Optional[float]
+    percentage_dead_balsam_fir: Optional[float]
     grass_cure: Optional[float]
     crown_base_height: Optional[float]
 

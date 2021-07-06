@@ -16,7 +16,8 @@ from app.utils.time import get_julian_date
 logger = logging.getLogger(__name__)
 
 
-def _none2null(none_obj):
+def _none2null(_):
+    """ Turn None values into null """
     return robjs.r("NULL")
 
 
@@ -94,17 +95,21 @@ def rate_of_spread(fuel_type: str,  # pylint: disable=too-many-arguments, disabl
                    bui: float,
                    fmc: float,
                    sfc: float,
-                   pc: float = NULL,
-                   cc: float = NULL,
-                   pdf: float = NULL,
-                   cbh: float = NULL):
-    """ Computes ROS by delegating to cffdrs R package """
+                   pc: float = None,
+                   cc: float = None,
+                   pdf: float = None,
+                   cbh: float = None):
+    """ Computes ROS by delegating to cffdrs R package 
+    pdf: Percent Dead Balsam Fir (%)
+    """
     if fuel_type is None or isi is None or bui is None or sfc is None:
         message = PARAMS_ERROR_MESSAGE + \
             "fuel_type: {fuel_type}, isi: {isi}, bui: {bui}, fmc: {fmc}, sfc: {sfc}"
         raise CFFDRSException(message)
-    # pylint: disable=protected-access, no-member, line-too-long
 
+    # For some reason, the registered converter can't turn a None to a NULL, but we need to
+    # set these to NULL, despite setting a converter for None to NULL, because it it can only
+    # convert a NULL to NULL. Doesn't make sense? Exactly.
     if pc is None:
         pc = NULL
     if cc is None:
@@ -113,7 +118,12 @@ def rate_of_spread(fuel_type: str,  # pylint: disable=too-many-arguments, disabl
         pdf = NULL
     if cbh is None:
         cbh = NULL
-    result = CFFDRS.instance().cffdrs._ROScalc(FUELTYPE=fuel_type, ISI=isi, BUI=bui, FMC=fmc, SFC=sfc,
+    # pylint: disable=protected-access, no-member, line-too-long
+    result = CFFDRS.instance().cffdrs._ROScalc(FUELTYPE=fuel_type,
+                                               ISI=isi,
+                                               BUI=bui,
+                                               FMC=fmc,
+                                               SFC=sfc,
                                                PC=pc,
                                                PDF=pdf,
                                                CC=cc,

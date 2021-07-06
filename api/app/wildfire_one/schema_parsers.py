@@ -146,7 +146,11 @@ def parse_to_StationResponse(raw_daily, station: FBACalculatorWeatherStation) ->
     sfc = surface_fuel_consumption(station.fuel_type, bui, ffmc, station.percentage_conifer)
     lb_ratio = length_to_breadth_ratio(station.fuel_type, raw_daily.get('windSpeed', None))
     ros = rate_of_spread(station.fuel_type, isi, bui, fmc, sfc,
-                         station.percentage_conifer, station.grass_cure)
+                         pc=station.percentage_conifer,
+                         cc=station.grass_cure,
+                         pdf=station.percentage_dead_balsam_fir,
+                         cbh=station.crown_base_height
+                         )
     cfb = crown_fraction_burned(station.fuel_type, fmc, sfc, ros)
     return StationResponse(
         station_code=station.code,
