@@ -7,7 +7,7 @@ from typing import Generator, List
 from app.db.models.observations import HourlyActual
 from app.schemas.fba_calc import StationResponse
 from app.schemas.stations import WeatherStation
-from app.utils.cffdrs import crown_fraction_burned, foliar_moisture_content, head_fire_intensity, length_to_breadth_ratio, rate_of_spread, surface_fuel_consumption
+from app.utils.cffdrs import crown_fraction_burned, foliar_moisture_content, get_ffmc_for_hfi_10000, get_ffmc_for_hfi_4000, head_fire_intensity, length_to_breadth_ratio, rate_of_spread, surface_fuel_consumption
 from app.utils.dewpoint import compute_dewpoint
 from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.schemas.observations import WeatherReading
@@ -181,6 +181,8 @@ def parse_to_StationResponse(raw_daily, station: FBACalculatorWeatherStation) ->
         flame_length=get_approx_flame_length(hfi),
         sixty_minute_fire_size=get_60_minutes_fire_size(lb_ratio, ros),
         thirty_minute_fire_size=get_30_minutes_fire_size(lb_ratio, ros),
+        ffmc_for_hfi_4000=get_ffmc_for_hfi_4000(station, bui, ffmc, ros),
+        ffmc_for_hfi_10000=get_ffmc_for_hfi_10000(station, bui, ffmc, ros)
     )
 
 
