@@ -49,9 +49,11 @@ jobs:
         with:
           r-version: ${{ matrix.R }}
 
-      - uses: actions/cache@v2
+      - name: Cache renv (api)
+        uses: actions/cache@v2
         with:
-          path: ~/.local/share/renv
+          # path: ~/.local/share/renv
+          path: /home/runner/work/_temp/Library
           key: ${{ runner.os }}-renv-${{ hashFiles('**/renv.lock') }}
           restore-keys: |
             ${{ runner.os }}-renv-
@@ -64,7 +66,7 @@ jobs:
       #     renv::install("cffdrs", dependencies = TRUE)
       #   shell: Rscript {0}
 
-      - name: Install renv
+      - name: Install renv (api)
         run: |
           install.packages("renv")
           renv::install("cffdrs", dependencies = TRUE)
