@@ -12,11 +12,13 @@ import {
   MORECAST_ROUTE,
   HFI_CALC_ROUTE,
   C_HAINES_ROUTE,
-  FIRE_BEHAVIOR_CALC_ROUTE
+  FIRE_BEHAVIOR_CALC_ROUTE,
+  FBC_TEST_GRID
 } from 'utils/constants'
 import MoreCastPage from 'features/fireWeather/pages/MoreCastPage'
 import { NoMatchPage } from 'features/fireWeather/pages/NoMatchPage'
 import { FireBehaviourCalculator } from 'features/fireBehaviourCalculator/FireBehaviourCalculatorPage'
+import { FireBehaviourCalculatorGrid } from 'features/fireBehaviourCalculator/FireBehaviourCalculatorGridPage'
 
 const shouldShowDisclaimer = HIDE_DISCLAIMER === 'false' || HIDE_DISCLAIMER === undefined
 const shouldAuthenticate =
@@ -52,6 +54,12 @@ const Routes: React.FunctionComponent = () => {
         <Route path={FIRE_BEHAVIOR_CALC_ROUTE}>
           <AuthWrapper shouldAuthenticate={shouldAuthenticate}>
             <FireBehaviourCalculator />
+          </AuthWrapper>
+        </Route>
+
+        <Route path={FBC_TEST_GRID}>
+          <AuthWrapper shouldAuthenticate={shouldAuthenticate}>
+            <FireBehaviourCalculatorGrid />
           </AuthWrapper>
         </Route>
 
