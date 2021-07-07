@@ -153,19 +153,19 @@ jobs:
           source ~/.poetry/env
           poetry install
 
+      - name: Lint (api)
+        # We run lint before unit tests, only because it runs faster, so we'll reach a fail condition sooner.
+        working-directory: ./api
+        run: |
+          source ~/.poetry/env
+          poetry run pylint --rcfile=.pylintrc app/*.py app/**/*.py
+
       - name: Unit Test with coverage (api)
         working-directory: ./api
         run: |
           source ~/.poetry/env
           export LD_LIBRARY_PATH=$(poetry run python -m rpy2.situation LD_LIBRARY_PATH):${LD_LIBRARY_PATH}
           ORIGINS=testorigin poetry run coverage run --source=app -m pytest -o log_cli=true --disable-warnings -vvv
-
-      - name: Lint (api)
-        # NOTE: swap linting back above api
-        working-directory: ./api
-        run: |
-          source ~/.poetry/env
-          poetry run pylint --rcfile=.pylintrc app/*.py app/**/*.py
 
       - name: Create coverage report (api)
         # Create coverage report, and then replace occurrences of
