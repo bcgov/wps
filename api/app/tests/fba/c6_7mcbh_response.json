@@ -21,7 +21,7 @@
             "fire_weather_index": 35.947,
             "head_fire_intensity": 12636.602279247525,
             "rate_of_spread": 10.786852004316788,
-            "fire_type": "S",
+            "fire_type": "IC",
             "percentage_crown_fraction_burned": 0.7796827205050423,
             "flame_length": 6.490146962703676,
             "sixty_minute_fire_size": 23.37698397014722,
