@@ -49,6 +49,8 @@ FUEL_TYPE_LOOKUP = {"C1": {"PC": 100, "PDF": 0, "CC": None, "CBH": 2},
                     "M3": {"PC": 0, "PDF": 60, "CC": None, "CBH": 6},
                     # 3 different PDF configurations for M4. Opted for 60%.
                     "M4": {"PC": 0, "PDF": 60, "CC": None, "CBH": 6},
+                    # NOTE! I think having a default of 0 is dangerous, I think we should rather just
+                    # fail to calculate ROS, and say, unknown.
                     "O1A": {"PC": 0, "PDF": 0, "CC": 0, "CBH": 1},
                     "O1B": {"PC": 0, "PDF": 0, "CC": 0, "CBH": 1},
                     "S1": {"PC": 0, "PDF": 0, "CC": None, "CBH": 1},
@@ -157,8 +159,11 @@ def generate_station_daily(raw_daily, station: WFWXWeatherStation, fuel_type: st
     fmc = cffdrs.foliar_moisture_content(station.lat, station.long, station.elevation, get_julian_date_now())
     sfc = cffdrs.surface_fuel_consumption(fuel_type, bui, ffmc, pc)
 
+    cc = raw_daily.get('grasslandCuring')
+    if cc is None:
+        cc = FUEL_TYPE_LOOKUP[fuel_type]["CC"]
     ros = cffdrs.rate_of_spread(fuel_type, isi, bui, fmc, sfc, pc=pc,
-                                cc=raw_daily.get('grasslandCuring', cc),
+                                cc=cc,
                                 pdf=pdf,
                                 cbh=cbh)
     return StationDaily(
