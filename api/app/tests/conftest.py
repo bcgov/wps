@@ -14,7 +14,7 @@ import app.utils.s3
 from app.utils.time import get_pst_tz
 from app import auth
 from app.tests.common import (
-    MockJWTDecode, MockRLibCFFDRS, default_aiobotocore_get_session, default_mock_requests_get,
+    MockJWTDecode, default_aiobotocore_get_session, default_mock_requests_get,
     default_mock_requests_post, default_mock_requests_session_get,
     default_mock_requests_session_post)
 from app.db.models import PredictionModel, PredictionModelRunTimestamp
@@ -132,8 +132,7 @@ def mock_session(monkeypatch):
     """ Ensure that all unit tests mock out the database session by default! """
     # pylint: disable=unused-argument
 
-    @contextmanager
-    def mock_get_session_scope(*args) -> Generator[Session, None, None]:
+    def mock_get_session(*args) -> UnifiedAlchemyMagicMock:
         """ return a session with a bare minimum database that should be good for most unit tests. """
         prediction_model = PredictionModel(id=1,
                                            abbreviation='GDPS',
@@ -154,9 +153,9 @@ def mock_session(monkeypatch):
                 [prediction_model_run]
             )
         ])
-        yield session
-    monkeypatch.setattr(app.db.database, 'get_read_session_scope', mock_get_session_scope)
-    monkeypatch.setattr(app.db.database, 'get_write_session_scope', mock_get_session_scope)
+        return session
+    monkeypatch.setattr(app.db.database, '_get_write_session', mock_get_session)
+    monkeypatch.setattr(app.db.database, '_get_read_session', mock_get_session)
 
 
 @pytest.fixture()
@@ -184,15 +183,6 @@ def mock_requests_session(monkeypatch):
     monkeypatch.setattr(requests.Session, 'post',
                         default_mock_requests_session_post)
     return monkeypatch
-
-
-# @pytest.fixture()
-# def mock_cffdrs(monkeypatch):
-#     """ Patch all calls to CFFDRS singleton """
-#     # pylint: disable=unused-argument
-#     def mock_function(*args, **kwargs):
-#         return MockRLibCFFDRS()
-#     monkeypatch.setattr(app.utils.r_importer, "import_cffsdrs", mock_function)
 
 
 @pytest.fixture(autouse=True)

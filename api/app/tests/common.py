@@ -131,19 +131,6 @@ class DefaultMockAioBaseClient:
         """Close all http connections."""
 
 
-class MockRLibCFFDRS():
-    """ CFFDRS library mock."""
-
-    def _ROScalc(self, **kwargs):  # pylint: disable=invalid-name, no-self-use, unused-argument
-        return [1.2966988409822604e-05]
-
-    def _FMCcalc(self, **kwargs):  # pylint: disable=invalid-name, no-self-use, unused-argument
-        return [1]
-
-    def _SFCcalc(self, **kwargs):  # pylint: disable=invalid-name, no-self-use, unused-argument
-        return [1]
-
-
 def default_aiobotocore_get_session():
     """ Default session stub """
     return DefaultMockAioSession()

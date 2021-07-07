@@ -1,7 +1,6 @@
 """ Routers for Fire Behaviour Advisory Calculator """
 
 import logging
-from typing import List
 from aiohttp.client import ClientSession
 from fastapi import APIRouter, Depends
 from app.auth import authentication_required, audit
