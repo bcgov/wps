@@ -186,13 +186,13 @@ def mock_requests_session(monkeypatch):
     return monkeypatch
 
 
-@pytest.fixture()
-def mock_cffdrs(monkeypatch):
-    """ Patch all calls to CFFDRS singleton """
-    # pylint: disable=unused-argument
-    def mock_function(*args, **kwargs):
-        return MockRLibCFFDRS()
-    monkeypatch.setattr(app.utils.r_importer, "import_cffsdrs", mock_function)
+# @pytest.fixture()
+# def mock_cffdrs(monkeypatch):
+#     """ Patch all calls to CFFDRS singleton """
+#     # pylint: disable=unused-argument
+#     def mock_function(*args, **kwargs):
+#         return MockRLibCFFDRS()
+#     monkeypatch.setattr(app.utils.r_importer, "import_cffsdrs", mock_function)
 
 
 @pytest.fixture(autouse=True)
