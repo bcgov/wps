@@ -44,7 +44,7 @@ class StationResponse(BaseModel):
     head_fire_intensity: float
     rate_of_spread: float
     fire_type: str
-    percentage_crown_fraction_burned: float
+    percentage_crown_fraction_burned: Optional[float]
     flame_length: float
     sixty_minute_fire_size: float
     thirty_minute_fire_size: float

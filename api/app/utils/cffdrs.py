@@ -1,16 +1,12 @@
 """ This module contains functions for computing fire weather metrics.
 """
+import logging
 import rpy2.robjects as robjs
 import rpy2.robjects.conversion as cv
-import datetime
-import logging
-from typing import Optional
-
 from rpy2.rinterface import NULL
 from app.utils.fba_calculator import FBACalculatorWeatherStation
 import app.utils.r_importer
 from app.utils.singleton import Singleton
-from app.utils.time import get_julian_date
 
 
 logger = logging.getLogger(__name__)
@@ -57,54 +53,23 @@ class CFFDRSException(Exception):
 # To store in DB: PC, PDF, CC, CBH (attached to fuel type, red book)
 PARAMS_ERROR_MESSAGE = "One or more params passed to R call is None."
 
-# PC, PDF, CC, CDH from the Red Book. Assumes values of 1 CBH.
-# CC: Assume values of None for non grass types, and 0 for O1A and O1B.
-# TODO: Store then in the DB as columns in FuelType
-FUEL_TYPE_LOOKUP = {"C1": {"PC": 100, "PDF": 0, "CC": None, "CBH": 2},
-                    "C2": {"PC": 100, "PDF": 0, "CC": None, "CBH": 3},
-                    "C3": {"PC": 100, "PDF": 0, "CC": None, "CBH": 8},
-                    "C4": {"PC": 100, "PDF": 0, "CC": None, "CBH": 4},
-                    "C5": {"PC": 100, "PDF": 0, "CC": None, "CBH": 18},
-                    # There's a 2m and 7m C6 in RB. Opted for 7m.
-                    "C6": {"PC": 100, "PDF": 0, "CC": None, "CBH": 7},
-                    "C7": {"PC": 100, "PDF": 0, "CC": None, "CBH": 10},
-                    # No CBH listed in RB fire intensity class table for D1.
-                    # Using default CBH value of 3, as specified in fbp.Rd in cffdrs R package.
-                    "D1": {"PC": 0, "PDF": 0, "CC": None, "CBH": 3},
-                    # No CBH listed in RB fire intensity class table for D2.
-                    # Using default CBH value of 3, as specified in fbp.Rd in cffdrs R package.
-                    "D2": {"PC": 0, "PDF": 0, "CC": None, "CBH": 3},
-                    # 3 different PC configurations for M1. Opted for 50%.
-                    "M1": {"PC": 50, "PDF": 0, "CC": None, "CBH": 6},
-                    # 3 different PC configurations for M2. Opted for 50%.
-                    "M2": {"PC": 50, "PDF": 0, "CC": None, "CBH": 6},
-                    # 3 different PDF configurations for M3. Opted for 60%.
-                    "M3": {"PC": 0, "PDF": 60, "CC": None, "CBH": 6},
-                    # 3 different PDF configurations for M4. Opted for 60%.
-                    "M4": {"PC": 0, "PDF": 60, "CC": None, "CBH": 6},
-                    "O1A": {"PC": 0, "PDF": 0, "CC": 0, "CBH": 1},
-                    "O1B": {"PC": 0, "PDF": 0, "CC": 0, "CBH": 1},
-                    "S1": {"PC": 0, "PDF": 0, "CC": None, "CBH": 1},
-                    "S2": {"PC": 0, "PDF": 0, "CC": None, "CBH": 1},
-                    "S3": {"PC": 0, "PDF": 0, "CC": None, "CBH": 1}
-                    }
-
 
 def rate_of_spread(fuel_type: str,  # pylint: disable=too-many-arguments, disable=invalid-name
                    isi: float,
                    bui: float,
                    fmc: float,
                    sfc: float,
-                   pc: float = None,
-                   cc: float = None,
-                   pdf: float = None,
-                   cbh: float = None):
-    """ Computes ROS by delegating to cffdrs R package 
+                   pc: float,
+                   cc: float,
+                   pdf: float,
+                   cbh: float):
+    """ Computes ROS by delegating to cffdrs R package.
     pdf: Percent Dead Balsam Fir (%)
     """
     if fuel_type is None or isi is None or bui is None or sfc is None:
         message = PARAMS_ERROR_MESSAGE + \
-            "fuel_type: {fuel_type}, isi: {isi}, bui: {bui}, fmc: {fmc}, sfc: {sfc}"
+            "fuel_type: {fuel_type}, isi: {isi}, bui: {bui}, fmc: {fmc}, sfc: {sfc}".format(
+                fuel_type=fuel_type, isi=isi, bui=bui, fmc=fmc, sfc=sfc)
         raise CFFDRSException(message)
 
     logger.info('calling _ROScalc(FUELTYPE=%s, ISI=%s, BUI=%s, FMC=%s, SFC=%s, PC=%s, PDF=%s, CC=%s, CBH=%s)',
@@ -143,18 +108,27 @@ def rate_of_spread(fuel_type: str,  # pylint: disable=too-many-arguments, disabl
 #        SFC: Surface Fuel Consumption (kg/m^2)
 
 
-def surface_fuel_consumption(fuel_type: str, bui: float, ffmc: float, pc: Optional[float]):
+def surface_fuel_consumption(  # pylint: disable=invalid-name
+        fuel_type: str,
+        bui: float,
+        ffmc: float,
+        pc: float):
     """ Computes SFC by delegating to cffdrs R package
         Assumes a standard GFL of 3.5 kg/m ^ 2.
         NOTE: according to cffdrs R documentation, the default value for GFL is 0.35 kg/m^2, not 3.5
     """
     if fuel_type is None or bui is None or ffmc is None:
         message = PARAMS_ERROR_MESSAGE + \
-            "fuel_type: {fuel_type}, bui: {bui}, ffmc: {ffmc}"
+            "fuel_type: {fuel_type}, bui: {bui}, ffmc: {ffmc}".format(fuel_type=fuel_type, bui=bui, ffmc=ffmc)
         raise CFFDRSException(message)
-    # pylint: disable=protected-access, no-member, line-too-long
-    result = CFFDRS.instance().cffdrs._SFCcalc(FUELTYPE=fuel_type, BUI=bui, FFMC=ffmc,
-                                               PC=pc if pc is not None else FUEL_TYPE_LOOKUP[fuel_type]["PC"], GFL=3.5)
+    if pc is None:
+        pc = NULL
+    # pylint: disable=protected-access, no-member
+    result = CFFDRS.instance().cffdrs._SFCcalc(FUELTYPE=fuel_type,
+                                               BUI=bui,
+                                               FFMC=ffmc,
+                                               PC=pc,
+                                               GFL=3.5)
     return result[0]
 
     # Args:
@@ -202,13 +176,19 @@ def length_to_breadth_ratio(fuel_type: str, wind_speed: float):
     #   CFB, CSI, RSO depending on which option was selected.
 
 
-def crown_fraction_burned(fuel_type: str, fmc: float, sfc: float, ros: float):
+def crown_fraction_burned(fuel_type: str, fmc: float, sfc: float, ros: float, cbh: float):
     """ Computes Crown Fraction Burned (CFB) by delegating to cffdrs R package.
     Value returned will be between 0-1.
     """
     # pylint: disable=protected-access, no-member
+    if cbh is None:
+        cbh = NULL
+    if cbh is None or fmc is None:
+        message = PARAMS_ERROR_MESSAGE + \
+            "fuel_type: {fuel_type}, cbh: {cbh}, fmc: {fmc}".format(fuel_type=fuel_type, cbh=cbh, fmc=fmc)
+        raise CFFDRSException(message)
     result = CFFDRS.instance().cffdrs._CFBcalc(FUELTYPE=fuel_type, FMC=fmc, SFC=sfc,
-                                               ROS=ros, CBH=FUEL_TYPE_LOOKUP[fuel_type]["CBH"], option="CFB")
+                                               ROS=ros, CBH=cbh)
     return result[0]
 
     # Args:
@@ -225,30 +205,38 @@ def crown_fraction_burned(fuel_type: str, fmc: float, sfc: float, ros: float):
     #        CFC: Crown Fuel Consumption (kg/m^2)
 
 
-def total_fuel_consumption(fuel_type: str, cfb: float, sfc: float, pc: Optional[float]):
+def total_fuel_consumption(  # pylint: disable=invalid-name
+        fuel_type: str, cfb: float, sfc: float, pc: float, pdf: float):
     """ Computes Total Fuel Consumption (TFC), which is a required input to calculate Head Fire Intensity.
     TFC is calculated by delegating to cffdrs R package.
     """
+    if cfb is None:
+        message = PARAMS_ERROR_MESSAGE + \
+            "fuel_type: {fuel_type}, cfb: {cfb}".format(fuel_type=fuel_type, cfb=cfb)
+        raise CFFDRSException(message)
     # According to fbp.Rd in cffdrs R package, Crown Fuel Load (CFL) can use default value of 1.0
     # without causing major impacts on final output.
     cfl = 1.0
+    if pc is None:
+        pc = NULL
+    if pdf is None:
+        pdf = NULL
     # pylint: disable=protected-access, no-member
     result = CFFDRS.instance().cffdrs._TFCcalc(FUELTYPE=fuel_type, CFL=cfl, CFB=cfb, SFC=sfc,
-                                               PC=pc if pc is not None else FUEL_TYPE_LOOKUP[fuel_type]["PC"],
-                                               PDF=FUEL_TYPE_LOOKUP[fuel_type]["PDF"], option="TFC")
+                                               PC=pc,
+                                               PDF=pdf)
     return result[0]
 
 
-def head_fire_intensity(station: FBACalculatorWeatherStation, bui: float, ffmc: float, isi: float, ros: float):
+def head_fire_intensity(
+        station: FBACalculatorWeatherStation, bui: float, ffmc: float, ros: float, cfb: float):
     """ Computes Head Fire Intensity (HFI) by delegating to cffdrs R package.
     Calculating HFI requires a number of inputs that must be calculated first. This function
     first makes method calls to calculate the necessary intermediary values.
     """
     sfc = surface_fuel_consumption(station.fuel_type, bui, ffmc, station.percentage_conifer)
-    fmc = foliar_moisture_content(station.lat, station.long, station.elevation,
-                                  get_julian_date(station.time_of_interest))
-    cfb = crown_fraction_burned(station.fuel_type, fmc, sfc, ros)
-    tfc = total_fuel_consumption(station.fuel_type, cfb, sfc, station.percentage_conifer)
+    tfc = total_fuel_consumption(station.fuel_type, cfb, sfc,
+                                 station.percentage_conifer, station.percentage_dead_balsam_fir)
     # pylint: disable=protected-access, no-member
     result = CFFDRS.instance().cffdrs._FIcalc(FC=tfc, ROS=ros)
     return result[0]

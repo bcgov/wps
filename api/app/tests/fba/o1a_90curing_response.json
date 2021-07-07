@@ -19,11 +19,11 @@
             "build_up_index": 117.899,
             "duff_moisture_code": 103.923,
             "fire_weather_index": 35.947,
-            "head_fire_intensity": 35876.34383104922,
+            "head_fire_intensity": 27918.17986977184,
             "rate_of_spread": 26.58874273311604,
             "fire_type": "S",
-            "percentage_crown_fraction_burned": 0.9976858804692005,
-            "flame_length": 10.935621279569078,
+            "percentage_crown_fraction_burned": 0.0,
+            "flame_length": 9.646792190459278,
             "sixty_minute_fire_size": 64.89298458922194,
             "thirty_minute_fire_size": 16.223246147305485
         }

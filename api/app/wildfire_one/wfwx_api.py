@@ -18,9 +18,9 @@ from app.schemas.stations import (WeatherStation,
                                   WeatherVariables)
 from app.wildfire_one.schema_parsers import (FBACalculatorWeatherStation, WFWXWeatherStation,
                                              parse_station,
-                                             parse_to_StationDaily,
+                                             generate_StationDaily,
                                              parse_hourly,
-                                             parse_hourly_actual, parse_to_StationResponse,
+                                             parse_hourly_actual, generate_StationResponse,
                                              station_list_mapper,
                                              wfwx_station_list_mapper)
 from app.wildfire_one.query_builders import (BuildQueryAllActiveStations,
@@ -271,7 +271,7 @@ async def get_dailies_lookup_fuel_types(  # pylint: disable=too-many-locals
         wfwx_id = raw_daily.get('stationId', None)
         station = station_dict.get(wfwx_id, None)
         fuel_type = fuel_type_dict.get(station.code, None)
-        daily = parse_to_StationDaily(raw_daily, station, fuel_type)
+        daily = generate_StationDaily(raw_daily, station, fuel_type)
         dailies.append(daily)
     return dailies
 
@@ -324,6 +324,6 @@ async def get_dailies(session: ClientSession, header: dict, wfwx_stations: List[
     async for raw_daily in dailies_iterator:
         wfwx_id = raw_daily.get('stationId', None)
         station: FBACalculatorWeatherStation = station_dict.get(wfwx_id, None)
-        daily = parse_to_StationResponse(raw_daily, station)
+        daily = generate_StationResponse(raw_daily, station)
         station_responses.append(daily)
     return station_responses

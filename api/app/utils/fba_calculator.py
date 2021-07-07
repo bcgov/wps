@@ -47,7 +47,7 @@ def get_60_minutes_fire_size(length_breadth_ratio: float, rate_of_spread: float)
     return (math.pi * math.pow(60 * rate_of_spread, 2)) / (40000 * length_breadth_ratio)
 
 
-def get_fire_type(crown_fraction_burned: int):
+def get_fire_type(fuel_type: str, crown_fraction_burned: int):
     """ Returns Fire Type (as str) based on percentage Crown Fraction Burned (CFB).
     These definitions come from the Red Book (p.69).
     Abbreviations for fire types have been taken from the red book (p.9).
@@ -57,6 +57,10 @@ def get_fire_type(crown_fraction_burned: int):
     10-89%                          Intermittent crown fire     IC
     > 90%                           Continuous crown fire       CC
     """
+    if fuel_type == 'D1':
+        # From red book "crown fire are not expected in deciduous fuel types but high intensity surface fires
+        # can occur."
+        return 'S'
     if crown_fraction_burned < 10:
         return 'S'
     elif crown_fraction_burned < 90:
