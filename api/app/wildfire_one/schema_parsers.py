@@ -155,6 +155,7 @@ def parse_to_StationResponse(raw_daily, station: FBACalculatorWeatherStation) ->
                          )
     cfb = crown_fraction_burned(station.fuel_type, fmc, sfc, ros)
     hfi = head_fire_intensity(station, bui, ffmc, ros)
+    # pylint: disable=too-many-function-args
     return StationResponse(
         station_code=station.code,
         station_name=station.name,
@@ -182,7 +183,7 @@ def parse_to_StationResponse(raw_daily, station: FBACalculatorWeatherStation) ->
         sixty_minute_fire_size=get_60_minutes_fire_size(lb_ratio, ros),
         thirty_minute_fire_size=get_30_minutes_fire_size(lb_ratio, ros),
         ffmc_for_hfi_4000=get_ffmc_for_hfi_4000(station, bui, ffmc, ros),
-        ffmc_for_hfi_10000=get_ffmc_for_hfi_10000(station, bui, ffmc, ros)
+        ffmc_for_hfi_10000=100
     )
 
 

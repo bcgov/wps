@@ -2,6 +2,7 @@
 """
 
 import logging
+import math
 from typing import Optional
 import rpy2.robjects as robjs
 import rpy2.robjects.conversion as cv
@@ -255,13 +256,14 @@ def head_fire_intensity(station: FBACalculatorWeatherStation, bui: float, ffmc: 
                                   get_julian_date(station.time_of_interest))
     cfb = crown_fraction_burned(station.fuel_type, fmc, sfc, ros)
     tfc = total_fuel_consumption(station.fuel_type, cfb, sfc, station.percentage_conifer)
+    logger.info('calling _FIcalc(FC=%s, ROS=%s) based on BUI=%s, FFMC=%s)', tfc, ros, bui, ffmc)
     # pylint: disable=protected-access, no-member
     result = CFFDRS.instance().cffdrs._FIcalc(FC=tfc, ROS=ros)
+    logger.info('Calculated HFI {}'.format(result[0]))
     return result[0]
 
+
 # TODO: THIS CODE DOESN'T WORK. TESTS GET STUCK. NEED BETTER ALGORITHM
-
-
 def get_ffmc_for_hfi_4000(station: FBACalculatorWeatherStation, bui: float, ffmc: float, ros: float):
     """ Returns a floating point value for minimum FFMC required (holding all other values constant)
     before HFI reaches 4000 kW/m.
@@ -273,11 +275,22 @@ def get_ffmc_for_hfi_4000(station: FBACalculatorWeatherStation, bui: float, ffmc
     print('Calculating FFMC for 4000 HFI...')
     print('FFMC: {}, HFI: {}, Error: {}'.format(experimental_ffmc, experimental_hfi, error_hfi))
 
+    # FFMC has upper bound 100
+    # exit condition 1: FFMC of 100 still doesn't cause HFI = 4000
+    # exit condition 2: relative error within 1%
+
     while abs(error_hfi) > 0.01:
+        if experimental_ffmc >= 99.9 and experimental_hfi < 4000:
+            # TODO how to return indicator of this? Right now it's expecting simple numerical FFMC value
+            print('Max FFMC of {} results in HFI of {}'.format(experimental_ffmc, experimental_hfi))
+            break
+        if experimental_ffmc == 0:
+            print('Min FFMC of 0 reached with result HFI {}'.format(experimental_hfi))
+            break
         if error_hfi > 0:  # if the error value is a positive number, make experimental FFMC value bigger
-            experimental_ffmc = experimental_ffmc * error_hfi
+            experimental_ffmc = min(100, experimental_ffmc + ((100 - experimental_ffmc)/2))
         else:  # if the error value is a negative number, need to make experimental FFMC value smaller
-            experimental_ffmc = experimental_ffmc / abs(error_hfi)
+            experimental_ffmc = max(0, experimental_ffmc - ((100 - experimental_ffmc)/2))
         experimental_hfi = head_fire_intensity(station, bui, experimental_ffmc, ros)
         error_hfi = (4000 - experimental_hfi) / 4000
         print('FFMC: {}, HFI: {}, Error: {}'.format(experimental_ffmc, experimental_hfi, error_hfi))
