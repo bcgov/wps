@@ -23,7 +23,6 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
   const [stationsOfInterest, setStationsOfInterest] = useState(322)
   const [fuelType, setFuelType] = useState('')
   const [grassCurePercentage, setGrassCurePercentage] = useState<number | null>(null)
-  const [numStations, setNumStations] = useState([1])
   const [stationConfigs, setStations] = useState<Set<StationConfig>>(
     new Set([new StationConfig()])
   )
@@ -75,8 +74,8 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
               color="primary"
               spinnercolor="white"
               onClick={() => {
-                numStations.push(1)
-                setNumStations([...numStations])
+                stationConfigs.add(new StationConfig())
+                setStations(new Set(stationConfigs))
               }}
             >
               Add Station
