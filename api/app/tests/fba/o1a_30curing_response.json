@@ -24,8 +24,8 @@
             "fire_type": "S",
             "percentage_crown_fraction_burned": 0.14218018906139762,
             "flame_length": 1.7798433502141062,
-            "sixty_minute_fire_size": 6.943947214569794e-06,
-            "thirty_minute_fire_size": 1.7359868036424485e-06
+            "sixty_minute_fire_size": 0.06943947214569794,
+            "thirty_minute_fire_size": 0.017359868036424485
         }
     ]
 }

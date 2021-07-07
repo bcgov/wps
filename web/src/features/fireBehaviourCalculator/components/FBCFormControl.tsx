@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 
-import { DateTime } from 'luxon'
 import { FormControl, InputLabel, MenuItem, Select, TextField } from '@material-ui/core'
 import DatePicker from './DatePicker'
 import {
@@ -67,8 +66,6 @@ const FBCInputForm = (props: FBCInputFormProps) => {
     dispatch(fetchWxStations(getStations))
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().toISODate())
-
   return (
     <div>
       <FormControl className={classes.formControl}>
@@ -86,7 +83,7 @@ const FBCInputForm = (props: FBCInputFormProps) => {
         </Select>
       </FormControl>
       <FormControl className={classes.formControl}>
-        <DatePicker date={dateOfInterest} onChange={setDateOfInterest} />
+        <DatePicker date={props.dateOfInterest} onChange={props.setDateOfInterest} />
       </FormControl>
       <FormControl className={classes.formControl}>
         <InputLabel id="fbc-fuel-input">Input Fuel Type</InputLabel>
