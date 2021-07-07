@@ -23,13 +23,13 @@ from app.wildfire_one.util import is_station_valid
 
 logger = logging.getLogger(__name__)
 
-
 # PC, PDF, CC, CDH from the Red Book. Assumes values of 1 CBH.
 # CC: Assume values of None for non grass types, and 0 for O1A and O1B.
 # TODO: Store then in the DB as columns in FuelType
+# according to spreadsheet, CFL for C3 is 1.15
 FUEL_TYPE_LOOKUP = {"C1": {"PC": 100, "PDF": 0, "CC": None, "CBH": 2},
                     "C2": {"PC": 100, "PDF": 0, "CC": None, "CBH": 3},
-                    "C3": {"PC": 100, "PDF": 0, "CC": None, "CBH": 8},
+                    "C3": {"PC": 100, "PDF": 0, "CC": None, "CBH": 8, "CFL": 1.15},
                     "C4": {"PC": 100, "PDF": 0, "CC": None, "CBH": 4},
                     "C5": {"PC": 100, "PDF": 0, "CC": None, "CBH": 18},
                     # There's a 2m and 7m C6 in RB. Opted for 7m.
@@ -217,7 +217,9 @@ def generate_station_response(raw_daily, station: FBACalculatorWeatherStation) -
         cfb = cffdrs.crown_fraction_burned(station.fuel_type, fmc=fmc, sfc=sfc,
                                            ros=ros, cbh=station.crown_base_height)
 
-    hfi = cffdrs.head_fire_intensity(station, bui=bui, ffmc=ffmc, ros=ros, cfb=cfb)
+    cfl = FUEL_TYPE_LOOKUP[station.fuel_type].get('CFL', None)
+
+    hfi = cffdrs.head_fire_intensity(station, bui=bui, ffmc=ffmc, ros=ros, cfb=cfb, cfl=cfl)
     ffmc_for_hfi_4000, hfi_when_ffmc_equals_ffmc_for_hfi_4000 = cffdrs.get_ffmc_for_target_hfi(
         station, bui, ffmc, ros, cfb, 4000)
     ffmc_for_hfi_10000, hfi_when_ffmc_equals_ffmc_for_hfi_10000 = cffdrs.get_ffmc_for_target_hfi(

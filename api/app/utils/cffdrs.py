@@ -206,7 +206,7 @@ def crown_fraction_burned(fuel_type: str, fmc: float, sfc: float, ros: float, cb
 
 
 def total_fuel_consumption(  # pylint: disable=invalid-name
-        fuel_type: str, cfb: float, sfc: float, pc: float, pdf: float):
+        fuel_type: str, cfb: float, sfc: float, pc: float, pdf: float, cfl: float):
     """ Computes Total Fuel Consumption (TFC), which is a required input to calculate Head Fire Intensity.
     TFC is calculated by delegating to cffdrs R package.
     """
@@ -216,7 +216,8 @@ def total_fuel_consumption(  # pylint: disable=invalid-name
         raise CFFDRSException(message)
     # According to fbp.Rd in cffdrs R package, Crown Fuel Load (CFL) can use default value of 1.0
     # without causing major impacts on final output.
-    cfl = 1.0
+    if cfl is None:
+        cfl = 1.0
     if pc is None:
         pc = NULL
     if pdf is None:
@@ -236,14 +237,15 @@ def total_fuel_consumption(  # pylint: disable=invalid-name
 
 
 def head_fire_intensity(
-        station: FBACalculatorWeatherStation, bui: float, ffmc: float, ros: float, cfb: float):
+        station: FBACalculatorWeatherStation, bui: float, ffmc: float, ros: float, cfb: float,
+        cfl: float):
     """ Computes Head Fire Intensity (HFI) by delegating to cffdrs R package.
     Calculating HFI requires a number of inputs that must be calculated first. This function
     first makes method calls to calculate the necessary intermediary values.
     """
     sfc = surface_fuel_consumption(station.fuel_type, bui, ffmc, station.percentage_conifer)
     tfc = total_fuel_consumption(station.fuel_type, cfb, sfc,
-                                 station.percentage_conifer, station.percentage_dead_balsam_fir)
+                                 station.percentage_conifer, station.percentage_dead_balsam_fir, cfl)
     logger.info('calling _FIcalc(FC=%s, ROS=%s) based on BUI=%s, FFMC=%s)', tfc, ros, bui, ffmc)
     # pylint: disable=protected-access, no-member
     result = CFFDRS.instance().cffdrs._FIcalc(FC=tfc, ROS=ros)
@@ -253,13 +255,13 @@ def head_fire_intensity(
 
 def get_ffmc_for_target_hfi(
         station: FBACalculatorWeatherStation, bui: float,
-        ffmc: float, ros: float, cfb: float, target_hfi: float):
+        ffmc: float, ros: float, cfb: float, target_hfi: float, cfl: float = None):
     """ Returns a floating point value for minimum FFMC required (holding all other values constant)
     before HFI reaches the target_hfi (in kW/m).
     """
     # start off using the actual FFMC value
     experimental_ffmc = ffmc
-    experimental_hfi = head_fire_intensity(station, bui, experimental_ffmc, ros, cfb)
+    experimental_hfi = head_fire_intensity(station, bui, experimental_ffmc, ros, cfb, cfl)
     error_hfi = (target_hfi - experimental_hfi) / target_hfi
     logger.info('Calculating FFMC for %s target HFI...', target_hfi)
 
@@ -277,7 +279,7 @@ def get_ffmc_for_target_hfi(
             experimental_ffmc = min(101, experimental_ffmc + ((101 - experimental_ffmc)/2))
         else:  # if the error value is a negative number, need to make experimental FFMC value smaller
             experimental_ffmc = max(0, experimental_ffmc - ((101 - experimental_ffmc)/2))
-        experimental_hfi = head_fire_intensity(station, bui, experimental_ffmc, ros, cfb)
+        experimental_hfi = head_fire_intensity(station, bui, experimental_ffmc, ros, cfb, cfl)
         error_hfi = (target_hfi - experimental_hfi) / target_hfi
 
     return (experimental_ffmc, experimental_hfi)
