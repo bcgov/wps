@@ -13,7 +13,7 @@ export class StationConfig {
   _grassCurePercentage: number | undefined
   constructor(
     readonly id: string = uniqueId(),
-    stationCode: number = 322,
+    stationCode: 322,
     fuelType?: FBCFuelType,
     grassCurePercentage?: number
   ) {
