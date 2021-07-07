@@ -7,6 +7,10 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+class CannotCalculateFireTypeError(Exception):
+    """ Exception thrown when fire type cannot be established """
+
+
 class FBACalculatorWeatherStation():  # pylint: disable=too-many-instance-attributes
     """ A combination of station data from WFWX API and user-specified inputs for
     Fire Behaviour Advisory Calculator """
@@ -50,7 +54,7 @@ def get_60_minutes_fire_size(length_breadth_ratio: float, rate_of_spread: float)
     return (math.pi * math.pow(60 * rate_of_spread, 2)) / (40000 * length_breadth_ratio)
 
 
-def get_fire_type(fuel_type: str, crown_fraction_burned: int):
+def get_fire_type(fuel_type: str, crown_fraction_burned: float):
     """ Returns Fire Type (as str) based on percentage Crown Fraction Burned (CFB).
     These definitions come from the Red Book (p.69).
     Abbreviations for fire types have been taken from the red book (p.9).
@@ -64,14 +68,15 @@ def get_fire_type(fuel_type: str, crown_fraction_burned: int):
         # From red book "crown fires are not expected in deciduous fuel types but high intensity surface fires
         # can occur."
         return 'S'
-    if crown_fraction_burned < 10:
+    # crown fraction burnt is a floating point number from 0 to 1 inclusive.
+    if crown_fraction_burned < 0.1:
         return 'S'
-    if crown_fraction_burned < 90:
+    if crown_fraction_burned < 0.9:
         return 'IC'
-    if crown_fraction_burned >= 90:
+    if crown_fraction_burned >= 0.9:
         return 'CC'
     logger.error('Cannot calculate fire type. Invalid Crown Fraction Burned percentage received.')
-    raise Exception
+    raise CannotCalculateFireTypeError
 
 
 def get_approx_flame_length(head_fire_intensity: float):

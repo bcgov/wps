@@ -161,7 +161,7 @@ def length_to_breadth_ratio(fuel_type: str, wind_speed: float):
     #   CFB, CSI, RSO depending on which option was selected.
 
 
-def crown_fraction_burned(fuel_type: str, fmc: float, sfc: float, ros: float, cbh: float):
+def crown_fraction_burned(fuel_type: str, fmc: float, sfc: float, ros: float, cbh: float) -> float:
     """ Computes Crown Fraction Burned (CFB) by delegating to cffdrs R package.
     Value returned will be between 0-1.
     """

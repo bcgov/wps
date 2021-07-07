@@ -76,7 +76,7 @@ def mock_redis(monkeypatch):
         """ mocked redis class """
 
         def __init__(self) -> None:
-            pass
+            """ Mock init """
 
         def get(self, name):  # pylint: disable=unused-argument, no-self-use
             """ mock get """

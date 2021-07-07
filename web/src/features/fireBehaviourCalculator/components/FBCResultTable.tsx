@@ -110,7 +110,7 @@ const FBCResultTable = (props: Props) => {
                   (m/min)
                 </TableCell>
                 <TableCell>Fire Type</TableCell>
-                <TableCell>CFB</TableCell>
+                <TableCell>CFB (%)</TableCell>
                 <TableCell>
                   Flame <br />
                   Length <br /> (m)
@@ -169,7 +169,8 @@ const FBCResultTable = (props: Props) => {
                     </TableCell>
                     <TableCell>{stationResult.fire_type}</TableCell>
                     <TableCell>
-                      {stationResult.percentage_crown_fraction_burned.toFixed(
+                      {/* CFB comes in as a number 0 to 1, so we multiple by 100 to get the percentage */}
+                      {(stationResult.percentage_crown_fraction_burned * 100).toFixed(
                         DECIMAL_PLACES
                       )}
                     </TableCell>
