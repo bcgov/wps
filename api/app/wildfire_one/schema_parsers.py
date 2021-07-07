@@ -150,7 +150,6 @@ def generate_station_daily(raw_daily, station: WFWXWeatherStation, fuel_type: st
     # we use the fuel type lookup to get default values.
     pc = FUEL_TYPE_LOOKUP[fuel_type]["PC"]
     pdf = FUEL_TYPE_LOOKUP[fuel_type]["PDF"]
-    cc = FUEL_TYPE_LOOKUP[fuel_type]["CC"]
     cbh = FUEL_TYPE_LOOKUP[fuel_type]["CBH"]
 
     isi = raw_daily.get('initialSpreadIndex', None)

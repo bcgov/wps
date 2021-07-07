@@ -7,6 +7,10 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+class CannotCalculateFireTypeError(Exception):
+    """ Exception thrown when fire type cannot be established """
+
+
 class FBACalculatorWeatherStation():  # pylint: disable=too-many-instance-attributes
     """ A combination of station data from WFWX API and user-specified inputs for
     Fire Behaviour Advisory Calculator """
@@ -72,7 +76,7 @@ def get_fire_type(fuel_type: str, crown_fraction_burned: float):
     if crown_fraction_burned >= 0.9:
         return 'CC'
     logger.error('Cannot calculate fire type. Invalid Crown Fraction Burned percentage received.')
-    raise Exception
+    raise CannotCalculateFireTypeError
 
 
 def get_approx_flame_length(head_fire_intensity: float):
