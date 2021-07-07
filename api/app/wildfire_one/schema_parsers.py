@@ -219,6 +219,10 @@ def generate_station_response(raw_daily, station: FBACalculatorWeatherStation) -
                                            ros=ros, cbh=station.crown_base_height)
 
     hfi = cffdrs.head_fire_intensity(station, bui=bui, ffmc=ffmc, ros=ros, cfb=cfb)
+    ffmc_for_hfi_4000, hfi_when_ffmc_equals_ffmc_for_hfi_4000 = cffdrs.get_ffmc_for_target_hfi(
+        station, bui, ffmc, ros, cfb, 4000)
+    ffmc_for_hfi_10000, hfi_when_ffmc_equals_ffmc_for_hfi_10000 = cffdrs.get_ffmc_for_target_hfi(
+        station, bui, ffmc, ros, cfb, 10000)
     return StationResponse(
         station_code=station.code,
         station_name=station.name,
@@ -245,8 +249,10 @@ def generate_station_response(raw_daily, station: FBACalculatorWeatherStation) -
         flame_length=get_approx_flame_length(hfi),
         sixty_minute_fire_size=get_60_minutes_fire_size(lb_ratio, ros),
         thirty_minute_fire_size=get_30_minutes_fire_size(lb_ratio, ros),
-        ffmc_for_hfi_4000=cffdrs.get_ffmc_for_hfi_4000(station, bui, ffmc, ros),
-        ffmc_for_hfi_10000=100
+        ffmc_for_hfi_4000=ffmc_for_hfi_4000,
+        hfi_when_ffmc_equals_ffmc_for_hfi_4000=hfi_when_ffmc_equals_ffmc_for_hfi_4000,
+        ffmc_for_hfi_10000=ffmc_for_hfi_10000,
+        hfi_when_ffmc_equals_ffmc_for_hfi_10000=hfi_when_ffmc_equals_ffmc_for_hfi_10000
     )
 
 

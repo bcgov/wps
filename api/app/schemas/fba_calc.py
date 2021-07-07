@@ -48,8 +48,16 @@ class StationResponse(BaseModel):
     flame_length: float
     sixty_minute_fire_size: float
     thirty_minute_fire_size: float
+    # FFMC corresponding to an HFI of approx. 4000
     ffmc_for_hfi_4000: float
+    # HFI when FFMC is equal to value stored in ffmc_for_hfi_4000
+    # (this is used bc max. FFMC is 101. In some cases, HFI will never reach 4000 even with FFMC=101)
+    hfi_when_ffmc_equals_ffmc_for_hfi_4000: float
+    # FFMC corresponding to an HFI of approx. 10,000
     ffmc_for_hfi_10000: float
+    # HFI when FFMC is equal to value stored in ffmc_for_hfi_10000
+    # (this is used bc max. FFMC is 101. In some cases, HFI will never reach 10,000 even with FFMC=101)
+    hfi_when_ffmc_equals_ffmc_for_hfi_10000: float
 
 
 class StationsListResponse(BaseModel):
