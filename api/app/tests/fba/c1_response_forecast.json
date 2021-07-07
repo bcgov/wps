@@ -25,7 +25,11 @@
             "percentage_crown_fraction_burned": 0.5032535744705282,
             "flame_length": 2.9430314284957366,
             "sixty_minute_fire_size": 3.930563799808943,
-            "thirty_minute_fire_size": 0.9826409499522357
+            "thirty_minute_fire_size": 0.9826409499522357,
+            "ffmc_for_hfi_4000": 100.94021875,
+            "hfi_when_ffmc_equals_ffmc_for_hfi_4000": 2648.0221901500468,
+            "ffmc_for_hfi_10000": 100.94021875,
+            "hfi_when_ffmc_equals_ffmc_for_hfi_10000": 2648.0221901500468
         }
     ]
 }
