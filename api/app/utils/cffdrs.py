@@ -38,6 +38,21 @@ class CFFDRSException(Exception):
 # To store in DB: PC, PDF, CC, CBH (attached to fuel type, red book)
 PARAMS_ERROR_MESSAGE = "One or more params passed to R call is None."
 
+#   From cffdrs R package comments:
+#   FUELTYPE: The Fire Behaviour Prediction FuelType
+#        ISI: Initial Spread Index
+#        BUI: Buildup Index
+#        FMC: Foliar Moisture Content
+#        SFC: Surface Fuel Consumption (kg/m^2)
+#         PC: Percent Conifer (%)
+#        PDF: Percent Dead Balsam Fir (%)
+#         CC: Constant (we think this is grass cure.)
+#        CBH: Crown to base height(m)
+
+# Returns:
+#   ROS: Rate of spread (m/min)
+#
+
 
 def rate_of_spread(fuel_type: str,  # pylint: disable=too-many-arguments, disable=invalid-name
                    isi: float,
