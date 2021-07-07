@@ -18,9 +18,9 @@ from app.schemas.stations import (WeatherStation,
                                   WeatherVariables)
 from app.wildfire_one.schema_parsers import (FBACalculatorWeatherStation, WFWXWeatherStation,
                                              parse_station,
-                                             parse_to_StationDaily,
+                                             generate_station_daily,
                                              parse_hourly,
-                                             parse_hourly_actual, parse_to_StationResponse,
+                                             parse_hourly_actual, generate_station_response,
                                              station_list_mapper,
                                              wfwx_station_list_mapper)
 from app.wildfire_one.query_builders import (BuildQueryAllActiveStations,
@@ -271,16 +271,20 @@ async def get_dailies_lookup_fuel_types(  # pylint: disable=too-many-locals
         wfwx_id = raw_daily.get('stationId', None)
         station = station_dict.get(wfwx_id, None)
         fuel_type = fuel_type_dict.get(station.code, None)
-        daily = parse_to_StationDaily(raw_daily, station, fuel_type)
+        daily = generate_station_daily(raw_daily, station, fuel_type)
         dailies.append(daily)
     return dailies
 
 
-async def get_dailies(session: ClientSession, header: dict, wfwx_stations: List[WFWXWeatherStation],
+async def get_dailies(session: ClientSession,
+                      header: dict,
+                      wfwx_stations: List[WFWXWeatherStation],
                       stations: List[StationRequest]) -> List[StationResponse]:
     """ Get the daily actuals/forecasts for the given station ids.
-    This function is used for Fire Behaviour Advisory calculator, where fuel type for station is specified by user input.
+    This function is used for Fire Behaviour Advisory calculator, where fuel type for station is specified by
+    user input.
     """
+    #pylint: disable=too-many-locals
     wfwx_station_ids = [wfwx_station.wfwx_id for wfwx_station in wfwx_stations]
 
     stations.sort(key=lambda x: x.station_code)
@@ -302,28 +306,27 @@ async def get_dailies(session: ClientSession, header: dict, wfwx_stations: List[
     station_responses = []
     station_dict = {}
 
-    for i in range(len(stations)):
-        wfwx_station = wfwx_stations[i]
-        station = stations[i]
+    for (wfwx_station, station) in zip(wfwx_stations, stations):
         if wfwx_station.code == station.station_code:
-            station_dict[wfwx_station.wfwx_id] = FBACalculatorWeatherStation(wfwx_id=wfwx_station.wfwx_id,
-                                                                             code=station.station_code,
-                                                                             elevation=wfwx_station.elevation,
-                                                                             fuel_type=station.fuel_type,
-                                                                             time_of_interest=station.date,
-                                                                             percentage_conifer=station.percentage_conifer,
-                                                                             percentage_dead_balsam_fir=station.percentage_dead_balsam_fir,
-                                                                             grass_cure=station.grass_cure,
-                                                                             crown_base_height=station.crown_base_height,
-                                                                             lat=wfwx_station.lat,
-                                                                             long=wfwx_station.long,
-                                                                             name=wfwx_station.name)
+            station_dict[wfwx_station.wfwx_id] = FBACalculatorWeatherStation(
+                wfwx_id=wfwx_station.wfwx_id,
+                code=station.station_code,
+                elevation=wfwx_station.elevation,
+                fuel_type=station.fuel_type,
+                time_of_interest=station.date,
+                percentage_conifer=station.percentage_conifer,
+                percentage_dead_balsam_fir=station.percentage_dead_balsam_fir,
+                grass_cure=station.grass_cure,
+                crown_base_height=station.crown_base_height,
+                lat=wfwx_station.lat,
+                long=wfwx_station.long,
+                name=wfwx_station.name)
         else:
             logger.error('Error parsing stations requested.')
 
     async for raw_daily in dailies_iterator:
         wfwx_id = raw_daily.get('stationId', None)
         station: FBACalculatorWeatherStation = station_dict.get(wfwx_id, None)
-        daily = parse_to_StationResponse(raw_daily, station)
+        daily = generate_station_response(raw_daily, station)
         station_responses.append(daily)
     return station_responses
