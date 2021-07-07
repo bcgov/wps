@@ -20,30 +20,31 @@ jobs:
           # For sonar-scanner to work properly we can't use a shallow fetch.
           fetch-depth: 0
 
-      # - name: Install libgdal-dev (api)
-      #   # The python gdal and R component relies on libgdal-dev being installed.
-      #   run: |
-      #     sudo apt-get update --fix-missing && sudo apt-get -y install libgdal-dev
-
-      - name: Cache libgdal-dev (api)
-        uses: actions/cache@v2
-        id: cache-libgdal-dev
-        with:
-          path: "~/libgdal-dev"
-          key: "3.0.4"
-
       - name: Install libgdal-dev (api)
         # The python gdal and R component relies on libgdal-dev being installed.
-        env:
-          CACHE_HIT: ${{steps.cache-libgdal-dev.outputs.cache-hit}}
         run: |
-          if [[ "$CACHE_HIT" == 'true' ]]; then
-            sudo cp --verbose --force --recursive ~/libgdal-dev/* /
-          else
-            sudo apt-get update --fix-missing && sudo apt-get -y install libgdal-dev
-            mkdir -p ~/libgdal-dev
-            sudo dpkg -L libgdal-dev | while IFS= read -r f; do if test -f $f; then echo $f; fi; done | xargs cp --parents --target-directory ~/libgdal-dev/
-          fi
+          sudo apt-get update --fix-missing && sudo apt-get -y install libgdal-dev
+
+      # it would be nice to cache this!
+      # - name: Cache libgdal-dev (api)
+      #   uses: actions/cache@v2
+      #   id: cache-libgdal-dev
+      #   with:
+      #     path: "~/libgdal-dev"
+      #     key: "3.0.4"
+
+      # - name: Install libgdal-dev (api)
+      #   # The python gdal and R component relies on libgdal-dev being installed.
+      #   env:
+      #     CACHE_HIT: ${{steps.cache-libgdal-dev.outputs.cache-hit}}
+      #   run: |
+      #     if [[ "$CACHE_HIT" == 'true' ]]; then
+      #       sudo cp --verbose --force --recursive ~/libgdal-dev/* /
+      #     else
+      #       sudo apt-get update --fix-missing && sudo apt-get -y install libgdal-dev
+      #       mkdir -p ~/libgdal-dev
+      #       sudo dpkg -L libgdal-dev | while IFS= read -r f; do if test -f $f; then echo $f; fi; done | xargs cp --parents --target-directory ~/libgdal-dev/
+      #     fi
 
       - uses: r-lib/actions/setup-r@v1
         with:
