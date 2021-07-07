@@ -1,12 +1,9 @@
 """ Global fixtures """
 
 from datetime import timezone, datetime
-from contextlib import contextmanager
-from typing import Generator
 import logging
 import requests
 import pytest
-from sqlalchemy.orm import Session
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
 from pytest_mock import MockerFixture
@@ -81,12 +78,13 @@ def mock_redis(monkeypatch):
         def __init__(self) -> None:
             pass
 
-        def get(self, name):  # pylint: disable=unused-argument
+        def get(self, name):  # pylint: disable=unused-argument, no-self-use
             """ mock get """
             return None
 
-        def set(self, name, value,  # pylint: disable=unused-argument
-                ex=None, px=None, nx=False, xx=False, keepttl=False):  # pylint: disable=unused-argument
+        def set(self,  # pylint: disable=unused-argument, invalid-name, unused-argument, too-many-arguments
+                name, value,
+                ex=None, px=None, nx=False, xx=False, keepttl=False):
             """ mock set """
 
     def create_mock_redis():

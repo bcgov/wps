@@ -1,5 +1,4 @@
 """ Functions that request and marshall WFWX API responses into our schemas"""
-import random
 import math
 import logging
 from datetime import datetime

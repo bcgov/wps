@@ -7,12 +7,17 @@ from typing import Generator, List
 from app.db.models.observations import HourlyActual
 from app.schemas.fba_calc import StationResponse
 from app.schemas.stations import WeatherStation
-from app.utils.cffdrs import crown_fraction_burned, foliar_moisture_content, head_fire_intensity, length_to_breadth_ratio, rate_of_spread, surface_fuel_consumption
+from app.utils import cffdrs
 from app.utils.dewpoint import compute_dewpoint
 from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.schemas.observations import WeatherReading
 from app.schemas.hfi_calc import StationDaily
-from app.utils.fba_calculator import FBACalculatorWeatherStation, get_30_minutes_fire_size, get_60_minutes_fire_size, get_approx_flame_length, get_fire_type
+from app.utils.fba_calculator import (
+    FBACalculatorWeatherStation,
+    get_30_minutes_fire_size,
+    get_60_minutes_fire_size,
+    get_approx_flame_length,
+    get_fire_type)
 from app.utils.time import get_julian_date, get_julian_date_now, get_hour_20_from_date
 from app.wildfire_one.util import is_station_valid
 
@@ -69,7 +74,8 @@ async def station_list_mapper(raw_stations: Generator[dict, None, None]):
 class WFWXWeatherStation():
     """ A WFWX station includes a code and WFWX API specific id """
 
-    def __init__(self, wfwx_id: str, code: int, latitude: float, longitude: float, elevation: int, name: str):
+    def __init__(self,  # pylint: disable=too-many-arguments
+                 wfwx_id: str, code: int, latitude: float, longitude: float, elevation: int, name: str):
         self.wfwx_id = wfwx_id
         self.code = code
         self.name = name
@@ -135,9 +141,10 @@ def parse_hourly(hourly) -> WeatherReading:
     )
 
 
-def generate_StationDaily(raw_daily, station: WFWXWeatherStation, fuel_type: str) -> StationDaily:
+def generate_station_daily(raw_daily, station: WFWXWeatherStation, fuel_type: str) -> StationDaily:
     """ Transform from the raw daily json object returned by wf1, to our daily object.
     """
+    # pylint: disable=invalid-name
     # we use the fuel type lookup to get default values.
     pc = FUEL_TYPE_LOOKUP[fuel_type]["PC"]
     pdf = FUEL_TYPE_LOOKUP[fuel_type]["PDF"]
@@ -147,13 +154,13 @@ def generate_StationDaily(raw_daily, station: WFWXWeatherStation, fuel_type: str
     isi = raw_daily.get('initialSpreadIndex', None)
     bui = raw_daily.get('buildUpIndex', None)
     ffmc = raw_daily.get('fineFuelMoistureCode', None)
-    fmc = foliar_moisture_content(station.lat, station.long, station.elevation, get_julian_date_now())
-    sfc = surface_fuel_consumption(fuel_type, bui, ffmc, pc)
+    fmc = cffdrs.foliar_moisture_content(station.lat, station.long, station.elevation, get_julian_date_now())
+    sfc = cffdrs.surface_fuel_consumption(fuel_type, bui, ffmc, pc)
 
-    ros = rate_of_spread(fuel_type, isi, bui, fmc, sfc, pc=pc,
-                         cc=raw_daily.get('grasslandCuring', cc),
-                         pdf=pdf,
-                         cbh=cbh)
+    ros = cffdrs.rate_of_spread(fuel_type, isi, bui, fmc, sfc, pc=pc,
+                                cc=raw_daily.get('grasslandCuring', cc),
+                                pdf=pdf,
+                                cbh=cbh)
     return StationDaily(
         code=station.code,
         status="Observed" if raw_daily.get('recordType', '').get('id') == 'ACTUAL' else "Forecasted",
@@ -176,7 +183,7 @@ def generate_StationDaily(raw_daily, station: WFWXWeatherStation, fuel_type: str
     )
 
 
-def generate_StationResponse(raw_daily, station: FBACalculatorWeatherStation) -> StationResponse:
+def generate_station_response(raw_daily, station: FBACalculatorWeatherStation) -> StationResponse:
     """ Transform from the raw daily json object returned by wf1, to our fba_calc.StationResponse object.
     """
     bui = raw_daily.get('buildUpIndex', None)
@@ -185,16 +192,16 @@ def generate_StationResponse(raw_daily, station: FBACalculatorWeatherStation) ->
     # time of interest will be the same for all stations
     time_of_interest = get_hour_20_from_date(station.time_of_interest)
 
-    fmc = foliar_moisture_content(station.lat, station.long, station.elevation,
-                                  get_julian_date(time_of_interest))
-    sfc = surface_fuel_consumption(station.fuel_type, bui, ffmc, station.percentage_conifer)
-    lb_ratio = length_to_breadth_ratio(station.fuel_type, raw_daily.get('windSpeed', None))
-    ros = rate_of_spread(station.fuel_type, isi=isi, bui=bui, fmc=fmc, sfc=sfc,
-                         pc=station.percentage_conifer,
-                         cc=station.grass_cure,
-                         pdf=station.percentage_dead_balsam_fir,
-                         cbh=station.crown_base_height
-                         )
+    fmc = cffdrs.foliar_moisture_content(station.lat, station.long, station.elevation,
+                                         get_julian_date(time_of_interest))
+    sfc = cffdrs.surface_fuel_consumption(station.fuel_type, bui, ffmc, station.percentage_conifer)
+    lb_ratio = cffdrs.length_to_breadth_ratio(station.fuel_type, raw_daily.get('windSpeed', None))
+    ros = cffdrs.rate_of_spread(station.fuel_type, isi=isi, bui=bui, fmc=fmc, sfc=sfc,
+                                pc=station.percentage_conifer,
+                                cc=station.grass_cure,
+                                pdf=station.percentage_dead_balsam_fir,
+                                cbh=station.crown_base_height
+                                )
     if station.fuel_type in ('D1', 'O1A', 'O1B', 'S1', 'S2', 'S3'):
         # These fuel types don't have a crown fraction burnt. But CFB is needed for other calculations,
         # so we go with 0.
@@ -203,10 +210,10 @@ def generate_StationResponse(raw_daily, station: FBACalculatorWeatherStation) ->
         # We can't calculate cfb without a crown base height!
         cfb = None
     else:
-        cfb = crown_fraction_burned(station.fuel_type, fmc=fmc, sfc=sfc,
-                                    ros=ros, cbh=station.crown_base_height)
+        cfb = cffdrs.crown_fraction_burned(station.fuel_type, fmc=fmc, sfc=sfc,
+                                           ros=ros, cbh=station.crown_base_height)
 
-    hfi = head_fire_intensity(station, bui=bui, ffmc=ffmc, ros=ros, cfb=cfb)
+    hfi = cffdrs.head_fire_intensity(station, bui=bui, ffmc=ffmc, ros=ros, cfb=cfb)
     return StationResponse(
         station_code=station.code,
         station_name=station.name,
