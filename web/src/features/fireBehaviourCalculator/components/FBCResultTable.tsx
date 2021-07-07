@@ -128,9 +128,9 @@ const FBCResultTable = (props: Props) => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {props.fireBehaviourResultStations.map(stationResult => {
+              {props.fireBehaviourResultStations.map((stationResult, index) => {
                 return (
-                  <TableRow>
+                  <TableRow key={index}>
                     <TableCell>
                       {stationResult.station_code} - {stationResult.station_name}
                     </TableCell>
