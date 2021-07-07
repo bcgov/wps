@@ -247,11 +247,13 @@ def head_fire_intensity(
     logger.info('calling _FIcalc(FC=%s, ROS=%s) based on BUI=%s, FFMC=%s)', tfc, ros, bui, ffmc)
     # pylint: disable=protected-access, no-member
     result = CFFDRS.instance().cffdrs._FIcalc(FC=tfc, ROS=ros)
-    logger.info('Calculated HFI {}'.format(result[0]))
+    logger.info('Calculated HFI %s', result[0])
     return result[0]
 
 
-def get_ffmc_for_target_hfi(station: FBACalculatorWeatherStation, bui: float, ffmc: float, ros: float, cfb: float, target_hfi: float):
+def get_ffmc_for_target_hfi(
+        station: FBACalculatorWeatherStation, bui: float,
+        ffmc: float, ros: float, cfb: float, target_hfi: float):
     """ Returns a floating point value for minimum FFMC required (holding all other values constant)
     before HFI reaches the target_hfi (in kW/m).
     """
