@@ -9,6 +9,9 @@ export class FuelTypes {
   static lookup(key: string): FBCFuelType {
     return FuelTypes.get()[key]
   }
+  static getFriendlyNames(): string[] {
+    return Object.values(FuelTypes.get()).map(fuelType => fuelType.friendlyName)
+  }
   static get(): Record<string, FBCFuelType> {
     return {
       c1: {

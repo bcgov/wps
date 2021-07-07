@@ -3,7 +3,7 @@ import { Container, PageHeader } from 'components'
 import { DateTime } from 'luxon'
 import React, { useState } from 'react'
 import { useSelector } from 'react-redux'
-import FBCInputForm from './components/FBCFormControl'
+import FBCInputForm from './components/FBCInputForm'
 import FBCResultTable from './components/FBCResultTable'
 
 export const FireBehaviourCalculator: React.FunctionComponent = () => {
