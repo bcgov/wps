@@ -20,39 +20,51 @@ jobs:
           # For sonar-scanner to work properly we can't use a shallow fetch.
           fetch-depth: 0
 
+      # - name: Install libgdal-dev (api)
+      #   # The python gdal and R component relies on libgdal-dev being installed.
+      #   run: |
+      #     sudo apt-get update --fix-missing && sudo apt-get -y install libgdal-dev
+
+      - name: Cache libgdal-dev (api)
+        uses: actions/cache@v2
+        id: cache-libgdal-dev
+        with:
+          path: "~/libgdal-dev"
+          key: "3.0.4"
+
       - name: Install libgdal-dev (api)
         # The python gdal and R component relies on libgdal-dev being installed.
+        env:
+          CACHE_HIT: ${{steps.cache-libgdal-dev.outputs.cache-hit}}
         run: |
-          sudo apt-get update --fix-missing && sudo apt-get -y install libgdal-dev
+          if [[ "$CACHE_HIT" == 'true' ]]; then
+            sudo cp --verbose --force --recursive ~/libgdal-dev/* /
+          else
+            sudo apt-get update --fix-missing && sudo apt-get -y install libgdal-dev
+            mkdir -p ~/libgdal-dev
+            sudo dpkg -L libgdal-dev | while IFS= read -r f; do if test -f $f; then echo $f; fi; done | xargs cp --parents --target-directory ~/libgdal-dev/
+          fi
 
       - uses: r-lib/actions/setup-r@v1
         with:
           r-version: ${{ matrix.R }}
 
-      # - name: Cache renv (api)
-      #   uses: actions/cache@v2
-      #   with:
-      #     path: ~/.local/share/renv
-      #     # path: /home/runner/work/_temp/Library
-      #     key: ${{ runner.os }}-renv-${{ hashFiles('**/renv.lock') }}
-      #     restore-keys: |
-      #       ${{ runner.os }}-renv-
+      - name: Cache renv (api)
+        uses: actions/cache@v2
+        with:
+          path: ~/.local/share/renv
+          # path: /home/runner/work/_temp/Library
+          key: ${{ runner.os }}-renv-${{ hashFiles('**/renv.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-renv-
 
-      # - name: Install renv
-      #   run: |
-      #     install.packages("renv")
-      #     renv::install("devtools", dependencies = TRUE)
-      #     renv::install("Rcpp", dependencies = TRUE)
-      #     renv::install("cffdrs", dependencies = TRUE)
-      #   shell: Rscript {0}
-
-      # - name: Install renv (api)
-      #   run: |
-      #     install.packages("renv")
-      #     renv::install("cffdrs", dependencies = TRUE)
-      #     renv::consent(TRUE)
-      #     renv::restore()
-      #   shell: Rscript {0}
+      - name: Install renv (api)
+        run: |
+          install.packages("renv")
+          renv::install("cffdrs", dependencies = TRUE)
+          renv::consent(TRUE)
+          renv::restore()
+        shell: Rscript {0}
 
       # - name: Restore environment
       #   run: |
