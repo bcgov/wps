@@ -128,7 +128,7 @@ def surface_fuel_consumption(  # pylint: disable=invalid-name
                                                BUI=bui,
                                                FFMC=ffmc,
                                                PC=pc,
-                                               GFL=3.5)
+                                               GFL=0.35)
     return result[0]
 
     # Args:
