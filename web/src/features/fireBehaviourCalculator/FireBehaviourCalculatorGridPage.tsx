@@ -17,7 +17,11 @@ import FBCInputGrid, { FBCInputRow, GridMenuOption } from './components/FBCInput
 import FBCResultTable from './components/FBCResultTable'
 import { FuelTypes } from './fuelTypes'
 import { fetchFireBehaviourStations } from './slices/fireBehaviourCalcSlice'
-import { getRowsFromUrlParams, isValidFuelSetting } from './utils'
+import {
+  getMostRecentIdFromRows,
+  getRowsFromUrlParams,
+  isValidFuelSetting
+} from './utils'
 
 export const FireBehaviourCalculatorGrid: React.FunctionComponent = () => {
   const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().toISODate())
@@ -32,7 +36,6 @@ export const FireBehaviourCalculatorGrid: React.FunctionComponent = () => {
 
   // Input stuff
 
-  const [rowId, setRowId] = useState(1)
   const stationMenuOptions: GridMenuOption[] = (stations as GeoJsonStation[]).map(
     station => ({
       value: station.properties.code,
@@ -50,6 +53,9 @@ export const FireBehaviourCalculatorGrid: React.FunctionComponent = () => {
 
   const rowsFromQuery = getRowsFromUrlParams(location.search)
   const [rows, setRows] = useState<FBCInputRow[]>(rowsFromQuery)
+
+  const lastId = getMostRecentIdFromRows(rows)
+  const [rowId, setRowId] = useState(lastId + 1)
 
   const addStationOfInterest = () => {
     const newRowId = rowId + 1
