@@ -144,10 +144,15 @@ def surface_fuel_consumption(  # pylint: disable=invalid-name
 
 def foliar_moisture_content(lat: int, long: int, elv: float, day_of_year: int):
     """ Computes FMC by delegating to cffdrs R package
-        TODO: Find out the minimum fmc date that is passed as D0, for now it's 1.
+        TODO: Find out the minimum fmc date that is passed as D0, for now it's 0. Passing 0 makes FFMCcalc
+        calculate it.
      """
     # pylint: disable=protected-access, no-member, line-too-long
-    result = CFFDRS.instance().cffdrs._FMCcalc(LAT=lat, LONG=long, ELV=elv, DJ=day_of_year, D0=1)
+    date_of_minimum_foliar_moisture_content = 0
+    logger.info('calling _FMCcalc(LAT=%s, LONG=%s, ELV=%s, DJ=%s, D0=%s)', lat,
+                long, elv, day_of_year, date_of_minimum_foliar_moisture_content)
+    result = CFFDRS.instance().cffdrs._FMCcalc(LAT=lat, LONG=long, ELV=elv,
+                                               DJ=day_of_year, D0=date_of_minimum_foliar_moisture_content)
     return result[0]
 
     # Args:
