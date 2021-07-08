@@ -16,7 +16,6 @@ import FBCInputGrid, { FBCInputRow, GridMenuOption } from './components/FBCInput
 import FBCResultTable from './components/FBCResultTable'
 import { FuelTypes } from './fuelTypes'
 import { fetchFireBehaviourStations } from './slices/fireBehaviourCalcSlice'
-import { StationConfig } from './stationConfig'
 import { isValidFuelSetting } from './utils'
 
 export const FireBehaviourCalculatorGrid: React.FunctionComponent = () => {
@@ -27,9 +26,6 @@ export const FireBehaviourCalculatorGrid: React.FunctionComponent = () => {
   const [fuelType, setFuelType] = useState('')
   // eslint-disable-next-line
   const [grassCurePercentage, setGrassCurePercentage] = useState<number | null>(null)
-  const [stationConfigs, setStations] = useState<Set<StationConfig>>(
-    new Set([new StationConfig()])
-  )
 
   const { stations } = useSelector(selectFireWeatherStations)
 
@@ -60,6 +56,16 @@ export const FireBehaviourCalculatorGrid: React.FunctionComponent = () => {
     }
   ])
 
+  const addStationOfInterest = () => {
+    setRowId(rowId + 1)
+    const newRow = {
+      id: rowId,
+      weatherStation: stationMenuOptions[0],
+      fuelType: fuelTypeMenuOptions[0],
+      grassCure: 0
+    }
+    setRows([...rows, newRow])
+  }
   const { fireBehaviourResultStations } = useSelector(selectFireBehaviourCalcResult)
 
   useEffect(() => {
@@ -94,10 +100,7 @@ export const FireBehaviourCalculatorGrid: React.FunctionComponent = () => {
               variant="contained"
               color="primary"
               spinnercolor="white"
-              onClick={() => {
-                stationConfigs.add(new StationConfig())
-                setStations(new Set(stationConfigs))
-              }}
+              onClick={addStationOfInterest}
             >
               Add Station
             </Button>
