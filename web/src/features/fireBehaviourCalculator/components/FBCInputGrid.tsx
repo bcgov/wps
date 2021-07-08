@@ -1,49 +1,50 @@
-import { DataGrid, GridToolbar } from '@material-ui/data-grid'
-import { GeoJsonStation } from 'api/stationAPI'
+import {
+  DataGrid,
+  GridToolbarColumnsButton,
+  GridToolbarContainer,
+  GridToolbarDensitySelector,
+  GridToolbarExport,
+  GridToolbarFilterButton
+} from '@material-ui/data-grid'
 import React from 'react'
-import { useState } from 'react'
-import { FBCFuelType } from '../fuelTypes'
 
-interface FBCInputGridProps {
+export interface FBCInputGridProps {
   testId?: string
-  stations: GeoJsonStation[]
-  fuelTypes: Record<string, FBCFuelType>
+  stationMenuOptions: GridMenuOption[]
+  fuelTypeMenuOptions: GridMenuOption[]
+  rows: FBCInputRow[]
 }
 
-interface GridMenuOption {
+export interface GridMenuOption {
   label: string
   value: string | number
 }
 
-const FBCInputGrid = (props: FBCInputGridProps) => {
-  // eslint-disable-next-line
-  const [rowId, setRowId] = useState(1)
-  const stationMenuOptions: GridMenuOption[] = props.stations.map(station => ({
-    value: station.properties.code,
-    label: `${station.properties.name} - ${station.properties.code}`
-  }))
+export interface FBCInputRow {
+  id: number
+  weatherStation: GridMenuOption
+  fuelType: GridMenuOption
+  grassCure: number
+}
 
-  const fuelTypeMenuOptions: GridMenuOption[] = Object.entries(props.fuelTypes).map(
-    ([key, value]) => ({
-      value: key,
-      label: value.friendlyName
-    })
+const buildFBCGridToolbar = () => {
+  return (
+    <GridToolbarContainer>
+      <GridToolbarColumnsButton />
+      <GridToolbarFilterButton />
+      <GridToolbarDensitySelector />
+      <GridToolbarExport />
+    </GridToolbarContainer>
   )
-  // eslint-disable-next-line
-  const [rows, setRows] = useState([
-    {
-      id: rowId,
-      weatherStation: stationMenuOptions[0],
-      fuelType: fuelTypeMenuOptions[0],
-      grassCure: 0
-    }
-  ])
+}
+
+const FBCInputGrid = (props: FBCInputGridProps) => {
   return (
     <div style={{ display: 'flex', height: 350, width: '100%' }}>
       <div style={{ flexGrow: 1 }}>
         <DataGrid
           components={{
-            Toolbar: GridToolbar
+            Toolbar: buildFBCGridToolbar
           }}
           rowHeight={30}
           columns={[
@@ -53,7 +54,7 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
               flex: 1,
               type: 'singleSelect',
               editable: true,
-              valueOptions: stationMenuOptions
+              valueOptions: props.stationMenuOptions
             },
             {
               field: 'fuelType',
@@ -61,7 +62,7 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
               headerName: 'Fuel Type',
               type: 'singleSelect',
               editable: true,
-              valueOptions: fuelTypeMenuOptions
+              valueOptions: props.fuelTypeMenuOptions
             },
             {
               field: 'grassCure',
@@ -71,7 +72,7 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
               editable: true
             }
           ]}
-          rows={rows}
+          rows={props.rows}
         />
       </div>
     </div>
