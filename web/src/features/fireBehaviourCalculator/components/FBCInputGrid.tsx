@@ -22,8 +22,8 @@ export interface GridMenuOption {
 
 export interface FBCInputRow {
   id: number
-  weatherStation: GridMenuOption
-  fuelType: GridMenuOption
+  weatherStation: string
+  fuelType: string
   grassCure: number
 }
 
@@ -40,7 +40,7 @@ const buildFBCGridToolbar = () => {
 
 const FBCInputGrid = (props: FBCInputGridProps) => {
   return (
-    <div style={{ display: 'flex', height: 350, width: '100%' }}>
+    <div style={{ display: 'flex', height: 300, width: 800 }}>
       <div style={{ flexGrow: 1 }}>
         <DataGrid
           components={{
@@ -67,7 +67,7 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
             {
               field: 'grassCure',
               headerName: 'Grass Cure %',
-              flex: 1,
+              flex: 0.7,
               type: 'number',
               editable: true
             }

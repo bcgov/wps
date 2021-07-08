@@ -47,21 +47,15 @@ export const FireBehaviourCalculatorGrid: React.FunctionComponent = () => {
     })
   )
   // eslint-disable-next-line
-  const [rows, setRows] = useState<FBCInputRow[]>([
-    {
-      id: rowId,
-      weatherStation: stationMenuOptions[0],
-      fuelType: fuelTypeMenuOptions[0],
-      grassCure: 0
-    }
-  ])
+  const [rows, setRows] = useState<FBCInputRow[]>([])
 
   const addStationOfInterest = () => {
-    setRowId(rowId + 1)
+    const newRowId = rowId + 1
+    setRowId(newRowId)
     const newRow = {
       id: rowId,
-      weatherStation: stationMenuOptions[0],
-      fuelType: fuelTypeMenuOptions[0],
+      weatherStation: stationMenuOptions[0].value.toString(),
+      fuelType: fuelTypeMenuOptions[0].value.toString(),
       grassCure: 0
     }
     setRows([...rows, newRow])
