@@ -11,12 +11,13 @@ import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { DateTime } from 'luxon'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { useLocation } from 'react-router-dom'
 import DatePicker from './components/DatePicker'
 import FBCInputGrid, { FBCInputRow, GridMenuOption } from './components/FBCInputGrid'
 import FBCResultTable from './components/FBCResultTable'
 import { FuelTypes } from './fuelTypes'
 import { fetchFireBehaviourStations } from './slices/fireBehaviourCalcSlice'
-import { isValidFuelSetting } from './utils'
+import { getRowsFromUrlParams, isValidFuelSetting } from './utils'
 
 export const FireBehaviourCalculatorGrid: React.FunctionComponent = () => {
   const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().toISODate())
@@ -31,7 +32,6 @@ export const FireBehaviourCalculatorGrid: React.FunctionComponent = () => {
 
   // Input stuff
 
-  // eslint-disable-next-line
   const [rowId, setRowId] = useState(1)
   const stationMenuOptions: GridMenuOption[] = (stations as GeoJsonStation[]).map(
     station => ({
@@ -46,8 +46,10 @@ export const FireBehaviourCalculatorGrid: React.FunctionComponent = () => {
       label: value.friendlyName
     })
   )
-  // eslint-disable-next-line
-  const [rows, setRows] = useState<FBCInputRow[]>([])
+  const location = useLocation()
+
+  const rowsFromQuery = getRowsFromUrlParams(location.search)
+  const [rows, setRows] = useState<FBCInputRow[]>(rowsFromQuery)
 
   const addStationOfInterest = () => {
     const newRowId = rowId + 1

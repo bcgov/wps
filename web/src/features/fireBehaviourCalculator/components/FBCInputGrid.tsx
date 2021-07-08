@@ -7,7 +7,6 @@ import {
   GridToolbarFilterButton
 } from '@material-ui/data-grid'
 import React from 'react'
-
 export interface FBCInputGridProps {
   testId?: string
   stationMenuOptions: GridMenuOption[]
@@ -34,6 +33,7 @@ const buildFBCGridToolbar = () => {
       <GridToolbarFilterButton />
       <GridToolbarDensitySelector />
       <GridToolbarExport />
+      {/* TODO move add station button here */}
     </GridToolbarContainer>
   )
 }
