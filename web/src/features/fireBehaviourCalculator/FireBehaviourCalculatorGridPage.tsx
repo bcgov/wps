@@ -1,5 +1,5 @@
-import { FormControl, makeStyles, MenuItem } from '@material-ui/core'
-import { GeoJsonStation } from 'api/stationAPI'
+import { FormControl, makeStyles } from '@material-ui/core'
+import { getStations } from 'api/stationAPI'
 import {
   selectFireBehaviourCalcResult,
   selectFireBehaviourStationsLoading,
@@ -7,8 +7,9 @@ import {
 } from 'app/rootReducer'
 import { Button, Container, PageHeader } from 'components'
 import GetWxDataButton from 'features/fireWeather/components/GetWxDataButton'
+import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { DateTime } from 'luxon'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import DatePicker from './components/DatePicker'
 import FBCInputGrid from './components/FBCInputGrid'
@@ -29,24 +30,13 @@ export const FireBehaviourCalculatorGrid: React.FunctionComponent = () => {
   const [stationConfigs, setStations] = useState<Set<StationConfig>>(
     new Set([new StationConfig()])
   )
+  const { stations } = useSelector(selectFireWeatherStations)
 
   const { fireBehaviourResultStations } = useSelector(selectFireBehaviourCalcResult)
 
-  const { stations } = useSelector(selectFireWeatherStations)
-  // eslint-disable-next-line
-  const stationMenuItems = (stations as GeoJsonStation[]).map(
-    (station: GeoJsonStation, index) => (
-      <MenuItem value={station.properties.code} key={index}>
-        {station.properties.code} - {station.properties.name}
-      </MenuItem>
-    )
-  )
-  // eslint-disable-next-line
-  const fuelTypeMenuItems = Object.entries(FuelTypes.get()).map(([key, value], index) => (
-    <MenuItem value={key} key={index}>
-      {value.friendlyName}
-    </MenuItem>
-  ))
+  useEffect(() => {
+    dispatch(fetchWxStations(getStations))
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const useStyles = makeStyles(theme => ({
     formControl: {
@@ -104,7 +94,7 @@ export const FireBehaviourCalculatorGrid: React.FunctionComponent = () => {
         </div>
         <br />
         <div style={{ display: 'flex', height: '100%' }}>
-          <FBCInputGrid />
+          <FBCInputGrid stations={stations} fuelTypes={FuelTypes.get()} />
         </div>
         {fireBehaviourResultStations.length > 0 && (
           <FBCResultTable
