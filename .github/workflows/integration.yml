@@ -73,10 +73,10 @@ jobs:
       #     renv::restore()
       #   shell: Rscript {0}
 
-      - name: Install R stuff
-        run: |
-          install.packages("cffdrs", dep = TRUE)
-        shell: Rscript {0}
+      # - name: Install R stuff
+      #   run: |
+      #     install.packages("cffdrs", dep = TRUE)
+      #   shell: Rscript {0}
 
       - name: Setup kernel for react, increase watchers
         run: echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
