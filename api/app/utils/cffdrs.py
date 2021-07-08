@@ -210,14 +210,12 @@ def total_fuel_consumption(  # pylint: disable=invalid-name
     """ Computes Total Fuel Consumption (TFC), which is a required input to calculate Head Fire Intensity.
     TFC is calculated by delegating to cffdrs R package.
     """
-    if cfb is None:
+    if cfb is None or cfl is None:
         message = PARAMS_ERROR_MESSAGE + \
-            "fuel_type: {fuel_type}, cfb: {cfb}".format(fuel_type=fuel_type, cfb=cfb)
+            "fuel_type: {fuel_type}, cfb: {cfb}, cfl: {cfl}".format(fuel_type=fuel_type, cfb=cfb, cfl=cfl)
         raise CFFDRSException(message)
     # According to fbp.Rd in cffdrs R package, Crown Fuel Load (CFL) can use default value of 1.0
     # without causing major impacts on final output.
-    if cfl is None:
-        cfl = 1.0
     if pc is None:
         pc = NULL
     if pdf is None:
@@ -236,9 +234,12 @@ def total_fuel_consumption(  # pylint: disable=invalid-name
   #   FI:   Fire Intensity (kW/m)
 
 
-def head_fire_intensity(
-        station: FBACalculatorWeatherStation, bui: float, ffmc: float, ros: float, cfb: float,
-        cfl: float):
+def head_fire_intensity(station: FBACalculatorWeatherStation,
+                        bui: float,
+                        ffmc: float,
+                        ros: float,
+                        cfb: float,
+                        cfl: float):
     """ Computes Head Fire Intensity (HFI) by delegating to cffdrs R package.
     Calculating HFI requires a number of inputs that must be calculated first. This function
     first makes method calls to calculate the necessary intermediary values.
@@ -255,7 +256,7 @@ def head_fire_intensity(
 
 def get_ffmc_for_target_hfi(
         station: FBACalculatorWeatherStation, bui: float,
-        ffmc: float, ros: float, cfb: float, target_hfi: float, cfl: float = None):
+        ffmc: float, ros: float, cfb: float, cfl: float, target_hfi: float):
     """ Returns a floating point value for minimum FFMC required (holding all other values constant)
     before HFI reaches the target_hfi (in kW/m).
     """

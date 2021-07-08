@@ -12,24 +12,24 @@
             "wind_direction": 282,
             "wind_speed": 9.2,
             "precipitation": 0.0,
-            "grass_cure": null,
+            "grass_cure": 30.0,
             "fine_fuel_moisture_code": 93.348,
             "drought_code": 340.544,
             "initial_spread_index": 10.951,
             "build_up_index": 117.899,
             "duff_moisture_code": 103.923,
             "fire_weather_index": 35.947,
-            "head_fire_intensity": 913.253682191826,
+            "head_fire_intensity": 91.32536821918261,
             "rate_of_spread": 0.8697654116112629,
             "fire_type": "S",
             "percentage_crown_fraction_burned": 0.0,
-            "flame_length": 1.7447575592727547,
+            "flame_length": 0.551740785209814,
             "sixty_minute_fire_size": 0.06943947214569794,
             "thirty_minute_fire_size": 0.017359868036424485,
             "ffmc_for_hfi_4000": 100.94021875,
-            "hfi_when_ffmc_equals_ffmc_for_hfi_4000": 913.253682191826,
+            "hfi_when_ffmc_equals_ffmc_for_hfi_4000": 91.32536821918261,
             "ffmc_for_hfi_10000": 100.94021875,
-            "hfi_when_ffmc_equals_ffmc_for_hfi_10000": 913.253682191826
+            "hfi_when_ffmc_equals_ffmc_for_hfi_10000": 91.32536821918261
         }
     ]
 }

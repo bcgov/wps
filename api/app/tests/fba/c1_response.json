@@ -19,17 +19,17 @@
             "build_up_index": 117.899,
             "duff_moisture_code": 103.923,
             "fire_weather_index": 35.947,
-            "head_fire_intensity": 2598.4301967340966,
+            "head_fire_intensity": 2431.4841892432482,
             "rate_of_spread": 4.4231116865619,
             "fire_type": "IC",
             "percentage_crown_fraction_burned": 0.5032535744705282,
-            "flame_length": 2.9430314284957366,
+            "flame_length": 2.846918913049245,
             "sixty_minute_fire_size": 3.930563799808943,
             "thirty_minute_fire_size": 0.9826409499522357,
             "ffmc_for_hfi_4000": 100.94021875,
-            "hfi_when_ffmc_equals_ffmc_for_hfi_4000": 2648.0221901500468,
+            "hfi_when_ffmc_equals_ffmc_for_hfi_4000": 2481.0761826591984,
             "ffmc_for_hfi_10000": 100.94021875,
-            "hfi_when_ffmc_equals_ffmc_for_hfi_10000": 2648.0221901500468
+            "hfi_when_ffmc_equals_ffmc_for_hfi_10000": 2481.0761826591984
         }
     ]
 }
