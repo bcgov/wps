@@ -114,8 +114,7 @@ def surface_fuel_consumption(  # pylint: disable=invalid-name
         ffmc: float,
         pc: float):
     """ Computes SFC by delegating to cffdrs R package
-        Assumes a standard GFL of 3.5 kg/m ^ 2.
-        NOTE: according to cffdrs R documentation, the default value for GFL is 0.35 kg/m^2, not 3.5
+        Assumes a standard GFL of 0.35 kg/m ^ 2.
     """
     if fuel_type is None or bui is None or ffmc is None:
         message = PARAMS_ERROR_MESSAGE + \
@@ -247,7 +246,7 @@ def head_fire_intensity(station: FBACalculatorWeatherStation,
     sfc = surface_fuel_consumption(station.fuel_type, bui, ffmc, station.percentage_conifer)
     tfc = total_fuel_consumption(station.fuel_type, cfb, sfc,
                                  station.percentage_conifer, station.percentage_dead_balsam_fir, cfl)
-    logger.info('calling _FIcalc(FC=%s, ROS=%s) based on BUI=%s, FFMC=%s)', tfc, ros, bui, ffmc)
+    logger.info('calling _FIcalc(FC=%s, ROS=%s) based on BUI=%s, FFMC=%s', tfc, ros, bui, ffmc)
     # pylint: disable=protected-access, no-member
     result = CFFDRS.instance().cffdrs._FIcalc(FC=tfc, ROS=ros)
     logger.info('Calculated HFI %s', result[0])
