@@ -21,7 +21,9 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
         productName="Predictive Services Unit"
       />
       <Container maxWidth={'xl'}>
-        <h1>Fire Behavior Calculator Prototype</h1>
+        <h1>
+          Fire Behavior Calculator <b style={{ color: 'red' }}>Prototype</b>
+        </h1>
         <FBCInputForm
           dateOfInterest={dateOfInterest}
           setDateOfInterest={setDateOfInterest}
