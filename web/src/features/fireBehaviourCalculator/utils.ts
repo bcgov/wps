@@ -22,14 +22,14 @@ export const getRowsFromUrlParams = (searchParams: string): FBCInputRow[] => {
   const rows = searchParams.split(',').map((param, index) => {
     const individualParams = param.split('&')
     const builtRow = buildRow(individualParams)
-    const row = {
+    const rowWithId = {
       id: index,
       weatherStation: builtRow.weatherStation,
       fuelType: builtRow.fuelType,
       grassCure: builtRow.grassCure
     }
-    console.log(row)
-    return row
+    console.log(rowWithId)
+    return rowWithId
   })
   console.log(rows)
   return rows
