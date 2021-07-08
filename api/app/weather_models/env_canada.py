@@ -380,7 +380,8 @@ class EnvCanada():
                     processed_file_record = get_processed_file_record(session, url)
                     if processed_file_record:
                         # This file has already been processed - so we skip it.
-                        logger.info('file already processed %s', url)
+                        # NOTE: changing this to logger.debug causes too much noise in unit tests.
+                        logger.debug('file already processed %s', url)
                     else:
                         # extract model info from filename:
                         filename = os.path.basename(urlparse(url).path)

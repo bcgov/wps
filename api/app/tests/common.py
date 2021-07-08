@@ -73,7 +73,9 @@ class MockAsyncResponse:
         """ Initialize client response """
         self._text = text
         self._json = json
-        self.status_code = status_code
+        # NOTE: there is no status_code response!
+        # self.status_code = status_code
+        self.status = status_code
 
     async def text(self) -> str:
         """ Return text response """
@@ -127,19 +129,6 @@ class DefaultMockAioBaseClient:
 
     async def close(self, *args, **kwargs):
         """Close all http connections."""
-
-
-class MockRLibCFFDRS():
-    """ CFFDRS library mock."""
-
-    def _ROScalc(self, **kwargs):  # pylint: disable=invalid-name, no-self-use, unused-argument
-        return [1.2966988409822604e-05]
-
-    def _FMCcalc(self, **kwargs):  # pylint: disable=invalid-name, no-self-use, unused-argument
-        return [1]
-
-    def _SFCcalc(self, **kwargs):  # pylint: disable=invalid-name, no-self-use, unused-argument
-        return [1]
 
 
 def default_aiobotocore_get_session():
