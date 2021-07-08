@@ -30,8 +30,7 @@ const useStyles = makeStyles({
   },
   tableContainer: {
     maxHeight: 1080,
-    maxWidth: 1900,
-    minWidth: 1600
+    maxWidth: 1900
   }
 })
 
