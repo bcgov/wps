@@ -1,0 +1,11 @@
+{
+    "stations": [
+        {
+            "station_code": 230,
+            "date": "2021-07-05",
+            "fuel_type": "C7",
+            "crown_base_height": 10,
+            "percentage_conifer": 100
+        }
+    ]
+}

@@ -1,5 +1,4 @@
 """ Functions that request and marshall WFWX API responses into our schemas"""
-
 import math
 import logging
 from datetime import datetime
@@ -69,14 +68,22 @@ async def fetch_paged_response_generator(
     while page_count < total_pages:
         # Build up the request URL.
         url, params = query_builder.query(page_count)
-        logger.debug('loading station page %d...', page_count)
+        logger.debug('loading page %d...', page_count)
         if use_cache and config.get('REDIS_USE') == 'True':
             # We've been told and configured to use the redis cache.
             response_json = await _fetch_cached_response(session, headers, url, params, cache_expiry_seconds)
         else:
             async with session.get(url, headers=headers, params=params) as response:
                 response_json = await response.json()
-                logger.debug('done loading station page %d.', page_count)
+                logger.debug('done loading page %d.', page_count)
+
+        # keep this code around for dumping responses to a json file - useful for when you're writing
+        # tests to grab actual responses to use in fixtures.
+        # import base64
+        # TODO: write a beter way to make a temporary filename
+        # fname = 'thing_{}_{}.json'.format(base64.urlsafe_b64encode(url.encode()), random.randint(0, 1000))
+        # with open(fname, 'w') as f:
+        #     json.dump(response_json, f)
 
         # Update the total page count.
         total_pages = response_json['page']['totalPages'] if 'page' in response_json else 1
@@ -93,8 +100,8 @@ async def fetch_detailed_geojson_stations(
     """ Fetch and marshall geojson station data"""
     stations = {}
     id_to_code_map = {}
-    # 1 day seems a reasonable period to cache stations for.
-    redis_station_cache_expiry: Final = int(config.get('REDIS_STATION_CACHE_EXPIRY', 86400))
+    # 1 week seems a reasonable period to cache stations for.
+    redis_station_cache_expiry: Final = int(config.get('REDIS_STATION_CACHE_EXPIRY', 604800))
     # Put the stations in a nice dictionary.
     async for raw_station in fetch_paged_response_generator(session,
                                                             headers,
