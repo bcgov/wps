@@ -12,7 +12,6 @@ import { GeoJsonStation, getStations, StationSource } from 'api/stationAPI'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { FuelTypes } from '../fuelTypes'
 import GetWxDataButton from 'features/fireWeather/components/GetWxDataButton'
-import { fetchFireBehaviourStations } from '../slices/fireBehaviourCalcSlice'
 import { isNull } from 'lodash'
 
 const useStyles = makeStyles(theme => ({
@@ -121,14 +120,7 @@ const FBCInputForm = (props: FBCInputFormProps) => {
         <GetWxDataButton
           disabled={!isValidFuelSetting()}
           onBtnClick={() => {
-            dispatch(
-              fetchFireBehaviourStations(
-                props.dateOfInterest,
-                [props.stationsOfInterest],
-                props.fuelType,
-                props.grassCurePercentage
-              )
-            )
+            // dispatch(fetchFireBehaviourStations(props.dateOfInterest, props.rows))
           }}
           selector={selectFireBehaviourStationsLoading}
           buttonLabel="Calculate"

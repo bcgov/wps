@@ -36,8 +36,6 @@ export const FireBehaviourCalculatorGrid: React.FunctionComponent = () => {
 
   const { stations } = useSelector(selectFireWeatherStations)
 
-  // Input stuff
-
   const stationMenuOptions: GridMenuOption[] = (stations as GeoJsonStation[]).map(
     station => ({
       value: station.properties.code,
@@ -138,14 +136,7 @@ export const FireBehaviourCalculatorGrid: React.FunctionComponent = () => {
             <GetWxDataButton
               disabled={!isValidFuelSetting(fuelType, grassCurePercentage)}
               onBtnClick={() => {
-                dispatch(
-                  fetchFireBehaviourStations(
-                    dateOfInterest,
-                    [stationsOfInterest],
-                    fuelType,
-                    grassCurePercentage
-                  )
-                )
+                dispatch(fetchFireBehaviourStations(dateOfInterest, rows))
               }}
               selector={selectFireBehaviourStationsLoading}
               buttonLabel="Calculate"
