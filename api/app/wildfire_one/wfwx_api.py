@@ -22,7 +22,8 @@ from app.wildfire_one.schema_parsers import (FBACalculatorWeatherStation, WFWXWe
                                              parse_hourly,
                                              parse_hourly_actual, generate_station_response,
                                              station_list_mapper,
-                                             wfwx_station_list_mapper)
+                                             wfwx_station_list_mapper,
+                                             generate_station_response)
 from app.wildfire_one.query_builders import (BuildQueryAllActiveStations,
                                              BuildQueryAllHourliesByRange,
                                              BuildQueryByStationCode,
@@ -276,10 +277,35 @@ async def get_dailies_lookup_fuel_types(  # pylint: disable=too-many-locals
     return dailies
 
 
-async def get_dailies(session: ClientSession,
-                      header: dict,
-                      wfwx_stations: List[WFWXWeatherStation],
-                      stations: List[StationRequest]) -> List[StationResponse]:
+async def get_dailies(
+        session: ClientSession,
+        header: dict,
+        wfwx_stations: List[WFWXWeatherStation],
+        time_of_interest: datetime) -> List[dict]:
+    """ Get the daily actuals/forecasts for the given station ids. """
+    # build a list of wfwx station id's
+    wfwx_station_ids = [wfwx_station.wfwx_id for wfwx_station in wfwx_stations]
+
+    timestamp_of_intereset = math.floor(time_of_interest.timestamp()*1000)
+
+    # for local dev, we can use redis to reduce load in prod, and generally just makes development faster.
+    # for production, it's more tricky - we don't want to put too much load on the wf1 api, but we don't
+    # want stale values either. We default to 5 minutes, or 300 seconds.
+    cache_expiry_seconds = config.get('REDIS_DAILIES_BY_STATION_CODE_CACHE_EXPIRY', 300)
+    use_cache = cache_expiry_seconds is not None and config.get('REDIS_USE') == 'True'
+
+    dailies_iterator = fetch_paged_response_generator(session, header, BuildQueryDailesByStationCode(
+        timestamp_of_intereset, timestamp_of_intereset, wfwx_station_ids), 'dailies',
+        use_cache=use_cache,
+        cache_expiry_seconds=cache_expiry_seconds)
+
+    return dailies_iterator
+
+
+async def get_dailies_complicated(session: ClientSession,
+                                  header: dict,
+                                  wfwx_stations: List[WFWXWeatherStation],
+                                  stations: List[StationRequest]) -> List[StationResponse]:
     """ Get the daily actuals/forecasts for the given station ids.
     This function is used for Fire Behaviour Advisory calculator, where fuel type for station is specified by
     user input.
@@ -295,8 +321,7 @@ async def get_dailies(session: ClientSession,
     time_of_interest = get_hour_20_from_date(stations[0].date)
     timestamp_of_intereset = math.floor(time_of_interest.timestamp()*1000)
 
-    # for local dev, we can use redis to reduce load in prod, and generally just makes development faster
-    cache_expiry_seconds = config.get('REDIS_DAILIES_BY_STATION_CODE', None)
+    cache_expiry_seconds = config.get('REDIS_DAILIES_BY_STATION_CODE_CACHE_EXPIRY', 300)
 
     dailies_iterator = fetch_paged_response_generator(session, header, BuildQueryDailesByStationCode(
         timestamp_of_intereset, timestamp_of_intereset, wfwx_station_ids), 'dailies',

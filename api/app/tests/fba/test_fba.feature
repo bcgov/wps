@@ -11,8 +11,9 @@ Feature: /fbc/
             | request_json               | status_code | response_json              |
             | c1_request.json            | 200         | c1_response.json           |
             | c1_request_forecast.json   | 200         | c1_response_forecast.json  |
+            | c1_request_multiple.json   | 200         | c1_response_multiple.json  |
             | c2_request.json            | 200         |                            |
-            | c3_request.json            | 200         |                            |
+            | c3_request.json            | 200         | c3_response.json           |
             | c4_request.json            | 200         |                            |
             | c5_request.json            | 200         |                            |
             | c6_7mcbh_request.json      | 200         | c6_7mcbh_response.json     |

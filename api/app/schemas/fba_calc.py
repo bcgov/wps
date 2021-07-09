@@ -8,7 +8,7 @@ from pydantic import BaseModel
 class StationRequest(BaseModel):
     """ Request for one individual weather station. """
     station_code: int
-    date: date
+    date: Optional[date]  # TODO: remove this date field
     fuel_type: str
     percentage_conifer: Optional[float]
     percentage_dead_balsam_fir: Optional[float]
@@ -18,6 +18,7 @@ class StationRequest(BaseModel):
 
 class StationListRequest(BaseModel):
     """ Request for a list of stations """
+    date: Optional[date]
     stations: List[StationRequest]
 
 

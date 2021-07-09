@@ -93,6 +93,18 @@ parameters:
     description: How long to cache auth response for.
     required: True
     value: "600"
+  - name: REDIS_STATION_CACHE_EXPIRY
+    description: How long to cache station list response for.
+    required: True
+    value: "86400"
+  - name: REDIS_AUTH_CACHE_EXPIRY
+    description: How long to cache wf1 auth token for.
+    required: True
+    value: "600"
+  - name: REDIS_DAILIES_BY_STATION_CODE_EXPIRY
+    description: How long to cache dailies by station code for.
+    required: True
+    value: "300"
 objects:
   - kind: ConfigMap
     apiVersion: v1
@@ -117,6 +129,10 @@ objects:
       env.redis-host: ${REDIS_HOST}
       env.redis-port: ${REDIS_PORT}
       env.redis-use: ${REDIS_USE}
+      env.redis-station-cache-expiry: ${REDIS_STATION_CACHE_EXPIRY}
+      env.redis-auth-cache-expiry: ${REDIS_AUTH_CACHE_EXPIRY}
+      env.redis-dailies-by-station-code-expiry: ${REDIS_DAILIES_BY_STATION_CODE_EXPIRY}
+
   - kind: Secret
     apiVersion: v1
     metadata:
