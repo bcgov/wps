@@ -29,6 +29,8 @@ def prepare_response(
         raw_daily: dict,
         fire_behavour_advisory: FireBehaviourAdvisory,
         time_of_interest: date) -> StationResponse:
+    """ Construct a response object combining information from the request, the station from wf1,
+    the daily response from wf1 and the fire behaviour advisory. """
 
     # Exract values from the daily
     bui = raw_daily.get('buildUpIndex', None)

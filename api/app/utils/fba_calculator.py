@@ -38,9 +38,11 @@ class FBACalculatorWeatherStation():  # pylint: disable=too-many-instance-attrib
         self.wind_speed = wind_speed
 
 
-class FireBehaviourAdvisory():
+class FireBehaviourAdvisory():  # pylint: disable=too-many-instance-attributes
+    """ Class containing the results of the fire behaviour advisory calculation. """
 
-    def __init__(self, hfi: float, ros: float, fire_type: str, cfb: float, flame_length: float,
+    def __init__(self,  # pylint: disable=too-many-arguments
+                 hfi: float, ros: float, fire_type: str, cfb: float, flame_length: float,
                  sixty_minute_fire_size: float, thirty_minute_fire_size: float, ffmc_for_hfi_4000: float,
                  hfi_when_ffmc_equals_ffmc_for_hfi_4000: float, ffmc_for_hfi_10000: float,
                  hfi_when_ffmc_equals_ffmc_for_hfi_10000: float):
@@ -87,11 +89,17 @@ def calculate_fire_behavour_advisory(station: FBACalculatorWeatherStation) -> Fi
 
     cfl = FUEL_TYPE_LOOKUP[station.fuel_type].get('CFL', None)
 
-    hfi = cffdrs.head_fire_intensity(station, bui=station.bui, ffmc=station.ffmc, ros=ros, cfb=cfb, cfl=cfl)
+    hfi = cffdrs.head_fire_intensity(fuel_type=station.fuel_type,
+                                     percentage_conifer=station.percentage_conifer,
+                                     percentage_dead_balsam_fir=station.percentage_dead_balsam_fir,
+                                     bui=station.bui, ffmc=station.ffmc, ros=ros, cfb=cfb, cfl=cfl)
     ffmc_for_hfi_4000, hfi_when_ffmc_equals_ffmc_for_hfi_4000 = cffdrs.get_ffmc_for_target_hfi(
-        station, station.bui, station.ffmc, ros, cfb, cfl, 4000)
+        station.fuel_type, station.percentage_conifer,
+        station.percentage_dead_balsam_fir,
+        station.bui, station.ffmc, ros, cfb, cfl, 4000)
     ffmc_for_hfi_10000, hfi_when_ffmc_equals_ffmc_for_hfi_10000 = cffdrs.get_ffmc_for_target_hfi(
-        station, station.bui, station.ffmc, ros, cfb, cfl, 10000)
+        station.fuel_type, station.percentage_conifer,
+        station.percentage_dead_balsam_fir, station.bui, station.ffmc, ros, cfb, cfl, 10000)
 
     fire_type = get_fire_type(fuel_type=station.fuel_type, crown_fraction_burned=cfb)
     flame_length = get_approx_flame_length(hfi)

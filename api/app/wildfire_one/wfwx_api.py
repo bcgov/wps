@@ -8,9 +8,7 @@ import asyncio
 from aiohttp import ClientSession, TCPConnector
 import app
 from app import config
-from app.schemas.fba_calc import StationRequest, StationResponse
 from app.utils.hfi_calculator import get_fire_centre_station_codes
-from app.utils.time import get_hour_20_from_date
 from app.db.models.observations import HourlyActual
 from app.schemas.hfi_calc import HFIWeatherStationsResponse, StationDaily
 from app.schemas.observations import WeatherStationHourlyReadings
