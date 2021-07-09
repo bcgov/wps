@@ -1,17 +1,21 @@
 import {
   DataGrid,
+  GridEditCellValueParams,
+  GridRowId,
   GridToolbarColumnsButton,
   GridToolbarContainer,
   GridToolbarDensitySelector,
   GridToolbarExport,
   GridToolbarFilterButton
 } from '@material-ui/data-grid'
+import _ from 'lodash'
 import React from 'react'
 export interface FBCInputGridProps {
   testId?: string
   stationMenuOptions: GridMenuOption[]
   fuelTypeMenuOptions: GridMenuOption[]
   rows: FBCInputRow[]
+  updateRow: (rowId: GridRowId, updatedRow: FBCInputRow) => void
 }
 
 export interface GridMenuOption {
@@ -39,6 +43,19 @@ const buildFBCGridToolbar = () => {
 }
 
 const FBCInputGrid = (props: FBCInputGridProps) => {
+  const updateCellValue = (params: GridEditCellValueParams) => {
+    const rowToUpdate = _.find(props.rows, ['id', params.id])
+    if (rowToUpdate) {
+      const updatedRow = {
+        ...rowToUpdate,
+        ...{
+          [params.field as keyof FBCInputRow]: params.value
+        }
+      }
+      props.updateRow(params.id, updatedRow)
+    }
+  }
+
   return (
     <div style={{ display: 'flex', height: 300, width: 800 }}>
       <div style={{ flexGrow: 1 }}>
@@ -74,7 +91,7 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
             }
           ]}
           rows={props.rows}
-          onCellValueChange={params => console.log(params)}
+          onCellValueChange={updateCellValue}
         />
       </div>
     </div>

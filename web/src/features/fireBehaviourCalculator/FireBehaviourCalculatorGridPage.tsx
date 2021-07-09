@@ -1,4 +1,5 @@
 import { FormControl, makeStyles } from '@material-ui/core'
+import { GridRowId } from '@material-ui/data-grid'
 import { GeoJsonStation, getStations } from 'api/stationAPI'
 import {
   selectFireBehaviourCalcResult,
@@ -68,6 +69,14 @@ export const FireBehaviourCalculatorGrid: React.FunctionComponent = () => {
       grassCure: 0
     }
     setRows([...rows, newRow])
+  }
+
+  const updateRow = (rowId: GridRowId, updatedRow: FBCInputRow) => {
+    const newRows = [...rows]
+
+    // rowId is the row array index
+    newRows[rowId as number] = updatedRow
+    setRows(newRows)
   }
   const { fireBehaviourResultStations } = useSelector(selectFireBehaviourCalcResult)
 
@@ -145,6 +154,7 @@ export const FireBehaviourCalculatorGrid: React.FunctionComponent = () => {
             stationMenuOptions={stationMenuOptions}
             fuelTypeMenuOptions={fuelTypeMenuOptions}
             rows={rows}
+            updateRow={updateRow}
           />
         </div>
         {fireBehaviourResultStations.length > 0 && (
