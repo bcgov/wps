@@ -21,6 +21,7 @@ import { fetchFireBehaviourStations } from './slices/fireBehaviourCalcSlice'
 import {
   getMostRecentIdFromRows,
   getRowsFromUrlParams,
+  getUrlParamsFromRows,
   isValidFuelSetting
 } from './utils'
 
@@ -68,7 +69,9 @@ export const FireBehaviourCalculatorGrid: React.FunctionComponent = () => {
       fuelType: fuelTypeMenuOptions[0].value.toString(),
       grassCure: 0
     }
-    setRows([...rows, newRow])
+    const newRows = [...rows, newRow]
+    setRows(newRows)
+    updateQueryParams(getUrlParamsFromRows(newRows))
   }
 
   const updateRow = (rowId: GridRowId, updatedRow: FBCInputRow) => {
@@ -77,6 +80,7 @@ export const FireBehaviourCalculatorGrid: React.FunctionComponent = () => {
     // rowId is the row array index
     newRows[rowId as number] = updatedRow
     setRows(newRows)
+    updateQueryParams(getUrlParamsFromRows(newRows))
   }
   const { fireBehaviourResultStations } = useSelector(selectFireBehaviourCalcResult)
 
@@ -84,9 +88,9 @@ export const FireBehaviourCalculatorGrid: React.FunctionComponent = () => {
     dispatch(fetchWxStations(getStations))
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const updateQueryParams = () => {
+  const updateQueryParams = (queryParams: string) => {
     history.push({
-      search: ''
+      search: queryParams
     })
   }
 
