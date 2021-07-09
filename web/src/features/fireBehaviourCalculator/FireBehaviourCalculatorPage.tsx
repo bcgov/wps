@@ -145,15 +145,6 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
               Remove Station(s)
             </Button>
           </FormControl>
-          <FormControl className={classes.formControl}>
-            <GetWxDataButton
-              onBtnClick={() => {
-                dispatch(fetchFireBehaviourStations(dateOfInterest, rows))
-              }}
-              selector={selectFireBehaviourStationsLoading}
-              buttonLabel="Calculate"
-            />
-          </FormControl>
         </div>
         <br />
         <div style={{ display: 'flex', height: '100%' }}>
@@ -165,6 +156,15 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
             setSelected={setSelected}
           />
         </div>
+        <FormControl className={classes.formControl}>
+          <GetWxDataButton
+            onBtnClick={() => {
+              dispatch(fetchFireBehaviourStations(dateOfInterest, rows))
+            }}
+            selector={selectFireBehaviourStationsLoading}
+            buttonLabel="Calculate"
+          />
+        </FormControl>
         {fireBehaviourResultStations.length > 0 && (
           <FBCResultTable
             testId="fb-calc-result-table"
