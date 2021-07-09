@@ -1,6 +1,6 @@
 import { FormControl, makeStyles } from '@material-ui/core'
 import { GridRowId } from '@material-ui/data-grid'
-import { GeoJsonStation, getStations } from 'api/stationAPI'
+import { GeoJsonStation, getStations, StationSource } from 'api/stationAPI'
 import {
   selectFireBehaviourCalcResult,
   selectFireBehaviourStationsLoading,
@@ -76,7 +76,7 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
   const { fireBehaviourResultStations } = useSelector(selectFireBehaviourCalcResult)
 
   useEffect(() => {
-    dispatch(fetchWxStations(getStations))
+    dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const updateQueryParams = (queryParams: string) => {
