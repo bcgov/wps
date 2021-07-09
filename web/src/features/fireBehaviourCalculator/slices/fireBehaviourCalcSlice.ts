@@ -3,6 +3,7 @@ import { FBCStation, postFBCStations } from 'api/fbCalcAPI'
 
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
+import { FBCInputRow } from '../components/FBCInputGrid'
 import { FuelTypes } from '../fuelTypes'
 
 interface State {
@@ -48,22 +49,23 @@ export default fireBehaviourStationsSlice.reducer
 
 export const fetchFireBehaviourStations = (
   date: string,
-  stationCodes: number[],
-  fuelType: string,
-  grassCurePercentage: number | null
+  fbcInputRows: FBCInputRow[]
 ): AppThunk => async dispatch => {
-  const fuelTypeDetails = FuelTypes.lookup(fuelType)
+  const fetchableFireStations = fbcInputRows.map(row => {
+    const fuelTypeDetails = FuelTypes.lookup(row.fuelType)
+    return {
+      date,
+      stationCode: parseInt(row.weatherStation),
+      fuelType: fuelTypeDetails.name,
+      percentageConifer: fuelTypeDetails.percentage_conifer,
+      grassCurePercentage: row.grassCure,
+      percentageDeadBalsamFir: fuelTypeDetails.percentage_dead_balsam_fir,
+      crownBaseHeight: fuelTypeDetails.crown_base_height
+    }
+  })
   try {
     dispatch(getFireBehaviourStationsStart())
-    const fireBehaviourStations = await postFBCStations(
-      date,
-      stationCodes,
-      fuelTypeDetails.name,
-      fuelTypeDetails.percentage_conifer,
-      grassCurePercentage,
-      fuelTypeDetails.percentage_dead_balsam_fir,
-      fuelTypeDetails.crown_base_height
-    )
+    const fireBehaviourStations = await postFBCStations(fetchableFireStations)
     dispatch(getFireBehaviourStationsSuccess(fireBehaviourStations))
   } catch (err) {
     dispatch(getFireBehaviourStationsFailed(err.toString()))
