@@ -11,7 +11,7 @@ import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { DateTime } from 'luxon'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { useLocation } from 'react-router-dom'
+import { useHistory, useLocation } from 'react-router-dom'
 import DatePicker from './components/DatePicker'
 import FBCInputGrid, { FBCInputRow, GridMenuOption } from './components/FBCInputGrid'
 import FBCResultTable from './components/FBCResultTable'
@@ -50,11 +50,12 @@ export const FireBehaviourCalculatorGrid: React.FunctionComponent = () => {
     })
   )
   const location = useLocation()
+  const history = useHistory()
 
   const rowsFromQuery = getRowsFromUrlParams(location.search)
   const [rows, setRows] = useState<FBCInputRow[]>(rowsFromQuery)
-
   const lastId = getMostRecentIdFromRows(rows)
+
   const [rowId, setRowId] = useState(lastId + 1)
 
   const addStationOfInterest = () => {
@@ -73,6 +74,19 @@ export const FireBehaviourCalculatorGrid: React.FunctionComponent = () => {
   useEffect(() => {
     dispatch(fetchWxStations(getStations))
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const updateQueryParams = () => {
+    history.push({
+      search: ''
+    })
+  }
+
+  useEffect(() => {
+    const rowsFromQuery = getRowsFromUrlParams(location.search)
+    setRows(rowsFromQuery)
+    const lastId = getMostRecentIdFromRows(rows)
+    setRowId(lastId + 1)
+  }, [location]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const useStyles = makeStyles(theme => ({
     formControl: {

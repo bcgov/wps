@@ -46,6 +46,7 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
           components={{
             Toolbar: buildFBCGridToolbar
           }}
+          hideFooter={true}
           rowHeight={30}
           columns={[
             {
@@ -73,6 +74,7 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
             }
           ]}
           rows={props.rows}
+          onCellValueChange={params => console.log(params)}
         />
       </div>
     </div>
