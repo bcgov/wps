@@ -6,10 +6,12 @@ import {
   GridToolbarContainer,
   GridToolbarDensitySelector,
   GridToolbarExport,
-  GridToolbarFilterButton
+  GridToolbarFilterButton,
+  GridValueFormatterParams
 } from '@material-ui/data-grid'
 import _ from 'lodash'
 import React from 'react'
+import { FuelTypes } from '../fuelTypes'
 export interface FBCInputGridProps {
   testId?: string
   stationMenuOptions: GridMenuOption[]
@@ -80,7 +82,10 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
               headerName: 'Fuel Type',
               type: 'singleSelect',
               editable: true,
-              valueOptions: props.fuelTypeMenuOptions
+              valueOptions: props.fuelTypeMenuOptions,
+              valueFormatter: (params: GridValueFormatterParams) => {
+                return FuelTypes.lookup(params.value as string).friendlyName
+              }
             },
             {
               field: 'grassCure',
