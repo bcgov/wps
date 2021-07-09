@@ -50,8 +50,9 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
   const lastId = getMostRecentIdFromRows(rows)
 
   const [rowId, setRowId] = useState(lastId + 1)
+  const [selected, setSelected] = useState<number[]>([])
 
-  const addStationOfInterest = () => {
+  const addStation = () => {
     const newRowId = rowId + 1
     setRowId(newRowId)
     const newRow = {
@@ -63,6 +64,15 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
     const newRows = [...rows, newRow]
     setRows(newRows)
     updateQueryParams(getUrlParamsFromRows(newRows))
+  }
+
+  const deleteSelectedStations = () => {
+    const selectedSet = new Set<number>(selected)
+    const unselectedRows = rows.filter(row => !selectedSet.has(row.id))
+    console.log(unselectedRows)
+    setRows(unselectedRows)
+    updateQueryParams(getUrlParamsFromRows(unselectedRows))
+    setSelected([])
   }
 
   const updateRow = (rowId: GridRowId, updatedRow: FBCInputRow) => {
@@ -120,9 +130,19 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
               variant="contained"
               color="primary"
               spinnercolor="white"
-              onClick={addStationOfInterest}
+              onClick={addStation}
             >
               Add Station
+            </Button>
+          </FormControl>
+          <FormControl className={classes.formControl}>
+            <Button
+              variant="contained"
+              color="primary"
+              spinnercolor="white"
+              onClick={deleteSelectedStations}
+            >
+              Remove Station(s)
             </Button>
           </FormControl>
           <FormControl className={classes.formControl}>
@@ -142,6 +162,7 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
             fuelTypeMenuOptions={fuelTypeMenuOptions}
             rows={rows}
             updateRow={updateRow}
+            setSelected={setSelected}
           />
         </div>
         {fireBehaviourResultStations.length > 0 && (

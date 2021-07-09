@@ -18,6 +18,7 @@ export interface FBCInputGridProps {
   fuelTypeMenuOptions: GridMenuOption[]
   rows: FBCInputRow[]
   updateRow: (rowId: GridRowId, updatedRow: FBCInputRow) => void
+  setSelected: (rowIds: number[]) => void
 }
 
 export interface GridMenuOption {
@@ -69,6 +70,8 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
           components={{
             Toolbar: buildFBCGridToolbar
           }}
+          checkboxSelection={true}
+          onSelectionModelChange={e => props.setSelected(e.selectionModel as number[])}
           hideFooter={true}
           rowHeight={30}
           columns={[
