@@ -4,7 +4,6 @@ import logging
 import rpy2.robjects as robjs
 import rpy2.robjects.conversion as cv
 from rpy2.rinterface import NULL
-from app.utils.fba_calculator import FBACalculatorWeatherStation
 import app.utils.r_importer
 from app.utils.singleton import Singleton
 
@@ -238,35 +237,45 @@ def total_fuel_consumption(  # pylint: disable=invalid-name
   #   FI:   Fire Intensity (kW/m)
 
 
-def head_fire_intensity(station: FBACalculatorWeatherStation,
+def head_fire_intensity(fuel_type: str,
+                        percentage_conifer: float,
+                        percentage_dead_balsam_fir: float,
                         bui: float,
                         ffmc: float,
                         ros: float,
                         cfb: float,
-                        cfl: float):
+                        cfl: float,
+                        sfc: float):
     """ Computes Head Fire Intensity (HFI) by delegating to cffdrs R package.
     Calculating HFI requires a number of inputs that must be calculated first. This function
     first makes method calls to calculate the necessary intermediary values.
     """
-    sfc = surface_fuel_consumption(station.fuel_type, bui, ffmc, station.percentage_conifer)
-    tfc = total_fuel_consumption(station.fuel_type, cfb, sfc,
-                                 station.percentage_conifer, station.percentage_dead_balsam_fir, cfl)
-    logger.info('calling _FIcalc(FC=%s, ROS=%s) based on BUI=%s, FFMC=%s', tfc, ros, bui, ffmc)
+    tfc = total_fuel_consumption(fuel_type, cfb, sfc,
+                                 percentage_conifer, percentage_dead_balsam_fir, cfl)
+    # set to debug, otherwise it causes a lot of noise in the log
+    logger.debug('calling _FIcalc(FC=%s, ROS=%s) based on BUI=%s, FFMC=%s', tfc, ros, bui, ffmc)
     # pylint: disable=protected-access, no-member
     result = CFFDRS.instance().cffdrs._FIcalc(FC=tfc, ROS=ros)
-    logger.info('Calculated HFI %s', result[0])
+    # set to debug, otherwise it causes a lot of noise in the log
+    logger.debug('Calculated HFI %s', result[0])
     return result[0]
 
 
-def get_ffmc_for_target_hfi(
-        station: FBACalculatorWeatherStation, bui: float,
-        ffmc: float, ros: float, cfb: float, cfl: float, target_hfi: float):
+def get_ffmc_for_target_hfi(fuel_type: str,
+                            percentage_conifer: float,
+                            percentage_dead_balsam_fir: float,
+                            bui: float,
+                            ffmc: float, ros: float, cfb: float, cfl: float, target_hfi: float):
     """ Returns a floating point value for minimum FFMC required (holding all other values constant)
     before HFI reaches the target_hfi (in kW/m).
     """
     # start off using the actual FFMC value
     experimental_ffmc = ffmc
-    experimental_hfi = head_fire_intensity(station, bui, experimental_ffmc, ros, cfb, cfl)
+    experimental_sfc = surface_fuel_consumption(fuel_type, bui, experimental_ffmc, percentage_conifer)
+    experimental_hfi = head_fire_intensity(fuel_type,
+                                           percentage_conifer,
+                                           percentage_dead_balsam_fir,
+                                           bui, experimental_ffmc, ros, cfb, cfl, experimental_sfc)
     error_hfi = (target_hfi - experimental_hfi) / target_hfi
     logger.info('Calculating FFMC for %s target HFI...', target_hfi)
 
@@ -284,7 +293,11 @@ def get_ffmc_for_target_hfi(
             experimental_ffmc = min(101, experimental_ffmc + ((101 - experimental_ffmc)/2))
         else:  # if the error value is a negative number, need to make experimental FFMC value smaller
             experimental_ffmc = max(0, experimental_ffmc - ((101 - experimental_ffmc)/2))
-        experimental_hfi = head_fire_intensity(station, bui, experimental_ffmc, ros, cfb, cfl)
+        experimental_sfc = surface_fuel_consumption(fuel_type, bui, experimental_ffmc, percentage_conifer)
+        experimental_hfi = head_fire_intensity(fuel_type,
+                                               percentage_conifer,
+                                               percentage_dead_balsam_fir,
+                                               bui, experimental_ffmc, ros, cfb, cfl, experimental_sfc)
         error_hfi = (target_hfi - experimental_hfi) / target_hfi
 
     return (experimental_ffmc, experimental_hfi)

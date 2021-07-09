@@ -1,0 +1,10 @@
+{
+    "_embedded": {
+        "dailies": []
+    },
+    "_links": {
+        "self": {
+            "href": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/dailies/search/findDailiesByStationIdIsInAndWeatherTimestampBetweenOrderByStationIdAscWeatherTimestampAsc?size=1000&page=0&startingTimestamp=1625515200000&endingTimestamp=1625515200000&stationIds=bb7cb089-2790-4734-e053-1d09228eeca8"
+        }
+    }
+}
