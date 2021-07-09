@@ -21,18 +21,11 @@ import { fetchFireBehaviourStations } from './slices/fireBehaviourCalcSlice'
 import {
   getMostRecentIdFromRows,
   getRowsFromUrlParams,
-  getUrlParamsFromRows,
-  isValidFuelSetting
+  getUrlParamsFromRows
 } from './utils'
 
 export const FireBehaviourCalculatorGrid: React.FunctionComponent = () => {
   const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().toISODate())
-  // eslint-disable-next-line
-  const [stationsOfInterest, setStationsOfInterest] = useState(322)
-  // eslint-disable-next-line
-  const [fuelType, setFuelType] = useState('')
-  // eslint-disable-next-line
-  const [grassCurePercentage, setGrassCurePercentage] = useState<number | null>(null)
 
   const { stations } = useSelector(selectFireWeatherStations)
 
@@ -134,7 +127,6 @@ export const FireBehaviourCalculatorGrid: React.FunctionComponent = () => {
           </FormControl>
           <FormControl className={classes.formControl}>
             <GetWxDataButton
-              disabled={!isValidFuelSetting(fuelType, grassCurePercentage)}
               onBtnClick={() => {
                 dispatch(fetchFireBehaviourStations(dateOfInterest, rows))
               }}
