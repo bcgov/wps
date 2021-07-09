@@ -8,7 +8,7 @@ import {
   selectFireWeatherStations
 } from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
-import { GeoJsonStation, getStations } from 'api/stationAPI'
+import { GeoJsonStation, getStations, StationSource } from 'api/stationAPI'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { FuelTypes } from '../fuelTypes'
 import GetWxDataButton from 'features/fireWeather/components/GetWxDataButton'
@@ -63,7 +63,7 @@ const FBCInputForm = (props: FBCInputFormProps) => {
   ))
 
   useEffect(() => {
-    dispatch(fetchWxStations(getStations))
+    dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
