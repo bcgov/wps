@@ -32,29 +32,31 @@ export interface FBCWeatherStationsResponse {
   stations: FBCStation[]
 }
 
-export async function postFBCStations(
-  date: string,
-  stationCodes: number[],
-  fuelType: string,
-  percentageConifer: number | undefined,
-  grassCurePercentage: number | null,
-  percentageDeadBalsamFir: number | undefined,
+export interface FetchableFBCStation {
+  date: string
+  stationCode: number
+  fuelType: string
+  percentageConifer: number | undefined
+  grassCurePercentage: number | null
+  percentageDeadBalsamFir: number | undefined
   crownBaseHeight: number | undefined
+}
+
+export async function postFBCStations(
+  fireBehaviorStations: FetchableFBCStation[]
 ): Promise<FBCStation[]> {
   const url = '/fba-calc/stations'
 
   const { data } = await axios.post(url, {
-    stations: [
-      {
-        station_code: stationCodes[0],
-        date,
-        fuel_type: fuelType,
-        percentage_conifer: percentageConifer,
-        grass_cure: grassCurePercentage,
-        percentage_dead_balsam_fir: percentageDeadBalsamFir,
-        crown_base_height: crownBaseHeight
-      }
-    ]
+    stations: fireBehaviorStations.map(fireBehaviorStation => ({
+      station_code: fireBehaviorStation.stationCode,
+      date: fireBehaviorStation.date,
+      fuel_type: fireBehaviorStation.fuelType,
+      percentage_conifer: fireBehaviorStation.percentageConifer,
+      grass_cure: fireBehaviorStation.grassCurePercentage,
+      percentage_dead_balsam_fir: fireBehaviorStation.percentageDeadBalsamFir,
+      crown_base_height: fireBehaviorStation.crownBaseHeight
+    }))
   })
   return data.stations
 }

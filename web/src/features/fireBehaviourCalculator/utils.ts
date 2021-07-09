@@ -16,12 +16,16 @@ export const isValidFuelSetting = (
 }
 /**
  * Extracts search params from url and marshalls them into rows for the fire behaviour calculator
- * @param searchParams Form is ?rows=s=<station-code>&f=<fuel-type>&c=<grass-cure-percentage>,...
+ * @param searchParams Form is ?s=<station-code>&f=<fuel-type>&c=<grass-cure-percentage>,...
  * @returns
  */
 export const getRowsFromUrlParams = (searchParams: string): FBCInputRow[] => {
   const buildRow = (params: string[]) => {
     // station, fuel type, grass cure %
+    if (params.length !== 3) {
+      // malformed param query
+      return null
+    }
     assert(params.length === 3)
 
     const rowToBuild = { weatherStation: '1', fuelType: 'c1', grassCure: 0 }
@@ -45,26 +49,46 @@ export const getRowsFromUrlParams = (searchParams: string): FBCInputRow[] => {
     })
     return rowToBuild
   }
-  const rows = searchParams.split(',').map((param, index) => {
+  if (_.isEmpty(searchParams)) {
+    return []
+  }
+  const rows = searchParams.split(',').flatMap((param, index) => {
     const individualParams = param.split('&')
     const builtRow = buildRow(individualParams)
+    if (_.isNull(builtRow)) {
+      return []
+    }
     const rowWithId = {
       id: index,
       weatherStation: builtRow.weatherStation,
       fuelType: builtRow.fuelType,
       grassCure: builtRow.grassCure
     }
-    console.log(rowWithId)
     return rowWithId
   })
-  console.log(rows)
   return rows
+}
+
+/**
+ * Complement of getRowsFromUrlParams
+ * @param rows FBCInputRow array from data table
+ * @returns params as string of form ?s=<station-code>&f=<fuel-type>&c=<grass-cure-percentage>,...
+ */
+export const getUrlParamsFromRows = (rows: FBCInputRow[]): string => {
+  if (rows.length === 0) {
+    return ''
+  }
+  const query = '?'
+  const params = rows
+    .map(row => `s=${row.weatherStation}&f=${row.fuelType}&c=${row.grassCure}`)
+    .join(',')
+
+  return query + params
 }
 
 export const getMostRecentIdFromRows = (rows: FBCInputRow[]): number => {
   let lastIdFromExisting = _.maxBy(rows, 'id')?.id
   lastIdFromExisting = lastIdFromExisting ? lastIdFromExisting : 0
   const lastId = _.isEmpty(rows) ? 0 : lastIdFromExisting
-  console.log(lastId)
   return lastId
 }
