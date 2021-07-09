@@ -244,12 +244,12 @@ def head_fire_intensity(fuel_type: str,
                         ffmc: float,
                         ros: float,
                         cfb: float,
-                        cfl: float):
+                        cfl: float,
+                        sfc: float):
     """ Computes Head Fire Intensity (HFI) by delegating to cffdrs R package.
     Calculating HFI requires a number of inputs that must be calculated first. This function
     first makes method calls to calculate the necessary intermediary values.
     """
-    sfc = surface_fuel_consumption(fuel_type, bui, ffmc, percentage_conifer)
     tfc = total_fuel_consumption(fuel_type, cfb, sfc,
                                  percentage_conifer, percentage_dead_balsam_fir, cfl)
     # set to debug, otherwise it causes a lot of noise in the log
@@ -271,10 +271,11 @@ def get_ffmc_for_target_hfi(fuel_type: str,
     """
     # start off using the actual FFMC value
     experimental_ffmc = ffmc
+    experimental_sfc = surface_fuel_consumption(fuel_type, bui, experimental_ffmc, percentage_conifer)
     experimental_hfi = head_fire_intensity(fuel_type,
                                            percentage_conifer,
                                            percentage_dead_balsam_fir,
-                                           bui, experimental_ffmc, ros, cfb, cfl)
+                                           bui, experimental_ffmc, ros, cfb, cfl, experimental_sfc)
     error_hfi = (target_hfi - experimental_hfi) / target_hfi
     logger.info('Calculating FFMC for %s target HFI...', target_hfi)
 
@@ -292,10 +293,11 @@ def get_ffmc_for_target_hfi(fuel_type: str,
             experimental_ffmc = min(101, experimental_ffmc + ((101 - experimental_ffmc)/2))
         else:  # if the error value is a negative number, need to make experimental FFMC value smaller
             experimental_ffmc = max(0, experimental_ffmc - ((101 - experimental_ffmc)/2))
+        experimental_sfc = surface_fuel_consumption(fuel_type, bui, experimental_ffmc, percentage_conifer)
         experimental_hfi = head_fire_intensity(fuel_type,
                                                percentage_conifer,
                                                percentage_dead_balsam_fir,
-                                               bui, experimental_ffmc, ros, cfb, cfl)
+                                               bui, experimental_ffmc, ros, cfb, cfl, experimental_sfc)
         error_hfi = (target_hfi - experimental_hfi) / target_hfi
 
     return (experimental_ffmc, experimental_hfi)

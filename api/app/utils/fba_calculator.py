@@ -92,14 +92,15 @@ def calculate_fire_behavour_advisory(station: FBACalculatorWeatherStation) -> Fi
     hfi = cffdrs.head_fire_intensity(fuel_type=station.fuel_type,
                                      percentage_conifer=station.percentage_conifer,
                                      percentage_dead_balsam_fir=station.percentage_dead_balsam_fir,
-                                     bui=station.bui, ffmc=station.ffmc, ros=ros, cfb=cfb, cfl=cfl)
+                                     bui=station.bui, ffmc=station.ffmc, ros=ros, cfb=cfb, cfl=cfl, sfc=sfc)
     ffmc_for_hfi_4000, hfi_when_ffmc_equals_ffmc_for_hfi_4000 = cffdrs.get_ffmc_for_target_hfi(
         station.fuel_type, station.percentage_conifer,
         station.percentage_dead_balsam_fir,
         station.bui, station.ffmc, ros, cfb, cfl, 4000)
     ffmc_for_hfi_10000, hfi_when_ffmc_equals_ffmc_for_hfi_10000 = cffdrs.get_ffmc_for_target_hfi(
         station.fuel_type, station.percentage_conifer,
-        station.percentage_dead_balsam_fir, station.bui, station.ffmc, ros, cfb, cfl, 10000)
+        station.percentage_dead_balsam_fir, station.bui,
+        station.ffmc, ros, cfb, cfl, target_hfi=10000)
 
     fire_type = get_fire_type(fuel_type=station.fuel_type, crown_fraction_burned=cfb)
     flame_length = get_approx_flame_length(hfi)
