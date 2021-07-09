@@ -76,6 +76,9 @@
          },
          "{'size': '1000', 'page': 0, 'startingTimestamp': 1625601600000, 'endingTimestamp': 1625601600000, 'stationIds': ['bb7cb089-2790-4734-e053-1d09228eeca8']}": {
             "None": "wfwx/v1/dailies/search__startingTimestamp_1625601600000_endingTimestamp_1625601600000_station_230_page_0_size_1000.json"
+         },
+         "{'size': '1000', 'page': 0, 'startingTimestamp': 1625515200000, 'endingTimestamp': 1625515200000, 'stationIds': ['bb7cb089-2b47-4734-e053-1d09228eeca8']}": {
+            "None": "wfwx/v1/dailies/search__no_match_for_station.json"
          }
       }
    }

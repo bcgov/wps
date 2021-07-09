@@ -1,7 +1,7 @@
 """ Routers for Fire Behaviour Advisory Calculator """
 
 import logging
-from datetime import date
+from datetime import date, datetime
 from aiohttp.client import ClientSession
 from fastapi import APIRouter, Depends
 from app.auth import authentication_required, audit
@@ -83,6 +83,64 @@ def prepare_response(
     return station_response
 
 
+def process_request(
+        dailies_by_station_id: dict,
+        wfwx_station: WFWXWeatherStation,
+        requested_station: StationRequest,
+        time_of_interest: datetime,
+        date_of_interest: date) -> StationResponse:
+    """ Process a valid request """
+    raw_daily = dailies_by_station_id[wfwx_station.wfwx_id]
+
+    # extract variable from wf1 that we need to calculate the fire behaviour advisory.
+    bui = raw_daily.get('buildUpIndex', None)
+    ffmc = raw_daily.get('fineFuelMoistureCode', None)
+    isi = raw_daily.get('initialSpreadIndex', None)
+    wind_speed = raw_daily.get('windSpeed', None)
+
+    # Prepare the inputs for the fire behaviour advisory calculation.
+    # This is a combination of inputs from the front end, information about the station from wf1
+    # and the daily values (observations/forecasts).
+    fba_station = FBACalculatorWeatherStation(
+        elevation=wfwx_station.elevation,
+        fuel_type=requested_station.fuel_type,
+        time_of_interest=time_of_interest,
+        percentage_conifer=requested_station.percentage_conifer,
+        percentage_dead_balsam_fir=requested_station.percentage_dead_balsam_fir,
+        grass_cure=requested_station.grass_cure,
+        crown_base_height=requested_station.crown_base_height,
+        lat=wfwx_station.lat,
+        long=wfwx_station.long,
+        bui=bui,
+        ffmc=ffmc,
+        isi=isi,
+        wind_speed=wind_speed)
+
+    # Calculate the fire behaviour advisory.
+    fire_behavour_advisory = calculate_fire_behavour_advisory(fba_station)
+
+    # Prepare the response
+    return prepare_response(
+        requested_station, wfwx_station, raw_daily, fire_behavour_advisory, date_of_interest)
+
+
+def process_request_without_observation(requested_station: StationRequest,
+                                        wfwx_station: WFWXWeatherStation,
+                                        date_of_interest: date) -> StationResponse:
+    """ Process a request for which no observation/forecast is available """
+    station_response = StationResponse(
+        station_code=requested_station.station_code,
+        station_name=wfwx_station.name,
+        date=date_of_interest,
+        elevation=wfwx_station.elevation,
+        fuel_type=requested_station.fuel_type,
+        status='N/A',
+        grass_cure=requested_station.grass_cure  # ignore the grass cure from WF1 api, return input back out
+    )
+
+    return station_response
+
+
 @router.post('/stations', response_model=StationsListResponse)
 async def get_stations_data(  # pylint:disable=too-many-locals
         request: StationListRequest,
@@ -125,38 +183,18 @@ async def get_stations_data(  # pylint:disable=too-many-locals
             # get the wfwx station
             wfwx_station = wfwx_station_lookup[requested_station.station_code]
             # get the raw daily response from wf1.
-            raw_daily = dailies_by_station_id[wfwx_station.wfwx_id]
+            if wfwx_station.wfwx_id in dailies_by_station_id:
+                station_response = process_request(
+                    dailies_by_station_id,
+                    wfwx_station,
+                    requested_station,
+                    time_of_interest,
+                    date_of_interest)
+            else:
+                # if we can't get the daily (no forecast, or no observation)
+                station_response = process_request_without_observation(
+                    requested_station, wfwx_station, date_of_interest)
 
-            # extract variable from wf1 that we need to calculate the fire behaviour advisory.
-            bui = raw_daily.get('buildUpIndex', None)
-            ffmc = raw_daily.get('fineFuelMoistureCode', None)
-            isi = raw_daily.get('initialSpreadIndex', None)
-            wind_speed = raw_daily.get('windSpeed', None)
-
-            # Prepare the inputs for the fire behaviour advisory calculation.
-            # This is a combination of inputs from the front end, information about the station from wf1
-            # and the daily values (observations/forecasts).
-            fba_station = FBACalculatorWeatherStation(
-                elevation=wfwx_station.elevation,
-                fuel_type=requested_station.fuel_type,
-                time_of_interest=time_of_interest,
-                percentage_conifer=requested_station.percentage_conifer,
-                percentage_dead_balsam_fir=requested_station.percentage_dead_balsam_fir,
-                grass_cure=requested_station.grass_cure,
-                crown_base_height=requested_station.crown_base_height,
-                lat=wfwx_station.lat,
-                long=wfwx_station.long,
-                bui=bui,
-                ffmc=ffmc,
-                isi=isi,
-                wind_speed=wind_speed)
-
-            # Calculate the fire behaviour advisory.
-            fire_behavour_advisory = calculate_fire_behavour_advisory(fba_station)
-
-            # Prepare the response
-            station_response = prepare_response(
-                requested_station, wfwx_station, raw_daily, fire_behavour_advisory, date_of_interest)
             # Add the response to our list of responses
             stations_response.append(station_response)
 
