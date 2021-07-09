@@ -58,6 +58,10 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
     }
   }
 
+  const stationCodeMap = new Map(
+    props.stationMenuOptions.map(station => [station.value, station.label])
+  )
+
   return (
     <div style={{ display: 'flex', height: 300, width: 800 }}>
       <div style={{ flexGrow: 1 }}>
@@ -74,7 +78,13 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
               flex: 1,
               type: 'singleSelect',
               editable: true,
-              valueOptions: props.stationMenuOptions
+              valueOptions: props.stationMenuOptions,
+              valueFormatter: (params: GridValueFormatterParams) => {
+                if (!(_.isNull(params.value) || _.isUndefined(params.value))) {
+                  return stationCodeMap.get(parseInt(params.value as string))
+                }
+                return params
+              }
             },
             {
               field: 'fuelType',
