@@ -32,7 +32,7 @@ def prepare_response(
     """ Construct a response object combining information from the request, the station from wf1,
     the daily response from wf1 and the fire behaviour advisory. """
 
-    # Exract values from the daily
+    # Extract values from the daily
     bui = raw_daily.get('buildUpIndex', None)
     ffmc = raw_daily.get('fineFuelMoistureCode', None)
     isi = raw_daily.get('initialSpreadIndex', None)
