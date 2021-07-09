@@ -22,6 +22,10 @@ export const isValidFuelSetting = (
 export const getRowsFromUrlParams = (searchParams: string): FBCInputRow[] => {
   const buildRow = (params: string[]) => {
     // station, fuel type, grass cure %
+    if (params.length !== 3) {
+      // malformed param query
+      return null
+    }
     assert(params.length === 3)
 
     const rowToBuild = { weatherStation: '1', fuelType: 'c1', grassCure: 0 }
@@ -48,9 +52,12 @@ export const getRowsFromUrlParams = (searchParams: string): FBCInputRow[] => {
   if (_.isEmpty(searchParams)) {
     return []
   }
-  const rows = searchParams.split(',').map((param, index) => {
+  const rows = searchParams.split(',').flatMap((param, index) => {
     const individualParams = param.split('&')
     const builtRow = buildRow(individualParams)
+    if (_.isNull(builtRow)) {
+      return []
+    }
     const rowWithId = {
       id: index,
       weatherStation: builtRow.weatherStation,
