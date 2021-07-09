@@ -162,6 +162,11 @@ objects:
                         configMapKeyRef:
                           name: ${NAME}-global
                           key: env.redis-auth-cache-expiry
+                    - name: REDIS_DAILIES_BY_STATION_CODE_CACHE_EXPIRY
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${NAME}-global
+                          key: env.redis-dailies-by-station-code-expiry
                   resources:
                     limits:
                       cpu: "1"
