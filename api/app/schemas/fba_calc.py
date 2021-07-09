@@ -1,6 +1,6 @@
 """ This module contains pydantic models related to Fire Behaviour Advisory Calculator. """
 
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from datetime import date
 from pydantic import BaseModel
 
@@ -58,6 +58,8 @@ class StationResponse(BaseModel):
     # HFI when FFMC is equal to value stored in ffmc_for_hfi_10000
     # (this is used bc max. FFMC is 101. In some cases, HFI will never reach 10,000 even with FFMC=101)
     hfi_when_ffmc_equals_ffmc_for_hfi_10000: float
+    critical_hours_hfi_4000: Optional[Tuple[float, float]] = None
+    critical_hours_hfi_10000: Optional[Tuple[float, float]] = None
 
 
 class StationsListResponse(BaseModel):

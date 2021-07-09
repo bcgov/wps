@@ -227,6 +227,10 @@ def generate_station_response(raw_daily, station: FBACalculatorWeatherStation) -
         station, bui, ffmc, ros, cfb, cfl, 4000)
     ffmc_for_hfi_10000, hfi_when_ffmc_equals_ffmc_for_hfi_10000 = cffdrs.get_ffmc_for_target_hfi(
         station, bui, ffmc, ros, cfb, cfl, 10000)
+    temp = raw_daily.get('temperature', None)
+    rh = raw_daily.get('relativeHumidity', None)
+    wind_speed = raw_daily.get('windSpeed', None)
+    precip = raw_daily.get('precipitation', None)
     return StationResponse(
         station_code=station.code,
         station_name=station.name,
@@ -234,11 +238,11 @@ def generate_station_response(raw_daily, station: FBACalculatorWeatherStation) -
         elevation=station.elevation,
         fuel_type=station.fuel_type,
         status="Observed" if raw_daily.get('recordType', '').get('id') == 'ACTUAL' else "Forecasted",
-        temp=raw_daily.get('temperature', None),
-        rh=raw_daily.get('relativeHumidity', None),
-        wind_speed=raw_daily.get('windSpeed', None),
+        temp=temp,
+        rh=rh,
+        wind_speed=wind_speed,
         wind_direction=raw_daily.get('windDirection', None),
-        precipitation=raw_daily.get('precipitation', None),
+        precipitation=precip,
         grass_cure=station.grass_cure,  # we ignore the grass cure from WF1 api, and return input back out
         fine_fuel_moisture_code=ffmc,
         drought_code=raw_daily.get('droughtCode', None),
@@ -256,7 +260,11 @@ def generate_station_response(raw_daily, station: FBACalculatorWeatherStation) -
         ffmc_for_hfi_4000=ffmc_for_hfi_4000,
         hfi_when_ffmc_equals_ffmc_for_hfi_4000=hfi_when_ffmc_equals_ffmc_for_hfi_4000,
         ffmc_for_hfi_10000=ffmc_for_hfi_10000,
-        hfi_when_ffmc_equals_ffmc_for_hfi_10000=hfi_when_ffmc_equals_ffmc_for_hfi_10000
+        hfi_when_ffmc_equals_ffmc_for_hfi_10000=hfi_when_ffmc_equals_ffmc_for_hfi_10000,
+        critical_hours_hfi_4000=cffdrs.get_critical_hours(
+            4000, station, bui, ffmc, ros, cfb, cfl, temp, rh, wind_speed, precip),
+        critical_hours_hfi_10000=cffdrs.get_critical_hours(
+            10000, station, bui, ffmc, ros, cfb, cfl, temp, rh, wind_speed, precip)
     )
 
 
