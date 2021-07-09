@@ -45,6 +45,9 @@ export const getRowsFromUrlParams = (searchParams: string): FBCInputRow[] => {
     })
     return rowToBuild
   }
+  if (_.isEmpty(searchParams)) {
+    return []
+  }
   const rows = searchParams.split(',').map((param, index) => {
     const individualParams = param.split('&')
     const builtRow = buildRow(individualParams)
