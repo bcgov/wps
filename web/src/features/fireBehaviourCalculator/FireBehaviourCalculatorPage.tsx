@@ -120,7 +120,9 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
         productName="Predictive Services Unit"
       />
       <Container maxWidth={'xl'}>
-        <h1>Fire Behavior Calculator Prototype</h1>
+        <h1>
+          Fire Behavior Calculator <b style={{ color: 'Red' }}>Prototype</b>
+        </h1>
         <div>
           <FormControl className={classes.formControl}>
             <DatePicker date={dateOfInterest} onChange={setDateOfInterest} />
