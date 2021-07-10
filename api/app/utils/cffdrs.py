@@ -67,7 +67,7 @@ def rate_of_spread(fuel_type: str,  # pylint: disable=too-many-arguments, disabl
     """
     if fuel_type is None or isi is None or bui is None or sfc is None:
         message = PARAMS_ERROR_MESSAGE + \
-            "fuel_type: {fuel_type}, isi: {isi}, bui: {bui}, fmc: {fmc}, sfc: {sfc}".format(
+            "_ROScalc ; fuel_type: {fuel_type}, isi: {isi}, bui: {bui}, fmc: {fmc}, sfc: {sfc}".format(
                 fuel_type=fuel_type, isi=isi, bui=bui, fmc=fmc, sfc=sfc)
         raise CFFDRSException(message)
 
@@ -117,7 +117,8 @@ def surface_fuel_consumption(  # pylint: disable=invalid-name
     """
     if fuel_type is None or bui is None or ffmc is None:
         message = PARAMS_ERROR_MESSAGE + \
-            "fuel_type: {fuel_type}, bui: {bui}, ffmc: {ffmc}".format(fuel_type=fuel_type, bui=bui, ffmc=ffmc)
+            "_SFCcalc; fuel_type: {fuel_type}, bui: {bui}, ffmc: {ffmc}".format(
+                fuel_type=fuel_type, bui=bui, ffmc=ffmc)
         raise CFFDRSException(message)
     if pc is None:
         pc = NULL
@@ -188,7 +189,8 @@ def crown_fraction_burned(fuel_type: str, fmc: float, sfc: float, ros: float, cb
         cbh = NULL
     if cbh is None or fmc is None:
         message = PARAMS_ERROR_MESSAGE + \
-            "fuel_type: {fuel_type}, cbh: {cbh}, fmc: {fmc}".format(fuel_type=fuel_type, cbh=cbh, fmc=fmc)
+            "_CFBcalc; fuel_type: {fuel_type}, cbh: {cbh}, fmc: {fmc}".format(
+                fuel_type=fuel_type, cbh=cbh, fmc=fmc)
         raise CFFDRSException(message)
     result = CFFDRS.instance().cffdrs._CFBcalc(FUELTYPE=fuel_type, FMC=fmc, SFC=sfc,
                                                ROS=ros, CBH=cbh)
@@ -215,7 +217,8 @@ def total_fuel_consumption(  # pylint: disable=invalid-name
     """
     if cfb is None or cfl is None:
         message = PARAMS_ERROR_MESSAGE + \
-            "fuel_type: {fuel_type}, cfb: {cfb}, cfl: {cfl}".format(fuel_type=fuel_type, cfb=cfb, cfl=cfl)
+            "_TFCcalc; fuel_type: {fuel_type}, cfb: {cfb}, cfl: {cfl}".format(
+                fuel_type=fuel_type, cfb=cfb, cfl=cfl)
         raise CFFDRSException(message)
     # According to fbp.Rd in cffdrs R package, Crown Fuel Load (CFL) can use default value of 1.0
     # without causing major impacts on final output.
