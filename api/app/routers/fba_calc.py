@@ -126,7 +126,8 @@ def process_request(
 
 def process_request_without_observation(requested_station: StationRequest,
                                         wfwx_station: WFWXWeatherStation,
-                                        date_of_interest: date) -> StationResponse:
+                                        date_of_interest: date,
+                                        status) -> StationResponse:
     """ Process a request for which no observation/forecast is available """
     station_response = StationResponse(
         station_code=requested_station.station_code,
@@ -134,7 +135,7 @@ def process_request_without_observation(requested_station: StationRequest,
         date=date_of_interest,
         elevation=wfwx_station.elevation,
         fuel_type=requested_station.fuel_type,
-        status='N/A',
+        status=status,
         grass_cure=requested_station.grass_cure  # ignore the grass cure from WF1 api, return input back out
     )
 
@@ -148,7 +149,6 @@ async def get_stations_data(  # pylint:disable=too-many-locals
 ):
     """ Returns per-station data for a list of requested stations """
     logger.info('/fba-calc/stations')
-
     try:
         # build a list of station codes
         station_codes = [station.station_code for station in request.stations]
@@ -184,21 +184,31 @@ async def get_stations_data(  # pylint:disable=too-many-locals
             wfwx_station = wfwx_station_lookup[requested_station.station_code]
             # get the raw daily response from wf1.
             if wfwx_station.wfwx_id in dailies_by_station_id:
-                station_response = process_request(
-                    dailies_by_station_id,
-                    wfwx_station,
-                    requested_station,
-                    time_of_interest,
-                    date_of_interest)
+                try:
+                    station_response = process_request(
+                        dailies_by_station_id,
+                        wfwx_station,
+                        requested_station,
+                        time_of_interest,
+                        date_of_interest)
+                except Exception as exception:  # pylint: disable=broad-except
+                    # If something goes wrong processing the request, then we return this station
+                    # with an error response.
+                    logger.error('request object: %s', request.__str__())
+                    logger.critical(exception, exc_info=True)
+                    station_response = process_request_without_observation(
+                        requested_station, wfwx_station, date_of_interest, 'ERROR')
+
             else:
                 # if we can't get the daily (no forecast, or no observation)
                 station_response = process_request_without_observation(
-                    requested_station, wfwx_station, date_of_interest)
+                    requested_station, wfwx_station, date_of_interest, 'N/A')
 
             # Add the response to our list of responses
             stations_response.append(station_response)
 
         return StationsListResponse(stations=stations_response)
     except Exception as exception:
+        logger.error('request object: %s', request.__str__())
         logger.critical(exception, exc_info=True)
         raise
