@@ -221,16 +221,15 @@ def generate_station_response(raw_daily, station: FBACalculatorWeatherStation) -
                                            ros=ros, cbh=station.crown_base_height)
 
     cfl = FUEL_TYPE_LOOKUP[station.fuel_type].get('CFL', None)
-
-    hfi = cffdrs.head_fire_intensity(station, bui=bui, ffmc=ffmc, ros=ros, cfb=cfb, cfl=cfl)
-    ffmc_for_hfi_4000, hfi_when_ffmc_equals_ffmc_for_hfi_4000 = cffdrs.get_ffmc_for_target_hfi(
-        station, bui, ffmc, ros, cfb, cfl, 4000)
-    ffmc_for_hfi_10000, hfi_when_ffmc_equals_ffmc_for_hfi_10000 = cffdrs.get_ffmc_for_target_hfi(
-        station, bui, ffmc, ros, cfb, cfl, 10000)
     temp = raw_daily.get('temperature', None)
     rh = raw_daily.get('relativeHumidity', None)
     wind_speed = raw_daily.get('windSpeed', None)
     precip = raw_daily.get('precipitation', None)
+    hfi = cffdrs.head_fire_intensity(station, bui=bui, ffmc=ffmc, ros=ros, cfb=cfb, cfl=cfl)
+    ffmc_for_hfi_4000, hfi_when_ffmc_equals_ffmc_for_hfi_4000 = cffdrs.get_ffmc_for_target_hfi(
+        station, bui, ffmc, cfb, cfl, wind_speed, fmc, 4000)
+    ffmc_for_hfi_10000, hfi_when_ffmc_equals_ffmc_for_hfi_10000 = cffdrs.get_ffmc_for_target_hfi(
+        station, bui, ffmc, cfb, cfl, wind_speed, fmc, 10000)
     return StationResponse(
         station_code=station.code,
         station_name=station.name,

@@ -75,8 +75,8 @@ def rate_of_spread(fuel_type: str,  # pylint: disable=too-many-arguments, disabl
                 fuel_type=fuel_type, isi=isi, bui=bui, fmc=fmc, sfc=sfc)
         raise CFFDRSException(message)
 
-    logger.info('calling _ROScalc(FUELTYPE=%s, ISI=%s, BUI=%s, FMC=%s, SFC=%s, PC=%s, PDF=%s, CC=%s, CBH=%s)',
-                fuel_type, isi, bui, fmc, sfc, pc, pdf, cc, cbh)
+    # logger.info('calling _ROScalc(FUELTYPE=%s, ISI=%s, BUI=%s, FMC=%s, SFC=%s, PC=%s, PDF=%s, CC=%s, CBH=%s)',
+    #             fuel_type, isi, bui, fmc, sfc, pc, pdf, cc, cbh)
 
     # For some reason, the registered converter can't turn a None to a NULL, but we need to
     # set these to NULL, despite setting a converter for None to NULL, because it it can only
@@ -131,8 +131,6 @@ def surface_fuel_consumption(  # pylint: disable=invalid-name
                                                FFMC=ffmc,
                                                PC=pc,
                                                GFL=0.35)
-    logger.info('calling surface_fuel_consumption(FUELTYPE=%s,BUI=%s,FFMC=%s,PC=%s): SFC=%s',
-                fuel_type, bui, ffmc, pc, result[0])
     return result[0]
 
     # Args:
@@ -171,6 +169,24 @@ def length_to_breadth_ratio(fuel_type: str, wind_speed: float):
     """ Computes L/B ratio by delegating to cffdrs R package """
     # pylint: disable=protected-access, no-member
     result = CFFDRS.instance().cffdrs._LBcalc(FUELTYPE=fuel_type, WSV=wind_speed)
+    return result[0]
+
+  # Args:
+  #   ffmc:   Fine Fuel Moisture Code
+  #     ws:   Wind Speed (km/h)
+  # fbpMod:   TRUE/FALSE if using the fbp modification at the extreme end
+  #
+  # Returns:
+  #   ISI:    Intial Spread Index
+
+
+def isi(ffmc: float, wind_speed: float):
+    """ Computes Initial Spread Index (ISI) by delegating to cffdrs R package.
+    This is necessary when recalculating ROS/HFI for modified FFMC values. Otherwise,
+    should be using the ISI value retrieved from WFWX.
+    """
+    # pylint: disable=protected-access, no-member
+    result = CFFDRS.instance().cffdrs._ISIcalc(ffmc=ffmc, ws=wind_speed)
     return result[0]
 
     # Args:
@@ -235,13 +251,6 @@ def total_fuel_consumption(  # pylint: disable=invalid-name
                                                PDF=pdf)
     return result[0]
 
-  # Args:
-  #   FC:   Fuel Consumption (kg/m^2)
-  #   ROS:  Rate of Spread (m/min)
-  #
-  # Returns:
-  #   FI:   Fire Intensity (kW/m)
-
 
 def head_fire_intensity(station: FBACalculatorWeatherStation,
                         bui: float,
@@ -256,9 +265,15 @@ def head_fire_intensity(station: FBACalculatorWeatherStation,
     sfc = surface_fuel_consumption(station.fuel_type, bui, ffmc, station.percentage_conifer)
     tfc = total_fuel_consumption(station.fuel_type, cfb, sfc,
                                  station.percentage_conifer, station.percentage_dead_balsam_fir, cfl)
+  # Args:
+  #   FC:   Fuel Consumption (kg/m^2)
+  #   ROS:  Rate of Spread (m/min)
+  #
+  # Returns:
+  #   FI:   Fire Intensity (kW/m)
+
     # pylint: disable=protected-access, no-member
     result = CFFDRS.instance().cffdrs._FIcalc(FC=tfc, ROS=ros)
-    logger.info('With FFMC %s, SFC = %s, TFC = %s, and HFI = %s', ffmc, sfc, tfc, result[0])
     return result[0]
 
   # Args: weatherstream:   Input weather stream data.frame which includes
@@ -305,6 +320,7 @@ def get_hourly_ffmc_on_diurnal_curve(ffmc_solar_noon: float, target_hour: float,
     time_offset = target_hour - 13  # solar noon
     # build weather_data dictionary to be passed as weatherstream
     weather_data = {
+        'hr': 13.0,
         'temp': temperature,
         'rh': relative_humidity,
         'ws': wind_speed,
@@ -317,19 +333,23 @@ def get_hourly_ffmc_on_diurnal_curve(ffmc_solar_noon: float, target_hour: float,
     # pylint: disable=protected-access, no-member
     result = CFFDRS.instance().cffdrs.hffmc(weatherstream=weather_data,
                                             ffmc_old=ffmc_solar_noon, time_step=time_offset)
-    logger.info('HFFMC for time offset %s is %s', time_offset, result[0])
     return result[0]
 
 
 def get_ffmc_for_target_hfi(
         station: FBACalculatorWeatherStation, bui: float,
-        ffmc: float, ros: float, cfb: float, cfl: float, target_hfi: int):
+        ffmc: float, cfb: float, cfl: float, wind_speed: float, fmc: float, target_hfi: int):
     """ Returns a floating point value for minimum FFMC required (holding all other values constant)
     before HFI reaches the target_hfi (in kW/m).
     """
     # start off using the actual FFMC value
     experimental_ffmc = ffmc
-    experimental_hfi = head_fire_intensity(station, bui, experimental_ffmc, ros, cfb, cfl)
+    experimental_sfc = surface_fuel_consumption(
+        station.fuel_type, bui, experimental_ffmc, station.percentage_conifer)
+    experimental_isi = isi(experimental_ffmc, wind_speed)
+    experimental_ros = rate_of_spread(station.fuel_type, experimental_isi, bui, fmc, experimental_sfc, station.percentage_conifer,
+                                      station.grass_cure, station.percentage_dead_balsam_fir, station.crown_base_height)
+    experimental_hfi = head_fire_intensity(station, bui, experimental_ffmc, experimental_ros, cfb, cfl)
     error_hfi = (target_hfi - experimental_hfi) / target_hfi
 
     # FFMC has upper bound 101
@@ -346,14 +366,66 @@ def get_ffmc_for_target_hfi(
             experimental_ffmc = min(101, experimental_ffmc + ((101 - experimental_ffmc)/2))
         else:  # if the error value is a negative number, need to make experimental FFMC value smaller
             experimental_ffmc = max(0, experimental_ffmc - ((101 - experimental_ffmc)/2))
-        experimental_hfi = head_fire_intensity(station, bui, experimental_ffmc, ros, cfb, cfl)
+        experimental_isi = isi(experimental_ffmc, wind_speed)
+        experimental_sfc = surface_fuel_consumption(
+            station.fuel_type, bui, experimental_ffmc, station.percentage_conifer)
+        experimental_ros = rate_of_spread(station.fuel_type, experimental_isi, bui, fmc, experimental_sfc, station.percentage_conifer,
+                                          station.grass_cure, station.percentage_dead_balsam_fir, station.crown_base_height)
+        experimental_hfi = head_fire_intensity(station, bui, experimental_ffmc, experimental_ros, cfb, cfl)
         error_hfi = (target_hfi - experimental_hfi) / target_hfi
-        logger.info('experimental FFMC %s has HFI %s; error %s for target HFI %s',
-                    experimental_ffmc, experimental_hfi, error_hfi, target_hfi)
 
-    logger.info('get_ffmc_for_target_hfi: target %s; experimental FFMC %s has HFI %s',
-                target_hfi, experimental_ffmc, experimental_hfi)
     return (experimental_ffmc, experimental_hfi)
+
+
+def get_critical_hours_start(critical_ffmc: float, solar_noon_ffmc: float, temperature: float, relative_humidity: float, wind_speed: float, precip: float):
+    """ Returns the hour of day (on 24H clock) at which the hourly FFMC crosses the threshold of critical_ffmc.
+    Returns None if the hourly FFMC never reaches critical_ffmc.
+    """
+    if solar_noon_ffmc >= critical_ffmc:
+        logger.info('Solar noon FFMC >= critical FFMC')
+        # go back in time in increments of 0.5 hours
+        clock_time = 13-0.5  # start from solar noon - 0.5 hours
+        while get_hourly_ffmc_on_diurnal_curve(solar_noon_ffmc, clock_time, temperature, relative_humidity, wind_speed, precip) >= critical_ffmc:
+            clock_time -= 0.5
+            if clock_time == -0.5:
+                break
+        # add back the half hour that caused FFMC to drop below critical_ffmc (or that pushed time below 0.0)
+        clock_time += 0.5
+        logger.info('%s', clock_time)
+        return clock_time
+    else:
+        logger.info('Solar noon FFMC %s < critical FFMC %s', solar_noon_ffmc, critical_ffmc)
+        # go forward in time in increments of 0.5 hours
+        clock_time = 13 + 0.5  # start from solar noon + 0.5 hours
+        while get_hourly_ffmc_on_diurnal_curve(solar_noon_ffmc, clock_time, temperature, relative_humidity, wind_speed, precip) < critical_ffmc:
+            logger.info('Clock time %s has HFFMC %s', clock_time, get_hourly_ffmc_on_diurnal_curve(
+                solar_noon_ffmc, clock_time, temperature, relative_humidity, wind_speed, precip))
+            clock_time += 0.5
+            if clock_time == 24.0:
+                return None
+        return clock_time
+
+
+def get_critical_hours_end(critical_ffmc: float, solar_noon_ffmc: float, critical_hour_start: float, temperature: float, relative_humidity: float, wind_speed: float, precip: float):
+    """ Returns the hour of day (on 24H clock) at which the hourly FFMC drops below the threshold of critical_ffmc.
+    Should only be called if critical_hour_start is not None.
+    If diurnally-adjusted FFMC never drops below critical_ffmc in the day, will return 23.5 (11:30 pm).
+    """
+    assert critical_hour_start is not None
+    clock_time = critical_hour_start + 0.5    # increase time in increments of 0.5 hours
+    max_hourly_ffmc = None
+    while get_hourly_ffmc_on_diurnal_curve(solar_noon_ffmc, clock_time, temperature, relative_humidity, wind_speed, precip) >= critical_ffmc:
+        if get_hourly_ffmc_on_diurnal_curve(solar_noon_ffmc, clock_time, temperature, relative_humidity, wind_speed, precip) > max_hourly_ffmc:
+            max_hourly_ffmc = get_hourly_ffmc_on_diurnal_curve(
+                solar_noon_ffmc, clock_time, temperature, relative_humidity, wind_speed, precip)
+        clock_time += 0.5
+        if clock_time == 24.0:
+            break
+    # subtract the half hour that caused FFMC to drop below critical_ffmc (or that pushed time to 24.0, which
+    # corresponds to 12 am of the next day)
+    clock_time -= 0.5
+    logger.info('max hourly FFMC %s', max_hourly_ffmc)
+    return clock_time
 
 
 def get_critical_hours(target_hfi: int, station: FBACalculatorWeatherStation, bui: float,
@@ -366,7 +438,8 @@ def get_critical_hours(target_hfi: int, station: FBACalculatorWeatherStation, bu
     that cause HFI >= target_hfi.
     """
     critical_ffmc, resulting_hfi = get_ffmc_for_target_hfi(
-        station, bui, solar_noon_ffmc, ros, cfb, cfl, target_hfi)
+        station, bui, solar_noon_ffmc, ros, cfb, cfl, wind_speed, target_hfi)
+    logger.info('Critical FFMC %s, resulting HFI %s; target HFI %s', critical_ffmc, resulting_hfi, target_hfi)
     # Scenario 1: it's not possible for the HFI to reach target_hfi, in which case there will
     # be no critical hours.
     if critical_ffmc >= 100.9 and resulting_hfi < target_hfi:
@@ -382,23 +455,15 @@ def get_critical_hours(target_hfi: int, station: FBACalculatorWeatherStation, bu
     # Scenario 3: there is a critical_ffmc between (0, 101) that corresponds to
     # resulting_hfi >= target_hfi. Now have to determine what hours of the day (if any)
     # will see hourly FFMC (adjusted according to diurnal curve) >= critical_ffmc.
-    starting_hour = 13.0
-    if solar_noon_ffmc >= critical_ffmc:
-        # the start of the critical hour time range will be before solar noon (13:00)
-        time_offset = -0.5      # time increments of 0.5 hours
-        while get_hourly_ffmc_on_diurnal_curve(solar_noon_ffmc, time_offset, temperature, relative_humidity,
-                                               wind_speed, precipitation) >= critical_ffmc and time_offset >= -13.0:
-            time_offset -= 0.5
-        # undo the last offset step - it'll have pushed FFMC down too low
-        starting_hour = 13.0 - time_offset + 0.5
-    logger.info('Set starting critical hour to %s for HFI %s', starting_hour, target_hfi)
-    # Check to see if/when the hours after solar noon will have hourly FFMC >= critical_ffmc
-    time_offset = 0.5
-    ending_hour = 13.0
-    while get_hourly_ffmc_on_diurnal_curve(solar_noon_ffmc, time_offset, temperature, relative_humidity,
-                                           wind_speed, precipitation) >= critical_ffmc and time_offset <= 10.5:
-        time_offset += 0.5
-    # undo the last offset step - it'll have pushed FFMC down too low
-    ending_hour = 13.0 + time_offset - 0.5
-    logger.info('Set ending critical hour to %s for HFI %s', ending_hour, target_hfi)
-    return (starting_hour, ending_hour)
+    critical_hour_start = get_critical_hours_start(
+        critical_ffmc, solar_noon_ffmc, temperature, relative_humidity, wind_speed, precipitation)
+    logger.info('Got critical_hour_start %s', critical_hour_start)
+    if critical_hour_start is None:
+        return None
+    else:
+        critical_hour_end = get_critical_hours_end(
+            critical_ffmc, solar_noon_ffmc, critical_hour_start, temperature, relative_humidity, wind_speed, precipitation)
+
+    logger.info('Critical hours for target HFI %s are (%s, %s)',
+                target_hfi, critical_hour_start, critical_hour_end)
+    return (critical_hour_start, critical_hour_end)
