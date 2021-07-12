@@ -1,5 +1,6 @@
 import {
   DataGrid,
+  GridCellParams,
   GridEditCellValueParams,
   GridRowId,
   GridToolbarColumnsButton,
@@ -72,6 +73,9 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
           }}
           checkboxSelection={true}
           onSelectionModelChange={e => props.setSelected(e.selectionModel as number[])}
+          onCellClick={(params: GridCellParams) =>
+            params.api.setCellMode(params.id, params.field, 'edit')
+          }
           hideFooter={true}
           rowHeight={30}
           columns={[
