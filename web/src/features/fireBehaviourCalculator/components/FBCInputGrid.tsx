@@ -104,18 +104,12 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
               type: 'singleSelect',
               editable: true,
               valueOptions: props.stationMenuOptions,
-              valueFormatter: (params: GridValueFormatterParams) => {
-                if (!(_.isNull(params.value) || _.isUndefined(params.value))) {
-                  return stationCodeMap.get(parseInt(params.value as string))
-                }
-                return params
-              },
               renderCell: params => {
                 let stationName = stationCodeMap.get(parseInt(params.value as string))
                 stationName = stationName ? stationName : ''
                 return (
                   <div style={{ cursor: 'pointer' }}>
-                    <DropDownEdit label={`${stationName} (${params.value})`} />
+                    <DropDownEdit label={`${stationName}`} />
                   </div>
                 )
               }
