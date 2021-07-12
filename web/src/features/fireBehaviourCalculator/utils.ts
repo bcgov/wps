@@ -3,12 +3,12 @@ import _ from 'lodash'
 import { isNull } from 'lodash'
 import { FBCInputRow } from './components/FBCInputGrid'
 
-export const isGrassFuelType = (fuelType: string) =>
+export const isGrassFuelType = (fuelType: string): boolean =>
   fuelType === 'o1a' || fuelType === 'o1b'
 export const isValidFuelSetting = (
   fuelType: string,
   grassCurePercentage: number | null
-) => {
+): boolean => {
   if (isGrassFuelType(fuelType)) {
     return !isNull(grassCurePercentage)
   }
