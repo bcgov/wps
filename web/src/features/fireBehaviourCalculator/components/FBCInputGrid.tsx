@@ -1,4 +1,4 @@
-import { FormControlLabel, IconButton } from '@material-ui/core'
+import { FormControlLabel, IconButton, TextField } from '@material-ui/core'
 import {
   DataGrid,
   GridCellParams,
@@ -55,11 +55,26 @@ const DropDownEdit = (props: DropDownEditProps) => {
     <FormControlLabel
       label={props.label}
       labelPlacement="start"
+      placeholder="Please select a station"
       control={
         <IconButton color="primary" aria-label="Choose station">
           <ArrowDropDownIcon />
         </IconButton>
       }
+    />
+  )
+}
+
+interface NumberEditProps {
+  value: string
+}
+const NumberEdit = (props: NumberEditProps) => {
+  return (
+    <TextField
+      id="grass-cure-percentage-number"
+      type="number"
+      value={props.value}
+      required={true}
     />
   )
 }
@@ -83,7 +98,7 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
   )
 
   return (
-    <div style={{ display: 'flex', height: 300, width: 900 }}>
+    <div style={{ display: 'flex', height: 300, width: 1000 }}>
       <div style={{ flexGrow: 1 }}>
         <DataGrid
           components={{
@@ -139,7 +154,10 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
               headerName: 'Grass Cure %',
               flex: 0.7,
               type: 'number',
-              editable: true
+              editable: true,
+              renderCell: params => {
+                return <NumberEdit value={params.value as string} />
+              }
             }
           ]}
           rows={props.rows}
