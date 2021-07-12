@@ -19,6 +19,9 @@ RUN apt-get update --fix-missing && apt-get -y install r-base
 # Install cffdrs
 RUN R -e "install.packages('cffdrs')"
 
+# Install JDK
+RUN apt-get -y install openjdk-11-jdk
+
 # Update pip
 RUN python -m pip install --upgrade pip
 
@@ -43,7 +46,10 @@ RUN cd /tmp && \
 
 WORKDIR /app
 COPY ./app /app/app
+RUN mkdir /app/libs
+COPY ./libs/*.jar /app/libs/
 
 EXPOSE 8080
 
+ENV CLASSPATH=/app/libs/REDapp_Lib.jar:/app/libs/WTime.jar:/app/libs/hss-java.jar:${CLASSPATH}
 CMD uvicorn app.main:app --reload --host 0.0.0.0 --port 8080
