@@ -1,5 +1,7 @@
+import { FormControlLabel, IconButton, TextField } from '@material-ui/core'
 import {
   DataGrid,
+  GridCellParams,
   GridEditCellValueParams,
   GridRowId,
   GridToolbarColumnsButton,
@@ -9,6 +11,7 @@ import {
   GridToolbarFilterButton,
   GridValueFormatterParams
 } from '@material-ui/data-grid'
+import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown'
 import _ from 'lodash'
 import React from 'react'
 import { FuelTypes } from '../fuelTypes'
@@ -44,6 +47,37 @@ const buildFBCGridToolbar = () => {
     </GridToolbarContainer>
   )
 }
+export interface DropDownEditProps {
+  label: string
+}
+const DropDownEdit = (props: DropDownEditProps) => {
+  return (
+    <FormControlLabel
+      label={props.label}
+      labelPlacement="start"
+      placeholder="Please select a station"
+      control={
+        <IconButton color="primary" aria-label="Choose station">
+          <ArrowDropDownIcon />
+        </IconButton>
+      }
+    />
+  )
+}
+
+interface NumberEditProps {
+  value: string
+}
+const NumberEdit = (props: NumberEditProps) => {
+  return (
+    <TextField
+      id="grass-cure-percentage-number"
+      type="number"
+      value={props.value}
+      required={true}
+    />
+  )
+}
 
 const FBCInputGrid = (props: FBCInputGridProps) => {
   const updateCellValue = (params: GridEditCellValueParams) => {
@@ -64,7 +98,7 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
   )
 
   return (
-    <div style={{ display: 'flex', height: 300, width: 800 }}>
+    <div style={{ display: 'flex', height: 300, width: 1000 }}>
       <div style={{ flexGrow: 1 }}>
         <DataGrid
           components={{
@@ -72,6 +106,9 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
           }}
           checkboxSelection={true}
           onSelectionModelChange={e => props.setSelected(e.selectionModel as number[])}
+          onCellClick={(params: GridCellParams) =>
+            params.api.setCellMode(params.id, params.field, 'edit')
+          }
           hideFooter={true}
           rowHeight={30}
           columns={[
@@ -82,11 +119,14 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
               type: 'singleSelect',
               editable: true,
               valueOptions: props.stationMenuOptions,
-              valueFormatter: (params: GridValueFormatterParams) => {
-                if (!(_.isNull(params.value) || _.isUndefined(params.value))) {
-                  return stationCodeMap.get(parseInt(params.value as string))
-                }
-                return params
+              renderCell: function stationDropDown(params) {
+                let stationName = stationCodeMap.get(parseInt(params.value as string))
+                stationName = stationName ? stationName : ''
+                return (
+                  <div style={{ cursor: 'pointer' }}>
+                    <DropDownEdit label={`${stationName}`} />
+                  </div>
+                )
               }
             },
             {
@@ -98,6 +138,15 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
               valueOptions: props.fuelTypeMenuOptions,
               valueFormatter: (params: GridValueFormatterParams) => {
                 return FuelTypes.lookup(params.value as string).friendlyName
+              },
+              renderCell: function fuelTypeDropDown(params) {
+                return (
+                  <div style={{ cursor: 'pointer' }}>
+                    <DropDownEdit
+                      label={`${FuelTypes.lookup(params.value as string).friendlyName}`}
+                    />
+                  </div>
+                )
               }
             },
             {
@@ -105,7 +154,10 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
               headerName: 'Grass Cure %',
               flex: 0.7,
               type: 'number',
-              editable: true
+              editable: true,
+              renderCell: function numberPicker(params) {
+                return <NumberEdit value={params.value as string} />
+              }
             }
           ]}
           rows={props.rows}
