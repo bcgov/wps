@@ -14,6 +14,7 @@ class StationRequest(BaseModel):
     percentage_dead_balsam_fir: Optional[float]
     grass_cure: Optional[float]
     crown_base_height: Optional[float]
+    wind_speed: Optional[float]
 
 
 class StationListRequest(BaseModel):

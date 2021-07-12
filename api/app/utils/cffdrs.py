@@ -414,7 +414,7 @@ def get_critical_hours_end(critical_ffmc: float, solar_noon_ffmc: float, critica
     """
     assert critical_hour_start is not None
     clock_time = critical_hour_start + 0.5    # increase time in increments of 0.5 hours
-    max_hourly_ffmc = None
+    max_hourly_ffmc = 0.0
     while get_hourly_ffmc_on_diurnal_curve(solar_noon_ffmc, clock_time, temperature, relative_humidity, wind_speed, precip) >= critical_ffmc:
         if get_hourly_ffmc_on_diurnal_curve(solar_noon_ffmc, clock_time, temperature, relative_humidity, wind_speed, precip) > max_hourly_ffmc:
             max_hourly_ffmc = get_hourly_ffmc_on_diurnal_curve(
