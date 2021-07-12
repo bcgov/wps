@@ -97,6 +97,9 @@ def process_request(
     ffmc = raw_daily.get('fineFuelMoistureCode', None)
     isi = raw_daily.get('initialSpreadIndex', None)
     wind_speed = raw_daily.get('windSpeed', None)
+    temperature = raw_daily.get('temperature', None)
+    relative_humidity = raw_daily.get('relativeHumidity', None)
+    precipitation = raw_daily.get('precipitation', None)
 
     # Prepare the inputs for the fire behaviour advisory calculation.
     # This is a combination of inputs from the front end, information about the station from wf1
@@ -114,7 +117,10 @@ def process_request(
         bui=bui,
         ffmc=ffmc,
         isi=isi,
-        wind_speed=wind_speed)
+        wind_speed=wind_speed,
+        temperature=temperature,
+        relative_humidity=relative_humidity,
+        precipitation=precipitation)
 
     # Calculate the fire behaviour advisory.
     fire_behavour_advisory = calculate_fire_behavour_advisory(fba_station)
