@@ -47,7 +47,8 @@ RUN cd /tmp && \
 WORKDIR /app
 COPY ./app /app/app
 RUN mkdir /app/libs
-COPY ./libs/hss-java.jar ./libs/REDapp_Lib.jar ./libs/WTime.jar /app/libs/
+#COPY ./libs/hss-java.jar ./libs/REDapp_Lib.jar ./libs/WTime.jar /app/libs/
+COPY ./libs /app/libs
 
 EXPOSE 8080
 
