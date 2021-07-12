@@ -1,3 +1,4 @@
+import { FormControlLabel, IconButton } from '@material-ui/core'
 import {
   DataGrid,
   GridCellParams,
@@ -10,6 +11,7 @@ import {
   GridToolbarFilterButton,
   GridValueFormatterParams
 } from '@material-ui/data-grid'
+import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown'
 import _ from 'lodash'
 import React from 'react'
 import { FuelTypes } from '../fuelTypes'
@@ -45,6 +47,22 @@ const buildFBCGridToolbar = () => {
     </GridToolbarContainer>
   )
 }
+export interface DropDownEditProps {
+  label: string
+}
+const DropDownEdit = (props: DropDownEditProps) => {
+  return (
+    <FormControlLabel
+      label={props.label}
+      labelPlacement="start"
+      control={
+        <IconButton color="primary" aria-label="Choose station">
+          <ArrowDropDownIcon />
+        </IconButton>
+      }
+    />
+  )
+}
 
 const FBCInputGrid = (props: FBCInputGridProps) => {
   const updateCellValue = (params: GridEditCellValueParams) => {
@@ -65,7 +83,7 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
   )
 
   return (
-    <div style={{ display: 'flex', height: 300, width: 800 }}>
+    <div style={{ display: 'flex', height: 300, width: 900 }}>
       <div style={{ flexGrow: 1 }}>
         <DataGrid
           components={{
@@ -91,6 +109,15 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
                   return stationCodeMap.get(parseInt(params.value as string))
                 }
                 return params
+              },
+              renderCell: params => {
+                let stationName = stationCodeMap.get(parseInt(params.value as string))
+                stationName = stationName ? stationName : ''
+                return (
+                  <div style={{ cursor: 'pointer' }}>
+                    <DropDownEdit label={`${stationName} (${params.value})`} />
+                  </div>
+                )
               }
             },
             {
@@ -102,6 +129,15 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
               valueOptions: props.fuelTypeMenuOptions,
               valueFormatter: (params: GridValueFormatterParams) => {
                 return FuelTypes.lookup(params.value as string).friendlyName
+              },
+              renderCell: params => {
+                return (
+                  <div style={{ cursor: 'pointer' }}>
+                    <DropDownEdit
+                      label={`${FuelTypes.lookup(params.value as string).friendlyName}`}
+                    />
+                  </div>
+                )
               }
             },
             {
