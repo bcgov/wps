@@ -30,7 +30,7 @@ RUN cd /tmp && \
 COPY ./api/app /app/app
 # Copy java libs:
 RUN mkdir /app/libs
-COPY ./libs/*.jar /app/libs
+COPY ./libs /app/libs
 # Copy the static content:
 COPY --from=static /opt/app-root/src/build /app/static
 # Copy almebic:
