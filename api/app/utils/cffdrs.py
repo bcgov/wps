@@ -7,7 +7,6 @@ import rpy2.robjects as robjs
 from rpy2.robjects import DataFrame
 import rpy2.robjects.conversion as cv
 from rpy2.rinterface import NULL
-from app.utils.fba_calculator import FBACalculatorWeatherStation
 import app.utils.r_importer
 from app.utils.singleton import Singleton
 
@@ -71,7 +70,7 @@ def rate_of_spread(fuel_type: str,  # pylint: disable=too-many-arguments, disabl
     """
     if fuel_type is None or isi is None or bui is None or sfc is None:
         message = PARAMS_ERROR_MESSAGE + \
-            "fuel_type: {fuel_type}, isi: {isi}, bui: {bui}, fmc: {fmc}, sfc: {sfc}".format(
+            "_ROScalc ; fuel_type: {fuel_type}, isi: {isi}, bui: {bui}, fmc: {fmc}, sfc: {sfc}".format(
                 fuel_type=fuel_type, isi=isi, bui=bui, fmc=fmc, sfc=sfc)
         raise CFFDRSException(message)
 
@@ -122,7 +121,8 @@ def surface_fuel_consumption(  # pylint: disable=invalid-name
     """
     if fuel_type is None or bui is None or ffmc is None:
         message = PARAMS_ERROR_MESSAGE + \
-            "fuel_type: {fuel_type}, bui: {bui}, ffmc: {ffmc}".format(fuel_type=fuel_type, bui=bui, ffmc=ffmc)
+            "_SFCcalc; fuel_type: {fuel_type}, bui: {bui}, ffmc: {ffmc}".format(
+                fuel_type=fuel_type, bui=bui, ffmc=ffmc)
         raise CFFDRSException(message)
     if pc is None:
         pc = NULL
@@ -211,7 +211,8 @@ def crown_fraction_burned(fuel_type: str, fmc: float, sfc: float, ros: float, cb
         cbh = NULL
     if cbh is None or fmc is None:
         message = PARAMS_ERROR_MESSAGE + \
-            "fuel_type: {fuel_type}, cbh: {cbh}, fmc: {fmc}".format(fuel_type=fuel_type, cbh=cbh, fmc=fmc)
+            "_CFBcalc; fuel_type: {fuel_type}, cbh: {cbh}, fmc: {fmc}".format(
+                fuel_type=fuel_type, cbh=cbh, fmc=fmc)
         raise CFFDRSException(message)
     result = CFFDRS.instance().cffdrs._CFBcalc(FUELTYPE=fuel_type, FMC=fmc, SFC=sfc,
                                                ROS=ros, CBH=cbh)
@@ -238,7 +239,8 @@ def total_fuel_consumption(  # pylint: disable=invalid-name
     """
     if cfb is None or cfl is None:
         message = PARAMS_ERROR_MESSAGE + \
-            "fuel_type: {fuel_type}, cfb: {cfb}, cfl: {cfl}".format(fuel_type=fuel_type, cfb=cfb, cfl=cfl)
+            "_TFCcalc; fuel_type: {fuel_type}, cfb: {cfb}, cfl: {cfl}".format(
+                fuel_type=fuel_type, cfb=cfb, cfl=cfl)
         raise CFFDRSException(message)
     # According to fbp.Rd in cffdrs R package, Crown Fuel Load (CFL) can use default value of 1.0
     # without causing major impacts on final output.
@@ -253,58 +255,62 @@ def total_fuel_consumption(  # pylint: disable=invalid-name
     return result[0]
 
 
-def head_fire_intensity(station: FBACalculatorWeatherStation,
+def head_fire_intensity(fuel_type: str,
+                        percentage_conifer: float,
+                        percentage_dead_balsam_fir: float,
                         bui: float,
                         ffmc: float,
                         ros: float,
                         cfb: float,
-                        cfl: float):
+                        cfl: float,
+                        sfc: float):
     """ Computes Head Fire Intensity (HFI) by delegating to cffdrs R package.
     Calculating HFI requires a number of inputs that must be calculated first. This function
     first makes method calls to calculate the necessary intermediary values.
     """
-    sfc = surface_fuel_consumption(station.fuel_type, bui, ffmc, station.percentage_conifer)
-    tfc = total_fuel_consumption(station.fuel_type, cfb, sfc,
-                                 station.percentage_conifer, station.percentage_dead_balsam_fir, cfl)
-  # Args:
-  #   FC:   Fuel Consumption (kg/m^2)
-  #   ROS:  Rate of Spread (m/min)
-  #
-  # Returns:
-  #   FI:   Fire Intensity (kW/m)
+
+    sfc = surface_fuel_consumption(fuel_type, bui, ffmc, percentage_conifer)
+    tfc = total_fuel_consumption(fuel_type, cfb, sfc,
+                                 percentage_conifer, percentage_dead_balsam_fir, cfl)
+    # Args:
+    #   FC:   Fuel Consumption (kg/m^2)
+    #   ROS:  Rate of Spread (m/min)
+    #
+    # Returns:
+    #   FI:   Fire Intensity (kW/m)
 
     # pylint: disable=protected-access, no-member
     result = CFFDRS.instance().cffdrs._FIcalc(FC=tfc, ROS=ros)
     return result[0]
 
-  # Args: weatherstream:   Input weather stream data.frame which includes
-  #                        temperature, relative humidity, wind speed,
-  #                        precipitation, hourly value, and bui. More specific
-  #                        info can be found in the hffmc.Rd help file.
-  #            ffmc_old:   ffmc from previous timestep
-  #           time.step:   The time (hours) between previous FFMC and current
-  #                        time.
-  #           calc.step:   Whether time step between 2 obs is calculated
-  #                        (optional)
-  #               batch:   Single step or iterative (default=TRUE)
-  #           hourlyFWI:   Can calculated hourly ISI & FWI as well
-  #                        (TRUE/FALSE, default=FALSE)
-  #
-  # Returns: A single or multiple hourly ffmc value(s)
-  #
-  # From hffmc.Rd:
-  # \item{weatherstream}{
-  # A dataframe containing input variables of hourly weather observations.
-  # It is important that variable names have to be the same as in the following list, but they
-  # are case insensitive. The order in which the input variables are entered is not important.
-  # \tabular{lll}{
-  #     \var{temp} \tab (required) \tab Temperature (centigrade)\cr
-  #     \var{rh}   \tab (required) \tab Relative humidity (\%)\cr
-  #     \var{ws}   \tab (required) \tab 10-m height wind speed (km/h)\cr
-  #     \var{prec} \tab (required) \tab 1-hour rainfall (mm)\cr
-  #     \var{hr}   \tab (optional) \tab Hourly value to calculate sub-hourly ffmc \cr
-  #     \var{bui}  \tab (optional) \tab Daily BUI value for the computation of hourly FWI. It is
-  # required when \code{hourlyFWI=TRUE}.\cr
+# Args: weatherstream:   Input weather stream data.frame which includes
+#                        temperature, relative humidity, wind speed,
+#                        precipitation, hourly value, and bui. More specific
+#                        info can be found in the hffmc.Rd help file.
+#            ffmc_old:   ffmc from previous timestep
+#           time.step:   The time (hours) between previous FFMC and current
+#                        time.
+#           calc.step:   Whether time step between 2 obs is calculated
+#                        (optional)
+#               batch:   Single step or iterative (default=TRUE)
+#           hourlyFWI:   Can calculated hourly ISI & FWI as well
+#                        (TRUE/FALSE, default=FALSE)
+#
+# Returns: A single or multiple hourly ffmc value(s)
+#
+# From hffmc.Rd:
+# \item{weatherstream}{
+# A dataframe containing input variables of hourly weather observations.
+# It is important that variable names have to be the same as in the following list, but they
+# are case insensitive. The order in which the input variables are entered is not important.
+# \tabular{lll}{
+#     \var{temp} \tab (required) \tab Temperature (centigrade)\cr
+#     \var{rh}   \tab (required) \tab Relative humidity (\%)\cr
+#     \var{ws}   \tab (required) \tab 10-m height wind speed (km/h)\cr
+#     \var{prec} \tab (required) \tab 1-hour rainfall (mm)\cr
+#     \var{hr}   \tab (optional) \tab Hourly value to calculate sub-hourly ffmc \cr
+#     \var{bui}  \tab (optional) \tab Daily BUI value for the computation of hourly FWI. It is
+# required when \code{hourlyFWI=TRUE}.\cr
 
 
 def get_hourly_ffmc_on_diurnal_curve(ffmc_solar_noon: float, target_hour: float,
@@ -337,26 +343,33 @@ def get_hourly_ffmc_on_diurnal_curve(ffmc_solar_noon: float, target_hour: float,
     return result[0]
 
 
-def get_ffmc_for_target_hfi(
-        station: FBACalculatorWeatherStation, bui: float,
-        ffmc: float, cfb: float, cfl: float, wind_speed: float, fmc: float, target_hfi: int):
+def get_ffmc_for_target_hfi(fuel_type: str,
+                            percentage_conifer: float,
+                            percentage_dead_balsam_fir: float,
+                            bui: float,
+                            wind_speed: float,
+                            grass_cure: int,
+                            crown_base_height: float,
+                            ffmc: float, fmc: float, cfb: float, cfl: float, target_hfi: float):
     """ Returns a floating point value for minimum FFMC required (holding all other values constant)
-    before HFI reaches the target_hfi (in kW/m).
-    """
+        before HFI reaches the target_hfi (in kW/m).
+        """
     # start off using the actual FFMC value
     experimental_ffmc = ffmc
-    experimental_sfc = surface_fuel_consumption(
-        station.fuel_type, bui, experimental_ffmc, station.percentage_conifer)
+    experimental_sfc = surface_fuel_consumption(fuel_type, bui, experimental_ffmc, percentage_conifer)
     experimental_isi = isi(experimental_ffmc, wind_speed)
-    experimental_ros = rate_of_spread(station.fuel_type, experimental_isi, bui, fmc, experimental_sfc, station.percentage_conifer,
-                                      station.grass_cure, station.percentage_dead_balsam_fir, station.crown_base_height)
-    experimental_hfi = head_fire_intensity(station, bui, experimental_ffmc, experimental_ros, cfb, cfl)
+    experimental_ros = rate_of_spread(fuel_type, experimental_isi, bui, fmc, experimental_sfc, percentage_conifer,
+                                      grass_cure, percentage_dead_balsam_fir, crown_base_height)
+    experimental_hfi = head_fire_intensity(fuel_type,
+                                           percentage_conifer,
+                                           percentage_dead_balsam_fir,
+                                           bui, experimental_ffmc, experimental_ros, cfb, cfl, experimental_sfc)
     error_hfi = (target_hfi - experimental_hfi) / target_hfi
 
-    # FFMC has upper bound 101
-    # exit condition 1: FFMC of 101 still causes HFI < target_hfi
-    # exit condition 2: FFMC of 0 still causes HFI > target_hfi
-    # exit condition 3: relative error within 1%
+   # FFMC has upper bound 101
+   # exit condition 1: FFMC of 101 still causes HFI < target_hfi
+   # exit condition 2: FFMC of 0 still causes HFI > target_hfi
+   # exit condition 3: relative error within 1%
 
     while abs(error_hfi) > 0.01:
         if experimental_ffmc >= 100.9 and experimental_hfi < target_hfi:
@@ -368,11 +381,13 @@ def get_ffmc_for_target_hfi(
         else:  # if the error value is a negative number, need to make experimental FFMC value smaller
             experimental_ffmc = max(0, experimental_ffmc - ((101 - experimental_ffmc)/2))
         experimental_isi = isi(experimental_ffmc, wind_speed)
-        experimental_sfc = surface_fuel_consumption(
-            station.fuel_type, bui, experimental_ffmc, station.percentage_conifer)
-        experimental_ros = rate_of_spread(station.fuel_type, experimental_isi, bui, fmc, experimental_sfc, station.percentage_conifer,
-                                          station.grass_cure, station.percentage_dead_balsam_fir, station.crown_base_height)
-        experimental_hfi = head_fire_intensity(station, bui, experimental_ffmc, experimental_ros, cfb, cfl)
+        experimental_sfc = surface_fuel_consumption(fuel_type, bui, experimental_ffmc, percentage_conifer)
+        experimental_ros = rate_of_spread(fuel_type, experimental_isi, bui, fmc, experimental_sfc, percentage_conifer,
+                                          grass_cure, percentage_dead_balsam_fir, crown_base_height)
+        experimental_hfi = head_fire_intensity(fuel_type,
+                                               percentage_conifer,
+                                               percentage_dead_balsam_fir,
+                                               bui, experimental_ffmc, experimental_ros, cfb, cfl, experimental_sfc)
         error_hfi = (target_hfi - experimental_hfi) / target_hfi
 
     return (experimental_ffmc, experimental_hfi)
@@ -429,8 +444,9 @@ def get_critical_hours_end(critical_ffmc: float, solar_noon_ffmc: float, critica
     return clock_time
 
 
-def get_critical_hours(target_hfi: int, station: FBACalculatorWeatherStation, bui: float,
-                       solar_noon_ffmc: float, ros: float, cfb: float, cfl: float,
+def get_critical_hours(target_hfi: int, fuel_type: str, percentage_conifer: float, percentage_dead_balsam_fir: float, bui: float,
+                       grass_cure: float, crown_base_height: float,
+                       solar_noon_ffmc: float, fmc: float, cfb: float, cfl: float,
                        temperature: float, relative_humidity: float, wind_speed: float,
                        precipitation: float):
     """ Determines the range of critical hours on a 24H clock.
@@ -439,7 +455,7 @@ def get_critical_hours(target_hfi: int, station: FBACalculatorWeatherStation, bu
     that cause HFI >= target_hfi.
     """
     critical_ffmc, resulting_hfi = get_ffmc_for_target_hfi(
-        station, bui, solar_noon_ffmc, ros, cfb, cfl, wind_speed, target_hfi)
+        fuel_type, percentage_conifer, percentage_dead_balsam_fir, bui, wind_speed, grass_cure, crown_base_height, solar_noon_ffmc, fmc, cfb, cfl, target_hfi)
     logger.info('Critical FFMC %s, resulting HFI %s; target HFI %s', critical_ffmc, resulting_hfi, target_hfi)
     # Scenario 1: it's not possible for the HFI to reach target_hfi, in which case there will
     # be no critical hours.
