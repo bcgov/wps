@@ -119,7 +119,7 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
               type: 'singleSelect',
               editable: true,
               valueOptions: props.stationMenuOptions,
-              renderCell: params => {
+              renderCell: function stationDropDown(params) {
                 let stationName = stationCodeMap.get(parseInt(params.value as string))
                 stationName = stationName ? stationName : ''
                 return (
@@ -139,7 +139,7 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
               valueFormatter: (params: GridValueFormatterParams) => {
                 return FuelTypes.lookup(params.value as string).friendlyName
               },
-              renderCell: params => {
+              renderCell: function fuelTypeDropDown(params) {
                 return (
                   <div style={{ cursor: 'pointer' }}>
                     <DropDownEdit
@@ -155,7 +155,7 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
               flex: 0.7,
               type: 'number',
               editable: true,
-              renderCell: params => {
+              renderCell: function numberPicker(params) {
                 return <NumberEdit value={params.value as string} />
               }
             }
