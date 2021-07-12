@@ -81,6 +81,7 @@ def rate_of_spread(fuel_type: str,  # pylint: disable=too-many-arguments, disabl
     # For some reason, the registered converter can't turn a None to a NULL, but we need to
     # set these to NULL, despite setting a converter for None to NULL, because it it can only
     # convert a NULL to NULL. Doesn't make sense? Exactly.
+    # https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.deviantart.com%2Ffirefox2014%2Fart%2FJackie-Chan-Meme-525778492&psig=AOvVaw3WsEdtu_OswdactmBuGmtH&ust=1625962534127000&source=images&cd=vfe&ved=0CAoQjRxqFwoTCNCc0dac1_ECFQAAAAAdAAAAABAD
     if pc is None:
         pc = NULL
     if cc is None:
