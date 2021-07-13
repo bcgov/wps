@@ -14,27 +14,27 @@ def red_app_fuel_type_map(fuel_type: str):
     This is messy. REDapp has a combo box with fuel types, which it then maps
     to a fuel type index.
 
-    new FuelValue(Cwfgm_Fuel_C1.class, "C-1:  Spruce-Lichen Woodland"), 
-    new FuelValue(Cwfgm_Fuel_C2.class, "C-2:  Boreal Spruce"), 
-    new FuelValue(Cwfgm_Fuel_C3.class, "C-3:  Mature Jack or Lodgepole Pine"), 
-    new FuelValue(Cwfgm_Fuel_C4.class, "C-4:  Immature Jack or Lodgepole Pine"), 
-    new FuelValue(Cwfgm_Fuel_C5.class, "C-5:  Red and White Pine"), 
-    new FuelValue(Cwfgm_Fuel_C6.class, "C-6:  Conifer Plantation"), 
-    new FuelValue(Cwfgm_Fuel_C7.class, "C-7:  Ponderosa Pine / Douglas Fir"), 
-    new FuelValue(Cwfgm_Fuel_D1.class, "D-1:  Leafless Aspen"), 
-    new FuelValue(Cwfgm_Fuel_D2.class, "D-2:  Green Aspen (w/ BUI Thresholding)"), 
-    new FuelValue(Cwfgm_Fuel_D1D2.class, "D-1/D-2:  Aspen"), 
-    new FuelValue(Cwfgm_Fuel_M1.class, "M-1:  Boreal Mixedwood - Leafless"), 
-    new FuelValue(Cwfgm_Fuel_M2.class, "M-2:  Boreal Mixedwood - Green"), 
-    new FuelValue(Cwfgm_Fuel_M1M2.class, "M-1/M-2:  Boreal Mixedwood"), 
-    new FuelValue(Cwfgm_Fuel_M3.class, "M-3:  Dead Balsam Fir / Mixedwood - Leafless"), 
-    new FuelValue(Cwfgm_Fuel_M4.class, "M-4:  Dead Balsam Fir / Mixedwood - Green"), 
-    new FuelValue(Cwfgm_Fuel_M3M4.class, "M-3/M-4:  Dead Balsam Fir / Mixedwood"), 
-    new FuelValue(Cwfgm_Fuel_O1a.class, "O-1a:  Matted Grass"), 
-    new FuelValue(Cwfgm_Fuel_O1b.class, "O-1b:  Standing Grass"), 
-    new FuelValue(Cwfgm_Fuel_O1ab.class, "O-1ab:  Grass"), 
-    new FuelValue(Cwfgm_Fuel_S1.class, "S-1:  Jack or Lodgepole Pine Slash"), 
-    new FuelValue(Cwfgm_Fuel_S2.class, "S-2:  White Spruce / Balsam Slash"), 
+    new FuelValue(Cwfgm_Fuel_C1.class, "C-1:  Spruce-Lichen Woodland"),
+    new FuelValue(Cwfgm_Fuel_C2.class, "C-2:  Boreal Spruce"),
+    new FuelValue(Cwfgm_Fuel_C3.class, "C-3:  Mature Jack or Lodgepole Pine"),
+    new FuelValue(Cwfgm_Fuel_C4.class, "C-4:  Immature Jack or Lodgepole Pine"),
+    new FuelValue(Cwfgm_Fuel_C5.class, "C-5:  Red and White Pine"),
+    new FuelValue(Cwfgm_Fuel_C6.class, "C-6:  Conifer Plantation"),
+    new FuelValue(Cwfgm_Fuel_C7.class, "C-7:  Ponderosa Pine / Douglas Fir"),
+    new FuelValue(Cwfgm_Fuel_D1.class, "D-1:  Leafless Aspen"),
+    new FuelValue(Cwfgm_Fuel_D2.class, "D-2:  Green Aspen (w/ BUI Thresholding)"),
+    new FuelValue(Cwfgm_Fuel_D1D2.class, "D-1/D-2:  Aspen"),
+    new FuelValue(Cwfgm_Fuel_M1.class, "M-1:  Boreal Mixedwood - Leafless"),
+    new FuelValue(Cwfgm_Fuel_M2.class, "M-2:  Boreal Mixedwood - Green"),
+    new FuelValue(Cwfgm_Fuel_M1M2.class, "M-1/M-2:  Boreal Mixedwood"),
+    new FuelValue(Cwfgm_Fuel_M3.class, "M-3:  Dead Balsam Fir / Mixedwood - Leafless"),
+    new FuelValue(Cwfgm_Fuel_M4.class, "M-4:  Dead Balsam Fir / Mixedwood - Green"),
+    new FuelValue(Cwfgm_Fuel_M3M4.class, "M-3/M-4:  Dead Balsam Fir / Mixedwood"),
+    new FuelValue(Cwfgm_Fuel_O1a.class, "O-1a:  Matted Grass"),
+    new FuelValue(Cwfgm_Fuel_O1b.class, "O-1b:  Standing Grass"),
+    new FuelValue(Cwfgm_Fuel_O1ab.class, "O-1ab:  Grass"),
+    new FuelValue(Cwfgm_Fuel_S1.class, "S-1:  Jack or Lodgepole Pine Slash"),
+    new FuelValue(Cwfgm_Fuel_S2.class, "S-2:  White Spruce / Balsam Slash"),
     new FuelValue(Cwfgm_Fuel_S3.class, "S-3:  Coastal Cedar / Hemlock / Douglas-Fir Slash") };
 
     comboIndexToFuel.put(Integer.valueOf(0), Integer.valueOf(0));
@@ -110,7 +110,7 @@ def red_app_fuel_type_map(fuel_type: str):
     raise UnmappedFuelType(fuel_type)
 
 
-def FBPCalculateStatisticsCOM(elevation: float,  # pylint: disable=invalid-name
+def FBPCalculateStatisticsCOM(elevation: float,  # pylint: disable=invalid-name, too-many-arguments
                               latitude: float,
                               longitude: float,
                               time_of_interest: datetime,
@@ -125,51 +125,9 @@ def FBPCalculateStatisticsCOM(elevation: float,  # pylint: disable=invalid-name
                               percentage_dead_balsam_fir: float,
                               grass_cure: float,
                               crown_base_height: float):
-    """ ca.cwfgm.fbp.FBPCalculations::FBPCalculateStatisticsCOM
-    """
-    from jnius import autoclass  # pylint: disable=import-outside-toplevel
-    Calendar = autoclass('java.util.Calendar')  # pylint: disable=invalid-name
-    TimeZone = autoclass('java.util.TimeZone')  # pylint: disable=invalid-name
-    FBPCalculations = autoclass('ca.cwfgm.fbp.FBPCalculations')  # pylint: disable=invalid-name
+    """ Uses method FBPCalculateStatisticsCOM on class ca.cwfgm.fbp.FBPCalculations to calculate
+    fire behaviour.
 
-    if percentage_dead_balsam_fir is None:
-        percentage_dead_balsam_fir = 0.0
-    if grass_cure is None:
-        grass_cure = 0.0
-
-    fbp = FBPCalculations()
-    fbp.elevation = elevation
-    fbp.latitude = latitude
-    fbp.longitude = longitude
-    fbp.ffmc = ffmc
-    fbp.dmc = dmc
-    fbp.dc = dc
-    fbp.useBui = True
-    fbp.useBuildup = True
-    fbp.bui = bui
-    fbp.windSpeed = wind_speed
-    fbp.windDirection = wind_direction
-    fbp.fuelType = red_app_fuel_type_map(fuel_type)
-    fbp.conifMixedWood = percentage_conifer
-    fbp.deadBalsam = percentage_dead_balsam_fir
-    fbp.grassCuring = grass_cure
-    fbp.crownBase = crown_base_height
-    # grassFuelLoad
-
-    fbp.useSlope = False
-
-    gmt = Calendar.getInstance(TimeZone.getTimeZone("GMT"))
-    gmt.set(time_of_interest.year, time_of_interest.month, time_of_interest.day,
-            time_of_interest.hour, time_of_interest.minute, time_of_interest.second)
-    fbp.m_date = gmt
-
-    fbp.FBPCalculateStatisticsCOM()
-
-    return fbp
-
-
-def get_class_FBPCalculations():
-    """
     public class FBPCalculations {
         public double ros_t;
         public double ros_eq;
@@ -234,14 +192,53 @@ def get_class_FBPCalculations():
         public void FBPCalculateStatisticsCOM()
     }
     """
-    # We get a segmentation fault if we import jnius at the top of the file, so we do it here
-    # instead.
-    from jnius import autoclass
-    return autoclass('ca.cwfgm.fbp.FBPCalculations')
+    # pylint: disable=too-many-locals
+    # we have to do a late import, otherwise we get a segmentation fault.
+    from jnius import autoclass  # pylint: disable=import-outside-toplevel
+    Calendar = autoclass('java.util.Calendar')  # pylint: disable=invalid-name
+    TimeZone = autoclass('java.util.TimeZone')  # pylint: disable=invalid-name
+    FBPCalculations = autoclass('ca.cwfgm.fbp.FBPCalculations')  # pylint: disable=invalid-name
+
+    if percentage_dead_balsam_fir is None:
+        percentage_dead_balsam_fir = 0.0
+    if grass_cure is None:
+        grass_cure = 0.0
+
+    fbp = FBPCalculations()
+    fbp.elevation = elevation
+    fbp.latitude = latitude
+    fbp.longitude = longitude
+    fbp.ffmc = ffmc
+    fbp.dmc = dmc
+    fbp.dc = dc
+    fbp.useBui = True
+    fbp.useBuildup = True
+    fbp.bui = bui
+    fbp.windSpeed = wind_speed
+    fbp.windDirection = wind_direction
+    fbp.fuelType = red_app_fuel_type_map(fuel_type)
+    fbp.conifMixedWood = percentage_conifer
+    fbp.deadBalsam = percentage_dead_balsam_fir
+    fbp.grassCuring = grass_cure
+    fbp.crownBase = crown_base_height
+    # grassFuelLoad
+
+    fbp.useSlope = False
+
+    gmt = Calendar.getInstance(TimeZone.getTimeZone("GMT"))
+    gmt.set(time_of_interest.year, time_of_interest.month, time_of_interest.day,
+            time_of_interest.hour, time_of_interest.minute, time_of_interest.second)
+    fbp.m_date = gmt
+
+    fbp.FBPCalculateStatisticsCOM()
+
+    return fbp
 
 
-def get_class_FWICalculations():
+def get_class_FWICalculations():  # pylint: disable=invalid-name
     """
+    Return Java class ca.cwfgm.fwi.FWICalculations
+
     public class FWICalculations {
 
         public double ystrdyFFMC;
@@ -283,6 +280,6 @@ def get_class_FWICalculations():
 
         public void FWICalculateDailyStatisticsCOM();
     """
-    # return None
-    import jnius
-    return jnius.autoclass('ca.cwfgm.fwi.FWICalculations')
+    # we have to do a late import, otherwise we get a segmentation fault.
+    from jnius import autoclass  # pylint: disable=import-outside-toplevel
+    return autoclass('ca.cwfgm.fwi.FWICalculations')
