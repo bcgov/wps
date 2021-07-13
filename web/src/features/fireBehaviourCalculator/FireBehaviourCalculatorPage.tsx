@@ -134,7 +134,7 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
               spinnercolor="white"
               onClick={addStation}
             >
-              Add Station
+              Add Row
             </Button>
           </FormControl>
           <FormControl className={classes.formControl}>
@@ -144,7 +144,7 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
               spinnercolor="white"
               onClick={deleteSelectedStations}
             >
-              Remove Station(s)
+              Remove Row(s)
             </Button>
           </FormControl>
         </div>
