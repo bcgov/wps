@@ -1,8 +1,11 @@
 """ Call Java REDapp code.
 """
 from datetime import datetime
-# import jnius
-# from jnius import autoclass
+import jnius_config
+# import jnius - importing jnius on this level causes an segmentation fault.
+from app import config
+
+jnius_config.set_classpath(config.get('CLASSPATH'))
 
 
 class UnmappedFuelType(Exception):
