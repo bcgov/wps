@@ -100,19 +100,9 @@ def process_request(
     temperature = raw_daily.get('temperature', None)
     relative_humidity = raw_daily.get('relativeHumidity', None)
     precipitation = raw_daily.get('precipitation', None)
-    # if user has specified wind speed as part of StationRequest, will need to
-    # re-calculate FFMC & ISI with modified value of wind speed
-    if requested_station.wind_speed is not None:
-        wind_speed = requested_station.wind_speed
-        status = 'Adjusted'
-        # NOTE: here we're passing the observed/forecasted FFMC value retrieved from WFWX
-        # in place of yesterday's FFMC, for the sake of simplicity. This is technically
-        # a slight misrepresentation, but should have such a trivial
-        # effect on the FFMC calculated that we're ignoring it for now.
-        ffmc = cffdrs.fine_fuel_moisture_code(raw_daily.get('fineFuelMoistureCode', None), temperature,
-                                              relative_humidity, precipitation, wind_speed)
-        isi = cffdrs.initial_spread_index(ffmc, wind_speed)
-    else:
+    # if user has not specified wind speed as part of StationRequest, use the
+    # values retrieved from WFWX in raw_daily
+    if requested_station.wind_speed is None:
         ffmc = raw_daily.get('fineFuelMoistureCode', None)
         isi = raw_daily.get('initialSpreadIndex', None)
         wind_speed = raw_daily.get('windSpeed', None)
@@ -120,6 +110,20 @@ def process_request(
             status = 'Observed'
         else:
             status = 'Forecasted'
+    # if user has specified wind speed as part of StationRequest, will need to
+    # re-calculate FFMC & ISI with modified value of wind speed
+    else:
+        wind_speed = requested_station.wind_speed
+        status = 'Adjusted'
+        # NOTE: here we're passing the observed/forecasted FFMC value retrieved from WFWX
+        # in place of yesterday's FFMC, for the sake of simplicity. This is technically
+        # a slight misrepresentation, but should have such a trivial
+        # effect on the FFMC calculated that we're ignoring it for now.
+        # TODO: Turns out the effect on FFMC is not-so-trivial. Must retrieve the previous
+        # day's FFMC from WFWX
+        ffmc = cffdrs.fine_fuel_moisture_code(raw_daily.get('fineFuelMoistureCode', None), temperature,
+                                              relative_humidity, precipitation, wind_speed)
+        isi = cffdrs.initial_spread_index(ffmc, wind_speed)
 
     # Prepare the inputs for the fire behaviour advisory calculation.
     # This is a combination of inputs from the front end, information about the station from wf1
