@@ -267,6 +267,12 @@ class EnvCanadaPayload():
         self.prediction_timestamp: Optional[datetime] = None
 
 
+def save_data_as_geotiff(payload: EnvCanadaPayload, ch_data: numpy.ndarray, source_info: SourceInfo):
+    filename = '{}_{}_{}.tiff'.format()
+    target_ds = gdal.GetDriverByName('GTiff')
+    target_ds.Create()
+
+
 def re_project_and_classify_geojson(source_json_filename: str,
                                     source_projection: str) -> dict:
     """ Given a geojson file in a specified projection
@@ -490,6 +496,8 @@ class CHainesSeverityGenerator():
             async for payload in self._get_payloads(temporary_path):
                 # Generate the c_haines data.
                 c_haines_data, source_info = self._generate_c_haines_data(payload)
+                # Save as geotiff
+                _save_data_as_geotiff(payload, c_haines_data, source_info)
                 # Generate the severity index and mask data.
                 c_haines_severity_data, c_haines_mask_data = generate_severity_data(c_haines_data)
                 # We're done with the c_haines data, so we can clean up some memory.
