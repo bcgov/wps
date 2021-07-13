@@ -10,7 +10,6 @@ import {
   GridToolbarFilterButton
 } from '@material-ui/data-grid'
 import { Autocomplete } from '@material-ui/lab'
-import { deepEqual } from 'assert/strict'
 import { find, isEqual, isNull, isUndefined } from 'lodash'
 import React from 'react'
 import { FuelTypes } from '../fuelTypes'
@@ -74,7 +73,7 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
   )
 
   const buildStationOptionFromValue = (value: number) => {
-    let label = stationCodeMap.get(value)
+    const label = stationCodeMap.get(value)
     if (isUndefined(label)) {
       return null
     }
@@ -108,11 +107,12 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
       return
     }
 
-    let currentValue =
+    const currentValue =
       optionBoxType.type === 'station'
         ? buildStationOptionFromValue(parseInt(rowToUpdate.weatherStation))
         : buildFuelTypeMenuOption(rowToUpdate.fuelType)
 
+    // eslint-disable-next-line
     const handleChange = (_: React.ChangeEvent<{}>, option: GridMenuOption | null) => {
       if (isNull(option)) {
         return
