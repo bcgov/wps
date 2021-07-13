@@ -153,10 +153,12 @@ jobs:
 
       - name: Unit Test with coverage (api)
         working-directory: ./api
+        env: ORIGINS=testorigin
+          CLASSPATH=./libs/REDapp_Lib.jar:./libs/WTime.jar:./libs/hss-java.jar:$CLASSPATH
         run: |
           source ~/.poetry/env
           export LD_LIBRARY_PATH=$(poetry run python -m rpy2.situation LD_LIBRARY_PATH):${LD_LIBRARY_PATH}
-          ORIGINS=testorigin poetry run coverage run --source=app -m pytest -o log_cli=true --disable-warnings -vvv
+          poetry run coverage run --source=app -m pytest -o log_cli=true --disable-warnings -vvv
 
       - name: Create coverage report (api)
         # Create coverage report, and then replace occurrences of
