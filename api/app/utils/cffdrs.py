@@ -1,8 +1,6 @@
 """ This module contains functions for computing fire weather metrics.
 """
 import logging
-from time import time
-from typing import Tuple
 import rpy2.robjects as robjs
 from rpy2.robjects import DataFrame
 import rpy2.robjects.conversion as cv
@@ -74,8 +72,9 @@ def rate_of_spread(fuel_type: str,  # pylint: disable=too-many-arguments, disabl
                 fuel_type=fuel_type, isi=isi, bui=bui, fmc=fmc, sfc=sfc)
         raise CFFDRSException(message)
 
-    # logger.info('calling _ROScalc(FUELTYPE=%s, ISI=%s, BUI=%s, FMC=%s, SFC=%s, PC=%s, PDF=%s, CC=%s, CBH=%s)',
-    #             fuel_type, isi, bui, fmc, sfc, pc, pdf, cc, cbh)
+    logger.info('calling _ROScalc(FUELTYPE=%s, ISI=%s, BUI=%s, FMC=%s, SFC=%s, PC=%s,\
+        PDF=%s, CC=%s, CBH=%s)',
+                fuel_type, isi, bui, fmc, sfc, pc, pdf, cc, cbh)
 
     # For some reason, the registered converter can't turn a None to a NULL, but we need to
     # set these to NULL, despite setting a converter for None to NULL, because it it can only
@@ -362,14 +361,15 @@ def get_hourly_ffmc_on_diurnal_curve(ffmc_solar_noon: float, target_hour: float,
     return result[0]
 
 
-def get_ffmc_for_target_hfi(fuel_type: str,
-                            percentage_conifer: float,
-                            percentage_dead_balsam_fir: float,
-                            bui: float,
-                            wind_speed: float,
-                            grass_cure: int,
-                            crown_base_height: float,
-                            ffmc: float, fmc: float, cfb: float, cfl: float, target_hfi: float):
+def get_ffmc_for_target_hfi(    # pylint: disable=too-many-arguments
+        fuel_type: str,
+        percentage_conifer: float,
+        percentage_dead_balsam_fir: float,
+        bui: float,
+        wind_speed: float,
+        grass_cure: int,
+        crown_base_height: float,
+        ffmc: float, fmc: float, cfb: float, cfl: float, target_hfi: float):
     """ Returns a floating point value for minimum FFMC required (holding all other values constant)
         before HFI reaches the target_hfi (in kW/m).
         """
@@ -377,12 +377,14 @@ def get_ffmc_for_target_hfi(fuel_type: str,
     experimental_ffmc = ffmc
     experimental_sfc = surface_fuel_consumption(fuel_type, bui, experimental_ffmc, percentage_conifer)
     experimental_isi = initial_spread_index(experimental_ffmc, wind_speed)
-    experimental_ros = rate_of_spread(fuel_type, experimental_isi, bui, fmc, experimental_sfc, percentage_conifer,
+    experimental_ros = rate_of_spread(fuel_type, experimental_isi, bui, fmc, experimental_sfc,
+                                      percentage_conifer,
                                       grass_cure, percentage_dead_balsam_fir, crown_base_height)
     experimental_hfi = head_fire_intensity(fuel_type,
                                            percentage_conifer,
                                            percentage_dead_balsam_fir,
-                                           bui, experimental_ffmc, experimental_ros, cfb, cfl, experimental_sfc)
+                                           bui, experimental_ffmc, experimental_ros, cfb,
+                                           cfl, experimental_sfc)
     error_hfi = (target_hfi - experimental_hfi) / target_hfi
 
    # FFMC has upper bound 101
@@ -401,26 +403,31 @@ def get_ffmc_for_target_hfi(fuel_type: str,
             experimental_ffmc = max(0, experimental_ffmc - ((101 - experimental_ffmc)/2))
         experimental_isi = initial_spread_index(experimental_ffmc, wind_speed)
         experimental_sfc = surface_fuel_consumption(fuel_type, bui, experimental_ffmc, percentage_conifer)
-        experimental_ros = rate_of_spread(fuel_type, experimental_isi, bui, fmc, experimental_sfc, percentage_conifer,
+        experimental_ros = rate_of_spread(fuel_type, experimental_isi, bui, fmc,
+                                          experimental_sfc, percentage_conifer,
                                           grass_cure, percentage_dead_balsam_fir, crown_base_height)
         experimental_hfi = head_fire_intensity(fuel_type,
                                                percentage_conifer,
                                                percentage_dead_balsam_fir,
-                                               bui, experimental_ffmc, experimental_ros, cfb, cfl, experimental_sfc)
+                                               bui, experimental_ffmc, experimental_ros,
+                                               cfb, cfl, experimental_sfc)
         error_hfi = (target_hfi - experimental_hfi) / target_hfi
 
     return (experimental_ffmc, experimental_hfi)
 
 
-def get_critical_hours_start(critical_ffmc: float, solar_noon_ffmc: float, temperature: float, relative_humidity: float, wind_speed: float, precip: float):
-    """ Returns the hour of day (on 24H clock) at which the hourly FFMC crosses the threshold of critical_ffmc.
+def get_critical_hours_start(critical_ffmc: float, solar_noon_ffmc: float, temperature: float,
+                             relative_humidity: float, wind_speed: float, precip: float):
+    """ Returns the hour of day (on 24H clock) at which the hourly FFMC crosses the
+    threshold of critical_ffmc.
     Returns None if the hourly FFMC never reaches critical_ffmc.
     """
     if solar_noon_ffmc >= critical_ffmc:
         logger.info('Solar noon FFMC >= critical FFMC')
         # go back in time in increments of 0.5 hours
         clock_time = 13-0.5  # start from solar noon - 0.5 hours
-        while get_hourly_ffmc_on_diurnal_curve(solar_noon_ffmc, clock_time, temperature, relative_humidity, wind_speed, precip) >= critical_ffmc:
+        while get_hourly_ffmc_on_diurnal_curve(solar_noon_ffmc, clock_time, temperature,
+                                               relative_humidity, wind_speed, precip) >= critical_ffmc:
             clock_time -= 0.5
             if clock_time == -0.5:
                 break
@@ -428,29 +435,34 @@ def get_critical_hours_start(critical_ffmc: float, solar_noon_ffmc: float, tempe
         clock_time += 0.5
         logger.info('%s', clock_time)
         return clock_time
-    else:
-        logger.info('Solar noon FFMC %s < critical FFMC %s', solar_noon_ffmc, critical_ffmc)
-        # go forward in time in increments of 0.5 hours
-        clock_time = 13 + 0.5  # start from solar noon + 0.5 hours
-        while get_hourly_ffmc_on_diurnal_curve(solar_noon_ffmc, clock_time, temperature, relative_humidity, wind_speed, precip) < critical_ffmc:
-            logger.info('Clock time %s has HFFMC %s', clock_time, get_hourly_ffmc_on_diurnal_curve(
-                solar_noon_ffmc, clock_time, temperature, relative_humidity, wind_speed, precip))
-            clock_time += 0.5
-            if clock_time == 24.0:
-                return None
-        return clock_time
+
+    logger.info('Solar noon FFMC %s < critical FFMC %s', solar_noon_ffmc, critical_ffmc)
+    # go forward in time in increments of 0.5 hours
+    clock_time = 13 + 0.5  # start from solar noon + 0.5 hours
+    while get_hourly_ffmc_on_diurnal_curve(solar_noon_ffmc, clock_time, temperature,
+                                           relative_humidity, wind_speed, precip) < critical_ffmc:
+        logger.info('Clock time %s has HFFMC %s', clock_time, get_hourly_ffmc_on_diurnal_curve(
+            solar_noon_ffmc, clock_time, temperature, relative_humidity, wind_speed, precip))
+        clock_time += 0.5
+        if clock_time == 24.0:
+            return None
+    return clock_time
 
 
-def get_critical_hours_end(critical_ffmc: float, solar_noon_ffmc: float, critical_hour_start: float, temperature: float, relative_humidity: float, wind_speed: float, precip: float):
-    """ Returns the hour of day (on 24H clock) at which the hourly FFMC drops below the threshold of critical_ffmc.
+def get_critical_hours_end(critical_ffmc: float, solar_noon_ffmc: float, critical_hour_start: float,
+                           temperature: float, relative_humidity: float, wind_speed: float, precip: float):
+    """ Returns the hour of day (on 24H clock) at which the hourly FFMC drops below
+    the threshold of critical_ffmc.
     Should only be called if critical_hour_start is not None.
     If diurnally-adjusted FFMC never drops below critical_ffmc in the day, will return 23.5 (11:30 pm).
     """
     assert critical_hour_start is not None
     clock_time = critical_hour_start + 0.5    # increase time in increments of 0.5 hours
     max_hourly_ffmc = 0.0
-    while get_hourly_ffmc_on_diurnal_curve(solar_noon_ffmc, clock_time, temperature, relative_humidity, wind_speed, precip) >= critical_ffmc:
-        if get_hourly_ffmc_on_diurnal_curve(solar_noon_ffmc, clock_time, temperature, relative_humidity, wind_speed, precip) > max_hourly_ffmc:
+    while get_hourly_ffmc_on_diurnal_curve(solar_noon_ffmc, clock_time, temperature,
+                                           relative_humidity, wind_speed, precip) >= critical_ffmc:
+        if get_hourly_ffmc_on_diurnal_curve(solar_noon_ffmc, clock_time, temperature,
+                                            relative_humidity, wind_speed, precip) > max_hourly_ffmc:
             max_hourly_ffmc = get_hourly_ffmc_on_diurnal_curve(
                 solar_noon_ffmc, clock_time, temperature, relative_humidity, wind_speed, precip)
         clock_time += 0.5
@@ -463,18 +475,21 @@ def get_critical_hours_end(critical_ffmc: float, solar_noon_ffmc: float, critica
     return clock_time
 
 
-def get_critical_hours(target_hfi: int, fuel_type: str, percentage_conifer: float, percentage_dead_balsam_fir: float, bui: float,
-                       grass_cure: float, crown_base_height: float,
-                       solar_noon_ffmc: float, fmc: float, cfb: float, cfl: float,
-                       temperature: float, relative_humidity: float, wind_speed: float,
-                       precipitation: float):
+def get_critical_hours(  # pylint: disable=too-many-arguments
+        target_hfi: int, fuel_type: str, percentage_conifer: float,
+        percentage_dead_balsam_fir: float, bui: float,
+        grass_cure: float, crown_base_height: float,
+        solar_noon_ffmc: float, fmc: float, cfb: float, cfl: float,
+        temperature: float, relative_humidity: float, wind_speed: float,
+        precipitation: float):
     """ Determines the range of critical hours on a 24H clock.
     Critical Hours describes the time range for the given day during which HFI will meet or exceed
     hfi_target value. Critical hours are calculated by determining diurnally-adjusted FFMC values
     that cause HFI >= target_hfi.
     """
     critical_ffmc, resulting_hfi = get_ffmc_for_target_hfi(
-        fuel_type, percentage_conifer, percentage_dead_balsam_fir, bui, wind_speed, grass_cure, crown_base_height, solar_noon_ffmc, fmc, cfb, cfl, target_hfi)
+        fuel_type, percentage_conifer, percentage_dead_balsam_fir, bui, wind_speed,
+        grass_cure, crown_base_height, solar_noon_ffmc, fmc, cfb, cfl, target_hfi)
     logger.info('Critical FFMC %s, resulting HFI %s; target HFI %s', critical_ffmc, resulting_hfi, target_hfi)
     # Scenario 1: it's not possible for the HFI to reach target_hfi, in which case there will
     # be no critical hours.
@@ -496,9 +511,9 @@ def get_critical_hours(target_hfi: int, fuel_type: str, percentage_conifer: floa
     logger.info('Got critical_hour_start %s', critical_hour_start)
     if critical_hour_start is None:
         return None
-    else:
-        critical_hour_end = get_critical_hours_end(
-            critical_ffmc, solar_noon_ffmc, critical_hour_start, temperature, relative_humidity, wind_speed, precipitation)
+    critical_hour_end = get_critical_hours_end(
+        critical_ffmc, solar_noon_ffmc, critical_hour_start, temperature,
+        relative_humidity, wind_speed, precipitation)
 
     logger.info('Critical hours for target HFI %s are (%s, %s)',
                 target_hfi, critical_hour_start, critical_hour_end)

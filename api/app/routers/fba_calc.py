@@ -1,7 +1,7 @@
 """ Routers for Fire Behaviour Advisory Calculator """
 
 import logging
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from aiohttp.client import ClientSession
 from fastapi import APIRouter, Depends
 from app.auth import authentication_required, audit
@@ -86,13 +86,14 @@ def prepare_response(
     return station_response
 
 
-def process_request(
+async def process_request(
         dailies_by_station_id: dict,
         wfwx_station: WFWXWeatherStation,
         requested_station: StationRequest,
         time_of_interest: datetime,
         date_of_interest: date) -> StationResponse:
     """ Process a valid request """
+    # pylint: disable=too-many-locals
     raw_daily = dailies_by_station_id[wfwx_station.wfwx_id]
 
     # extract variable from wf1 that we need to calculate the fire behaviour advisory.
@@ -115,14 +116,23 @@ def process_request(
     else:
         wind_speed = requested_station.wind_speed
         status = 'Adjusted'
-        # NOTE: here we're passing the observed/forecasted FFMC value retrieved from WFWX
-        # in place of yesterday's FFMC, for the sake of simplicity. This is technically
-        # a slight misrepresentation, but should have such a trivial
-        # effect on the FFMC calculated that we're ignoring it for now.
-        # TODO: Turns out the effect on FFMC is not-so-trivial. Must retrieve the previous
-        # day's FFMC from WFWX
-        ffmc = cffdrs.fine_fuel_moisture_code(raw_daily.get('fineFuelMoistureCode', None), temperature,
-                                              relative_humidity, precipitation, wind_speed)
+        # must retrieve the previous day's observed/forecasted FFMC value from WFWX
+        async with ClientSession() as session:
+            # authenticate against wfwx api
+            header = await get_auth_header(session)
+            # set time_of_interest to previous day
+            prev_day = time_of_interest - timedelta(days=1)
+            # get the "daily" data for the station for the previous day
+            yesterday_response = await get_dailies(session, header, [wfwx_station], prev_day)
+            # turn it into a dictionary so we can easily get at data
+            yesterday = {raw_daily.get('stationId'): raw_daily async for raw_daily in yesterday_response}
+
+        ffmc = cffdrs.fine_fuel_moisture_code(
+            yesterday.get(wfwx_station.wfwx_id, '').get('fineFuelMoistureCode', None),
+            temperature,
+            relative_humidity,
+            precipitation,
+            wind_speed)
         isi = cffdrs.initial_spread_index(ffmc, wind_speed)
 
     # Prepare the inputs for the fire behaviour advisory calculation.
@@ -188,7 +198,6 @@ async def get_stations_data(  # pylint:disable=too-many-locals
         unique_station_codes = list(dict.fromkeys(station_codes))
 
         # calculate the time of interest
-        # TODO: the date should be on the base of the request, not per station.
         date_of_interest = request.date
         if not date_of_interest:
             date_of_interest = request.stations[0].date
@@ -217,7 +226,7 @@ async def get_stations_data(  # pylint:disable=too-many-locals
             # get the raw daily response from wf1.
             if wfwx_station.wfwx_id in dailies_by_station_id:
                 try:
-                    station_response = process_request(
+                    station_response = await process_request(
                         dailies_by_station_id,
                         wfwx_station,
                         requested_station,
