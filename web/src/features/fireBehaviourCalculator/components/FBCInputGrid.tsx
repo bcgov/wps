@@ -10,7 +10,8 @@ import {
   GridToolbarFilterButton
 } from '@material-ui/data-grid'
 import { Autocomplete } from '@material-ui/lab'
-import { find, isNull, isUndefined } from 'lodash'
+import { deepEqual } from 'assert/strict'
+import { find, isEqual, isNull, isUndefined } from 'lodash'
 import React from 'react'
 import { FuelTypes } from '../fuelTypes'
 export interface FBCInputGridProps {
@@ -78,7 +79,7 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
       return null
     }
     const option: GridMenuOption = {
-      label: value.toString(),
+      label,
       value
     }
     return option
@@ -132,6 +133,7 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
     return (
       <Autocomplete
         id={`combo-box-fuel-types-${Math.random()}`}
+        getOptionSelected={(option, value) => isEqual(option, value)}
         options={options}
         getOptionLabel={option => option?.label}
         style={{ width: 300, height: '100%', marginTop: 20 }}
