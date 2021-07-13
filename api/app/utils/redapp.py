@@ -1,6 +1,7 @@
 """ Call Java REDapp code.
 """
 from datetime import datetime, date
+import logging
 import jnius_config
 # import jnius - importing jnius on this level causes an segmentation fault.
 from app import config
@@ -289,7 +290,6 @@ def FBPCalculateStatisticsCOM(elevation: float,  # pylint: disable=invalid-name,
         fbp.deadBalsam = percentage_dead_balsam_fir
         fbp.grassCuring = grass_cure
         fbp.crownBase = crown_base_height
-        # grassFuelLoad
 
         fbp.useSlope = False
 
@@ -297,13 +297,17 @@ def FBPCalculateStatisticsCOM(elevation: float,  # pylint: disable=invalid-name,
         gmt.set(time_of_interest.year, time_of_interest.month, time_of_interest.day,
                 time_of_interest.hour, time_of_interest.minute, time_of_interest.second)
         fbp.m_date = gmt
-
         fbp.FBPCalculateStatisticsCOM()
 
         copy = FBPCalculations()
         for key in dir(copy):
             if '__' not in key:
-                setattr(copy, key, getattr(fbp, key))
+                if key == 'm_date':
+                    copy.m_date = date(fbp.m_date.get(Calendar.YEAR),
+                                       fbp.m_date.get(Calendar.MONTH),
+                                       fbp.m_date.get(Calendar.DAY_OF_MONTH))
+                else:
+                    setattr(copy, key, getattr(fbp, key))
 
         return copy
     finally:
