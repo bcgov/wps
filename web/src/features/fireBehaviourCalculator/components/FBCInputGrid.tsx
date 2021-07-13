@@ -1,4 +1,4 @@
-import { FormControlLabel, IconButton, TextField } from '@material-ui/core'
+import { FormControlLabel, IconButton, TextField, Tooltip } from '@material-ui/core'
 import {
   DataGrid,
   GridCellParams,
@@ -12,6 +12,7 @@ import {
   GridValueFormatterParams
 } from '@material-ui/data-grid'
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown'
+import InfoIcon from '@material-ui/icons/Info'
 import _ from 'lodash'
 import React from 'react'
 import { FuelTypes } from '../fuelTypes'
@@ -82,7 +83,7 @@ const GrassCurePercentageEdit = (props: NumberEditProps) => {
 
 const WindSpeedEdit = (props: NumberEditProps) => {
   return (
-    <TextField 
+    <TextField
       id="wind-speed-edit-number"
       type="number"
       value={props.value}
@@ -110,7 +111,7 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
   )
 
   return (
-    <div style={{ display: 'flex', height: 300, width: 1000 }}>
+    <div style={{ display: 'flex', height: 300, width: 1200 }}>
       <div style={{ flexGrow: 1 }}>
         <DataGrid
           components={{
@@ -173,11 +174,18 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
             },
             {
               field: 'windSpeed',
-              headerName: 'Wind Speed (km/h) (Optional)',
-              flex: 0.7,
+              // eslint-disable-next-line react/display-name
+              renderHeader: () => (
+                <span>
+                  {'Wind Speed (km/h) (Optional)'}
+                  <Tooltip title="Leave this empty to calculate forecasted/observed wind speed. Add a custom wind speed to influence the calculations">
+                    <InfoIcon aria-label="info"></InfoIcon>
+                  </Tooltip>
+                </span>
+              ),
+              flex: 1.0,
               type: 'number',
               editable: true,
-              sortable: false,
               renderCell: function numberPicker(params) {
                 return <WindSpeedEdit value={params.value as string} />
               }

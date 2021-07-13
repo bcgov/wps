@@ -40,7 +40,7 @@ def prepare_response(
     isi = fba_station.isi
     wind_speed = requested_station.wind_speed if requested_station.wind_speed is not None else raw_daily.get(
         'windSpeed', None)
-    status = "Observed" if raw_daily.get('recordType', '').get('id') == 'ACTUAL' else "Forecasted"
+    status = fba_station.status
     temp = raw_daily.get('temperature', None)
     rh = raw_daily.get('relativeHumidity', None)  # pylint: disable=invalid-name
     wind_direction = raw_daily.get('windDirection', None)
@@ -104,6 +104,7 @@ def process_request(
     # re-calculate FFMC & ISI with modified value of wind speed
     if requested_station.wind_speed is not None:
         wind_speed = requested_station.wind_speed
+        status = 'Adjusted'
         # NOTE: here we're passing the observed/forecasted FFMC value retrieved from WFWX
         # in place of yesterday's FFMC, for the sake of simplicity. This is technically
         # a slight misrepresentation, but should have such a trivial
@@ -115,6 +116,10 @@ def process_request(
         ffmc = raw_daily.get('fineFuelMoistureCode', None)
         isi = raw_daily.get('initialSpreadIndex', None)
         wind_speed = raw_daily.get('windSpeed', None)
+        if raw_daily.get('recordType').get('id') == 'ACTUAL':
+            status = 'Observed'
+        else:
+            status = 'Forecasted'
 
     # Prepare the inputs for the fire behaviour advisory calculation.
     # This is a combination of inputs from the front end, information about the station from wf1
@@ -122,6 +127,7 @@ def process_request(
     fba_station = FBACalculatorWeatherStation(
         elevation=wfwx_station.elevation,
         fuel_type=requested_station.fuel_type,
+        status=status,
         time_of_interest=time_of_interest,
         percentage_conifer=requested_station.percentage_conifer,
         percentage_dead_balsam_fir=requested_station.percentage_dead_balsam_fir,

@@ -28,7 +28,12 @@ export const getRowsFromUrlParams = (searchParams: string): FBCInputRow[] => {
     }
     assert(params.length === 3 || params.length === 4)
 
-    const rowToBuild = { weatherStation: '1', fuelType: 'c1', grassCure: 0, windSpeed: 0.0 }
+    const rowToBuild = {
+      weatherStation: '1',
+      fuelType: 'c1',
+      grassCure: 0,
+      windSpeed: 0.0
+    }
     params.forEach(param => {
       const keyValPair = param.replace('?', '').split('=')
       assert(keyValPair.length === 2)
@@ -84,7 +89,10 @@ export const getUrlParamsFromRows = (rows: FBCInputRow[]): string => {
   }
   const query = '?'
   const params = rows
-    .map(row => `s=${row.weatherStation}&f=${row.fuelType}&c=${row.grassCure}&w=${row.windSpeed}`)
+    .map(
+      row =>
+        `s=${row.weatherStation}&f=${row.fuelType}&c=${row.grassCure}&w=${row.windSpeed}`
+    )
     .join(',')
 
   return query + params

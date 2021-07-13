@@ -31,6 +31,9 @@ const useStyles = makeStyles({
   tableContainer: {
     maxHeight: 1080,
     maxWidth: 1900
+  },
+  adjustedValueCell: {
+    fontWeight: 'bold'
   }
 })
 
@@ -149,11 +152,27 @@ const FBCResultTable = (props: Props) => {
                     </TableCell>
                     <TableCell>{stationResult.elevation}</TableCell>
                     <TableCell>{stationResult.fuel_type}</TableCell>
-                    <TableCell>{stationResult.status}</TableCell>
+                    <TableCell
+                      className={
+                        stationResult.status === 'Adjusted'
+                          ? classes.adjustedValueCell
+                          : undefined
+                      }
+                    >
+                      {stationResult.status}
+                    </TableCell>
                     <TableCell>{stationResult.temp}</TableCell>
                     <TableCell>{stationResult.rh}</TableCell>
                     <TableCell>{stationResult.wind_direction}</TableCell>
-                    <TableCell>{stationResult.wind_speed}</TableCell>
+                    <TableCell
+                      className={
+                        stationResult.status === 'Adjusted'
+                          ? classes.adjustedValueCell
+                          : undefined
+                      }
+                    >
+                      {stationResult.wind_speed}
+                    </TableCell>
                     <TableCell>{stationResult.precipitation}</TableCell>
                     <TableCell>{stationResult.grass_cure}</TableCell>
                     <TableCell>
@@ -177,12 +196,8 @@ const FBCResultTable = (props: Props) => {
                     <TableCell>
                       {stationResult.head_fire_intensity?.toFixed(DECIMAL_PLACES)}
                     </TableCell>
-                    <TableCell>
-                      {stationResult.critical_hours_hfi_4000}
-                    </TableCell>
-                    <TableCell>
-                      {stationResult.critical_hours_hfi_10000}
-                    </TableCell>
+                    <TableCell>{stationResult.critical_hours_hfi_4000}</TableCell>
+                    <TableCell>{stationResult.critical_hours_hfi_10000}</TableCell>
                     <TableCell>
                       {stationResult.rate_of_spread?.toFixed(DECIMAL_PLACES)}
                     </TableCell>
