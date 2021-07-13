@@ -1,7 +1,6 @@
 """ Call Java REDapp code.
 """
 from datetime import datetime, date
-import logging
 import jnius_config
 # import jnius - importing jnius on this level causes an segmentation fault.
 from app import config
@@ -314,4 +313,4 @@ def FBPCalculateStatisticsCOM(elevation: float,  # pylint: disable=invalid-name,
         # Each time you create a native thread in Python and use Pyjnius, any call to Pyjnius
         # methods will force attachment of the native thread to the current JVM. But you must
         # detach it before leaving the thread, and Pyjnius cannot do it for you.
-        jnius.detach()
+        jnius.detach()  # pylint: disable=no-member
