@@ -130,7 +130,7 @@ class UnmappedFuelType(Exception):
     """ Raised for fuel types that don't have an index mapping """
 
 
-def red_app_fuel_type_map(fuel_type: str):
+def _fbp_fuel_type_map(fuel_type: str):
     """
     This is messy. REDapp has a combo box with fuel types, which it then maps
     to a fuel type index.
@@ -284,7 +284,7 @@ def FBPCalculateStatisticsCOM(elevation: float,  # pylint: disable=invalid-name,
         fbp.bui = bui
         fbp.windSpeed = wind_speed
         fbp.windDirection = wind_direction
-        fbp.fuelType = red_app_fuel_type_map(fuel_type)
+        fbp.fuelType = _fbp_fuel_type_map(fuel_type)
         fbp.conifMixedWood = percentage_conifer
         fbp.deadBalsam = percentage_dead_balsam_fir
         fbp.grassCuring = grass_cure
@@ -298,6 +298,8 @@ def FBPCalculateStatisticsCOM(elevation: float,  # pylint: disable=invalid-name,
         fbp.m_date = gmt
         fbp.FBPCalculateStatisticsCOM()
 
+        # we copy the java object into a python object, so that we can safel detach from the java VM
+        # when we exit this function.
         copy = FBPCalculations()
         for key in dir(copy):
             if '__' not in key:

@@ -117,7 +117,7 @@ def then_spreadsheet_cfb(result: dict, spreadsheet_error_margin: float, spreadsh
     """ check the relative error of the cfb """
     actual = result['python'].cfb
     error = relative_error(actual, spreadsheet_cfb, 1)
-    logger.info('Python ROS %s, Spreadsheet ROS %s ; error: %s', actual, spreadsheet_cfb, error)
+    logger.info('Python CFB %s, Spreadsheet CFB %s ; error: %s', actual, spreadsheet_cfb, error)
     assert error < spreadsheet_error_margin
 
 
@@ -126,7 +126,7 @@ def then_spreadsheet_hfi(result: dict, spreadsheet_error_margin: float, spreadsh
     """ check the relative error of the hfi """
     actual = result['python'].hfi
     error = relative_error(actual, spreadsheet_hfi)
-    logger.info('Python ROS %s, Spreadsheet ROS %s ; error: %s', actual, spreadsheet_hfi, error)
+    logger.info('Python HFI %s, Spreadsheet HFI %s ; error: %s', actual, spreadsheet_hfi, error)
     assert error < spreadsheet_error_margin
 
 
