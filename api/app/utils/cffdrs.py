@@ -172,20 +172,39 @@ def length_to_breadth_ratio(fuel_type: str, wind_speed: float):
     result = CFFDRS.instance().cffdrs._LBcalc(FUELTYPE=fuel_type, WSV=wind_speed)
     return result[0]
 
-  # Args:
-  #   ffmc:   Fine Fuel Moisture Code
-  #     ws:   Wind Speed (km/h)
-  # fbpMod:   TRUE/FALSE if using the fbp modification at the extreme end
-  #
-  # Returns:
-  #   ISI:    Intial Spread Index
+
+def fine_fuel_moisture_code(ffmc: float, temperature: float, relative_humidity: float,
+                            precipitation: float, wind_speed: float):
+    """ Computes Fine Fuel Moisture Code (FFMC) by delegating to cffdrs R package.
+    This is necessary when recalculating certain fire weather indices based on
+    user-defined input for wind speed.
+    """
+    # Args: ffmc_yda:   The Fine Fuel Moisture Code from previous iteration
+    #           temp:   Temperature (centigrade)
+    #             rh:   Relative Humidity (%)
+    #           prec:   Precipitation (mm)
+    #             ws:   Wind speed (km/h)
+    #
+    #
+    # Returns: A single ffmc value
+    # pylint: disable=protected-access, no-member
+    result = CFFDRS.instance().cffdrs._ffmcCalc(ffmc_yda=ffmc, temp=temperature, rh=relative_humidity,
+                                                prec=precipitation, ws=wind_speed)
+    return result[0]
 
 
-def isi(ffmc: float, wind_speed: float):
+def initial_spread_index(ffmc: float, wind_speed: float):
     """ Computes Initial Spread Index (ISI) by delegating to cffdrs R package.
     This is necessary when recalculating ROS/HFI for modified FFMC values. Otherwise,
     should be using the ISI value retrieved from WFWX.
     """
+    # Args:
+    #   ffmc:   Fine Fuel Moisture Code
+    #     ws:   Wind Speed (km/h)
+    # fbpMod:   TRUE/FALSE if using the fbp modification at the extreme end
+    #
+    # Returns:
+    #   ISI:    Intial Spread Index
     # pylint: disable=protected-access, no-member
     result = CFFDRS.instance().cffdrs._ISIcalc(ffmc=ffmc, ws=wind_speed)
     return result[0]
@@ -357,7 +376,7 @@ def get_ffmc_for_target_hfi(fuel_type: str,
     # start off using the actual FFMC value
     experimental_ffmc = ffmc
     experimental_sfc = surface_fuel_consumption(fuel_type, bui, experimental_ffmc, percentage_conifer)
-    experimental_isi = isi(experimental_ffmc, wind_speed)
+    experimental_isi = initial_spread_index(experimental_ffmc, wind_speed)
     experimental_ros = rate_of_spread(fuel_type, experimental_isi, bui, fmc, experimental_sfc, percentage_conifer,
                                       grass_cure, percentage_dead_balsam_fir, crown_base_height)
     experimental_hfi = head_fire_intensity(fuel_type,
@@ -380,7 +399,7 @@ def get_ffmc_for_target_hfi(fuel_type: str,
             experimental_ffmc = min(101, experimental_ffmc + ((101 - experimental_ffmc)/2))
         else:  # if the error value is a negative number, need to make experimental FFMC value smaller
             experimental_ffmc = max(0, experimental_ffmc - ((101 - experimental_ffmc)/2))
-        experimental_isi = isi(experimental_ffmc, wind_speed)
+        experimental_isi = initial_spread_index(experimental_ffmc, wind_speed)
         experimental_sfc = surface_fuel_consumption(fuel_type, bui, experimental_ffmc, percentage_conifer)
         experimental_ros = rate_of_spread(fuel_type, experimental_isi, bui, fmc, experimental_sfc, percentage_conifer,
                                           grass_cure, percentage_dead_balsam_fir, crown_base_height)

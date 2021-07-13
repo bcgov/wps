@@ -6,6 +6,7 @@ from aiohttp.client import ClientSession
 from fastapi import APIRouter, Depends
 from app.auth import authentication_required, audit
 from app.schemas.fba_calc import StationListRequest, StationRequest, StationsListResponse, StationResponse
+from app.utils import cffdrs
 from app.utils.time import get_hour_20_from_date
 from app.wildfire_one.schema_parsers import WFWXWeatherStation
 from app.wildfire_one.wfwx_api import (get_auth_header,
@@ -26,6 +27,7 @@ logger = logging.getLogger(__name__)
 def prepare_response(
         requested_station: StationRequest,
         wfwx_station: WFWXWeatherStation,
+        fba_station: FBACalculatorWeatherStation,
         raw_daily: dict,
         fire_behavour_advisory: FireBehaviourAdvisory,
         time_of_interest: date) -> StationResponse:
@@ -34,9 +36,10 @@ def prepare_response(
 
     # Extract values from the daily
     bui = raw_daily.get('buildUpIndex', None)
-    ffmc = raw_daily.get('fineFuelMoistureCode', None)
-    isi = raw_daily.get('initialSpreadIndex', None)
-    wind_speed = raw_daily.get('windSpeed', None)
+    ffmc = fba_station.ffmc
+    isi = fba_station.isi
+    wind_speed = requested_station.wind_speed if requested_station.wind_speed is not None else raw_daily.get(
+        'windSpeed', None)
     status = "Observed" if raw_daily.get('recordType', '').get('id') == 'ACTUAL' else "Forecasted"
     temp = raw_daily.get('temperature', None)
     rh = raw_daily.get('relativeHumidity', None)  # pylint: disable=invalid-name
@@ -94,12 +97,24 @@ def process_request(
 
     # extract variable from wf1 that we need to calculate the fire behaviour advisory.
     bui = raw_daily.get('buildUpIndex', None)
-    ffmc = raw_daily.get('fineFuelMoistureCode', None)
-    isi = raw_daily.get('initialSpreadIndex', None)
-    wind_speed = raw_daily.get('windSpeed', None)
     temperature = raw_daily.get('temperature', None)
     relative_humidity = raw_daily.get('relativeHumidity', None)
     precipitation = raw_daily.get('precipitation', None)
+    # if user has specified wind speed as part of StationRequest, will need to
+    # re-calculate FFMC & ISI with modified value of wind speed
+    if requested_station.wind_speed is not None:
+        wind_speed = requested_station.wind_speed
+        # NOTE: here we're passing the observed/forecasted FFMC value retrieved from WFWX
+        # in place of yesterday's FFMC, for the sake of simplicity. This is technically
+        # a slight misrepresentation, but should have such a trivial
+        # effect on the FFMC calculated that we're ignoring it for now.
+        ffmc = cffdrs.fine_fuel_moisture_code(raw_daily.get('fineFuelMoistureCode', None), temperature,
+                                              relative_humidity, precipitation, wind_speed)
+        isi = cffdrs.initial_spread_index(ffmc, wind_speed)
+    else:
+        ffmc = raw_daily.get('fineFuelMoistureCode', None)
+        isi = raw_daily.get('initialSpreadIndex', None)
+        wind_speed = raw_daily.get('windSpeed', None)
 
     # Prepare the inputs for the fire behaviour advisory calculation.
     # This is a combination of inputs from the front end, information about the station from wf1
@@ -127,7 +142,7 @@ def process_request(
 
     # Prepare the response
     return prepare_response(
-        requested_station, wfwx_station, raw_daily, fire_behavour_advisory, date_of_interest)
+        requested_station, wfwx_station, fba_station, raw_daily, fire_behavour_advisory, date_of_interest)
 
 
 def process_request_without_observation(requested_station: StationRequest,
@@ -142,7 +157,8 @@ def process_request_without_observation(requested_station: StationRequest,
         elevation=wfwx_station.elevation,
         fuel_type=requested_station.fuel_type,
         status=status,
-        grass_cure=requested_station.grass_cure  # ignore the grass cure from WF1 api, return input back out
+        grass_cure=requested_station.grass_cure,  # ignore the grass cure from WF1 api, return input back out
+        wind_speed=requested_station.wind_speed
     )
 
     return station_response

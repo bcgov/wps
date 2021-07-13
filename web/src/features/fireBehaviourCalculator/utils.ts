@@ -22,13 +22,13 @@ export const isValidFuelSetting = (
 export const getRowsFromUrlParams = (searchParams: string): FBCInputRow[] => {
   const buildRow = (params: string[]) => {
     // station, fuel type, grass cure %
-    if (params.length !== 3) {
+    if (params.length !== 3 && params.length !== 4) {
       // malformed param query
       return null
     }
-    assert(params.length === 3)
+    assert(params.length === 3 || params.length === 4)
 
-    const rowToBuild = { weatherStation: '1', fuelType: 'c1', grassCure: 0 }
+    const rowToBuild = { weatherStation: '1', fuelType: 'c1', grassCure: 0, windSpeed: 0.0 }
     params.forEach(param => {
       const keyValPair = param.replace('?', '').split('=')
       assert(keyValPair.length === 2)
@@ -41,6 +41,9 @@ export const getRowsFromUrlParams = (searchParams: string): FBCInputRow[] => {
           break
         case 'c':
           rowToBuild.grassCure = parseInt(keyValPair[1])
+          break
+        case 'w':
+          rowToBuild.windSpeed = parseFloat(keyValPair[1])
           break
         default:
           // No op
@@ -62,7 +65,8 @@ export const getRowsFromUrlParams = (searchParams: string): FBCInputRow[] => {
       id: index,
       weatherStation: builtRow.weatherStation,
       fuelType: builtRow.fuelType,
-      grassCure: builtRow.grassCure
+      grassCure: builtRow.grassCure,
+      windSpeed: builtRow.windSpeed
     }
     return rowWithId
   })
@@ -72,7 +76,7 @@ export const getRowsFromUrlParams = (searchParams: string): FBCInputRow[] => {
 /**
  * Complement of getRowsFromUrlParams
  * @param rows FBCInputRow array from data table
- * @returns params as string of form ?s=<station-code>&f=<fuel-type>&c=<grass-cure-percentage>,...
+ * @returns params as string of form ?s=<station-code>&f=<fuel-type>&c=<grass-cure-percentage>&w=<optional-wind-speed>,...
  */
 export const getUrlParamsFromRows = (rows: FBCInputRow[]): string => {
   if (rows.length === 0) {
@@ -80,7 +84,7 @@ export const getUrlParamsFromRows = (rows: FBCInputRow[]): string => {
   }
   const query = '?'
   const params = rows
-    .map(row => `s=${row.weatherStation}&f=${row.fuelType}&c=${row.grassCure}`)
+    .map(row => `s=${row.weatherStation}&f=${row.fuelType}&c=${row.grassCure}&w=${row.windSpeed}`)
     .join(',')
 
   return query + params

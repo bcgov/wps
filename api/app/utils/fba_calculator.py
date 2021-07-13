@@ -41,6 +41,14 @@ class FBACalculatorWeatherStation():  # pylint: disable=too-many-instance-attrib
         self.relative_humidity = relative_humidity
         self.precipitation = precipitation
 
+    def __str__(self) -> str:
+        return 'lat {}, long {}, elevation {}, fuel_type {}, time_of_interest {}, percentage_conifer {},\
+            percentage_dead_balsam_fir {}, grass_cure {}, crown_base_height {}, bui {}, ffmc {}, isi {},\
+            wind_speed {}, temperature {}, relative_humidity {}, precipitation {}'.format(self.lat, self.long,
+                                                                                          self.elevation, self.fuel_type, self.time_of_interest, self.percentage_conifer, self.percentage_dead_balsam_fir,
+                                                                                          self.grass_cure, self.crown_base_height, self.bui, self.ffmc, self.isi, self.wind_speed,
+                                                                                          self.temperature, self.relative_humidity, self.precipitation)
+
 
 class FireBehaviourAdvisory():  # pylint: disable=too-many-instance-attributes
     """ Class containing the results of the fire behaviour advisory calculation. """

@@ -34,6 +34,7 @@ export interface FBCInputRow {
   weatherStation: string
   fuelType: string
   grassCure: number
+  windSpeed: number | undefined
 }
 
 const buildFBCGridToolbar = () => {
@@ -68,13 +69,24 @@ const DropDownEdit = (props: DropDownEditProps) => {
 interface NumberEditProps {
   value: string
 }
-const NumberEdit = (props: NumberEditProps) => {
+const GrassCurePercentageEdit = (props: NumberEditProps) => {
   return (
     <TextField
       id="grass-cure-percentage-number"
       type="number"
       value={props.value}
       required={true}
+    />
+  )
+}
+
+const WindSpeedEdit = (props: NumberEditProps) => {
+  return (
+    <TextField 
+      id="wind-speed-edit-number"
+      type="number"
+      value={props.value}
+      required={false}
     />
   )
 }
@@ -156,7 +168,18 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
               type: 'number',
               editable: true,
               renderCell: function numberPicker(params) {
-                return <NumberEdit value={params.value as string} />
+                return <GrassCurePercentageEdit value={params.value as string} />
+              }
+            },
+            {
+              field: 'windSpeed',
+              headerName: 'Wind Speed (km/h) (Optional)',
+              flex: 0.7,
+              type: 'number',
+              editable: true,
+              sortable: false,
+              renderCell: function numberPicker(params) {
+                return <WindSpeedEdit value={params.value as string} />
               }
             }
           ]}
