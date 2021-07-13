@@ -2,6 +2,7 @@ import { TextField } from '@material-ui/core'
 import {
   DataGrid,
   GridCellParams,
+  GridEditCellValueParams,
   GridRowId,
   GridToolbarColumnsButton,
   GridToolbarContainer,
@@ -150,6 +151,22 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
     )
   }
 
+  const updateCellValue = (params: GridEditCellValueParams) => {
+    if (!isEqual(params.field, 'grassCure')) {
+      return
+    }
+    const rowToUpdate = find(props.rows, ['id', params.id])
+    if (rowToUpdate) {
+      const updatedRow = {
+        ...rowToUpdate,
+        ...{
+          [params.field as keyof FBCInputRow]: params.value
+        }
+      }
+      props.updateRow(params.id, updatedRow)
+    }
+  }
+
   return (
     <div style={{ display: 'flex', height: 300, width: 1000 }}>
       <div style={{ flexGrow: 1 }}>
@@ -212,6 +229,7 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
             }
           ]}
           rows={props.rows}
+          onCellValueChange={updateCellValue}
         />
       </div>
     </div>
