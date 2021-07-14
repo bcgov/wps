@@ -1,3 +1,4 @@
+""" Very basic (temporary?) unit test for FWI """
 import unittest
 from app.utils.redapp import FWICalculateDailyStatisticsCOM
 from app.utils.time import get_utc_now
