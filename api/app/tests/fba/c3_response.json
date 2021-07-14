@@ -26,10 +26,8 @@
             "flame_length": 5.440800137427278,
             "sixty_minute_fire_size": 9.873525338521622,
             "thirty_minute_fire_size": 2.4683813346304055,
-            "ffmc_for_hfi_4000": 0.0,
-            "hfi_when_ffmc_equals_ffmc_for_hfi_4000": 8880.691840628606,
-            "ffmc_for_hfi_10000": 100.94021875,
-            "hfi_when_ffmc_equals_ffmc_for_hfi_10000": 8880.691840628606
+            "critical_hours_hfi_4000": null,
+            "critical_hours_hfi_10000": null
         }
     ]
 }

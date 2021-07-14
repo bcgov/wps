@@ -72,10 +72,6 @@ def rate_of_spread(fuel_type: str,  # pylint: disable=too-many-arguments, disabl
                 fuel_type=fuel_type, isi=isi, bui=bui, fmc=fmc, sfc=sfc)
         raise CFFDRSException(message)
 
-    logger.info('calling _ROScalc(FUELTYPE=%s, ISI=%s, BUI=%s, FMC=%s, SFC=%s, PC=%s,\
-        PDF=%s, CC=%s, CBH=%s)',
-                fuel_type, isi, bui, fmc, sfc, pc, pdf, cc, cbh)
-
     # For some reason, the registered converter can't turn a None to a NULL, but we need to
     # set these to NULL, despite setting a converter for None to NULL, because it it can only
     # convert a NULL to NULL. Doesn't make sense? Exactly.
