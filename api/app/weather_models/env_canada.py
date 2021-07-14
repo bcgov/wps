@@ -25,7 +25,7 @@ from app.db.crud.weather_models import (get_processed_file_record,
 from app.weather_models.machine_learning import StationMachineLearning
 from app.weather_models import ModelEnum, ProjectionEnum, construct_interpolated_noon_prediction
 from app.schemas.stations import WeatherStation
-from app import configure_logging
+from app import config, configure_logging
 import app.utils.time as time_utils
 from app.utils.redis import create_redis
 from app.stations import get_stations_synchronously
@@ -259,12 +259,15 @@ def download(url: str, path: str) -> str:
     # saves having to re-download the file all the time.
     # It also save a lot of bandwidth in our dev environment, where we have multiple workers downloading
     # the same files over and over.
-    cache = create_redis()
-    try:
-        cached_object = cache.get(url)
-    except Exception as error:  # pylint: disable=broad-except
-        cached_object = None
-        logger.error(error)
+    if config.get('REDIS_CACHE_ENV_CANADA') == 'True':
+        cache = create_redis()
+        try:
+            cached_object = cache.get(url)
+        except Exception as error:  # pylint: disable=broad-except
+            cached_object = None
+            logger.error(error)
+    else:
+        cache = None
     if cached_object:
         logger.info('Cache hit %s', url)
         # Store the cached object in a file
@@ -284,9 +287,10 @@ def download(url: str, path: str) -> str:
                 # Write the file.
                 file_object.write(response.content)
             # Cache the response
-            with open(target, 'rb') as file_object:
-                # Cache for 6 hours (21600 seconds)
-                cache.set(url, file_object.read(), ex=21600)
+            if cache:
+                with open(target, 'rb') as file_object:
+                    # Cache for 6 hours (21600 seconds)
+                    cache.set(url, file_object.read(), ex=config.get('REDIS_ENV_CANADA_CACHE_EXPIRY', 21600))
         elif response.status_code == 404:
             # We expect this to happen frequently - just log for info.
             logger.info('404 error for %s', url)
