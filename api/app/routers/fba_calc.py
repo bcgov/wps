@@ -74,13 +74,7 @@ def prepare_response(
         percentage_crown_fraction_burned=fire_behavour_advisory.cfb,
         flame_length=fire_behavour_advisory.flame_length,
         sixty_minute_fire_size=fire_behavour_advisory.sixty_minute_fire_size,
-        thirty_minute_fire_size=fire_behavour_advisory.thirty_minute_fire_size,
-        ffmc_for_hfi_4000=fire_behavour_advisory.ffmc_for_hfi_4000,
-        hfi_when_ffmc_equals_ffmc_for_hfi_4000=fire_behavour_advisory\
-        .hfi_when_ffmc_equals_ffmc_for_hfi_4000,
-        ffmc_for_hfi_10000=fire_behavour_advisory.ffmc_for_hfi_10000,
-        hfi_when_ffmc_equals_ffmc_for_hfi_10000=fire_behavour_advisory\
-        .hfi_when_ffmc_equals_ffmc_for_hfi_10000
+        thirty_minute_fire_size=fire_behavour_advisory.thirty_minute_fire_size
     )
 
     return station_response

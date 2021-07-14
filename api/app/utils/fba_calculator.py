@@ -59,9 +59,8 @@ class FireBehaviourAdvisory():  # pylint: disable=too-many-instance-attributes
 
     def __init__(self,  # pylint: disable=too-many-arguments
                  hfi: float, ros: float, fire_type: str, cfb: float, flame_length: float,
-                 sixty_minute_fire_size: float, thirty_minute_fire_size: float, ffmc_for_hfi_4000: float,
-                 hfi_when_ffmc_equals_ffmc_for_hfi_4000: float, ffmc_for_hfi_10000: float,
-                 hfi_when_ffmc_equals_ffmc_for_hfi_10000: float, critical_hours_hfi_4000: Tuple[float, float],
+                 sixty_minute_fire_size: float, thirty_minute_fire_size: float,
+                 critical_hours_hfi_4000: Tuple[float, float],
                  critical_hours_hfi_10000: Tuple[float, float]):
         self.hfi = hfi
         self.ros = ros
@@ -70,10 +69,6 @@ class FireBehaviourAdvisory():  # pylint: disable=too-many-instance-attributes
         self.flame_length = flame_length
         self.sixty_minute_fire_size = sixty_minute_fire_size
         self.thirty_minute_fire_size = thirty_minute_fire_size
-        self.ffmc_for_hfi_4000 = ffmc_for_hfi_4000
-        self.hfi_when_ffmc_equals_ffmc_for_hfi_4000 = hfi_when_ffmc_equals_ffmc_for_hfi_4000
-        self.ffmc_for_hfi_10000 = ffmc_for_hfi_10000
-        self.hfi_when_ffmc_equals_ffmc_for_hfi_10000 = hfi_when_ffmc_equals_ffmc_for_hfi_10000
         self.critical_hours_hfi_4000 = critical_hours_hfi_4000
         self.critical_hours_hfi_10000 = critical_hours_hfi_10000
 
@@ -112,16 +107,6 @@ def calculate_fire_behavour_advisory(station: FBACalculatorWeatherStation) -> Fi
                                      percentage_conifer=station.percentage_conifer,
                                      percentage_dead_balsam_fir=station.percentage_dead_balsam_fir,
                                      bui=station.bui, ffmc=station.ffmc, ros=ros, cfb=cfb, cfl=cfl, sfc=sfc)
-    ffmc_for_hfi_4000, hfi_when_ffmc_equals_ffmc_for_hfi_4000 = cffdrs.get_ffmc_for_target_hfi(
-        station.fuel_type, station.percentage_conifer,
-        station.percentage_dead_balsam_fir,
-        station.bui, station.wind_speed, station.grass_cure, station.crown_base_height,
-        station.ffmc, fmc, cfb, cfl, 4000)
-    ffmc_for_hfi_10000, hfi_when_ffmc_equals_ffmc_for_hfi_10000 = cffdrs.get_ffmc_for_target_hfi(
-        station.fuel_type, station.percentage_conifer,
-        station.percentage_dead_balsam_fir, station.bui, station.wind_speed,
-        station.grass_cure, station.crown_base_height,
-        station.ffmc, fmc, cfb, cfl, target_hfi=10000)
     critical_hours_4000 = cffdrs.get_critical_hours(4000, station.fuel_type, station.percentage_conifer,
                                                     station.percentage_dead_balsam_fir, station.bui,
                                                     station.grass_cure,
@@ -146,10 +131,6 @@ def calculate_fire_behavour_advisory(station: FBACalculatorWeatherStation) -> Fi
         hfi=hfi, ros=ros, fire_type=fire_type, cfb=cfb, flame_length=flame_length,
         sixty_minute_fire_size=sixty_minute_fire_size,
         thirty_minute_fire_size=thirty_minute_fire_size,
-        ffmc_for_hfi_4000=ffmc_for_hfi_4000,
-        hfi_when_ffmc_equals_ffmc_for_hfi_4000=hfi_when_ffmc_equals_ffmc_for_hfi_4000,
-        ffmc_for_hfi_10000=ffmc_for_hfi_10000,
-        hfi_when_ffmc_equals_ffmc_for_hfi_10000=hfi_when_ffmc_equals_ffmc_for_hfi_10000,
         critical_hours_hfi_4000=critical_hours_4000,
         critical_hours_hfi_10000=critical_hours_10000)
 

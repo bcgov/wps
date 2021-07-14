@@ -53,16 +53,6 @@ class StationResponse(BaseModel):
     flame_length: Optional[float]
     sixty_minute_fire_size: Optional[float]
     thirty_minute_fire_size: Optional[float]
-    # FFMC corresponding to an HFI of approx. 4000
-    ffmc_for_hfi_4000: Optional[float]
-    # HFI when FFMC is equal to value stored in ffmc_for_hfi_4000
-    # (this is used bc max. FFMC is 101. In some cases, HFI will never reach 4000 even with FFMC=101)
-    hfi_when_ffmc_equals_ffmc_for_hfi_4000: Optional[float]
-    # FFMC corresponding to an HFI of approx. 10,000
-    ffmc_for_hfi_10000: Optional[float]
-    # HFI when FFMC is equal to value stored in ffmc_for_hfi_10000
-    # (this is used bc max. FFMC is 101. In some cases, HFI will never reach 10,000 even with FFMC=101)
-    hfi_when_ffmc_equals_ffmc_for_hfi_10000: Optional[float]
     critical_hours_hfi_4000: Optional[Tuple[float, float]] = None
     critical_hours_hfi_10000: Optional[Tuple[float, float]] = None
 
