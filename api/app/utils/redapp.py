@@ -435,7 +435,11 @@ def FBPCalculateStatisticsCOM(elevation: float,  # pylint: disable=invalid-name,
         jnius.detach()  # pylint: disable=no-member
 
 
-def hourlyFFMCLawson(prevFFMC: float, currFFMC: float, rh: float, seconds_into_day: int) -> float:
+def hourlyFFMCLawson(prevFFMC: float,  # pylint: disable=invalid-name
+                     currFFMC: float,
+                     rh: float,
+                     seconds_into_day: int) -> float:
+    """ Ok - great - but what does this even do? """
     import jnius  # pylint: disable=import-outside-toplevel
     try:
         CwfgmFwi = jnius.autoclass('ca.cwfgm.fwi.CwfgmFwi')  # pylint: disable=invalid-name
