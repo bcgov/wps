@@ -23,7 +23,7 @@ oc -n e1e498-tools -p GIT_BRANCH=my-branch process -f build.yaml | oc -n e1e498-
 # build your docker image
 docker build --tag=wps-api-base:python3.8 .
 # tag it for upload
-docker tag wps-api-base:python3.8 image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-api-base:python3.8
+docker tag wps-api-base:python3.8 image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/wps-api-base:python3.8
 # log in to openshift docker
 docker login -u developer -p $(oc whoami -t) image-registry.apps.silver.devops.gov.bc.ca
 # push it

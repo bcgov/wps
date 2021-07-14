@@ -30,7 +30,7 @@ def get_pst_now():
     return datetime.now(tz=get_pst_tz())
 
 
-def get_hour_20_from_date(date_of_interest: date):
+def get_hour_20_from_date(date_of_interest: date) -> datetime:
     """ Helper to return datetime at hour 20 in utc """
     return datetime(year=date_of_interest.year,
                     month=date_of_interest.month,
@@ -38,7 +38,7 @@ def get_hour_20_from_date(date_of_interest: date):
                     hour=20, tzinfo=timezone.utc)
 
 
-def get_hour_20(time_of_interest: datetime):
+def get_hour_20(time_of_interest: datetime) -> datetime:
     """ Helper to return datetime at hour 20 in utc """
     return datetime(year=time_of_interest.year,
                     month=time_of_interest.month,
