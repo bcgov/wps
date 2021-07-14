@@ -433,3 +433,12 @@ def FBPCalculateStatisticsCOM(elevation: float,  # pylint: disable=invalid-name,
         # methods will force attachment of the native thread to the current JVM. But you must
         # detach it before leaving the thread, and Pyjnius cannot do it for you.
         jnius.detach()  # pylint: disable=no-member
+
+
+def hourlyFFMCLawson(prevFFMC: float, currFFMC: float, rh: float, seconds_into_day: int) -> float:
+    import jnius  # pylint: disable=import-outside-toplevel
+    try:
+        CwfgmFwi = jnius.autoclass('ca.cwfgm.fwi.CwfgmFwi')  # pylint: disable=invalid-name
+        return CwfgmFwi.hourlyFFMCLawson(prevFFMC, currFFMC, rh, seconds_into_day)
+    finally:
+        jnius.detach()  # pylint: disable=no-member
