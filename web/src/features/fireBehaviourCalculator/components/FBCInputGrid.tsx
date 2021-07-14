@@ -52,7 +52,6 @@ export interface DropDownEditProps {
 
 interface OptionBoxType {
   type: 'station' | 'fuelType'
-  placeholderLabeL: string
 }
 interface NumberEditProps {
   value: string
@@ -138,13 +137,7 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
         options={options}
         getOptionLabel={option => option?.label}
         style={{ width: 300, height: '100%', marginTop: 20 }}
-        renderInput={params => (
-          <TextField
-            {...params}
-            label={optionBoxType.placeholderLabeL}
-            variant="outlined"
-          />
-        )}
+        renderInput={params => <TextField {...params} variant="outlined" />}
         onChange={handleChange}
         value={currentValue}
       />
@@ -186,17 +179,9 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
               type: 'singleSelect',
               editable: true,
               renderCell: (params: GridCellParams) =>
-                optionComboBox(
-                  params,
-                  { type: 'station', placeholderLabeL: 'Select a station' },
-                  props.stationMenuOptions
-                ),
+                optionComboBox(params, { type: 'station' }, props.stationMenuOptions),
               renderEditCell: (params: GridCellParams) =>
-                optionComboBox(
-                  params,
-                  { type: 'station', placeholderLabeL: 'Select a station' },
-                  props.stationMenuOptions
-                )
+                optionComboBox(params, { type: 'station' }, props.stationMenuOptions)
             },
             {
               field: 'fuelType',
@@ -205,17 +190,9 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
               type: 'singleSelect',
               editable: true,
               renderCell: (params: GridCellParams) =>
-                optionComboBox(
-                  params,
-                  { type: 'fuelType', placeholderLabeL: 'Select a fuel type' },
-                  props.fuelTypeMenuOptions
-                ),
+                optionComboBox(params, { type: 'fuelType' }, props.fuelTypeMenuOptions),
               renderEditCell: (params: GridCellParams) =>
-                optionComboBox(
-                  params,
-                  { type: 'fuelType', placeholderLabeL: 'Select a fuel type' },
-                  props.fuelTypeMenuOptions
-                )
+                optionComboBox(params, { type: 'fuelType' }, props.fuelTypeMenuOptions)
             },
             {
               field: 'grassCure',
