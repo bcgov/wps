@@ -38,21 +38,6 @@ class CFFDRSException(Exception):
 # To store in DB: PC, PDF, CC, CBH (attached to fuel type, red book)
 PARAMS_ERROR_MESSAGE = "One or more params passed to R call is None."
 
-#   From cffdrs R package comments:
-#   FUELTYPE: The Fire Behaviour Prediction FuelType
-#        ISI: Initial Spread Index
-#        BUI: Buildup Index
-#        FMC: Foliar Moisture Content
-#        SFC: Surface Fuel Consumption (kg/m^2)
-#         PC: Percent Conifer (%)
-#        PDF: Percent Dead Balsam Fir (%)
-#         CC: Constant (we think this is grass cure.)
-#        CBH: Crown to base height(m)
-
-# Returns:
-#   ROS: Rate of spread (m/min)
-#
-
 
 def rate_of_spread(fuel_type: str,  # pylint: disable=too-many-arguments, disable=invalid-name
                    isi: float,
@@ -65,6 +50,21 @@ def rate_of_spread(fuel_type: str,  # pylint: disable=too-many-arguments, disabl
                    cbh: float):
     """ Computes ROS by delegating to cffdrs R package.
     pdf: Percent Dead Balsam Fir (%)
+
+    #   From cffdrs R package comments:
+    #   FUELTYPE: The Fire Behaviour Prediction FuelType
+    #        ISI: Initial Spread Index
+    #        BUI: Buildup Index
+    #        FMC: Foliar Moisture Content
+    #        SFC: Surface Fuel Consumption (kg/m^2)
+    #         PC: Percent Conifer (%)
+    #        PDF: Percent Dead Balsam Fir (%)
+    #         CC: Constant (we think this is grass cure.)
+    #        CBH: Crown to base height(m)
+
+    # Returns:
+    #   ROS: Rate of spread (m/min)
+    #
     """
     if fuel_type is None or isi is None or bui is None or sfc is None:
         message = PARAMS_ERROR_MESSAGE + \
@@ -96,15 +96,6 @@ def rate_of_spread(fuel_type: str,  # pylint: disable=too-many-arguments, disabl
                                                CBH=cbh)
     return result[0]
 
-# Args:
-#   FUELTYPE: The Fire Behaviour Prediction FuelType
-#        BUI: Buildup Index
-#       FFMC: Fine Fuel Moisture Code
-#         PC: Percent Conifer (%)
-#        GFL: Grass Fuel Load (kg/m^2) (0.35 kg/m^2)
-# Returns:
-#        SFC: Surface Fuel Consumption (kg/m^2)
-
 
 def surface_fuel_consumption(  # pylint: disable=invalid-name
         fuel_type: str,
@@ -113,6 +104,15 @@ def surface_fuel_consumption(  # pylint: disable=invalid-name
         pc: float):
     """ Computes SFC by delegating to cffdrs R package
         Assumes a standard GFL of 0.35 kg/m ^ 2.
+
+    # Args:
+    #   FUELTYPE: The Fire Behaviour Prediction FuelType
+    #        BUI: Buildup Index
+    #       FFMC: Fine Fuel Moisture Code
+    #         PC: Percent Conifer (%)
+    #        GFL: Grass Fuel Load (kg/m^2) (0.35 kg/m^2)
+    # Returns:
+    #        SFC: Surface Fuel Consumption (kg/m^2)
     """
     if fuel_type is None or bui is None or ffmc is None:
         message = PARAMS_ERROR_MESSAGE + \
@@ -129,6 +129,12 @@ def surface_fuel_consumption(  # pylint: disable=invalid-name
                                                GFL=0.35)
     return result[0]
 
+
+def foliar_moisture_content(lat: int, long: int, elv: float, day_of_year: int):
+    """ Computes FMC by delegating to cffdrs R package
+        TODO: Find out the minimum fmc date that is passed as D0, for now it's 0. Passing 0 makes FFMCcalc
+        calculate it.
+
     # Args:
     #   LAT:    Latitude (decimal degrees)
     #   LONG:   Longitude (decimal degrees)
@@ -139,12 +145,6 @@ def surface_fuel_consumption(  # pylint: disable=invalid-name
     #
     # Returns:
     #   FMC:    Foliar Moisture Content
-
-
-def foliar_moisture_content(lat: int, long: int, elv: float, day_of_year: int):
-    """ Computes FMC by delegating to cffdrs R package
-        TODO: Find out the minimum fmc date that is passed as D0, for now it's 0. Passing 0 makes FFMCcalc
-        calculate it.
      """
     # pylint: disable=protected-access, no-member, line-too-long
     date_of_minimum_foliar_moisture_content = 0
@@ -154,15 +154,16 @@ def foliar_moisture_content(lat: int, long: int, elv: float, day_of_year: int):
                                                DJ=day_of_year, D0=date_of_minimum_foliar_moisture_content)
     return result[0]
 
+
+def length_to_breadth_ratio(fuel_type: str, wind_speed: float):
+    """ Computes L/B ratio by delegating to cffdrs R package
+
     # Args:
     #   FUELTYPE: The Fire Behaviour Prediction FuelType
     #        WSV: The Wind Speed (km/h)
     # Returns:
     #   LB: Length to Breadth ratio
-
-
-def length_to_breadth_ratio(fuel_type: str, wind_speed: float):
-    """ Computes L/B ratio by delegating to cffdrs R package """
+    """
     # pylint: disable=protected-access, no-member
     result = CFFDRS.instance().cffdrs._LBcalc(FUELTYPE=fuel_type, WSV=wind_speed)
     return result[0]
@@ -173,7 +174,7 @@ def fine_fuel_moisture_code(ffmc: float, temperature: float, relative_humidity: 
     """ Computes Fine Fuel Moisture Code (FFMC) by delegating to cffdrs R package.
     This is necessary when recalculating certain fire weather indices based on
     user-defined input for wind speed.
-    """
+
     # Args: ffmc_yda:   The Fine Fuel Moisture Code from previous iteration
     #           temp:   Temperature (centigrade)
     #             rh:   Relative Humidity (%)
@@ -182,6 +183,8 @@ def fine_fuel_moisture_code(ffmc: float, temperature: float, relative_humidity: 
     #
     #
     # Returns: A single ffmc value
+    """
+
     # pylint: disable=protected-access, no-member
     result = CFFDRS.instance().cffdrs._ffmcCalc(ffmc_yda=ffmc, temp=temperature, rh=relative_humidity,
                                                 prec=precipitation, ws=wind_speed)
@@ -192,7 +195,7 @@ def initial_spread_index(ffmc: float, wind_speed: float):
     """ Computes Initial Spread Index (ISI) by delegating to cffdrs R package.
     This is necessary when recalculating ROS/HFI for modified FFMC values. Otherwise,
     should be using the ISI value retrieved from WFWX.
-    """
+
     # Args:
     #   ffmc:   Fine Fuel Moisture Code
     #     ws:   Wind Speed (km/h)
@@ -200,9 +203,15 @@ def initial_spread_index(ffmc: float, wind_speed: float):
     #
     # Returns:
     #   ISI:    Intial Spread Index
+    """
     # pylint: disable=protected-access, no-member
     result = CFFDRS.instance().cffdrs._ISIcalc(ffmc=ffmc, ws=wind_speed)
     return result[0]
+
+
+def crown_fraction_burned(fuel_type: str, fmc: float, sfc: float, ros: float, cbh: float) -> float:
+    """ Computes Crown Fraction Burned (CFB) by delegating to cffdrs R package.
+    Value returned will be between 0-1.
 
     # Args:
     #   FUELTYPE: The Fire Behaviour Prediction FuelType
@@ -214,11 +223,6 @@ def initial_spread_index(ffmc: float, wind_speed: float):
 
     # Returns:
     #   CFB, CSI, RSO depending on which option was selected.
-
-
-def crown_fraction_burned(fuel_type: str, fmc: float, sfc: float, ros: float, cbh: float) -> float:
-    """ Computes Crown Fraction Burned (CFB) by delegating to cffdrs R package.
-    Value returned will be between 0-1.
     """
     # pylint: disable=protected-access, no-member
     if cbh is None:
@@ -232,6 +236,12 @@ def crown_fraction_burned(fuel_type: str, fmc: float, sfc: float, ros: float, cb
                                                ROS=ros, CBH=cbh)
     return result[0]
 
+
+def total_fuel_consumption(  # pylint: disable=invalid-name
+        fuel_type: str, cfb: float, sfc: float, pc: float, pdf: float, cfl: float):
+    """ Computes Total Fuel Consumption (TFC), which is a required input to calculate Head Fire Intensity.
+    TFC is calculated by delegating to cffdrs R package.
+
     # Args:
     #   FUELTYPE: The Fire Behaviour Prediction FuelType
     #        CFL: Crown Fuel Load (kg/m^2)
@@ -244,12 +254,6 @@ def crown_fraction_burned(fuel_type: str, fmc: float, sfc: float, ros: float, cb
     #        TFC: Total (Surface + Crown) Fuel Consumption (kg/m^2)
     #       OR
     #        CFC: Crown Fuel Consumption (kg/m^2)
-
-
-def total_fuel_consumption(  # pylint: disable=invalid-name
-        fuel_type: str, cfb: float, sfc: float, pc: float, pdf: float, cfl: float):
-    """ Computes Total Fuel Consumption (TFC), which is a required input to calculate Head Fire Intensity.
-    TFC is calculated by delegating to cffdrs R package.
     """
     if cfb is None or cfl is None:
         message = PARAMS_ERROR_MESSAGE + \
@@ -297,35 +301,6 @@ def head_fire_intensity(fuel_type: str,
     result = CFFDRS.instance().cffdrs._FIcalc(FC=tfc, ROS=ros)
     return result[0]
 
-# Args: weatherstream:   Input weather stream data.frame which includes
-#                        temperature, relative humidity, wind speed,
-#                        precipitation, hourly value, and bui. More specific
-#                        info can be found in the hffmc.Rd help file.
-#            ffmc_old:   ffmc from previous timestep
-#           time.step:   The time (hours) between previous FFMC and current
-#                        time.
-#           calc.step:   Whether time step between 2 obs is calculated
-#                        (optional)
-#               batch:   Single step or iterative (default=TRUE)
-#           hourlyFWI:   Can calculated hourly ISI & FWI as well
-#                        (TRUE/FALSE, default=FALSE)
-#
-# Returns: A single or multiple hourly ffmc value(s)
-#
-# From hffmc.Rd:
-# \item{weatherstream}{
-# A dataframe containing input variables of hourly weather observations.
-# It is important that variable names have to be the same as in the following list, but they
-# are case insensitive. The order in which the input variables are entered is not important.
-# \tabular{lll}{
-#     \var{temp} \tab (required) \tab Temperature (centigrade)\cr
-#     \var{rh}   \tab (required) \tab Relative humidity (\%)\cr
-#     \var{ws}   \tab (required) \tab 10-m height wind speed (km/h)\cr
-#     \var{prec} \tab (required) \tab 1-hour rainfall (mm)\cr
-#     \var{hr}   \tab (optional) \tab Hourly value to calculate sub-hourly ffmc \cr
-#     \var{bui}  \tab (optional) \tab Daily BUI value for the computation of hourly FWI. It is
-# required when \code{hourlyFWI=TRUE}.\cr
-
 
 def get_hourly_ffmc_on_diurnal_curve(ffmc_solar_noon: float, target_hour: float,
                                      temperature: float, relative_humidity: float,
@@ -337,6 +312,35 @@ def get_hourly_ffmc_on_diurnal_curve(ffmc_solar_noon: float, target_hour: float,
     target_hour is the hour of the day (on 24 hour clock) for which hourly FFMC should be calculated
     the weather variables (temperature, rh, wind_speed, precip) is the forecasted or actual weather
     values for solar noon.
+
+    # Args: weatherstream:   Input weather stream data.frame which includes
+    #                        temperature, relative humidity, wind speed,
+    #                        precipitation, hourly value, and bui. More specific
+    #                        info can be found in the hffmc.Rd help file.
+    #            ffmc_old:   ffmc from previous timestep
+    #           time.step:   The time (hours) between previous FFMC and current
+    #                        time.
+    #           calc.step:   Whether time step between 2 obs is calculated
+    #                        (optional)
+    #               batch:   Single step or iterative (default=TRUE)
+    #           hourlyFWI:   Can calculated hourly ISI & FWI as well
+    #                        (TRUE/FALSE, default=FALSE)
+    #
+    # Returns: A single or multiple hourly ffmc value(s)
+    #
+    # From hffmc.Rd:
+    # \item{weatherstream}{
+    # A dataframe containing input variables of hourly weather observations.
+    # It is important that variable names have to be the same as in the following list, but they
+    # are case insensitive. The order in which the input variables are entered is not important.
+    # \tabular{lll}{
+    #     \var{temp} \tab (required) \tab Temperature (centigrade)\cr
+    #     \var{rh}   \tab (required) \tab Relative humidity (\%)\cr
+    #     \var{ws}   \tab (required) \tab 10-m height wind speed (km/h)\cr
+    #     \var{prec} \tab (required) \tab 1-hour rainfall (mm)\cr
+    #     \var{hr}   \tab (optional) \tab Hourly value to calculate sub-hourly ffmc \cr
+    #     \var{bui}  \tab (optional) \tab Daily BUI value for the computation of hourly FWI. It is
+    # required when \code{hourlyFWI=TRUE}.\cr
     """
     time_offset = target_hour - 13  # solar noon
     # build weather_data dictionary to be passed as weatherstream

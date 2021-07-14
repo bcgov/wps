@@ -63,7 +63,7 @@ def FWICalculateDailyStatisticsCOM(longitude: float,  # pylint: disable=invalid-
                                    use_van_wagner: bool,
                                    use_lawson_previous_hour: bool,
                                    time_of_interest: datetime) -> FWICalculations:
-    """ Take input parameters to calculate FWI and pass to REDapp java instance of class 
+    """ Take input parameters to calculate FWI and pass to REDapp java instance of class
     ca.cwfgm.fwi.FWICalculations. Then call FWICalculateDailyStatisticsCOM on instance, and
     copy results into response object.
     """
