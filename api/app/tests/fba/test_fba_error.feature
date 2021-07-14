@@ -4,9 +4,9 @@ Feature: /fbc/
         # NOTE: When writing requests, we already have stubs in place for the following station combinations:
         # (230,), (146,230), (322,346,335)
         Given <elevation>, <latitude>, <longitude>, <time_of_interest>, <wind_speed>, <wind_direction>, <percentage_conifer>, <percentage_dead_balsam_fir>, <grass_cure>, <crown_base_height>, <isi>, <bui>, <ffmc>, <dmc>, <dc>, <fuel_type>, <red_app_error_margin>, <note>
-        Then ROS is within <spreadsheet_error_margin> of <spreadsheet_ros>
-        Then CFB is within <spreadsheet_error_margin> of <spreadsheet_cfb>
-        Then HFI is within <spreadsheet_error_margin> of <spreadsheet_hfi>
+        Then ROS is within <spreadsheet_error_margin> of <spreadsheet_ros> with <note>
+        Then CFB is within <spreadsheet_error_margin> of <spreadsheet_cfb> with <note>
+        Then HFI is within <spreadsheet_error_margin> of <spreadsheet_hfi> with <note>
         And ROS is within <red_app_error_margin> of REDapp ROS
         And CFB is within <red_app_error_margin> of REDapp CFB
         And HFI is within <red_app_error_margin> of REDapp HFI
@@ -24,7 +24,7 @@ Feature: /fbc/
             | 780       | 50.6733333 | -120.4816667 | 2021-07-12       | 6.2        | 3              | 100                | None                       | None       | 7                 | C6        | 11.5 | 186.8 | 94.8 | 126.1 | 900.3 | 0.80                 | 0.001                    | None            | None            | None            | Spreadsheet doesn't do C6          |
             | 780       | 50.6733333 | -120.4816667 | 2021-07-12       | 6.2        | 3              | 100                | None                       | None       | 2                 | C6        | 11.5 | 186.8 | 94.8 | 126.1 | 900.3 | 0.71                 | 0.001                    | None            | None            | None            | Spreadhseet doesn't do C6          |
             | 780       | 50.6733333 | -120.4816667 | 2021-07-12       | 6.2        | 3              | 100                | None                       | None       | 10                | C7        | 11.5 | 186.8 | 94.8 | 126.1 | 900.3 | 0.001                | 0.011                    | 4.07            | 4089.57         | -0.9            |                                    |
-# | 780       | 50.6733333 | -120.4816667 | 2021-07-12       | 6.2        | 3              | 100                | None                       | None       | None              | D1        | 11.5 | 186.8 | 94.8 | 126.1 | 900.3 | 0.001                | 0.001                    | None            | None            | None            ||
+            | 780       | 50.6733333 | -120.4816667 | 2021-07-12       | 6.2        | 3              | 100                | None                       | None       | None              | D1        | 11.5 | 186.8 | 94.8 | 126.1 | 900.3 | 0.001                | 0.001                    | None            | None            | None            | Spreadsheet doesn't do D1          |
 # | 780       | 50.6733333 | -120.4816667 | 2021-07-12       | 6.2        | 3              | 75                 | None                       | None       | 6                 | M1        | 11.5 | 186.8 | 94.8 | 126.1 | 900.3 | 0.001                | 0.001                    | None            | None            | None            ||
 # | 780       | 50.6733333 | -120.4816667 | 2021-07-12       | 6.2        | 3              | 50                 | None                       | None       | 6                 | M1        | 11.5 | 186.8 | 94.8 | 126.1 | 900.3 | 0.001                | 0.001                    | None            | None            | None            ||
 # | 780       | 50.6733333 | -120.4816667 | 2021-07-12       | 6.2        | 3              | 25                 | None                       | None       | 6                 | M1        | 11.5 | 186.8 | 94.8 | 126.1 | 900.3 | 0.001                | 0.001                    | None            | None            | None            ||

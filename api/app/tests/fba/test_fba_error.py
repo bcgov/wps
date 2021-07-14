@@ -115,11 +115,11 @@ def relative_error(actual: float, expected: float, precision: int = 2):
     return abs((actual-expected)/expected)
 
 
-@then("ROS is within <spreadsheet_error_margin> of <spreadsheet_ros>")
-def then_spreadsheet_ros(result: dict, spreadsheet_error_margin: float, spreadsheet_ros: float):
+@then("ROS is within <spreadsheet_error_margin> of <spreadsheet_ros> with <note>")
+def then_spreadsheet_ros(result: dict, spreadsheet_error_margin: float, spreadsheet_ros: float, note: str):
     """ check the relative error of the ros """
     if spreadsheet_ros is None:
-        logger.warning('Skipping spreadsheet ROS! (%s)', spreadsheet_ros)
+        logger.warning('Skipping spreadsheet ROS! (%s) - note: %s', spreadsheet_ros, note)
     else:
         actual = result['python'].ros
         error = relative_error(actual, spreadsheet_ros)
@@ -132,11 +132,11 @@ def then_spreadsheet_ros(result: dict, spreadsheet_error_margin: float, spreadsh
         assert error < spreadsheet_error_margin
 
 
-@then("CFB is within <spreadsheet_error_margin> of <spreadsheet_cfb>")
-def then_spreadsheet_cfb(result: dict, spreadsheet_error_margin: float, spreadsheet_cfb: float):
+@then("CFB is within <spreadsheet_error_margin> of <spreadsheet_cfb> with <note>")
+def then_spreadsheet_cfb(result: dict, spreadsheet_error_margin: float, spreadsheet_cfb: float, note: str):
     """ check the relative error of the cfb """
     if spreadsheet_cfb is None or spreadsheet_cfb < 0:
-        logger.warning('Skipping spreadsheet CFB! (%s)', spreadsheet_cfb)
+        logger.warning('Skipping spreadsheet CFB! (%s) - note: %s', spreadsheet_cfb, note)
     else:
         actual = result['python'].cfb
         error = relative_error(actual, spreadsheet_cfb, 1)
@@ -149,11 +149,11 @@ def then_spreadsheet_cfb(result: dict, spreadsheet_error_margin: float, spreadsh
         assert error < spreadsheet_error_margin
 
 
-@then("HFI is within <spreadsheet_error_margin> of <spreadsheet_hfi>")
-def then_spreadsheet_hfi(result: dict, spreadsheet_error_margin: float, spreadsheet_hfi: float):
+@then("HFI is within <spreadsheet_error_margin> of <spreadsheet_hfi> with <note>")
+def then_spreadsheet_hfi(result: dict, spreadsheet_error_margin: float, spreadsheet_hfi: float, note: str):
     """ check the relative error of the hfi """
     if spreadsheet_hfi is None:
-        logger.warning('Skipping spreadsheet HFI! (%s)', spreadsheet_hfi)
+        logger.warning('Skipping spreadsheet HFI! (%s) - note: %s', spreadsheet_hfi, note)
     else:
         actual = result['python'].hfi
         error = relative_error(actual, spreadsheet_hfi)

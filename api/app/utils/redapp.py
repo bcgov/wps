@@ -271,6 +271,8 @@ def FBPCalculateStatisticsCOM(elevation: float,  # pylint: disable=invalid-name,
             percentage_dead_balsam_fir = 0.0
         if grass_cure is None:
             grass_cure = 0.0
+        if crown_base_height is None:
+            crown_base_height = 0.0
 
         fbp = FBPCalculationsClass()
         fbp.elevation = elevation
