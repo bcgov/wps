@@ -29,6 +29,9 @@ RUN apt-get update --fix-missing && apt-get -y install r-base
 # Install cffdrs
 RUN R -e "install.packages('cffdrs')"
 
+# Install JDK
+RUN apt-get -y install openjdk-11-jdk
+
 # Update pip  
 RUN python -m pip install --upgrade pip
 
