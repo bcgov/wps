@@ -285,8 +285,8 @@ def download(url: str, path: str) -> str:
                 file_object.write(response.content)
             # Cache the response
             with open(target, 'rb') as file_object:
-                # Cache for 12 hours (43200 seconds)
-                cache.set(url, file_object.read(), ex=43200)
+                # Cache for 6 hours (21600 seconds)
+                cache.set(url, file_object.read(), ex=21600)
         elif response.status_code == 404:
             # We expect this to happen frequently - just log for info.
             logger.info('404 error for %s', url)
