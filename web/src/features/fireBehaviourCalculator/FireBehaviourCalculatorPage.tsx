@@ -60,7 +60,7 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
       weatherStation: stationMenuOptions[0].value.toString(),
       fuelType: fuelTypeMenuOptions[0].value.toString(),
       grassCure: 0,
-      windSpeed: undefined
+      windSpeed: 0
     }
     const newRows = [...rows, newRow]
     setRows(newRows)
@@ -135,7 +135,7 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
               spinnercolor="white"
               onClick={addStation}
             >
-              Add Station
+              Add Row
             </Button>
           </FormControl>
           <FormControl className={classes.formControl}>
@@ -145,7 +145,7 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
               spinnercolor="white"
               onClick={deleteSelectedStations}
             >
-              Remove Station(s)
+              Remove Row(s)
             </Button>
           </FormControl>
         </div>

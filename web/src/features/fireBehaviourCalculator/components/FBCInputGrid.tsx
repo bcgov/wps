@@ -1,4 +1,4 @@
-import { FormControlLabel, IconButton, TextField, Tooltip } from '@material-ui/core'
+import { TextField, Tooltip } from '@material-ui/core'
 import {
   DataGrid,
   GridCellParams,
@@ -8,12 +8,11 @@ import {
   GridToolbarContainer,
   GridToolbarDensitySelector,
   // GridToolbarExport,
-  GridToolbarFilterButton,
-  GridValueFormatterParams
+  GridToolbarFilterButton
 } from '@material-ui/data-grid'
-import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown'
 import InfoIcon from '@material-ui/icons/Info'
-import _ from 'lodash'
+import { Autocomplete } from '@material-ui/lab'
+import { find, isEqual, isNull, isUndefined } from 'lodash'
 import React from 'react'
 import { FuelTypes } from '../fuelTypes'
 export interface FBCInputGridProps {
@@ -45,28 +44,17 @@ const buildFBCGridToolbar = () => {
       <GridToolbarFilterButton />
       <GridToolbarDensitySelector />
       {/* <GridToolbarExport /> */}
-      {/* TODO move add station button here */}
     </GridToolbarContainer>
   )
 }
 export interface DropDownEditProps {
   label: string
-}
-const DropDownEdit = (props: DropDownEditProps) => {
-  return (
-    <FormControlLabel
-      label={props.label}
-      labelPlacement="start"
-      placeholder="Please select a station"
-      control={
-        <IconButton color="primary" aria-label="Choose station">
-          <ArrowDropDownIcon />
-        </IconButton>
-      }
-    />
-  )
+  options: GridMenuOption[]
 }
 
+interface OptionBoxType {
+  type: 'station' | 'fuelType'
+}
 interface NumberEditProps {
   value: string
 }
@@ -93,8 +81,87 @@ const WindSpeedEdit = (props: NumberEditProps) => {
 }
 
 const FBCInputGrid = (props: FBCInputGridProps) => {
+  const stationCodeMap = new Map(
+    props.stationMenuOptions.map(station => [station.value, station.label])
+  )
+
+  const buildStationOptionFromValue = (value: number) => {
+    const label = stationCodeMap.get(value)
+    if (isUndefined(label)) {
+      return null
+    }
+    const option: GridMenuOption = {
+      label,
+      value
+    }
+    return option
+  }
+
+  const buildFuelTypeMenuOption = (value: string) => {
+    const fuelType = FuelTypes.lookup(value)
+    if (isUndefined(fuelType)) {
+      return null
+    }
+    const option: GridMenuOption = {
+      label: fuelType.friendlyName,
+      value
+    }
+    return option
+  }
+
+  const optionComboBox = (
+    params: GridCellParams,
+    optionBoxType: OptionBoxType,
+    options: GridMenuOption[]
+  ) => {
+    const { id, api, field } = params
+    const rowToUpdate = find(props.rows, ['id', params.id])
+    if (!rowToUpdate) {
+      return
+    }
+
+    const currentValue =
+      optionBoxType.type === 'station'
+        ? buildStationOptionFromValue(parseInt(rowToUpdate.weatherStation))
+        : buildFuelTypeMenuOption(rowToUpdate.fuelType)
+
+    // eslint-disable-next-line
+    const handleChange = (_: React.ChangeEvent<{}>, option: GridMenuOption | null) => {
+      if (isNull(option)) {
+        return
+      }
+      const editProps = { value: option }
+      api.setEditCellProps({ id, field, props: editProps })
+      api.commitCellChange({ id, field })
+      api.setCellMode(id, field, 'view')
+      const updatedRow = {
+        ...rowToUpdate,
+        ...{
+          [params.field as keyof FBCInputRow]: option?.value
+        }
+      }
+      props.updateRow(params.id, updatedRow)
+    }
+
+    return (
+      <Autocomplete
+        id={`combo-box-fuel-types-${Math.random()}`}
+        getOptionSelected={(option, value) => isEqual(option, value)}
+        options={options}
+        getOptionLabel={option => option?.label}
+        style={{ width: 300, height: '100%', marginTop: 20 }}
+        renderInput={params => <TextField {...params} variant="outlined" />}
+        onChange={handleChange}
+        value={currentValue}
+      />
+    )
+  }
+
   const updateCellValue = (params: GridEditCellValueParams) => {
-    const rowToUpdate = _.find(props.rows, ['id', params.id])
+    if (!isEqual(params.field, 'grassCure') && !isEqual(params.field, 'windSpeed')) {
+      return
+    }
+    const rowToUpdate = find(props.rows, ['id', params.id])
     if (rowToUpdate) {
       const updatedRow = {
         ...rowToUpdate,
@@ -106,10 +173,6 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
     }
   }
 
-  const stationCodeMap = new Map(
-    props.stationMenuOptions.map(station => [station.value, station.label])
-  )
-
   return (
     <div style={{ display: 'flex', height: 300, width: 1200 }}>
       <div style={{ flexGrow: 1 }}>
@@ -119,11 +182,8 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
           }}
           checkboxSelection={true}
           onSelectionModelChange={e => props.setSelected(e.selectionModel as number[])}
-          onCellClick={(params: GridCellParams) =>
-            params.api.setCellMode(params.id, params.field, 'edit')
-          }
           hideFooter={true}
-          rowHeight={30}
+          rowHeight={50}
           columns={[
             {
               field: 'weatherStation',
@@ -131,16 +191,10 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
               flex: 1,
               type: 'singleSelect',
               editable: true,
-              valueOptions: props.stationMenuOptions,
-              renderCell: function stationDropDown(params) {
-                let stationName = stationCodeMap.get(parseInt(params.value as string))
-                stationName = stationName ? stationName : ''
-                return (
-                  <div style={{ cursor: 'pointer' }}>
-                    <DropDownEdit label={`${stationName}`} />
-                  </div>
-                )
-              }
+              renderCell: (params: GridCellParams) =>
+                optionComboBox(params, { type: 'station' }, props.stationMenuOptions),
+              renderEditCell: (params: GridCellParams) =>
+                optionComboBox(params, { type: 'station' }, props.stationMenuOptions)
             },
             {
               field: 'fuelType',
@@ -148,19 +202,10 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
               headerName: 'Fuel Type',
               type: 'singleSelect',
               editable: true,
-              valueOptions: props.fuelTypeMenuOptions,
-              valueFormatter: (params: GridValueFormatterParams) => {
-                return FuelTypes.lookup(params.value as string).friendlyName
-              },
-              renderCell: function fuelTypeDropDown(params) {
-                return (
-                  <div style={{ cursor: 'pointer' }}>
-                    <DropDownEdit
-                      label={`${FuelTypes.lookup(params.value as string).friendlyName}`}
-                    />
-                  </div>
-                )
-              }
+              renderCell: (params: GridCellParams) =>
+                optionComboBox(params, { type: 'fuelType' }, props.fuelTypeMenuOptions),
+              renderEditCell: (params: GridCellParams) =>
+                optionComboBox(params, { type: 'fuelType' }, props.fuelTypeMenuOptions)
             },
             {
               field: 'grassCure',

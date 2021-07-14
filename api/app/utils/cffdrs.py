@@ -329,18 +329,18 @@ def get_hourly_ffmc_on_diurnal_curve(ffmc_solar_noon: float, target_hour: float,
     # Returns: A single or multiple hourly ffmc value(s)
     #
     # From hffmc.Rd:
-    # \item{weatherstream}{
+    # {weatherstream}{
     # A dataframe containing input variables of hourly weather observations.
     # It is important that variable names have to be the same as in the following list, but they
     # are case insensitive. The order in which the input variables are entered is not important.
-    # \tabular{lll}{
-    #     \var{temp} \tab (required) \tab Temperature (centigrade)\cr
-    #     \var{rh}   \tab (required) \tab Relative humidity (\%)\cr
-    #     \var{ws}   \tab (required) \tab 10-m height wind speed (km/h)\cr
-    #     \var{prec} \tab (required) \tab 1-hour rainfall (mm)\cr
-    #     \var{hr}   \tab (optional) \tab Hourly value to calculate sub-hourly ffmc \cr
-    #     \var{bui}  \tab (optional) \tab Daily BUI value for the computation of hourly FWI. It is
-    # required when \code{hourlyFWI=TRUE}.\cr
+    #
+    #     temp (required)  Temperature (centigrade)
+    #     rh   (required)  Relative humidity (%)
+    #     ws   (required)  10-m height wind speed (km/h)
+    #     prec (required)  1-hour rainfall (mm)
+    #     hr   (optional)  Hourly value to calculate sub-hourly ffmc
+    #     bui  (optional)  Daily BUI value for the computation of hourly FWI. It is
+    # required when hourlyFWI=TRUE
     """
     time_offset = target_hour - 13  # solar noon
     # build weather_data dictionary to be passed as weatherstream
