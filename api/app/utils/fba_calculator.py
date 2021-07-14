@@ -93,6 +93,7 @@ def calculate_fire_behavour_advisory(station: FBACalculatorWeatherStation) -> Fi
                                      percentage_conifer=station.percentage_conifer,
                                      percentage_dead_balsam_fir=station.percentage_dead_balsam_fir,
                                      bui=station.bui, ffmc=station.ffmc, ros=ros, cfb=cfb, cfl=cfl, sfc=sfc)
+
     ffmc_for_hfi_4000, hfi_when_ffmc_equals_ffmc_for_hfi_4000 = cffdrs.get_ffmc_for_target_hfi(
         station.fuel_type, station.percentage_conifer,
         station.percentage_dead_balsam_fir,
