@@ -12,3 +12,8 @@ docker-run:
 docker-db:
 	# Run the database
 	docker-compose up db
+
+docker-shell-web:
+	# Shell into the dev container.
+	# docker run -it --env-file app/.env --entrypoint bash wps-api_api:latest
+	docker-compose run --rm web bash
