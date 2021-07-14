@@ -6,7 +6,6 @@ from typing import Dict, Generator, Tuple, Final
 import json
 from urllib.parse import urlencode
 from aiohttp.client import ClientSession, BasicAuth
-from redis import StrictRedis
 from app.schemas.observations import WeatherStationHourlyReadings
 from app.schemas.stations import (DetailedWeatherStationProperties,
                                   GeoJsonDetailedWeatherStation,
@@ -16,20 +15,14 @@ from app.wildfire_one.query_builders import BuildQuery
 from app import config
 from app.wildfire_one.schema_parsers import parse_hourly, parse_station
 from app.wildfire_one.util import is_station_valid
+from app.utils.redis import create_redis
 
 logger = logging.getLogger(__name__)
 
 
-def _create_redis():
-    return StrictRedis(host=config.get('REDIS_HOST'),
-                       port=config.get('REDIS_PORT', 6379),
-                       db=0,
-                       password=config.get('REDIS_PASSWORD'))
-
-
 async def _fetch_cached_response(session: ClientSession, headers: dict, url: str, params: dict,
                                  cache_expiry_seconds: int):
-    cache = _create_redis()
+    cache = create_redis()
     key = f'{url}?{urlencode(params)}'
     try:
         cached_json = cache.get(key)

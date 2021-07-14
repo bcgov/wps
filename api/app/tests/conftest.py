@@ -19,6 +19,7 @@ import app.db.database
 import app.utils.time as time_utils
 from app.schemas.shared import WeatherDataRequest
 import app.wildfire_one.wildfire_fetchers
+import app.utils.redis
 
 logger = logging.getLogger(__name__)
 
@@ -89,7 +90,7 @@ def mock_redis(monkeypatch):
 
     def create_mock_redis():
         return MockRedis()
-    monkeypatch.setattr(app.wildfire_one.wildfire_fetchers, '_create_redis', create_mock_redis)
+    monkeypatch.setattr(app.utils.redis, '_create_redis', create_mock_redis)
 
 
 @pytest.fixture(autouse=True)

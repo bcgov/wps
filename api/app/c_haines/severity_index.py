@@ -28,6 +28,7 @@ from app.c_haines.c_haines_index import CHainesGenerator
 from app.c_haines import GDALData
 from app.c_haines.object_store import (ObjectTypeEnum, generate_full_object_store_path)
 from app.c_haines.kml import save_as_kml_to_s3
+from app import config
 
 
 logger = logging.getLogger(__name__)
@@ -268,7 +269,10 @@ class EnvCanadaPayload():
 
 
 def _save_data_as_geotiff(payload: EnvCanadaPayload, ch_data: numpy.ndarray, source_info: SourceInfo):
-    filename = '{}_{}_{}.tiff'.format(payload.model, payload.model_run_timestamp, payload.model_run_timestamp)
+    filename = './geotiff/{}_{}_{}.tiff'.format(payload.model,
+                                                payload.model_run_timestamp,
+                                                payload.prediction_timestamp)
+    logger.info('creating %s', filename)
     target_ds = gdal.GetDriverByName('GTiff')
     out_raster = target_ds.Create(filename, source_info.cols, source_info.rows, 1, gdal.GDT_Byte)
     out_raster.SetGeoTransform(source_info.geotransform)
@@ -471,8 +475,8 @@ class CHainesSeverityGenerator():
 
     async def _persist_severity_data(self,
                                      payload: EnvCanadaPayload,
-                                     c_haines_severity_data,
-                                     c_haines_mask_data,
+                                     c_haines_severity_data: numpy.ndarray,
+                                     c_haines_mask_data: numpy.ndarray,
                                      source_info: SourceInfo):
         with tempfile.TemporaryDirectory() as temporary_path:
             json_filename = os.path.join(os.getcwd(), temporary_path, 'c-haines.geojson')
@@ -502,8 +506,9 @@ class CHainesSeverityGenerator():
             async for payload in self._get_payloads(temporary_path):
                 # Generate the c_haines data.
                 c_haines_data, source_info = self._generate_c_haines_data(payload)
-                # Save as geotiff
-                _save_data_as_geotiff(payload, c_haines_data, source_info)
+                if config.get('C_HAINES_OUTPUT_TIFF') == 'True':
+                    # Save as geotiff
+                    _save_data_as_geotiff(payload, numpy.array(c_haines_data), source_info)
                 # Generate the severity index and mask data.
                 c_haines_severity_data, c_haines_mask_data = generate_severity_data(c_haines_data)
                 # We're done with the c_haines data, so we can clean up some memory.
