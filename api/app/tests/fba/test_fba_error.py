@@ -92,7 +92,8 @@ def given_input(elevation: float,  # pylint: disable=too-many-arguments, invalid
 
     return {
         'python': python_fba,
-        'java': java_fbp
+        'java': java_fbp,
+        'fuel_type': fuel_type
     }
 
 
@@ -108,7 +109,9 @@ def then_spreadsheet_ros(result: dict, spreadsheet_error_margin: float, spreadsh
     """ check the relative error of the ros """
     actual = result['python'].ros
     error = relative_error(actual, spreadsheet_ros)
-    logger.info('Python ROS %s, Spreadsheet ROS %s ; error: %s', actual, spreadsheet_ros, error)
+    fuel_type = result['fuel_type']
+    logger.info('%s: Python ROS %s, Spreadsheet ROS %s ; error: %s',
+                fuel_type, actual, spreadsheet_ros, error)
     assert error < spreadsheet_error_margin
 
 
@@ -117,7 +120,9 @@ def then_spreadsheet_cfb(result: dict, spreadsheet_error_margin: float, spreadsh
     """ check the relative error of the cfb """
     actual = result['python'].cfb
     error = relative_error(actual, spreadsheet_cfb, 1)
-    logger.info('Python CFB %s, Spreadsheet CFB %s ; error: %s', actual, spreadsheet_cfb, error)
+    fuel_type = result['fuel_type']
+    logger.info('%s: Python CFB %s, Spreadsheet CFB %s ; error: %s',
+                fuel_type, actual, spreadsheet_cfb, error)
     assert error < spreadsheet_error_margin
 
 
@@ -126,7 +131,9 @@ def then_spreadsheet_hfi(result: dict, spreadsheet_error_margin: float, spreadsh
     """ check the relative error of the hfi """
     actual = result['python'].hfi
     error = relative_error(actual, spreadsheet_hfi)
-    logger.info('Python HFI %s, Spreadsheet HFI %s ; error: %s', actual, spreadsheet_hfi, error)
+    fuel_type = result['fuel_type']
+    logger.info('%s: Python HFI %s, Spreadsheet HFI %s ; error: %s',
+                fuel_type, actual, spreadsheet_hfi, error)
     assert error < spreadsheet_error_margin
 
 
@@ -136,7 +143,8 @@ def then_red_app_ros(result: dict, red_app_error_margin: float):
     actual = result['python'].ros
     expected = result['java'].ros_t
     error = relative_error(actual, expected)
-    logger.info('Python ROS %s, REDapp ROS %s ; error: %s', actual, expected, error)
+    fuel_type = result['fuel_type']
+    logger.info('%s: Python ROS %s, REDapp ROS %s ; error: %s', fuel_type, actual, expected, error)
     assert error < red_app_error_margin
 
 
@@ -148,7 +156,8 @@ def then_red_app_cfb(result: dict, red_app_error_margin: float):
     # redapp gives CFB as 0-100
     expected = result['java'].cfb
     error = relative_error(actual, expected)
-    logger.info('Python CFB %s, REDapp CFB %s ; error: %s', actual, expected, error)
+    fuel_type = result['fuel_type']
+    logger.info('%s: Python CFB %s, REDapp CFB %s ; error: %s', fuel_type, actual, expected, error)
     assert error < red_app_error_margin
 
 
@@ -158,5 +167,6 @@ def then_red_app_hfi(result: dict, red_app_error_margin: float):
     actual = result['python'].hfi
     expected = result['java'].hfi
     error = relative_error(actual, expected)
-    logger.info('Python HFI %s, REDapp HFI %s ; error: %s', actual, expected, error)
+    fuel_type = result['fuel_type']
+    logger.info('%s: Python HFI %s, REDapp HFI %s ; error: %s', fuel_type, actual, expected, error)
     assert error < red_app_error_margin
