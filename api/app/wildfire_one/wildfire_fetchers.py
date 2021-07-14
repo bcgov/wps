@@ -212,7 +212,7 @@ async def fetch_access_token(session: ClientSession) -> dict:
     password = config.get('WFWX_SECRET')
     user = config.get('WFWX_USER')
     auth_url = config.get('WFWX_AUTH_URL')
-    cache = _create_redis()
+    cache = create_redis()
     # NOTE: Consider using a hashed version of the password as part of the key.
     params = {'user': user}
     key = f'{auth_url}?{urlencode(params)}'
