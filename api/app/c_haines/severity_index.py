@@ -267,10 +267,16 @@ class EnvCanadaPayload():
         self.prediction_timestamp: Optional[datetime] = None
 
 
-def save_data_as_geotiff(payload: EnvCanadaPayload, ch_data: numpy.ndarray, source_info: SourceInfo):
-    filename = '{}_{}_{}.tiff'.format()
+def _save_data_as_geotiff(payload: EnvCanadaPayload, ch_data: numpy.ndarray, source_info: SourceInfo):
+    filename = '{}_{}_{}.tiff'.format(payload.model, payload.model_run_timestamp, payload.model_run_timestamp)
     target_ds = gdal.GetDriverByName('GTiff')
-    target_ds.Create()
+    out_raster = target_ds.Create(filename, source_info.cols, source_info.rows, 1, gdal.GDT_Byte)
+    out_raster.SetGeoTransform(source_info.geotransform)
+    outband = out_raster.GetRasterBand(1)
+    outband.WriteArray(ch_data)
+
+    out_raster.SetProjection(source_info.projection)
+    outband.FlushCache()
 
 
 def re_project_and_classify_geojson(source_json_filename: str,
