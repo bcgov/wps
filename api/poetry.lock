@@ -1,6 +1,6 @@
 [[package]]
 name = "aiobotocore"
-version = "1.3.2"
+version = "1.3.3"
 description = "Async client for aws services using botocore and aiohttp"
 category = "main"
 optional = false
@@ -2343,11 +2343,11 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "d23a95d81f00ec090db45605712ac27aa34b5af577e3cb18245075a25e1efea3"
+content-hash = "e0059c923391f25585ee55663c8fa2773a8a6144cbea4fc18de462e3097a7dfa"
 
 [metadata.files]
 aiobotocore = [
-    {file = "aiobotocore-1.3.2.tar.gz", hash = "sha256:ff3e4a41eb2553510fbca7a99f5106c90f9cb36949839340edec77935f1478b5"},
+    {file = "aiobotocore-1.3.3.tar.gz", hash = "sha256:b6bae95c55ef822d790bf8ebf6aed3d09b33e2817fa5f10e16a77028332963c2"},
 ]
 aiodns = [
     {file = "aiodns-3.0.0-py3-none-any.whl", hash = "sha256:2b19bc5f97e5c936638d28e665923c093d8af2bf3aa88d35c43417fa25d136a2"},
