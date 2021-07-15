@@ -154,7 +154,7 @@ const FBCResultTable = (props: Props) => {
                     <TableCell>{stationResult.fuel_type}</TableCell>
                     <TableCell
                       className={
-                        stationResult.status === 'Adjusted'
+                        stationResult.status === 'ADJUSTED'
                           ? classes.adjustedValueCell
                           : undefined
                       }
@@ -166,7 +166,7 @@ const FBCResultTable = (props: Props) => {
                     <TableCell>{stationResult.wind_direction}</TableCell>
                     <TableCell
                       className={
-                        stationResult.status === 'Adjusted'
+                        stationResult.status === 'ADJUSTED'
                           ? classes.adjustedValueCell
                           : undefined
                       }
