@@ -2,6 +2,7 @@ import { TextField } from '@material-ui/core'
 import {
   DataGrid,
   GridCellParams,
+  GridCellValue,
   GridEditCellValueParams,
   GridRowId,
   GridToolbarColumnsButton,
@@ -14,6 +15,7 @@ import { Autocomplete } from '@material-ui/lab'
 import { find, isEqual, isNull, isUndefined } from 'lodash'
 import React from 'react'
 import { FuelTypes } from '../fuelTypes'
+import { GridMenuOption, theEmptyOption } from '../utils'
 export interface FBCInputGridProps {
   testId?: string
   stationMenuOptions: GridMenuOption[]
@@ -22,17 +24,11 @@ export interface FBCInputGridProps {
   updateRow: (rowId: GridRowId, updatedRow: FBCInputRow) => void
   setSelected: (rowIds: number[]) => void
 }
-
-export interface GridMenuOption {
-  label: string
-  value: string | number
-}
-
 export interface FBCInputRow {
   id: number
-  weatherStation: string
-  fuelType: string
-  grassCure: number
+  weatherStation: string | null | undefined
+  fuelType: string | null | undefined
+  grassCure: number | null | undefined
 }
 
 const buildFBCGridToolbar = () => {
@@ -68,14 +64,19 @@ const NumberEdit = (props: NumberEditProps) => {
 }
 
 const FBCInputGrid = (props: FBCInputGridProps) => {
-  const stationCodeMap = new Map(
-    props.stationMenuOptions.map(station => [station.value, station.label])
+  const stationCodeMap: Map<string | number, string> = new Map(
+    props.stationMenuOptions
+      .filter(station => !isEqual(station, theEmptyOption))
+      .map(station => [station.value, station.label])
   )
 
-  const buildStationOptionFromValue = (value: number) => {
-    const label = stationCodeMap.get(value)
+  const buildStationOption = (value: string | null | undefined) => {
+    if (isUndefined(value) || isNull(value)) {
+      return undefined
+    }
+    const label = stationCodeMap.get(parseInt(value))
     if (isUndefined(label)) {
-      return null
+      return undefined
     }
     const option: GridMenuOption = {
       label,
@@ -84,10 +85,13 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
     return option
   }
 
-  const buildFuelTypeMenuOption = (value: string) => {
+  const buildFuelTypeMenuOption = (value: string | null | undefined) => {
+    if (isUndefined(value) || isNull(value)) {
+      return undefined
+    }
     const fuelType = FuelTypes.lookup(value)
-    if (isUndefined(fuelType)) {
-      return null
+    if (isUndefined(fuelType) || isNull(fuelType)) {
+      return undefined
     }
     const option: GridMenuOption = {
       label: fuelType.friendlyName,
@@ -96,21 +100,31 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
     return option
   }
 
+  const buildGridMenuOption = (
+    value: GridCellValue,
+    optionBoxType: OptionBoxType
+  ): GridMenuOption => {
+    if (isUndefined(value) || isNull(value)) {
+      return theEmptyOption
+    }
+    const gridMenuOption =
+      optionBoxType.type === 'station'
+        ? buildStationOption(value as string)
+        : buildFuelTypeMenuOption(value as string)
+
+    return isUndefined(gridMenuOption) ? theEmptyOption : gridMenuOption
+  }
+
   const optionComboBox = (
     params: GridCellParams,
     optionBoxType: OptionBoxType,
     options: GridMenuOption[]
   ) => {
-    const { id, api, field } = params
+    const { id, api, field, value } = params
     const rowToUpdate = find(props.rows, ['id', params.id])
     if (!rowToUpdate) {
       return
     }
-
-    const currentValue =
-      optionBoxType.type === 'station'
-        ? buildStationOptionFromValue(parseInt(rowToUpdate.weatherStation))
-        : buildFuelTypeMenuOption(rowToUpdate.fuelType)
 
     // eslint-disable-next-line
     const handleChange = (_: React.ChangeEvent<{}>, option: GridMenuOption | null) => {
@@ -130,6 +144,12 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
       props.updateRow(params.id, updatedRow)
     }
 
+    const finalVal: GridMenuOption = buildGridMenuOption(value, optionBoxType)
+    const label = isEqual(finalVal, theEmptyOption)
+      ? optionBoxType.type === 'station'
+        ? 'Select a station'
+        : 'Select a fuel type'
+      : undefined
     return (
       <Autocomplete
         id={`combo-box-fuel-types-${Math.random()}`}
@@ -137,9 +157,9 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
         options={options}
         getOptionLabel={option => option?.label}
         style={{ width: 300, height: '100%', marginTop: 20 }}
-        renderInput={params => <TextField {...params} variant="outlined" />}
+        renderInput={params => <TextField {...params} label={label} variant="outlined" />}
         onChange={handleChange}
-        value={currentValue}
+        value={finalVal}
       />
     )
   }

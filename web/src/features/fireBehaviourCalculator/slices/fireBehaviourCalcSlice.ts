@@ -2,6 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { FBCStation, postFBCStations } from 'api/fbCalcAPI'
 
 import { AppThunk } from 'app/store'
+import { isNull, isUndefined } from 'lodash'
 import { logError } from 'utils/error'
 import { FBCInputRow } from '../components/FBCInputGrid'
 import { FuelTypes } from '../fuelTypes'
@@ -51,16 +52,26 @@ export const fetchFireBehaviourStations = (
   date: string,
   fbcInputRows: FBCInputRow[]
 ): AppThunk => async dispatch => {
-  const fetchableFireStations = fbcInputRows.map(row => {
+  const fetchableFireStations = fbcInputRows.flatMap(row => {
     const fuelTypeDetails = FuelTypes.lookup(row.fuelType)
-    return {
-      date,
-      stationCode: parseInt(row.weatherStation),
-      fuelType: fuelTypeDetails.name,
-      percentageConifer: fuelTypeDetails.percentage_conifer,
-      grassCurePercentage: row.grassCure,
-      percentageDeadBalsamFir: fuelTypeDetails.percentage_dead_balsam_fir,
-      crownBaseHeight: fuelTypeDetails.crown_base_height
+    if (
+      fuelTypeDetails !== null &&
+      !isNull(row.weatherStation) &&
+      !isUndefined(row.weatherStation) &&
+      !isNull(row.fuelType) &&
+      !isUndefined(row.fuelType)
+    ) {
+      return {
+        date,
+        stationCode: parseInt(row.weatherStation),
+        fuelType: fuelTypeDetails.name,
+        percentageConifer: fuelTypeDetails.percentage_conifer,
+        grassCurePercentage: row.grassCure,
+        percentageDeadBalsamFir: fuelTypeDetails.percentage_dead_balsam_fir,
+        crownBaseHeight: fuelTypeDetails.crown_base_height
+      }
+    } else {
+      return []
     }
   })
   try {

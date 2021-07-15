@@ -92,3 +92,10 @@ export const getMostRecentIdFromRows = (rows: FBCInputRow[]): number => {
   const lastId = _.isEmpty(rows) ? 0 : lastIdFromExisting
   return lastId
 }
+
+export interface GridMenuOption {
+  label: string
+  value: string | number
+}
+
+export const theEmptyOption: GridMenuOption = { label: '', value: '' }

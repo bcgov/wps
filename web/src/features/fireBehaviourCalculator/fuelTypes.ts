@@ -1,3 +1,5 @@
+import { isNull, isUndefined } from 'lodash'
+
 export interface FBCFuelType {
   name: string
   friendlyName: string
@@ -6,7 +8,10 @@ export interface FBCFuelType {
   crown_base_height: number | undefined
 }
 export class FuelTypes {
-  static lookup(key: string): FBCFuelType {
+  static lookup(key: string | null | undefined): FBCFuelType | null {
+    if (isUndefined(key) || isNull(key)) {
+      return null
+    }
     return FuelTypes.get()[key]
   }
   static getFriendlyNames(): string[] {

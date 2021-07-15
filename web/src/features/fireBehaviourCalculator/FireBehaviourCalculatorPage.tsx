@@ -14,14 +14,15 @@ import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useHistory, useLocation } from 'react-router-dom'
 import DatePicker from './components/DatePicker'
-import FBCInputGrid, { FBCInputRow, GridMenuOption } from './components/FBCInputGrid'
+import FBCInputGrid, { FBCInputRow } from './components/FBCInputGrid'
 import FBCResultTable from './components/FBCResultTable'
 import { FuelTypes } from './fuelTypes'
 import { fetchFireBehaviourStations } from './slices/fireBehaviourCalcSlice'
 import {
   getMostRecentIdFromRows,
   getRowsFromUrlParams,
-  getUrlParamsFromRows
+  getUrlParamsFromRows,
+  GridMenuOption
 } from './utils'
 
 export const FireBehaviourCalculator: React.FunctionComponent = () => {
@@ -29,19 +30,23 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
 
   const { stations } = useSelector(selectFireWeatherStations)
 
-  const stationMenuOptions: GridMenuOption[] = (stations as GeoJsonStation[]).map(
-    station => ({
+  const theEmptyOption: GridMenuOption = { label: '', value: '' }
+
+  const stationMenuOptions: GridMenuOption[] = [
+    theEmptyOption,
+    ...(stations as GeoJsonStation[]).map(station => ({
       value: station.properties.code,
       label: `${station.properties.name} (${station.properties.code})`
-    })
-  )
+    }))
+  ]
 
-  const fuelTypeMenuOptions: GridMenuOption[] = Object.entries(FuelTypes.get()).map(
-    ([key, value]) => ({
+  const fuelTypeMenuOptions: GridMenuOption[] = [
+    theEmptyOption,
+    ...Object.entries(FuelTypes.get()).map(([key, value]) => ({
       value: key,
       label: value.friendlyName
-    })
-  )
+    }))
+  ]
   const location = useLocation()
   const history = useHistory()
 
@@ -55,11 +60,11 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
   const addStation = () => {
     const newRowId = rowId + 1
     setRowId(newRowId)
-    const newRow = {
+    const newRow: FBCInputRow = {
       id: rowId,
-      weatherStation: stationMenuOptions[0].value.toString(),
-      fuelType: fuelTypeMenuOptions[0].value.toString(),
-      grassCure: 0
+      weatherStation: undefined,
+      fuelType: undefined,
+      grassCure: undefined
     }
     const newRows = [...rows, newRow]
     setRows(newRows)
