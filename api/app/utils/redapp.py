@@ -1,4 +1,6 @@
 """ Call Java REDapp code.
+
+If jnius wasn't prone throwing segmentation faults, we wouldn't need this level of indirection.
 """
 from datetime import datetime, date
 import jnius_config
@@ -6,6 +8,120 @@ import jnius_config
 from app import config
 
 jnius_config.set_classpath(config.get('CLASSPATH'))
+
+
+class FWICalculations:  # pylint: disable=missing-class-docstring, too-many-instance-attributes
+    """ Duplicate of Java class ca.cwfgm.fwi.FWICalculations for results """
+
+    def __init__(self):   # pylint: disable=too-many-statements
+        """ Init variables """
+        # pylint: disable=invalid-name
+        self.ystrdyFFMC: float = None
+        self.ystrdyDMC: float = None
+        self.ystrdyDC: float = None
+        self.noonTemp: float = None
+        self.noonRH: float = None
+        self.noonPrecip: float = None
+        self.noonWindSpeed: float = None
+        self.hrlyTemp: float = None
+        self.hrlyRH: float = None
+        self.hrlyPrecip: float = None
+        self.hrlyWindSpeed: float = None
+        self.dlyFFMC: float = None
+        self.dlyDMC: float = None
+        self.dlyDC: float = None
+        self.dlyISI: float = None
+        self.dlyBUI: float = None
+        self.dlyFWI: float = None
+        self.dlyDSR: float = None
+        self.hlyHFFMC: float = None
+        self.hlyHISI: float = None
+        self.hlyHFWI: float = None
+        self.prvhlyFFMC: float = None
+        self.calcHourly: bool = None
+        self.useVanWagner: bool = None
+        self.useLawsonPreviousHour: bool = False
+        self.m_date: datetime = None
+        self.m_init_timezone_code: str = None
+
+
+def FWICalculateDailyStatisticsCOM(longitude: float,  # pylint: disable=invalid-name, too-many-arguments
+                                   latitude: float,
+                                   yesterday_ffmc: float,
+                                   yesterday_dmc: float,
+                                   yesterday_dc: float,
+                                   noon_temp: float,
+                                   noon_rh: float,
+                                   noon_precip: float,
+                                   noon_wind_speed: float,
+                                   calc_hourly: bool,
+                                   hourly_temp: float,
+                                   hourly_rh: float,
+                                   hourly_precip: float,
+                                   hourly_wind_speed: float,
+                                   previous_hourly_ffmc: float,
+                                   use_van_wagner: bool,
+                                   use_lawson_previous_hour: bool,
+                                   time_of_interest: datetime) -> FWICalculations:
+    """ Take input parameters to calculate FWI and pass to REDapp java instance of class
+    ca.cwfgm.fwi.FWICalculations. Then call FWICalculateDailyStatisticsCOM on instance, and
+    copy results into response object.
+    """
+    # pylint: disable=too-many-locals
+    # we have to do a late import, otherwise we get a segmentation fault.
+    import jnius  # pylint: disable=import-outside-toplevel
+    try:
+        Calendar = jnius.autoclass('java.util.Calendar')  # pylint: disable=invalid-name
+        TimeZone = jnius.autoclass('java.util.TimeZone')  # pylint: disable=invalid-name
+        FWICalculationsClass = jnius.autoclass('ca.cwfgm.fwi.FWICalculations')  # pylint: disable=invalid-name
+
+        fwi = FWICalculationsClass()
+        fwi.setLatitude(latitude)
+        fwi.setLongitude(longitude)
+        fwi.ystrdyFFMC = yesterday_ffmc
+        fwi.ystrdyDMC = yesterday_dmc
+        fwi.ystrdyDC = yesterday_dc
+        fwi.noonTemp = noon_temp
+        fwi.noonRH = noon_rh
+        fwi.noonPrecip = noon_precip
+        fwi.noonWindSpeed = noon_wind_speed
+        fwi.calcHourly = calc_hourly
+        fwi.hrlyTemp = hourly_temp
+        fwi.hrlyRH = hourly_rh
+        fwi.hrlyPrecip = hourly_precip
+        fwi.hrlyWindSpeed = hourly_wind_speed
+        fwi.prvhlyFFMC = previous_hourly_ffmc
+        fwi.useVanWagner = use_van_wagner
+        fwi.useLawsonPreviousHour = use_lawson_previous_hour
+
+        m_date = Calendar.getInstance(TimeZone.getTimeZone(time_of_interest.tzinfo.tzname(time_of_interest)))
+        m_date.set(time_of_interest.year, time_of_interest.month, time_of_interest.day,
+                   time_of_interest.hour, time_of_interest.minute, time_of_interest.second)
+        fwi.m_date = m_date
+
+        fwi.FWICalculateDailyStatisticsCOM()
+
+        copy = FWICalculations()
+        for key in dir(copy):
+            if '__' not in key:
+                if key == 'm_date':
+                    # TODO: Sybrand - figure out the timezone stuff
+                    copy.m_date = datetime(fwi.m_date.get(Calendar.YEAR),
+                                           fwi.m_date.get(Calendar.MONTH),
+                                           fwi.m_date.get(Calendar.DAY_OF_MONTH),
+                                           fwi.m_date.get(Calendar.HOUR),
+                                           fwi.m_date.get(Calendar.MINUTE),
+                                           fwi.m_date.get(Calendar.SECOND))
+                else:
+                    setattr(copy, key, getattr(fwi, key))
+
+        return copy
+
+    finally:
+        # Each time you create a native thread in Python and use Pyjnius, any call to Pyjnius
+        # methods will force attachment of the native thread to the current JVM. But you must
+        # detach it before leaving the thread, and Pyjnius cannot do it for you.
+        jnius.detach()  # pylint: disable=no-member
 
 
 class FBPCalculations:  # pylint: disable=missing-class-docstring, too-many-instance-attributes
@@ -324,6 +440,7 @@ def FBPCalculateStatisticsCOM(elevation: float,  # pylint: disable=invalid-name,
         fbp.useSlope = False
         fbp.useCrownBaseHeight = useCrownBaseHeight
 
+        # TODO: Sybrand figure out timezone
         gmt = Calendar.getInstance(TimeZone.getTimeZone("GMT"))
         gmt.set(time_of_interest.year, time_of_interest.month, time_of_interest.day,
                 time_of_interest.hour, time_of_interest.minute, time_of_interest.second)
@@ -347,4 +464,17 @@ def FBPCalculateStatisticsCOM(elevation: float,  # pylint: disable=invalid-name,
         # Each time you create a native thread in Python and use Pyjnius, any call to Pyjnius
         # methods will force attachment of the native thread to the current JVM. But you must
         # detach it before leaving the thread, and Pyjnius cannot do it for you.
+        jnius.detach()  # pylint: disable=no-member
+
+
+def hourlyFFMCLawson(prevFFMC: float,  # pylint: disable=invalid-name
+                     currFFMC: float,
+                     rh: float,
+                     seconds_into_day: int) -> float:
+    """ Ok - great - but what does this even do? """
+    import jnius  # pylint: disable=import-outside-toplevel
+    try:
+        CwfgmFwi = jnius.autoclass('ca.cwfgm.fwi.CwfgmFwi')  # pylint: disable=invalid-name
+        return CwfgmFwi.hourlyFFMCLawson(prevFFMC, currFFMC, rh, seconds_into_day)
+    finally:
         jnius.detach()  # pylint: disable=no-member
