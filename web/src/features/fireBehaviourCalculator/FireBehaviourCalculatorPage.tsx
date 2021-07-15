@@ -22,15 +22,14 @@ import {
   getMostRecentIdFromRows,
   getRowsFromUrlParams,
   getUrlParamsFromRows,
-  GridMenuOption
+  GridMenuOption,
+  theEmptyOption
 } from './utils'
 
 export const FireBehaviourCalculator: React.FunctionComponent = () => {
   const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().toISODate())
 
   const { stations } = useSelector(selectFireWeatherStations)
-
-  const theEmptyOption: GridMenuOption = { label: '', value: '' }
 
   const stationMenuOptions: GridMenuOption[] = [
     theEmptyOption,
