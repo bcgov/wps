@@ -6,7 +6,7 @@
             "date": "2021-07-05",
             "elevation": 701,
             "fuel_type": "C3",
-            "status": "Observed",
+            "status": "ACTUAL",
             "temp": 25.2,
             "rh": 31.0,
             "wind_direction": 282,
@@ -25,9 +25,7 @@
             "percentage_crown_fraction_burned": 0.6078811483509187,
             "flame_length": 5.440800137427278,
             "sixty_minute_fire_size": 9.873525338521622,
-            "thirty_minute_fire_size": 2.4683813346304055,
-            "critical_hours_hfi_4000": null,
-            "critical_hours_hfi_10000": null
+            "thirty_minute_fire_size": 2.4683813346304055
         }
     ]
 }

@@ -6,7 +6,7 @@
             "date": "2021-07-06",
             "elevation": 701,
             "fuel_type": "O1A",
-            "status": "Forecasted",
+            "status": "FORECAST",
             "temp": 25.2,
             "rh": 31.0,
             "wind_direction": 282,
@@ -25,9 +25,7 @@
             "percentage_crown_fraction_burned": 0.0,
             "flame_length": 0.0005916079783099615,
             "sixty_minute_fire_size": 9.179143198499558e-14,
-            "thirty_minute_fire_size": 2.2947857996248894e-14,
-            "critical_hours_hfi_4000": null,
-            "critical_hours_hfi_10000": null
+            "thirty_minute_fire_size": 2.2947857996248894e-14
         }
     ]
 }
