@@ -202,6 +202,30 @@ def _fbp_fuel_type_map(fuel_type: str):
     20"S-2:  White Spruce / Balsam Slash"
     21"S-3:  Coastal Cedar / Hemlock / Douglas-Fir Slash"
     """
+    # fuel_type_map = {
+    #     'C1': 0,
+    #     'C2': 1,
+    #     'C3': 2,
+    #     'C4': 3,
+    #     'C5': 4,
+    #     'C6': 5,
+    #     'C7': 6,
+    #     'D1': 7,
+    #     'D2': 8,
+    #     # D1/D2: Aspen # we don't have this as a dropdown right now!
+    #     'M1': 11,
+    #     'M2': 13,
+    #     # M1/M2: Boreal Mixedwood # we don't have this as a dropdown right now!
+    #     'M3': 16,
+    #     'M4': 17,
+    #     # M3/M4: Dead Balsam Fir / Mixedwood # we don't have this as a dropdown right now!
+    #     'O1A': 19,
+    #     'O1B': 20,
+    #     # O1ab: Grass # we don't have this as a dropdown right now!
+    #     # 'S1': - no mapping
+    #     # 'S2': - no mapping
+    #     # 'S3': - no mapping
+    # }
     fuel_type_map = {
         'C1': 0,
         'C2': 1,
@@ -213,18 +237,18 @@ def _fbp_fuel_type_map(fuel_type: str):
         'D1': 7,
         'D2': 8,
         # D1/D2: Aspen # we don't have this as a dropdown right now!
-        'M1': 11,
-        'M2': 13,
+        'M1': 10,
+        'M2': 11,
         # M1/M2: Boreal Mixedwood # we don't have this as a dropdown right now!
-        'M3': 16,
-        'M4': 17,
+        'M3': 13,
+        'M4': 14,
         # M3/M4: Dead Balsam Fir / Mixedwood # we don't have this as a dropdown right now!
-        'O1A': 19,
-        'O1B': 20,
+        'O1A': 16,
+        'O1B': 17,
         # O1ab: Grass # we don't have this as a dropdown right now!
-        # 'S1': - no mapping
-        # 'S2': - no mapping
-        # 'S3': - no mapping
+        'S1': 19,
+        'S2': 20,
+        'S3': 21
     }
     if fuel_type in fuel_type_map:
         return fuel_type_map[fuel_type]
@@ -272,7 +296,12 @@ def FBPCalculateStatisticsCOM(elevation: float,  # pylint: disable=invalid-name,
         if grass_cure is None:
             grass_cure = 0.0
         if crown_base_height is None:
+            useCrownBaseHeight = False
             crown_base_height = 0.0
+        else:
+            useCrownBaseHeight = True
+        if percentage_conifer is None:
+            percentage_conifer = 0.0
 
         fbp = FBPCalculationsClass()
         fbp.elevation = elevation
@@ -293,6 +322,7 @@ def FBPCalculateStatisticsCOM(elevation: float,  # pylint: disable=invalid-name,
         fbp.crownBase = crown_base_height
 
         fbp.useSlope = False
+        fbp.useCrownBaseHeight = useCrownBaseHeight
 
         gmt = Calendar.getInstance(TimeZone.getTimeZone("GMT"))
         gmt.set(time_of_interest.year, time_of_interest.month, time_of_interest.day,
