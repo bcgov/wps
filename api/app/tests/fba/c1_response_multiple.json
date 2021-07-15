@@ -6,7 +6,7 @@
             "date": "2021-07-05",
             "elevation": 701,
             "fuel_type": "C1",
-            "status": "Observed",
+            "status": "ACTUAL",
             "temp": 25.2,
             "rh": 31.0,
             "wind_direction": 282,
@@ -25,11 +25,7 @@
             "percentage_crown_fraction_burned": 0.5563061740115343,
             "flame_length": 2.8776623285666663,
             "sixty_minute_fire_size": 3.930563799808943,
-            "thirty_minute_fire_size": 0.9826409499522357,
-            "ffmc_for_hfi_4000": 100.94021875,
-            "hfi_when_ffmc_equals_ffmc_for_hfi_4000": 2533.874136591469,
-            "ffmc_for_hfi_10000": 100.94021875,
-            "hfi_when_ffmc_equals_ffmc_for_hfi_10000": 2533.874136591469
+            "thirty_minute_fire_size": 0.9826409499522357
         },
         {
             "station_code": 230,
@@ -37,7 +33,7 @@
             "date": "2021-07-05",
             "elevation": 701,
             "fuel_type": "C1",
-            "status": "Observed",
+            "status": "ACTUAL",
             "temp": 25.2,
             "rh": 31.0,
             "wind_direction": 282,
@@ -56,11 +52,7 @@
             "percentage_crown_fraction_burned": 0.5563061740115343,
             "flame_length": 2.8776623285666663,
             "sixty_minute_fire_size": 3.930563799808943,
-            "thirty_minute_fire_size": 0.9826409499522357,
-            "ffmc_for_hfi_4000": 100.94021875,
-            "hfi_when_ffmc_equals_ffmc_for_hfi_4000": 2533.874136591469,
-            "ffmc_for_hfi_10000": 100.94021875,
-            "hfi_when_ffmc_equals_ffmc_for_hfi_10000": 2533.874136591469
+            "thirty_minute_fire_size": 0.9826409499522357
         },
         {
             "station_code": 230,
@@ -68,7 +60,7 @@
             "date": "2021-07-05",
             "elevation": 701,
             "fuel_type": "C2",
-            "status": "Observed",
+            "status": "ACTUAL",
             "temp": 25.2,
             "rh": 31.0,
             "wind_direction": 282,
@@ -87,11 +79,7 @@
             "percentage_crown_fraction_burned": 0.9773603780174216,
             "flame_length": 8.768276663464325,
             "sixty_minute_fire_size": 58.82178124137121,
-            "thirty_minute_fire_size": 14.705445310342803,
-            "ffmc_for_hfi_4000": 0.0,
-            "hfi_when_ffmc_equals_ffmc_for_hfi_4000": 23064.802694115926,
-            "ffmc_for_hfi_10000": 0.0,
-            "hfi_when_ffmc_equals_ffmc_for_hfi_10000": 23064.802694115926
+            "thirty_minute_fire_size": 14.705445310342803
         }
     ]
 }

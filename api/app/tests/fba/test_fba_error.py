@@ -71,7 +71,11 @@ def given_input(elevation: float,  # pylint: disable=too-many-arguments, invalid
                                                bui=bui,
                                                ffmc=ffmc,
                                                isi=isi,
-                                               wind_speed=wind_speed)
+                                               wind_speed=wind_speed,
+                                               temperature=20.0,  # temporary fix so tests don't break
+                                               relative_humidity=20.0,
+                                               precipitation=2.0,
+                                               status='Forecasted')
     python_fba = calculate_fire_behavour_advisory(python_input)
     # get java result:
     java_fbp = FBPCalculateStatisticsCOM(elevation=elevation,
