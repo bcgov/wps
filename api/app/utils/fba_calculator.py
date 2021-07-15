@@ -206,7 +206,8 @@ def get_approx_flame_length(head_fire_intensity: float):
 #             clock_time -= 0.5
 #             if clock_time == -0.5:
 #                 break
-#         # add back the half hour that caused FFMC to drop below critical_ffmc (or that pushed time below 0.0)
+#         # add back the half hour that caused FFMC to drop below critical_ffmc (or that
+#           pushed time below 0.0)
 #         clock_time += 0.5
 #         logger.info('%s', clock_time)
 #         return clock_time
@@ -243,7 +244,8 @@ def get_approx_flame_length(head_fire_intensity: float):
 #         clock_time += 0.5
 #         if clock_time == 24.0:
 #             break
-#     # subtract the half hour that caused FFMC to drop below critical_ffmc (or that pushed time to 24.0, which
+#     # subtract the half hour that caused FFMC to drop below critical_ffmc (or that
+#       pushed time to 24.0, which
 #     # corresponds to 12 am of the next day)
 #     clock_time -= 0.5
 #     logger.info('max hourly FFMC %s', max_hourly_ffmc)
@@ -265,7 +267,8 @@ def get_approx_flame_length(head_fire_intensity: float):
     # critical_ffmc, resulting_hfi=get_ffmc_for_target_hfi(
     #     fuel_type, percentage_conifer, percentage_dead_balsam_fir, bui, wind_speed,
     #     grass_cure, crown_base_height, solar_noon_ffmc, fmc, cfb, cfl, target_hfi)
-    # logger.info('Critical FFMC %s, resulting HFI %s; target HFI %s', critical_ffmc, resulting_hfi, target_hfi)
+    # logger.info('Critical FFMC %s, resulting HFI %s; target HFI %s', critical_ffmc,
+    #   resulting_hfi, target_hfi)
     # # Scenario 1: it's not possible for the HFI to reach target_hfi, in which case there will
     # # be no critical hours.
     # if critical_ffmc >= 100.9 and resulting_hfi < target_hfi:

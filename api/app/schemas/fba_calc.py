@@ -1,6 +1,6 @@
 """ This module contains pydantic models related to Fire Behaviour Advisory Calculator. """
 
-from typing import List, Optional, Tuple
+from typing import List, Optional
 from datetime import date
 from pydantic import BaseModel
 
