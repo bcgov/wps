@@ -1,4 +1,4 @@
-import { TextField } from '@material-ui/core'
+import { TextField, Tooltip } from '@material-ui/core'
 import {
   DataGrid,
   GridCellParams,
@@ -10,6 +10,7 @@ import {
   // GridToolbarExport,
   GridToolbarFilterButton
 } from '@material-ui/data-grid'
+import InfoIcon from '@material-ui/icons/Info'
 import { Autocomplete } from '@material-ui/lab'
 import { find, isEqual, isNull, isUndefined } from 'lodash'
 import React from 'react'
@@ -33,6 +34,7 @@ export interface FBCInputRow {
   weatherStation: string
   fuelType: string
   grassCure: number
+  windSpeed: number | undefined
 }
 
 const buildFBCGridToolbar = () => {
@@ -56,13 +58,24 @@ interface OptionBoxType {
 interface NumberEditProps {
   value: string
 }
-const NumberEdit = (props: NumberEditProps) => {
+const GrassCurePercentageEdit = (props: NumberEditProps) => {
   return (
     <TextField
       id="grass-cure-percentage-number"
       type="number"
       value={props.value}
       required={true}
+    />
+  )
+}
+
+const WindSpeedEdit = (props: NumberEditProps) => {
+  return (
+    <TextField
+      id="wind-speed-edit-number"
+      type="number"
+      value={props.value}
+      required={false}
     />
   )
 }
@@ -145,7 +158,7 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
   }
 
   const updateCellValue = (params: GridEditCellValueParams) => {
-    if (!isEqual(params.field, 'grassCure')) {
+    if (!isEqual(params.field, 'grassCure') && !isEqual(params.field, 'windSpeed')) {
       return
     }
     const rowToUpdate = find(props.rows, ['id', params.id])
@@ -161,7 +174,7 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
   }
 
   return (
-    <div style={{ display: 'flex', height: 300, width: 1000 }}>
+    <div style={{ display: 'flex', height: 300, width: 1200 }}>
       <div style={{ flexGrow: 1 }}>
         <DataGrid
           components={{
@@ -201,7 +214,25 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
               type: 'number',
               editable: true,
               renderCell: function numberPicker(params) {
-                return <NumberEdit value={params.value as string} />
+                return <GrassCurePercentageEdit value={params.value as string} />
+              }
+            },
+            {
+              field: 'windSpeed',
+              // eslint-disable-next-line react/display-name
+              renderHeader: () => (
+                <span>
+                  {'Wind Speed (km/h) (Optional)'}
+                  <Tooltip title="Leave this empty to calculate forecasted/observed wind speed. Add a custom wind speed to influence the calculations">
+                    <InfoIcon aria-label="info"></InfoIcon>
+                  </Tooltip>
+                </span>
+              ),
+              flex: 1.0,
+              type: 'number',
+              editable: true,
+              renderCell: function numberPicker(params) {
+                return <WindSpeedEdit value={params.value as string} />
               }
             }
           ]}
