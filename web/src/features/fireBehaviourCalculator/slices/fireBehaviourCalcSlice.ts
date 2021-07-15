@@ -55,7 +55,8 @@ export const fetchFireBehaviourStations = (
   const fetchableFireStations = fbcInputRows.flatMap(row => {
     const fuelTypeDetails = FuelTypes.lookup(row.fuelType)
     if (
-      fuelTypeDetails !== null &&
+      !isNull(fuelTypeDetails) &&
+      !isUndefined(fuelTypeDetails) &&
       !isNull(row.weatherStation) &&
       !isUndefined(row.weatherStation) &&
       !isNull(row.fuelType) &&
