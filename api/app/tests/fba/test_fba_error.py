@@ -19,7 +19,6 @@ logger = logging.getLogger(__name__)
 
 class RelativeErrorException(Exception):
     """ Exception raised when it's mathematically impossible to calculate the relative error. """
-    pass
 
 
 def _str2float(value: str):
@@ -46,7 +45,6 @@ acceptable_margin_of_error: Final = 0.01
                                   dmc=float,
                                   dc=float,
                                   fuel_type=str,
-                                  red_app_error_margin=_str2float,
                                   r_h1_em=float,
                                   r_ros_em=float,
                                   r_hfi_em=float,
@@ -56,7 +54,6 @@ acceptable_margin_of_error: Final = 0.01
                                   s_hfi_em=float,
                                   s_cfb_em=float,
                                   spreadsheet_cfb=_str2float,
-                                  spreadsheet_error_margin=_str2float,
                                   spreadsheet_hfi=_str2float,
                                   spreadsheet_ros=_str2float,
                                   spreadsheet_1hr=_str2float,
@@ -70,15 +67,15 @@ def test_fire_behaviour_calculator_scenario():
 
 @given("""<elevation>, <latitude>, <longitude>, <time_of_interest>, <wind_speed>, <wind_direction>, """
        """<percentage_conifer>, <percentage_dead_balsam_fir>, <grass_cure>, <crown_base_height>, """
-       """<isi>, <bui>, <ffmc>, <dmc>, <dc>, <fuel_type>, <red_app_error_margin>""",
+       """<isi>, <bui>, <ffmc>, <dmc>, <dc>, <fuel_type>""",
        target_fixture='result')
 def given_input(elevation: float,  # pylint: disable=too-many-arguments, invalid-name
                 latitude: float, longitude: float, time_of_interest: str,
                 wind_speed: float, wind_direction: float,
                 percentage_conifer: float, percentage_dead_balsam_fir: float, grass_cure: float,
                 crown_base_height: float,
-                isi: float, bui: float, ffmc: float, dmc: float, dc: float, fuel_type: str,
-                red_app_error_margin: float):
+                isi: float, bui: float, ffmc: float, dmc: float, dc: float, fuel_type: str):
+    """ Take input and calculate actual and expected results """
     # get python result:
     python_input = FBACalculatorWeatherStation(elevation=elevation,
                                                fuel_type=fuel_type,
@@ -94,25 +91,22 @@ def given_input(elevation: float,  # pylint: disable=too-many-arguments, invalid
                                                isi=isi,
                                                wind_speed=wind_speed)
     python_fba = calculate_fire_behavour_advisory(python_input)
-    # get java result:
-    if red_app_error_margin is None:
-        java_fbp = None
-    else:
-        java_fbp = FBPCalculateStatisticsCOM(elevation=elevation,
-                                             latitude=latitude,
-                                             longitude=longitude,
-                                             time_of_interest=get_hour_20_from_date(time_of_interest),
-                                             fuel_type=fuel_type,
-                                             ffmc=ffmc,
-                                             dmc=dmc,
-                                             dc=dc,
-                                             bui=bui,
-                                             wind_speed=wind_speed,
-                                             wind_direction=wind_direction,
-                                             percentage_conifer=percentage_conifer,
-                                             percentage_dead_balsam_fir=percentage_dead_balsam_fir,
-                                             grass_cure=grass_cure,
-                                             crown_base_height=crown_base_height)
+    # get REDapp result from java:
+    java_fbp = FBPCalculateStatisticsCOM(elevation=elevation,
+                                         latitude=latitude,
+                                         longitude=longitude,
+                                         time_of_interest=get_hour_20_from_date(time_of_interest),
+                                         fuel_type=fuel_type,
+                                         ffmc=ffmc,
+                                         dmc=dmc,
+                                         dc=dc,
+                                         bui=bui,
+                                         wind_speed=wind_speed,
+                                         wind_direction=wind_direction,
+                                         percentage_conifer=percentage_conifer,
+                                         percentage_dead_balsam_fir=percentage_dead_balsam_fir,
+                                         grass_cure=grass_cure,
+                                         crown_base_height=crown_base_height)
 
     return {
         'python': python_fba,
@@ -139,9 +133,11 @@ def check_metric(metric: str,
                  comparison_value: float,
                  metric_error_margin: float, note: str = None):
     """ Check relative error of a metric """
-    # logging with %s just became unreadable:
+    # logging with %s became unreadable:
     # pylint: disable=logging-fstring-interpolation
     if comparison_value is None:
+        logger.warning('Skipping %s! (%s) - note: %s', metric, comparison_value, note)
+    elif comparison_value < 0:
         logger.warning('Skipping %s! (%s) - note: %s', metric, comparison_value, note)
     else:
         assert python_value >= 0
@@ -149,8 +145,8 @@ def check_metric(metric: str,
         logger.info(
             f'{fuel_type}: Python {python_value}, {metric} {comparison_value} ; error: {error}')
         if error > acceptable_margin_of_error:
-            logger.error('%s spreadsheet %s relative error greater than (%s)! (%s)',
-                         fuel_type, metric, acceptable_margin_of_error, error)
+            logger.error('%s %s relative error %s > %s! (actual: %s, expected: %s)',
+                         fuel_type, metric, error, acceptable_margin_of_error, python_value, comparison_value)
         if metric_error_margin > 0.01:
             logger.warning('%s: The acceptable margin of error (%s) for %s is set too high',
                            fuel_type, metric_error_margin, metric)
@@ -171,37 +167,19 @@ def then_spreadsheet_ros(result: dict, s_ros_em: float, spreadsheet_ros: float, 
 @then("CFB is within <s_cfb_em> of <spreadsheet_cfb> with <note>")
 def then_spreadsheet_cfb(result: dict, s_cfb_em: float, spreadsheet_cfb: float, note: str):
     """ check the relative error of the cfb """
-    if spreadsheet_cfb is None or spreadsheet_cfb < 0:
-        logger.warning('Skipping spreadsheet CFB! (%s) - note: %s', spreadsheet_cfb, note)
-    else:
-        actual = result['python'].cfb
-        assert actual >= 0
-        error = relative_error('Spreadsheet CFB', actual, spreadsheet_cfb, 1)
-        fuel_type = result['fuel_type']
-        logger.info('%s: Python CFB %s, Spreadsheet CFB %s ; error: %s',
-                    fuel_type, actual, spreadsheet_cfb, error)
-        if error > acceptable_margin_of_error:
-            logger.error('%s spreadsheet CFB relative error greater than (%s)! (%s)',
-                         fuel_type, acceptable_margin_of_error, error)
-        assert error < s_cfb_em
+    check_metric('Spreadsheet CFB',
+                 result['fuel_type'],
+                 result['python'].cfb,
+                 spreadsheet_cfb,
+                 s_cfb_em,
+                 note)
 
 
 @then("HFI is within <s_hfi_em> of <spreadsheet_hfi> with <note>")
 def then_spreadsheet_hfi(result: dict, s_hfi_em: float, spreadsheet_hfi: float, note: str):
     """ check the relative error of the hfi """
-    if spreadsheet_hfi is None:
-        logger.warning('Skipping spreadsheet HFI! (%s) - note: %s', spreadsheet_hfi, note)
-    else:
-        actual = result['python'].hfi
-        assert actual >= 0
-        error = relative_error('Spreadsheet HFI', actual, spreadsheet_hfi)
-        fuel_type = result['fuel_type']
-        logger.info('%s: Python HFI %s, Spreadsheet HFI %s ; error: %s',
-                    fuel_type, actual, spreadsheet_hfi, error)
-        if error > acceptable_margin_of_error:
-            logger.error('%s spreadsheet HFI relative error greater than (%s)! (%s)',
-                         fuel_type, acceptable_margin_of_error, error)
-        assert error < s_hfi_em
+    check_metric('Spreadsheet HFI', result['fuel_type'],
+                 result['python'].hfi, spreadsheet_hfi, s_hfi_em, note)
 
 
 @then("1 HR Size is within <s_h1_em> of <spreadsheet_1hr> with <note>")
@@ -218,69 +196,31 @@ def then_spreadsheet_1hr(result: dict, s_h1_em: float, spreadsheet_1hr: float, n
 @then("ROS is within <r_ros_em> of REDapp ROS")
 def then_red_app_ros(result: dict, r_ros_em: float):
     """ check the relative error of ROS """
-    fuel_type = result['fuel_type']
-    if r_ros_em is None:
-        logger.info('%s: skipping ROS for redapp', fuel_type)
-    else:
-        actual = result['python'].ros
-        assert actual >= 0
-        expected = result['java'].ros_t
-        error = relative_error('RedAPP ROS', actual, expected)
-        logger.info('%s: Python ROS %s, REDapp ROS %s ; error: %s', fuel_type, actual, expected, error)
-        if error > acceptable_margin_of_error:
-            logger.error('%s REDapp ROS relative error greater than (%s)! (%s)',
-                         fuel_type, acceptable_margin_of_error, error)
-        assert error < r_ros_em
+    check_metric('REDapp ROS',
+                 result['fuel_type'],
+                 result['python'].ros,
+                 result['java'].ros_t, r_ros_em)
 
 
 @then("CFB is within <r_cfb_em> of REDapp CFB")
 def then_red_app_cfb(result: dict, r_cfb_em: float):
     """ check the relative error fo the CFB """
-    fuel_type = result['fuel_type']
-    if r_cfb_em is None:
-        logger.info('%s: skipping ROS for redapp', fuel_type)
-    else:
-        # python gives CFB as 0-1
-        actual = result['python'].cfb*100
-        assert actual >= 0
-        # redapp gives CFB as 0-100
-        expected = result['java'].cfb
-        logger.info('%s: CFB: python: %s ; REDapp: %s', fuel_type, actual, expected)
-        error = relative_error('RedAPP CFB', actual, expected)
-        logger.info('%s: Python CFB %s, REDapp CFB %s ; error: %s', fuel_type, actual, expected, error)
-        if error > acceptable_margin_of_error:
-            logger.error('%s REDapp CFB relative error greater than (%s)! (%s)',
-                         fuel_type, acceptable_margin_of_error, error)
-        assert error < r_cfb_em
+    # python gives CFB as 0-1
+    # redapp gives CFB as 0-100
+    check_metric('REDapp CFB', result['fuel_type'], result['python'].cfb*100, result['java'].cfb, r_cfb_em)
 
 
 @then("HFI is within <r_hfi_em> of REDapp HFI")
 def then_red_app_hfi(result: dict, r_hfi_em: float):
-    """ check the relative error fo the CFB """
-    fuel_type = result['fuel_type']
-    if r_hfi_em is None:
-        logger.info('%s: skipping ROS for redapp', fuel_type)
-    else:
-        actual = result['python'].hfi
-        assert actual >= 0
-        expected = result['java'].hfi
-        error = relative_error('RedAPP HFI', actual, expected)
-        logger.info('%s: Python HFI %s, REDapp HFI %s ; error: %s', fuel_type, actual, expected, error)
-        if error > acceptable_margin_of_error:
-            logger.error('%s REDapp HFI relative error greater than (%s)! (%s)',
-                         fuel_type, acceptable_margin_of_error, error)
-        assert error < r_hfi_em
+    """ check the relative error of the CFB """
+    check_metric('REDapp HFI', result['fuel_type'], result['python'].hfi, result['java'].hfi, r_hfi_em)
 
 
 @then("1 HR Size is within <r_h1_em> of REDapp 1 HR Size")
 def then_red_app_1hr(result: dict, r_h1_em: float):
+    """ check the relative error of the a hour fire size"""
     check_metric('REDapp 1 HR Size',
                  result['fuel_type'],
                  result['python'].sixty_minute_fire_size,
                  result['java'].area,
                  r_h1_em)
-
-
-@then("<spreadsheet_error_margin> <red_app_error_margin>")
-def then_get_rid_of_this(spreadsheet_error_margin, red_app_error_margin):
-    pass
