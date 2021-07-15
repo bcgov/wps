@@ -737,7 +737,7 @@ WTForms = "*"
 
 [[package]]
 name = "geoalchemy2"
-version = "0.9.1"
+version = "0.9.2"
 description = "Using SQLAlchemy with Spatial Databases"
 category = "main"
 optional = false
@@ -2799,8 +2799,8 @@ flask-wtf = [
     {file = "Flask_WTF-0.14.3-py2.py3-none-any.whl", hash = "sha256:57b3faf6fe5d6168bda0c36b0df1d05770f8e205e18332d0376ddb954d17aef2"},
 ]
 geoalchemy2 = [
-    {file = "GeoAlchemy2-0.9.1-py2.py3-none-any.whl", hash = "sha256:1984f7b189b1994edad7800154973ebd48a26094376a2c9cd7447133051faf60"},
-    {file = "GeoAlchemy2-0.9.1.tar.gz", hash = "sha256:de0d0b1ff2f7f26ddff0a69d9a33940020707caedd442fa13b28affec842dafb"},
+    {file = "GeoAlchemy2-0.9.2-py2.py3-none-any.whl", hash = "sha256:b206938ad2703aedfd66b85746ecd7fd8052d733f550e19929f93e8e03dc6295"},
+    {file = "GeoAlchemy2-0.9.2.tar.gz", hash = "sha256:f71db14bd7e79c2babb24f4316f004a617e48b78e84b203d14b7fde484d162d0"},
 ]
 geopandas = [
     {file = "geopandas-0.9.0-py2.py3-none-any.whl", hash = "sha256:79f6e557ba0dba76eec44f8351b1c6b42a17c38f5f08fef347e98fe4dae563c7"},
