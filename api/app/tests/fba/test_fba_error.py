@@ -46,6 +46,8 @@ acceptable_margin_of_error: Final = 0.01
                                   dc=float,
                                   fuel_type=str,
                                   red_app_error_margin=_str2float,
+                                  r_h1_em=_str2float,
+                                  s_h1_em=_str2float,
                                   spreadsheet_cfb=_str2float,
                                   spreadsheet_error_margin=_str2float,
                                   spreadsheet_hfi=_str2float,
@@ -124,41 +126,39 @@ def relative_error(metric: str, actual: float, expected: float, precision: int =
     return abs((actual-expected)/expected)
 
 
-def check_spreadsheet_metric(
-        metric: str, fuel_type: str, python_value: float,
-        spreadsheet_value: float, spreadsheet_error_margin: float, note: str):
-    """ Check relative error of a spreadsheet metric """
-    if spreadsheet_value is None:
-        logger.warning('Skipping spreadsheet %s! (%s) - note: %s', metric, spreadsheet_value, note)
+def check_metric(metric: str,
+                 fuel_type: str,
+                 python_value: float,
+                 comparison_value: float,
+                 metric_error_margin: float, note: str):
+    """ Check relative error of a metric """
+    # logging with %s just became unreadable:
+    # pylint: disable=logging-fstring-interpolation
+    if comparison_value is None:
+        logger.warning('Skipping %s! (%s) - note: %s', metric, comparison_value, note)
     else:
         assert python_value >= 0
-        error = relative_error(f'Spreadsheet {metric}', python_value, spreadsheet_value)
-        logger.info('%s: Python ROS %s, Spreadsheet ROS %s ; error: %s',
-                    fuel_type, python_value, spreadsheet_value, error)
+        error = relative_error(f'{metric}', python_value, comparison_value)
+        logger.info(
+            f'{fuel_type}: Python {python_value}, {metric} {comparison_value} ; error: {error}')
         if error > acceptable_margin_of_error:
             logger.error('%s spreadsheet %s relative error greater than (%s)! (%s)',
                          fuel_type, metric, acceptable_margin_of_error, error)
-        assert error < spreadsheet_error_margin
+        if metric_error_margin > 0.01:
+            logger.warning('%s: The acceptable margin of error (%s) for %s is set too high',
+                           fuel_type, metric_error_margin, metric)
+        assert error < metric_error_margin
 
 
 @then("ROS is within <spreadsheet_error_margin> of <spreadsheet_ros> with <note>")
 def then_spreadsheet_ros(result: dict, spreadsheet_error_margin: float, spreadsheet_ros: float, note: str):
     """ check the relative error of the ros """
-    check_spreadsheet_metric('ROS', result['fuel_type'], result['python'].ros,
-                             spreadsheet_ros, spreadsheet_error_margin, note)
-    if spreadsheet_ros is None:
-        logger.warning('Skipping spreadsheet ROS! (%s) - note: %s', spreadsheet_ros, note)
-    else:
-        actual = result['python'].ros
-        assert actual >= 0
-        error = relative_error('Spreadsheet ROS', actual, spreadsheet_ros)
-        fuel_type = result['fuel_type']
-        logger.info('%s: Python ROS %s, Spreadsheet ROS %s ; error: %s',
-                    fuel_type, actual, spreadsheet_ros, error)
-        if error > acceptable_margin_of_error:
-            logger.error('%s spreadsheet ROS relative error greater than (%s)! (%s)',
-                         fuel_type, acceptable_margin_of_error, error)
-        assert error < spreadsheet_error_margin
+    check_metric('Spreadsheet ROS',
+                 result['fuel_type'],
+                 result['python'].ros,
+                 spreadsheet_ros,
+                 spreadsheet_error_margin,
+                 note)
 
 
 @then("CFB is within <spreadsheet_error_margin> of <spreadsheet_cfb> with <note>")
@@ -197,9 +197,14 @@ def then_spreadsheet_hfi(result: dict, spreadsheet_error_margin: float, spreadsh
         assert error < spreadsheet_error_margin
 
 
-@then("1 HR Size is within <spreadsheet_error_margin> of <spreadsheet_1hr> with <note>")
-def then_spreadsheet_1hr(result: dict, spreadsheet_error_margin: float, spreadsheet_1hr: float, note: str):
-    pass
+@then("1 HR Size is within <s_h1_em> of <spreadsheet_1hr> with <note>")
+def then_spreadsheet_1hr(result: dict, s_h1_em: float, spreadsheet_1hr: float, note: str):
+    check_metric('1 HR Size',
+                 result['fuel_type'],
+                 result['python'].sixty_minute_fire_size,
+                 spreadsheet_1hr,
+                 s_h1_em,
+                 note)
 
 
 @then("ROS is within <red_app_error_margin> of REDapp ROS")
@@ -259,6 +264,6 @@ def then_red_app_hfi(result: dict, red_app_error_margin: float):
         assert error < red_app_error_margin
 
 
-@then("1 HR Size is within <red_app_error_margin> of REDapp 1 HR Size")
-def then_red_app_1hr(result: dict, red_app_error_margin: float):
+@then("1 HR Size is within <r_h1_em> of REDapp 1 HR Size")
+def then_red_app_1hr(result: dict, r_h1_em: float):
     pass
