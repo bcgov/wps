@@ -385,7 +385,7 @@ def FBPCalculateStatisticsCOM(elevation: float,  # pylint: disable=invalid-name,
                               percentage_conifer: float,
                               percentage_dead_balsam_fir: float,
                               grass_cure: float,
-                              crown_base_height: float):
+                              crown_base_height: float) -> FBPCalculations:
     """ Uses method FBPCalculateStatisticsCOM on class ca.cwfgm.fbp.FBPCalculations to calculate
     fire behaviour.
 
@@ -412,10 +412,10 @@ def FBPCalculateStatisticsCOM(elevation: float,  # pylint: disable=invalid-name,
         if grass_cure is None:
             grass_cure = 0.0
         if crown_base_height is None:
-            useCrownBaseHeight = False
+            use_crown_base_height = False
             crown_base_height = 0.0
         else:
-            useCrownBaseHeight = True
+            use_crown_base_height = True
         if percentage_conifer is None:
             percentage_conifer = 0.0
 
@@ -438,7 +438,7 @@ def FBPCalculateStatisticsCOM(elevation: float,  # pylint: disable=invalid-name,
         fbp.crownBase = crown_base_height
 
         fbp.useSlope = False
-        fbp.useCrownBaseHeight = useCrownBaseHeight
+        fbp.useCrownBaseHeight = use_crown_base_height
 
         # TODO: Sybrand figure out timezone
         gmt = Calendar.getInstance(TimeZone.getTimeZone("GMT"))
