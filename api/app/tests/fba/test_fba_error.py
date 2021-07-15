@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 class RelativeErrorException(Exception):
+    """ Exception raised when it's mathematically impossible to calculate the relative error. """
     pass
 
 
@@ -46,8 +47,14 @@ acceptable_margin_of_error: Final = 0.01
                                   dc=float,
                                   fuel_type=str,
                                   red_app_error_margin=_str2float,
-                                  r_h1_em=_str2float,
-                                  s_h1_em=_str2float,
+                                  r_h1_em=float,
+                                  r_ros_em=float,
+                                  r_hfi_em=float,
+                                  r_cfb_em=float,
+                                  s_h1_em=float,
+                                  s_ros_em=float,
+                                  s_hfi_em=float,
+                                  s_cfb_em=float,
                                   spreadsheet_cfb=_str2float,
                                   spreadsheet_error_margin=_str2float,
                                   spreadsheet_hfi=_str2float,
@@ -130,7 +137,7 @@ def check_metric(metric: str,
                  fuel_type: str,
                  python_value: float,
                  comparison_value: float,
-                 metric_error_margin: float, note: str):
+                 metric_error_margin: float, note: str = None):
     """ Check relative error of a metric """
     # logging with %s just became unreadable:
     # pylint: disable=logging-fstring-interpolation
@@ -147,22 +154,22 @@ def check_metric(metric: str,
         if metric_error_margin > 0.01:
             logger.warning('%s: The acceptable margin of error (%s) for %s is set too high',
                            fuel_type, metric_error_margin, metric)
-        assert error < metric_error_margin
+        assert error < metric_error_margin, f'{fuel_type}:{metric}'
 
 
-@then("ROS is within <spreadsheet_error_margin> of <spreadsheet_ros> with <note>")
-def then_spreadsheet_ros(result: dict, spreadsheet_error_margin: float, spreadsheet_ros: float, note: str):
+@then("ROS is within <s_ros_em> of <spreadsheet_ros> with <note>")
+def then_spreadsheet_ros(result: dict, s_ros_em: float, spreadsheet_ros: float, note: str):
     """ check the relative error of the ros """
     check_metric('Spreadsheet ROS',
                  result['fuel_type'],
                  result['python'].ros,
                  spreadsheet_ros,
-                 spreadsheet_error_margin,
+                 s_ros_em,
                  note)
 
 
-@then("CFB is within <spreadsheet_error_margin> of <spreadsheet_cfb> with <note>")
-def then_spreadsheet_cfb(result: dict, spreadsheet_error_margin: float, spreadsheet_cfb: float, note: str):
+@then("CFB is within <s_cfb_em> of <spreadsheet_cfb> with <note>")
+def then_spreadsheet_cfb(result: dict, s_cfb_em: float, spreadsheet_cfb: float, note: str):
     """ check the relative error of the cfb """
     if spreadsheet_cfb is None or spreadsheet_cfb < 0:
         logger.warning('Skipping spreadsheet CFB! (%s) - note: %s', spreadsheet_cfb, note)
@@ -176,11 +183,11 @@ def then_spreadsheet_cfb(result: dict, spreadsheet_error_margin: float, spreadsh
         if error > acceptable_margin_of_error:
             logger.error('%s spreadsheet CFB relative error greater than (%s)! (%s)',
                          fuel_type, acceptable_margin_of_error, error)
-        assert error < spreadsheet_error_margin
+        assert error < s_cfb_em
 
 
-@then("HFI is within <spreadsheet_error_margin> of <spreadsheet_hfi> with <note>")
-def then_spreadsheet_hfi(result: dict, spreadsheet_error_margin: float, spreadsheet_hfi: float, note: str):
+@then("HFI is within <s_hfi_em> of <spreadsheet_hfi> with <note>")
+def then_spreadsheet_hfi(result: dict, s_hfi_em: float, spreadsheet_hfi: float, note: str):
     """ check the relative error of the hfi """
     if spreadsheet_hfi is None:
         logger.warning('Skipping spreadsheet HFI! (%s) - note: %s', spreadsheet_hfi, note)
@@ -194,12 +201,13 @@ def then_spreadsheet_hfi(result: dict, spreadsheet_error_margin: float, spreadsh
         if error > acceptable_margin_of_error:
             logger.error('%s spreadsheet HFI relative error greater than (%s)! (%s)',
                          fuel_type, acceptable_margin_of_error, error)
-        assert error < spreadsheet_error_margin
+        assert error < s_hfi_em
 
 
 @then("1 HR Size is within <s_h1_em> of <spreadsheet_1hr> with <note>")
 def then_spreadsheet_1hr(result: dict, s_h1_em: float, spreadsheet_1hr: float, note: str):
-    check_metric('1 HR Size',
+    """ check the relative error of the 1 HR fire size"""
+    check_metric('Spreadsheet 1 HR Size',
                  result['fuel_type'],
                  result['python'].sixty_minute_fire_size,
                  spreadsheet_1hr,
@@ -207,11 +215,11 @@ def then_spreadsheet_1hr(result: dict, s_h1_em: float, spreadsheet_1hr: float, n
                  note)
 
 
-@then("ROS is within <red_app_error_margin> of REDapp ROS")
-def then_red_app_ros(result: dict, red_app_error_margin: float):
+@then("ROS is within <r_ros_em> of REDapp ROS")
+def then_red_app_ros(result: dict, r_ros_em: float):
     """ check the relative error of ROS """
     fuel_type = result['fuel_type']
-    if red_app_error_margin is None:
+    if r_ros_em is None:
         logger.info('%s: skipping ROS for redapp', fuel_type)
     else:
         actual = result['python'].ros
@@ -222,14 +230,14 @@ def then_red_app_ros(result: dict, red_app_error_margin: float):
         if error > acceptable_margin_of_error:
             logger.error('%s REDapp ROS relative error greater than (%s)! (%s)',
                          fuel_type, acceptable_margin_of_error, error)
-        assert error < red_app_error_margin
+        assert error < r_ros_em
 
 
-@then("CFB is within <red_app_error_margin> of REDapp CFB")
-def then_red_app_cfb(result: dict, red_app_error_margin: float):
+@then("CFB is within <r_cfb_em> of REDapp CFB")
+def then_red_app_cfb(result: dict, r_cfb_em: float):
     """ check the relative error fo the CFB """
     fuel_type = result['fuel_type']
-    if red_app_error_margin is None:
+    if r_cfb_em is None:
         logger.info('%s: skipping ROS for redapp', fuel_type)
     else:
         # python gives CFB as 0-1
@@ -243,14 +251,14 @@ def then_red_app_cfb(result: dict, red_app_error_margin: float):
         if error > acceptable_margin_of_error:
             logger.error('%s REDapp CFB relative error greater than (%s)! (%s)',
                          fuel_type, acceptable_margin_of_error, error)
-        assert error < red_app_error_margin
+        assert error < r_cfb_em
 
 
-@then("HFI is within <red_app_error_margin> of REDapp HFI")
-def then_red_app_hfi(result: dict, red_app_error_margin: float):
+@then("HFI is within <r_hfi_em> of REDapp HFI")
+def then_red_app_hfi(result: dict, r_hfi_em: float):
     """ check the relative error fo the CFB """
     fuel_type = result['fuel_type']
-    if red_app_error_margin is None:
+    if r_hfi_em is None:
         logger.info('%s: skipping ROS for redapp', fuel_type)
     else:
         actual = result['python'].hfi
@@ -261,9 +269,18 @@ def then_red_app_hfi(result: dict, red_app_error_margin: float):
         if error > acceptable_margin_of_error:
             logger.error('%s REDapp HFI relative error greater than (%s)! (%s)',
                          fuel_type, acceptable_margin_of_error, error)
-        assert error < red_app_error_margin
+        assert error < r_hfi_em
 
 
 @then("1 HR Size is within <r_h1_em> of REDapp 1 HR Size")
 def then_red_app_1hr(result: dict, r_h1_em: float):
+    check_metric('REDapp 1 HR Size',
+                 result['fuel_type'],
+                 result['python'].sixty_minute_fire_size,
+                 result['java'].area,
+                 r_h1_em)
+
+
+@then("<spreadsheet_error_margin> <red_app_error_margin>")
+def then_get_rid_of_this(spreadsheet_error_margin, red_app_error_margin):
     pass
