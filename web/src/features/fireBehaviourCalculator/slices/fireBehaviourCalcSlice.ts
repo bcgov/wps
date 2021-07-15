@@ -4,7 +4,7 @@ import { FBCStation, postFBCStations } from 'api/fbCalcAPI'
 import { AppThunk } from 'app/store'
 import { isNull, isUndefined } from 'lodash'
 import { logError } from 'utils/error'
-import { FBCInputRow } from '../components/FBCInputGrid'
+import { FBCInputRow } from 'features/fireBehaviourCalculator/components/FBCInputGrid'
 import { FuelTypes } from '../fuelTypes'
 
 interface State {
@@ -69,7 +69,8 @@ export const fetchFireBehaviourStations = (
         percentageConifer: fuelTypeDetails.percentage_conifer,
         grassCurePercentage: row.grassCure,
         percentageDeadBalsamFir: fuelTypeDetails.percentage_dead_balsam_fir,
-        crownBaseHeight: fuelTypeDetails.crown_base_height
+        crownBaseHeight: fuelTypeDetails.crown_base_height,
+        windSpeed: row.windSpeed
       }
     } else {
       return []

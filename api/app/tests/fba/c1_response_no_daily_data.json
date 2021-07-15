@@ -25,11 +25,7 @@
             "percentage_crown_fraction_burned": null,
             "flame_length": null,
             "sixty_minute_fire_size": null,
-            "thirty_minute_fire_size": null,
-            "ffmc_for_hfi_4000": null,
-            "hfi_when_ffmc_equals_ffmc_for_hfi_4000": null,
-            "ffmc_for_hfi_10000": null,
-            "hfi_when_ffmc_equals_ffmc_for_hfi_10000": null
+            "thirty_minute_fire_size": null
         }
     ]
 }

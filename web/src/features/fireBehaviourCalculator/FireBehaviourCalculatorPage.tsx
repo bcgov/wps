@@ -63,7 +63,8 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
       id: rowId,
       weatherStation: undefined,
       fuelType: undefined,
-      grassCure: undefined
+      grassCure: undefined,
+      windSpeed: undefined
     }
     const newRows = [...rows, newRow]
     setRows(newRows)
