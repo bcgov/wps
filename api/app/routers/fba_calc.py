@@ -33,7 +33,7 @@ def prepare_response(
         time_of_interest: date) -> StationResponse:
     """ Construct a response object combining information from the request, the station from wf1,
     the daily response from wf1 and the fire behaviour advisory. """
-
+    # TODO: Refactor this to simplify the flow of data & sources
     # Extract values from the daily
     bui = raw_daily.get('buildUpIndex', None)
     ffmc = fba_station.ffmc
@@ -101,15 +101,12 @@ async def process_request(
         ffmc = raw_daily.get('fineFuelMoistureCode', None)
         isi = raw_daily.get('initialSpreadIndex', None)
         wind_speed = raw_daily.get('windSpeed', None)
-        if raw_daily.get('recordType').get('id') == 'ACTUAL':
-            status = 'Observed'
-        else:
-            status = 'Forecasted'
+        status = raw_daily.get('recordType').get('id')
     # if user has specified wind speed as part of StationRequest, will need to
     # re-calculate FFMC & ISI with modified value of wind speed
     else:
         wind_speed = requested_station.wind_speed
-        status = 'Adjusted'
+        status = 'ADJUSTED'
         # must retrieve the previous day's observed/forecasted FFMC value from WFWX
         async with ClientSession() as session:
             # authenticate against wfwx api
