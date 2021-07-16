@@ -60,7 +60,7 @@ const GrassCurePercentageEdit = (props: NumberEditProps) => {
       id="grass-cure-percentage-number"
       type="number"
       value={props.value}
-      required={true}
+      required={false}
     />
   )
 }
@@ -166,10 +166,11 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
     return (
       <Autocomplete
         id={`combo-box-fuel-types-${Math.random()}`}
+        disableClearable={true}
         getOptionSelected={(option, value) => isEqual(option, value)}
         options={options}
         getOptionLabel={option => option?.label}
-        style={{ width: 300, height: '100%', marginTop: 20 }}
+        style={{ width: 300 }}
         renderInput={params => <TextField {...params} label={label} variant="outlined" />}
         onChange={handleChange}
         value={finalVal}
