@@ -14,7 +14,7 @@ from app import config
 from app import health
 from app import hourlies
 from app.frontend import frontend
-from app.routers import forecasts, weather_models, c_haines, stations, hfi_calc
+from app.routers import forecasts, weather_models, c_haines, stations, hfi_calc, fba_calc
 
 
 configure_logging()
@@ -92,6 +92,7 @@ api.include_router(weather_models.router)
 api.include_router(c_haines.router)
 api.include_router(stations.router)
 api.include_router(hfi_calc.router)
+api.include_router(fba_calc.router)
 
 
 @app.on_event('startup')

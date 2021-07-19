@@ -16,6 +16,7 @@ export interface StationDaily {
   bui: number
   fwi: number
   danger_class: number
+  rate_of_spread: number
   observation_valid: number
   observation_valid_comment: string
 }

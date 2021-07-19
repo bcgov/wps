@@ -17,7 +17,7 @@ import app.utils.time
 from app.db.models.observations import HourlyActual
 from app.schemas.stations import WeatherStation
 from app.tests.common import default_mock_client_get
-import app.wildfire_one
+import app.wildfire_one.wfwx_api
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +70,8 @@ def given_hourlies_request(monkeypatch, codes: List, use_wfwx):
     else:
         logger.info('running test with WFWX set to False')
         monkeypatch.setenv("USE_WFWX", 'False')
-        monkeypatch.setattr('app.wildfire_one.get_stations_by_codes', lambda _: build_mock_stations(codes))
+        monkeypatch.setattr('app.wildfire_one.wfwx_api.get_stations_by_codes',
+                            lambda _: build_mock_stations(codes))
         monkeypatch.setattr(
             app.db.database, 'get_read_session_scope', mock_get_session_scope)
 

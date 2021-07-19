@@ -1,10 +1,10 @@
 """ Unit testing for WFWX API code """
 import asyncio
 from pytest_mock import MockFixture
-from app.wildfire_one import (BuildQueryAllHourliesByRange,
-                              BuildQueryDailesByStationCode,
-                              WFWXWeatherStation,
-                              get_wfwx_stations_from_station_codes)
+from app.wildfire_one.query_builders import (BuildQueryAllHourliesByRange,
+                                             BuildQueryDailesByStationCode)
+from app.wildfire_one.wfwx_api import (WFWXWeatherStation,
+                                       get_wfwx_stations_from_station_codes)
 
 
 def test_build_all_hourlies_query():
@@ -38,8 +38,8 @@ def test_build_dailies_by_station_code():
 code1 = 322
 code2 = 239
 all_station_codes = [code1, code2]
-station_1 = WFWXWeatherStation(code=code1, wfwx_id="one")
-station_2 = WFWXWeatherStation(code=code2, wfwx_id="two")
+station_1 = WFWXWeatherStation(code=code1, name="name", wfwx_id="one", latitude=0, longitude=0, elevation=0)
+station_2 = WFWXWeatherStation(code=code2, name="name", wfwx_id="two", latitude=0, longitude=0, elevation=0)
 all_stations = [station_1, station_2]
 
 
@@ -58,7 +58,7 @@ def mock_get_fire_centre_station_codes(__):
 def test_get_ids_from_station_codes_no_stations(mocker: MockFixture):
     """ Verifies the query builder returns the correct url and parameters for dailies by station code """
     mocker.patch('app.utils.hfi_calculator.get_all_stations', mock_get_fire_centre_station_codes)
-    mocker.patch('app.wildfire_one.get_stations', mock_get_stations)
+    mocker.patch('app.wildfire_one.wfwx_api.get_stations', mock_get_stations)
 
     async def run_test():
         """ Async function to run test and assert result """
@@ -73,7 +73,7 @@ def test_get_ids_from_station_codes_no_stations(mocker: MockFixture):
 def test_get_ids_from_station_codes(mocker: MockFixture):
     """ Verifies the query builder returns the correct url and parameters for dailies by station code """
     mocker.patch('app.utils.hfi_calculator.get_all_stations', mock_get_fire_centre_station_codes)
-    mocker.patch('app.wildfire_one.get_stations', mock_get_stations)
+    mocker.patch('app.wildfire_one.wfwx_api.get_stations', mock_get_stations)
 
     async def run_test():
         """ Async function to run test and assert result """

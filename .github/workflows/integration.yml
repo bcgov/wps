@@ -12,12 +12,71 @@ jobs:
       matrix:
         python-version: [3.8]
         node-version: [14.x]
+        R: ["3.5.2"]
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
         with:
           # For sonar-scanner to work properly we can't use a shallow fetch.
           fetch-depth: 0
+
+      - name: Install libgdal-dev (api)
+        # The python gdal and R component relies on libgdal-dev being installed.
+        run: |
+          sudo apt-get update --fix-missing && sudo apt-get -y install libgdal-dev
+
+      # it would be nice to cache this!
+      # - name: Cache libgdal-dev (api)
+      #   uses: actions/cache@v2
+      #   id: cache-libgdal-dev
+      #   with:
+      #     path: "~/libgdal-dev"
+      #     key: "3.0.4"
+
+      # - name: Install libgdal-dev (api)
+      #   # The python gdal and R component relies on libgdal-dev being installed.
+      #   env:
+      #     CACHE_HIT: ${{steps.cache-libgdal-dev.outputs.cache-hit}}
+      #   run: |
+      #     if [[ "$CACHE_HIT" == 'true' ]]; then
+      #       sudo cp --verbose --force --recursive ~/libgdal-dev/* /
+      #     else
+      #       sudo apt-get update --fix-missing && sudo apt-get -y install libgdal-dev
+      #       mkdir -p ~/libgdal-dev
+      #       sudo dpkg -L libgdal-dev | while IFS= read -r f; do if test -f $f; then echo $f; fi; done | xargs cp --parents --target-directory ~/libgdal-dev/
+      #     fi
+
+      - uses: r-lib/actions/setup-r@v1
+        with:
+          r-version: ${{ matrix.R }}
+
+      - name: Cache renv (api)
+        uses: actions/cache@v2
+        with:
+          path: ~/.local/share/renv
+          # path: /home/runner/work/_temp/Library
+          key: ${{ runner.os }}-renv-${{ hashFiles('**/renv.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-renv-
+
+      - name: Install renv (api)
+        run: |
+          install.packages("renv")
+          renv::install("cffdrs", dependencies = TRUE)
+          renv::consent(TRUE)
+          renv::restore()
+        shell: Rscript {0}
+
+      # - name: Restore environment
+      #   run: |
+      #     renv::consent(TRUE)
+      #     renv::restore()
+      #   shell: Rscript {0}
+
+      # - name: Install R stuff
+      #   run: |
+      #     install.packages("cffdrs", dep = TRUE)
+      #   shell: Rscript {0}
 
       - name: Setup kernel for react, increase watchers
         run: echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
@@ -56,11 +115,6 @@ jobs:
           poetry config virtualenvs.create true
           poetry config virtualenvs.in-project false
 
-      - name: Install libgdal-dev (api)
-        # The python gdal component relies on libgdal-dev being installed.
-        run: |
-          sudo apt-get update --fix-missing && sudo apt-get -y install libgdal-dev
-
       # poetry cache folder: /home/runner/.cache/pypoetry
       - name: Cache poetry
         uses: actions/cache@v2
@@ -91,6 +145,7 @@ jobs:
           poetry install
 
       - name: Lint (api)
+        # We run lint before unit tests, only because it runs faster, so we'll reach a fail condition sooner.
         working-directory: ./api
         run: |
           source ~/.poetry/env
@@ -100,7 +155,10 @@ jobs:
         working-directory: ./api
         run: |
           source ~/.poetry/env
-          ORIGINS=testorigin poetry run coverage run --source=app -m pytest -o log_cli=true --disable-warnings --verbose
+          export LD_LIBRARY_PATH=$(poetry run python -m rpy2.situation LD_LIBRARY_PATH):${LD_LIBRARY_PATH}
+          export CLASSPATH=./libs/REDapp_Lib.jar:./libs/WTime.jar:./libs/hss-java.jar:$CLASSPATHpoetry
+          export ORIGINS=testorigin
+          poetry run coverage run --source=app -m pytest -o log_cli=true --disable-warnings -vvv
 
       - name: Create coverage report (api)
         # Create coverage report, and then replace occurrences of
