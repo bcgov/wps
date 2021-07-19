@@ -1,6 +1,7 @@
 """ Fire Behaviour Analysis Calculator Tool
 """
 import math
+from typing import Final
 from datetime import date
 import logging
 from typing import Tuple
@@ -76,11 +77,20 @@ class FireBehaviourAdvisory():  # pylint: disable=too-many-instance-attributes
 def calculate_fire_behavour_advisory(station: FBACalculatorWeatherStation) -> FireBehaviourAdvisory:
     """ Transform from the raw daily json object returned by wf1, to our fba_calc.StationResponse object.
     """
-    # time of interest will be the same for all stations
+    # time of interest will be the same for all stations.
     time_of_interest = get_hour_20_from_date(station.time_of_interest)
 
-    fmc = cffdrs.foliar_moisture_content(station.lat, station.long, station.elevation,
-                                         get_julian_date(time_of_interest))
+    if station.fuel_type == 'C1':
+        # It seems REDapp uses a date of 144 for C1. The source of this value is unknown.
+        date_of_minimum_foliar_moisture_content = 144
+    else:
+        # TODO: Establish if it's 144 accross the board for all fuel types.
+        date_of_minimum_foliar_moisture_content = 0
+
+    fmc = cffdrs.foliar_moisture_content(
+        station.lat, station.long, station.elevation,
+        get_julian_date(time_of_interest),
+        date_of_minimum_foliar_moisture_content=date_of_minimum_foliar_moisture_content)
     sfc = cffdrs.surface_fuel_consumption(station.fuel_type, station.bui,
                                           station.ffmc, station.percentage_conifer)
     lb_ratio = cffdrs.length_to_breadth_ratio(station.fuel_type, station.wind_speed)
@@ -153,8 +163,14 @@ def get_60_minutes_fire_size(length_breadth_ratio: float, rate_of_spread: float)
 
     60 min fire size = (pi * spread^2) / (40,000 * LB ratio)
     where spread = 60 * ROS
+
+    Excel spreadsheet:
+    ((3.14*(SPREAD/2)*((SPREAD/2)/LB))/10000)
+    in python:
+    spread = rate_of_spread * 60
+    return (math.pi*(spread/2)*((spread/2)/length_breadth_ratio))/10000
     """
-    return (math.pi * math.pow(60 * rate_of_spread, 2)) / (40000 * length_breadth_ratio)
+    return (math.pi * math.pow(60.0 * rate_of_spread, 2)) / (40000.0 * length_breadth_ratio)
 
 
 def get_fire_type(fuel_type: str, crown_fraction_burned: float):

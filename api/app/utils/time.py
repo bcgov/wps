@@ -47,17 +47,11 @@ def get_hour_20(time_of_interest: datetime) -> datetime:
 
 
 def get_julian_date_now():
-    """ Returns current day of year
-        Source: https://rafatieppo.github.io/post/2018_12_01_juliandate/
-    """
-    fmt = '%Y-%m-%d'
-    formatted_date = datetime.strptime(datetime.now(tz=get_pst_tz()).strftime(fmt), fmt)
-    formatted_date = formatted_date.timetuple()
-    julian_date = formatted_date.tm_yday
-    return julian_date
+    """ Returns current day of year """
+    now_date = get_utc_now()
+    return now_date.timetuple().tm_yday
 
 
 def get_julian_date(time_of_interest: datetime):
     """ Returns Julian day of year for time_of_interest specified in arg. """
-    formatted_date = time_of_interest.timetuple()
-    return formatted_date.tm_yday
+    return time_of_interest.timetuple().tm_yday

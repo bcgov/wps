@@ -65,6 +65,8 @@ def rate_of_spread(fuel_type: str,  # pylint: disable=too-many-arguments, disabl
     # Returns:
     #   ROS: Rate of spread (m/min)
     #
+
+    NOTE: For C1, only ISI and BUI is used to calculate ROS. All other inputs are ignored.
     """
     if fuel_type is None or isi is None or bui is None or sfc is None:
         message = PARAMS_ERROR_MESSAGE + \
@@ -130,7 +132,8 @@ def surface_fuel_consumption(  # pylint: disable=invalid-name
     return result[0]
 
 
-def foliar_moisture_content(lat: int, long: int, elv: float, day_of_year: int):
+def foliar_moisture_content(lat: int, long: int, elv: float, day_of_year: int,
+                            date_of_minimum_foliar_moisture_content: int = 0):
     """ Computes FMC by delegating to cffdrs R package
         TODO: Find out the minimum fmc date that is passed as D0, for now it's 0. Passing 0 makes FFMCcalc
         calculate it.
@@ -147,7 +150,6 @@ def foliar_moisture_content(lat: int, long: int, elv: float, day_of_year: int):
     #   FMC:    Foliar Moisture Content
      """
     # pylint: disable=protected-access, no-member, line-too-long
-    date_of_minimum_foliar_moisture_content = 0
     logger.info('calling _FMCcalc(LAT=%s, LONG=%s, ELV=%s, DJ=%s, D0=%s)', lat,
                 long, elv, day_of_year, date_of_minimum_foliar_moisture_content)
     result = CFFDRS.instance().cffdrs._FMCcalc(LAT=lat, LONG=long, ELV=elv,
