@@ -1,4 +1,4 @@
-import { TextField } from '@material-ui/core'
+import { Checkbox, TextField } from '@material-ui/core'
 import { Autocomplete } from '@material-ui/lab'
 import { find, isEqual } from 'lodash'
 import React, { ChangeEvent } from 'react'
@@ -79,6 +79,25 @@ export const buildRowCell = (
     const options =
       cell.column.id === 'weatherStation' ? props.stationOptions : props.fuelTypeOptions
     return buildAutocompleteCell(options, emptyLabel, cell, autoCompleteChangeHandler)
+  }
+
+  if (cell.column.id === 'select') {
+    const selectedSet = new Set(props.selected)
+    return (
+      <Checkbox
+        color="primary"
+        checked={selectedSet.has(rowId)}
+        onClick={() => {
+          if (selectedSet.has(rowId)) {
+            // Checked, toggle check off
+            selectedSet.delete(rowId)
+          } else {
+            selectedSet.add(rowId)
+          }
+          props.updateSelected(Array.from(selectedSet))
+        }}
+      />
+    )
   }
 
   return (

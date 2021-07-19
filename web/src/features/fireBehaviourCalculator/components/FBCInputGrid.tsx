@@ -2,6 +2,7 @@ import React from 'react'
 import { useTable } from 'react-table'
 import { isNull, isUndefined } from 'lodash'
 import {
+  Checkbox,
   Table,
   TableBody,
   TableCell,
@@ -19,6 +20,8 @@ export interface FBCInputGridProps {
   fuelTypeOptions: GridMenuOption[]
   rows: FBCInputRow[]
   updateRow: (rowId: number, updatedRow: FBCInputRow) => void
+  selected: number[]
+  updateSelected: (selected: number[]) => void
 }
 
 export interface GridMenuOption {
@@ -80,6 +83,10 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
   const columns: any = React.useMemo(
     () => [
       {
+        Header: 'Select',
+        accessor: 'select'
+      },
+      {
         Header: 'Station',
         accessor: 'weatherStation'
       },
@@ -113,6 +120,9 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
           </Tooltip>
         </span>
       )
+    }
+    if (column.id === 'select') {
+      return <Checkbox color="primary" />
     }
     return column.render('Header')
   }

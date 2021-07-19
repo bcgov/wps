@@ -168,6 +168,10 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
             fuelTypeOptions={fuelTypeMenuOptions}
             rows={rows}
             updateRow={updateRow}
+            selected={selected}
+            updateSelected={(selected: number[]) => {
+              setSelected(selected)
+            }}
           />
         </div>
         <FormControl className={classes.formControl}>
