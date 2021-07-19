@@ -5,7 +5,7 @@ import React, { ChangeEvent } from 'react'
 import { GridMenuOption, FBCInputRow } from './components/FBCInputGrid'
 import { FBCInputGridProps } from './components/FBCInputGrid'
 
-const buildWeatherStationCell = (
+const buildAutocompleteCell = (
   options: GridMenuOption[],
   emptyLabel: string,
   cell: { column: { id: string }; value: GridMenuOption },
@@ -78,7 +78,7 @@ export const buildRowCell = (
       cell.column.id === 'weatherStation' ? 'Select a station' : 'Select a fuel type'
     const options =
       cell.column.id === 'weatherStation' ? props.stationOptions : props.fuelTypeOptions
-    return buildWeatherStationCell(options, emptyLabel, cell, autoCompleteChangeHandler)
+    return buildAutocompleteCell(options, emptyLabel, cell, autoCompleteChangeHandler)
   }
 
   return (
