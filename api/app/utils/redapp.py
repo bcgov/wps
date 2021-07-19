@@ -2,12 +2,32 @@
 
 If jnius wasn't prone throwing segmentation faults, we wouldn't need this level of indirection.
 """
-from datetime import datetime, date
+from datetime import datetime, date, timedelta, timezone
 import jnius_config
 # import jnius - importing jnius on this level causes an segmentation fault.
 from app import config
 
 jnius_config.set_classpath(config.get('CLASSPATH'))
+
+
+def _python_date_to_java_calendar(value: datetime, Calendar, TimeZone):  # pylint: disable=invalid-name
+    """ Take a python datetime object and return a java Calendar object """
+    java_data = Calendar.getInstance(TimeZone.getTimeZone(value.tzinfo.tzname(value)))
+    # java has 0 based months, python 1 based
+    java_data.set(value.year, value.month-1, value.day, value.hour, value.minute, value.second)
+    return java_data
+
+
+def _java_calendar_to_python_date(calendar, Calendar):  # pylint: disable=invalid-name
+    """ Take a java Calendar object and return a python datetime object"""
+    tz_offset = timedelta(seconds=calendar.getTimeZone().getRawOffset())
+    return datetime(calendar.get(Calendar.YEAR),
+                    calendar.get(Calendar.MONTH)+1,
+                    calendar.get(Calendar.DAY_OF_MONTH),
+                    calendar.get(Calendar.HOUR),
+                    calendar.get(Calendar.MINUTE),
+                    calendar.get(Calendar.SECOND),
+                    tzinfo=timezone(tz_offset))
 
 
 class FWICalculations:  # pylint: disable=missing-class-docstring, too-many-instance-attributes
@@ -94,10 +114,7 @@ def FWICalculateDailyStatisticsCOM(longitude: float,  # pylint: disable=invalid-
         fwi.useVanWagner = use_van_wagner
         fwi.useLawsonPreviousHour = use_lawson_previous_hour
 
-        m_date = Calendar.getInstance(TimeZone.getTimeZone(time_of_interest.tzinfo.tzname(time_of_interest)))
-        m_date.set(time_of_interest.year, time_of_interest.month, time_of_interest.day,
-                   time_of_interest.hour, time_of_interest.minute, time_of_interest.second)
-        fwi.m_date = m_date
+        fwi.m_date = _python_date_to_java_calendar(time_of_interest, Calendar, TimeZone)
 
         fwi.FWICalculateDailyStatisticsCOM()
 
@@ -105,13 +122,7 @@ def FWICalculateDailyStatisticsCOM(longitude: float,  # pylint: disable=invalid-
         for key in dir(copy):
             if '__' not in key:
                 if key == 'm_date':
-                    # TODO: Sybrand - figure out the timezone stuff
-                    copy.m_date = datetime(fwi.m_date.get(Calendar.YEAR),
-                                           fwi.m_date.get(Calendar.MONTH),
-                                           fwi.m_date.get(Calendar.DAY_OF_MONTH),
-                                           fwi.m_date.get(Calendar.HOUR),
-                                           fwi.m_date.get(Calendar.MINUTE),
-                                           fwi.m_date.get(Calendar.SECOND))
+                    copy.m_date = _java_calendar_to_python_date(fwi.m_date, Calendar)
                 else:
                     setattr(copy, key, getattr(fwi, key))
 
@@ -441,11 +452,7 @@ def FBPCalculateStatisticsCOM(elevation: float,  # pylint: disable=invalid-name,
         fbp.useSlope = False
         fbp.useCrownBaseHeight = use_crown_base_height
 
-        # TODO: Sybrand figure out timezone
-        gmt = Calendar.getInstance(TimeZone.getTimeZone("GMT"))
-        gmt.set(time_of_interest.year, time_of_interest.month, time_of_interest.day,
-                time_of_interest.hour, time_of_interest.minute, time_of_interest.second)
-        fbp.m_date = gmt
+        fbp.m_date = _python_date_to_java_calendar(time_of_interest, Calendar, TimeZone)
         fbp.FBPCalculateStatisticsCOM()
 
         # we copy the java object into a python object, so that we can safel detach from the java VM
@@ -454,9 +461,7 @@ def FBPCalculateStatisticsCOM(elevation: float,  # pylint: disable=invalid-name,
         for key in dir(copy):
             if '__' not in key:
                 if key == 'm_date':
-                    copy.m_date = date(fbp.m_date.get(Calendar.YEAR),
-                                       fbp.m_date.get(Calendar.MONTH),
-                                       fbp.m_date.get(Calendar.DAY_OF_MONTH))
+                    copy.m_date = _java_calendar_to_python_date(fbp.m_date, Calendar)
                 else:
                     setattr(copy, key, getattr(fbp, key))
 
