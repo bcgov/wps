@@ -2,10 +2,8 @@ import React from 'react'
 import { useTable } from 'react-table'
 import { isNull, isUndefined } from 'lodash'
 import MaUTable from '@material-ui/core/Table'
-import TableBody from '@material-ui/core/TableBody'
-import TableCell from '@material-ui/core/TableCell'
-import TableHead from '@material-ui/core/TableHead'
-import TableRow from '@material-ui/core/TableRow'
+import { TableBody, TableCell, TableHead, TableRow, Tooltip } from '@material-ui/core'
+import InfoIcon from '@material-ui/icons/Info'
 import { FuelTypes } from '../fuelTypes'
 import { buildRowCell } from '../tableRowBuilder'
 
@@ -99,15 +97,26 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
 
   const { getTableProps, headerGroups, rows, prepareRow } = tableInstance
 
+  const renderHeader = (column: any) => {
+    if (column.id === 'windSpeed') {
+      return (
+        <span>
+          {'Wind Speed (km/h) (Optional)'}
+          <Tooltip title="Leave this empty to calculate forecasted/observed wind speed. Add a custom wind speed to influence the calculations">
+            <InfoIcon aria-label="info"></InfoIcon>
+          </Tooltip>
+        </span>
+      )
+    }
+    return column.render('Header')
+  }
   return (
     <MaUTable {...getTableProps()}>
       <TableHead>
         {headerGroups.map(headerGroup => (
           <TableRow {...headerGroup.getHeaderGroupProps()}>
             {headerGroup.headers.map(column => (
-              <TableCell {...column.getHeaderProps()}>
-                {column.render('Header')}
-              </TableCell>
+              <TableCell {...column.getHeaderProps()}>{renderHeader(column)}</TableCell>
             ))}
           </TableRow>
         ))}
