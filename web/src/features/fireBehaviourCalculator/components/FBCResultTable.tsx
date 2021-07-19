@@ -106,20 +106,20 @@ const FBCResultTable = (props: Props) => {
                 <TableCell>BUI</TableCell>
                 <TableCell>FWI</TableCell>
                 <TableCell>HFI</TableCell>
-                {/* <TableCell>
+                <TableCell>
                   Critical
                   <br />
                   Hours
                   <br />
-                  (4000 HFI)
+                  (4000 kW/m)
                 </TableCell>
                 <TableCell>
                   Critical
                   <br />
                   Hours
                   <br />
-                  (10000 HFI)
-                </TableCell> */}
+                  (10000 kW/m)
+                </TableCell>
                 <TableCell>
                   ROS
                   <br />
@@ -196,8 +196,8 @@ const FBCResultTable = (props: Props) => {
                     <TableCell>
                       {stationResult.head_fire_intensity?.toFixed(DECIMAL_PLACES)}
                     </TableCell>
-                    {/* <TableCell>{stationResult.critical_hours_hfi_4000}</TableCell>
-                    <TableCell>{stationResult.critical_hours_hfi_10000}</TableCell> */}
+                    <TableCell>{stationResult.critical_hours_hfi_4000}</TableCell>
+                    <TableCell>{stationResult.critical_hours_hfi_10000}</TableCell>
                     <TableCell>
                       {stationResult.rate_of_spread?.toFixed(DECIMAL_PLACES)}
                     </TableCell>
