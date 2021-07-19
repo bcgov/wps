@@ -14,8 +14,9 @@ import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useHistory, useLocation } from 'react-router-dom'
 import DatePicker from './components/DatePicker'
-import FBCInputGrid, { FBCInputRow, GridMenuOption } from './components/FBCInputGrid'
+import { FBCInputRow, GridMenuOption } from './components/FBCInputGrid'
 import FBCResultTable from './components/FBCResultTable'
+import TestComponent from './components/TestComponent'
 import { FuelTypes } from './fuelTypes'
 import { fetchFireBehaviourStations } from './slices/fireBehaviourCalcSlice'
 import {
@@ -151,12 +152,11 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
         </div>
         <br />
         <div style={{ display: 'flex', height: '100%' }}>
-          <FBCInputGrid
-            stationMenuOptions={stationMenuOptions}
-            fuelTypeMenuOptions={fuelTypeMenuOptions}
+          <TestComponent
+            stationOptions={stationMenuOptions}
+            fuelTypeOptions={fuelTypeMenuOptions}
             rows={rows}
             updateRow={updateRow}
-            setSelected={setSelected}
           />
         </div>
         <FormControl className={classes.formControl}>
