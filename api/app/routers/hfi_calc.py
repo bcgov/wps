@@ -4,17 +4,16 @@ import math
 from typing import List, Optional
 from aiohttp.client import ClientSession
 from fastapi import APIRouter, Response, Depends, Query
-from app.wildfire_one import (get_wfwx_stations_from_station_codes,
-                              get_dailies,
-                              get_auth_header)
 import app.utils.time
 from app.schemas.hfi_calc import StationDailyResponse
 import app
-from app import wildfire_one
 from app.auth import authentication_required, audit
 from app.schemas.hfi_calc import (HFIWeatherStationsResponse, WeatherStationProperties,
                                   FuelType, FireCentre, PlanningArea, WeatherStation)
 from app.db.crud.hfi_calc import get_fire_weather_stations
+from app.wildfire_one.wfwx_api import (get_auth_header,
+                                       get_dailies_lookup_fuel_types,
+                                       get_stations_by_codes)
 
 
 logger = logging.getLogger(__name__)
@@ -47,8 +46,9 @@ async def get_daily_view(response: Response,
 
     async with ClientSession() as session:
         header = await get_auth_header(session)
-        wfwx_stations = await get_wfwx_stations_from_station_codes(session, header, station_codes)
-        dailies = await get_dailies(
+        wfwx_stations = await app.wildfire_one.wfwx_api.get_wfwx_stations_from_station_codes(
+            session, header, station_codes)
+        dailies = await get_dailies_lookup_fuel_types(
             session, header, wfwx_stations, valid_start_time, valid_end_time)
         return StationDailyResponse(dailies=dailies)
 
@@ -105,7 +105,7 @@ async def get_fire_centres(response: Response):  # pylint: disable=too-many-loca
                         station_record.station_code)
 
             # We're still missing some data that we need from wfwx, so give it the list of stations
-            wfwx_stations_data = await wildfire_one.get_stations_by_codes(list(station_info_dict.keys()))
+            wfwx_stations_data = await get_stations_by_codes(list(station_info_dict.keys()))
             # Iterate through all the stations from wildfire one.
 
             for wfwx_station in wfwx_stations_data:
@@ -128,7 +128,7 @@ async def get_fire_centres(response: Response):  # pylint: disable=too-many-loca
         # create PlanningArea objects containing all corresponding WeatherStation objects
         for key, val in planning_areas_dict.items():
             planning_area = PlanningArea(name=key, stations=val['station_objects'])
-            planning_areas_dict[key]['planning_area_object'] = planning_area
+            val['planning_area_object'] = planning_area
 
         # create FireCentre objects containing all corresponding PlanningArea objects
         for key, val in fire_centres_dict.items():

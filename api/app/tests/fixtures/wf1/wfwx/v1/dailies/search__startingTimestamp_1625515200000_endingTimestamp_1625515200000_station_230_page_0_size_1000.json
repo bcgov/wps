@@ -1,0 +1,66 @@
+{
+    "_embedded": {
+        "dailies": [
+            {
+                "id": "7ee80ccb-2cd4-47bb-9ea6-5663d0ee8991",
+                "createdBy": "TRESMITH",
+                "lastEntityUpdateTimestamp": 1625515332032,
+                "updateDate": "2021-07-05T20:02:12.000+0000",
+                "lastModifiedBy": "WFWX_WEATHER_API",
+                "archive": false,
+                "startIndices": false,
+                "station": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/bb7cb089-2790-4734-e053-1d09228eeca8",
+                "stationId": "bb7cb089-2790-4734-e053-1d09228eeca8",
+                "weatherTimestamp": 1625515200000,
+                "temperature": 25.2,
+                "temperatureMin": null,
+                "temperatureMax": null,
+                "relativeHumidity": 31.0,
+                "relativeHumidityMin": null,
+                "relativeHumidityMax": null,
+                "windSpeed": 9.2,
+                "precipitation": 0.0,
+                "dangerForest": 4,
+                "dangerGrassland": 1,
+                "dangerScrub": 5,
+                "recordType": {
+                    "id": "ACTUAL",
+                    "displayLabel": "Actual",
+                    "displayOrder": 1,
+                    "createdBy": "DATA_LOAD",
+                    "lastModifiedBy": "DATA_LOAD"
+                },
+                "windDirection": 282.0,
+                "fineFuelMoistureCode": 93.348,
+                "duffMoistureCode": 103.923,
+                "droughtCode": 340.544,
+                "initialSpreadIndex": 10.951,
+                "buildUpIndex": 117.899,
+                "fireWeatherIndex": 35.947,
+                "dailySeverityRating": null,
+                "grasslandCuring": null,
+                "observationValidInd": true,
+                "observationValidComment": null,
+                "missingHourlyData": false,
+                "previousState": null,
+                "businessKey": "1625515200000-bb7cb089-2790-4734-e053-1d09228eeca8",
+                "_links": {
+                    "self": {
+                        "href": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/dailies/7ee80ccb-2cd4-47bb-9ea6-5663d0ee8991"
+                    },
+                    "daily": {
+                        "href": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/dailies/7ee80ccb-2cd4-47bb-9ea6-5663d0ee8991"
+                    },
+                    "station": {
+                        "href": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/bb7cb089-2790-4734-e053-1d09228eeca8"
+                    }
+                }
+            }
+        ]
+    },
+    "_links": {
+        "self": {
+            "href": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/dailies/search/findDailiesByStationIdIsInAndWeatherTimestampBetweenOrderByStationIdAscWeatherTimestampAsc?size=1000&page=0&startingTimestamp=1625515200000&endingTimestamp=1625515200000&stationIds=bb7cb089-2790-4734-e053-1d09228eeca8"
+        }
+    }
+}

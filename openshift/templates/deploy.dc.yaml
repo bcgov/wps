@@ -34,7 +34,7 @@ parameters:
     value: 1Gi
   - name: MEMORY_LIMIT
     description: Memory upper limit
-    value: 1.5Gi
+    value: 2Gi
   - name: REPLICAS
     description: Number of replicas (pods)
     value: "2"
@@ -269,6 +269,11 @@ objects:
                     configMapKeyRef:
                       name: ${NAME}-global
                       key: env.redis-auth-cache-expiry
+                - name: REDIS_DAILIES_BY_STATION_CODE_CACHE_EXPIRY
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-global
+                      key: env.redis-dailies-by-station-code-expiry
               ports:
                 - containerPort: 8080
                   protocol: TCP

@@ -1,0 +1,31 @@
+{
+    "stations": [
+        {
+            "station_code": 836,
+            "station_name": "AUGUST LAKE",
+            "date": "2021-07-05",
+            "elevation": 855,
+            "fuel_type": "C1",
+            "status": "N/A",
+            "temp": null,
+            "rh": null,
+            "wind_direction": null,
+            "wind_speed": null,
+            "precipitation": null,
+            "grass_cure": null,
+            "fine_fuel_moisture_code": null,
+            "drought_code": null,
+            "initial_spread_index": null,
+            "build_up_index": null,
+            "duff_moisture_code": null,
+            "fire_weather_index": null,
+            "head_fire_intensity": null,
+            "rate_of_spread": null,
+            "fire_type": null,
+            "percentage_crown_fraction_burned": null,
+            "flame_length": null,
+            "sixty_minute_fire_size": null,
+            "thirty_minute_fire_size": null
+        }
+    ]
+}

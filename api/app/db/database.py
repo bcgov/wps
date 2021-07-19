@@ -51,10 +51,20 @@ _read_session = sessionmaker(
 Base = declarative_base()
 
 
+def _get_write_session() -> sessionmaker:
+    """ abstraction used for mocking out a write session """
+    return _write_session()
+
+
+def _get_read_session() -> sessionmaker:
+    """ abstraction used for mocking out a read session """
+    return _read_session()
+
+
 @contextmanager
 def get_read_session_scope() -> Generator[Session, None, None]:
     """Provide a transactional scope around a series of operations."""
-    session = _read_session()
+    session = _get_read_session()
     try:
         yield session
     finally:
@@ -65,7 +75,7 @@ def get_read_session_scope() -> Generator[Session, None, None]:
 @contextmanager
 def get_write_session_scope() -> Generator[Session, None, None]:
     """Provide a transactional scope around a series of operations."""
-    session = _write_session()
+    session = _get_write_session()
     try:
         yield session
         session.commit()

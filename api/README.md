@@ -114,6 +114,13 @@ make LDFLAGS="-L/usr/local/opt/gettext/lib" CPPFLAGS="-I/usr/local/opt/gettext/i
 sudo make install
 ```
 
+##### Gdal - from brew
+
+```bash
+brew install gdal
+
+```
+
 ##### Poetry
 
 ```bash
@@ -173,6 +180,23 @@ Install system dependancies:
 
 ```bash
 sudo dnf install unixODBC-devel
+```
+
+#### R modules for cffdrs (MacOS Big Sur)
+
+Make sure [GDAL is installed](#gdal-from-brew) on your system
+
+```bash
+- brew install r
+- brew install udunits
+- brew install proj
+```
+
+Within an R interpreter instance:
+
+```R
+- install.packages(c("rgdal","sf", "units"),,"https://mac.R-project.org")
+- install.packages('cffdrs')
 ```
 
 ### Executing program

@@ -1,12 +1,9 @@
 """ Global fixtures """
 
 from datetime import timezone, datetime
-from contextlib import contextmanager
-from typing import Generator
 import logging
 import requests
 import pytest
-from sqlalchemy.orm import Session
 from alchemy_mock.mocking import UnifiedAlchemyMagicMock
 from alchemy_mock.compat import mock
 from pytest_mock import MockerFixture
@@ -15,11 +12,13 @@ from app.utils.time import get_pst_tz
 from app import auth
 from app.tests.common import (
     MockJWTDecode, default_aiobotocore_get_session, default_mock_requests_get,
-    default_mock_requests_post, default_mock_requests_session_get, default_mock_requests_session_post)
+    default_mock_requests_post, default_mock_requests_session_get,
+    default_mock_requests_session_post)
 from app.db.models import PredictionModel, PredictionModelRunTimestamp
 import app.db.database
 import app.utils.time as time_utils
 from app.schemas.shared import WeatherDataRequest
+import app.wildfire_one.wildfire_fetchers
 
 logger = logging.getLogger(__name__)
 
@@ -71,6 +70,29 @@ def mock_requests(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def mock_redis(monkeypatch):
+    """ Patch redis by default """
+    class MockRedis():
+        """ mocked redis class """
+
+        def __init__(self) -> None:
+            """ Mock init """
+
+        def get(self, name):  # pylint: disable=unused-argument, no-self-use
+            """ mock get """
+            return None
+
+        def set(self,  # pylint: disable=unused-argument, invalid-name, unused-argument, too-many-arguments
+                name, value,
+                ex=None, px=None, nx=False, xx=False, keepttl=False):
+            """ mock set """
+
+    def create_mock_redis():
+        return MockRedis()
+    monkeypatch.setattr(app.wildfire_one.wildfire_fetchers, '_create_redis', create_mock_redis)
+
+
+@pytest.fixture(autouse=True)
 def mock_get_now(monkeypatch):
     """ Patch all calls to app.util.time: get_utc_now and get_pst_now  """
     timestamp = 1590076213962/1000
@@ -108,8 +130,7 @@ def mock_session(monkeypatch):
     """ Ensure that all unit tests mock out the database session by default! """
     # pylint: disable=unused-argument
 
-    @contextmanager
-    def mock_get_session_scope(*args) -> Generator[Session, None, None]:
+    def mock_get_session(*args) -> UnifiedAlchemyMagicMock:
         """ return a session with a bare minimum database that should be good for most unit tests. """
         prediction_model = PredictionModel(id=1,
                                            abbreviation='GDPS',
@@ -130,9 +151,9 @@ def mock_session(monkeypatch):
                 [prediction_model_run]
             )
         ])
-        yield session
-    monkeypatch.setattr(app.db.database, 'get_read_session_scope', mock_get_session_scope)
-    monkeypatch.setattr(app.db.database, 'get_write_session_scope', mock_get_session_scope)
+        return session
+    monkeypatch.setattr(app.db.database, '_get_write_session', mock_get_session)
+    monkeypatch.setattr(app.db.database, '_get_read_session', mock_get_session)
 
 
 @pytest.fixture()
