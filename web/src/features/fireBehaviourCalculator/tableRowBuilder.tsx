@@ -9,6 +9,7 @@ const buildAutocompleteCell = (
   options: GridMenuOption[],
   emptyLabel: string,
   cell: { column: { id: string }; value: GridMenuOption },
+  // eslint-disable-next-line
   changeHandler: (event: React.ChangeEvent<{}>, value: any) => void
 ) => (
   <Autocomplete
@@ -22,6 +23,7 @@ const buildAutocompleteCell = (
   />
 )
 
+// eslint-disable-next-line
 const buildUpdatedOptionRow = (rowToUpdate: FBCInputRow, field: string, value: any) => {
   return {
     ...rowToUpdate,
@@ -31,6 +33,7 @@ const buildUpdatedOptionRow = (rowToUpdate: FBCInputRow, field: string, value: a
   }
 }
 
+// eslint-disable-next-line
 const buildUpdatedNumberRow = (rowToUpdate: FBCInputRow, field: string, value: any) => {
   return {
     ...rowToUpdate,
@@ -45,11 +48,12 @@ export const buildRowCell = (
   cell: { column: { id: string }; value: GridMenuOption },
   field: string,
   rowId: number
-) => {
+): JSX.Element => {
   const updateFBCRow = (
     props: FBCInputGridProps,
     rowId: number,
     field: string,
+    // eslint-disable-next-line
     value: any,
     updatedRowBuilder: (
       rowToUpdate: FBCInputRow,
@@ -63,6 +67,7 @@ export const buildRowCell = (
       props.updateRow(rowId, updatedRow)
     }
   }
+  // eslint-disable-next-line
   const autoCompleteChangeHandler = (_: React.ChangeEvent<{}>, value: any | null) => {
     updateFBCRow(props, rowId, field, value, buildUpdatedOptionRow)
   }

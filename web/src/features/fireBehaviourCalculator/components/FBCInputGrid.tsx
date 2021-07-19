@@ -81,6 +81,7 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
     windSpeed: row.windSpeed
   }))
 
+  // eslint-disable-next-line
   const columns: any = React.useMemo(
     () => [
       {
@@ -111,6 +112,7 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
 
   const { getTableProps, headerGroups, rows, prepareRow } = tableInstance
 
+  // eslint-disable-next-line
   const renderHeader = (column: any) => {
     if (column.id === 'windSpeed') {
       return (
@@ -145,22 +147,24 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
   return (
     <Table {...getTableProps()}>
       <TableHead>
-        {headerGroups.map(headerGroup => (
-          <TableRow {...headerGroup.getHeaderGroupProps()}>
-            {headerGroup.headers.map(column => (
-              <TableCell {...column.getHeaderProps()}>{renderHeader(column)}</TableCell>
+        {headerGroups.map((headerGroup, hi) => (
+          <TableRow {...headerGroup.getHeaderGroupProps()} key={hi}>
+            {headerGroup.headers.map((column, hci) => (
+              <TableCell {...column.getHeaderProps()} key={hci}>
+                {renderHeader(column)}
+              </TableCell>
             ))}
           </TableRow>
         ))}
       </TableHead>
       <TableBody>
-        {rows.map((row, i) => {
+        {rows.map((row, ri) => {
           prepareRow(row)
           return (
-            <TableRow {...row.getRowProps()}>
-              {row.cells.map(cell => {
+            <TableRow {...row.getRowProps()} key={ri}>
+              {row.cells.map((cell, ci) => {
                 return (
-                  <TableCell {...cell.getCellProps()}>
+                  <TableCell {...cell.getCellProps()} key={ci}>
                     {buildRowCell(props, cell, cell.column.id, parseInt(row.id))}
                   </TableCell>
                 )
