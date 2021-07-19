@@ -2,10 +2,12 @@
 """
 import logging
 from typing import Generator
-from contextlib import contextmanager
+from contextlib import contextmanager, asynccontextmanager
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import create_async_engine
 from .. import config
 
 logger = logging.getLogger(__name__)
@@ -56,6 +58,27 @@ def _get_write_session() -> sessionmaker:
 def _get_read_session() -> sessionmaker:
     """ abstraction used for mocking out a read session """
     return _read_session()
+
+
+@asynccontextmanager
+async def get_async_read_session_scope() -> Generator[Session, None, None]:
+    """Provide a transactional scope around a series of operations."""
+    # https://docs.sqlalchemy.org/en/14/orm/extensions/asyncio.html
+    engine = create_async_engine(DB_READ_STRING,
+                                 pool_size=int(config.get('POSTGRES_POOL_SIZE', 5)),
+                                 max_overflow=int(config.get('POSTGRES_MAX_OVERFLOW', 10)),
+                                 pool_pre_ping=True, connect_args={
+                                     'options': '-c timezone=utc'}
+                                 )
+
+    async_session = sessionmaker(engine, class_=AsyncSession)
+
+    async with async_session() as session:
+        try:
+            yield session
+        finally:
+            logger.info('session closed by context manager')
+            session.close()
 
 
 @contextmanager
