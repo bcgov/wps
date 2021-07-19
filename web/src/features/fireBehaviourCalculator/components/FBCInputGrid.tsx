@@ -9,7 +9,7 @@ import TableRow from '@material-ui/core/TableRow'
 import { FuelTypes } from '../fuelTypes'
 import { buildRowCell } from '../tableRowBuilder'
 
-export interface DatePickerProps {
+export interface FBCInputGridProps {
   testId?: string
   stationOptions: GridMenuOption[]
   fuelTypeOptions: GridMenuOption[]
@@ -30,7 +30,7 @@ export interface FBCInputRow {
   windSpeed: number | undefined
 }
 
-const FBCInputGrid = (props: DatePickerProps) => {
+const FBCInputGrid = (props: FBCInputGridProps) => {
   const stationCodeMap = new Map(
     props.stationOptions.map(station => [station.value, station.label])
   )

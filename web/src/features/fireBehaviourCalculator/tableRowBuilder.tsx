@@ -3,7 +3,7 @@ import { Autocomplete } from '@material-ui/lab'
 import { find, isEqual } from 'lodash'
 import React, { ChangeEvent } from 'react'
 import { GridMenuOption, FBCInputRow } from './components/FBCInputGrid'
-import { DatePickerProps } from './components/FBCInputGrid'
+import { FBCInputGridProps } from './components/FBCInputGrid'
 
 const buildWeatherStationCell = (
   options: GridMenuOption[],
@@ -41,13 +41,13 @@ function buildUpdatedNumberRow(rowToUpdate: FBCInputRow, field: string, value: a
 }
 
 export const buildRowCell = (
-  props: DatePickerProps,
+  props: FBCInputGridProps,
   cell: { column: { id: string }; value: GridMenuOption },
   field: string,
   rowId: number
 ) => {
   const updateFBCRow = (
-    props: DatePickerProps,
+    props: FBCInputGridProps,
     rowId: number,
     field: string,
     value: any,
@@ -73,22 +73,14 @@ export const buildRowCell = (
     updateFBCRow(props, rowId, field, parseInt(event.target.value), buildUpdatedNumberRow)
   }
 
-  if (cell.column.id === 'weatherStation') {
-    return buildWeatherStationCell(
-      props.stationOptions,
-      'Select a station',
-      cell,
-      autoCompleteChangeHandler
-    )
+  if (cell.column.id === 'weatherStation' || cell.column.id === 'fuelType') {
+    const emptyLabel =
+      cell.column.id === 'weatherStation' ? 'Select a station' : 'Select a fuel type'
+    const options =
+      cell.column.id === 'weatherStation' ? props.stationOptions : props.fuelTypeOptions
+    return buildWeatherStationCell(options, emptyLabel, cell, autoCompleteChangeHandler)
   }
-  if (cell.column.id === 'fuelType') {
-    return buildWeatherStationCell(
-      props.fuelTypeOptions,
-      'Select a fuel type',
-      cell,
-      autoCompleteChangeHandler
-    )
-  }
+
   return (
     <TextField type="number" onChange={numberFieldChangeHandler} value={cell.value} />
   )
