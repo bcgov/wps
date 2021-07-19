@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useTable } from 'react-table'
 import { isNull, isUndefined } from 'lodash'
 import {
@@ -42,6 +42,7 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
     props.stationOptions.map(station => [station.value, station.label])
   )
 
+  const [headerSelected, setHeaderSelect] = useState<boolean>(false)
   const buildStationOption = (value: string | undefined) => {
     if (isUndefined(value)) {
       return null
@@ -122,7 +123,22 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
       )
     }
     if (column.id === 'select') {
-      return <Checkbox color="primary" />
+      return (
+        <Checkbox
+          color="primary"
+          checked={headerSelected}
+          onClick={() => {
+            if (headerSelected) {
+              // Toggle off
+              props.updateSelected([])
+              setHeaderSelect(false)
+            } else {
+              props.updateSelected(rows.map(row => parseInt(row.id)))
+              setHeaderSelect(true)
+            }
+          }}
+        />
+      )
     }
     return column.render('Header')
   }
