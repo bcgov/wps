@@ -24,6 +24,7 @@ import {
   getUrlParamsFromRows
 } from './utils'
 import { FBCInputRow, GridMenuOption } from './components/FBCInputGrid'
+import { isUndefined, some } from 'lodash'
 
 export const FireBehaviourCalculator: React.FunctionComponent = () => {
   const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().toISODate())
@@ -104,6 +105,15 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
     setRowId(lastId + 1)
   }, [location]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  const disableCalculateButton = some(
+    rows,
+    row =>
+      isUndefined(row.weatherStation) ||
+      row.weatherStation === 'undefined' ||
+      isUndefined(row.fuelType) ||
+      row.fuelType === 'undefined'
+  )
+
   const useStyles = makeStyles(theme => ({
     formControl: {
       margin: theme.spacing(1),
@@ -162,6 +172,7 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
         </div>
         <FormControl className={classes.formControl}>
           <GetWxDataButton
+            disabled={disableCalculateButton}
             onBtnClick={() => {
               dispatch(fetchFireBehaviourStations(dateOfInterest, rows))
             }}
