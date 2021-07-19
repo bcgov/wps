@@ -1,10 +1,10 @@
 """ Fire Behaviour Analysis Calculator Tool
 """
 import math
-import pandas as pd
-from datetime import date
 import logging
-from typing import Optional, Tuple
+from typing import Optional
+from datetime import date
+import pandas as pd
 from app.utils.hfi_calculator import FUEL_TYPE_LOOKUP
 from app.utils import cffdrs
 from app.utils.time import get_hour_20_from_date, get_julian_date
@@ -224,23 +224,23 @@ def get_critical_hours_start(critical_ffmc: float, solar_noon_ffmc: float):
     Returns None if the hourly FFMC never reaches critical_ffmc.
     """
     if solar_noon_ffmc >= critical_ffmc:
+        # NOTE: this code will eventually be used, once morning diurnal FFMC is implemented
+        # logger.info('Solar noon FFMC >= critical FFMC')
+        # # go back in time in increments of 0.5 hours
+        # clock_time = 13-0.5  # start from solar noon - 0.5 hours
+        # while get_morning_diurnal_ffmc(clock_time, yesterdays_ffmc, relative_humidity) >= critical_ffmc:
+        #     clock_time -= 0.5
+        #     if clock_time == -0.5:
+        #         break
+        # # add back the half hour that caused FFMC to drop below critical_ffmc (or that
+        # #   pushed time below 0.0)
+        # clock_time += 0.5
+        # logger.info('%s', clock_time)
+        # return clock_time
+
         # NOTE: For now, simply returning 13.0 hours until we're able to calculate diurnal FFMC for
         # morning hours.
         return 13.0
-        """
-        logger.info('Solar noon FFMC >= critical FFMC')
-        # go back in time in increments of 0.5 hours
-        clock_time = 13-0.5  # start from solar noon - 0.5 hours
-        while get_morning_diurnal_ffmc(clock_time, yesterdays_ffmc, relative_humidity) >= critical_ffmc:
-            clock_time -= 0.5
-            if clock_time == -0.5:
-                break
-        # add back the half hour that caused FFMC to drop below critical_ffmc (or that
-        #   pushed time below 0.0)
-        clock_time += 0.5
-        logger.info('%s', clock_time)
-        return clock_time
-        """
 
     logger.info('Solar noon FFMC %s < critical FFMC %s', solar_noon_ffmc, critical_ffmc)
     # go forward in time in increments of 0.5 hours
@@ -273,7 +273,7 @@ def get_critical_hours_end(critical_ffmc: float, solar_noon_ffmc: float, critica
     return clock_time
 
 
-def get_critical_hours(
+def get_critical_hours(  # pylint: disable=too-many-arguments
         target_hfi: int, fuel_type: str, percentage_conifer: float,
         percentage_dead_balsam_fir: float, bui: float,
         grass_cure: float, crown_base_height: float,
