@@ -318,6 +318,7 @@ def _fbp_fuel_type_map(fuel_type: str):
     20"S-2:  White Spruce / Balsam Slash"
     21"S-3:  Coastal Cedar / Hemlock / Douglas-Fir Slash"
     """
+    # NOTE: not sure if we need the code below (there's a weird lookup happening in REDapp)
     # fuel_type_map = {
     #     'C1': 0,
     #     'C2': 1,
