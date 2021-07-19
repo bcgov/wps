@@ -1,8 +1,14 @@
 import React from 'react'
 import { useTable } from 'react-table'
 import { isNull, isUndefined } from 'lodash'
-import MaUTable from '@material-ui/core/Table'
-import { TableBody, TableCell, TableHead, TableRow, Tooltip } from '@material-ui/core'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  Tooltip
+} from '@material-ui/core'
 import InfoIcon from '@material-ui/icons/Info'
 import { FuelTypes } from '../fuelTypes'
 import { buildRowCell } from '../tableRowBuilder'
@@ -111,7 +117,7 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
     return column.render('Header')
   }
   return (
-    <MaUTable {...getTableProps()}>
+    <Table {...getTableProps()}>
       <TableHead>
         {headerGroups.map(headerGroup => (
           <TableRow {...headerGroup.getHeaderGroupProps()}>
@@ -137,7 +143,7 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
           )
         })}
       </TableBody>
-    </MaUTable>
+    </Table>
   )
 }
 
