@@ -1,11 +1,12 @@
 """ Routers for Fire Behaviour Advisory Calculator """
 
 import logging
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from aiohttp.client import ClientSession
 from fastapi import APIRouter, Depends
 from app.auth import authentication_required, audit
 from app.schemas.fba_calc import StationListRequest, StationRequest, StationsListResponse, StationResponse
+from app.utils import cffdrs
 from app.utils.time import get_hour_20_from_date
 from app.wildfire_one.schema_parsers import WFWXWeatherStation
 from app.wildfire_one.wfwx_api import (get_auth_header,
@@ -26,18 +27,20 @@ logger = logging.getLogger(__name__)
 def prepare_response(
         requested_station: StationRequest,
         wfwx_station: WFWXWeatherStation,
+        fba_station: FBACalculatorWeatherStation,
         raw_daily: dict,
         fire_behavour_advisory: FireBehaviourAdvisory,
         time_of_interest: date) -> StationResponse:
     """ Construct a response object combining information from the request, the station from wf1,
     the daily response from wf1 and the fire behaviour advisory. """
-
+    # TODO: Refactor this to simplify the flow of data & sources
     # Extract values from the daily
     bui = raw_daily.get('buildUpIndex', None)
-    ffmc = raw_daily.get('fineFuelMoistureCode', None)
-    isi = raw_daily.get('initialSpreadIndex', None)
-    wind_speed = raw_daily.get('windSpeed', None)
-    status = "Observed" if raw_daily.get('recordType', '').get('id') == 'ACTUAL' else "Forecasted"
+    ffmc = fba_station.ffmc
+    isi = fba_station.isi
+    wind_speed = requested_station.wind_speed if requested_station.wind_speed is not None else raw_daily.get(
+        'windSpeed', None)
+    status = fba_station.status
     temp = raw_daily.get('temperature', None)
     rh = raw_daily.get('relativeHumidity', None)  # pylint: disable=invalid-name
     wind_direction = raw_daily.get('windDirection', None)
@@ -71,32 +74,57 @@ def prepare_response(
         percentage_crown_fraction_burned=fire_behavour_advisory.cfb,
         flame_length=fire_behavour_advisory.flame_length,
         sixty_minute_fire_size=fire_behavour_advisory.sixty_minute_fire_size,
-        thirty_minute_fire_size=fire_behavour_advisory.thirty_minute_fire_size,
-        ffmc_for_hfi_4000=fire_behavour_advisory.ffmc_for_hfi_4000,
-        hfi_when_ffmc_equals_ffmc_for_hfi_4000=fire_behavour_advisory\
-        .hfi_when_ffmc_equals_ffmc_for_hfi_4000,
-        ffmc_for_hfi_10000=fire_behavour_advisory.ffmc_for_hfi_10000,
-        hfi_when_ffmc_equals_ffmc_for_hfi_10000=fire_behavour_advisory\
-        .hfi_when_ffmc_equals_ffmc_for_hfi_10000
+        thirty_minute_fire_size=fire_behavour_advisory.thirty_minute_fire_size
     )
 
     return station_response
 
 
-def process_request(
+async def process_request(
         dailies_by_station_id: dict,
         wfwx_station: WFWXWeatherStation,
         requested_station: StationRequest,
         time_of_interest: datetime,
         date_of_interest: date) -> StationResponse:
     """ Process a valid request """
+    # pylint: disable=too-many-locals
     raw_daily = dailies_by_station_id[wfwx_station.wfwx_id]
 
     # extract variable from wf1 that we need to calculate the fire behaviour advisory.
     bui = raw_daily.get('buildUpIndex', None)
-    ffmc = raw_daily.get('fineFuelMoistureCode', None)
-    isi = raw_daily.get('initialSpreadIndex', None)
-    wind_speed = raw_daily.get('windSpeed', None)
+    temperature = raw_daily.get('temperature', None)
+    relative_humidity = raw_daily.get('relativeHumidity', None)
+    precipitation = raw_daily.get('precipitation', None)
+    # if user has not specified wind speed as part of StationRequest, use the
+    # values retrieved from WFWX in raw_daily
+    if requested_station.wind_speed is None:
+        ffmc = raw_daily.get('fineFuelMoistureCode', None)
+        isi = raw_daily.get('initialSpreadIndex', None)
+        wind_speed = raw_daily.get('windSpeed', None)
+        status = raw_daily.get('recordType').get('id')
+    # if user has specified wind speed as part of StationRequest, will need to
+    # re-calculate FFMC & ISI with modified value of wind speed
+    else:
+        wind_speed = requested_station.wind_speed
+        status = 'ADJUSTED'
+        # must retrieve the previous day's observed/forecasted FFMC value from WFWX
+        async with ClientSession() as session:
+            # authenticate against wfwx api
+            header = await get_auth_header(session)
+            # set time_of_interest to previous day
+            prev_day = time_of_interest - timedelta(days=1)
+            # get the "daily" data for the station for the previous day
+            yesterday_response = await get_dailies(session, header, [wfwx_station], prev_day)
+            # turn it into a dictionary so we can easily get at data
+            yesterday = {raw_daily.get('stationId'): raw_daily async for raw_daily in yesterday_response}
+
+        ffmc = cffdrs.fine_fuel_moisture_code(
+            yesterday.get(wfwx_station.wfwx_id, '').get('fineFuelMoistureCode', None),
+            temperature,
+            relative_humidity,
+            precipitation,
+            wind_speed)
+        isi = cffdrs.initial_spread_index(ffmc, wind_speed)
 
     # Prepare the inputs for the fire behaviour advisory calculation.
     # This is a combination of inputs from the front end, information about the station from wf1
@@ -104,6 +132,7 @@ def process_request(
     fba_station = FBACalculatorWeatherStation(
         elevation=wfwx_station.elevation,
         fuel_type=requested_station.fuel_type,
+        status=status,
         time_of_interest=time_of_interest,
         percentage_conifer=requested_station.percentage_conifer,
         percentage_dead_balsam_fir=requested_station.percentage_dead_balsam_fir,
@@ -114,14 +143,17 @@ def process_request(
         bui=bui,
         ffmc=ffmc,
         isi=isi,
-        wind_speed=wind_speed)
+        wind_speed=wind_speed,
+        temperature=temperature,
+        relative_humidity=relative_humidity,
+        precipitation=precipitation)
 
     # Calculate the fire behaviour advisory.
     fire_behavour_advisory = calculate_fire_behavour_advisory(fba_station)
 
     # Prepare the response
     return prepare_response(
-        requested_station, wfwx_station, raw_daily, fire_behavour_advisory, date_of_interest)
+        requested_station, wfwx_station, fba_station, raw_daily, fire_behavour_advisory, date_of_interest)
 
 
 def process_request_without_observation(requested_station: StationRequest,
@@ -136,7 +168,8 @@ def process_request_without_observation(requested_station: StationRequest,
         elevation=wfwx_station.elevation,
         fuel_type=requested_station.fuel_type,
         status=status,
-        grass_cure=requested_station.grass_cure  # ignore the grass cure from WF1 api, return input back out
+        grass_cure=requested_station.grass_cure,  # ignore the grass cure from WF1 api, return input back out
+        wind_speed=requested_station.wind_speed
     )
 
     return station_response
@@ -156,7 +189,6 @@ async def get_stations_data(  # pylint:disable=too-many-locals
         unique_station_codes = list(dict.fromkeys(station_codes))
 
         # calculate the time of interest
-        # TODO: the date should be on the base of the request, not per station.
         date_of_interest = request.date
         if not date_of_interest:
             date_of_interest = request.stations[0].date
@@ -185,7 +217,7 @@ async def get_stations_data(  # pylint:disable=too-many-locals
             # get the raw daily response from wf1.
             if wfwx_station.wfwx_id in dailies_by_station_id:
                 try:
-                    station_response = process_request(
+                    station_response = await process_request(
                         dailies_by_station_id,
                         wfwx_station,
                         requested_station,
