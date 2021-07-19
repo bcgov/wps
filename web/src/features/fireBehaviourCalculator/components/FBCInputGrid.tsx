@@ -24,9 +24,9 @@ export interface GridMenuOption {
 
 export interface FBCInputRow {
   id: number
-  weatherStation: string
-  fuelType: string
-  grassCure: number
+  weatherStation: string | undefined
+  fuelType: string | undefined
+  grassCure: number | undefined
   windSpeed: number | undefined
 }
 
@@ -35,8 +35,12 @@ const FBCInputGrid = (props: DatePickerProps) => {
     props.stationOptions.map(station => [station.value, station.label])
   )
 
-  const buildStationOption = (value: number) => {
-    const label = stationCodeMap.get(value)
+  const buildStationOption = (value: string | undefined) => {
+    if (isUndefined(value)) {
+      return null
+    }
+    const label = stationCodeMap.get(parseInt(value))
+
     if (isUndefined(label)) {
       return null
     }
@@ -47,7 +51,10 @@ const FBCInputGrid = (props: DatePickerProps) => {
     return option
   }
 
-  const buildFuelTypeMenuOption = (value: string) => {
+  const buildFuelTypeMenuOption = (value: string | undefined) => {
+    if (isUndefined(value)) {
+      return null
+    }
     const fuelType = FuelTypes.lookup(value)
     if (isUndefined(fuelType) || isNull(fuelType)) {
       return null
@@ -60,7 +67,7 @@ const FBCInputGrid = (props: DatePickerProps) => {
   }
 
   const data = props.rows.map(row => ({
-    weatherStation: buildStationOption(parseInt(row.weatherStation)),
+    weatherStation: buildStationOption(row.weatherStation),
     fuelType: buildFuelTypeMenuOption(row.fuelType),
     grassCure: row.grassCure,
     windSpeed: row.windSpeed
