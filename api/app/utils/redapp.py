@@ -2,12 +2,33 @@
 
 If jnius wasn't prone throwing segmentation faults, we wouldn't need this level of indirection.
 """
-from datetime import datetime, date
+from typing import Optional
+from datetime import datetime, date, timedelta, timezone
 import jnius_config
 # import jnius - importing jnius on this level causes an segmentation fault.
 from app import config
 
 jnius_config.set_classpath(config.get('CLASSPATH'))
+
+
+def _python_date_to_java_calendar(value: datetime, Calendar, TimeZone):  # pylint: disable=invalid-name
+    """ Take a python datetime object and return a java Calendar object """
+    java_data = Calendar.getInstance(TimeZone.getTimeZone(value.tzinfo.tzname(value)))
+    # java has 0 based months, python 1 based
+    java_data.set(value.year, value.month-1, value.day, value.hour, value.minute, value.second)
+    return java_data
+
+
+def _java_calendar_to_python_date(calendar, Calendar):  # pylint: disable=invalid-name
+    """ Take a java Calendar object and return a python datetime object"""
+    tz_offset = timedelta(seconds=calendar.getTimeZone().getRawOffset())
+    return datetime(calendar.get(Calendar.YEAR),
+                    calendar.get(Calendar.MONTH)+1,
+                    calendar.get(Calendar.DAY_OF_MONTH),
+                    calendar.get(Calendar.HOUR),
+                    calendar.get(Calendar.MINUTE),
+                    calendar.get(Calendar.SECOND),
+                    tzinfo=timezone(tz_offset))
 
 
 class FWICalculations:  # pylint: disable=missing-class-docstring, too-many-instance-attributes
@@ -16,33 +37,33 @@ class FWICalculations:  # pylint: disable=missing-class-docstring, too-many-inst
     def __init__(self):   # pylint: disable=too-many-statements
         """ Init variables """
         # pylint: disable=invalid-name
-        self.ystrdyFFMC: float = None
-        self.ystrdyDMC: float = None
-        self.ystrdyDC: float = None
-        self.noonTemp: float = None
-        self.noonRH: float = None
-        self.noonPrecip: float = None
-        self.noonWindSpeed: float = None
-        self.hrlyTemp: float = None
-        self.hrlyRH: float = None
-        self.hrlyPrecip: float = None
-        self.hrlyWindSpeed: float = None
-        self.dlyFFMC: float = None
-        self.dlyDMC: float = None
-        self.dlyDC: float = None
-        self.dlyISI: float = None
-        self.dlyBUI: float = None
-        self.dlyFWI: float = None
-        self.dlyDSR: float = None
-        self.hlyHFFMC: float = None
-        self.hlyHISI: float = None
-        self.hlyHFWI: float = None
-        self.prvhlyFFMC: float = None
-        self.calcHourly: bool = None
-        self.useVanWagner: bool = None
-        self.useLawsonPreviousHour: bool = False
-        self.m_date: datetime = None
-        self.m_init_timezone_code: str = None
+        self.ystrdyFFMC: Optional[float] = None
+        self.ystrdyDMC: Optional[float] = None
+        self.ystrdyDC: Optional[float] = None
+        self.noonTemp: Optional[float] = None
+        self.noonRH: Optional[float] = None
+        self.noonPrecip: Optional[float] = None
+        self.noonWindSpeed: Optional[float] = None
+        self.hrlyTemp: Optional[float] = None
+        self.hrlyRH: Optional[float] = None
+        self.hrlyPrecip: Optional[float] = None
+        self.hrlyWindSpeed: Optional[float] = None
+        self.dlyFFMC: Optional[float] = None
+        self.dlyDMC: Optional[float] = None
+        self.dlyDC: Optional[float] = None
+        self.dlyISI: Optional[float] = None
+        self.dlyBUI: Optional[float] = None
+        self.dlyFWI: Optional[float] = None
+        self.dlyDSR: Optional[float] = None
+        self.hlyHFFMC: Optional[float] = None
+        self.hlyHISI: Optional[float] = None
+        self.hlyHFWI: Optional[float] = None
+        self.prvhlyFFMC: Optional[float] = None
+        self.calcHourly: Optional[bool] = None
+        self.useVanWagner: Optional[bool] = None
+        self.useLawsonPreviousHour: Optional[bool] = False
+        self.m_date: Optional[datetime] = None
+        self.m_init_timezone_code: Optional[str] = None
 
 
 def FWICalculateDailyStatisticsCOM(longitude: float,  # pylint: disable=invalid-name, too-many-arguments
@@ -94,10 +115,7 @@ def FWICalculateDailyStatisticsCOM(longitude: float,  # pylint: disable=invalid-
         fwi.useVanWagner = use_van_wagner
         fwi.useLawsonPreviousHour = use_lawson_previous_hour
 
-        m_date = Calendar.getInstance(TimeZone.getTimeZone(time_of_interest.tzinfo.tzname(time_of_interest)))
-        m_date.set(time_of_interest.year, time_of_interest.month, time_of_interest.day,
-                   time_of_interest.hour, time_of_interest.minute, time_of_interest.second)
-        fwi.m_date = m_date
+        fwi.m_date = _python_date_to_java_calendar(time_of_interest, Calendar, TimeZone)
 
         fwi.FWICalculateDailyStatisticsCOM()
 
@@ -105,13 +123,7 @@ def FWICalculateDailyStatisticsCOM(longitude: float,  # pylint: disable=invalid-
         for key in dir(copy):
             if '__' not in key:
                 if key == 'm_date':
-                    # TODO: Sybrand - figure out the timezone stuff
-                    copy.m_date = datetime(fwi.m_date.get(Calendar.YEAR),
-                                           fwi.m_date.get(Calendar.MONTH),
-                                           fwi.m_date.get(Calendar.DAY_OF_MONTH),
-                                           fwi.m_date.get(Calendar.HOUR),
-                                           fwi.m_date.get(Calendar.MINUTE),
-                                           fwi.m_date.get(Calendar.SECOND))
+                    copy.m_date = _java_calendar_to_python_date(fwi.m_date, Calendar)
                 else:
                     setattr(copy, key, getattr(fwi, key))
 
@@ -187,59 +199,59 @@ class FBPCalculations:  # pylint: disable=missing-class-docstring, too-many-inst
     def __init__(self):  # pylint: disable=too-many-statements
         """ Init variables """
         # pylint: disable=invalid-name
-        self.ros_t: float = None
-        self.ros_eq: float = None
-        self.fros: float = None
-        self.bros: float = None
-        self.rso: float = None
-        self.hfi: float = None
-        self.ffi: float = None
-        self.bfi: float = None
-        self.area: float = None
-        self.perimeter: float = None
-        self.distanceHead: float = None
-        self.distanceFlank: float = None
-        self.distanceBack: float = None
-        self.lb: float = None
-        self.csi: float = None
-        self.cfb: float = None
-        self.sfc: float = None
-        self.tfc: float = None
-        self.cfc: float = None
-        self.isi: float = None
-        self.fmc: float = None
-        self.wsv: float = None
-        self.raz: float = None
-        self.conifMixedWood: float = None
-        self.deadBalsam: float = None
-        self.grassCuring: float = None
-        self.grassFuelLoad: float = None
-        self.crownBase: float = None
-        self.elapsedTime: float = None
-        self.ffmc: float = None
-        self.windSpeed: float = None
-        self.windDirection: float = None
-        self.bui: float = None
-        self.dmc: float = None
-        self.dc: float = None
-        self.slopeValue: float = None
-        self.aspect: float = None
-        self.latitude: float = None
-        self.longitude: float = None
-        self.elevation: float = None
-        self.acceleration: bool = None
-        self.useCrownBaseHeight: bool = None
-        self.useBui: bool = None
-        self.useBuildup: bool = None
-        self.useSlope: bool = None
-        self.useGreenup: bool = None
-        self.fuelType: int = None
-        self.fireDescription: str = None
-        self.headFireDescription: str = None
-        self.flankFireDescription: str = None
-        self.backFireDescription: str = None
-        self.m_date: date = None
-        self.cfbPossible: bool = True
+        self.ros_t: Optional[float] = None
+        self.ros_eq: Optional[float] = None
+        self.fros: Optional[float] = None
+        self.bros: Optional[float] = None
+        self.rso: Optional[float] = None
+        self.hfi: Optional[float] = None
+        self.ffi: Optional[float] = None
+        self.bfi: Optional[float] = None
+        self.area: Optional[float] = None
+        self.perimeter: Optional[float] = None
+        self.distanceHead: Optional[float] = None
+        self.distanceFlank: Optional[float] = None
+        self.distanceBack: Optional[float] = None
+        self.lb: Optional[float] = None
+        self.csi: Optional[float] = None
+        self.cfb: Optional[float] = None
+        self.sfc: Optional[float] = None
+        self.tfc: Optional[float] = None
+        self.cfc: Optional[float] = None
+        self.isi: Optional[float] = None
+        self.fmc: Optional[float] = None
+        self.wsv: Optional[float] = None
+        self.raz: Optional[float] = None
+        self.conifMixedWood: Optional[float] = None
+        self.deadBalsam: Optional[float] = None
+        self.grassCuring: Optional[float] = None
+        self.grassFuelLoad: Optional[float] = None
+        self.crownBase: Optional[float] = None
+        self.elapsedTime: Optional[float] = None
+        self.ffmc: Optional[float] = None
+        self.windSpeed: Optional[float] = None
+        self.windDirection: Optional[float] = None
+        self.bui: Optional[float] = None
+        self.dmc: Optional[float] = None
+        self.dc: Optional[float] = None
+        self.slopeValue: Optional[float] = None
+        self.aspect: Optional[float] = None
+        self.latitude: Optional[float] = None
+        self.longitude: Optional[float] = None
+        self.elevation: Optional[float] = None
+        self.acceleration: Optional[bool] = None
+        self.useCrownBaseHeight: Optional[bool] = None
+        self.useBui: Optional[bool] = None
+        self.useBuildup: Optional[bool] = None
+        self.useSlope: Optional[bool] = None
+        self.useGreenup: Optional[bool] = None
+        self.fuelType: Optional[int] = None
+        self.fireDescription: Optional[str] = None
+        self.headFireDescription: Optional[str] = None
+        self.flankFireDescription: Optional[str] = None
+        self.backFireDescription: Optional[str] = None
+        self.m_date: Optional[date] = None
+        self.cfbPossible: Optional[bool] = True
 
 
 class UnmappedFuelType(Exception):
@@ -318,6 +330,31 @@ def _fbp_fuel_type_map(fuel_type: str):
     20"S-2:  White Spruce / Balsam Slash"
     21"S-3:  Coastal Cedar / Hemlock / Douglas-Fir Slash"
     """
+    # NOTE: not sure if we need the code below (there's a weird lookup happening in REDapp)
+    # fuel_type_map = {
+    #     'C1': 0,
+    #     'C2': 1,
+    #     'C3': 2,
+    #     'C4': 3,
+    #     'C5': 4,
+    #     'C6': 5,
+    #     'C7': 6,
+    #     'D1': 7,
+    #     'D2': 8,
+    #     # D1/D2: Aspen # we don't have this as a dropdown right now!
+    #     'M1': 11,
+    #     'M2': 13,
+    #     # M1/M2: Boreal Mixedwood # we don't have this as a dropdown right now!
+    #     'M3': 16,
+    #     'M4': 17,
+    #     # M3/M4: Dead Balsam Fir / Mixedwood # we don't have this as a dropdown right now!
+    #     'O1A': 19,
+    #     'O1B': 20,
+    #     # O1ab: Grass # we don't have this as a dropdown right now!
+    #     # 'S1': - no mapping
+    #     # 'S2': - no mapping
+    #     # 'S3': - no mapping
+    # }
     fuel_type_map = {
         'C1': 0,
         'C2': 1,
@@ -329,18 +366,18 @@ def _fbp_fuel_type_map(fuel_type: str):
         'D1': 7,
         'D2': 8,
         # D1/D2: Aspen # we don't have this as a dropdown right now!
-        'M1': 11,
-        'M2': 13,
+        'M1': 10,
+        'M2': 11,
         # M1/M2: Boreal Mixedwood # we don't have this as a dropdown right now!
-        'M3': 16,
-        'M4': 17,
+        'M3': 13,
+        'M4': 14,
         # M3/M4: Dead Balsam Fir / Mixedwood # we don't have this as a dropdown right now!
-        'O1A': 19,
-        'O1B': 20,
+        'O1A': 16,
+        'O1B': 17,
         # O1ab: Grass # we don't have this as a dropdown right now!
-        # 'S1': - no mapping
-        # 'S2': - no mapping
-        # 'S3': - no mapping
+        'S1': 19,
+        'S2': 20,
+        'S3': 21
     }
     if fuel_type in fuel_type_map:
         return fuel_type_map[fuel_type]
@@ -361,7 +398,7 @@ def FBPCalculateStatisticsCOM(elevation: float,  # pylint: disable=invalid-name,
                               percentage_conifer: float,
                               percentage_dead_balsam_fir: float,
                               grass_cure: float,
-                              crown_base_height: float):
+                              crown_base_height: float) -> FBPCalculations:
     """ Uses method FBPCalculateStatisticsCOM on class ca.cwfgm.fbp.FBPCalculations to calculate
     fire behaviour.
 
@@ -387,6 +424,13 @@ def FBPCalculateStatisticsCOM(elevation: float,  # pylint: disable=invalid-name,
             percentage_dead_balsam_fir = 0.0
         if grass_cure is None:
             grass_cure = 0.0
+        if crown_base_height is None:
+            use_crown_base_height = False
+            crown_base_height = 0.0
+        else:
+            use_crown_base_height = True
+        if percentage_conifer is None:
+            percentage_conifer = 0.0
 
         fbp = FBPCalculationsClass()
         fbp.elevation = elevation
@@ -407,12 +451,9 @@ def FBPCalculateStatisticsCOM(elevation: float,  # pylint: disable=invalid-name,
         fbp.crownBase = crown_base_height
 
         fbp.useSlope = False
+        fbp.useCrownBaseHeight = use_crown_base_height
 
-        # TODO: Sybrand figure out timezone
-        gmt = Calendar.getInstance(TimeZone.getTimeZone("GMT"))
-        gmt.set(time_of_interest.year, time_of_interest.month, time_of_interest.day,
-                time_of_interest.hour, time_of_interest.minute, time_of_interest.second)
-        fbp.m_date = gmt
+        fbp.m_date = _python_date_to_java_calendar(time_of_interest, Calendar, TimeZone)
         fbp.FBPCalculateStatisticsCOM()
 
         # we copy the java object into a python object, so that we can safel detach from the java VM
@@ -421,9 +462,7 @@ def FBPCalculateStatisticsCOM(elevation: float,  # pylint: disable=invalid-name,
         for key in dir(copy):
             if '__' not in key:
                 if key == 'm_date':
-                    copy.m_date = date(fbp.m_date.get(Calendar.YEAR),
-                                       fbp.m_date.get(Calendar.MONTH),
-                                       fbp.m_date.get(Calendar.DAY_OF_MONTH))
+                    copy.m_date = _java_calendar_to_python_date(fbp.m_date, Calendar)
                 else:
                     setattr(copy, key, getattr(fbp, key))
 
