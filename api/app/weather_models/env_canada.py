@@ -267,6 +267,7 @@ def download(url: str, path: str) -> str:
             cached_object = None
             logger.error(error)
     else:
+        cached_object = None
         cache = None
     if cached_object:
         logger.info('Cache hit %s', url)
