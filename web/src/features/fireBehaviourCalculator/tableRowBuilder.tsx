@@ -22,7 +22,7 @@ const buildWeatherStationCell = (
   />
 )
 
-function buildUpdatedOptionRow(rowToUpdate: FBCInputRow, field: string, value: any) {
+const buildUpdatedOptionRow = (rowToUpdate: FBCInputRow, field: string, value: any) => {
   return {
     ...rowToUpdate,
     ...{
@@ -31,7 +31,7 @@ function buildUpdatedOptionRow(rowToUpdate: FBCInputRow, field: string, value: a
   }
 }
 
-function buildUpdatedNumberRow(rowToUpdate: FBCInputRow, field: string, value: any) {
+const buildUpdatedNumberRow = (rowToUpdate: FBCInputRow, field: string, value: any) => {
   return {
     ...rowToUpdate,
     ...{
