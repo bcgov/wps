@@ -14,9 +14,8 @@ import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useHistory, useLocation } from 'react-router-dom'
 import DatePicker from './components/DatePicker'
-import { FBCInputRow, GridMenuOption } from './components/FBCInputGrid'
 import FBCResultTable from './components/FBCResultTable'
-import TestComponent from './components/TestComponent'
+import FBCInputGrid from './components/FBCInputGrid'
 import { FuelTypes } from './fuelTypes'
 import { fetchFireBehaviourStations } from './slices/fireBehaviourCalcSlice'
 import {
@@ -24,6 +23,7 @@ import {
   getRowsFromUrlParams,
   getUrlParamsFromRows
 } from './utils'
+import { FBCInputRow, GridMenuOption } from './components/FBCInputGrid'
 
 export const FireBehaviourCalculator: React.FunctionComponent = () => {
   const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().toISODate())
@@ -152,7 +152,7 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
         </div>
         <br />
         <div style={{ display: 'flex', height: '100%' }}>
-          <TestComponent
+          <FBCInputGrid
             stationOptions={stationMenuOptions}
             fuelTypeOptions={fuelTypeMenuOptions}
             rows={rows}

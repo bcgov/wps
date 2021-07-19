@@ -3,7 +3,7 @@ import { Autocomplete } from '@material-ui/lab'
 import { find, isEqual } from 'lodash'
 import React, { ChangeEvent } from 'react'
 import { GridMenuOption, FBCInputRow } from './components/FBCInputGrid'
-import { DatePickerProps } from './components/TestComponent'
+import { DatePickerProps } from './components/FBCInputGrid'
 
 const buildWeatherStationCell = (
   options: GridMenuOption[],
