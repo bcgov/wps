@@ -92,6 +92,7 @@ export const buildRowCell = (
             // Checked, toggle check off
             selectedSet.delete(rowId)
           } else {
+            // Unchecked, toggle check on
             selectedSet.add(rowId)
           }
           props.updateSelected(Array.from(selectedSet))
