@@ -122,7 +122,8 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
       />
       <Container maxWidth={'xl'}>
         <h1>
-          Fire Behavior Calculator <b style={{ color: 'Red' }}>Prototype</b>
+          {/* (🔥🦇) */}
+          Fire Behaviour Advisory Tool <b style={{ color: 'Red' }}>Prototype</b>
         </h1>
         <div>
           <FormControl className={classes.formControl}>
