@@ -1,4 +1,4 @@
-import { FormControl, makeStyles } from '@material-ui/core'
+import { FormControl, makeStyles, Paper } from '@material-ui/core'
 import { GridRowId } from '@material-ui/data-grid'
 import { GeoJsonStation, getStations, StationSource } from 'api/stationAPI'
 import {
@@ -118,6 +118,11 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
     formControl: {
       margin: theme.spacing(1),
       minWidth: 180
+    },
+    criticalHours: {
+      borderLeft: '6px solid #e6ebf0',
+      padding: '10px',
+      marginBottom: theme.spacing(8)
     }
   }))
 
@@ -186,10 +191,24 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
           />
         </FormControl>
         {fireBehaviourResultStations.length > 0 && (
-          <FBCResultTable
-            testId="fb-calc-result-table"
-            fireBehaviourResultStations={fireBehaviourResultStations}
-          />
+          <div>
+            <FBCResultTable
+              testId="fb-calc-result-table"
+              fireBehaviourResultStations={fireBehaviourResultStations}
+            />
+            <Paper className={classes.criticalHours}>
+              <div>
+                <h4>&dagger; Critical Hours: under review</h4>
+                <p>
+                  Critical hours are calculated in hourly increments using the Red Book
+                  diurnal FFMC table (Table 4.1), for the hours of 13:00 to 07:00 PDT.
+                  <br />
+                  Critical hours between 07:00 and 13:00 (Table 4.2 of the Red Book) are
+                  not yet factored into the calculations (coming soon).
+                </p>
+              </div>
+            </Paper>
+          </div>
         )}
       </Container>
     </main>
