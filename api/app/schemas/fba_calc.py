@@ -53,9 +53,8 @@ class StationResponse(BaseModel):
     flame_length: Optional[float]
     sixty_minute_fire_size: Optional[float]
     thirty_minute_fire_size: Optional[float]
-    # removing these values until they're implemented
-    # critical_hours_hfi_4000: Optional[Tuple[float, float]] = None
-    # critical_hours_hfi_10000: Optional[Tuple[float, float]] = None
+    critical_hours_hfi_4000: Optional[str] = None
+    critical_hours_hfi_10000: Optional[str] = None
 
 
 class StationsListResponse(BaseModel):
