@@ -81,7 +81,8 @@ def calculate_fire_behavour_advisory(station: FBACalculatorWeatherStation) -> Fi
     time_of_interest = get_hour_20_from_date(station.time_of_interest)
 
     if station.fuel_type == 'C1':
-        # It seems REDapp uses a date of 144 for C1. The source of this value is unknown.
+        # The day 144 is the average date for the minimum foliar moisture content in the boreal regions of
+        # Canada. It is usually pretty close maybe 7 days in either direction.
         date_of_minimum_foliar_moisture_content = 144
     else:
         # TODO: Establish if it's 144 accross the board for all fuel types.
