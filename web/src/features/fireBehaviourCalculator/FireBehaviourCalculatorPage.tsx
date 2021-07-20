@@ -13,19 +13,21 @@ import { DateTime } from 'luxon'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useHistory, useLocation } from 'react-router-dom'
-import DatePicker from './components/DatePicker'
-import FBCResultTable from './components/FBCResultTable'
-import FBCInputGrid from './components/FBCInputGrid'
-import { FuelTypes } from './fuelTypes'
-import { fetchFireBehaviourStations } from './slices/fireBehaviourCalcSlice'
-import {
-  getMostRecentIdFromRows,
-  getRowsFromUrlParams,
-  getUrlParamsFromRows
-} from './utils'
-import { FBCInputRow, GridMenuOption } from './components/FBCInputGrid'
 import { some } from 'lodash'
-import { shouldDisableCalculate } from './validation'
+import DatePicker from 'features/fireBehaviourCalculator/components/DatePicker'
+import FBCInputGrid, {
+  GridMenuOption,
+  FBCInputRow
+} from 'features/fireBehaviourCalculator/components/FBCInputGrid'
+import FBCResultTable from 'features/fireBehaviourCalculator/components/FBCResultTable'
+import { FuelTypes } from 'features/fireBehaviourCalculator/fuelTypes'
+import { fetchFireBehaviourStations } from 'features/fireBehaviourCalculator/slices/fireBehaviourCalcSlice'
+import {
+  getRowsFromUrlParams,
+  getMostRecentIdFromRows,
+  getUrlParamsFromRows
+} from 'features/fireBehaviourCalculator/utils'
+import { shouldDisableCalculate } from 'features/fireBehaviourCalculator/validation'
 
 export const FireBehaviourCalculator: React.FunctionComponent = () => {
   const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().toISODate())

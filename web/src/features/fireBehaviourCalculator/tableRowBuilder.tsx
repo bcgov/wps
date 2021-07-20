@@ -1,10 +1,13 @@
 import { Checkbox, TextField } from '@material-ui/core'
 import { Autocomplete } from '@material-ui/lab'
+import {
+  GridMenuOption,
+  FBCInputRow,
+  FBCInputGridProps
+} from 'features/fireBehaviourCalculator/components/FBCInputGrid'
+import { grassCureNotSetForGrassType } from 'features/fireBehaviourCalculator/validation'
 import { find, isEqual } from 'lodash'
 import React, { ChangeEvent } from 'react'
-import { GridMenuOption, FBCInputRow } from './components/FBCInputGrid'
-import { FBCInputGridProps } from './components/FBCInputGrid'
-import { grassCureNotSetForGrassType } from './validation'
 
 const buildAutocompleteCell = (
   options: GridMenuOption[],

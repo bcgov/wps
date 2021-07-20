@@ -11,8 +11,8 @@ import {
   Tooltip
 } from '@material-ui/core'
 import InfoIcon from '@material-ui/icons/Info'
-import { FuelTypes } from '../fuelTypes'
-import { buildRowCell } from '../tableRowBuilder'
+import { buildRowCell } from 'features/fireBehaviourCalculator/tableRowBuilder'
+import { FuelTypes } from 'features/fireBehaviourCalculator/fuelTypes'
 
 export interface FBCInputGridProps {
   testId?: string
