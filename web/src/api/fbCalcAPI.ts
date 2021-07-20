@@ -39,7 +39,7 @@ export interface FetchableFBCStation {
   stationCode: number
   fuelType: string
   percentageConifer: number | undefined
-  grassCurePercentage: number | null
+  grassCurePercentage: number | undefined
   percentageDeadBalsamFir: number | undefined
   crownBaseHeight: number | undefined
   windSpeed: number | undefined
