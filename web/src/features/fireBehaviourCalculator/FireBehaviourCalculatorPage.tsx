@@ -1,4 +1,4 @@
-import { FormControl, makeStyles } from '@material-ui/core'
+import { FormControl, makeStyles, Paper } from '@material-ui/core'
 import { GridRowId } from '@material-ui/data-grid'
 import { GeoJsonStation, getStations, StationSource } from 'api/stationAPI'
 import {
@@ -107,6 +107,10 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
     formControl: {
       margin: theme.spacing(1),
       minWidth: 180
+    },
+    criticalHours: {
+      backgroundColor: '#c9cce4',
+      padding: '10px'
     }
   }))
 
@@ -170,10 +174,25 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
           />
         </FormControl>
         {fireBehaviourResultStations.length > 0 && (
-          <FBCResultTable
-            testId="fb-calc-result-table"
-            fireBehaviourResultStations={fireBehaviourResultStations}
-          />
+          <div>
+            <FBCResultTable
+              testId="fb-calc-result-table"
+              fireBehaviourResultStations={fireBehaviourResultStations}
+            />
+            <Paper className={classes.criticalHours}>
+              <div>
+                <h4>&dagger; Critical Time: under review</h4>
+                <p>
+                  Critical time is calculated using the Red Book diurnal FFMC table to
+                  identify the peak burning period for the operational period of 07:00 to
+                  20:00 each day using noon-forecasted RH values.
+                  <br />
+                  Critical times between 07:00 to 12:00 are not yet factored into the
+                  calculations (coming soon).
+                </p>
+              </div>
+            </Paper>
+          </div>
         )}
       </Container>
     </main>

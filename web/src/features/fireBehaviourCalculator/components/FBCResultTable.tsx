@@ -34,6 +34,9 @@ const useStyles = makeStyles({
   },
   adjustedValueCell: {
     fontWeight: 'bold'
+  },
+  criticalHoursCell: {
+    backgroundColor: '#c9cce4'
   }
 })
 
@@ -106,19 +109,19 @@ const FBCResultTable = (props: Props) => {
                 <TableCell>BUI</TableCell>
                 <TableCell>FWI</TableCell>
                 <TableCell>HFI</TableCell>
-                <TableCell>
+                <TableCell className={classes.criticalHoursCell}>
                   Critical
                   <br />
                   Hours
                   <br />
-                  (4000 kW/m)
+                  (4000 kW/m) &dagger;
                 </TableCell>
-                <TableCell>
+                <TableCell className={classes.criticalHoursCell}>
                   Critical
                   <br />
                   Hours
                   <br />
-                  (10000 kW/m)
+                  (10000 kW/m) &dagger;
                 </TableCell>
                 <TableCell>
                   ROS
@@ -196,8 +199,12 @@ const FBCResultTable = (props: Props) => {
                     <TableCell>
                       {stationResult.head_fire_intensity?.toFixed(DECIMAL_PLACES)}
                     </TableCell>
-                    <TableCell>{stationResult.critical_hours_hfi_4000}</TableCell>
-                    <TableCell>{stationResult.critical_hours_hfi_10000}</TableCell>
+                    <TableCell className={classes.criticalHoursCell}>
+                      {stationResult.critical_hours_hfi_4000}
+                    </TableCell>
+                    <TableCell className={classes.criticalHoursCell}>
+                      {stationResult.critical_hours_hfi_10000}
+                    </TableCell>
                     <TableCell>
                       {stationResult.rate_of_spread?.toFixed(DECIMAL_PLACES)}
                     </TableCell>
