@@ -13,16 +13,21 @@ import { DateTime } from 'luxon'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useHistory, useLocation } from 'react-router-dom'
-import DatePicker from './components/DatePicker'
-import FBCInputGrid, { FBCInputRow, GridMenuOption } from './components/FBCInputGrid'
-import FBCResultTable from './components/FBCResultTable'
-import { FuelTypes } from './fuelTypes'
-import { fetchFireBehaviourStations } from './slices/fireBehaviourCalcSlice'
+import { some } from 'lodash'
+import DatePicker from 'features/fireBehaviourCalculator/components/DatePicker'
+import FBCInputGrid, {
+  GridMenuOption,
+  FBCInputRow
+} from 'features/fireBehaviourCalculator/components/FBCInputGrid'
+import FBCResultTable from 'features/fireBehaviourCalculator/components/FBCResultTable'
+import { FuelTypes } from 'features/fireBehaviourCalculator/fuelTypes'
+import { fetchFireBehaviourStations } from 'features/fireBehaviourCalculator/slices/fireBehaviourCalcSlice'
 import {
-  getMostRecentIdFromRows,
   getRowsFromUrlParams,
+  getMostRecentIdFromRows,
   getUrlParamsFromRows
-} from './utils'
+} from 'features/fireBehaviourCalculator/utils'
+import { shouldDisableCalculate } from 'features/fireBehaviourCalculator/validation'
 
 export const FireBehaviourCalculator: React.FunctionComponent = () => {
   const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().toISODate())
@@ -57,9 +62,9 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
     setRowId(newRowId)
     const newRow = {
       id: rowId,
-      weatherStation: stationMenuOptions[0].value.toString(),
-      fuelType: fuelTypeMenuOptions[0].value.toString(),
-      grassCure: 0,
+      weatherStation: undefined,
+      fuelType: undefined,
+      grassCure: undefined,
       windSpeed: undefined
     }
     const newRows = [...rows, newRow]
@@ -102,6 +107,12 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
     const lastId = getMostRecentIdFromRows(rows)
     setRowId(lastId + 1)
   }, [location]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const disableCalculateButton =
+    rows.length === 0 ||
+    some(rows, row => {
+      return shouldDisableCalculate(row)
+    })
 
   const useStyles = makeStyles(theme => ({
     formControl: {
@@ -146,6 +157,7 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
           </FormControl>
           <FormControl className={classes.formControl}>
             <Button
+              disabled={rows.length === 0}
               variant="contained"
               color="primary"
               spinnercolor="white"
@@ -158,15 +170,19 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
         <br />
         <div style={{ display: 'flex', height: '100%' }}>
           <FBCInputGrid
-            stationMenuOptions={stationMenuOptions}
-            fuelTypeMenuOptions={fuelTypeMenuOptions}
+            stationOptions={stationMenuOptions}
+            fuelTypeOptions={fuelTypeMenuOptions}
             rows={rows}
             updateRow={updateRow}
-            setSelected={setSelected}
+            selected={selected}
+            updateSelected={(selected: number[]) => {
+              setSelected(selected)
+            }}
           />
         </div>
         <FormControl className={classes.formControl}>
           <GetWxDataButton
+            disabled={disableCalculateButton}
             onBtnClick={() => {
               dispatch(fetchFireBehaviourStations(dateOfInterest, rows))
             }}
