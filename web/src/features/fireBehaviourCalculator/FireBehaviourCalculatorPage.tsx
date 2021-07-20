@@ -24,7 +24,8 @@ import {
   getUrlParamsFromRows
 } from './utils'
 import { FBCInputRow, GridMenuOption } from './components/FBCInputGrid'
-import { isUndefined, some } from 'lodash'
+import { some } from 'lodash'
+import { shouldDisableCalculate } from './validation'
 
 export const FireBehaviourCalculator: React.FunctionComponent = () => {
   const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().toISODate())
@@ -105,14 +106,9 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
     setRowId(lastId + 1)
   }, [location]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const disableCalculateButton = some(
-    rows,
-    row =>
-      isUndefined(row.weatherStation) ||
-      row.weatherStation === 'undefined' ||
-      isUndefined(row.fuelType) ||
-      row.fuelType === 'undefined'
-  )
+  const disableCalculateButton = some(rows, row => {
+    return shouldDisableCalculate(row)
+  })
 
   const useStyles = makeStyles(theme => ({
     formControl: {
