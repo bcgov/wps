@@ -4,6 +4,7 @@ import { find, isEqual } from 'lodash'
 import React, { ChangeEvent } from 'react'
 import { GridMenuOption, FBCInputRow } from './components/FBCInputGrid'
 import { FBCInputGridProps } from './components/FBCInputGrid'
+import { grassCureNotSetForGrassType } from './validation'
 
 const buildAutocompleteCell = (
   options: GridMenuOption[],
@@ -45,7 +46,10 @@ const buildUpdatedNumberRow = (rowToUpdate: FBCInputRow, field: string, value: a
 
 export const buildRowCell = (
   props: FBCInputGridProps,
-  cell: { column: { id: string }; value: GridMenuOption },
+  cell: {
+    column: { id: string }
+    value: GridMenuOption
+  },
   field: string,
   rowId: number
 ): JSX.Element => {
@@ -106,7 +110,15 @@ export const buildRowCell = (
     )
   }
 
+  const errorState =
+    cell.column.id === 'grassCure' && grassCureNotSetForGrassType(props.rows[rowId])
+
   return (
-    <TextField type="number" onChange={numberFieldChangeHandler} value={cell.value} />
+    <TextField
+      type="number"
+      onChange={numberFieldChangeHandler}
+      value={cell.value}
+      error={errorState}
+    />
   )
 }
