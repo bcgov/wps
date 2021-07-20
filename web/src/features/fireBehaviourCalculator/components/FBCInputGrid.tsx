@@ -93,7 +93,7 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
         accessor: 'weatherStation'
       },
       {
-        Header: 'FuelType',
+        Header: 'Fuel Type',
         accessor: 'fuelType'
       },
       {
