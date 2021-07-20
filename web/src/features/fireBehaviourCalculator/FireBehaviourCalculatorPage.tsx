@@ -108,9 +108,11 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
     setRowId(lastId + 1)
   }, [location]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const disableCalculateButton = some(rows, row => {
-    return shouldDisableCalculate(row)
-  })
+  const disableCalculateButton =
+    rows.length === 0 ||
+    some(rows, row => {
+      return shouldDisableCalculate(row)
+    })
 
   const useStyles = makeStyles(theme => ({
     formControl: {
@@ -150,6 +152,7 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
           </FormControl>
           <FormControl className={classes.formControl}>
             <Button
+              disabled={rows.length === 0}
               variant="contained"
               color="primary"
               spinnercolor="white"
