@@ -2,6 +2,7 @@
 Unit tests for fire behavour calculator.
 """
 from datetime import date
+from typing import Final
 import logging
 from pytest_bdd import scenario, given, then
 from app import configure_logging
@@ -16,10 +17,17 @@ configure_logging()
 logger = logging.getLogger(__name__)
 
 
+class RelativeErrorException(Exception):
+    """ Exception raised when it's mathematically impossible to calculate the relative error. """
+
+
 def _str2float(value: str):
     if value == 'None':
         return None
     return float(value)
+
+
+acceptable_margin_of_error: Final = 0.01
 
 
 @pytest.mark.usefixtures('mock_jwt_decode')
@@ -27,9 +35,6 @@ def _str2float(value: str):
           example_converters=dict(elevation=float,
                                   latitude=float,
                                   longitude=float,
-                                  time_of_interest=date.fromisoformat,
-                                  wind_speed=float,
-                                  wind_direction=float,
                                   percentage_conifer=_str2float,
                                   percentage_dead_balsam_fir=_str2float,
                                   crown_base_height=_str2float,
@@ -40,30 +45,43 @@ def _str2float(value: str):
                                   dmc=float,
                                   dc=float,
                                   fuel_type=str,
-                                  red_app_error_margin=float,
-                                  spreadsheet_error_margin=float,
-                                  spreadsheet_ros=float,
-                                  spreadsheet_hfi=float,
-                                  spreadsheet_cfb=float))
+                                  r_h1_em=float,
+                                  r_ros_em=float,
+                                  r_hfi_em=float,
+                                  r_cfb_em=float,
+                                  s_h1_em=float,
+                                  s_ros_em=float,
+                                  s_hfi_em=float,
+                                  s_cfb_em=float,
+                                  spreadsheet_cfb=_str2float,
+                                  spreadsheet_hfi=_str2float,
+                                  spreadsheet_ros=_str2float,
+                                  spreadsheet_1hr=_str2float,
+                                  time_of_interest=date.fromisoformat,
+                                  wind_direction=float,
+                                  wind_speed=float,
+                                  note=str))
 def test_fire_behaviour_calculator_scenario():
     """ BDD Scenario. """
 
 
 @given("""<elevation>, <latitude>, <longitude>, <time_of_interest>, <wind_speed>, <wind_direction>, """
        """<percentage_conifer>, <percentage_dead_balsam_fir>, <grass_cure>, <crown_base_height>, """
-       """<isi>, <bui>, <ffmc>, <dmc>, <dc>, <fuel_type>""", target_fixture='result')
+       """<isi>, <bui>, <ffmc>, <dmc>, <dc>, <fuel_type>""",
+       target_fixture='result')
 def given_input(elevation: float,  # pylint: disable=too-many-arguments, invalid-name
                 latitude: float, longitude: float, time_of_interest: str,
                 wind_speed: float, wind_direction: float,
                 percentage_conifer: float, percentage_dead_balsam_fir: float, grass_cure: float,
                 crown_base_height: float,
                 isi: float, bui: float, ffmc: float, dmc: float, dc: float, fuel_type: str):
+    """ Take input and calculate actual and expected results """
     # get python result:
     python_input = FBACalculatorWeatherStation(elevation=elevation,
                                                fuel_type=fuel_type,
                                                time_of_interest=time_of_interest,
                                                percentage_conifer=percentage_conifer,
-                                               percentage_dead_balsam_fir=None,
+                                               percentage_dead_balsam_fir=percentage_dead_balsam_fir,
                                                grass_cure=grass_cure,
                                                crown_base_height=crown_base_height,
                                                lat=latitude,
@@ -77,7 +95,7 @@ def given_input(elevation: float,  # pylint: disable=too-many-arguments, invalid
                                                precipitation=2.0,
                                                status='Forecasted')
     python_fba = calculate_fire_behavour_advisory(python_input)
-    # get java result:
+    # get REDapp result from java:
     java_fbp = FBPCalculateStatisticsCOM(elevation=elevation,
                                          latitude=latitude,
                                          longitude=longitude,
@@ -96,71 +114,117 @@ def given_input(elevation: float,  # pylint: disable=too-many-arguments, invalid
 
     return {
         'python': python_fba,
-        'java': java_fbp
+        'java': java_fbp,
+        'fuel_type': fuel_type
     }
 
 
-def relative_error(actual: float, expected: float, precision: int = 2):
+def relative_error(metric: str, actual: float, expected: float, precision: int = 2):
     """ calculate the relative error between two values - default to precision of 2"""
     actual = round(actual, precision)
     expected = round(expected, precision)
+    if actual == expected:
+        return 0
+    if expected == 0:
+        raise RelativeErrorException(
+            f'unable to calculate relative error for {metric}; actual:{actual};expected:{expected}')
     return abs((actual-expected)/expected)
 
 
-@then("ROS is within <spreadsheet_error_margin> of <spreadsheet_ros>")
-def then_spreadsheet_ros(result: dict, spreadsheet_error_margin: float, spreadsheet_ros: float):
+def check_metric(metric: str,
+                 fuel_type: str,
+                 python_value: float,
+                 comparison_value: float,
+                 metric_error_margin: float, note: str = None):
+    """ Check relative error of a metric """
+    # logging with %s became unreadable:
+    # pylint: disable=logging-fstring-interpolation
+    if comparison_value is None:
+        logger.warning('Skipping %s! (%s) - note: %s', metric, comparison_value, note)
+    elif comparison_value < 0:
+        logger.warning('Skipping %s! (%s) - note: %s', metric, comparison_value, note)
+    else:
+        assert python_value >= 0
+        error = relative_error(f'{metric}', python_value, comparison_value)
+        logger.info(
+            f'{fuel_type}: Python {python_value}, {metric} {comparison_value} ; error: {error}')
+        if error > acceptable_margin_of_error:
+            logger.error('%s %s relative error %s > %s! (actual: %s, expected: %s)',
+                         fuel_type, metric, error, acceptable_margin_of_error, python_value, comparison_value)
+        if metric_error_margin > 0.01:
+            logger.warning('%s: The acceptable margin of error (%s) for %s is set too high',
+                           fuel_type, metric_error_margin, metric)
+        assert error < metric_error_margin, f'{fuel_type}:{metric}'
+
+
+@then("ROS is within <s_ros_em> of <spreadsheet_ros> with <note>")
+def then_spreadsheet_ros(result: dict, s_ros_em: float, spreadsheet_ros: float, note: str):
     """ check the relative error of the ros """
-    actual = result['python'].ros
-    error = relative_error(actual, spreadsheet_ros)
-    logger.info('Python ROS %s, Spreadsheet ROS %s ; error: %s', actual, spreadsheet_ros, error)
-    assert error < spreadsheet_error_margin
+    check_metric('Spreadsheet ROS',
+                 result['fuel_type'],
+                 result['python'].ros,
+                 spreadsheet_ros,
+                 s_ros_em,
+                 note)
 
 
-@then("CFB is within <spreadsheet_error_margin> of <spreadsheet_cfb>")
-def then_spreadsheet_cfb(result: dict, spreadsheet_error_margin: float, spreadsheet_cfb: float):
+@then("CFB is within <s_cfb_em> of <spreadsheet_cfb> with <note>")
+def then_spreadsheet_cfb(result: dict, s_cfb_em: float, spreadsheet_cfb: float, note: str):
     """ check the relative error of the cfb """
-    actual = result['python'].cfb
-    error = relative_error(actual, spreadsheet_cfb, 1)
-    logger.info('Python CFB %s, Spreadsheet CFB %s ; error: %s', actual, spreadsheet_cfb, error)
-    assert error < spreadsheet_error_margin
+    check_metric('Spreadsheet CFB',
+                 result['fuel_type'],
+                 result['python'].cfb,
+                 spreadsheet_cfb,
+                 s_cfb_em,
+                 note)
 
 
-@then("HFI is within <spreadsheet_error_margin> of <spreadsheet_hfi>")
-def then_spreadsheet_hfi(result: dict, spreadsheet_error_margin: float, spreadsheet_hfi: float):
+@then("HFI is within <s_hfi_em> of <spreadsheet_hfi> with <note>")
+def then_spreadsheet_hfi(result: dict, s_hfi_em: float, spreadsheet_hfi: float, note: str):
     """ check the relative error of the hfi """
-    actual = result['python'].hfi
-    error = relative_error(actual, spreadsheet_hfi)
-    logger.info('Python HFI %s, Spreadsheet HFI %s ; error: %s', actual, spreadsheet_hfi, error)
-    assert error < spreadsheet_error_margin
+    check_metric('Spreadsheet HFI', result['fuel_type'],
+                 result['python'].hfi, spreadsheet_hfi, s_hfi_em, note)
 
 
-@then("ROS is within <red_app_error_margin> of REDapp ROS")
-def then_red_app_ros(result: dict, red_app_error_margin: float):
+@then("1 HR Size is within <s_h1_em> of <spreadsheet_1hr> with <note>")
+def then_spreadsheet_1hr(result: dict, s_h1_em: float, spreadsheet_1hr: float, note: str):
+    """ check the relative error of the 1 HR fire size"""
+    check_metric('Spreadsheet 1 HR Size',
+                 result['fuel_type'],
+                 result['python'].sixty_minute_fire_size,
+                 spreadsheet_1hr,
+                 s_h1_em,
+                 note)
+
+
+@then("ROS is within <r_ros_em> of REDapp ROS")
+def then_red_app_ros(result: dict, r_ros_em: float):
     """ check the relative error of ROS """
-    actual = result['python'].ros
-    expected = result['java'].ros_t
-    error = relative_error(actual, expected)
-    logger.info('Python ROS %s, REDapp ROS %s ; error: %s', actual, expected, error)
-    assert error < red_app_error_margin
+    check_metric('REDapp ROS',
+                 result['fuel_type'],
+                 result['python'].ros,
+                 result['java'].ros_t, r_ros_em)
 
 
-@then("CFB is within <red_app_error_margin> of REDapp CFB")
-def then_red_app_cfb(result: dict, red_app_error_margin: float):
+@then("CFB is within <r_cfb_em> of REDapp CFB")
+def then_red_app_cfb(result: dict, r_cfb_em: float):
     """ check the relative error fo the CFB """
     # python gives CFB as 0-1
-    actual = result['python'].cfb*100
     # redapp gives CFB as 0-100
-    expected = result['java'].cfb
-    error = relative_error(actual, expected)
-    logger.info('Python CFB %s, REDapp CFB %s ; error: %s', actual, expected, error)
-    assert error < red_app_error_margin
+    check_metric('REDapp CFB', result['fuel_type'], result['python'].cfb*100, result['java'].cfb, r_cfb_em)
 
 
-@then("HFI is within <red_app_error_margin> of REDapp HFI")
-def then_red_app_hfi(result: dict, red_app_error_margin: float):
-    """ check the relative error fo the CFB """
-    actual = result['python'].hfi
-    expected = result['java'].hfi
-    error = relative_error(actual, expected)
-    logger.info('Python HFI %s, REDapp HFI %s ; error: %s', actual, expected, error)
-    assert error < red_app_error_margin
+@then("HFI is within <r_hfi_em> of REDapp HFI")
+def then_red_app_hfi(result: dict, r_hfi_em: float):
+    """ check the relative error of the CFB """
+    check_metric('REDapp HFI', result['fuel_type'], result['python'].hfi, result['java'].hfi, r_hfi_em)
+
+
+@then("1 HR Size is within <r_h1_em> of REDapp 1 HR Size")
+def then_red_app_1hr(result: dict, r_h1_em: float):
+    """ check the relative error of the a hour fire size"""
+    check_metric('REDapp 1 HR Size',
+                 result['fuel_type'],
+                 result['python'].sixty_minute_fire_size,
+                 result['java'].area,
+                 r_h1_em)
