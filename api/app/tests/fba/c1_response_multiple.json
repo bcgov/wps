@@ -25,7 +25,9 @@
             "percentage_crown_fraction_burned": 0.5563061740115343,
             "flame_length": 2.8776623285666663,
             "sixty_minute_fire_size": 3.930563799808943,
-            "thirty_minute_fire_size": 0.9826409499522357
+            "thirty_minute_fire_size": 0.9826409499522357,
+            "critical_hours_hfi_4000": "16:00 - 18:00",
+            "critical_hours_hfi_10000": null
         },
         {
             "station_code": 230,
@@ -52,7 +54,9 @@
             "percentage_crown_fraction_burned": 0.5563061740115343,
             "flame_length": 2.8776623285666663,
             "sixty_minute_fire_size": 3.930563799808943,
-            "thirty_minute_fire_size": 0.9826409499522357
+            "thirty_minute_fire_size": 0.9826409499522357,
+            "critical_hours_hfi_4000": "16:00 - 18:00",
+            "critical_hours_hfi_10000": null
         },
         {
             "station_code": 230,
@@ -79,7 +83,9 @@
             "percentage_crown_fraction_burned": 0.9773603780174216,
             "flame_length": 8.768276663464325,
             "sixty_minute_fire_size": 58.82178124137121,
-            "thirty_minute_fire_size": 14.705445310342803
+            "thirty_minute_fire_size": 14.705445310342803,
+            "critical_hours_hfi_4000": "13:00 - 2:00",
+            "critical_hours_hfi_10000": "13:00 - 23:00"
         }
     ]
 }

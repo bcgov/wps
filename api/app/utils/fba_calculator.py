@@ -243,12 +243,10 @@ def get_critical_hours_start(critical_ffmc: float, solar_noon_ffmc: float):
         return 13.0
 
     logger.info('Solar noon FFMC %s < critical FFMC %s', solar_noon_ffmc, critical_ffmc)
-    # go forward in time in increments of 0.5 hours
-    clock_time = 13 + 0.5  # start from solar noon + 0.5 hours
+    # go forward in time in increments of 1 hour
+    clock_time = 13 + 1.0  # start from solar noon + 1 hours
     while get_afternoon_overnight_diurnal_ffmc(clock_time, solar_noon_ffmc) < critical_ffmc:
-        logger.info('Clock time %s has HFFMC %s', clock_time, get_afternoon_overnight_diurnal_ffmc(
-            clock_time, solar_noon_ffmc))
-        clock_time += 0.5
+        clock_time += 1.0
         if clock_time == 24.0:
             return None
     return clock_time
@@ -258,16 +256,16 @@ def get_critical_hours_end(critical_ffmc: float, solar_noon_ffmc: float, critica
     """ Returns the hour of day (on 24H clock) at which the hourly FFMC drops below
     the threshold of critical_ffmc.
     Should only be called if critical_hour_start is not None.
-    If diurnally-adjusted FFMC never drops below critical_ffmc in the day, will return 23.5 (11:30 pm).
     """
-    assert critical_hour_start is not None
-    clock_time = critical_hour_start + 0.5    # increase time in increments of 0.5 hours
+    if critical_hour_start is None:
+        return None
+    clock_time = critical_hour_start + 1.0    # increase time in increments of 1 hours
     while get_afternoon_overnight_diurnal_ffmc(clock_time, solar_noon_ffmc) >= critical_ffmc:
-        clock_time += 0.5
-        if clock_time == 31.5:  # break if clock_time is now 07:30 of the next day
+        clock_time += 1.0
+        if clock_time == 32:  # break if clock_time is now 08:00 of the next day
             break
-    # subtract the half hour that caused FFMC to drop below critical_ffmc
-    clock_time -= 0.5
+    # subtract the hour that caused FFMC to drop below critical_ffmc
+    clock_time -= 1.0
     if clock_time >= 24.0:
         clock_time = clock_time - 24.0
     return clock_time
@@ -311,13 +309,10 @@ def get_critical_hours(  # pylint: disable=too-many-arguments
     critical_hours_end = get_critical_hours_end(
         critical_ffmc, solar_noon_ffmc, critical_hours_start)
 
-    logger.info('Critical hours for target HFI %s are (%s, %s)',
-                target_hfi, critical_hours_start, critical_hours_end)
     # format result as string
     critical_hours_start = str(critical_hours_start).replace('.', ':')
     critical_hours_end = str(critical_hours_end).replace('.', ':')
     critical_hours_start = critical_hours_start.replace(':0', ':00').replace(':5', ':30')
     critical_hours_end = critical_hours_end.replace(':0', ':00').replace(':5', ':30')
     response_string = critical_hours_start + ' - ' + critical_hours_end
-    logger.info('Critical hours for target HFI %s are %s', target_hfi, response_string)
     return response_string
