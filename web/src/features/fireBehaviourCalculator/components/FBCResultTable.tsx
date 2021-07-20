@@ -36,7 +36,7 @@ const useStyles = makeStyles({
     fontWeight: 'bold'
   },
   criticalHoursCell: {
-    backgroundColor: '#c9cce4'
+    backgroundColor: '#e6ebf0'
   }
 })
 
