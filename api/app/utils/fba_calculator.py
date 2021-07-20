@@ -5,6 +5,7 @@ import logging
 from typing import Optional
 from datetime import date
 import pandas as pd
+from app.utils.singleton import Singleton
 from app.utils.hfi_calculator import FUEL_TYPE_LOOKUP
 from app.utils import cffdrs
 from app.utils.time import get_hour_20_from_date, get_julian_date
@@ -14,6 +15,19 @@ logger = logging.getLogger(__name__)
 
 class CannotCalculateFireTypeError(Exception):
     """ Exception thrown when fire type cannot be established """
+
+
+@Singleton
+class DiurnalFFMCLookupTable():
+    """ Singleton that loads diurnal FFMC lookup table from Red Book once, for reuse. """
+
+    def __init__(self):
+        with open('app/data/diurnalFFMC_redbook.xlsx', 'rb') as excel_file:
+            xl_file = pd.ExcelFile(excel_file)
+            afternoon_df = pd.read_excel(xl_file, 'afternoon_overnight')
+        # re-index afternoon_df so that keys are based on approx. solar noon FFMC
+        afternoon_df.set_index(13, inplace=True)
+        self.afternoon_df = afternoon_df
 
 
 class FBACalculatorWeatherStation():  # pylint: disable=too-many-instance-attributes
@@ -193,11 +207,10 @@ def get_afternoon_overnight_diurnal_ffmc(hour_of_interest: int, solar_noon_ffmc:
     Hour_of_interest should be expressed in PDT time zone, and can only be between the hours
     1330 and 0700 the next morning. Otherwise, must use different function.
     """
-    with open('app/data/diurnalFFMC_redbook.xlsx', 'rb') as excel_file:
-        xl_file = pd.ExcelFile(excel_file)
-        afternoon_df = pd.read_excel(xl_file, 'afternoon_overnight')
-    # re-index afternoon_df so that keys are based on approx. solar noon FFMC
-    afternoon_df.set_index(13, inplace=True)
+
+    # pylint: disable=protected-access, no-member
+    afternoon_df = DiurnalFFMCLookupTable.instance().afternoon_df
+
     # find index (solar noon FFMC) of afternoon_df that is nearest to solar_noon_ffmc value
     row = afternoon_df.iloc[abs((afternoon_df.index - solar_noon_ffmc)).argsort()[:1]]
     if hour_of_interest >= 23.5:
