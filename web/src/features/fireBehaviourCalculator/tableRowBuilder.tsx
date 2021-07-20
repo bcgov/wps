@@ -122,6 +122,7 @@ export const buildRowCell = (
     <TextField
       type="number"
       variant="outlined"
+      inputProps={{ min: 0 }}
       onChange={numberFieldChangeHandler}
       value={cell.value}
       error={errorState}
