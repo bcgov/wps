@@ -21,7 +21,9 @@ const buildAutocompleteCell = (
     getOptionSelected={(option, value) => isEqual(option, value)}
     getOptionLabel={option => option?.label}
     style={{ width: 300 }}
-    renderInput={params => <TextField {...params} label={cell.value ? '' : emptyLabel} />}
+    renderInput={params => (
+      <TextField {...params} label={cell.value ? '' : emptyLabel} variant="outlined" />
+    )}
     onChange={changeHandler}
     value={cell.value}
   />
@@ -119,6 +121,7 @@ export const buildRowCell = (
   return (
     <TextField
       type="number"
+      variant="outlined"
       onChange={numberFieldChangeHandler}
       value={cell.value}
       error={errorState}
