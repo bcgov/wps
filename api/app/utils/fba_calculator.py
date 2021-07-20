@@ -24,8 +24,8 @@ class FBACalculatorWeatherStation():  # pylint: disable=too-many-instance-attrib
                  time_of_interest: date, percentage_conifer: float,
                  percentage_dead_balsam_fir: float, grass_cure: float,
                  crown_base_height: int, lat: float, long: float, bui: float, ffmc: float, isi: float,
-                 wind_speed: float, temperature: float, relative_humidity: float, precipitation: float,
-                 status: str):
+                 wind_speed: float, wind_direction: float, temperature: float, relative_humidity: float,
+                 precipitation: float, status: str):
         self.elevation = elevation
         self.fuel_type = fuel_type
         self.time_of_interest = time_of_interest
@@ -39,6 +39,7 @@ class FBACalculatorWeatherStation():  # pylint: disable=too-many-instance-attrib
         self.ffmc = ffmc
         self.isi = isi
         self.wind_speed = wind_speed
+        self.wind_direction = wind_direction
         self.temperature = temperature
         self.relative_humidity = relative_humidity
         self.precipitation = precipitation
@@ -99,8 +100,7 @@ def calculate_fire_behavour_advisory(station: FBACalculatorWeatherStation) -> Fi
                                 pc=station.percentage_conifer,
                                 cc=station.grass_cure,
                                 pdf=station.percentage_dead_balsam_fir,
-                                cbh=station.crown_base_height
-                                )
+                                cbh=station.crown_base_height)
     if station.fuel_type in ('D1', 'O1A', 'O1B', 'S1', 'S2', 'S3'):
         # These fuel types don't have a crown fraction burnt. But CFB is needed for other calculations,
         # so we go with 0.
@@ -136,8 +136,30 @@ def calculate_fire_behavour_advisory(station: FBACalculatorWeatherStation) -> Fi
 
     fire_type = get_fire_type(fuel_type=station.fuel_type, crown_fraction_burned=cfb)
     flame_length = get_approx_flame_length(hfi)
-    sixty_minute_fire_size = get_60_minutes_fire_size(lb_ratio, ros)
-    thirty_minute_fire_size = get_30_minutes_fire_size(lb_ratio, ros)
+
+    wind_azimuth = cffdrs.correct_wind_azimuth(station.wind_direction)
+    slope_azimuth = None  # a.k.a. SAZ
+    ground_slope = 0  # right now we're not taking slope into account
+    wsv = cffdrs.calculate_net_effective_windspeed(fuel_type=station.fuel_type, ffmc=station.ffmc,
+                                                   bui=station.bui, ws=station.wind_speed, waz=wind_azimuth,
+                                                   gs=ground_slope,
+                                                   saz=slope_azimuth, fmc=fmc, sfc=sfc,
+                                                   pc=station.percentage_conifer,
+                                                   cc=station.grass_cure,
+                                                   pdf=station.percentage_dead_balsam_fir,
+                                                   cbh=station.crown_base_height,
+                                                   isi=station.isi)
+
+    bros = cffdrs.back_rate_of_spread(fuel_type=station.fuel_type, ffmc=station.ffmc, bui=station.bui,
+                                      wsv=wsv,
+                                      fmc=fmc, sfc=sfc,
+                                      pc=station.percentage_conifer,
+                                      cc=station.grass_cure,
+                                      pdf=station.percentage_dead_balsam_fir,
+                                      cbh=station.crown_base_height)
+
+    sixty_minute_fire_size = get_fire_size(station.fuel_type, ros, bros, 60, cfb, lb_ratio)
+    thirty_minute_fire_size = get_fire_size(station.fuel_type, ros, bros, 30, cfb, lb_ratio)
 
     return FireBehaviourAdvisory(
         hfi=hfi, ros=ros, fire_type=fire_type, cfb=cfb, flame_length=flame_length,
@@ -174,54 +196,23 @@ def get_60_minutes_fire_size(length_breadth_ratio: float, rate_of_spread: float)
     return (math.pi * math.pow(60.0 * rate_of_spread, 2)) / (40000.0 * length_breadth_ratio)
 
 
-def get_60_minutes_fire_size_red_app():
+def get_fire_size(fuel_type: str, ros: float, bros: float, ellapsed_minutes: int, cfb: float,
+                  lb_ratio: float):
     """
-    Taken from REDapp 6.2.4, ca.cwfgm.fuel.FBP_Fuel::calculateStatistics
+    Fire size based on calculation taken from REDapp, 6.2.4 - with cffdrs used where formulae identified.
+    """
+    # Using acceleration:
+    fire_spread_distance = cffdrs.fire_distance(fuel_type, ros+bros, ellapsed_minutes, cfb)
+    length_to_breadth_at_time = cffdrs.length_to_breadth_ratio_t(fuel_type, lb_ratio, ellapsed_minutes, cfb)
+    # Not using acceleration:
+    # fros = cffdrs.flank_rate_of_spread(ros, bros, lb_ratio)
+    # # Flank Fire Spread Distance a.k.a. DF in R/FBPcalc.r
+    # flank_fire_spread_distance = (ros + bros) / (2.0 * fros)
+    # length_to_breadth_at_time = flank_fire_spread_distance
+    # fire_spread_distance = (ros + bros) * ellapsed_minutes
 
-    double Dt, LB_t, alpha = acc(_CFB);
-    area.value = Double.valueOf(0.0D);
-    perimeter.value = Double.valueOf(0.0D);
-    if (FROS == 0.0D)
-      return; 
-    double t = time.getTotalSeconds() / 60.0D;
-    double LB = (ROS + BROS) / 2.0D * FROS;
-    if ((short)(flag & this.USE_ACCELERATION) != 0) {
-      if (alpha > 0.0D) {
-        Dt = (ROS + BROS) * (t + (Math.exp(-alpha * t) - 1.0D) / alpha);
-        LB_t = (LB - 1.0D) * (1.0D - Math.exp(-alpha * t)) + 1.0D;
-      } else {
-        Dt = 0.0D;
-        LB_t = 0.0D;
-      } 
-    } else {
-      Dt = (ROS + BROS) * t;
-      LB_t = LB;
-    } 
-    if (LB_t > 0.0D) {
-      perimeter.value = Double.valueOf(Math.PI * Dt / 2.0D * (1.0D + 1.0D / LB_t) * (1.0D + Math.pow((LB_t - 1.0D) / 2.0D * (LB_t + 1.0D), 2.0D)));
-      area.value = Double.valueOf(Math.PI / 4.0D * LB_t * Math.pow(Dt, 2.0D) / 10000.0D);
-    }
-    """
-    USE_ACCELERATION: Final = False
-    alpha = None
-    ROS = None
-    BROS = None
-    t = None
-    LB = None
-    if USE_ACCELERATION:
-        if alpha > 0.0:
-            Dt = (ROS + BROS) * (t + (math.exp(-alpha * t) - 1.0) / alpha)
-            LB_t = (LB - 1.0) * (1.0 - math.exp(-alpha * t)) + 1.0
-        else:
-            Dt = 0.0
-            LB_t = 0.0
-    else:
-        Dt = (ROS + BROS) * t
-        LB_t = LB
-    area = None
-    if LB_t > 0.0:
-        area = math.PI / 4.0 * LB_t * math.pow(Dt, 2.0) / 10000.0
-    return area
+    # This calculation based on calculation taken from REDapp, 6.2.4 ca.cwfgm.fuel.FBP_Fuel:calculateDistance
+    return math.pi / (4.0 * length_to_breadth_at_time) * math.pow(fire_spread_distance, 2.0) / 10000.0
 
 
 def get_fire_type(fuel_type: str, crown_fraction_burned: float):

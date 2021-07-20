@@ -49,7 +49,6 @@ acceptable_margin_of_error: Final = 0.01
                                   r_ros_em=float,
                                   r_hfi_em=float,
                                   r_cfb_em=float,
-                                  s_h1_em=float,
                                   s_ros_em=float,
                                   s_hfi_em=float,
                                   s_cfb_em=float,
@@ -90,6 +89,7 @@ def given_input(elevation: float,  # pylint: disable=too-many-arguments, invalid
                                                ffmc=ffmc,
                                                isi=isi,
                                                wind_speed=wind_speed,
+                                               wind_direction=wind_direction,
                                                temperature=20.0,  # temporary fix so tests don't break
                                                relative_humidity=20.0,
                                                precipitation=2.0,
@@ -184,17 +184,6 @@ def then_spreadsheet_hfi(result: dict, s_hfi_em: float, spreadsheet_hfi: float, 
     """ check the relative error of the hfi """
     check_metric('Spreadsheet HFI', result['fuel_type'],
                  result['python'].hfi, spreadsheet_hfi, s_hfi_em, note)
-
-
-@then("1 HR Size is within <s_h1_em> of <spreadsheet_1hr> with <note>")
-def then_spreadsheet_1hr(result: dict, s_h1_em: float, spreadsheet_1hr: float, note: str):
-    """ check the relative error of the 1 HR fire size"""
-    check_metric('Spreadsheet 1 HR Size',
-                 result['fuel_type'],
-                 result['python'].sixty_minute_fire_size,
-                 spreadsheet_1hr,
-                 s_h1_em,
-                 note)
 
 
 @then("ROS is within <r_ros_em> of REDapp ROS")

@@ -1,6 +1,7 @@
 """ This module contains functions for computing fire weather metrics.
 """
 import logging
+import math
 import rpy2.robjects as robjs
 from rpy2.robjects import DataFrame
 import rpy2.robjects.conversion as cv
@@ -37,6 +38,183 @@ class CFFDRSException(Exception):
 # Computable: SFC, FMC
 # To store in DB: PC, PDF, CC, CBH (attached to fuel type, red book)
 PARAMS_ERROR_MESSAGE = "One or more params passed to R call is None."
+
+
+def correct_wind_azimuth(wind_direction: float):
+    """
+    #Corrections to reorient Wind Azimuth(WAZ)
+    WAZ <- WD + pi
+    WAZ <- ifelse(WAZ > 2 * pi, WAZ - 2 * pi, WAZ)
+    """
+    waz = wind_direction + math.pi
+    if waz > 2 * math.pi:
+        return waz - 2 * math.pi
+    return waz
+
+
+def calculate_net_effective_windspeed(fuel_type: str,  # pylint: disable=too-many-arguments, disable=invalid-name
+                                      ffmc: float,
+                                      bui: float,
+                                      ws: float,
+                                      waz: float,
+                                      gs: float,
+                                      saz: float,
+                                      fmc: float,
+                                      sfc: float,
+                                      pc: float,
+                                      cc: float,
+                                      pdf: float,
+                                      cbh: float,
+                                      isi: float):
+    """
+    #Calculate the net effective windspeed (WSV)
+    WSV0 <- .Slopecalc(FUELTYPE, FFMC, BUI, WS, WAZ, GS, SAZ, 
+                        FMC, SFC, PC, PDF, CC, CBH, ISI, output = "WSV")
+    WSV <- ifelse(GS > 0 & FFMC > 0, WSV0, WS)
+    """
+    # pylint: disable=protected-access, no-member
+    if gs > 0 and ffmc > 0:
+        # Description:
+        #   Calculate the net effective windspeed (WSV), the net effective wind
+        #   direction (RAZ) or the wind azimuth (WAZ).
+        #
+        #   All variables names are laid out in the same manner as FCFDG (1992) and
+        #   Wotton (2009).
+        #
+        #
+        #   Forestry Canada Fire Danger Group (FCFDG) (1992). "Development and
+        #   Structure of the Canadian Forest Fire Behavior Prediction System."
+        #   Technical Report ST-X-3, Forestry Canada, Ottawa, Ontario.
+        #
+        #   Wotton, B.M., Alexander, M.E., Taylor, S.W. 2009. Updates and revisions to
+        #   the 1992 Canadian forest fire behavior prediction system. Nat. Resour.
+        #   Can., Can. For. Serv., Great Lakes For. Cent., Sault Ste. Marie, Ontario,
+        #   Canada. Information Report GLC-X-10, 45p.
+        #
+        # Args:
+        #   FUELTYPE: The Fire Behaviour Prediction FuelType
+        #       FFMC: Fine Fuel Moisture Code
+        #        BUI: The Buildup Index value
+        #         WS: Windspeed (km/h)
+        #        WAZ: Wind Azimuth
+        #         GS: Ground Slope (%)
+        #        SAZ: Slope Azimuth
+        #        FMC: Foliar Moisture Content
+        #        SFC: Surface Fuel Consumption (kg/m^2)
+        #         PC: Percent Conifer (%)
+        #        PDF: Percent Dead Balsam Fir (%)
+        #         CC: Constant
+        #        CBH: Crown Base Height (m)
+        #        ISI: Initial Spread Index
+        #     output: Type of variable to output (RAZ/WSV, default=RAZ)
+        # Returns:
+        #   BE: The Buildup Effect
+        result = CFFDRS.instance().cffdrs._Slopecalc(FUELTYPE=fuel_type,
+                                                     FFMC=ffmc,
+                                                     BUI=bui,
+                                                     WS=ws,
+                                                     WAZ=waz,
+                                                     GS=gs,
+                                                     SAZ=saz,
+                                                     FMC=fmc,
+                                                     SFC=sfc,
+                                                     PC=pc,
+                                                     PDF=pdf,
+                                                     CC=cc,
+                                                     CBH=cbh,
+                                                     ISI=isi,
+                                                     output="WSV")
+        return result[0]
+    return ws
+
+
+def flank_rate_of_spread(ros: float, bros: float, lb: float):
+    """
+    # Description:
+    #   Calculate the Flank Fire Spread Rate. 
+    #
+    #   All variables names are laid out in the same manner as Forestry Canada 
+    #   Fire Danger Group (FCFDG) (1992). Development and Structure of the 
+    #   Canadian Forest Fire Behavior Prediction System." Technical Report 
+    #   ST-X-3, Forestry Canada, Ottawa, Ontario.
+    #
+    # Args:
+    #   ROS:    Fire Rate of Spread (m/min)
+    #   BROS:   Back Fire Rate of Spread (m/min)
+    #   LB:     Length to breadth ratio
+    #   
+
+    # Returns:
+    #   FROS:   Flank Fire Spread Rate (m/min)
+    #
+    """
+    # pylint: disable=protected-access, no-member
+    result = CFFDRS.instance().cffdrs._FROScalc(ROS=ros, BROS=bros, LB=lb)
+    return result[0]
+
+
+def back_rate_of_spread(fuel_type: str,  # pylint: disable=too-many-arguments, disable=invalid-name
+                        ffmc: float,
+                        bui: float,
+                        wsv: float,
+                        fmc: float,
+                        sfc: float,
+                        pc: float,
+                        cc: float,
+                        pdf: float,
+                        cbh: float):
+    """
+    # Description:
+    #   Calculate the Back Fire Spread Rate. 
+    #
+    #   All variables names are laid out in the same manner as Forestry Canada
+    #   Fire Danger Group (FCFDG) (1992). Development and Structure of the
+    #   Canadian Forest Fire Behavior Prediction System." Technical Report
+    #   ST-X-3, Forestry Canada, Ottawa, Ontario.
+    #
+    # Args:
+    #   FUELTYPE: The Fire Behaviour Prediction FuelType
+    #   FFMC:     Fine Fuel Moisture Code
+    #   BUI:      Buildup Index
+    #   WSV:      Wind Speed Vector
+    #   FMC:      Foliar Moisture Content
+    #   SFC:      Surface Fuel Consumption
+    #   PC:       Percent Conifer
+    #   PDF:      Percent Dead Balsam Fir
+    #   CC:       Degree of Curing (just "C" in FCFDG 1992)
+    #   CBH:      Crown Base Height
+
+    # Returns:
+    #   BROS:     Back Fire Spread Rate
+    #
+    """
+
+    if fuel_type is None or ffmc is None or bui is None or fmc is None or sfc is None:
+        message = PARAMS_ERROR_MESSAGE + \
+            "_BROScalc ; fuel_type: {fuel_type}, ffmc: {ffmc}, bui: {bui}, fmc: {fmc}, sfc: {sfc}".format(
+                fuel_type=fuel_type, ffmc=ffmc, bui=bui, fmc=fmc, sfc=sfc)
+        raise CFFDRSException(message)
+
+    if pc is None:
+        pc = NULL
+    if cc is None:
+        cc = NULL
+    if pdf is None:
+        pdf = NULL
+    if cbh is None:
+        cbh = NULL
+    # pylint: disable=protected-access, no-member
+    result = CFFDRS.instance().cffdrs._BROScalc(FUELTYPE=fuel_type,
+                                                FFMC=ffmc,
+                                                BUI=bui,
+                                                WSV=wsv,
+                                                FMC=fmc,
+                                                SFC=sfc,
+                                                PC=pc,
+                                                PDF=pdf,
+                                                CC=cc,
+                                                CBH=cbh)
+    return result[0]
 
 
 def rate_of_spread(fuel_type: str,  # pylint: disable=too-many-arguments, disable=invalid-name
@@ -86,7 +264,7 @@ def rate_of_spread(fuel_type: str,  # pylint: disable=too-many-arguments, disabl
         pdf = NULL
     if cbh is None:
         cbh = NULL
-    # pylint: disable=protected-access, no-member, line-too-long
+    # pylint: disable=protected-access, no-member
     result = CFFDRS.instance().cffdrs._ROScalc(FUELTYPE=fuel_type,
                                                ISI=isi,
                                                BUI=bui,
@@ -132,6 +310,31 @@ def surface_fuel_consumption(  # pylint: disable=invalid-name
     return result[0]
 
 
+def fire_distance(fuel_type: str, ros_eq: float, hr: int, cfb: float):  # pylint: disable=invalid-name
+    """
+    # Description:
+    #   Calculate the Head fire spread distance at time t. In the documentation
+    #   this variable is just "D".
+    #
+    #   All variables names are laid out in the same manner as Forestry Canada
+    #   Fire Danger Group (FCFDG) (1992). Development and Structure of the
+    #   Canadian Forest Fire Behavior Prediction System." Technical Report
+    #   ST-X-3, Forestry Canada, Ottawa, Ontario.
+    #
+    # Args:
+    #   FUELTYPE: The Fire Behaviour Prediction FuelType
+    #   ROSeq:    The predicted equilibrium rate of spread (m/min)
+    #   HR (t):   The elapsed time (min)
+    #   CFB:      Crown Fraction Burned
+    #   
+    # Returns:
+    #   DISTt:    Head fire spread distance at time t
+    """
+    # pylint: disable=protected-access, no-member
+    result = CFFDRS.instance().cffdrs._DISTtcalc(fuel_type, ros_eq, hr, cfb)
+    return result[0]
+
+
 def foliar_moisture_content(lat: int, long: int, elv: float, day_of_year: int,
                             date_of_minimum_foliar_moisture_content: int = 0):
     """ Computes FMC by delegating to cffdrs R package
@@ -149,7 +352,7 @@ def foliar_moisture_content(lat: int, long: int, elv: float, day_of_year: int,
     # Returns:
     #   FMC:    Foliar Moisture Content
      """
-    # pylint: disable=protected-access, no-member, line-too-long
+    # pylint: disable=protected-access, no-member
     logger.info('calling _FMCcalc(LAT=%s, LONG=%s, ELV=%s, DJ=%s, D0=%s)', lat,
                 long, elv, day_of_year, date_of_minimum_foliar_moisture_content)
     result = CFFDRS.instance().cffdrs._FMCcalc(LAT=lat, LONG=long, ELV=elv,
@@ -168,6 +371,42 @@ def length_to_breadth_ratio(fuel_type: str, wind_speed: float):
     """
     # pylint: disable=protected-access, no-member
     result = CFFDRS.instance().cffdrs._LBcalc(FUELTYPE=fuel_type, WSV=wind_speed)
+    return result[0]
+
+
+def length_to_breadth_ratio_t(fuel_type: str,
+                              lb: float,
+                              time_since_ignition: float,
+                              cfb: float):
+    """ Computes L/B ratio by delegating to cffdrs R package
+
+    # Description:
+    #   Computes the Length to Breadth ratio of an elliptically shaped fire at
+    #   elapsed time since ignition. Equations are from listed FCFDG (1992) and
+    #   Wotton et. al. (2009), and are marked as such.
+    #
+    #   All variables names are laid out in the same manner as Forestry Canada 
+    #   Fire Danger Group (FCFDG) (1992). Development and Structure of the 
+    #   Canadian Forest Fire Behavior Prediction System." Technical Report 
+    #   ST-X-3, Forestry Canada, Ottawa, Ontario.
+    #
+    #   Wotton, B.M., Alexander, M.E., Taylor, S.W. 2009. Updates and revisions to
+    #   the 1992 Canadian forest fire behavior prediction system. Nat. Resour. 
+    #   Can., Can. For. Serv., Great Lakes For. Cent., Sault Ste. Marie, Ontario, 
+    #   Canada. Information Report GLC-X-10, 45p.
+    #
+    # Args:
+    #   FUELTYPE: The Fire Behaviour Prediction FuelType
+    #         LB: Length to Breadth ratio
+    #         HR: Time since ignition (hours)
+    #        CFB: Crown Fraction Burned
+    # Returns:
+    #   LBt: Length to Breadth ratio at time since ignition
+    #
+    """
+    # pylint: disable=protected-access, no-member
+    result = CFFDRS.instance().cffdrs._LBtcalc(FUELTYPE=fuel_type, LB=lb,
+                                               HR=time_since_ignition, CFB=cfb)
     return result[0]
 
 
