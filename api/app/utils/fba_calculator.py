@@ -174,6 +174,56 @@ def get_60_minutes_fire_size(length_breadth_ratio: float, rate_of_spread: float)
     return (math.pi * math.pow(60.0 * rate_of_spread, 2)) / (40000.0 * length_breadth_ratio)
 
 
+def get_60_minutes_fire_size_red_app():
+    """
+    Taken from REDapp 6.2.4, ca.cwfgm.fuel.FBP_Fuel::calculateStatistics
+
+    double Dt, LB_t, alpha = acc(_CFB);
+    area.value = Double.valueOf(0.0D);
+    perimeter.value = Double.valueOf(0.0D);
+    if (FROS == 0.0D)
+      return; 
+    double t = time.getTotalSeconds() / 60.0D;
+    double LB = (ROS + BROS) / 2.0D * FROS;
+    if ((short)(flag & this.USE_ACCELERATION) != 0) {
+      if (alpha > 0.0D) {
+        Dt = (ROS + BROS) * (t + (Math.exp(-alpha * t) - 1.0D) / alpha);
+        LB_t = (LB - 1.0D) * (1.0D - Math.exp(-alpha * t)) + 1.0D;
+      } else {
+        Dt = 0.0D;
+        LB_t = 0.0D;
+      } 
+    } else {
+      Dt = (ROS + BROS) * t;
+      LB_t = LB;
+    } 
+    if (LB_t > 0.0D) {
+      perimeter.value = Double.valueOf(Math.PI * Dt / 2.0D * (1.0D + 1.0D / LB_t) * (1.0D + Math.pow((LB_t - 1.0D) / 2.0D * (LB_t + 1.0D), 2.0D)));
+      area.value = Double.valueOf(Math.PI / 4.0D * LB_t * Math.pow(Dt, 2.0D) / 10000.0D);
+    }
+    """
+    USE_ACCELERATION: Final = False
+    alpha = None
+    ROS = None
+    BROS = None
+    t = None
+    LB = None
+    if USE_ACCELERATION:
+        if alpha > 0.0:
+            Dt = (ROS + BROS) * (t + (math.exp(-alpha * t) - 1.0) / alpha)
+            LB_t = (LB - 1.0) * (1.0 - math.exp(-alpha * t)) + 1.0
+        else:
+            Dt = 0.0
+            LB_t = 0.0
+    else:
+        Dt = (ROS + BROS) * t
+        LB_t = LB
+    area = None
+    if LB_t > 0.0:
+        area = math.PI / 4.0 * LB_t * math.pow(Dt, 2.0) / 10000.0
+    return area
+
+
 def get_fire_type(fuel_type: str, crown_fraction_burned: float):
     """ Returns Fire Type (as str) based on percentage Crown Fraction Burned (CFB).
     These definitions come from the Red Book (p.69).
