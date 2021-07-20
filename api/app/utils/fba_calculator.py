@@ -287,8 +287,10 @@ def get_critical_hours(  # pylint: disable=too-many-arguments
         grass_cure, crown_base_height, solar_noon_ffmc, fmc, cfb, cfl, target_hfi)
     logger.info('Critical FFMC %s, resulting HFI %s; target HFI %s', critical_ffmc,
                 resulting_hfi, target_hfi)
-    # Scenario 1: it's not possible for the HFI to reach target_hfi, in which case there will
-    # be no critical hours.
+    # Scenario 1 (resulting_hfi < target_hfi) - will happen when it's impossible to get
+    # a HFI value large enough to >= target_hfi, because FFMC influences the HFI value,
+    # and FFMC has an upper bound of 101. So basically, in this scenario the resulting_hfi
+    # would equal the resulting HFI when FFMC is set to 101.
     if critical_ffmc >= 100.9 and resulting_hfi < target_hfi:
         logger.info('No critical hours for HFI %s. Critical FFMC %s has HFI %s',
                     target_hfi, critical_ffmc, resulting_hfi)
