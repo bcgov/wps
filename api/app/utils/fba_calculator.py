@@ -22,12 +22,33 @@ class DiurnalFFMCLookupTable():
     """ Singleton that loads diurnal FFMC lookup table from Red Book once, for reuse. """
 
     def __init__(self):
-        with open('app/data/diurnalFFMC_redbook.xlsx', 'rb') as excel_file:
-            xl_file = pd.ExcelFile(excel_file)
-            afternoon_df = pd.read_excel(xl_file, 'afternoon_overnight')
-        # re-index afternoon_df so that keys are based on approx. solar noon FFMC
+        with open('app/data/diurnal_ffmc_lookups/afternoon_overnight.csv', 'rb') as afternoon_file:
+            afternoon_df = pd.read_csv(afternoon_file)
         afternoon_df.set_index(13, inplace=True)
+
+        with open('app/data/diurnal_ffmc_lookups/morning.csv', 'rb') as morning_file:
+            morning_df = pd.read_csv(morning_file, header=[0, 1])
+        prev_days_daily_ffmc_keys = morning_df.iloc[:, 0].values
+        df_col_labels = morning_df.columns.values
+        hour_lookup_keys = ['']
+        rh_lookup_keys = ['']
+        # Pylint says that df_col_labels is not an iterable. Pylint wrong.
+        # pylint: disable=not-an-iterable
+        for level_1, level_2 in df_col_labels:
+            if 'Unnamed' in str(level_2):
+                continue
+            elif 'Unnamed' not in str(level_1):
+                hour = int(level_1)
+                hour_lookup_keys += 3 * [hour]
+            rh_lookup_keys += [level_2]
+
+        morning_df.set_index(prev_days_daily_ffmc_keys, inplace=True)
+        header = pd.MultiIndex.from_tuples(list(zip(hour_lookup_keys, rh_lookup_keys)), names=['hour', 'RH'])
+        morning_df.columns = header
+        morning_df.drop(columns=[('', '')], inplace=True)
+
         self.afternoon_df = afternoon_df
+        self.morning_df = morning_df
 
 
 class FBACalculatorWeatherStation():  # pylint: disable=too-many-instance-attributes
@@ -221,14 +242,27 @@ def get_afternoon_overnight_diurnal_ffmc(hour_of_interest: int, solar_noon_ffmc:
     return row.iloc[:, row_index].values[0]
 
 
-# TODO: Implement this once getting in touch with SME regarding what RH value to use
-# def get_morning_diurnal_ffmc(hour_of_interest: int, yesterday_ffmc: float, rh: float):
-#     """ Returns the diurnal FFMC (an approximation) estimated for the given hour_of_interest,
-#     based on the RH measured/forecasted.
-#     """
-#     xl_file = pd.ExcelFile('api/app/data/diurnalFFMC_redbook.xlsx')
-#     morning_df = pd.read_excel(xl_file, 'morning')
-#     return
+def get_morning_diurnal_ffmc(hour_of_interest: int, prev_day_daily_ffmc: float, hourly_rh: float):
+    """ Returns the diurnal FFMC (an approximation) estimated for the given hour_of_interest,
+    based on the estimated RH value for the hour_of_interest.
+    """
+
+    # pylint: disable=protected-access, no-member
+    morning_df = DiurnalFFMCLookupTable.instance().morning_df
+
+    # find index (previous day's daily FFMC) of morning_df that is nearest to prev_day_daily_ffmc
+    row = morning_df.iloc[abs((morning_df.index - prev_day_daily_ffmc)).argsort()[:1]]
+
+    # the RH column labels are strings expressing ranges. Must extract lower and upper bounds
+    for range_rh_value in row[hour_of_interest].columns:
+        bounds = str(range_rh_value).split('-')
+        lower_bound = int(bounds[0])
+        upper_bound = int(bounds[1])
+        if lower_bound <= hourly_rh <= upper_bound:
+            return row[hour_of_interest][range_rh_value].values[0]
+
+    # we should never actually reach this return statement
+    return None
 
 
 def get_critical_hours_start(critical_ffmc: float, solar_noon_ffmc: float):
