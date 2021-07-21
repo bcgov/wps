@@ -210,7 +210,8 @@ def get_60_minutes_fire_size(length_breadth_ratio: float, rate_of_spread: float)
 def get_fire_size(fuel_type: str, ros: float, bros: float, ellapsed_minutes: int, cfb: float,
                   lb_ratio: float):
     """
-    Fire size based on calculation taken from REDapp, 6.2.4 - with cffdrs used where formulae identified.
+    Fire size based on Eq. 8 (Alexander, M.E. 1985. Estimating the length-to-breadth ratio of elliptical 
+    forest fire patterns.).
     """
     # Using acceleration:
     fire_spread_distance = cffdrs.fire_distance(fuel_type, ros+bros, ellapsed_minutes, cfb)
@@ -222,7 +223,7 @@ def get_fire_size(fuel_type: str, ros: float, bros: float, ellapsed_minutes: int
     # length_to_breadth_at_time = flank_fire_spread_distance
     # fire_spread_distance = (ros + bros) * ellapsed_minutes
 
-    # This calculation based on calculation taken from REDapp, 6.2.4 ca.cwfgm.fuel.FBP_Fuel:calculateDistance
+    # Eq. 8 (Alexander, M.E. 1985. Estimating the length-to-breadth ratio of elliptical forest fire patterns.)
     return math.pi / (4.0 * length_to_breadth_at_time) * math.pow(fire_spread_distance, 2.0) / 10000.0
 
 
