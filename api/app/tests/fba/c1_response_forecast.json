@@ -19,13 +19,13 @@
             "build_up_index": 117.899,
             "duff_moisture_code": 103.923,
             "fire_weather_index": 35.947,
-            "head_fire_intensity": 2484.207332119823,
+            "head_fire_intensity": 2438.295570852929,
             "rate_of_spread": 4.4231116865619,
             "fire_type": "IC",
-            "percentage_crown_fraction_burned": 0.556231002140591,
-            "flame_length": 2.877618999635997,
-            "sixty_minute_fire_size": 3.930563799808943,
-            "thirty_minute_fire_size": 0.9826409499522357,
+            "percentage_crown_fraction_burned": 0.5100978075126439,
+            "flame_length": 2.850903699328179,
+            "sixty_minute_fire_size": 3.0949948462569523,
+            "thirty_minute_fire_size": 0.5523370828296822,
             "critical_hours_hfi_4000": "16:00 - 18:00",
             "critical_hours_hfi_10000": null
         }
