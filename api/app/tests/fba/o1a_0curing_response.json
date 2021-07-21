@@ -25,7 +25,9 @@
             "percentage_crown_fraction_burned": 0.0,
             "flame_length": 0.0005916079783099615,
             "sixty_minute_fire_size": 2.6872744124897655e-13,
-            "thirty_minute_fire_size": 4.8539000526734737e-14
+            "thirty_minute_fire_size": 4.8539000526734737e-14,
+            "critical_hours_hfi_4000": null,
+            "critical_hours_hfi_10000": null
         }
     ]
 }

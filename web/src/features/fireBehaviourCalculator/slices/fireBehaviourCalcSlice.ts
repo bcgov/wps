@@ -5,6 +5,7 @@ import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 import { FBCInputRow } from 'features/fireBehaviourCalculator/components/FBCInputGrid'
 import { FuelTypes } from '../fuelTypes'
+import { isNull, isUndefined } from 'lodash'
 
 interface State {
   loading: boolean
@@ -51,8 +52,11 @@ export const fetchFireBehaviourStations = (
   date: string,
   fbcInputRows: FBCInputRow[]
 ): AppThunk => async dispatch => {
-  const fetchableFireStations = fbcInputRows.map(row => {
+  const fetchableFireStations = fbcInputRows.flatMap(row => {
     const fuelTypeDetails = FuelTypes.lookup(row.fuelType)
+    if (isNull(fuelTypeDetails) || isUndefined(row.weatherStation)) {
+      return []
+    }
     return {
       date,
       stationCode: parseInt(row.weatherStation),
