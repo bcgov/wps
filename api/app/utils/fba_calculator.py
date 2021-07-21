@@ -92,6 +92,7 @@ class FireBehaviourAdvisory():  # pylint: disable=too-many-instance-attributes
 def calculate_fire_behavour_advisory(station: FBACalculatorWeatherStation) -> FireBehaviourAdvisory:
     """ Transform from the raw daily json object returned by wf1, to our fba_calc.StationResponse object.
     """
+    # pylint: disable=too-many-locals
     # time of interest will be the same for all stations.
     time_of_interest = get_hour_20_from_date(station.time_of_interest)
 
@@ -99,9 +100,6 @@ def calculate_fire_behavour_advisory(station: FBACalculatorWeatherStation) -> Fi
         # The day 144 is the average date for the minimum foliar moisture content in the boreal regions of
         # Canada. It is usually pretty close maybe 7 days in either direction.
         date_of_minimum_foliar_moisture_content = 144
-    else:
-        # TODO: Establish if it's 144 accross the board for all fuel types.
-        date_of_minimum_foliar_moisture_content = 0
 
     fmc = cffdrs.foliar_moisture_content(
         station.lat, station.long, station.elevation,

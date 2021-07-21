@@ -68,7 +68,7 @@ def calculate_net_effective_windspeed(fuel_type: str,  # pylint: disable=too-man
                                       isi: float):
     """
     #Calculate the net effective windspeed (WSV)
-    WSV0 <- .Slopecalc(FUELTYPE, FFMC, BUI, WS, WAZ, GS, SAZ, 
+    WSV0 <- .Slopecalc(FUELTYPE, FFMC, BUI, WS, WAZ, GS, SAZ,
                         FMC, SFC, PC, PDF, CC, CBH, ISI, output = "WSV")
     WSV <- ifelse(GS > 0 & FFMC > 0, WSV0, WS)
     """
@@ -128,21 +128,21 @@ def calculate_net_effective_windspeed(fuel_type: str,  # pylint: disable=too-man
     return ws
 
 
-def flank_rate_of_spread(ros: float, bros: float, lb: float):
+def flank_rate_of_spread(ros: float, bros: float, lb: float):  # pylint: disable=invalid-name
     """
     # Description:
-    #   Calculate the Flank Fire Spread Rate. 
+    #   Calculate the Flank Fire Spread Rate.
     #
-    #   All variables names are laid out in the same manner as Forestry Canada 
-    #   Fire Danger Group (FCFDG) (1992). Development and Structure of the 
-    #   Canadian Forest Fire Behavior Prediction System." Technical Report 
+    #   All variables names are laid out in the same manner as Forestry Canada
+    #   Fire Danger Group (FCFDG) (1992). Development and Structure of the
+    #   Canadian Forest Fire Behavior Prediction System." Technical Report
     #   ST-X-3, Forestry Canada, Ottawa, Ontario.
     #
     # Args:
     #   ROS:    Fire Rate of Spread (m/min)
     #   BROS:   Back Fire Rate of Spread (m/min)
     #   LB:     Length to breadth ratio
-    #   
+    #
 
     # Returns:
     #   FROS:   Flank Fire Spread Rate (m/min)
@@ -165,7 +165,7 @@ def back_rate_of_spread(fuel_type: str,  # pylint: disable=too-many-arguments, d
                         cbh: float):
     """
     # Description:
-    #   Calculate the Back Fire Spread Rate. 
+    #   Calculate the Back Fire Spread Rate.
     #
     #   All variables names are laid out in the same manner as Forestry Canada
     #   Fire Danger Group (FCFDG) (1992). Development and Structure of the
@@ -326,7 +326,7 @@ def fire_distance(fuel_type: str, ros_eq: float, hr: int, cfb: float):  # pylint
     #   ROSeq:    The predicted equilibrium rate of spread (m/min)
     #   HR (t):   The elapsed time (min)
     #   CFB:      Crown Fraction Burned
-    #   
+    #
     # Returns:
     #   DISTt:    Head fire spread distance at time t
     """
@@ -374,7 +374,7 @@ def length_to_breadth_ratio(fuel_type: str, wind_speed: float):
     return result[0]
 
 
-def length_to_breadth_ratio_t(fuel_type: str,
+def length_to_breadth_ratio_t(fuel_type: str,  # pylint: disable=invalid-name
                               lb: float,
                               time_since_ignition: float,
                               cfb: float):
@@ -385,14 +385,14 @@ def length_to_breadth_ratio_t(fuel_type: str,
     #   elapsed time since ignition. Equations are from listed FCFDG (1992) and
     #   Wotton et. al. (2009), and are marked as such.
     #
-    #   All variables names are laid out in the same manner as Forestry Canada 
-    #   Fire Danger Group (FCFDG) (1992). Development and Structure of the 
-    #   Canadian Forest Fire Behavior Prediction System." Technical Report 
+    #   All variables names are laid out in the same manner as Forestry Canada
+    #   Fire Danger Group (FCFDG) (1992). Development and Structure of the
+    #   Canadian Forest Fire Behavior Prediction System." Technical Report
     #   ST-X-3, Forestry Canada, Ottawa, Ontario.
     #
     #   Wotton, B.M., Alexander, M.E., Taylor, S.W. 2009. Updates and revisions to
-    #   the 1992 Canadian forest fire behavior prediction system. Nat. Resour. 
-    #   Can., Can. For. Serv., Great Lakes For. Cent., Sault Ste. Marie, Ontario, 
+    #   the 1992 Canadian forest fire behavior prediction system. Nat. Resour.
+    #   Can., Can. For. Serv., Great Lakes For. Cent., Sault Ste. Marie, Ontario,
     #   Canada. Information Report GLC-X-10, 45p.
     #
     # Args:
