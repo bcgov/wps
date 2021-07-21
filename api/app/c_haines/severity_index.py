@@ -269,6 +269,8 @@ class EnvCanadaPayload():
 
 
 def _save_data_as_geotiff(payload: EnvCanadaPayload, ch_data: numpy.ndarray, source_info: SourceInfo):
+    """ This method exists for debug purposes only. It can be real useful to output raw GeoTIFF files.
+    """
     filename = './geotiff/{}_{}_{}.tiff'.format(payload.model,
                                                 payload.model_run_timestamp,
                                                 payload.prediction_timestamp)
