@@ -223,7 +223,8 @@ def get_fire_size(fuel_type: str, ros: float, bros: float, ellapsed_minutes: int
     # length_to_breadth_at_time = flank_fire_spread_distance
     # fire_spread_distance = (ros + bros) * ellapsed_minutes
 
-    # Eq. 8 (Alexander, M.E. 1985. Estimating the length-to-breadth ratio of elliptical forest fire patterns.)
+    # Essentially using Eq. 8 (Alexander, M.E. 1985. Estimating the length-to-breadth ratio of elliptical
+    # forest fire patterns.) - but feeding it L/B and ROS from CFFDRS.
     return math.pi / (4.0 * length_to_breadth_at_time) * math.pow(fire_spread_distance, 2.0) / 10000.0
 
 
