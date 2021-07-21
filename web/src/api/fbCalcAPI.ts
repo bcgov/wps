@@ -20,8 +20,8 @@ export interface FBCStation {
   duff_moisture_code: number
   fire_weather_index: number
   head_fire_intensity: number
-  // critical_hours_hfi_4000: string
-  // critical_hours_hfi_10000: string
+  critical_hours_hfi_4000: string
+  critical_hours_hfi_10000: string
   rate_of_spread: number
   fire_type: string
   percentage_crown_fraction_burned: number
@@ -39,7 +39,7 @@ export interface FetchableFBCStation {
   stationCode: number
   fuelType: string
   percentageConifer: number | undefined
-  grassCurePercentage: number | null
+  grassCurePercentage: number | undefined
   percentageDeadBalsamFir: number | undefined
   crownBaseHeight: number | undefined
   windSpeed: number | undefined

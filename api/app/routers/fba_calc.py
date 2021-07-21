@@ -69,6 +69,8 @@ def prepare_response(
         duff_moisture_code=duff_moisture_code,
         fire_weather_index=fire_weather_index,
         head_fire_intensity=fire_behavour_advisory.hfi,
+        critical_hours_hfi_4000=fire_behavour_advisory.critical_hours_hfi_4000,
+        critical_hours_hfi_10000=fire_behavour_advisory.critical_hours_hfi_10000,
         rate_of_spread=fire_behavour_advisory.ros,
         fire_type=fire_behavour_advisory.fire_type,
         percentage_crown_fraction_burned=fire_behavour_advisory.cfb,
