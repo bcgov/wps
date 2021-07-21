@@ -19,7 +19,10 @@ class CannotCalculateFireTypeError(Exception):
 
 @Singleton
 class DiurnalFFMCLookupTable():
-    """ Singleton that loads diurnal FFMC lookup table from Red Book once, for reuse. """
+    """ Singleton that loads diurnal FFMC lookup tables from Red Book once, for reuse.
+    afternoon_overnight.csv is Table 4.1 from Red Book, 3rd ed., 2018;
+    morning.csv is Table 4.2 from Red Book, 3rd ed., 2018.
+    """
 
     def __init__(self):
         with open('app/data/diurnal_ffmc_lookups/afternoon_overnight.csv', 'rb') as afternoon_file:
@@ -42,6 +45,8 @@ class DiurnalFFMCLookupTable():
                 hour_lookup_keys += 3 * [hour]
             rh_lookup_keys += [level_2]
 
+        # Pylint thinks that morning_df's type is TextFileReader. It isn't - it's a pandas dataframe.
+        # pylint: disable=no-member
         morning_df.set_index(prev_days_daily_ffmc_keys, inplace=True)
         header = pd.MultiIndex.from_tuples(list(zip(hour_lookup_keys, rh_lookup_keys)), names=['hour', 'RH'])
         morning_df.columns = header
@@ -60,7 +65,7 @@ class FBACalculatorWeatherStation():  # pylint: disable=too-many-instance-attrib
                  percentage_dead_balsam_fir: float, grass_cure: float,
                  crown_base_height: int, lat: float, long: float, bui: float, ffmc: float, isi: float,
                  wind_speed: float, temperature: float, relative_humidity: float, precipitation: float,
-                 status: str):
+                 status: str, prev_day_daily_ffmc: float):
         self.elevation = elevation
         self.fuel_type = fuel_type
         self.time_of_interest = time_of_interest
@@ -78,15 +83,16 @@ class FBACalculatorWeatherStation():  # pylint: disable=too-many-instance-attrib
         self.relative_humidity = relative_humidity
         self.precipitation = precipitation
         self.status = status
+        self.prev_day_daily_ffmc = prev_day_daily_ffmc
 
     def __str__(self) -> str:
         return 'lat {}, long {}, elevation {}, fuel_type {}, time_of_interest {}, percentage_conifer {},\
             percentage_dead_balsam_fir {}, grass_cure {}, crown_base_height {}, bui {}, ffmc {}, isi {},\
-            wind_speed {}, temperature {}, relative_humidity {}, precipitation {}, status {}'\
+            prev_day_daily_ffmc {}, wind_speed {}, temperature {}, relative_humidity {}, precipitation {}, status {}'\
                 .format(self.lat, self.long,
                         self.elevation, self.fuel_type, self.time_of_interest, self.percentage_conifer,
                         self.percentage_dead_balsam_fir, self.grass_cure, self.crown_base_height,
-                        self.bui, self.ffmc, self.isi, self.wind_speed,
+                        self.bui, self.ffmc, self.isi, self.prev_day_daily_ffmc, self.wind_speed,
                         self.temperature, self.relative_humidity, self.precipitation, self.status)
 
 
@@ -109,7 +115,7 @@ class FireBehaviourAdvisory():  # pylint: disable=too-many-instance-attributes
         self.critical_hours_hfi_10000 = critical_hours_hfi_10000
 
 
-def calculate_fire_behavour_advisory(station: FBACalculatorWeatherStation) -> FireBehaviourAdvisory:
+def calculate_fire_behaviour_advisory(station: FBACalculatorWeatherStation) -> FireBehaviourAdvisory:
     """ Transform from the raw daily json object returned by wf1, to our fba_calc.StationResponse object.
     """
     # time of interest will be the same for all stations
@@ -271,23 +277,21 @@ def get_critical_hours_start(critical_ffmc: float, solar_noon_ffmc: float):
     Returns None if the hourly FFMC never reaches critical_ffmc.
     """
     if solar_noon_ffmc >= critical_ffmc:
-        # NOTE: this code will eventually be used, once morning diurnal FFMC is implemented
-        # logger.info('Solar noon FFMC >= critical FFMC')
-        # # go back in time in increments of 0.5 hours
-        # clock_time = 13-0.5  # start from solar noon - 0.5 hours
-        # while get_morning_diurnal_ffmc(clock_time, yesterdays_ffmc, relative_humidity) >= critical_ffmc:
-        #     clock_time -= 0.5
-        #     if clock_time == -0.5:
-        #         break
-        # # add back the half hour that caused FFMC to drop below critical_ffmc (or that
-        # #   pushed time below 0.0)
-        # clock_time += 0.5
-        # logger.info('%s', clock_time)
-        # return clock_time
+        logger.info('Solar noon FFMC >= critical FFMC')
 
-        # NOTE: For now, simply returning 13.0 hours until we're able to calculate diurnal FFMC for
-        # morning hours.
-        return 13.0
+        # go back in time in increments of 1 hour
+        clock_time = 13-1.0  # start from solar noon - 1.0 hours
+        # first need to determine the previous day's daily FFMC and
+        # the previous day's RH value for the same clock_time
+        # while get_morning_diurnal_ffmc(clock_time, previous_day_ffmc, hourly_relative_humidity) >= critical_ffmc:
+        #     clock_time -= 1.0
+        #     if clock_time < 7.0:
+        #         break
+        # # add back the hour that caused FFMC to drop below critical_ffmc (or that
+        # #   pushed time below 7.0)
+        # clock_time += 1.0
+        # logger.info('%s', clock_time)
+        return clock_time
 
     logger.info('Solar noon FFMC %s < critical FFMC %s', solar_noon_ffmc, critical_ffmc)
     # go forward in time in increments of 1 hour

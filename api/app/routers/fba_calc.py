@@ -5,7 +5,9 @@ from datetime import date, datetime, timedelta
 from aiohttp.client import ClientSession
 from fastapi import APIRouter, Depends
 from app.auth import authentication_required, audit
+from app.main import get_hourlies
 from app.schemas.fba_calc import StationListRequest, StationRequest, StationsListResponse, StationResponse
+from app.schemas.shared import WeatherDataRequest
 from app.utils import cffdrs
 from app.utils.time import get_hour_20_from_date
 from app.wildfire_one.schema_parsers import WFWXWeatherStation
@@ -13,7 +15,7 @@ from app.wildfire_one.wfwx_api import (get_auth_header,
                                        get_dailies,
                                        get_wfwx_stations_from_station_codes)
 from app.utils.fba_calculator import (FBACalculatorWeatherStation,
-                                      FireBehaviourAdvisory, calculate_fire_behavour_advisory)
+                                      FireBehaviourAdvisory, calculate_fire_behaviour_advisory)
 
 
 router = APIRouter(
@@ -84,6 +86,7 @@ def prepare_response(
 
 async def process_request(
         dailies_by_station_id: dict,
+        hourly_observations_by_station_id: dict,
         wfwx_station: WFWXWeatherStation,
         requested_station: StationRequest,
         time_of_interest: datetime,
@@ -91,6 +94,9 @@ async def process_request(
     """ Process a valid request """
     # pylint: disable=too-many-locals
     raw_daily = dailies_by_station_id[wfwx_station.wfwx_id]
+    raw_observations = hourly_observations_by_station_id[wfwx_station.wfwx_id]
+
+    logger.info(raw_observations)
 
     # extract variable from wf1 that we need to calculate the fire behaviour advisory.
     bui = raw_daily.get('buildUpIndex', None)
@@ -145,17 +151,18 @@ async def process_request(
         bui=bui,
         ffmc=ffmc,
         isi=isi,
+        prev_day_daily_ffmc=85.0,
         wind_speed=wind_speed,
         temperature=temperature,
         relative_humidity=relative_humidity,
         precipitation=precipitation)
 
     # Calculate the fire behaviour advisory.
-    fire_behavour_advisory = calculate_fire_behavour_advisory(fba_station)
+    fire_behaviour_advisory = calculate_fire_behaviour_advisory(fba_station)
 
     # Prepare the response
     return prepare_response(
-        requested_station, wfwx_station, fba_station, raw_daily, fire_behavour_advisory, date_of_interest)
+        requested_station, wfwx_station, fba_station, raw_daily, fire_behaviour_advisory, date_of_interest)
 
 
 def process_request_without_observation(requested_station: StationRequest,
@@ -206,6 +213,13 @@ async def get_stations_data(  # pylint:disable=too-many-locals
             dailies = await get_dailies(session, header, wfwx_stations, time_of_interest)
             # turn it into a dictionary so we can easily get at data using a station id
             dailies_by_station_id = {raw_daily.get('stationId'): raw_daily async for raw_daily in dailies}
+            # get hourly observation history from our API (used for calculating morning diurnal FFMC)
+            hourly_observations = await get_hourlies(
+                request=WeatherDataRequest(
+                    stations=unique_station_codes, time_of_interest=time_of_interest))
+            # also turn hourly obs data into a dict indexed by station id
+            hourly_obs_by_station_id = \
+                {raw_hourly.get('stationId'): raw_hourly async for raw_hourly in hourly_observations}
 
         # we need a lookup from station code to station id
         # TODO: this is a bit silly, the call to get_wfwx_stations_from_station_codes repeats a lot of this!
@@ -217,10 +231,11 @@ async def get_stations_data(  # pylint:disable=too-many-locals
             # get the wfwx station
             wfwx_station = wfwx_station_lookup[requested_station.station_code]
             # get the raw daily response from wf1.
-            if wfwx_station.wfwx_id in dailies_by_station_id:
+            if wfwx_station.wfwx_id in dailies_by_station_id and wfwx_station.wfwx_id in hourly_obs_by_station_id:
                 try:
                     station_response = await process_request(
                         dailies_by_station_id,
+                        hourly_obs_by_station_id,
                         wfwx_station,
                         requested_station,
                         time_of_interest,

@@ -7,7 +7,7 @@ import logging
 from pytest_bdd import scenario, given, then
 from app import configure_logging
 from app.utils.time import get_hour_20_from_date
-from app.utils.fba_calculator import calculate_fire_behavour_advisory, FBACalculatorWeatherStation
+from app.utils.fba_calculator import calculate_fire_behaviour_advisory, FBACalculatorWeatherStation
 from app.utils.redapp import FBPCalculateStatisticsCOM
 import pytest
 
@@ -94,7 +94,7 @@ def given_input(elevation: float,  # pylint: disable=too-many-arguments, invalid
                                                relative_humidity=20.0,
                                                precipitation=2.0,
                                                status='Forecasted')
-    python_fba = calculate_fire_behavour_advisory(python_input)
+    python_fba = calculate_fire_behaviour_advisory(python_input)
     # get REDapp result from java:
     java_fbp = FBPCalculateStatisticsCOM(elevation=elevation,
                                          latitude=latitude,
