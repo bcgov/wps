@@ -103,6 +103,7 @@ async def process_request(
     temperature = raw_daily.get('temperature', None)
     relative_humidity = raw_daily.get('relativeHumidity', None)
     precipitation = raw_daily.get('precipitation', None)
+    wind_direction = raw_daily.get('windDirection', None)
     # if user has not specified wind speed as part of StationRequest, use the
     # values retrieved from WFWX in raw_daily
     if requested_station.wind_speed is None:
@@ -153,6 +154,7 @@ async def process_request(
         isi=isi,
         prev_day_daily_ffmc=85.0,
         wind_speed=wind_speed,
+        wind_direction=wind_direction,
         temperature=temperature,
         relative_humidity=relative_humidity,
         precipitation=precipitation)
