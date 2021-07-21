@@ -186,6 +186,7 @@ def get_30_minutes_fire_size(length_breadth_ratio: float, rate_of_spread: float)
     30 min fire size = (pi * spread^2) / (40,000 * LB ratio)
     where spread = 30 * ROS
     """
+    # TODO: this function deprecated, please delete.
     return (math.pi * math.pow(30 * rate_of_spread, 2)) / (40000 * length_breadth_ratio)
 
 
@@ -202,6 +203,7 @@ def get_60_minutes_fire_size(length_breadth_ratio: float, rate_of_spread: float)
     spread = rate_of_spread * 60
     return (math.pi*(spread/2)*((spread/2)/length_breadth_ratio))/10000
     """
+    # TODO: this function deprecated, please delete.
     return (math.pi * math.pow(60.0 * rate_of_spread, 2)) / (40000.0 * length_breadth_ratio)
 
 
