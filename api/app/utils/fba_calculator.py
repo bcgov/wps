@@ -132,7 +132,7 @@ def calculate_fire_behavour_advisory(station: FBACalculatorWeatherStation) -> Fi
     hfi = cffdrs.head_fire_intensity(fuel_type=station.fuel_type,
                                      percentage_conifer=station.percentage_conifer,
                                      percentage_dead_balsam_fir=station.percentage_dead_balsam_fir,
-                                     bui=station.bui, ffmc=station.ffmc, ros=ros, cfb=cfb, cfl=cfl, sfc=sfc)
+                                     ros=ros, cfb=cfb, cfl=cfl, sfc=sfc)
     critical_hours_4000 = get_critical_hours(4000, station.fuel_type, station.percentage_conifer,
                                              station.percentage_dead_balsam_fir, station.bui,
                                              station.grass_cure,

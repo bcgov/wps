@@ -517,8 +517,6 @@ def total_fuel_consumption(  # pylint: disable=invalid-name
 def head_fire_intensity(fuel_type: str,
                         percentage_conifer: float,
                         percentage_dead_balsam_fir: float,
-                        bui: float,
-                        ffmc: float,
                         ros: float,
                         cfb: float,
                         cfl: float,
@@ -528,7 +526,6 @@ def head_fire_intensity(fuel_type: str,
     first makes method calls to calculate the necessary intermediary values.
     """
 
-    sfc = surface_fuel_consumption(fuel_type, bui, ffmc, percentage_conifer)
     tfc = total_fuel_consumption(fuel_type, cfb, sfc,
                                  percentage_conifer, percentage_dead_balsam_fir, cfl)
     # Args:
@@ -624,7 +621,7 @@ def get_ffmc_for_target_hfi(    # pylint: disable=too-many-arguments
     experimental_hfi = head_fire_intensity(fuel_type,
                                            percentage_conifer,
                                            percentage_dead_balsam_fir,
-                                           bui, experimental_ffmc, experimental_ros, cfb,
+                                           experimental_ros, cfb,
                                            cfl, experimental_sfc)
     error_hfi = (target_hfi - experimental_hfi) / target_hfi
 
@@ -649,8 +646,7 @@ def get_ffmc_for_target_hfi(    # pylint: disable=too-many-arguments
                                           grass_cure, percentage_dead_balsam_fir, crown_base_height)
         experimental_hfi = head_fire_intensity(fuel_type,
                                                percentage_conifer,
-                                               percentage_dead_balsam_fir,
-                                               bui, experimental_ffmc, experimental_ros,
+                                               percentage_dead_balsam_fir, experimental_ros,
                                                cfb, cfl, experimental_sfc)
         error_hfi = (target_hfi - experimental_hfi) / target_hfi
 

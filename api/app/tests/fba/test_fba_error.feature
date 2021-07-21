@@ -1,8 +1,6 @@
 Feature: /fbc/
 
     Scenario: Fire Behaviour Calculation
-        # NOTE: When writing requests, we already have stubs in place for the following station combinations:
-        # (230,), (146,230), (322,346,335)
         Given <elevation>, <latitude>, <longitude>, <time_of_interest>, <wind_speed>, <wind_direction>, <percentage_conifer>, <percentage_dead_balsam_fir>, <grass_cure>, <crown_base_height>, <isi>, <bui>, <ffmc>, <dmc>, <dc>, <fuel_type>
         Then ROS is within <s_ros_em> of <spreadsheet_ros> with <note>
         And CFB is within <s_cfb_em> of <spreadsheet_cfb> with <note>
