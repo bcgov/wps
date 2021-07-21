@@ -100,6 +100,9 @@ def calculate_fire_behavour_advisory(station: FBACalculatorWeatherStation) -> Fi
         # The day 144 is the average date for the minimum foliar moisture content in the boreal regions of
         # Canada. It is usually pretty close maybe 7 days in either direction.
         date_of_minimum_foliar_moisture_content = 144
+    else:
+        # Setting to 0 will cause CFFDRS to figure it out by itself.
+        date_of_minimum_foliar_moisture_content = 0
 
     fmc = cffdrs.foliar_moisture_content(
         station.lat, station.long, station.elevation,
