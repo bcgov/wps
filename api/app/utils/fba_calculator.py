@@ -210,7 +210,7 @@ def get_60_minutes_fire_size(length_breadth_ratio: float, rate_of_spread: float)
 def get_fire_size(fuel_type: str, ros: float, bros: float, ellapsed_minutes: int, cfb: float,
                   lb_ratio: float):
     """
-    Fire size based on Eq. 8 (Alexander, M.E. 1985. Estimating the length-to-breadth ratio of elliptical 
+    Fire size based on Eq. 8 (Alexander, M.E. 1985. Estimating the length-to-breadth ratio of elliptical
     forest fire patterns.).
     """
     # Using acceleration:
