@@ -117,7 +117,7 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
   const useStyles = makeStyles(theme => ({
     formControl: {
       margin: theme.spacing(1),
-      minWidth: 180
+      minWidth: 210
     },
     criticalHours: {
       borderLeft: '6px solid #e6ebf0',
