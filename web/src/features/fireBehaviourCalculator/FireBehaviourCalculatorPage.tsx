@@ -204,7 +204,7 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
                   diurnal FFMC table (Table 4.1), for the hours of 13:00 to 07:00 PDT.
                   <br />
                   Critical hours between 07:00 and 13:00 PDT are calculated in hourly
-                  increments using Table 4.2 of the Red Book and the station's most
+                  increments using Table 4.2 of the Red Book and the station&apos;s most
                   recently observed RH value for the corresponding hour.
                 </p>
               </div>

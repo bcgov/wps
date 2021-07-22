@@ -48,7 +48,7 @@ def get_hour_20(time_of_interest: datetime) -> datetime:
 
 
 def convert_utc_to_pdt(time_of_interest: datetime) -> datetime:
-    """ Get the datetime in Pacific Daylight Timezone (PDT) : UTC-7 given a 
+    """ Get the datetime in Pacific Daylight Timezone (PDT) : UTC-7 given a
     datetime in UTC timezone """
     return time_of_interest.astimezone(timezone(offset=timedelta(hours=PDT_UTC_OFFSET)))
 

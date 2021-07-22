@@ -7,7 +7,6 @@ from fastapi import APIRouter, Depends
 from app.auth import authentication_required, audit
 from app.hourlies import get_hourly_readings_in_time_interval
 from app.schemas.fba_calc import StationListRequest, StationRequest, StationsListResponse, StationResponse
-from app.schemas.shared import WeatherDataRequest
 from app.utils import cffdrs
 from app.utils.time import get_hour_20_from_date
 from app.wildfire_one.schema_parsers import WFWXWeatherStation
@@ -15,7 +14,8 @@ from app.wildfire_one.wfwx_api import (get_auth_header,
                                        get_dailies,
                                        get_wfwx_stations_from_station_codes)
 from app.utils.fba_calculator import (FBACalculatorWeatherStation,
-                                      FireBehaviourAdvisory, build_hourly_rh_dict, calculate_fire_behaviour_advisory)
+                                      FireBehaviourAdvisory, build_hourly_rh_dict,
+                                      calculate_fire_behaviour_advisory)
 
 
 router = APIRouter(
@@ -212,7 +212,8 @@ async def get_stations_data(  # pylint:disable=too-many-locals
             # get the "daily" data for the station for the previous day
             yesterday_response = await get_dailies(session, header, wfwx_stations, prev_day)
             # turn it into a dictionary so we can easily get at data
-            yesterday_dailies_by_station_id = {raw_daily.get('stationId'): raw_daily async for raw_daily in yesterday_response}
+            yesterday_dailies_by_station_id = {raw_daily.get('stationId'):
+                                               raw_daily async for raw_daily in yesterday_response}
             # get hourly observation history from our API (used for calculating morning diurnal FFMC)
             hourly_observations = await get_hourly_readings_in_time_interval(
                 unique_station_codes,
@@ -232,7 +233,8 @@ async def get_stations_data(  # pylint:disable=too-many-locals
             # get the wfwx station
             wfwx_station = wfwx_station_lookup[requested_station.station_code]
             # get the raw daily response from wf1.
-            if wfwx_station.wfwx_id in dailies_by_station_id and requested_station.station_code in hourly_obs_by_station_code:
+            if wfwx_station.wfwx_id in dailies_by_station_id and\
+                    requested_station.station_code in hourly_obs_by_station_code:
                 try:
                     station_response = await process_request(
                         dailies_by_station_id,

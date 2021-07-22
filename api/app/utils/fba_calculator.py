@@ -44,7 +44,7 @@ class DiurnalFFMCLookupTable():
         for level_1, level_2 in df_col_labels:
             if 'Unnamed' in str(level_2):
                 continue
-            elif 'Unnamed' not in str(level_1):
+            if 'Unnamed' not in str(level_1):
                 hour = int(level_1)
                 hour_lookup_keys += 3 * [hour]
             rh_lookup_keys += [level_2]
@@ -63,7 +63,7 @@ class DiurnalFFMCLookupTable():
 class FBACalculatorWeatherStation():  # pylint: disable=too-many-instance-attributes
     """ Inputs for Fire Behaviour Advisory Calculator """
 
-    def __init__(self,  # pylint: disable=too-many-arguments
+    def __init__(self,  # pylint: disable=too-many-arguments, too-many-locals
                  elevation: int, fuel_type: str,
                  time_of_interest: date, percentage_conifer: float,
                  percentage_dead_balsam_fir: float, grass_cure: float,
