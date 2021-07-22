@@ -24,8 +24,8 @@
             "fire_type": "CC",
             "percentage_crown_fraction_burned": 0.9846693095279795,
             "flame_length": 10.111986998880331,
-            "sixty_minute_fire_size": 87.5724418093146,
-            "thirty_minute_fire_size": 21.89311045232865,
+            "sixty_minute_fire_size": 67.75440344206237,
+            "thirty_minute_fire_size": 11.847662598291704,
             "critical_hours_hfi_4000": "13:00 - 21:00",
             "critical_hours_hfi_10000": "13:00 - 20:00"
         }
