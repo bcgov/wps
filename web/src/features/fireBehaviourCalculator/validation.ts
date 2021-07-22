@@ -8,6 +8,9 @@ import { FBCInputRow } from './components/FBCInputGrid'
  * @returns false if valid, true otherwise
  */
 export const grassCureNotSetForGrassType = (row: FBCInputRow) => {
+  if (isUndefined(row)) {
+    return false
+  }
   if (row.fuelType === 'o1a' || row.fuelType === 'o1b') {
     return isUndefined(row.grassCure) || isNaN(row.grassCure)
   }

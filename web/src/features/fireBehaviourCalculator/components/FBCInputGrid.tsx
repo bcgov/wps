@@ -137,43 +137,11 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
   }))
 
   type FBCTableRow = DisplayableInputRow & Partial<FBCStation>
-  const buildRowData = (
-    inputRow: DisplayableInputRow,
-    outputRow: FBCStation
-  ): FBCTableRow => {
-    const builtRow = {
-      weatherStation: inputRow.weatherStation,
-      fuelType: inputRow.fuelType,
-      grassCure: inputRow.grassCure,
-      windSpeed: inputRow.windSpeed,
-      elevation: outputRow?.elevation,
-      status: outputRow?.status,
-      temp: outputRow?.temp,
-      rh: outputRow?.rh,
-      wind_direction: outputRow?.wind_direction,
-      precipitation: outputRow?.precipitation,
-      fine_fuel_moisture_code: outputRow?.fine_fuel_moisture_code,
-      duff_moisture_code: outputRow?.duff_moisture_code,
-      drought_code: outputRow?.drought_code,
-      initial_spread_index: outputRow?.initial_spread_index,
-      build_up_index: outputRow?.build_up_index,
-      fire_weather_index: outputRow?.fire_weather_index,
-      head_fire_intensity: outputRow?.head_fire_intensity,
-      critical_hours_hfi_4000: outputRow?.critical_hours_hfi_4000,
-      critical_hours_hfi_10000: outputRow?.critical_hours_hfi_10000,
-      rate_of_spread: outputRow?.rate_of_spread,
-      fire_type: outputRow?.fire_type,
-      percentage_crown_fraction_burned: outputRow?.percentage_crown_fraction_burned,
-      flame_length: outputRow?.flame_length,
-      thirty_minute_fire_size: outputRow?.thirty_minute_fire_size,
-      sixty_minute_fire_size: outputRow?.sixty_minute_fire_size
-    }
-    return builtRow
-  }
 
-  const rows = zipWith(inputFieldData, calculatedResults, (inputRow, outputRow) =>
-    buildRowData(inputRow, outputRow)
-  )
+  const rows = zipWith(inputFieldData, calculatedResults, (inputRow, outputRow) => ({
+    ...inputRow,
+    ...outputRow
+  }))
   const DECIMAL_PLACES = 1
 
   return (
