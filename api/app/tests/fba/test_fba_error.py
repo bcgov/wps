@@ -189,10 +189,11 @@ def then_spreadsheet_hfi(result: dict, s_hfi_em: float, spreadsheet_hfi: float, 
 @then("ROS is within <r_ros_em> of REDapp ROS")
 def then_red_app_ros(result: dict, r_ros_em: float):
     """ check the relative error of ROS """
+    # NOTE: REDapp has a ros_eq and a ros_t ; not sure which is which!
     check_metric('REDapp ROS',
                  result['fuel_type'],
                  result['python'].ros,
-                 result['java'].ros_t, r_ros_em)
+                 result['java'].ros_eq, r_ros_em)
 
 
 @then("CFB is within <r_cfb_em> of REDapp CFB")

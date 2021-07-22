@@ -1,6 +1,7 @@
 """ Fire Behaviour Analysis Calculator Tool
 """
 import math
+import os
 from datetime import date
 from typing import Optional
 import logging
@@ -22,7 +23,9 @@ class DiurnalFFMCLookupTable():
     """ Singleton that loads diurnal FFMC lookup table from Red Book once, for reuse. """
 
     def __init__(self):
-        with open('app/data/diurnalFFMC_redbook.xlsx', 'rb') as excel_file:
+        os.path.join(os.path.dirname(__file__), 'logging.json')
+        filename = os.path.join(os.path.dirname(__file__), '../data/diurnalFFMC_redbook.xlsx')
+        with open(filename, 'rb') as excel_file:
             xl_file = pd.ExcelFile(excel_file)
             afternoon_df = pd.read_excel(xl_file, 'afternoon_overnight')
         # re-index afternoon_df so that keys are based on approx. solar noon FFMC

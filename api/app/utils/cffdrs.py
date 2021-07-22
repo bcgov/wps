@@ -217,6 +217,67 @@ def back_rate_of_spread(fuel_type: str,  # pylint: disable=too-many-arguments, d
     return result[0]
 
 
+def isi_calc(ffmc: float, ws: float, fbpMod: bool = False):  # pylint: disable=invalid-name
+    """
+    # Description:
+    #   Computes the Initial Spread Index From the FWI System. Equations are from
+    #   Van Wagner (1985) as listed below, except for the modification for fbp
+    #   takene from FCFDG (1992).
+
+    #   Equations and FORTRAN program for the Canadian Forest Fire
+    #   Weather Index System. 1985. Van Wagner, C.E.; Pickett, T.L.
+    #   Canadian Forestry Service, Petawawa National Forestry
+    #   Institute, Chalk River, Ontario. Forestry Technical Report 33.
+    #   18 p.
+    #
+    #   Forestry Canada  Fire Danger Group (FCFDG) (1992). Development and
+    #   Structure of the Canadian Forest Fire Behavior Prediction System."
+    #   Technical ReportST-X-3, Forestry Canada, Ottawa, Ontario.
+    #
+    # Args:
+    #   ffmc:   Fine Fuel Moisture Code
+    #     ws:   Wind Speed (km/h)
+    # fbpMod:   TRUE/FALSE if using the fbp modification at the extreme end
+    #
+    # Returns:
+    #   ISI:    Intial Spread Index
+    """
+    # pylint: disable=protected-access, no-member
+    result = CFFDRS.instance().cffdrs._ISIcalc(ffmc=ffmc, ws=ws, fbpMod=fbpMod)
+    return result[0]
+
+
+def bui_calc(dmc: float, dc: float):  # pylint: disable=invalid-name
+    """
+    # Description: Buildup Index Calculation. All code
+    #              is based on a C code library that was written by Canadian
+    #              Forest Service Employees, which was originally based on
+    #              the Fortran code listed in the reference below. All equations
+    #              in this code refer to that document.
+    #
+    #              Equations and FORTRAN program for the Canadian Forest Fire
+    #              Weather Index System. 1985. Van Wagner, C.E.; Pickett, T.L.
+    #              Canadian Forestry Service, Petawawa National Forestry
+    #              Institute, Chalk River, Ontario. Forestry Technical Report 33.
+    #              18 p.
+    #
+    #              Additional reference on FWI system
+    #
+    #              Development and structure of the Canadian Forest Fire Weather
+    #              Index System. 1987. Van Wagner, C.E. Canadian Forestry Service,
+    #              Headquarters, Ottawa. Forestry Technical Report 35. 35 p.
+    #
+    #
+    # Args:   dc:   Drought Code
+    #        dmc:   Duff Moisture Code
+    #
+    # Returns: A single bui value
+    """
+    # pylint: disable=protected-access, no-member
+    result = CFFDRS.instance().cffdrs._buiCalc(dmc=dmc, dc=dc)
+    return result[0]
+
+
 def rate_of_spread(fuel_type: str,  # pylint: disable=too-many-arguments, disable=invalid-name
                    isi: float,
                    bui: float,
