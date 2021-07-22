@@ -200,8 +200,9 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
               <div>
                 <h4>&dagger; Solar Noon Outputs</h4>
                 <p>
-                  All outputs are for 13:00 PDT. Diurnal adjustments for 17:00 coming soon.
-                  <br />                  
+                  All outputs are for 13:00 PDT. Diurnal adjustments for 17:00 coming
+                  soon.
+                  <br />
                   These fire behaviour calculations assume flat terrain.
                 </p>
                 <h4>&Dagger; Critical Hours: under review</h4>
