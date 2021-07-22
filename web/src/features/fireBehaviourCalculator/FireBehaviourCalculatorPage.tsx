@@ -198,7 +198,13 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
             />
             <Paper className={classes.criticalHours}>
               <div>
-                <h4>&dagger; Critical Hours: under review</h4>
+                <h4>&dagger; Solar Noon Outputs</h4>
+                <p>
+                  All outputs are for 13:00 PDT. Diurnal adjustments for 17:00 coming soon.
+                  <br />                  
+                  These fire behaviour calculations assume flat terrain.
+                </p>
+                <h4>&Dagger; Critical Hours: under review</h4>
                 <p>
                   Critical hours are calculated in hourly increments using the Red Book
                   diurnal FFMC table (Table 4.1), for the hours of 13:00 to 07:00 PDT.
