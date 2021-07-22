@@ -114,7 +114,8 @@ def given_input(fuel_type: str, percentage_conifer: float, percentage_dead_balsa
         # NOTE: For high wind speeds, the difference between REDapp and FireBAT starts exceeding
         # tolerances. REDapp calculates it's own ISI (doesn't take the one provided by the system),
         # but uses a different formula from CFFDRS, so the results start getting more pronounced
-        # with wind speeds.
+        # with higher wind speeds. For that reason we limit our wind speeds to 40m, since anything
+        # above that starts failing the unit tests.
         wind_speed = random.uniform(0, 40)
         wind_direction = random.uniform(0, 360)
         temperature = random.uniform(0, 40)
