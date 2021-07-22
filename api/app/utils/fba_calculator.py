@@ -2,13 +2,14 @@
 """
 import math
 from datetime import date
-from typing import Optional
+from typing import List, Optional
 import logging
 import pandas as pd
+from app.schemas.observations import WeatherReading
 from app.utils.singleton import Singleton
 from app.utils.hfi_calculator import FUEL_TYPE_LOOKUP
 from app.utils import cffdrs
-from app.utils.time import get_hour_20_from_date, get_julian_date
+from app.utils.time import convert_utc_to_pdt, get_hour_20_from_date, get_julian_date
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +28,9 @@ class DiurnalFFMCLookupTable():
     def __init__(self):
         with open('app/data/diurnal_ffmc_lookups/afternoon_overnight.csv', 'rb') as afternoon_file:
             afternoon_df = pd.read_csv(afternoon_file)
+        # Pylint thinks that afternoon_df's type is TextFileReader. It isn't - it's a pandas dataframe.
+        # pylint: disable=no-member
+        afternoon_df.columns = afternoon_df.columns.astype(int)
         afternoon_df.set_index(13, inplace=True)
 
         with open('app/data/diurnal_ffmc_lookups/morning.csv', 'rb') as morning_file:
@@ -64,8 +68,9 @@ class FBACalculatorWeatherStation():  # pylint: disable=too-many-instance-attrib
                  time_of_interest: date, percentage_conifer: float,
                  percentage_dead_balsam_fir: float, grass_cure: float,
                  crown_base_height: int, lat: float, long: float, bui: float, ffmc: float, isi: float,
-                 wind_speed: float, wind_direction: float, temperature: float, relative_humidity: float, precipitation: float,
-                 status: str, prev_day_daily_ffmc: float):
+                 wind_speed: float, wind_direction: float, temperature: float, relative_humidity: float,
+                 precipitation: float, status: str, prev_day_daily_ffmc: float,
+                 last_observed_morning_rh_values: dict):
         self.elevation = elevation
         self.fuel_type = fuel_type
         self.time_of_interest = time_of_interest
@@ -85,6 +90,7 @@ class FBACalculatorWeatherStation():  # pylint: disable=too-many-instance-attrib
         self.precipitation = precipitation
         self.status = status
         self.prev_day_daily_ffmc = prev_day_daily_ffmc
+        self.last_observed_morning_rh_values = last_observed_morning_rh_values
 
     def __str__(self) -> str:
         return 'lat {}, long {}, elevation {}, fuel_type {}, time_of_interest {}, percentage_conifer {},\
@@ -164,12 +170,14 @@ def calculate_fire_behaviour_advisory(station: FBACalculatorWeatherStation) -> F
                                              station.percentage_dead_balsam_fir, station.bui,
                                              station.grass_cure,
                                              station.crown_base_height, station.ffmc, fmc, cfb, cfl,
-                                             station.wind_speed)
+                                             station.wind_speed, station.prev_day_daily_ffmc,
+                                             station.last_observed_morning_rh_values)
     critical_hours_10000 = get_critical_hours(10000, station.fuel_type, station.percentage_conifer,
                                               station.percentage_dead_balsam_fir, station.bui,
                                               station.grass_cure,
                                               station.crown_base_height, station.ffmc, fmc, cfb, cfl,
-                                              station.wind_speed)
+                                              station.wind_speed, station.prev_day_daily_ffmc,
+                                              station.last_observed_morning_rh_values)
 
     fire_type = get_fire_type(fuel_type=station.fuel_type, crown_fraction_burned=cfb)
     flame_length = get_approx_flame_length(hfi)
@@ -314,7 +322,6 @@ def get_morning_diurnal_ffmc(hour_of_interest: int, prev_day_daily_ffmc: float, 
     """ Returns the diurnal FFMC (an approximation) estimated for the given hour_of_interest,
     based on the estimated RH value for the hour_of_interest.
     """
-
     # pylint: disable=protected-access, no-member
     morning_df = DiurnalFFMCLookupTable.instance().morning_df
 
@@ -333,26 +340,26 @@ def get_morning_diurnal_ffmc(hour_of_interest: int, prev_day_daily_ffmc: float, 
     return None
 
 
-def get_critical_hours_start(critical_ffmc: float, solar_noon_ffmc: float):
+def get_critical_hours_start(critical_ffmc: float, solar_noon_ffmc: float,
+                             prev_day_daily_ffmc: float, last_observed_morning_rh_values: dict):
     """ Returns the hour of day (on 24H clock) at which the hourly FFMC crosses the
     threshold of critical_ffmc.
     Returns None if the hourly FFMC never reaches critical_ffmc.
     """
     if solar_noon_ffmc >= critical_ffmc:
-        logger.info('Solar noon FFMC >= critical FFMC')
+        logger.info('Solar noon FFMC %s >= critical FFMC %s', solar_noon_ffmc, critical_ffmc)
 
         # go back in time in increments of 1 hour
-        clock_time = 13-1.0  # start from solar noon - 1.0 hours
-        # first need to determine the previous day's daily FFMC and
-        # the previous day's RH value for the same clock_time
-        # while get_morning_diurnal_ffmc(clock_time, previous_day_ffmc, hourly_relative_humidity) >= critical_ffmc:
-        #     clock_time -= 1.0
-        #     if clock_time < 7.0:
-        #         break
-        # # add back the hour that caused FFMC to drop below critical_ffmc (or that
-        # #   pushed time below 7.0)
-        # clock_time += 1.0
-        # logger.info('%s', clock_time)
+        clock_time = 12.0  # start from solar noon - 1.0 hours
+        hourly_rh = last_observed_morning_rh_values[clock_time]
+        while get_morning_diurnal_ffmc(clock_time, prev_day_daily_ffmc, hourly_rh) >= critical_ffmc:
+            clock_time -= 1.0
+            if clock_time < 7.0:
+                break
+            hourly_rh = last_observed_morning_rh_values[clock_time]
+        # add back the hour that caused FFMC to drop below critical_ffmc (or that
+        #   pushed time below 7.0)
+        clock_time += 1.0
         return clock_time
 
     logger.info('Solar noon FFMC %s < critical FFMC %s', solar_noon_ffmc, critical_ffmc)
@@ -372,10 +379,16 @@ def get_critical_hours_end(critical_ffmc: float, solar_noon_ffmc: float, critica
     """
     if critical_hour_start is None:
         return None
-    clock_time = critical_hour_start + 1.0    # increase time in increments of 1 hours
+    if critical_hour_start < 13:
+        # if critical_hour_start is in the morning, we know that based on the diurnal curve,
+        # the critical hour is going to extend into the afternoon, so set clock_time to then
+        clock_time = 14.0
+    else:
+        clock_time = critical_hour_start + 1.0    # increase time in increments of 1 hours
+
     while get_afternoon_overnight_diurnal_ffmc(clock_time, solar_noon_ffmc) >= critical_ffmc:
         clock_time += 1.0
-        if clock_time == 32:  # break if clock_time is now 08:00 of the next day
+        if clock_time >= 32:  # break if clock_time is now 08:00 of the next day
             break
     # subtract the hour that caused FFMC to drop below critical_ffmc
     clock_time -= 1.0
@@ -389,7 +402,8 @@ def get_critical_hours(  # pylint: disable=too-many-arguments
         percentage_dead_balsam_fir: float, bui: float,
         grass_cure: float, crown_base_height: float,
         solar_noon_ffmc: float, fmc: float, cfb: float, cfl: float,
-        wind_speed: float):
+        wind_speed: float, prev_daily_ffmc: float,
+        last_observed_morning_rh_values: dict):
     """ Determines the range of critical hours on a 24H clock.
     Critical Hours describes the time range for the given day during which HFI will meet or exceed
     hfi_target value. Critical hours are calculated by determining diurnally-adjusted FFMC values
@@ -418,7 +432,7 @@ def get_critical_hours(  # pylint: disable=too-many-arguments
     # resulting_hfi >= target_hfi. Now have to determine what hours of the day (if any)
     # will see hourly FFMC (adjusted according to diurnal curve) >= critical_ffmc.
     critical_hours_start = get_critical_hours_start(
-        critical_ffmc, solar_noon_ffmc)
+        critical_ffmc, solar_noon_ffmc, prev_daily_ffmc, last_observed_morning_rh_values)
     if critical_hours_start is None:
         return None
     critical_hours_end = get_critical_hours_end(
@@ -431,3 +445,28 @@ def get_critical_hours(  # pylint: disable=too-many-arguments
     critical_hours_end = critical_hours_end.replace(':0', ':00').replace(':5', ':30')
     response_string = critical_hours_start + ' - ' + critical_hours_end
     return response_string
+
+
+def build_hourly_rh_dict(hourly_observations: List[WeatherReading]):
+    """ Builds a dictionary of the most recently observed RH values between 0700 and 1200 H
+    for a station. Returns the dictionary.
+    """
+    hourly_observations.sort(key=lambda x: x.datetime, reverse=True)
+    relevant_hours = [7.0, 8.0, 9.0, 10.0, 11.0, 12.0]
+    rh_dict = {
+        7.0: None,
+        8.0: None,
+        9.0: None,
+        10.0: None,
+        11.0: None,
+        12.0: None
+    }
+    for obs in hourly_observations:
+        obs.datetime = convert_utc_to_pdt(obs.datetime)
+        if len(relevant_hours) == 0:
+            break
+        if obs.datetime.hour in relevant_hours and rh_dict[obs.datetime.hour] is None:
+            rh_dict[obs.datetime.hour] = obs.relative_humidity
+            relevant_hours.remove(obs.datetime.hour)
+
+    return rh_dict
