@@ -19,7 +19,6 @@ import FBCInputGrid, {
   GridMenuOption,
   FBCInputRow
 } from 'features/fireBehaviourCalculator/components/FBCInputGrid'
-import FBCResultTable from 'features/fireBehaviourCalculator/components/FBCResultTable'
 import { FuelTypes } from 'features/fireBehaviourCalculator/fuelTypes'
 import { fetchFireBehaviourStations } from 'features/fireBehaviourCalculator/slices/fireBehaviourCalcSlice'
 import {
@@ -172,12 +171,13 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
           <FBCInputGrid
             stationOptions={stationMenuOptions}
             fuelTypeOptions={fuelTypeMenuOptions}
-            rows={rows}
+            inputRows={rows}
             updateRow={updateRow}
             selected={selected}
             updateSelected={(selected: number[]) => {
               setSelected(selected)
             }}
+            calculatedResults={fireBehaviourResultStations}
           />
         </div>
         <FormControl className={classes.formControl}>
@@ -190,26 +190,18 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
             buttonLabel="Calculate"
           />
         </FormControl>
-        {fireBehaviourResultStations.length > 0 && (
+        <Paper className={classes.criticalHours}>
           <div>
-            <FBCResultTable
-              testId="fb-calc-result-table"
-              fireBehaviourResultStations={fireBehaviourResultStations}
-            />
-            <Paper className={classes.criticalHours}>
-              <div>
-                <h4>&dagger; Critical Hours: under review</h4>
-                <p>
-                  Critical hours are calculated in hourly increments using the Red Book
-                  diurnal FFMC table (Table 4.1), for the hours of 13:00 to 07:00 PDT.
-                  <br />
-                  Critical hours between 07:00 and 13:00 (Table 4.2 of the Red Book) are
-                  not yet factored into the calculations (coming soon).
-                </p>
-              </div>
-            </Paper>
+            <h4>&dagger; Critical Hours: under review</h4>
+            <p>
+              Critical hours are calculated in hourly increments using the Red Book
+              diurnal FFMC table (Table 4.1), for the hours of 13:00 to 07:00 PDT.
+              <br />
+              Critical hours between 07:00 and 13:00 (Table 4.2 of the Red Book) are not
+              yet factored into the calculations (coming soon).
+            </p>
           </div>
-        )}
+        </Paper>
       </Container>
     </main>
   )

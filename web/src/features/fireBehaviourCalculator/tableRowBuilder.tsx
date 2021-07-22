@@ -1,4 +1,5 @@
 import { Checkbox, TextField } from '@material-ui/core'
+import { ClassNameMap } from '@material-ui/core/styles/withStyles'
 import { Autocomplete } from '@material-ui/lab'
 import {
   GridMenuOption,
@@ -9,25 +10,154 @@ import { grassCureNotSetForGrassType } from 'features/fireBehaviourCalculator/va
 import { find, isEqual } from 'lodash'
 import React, { ChangeEvent } from 'react'
 
+const updateFBCRow = (
+  props: FBCInputGridProps,
+  rowId: number,
+  field: string,
+  // eslint-disable-next-line
+  value: any,
+  updatedRowBuilder: (
+    rowToUpdate: FBCInputRow,
+    field: string,
+    value: GridMenuOption | number
+  ) => FBCInputRow
+) => {
+  const rowToUpdate = find(props.inputRows, ['id', rowId])
+  if (rowToUpdate) {
+    const updatedRow = updatedRowBuilder(rowToUpdate, field, value)
+    props.updateRow(rowId, updatedRow)
+  }
+}
+
+export const buildWeatherStationCell = (
+  props: FBCInputGridProps,
+  classNameMap: ClassNameMap<'weatherStation'>,
+  value: GridMenuOption | null,
+  rowId: number
+): JSX.Element => {
+  // eslint-disable-next-line
+  const autoCompleteChangeHandler = (_: React.ChangeEvent<{}>, value: any | null) => {
+    updateFBCRow(props, rowId, 'weatherStation', value, buildUpdatedOptionRow)
+  }
+  return buildAutocompleteCell(
+    props,
+    classNameMap,
+    value,
+    'weatherStation',
+    autoCompleteChangeHandler
+  )
+}
+
+export const buildFuelTypeCell = (
+  props: FBCInputGridProps,
+  classNameMap: ClassNameMap<'fuelType'>,
+  value: GridMenuOption | null,
+  rowId: number
+): JSX.Element => {
+  // eslint-disable-next-line
+  const autoCompleteChangeHandler = (_: React.ChangeEvent<{}>, value: any | null) => {
+    updateFBCRow(props, rowId, 'fuelType', value, buildUpdatedOptionRow)
+  }
+  return buildAutocompleteCell(
+    props,
+    classNameMap,
+    value,
+    'fuelType',
+    autoCompleteChangeHandler
+  )
+}
+
+export const buildGrassCureCell = (
+  props: FBCInputGridProps,
+  classNameMap: ClassNameMap<'grassCure'>,
+  value: number | undefined,
+  rowId: number
+): JSX.Element => {
+  const numberFieldChangeHandler = (
+    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    updateFBCRow(
+      props,
+      rowId,
+      'grassCure',
+      parseInt(event.target.value),
+      buildUpdatedNumberRow
+    )
+  }
+
+  return buildNumberInputCell(
+    value,
+    'grassCure',
+    props,
+    classNameMap,
+    rowId,
+    numberFieldChangeHandler
+  )
+}
+
+export const buildWindSpeedCell = (
+  props: FBCInputGridProps,
+  classNameMap: ClassNameMap<'windSpeed'>,
+  value: number | undefined,
+  rowId: number
+): JSX.Element => {
+  const numberFieldChangeHandler = (
+    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    updateFBCRow(
+      props,
+      rowId,
+      'windSpeed',
+      parseInt(event.target.value),
+      buildUpdatedNumberRow
+    )
+  }
+
+  return buildNumberInputCell(
+    value,
+    'windSpeed',
+    props,
+    classNameMap,
+    rowId,
+    numberFieldChangeHandler
+  )
+}
+
 const buildAutocompleteCell = (
-  options: GridMenuOption[],
-  emptyLabel: string,
-  cell: { column: { id: string }; value: GridMenuOption },
+  props: FBCInputGridProps,
+  autocompleteClasses: Partial<ClassNameMap<'weatherStation' | 'fuelType'>>,
+  value: GridMenuOption | null,
+  field: string,
   // eslint-disable-next-line
   changeHandler: (event: React.ChangeEvent<{}>, value: any) => void
-) => (
-  <Autocomplete
-    options={options}
-    getOptionSelected={(option, value) => isEqual(option, value)}
-    getOptionLabel={option => option?.label}
-    style={{ width: 300 }}
-    renderInput={params => (
-      <TextField {...params} label={cell.value ? '' : emptyLabel} variant="outlined" />
-    )}
-    onChange={changeHandler}
-    value={cell.value}
-  />
-)
+): JSX.Element => {
+  const emptyLabel =
+    field === 'weatherStation' ? 'Select a station' : 'Select a fuel type'
+  const options =
+    field === 'weatherStation' ? props.stationOptions : props.fuelTypeOptions
+  const componentClass =
+    field === 'weatherStation'
+      ? autocompleteClasses.weatherStation
+      : autocompleteClasses.fuelType
+  return (
+    <Autocomplete
+      options={options}
+      className={componentClass}
+      getOptionSelected={(option, value) => isEqual(option, value)}
+      getOptionLabel={option => option?.label}
+      renderInput={params => (
+        <TextField
+          {...params}
+          label={value ? '' : emptyLabel}
+          variant="outlined"
+          size="small"
+        />
+      )}
+      onChange={changeHandler}
+      value={value}
+    />
+  )
+}
 
 // eslint-disable-next-line
 const buildUpdatedOptionRow = (rowToUpdate: FBCInputRow, field: string, value: any) => {
@@ -49,82 +179,53 @@ const buildUpdatedNumberRow = (rowToUpdate: FBCInputRow, field: string, value: a
   }
 }
 
-export const buildRowCell = (
+export const buildSelectCheckboxCell = (
   props: FBCInputGridProps,
-  cell: {
-    column: { id: string }
-    value: GridMenuOption
-  },
-  field: string,
   rowId: number
 ): JSX.Element => {
-  const updateFBCRow = (
-    props: FBCInputGridProps,
-    rowId: number,
-    field: string,
-    // eslint-disable-next-line
-    value: any,
-    updatedRowBuilder: (
-      rowToUpdate: FBCInputRow,
-      field: string,
-      value: GridMenuOption | number
-    ) => FBCInputRow
-  ) => {
-    const rowToUpdate = find(props.rows, ['id', rowId])
-    if (rowToUpdate) {
-      const updatedRow = updatedRowBuilder(rowToUpdate, field, value)
-      props.updateRow(rowId, updatedRow)
-    }
-  }
-  // eslint-disable-next-line
-  const autoCompleteChangeHandler = (_: React.ChangeEvent<{}>, value: any | null) => {
-    updateFBCRow(props, rowId, field, value, buildUpdatedOptionRow)
-  }
-
-  const numberFieldChangeHandler = (
+  const selectedSet = new Set(props.selected)
+  return (
+    <Checkbox
+      color="primary"
+      checked={selectedSet.has(rowId)}
+      onClick={() => {
+        if (selectedSet.has(rowId)) {
+          // Checked, toggle check off
+          selectedSet.delete(rowId)
+        } else {
+          // Unchecked, toggle check on
+          selectedSet.add(rowId)
+        }
+        props.updateSelected(Array.from(selectedSet))
+      }}
+    />
+  )
+}
+const buildNumberInputCell = (
+  value: number | undefined,
+  field: string,
+  props: FBCInputGridProps,
+  numberInputClasses: Partial<ClassNameMap<'grassCure' | 'windSpeed'>>,
+  rowId: number,
+  numberFieldChangeHandler: (
     event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    updateFBCRow(props, rowId, field, parseInt(event.target.value), buildUpdatedNumberRow)
-  }
-
-  if (cell.column.id === 'weatherStation' || cell.column.id === 'fuelType') {
-    const emptyLabel =
-      cell.column.id === 'weatherStation' ? 'Select a station' : 'Select a fuel type'
-    const options =
-      cell.column.id === 'weatherStation' ? props.stationOptions : props.fuelTypeOptions
-    return buildAutocompleteCell(options, emptyLabel, cell, autoCompleteChangeHandler)
-  }
-
-  if (cell.column.id === 'select') {
-    const selectedSet = new Set(props.selected)
-    return (
-      <Checkbox
-        color="primary"
-        checked={selectedSet.has(rowId)}
-        onClick={() => {
-          if (selectedSet.has(rowId)) {
-            // Checked, toggle check off
-            selectedSet.delete(rowId)
-          } else {
-            // Unchecked, toggle check on
-            selectedSet.add(rowId)
-          }
-          props.updateSelected(Array.from(selectedSet))
-        }}
-      />
-    )
-  }
-
+  ) => void
+): JSX.Element => {
   const errorState =
-    cell.column.id === 'grassCure' && grassCureNotSetForGrassType(props.rows[rowId])
+    field === 'grassCure' && grassCureNotSetForGrassType(props.inputRows[rowId])
+
+  const componentClass =
+    field === 'grassCure' ? numberInputClasses.grassCure : numberInputClasses.windSpeed
 
   return (
     <TextField
       type="number"
+      className={componentClass}
+      size="small"
       variant="outlined"
-      inputProps={{ min: 0 }}
+      inputProps={{ min: 0, maxLength: 4, size: 4 }}
       onChange={numberFieldChangeHandler}
-      value={cell.value}
+      value={value}
       error={errorState}
     />
   )
