@@ -141,11 +141,18 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
   const rows: FBCTableRow[] = zipWith(
     inputFieldData,
     calculatedResults,
-    (inputRow, outputRow) => ({
-      ...inputRow,
-      ...outputRow
-    })
-  )
+    (inputRow, outputRow) => {
+      if (inputRow) {
+        return [
+          {
+            ...inputRow,
+            ...outputRow
+          }
+        ]
+      }
+      return []
+    }
+  ).flat()
   const DECIMAL_PLACES = 1
 
   return (
