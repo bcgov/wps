@@ -31,7 +31,7 @@ class DiurnalFFMCLookupTable():
         # Pylint thinks that afternoon_df's type is TextFileReader. It isn't - it's a pandas dataframe.
         # pylint: disable=no-member
         afternoon_df.columns = afternoon_df.columns.astype(int)
-        afternoon_df.set_index(13, inplace=True)
+        afternoon_df.set_index(17, inplace=True)
 
         with open('app/data/diurnal_ffmc_lookups/morning.csv', 'rb') as morning_file:
             morning_df = pd.read_csv(morning_file, header=[0, 1])
@@ -298,18 +298,18 @@ def get_approx_flame_length(head_fire_intensity: float):
     return math.sqrt(head_fire_intensity / 300)
 
 
-def get_afternoon_overnight_diurnal_ffmc(hour_of_interest: int, solar_noon_ffmc: float):
+def get_afternoon_overnight_diurnal_ffmc(hour_of_interest: int, daily_ffmc: float):
     """ Returns the diurnal FFMC (an approximation) estimated for the given hour_of_interest,
-    based on the solar_noon_ffmc.
+    based on the daily_ffmc.
     Hour_of_interest should be expressed in PDT time zone, and can only be between the hours
-    1330 and 0700 the next morning. Otherwise, must use different function.
+    1300 and 0700 the next morning. Otherwise, must use different function.
     """
 
     # pylint: disable=protected-access, no-member
     afternoon_df = DiurnalFFMCLookupTable.instance().afternoon_df
 
     # find index (solar noon FFMC) of afternoon_df that is nearest to solar_noon_ffmc value
-    row = afternoon_df.iloc[abs((afternoon_df.index - solar_noon_ffmc)).argsort()[:1]]
+    row = afternoon_df.iloc[abs((afternoon_df.index - daily_ffmc)).argsort()[:1]]
     if hour_of_interest >= 23.5:
         hour_of_interest = hour_of_interest - 24.0
     # determine minimum absolute value difference between hour_of_interest and column labels
@@ -340,35 +340,39 @@ def get_morning_diurnal_ffmc(hour_of_interest: int, prev_day_daily_ffmc: float, 
     return None
 
 
-def get_critical_hours_start(critical_ffmc: float, solar_noon_ffmc: float,
+def get_critical_hours_start(critical_ffmc: float, daily_ffmc: float,
                              prev_day_daily_ffmc: float, last_observed_morning_rh_values: dict):
     """ Returns the hour of day (on 24H clock) at which the hourly FFMC crosses the
     threshold of critical_ffmc.
     Returns None if the hourly FFMC never reaches critical_ffmc.
     """
-    if solar_noon_ffmc >= critical_ffmc:
-        logger.info('Solar noon FFMC %s >= critical FFMC %s', solar_noon_ffmc, critical_ffmc)
-
-        # go back in time in increments of 1 hour
-        clock_time = 12.0  # start from solar noon - 1.0 hours
+    if daily_ffmc < critical_ffmc:
+        logger.info('Daily FFMC %s < critical FFMC %s', daily_ffmc, critical_ffmc)
+        # Daily FFMC represents peak burning, so diurnal hourly FFMC will never be higher than daily FFMC
+        # if daily FFMC < critical FFMC, station will never reach critical FFMC at any hour of the day
+        return None
+    # else daily_ffmc >= critical_ffmc
+    logger.info('Daily FFMC %s >= critical FFMC %s', daily_ffmc, critical_ffmc)
+    solar_noon_diurnal_ffmc = get_afternoon_overnight_diurnal_ffmc(13, daily_ffmc)
+    if solar_noon_diurnal_ffmc >= critical_ffmc:
+        clock_time = 12.0
         hourly_rh = last_observed_morning_rh_values[clock_time]
         while get_morning_diurnal_ffmc(clock_time, prev_day_daily_ffmc, hourly_rh) >= critical_ffmc:
             clock_time -= 1.0
             if clock_time < 7.0:
                 break
             hourly_rh = last_observed_morning_rh_values[clock_time]
-        # add back the hour that caused FFMC to drop below critical_ffmc (or that
-        #   pushed time below 7.0)
+        # add back the hour that caused FFMC to drop below critical_ffmc
         clock_time += 1.0
         return clock_time
-
-    logger.info('Solar noon FFMC %s < critical FFMC %s', solar_noon_ffmc, critical_ffmc)
-    # go forward in time in increments of 1 hour
-    clock_time = 13 + 1.0  # start from solar noon + 1 hours
-    while get_afternoon_overnight_diurnal_ffmc(clock_time, solar_noon_ffmc) < critical_ffmc:
-        clock_time += 1.0
-        if clock_time == 24.0:
-            return None
+    # else the start of critical hours is sometime in the afternoon (between 12:00 and 17:00)
+    clock_time = 16.0
+    while get_afternoon_overnight_diurnal_ffmc(clock_time, daily_ffmc) >= critical_ffmc:
+        logger.info('At %s, hourly diurnal FFMC is %s', clock_time,
+                    get_afternoon_overnight_diurnal_ffmc(clock_time, daily_ffmc))
+        clock_time -= 1.0
+    # add back the hour that caused FFMC to drop below critical_ffmc
+    clock_time += 1.0
     return clock_time
 
 
@@ -401,7 +405,7 @@ def get_critical_hours(  # pylint: disable=too-many-arguments
         target_hfi: int, fuel_type: str, percentage_conifer: float,
         percentage_dead_balsam_fir: float, bui: float,
         grass_cure: float, crown_base_height: float,
-        solar_noon_ffmc: float, fmc: float, cfb: float, cfl: float,
+        daily_ffmc: float, fmc: float, cfb: float, cfl: float,
         wind_speed: float, prev_daily_ffmc: float,
         last_observed_morning_rh_values: dict):
     """ Determines the range of critical hours on a 24H clock.
@@ -411,7 +415,7 @@ def get_critical_hours(  # pylint: disable=too-many-arguments
     """
     critical_ffmc, resulting_hfi = cffdrs.get_ffmc_for_target_hfi(
         fuel_type, percentage_conifer, percentage_dead_balsam_fir, bui, wind_speed,
-        grass_cure, crown_base_height, solar_noon_ffmc, fmc, cfb, cfl, target_hfi)
+        grass_cure, crown_base_height, daily_ffmc, fmc, cfb, cfl, target_hfi)
     logger.info('Critical FFMC %s, resulting HFI %s; target HFI %s', critical_ffmc,
                 resulting_hfi, target_hfi)
     # Scenario 1 (resulting_hfi < target_hfi) - will happen when it's impossible to get
@@ -432,11 +436,11 @@ def get_critical_hours(  # pylint: disable=too-many-arguments
     # resulting_hfi >= target_hfi. Now have to determine what hours of the day (if any)
     # will see hourly FFMC (adjusted according to diurnal curve) >= critical_ffmc.
     critical_hours_start = get_critical_hours_start(
-        critical_ffmc, solar_noon_ffmc, prev_daily_ffmc, last_observed_morning_rh_values)
+        critical_ffmc, daily_ffmc, prev_daily_ffmc, last_observed_morning_rh_values)
     if critical_hours_start is None:
         return None
     critical_hours_end = get_critical_hours_end(
-        critical_ffmc, solar_noon_ffmc, critical_hours_start)
+        critical_ffmc, daily_ffmc, critical_hours_start)
 
     # format result as string
     critical_hours_start = str(critical_hours_start).replace('.', ':')
