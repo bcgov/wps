@@ -209,6 +209,7 @@ async def get_stations_data(  # pylint:disable=too-many-locals
             dailies_by_station_id = {raw_daily.get('stationId'): raw_daily async for raw_daily in dailies}
             # must retrieve the previous day's observed/forecasted FFMC value from WFWX
             prev_day = time_of_interest - timedelta(days=1)
+            logger.info('wfwx_station id %s', wfwx_stations[0].wfwx_id)
             # get the "daily" data for the station for the previous day
             yesterday_response = await get_dailies(session, header, wfwx_stations, prev_day)
             # turn it into a dictionary so we can easily get at data

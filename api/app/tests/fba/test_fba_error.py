@@ -93,7 +93,11 @@ def given_input(elevation: float,  # pylint: disable=too-many-arguments, invalid
                                                temperature=20.0,  # temporary fix so tests don't break
                                                relative_humidity=20.0,
                                                precipitation=2.0,
-                                               status='Forecasted')
+                                               status='Forecasted',
+                                               prev_day_daily_ffmc=90.0,
+                                               last_observed_morning_rh_values={
+                                                   7.0: 61.0, 8.0: 54.0, 9.0: 43.0, 10.0: 38.0,
+                                                   11.0: 34.0, 12.0: 23.0})
     python_fba = calculate_fire_behaviour_advisory(python_input)
     # get REDapp result from java:
     java_fbp = FBPCalculateStatisticsCOM(elevation=elevation,
