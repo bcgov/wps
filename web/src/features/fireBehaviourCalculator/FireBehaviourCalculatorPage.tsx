@@ -199,8 +199,7 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
             <Paper className={classes.criticalHours}>
               <div>
                 <h4>
-                  Forecasted weather outputs are for 13h00 hrs and FWI Indices for 17h00
-                  hrs PDT.
+                  Forecasted weather outputs are for 13:00 and FWI Indices for 17:00 PDT.
                 </h4>
                 <p>These fire behaviour calculations assume flat terrain.</p>
               </div>
