@@ -102,26 +102,26 @@ const FBCResultTable = (props: Props) => {
                   <br />
                   (%)
                 </TableCell>
-                <TableCell>FFMC &dagger;</TableCell>
+                <TableCell>FFMC</TableCell>
                 <TableCell>DMC</TableCell>
                 <TableCell>DC</TableCell>
-                <TableCell>ISI &dagger;</TableCell>
+                <TableCell>ISI</TableCell>
                 <TableCell>BUI</TableCell>
-                <TableCell>FWI &dagger;</TableCell>
-                <TableCell>HFI &dagger;</TableCell>
+                <TableCell>FWI</TableCell>
+                <TableCell>HFI</TableCell>
                 <TableCell className={classes.criticalHoursCell}>
                   Critical
                   <br />
                   Hours
                   <br />
-                  (4000 kW/m) &Dagger;
+                  (4000 kW/m)
                 </TableCell>
                 <TableCell className={classes.criticalHoursCell}>
                   Critical
                   <br />
                   Hours
                   <br />
-                  (10000 kW/m) &Dagger;
+                  (10000 kW/m)
                 </TableCell>
                 <TableCell>
                   ROS

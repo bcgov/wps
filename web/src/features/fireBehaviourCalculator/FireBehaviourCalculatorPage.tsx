@@ -198,22 +198,11 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
             />
             <Paper className={classes.criticalHours}>
               <div>
-                <h4>&dagger; Solar Noon Outputs</h4>
-                <p>
-                  All outputs are for 13:00 PDT. Diurnal adjustments for 17:00 coming
-                  soon.
-                  <br />
-                  These fire behaviour calculations assume flat terrain.
-                </p>
-                <h4>&Dagger; Critical Hours: under review</h4>
-                <p>
-                  Critical hours are calculated in hourly increments using the Red Book
-                  diurnal FFMC table (Table 4.1), for the hours of 13:00 to 07:00 PDT.
-                  <br />
-                  Critical hours between 07:00 and 13:00 PDT are calculated in hourly
-                  increments using Table 4.2 of the Red Book and the station&apos;s most
-                  recently observed RH value for the corresponding hour.
-                </p>
+                <h4>
+                  Forecasted weather outputs are for 13h00 hrs and FWI Indices for 17h00
+                  hrs PDT.
+                </h4>
+                <p>These fire behaviour calculations assume flat terrain.</p>
               </div>
             </Paper>
           </div>
