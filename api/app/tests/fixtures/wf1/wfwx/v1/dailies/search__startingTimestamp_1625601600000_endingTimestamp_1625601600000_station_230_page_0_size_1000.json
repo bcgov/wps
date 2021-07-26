@@ -9,8 +9,8 @@
                 "lastModifiedBy": "WFWX_WEATHER_API",
                 "archive": false,
                 "startIndices": false,
-                "station": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/bb7cb089-2790-4734-e053-1d09228eeca8",
-                "stationId": "bb7cb089-2790-4734-e053-1d09228eeca8",
+                "station": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/bfe0a6e2-e27e-0210-e053-259e228e58c7",
+                "stationId": "bfe0a6e2-e27e-0210-e053-259e228e58c7",
                 "weatherTimestamp": 1625515200000,
                 "temperature": 25.2,
                 "temperatureMin": null,
@@ -43,7 +43,7 @@
                 "observationValidComment": null,
                 "missingHourlyData": false,
                 "previousState": null,
-                "businessKey": "1625515200000-bb7cb089-2790-4734-e053-1d09228eeca8",
+                "businessKey": "1625515200000-bfe0a6e2-e27e-0210-e053-259e228e58c7",
                 "_links": {
                     "self": {
                         "href": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/dailies/7ee80ccb-2cd4-47bb-9ea6-5663d0ee8991"
@@ -52,7 +52,7 @@
                         "href": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/dailies/7ee80ccb-2cd4-47bb-9ea6-5663d0ee8991"
                     },
                     "station": {
-                        "href": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/bb7cb089-2790-4734-e053-1d09228eeca8"
+                        "href": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/bfe0a6e2-e27e-0210-e053-259e228e58c7"
                     }
                 }
             }
@@ -60,7 +60,7 @@
     },
     "_links": {
         "self": {
-            "href": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/dailies/search/findDailiesByStationIdIsInAndWeatherTimestampBetweenOrderByStationIdAscWeatherTimestampAsc?size=1000&page=0&startingTimestamp=1625515200000&endingTimestamp=1625515200000&stationIds=bb7cb089-2790-4734-e053-1d09228eeca8"
+            "href": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/dailies/search/findDailiesByStationIdIsInAndWeatherTimestampBetweenOrderByStationIdAscWeatherTimestampAsc?size=1000&page=0&startingTimestamp=1625515200000&endingTimestamp=1625515200000&stationIds=bfe0a6e2-e27e-0210-e053-259e228e58c7"
         }
     }
 }
