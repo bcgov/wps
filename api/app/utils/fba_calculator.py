@@ -27,18 +27,18 @@ class DiurnalFFMCLookupTable():
     """
 
     def __init__(self):
-        filename = os.path.join(os.path.dirname(__file__),
-                                '../data/diurnal_ffmc_lookups/afternoon_overnight.csv')
-        with open(filename, 'rb') as afternoon_file:
+        afternoon_filename = os.path.join(os.path.dirname(__file__),
+                                          '../data/diurnal_ffmc_lookups/afternoon_overnight.csv')
+        with open(afternoon_filename, 'rb') as afternoon_file:
             afternoon_df = pd.read_csv(afternoon_file)
         # Pylint thinks that afternoon_df's type is TextFileReader. It isn't - it's a pandas dataframe.
         # pylint: disable=no-member
         afternoon_df.columns = afternoon_df.columns.astype(int)
         afternoon_df.set_index(17, inplace=True)
 
-        filename = os.path.join(os.path.dirname(__file__),
-                                '../data/diurnal_ffmc_lookups/afternoon_overnight.csv')
-        with open(filename, 'rb') as morning_file:
+        morning_filename = os.path.join(os.path.dirname(__file__),
+                                        '../data/diurnal_ffmc_lookups/morning.csv')
+        with open(morning_filename, 'rb') as morning_file:
             morning_df = pd.read_csv(morning_file, header=[0, 1])
         prev_days_daily_ffmc_keys = morning_df.iloc[:, 0].values
         df_col_labels = morning_df.columns.values
