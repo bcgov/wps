@@ -79,7 +79,7 @@
                 }
             },
             {
-                "id": "45d948f7-c57b-4069-92b7-50ac3bff3ad1",
+                "id": "bfe0a6e2-e27e-0210-e053-259e228e58c7",
                 "displayLabel": "HORSEFLY",
                 "creationTimestamp": "2020-03-25T22:07:56.000+0000",
                 "createdBy": "WXP3_WEATHER_API",
@@ -151,7 +151,7 @@
                 "comments": "1st Daily 19710503;",
                 "_links": {
                     "self": {
-                        "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/rsql/45d948f7-c57b-4069-92b7-50ac3bff3ad1"
+                        "href": "https://i1bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/rsql/bfe0a6e2-e27e-0210-e053-259e228e58c7"
                     }
                 }
             }
