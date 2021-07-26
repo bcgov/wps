@@ -1,0 +1,10 @@
+{
+    "_embedded": {
+        "hourlies": []
+    },
+    "_links": {
+        "self": {
+            "href": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/hourlies/search/findHourliesByWeatherTimestampBetweenAndStationIdEqualsOrderByWeatherTimestampAsc?startTimestamp=1624824000000&endTimestamp=1624824000000&stationId=bfe0a6e2-e27e-0210-e053-259e228e58c7"
+        }
+    }
+}

@@ -26,7 +26,7 @@
             "flame_length": 2.851603034840768,
             "sixty_minute_fire_size": 3.0949948462569523,
             "thirty_minute_fire_size": 0.5523370828296822,
-            "critical_hours_hfi_4000": "16:00 - 18:00",
+            "critical_hours_hfi_4000": null,
             "critical_hours_hfi_10000": null
         },
         {
@@ -55,7 +55,7 @@
             "flame_length": 2.851603034840768,
             "sixty_minute_fire_size": 3.0949948462569523,
             "thirty_minute_fire_size": 0.5523370828296822,
-            "critical_hours_hfi_4000": "16:00 - 18:00",
+            "critical_hours_hfi_4000": null,
             "critical_hours_hfi_10000": null
         },
         {
@@ -84,8 +84,8 @@
             "flame_length": 8.768276663464325,
             "sixty_minute_fire_size": 69.48780827630377,
             "thirty_minute_fire_size": 12.14020623075969,
-            "critical_hours_hfi_4000": "13:00 - 2:00",
-            "critical_hours_hfi_10000": "13:00 - 23:00"
+            "critical_hours_hfi_4000": "13:00 - 0:00",
+            "critical_hours_hfi_10000": "13:00 - 21:00"
         }
     ]
 }

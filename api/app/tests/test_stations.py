@@ -72,13 +72,15 @@ def minimum_200_active_weather_stations(response):
     assert len(response.json()['features']) >= 200
 
 
-@then("there is a station in <index> has <code>, <name>, <lat> and <long>")
-def there_is_a_station(response, index, code, name, lat, long):  # pylint: disable=too-many-arguments
+@then("there is a station with <code>, <name>, <lat> and <long>")
+def there_is_a_station(response, code, name, lat, long):  # pylint: disable=too-many-arguments
     """ We expect a station to have a code, name, lat and long. """
-    assert (response.json()['features'][index]['properties']['code'] == code and
-            response.json()['features'][index]['properties']['name'] == name and
-            response.json()['features'][index]['geometry']['coordinates'][1] == lat and
-            response.json()['features'][index]['geometry']['coordinates'][0] == long)
+    station = next(x for x in response.json()['features'] if x['properties']['code'] == code)
+
+    assert station['properties']['code'] == code, "Code"
+    assert station['properties']['name'] == name, "Name"
+    assert station['geometry']['coordinates'][1] == lat, "Latitude"
+    assert station['geometry']['coordinates'][0] == long, "Longitude"
 
 
 @then("the station has <ecodivision_name> with <core_season>")
@@ -91,4 +93,6 @@ def station_ecodivision_data(response, index, ecodivision_name, core_season: dic
 @then("the expected response is <expected_response>")
 def assert_expected_response(response, expected_response):
     """ We expect a certain response """
+    with open('station_response.json', 'w') as f:
+        json.dump(response.json(), f)
     assert response.json() == expected_response
