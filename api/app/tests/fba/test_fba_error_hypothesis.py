@@ -79,7 +79,6 @@ def check_metric(metric: str,
             if absolute_error < 0.01:
                 logger.info('no big deal, the absolute difference (%s) is tiny!', absolute_error)
             else:
-                logger.info('absolute error: %s', absolute_error)
                 assert error < metric_error_margin, f'{fuel_type}:{metric}'
 
 
@@ -91,8 +90,8 @@ def check_metric(metric: str,
                                   percentage_dead_balsam_fir=_str2float,
                                   grass_cure=_str2float,
                                   num_iterations=int,
-
-                                  ros_margin_of_error=float))
+                                  ros_margin_of_error=float,
+                                  hfi_margin_of_error=float))
 def test_fire_behaviour_calculator_scenario():
     """ BDD Scenario. """
 
@@ -105,7 +104,7 @@ def given_input(fuel_type: str, percentage_conifer: float, percentage_dead_balsa
     # get python result:
     random.seed(42)
     results = []
-    for _ in range(num_iterations):
+    for index in range(num_iterations):
         # pylint: disable=invalid-name
         elevation = random.randint(0, 4019)
         latitude = random.uniform(45, 60)
@@ -127,11 +126,15 @@ def given_input(fuel_type: str, percentage_conifer: float, percentage_dead_balsa
         ffmc = random.uniform(11, 100)
         isi = isi_calc(ffmc, wind_speed)
 
-        logger.info(f"""elevation:{elevation} ; lat: {latitude} ; lon: {longitude}; """
-                    f"""toi: {time_of_interest}; ws: {wind_speed}; wd: {wind_direction}; """
-                    f"""temperature: {temperature}; relative_humidity: {relative_humidity}; """
-                    f"""precipitation: {precipitation}; dc: {dc}; dmc: {dmc}; bui: {bui}; """
-                    f"""ffmc: {ffmc}; isi: {isi}""")
+        message = (f"""({index}) elevation:{elevation} ; lat: {latitude} ; lon: {longitude}; """
+                   f"""toi: {time_of_interest}; ws: {wind_speed}; wd: {wind_direction}; """
+                   f"""temperature: {temperature}; relative_humidity: {relative_humidity}; """
+                   f"""precipitation: {precipitation}; dc: {dc}; dmc: {dmc}; bui: {bui}; """
+                   f"""ffmc: {ffmc}; isi: {isi}""")
+        logger.info(message)
+
+        test_entry = f"({index}) | {fuel_type} | {elevation} | {latitude} | {longitude} | {time_of_interest} | {wind_speed} | {wind_direction} | {percentage_conifer} | {percentage_dead_balsam_fir} | {grass_cure} | {crown_base_height} | {isi}  | {bui} | {ffmc} | {dmc} | {dc} | 0.01 | 0.01 | 0.01 | 0.01 | None | 0.01 | None | 0.01 | None | 0.01 | |"
+        logger.info(test_entry)
         python_input = FBACalculatorWeatherStation(elevation=elevation,
                                                    fuel_type=fuel_type,
                                                    time_of_interest=time_of_interest,
@@ -223,62 +226,81 @@ def then_ros_good(results: list, ros_margin_of_error: float):
         bui = result['input']['bui']
         java_isi = result['java'].isi
         logger.info('java calculated isi: %s', java_isi)
+        # assumptions:
+        # ros_eq == ROScalc
+        # ros_t  == ROStcalc
         check_metric(f'({index})ROS input- isi:{isi}; bui:{bui}; wind_speed:{wind_speed}; ffmc:{ffmc}',
                      result['fuel_type'],
                      result['python'].ros,
                      result['java'].ros_eq, ros_margin_of_error)
 
-    # @then("ROS is within <s_ros_em> of <spreadsheet_ros> with <note>")
-    # def then_spreadsheet_ros(result: dict, s_ros_em: float, spreadsheet_ros: float, note: str):
-    #     """ check the relative error of the ros """
-    #     check_metric('Spreadsheet ROS',
-    #                  result['fuel_type'],
-    #                  result['python'].ros,
-    #                  spreadsheet_ros,
-    #                  s_ros_em,
-    #                  note)
 
-    # @then("CFB is within <s_cfb_em> of <spreadsheet_cfb> with <note>")
-    # def then_spreadsheet_cfb(result: dict, s_cfb_em: float, spreadsheet_cfb: float, note: str):
-    #     """ check the relative error of the cfb """
-    #     check_metric('Spreadsheet CFB',
-    #                  result['fuel_type'],
-    #                  result['python'].cfb,
-    #                  spreadsheet_cfb,
-    #                  s_cfb_em,
-    #                  note)
+@then("HFI is within <hfi_margin_of_error> compared to REDapp")
+def then_hfi_good(results: list, hfi_margin_of_error: float):
+    """ check the relative error of HFI """
+    for index, result in enumerate(results):
+        # wind_speed = result['input']['wind_speed']
+        # ffmc = result['input']['ffmc']
+        # isi = result['input']['isi']
+        # bui = result['input']['bui']
+        # java_isi = result['java'].isi
+        # logger.info('java calculated isi: %s', java_isi)
+        check_metric(f'({index})HFI input',
+                     result['fuel_type'],
+                     result['python'].hfi,
+                     result['java'].hfi, hfi_margin_of_error)
 
-    # @then("HFI is within <s_hfi_em> of <spreadsheet_hfi> with <note>")
-    # def then_spreadsheet_hfi(result: dict, s_hfi_em: float, spreadsheet_hfi: float, note: str):
-    #     """ check the relative error of the hfi """
-    #     check_metric('Spreadsheet HFI', result['fuel_type'],
-    #                  result['python'].hfi, spreadsheet_hfi, s_hfi_em, note)
+# @then("ROS is within <s_ros_em> of <spreadsheet_ros> with <note>")
+# def then_spreadsheet_ros(result: dict, s_ros_em: float, spreadsheet_ros: float, note: str):
+#     """ check the relative error of the ros """
+#     check_metric('Spreadsheet ROS',
+#                  result['fuel_type'],
+#                  result['python'].ros,
+#                  spreadsheet_ros,
+#                  s_ros_em,
+#                  note)
 
-    # @then("ROS is within <r_ros_em> of REDapp ROS")
-    # def then_red_app_ros(result: dict, r_ros_em: float):
-    #     """ check the relative error of ROS """
-    #     check_metric('REDapp ROS',
-    #                  result['fuel_type'],
-    #                  result['python'].ros,
-    #                  result['java'].ros_t, r_ros_em)
+# @then("CFB is within <s_cfb_em> of <spreadsheet_cfb> with <note>")
+# def then_spreadsheet_cfb(result: dict, s_cfb_em: float, spreadsheet_cfb: float, note: str):
+#     """ check the relative error of the cfb """
+#     check_metric('Spreadsheet CFB',
+#                  result['fuel_type'],
+#                  result['python'].cfb,
+#                  spreadsheet_cfb,
+#                  s_cfb_em,
+#                  note)
 
-    # @then("CFB is within <r_cfb_em> of REDapp CFB")
-    # def then_red_app_cfb(result: dict, r_cfb_em: float):
-    #     """ check the relative error fo the CFB """
-    #     # python gives CFB as 0-1
-    #     # redapp gives CFB as 0-100
-    #     check_metric('REDapp CFB', result['fuel_type'], result['python'].cfb*100, result['java'].cfb, r_cfb_em)
+# @then("HFI is within <s_hfi_em> of <spreadsheet_hfi> with <note>")
+# def then_spreadsheet_hfi(result: dict, s_hfi_em: float, spreadsheet_hfi: float, note: str):
+#     """ check the relative error of the hfi """
+#     check_metric('Spreadsheet HFI', result['fuel_type'],
+#                  result['python'].hfi, spreadsheet_hfi, s_hfi_em, note)
 
-    # @then("HFI is within <r_hfi_em> of REDapp HFI")
-    # def then_red_app_hfi(result: dict, r_hfi_em: float):
-    #     """ check the relative error of the CFB """
-    #     check_metric('REDapp HFI', result['fuel_type'], result['python'].hfi, result['java'].hfi, r_hfi_em)
+# @then("ROS is within <r_ros_em> of REDapp ROS")
+# def then_red_app_ros(result: dict, r_ros_em: float):
+#     """ check the relative error of ROS """
+#     check_metric('REDapp ROS',
+#                  result['fuel_type'],
+#                  result['python'].ros,
+#                  result['java'].ros_t, r_ros_em)
 
-    # @then("1 HR Size is within <r_h1_em> of REDapp 1 HR Size")
-    # def then_red_app_1hr(result: dict, r_h1_em: float):
-    #     """ check the relative error of the a hour fire size"""
-    #     check_metric('REDapp 1 HR Size',
-    #                  result['fuel_type'],
-    #                  result['python'].sixty_minute_fire_size,
-    #                  result['java'].area,
-    #                  r_h1_em)
+# @then("CFB is within <r_cfb_em> of REDapp CFB")
+# def then_red_app_cfb(result: dict, r_cfb_em: float):
+#     """ check the relative error fo the CFB """
+#     # python gives CFB as 0-1
+#     # redapp gives CFB as 0-100
+#     check_metric('REDapp CFB', result['fuel_type'], result['python'].cfb*100, result['java'].cfb, r_cfb_em)
+
+# @then("HFI is within <r_hfi_em> of REDapp HFI")
+# def then_red_app_hfi(result: dict, r_hfi_em: float):
+#     """ check the relative error of the CFB """
+#     check_metric('REDapp HFI', result['fuel_type'], result['python'].hfi, result['java'].hfi, r_hfi_em)
+
+# @then("1 HR Size is within <r_h1_em> of REDapp 1 HR Size")
+# def then_red_app_1hr(result: dict, r_h1_em: float):
+#     """ check the relative error of the a hour fire size"""
+#     check_metric('REDapp 1 HR Size',
+#                  result['fuel_type'],
+#                  result['python'].sixty_minute_fire_size,
+#                  result['java'].area,
+#                  r_h1_em)
