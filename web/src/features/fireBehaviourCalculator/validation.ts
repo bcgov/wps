@@ -7,7 +7,7 @@ import { FBCInputRow } from './components/FBCInputGrid'
  * @param row the row to validate
  * @returns false if valid, true otherwise
  */
-export const grassCureNotSetForGrassType = (row: FBCInputRow) => {
+export const grassCureNotSetForGrassType = (row: FBCInputRow): boolean => {
   if (isUndefined(row)) {
     return false
   }
@@ -23,7 +23,7 @@ export const grassCureNotSetForGrassType = (row: FBCInputRow) => {
  * @param row the row to validate
  * @returns false if valid, true otherwise
  */
-export const shouldDisableCalculate = (row: FBCInputRow) => {
+export const shouldDisableCalculate = (row: FBCInputRow): boolean => {
   const grassCureNotSet = grassCureNotSetForGrassType(row)
   if (grassCureNotSet) {
     return true

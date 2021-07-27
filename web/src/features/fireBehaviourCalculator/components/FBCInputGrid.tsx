@@ -15,13 +15,11 @@ import {
 import InfoIcon from '@material-ui/icons/Info'
 import { FuelTypes } from 'features/fireBehaviourCalculator/fuelTypes'
 import { FBCStation } from 'api/fbCalcAPI'
-import {
-  buildFuelTypeCell,
-  buildGrassCureCell,
-  buildSelectCheckboxCell,
-  buildWeatherStationCell,
-  buildWindSpeedCell
-} from 'features/fireBehaviourCalculator/tableRowBuilder'
+import { buildSelectCheckboxCell } from 'features/fireBehaviourCalculator/tableRowBuilder'
+import WeatherStationCell from 'features/fireBehaviourCalculator/components/WeatherStationCell'
+import FuelTypeCell from 'features/fireBehaviourCalculator/components/FuelTypeCell'
+import GrassCureCell from 'features/fireBehaviourCalculator/components/GrassCureCell'
+import WindSpeedCell from 'features/fireBehaviourCalculator/components/WindSpeedCell'
 
 export interface FBCInputGridProps {
   testId?: string
@@ -277,14 +275,29 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
                   <TableRow key={ri}>
                     <TableCell>{buildSelectCheckboxCell(props, ri)}</TableCell>
                     <TableCell>
-                      {buildWeatherStationCell(props, classes, row.weatherStation, ri)}
+                      <WeatherStationCell
+                        fbcInputGridProps={props}
+                        classNameMap={classes}
+                        value={row.weatherStation}
+                        rowId={ri}
+                      />
                     </TableCell>
                     <TableCell>{row.elevation}</TableCell>
                     <TableCell>
-                      {buildFuelTypeCell(props, classes, row.fuelType, ri)}
+                      <FuelTypeCell
+                        fbcInputGridProps={props}
+                        classNameMap={classes}
+                        value={row.fuelType}
+                        rowId={ri}
+                      />
                     </TableCell>
                     <TableCell>
-                      {buildGrassCureCell(props, classes, row.grassCure, ri)}
+                      <GrassCureCell
+                        fbcInputGridProps={props}
+                        classNameMap={classes}
+                        value={row.grassCure}
+                        rowId={ri}
+                      />
                     </TableCell>
                     <TableCell
                       className={
@@ -307,7 +320,12 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
                           : undefined
                       }
                     >
-                      {buildWindSpeedCell(props, classes, row.windSpeed, ri)}
+                      <WindSpeedCell
+                        fbcInputGridProps={props}
+                        classNameMap={classes}
+                        value={row.windSpeed}
+                        rowId={ri}
+                      />
                     </TableCell>
                     <TableCell>{row.precipitation}</TableCell>
                     <TableCell>
