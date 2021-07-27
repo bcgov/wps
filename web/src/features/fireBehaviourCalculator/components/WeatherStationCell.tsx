@@ -15,7 +15,7 @@ import React from 'react'
 interface WeatherStationCellProps {
   fbcInputGridProps: Pick<
     FBCInputGridProps,
-    'stationOptions' | 'inputRows' | 'updateRow' | 'autoUpdateOnBlur'
+    'stationOptions' | 'inputRows' | 'updateRow' | 'autoUpdateHandler'
   >
   classNameMap: ClassNameMap<'weatherStation'>
   value: GridMenuOption | null
@@ -49,7 +49,7 @@ const WeatherStationCell = (props: WeatherStationCellProps) => {
         />
       )}
       onChange={changeHandler}
-      onBlur={props.fbcInputGridProps.autoUpdateOnBlur}
+      onBlur={props.fbcInputGridProps.autoUpdateHandler}
       value={props.value}
     />
   )

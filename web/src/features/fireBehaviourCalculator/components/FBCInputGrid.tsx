@@ -30,7 +30,7 @@ export interface FBCInputGridProps {
   selected: number[]
   updateSelected: (selected: number[]) => void
   calculatedResults: FBCStation[]
-  autoUpdateOnBlur: () => void
+  autoUpdateHandler: () => void
 }
 
 export interface GridMenuOption {

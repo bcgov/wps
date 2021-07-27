@@ -11,7 +11,7 @@ import { useEffect } from 'react'
 interface WindSpeedCellProps {
   fbcInputGridProps: Pick<
     FBCInputGridProps,
-    'stationOptions' | 'inputRows' | 'updateRow' | 'autoUpdateOnBlur'
+    'stationOptions' | 'inputRows' | 'updateRow' | 'autoUpdateHandler'
   >
   classNameMap: ClassNameMap<'windSpeed'>
   inputValue: number | undefined
@@ -44,7 +44,7 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
       variant="outlined"
       inputProps={{ min: 0, maxLength: 4, size: 4 }}
       onChange={changeHandler}
-      onBlur={props.fbcInputGridProps.autoUpdateOnBlur}
+      onBlur={props.fbcInputGridProps.autoUpdateHandler}
       value={windSpeedValue}
     />
   )

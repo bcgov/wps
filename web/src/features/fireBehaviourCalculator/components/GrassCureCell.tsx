@@ -11,7 +11,7 @@ import React, { ChangeEvent } from 'react'
 interface GrassCureCellProps {
   fbcInputGridProps: Pick<
     FBCInputGridProps,
-    'inputRows' | 'updateRow' | 'autoUpdateOnBlur'
+    'inputRows' | 'updateRow' | 'autoUpdateHandler'
   >
   classNameMap: ClassNameMap<'grassCure'>
   value: number | undefined
@@ -38,9 +38,9 @@ const GrassCureProps = (props: GrassCureCellProps) => {
       className={props.classNameMap.grassCure}
       size="small"
       variant="outlined"
-      inputProps={{ min: 0, maxLength: 4, size: 4 }}
+      inputProps={{ min: 0, maxLength: 4, size: 4, max: 100 }}
       onChange={changeHandler}
-      onBlur={props.fbcInputGridProps.autoUpdateOnBlur}
+      onBlur={props.fbcInputGridProps.autoUpdateHandler}
       value={props.value}
       error={hasError}
     />
