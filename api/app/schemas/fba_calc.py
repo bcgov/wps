@@ -30,6 +30,7 @@ class StationResponse(BaseModel):
     """
     station_code: int
     station_name: str
+    zone_code: Optional[str]
     date: date
     elevation: int
     fuel_type: str

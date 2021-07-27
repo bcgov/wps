@@ -52,6 +52,7 @@ def prepare_response(
     station_response = StationResponse(
         station_code=requested_station.station_code,
         station_name=wfwx_station.name,
+        zone_code=wfwx_station.zone_code,
         date=time_of_interest,
         elevation=wfwx_station.elevation,
         fuel_type=requested_station.fuel_type,
