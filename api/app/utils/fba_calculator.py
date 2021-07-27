@@ -138,6 +138,9 @@ def calculate_fire_behaviour_advisory(station: FBACalculatorWeatherStation) -> F
         # The day 144 is the average date for the minimum foliar moisture content in the boreal regions of
         # Canada. It is usually pretty close maybe 7 days in either direction.
         date_of_minimum_foliar_moisture_content = 144
+    elif station.fuel_type == 'C3':
+        # TODO: Confirm if this is valid
+        date_of_minimum_foliar_moisture_content = 189
     else:
         # Setting to 0 will cause CFFDRS to figure it out by itself.
         date_of_minimum_foliar_moisture_content = 0
@@ -351,6 +354,8 @@ def get_critical_hours_start(critical_ffmc: float, daily_ffmc: float,
     threshold of critical_ffmc.
     Returns None if the hourly FFMC never reaches critical_ffmc.
     """
+    if last_observed_morning_rh_values is None:
+        return None
     if daily_ffmc < critical_ffmc:
         logger.info('Daily FFMC %s < critical FFMC %s', daily_ffmc, critical_ffmc)
         # Daily FFMC represents peak burning, so diurnal hourly FFMC will never be higher than daily FFMC

@@ -8,7 +8,7 @@ import logging
 from pytest_bdd import scenario, given, then
 from app import configure_logging
 from app.utils.time import get_hour_20_from_date
-from app.utils.fba_calculator import calculate_fire_behavour_advisory, FBACalculatorWeatherStation
+from app.utils.fba_calculator import calculate_fire_behaviour_advisory, FBACalculatorWeatherStation
 from app.utils.redapp import FBPCalculateStatisticsCOM
 from app.utils.cffdrs import isi_calc, bui_calc
 import pytest
@@ -91,7 +91,9 @@ def check_metric(metric: str,
                                   grass_cure=_str2float,
                                   num_iterations=int,
                                   ros_margin_of_error=float,
-                                  hfi_margin_of_error=float))
+                                  hfi_margin_of_error=float,
+                                  cfb_margin_of_error=float,
+                                  one_hour_spread_margin_of_error=float))
 def test_fire_behaviour_calculator_scenario():
     """ BDD Scenario. """
 
@@ -152,8 +154,10 @@ def given_input(fuel_type: str, percentage_conifer: float, percentage_dead_balsa
                                                    temperature=temperature,  # temporary fix so tests don't break
                                                    relative_humidity=relative_humidity,
                                                    precipitation=precipitation,
-                                                   status='Forecasted')
-        python_fba = calculate_fire_behavour_advisory(python_input)
+                                                   status='Forecasted',
+                                                   prev_day_daily_ffmc=None,
+                                                   last_observed_morning_rh_values=None)
+        python_fba = calculate_fire_behaviour_advisory(python_input)
         # get REDapp result from java:
         java_fbp = FBPCalculateStatisticsCOM(elevation=elevation,
                                              latitude=latitude,
@@ -250,51 +254,37 @@ def then_hfi_good(results: list, hfi_margin_of_error: float):
                      result['python'].hfi,
                      result['java'].hfi, hfi_margin_of_error)
 
-# @then("ROS is within <s_ros_em> of <spreadsheet_ros> with <note>")
-# def then_spreadsheet_ros(result: dict, s_ros_em: float, spreadsheet_ros: float, note: str):
-#     """ check the relative error of the ros """
-#     check_metric('Spreadsheet ROS',
-#                  result['fuel_type'],
-#                  result['python'].ros,
-#                  spreadsheet_ros,
-#                  s_ros_em,
-#                  note)
 
-# @then("CFB is within <s_cfb_em> of <spreadsheet_cfb> with <note>")
-# def then_spreadsheet_cfb(result: dict, s_cfb_em: float, spreadsheet_cfb: float, note: str):
-#     """ check the relative error of the cfb """
-#     check_metric('Spreadsheet CFB',
-#                  result['fuel_type'],
-#                  result['python'].cfb,
-#                  spreadsheet_cfb,
-#                  s_cfb_em,
-#                  note)
+@then("CFB is within <cfb_margin_of_error> compared to REDapp")
+def then_cfb_good(results: list, cfb_margin_of_error: float):
+    """ check the relative error of HFI """
+    for index, result in enumerate(results):
+        # wind_speed = result['input']['wind_speed']
+        # ffmc = result['input']['ffmc']
+        # isi = result['input']['isi']
+        # bui = result['input']['bui']
+        # java_isi = result['java'].isi
+        # logger.info('java calculated isi: %s', java_isi)
+        check_metric(f'({index})CFB input',
+                     result['fuel_type'],
+                     result['python'].cfb*100.0,
+                     result['java'].cfb, cfb_margin_of_error)
 
-# @then("HFI is within <s_hfi_em> of <spreadsheet_hfi> with <note>")
-# def then_spreadsheet_hfi(result: dict, s_hfi_em: float, spreadsheet_hfi: float, note: str):
-#     """ check the relative error of the hfi """
-#     check_metric('Spreadsheet HFI', result['fuel_type'],
-#                  result['python'].hfi, spreadsheet_hfi, s_hfi_em, note)
 
-# @then("ROS is within <r_ros_em> of REDapp ROS")
-# def then_red_app_ros(result: dict, r_ros_em: float):
-#     """ check the relative error of ROS """
-#     check_metric('REDapp ROS',
-#                  result['fuel_type'],
-#                  result['python'].ros,
-#                  result['java'].ros_t, r_ros_em)
-
-# @then("CFB is within <r_cfb_em> of REDapp CFB")
-# def then_red_app_cfb(result: dict, r_cfb_em: float):
-#     """ check the relative error fo the CFB """
-#     # python gives CFB as 0-1
-#     # redapp gives CFB as 0-100
-#     check_metric('REDapp CFB', result['fuel_type'], result['python'].cfb*100, result['java'].cfb, r_cfb_em)
-
-# @then("HFI is within <r_hfi_em> of REDapp HFI")
-# def then_red_app_hfi(result: dict, r_hfi_em: float):
-#     """ check the relative error of the CFB """
-#     check_metric('REDapp HFI', result['fuel_type'], result['python'].hfi, result['java'].hfi, r_hfi_em)
+@then("1 Hour Spread is within <one_hour_spread_margin_of_error> compared to REDapp")
+def then_1_hour_spread_good(results: list, one_hour_spread_margin_of_error: float):
+    """ check the relative error of HFI """
+    for index, result in enumerate(results):
+        # wind_speed = result['input']['wind_speed']
+        # ffmc = result['input']['ffmc']
+        # isi = result['input']['isi']
+        # bui = result['input']['bui']
+        # java_isi = result['java'].isi
+        # logger.info('java calculated isi: %s', java_isi)
+        check_metric(f'({index})1 Hour Spread input',
+                     result['fuel_type'],
+                     result['python'].sixty_minute_fire_size,
+                     result['java'].area, one_hour_spread_margin_of_error)
 
 # @then("1 HR Size is within <r_h1_em> of REDapp 1 HR Size")
 # def then_red_app_1hr(result: dict, r_h1_em: float):
