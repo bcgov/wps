@@ -1,19 +1,14 @@
-import { FormControl, makeStyles, Paper } from '@material-ui/core'
+import { CircularProgress, FormControl, makeStyles, Paper } from '@material-ui/core'
 import { GridRowId } from '@material-ui/data-grid'
 import { GeoJsonStation, getStations, StationSource } from 'api/stationAPI'
-import {
-  selectFireBehaviourCalcResult,
-  selectFireBehaviourStationsLoading,
-  selectFireWeatherStations
-} from 'app/rootReducer'
+import { selectFireBehaviourCalcResult, selectFireWeatherStations } from 'app/rootReducer'
 import { Button, Container, PageHeader } from 'components'
-import GetWxDataButton from 'features/fireWeather/components/GetWxDataButton'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { DateTime } from 'luxon'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useHistory, useLocation } from 'react-router-dom'
-import { filter, some } from 'lodash'
+import { filter } from 'lodash'
 import DatePicker from 'features/fireBehaviourCalculator/components/DatePicker'
 import FBCInputGrid, {
   GridMenuOption,
@@ -26,7 +21,6 @@ import {
   getMostRecentIdFromRows,
   getUrlParamsFromRows
 } from 'features/fireBehaviourCalculator/utils'
-import { shouldDisableCalculate } from 'features/fireBehaviourCalculator/validation'
 import { FBCStation } from 'api/fbCalcAPI'
 
 export const FireBehaviourCalculator: React.FunctionComponent = () => {
@@ -57,7 +51,9 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
   const [rowId, setRowId] = useState(lastId + 1)
   const [selected, setSelected] = useState<number[]>([])
 
-  const { fireBehaviourResultStations } = useSelector(selectFireBehaviourCalcResult)
+  const { fireBehaviourResultStations, loading } = useSelector(
+    selectFireBehaviourCalcResult
+  )
   const [calculatedResults, setCalculatedResults] = useState<FBCStation[]>(
     fireBehaviourResultStations
   )
@@ -117,12 +113,6 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
     setRowId(lastId + 1)
   }, [location]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const disableCalculateButton =
-    rows.length === 0 ||
-    some(rows, row => {
-      return shouldDisableCalculate(row)
-    })
-
   const useStyles = makeStyles(theme => ({
     formControl: {
       margin: theme.spacing(1),
@@ -132,8 +122,19 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
       borderLeft: '6px solid #e6ebf0',
       padding: '10px',
       marginBottom: theme.spacing(8)
+    },
+    spinner: {
+      position: 'absolute',
+      left: '50%',
+      marginLeft: -10,
+      top: '50%',
+      marginTop: -10
     }
   }))
+
+  const autoUpdateOnBlur = () => {
+    dispatch(fetchFireBehaviourStations(dateOfInterest, rows))
+  }
 
   const classes = useStyles()
 
@@ -152,7 +153,11 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
         </h1>
         <div>
           <FormControl className={classes.formControl}>
-            <DatePicker date={dateOfInterest} onChange={setDateOfInterest} />
+            <DatePicker
+              date={dateOfInterest}
+              onChange={setDateOfInterest}
+              autoUpdateOnBlur={autoUpdateOnBlur}
+            />
           </FormControl>
           <FormControl className={classes.formControl}>
             <Button
@@ -177,35 +182,32 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
           </FormControl>
         </div>
         <br />
-        <FBCInputGrid
-          stationOptions={stationMenuOptions}
-          fuelTypeOptions={fuelTypeMenuOptions}
-          inputRows={rows}
-          updateRow={updateRow}
-          selected={selected}
-          updateSelected={(selected: number[]) => {
-            setSelected(selected)
-          }}
-          calculatedResults={calculatedResults}
-        />
-        <FormControl className={classes.formControl}>
-          <GetWxDataButton
-            disabled={disableCalculateButton}
-            onBtnClick={() => {
-              dispatch(fetchFireBehaviourStations(dateOfInterest, rows))
-            }}
-            selector={selectFireBehaviourStationsLoading}
-            buttonLabel="Calculate"
-          />
-        </FormControl>
-        <Paper className={classes.criticalHours}>
-          <div>
-            <h4>
-              Forecasted weather outputs are for 13:00 and FWI Indices for 17:00 PDT.
-            </h4>
-            <p>These fire behaviour calculations assume flat terrain.</p>
-          </div>
-        </Paper>
+        {loading ? (
+          <CircularProgress className={classes.spinner} />
+        ) : (
+          <React.Fragment>
+            <FBCInputGrid
+              stationOptions={stationMenuOptions}
+              fuelTypeOptions={fuelTypeMenuOptions}
+              inputRows={rows}
+              updateRow={updateRow}
+              selected={selected}
+              updateSelected={(selected: number[]) => {
+                setSelected(selected)
+              }}
+              calculatedResults={calculatedResults}
+              autoUpdateOnBlur={autoUpdateOnBlur}
+            />
+            <Paper className={classes.criticalHours}>
+              <div>
+                <h4>
+                  Forecasted weather outputs are for 13:00 and FWI Indices for 17:00 PDT.
+                </h4>
+                <p>These fire behaviour calculations assume flat terrain.</p>
+              </div>
+            </Paper>
+          </React.Fragment>
+        )}
       </Container>
     </main>
   )

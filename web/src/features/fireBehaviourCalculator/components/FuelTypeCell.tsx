@@ -15,7 +15,7 @@ import React from 'react'
 interface FuelTypeCellProps {
   fbcInputGridProps: Pick<
     FBCInputGridProps,
-    'fuelTypeOptions' | 'inputRows' | 'updateRow'
+    'fuelTypeOptions' | 'inputRows' | 'updateRow' | 'autoUpdateOnBlur'
   >
   classNameMap: ClassNameMap<'fuelType'>
   value: GridMenuOption | null
@@ -49,6 +49,7 @@ const FuelTypeCell = (props: FuelTypeCellProps) => {
       )}
       onChange={changeHandler}
       value={props.value}
+      onBlur={props.fbcInputGridProps.autoUpdateOnBlur}
     />
   )
 }

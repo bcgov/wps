@@ -9,7 +9,10 @@ import { grassCureNotSetForGrassType } from 'features/fireBehaviourCalculator/va
 import React, { ChangeEvent } from 'react'
 
 interface GrassCureCellProps {
-  fbcInputGridProps: Pick<FBCInputGridProps, 'inputRows' | 'updateRow'>
+  fbcInputGridProps: Pick<
+    FBCInputGridProps,
+    'inputRows' | 'updateRow' | 'autoUpdateOnBlur'
+  >
   classNameMap: ClassNameMap<'grassCure'>
   value: number | undefined
   rowId: number
@@ -37,6 +40,7 @@ const GrassCureProps = (props: GrassCureCellProps) => {
       variant="outlined"
       inputProps={{ min: 0, maxLength: 4, size: 4 }}
       onChange={changeHandler}
+      onBlur={props.fbcInputGridProps.autoUpdateOnBlur}
       value={props.value}
       error={hasError}
     />

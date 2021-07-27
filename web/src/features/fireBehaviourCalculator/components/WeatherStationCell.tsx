@@ -13,7 +13,10 @@ import { isEqual } from 'lodash'
 import React from 'react'
 
 interface WeatherStationCellProps {
-  fbcInputGridProps: Pick<FBCInputGridProps, 'stationOptions' | 'inputRows' | 'updateRow'>
+  fbcInputGridProps: Pick<
+    FBCInputGridProps,
+    'stationOptions' | 'inputRows' | 'updateRow' | 'autoUpdateOnBlur'
+  >
   classNameMap: ClassNameMap<'weatherStation'>
   value: GridMenuOption | null
   rowId: number
@@ -30,6 +33,7 @@ const WeatherStationCell = (props: WeatherStationCellProps) => {
       buildUpdatedOptionRow
     )
   }
+
   return (
     <Autocomplete
       options={props.fbcInputGridProps.stationOptions}
@@ -45,6 +49,7 @@ const WeatherStationCell = (props: WeatherStationCellProps) => {
         />
       )}
       onChange={changeHandler}
+      onBlur={props.fbcInputGridProps.autoUpdateOnBlur}
       value={props.value}
     />
   )
