@@ -79,8 +79,7 @@ def test_hourly_actuals_bot(monkeypatch, mocker: MockerFixture, mock_requests_se
     - the expected number of records are saved.
     """
 
-    @asyncio.coroutine
-    def mock_get_auth_header(_):
+    async def mock_get_auth_header(_):
         return dict()
 
     monkeypatch.setattr(wfwx_api, 'get_auth_header', mock_get_auth_header)
