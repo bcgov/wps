@@ -5,18 +5,23 @@ import {
   buildUpdatedNumberRow,
   updateFBCRow
 } from 'features/fireBehaviourCalculator/tableState'
-import React, { ChangeEvent } from 'react'
+import React, { ChangeEvent, useState } from 'react'
+import { useEffect } from 'react'
 
 interface WindSpeedCellProps {
   fbcInputGridProps: Pick<FBCInputGridProps, 'stationOptions' | 'inputRows' | 'updateRow'>
   classNameMap: ClassNameMap<'windSpeed'>
-  state: {
-    windSpeedValue: number | undefined
-    setWindSpeedValue: (newValue: number | undefined) => void
-  }
+  inputValue: number | undefined
+  calculatedValue: number | undefined
   rowId: number
 }
 const WindSpeedCell = (props: WindSpeedCellProps) => {
+  const value = props.calculatedValue ? props.calculatedValue : props.inputValue
+  const [windSpeedValue, setWindSpeedValue] = useState(value)
+  useEffect(() => {
+    setWindSpeedValue(value)
+  }, [value])
+
   const changeHandler = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     updateFBCRow(
       props.fbcInputGridProps,
@@ -25,7 +30,7 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
       parseInt(event.target.value),
       buildUpdatedNumberRow
     )
-    props.state.setWindSpeedValue(parseInt(event.target.value))
+    setWindSpeedValue(parseInt(event.target.value))
   }
 
   return (
@@ -36,7 +41,7 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
       variant="outlined"
       inputProps={{ min: 0, maxLength: 4, size: 4 }}
       onChange={changeHandler}
-      value={props.state.windSpeedValue}
+      value={windSpeedValue}
     />
   )
 }

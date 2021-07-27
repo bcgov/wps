@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { isNull, isUndefined, zipWith } from 'lodash'
 import {
   Checkbox,
@@ -103,19 +103,6 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
       value
     }
     return option
-  }
-
-  const GetWindSpeedState = (inputValue: number | undefined, rowIndex: number) => {
-    const calcValue =
-      calculatedResults.length > 0 && rowIndex < calculatedResults.length
-        ? calculatedResults[rowIndex].wind_speed
-        : undefined
-    const value = calcValue ? calcValue : inputValue
-    const [windSpeedValue, setWindSpeedValue] = useState(value)
-    useEffect(() => {
-      setWindSpeedValue(value)
-    }, [value])
-    return { windSpeedValue, setWindSpeedValue }
   }
 
   const buildFuelTypeMenuOption = (value: string | undefined) => {
@@ -338,7 +325,12 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
                       <WindSpeedCell
                         fbcInputGridProps={props}
                         classNameMap={classes}
-                        state={GetWindSpeedState(row.windSpeed, ri)}
+                        inputValue={row.windSpeed}
+                        calculatedValue={
+                          calculatedResults.length > 0 && ri < calculatedResults.length
+                            ? calculatedResults[ri].wind_speed
+                            : undefined
+                        }
                         rowId={ri}
                       />
                     </TableCell>
