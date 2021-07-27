@@ -177,19 +177,17 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
           </FormControl>
         </div>
         <br />
-        <div style={{ display: 'flex', height: '100%' }}>
-          <FBCInputGrid
-            stationOptions={stationMenuOptions}
-            fuelTypeOptions={fuelTypeMenuOptions}
-            inputRows={rows}
-            updateRow={updateRow}
-            selected={selected}
-            updateSelected={(selected: number[]) => {
-              setSelected(selected)
-            }}
-            calculatedResults={calculatedResults}
-          />
-        </div>
+        <FBCInputGrid
+          stationOptions={stationMenuOptions}
+          fuelTypeOptions={fuelTypeMenuOptions}
+          inputRows={rows}
+          updateRow={updateRow}
+          selected={selected}
+          updateSelected={(selected: number[]) => {
+            setSelected(selected)
+          }}
+          calculatedResults={calculatedResults}
+        />
         <FormControl className={classes.formControl}>
           <GetWxDataButton
             disabled={disableCalculateButton}
