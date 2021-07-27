@@ -34,9 +34,6 @@ const useStyles = makeStyles({
   },
   adjustedValueCell: {
     fontWeight: 'bold'
-  },
-  criticalHoursCell: {
-    backgroundColor: '#e6ebf0'
   }
 })
 
@@ -102,26 +99,26 @@ const FBCResultTable = (props: Props) => {
                   <br />
                   (%)
                 </TableCell>
-                <TableCell>FFMC &dagger;</TableCell>
+                <TableCell>FFMC</TableCell>
                 <TableCell>DMC</TableCell>
                 <TableCell>DC</TableCell>
-                <TableCell>ISI &dagger;</TableCell>
+                <TableCell>ISI</TableCell>
                 <TableCell>BUI</TableCell>
-                <TableCell>FWI &dagger;</TableCell>
-                <TableCell>HFI &dagger;</TableCell>
-                <TableCell className={classes.criticalHoursCell}>
+                <TableCell>FWI</TableCell>
+                <TableCell>HFI</TableCell>
+                <TableCell>
                   Critical
                   <br />
                   Hours
                   <br />
-                  (4000 kW/m) &Dagger;
+                  (4000 kW/m)
                 </TableCell>
-                <TableCell className={classes.criticalHoursCell}>
+                <TableCell>
                   Critical
                   <br />
                   Hours
                   <br />
-                  (10000 kW/m) &Dagger;
+                  (10000 kW/m)
                 </TableCell>
                 <TableCell>
                   ROS
@@ -199,12 +196,8 @@ const FBCResultTable = (props: Props) => {
                     <TableCell>
                       {stationResult.head_fire_intensity?.toFixed(DECIMAL_PLACES)}
                     </TableCell>
-                    <TableCell className={classes.criticalHoursCell}>
-                      {stationResult.critical_hours_hfi_4000}
-                    </TableCell>
-                    <TableCell className={classes.criticalHoursCell}>
-                      {stationResult.critical_hours_hfi_10000}
-                    </TableCell>
+                    <TableCell>{stationResult.critical_hours_hfi_4000}</TableCell>
+                    <TableCell>{stationResult.critical_hours_hfi_10000}</TableCell>
                     <TableCell>
                       {stationResult.rate_of_spread?.toFixed(DECIMAL_PLACES)}
                     </TableCell>

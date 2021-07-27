@@ -4,6 +4,7 @@ from typing import Final
 
 
 PST_UTC_OFFSET: Final[int] = -8
+PDT_UTC_OFFSET: Final[int] = -7
 
 
 def get_pst_tz():
@@ -44,6 +45,12 @@ def get_hour_20(time_of_interest: datetime) -> datetime:
                     month=time_of_interest.month,
                     day=time_of_interest.day,
                     hour=20, tzinfo=timezone.utc)
+
+
+def convert_utc_to_pdt(time_of_interest: datetime) -> datetime:
+    """ Get the datetime in Pacific Daylight Timezone (PDT) : UTC-7 given a
+    datetime in UTC timezone """
+    return time_of_interest.astimezone(timezone(offset=timedelta(hours=PDT_UTC_OFFSET)))
 
 
 def get_julian_date_now():
