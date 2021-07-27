@@ -10,7 +10,10 @@ import React, { ChangeEvent } from 'react'
 interface WindSpeedCellProps {
   fbcInputGridProps: Pick<FBCInputGridProps, 'stationOptions' | 'inputRows' | 'updateRow'>
   classNameMap: ClassNameMap<'windSpeed'>
-  value: number | undefined
+  state: {
+    windSpeedValue: number | undefined
+    setWindSpeedValue: (newValue: number | undefined) => void
+  }
   rowId: number
 }
 const WindSpeedCell = (props: WindSpeedCellProps) => {
@@ -22,6 +25,7 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
       parseInt(event.target.value),
       buildUpdatedNumberRow
     )
+    props.state.setWindSpeedValue(parseInt(event.target.value))
   }
 
   return (
@@ -32,7 +36,7 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
       variant="outlined"
       inputProps={{ min: 0, maxLength: 4, size: 4 }}
       onChange={changeHandler}
-      value={props.value}
+      value={props.state.windSpeedValue}
     />
   )
 }
