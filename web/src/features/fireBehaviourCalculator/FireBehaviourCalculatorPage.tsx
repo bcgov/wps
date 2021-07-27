@@ -13,7 +13,7 @@ import { DateTime } from 'luxon'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useHistory, useLocation } from 'react-router-dom'
-import { some } from 'lodash'
+import { filter, some } from 'lodash'
 import DatePicker from 'features/fireBehaviourCalculator/components/DatePicker'
 import FBCInputGrid, {
   GridMenuOption,
@@ -27,6 +27,7 @@ import {
   getUrlParamsFromRows
 } from 'features/fireBehaviourCalculator/utils'
 import { shouldDisableCalculate } from 'features/fireBehaviourCalculator/validation'
+import { FBCStation } from 'api/fbCalcAPI'
 
 export const FireBehaviourCalculator: React.FunctionComponent = () => {
   const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().toISODate())
@@ -56,6 +57,15 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
   const [rowId, setRowId] = useState(lastId + 1)
   const [selected, setSelected] = useState<number[]>([])
 
+  const { fireBehaviourResultStations } = useSelector(selectFireBehaviourCalcResult)
+  const [calculatedResults, setCalculatedResults] = useState<FBCStation[]>(
+    fireBehaviourResultStations
+  )
+
+  useEffect(() => {
+    setCalculatedResults(fireBehaviourResultStations)
+  }, [fireBehaviourResultStations]) // eslint-disable-line react-hooks/exhaustive-deps
+
   const addStation = () => {
     const newRowId = rowId + 1
     setRowId(newRowId)
@@ -74,8 +84,9 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
   const deleteSelectedStations = () => {
     const selectedSet = new Set<number>(selected)
     const unselectedRows = rows.filter(row => !selectedSet.has(row.id))
-    console.log(unselectedRows)
+    const updatedCalculateRows = filter(calculatedResults, (_, i) => !selectedSet.has(i))
     setRows(unselectedRows)
+    setCalculatedResults(updatedCalculateRows)
     updateQueryParams(getUrlParamsFromRows(unselectedRows))
     setSelected([])
   }
@@ -88,7 +99,6 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
     setRows(newRows)
     updateQueryParams(getUrlParamsFromRows(newRows))
   }
-  const { fireBehaviourResultStations } = useSelector(selectFireBehaviourCalcResult)
 
   useEffect(() => {
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
@@ -177,7 +187,7 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
             updateSelected={(selected: number[]) => {
               setSelected(selected)
             }}
-            calculatedResults={fireBehaviourResultStations}
+            calculatedResults={calculatedResults}
           />
         </div>
         <FormControl className={classes.formControl}>
