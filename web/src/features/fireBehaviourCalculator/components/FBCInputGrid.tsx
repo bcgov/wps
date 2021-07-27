@@ -158,7 +158,7 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
     <div className={classes.display} data-testid={props.testId}>
       <Paper className={classes.paper} elevation={1}>
         <TableContainer className={classes.tableContainer}>
-          <Table stickyHeader aria-label="daily table view of HFI by planning area">
+          <Table stickyHeader aria-label="Fire Behaviour Analysis table">
             <TableHead>
               <TableRow>
                 <TableCell>
@@ -216,7 +216,7 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
                   (&deg;)
                 </TableCell>
                 <TableCell className={classes.windSpeed}>
-                  {'Wind Speed (km/h) (Optional)'}
+                  {'Wind Speed (km/h)'}
                   <Tooltip title="Leave this empty to calculate forecasted/observed wind speed. Add a custom wind speed to influence the calculations">
                     <InfoIcon aria-label="info"></InfoIcon>
                   </Tooltip>
@@ -238,14 +238,14 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
                   <br />
                   Hours
                   <br />
-                  (4000 kW/m) &dagger;
+                  (4000 kW/m)
                 </TableCell>
                 <TableCell className={classes.criticalHoursCell}>
                   Critical
                   <br />
                   Hours
                   <br />
-                  (10000 kW/m) &dagger;
+                  (10000 kW/m)
                 </TableCell>
                 <TableCell>
                   ROS

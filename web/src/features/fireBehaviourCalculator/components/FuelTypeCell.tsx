@@ -50,6 +50,12 @@ const FuelTypeCell = (props: FuelTypeCellProps) => {
       onChange={changeHandler}
       value={props.value}
       onBlur={props.fbcInputGridProps.autoUpdateHandler}
+      onKeyDown={event => {
+        if (event.key === 'Enter') {
+          event.preventDefault()
+          props.fbcInputGridProps.autoUpdateHandler()
+        }
+      }}
     />
   )
 }

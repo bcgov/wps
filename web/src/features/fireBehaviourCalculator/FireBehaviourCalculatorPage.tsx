@@ -132,7 +132,7 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
     }
   }))
 
-  const autoUpdateOnBlur = () => {
+  const autoUpdateHandler = () => {
     dispatch(fetchFireBehaviourStations(dateOfInterest, rows))
   }
 
@@ -156,7 +156,7 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
             <DatePicker
               date={dateOfInterest}
               onChange={setDateOfInterest}
-              autoUpdateOnBlur={autoUpdateOnBlur}
+              autoUpdateHandler={autoUpdateHandler}
             />
           </FormControl>
           <FormControl className={classes.formControl}>
@@ -196,7 +196,7 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
                 setSelected(selected)
               }}
               calculatedResults={calculatedResults}
-              autoUpdateOnBlur={autoUpdateOnBlur}
+              autoUpdateHandler={autoUpdateHandler}
             />
             <Paper className={classes.criticalHours}>
               <div>

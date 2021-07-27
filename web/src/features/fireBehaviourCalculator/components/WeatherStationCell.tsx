@@ -50,6 +50,12 @@ const WeatherStationCell = (props: WeatherStationCellProps) => {
       )}
       onChange={changeHandler}
       onBlur={props.fbcInputGridProps.autoUpdateHandler}
+      onKeyDown={event => {
+        if (event.key === 'Enter') {
+          event.preventDefault()
+          props.fbcInputGridProps.autoUpdateHandler()
+        }
+      }}
       value={props.value}
     />
   )

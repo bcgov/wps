@@ -1,4 +1,4 @@
-import { isUndefined } from 'lodash'
+import { isNull, isUndefined } from 'lodash'
 import { FBCInputRow } from './components/FBCInputGrid'
 
 /**
@@ -13,6 +13,9 @@ export const grassCureNotSetForGrassType = (row: FBCInputRow): boolean => {
   }
   if (row.fuelType === 'o1a' || row.fuelType === 'o1b') {
     return isUndefined(row.grassCure) || isNaN(row.grassCure)
+  }
+  if (!isUndefined(row.grassCure) && !isNull(row.grassCure)) {
+    return row.grassCure > 100
   }
   return false
 }

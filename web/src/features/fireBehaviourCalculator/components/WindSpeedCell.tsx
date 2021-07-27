@@ -45,6 +45,12 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
       inputProps={{ min: 0, maxLength: 4, size: 4 }}
       onChange={changeHandler}
       onBlur={props.fbcInputGridProps.autoUpdateHandler}
+      onKeyDown={event => {
+        if (event.key === 'Enter') {
+          event.preventDefault()
+          props.fbcInputGridProps.autoUpdateHandler()
+        }
+      }}
       value={windSpeedValue}
     />
   )

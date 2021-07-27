@@ -41,6 +41,12 @@ const GrassCureProps = (props: GrassCureCellProps) => {
       inputProps={{ min: 0, maxLength: 4, size: 4, max: 100 }}
       onChange={changeHandler}
       onBlur={props.fbcInputGridProps.autoUpdateHandler}
+      onKeyDown={event => {
+        if (event.key === 'Enter') {
+          event.preventDefault()
+          props.fbcInputGridProps.autoUpdateHandler()
+        }
+      }}
       value={props.value}
       error={hasError}
     />
