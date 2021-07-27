@@ -15,11 +15,11 @@ import {
 import InfoIcon from '@material-ui/icons/Info'
 import { FuelTypes } from 'features/fireBehaviourCalculator/fuelTypes'
 import { FBCStation } from 'api/fbCalcAPI'
-import { buildSelectCheckboxCell } from 'features/fireBehaviourCalculator/tableRowBuilder'
 import WeatherStationCell from 'features/fireBehaviourCalculator/components/WeatherStationCell'
 import FuelTypeCell from 'features/fireBehaviourCalculator/components/FuelTypeCell'
 import GrassCureCell from 'features/fireBehaviourCalculator/components/GrassCureCell'
 import WindSpeedCell from 'features/fireBehaviourCalculator/components/WindSpeedCell'
+import SelectionCheckbox from 'features/fireBehaviourCalculator/components/SelectionCheckbox'
 
 export interface FBCInputGridProps {
   testId?: string
@@ -273,7 +273,9 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
               {rows.map((row, ri) => {
                 return (
                   <TableRow key={ri}>
-                    <TableCell>{buildSelectCheckboxCell(props, ri)}</TableCell>
+                    <TableCell>
+                      <SelectionCheckbox fbcInputGridProps={props} rowId={ri} />
+                    </TableCell>
                     <TableCell>
                       <WeatherStationCell
                         fbcInputGridProps={props}
