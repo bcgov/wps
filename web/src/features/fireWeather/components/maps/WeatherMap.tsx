@@ -16,7 +16,7 @@ import { useDispatch, useSelector } from 'react-redux'
 
 import { selectFireWeatherStations } from 'app/rootReducer'
 import { getDetailedStations, StationSource } from 'api/stationAPI'
-import { computeAccuracyColors } from 'features/fireWeather/components/maps/stationAccuracy'
+import { computeRHAccuracyColor, computeTempAccuracyColor } from 'features/fireWeather/components/maps/stationAccuracy'
 import { AccuracyWeatherVariableEnum } from '../AccuracyVariablePicker'
 
 const BC_ROAD_BASE_MAP_SERVER_URL =
@@ -34,6 +34,25 @@ const source = new olSource.XYZ({
 
 const zoom = 6
 
+const rhPointStyleFunction = (feature: any) => {
+  return new Style({
+    image: new CircleStyle({
+      radius: 4,
+      fill: new Fill({ color: computeRHAccuracyColor(feature.values_) }),
+      stroke: new Stroke({ color: 'black', width: 1 })
+    })
+  })
+}
+
+const tempPointStyleFunction = (feature: any) => {
+  return new Style({
+    image: new CircleStyle({
+      radius: 4,
+      fill: new Fill({ color: computeTempAccuracyColor(feature.values_) }),
+      stroke: new Stroke({ color: 'black', width: 1 })
+    })
+  })
+}
 interface Props {
   redrawFlag?: RedrawCommand
   center: number[]
@@ -54,37 +73,14 @@ const WeatherMap = ({
   const dispatch = useDispatch()
 
   const { stations } = useSelector(selectFireWeatherStations)
+  const styleFunction = selectedWxVariable === 
+    AccuracyWeatherVariableEnum['Relative Humidity'] ? rhPointStyleFunction : tempPointStyleFunction
 
   useEffect(() => {
     dispatch(
       fetchWxStations(getDetailedStations, StationSource.unspecified, toiFromQuery)
     )
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const pointStyleFunction = (feature: any) => {
-    const colorResult = computeAccuracyColors(feature.values_)
-    console.log(feature.values_)
-    switch (selectedWxVariable) {
-      case AccuracyWeatherVariableEnum['Relative Humidity']:
-        return new Style({
-          image: new CircleStyle({
-            radius: 4,
-            fill: new Fill({ color: colorResult.relative_humidity }),
-            stroke: new Stroke({ color: 'black', width: 1 })
-          })
-        })
-
-      case AccuracyWeatherVariableEnum.Temperature:
-      default:
-        return new Style({
-          image: new CircleStyle({
-            radius: 4,
-            fill: new Fill({ color: colorResult.temperature }),
-            stroke: new Stroke({ color: 'black', width: 1 })
-          })
-        })
-    }
-  }
 
   const renderTooltip = useCallback(
     (feature: FeatureLike | null) => {
@@ -132,7 +128,7 @@ const WeatherMap = ({
             )
           })
         }
-        style={pointStyleFunction}
+        style={styleFunction}
         zIndex={1}
       />
     </Map>
