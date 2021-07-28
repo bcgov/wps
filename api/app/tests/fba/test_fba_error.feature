@@ -6,7 +6,7 @@ Feature: /fbc/
         And CFB is within <cfb_em> (<note>)
         And HFI is within <hfi_em> (<note>)
         And 1 HR Size is within <one_hr_em> (<note>)
-        # And ROS_t is within range
+        And ROS_t is within range (<note>)
         # And CFB_t is within range
         # And HFI_t is within range
         # And (1 HR Size)_t is within range

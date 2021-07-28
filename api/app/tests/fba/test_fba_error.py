@@ -42,7 +42,7 @@ def relative_error(metric: str, actual: float, expected: float, precision: int =
 
 
 def check_metric(metric: str,
-                 scenario: str,
+                 test_scenario: str,
                  fuel_type: str,
                  python_value: float,
                  comparison_value: float,
@@ -71,7 +71,7 @@ def check_metric(metric: str,
             if absolute_error < 0.01:
                 logger.info('no big deal, the absolute difference (%s) is tiny!', absolute_error)
             else:
-                assert error < metric_error_margin, f'{scenario}:{fuel_type}:{metric} {note}'
+                assert error < metric_error_margin, f'{test_scenario}:{fuel_type}:{metric} {note}'
 
 
 @pytest.mark.usefixtures('mock_jwt_decode')
@@ -159,6 +159,7 @@ def given_red_app_input(elevation: float,  # pylint: disable=too-many-arguments,
     # ros_t  == ROStcalc
     expected = {
         'ros': java_fbp.ros_eq,
+        'ros_t': java_fbp.ros_t,
         'cfb': java_fbp.cfb/100.0,  # CFFDRS gives cfb as a fraction
         'hfi': java_fbp.hfi,
         'area': java_fbp.area
@@ -181,6 +182,18 @@ def then_ros(result: dict, ros_em: float, note: str):
                  result['python'].ros,
                  result['expected']['ros'],
                  ros_em,
+                 note)
+
+
+@then("ROS_t is within range (<note>)")
+def then_ros_t(result: dict, note: str):
+    """ check the relative error of the ros """
+    check_metric('ROS_t',
+                 result['scenario'],
+                 result['fuel_type'],
+                 result['python'].ros_t,
+                 result['expected']['ros_t'],
+                 acceptable_margin_of_error,
                  note)
 
 
