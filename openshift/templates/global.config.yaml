@@ -105,6 +105,14 @@ parameters:
     description: How long to cache dailies by station code for.
     required: True
     value: "300"
+  - name: REDIS_CACHE_ENV_CANADA
+    description: If True then cache env canada downloads
+    required: True
+    value: "False"
+  - name: REDIS_ENV_CANADA_CACHE_EXPIRY
+    description: How long to cache env canada downloads for.
+    required: True
+    value: "21600"
 objects:
   - kind: ConfigMap
     apiVersion: v1
@@ -132,6 +140,8 @@ objects:
       env.redis-station-cache-expiry: ${REDIS_STATION_CACHE_EXPIRY}
       env.redis-auth-cache-expiry: ${REDIS_AUTH_CACHE_EXPIRY}
       env.redis-dailies-by-station-code-expiry: ${REDIS_DAILIES_BY_STATION_CODE_EXPIRY}
+      env.redis-cache-env-canada: ${REDIS_CACHE_ENV_CANADA}
+      env.redis-env-canada-cache-expiry: ${REDIS_ENV_CANADA_CACHE_EXPIRY}
 
   - kind: Secret
     apiVersion: v1
