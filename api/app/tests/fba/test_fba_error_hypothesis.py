@@ -92,7 +92,8 @@ def test_fire_behaviour_calculator_scenario():
     """ BDD Scenario. """
 
 
-@given("<fuel_type>, <percentage_conifer>, <percentage_dead_balsam_fir>, <grass_cure> and <crown_base_height> for <num_iterations>",
+@given("""<fuel_type>, <percentage_conifer>, <percentage_dead_balsam_fir>, <grass_cure> and """
+       """<crown_base_height> for <num_iterations>""",
        target_fixture='results')
 def given_input(fuel_type: str, percentage_conifer: float, percentage_dead_balsam_fir: float,
                 grass_cure: float, crown_base_height: float, num_iterations: int):
@@ -130,7 +131,11 @@ def given_input(fuel_type: str, percentage_conifer: float, percentage_dead_balsa
                    f"""ffmc: {ffmc}; isi: {isi}""")
         logger.debug(message)
 
-        test_entry = f"({index}) | {fuel_type} | {elevation} | {latitude} | {longitude} | {time_of_interest} | {wind_speed} | {wind_direction} | {percentage_conifer} | {percentage_dead_balsam_fir} | {grass_cure} | {crown_base_height} | {isi}  | {bui} | {ffmc} | {dmc} | {dc} | 0.01 | 0.01 | 0.01 | 0.01 | None | 0.01 | None | 0.01 | None | 0.01 | |"
+        test_entry = (f"""({index}) | {fuel_type} | {elevation} | {latitude} | {longitude} | """
+                      f"""{time_of_interest} | {wind_speed} | {wind_direction} | {percentage_conifer} | """
+                      f"""{percentage_dead_balsam_fir} | {grass_cure} | {crown_base_height} | {isi}  | """
+                      f"""{bui} | {ffmc} | {dmc} | {dc} | 0.01 | 0.01 | 0.01 | 0.01 | None | 0.01 | """
+                      f"""None | 0.01 | None | 0.01 | |""")
         logger.debug(test_entry)
         python_input = FBACalculatorWeatherStation(elevation=elevation,
                                                    fuel_type=fuel_type,
@@ -196,17 +201,20 @@ def then_ros_good(results: list, ros_margin_of_error: float):
                      result['python'].ros,
                      result['java'].ros_eq,
                      ros_margin_of_error,
-                     f'({index})ROS input- isi:{isi}; bui:{bui}; wind_speed:{wind_speed}; ffmc:{ffmc}')
+                     f"""({index}) input- isi:{isi}; bui:{bui}; wind_speed:{wind_speed}; ffmc:{ffmc}; """
+                     f"""java - isi:{java_isi}""")
 
 
 @ then("HFI is within <hfi_margin_of_error> compared to REDapp")
 def then_hfi_good(results: list, hfi_margin_of_error: float):
     """ check the relative error of HFI """
-    for result in results:
-        check_metric(f'HFI',
+    for index, result in enumerate(results):
+        check_metric('HFI',
                      result['fuel_type'],
                      result['python'].hfi,
-                     result['java'].hfi, hfi_margin_of_error)
+                     result['java'].hfi,
+                     hfi_margin_of_error,
+                     f'({index})')
 
 
 @ then("CFB is within <cfb_margin_of_error> compared to REDapp")
@@ -216,7 +224,8 @@ def then_cfb_good(results: list, cfb_margin_of_error: float):
         check_metric('CFB',
                      result['fuel_type'],
                      result['python'].cfb*100.0,
-                     result['java'].cfb, cfb_margin_of_error, f'({index})CFB input')
+                     result['java'].cfb, cfb_margin_of_error,
+                     f'({index})')
 
 
 @ then("1 Hour Spread is within <one_hour_spread_margin_of_error> compared to REDapp")
@@ -227,4 +236,4 @@ def then_1_hour_spread_good(results: list, one_hour_spread_margin_of_error: floa
                      result['fuel_type'],
                      result['python'].sixty_minute_fire_size,
                      result['java'].area, one_hour_spread_margin_of_error,
-                     f'({index})1 Hour Spread input')
+                     f'({index})')
