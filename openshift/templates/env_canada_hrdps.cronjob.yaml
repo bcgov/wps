@@ -167,6 +167,11 @@ objects:
                         configMapKeyRef:
                           name: ${NAME}-global
                           key: env.redis-dailies-by-station-code-expiry
+                    - name: REDIS_CACHE_ENV_CANADA
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${NAME}-global
+                          key: env.redis-cache-env-canada
                   resources:
                     limits:
                       cpu: "1"
