@@ -217,36 +217,6 @@ def back_rate_of_spread(fuel_type: str,  # pylint: disable=too-many-arguments, d
     return result[0]
 
 
-def isi_calc(ffmc: float, ws: float, fbpMod: bool = False):  # pylint: disable=invalid-name
-    """
-    # Description:
-    #   Computes the Initial Spread Index From the FWI System. Equations are from
-    #   Van Wagner (1985) as listed below, except for the modification for fbp
-    #   takene from FCFDG (1992).
-
-    #   Equations and FORTRAN program for the Canadian Forest Fire
-    #   Weather Index System. 1985. Van Wagner, C.E.; Pickett, T.L.
-    #   Canadian Forestry Service, Petawawa National Forestry
-    #   Institute, Chalk River, Ontario. Forestry Technical Report 33.
-    #   18 p.
-    #
-    #   Forestry Canada  Fire Danger Group (FCFDG) (1992). Development and
-    #   Structure of the Canadian Forest Fire Behavior Prediction System."
-    #   Technical ReportST-X-3, Forestry Canada, Ottawa, Ontario.
-    #
-    # Args:
-    #   ffmc:   Fine Fuel Moisture Code
-    #     ws:   Wind Speed (km/h)
-    # fbpMod:   TRUE/FALSE if using the fbp modification at the extreme end
-    #
-    # Returns:
-    #   ISI:    Intial Spread Index
-    """
-    # pylint: disable=protected-access, no-member
-    result = CFFDRS.instance().cffdrs._ISIcalc(ffmc=ffmc, ws=ws, fbpMod=fbpMod)
-    return result[0]
-
-
 def bui_calc(dmc: float, dc: float):  # pylint: disable=invalid-name
     """
     # Description: Buildup Index Calculation. All code
@@ -493,7 +463,7 @@ def fine_fuel_moisture_code(ffmc: float, temperature: float, relative_humidity: 
     return result[0]
 
 
-def initial_spread_index(ffmc: float, wind_speed: float):
+def initial_spread_index(ffmc: float, wind_speed: float, fbpMod: bool = False):  # pylint: disable=invalid-name
     """ Computes Initial Spread Index (ISI) by delegating to cffdrs R package.
     This is necessary when recalculating ROS/HFI for modified FFMC values. Otherwise,
     should be using the ISI value retrieved from WFWX.
@@ -507,7 +477,7 @@ def initial_spread_index(ffmc: float, wind_speed: float):
     #   ISI:    Intial Spread Index
     """
     # pylint: disable=protected-access, no-member
-    result = CFFDRS.instance().cffdrs._ISIcalc(ffmc=ffmc, ws=wind_speed)
+    result = CFFDRS.instance().cffdrs._ISIcalc(ffmc=ffmc, ws=wind_speed, fbpMod=fbpMod)
     return result[0]
 
 
