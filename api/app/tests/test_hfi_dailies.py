@@ -53,7 +53,8 @@ def given_time_range_metrics_request(monkeypatch, mocker: MockerFixture):  # pyl
 
     mocker.patch('app.wildfire_one.wfwx_api.get_wfwx_stations_from_station_codes',
                  return_value=[WFWXWeatherStation(
-                     wfwx_id='1', code=322, name='test', latitude=1, longitude=1, elevation=1)])
+                     wfwx_id='1', code=322, name='test', latitude=1, longitude=1,
+                     elevation=1, zone_code='T1')])
     mocker.patch('app.wildfire_one.wfwx_api.fetch_paged_response_generator',
                  return_value=AsyncIter([{'stationCode': 322,
                                           "stationId": '1',
