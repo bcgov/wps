@@ -426,15 +426,15 @@ def get_critical_hours(  # pylint: disable=too-many-arguments
     critical_ffmc, resulting_hfi = cffdrs.get_ffmc_for_target_hfi(
         fuel_type, percentage_conifer, percentage_dead_balsam_fir, bui, wind_speed,
         grass_cure, crown_base_height, daily_ffmc, fmc, cfb, cfl, target_hfi)
-    logger.info('Critical FFMC %s, resulting HFI %s; target HFI %s', critical_ffmc,
-                resulting_hfi, target_hfi)
+    logger.debug('Critical FFMC %s, resulting HFI %s; target HFI %s', critical_ffmc,
+                 resulting_hfi, target_hfi)
     # Scenario 1 (resulting_hfi < target_hfi) - will happen when it's impossible to get
     # a HFI value large enough to >= target_hfi, because FFMC influences the HFI value,
     # and FFMC has an upper bound of 101. So basically, in this scenario the resulting_hfi
     # would equal the resulting HFI when FFMC is set to 101.
     if critical_ffmc >= 100.9 and resulting_hfi < target_hfi:
-        logger.info('No critical hours for HFI %s. Critical FFMC %s has HFI %s',
-                    target_hfi, critical_ffmc, resulting_hfi)
+        logger.debug('No critical hours for HFI %s. Critical FFMC %s has HFI %s',
+                     target_hfi, critical_ffmc, resulting_hfi)
         return None
     # Scenario 2: the HFI is always >= target_hfi, even when FFMC = 0. In this case, all hours
     # of the day will be critical hours.

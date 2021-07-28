@@ -414,8 +414,8 @@ def foliar_moisture_content(lat: int, long: int, elv: float, day_of_year: int,
     #   FMC:    Foliar Moisture Content
      """
     # pylint: disable=protected-access, no-member
-    logger.info('calling _FMCcalc(LAT=%s, LONG=%s, ELV=%s, DJ=%s, D0=%s)', lat,
-                long, elv, day_of_year, date_of_minimum_foliar_moisture_content)
+    logger.debug('calling _FMCcalc(LAT=%s, LONG=%s, ELV=%s, DJ=%s, D0=%s)', lat,
+                 long, elv, day_of_year, date_of_minimum_foliar_moisture_content)
     result = CFFDRS.instance().cffdrs._FMCcalc(LAT=lat, LONG=long, ELV=elv,
                                                DJ=day_of_year, D0=date_of_minimum_foliar_moisture_content)
     return result[0]
