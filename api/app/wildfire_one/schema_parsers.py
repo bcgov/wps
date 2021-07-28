@@ -13,7 +13,7 @@ from app.schemas.observations import WeatherReading
 from app.schemas.hfi_calc import StationDaily
 from app.utils.hfi_calculator import FUEL_TYPE_LOOKUP
 from app.utils.time import get_julian_date_now
-from app.wildfire_one.util import is_station_valid
+from app.wildfire_one.util import is_station_valid, get_zone_code_prefix
 
 logger = logging.getLogger(__name__)
 
@@ -61,23 +61,24 @@ async def wfwx_station_list_mapper(raw_stations: Generator[dict, None, None]) ->
                                                elevation=raw_station['elevation'],
                                                name=raw_station['displayLabel'],
                                                zone_code=construct_zone_code(
-                                                   raw_station['zone'])
+                                                   raw_station)
                                                ))
     return stations
 
 
-def construct_zone_code(zone: any):
+def construct_zone_code(station: any):
     """ Constructs the 2-character zone code for a weather station, using the station's
-    zone.alias integer value, prefixed by the first letter of the station's assigned
-    fire centre.
+    zone.alias integer value, prefixed by the fire centre-to-letter mapping.
     """
-    if zone is None:
+    if station is None or station['zone'] is None or station['fireCentre'] is None:
         return None
-    fire_centre_name = zone['fireCentre']
-    zone_alias = zone['alias']
-    if fire_centre_name is None or zone_alias is None:
+    fire_centre_id = station['fireCentre']['id']
+    zone_alias = station['zone']['alias']
+    if fire_centre_id is None or zone_alias is None:
         return None
-    zone_code = fire_centre_name[0].upper() + str(zone_alias)
+    if get_zone_code_prefix(fire_centre_id) is None:
+        return None
+    zone_code = get_zone_code_prefix(fire_centre_id) + str(zone_alias)
     return zone_code
 
 

@@ -17,3 +17,21 @@ def is_station_valid(station) -> bool:
         # TODO : Decide if a station is valid if we can't determine its ecodivision and/or core fire season
         return False
     return True
+
+
+def get_zone_code_prefix(fire_centre_id: int):
+    """ Returns the single-letter code corresponding to fire centre.
+    Used in constructing zone codes.
+    Fire centre-to-letter mappings provided by Eric Kopetski.
+    """
+    fire_centre_to_zone_code_prefix = {
+        25: 'K',            # Kamloops Fire Centre
+        8: 'G',             # Prince George Fire Centre
+        42: 'R',            # Northwest Fire Centre
+        2: 'C',             # Cariboo Fire Centre
+        34: 'N',            # Southeast Fire Centre
+        50: 'V'             # Coastal Fire Centre
+    }
+    if fire_centre_id not in fire_centre_to_zone_code_prefix.keys():
+        return None
+    return fire_centre_to_zone_code_prefix.get(fire_centre_id)
