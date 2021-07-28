@@ -49,6 +49,7 @@ const FBCResultTable = (props: Props) => {
           <Table stickyHeader aria-label="daily table view of HFI by planning area">
             <TableHead>
               <TableRow>
+                <TableCell key="header-zone">Zone</TableCell>
                 <TableCell key="header-location">Location</TableCell>
                 <TableCell key="header-elevation">
                   Elev.
@@ -147,6 +148,7 @@ const FBCResultTable = (props: Props) => {
               {props.fireBehaviourResultStations.map((stationResult, index) => {
                 return (
                   <TableRow key={index}>
+                    <TableCell>{stationResult.zone_code}</TableCell>
                     <TableCell>
                       {stationResult.station_code} - {stationResult.station_name}
                     </TableCell>
