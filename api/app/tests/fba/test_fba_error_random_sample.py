@@ -77,7 +77,7 @@ def check_metric(metric: str,
 
 
 @pytest.mark.usefixtures('mock_jwt_decode')
-@scenario('test_fba_error_hypothesis.feature', 'Fire Behaviour Calculation',
+@scenario('test_fba_error_random_sample.feature', 'Fire Behaviour Calculation',
           example_converters=dict(crown_base_height=_str2float,
                                   fuel_type=str,
                                   percentage_conifer=_str2float,
