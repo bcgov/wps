@@ -115,16 +115,38 @@ class FireBehaviourAdvisory():  # pylint: disable=too-many-instance-attributes
                  hfi: float, ros: float, fire_type: str, cfb: float, flame_length: float,
                  sixty_minute_fire_size: float, thirty_minute_fire_size: float,
                  critical_hours_hfi_4000: Optional[str],
-                 critical_hours_hfi_10000: Optional[str]):
+                 critical_hours_hfi_10000: Optional[str],
+                 hfi_t: Optional[float],
+                 ros_t: Optional[float],
+                 cfb_t: Optional[float],
+                 sixty_minute_fire_size_t: Optional[float]):
         self.hfi = hfi
+        self.hfi_t = None
         self.ros = ros
+        self.ros_t = None
         self.fire_type = fire_type  # TODO: make this an enum
         self.cfb = cfb
+        self.cfb_t = None
         self.flame_length = flame_length
         self.sixty_minute_fire_size = sixty_minute_fire_size
+        self.sixty_minute_fire_size_t = None
         self.thirty_minute_fire_size = thirty_minute_fire_size
         self.critical_hours_hfi_4000 = critical_hours_hfi_4000
         self.critical_hours_hfi_10000 = critical_hours_hfi_10000
+
+
+def calculate_cfb(fuel_type: str, fmc: float, sfc: float, ros: float, cbh: float):
+    """ Calculate the crown fraction burned  (returning 0 for fuel types without crowns to burn) """
+    if fuel_type in ('D1', 'O1A', 'O1B', 'S1', 'S2', 'S3'):
+        # These fuel types don't have a crown fraction burnt. But CFB is needed for other calculations,
+        # so we go with 0.
+        cfb = 0
+    elif cbh is None:
+        # We can't calculate cfb without a crown base height!
+        cfb = None
+    else:
+        cfb = cffdrs.crown_fraction_burned(fuel_type, fmc=fmc, sfc=sfc, os=ros, cbh=cbh)
+    return cfb
 
 
 def calculate_fire_behaviour_advisory(station: FBACalculatorWeatherStation) -> FireBehaviourAdvisory:
@@ -157,16 +179,15 @@ def calculate_fire_behaviour_advisory(station: FBACalculatorWeatherStation) -> F
                                 cc=station.grass_cure,
                                 pdf=station.percentage_dead_balsam_fir,
                                 cbh=station.crown_base_height)
-    if station.fuel_type in ('D1', 'O1A', 'O1B', 'S1', 'S2', 'S3'):
-        # These fuel types don't have a crown fraction burnt. But CFB is needed for other calculations,
-        # so we go with 0.
-        cfb = 0
-    elif station.crown_base_height is None:
-        # We can't calculate cfb without a crown base height!
-        cfb = None
-    else:
-        cfb = cffdrs.crown_fraction_burned(station.fuel_type, fmc=fmc, sfc=sfc,
-                                           ros=ros, cbh=station.crown_base_height)
+    cfb = calculate_cfb(station.fuel_type, fmc, sfc, ros, station.crown_base_height)
+
+    # Calculate rate of spread assuming 60 minutes since ignition.
+    ros_t = cffdrs.rate_of_spread_t(
+        fuel_type=station.fuel_type,
+        ros_eq=ros,
+        minutes_since_ignition=60,
+        cfb=cfb)
+    cfb_t = calculate_cfb(station.fuel_type, fmc, sfc, ros_t, station.crown_base_height)
 
     cfl = FUEL_TYPE_LOOKUP[station.fuel_type].get('CFL', None)
 
@@ -174,6 +195,10 @@ def calculate_fire_behaviour_advisory(station: FBACalculatorWeatherStation) -> F
                                      percentage_conifer=station.percentage_conifer,
                                      percentage_dead_balsam_fir=station.percentage_dead_balsam_fir,
                                      ros=ros, cfb=cfb, cfl=cfl, sfc=sfc)
+    hfi_t = cffdrs.head_fire_intensity(fuel_type=station.fuel_type,
+                                       percentage_conifer=station.percentage_conifer,
+                                       percentage_dead_balsam_fir=station.percentage_dead_balsam_fir,
+                                       ros=ros_t, cfb=cfb_t, cfl=cfl, sfc=sfc)
     critical_hours_4000 = get_critical_hours(4000, station.fuel_type, station.percentage_conifer,
                                              station.percentage_dead_balsam_fir, station.bui,
                                              station.grass_cure,
@@ -212,6 +237,7 @@ def calculate_fire_behaviour_advisory(station: FBACalculatorWeatherStation) -> F
                                       cbh=station.crown_base_height)
 
     sixty_minute_fire_size = get_fire_size(station.fuel_type, ros, bros, 60, cfb, lb_ratio)
+    sixty_minute_fire_size_t = get_fire_size(station.fuel_type, ros_t, bros, 60, cfb_t, lb_ratio)
     thirty_minute_fire_size = get_fire_size(station.fuel_type, ros, bros, 30, cfb, lb_ratio)
 
     return FireBehaviourAdvisory(
