@@ -20,9 +20,11 @@ logger = logging.getLogger(__name__)
 def mock_hourly_actuals(mocker: MockerFixture):
     """ Mocks out hourly actuals as async result """
     station_1 = WFWXWeatherStation(latitude=1, longitude=1, elevation=1,
-                                   wfwx_id='ba28973a-0a79-04ea-e053-1d09228e8c64', code=1, name='blah')
+                                   wfwx_id='ba28973a-0a79-04ea-e053-1d09228e8c64', code=1,
+                                   name='blah', zone_code='T1')
     station_2 = WFWXWeatherStation(latitude=1, longitude=1, elevation=1,
-                                   wfwx_id='ba28973a-0a79-04ea-e053-1d09228e8c65', code=2, name='blah')
+                                   wfwx_id='ba28973a-0a79-04ea-e053-1d09228e8c65', code=2,
+                                   name='blah', zone_code='T1')
 
     class MockWFWXHourlyResponse(object):
         def __init__(self, **kwargs):
