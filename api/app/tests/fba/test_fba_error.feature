@@ -24,10 +24,9 @@ Feature: /fbc/
         # O1B Spreadsheet bad
         # Current target for margin of error: 1% (or 0.01)
 
-        # s_h1_em :- Spreadsheet 1 Hour Error Margin
-        # r_h1_em :- REDapp 1 Hour Error Margin
-        # s_cfb_em :- Spreadsheet Crown Fraction Burned Error Margin
-        # s_hfi_em :- Spreadsheet Head Fire Intensity Error Margin
+        # one_hr_em :- 1 Hour Error Margin
+        # cfb_em :- Crown Fraction Burned Error Margin
+        # hfi_em :- Head Fire Intensity Error Margin
         Examples:
             | fuel_type | elevation | latitude           | longitude           | time_of_interest | wind_speed         | wind_direction     | percentage_conifer | percentage_dead_balsam_fir | grass_cure | crown_base_height | isi                | bui              | ffmc              | dmc               | dc                 | one_hr_em | ros_em | hfi_em | cfb_em | note   |
             | C1        | 780       | 50.6733333         | -120.4816667        | 2021-07-12       | 6.2                | 3                  | 100                | None                       | None       | 2                 | 11.5               | 186.8            | 94.8              | 126.1             | 900.3              | 0.01      | 0.01   | 0.01   | 0.01   | REDapp |
