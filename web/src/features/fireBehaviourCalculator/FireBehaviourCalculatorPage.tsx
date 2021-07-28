@@ -111,6 +111,10 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
     setRows(rows)
     const mostRecentId = getMostRecentIdFromRows(rows)
     setRowId(mostRecentId + 1)
+
+    if (rows.length > 0) {
+      dispatch(fetchFireBehaviourStations(dateOfInterest, rows))
+    }
   }, [location]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const useStyles = makeStyles(theme => ({
