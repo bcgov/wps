@@ -87,11 +87,11 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
     setSelected([])
   }
 
-  const updateRow = (rowId: GridRowId, updatedRow: FBCInputRow) => {
+  const updateRow = (id: GridRowId, updatedRow: FBCInputRow) => {
     const newRows = [...rows]
 
     // rowId is the row array index
-    newRows[rowId as number] = updatedRow
+    newRows[id as number] = updatedRow
     setRows(newRows)
     updateQueryParams(getUrlParamsFromRows(newRows))
   }
@@ -107,10 +107,10 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
   }
 
   useEffect(() => {
-    const rowsFromQuery = getRowsFromUrlParams(location.search)
-    setRows(rowsFromQuery)
-    const lastId = getMostRecentIdFromRows(rows)
-    setRowId(lastId + 1)
+    const rows = getRowsFromUrlParams(location.search)
+    setRows(rows)
+    const mostRecentId = getMostRecentIdFromRows(rows)
+    setRowId(mostRecentId + 1)
   }, [location]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const useStyles = makeStyles(theme => ({
@@ -192,8 +192,8 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
               inputRows={rows}
               updateRow={updateRow}
               selected={selected}
-              updateSelected={(selected: number[]) => {
-                setSelected(selected)
+              updateSelected={(selectedRows: number[]) => {
+                setSelected(selectedRows)
               }}
               calculatedResults={calculatedResults}
               autoUpdateHandler={autoUpdateHandler}

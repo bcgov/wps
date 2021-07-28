@@ -99,11 +99,10 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
     if (isUndefined(label)) {
       return null
     }
-    const option: GridMenuOption = {
+    return {
       label,
       value
     }
-    return option
   }
 
   const buildFuelTypeMenuOption = (value: string | undefined) => {
@@ -114,11 +113,10 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
     if (isUndefined(fuelType) || isNull(fuelType)) {
       return null
     }
-    const option: GridMenuOption = {
+    return {
       label: fuelType.friendlyName,
       value
     }
-    return option
   }
 
   interface DisplayableInputRow {
