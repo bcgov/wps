@@ -3,7 +3,7 @@
 import math
 import logging
 from datetime import datetime, timezone
-from typing import Generator, List
+from typing import Generator, List, Optional
 from app.db.models.observations import HourlyActual
 from app.schemas.stations import WeatherStation
 from app.utils import cffdrs
@@ -13,7 +13,7 @@ from app.schemas.observations import WeatherReading
 from app.schemas.hfi_calc import StationDaily
 from app.utils.hfi_calculator import FUEL_TYPE_LOOKUP
 from app.utils.time import get_julian_date_now
-from app.wildfire_one.util import is_station_valid
+from app.wildfire_one.util import is_station_valid, get_zone_code_prefix
 
 logger = logging.getLogger(__name__)
 
@@ -36,13 +36,15 @@ class WFWXWeatherStation():
     """ A WFWX station includes a code and WFWX API specific id """
 
     def __init__(self,  # pylint: disable=too-many-arguments
-                 wfwx_id: str, code: int, latitude: float, longitude: float, elevation: int, name: str):
+                 wfwx_id: str, code: int, latitude: float, longitude: float, elevation: int,
+                 name: str, zone_code: Optional[str]):
         self.wfwx_id = wfwx_id
         self.code = code
         self.name = name
         self.lat = latitude
         self.long = longitude
         self.elevation = elevation
+        self.zone_code = zone_code
 
 
 async def wfwx_station_list_mapper(raw_stations: Generator[dict, None, None]) -> List[WFWXWeatherStation]:
@@ -57,9 +59,27 @@ async def wfwx_station_list_mapper(raw_stations: Generator[dict, None, None]) ->
                                                latitude=raw_station['latitude'],
                                                longitude=raw_station['longitude'],
                                                elevation=raw_station['elevation'],
-                                               name=raw_station['displayLabel']
+                                               name=raw_station['displayLabel'],
+                                               zone_code=construct_zone_code(
+                                                   raw_station)
                                                ))
     return stations
+
+
+def construct_zone_code(station: any):
+    """ Constructs the 2-character zone code for a weather station, using the station's
+    zone.alias integer value, prefixed by the fire centre-to-letter mapping.
+    """
+    if station is None or station['zone'] is None or station['fireCentre'] is None:
+        return None
+    fire_centre_id = station['fireCentre']['id']
+    zone_alias = station['zone']['alias']
+    if fire_centre_id is None or zone_alias is None:
+        return None
+    if get_zone_code_prefix(fire_centre_id) is None:
+        return None
+    zone_code = get_zone_code_prefix(fire_centre_id) + str(zone_alias)
+    return zone_code
 
 
 def parse_station(station) -> WeatherStation:

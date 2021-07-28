@@ -368,8 +368,6 @@ def get_critical_hours_start(critical_ffmc: float, daily_ffmc: float,
     # else the start of critical hours is sometime in the afternoon (between 12:00 and 17:00)
     clock_time = 16.0
     while get_afternoon_overnight_diurnal_ffmc(clock_time, daily_ffmc) >= critical_ffmc:
-        logger.info('At %s, hourly diurnal FFMC is %s', clock_time,
-                    get_afternoon_overnight_diurnal_ffmc(clock_time, daily_ffmc))
         clock_time -= 1.0
     # add back the hour that caused FFMC to drop below critical_ffmc
     clock_time += 1.0
