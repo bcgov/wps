@@ -25,8 +25,9 @@ from app.db.crud.weather_models import (get_processed_file_record,
 from app.weather_models.machine_learning import StationMachineLearning
 from app.weather_models import ModelEnum, ProjectionEnum, construct_interpolated_noon_prediction
 from app.schemas.stations import WeatherStation
-from app import configure_logging
+from app import config, configure_logging
 import app.utils.time as time_utils
+from app.utils.redis import create_redis
 from app.stations import get_stations_synchronously
 from app.weather_models.process_grib import GribFileProcessor, ModelRunInfo
 from app.db.models import (ProcessedModelRunUrl, PredictionModelRunTimestamp,
@@ -254,25 +255,51 @@ def download(url: str, path: str) -> str:
     # Construct target location for downloaded file.
     target = os.path.join(os.getcwd(), path, filename)
     # Get the file.
-    # It's important to have a timeout on the get, otherwise the call may get stuck for an indefinite
-    # amount of time - there is no default value for timeout. During testing, it was observed that
-    # downloads usually complete in less than a second.
-    logger.info('Downloading %s', url)
-    response = requests.get(url, timeout=60)
-    # If the response is 200/OK.
-    if response.status_code == 200:
-        # Store the response.
+    # We don't strictly need to use redis - but it helps a lot when debugging on a local machine, it
+    # saves having to re-download the file all the time.
+    # It also save a lot of bandwidth in our dev environment, where we have multiple workers downloading
+    # the same files over and over.
+    if config.get('REDIS_CACHE_ENV_CANADA') == 'True':
+        cache = create_redis()
+        try:
+            cached_object = cache.get(url)
+        except Exception as error:  # pylint: disable=broad-except
+            cached_object = None
+            logger.error(error)
+    else:
+        cached_object = None
+        cache = None
+    if cached_object:
+        logger.info('Cache hit %s', url)
+        # Store the cached object in a file
         with open(target, 'wb') as file_object:
             # Write the file.
-            file_object.write(response.content)
-    elif response.status_code == 404:
-        # We expect this to happen frequently - just log for info.
-        logger.info('404 error for %s', url)
-        target = None
+            file_object.write(cached_object)
     else:
-        # Raise an exception
-        response.raise_for_status()
-    # Return file location.
+        logger.info('Downloading %s', url)
+        # It's important to have a timeout on the get, otherwise the call may get stuck for an indefinite
+        # amount of time - there is no default value for timeout. During testing, it was observed that
+        # downloads usually complete in less than a second.
+        response = requests.get(url, timeout=60)
+        # If the response is 200/OK.
+        if response.status_code == 200:
+            # Store the response.
+            with open(target, 'wb') as file_object:
+                # Write the file.
+                file_object.write(response.content)
+            # Cache the response
+            if cache:
+                with open(target, 'rb') as file_object:
+                    # Cache for 6 hours (21600 seconds)
+                    cache.set(url, file_object.read(), ex=config.get('REDIS_ENV_CANADA_CACHE_EXPIRY', 21600))
+        elif response.status_code == 404:
+            # We expect this to happen frequently - just log for info.
+            logger.info('404 error for %s', url)
+            target = None
+        else:
+            # Raise an exception
+            response.raise_for_status()
+        # Return file location.
     return target
 
 
