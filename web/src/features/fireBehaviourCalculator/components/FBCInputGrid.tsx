@@ -74,7 +74,8 @@ const useStyles = makeStyles({
     maxWidth: 1900
   },
   adjustedValueCell: {
-    fontWeight: 'bold'
+    fontWeight: 'bold',
+    color: '#460270'
   }
 })
 
