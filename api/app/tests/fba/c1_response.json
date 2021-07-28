@@ -3,6 +3,7 @@
         {
             "station_code": 230,
             "station_name": "HORSEFLY",
+            "zone_code": "C3",
             "date": "2021-07-05",
             "elevation": 701,
             "fuel_type": "C1",
