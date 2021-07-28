@@ -133,6 +133,10 @@ class FireBehaviourAdvisory():  # pylint: disable=too-many-instance-attributes
         self.thirty_minute_fire_size = thirty_minute_fire_size
         self.critical_hours_hfi_4000 = critical_hours_hfi_4000
         self.critical_hours_hfi_10000 = critical_hours_hfi_10000
+        self.hfi_t = hfi_t
+        self.ros_t = ros_t
+        self.cfb_t = cfb_t
+        self.sixty_minute_fire_size_t = sixty_minute_fire_size_t
 
 
 def calculate_cfb(fuel_type: str, fmc: float, sfc: float, ros: float, cbh: float):
@@ -145,7 +149,7 @@ def calculate_cfb(fuel_type: str, fmc: float, sfc: float, ros: float, cbh: float
         # We can't calculate cfb without a crown base height!
         cfb = None
     else:
-        cfb = cffdrs.crown_fraction_burned(fuel_type, fmc=fmc, sfc=sfc, os=ros, cbh=cbh)
+        cfb = cffdrs.crown_fraction_burned(fuel_type, fmc=fmc, sfc=sfc, ros=ros, cbh=cbh)
     return cfb
 
 
@@ -245,7 +249,8 @@ def calculate_fire_behaviour_advisory(station: FBACalculatorWeatherStation) -> F
         sixty_minute_fire_size=sixty_minute_fire_size,
         thirty_minute_fire_size=thirty_minute_fire_size,
         critical_hours_hfi_4000=critical_hours_4000,
-        critical_hours_hfi_10000=critical_hours_10000)
+        critical_hours_hfi_10000=critical_hours_10000,
+        hfi_t=hfi_t, ros_t=ros_t, cfb_t=cfb_t, sixty_minute_fire_size_t=sixty_minute_fire_size_t)
 
 
 def get_30_minutes_fire_size(length_breadth_ratio: float, rate_of_spread: float):
