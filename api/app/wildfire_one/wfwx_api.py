@@ -52,7 +52,7 @@ async def get_auth_header(session: ClientSession) -> dict:
     return header
 
 
-async def get_stations_by_codes(station_codes: List[int]) -> List[WeatherStation]:
+async def get_wfwx_stations_by_codes(station_codes: List[int]) -> List[WeatherStation]:
     """ Get a list of stations by code, from WFWX Fireweather API. """
     logger.info('Using WFWX to retrieve stations by code')
     async with ClientSession() as session:

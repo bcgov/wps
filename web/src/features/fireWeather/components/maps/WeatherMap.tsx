@@ -35,7 +35,6 @@ const source = new olSource.XYZ({
 const zoom = 6
 
 const rhPointStyleFunction = (feature: any) => {
-  console.log(feature.values_)
   return new Style({
     image: new CircleStyle({
       radius: 4,
@@ -46,7 +45,6 @@ const rhPointStyleFunction = (feature: any) => {
 }
 
 const tempPointStyleFunction = (feature: any) => {
-  console.log(feature.values_)
   return new Style({
     image: new CircleStyle({
       radius: 4,

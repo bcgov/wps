@@ -29,7 +29,7 @@ async def fetch_hourly_readings_from_db(
         date_to: datetime) -> List[WeatherStationHourlyReadings]:
     """ Fetch the hourly readings from the database.
     """
-    stations = await wfwx_api.get_stations_by_codes(station_codes)
+    stations = await wfwx_api.get_wfwx_stations_by_codes(station_codes)
     with app.db.database.get_read_session_scope() as session:
         readings = get_hourly_actuals(session, station_codes, date_from, date_to)
         station_readings = None

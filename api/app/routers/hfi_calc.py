@@ -13,7 +13,7 @@ from app.schemas.hfi_calc import (HFIWeatherStationsResponse, WeatherStationProp
 from app.db.crud.hfi_calc import get_fire_weather_stations
 from app.wildfire_one.wfwx_api import (get_auth_header,
                                        get_dailies,
-                                       get_stations_by_codes)
+                                       get_wfwx_stations_by_codes)
 
 
 logger = logging.getLogger(__name__)
@@ -105,7 +105,7 @@ async def get_fire_centres(response: Response):  # pylint: disable=too-many-loca
                         station_record.station_code)
 
             # We're still missing some data that we need from wfwx, so give it the list of stations
-            wfwx_stations_data = await get_stations_by_codes(list(station_info_dict.keys()))
+            wfwx_stations_data = await get_wfwx_stations_by_codes(list(station_info_dict.keys()))
             # Iterate through all the stations from wildfire one.
 
             for wfwx_station in wfwx_stations_data:
