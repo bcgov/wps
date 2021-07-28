@@ -250,7 +250,7 @@ def bui_calc(dmc: float, dc: float):  # pylint: disable=invalid-name
 
 def rate_of_spread_t(fuel_type: str,
                      ros_eq: float,
-                     hours_since_ignition: float,
+                     minutes_since_ignition: float,
                      cfb: float):
     """
     # Description:
@@ -272,10 +272,12 @@ def rate_of_spread_t(fuel_type: str,
     #   ROSt: Rate of Spread at time since ignition
     #
     """
+    # NOTE: CFFDRS documentation incorrectly states that HR is hours since ignition, it's actually
+    # minutes.
     # pylint: disable=protected-access, no-member
     result = CFFDRS.instance().cffdrs._ROStcalc(FUELTYPE=fuel_type,
                                                 ROSeq=ros_eq,
-                                                HR=hours_since_ignition,
+                                                HR=minutes_since_ignition,
                                                 CFB=cfb)
     return result[0]
 
