@@ -32,6 +32,4 @@ def get_zone_code_prefix(fire_centre_id: int):
         34: 'N',            # Southeast Fire Centre
         50: 'V'             # Coastal Fire Centre
     }
-    if fire_centre_id not in fire_centre_to_zone_code_prefix.keys():
-        return None
-    return fire_centre_to_zone_code_prefix.get(fire_centre_id)
+    return fire_centre_to_zone_code_prefix.get(fire_centre_id, None)
