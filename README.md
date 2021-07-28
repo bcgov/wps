@@ -41,7 +41,7 @@ A glossary of terms relating to Wildfire that are relevant to Predictive Service
 
 ## Architecture
 
-![FWI calculator container diagram](./architecture/container_diagram.jpg)
+![FWI calculator container diagram](./architecture/container_diagram.png)
 
 ### Imagestream flow
 
