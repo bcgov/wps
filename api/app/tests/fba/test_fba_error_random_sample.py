@@ -60,8 +60,6 @@ def check_metric(metric: str,
         assert python_value >= 0
         error = relative_error(python_value, comparison_value)
         absolute_error = abs(python_value - comparison_value)
-        # logger.info(
-        #     f'{fuel_type}: Python {python_value}, {metric} {comparison_value} ; error: {error}')
         if error > acceptable_margin_of_error:
             logger.error('%s %s relative error %s > %s! (python: %s, expected: %s)',
                          fuel_type, metric, error, acceptable_margin_of_error, python_value, comparison_value)
@@ -151,7 +149,7 @@ def given_input(fuel_type: str, percentage_conifer: float, percentage_dead_balsa
                                                    isi=isi,
                                                    wind_speed=wind_speed,
                                                    wind_direction=wind_direction,
-                                                   temperature=temperature,  # temporary fix so tests don't break
+                                                   temperature=temperature,
                                                    relative_humidity=relative_humidity,
                                                    precipitation=precipitation,
                                                    status='Forecasted',
@@ -184,7 +182,7 @@ def given_input(fuel_type: str, percentage_conifer: float, percentage_dead_balsa
     return results
 
 
-@ then("ROS is within <ros_margin_of_error> compared to REDapp")
+@then("ROS is within <ros_margin_of_error> compared to REDapp")
 def then_ros_good(results: list, ros_margin_of_error: float):
     """ check the relative error of ROS """
     for index, result in enumerate(results):
@@ -205,7 +203,7 @@ def then_ros_good(results: list, ros_margin_of_error: float):
                      f"""java - isi:{java_isi}""")
 
 
-@ then("HFI is within <hfi_margin_of_error> compared to REDapp")
+@then("HFI is within <hfi_margin_of_error> compared to REDapp")
 def then_hfi_good(results: list, hfi_margin_of_error: float):
     """ check the relative error of HFI """
     for index, result in enumerate(results):
@@ -217,7 +215,7 @@ def then_hfi_good(results: list, hfi_margin_of_error: float):
                      f'({index})')
 
 
-@ then("CFB is within <cfb_margin_of_error> compared to REDapp")
+@then("CFB is within <cfb_margin_of_error> compared to REDapp")
 def then_cfb_good(results: list, cfb_margin_of_error: float):
     """ check the relative error of HFI """
     for index, result in enumerate(results):
@@ -228,7 +226,7 @@ def then_cfb_good(results: list, cfb_margin_of_error: float):
                      f'({index})')
 
 
-@ then("1 Hour Spread is within <one_hour_spread_margin_of_error> compared to REDapp")
+@then("1 Hour Spread is within <one_hour_spread_margin_of_error> compared to REDapp")
 def then_1_hour_spread_good(results: list, one_hour_spread_margin_of_error: float):
     """ check the relative error of HFI """
     for index, result in enumerate(results):
