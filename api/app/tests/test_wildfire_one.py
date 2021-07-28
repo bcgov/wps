@@ -43,13 +43,11 @@ station_2 = WFWXWeatherStation(code=code2, name="name", wfwx_id="two", latitude=
 all_stations = [station_1, station_2]
 
 
-# @asyncio.coroutine
 async def mock_get_stations(_, __, **___):
     """ Returns mocked WFWXWeatherStations. """
     return all_stations
 
 
-# @asyncio.coroutine
 def mock_get_fire_centre_station_codes(__):
     """ Returns mocked WFWXWeatherStations codes. """
     return all_station_codes
