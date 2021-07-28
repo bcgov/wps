@@ -75,9 +75,6 @@ const useStyles = makeStyles({
   },
   adjustedValueCell: {
     fontWeight: 'bold'
-  },
-  criticalHoursCell: {
-    backgroundColor: '#e6ebf0'
   }
 })
 
@@ -231,14 +228,14 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
                 <TableCell>BUI</TableCell>
                 <TableCell>FWI</TableCell>
                 <TableCell>HFI</TableCell>
-                <TableCell className={classes.criticalHoursCell}>
+                <TableCell>
                   Critical
                   <br />
                   Hours
                   <br />
                   (4000 kW/m)
                 </TableCell>
-                <TableCell className={classes.criticalHoursCell}>
+                <TableCell>
                   Critical
                   <br />
                   Hours
@@ -351,12 +348,8 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
                     <TableCell>
                       {row.head_fire_intensity?.toFixed(DECIMAL_PLACES)}
                     </TableCell>
-                    <TableCell className={classes.criticalHoursCell}>
-                      {row.critical_hours_hfi_4000}
-                    </TableCell>
-                    <TableCell className={classes.criticalHoursCell}>
-                      {row.critical_hours_hfi_10000}
-                    </TableCell>
+                    <TableCell>{row.critical_hours_hfi_4000}</TableCell>
+                    <TableCell>{row.critical_hours_hfi_10000}</TableCell>
                     <TableCell>{row.rate_of_spread?.toFixed(DECIMAL_PLACES)}</TableCell>
                     <TableCell>{row?.fire_type}</TableCell>
                     <TableCell>
