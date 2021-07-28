@@ -10,7 +10,7 @@ from app import configure_logging
 from app.utils.time import get_hour_20_from_date
 from app.utils.fba_calculator import calculate_fire_behaviour_advisory, FBACalculatorWeatherStation
 from app.utils.redapp import FBPCalculateStatisticsCOM
-from app.utils.cffdrs import isi_calc, bui_calc
+from app.utils.cffdrs import initial_spread_index, bui_calc
 import pytest
 
 
@@ -122,7 +122,7 @@ def given_input(fuel_type: str, percentage_conifer: float, percentage_dead_balsa
         dmc = random.uniform(11, 205)
         bui = bui_calc(dmc, dc)
         ffmc = random.uniform(11, 100)
-        isi = isi_calc(ffmc, wind_speed)
+        isi = initial_spread_index(ffmc, wind_speed)
 
         message = (f"""({index}) elevation:{elevation} ; lat: {latitude} ; lon: {longitude}; """
                    f"""toi: {time_of_interest}; ws: {wind_speed}; wd: {wind_direction}; """
