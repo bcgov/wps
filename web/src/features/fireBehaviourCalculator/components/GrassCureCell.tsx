@@ -1,11 +1,14 @@
 import { TextField } from '@material-ui/core'
 import { ClassNameMap } from '@material-ui/core/styles/withStyles'
-import { FBCInputGridProps } from 'features/fireBehaviourCalculator/components/FBCInputGrid'
+import {
+  FBCInputGridProps,
+  FBCInputRow
+} from 'features/fireBehaviourCalculator/components/FBCInputGrid'
 import {
   buildUpdatedNumberRow,
   updateFBCRow
 } from 'features/fireBehaviourCalculator/tableState'
-import { grassCureNotSetForGrassType } from 'features/fireBehaviourCalculator/validation'
+import { isUndefined, isNull } from 'lodash'
 import React, { ChangeEvent } from 'react'
 
 interface GrassCureCellProps {
@@ -16,6 +19,19 @@ interface GrassCureCellProps {
   classNameMap: ClassNameMap<'grassCure'>
   value: number | undefined
   rowId: number
+}
+
+const grassCureNotSetForGrassType = (row: FBCInputRow): boolean => {
+  if (isUndefined(row)) {
+    return false
+  }
+  if (row.fuelType === 'o1a' || row.fuelType === 'o1b') {
+    return isUndefined(row.grassCure) || isNaN(row.grassCure)
+  }
+  if (!isUndefined(row.grassCure) && !isNull(row.grassCure)) {
+    return row.grassCure > 100
+  }
+  return false
 }
 const GrassCureProps = (props: GrassCureCellProps) => {
   const changeHandler = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
