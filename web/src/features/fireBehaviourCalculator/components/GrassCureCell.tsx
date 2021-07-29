@@ -9,7 +9,7 @@ import {
   updateFBCRow
 } from 'features/fireBehaviourCalculator/tableState'
 import { isUndefined, isNull } from 'lodash'
-import React, { ChangeEvent } from 'react'
+import React, { ChangeEvent, useState } from 'react'
 
 interface GrassCureCellProps {
   fbcInputGridProps: Pick<
@@ -34,12 +34,18 @@ const grassCureNotSetForGrassType = (row: FBCInputRow): boolean => {
   return false
 }
 const GrassCureProps = (props: GrassCureCellProps) => {
+  const [grassCurePercentage, setGrassCurePercentage] = useState(props.value)
+
   const changeHandler = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setGrassCurePercentage(parseInt(event.target.value))
+  }
+
+  const blurHandler = () => {
     updateFBCRow(
       props.fbcInputGridProps,
       props.rowId,
       'grassCure',
-      parseInt(event.target.value),
+      grassCurePercentage,
       buildUpdatedNumberRow
     )
   }
@@ -56,14 +62,14 @@ const GrassCureProps = (props: GrassCureCellProps) => {
       variant="outlined"
       inputProps={{ min: 0, maxLength: 4, size: 4, max: 100 }}
       onChange={changeHandler}
-      onBlur={props.fbcInputGridProps.autoUpdateHandler}
+      onBlur={blurHandler}
       onKeyDown={event => {
         if (event.key === 'Enter') {
           event.preventDefault()
           props.fbcInputGridProps.autoUpdateHandler()
         }
       }}
-      value={props.value}
+      value={grassCurePercentage}
       error={hasError}
     />
   )

@@ -26,14 +26,17 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
   }, [value])
 
   const changeHandler = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setWindSpeedValue(parseInt(event.target.value))
+  }
+
+  const blurHandler = () => {
     updateFBCRow(
       props.fbcInputGridProps,
       props.rowId,
       'windSpeed',
-      parseInt(event.target.value),
+      windSpeedValue,
       buildUpdatedNumberRow
     )
-    setWindSpeedValue(parseInt(event.target.value))
   }
 
   return (
@@ -44,7 +47,7 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
       variant="outlined"
       inputProps={{ min: 0, maxLength: 4, size: 4 }}
       onChange={changeHandler}
-      onBlur={props.fbcInputGridProps.autoUpdateHandler}
+      onBlur={blurHandler}
       onKeyDown={event => {
         if (event.key === 'Enter') {
           event.preventDefault()
