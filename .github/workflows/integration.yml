@@ -6,7 +6,7 @@ on:
       - main
 jobs:
   lint-and-test:
-    name: Lint, Test with Coverage & SonarQube
+    name: Lint, Test, Coverage with CodeCov
     runs-on: ubuntu-20.04
     strategy:
       matrix:
@@ -24,7 +24,6 @@ jobs:
         # The python gdal and R component relies on libgdal-dev being installed.
         run: |
           sudo apt-get update --fix-missing && sudo apt-get -y install libgdal-dev
-
       # it would be nice to cache this!
       # - name: Cache libgdal-dev (api)
       #   uses: actions/cache@v2
@@ -57,7 +56,6 @@ jobs:
           key: ${{ runner.os }}-renv-${{ hashFiles('**/renv.lock') }}
           restore-keys: |
             ${{ runner.os }}-renv-
-
       - name: Install renv (api)
         run: |
           install.packages("renv")
@@ -105,7 +103,6 @@ jobs:
           echo
           mkdir ~/poetry_installer
           curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py > ~/poetry_installer/get-poetry.py
-
       - name: Install poetry (api)
         run: |
           cd ~/poetry_installer
@@ -113,7 +110,6 @@ jobs:
           source ~/.poetry/env
           poetry config virtualenvs.create true
           poetry config virtualenvs.in-project false
-
       # poetry cache folder: /home/runner/.cache/pypoetry
       - name: Cache poetry
         uses: actions/cache@v2
@@ -124,7 +120,6 @@ jobs:
           key: ${{ runner.os }}-poetry-cache-${{ hashFiles('**/poetry.lock') }}
           restore-keys: |
             ${{ runner.os }}-poetry-cache-
-
       - name: Install gdal python (api)
         # We don't have much control over what version of gdal we're getting, it's pretty much whatever is
         # available to us. As such, gdal is not installed by poetry, since the version will differ between
@@ -136,20 +131,17 @@ jobs:
           source ~/.poetry/env
           poetry run pip install numpy
           CPLUS_INCLUDE_PATH=/usr/include/gdal C_INCLUDE_PATH=/usr/include/gdal poetry run pip install gdal==$(gdal-config --version)
-
       - name: Install remaining python dependencies (api)
         working-directory: ./api
         run: |
           source ~/.poetry/env
           poetry install
-
       - name: Lint (api)
         # We run lint before unit tests, only because it runs faster, so we'll reach a fail condition sooner.
         working-directory: ./api
         run: |
           source ~/.poetry/env
           poetry run pylint --rcfile=.pylintrc app/*.py app/**/*.py
-
       - name: Unit Test with coverage (api)
         working-directory: ./api
         run: |
@@ -158,17 +150,13 @@ jobs:
           export CLASSPATH=./libs/REDapp_Lib.jar:./libs/WTime.jar:./libs/hss-java.jar:$CLASSPATHpoetry
           export ORIGINS=testorigin
           poetry run coverage run --source=app -m pytest -o log_cli=true --disable-warnings -vvv
-
       - name: Create coverage report (api)
-        # Create coverage report, and then replace occurrences of
-        # 'filename="app' with 'filename="api/app" in coverage-report.xml
         working-directory: ./api
         shell: bash
         run: |
           source ~/.poetry/env
           poetry run coverage report
           poetry run coverage xml -o coverage-reports/coverage-report.xml
-          sed -i 's/filename="app/filename="api\/app/' coverage-reports/coverage-report.xml
 
       - uses: actions/cache@v2
         with:
@@ -197,13 +185,8 @@ jobs:
         working-directory: ./web
         run: yarn run test:ci
 
-      - name: Fix code coverage paths (web)
-        # Due to the way sonarscanner mounts thing when running in docker, we need to change the coverage file.
-        working-directory: ./web/coverage
-        run: sed -i 's/\/home\/runner\/work\/wps\/wps\/web\//\/github\/workspace\//g' lcov.info
-
-      - name: SonarCloud Scan
-        uses: sonarsource/sonarcloud-github-action@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: Upload test coverage to Codecov
+        uses: codecov/codecov-action@v1.5.2
+        with:
+          token: ${{secrets.CODECOV_TOKEN}}
+          fail_ci_if_error: false
