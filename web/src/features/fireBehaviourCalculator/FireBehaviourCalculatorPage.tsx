@@ -1,25 +1,19 @@
-import { FormControl, makeStyles, Paper } from '@material-ui/core'
+import { CircularProgress, FormControl, makeStyles, Paper } from '@material-ui/core'
 import { GridRowId } from '@material-ui/data-grid'
 import { GeoJsonStation, getStations, StationSource } from 'api/stationAPI'
-import {
-  selectFireBehaviourCalcResult,
-  selectFireBehaviourStationsLoading,
-  selectFireWeatherStations
-} from 'app/rootReducer'
+import { selectFireBehaviourCalcResult, selectFireWeatherStations } from 'app/rootReducer'
 import { Button, Container, PageHeader } from 'components'
-import GetWxDataButton from 'features/fireWeather/components/GetWxDataButton'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { DateTime } from 'luxon'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useHistory, useLocation } from 'react-router-dom'
-import { some } from 'lodash'
+import { filter } from 'lodash'
 import DatePicker from 'features/fireBehaviourCalculator/components/DatePicker'
 import FBCInputGrid, {
   GridMenuOption,
   FBCInputRow
 } from 'features/fireBehaviourCalculator/components/FBCInputGrid'
-import FBCResultTable from 'features/fireBehaviourCalculator/components/FBCResultTable'
 import { FuelTypes } from 'features/fireBehaviourCalculator/fuelTypes'
 import { fetchFireBehaviourStations } from 'features/fireBehaviourCalculator/slices/fireBehaviourCalcSlice'
 import {
@@ -27,7 +21,7 @@ import {
   getMostRecentIdFromRows,
   getUrlParamsFromRows
 } from 'features/fireBehaviourCalculator/utils'
-import { shouldDisableCalculate } from 'features/fireBehaviourCalculator/validation'
+import { FBCStation } from 'api/fbCalcAPI'
 
 export const FireBehaviourCalculator: React.FunctionComponent = () => {
   const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().toISODate())
@@ -57,6 +51,17 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
   const [rowId, setRowId] = useState(lastId + 1)
   const [selected, setSelected] = useState<number[]>([])
 
+  const { fireBehaviourResultStations, loading } = useSelector(
+    selectFireBehaviourCalcResult
+  )
+  const [calculatedResults, setCalculatedResults] = useState<FBCStation[]>(
+    fireBehaviourResultStations
+  )
+
+  useEffect(() => {
+    setCalculatedResults(fireBehaviourResultStations)
+  }, [fireBehaviourResultStations]) // eslint-disable-line react-hooks/exhaustive-deps
+
   const addStation = () => {
     const newRowId = rowId + 1
     setRowId(newRowId)
@@ -75,21 +80,21 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
   const deleteSelectedStations = () => {
     const selectedSet = new Set<number>(selected)
     const unselectedRows = rows.filter(row => !selectedSet.has(row.id))
-    console.log(unselectedRows)
+    const updatedCalculateRows = filter(calculatedResults, (_, i) => !selectedSet.has(i))
     setRows(unselectedRows)
+    setCalculatedResults(updatedCalculateRows)
     updateQueryParams(getUrlParamsFromRows(unselectedRows))
     setSelected([])
   }
 
-  const updateRow = (rowId: GridRowId, updatedRow: FBCInputRow) => {
+  const updateRow = (id: GridRowId, updatedRow: FBCInputRow) => {
     const newRows = [...rows]
 
     // rowId is the row array index
-    newRows[rowId as number] = updatedRow
+    newRows[id as number] = updatedRow
     setRows(newRows)
     updateQueryParams(getUrlParamsFromRows(newRows))
   }
-  const { fireBehaviourResultStations } = useSelector(selectFireBehaviourCalcResult)
 
   useEffect(() => {
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
@@ -102,17 +107,15 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
   }
 
   useEffect(() => {
-    const rowsFromQuery = getRowsFromUrlParams(location.search)
-    setRows(rowsFromQuery)
-    const lastId = getMostRecentIdFromRows(rows)
-    setRowId(lastId + 1)
-  }, [location]) // eslint-disable-line react-hooks/exhaustive-deps
+    const rows = getRowsFromUrlParams(location.search)
+    setRows(rows)
+    const mostRecentId = getMostRecentIdFromRows(rows)
+    setRowId(mostRecentId + 1)
 
-  const disableCalculateButton =
-    rows.length === 0 ||
-    some(rows, row => {
-      return shouldDisableCalculate(row)
-    })
+    if (rows.length > 0) {
+      dispatch(fetchFireBehaviourStations(dateOfInterest, rows))
+    }
+  }, [location]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const useStyles = makeStyles(theme => ({
     formControl: {
@@ -123,8 +126,19 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
       borderLeft: '6px solid #e6ebf0',
       padding: '10px',
       marginBottom: theme.spacing(8)
+    },
+    spinner: {
+      position: 'absolute',
+      left: '50%',
+      marginLeft: -10,
+      top: '50%',
+      marginTop: -10
     }
   }))
+
+  const autoUpdateHandler = () => {
+    dispatch(fetchFireBehaviourStations(dateOfInterest, rows))
+  }
 
   const classes = useStyles()
 
@@ -143,7 +157,11 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
         </h1>
         <div>
           <FormControl className={classes.formControl}>
-            <DatePicker date={dateOfInterest} onChange={setDateOfInterest} />
+            <DatePicker
+              date={dateOfInterest}
+              onChange={setDateOfInterest}
+              autoUpdateHandler={autoUpdateHandler}
+            />
           </FormControl>
           <FormControl className={classes.formControl}>
             <Button
@@ -168,33 +186,21 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
           </FormControl>
         </div>
         <br />
-        <div style={{ display: 'flex', height: '100%' }}>
-          <FBCInputGrid
-            stationOptions={stationMenuOptions}
-            fuelTypeOptions={fuelTypeMenuOptions}
-            rows={rows}
-            updateRow={updateRow}
-            selected={selected}
-            updateSelected={(selected: number[]) => {
-              setSelected(selected)
-            }}
-          />
-        </div>
-        <FormControl className={classes.formControl}>
-          <GetWxDataButton
-            disabled={disableCalculateButton}
-            onBtnClick={() => {
-              dispatch(fetchFireBehaviourStations(dateOfInterest, rows))
-            }}
-            selector={selectFireBehaviourStationsLoading}
-            buttonLabel="Calculate"
-          />
-        </FormControl>
-        {fireBehaviourResultStations.length > 0 && (
-          <div>
-            <FBCResultTable
-              testId="fb-calc-result-table"
-              fireBehaviourResultStations={fireBehaviourResultStations}
+        {loading ? (
+          <CircularProgress className={classes.spinner} />
+        ) : (
+          <React.Fragment>
+            <FBCInputGrid
+              stationOptions={stationMenuOptions}
+              fuelTypeOptions={fuelTypeMenuOptions}
+              inputRows={rows}
+              updateRow={updateRow}
+              selected={selected}
+              updateSelected={(selectedRows: number[]) => {
+                setSelected(selectedRows)
+              }}
+              calculatedResults={calculatedResults}
+              autoUpdateHandler={autoUpdateHandler}
             />
             <Paper className={classes.criticalHours}>
               <div>
@@ -204,7 +210,7 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
                 <p>These fire behaviour calculations assume flat terrain.</p>
               </div>
             </Paper>
-          </div>
+          </React.Fragment>
         )}
       </Container>
     </main>
