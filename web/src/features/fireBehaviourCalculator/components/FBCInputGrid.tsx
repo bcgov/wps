@@ -172,6 +172,7 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
                     }}
                   />
                 </TableCell>
+                <TableCell key="header-zone">Zone</TableCell>
                 <TableCell key="header-location">Weather Station</TableCell>
                 <TableCell key="header-elevation">
                   Elev.
@@ -272,6 +273,7 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
                     <TableCell>
                       <SelectionCheckbox fbcInputGridProps={props} rowId={ri} />
                     </TableCell>
+                    <TableCell>{row.zone_code}</TableCell>
                     <TableCell>
                       <WeatherStationCell
                         fbcInputGridProps={props}

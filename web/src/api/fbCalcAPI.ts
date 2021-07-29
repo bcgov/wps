@@ -3,6 +3,7 @@ import axios from 'api/axios'
 export interface FBCStation {
   station_code: number
   station_name: string
+  zone_code: string
   date: string
   elevation: number
   fuel_type: string
