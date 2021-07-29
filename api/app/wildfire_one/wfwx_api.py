@@ -145,7 +145,8 @@ async def get_hourly_readings(
         header: dict,
         station_codes: List[int],
         start_timestamp: datetime,
-        end_timestamp: datetime) -> List[WeatherStationHourlyReadings]:
+        end_timestamp: datetime,
+        use_cache: bool = False) -> List[WeatherStationHourlyReadings]:
     """ Get the hourly readings for the list of station codes provided.
     """
     # Create a list containing all the tasks to run in parallel.
@@ -165,7 +166,8 @@ async def get_hourly_readings(
                            raw_station,
                            header,
                            start_timestamp,
-                           end_timestamp))
+                           end_timestamp,
+                           use_cache))
         tasks.append(task)
 
     # Run the tasks concurrently, waiting for them all to complete.

@@ -90,11 +90,12 @@ async def get_hourly_readings(
 async def get_hourly_readings_in_time_interval(
         station_codes: List[int],
         start_time_stamp: datetime,
-        end_time_stamp: datetime) -> List[WeatherStationHourlyReadings]:
+        end_time_stamp: datetime,
+        use_cache: bool = True) -> List[WeatherStationHourlyReadings]:
     """ Fetch the hourly observations from WFWX API for the list of station codes provided,
     between the start_time_stamp and end_time_stamp specified.
     """
     async with ClientSession(connector=TCPConnector(limit=10)) as session:
         header = await wfwx_api.get_auth_header(session)
         return await wfwx_api.get_hourly_readings(
-            session, header, station_codes, start_time_stamp, end_time_stamp)
+            session, header, station_codes, start_time_stamp, end_time_stamp, use_cache)
