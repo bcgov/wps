@@ -20,155 +20,152 @@ jobs:
           # For sonar-scanner to work properly we can't use a shallow fetch.
           fetch-depth: 0
 
+      - name: Install libgdal-dev (api)
+        # The python gdal and R component relies on libgdal-dev being installed.
+        run: |
+          sudo apt-get update --fix-missing && sudo apt-get -y install libgdal-dev
+      # it would be nice to cache this!
+      # - name: Cache libgdal-dev (api)
+      #   uses: actions/cache@v2
+      #   id: cache-libgdal-dev
+      #   with:
+      #     path: "~/libgdal-dev"
+      #     key: "3.0.4"
+
       # - name: Install libgdal-dev (api)
       #   # The python gdal and R component relies on libgdal-dev being installed.
+      #   env:
+      #     CACHE_HIT: ${{steps.cache-libgdal-dev.outputs.cache-hit}}
       #   run: |
-      #     sudo apt-get update --fix-missing && sudo apt-get -y install libgdal-dev
+      #     if [[ "$CACHE_HIT" == 'true' ]]; then
+      #       sudo cp --verbose --force --recursive ~/libgdal-dev/* /
+      #     else
+      #       sudo apt-get update --fix-missing && sudo apt-get -y install libgdal-dev
+      #       mkdir -p ~/libgdal-dev
+      #       sudo dpkg -L libgdal-dev | while IFS= read -r f; do if test -f $f; then echo $f; fi; done | xargs cp --parents --target-directory ~/libgdal-dev/
+      #     fi
 
-      # # it would be nice to cache this!
-      # # - name: Cache libgdal-dev (api)
-      # #   uses: actions/cache@v2
-      # #   id: cache-libgdal-dev
-      # #   with:
-      # #     path: "~/libgdal-dev"
-      # #     key: "3.0.4"
+      - uses: r-lib/actions/setup-r@v1
+        with:
+          r-version: ${{ matrix.R }}
 
-      # # - name: Install libgdal-dev (api)
-      # #   # The python gdal and R component relies on libgdal-dev being installed.
-      # #   env:
-      # #     CACHE_HIT: ${{steps.cache-libgdal-dev.outputs.cache-hit}}
-      # #   run: |
-      # #     if [[ "$CACHE_HIT" == 'true' ]]; then
-      # #       sudo cp --verbose --force --recursive ~/libgdal-dev/* /
-      # #     else
-      # #       sudo apt-get update --fix-missing && sudo apt-get -y install libgdal-dev
-      # #       mkdir -p ~/libgdal-dev
-      # #       sudo dpkg -L libgdal-dev | while IFS= read -r f; do if test -f $f; then echo $f; fi; done | xargs cp --parents --target-directory ~/libgdal-dev/
-      # #     fi
+      - name: Cache renv (api)
+        uses: actions/cache@v2
+        with:
+          path: ~/.local/share/renv
+          key: ${{ runner.os }}-renv-${{ hashFiles('**/renv.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-renv-
+      - name: Install renv (api)
+        run: |
+          install.packages("renv")
+          renv::install("cffdrs", dependencies = TRUE)
+          renv::consent(TRUE)
+          renv::restore()
+        shell: Rscript {0}
 
-      # - uses: r-lib/actions/setup-r@v1
-      #   with:
-      #     r-version: ${{ matrix.R }}
-
-      # - name: Cache renv (api)
-      #   uses: actions/cache@v2
-      #   with:
-      #     path: ~/.local/share/renv
-      #     key: ${{ runner.os }}-renv-${{ hashFiles('**/renv.lock') }}
-      #     restore-keys: |
-      #       ${{ runner.os }}-renv-
-
-      # - name: Install renv (api)
+      # - name: Restore environment
       #   run: |
-      #     install.packages("renv")
-      #     renv::install("cffdrs", dependencies = TRUE)
       #     renv::consent(TRUE)
       #     renv::restore()
       #   shell: Rscript {0}
 
-      # # - name: Restore environment
-      # #   run: |
-      # #     renv::consent(TRUE)
-      # #     renv::restore()
-      # #   shell: Rscript {0}
+      # - name: Install R stuff
+      #   run: |
+      #     install.packages("cffdrs", dep = TRUE)
+      #   shell: Rscript {0}
 
-      # # - name: Install R stuff
-      # #   run: |
-      # #     install.packages("cffdrs", dep = TRUE)
-      # #   shell: Rscript {0}
+      - name: Setup kernel for react, increase watchers
+        run: echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
 
-      # - name: Setup kernel for react, increase watchers
-      #   run: echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
-
-      # - name: Setup Python ${{ matrix.python-version }} (api)
-      #   uses: actions/setup-python@v1
-      #   with:
-      #     python-version: ${{ matrix.python-version }}
+      - name: Setup Python ${{ matrix.python-version }} (api)
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
 
-      # - name: Cache poetry installer
-      #   uses: actions/cache@v2
-      #   id: cache-poetry-installer
-      #   env:
-      #     cache-name: cache-poetry-installer
-      #   with:
-      #     path: "~/poetry_installer"
-      #     key: "1.1.6"
+      - name: Cache poetry installer
+        uses: actions/cache@v2
+        id: cache-poetry-installer
+        env:
+          cache-name: cache-poetry-installer
+        with:
+          path: "~/poetry_installer"
+          key: "1.1.6"
 
-      # - name: Download poetry installer
-      #   if: steps.cache-poetry-installer.outputs.cache-hit != 'true'
-      #   run: |
-      #     echo
-      #     mkdir ~/poetry_installer
-      #     curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py > ~/poetry_installer/get-poetry.py
+      - name: Download poetry installer
+        if: steps.cache-poetry-installer.outputs.cache-hit != 'true'
+        run: |
+          echo
+          mkdir ~/poetry_installer
+          curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py > ~/poetry_installer/get-poetry.py
+      - name: Install poetry (api)
+        run: |
+          cd ~/poetry_installer
+          python get-poetry.py --version 1.1.6
+          source ~/.poetry/env
+          poetry config virtualenvs.create true
+          poetry config virtualenvs.in-project false
+      # poetry cache folder: /home/runner/.cache/pypoetry
+      - name: Cache poetry
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-poetry
+        with:
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-cache-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-cache-
+      - name: Install gdal python (api)
+        # We don't have much control over what version of gdal we're getting, it's pretty much whatever is
+        # available to us. As such, gdal is not installed by poetry, since the version will differ between
+        # platforms.
+        # Also have to be absolutely sure that numpy is installed before gdal (otherwise gdal doesn't install
+        # correctly, and you'll run into ndarray errors.)
+        working-directory: ./api
+        run: |
+          source ~/.poetry/env
+          poetry run pip install numpy
+          CPLUS_INCLUDE_PATH=/usr/include/gdal C_INCLUDE_PATH=/usr/include/gdal poetry run pip install gdal==$(gdal-config --version)
+      - name: Install remaining python dependencies (api)
+        working-directory: ./api
+        run: |
+          source ~/.poetry/env
+          poetry install
+      - name: Lint (api)
+        # We run lint before unit tests, only because it runs faster, so we'll reach a fail condition sooner.
+        working-directory: ./api
+        run: |
+          source ~/.poetry/env
+          poetry run pylint --rcfile=.pylintrc app/*.py app/**/*.py
+      - name: Unit Test with coverage (api)
+        working-directory: ./api
+        run: |
+          source ~/.poetry/env
+          export LD_LIBRARY_PATH=$(poetry run python -m rpy2.situation LD_LIBRARY_PATH):${LD_LIBRARY_PATH}
+          export CLASSPATH=./libs/REDapp_Lib.jar:./libs/WTime.jar:./libs/hss-java.jar:$CLASSPATHpoetry
+          export ORIGINS=testorigin
+          poetry run coverage run --source=app -m pytest -o log_cli=true --disable-warnings -vvv
+      - name: Create coverage report (api)
+        # Create coverage report, and then replace occurrences of
+        # 'filename="app' with 'filename="api/app" in coverage-report.xml
+        working-directory: ./api
+        shell: bash
+        run: |
+          source ~/.poetry/env
+          poetry run coverage report
+          poetry run coverage xml -o coverage-reports/coverage-report.xml
+          sed -i 's/filename="app/filename="api\/app/' coverage-reports/coverage-report.xml
 
-      # - name: Install poetry (api)
-      #   run: |
-      #     cd ~/poetry_installer
-      #     python get-poetry.py --version 1.1.6
-      #     source ~/.poetry/env
-      #     poetry config virtualenvs.create true
-      #     poetry config virtualenvs.in-project false
-
-      # # poetry cache folder: /home/runner/.cache/pypoetry
-      # - name: Cache poetry
-      #   uses: actions/cache@v2
-      #   env:
-      #     cache-name: cache-poetry
-      #   with:
-      #     path: ~/.cache/pypoetry
-      #     key: ${{ runner.os }}-poetry-cache-${{ hashFiles('**/poetry.lock') }}
-      #     restore-keys: |
-      #       ${{ runner.os }}-poetry-cache-
-
-      # - name: Install gdal python (api)
-      #   # We don't have much control over what version of gdal we're getting, it's pretty much whatever is
-      #   # available to us. As such, gdal is not installed by poetry, since the version will differ between
-      #   # platforms.
-      #   # Also have to be absolutely sure that numpy is installed before gdal (otherwise gdal doesn't install
-      #   # correctly, and you'll run into ndarray errors.)
-      #   working-directory: ./api
-      #   run: |
-      #     source ~/.poetry/env
-      #     poetry run pip install numpy
-      #     CPLUS_INCLUDE_PATH=/usr/include/gdal C_INCLUDE_PATH=/usr/include/gdal poetry run pip install gdal==$(gdal-config --version)
-
-      # - name: Install remaining python dependencies (api)
-      #   working-directory: ./api
-      #   run: |
-      #     source ~/.poetry/env
-      #     poetry install
-
-      # - name: Lint (api)
-      #   # We run lint before unit tests, only because it runs faster, so we'll reach a fail condition sooner.
-      #   working-directory: ./api
-      #   run: |
-      #     source ~/.poetry/env
-      #     poetry run pylint --rcfile=.pylintrc app/*.py app/**/*.py
-
-      # - name: Unit Test with coverage (api)
-      #   working-directory: ./api
-      #   run: |
-      #     source ~/.poetry/env
-      #     export LD_LIBRARY_PATH=$(poetry run python -m rpy2.situation LD_LIBRARY_PATH):${LD_LIBRARY_PATH}
-      #     export CLASSPATH=./libs/REDapp_Lib.jar:./libs/WTime.jar:./libs/hss-java.jar:$CLASSPATHpoetry
-      #     export ORIGINS=testorigin
-      #     poetry run coverage run --source=app -m pytest -o log_cli=true --disable-warnings -vvv
-
-      # - name: Create coverage report (api)
-      #   # Create coverage report, and then replace occurrences of
-      #   # 'filename="app' with 'filename="api/app" in coverage-report.xml
-      #   working-directory: ./api
-      #   shell: bash
-      #   run: |
-      #     source ~/.poetry/env
-      #     poetry run coverage report
-      #     poetry run coverage xml -o coverage-reports/coverage-report.xml
-      #     sed -i 's/filename="app/filename="api\/app/' coverage-reports/coverage-report.xml
+      - name: Upload backend test coverage to Codecov
+        uses: codecov/codecov-action@v1.5.2
+        with:
+          token: ${{secrets.CODECOV_TOKEN}}
+          fail_ci_if_error: false
 
       - uses: actions/cache@v2
         with:
@@ -182,9 +179,9 @@ jobs:
         if: steps.yarn-cache.outputs.cache-hit != 'true'
         run: yarn install
 
-      # - name: Lint (web)
-      #   working-directory: ./web
-      #   run: yarn run lint
+      - name: Lint (web)
+        working-directory: ./web
+        run: yarn run lint
 
       # "Error: ENOSPC: System limit for number of file watchers reached" can be addressed
       # with this: https://github.com/guard/listen/wiki/Increasing-the-amount-of-inotify-watchers#the-technical-details
@@ -197,7 +194,7 @@ jobs:
         working-directory: ./web
         run: yarn run test:ci
 
-      - name: Upload coverage to Codecov
+      - name: Upload frontend test coverage to Codecov
         uses: codecov/codecov-action@v1.5.2
         with:
           token: ${{secrets.CODECOV_TOKEN}}
