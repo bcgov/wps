@@ -1,6 +1,7 @@
 """ Fire Behaviour Analysis Calculator Tool
 """
 import math
+import os
 from datetime import date
 from typing import List, Optional
 import logging
@@ -26,14 +27,18 @@ class DiurnalFFMCLookupTable():
     """
 
     def __init__(self):
-        with open('app/data/diurnal_ffmc_lookups/afternoon_overnight.csv', 'rb') as afternoon_file:
+        afternoon_filename = os.path.join(os.path.dirname(__file__),
+                                          '../data/diurnal_ffmc_lookups/afternoon_overnight.csv')
+        with open(afternoon_filename, 'rb') as afternoon_file:
             afternoon_df = pd.read_csv(afternoon_file)
         # Pylint thinks that afternoon_df's type is TextFileReader. It isn't - it's a pandas dataframe.
         # pylint: disable=no-member
         afternoon_df.columns = afternoon_df.columns.astype(int)
         afternoon_df.set_index(17, inplace=True)
 
-        with open('app/data/diurnal_ffmc_lookups/morning.csv', 'rb') as morning_file:
+        morning_filename = os.path.join(os.path.dirname(__file__),
+                                        '../data/diurnal_ffmc_lookups/morning.csv')
+        with open(morning_filename, 'rb') as morning_file:
             morning_df = pd.read_csv(morning_file, header=[0, 1])
         prev_days_daily_ffmc_keys = morning_df.iloc[:, 0].values
         df_col_labels = morning_df.columns.values
@@ -129,18 +134,9 @@ def calculate_fire_behaviour_advisory(station: FBACalculatorWeatherStation) -> F
     # time of interest will be the same for all stations.
     time_of_interest = get_hour_20_from_date(station.time_of_interest)
 
-    if station.fuel_type == 'C1':
-        # The day 144 is the average date for the minimum foliar moisture content in the boreal regions of
-        # Canada. It is usually pretty close maybe 7 days in either direction.
-        date_of_minimum_foliar_moisture_content = 144
-    else:
-        # Setting to 0 will cause CFFDRS to figure it out by itself.
-        date_of_minimum_foliar_moisture_content = 0
-
     fmc = cffdrs.foliar_moisture_content(
         station.lat, station.long, station.elevation,
-        get_julian_date(time_of_interest),
-        date_of_minimum_foliar_moisture_content=date_of_minimum_foliar_moisture_content)
+        get_julian_date(time_of_interest))
     sfc = cffdrs.surface_fuel_consumption(station.fuel_type, station.bui,
                                           station.ffmc, station.percentage_conifer)
     lb_ratio = cffdrs.length_to_breadth_ratio(station.fuel_type, station.wind_speed)
@@ -346,6 +342,8 @@ def get_critical_hours_start(critical_ffmc: float, daily_ffmc: float,
     threshold of critical_ffmc.
     Returns None if the hourly FFMC never reaches critical_ffmc.
     """
+    if last_observed_morning_rh_values is None:
+        return None
     if daily_ffmc < critical_ffmc:
         logger.info('Daily FFMC %s < critical FFMC %s', daily_ffmc, critical_ffmc)
         # Daily FFMC represents peak burning, so diurnal hourly FFMC will never be higher than daily FFMC
@@ -414,15 +412,15 @@ def get_critical_hours(  # pylint: disable=too-many-arguments
     critical_ffmc, resulting_hfi = cffdrs.get_ffmc_for_target_hfi(
         fuel_type, percentage_conifer, percentage_dead_balsam_fir, bui, wind_speed,
         grass_cure, crown_base_height, daily_ffmc, fmc, cfb, cfl, target_hfi)
-    logger.info('Critical FFMC %s, resulting HFI %s; target HFI %s', critical_ffmc,
-                resulting_hfi, target_hfi)
+    logger.debug('Critical FFMC %s, resulting HFI %s; target HFI %s', critical_ffmc,
+                 resulting_hfi, target_hfi)
     # Scenario 1 (resulting_hfi < target_hfi) - will happen when it's impossible to get
     # a HFI value large enough to >= target_hfi, because FFMC influences the HFI value,
     # and FFMC has an upper bound of 101. So basically, in this scenario the resulting_hfi
     # would equal the resulting HFI when FFMC is set to 101.
     if critical_ffmc >= 100.9 and resulting_hfi < target_hfi:
-        logger.info('No critical hours for HFI %s. Critical FFMC %s has HFI %s',
-                    target_hfi, critical_ffmc, resulting_hfi)
+        logger.debug('No critical hours for HFI %s. Critical FFMC %s has HFI %s',
+                     target_hfi, critical_ffmc, resulting_hfi)
         return None
     # Scenario 2: the HFI is always >= target_hfi, even when FFMC = 0. In this case, all hours
     # of the day will be critical hours.
