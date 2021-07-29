@@ -134,21 +134,9 @@ def calculate_fire_behaviour_advisory(station: FBACalculatorWeatherStation) -> F
     # time of interest will be the same for all stations.
     time_of_interest = get_hour_20_from_date(station.time_of_interest)
 
-    if station.fuel_type == 'C1':
-        # The day 144 is the average date for the minimum foliar moisture content in the boreal regions of
-        # Canada. It is usually pretty close maybe 7 days in either direction.
-        date_of_minimum_foliar_moisture_content = 144
-    elif station.fuel_type == 'C3':
-        # TODO: Confirm if this is valid
-        date_of_minimum_foliar_moisture_content = 189
-    else:
-        # Setting to 0 will cause CFFDRS to figure it out by itself.
-        date_of_minimum_foliar_moisture_content = 0
-
     fmc = cffdrs.foliar_moisture_content(
         station.lat, station.long, station.elevation,
-        get_julian_date(time_of_interest),
-        date_of_minimum_foliar_moisture_content=date_of_minimum_foliar_moisture_content)
+        get_julian_date(time_of_interest))
     sfc = cffdrs.surface_fuel_consumption(station.fuel_type, station.bui,
                                           station.ffmc, station.percentage_conifer)
     lb_ratio = cffdrs.length_to_breadth_ratio(station.fuel_type, station.wind_speed)

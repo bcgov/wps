@@ -386,6 +386,9 @@ def foliar_moisture_content(lat: int, long: int, elv: float, day_of_year: int,
     # pylint: disable=protected-access, no-member
     logger.debug('calling _FMCcalc(LAT=%s, LONG=%s, ELV=%s, DJ=%s, D0=%s)', lat,
                  long, elv, day_of_year, date_of_minimum_foliar_moisture_content)
+    # FMCcalc expects longitude to always be a positive number.
+    if long < 0:
+        long = -long
     result = CFFDRS.instance().cffdrs._FMCcalc(LAT=lat, LONG=long, ELV=elv,
                                                DJ=day_of_year, D0=date_of_minimum_foliar_moisture_content)
     return result[0]
