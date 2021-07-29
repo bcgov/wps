@@ -151,21 +151,12 @@ jobs:
           export ORIGINS=testorigin
           poetry run coverage run --source=app -m pytest -o log_cli=true --disable-warnings -vvv
       - name: Create coverage report (api)
-        # Create coverage report, and then replace occurrences of
-        # 'filename="app' with 'filename="api/app" in coverage-report.xml
         working-directory: ./api
         shell: bash
         run: |
           source ~/.poetry/env
           poetry run coverage report
           poetry run coverage xml -o coverage-reports/coverage-report.xml
-          sed -i 's/filename="app/filename="api\/app/' coverage-reports/coverage-report.xml
-
-      - name: Upload backend test coverage to Codecov
-        uses: codecov/codecov-action@v1.5.2
-        with:
-          token: ${{secrets.CODECOV_TOKEN}}
-          fail_ci_if_error: false
 
       - uses: actions/cache@v2
         with:
@@ -194,7 +185,7 @@ jobs:
         working-directory: ./web
         run: yarn run test:ci
 
-      - name: Upload frontend test coverage to Codecov
+      - name: Upload test coverage to Codecov
         uses: codecov/codecov-action@v1.5.2
         with:
           token: ${{secrets.CODECOV_TOKEN}}
