@@ -2,21 +2,23 @@
 Unit tests for fire behavour calculator.
 """
 from datetime import date
+from decimal import Decimal
 from typing import Final
 import logging
 from pytest_bdd import scenario, given, then
 from app import configure_logging
-from app.utils.time import get_hour_20_from_date, get_julian_date
+from app.utils.time import get_hour_20_from_date
 from app.utils.fba_calculator import calculate_fire_behaviour_advisory, FBACalculatorWeatherStation
 from app.utils.redapp import FBPCalculateStatisticsCOM
 import pytest
 
 
-configure_logging()
+# configure_logging()
 
 logger = logging.getLogger(__name__)
 
 acceptable_margin_of_error: Final = 0.01
+fire_size_acceptable_margin_of_error: Final = 0.02  # close, but using slightly different approach to RedAPP.
 
 
 class RelativeErrorException(Exception):
@@ -29,7 +31,7 @@ def _str2float(value: str):
     return float(value)
 
 
-def relative_error(metric: str, actual: float, expected: float, precision: int = 2):
+def relative_error(metric: str, actual: float, expected: float, precision: int = 2) -> float:
     """ calculate the relative error between two values - default to precision of 2"""
     actual = round(actual, precision)
     expected = round(expected, precision)
@@ -38,7 +40,9 @@ def relative_error(metric: str, actual: float, expected: float, precision: int =
     if expected == 0:
         raise RelativeErrorException(
             f'unable to calculate relative error for {metric}; actual:{actual};expected:{expected}')
-    return abs((actual-expected)/expected)
+    error = Decimal(abs((actual-expected)/expected))
+    # we only care up to 2 decimal places at most.
+    return float(round(error, precision))
 
 
 def check_metric(metric: str,
@@ -47,7 +51,7 @@ def check_metric(metric: str,
                  python_value: float,
                  comparison_value: float,
                  metric_error_margin: float,
-                 note: str):
+                 note: str) -> float:
     """ Check relative error of a metric """
     # logging with %s became unreadable:
     # pylint: disable=logging-fstring-interpolation
@@ -72,6 +76,7 @@ def check_metric(metric: str,
                 logger.info('no big deal, the absolute difference (%s) is tiny!', absolute_error)
             else:
                 assert error < metric_error_margin, f'{test_scenario}:{fuel_type}:{metric} {note}'
+        return error
 
 
 @pytest.mark.usefixtures('mock_jwt_decode')
@@ -165,24 +170,30 @@ def given_red_app_input(elevation: float,  # pylint: disable=too-many-arguments,
         'area': java_fbp.area
     }
 
+    error_dict = {
+        'fuel_type': fuel_type
+    }
+
     return {
         'python': python_fba,
         'expected': expected,
         'fuel_type': fuel_type,
-        'scenario': 'REDapp'
+        'scenario': 'REDapp',
+        'error': error_dict
     }
 
 
 @then("ROS is within <ros_em> (<note>)")
 def then_ros(result: dict, ros_em: float, note: str):
     """ check the relative error of the ros """
-    check_metric('ROS',
-                 result['scenario'],
-                 result['fuel_type'],
-                 result['python'].ros,
-                 result['expected']['ros'],
-                 ros_em,
-                 note)
+    error = check_metric('ROS',
+                         result['scenario'],
+                         result['fuel_type'],
+                         result['python'].ros,
+                         result['expected']['ros'],
+                         ros_em,
+                         note)
+    result['error']['ros_em'] = error
 
 
 @then("ROS_t is within range (<note>)")
@@ -200,13 +211,14 @@ def then_ros_t(result: dict, note: str):
 @then("CFB is within <cfb_em> (<note>)")
 def then_cfb(result: dict, cfb_em: float, note: str):
     """ check the relative error of the cfb """
-    check_metric('CFB',
-                 result['scenario'],
-                 result['fuel_type'],
-                 result['python'].cfb,
-                 result['expected']['cfb'],
-                 cfb_em,
-                 note)
+    error = check_metric('CFB',
+                         result['scenario'],
+                         result['fuel_type'],
+                         result['python'].cfb,
+                         result['expected']['cfb'],
+                         cfb_em,
+                         note)
+    result['error']['cfb_em'] = error
 
 
 @then("CFB_t is within range (<note>)")
@@ -224,13 +236,14 @@ def then_cfb_t(result: dict, note: str):
 @then("HFI is within <hfi_em> (<note>)")
 def then_hfi(result: dict, hfi_em: float, note: str):
     """ check the relative error of the hfi """
-    check_metric('HFI',
-                 result['scenario'],
-                 result['fuel_type'],
-                 result['python'].hfi,
-                 result['expected']['hfi'],
-                 hfi_em,
-                 note)
+    error = check_metric('HFI',
+                         result['scenario'],
+                         result['fuel_type'],
+                         result['python'].hfi,
+                         result['expected']['hfi'],
+                         hfi_em,
+                         note)
+    result['error']['hfi_em'] = error
 
 
 @then("HFI_t is within range (<note>)")
@@ -248,48 +261,76 @@ def then_hfi_t(result: dict, note: str):
 @then("1 HR Size is within <one_hr_em> (<note>)")
 def then_one_hr(result: dict, one_hr_em: float, note: str):
     """ check the relative error of the a hour fire size"""
-    check_metric('1 HR Size',
+    error = check_metric('1 HR Size',
+                         result['scenario'],
+                         result['fuel_type'],
+                         result['python'].sixty_minute_fire_size,
+                         result['expected']['area'],
+                         one_hr_em,
+                         note)
+    result['error']['one_hr_em'] = error
+
+
+@then("(1 HR Size)_t is within range (<note>)")
+def then_one_hr_t(result: dict, note: str):
+    """ check the relative error of the a hour fire size"""
+    check_metric('1 HR Size t',
                  result['scenario'],
                  result['fuel_type'],
-                 result['python'].sixty_minute_fire_size,
+                 result['python'].sixty_minute_fire_size_t,
                  result['expected']['area'],
-                 one_hr_em,
+                 fire_size_acceptable_margin_of_error,
                  note)
 
 
-@pytest.mark.usefixtures('mock_jwt_decode')
-@scenario('test_fba_error.feature', 'Fire Behaviour Calculation - vs. Spreadsheet',
-          example_converters=dict(elevation=float,
-                                  latitude=float,
-                                  longitude=float,
-                                  percentage_conifer=_str2float,
-                                  percentage_dead_balsam_fir=_str2float,
-                                  crown_base_height=_str2float,
-                                  grass_cure=_str2float,
-                                  isi=float,
-                                  bui=float,
-                                  ffmc=float,
-                                  dmc=float,
-                                  dc=float,
-                                  fuel_type=str,
-                                  ros_em=float,
-                                  hfi_em=float,
-                                  cfb_em=float,
-                                  cfb=_str2float,
-                                  hfi=_str2float,
-                                  ros=_str2float,
-                                  time_of_interest=date.fromisoformat,
-                                  wind_direction=float,
-                                  wind_speed=float,
-                                  note=str))
-def test_fire_behaviour_calculator_spreadsheet_scenario():
-    """ BDD Scenario. """
+@then("Log it")
+def log_it(result: dict):
+    error_dict = result.get('error')
+    header = '| fuel_type | elevation | latitude   | longitude    | time_of_interest | wind_speed | wind_direction | percentage_conifer | percentage_dead_balsam_fir | grass_cure | crown_base_height | isi  | bui   | ffmc | dmc   | dc    | one_hr_em | ros_em | hfi_em | cfb_em | note   |'
+    header = header.strip('|')
+    header = header.split('|')
+    header = [x.strip() for x in header]
+
+    line = '|'
+    for key in header:
+        value = error_dict.get(key, key)
+        line += f'{value:.2f}|'
+    print(line)
 
 
-@given("""<elevation>, <latitude>, <longitude>, <time_of_interest>, <wind_speed>, <wind_direction>, """
-       """<percentage_conifer>, <percentage_dead_balsam_fir>, <grass_cure>, <crown_base_height>, <isi>, """
-       """<bui>, <ffmc>, <dmc>, <dc>, <fuel_type>, <ros>, <hfi>, <cfb>""",
-       target_fixture='result')
+# @ pytest.mark.usefixtures('mock_jwt_decode')
+# @ scenario('test_fba_error.feature', 'Fire Behaviour Calculation - vs. Spreadsheet',
+#            example_converters=dict(elevation=float,
+#                                    latitude=float,
+#                                    longitude=float,
+#                                    percentage_conifer=_str2float,
+#                                    percentage_dead_balsam_fir=_str2float,
+#                                    crown_base_height=_str2float,
+#                                    grass_cure=_str2float,
+#                                    isi=float,
+#                                    bui=float,
+#                                    ffmc=float,
+#                                    dmc=float,
+#                                    dc=float,
+#                                    fuel_type=str,
+#                                    ros_em=float,
+#                                    hfi_em=float,
+#                                    cfb_em=float,
+#                                    cfb=_str2float,
+#                                    hfi=_str2float,
+#                                    ros=_str2float,
+#                                    time_of_interest=date.fromisoformat,
+#                                    wind_direction=float,
+#                                    wind_speed=float,
+#                                    note=str))
+# def test_fire_behaviour_calculator_spreadsheet_scenario():
+#     """ BDD Scenario. """
+
+
+@ given("""<elevation>, <latitude>, <longitude>, <time_of_interest>, <wind_speed>, <wind_direction>, """
+        """<percentage_conifer>, <percentage_dead_balsam_fir>, <grass_cure>, <crown_base_height>, <isi>, """
+        """<bui>, <ffmc>, <dmc>, <dc>, <fuel_type>, <ros>, <hfi>, <cfb>""",
+        target_fixture='result')
 def given_spreadsheet_input(elevation: float,  # pylint: disable=too-many-arguments, invalid-name
                             latitude: float, longitude: float, time_of_interest: str,
                             wind_speed: float, wind_direction: float,
