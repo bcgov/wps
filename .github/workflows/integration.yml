@@ -6,7 +6,7 @@ on:
       - main
 jobs:
   lint-and-test:
-    name: Lint, Test with CodeCov
+    name: Lint, Test, Coverage with CodeCov
     runs-on: ubuntu-20.04
     strategy:
       matrix:
