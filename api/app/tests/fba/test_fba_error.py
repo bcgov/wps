@@ -13,7 +13,7 @@ from app.utils.redapp import FBPCalculateStatisticsCOM
 import pytest
 
 
-# configure_logging()
+configure_logging()
 
 logger = logging.getLogger(__name__)
 
@@ -285,6 +285,7 @@ def then_one_hr_t(result: dict, note: str):
 
 @then("Log it")
 def log_it(result: dict):
+    """ Log a string matching the scenario input - useful when improving values.  """
     error_dict = result.get('error')
     header = '| fuel_type | elevation | latitude   | longitude    | time_of_interest | wind_speed | wind_direction | percentage_conifer | percentage_dead_balsam_fir | grass_cure | crown_base_height | isi  | bui   | ffmc | dmc   | dc    | one_hr_em | ros_em | hfi_em | cfb_em | note   |'
     header = header.strip('|')
@@ -294,8 +295,11 @@ def log_it(result: dict):
     line = '|'
     for key in header:
         value = error_dict.get(key, key)
-        line += f'{value:.2f}|'
-    print(line)
+        if isinstance(value, float):
+            line += f'{value:.2f}|'
+        else:
+            line += f'{value}|'
+    logger.debug(line)
 
 
 # @ pytest.mark.usefixtures('mock_jwt_decode')
