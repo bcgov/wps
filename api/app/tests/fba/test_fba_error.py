@@ -10,6 +10,7 @@ from app import configure_logging
 from app.utils.time import get_hour_20_from_date
 from app.utils.fba_calculator import calculate_fire_behaviour_advisory, FBACalculatorWeatherStation
 from app.utils.redapp import FBPCalculateStatisticsCOM
+from app.tests.fba import str2float
 import pytest
 
 
@@ -23,12 +24,6 @@ fire_size_acceptable_margin_of_error: Final = 0.02  # close, but using slightly 
 
 class RelativeErrorException(Exception):
     """ Exception raised when it's mathematically impossible to calculate the relative error. """
-
-
-def _str2float(value: str):
-    if value == 'None':
-        return None
-    return float(value)
 
 
 def relative_error(metric: str, actual: float, expected: float, precision: int = 2) -> float:
@@ -84,10 +79,10 @@ def check_metric(metric: str,
           example_converters=dict(elevation=float,
                                   latitude=float,
                                   longitude=float,
-                                  percentage_conifer=_str2float,
-                                  percentage_dead_balsam_fir=_str2float,
-                                  crown_base_height=_str2float,
-                                  grass_cure=_str2float,
+                                  percentage_conifer=str2float,
+                                  percentage_dead_balsam_fir=str2float,
+                                  crown_base_height=str2float,
+                                  grass_cure=str2float,
                                   isi=float,
                                   bui=float,
                                   ffmc=float,

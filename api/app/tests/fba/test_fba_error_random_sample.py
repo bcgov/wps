@@ -2,6 +2,7 @@
 Unit tests for fire behavour calculator.
 """
 from datetime import datetime, timezone as dt_tz
+from time import time
 import random
 from typing import Final
 import logging
@@ -11,18 +12,13 @@ from app.utils.time import get_hour_20_from_date
 from app.utils.fba_calculator import calculate_fire_behaviour_advisory, FBACalculatorWeatherStation
 from app.utils.redapp import FBPCalculateStatisticsCOM
 from app.utils.cffdrs import initial_spread_index, bui_calc
+from app.tests.fba import str2float
 import pytest
 
 
 configure_logging()
 
 logger = logging.getLogger(__name__)
-
-
-def _str2float(value: str):
-    if value == 'None':
-        return None
-    return float(value)
 
 
 def _random_date():
@@ -76,11 +72,11 @@ def check_metric(metric: str,
 
 @pytest.mark.usefixtures('mock_jwt_decode')
 @scenario('test_fba_error_random_sample.feature', 'Fire Behaviour Calculation',
-          example_converters=dict(crown_base_height=_str2float,
+          example_converters=dict(crown_base_height=str2float,
                                   fuel_type=str,
-                                  percentage_conifer=_str2float,
-                                  percentage_dead_balsam_fir=_str2float,
-                                  grass_cure=_str2float,
+                                  percentage_conifer=str2float,
+                                  percentage_dead_balsam_fir=str2float,
+                                  grass_cure=str2float,
                                   num_iterations=int,
                                   ros_margin_of_error=float,
                                   hfi_margin_of_error=float,
@@ -98,7 +94,10 @@ def given_input(fuel_type: str, percentage_conifer: float, percentage_dead_balsa
     """ Take input and calculate actual and expected results """
 
     # get python result:
-    random.seed(42)
+    # seed = time()
+    seed = 43
+    logger.info('using random seed: %s', seed)
+    random.seed(seed)
     results = []
     for index in range(num_iterations):
         # pylint: disable=invalid-name
