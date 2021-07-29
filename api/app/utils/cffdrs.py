@@ -217,6 +217,37 @@ def back_rate_of_spread(fuel_type: str,  # pylint: disable=too-many-arguments, d
     return result[0]
 
 
+def bui_calc(dmc: float, dc: float):  # pylint: disable=invalid-name
+    """
+    # Description: Buildup Index Calculation. All code
+    #              is based on a C code library that was written by Canadian
+    #              Forest Service Employees, which was originally based on
+    #              the Fortran code listed in the reference below. All equations
+    #              in this code refer to that document.
+    #
+    #              Equations and FORTRAN program for the Canadian Forest Fire
+    #              Weather Index System. 1985. Van Wagner, C.E.; Pickett, T.L.
+    #              Canadian Forestry Service, Petawawa National Forestry
+    #              Institute, Chalk River, Ontario. Forestry Technical Report 33.
+    #              18 p.
+    #
+    #              Additional reference on FWI system
+    #
+    #              Development and structure of the Canadian Forest Fire Weather
+    #              Index System. 1987. Van Wagner, C.E. Canadian Forestry Service,
+    #              Headquarters, Ottawa. Forestry Technical Report 35. 35 p.
+    #
+    #
+    # Args:   dc:   Drought Code
+    #        dmc:   Duff Moisture Code
+    #
+    # Returns: A single bui value
+    """
+    # pylint: disable=protected-access, no-member
+    result = CFFDRS.instance().cffdrs._buiCalc(dmc=dmc, dc=dc)
+    return result[0]
+
+
 def rate_of_spread(fuel_type: str,  # pylint: disable=too-many-arguments, disable=invalid-name
                    isi: float,
                    bui: float,
@@ -353,8 +384,11 @@ def foliar_moisture_content(lat: int, long: int, elv: float, day_of_year: int,
     #   FMC:    Foliar Moisture Content
      """
     # pylint: disable=protected-access, no-member
-    logger.info('calling _FMCcalc(LAT=%s, LONG=%s, ELV=%s, DJ=%s, D0=%s)', lat,
-                long, elv, day_of_year, date_of_minimum_foliar_moisture_content)
+    logger.debug('calling _FMCcalc(LAT=%s, LONG=%s, ELV=%s, DJ=%s, D0=%s)', lat,
+                 long, elv, day_of_year, date_of_minimum_foliar_moisture_content)
+    # FMCcalc expects longitude to always be a positive number.
+    if long < 0:
+        long = -long
     result = CFFDRS.instance().cffdrs._FMCcalc(LAT=lat, LONG=long, ELV=elv,
                                                DJ=day_of_year, D0=date_of_minimum_foliar_moisture_content)
     return result[0]
@@ -432,7 +466,7 @@ def fine_fuel_moisture_code(ffmc: float, temperature: float, relative_humidity: 
     return result[0]
 
 
-def initial_spread_index(ffmc: float, wind_speed: float):
+def initial_spread_index(ffmc: float, wind_speed: float, fbpMod: bool = False):  # pylint: disable=invalid-name
     """ Computes Initial Spread Index (ISI) by delegating to cffdrs R package.
     This is necessary when recalculating ROS/HFI for modified FFMC values. Otherwise,
     should be using the ISI value retrieved from WFWX.
@@ -446,7 +480,7 @@ def initial_spread_index(ffmc: float, wind_speed: float):
     #   ISI:    Intial Spread Index
     """
     # pylint: disable=protected-access, no-member
-    result = CFFDRS.instance().cffdrs._ISIcalc(ffmc=ffmc, ws=wind_speed)
+    result = CFFDRS.instance().cffdrs._ISIcalc(ffmc=ffmc, ws=wind_speed, fbpMod=fbpMod)
     return result[0]
 
 
