@@ -183,26 +183,35 @@ async def fetch_hourlies(
         raw_station: dict,
         headers: dict,
         start_timestamp: datetime,
-        end_timestamp: datetime) -> WeatherStationHourlyReadings:
+        end_timestamp: datetime,
+        use_cache: bool = False) -> WeatherStationHourlyReadings:
     """ Fetch hourly weather readings for the specified time range for a give station """
     logger.debug('fetching hourlies for %s(%s)',
                  raw_station['displayLabel'], raw_station['stationCode'])
 
     url, params = prepare_fetch_hourlies_query(raw_station, start_timestamp, end_timestamp)
 
+    cache_expiry_seconds = cache_expiry_seconds = config.get(
+        'REDIS_HOURLIES_BY_STATION_CODE_CACHE_EXPIRY', 300)
+    use_cache = cache_expiry_seconds is not None and config.get('REDIS_USE') == 'True'
+
     # Get hourlies
-    async with session.get(url, params=params, headers=headers) as response:
-        hourlies_json = await response.json()
-        hourlies = []
-        for hourly in hourlies_json['_embedded']['hourlies']:
-            # We only accept "ACTUAL" values
-            if hourly.get('hourlyMeasurementTypeCode', '').get('id') == 'ACTUAL':
-                hourlies.append(parse_hourly(hourly))
+    if use_cache:
+        hourlies_json = await _fetch_cached_response(session, headers, url, params, cache_expiry_seconds)
+    else:
+        async with session.get(url, params=params, headers=headers) as response:
+            hourlies_json = await response.json()
 
-        logger.error('fetched %d hourlies for %s(%s)', len(
-            hourlies), raw_station['displayLabel'], raw_station['stationCode'])
+    hourlies = []
+    for hourly in hourlies_json['_embedded']['hourlies']:
+        # We only accept "ACTUAL" values
+        if hourly.get('hourlyMeasurementTypeCode', '').get('id') == 'ACTUAL':
+            hourlies.append(parse_hourly(hourly))
 
-        return WeatherStationHourlyReadings(values=hourlies, station=parse_station(raw_station))
+    logger.debug('fetched %d hourlies for %s(%s)', len(
+        hourlies), raw_station['displayLabel'], raw_station['stationCode'])
+
+    return WeatherStationHourlyReadings(values=hourlies, station=parse_station(raw_station))
 
 
 async def fetch_access_token(session: ClientSession) -> dict:
