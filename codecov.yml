@@ -1,2 +1,7 @@
-comment: false
-threshold: 5%
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 5%
+        base: auto
