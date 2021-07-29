@@ -264,6 +264,11 @@ objects:
                     configMapKeyRef:
                       name: ${NAME}-global
                       key: env.redis-station-cache-expiry
+                - name: REDIS_HOURLIES_BY_STATION_CODE_CACHE_EXPIRY
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-global
+                      key: env.redis-hourlies-by-station-code-cache-expiry
                 - name: REDIS_AUTH_CACHE_EXPIRY
                   valueFrom:
                     configMapKeyRef:
