@@ -153,24 +153,6 @@ def given_red_app_input(elevation: float,  # pylint: disable=too-many-arguments,
                                          grass_cure=grass_cure,
                                          crown_base_height=crown_base_height)
 
-    # FIND domfmc
-    import jnius  # pylint: disable=import-outside-toplevel
-    try:
-        FMC_Calc = jnius.autoclass('ca.cwfgm.fuel.FMC_Calc')
-        for i in range(0, 365):
-            fmc_calc = FMC_Calc()
-            fmc_calc.setAttributeValue(16801, i)
-            result = fmc_calc.fmc(latitude, longitude, elevation, get_julian_date(time_of_interest))
-            if result == java_fbp.fmc:
-                with open('domfmc.txt', 'a') as f:
-                    import io
-                    f.seek(0, io.SEEK_END)
-                    f.write(f'{fuel_type}:{i}\n')
-                logger.error('%s : DATE OF MINIMUM FOLIAR MOISTURE CONTENT: %s', fuel_type, i)
-                break
-    finally:
-        jnius.detach()  # pylint: disable=no-member
-
     # NOTE: REDapp has a ros_eq and a ros_t ;
     # assumptions:
     # ros_eq == ROScalc
@@ -206,14 +188,13 @@ def then_ros(result: dict, ros_em: float, note: str):
 @then("ROS_t is within range (<note>)")
 def then_ros_t(result: dict, note: str):
     """ check the relative error of the ros """
-    # check_metric('ROS_t',
-    #              result['scenario'],
-    #              result['fuel_type'],
-    #              result['python'].ros_t,
-    #              result['expected']['ros_t'],
-    #              acceptable_margin_of_error,
-    #              note)
-    pass
+    check_metric('ROS_t',
+                 result['scenario'],
+                 result['fuel_type'],
+                 result['python'].ros_t,
+                 result['expected']['ros_t'],
+                 acceptable_margin_of_error,
+                 note)
 
 
 @then("CFB is within <cfb_em> (<note>)")
