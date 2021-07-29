@@ -6,7 +6,7 @@ from typing import Final
 import logging
 from pytest_bdd import scenario, given, then
 from app import configure_logging
-from app.utils.time import get_hour_20_from_date
+from app.utils.time import get_hour_20_from_date, get_julian_date
 from app.utils.fba_calculator import calculate_fire_behaviour_advisory, FBACalculatorWeatherStation
 from app.utils.redapp import FBPCalculateStatisticsCOM
 import pytest
@@ -42,7 +42,7 @@ def relative_error(metric: str, actual: float, expected: float, precision: int =
 
 
 def check_metric(metric: str,
-                 scenario: str,
+                 test_scenario: str,
                  fuel_type: str,
                  python_value: float,
                  comparison_value: float,
@@ -71,7 +71,7 @@ def check_metric(metric: str,
             if absolute_error < 0.01:
                 logger.info('no big deal, the absolute difference (%s) is tiny!', absolute_error)
             else:
-                assert error < metric_error_margin, f'{scenario}:{fuel_type}:{metric} {note}'
+                assert error < metric_error_margin, f'{test_scenario}:{fuel_type}:{metric} {note}'
 
 
 @pytest.mark.usefixtures('mock_jwt_decode')
@@ -106,7 +106,7 @@ def test_fire_behaviour_calculator_scenario():
        """<isi>, <bui>, <ffmc>, <dmc>, <dc>, <fuel_type>""",
        target_fixture='result')
 def given_red_app_input(elevation: float,  # pylint: disable=too-many-arguments, invalid-name
-                        latitude: float, longitude: float, time_of_interest: str,
+                        latitude: float, longitude: float, time_of_interest: date,
                         wind_speed: float, wind_direction: float,
                         percentage_conifer: float, percentage_dead_balsam_fir: float, grass_cure: float,
                         crown_base_height: float,
@@ -159,6 +159,7 @@ def given_red_app_input(elevation: float,  # pylint: disable=too-many-arguments,
     # ros_t  == ROStcalc
     expected = {
         'ros': java_fbp.ros_eq,
+        'ros_t': java_fbp.ros_t,
         'cfb': java_fbp.cfb/100.0,  # CFFDRS gives cfb as a fraction
         'hfi': java_fbp.hfi,
         'area': java_fbp.area
@@ -184,6 +185,18 @@ def then_ros(result: dict, ros_em: float, note: str):
                  note)
 
 
+@then("ROS_t is within range (<note>)")
+def then_ros_t(result: dict, note: str):
+    """ check the relative error of the ros """
+    check_metric('ROS_t',
+                 result['scenario'],
+                 result['fuel_type'],
+                 result['python'].ros_t,
+                 result['expected']['ros_t'],
+                 acceptable_margin_of_error,
+                 note)
+
+
 @then("CFB is within <cfb_em> (<note>)")
 def then_cfb(result: dict, cfb_em: float, note: str):
     """ check the relative error of the cfb """
@@ -196,6 +209,18 @@ def then_cfb(result: dict, cfb_em: float, note: str):
                  note)
 
 
+@then("CFB_t is within range (<note>)")
+def then_cfb_t(result: dict, note: str):
+    """ check the relative error of the ros """
+    check_metric('CFB_t',
+                 result['scenario'],
+                 result['fuel_type'],
+                 result['python'].cfb_t,
+                 result['expected']['cfb'],
+                 acceptable_margin_of_error,
+                 note)
+
+
 @then("HFI is within <hfi_em> (<note>)")
 def then_hfi(result: dict, hfi_em: float, note: str):
     """ check the relative error of the hfi """
@@ -205,6 +230,18 @@ def then_hfi(result: dict, hfi_em: float, note: str):
                  result['python'].hfi,
                  result['expected']['hfi'],
                  hfi_em,
+                 note)
+
+
+@then("HFI_t is within range (<note>)")
+def then_hfi_t(result: dict, note: str):
+    """ check the relative error of the ros """
+    check_metric('HFI_t',
+                 result['scenario'],
+                 result['fuel_type'],
+                 result['python'].hfi_t,
+                 result['expected']['hfi'],
+                 acceptable_margin_of_error,
                  note)
 
 

@@ -113,7 +113,7 @@ def given_input(fuel_type: str, percentage_conifer: float, percentage_dead_balsa
         # above that starts failing the unit tests.
         wind_speed = random.uniform(0, 40)
         wind_direction = random.uniform(0, 360)
-        temperature = random.uniform(0, 40)
+        temperature = random.uniform(0, 49.6)  # Lytton, B.C., 2021
         relative_humidity = random.uniform(0, 100)
         precipitation = random.uniform(0, 50)
         dc = random.uniform(0, 600)
