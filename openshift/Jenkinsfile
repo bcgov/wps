@@ -23,9 +23,11 @@ pipeline {
         }
         stage('Promote (PROD)') {
             agent { label 'deploy' }
-            input {
-                message "Should we promote this deployment to PRODUCTION?"
-                ok "Yes!"
+            timeout(time: 60, unit: 'SECONDS') {
+                input {
+                    message "Should we promote this deployment to PRODUCTION?"
+                    ok "Yes!"
+                }
             }
             steps {
                 script {

@@ -193,6 +193,17 @@ def then_hfi_good(results: list, hfi_margin_of_error: float):
         result['error']['hfi_margin_of_error'] = error
 
 
+@then("HFI_t is within range")
+def then_hfi_t(results: list):
+    """ check the relative error of the ros """
+    for result in results:
+        check_metric('HFI_t',
+                     result['fuel_type'],
+                     result['python'].hfi_t,
+                     result['java'].hfi,
+                     acceptable_margin_of_error)
+
+
 @then("CFB is within <cfb_margin_of_error> compared to REDapp")
 def then_cfb_good(results: list, cfb_margin_of_error: float):
     """ check the relative error of HFI """
