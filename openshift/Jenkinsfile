@@ -26,11 +26,11 @@ pipeline {
             options {
                 timeout(time: 10, unit: 'SECONDS')
             }
-            input {
-                message "Should we promote this deployment to PRODUCTION?"
-                ok "Yes!"
-            }
             steps {
+                input {
+                    message "Should we promote this deployment to PRODUCTION?"
+                    ok "Yes!"
+                }
                 catchError(buildResult: 'SUCCESS', stageResult: 'ABORTED') { 
                     echo "Started stage A"
                     sleep(time: 5, unit: "SECONDS")
