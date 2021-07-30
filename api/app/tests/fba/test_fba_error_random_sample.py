@@ -15,7 +15,7 @@ from app.tests.fba import str2float, check_metric
 import pytest
 
 
-# configure_logging()
+configure_logging()
 
 logger = logging.getLogger(__name__)
 
@@ -169,6 +169,17 @@ def then_ros_good(results: list, ros_margin_of_error: float):
         result['error']['ros_margin_of_error'] = error
 
 
+@then("ROS_t is within range")
+def then_ros_t(results: list):
+    """ check the relative error of the ros """
+    for result in results:
+        check_metric('ROS_t',
+                     result['fuel_type'],
+                     result['python'].ros_t,
+                     result['java'].ros_t,
+                     acceptable_margin_of_error)
+
+
 @then("HFI is within <hfi_margin_of_error> compared to REDapp")
 def then_hfi_good(results: list, hfi_margin_of_error: float):
     """ check the relative error of HFI """
@@ -222,7 +233,9 @@ def log_it(results: list):
                 values[key] = error_dict[key]
         values['fuel_type'] = error_dict['fuel_type']
 
-    header = '| fuel_type | percentage_conifer | percentage_dead_balsam_fir | grass_cure | crown_base_height | ros_margin_of_error | hfi_margin_of_error | cfb_margin_of_error | one_hour_spread_margin_of_error | num_iterations |'
+    header = ("""| fuel_type | percentage_conifer | percentage_dead_balsam_fir | grass_cure | """
+              """crown_base_height | ros_margin_of_error | hfi_margin_of_error | cfb_margin_of_error | """
+              """one_hour_spread_margin_of_error | num_iterations |""")
     header = header.strip('|')
     header = header.split('|')
     header = [x.strip() for x in header]

@@ -6,7 +6,7 @@ Feature: /fbc/
         And HFI is within <hfi_margin_of_error> compared to REDapp
         And CFB is within <cfb_margin_of_error> compared to REDapp
         And 1 Hour Spread is within <one_hour_spread_margin_of_error> compared to REDapp
-        # And ROS_t is within range (<note>)
+        And ROS_t is within range
         # And CFB_t is within range (<note>)
         # And HFI_t is within range (<note>)
         # And (1 HR Size)_t is within range (<note>)
