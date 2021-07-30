@@ -239,6 +239,17 @@ def then_1_hour_spread_good(results: list, one_hour_spread_margin_of_error: floa
         result['error']['one_hour_spread_margin_of_error'] = error
 
 
+@then("(1 HR Size)_t is within range")
+def then_one_hour_size_t(results: list):
+    """ check the relative error of the ros """
+    for result in results:
+        check_metric('1 HR Size t',
+                     result['fuel_type'],
+                     result['python'].sixty_minute_fire_size_t,
+                     result['java'].area,
+                     acceptable_margin_of_error)
+
+
 @then("Log it")
 def log_it(results: list):
     """ Log a string matching the scenario input - useful when improving values.  """
