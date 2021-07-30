@@ -11,7 +11,7 @@ from app.utils.time import get_hour_20_from_date
 from app.utils.fba_calculator import calculate_fire_behaviour_advisory, FBACalculatorWeatherStation
 from app.utils.redapp import FBPCalculateStatisticsCOM
 from app.utils.cffdrs import initial_spread_index, bui_calc
-from app.tests.fba import str2float, check_metric
+from app.tests.fba import str2float, check_metric, fire_size_acceptable_margin_of_error
 import pytest
 
 
@@ -247,7 +247,7 @@ def then_one_hour_size_t(results: list):
                      result['fuel_type'],
                      result['python'].sixty_minute_fire_size_t,
                      result['java'].area,
-                     acceptable_margin_of_error)
+                     fire_size_acceptable_margin_of_error)
 
 
 @then("Log it")

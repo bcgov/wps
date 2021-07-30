@@ -9,16 +9,14 @@ from app import configure_logging
 from app.utils.time import get_hour_20_from_date
 from app.utils.fba_calculator import calculate_fire_behaviour_advisory, FBACalculatorWeatherStation
 from app.utils.redapp import FBPCalculateStatisticsCOM
-from app.tests.fba import str2float, check_metric, acceptable_margin_of_error
+from app.tests.fba import (str2float, check_metric, acceptable_margin_of_error,
+                           fire_size_acceptable_margin_of_error)
 import pytest
 
 
 configure_logging()
 
 logger = logging.getLogger(__name__)
-
-
-fire_size_acceptable_margin_of_error: Final = 0.02  # close, but using slightly different approach to RedAPP.
 
 
 @pytest.mark.usefixtures('mock_jwt_decode')
