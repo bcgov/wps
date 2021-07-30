@@ -30,6 +30,11 @@ pipeline {
                 message "Should we promote this deployment to PRODUCTION?"
                 ok "Yes!"
             }
+            steps {
+                script {
+                    
+                }
+            }
         }
         stage('Promote (PROD)') {
             agent { label 'deploy' }
