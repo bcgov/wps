@@ -52,6 +52,7 @@ jobs:
       - uses: actions/github-script@v3.1.0
         with:
           script: |
+            const [repository_owner, repository_name] = process.env.GITHUB_REPOSITORY.split('/')
             const labels = (await github.issues.listLabelsOnIssue({owner: repository_owner, repo: repository_name, issue_number:context.payload.pull_request.number})).data
             const isPrApproved = labels.find( ({ name }) => name === 'pr/approved' ) !== undefined
             console.log(`PR > isPrApproved: ${isPrApproved}`)
