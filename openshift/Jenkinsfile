@@ -25,10 +25,7 @@ pipeline {
             agent { label 'deploy' }
             steps {
                 timeout(time: 60, unit: 'SECONDS') {
-                    input {
-                        message "Should we promote this deployment to PRODUCTION?"
-                        ok "Yes!"
-                    }
+                    input message: "Should we promote this deployment to PRODUCTION?", ok "Yes!"
                 }
                 script {
                     sh "./openshift/scripts/oc_promote.sh ${suffix} apply"
