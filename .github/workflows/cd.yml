@@ -1,0 +1,59 @@
+name: CD
+
+on:
+  pull_request:
+    branches:
+      - main
+jobs:
+  accept:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v3.1.0
+        env:
+          MY_SECRET: ${{ secrets.MY_SECRET }}
+        with:
+          script: |
+            console.log('-- CONTEXT --')
+            console.dir(context)
+            // console.log('-- GITHUB --')
+            // console.dir(github)
+            // console.log('-- GITHUB --')
+            const [repository_owner, repository_name] = process.env.GITHUB_REPOSITORY.split('/')
+
+            console.log(`GITHUB_SHA: ${process.env.GITHUB_SHA}`)
+            console.log(`MY_SECRET: ${process.env.MY_SECRET}`)
+            console.log(`GITHUB_EVENT_NAME: ${process.env.GITHUB_EVENT_NAME}`)
+            console.log(`repository (owner): ${repository_owner}`)
+            console.log(`repository (name): ${repository_name}`)
+            console.log(`repository (fullname): ${process.env.GITHUB_REPOSITORY}`)
+            console.log(`Sender (username): ${context.payload.sender.login}`)
+
+            const isCollaborator = (await github.repos.checkCollaborator({owner: repository_owner, repo: repository_name, username: context.payload.sender.login}).catch((err)=>{ return {status: 404}})).status == 204 
+            console.log(`Sender (collaborator?): ${isCollaborator}`)
+            if (context.eventName == 'pull_request' || context.eventName == 'pull_request_target') {
+                const isFromAFork = context.payload.pull_request.head.repo.full_name !== process.env.GITHUB_REPOSITORY
+                console.log(`PR > Source Repository (full name): ${context.payload.pull_request.head.repo.full_name}`)
+                console.log(`PR > Is From a Fork?: ${isFromAFork}`)
+                if(isFromAFork === true) {
+                  const labels = (await github.issues.listLabelsOnIssue({owner: repository_owner, repo: repository_name, issue_number:context.payload.pull_request.number})).data
+                  const isPrAccepted = labels.find( ({ name }) => name === 'pr/deploy' ) !== undefined
+                  console.log(`PR > isPrAccepted: ${isPrAccepted}`)
+                  if(isPrAccepted === false) {
+                    core.setFailed('Pull Request from non-contributors fork is not accepted. Add a "pr/deploy" label to the PR to accept and trust changes coming from this PR.')   
+                  }
+                }  
+            }
+
+  deploy:
+    needs: [accept]
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      # Runs a single command using the runners shell
+      - name: Run a one-line script
+        run: echo Hello, world!
