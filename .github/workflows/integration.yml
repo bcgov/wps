@@ -3,7 +3,7 @@ name: Integration
 on:
   pull_request:
     branches:
-      - main
+      - main_other
 jobs:
   lint-and-test:
     name: Lint, Test, Coverage with CodeCov
