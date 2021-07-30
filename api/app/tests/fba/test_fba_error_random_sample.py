@@ -205,6 +205,17 @@ def then_cfb_good(results: list, cfb_margin_of_error: float):
         result['error']['cfb_margin_of_error'] = error
 
 
+@then("CFB_t is within range")
+def then_cfb_t(results: list):
+    """ check the relative error of the ros """
+    for result in results:
+        check_metric('CFB_t',
+                     result['fuel_type'],
+                     result['python'].cfb_t*100.0,
+                     result['java'].cfb,
+                     acceptable_margin_of_error)
+
+
 @then("1 Hour Spread is within <one_hour_spread_margin_of_error> compared to REDapp")
 def then_1_hour_spread_good(results: list, one_hour_spread_margin_of_error: float):
     """ check the relative error of HFI """
