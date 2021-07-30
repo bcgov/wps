@@ -193,10 +193,9 @@ async def fetch_hourlies(
 
     cache_expiry_seconds = cache_expiry_seconds = config.get(
         'REDIS_HOURLIES_BY_STATION_CODE_CACHE_EXPIRY', 300)
-    use_cache = cache_expiry_seconds is not None and config.get('REDIS_USE') == 'True'
 
     # Get hourlies
-    if use_cache:
+    if use_cache and cache_expiry_seconds is not None and config.get('REDIS_USE') == 'True':
         hourlies_json = await _fetch_cached_response(session, headers, url, params, cache_expiry_seconds)
     else:
         async with session.get(url, params=params, headers=headers) as response:
