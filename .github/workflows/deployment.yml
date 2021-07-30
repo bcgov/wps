@@ -285,6 +285,10 @@ jobs:
 
   deploy-prod:
     # If PR has been deployed in dev and test environment, and has been approved - we deploy to production.
+    # IMPORTANT NOTE: We assume that since pr/approved has been set manually, that the required test
+    # etc. has been done!
+    # TODO: We actually only want to do this once testing passes! Maybe we can set a pr/test-pass flag
+    # in the integration workflow? (Ditto for static analysis etc. etc.)
     needs: [deploy-dev, deploy-test, approve]
     runs-on: ubuntu-latest
     steps:
