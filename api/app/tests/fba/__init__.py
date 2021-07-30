@@ -8,6 +8,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 acceptable_margin_of_error: Final = 0.01
+fire_size_acceptable_margin_of_error: Final = 0.02  # close, but using slightly different approach to RedAPP.
 
 
 def str2float(value: str):
