@@ -26,11 +26,9 @@ pipeline {
             options {
                 timeout(time: 60, unit: 'SECONDS')
             }
-            steps {
-                input {
-                    message "Should we promote this deployment to PRODUCTION?"
-                    ok "Yes!"
-                }
+            input {
+                message "Should we promote this deployment to PRODUCTION?"
+                ok "Yes!"
             }
         }
         stage('Promote (PROD)') {
