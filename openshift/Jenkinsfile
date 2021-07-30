@@ -24,7 +24,7 @@ pipeline {
         stage('Prompt User') {
             agent { label 'input' }
             options {
-                timeout(time: 60, unit: 'SECONDS')
+                timeout(time: 10, unit: 'SECONDS')
             }
             input {
                 message "Should we promote this deployment to PRODUCTION?"
