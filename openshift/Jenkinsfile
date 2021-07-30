@@ -40,6 +40,11 @@ pipeline {
                 // }
             }
         }
+        stage("B") {
+            steps {
+                echo "Started stage B"
+            }
+        }
         // stage('Promote (PROD)') {
         //     agent { label 'deploy' }
         //     steps {
