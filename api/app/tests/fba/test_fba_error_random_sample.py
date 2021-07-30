@@ -2,7 +2,6 @@
 Unit tests for fire behavour calculator.
 """
 from datetime import datetime, timezone as dt_tz
-from time import time
 import random
 from typing import Final
 import logging
@@ -12,11 +11,11 @@ from app.utils.time import get_hour_20_from_date
 from app.utils.fba_calculator import calculate_fire_behaviour_advisory, FBACalculatorWeatherStation
 from app.utils.redapp import FBPCalculateStatisticsCOM
 from app.utils.cffdrs import initial_spread_index, bui_calc
-from app.tests.fba import str2float
+from app.tests.fba import str2float, check_metric
 import pytest
 
 
-configure_logging()
+# configure_logging()
 
 logger = logging.getLogger(__name__)
 
@@ -27,47 +26,7 @@ def _random_date():
     return datetime.fromtimestamp(random.uniform(start.timestamp(), end.timestamp()), tz=dt_tz.utc)
 
 
-def relative_error(actual: float, expected: float, precision: int = 2):
-    """ calculate the relative error between two values - default to precision of 2"""
-    actual = round(actual, precision)
-    expected = round(expected, precision)
-    if actual == expected:
-        return 0
-    if expected == 0:
-        # Can't divide by 0! Taking this as a 100% difference
-        return 1
-    return abs((actual-expected)/expected)
-
-
 acceptable_margin_of_error: Final = 0.01
-
-
-def check_metric(metric: str,
-                 fuel_type: str,
-                 python_value: float,
-                 comparison_value: float,
-                 metric_error_margin: float, note: str = None):
-    """ Check relative error of a metric """
-    # logging with %s became unreadable:
-    # pylint: disable=logging-fstring-interpolation
-    if comparison_value < 0:
-        logger.warning('Skipping %s! (%s) - note: %s', metric, comparison_value, note)
-    else:
-        assert python_value >= 0
-        error = relative_error(python_value, comparison_value)
-        absolute_error = abs(python_value - comparison_value)
-        if error > acceptable_margin_of_error:
-            logger.error('%s %s relative error %s > %s! (python: %s, expected: %s)',
-                         fuel_type, metric, error, acceptable_margin_of_error, python_value, comparison_value)
-        if metric_error_margin > 0.01:
-            logger.debug('%s: The acceptable margin of error (%s) for %s is set too high',
-                         fuel_type, metric_error_margin, metric)
-        if error > metric_error_margin:
-            # ok - fine, but for small numbers this isn't a big deal, so let's check the absolure difference.
-            if absolute_error < 0.01:
-                logger.debug('no big deal, the absolute difference (%s) is tiny!', absolute_error)
-            else:
-                assert error < metric_error_margin, f'{fuel_type}:{metric}'
 
 
 @pytest.mark.usefixtures('mock_jwt_decode')
@@ -171,11 +130,18 @@ def given_input(fuel_type: str, percentage_conifer: float, percentage_dead_balsa
                                              percentage_dead_balsam_fir=percentage_dead_balsam_fir,
                                              grass_cure=grass_cure,
                                              crown_base_height=crown_base_height)
-        results.append({
-            'input': {'isi': isi, 'bui': bui, 'wind_speed': wind_speed, 'ffmc': ffmc},
-            'python': python_fba,
-            'java': java_fbp,
-            'fuel_type': fuel_type}
+
+        error_dict = {
+            'fuel_type': fuel_type
+        }
+        results.append(
+            {
+                'input': {'isi': isi, 'bui': bui, 'wind_speed': wind_speed, 'ffmc': ffmc},
+                'python': python_fba,
+                'java': java_fbp,
+                'fuel_type': fuel_type,
+                'error': error_dict
+            }
         )
 
     return results
@@ -193,44 +159,79 @@ def then_ros_good(results: list, ros_margin_of_error: float):
         # assumptions:
         # ros_eq == ROScalc
         # ros_t  == ROStcalc
-        check_metric('ROS',
-                     result['fuel_type'],
-                     result['python'].ros,
-                     result['java'].ros_eq,
-                     ros_margin_of_error,
-                     f"""({index}) input- isi:{isi}; bui:{bui}; wind_speed:{wind_speed}; ffmc:{ffmc}; """
-                     f"""java - isi:{java_isi}""")
+        error = check_metric('ROS',
+                             result['fuel_type'],
+                             result['python'].ros,
+                             result['java'].ros_eq,
+                             ros_margin_of_error,
+                             f"""({index}) input- isi:{isi}; bui:{bui}; wind_speed:{wind_speed}; ffmc:{ffmc}; """
+                             f"""java - isi:{java_isi}""")
+        result['error']['ros_margin_of_error'] = error
 
 
 @then("HFI is within <hfi_margin_of_error> compared to REDapp")
 def then_hfi_good(results: list, hfi_margin_of_error: float):
     """ check the relative error of HFI """
     for index, result in enumerate(results):
-        check_metric('HFI',
-                     result['fuel_type'],
-                     result['python'].hfi,
-                     result['java'].hfi,
-                     hfi_margin_of_error,
-                     f'({index})')
+        error = check_metric('HFI',
+                             result['fuel_type'],
+                             result['python'].hfi,
+                             result['java'].hfi,
+                             hfi_margin_of_error,
+                             f'({index})')
+        result['error']['hfi_margin_of_error'] = error
 
 
 @then("CFB is within <cfb_margin_of_error> compared to REDapp")
 def then_cfb_good(results: list, cfb_margin_of_error: float):
     """ check the relative error of HFI """
     for index, result in enumerate(results):
-        check_metric('CFB',
-                     result['fuel_type'],
-                     result['python'].cfb*100.0,
-                     result['java'].cfb, cfb_margin_of_error,
-                     f'({index})')
+        error = check_metric('CFB',
+                             result['fuel_type'],
+                             result['python'].cfb*100.0,
+                             result['java'].cfb, cfb_margin_of_error,
+                             f'({index})')
+        result['error']['cfb_margin_of_error'] = error
 
 
 @then("1 Hour Spread is within <one_hour_spread_margin_of_error> compared to REDapp")
 def then_1_hour_spread_good(results: list, one_hour_spread_margin_of_error: float):
     """ check the relative error of HFI """
     for index, result in enumerate(results):
-        check_metric('one_hour_size',
-                     result['fuel_type'],
-                     result['python'].sixty_minute_fire_size,
-                     result['java'].area, one_hour_spread_margin_of_error,
-                     f'({index})')
+        error = check_metric('one_hour_size',
+                             result['fuel_type'],
+                             result['python'].sixty_minute_fire_size,
+                             result['java'].area, one_hour_spread_margin_of_error,
+                             f'({index})')
+        result['error']['one_hour_spread_margin_of_error'] = error
+
+
+@then("Log it")
+def log_it(results: list):
+    """ Log a string matching the scenario input - useful when improving values.  """
+    keys = ('one_hour_spread_margin_of_error', 'cfb_margin_of_error',
+            'hfi_margin_of_error', 'ros_margin_of_error')
+    values = {}
+    for key in keys:
+        values[key] = 0.01
+    for result in results:
+        error_dict = result.get('error')
+        for key in keys:
+            old_value = values.get(key)
+            if error_dict[key] > old_value:
+                values[key] = error_dict[key]
+        values['fuel_type'] = error_dict['fuel_type']
+
+    header = '| fuel_type | percentage_conifer | percentage_dead_balsam_fir | grass_cure | crown_base_height | ros_margin_of_error | hfi_margin_of_error | cfb_margin_of_error | one_hour_spread_margin_of_error | num_iterations |'
+    header = header.strip('|')
+    header = header.split('|')
+    header = [x.strip() for x in header]
+
+    line = '|'
+    for key in header:
+        value = values.get(key, key)
+        if isinstance(value, float):
+            line += f'{value:.2f}|'
+        else:
+            line += f'{value}|'
+    logger.debug(line)
