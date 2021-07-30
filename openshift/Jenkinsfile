@@ -21,12 +21,21 @@ pipeline {
                 }
             }
         }
+        stage('Prompt User') {
+            agent { label 'input' }
+            options {
+                timeout(time: 60, unit: 'SECONDS')
+            }
+            steps {
+                input {
+                    message "Should we promote this deployment to PRODUCTION?"
+                    ok "Yes!"
+                }
+            }
+        }
         stage('Promote (PROD)') {
             agent { label 'deploy' }
             steps {
-                timeout(time: 60, unit: 'SECONDS') {
-                    input message: "Should we promote this deployment to PRODUCTION?", ok "Yes!"
-                }
                 script {
                     sh "./openshift/scripts/oc_promote.sh ${suffix} apply"
                     sh "./openshift/scripts/oc_promote_ubuntu.sh ${suffix} apply"
