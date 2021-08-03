@@ -1,16 +1,13 @@
 import { TextField } from '@material-ui/core'
 import { ClassNameMap } from '@material-ui/core/styles/withStyles'
-import { FBCInputGridProps } from 'features/fireBehaviourCalculator/components/FBCInputGrid'
-import {
-  buildUpdatedNumberRow,
-  updateFBCRow
-} from 'features/fireBehaviourCalculator/tableState'
+import { FBAInputGridProps } from 'features/fbaCalculator/components/FBAInputGrid'
+import { buildUpdatedNumberRow, updateFBARow } from 'features/fbaCalculator/tableState'
 import React, { ChangeEvent, useState } from 'react'
 import { useEffect } from 'react'
 
 interface WindSpeedCellProps {
-  fbcInputGridProps: Pick<
-    FBCInputGridProps,
+  fbaInputGridProps: Pick<
+    FBAInputGridProps,
     'stationOptions' | 'inputRows' | 'updateRow' | 'autoUpdateHandler'
   >
   classNameMap: ClassNameMap<'windSpeed'>
@@ -30,8 +27,8 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
   }
 
   const blurHandler = () => {
-    updateFBCRow(
-      props.fbcInputGridProps,
+    updateFBARow(
+      props.fbaInputGridProps,
       props.rowId,
       'windSpeed',
       windSpeedValue,
@@ -51,7 +48,7 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
       onKeyDown={event => {
         if (event.key === 'Enter') {
           event.preventDefault()
-          props.fbcInputGridProps.autoUpdateHandler()
+          props.fbaInputGridProps.autoUpdateHandler()
         }
       }}
       value={windSpeedValue}

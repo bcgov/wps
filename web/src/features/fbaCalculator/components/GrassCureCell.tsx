@@ -1,19 +1,16 @@
 import { TextField } from '@material-ui/core'
 import { ClassNameMap } from '@material-ui/core/styles/withStyles'
 import {
-  FBCInputGridProps,
-  FBCInputRow
-} from 'features/fireBehaviourCalculator/components/FBCInputGrid'
-import {
-  buildUpdatedNumberRow,
-  updateFBCRow
-} from 'features/fireBehaviourCalculator/tableState'
+  FBAInputGridProps,
+  FBAInputRow
+} from 'features/fbaCalculator/components/FBAInputGrid'
+import { buildUpdatedNumberRow, updateFBARow } from 'features/fbaCalculator/tableState'
 import { isUndefined, isNull } from 'lodash'
 import React, { ChangeEvent, useState } from 'react'
 
 interface GrassCureCellProps {
-  fbcInputGridProps: Pick<
-    FBCInputGridProps,
+  fbaInputGridProps: Pick<
+    FBAInputGridProps,
     'inputRows' | 'updateRow' | 'autoUpdateHandler'
   >
   classNameMap: ClassNameMap<'grassCure'>
@@ -21,7 +18,7 @@ interface GrassCureCellProps {
   rowId: number
 }
 
-const grassCureNotSetForGrassType = (row: FBCInputRow): boolean => {
+const grassCureNotSetForGrassType = (row: FBAInputRow): boolean => {
   if (isUndefined(row)) {
     return false
   }
@@ -41,8 +38,8 @@ const GrassCureProps = (props: GrassCureCellProps) => {
   }
 
   const blurHandler = () => {
-    updateFBCRow(
-      props.fbcInputGridProps,
+    updateFBARow(
+      props.fbaInputGridProps,
       props.rowId,
       'grassCure',
       grassCurePercentage,
@@ -51,7 +48,7 @@ const GrassCureProps = (props: GrassCureCellProps) => {
   }
 
   const hasError = grassCureNotSetForGrassType(
-    props.fbcInputGridProps.inputRows[props.rowId]
+    props.fbaInputGridProps.inputRows[props.rowId]
   )
 
   return (
@@ -66,7 +63,7 @@ const GrassCureProps = (props: GrassCureCellProps) => {
       onKeyDown={event => {
         if (event.key === 'Enter') {
           event.preventDefault()
-          props.fbcInputGridProps.autoUpdateHandler()
+          props.fbaInputGridProps.autoUpdateHandler()
         }
       }}
       value={grassCurePercentage}

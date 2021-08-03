@@ -1,7 +1,7 @@
 import assert from 'assert'
 import _ from 'lodash'
 import { isNull } from 'lodash'
-import { FBCInputRow } from './components/FBCInputGrid'
+import { FBAInputRow } from './components/FBAInputGrid'
 
 export const isGrassFuelType = (fuelType: string): boolean =>
   fuelType === 'o1a' || fuelType === 'o1b'
@@ -19,7 +19,7 @@ export const isValidFuelSetting = (
  * @param searchParams Form is ?s=<station-code>&f=<fuel-type>&c=<grass-cure-percentage>,...
  * @returns
  */
-export const getRowsFromUrlParams = (searchParams: string): FBCInputRow[] => {
+export const getRowsFromUrlParams = (searchParams: string): FBAInputRow[] => {
   const buildRow = (params: string[]) => {
     // station, fuel type, grass cure %
     if (params.length !== 3 && params.length !== 4) {
@@ -83,7 +83,7 @@ export const getRowsFromUrlParams = (searchParams: string): FBCInputRow[] => {
  * @param rows FBCInputRow array from data table
  * @returns params as string of form ?s=<station-code>&f=<fuel-type>&c=<grass-cure-percentage>&w=<optional-wind-speed>,...
  */
-export const getUrlParamsFromRows = (rows: FBCInputRow[]): string => {
+export const getUrlParamsFromRows = (rows: FBAInputRow[]): string => {
   if (rows.length === 0) {
     return ''
   }
@@ -98,7 +98,7 @@ export const getUrlParamsFromRows = (rows: FBCInputRow[]): string => {
   return query + params
 }
 
-export const getMostRecentIdFromRows = (rows: FBCInputRow[]): number => {
+export const getMostRecentIdFromRows = (rows: FBAInputRow[]): number => {
   let lastIdFromExisting = _.maxBy(rows, 'id')?.id
   lastIdFromExisting = lastIdFromExisting ? lastIdFromExisting : 0
   const lastId = _.isEmpty(rows) ? 0 : lastIdFromExisting

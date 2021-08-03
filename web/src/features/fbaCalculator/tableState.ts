@@ -1,21 +1,21 @@
 import {
-  FBCInputGridProps,
-  FBCInputRow,
+  FBAInputGridProps,
+  FBAInputRow,
   GridMenuOption
-} from 'features/fireBehaviourCalculator/components/FBCInputGrid'
+} from 'features/fbaCalculator/components/FBAInputGrid'
 import { find } from 'lodash'
 
-export const updateFBCRow = (
-  props: Pick<FBCInputGridProps, 'inputRows' | 'updateRow'>,
+export const updateFBARow = (
+  props: Pick<FBAInputGridProps, 'inputRows' | 'updateRow'>,
   rowId: number,
   field: string,
   // eslint-disable-next-line
   value: any,
   updatedRowBuilder: (
-    rowToUpdate: FBCInputRow,
+    rowToUpdate: FBAInputRow,
     field: string,
     value: GridMenuOption | number
-  ) => FBCInputRow
+  ) => FBAInputRow
 ): void => {
   const rowToUpdate = find(props.inputRows, ['id', rowId])
   if (rowToUpdate) {
@@ -25,30 +25,30 @@ export const updateFBCRow = (
 }
 
 export const buildUpdatedOptionRow = (
-  rowToUpdate: FBCInputRow,
+  rowToUpdate: FBAInputRow,
   field: string,
   // eslint-disable-next-line
   value: any
-): FBCInputRow => {
+): FBAInputRow => {
   return {
     ...rowToUpdate,
     ...{
-      [field as keyof FBCInputRow]: (value as GridMenuOption)?.value
+      [field as keyof FBAInputRow]: (value as GridMenuOption)?.value
     }
   }
 }
 
 // eslint-disable-next-line
 export const buildUpdatedNumberRow = (
-  rowToUpdate: FBCInputRow,
+  rowToUpdate: FBAInputRow,
   field: string,
   // eslint-disable-next-line
   value: any
-): FBCInputRow => {
+): FBAInputRow => {
   return {
     ...rowToUpdate,
     ...{
-      [field as keyof FBCInputRow]: parseInt(value)
+      [field as keyof FBAInputRow]: parseInt(value)
     }
   }
 }

@@ -3,7 +3,7 @@ import { FBCStation, postFBCStations } from 'api/fbCalcAPI'
 
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
-import { FBCInputRow } from 'features/fireBehaviourCalculator/components/FBCInputGrid'
+import { FBAInputRow } from 'features/fbaCalculator/components/FBAInputGrid'
 import { FuelTypes } from '../fuelTypes'
 import { isNull, isUndefined } from 'lodash'
 
@@ -50,7 +50,7 @@ export default fireBehaviourStationsSlice.reducer
 
 export const fetchFireBehaviourStations = (
   date: string,
-  fbcInputRows: FBCInputRow[]
+  fbcInputRows: FBAInputRow[]
 ): AppThunk => async dispatch => {
   const fetchableFireStations = fbcInputRows.flatMap(row => {
     const fuelTypeDetails = FuelTypes.lookup(row.fuelType)

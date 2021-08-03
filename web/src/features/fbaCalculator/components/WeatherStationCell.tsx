@@ -2,41 +2,39 @@ import { TextField } from '@material-ui/core'
 import { ClassNameMap } from '@material-ui/core/styles/withStyles'
 import { Autocomplete } from '@material-ui/lab'
 import {
-  FBCInputGridProps,
+  FBAInputGridProps,
   GridMenuOption
-} from 'features/fireBehaviourCalculator/components/FBCInputGrid'
-import {
-  buildUpdatedOptionRow,
-  updateFBCRow
-} from 'features/fireBehaviourCalculator/tableState'
+} from 'features/fbaCalculator/components/FBAInputGrid'
+import { buildUpdatedOptionRow, updateFBARow } from 'features/fbaCalculator/tableState'
 import { isEqual } from 'lodash'
 import React from 'react'
 
-interface FuelTypeCellProps {
-  fbcInputGridProps: Pick<
-    FBCInputGridProps,
-    'fuelTypeOptions' | 'inputRows' | 'updateRow' | 'autoUpdateHandler'
+interface WeatherStationCellProps {
+  fbaInputGridProps: Pick<
+    FBAInputGridProps,
+    'stationOptions' | 'inputRows' | 'updateRow' | 'autoUpdateHandler'
   >
-  classNameMap: ClassNameMap<'fuelType'>
+  classNameMap: ClassNameMap<'weatherStation'>
   value: GridMenuOption | null
   rowId: number
 }
-const emptyLabel = 'Select a fuel type'
-const FuelTypeCell = (props: FuelTypeCellProps) => {
+const emptyLabel = 'Select a station'
+const WeatherStationCell = (props: WeatherStationCellProps) => {
   // eslint-disable-next-line
   const changeHandler = (_: React.ChangeEvent<{}>, value: any | null) => {
-    updateFBCRow(
-      props.fbcInputGridProps,
+    updateFBARow(
+      props.fbaInputGridProps,
       props.rowId,
-      'fuelType',
+      'weatherStation',
       value,
       buildUpdatedOptionRow
     )
   }
+
   return (
     <Autocomplete
-      options={props.fbcInputGridProps.fuelTypeOptions}
-      className={props.classNameMap.fuelType}
+      options={props.fbaInputGridProps.stationOptions}
+      className={props.classNameMap.weatherStation}
       getOptionSelected={(option, value) => isEqual(option, value)}
       getOptionLabel={option => option?.label}
       renderInput={params => (
@@ -48,16 +46,16 @@ const FuelTypeCell = (props: FuelTypeCellProps) => {
         />
       )}
       onChange={changeHandler}
-      value={props.value}
-      onBlur={props.fbcInputGridProps.autoUpdateHandler}
+      onBlur={props.fbaInputGridProps.autoUpdateHandler}
       onKeyDown={event => {
         if (event.key === 'Enter') {
           event.preventDefault()
-          props.fbcInputGridProps.autoUpdateHandler()
+          props.fbaInputGridProps.autoUpdateHandler()
         }
       }}
+      value={props.value}
     />
   )
 }
 
-export default React.memo(FuelTypeCell)
+export default React.memo(WeatherStationCell)
