@@ -1,5 +1,6 @@
 """ Fire Behaviour Analysis Calculator Tool
 """
+from enum import Enum
 import math
 import os
 from datetime import date
@@ -13,6 +14,13 @@ from app.utils import cffdrs
 from app.utils.time import convert_utc_to_pdt, get_hour_20_from_date, get_julian_date
 
 logger = logging.getLogger(__name__)
+
+
+class FireTypeEnum(str, Enum):
+    """ Enumerator for the three different fire types. """
+    SURFACE = 'S'
+    INTERMITTENT_CROWN = 'IC'
+    CONTINUOUS_CROWN = 'CC'
 
 
 class CannotCalculateFireTypeError(Exception):
@@ -112,13 +120,13 @@ class FireBehaviourAdvisory():  # pylint: disable=too-many-instance-attributes
     """ Class containing the results of the fire behaviour advisory calculation. """
 
     def __init__(self,  # pylint: disable=too-many-arguments
-                 hfi: float, ros: float, fire_type: str, cfb: float, flame_length: float,
+                 hfi: float, ros: float, fire_type: FireTypeEnum, cfb: float, flame_length: float,
                  sixty_minute_fire_size: float, thirty_minute_fire_size: float,
                  critical_hours_hfi_4000: Optional[str],
                  critical_hours_hfi_10000: Optional[str]):
         self.hfi = hfi
         self.ros = ros
-        self.fire_type = fire_type  # TODO: make this an enum
+        self.fire_type = fire_type
         self.cfb = cfb
         self.flame_length = flame_length
         self.sixty_minute_fire_size = sixty_minute_fire_size
@@ -259,7 +267,7 @@ def get_fire_size(fuel_type: str, ros: float, bros: float, ellapsed_minutes: int
     return math.pi / (4.0 * length_to_breadth_at_time) * math.pow(fire_spread_distance, 2.0) / 10000.0
 
 
-def get_fire_type(fuel_type: str, crown_fraction_burned: float):
+def get_fire_type(fuel_type: str, crown_fraction_burned: float) -> FireTypeEnum:
     """ Returns Fire Type (as str) based on percentage Crown Fraction Burned (CFB).
     These definitions come from the Red Book (p.69).
     Abbreviations for fire types have been taken from the red book (p.9).
@@ -268,20 +276,18 @@ def get_fire_type(fuel_type: str, crown_fraction_burned: float):
     < 10%                           Surface fire                S
     10-89%                          Intermittent crown fire     IC
     > 90%                           Continuous crown fire       CC
-
-    # TODO: make this return an enum
     """
     if fuel_type == 'D1':
         # From red book "crown fires are not expected in deciduous fuel types but high intensity surface fires
         # can occur."
-        return 'S'
+        return FireTypeEnum.SURFACE
     # crown fraction burnt is a floating point number from 0 to 1 inclusive.
     if crown_fraction_burned < 0.1:
-        return 'S'
+        return FireTypeEnum.SURFACE
     if crown_fraction_burned < 0.9:
-        return 'IC'
+        return FireTypeEnum.INTERMITTENT_CROWN
     if crown_fraction_burned >= 0.9:
-        return 'CC'
+        return FireTypeEnum.CONTINUOUS_CROWN
     logger.error('Cannot calculate fire type. Invalid Crown Fraction Burned percentage received.')
     raise CannotCalculateFireTypeError
 
