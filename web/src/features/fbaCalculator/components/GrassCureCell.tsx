@@ -8,7 +8,7 @@ import { buildUpdatedNumberRow, updateFBARow } from 'features/fbaCalculator/tabl
 import { isUndefined, isNull } from 'lodash'
 import React, { ChangeEvent, useState } from 'react'
 
-interface GrassCureCellProps {
+export interface GrassCureCellProps {
   fbaInputGridProps: Pick<
     FBAInputGridProps,
     'inputRows' | 'updateRow' | 'autoUpdateHandler'
