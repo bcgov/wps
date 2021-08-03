@@ -41,7 +41,7 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
       className={props.classNameMap.windSpeed}
       size="small"
       variant="outlined"
-      inputProps={{ min: 0, max: 100 }}
+      inputProps={{ min: 0, max: 100, step: "any" }}
       onChange={changeHandler}
       onBlur={blurHandler}
       onKeyDown={event => {
