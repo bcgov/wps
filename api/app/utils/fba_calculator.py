@@ -206,6 +206,26 @@ def calculate_fire_behaviour_advisory(station: FBACalculatorWeatherStation) -> F
     fire_type = get_fire_type(fuel_type=station.fuel_type, crown_fraction_burned=cfb)
     flame_length = get_approx_flame_length(hfi)
 
+    sixty_minute_fire_size, sixty_minute_fire_size_t, thirty_minute_fire_size = compute_fire_sizes(
+        station, fmc, sfc, lb_ratio, ros, cfb, ros_t, cfb_t)
+
+    return FireBehaviourAdvisory(
+        hfi=hfi, ros=ros, fire_type=fire_type, cfb=cfb, flame_length=flame_length,
+        sixty_minute_fire_size=sixty_minute_fire_size,
+        thirty_minute_fire_size=thirty_minute_fire_size,
+        critical_hours_hfi_4000=critical_hours_4000,
+        critical_hours_hfi_10000=critical_hours_10000,
+        hfi_t=hfi_t, ros_t=ros_t, cfb_t=cfb_t, sixty_minute_fire_size_t=sixty_minute_fire_size_t)
+
+
+def compute_fire_sizes(station: FBACalculatorWeatherStation, fmc, sfc, lb_ratio, ros, cfb, ros_t, cfb_t):
+    """ Compute fire sizes based on transitive calculations of
+        wind azimuth -> net effective wind speed -> back rate of spread.
+
+        Returns None for all values if wind direction is None.
+    """
+    if(station.wind_direction is None):
+        return None, None, None
     wind_azimuth = cffdrs.correct_wind_azimuth(station.wind_direction)
     slope_azimuth = None  # a.k.a. SAZ
     ground_slope = 0  # right now we're not taking slope into account
@@ -230,14 +250,7 @@ def calculate_fire_behaviour_advisory(station: FBACalculatorWeatherStation) -> F
     sixty_minute_fire_size = get_fire_size(station.fuel_type, ros, bros, 60, cfb, lb_ratio)
     sixty_minute_fire_size_t = get_fire_size(station.fuel_type, ros_t, bros, 60, cfb_t, lb_ratio)
     thirty_minute_fire_size = get_fire_size(station.fuel_type, ros, bros, 30, cfb, lb_ratio)
-
-    return FireBehaviourAdvisory(
-        hfi=hfi, ros=ros, fire_type=fire_type, cfb=cfb, flame_length=flame_length,
-        sixty_minute_fire_size=sixty_minute_fire_size,
-        thirty_minute_fire_size=thirty_minute_fire_size,
-        critical_hours_hfi_4000=critical_hours_4000,
-        critical_hours_hfi_10000=critical_hours_10000,
-        hfi_t=hfi_t, ros_t=ros_t, cfb_t=cfb_t, sixty_minute_fire_size_t=sixty_minute_fire_size_t)
+    return sixty_minute_fire_size, sixty_minute_fire_size_t, thirty_minute_fire_size
 
 
 def get_30_minutes_fire_size(length_breadth_ratio: float, rate_of_spread: float):
