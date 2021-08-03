@@ -224,7 +224,7 @@ def compute_fire_sizes(station: FBACalculatorWeatherStation, fmc, sfc, lb_ratio,
 
         Returns None for all values if wind direction is None.
     """
-    if(station.wind_direction is None):
+    if station.wind_direction is None:
         return None, None, None
     wind_azimuth = cffdrs.correct_wind_azimuth(station.wind_direction)
     slope_azimuth = None  # a.k.a. SAZ
