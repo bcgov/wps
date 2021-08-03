@@ -46,6 +46,8 @@ def correct_wind_azimuth(wind_direction: float):
     WAZ <- WD + pi
     WAZ <- ifelse(WAZ > 2 * pi, WAZ - 2 * pi, WAZ)
     """
+    if wind_direction is None:
+        return None
     waz = wind_direction + math.pi
     if waz > 2 * math.pi:
         return waz - 2 * math.pi
