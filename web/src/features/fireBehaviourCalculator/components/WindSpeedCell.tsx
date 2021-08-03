@@ -5,6 +5,7 @@ import {
   buildUpdatedNumberRow,
   updateFBCRow
 } from 'features/fireBehaviourCalculator/tableState'
+import { isEqual } from 'lodash'
 import React, { ChangeEvent, useState } from 'react'
 import { useEffect } from 'react'
 
@@ -27,13 +28,15 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
   }
 
   const blurHandler = () => {
-    updateFBCRow(
-      props.fbcInputGridProps,
-      props.rowId,
-      'windSpeed',
-      windSpeedValue,
-      buildUpdatedNumberRow
-    )
+    if (!isEqual(windSpeedValue, props.calculatedValue)) {
+      updateFBCRow(
+        props.fbcInputGridProps,
+        props.rowId,
+        'windSpeed',
+        windSpeedValue,
+        buildUpdatedNumberRow
+      )
+    }
   }
 
   return (
