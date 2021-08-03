@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
                                   hfi_em=float,
                                   cfb_em=float,
                                   time_of_interest=date.fromisoformat,
-                                  wind_direction=float,
+                                  wind_direction=str2float,
                                   wind_speed=float,
                                   note=str))
 def test_fire_behaviour_calculator_scenario():
