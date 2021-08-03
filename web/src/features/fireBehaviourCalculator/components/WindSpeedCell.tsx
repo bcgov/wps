@@ -38,10 +38,11 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
   return (
     <TextField
       type="number"
+      inputMode="numeric"
       className={props.classNameMap.windSpeed}
       size="small"
       variant="outlined"
-      inputProps={{ min: 0, max: 100, step: "any" }}
+      inputProps={{ min: 0, max: 100, step: 'any' }}
       onChange={changeHandler}
       onBlur={blurHandler}
       onKeyDown={event => {
