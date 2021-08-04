@@ -1,17 +1,16 @@
 import { render, screen } from '@testing-library/react'
 import { FBAInputRow } from 'features/fbaCalculator/components/FBAInputGrid'
-import GrassCureCell from 'features/fbaCalculator/components/GrassCureCell'
+import GrassCureCell, {
+  GrassCureCellProps
+} from 'features/fbaCalculator/components/GrassCureCell'
 import { FBAFuelType, FuelTypes } from 'features/fbaCalculator/fuelTypes'
 import { isNull } from 'lodash'
 import React from 'react'
 describe('GrassCureCell', () => {
-  const buildProps = (inputRow: FBAInputRow, value?: number) => ({
+  const buildProps = (inputRow: FBAInputRow, value?: number): GrassCureCellProps => ({
     fbaInputGridProps: {
       inputRows: [inputRow],
       updateRow: () => {
-        /** no op */
-      },
-      autoUpdateHandler: () => {
         /** no op */
       }
     },
