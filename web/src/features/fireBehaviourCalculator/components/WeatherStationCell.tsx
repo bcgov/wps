@@ -39,13 +39,6 @@ const WeatherStationCell = (props: WeatherStationCellProps) => {
     }
   }
 
-  const onEnterHandler = (event: React.KeyboardEvent) => {
-    if (event.key === 'Enter') {
-      event.preventDefault()
-      props.fbcInputGridProps.autoUpdateHandler()
-    }
-  }
-
   return (
     <Autocomplete
       options={props.fbcInputGridProps.stationOptions}
@@ -61,9 +54,7 @@ const WeatherStationCell = (props: WeatherStationCellProps) => {
         />
       )}
       onChange={changeHandler}
-      // onBlur={props.fbcInputGridProps.autoUpdateHandler}
-      onKeyDown={onEnterHandler}
-      value={props.value}
+      value={selectedStation}
     />
   )
 }

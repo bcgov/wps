@@ -10,7 +10,7 @@ import {
   updateFBCRow
 } from 'features/fireBehaviourCalculator/tableState'
 import { isEqual } from 'lodash'
-import React from 'react'
+import React, { useState } from 'react'
 
 interface FuelTypeCellProps {
   fbcInputGridProps: Pick<
@@ -23,15 +23,20 @@ interface FuelTypeCellProps {
 }
 const emptyLabel = 'Select a fuel type'
 const FuelTypeCell = (props: FuelTypeCellProps) => {
+  const [selectedFuelType, setSelectedFuelType] = useState(props.value)
+
   // eslint-disable-next-line
   const changeHandler = (_: React.ChangeEvent<{}>, value: any | null) => {
-    updateFBCRow(
-      props.fbcInputGridProps,
-      props.rowId,
-      'fuelType',
-      value,
-      buildUpdatedOptionRow
-    )
+    if (!isEqual(selectedFuelType, value)) {
+      setSelectedFuelType(value)
+      updateFBCRow(
+        props.fbcInputGridProps,
+        props.rowId,
+        'fuelType',
+        value,
+        buildUpdatedOptionRow
+      )
+    }
   }
   return (
     <Autocomplete
@@ -48,14 +53,7 @@ const FuelTypeCell = (props: FuelTypeCellProps) => {
         />
       )}
       onChange={changeHandler}
-      value={props.value}
-      onBlur={props.fbcInputGridProps.autoUpdateHandler}
-      onKeyDown={event => {
-        if (event.key === 'Enter') {
-          event.preventDefault()
-          props.fbcInputGridProps.autoUpdateHandler()
-        }
-      }}
+      value={selectedFuelType}
     />
   )
 }
