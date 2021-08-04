@@ -9,6 +9,7 @@ import {
   buildUpdatedOptionRow,
   updateFBCRow
 } from 'features/fireBehaviourCalculator/tableState'
+import { grassCureNotSetForGrassType } from 'features/fireBehaviourCalculator/utils'
 import { isEqual } from 'lodash'
 import React, { useState } from 'react'
 
@@ -29,12 +30,19 @@ const FuelTypeCell = (props: FuelTypeCellProps) => {
   const changeHandler = (_: React.ChangeEvent<{}>, value: any | null) => {
     if (!isEqual(selectedFuelType, value)) {
       setSelectedFuelType(value)
+      const updatedRow = buildUpdatedOptionRow(
+        props.fbcInputGridProps.inputRows[props.rowId],
+        'fuelType',
+        value
+      )
+      const dispatchRequest = !grassCureNotSetForGrassType(updatedRow)
       updateFBCRow(
         props.fbcInputGridProps,
         props.rowId,
         'fuelType',
         value,
-        buildUpdatedOptionRow
+        buildUpdatedOptionRow,
+        dispatchRequest
       )
     }
   }

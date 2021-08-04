@@ -1,14 +1,12 @@
 import { TextField } from '@material-ui/core'
 import { ClassNameMap } from '@material-ui/core/styles/withStyles'
-import {
-  FBCInputGridProps,
-  FBCInputRow
-} from 'features/fireBehaviourCalculator/components/FBCInputGrid'
+import { FBCInputGridProps } from 'features/fireBehaviourCalculator/components/FBCInputGrid'
 import {
   buildUpdatedNumberRow,
   updateFBCRow
 } from 'features/fireBehaviourCalculator/tableState'
-import { isUndefined, isNull, isEqual } from 'lodash'
+import { grassCureNotSetForGrassType } from 'features/fireBehaviourCalculator/utils'
+import { isEqual } from 'lodash'
 import React, { ChangeEvent, useState } from 'react'
 
 interface GrassCureCellProps {
@@ -21,18 +19,6 @@ interface GrassCureCellProps {
   rowId: number
 }
 
-const grassCureNotSetForGrassType = (row: FBCInputRow): boolean => {
-  if (isUndefined(row)) {
-    return false
-  }
-  if (row.fuelType === 'o1a' || row.fuelType === 'o1b') {
-    return isUndefined(row.grassCure) || isNaN(row.grassCure)
-  }
-  if (!isUndefined(row.grassCure) && !isNull(row.grassCure)) {
-    return row.grassCure > 100
-  }
-  return false
-}
 const GrassCureProps = (props: GrassCureCellProps) => {
   const [lastRequestedGrassCure, setLastRequestedGrassCure] = useState(props.value)
   const [grassCurePercentage, setGrassCurePercentage] = useState(props.value)
@@ -44,12 +30,19 @@ const GrassCureProps = (props: GrassCureCellProps) => {
   const handlePossibleUpdate = () => {
     if (!isEqual(lastRequestedGrassCure, grassCurePercentage)) {
       setLastRequestedGrassCure(grassCurePercentage)
+      const updatedRow = buildUpdatedNumberRow(
+        props.fbcInputGridProps.inputRows[props.rowId],
+        'grassCure',
+        grassCurePercentage
+      )
+      const dispatchRequest = !grassCureNotSetForGrassType(updatedRow)
       updateFBCRow(
         props.fbcInputGridProps,
         props.rowId,
         'grassCure',
         grassCurePercentage,
-        buildUpdatedNumberRow
+        buildUpdatedNumberRow,
+        dispatchRequest
       )
     }
   }

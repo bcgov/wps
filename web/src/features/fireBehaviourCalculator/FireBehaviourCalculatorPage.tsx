@@ -87,14 +87,16 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
     setSelected([])
   }
 
-  const updateRow = (id: GridRowId, updatedRow: FBCInputRow) => {
+  const updateRow = (id: GridRowId, updatedRow: FBCInputRow, dispatchUpdate = true) => {
     const newRows = [...rows]
 
     // rowId is the row array index
     newRows[id as number] = updatedRow
     setRows(newRows)
-    updateQueryParams(getUrlParamsFromRows(newRows))
-    dispatch(fetchFireBehaviourStations(dateOfInterest, newRows))
+    if (dispatchUpdate) {
+      updateQueryParams(getUrlParamsFromRows(newRows))
+      dispatch(fetchFireBehaviourStations(dateOfInterest, newRows))
+    }
   }
 
   useEffect(() => {
