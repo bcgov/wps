@@ -5,7 +5,7 @@ import { updateFBARow, buildUpdatedNumberRow } from 'features/fbaCalculator/tabl
 import { isEqual } from 'lodash'
 import React, { ChangeEvent, useState, useEffect } from 'react'
 
-interface WindSpeedCellProps {
+export interface WindSpeedCellProps {
   fbaInputGridProps: Pick<FBAInputGridProps, 'stationOptions' | 'inputRows' | 'updateRow'>
   classNameMap: ClassNameMap<'windSpeed'>
   inputValue: number | undefined
@@ -37,6 +37,7 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
 
   return (
     <TextField
+      data-testid={`windSpeedInput-${props.rowId}`}
       type="number"
       inputMode="numeric"
       className={props.classNameMap.windSpeed}
