@@ -8,6 +8,7 @@ import {
 import { buildUpdatedOptionRow, updateFBARow } from 'features/fbaCalculator/tableState'
 import { isEqual } from 'lodash'
 import React from 'react'
+import { useState } from 'react'
 
 interface WeatherStationCellProps {
   fbaInputGridProps: Pick<
@@ -20,15 +21,19 @@ interface WeatherStationCellProps {
 }
 const emptyLabel = 'Select a station'
 const WeatherStationCell = (props: WeatherStationCellProps) => {
+  const [selectedStation, setSelectedStation] = useState(props.value)
   // eslint-disable-next-line
   const changeHandler = (_: React.ChangeEvent<{}>, value: any | null) => {
-    updateFBARow(
-      props.fbaInputGridProps,
-      props.rowId,
-      'weatherStation',
-      value,
-      buildUpdatedOptionRow
-    )
+    if (!isEqual(selectedStation, value)) {
+      setSelectedStation(value)
+      updateFBARow(
+        props.fbaInputGridProps,
+        props.rowId,
+        'weatherStation',
+        value,
+        buildUpdatedOptionRow
+      )
+    }
   }
 
   return (
@@ -46,14 +51,7 @@ const WeatherStationCell = (props: WeatherStationCellProps) => {
         />
       )}
       onChange={changeHandler}
-      onBlur={props.fbaInputGridProps.autoUpdateHandler}
-      onKeyDown={event => {
-        if (event.key === 'Enter') {
-          event.preventDefault()
-          props.fbaInputGridProps.autoUpdateHandler()
-        }
-      }}
-      value={props.value}
+      value={selectedStation}
     />
   )
 }
