@@ -94,6 +94,7 @@ export const FireBehaviourAdvisoryCalculator: React.FunctionComponent = () => {
     newRows[id as number] = updatedRow
     setRows(newRows)
     updateQueryParams(getUrlParamsFromRows(newRows))
+    dispatch(fetchFireBehaviourStations(dateOfInterest, newRows))
   }
 
   useEffect(() => {

@@ -48,7 +48,7 @@ export const buildUpdatedNumberRow = (
   return {
     ...rowToUpdate,
     ...{
-      [field as keyof FBAInputRow]: parseInt(value)
+      [field as keyof FBAInputRow]: parseFloat(value)
     }
   }
 }

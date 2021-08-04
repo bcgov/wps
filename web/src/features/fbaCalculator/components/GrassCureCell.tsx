@@ -9,10 +9,7 @@ import { isUndefined, isNull } from 'lodash'
 import React, { ChangeEvent, useState } from 'react'
 
 export interface GrassCureCellProps {
-  fbaInputGridProps: Pick<
-    FBAInputGridProps,
-    'inputRows' | 'updateRow' | 'autoUpdateHandler'
-  >
+  fbaInputGridProps: Pick<FBAInputGridProps, 'inputRows' | 'updateRow'>
   classNameMap: ClassNameMap<'grassCure'>
   value: number | undefined
   rowId: number
@@ -62,8 +59,13 @@ const GrassCureProps = (props: GrassCureCellProps) => {
       onBlur={blurHandler}
       onKeyDown={event => {
         if (event.key === 'Enter') {
-          event.preventDefault()
-          props.fbaInputGridProps.autoUpdateHandler()
+          updateFBARow(
+            props.fbaInputGridProps,
+            props.rowId,
+            'grassCure',
+            grassCurePercentage,
+            buildUpdatedNumberRow
+          )
         }
       }}
       value={grassCurePercentage}
