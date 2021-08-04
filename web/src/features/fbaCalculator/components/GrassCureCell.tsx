@@ -50,6 +50,7 @@ const GrassCureProps = (props: GrassCureCellProps) => {
 
   return (
     <TextField
+      data-testid={`grassCureInput-${props.rowId}`}
       type="number"
       className={props.classNameMap.grassCure}
       size="small"
