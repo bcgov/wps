@@ -6,8 +6,7 @@ import {
   updateFBCRow
 } from 'features/fireBehaviourCalculator/tableState'
 import { isEqual } from 'lodash'
-import React, { ChangeEvent, useState } from 'react'
-import { useEffect } from 'react'
+import React, { ChangeEvent, useState, useEffect } from 'react'
 
 interface WindSpeedCellProps {
   fbcInputGridProps: Pick<FBCInputGridProps, 'stationOptions' | 'inputRows' | 'updateRow'>
@@ -24,7 +23,7 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
   }, [value])
 
   const changeHandler = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setWindSpeedValue(parseInt(event.target.value))
+    setWindSpeedValue(parseFloat(event.target.value))
   }
 
   const blurHandler = () => {
@@ -42,10 +41,11 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
   return (
     <TextField
       type="number"
+      inputMode="numeric"
       className={props.classNameMap.windSpeed}
       size="small"
       variant="outlined"
-      inputProps={{ min: 0, maxLength: 4, size: 4 }}
+      inputProps={{ min: 0, max: 100, step: 'any' }}
       onChange={changeHandler}
       onBlur={blurHandler}
       onKeyDown={event => {
