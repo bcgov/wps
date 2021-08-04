@@ -1,31 +1,40 @@
-import { render, screen } from '@testing-library/react'
-import '@testing-library/jest-dom/extend-expect'
-import GrassCureCell, {
-  GrassCureCellProps
-} from 'features/fbaCalculator/components/GrassCureCell'
-import React from 'react'
+import { render } from '@testing-library/react'
 import { FBAInputRow } from 'features/fbaCalculator/components/FBAInputGrid'
+import GrassCureCell from 'features/fbaCalculator/components/GrassCureCell'
+import React from 'react'
 describe('GrassCureCell', () => {
-  it('should return field in error state when number not input', () => {
-    const mockFFBAInputRow: FBAInputRow = {
+  const buildProps = (inputRow: FBAInputRow) => ({
+    fbaInputGridProps: {
+      inputRows: [inputRow],
+      updateRow: () => {},
+      autoUpdateHandler: () => {}
+    },
+    classNameMap: { grassCure: '' },
+    value: undefined,
+    rowId: 0
+  })
+  it('should return field in error state o1a without percentage set', () => {
+    const mockFFBAInputRow = {
       id: 0,
       weatherStation: undefined,
-      fuelType: undefined,
+      fuelType: 'o1a',
       grassCure: undefined,
       windSpeed: undefined
     }
-
-    const mockFBAInputGridProps: GrassCureCellProps = {
-      fbaInputGridProps: {
-        inputRows: [mockFFBAInputRow],
-        updateRow: () => {},
-        autoUpdateHandler: () => {}
-      },
-      classNameMap: { grassCure: '' },
-      value: undefined,
-      rowId: 0
+    const props = buildProps(mockFFBAInputRow)
+    const { container } = render(<GrassCureCell {...props} />)
+    expect(container.firstChild?.firstChild).toHaveClass('Mui-error')
+  })
+  it('should return field in error state o1b without percentage set', () => {
+    const mockFFBAInputRow = {
+      id: 0,
+      weatherStation: undefined,
+      fuelType: 'o1b',
+      grassCure: undefined,
+      windSpeed: undefined
     }
-    render(<GrassCureCell {...mockFBAInputGridProps} />)
-    expect(screen.getByRole('textbox')).toBeDefined()
+    const props = buildProps(mockFFBAInputRow)
+    const { container } = render(<GrassCureCell {...props} />)
+    expect(container.firstChild?.firstChild).toHaveClass('Mui-error')
   })
 })
