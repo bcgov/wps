@@ -63,7 +63,7 @@ const GrassCureProps = (props: GrassCureCellProps) => {
       className={props.classNameMap.grassCure}
       size="small"
       variant="outlined"
-      inputProps={{ min: 0, maxLength: 4, size: 4, max: 100 }}
+      inputProps={{ min: 0, max: 100 }}
       onChange={changeHandler}
       onBlur={handlePossibleUpdate}
       onKeyDown={enterHandler}
