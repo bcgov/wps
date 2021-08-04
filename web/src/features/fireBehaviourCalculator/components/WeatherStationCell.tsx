@@ -11,6 +11,7 @@ import {
 } from 'features/fireBehaviourCalculator/tableState'
 import { isEqual } from 'lodash'
 import React from 'react'
+import { useState } from 'react'
 
 interface WeatherStationCellProps {
   fbcInputGridProps: Pick<
@@ -23,15 +24,19 @@ interface WeatherStationCellProps {
 }
 const emptyLabel = 'Select a station'
 const WeatherStationCell = (props: WeatherStationCellProps) => {
+  const [selectedStation, setSelectedStation] = useState(props.value)
   // eslint-disable-next-line
   const changeHandler = (_: React.ChangeEvent<{}>, value: any | null) => {
-    updateFBCRow(
-      props.fbcInputGridProps,
-      props.rowId,
-      'weatherStation',
-      value,
-      buildUpdatedOptionRow
-    )
+    if (!isEqual(selectedStation, value)) {
+      setSelectedStation(value)
+      updateFBCRow(
+        props.fbcInputGridProps,
+        props.rowId,
+        'weatherStation',
+        value,
+        buildUpdatedOptionRow
+      )
+    }
   }
 
   return (
@@ -49,14 +54,7 @@ const WeatherStationCell = (props: WeatherStationCellProps) => {
         />
       )}
       onChange={changeHandler}
-      onBlur={props.fbcInputGridProps.autoUpdateHandler}
-      onKeyDown={event => {
-        if (event.key === 'Enter') {
-          event.preventDefault()
-          props.fbcInputGridProps.autoUpdateHandler()
-        }
-      }}
-      value={props.value}
+      value={selectedStation}
     />
   )
 }

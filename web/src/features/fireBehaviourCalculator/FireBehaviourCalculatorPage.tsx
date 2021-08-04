@@ -30,7 +30,7 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
 
   const stationMenuOptions: GridMenuOption[] = (stations as GeoJsonStation[]).map(
     station => ({
-      value: station.properties.code,
+      value: String(station.properties.code),
       label: `${station.properties.name} (${station.properties.code})`
     })
   )

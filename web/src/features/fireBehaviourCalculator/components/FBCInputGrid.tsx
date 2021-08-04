@@ -35,7 +35,7 @@ export interface FBCInputGridProps {
 
 export interface GridMenuOption {
   label: string
-  value: string | number
+  value: string
 }
 
 export interface FBCInputRow {
@@ -91,7 +91,7 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
     if (isUndefined(value)) {
       return null
     }
-    const label = stationCodeMap.get(parseInt(value))
+    const label = stationCodeMap.get(value)
 
     if (isUndefined(label)) {
       return null
