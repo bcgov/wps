@@ -51,6 +51,8 @@ def prepare_response(
     duff_moisture_code = raw_daily.get('duffMoistureCode', None)
     fire_weather_index = raw_daily.get('fireWeatherIndex', None)
 
+    logger.info('%s', str(requested_station.fuel_type))
+
     station_response = StationResponse(
         station_code=requested_station.station_code,
         station_name=wfwx_station.name,
@@ -94,6 +96,9 @@ async def process_request(
         time_of_interest: datetime,
         date_of_interest: date) -> StationResponse:
     """ Process a valid request """
+
+    logger.info('%s', str(requested_station))
+
     # pylint: disable=too-many-locals
     raw_daily = dailies_by_station_id[wfwx_station.wfwx_id]
     raw_observations = hourly_observations_by_station_id[wfwx_station.code]

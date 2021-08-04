@@ -9,6 +9,8 @@ from app import configure_logging
 from app.utils.time import get_hour_20_from_date
 from app.utils.fba_calculator import calculate_fire_behaviour_advisory, FBACalculatorWeatherStation
 from app.utils.redapp import FBPCalculateStatisticsCOM
+from app.tests.fba import (str2float, check_metric, acceptable_margin_of_error,
+                           fire_size_acceptable_margin_of_error)
 import pytest
 
 
@@ -16,73 +18,16 @@ configure_logging()
 
 logger = logging.getLogger(__name__)
 
-acceptable_margin_of_error: Final = 0.01
-
-
-class RelativeErrorException(Exception):
-    """ Exception raised when it's mathematically impossible to calculate the relative error. """
-
-
-def _str2float(value: str):
-    if value == 'None':
-        return None
-    return float(value)
-
-
-def relative_error(metric: str, actual: float, expected: float, precision: int = 2):
-    """ calculate the relative error between two values - default to precision of 2"""
-    actual = round(actual, precision)
-    expected = round(expected, precision)
-    if actual == expected:
-        return 0
-    if expected == 0:
-        raise RelativeErrorException(
-            f'unable to calculate relative error for {metric}; actual:{actual};expected:{expected}')
-    return abs((actual-expected)/expected)
-
-
-def check_metric(metric: str,
-                 scenario: str,
-                 fuel_type: str,
-                 python_value: float,
-                 comparison_value: float,
-                 metric_error_margin: float,
-                 note: str):
-    """ Check relative error of a metric """
-    # logging with %s became unreadable:
-    # pylint: disable=logging-fstring-interpolation
-    if comparison_value is None:
-        logger.warning('Skipping %s! (%s) - note: %s', metric, comparison_value, note)
-    elif comparison_value < 0:
-        logger.warning('Skipping %s! (%s) - note: %s', metric, comparison_value, note)
-    else:
-        assert python_value >= 0
-        error = relative_error(f'{metric}', python_value, comparison_value)
-        logger.info(
-            f'{fuel_type}: Python {python_value}, {metric} {comparison_value} ; error: {error}')
-        if error > acceptable_margin_of_error:
-            logger.error('%s %s relative error %s > %s! (actual: %s, expected: %s)',
-                         fuel_type, metric, error, acceptable_margin_of_error, python_value, comparison_value)
-        if metric_error_margin > 0.01:
-            logger.warning('%s: The acceptable margin of error (%s) for %s is set too high',
-                           fuel_type, metric_error_margin, metric)
-        if error > metric_error_margin:
-            absolute_error = abs(python_value - comparison_value)
-            if absolute_error < 0.01:
-                logger.info('no big deal, the absolute difference (%s) is tiny!', absolute_error)
-            else:
-                assert error < metric_error_margin, f'{scenario}:{fuel_type}:{metric} {note}'
-
 
 @pytest.mark.usefixtures('mock_jwt_decode')
 @scenario('test_fba_error.feature', 'Fire Behaviour Calculation - vs. REDapp',
           example_converters=dict(elevation=float,
                                   latitude=float,
                                   longitude=float,
-                                  percentage_conifer=_str2float,
-                                  percentage_dead_balsam_fir=_str2float,
-                                  crown_base_height=_str2float,
-                                  grass_cure=_str2float,
+                                  percentage_conifer=str2float,
+                                  percentage_dead_balsam_fir=str2float,
+                                  crown_base_height=str2float,
+                                  grass_cure=str2float,
                                   isi=float,
                                   bui=float,
                                   ffmc=float,
@@ -94,7 +39,7 @@ def check_metric(metric: str,
                                   hfi_em=float,
                                   cfb_em=float,
                                   time_of_interest=date.fromisoformat,
-                                  wind_direction=float,
+                                  wind_direction=str2float,
                                   wind_speed=float,
                                   note=str))
 def test_fire_behaviour_calculator_scenario():
@@ -106,7 +51,7 @@ def test_fire_behaviour_calculator_scenario():
        """<isi>, <bui>, <ffmc>, <dmc>, <dc>, <fuel_type>""",
        target_fixture='result')
 def given_red_app_input(elevation: float,  # pylint: disable=too-many-arguments, invalid-name
-                        latitude: float, longitude: float, time_of_interest: str,
+                        latitude: float, longitude: float, time_of_interest: date,
                         wind_speed: float, wind_direction: float,
                         percentage_conifer: float, percentage_dead_balsam_fir: float, grass_cure: float,
                         crown_base_height: float,
@@ -159,65 +104,133 @@ def given_red_app_input(elevation: float,  # pylint: disable=too-many-arguments,
     # ros_t  == ROStcalc
     expected = {
         'ros': java_fbp.ros_eq,
+        'ros_t': java_fbp.ros_t,
         'cfb': java_fbp.cfb/100.0,  # CFFDRS gives cfb as a fraction
         'hfi': java_fbp.hfi,
         'area': java_fbp.area
+    }
+
+    error_dict = {
+        'fuel_type': fuel_type
     }
 
     return {
         'python': python_fba,
         'expected': expected,
         'fuel_type': fuel_type,
-        'scenario': 'REDapp'
+        'error': error_dict
     }
 
 
 @then("ROS is within <ros_em> (<note>)")
 def then_ros(result: dict, ros_em: float, note: str):
     """ check the relative error of the ros """
-    check_metric('ROS',
-                 result['scenario'],
+    error = check_metric('ROS',
+                         result['fuel_type'],
+                         result['python'].ros,
+                         result['expected']['ros'],
+                         ros_em,
+                         note)
+    result['error']['ros_em'] = error
+
+
+@then("ROS_t is within range (<note>)")
+def then_ros_t(result: dict, note: str):
+    """ check the relative error of the ros """
+    check_metric('ROS_t',
                  result['fuel_type'],
-                 result['python'].ros,
-                 result['expected']['ros'],
-                 ros_em,
+                 result['python'].ros_t,
+                 result['expected']['ros_t'],
+                 acceptable_margin_of_error,
                  note)
 
 
 @then("CFB is within <cfb_em> (<note>)")
 def then_cfb(result: dict, cfb_em: float, note: str):
     """ check the relative error of the cfb """
-    check_metric('CFB',
-                 result['scenario'],
+    error = check_metric('CFB',
+                         result['fuel_type'],
+                         result['python'].cfb,
+                         result['expected']['cfb'],
+                         cfb_em,
+                         note)
+    result['error']['cfb_em'] = error
+
+
+@then("CFB_t is within range (<note>)")
+def then_cfb_t(result: dict, note: str):
+    """ check the relative error of the ros """
+    check_metric('CFB_t',
                  result['fuel_type'],
-                 result['python'].cfb,
+                 result['python'].cfb_t,
                  result['expected']['cfb'],
-                 cfb_em,
+                 acceptable_margin_of_error,
                  note)
 
 
 @then("HFI is within <hfi_em> (<note>)")
 def then_hfi(result: dict, hfi_em: float, note: str):
     """ check the relative error of the hfi """
-    check_metric('HFI',
-                 result['scenario'],
+    error = check_metric('HFI',
+                         result['fuel_type'],
+                         result['python'].hfi,
+                         result['expected']['hfi'],
+                         hfi_em,
+                         note)
+    result['error']['hfi_em'] = error
+
+
+@then("HFI_t is within range (<note>)")
+def then_hfi_t(result: dict, note: str):
+    """ check the relative error of the ros """
+    check_metric('HFI_t',
                  result['fuel_type'],
-                 result['python'].hfi,
+                 result['python'].hfi_t,
                  result['expected']['hfi'],
-                 hfi_em,
+                 acceptable_margin_of_error,
                  note)
 
 
 @then("1 HR Size is within <one_hr_em> (<note>)")
 def then_one_hr(result: dict, one_hr_em: float, note: str):
     """ check the relative error of the a hour fire size"""
-    check_metric('1 HR Size',
-                 result['scenario'],
+    error = check_metric('1 HR Size',
+                         result['fuel_type'],
+                         result['python'].sixty_minute_fire_size,
+                         result['expected']['area'],
+                         one_hr_em,
+                         note)
+    result['error']['one_hr_em'] = error
+
+
+@then("(1 HR Size)_t is within range (<note>)")
+def then_one_hr_t(result: dict, note: str):
+    """ check the relative error of the a hour fire size"""
+    check_metric('1 HR Size t',
                  result['fuel_type'],
-                 result['python'].sixty_minute_fire_size,
+                 result['python'].sixty_minute_fire_size_t,
                  result['expected']['area'],
-                 one_hr_em,
+                 fire_size_acceptable_margin_of_error,
                  note)
+
+
+@then("Log it")
+def log_it(result: dict):
+    """ Log a string matching the scenario input - useful when improving values.  """
+    error_dict = result.get('error')
+    header = '| fuel_type | elevation | latitude   | longitude    | time_of_interest | wind_speed | wind_direction | percentage_conifer | percentage_dead_balsam_fir | grass_cure | crown_base_height | isi  | bui   | ffmc | dmc   | dc    | one_hr_em | ros_em | hfi_em | cfb_em | note   |'
+    header = header.strip('|')
+    header = header.split('|')
+    header = [x.strip() for x in header]
+
+    line = '|'
+    for key in header:
+        value = error_dict.get(key, key)
+        if isinstance(value, float):
+            line += f'{value:.2f}|'
+        else:
+            line += f'{value}|'
+    logger.debug(line)
 
 
 @pytest.mark.usefixtures('mock_jwt_decode')
@@ -225,10 +238,10 @@ def then_one_hr(result: dict, one_hr_em: float, note: str):
           example_converters=dict(elevation=float,
                                   latitude=float,
                                   longitude=float,
-                                  percentage_conifer=_str2float,
-                                  percentage_dead_balsam_fir=_str2float,
-                                  crown_base_height=_str2float,
-                                  grass_cure=_str2float,
+                                  percentage_conifer=str2float,
+                                  percentage_dead_balsam_fir=str2float,
+                                  crown_base_height=str2float,
+                                  grass_cure=str2float,
                                   isi=float,
                                   bui=float,
                                   ffmc=float,
@@ -238,9 +251,9 @@ def then_one_hr(result: dict, one_hr_em: float, note: str):
                                   ros_em=float,
                                   hfi_em=float,
                                   cfb_em=float,
-                                  cfb=_str2float,
-                                  hfi=_str2float,
-                                  ros=_str2float,
+                                  cfb=str2float,
+                                  hfi=str2float,
+                                  ros=str2float,
                                   time_of_interest=date.fromisoformat,
                                   wind_direction=float,
                                   wind_speed=float,
@@ -293,9 +306,13 @@ def given_spreadsheet_input(elevation: float,  # pylint: disable=too-many-argume
         'area': None
     }
 
+    error_dict = {
+        'fuel_type': fuel_type
+    }
+
     return {
         'python': python_fba,
         'expected': expected,
         'fuel_type': fuel_type,
-        'scenario': 'Spreadsheet'
+        'error': error_dict
     }

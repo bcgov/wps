@@ -2,6 +2,7 @@
 [![MIT License](https://img.shields.io/github/license/bcgov/wps.svg?style=for-the-badge)](/LICENSE)
 [![Lifecycle](https://img.shields.io/badge/Lifecycle-Stable-97ca00?style=for-the-badge)](https://github.com/bcgov/repomountie/blob/master/doc/lifecycle-badges.md)
 [![Open in Visual Studio Code](https://open.vscode.dev/badges/open-in-vscode.svg)](https://open.vscode.dev/bcgov/wps)
+[![codecov](https://codecov.io/gh/bcgov/wps/branch/main/graph/badge.svg?token=QZh80UTLpT)](https://codecov.io/gh/bcgov/wps)
 
 # Wildfire Predictive Services
 
@@ -48,6 +49,10 @@ A glossary of terms relating to Wildfire that are relevant to Predictive Service
 ![Imagestream flow](./architecture/imagestream_flow.png)
 
 ## Contributing
+
+### PRs
+
+Your Github PR is required to pass all our CI checks, including our test coverage threshold via CodeCov: https://docs.codecov.com/docs/about-code-coverage
 
 ### Branch naming conventions
 

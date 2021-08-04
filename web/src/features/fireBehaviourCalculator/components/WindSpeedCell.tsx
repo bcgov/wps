@@ -5,14 +5,11 @@ import {
   buildUpdatedNumberRow,
   updateFBCRow
 } from 'features/fireBehaviourCalculator/tableState'
-import React, { ChangeEvent, useState } from 'react'
-import { useEffect } from 'react'
+import { isEqual } from 'lodash'
+import React, { ChangeEvent, useState, useEffect } from 'react'
 
 interface WindSpeedCellProps {
-  fbcInputGridProps: Pick<
-    FBCInputGridProps,
-    'stationOptions' | 'inputRows' | 'updateRow' | 'autoUpdateHandler'
-  >
+  fbcInputGridProps: Pick<FBCInputGridProps, 'stationOptions' | 'inputRows' | 'updateRow'>
   classNameMap: ClassNameMap<'windSpeed'>
   inputValue: number | undefined
   calculatedValue: number | undefined
@@ -26,32 +23,40 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
   }, [value])
 
   const changeHandler = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setWindSpeedValue(parseInt(event.target.value))
+    setWindSpeedValue(parseFloat(event.target.value))
   }
 
   const blurHandler = () => {
-    updateFBCRow(
-      props.fbcInputGridProps,
-      props.rowId,
-      'windSpeed',
-      windSpeedValue,
-      buildUpdatedNumberRow
-    )
+    if (!isEqual(windSpeedValue, props.calculatedValue)) {
+      updateFBCRow(
+        props.fbcInputGridProps,
+        props.rowId,
+        'windSpeed',
+        windSpeedValue,
+        buildUpdatedNumberRow
+      )
+    }
   }
 
   return (
     <TextField
       type="number"
+      inputMode="numeric"
       className={props.classNameMap.windSpeed}
       size="small"
       variant="outlined"
-      inputProps={{ min: 0, maxLength: 4, size: 4 }}
+      inputProps={{ min: 0, max: 100, step: 'any' }}
       onChange={changeHandler}
       onBlur={blurHandler}
       onKeyDown={event => {
         if (event.key === 'Enter') {
-          event.preventDefault()
-          props.fbcInputGridProps.autoUpdateHandler()
+          updateFBCRow(
+            props.fbcInputGridProps,
+            props.rowId,
+            'windSpeed',
+            windSpeedValue,
+            buildUpdatedNumberRow
+          )
         }
       }}
       value={windSpeedValue}

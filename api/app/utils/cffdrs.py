@@ -46,6 +46,8 @@ def correct_wind_azimuth(wind_direction: float):
     WAZ <- WD + pi
     WAZ <- ifelse(WAZ > 2 * pi, WAZ - 2 * pi, WAZ)
     """
+    if wind_direction is None:
+        return None
     waz = wind_direction + math.pi
     if waz > 2 * math.pi:
         return waz - 2 * math.pi
@@ -245,6 +247,40 @@ def bui_calc(dmc: float, dc: float):  # pylint: disable=invalid-name
     """
     # pylint: disable=protected-access, no-member
     result = CFFDRS.instance().cffdrs._buiCalc(dmc=dmc, dc=dc)
+    return result[0]
+
+
+def rate_of_spread_t(fuel_type: str,
+                     ros_eq: float,
+                     minutes_since_ignition: float,
+                     cfb: float):
+    """
+    # Description:
+    #   Computes the Rate of Spread prediction based on fuel type and FWI
+    #   conditions at elapsed time since ignition. Equations are from listed
+    #   FCFDG (1992).
+    #
+    #   All variables names are laid out in the same manner as Forestry Canada
+    #   Fire Danger Group (FCFDG) (1992). Development and Structure of the
+    #   Canadian Forest Fire Behavior Prediction System." Technical Report
+    #   ST-X-3, Forestry Canada, Ottawa, Ontario.
+    #
+    # Args:
+    #   FUELTYPE: The Fire Behaviour Prediction FuelType
+    #      ROSeq: Equilibrium Rate of Spread (m/min)
+    #         HR: Time since ignition (hours)
+    #        CFB: Crown Fraction Burned
+    # Returns:
+    #   ROSt: Rate of Spread at time since ignition
+    #
+    """
+    # NOTE: CFFDRS documentation incorrectly states that HR is hours since ignition, it's actually
+    # minutes.
+    # pylint: disable=protected-access, no-member
+    result = CFFDRS.instance().cffdrs._ROStcalc(FUELTYPE=fuel_type,
+                                                ROSeq=ros_eq,
+                                                HR=minutes_since_ignition,
+                                                CFB=cfb)
     return result[0]
 
 

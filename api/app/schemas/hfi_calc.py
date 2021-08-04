@@ -2,6 +2,7 @@
 """
 from typing import List, Optional
 from pydantic import BaseModel
+from app.schemas.shared import FuelType
 
 
 class StationDaily(BaseModel):
@@ -29,12 +30,6 @@ class StationDaily(BaseModel):
 class StationDailyResponse(BaseModel):
     """ Response that includes list of station daily data."""
     dailies: List[StationDaily]
-
-
-class FuelType(BaseModel):
-    """ Fuel type assigned to a station for HFI calculation purposes. """
-    abbrev: str
-    description: str
 
 
 class WeatherStationProperties(BaseModel):
