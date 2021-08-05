@@ -11,6 +11,7 @@ const SelectionCheckbox = (props: SelectionCheckboxProps) => {
   const selectedSet = new Set(props.fbaInputGridProps.selected)
   return (
     <Checkbox
+      data-testid={`selection-checkbox-${props.rowId}`}
       color="primary"
       checked={selectedSet.has(props.rowId)}
       onClick={() => {

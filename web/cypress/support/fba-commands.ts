@@ -29,6 +29,12 @@ declare module Cypress {
      * @example setDate('2021-08-05')
      */
     setDate(date: string): void
+
+    /**
+     * Custom command to select a row.
+     * @example setSelectedRow(0')
+     */
+    setSelectedRow(rowId: number): void
   }
 }
 
@@ -84,4 +90,8 @@ Cypress.Commands.add('setDate', (date: string) => {
     .getByTestId('date-of-interest-picker')
     .find('input')
     .type(date)
+})
+
+Cypress.Commands.add('setSelectedRow', (rowId: number) => {
+  return cy.getByTestId(`selection-checkbox-${rowId}`).click()
 })

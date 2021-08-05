@@ -185,5 +185,23 @@ describe('FireBAT Calculator Page', () => {
 
       cy.url().should('not.contain', `s=${stationCode}`)
     })
+    it('Specific rows can be removed', () => {
+      cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
+
+      visitAndAddRow()
+
+      cy.wait('@getStations')
+
+      const stationCode = 322
+      cy.selectFBAStationInDropdown(0, stationCode)
+
+      cy.url().should('contain', `s=${stationCode}`)
+
+      cy.setSelectedRow(0)
+
+      cy.getByTestId('remove-rows').click()
+
+      cy.url().should('not.contain', `s=${stationCode}`)
+    })
   })
 })
