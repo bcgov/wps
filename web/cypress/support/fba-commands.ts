@@ -17,6 +17,12 @@ declare module Cypress {
      * @example setFBAGrassCurePercentage(0, '20')
      */
     setFBAGrassCurePercentage(rowId: number, grassCure: string): void
+
+    /**
+     * Custom command to set the wind speed.
+     * @example setFBAWindSpeed(0, '20')
+     */
+    setFBAWindSpeed(rowId: number, grassCure: string): void
   }
 }
 
@@ -58,4 +64,11 @@ Cypress.Commands.add('setFBAGrassCurePercentage', (rowId: number, grassCure: str
     .find('input')
     .type(grassCure)
     .type('{enter}')
+})
+
+Cypress.Commands.add('setFBAWindSpeed', (rowId: number, windSpeed: string) => {
+  return cy
+    .getByTestId(`windSpeedInput-${rowId}`)
+    .find('input')
+    .type(windSpeed)
 })

@@ -3,35 +3,36 @@ import { FuelTypes } from '../../src/features/fbaCalculator/fuelTypes'
 import { DateTime } from 'luxon'
 
 describe('FireBAT Calculator Page', () => {
-  it('Sets all the correct input fields for calculating results on the backend', () => {
-    cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
-    const stationCode = 322
-    const fuelType = FuelTypes.get()['c1']
-    const grassCure = '20'
-
-    let firstRequest = true
-
-    cy.intercept('POST', 'api/fba-calc/stations', req => {
-      if (firstRequest) {
-        firstRequest = false
-      } else {
-        expect(req.body.stations[0]).to.deep.include({
-          station_code: stationCode,
-          fuel_type: fuelType.name,
-          percentage_conifer: fuelType.percentage_conifer,
-          crown_base_height: fuelType.crown_base_height,
-          grass_cure: parseInt(grassCure)
-        })
-      }
-    }).as('calculateResults')
-
+  const visitAndAddRow = () => {
     cy.visit(FIRE_BEHAVIOR_CALC_ROUTE)
 
     cy.getByTestId('add-row').click()
+  }
+  it('Sets all the input fields for calculating results on the backend', () => {
+    cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
+    const stationCode = 322
+    const fuelType = FuelTypes.get()['c1']
+    const grassCure = '1'
+    const windSpeed = '2'
+
+    cy.intercept('POST', 'api/fba-calc/stations', req => {
+      expect(req.body.stations[0]).to.deep.include({
+        station_code: stationCode,
+        fuel_type: fuelType.name,
+        percentage_conifer: fuelType.percentage_conifer,
+        crown_base_height: fuelType.crown_base_height,
+        grass_cure: parseInt(grassCure),
+        wind_speed: parseFloat(windSpeed)
+      })
+    }).as('calculateResults')
+
+    visitAndAddRow()
 
     cy.wait('@getStations')
 
     cy.setFBAGrassCurePercentage(0, grassCure)
+
+    cy.setFBAWindSpeed(0, windSpeed)
 
     cy.selectFBAStationInDropdown(0, stationCode)
 
@@ -39,7 +40,7 @@ describe('FireBAT Calculator Page', () => {
 
     cy.wait('@calculateResults')
 
-    cy.url().should('contain', `s=${stationCode}&f=${fuelType.name.toLowerCase()}&c=${grassCure}`)
+    cy.url().should('contain', `s=${stationCode}&f=${fuelType.name.toLowerCase()}&c=${grassCure}&w=${windSpeed}`)
   })
   describe('Dropdowns', () => {
     it('Can select station if successfully received stations', () => {
@@ -47,9 +48,8 @@ describe('FireBAT Calculator Page', () => {
       cy.intercept('POST', 'api/fba-calc/stations', _ => {
         throw new Error('API request made when only station set')
       })
-      cy.visit(FIRE_BEHAVIOR_CALC_ROUTE)
 
-      cy.getByTestId('add-row').click()
+      visitAndAddRow()
 
       cy.wait('@getStations')
 
@@ -62,9 +62,8 @@ describe('FireBAT Calculator Page', () => {
       cy.intercept('POST', 'api/fba-calc/stations', _ => {
         throw new Error('API request made when only station set')
       })
-      cy.visit(FIRE_BEHAVIOR_CALC_ROUTE)
 
-      cy.getByTestId('add-row').click()
+      visitAndAddRow()
 
       const fuelType = FuelTypes.get()['c1']
       cy.selectFBAFuelTypeInDropdown(0, fuelType.friendlyName)
@@ -86,9 +85,7 @@ describe('FireBAT Calculator Page', () => {
         })
       }).as('calculateResults')
 
-      cy.visit(FIRE_BEHAVIOR_CALC_ROUTE)
-
-      cy.getByTestId('add-row').click()
+      visitAndAddRow()
 
       cy.wait('@getStations')
 
@@ -105,9 +102,8 @@ describe('FireBAT Calculator Page', () => {
       cy.intercept('POST', 'api/fba-calc/stations', _ => {
         throw new Error('API request made without grass cure percentage set')
       })
-      cy.visit(FIRE_BEHAVIOR_CALC_ROUTE)
 
-      cy.getByTestId('add-row').click()
+      visitAndAddRow()
 
       cy.wait('@getStations')
 
@@ -131,9 +127,8 @@ describe('FireBAT Calculator Page', () => {
 
     it('Enables remove row(s) button when table is not empty', () => {
       cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
-      cy.visit(FIRE_BEHAVIOR_CALC_ROUTE)
 
-      cy.getByTestId('add-row').click()
+      visitAndAddRow()
 
       cy.wait('@getStations')
 
@@ -145,9 +140,8 @@ describe('FireBAT Calculator Page', () => {
 
     it('Rows can be added and removed', () => {
       cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
-      cy.visit(FIRE_BEHAVIOR_CALC_ROUTE)
 
-      cy.getByTestId('add-row').click()
+      visitAndAddRow()
 
       cy.wait('@getStations')
 
@@ -161,6 +155,24 @@ describe('FireBAT Calculator Page', () => {
       cy.getByTestId('remove-rows').click()
 
       cy.url().should('not.contain', `s=${stationCode}`)
+    })
+  })
+  describe('WindSpeedCell', () => {
+    it('Sets wind speed on enter', () => {
+      cy.intercept('POST', 'api/fba-calc/stations', _ => {
+        throw new Error('API request made with only wind speed set')
+      })
+
+      visitAndAddRow()
+
+      const windSpeed = '20'
+
+      cy.getByTestId('windSpeedInput-0')
+        .find('input')
+        .type(windSpeed)
+        .type('{enter}')
+
+      cy.url().should('contain', `w=${windSpeed}`)
     })
   })
 })
