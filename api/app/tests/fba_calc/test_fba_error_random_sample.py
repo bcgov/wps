@@ -120,7 +120,7 @@ def given_input(fuel_type: str, percentage_conifer: float, percentage_dead_balsa
                                              latitude=latitude,
                                              longitude=longitude,
                                              time_of_interest=get_hour_20_from_date(time_of_interest),
-                                             fuel_type=fuel_type.value,
+                                             fuel_type=fuel_type,
                                              ffmc=ffmc,
                                              dmc=dmc,
                                              dc=dc,
@@ -133,14 +133,14 @@ def given_input(fuel_type: str, percentage_conifer: float, percentage_dead_balsa
                                              crown_base_height=crown_base_height)
 
         error_dict = {
-            'fuel_type': fuel_type.value
+            'fuel_type': fuel_type
         }
         results.append(
             {
                 'input': {'isi': isi, 'bui': bui, 'wind_speed': wind_speed, 'ffmc': ffmc},
                 'python': python_fba,
                 'java': java_fbp,
-                'fuel_type': fuel_type.value,
+                'fuel_type': fuel_type,
                 'error': error_dict
             }
         )
