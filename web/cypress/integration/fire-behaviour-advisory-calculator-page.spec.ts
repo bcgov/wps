@@ -40,20 +40,11 @@ describe('FireBAT Calculator Page', () => {
       const fuelType = FuelTypes.get()['c1']
 
       cy.intercept('POST', 'api/fba-calc/stations', req => {
-        assert.deepEqual(req.body, {
-          stations: [
-            {
-              date: DateTime.now()
-                .toISODate()
-                .slice(0, 10),
-              station_code: stationCode,
-              fuel_type: fuelType.name,
-              percentage_conifer: fuelType.percentage_conifer,
-              grass_cure: null,
-              crown_base_height: fuelType.crown_base_height,
-              wind_speed: null
-            }
-          ]
+        expect(req.body.stations[0]).to.deep.include({
+          station_code: stationCode,
+          fuel_type: fuelType.name,
+          percentage_conifer: fuelType.percentage_conifer,
+          crown_base_height: fuelType.crown_base_height
         })
       }).as('calculateResults')
 
