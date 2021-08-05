@@ -45,6 +45,7 @@ const FuelTypeCell = (props: FuelTypeCellProps) => {
   }
   return (
     <Autocomplete
+      data-testid={`fuel-type-dropdown-${props.rowId}`}
       options={props.fbaInputGridProps.fuelTypeOptions}
       className={props.classNameMap.fuelType}
       getOptionSelected={(option, value) => isEqual(option, value)}
