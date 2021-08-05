@@ -5,7 +5,7 @@ import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 import { FBAInputRow } from 'features/fbaCalculator/components/FBAInputGrid'
 import { FuelTypes } from '../fuelTypes'
-import { isEmpty, isNull, isUndefined } from 'lodash'
+import { isEmpty, isEqual, isNull, isUndefined } from 'lodash'
 
 interface State {
   loading: boolean
@@ -57,7 +57,8 @@ export const fetchFireBehaviourStations = (
     if (
       isNull(fuelTypeDetails) ||
       isUndefined(fuelTypeDetails) ||
-      isUndefined(row.weatherStation)
+      isUndefined(row.weatherStation) ||
+      isEqual(row.weatherStation, 'undefined')
     ) {
       return []
     }

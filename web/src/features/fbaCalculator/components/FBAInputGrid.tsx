@@ -158,6 +158,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
               <TableRow>
                 <TableCell>
                   <Checkbox
+                    data-testid="select-all"
                     color="primary"
                     checked={headerSelected}
                     onClick={() => {
