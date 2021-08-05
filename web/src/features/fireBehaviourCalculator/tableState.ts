@@ -15,12 +15,13 @@ export const updateFBCRow = (
     rowToUpdate: FBCInputRow,
     field: string,
     value: GridMenuOption | number
-  ) => FBCInputRow
+  ) => FBCInputRow,
+  dispatchRequest = true
 ): void => {
   const rowToUpdate = find(props.inputRows, ['id', rowId])
   if (rowToUpdate) {
     const updatedRow = updatedRowBuilder(rowToUpdate, field, value)
-    props.updateRow(rowId, updatedRow)
+    props.updateRow(rowId, updatedRow, dispatchRequest)
   }
 }
 
