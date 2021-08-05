@@ -168,6 +168,7 @@ export const FireBehaviourAdvisoryCalculator: React.FunctionComponent = () => {
           </FormControl>
           <FormControl className={classes.formControl}>
             <Button
+              data-testid="add-row"
               variant="contained"
               color="primary"
               spinnercolor="white"
@@ -178,6 +179,7 @@ export const FireBehaviourAdvisoryCalculator: React.FunctionComponent = () => {
           </FormControl>
           <FormControl className={classes.formControl}>
             <Button
+              data-testid="remove-rows"
               disabled={rows.length === 0}
               variant="contained"
               color="primary"

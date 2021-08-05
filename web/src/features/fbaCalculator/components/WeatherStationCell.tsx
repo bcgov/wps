@@ -38,6 +38,7 @@ const WeatherStationCell = (props: WeatherStationCellProps) => {
 
   return (
     <Autocomplete
+      data-testid={`weather-station-dropdown-${props.rowId}`}
       options={props.fbaInputGridProps.stationOptions}
       className={props.classNameMap.weatherStation}
       getOptionSelected={(option, value) => isEqual(option, value)}

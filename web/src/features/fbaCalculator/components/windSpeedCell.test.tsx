@@ -25,20 +25,23 @@ describe('WindSpeedCell', () => {
     windSpeed: number | undefined
     calculatedWindSpeed: number | undefined
   }
-  const buildInputRow = (inputValues: WindSpeedInput) => ({
+  const buildInputRow = (windSpeed: number | undefined) => ({
     id: 0,
     weatherStation: undefined,
     fuelType: '',
     grassCure: undefined,
-    windSpeed: inputValues.windSpeed
+    windSpeed: windSpeed
   })
   it('should set input value if no calculated value', () => {
-    const input = { windSpeed: 1, calculatedWindSpeed: undefined }
-    const row = buildInputRow(input)
+    const row = buildInputRow(1)
     const props = buildProps(row)
     render(<WindSpeedCell {...props} />)
-    expect(screen.getByTestId('windSpeedInput-0').firstChild?.firstChild).toHaveValue(
-      input.windSpeed
-    )
+    expect(screen.getByTestId('windSpeedInput-0').firstChild?.firstChild).toHaveValue(1)
+  })
+  it('should set calculated value if no input value', () => {
+    const row = buildInputRow(undefined)
+    const props = buildProps(row, 2)
+    render(<WindSpeedCell {...props} />)
+    expect(screen.getByTestId('windSpeedInput-0').firstChild?.firstChild).toHaveValue(2)
   })
 })
