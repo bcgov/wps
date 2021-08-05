@@ -11,6 +11,12 @@ declare module Cypress {
      * @example selectFBAFuelTypeInDropdown(0, 'C1')
      */
     selectFBAFuelTypeInDropdown(rowId: number, fuelType: string): void
+
+    /**
+     * Custom command to set the grass cure percentage.
+     * @example setFBAGrassCurePercentage(0, '20')
+     */
+    setFBAGrassCurePercentage(rowId: number, grassCure: string): void
   }
 }
 
@@ -43,5 +49,13 @@ Cypress.Commands.add('selectFBAFuelTypeInDropdown', (rowId: number, fuelType: st
     .find('input')
     .type(fuelType)
     .type('{downarrow}')
+    .type('{enter}')
+})
+
+Cypress.Commands.add('setFBAGrassCurePercentage', (rowId: number, grassCure: string) => {
+  return cy
+    .getByTestId(`grassCureInput-${rowId}`)
+    .find('input')
+    .type(grassCure)
     .type('{enter}')
 })
