@@ -1,10 +1,11 @@
 {
+    
+    "date": "2021-07-05",
     "stations": [
         {
             "station_code": 836,
             "station_name": "AUGUST LAKE",
             "zone_code": null,
-            "date": "2021-07-05",
             "elevation": 855,
             "fuel_type": "C1",
             "status": "N/A",

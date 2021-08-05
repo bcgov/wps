@@ -33,7 +33,7 @@ acceptable_margin_of_error: Final = 0.01
 @pytest.mark.usefixtures('mock_jwt_decode')
 @scenario('test_fba_error_random_sample.feature', 'Fire Behaviour Calculation',
           example_converters=dict(crown_base_height=str2float,
-                                  fuel_type=FuelTypeEnum,
+                                  fuel_type=str,
                                   percentage_conifer=str2float,
                                   percentage_dead_balsam_fir=str2float,
                                   grass_cure=str2float,
@@ -49,7 +49,7 @@ def test_fire_behaviour_calculator_scenario():
 @given("""<fuel_type>, <percentage_conifer>, <percentage_dead_balsam_fir>, <grass_cure> and """
        """<crown_base_height> for <num_iterations>""",
        target_fixture='results')
-def given_input(fuel_type: FuelTypeEnum, percentage_conifer: float, percentage_dead_balsam_fir: float,
+def given_input(fuel_type: str, percentage_conifer: float, percentage_dead_balsam_fir: float,
                 grass_cure: float, crown_base_height: float, num_iterations: int):
     """ Take input and calculate actual and expected results """
 
@@ -95,7 +95,7 @@ def given_input(fuel_type: FuelTypeEnum, percentage_conifer: float, percentage_d
                       f"""None | 0.01 | None | 0.01 | |""")
         logger.debug(test_entry)
         python_input = FBACalculatorWeatherStation(elevation=elevation,
-                                                   fuel_type=fuel_type,
+                                                   fuel_type=FuelTypeEnum[fuel_type],
                                                    time_of_interest=time_of_interest,
                                                    percentage_conifer=percentage_conifer,
                                                    percentage_dead_balsam_fir=percentage_dead_balsam_fir,
