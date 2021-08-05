@@ -7,6 +7,7 @@ from typing import Final
 import logging
 from pytest_bdd import scenario, given, then
 from app import configure_logging
+from app.schemas.fba_calc import FuelTypeEnum
 from app.utils.time import get_hour_20_from_date
 from app.utils.fba_calculator import calculate_fire_behaviour_advisory, FBACalculatorWeatherStation
 from app.utils.redapp import FBPCalculateStatisticsCOM
@@ -32,7 +33,7 @@ acceptable_margin_of_error: Final = 0.01
 @pytest.mark.usefixtures('mock_jwt_decode')
 @scenario('test_fba_error_random_sample.feature', 'Fire Behaviour Calculation',
           example_converters=dict(crown_base_height=str2float,
-                                  fuel_type=str,
+                                  fuel_type=FuelTypeEnum,
                                   percentage_conifer=str2float,
                                   percentage_dead_balsam_fir=str2float,
                                   grass_cure=str2float,
@@ -48,7 +49,7 @@ def test_fire_behaviour_calculator_scenario():
 @given("""<fuel_type>, <percentage_conifer>, <percentage_dead_balsam_fir>, <grass_cure> and """
        """<crown_base_height> for <num_iterations>""",
        target_fixture='results')
-def given_input(fuel_type: str, percentage_conifer: float, percentage_dead_balsam_fir: float,
+def given_input(fuel_type: FuelTypeEnum, percentage_conifer: float, percentage_dead_balsam_fir: float,
                 grass_cure: float, crown_base_height: float, num_iterations: int):
     """ Take input and calculate actual and expected results """
 
@@ -119,7 +120,7 @@ def given_input(fuel_type: str, percentage_conifer: float, percentage_dead_balsa
                                              latitude=latitude,
                                              longitude=longitude,
                                              time_of_interest=get_hour_20_from_date(time_of_interest),
-                                             fuel_type=fuel_type,
+                                             fuel_type=fuel_type.value,
                                              ffmc=ffmc,
                                              dmc=dmc,
                                              dc=dc,
@@ -132,14 +133,14 @@ def given_input(fuel_type: str, percentage_conifer: float, percentage_dead_balsa
                                              crown_base_height=crown_base_height)
 
         error_dict = {
-            'fuel_type': fuel_type
+            'fuel_type': fuel_type.value
         }
         results.append(
             {
                 'input': {'isi': isi, 'bui': bui, 'wind_speed': wind_speed, 'ffmc': ffmc},
                 'python': python_fba,
                 'java': java_fbp,
-                'fuel_type': fuel_type,
+                'fuel_type': fuel_type.value,
                 'error': error_dict
             }
         )
