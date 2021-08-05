@@ -1,6 +1,5 @@
 import { FIRE_BEHAVIOR_CALC_ROUTE } from '../../src/utils/constants'
 import { FuelTypes } from '../../src/features/fbaCalculator/fuelTypes'
-import { DateTime } from 'luxon'
 
 describe('FireBAT Calculator Page', () => {
   const visitAndAddRow = () => {
