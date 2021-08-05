@@ -40,6 +40,7 @@ describe('FireBAT Calculator Page', () => {
 
     cy.wait('@calculateResults')
 
+    cy.rowCountShouldBe(1)
     cy.url().should('contain', `s=${stationCode}&f=${fuelType.name.toLowerCase()}&c=${grassCure}&w=${windSpeed}`)
   })
   describe('Dropdowns', () => {
@@ -56,6 +57,7 @@ describe('FireBAT Calculator Page', () => {
       const stationCode = 322
       cy.selectFBAStationInDropdown(0, stationCode)
 
+      cy.rowCountShouldBe(1)
       cy.url().should('contain', `s=${stationCode}`)
     })
     it('Can select fuel type successfully', () => {
@@ -68,6 +70,7 @@ describe('FireBAT Calculator Page', () => {
       const fuelType = FuelTypes.get()['c1']
       cy.selectFBAFuelTypeInDropdown(0, fuelType.friendlyName)
 
+      cy.rowCountShouldBe(1)
       cy.url().should('contain', `f=${fuelType.name.toLowerCase()}`)
     })
 
@@ -93,6 +96,7 @@ describe('FireBAT Calculator Page', () => {
 
       cy.selectFBAFuelTypeInDropdown(0, fuelType.friendlyName)
 
+      cy.rowCountShouldBe(1)
       cy.url().should('contain', `s=${stationCode}&f=${fuelType.name.toLowerCase()}`)
 
       cy.wait('@calculateResults')
@@ -177,12 +181,14 @@ describe('FireBAT Calculator Page', () => {
       const stationCode = 322
       cy.selectFBAStationInDropdown(0, stationCode)
 
+      cy.rowCountShouldBe(1)
       cy.url().should('contain', `s=${stationCode}`)
 
       cy.getByTestId('select-all').click()
 
       cy.getByTestId('remove-rows').click()
 
+      cy.rowCountShouldBe(0)
       cy.url().should('not.contain', `s=${stationCode}`)
     })
     it('Specific rows can be removed', () => {
@@ -195,12 +201,14 @@ describe('FireBAT Calculator Page', () => {
       const stationCode = 322
       cy.selectFBAStationInDropdown(0, stationCode)
 
+      cy.rowCountShouldBe(1)
       cy.url().should('contain', `s=${stationCode}`)
 
       cy.setSelectedRow(0)
 
       cy.getByTestId('remove-rows').click()
 
+      cy.rowCountShouldBe(0)
       cy.url().should('not.contain', `s=${stationCode}`)
     })
   })

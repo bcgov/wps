@@ -32,9 +32,15 @@ declare module Cypress {
 
     /**
      * Custom command to select a row.
-     * @example setSelectedRow(0')
+     * @example setSelectedRow(0)
      */
     setSelectedRow(rowId: number): void
+
+    /**
+     * Custom command to expect number of rows.
+     * @example rowCountShouldBe(0)
+     */
+    rowCountShouldBe(rowCount: number): void
   }
 }
 
@@ -94,4 +100,11 @@ Cypress.Commands.add('setDate', (date: string) => {
 
 Cypress.Commands.add('setSelectedRow', (rowId: number) => {
   return cy.getByTestId(`selection-checkbox-${rowId}`).click()
+})
+
+Cypress.Commands.add('rowCountShouldBe', (rowCount: number) => {
+  return cy
+    .getByTestId('fba-table-body')
+    .find('tr')
+    .should('have.length', rowCount)
 })

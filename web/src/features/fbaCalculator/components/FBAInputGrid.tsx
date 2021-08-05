@@ -267,7 +267,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                 </TableCell>
               </TableRow>
             </TableHead>
-            <TableBody>
+            <TableBody data-testid="fba-table-body">
               {rows.map((row, ri) => {
                 return (
                   <TableRow key={ri}>
