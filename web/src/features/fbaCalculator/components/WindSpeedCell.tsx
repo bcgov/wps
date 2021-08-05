@@ -23,7 +23,7 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
     setWindSpeedValue(parseFloat(event.target.value))
   }
 
-  const blurHandler = () => {
+  const handlePossibleUpdate = () => {
     if (!isEqual(windSpeedValue, props.calculatedValue)) {
       updateFBARow(
         props.fbaInputGridProps,
@@ -32,6 +32,12 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
         windSpeedValue,
         buildUpdatedNumberRow
       )
+    }
+  }
+
+  const enterHandler = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Enter') {
+      handlePossibleUpdate()
     }
   }
 
@@ -45,18 +51,8 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
       variant="outlined"
       inputProps={{ min: 0, max: 100, step: 'any' }}
       onChange={changeHandler}
-      onBlur={blurHandler}
-      onKeyDown={event => {
-        if (event.key === 'Enter') {
-          updateFBARow(
-            props.fbaInputGridProps,
-            props.rowId,
-            'windSpeed',
-            windSpeedValue,
-            buildUpdatedNumberRow
-          )
-        }
-      }}
+      onBlur={handlePossibleUpdate}
+      onKeyDown={enterHandler}
       value={windSpeedValue}
     />
   )

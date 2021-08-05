@@ -156,22 +156,4 @@ describe('FireBAT Calculator Page', () => {
       cy.url().should('not.contain', `s=${stationCode}`)
     })
   })
-  describe('WindSpeedCell', () => {
-    it('Sets wind speed on enter', () => {
-      cy.intercept('POST', 'api/fba-calc/stations', _ => {
-        throw new Error('API request made with only wind speed set')
-      })
-
-      visitAndAddRow()
-
-      const windSpeed = '20'
-
-      cy.getByTestId('windSpeedInput-0')
-        .find('input')
-        .type(windSpeed)
-        .type('{enter}')
-
-      cy.url().should('contain', `w=${windSpeed}`)
-    })
-  })
 })
