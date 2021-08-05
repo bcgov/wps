@@ -14,9 +14,6 @@ export class FuelTypes {
     }
     return FuelTypes.get()[key]
   }
-  static getFriendlyNames(): string[] {
-    return Object.values(FuelTypes.get()).map(fuelType => fuelType.friendlyName)
-  }
   static get(): Record<string, FBAFuelType> {
     return {
       c1: {
