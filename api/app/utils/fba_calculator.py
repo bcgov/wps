@@ -7,9 +7,10 @@ from datetime import date
 from typing import List, Optional
 import logging
 import pandas as pd
+from app.schemas.fba_calc import FuelTypeEnum
 from app.schemas.observations import WeatherReading
 from app.utils.singleton import Singleton
-from app.utils.hfi_calculator import FUEL_TYPE_LOOKUP
+from app.utils.fuel_types import FUEL_TYPE_LOOKUP
 from app.utils import cffdrs
 from app.utils.time import convert_utc_to_pdt, get_hour_20_from_date, get_julian_date
 
@@ -77,7 +78,7 @@ class FBACalculatorWeatherStation():  # pylint: disable=too-many-instance-attrib
     """ Inputs for Fire Behaviour Advisory Calculator """
 
     def __init__(self,  # pylint: disable=too-many-arguments, too-many-locals
-                 elevation: int, fuel_type: str,
+                 elevation: int, fuel_type: FuelTypeEnum,
                  time_of_interest: date, percentage_conifer: float,
                  percentage_dead_balsam_fir: float, grass_cure: float,
                  crown_base_height: int, lat: float, long: float, bui: float, ffmc: float, isi: float,
@@ -147,9 +148,10 @@ class FireBehaviourAdvisory():  # pylint: disable=too-many-instance-attributes
         self.sixty_minute_fire_size_t = sixty_minute_fire_size_t
 
 
-def calculate_cfb(fuel_type: str, fmc: float, sfc: float, ros: float, cbh: float):
+def calculate_cfb(fuel_type: FuelTypeEnum, fmc: float, sfc: float, ros: float, cbh: float):
     """ Calculate the crown fraction burned  (returning 0 for fuel types without crowns to burn) """
-    if fuel_type in ('D1', 'O1A', 'O1B', 'S1', 'S2', 'S3'):
+    if fuel_type in [FuelTypeEnum.D1, FuelTypeEnum.O1A, FuelTypeEnum.O1B,
+                     FuelTypeEnum.S1, FuelTypeEnum.S2, FuelTypeEnum.S3]:
         # These fuel types don't have a crown fraction burnt. But CFB is needed for other calculations,
         # so we go with 0.
         cfb = 0
@@ -297,7 +299,7 @@ def get_fire_size(fuel_type: str, ros: float, bros: float, ellapsed_minutes: int
     return math.pi / (4.0 * length_to_breadth_at_time) * math.pow(fire_spread_distance, 2.0) / 10000.0
 
 
-def get_fire_type(fuel_type: str, crown_fraction_burned: float) -> FireTypeEnum:
+def get_fire_type(fuel_type: FuelTypeEnum, crown_fraction_burned: float) -> FireTypeEnum:
     """ Returns Fire Type (as str) based on percentage Crown Fraction Burned (CFB).
     These definitions come from the Red Book (p.69).
     Abbreviations for fire types have been taken from the red book (p.9).
@@ -307,7 +309,7 @@ def get_fire_type(fuel_type: str, crown_fraction_burned: float) -> FireTypeEnum:
     10-89%                          Intermittent crown fire     IC
     > 90%                           Continuous crown fire       CC
     """
-    if fuel_type == 'D1':
+    if fuel_type == FuelTypeEnum['D1']:
         # From red book "crown fires are not expected in deciduous fuel types but high intensity surface fires
         # can occur."
         return FireTypeEnum.SURFACE
@@ -381,12 +383,12 @@ def get_critical_hours_start(critical_ffmc: float, daily_ffmc: float,
     if last_observed_morning_rh_values is None:
         return None
     if daily_ffmc < critical_ffmc:
-        logger.info('Daily FFMC %s < critical FFMC %s', daily_ffmc, critical_ffmc)
+        logger.debug('Daily FFMC %s < critical FFMC %s', daily_ffmc, critical_ffmc)
         # Daily FFMC represents peak burning, so diurnal hourly FFMC will never be higher than daily FFMC
         # if daily FFMC < critical FFMC, station will never reach critical FFMC at any hour of the day
         return None
     # else daily_ffmc >= critical_ffmc
-    logger.info('Daily FFMC %s >= critical FFMC %s', daily_ffmc, critical_ffmc)
+    logger.debug('Daily FFMC %s >= critical FFMC %s', daily_ffmc, critical_ffmc)
     solar_noon_diurnal_ffmc = get_afternoon_overnight_diurnal_ffmc(13, daily_ffmc)
     if solar_noon_diurnal_ffmc >= critical_ffmc:
         clock_time = 12.0
@@ -434,7 +436,7 @@ def get_critical_hours_end(critical_ffmc: float, solar_noon_ffmc: float, critica
 
 
 def get_critical_hours(  # pylint: disable=too-many-arguments
-        target_hfi: int, fuel_type: str, percentage_conifer: float,
+        target_hfi: int, fuel_type: FuelTypeEnum, percentage_conifer: float,
         percentage_dead_balsam_fir: float, bui: float,
         grass_cure: float, crown_base_height: float,
         daily_ffmc: float, fmc: float, cfb: float, cfl: float,
@@ -461,8 +463,8 @@ def get_critical_hours(  # pylint: disable=too-many-arguments
     # Scenario 2: the HFI is always >= target_hfi, even when FFMC = 0. In this case, all hours
     # of the day will be critical hours.
     if critical_ffmc == 0.0 and resulting_hfi >= target_hfi:
-        logger.info('All hours critical for HFI %s. FFMC %s has HFI %s',
-                    target_hfi, critical_ffmc, resulting_hfi)
+        logger.debug('All hours critical for HFI %s. FFMC %s has HFI %s',
+                     target_hfi, critical_ffmc, resulting_hfi)
         return '13:00 - 7:00'
     # Scenario 3: there is a critical_ffmc between (0, 101) that corresponds to
     # resulting_hfi >= target_hfi. Now have to determine what hours of the day (if any)

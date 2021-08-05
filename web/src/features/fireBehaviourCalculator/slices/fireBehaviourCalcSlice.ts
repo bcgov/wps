@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { FBCStation, postFBCStations } from 'api/fbCalcAPI'
+import { FBCStation, FBCWeatherStationsResponse, postFBCStations } from 'api/fbCalcAPI'
 
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
@@ -11,12 +11,14 @@ interface State {
   loading: boolean
   error: string | null
   fireBehaviourResultStations: FBCStation[]
+  date: string | null
 }
 
 const initialState: State = {
   loading: false,
   error: null,
-  fireBehaviourResultStations: []
+  fireBehaviourResultStations: [],
+  date: null
 }
 
 const fireBehaviourStationsSlice = createSlice({
@@ -27,14 +29,19 @@ const fireBehaviourStationsSlice = createSlice({
       state.error = null
       state.loading = true
       state.fireBehaviourResultStations = []
+      state.date = null
     },
     getFireBehaviourStationsFailed(state: State, action: PayloadAction<string>) {
       state.error = action.payload
       state.loading = false
     },
-    getFireBehaviourStationsSuccess(state: State, action: PayloadAction<FBCStation[]>) {
+    getFireBehaviourStationsSuccess(
+      state: State,
+      action: PayloadAction<FBCWeatherStationsResponse>
+    ) {
       state.error = null
-      state.fireBehaviourResultStations = action.payload
+      state.fireBehaviourResultStations = action.payload.stations
+      state.date = action.payload.date
       state.loading = false
     }
   }
@@ -58,7 +65,6 @@ export const fetchFireBehaviourStations = (
       return []
     }
     return {
-      date,
       stationCode: parseInt(row.weatherStation),
       fuelType: fuelTypeDetails.name,
       percentageConifer: fuelTypeDetails.percentage_conifer,
@@ -70,7 +76,7 @@ export const fetchFireBehaviourStations = (
   })
   try {
     dispatch(getFireBehaviourStationsStart())
-    const fireBehaviourStations = await postFBCStations(fetchableFireStations)
+    const fireBehaviourStations = await postFBCStations(date, fetchableFireStations)
     dispatch(getFireBehaviourStationsSuccess(fireBehaviourStations))
   } catch (err) {
     dispatch(getFireBehaviourStationsFailed(err.toString()))

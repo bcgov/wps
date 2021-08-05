@@ -4,7 +4,6 @@ export interface FBCStation {
   station_code: number
   station_name: string
   zone_code: string
-  date: string
   elevation: number
   fuel_type: string
   status: string
@@ -32,11 +31,11 @@ export interface FBCStation {
 }
 
 export interface FBCWeatherStationsResponse {
+  date: string
   stations: FBCStation[]
 }
 
 export interface FetchableFBCStation {
-  date: string
   stationCode: number
   fuelType: string
   percentageConifer: number | undefined
@@ -47,14 +46,15 @@ export interface FetchableFBCStation {
 }
 
 export async function postFBCStations(
+  date: string,
   fireBehaviorStations: FetchableFBCStation[]
-): Promise<FBCStation[]> {
+): Promise<FBCWeatherStationsResponse> {
   const url = '/fba-calc/stations'
 
   const { data } = await axios.post(url, {
+    date: date,
     stations: fireBehaviorStations.map(fireBehaviorStation => ({
       station_code: fireBehaviorStation.stationCode,
-      date: fireBehaviorStation.date,
       fuel_type: fireBehaviorStation.fuelType,
       percentage_conifer: fireBehaviorStation.percentageConifer,
       grass_cure: fireBehaviorStation.grassCurePercentage,
@@ -63,5 +63,5 @@ export async function postFBCStations(
       wind_speed: fireBehaviorStation.windSpeed
     }))
   })
-  return data.stations
+  return data
 }

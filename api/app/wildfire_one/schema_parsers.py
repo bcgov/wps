@@ -5,13 +5,14 @@ import logging
 from datetime import datetime, timezone
 from typing import Generator, List, Optional
 from app.db.models.observations import HourlyActual
+from app.schemas.fba_calc import FuelTypeEnum
 from app.schemas.stations import WeatherStation
 from app.utils import cffdrs
 from app.utils.dewpoint import compute_dewpoint
 from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.schemas.observations import WeatherReading
 from app.schemas.hfi_calc import StationDaily
-from app.utils.hfi_calculator import FUEL_TYPE_LOOKUP
+from app.utils.fuel_types import FUEL_TYPE_LOOKUP
 from app.utils.time import get_julian_date_now
 from app.wildfire_one.util import is_station_valid, get_zone_code_prefix
 
@@ -135,12 +136,12 @@ def generate_station_daily(raw_daily, station: WFWXWeatherStation, fuel_type: st
     bui = raw_daily.get('buildUpIndex', None)
     ffmc = raw_daily.get('fineFuelMoistureCode', None)
     fmc = cffdrs.foliar_moisture_content(station.lat, station.long, station.elevation, get_julian_date_now())
-    sfc = cffdrs.surface_fuel_consumption(fuel_type, bui, ffmc, pc)
+    sfc = cffdrs.surface_fuel_consumption(FuelTypeEnum[fuel_type], bui, ffmc, pc)
 
     cc = raw_daily.get('grasslandCuring')
     if cc is None:
         cc = FUEL_TYPE_LOOKUP[fuel_type]["CC"]
-    ros = cffdrs.rate_of_spread(fuel_type, isi, bui, fmc, sfc, pc=pc,
+    ros = cffdrs.rate_of_spread(FuelTypeEnum[fuel_type], isi, bui, fmc, sfc, pc=pc,
                                 cc=cc,
                                 pdf=pdf,
                                 cbh=cbh)
