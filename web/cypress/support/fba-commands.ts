@@ -23,6 +23,12 @@ declare module Cypress {
      * @example setFBAWindSpeed(0, '20')
      */
     setFBAWindSpeed(rowId: number, grassCure: string): void
+
+    /**
+     * Custom command to set the date.
+     * @example setDate('2021-08-05')
+     */
+    setDate(date: string): void
   }
 }
 
@@ -71,4 +77,11 @@ Cypress.Commands.add('setFBAWindSpeed', (rowId: number, windSpeed: string) => {
     .getByTestId(`windSpeedInput-${rowId}`)
     .find('input')
     .type(windSpeed)
+})
+
+Cypress.Commands.add('setDate', (date: string) => {
+  return cy
+    .getByTestId('date-of-interest-picker')
+    .find('input')
+    .type(date)
 })
