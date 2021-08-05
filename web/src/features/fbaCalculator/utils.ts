@@ -104,3 +104,20 @@ export const getMostRecentIdFromRows = (rows: FBAInputRow[]): number => {
   const lastId = _.isEmpty(rows) ? 0 : lastIdFromExisting
   return lastId
 }
+/**
+ * Returns whether grass cure is set for a grass fuel type
+ * @param row the input row to check against
+ * @returns true if grass cure percentage is not set for grass fuel types, 01a, 01b
+ */
+export const grassCureNotSetForGrassType = (row: FBAInputRow): boolean => {
+  if (_.isUndefined(row)) {
+    return false
+  }
+  if (row.fuelType === 'o1a' || row.fuelType === 'o1b') {
+    return _.isUndefined(row.grassCure) || isNaN(row.grassCure)
+  }
+  if (!_.isUndefined(row.grassCure) && !isNull(row.grassCure)) {
+    return row.grassCure > 100
+  }
+  return false
+}

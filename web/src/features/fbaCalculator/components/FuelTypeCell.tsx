@@ -6,6 +6,7 @@ import {
   GridMenuOption
 } from 'features/fbaCalculator/components/FBAInputGrid'
 import { buildUpdatedOptionRow, updateFBARow } from 'features/fbaCalculator/tableState'
+import { grassCureNotSetForGrassType } from 'features/fbaCalculator/utils'
 import { isEqual } from 'lodash'
 import React, { useState } from 'react'
 
@@ -26,12 +27,19 @@ const FuelTypeCell = (props: FuelTypeCellProps) => {
   const changeHandler = (_: React.ChangeEvent<{}>, value: any | null) => {
     if (!isEqual(selectedFuelType, value)) {
       setSelectedFuelType(value)
+      const updatedRow = buildUpdatedOptionRow(
+        props.fbaInputGridProps.inputRows[props.rowId],
+        'fuelType',
+        value
+      )
+      const dispatchRequest = !grassCureNotSetForGrassType(updatedRow)
       updateFBARow(
         props.fbaInputGridProps,
         props.rowId,
         'fuelType',
         value,
-        buildUpdatedOptionRow
+        buildUpdatedOptionRow,
+        dispatchRequest
       )
     }
   }

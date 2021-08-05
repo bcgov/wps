@@ -26,7 +26,7 @@ export interface FBAInputGridProps {
   stationOptions: GridMenuOption[]
   fuelTypeOptions: GridMenuOption[]
   inputRows: FBAInputRow[]
-  updateRow: (rowId: number, updatedRow: FBAInputRow) => void
+  updateRow: (rowId: number, updatedRow: FBAInputRow, dispatchRequest?: boolean) => void
   selected: number[]
   updateSelected: (selected: number[]) => void
   calculatedResults: FBCStation[]
