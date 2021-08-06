@@ -34,7 +34,7 @@ def given_request(monkeypatch, request_json: dict):
     Our request should result in
     1) station list requests to WFWX, to map station codes to GUIDs.
     2) dailies call to WFWX.
-    3) call to the R code to caclulate values.
+    3) call to the R code to calculate values.
     """
     # mock anything that uses aiohttp.ClientSession::get
     monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)

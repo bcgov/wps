@@ -192,10 +192,8 @@ async def get_stations_data(  # pylint:disable=too-many-locals
         # remove any duplicate station codes
         unique_station_codes = list(dict.fromkeys(station_codes))
 
-        # calculate the time of interest
-        date_of_interest = request.date
         # we're interested in noon on the given day
-        time_of_interest = get_hour_20_from_date(date_of_interest)
+        time_of_interest = get_hour_20_from_date(request.date)
 
         async with ClientSession() as session:
             # authenticate against wfwx api
@@ -248,17 +246,17 @@ async def get_stations_data(  # pylint:disable=too-many-locals
                     logger.error('request object: %s', request.__str__())
                     logger.critical(exception, exc_info=True)
                     station_response = process_request_without_observation(
-                        requested_station, wfwx_station, date_of_interest, 'ERROR')
+                        requested_station, wfwx_station, request.date, 'ERROR')
 
             else:
                 # if we can't get the daily (no forecast, or no observation)
                 station_response = process_request_without_observation(
-                    requested_station, wfwx_station, date_of_interest, 'N/A')
+                    requested_station, wfwx_station, request.date, 'N/A')
 
             # Add the response to our list of responses
             stations_response.append(station_response)
 
-        return StationsListResponse(date=date_of_interest, stations=stations_response)
+        return StationsListResponse(date=request.date, stations=stations_response)
     except Exception as exception:
         logger.error('request object: %s', request.__str__())
         logger.critical(exception, exc_info=True)

@@ -3,7 +3,7 @@
     "stations": [
         {
             "station_code": 230,
-            "fuel_type": "C6",
+            "fuel_type": "C6_7",
             "crown_base_height": 7,
             "percentage_conifer": 100
         }

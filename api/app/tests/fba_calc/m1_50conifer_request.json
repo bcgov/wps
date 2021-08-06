@@ -3,7 +3,7 @@
     "stations": [
         {
             "station_code": 230,
-            "fuel_type": "M1",
+            "fuel_type": "M1_50C",
             "crown_base_height": 6,
             "percentage_conifer": 50
         }
