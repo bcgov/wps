@@ -278,7 +278,7 @@ def get_60_minutes_fire_size(length_breadth_ratio: float, rate_of_spread: float)
     return (math.pi * math.pow(60.0 * rate_of_spread, 2)) / (40000.0 * length_breadth_ratio)
 
 
-def get_fire_size(fuel_type: str, ros: float, bros: float, ellapsed_minutes: int, cfb: float,
+def get_fire_size(fuel_type: FuelTypeEnum, ros: float, bros: float, ellapsed_minutes: int, cfb: float,
                   lb_ratio: float):
     """
     Fire size based on Eq. 8 (Alexander, M.E. 1985. Estimating the length-to-breadth ratio of elliptical
