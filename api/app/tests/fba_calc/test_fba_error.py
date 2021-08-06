@@ -6,6 +6,7 @@ from typing import Final
 import logging
 from pytest_bdd import scenario, given, then
 from app import configure_logging
+from app.schemas.fba_calc import FuelTypeEnum
 from app.utils.time import get_hour_20_from_date
 from app.utils.fba_calculator import calculate_fire_behaviour_advisory, FBACalculatorWeatherStation
 from app.utils.redapp import FBPCalculateStatisticsCOM
@@ -59,7 +60,7 @@ def given_red_app_input(elevation: float,  # pylint: disable=too-many-arguments,
     """ Take input and calculate actual and expected results """
     # get python result:
     python_input = FBACalculatorWeatherStation(elevation=elevation,
-                                               fuel_type=fuel_type,
+                                               fuel_type=FuelTypeEnum[fuel_type],
                                                time_of_interest=time_of_interest,
                                                percentage_conifer=percentage_conifer,
                                                percentage_dead_balsam_fir=percentage_dead_balsam_fir,
@@ -276,7 +277,7 @@ def given_spreadsheet_input(elevation: float,  # pylint: disable=too-many-argume
     """ Take input and calculate actual and expected results """
     # get python result:
     python_input = FBACalculatorWeatherStation(elevation=elevation,
-                                               fuel_type=fuel_type,
+                                               fuel_type=FuelTypeEnum[fuel_type],
                                                time_of_interest=time_of_interest,
                                                percentage_conifer=percentage_conifer,
                                                percentage_dead_balsam_fir=percentage_dead_balsam_fir,
