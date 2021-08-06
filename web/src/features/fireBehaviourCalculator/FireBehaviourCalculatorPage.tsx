@@ -219,7 +219,11 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
             </p>
             <p>
               Values are calculated using the{' '}
-              <a href="https://r-forge.r-project.org/projects/cffdrs/">
+              <a
+                target="_blank"
+                rel="noopener noreferrer"
+                href="https://r-forge.r-project.org/projects/cffdrs/"
+              >
                 Canadian Forest Fire Danger Rating System R Library
               </a>{' '}
               and are intended to provide general guidance for Fire Behaviour Advisories.
