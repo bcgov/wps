@@ -225,9 +225,9 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
               and are intended to provide general guidance for Fire Behaviour Advisories.
             </p>
             <p>
-              Constants for crown fuel load are taken from &quot;Development and Structure of
-              the Canadian Forest Fire Behaviour Prediction System&quot; from Forestry Canada
-              Fire Danger Group, Information Report ST-X-3, 1992.
+              Constants for crown fuel load are taken from &quot;Development and Structure
+              of the Canadian Forest Fire Behaviour Prediction System&quot; from Forestry
+              Canada Fire Danger Group, Information Report ST-X-3, 1992.
             </p>
           </div>
         </Paper>
