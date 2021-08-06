@@ -209,12 +209,26 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
         )}
         <Paper className={classes.disclaimer}>
           <div>
-            <h4>Disclaimers:
-            </h4>
-            <p>Forecasted weather outputs are for 13:00 and FWI Indices are for 17:00 PDT. These fire behaviour calculations assume flat terrain.</p>
-            <p>Weather and fire behaviour indices are sourced from the Wildfire One API.</p>
-            <p>Values are calculated using the <a href="https://r-forge.r-project.org/projects/cffdrs/">Canadian Forest Fire Danger Rating System R Library</a> and are intended to provide general guidance for Fire Behaviour Advisories.</p>
-            <p>Constants for crown fuel load are taken from "Development and Structure of the Canadian Forest Fire Behaviour Prediction System" from Forestry Canada Fire Danger Group, Information Report ST-X-3, 1992.</p>
+            <h4>Disclaimers:</h4>
+            <p>
+              Forecasted weather outputs are for 13:00 and FWI Indices are for 17:00 PDT.
+              These fire behaviour calculations assume flat terrain.
+            </p>
+            <p>
+              Weather and fire behaviour indices are sourced from the Wildfire One API.
+            </p>
+            <p>
+              Values are calculated using the{' '}
+              <a href="https://r-forge.r-project.org/projects/cffdrs/">
+                Canadian Forest Fire Danger Rating System R Library
+              </a>{' '}
+              and are intended to provide general guidance for Fire Behaviour Advisories.
+            </p>
+            <p>
+              Constants for crown fuel load are taken from "Development and Structure of
+              the Canadian Forest Fire Behaviour Prediction System" from Forestry Canada
+              Fire Danger Group, Information Report ST-X-3, 1992.
+            </p>
           </div>
         </Paper>
       </Container>
