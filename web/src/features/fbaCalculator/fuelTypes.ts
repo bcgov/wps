@@ -1,6 +1,6 @@
 import { isUndefined } from 'lodash'
 
-export interface FBCFuelType {
+export interface FBAFuelType {
   name: string
   friendlyName: string
   percentage_conifer: number | undefined
@@ -8,16 +8,13 @@ export interface FBCFuelType {
   crown_base_height: number | undefined
 }
 export class FuelTypes {
-  static lookup(key: string | undefined): FBCFuelType | null {
+  static lookup(key: string | undefined): FBAFuelType | null {
     if (isUndefined(key)) {
       return null
     }
     return FuelTypes.get()[key]
   }
-  static getFriendlyNames(): string[] {
-    return Object.values(FuelTypes.get()).map(fuelType => fuelType.friendlyName)
-  }
-  static get(): Record<string, FBCFuelType> {
+  static get(): Record<string, FBAFuelType> {
     return {
       c1: {
         name: 'C1',
