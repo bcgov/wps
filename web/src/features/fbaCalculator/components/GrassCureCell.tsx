@@ -3,7 +3,7 @@ import { ClassNameMap } from '@material-ui/core/styles/withStyles'
 import { FBAInputGridProps } from 'features/fbaCalculator/components/FBAInputGrid'
 import { buildUpdatedNumberRow, updateFBARow } from 'features/fbaCalculator/tableState'
 import { grassCureNotSetForGrassType } from 'features/fbaCalculator/utils'
-import { isEqual } from 'lodash'
+import { isEqual, isNull, isUndefined } from 'lodash'
 import React, { ChangeEvent, useState } from 'react'
 
 export interface GrassCureCellProps {
@@ -18,7 +18,16 @@ const GrassCureProps = (props: GrassCureCellProps) => {
   const [grassCurePercentage, setGrassCurePercentage] = useState(props.value)
 
   const changeHandler = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setGrassCurePercentage(parseInt(event.target.value))
+    const stringInput = String(event.target.value)
+    const numberInput = parseInt(stringInput)
+    if (
+      !isUndefined(stringInput) &&
+      !isNull(stringInput) &&
+      !isNaN(numberInput) &&
+      stringInput.length <= 3
+    ) {
+      setGrassCurePercentage(parseInt(event.target.value))
+    }
   }
 
   const handlePossibleUpdate = () => {

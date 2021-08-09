@@ -26,15 +26,27 @@ describe('GrassCureCell', () => {
       grassCure: undefined,
       windSpeed: undefined
     })
-    it('should return field in error state o1a without percentage set', () => {
+    it('should return field in error state for o1a without percentage set', () => {
       const zero1ARow = buildInputRow('o1a')
       const props = buildProps(zero1ARow)
       const { container } = render(<GrassCureCell {...props} />)
       expect(container.firstChild?.firstChild).toHaveClass('Mui-error')
     })
-    it('should return field in error state o1b without percentage set', () => {
+    it('should return field in error state for o1b without percentage set', () => {
       const zero1BRow = buildInputRow('o1b')
       const props = buildProps(zero1BRow)
+      const { container } = render(<GrassCureCell {...props} />)
+      expect(container.firstChild?.firstChild).toHaveClass('Mui-error')
+    })
+    it('should return field in error state when percentage is set to over 100', () => {
+      const inputRow = {
+        id: 0,
+        weatherStation: undefined,
+        fuelType: FuelTypes.lookup('c1')?.name,
+        grassCure: 101,
+        windSpeed: undefined
+      }
+      const props = buildProps(inputRow)
       const { container } = render(<GrassCureCell {...props} />)
       expect(container.firstChild?.firstChild).toHaveClass('Mui-error')
     })
