@@ -10,6 +10,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TableSortLabel,
   Tooltip
 } from '@material-ui/core'
 import InfoIcon from '@material-ui/icons/Info'
@@ -20,6 +21,7 @@ import FuelTypeCell from 'features/fireBehaviourCalculator/components/FuelTypeCe
 import GrassCureCell from 'features/fireBehaviourCalculator/components/GrassCureCell'
 import WindSpeedCell from 'features/fireBehaviourCalculator/components/WindSpeedCell'
 import SelectionCheckbox from 'features/fireBehaviourCalculator/components/SelectionCheckbox'
+import { Order } from 'utils/table'
 
 export interface FBCInputGridProps {
   testId?: string
@@ -87,6 +89,32 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
   )
 
   const [headerSelected, setHeaderSelect] = useState<boolean>(false)
+  const [zoneOrder, setZoneOrder] = useState<Order>('desc')
+  const [fuelTypeOrder, setFuelTypeOrder] = useState<Order>('desc')
+  const [isiOrder, setIsiOrder] = useState<Order>('desc')
+  const [hfiOrder, setHfiOrder] = useState<Order>('desc')
+  const [windSpeedOrder, setWindSpeedOrder] = useState<Order>('desc')
+  const [stationNameOrder, setStationNameOrder] = useState<Order>('desc')
+
+  const toggleZoneOrder = () => {
+    setZoneOrder(zoneOrder === 'asc' ? 'desc' : 'asc')
+  }
+  const toggleFuelTypeOrder = () => {
+    setFuelTypeOrder(fuelTypeOrder === 'asc' ? 'desc' : 'asc')
+  }
+  const toggleIsiOrder = () => {
+    setIsiOrder(isiOrder === 'asc' ? 'desc' : 'asc')
+  }
+  const toggleHfiOrder = () => {
+    setHfiOrder(hfiOrder === 'asc' ? 'desc' : 'asc')
+  }
+  const toggleWindSpeedOrder = () => {
+    setWindSpeedOrder(windSpeedOrder === 'asc' ? 'desc' : 'asc')
+  }
+  const toggleStationNameOrder = () => {
+    setStationNameOrder(stationNameOrder === 'asc' ? 'desc' : 'asc')
+  }
+
   const buildStationOption = (value: string | undefined) => {
     if (isUndefined(value)) {
       return null
@@ -172,19 +200,32 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
                     }}
                   />
                 </TableCell>
-                <TableCell key="header-zone">Zone</TableCell>
-                <TableCell key="header-location">Weather Station</TableCell>
+                <TableCell key="header-zone" sortDirection={zoneOrder}>
+                  <TableSortLabel direction={zoneOrder} onClick={toggleZoneOrder}>
+                    Zone
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell key="header-location">
+                  <TableSortLabel
+                    direction={stationNameOrder}
+                    onClick={toggleStationNameOrder}
+                  >
+                    Weather Station
+                  </TableSortLabel>
+                </TableCell>
                 <TableCell key="header-elevation">
                   Elev.
                   <br />
                   (m)
                 </TableCell>
-                <TableCell key="header-fuel-type">
-                  FBP
-                  <br />
-                  Fuel
-                  <br />
-                  Type
+                <TableCell sortDirection={fuelTypeOrder} key="header-fuel-type">
+                  <TableSortLabel direction={fuelTypeOrder} onClick={toggleFuelTypeOrder}>
+                    FBP
+                    <br />
+                    Fuel
+                    <br />
+                    Type
+                  </TableSortLabel>
                 </TableCell>
                 <TableCell>
                   Grass
@@ -211,11 +252,16 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
                   <br />
                   (&deg;)
                 </TableCell>
-                <TableCell className={classes.windSpeed}>
-                  {'Wind Speed (km/h)'}
-                  <Tooltip title="Leave this empty to calculate forecasted/observed wind speed. Add a custom wind speed to influence the calculations">
-                    <InfoIcon aria-label="info"></InfoIcon>
-                  </Tooltip>
+                <TableCell sortDirection={windSpeedOrder} className={classes.windSpeed}>
+                  <TableSortLabel
+                    direction={windSpeedOrder}
+                    onClick={toggleWindSpeedOrder}
+                  >
+                    {'Wind Speed (km/h)'}
+                    <Tooltip title="Leave this empty to calculate forecasted/observed wind speed. Add a custom wind speed to influence the calculations">
+                      <InfoIcon aria-label="info"></InfoIcon>
+                    </Tooltip>
+                  </TableSortLabel>
                 </TableCell>
                 <TableCell>
                   Precip
@@ -225,10 +271,18 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
                 <TableCell>FFMC</TableCell>
                 <TableCell>DMC</TableCell>
                 <TableCell>DC</TableCell>
-                <TableCell>ISI</TableCell>
+                <TableCell sortDirection={isiOrder}>
+                  <TableSortLabel direction={isiOrder} onClick={toggleIsiOrder}>
+                    ISI
+                  </TableSortLabel>
+                </TableCell>
                 <TableCell>BUI</TableCell>
                 <TableCell>FWI</TableCell>
-                <TableCell>HFI</TableCell>
+                <TableCell sortDirection={hfiOrder}>
+                  <TableSortLabel direction={hfiOrder} onClick={toggleHfiOrder}>
+                    HFI
+                  </TableSortLabel>
+                </TableCell>
                 <TableCell>
                   Critical
                   <br />
