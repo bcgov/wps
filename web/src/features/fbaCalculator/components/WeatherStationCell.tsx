@@ -2,20 +2,17 @@ import { TextField } from '@material-ui/core'
 import { ClassNameMap } from '@material-ui/core/styles/withStyles'
 import { Autocomplete } from '@material-ui/lab'
 import {
-  FBCInputGridProps,
+  FBAInputGridProps,
   GridMenuOption
-} from 'features/fireBehaviourCalculator/components/FBCInputGrid'
-import {
-  buildUpdatedOptionRow,
-  updateFBCRow
-} from 'features/fireBehaviourCalculator/tableState'
+} from 'features/fbaCalculator/components/FBAInputGrid'
+import { buildUpdatedOptionRow, updateFBARow } from 'features/fbaCalculator/tableState'
 import { isEqual } from 'lodash'
 import React from 'react'
 import { useState } from 'react'
 
 interface WeatherStationCellProps {
-  fbcInputGridProps: Pick<
-    FBCInputGridProps,
+  fbaInputGridProps: Pick<
+    FBAInputGridProps,
     'stationOptions' | 'inputRows' | 'updateRow' | 'autoUpdateHandler'
   >
   classNameMap: ClassNameMap<'weatherStation'>
@@ -29,8 +26,8 @@ const WeatherStationCell = (props: WeatherStationCellProps) => {
   const changeHandler = (_: React.ChangeEvent<{}>, value: any | null) => {
     if (!isEqual(selectedStation, value)) {
       setSelectedStation(value)
-      updateFBCRow(
-        props.fbcInputGridProps,
+      updateFBARow(
+        props.fbaInputGridProps,
         props.rowId,
         'weatherStation',
         value,
@@ -41,7 +38,8 @@ const WeatherStationCell = (props: WeatherStationCellProps) => {
 
   return (
     <Autocomplete
-      options={props.fbcInputGridProps.stationOptions}
+      data-testid={`weather-station-dropdown-${props.rowId}`}
+      options={props.fbaInputGridProps.stationOptions}
       className={props.classNameMap.weatherStation}
       getOptionSelected={(option, value) => isEqual(option, value)}
       getOptionLabel={option => option?.label}

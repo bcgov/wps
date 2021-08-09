@@ -9,21 +9,21 @@ import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useHistory, useLocation } from 'react-router-dom'
 import { filter } from 'lodash'
-import DatePicker from 'features/fireBehaviourCalculator/components/DatePicker'
-import FBCInputGrid, {
+import DatePicker from 'features/fbaCalculator/components/DatePicker'
+import FBAInputGrid, {
   GridMenuOption,
-  FBCInputRow
-} from 'features/fireBehaviourCalculator/components/FBCInputGrid'
-import { FuelTypes } from 'features/fireBehaviourCalculator/fuelTypes'
-import { fetchFireBehaviourStations } from 'features/fireBehaviourCalculator/slices/fireBehaviourCalcSlice'
+  FBAInputRow
+} from 'features/fbaCalculator/components/FBAInputGrid'
+import { FuelTypes } from 'features/fbaCalculator/fuelTypes'
+import { fetchFireBehaviourStations } from 'features/fbaCalculator/slices/fbaCalculatorSlice'
 import {
   getRowsFromUrlParams,
   getMostRecentIdFromRows,
   getUrlParamsFromRows
-} from 'features/fireBehaviourCalculator/utils'
+} from 'features/fbaCalculator/utils'
 import { FBCStation } from 'api/fbCalcAPI'
 
-export const FireBehaviourCalculator: React.FunctionComponent = () => {
+export const FireBehaviourAdvisoryCalculator: React.FunctionComponent = () => {
   const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().toISODate())
 
   const { stations } = useSelector(selectFireWeatherStations)
@@ -45,7 +45,7 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
   const history = useHistory()
 
   const rowsFromQuery = getRowsFromUrlParams(location.search)
-  const [rows, setRows] = useState<FBCInputRow[]>(rowsFromQuery)
+  const [rows, setRows] = useState<FBAInputRow[]>(rowsFromQuery)
   const lastId = getMostRecentIdFromRows(rows)
 
   const [rowId, setRowId] = useState(lastId + 1)
@@ -87,7 +87,7 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
     setSelected([])
   }
 
-  const updateRow = (id: GridRowId, updatedRow: FBCInputRow, dispatchUpdate = true) => {
+  const updateRow = (id: GridRowId, updatedRow: FBAInputRow, dispatchUpdate = true) => {
     const newRows = [...rows]
 
     // rowId is the row array index
@@ -168,6 +168,7 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
           </FormControl>
           <FormControl className={classes.formControl}>
             <Button
+              data-testid="add-row"
               variant="contained"
               color="primary"
               spinnercolor="white"
@@ -178,6 +179,7 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
           </FormControl>
           <FormControl className={classes.formControl}>
             <Button
+              data-testid="remove-rows"
               disabled={rows.length === 0}
               variant="contained"
               color="primary"
@@ -193,7 +195,7 @@ export const FireBehaviourCalculator: React.FunctionComponent = () => {
           <CircularProgress className={classes.spinner} />
         ) : (
           <React.Fragment>
-            <FBCInputGrid
+            <FBAInputGrid
               stationOptions={stationMenuOptions}
               fuelTypeOptions={fuelTypeMenuOptions}
               inputRows={rows}
