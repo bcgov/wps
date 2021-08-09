@@ -2,7 +2,7 @@ import { TextField } from '@material-ui/core'
 import { ClassNameMap } from '@material-ui/core/styles/withStyles'
 import { FBAInputGridProps } from 'features/fbaCalculator/components/FBAInputGrid'
 import { buildUpdatedNumberRow, updateFBARow } from 'features/fbaCalculator/tableState'
-import { grassCureNotSetForGrassType } from 'features/fbaCalculator/utils'
+import { isGrassCureInvalid } from 'features/fbaCalculator/validation'
 import { isEqual, isNull, isUndefined } from 'lodash'
 import React, { ChangeEvent, useState } from 'react'
 
@@ -21,9 +21,9 @@ const GrassCureProps = (props: GrassCureCellProps) => {
     const stringInput = String(event.target.value)
     const numberInput = parseInt(stringInput)
     if (
-      !isUndefined(stringInput) &&
-      !isNull(stringInput) &&
-      !isNaN(numberInput) &&
+      isUndefined(stringInput) ||
+      isNull(stringInput) ||
+      isNaN(numberInput) ||
       stringInput.length <= 3
     ) {
       setGrassCurePercentage(parseInt(event.target.value))
@@ -38,7 +38,7 @@ const GrassCureProps = (props: GrassCureCellProps) => {
         'grassCure',
         grassCurePercentage
       )
-      const dispatchRequest = !grassCureNotSetForGrassType(updatedRow)
+      const dispatchRequest = !isGrassCureInvalid(updatedRow)
       updateFBARow(
         props.fbaInputGridProps,
         props.rowId,
@@ -56,9 +56,7 @@ const GrassCureProps = (props: GrassCureCellProps) => {
     }
   }
 
-  const hasError = grassCureNotSetForGrassType(
-    props.fbaInputGridProps.inputRows[props.rowId]
-  )
+  const hasError = isGrassCureInvalid(props.fbaInputGridProps.inputRows[props.rowId])
 
   return (
     <TextField

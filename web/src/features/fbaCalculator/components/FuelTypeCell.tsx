@@ -6,7 +6,7 @@ import {
   GridMenuOption
 } from 'features/fbaCalculator/components/FBAInputGrid'
 import { buildUpdatedOptionRow, updateFBARow } from 'features/fbaCalculator/tableState'
-import { grassCureNotSetForGrassType } from 'features/fbaCalculator/utils'
+import { isGrassCureInvalid } from 'features/fbaCalculator/validation'
 import { isEqual } from 'lodash'
 import React, { useState } from 'react'
 
@@ -32,7 +32,7 @@ const FuelTypeCell = (props: FuelTypeCellProps) => {
         'fuelType',
         value
       )
-      const dispatchRequest = !grassCureNotSetForGrassType(updatedRow)
+      const dispatchRequest = !isGrassCureInvalid(updatedRow)
       updateFBARow(
         props.fbaInputGridProps,
         props.rowId,

@@ -2,7 +2,8 @@ import { TextField } from '@material-ui/core'
 import { ClassNameMap } from '@material-ui/core/styles/withStyles'
 import { FBAInputGridProps } from 'features/fbaCalculator/components/FBAInputGrid'
 import { updateFBARow, buildUpdatedNumberRow } from 'features/fbaCalculator/tableState'
-import { isEqual } from 'lodash'
+import { isWindSpeedInvalid } from 'features/fbaCalculator/validation'
+import { isEqual, isNull, isUndefined } from 'lodash'
 import React, { ChangeEvent, useState, useEffect } from 'react'
 
 export interface WindSpeedCellProps {
@@ -20,17 +21,33 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
   }, [value])
 
   const changeHandler = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setWindSpeedValue(parseFloat(event.target.value))
+    const stringInput = String(event.target.value)
+    const numberInput = parseFloat(stringInput)
+    if (
+      isUndefined(stringInput) ||
+      isNull(stringInput) ||
+      isNaN(numberInput) ||
+      stringInput.split('.')[0].length <= 3
+    ) {
+      setWindSpeedValue(parseFloat(event.target.value))
+    }
   }
 
   const handlePossibleUpdate = () => {
     if (!isEqual(windSpeedValue, props.calculatedValue)) {
+      const updatedRow = buildUpdatedNumberRow(
+        props.fbaInputGridProps.inputRows[props.rowId],
+        'windSpeed',
+        windSpeedValue
+      )
+      const dispatchRequest = !isWindSpeedInvalid(updatedRow)
       updateFBARow(
         props.fbaInputGridProps,
         props.rowId,
         'windSpeed',
         windSpeedValue,
-        buildUpdatedNumberRow
+        buildUpdatedNumberRow,
+        dispatchRequest
       )
     }
   }
@@ -40,6 +57,8 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
       handlePossibleUpdate()
     }
   }
+
+  const hasError = isWindSpeedInvalid(props.fbaInputGridProps.inputRows[props.rowId])
 
   return (
     <TextField
@@ -54,6 +73,7 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
       onBlur={handlePossibleUpdate}
       onKeyDown={enterHandler}
       value={windSpeedValue}
+      error={hasError}
     />
   )
 }
