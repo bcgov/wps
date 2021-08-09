@@ -1,4 +1,4 @@
-import { TextField } from '@material-ui/core'
+import { TextField, Tooltip } from '@material-ui/core'
 import { ClassNameMap } from '@material-ui/core/styles/withStyles'
 import { FBAInputGridProps } from 'features/fbaCalculator/components/FBAInputGrid'
 import { buildUpdatedNumberRow, updateFBARow } from 'features/fbaCalculator/tableState'
@@ -59,20 +59,22 @@ const GrassCureProps = (props: GrassCureCellProps) => {
   const hasError = isGrassCureInvalid(props.fbaInputGridProps.inputRows[props.rowId])
 
   return (
-    <TextField
-      data-testid={`grassCureInput-${props.rowId}`}
-      type="number"
-      inputMode="numeric"
-      className={props.classNameMap.grassCure}
-      size="small"
-      variant="outlined"
-      inputProps={{ min: 0, max: 100 }}
-      onChange={changeHandler}
-      onBlur={handlePossibleUpdate}
-      onKeyDown={enterHandler}
-      value={grassCurePercentage}
-      error={hasError}
-    />
+    <Tooltip title="Cannot exceed 100" aria-label="cannot-exceed-100">
+      <TextField
+        data-testid={`grassCureInput-${props.rowId}`}
+        type="number"
+        inputMode="numeric"
+        className={props.classNameMap.grassCure}
+        size="small"
+        variant="outlined"
+        inputProps={{ min: 0, max: 100 }}
+        onChange={changeHandler}
+        onBlur={handlePossibleUpdate}
+        onKeyDown={enterHandler}
+        value={grassCurePercentage}
+        error={hasError}
+      />
+    </Tooltip>
   )
 }
 

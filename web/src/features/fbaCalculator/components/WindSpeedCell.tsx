@@ -1,4 +1,4 @@
-import { TextField } from '@material-ui/core'
+import { TextField, Tooltip } from '@material-ui/core'
 import { ClassNameMap } from '@material-ui/core/styles/withStyles'
 import { FBAInputGridProps } from 'features/fbaCalculator/components/FBAInputGrid'
 import { updateFBARow, buildUpdatedNumberRow } from 'features/fbaCalculator/tableState'
@@ -35,12 +35,7 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
 
   const handlePossibleUpdate = () => {
     if (!isEqual(windSpeedValue, props.calculatedValue)) {
-      const updatedRow = buildUpdatedNumberRow(
-        props.fbaInputGridProps.inputRows[props.rowId],
-        'windSpeed',
-        windSpeedValue
-      )
-      const dispatchRequest = !isWindSpeedInvalid(updatedRow)
+      const dispatchRequest = !isWindSpeedInvalid(windSpeedValue)
       updateFBARow(
         props.fbaInputGridProps,
         props.rowId,
@@ -58,23 +53,25 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
     }
   }
 
-  const hasError = isWindSpeedInvalid(props.fbaInputGridProps.inputRows[props.rowId])
+  const hasError = isWindSpeedInvalid(windSpeedValue)
 
   return (
-    <TextField
-      data-testid={`windSpeedInput-${props.rowId}`}
-      type="number"
-      inputMode="numeric"
-      className={props.classNameMap.windSpeed}
-      size="small"
-      variant="outlined"
-      inputProps={{ min: 0, max: 100, step: 'any' }}
-      onChange={changeHandler}
-      onBlur={handlePossibleUpdate}
-      onKeyDown={enterHandler}
-      value={windSpeedValue}
-      error={hasError}
-    />
+    <Tooltip title="Cannot exceed 120" aria-label="cannot-exceed-120">
+      <TextField
+        data-testid={`windSpeedInput-${props.rowId}`}
+        type="number"
+        inputMode="numeric"
+        className={props.classNameMap.windSpeed}
+        size="small"
+        variant="outlined"
+        inputProps={{ min: 0, max: 120, step: 'any' }}
+        onChange={changeHandler}
+        onBlur={handlePossibleUpdate}
+        onKeyDown={enterHandler}
+        value={windSpeedValue}
+        error={hasError}
+      />
+    </Tooltip>
   )
 }
 

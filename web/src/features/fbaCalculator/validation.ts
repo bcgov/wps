@@ -16,7 +16,7 @@ export const isGrassCureInvalid = (row: FBAInputRow): boolean => {
   if (row.fuelType === 'o1a' || row.fuelType === 'o1b') {
     notSet = _.isUndefined(row.grassCure) || isNaN(row.grassCure)
   }
-  return notSet || isGreaterThan100(row.grassCure)
+  return notSet || isGreaterThan(row.grassCure)
 }
 
 /**
@@ -24,16 +24,16 @@ export const isGrassCureInvalid = (row: FBAInputRow): boolean => {
  * @param row the input row to check against
  * @returns true if wind speed is greater than 100 (km/hr), false otherwise
  */
-export const isWindSpeedInvalid = (row: FBAInputRow): boolean => {
-  if (_.isUndefined(row)) {
+export const isWindSpeedInvalid = (windSpeed: number | undefined): boolean => {
+  if (_.isUndefined(windSpeed)) {
     return false
   }
-  return isGreaterThan100(row.windSpeed)
+  return isGreaterThan(windSpeed, 120)
 }
 
-export const isGreaterThan100 = (input: number | undefined): boolean => {
+export const isGreaterThan = (input: number | undefined, limit = 100): boolean => {
   if (!_.isUndefined(input) && !isNull(input)) {
-    return input > 100
+    return input > limit
   }
   return false
 }
