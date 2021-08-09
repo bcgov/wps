@@ -55,6 +55,7 @@ const GrassCureProps = (props: GrassCureCellProps) => {
     <TextField
       data-testid={`grassCureInput-${props.rowId}`}
       type="number"
+      inputMode="numeric"
       className={props.classNameMap.grassCure}
       size="small"
       variant="outlined"
