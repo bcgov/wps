@@ -16,7 +16,6 @@ describe('WindSpeedCell', () => {
         /** no op */
       }
     },
-    classNameMap: { windSpeed: '' },
     inputValue: inputRow.windSpeed,
     calculatedValue,
     rowId: 0
