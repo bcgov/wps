@@ -60,12 +60,28 @@ describe('WindSpeedCell', () => {
     expect(screen.getByTestId('windSpeedInput-0').firstChild?.firstChild).toHaveValue(120)
     expect(screen.getByTestId('windSpeedInput-0').firstChild).not.toHaveClass('Mui-error')
   })
-  it('should not return field in error state when wind speed is set to float under 100', () => {
-    const row = buildInputRow(99.9)
+  it('should not return field in error state when wind speed is set to float under 120', () => {
+    const row = buildInputRow(119.9)
     const props = buildProps(row)
     render(<WindSpeedCell {...props} />)
     expect(screen.getByTestId('windSpeedInput-0').firstChild?.firstChild).toHaveValue(
-      99.9
+      119.9
     )
+  })
+  it('should return field with adjusted border color and weight when there is an input value', () => {
+    const row = buildInputRow(1)
+    const props = buildProps(row)
+    render(<WindSpeedCell {...props} />)
+    expect(screen.getByTestId('windSpeedInput-0').firstChild).toHaveStyle({
+      border: '2px solid #460270'
+    })
+  })
+  it('should return field without adjusted border color and weight when there is no input value', () => {
+    const row = buildInputRow(undefined)
+    const props = buildProps(row)
+    render(<WindSpeedCell {...props} />)
+    expect(screen.getByTestId('windSpeedInput-0').firstChild).toHaveStyle({
+      border: ''
+    })
   })
 })
