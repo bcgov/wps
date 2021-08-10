@@ -167,7 +167,7 @@ def generate_station_daily(raw_daily, station: WFWXWeatherStation, fuel_type: st
 
     hfi = None
     try:
-        if sfc is not None and ros is not None and cfb is not None:
+        if ros is not None and cfb is not None:
             hfi = cffdrs.head_fire_intensity(fuel_type=fuel_type,
                                              percentage_conifer=pc,
                                              percentage_dead_balsam_fir=pdf,
