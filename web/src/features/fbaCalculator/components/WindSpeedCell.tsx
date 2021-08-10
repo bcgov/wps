@@ -1,5 +1,5 @@
-import { TextField, Tooltip } from '@material-ui/core'
-import { ClassNameMap } from '@material-ui/core/styles/withStyles'
+import { TextField, Tooltip, makeStyles } from '@material-ui/core'
+import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles'
 import { FBAInputGridProps } from 'features/fbaCalculator/components/FBAInputGrid'
 import { updateFBARow, buildUpdatedNumberRow } from 'features/fbaCalculator/tableState'
 import { isWindSpeedInvalid } from 'features/fbaCalculator/validation'
@@ -8,12 +8,29 @@ import React, { ChangeEvent, useState, useEffect } from 'react'
 
 export interface WindSpeedCellProps {
   fbaInputGridProps: Pick<FBAInputGridProps, 'stationOptions' | 'inputRows' | 'updateRow'>
-  classNameMap: ClassNameMap<'windSpeed'>
   inputValue: number | undefined
   calculatedValue: number | undefined
   rowId: number
 }
+
+const useStyles = makeStyles({
+  windSpeed: {
+    width: 80
+  }
+})
+
+const adjustedTheme = createMuiTheme({
+  overrides: {
+    MuiInputBase: {
+      root: {
+        border: '2px solid #460270'
+      }
+    }
+  }
+})
+
 const WindSpeedCell = (props: WindSpeedCellProps) => {
+  const classes = useStyles()
   const value = props.calculatedValue ? props.calculatedValue : props.inputValue
   const [windSpeedValue, setWindSpeedValue] = useState(value)
   useEffect(() => {
@@ -55,13 +72,13 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
 
   const hasError = isWindSpeedInvalid(windSpeedValue)
 
-  return (
+  const buildTextField = () => (
     <Tooltip title="Cannot exceed 120" aria-label="cannot-exceed-120">
       <TextField
         data-testid={`windSpeedInput-${props.rowId}`}
         type="number"
         inputMode="numeric"
-        className={props.classNameMap.windSpeed}
+        className={classes.windSpeed}
         size="small"
         variant="outlined"
         inputProps={{ min: 0, max: 120, step: 'any' }}
@@ -72,6 +89,12 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
         error={hasError}
       />
     </Tooltip>
+  )
+
+  return props.inputValue && !hasError ? (
+    <ThemeProvider theme={adjustedTheme}>{buildTextField()}</ThemeProvider>
+  ) : (
+    buildTextField()
   )
 }
 
