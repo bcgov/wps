@@ -11,6 +11,7 @@ from app.utils.dewpoint import compute_dewpoint
 from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.schemas.observations import WeatherReading
 from app.schemas.hfi_calc import StationDaily
+from app.utils.fba_calculator import calculate_cfb
 from app.utils.hfi_calculator import FUEL_TYPE_LOOKUP
 from app.utils.time import get_julian_date_now
 from app.wildfire_one.util import is_station_valid, get_zone_code_prefix
@@ -130,6 +131,7 @@ def generate_station_daily(raw_daily, station: WFWXWeatherStation, fuel_type: st
     pc = FUEL_TYPE_LOOKUP[fuel_type]["PC"]
     pdf = FUEL_TYPE_LOOKUP[fuel_type]["PDF"]
     cbh = FUEL_TYPE_LOOKUP[fuel_type]["CBH"]
+    cfl = FUEL_TYPE_LOOKUP[fuel_type]["CFL"]
 
     isi = raw_daily.get('initialSpreadIndex', None)
     bui = raw_daily.get('buildUpIndex', None)
@@ -144,6 +146,13 @@ def generate_station_daily(raw_daily, station: WFWXWeatherStation, fuel_type: st
                                 cc=cc,
                                 pdf=pdf,
                                 cbh=cbh)
+
+    cfb = calculate_cfb(fuel_type, fmc, sfc, ros, cbh)
+
+    hfi = cffdrs.head_fire_intensity(fuel_type=fuel_type,
+                                     percentage_conifer=pc,
+                                     percentage_dead_balsam_fir=pdf,
+                                     ros=ros, cfb=cfb, cfl=cfl, sfc=sfc)
     return StationDaily(
         code=station.code,
         status="Observed" if raw_daily.get('recordType', '').get('id') == 'ACTUAL' else "Forecasted",
@@ -161,8 +170,9 @@ def generate_station_daily(raw_daily, station: WFWXWeatherStation, fuel_type: st
         isi=isi,
         bui=bui,
         rate_of_spread=ros,
+        hfi=hfi,
         observation_valid=raw_daily.get('observationValidInd', None),
-        observation_valid_comment=raw_daily.get('observationValidComment', None)
+        observation_valid_comment=raw_daily.get('observationValidComment', None),
     )
 
 
