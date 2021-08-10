@@ -48,6 +48,15 @@ export interface FBCInputRow {
   windSpeed: number | undefined
 }
 
+enum SortByColumn {
+  Zone,
+  Station,
+  FuelType,
+  ISI,
+  HFI,
+  WindSpeed
+}
+
 const useStyles = makeStyles({
   display: {
     paddingBottom: 12,
@@ -89,30 +98,34 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
   )
 
   const [headerSelected, setHeaderSelect] = useState<boolean>(false)
-  const [zoneOrder, setZoneOrder] = useState<Order>('desc')
-  const [fuelTypeOrder, setFuelTypeOrder] = useState<Order>('desc')
-  const [isiOrder, setIsiOrder] = useState<Order>('desc')
-  const [hfiOrder, setHfiOrder] = useState<Order>('desc')
-  const [windSpeedOrder, setWindSpeedOrder] = useState<Order>('desc')
-  const [stationNameOrder, setStationNameOrder] = useState<Order>('desc')
+  const [order, setOrder] = useState<Order>('desc')
+  const [sortByColumn, setSortByColumn] = useState<SortByColumn>(SortByColumn.Station)
 
-  const toggleZoneOrder = () => {
-    setZoneOrder(zoneOrder === 'asc' ? 'desc' : 'asc')
+  const toggleSortZone = () => {
+    toggleSorting(SortByColumn.Zone)
   }
-  const toggleFuelTypeOrder = () => {
-    setFuelTypeOrder(fuelTypeOrder === 'asc' ? 'desc' : 'asc')
+  const toggleSortStation = () => {
+    toggleSorting(SortByColumn.Station)
   }
-  const toggleIsiOrder = () => {
-    setIsiOrder(isiOrder === 'asc' ? 'desc' : 'asc')
+  const toggleSortFuelType = () => {
+    toggleSorting(SortByColumn.FuelType)
   }
-  const toggleHfiOrder = () => {
-    setHfiOrder(hfiOrder === 'asc' ? 'desc' : 'asc')
+  const toggleSortWindSpeed = () => {
+    toggleSorting(SortByColumn.WindSpeed)
   }
-  const toggleWindSpeedOrder = () => {
-    setWindSpeedOrder(windSpeedOrder === 'asc' ? 'desc' : 'asc')
+  const toggleSortISI = () => {
+    toggleSorting(SortByColumn.ISI)
   }
-  const toggleStationNameOrder = () => {
-    setStationNameOrder(stationNameOrder === 'asc' ? 'desc' : 'asc')
+  const toggleSortHFI = () => {
+    toggleSorting(SortByColumn.HFI)
+  }
+
+  const toggleSorting = (selectedColumn: SortByColumn) => {
+    if (sortByColumn !== selectedColumn) {
+      setSortByColumn(selectedColumn)
+    } else {
+      setOrder(order === 'asc' ? 'desc' : 'asc')
+    }
   }
 
   const buildStationOption = (value: string | undefined) => {
@@ -177,6 +190,53 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
   ).flat()
   const DECIMAL_PLACES = 1
 
+  const stringComparator = (a: string | undefined, b: string | undefined): number => {
+    if (a === undefined || b === undefined) {
+      return 0
+    }
+    const diff = a.localeCompare(b)
+    return order === 'asc' ? diff : -diff
+  }
+  const numericComparator = (a: number | undefined, b: number | undefined): number => {
+    if (a === undefined || b === undefined) {
+      return 0
+    }
+    const diff = a - b
+    return order === 'asc' ? diff : -diff
+  }
+
+  const sortRows = (tableRows: FBCTableRow[]) => {
+    switch (sortByColumn) {
+      case SortByColumn.Zone: {
+        return tableRows.sort((a, b) => stringComparator(a.zone_code, b.zone_code))
+      }
+      case SortByColumn.Station: {
+        return tableRows.sort((a, b) => stringComparator(a.station_name, b.station_name))
+      }
+      case SortByColumn.FuelType: {
+        return tableRows.sort((a, b) => stringComparator(a.fuel_type, b.fuel_type))
+      }
+      case SortByColumn.HFI: {
+        return tableRows.sort((a, b) =>
+          numericComparator(a.head_fire_intensity, b.head_fire_intensity)
+        )
+      }
+      case SortByColumn.ISI: {
+        return tableRows.sort((a, b) =>
+          numericComparator(a.initial_spread_index, b.initial_spread_index)
+        )
+      }
+      case SortByColumn.WindSpeed: {
+        return tableRows.sort((a, b) => numericComparator(a.wind_speed, b.wind_speed))
+      }
+      default: {
+        return tableRows
+      }
+    }
+  }
+
+  const sortedRows = sortRows(rows)
+
   return (
     <div className={classes.display} data-testid={props.testId}>
       <Paper className={classes.paper} elevation={1}>
@@ -200,16 +260,13 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
                     }}
                   />
                 </TableCell>
-                <TableCell key="header-zone" sortDirection={zoneOrder}>
-                  <TableSortLabel direction={zoneOrder} onClick={toggleZoneOrder}>
+                <TableCell key="header-zone" sortDirection={order}>
+                  <TableSortLabel direction={order} onClick={toggleSortZone}>
                     Zone
                   </TableSortLabel>
                 </TableCell>
-                <TableCell key="header-location">
-                  <TableSortLabel
-                    direction={stationNameOrder}
-                    onClick={toggleStationNameOrder}
-                  >
+                <TableCell key="header-location" sortDirection={order}>
+                  <TableSortLabel direction={order} onClick={toggleSortStation}>
                     Weather Station
                   </TableSortLabel>
                 </TableCell>
@@ -218,8 +275,8 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
                   <br />
                   (m)
                 </TableCell>
-                <TableCell sortDirection={fuelTypeOrder} key="header-fuel-type">
-                  <TableSortLabel direction={fuelTypeOrder} onClick={toggleFuelTypeOrder}>
+                <TableCell sortDirection={order} key="header-fuel-type">
+                  <TableSortLabel direction={order} onClick={toggleSortFuelType}>
                     FBP
                     <br />
                     Fuel
@@ -252,11 +309,8 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
                   <br />
                   (&deg;)
                 </TableCell>
-                <TableCell sortDirection={windSpeedOrder} className={classes.windSpeed}>
-                  <TableSortLabel
-                    direction={windSpeedOrder}
-                    onClick={toggleWindSpeedOrder}
-                  >
+                <TableCell sortDirection={order} className={classes.windSpeed}>
+                  <TableSortLabel direction={order} onClick={toggleSortWindSpeed}>
                     {'Wind Speed (km/h)'}
                     <Tooltip title="Leave this empty to calculate forecasted/observed wind speed. Add a custom wind speed to influence the calculations">
                       <InfoIcon aria-label="info"></InfoIcon>
@@ -271,15 +325,15 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
                 <TableCell>FFMC</TableCell>
                 <TableCell>DMC</TableCell>
                 <TableCell>DC</TableCell>
-                <TableCell sortDirection={isiOrder}>
-                  <TableSortLabel direction={isiOrder} onClick={toggleIsiOrder}>
+                <TableCell sortDirection={order}>
+                  <TableSortLabel direction={order} onClick={toggleSortISI}>
                     ISI
                   </TableSortLabel>
                 </TableCell>
                 <TableCell>BUI</TableCell>
                 <TableCell>FWI</TableCell>
-                <TableCell sortDirection={hfiOrder}>
-                  <TableSortLabel direction={hfiOrder} onClick={toggleHfiOrder}>
+                <TableCell sortDirection={order}>
+                  <TableSortLabel direction={order} onClick={toggleSortHFI}>
                     HFI
                   </TableSortLabel>
                 </TableCell>
@@ -321,7 +375,9 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {rows.map((row, ri) => {
+              {sortedRows.map((row, ri) => {
+                console.log(ri)
+                console.log(row)
                 return (
                   <TableRow key={ri}>
                     <TableCell>
