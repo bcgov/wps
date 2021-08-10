@@ -16,9 +16,6 @@ export interface WindSpeedCellProps {
 const useStyles = makeStyles({
   windSpeed: {
     width: 80
-  },
-  adjustedValueCell: {
-    border: '2px solid #460270'
   }
 })
 

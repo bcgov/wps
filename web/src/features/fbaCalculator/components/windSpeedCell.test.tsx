@@ -20,10 +20,6 @@ describe('WindSpeedCell', () => {
     calculatedValue,
     rowId: 0
   })
-  interface WindSpeedInput {
-    windSpeed: number | undefined
-    calculatedWindSpeed: number | undefined
-  }
   const buildInputRow = (windSpeed: number | undefined) => ({
     id: 0,
     weatherStation: undefined,

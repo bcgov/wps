@@ -74,7 +74,8 @@ const useStyles = makeStyles({
     maxWidth: 1900
   },
   adjustedValueCell: {
-    fontWeight: 'bold'
+    fontWeight: 'bold',
+    color: '#460270'
   }
 })
 
@@ -313,14 +314,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                     <TableCell>{row.temp}</TableCell>
                     <TableCell>{row.rh}</TableCell>
                     <TableCell>{row.wind_direction}</TableCell>
-                    <TableCell
-                      className={
-                        !isUndefined(row.status) &&
-                        row.status.toLowerCase() === 'adjusted'
-                          ? classes.adjustedValueCell
-                          : undefined
-                      }
-                    >
+                    <TableCell>
                       <WindSpeedCell
                         fbaInputGridProps={props}
                         inputValue={row.windSpeed}
