@@ -137,22 +137,44 @@ def generate_station_daily(raw_daily, station: WFWXWeatherStation, fuel_type: st
     bui = raw_daily.get('buildUpIndex', None)
     ffmc = raw_daily.get('fineFuelMoistureCode', None)
     fmc = cffdrs.foliar_moisture_content(station.lat, station.long, station.elevation, get_julian_date_now())
-    sfc = cffdrs.surface_fuel_consumption(fuel_type, bui, ffmc, pc)
+
+    sfc = None
+    try:
+        sfc = cffdrs.surface_fuel_consumption(fuel_type, bui, ffmc, pc)
+    except cffdrs.CFFDRSException as exception:
+        logger.error(exception, exc_info=True)
 
     cc = raw_daily.get('grasslandCuring')
     if cc is None:
         cc = FUEL_TYPE_LOOKUP[fuel_type]["CC"]
-    ros = cffdrs.rate_of_spread(fuel_type, isi, bui, fmc, sfc, pc=pc,
-                                cc=cc,
-                                pdf=pdf,
-                                cbh=cbh)
 
-    cfb = calculate_cfb(fuel_type, fmc, sfc, ros, cbh)
+    ros = None
+    try:
+        if sfc is not None:
+            ros = cffdrs.rate_of_spread(fuel_type, isi, bui, fmc, sfc, pc=pc,
+                                        cc=cc,
+                                        pdf=pdf,
+                                        cbh=cbh)
+    except cffdrs.CFFDRSException as exception:
+        logger.error(exception, exc_info=True)
 
-    hfi = cffdrs.head_fire_intensity(fuel_type=fuel_type,
-                                     percentage_conifer=pc,
-                                     percentage_dead_balsam_fir=pdf,
-                                     ros=ros, cfb=cfb, cfl=cfl, sfc=sfc)
+    cfb = None
+    try:
+        if sfc is not None:
+            cfb = calculate_cfb(fuel_type, fmc, sfc, ros, cbh)
+    except cffdrs.CFFDRSException as exception:
+        logger.error(exception, exc_info=True)
+
+    hfi = None
+    try:
+        if sfc is not None and ros is not None and cfb is not None:
+            hfi = cffdrs.head_fire_intensity(fuel_type=fuel_type,
+                                             percentage_conifer=pc,
+                                             percentage_dead_balsam_fir=pdf,
+                                             ros=ros, cfb=cfb, cfl=cfl, sfc=sfc)
+    except cffdrs.CFFDRSException as exception:
+        logger.error(exception, exc_info=True)
+
     return StationDaily(
         code=station.code,
         status="Observed" if raw_daily.get('recordType', '').get('id') == 'ACTUAL' else "Forecasted",
