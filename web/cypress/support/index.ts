@@ -16,6 +16,7 @@
 // Import commands.js using ES2015 syntax:
 import './commands'
 import './percentile-commands'
+import './fba-commands'
 import '@cypress/code-coverage/support'
 
 Cypress.Commands.add('getByTestId', (id: string) => {
