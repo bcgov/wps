@@ -167,7 +167,7 @@ def generate_station_daily(raw_daily, station: WFWXWeatherStation, fuel_type: st
 
     hfi = None
     try:
-        if ros is not None and cfb is not None:
+        if ros is not None and cfb is not None and cfl is not None:
             hfi = cffdrs.head_fire_intensity(fuel_type=fuel_type,
                                              percentage_conifer=pc,
                                              percentage_dead_balsam_fir=pdf,
@@ -177,7 +177,7 @@ def generate_station_daily(raw_daily, station: WFWXWeatherStation, fuel_type: st
 
     return StationDaily(
         code=station.code,
-        status="Observed" if raw_daily.get('recordType', '').get('id') == 'ACTUAL' else "Forecasted",
+        status=raw_daily.get('recordType', '').get('id', None),
         temperature=raw_daily.get('temperature', None),
         relative_humidity=raw_daily.get('relativeHumidity', None),
         wind_speed=raw_daily.get('windSpeed', None),
