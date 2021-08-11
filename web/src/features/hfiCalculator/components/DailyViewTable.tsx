@@ -159,6 +159,7 @@ const DailyViewTable = (props: Props) => {
                   <br />
                   (m/min)
                 </TableCell>
+                <TableCell>HFI</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -231,6 +232,9 @@ const DailyViewTable = (props: Props) => {
                                     <TableCell>{daily?.danger_class}</TableCell>
                                     <TableCell>
                                       {daily?.rate_of_spread?.toFixed(DECIMAL_PLACES)}
+                                    </TableCell>
+                                    <TableCell>
+                                      {daily?.hfi?.toFixed(DECIMAL_PLACES)}
                                     </TableCell>
                                   </TableRow>
                                 )

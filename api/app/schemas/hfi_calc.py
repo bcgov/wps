@@ -24,6 +24,7 @@ class StationDaily(BaseModel):
     observation_valid: Optional[bool] = None
     observation_valid_comment: Optional[str] = None
     rate_of_spread: Optional[float] = None
+    hfi: Optional[float] = None
 
 
 class StationDailyResponse(BaseModel):

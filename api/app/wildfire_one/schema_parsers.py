@@ -11,6 +11,7 @@ from app.utils.dewpoint import compute_dewpoint
 from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.schemas.observations import WeatherReading
 from app.schemas.hfi_calc import StationDaily
+from app.utils.fba_calculator import calculate_cfb
 from app.utils.hfi_calculator import FUEL_TYPE_LOOKUP
 from app.utils.time import get_julian_date_now
 from app.wildfire_one.util import is_station_valid, get_zone_code_prefix
@@ -130,23 +131,53 @@ def generate_station_daily(raw_daily, station: WFWXWeatherStation, fuel_type: st
     pc = FUEL_TYPE_LOOKUP[fuel_type]["PC"]
     pdf = FUEL_TYPE_LOOKUP[fuel_type]["PDF"]
     cbh = FUEL_TYPE_LOOKUP[fuel_type]["CBH"]
+    cfl = FUEL_TYPE_LOOKUP[fuel_type]["CFL"]
 
     isi = raw_daily.get('initialSpreadIndex', None)
     bui = raw_daily.get('buildUpIndex', None)
     ffmc = raw_daily.get('fineFuelMoistureCode', None)
     fmc = cffdrs.foliar_moisture_content(station.lat, station.long, station.elevation, get_julian_date_now())
-    sfc = cffdrs.surface_fuel_consumption(fuel_type, bui, ffmc, pc)
+
+    sfc = None
+    try:
+        sfc = cffdrs.surface_fuel_consumption(fuel_type, bui, ffmc, pc)
+    except cffdrs.CFFDRSException as exception:
+        logger.error(exception, exc_info=True)
 
     cc = raw_daily.get('grasslandCuring')
     if cc is None:
         cc = FUEL_TYPE_LOOKUP[fuel_type]["CC"]
-    ros = cffdrs.rate_of_spread(fuel_type, isi, bui, fmc, sfc, pc=pc,
-                                cc=cc,
-                                pdf=pdf,
-                                cbh=cbh)
+
+    ros = None
+    try:
+        if sfc is not None:
+            ros = cffdrs.rate_of_spread(fuel_type, isi, bui, fmc, sfc, pc=pc,
+                                        cc=cc,
+                                        pdf=pdf,
+                                        cbh=cbh)
+    except cffdrs.CFFDRSException as exception:
+        logger.error(exception, exc_info=True)
+
+    cfb = None
+    try:
+        if sfc is not None:
+            cfb = calculate_cfb(fuel_type, fmc, sfc, ros, cbh)
+    except cffdrs.CFFDRSException as exception:
+        logger.error(exception, exc_info=True)
+
+    hfi = None
+    try:
+        if ros is not None and cfb is not None and cfl is not None:
+            hfi = cffdrs.head_fire_intensity(fuel_type=fuel_type,
+                                             percentage_conifer=pc,
+                                             percentage_dead_balsam_fir=pdf,
+                                             ros=ros, cfb=cfb, cfl=cfl, sfc=sfc)
+    except cffdrs.CFFDRSException as exception:
+        logger.error(exception, exc_info=True)
+
     return StationDaily(
         code=station.code,
-        status="Observed" if raw_daily.get('recordType', '').get('id') == 'ACTUAL' else "Forecasted",
+        status=raw_daily.get('recordType', '').get('id', None),
         temperature=raw_daily.get('temperature', None),
         relative_humidity=raw_daily.get('relativeHumidity', None),
         wind_speed=raw_daily.get('windSpeed', None),
@@ -161,8 +192,9 @@ def generate_station_daily(raw_daily, station: WFWXWeatherStation, fuel_type: st
         isi=isi,
         bui=bui,
         rate_of_spread=ros,
+        hfi=hfi,
         observation_valid=raw_daily.get('observationValidInd', None),
-        observation_valid_comment=raw_daily.get('observationValidComment', None)
+        observation_valid_comment=raw_daily.get('observationValidComment', None),
     )
 
 
