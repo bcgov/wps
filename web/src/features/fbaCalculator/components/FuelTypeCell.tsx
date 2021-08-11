@@ -8,7 +8,7 @@ import {
 import { buildUpdatedOptionRow, updateFBARow } from 'features/fbaCalculator/tableState'
 import { isGrassCureInvalid } from 'features/fbaCalculator/validation'
 import { isEqual } from 'lodash'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 interface FuelTypeCellProps {
   fbaInputGridProps: Pick<
@@ -22,6 +22,7 @@ interface FuelTypeCellProps {
 const emptyLabel = 'Select a fuel type'
 const FuelTypeCell = (props: FuelTypeCellProps) => {
   const [selectedFuelType, setSelectedFuelType] = useState(props.value)
+  useEffect(() => setSelectedFuelType(props.value), [props])
 
   // eslint-disable-next-line
   const changeHandler = (_: React.ChangeEvent<{}>, value: any | null) => {

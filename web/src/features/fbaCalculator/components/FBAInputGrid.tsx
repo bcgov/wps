@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { isNull, isUndefined, zipWith } from 'lodash'
+import _ from 'lodash'
 import {
   Checkbox,
   makeStyles,
@@ -191,44 +192,25 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
   ).flat()
   const DECIMAL_PLACES = 1
 
-  const stringComparator = (a: string | undefined, b: string | undefined): number => {
-    if (a === undefined || b === undefined) {
-      return 0
-    }
-    const diff = a.localeCompare(b)
-    return order === 'asc' ? diff : -diff
-  }
-  const numericComparator = (a: number | undefined, b: number | undefined): number => {
-    if (a === undefined || b === undefined) {
-      return 0
-    }
-    const diff = a - b
-    return order === 'asc' ? diff : -diff
-  }
-
   const sortRows = (tableRows: FBCTableRow[]) => {
     switch (sortByColumn) {
       case SortByColumn.Zone: {
-        return tableRows.sort((a, b) => stringComparator(a.zone_code, b.zone_code))
+        return _.orderBy(tableRows, 'zone_code', order)
       }
       case SortByColumn.Station: {
-        return tableRows.sort((a, b) => stringComparator(a.station_name, b.station_name))
+        return _.orderBy(tableRows, 'station_name', order)
       }
       case SortByColumn.FuelType: {
-        return tableRows.sort((a, b) => stringComparator(a.fuel_type, b.fuel_type))
+        return _.orderBy(tableRows, 'fuel_type', order)
       }
       case SortByColumn.HFI: {
-        return tableRows.sort((a, b) =>
-          numericComparator(a.head_fire_intensity, b.head_fire_intensity)
-        )
+        return _.orderBy(tableRows, 'head_fire_intensity', order)
       }
       case SortByColumn.ISI: {
-        return tableRows.sort((a, b) =>
-          numericComparator(a.initial_spread_index, b.initial_spread_index)
-        )
+        return _.orderBy(tableRows, 'initial_spread_index', order)
       }
       case SortByColumn.WindSpeed: {
-        return tableRows.sort((a, b) => numericComparator(a.wind_speed, b.wind_speed))
+        return _.orderBy(tableRows, 'wind_speed', order)
       }
       default: {
         return tableRows
