@@ -6,7 +6,7 @@ from app.db.crud.hfi_calc import get_all_stations
 from app.db.database import get_read_session_scope
 
 
-# PC, PDF, CC, CDH from the Red Book. Assumes values of 1 CBH.
+# PC, PDF, CC, CDH, CBH from the Red Book where applicable.
 # CC: Assume values of None for non grass types, and 0 for O1A and O1B.
 # TODO: Store then in the DB as columns in FuelType
 # CFL is based on Table 8, page 35, of "Development and Structure of the Canadian Forest Fire Behaviour
