@@ -38,7 +38,7 @@ bower_components
 web/build/
 
 # Dependency directories
-web/node_modules/
+node_modules/
 web/jspm_packages/
 web/.pnp
 web/.pnp.js

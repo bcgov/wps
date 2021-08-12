@@ -1,0 +1,15 @@
+{
+  "name": "pr-test-url",
+  "version": "1.0.0",
+  "description": "Action to add test url to PR",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "ncc build -o out"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@vercel/ncc": "^0.29.0"
+  }
+}
