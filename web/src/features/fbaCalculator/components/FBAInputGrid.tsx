@@ -408,11 +408,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                       <WindSpeedCell
                         fbaInputGridProps={props}
                         inputValue={row.windSpeed}
-                        calculatedValue={
-                          calculatedResults.length > 0 && ri < calculatedResults.length
-                            ? calculatedResults[ri].wind_speed
-                            : undefined
-                        }
+                        calculatedValue={sortedRows[ri].wind_speed}
                         rowId={ri}
                       />
                     </TableCell>
