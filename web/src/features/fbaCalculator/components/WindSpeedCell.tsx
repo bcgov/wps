@@ -35,12 +35,7 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
   const [windSpeedValue, setWindSpeedValue] = useState(value)
   useEffect(() => {
     setWindSpeedValue(value)
-  }, [value])
-  useEffect(
-    () =>
-      setWindSpeedValue(props.calculatedValue ? props.calculatedValue : props.inputValue),
-    [props]
-  )
+  }, [props])
 
   const changeHandler = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const stringInput = String(event.target.value)
