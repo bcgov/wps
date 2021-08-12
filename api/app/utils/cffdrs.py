@@ -8,6 +8,7 @@ import rpy2.robjects.conversion as cv
 from rpy2.rinterface import NULL
 import app.utils.r_importer
 from app.utils.singleton import Singleton
+from pycffdrs.buiCalc import buiCalc
 
 
 logger = logging.getLogger(__name__)
@@ -246,8 +247,9 @@ def bui_calc(dmc: float, dc: float):  # pylint: disable=invalid-name
     # Returns: A single bui value
     """
     # pylint: disable=protected-access, no-member
-    result = CFFDRS.instance().cffdrs._buiCalc(dmc=dmc, dc=dc)
-    return result[0]
+    # result = CFFDRS.instance().cffdrs._buiCalc(dmc=dmc, dc=dc)
+    # return result[0]
+    return buiCalc(dmc, dc)
 
 
 def rate_of_spread_t(fuel_type: str,
