@@ -12,7 +12,7 @@ from app.utils.dewpoint import compute_dewpoint
 from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.schemas.observations import WeatherReading
 from app.schemas.hfi_calc import StationDaily
-from app.utils.fuel_types import FUEL_TYPE_LOOKUP
+from app.utils.fuel_types import FUEL_TYPE_DEFAULTS
 from app.utils.time import get_julian_date_now
 from app.wildfire_one.util import is_station_valid, get_zone_code_prefix
 
@@ -128,9 +128,9 @@ def generate_station_daily(raw_daily, station: WFWXWeatherStation, fuel_type: st
     """
     # pylint: disable=invalid-name
     # we use the fuel type lookup to get default values.
-    pc = FUEL_TYPE_LOOKUP[fuel_type]["PC"]
-    pdf = FUEL_TYPE_LOOKUP[fuel_type]["PDF"]
-    cbh = FUEL_TYPE_LOOKUP[fuel_type]["CBH"]
+    pc = FUEL_TYPE_DEFAULTS[fuel_type]["PC"]
+    pdf = FUEL_TYPE_DEFAULTS[fuel_type]["PDF"]
+    cbh = FUEL_TYPE_DEFAULTS[fuel_type]["CBH"]
 
     isi = raw_daily.get('initialSpreadIndex', None)
     bui = raw_daily.get('buildUpIndex', None)
@@ -140,7 +140,7 @@ def generate_station_daily(raw_daily, station: WFWXWeatherStation, fuel_type: st
 
     cc = raw_daily.get('grasslandCuring')
     if cc is None:
-        cc = FUEL_TYPE_LOOKUP[fuel_type]["CC"]
+        cc = FUEL_TYPE_DEFAULTS[fuel_type]["CC"]
     ros = cffdrs.rate_of_spread(FuelTypeEnum[fuel_type], isi, bui, fmc, sfc, pc=pc,
                                 cc=cc,
                                 pdf=pdf,

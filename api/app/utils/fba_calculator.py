@@ -10,8 +10,8 @@ import pandas as pd
 from app.schemas.fba_calc import FuelTypeEnum
 from app.schemas.observations import WeatherReading
 from app.utils.singleton import Singleton
-from app.utils.fuel_types import FUEL_TYPE_LOOKUP
 from app.utils import cffdrs
+from app.utils.fuel_types import FUEL_TYPE_DEFAULTS
 from app.utils.time import convert_utc_to_pdt, get_hour_20_from_date, get_julian_date
 
 logger = logging.getLogger(__name__)
@@ -81,9 +81,9 @@ class FBACalculatorWeatherStation():  # pylint: disable=too-many-instance-attrib
                  elevation: int, fuel_type: FuelTypeEnum,
                  time_of_interest: date, percentage_conifer: float,
                  percentage_dead_balsam_fir: float, grass_cure: float,
-                 crown_base_height: int, lat: float, long: float, bui: float, ffmc: float, isi: float,
-                 wind_speed: float, wind_direction: float, temperature: float, relative_humidity: float,
-                 precipitation: float, status: str, prev_day_daily_ffmc: float,
+                 crown_base_height: int, crown_fuel_load: float, lat: float, long: float, bui: float,
+                 ffmc: float, isi: float, wind_speed: float, wind_direction: float, temperature: float,
+                 relative_humidity: float, precipitation: float, status: str, prev_day_daily_ffmc: float,
                  last_observed_morning_rh_values: dict):
         self.elevation = elevation
         self.fuel_type = fuel_type
@@ -92,6 +92,7 @@ class FBACalculatorWeatherStation():  # pylint: disable=too-many-instance-attrib
         self.percentage_dead_balsam_fir = percentage_dead_balsam_fir
         self.grass_cure = grass_cure
         self.crown_base_height = crown_base_height
+        self.crown_fuel_load = crown_fuel_load
         self.lat = lat
         self.long = long
         self.bui = bui
@@ -108,11 +109,13 @@ class FBACalculatorWeatherStation():  # pylint: disable=too-many-instance-attrib
 
     def __str__(self) -> str:
         return 'lat {}, long {}, elevation {}, fuel_type {}, time_of_interest {}, percentage_conifer {},\
-            percentage_dead_balsam_fir {}, grass_cure {}, crown_base_height {}, bui {}, ffmc {}, isi {},\
-            prev_day_daily_ffmc {}, wind_speed {}, temperature {}, relative_humidity {}, precipitation {}, status {}'\
+            percentage_dead_balsam_fir {}, grass_cure {}, crown_base_height {}, crown_fuel_load {}, bui {},\
+            ffmc {}, isi {}, prev_day_daily_ffmc {}, wind_speed {}, temperature {}, relative_humidity {}, \
+            precipitation {}, status {}'\
                 .format(self.lat, self.long,
                         self.elevation, self.fuel_type, self.time_of_interest, self.percentage_conifer,
                         self.percentage_dead_balsam_fir, self.grass_cure, self.crown_base_height,
+                        self.crown_fuel_load,
                         self.bui, self.ffmc, self.isi, self.prev_day_daily_ffmc, self.wind_speed,
                         self.temperature, self.relative_humidity, self.precipitation, self.status)
 
@@ -190,7 +193,11 @@ def calculate_fire_behaviour_advisory(station: FBACalculatorWeatherStation) -> F
         cfb=cfb)
     cfb_t = calculate_cfb(station.fuel_type, fmc, sfc, ros_t, station.crown_base_height)
 
-    cfl = FUEL_TYPE_LOOKUP[station.fuel_type].get('CFL', None)
+    # Get the default crown fuel load, if none specified.
+    if station.crown_fuel_load is None:
+        cfl = FUEL_TYPE_DEFAULTS[station.fuel_type].get('CFL', None)
+    else:
+        cfl = station.crown_fuel_load
 
     hfi = cffdrs.head_fire_intensity(fuel_type=station.fuel_type,
                                      percentage_conifer=station.percentage_conifer,

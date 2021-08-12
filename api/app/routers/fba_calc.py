@@ -139,6 +139,7 @@ async def process_request(
         percentage_dead_balsam_fir=requested_station.percentage_dead_balsam_fir,
         grass_cure=requested_station.grass_cure,
         crown_base_height=requested_station.crown_base_height,
+        crown_fuel_load=requested_station.crown_fuel_load,
         lat=wfwx_station.lat,
         long=wfwx_station.long,
         bui=bui,

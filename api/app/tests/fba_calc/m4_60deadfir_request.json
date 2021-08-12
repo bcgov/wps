@@ -3,7 +3,7 @@
     "stations": [
         {
             "station_code": 230,
-            "fuel_type": "M4_60D",
+            "fuel_type": "M4",
             "crown_base_height": 6,
             "percentage_dead_balsam_fir": 60
         }
