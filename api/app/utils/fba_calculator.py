@@ -81,10 +81,10 @@ class FBACalculatorWeatherStation():  # pylint: disable=too-many-instance-attrib
                  elevation: int, fuel_type: FuelTypeEnum,
                  time_of_interest: date, percentage_conifer: float,
                  percentage_dead_balsam_fir: float, grass_cure: float,
-                 crown_base_height: int, crown_fuel_load: float, lat: float, long: float, bui: float,
-                 ffmc: float, isi: float, wind_speed: float, wind_direction: float, temperature: float,
-                 relative_humidity: float, precipitation: float, status: str, prev_day_daily_ffmc: float,
-                 last_observed_morning_rh_values: dict):
+                 crown_base_height: int, crown_fuel_load: Optional[float], lat: float, long: float,
+                 bui: float, ffmc: float, isi: float, wind_speed: float, wind_direction: float,
+                 temperature: float, relative_humidity: float, precipitation: float, status: str,
+                 prev_day_daily_ffmc: float, last_observed_morning_rh_values: dict):
         self.elevation = elevation
         self.fuel_type = fuel_type
         self.time_of_interest = time_of_interest
@@ -92,6 +92,8 @@ class FBACalculatorWeatherStation():  # pylint: disable=too-many-instance-attrib
         self.percentage_dead_balsam_fir = percentage_dead_balsam_fir
         self.grass_cure = grass_cure
         self.crown_base_height = crown_base_height
+        # not many people know/care about the crown fuel load, so we can fill this out with default
+        # values if set to None.
         self.crown_fuel_load = crown_fuel_load
         self.lat = lat
         self.long = long

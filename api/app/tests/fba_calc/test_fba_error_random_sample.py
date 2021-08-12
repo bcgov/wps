@@ -101,6 +101,7 @@ def given_input(fuel_type: str, percentage_conifer: float, percentage_dead_balsa
                                                    percentage_dead_balsam_fir=percentage_dead_balsam_fir,
                                                    grass_cure=grass_cure,
                                                    crown_base_height=crown_base_height,
+                                                   crown_fuel_load=None,
                                                    lat=latitude,
                                                    long=longitude,
                                                    bui=bui,

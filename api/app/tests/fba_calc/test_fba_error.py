@@ -49,17 +49,16 @@ def test_fire_behaviour_calculator_scenario():
 
 @given("""<elevation>, <latitude>, <longitude>, <time_of_interest>, <wind_speed>, <wind_direction>, """
        """<percentage_conifer>, <percentage_dead_balsam_fir>, <grass_cure>, <crown_base_height>, """
-       """<crown_fuel_load>, <isi>, <bui>, <ffmc>, <dmc>, <dc>, <fuel_type>""",
+       """<isi>, <bui>, <ffmc>, <dmc>, <dc>, <fuel_type>""",
        target_fixture='result')
 def given_red_app_input(elevation: float,  # pylint: disable=too-many-arguments, invalid-name
                         latitude: float, longitude: float, time_of_interest: date,
                         wind_speed: float, wind_direction: float,
                         percentage_conifer: float, percentage_dead_balsam_fir: float, grass_cure: float,
-                        crown_base_height: float, crown_fuel_load: float,
+                        crown_base_height: float,
                         isi: float, bui: float, ffmc: float, dmc: float, dc: float, fuel_type: str):
     """ Take input and calculate actual and expected results """
     # get python result:
-    # TODO: where is this coming from?
     python_input = FBACalculatorWeatherStation(elevation=elevation,
                                                fuel_type=FuelTypeEnum[fuel_type],
                                                time_of_interest=time_of_interest,
@@ -67,7 +66,7 @@ def given_red_app_input(elevation: float,  # pylint: disable=too-many-arguments,
                                                percentage_dead_balsam_fir=percentage_dead_balsam_fir,
                                                grass_cure=grass_cure,
                                                crown_base_height=crown_base_height,
-                                               crown_fuel_load=crown_fuel_load,
+                                               crown_fuel_load=None,
                                                lat=latitude,
                                                long=longitude,
                                                bui=bui,
@@ -285,6 +284,7 @@ def given_spreadsheet_input(elevation: float,  # pylint: disable=too-many-argume
                                                percentage_dead_balsam_fir=percentage_dead_balsam_fir,
                                                grass_cure=grass_cure,
                                                crown_base_height=crown_base_height,
+                                               crown_fuel_load=None,
                                                lat=latitude,
                                                long=longitude,
                                                bui=bui,
