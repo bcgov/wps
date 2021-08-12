@@ -1,0 +1,5 @@
+name: "PR-Test-URL"
+description: "Updates PR description to include the PR test url in dev cluster"
+runs:
+  using: "node12"
+  main: "out/index.js"
