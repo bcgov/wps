@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
-import { isNull, isUndefined, zipWith } from 'lodash'
-import _ from 'lodash'
+import { isUndefined } from 'lodash'
 import {
   Checkbox,
   makeStyles,
@@ -15,7 +14,6 @@ import {
   Tooltip
 } from '@material-ui/core'
 import InfoIcon from '@material-ui/icons/Info'
-import { FuelTypes } from 'features/fbaCalculator/fuelTypes'
 import { FBCStation } from 'api/fbCalcAPI'
 import WeatherStationCell from 'features/fbaCalculator/components/WeatherStationCell'
 import FuelTypeCell from 'features/fbaCalculator/components/FuelTypeCell'
@@ -23,6 +21,7 @@ import GrassCureCell from 'features/fbaCalculator/components/GrassCureCell'
 import WindSpeedCell from 'features/fbaCalculator/components/WindSpeedCell'
 import SelectionCheckbox from 'features/fbaCalculator/components/SelectionCheckbox'
 import { Order } from 'utils/table'
+import { RowManager, SortByColumn } from 'features/fbaCalculator/RowManager'
 
 export interface FBAInputGridProps {
   testId?: string
@@ -47,15 +46,6 @@ export interface FBAInputRow {
   fuelType: string | undefined
   grassCure: number | undefined
   windSpeed: number | undefined
-}
-
-enum SortByColumn {
-  Zone,
-  Station,
-  FuelType,
-  ISI,
-  HFI,
-  WindSpeed
 }
 
 const useStyles = makeStyles({
@@ -95,10 +85,6 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
   const { updateSelected, inputRows, calculatedResults } = props
   const classes = useStyles()
 
-  const stationCodeMap = new Map(
-    props.stationOptions.map(station => [station.value, station.label])
-  )
-
   const [headerSelected, setHeaderSelect] = useState<boolean>(false)
   const [order, setOrder] = useState<Order>('desc')
   const [sortByColumn, setSortByColumn] = useState<SortByColumn>(SortByColumn.Station)
@@ -129,96 +115,18 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
       setOrder(order === 'asc' ? 'desc' : 'asc')
     }
   }
-
-  const buildStationOption = (value: string | undefined) => {
-    if (isUndefined(value)) {
-      return null
-    }
-    const label = stationCodeMap.get(value)
-
-    if (isUndefined(label)) {
-      return null
-    }
-    return {
-      label,
-      value
-    }
-  }
-
-  const buildFuelTypeMenuOption = (value: string | undefined) => {
-    if (isUndefined(value)) {
-      return null
-    }
-    const fuelType = FuelTypes.lookup(value)
-    if (isUndefined(fuelType) || isNull(fuelType)) {
-      return null
-    }
-    return {
-      label: fuelType.friendlyName,
-      value
-    }
-  }
-
-  interface DisplayableInputRow {
-    weatherStation: GridMenuOption | null
-    fuelType: GridMenuOption | null
-    grassCure: number | undefined
-    windSpeed: number | undefined
-  }
-
-  const inputFieldData: DisplayableInputRow[] = inputRows.map(row => ({
-    weatherStation: buildStationOption(row.weatherStation),
-    fuelType: buildFuelTypeMenuOption(row.fuelType),
-    grassCure: row.grassCure,
-    windSpeed: row.windSpeed
-  }))
-
-  type FBCTableRow = DisplayableInputRow & Partial<FBCStation>
-
-  const rows: FBCTableRow[] = zipWith(
-    inputFieldData,
-    calculatedResults,
-    (inputRow, outputRow) => {
-      if (inputRow) {
-        return [
-          {
-            ...inputRow,
-            ...outputRow
-          }
-        ]
-      }
-      return []
-    }
-  ).flat()
   const DECIMAL_PLACES = 1
 
-  const sortRows = (tableRows: FBCTableRow[]) => {
-    switch (sortByColumn) {
-      case SortByColumn.Zone: {
-        return _.orderBy(tableRows, 'zone_code', order)
-      }
-      case SortByColumn.Station: {
-        return _.orderBy(tableRows, 'station_name', order)
-      }
-      case SortByColumn.FuelType: {
-        return _.orderBy(tableRows, 'fuel_type', order)
-      }
-      case SortByColumn.HFI: {
-        return _.orderBy(tableRows, 'head_fire_intensity', order)
-      }
-      case SortByColumn.ISI: {
-        return _.orderBy(tableRows, 'initial_spread_index', order)
-      }
-      case SortByColumn.WindSpeed: {
-        return _.orderBy(tableRows, 'wind_speed', order)
-      }
-      default: {
-        return tableRows
-      }
-    }
-  }
+  const stationCodeMap = new Map(
+    props.stationOptions.map(station => [station.value, station.label])
+  )
+  const rowManager = new RowManager(stationCodeMap)
 
-  const sortedRows = sortRows(rows)
+  const sortedRows = RowManager.sortRows(
+    sortByColumn,
+    order,
+    rowManager.mergeFBARows(inputRows, calculatedResults)
+  )
 
   return (
     <div className={classes.display} data-testid={props.testId}>
