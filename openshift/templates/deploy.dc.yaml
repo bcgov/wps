@@ -345,7 +345,7 @@ objects:
         # Enable HTTP Strict Transport Security:
         haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
         # Use roundrobin load balancing strategy
-        # haproxy.router.openshift.io/balance: roundrobin
+        haproxy.router.openshift.io/balance: roundrobin
         haproxy.router.openshift.io/disable_cookies: "true"
     spec:
       host: ${NAME}-${SUFFIX}${ENVIRONMENT}.${SECOND_LEVEL_DOMAIN}
@@ -367,7 +367,7 @@ objects:
         # Enable HTTP Strict Transport Security:
         haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
         # Use roundrobin load balancing strategy
-        # haproxy.router.openshift.io/balance: roundrobin
+        haproxy.router.openshift.io/balance: roundrobin
         haproxy.router.openshift.io/disable_cookies: "true"
     spec:
       host: ${VANITY_DOMAIN}
