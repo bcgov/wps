@@ -269,7 +269,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
             <TableBody data-testid="fba-table-body">
               {sortedRows.map((row, ri) => {
                 return (
-                  <TableRow key={ri}>
+                  <TableRow key={row.id}>
                     <TableCell>
                       <SelectionCheckbox fbaInputGridProps={props} rowId={ri} />
                     </TableCell>
@@ -279,7 +279,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                         fbaInputGridProps={props}
                         classNameMap={classes}
                         value={row.weatherStation}
-                        rowId={ri}
+                        rowId={row.id}
                       />
                     </TableCell>
                     <TableCell>{row.elevation}</TableCell>
@@ -288,7 +288,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                         fbaInputGridProps={props}
                         classNameMap={classes}
                         value={row.fuelType}
-                        rowId={ri}
+                        rowId={row.id}
                       />
                     </TableCell>
                     <TableCell>
@@ -296,7 +296,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                         fbaInputGridProps={props}
                         classNameMap={classes}
                         value={row.grassCure}
-                        rowId={ri}
+                        rowId={row.id}
                       />
                     </TableCell>
                     <TableCell
@@ -317,7 +317,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                         fbaInputGridProps={props}
                         inputValue={row.windSpeed}
                         calculatedValue={sortedRows[ri].wind_speed}
-                        rowId={ri}
+                        rowId={row.id}
                       />
                     </TableCell>
                     <TableCell>{row.precipitation}</TableCell>

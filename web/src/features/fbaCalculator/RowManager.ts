@@ -16,6 +16,7 @@ export enum SortByColumn {
 }
 
 export interface DisplayableInputRow {
+  id: number
   weatherStation: GridMenuOption | null
   fuelType: GridMenuOption | null
   grassCure: number | undefined
@@ -27,7 +28,7 @@ export type FBCTableRow = DisplayableInputRow & Partial<FBCStation>
 export class RowManager {
   constructor(private readonly stationCodeMap: Map<string, string>) {}
 
-  mergeFBARows = (
+  public mergeFBARows = (
     inputRows: FBAInputRow[],
     calculatedRows: FBCStation[]
   ): FBCTableRow[] =>
@@ -72,13 +73,13 @@ export class RowManager {
     }
   }
 
-  buildFBCTableRow = (inputRow: FBAInputRow): FBCTableRow => ({
+  private buildFBCTableRow = (inputRow: FBAInputRow): FBCTableRow => ({
     ...inputRow,
     weatherStation: this.buildStationOption(inputRow.weatherStation),
     fuelType: this.buildFuelTypeMenuOption(inputRow.fuelType)
   })
 
-  buildStationOption = (value: string | undefined): GridMenuOption | null => {
+  private buildStationOption = (value: string | undefined): GridMenuOption | null => {
     if (isUndefined(value)) {
       return null
     }
@@ -92,7 +93,9 @@ export class RowManager {
       value
     }
   }
-  buildFuelTypeMenuOption = (value: string | undefined): GridMenuOption | null => {
+  private buildFuelTypeMenuOption = (
+    value: string | undefined
+  ): GridMenuOption | null => {
     if (isUndefined(value)) {
       return null
     }
