@@ -123,24 +123,34 @@ brew install gdal
 
 ##### Poetry
 
+Match the latest version of python in out production environment (as of writing, 3.8.6)
+
 ```bash
 brew update
 brew install pyenv
-pyenv install 3.8.2
+pyenv install 3.8.6
 curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
 ```
 
 ##### Install project python requirements
 
+`poetry env use 3.8.6` doesn't actually honor the minor version, if you want 3.8.6 exactly, you have
+to find the location of the 3.8.6 binary and point to that.
+
 ```bash
-poetry env use 3.8
+pyenv which python
+```
+
+```bash
+poetry env use [path to python 3.8.6, get this by running 'pyenv which python']
+poetry run python -m pip install --upgrade pip
 poetry install
 poetry shell
 # we can't include gdal in poetry as we have little control over the version of gdal available on different platforms - we must match whatever version of gdal is available on the system in question.
 pip install gdal==$(gdal-config --version)
 ```
 
-**N.B.: If `poetry env use 3.8` returns an `EnvCommandError` saying that "pyenv: python3.8: command not found", but `pyenv versions` shows that 3.8.x is installed, you must first run `pyenv shell 3.8.x` and then re-run `poetry env use 3.8`.**
+**N.B.: If `poetry env use [version]` returns an `EnvCommandError` saying something like "pyenv: python3.8: command not found", but `pyenv versions` shows that 3.8.6 is installed, you must first run `pyenv shell 3.8.6` and then re-run `poetry env use [path to python 3.8.6]`.**
 
 ##### Troubleshooting
 
@@ -155,12 +165,18 @@ you either don't have PostgreSQL installed or psycopg2 doesn't know where to fin
 
 ###### GDAL
 
-If python gdal complains about header files, you may have to help it find them, export location before doing pip install
+If python gdal complains about header files (likely if you've installed gdal manually), you may have to help it find them, export location before doing pip install:
 
 ```bash
 export CPLUS_INCLUDE_PATH=/usr/include/gdal
 export C_INCLUDE_PATH=/usr/include/gdal
 ```
+
+If gdal isn't installing, and you're on a mac, getting errors like "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/cmath:321:9: error: no member named 'signbit' in the global namespace using ::signbit;" then try the following:
+
+- ensure you've applied most recent OS updates.
+- ensure XCode is updated.
+- ## wipe your existing virtual environment
 
 #### Local machine, running Linux
 
