@@ -18,7 +18,7 @@ brew install docker-compose
 
 OR
 
-```
+```bash
 pip install docker-compose
 ```
 
@@ -41,84 +41,25 @@ For local development, you can copy .env.example to .env.
 NOTE: matching the version of postgresql, postgis and gdal with production is problematic, and best
 avoided. (postgresql + postgis binaries on mac use a newer version of gdal that we don't have on debian yet.)
 
-NOTE: installing postgresql, postgis and gdal as binaries is the preffered method of installation,
-instructions for installing from source are included for reference.
+NOTE: installing postgresql, postgis and gdal as binaries is the preffered method of installation. Installing
+from source is a world of trouble you don't want to get into. Stick to brew.
 
-##### Postgresql - from source
+##### Java
 
-```bash
-./configure
-make
-sudo make install
+Some of the unit tests use jnius to compare output against RedAPP. The default version of Java that
+comes with mac is likely to cause Segmentation Errors when you run unit tests.
 
-# create a user for postgres
-sudo dscl . -create /Users/postgres
-sudo dscl . -create /Users/postgres UserShell /bin/bash
-sudo dscl . -create /Users/postgres RealName Postgresql
-sudo dscl . -create /Users/postgres UniqueID `dscl . -list /Users UniqueID | awk '{print $2 + 1}' | sort -n | tail -1`
-sudo dscl . -create /Users/postgres NFSHomeDirectory /usr/local/pgsql
-
-# grant user rights, create database
-sudo chown postgres /usr/local/pgsql/data
-sudo -u postgres /usr/local/pgsql/bin/initdb -D /usr/local/pgsql/data
-
-# start the server
-sudo -u postgres /usr/local/pgsql/bin/pg_ctl -D /usr/local/pgsql/data start
-
-# stop the server
-sudo -u postgres /usr/local/pgsql/bin/pg_ctl -D /usr/local/pgsql/data stop
-```
-
-##### Gdal - from source
-
-Currently our API runs on a version of Debian that only has 2.4.\* versions of gdal available in stable.
-
-Unfortunately brew can't install version 2.4.4. so it has to be manually installed.
-
-required by: Postgis, gdal-python
+Install the latest JDK! Download [https://jdk.java.net/](https://jdk.java.net/)
 
 ```bash
-wget https://download.osgeo.org/gdal/2.4.4/gdal-2.4.4.tar.gz
-tar -xzf gdal-2.4.4.tar.gz
-cd gdal-2.4.4
-./configure
-make
-make install
+tar -xf openjdk-16.0.2_osx-x64_bin.tar.gz
+sudo mv jdk-16.0.2.jdk /Library/Java/JavaVirtualMachines
 ```
 
-##### Gettext - from source
-
-required by: Postgis
-
-```bash
-wget https://ftp.gnu.org/pub/gnu/gettext/gettext-0.20.2.tar.gz
-tar -xzf gettext-0.20.2.tar.gz
-cd gettext-0.20.2
-./configure
-make
-make install
-```
-
-##### Postgis - from source
-
-Installing postgis with brew, will break gdal, so it too has to be installed from source.
-
-requires: gettext
-
-```bash
-wget https://download.osgeo.org/postgis/source/postgis-3.0.1.tar.gz
-tar -xzf postgis-3.0.1.tar.gz
-cd postgis-3.0.1
-./configure
-make LDFLAGS="-L/usr/local/opt/gettext/lib" CPPFLAGS="-I/usr/local/opt/gettext/include"
-sudo make install
-```
-
-##### Gdal - from brew
+##### Gdal
 
 ```bash
 brew install gdal
-
 ```
 
 ##### Poetry
@@ -176,7 +117,7 @@ If gdal isn't installing, and you're on a mac, getting errors like "/Application
 
 - ensure you've applied most recent OS updates.
 - ensure XCode is updated.
-- ## wipe your existing virtual environment
+- wipe your existing virtual environment
 
 #### Local machine, running Linux
 
