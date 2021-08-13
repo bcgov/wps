@@ -3,9 +3,9 @@ import { FBCStation, FBCWeatherStationsResponse, postFBCStations } from 'api/fbC
 
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
-import { FBCInputRow } from 'features/fireBehaviourCalculator/components/FBCInputGrid'
+import { FBAInputRow } from 'features/fbaCalculator/components/FBAInputGrid'
 import { FuelTypes } from '../fuelTypes'
-import { isNull, isUndefined } from 'lodash'
+import { isEmpty, isEqual, isNull, isUndefined } from 'lodash'
 
 interface State {
   loading: boolean
@@ -57,11 +57,16 @@ export default fireBehaviourStationsSlice.reducer
 
 export const fetchFireBehaviourStations = (
   date: string,
-  fbcInputRows: FBCInputRow[]
+  fbcInputRows: FBAInputRow[]
 ): AppThunk => async dispatch => {
   const fetchableFireStations = fbcInputRows.flatMap(row => {
     const fuelTypeDetails = FuelTypes.lookup(row.fuelType)
-    if (isNull(fuelTypeDetails) || isUndefined(row.weatherStation)) {
+    if (
+      isNull(fuelTypeDetails) ||
+      isUndefined(fuelTypeDetails) ||
+      isUndefined(row.weatherStation) ||
+      isEqual(row.weatherStation, 'undefined')
+    ) {
       return []
     }
     return {
@@ -75,9 +80,11 @@ export const fetchFireBehaviourStations = (
     }
   })
   try {
-    dispatch(getFireBehaviourStationsStart())
-    const fireBehaviourStations = await postFBCStations(date, fetchableFireStations)
-    dispatch(getFireBehaviourStationsSuccess(fireBehaviourStations))
+    if (!isEmpty(fetchableFireStations)) {
+      dispatch(getFireBehaviourStationsStart())
+      const fireBehaviourStations = await postFBCStations(date, fetchableFireStations)
+      dispatch(getFireBehaviourStationsSuccess(fireBehaviourStations))
+    }
   } catch (err) {
     dispatch(getFireBehaviourStationsFailed(err.toString()))
     logError(err)

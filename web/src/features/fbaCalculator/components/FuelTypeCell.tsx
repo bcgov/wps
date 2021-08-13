@@ -2,20 +2,17 @@ import { TextField } from '@material-ui/core'
 import { ClassNameMap } from '@material-ui/core/styles/withStyles'
 import { Autocomplete } from '@material-ui/lab'
 import {
-  FBCInputGridProps,
+  FBAInputGridProps,
   GridMenuOption
-} from 'features/fireBehaviourCalculator/components/FBCInputGrid'
-import {
-  buildUpdatedOptionRow,
-  updateFBCRow
-} from 'features/fireBehaviourCalculator/tableState'
-import { grassCureNotSetForGrassType } from 'features/fireBehaviourCalculator/utils'
+} from 'features/fbaCalculator/components/FBAInputGrid'
+import { buildUpdatedOptionRow, updateFBARow } from 'features/fbaCalculator/tableState'
+import { isGrassCureInvalid } from 'features/fbaCalculator/validation'
 import { isEqual } from 'lodash'
 import React, { useState } from 'react'
 
 interface FuelTypeCellProps {
-  fbcInputGridProps: Pick<
-    FBCInputGridProps,
+  fbaInputGridProps: Pick<
+    FBAInputGridProps,
     'fuelTypeOptions' | 'inputRows' | 'updateRow' | 'autoUpdateHandler'
   >
   classNameMap: ClassNameMap<'fuelType'>
@@ -31,13 +28,13 @@ const FuelTypeCell = (props: FuelTypeCellProps) => {
     if (!isEqual(selectedFuelType, value)) {
       setSelectedFuelType(value)
       const updatedRow = buildUpdatedOptionRow(
-        props.fbcInputGridProps.inputRows[props.rowId],
+        props.fbaInputGridProps.inputRows[props.rowId],
         'fuelType',
         value
       )
-      const dispatchRequest = !grassCureNotSetForGrassType(updatedRow)
-      updateFBCRow(
-        props.fbcInputGridProps,
+      const dispatchRequest = !isGrassCureInvalid(updatedRow)
+      updateFBARow(
+        props.fbaInputGridProps,
         props.rowId,
         'fuelType',
         value,
@@ -48,7 +45,8 @@ const FuelTypeCell = (props: FuelTypeCellProps) => {
   }
   return (
     <Autocomplete
-      options={props.fbcInputGridProps.fuelTypeOptions}
+      data-testid={`fuel-type-dropdown-${props.rowId}`}
+      options={props.fbaInputGridProps.fuelTypeOptions}
       className={props.classNameMap.fuelType}
       getOptionSelected={(option, value) => isEqual(option, value)}
       getOptionLabel={option => option?.label}

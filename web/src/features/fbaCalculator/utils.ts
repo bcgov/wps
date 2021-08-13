@@ -1,7 +1,7 @@
 import assert from 'assert'
 import _ from 'lodash'
 import { isNull } from 'lodash'
-import { FBCInputRow } from './components/FBCInputGrid'
+import { FBAInputRow } from './components/FBAInputGrid'
 
 export const isGrassFuelType = (fuelType: string): boolean =>
   fuelType === 'o1a' || fuelType === 'o1b'
@@ -19,7 +19,7 @@ export const isValidFuelSetting = (
  * @param searchParams Form is ?s=<station-code>&f=<fuel-type>&c=<grass-cure-percentage>,...
  * @returns
  */
-export const getRowsFromUrlParams = (searchParams: string): FBCInputRow[] => {
+export const getRowsFromUrlParams = (searchParams: string): FBAInputRow[] => {
   const buildRow = (params: string[]) => {
     // station, fuel type, grass cure %
     if (params.length !== 3 && params.length !== 4) {
@@ -83,7 +83,7 @@ export const getRowsFromUrlParams = (searchParams: string): FBCInputRow[] => {
  * @param rows FBCInputRow array from data table
  * @returns params as string of form ?s=<station-code>&f=<fuel-type>&c=<grass-cure-percentage>&w=<optional-wind-speed>,...
  */
-export const getUrlParamsFromRows = (rows: FBCInputRow[]): string => {
+export const getUrlParamsFromRows = (rows: FBAInputRow[]): string => {
   if (rows.length === 0) {
     return ''
   }
@@ -98,26 +98,9 @@ export const getUrlParamsFromRows = (rows: FBCInputRow[]): string => {
   return query + params
 }
 
-export const getMostRecentIdFromRows = (rows: FBCInputRow[]): number => {
+export const getMostRecentIdFromRows = (rows: FBAInputRow[]): number => {
   let lastIdFromExisting = _.maxBy(rows, 'id')?.id
   lastIdFromExisting = lastIdFromExisting ? lastIdFromExisting : 0
   const lastId = _.isEmpty(rows) ? 0 : lastIdFromExisting
   return lastId
-}
-/**
- * Returns whether grass cure is set for a grass fuel type
- * @param row the input row to check against
- * @returns true if grass cure percentage is not set for grass fuel types, 01a, 01b
- */
-export const grassCureNotSetForGrassType = (row: FBCInputRow): boolean => {
-  if (_.isUndefined(row)) {
-    return false
-  }
-  if (row.fuelType === 'o1a' || row.fuelType === 'o1b') {
-    return _.isUndefined(row.grassCure) || isNaN(row.grassCure)
-  }
-  if (!_.isUndefined(row.grassCure) && !isNull(row.grassCure)) {
-    return row.grassCure > 100
-  }
-  return false
 }

@@ -13,20 +13,20 @@ import {
   Tooltip
 } from '@material-ui/core'
 import InfoIcon from '@material-ui/icons/Info'
-import { FuelTypes } from 'features/fireBehaviourCalculator/fuelTypes'
+import { FuelTypes } from 'features/fbaCalculator/fuelTypes'
 import { FBCStation } from 'api/fbCalcAPI'
-import WeatherStationCell from 'features/fireBehaviourCalculator/components/WeatherStationCell'
-import FuelTypeCell from 'features/fireBehaviourCalculator/components/FuelTypeCell'
-import GrassCureCell from 'features/fireBehaviourCalculator/components/GrassCureCell'
-import WindSpeedCell from 'features/fireBehaviourCalculator/components/WindSpeedCell'
-import SelectionCheckbox from 'features/fireBehaviourCalculator/components/SelectionCheckbox'
+import WeatherStationCell from 'features/fbaCalculator/components/WeatherStationCell'
+import FuelTypeCell from 'features/fbaCalculator/components/FuelTypeCell'
+import GrassCureCell from 'features/fbaCalculator/components/GrassCureCell'
+import WindSpeedCell from 'features/fbaCalculator/components/WindSpeedCell'
+import SelectionCheckbox from 'features/fbaCalculator/components/SelectionCheckbox'
 
-export interface FBCInputGridProps {
+export interface FBAInputGridProps {
   testId?: string
   stationOptions: GridMenuOption[]
   fuelTypeOptions: GridMenuOption[]
-  inputRows: FBCInputRow[]
-  updateRow: (rowId: number, updatedRow: FBCInputRow, dispatchRequest?: boolean) => void
+  inputRows: FBAInputRow[]
+  updateRow: (rowId: number, updatedRow: FBAInputRow, dispatchRequest?: boolean) => void
   selected: number[]
   updateSelected: (selected: number[]) => void
   calculatedResults: FBCStation[]
@@ -38,7 +38,7 @@ export interface GridMenuOption {
   value: string
 }
 
-export interface FBCInputRow {
+export interface FBAInputRow {
   id: number
   weatherStation: string | undefined
   fuelType: string | undefined
@@ -74,11 +74,12 @@ const useStyles = makeStyles({
     maxWidth: 1900
   },
   adjustedValueCell: {
-    fontWeight: 'bold'
+    fontWeight: 'bold',
+    color: '#460270'
   }
 })
 
-const FBCInputGrid = (props: FBCInputGridProps) => {
+const FBAInputGrid = (props: FBAInputGridProps) => {
   const { updateSelected, inputRows, calculatedResults } = props
   const classes = useStyles()
 
@@ -158,6 +159,7 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
               <TableRow>
                 <TableCell>
                   <Checkbox
+                    data-testid="select-all"
                     color="primary"
                     checked={headerSelected}
                     onClick={() => {
@@ -266,17 +268,17 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
                 </TableCell>
               </TableRow>
             </TableHead>
-            <TableBody>
+            <TableBody data-testid="fba-table-body">
               {rows.map((row, ri) => {
                 return (
                   <TableRow key={ri}>
                     <TableCell>
-                      <SelectionCheckbox fbcInputGridProps={props} rowId={ri} />
+                      <SelectionCheckbox fbaInputGridProps={props} rowId={ri} />
                     </TableCell>
                     <TableCell>{row.zone_code}</TableCell>
                     <TableCell>
                       <WeatherStationCell
-                        fbcInputGridProps={props}
+                        fbaInputGridProps={props}
                         classNameMap={classes}
                         value={row.weatherStation}
                         rowId={ri}
@@ -285,7 +287,7 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
                     <TableCell>{row.elevation}</TableCell>
                     <TableCell>
                       <FuelTypeCell
-                        fbcInputGridProps={props}
+                        fbaInputGridProps={props}
                         classNameMap={classes}
                         value={row.fuelType}
                         rowId={ri}
@@ -293,7 +295,7 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
                     </TableCell>
                     <TableCell>
                       <GrassCureCell
-                        fbcInputGridProps={props}
+                        fbaInputGridProps={props}
                         classNameMap={classes}
                         value={row.grassCure}
                         rowId={ri}
@@ -312,17 +314,9 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
                     <TableCell>{row.temp}</TableCell>
                     <TableCell>{row.rh}</TableCell>
                     <TableCell>{row.wind_direction}</TableCell>
-                    <TableCell
-                      className={
-                        !isUndefined(row.status) &&
-                        row.status.toLowerCase() === 'adjusted'
-                          ? classes.adjustedValueCell
-                          : undefined
-                      }
-                    >
+                    <TableCell>
                       <WindSpeedCell
-                        fbcInputGridProps={props}
-                        classNameMap={classes}
+                        fbaInputGridProps={props}
                         inputValue={row.windSpeed}
                         calculatedValue={
                           calculatedResults.length > 0 && ri < calculatedResults.length
@@ -379,4 +373,4 @@ const FBCInputGrid = (props: FBCInputGridProps) => {
   )
 }
 
-export default React.memo(FBCInputGrid)
+export default React.memo(FBAInputGrid)
