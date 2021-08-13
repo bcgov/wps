@@ -35,7 +35,7 @@ export class RowManager {
       if (inputRow) {
         return [
           {
-            ...this.buildDisplayableInputRow(inputRow),
+            ...this.buildFBCTableRow(inputRow),
             ...outputRow
           }
         ]
@@ -46,7 +46,7 @@ export class RowManager {
     sortByColumn: SortByColumn,
     order: Order,
     tableRows: FBCTableRow[]
-  ) => {
+  ): FBCTableRow[] => {
     switch (sortByColumn) {
       case SortByColumn.Zone: {
         return _.orderBy(tableRows, 'zone_code', order)
@@ -72,13 +72,13 @@ export class RowManager {
     }
   }
 
-  buildDisplayableInputRow = (inputRow: FBAInputRow) => ({
+  buildFBCTableRow = (inputRow: FBAInputRow): FBCTableRow => ({
     ...inputRow,
     weatherStation: this.buildStationOption(inputRow.weatherStation),
     fuelType: this.buildFuelTypeMenuOption(inputRow.fuelType)
   })
 
-  buildStationOption(value: string | undefined) {
+  buildStationOption = (value: string | undefined): GridMenuOption | null => {
     if (isUndefined(value)) {
       return null
     }
@@ -92,7 +92,7 @@ export class RowManager {
       value
     }
   }
-  buildFuelTypeMenuOption = (value: string | undefined) => {
+  buildFuelTypeMenuOption = (value: string | undefined): GridMenuOption | null => {
     if (isUndefined(value)) {
       return null
     }
