@@ -1,6 +1,6 @@
 """ This module contains pydantic models related to Fire Behaviour Advisory Calculator. """
 
-from typing import List, Optional
+from typing import Dict, List, Optional
 from datetime import date
 from pydantic import BaseModel
 
@@ -21,6 +21,12 @@ class StationListRequest(BaseModel):
     """ Request for a list of stations """
     date: Optional[date]
     stations: List[StationRequest]
+
+
+class CriticalHoursHFI(BaseModel):
+    """ Object response for critical hours """
+    start: float
+    end: float
 
 
 class StationResponse(BaseModel):
@@ -54,8 +60,8 @@ class StationResponse(BaseModel):
     flame_length: Optional[float]
     sixty_minute_fire_size: Optional[float]
     thirty_minute_fire_size: Optional[float]
-    critical_hours_hfi_4000: Optional[str] = None
-    critical_hours_hfi_10000: Optional[str] = None
+    critical_hours_hfi_4000: Optional[CriticalHoursHFI]
+    critical_hours_hfi_10000: Optional[CriticalHoursHFI]
 
 
 class StationsListResponse(BaseModel):
