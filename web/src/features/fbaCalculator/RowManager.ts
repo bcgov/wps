@@ -139,12 +139,6 @@ export class RowManager {
       case SortByColumn.FlameLength: {
         return _.orderBy(tableRows, 'flame_length', order)
       }
-      case SortByColumn.ThirtyMinFireSize: {
-        return _.orderBy(tableRows, 'thirty_minute_fire_size', order)
-      }
-      case SortByColumn.SixtyMinFireSize: {
-        return _.orderBy(tableRows, 'sixty_minute_fire_size', order)
-      }
 
       default: {
         return tableRows
