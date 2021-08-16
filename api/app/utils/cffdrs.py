@@ -535,6 +535,7 @@ def crown_fraction_burned(fuel_type: FuelTypeEnum, fmc: float, sfc: float, ros: 
     # Returns:
     #   CFB, CSI, RSO depending on which option was selected.
     """
+    logger.info('Fuel type %s; value %s', fuel_type, fuel_type.value)
     # pylint: disable=protected-access, no-member
     if cbh is None:
         cbh = NULL
