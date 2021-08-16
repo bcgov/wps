@@ -3,7 +3,7 @@ import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles'
 import { FBAInputGridProps } from 'features/fbaCalculator/components/FBAInputGrid'
 import { updateFBARow, buildUpdatedNumberRow } from 'features/fbaCalculator/tableState'
 import { isWindSpeedInvalid } from 'features/fbaCalculator/validation'
-import { isEqual, isNull, isUndefined } from 'lodash'
+import { isEqual } from 'lodash'
 import React, { ChangeEvent, useState, useEffect } from 'react'
 
 export interface WindSpeedCellProps {
@@ -38,16 +38,7 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
   }, [value])
 
   const changeHandler = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const stringInput = String(event.target.value)
-    const numberInput = parseFloat(stringInput)
-    if (
-      isUndefined(stringInput) ||
-      isNull(stringInput) ||
-      isNaN(numberInput) ||
-      stringInput.split('.')[0].length <= 3
-    ) {
-      setWindSpeedValue(parseFloat(event.target.value))
-    }
+    setWindSpeedValue(parseFloat(event.target.value))
   }
 
   const handlePossibleUpdate = () => {
