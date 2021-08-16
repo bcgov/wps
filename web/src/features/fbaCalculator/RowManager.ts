@@ -121,6 +121,12 @@ export class RowManager {
       case SortByColumn.HFI: {
         return _.orderBy(tableRows, 'head_fire_intensity', order)
       }
+      case SortByColumn.ThirtyMinFireSize: {
+        return _.orderBy(tableRows, 'thirty_minute_fire_size', order)
+      }
+      case SortByColumn.SixtyMinFireSize: {
+        return _.orderBy(tableRows, 'sixty_minute_fire_size', order)
+      }
       case SortByColumn.ROS: {
         return _.orderBy(tableRows, 'rate_of_spread', order)
       }
