@@ -332,14 +332,14 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                     HFI
                   </TableSortLabel>
                 </TableCell>
-                <TableCell>
+                <TableCell sortDirection={order}>
                   Critical
                   <br />
                   Hours
                   <br />
                   (4000 kW/m)
                 </TableCell>
-                <TableCell>
+                <TableCell sortDirection={order}>
                   Critical
                   <br />
                   Hours
