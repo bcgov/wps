@@ -27,8 +27,8 @@ export interface FBCStation {
   fire_type: string
   percentage_crown_fraction_burned: number
   flame_length: number
-  sixty_minute_fire_size: number
   thirty_minute_fire_size: number
+  sixty_minute_fire_size: number
 }
 
 export interface FBCWeatherStationsResponse {
