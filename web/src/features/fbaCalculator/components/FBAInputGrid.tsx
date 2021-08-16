@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { isNull, isUndefined, zipWith } from 'lodash'
+import { isUndefined } from 'lodash'
 import {
   Checkbox,
   makeStyles,
@@ -10,16 +10,18 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TableSortLabel,
   Tooltip
 } from '@material-ui/core'
 import InfoIcon from '@material-ui/icons/Info'
-import { FuelTypes } from 'features/fbaCalculator/fuelTypes'
 import { FBCStation } from 'api/fbCalcAPI'
 import WeatherStationCell from 'features/fbaCalculator/components/WeatherStationCell'
 import FuelTypeCell from 'features/fbaCalculator/components/FuelTypeCell'
 import GrassCureCell from 'features/fbaCalculator/components/GrassCureCell'
 import WindSpeedCell from 'features/fbaCalculator/components/WindSpeedCell'
 import SelectionCheckbox from 'features/fbaCalculator/components/SelectionCheckbox'
+import { Order } from 'utils/table'
+import { RowManager, SortByColumn } from 'features/fbaCalculator/RowManager'
 
 export interface FBAInputGridProps {
   testId?: string
@@ -83,72 +85,48 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
   const { updateSelected, inputRows, calculatedResults } = props
   const classes = useStyles()
 
+  const [headerSelected, setHeaderSelect] = useState<boolean>(false)
+  const [order, setOrder] = useState<Order>('desc')
+  const [sortByColumn, setSortByColumn] = useState<SortByColumn>(SortByColumn.Station)
+
+  const toggleSortZone = () => {
+    toggleSorting(SortByColumn.Zone)
+  }
+  const toggleSortStation = () => {
+    toggleSorting(SortByColumn.Station)
+  }
+  const toggleSortFuelType = () => {
+    toggleSorting(SortByColumn.FuelType)
+  }
+  const toggleSortWindSpeed = () => {
+    toggleSorting(SortByColumn.WindSpeed)
+  }
+  const toggleSortISI = () => {
+    toggleSorting(SortByColumn.ISI)
+  }
+  const toggleSortHFI = () => {
+    toggleSorting(SortByColumn.HFI)
+  }
+
+  const toggleSorting = (selectedColumn: SortByColumn) => {
+    if (sortByColumn !== selectedColumn) {
+      setSortByColumn(selectedColumn)
+    } else {
+      setOrder(order === 'asc' ? 'desc' : 'asc')
+    }
+  }
+  const DECIMAL_PLACES = 1
+
   const stationCodeMap = new Map(
     props.stationOptions.map(station => [station.value, station.label])
   )
+  const rowManager = new RowManager(stationCodeMap)
 
-  const [headerSelected, setHeaderSelect] = useState<boolean>(false)
-  const buildStationOption = (value: string | undefined) => {
-    if (isUndefined(value)) {
-      return null
-    }
-    const label = stationCodeMap.get(value)
-
-    if (isUndefined(label)) {
-      return null
-    }
-    return {
-      label,
-      value
-    }
-  }
-
-  const buildFuelTypeMenuOption = (value: string | undefined) => {
-    if (isUndefined(value)) {
-      return null
-    }
-    const fuelType = FuelTypes.lookup(value)
-    if (isUndefined(fuelType) || isNull(fuelType)) {
-      return null
-    }
-    return {
-      label: fuelType.friendlyName,
-      value
-    }
-  }
-
-  interface DisplayableInputRow {
-    weatherStation: GridMenuOption | null
-    fuelType: GridMenuOption | null
-    grassCure: number | undefined
-    windSpeed: number | undefined
-  }
-
-  const inputFieldData: DisplayableInputRow[] = inputRows.map(row => ({
-    weatherStation: buildStationOption(row.weatherStation),
-    fuelType: buildFuelTypeMenuOption(row.fuelType),
-    grassCure: row.grassCure,
-    windSpeed: row.windSpeed
-  }))
-
-  type FBCTableRow = DisplayableInputRow & Partial<FBCStation>
-
-  const rows: FBCTableRow[] = zipWith(
-    inputFieldData,
-    calculatedResults,
-    (inputRow, outputRow) => {
-      if (inputRow) {
-        return [
-          {
-            ...inputRow,
-            ...outputRow
-          }
-        ]
-      }
-      return []
-    }
-  ).flat()
-  const DECIMAL_PLACES = 1
+  const sortedRows = RowManager.sortRows(
+    sortByColumn,
+    order,
+    rowManager.mergeFBARows(inputRows, calculatedResults)
+  )
 
   return (
     <div className={classes.display} data-testid={props.testId}>
@@ -174,19 +152,29 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                     }}
                   />
                 </TableCell>
-                <TableCell key="header-zone">Zone</TableCell>
-                <TableCell key="header-location">Weather Station</TableCell>
+                <TableCell key="header-zone" sortDirection={order}>
+                  <TableSortLabel direction={order} onClick={toggleSortZone}>
+                    Zone
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell key="header-location" sortDirection={order}>
+                  <TableSortLabel direction={order} onClick={toggleSortStation}>
+                    Weather Station
+                  </TableSortLabel>
+                </TableCell>
                 <TableCell key="header-elevation">
                   Elev.
                   <br />
                   (m)
                 </TableCell>
-                <TableCell key="header-fuel-type">
-                  FBP
-                  <br />
-                  Fuel
-                  <br />
-                  Type
+                <TableCell sortDirection={order} key="header-fuel-type">
+                  <TableSortLabel direction={order} onClick={toggleSortFuelType}>
+                    FBP
+                    <br />
+                    Fuel
+                    <br />
+                    Type
+                  </TableSortLabel>
                 </TableCell>
                 <TableCell>
                   Grass
@@ -213,11 +201,13 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                   <br />
                   (&deg;)
                 </TableCell>
-                <TableCell className={classes.windSpeed}>
-                  {'Wind Speed (km/h)'}
-                  <Tooltip title="Leave this empty to calculate forecasted/observed wind speed. Add a custom wind speed to influence the calculations">
-                    <InfoIcon aria-label="info"></InfoIcon>
-                  </Tooltip>
+                <TableCell sortDirection={order} className={classes.windSpeed}>
+                  <TableSortLabel direction={order} onClick={toggleSortWindSpeed}>
+                    {'Wind Speed (km/h)'}
+                    <Tooltip title="Leave this empty to calculate forecasted/observed wind speed. Add a custom wind speed to influence the calculations">
+                      <InfoIcon aria-label="info"></InfoIcon>
+                    </Tooltip>
+                  </TableSortLabel>
                 </TableCell>
                 <TableCell>
                   Precip
@@ -227,10 +217,18 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                 <TableCell>FFMC</TableCell>
                 <TableCell>DMC</TableCell>
                 <TableCell>DC</TableCell>
-                <TableCell>ISI</TableCell>
+                <TableCell sortDirection={order}>
+                  <TableSortLabel direction={order} onClick={toggleSortISI}>
+                    ISI
+                  </TableSortLabel>
+                </TableCell>
                 <TableCell>BUI</TableCell>
                 <TableCell>FWI</TableCell>
-                <TableCell>HFI</TableCell>
+                <TableCell sortDirection={order}>
+                  <TableSortLabel direction={order} onClick={toggleSortHFI}>
+                    HFI
+                  </TableSortLabel>
+                </TableCell>
                 <TableCell>
                   Critical
                   <br />
@@ -269,9 +267,9 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
               </TableRow>
             </TableHead>
             <TableBody data-testid="fba-table-body">
-              {rows.map((row, ri) => {
+              {sortedRows.map((row, ri) => {
                 return (
-                  <TableRow key={ri}>
+                  <TableRow key={row.id}>
                     <TableCell>
                       <SelectionCheckbox fbaInputGridProps={props} rowId={ri} />
                     </TableCell>
@@ -281,7 +279,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                         fbaInputGridProps={props}
                         classNameMap={classes}
                         value={row.weatherStation}
-                        rowId={ri}
+                        rowId={row.id}
                       />
                     </TableCell>
                     <TableCell>{row.elevation}</TableCell>
@@ -290,7 +288,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                         fbaInputGridProps={props}
                         classNameMap={classes}
                         value={row.fuelType}
-                        rowId={ri}
+                        rowId={row.id}
                       />
                     </TableCell>
                     <TableCell>
@@ -298,7 +296,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                         fbaInputGridProps={props}
                         classNameMap={classes}
                         value={row.grassCure}
-                        rowId={ri}
+                        rowId={row.id}
                       />
                     </TableCell>
                     <TableCell
@@ -318,12 +316,8 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                       <WindSpeedCell
                         fbaInputGridProps={props}
                         inputValue={row.windSpeed}
-                        calculatedValue={
-                          calculatedResults.length > 0 && ri < calculatedResults.length
-                            ? calculatedResults[ri].wind_speed
-                            : undefined
-                        }
-                        rowId={ri}
+                        calculatedValue={sortedRows[ri].wind_speed}
+                        rowId={row.id}
                       />
                     </TableCell>
                     <TableCell>{row.precipitation}</TableCell>
