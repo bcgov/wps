@@ -89,25 +89,6 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
   const [order, setOrder] = useState<Order>('desc')
   const [sortByColumn, setSortByColumn] = useState<SortByColumn>(SortByColumn.Station)
 
-  const toggleSortZone = () => {
-    toggleSorting(SortByColumn.Zone)
-  }
-  const toggleSortStation = () => {
-    toggleSorting(SortByColumn.Station)
-  }
-  const toggleSortFuelType = () => {
-    toggleSorting(SortByColumn.FuelType)
-  }
-  const toggleSortWindSpeed = () => {
-    toggleSorting(SortByColumn.WindSpeed)
-  }
-  const toggleSortISI = () => {
-    toggleSorting(SortByColumn.ISI)
-  }
-  const toggleSortHFI = () => {
-    toggleSorting(SortByColumn.HFI)
-  }
-
   const toggleSorting = (selectedColumn: SortByColumn) => {
     if (sortByColumn !== selectedColumn) {
       setSortByColumn(selectedColumn)
@@ -153,22 +134,42 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                   />
                 </TableCell>
                 <TableCell key="header-zone" sortDirection={order}>
-                  <TableSortLabel direction={order} onClick={toggleSortZone}>
+                  <TableSortLabel
+                    direction={order}
+                    onClick={() => {
+                      toggleSorting(SortByColumn.Zone)
+                    }}
+                  >
                     Zone
                   </TableSortLabel>
                 </TableCell>
                 <TableCell key="header-location" sortDirection={order}>
-                  <TableSortLabel direction={order} onClick={toggleSortStation}>
+                  <TableSortLabel
+                    direction={order}
+                    onClick={() => {
+                      toggleSorting(SortByColumn.Station)
+                    }}
+                  >
                     Weather Station
                   </TableSortLabel>
                 </TableCell>
-                <TableCell key="header-elevation">
-                  Elev.
-                  <br />
-                  (m)
+                <TableCell key="header-elevation" sortDirection={order}>
+                  <TableSortLabel
+                    direction={order}
+                    onClick={() => {
+                      toggleSorting(SortByColumn.Elevation)
+                    }}
+                  >
+                    Elev.
+                    <br />
+                    (m)
+                  </TableSortLabel>
                 </TableCell>
-                <TableCell sortDirection={order} key="header-fuel-type">
-                  <TableSortLabel direction={order} onClick={toggleSortFuelType}>
+                <TableCell key="header-fuel-type" sortDirection={order}>
+                  <TableSortLabel
+                    direction={order}
+                    onClick={() => toggleSorting(SortByColumn.FuelType)}
+                  >
                     FBP
                     <br />
                     Fuel
@@ -176,93 +177,241 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                     Type
                   </TableSortLabel>
                 </TableCell>
-                <TableCell>
-                  Grass
-                  <br />
-                  Cure
-                  <br />
-                  (%)
+                <TableCell sortDirection={order}>
+                  <TableSortLabel
+                    direction={order}
+                    onClick={() => toggleSorting(SortByColumn.GrassCure)}
+                  >
+                    Grass
+                    <br />
+                    Cure
+                    <br />
+                    (%)
+                  </TableSortLabel>
                 </TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>
-                  Temp
-                  <br />
-                  (&deg;C)
+                <TableCell sortDirection={order}>
+                  <TableSortLabel
+                    direction={order}
+                    onClick={() => {
+                      toggleSorting(SortByColumn.Status)
+                    }}
+                  >
+                    Status
+                  </TableSortLabel>
                 </TableCell>
-                <TableCell>
-                  RH
-                  <br />
-                  (%)
+                <TableCell sortDirection={order}>
+                  <TableSortLabel
+                    direction={order}
+                    onClick={() => {
+                      toggleSorting(SortByColumn.Temperature)
+                    }}
+                  >
+                    Temp
+                    <br />
+                    (&deg;C)
+                  </TableSortLabel>
                 </TableCell>
-                <TableCell>
-                  Wind
-                  <br />
-                  Dir
-                  <br />
-                  (&deg;)
+                <TableCell sortDirection={order}>
+                  <TableSortLabel
+                    direction={order}
+                    onClick={() => {
+                      toggleSorting(SortByColumn.RelativeHumidity)
+                    }}
+                  >
+                    RH
+                    <br />
+                    (%)
+                  </TableSortLabel>
                 </TableCell>
-                <TableCell sortDirection={order} className={classes.windSpeed}>
-                  <TableSortLabel direction={order} onClick={toggleSortWindSpeed}>
+                <TableCell sortDirection={order}>
+                  <TableSortLabel
+                    direction={order}
+                    onClick={() => {
+                      toggleSorting(SortByColumn.WindDirection)
+                    }}
+                  >
+                    Wind
+                    <br />
+                    Dir
+                    <br />
+                    (&deg;)
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell className={classes.windSpeed} sortDirection={order}>
+                  <TableSortLabel
+                    direction={order}
+                    onClick={() => {
+                      toggleSorting(SortByColumn.WindSpeed)
+                    }}
+                  >
                     {'Wind Speed (km/h)'}
                     <Tooltip title="Leave this empty to calculate forecasted/observed wind speed. Add a custom wind speed to influence the calculations">
                       <InfoIcon aria-label="info"></InfoIcon>
                     </Tooltip>
                   </TableSortLabel>
                 </TableCell>
-                <TableCell>
-                  Precip
-                  <br />
-                  (mm)
-                </TableCell>
-                <TableCell>FFMC</TableCell>
-                <TableCell>DMC</TableCell>
-                <TableCell>DC</TableCell>
                 <TableCell sortDirection={order}>
-                  <TableSortLabel direction={order} onClick={toggleSortISI}>
+                  <TableSortLabel
+                    direction={order}
+                    onClick={() => {
+                      toggleSorting(SortByColumn.Precipitation)
+                    }}
+                  >
+                    Precip
+                    <br />
+                    (mm)
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell sortDirection={order}>
+                  <TableSortLabel
+                    direction={order}
+                    onClick={() => {
+                      toggleSorting(SortByColumn.FFMC)
+                    }}
+                  >
+                    FFMC
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell sortDirection={order}>
+                  <TableSortLabel
+                    direction={order}
+                    onClick={() => {
+                      toggleSorting(SortByColumn.DMC)
+                    }}
+                  >
+                    DMC
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell sortDirection={order}>
+                  <TableSortLabel
+                    direction={order}
+                    onClick={() => {
+                      toggleSorting(SortByColumn.DMC)
+                    }}
+                  >
+                    DC
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell sortDirection={order}>
+                  <TableSortLabel
+                    direction={order}
+                    onClick={() => {
+                      toggleSorting(SortByColumn.ISI)
+                    }}
+                  >
                     ISI
                   </TableSortLabel>
                 </TableCell>
-                <TableCell>BUI</TableCell>
-                <TableCell>FWI</TableCell>
                 <TableCell sortDirection={order}>
-                  <TableSortLabel direction={order} onClick={toggleSortHFI}>
+                  <TableSortLabel
+                    direction={order}
+                    onClick={() => {
+                      toggleSorting(SortByColumn.BUI)
+                    }}
+                  >
+                    BUI
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell sortDirection={order}>
+                  <TableSortLabel
+                    direction={order}
+                    onClick={() => {
+                      toggleSorting(SortByColumn.BUI)
+                    }}
+                  >
+                    FWI
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell sortDirection={order}>
+                  <TableSortLabel
+                    direction={order}
+                    onClick={() => {
+                      toggleSorting(SortByColumn.HFI)
+                    }}
+                  >
                     HFI
                   </TableSortLabel>
                 </TableCell>
-                <TableCell>
+                <TableCell sortDirection={order}>
                   Critical
                   <br />
                   Hours
                   <br />
                   (4000 kW/m)
                 </TableCell>
-                <TableCell>
+                <TableCell sortDirection={order}>
                   Critical
                   <br />
                   Hours
                   <br />
                   (10000 kW/m)
                 </TableCell>
-                <TableCell>
-                  ROS
-                  <br />
-                  (m/min)
+                <TableCell sortDirection={order}>
+                  <TableSortLabel
+                    direction={order}
+                    onClick={() => {
+                      toggleSorting(SortByColumn.ROS)
+                    }}
+                  >
+                    ROS
+                    <br />
+                    (m/min)
+                  </TableSortLabel>
                 </TableCell>
-                <TableCell>Fire Type</TableCell>
-                <TableCell>CFB (%)</TableCell>
-                <TableCell>
-                  Flame <br />
-                  Length <br /> (m)
+                <TableCell sortDirection={order}>
+                  <TableSortLabel
+                    direction={order}
+                    onClick={() => {
+                      toggleSorting(SortByColumn.FireType)
+                    }}
+                  >
+                    Fire Type
+                  </TableSortLabel>
                 </TableCell>
-                <TableCell>
-                  30 min <br />
-                  fire size <br />
-                  (hectares)
+                <TableCell sortDirection={order}>
+                  <TableSortLabel
+                    direction={order}
+                    onClick={() => {
+                      toggleSorting(SortByColumn.CFB)
+                    }}
+                  >
+                    CFB (%)
+                  </TableSortLabel>
                 </TableCell>
-                <TableCell>
-                  60 min <br />
-                  fire size <br />
-                  (hectares)
+                <TableCell sortDirection={order}>
+                  <TableSortLabel
+                    direction={order}
+                    onClick={() => {
+                      toggleSorting(SortByColumn.FlameLength)
+                    }}
+                  >
+                    Flame <br />
+                    Length <br /> (m)
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell sortDirection={order}>
+                  <TableSortLabel
+                    direction={order}
+                    onClick={() => {
+                      toggleSorting(SortByColumn.ThirtyMinFireSize)
+                    }}
+                  >
+                    30 min <br />
+                    fire size <br />
+                    (hectares)
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell sortDirection={order}>
+                  <TableSortLabel
+                    direction={order}
+                    onClick={() => {
+                      toggleSorting(SortByColumn.SixtyMinFireSize)
+                    }}
+                  >
+                    60 min <br />
+                    fire size <br />
+                    (hectares)
+                  </TableSortLabel>
                 </TableCell>
               </TableRow>
             </TableHead>
