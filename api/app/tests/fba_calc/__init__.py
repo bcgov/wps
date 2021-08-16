@@ -55,7 +55,6 @@ def check_metric(metric: str,
             margin_of_error = metric_error_margin * 4
 
         error = relative_error(python_value, comparison_value)
-        absolute_error = abs(python_value - comparison_value)
         if error > margin_of_error:
             logger.error('%s %s relative error %s > %s! (actual: %s, expected: %s)',
                          fuel_type, metric, error, margin_of_error, python_value, comparison_value)

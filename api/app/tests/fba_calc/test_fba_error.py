@@ -51,7 +51,7 @@ def test_fire_behaviour_calculator_scenario():
        """<percentage_conifer>, <percentage_dead_balsam_fir>, <grass_cure>, <crown_base_height>, """
        """<isi>, <bui>, <ffmc>, <dmc>, <dc>, <fuel_type>""",
        target_fixture='result')
-def given_red_app_input(elevation: float,  # pylint: disable=too-many-arguments, invalid-name
+def given_red_app_input(elevation: float,  # pylint: disable=too-many-arguments, invalid-name, too-many-locals
                         latitude: float, longitude: float, time_of_interest: date,
                         wind_speed: float, wind_direction: float,
                         percentage_conifer: float, percentage_dead_balsam_fir: float, grass_cure: float,
@@ -268,7 +268,7 @@ def test_fire_behaviour_calculator_spreadsheet_scenario():
        """<percentage_conifer>, <percentage_dead_balsam_fir>, <grass_cure>, <crown_base_height>, <isi>, """
        """<bui>, <ffmc>, <dmc>, <dc>, <fuel_type>, <ros>, <hfi>, <cfb>""",
        target_fixture='result')
-def given_spreadsheet_input(elevation: float,  # pylint: disable=too-many-arguments, invalid-name
+def given_spreadsheet_input(elevation: float,  # pylint: disable=too-many-arguments, invalid-name, too-many-locals
                             latitude: float, longitude: float, time_of_interest: str,
                             wind_speed: float, wind_direction: float,
                             percentage_conifer: float, percentage_dead_balsam_fir: float, grass_cure: float,
