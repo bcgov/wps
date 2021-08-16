@@ -1,4 +1,3 @@
-import { FBCStation } from 'api/fbCalcAPI'
 import { FuelTypes } from 'features/fbaCalculator/fuelTypes'
 import { FBCTableRow, RowManager, SortByColumn } from 'features/fbaCalculator/RowManager'
 describe('RowManager', () => {
