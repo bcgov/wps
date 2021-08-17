@@ -14,7 +14,7 @@ import {
   Tooltip
 } from '@material-ui/core'
 import InfoIcon from '@material-ui/icons/Info'
-import { FBCStation } from 'api/fbCalcAPI'
+import { CriticalHoursHFI, FBCStation } from 'api/fbCalcAPI'
 import WeatherStationCell from 'features/fbaCalculator/components/WeatherStationCell'
 import FuelTypeCell from 'features/fbaCalculator/components/FuelTypeCell'
 import GrassCureCell from 'features/fbaCalculator/components/GrassCureCell'
@@ -108,6 +108,15 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
     order,
     rowManager.mergeFBARows(inputRows, calculatedResults)
   )
+
+  const formatCriticalHoursAsString = (
+    criticalHours: CriticalHoursHFI | undefined | null
+  ): string | undefined => {
+    if (criticalHours === undefined || criticalHours === null) {
+      return undefined
+    }
+    return `${criticalHours.start}:00 - ${criticalHours.end}:00`
+  }
 
   return (
     <div className={classes.display} data-testid={props.testId}>
@@ -333,18 +342,32 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                   </TableSortLabel>
                 </TableCell>
                 <TableCell sortDirection={order}>
-                  Critical
-                  <br />
-                  Hours
-                  <br />
-                  (4000 kW/m)
+                  <TableSortLabel
+                    direction={order}
+                    onClick={() => {
+                      toggleSorting(SortByColumn.CriticalHours4000)
+                    }}
+                  >
+                    Critical
+                    <br />
+                    Hours
+                    <br />
+                    (4000 kW/m)
+                  </TableSortLabel>
                 </TableCell>
                 <TableCell sortDirection={order}>
-                  Critical
-                  <br />
-                  Hours
-                  <br />
-                  (10000 kW/m)
+                  <TableSortLabel
+                    direction={order}
+                    onClick={() => {
+                      toggleSorting(SortByColumn.CriticalHours10000)
+                    }}
+                  >
+                    Critical
+                    <br />
+                    Hours
+                    <br />
+                    (10000 kW/m)
+                  </TableSortLabel>
                 </TableCell>
                 <TableCell sortDirection={order}>
                   <TableSortLabel
@@ -417,6 +440,12 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
             </TableHead>
             <TableBody data-testid="fba-table-body">
               {sortedRows.map((row, ri) => {
+                const criticalHoursString4000 = formatCriticalHoursAsString(
+                  row.critical_hours_hfi_4000
+                )
+                const criticalHoursString10000 = formatCriticalHoursAsString(
+                  row.critical_hours_hfi_10000
+                )
                 return (
                   <TableRow key={row.id}>
                     <TableCell>
@@ -487,8 +516,8 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                     <TableCell>
                       {row.head_fire_intensity?.toFixed(DECIMAL_PLACES)}
                     </TableCell>
-                    <TableCell>{row.critical_hours_hfi_4000}</TableCell>
-                    <TableCell>{row.critical_hours_hfi_10000}</TableCell>
+                    <TableCell>{criticalHoursString4000}</TableCell>
+                    <TableCell>{criticalHoursString10000}</TableCell>
                     <TableCell>{row.rate_of_spread?.toFixed(DECIMAL_PLACES)}</TableCell>
                     <TableCell>{row?.fire_type}</TableCell>
                     <TableCell>
