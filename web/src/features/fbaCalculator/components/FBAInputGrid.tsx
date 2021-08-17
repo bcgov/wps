@@ -203,7 +203,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
     }
   }, [location]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const autoUpdateHandler = () => {
+  const updateDate = () => {
     dispatch(fetchFireBehaviourStations(dateOfInterest, rows))
   }
 
@@ -226,7 +226,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
         <DatePicker
           date={dateOfInterest}
           onChange={setDateOfInterest}
-          autoUpdateHandler={autoUpdateHandler}
+          updateDate={updateDate}
         />
       </FormControl>
       <FormControl className={classes.formControl}>
