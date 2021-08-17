@@ -14,9 +14,9 @@ from app.wildfire_one.schema_parsers import WFWXWeatherStation
 from app.wildfire_one.wfwx_api import (get_auth_header,
                                        get_dailies,
                                        get_wfwx_stations_from_station_codes)
-from app.utils.fba_calculator import (FBACalculatorWeatherStation,
-                                      FireBehaviourAdvisory, build_hourly_rh_dict,
-                                      calculate_fire_behaviour_advisory)
+from app.fba_calculator import (FBACalculatorWeatherStation,
+                                FireBehaviourAdvisory, build_hourly_rh_dict,
+                                calculate_fire_behaviour_advisory)
 
 
 router = APIRouter(
