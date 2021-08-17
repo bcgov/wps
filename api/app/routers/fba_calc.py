@@ -28,13 +28,6 @@ router = APIRouter(
 logger = logging.getLogger(__name__)
 
 
-def construct_critical_hours_dict(crit_hours_tuple: Tuple):
-    """ Constructs a simple dict of start and end for critical hours """
-    if crit_hours_tuple:
-        return CriticalHoursHFI(start=crit_hours_tuple[0], end=crit_hours_tuple[1])
-    return None
-
-
 def prepare_response(  # pylint: disable=too-many-locals
         requested_station: StationRequest,
         wfwx_station: WFWXWeatherStation,
@@ -60,9 +53,6 @@ def prepare_response(  # pylint: disable=too-many-locals
     duff_moisture_code = raw_daily.get('duffMoistureCode', None)
     fire_weather_index = raw_daily.get('fireWeatherIndex', None)
 
-    critical_hours_4000_dict = construct_critical_hours_dict(fire_behavour_advisory.critical_hours_hfi_4000)
-    critical_hours_10000_dict = construct_critical_hours_dict(fire_behavour_advisory.critical_hours_hfi_10000)
-
     station_response = StationResponse(
         station_code=requested_station.station_code,
         station_name=wfwx_station.name,
@@ -84,8 +74,8 @@ def prepare_response(  # pylint: disable=too-many-locals
         duff_moisture_code=duff_moisture_code,
         fire_weather_index=fire_weather_index,
         head_fire_intensity=fire_behavour_advisory.hfi,
-        critical_hours_hfi_4000=critical_hours_4000_dict,
-        critical_hours_hfi_10000=critical_hours_10000_dict,
+        critical_hours_hfi_4000=fire_behavour_advisory.critical_hours_hfi_4000,
+        critical_hours_hfi_10000=fire_behavour_advisory.critical_hours_hfi_10000,
         rate_of_spread=fire_behavour_advisory.ros,
         fire_type=fire_behavour_advisory.fire_type,
         percentage_crown_fraction_burned=fire_behavour_advisory.cfb,

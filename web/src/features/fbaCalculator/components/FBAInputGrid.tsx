@@ -440,12 +440,6 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
             </TableHead>
             <TableBody data-testid="fba-table-body">
               {sortedRows.map((row, ri) => {
-                const criticalHoursString4000 = formatCriticalHoursAsString(
-                  row.critical_hours_hfi_4000
-                )
-                const criticalHoursString10000 = formatCriticalHoursAsString(
-                  row.critical_hours_hfi_10000
-                )
                 return (
                   <TableRow key={row.id}>
                     <TableCell>
@@ -516,8 +510,12 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                     <TableCell>
                       {row.head_fire_intensity?.toFixed(DECIMAL_PLACES)}
                     </TableCell>
-                    <TableCell>{criticalHoursString4000}</TableCell>
-                    <TableCell>{criticalHoursString10000}</TableCell>
+                    <TableCell>
+                      {formatCriticalHoursAsString(row.critical_hours_hfi_4000)}
+                    </TableCell>
+                    <TableCell>
+                      {formatCriticalHoursAsString(row.critical_hours_hfi_10000)}
+                    </TableCell>
                     <TableCell>{row.rate_of_spread?.toFixed(DECIMAL_PLACES)}</TableCell>
                     <TableCell>{row?.fire_type}</TableCell>
                     <TableCell>
