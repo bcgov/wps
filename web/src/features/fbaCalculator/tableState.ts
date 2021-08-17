@@ -1,12 +1,13 @@
+import { GridRowId } from '@material-ui/data-grid'
 import {
-  FBAInputGridProps,
   FBAInputRow,
   GridMenuOption
 } from 'features/fbaCalculator/components/FBAInputGrid'
 import { find } from 'lodash'
 
 export const updateFBARow = (
-  props: Pick<FBAInputGridProps, 'inputRows' | 'updateRow'>,
+  inputRows: FBAInputRow[],
+  updateRow: (id: GridRowId, updatedRow: FBAInputRow, dispatchUpdate: boolean) => void,
   rowId: number,
   field: string,
   // eslint-disable-next-line
@@ -18,10 +19,10 @@ export const updateFBARow = (
   ) => FBAInputRow,
   dispatchRequest = true
 ): void => {
-  const rowToUpdate = find(props.inputRows, ['id', rowId])
+  const rowToUpdate = find(inputRows, ['id', rowId])
   if (rowToUpdate) {
     const updatedRow = updatedRowBuilder(rowToUpdate, field, value)
-    props.updateRow(rowId, updatedRow, dispatchRequest)
+    updateRow(rowId, updatedRow, dispatchRequest)
   }
 }
 

@@ -1,13 +1,19 @@
 import { TextField, Tooltip } from '@material-ui/core'
 import { ClassNameMap } from '@material-ui/core/styles/withStyles'
-import { FBAInputGridProps } from 'features/fbaCalculator/components/FBAInputGrid'
+import { GridRowId } from '@material-ui/data-grid'
+import { FBAInputRow } from 'features/fbaCalculator/components/FBAInputGrid'
 import { buildUpdatedNumberRow, updateFBARow } from 'features/fbaCalculator/tableState'
 import { isGrassCureInvalid } from 'features/fbaCalculator/validation'
 import { isEqual, isNull, isUndefined } from 'lodash'
 import React, { ChangeEvent, useEffect, useState } from 'react'
 
 export interface GrassCureCellProps {
-  fbaInputGridProps: Pick<FBAInputGridProps, 'inputRows' | 'updateRow'>
+  inputRows: FBAInputRow[]
+  updateRow: (
+    rowId: GridRowId,
+    updatedRow: FBAInputRow,
+    dispatchRequest?: boolean
+  ) => void
   classNameMap: ClassNameMap<'grassCure'>
   value: number | undefined
   rowId: number
@@ -35,13 +41,14 @@ const GrassCureProps = (props: GrassCureCellProps) => {
     if (!isEqual(lastRequestedGrassCure, grassCurePercentage)) {
       setLastRequestedGrassCure(grassCurePercentage)
       const updatedRow = buildUpdatedNumberRow(
-        props.fbaInputGridProps.inputRows[props.rowId],
+        props.inputRows[props.rowId],
         'grassCure',
         grassCurePercentage
       )
       const dispatchRequest = !isGrassCureInvalid(updatedRow)
       updateFBARow(
-        props.fbaInputGridProps,
+        props.inputRows,
+        props.updateRow,
         props.rowId,
         'grassCure',
         grassCurePercentage,
@@ -57,7 +64,7 @@ const GrassCureProps = (props: GrassCureCellProps) => {
     }
   }
 
-  const hasError = isGrassCureInvalid(props.fbaInputGridProps.inputRows[props.rowId])
+  const hasError = isGrassCureInvalid(props.inputRows[props.rowId])
 
   return (
     <Tooltip title="Cannot exceed 100" aria-label="cannot-exceed-100">

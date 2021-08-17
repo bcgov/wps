@@ -1,8 +1,9 @@
 import { TextField } from '@material-ui/core'
 import { ClassNameMap } from '@material-ui/core/styles/withStyles'
+import { GridRowId } from '@material-ui/data-grid'
 import { Autocomplete } from '@material-ui/lab'
 import {
-  FBAInputGridProps,
+  FBAInputRow,
   GridMenuOption
 } from 'features/fbaCalculator/components/FBAInputGrid'
 import { buildUpdatedOptionRow, updateFBARow } from 'features/fbaCalculator/tableState'
@@ -11,10 +12,13 @@ import { isEqual } from 'lodash'
 import React, { useEffect, useState } from 'react'
 
 interface FuelTypeCellProps {
-  fbaInputGridProps: Pick<
-    FBAInputGridProps,
-    'fuelTypeOptions' | 'inputRows' | 'updateRow' | 'autoUpdateHandler'
-  >
+  fuelTypeOptions: GridMenuOption[]
+  inputRows: FBAInputRow[]
+  updateRow: (
+    rowId: GridRowId,
+    updatedRow: FBAInputRow,
+    dispatchRequest?: boolean
+  ) => void
   classNameMap: ClassNameMap<'fuelType'>
   value: GridMenuOption | null
   rowId: number
@@ -29,13 +33,14 @@ const FuelTypeCell = (props: FuelTypeCellProps) => {
     if (!isEqual(selectedFuelType, value)) {
       setSelectedFuelType(value)
       const updatedRow = buildUpdatedOptionRow(
-        props.fbaInputGridProps.inputRows[props.rowId],
+        props.inputRows[props.rowId],
         'fuelType',
         value
       )
       const dispatchRequest = !isGrassCureInvalid(updatedRow)
       updateFBARow(
-        props.fbaInputGridProps,
+        props.inputRows,
+        props.updateRow,
         props.rowId,
         'fuelType',
         value,
@@ -47,7 +52,7 @@ const FuelTypeCell = (props: FuelTypeCellProps) => {
   return (
     <Autocomplete
       data-testid={`fuel-type-dropdown-${props.rowId}`}
-      options={props.fbaInputGridProps.fuelTypeOptions}
+      options={props.fuelTypeOptions}
       className={props.classNameMap.fuelType}
       getOptionSelected={(option, value) => isEqual(option, value)}
       getOptionLabel={option => option?.label}

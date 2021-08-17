@@ -1,13 +1,19 @@
 import { TextField, Tooltip, makeStyles } from '@material-ui/core'
 import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles'
-import { FBAInputGridProps } from 'features/fbaCalculator/components/FBAInputGrid'
+import { GridRowId } from '@material-ui/data-grid'
+import { FBAInputRow } from 'features/fbaCalculator/components/FBAInputGrid'
 import { updateFBARow, buildUpdatedNumberRow } from 'features/fbaCalculator/tableState'
 import { isWindSpeedInvalid } from 'features/fbaCalculator/validation'
 import { isEqual } from 'lodash'
 import React, { ChangeEvent, useState, useEffect } from 'react'
 
 export interface WindSpeedCellProps {
-  fbaInputGridProps: Pick<FBAInputGridProps, 'stationOptions' | 'inputRows' | 'updateRow'>
+  inputRows: FBAInputRow[]
+  updateRow: (
+    rowId: GridRowId,
+    updatedRow: FBAInputRow,
+    dispatchRequest?: boolean
+  ) => void
   inputValue: number | undefined
   calculatedValue: number | undefined
   rowId: number
@@ -45,7 +51,8 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
     if (!isEqual(windSpeedValue, props.calculatedValue)) {
       const dispatchRequest = !isWindSpeedInvalid(windSpeedValue)
       updateFBARow(
-        props.fbaInputGridProps,
+        props.inputRows,
+        props.updateRow,
         props.rowId,
         'windSpeed',
         windSpeedValue,
