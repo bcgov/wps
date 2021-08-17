@@ -298,14 +298,20 @@ describe('RowManager', () => {
         'asc',
         mergedRows
       )
-      expect(sortedRowsAsc[0].critical_hours_hfi_4000).toBe({ start: 14.0, end: 19.0 })
+      expect(sortedRowsAsc[0].critical_hours_hfi_4000).toStrictEqual({
+        end: 19,
+        start: 14
+      })
 
       const sortedRowsDesc = RowManager.sortRows(
         SortByColumn.CriticalHours4000,
         'desc',
         mergedRows
       )
-      expect(sortedRowsDesc[0].critical_hours_hfi_4000).toBe({ start: 9.0, end: 2.0 })
+      expect(sortedRowsDesc[0].critical_hours_hfi_4000).toStrictEqual({
+        start: 9,
+        end: 2
+      })
     })
 
     it('sorts by 10000 kW/m critical hours', () => {
@@ -321,7 +327,10 @@ describe('RowManager', () => {
         'desc',
         mergedRows
       )
-      expect(sortedRowsDesc[0].critical_hours_hfi_10000).toBe({ start: 14.0, end: 18.0 })
+      expect(sortedRowsDesc[0].critical_hours_hfi_10000).toStrictEqual({
+        start: 14.0,
+        end: 18.0
+      })
     })
 
     it('sorts by 30 minute fire size', () => {
