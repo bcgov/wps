@@ -46,6 +46,12 @@ class StationListRequest(BaseModel):
     stations: List[StationRequest]
 
 
+class CriticalHoursHFI(BaseModel):
+    """ Object response for critical hours """
+    start: float
+    end: float
+
+
 class StationResponse(BaseModel):
     """ Response for one individual weather station.
     NOTE: Most of the values are optional, since if an observation/forecast isn't available,
@@ -76,8 +82,8 @@ class StationResponse(BaseModel):
     flame_length: Optional[float]
     sixty_minute_fire_size: Optional[float]
     thirty_minute_fire_size: Optional[float]
-    critical_hours_hfi_4000: Optional[str] = None
-    critical_hours_hfi_10000: Optional[str] = None
+    critical_hours_hfi_4000: Optional[CriticalHoursHFI]
+    critical_hours_hfi_10000: Optional[CriticalHoursHFI]
 
 
 class StationsListResponse(BaseModel):

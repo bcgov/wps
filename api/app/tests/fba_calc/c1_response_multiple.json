@@ -85,8 +85,14 @@
             "flame_length": 8.767077725742952,
             "sixty_minute_fire_size": 69.47397717840207,
             "thirty_minute_fire_size": 12.135517317396566,
-            "critical_hours_hfi_4000": "13:00 - 0:00",
-            "critical_hours_hfi_10000": "13:00 - 21:00"
+            "critical_hours_hfi_4000": {
+                "start": 13.0,
+                "end": 0.0
+            },
+            "critical_hours_hfi_10000": {
+                "start": 13.0,
+                "end": 21.0
+            }
         }
     ]
 }

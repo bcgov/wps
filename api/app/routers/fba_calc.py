@@ -6,7 +6,8 @@ from aiohttp.client import ClientSession
 from fastapi import APIRouter, Depends
 from app.auth import authentication_required, audit
 from app.hourlies import get_hourly_readings_in_time_interval
-from app.schemas.fba_calc import StationListRequest, StationRequest, StationsListResponse, StationResponse
+from app.schemas.fba_calc import (StationListRequest, StationRequest,
+                                  StationsListResponse, StationResponse)
 from app.utils import cffdrs
 from app.utils.time import get_hour_20_from_date
 from app.wildfire_one.schema_parsers import WFWXWeatherStation
@@ -26,7 +27,7 @@ router = APIRouter(
 logger = logging.getLogger(__name__)
 
 
-def prepare_response(
+def prepare_response(  # pylint: disable=too-many-locals
         requested_station: StationRequest,
         wfwx_station: WFWXWeatherStation,
         fba_station: FBACalculatorWeatherStation,

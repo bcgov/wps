@@ -107,7 +107,7 @@ export class FuelTypes {
         percentage_dead_balsam_fir: undefined,
         crown_base_height: 6
       },
-      m2_50conider: {
+      m2_50conifer: {
         name: 'M2',
         friendlyName: 'M2 50% conifer / 50% deciduous',
         percentage_conifer: 50,

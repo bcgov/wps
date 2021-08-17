@@ -1,5 +1,10 @@
 import axios from 'api/axios'
 
+export interface CriticalHoursHFI {
+  start: number
+  end: number
+}
+
 export interface FBCStation {
   station_code: number
   station_name: string
@@ -20,14 +25,14 @@ export interface FBCStation {
   duff_moisture_code: number
   fire_weather_index: number
   head_fire_intensity: number
-  critical_hours_hfi_4000: string
-  critical_hours_hfi_10000: string
+  critical_hours_hfi_4000: CriticalHoursHFI | undefined
+  critical_hours_hfi_10000: CriticalHoursHFI | undefined
   rate_of_spread: number
   fire_type: string
   percentage_crown_fraction_burned: number
   flame_length: number
-  sixty_minute_fire_size: number
   thirty_minute_fire_size: number
+  sixty_minute_fire_size: number
 }
 
 export interface FBCWeatherStationsResponse {
