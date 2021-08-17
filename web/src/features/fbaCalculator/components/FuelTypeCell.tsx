@@ -1,6 +1,5 @@
 import { TextField } from '@material-ui/core'
 import { ClassNameMap } from '@material-ui/core/styles/withStyles'
-import { GridRowId } from '@material-ui/data-grid'
 import { Autocomplete } from '@material-ui/lab'
 import {
   FBAInputRow,
@@ -14,11 +13,7 @@ import React, { useEffect, useState } from 'react'
 interface FuelTypeCellProps {
   fuelTypeOptions: GridMenuOption[]
   inputRows: FBAInputRow[]
-  updateRow: (
-    rowId: GridRowId,
-    updatedRow: FBAInputRow,
-    dispatchRequest?: boolean
-  ) => void
+  updateRow: (rowId: number, updatedRow: FBAInputRow, dispatchRequest?: boolean) => void
   classNameMap: ClassNameMap<'fuelType'>
   value: GridMenuOption | null
   rowId: number

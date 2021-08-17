@@ -1,6 +1,5 @@
 import { TextField, Tooltip } from '@material-ui/core'
 import { ClassNameMap } from '@material-ui/core/styles/withStyles'
-import { GridRowId } from '@material-ui/data-grid'
 import { FBAInputRow } from 'features/fbaCalculator/components/FBAInputGrid'
 import { buildUpdatedNumberRow, updateFBARow } from 'features/fbaCalculator/tableState'
 import { isGrassCureInvalid } from 'features/fbaCalculator/validation'
@@ -9,11 +8,7 @@ import React, { ChangeEvent, useEffect, useState } from 'react'
 
 export interface GrassCureCellProps {
   inputRows: FBAInputRow[]
-  updateRow: (
-    rowId: GridRowId,
-    updatedRow: FBAInputRow,
-    dispatchRequest?: boolean
-  ) => void
+  updateRow: (rowId: number, updatedRow: FBAInputRow, dispatchRequest?: boolean) => void
   classNameMap: ClassNameMap<'grassCure'>
   value: number | undefined
   rowId: number

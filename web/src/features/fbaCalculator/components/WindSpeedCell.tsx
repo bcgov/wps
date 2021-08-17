@@ -1,6 +1,5 @@
 import { TextField, Tooltip, makeStyles } from '@material-ui/core'
 import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles'
-import { GridRowId } from '@material-ui/data-grid'
 import { FBAInputRow } from 'features/fbaCalculator/components/FBAInputGrid'
 import { updateFBARow, buildUpdatedNumberRow } from 'features/fbaCalculator/tableState'
 import { isWindSpeedInvalid } from 'features/fbaCalculator/validation'
@@ -9,11 +8,7 @@ import React, { ChangeEvent, useState, useEffect } from 'react'
 
 export interface WindSpeedCellProps {
   inputRows: FBAInputRow[]
-  updateRow: (
-    rowId: GridRowId,
-    updatedRow: FBAInputRow,
-    dispatchRequest?: boolean
-  ) => void
+  updateRow: (rowId: number, updatedRow: FBAInputRow, dispatchRequest?: boolean) => void
   inputValue: number | undefined
   calculatedValue: number | undefined
   rowId: number

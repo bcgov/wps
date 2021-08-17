@@ -1,4 +1,3 @@
-import { GridRowId } from '@material-ui/data-grid'
 import {
   FBAInputRow,
   GridMenuOption
@@ -7,7 +6,7 @@ import { find } from 'lodash'
 
 export const updateFBARow = (
   inputRows: FBAInputRow[],
-  updateRow: (id: GridRowId, updatedRow: FBAInputRow, dispatchUpdate: boolean) => void,
+  updateRow: (id: number, updatedRow: FBAInputRow, dispatchUpdate: boolean) => void,
   rowId: number,
   field: string,
   // eslint-disable-next-line

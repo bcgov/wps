@@ -24,7 +24,6 @@ import WindSpeedCell from 'features/fbaCalculator/components/WindSpeedCell'
 import SelectionCheckbox from 'features/fbaCalculator/components/SelectionCheckbox'
 import { Order } from 'utils/table'
 import { RowManager, SortByColumn } from 'features/fbaCalculator/RowManager'
-import { GridRowId } from '@material-ui/data-grid'
 import { GeoJsonStation, getStations, StationSource } from 'api/stationAPI'
 import { selectFireWeatherStations, selectFireBehaviourCalcResult } from 'app/rootReducer'
 import { FuelTypes } from 'features/fbaCalculator/fuelTypes'
@@ -172,7 +171,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
     setSelected([])
   }
 
-  const updateRow = (id: GridRowId, updatedRow: FBAInputRow, dispatchUpdate = true) => {
+  const updateRow = (id: number, updatedRow: FBAInputRow, dispatchUpdate = true) => {
     const newRows = [...rows]
 
     // rowId is the row array index

@@ -8,16 +8,11 @@ import {
   GridMenuOption
 } from 'features/fbaCalculator/components/FBAInputGrid'
 import { buildUpdatedOptionRow, updateFBARow } from 'features/fbaCalculator/tableState'
-import { GridRowId } from '@material-ui/data-grid'
 
 interface WeatherStationCellProps {
   stationOptions: GridMenuOption[]
   inputRows: FBAInputRow[]
-  updateRow: (
-    rowId: GridRowId,
-    updatedRow: FBAInputRow,
-    dispatchRequest?: boolean
-  ) => void
+  updateRow: (rowId: number, updatedRow: FBAInputRow, dispatchRequest?: boolean) => void
   classNameMap: ClassNameMap<'weatherStation'>
   value: GridMenuOption | null
   rowId: number
