@@ -1,5 +1,6 @@
 import { FuelTypes } from 'features/fbaCalculator/fuelTypes'
 import { FBCTableRow, RowManager, SortByColumn } from 'features/fbaCalculator/RowManager'
+
 describe('RowManager', () => {
   const stationCodeMap = new Map<string, string>()
   stationCodeMap.set('322', 'AFTON')
@@ -35,8 +36,8 @@ describe('RowManager', () => {
     duff_moisture_code: 1,
     fire_weather_index: 1,
     head_fire_intensity: 1,
-    critical_hours_hfi_4000: '',
-    critical_hours_hfi_10000: '',
+    critical_hours_hfi_4000: { start: 9.0, end: 2.0 },
+    critical_hours_hfi_10000: { start: 14.0, end: 18.0 },
     rate_of_spread: 1,
     fire_type: 'a',
     percentage_crown_fraction_burned: 1,
@@ -74,8 +75,8 @@ describe('RowManager', () => {
     duff_moisture_code: 2,
     fire_weather_index: 2,
     head_fire_intensity: 2,
-    critical_hours_hfi_4000: '',
-    critical_hours_hfi_10000: '',
+    critical_hours_hfi_4000: { start: 14.0, end: 19.0 },
+    critical_hours_hfi_10000: undefined,
     rate_of_spread: 2,
     fire_type: 'b',
     percentage_crown_fraction_burned: 2,
@@ -87,7 +88,7 @@ describe('RowManager', () => {
   const inputRows = [firstInputRow, secondInputRow]
 
   const calculatedRows = [firstCalculatedRow, secondCalculatedRow]
-  it('should merge input rows and calculated rows in correctly', () => {
+  it('should merge input rows and calculated rows correctly', () => {
     const mergedRows = rowManager.mergeFBARows(inputRows, calculatedRows)
 
     // Maintains row order
@@ -166,7 +167,7 @@ describe('RowManager', () => {
       const sortedRowsDesc = RowManager.sortRows(SortByColumn.Status, 'desc', mergedRows)
       expect(sortedRowsDesc[0].status).toBe('b')
     })
-    it('sorts by temperatue', () => {
+    it('sorts by temperature', () => {
       const sortedRowsAsc = RowManager.sortRows(
         SortByColumn.Temperature,
         'asc',
@@ -290,6 +291,39 @@ describe('RowManager', () => {
       const sortedRowsDesc = RowManager.sortRows(SortByColumn.HFI, 'desc', mergedRows)
       expect(sortedRowsDesc[0].head_fire_intensity).toBe(2)
     })
+
+    it('sorts by 4000 kW/m critical hours', () => {
+      const sortedRowsAsc = RowManager.sortRows(
+        SortByColumn.CriticalHours4000,
+        'asc',
+        mergedRows
+      )
+      expect(sortedRowsAsc[0].critical_hours_hfi_4000).toBe({ start: 14.0, end: 19.0 })
+
+      const sortedRowsDesc = RowManager.sortRows(
+        SortByColumn.CriticalHours4000,
+        'desc',
+        mergedRows
+      )
+      expect(sortedRowsDesc[0].critical_hours_hfi_4000).toBe({ start: 9.0, end: 2.0 })
+    })
+
+    it('sorts by 10000 kW/m critical hours', () => {
+      const sortedRowsAsc = RowManager.sortRows(
+        SortByColumn.CriticalHours10000,
+        'asc',
+        mergedRows
+      )
+      expect(sortedRowsAsc[0].critical_hours_hfi_10000).toBe(undefined)
+
+      const sortedRowsDesc = RowManager.sortRows(
+        SortByColumn.CriticalHours10000,
+        'desc',
+        mergedRows
+      )
+      expect(sortedRowsDesc[0].critical_hours_hfi_10000).toBe({ start: 14.0, end: 18.0 })
+    })
+
     it('sorts by 30 minute fire size', () => {
       const sortedRowsAsc = RowManager.sortRows(
         SortByColumn.ThirtyMinFireSize,
