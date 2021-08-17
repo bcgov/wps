@@ -158,7 +158,6 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
     }
     const newRows = [...rows, newRow]
     setRows(newRows)
-    updateQueryParams(getUrlParamsFromRows(newRows))
   }
 
   const deleteSelectedStations = () => {
