@@ -3,7 +3,7 @@
 import math
 import os
 from datetime import date
-from typing import List, Optional, Tuple
+from typing import List, Optional
 import logging
 import pandas as pd
 from app.schemas.observations import WeatherReading

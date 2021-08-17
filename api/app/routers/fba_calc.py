@@ -2,13 +2,12 @@
 
 import logging
 from datetime import date, datetime, timedelta
-from typing import Tuple
 from aiohttp.client import ClientSession
 from fastapi import APIRouter, Depends
 from app.auth import authentication_required, audit
 from app.hourlies import get_hourly_readings_in_time_interval
 from app.schemas.fba_calc import (StationListRequest, StationRequest,
-                                  StationsListResponse, StationResponse, CriticalHoursHFI)
+                                  StationsListResponse, StationResponse)
 from app.utils import cffdrs
 from app.utils.time import get_hour_20_from_date
 from app.wildfire_one.schema_parsers import WFWXWeatherStation
