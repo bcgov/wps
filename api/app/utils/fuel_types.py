@@ -5,7 +5,7 @@ from app.schemas.fba_calc import FuelTypeEnum
 # TODO: Move these constants (as columns) into fuel_types table in our database once all CFL
 # values have been confirmed.
 #
-# PC, PDF, CC, CDH from the Red Book. Assumes values of 1 CBH.
+# PC, PDF, CC, CDH, CBH from the Red Book.
 # CC: Assume values of None for non grass types, and 0 for O1A and O1B.
 # CFL is based on Table 8, page 35, of "Development and Structure of the Canadian Forest Fire Behaviour
 # Prediction System" from Forestry Canada Fire Danger Group, Information Report ST-X-3, 1992.

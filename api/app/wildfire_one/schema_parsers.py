@@ -154,14 +154,14 @@ def generate_station_daily(raw_daily, station: WFWXWeatherStation, fuel_type: st
     cfb = None
     try:
         if sfc is not None:
-            cfb = calculate_cfb(fuel_type, fmc, sfc, ros, cbh)
+            cfb = calculate_cfb(FuelTypeEnum[fuel_type], fmc, sfc, ros, cbh)
     except cffdrs.CFFDRSException as exception:
         logger.error(exception, exc_info=True)
 
     hfi = None
     try:
         if ros is not None and cfb is not None and cfl is not None:
-            hfi = cffdrs.head_fire_intensity(fuel_type=fuel_type,
+            hfi = cffdrs.head_fire_intensity(fuel_type=FuelTypeEnum[fuel_type],
                                              percentage_conifer=pc,
                                              percentage_dead_balsam_fir=pdf,
                                              ros=ros, cfb=cfb, cfl=cfl, sfc=sfc)

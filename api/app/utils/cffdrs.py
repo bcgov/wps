@@ -520,7 +520,7 @@ def initial_spread_index(ffmc: float, wind_speed: float, fbpMod: bool = False): 
     return result[0]
 
 
-def crown_fraction_burned(fuel_type: FuelTypeEnum or str, fmc: float, sfc: float,
+def crown_fraction_burned(fuel_type: FuelTypeEnum, fmc: float, sfc: float,
                           ros: float, cbh: float) -> float:
     """ Computes Crown Fraction Burned (CFB) by delegating to cffdrs R package.
     Value returned will be between 0-1.
@@ -544,18 +544,13 @@ def crown_fraction_burned(fuel_type: FuelTypeEnum or str, fmc: float, sfc: float
             "_CFBcalc; fuel_type: {fuel_type}, cbh: {cbh}, fmc: {fmc}".format(
                 fuel_type=fuel_type.value, cbh=cbh, fmc=fmc)
         raise CFFDRSException(message)
-    # FireBAT uses FuelTypeEnum, HFI Calc uses string to represent fuel type
-    if isinstance(fuel_type, FuelTypeEnum):
-        fuel_type_str = fuel_type.value
-    elif isinstance(fuel_type, str):
-        fuel_type_str = fuel_type
-    result = CFFDRS.instance().cffdrs._CFBcalc(FUELTYPE=fuel_type_str, FMC=fmc, SFC=sfc,
+    result = CFFDRS.instance().cffdrs._CFBcalc(FUELTYPE=fuel_type.value, FMC=fmc, SFC=sfc,
                                                ROS=ros, CBH=cbh)
     return result[0]
 
 
 def total_fuel_consumption(  # pylint: disable=invalid-name
-        fuel_type: FuelTypeEnum or str, cfb: float, sfc: float, pc: float, pdf: float, cfl: float):
+        fuel_type: FuelTypeEnum, cfb: float, sfc: float, pc: float, pdf: float, cfl: float):
     """ Computes Total Fuel Consumption (TFC), which is a required input to calculate Head Fire Intensity.
     TFC is calculated by delegating to cffdrs R package.
 
@@ -583,13 +578,8 @@ def total_fuel_consumption(  # pylint: disable=invalid-name
         pc = NULL
     if pdf is None:
         pdf = NULL
-    # FireBAT uses FuelTypeEnum, HFI Calc uses string to represent fuel type
-    if isinstance(fuel_type, FuelTypeEnum):
-        fuel_type_str = fuel_type.value
-    elif isinstance(fuel_type, str):
-        fuel_type_str = fuel_type
     # pylint: disable=protected-access, no-member
-    result = CFFDRS.instance().cffdrs._TFCcalc(FUELTYPE=fuel_type_str, CFL=cfl, CFB=cfb, SFC=sfc,
+    result = CFFDRS.instance().cffdrs._TFCcalc(FUELTYPE=fuel_type.value, CFL=cfl, CFB=cfb, SFC=sfc,
                                                PC=pc,
                                                PDF=pdf)
     return result[0]

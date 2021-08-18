@@ -282,7 +282,7 @@ def get_fire_size(fuel_type: FuelTypeEnum, ros: float, bros: float, ellapsed_min
 
 
 def get_fire_type(fuel_type: FuelTypeEnum, crown_fraction_burned: float) -> FireTypeEnum:
-    """ Returns Fire Type (as str) based on percentage Crown Fraction Burned (CFB).
+    """ Returns Fire Type (as FireTypeEnum) based on percentage Crown Fraction Burned (CFB).
     These definitions come from the Red Book (p.69).
     Abbreviations for fire types have been taken from the red book (p.9).
 
@@ -291,7 +291,7 @@ def get_fire_type(fuel_type: FuelTypeEnum, crown_fraction_burned: float) -> Fire
     10-89%                          Intermittent crown fire     IC
     > 90%                           Continuous crown fire       CC
     """
-    if fuel_type == FuelTypeEnum['D1']:
+    if fuel_type == FuelTypeEnum.D1:
         # From red book "crown fires are not expected in deciduous fuel types but high intensity surface fires
         # can occur."
         return FireTypeEnum.SURFACE
