@@ -1,19 +1,19 @@
+import { FBCTableRow } from 'features/fbaCalculator/RowManager'
 import _ from 'lodash'
 import { isNull } from 'lodash'
-import { FBAInputRow } from './components/FBAInputGrid'
 
 /**
  * Returns whether grass cure percentage input is invalid or not
  * @param row the input row to check against
  * @returns true if grass cure percentage is invalid, false otherwise
  */
-export const isGrassCureInvalid = (row: FBAInputRow): boolean => {
+export const isGrassCureInvalid = (row: FBCTableRow): boolean => {
   if (_.isUndefined(row)) {
     return false
   }
 
   let notSet = false
-  if (row.fuelType === 'o1a' || row.fuelType === 'o1b') {
+  if (row.fuelType?.value === 'o1a' || row.fuelType?.value === 'o1b') {
     notSet = _.isUndefined(row.grassCure) || isNaN(row.grassCure)
   }
   return notSet || isGreaterThan(row.grassCure)

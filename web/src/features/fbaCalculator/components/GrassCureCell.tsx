@@ -1,14 +1,14 @@
 import { TextField, Tooltip } from '@material-ui/core'
 import { ClassNameMap } from '@material-ui/core/styles/withStyles'
-import { FBAInputRow } from 'features/fbaCalculator/components/FBAInputGrid'
+import { FBCTableRow } from 'features/fbaCalculator/RowManager'
 import { buildUpdatedNumberRow, updateFBARow } from 'features/fbaCalculator/tableState'
 import { isGrassCureInvalid } from 'features/fbaCalculator/validation'
 import { isEqual, isNull, isUndefined } from 'lodash'
 import React, { ChangeEvent, useEffect, useState } from 'react'
 
 export interface GrassCureCellProps {
-  inputRows: FBAInputRow[]
-  updateRow: (rowId: number, updatedRow: FBAInputRow, dispatchRequest?: boolean) => void
+  inputRows: FBCTableRow[]
+  updateRow: (rowId: number, updatedRow: FBCTableRow, dispatchRequest?: boolean) => void
   classNameMap: ClassNameMap<'grassCure'>
   value: number | undefined
   rowId: number

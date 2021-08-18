@@ -3,9 +3,9 @@ import { FBCStation, postFBCStations } from 'api/fbCalcAPI'
 
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
-import { FBAInputRow } from 'features/fbaCalculator/components/FBAInputGrid'
 import { FuelTypes } from '../fuelTypes'
 import { isEmpty, isEqual, isNull, isUndefined } from 'lodash'
+import { FBCTableRow } from 'features/fbaCalculator/RowManager'
 
 interface State {
   loading: boolean
@@ -50,10 +50,10 @@ export default fireBehaviourStationsSlice.reducer
 
 export const fetchFireBehaviourStations = (
   date: string,
-  fbcInputRows: FBAInputRow[]
+  fbcInputRows: FBCTableRow[]
 ): AppThunk => async dispatch => {
   const fetchableFireStations = fbcInputRows.flatMap(row => {
-    const fuelTypeDetails = FuelTypes.lookup(row.fuelType)
+    const fuelTypeDetails = FuelTypes.lookup(row.fuelType?.value)
     if (
       isNull(fuelTypeDetails) ||
       isUndefined(fuelTypeDetails) ||
@@ -64,7 +64,7 @@ export const fetchFireBehaviourStations = (
     }
     return {
       date,
-      stationCode: parseInt(row.weatherStation),
+      stationCode: parseInt(row.weatherStation ? row.weatherStation.value : ''),
       fuelType: fuelTypeDetails.name,
       percentageConifer: fuelTypeDetails.percentage_conifer,
       grassCurePercentage: row.grassCure,

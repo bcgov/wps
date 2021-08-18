@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { filter, isUndefined } from 'lodash'
+import { filter, findIndex, isUndefined } from 'lodash'
 import {
   Checkbox,
   FormControl,
@@ -23,7 +23,7 @@ import GrassCureCell from 'features/fbaCalculator/components/GrassCureCell'
 import WindSpeedCell from 'features/fbaCalculator/components/WindSpeedCell'
 import SelectionCheckbox from 'features/fbaCalculator/components/SelectionCheckbox'
 import { Order } from 'utils/table'
-import { RowManager, SortByColumn } from 'features/fbaCalculator/RowManager'
+import { FBCTableRow, RowManager, SortByColumn } from 'features/fbaCalculator/RowManager'
 import { GeoJsonStation, getStations, StationSource } from 'api/stationAPI'
 import { selectFireWeatherStations, selectFireBehaviourCalcResult } from 'app/rootReducer'
 import { FuelTypes } from 'features/fbaCalculator/fuelTypes'
@@ -110,6 +110,15 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
 
   const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().toISODate())
 
+  const location = useLocation()
+  const history = useHistory()
+
+  const dispatch = useDispatch()
+
+  useEffect(() => {
+    dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   const { stations } = useSelector(selectFireWeatherStations)
 
   const stationMenuOptions: GridMenuOption[] = (stations as GeoJsonStation[]).map(
@@ -125,16 +134,8 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
       label: value.friendlyName
     })
   )
-  const location = useLocation()
-  const history = useHistory()
 
   const rowsFromQuery = getRowsFromUrlParams(location.search)
-  const [rows, setRows] = useState<FBAInputRow[]>(rowsFromQuery)
-  const lastId = getMostRecentIdFromRows(rows)
-
-  const [rowId, setRowId] = useState(lastId + 1)
-  const [selected, setSelected] = useState<number[]>([])
-
   const { fireBehaviourResultStations } = useSelector(selectFireBehaviourCalcResult)
   const [calculatedResults, setCalculatedResults] = useState<FBCStation[]>(
     fireBehaviourResultStations
@@ -144,20 +145,41 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
     setCalculatedResults(fireBehaviourResultStations)
   }, [fireBehaviourResultStations]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const dispatch = useDispatch()
+  const [rows, setRows] = useState<FBCTableRow[]>([])
+  const lastId = getMostRecentIdFromRows(rows)
+
+  const [rowId, setRowId] = useState(lastId + 1)
+  const [selected, setSelected] = useState<number[]>([])
+
+  useEffect(() => {
+    if (stations.length > 0) {
+      const stationCodeMap = new Map(
+        stationMenuOptions.map(station => [station.value, station.label])
+      )
+      const rowManager = new RowManager(stationCodeMap)
+
+      const sortedRows = RowManager.sortRows(
+        sortByColumn,
+        order,
+        rowManager.mergeFBARows(rowsFromQuery, calculatedResults)
+      )
+      setRows(sortedRows)
+      dispatch(fetchFireBehaviourStations(dateOfInterest, sortedRows))
+    }
+  }, [stations, location]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const addStation = () => {
     const newRowId = rowId + 1
-    setRowId(newRowId)
     const newRow = {
-      id: rowId,
-      weatherStation: undefined,
-      fuelType: undefined,
+      id: newRowId,
+      weatherStation: null,
+      fuelType: null,
       grassCure: undefined,
       windSpeed: undefined
     }
-    const newRows = [...rows, newRow]
+    const newRows = rows.concat(newRow)
     setRows(newRows)
+    setRowId(newRowId + 1)
   }
 
   const deleteSelectedStations = () => {
@@ -170,21 +192,17 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
     setSelected([])
   }
 
-  const updateRow = (id: number, updatedRow: FBAInputRow, dispatchUpdate = true) => {
+  const updateRow = (id: number, updatedRow: FBCTableRow, dispatchUpdate = true) => {
     const newRows = [...rows]
+    const index = findIndex(newRows, row => row.id === id)
 
     // rowId is the row array index
-    newRows[id as number] = updatedRow
+    newRows[index] = updatedRow
     setRows(newRows)
     if (dispatchUpdate) {
       updateQueryParams(getUrlParamsFromRows(newRows))
-      dispatch(fetchFireBehaviourStations(dateOfInterest, newRows))
     }
   }
-
-  useEffect(() => {
-    dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const updateQueryParams = (queryParams: string) => {
     history.push({
@@ -192,33 +210,11 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
     })
   }
 
-  useEffect(() => {
-    const rows = getRowsFromUrlParams(location.search)
-    setRows(rows)
-    const mostRecentId = getMostRecentIdFromRows(rows)
-    setRowId(mostRecentId + 1)
-
-    if (rows.length > 0) {
-      dispatch(fetchFireBehaviourStations(dateOfInterest, rows))
-    }
-  }, [location]) // eslint-disable-line react-hooks/exhaustive-deps
-
   const updateDate = () => {
     dispatch(fetchFireBehaviourStations(dateOfInterest, rows))
   }
 
   const DECIMAL_PLACES = 1
-
-  const stationCodeMap = new Map(
-    stationMenuOptions.map(station => [station.value, station.label])
-  )
-  const rowManager = new RowManager(stationCodeMap)
-
-  const sortedRows = RowManager.sortRows(
-    sortByColumn,
-    order,
-    rowManager.mergeFBARows(rows, calculatedResults)
-  )
 
   return (
     <React.Fragment>
@@ -558,7 +554,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                 </TableRow>
               </TableHead>
               <TableBody data-testid="fba-table-body">
-                {sortedRows.map((row, ri) => {
+                {rows.map((row, ri) => {
                   return (
                     <TableRow key={row.id}>
                       <TableCell>
@@ -619,7 +615,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                           inputRows={rows}
                           updateRow={updateRow}
                           inputValue={row.windSpeed}
-                          calculatedValue={sortedRows[ri].wind_speed}
+                          calculatedValue={rows[ri].wind_speed}
                           rowId={row.id}
                         />
                       </TableCell>

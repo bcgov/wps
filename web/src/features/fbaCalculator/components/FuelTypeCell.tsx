@@ -1,10 +1,8 @@
 import { TextField } from '@material-ui/core'
 import { ClassNameMap } from '@material-ui/core/styles/withStyles'
 import { Autocomplete } from '@material-ui/lab'
-import {
-  FBAInputRow,
-  GridMenuOption
-} from 'features/fbaCalculator/components/FBAInputGrid'
+import { GridMenuOption } from 'features/fbaCalculator/components/FBAInputGrid'
+import { FBCTableRow } from 'features/fbaCalculator/RowManager'
 import { buildUpdatedOptionRow, updateFBARow } from 'features/fbaCalculator/tableState'
 import { isGrassCureInvalid } from 'features/fbaCalculator/validation'
 import { isEqual } from 'lodash'
@@ -12,8 +10,8 @@ import React, { useEffect, useState } from 'react'
 
 interface FuelTypeCellProps {
   fuelTypeOptions: GridMenuOption[]
-  inputRows: FBAInputRow[]
-  updateRow: (rowId: number, updatedRow: FBAInputRow, dispatchRequest?: boolean) => void
+  inputRows: FBCTableRow[]
+  updateRow: (rowId: number, updatedRow: FBCTableRow, dispatchRequest?: boolean) => void
   classNameMap: ClassNameMap<'fuelType'>
   value: GridMenuOption | null
   rowId: number
