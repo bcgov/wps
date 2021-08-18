@@ -4,7 +4,7 @@ import { FBAInputGridProps } from 'features/fbaCalculator/components/FBAInputGri
 import { buildUpdatedNumberRow, updateFBARow } from 'features/fbaCalculator/tableState'
 import { isGrassCureInvalid } from 'features/fbaCalculator/validation'
 import { isEqual, isNull, isUndefined } from 'lodash'
-import React, { ChangeEvent, useState } from 'react'
+import React, { ChangeEvent, useEffect, useState } from 'react'
 
 export interface GrassCureCellProps {
   fbaInputGridProps: Pick<FBAInputGridProps, 'inputRows' | 'updateRow'>
@@ -16,6 +16,7 @@ export interface GrassCureCellProps {
 const GrassCureProps = (props: GrassCureCellProps) => {
   const [lastRequestedGrassCure, setLastRequestedGrassCure] = useState(props.value)
   const [grassCurePercentage, setGrassCurePercentage] = useState(props.value)
+  useEffect(() => setGrassCurePercentage(props.value), [props])
 
   const changeHandler = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const stringInput = String(event.target.value)
