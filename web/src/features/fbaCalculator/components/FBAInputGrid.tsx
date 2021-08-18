@@ -173,11 +173,13 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
     if (!isNull(rowIdToUpdate)) {
       const rowsWithUpdate = [...rows]
       const updatedRowIndex = findIndex(rowsWithUpdate, row => row.id === rowIdToUpdate)
-      rowsWithUpdate[updatedRowIndex] = {
-        ...rows[updatedRowIndex],
-        ...calculatedResults[0]
+      if (updatedRowIndex >= 0) {
+        rowsWithUpdate[updatedRowIndex] = {
+          ...rows[updatedRowIndex],
+          ...calculatedResults[0]
+        }
+        setRows(rowsWithUpdate)
       }
-      setRows(rowsWithUpdate)
     }
   }, [calculatedResults]) // eslint-disable-line react-hooks/exhaustive-deps
 
