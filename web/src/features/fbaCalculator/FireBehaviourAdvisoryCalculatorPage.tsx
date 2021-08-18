@@ -13,7 +13,7 @@ import DatePicker from 'features/fbaCalculator/components/DatePicker'
 import FBAInputGrid, {
   GridMenuOption,
   FBAInputRow
-} from 'features/fbaCalculator/components/FBAInputGrid'
+} from 'features/fbaCalculator/components/FBATable'
 import { FuelTypes } from 'features/fbaCalculator/fuelTypes'
 import { fetchFireBehaviourStations } from 'features/fbaCalculator/slices/fbaCalculatorSlice'
 import {

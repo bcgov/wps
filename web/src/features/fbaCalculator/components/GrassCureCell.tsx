@@ -1,6 +1,6 @@
 import { TextField, Tooltip } from '@material-ui/core'
 import { ClassNameMap } from '@material-ui/core/styles/withStyles'
-import { FBAInputGridProps } from 'features/fbaCalculator/components/FBAInputGrid'
+import { FBAInputGridProps } from 'features/fbaCalculator/components/FBATable'
 import { buildUpdatedNumberRow, updateFBARow } from 'features/fbaCalculator/tableState'
 import { isGrassCureInvalid } from 'features/fbaCalculator/validation'
 import { isEqual, isNull, isUndefined } from 'lodash'

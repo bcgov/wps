@@ -1,7 +1,7 @@
 import assert from 'assert'
 import _ from 'lodash'
 import { isNull } from 'lodash'
-import { FBAInputRow } from './components/FBAInputGrid'
+import { FBAInputRow } from './components/FBATable'
 
 export const isGrassFuelType = (fuelType: string): boolean =>
   fuelType === 'o1a' || fuelType === 'o1b'

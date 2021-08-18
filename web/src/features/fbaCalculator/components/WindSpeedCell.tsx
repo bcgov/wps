@@ -1,6 +1,6 @@
 import { TextField, Tooltip, makeStyles } from '@material-ui/core'
 import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles'
-import { FBAInputGridProps } from 'features/fbaCalculator/components/FBAInputGrid'
+import { FBAInputGridProps } from 'features/fbaCalculator/components/FBATable'
 import { updateFBARow, buildUpdatedNumberRow } from 'features/fbaCalculator/tableState'
 import { isWindSpeedInvalid } from 'features/fbaCalculator/validation'
 import { isEqual } from 'lodash'

@@ -3,7 +3,7 @@ import { FBCStation, postFBCStations } from 'api/fbCalcAPI'
 
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
-import { FBAInputRow } from 'features/fbaCalculator/components/FBAInputGrid'
+import { FBAInputRow } from 'features/fbaCalculator/components/FBATable'
 import { FuelTypes } from '../fuelTypes'
 import { isEmpty, isEqual, isNull, isUndefined } from 'lodash'
 

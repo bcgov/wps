@@ -2,7 +2,7 @@ import { FBCStation } from 'api/fbCalcAPI'
 import {
   GridMenuOption,
   FBAInputRow
-} from 'features/fbaCalculator/components/FBAInputGrid'
+} from 'features/fbaCalculator/components/FBATable'
 import { FuelTypes } from 'features/fbaCalculator/fuelTypes'
 import _, { isNull, isUndefined, zipWith } from 'lodash'
 import { Order } from 'utils/table'
