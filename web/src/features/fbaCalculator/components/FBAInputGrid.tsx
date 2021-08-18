@@ -516,7 +516,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                     >
                       ROS
                       <br />
-                      (10000 kW/m)
+                      (m/min)
                     </TableSortLabel>
                   </TableCell>
                   <TableCell sortDirection={order}>
