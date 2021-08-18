@@ -10,9 +10,8 @@ from app.schemas.fba_calc import FuelTypeEnum
 # CFL is based on Table 8, page 35, of "Development and Structure of the Canadian Forest Fire Behaviour
 # Prediction System" from Forestry Canada Fire Danger Group, Information Report ST-X-3, 1992.
 # For D1, D2, O1A, O1B, S1, S2 and S3 - a value of 1.0 is used.
-# TODO: Establish correct method of calculating HFI for D1, D2, O1A, O1B, S1, S2 and S3
 # NOTE: For any given fuel types, there are a large number of possible permutations, e.g.
-#   M3 can have some range 0 to 100% of dead fir in it. These values merely represent the most commen
+#   M3 can have some range 0 to 100% of dead fir in it. These values merely represent the most common
 #   default set of configurations we're likely to encounter.
 FUEL_TYPE_DEFAULTS = {
     FuelTypeEnum.C1: {"PC": 100, "PDF": 0, "CC": None, "CBH": 2, "CFL": 0.75},
