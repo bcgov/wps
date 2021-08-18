@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { filter, findIndex, isUndefined } from 'lodash'
+import { filter, findIndex, isNull, isUndefined } from 'lodash'
 import {
   Checkbox,
   FormControl,
@@ -150,6 +150,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
 
   const [rowId, setRowId] = useState(lastId + 1)
   const [selected, setSelected] = useState<number[]>([])
+  const [rowIdToUpdate, setRowIdToUpdate] = useState<number | null>(null)
 
   useEffect(() => {
     if (stations.length > 0) {
@@ -167,6 +168,18 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
       dispatch(fetchFireBehaviourStations(dateOfInterest, sortedRows))
     }
   }, [stations, location]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!isNull(rowIdToUpdate)) {
+      const rowsWithUpdate = [...rows]
+      const updatedRowIndex = findIndex(rowsWithUpdate, row => row.id === rowIdToUpdate)
+      rowsWithUpdate[updatedRowIndex] = {
+        ...rows[updatedRowIndex],
+        ...calculatedResults[0]
+      }
+      setRows(rowsWithUpdate)
+    }
+  }, [calculatedResults]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const addStation = () => {
     const newRowId = rowId + 1
@@ -199,6 +212,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
     // rowId is the row array index
     newRows[index] = updatedRow
     setRows(newRows)
+    setRowIdToUpdate(id)
     if (dispatchUpdate) {
       updateQueryParams(getUrlParamsFromRows(newRows))
     }
