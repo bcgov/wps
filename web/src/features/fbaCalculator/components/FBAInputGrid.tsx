@@ -3,6 +3,7 @@ import { filter, findIndex, isNull, isUndefined } from 'lodash'
 import {
   Checkbox,
   FormControl,
+  LinearProgress,
   makeStyles,
   Paper,
   Table,
@@ -136,7 +137,9 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
   )
 
   const rowsFromQuery = getRowsFromUrlParams(location.search)
-  const { fireBehaviourResultStations } = useSelector(selectFireBehaviourCalcResult)
+  const { fireBehaviourResultStations, loading } = useSelector(
+    selectFireBehaviourCalcResult
+  )
   const [calculatedResults, setCalculatedResults] = useState<FBCStation[]>(
     fireBehaviourResultStations
   )
@@ -302,6 +305,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
       <div className={classes.display} data-testid={props.testId}>
         <Paper className={classes.paper} elevation={1}>
           <TableContainer className={classes.tableContainer}>
+            {loading && <LinearProgress />}
             <Table stickyHeader aria-label="Fire Behaviour Analysis table">
               <TableHead>
                 <TableRow>
