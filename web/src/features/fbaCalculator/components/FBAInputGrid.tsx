@@ -167,10 +167,34 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
       setRows(sortedRows)
       dispatch(fetchFireBehaviourStations(dateOfInterest, sortedRows))
     }
-  }, [stations, location]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [stations]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (!isNull(rowIdToUpdate)) {
+    if (stations.length > 0) {
+      // const stationCodeMap = new Map(
+      //   stationMenuOptions.map(station => [station.value, station.label])
+      // )
+      // const rowManager = new RowManager(stationCodeMap)
+
+      // const sortedRows = RowManager.sortRows(
+      //   sortByColumn,
+      //   order,
+      //   rowManager.mergeFBARows(rowsFromQuery, calculatedResults)
+      // )
+      // setRows(sortedRows)
+      if (!isNull(rowIdToUpdate)) {
+        const rowIndex = findIndex(rows, row => row.id === rowIdToUpdate)
+        if (rowIndex >= 0) {
+          dispatch(fetchFireBehaviourStations(dateOfInterest, [rows[rowIndex]]))
+        }
+      } else {
+        // do nothing
+      }
+    }
+  }, [location]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!isNull(rowIdToUpdate) && calculatedResults.length > 0) {
       const rowsWithUpdate = [...rows]
       const updatedRowIndex = findIndex(rowsWithUpdate, row => row.id === rowIdToUpdate)
       if (updatedRowIndex >= 0) {
@@ -179,6 +203,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
           ...calculatedResults[0]
         }
         setRows(rowsWithUpdate)
+        setRowIdToUpdate(null)
       }
     }
   }, [calculatedResults]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -211,7 +236,6 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
     const newRows = [...rows]
     const index = findIndex(newRows, row => row.id === id)
 
-    // rowId is the row array index
     newRows[index] = updatedRow
     setRows(newRows)
     setRowIdToUpdate(id)
