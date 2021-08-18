@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { FBCStation, FBCWeatherStationsResponse, postFBCStations } from 'api/fbCalcAPI'
+import { FBAStation, FBAWeatherStationsResponse, postFBAStations } from 'api/fbaCalcAPI'
 
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
@@ -10,7 +10,7 @@ import { isEmpty, isEqual, isNull, isUndefined } from 'lodash'
 interface State {
   loading: boolean
   error: string | null
-  fireBehaviourResultStations: FBCStation[]
+  fireBehaviourResultStations: FBAStation[]
   date: string | null
 }
 
@@ -37,7 +37,7 @@ const fireBehaviourStationsSlice = createSlice({
     },
     getFireBehaviourStationsSuccess(
       state: State,
-      action: PayloadAction<FBCWeatherStationsResponse>
+      action: PayloadAction<FBAWeatherStationsResponse>
     ) {
       state.error = null
       state.fireBehaviourResultStations = action.payload.stations
@@ -82,7 +82,7 @@ export const fetchFireBehaviourStations = (
   try {
     if (!isEmpty(fetchableFireStations)) {
       dispatch(getFireBehaviourStationsStart())
-      const fireBehaviourStations = await postFBCStations(date, fetchableFireStations)
+      const fireBehaviourStations = await postFBAStations(date, fetchableFireStations)
       dispatch(getFireBehaviourStationsSuccess(fireBehaviourStations))
     }
   } catch (err) {

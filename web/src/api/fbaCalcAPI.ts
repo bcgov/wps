@@ -5,7 +5,7 @@ export interface CriticalHoursHFI {
   end: number
 }
 
-export interface FBCStation {
+export interface FBAStation {
   station_code: number
   station_name: string
   zone_code: string
@@ -35,12 +35,12 @@ export interface FBCStation {
   sixty_minute_fire_size: number
 }
 
-export interface FBCWeatherStationsResponse {
+export interface FBAWeatherStationsResponse {
   date: string
-  stations: FBCStation[]
+  stations: FBAStation[]
 }
 
-export interface FetchableFBCStation {
+export interface FetchableFBAStation {
   stationCode: number
   fuelType: string
   percentageConifer: number | undefined
@@ -50,10 +50,10 @@ export interface FetchableFBCStation {
   windSpeed: number | undefined
 }
 
-export async function postFBCStations(
+export async function postFBAStations(
   date: string,
-  fireBehaviorStations: FetchableFBCStation[]
-): Promise<FBCWeatherStationsResponse> {
+  fireBehaviorStations: FetchableFBAStation[]
+): Promise<FBAWeatherStationsResponse> {
   const url = '/fba-calc/stations'
 
   const { data } = await axios.post(url, {
