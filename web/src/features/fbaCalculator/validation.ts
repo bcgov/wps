@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import { isNull } from 'lodash'
-import { FBAInputRow } from './components/FBAInputGrid'
+import { FBAInputRow } from './components/FBATable'
 
 /**
  * Returns whether grass cure percentage input is invalid or not
