@@ -7,6 +7,7 @@ from typing import List, Optional
 import logging
 import pandas as pd
 from app.schemas.observations import WeatherReading
+from app.schemas.fba_calc import CriticalHoursHFI
 from app.utils.singleton import Singleton
 from app.utils.hfi_calculator import FUEL_TYPE_LOOKUP
 from app.utils import cffdrs
@@ -114,8 +115,8 @@ class FireBehaviourAdvisory():  # pylint: disable=too-many-instance-attributes
     def __init__(self,  # pylint: disable=too-many-arguments
                  hfi: float, ros: float, fire_type: str, cfb: float, flame_length: float,
                  sixty_minute_fire_size: float, thirty_minute_fire_size: float,
-                 critical_hours_hfi_4000: Optional[str],
-                 critical_hours_hfi_10000: Optional[str],
+                 critical_hours_hfi_4000: Optional[CriticalHoursHFI],
+                 critical_hours_hfi_10000: Optional[CriticalHoursHFI],
                  hfi_t: Optional[float],
                  ros_t: Optional[float],
                  cfb_t: Optional[float],
@@ -457,7 +458,7 @@ def get_critical_hours(  # pylint: disable=too-many-arguments
     if critical_ffmc == 0.0 and resulting_hfi >= target_hfi:
         logger.info('All hours critical for HFI %s. FFMC %s has HFI %s',
                     target_hfi, critical_ffmc, resulting_hfi)
-        return '13:00 - 7:00'
+        return CriticalHoursHFI(start=13.0, end=7.0)
     # Scenario 3: there is a critical_ffmc between (0, 101) that corresponds to
     # resulting_hfi >= target_hfi. Now have to determine what hours of the day (if any)
     # will see hourly FFMC (adjusted according to diurnal curve) >= critical_ffmc.
@@ -468,13 +469,7 @@ def get_critical_hours(  # pylint: disable=too-many-arguments
     critical_hours_end = get_critical_hours_end(
         critical_ffmc, daily_ffmc, critical_hours_start)
 
-    # format result as string
-    critical_hours_start = str(critical_hours_start).replace('.', ':')
-    critical_hours_end = str(critical_hours_end).replace('.', ':')
-    critical_hours_start = critical_hours_start.replace(':0', ':00').replace(':5', ':30')
-    critical_hours_end = critical_hours_end.replace(':0', ':00').replace(':5', ':30')
-    response_string = critical_hours_start + ' - ' + critical_hours_end
-    return response_string
+    return CriticalHoursHFI(start=critical_hours_start, end=critical_hours_end)
 
 
 def build_hourly_rh_dict(hourly_observations: List[WeatherReading]):

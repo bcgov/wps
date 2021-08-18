@@ -25,6 +25,8 @@ export enum SortByColumn {
   BUI,
   FWI,
   HFI,
+  CriticalHours4000,
+  CriticalHours10000,
   ROS,
   FireType,
   CFB,
@@ -67,6 +69,7 @@ export class RowManager {
     order: Order,
     tableRows: FBCTableRow[]
   ): FBCTableRow[] => {
+    const reverseOrder = order === 'asc' ? 'desc' : 'asc'
     switch (sortByColumn) {
       case SortByColumn.Zone: {
         return _.orderBy(tableRows, 'zone_code', order)
@@ -121,6 +124,12 @@ export class RowManager {
       }
       case SortByColumn.HFI: {
         return _.orderBy(tableRows, 'head_fire_intensity', order)
+      }
+      case SortByColumn.CriticalHours4000: {
+        return _.orderBy(tableRows, 'critical_hours_hfi_4000.start', reverseOrder)
+      }
+      case SortByColumn.CriticalHours10000: {
+        return _.orderBy(tableRows, 'critical_hours_hfi_10000.start', reverseOrder)
       }
       case SortByColumn.ThirtyMinFireSize: {
         return _.orderBy(tableRows, 'thirty_minute_fire_size', order)

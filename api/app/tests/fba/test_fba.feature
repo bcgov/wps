@@ -23,11 +23,11 @@ Feature: /fbc/
             | c7_request.json               | 200         |                                |
             | d1_request.json               | 200         |                                |
             | m1_75conifer_request.json     | 200         |                                |
-            | m1_50conider_request.json     | 200         |                                |
-            | m1_25confier_request.json     | 200         |                                |
-            | m2_75confier_request.json     | 200         |                                |
-            | m2_50confier_request.json     | 200         |                                |
-            | m2_25confier_request.json     | 200         |                                |
+            | m1_50conifer_request.json     | 200         |                                |
+            | m1_25conifer_request.json     | 200         |                                |
+            | m2_75conifer_request.json     | 200         |                                |
+            | m2_50conifer_request.json     | 200         |                                |
+            | m2_25conifer_request.json     | 200         |                                |
             | m3_30deadfir_request.json     | 200         |                                |
             | m3_60deadfir_request.json     | 200         |                                |
             | m3_100deadfir_request.json    | 200         |                                |
