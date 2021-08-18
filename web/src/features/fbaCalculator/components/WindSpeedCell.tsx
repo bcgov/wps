@@ -32,7 +32,7 @@ const adjustedTheme = createMuiTheme({
 
 const WindSpeedCell = (props: WindSpeedCellProps) => {
   const classes = useStyles()
-  const value = props.calculatedValue ? props.calculatedValue : props.inputValue
+  const value = props.inputValue ? props.inputValue : props.calculatedValue
   const [windSpeedValue, setWindSpeedValue] = useState(value)
   useEffect(() => {
     setWindSpeedValue(value)
