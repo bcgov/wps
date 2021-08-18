@@ -77,7 +77,7 @@ def given_time_range_metrics_request(monkeypatch, mocker: MockerFixture):  # pyl
     # To build generic objects with attributes
     object_builder = lambda **kwargs: type("Object", (), kwargs)()
     planning_station = object_builder(station_code=322)
-    fuel_type = object_builder(abbrev="C7", value="C7")
+    fuel_type = object_builder(abbrev='C7', value='C7')
     mocker.patch('app.db.crud.hfi_calc.get_stations_with_fuel_types',
                  return_value=[(planning_station, fuel_type)])
     monkeypatch.setattr(ClientSession, 'get', default_mock_client_get)

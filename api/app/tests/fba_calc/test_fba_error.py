@@ -2,13 +2,12 @@
 Unit tests for fire behavour calculator.
 """
 from datetime import date
-from typing import Final
 import logging
 from pytest_bdd import scenario, given, then
 from app import configure_logging
 from app.schemas.fba_calc import FuelTypeEnum
 from app.utils.time import get_hour_20_from_date
-from app.utils.fba_calculator import calculate_fire_behaviour_advisory, FBACalculatorWeatherStation
+from app.fba_calculator import calculate_fire_behaviour_advisory, FBACalculatorWeatherStation
 from app.utils.redapp import FBPCalculateStatisticsCOM
 from app.tests.fba_calc import (str2float, check_metric, acceptable_margin_of_error,
                                 fire_size_acceptable_margin_of_error)
