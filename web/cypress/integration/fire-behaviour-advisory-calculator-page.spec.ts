@@ -132,7 +132,7 @@ describe('FireBAT Calculator Page', () => {
         .slice(0, 10) // 'YYYY-MM-DD'
 
       cy.intercept('POST', 'api/fba-calc/stations', req => {
-        expect(req.body.stations[0]).to.deep.include({
+        expect(req.body).to.deep.include({
           date: yesterday
         })
       }).as('calculateResults')
