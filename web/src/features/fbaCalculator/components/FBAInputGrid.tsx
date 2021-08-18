@@ -171,29 +171,17 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
 
   useEffect(() => {
     if (stations.length > 0) {
-      // const stationCodeMap = new Map(
-      //   stationMenuOptions.map(station => [station.value, station.label])
-      // )
-      // const rowManager = new RowManager(stationCodeMap)
-
-      // const sortedRows = RowManager.sortRows(
-      //   sortByColumn,
-      //   order,
-      //   rowManager.mergeFBARows(rowsFromQuery, calculatedResults)
-      // )
-      // setRows(sortedRows)
       if (!isNull(rowIdToUpdate)) {
         const rowIndex = findIndex(rows, row => row.id === rowIdToUpdate)
         if (rowIndex >= 0) {
           dispatch(fetchFireBehaviourStations(dateOfInterest, [rows[rowIndex]]))
         }
-      } else {
-        // do nothing
       }
     }
   }, [location]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    // Single update
     if (!isNull(rowIdToUpdate) && calculatedResults.length > 0) {
       const rowsWithUpdate = [...rows]
       const updatedRowIndex = findIndex(rowsWithUpdate, row => row.id === rowIdToUpdate)
@@ -205,6 +193,20 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
         setRows(rowsWithUpdate)
         setRowIdToUpdate(null)
       }
+    }
+    // Initial list page load
+    if (isNull(rowIdToUpdate) && calculatedResults.length > 0) {
+      const stationCodeMap = new Map(
+        stationMenuOptions.map(station => [station.value, station.label])
+      )
+      const rowManager = new RowManager(stationCodeMap)
+
+      const sortedRows = RowManager.sortRows(
+        sortByColumn,
+        order,
+        rowManager.mergeFBARows(rowsFromQuery, calculatedResults)
+      )
+      setRows(sortedRows)
     }
   }, [calculatedResults]) // eslint-disable-line react-hooks/exhaustive-deps
 
