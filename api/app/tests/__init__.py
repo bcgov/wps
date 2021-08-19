@@ -1,10 +1,11 @@
 """ Util & common files for tests
 """
-from typing import IO, Any, Callable, Optional
+from typing import IO, Any, Callable, Optional, Tuple
 import os
 import datetime
 import json
 import importlib
+from attr import field
 import jsonpickle
 from app.db.models.common import TZTimeStamp
 
@@ -23,10 +24,25 @@ def _load_json_file(module_path: str, filename: str) -> Optional[dict]:
     return None
 
 
+def _load_json_file_with_name(module_path: str, filename: str) -> Tuple[Optional[dict], str]:
+    """ Load json file given a module path and a filename """
+    if filename:
+        with open(get_complete_filename(module_path, filename)) as file_pointer:
+            return json.load(file_pointer), filename
+    return None, filename
+
+
 def load_json_file(module_path: str) -> Callable[[str], dict]:
-    """ Return a function that can load json from a filename """
+    """ Return a function that can load json from a filename and return a dict """
     def _json_loader(filename: str):
         return _load_json_file(module_path, filename)
+    return _json_loader
+
+
+def load_json_file_with_name(module_path: str) -> Callable[[str], dict]:
+    """ Return a function that can load a json from a filename and return a dict, but also the filename """
+    def _json_loader(filename: str):
+        return _load_json_file_with_name(module_path, filename)
     return _json_loader
 
 

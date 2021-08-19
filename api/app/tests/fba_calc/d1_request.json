@@ -1,0 +1,9 @@
+{
+    "date": "2021-07-05",
+    "stations": [
+        {
+            "station_code": 230,
+            "fuel_type": "D1"
+        }
+    ]
+}

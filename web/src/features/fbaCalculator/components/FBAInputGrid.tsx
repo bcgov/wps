@@ -14,7 +14,7 @@ import {
   Tooltip
 } from '@material-ui/core'
 import InfoIcon from '@material-ui/icons/Info'
-import { CriticalHoursHFI, FBCStation } from 'api/fbCalcAPI'
+import { CriticalHoursHFI, FBAStation } from 'api/fbaCalcAPI'
 import WeatherStationCell from 'features/fbaCalculator/components/WeatherStationCell'
 import FuelTypeCell from 'features/fbaCalculator/components/FuelTypeCell'
 import GrassCureCell from 'features/fbaCalculator/components/GrassCureCell'
@@ -31,7 +31,7 @@ export interface FBAInputGridProps {
   updateRow: (rowId: number, updatedRow: FBAInputRow, dispatchRequest?: boolean) => void
   selected: number[]
   updateSelected: (selected: number[]) => void
-  calculatedResults: FBCStation[]
+  calculatedResults: FBAStation[]
   autoUpdateHandler: () => void
 }
 
