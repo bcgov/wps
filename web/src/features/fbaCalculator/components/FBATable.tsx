@@ -10,8 +10,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  TableSortLabel,
-  Tooltip
+  TableSortLabel
 } from '@material-ui/core'
 import { CriticalHoursHFI, FBAStation } from 'api/fbaCalcAPI'
 import WeatherStationCell from 'features/fbaCalculator/components/WeatherStationCell'
