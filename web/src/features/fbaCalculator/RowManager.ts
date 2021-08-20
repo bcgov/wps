@@ -48,18 +48,20 @@ export class RowManager {
   public mergeFBARows = (
     inputRows: FBAInputRow[],
     calculatedRows: FBAStation[]
-  ): FBCTableRow[] =>
-    zipWith(inputRows, calculatedRows, (inputRow, outputRow) => {
-      if (inputRow) {
-        return [
-          {
-            ...this.buildFBCTableRow(inputRow),
-            ...outputRow
-          }
-        ]
-      }
-      return []
-    }).flat()
+  ): FBCTableRow[] => {
+
+      return zipWith(inputRows, calculatedRows, (inputRow, outputRow) => {
+        if (inputRow) {
+          return [
+            {
+              ...this.buildFBCTableRow(inputRow),
+              ...outputRow
+            }
+          ]
+        }
+        return []
+      }).flat()
+  }
   public static sortRows = (
     sortByColumn: SortByColumn,
     order: Order,
