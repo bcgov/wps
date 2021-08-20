@@ -53,7 +53,8 @@ const useStyles = makeStyles({
     paddingBottom: 12,
 
     '& .MuiTableCell-sizeSmall': {
-      padding: '6px 12px 6px 6px'
+      padding: '6px 6px 6px 6px',
+      height: '40px'
     },
 
     '& .MuiTableCell-stickyHeader': {
@@ -62,6 +63,10 @@ const useStyles = makeStyles({
 
     '& .MuiInputBase-root': {
       fontSize: '1em'
+    },
+
+    '& .MuiOutlinedInput-root': {
+      padding: '0'
     }
   },
   weatherStation: {
@@ -160,7 +165,8 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                   />
                 </TableCell>
                 <TableCell key="header-zone" sortDirection={order}>
-                  <TableSortLabel className={classes.tableHeaderRow}
+                  <TableSortLabel
+                    className={classes.tableHeaderRow}
                     direction={order}
                     onClick={() => {
                       toggleSorting(SortByColumn.Zone)
@@ -196,9 +202,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                     direction={order}
                     onClick={() => toggleSorting(SortByColumn.FuelType)}
                   >
-                    FBP
-                    Fuel
-                    Type
+                    FBP Fuel Type
                   </TableSortLabel>
                 </TableCell>
                 <TableCell sortDirection={order}>
@@ -498,7 +502,9 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                     </TableCell>
                     <TableCell className={classes.dataRow}>{row.temp}</TableCell>
                     <TableCell className={classes.dataRow}>{row.rh}</TableCell>
-                    <TableCell className={classes.dataRow}>{row.wind_direction}</TableCell>
+                    <TableCell className={classes.dataRow}>
+                      {row.wind_direction}
+                    </TableCell>
                     <TableCell className={classes.dataRow}>
                       <WindSpeedCell
                         fbaInputGridProps={props}
@@ -514,11 +520,15 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                     <TableCell className={classes.dataRow}>
                       {row.duff_moisture_code?.toFixed(DECIMAL_PLACES)}
                     </TableCell>
-                    <TableCell className={classes.dataRow}>{row.drought_code?.toFixed(DECIMAL_PLACES)}</TableCell>
+                    <TableCell className={classes.dataRow}>
+                      {row.drought_code?.toFixed(DECIMAL_PLACES)}
+                    </TableCell>
                     <TableCell className={classes.dataRow}>
                       {row.initial_spread_index?.toFixed(DECIMAL_PLACES)}
                     </TableCell>
-                    <TableCell className={classes.dataRow}>{row.build_up_index?.toFixed(DECIMAL_PLACES)}</TableCell>
+                    <TableCell className={classes.dataRow}>
+                      {row.build_up_index?.toFixed(DECIMAL_PLACES)}
+                    </TableCell>
                     <TableCell className={classes.dataRow}>
                       {row.fire_weather_index?.toFixed(DECIMAL_PLACES)}
                     </TableCell>
@@ -531,7 +541,9 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                     <TableCell className={classes.dataRow}>
                       {formatCriticalHoursAsString(row.critical_hours_hfi_10000)}
                     </TableCell>
-                    <TableCell className={classes.dataRow}>{row.rate_of_spread?.toFixed(DECIMAL_PLACES)}</TableCell>
+                    <TableCell className={classes.dataRow}>
+                      {row.rate_of_spread?.toFixed(DECIMAL_PLACES)}
+                    </TableCell>
                     <TableCell className={classes.dataRow}>{row?.fire_type}</TableCell>
                     <TableCell className={classes.dataRow}>
                       {/* CFB comes in as a number 0 to 1, so we multiple by 100 to get the percentage */}
@@ -540,7 +552,9 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                           DECIMAL_PLACES
                         )}
                     </TableCell>
-                    <TableCell className={classes.dataRow}>{row.flame_length?.toFixed(DECIMAL_PLACES)}</TableCell>
+                    <TableCell className={classes.dataRow}>
+                      {row.flame_length?.toFixed(DECIMAL_PLACES)}
+                    </TableCell>
                     <TableCell className={classes.dataRow}>
                       {row.thirty_minute_fire_size?.toFixed(DECIMAL_PLACES)}
                     </TableCell>
