@@ -1,25 +1,48 @@
 """ This module contains pydantic models related to Fire Behaviour Advisory Calculator. """
 
+from enum import Enum
 from typing import List, Optional
 from datetime import date
 from pydantic import BaseModel
 
 
+class FuelTypeEnum(str, Enum):
+    """ Enumerator for all valid fuel types. """
+    C1 = 'C1'
+    C2 = 'C2'
+    C3 = 'C3'
+    C4 = 'C4'
+    C5 = 'C5'
+    C6 = 'C6'
+    C7 = 'C7'
+    D1 = 'D1'
+    D2 = 'D2'
+    M1 = 'M1'
+    M2 = 'M2'
+    M3 = 'M3'
+    M4 = 'M4'
+    O1A = 'O1A'
+    O1B = 'O1B'
+    S1 = 'S1'
+    S2 = 'S2'
+    S3 = 'S3'
+
+
 class StationRequest(BaseModel):
     """ Request for one individual weather station. """
     station_code: int
-    date: Optional[date]  # TODO: remove this date field
-    fuel_type: str
+    fuel_type: FuelTypeEnum
     percentage_conifer: Optional[float]
     percentage_dead_balsam_fir: Optional[float]
     grass_cure: Optional[float]
     crown_base_height: Optional[float]
+    crown_fuel_load: Optional[float]
     wind_speed: Optional[float]
 
 
 class StationListRequest(BaseModel):
     """ Request for a list of stations """
-    date: Optional[date]
+    date: date
     stations: List[StationRequest]
 
 
@@ -37,9 +60,8 @@ class StationResponse(BaseModel):
     station_code: int
     station_name: str
     zone_code: Optional[str]
-    date: date
     elevation: int
-    fuel_type: str
+    fuel_type: FuelTypeEnum
     status: str
     temp: Optional[float]
     rh: Optional[float]
@@ -66,4 +88,5 @@ class StationResponse(BaseModel):
 
 class StationsListResponse(BaseModel):
     """ Response for all weather stations, in a list """
+    date: date
     stations: List[StationResponse]

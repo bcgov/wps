@@ -21,7 +21,7 @@ import {
   getMostRecentIdFromRows,
   getUrlParamsFromRows
 } from 'features/fbaCalculator/utils'
-import { FBCStation } from 'api/fbCalcAPI'
+import { FBAStation } from 'api/fbaCalcAPI'
 
 export const FireBehaviourAdvisoryCalculator: React.FunctionComponent = () => {
   const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().toISODate())
@@ -54,7 +54,7 @@ export const FireBehaviourAdvisoryCalculator: React.FunctionComponent = () => {
   const { fireBehaviourResultStations, loading } = useSelector(
     selectFireBehaviourCalcResult
   )
-  const [calculatedResults, setCalculatedResults] = useState<FBCStation[]>(
+  const [calculatedResults, setCalculatedResults] = useState<FBAStation[]>(
     fireBehaviourResultStations
   )
 

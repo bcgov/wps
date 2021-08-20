@@ -1,4 +1,4 @@
-import { FBCStation } from 'api/fbCalcAPI'
+import { FBAStation } from 'api/fbaCalcAPI'
 import {
   GridMenuOption,
   FBAInputRow
@@ -43,14 +43,14 @@ export interface DisplayableInputRow {
   windSpeed: number | undefined
 }
 
-export type FBCTableRow = DisplayableInputRow & Partial<FBCStation>
+export type FBCTableRow = DisplayableInputRow & Partial<FBAStation>
 
 export class RowManager {
   constructor(private readonly stationCodeMap: Map<string, string>) {}
 
   public mergeFBARows = (
     inputRows: FBAInputRow[],
-    calculatedRows: FBCStation[]
+    calculatedRows: FBAStation[]
   ): FBCTableRow[] =>
     zipWith(inputRows, calculatedRows, (inputRow, outputRow) => {
       if (inputRow) {

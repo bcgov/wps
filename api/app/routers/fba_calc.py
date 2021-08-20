@@ -14,9 +14,9 @@ from app.wildfire_one.schema_parsers import WFWXWeatherStation
 from app.wildfire_one.wfwx_api import (get_auth_header,
                                        get_dailies,
                                        get_wfwx_stations_from_station_codes)
-from app.utils.fba_calculator import (FBACalculatorWeatherStation,
-                                      FireBehaviourAdvisory, build_hourly_rh_dict,
-                                      calculate_fire_behaviour_advisory)
+from app.fba_calculator import (FBACalculatorWeatherStation,
+                                FireBehaviourAdvisory, build_hourly_rh_dict,
+                                calculate_fire_behaviour_advisory)
 
 
 router = APIRouter(
@@ -32,8 +32,8 @@ def prepare_response(  # pylint: disable=too-many-locals
         wfwx_station: WFWXWeatherStation,
         fba_station: FBACalculatorWeatherStation,
         raw_daily: dict,
-        fire_behavour_advisory: FireBehaviourAdvisory,
-        time_of_interest: date) -> StationResponse:
+        fire_behavour_advisory: FireBehaviourAdvisory
+) -> StationResponse:
     """ Construct a response object combining information from the request, the station from wf1,
     the daily response from wf1 and the fire behaviour advisory. """
     # TODO: Refactor this to simplify the flow of data & sources
@@ -56,7 +56,6 @@ def prepare_response(  # pylint: disable=too-many-locals
         station_code=requested_station.station_code,
         station_name=wfwx_station.name,
         zone_code=wfwx_station.zone_code,
-        date=time_of_interest,
         elevation=wfwx_station.elevation,
         fuel_type=requested_station.fuel_type,
         status=status,
@@ -92,9 +91,10 @@ async def process_request(
         hourly_observations_by_station_id: dict,
         wfwx_station: WFWXWeatherStation,
         requested_station: StationRequest,
-        time_of_interest: datetime,
-        date_of_interest: date) -> StationResponse:
+        time_of_interest: datetime
+) -> StationResponse:
     """ Process a valid request """
+
     # pylint: disable=too-many-locals
     raw_daily = dailies_by_station_id[wfwx_station.wfwx_id]
     raw_observations = hourly_observations_by_station_id[wfwx_station.code]
@@ -140,6 +140,7 @@ async def process_request(
         percentage_dead_balsam_fir=requested_station.percentage_dead_balsam_fir,
         grass_cure=requested_station.grass_cure,
         crown_base_height=requested_station.crown_base_height,
+        crown_fuel_load=requested_station.crown_fuel_load,
         lat=wfwx_station.lat,
         long=wfwx_station.long,
         bui=bui,
@@ -158,7 +159,7 @@ async def process_request(
 
     # Prepare the response
     return prepare_response(
-        requested_station, wfwx_station, fba_station, raw_daily, fire_behaviour_advisory, date_of_interest)
+        requested_station, wfwx_station, fba_station, raw_daily, fire_behaviour_advisory)
 
 
 def process_request_without_observation(requested_station: StationRequest,
@@ -193,12 +194,8 @@ async def get_stations_data(  # pylint:disable=too-many-locals
         # remove any duplicate station codes
         unique_station_codes = list(dict.fromkeys(station_codes))
 
-        # calculate the time of interest
-        date_of_interest = request.date
-        if not date_of_interest:
-            date_of_interest = request.stations[0].date
         # we're interested in noon on the given day
-        time_of_interest = get_hour_20_from_date(date_of_interest)
+        time_of_interest = get_hour_20_from_date(request.date)
 
         async with ClientSession() as session:
             # authenticate against wfwx api
@@ -211,7 +208,6 @@ async def get_stations_data(  # pylint:disable=too-many-locals
             dailies_by_station_id = {raw_daily.get('stationId'): raw_daily async for raw_daily in dailies}
             # must retrieve the previous day's observed/forecasted FFMC value from WFWX
             prev_day = time_of_interest - timedelta(days=1)
-            logger.info('wfwx_station id %s', wfwx_stations[0].wfwx_id)
             # get the "daily" data for the station for the previous day
             yesterday_response = await get_dailies(session, header, wfwx_stations, prev_day)
             # turn it into a dictionary so we can easily get at data
@@ -245,25 +241,24 @@ async def get_stations_data(  # pylint:disable=too-many-locals
                         hourly_obs_by_station_code,
                         wfwx_station,
                         requested_station,
-                        time_of_interest,
-                        date_of_interest)
+                        time_of_interest)
                 except Exception as exception:  # pylint: disable=broad-except
                     # If something goes wrong processing the request, then we return this station
                     # with an error response.
                     logger.error('request object: %s', request.__str__())
                     logger.critical(exception, exc_info=True)
                     station_response = process_request_without_observation(
-                        requested_station, wfwx_station, date_of_interest, 'ERROR')
+                        requested_station, wfwx_station, request.date, 'ERROR')
 
             else:
                 # if we can't get the daily (no forecast, or no observation)
                 station_response = process_request_without_observation(
-                    requested_station, wfwx_station, date_of_interest, 'N/A')
+                    requested_station, wfwx_station, request.date, 'N/A')
 
             # Add the response to our list of responses
             stations_response.append(station_response)
 
-        return StationsListResponse(stations=stations_response)
+        return StationsListResponse(date=request.date, stations=stations_response)
     except Exception as exception:
         logger.error('request object: %s', request.__str__())
         logger.critical(exception, exc_info=True)
