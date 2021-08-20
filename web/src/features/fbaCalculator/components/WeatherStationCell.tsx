@@ -21,6 +21,7 @@ interface WeatherStationCellProps {
 const emptyLabel = 'Select a station'
 
 const WeatherStationCell = (props: WeatherStationCellProps) => {
+
   const [selectedStation, setSelectedStation] = useState(props.value)
   useEffect(() => setSelectedStation(props.value), [props])
   // eslint-disable-next-line
