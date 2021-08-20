@@ -13,7 +13,6 @@ import {
   TableSortLabel,
   Tooltip
 } from '@material-ui/core'
-import InfoIcon from '@material-ui/icons/Info'
 import { CriticalHoursHFI, FBAStation } from 'api/fbaCalcAPI'
 import WeatherStationCell from 'features/fbaCalculator/components/WeatherStationCell'
 import FuelTypeCell from 'features/fbaCalculator/components/FuelTypeCell'
@@ -95,8 +94,7 @@ const useStyles = makeStyles({
   dataRow: {
     height: '40px',
     paddingLeft: '8px',
-    paddingRight: '8px',
-    fontSize: '12px'
+    paddingRight: '8px'
   },
   tableHeaderRow: {
     padding: '8px'
@@ -273,9 +271,6 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                     }}
                   >
                     {'Wind Speed (km/h)'}
-                    <Tooltip title="Leave this empty to calculate forecasted/observed wind speed. Add a custom wind speed to influence the calculations">
-                      <InfoIcon aria-label="info"></InfoIcon>
-                    </Tooltip>
                   </TableSortLabel>
                 </TableCell>
                 <TableCell sortDirection={order}>
