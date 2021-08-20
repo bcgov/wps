@@ -49,18 +49,17 @@ export class RowManager {
     inputRows: FBAInputRow[],
     calculatedRows: FBAStation[]
   ): FBCTableRow[] => {
-
-      return zipWith(inputRows, calculatedRows, (inputRow, outputRow) => {
-        if (inputRow) {
-          return [
-            {
-              ...this.buildFBCTableRow(inputRow),
-              ...outputRow
-            }
-          ]
-        }
-        return []
-      }).flat()
+    return zipWith(inputRows, calculatedRows, (inputRow, outputRow) => {
+      if (inputRow) {
+        return [
+          {
+            ...this.buildFBCTableRow(inputRow),
+            ...outputRow
+          }
+        ]
+      }
+      return []
+    }).flat()
   }
   public static sortRows = (
     sortByColumn: SortByColumn,
