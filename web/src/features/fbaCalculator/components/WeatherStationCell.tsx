@@ -6,7 +6,7 @@ import React, { useEffect, useState } from 'react'
 import {
   FBAInputGridProps,
   GridMenuOption
-} from 'features/fbaCalculator/components/FBAInputGrid'
+} from 'features/fbaCalculator/components/FBATable'
 import { buildUpdatedOptionRow, updateFBARow } from 'features/fbaCalculator/tableState'
 
 interface WeatherStationCellProps {
@@ -18,6 +18,7 @@ interface WeatherStationCellProps {
   value: GridMenuOption | null
   rowId: number
 }
+
 const emptyLabel = 'Select a station'
 
 const WeatherStationCell = (props: WeatherStationCellProps) => {

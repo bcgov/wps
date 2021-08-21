@@ -1,5 +1,5 @@
 import { Checkbox } from '@material-ui/core'
-import { FBAInputGridProps } from 'features/fbaCalculator/components/FBAInputGrid'
+import { FBAInputGridProps } from 'features/fbaCalculator/components/FBATable'
 import React from 'react'
 
 interface SelectionCheckboxProps {
