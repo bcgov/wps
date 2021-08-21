@@ -2,7 +2,7 @@ import {
   FBAInputGridProps,
   FBAInputRow,
   GridMenuOption
-} from 'features/fbaCalculator/components/FBAInputGrid'
+} from 'features/fbaCalculator/components/FBATable'
 import { find } from 'lodash'
 
 export const updateFBARow = (

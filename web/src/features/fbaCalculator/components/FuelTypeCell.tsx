@@ -4,7 +4,7 @@ import { Autocomplete } from '@material-ui/lab'
 import {
   FBAInputGridProps,
   GridMenuOption
-} from 'features/fbaCalculator/components/FBAInputGrid'
+} from 'features/fbaCalculator/components/FBATable'
 import { buildUpdatedOptionRow, updateFBARow } from 'features/fbaCalculator/tableState'
 import { isGrassCureInvalid } from 'features/fbaCalculator/validation'
 import { isEqual } from 'lodash'
