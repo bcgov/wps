@@ -19,7 +19,7 @@ def get_complete_filename(module_path: str, filename: str):
 def _load_json_file(module_path: str, filename: str) -> Optional[dict]:
     """ Load json file given a module path and a filename """
     if filename:
-        with open(get_complete_filename(module_path, filename)) as file_pointer:
+        with open(get_complete_filename(module_path, filename), encoding="utf-8") as file_pointer:
             return json.load(file_pointer)
     return None
 
@@ -27,7 +27,7 @@ def _load_json_file(module_path: str, filename: str) -> Optional[dict]:
 def _load_json_file_with_name(module_path: str, filename: str) -> Tuple[Optional[dict], str]:
     """ Load json file given a module path and a filename """
     if filename:
-        with open(get_complete_filename(module_path, filename)) as file_pointer:
+        with open(get_complete_filename(module_path, filename), encoding="utf-8") as file_pointer:
             return json.load(file_pointer), filename
     return None, filename
 
@@ -94,7 +94,7 @@ def dump_sqlalchemy_mapped_object_response_to_json(response, target: IO[Any]):
 
 def load_sqlalchemy_response_from_json(filename):
     """ Load a sqlalchemy response from a json file """
-    with open(filename, 'r') as tmp:
+    with open(filename, 'r', encoding="utf-8") as tmp:
         data = json.load(tmp)
     return load_sqlalchemy_response_from_object(data)
 
@@ -160,7 +160,7 @@ def _jsonpickle_patch_function(
     """ Patch module_name.function_name to return de-serialized json_filename """
     def mock_get_data(*_):
         filename = get_complete_filename(module_path, json_filename)
-        with open(filename) as file_pointer:
+        with open(filename, encoding="utf-8") as file_pointer:
             rows = jsonpickle.decode(file_pointer.read())
             for row in rows:
                 # Workaround to remain compatible with old tests. Ideally we would just always pickle the row.
@@ -180,7 +180,7 @@ def _json_patch_function(monkeypatch,
     """ Patch module_name.function_name to return de-serialized json_filename """
     def mock_get_data(*_):
         filename = get_complete_filename(module_path, json_filename)
-        with open(filename) as file_pointer:
+        with open(filename, encoding="utf-8") as file_pointer:
             return json.load(file_pointer)
 
     monkeypatch.setattr(importlib.import_module(module_name), function_name, mock_get_data)
