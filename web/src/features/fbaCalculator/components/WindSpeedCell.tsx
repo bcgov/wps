@@ -78,7 +78,7 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
         onChange={changeHandler}
         onBlur={handlePossibleUpdate}
         onKeyDown={enterHandler}
-        value={windSpeedValue}
+        value={windSpeedValue ? windSpeedValue : ''}
         error={hasError}
       />
     </Tooltip>
