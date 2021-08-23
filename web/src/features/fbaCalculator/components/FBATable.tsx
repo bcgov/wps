@@ -164,10 +164,6 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
     fireBehaviourResultStations
   )
 
-  useEffect(() => {
-    setCalculatedResults(fireBehaviourResultStations)
-  }, [fireBehaviourResultStations]) // eslint-disable-line react-hooks/exhaustive-deps
-
   const [rows, setRows] = useState<FBATableRow[]>([])
   const lastId = getMostRecentIdFromRows(rows)
 
@@ -209,23 +205,34 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
 
   useEffect(() => {
     // Single update
-    if (!isNull(rowIdToUpdate) && calculatedResults.length > 0) {
+    if (!isNull(rowIdToUpdate) && fireBehaviourResultStations.length > 0) {
       const rowsWithUpdate = [...rows]
       const updatedRowIndex = findIndex(rowsWithUpdate, row => row.id === rowIdToUpdate)
       if (updatedRowIndex >= 0) {
         rowsWithUpdate[updatedRowIndex] = {
           ...rows[updatedRowIndex],
-          ...calculatedResults[0]
+          ...fireBehaviourResultStations[0]
         }
         setRows(rowsWithUpdate)
         setRowIdToUpdate(null)
       }
     }
     // Initial list page load
-    if (isNull(rowIdToUpdate) && calculatedResults.length > 0) {
-      buildRows()
+    if (isNull(rowIdToUpdate) && fireBehaviourResultStations.length > 0) {
+      setCalculatedResults(fireBehaviourResultStations)
+      const stationCodeMap = new Map(
+        stationMenuOptions.map(station => [station.value, station.label])
+      )
+      const rowManager = new RowManager(stationCodeMap)
+
+      const sortedRows = RowManager.sortRows(
+        sortByColumn,
+        order,
+        rowManager.mergeFBARows(rowsFromQuery, fireBehaviourResultStations)
+      )
+      setRows(sortedRows)
     }
-  }, [calculatedResults]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [fireBehaviourResultStations]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const addStation = () => {
     const newRowId = rowId + 1
