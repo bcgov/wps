@@ -1,4 +1,4 @@
-import { isUndefined } from 'lodash'
+import { isEqual, isUndefined } from 'lodash'
 
 export interface FBAFuelType {
   name: string
@@ -11,6 +11,10 @@ export class FuelTypes {
   static lookup(key: string | undefined): FBAFuelType | null {
     if (isUndefined(key)) {
       return null
+    }
+    // Special handling for API breaking typo fix in https://github.com/bcgov/wps/pull/1240 (conider -> conifer)
+    if (isEqual(key, 'm2_50conider')) {
+      return FuelTypes.get()['m2_50conifer']
     }
     return FuelTypes.get()[key]
   }
@@ -108,13 +112,6 @@ export class FuelTypes {
         crown_base_height: 6
       },
       m2_50conifer: {
-        name: 'M2',
-        friendlyName: 'M2 50% conifer / 50% deciduous',
-        percentage_conifer: 50,
-        percentage_dead_balsam_fir: undefined,
-        crown_base_height: 6
-      },
-      m2_50conider: {
         name: 'M2',
         friendlyName: 'M2 50% conifer / 50% deciduous',
         percentage_conifer: 50,
