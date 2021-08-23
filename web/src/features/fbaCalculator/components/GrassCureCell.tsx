@@ -74,7 +74,7 @@ const GrassCureProps = (props: GrassCureCellProps) => {
         onChange={changeHandler}
         onBlur={handlePossibleUpdate}
         onKeyDown={enterHandler}
-        value={grassCurePercentage}
+        value={grassCurePercentage ? grassCurePercentage : ''}
         error={hasError}
       />
     </Tooltip>
