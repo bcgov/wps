@@ -1,5 +1,4 @@
 import { render, screen } from '@testing-library/react'
-import { FBAInputRow } from 'features/fbaCalculator/components/FBATable'
 import WindSpeedCell, {
   WindSpeedCellProps
 } from 'features/fbaCalculator/components/WindSpeedCell'
