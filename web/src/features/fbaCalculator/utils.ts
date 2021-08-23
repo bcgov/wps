@@ -99,9 +99,9 @@ export const getUrlParamsFromRows = (rows: FBATableRow[]): string => {
   return query + params
 }
 
-export const getMostRecentIdFromRows = (rows: FBATableRow[]): number => {
+export const getNextRowIdFromRows = (rows: FBATableRow[]): number => {
   let lastIdFromExisting = _.maxBy(rows, 'id')?.id
   lastIdFromExisting = lastIdFromExisting ? lastIdFromExisting : 0
   const lastId = _.isEmpty(rows) ? 0 : lastIdFromExisting
-  return lastId
+  return lastId + 1
 }

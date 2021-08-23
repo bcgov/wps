@@ -29,7 +29,7 @@ import { FuelTypes } from 'features/fbaCalculator/fuelTypes'
 import { fetchFireBehaviourStations } from 'features/fbaCalculator/slices/fbaCalculatorSlice'
 import {
   getRowsFromUrlParams,
-  getMostRecentIdFromRows,
+  getNextRowIdFromRows,
   getUrlParamsFromRows
 } from 'features/fbaCalculator/utils'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
@@ -126,7 +126,6 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
     } else {
       setOrder(order === 'asc' ? 'desc' : 'asc')
     }
-    buildRows()
   }
 
   const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().toISODate())
@@ -165,30 +164,24 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
   )
 
   const [rows, setRows] = useState<FBATableRow[]>([])
-  const lastId = getMostRecentIdFromRows(rows)
 
-  const [rowId, setRowId] = useState(lastId + 1)
   const [selected, setSelected] = useState<number[]>([])
   const [rowIdToUpdate, setRowIdToUpdate] = useState<number | null>(null)
 
-  const buildRows = () => {
-    const stationCodeMap = new Map(
-      stationMenuOptions.map(station => [station.value, station.label])
-    )
-    const rowManager = new RowManager(stationCodeMap)
-
-    const sortedRows = RowManager.sortRows(
-      sortByColumn,
-      order,
-      rowManager.mergeFBARows(rowsFromQuery, calculatedResults)
-    )
-    setRows(sortedRows)
-    return sortedRows
-  }
-
   useEffect(() => {
     if (stations.length > 0) {
-      dispatch(fetchFireBehaviourStations(dateOfInterest, buildRows()))
+      const stationCodeMap = new Map(
+        stationMenuOptions.map(station => [station.value, station.label])
+      )
+      const rowManager = new RowManager(stationCodeMap)
+
+      const sortedRows = RowManager.sortRows(
+        sortByColumn,
+        order,
+        rowManager.mergeFBARows(rowsFromQuery, calculatedResults)
+      )
+      setRows(sortedRows)
+      dispatch(fetchFireBehaviourStations(dateOfInterest, sortedRows))
     }
   }, [stations]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -214,6 +207,9 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
           ...fireBehaviourResultStations[0]
         }
         setRows(rowsWithUpdate)
+        const updatedCalculatedResults = [...calculatedResults]
+        updatedCalculatedResults[updatedRowIndex] = fireBehaviourResultStations[0]
+        setCalculatedResults(updatedCalculatedResults)
         setRowIdToUpdate(null)
       }
     }
@@ -234,8 +230,13 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
     }
   }, [fireBehaviourResultStations]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    const sortedRows = RowManager.sortRows(sortByColumn, order, rows)
+    setRows(sortedRows)
+  }, [order]) // eslint-disable-line react-hooks/exhaustive-deps
+
   const addStation = () => {
-    const newRowId = rowId + 1
+    const newRowId = getNextRowIdFromRows(rows)
     const newRow = {
       id: newRowId,
       weatherStation: null,
@@ -245,7 +246,6 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
     }
     const newRows = rows.concat(newRow)
     setRows(newRows)
-    setRowId(newRowId + 1)
   }
 
   const deleteSelectedStations = () => {
