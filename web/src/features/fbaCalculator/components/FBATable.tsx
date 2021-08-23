@@ -126,6 +126,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
     } else {
       setOrder(order === 'asc' ? 'desc' : 'asc')
     }
+    buildRows()
   }
 
   const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().toISODate())
@@ -174,20 +175,24 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
   const [selected, setSelected] = useState<number[]>([])
   const [rowIdToUpdate, setRowIdToUpdate] = useState<number | null>(null)
 
+  const buildRows = () => {
+    const stationCodeMap = new Map(
+      stationMenuOptions.map(station => [station.value, station.label])
+    )
+    const rowManager = new RowManager(stationCodeMap)
+
+    const sortedRows = RowManager.sortRows(
+      sortByColumn,
+      order,
+      rowManager.mergeFBARows(rowsFromQuery, calculatedResults)
+    )
+    setRows(sortedRows)
+    return sortedRows
+  }
+
   useEffect(() => {
     if (stations.length > 0) {
-      const stationCodeMap = new Map(
-        stationMenuOptions.map(station => [station.value, station.label])
-      )
-      const rowManager = new RowManager(stationCodeMap)
-
-      const sortedRows = RowManager.sortRows(
-        sortByColumn,
-        order,
-        rowManager.mergeFBARows(rowsFromQuery, calculatedResults)
-      )
-      setRows(sortedRows)
-      dispatch(fetchFireBehaviourStations(dateOfInterest, sortedRows))
+      dispatch(fetchFireBehaviourStations(dateOfInterest, buildRows()))
     }
   }, [stations]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -218,17 +223,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
     }
     // Initial list page load
     if (isNull(rowIdToUpdate) && calculatedResults.length > 0) {
-      const stationCodeMap = new Map(
-        stationMenuOptions.map(station => [station.value, station.label])
-      )
-      const rowManager = new RowManager(stationCodeMap)
-
-      const sortedRows = RowManager.sortRows(
-        sortByColumn,
-        order,
-        rowManager.mergeFBARows(rowsFromQuery, calculatedResults)
-      )
-      setRows(sortedRows)
+      buildRows()
     }
   }, [calculatedResults]) // eslint-disable-line react-hooks/exhaustive-deps
 
