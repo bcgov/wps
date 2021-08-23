@@ -44,7 +44,7 @@ const FuelTypeCell = (props: FuelTypeCellProps) => {
   }
   return (
     <Autocomplete
-      data-testid={`fuel-type-dropdown-${props.rowId}`}
+      data-testid={`fuel-type-dropdown-fba`}
       options={props.fuelTypeOptions}
       className={props.classNameMap.fuelType}
       getOptionSelected={(option, value) => isEqual(option, value)}

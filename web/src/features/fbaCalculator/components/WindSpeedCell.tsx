@@ -68,7 +68,7 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
   const buildTextField = () => (
     <Tooltip title="Cannot exceed 120" aria-label="cannot-exceed-120">
       <TextField
-        data-testid={`windSpeedInput-${props.rowId}`}
+        data-testid={`windSpeedInput-fba`}
         type="number"
         inputMode="numeric"
         className={classes.windSpeed}

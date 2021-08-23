@@ -11,7 +11,7 @@ const SelectionCheckbox = (props: SelectionCheckboxProps) => {
   const selectedSet = new Set(props.selected)
   return (
     <Checkbox
-      data-testid={`selection-checkbox-${props.rowId}`}
+      data-testid={`selection-checkbox-fba`}
       color="primary"
       checked={selectedSet.has(props.rowId)}
       onClick={() => {
