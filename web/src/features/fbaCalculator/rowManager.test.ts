@@ -1,5 +1,5 @@
 import { FuelTypes } from 'features/fbaCalculator/fuelTypes'
-import { FBCTableRow, RowManager, SortByColumn } from 'features/fbaCalculator/RowManager'
+import { FBATableRow, RowManager, SortByColumn } from 'features/fbaCalculator/RowManager'
 
 describe('RowManager', () => {
   const stationCodeMap = new Map<string, string>()
@@ -109,7 +109,7 @@ describe('RowManager', () => {
     })
   })
   describe('Sorting columns', () => {
-    let mergedRows: FBCTableRow[]
+    let mergedRows: FBATableRow[]
     beforeEach(() => {
       mergedRows = rowManager.mergeFBARows(inputRows, calculatedRows)
     })
