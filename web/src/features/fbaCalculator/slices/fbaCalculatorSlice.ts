@@ -1,22 +1,24 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { FBCStation, postFBCStations } from 'api/fbCalcAPI'
+import { FBAStation, FBAWeatherStationsResponse, postFBAStations } from 'api/fbaCalcAPI'
 
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 import { FuelTypes } from '../fuelTypes'
 import { isEmpty, isEqual, isNull, isUndefined } from 'lodash'
-import { FBCTableRow } from 'features/fbaCalculator/RowManager'
+import { FBATableRow } from 'features/fbaCalculator/RowManager'
 
 interface State {
   loading: boolean
   error: string | null
-  fireBehaviourResultStations: FBCStation[]
+  fireBehaviourResultStations: FBAStation[]
+  date: string | null
 }
 
 const initialState: State = {
   loading: false,
   error: null,
-  fireBehaviourResultStations: []
+  fireBehaviourResultStations: [],
+  date: null
 }
 
 const fireBehaviourStationsSlice = createSlice({
@@ -27,14 +29,19 @@ const fireBehaviourStationsSlice = createSlice({
       state.error = null
       state.loading = true
       state.fireBehaviourResultStations = []
+      state.date = null
     },
     getFireBehaviourStationsFailed(state: State, action: PayloadAction<string>) {
       state.error = action.payload
       state.loading = false
     },
-    getFireBehaviourStationsSuccess(state: State, action: PayloadAction<FBCStation[]>) {
+    getFireBehaviourStationsSuccess(
+      state: State,
+      action: PayloadAction<FBAWeatherStationsResponse>
+    ) {
       state.error = null
-      state.fireBehaviourResultStations = action.payload
+      state.fireBehaviourResultStations = action.payload.stations
+      state.date = action.payload.date
       state.loading = false
     }
   }
@@ -50,7 +57,7 @@ export default fireBehaviourStationsSlice.reducer
 
 export const fetchFireBehaviourStations = (
   date: string,
-  fbcInputRows: FBCTableRow[]
+  fbcInputRows: FBATableRow[]
 ): AppThunk => async dispatch => {
   const fetchableFireStations = fbcInputRows.flatMap(row => {
     const fuelTypeDetails = FuelTypes.lookup(row.fuelType?.value)
@@ -63,7 +70,6 @@ export const fetchFireBehaviourStations = (
       return []
     }
     return {
-      date,
       stationCode: parseInt(row.weatherStation ? row.weatherStation.value : ''),
       fuelType: fuelTypeDetails.name,
       percentageConifer: fuelTypeDetails.percentage_conifer,
@@ -76,7 +82,7 @@ export const fetchFireBehaviourStations = (
   try {
     if (!isEmpty(fetchableFireStations)) {
       dispatch(getFireBehaviourStationsStart())
-      const fireBehaviourStations = await postFBCStations(fetchableFireStations)
+      const fireBehaviourStations = await postFBAStations(date, fetchableFireStations)
       dispatch(getFireBehaviourStationsSuccess(fireBehaviourStations))
     }
   } catch (err) {

@@ -1,4 +1,4 @@
-import { FBCTableRow } from 'features/fbaCalculator/RowManager'
+import { FBATableRow } from 'features/fbaCalculator/RowManager'
 import _ from 'lodash'
 import { isNull } from 'lodash'
 
@@ -7,7 +7,7 @@ import { isNull } from 'lodash'
  * @param row the input row to check against
  * @returns true if grass cure percentage is invalid, false otherwise
  */
-export const isGrassCureInvalid = (row: FBCTableRow): boolean => {
+export const isGrassCureInvalid = (row: FBATableRow): boolean => {
   if (_.isUndefined(row)) {
     return false
   }

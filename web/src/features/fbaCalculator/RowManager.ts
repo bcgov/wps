@@ -1,8 +1,5 @@
-import { FBCStation } from 'api/fbCalcAPI'
-import {
-  GridMenuOption,
-  FBAInputRow
-} from 'features/fbaCalculator/components/FBAInputGrid'
+import { FBAStation } from 'api/fbaCalcAPI'
+import { GridMenuOption, FBAInputRow } from 'features/fbaCalculator/components/FBATable'
 import { FuelTypes } from 'features/fbaCalculator/fuelTypes'
 import _, { isNull, isUndefined, zipWith } from 'lodash'
 import { Order } from 'utils/table'
@@ -43,15 +40,15 @@ export interface DisplayableInputRow {
   windSpeed: number | undefined
 }
 
-export type FBCTableRow = DisplayableInputRow & Partial<FBCStation>
+export type FBATableRow = DisplayableInputRow & Partial<FBAStation>
 
 export class RowManager {
   constructor(private readonly stationCodeMap: Map<string, string>) {}
 
   public mergeFBARows = (
     inputRows: FBAInputRow[],
-    calculatedRows: FBCStation[]
-  ): FBCTableRow[] =>
+    calculatedRows: FBAStation[]
+  ): FBATableRow[] =>
     zipWith(inputRows, calculatedRows, (inputRow, outputRow) => {
       const blah = isUndefined(outputRow) ? {} : outputRow
       if (inputRow) {
@@ -67,8 +64,8 @@ export class RowManager {
   public static sortRows = (
     sortByColumn: SortByColumn,
     order: Order,
-    tableRows: FBCTableRow[]
-  ): FBCTableRow[] => {
+    tableRows: FBATableRow[]
+  ): FBATableRow[] => {
     const reverseOrder = order === 'asc' ? 'desc' : 'asc'
     switch (sortByColumn) {
       case SortByColumn.Zone: {
@@ -156,7 +153,7 @@ export class RowManager {
     }
   }
 
-  private buildFBCTableRow = (inputRow: FBAInputRow): FBCTableRow => ({
+  private buildFBCTableRow = (inputRow: FBAInputRow): FBATableRow => ({
     ...inputRow,
     weatherStation: this.buildStationOption(inputRow.weatherStation),
     fuelType: this.buildFuelTypeMenuOption(inputRow.fuelType)

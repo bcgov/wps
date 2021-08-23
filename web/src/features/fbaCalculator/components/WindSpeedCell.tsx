@@ -1,14 +1,14 @@
 import { TextField, Tooltip, makeStyles } from '@material-ui/core'
 import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles'
-import { FBCTableRow } from 'features/fbaCalculator/RowManager'
+import { FBATableRow } from 'features/fbaCalculator/RowManager'
 import { updateFBARow, buildUpdatedNumberRow } from 'features/fbaCalculator/tableState'
 import { isWindSpeedInvalid } from 'features/fbaCalculator/validation'
 import { isEqual } from 'lodash'
 import React, { ChangeEvent, useState, useEffect } from 'react'
 
 export interface WindSpeedCellProps {
-  inputRows: FBCTableRow[]
-  updateRow: (rowId: number, updatedRow: FBCTableRow, dispatchRequest?: boolean) => void
+  inputRows: FBATableRow[]
+  updateRow: (rowId: number, updatedRow: FBATableRow, dispatchRequest?: boolean) => void
   inputValue: number | undefined
   calculatedValue: number | undefined
   rowId: number

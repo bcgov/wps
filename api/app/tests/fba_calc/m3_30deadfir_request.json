@@ -1,0 +1,11 @@
+{
+    "date": "2021-07-05",
+    "stations": [
+        {
+            "station_code": 230,
+            "fuel_type": "M3",
+            "crown_base_height": 6,
+            "percentage_dead_balsam_fir": 30
+        }
+    ]
+}

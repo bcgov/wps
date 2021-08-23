@@ -1,8 +1,8 @@
 import assert from 'assert'
-import { FBCTableRow } from 'features/fbaCalculator/RowManager'
+import { FBATableRow } from 'features/fbaCalculator/RowManager'
 import _ from 'lodash'
 import { isNull } from 'lodash'
-import { FBAInputRow } from './components/FBAInputGrid'
+import { FBAInputRow } from './components/FBATable'
 
 export const isGrassFuelType = (fuelType: string): boolean =>
   fuelType === 'o1a' || fuelType === 'o1b'
@@ -84,7 +84,7 @@ export const getRowsFromUrlParams = (searchParams: string): FBAInputRow[] => {
  * @param rows FBCInputRow array from data table
  * @returns params as string of form ?s=<station-code>&f=<fuel-type>&c=<grass-cure-percentage>&w=<optional-wind-speed>,...
  */
-export const getUrlParamsFromRows = (rows: FBCTableRow[]): string => {
+export const getUrlParamsFromRows = (rows: FBATableRow[]): string => {
   if (rows.length === 0) {
     return ''
   }
@@ -99,7 +99,7 @@ export const getUrlParamsFromRows = (rows: FBCTableRow[]): string => {
   return query + params
 }
 
-export const getMostRecentIdFromRows = (rows: FBCTableRow[]): number => {
+export const getMostRecentIdFromRows = (rows: FBATableRow[]): number => {
   let lastIdFromExisting = _.maxBy(rows, 'id')?.id
   lastIdFromExisting = lastIdFromExisting ? lastIdFromExisting : 0
   const lastId = _.isEmpty(rows) ? 0 : lastIdFromExisting

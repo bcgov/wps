@@ -3,18 +3,19 @@ import { ClassNameMap } from '@material-ui/core/styles/withStyles'
 import { Autocomplete } from '@material-ui/lab'
 import { isEqual } from 'lodash'
 import React, { useEffect, useState } from 'react'
-import { GridMenuOption } from 'features/fbaCalculator/components/FBAInputGrid'
+import { GridMenuOption } from 'features/fbaCalculator/components/FBATable'
 import { buildUpdatedOptionRow, updateFBARow } from 'features/fbaCalculator/tableState'
-import { FBCTableRow } from 'features/fbaCalculator/RowManager'
+import { FBATableRow } from 'features/fbaCalculator/RowManager'
 
 interface WeatherStationCellProps {
   stationOptions: GridMenuOption[]
-  inputRows: FBCTableRow[]
-  updateRow: (rowId: number, updatedRow: FBCTableRow, dispatchRequest?: boolean) => void
+  inputRows: FBATableRow[]
+  updateRow: (rowId: number, updatedRow: FBATableRow, dispatchRequest?: boolean) => void
   classNameMap: ClassNameMap<'weatherStation'>
   value: GridMenuOption | null
   rowId: number
 }
+
 const emptyLabel = 'Select a station'
 
 const WeatherStationCell = (props: WeatherStationCellProps) => {

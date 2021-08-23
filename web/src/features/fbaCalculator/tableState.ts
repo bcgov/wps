@@ -1,19 +1,19 @@
-import { GridMenuOption } from 'features/fbaCalculator/components/FBAInputGrid'
-import { FBCTableRow } from 'features/fbaCalculator/RowManager'
+import { GridMenuOption } from 'features/fbaCalculator/components/FBATable'
+import { FBATableRow } from 'features/fbaCalculator/RowManager'
 import { find } from 'lodash'
 
 export const updateFBARow = (
-  inputRows: FBCTableRow[],
-  updateRow: (id: number, updatedRow: FBCTableRow, dispatchUpdate: boolean) => void,
+  inputRows: FBATableRow[],
+  updateRow: (id: number, updatedRow: FBATableRow, dispatchUpdate: boolean) => void,
   rowId: number,
   field: string,
   // eslint-disable-next-line
   value: any,
   updatedRowBuilder: (
-    rowToUpdate: FBCTableRow,
+    rowToUpdate: FBATableRow,
     field: string,
     value: GridMenuOption | number
-  ) => FBCTableRow,
+  ) => FBATableRow,
   dispatchRequest = true
 ): void => {
   const rowToUpdate = find(inputRows, ['id', rowId])
@@ -24,30 +24,30 @@ export const updateFBARow = (
 }
 
 export const buildUpdatedOptionRow = (
-  rowToUpdate: FBCTableRow,
+  rowToUpdate: FBATableRow,
   field: string,
   // eslint-disable-next-line
   value: any
-): FBCTableRow => {
+): FBATableRow => {
   return {
     ...rowToUpdate,
     ...{
-      [field as keyof FBCTableRow]: value as GridMenuOption
+      [field as keyof FBATableRow]: value as GridMenuOption
     }
   }
 }
 
 // eslint-disable-next-line
 export const buildUpdatedNumberRow = (
-  rowToUpdate: FBCTableRow,
+  rowToUpdate: FBATableRow,
   field: string,
   // eslint-disable-next-line
   value: any
-): FBCTableRow => {
+): FBATableRow => {
   return {
     ...rowToUpdate,
     ...{
-      [field as keyof FBCTableRow]: parseFloat(value)
+      [field as keyof FBATableRow]: parseFloat(value)
     }
   }
 }

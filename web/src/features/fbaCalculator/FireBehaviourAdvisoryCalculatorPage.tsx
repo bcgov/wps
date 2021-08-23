@@ -1,7 +1,7 @@
 import { makeStyles, Paper } from '@material-ui/core'
 import { Container, PageHeader } from 'components'
 import React from 'react'
-import FBAInputGrid from 'features/fbaCalculator/components/FBAInputGrid'
+import FBAInputGrid from 'features/fbaCalculator/components/FBATable'
 
 export const FireBehaviourAdvisoryCalculator: React.FunctionComponent = () => {
   const useStyles = makeStyles(theme => ({
