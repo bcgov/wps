@@ -3,7 +3,7 @@
 from typing import Generator, Tuple
 from contextlib import asynccontextmanager
 from aiobotocore.client import AioBaseClient
-from aiobotocore import get_session
+from aiobotocore.session import get_session
 from app import config
 
 
