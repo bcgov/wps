@@ -59,7 +59,7 @@ def _parse_csv(temp_path: str):
     the neatest way to write CSVs into a DB.)
     """
     # pylint: disable=unsubscriptable-object, no-member
-    with open(temp_path, 'r') as csv_file:
+    with open(temp_path, 'r', encoding="utf-8") as csv_file:
         data_df = pd.read_csv(csv_file)
     station_codes = get_station_names_to_codes_local()
     # drop any rows where 'display_name' is not found in the station_codes lookup:
