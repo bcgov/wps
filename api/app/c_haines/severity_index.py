@@ -296,7 +296,7 @@ def re_project_and_classify_geojson(source_json_filename: str,
     proj_from = Proj(projparams=source_projection)
     proj_to = Proj(WGS84)
     project = Transformer.from_proj(proj_from, proj_to, always_xy=True)
-    with open(source_json_filename) as source_file:
+    with open(source_json_filename, encoding="utf-8") as source_file:
         geojson_data = json.load(source_file)
         # We need to sort the geojson by severity.
         geojson_data['features'].sort(key=lambda feature: feature['properties']['severity'])
