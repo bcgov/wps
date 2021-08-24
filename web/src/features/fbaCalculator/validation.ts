@@ -19,6 +19,10 @@ export const isGrassCureInvalid = (row: FBATableRow): boolean => {
   return notSet || isGreaterThan(row.grassCure)
 }
 
+export const isRowInvalid = (row: FBATableRow): boolean => {
+  return isNull(row.weatherStation) || isNull(row.fuelType)
+}
+
 /**
  * Returns whether wind speed input is invalid or not
  * @param row the input row to check against

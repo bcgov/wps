@@ -38,6 +38,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { useLocation, useHistory } from 'react-router-dom'
 import DatePicker from 'features/fbaCalculator/components/DatePicker'
 import assert from 'assert'
+import { isRowInvalid } from 'features/fbaCalculator/validation'
 
 export interface FBAInputGridProps {
   testId?: string
@@ -644,7 +645,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                             updateSelected={(newSelected: number[]) =>
                               setSelected(newSelected)
                             }
-                            disabled={rowIdsToUpdate.has(row.id)}
+                            disabled={rowIdsToUpdate.has(row.id) && !isRowInvalid(row)}
                             rowId={row.id}
                           />
                         </TableCell>
@@ -656,7 +657,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                             updateRow={updateRow}
                             classNameMap={classes}
                             value={row.weatherStation}
-                            disabled={rowIdsToUpdate.has(row.id)}
+                            disabled={rowIdsToUpdate.has(row.id) && !isRowInvalid(row)}
                             rowId={row.id}
                           />
                         </TableCell>
@@ -668,7 +669,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                             updateRow={updateRow}
                             classNameMap={classes}
                             value={row.fuelType}
-                            disabled={rowIdsToUpdate.has(row.id)}
+                            disabled={rowIdsToUpdate.has(row.id) && !isRowInvalid(row)}
                             rowId={row.id}
                           />
                         </TableCell>
@@ -678,7 +679,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                             updateRow={updateRow}
                             classNameMap={classes}
                             value={row.grassCure}
-                            disabled={rowIdsToUpdate.has(row.id)}
+                            disabled={rowIdsToUpdate.has(row.id) && !isRowInvalid(row)}
                             rowId={row.id}
                           />
                         </TableCell>
