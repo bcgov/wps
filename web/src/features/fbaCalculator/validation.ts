@@ -20,7 +20,11 @@ export const isGrassCureInvalid = (row: FBATableRow): boolean => {
 }
 
 export const isRowInvalid = (row: FBATableRow): boolean => {
-  return isNull(row.weatherStation) || isNull(row.fuelType)
+  return (
+    isNull(row.weatherStation) ||
+    isNull(row.fuelType) ||
+    isWindSpeedInvalid(row.windSpeed)
+  )
 }
 
 /**

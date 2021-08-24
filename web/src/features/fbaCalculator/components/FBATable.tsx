@@ -704,7 +704,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                             updateRow={updateRow}
                             inputValue={row.windSpeed}
                             calculatedValue={rows[ri].wind_speed}
-                            disabled={rowIdsToUpdate.has(row.id)}
+                            disabled={rowIdsToUpdate.has(row.id) && !isRowInvalid(row)}
                             rowId={row.id}
                           />
                         </TableCell>
