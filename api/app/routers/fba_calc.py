@@ -2,7 +2,7 @@
 
 import logging
 from datetime import date, datetime, timedelta
-from aiohttp.client import ClientSession, request
+from aiohttp.client import ClientSession
 from fastapi import APIRouter, Depends
 from app.auth import authentication_required, audit
 from app.hourlies import get_hourly_readings_in_time_interval
