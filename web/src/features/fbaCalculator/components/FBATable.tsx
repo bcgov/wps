@@ -188,7 +188,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
     // Single update
     if (!isEmpty(rowIdsToUpdate) && fireBehaviourResultStations.length > 0) {
       const updatedRows = RowManager.updateRows(rows, fireBehaviourResultStations)
-      const updatedCalculatedResults = RowManager.updateCalculatedResults(
+      const updatedCalculatedResults = RowManager.updateRows(
         calculatedResults,
         fireBehaviourResultStations
       )

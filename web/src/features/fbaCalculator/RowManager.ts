@@ -60,11 +60,10 @@ export class RowManager {
       }
       return []
     }).flat()
-
-  public static updateRows = (
-    existingRows: FBATableRow[],
+  public static updateRows<T extends { id: number }>(
+    existingRows: Array<T>,
     updatedCalculatedRows: FBAStation[]
-  ): FBATableRow[] => {
+  ): Array<T> {
     const rows = [...existingRows]
     const updatedRowById = new Map(updatedCalculatedRows.map(row => [row.id, row]))
     rows.forEach(row => {
@@ -76,23 +75,6 @@ export class RowManager {
       }
     })
     return rows
-  }
-
-  public static updateCalculatedResults = (
-    existingCalculatedRows: FBAStation[],
-    updatedCalculatedRows: FBAStation[]
-  ): FBAStation[] => {
-    const calculatedRows = [...existingCalculatedRows]
-    const updatedRowById = new Map(updatedCalculatedRows.map(row => [row.id, row]))
-    calculatedRows.forEach(row => {
-      if (updatedRowById.has(row.id)) {
-        calculatedRows[row.id] = {
-          ...row,
-          ...updatedRowById.get(row.id)
-        }
-      }
-    })
-    return calculatedRows
   }
   public static sortRows = (
     sortByColumn: SortByColumn,
