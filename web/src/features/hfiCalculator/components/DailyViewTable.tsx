@@ -31,7 +31,11 @@ const useStyles = makeStyles({
 
     '& .MuiTableCell-sizeSmall': {
       padding: '6px 12px 6px 6px'
-    }
+    },
+
+    '& .MuiTableCell-body': {
+      padding: '8px'
+    },
   },
   paper: {
     width: '100%'
@@ -66,6 +70,26 @@ const useStyles = makeStyles({
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'baseline'
+  },
+  intensityGroupOutline1: {
+    border: '2px solid #D6FCA4',
+    borderRadius: '4px'
+  },
+  intensityGroupOutline2: {
+    border: '2px solid #73FBFD',
+    borderRadius: '4px'
+  },
+  intensityGroupOutline3: {
+    border: '2px solid #FFFEA6',
+    borderRadius: '4px'
+  },
+  intensityGroupOutline4: {
+    border: '2px solid #F7CDA0',
+    borderRadius: '4px'
+  },
+  intensityGroupOutline5: {
+    border: '2px solid #EC5D57',
+    borderRadius: '4px'
   }
 })
 
@@ -73,6 +97,17 @@ const DailyViewTable = (props: Props) => {
   const classes = useStyles()
 
   const DECIMAL_PLACES = 1
+
+  const formatStationIntensityGroupByValue = (intensityGroup: number | undefined) => {
+    switch (intensityGroup) {
+      case 1: return classes.intensityGroupOutline1
+      case 2: return classes.intensityGroupOutline2
+      case 3: return classes.intensityGroupOutline3
+      case 4: return classes.intensityGroupOutline4
+      case 5: return classes.intensityGroupOutline5
+      default: return
+    }
+  }
 
   return (
     <div className={classes.display} data-testid={props.testId}>
@@ -160,6 +195,9 @@ const DailyViewTable = (props: Props) => {
                   (m/min)
                 </TableCell>
                 <TableCell>HFI</TableCell>
+                <TableCell>M /
+                  <br />
+                  FIG</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -235,6 +273,9 @@ const DailyViewTable = (props: Props) => {
                                     </TableCell>
                                     <TableCell>
                                       {daily?.hfi?.toFixed(DECIMAL_PLACES)}
+                                    </TableCell>
+                                    <TableCell className={formatStationIntensityGroupByValue(daily?.intensity_group)}>
+                                      {daily?.intensity_group}
                                     </TableCell>
                                   </TableRow>
                                 )
