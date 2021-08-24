@@ -1,7 +1,7 @@
 import { FBAStation } from 'api/fbaCalcAPI'
 import { GridMenuOption, FBAInputRow } from 'features/fbaCalculator/components/FBATable'
 import { FuelTypes } from 'features/fbaCalculator/fuelTypes'
-import _, { isNull, isUndefined, zipWith } from 'lodash'
+import _, { isNull, isUndefined } from 'lodash'
 import { Order } from 'utils/table'
 export enum SortByColumn {
   Zone,
@@ -43,39 +43,6 @@ export interface DisplayableInputRow {
 export type FBATableRow = DisplayableInputRow & Partial<FBAStation>
 
 export class RowManager {
-  constructor(private readonly stationCodeMap: Map<string, string>) {}
-
-  public mergeFBARows = (
-    inputRows: FBAInputRow[],
-    calculatedRows: FBAStation[]
-  ): FBATableRow[] =>
-    zipWith(inputRows, calculatedRows, (inputRow, outputRow) => {
-      if (inputRow) {
-        return [
-          {
-            ...this.buildFBCTableRow(inputRow),
-            ...outputRow
-          }
-        ]
-      }
-      return []
-    }).flat()
-  public static updateRows<T extends { id: number }>(
-    existingRows: Array<T>,
-    updatedCalculatedRows: FBAStation[]
-  ): Array<T> {
-    const rows = [...existingRows]
-    const updatedRowById = new Map(updatedCalculatedRows.map(row => [row.id, row]))
-    rows.forEach(row => {
-      if (updatedRowById.has(row.id)) {
-        rows[row.id] = {
-          ...row,
-          ...updatedRowById.get(row.id)
-        }
-      }
-    })
-    return rows
-  }
   public static sortRows = (
     sortByColumn: SortByColumn,
     order: Order,
@@ -167,18 +134,43 @@ export class RowManager {
       }
     }
   }
+  public static updateRows<T extends { id: number }>(
+    existingRows: Array<T>,
+    updatedCalculatedRows: FBAStation[]
+  ): Array<T> {
+    const rows = [...existingRows]
+    const updatedRowById = new Map(updatedCalculatedRows.map(row => [row.id, row]))
+    rows.forEach(row => {
+      if (updatedRowById.has(row.id)) {
+        rows[row.id] = {
+          ...row,
+          ...updatedRowById.get(row.id)
+        }
+      }
+    })
+    return rows
+  }
 
-  private buildFBCTableRow = (inputRow: FBAInputRow): FBATableRow => ({
+  public static buildFBCTableRow = (
+    inputRow: FBAInputRow,
+    stationCodeMap: Map<string, string>
+  ): FBATableRow => ({
     ...inputRow,
-    weatherStation: this.buildStationOption(inputRow.weatherStation),
-    fuelType: this.buildFuelTypeMenuOption(inputRow.fuelType)
+    weatherStation: RowManager.buildStationOption(
+      inputRow.weatherStation,
+      stationCodeMap
+    ),
+    fuelType: RowManager.buildFuelTypeMenuOption(inputRow.fuelType)
   })
 
-  private buildStationOption = (value: string | undefined): GridMenuOption | null => {
+  public static buildStationOption = (
+    value: string | undefined,
+    stationCodeMap: Map<string, string>
+  ): GridMenuOption | null => {
     if (isUndefined(value)) {
       return null
     }
-    const label = this.stationCodeMap.get(value)
+    const label = stationCodeMap.get(value)
 
     if (isUndefined(label)) {
       return null
@@ -188,7 +180,7 @@ export class RowManager {
       value
     }
   }
-  private buildFuelTypeMenuOption = (
+  public static buildFuelTypeMenuOption = (
     value: string | undefined
   ): GridMenuOption | null => {
     if (isUndefined(value)) {

@@ -125,6 +125,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
   const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().toISODate())
   const [rowIdsToUpdate, setRowIdsToUpdate] = useState<Set<number>>(new Set())
   const [sortByColumn, setSortByColumn] = useState<SortByColumn>(SortByColumn.Station)
+  const [initialLoad, setInitialLoad] = useState<boolean>(true)
   const [selected, setSelected] = useState<number[]>([])
   const [order, setOrder] = useState<Order>('desc')
   const [rows, setRows] = useState<FBATableRow[]>([])
@@ -161,12 +162,13 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
       const stationCodeMap = new Map(
         stationMenuOptions.map(station => [station.value, station.label])
       )
-      const rowManager = new RowManager(stationCodeMap)
 
       const sortedRows = RowManager.sortRows(
         sortByColumn,
         order,
-        rowManager.mergeFBARows(rowsFromQuery, calculatedResults)
+        rowsFromQuery.map(inputRow => ({
+          ...RowManager.buildFBCTableRow(inputRow, stationCodeMap)
+        }))
       )
       setRows(sortedRows)
       dispatch(fetchFireBehaviourStations(dateOfInterest, sortedRows))
@@ -185,31 +187,29 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
   }, [location]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    // Single update
+    // Row updates
     if (!isEmpty(rowIdsToUpdate) && fireBehaviourResultStations.length > 0) {
       const updatedRows = RowManager.updateRows(rows, fireBehaviourResultStations)
-      const updatedCalculatedResults = RowManager.updateRows(
-        calculatedResults,
-        fireBehaviourResultStations
-      )
       setRows(updatedRows)
-      setCalculatedResults(updatedCalculatedResults)
-      setRowIdsToUpdate(new Set())
-    }
-    // Initial list page load
-    if (isEmpty(rowIdsToUpdate) && fireBehaviourResultStations.length > 0) {
-      const stationCodeMap = new Map(
-        stationMenuOptions.map(station => [station.value, station.label])
+      setRowIdsToUpdate(
+        new Set(Array.from(rowIdsToUpdate).filter(rowId => !rowIdsToUpdate.has(rowId)))
       )
-      const rowManager = new RowManager(stationCodeMap)
-
+    }
+    // Initial row list page load
+    if (initialLoad && fireBehaviourResultStations.length > 0) {
       const sortedRows = RowManager.sortRows(
         sortByColumn,
         order,
-        rowManager.mergeFBARows(rowsFromQuery, fireBehaviourResultStations)
+        RowManager.updateRows(rows, fireBehaviourResultStations)
       )
       setRows(sortedRows)
+      setInitialLoad(false)
     }
+    const updatedCalculatedResults = RowManager.updateRows(
+      calculatedResults,
+      fireBehaviourResultStations
+    )
+    setCalculatedResults(updatedCalculatedResults)
   }, [fireBehaviourResultStations]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
