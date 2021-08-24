@@ -117,17 +117,17 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
   const DECIMAL_PLACES = 1
 
   const classes = useStyles()
-  const location = useLocation()
   const history = useHistory()
+  const location = useLocation()
   const dispatch = useDispatch()
 
   const [headerSelected, setHeaderSelect] = useState<boolean>(false)
-  const [order, setOrder] = useState<Order>('desc')
-  const [sortByColumn, setSortByColumn] = useState<SortByColumn>(SortByColumn.Station)
   const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().toISODate())
-  const [rows, setRows] = useState<FBATableRow[]>([])
-  const [selected, setSelected] = useState<number[]>([])
   const [rowIdsToUpdate, setRowIdsToUpdate] = useState<Set<number>>(new Set())
+  const [sortByColumn, setSortByColumn] = useState<SortByColumn>(SortByColumn.Station)
+  const [selected, setSelected] = useState<number[]>([])
+  const [order, setOrder] = useState<Order>('desc')
+  const [rows, setRows] = useState<FBATableRow[]>([])
   const { stations } = useSelector(selectFireWeatherStations)
   const { fireBehaviourResultStations, loading } = useSelector(
     selectFireBehaviourCalcResult
