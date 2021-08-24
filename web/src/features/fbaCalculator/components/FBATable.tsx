@@ -114,32 +114,29 @@ const useStyles = makeStyles(theme => ({
 }))
 
 const FBAInputGrid = (props: FBAInputGridProps) => {
+  const DECIMAL_PLACES = 1
+
   const classes = useStyles()
+  const location = useLocation()
+  const history = useHistory()
+  const dispatch = useDispatch()
 
   const [headerSelected, setHeaderSelect] = useState<boolean>(false)
   const [order, setOrder] = useState<Order>('desc')
   const [sortByColumn, setSortByColumn] = useState<SortByColumn>(SortByColumn.Station)
-
-  const toggleSorting = (selectedColumn: SortByColumn) => {
-    if (sortByColumn !== selectedColumn) {
-      setSortByColumn(selectedColumn)
-    } else {
-      setOrder(order === 'asc' ? 'desc' : 'asc')
-    }
-  }
-
   const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().toISODate())
-
-  const location = useLocation()
-  const history = useHistory()
-
-  const dispatch = useDispatch()
-
-  useEffect(() => {
-    dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
-
+  const [rows, setRows] = useState<FBATableRow[]>([])
+  const [selected, setSelected] = useState<number[]>([])
+  const [rowIdToUpdate, setRowIdToUpdate] = useState<number | null>(null)
   const { stations } = useSelector(selectFireWeatherStations)
+  const { fireBehaviourResultStations, loading } = useSelector(
+    selectFireBehaviourCalcResult
+  )
+  const [calculatedResults, setCalculatedResults] = useState<FBAStation[]>(
+    fireBehaviourResultStations
+  )
+
+  const rowsFromQuery = getRowsFromUrlParams(location.search)
 
   const stationMenuOptions: GridMenuOption[] = (stations as GeoJsonStation[]).map(
     station => ({
@@ -155,18 +152,9 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
     })
   )
 
-  const rowsFromQuery = getRowsFromUrlParams(location.search)
-  const { fireBehaviourResultStations, loading } = useSelector(
-    selectFireBehaviourCalcResult
-  )
-  const [calculatedResults, setCalculatedResults] = useState<FBAStation[]>(
-    fireBehaviourResultStations
-  )
-
-  const [rows, setRows] = useState<FBATableRow[]>([])
-
-  const [selected, setSelected] = useState<number[]>([])
-  const [rowIdToUpdate, setRowIdToUpdate] = useState<number | null>(null)
+  useEffect(() => {
+    dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (stations.length > 0) {
@@ -280,7 +268,13 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
     dispatch(fetchFireBehaviourStations(dateOfInterest, rows))
   }
 
-  const DECIMAL_PLACES = 1
+  const toggleSorting = (selectedColumn: SortByColumn) => {
+    if (sortByColumn !== selectedColumn) {
+      setSortByColumn(selectedColumn)
+    } else {
+      setOrder(order === 'asc' ? 'desc' : 'asc')
+    }
+  }
 
   const formatCriticalHoursAsString = (
     criticalHours: CriticalHoursHFI | undefined | null
