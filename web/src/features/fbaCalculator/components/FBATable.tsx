@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { filter, findIndex, isEmpty, isUndefined } from 'lodash'
+import { difference, filter, findIndex, isEmpty, isUndefined } from 'lodash'
 import {
   Checkbox,
   FormControl,
@@ -37,6 +37,7 @@ import { DateTime } from 'luxon'
 import { useDispatch, useSelector } from 'react-redux'
 import { useLocation, useHistory } from 'react-router-dom'
 import DatePicker from 'features/fbaCalculator/components/DatePicker'
+import assert from 'assert'
 
 export interface FBAInputGridProps {
   testId?: string
@@ -177,11 +178,9 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
 
   useEffect(() => {
     if (stations.length > 0) {
-      if (!isEmpty(rowIdsToUpdate)) {
-        const rowsToUpdate = rows.filter(row => rowIdsToUpdate.has(row.id))
-        if (!isEmpty(rowsToUpdate)) {
-          dispatch(fetchFireBehaviourStations(dateOfInterest, rowsToUpdate))
-        }
+      const rowsToUpdate = rows.filter(row => rowIdsToUpdate.has(row.id))
+      if (!isEmpty(rowsToUpdate)) {
+        dispatch(fetchFireBehaviourStations(dateOfInterest, rowsToUpdate))
       }
     }
   }, [location]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -191,9 +190,12 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
     if (!isEmpty(rowIdsToUpdate) && fireBehaviourResultStations.length > 0) {
       const updatedRows = RowManager.updateRows(rows, fireBehaviourResultStations)
       setRows(updatedRows)
-      setRowIdsToUpdate(
-        new Set(Array.from(rowIdsToUpdate).filter(rowId => !rowIdsToUpdate.has(rowId)))
+
+      const updatedRowIds = difference(
+        Array.from(rowIdsToUpdate),
+        fireBehaviourResultStations.map(result => result.id)
       )
+      setRowIdsToUpdate(new Set(updatedRowIds))
     }
     // Initial row list page load
     if (initialLoad && fireBehaviourResultStations.length > 0) {
@@ -226,6 +228,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
       grassCure: undefined,
       windSpeed: undefined
     }
+    assert(!new Set(rows.map(row => row.id)).has(newRowId))
     const newRows = rows.concat(newRow)
     setRows(newRows)
   }
@@ -247,9 +250,11 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
     newRows[index] = updatedRow
     setRows(newRows)
 
-    rowIdsToUpdate.add(id)
-    const toUpdate = new Set(rowIdsToUpdate)
-    setRowIdsToUpdate(toUpdate)
+    if (!rowIdsToUpdate.has(id)) {
+      rowIdsToUpdate.add(id)
+      const toUpdate = new Set(rowIdsToUpdate)
+      setRowIdsToUpdate(toUpdate)
+    }
     if (dispatchUpdate) {
       updateQueryParams(getUrlParamsFromRows(newRows))
     }

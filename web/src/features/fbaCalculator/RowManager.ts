@@ -1,7 +1,7 @@
 import { FBAStation } from 'api/fbaCalcAPI'
 import { GridMenuOption, FBAInputRow } from 'features/fbaCalculator/components/FBATable'
 import { FuelTypes } from 'features/fbaCalculator/fuelTypes'
-import _, { isNull, isUndefined } from 'lodash'
+import _, { isNull, isUndefined, uniqBy } from 'lodash'
 import { Order } from 'utils/table'
 export enum SortByColumn {
   Zone,
@@ -148,7 +148,7 @@ export class RowManager {
         }
       }
     })
-    return rows
+    return uniqBy(rows, 'id')
   }
 
   public static buildFBCTableRow = (
