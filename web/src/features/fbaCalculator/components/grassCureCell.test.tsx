@@ -14,6 +14,7 @@ describe('GrassCureCell', () => {
     },
     classNameMap: { grassCure: '' },
     value,
+    disabled: false,
     rowId: 0
   })
   describe('grass cure failure states', () => {

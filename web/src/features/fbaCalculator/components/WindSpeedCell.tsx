@@ -11,6 +11,7 @@ export interface WindSpeedCellProps {
   updateRow: (rowId: number, updatedRow: FBATableRow, dispatchRequest?: boolean) => void
   inputValue: number | undefined
   calculatedValue: number | undefined
+  disabled: boolean
   rowId: number
 }
 
@@ -79,6 +80,7 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
         onBlur={handlePossibleUpdate}
         onKeyDown={enterHandler}
         value={windSpeedValue ? windSpeedValue : ''}
+        disabled={props.disabled}
         error={hasError}
       />
     </Tooltip>

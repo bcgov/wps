@@ -11,6 +11,7 @@ export interface GrassCureCellProps {
   updateRow: (rowId: number, updatedRow: FBATableRow, dispatchRequest?: boolean) => void
   classNameMap: ClassNameMap<'grassCure'>
   value: number | undefined
+  disabled: boolean
   rowId: number
 }
 
@@ -75,6 +76,7 @@ const GrassCureProps = (props: GrassCureCellProps) => {
         onBlur={handlePossibleUpdate}
         onKeyDown={enterHandler}
         value={grassCurePercentage ? grassCurePercentage : ''}
+        disabled={props.disabled}
         error={hasError}
       />
     </Tooltip>

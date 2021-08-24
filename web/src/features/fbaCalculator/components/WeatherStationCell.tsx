@@ -13,6 +13,7 @@ interface WeatherStationCellProps {
   updateRow: (rowId: number, updatedRow: FBATableRow, dispatchRequest?: boolean) => void
   classNameMap: ClassNameMap<'weatherStation'>
   value: GridMenuOption | null
+  disabled: boolean
   rowId: number
 }
 
@@ -52,6 +53,7 @@ const WeatherStationCell = (props: WeatherStationCellProps) => {
         />
       )}
       onChange={changeHandler}
+      disabled={props.disabled}
       value={selectedStation}
     />
   )

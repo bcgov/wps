@@ -15,6 +15,7 @@ describe('WindSpeedCell', () => {
     },
     inputValue: inputRow.windSpeed,
     calculatedValue,
+    disabled: false,
     rowId: 0
   })
   const buildTableRow = (windSpeed: number | undefined) => ({

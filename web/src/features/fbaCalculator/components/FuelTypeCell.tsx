@@ -14,6 +14,7 @@ interface FuelTypeCellProps {
   updateRow: (rowId: number, updatedRow: FBATableRow, dispatchRequest?: boolean) => void
   classNameMap: ClassNameMap<'fuelType'>
   value: GridMenuOption | null
+  disabled: boolean
   rowId: number
 }
 const emptyLabel = 'Select a fuel type'
@@ -58,6 +59,7 @@ const FuelTypeCell = (props: FuelTypeCellProps) => {
         />
       )}
       onChange={changeHandler}
+      disabled={props.disabled}
       value={selectedFuelType}
     />
   )

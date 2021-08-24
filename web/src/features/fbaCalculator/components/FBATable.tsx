@@ -647,6 +647,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                           updateSelected={(newSelected: number[]) =>
                             setSelected(newSelected)
                           }
+                          disabled={row.id === rowIdToUpdate}
                           rowId={ri}
                         />
                       </TableCell>
@@ -658,6 +659,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                           updateRow={updateRow}
                           classNameMap={classes}
                           value={row.weatherStation}
+                          disabled={row.id === rowIdToUpdate}
                           rowId={row.id}
                         />
                       </TableCell>
@@ -669,6 +671,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                           updateRow={updateRow}
                           classNameMap={classes}
                           value={row.fuelType}
+                          disabled={row.id === rowIdToUpdate}
                           rowId={row.id}
                         />
                       </TableCell>
@@ -678,6 +681,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                           updateRow={updateRow}
                           classNameMap={classes}
                           value={row.grassCure}
+                          disabled={row.id === rowIdToUpdate}
                           rowId={row.id}
                         />
                       </TableCell>
@@ -702,6 +706,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                           updateRow={updateRow}
                           inputValue={row.windSpeed}
                           calculatedValue={rows[ri].wind_speed}
+                          disabled={row.id === rowIdToUpdate}
                           rowId={row.id}
                         />
                       </TableCell>

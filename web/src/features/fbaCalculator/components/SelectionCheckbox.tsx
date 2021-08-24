@@ -4,6 +4,7 @@ import React from 'react'
 interface SelectionCheckboxProps {
   selected: number[]
   updateSelected: (newSelected: number[]) => void
+  disabled: boolean
   rowId: number
 }
 
@@ -13,6 +14,7 @@ const SelectionCheckbox = (props: SelectionCheckboxProps) => {
     <Checkbox
       data-testid={`selection-checkbox-fba`}
       color="primary"
+      disabled={props.disabled}
       checked={selectedSet.has(props.rowId)}
       onClick={() => {
         if (selectedSet.has(props.rowId)) {
