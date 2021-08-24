@@ -60,6 +60,40 @@ export class RowManager {
       }
       return []
     }).flat()
+
+  public static updateRows = (
+    existingRows: FBATableRow[],
+    updatedCalculatedRows: FBAStation[]
+  ): FBATableRow[] => {
+    const rows = [...existingRows]
+    const updatedRowById = new Map(updatedCalculatedRows.map(row => [row.id, row]))
+    rows.forEach(row => {
+      if (updatedRowById.has(row.id)) {
+        rows[row.id] = {
+          ...row,
+          ...updatedRowById.get(row.id)
+        }
+      }
+    })
+    return rows
+  }
+
+  public static updateCalculatedResults = (
+    existingCalculatedRows: FBAStation[],
+    updatedCalculatedRows: FBAStation[]
+  ): FBAStation[] => {
+    const calculatedRows = [...existingCalculatedRows]
+    const updatedRowById = new Map(updatedCalculatedRows.map(row => [row.id, row]))
+    calculatedRows.forEach(row => {
+      if (updatedRowById.has(row.id)) {
+        calculatedRows[row.id] = {
+          ...row,
+          ...updatedRowById.get(row.id)
+        }
+      }
+    })
+    return calculatedRows
+  }
   public static sortRows = (
     sortByColumn: SortByColumn,
     order: Order,

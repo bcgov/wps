@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { filter, findIndex, isNull, isUndefined } from 'lodash'
+import { filter, findIndex, isEmpty, isUndefined } from 'lodash'
 import {
   Checkbox,
   FormControl,
@@ -127,7 +127,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
   const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().toISODate())
   const [rows, setRows] = useState<FBATableRow[]>([])
   const [selected, setSelected] = useState<number[]>([])
-  const [rowIdToUpdate, setRowIdToUpdate] = useState<number | null>(null)
+  const [rowIdsToUpdate, setRowIdsToUpdate] = useState<Set<number>>(new Set())
   const { stations } = useSelector(selectFireWeatherStations)
   const { fireBehaviourResultStations, loading } = useSelector(
     selectFireBehaviourCalcResult
@@ -175,10 +175,10 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
 
   useEffect(() => {
     if (stations.length > 0) {
-      if (!isNull(rowIdToUpdate)) {
-        const rowIndex = findIndex(rows, row => row.id === rowIdToUpdate)
-        if (rowIndex >= 0) {
-          dispatch(fetchFireBehaviourStations(dateOfInterest, [rows[rowIndex]]))
+      if (!isEmpty(rowIdsToUpdate)) {
+        const rowsToUpdate = rows.filter(row => rowIdsToUpdate.has(row.id))
+        if (!isEmpty(rowsToUpdate)) {
+          dispatch(fetchFireBehaviourStations(dateOfInterest, rowsToUpdate))
         }
       }
     }
@@ -186,24 +186,18 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
 
   useEffect(() => {
     // Single update
-    if (!isNull(rowIdToUpdate) && fireBehaviourResultStations.length > 0) {
-      const rowsWithUpdate = [...rows]
-      const updatedRowIndex = findIndex(rowsWithUpdate, row => row.id === rowIdToUpdate)
-      if (updatedRowIndex >= 0) {
-        rowsWithUpdate[updatedRowIndex] = {
-          ...rows[updatedRowIndex],
-          ...fireBehaviourResultStations[0]
-        }
-        setRows(rowsWithUpdate)
-        const updatedCalculatedResults = [...calculatedResults]
-        updatedCalculatedResults[updatedRowIndex] = fireBehaviourResultStations[0]
-        setCalculatedResults(updatedCalculatedResults)
-        setRowIdToUpdate(null)
-      }
+    if (!isEmpty(rowIdsToUpdate) && fireBehaviourResultStations.length > 0) {
+      const updatedRows = RowManager.updateRows(rows, fireBehaviourResultStations)
+      const updatedCalculatedResults = RowManager.updateCalculatedResults(
+        calculatedResults,
+        fireBehaviourResultStations
+      )
+      setRows(updatedRows)
+      setCalculatedResults(updatedCalculatedResults)
+      setRowIdsToUpdate(new Set())
     }
     // Initial list page load
-    if (isNull(rowIdToUpdate) && fireBehaviourResultStations.length > 0) {
-      setCalculatedResults(fireBehaviourResultStations)
+    if (isEmpty(rowIdsToUpdate) && fireBehaviourResultStations.length > 0) {
       const stationCodeMap = new Map(
         stationMenuOptions.map(station => [station.value, station.label])
       )
@@ -252,7 +246,10 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
 
     newRows[index] = updatedRow
     setRows(newRows)
-    setRowIdToUpdate(id)
+
+    rowIdsToUpdate.add(id)
+    const toUpdate = new Set(rowIdsToUpdate)
+    setRowIdsToUpdate(toUpdate)
     if (dispatchUpdate) {
       updateQueryParams(getUrlParamsFromRows(newRows))
     }
@@ -641,7 +638,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                           updateSelected={(newSelected: number[]) =>
                             setSelected(newSelected)
                           }
-                          disabled={row.id === rowIdToUpdate}
+                          disabled={rowIdsToUpdate.has(row.id)}
                           rowId={ri}
                         />
                       </TableCell>
@@ -653,7 +650,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                           updateRow={updateRow}
                           classNameMap={classes}
                           value={row.weatherStation}
-                          disabled={row.id === rowIdToUpdate}
+                          disabled={rowIdsToUpdate.has(row.id)}
                           rowId={row.id}
                         />
                       </TableCell>
@@ -665,7 +662,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                           updateRow={updateRow}
                           classNameMap={classes}
                           value={row.fuelType}
-                          disabled={row.id === rowIdToUpdate}
+                          disabled={rowIdsToUpdate.has(row.id)}
                           rowId={row.id}
                         />
                       </TableCell>
@@ -675,7 +672,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                           updateRow={updateRow}
                           classNameMap={classes}
                           value={row.grassCure}
-                          disabled={row.id === rowIdToUpdate}
+                          disabled={rowIdsToUpdate.has(row.id)}
                           rowId={row.id}
                         />
                       </TableCell>
@@ -700,7 +697,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                           updateRow={updateRow}
                           inputValue={row.windSpeed}
                           calculatedValue={rows[ri].wind_speed}
-                          disabled={row.id === rowIdToUpdate}
+                          disabled={rowIdsToUpdate.has(row.id)}
                           rowId={row.id}
                         />
                       </TableCell>

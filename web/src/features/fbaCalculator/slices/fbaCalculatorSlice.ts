@@ -70,6 +70,7 @@ export const fetchFireBehaviourStations = (
       return []
     }
     return {
+      id: row.id,
       stationCode: parseInt(row.weatherStation ? row.weatherStation.value : ''),
       fuelType: fuelTypeDetails.name,
       percentageConifer: fuelTypeDetails.percentage_conifer,
