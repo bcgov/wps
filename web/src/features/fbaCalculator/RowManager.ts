@@ -50,12 +50,11 @@ export class RowManager {
     calculatedRows: FBAStation[]
   ): FBATableRow[] =>
     zipWith(inputRows, calculatedRows, (inputRow, outputRow) => {
-      const blah = isUndefined(outputRow) ? {} : outputRow
       if (inputRow) {
         return [
           {
             ...this.buildFBCTableRow(inputRow),
-            ...blah
+            ...outputRow
           }
         ]
       }
