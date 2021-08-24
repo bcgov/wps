@@ -150,7 +150,7 @@ describe('FireBAT Calculator Page', () => {
       cy.wait('@calculateResults')
     })
   })
-  xdescribe('Row management', () => {
+  describe('Row management', () => {
     it('Disables remove row(s) button when table is empty', () => {
       cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
       cy.visit(FIRE_BEHAVIOR_CALC_ROUTE)
