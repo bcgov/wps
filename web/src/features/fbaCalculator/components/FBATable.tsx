@@ -337,7 +337,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                           setSelected([])
                           setHeaderSelect(false)
                         } else {
-                          setSelected(rows.map((_, i) => i))
+                          setSelected(rows.map(row => row.id))
                           setHeaderSelect(true)
                         }
                       }}
@@ -636,127 +636,131 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
               <TableBody data-testid="fba-table-body">
                 {rows.map((row, ri) => {
                   return (
-                    <TableRow key={row.id}>
-                      <TableCell className={classes.dataRow}>
-                        <SelectionCheckbox
-                          selected={selected}
-                          updateSelected={(newSelected: number[]) =>
-                            setSelected(newSelected)
+                    !isUndefined(row) && (
+                      <TableRow key={row.id}>
+                        <TableCell className={classes.dataRow}>
+                          <SelectionCheckbox
+                            selected={selected}
+                            updateSelected={(newSelected: number[]) =>
+                              setSelected(newSelected)
+                            }
+                            disabled={rowIdsToUpdate.has(row.id)}
+                            rowId={row.id}
+                          />
+                        </TableCell>
+                        <TableCell className={classes.dataRow}>{row.zone_code}</TableCell>
+                        <TableCell className={classes.dataRow}>
+                          <WeatherStationCell
+                            stationOptions={stationMenuOptions}
+                            inputRows={rows}
+                            updateRow={updateRow}
+                            classNameMap={classes}
+                            value={row.weatherStation}
+                            disabled={rowIdsToUpdate.has(row.id)}
+                            rowId={row.id}
+                          />
+                        </TableCell>
+                        <TableCell className={classes.dataRow}>{row.elevation}</TableCell>
+                        <TableCell className={classes.dataRow}>
+                          <FuelTypeCell
+                            fuelTypeOptions={fuelTypeMenuOptions}
+                            inputRows={rows}
+                            updateRow={updateRow}
+                            classNameMap={classes}
+                            value={row.fuelType}
+                            disabled={rowIdsToUpdate.has(row.id)}
+                            rowId={row.id}
+                          />
+                        </TableCell>
+                        <TableCell className={classes.dataRow}>
+                          <GrassCureCell
+                            inputRows={rows}
+                            updateRow={updateRow}
+                            classNameMap={classes}
+                            value={row.grassCure}
+                            disabled={rowIdsToUpdate.has(row.id)}
+                            rowId={row.id}
+                          />
+                        </TableCell>
+                        <TableCell
+                          className={
+                            !isUndefined(row.status) &&
+                            row.status.toLowerCase() === 'adjusted'
+                              ? classes.adjustedValueCell
+                              : classes.dataRow
                           }
-                          disabled={rowIdsToUpdate.has(row.id)}
-                          rowId={ri}
-                        />
-                      </TableCell>
-                      <TableCell className={classes.dataRow}>{row.zone_code}</TableCell>
-                      <TableCell className={classes.dataRow}>
-                        <WeatherStationCell
-                          stationOptions={stationMenuOptions}
-                          inputRows={rows}
-                          updateRow={updateRow}
-                          classNameMap={classes}
-                          value={row.weatherStation}
-                          disabled={rowIdsToUpdate.has(row.id)}
-                          rowId={row.id}
-                        />
-                      </TableCell>
-                      <TableCell className={classes.dataRow}>{row.elevation}</TableCell>
-                      <TableCell className={classes.dataRow}>
-                        <FuelTypeCell
-                          fuelTypeOptions={fuelTypeMenuOptions}
-                          inputRows={rows}
-                          updateRow={updateRow}
-                          classNameMap={classes}
-                          value={row.fuelType}
-                          disabled={rowIdsToUpdate.has(row.id)}
-                          rowId={row.id}
-                        />
-                      </TableCell>
-                      <TableCell className={classes.dataRow}>
-                        <GrassCureCell
-                          inputRows={rows}
-                          updateRow={updateRow}
-                          classNameMap={classes}
-                          value={row.grassCure}
-                          disabled={rowIdsToUpdate.has(row.id)}
-                          rowId={row.id}
-                        />
-                      </TableCell>
-                      <TableCell
-                        className={
-                          !isUndefined(row.status) &&
-                          row.status.toLowerCase() === 'adjusted'
-                            ? classes.adjustedValueCell
-                            : classes.dataRow
-                        }
-                      >
-                        {row.status}
-                      </TableCell>
-                      <TableCell className={classes.dataRow}>{row.temp}</TableCell>
-                      <TableCell className={classes.dataRow}>{row.rh}</TableCell>
-                      <TableCell className={classes.dataRow}>
-                        {row.wind_direction}
-                      </TableCell>
-                      <TableCell className={classes.dataRow}>
-                        <WindSpeedCell
-                          inputRows={rows}
-                          updateRow={updateRow}
-                          inputValue={row.windSpeed}
-                          calculatedValue={rows[ri].wind_speed}
-                          disabled={rowIdsToUpdate.has(row.id)}
-                          rowId={row.id}
-                        />
-                      </TableCell>
-                      <TableCell className={classes.dataRow}>
-                        {row.precipitation}
-                      </TableCell>
-                      <TableCell className={classes.dataRow}>
-                        {row.fine_fuel_moisture_code?.toFixed(DECIMAL_PLACES)}
-                      </TableCell>
-                      <TableCell className={classes.dataRow}>
-                        {row.duff_moisture_code?.toFixed(DECIMAL_PLACES)}
-                      </TableCell>
-                      <TableCell className={classes.dataRow}>
-                        {row.drought_code?.toFixed(DECIMAL_PLACES)}
-                      </TableCell>
-                      <TableCell className={classes.dataRow}>
-                        {row.initial_spread_index?.toFixed(DECIMAL_PLACES)}
-                      </TableCell>
-                      <TableCell className={classes.dataRow}>
-                        {row.build_up_index?.toFixed(DECIMAL_PLACES)}
-                      </TableCell>
-                      <TableCell className={classes.dataRow}>
-                        {row.fire_weather_index?.toFixed(DECIMAL_PLACES)}
-                      </TableCell>
-                      <TableCell className={classes.dataRow}>
-                        {row.head_fire_intensity?.toFixed(DECIMAL_PLACES)}
-                      </TableCell>
-                      <TableCell className={classes.dataRow}>
-                        {formatCriticalHoursAsString(row.critical_hours_hfi_4000)}
-                      </TableCell>
-                      <TableCell className={classes.dataRow}>
-                        {formatCriticalHoursAsString(row.critical_hours_hfi_10000)}
-                      </TableCell>
-                      <TableCell className={classes.dataRow}>
-                        {row.rate_of_spread?.toFixed(DECIMAL_PLACES)}
-                      </TableCell>
-                      <TableCell className={classes.dataRow}>{row?.fire_type}</TableCell>
-                      <TableCell className={classes.dataRow}>
-                        {/* CFB comes in as a number 0 to 1, so we multiple by 100 to get the percentage */}
-                        {!isUndefined(row.percentage_crown_fraction_burned) &&
-                          (row.percentage_crown_fraction_burned * 100).toFixed(
-                            DECIMAL_PLACES
-                          )}
-                      </TableCell>
-                      <TableCell className={classes.dataRow}>
-                        {row.flame_length?.toFixed(DECIMAL_PLACES)}
-                      </TableCell>
-                      <TableCell className={classes.dataRow}>
-                        {row.thirty_minute_fire_size?.toFixed(DECIMAL_PLACES)}
-                      </TableCell>
-                      <TableCell className={classes.dataRow}>
-                        {row.sixty_minute_fire_size?.toFixed(DECIMAL_PLACES)}
-                      </TableCell>
-                    </TableRow>
+                        >
+                          {row.status}
+                        </TableCell>
+                        <TableCell className={classes.dataRow}>{row.temp}</TableCell>
+                        <TableCell className={classes.dataRow}>{row.rh}</TableCell>
+                        <TableCell className={classes.dataRow}>
+                          {row.wind_direction}
+                        </TableCell>
+                        <TableCell className={classes.dataRow}>
+                          <WindSpeedCell
+                            inputRows={rows}
+                            updateRow={updateRow}
+                            inputValue={row.windSpeed}
+                            calculatedValue={rows[ri].wind_speed}
+                            disabled={rowIdsToUpdate.has(row.id)}
+                            rowId={row.id}
+                          />
+                        </TableCell>
+                        <TableCell className={classes.dataRow}>
+                          {row.precipitation}
+                        </TableCell>
+                        <TableCell className={classes.dataRow}>
+                          {row.fine_fuel_moisture_code?.toFixed(DECIMAL_PLACES)}
+                        </TableCell>
+                        <TableCell className={classes.dataRow}>
+                          {row.duff_moisture_code?.toFixed(DECIMAL_PLACES)}
+                        </TableCell>
+                        <TableCell className={classes.dataRow}>
+                          {row.drought_code?.toFixed(DECIMAL_PLACES)}
+                        </TableCell>
+                        <TableCell className={classes.dataRow}>
+                          {row.initial_spread_index?.toFixed(DECIMAL_PLACES)}
+                        </TableCell>
+                        <TableCell className={classes.dataRow}>
+                          {row.build_up_index?.toFixed(DECIMAL_PLACES)}
+                        </TableCell>
+                        <TableCell className={classes.dataRow}>
+                          {row.fire_weather_index?.toFixed(DECIMAL_PLACES)}
+                        </TableCell>
+                        <TableCell className={classes.dataRow}>
+                          {row.head_fire_intensity?.toFixed(DECIMAL_PLACES)}
+                        </TableCell>
+                        <TableCell className={classes.dataRow}>
+                          {formatCriticalHoursAsString(row.critical_hours_hfi_4000)}
+                        </TableCell>
+                        <TableCell className={classes.dataRow}>
+                          {formatCriticalHoursAsString(row.critical_hours_hfi_10000)}
+                        </TableCell>
+                        <TableCell className={classes.dataRow}>
+                          {row.rate_of_spread?.toFixed(DECIMAL_PLACES)}
+                        </TableCell>
+                        <TableCell className={classes.dataRow}>
+                          {row?.fire_type}
+                        </TableCell>
+                        <TableCell className={classes.dataRow}>
+                          {/* CFB comes in as a number 0 to 1, so we multiple by 100 to get the percentage */}
+                          {!isUndefined(row.percentage_crown_fraction_burned) &&
+                            (row.percentage_crown_fraction_burned * 100).toFixed(
+                              DECIMAL_PLACES
+                            )}
+                        </TableCell>
+                        <TableCell className={classes.dataRow}>
+                          {row.flame_length?.toFixed(DECIMAL_PLACES)}
+                        </TableCell>
+                        <TableCell className={classes.dataRow}>
+                          {row.thirty_minute_fire_size?.toFixed(DECIMAL_PLACES)}
+                        </TableCell>
+                        <TableCell className={classes.dataRow}>
+                          {row.sixty_minute_fire_size?.toFixed(DECIMAL_PLACES)}
+                        </TableCell>
+                      </TableRow>
+                    )
                   )
                 })}
               </TableBody>
