@@ -3,7 +3,7 @@ import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles'
 import { FBATableRow } from 'features/fbaCalculator/RowManager'
 import { updateFBARow, buildUpdatedNumberRow } from 'features/fbaCalculator/tableState'
 import { isWindSpeedInvalid } from 'features/fbaCalculator/validation'
-import { isEqual } from 'lodash'
+import { isEqual, isUndefined } from 'lodash'
 import React, { ChangeEvent, useState, useEffect } from 'react'
 
 export interface WindSpeedCellProps {
@@ -66,6 +66,13 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
 
   const hasError = isWindSpeedInvalid(windSpeedValue)
 
+  const valueForRendering = () => {
+    if (windSpeedValue === 0) {
+      return 0
+    }
+    return isUndefined(windSpeedValue) ? '' : windSpeedValue
+  }
+
   const buildTextField = () => (
     <Tooltip title="Cannot exceed 120" aria-label="cannot-exceed-120">
       <TextField
@@ -79,7 +86,7 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
         onChange={changeHandler}
         onBlur={handlePossibleUpdate}
         onKeyDown={enterHandler}
-        value={windSpeedValue ? windSpeedValue : ''}
+        value={valueForRendering()}
         disabled={props.disabled}
         error={hasError}
       />
