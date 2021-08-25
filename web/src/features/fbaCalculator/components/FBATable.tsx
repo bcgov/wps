@@ -245,7 +245,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
   }
 
   const updateRow = (id: number, updatedRow: FBATableRow, dispatchUpdate = true) => {
-    const newRows = [...rows]
+    const newRows = [...rows].filter(row => !isUndefined(row))
     const index = findIndex(newRows, row => row.id === id)
 
     newRows[index] = updatedRow
