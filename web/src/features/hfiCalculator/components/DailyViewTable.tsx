@@ -35,7 +35,7 @@ const useStyles = makeStyles({
 
     '& .MuiTableCell-body': {
       padding: '8px'
-    },
+    }
   },
   paper: {
     width: '100%'
@@ -90,6 +90,27 @@ const useStyles = makeStyles({
   intensityGroupOutline5: {
     border: '2px solid #EC5D57',
     borderRadius: '4px'
+  },
+  intensityGroupSolid1: {
+    background: '#D6FCA4',
+    fontWeight: 'bold'
+  },
+  intensityGroupSolid2: {
+    background: '#73FBFD',
+    fontWeight: 'bold'
+  },
+  intensityGroupSolid3: {
+    background: '#FFFEA6',
+    fontWeight: 'bold'
+  },
+  intensityGroupSolid4: {
+    background: '#F7CDA0',
+    fontWeight: 'bold'
+  },
+  intensityGroupSolid5: {
+    background: '#EC5D57',
+    fontWeight: 'bold',
+    color: 'white'
   }
 })
 
@@ -100,12 +121,37 @@ const DailyViewTable = (props: Props) => {
 
   const formatStationIntensityGroupByValue = (intensityGroup: number | undefined) => {
     switch (intensityGroup) {
-      case 1: return classes.intensityGroupOutline1
-      case 2: return classes.intensityGroupOutline2
-      case 3: return classes.intensityGroupOutline3
-      case 4: return classes.intensityGroupOutline4
-      case 5: return classes.intensityGroupOutline5
-      default: return
+      case 1:
+        return classes.intensityGroupOutline1
+      case 2:
+        return classes.intensityGroupOutline2
+      case 3:
+        return classes.intensityGroupOutline3
+      case 4:
+        return classes.intensityGroupOutline4
+      case 5:
+        return classes.intensityGroupOutline5
+      default:
+        return
+    }
+  }
+
+  const formatAreaMeanIntensityGroupByValue = (
+    meanIntensityGroup: number | undefined
+  ) => {
+    switch (meanIntensityGroup) {
+      case 1:
+        return classes.intensityGroupSolid1
+      case 2:
+        return classes.intensityGroupSolid2
+      case 3:
+        return classes.intensityGroupSolid3
+      case 4:
+        return classes.intensityGroupSolid4
+      case 5:
+        return classes.intensityGroupSolid5
+      default:
+        return
     }
   }
 
@@ -195,9 +241,11 @@ const DailyViewTable = (props: Props) => {
                   (m/min)
                 </TableCell>
                 <TableCell>HFI</TableCell>
-                <TableCell>M /
+                <TableCell>
+                  M /
                   <br />
-                  FIG</TableCell>
+                  FIG
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -212,14 +260,36 @@ const DailyViewTable = (props: Props) => {
                     {Object.entries(centre.planning_areas)
                       .sort((a, b) => (a[1].name < b[1].name ? -1 : 1))
                       .map(([areaName, area]) => {
+                        const stationCodesInPlanningArea: number[] = []
+                        Object.entries(area.stations).forEach(([, station]) => {
+                          stationCodesInPlanningArea.push(station.code)
+                        })
+                        const stationIntensityGroups: number[] = []
+                        for (const code of stationCodesInPlanningArea) {
+                          const stationDaily = props.dailiesMap.get(code)
+                          if (stationDaily?.intensity_group !== undefined) {
+                            stationIntensityGroups.push(stationDaily?.intensity_group)
+                          }
+                        }
+                        const meanIntensityGroup = Math.round(
+                          stationIntensityGroups.reduce((a, b) => a + b, 0) /
+                            stationIntensityGroups.length
+                        )
                         return (
                           <React.Fragment key={`zone-${areaName}`}>
                             <TableRow
                               className={classes.planningArea}
                               key={`zone-${areaName}`}
                             >
-                              <TableCell className={classes.planningArea} colSpan={26}>
+                              <TableCell className={classes.planningArea} colSpan={19}>
                                 {area.name}
+                              </TableCell>
+                              <TableCell
+                                className={formatAreaMeanIntensityGroupByValue(
+                                  meanIntensityGroup
+                                )}
+                              >
+                                {meanIntensityGroup}
                               </TableCell>
                             </TableRow>
                             {Object.entries(area.stations)
@@ -274,7 +344,11 @@ const DailyViewTable = (props: Props) => {
                                     <TableCell>
                                       {daily?.hfi?.toFixed(DECIMAL_PLACES)}
                                     </TableCell>
-                                    <TableCell className={formatStationIntensityGroupByValue(daily?.intensity_group)}>
+                                    <TableCell
+                                      className={formatStationIntensityGroupByValue(
+                                        daily?.intensity_group
+                                      )}
+                                    >
                                       {daily?.intensity_group}
                                     </TableCell>
                                   </TableRow>
