@@ -19,12 +19,11 @@ export const isGrassCureInvalid = (row: FBATableRow): boolean => {
   return notSet || isGreaterThan(row.grassCure)
 }
 
-export const isRowInvalid = (row: FBATableRow): boolean => {
-  return (
-    isNull(row.weatherStation) ||
-    isNull(row.fuelType) ||
-    isWindSpeedInvalid(row.windSpeed)
-  )
+export const rowShouldUpdate = (row: FBATableRow): boolean => {
+  if (!isNull(row.weatherStation) && !isNull(row.fuelType)) {
+    return true
+  }
+  return isNull(row.weatherStation) || isNull(row.fuelType)
 }
 
 /**
