@@ -641,7 +641,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                   </TableRow>
                 </TableHead>
                 <TableBody data-testid="fba-table-body">
-                  {rows.map((row, ri) => {
+                  {rows.map(row => {
                     return (
                       !isUndefined(row) && (
                         <TableRow key={row.id}>
