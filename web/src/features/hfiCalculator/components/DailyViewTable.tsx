@@ -25,6 +25,14 @@ interface Props {
   testId?: string
 }
 
+const intensityGroupColours: { [description: string] : string } = {
+  lightGreen: '#D6FCA4',
+  cyan: '#73FBFD',
+  yellow: '#FFFEA6',
+  orange: '#F7CDA0',
+  red: '#EC5D57'
+}
+
 const useStyles = makeStyles({
   display: {
     paddingBottom: 12,
@@ -72,43 +80,48 @@ const useStyles = makeStyles({
     alignItems: 'baseline'
   },
   intensityGroupOutline1: {
-    border: '2px solid #D6FCA4',
+    border: '2px solid',
+    borderColor: intensityGroupColours.lightGreen,
     borderRadius: '4px'
   },
   intensityGroupOutline2: {
-    border: '2px solid #73FBFD',
+    border: '2px solid',
+    borderColor: intensityGroupColours.cyan,
     borderRadius: '4px'
   },
   intensityGroupOutline3: {
-    border: '2px solid #FFFEA6',
+    border: '2px solid',
+    borderColor: intensityGroupColours.yellow,
     borderRadius: '4px'
   },
   intensityGroupOutline4: {
-    border: '2px solid #F7CDA0',
+    border: '2px solid',
+    borderColor: intensityGroupColours.orange,
     borderRadius: '4px'
   },
   intensityGroupOutline5: {
-    border: '2px solid #EC5D57',
+    border: '2px solid',
+    borderColor: intensityGroupColours.red,
     borderRadius: '4px'
   },
   intensityGroupSolid1: {
-    background: '#D6FCA4',
+    background: intensityGroupColours.lightGreen,
     fontWeight: 'bold'
   },
   intensityGroupSolid2: {
-    background: '#73FBFD',
+    background: intensityGroupColours.cyan,
     fontWeight: 'bold'
   },
   intensityGroupSolid3: {
-    background: '#FFFEA6',
+    background: intensityGroupColours.yellow,
     fontWeight: 'bold'
   },
   intensityGroupSolid4: {
-    background: '#F7CDA0',
+    background: intensityGroupColours.orange,
     fontWeight: 'bold'
   },
   intensityGroupSolid5: {
-    background: '#EC5D57',
+    background: intensityGroupColours.red,
     fontWeight: 'bold',
     color: 'white'
   }
