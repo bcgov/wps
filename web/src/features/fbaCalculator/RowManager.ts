@@ -1,7 +1,7 @@
 import { FBAStation } from 'api/fbaCalcAPI'
 import { GridMenuOption, FBAInputRow } from 'features/fbaCalculator/components/FBATable'
 import { FuelTypes } from 'features/fbaCalculator/fuelTypes'
-import _, { isNull, isUndefined, uniqBy } from 'lodash'
+import _, { isNull, isUndefined, merge, uniqBy } from 'lodash'
 import { Order } from 'utils/table'
 export enum SortByColumn {
   Zone,
@@ -142,10 +142,7 @@ export class RowManager {
     const updatedRowById = new Map(updatedCalculatedRows.map(row => [row.id, row]))
     rows.forEach(row => {
       if (updatedRowById.has(row.id)) {
-        rows[row.id] = {
-          ...row,
-          ...updatedRowById.get(row.id)
-        }
+        rows[row.id] = merge(row, updatedRowById.get(row.id))
       }
     })
     return uniqBy(rows, 'id')

@@ -43,6 +43,7 @@ import TextDisplayCell from 'features/fbaCalculator/components/TextDisplayCell'
 import FixedDecimalNumberCell from 'features/fbaCalculator/components/FixedDecimalNumberCell'
 import CrownFractionBurnedCell from 'features/fbaCalculator/components/CrownFractionBurnedCell'
 import CriticalHoursCell from 'features/fbaCalculator/components/CriticalHoursCell'
+import StatusCell from 'features/fbaCalculator/components/StatusCell'
 
 export interface FBAInputGridProps {
   testId?: string
@@ -699,15 +700,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                               rowId={row.id}
                             />
                           </TableCell>
-                          <TextDisplayCell
-                            className={
-                              !isUndefined(row.status) &&
-                              row.status.toLowerCase() === 'adjusted'
-                                ? classes.adjustedValueCell
-                                : classes.dataRow
-                            }
-                            value={row.status}
-                          ></TextDisplayCell>
+                          <StatusCell value={row.status}></StatusCell>
                           <TextDisplayCell value={row.temp}></TextDisplayCell>
                           <TextDisplayCell value={row.rh}></TextDisplayCell>
                           <TextDisplayCell value={row.wind_direction}></TextDisplayCell>
