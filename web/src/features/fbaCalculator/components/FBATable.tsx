@@ -39,6 +39,7 @@ import { useLocation, useHistory } from 'react-router-dom'
 import DatePicker from 'features/fbaCalculator/components/DatePicker'
 import assert from 'assert'
 import { rowShouldUpdate, isWindSpeedInvalid } from 'features/fbaCalculator/validation'
+import TextDisplayCell from 'features/fbaCalculator/components/TextDisplayCell'
 
 export interface FBAInputGridProps {
   testId?: string
@@ -661,7 +662,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                             rowId={row.id}
                           />
                         </TableCell>
-                        <TableCell className={classes.dataRow}>{row.elevation}</TableCell>
+                        <TextDisplayCell value={row.elevation}></TextDisplayCell>
                         <TableCell className={classes.dataRow}>
                           <FuelTypeCell
                             fuelTypeOptions={fuelTypeMenuOptions}
@@ -683,21 +684,18 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                             rowId={row.id}
                           />
                         </TableCell>
-                        <TableCell
+                        <TextDisplayCell
                           className={
                             !isUndefined(row.status) &&
                             row.status.toLowerCase() === 'adjusted'
                               ? classes.adjustedValueCell
                               : classes.dataRow
                           }
-                        >
-                          {row.status}
-                        </TableCell>
-                        <TableCell className={classes.dataRow}>{row.temp}</TableCell>
-                        <TableCell className={classes.dataRow}>{row.rh}</TableCell>
-                        <TableCell className={classes.dataRow}>
-                          {row.wind_direction}
-                        </TableCell>
+                          value={row.status}
+                        ></TextDisplayCell>
+                        <TextDisplayCell value={row.temp}></TextDisplayCell>
+                        <TextDisplayCell value={row.rh}></TextDisplayCell>
+                        <TextDisplayCell value={row.wind_direction}></TextDisplayCell>
                         <TableCell className={classes.dataRow}>
                           <WindSpeedCell
                             inputRows={rows}
@@ -712,58 +710,59 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
                             rowId={row.id}
                           />
                         </TableCell>
-                        <TableCell className={classes.dataRow}>
-                          {row.precipitation}
-                        </TableCell>
-                        <TableCell className={classes.dataRow}>
-                          {row.fine_fuel_moisture_code?.toFixed(DECIMAL_PLACES)}
-                        </TableCell>
-                        <TableCell className={classes.dataRow}>
-                          {row.duff_moisture_code?.toFixed(DECIMAL_PLACES)}
-                        </TableCell>
-                        <TableCell className={classes.dataRow}>
-                          {row.drought_code?.toFixed(DECIMAL_PLACES)}
-                        </TableCell>
-                        <TableCell className={classes.dataRow}>
-                          {row.initial_spread_index?.toFixed(DECIMAL_PLACES)}
-                        </TableCell>
-                        <TableCell className={classes.dataRow}>
-                          {row.build_up_index?.toFixed(DECIMAL_PLACES)}
-                        </TableCell>
-                        <TableCell className={classes.dataRow}>
-                          {row.fire_weather_index?.toFixed(DECIMAL_PLACES)}
-                        </TableCell>
-                        <TableCell className={classes.dataRow}>
-                          {row.head_fire_intensity?.toFixed(DECIMAL_PLACES)}
-                        </TableCell>
-                        <TableCell className={classes.dataRow}>
-                          {formatCriticalHoursAsString(row.critical_hours_hfi_4000)}
-                        </TableCell>
-                        <TableCell className={classes.dataRow}>
-                          {formatCriticalHoursAsString(row.critical_hours_hfi_10000)}
-                        </TableCell>
-                        <TableCell className={classes.dataRow}>
-                          {row.rate_of_spread?.toFixed(DECIMAL_PLACES)}
-                        </TableCell>
-                        <TableCell className={classes.dataRow}>
-                          {row?.fire_type}
-                        </TableCell>
-                        <TableCell className={classes.dataRow}>
-                          {/* CFB comes in as a number 0 to 1, so we multiple by 100 to get the percentage */}
-                          {!isUndefined(row.percentage_crown_fraction_burned) &&
-                            (row.percentage_crown_fraction_burned * 100).toFixed(
-                              DECIMAL_PLACES
-                            )}
-                        </TableCell>
-                        <TableCell className={classes.dataRow}>
-                          {row.flame_length?.toFixed(DECIMAL_PLACES)}
-                        </TableCell>
-                        <TableCell className={classes.dataRow}>
-                          {row.thirty_minute_fire_size?.toFixed(DECIMAL_PLACES)}
-                        </TableCell>
-                        <TableCell className={classes.dataRow}>
-                          {row.sixty_minute_fire_size?.toFixed(DECIMAL_PLACES)}
-                        </TableCell>
+                        <TextDisplayCell value={row.precipitation}></TextDisplayCell>
+                        <TextDisplayCell
+                          value={row.fine_fuel_moisture_code?.toFixed(DECIMAL_PLACES)}
+                        ></TextDisplayCell>
+                        <TextDisplayCell
+                          value={row.duff_moisture_code?.toFixed(DECIMAL_PLACES)}
+                        ></TextDisplayCell>
+                        <TextDisplayCell
+                          value={row.drought_code?.toFixed(DECIMAL_PLACES)}
+                        ></TextDisplayCell>
+                        <TextDisplayCell
+                          value={row.initial_spread_index?.toFixed(DECIMAL_PLACES)}
+                        ></TextDisplayCell>
+                        <TextDisplayCell
+                          value={row.build_up_index?.toFixed(DECIMAL_PLACES)}
+                        ></TextDisplayCell>
+                        <TextDisplayCell
+                          value={row.fire_weather_index?.toFixed(DECIMAL_PLACES)}
+                        ></TextDisplayCell>
+                        <TextDisplayCell
+                          value={row.head_fire_intensity?.toFixed(DECIMAL_PLACES)}
+                        ></TextDisplayCell>
+                        <TextDisplayCell
+                          value={formatCriticalHoursAsString(row.critical_hours_hfi_4000)}
+                        ></TextDisplayCell>
+                        <TextDisplayCell
+                          value={formatCriticalHoursAsString(
+                            row.critical_hours_hfi_10000
+                          )}
+                        ></TextDisplayCell>
+                        <TextDisplayCell
+                          value={row.rate_of_spread?.toFixed(DECIMAL_PLACES)}
+                        ></TextDisplayCell>
+                        <TextDisplayCell value={row?.fire_type}></TextDisplayCell>
+                        {/* CFB comes in as a number 0 to 1, so we multiple by 100 to get the percentage */}
+                        <TextDisplayCell
+                          value={
+                            isUndefined(row.percentage_crown_fraction_burned)
+                              ? undefined
+                              : (row.percentage_crown_fraction_burned * 100).toFixed(
+                                  DECIMAL_PLACES
+                                )
+                          }
+                        ></TextDisplayCell>
+                        <TextDisplayCell
+                          value={row.flame_length?.toFixed(DECIMAL_PLACES)}
+                        ></TextDisplayCell>
+                        <TextDisplayCell
+                          value={row.thirty_minute_fire_size?.toFixed(DECIMAL_PLACES)}
+                        ></TextDisplayCell>
+                        <TextDisplayCell
+                          value={row.sixty_minute_fire_size?.toFixed(DECIMAL_PLACES)}
+                        ></TextDisplayCell>
                       </TableRow>
                     )
                   )
