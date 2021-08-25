@@ -1,4 +1,5 @@
 import { FBAStation } from 'api/fbaCalcAPI'
+import assert from 'assert'
 import { GridMenuOption, FBAInputRow } from 'features/fbaCalculator/components/FBATable'
 import { FuelTypes } from 'features/fbaCalculator/fuelTypes'
 import _, { isNull, isUndefined, merge, uniqBy } from 'lodash'
@@ -140,12 +141,17 @@ export class RowManager {
   ): Array<T> {
     const rows = [...existingRows]
     const updatedRowById = new Map(updatedCalculatedRows.map(row => [row.id, row]))
-    rows.forEach(row => {
+    const mergedRows = rows.map(row => {
       if (updatedRowById.has(row.id)) {
-        rows[row.id] = merge(row, updatedRowById.get(row.id))
+        const mergedRow = merge(row, updatedRowById.get(row.id))
+        updatedRowById.delete(row.id)
+        return mergedRow
       }
+      return row
     })
-    return uniqBy(rows, 'id')
+
+    assert(mergedRows.length === uniqBy(mergedRows, 'id').length)
+    return mergedRows
   }
 
   public static buildFBCTableRow = (

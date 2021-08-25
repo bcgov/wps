@@ -109,6 +109,9 @@ describe('RowManager', () => {
       value: inputRows[0].fuelType.value,
       label: inputRows[0].fuelType.label
     })
+
+    // No values are lost
+    expect(mergedRows.length).toEqual(inputRows.length)
   })
   describe('Sorting columns', () => {
     let mergedRows: FBATableRow[]
