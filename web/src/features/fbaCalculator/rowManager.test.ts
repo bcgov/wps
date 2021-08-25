@@ -95,6 +95,10 @@ describe('RowManager', () => {
 
     // Sets calculated values
     expect(mergedRows[0].wind_speed).toEqual(calculatedRows[0].wind_speed)
+    expect(mergedRows[0].windSpeed).toEqual(calculatedRows[0].wind_speed)
+
+    // Set values remain
+    expect(mergedRows[0].windSpeed).toEqual(inputRows[0].windSpeed)
 
     // Builds GridMenuOptions based on user selected options
     expect(mergedRows[0].weatherStation).toEqual({
