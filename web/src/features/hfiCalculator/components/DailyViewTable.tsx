@@ -162,19 +162,23 @@ export const DailyViewTable = (props: Props) => {
   const formatAreaMeanIntensityGroupByValue = (
     meanIntensityGroup: number | undefined
   ) => {
-    switch (meanIntensityGroup) {
-      case 1:
-        return classes.intensityGroupSolid1
-      case 2:
-        return classes.intensityGroupSolid2
-      case 3:
-        return classes.intensityGroupSolid3
-      case 4:
-        return classes.intensityGroupSolid4
-      case 5:
-        return classes.intensityGroupSolid5
-      default:
-        return
+    if (meanIntensityGroup === undefined) {
+      return undefined
+    }
+    if (meanIntensityGroup < 2) {
+      return classes.intensityGroupSolid1
+    }
+    if (meanIntensityGroup < 3) {
+      return classes.intensityGroupSolid2
+    }
+    if (meanIntensityGroup < 4) {
+      return classes.intensityGroupSolid3
+    }
+    if (meanIntensityGroup < 5) {
+      return classes.intensityGroupSolid4
+    }
+    else {
+      return classes.intensityGroupSolid5
     }
   }
 
@@ -294,15 +298,16 @@ export const DailyViewTable = (props: Props) => {
                             stationIntensityGroups.push(stationDaily?.intensity_group)
                           }
                         }
-                        const meanIntensityGroup = Math.round(
-                          stationIntensityGroups.reduce((a, b) => a + b, 0) /
+                        const meanIntensityGroup = stationIntensityGroups.length === 0 ? undefined : Math.round(
+                          10 * stationIntensityGroups.reduce((a, b) => a + b, 0) /
                             stationIntensityGroups.length
-                        )
+                        ) / 10
                         return (
                           <React.Fragment key={`zone-${areaName}`}>
                             <TableRow
                               className={classes.planningArea}
                               key={`zone-${areaName}`}
+                              data-testid={`zone-${areaName}`}
                             >
                               <TableCell className={classes.planningArea} colSpan={19}>
                                 {area.name}
@@ -311,6 +316,7 @@ export const DailyViewTable = (props: Props) => {
                                 className={formatAreaMeanIntensityGroupByValue(
                                   meanIntensityGroup
                                 )}
+                                data-testid={`zone-${areaName}-mean-intensity`}
                               >
                                 {meanIntensityGroup}
                               </TableCell>
@@ -361,16 +367,17 @@ export const DailyViewTable = (props: Props) => {
                                       {daily?.ffmc?.toFixed(DECIMAL_PLACES)}
                                     </TableCell>
                                     <TableCell>{daily?.danger_class}</TableCell>
-                                    <TableCell>
+                                    <TableCell data-testid={`${daily?.code}-ros`}>
                                       {daily?.rate_of_spread?.toFixed(DECIMAL_PLACES)}
                                     </TableCell>
-                                    <TableCell>
+                                    <TableCell data-testid={`${daily?.code}-hfi`}>
                                       {daily?.hfi?.toFixed(DECIMAL_PLACES)}
                                     </TableCell>
                                     <TableCell
                                       className={formatStationIntensityGroupByValue(
                                         daily?.intensity_group
                                       )}
+                                      data-testid={`${daily?.code}-intensity-group`}
                                     >
                                       {daily?.intensity_group}
                                     </TableCell>
