@@ -176,8 +176,7 @@ export const DailyViewTable = (props: Props) => {
     }
     if (meanIntensityGroup < 5) {
       return classes.intensityGroupSolid4
-    }
-    else {
+    } else {
       return classes.intensityGroupSolid5
     }
   }
@@ -298,10 +297,13 @@ export const DailyViewTable = (props: Props) => {
                             stationIntensityGroups.push(stationDaily?.intensity_group)
                           }
                         }
-                        const meanIntensityGroup = stationIntensityGroups.length === 0 ? undefined : Math.round(
-                          10 * stationIntensityGroups.reduce((a, b) => a + b, 0) /
-                            stationIntensityGroups.length
-                        ) / 10
+                        const meanIntensityGroup =
+                          stationIntensityGroups.length === 0
+                            ? undefined
+                            : Math.round(
+                                (10 * stationIntensityGroups.reduce((a, b) => a + b, 0)) /
+                                  stationIntensityGroups.length
+                              ) / 10
                         return (
                           <React.Fragment key={`zone-${areaName}`}>
                             <TableRow
