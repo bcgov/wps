@@ -120,7 +120,7 @@ const useStyles = makeStyles(theme => ({
   }
 }))
 
-const FBAInputGrid = (props: FBAInputGridProps) => {
+const FBATable = (props: FBAInputGridProps) => {
   const classes = useStyles()
   const history = useHistory()
   const location = useLocation()
@@ -793,4 +793,4 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
   )
 }
 
-export default React.memo(FBAInputGrid)
+export default React.memo(FBATable)
