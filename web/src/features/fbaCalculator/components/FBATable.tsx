@@ -222,7 +222,24 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
       fireBehaviourResultStations
     )
     setCalculatedResults(updatedCalculatedResults)
-  }, [fireBehaviourResultStations]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [fireBehaviourResultStations, stations]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const sortedRows = RowManager.sortRows(
+      sortByColumn,
+      order,
+      RowManager.updateRows(
+        rows.filter(row => !isUndefined(row)),
+        fireBehaviourResultStations
+      )
+    )
+    const updatedCalculatedResults = RowManager.updateRows(
+      calculatedResults,
+      fireBehaviourResultStations
+    )
+    setCalculatedResults(updatedCalculatedResults)
+    setRows(sortedRows)
+  }, [dateOfInterest, fireBehaviourResultStations]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const sortedRows = RowManager.sortRows(

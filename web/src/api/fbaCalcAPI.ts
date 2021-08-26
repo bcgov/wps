@@ -5,8 +5,10 @@ export interface CriticalHoursHFI {
   end: number
 }
 
-export interface FBAStation {
+export interface Identifiable {
   id: number
+}
+export interface FBAStation extends Identifiable {
   station_code: number
   station_name: string
   zone_code: string
@@ -41,8 +43,7 @@ export interface FBAWeatherStationsResponse {
   stations: FBAStation[]
 }
 
-export interface FetchableFBAStation {
-  id: number
+export interface FetchableFBAStation extends Identifiable {
   stationCode: number
   fuelType: string
   percentageConifer: number | undefined
