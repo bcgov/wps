@@ -11,7 +11,7 @@ import {
   Typography
 } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
-import { FireCentre } from 'api/hfiCalcAPI'
+import { FireCentre, PlanningArea } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import { Button } from 'components'
 
@@ -181,6 +181,26 @@ export const DailyViewTable = (props: Props) => {
     }
   }
 
+  const calculateMeanIntensityGroup = (area: PlanningArea) => {
+    const stationCodesInPlanningArea: number[] = []
+    Object.entries(area.stations).forEach(([, station]) => {
+      stationCodesInPlanningArea.push(station.code)
+    })
+    const stationIntensityGroups: number[] = []
+    for (const code of stationCodesInPlanningArea) {
+      const stationDaily = props.dailiesMap.get(code)
+      if (stationDaily?.intensity_group !== undefined) {
+        stationIntensityGroups.push(stationDaily?.intensity_group)
+      }
+    }
+    return stationIntensityGroups.length === 0
+      ? undefined
+      : Math.round(
+          (10 * stationIntensityGroups.reduce((a, b) => a + b, 0)) /
+            stationIntensityGroups.length
+        ) / 10
+  }
+
   return (
     <div className={classes.display} data-testid={props.testId}>
       <div className={classes.controls}>
@@ -286,24 +306,7 @@ export const DailyViewTable = (props: Props) => {
                     {Object.entries(centre.planning_areas)
                       .sort((a, b) => (a[1].name < b[1].name ? -1 : 1))
                       .map(([areaName, area]) => {
-                        const stationCodesInPlanningArea: number[] = []
-                        Object.entries(area.stations).forEach(([, station]) => {
-                          stationCodesInPlanningArea.push(station.code)
-                        })
-                        const stationIntensityGroups: number[] = []
-                        for (const code of stationCodesInPlanningArea) {
-                          const stationDaily = props.dailiesMap.get(code)
-                          if (stationDaily?.intensity_group !== undefined) {
-                            stationIntensityGroups.push(stationDaily?.intensity_group)
-                          }
-                        }
-                        const meanIntensityGroup =
-                          stationIntensityGroups.length === 0
-                            ? undefined
-                            : Math.round(
-                                (10 * stationIntensityGroups.reduce((a, b) => a + b, 0)) /
-                                  stationIntensityGroups.length
-                              ) / 10
+                        const meanIntensityGroup = calculateMeanIntensityGroup(area)
                         return (
                           <React.Fragment key={`zone-${areaName}`}>
                             <TableRow
