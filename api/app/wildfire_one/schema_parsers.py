@@ -125,6 +125,28 @@ def parse_hourly(hourly) -> WeatherReading:
     )
 
 
+def calculate_intensity_group(hfi: float) -> int:
+    """ Returns a 1-5 integer value indicating Intensity Group based on HFI.
+    Intensity groupings are:
+
+    HFI             IG
+    0-499            1
+    500-999          2
+    1000-1999        3
+    2000-3999        4
+    4000+            5
+    """
+    if hfi < 500:
+        return 1
+    if hfi < 1000:
+        return 2
+    if hfi < 2000:
+        return 3
+    if hfi < 4000:
+        return 4
+    return 5
+
+
 def generate_station_daily(raw_daily, station: WFWXWeatherStation, fuel_type: str) -> StationDaily:
     """ Transform from the raw daily json object returned by wf1, to our daily object.
     """
@@ -189,6 +211,7 @@ def generate_station_daily(raw_daily, station: WFWXWeatherStation, fuel_type: st
         observation_valid=raw_daily.get('observationValidInd', None),
         observation_valid_comment=raw_daily.get(
             'observationValidComment', None),
+        intensity_group=calculate_intensity_group(hfi)
     )
 
 
