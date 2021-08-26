@@ -5,21 +5,10 @@ import FBAInputGrid from 'features/fbaCalculator/components/FBATable'
 
 export const FireBehaviourAdvisoryCalculator: React.FunctionComponent = () => {
   const useStyles = makeStyles(theme => ({
-    formControl: {
-      margin: theme.spacing(1),
-      minWidth: 210
-    },
     disclaimer: {
       borderLeft: '6px solid #FCBA19',
       padding: '10px',
       marginBottom: theme.spacing(8)
-    },
-    spinner: {
-      position: 'absolute',
-      left: '50%',
-      marginLeft: -10,
-      top: '50%',
-      marginTop: -10
     }
   }))
 
