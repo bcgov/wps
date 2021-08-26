@@ -30,6 +30,7 @@ class FuelTypeEnum(str, Enum):
 
 class StationRequest(BaseModel):
     """ Request for one individual weather station. """
+    id: Optional[int]
     station_code: int
     fuel_type: FuelTypeEnum
     percentage_conifer: Optional[float]
@@ -57,6 +58,7 @@ class StationResponse(BaseModel):
     NOTE: Most of the values are optional, since if an observation/forecast isn't available,
     there's not much we can do.
     """
+    id: Optional[int]
     station_code: int
     station_name: str
     zone_code: Optional[str]

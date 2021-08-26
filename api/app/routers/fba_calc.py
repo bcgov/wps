@@ -53,6 +53,7 @@ def prepare_response(  # pylint: disable=too-many-locals
     fire_weather_index = raw_daily.get('fireWeatherIndex', None)
 
     station_response = StationResponse(
+        id=None if requested_station.id is None else requested_station.id,
         station_code=requested_station.station_code,
         station_name=wfwx_station.name,
         zone_code=wfwx_station.zone_code,
@@ -168,6 +169,7 @@ def process_request_without_observation(requested_station: StationRequest,
                                         status) -> StationResponse:
     """ Process a request for which no observation/forecast is available """
     station_response = StationResponse(
+        id=None if requested_station.id is None else requested_station.id,
         station_code=requested_station.station_code,
         station_name=wfwx_station.name,
         date=date_of_interest,
