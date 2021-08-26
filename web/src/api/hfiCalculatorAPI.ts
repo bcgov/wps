@@ -20,6 +20,7 @@ export interface StationDaily {
   hfi: number
   observation_valid: number
   observation_valid_comment: string
+  intensity_group: number
 }
 
 export interface StationDailyResponse {
