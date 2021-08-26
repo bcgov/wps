@@ -154,7 +154,7 @@ export class RowManager {
     return mergedRows
   }
 
-  public static buildFBCTableRow = (
+  public static buildFBATableRow = (
     inputRow: FBAInputRow,
     stationCodeMap: Map<string, string>
   ): FBATableRow => ({

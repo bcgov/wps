@@ -26,14 +26,14 @@ describe('GrassCureCell', () => {
       windSpeed: undefined
     })
     it('should return field in error state for o1a without percentage set', () => {
-      const zero1ARow = buildInputRow('o1a')
-      const props = buildProps(zero1ARow)
+      const O1ARow = buildInputRow('o1a')
+      const props = buildProps(O1ARow)
       const { container } = render(<GrassCureCell {...props} />)
       expect(container.firstChild?.firstChild).toHaveClass('Mui-error')
     })
     it('should return field in error state for o1b without percentage set', () => {
-      const zero1BRow = buildInputRow('o1b')
-      const props = buildProps(zero1BRow)
+      const O1BRow = buildInputRow('o1b')
+      const props = buildProps(O1BRow)
       const { container } = render(<GrassCureCell {...props} />)
       expect(container.firstChild?.firstChild).toHaveClass('Mui-error')
     })
@@ -67,8 +67,8 @@ describe('GrassCureCell', () => {
       }
     }
     it('should return field without error state when o1a when percentage set', () => {
-      const zero1ARow = buildTableRow(FuelTypes.lookup('o1a'))
-      const props = buildProps(zero1ARow, 1)
+      const O1ARow = buildTableRow(FuelTypes.lookup('o1a'))
+      const props = buildProps(O1ARow, 1)
       render(<GrassCureCell {...props} />)
       const renderedGrassCureInputField = screen.getByTestId(`grassCureInput-fba`)
         .firstChild?.firstChild
@@ -76,8 +76,8 @@ describe('GrassCureCell', () => {
       expect(renderedGrassCureInputField).not.toHaveClass('Mui-error')
     })
     it('should return field in error state o1b without percentage set', () => {
-      const zero1BRow = buildTableRow(FuelTypes.lookup('o1b'))
-      const props = buildProps(zero1BRow, 1)
+      const O1BRow = buildTableRow(FuelTypes.lookup('o1b'))
+      const props = buildProps(O1BRow, 1)
       render(<GrassCureCell {...props} />)
       const renderedGrassCureInputField = screen.getByTestId(`grassCureInput-fba`)
         .firstChild?.firstChild

@@ -172,7 +172,7 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
         sortByColumn,
         order,
         rowsFromQuery.map(inputRow => ({
-          ...RowManager.buildFBCTableRow(inputRow, stationCodeMap)
+          ...RowManager.buildFBATableRow(inputRow, stationCodeMap)
         }))
       )
       setRows(sortedRows)
