@@ -15,7 +15,7 @@ import { FireCentre } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import { Button } from 'components'
 
-interface Props {
+export interface Props {
   title: string
   fireCentres: Record<string, FireCentre>
   dailiesMap: Map<number, StationDaily>
@@ -25,7 +25,7 @@ interface Props {
   testId?: string
 }
 
-const intensityGroupColours: { [description: string] : string } = {
+const intensityGroupColours: { [description: string]: string } = {
   lightGreen: '#D6FCA4',
   cyan: '#73FBFD',
   yellow: '#FFFEA6',
@@ -82,52 +82,62 @@ const useStyles = makeStyles({
   intensityGroupOutline1: {
     border: '2px solid',
     borderColor: intensityGroupColours.lightGreen,
-    borderRadius: '4px'
+    borderRadius: '4px',
+    textAlign: 'center'
   },
   intensityGroupOutline2: {
     border: '2px solid',
     borderColor: intensityGroupColours.cyan,
-    borderRadius: '4px'
+    borderRadius: '4px',
+    textAlign: 'center'
   },
   intensityGroupOutline3: {
     border: '2px solid',
     borderColor: intensityGroupColours.yellow,
-    borderRadius: '4px'
+    borderRadius: '4px',
+    textAlign: 'center'
   },
   intensityGroupOutline4: {
     border: '2px solid',
     borderColor: intensityGroupColours.orange,
-    borderRadius: '4px'
+    borderRadius: '4px',
+    textAlign: 'center'
   },
   intensityGroupOutline5: {
     border: '2px solid',
     borderColor: intensityGroupColours.red,
-    borderRadius: '4px'
+    borderRadius: '4px',
+    textAlign: 'center'
   },
   intensityGroupSolid1: {
     background: intensityGroupColours.lightGreen,
-    fontWeight: 'bold'
+    fontWeight: 'bold',
+    textAlign: 'center'
   },
   intensityGroupSolid2: {
     background: intensityGroupColours.cyan,
-    fontWeight: 'bold'
+    fontWeight: 'bold',
+    textAlign: 'center'
   },
   intensityGroupSolid3: {
     background: intensityGroupColours.yellow,
-    fontWeight: 'bold'
+    fontWeight: 'bold',
+    textAlign: 'center'
   },
   intensityGroupSolid4: {
     background: intensityGroupColours.orange,
-    fontWeight: 'bold'
+    fontWeight: 'bold',
+    textAlign: 'center'
   },
   intensityGroupSolid5: {
     background: intensityGroupColours.red,
     fontWeight: 'bold',
-    color: 'white'
+    color: 'white',
+    textAlign: 'center'
   }
 })
 
-const DailyViewTable = (props: Props) => {
+export const DailyViewTable = (props: Props) => {
   const classes = useStyles()
 
   const DECIMAL_PLACES = 1
