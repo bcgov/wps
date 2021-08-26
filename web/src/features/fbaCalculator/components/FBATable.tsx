@@ -14,6 +14,7 @@ import {
   TableRow,
   TableSortLabel
 } from '@material-ui/core'
+import GetAppIcon from '@material-ui/icons/GetApp'
 import { Button, ErrorBoundary } from 'components'
 import { FBAStation } from 'api/fbaCalcAPI'
 import WeatherStationCell from 'features/fbaCalculator/components/WeatherStationCell'
@@ -340,6 +341,12 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
             onClick={deleteSelectedStations}
           >
             Remove Row(s)
+          </Button>
+        </FormControl>
+        <FormControl className={classes.formControl}>
+          <Button data-testid="export" color="default" disabled={selected.length === 0}>
+            <GetAppIcon />
+            Export
           </Button>
         </FormControl>
         <div className={classes.display} data-testid={props.testId}>
