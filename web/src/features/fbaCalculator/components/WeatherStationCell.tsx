@@ -3,19 +3,17 @@ import { ClassNameMap } from '@material-ui/core/styles/withStyles'
 import { Autocomplete } from '@material-ui/lab'
 import { isEqual } from 'lodash'
 import React, { useEffect, useState } from 'react'
-import {
-  FBAInputGridProps,
-  GridMenuOption
-} from 'features/fbaCalculator/components/FBATable'
+import { GridMenuOption } from 'features/fbaCalculator/components/FBATable'
 import { buildUpdatedOptionRow, updateFBARow } from 'features/fbaCalculator/tableState'
+import { FBATableRow } from 'features/fbaCalculator/RowManager'
 
 interface WeatherStationCellProps {
-  fbaInputGridProps: Pick<
-    FBAInputGridProps,
-    'stationOptions' | 'inputRows' | 'updateRow' | 'autoUpdateHandler'
-  >
+  stationOptions: GridMenuOption[]
+  inputRows: FBATableRow[]
+  updateRow: (rowId: number, updatedRow: FBATableRow, dispatchRequest?: boolean) => void
   classNameMap: ClassNameMap<'weatherStation'>
   value: GridMenuOption | null
+  disabled: boolean
   rowId: number
 }
 
@@ -29,7 +27,8 @@ const WeatherStationCell = (props: WeatherStationCellProps) => {
     if (!isEqual(selectedStation, value)) {
       setSelectedStation(value)
       updateFBARow(
-        props.fbaInputGridProps,
+        props.inputRows,
+        props.updateRow,
         props.rowId,
         'weatherStation',
         value,
@@ -40,8 +39,8 @@ const WeatherStationCell = (props: WeatherStationCellProps) => {
 
   return (
     <Autocomplete
-      data-testid={`weather-station-dropdown-${props.rowId}`}
-      options={props.fbaInputGridProps.stationOptions}
+      data-testid={`weather-station-dropdown-fba`}
+      options={props.stationOptions}
       className={props.classNameMap.weatherStation}
       getOptionSelected={(option, value) => isEqual(option, value)}
       getOptionLabel={option => option?.label}
@@ -54,6 +53,7 @@ const WeatherStationCell = (props: WeatherStationCellProps) => {
         />
       )}
       onChange={changeHandler}
+      disabled={props.disabled}
       value={selectedStation}
     />
   )

@@ -1,18 +1,20 @@
 import { Checkbox } from '@material-ui/core'
-import { FBAInputGridProps } from 'features/fbaCalculator/components/FBATable'
 import React from 'react'
 
 interface SelectionCheckboxProps {
-  fbaInputGridProps: Pick<FBAInputGridProps, 'selected' | 'updateSelected'>
+  selected: number[]
+  updateSelected: (newSelected: number[]) => void
+  disabled: boolean
   rowId: number
 }
 
 const SelectionCheckbox = (props: SelectionCheckboxProps) => {
-  const selectedSet = new Set(props.fbaInputGridProps.selected)
+  const selectedSet = new Set(props.selected)
   return (
     <Checkbox
-      data-testid={`selection-checkbox-${props.rowId}`}
+      data-testid={`selection-checkbox-fba`}
       color="primary"
+      disabled={props.disabled}
       checked={selectedSet.has(props.rowId)}
       onClick={() => {
         if (selectedSet.has(props.rowId)) {
@@ -22,7 +24,7 @@ const SelectionCheckbox = (props: SelectionCheckboxProps) => {
           // Unchecked, toggle check on
           selectedSet.add(props.rowId)
         }
-        props.fbaInputGridProps.updateSelected(Array.from(selectedSet))
+        props.updateSelected(Array.from(selectedSet))
       }}
     />
   )

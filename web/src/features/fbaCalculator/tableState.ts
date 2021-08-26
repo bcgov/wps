@@ -1,55 +1,53 @@
-import {
-  FBAInputGridProps,
-  FBAInputRow,
-  GridMenuOption
-} from 'features/fbaCalculator/components/FBATable'
+import { GridMenuOption } from 'features/fbaCalculator/components/FBATable'
+import { FBATableRow } from 'features/fbaCalculator/RowManager'
 import { find } from 'lodash'
 
 export const updateFBARow = (
-  props: Pick<FBAInputGridProps, 'inputRows' | 'updateRow'>,
+  inputRows: FBATableRow[],
+  updateRow: (id: number, updatedRow: FBATableRow, dispatchUpdate: boolean) => void,
   rowId: number,
   field: string,
   // eslint-disable-next-line
   value: any,
   updatedRowBuilder: (
-    rowToUpdate: FBAInputRow,
+    rowToUpdate: FBATableRow,
     field: string,
     value: GridMenuOption | number
-  ) => FBAInputRow,
+  ) => FBATableRow,
   dispatchRequest = true
 ): void => {
-  const rowToUpdate = find(props.inputRows, ['id', rowId])
+  const rowToUpdate = find(inputRows, ['id', rowId])
   if (rowToUpdate) {
     const updatedRow = updatedRowBuilder(rowToUpdate, field, value)
-    props.updateRow(rowId, updatedRow, dispatchRequest)
+    updateRow(rowId, updatedRow, dispatchRequest)
   }
 }
 
 export const buildUpdatedOptionRow = (
-  rowToUpdate: FBAInputRow,
+  rowToUpdate: FBATableRow,
   field: string,
   // eslint-disable-next-line
   value: any
-): FBAInputRow => {
+): FBATableRow => {
   return {
     ...rowToUpdate,
     ...{
-      [field as keyof FBAInputRow]: (value as GridMenuOption)?.value
+      [field as keyof FBATableRow]: value as GridMenuOption
     }
   }
 }
 
 // eslint-disable-next-line
 export const buildUpdatedNumberRow = (
-  rowToUpdate: FBAInputRow,
+  rowToUpdate: FBATableRow,
   field: string,
   // eslint-disable-next-line
   value: any
-): FBAInputRow => {
+): FBATableRow => {
   return {
     ...rowToUpdate,
     ...{
-      [field as keyof FBAInputRow]: parseFloat(value)
+      [field as keyof FBATableRow]: parseFloat(value)
     }
   }
 }
