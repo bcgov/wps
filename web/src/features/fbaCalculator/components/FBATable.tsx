@@ -44,6 +44,7 @@ import FixedDecimalNumberCell from 'features/fbaCalculator/components/FixedDecim
 import CrownFractionBurnedCell from 'features/fbaCalculator/components/CrownFractionBurnedCell'
 import CriticalHoursCell from 'features/fbaCalculator/components/CriticalHoursCell'
 import StatusCell from 'features/fbaCalculator/components/StatusCell'
+import ErrorAlert from 'features/fbaCalculator/components/ErrorAlert'
 
 export interface FBAInputGridProps {
   testId?: string
@@ -120,7 +121,7 @@ const useStyles = makeStyles(theme => ({
   }
 }))
 
-const FBAInputGrid = (props: FBAInputGridProps) => {
+const FBATable = (props: FBAInputGridProps) => {
   const classes = useStyles()
   const history = useHistory()
   const location = useLocation()
@@ -134,8 +135,8 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
   const [selected, setSelected] = useState<number[]>([])
   const [order, setOrder] = useState<Order>('desc')
   const [rows, setRows] = useState<FBATableRow[]>([])
-  const { stations } = useSelector(selectFireWeatherStations)
-  const { fireBehaviourResultStations, loading } = useSelector(
+  const { stations, error: stationsError } = useSelector(selectFireWeatherStations)
+  const { fireBehaviourResultStations, loading, error: fbaResultsError } = useSelector(
     selectFireBehaviourCalcResult
   )
   const [calculatedResults, setCalculatedResults] = useState<FBAStation[]>(
@@ -311,6 +312,10 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
 
   return (
     <React.Fragment>
+      {stationsError ||
+        (fbaResultsError && (
+          <ErrorAlert stationsError={stationsError} fbaResultsError={fbaResultsError} />
+        ))}
       <ErrorBoundary>
         <FormControl className={classes.formControl}>
           <DatePicker
@@ -793,4 +798,4 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
   )
 }
 
-export default React.memo(FBAInputGrid)
+export default React.memo(FBATable)
