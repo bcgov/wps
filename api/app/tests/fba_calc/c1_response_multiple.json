@@ -2,6 +2,7 @@
     "date": "2021-07-05",
     "stations": [
         {
+            "id": 0,
             "station_code": 230,
             "station_name": "HORSEFLY",
             "zone_code": "C3",
@@ -31,6 +32,7 @@
             "critical_hours_hfi_10000": null
         },
         {
+            "id": 1,
             "station_code": 230,
             "station_name": "HORSEFLY",
             "zone_code": "C3",
@@ -60,6 +62,7 @@
             "critical_hours_hfi_10000": null
         },
         {
+            "id": 2,
             "station_code": 230,
             "station_name": "HORSEFLY",
             "zone_code": "C3",

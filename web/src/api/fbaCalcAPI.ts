@@ -5,7 +5,10 @@ export interface CriticalHoursHFI {
   end: number
 }
 
-export interface FBAStation {
+export interface Identifiable {
+  id: number
+}
+export interface FBAStation extends Identifiable {
   station_code: number
   station_name: string
   zone_code: string
@@ -40,7 +43,7 @@ export interface FBAWeatherStationsResponse {
   stations: FBAStation[]
 }
 
-export interface FetchableFBAStation {
+export interface FetchableFBAStation extends Identifiable {
   stationCode: number
   fuelType: string
   percentageConifer: number | undefined
@@ -59,6 +62,7 @@ export async function postFBAStations(
   const { data } = await axios.post(url, {
     date: date,
     stations: fireBehaviorStations.map(fireBehaviorStation => ({
+      id: fireBehaviorStation.id,
       station_code: fireBehaviorStation.stationCode,
       fuel_type: fireBehaviorStation.fuelType,
       percentage_conifer: fireBehaviorStation.percentageConifer,
