@@ -22,6 +22,9 @@ web/lib-cov
 web/coverage
 *.lcov
 
+# Cypress coverage
+web/cypress-coverage
+
 # nyc test coverage
 web/.nyc_output
 
