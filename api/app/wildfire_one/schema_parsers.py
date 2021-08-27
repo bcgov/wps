@@ -5,14 +5,15 @@ import logging
 from datetime import datetime, timezone
 from typing import Generator, List, Optional
 from app.db.models.observations import HourlyActual
+from app.schemas.fba_calc import FuelTypeEnum
 from app.schemas.stations import WeatherStation
 from app.utils import cffdrs
 from app.utils.dewpoint import compute_dewpoint
 from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.schemas.observations import WeatherReading
 from app.schemas.hfi_calc import StationDaily
-from app.utils.fba_calculator import calculate_cfb
-from app.utils.hfi_calculator import FUEL_TYPE_LOOKUP
+from app.utils.fuel_types import FUEL_TYPE_DEFAULTS
+from app.fba_calculator import calculate_cfb
 from app.utils.time import get_julian_date_now
 from app.wildfire_one.util import is_station_valid, get_zone_code_prefix
 
@@ -110,7 +111,8 @@ def parse_hourly(hourly) -> WeatherReading:
         datetime=timestamp,
         temperature=hourly.get('temperature', None),
         relative_humidity=hourly.get('relativeHumidity', None),
-        dewpoint=compute_dewpoint(hourly.get('temperature'), hourly.get('relativeHumidity')),
+        dewpoint=compute_dewpoint(hourly.get(
+            'temperature'), hourly.get('relativeHumidity')),
         wind_speed=hourly.get('windSpeed', None),
         wind_direction=hourly.get('windDirection', None),
         barometric_pressure=hourly.get('barometricPressure', None),
@@ -123,52 +125,65 @@ def parse_hourly(hourly) -> WeatherReading:
     )
 
 
+def calculate_intensity_group(hfi: float) -> int:
+    """ Returns a 1-5 integer value indicating Intensity Group based on HFI.
+    Intensity groupings are:
+
+    HFI             IG
+    0-499            1
+    500-999          2
+    1000-1999        3
+    2000-3999        4
+    4000+            5
+    """
+    if hfi < 500:
+        return 1
+    if hfi < 1000:
+        return 2
+    if hfi < 2000:
+        return 3
+    if hfi < 4000:
+        return 4
+    return 5
+
+
 def generate_station_daily(raw_daily, station: WFWXWeatherStation, fuel_type: str) -> StationDaily:
     """ Transform from the raw daily json object returned by wf1, to our daily object.
     """
     # pylint: disable=invalid-name
     # we use the fuel type lookup to get default values.
-    pc = FUEL_TYPE_LOOKUP[fuel_type]["PC"]
-    pdf = FUEL_TYPE_LOOKUP[fuel_type]["PDF"]
-    cbh = FUEL_TYPE_LOOKUP[fuel_type]["CBH"]
-    cfl = FUEL_TYPE_LOOKUP[fuel_type]["CFL"]
+    pc = FUEL_TYPE_DEFAULTS[fuel_type]["PC"]
+    pdf = FUEL_TYPE_DEFAULTS[fuel_type]["PDF"]
+    cbh = FUEL_TYPE_DEFAULTS[fuel_type]["CBH"]
+    cfl = FUEL_TYPE_DEFAULTS[fuel_type]["CFL"]
 
     isi = raw_daily.get('initialSpreadIndex', None)
     bui = raw_daily.get('buildUpIndex', None)
     ffmc = raw_daily.get('fineFuelMoistureCode', None)
-    fmc = cffdrs.foliar_moisture_content(station.lat, station.long, station.elevation, get_julian_date_now())
-
-    sfc = None
-    try:
-        sfc = cffdrs.surface_fuel_consumption(fuel_type, bui, ffmc, pc)
-    except cffdrs.CFFDRSException as exception:
-        logger.error(exception, exc_info=True)
+    fmc = cffdrs.foliar_moisture_content(
+        station.lat, station.long, station.elevation, get_julian_date_now())
+    sfc = cffdrs.surface_fuel_consumption(
+        FuelTypeEnum[fuel_type], bui, ffmc, pc)
 
     cc = raw_daily.get('grasslandCuring')
     if cc is None:
-        cc = FUEL_TYPE_LOOKUP[fuel_type]["CC"]
-
-    ros = None
-    try:
-        if sfc is not None:
-            ros = cffdrs.rate_of_spread(fuel_type, isi, bui, fmc, sfc, pc=pc,
-                                        cc=cc,
-                                        pdf=pdf,
-                                        cbh=cbh)
-    except cffdrs.CFFDRSException as exception:
-        logger.error(exception, exc_info=True)
+        cc = FUEL_TYPE_DEFAULTS[fuel_type]["CC"]
+    ros = cffdrs.rate_of_spread(FuelTypeEnum[fuel_type], isi, bui, fmc, sfc, pc=pc,
+                                cc=cc,
+                                pdf=pdf,
+                                cbh=cbh)
 
     cfb = None
     try:
         if sfc is not None:
-            cfb = calculate_cfb(fuel_type, fmc, sfc, ros, cbh)
+            cfb = calculate_cfb(FuelTypeEnum[fuel_type], fmc, sfc, ros, cbh)
     except cffdrs.CFFDRSException as exception:
         logger.error(exception, exc_info=True)
 
     hfi = None
     try:
         if ros is not None and cfb is not None and cfl is not None:
-            hfi = cffdrs.head_fire_intensity(fuel_type=fuel_type,
+            hfi = cffdrs.head_fire_intensity(fuel_type=FuelTypeEnum[fuel_type],
                                              percentage_conifer=pc,
                                              percentage_dead_balsam_fir=pdf,
                                              ros=ros, cfb=cfb, cfl=cfl, sfc=sfc)
@@ -194,7 +209,9 @@ def generate_station_daily(raw_daily, station: WFWXWeatherStation, fuel_type: st
         rate_of_spread=ros,
         hfi=hfi,
         observation_valid=raw_daily.get('observationValidInd', None),
-        observation_valid_comment=raw_daily.get('observationValidComment', None),
+        observation_valid_comment=raw_daily.get(
+            'observationValidComment', None),
+        intensity_group=calculate_intensity_group(hfi)
     )
 
 
@@ -241,7 +258,8 @@ def parse_hourly_actual(station_code: int, hourly_reading: WeatherReading):
 
     if is_obs_invalid:
         logger.error("Hourly actual not written to DB for station code %s at time %s: %s",
-                     station_code, hourly_reading.datetime.strftime("%b %d %Y %H:%M:%S"),
+                     station_code, hourly_reading.datetime.strftime(
+                         "%b %d %Y %H:%M:%S"),
                      hourly_reading.observation_valid_comment)
 
     # don't write the HourlyActual to our database if every value is invalid. If even one

@@ -22,7 +22,7 @@ class EcodivisionSeasons:
         No mutators, data loaded is immutable."""
 
     def __init__(self):
-        with open(core_season_file_path) as file_handle:
+        with open(core_season_file_path, encoding="utf-8") as file_handle:
             core_seasons = json.load(file_handle)
         self.core_seasons = core_seasons
         self.ecodivisions = geopandas.read_file(ecodiv_shape_file_path)

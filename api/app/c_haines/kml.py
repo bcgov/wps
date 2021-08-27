@@ -249,7 +249,7 @@ def severity_geojson_to_kml(geojson_filename: str,  # pylint: disable=too-many-a
                             prediction_timestamp: datetime):
     """ Given a severity geojson file, create a KML file.
     """
-    with open(geojson_filename) as geojson_file_pointer:
+    with open(geojson_filename, encoding="utf-8") as geojson_file_pointer:
         kml_file_result = KMLGeojsonPolygonIterator(geojson_file_pointer, geojson_projection)
         for part in generate_kml_prediction(kml_file_result,
                                             model,

@@ -1,33 +1,34 @@
 import { TextField } from '@material-ui/core'
 import { ClassNameMap } from '@material-ui/core/styles/withStyles'
 import { Autocomplete } from '@material-ui/lab'
-import {
-  FBAInputGridProps,
-  GridMenuOption
-} from 'features/fbaCalculator/components/FBAInputGrid'
-import { buildUpdatedOptionRow, updateFBARow } from 'features/fbaCalculator/tableState'
 import { isEqual } from 'lodash'
-import React from 'react'
-import { useState } from 'react'
+import React, { useEffect, useState } from 'react'
+import { GridMenuOption } from 'features/fbaCalculator/components/FBATable'
+import { buildUpdatedOptionRow, updateFBARow } from 'features/fbaCalculator/tableState'
+import { FBATableRow } from 'features/fbaCalculator/RowManager'
 
 interface WeatherStationCellProps {
-  fbaInputGridProps: Pick<
-    FBAInputGridProps,
-    'stationOptions' | 'inputRows' | 'updateRow' | 'autoUpdateHandler'
-  >
+  stationOptions: GridMenuOption[]
+  inputRows: FBATableRow[]
+  updateRow: (rowId: number, updatedRow: FBATableRow, dispatchRequest?: boolean) => void
   classNameMap: ClassNameMap<'weatherStation'>
   value: GridMenuOption | null
+  disabled: boolean
   rowId: number
 }
+
 const emptyLabel = 'Select a station'
+
 const WeatherStationCell = (props: WeatherStationCellProps) => {
   const [selectedStation, setSelectedStation] = useState(props.value)
+  useEffect(() => setSelectedStation(props.value), [props])
   // eslint-disable-next-line
   const changeHandler = (_: React.ChangeEvent<{}>, value: any | null) => {
     if (!isEqual(selectedStation, value)) {
       setSelectedStation(value)
       updateFBARow(
-        props.fbaInputGridProps,
+        props.inputRows,
+        props.updateRow,
         props.rowId,
         'weatherStation',
         value,
@@ -38,8 +39,8 @@ const WeatherStationCell = (props: WeatherStationCellProps) => {
 
   return (
     <Autocomplete
-      data-testid={`weather-station-dropdown-${props.rowId}`}
-      options={props.fbaInputGridProps.stationOptions}
+      data-testid={`weather-station-dropdown-fba`}
+      options={props.stationOptions}
       className={props.classNameMap.weatherStation}
       getOptionSelected={(option, value) => isEqual(option, value)}
       getOptionLabel={option => option?.label}
@@ -52,6 +53,7 @@ const WeatherStationCell = (props: WeatherStationCellProps) => {
         />
       )}
       onChange={changeHandler}
+      disabled={props.disabled}
       value={selectedStation}
     />
   )

@@ -1,40 +1,40 @@
 import { TextField } from '@material-ui/core'
 import { ClassNameMap } from '@material-ui/core/styles/withStyles'
 import { Autocomplete } from '@material-ui/lab'
-import {
-  FBAInputGridProps,
-  GridMenuOption
-} from 'features/fbaCalculator/components/FBAInputGrid'
+import { GridMenuOption } from 'features/fbaCalculator/components/FBATable'
+import { FBATableRow } from 'features/fbaCalculator/RowManager'
 import { buildUpdatedOptionRow, updateFBARow } from 'features/fbaCalculator/tableState'
 import { isGrassCureInvalid } from 'features/fbaCalculator/validation'
 import { isEqual } from 'lodash'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 interface FuelTypeCellProps {
-  fbaInputGridProps: Pick<
-    FBAInputGridProps,
-    'fuelTypeOptions' | 'inputRows' | 'updateRow' | 'autoUpdateHandler'
-  >
+  fuelTypeOptions: GridMenuOption[]
+  inputRows: FBATableRow[]
+  updateRow: (rowId: number, updatedRow: FBATableRow, dispatchRequest?: boolean) => void
   classNameMap: ClassNameMap<'fuelType'>
   value: GridMenuOption | null
+  disabled: boolean
   rowId: number
 }
 const emptyLabel = 'Select a fuel type'
 const FuelTypeCell = (props: FuelTypeCellProps) => {
   const [selectedFuelType, setSelectedFuelType] = useState(props.value)
+  useEffect(() => setSelectedFuelType(props.value), [props])
 
   // eslint-disable-next-line
   const changeHandler = (_: React.ChangeEvent<{}>, value: any | null) => {
     if (!isEqual(selectedFuelType, value)) {
       setSelectedFuelType(value)
       const updatedRow = buildUpdatedOptionRow(
-        props.fbaInputGridProps.inputRows[props.rowId],
+        props.inputRows[props.rowId],
         'fuelType',
         value
       )
       const dispatchRequest = !isGrassCureInvalid(updatedRow)
       updateFBARow(
-        props.fbaInputGridProps,
+        props.inputRows,
+        props.updateRow,
         props.rowId,
         'fuelType',
         value,
@@ -45,8 +45,8 @@ const FuelTypeCell = (props: FuelTypeCellProps) => {
   }
   return (
     <Autocomplete
-      data-testid={`fuel-type-dropdown-${props.rowId}`}
-      options={props.fbaInputGridProps.fuelTypeOptions}
+      data-testid={`fuel-type-dropdown-fba`}
+      options={props.fuelTypeOptions}
       className={props.classNameMap.fuelType}
       getOptionSelected={(option, value) => isEqual(option, value)}
       getOptionLabel={option => option?.label}
@@ -59,6 +59,7 @@ const FuelTypeCell = (props: FuelTypeCellProps) => {
         />
       )}
       onChange={changeHandler}
+      disabled={props.disabled}
       value={selectedFuelType}
     />
   )
