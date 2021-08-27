@@ -198,4 +198,16 @@ export class RowManager {
       value
     }
   }
+
+  public static exportRowsAsStrings = (tableRows: FBATableRow[]): string[][] => {
+    const rowsAsStrings: string[][] = []
+    tableRows.forEach((value) => {
+      const rowString: string[] = []
+      for (const property in value) {
+        rowString.push(property.toString())
+      }
+      rowsAsStrings.push(rowString)
+    })
+    return rowsAsStrings
+  }
 }

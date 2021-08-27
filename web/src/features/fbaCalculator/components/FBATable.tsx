@@ -15,6 +15,7 @@ import {
   TableSortLabel
 } from '@material-ui/core'
 import GetAppIcon from '@material-ui/icons/GetApp'
+import { CsvBuilder } from 'filefy'
 import { Button, ErrorBoundary } from 'components'
 import { FBAStation } from 'api/fbaCalcAPI'
 import WeatherStationCell from 'features/fbaCalculator/components/WeatherStationCell'
@@ -275,6 +276,43 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
     setSelected([])
   }
 
+  const exportSelectedRows = () => {
+    const selectedSet = new Set<number>(selected)
+    const selectedRows = rows.filter(row => selectedSet.has(row.id))
+    const selectedRowsAsStrings = RowManager.exportRowsAsStrings(selectedRows)
+    const csvBuilder = new CsvBuilder(`FireBAT_${dateOfInterest}.csv`)
+      .setColumns([
+        'Zone',
+        'Weather Station',
+        'Elevation',
+        'FBP Fuel Type',
+        'Grass Cure',
+        'Status',
+        'Temp',
+        'RH',
+        'Wind Dir',
+        'Wind Speed (km/h)',
+        'Precip (mm)',
+        'FFMC',
+        'DMC',
+        'DC',
+        'ISI',
+        'BUI',
+        'FWI',
+        'HFI',
+        'Critical Hours (4000 kW/m)',
+        'Critical Hours (10000 kW/m)',
+        'ROS (m/min)',
+        'Fire Type',
+        'CFB (%)',
+        'Flame Length (m)',
+        '30 min fire size (ha)',
+        '60 min fire size (ha)'
+      ])
+      .addRows(selectedRowsAsStrings)
+    csvBuilder.exportFile()
+  }
+
   const updateRow = (id: number, updatedRow: FBATableRow, dispatchUpdate = true) => {
     const newRows = [...rows].filter(row => !isUndefined(row))
     const index = findIndex(newRows, row => row.id === id)
@@ -344,7 +382,12 @@ const FBAInputGrid = (props: FBAInputGridProps) => {
           </Button>
         </FormControl>
         <FormControl className={classes.formControl}>
-          <Button data-testid="export" color="default" disabled={selected.length === 0}>
+          <Button
+            data-testid="export"
+            color="default"
+            disabled={selected.length === 0}
+            onClick={exportSelectedRows}
+          >
             <GetAppIcon />
             Export
           </Button>
