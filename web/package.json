@@ -116,7 +116,7 @@
     ]
   },
   "nyc": {
-    "report-dir": "cypress-coverage",
+    "report-dir": "coverage/cypress",
     "excludeAfterRemap": true,
     "exclude": [
       "src/serviceWorker.ts",
