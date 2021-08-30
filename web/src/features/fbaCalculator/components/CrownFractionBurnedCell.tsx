@@ -17,7 +17,9 @@ const useStyles = makeStyles({
 
 const DECIMAL_PLACES = 1
 
-export const formatCrownFractionBurned = (value: number | undefined): string | undefined => {
+export const formatCrownFractionBurned = (
+  value: number | undefined
+): string | undefined => {
   return isUndefined(value) ? undefined : (value * 100).toFixed(DECIMAL_PLACES)
 }
 
