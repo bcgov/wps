@@ -17,13 +17,17 @@ const useStyles = makeStyles({
 
 const DECIMAL_PLACES = 1
 
+export const formatCrownFractionBurned = (value: number | undefined): string | undefined => {
+  return isUndefined(value) ? undefined : (value * 100).toFixed(DECIMAL_PLACES)
+}
+
 /* CFB comes in as a number 0 to 1, so we multiple by 100 to get the percentage */
 const CrownFractionBurnedCell = (props: CrownFractionBurnedCellProps) => {
   const classes = useStyles()
 
   return (
     <TableCell className={props.className ? props.className : classes.dataRow}>
-      {isUndefined(props.value) ? undefined : (props.value * 100).toFixed(DECIMAL_PLACES)}
+      {formatCrownFractionBurned(props.value)}
     </TableCell>
   )
 }
