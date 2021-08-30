@@ -368,5 +368,45 @@ describe('RowManager', () => {
       )
       expect(sortedRowsDesc[0].sixty_minute_fire_size).toBe(2)
     })
+    it('sorts by rate of spread', () => {
+      const sortedRowsAsc = RowManager.sortRows(SortByColumn.ROS, 'asc', mergedRows)
+      expect(sortedRowsAsc[0].rate_of_spread).toBe(1)
+
+      const sortedRowsDesc = RowManager.sortRows(SortByColumn.ROS, 'desc', mergedRows)
+      expect(sortedRowsDesc[0].rate_of_spread).toBe(2)
+    })
+    it('sorts by fire type', () => {
+      const sortedRowsAsc = RowManager.sortRows(SortByColumn.FireType, 'asc', mergedRows)
+      expect(sortedRowsAsc[0].fire_type).toBe('a')
+
+      const sortedRowsDesc = RowManager.sortRows(
+        SortByColumn.FireType,
+        'desc',
+        mergedRows
+      )
+      expect(sortedRowsDesc[0].fire_type).toBe('b')
+    })
+    it('sorts by crown fire burned percentage', () => {
+      const sortedRowsAsc = RowManager.sortRows(SortByColumn.CFB, 'asc', mergedRows)
+      expect(sortedRowsAsc[0].percentage_crown_fraction_burned).toBe(1)
+
+      const sortedRowsDesc = RowManager.sortRows(SortByColumn.CFB, 'desc', mergedRows)
+      expect(sortedRowsDesc[0].percentage_crown_fraction_burned).toBe(2)
+    })
+    it('sorts by flame length', () => {
+      const sortedRowsAsc = RowManager.sortRows(
+        SortByColumn.FlameLength,
+        'asc',
+        mergedRows
+      )
+      expect(sortedRowsAsc[0].flame_length).toBe(1)
+
+      const sortedRowsDesc = RowManager.sortRows(
+        SortByColumn.FlameLength,
+        'desc',
+        mergedRows
+      )
+      expect(sortedRowsDesc[0].flame_length).toBe(2)
+    })
   })
 })
