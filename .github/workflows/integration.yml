@@ -154,6 +154,10 @@ jobs:
         working-directory: ./web
         run: yarn run test:ci
 
+      - name: Merge and finalize test coverage (web)
+        working-directory: ./web
+        run: yarn run finalizeCoverage
+
       - name: Upload test coverage to Codecov
         uses: codecov/codecov-action@v1.5.2
         with:
