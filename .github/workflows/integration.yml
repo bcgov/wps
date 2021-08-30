@@ -152,7 +152,7 @@ jobs:
 
       - name: Unit tests (web)
         working-directory: ./web
-        run: yarn run test:ci
+        run: yarn run coverage:ci
 
       - name: Merge and finalize test coverage (web)
         working-directory: ./web
