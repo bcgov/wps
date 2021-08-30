@@ -252,7 +252,7 @@ To access the local copy of the database, you can shell into it by opening a new
 
 ### Disk space
 
-A subset of model predictions is currently being store, but not actually used once interpolation has been
+A subset of model predictions is currently being stored, but not actually used once interpolation has been
 performed. This data can be trimmed in order to preserve space:
 
 ```sql
