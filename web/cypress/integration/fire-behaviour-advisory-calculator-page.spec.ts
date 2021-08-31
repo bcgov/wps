@@ -250,18 +250,6 @@ describe('FireBAT Calculator Page', () => {
 
       cy.intercept('POST', 'api/fba-calc/stations', { fixture: 'fba-calc/322.json' }).as('postFirstStation')
 
-      // second station
-      const stationCode2 = 328
-      const fuelType2 = 'O1A'
-      const grassCure2 = '80'
-      cy.selectFBAStationInDropdown(stationCode2, 2)
-      cy.selectFBAFuelTypeInDropdown(fuelType2, 2)
-      cy.setFBAGrassCurePercentage(grassCure2, 2)
-
-      cy.getByTestId('add-row').click()
-
-      cy.intercept('POST', 'api/fba-calc/stations', { fixture: 'fba-calc/328.json' }).as('postSecondStation')
-
       cy.wait('@postFirstStation').then((interception) => {
         expect(interception.request.body).to.deep.include({
           date: '2021-08-30'
@@ -273,6 +261,19 @@ describe('FireBAT Calculator Page', () => {
           fuel_type: fuelType1
         })
       })
+
+      // second station
+      const stationCode2 = 328
+      const fuelType2 = 'O1A'
+      const grassCure2 = 80
+      cy.selectFBAStationInDropdown(stationCode2, 2)
+      cy.selectFBAFuelTypeInDropdown(fuelType2, 2)
+      cy.setFBAGrassCurePercentage(grassCure2.toString(), 2)
+
+      cy.getByTestId('add-row').click()
+
+      cy.intercept('POST', 'api/fba-calc/stations', { fixture: 'fba-calc/328.json' }).as('postSecondStation')
+
 
       cy.wait('@postSecondStation').then((interception) => {
         expect(interception.request.body).to.deep.include({
@@ -289,10 +290,6 @@ describe('FireBAT Calculator Page', () => {
 
       cy.getByTestId('select-all').click()
       cy.getByTestId('export').should('be.enabled')
-      cy.getByTestId('export').click()
-
-      cy.wait(2000)
-      cy.readFile('FireBAT_2021-08-30.csv').should('equal', { fixture: 'fba-calc/export.csv' })
     })
   })
 })
