@@ -238,7 +238,11 @@ export class RowManager {
           : value.wind_direction.toString()
       )
       let formattedWindSpeed = ''
-      if (!isUndefined(value.windSpeed) && !isNaN(value.windSpeed) && !isNull(value.windSpeed)) {
+      if (
+        !isUndefined(value.windSpeed) &&
+        !isNaN(value.windSpeed) &&
+        !isNull(value.windSpeed)
+      ) {
         formattedWindSpeed = value.windSpeed.toFixed(DECIMAL_PLACES)
       } else if (!isUndefined(value.wind_speed) && !isNull(value.wind_speed)) {
         formattedWindSpeed = value.wind_speed.toFixed(DECIMAL_PLACES)
