@@ -319,10 +319,9 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                               key={`zone-${areaName}`}
                               data-testid={`zone-${areaName}`}
                             >
-                              <TableCell className={classes.planningArea} colSpan={19}>
+                              <TableCell className={classes.planningArea} colSpan={20}>
                                 {area.name}
                               </TableCell>
-                              <TableCell>{/** Spacing cell */}</TableCell>
                               <TableCell
                                 className={formatAreaMeanIntensityGroupByValue(
                                   meanIntensityGroup
