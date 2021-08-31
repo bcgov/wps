@@ -35,6 +35,9 @@ export enum SortByColumn {
   SixtyMinFireSize
 }
 
+// the number of decimal places to round to
+const DECIMAL_PLACES = 1
+
 export interface DisplayableInputRow {
   id: number
   weatherStation: GridMenuOption | null
@@ -221,7 +224,7 @@ export class RowManager {
           : value.grass_cure.toString()
       )
       rowString.push(isUndefined(value.status) ? '' : value.status)
-      rowString.push(isUndefined(value.temp) ? '' : value.temp.toString())
+      rowString.push(isUndefined(value.temp) ? '' : value.temp.toFixed(DECIMAL_PLACES))
       rowString.push(isUndefined(value.rh) ? '' : value.rh.toString())
       rowString.push(
         isUndefined(value.wind_direction) ||
@@ -232,36 +235,36 @@ export class RowManager {
       )
       let formattedWindSpeed = ''
       if (!isUndefined(value.windSpeed) && !isNaN(value.windSpeed)) {
-        formattedWindSpeed = value.windSpeed.toString()
+        formattedWindSpeed = value.windSpeed.toFixed(DECIMAL_PLACES)
       } else if (!isUndefined(value.wind_speed)) {
-        formattedWindSpeed = value.wind_speed.toString()
+        formattedWindSpeed = value.wind_speed.toFixed(DECIMAL_PLACES)
       }
       rowString.push(formattedWindSpeed)
       rowString.push(
-        isUndefined(value.precipitation) ? '' : value.precipitation.toString()
+        isUndefined(value.precipitation) ? '' : value.precipitation.toFixed(DECIMAL_PLACES)
       )
       rowString.push(
         isUndefined(value.fine_fuel_moisture_code)
           ? ''
-          : value.fine_fuel_moisture_code.toString()
+          : value.fine_fuel_moisture_code.toFixed(DECIMAL_PLACES)
       )
       rowString.push(
-        isUndefined(value.duff_moisture_code) ? '' : value.duff_moisture_code.toString()
+        isUndefined(value.duff_moisture_code) ? '' : value.duff_moisture_code.toFixed(DECIMAL_PLACES)
       )
-      rowString.push(isUndefined(value.drought_code) ? '' : value.drought_code.toString())
+      rowString.push(isUndefined(value.drought_code) ? '' : value.drought_code.toFixed(DECIMAL_PLACES))
       rowString.push(
         isUndefined(value.initial_spread_index)
           ? ''
-          : value.initial_spread_index.toString()
+          : value.initial_spread_index.toFixed(DECIMAL_PLACES)
       )
       rowString.push(
-        isUndefined(value.build_up_index) ? '' : value.build_up_index.toString()
+        isUndefined(value.build_up_index) ? '' : value.build_up_index.toFixed(DECIMAL_PLACES)
       )
       rowString.push(
-        isUndefined(value.fire_weather_index) ? '' : value.fire_weather_index.toString()
+        isUndefined(value.fire_weather_index) ? '' : value.fire_weather_index.toFixed(DECIMAL_PLACES)
       )
       rowString.push(
-        isUndefined(value.head_fire_intensity) ? '' : value.head_fire_intensity.toString()
+        isUndefined(value.head_fire_intensity) ? '' : value.head_fire_intensity.toFixed(DECIMAL_PLACES)
       )
       const criticalHours4000 = formatCriticalHoursAsString(value.critical_hours_hfi_4000)
       rowString.push(isUndefined(criticalHours4000) ? '' : criticalHours4000)
@@ -270,23 +273,23 @@ export class RowManager {
       )
       rowString.push(isUndefined(criticalHours10000) ? '' : criticalHours10000)
       rowString.push(
-        isUndefined(value.rate_of_spread) ? '' : value.rate_of_spread.toString()
+        isUndefined(value.rate_of_spread) ? '' : value.rate_of_spread.toFixed(DECIMAL_PLACES)
       )
       rowString.push(isUndefined(value.fire_type) ? '' : value.fire_type)
       const formattedCFB = formatCrownFractionBurned(
         value.percentage_crown_fraction_burned
       )
       rowString.push(isUndefined(formattedCFB) ? '' : formattedCFB)
-      rowString.push(isUndefined(value.flame_length) ? '' : value.flame_length.toString())
+      rowString.push(isUndefined(value.flame_length) ? '' : value.flame_length.toFixed(DECIMAL_PLACES))
       rowString.push(
         isUndefined(value.thirty_minute_fire_size)
           ? ''
-          : value.thirty_minute_fire_size.toString()
+          : value.thirty_minute_fire_size.toFixed(DECIMAL_PLACES)
       )
       rowString.push(
         isUndefined(value.sixty_minute_fire_size)
           ? ''
-          : value.sixty_minute_fire_size.toString()
+          : value.sixty_minute_fire_size.toFixed(DECIMAL_PLACES)
       )
       rowsAsStrings.push(rowString)
     })

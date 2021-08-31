@@ -394,7 +394,7 @@ const FBATable = (props: FBAInputGridProps) => {
             onClick={exportSelectedRows}
           >
             <GetAppIcon />
-            Export
+            Export Selection
           </Button>
         </FormControl>
         <div className={classes.display} data-testid={props.testId}>
