@@ -456,7 +456,7 @@ def FBPCalculateStatisticsCOM(elevation: float,  # pylint: disable=invalid-name,
         fbp.m_date = _python_date_to_java_calendar(time_of_interest, Calendar, TimeZone)
         fbp.FBPCalculateStatisticsCOM()
 
-        # we copy the java object into a python object, so that we can safel detach from the java VM
+        # we copy the java object into a python object, so that we can safely detach from the java VM
         # when we exit this function.
         copy = FBPCalculations()
         for key in dir(copy):

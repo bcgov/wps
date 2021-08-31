@@ -72,7 +72,8 @@
     "lint:fix": "eslint --fix './src/**/*.{ts,tsx}'",
     "format": "prettier --write \"**/*.+(js|jsx|json|yml|yaml|css|md)\"",
     "storybook": "start-storybook -p 6006 -s public",
-    "build-storybook": "build-storybook -s public"
+    "build-storybook": "build-storybook -s public",
+    "finalizeCoverage": "node mergeCoverage.js"
   },
   "browserslist": {
     "production": [
@@ -94,6 +95,8 @@
     "@storybook/addon-links": "^6.2.8",
     "@storybook/node-logger": "^6.1.11",
     "@storybook/preset-create-react-app": "^3.1.7",
+    "@testing-library/jest-dom": "^5.14.1",
+    "@testing-library/react": "^12.0.0",
     "@types/jest": "^26.0.23",
     "cypress": "^7.6.0",
     "eslint-config-prettier": "^6.10.0",
@@ -114,6 +117,7 @@
     ]
   },
   "nyc": {
+    "report-dir": "coverage-cypress",
     "excludeAfterRemap": true,
     "exclude": [
       "src/serviceWorker.ts",

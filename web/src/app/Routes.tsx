@@ -16,7 +16,7 @@ import {
 } from 'utils/constants'
 import MoreCastPage from 'features/fireWeather/pages/MoreCastPage'
 import { NoMatchPage } from 'features/fireWeather/pages/NoMatchPage'
-import { FireBehaviourCalculator } from 'features/fireBehaviourCalculator/FireBehaviourCalculatorPage'
+import { FireBehaviourAdvisoryCalculator } from 'features/fbaCalculator/FireBehaviourAdvisoryCalculatorPage'
 
 const shouldShowDisclaimer = HIDE_DISCLAIMER === 'false' || HIDE_DISCLAIMER === undefined
 const shouldAuthenticate =
@@ -51,7 +51,7 @@ const Routes: React.FunctionComponent = () => {
 
         <Route path={FIRE_BEHAVIOR_CALC_ROUTE}>
           <AuthWrapper shouldAuthenticate={shouldAuthenticate}>
-            <FireBehaviourCalculator />
+            <FireBehaviourAdvisoryCalculator />
           </AuthWrapper>
         </Route>
 
