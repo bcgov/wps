@@ -10,7 +10,7 @@ COPY ./api/pyproject.toml ./api/poetry.lock /tmp/
 
 # Install dependancies.
 RUN cd /tmp && \
-    poetry run python -m pip install --upgrade pip && \
+    pip3 install --upgrade pip && \
     poetry install --no-root --no-dev
 
 # Copy the app:
