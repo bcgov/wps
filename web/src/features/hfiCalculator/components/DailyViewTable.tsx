@@ -334,7 +334,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                             </TableRow>
                             {Object.entries(area.stations)
                               .sort((a, b) => (a[1].code < b[1].code ? -1 : 1))
-                              .map(([stationCode, station]) => {
+                              .map(([stationCode, station], i) => {
                                 const daily = props.dailiesMap.get(station.code)
                                 return (
                                   <TableRow
@@ -384,7 +384,9 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                                     <TableCell data-testid={`${daily?.code}-hfi`}>
                                       {daily?.hfi?.toFixed(DECIMAL_PLACES)}
                                     </TableCell>
-                                    <TableCell>{daily?.fire_type}</TableCell>
+                                    <TableCell data-testid={`${daily?.code}-fire-type`}>
+                                      {daily?.fire_type}
+                                    </TableCell>
                                     <TableCell
                                       className={formatStationIntensityGroupByValue(
                                         daily?.intensity_group
