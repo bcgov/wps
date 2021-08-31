@@ -224,8 +224,12 @@ export class RowManager {
           : value.grass_cure.toString()
       )
       rowString.push(isUndefined(value.status) ? '' : value.status)
-      rowString.push(isUndefined(value.temp) ? '' : value.temp.toFixed(DECIMAL_PLACES))
-      rowString.push(isUndefined(value.rh) ? '' : value.rh.toString())
+      rowString.push(
+        isUndefined(value.temp) || isNull(value.temp)
+          ? ''
+          : value.temp.toFixed(DECIMAL_PLACES)
+      )
+      rowString.push(isUndefined(value.rh) || isNull(value.rh) ? '' : value.rh.toString())
       rowString.push(
         isUndefined(value.wind_direction) ||
           isNaN(value.wind_direction) ||
@@ -241,69 +245,87 @@ export class RowManager {
       }
       rowString.push(formattedWindSpeed)
       rowString.push(
-        isUndefined(value.precipitation)
+        isUndefined(value.precipitation) || isNull(value.precipitation)
           ? ''
           : value.precipitation.toFixed(DECIMAL_PLACES)
       )
       rowString.push(
-        isUndefined(value.fine_fuel_moisture_code)
+        isUndefined(value.fine_fuel_moisture_code) ||
+          isNull(value.fine_fuel_moisture_code)
           ? ''
           : value.fine_fuel_moisture_code.toFixed(DECIMAL_PLACES)
       )
       rowString.push(
-        isUndefined(value.duff_moisture_code)
+        isUndefined(value.duff_moisture_code) || isNull(value.duff_moisture_code)
           ? ''
           : value.duff_moisture_code.toFixed(DECIMAL_PLACES)
       )
       rowString.push(
-        isUndefined(value.drought_code) ? '' : value.drought_code.toFixed(DECIMAL_PLACES)
+        isUndefined(value.drought_code) || isNull(value.drought_code)
+          ? ''
+          : value.drought_code.toFixed(DECIMAL_PLACES)
       )
       rowString.push(
-        isUndefined(value.initial_spread_index)
+        isUndefined(value.initial_spread_index) || isNull(value.initial_spread_index)
           ? ''
           : value.initial_spread_index.toFixed(DECIMAL_PLACES)
       )
       rowString.push(
-        isUndefined(value.build_up_index)
+        isUndefined(value.build_up_index) || isNull(value.build_up_index)
           ? ''
           : value.build_up_index.toFixed(DECIMAL_PLACES)
       )
       rowString.push(
-        isUndefined(value.fire_weather_index)
+        isUndefined(value.fire_weather_index) || isNull(value.fire_weather_index)
           ? ''
           : value.fire_weather_index.toFixed(DECIMAL_PLACES)
       )
       rowString.push(
-        isUndefined(value.head_fire_intensity)
+        isUndefined(value.head_fire_intensity) || isNull(value.head_fire_intensity)
           ? ''
           : value.head_fire_intensity.toFixed(DECIMAL_PLACES)
       )
       const criticalHours4000 = formatCriticalHoursAsString(value.critical_hours_hfi_4000)
-      rowString.push(isUndefined(criticalHours4000) ? '' : criticalHours4000)
+      rowString.push(
+        isUndefined(criticalHours4000) || isNull(criticalHours4000)
+          ? ''
+          : criticalHours4000
+      )
       const criticalHours10000 = formatCriticalHoursAsString(
         value.critical_hours_hfi_10000
       )
-      rowString.push(isUndefined(criticalHours10000) ? '' : criticalHours10000)
       rowString.push(
-        isUndefined(value.rate_of_spread)
+        isUndefined(criticalHours10000) || isNull(criticalHours10000)
+          ? ''
+          : criticalHours10000
+      )
+      rowString.push(
+        isUndefined(value.rate_of_spread) || isNull(value.rate_of_spread)
           ? ''
           : value.rate_of_spread.toFixed(DECIMAL_PLACES)
       )
-      rowString.push(isUndefined(value.fire_type) ? '' : value.fire_type)
+      rowString.push(
+        isUndefined(value.fire_type) || isNull(value.fire_type) ? '' : value.fire_type
+      )
       const formattedCFB = formatCrownFractionBurned(
         value.percentage_crown_fraction_burned
       )
-      rowString.push(isUndefined(formattedCFB) ? '' : formattedCFB)
       rowString.push(
-        isUndefined(value.flame_length) ? '' : value.flame_length.toFixed(DECIMAL_PLACES)
+        isUndefined(formattedCFB) || isNull(formattedCFB) ? '' : formattedCFB
       )
       rowString.push(
-        isUndefined(value.thirty_minute_fire_size)
+        isUndefined(value.flame_length) || isNull(value.flame_length)
+          ? ''
+          : value.flame_length.toFixed(DECIMAL_PLACES)
+      )
+      rowString.push(
+        isUndefined(value.thirty_minute_fire_size) ||
+          isNull(value.thirty_minute_fire_size)
           ? ''
           : value.thirty_minute_fire_size.toFixed(DECIMAL_PLACES)
       )
       rowString.push(
-        isUndefined(value.sixty_minute_fire_size)
+        isUndefined(value.sixty_minute_fire_size) || isNull(value.sixty_minute_fire_size)
           ? ''
           : value.sixty_minute_fire_size.toFixed(DECIMAL_PLACES)
       )

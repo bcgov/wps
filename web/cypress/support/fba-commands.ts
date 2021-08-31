@@ -48,8 +48,6 @@ Cypress.Commands.add('selectFBAStationInDropdown', (code: number | string, rowId
   if (typeof code === 'number') {
     return cy
       .getByTestId(`weather-station-dropdown-fba-${rowId}`)
-      // .get('button[title="Open"]')
-      // .first()
       .click()
       .get('li')
       .contains(code)
