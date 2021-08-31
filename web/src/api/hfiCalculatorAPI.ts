@@ -17,8 +17,10 @@ export interface StationDaily {
   fwi: number
   danger_class: number
   rate_of_spread: number
+  hfi: number
   observation_valid: number
   observation_valid_comment: string
+  intensity_group: number
 }
 
 export interface StationDailyResponse {
