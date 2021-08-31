@@ -51,10 +51,10 @@ describe('WindSpeedCell', () => {
 
     const correctedProps = { ...props, inputValue: 120 }
     rerender(<WindSpeedCell {...correctedProps} />)
-    expect(screen.getByTestId('windSpeedInput-fba').firstChild?.firstChild).toHaveValue(
+    expect(screen.getByTestId('windSpeedInput-fba-1').firstChild?.firstChild).toHaveValue(
       120
     )
-    expect(screen.getByTestId('windSpeedInput-fba').firstChild).not.toHaveClass(
+    expect(screen.getByTestId('windSpeedInput-fba-1').firstChild).not.toHaveClass(
       'Mui-error'
     )
   })
@@ -62,7 +62,7 @@ describe('WindSpeedCell', () => {
     const row = buildTableRow(119.9)
     const props = buildProps(row)
     render(<WindSpeedCell {...props} />)
-    expect(screen.getByTestId('windSpeedInput-fba').firstChild?.firstChild).toHaveValue(
+    expect(screen.getByTestId('windSpeedInput-fba-1').firstChild?.firstChild).toHaveValue(
       119.9
     )
   })
@@ -70,7 +70,7 @@ describe('WindSpeedCell', () => {
     const row = buildTableRow(1)
     const props = buildProps(row)
     render(<WindSpeedCell {...props} />)
-    expect(screen.getByTestId('windSpeedInput-fba').firstChild).toHaveStyle({
+    expect(screen.getByTestId('windSpeedInput-fba-1').firstChild).toHaveStyle({
       border: '2px solid #460270'
     })
   })
@@ -78,7 +78,7 @@ describe('WindSpeedCell', () => {
     const row = buildTableRow(undefined)
     const props = buildProps(row)
     render(<WindSpeedCell {...props} />)
-    expect(screen.getByTestId('windSpeedInput-fba').firstChild).toHaveStyle({
+    expect(screen.getByTestId('windSpeedInput-fba-1').firstChild).toHaveStyle({
       border: ''
     })
   })

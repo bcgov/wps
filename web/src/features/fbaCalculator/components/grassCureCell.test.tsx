@@ -70,7 +70,7 @@ describe('GrassCureCell', () => {
       const O1ARow = buildTableRow(FuelTypes.lookup('o1a'))
       const props = buildProps(O1ARow, 1)
       render(<GrassCureCell {...props} />)
-      const renderedGrassCureInputField = screen.getByTestId(`grassCureInput-fba`)
+      const renderedGrassCureInputField = screen.getByTestId(`grassCureInput-fba-1`)
         .firstChild?.firstChild
       expect(renderedGrassCureInputField).toHaveValue(1)
       expect(renderedGrassCureInputField).not.toHaveClass('Mui-error')
@@ -79,7 +79,7 @@ describe('GrassCureCell', () => {
       const O1BRow = buildTableRow(FuelTypes.lookup('o1b'))
       const props = buildProps(O1BRow, 1)
       render(<GrassCureCell {...props} />)
-      const renderedGrassCureInputField = screen.getByTestId(`grassCureInput-fba`)
+      const renderedGrassCureInputField = screen.getByTestId(`grassCureInput-fba-1`)
         .firstChild?.firstChild
       expect(renderedGrassCureInputField).toHaveValue(1)
       expect(renderedGrassCureInputField).not.toHaveClass('Mui-error')
