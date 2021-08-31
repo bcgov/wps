@@ -50,84 +50,99 @@ export class RowManager {
     tableRows: FBATableRow[]
   ): FBATableRow[] => {
     const reverseOrder = order === 'asc' ? 'desc' : 'asc'
+    /**
+     * Partitions table rows into non-empty and empty row arrays, sorts the non-empty row array,
+     * then concatenates the empty row array to the end of the sorted, non-empty row array.
+     *
+     * @param field FBATableRow field to order by
+     * @param otherOrder optional Order ordering should follow, otherwise the current order
+     * @returns rows sorted by the specified field, with empty rows always at the end
+     */
+    const orderByWithEmptyAtBottom = (field: string, otherOrder?: Order) => {
+      const partition = _.partition(tableRows, row => !!_.get(row, field, null))
+      return _.concat(
+        _.orderBy(partition[0], field, otherOrder ? otherOrder : order),
+        partition[1]
+      )
+    }
     switch (sortByColumn) {
       case SortByColumn.Zone: {
-        return _.orderBy(tableRows, 'zone_code', order)
+        return orderByWithEmptyAtBottom('zone_code')
       }
       case SortByColumn.Station: {
-        return _.orderBy(tableRows, 'station_name', order)
+        return orderByWithEmptyAtBottom('station_name')
       }
       case SortByColumn.Elevation: {
-        return _.orderBy(tableRows, 'elevation', order)
+        return orderByWithEmptyAtBottom('elevation')
       }
       case SortByColumn.FuelType: {
-        return _.orderBy(tableRows, 'fuel_type', order)
+        return orderByWithEmptyAtBottom('fuel_type')
       }
       case SortByColumn.GrassCure: {
-        return _.orderBy(tableRows, 'grass_cure', order)
+        return orderByWithEmptyAtBottom('grass_cure')
       }
       case SortByColumn.Status: {
-        return _.orderBy(tableRows, 'status', order)
+        return orderByWithEmptyAtBottom('status')
       }
       case SortByColumn.Temperature: {
-        return _.orderBy(tableRows, 'temp', order)
+        return orderByWithEmptyAtBottom('temp')
       }
       case SortByColumn.RelativeHumidity: {
-        return _.orderBy(tableRows, 'rh', order)
+        return orderByWithEmptyAtBottom('rh')
       }
       case SortByColumn.WindDirection: {
-        return _.orderBy(tableRows, 'wind_direction', order)
+        return orderByWithEmptyAtBottom('wind_direction')
       }
       case SortByColumn.WindSpeed: {
-        return _.orderBy(tableRows, 'wind_speed', order)
+        return orderByWithEmptyAtBottom('wind_speed')
       }
       case SortByColumn.Precipitation: {
-        return _.orderBy(tableRows, 'precipitation', order)
+        return orderByWithEmptyAtBottom('precipitation')
       }
       case SortByColumn.FFMC: {
-        return _.orderBy(tableRows, 'fine_fuel_moisture_code', order)
+        return orderByWithEmptyAtBottom('fine_fuel_moisture_code')
       }
       case SortByColumn.DMC: {
-        return _.orderBy(tableRows, 'duff_moisture_code', order)
+        return orderByWithEmptyAtBottom('duff_moisture_code')
       }
       case SortByColumn.DC: {
-        return _.orderBy(tableRows, 'drought_code', order)
+        return orderByWithEmptyAtBottom('drought_code')
       }
       case SortByColumn.ISI: {
-        return _.orderBy(tableRows, 'initial_spread_index', order)
+        return orderByWithEmptyAtBottom('initial_spread_index')
       }
       case SortByColumn.BUI: {
-        return _.orderBy(tableRows, 'build_up_index', order)
+        return orderByWithEmptyAtBottom('build_up_index')
       }
       case SortByColumn.FWI: {
-        return _.orderBy(tableRows, 'fire_weather_index', order)
+        return orderByWithEmptyAtBottom('fire_weather_index')
       }
       case SortByColumn.HFI: {
-        return _.orderBy(tableRows, 'head_fire_intensity', order)
+        return orderByWithEmptyAtBottom('head_fire_intensity')
       }
       case SortByColumn.CriticalHours4000: {
-        return _.orderBy(tableRows, 'critical_hours_hfi_4000.start', reverseOrder)
+        return orderByWithEmptyAtBottom('critical_hours_hfi_4000.start', reverseOrder)
       }
       case SortByColumn.CriticalHours10000: {
-        return _.orderBy(tableRows, 'critical_hours_hfi_10000.start', reverseOrder)
+        return orderByWithEmptyAtBottom('critical_hours_hfi_10000.start', reverseOrder)
       }
       case SortByColumn.ThirtyMinFireSize: {
-        return _.orderBy(tableRows, 'thirty_minute_fire_size', order)
+        return orderByWithEmptyAtBottom('thirty_minute_fire_size')
       }
       case SortByColumn.SixtyMinFireSize: {
-        return _.orderBy(tableRows, 'sixty_minute_fire_size', order)
+        return orderByWithEmptyAtBottom('sixty_minute_fire_size')
       }
       case SortByColumn.ROS: {
-        return _.orderBy(tableRows, 'rate_of_spread', order)
+        return orderByWithEmptyAtBottom('rate_of_spread')
       }
       case SortByColumn.FireType: {
-        return _.orderBy(tableRows, 'fire_type', order)
+        return orderByWithEmptyAtBottom('fire_type')
       }
       case SortByColumn.CFB: {
-        return _.orderBy(tableRows, 'percentage_crown_fraction_burned', order)
+        return orderByWithEmptyAtBottom('percentage_crown_fraction_burned')
       }
       case SortByColumn.FlameLength: {
-        return _.orderBy(tableRows, 'flame_length', order)
+        return orderByWithEmptyAtBottom('flame_length')
       }
 
       default: {
