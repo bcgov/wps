@@ -47,7 +47,7 @@ async def _get_most_recent_model_run(model: ModelEnum, data_type: ObjectTypeEnum
                     Bucket=bucket,
                     Prefix=object_name,
                     Delimiter='/'),
-                depth+1)
+                depth + 1)
 
         format_string = 'kml' if data_type == ObjectTypeEnum.KML else 'json'
         most_recent = await get_most_recent(
@@ -115,10 +115,14 @@ async def get_c_haines_model_run_prediction(
 async def get_model_runs(model_run_timestamp: datetime = None,
                          response_format: ObjectTypeEnum = ObjectTypeEnum.GEOJSON):
     """ Return a list of recent model runs """
-    logger.info('/c-haines/model-runs')
-    if model_run_timestamp is None:
-        model_run_timestamp = await _get_most_recent_model_run(ModelEnum.GDPS, response_format)
-    return await fetch_model_runs(model_run_timestamp)
+    try:
+        logger.info('/c-haines/model-runs')
+        if model_run_timestamp is None:
+            model_run_timestamp = await _get_most_recent_model_run(ModelEnum.GDPS, response_format)
+        return await fetch_model_runs(model_run_timestamp)
+    except Exception as exception:
+        logger.critical(exception, exc_info=True)
+        raise
 
 
 @router.get('/network-link')
