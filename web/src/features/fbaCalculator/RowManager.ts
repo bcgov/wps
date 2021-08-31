@@ -50,8 +50,16 @@ export class RowManager {
     tableRows: FBATableRow[]
   ): FBATableRow[] => {
     const reverseOrder = order === 'asc' ? 'desc' : 'asc'
+    /**
+     * Partitions table rows into non-empty and empty row arrays, sorts the non-empty row array,
+     * then concatenates the empty row array to the end of the sorted, non-empty row array.
+     *
+     * @param field FBATableRow field to order by
+     * @param otherOrder optional Order ordering should follow, otherwise the current order
+     * @returns rows sorted by the specified field, with empty rows always at the end
+     */
     const orderByWithEmptyAtBottom = (field: string, otherOrder?: Order) => {
-      const partition = _.partition(tableRows, x => !!_.get(x, field, null))
+      const partition = _.partition(tableRows, row => !!_.get(row, field, null))
       return _.concat(
         _.orderBy(partition[0], field, otherOrder ? otherOrder : order),
         partition[1]
