@@ -30,13 +30,13 @@ describe('FireBAT Calculator Page', () => {
 
     cy.wait('@getStations')
 
-    cy.setFBAGrassCurePercentage(0, grassCure)
+    cy.setFBAGrassCurePercentage(grassCure)
 
-    cy.setFBAWindSpeed(0, windSpeed)
+    cy.setFBAWindSpeed(windSpeed)
 
-    cy.selectFBAStationInDropdown(0, stationCode)
+    cy.selectFBAStationInDropdown(stationCode)
 
-    cy.selectFBAFuelTypeInDropdown(0, fuelType.friendlyName)
+    cy.selectFBAFuelTypeInDropdown(fuelType.friendlyName)
 
     cy.wait('@calculateResults')
 
@@ -55,7 +55,7 @@ describe('FireBAT Calculator Page', () => {
       cy.wait('@getStations')
 
       const stationCode = 322
-      cy.selectFBAStationInDropdown(0, stationCode)
+      cy.selectFBAStationInDropdown(stationCode)
 
       cy.rowCountShouldBe(1)
       cy.url().should('contain', `s=${stationCode}`)
@@ -68,7 +68,7 @@ describe('FireBAT Calculator Page', () => {
       visitAndAddRow()
 
       const fuelType = FuelTypes.get()['c1']
-      cy.selectFBAFuelTypeInDropdown(0, fuelType.friendlyName)
+      cy.selectFBAFuelTypeInDropdown(fuelType.friendlyName)
 
       cy.rowCountShouldBe(1)
       cy.url().should('contain', `f=${fuelType.name.toLowerCase()}`)
@@ -92,9 +92,9 @@ describe('FireBAT Calculator Page', () => {
 
       cy.wait('@getStations')
 
-      cy.selectFBAStationInDropdown(0, stationCode)
+      cy.selectFBAStationInDropdown(stationCode)
 
-      cy.selectFBAFuelTypeInDropdown(0, fuelType.friendlyName)
+      cy.selectFBAFuelTypeInDropdown(fuelType.friendlyName)
 
       cy.rowCountShouldBe(1)
       cy.url().should('contain', `s=${stationCode}&f=${fuelType.name.toLowerCase()}`)
@@ -112,13 +112,13 @@ describe('FireBAT Calculator Page', () => {
       cy.wait('@getStations')
 
       const stationCode = 322
-      cy.selectFBAStationInDropdown(0, stationCode)
+      cy.selectFBAStationInDropdown(stationCode)
 
-      cy.selectFBAFuelTypeInDropdown(0, FuelTypes.get()['o1a'].friendlyName)
-      cy.getByTestId(`fuel-type-dropdown-${0}`)
+      cy.selectFBAFuelTypeInDropdown(FuelTypes.get()['o1a'].friendlyName)
+      cy.getByTestId(`fuel-type-dropdown-fba`)
         .find('input')
         .clear()
-      cy.selectFBAFuelTypeInDropdown(0, FuelTypes.get()['o1b'].friendlyName)
+      cy.selectFBAFuelTypeInDropdown(FuelTypes.get()['o1b'].friendlyName)
     })
   })
 
@@ -132,7 +132,7 @@ describe('FireBAT Calculator Page', () => {
         .slice(0, 10) // 'YYYY-MM-DD'
 
       cy.intercept('POST', 'api/fba-calc/stations', req => {
-        expect(req.body.stations[0]).to.deep.include({
+        expect(req.body).to.deep.include({
           date: yesterday
         })
       }).as('calculateResults')
@@ -143,9 +143,9 @@ describe('FireBAT Calculator Page', () => {
 
       cy.setDate(yesterday)
 
-      cy.selectFBAStationInDropdown(0, 322)
+      cy.selectFBAStationInDropdown(322)
 
-      cy.selectFBAFuelTypeInDropdown(0, FuelTypes.get()['c1'].friendlyName)
+      cy.selectFBAFuelTypeInDropdown(FuelTypes.get()['c1'].friendlyName)
 
       cy.wait('@calculateResults')
     })
@@ -166,7 +166,7 @@ describe('FireBAT Calculator Page', () => {
       cy.wait('@getStations')
 
       const stationCode = 322
-      cy.selectFBAStationInDropdown(0, stationCode)
+      cy.selectFBAStationInDropdown(stationCode)
 
       cy.getByTestId('remove-rows').should('not.have.class', 'Mui-disabled')
     })
@@ -179,7 +179,7 @@ describe('FireBAT Calculator Page', () => {
       cy.wait('@getStations')
 
       const stationCode = 322
-      cy.selectFBAStationInDropdown(0, stationCode)
+      cy.selectFBAStationInDropdown(stationCode)
 
       cy.rowCountShouldBe(1)
       cy.url().should('contain', `s=${stationCode}`)
@@ -199,12 +199,12 @@ describe('FireBAT Calculator Page', () => {
       cy.wait('@getStations')
 
       const stationCode = 322
-      cy.selectFBAStationInDropdown(0, stationCode)
+      cy.selectFBAStationInDropdown(stationCode)
 
       cy.rowCountShouldBe(1)
       cy.url().should('contain', `s=${stationCode}`)
 
-      cy.setSelectedRow(0)
+      cy.setSelectedRow()
 
       cy.getByTestId('remove-rows').click()
 

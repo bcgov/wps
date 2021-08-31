@@ -206,6 +206,17 @@ Executing `make docker-build-dev` followed by `make docker-run-dev` will build a
 
 To access the local copy of the database, you can shell into it by opening a new terminal window and executing `psql -h localhost -p 5432 -U <db-username>` and enter the local database password when prompted.
 
+## Maintenance
+
+### Disk space
+
+A subset of model predictions is currently being stored, but not actually used once interpolation has been
+performed. This data can be trimmed in order to preserve space:
+
+```sql
+delete from model_run_grid_subset_predictions where prediction_timestamp < now() - interval '3 months'
+```
+
 ## Contributing
 
 ### Coding conventions

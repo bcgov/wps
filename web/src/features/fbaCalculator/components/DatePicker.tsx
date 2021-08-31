@@ -5,7 +5,7 @@ interface DatePickerProps {
   testId?: string
   date: string
   onChange: (d: string) => void
-  autoUpdateHandler: () => void
+  updateDate: () => void
 }
 
 const DatePicker = (props: DatePickerProps) => {
@@ -23,11 +23,11 @@ const DatePicker = (props: DatePickerProps) => {
           props.onChange(value)
         }
       }}
-      onBlur={props.autoUpdateHandler}
+      onBlur={props.updateDate}
       onKeyDown={event => {
         if (event.key === 'Enter') {
           event.preventDefault()
-          props.autoUpdateHandler()
+          props.updateDate()
         }
       }}
     />

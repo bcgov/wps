@@ -1,21 +1,17 @@
-import { FuelTypes } from 'features/fbaCalculator/fuelTypes'
-import { FBCTableRow, RowManager, SortByColumn } from 'features/fbaCalculator/RowManager'
+import { FBATableRow, RowManager, SortByColumn } from 'features/fbaCalculator/RowManager'
 
 describe('RowManager', () => {
-  const stationCodeMap = new Map<string, string>()
-  stationCodeMap.set('322', 'AFTON')
-  stationCodeMap.set('209', 'ALEXIS CREEK')
-  const rowManager = new RowManager(stationCodeMap)
-
   const firstInputRow = {
     id: 0,
-    weatherStation: '322',
-    fuelType: 'c1',
+    weatherStation: { value: '322', label: 'AFTON' },
+    fuelType: { value: 'c1', label: 'C1' },
     grassCure: 1,
-    windSpeed: 1
+    windSpeed: 1,
+    wind_speed: undefined
   }
 
   const firstCalculatedRow = {
+    id: 0,
     station_code: 322,
     station_name: 'AFTON',
     zone_code: 'a',
@@ -48,13 +44,15 @@ describe('RowManager', () => {
 
   const secondInputRow = {
     id: 1,
-    weatherStation: '209',
-    fuelType: 'c2',
+    weatherStation: { value: '209', label: 'ALEXIS CREEK' },
+    fuelType: { value: 'c2', label: 'C2' },
     grassCure: 2,
-    windSpeed: 2
+    windSpeed: 2,
+    wind_speed: undefined
   }
 
   const secondCalculatedRow = {
+    id: 1,
     station_code: 209,
     station_name: 'ALEXIS CREEK',
     zone_code: 'b',
@@ -89,7 +87,7 @@ describe('RowManager', () => {
 
   const calculatedRows = [firstCalculatedRow, secondCalculatedRow]
   it('should merge input rows and calculated rows correctly', () => {
-    const mergedRows = rowManager.mergeFBARows(inputRows, calculatedRows)
+    const mergedRows = RowManager.updateRows(inputRows, calculatedRows)
 
     // Maintains row order
     expect(mergedRows[0].id).toBe(inputRows[0].id)
@@ -97,21 +95,28 @@ describe('RowManager', () => {
 
     // Sets calculated values
     expect(mergedRows[0].wind_speed).toEqual(calculatedRows[0].wind_speed)
+    expect(mergedRows[0].windSpeed).toEqual(calculatedRows[0].wind_speed)
+
+    // Set values remain
+    expect(mergedRows[0].windSpeed).toEqual(inputRows[0].windSpeed)
 
     // Builds GridMenuOptions based on user selected options
     expect(mergedRows[0].weatherStation).toEqual({
-      value: inputRows[0].weatherStation,
-      label: stationCodeMap.get(inputRows[0].weatherStation)
+      value: inputRows[0].weatherStation.value,
+      label: inputRows[0].weatherStation.label
     })
     expect(mergedRows[0].fuelType).toEqual({
-      value: inputRows[0].fuelType,
-      label: FuelTypes.lookup(inputRows[0].fuelType)?.friendlyName
+      value: inputRows[0].fuelType.value,
+      label: inputRows[0].fuelType.label
     })
+
+    // No values are lost
+    expect(mergedRows.length).toEqual(inputRows.length)
   })
   describe('Sorting columns', () => {
-    let mergedRows: FBCTableRow[]
+    let mergedRows: FBATableRow[]
     beforeEach(() => {
-      mergedRows = rowManager.mergeFBARows(inputRows, calculatedRows)
+      mergedRows = RowManager.updateRows(inputRows, calculatedRows)
     })
     it('sorts by zone code', () => {
       const sortedRowsAsc = RowManager.sortRows(SortByColumn.Zone, 'asc', mergedRows)
@@ -362,6 +367,46 @@ describe('RowManager', () => {
         mergedRows
       )
       expect(sortedRowsDesc[0].sixty_minute_fire_size).toBe(2)
+    })
+    it('sorts by rate of spread', () => {
+      const sortedRowsAsc = RowManager.sortRows(SortByColumn.ROS, 'asc', mergedRows)
+      expect(sortedRowsAsc[0].rate_of_spread).toBe(1)
+
+      const sortedRowsDesc = RowManager.sortRows(SortByColumn.ROS, 'desc', mergedRows)
+      expect(sortedRowsDesc[0].rate_of_spread).toBe(2)
+    })
+    it('sorts by fire type', () => {
+      const sortedRowsAsc = RowManager.sortRows(SortByColumn.FireType, 'asc', mergedRows)
+      expect(sortedRowsAsc[0].fire_type).toBe('a')
+
+      const sortedRowsDesc = RowManager.sortRows(
+        SortByColumn.FireType,
+        'desc',
+        mergedRows
+      )
+      expect(sortedRowsDesc[0].fire_type).toBe('b')
+    })
+    it('sorts by crown fire burned percentage', () => {
+      const sortedRowsAsc = RowManager.sortRows(SortByColumn.CFB, 'asc', mergedRows)
+      expect(sortedRowsAsc[0].percentage_crown_fraction_burned).toBe(1)
+
+      const sortedRowsDesc = RowManager.sortRows(SortByColumn.CFB, 'desc', mergedRows)
+      expect(sortedRowsDesc[0].percentage_crown_fraction_burned).toBe(2)
+    })
+    it('sorts by flame length', () => {
+      const sortedRowsAsc = RowManager.sortRows(
+        SortByColumn.FlameLength,
+        'asc',
+        mergedRows
+      )
+      expect(sortedRowsAsc[0].flame_length).toBe(1)
+
+      const sortedRowsDesc = RowManager.sortRows(
+        SortByColumn.FlameLength,
+        'desc',
+        mergedRows
+      )
+      expect(sortedRowsDesc[0].flame_length).toBe(2)
     })
   })
 })

@@ -1,7 +1,8 @@
 import assert from 'assert'
+import { FBATableRow } from 'features/fbaCalculator/RowManager'
 import _ from 'lodash'
 import { isNull } from 'lodash'
-import { FBAInputRow } from './components/FBAInputGrid'
+import { FBAInputRow } from './components/FBATable'
 
 export const isGrassFuelType = (fuelType: string): boolean =>
   fuelType === 'o1a' || fuelType === 'o1b'
@@ -83,7 +84,7 @@ export const getRowsFromUrlParams = (searchParams: string): FBAInputRow[] => {
  * @param rows FBCInputRow array from data table
  * @returns params as string of form ?s=<station-code>&f=<fuel-type>&c=<grass-cure-percentage>&w=<optional-wind-speed>,...
  */
-export const getUrlParamsFromRows = (rows: FBAInputRow[]): string => {
+export const getUrlParamsFromRows = (rows: FBATableRow[]): string => {
   if (rows.length === 0) {
     return ''
   }
@@ -91,16 +92,16 @@ export const getUrlParamsFromRows = (rows: FBAInputRow[]): string => {
   const params = rows
     .map(
       row =>
-        `s=${row.weatherStation}&f=${row.fuelType}&c=${row.grassCure}&w=${row.windSpeed}`
+        `s=${row.weatherStation?.value}&f=${row.fuelType?.value}&c=${row.grassCure}&w=${row.windSpeed}`
     )
     .join(',')
 
   return query + params
 }
 
-export const getMostRecentIdFromRows = (rows: FBAInputRow[]): number => {
+export const getNextRowIdFromRows = (rows: FBATableRow[]): number => {
   let lastIdFromExisting = _.maxBy(rows, 'id')?.id
   lastIdFromExisting = lastIdFromExisting ? lastIdFromExisting : 0
   const lastId = _.isEmpty(rows) ? 0 : lastIdFromExisting
-  return lastId
+  return lastId + 1
 }

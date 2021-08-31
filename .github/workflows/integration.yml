@@ -24,26 +24,6 @@ jobs:
         # The python gdal and R component relies on libgdal-dev being installed.
         run: |
           sudo apt-get update --fix-missing && sudo apt-get -y install libgdal-dev
-      # it would be nice to cache this!
-      # - name: Cache libgdal-dev (api)
-      #   uses: actions/cache@v2
-      #   id: cache-libgdal-dev
-      #   with:
-      #     path: "~/libgdal-dev"
-      #     key: "3.0.4"
-
-      # - name: Install libgdal-dev (api)
-      #   # The python gdal and R component relies on libgdal-dev being installed.
-      #   env:
-      #     CACHE_HIT: ${{steps.cache-libgdal-dev.outputs.cache-hit}}
-      #   run: |
-      #     if [[ "$CACHE_HIT" == 'true' ]]; then
-      #       sudo cp --verbose --force --recursive ~/libgdal-dev/* /
-      #     else
-      #       sudo apt-get update --fix-missing && sudo apt-get -y install libgdal-dev
-      #       mkdir -p ~/libgdal-dev
-      #       sudo dpkg -L libgdal-dev | while IFS= read -r f; do if test -f $f; then echo $f; fi; done | xargs cp --parents --target-directory ~/libgdal-dev/
-      #     fi
 
       - uses: r-lib/actions/setup-r@v1
         with:
@@ -63,17 +43,6 @@ jobs:
           renv::consent(TRUE)
           renv::restore()
         shell: Rscript {0}
-
-      # - name: Restore environment
-      #   run: |
-      #     renv::consent(TRUE)
-      #     renv::restore()
-      #   shell: Rscript {0}
-
-      # - name: Install R stuff
-      #   run: |
-      #     install.packages("cffdrs", dep = TRUE)
-      #   shell: Rscript {0}
 
       - name: Setup kernel for react, increase watchers
         run: echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
@@ -183,7 +152,11 @@ jobs:
 
       - name: Unit tests (web)
         working-directory: ./web
-        run: yarn run test:ci
+        run: yarn run coverage:ci
+
+      - name: Merge and finalize test coverage (web)
+        working-directory: ./web
+        run: yarn run finalizeCoverage
 
       - name: Upload test coverage to Codecov
         uses: codecov/codecov-action@v1.5.2

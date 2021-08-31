@@ -1,28 +1,28 @@
 declare module Cypress {
   interface Chainable {
     /**
-     * Custom command to select the row weather station and check its value.
-     * @example selectFBAStationInDropdown(0, 322)
+     * Custom command to select a weather station and check its value.
+     * @example selectFBAStationInDropdown(322)
      */
-    selectFBAStationInDropdown(rowId: number, code: number | string): void
+    selectFBAStationInDropdown(code: number | string): void
 
     /**
-     * Custom command to select the row fuel type and check its value.
-     * @example selectFBAFuelTypeInDropdown(0, 'C1')
+     * Custom command to select a fuel type and check its value.
+     * @example selectFBAFuelTypeInDropdown('C1')
      */
-    selectFBAFuelTypeInDropdown(rowId: number, fuelType: string): void
+    selectFBAFuelTypeInDropdown(fuelType: string): void
 
     /**
      * Custom command to set the grass cure percentage.
-     * @example setFBAGrassCurePercentage(0, '20')
+     * @example setFBAGrassCurePercentage('20')
      */
-    setFBAGrassCurePercentage(rowId: number, grassCure: string): void
+    setFBAGrassCurePercentage(grassCure: string): void
 
     /**
      * Custom command to set the wind speed.
-     * @example setFBAWindSpeed(0, '20')
+     * @example setFBAWindSpeed('20')
      */
-    setFBAWindSpeed(rowId: number, grassCure: string): void
+    setFBAWindSpeed(windSpeed: string): void
 
     /**
      * Custom command to set the date.
@@ -31,10 +31,10 @@ declare module Cypress {
     setDate(date: string): void
 
     /**
-     * Custom command to select a row.
-     * @example setSelectedRow(0)
+     * Custom command to select a row. Only works for single row.
+     * @example setSelectedRow()
      */
-    setSelectedRow(rowId: number): void
+    setSelectedRow(): void
 
     /**
      * Custom command to expect number of rows.
@@ -44,49 +44,46 @@ declare module Cypress {
   }
 }
 
-Cypress.Commands.add(
-  'selectFBAStationInDropdown',
-  (rowId: number, code: number | string) => {
-    if (typeof code === 'number') {
-      return cy
-        .getByTestId(`weather-station-dropdown-${rowId}`)
-        .get('button[title="Open"]')
-        .first()
-        .click()
-        .get('li')
-        .contains(code)
-        .click()
-    }
-
+Cypress.Commands.add('selectFBAStationInDropdown', (code: number | string) => {
+  if (typeof code === 'number') {
     return cy
-      .getByTestId(`weather-station-dropdown-${rowId}`)
-      .find('input')
-      .type(code)
-      .type('{downarrow}')
-      .type('{enter}')
+      .getByTestId('weather-station-dropdown-fba')
+      .get('button[title="Open"]')
+      .first()
+      .click()
+      .get('li')
+      .contains(code)
+      .click()
   }
-)
 
-Cypress.Commands.add('selectFBAFuelTypeInDropdown', (rowId: number, fuelType: string) => {
   return cy
-    .getByTestId(`fuel-type-dropdown-${rowId}`)
+    .getByTestId('weather-station-dropdown-fba')
+    .find('input')
+    .type(code)
+    .type('{downarrow}')
+    .type('{enter}')
+})
+
+Cypress.Commands.add('selectFBAFuelTypeInDropdown', (fuelType: string) => {
+  return cy
+    .getByTestId('fuel-type-dropdown-fba')
     .find('input')
     .type(fuelType)
     .type('{downarrow}')
     .type('{enter}')
 })
 
-Cypress.Commands.add('setFBAGrassCurePercentage', (rowId: number, grassCure: string) => {
+Cypress.Commands.add('setFBAGrassCurePercentage', (grassCure: string) => {
   return cy
-    .getByTestId(`grassCureInput-${rowId}`)
+    .getByTestId('grassCureInput-fba')
     .find('input')
     .type(grassCure)
     .type('{enter}')
 })
 
-Cypress.Commands.add('setFBAWindSpeed', (rowId: number, windSpeed: string) => {
+Cypress.Commands.add('setFBAWindSpeed', (windSpeed: string) => {
   return cy
-    .getByTestId(`windSpeedInput-${rowId}`)
+    .getByTestId(`windSpeedInput-fba`)
     .find('input')
     .type(windSpeed)
 })
@@ -98,8 +95,8 @@ Cypress.Commands.add('setDate', (date: string) => {
     .type(date)
 })
 
-Cypress.Commands.add('setSelectedRow', (rowId: number) => {
-  return cy.getByTestId(`selection-checkbox-${rowId}`).click()
+Cypress.Commands.add('setSelectedRow', () => {
+  return cy.getByTestId(`selection-checkbox-fba`).click()
 })
 
 Cypress.Commands.add('rowCountShouldBe', (rowCount: number) => {

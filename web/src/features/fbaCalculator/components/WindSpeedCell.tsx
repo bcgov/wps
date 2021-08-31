@@ -1,15 +1,17 @@
 import { TextField, Tooltip, makeStyles } from '@material-ui/core'
 import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles'
-import { FBAInputGridProps } from 'features/fbaCalculator/components/FBAInputGrid'
+import { FBATableRow } from 'features/fbaCalculator/RowManager'
 import { updateFBARow, buildUpdatedNumberRow } from 'features/fbaCalculator/tableState'
 import { isWindSpeedInvalid } from 'features/fbaCalculator/validation'
-import { isEqual } from 'lodash'
+import { isEqual, isUndefined } from 'lodash'
 import React, { ChangeEvent, useState, useEffect } from 'react'
 
 export interface WindSpeedCellProps {
-  fbaInputGridProps: Pick<FBAInputGridProps, 'stationOptions' | 'inputRows' | 'updateRow'>
+  inputRows: FBATableRow[]
+  updateRow: (rowId: number, updatedRow: FBATableRow, dispatchRequest?: boolean) => void
   inputValue: number | undefined
   calculatedValue: number | undefined
+  disabled: boolean
   rowId: number
 }
 
@@ -31,7 +33,7 @@ const adjustedTheme = createMuiTheme({
 
 const WindSpeedCell = (props: WindSpeedCellProps) => {
   const classes = useStyles()
-  const value = props.calculatedValue ? props.calculatedValue : props.inputValue
+  const value = props.inputValue ? props.inputValue : props.calculatedValue
   const [windSpeedValue, setWindSpeedValue] = useState(value)
   useEffect(() => {
     setWindSpeedValue(value)
@@ -45,7 +47,8 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
     if (!isEqual(windSpeedValue, props.calculatedValue)) {
       const dispatchRequest = !isWindSpeedInvalid(windSpeedValue)
       updateFBARow(
-        props.fbaInputGridProps,
+        props.inputRows,
+        props.updateRow,
         props.rowId,
         'windSpeed',
         windSpeedValue,
@@ -63,10 +66,17 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
 
   const hasError = isWindSpeedInvalid(windSpeedValue)
 
+  const valueForRendering = () => {
+    if (windSpeedValue === 0) {
+      return 0
+    }
+    return isUndefined(windSpeedValue) ? '' : windSpeedValue
+  }
+
   const buildTextField = () => (
     <Tooltip title="Cannot exceed 120" aria-label="cannot-exceed-120">
       <TextField
-        data-testid={`windSpeedInput-${props.rowId}`}
+        data-testid={`windSpeedInput-fba`}
         type="number"
         inputMode="numeric"
         className={classes.windSpeed}
@@ -76,7 +86,8 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
         onChange={changeHandler}
         onBlur={handlePossibleUpdate}
         onKeyDown={enterHandler}
-        value={windSpeedValue}
+        value={valueForRendering()}
+        disabled={props.disabled}
         error={hasError}
       />
     </Tooltip>
