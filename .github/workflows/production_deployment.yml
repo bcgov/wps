@@ -5,6 +5,11 @@ on:
     workflows: ["Integration"]
     types:
       - completed
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   prerequisites-success:
