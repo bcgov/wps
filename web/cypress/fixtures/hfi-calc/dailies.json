@@ -130,7 +130,8 @@
             "observation_valid_comment": null,
             "rate_of_spread": 2.9870629014080787,
             "hfi": 2655.4892697198648,
-            "intensity_group": 4
+            "intensity_group": 4,
+            "fire_type": "S"
         },
         {
             "code": 280,
@@ -152,7 +153,8 @@
             "observation_valid_comment": null,
             "rate_of_spread": 1.7329754357243414,
             "hfi": 1393.2603780739787,
-            "intensity_group": 3
+            "intensity_group": 3,
+            "fire_type": "IC"
         },
         {
             "code": 836,
