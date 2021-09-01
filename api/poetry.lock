@@ -1,6 +1,6 @@
 [[package]]
 name = "aiobotocore"
-version = "1.3.3"
+version = "1.4.0"
 description = "Async client for aws services using botocore and aiohttp"
 category = "main"
 optional = false
