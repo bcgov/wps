@@ -6,8 +6,24 @@ on:
       - main
 
 jobs:
+  cleanup-job:
+    name: Cleanup deployment job
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Run a one-line script
+      - uses: actions/github-script@v4
+        with:
+          script: |
+            github.issues.removeLabel({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: 'pr/workflow/deployment'
+              })
+
   prepare-dev-database:
     name: Prepare Dev Database
+    needs: [cleanup-job]
     runs-on: ubuntu-20.04
     steps:
       - name: Set Variables
@@ -26,7 +42,7 @@ jobs:
 
   prepare-dev-database-backups:
     name: Prepare Dev Database Backups
-    needs: [prepare-dev-database]
+    needs: [cleanup-job, prepare-dev-database]
     runs-on: ubuntu-20.04
     steps:
       - name: Set Variables
@@ -63,6 +79,7 @@ jobs:
 
   build-image:
     name: Build Image
+    needs: [cleanup-job]
     runs-on: ubuntu-20.04
     steps:
       - name: Set Variables
@@ -81,7 +98,7 @@ jobs:
 
   deploy-dev:
     name: Deploy to Dev
-    needs: [build-image, prepare-dev-database]
+    needs: [build-image, prepare-dev-database, cleanup-job]
     runs-on: ubuntu-20.04
     steps:
       - name: Set Variables
@@ -130,7 +147,7 @@ jobs:
 
   scan-dev:
     name: ZAP Baseline Scan Dev
-    needs: [deploy-dev]
+    needs: [deploy-dev, cleanup-job]
     runs-on: ubuntu-20.04
 
     steps:
@@ -149,6 +166,7 @@ jobs:
     # C-Haines relies on a gdal version not currently available in the debian image we use,
     # so we need to create an ubuntu based image.
     name: Build ubuntu based image
+    needs: [cleanup-job]
     runs-on: ubuntu-20.04
 
     steps:
@@ -172,7 +190,7 @@ jobs:
     # - the image to be built before we can deploy.
     # - the database to be there (so we can write to it).
     # - wait for the api deployment, as it's responsible for upgrading the database.
-    needs: [build-ubuntu-image, prepare-dev-database, deploy-dev]
+    needs: [build-ubuntu-image, prepare-dev-database, deploy-dev, cleanup-job]
 
     steps:
       - name: Set Variables
@@ -190,6 +208,7 @@ jobs:
 
   prepare-test-database:
     name: Prepare Test Database
+    needs: [cleanup-job]
     runs-on: ubuntu-20.04
     steps:
       - name: Set Variables
@@ -208,7 +227,7 @@ jobs:
 
   deploy-test:
     name: Deploy to Test
-    needs: [build-image, prepare-test-database]
+    needs: [build-image, prepare-test-database, cleanup-job]
     runs-on: ubuntu-20.04
     steps:
       - name: Set Variables
@@ -232,3 +251,19 @@ jobs:
   #       run: |
   #         oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TEST_TOKEN }}"
   #         PROJ_TARGET="e1e498-test" bash openshift/scripts/oc_provision_ec_rdps_cronjob.sh ${SUFFIX} apply
+
+  label-complete:
+    name: Cleanup deployment job
+    needs: [deploy-dev, deploy-c-haines, deploy-test, scan-dev]
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Run a one-line script
+      - uses: actions/github-script@v4
+        with:
+          script: |
+            github.issues.addLabels({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                labels: ['pr/workflow/deployment']
+              })
