@@ -2,9 +2,11 @@ import { TableCell, Tooltip } from '@material-ui/core'
 import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline'
 import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles'
 import React from 'react'
+import { isNull } from 'lodash'
 
 export interface GrassCureCellProps {
-  value: string | number | undefined
+  value: number | null | undefined
+  isGrassFuelType: boolean
 }
 
 const adjustedTheme = createMuiTheme({
@@ -29,9 +31,7 @@ const toolTipElement = (
 const GrassCureProps = (props: GrassCureCellProps) => {
   return (
     <TableCell>
-      {props.value ? (
-        props.value
-      ) : (
+      {isNull(props.value) && props.isGrassFuelType ? (
         <ThemeProvider theme={adjustedTheme}>
           <Tooltip
             title={toolTipElement}
@@ -40,6 +40,8 @@ const GrassCureProps = (props: GrassCureCellProps) => {
             <ErrorOutlineIcon></ErrorOutlineIcon>
           </Tooltip>
         </ThemeProvider>
+      ) : (
+        props.value
       )}
     </TableCell>
   )

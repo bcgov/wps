@@ -15,6 +15,7 @@ import { FireCentre, PlanningArea } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import { Button } from 'components'
 import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
+import { isGrassFuelType } from 'features/hfiCalculator/validation'
 
 export interface Props {
   title: string
@@ -365,6 +366,9 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                                     <TableCell>{daily?.precipitation}</TableCell>
                                     <GrassCureCell
                                       value={daily?.grass_cure_percentage}
+                                      isGrassFuelType={isGrassFuelType(
+                                        station.station_props
+                                      )}
                                     ></GrassCureCell>
                                     <TableCell>
                                       {daily?.ffmc?.toFixed(DECIMAL_PLACES)}
