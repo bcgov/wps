@@ -2,6 +2,7 @@
 """
 import logging
 import math
+from typing import Optional
 import rpy2.robjects as robjs
 from rpy2.robjects import DataFrame
 import rpy2.robjects.conversion as cv
@@ -94,7 +95,7 @@ def calculate_net_effective_windspeed(fuel_type: FuelTypeEnum,  # pylint: disabl
                                       ws: float,
                                       waz: float,
                                       gs: float,
-                                      saz: float,
+                                      saz: Optional[float],
                                       fmc: float,
                                       sfc: float,
                                       pc: float,
