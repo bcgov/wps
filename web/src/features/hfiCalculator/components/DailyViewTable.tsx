@@ -287,7 +287,11 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                   (m/min)
                 </TableCell>
                 <TableCell>HFI</TableCell>
-                <TableCell>1 HR Fire Size</TableCell>
+                <TableCell>
+                  60 min <br />
+                  fire size <br />
+                  (hectares)
+                </TableCell>
                 <TableCell>
                   Fire
                   <br />
