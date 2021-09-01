@@ -2,14 +2,17 @@ name: Production Deployment
 
 on:
   workflow_run:
-    branches: [task/deploy_on_label]
+    # branches: [task/deploy_on_label]
+    # workflows: ["Integration"]
+    # types:
+    #   - completed
+    # # , "Deployment", "Static Analysis"]
+    # # types:
+    # #   - completed
+    # #   - requested
     workflows: ["Integration"]
     types:
       - completed
-    # , "Deployment", "Static Analysis"]
-    # types:
-    #   - completed
-    #   - requested
 
 jobs:
   prerequisites-success:
