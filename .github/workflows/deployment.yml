@@ -14,11 +14,11 @@ jobs:
         uses: actions/github-script@v4
         with:
           script: |
-            const labels = (await github.issues.listLabelsOnIssue({owner: repository_owner, repo: repository_name, issue_number:context.payload.pull_request.number})).data
+            const labels = (await github.issues.listLabelsOnIssue({owner: context.repo.owner, repo: context.repo.repo, issue_number:context.payload.pull_request.number})).data
             const labelExists = labels.find( ({ name }) => name === 'pr/workflow/deployment' ) !== undefined
             if (labelExists) {
               github.issues.removeLabel({
-                  issue_number: context.issue.number,
+                  issue_number: context.payload.pull_request.number,
                   owner: context.repo.owner,
                   repo: context.repo.repo,
                   name: 'pr/workflow/deployment'
@@ -266,7 +266,7 @@ jobs:
         with:
           script: |
             github.issues.addLabels({
-                issue_number: context.issue.number,
+                issue_number: context.payload.pull_request.number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 labels: ['pr/workflow/deployment']
