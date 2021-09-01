@@ -29,6 +29,9 @@ RUN apt-get update --fix-missing && apt-get -y install r-base
 # Install cffdrs
 RUN R -e "install.packages('cffdrs')"
 
+# Install JDK
+RUN apt-get -y install openjdk-11-jdk
+
 # Update pip  
 RUN python -m pip install --upgrade pip
 
@@ -46,7 +49,7 @@ RUN python -m pip install gdal==$(gdal-config --version)
 # Install poetry https://python-poetry.org/docs/#installation
 RUN cd /tmp && \
     curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py > get-poetry.py && \
-    POETRY_HOME=/opt/poetry python get-poetry.py --version 1.1.6 && \
+    POETRY_HOME=/opt/poetry python get-poetry.py --version 1.1.8 && \
     cd /usr/local/bin && \
     ln -s /opt/poetry/bin/poetry && \
     poetry config virtualenvs.create false

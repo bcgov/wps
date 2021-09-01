@@ -3,7 +3,7 @@
 from typing import Generator, Tuple
 from contextlib import asynccontextmanager
 from aiobotocore.client import AioBaseClient
-from aiobotocore import get_session
+from aiobotocore.session import get_session
 from app import config
 
 
@@ -24,7 +24,7 @@ async def get_client() -> Generator[Tuple[AioBaseClient, str], None, None]:
         try:
             yield client, bucket
         finally:
-            await client.close()
+            del client
 
 
 async def object_exists(client: AioBaseClient, bucket: str, target_path: str):

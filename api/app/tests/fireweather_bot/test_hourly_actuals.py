@@ -20,9 +20,11 @@ logger = logging.getLogger(__name__)
 def mock_hourly_actuals(mocker: MockerFixture):
     """ Mocks out hourly actuals as async result """
     station_1 = WFWXWeatherStation(latitude=1, longitude=1, elevation=1,
-                                   wfwx_id='ba28973a-0a79-04ea-e053-1d09228e8c64', code=1)
+                                   wfwx_id='ba28973a-0a79-04ea-e053-1d09228e8c64', code=1,
+                                   name='blah', zone_code='T1')
     station_2 = WFWXWeatherStation(latitude=1, longitude=1, elevation=1,
-                                   wfwx_id='ba28973a-0a79-04ea-e053-1d09228e8c65', code=2)
+                                   wfwx_id='ba28973a-0a79-04ea-e053-1d09228e8c65', code=2,
+                                   name='blah', zone_code='T1')
 
     class MockWFWXHourlyResponse(object):
         def __init__(self, **kwargs):
@@ -79,8 +81,7 @@ def test_hourly_actuals_bot(monkeypatch, mocker: MockerFixture, mock_requests_se
     - the expected number of records are saved.
     """
 
-    @asyncio.coroutine
-    def mock_get_auth_header(_):
+    async def mock_get_auth_header(_):
         return dict()
 
     monkeypatch.setattr(wfwx_api, 'get_auth_header', mock_get_auth_header)

@@ -264,11 +264,31 @@ objects:
                     configMapKeyRef:
                       name: ${NAME}-global
                       key: env.redis-station-cache-expiry
+                - name: REDIS_HOURLIES_BY_STATION_CODE_CACHE_EXPIRY
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-global
+                      key: env.redis-hourlies-by-station-code-cache-expiry
                 - name: REDIS_AUTH_CACHE_EXPIRY
                   valueFrom:
                     configMapKeyRef:
                       name: ${NAME}-global
                       key: env.redis-auth-cache-expiry
+                - name: REDIS_DAILIES_BY_STATION_CODE_CACHE_EXPIRY
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-global
+                      key: env.redis-dailies-by-station-code-expiry
+                - name: REDIS_CACHE_ENV_CANADA
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-global
+                      key: env.redis-cache-env-canada
+                - name: REDIS_ENV_CANADA_CACHE_EXPIRY
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${NAME}-global
+                      key: env.redis-env-canada-cache-expiry
               ports:
                 - containerPort: 8080
                   protocol: TCP
@@ -324,6 +344,9 @@ objects:
       annotations:
         # Enable HTTP Strict Transport Security:
         haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+        # Use roundrobin load balancing strategy
+        haproxy.router.openshift.io/balance: roundrobin
+        haproxy.router.openshift.io/disable_cookies: "true"
     spec:
       host: ${NAME}-${SUFFIX}${ENVIRONMENT}.${SECOND_LEVEL_DOMAIN}
       port:
@@ -343,6 +366,9 @@ objects:
       annotations:
         # Enable HTTP Strict Transport Security:
         haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+        # Use roundrobin load balancing strategy
+        haproxy.router.openshift.io/balance: roundrobin
+        haproxy.router.openshift.io/disable_cookies: "true"
     spec:
       host: ${VANITY_DOMAIN}
       port:

@@ -73,7 +73,9 @@ class MockAsyncResponse:
         """ Initialize client response """
         self._text = text
         self._json = json
-        self.status_code = status_code
+        # NOTE: there is no status_code response!
+        # self.status_code = status_code
+        self.status = status_code
 
     async def text(self) -> str:
         """ Return text response """
@@ -129,19 +131,6 @@ class DefaultMockAioBaseClient:
         """Close all http connections."""
 
 
-class MockRLibCFFDRS():
-    """ CFFDRS library mock."""
-
-    def _ROScalc(self, **kwargs):  # pylint: disable=invalid-name, no-self-use, unused-argument
-        return [1.2966988409822604e-05]
-
-    def _FMCcalc(self, **kwargs):  # pylint: disable=invalid-name, no-self-use, unused-argument
-        return [1]
-
-    def _SFCcalc(self, **kwargs):  # pylint: disable=invalid-name, no-self-use, unused-argument
-        return [1]
-
-
 def default_aiobotocore_get_session():
     """ Default session stub """
     return DefaultMockAioSession()
@@ -159,7 +148,7 @@ def get_mock_client_session(url: str, params: dict = None) -> MockClientSession:
     # Get the fixture filename
     fixture_finder = FixtureFinder()
     filename = fixture_finder.get_fixture_path(url, 'get', params)
-    with open(filename) as fixture_file:
+    with open(filename, encoding="utf-8") as fixture_file:
         if is_json(filename):
             return MockClientSession(json=json.load(fixture_file))
         return MockClientSession(text=fixture_file.read())

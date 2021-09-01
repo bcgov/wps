@@ -180,6 +180,10 @@ docker-shell-db:
 	# Shell into the db container
 	docker-compose exec db psql -h db -U wps
 
+docker-redis:
+	# Start up a local Redis service within docker container
+	docker-compose up redis
+
 docker-run-env-canada:
 	# Run a python script to download model data from Env Canada on docker
 	# Needs to run "make docker-run" first

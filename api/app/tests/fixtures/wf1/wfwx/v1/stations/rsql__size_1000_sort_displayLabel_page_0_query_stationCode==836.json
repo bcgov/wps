@@ -1,0 +1,101 @@
+{
+    "_embedded": {
+        "stations": [
+            {
+                "id": "bfe0a6e2-e2df-0210-e053-259e228e58c7",
+                "displayLabel": "AUGUST LAKE",
+                "createdBy": "LEGACY_DATA_LOAD",
+                "lastModifiedBy": "WFWX_WEATHER_API",
+                "lastEntityUpdateTimestamp": 1627326661598,
+                "updateDate": "2021-07-26T19:11:01.000+0000",
+                "stationCode": 836,
+                "stationAcronym": "FAK",
+                "stationStatus": {
+                    "id": "ACTIVE",
+                    "displayLabel": "Active",
+                    "displayOrder": 1
+                },
+                "dataSource": "AutoCaller GSNet",
+                "dataLoggerType": {
+                    "id": "a48a0ad5-ae6c-15c4-e053-e60a0a0aaa40",
+                    "displayLabel": "FWS12S",
+                    "displayOrder": 5,
+                    "dataLoggerType": "FWS12S",
+                    "createdBy": "DATA_LOAD",
+                    "lastModifiedBy": "DATA_LOAD"
+                },
+                "siteType": {
+                    "id": "a48a0ad5-ae78-15c4-e053-e60a0a0aaa40",
+                    "displayLabel": "Weather Station - Telephone",
+                    "displayOrder": 9,
+                    "siteType": "WXSTN_TEL",
+                    "createdBy": "DATA_LOAD",
+                    "lastModifiedBy": "DATA_LOAD"
+                },
+                "weatherZone": {
+                    "id": 20,
+                    "displayLabel": "Zone 20",
+                    "dangerRegion": 3,
+                    "displayOrder": 20
+                },
+                "hourly": true,
+                "latitude": 49.43348,
+                "longitude": -120.45712,
+                "geometry": {
+                    "crs": {
+                        "type": "name",
+                        "properties": {
+                            "name": "EPSG:4326"
+                        }
+                    },
+                    "coordinates": [
+                        -120.45712,
+                        49.43348
+                    ],
+                    "type": "Point"
+                },
+                "elevation": 855,
+                "windspeedAdjRoughness": 1.0,
+                "windspeedAdjHeight": 1.0,
+                "overWinterPrecipAdj": false,
+                "influencingSlope": null,
+                "installationDate": 1053928800000,
+                "decommissionDate": null,
+                "influencingAspect": null,
+                "owner": null,
+                "fireCentre": {
+                    "id": 25,
+                    "displayLabel": "Kamloops Fire Centre",
+                    "alias": 5
+                },
+                "zone": {
+                    "id": 31,
+                    "displayLabel": "Merritt Zone",
+                    "alias": 6,
+                    "fireCentre": "Kamloops Fire Centre",
+                    "fireCentreAlias": 5
+                },
+                "comments": "1st Daily 20030527; Cell Modem May 2019",
+                "ecccFileBaseUrlTemplate": null,
+                "lastProcessedSourceTime": "2021-07-26T12:11:01",
+                "crdStationName": null,
+                "_links": {
+                    "self": {
+                        "href": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1/stations/rsql/bfe0a6e2-e2df-0210-e053-259e228e58c7"
+                    }
+                }
+            }
+        ]
+    },
+    "_links": {
+        "self": {
+            "href": "https://bcwsapi.nrs.gov.bc.ca/wfwx-fireweather-api/v1stations/rsql?query=stationCode%3D%3D836"
+        }
+    },
+    "page": {
+        "size": 1000,
+        "totalElements": 1,
+        "totalPages": 1,
+        "number": 0
+    }
+}

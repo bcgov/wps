@@ -16,7 +16,7 @@ from app.schemas.stations import (WeatherStation,
                                   WeatherVariables)
 from app.wildfire_one.schema_parsers import (WFWXWeatherStation,
                                              parse_station,
-                                             parse_daily,
+                                             generate_station_daily,
                                              parse_hourly,
                                              parse_hourly_actual,
                                              station_list_mapper,
@@ -58,8 +58,8 @@ async def get_stations_by_codes(station_codes: List[int]) -> List[WeatherStation
     async with ClientSession() as session:
         header = await get_auth_header(session)
         stations = []
-        # 1 day seems a reasonable period to cache stations for.
-        redis_station_cache_expiry: Final = int(config.get('REDIS_STATION_CACHE_EXPIRY', 86400))
+        # 1 week seems a reasonable period to cache stations for.
+        redis_station_cache_expiry: Final = int(config.get('REDIS_STATION_CACHE_EXPIRY', 604800))
         # Iterate through "raw" station data.
         iterator = fetch_paged_response_generator(session,
                                                   header,
@@ -80,8 +80,8 @@ async def get_stations(session: ClientSession,
     """ Get list of stations from WFWX Fireweather API.
     """
     logger.info('Using WFWX to retrieve station list')
-    # 1 day seems a reasonable period to cache stations for.
-    redis_station_cache_expiry: Final = int(config.get('REDIS_STATION_CACHE_EXPIRY', 86400))
+    # 1 week seems a reasonable period to cache stations for.
+    redis_station_cache_expiry: Final = int(config.get('REDIS_STATION_CACHE_EXPIRY', 604800))
     # Iterate through "raw" station data.
     raw_stations = fetch_paged_response_generator(session,
                                                   header,
@@ -145,13 +145,14 @@ async def get_hourly_readings(
         header: dict,
         station_codes: List[int],
         start_timestamp: datetime,
-        end_timestamp: datetime) -> List[WeatherStationHourlyReadings]:
+        end_timestamp: datetime,
+        use_cache: bool = False) -> List[WeatherStationHourlyReadings]:
     """ Get the hourly readings for the list of station codes provided.
     """
     # Create a list containing all the tasks to run in parallel.
     tasks = []
-    # 1 day seems a reasonable period to cache stations for.
-    redis_station_cache_expiry: Final = int(config.get('REDIS_STATION_CACHE_EXPIRY', 86400))
+    # 1 week seems a reasonable period to cache stations for.
+    redis_station_cache_expiry: Final = int(config.get('REDIS_STATION_CACHE_EXPIRY', 604800))
     # Iterate through "raw" station data.
     iterator = fetch_paged_response_generator(session,
                                               header,
@@ -165,7 +166,8 @@ async def get_hourly_readings(
                            raw_station,
                            header,
                            start_timestamp,
-                           end_timestamp))
+                           end_timestamp,
+                           use_cache))
         tasks.append(task)
 
     # Run the tasks concurrently, waiting for them all to complete.
@@ -238,13 +240,15 @@ async def get_wfwx_stations_from_station_codes(session, header, station_codes: O
     return requested_stations
 
 
-async def get_dailies(  # pylint: disable=too-many-locals
+async def get_dailies_lookup_fuel_types(  # pylint: disable=too-many-locals
         session: ClientSession,
         header: dict,
         wfwx_stations: List[WFWXWeatherStation],
         start_timestamp: int,
         end_timestamp: int) -> List[StationDaily]:
     """ Get the daily actuals for the given station ids.
+    Looks up fuel type in our database based on station code.
+    This function is used for HFI calculator, where fuel types are hard-coded for relevant stations.
     """
 
     wfwx_station_ids = [wfwx_station.wfwx_id for wfwx_station in wfwx_stations]
@@ -267,6 +271,31 @@ async def get_dailies(  # pylint: disable=too-many-locals
         wfwx_id = raw_daily.get('stationId', None)
         station = station_dict.get(wfwx_id, None)
         fuel_type = fuel_type_dict.get(station.code, None)
-        daily = parse_daily(raw_daily, station, fuel_type)
+        daily = generate_station_daily(raw_daily, station, fuel_type)
         dailies.append(daily)
     return dailies
+
+
+async def get_dailies(
+        session: ClientSession,
+        header: dict,
+        wfwx_stations: List[WFWXWeatherStation],
+        time_of_interest: datetime) -> List[dict]:
+    """ Get the daily actuals/forecasts for the given station ids. """
+    # build a list of wfwx station id's
+    wfwx_station_ids = [wfwx_station.wfwx_id for wfwx_station in wfwx_stations]
+
+    timestamp_of_intereset = math.floor(time_of_interest.timestamp()*1000)
+
+    # for local dev, we can use redis to reduce load in prod, and generally just makes development faster.
+    # for production, it's more tricky - we don't want to put too much load on the wf1 api, but we don't
+    # want stale values either. We default to 5 minutes, or 300 seconds.
+    cache_expiry_seconds = config.get('REDIS_DAILIES_BY_STATION_CODE_CACHE_EXPIRY', 300)
+    use_cache = cache_expiry_seconds is not None and config.get('REDIS_USE') == 'True'
+
+    dailies_iterator = fetch_paged_response_generator(session, header, BuildQueryDailesByStationCode(
+        timestamp_of_intereset, timestamp_of_intereset, wfwx_station_ids), 'dailies',
+        use_cache=use_cache,
+        cache_expiry_seconds=cache_expiry_seconds)
+
+    return dailies_iterator

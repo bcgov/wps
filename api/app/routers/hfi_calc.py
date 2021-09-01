@@ -12,7 +12,7 @@ from app.schemas.hfi_calc import (HFIWeatherStationsResponse, WeatherStationProp
                                   FuelType, FireCentre, PlanningArea, WeatherStation)
 from app.db.crud.hfi_calc import get_fire_weather_stations
 from app.wildfire_one.wfwx_api import (get_auth_header,
-                                       get_dailies,
+                                       get_dailies_lookup_fuel_types,
                                        get_stations_by_codes)
 
 
@@ -48,7 +48,7 @@ async def get_daily_view(response: Response,
         header = await get_auth_header(session)
         wfwx_stations = await app.wildfire_one.wfwx_api.get_wfwx_stations_from_station_codes(
             session, header, station_codes)
-        dailies = await get_dailies(
+        dailies = await get_dailies_lookup_fuel_types(
             session, header, wfwx_stations, valid_start_time, valid_end_time)
         return StationDailyResponse(dailies=dailies)
 

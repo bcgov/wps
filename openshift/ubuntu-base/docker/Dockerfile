@@ -14,6 +14,9 @@ RUN R -e "install.packages('cffdrs')"
 RUN apt-get -y install python3.8
 RUN apt-get -y install python3-pip
 
+# python3-pip doesn't necessarily get you the latest version of pip.
+RUN pip3 install --upgrade pip
+
 # According to the stackexchange thread below, we need to install numpy before
 # installing gdal or we could end up missing _gdal_array
 # https://gis.stackexchange.com/questions/153199/import-error-no-module-named-gdal-array
@@ -29,7 +32,7 @@ RUN python3 -m pip install gdal==$(gdal-config --version)
 RUN apt-get -y install curl
 RUN cd /tmp && \
     curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py > get-poetry.py && \
-    POETRY_HOME=/opt/poetry python3 get-poetry.py --version 1.1.6 && \
+    POETRY_HOME=/opt/poetry python3 get-poetry.py --version 1.1.8 && \
     cd /usr/local/bin && \
     ln -s /opt/poetry/bin/poetry && \
     poetry config virtualenvs.create false

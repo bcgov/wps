@@ -20,6 +20,7 @@ export const FIRE_WEATHER_ROUTE = '/fire-weather'
 export const MORECAST_ROUTE = '/morecast'
 export const HFI_CALC_ROUTE = '/hfi-calculator'
 export const C_HAINES_ROUTE = '/c-haines'
+export const FIRE_BEHAVIOR_CALC_ROUTE = '/fire-behaviour-calculator'
 
 // ExpandableContainer widths
 export const PARTIAL_WIDTH = 850

@@ -16,7 +16,7 @@ RUN yarn run build
 USER 1001
 
 # PHASE 2 - prepare python.
-# Using local docker image to speed up build. See openshift/unicorn-base for details.
+# Using local docker image to speed up build. See openshift/wps-api-base for details.
 FROM ${DOCKER_IMAGE}
 
 # Copy poetry files.
@@ -28,6 +28,9 @@ RUN cd /tmp && \
 
 # Copy the app:
 COPY ./api/app /app/app
+# Copy java libs:
+RUN mkdir /app/libs
+COPY ./api/libs /app/libs
 # Copy the static content:
 COPY --from=static /opt/app-root/src/build /app/static
 # Copy almebic:
@@ -38,3 +41,6 @@ COPY ./api/prestart.sh /app
 
 # The fastapi docker image defaults to port 80, but openshift doesn't allow non-root users port 80.
 EXPOSE 8080
+
+# Set the classpath to include copied libs
+ENV CLASSPATH=/app/libs/REDapp_Lib.jar:/app/libs/WTime.jar:/app/libs/hss-java.jar:${CLASSPATH}

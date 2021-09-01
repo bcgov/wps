@@ -7,13 +7,17 @@ import { RootState } from 'app/rootReducer'
 interface Props {
   onBtnClick: () => void
   selector: (root: RootState) => boolean
+  disabled?: boolean
+  buttonLabel?: string
 }
 
-const GetWxDataButton = ({ onBtnClick, selector }: Props) => {
+const GetWxDataButton = ({ onBtnClick, selector, disabled, buttonLabel }: Props) => {
   const wxDataLoading = useSelector(selector)
+  const label = buttonLabel ? buttonLabel : 'Get Weather Data'
 
   return (
     <Button
+      disabled={disabled}
       data-testid="get-wx-data-button"
       onClick={onBtnClick}
       loading={wxDataLoading}
@@ -21,7 +25,7 @@ const GetWxDataButton = ({ onBtnClick, selector }: Props) => {
       color="primary"
       spinnercolor="white"
     >
-      Get Weather Data
+      {label}
     </Button>
   )
 }
