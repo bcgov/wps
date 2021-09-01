@@ -27,9 +27,10 @@ describe('HFI Calculator Page', () => {
     cy.getByTestId('zone-4-mean-intensity').contains(2)
     cy.getByTestId('239-hfi').contains(2655.5)
     cy.getByTestId('280-ros').contains(1.7)
+    cy.getByTestId('239-1-hr-size').contains(0.5)
     cy.getByTestId('280-intensity-group').contains(3)
     cy.getByTestId('zone-0-mean-intensity').contains(2.4)
-    cy.getByTestId('zone-0-mean-intensity').should(($td) => {
+    cy.getByTestId('zone-0-mean-intensity').should($td => {
       const className = $td[0].className
       expect(className).to.match(/makeStyles-intensityGroupSolid2-/)
     })

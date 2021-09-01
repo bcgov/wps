@@ -287,6 +287,7 @@ export const DailyViewTable = (props: Props) => {
                   (m/min)
                 </TableCell>
                 <TableCell>HFI</TableCell>
+                <TableCell>1 HR Fire Size</TableCell>
                 <TableCell>
                   M /
                   <br />
@@ -314,7 +315,7 @@ export const DailyViewTable = (props: Props) => {
                               key={`zone-${areaName}`}
                               data-testid={`zone-${areaName}`}
                             >
-                              <TableCell className={classes.planningArea} colSpan={19}>
+                              <TableCell className={classes.planningArea} colSpan={20}>
                                 {area.name}
                               </TableCell>
                               <TableCell
@@ -377,6 +378,11 @@ export const DailyViewTable = (props: Props) => {
                                     </TableCell>
                                     <TableCell data-testid={`${daily?.code}-hfi`}>
                                       {daily?.hfi?.toFixed(DECIMAL_PLACES)}
+                                    </TableCell>
+                                    <TableCell data-testid={`${daily?.code}-1-hr-size`}>
+                                      {daily?.sixty_minute_fire_size?.toFixed(
+                                        DECIMAL_PLACES
+                                      )}
                                     </TableCell>
                                     <TableCell
                                       className={formatStationIntensityGroupByValue(
