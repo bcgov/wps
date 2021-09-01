@@ -65,7 +65,7 @@ const GrassCureProps = (props: GrassCureCellProps) => {
   return (
     <Tooltip title="Cannot exceed 100" aria-label="cannot-exceed-100">
       <TextField
-        data-testid={`grassCureInput-fba`}
+        data-testid={`grassCureInput-fba-${props.rowId}`}
         type="number"
         inputMode="numeric"
         className={props.classNameMap.grassCure}
