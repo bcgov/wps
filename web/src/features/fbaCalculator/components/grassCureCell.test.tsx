@@ -7,7 +7,11 @@ import { FBATableRow } from 'features/fbaCalculator/RowManager'
 import { isNull } from 'lodash'
 import React from 'react'
 describe('GrassCureCell', () => {
-  const buildProps = (inputRow: FBATableRow, rowId: number, value?: number): GrassCureCellProps => ({
+  const buildProps = (
+    inputRow: FBATableRow,
+    rowId: number,
+    value?: number
+  ): GrassCureCellProps => ({
     inputRows: [inputRow],
     updateRow: () => {
       /** no op */
