@@ -5,8 +5,28 @@ on:
     branches:
       - main
 jobs:
+  cleanup-job:
+    name: Cleanup "Integration" workflow
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Run a one-line script
+        uses: actions/github-script@v4
+        with:
+          script: |
+            const labels = (await github.issues.listLabelsOnIssue({owner: context.repo.owner, repo: context.repo.repo, issue_number:context.payload.pull_request.number})).data
+            const labelExists = labels.find( ({ name }) => name === 'pr/workflow/integration' ) !== undefined
+            if (labelExists) {
+              github.issues.removeLabel({
+                  issue_number: context.payload.pull_request.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: 'pr/workflow/integration'
+                })
+            }
+
   lint-and-test:
     name: Lint, Test, Coverage with CodeCov
+    needs: [cleanup-job]
     runs-on: ubuntu-20.04
     strategy:
       matrix:
@@ -163,3 +183,19 @@ jobs:
       #   with:
       #     token: ${{secrets.CODECOV_TOKEN}}
       #     fail_ci_if_error: false
+
+  label-complete:
+    name: Label integration
+    needs: [lint-and-test]
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Run a one-line script
+        uses: actions/github-script@v4
+        with:
+          script: |
+            github.issues.addLabels({
+                issue_number: context.payload.pull_request.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                labels: ['pr/workflow/integration']
+              })

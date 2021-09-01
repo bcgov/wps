@@ -7,7 +7,7 @@ on:
 
 jobs:
   cleanup-job:
-    name: Cleanup deployment job
+    name: Cleanup "Deployment" workflow
     runs-on: ubuntu-20.04
     steps:
       - name: Run a one-line script
@@ -257,7 +257,7 @@ jobs:
   #         PROJ_TARGET="e1e498-test" bash openshift/scripts/oc_provision_ec_rdps_cronjob.sh ${SUFFIX} apply
 
   label-complete:
-    name: Cleanup deployment job
+    name: Label deployment
     needs: [deploy-dev, deploy-c-haines, deploy-test, scan-dev]
     runs-on: ubuntu-20.04
     steps:
