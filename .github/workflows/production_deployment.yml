@@ -63,6 +63,9 @@ jobs:
             if (isPrTested === false) {
               core.setFailed('Pull Request has not yet been tested.')
             }
+      - name: Run a one-line script
+        run: |
+          echo Next step
 
   deploy-prod:
     # If PR has been deployed in dev and test environment, and has been approved - we deploy to production.
