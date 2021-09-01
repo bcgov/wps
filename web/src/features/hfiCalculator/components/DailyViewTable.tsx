@@ -137,7 +137,7 @@ const useStyles = makeStyles({
   }
 })
 
-export const DailyViewTable = (props: Props) => {
+export const DailyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()
 
   const DECIMAL_PLACES = 1
@@ -288,6 +288,11 @@ export const DailyViewTable = (props: Props) => {
                 </TableCell>
                 <TableCell>HFI</TableCell>
                 <TableCell>
+                  Fire
+                  <br />
+                  Type
+                </TableCell>
+                <TableCell>
                   M /
                   <br />
                   FIG
@@ -314,7 +319,7 @@ export const DailyViewTable = (props: Props) => {
                               key={`zone-${areaName}`}
                               data-testid={`zone-${areaName}`}
                             >
-                              <TableCell className={classes.planningArea} colSpan={19}>
+                              <TableCell className={classes.planningArea} colSpan={20}>
                                 {area.name}
                               </TableCell>
                               <TableCell
@@ -377,6 +382,9 @@ export const DailyViewTable = (props: Props) => {
                                     </TableCell>
                                     <TableCell data-testid={`${daily?.code}-hfi`}>
                                       {daily?.hfi?.toFixed(DECIMAL_PLACES)}
+                                    </TableCell>
+                                    <TableCell data-testid={`${daily?.code}-fire-type`}>
+                                      {daily?.fire_type}
                                     </TableCell>
                                     <TableCell
                                       className={formatStationIntensityGroupByValue(
