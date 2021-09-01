@@ -3,7 +3,9 @@ name: Production Deployment
 on:
   workflow_run:
     workflows: ["Integration", "Deployment", "Static Analysis"]
-    types: [completed]
+    # types:
+    #   - completed
+    #   - requested
 
 jobs:
   prerequisites-success:
