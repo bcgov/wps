@@ -14,12 +14,16 @@ jobs:
         uses: actions/github-script@v4
         with:
           script: |
-            github.issues.removeLabel({
-                issue_number: context.issue.number,
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                name: 'pr/workflow/deployment'
-              })
+            const labels = (await github.issues.listLabelsOnIssue({owner: repository_owner, repo: repository_name, issue_number:context.payload.pull_request.number})).data
+            const labelExists = labels.find( ({ name }) => name === 'pr/workflow/deployment' ) !== undefined
+            if (labelExists) {
+              github.issues.removeLabel({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: 'pr/workflow/deployment'
+                })
+            }
 
   prepare-dev-database:
     name: Prepare Dev Database
