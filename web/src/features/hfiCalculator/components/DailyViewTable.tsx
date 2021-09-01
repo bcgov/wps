@@ -425,14 +425,14 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                               </TableCell>
                               <TableCell
                                 className={classes.fireStarts}
-                                data-testid={`daily-fire-starts-${area.id}`}
+                                data-testid={`daily-fire-starts-${areaName}`}
                               >
                                 {/* using a fixed value of 0-1 Fire Starts for now */}
                                 0-1
                               </TableCell>
                               <TableCell
                                 className={formatPrepLevelByValue(prepLevel)}
-                                data-testid={`daily-prep-level-${area.id}`}
+                                data-testid={`daily-prep-level-${areaName}`}
                               >
                                 {prepLevel}
                               </TableCell>
