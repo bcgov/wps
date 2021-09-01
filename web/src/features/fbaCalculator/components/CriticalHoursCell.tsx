@@ -15,7 +15,7 @@ const useStyles = makeStyles({
   }
 })
 
-const formatCriticalHoursAsString = (
+export const formatCriticalHoursAsString = (
   criticalHours: CriticalHoursHFI | undefined | null
 ): string | undefined => {
   if (criticalHours === undefined || criticalHours === null) {
