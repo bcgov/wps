@@ -2,16 +2,32 @@ name: Production Deployment
 
 on:
   workflow_run:
-    workflows: ["Integration", "Deployment"]
-    branches:
-      - main
-    types:
-      - completed
-      - requested
+    workflows: ["Integration", "Deployment", "Static Analysis"]
+    types: [completed]
+
 jobs:
+  prerequisites-success:
+    runs-on: ubuntu-20.04
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - uses: actions/github-script@v3.1.0
+        with:
+          script: |
+            console.log('Prerequisite workflows completed succesfully')
+
+  prerequisites-fail:
+    runs-on: ubuntu-20.04
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    steps:
+      - uses: actions/github-script@v3.1.0
+        with:
+          script: |
+            core.setFailed('Prerequisite workflows did not complete succesfully')
+
   accept:
     # We want to be sure that an outside collaborator can't deploy using a fork, without us marking
     # the pr as pr/accepted
+    needs: [prerequisites-success]
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/github-script@v3.1.0
@@ -46,7 +62,7 @@ jobs:
 
   approve:
     # Check that PR label pr/approved has been set.
-    # Was doing: core.setFailed('....') - but that results in a lot of noise
+    # Was doing: core.setFailed('....') - but that results in a lot of noise ; one can do core.notice ?
     needs: [accept]
     runs-on: ubuntu-20.04
     steps:
@@ -59,7 +75,6 @@ jobs:
             console.log(`PR > isPrApproved: ${isPrApproved}`)
             if(isPrApproved === false) {
               core.notice('Pull Request not approved for deployment. Add a "pr/approved" label to the PR when ready to deploy to production.')
-              # core.setFailed('Pull Request not approved for deployment. Add a "pr/approved" label to the PR when ready to deploy to production.')   
             }
 
   deploy-prod:
