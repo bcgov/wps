@@ -147,7 +147,9 @@ def calculate_intensity_group(hfi: float) -> int:
     return 5
 
 
-def generate_station_daily(raw_daily, station: WFWXWeatherStation, fuel_type: str) -> StationDaily:
+def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
+                           station: WFWXWeatherStation,
+                           fuel_type: str) -> StationDaily:
     """ Transform from the raw daily json object returned by wf1, to our daily object.
     """
     # pylint: disable=invalid-name
