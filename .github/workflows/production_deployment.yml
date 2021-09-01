@@ -1,0 +1,26 @@
+name: Production Deployment
+
+on:
+  workflow_run:
+    workflows: ["Integration"]
+    types:
+      - completed
+
+jobs:
+  prerequisites-success:
+    runs-on: ubuntu-20.04
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - uses: actions/github-script@v3.1.0
+        with:
+          script: |
+            console.log('Prerequisite workflows completed succesfully')
+
+  prerequisites-fail:
+    runs-on: ubuntu-20.04
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    steps:
+      - uses: actions/github-script@v3.1.0
+        with:
+          script: |
+            core.setFailed('Prerequisite workflows did not complete succesfully')
