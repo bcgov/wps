@@ -2,6 +2,7 @@ name: Production Deployment
 
 on:
   workflow_run:
+    branches: [task/deploy_on_label]
     workflows:
       - Integration
     types:
