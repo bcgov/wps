@@ -2,7 +2,11 @@ name: Production Deployment
 
 on:
   workflow_run:
-    workflows: ["Integration", "Deployment", "Static Analysis"]
+    workflows:
+      - Integration
+    types:
+      - completed
+    # , "Deployment", "Static Analysis"]
     # types:
     #   - completed
     #   - requested
