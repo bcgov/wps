@@ -26,7 +26,6 @@ jobs:
   accept:
     # We want to be sure that an outside collaborator can't deploy using a fork, without us marking
     # the pr as pr/accepted
-    needs: [prerequisites-success]
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/github-script@v3.1.0
