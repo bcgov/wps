@@ -4,23 +4,6 @@ on:
   pull_request:
     branches:
       - main
-  # workflow_run:
-  #   # branches: [task/deploy_on_label]
-  #   # workflows: ["Integration"]
-  #   # types:
-  #   #   - completed
-  #   # # , "Deployment", "Static Analysis"]
-  #   # # types:
-  #   # #   - completed
-  #   # #   - requested
-  #   workflows: ["Integration"]
-  #   types:
-  #     - completed
-  #   branches:
-  #     - main
-  # pull_request:
-  #   branches:
-  #     - main
 
 jobs:
   accept:
@@ -97,7 +80,8 @@ jobs:
       # Runs a single command using the runners shell
       - name: Run a one-line script
         run: |
-          const labels = (await github.issues.listLabelsOnIssue({owner: context.repo.owner, repo: context.repo.repo, issue_number:context.payload.pull_request.number})).data
+          const [repository_owner, repository_name] = process.env.GITHUB_REPOSITORY.split('/')
+          const labels = (await github.issues.listLabelsOnIssue({owner: repository_owner, repo: repository_name, issue_number:context.payload.pull_request.number})).data
           const isPrApproved = labels.find( ({ name }) => name === 'pr/approved' ) !== undefined
           const isPrDeployed = labels.find( ({name}) => name === 'pr/workflow/deployment') !== undefined
           const isPrTested = labels.find( ({name}) => name === 'pr/workflow/integration') !== undefined
