@@ -28,6 +28,7 @@ class StationDaily(BaseModel):
     hfi: Optional[float] = None
     intensity_group: Optional[int] = None
     sixty_minute_fire_size: Optional[float]
+    fire_type: Optional[str]
 
 
 class StationDailyResponse(BaseModel):

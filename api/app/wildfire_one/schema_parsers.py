@@ -13,7 +13,7 @@ from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.schemas.observations import WeatherReading
 from app.schemas.hfi_calc import StationDaily
 from app.utils.fuel_types import FUEL_TYPE_DEFAULTS
-from app.fba_calculator import calculate_cfb, get_fire_size
+from app.fba_calculator import calculate_cfb, get_fire_size, get_fire_type
 from app.utils.time import get_julian_date_now
 from app.wildfire_one.util import is_station_valid, get_zone_code_prefix
 
@@ -214,6 +214,7 @@ def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
                                       pdf=pdf,
                                       cbh=cbh)
     sixty_minute_fire_size = get_fire_size(FuelTypeEnum[fuel_type], ros, bros, 60, cfb, lb_ratio)
+    fire_type = get_fire_type(FuelTypeEnum[fuel_type], crown_fraction_burned=cfb)
 
     return StationDaily(
         code=station.code,
@@ -237,7 +238,8 @@ def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
         observation_valid_comment=raw_daily.get(
             'observationValidComment', None),
         intensity_group=calculate_intensity_group(hfi),
-        sixty_minute_fire_size=sixty_minute_fire_size
+        sixty_minute_fire_size=sixty_minute_fire_size,
+        fire_type=fire_type
     )
 
 

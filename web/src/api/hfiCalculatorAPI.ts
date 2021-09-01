@@ -22,6 +22,7 @@ export interface StationDaily {
   observation_valid_comment: string
   intensity_group: number
   sixty_minute_fire_size: number
+  fire_type: string
 }
 
 export interface StationDailyResponse {
