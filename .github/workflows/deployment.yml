@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: Run a one-line script
-      - uses: actions/github-script@v4
+        uses: actions/github-script@v4
         with:
           script: |
             github.issues.removeLabel({
@@ -258,7 +258,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: Run a one-line script
-      - uses: actions/github-script@v4
+        uses: actions/github-script@v4
         with:
           script: |
             github.issues.addLabels({

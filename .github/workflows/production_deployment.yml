@@ -28,7 +28,7 @@ jobs:
     # the pr as pr/accepted
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/github-script@v3.1.0
+      - uses: actions/github-script@v4
         with:
           script: |
             console.log('-- CONTEXT --')
@@ -64,7 +64,7 @@ jobs:
     needs: [accept]
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/github-script@v3.1.0
+      - uses: actions/github-script@v4
         with:
           script: |
             const [repository_owner, repository_name] = process.env.GITHUB_REPOSITORY.split('/')
