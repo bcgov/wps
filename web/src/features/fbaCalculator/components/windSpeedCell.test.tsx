@@ -29,19 +29,23 @@ describe('WindSpeedCell', () => {
     const row = buildTableRow(1)
     const props = buildProps(row)
     render(<WindSpeedCell {...props} />)
-    expect(screen.getByTestId('windSpeedInput-fba').firstChild?.firstChild).toHaveValue(1)
+    expect(screen.getByTestId('windSpeedInput-fba-0').firstChild?.firstChild).toHaveValue(
+      1
+    )
   })
   it('should set calculated value if no input value', () => {
     const row = buildTableRow(undefined)
     const props = buildProps(row, 2)
     render(<WindSpeedCell {...props} />)
-    expect(screen.getByTestId('windSpeedInput-fba').firstChild?.firstChild).toHaveValue(2)
+    expect(screen.getByTestId('windSpeedInput-fba-0').firstChild?.firstChild).toHaveValue(
+      2
+    )
   })
   it('should return field in error state when wind speed is set to over 120', () => {
     const row = buildTableRow(121)
     const props = buildProps(row)
     render(<WindSpeedCell {...props} />)
-    expect(screen.getByTestId('windSpeedInput-fba').firstChild).toHaveClass('Mui-error')
+    expect(screen.getByTestId('windSpeedInput-fba-0').firstChild).toHaveClass('Mui-error')
   })
   it('should return field without error state when error is corrected', () => {
     const row = buildTableRow(121)
@@ -51,10 +55,10 @@ describe('WindSpeedCell', () => {
 
     const correctedProps = { ...props, inputValue: 120 }
     rerender(<WindSpeedCell {...correctedProps} />)
-    expect(screen.getByTestId('windSpeedInput-fba-1').firstChild?.firstChild).toHaveValue(
+    expect(screen.getByTestId('windSpeedInput-fba-0').firstChild?.firstChild).toHaveValue(
       120
     )
-    expect(screen.getByTestId('windSpeedInput-fba-1').firstChild).not.toHaveClass(
+    expect(screen.getByTestId('windSpeedInput-fba-0').firstChild).not.toHaveClass(
       'Mui-error'
     )
   })
