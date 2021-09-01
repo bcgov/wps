@@ -14,6 +14,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import { FireCentre, PlanningArea } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import { Button } from 'components'
+import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
 
 export interface Props {
   title: string
@@ -362,7 +363,9 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                                     </TableCell>
                                     <TableCell>{daily?.wind_speed}</TableCell>
                                     <TableCell>{daily?.precipitation}</TableCell>
-                                    <TableCell>{daily?.grass_cure_percentage}</TableCell>
+                                    <GrassCureCell
+                                      value={daily?.grass_cure_percentage}
+                                    ></GrassCureCell>
                                     <TableCell>
                                       {daily?.ffmc?.toFixed(DECIMAL_PLACES)}
                                     </TableCell>
