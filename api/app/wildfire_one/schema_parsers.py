@@ -13,7 +13,7 @@ from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.schemas.observations import WeatherReading
 from app.schemas.hfi_calc import StationDaily
 from app.utils.fuel_types import FUEL_TYPE_DEFAULTS
-from app.fba_calculator import calculate_cfb
+from app.fba_calculator import calculate_cfb, get_fire_type
 from app.utils.time import get_julian_date_now
 from app.wildfire_one.util import is_station_valid, get_zone_code_prefix
 
@@ -190,6 +190,8 @@ def generate_station_daily(raw_daily, station: WFWXWeatherStation, fuel_type: st
     except cffdrs.CFFDRSException as exception:
         logger.error(exception, exc_info=True)
 
+    fire_type = get_fire_type(FuelTypeEnum[fuel_type], crown_fraction_burned=cfb)
+
     return StationDaily(
         code=station.code,
         status=raw_daily.get('recordType', '').get('id', None),
@@ -211,7 +213,8 @@ def generate_station_daily(raw_daily, station: WFWXWeatherStation, fuel_type: st
         observation_valid=raw_daily.get('observationValidInd', None),
         observation_valid_comment=raw_daily.get(
             'observationValidComment', None),
-        intensity_group=calculate_intensity_group(hfi)
+        intensity_group=calculate_intensity_group(hfi),
+        fire_type=fire_type
     )
 
 
