@@ -46,7 +46,7 @@ def _get_stations_local() -> List[WeatherStation]:
     """ Get list of stations from local json files.
     """
     logger.info('Using pre-generated json to retrieve station list')
-    with open(weather_stations_file_path) as weather_stations_file:
+    with open(weather_stations_file_path, encoding="utf-8") as weather_stations_file:
         json_data = json.load(weather_stations_file)
         results = []
         for station in json_data['weather_stations']:
@@ -104,7 +104,7 @@ async def _get_detailed_stations(time_of_interest: datetime):
 def _get_stations_by_codes_local(station_codes: List[int]) -> List[WeatherStation]:
     """ Get a list of stations by code, from local json files. """
     logger.info('Using pre-generated json to retrieve station by code')
-    with open(weather_stations_file_path) as file_pointer:
+    with open(weather_stations_file_path, encoding="utf-8") as file_pointer:
         stations = json.load(file_pointer)
         results = []
         for station in stations['weather_stations']:

@@ -21,11 +21,13 @@ oc -n e1e498-tools -p GIT_BRANCH=my-branch process -f build.yaml | oc -n e1e498-
 
 ```bash
 # build your docker image
-docker build --tag=wps-api-base:python3.8 .
+docker build --tag=wps-api-base:my-tag .
 # tag it for upload
-docker tag wps-api-base:python3.8 image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-api-base:python3.8
+docker tag wps-api-base:my-tag image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/wps-api-base:my-tag
 # log in to openshift docker
 docker login -u developer -p $(oc whoami -t) image-registry.apps.silver.devops.gov.bc.ca
 # push it
-docker push image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/wps-api-base:python3.8
+docker push image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/wps-api-base:my-tag
+# once you're good to go
+oc -n e1e498-tools tag wps-api-base:my-tag wps-api-base:python3.8-latest
 ```

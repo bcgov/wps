@@ -548,7 +548,9 @@ valid-metaclass-classmethod-first-arg=cls
 [DESIGN]
 
 # Maximum number of arguments for function / method.
-max-args=6
+# 2020/07/07:SS We very often have a lot of arguments, and that's just how it is. We're spending too much
+# time adding lint ignores.
+max-args=10
 
 # Maximum number of attributes for a class (see R0902).
 max-attributes=7
@@ -560,7 +562,7 @@ max-bool-expr=5
 max-branches=12
 
 # Maximum number of locals for function / method body.
-max-locals=15
+max-locals=20
 
 # Maximum number of parents for a class (see R0901).
 max-parents=7

@@ -7,19 +7,48 @@ on:
 
 jobs:
   coverage:
-    name: SonarQube - (main)
+    name: SonarQube / CodeCov - (main)
     # Ubuntu 18.04 (a.k.a. ubuntu-latest) comes with gdal 2.2.3, which has bugs that cause unit tests to fail
     runs-on: ubuntu-20.04
     strategy:
       matrix:
         python-version: [3.8]
         node-version: [14.x]
+        R: ["3.5.2"]
     steps:
       - name: Checkout repo (main)
         uses: actions/checkout@v2
         with:
           # For sonar-scanner to work properly we can't use a shallow fetch.
           fetch-depth: 0
+
+      - name: Install libgdal-dev (api)
+        # The python gdal and R component relies on libgdal-dev being installed.
+        run: |
+          sudo apt-get update --fix-missing && sudo apt-get -y install libgdal-dev
+
+      - uses: r-lib/actions/setup-r@v1
+        with:
+          r-version: ${{ matrix.R }}
+
+      - name: Cache renv (api)
+        uses: actions/cache@v2
+        with:
+          path: ~/.local/share/renv
+          key: ${{ runner.os }}-renv-${{ hashFiles('**/renv.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-renv-
+
+      - name: Install renv (api)
+        run: |
+          install.packages("renv")
+          renv::install("cffdrs", dependencies = TRUE)
+          renv::consent(TRUE)
+          renv::restore()
+        shell: Rscript {0}
+
+      - name: Setup kernel for react, increase watchers
+        run: echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
 
       - name: Setup Python ${{ matrix.python-version }} (api)
         uses: actions/setup-python@v1
@@ -38,7 +67,7 @@ jobs:
           cache-name: cache-poetry-installer
         with:
           path: "~/poetry_installer"
-          key: "1.1.6"
+          key: "1.1.8"
 
       - name: Download poetry installer
         if: steps.cache-poetry-installer.outputs.cache-hit != 'true'
@@ -50,15 +79,10 @@ jobs:
       - name: Install poetry (api)
         run: |
           cd ~/poetry_installer
-          python get-poetry.py --version 1.1.6
+          python get-poetry.py --version 1.1.8
           source ~/.poetry/env
           poetry config virtualenvs.create true
           poetry config virtualenvs.in-project false
-
-      - name: Install libgdal-dev (api)
-        # The python gdal component relies on libgdal-dev being installed.
-        run: |
-          sudo apt-get update --fix-missing && sudo apt-get -y install libgdal-dev
 
       # poetry cache folder: /home/runner/.cache/pypoetry
       - name: Cache poetry
@@ -73,8 +97,10 @@ jobs:
 
       - name: Install gdal python (api)
         # We don't have much control over what version of gdal we're getting, it's pretty much whatever is
-        # available to us. As such, gdal is not installed by poetry, since the versio will differ between
+        # available to us. As such, gdal is not installed by poetry, since the version will differ between
         # platforms.
+        # Also have to be absolutely sure that numpy is installed before gdal (otherwise gdal doesn't install
+        # correctly, and you'll run into ndarray errors.)
         working-directory: ./api
         run: |
           source ~/.poetry/env
@@ -91,27 +117,30 @@ jobs:
         working-directory: ./api
         run: |
           source ~/.poetry/env
-          ORIGINS=testorigin poetry run coverage run --source=app -m pytest -o log_cli=true --disable-warnings --verbose
+          export LD_LIBRARY_PATH=$(poetry run python -m rpy2.situation LD_LIBRARY_PATH):${LD_LIBRARY_PATH}
+          export CLASSPATH=./libs/REDapp_Lib.jar:./libs/WTime.jar:./libs/hss-java.jar:$CLASSPATHpoetry
+          export ORIGINS=testorigin
+          poetry run coverage run --source=app -m pytest -o log_cli=true --disable-warnings -vvv
 
       - name: Create coverage report (api)
-        # Create coverage report, and then replace occurrences of
-        # 'filename="app' with 'filename="api/app" in coverage-report.xml
         working-directory: ./api
         shell: bash
         run: |
           source ~/.poetry/env
           poetry run coverage report
           poetry run coverage xml -o coverage-reports/coverage-report.xml
-          sed -i 's/filename="app/filename="api\/app/' coverage-reports/coverage-report.xml
 
       - uses: actions/cache@v2
         with:
-          path: "**/node_modules"
+          path: |
+            **/node_modules
+            ~/.cache/Cypress
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
 
       - name: Install node dependencies (web)
         working-directory: ./web
-        run: npm install yarn --no-package-lock && yarn
+        if: steps.yarn-cache.outputs.cache-hit != 'true'
+        run: yarn install
 
       - name: Lint (web)
         working-directory: ./web
@@ -126,15 +155,14 @@ jobs:
 
       - name: Unit tests (web)
         working-directory: ./web
-        run: yarn run test:ci
+        run: yarn run coverage:ci
 
-      - name: Fix code coverage paths (web)
-        # Due to the way sonarscanner mounts thing when running in docker, we need to change the coverage file.
-        working-directory: ./web/coverage
-        run: sed -i 's/\/home\/runner\/work\/wps\/wps\/web\//\/github\/workspace\//g' lcov.info
+      - name: Merge and finalize test coverage (web)
+        working-directory: ./web
+        run: yarn run finalizeCoverage
 
-      - name: SonarCloud Scan
-        uses: sonarsource/sonarcloud-github-action@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: Upload test coverage to Codecov
+        uses: codecov/codecov-action@v1.5.2
+        with:
+          token: ${{secrets.CODECOV_TOKEN}}
+          fail_ci_if_error: false

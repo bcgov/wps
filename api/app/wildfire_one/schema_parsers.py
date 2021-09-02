@@ -3,16 +3,19 @@
 import math
 import logging
 from datetime import datetime, timezone
-from typing import Generator, List
+from typing import Generator, List, Optional
 from app.db.models.observations import HourlyActual
+from app.schemas.fba_calc import FuelTypeEnum
 from app.schemas.stations import WeatherStation
-from app.utils.cffdrs import foliar_moisture_content, rate_of_spread, surface_fuel_consumption
+from app.utils import cffdrs
 from app.utils.dewpoint import compute_dewpoint
 from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.schemas.observations import WeatherReading
 from app.schemas.hfi_calc import StationDaily
+from app.utils.fuel_types import FUEL_TYPE_DEFAULTS
+from app.fba_calculator import calculate_cfb, get_fire_type
 from app.utils.time import get_julian_date_now
-from app.wildfire_one.util import is_station_valid
+from app.wildfire_one.util import is_station_valid, get_zone_code_prefix
 
 logger = logging.getLogger(__name__)
 
@@ -34,12 +37,16 @@ async def station_list_mapper(raw_stations: Generator[dict, None, None]):
 class WFWXWeatherStation():
     """ A WFWX station includes a code and WFWX API specific id """
 
-    def __init__(self, wfwx_id: str, code: int, latitude: float, longitude: float, elevation: int):
+    def __init__(self,  # pylint: disable=too-many-arguments
+                 wfwx_id: str, code: int, latitude: float, longitude: float, elevation: int,
+                 name: str, zone_code: Optional[str]):
         self.wfwx_id = wfwx_id
         self.code = code
+        self.name = name
         self.lat = latitude
         self.long = longitude
         self.elevation = elevation
+        self.zone_code = zone_code
 
 
 async def wfwx_station_list_mapper(raw_stations: Generator[dict, None, None]) -> List[WFWXWeatherStation]:
@@ -53,9 +60,28 @@ async def wfwx_station_list_mapper(raw_stations: Generator[dict, None, None]) ->
                                                code=raw_station['stationCode'],
                                                latitude=raw_station['latitude'],
                                                longitude=raw_station['longitude'],
-                                               elevation=raw_station['elevation']
+                                               elevation=raw_station['elevation'],
+                                               name=raw_station['displayLabel'],
+                                               zone_code=construct_zone_code(
+                                                   raw_station)
                                                ))
     return stations
+
+
+def construct_zone_code(station: any):
+    """ Constructs the 2-character zone code for a weather station, using the station's
+    zone.alias integer value, prefixed by the fire centre-to-letter mapping.
+    """
+    if station is None or station['zone'] is None or station['fireCentre'] is None:
+        return None
+    fire_centre_id = station['fireCentre']['id']
+    zone_alias = station['zone']['alias']
+    if fire_centre_id is None or zone_alias is None:
+        return None
+    if get_zone_code_prefix(fire_centre_id) is None:
+        return None
+    zone_code = get_zone_code_prefix(fire_centre_id) + str(zone_alias)
+    return zone_code
 
 
 def parse_station(station) -> WeatherStation:
@@ -85,7 +111,8 @@ def parse_hourly(hourly) -> WeatherReading:
         datetime=timestamp,
         temperature=hourly.get('temperature', None),
         relative_humidity=hourly.get('relativeHumidity', None),
-        dewpoint=compute_dewpoint(hourly.get('temperature'), hourly.get('relativeHumidity')),
+        dewpoint=compute_dewpoint(hourly.get(
+            'temperature'), hourly.get('relativeHumidity')),
         wind_speed=hourly.get('windSpeed', None),
         wind_direction=hourly.get('windDirection', None),
         barometric_pressure=hourly.get('barometricPressure', None),
@@ -98,19 +125,76 @@ def parse_hourly(hourly) -> WeatherReading:
     )
 
 
-def parse_daily(raw_daily, station: WFWXWeatherStation, fuel_type: str) -> StationDaily:
+def calculate_intensity_group(hfi: float) -> int:
+    """ Returns a 1-5 integer value indicating Intensity Group based on HFI.
+    Intensity groupings are:
+
+    HFI             IG
+    0-499            1
+    500-999          2
+    1000-1999        3
+    2000-3999        4
+    4000+            5
+    """
+    if hfi < 500:
+        return 1
+    if hfi < 1000:
+        return 2
+    if hfi < 2000:
+        return 3
+    if hfi < 4000:
+        return 4
+    return 5
+
+
+def generate_station_daily(raw_daily, station: WFWXWeatherStation, fuel_type: str) -> StationDaily:
     """ Transform from the raw daily json object returned by wf1, to our daily object.
     """
+    # pylint: disable=invalid-name
+    # we use the fuel type lookup to get default values.
+    pc = FUEL_TYPE_DEFAULTS[fuel_type]["PC"]
+    pdf = FUEL_TYPE_DEFAULTS[fuel_type]["PDF"]
+    cbh = FUEL_TYPE_DEFAULTS[fuel_type]["CBH"]
+    cfl = FUEL_TYPE_DEFAULTS[fuel_type]["CFL"]
 
     isi = raw_daily.get('initialSpreadIndex', None)
     bui = raw_daily.get('buildUpIndex', None)
     ffmc = raw_daily.get('fineFuelMoistureCode', None)
-    fmc = foliar_moisture_content(station.lat, station.long, station.elevation, get_julian_date_now())
-    sfc = surface_fuel_consumption(fuel_type, bui, ffmc)
-    ros = rate_of_spread(fuel_type, isi, bui, fmc, sfc)
+    fmc = cffdrs.foliar_moisture_content(
+        station.lat, station.long, station.elevation, get_julian_date_now())
+    sfc = cffdrs.surface_fuel_consumption(
+        FuelTypeEnum[fuel_type], bui, ffmc, pc)
+
+    cc = raw_daily.get('grasslandCuring')
+    if cc is None:
+        cc = FUEL_TYPE_DEFAULTS[fuel_type]["CC"]
+    ros = cffdrs.rate_of_spread(FuelTypeEnum[fuel_type], isi, bui, fmc, sfc, pc=pc,
+                                cc=cc,
+                                pdf=pdf,
+                                cbh=cbh)
+
+    cfb = None
+    try:
+        if sfc is not None:
+            cfb = calculate_cfb(FuelTypeEnum[fuel_type], fmc, sfc, ros, cbh)
+    except cffdrs.CFFDRSException as exception:
+        logger.error(exception, exc_info=True)
+
+    hfi = None
+    try:
+        if ros is not None and cfb is not None and cfl is not None:
+            hfi = cffdrs.head_fire_intensity(fuel_type=FuelTypeEnum[fuel_type],
+                                             percentage_conifer=pc,
+                                             percentage_dead_balsam_fir=pdf,
+                                             ros=ros, cfb=cfb, cfl=cfl, sfc=sfc)
+    except cffdrs.CFFDRSException as exception:
+        logger.error(exception, exc_info=True)
+
+    fire_type = get_fire_type(FuelTypeEnum[fuel_type], crown_fraction_burned=cfb)
+
     return StationDaily(
         code=station.code,
-        status="Observed" if raw_daily.get('recordType', '').get('id') == 'ACTUAL' else "Forecasted",
+        status=raw_daily.get('recordType', '').get('id', None),
         temperature=raw_daily.get('temperature', None),
         relative_humidity=raw_daily.get('relativeHumidity', None),
         wind_speed=raw_daily.get('windSpeed', None),
@@ -125,8 +209,12 @@ def parse_daily(raw_daily, station: WFWXWeatherStation, fuel_type: str) -> Stati
         isi=isi,
         bui=bui,
         rate_of_spread=ros,
+        hfi=hfi,
         observation_valid=raw_daily.get('observationValidInd', None),
-        observation_valid_comment=raw_daily.get('observationValidComment', None)
+        observation_valid_comment=raw_daily.get(
+            'observationValidComment', None),
+        intensity_group=calculate_intensity_group(hfi),
+        fire_type=fire_type
     )
 
 
@@ -173,7 +261,8 @@ def parse_hourly_actual(station_code: int, hourly_reading: WeatherReading):
 
     if is_obs_invalid:
         logger.error("Hourly actual not written to DB for station code %s at time %s: %s",
-                     station_code, hourly_reading.datetime.strftime("%b %d %Y %H:%M:%S"),
+                     station_code, hourly_reading.datetime.strftime(
+                         "%b %d %Y %H:%M:%S"),
                      hourly_reading.observation_valid_comment)
 
     # don't write the HourlyActual to our database if every value is invalid. If even one

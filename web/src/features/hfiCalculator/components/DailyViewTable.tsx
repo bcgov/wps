@@ -11,11 +11,11 @@ import {
   Typography
 } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
-import { FireCentre } from 'api/hfiCalcAPI'
+import { FireCentre, PlanningArea } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import { Button } from 'components'
 
-interface Props {
+export interface Props {
   title: string
   fireCentres: Record<string, FireCentre>
   dailiesMap: Map<number, StationDaily>
@@ -25,12 +25,24 @@ interface Props {
   testId?: string
 }
 
+const intensityGroupColours: { [description: string]: string } = {
+  lightGreen: '#D6FCA4',
+  cyan: '#73FBFD',
+  yellow: '#FFFEA6',
+  orange: '#F7CDA0',
+  red: '#EC5D57'
+}
+
 const useStyles = makeStyles({
   display: {
     paddingBottom: 12,
 
     '& .MuiTableCell-sizeSmall': {
       padding: '6px 12px 6px 6px'
+    },
+
+    '& .MuiTableCell-body': {
+      padding: '8px'
     }
   },
   paper: {
@@ -66,13 +78,128 @@ const useStyles = makeStyles({
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'baseline'
+  },
+  intensityGroupOutline1: {
+    border: '2px solid',
+    borderColor: intensityGroupColours.lightGreen,
+    borderRadius: '4px',
+    textAlign: 'center'
+  },
+  intensityGroupOutline2: {
+    border: '2px solid',
+    borderColor: intensityGroupColours.cyan,
+    borderRadius: '4px',
+    textAlign: 'center'
+  },
+  intensityGroupOutline3: {
+    border: '2px solid',
+    borderColor: intensityGroupColours.yellow,
+    borderRadius: '4px',
+    textAlign: 'center'
+  },
+  intensityGroupOutline4: {
+    border: '2px solid',
+    borderColor: intensityGroupColours.orange,
+    borderRadius: '4px',
+    textAlign: 'center'
+  },
+  intensityGroupOutline5: {
+    border: '2px solid',
+    borderColor: intensityGroupColours.red,
+    borderRadius: '4px',
+    textAlign: 'center'
+  },
+  intensityGroupSolid1: {
+    background: intensityGroupColours.lightGreen,
+    fontWeight: 'bold',
+    textAlign: 'center'
+  },
+  intensityGroupSolid2: {
+    background: intensityGroupColours.cyan,
+    fontWeight: 'bold',
+    textAlign: 'center'
+  },
+  intensityGroupSolid3: {
+    background: intensityGroupColours.yellow,
+    fontWeight: 'bold',
+    textAlign: 'center'
+  },
+  intensityGroupSolid4: {
+    background: intensityGroupColours.orange,
+    fontWeight: 'bold',
+    textAlign: 'center'
+  },
+  intensityGroupSolid5: {
+    background: intensityGroupColours.red,
+    fontWeight: 'bold',
+    color: 'white',
+    textAlign: 'center'
   }
 })
 
-const DailyViewTable = (props: Props) => {
+export const DailyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()
 
   const DECIMAL_PLACES = 1
+
+  const formatStationIntensityGroupByValue = (intensityGroup: number | undefined) => {
+    switch (intensityGroup) {
+      case 1:
+        return classes.intensityGroupOutline1
+      case 2:
+        return classes.intensityGroupOutline2
+      case 3:
+        return classes.intensityGroupOutline3
+      case 4:
+        return classes.intensityGroupOutline4
+      case 5:
+        return classes.intensityGroupOutline5
+      default:
+        return
+    }
+  }
+
+  const formatAreaMeanIntensityGroupByValue = (
+    meanIntensityGroup: number | undefined
+  ) => {
+    if (meanIntensityGroup === undefined) {
+      return undefined
+    }
+    if (meanIntensityGroup < 2) {
+      return classes.intensityGroupSolid1
+    }
+    if (meanIntensityGroup < 3) {
+      return classes.intensityGroupSolid2
+    }
+    if (meanIntensityGroup < 4) {
+      return classes.intensityGroupSolid3
+    }
+    if (meanIntensityGroup < 5) {
+      return classes.intensityGroupSolid4
+    } else {
+      return classes.intensityGroupSolid5
+    }
+  }
+
+  const calculateMeanIntensityGroup = (area: PlanningArea) => {
+    const stationCodesInPlanningArea: number[] = []
+    Object.entries(area.stations).forEach(([, station]) => {
+      stationCodesInPlanningArea.push(station.code)
+    })
+    const stationIntensityGroups: number[] = []
+    for (const code of stationCodesInPlanningArea) {
+      const stationDaily = props.dailiesMap.get(code)
+      if (stationDaily?.intensity_group !== undefined) {
+        stationIntensityGroups.push(stationDaily?.intensity_group)
+      }
+    }
+    return stationIntensityGroups.length === 0
+      ? undefined
+      : Math.round(
+          (10 * stationIntensityGroups.reduce((a, b) => a + b, 0)) /
+            stationIntensityGroups.length
+        ) / 10
+  }
 
   return (
     <div className={classes.display} data-testid={props.testId}>
@@ -159,6 +286,17 @@ const DailyViewTable = (props: Props) => {
                   <br />
                   (m/min)
                 </TableCell>
+                <TableCell>HFI</TableCell>
+                <TableCell>
+                  Fire
+                  <br />
+                  Type
+                </TableCell>
+                <TableCell>
+                  M /
+                  <br />
+                  FIG
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -173,14 +311,24 @@ const DailyViewTable = (props: Props) => {
                     {Object.entries(centre.planning_areas)
                       .sort((a, b) => (a[1].name < b[1].name ? -1 : 1))
                       .map(([areaName, area]) => {
+                        const meanIntensityGroup = calculateMeanIntensityGroup(area)
                         return (
                           <React.Fragment key={`zone-${areaName}`}>
                             <TableRow
                               className={classes.planningArea}
                               key={`zone-${areaName}`}
+                              data-testid={`zone-${areaName}`}
                             >
-                              <TableCell className={classes.planningArea} colSpan={26}>
+                              <TableCell className={classes.planningArea} colSpan={20}>
                                 {area.name}
+                              </TableCell>
+                              <TableCell
+                                className={formatAreaMeanIntensityGroupByValue(
+                                  meanIntensityGroup
+                                )}
+                                data-testid={`zone-${areaName}-mean-intensity`}
+                              >
+                                {meanIntensityGroup}
                               </TableCell>
                             </TableRow>
                             {Object.entries(area.stations)
@@ -229,8 +377,22 @@ const DailyViewTable = (props: Props) => {
                                       {daily?.ffmc?.toFixed(DECIMAL_PLACES)}
                                     </TableCell>
                                     <TableCell>{daily?.danger_class}</TableCell>
-                                    <TableCell>
+                                    <TableCell data-testid={`${daily?.code}-ros`}>
                                       {daily?.rate_of_spread?.toFixed(DECIMAL_PLACES)}
+                                    </TableCell>
+                                    <TableCell data-testid={`${daily?.code}-hfi`}>
+                                      {daily?.hfi?.toFixed(DECIMAL_PLACES)}
+                                    </TableCell>
+                                    <TableCell data-testid={`${daily?.code}-fire-type`}>
+                                      {daily?.fire_type}
+                                    </TableCell>
+                                    <TableCell
+                                      className={formatStationIntensityGroupByValue(
+                                        daily?.intensity_group
+                                      )}
+                                      data-testid={`${daily?.code}-intensity-group`}
+                                    >
+                                      {daily?.intensity_group}
                                     </TableCell>
                                   </TableRow>
                                 )

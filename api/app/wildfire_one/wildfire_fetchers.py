@@ -1,5 +1,4 @@
 """ Functions that request and marshall WFWX API responses into our schemas"""
-
 import math
 import logging
 from datetime import datetime
@@ -7,7 +6,6 @@ from typing import Dict, Generator, Tuple, Final
 import json
 from urllib.parse import urlencode
 from aiohttp.client import ClientSession, BasicAuth
-from redis import StrictRedis
 from app.schemas.observations import WeatherStationHourlyReadings
 from app.schemas.stations import (DetailedWeatherStationProperties,
                                   GeoJsonDetailedWeatherStation,
@@ -17,20 +15,14 @@ from app.wildfire_one.query_builders import BuildQuery
 from app import config
 from app.wildfire_one.schema_parsers import parse_hourly, parse_station
 from app.wildfire_one.util import is_station_valid
+from app.utils.redis import create_redis
 
 logger = logging.getLogger(__name__)
 
 
-def _create_redis():
-    return StrictRedis(host=config.get('REDIS_HOST'),
-                       port=config.get('REDIS_PORT', 6379),
-                       db=0,
-                       password=config.get('REDIS_PASSWORD'))
-
-
 async def _fetch_cached_response(session: ClientSession, headers: dict, url: str, params: dict,
                                  cache_expiry_seconds: int):
-    cache = _create_redis()
+    cache = create_redis()
     key = f'{url}?{urlencode(params)}'
     try:
         cached_json = cache.get(key)
@@ -69,14 +61,22 @@ async def fetch_paged_response_generator(
     while page_count < total_pages:
         # Build up the request URL.
         url, params = query_builder.query(page_count)
-        logger.debug('loading station page %d...', page_count)
+        logger.debug('loading page %d...', page_count)
         if use_cache and config.get('REDIS_USE') == 'True':
             # We've been told and configured to use the redis cache.
             response_json = await _fetch_cached_response(session, headers, url, params, cache_expiry_seconds)
         else:
             async with session.get(url, headers=headers, params=params) as response:
                 response_json = await response.json()
-                logger.debug('done loading station page %d.', page_count)
+                logger.debug('done loading page %d.', page_count)
+
+        # keep this code around for dumping responses to a json file - useful for when you're writing
+        # tests to grab actual responses to use in fixtures.
+        # import base64
+        # TODO: write a beter way to make a temporary filename
+        # fname = 'thing_{}_{}.json'.format(base64.urlsafe_b64encode(url.encode()), random.randint(0, 1000))
+        # with open(fname, 'w') as f:
+        #     json.dump(response_json, f)
 
         # Update the total page count.
         total_pages = response_json['page']['totalPages'] if 'page' in response_json else 1
@@ -93,8 +93,8 @@ async def fetch_detailed_geojson_stations(
     """ Fetch and marshall geojson station data"""
     stations = {}
     id_to_code_map = {}
-    # 1 day seems a reasonable period to cache stations for.
-    redis_station_cache_expiry: Final = int(config.get('REDIS_STATION_CACHE_EXPIRY', 86400))
+    # 1 week seems a reasonable period to cache stations for.
+    redis_station_cache_expiry: Final = int(config.get('REDIS_STATION_CACHE_EXPIRY', 604800))
     # Put the stations in a nice dictionary.
     async for raw_station in fetch_paged_response_generator(session,
                                                             headers,
@@ -183,26 +183,34 @@ async def fetch_hourlies(
         raw_station: dict,
         headers: dict,
         start_timestamp: datetime,
-        end_timestamp: datetime) -> WeatherStationHourlyReadings:
+        end_timestamp: datetime,
+        use_cache: bool = False) -> WeatherStationHourlyReadings:
     """ Fetch hourly weather readings for the specified time range for a give station """
     logger.debug('fetching hourlies for %s(%s)',
                  raw_station['displayLabel'], raw_station['stationCode'])
 
     url, params = prepare_fetch_hourlies_query(raw_station, start_timestamp, end_timestamp)
 
+    cache_expiry_seconds = cache_expiry_seconds = config.get(
+        'REDIS_HOURLIES_BY_STATION_CODE_CACHE_EXPIRY', 300)
+
     # Get hourlies
-    async with session.get(url, params=params, headers=headers) as response:
-        hourlies_json = await response.json()
-        hourlies = []
-        for hourly in hourlies_json['_embedded']['hourlies']:
-            # We only accept "ACTUAL" values
-            if hourly.get('hourlyMeasurementTypeCode', '').get('id') == 'ACTUAL':
-                hourlies.append(parse_hourly(hourly))
+    if use_cache and cache_expiry_seconds is not None and config.get('REDIS_USE') == 'True':
+        hourlies_json = await _fetch_cached_response(session, headers, url, params, cache_expiry_seconds)
+    else:
+        async with session.get(url, params=params, headers=headers) as response:
+            hourlies_json = await response.json()
 
-        logger.error('fetched %d hourlies for %s(%s)', len(
-            hourlies), raw_station['displayLabel'], raw_station['stationCode'])
+    hourlies = []
+    for hourly in hourlies_json['_embedded']['hourlies']:
+        # We only accept "ACTUAL" values
+        if hourly.get('hourlyMeasurementTypeCode', '').get('id') == 'ACTUAL':
+            hourlies.append(parse_hourly(hourly))
 
-        return WeatherStationHourlyReadings(values=hourlies, station=parse_station(raw_station))
+    logger.debug('fetched %d hourlies for %s(%s)', len(
+        hourlies), raw_station['displayLabel'], raw_station['stationCode'])
+
+    return WeatherStationHourlyReadings(values=hourlies, station=parse_station(raw_station))
 
 
 async def fetch_access_token(session: ClientSession) -> dict:
@@ -212,7 +220,7 @@ async def fetch_access_token(session: ClientSession) -> dict:
     password = config.get('WFWX_SECRET')
     user = config.get('WFWX_USER')
     auth_url = config.get('WFWX_AUTH_URL')
-    cache = _create_redis()
+    cache = create_redis()
     # NOTE: Consider using a hashed version of the password as part of the key.
     params = {'user': user}
     key = f'{auth_url}?{urlencode(params)}'
