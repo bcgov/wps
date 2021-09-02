@@ -129,7 +129,6 @@ async def get_detailed_stations(time_of_interest: datetime):
                     relative_humidity=daily.get('relativeHumidity'))
                 record_type = daily.get('recordType').get('id')
                 if record_type in ['ACTUAL', 'MANUAL']:
-                    logger.info('%s', record_type)
                     station.properties.observations = weather_variable
                 elif record_type == 'FORECAST':
                     station.properties.forecasts = weather_variable
