@@ -38,6 +38,8 @@ const stationsSlice = createSlice({
     ) {
       state.error = null
       state.stations = action.payload
+      console.log('state.stations')
+      console.log(state.stations)
       const stationsByCode: State['stationsByCode'] = {}
       action.payload.forEach(station => {
         stationsByCode[station.properties.code] = station

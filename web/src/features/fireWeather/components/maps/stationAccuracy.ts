@@ -77,8 +77,7 @@ export const computeRHScaleIndex = (
   const gradient = Math.floor(
     percentagePointDifference / rhGradientStepInPercentagePoints
   )
-  const scaleIndex = Math.min(gradient + neutralIndex, (rhColorScale.length - 1) / 2)
-  return scaleIndex
+  return Math.min(gradient + neutralIndex, (rhColorScale.length - 1) / 2)
 }
 
 export const computeTempScaleIndex = (
@@ -87,6 +86,5 @@ export const computeTempScaleIndex = (
 ): number => {
   const tempDifference = metricObservation - metricForecast
   const gradient = Math.floor(tempDifference / tempGradientStepInDegrees)
-  const scaleIndex = Math.min(gradient + neutralIndex, (tempColorScale.length - 1) / 2)
-  return scaleIndex
+  return Math.min(gradient + neutralIndex, (tempColorScale.length - 1) / 2)
 }
