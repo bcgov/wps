@@ -70,7 +70,7 @@ const useStyles = makeStyles({
     backgroundColor: '#dbd9d9'
   },
   planningArea: {
-    backgroundColor: '#d6faff',
+    backgroundColor: '#283593',
 
     '& .MuiTableCell-sizeSmall': {
       paddingLeft: '12px'
