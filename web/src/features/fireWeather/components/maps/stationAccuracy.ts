@@ -49,20 +49,24 @@ export const computeTempAccuracyColor = (stationMetric: StationMetrics): string 
   if (stationMetric.observations == null || stationMetric.forecasts == null) {
     return noDataColor
   }
-  return tempColorScale[computeTempScaleIndex(
-    stationMetric.forecasts.temperature,
-    stationMetric.observations.temperature
-  )]
+  return tempColorScale[
+    computeTempScaleIndex(
+      stationMetric.forecasts.temperature,
+      stationMetric.observations.temperature
+    )
+  ]
 }
 
 export const computeRHAccuracyColor = (stationMetric: StationMetrics): string => {
   if (stationMetric.observations == null || stationMetric.forecasts == null) {
     return noDataColor
   }
-  return rhColorScale[computeRHScaleIndex(
-    stationMetric.forecasts.relative_humidity,
-    stationMetric.observations.relative_humidity
-  )]
+  return rhColorScale[
+    computeRHScaleIndex(
+      stationMetric.forecasts.relative_humidity,
+      stationMetric.observations.relative_humidity
+    )
+  ]
 }
 
 export const computeRHScaleIndex = (

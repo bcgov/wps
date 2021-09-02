@@ -16,8 +16,11 @@ import { useDispatch, useSelector } from 'react-redux'
 
 import { selectFireWeatherStations } from 'app/rootReducer'
 import { getDetailedStations, StationSource } from 'api/stationAPI'
-import { computeRHAccuracyColor, computeTempAccuracyColor } from 'features/fireWeather/components/maps/stationAccuracy'
-import { AccuracyWeatherVariableEnum } from '../AccuracyVariablePicker'
+import {
+  computeRHAccuracyColor,
+  computeTempAccuracyColor
+} from 'features/fireWeather/components/maps/stationAccuracy'
+import { AccuracyWeatherVariableEnum } from 'features/fireWeather/components/AccuracyVariablePicker'
 
 const BC_ROAD_BASE_MAP_SERVER_URL =
   'https://maps.gov.bc.ca/arcgis/rest/services/province/roads_wm/MapServer'
@@ -73,8 +76,10 @@ const WeatherMap = ({
   const dispatch = useDispatch()
 
   const { stations } = useSelector(selectFireWeatherStations)
-  const styleFunction = selectedWxVariable === 
-    AccuracyWeatherVariableEnum['Relative Humidity'] ? rhPointStyleFunction : tempPointStyleFunction
+  const styleFunction =
+    selectedWxVariable === AccuracyWeatherVariableEnum['Relative Humidity']
+      ? rhPointStyleFunction
+      : tempPointStyleFunction
 
   useEffect(() => {
     dispatch(
