@@ -296,7 +296,7 @@
             "relative_humidity": 35.0,
             "wind_speed": 14.0,
             "wind_direction": 230.0,
-            "grass_cure_percentage": null,
+            "grass_cure_percentage": 1,
             "precipitation": 0.0,
             "ffmc": 90.217,
             "dmc": 81.507,

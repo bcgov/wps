@@ -11,11 +11,13 @@ import {
   Typography
 } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
-import { FireCentre, PlanningArea } from 'api/hfiCalcAPI'
+import { FireCentre } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import { Button } from 'components'
 import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
 import { isGrassFuelType } from 'features/hfiCalculator/validation'
+import { intensityGroupColours } from 'features/hfiCalculator/components/meanIntensity'
+import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
 
 export interface Props {
   title: string
@@ -25,14 +27,6 @@ export interface Props {
   previousDay: () => void
   nextDay: () => void
   testId?: string
-}
-
-const intensityGroupColours: { [description: string]: string } = {
-  lightGreen: '#D6FCA4',
-  cyan: '#73FBFD',
-  yellow: '#FFFEA6',
-  orange: '#F7CDA0',
-  red: '#EC5D57'
 }
 
 const useStyles = makeStyles({
@@ -161,48 +155,6 @@ export const DailyViewTable = (props: Props): JSX.Element => {
     }
   }
 
-  const formatAreaMeanIntensityGroupByValue = (
-    meanIntensityGroup: number | undefined
-  ) => {
-    if (meanIntensityGroup === undefined) {
-      return undefined
-    }
-    if (meanIntensityGroup < 2) {
-      return classes.intensityGroupSolid1
-    }
-    if (meanIntensityGroup < 3) {
-      return classes.intensityGroupSolid2
-    }
-    if (meanIntensityGroup < 4) {
-      return classes.intensityGroupSolid3
-    }
-    if (meanIntensityGroup < 5) {
-      return classes.intensityGroupSolid4
-    } else {
-      return classes.intensityGroupSolid5
-    }
-  }
-
-  const calculateMeanIntensityGroup = (area: PlanningArea) => {
-    const stationCodesInPlanningArea: number[] = []
-    Object.entries(area.stations).forEach(([, station]) => {
-      stationCodesInPlanningArea.push(station.code)
-    })
-    const stationIntensityGroups: number[] = []
-    for (const code of stationCodesInPlanningArea) {
-      const stationDaily = props.dailiesMap.get(code)
-      if (stationDaily?.intensity_group !== undefined) {
-        stationIntensityGroups.push(stationDaily?.intensity_group)
-      }
-    }
-    return stationIntensityGroups.length === 0
-      ? undefined
-      : Math.round(
-          (10 * stationIntensityGroups.reduce((a, b) => a + b, 0)) /
-            stationIntensityGroups.length
-        ) / 10
-  }
-
   return (
     <div className={classes.display} data-testid={props.testId}>
       <div className={classes.controls}>
@@ -318,7 +270,6 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                     {Object.entries(centre.planning_areas)
                       .sort((a, b) => (a[1].name < b[1].name ? -1 : 1))
                       .map(([areaName, area]) => {
-                        const meanIntensityGroup = calculateMeanIntensityGroup(area)
                         return (
                           <React.Fragment key={`zone-${areaName}`}>
                             <TableRow
@@ -329,14 +280,18 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                               <TableCell className={classes.planningArea} colSpan={21}>
                                 {area.name}
                               </TableCell>
-                              <TableCell
+                              {/* <TableCell
                                 className={formatAreaMeanIntensityGroupByValue(
                                   meanIntensityGroup
                                 )}
                                 data-testid={`zone-${areaName}-mean-intensity`}
                               >
                                 {meanIntensityGroup}
-                              </TableCell>
+                              </TableCell> */}
+                              <MeanIntensityGroupRollup
+                                area={area}
+                                dailiesMap={props.dailiesMap}
+                              ></MeanIntensityGroupRollup>
                             </TableRow>
                             {Object.entries(area.stations)
                               .sort((a, b) => (a[1].code < b[1].code ? -1 : 1))
