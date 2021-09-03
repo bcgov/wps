@@ -1,6 +1,7 @@
 import React from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import { AccuracyWeatherVariableEnum } from 'features/fireWeather/components/AccuracyVariablePicker'
+import { darkGreenColor, middleGreenColor, lightGreenColor, neutralColor, yellowColor, middleOrangeColor, darkOrangeColor } from 'features/fireWeather/components/maps/stationAccuracy'
 
 const useStyles = makeStyles({
   root: {
@@ -53,8 +54,8 @@ const useStyles = makeStyles({
     },
     justifyContent: 'space-evenly'
   },
-  green: {
-    backgroundColor: '#07A059',
+  darkGreen: {
+    backgroundColor: darkGreenColor,
     borderTop: '2px solid #FFFFFF',
     borderLeft: '2px solid #FFFFFF',
     borderBottom: '2px solid #FFFFFF',
@@ -62,43 +63,43 @@ const useStyles = makeStyles({
     height: 27,
     width: 32
   },
-  lightGreen: {
-    backgroundColor: '#3BAC48',
+  middleGreen: {
+    backgroundColor: middleGreenColor,
     borderTop: '2px solid #FFFFFF',
     borderBottom: '2px solid #FFFFFF',
     height: 27,
     width: 32
   },
-  lightestGreen: {
-    backgroundColor: '#82C064',
+  lightGreen: {
+    backgroundColor: lightGreenColor,
     borderTop: '2px solid #FFFFFF',
     borderBottom: '2px solid #FFFFFF',
     height: 27,
     width: 32
   },
   neutral: {
-    backgroundColor: '#DFDEDB',
+    backgroundColor: neutralColor,
     borderTop: '2px solid #FFFFFF',
     borderBottom: '2px solid #FFFFFF',
     height: 27,
     width: 64
   },
   lightestOrange: {
-    backgroundColor: '#FCCE89',
+    backgroundColor: yellowColor,
     borderTop: '2px solid #FFFFFF',
     borderBottom: '2px solid #FFFFFF',
     height: 27,
     width: 32
   },
-  lightOrange: {
-    backgroundColor: '#F4A036',
+  middleOrange: {
+    backgroundColor: middleOrangeColor,
     borderTop: '2px solid #FFFFFF',
     borderBottom: '2px solid #FFFFFF',
     height: 27,
     width: 32
   },
-  orange: {
-    backgroundColor: '#ED8001',
+  darkOrange: {
+    backgroundColor: darkOrangeColor,
     borderTop: '2px solid #FFFFFF',
     borderRight: '2px solid #FFFFFF',
     borderBottom: '2px solid #FFFFFF',
@@ -165,13 +166,13 @@ const AccuracyColorLegend = (props: Props) => {
       <div className={classes.root}>
         <div className={classes.title}>Observed RH</div>
         <div className={classes.rowContainer}>
-          <div className={classes.green}></div>
+          <div className={classes.darkGreen}></div>
+          <div className={classes.middleGreen}></div>
           <div className={classes.lightGreen}></div>
-          <div className={classes.lightestGreen}></div>
           <div className={classes.neutral}></div>
           <div className={classes.lightestOrange}></div>
-          <div className={classes.lightOrange}></div>
-          <div className={classes.orange}></div>
+          <div className={classes.middleOrange}></div>
+          <div className={classes.darkOrange}></div>
         </div>
         <div className={classes.labelContainer}>
           <div className={classes.leftLabel}>+12%</div>

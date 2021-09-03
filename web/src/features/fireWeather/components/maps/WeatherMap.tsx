@@ -18,6 +18,7 @@ import { selectFireWeatherStations } from 'app/rootReducer'
 import { getDetailedStations, StationSource } from 'api/stationAPI'
 import {
   computeRHAccuracyColor,
+  computeRHAccuracySize,
   computeTempAccuracyColor
 } from 'features/fireWeather/components/maps/stationAccuracy'
 import { AccuracyWeatherVariableEnum } from 'features/fireWeather/components/AccuracyVariablePicker'
@@ -40,9 +41,8 @@ const zoom = 6
 const rhPointStyleFunction = (feature: any) => {
   return new Style({
     image: new CircleStyle({
-      radius: 4,
+      radius: computeRHAccuracySize(feature.values_),
       fill: new Fill({ color: computeRHAccuracyColor(feature.values_) }),
-      stroke: new Stroke({ color: 'black', width: 1 })
     })
   })
 }

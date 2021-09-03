@@ -10,17 +10,23 @@ export interface StationMetrics {
 }
 
 export const noDataColor = '#000000'
+export const darkGreenColor = '#005716'
+export const middleGreenColor = '#2E8540'
+export const lightGreenColor = '#61B56C'
 export const neutralColor = '#DFDEDB'
+export const yellowColor = '#FFC464'
+export const middleOrangeColor = '#FF9334'
+export const darkOrangeColor = '#C66400'
 export const neutralIndex = 3
 
 export const rhColorScale = [
-  '#07A059',
-  '#3BAC48',
-  '#82C064',
+  darkGreenColor,
+  middleGreenColor,
+  lightGreenColor,
   neutralColor,
-  '#FCCE89',
-  '#F4A036',
-  '#ED8001'
+  yellowColor,
+  middleOrangeColor,
+  darkOrangeColor
 ]
 export const tempColorScale = [
   '#720505',
@@ -41,6 +47,11 @@ export const windColorScale = [
   '#17B8A7',
   '#089E83'
 ]
+
+const smallRadius = 4
+const mediumRadius = 5
+const largeRadius = 6
+const xlargeRadius = 7
 
 export const tempGradientStepInDegrees = 2
 export const rhGradientStepInPercentagePoints = 3
@@ -69,15 +80,46 @@ export const computeRHAccuracyColor = (stationMetric: StationMetrics): string =>
   ]
 }
 
+export const computeRHAccuracySize = (stationMetric: StationMetrics): number => {
+  if (stationMetric.observations == null || stationMetric.forecasts == null) {
+    return smallRadius
+  }
+  const rhScaleIndex = computeRHScaleIndex(stationMetric.forecasts.relative_humidity, stationMetric.observations.relative_humidity)
+  switch (rhScaleIndex) {
+    case 0:
+    case 6:
+      return xlargeRadius
+    case 1:
+    case 5:
+      return largeRadius
+    case 2:
+    case 4:
+      return mediumRadius
+    case 3:
+    default:
+      return smallRadius
+  }
+
+}
+
 export const computeRHScaleIndex = (
   metricForecast: number,
   metricObservation: number
 ): number => {
-  const percentagePointDifference = metricObservation - metricForecast
-  const gradient = Math.floor(
-    percentagePointDifference / rhGradientStepInPercentagePoints
-  )
-  return Math.min(gradient + neutralIndex, (rhColorScale.length - 1) / 2)
+  const percentagePointDifference = metricForecast - metricObservation
+  let scaledDifference = Math.round(percentagePointDifference / rhGradientStepInPercentagePoints)
+  // adjust from 1-indexing of scaledDifference to 0-indexing for rhColorScale
+  if (scaledDifference > 0) {
+    scaledDifference -= 1
+  } else if (scaledDifference < 0) {
+    scaledDifference += 1
+  }
+  const scaledIndex = scaledDifference + neutralIndex
+  if (scaledIndex < 0) {
+    return 0
+  } else {
+    return Math.min(scaledIndex, (rhColorScale.length - 1))
+  }
 }
 
 export const computeTempScaleIndex = (
@@ -85,6 +127,17 @@ export const computeTempScaleIndex = (
   metricObservation: number
 ): number => {
   const tempDifference = metricObservation - metricForecast
-  const gradient = Math.floor(tempDifference / tempGradientStepInDegrees)
-  return Math.min(gradient + neutralIndex, (tempColorScale.length - 1) / 2)
+  let scaledDifference = Math.round(tempDifference / tempGradientStepInDegrees)
+  // adjust from 1-indexing of scaledDifference to 0-indexing for tempColorScale
+  if (scaledDifference > 0) {
+    scaledDifference -= 1
+  } else if (scaledDifference < 0) {
+    scaledDifference += 1
+  }
+  const scaledIndex = scaledDifference + neutralIndex
+  if (scaledIndex < 0) {
+    return 0
+  } else {
+    return Math.min(scaledIndex, (tempColorScale.length - 1))
+  }
 }
