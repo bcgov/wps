@@ -1,7 +1,15 @@
 import React from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import { AccuracyWeatherVariableEnum } from 'features/fireWeather/components/AccuracyVariablePicker'
-import { darkGreenColor, middleGreenColor, lightGreenColor, neutralColor, yellowColor, middleOrangeColor, darkOrangeColor } from 'features/fireWeather/components/maps/stationAccuracy'
+import {
+  darkGreenColor,
+  middleGreenColor,
+  lightGreenColor,
+  neutralColor,
+  yellowColor,
+  middleOrangeColor,
+  darkOrangeColor
+} from 'features/fireWeather/components/maps/stationAccuracy'
 
 const useStyles = makeStyles({
   root: {

@@ -1,3 +1,6 @@
+import { isNull } from 'lodash'
+import { Stroke } from 'ol/style'
+
 export interface StationMetrics {
   observations: {
     temperature: number
@@ -81,11 +84,36 @@ export const computeRHAccuracyColor = (stationMetric: StationMetrics): string =>
 }
 
 export const computeRHAccuracySize = (stationMetric: StationMetrics): number => {
-  if (stationMetric.observations == null || stationMetric.forecasts == null) {
+  if (isNull(stationMetric.observations) || isNull(stationMetric.forecasts)) {
     return smallRadius
   }
-  const rhScaleIndex = computeRHScaleIndex(stationMetric.forecasts.relative_humidity, stationMetric.observations.relative_humidity)
-  switch (rhScaleIndex) {
+  const rhScaleIndex = computeRHScaleIndex(
+    stationMetric.forecasts.relative_humidity,
+    stationMetric.observations.relative_humidity
+  )
+  return determineMarkerRadius(rhScaleIndex)
+}
+
+export const computeTempAccuracySize = (stationMetric: StationMetrics): number => {
+  if (isNull(stationMetric.observations) || isNull(stationMetric.forecasts)) {
+    return smallRadius
+  }
+  const tempScaleIndex = computeTempScaleIndex(
+    stationMetric.forecasts.temperature,
+    stationMetric.observations.temperature
+  )
+  return determineMarkerRadius(tempScaleIndex)
+}
+
+export const computeStroke = (markerColor: string): Stroke | undefined => {
+  if (markerColor === neutralColor) {
+    return new Stroke({ color: 'black', width: 1 })
+  }
+  return undefined
+}
+
+const determineMarkerRadius = (scaleIndex: number): number => {
+  switch (scaleIndex) {
     case 0:
     case 6:
       return xlargeRadius
@@ -99,7 +127,6 @@ export const computeRHAccuracySize = (stationMetric: StationMetrics): number => 
     default:
       return smallRadius
   }
-
 }
 
 export const computeRHScaleIndex = (
@@ -107,7 +134,9 @@ export const computeRHScaleIndex = (
   metricObservation: number
 ): number => {
   const percentagePointDifference = metricForecast - metricObservation
-  let scaledDifference = Math.round(percentagePointDifference / rhGradientStepInPercentagePoints)
+  let scaledDifference = Math.round(
+    percentagePointDifference / rhGradientStepInPercentagePoints
+  )
   // adjust from 1-indexing of scaledDifference to 0-indexing for rhColorScale
   if (scaledDifference > 0) {
     scaledDifference -= 1
@@ -118,7 +147,7 @@ export const computeRHScaleIndex = (
   if (scaledIndex < 0) {
     return 0
   } else {
-    return Math.min(scaledIndex, (rhColorScale.length - 1))
+    return Math.min(scaledIndex, rhColorScale.length - 1)
   }
 }
 
@@ -138,6 +167,6 @@ export const computeTempScaleIndex = (
   if (scaledIndex < 0) {
     return 0
   } else {
-    return Math.min(scaledIndex, (tempColorScale.length - 1))
+    return Math.min(scaledIndex, tempColorScale.length - 1)
   }
 }

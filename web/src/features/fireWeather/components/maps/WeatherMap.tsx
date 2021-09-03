@@ -5,7 +5,7 @@ import { Button } from '@material-ui/core'
 import { fromLonLat, get } from 'ol/proj'
 import * as olSource from 'ol/source'
 import GeoJSON from 'ol/format/GeoJSON'
-import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style'
+import { Circle as CircleStyle, Fill, Style } from 'ol/style'
 import { FeatureLike } from 'ol/Feature'
 import { fetchWxStations, selectStation } from 'features/stations/slices/stationsSlice'
 
@@ -19,7 +19,9 @@ import { getDetailedStations, StationSource } from 'api/stationAPI'
 import {
   computeRHAccuracyColor,
   computeRHAccuracySize,
-  computeTempAccuracyColor
+  computeStroke,
+  computeTempAccuracyColor,
+  computeTempAccuracySize
 } from 'features/fireWeather/components/maps/stationAccuracy'
 import { AccuracyWeatherVariableEnum } from 'features/fireWeather/components/AccuracyVariablePicker'
 
@@ -39,20 +41,23 @@ const source = new olSource.XYZ({
 const zoom = 6
 
 const rhPointStyleFunction = (feature: any) => {
+  const rhPointColor = computeRHAccuracyColor(feature.values_)
   return new Style({
     image: new CircleStyle({
       radius: computeRHAccuracySize(feature.values_),
-      fill: new Fill({ color: computeRHAccuracyColor(feature.values_) }),
+      fill: new Fill({ color: rhPointColor }),
+      stroke: computeStroke(rhPointColor)
     })
   })
 }
 
 const tempPointStyleFunction = (feature: any) => {
+  const tempPointColor = computeTempAccuracyColor(feature.values_)
   return new Style({
     image: new CircleStyle({
-      radius: 4,
-      fill: new Fill({ color: computeTempAccuracyColor(feature.values_) }),
-      stroke: new Stroke({ color: 'black', width: 1 })
+      radius: computeTempAccuracySize(feature.values_),
+      fill: new Fill({ color: tempPointColor }),
+      stroke: computeStroke(tempPointColor)
     })
   })
 }
@@ -111,7 +116,7 @@ const WeatherMap = ({
     },
     [dispatch]
   )
-    console.log(stations)
+  console.log(stations)
   return (
     <Map
       center={fromLonLat(center)}
