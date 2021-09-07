@@ -1,7 +1,7 @@
 import { TableContainer, Table, TableRow, TableBody } from '@material-ui/core'
 import { render } from '@testing-library/react'
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
-import { WeatherStation, PlanningArea } from 'api/hfiCalcAPI'
+import { PlanningArea } from 'api/hfiCalcAPI'
 import React from 'react'
 describe('Mean Intensity Group Rollup', () => {
   const planningArea: PlanningArea = {
@@ -23,6 +23,6 @@ describe('Mean Intensity Group Rollup', () => {
       </TableContainer>
     )
     expect(queryAllByTestId('zone-Test Area-mig-error').length === 0)
-    expect(getByTestId('zone--mean-intensity')).toBeDefined()
+    expect(getByTestId('zone-1-mean-intensity')).toBeDefined()
   })
 })
