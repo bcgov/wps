@@ -72,12 +72,17 @@ const MeanIntensityGroupRollup = (props: MeanIntensityGroupRollupProps) => {
   const classes = useStyles()
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const error = Object.entries(props.area.stations).reduce((prev, [_, currStation]) => {
-    const daily = props.dailiesMap.get(currStation.code)
-    if (isUndefined(daily)) {
-      return true
-    }
-    return prev || !isValidGrassCure(daily, currStation.station_props)
+  const stationsWithDaily = Object.entries(props.area.stations).map(([_, station]) => ({
+    station,
+    daily: props.dailiesMap.get(station.code)
+  }))
+  const noDailyData = stationsWithDaily.every(stationDaily =>
+    isUndefined(stationDaily.daily)
+  )
+  const error = stationsWithDaily.reduce((prev, stationDaily) => {
+    return (
+      prev || !isValidGrassCure(stationDaily.daily, stationDaily.station.station_props)
+    )
   }, false)
 
   const meanIntensityGroup = calculateMeanIntensityGroup(props.area, props.dailiesMap)
@@ -101,7 +106,7 @@ const MeanIntensityGroupRollup = (props: MeanIntensityGroupRollupProps) => {
     }
   }
 
-  return error ? (
+  return error && !noDailyData ? (
     <ThemeProvider theme={errorIconTheme}>
       <Tooltip
         title={toolTipElement}

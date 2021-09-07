@@ -3,14 +3,14 @@ import { StationDaily } from 'api/hfiCalculatorAPI'
 import { isEqual, isNull, isUndefined } from 'lodash'
 
 export const isValidGrassCure = (
-  daily: StationDaily,
+  daily: StationDaily | undefined,
   stationProperties: WeatherStationProperties
 ): boolean => {
   if (!isGrassFuelType(stationProperties)) {
-    console.log(true)
     return true
   }
   return (
+    !isUndefined(daily) &&
     !isNull(daily.grass_cure_percentage) &&
     !isUndefined(daily.grass_cure_percentage) &&
     !isNaN(daily.grass_cure_percentage)
