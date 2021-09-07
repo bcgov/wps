@@ -41,7 +41,7 @@ const GrassCureProps = (props: GrassCureCellProps) => {
       </ThemeProvider>
     </TableCell>
   ) : (
-    <TableCell data-testid={`grass-cure`}>props.value</TableCell>
+    <TableCell data-testid={`grass-cure`}>{props.value}</TableCell>
   )
 }
 
