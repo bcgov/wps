@@ -55,7 +55,7 @@ const adjustedTheme = createMuiTheme({
   }
 })
 
-const toolTipFirstLine = 'Grass Cure % not defined in WFWX one or more stations.'
+const toolTipFirstLine = 'Grass Cure % not defined in WFWX for one or more stations.'
 const toolTipSecondLine = 'Cannot calculate Mean FIG.'
 const toolTipElement = (
   <div>
