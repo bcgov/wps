@@ -15,13 +15,15 @@ import { FireCentre } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import { Button } from 'components'
 import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
-import { isGrassFuelType } from 'features/hfiCalculator/validation'
+import { isGrassFuelType, isValidGrassCure } from 'features/hfiCalculator/validation'
 import {
   calculateMeanIntensityGroup,
   intensityGroupColours
 } from 'features/hfiCalculator/components/meanIntensity'
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
 import { isUndefined } from 'lodash'
+import CalculatedCell from 'features/hfiCalculator/components/CalculatedCell'
+import IntensityGroupCell from 'features/hfiCalculator/components/IntensityGroupCell'
 
 export interface Props {
   title: string
@@ -92,36 +94,6 @@ const useStyles = makeStyles({
     flexDirection: 'row',
     alignItems: 'baseline'
   },
-  intensityGroupOutline1: {
-    border: '2px solid',
-    borderColor: intensityGroupColours.lightGreen,
-    borderRadius: '4px',
-    textAlign: 'center'
-  },
-  intensityGroupOutline2: {
-    border: '2px solid',
-    borderColor: intensityGroupColours.cyan,
-    borderRadius: '4px',
-    textAlign: 'center'
-  },
-  intensityGroupOutline3: {
-    border: '2px solid',
-    borderColor: intensityGroupColours.yellow,
-    borderRadius: '4px',
-    textAlign: 'center'
-  },
-  intensityGroupOutline4: {
-    border: '2px solid',
-    borderColor: intensityGroupColours.orange,
-    borderRadius: '4px',
-    textAlign: 'center'
-  },
-  intensityGroupOutline5: {
-    border: '2px solid',
-    borderColor: intensityGroupColours.red,
-    borderRadius: '4px',
-    textAlign: 'center'
-  },
   intensityGroupSolid1: {
     background: intensityGroupColours.lightGreen,
     fontWeight: 'bold',
@@ -186,23 +158,6 @@ export const DailyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()
 
   const DECIMAL_PLACES = 1
-
-  const formatStationIntensityGroupByValue = (intensityGroup: number | undefined) => {
-    switch (intensityGroup) {
-      case 1:
-        return classes.intensityGroupOutline1
-      case 2:
-        return classes.intensityGroupOutline2
-      case 3:
-        return classes.intensityGroupOutline3
-      case 4:
-        return classes.intensityGroupOutline4
-      case 5:
-        return classes.intensityGroupOutline5
-      default:
-        return
-    }
-  }
 
   const formatPrepLevelByValue = (prepLevel: number | undefined) => {
     switch (prepLevel) {
@@ -380,14 +335,6 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                               <TableCell className={classes.planningArea} colSpan={21}>
                                 {area.name}
                               </TableCell>
-                              {/* <TableCell
-                                className={formatAreaMeanIntensityGroupByValue(
-                                  meanIntensityGroup
-                                )}
-                                data-testid={`zone-${areaName}-mean-intensity`}
-                              >
-                                {meanIntensityGroup}
-                              </TableCell> */}
                               <MeanIntensityGroupRollup
                                 area={area}
                                 dailiesMap={props.dailiesMap}
@@ -410,6 +357,10 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                               .sort((a, b) => (a[1].code < b[1].code ? -1 : 1))
                               .map(([stationCode, station]) => {
                                 const daily = props.dailiesMap.get(station.code)
+                                const grassCureError = daily
+                                  ? !isValidGrassCure(daily, station.station_props)
+                                  : true
+
                                 return (
                                   <TableRow
                                     className={classes.station}
@@ -457,28 +408,35 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                                       {daily?.ffmc?.toFixed(DECIMAL_PLACES)}
                                     </TableCell>
                                     <TableCell>{daily?.danger_class}</TableCell>
-                                    <TableCell data-testid={`${daily?.code}-ros`}>
-                                      {daily?.rate_of_spread?.toFixed(DECIMAL_PLACES)}
-                                    </TableCell>
-                                    <TableCell data-testid={`${daily?.code}-hfi`}>
-                                      {daily?.hfi?.toFixed(DECIMAL_PLACES)}
-                                    </TableCell>
-                                    <TableCell data-testid={`${daily?.code}-1-hr-size`}>
-                                      {daily?.sixty_minute_fire_size?.toFixed(
+                                    <CalculatedCell
+                                      testid={`${daily?.code}-ros`}
+                                      value={daily?.rate_of_spread?.toFixed(
                                         DECIMAL_PLACES
                                       )}
-                                    </TableCell>
-                                    <TableCell data-testid={`${daily?.code}-fire-type`}>
-                                      {daily?.fire_type}
-                                    </TableCell>
-                                    <TableCell
-                                      className={formatStationIntensityGroupByValue(
-                                        daily?.intensity_group
+                                      error={grassCureError}
+                                    ></CalculatedCell>
+                                    <CalculatedCell
+                                      testid={`${daily?.code}-hfi`}
+                                      value={daily?.hfi?.toFixed(DECIMAL_PLACES)}
+                                      error={grassCureError}
+                                    ></CalculatedCell>
+                                    <CalculatedCell
+                                      testid={`${daily?.code}-1-hr-size`}
+                                      value={daily?.sixty_minute_fire_size?.toFixed(
+                                        DECIMAL_PLACES
                                       )}
-                                      data-testid={`${daily?.code}-intensity-group`}
-                                    >
-                                      {daily?.intensity_group}
-                                    </TableCell>
+                                      error={grassCureError}
+                                    ></CalculatedCell>
+                                    <CalculatedCell
+                                      testid={`${daily?.code}-fire-type`}
+                                      value={daily?.fire_type}
+                                      error={grassCureError}
+                                    ></CalculatedCell>
+                                    <IntensityGroupCell
+                                      testid={`${daily?.code}-intensity-group`}
+                                      value={daily?.intensity_group}
+                                      error={grassCureError}
+                                    ></IntensityGroupCell>
                                     <TableCell colSpan={2}>
                                       {/* empty cell for spacing (Fire Starts & Prev Level columns) */}
                                     </TableCell>
