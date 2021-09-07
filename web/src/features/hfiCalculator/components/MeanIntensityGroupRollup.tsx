@@ -63,7 +63,7 @@ const toolTipFirstLine = 'Grass Cure % not defined in WFWX for one or more stati
 const toolTipSecondLine = 'Cannot calculate Mean FIG.'
 const toolTipElement = (
   <div>
-    {toolTipFirstLine} <br />
+    {toolTipFirstLine}
     {toolTipSecondLine}
   </div>
 )
