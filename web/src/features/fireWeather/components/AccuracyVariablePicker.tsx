@@ -1,7 +1,6 @@
 import React from 'react'
 import { makeStyles } from '@material-ui/core/styles'
-import { FormControl, InputLabel, Select } from '@material-ui/core'
-import { MenuItem } from '@material-ui/core'
+import { FormControl, InputLabel, Select, MenuItem } from '@material-ui/core'
 
 export enum AccuracyWeatherVariableEnum {
   'Relative Humidity' = 1,
