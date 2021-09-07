@@ -77,9 +77,7 @@ const MeanIntensityGroupRollup = (props: MeanIntensityGroupRollupProps) => {
   }, false)
 
   const meanIntensityGroup = calculateMeanIntensityGroup(props.area, props.dailiesMap)
-  const formatAreaMeanIntensityGroupByValue = (
-    meanIntensityGroup: number | undefined
-  ) => {
+  const formatAreaMeanIntensityGroupByValue = () => {
     if (meanIntensityGroup === undefined) {
       return undefined
     }
@@ -112,7 +110,7 @@ const MeanIntensityGroupRollup = (props: MeanIntensityGroupRollupProps) => {
         </ThemeProvider>
       ) : (
         <TableCell
-          className={formatAreaMeanIntensityGroupByValue(meanIntensityGroup)}
+          className={formatAreaMeanIntensityGroupByValue()}
           data-testid={`zone-${props.area.name}-mean-intensity`}
         >
           {meanIntensityGroup}
