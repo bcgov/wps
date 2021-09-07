@@ -16,8 +16,12 @@ import { StationDaily } from 'api/hfiCalculatorAPI'
 import { Button } from 'components'
 import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
 import { isGrassFuelType } from 'features/hfiCalculator/validation'
-import { intensityGroupColours } from 'features/hfiCalculator/components/meanIntensity'
+import {
+  calculateMeanIntensityGroup,
+  intensityGroupColours
+} from 'features/hfiCalculator/components/meanIntensity'
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
+import { isUndefined } from 'lodash'
 
 export interface Props {
   title: string
@@ -27,6 +31,15 @@ export interface Props {
   previousDay: () => void
   nextDay: () => void
   testId?: string
+}
+
+const prepLevelColours: { [description: string]: string } = {
+  green: '#A0CD63',
+  blue: '#4CAFEA',
+  yellow: '#FFFD54',
+  orange: '#F6C142',
+  brightRed: '#EA3223',
+  bloodRed: '#B02318'
 }
 
 const useStyles = makeStyles({
@@ -56,11 +69,15 @@ const useStyles = makeStyles({
     backgroundColor: '#dbd9d9'
   },
   planningArea: {
-    backgroundColor: '#d6faff',
+    backgroundColor: 'rgba(40, 53, 147, 0.05)',
 
     '& .MuiTableCell-sizeSmall': {
       paddingLeft: '12px'
     }
+  },
+  fireStarts: {
+    fontWeight: 'bold',
+    textAlign: 'center'
   },
   station: {
     '& .MuiTableCell-sizeSmall': {
@@ -130,6 +147,38 @@ const useStyles = makeStyles({
     fontWeight: 'bold',
     color: 'white',
     textAlign: 'center'
+  },
+  prepLevel1: {
+    background: prepLevelColours.green,
+    fontWeight: 'bold',
+    textAlign: 'center'
+  },
+  prepLevel2: {
+    background: prepLevelColours.blue,
+    fontWeight: 'bold',
+    textAlign: 'center'
+  },
+  prepLevel3: {
+    background: prepLevelColours.yellow,
+    fontWeight: 'bold',
+    textAlign: 'center'
+  },
+  prepLevel4: {
+    background: prepLevelColours.orange,
+    fontWeight: 'bold',
+    textAlign: 'center'
+  },
+  prepLevel5: {
+    background: prepLevelColours.brightRed,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    color: 'white'
+  },
+  prepLevel6: {
+    background: prepLevelColours.bloodRed,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    color: 'white'
   }
 })
 
@@ -153,6 +202,42 @@ export const DailyViewTable = (props: Props): JSX.Element => {
       default:
         return
     }
+  }
+
+  const formatPrepLevelByValue = (prepLevel: number | undefined) => {
+    switch (prepLevel) {
+      case 1:
+        return classes.prepLevel1
+      case 2:
+        return classes.prepLevel2
+      case 3:
+        return classes.prepLevel3
+      case 4:
+        return classes.prepLevel4
+      case 5:
+        return classes.prepLevel5
+      case 6:
+        return classes.prepLevel6
+      default:
+        return
+    }
+  }
+
+  const calculatePrepLevel = (meanIntensityGroup: number | undefined) => {
+    // for now, prep level calculation assumed a fixed Fire Starts value of 0-1
+    if (isUndefined(meanIntensityGroup)) {
+      return undefined
+    }
+    if (meanIntensityGroup < 3) {
+      return 1
+    }
+    if (meanIntensityGroup < 4) {
+      return 2
+    }
+    if (meanIntensityGroup < 5) {
+      return 3
+    }
+    return 4
   }
 
   return (
@@ -256,6 +341,16 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                   <br />
                   FIG
                 </TableCell>
+                <TableCell>
+                  Fire
+                  <br />
+                  Starts
+                </TableCell>
+                <TableCell>
+                  Prep
+                  <br />
+                  Level
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -270,6 +365,11 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                     {Object.entries(centre.planning_areas)
                       .sort((a, b) => (a[1].name < b[1].name ? -1 : 1))
                       .map(([areaName, area]) => {
+                        const meanIntensityGroup = calculateMeanIntensityGroup(
+                          area,
+                          props.dailiesMap
+                        )
+                        const prepLevel = calculatePrepLevel(meanIntensityGroup)
                         return (
                           <React.Fragment key={`zone-${areaName}`}>
                             <TableRow
@@ -292,6 +392,19 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                                 area={area}
                                 dailiesMap={props.dailiesMap}
                               ></MeanIntensityGroupRollup>
+                              <TableCell
+                                className={classes.fireStarts}
+                                data-testid={`daily-fire-starts-${areaName}`}
+                              >
+                                {/* using a fixed value of 0-1 Fire Starts for now */}
+                                0-1
+                              </TableCell>
+                              <TableCell
+                                className={formatPrepLevelByValue(prepLevel)}
+                                data-testid={`daily-prep-level-${areaName}`}
+                              >
+                                {prepLevel}
+                              </TableCell>
                             </TableRow>
                             {Object.entries(area.stations)
                               .sort((a, b) => (a[1].code < b[1].code ? -1 : 1))
@@ -365,6 +478,9 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                                       data-testid={`${daily?.code}-intensity-group`}
                                     >
                                       {daily?.intensity_group}
+                                    </TableCell>
+                                    <TableCell colSpan={2}>
+                                      {/* empty cell for spacing (Fire Starts & Prev Level columns) */}
                                     </TableCell>
                                   </TableRow>
                                 )

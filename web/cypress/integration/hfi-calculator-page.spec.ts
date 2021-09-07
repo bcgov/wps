@@ -23,11 +23,9 @@ describe('HFI Calculator Page', () => {
       .should('have.length.at.least', 15)
   })
 
-  // TODO: Fix
-  xit('should display weather results and intensity groups in Daily View Table', () => {
+  xit('should display weather results, intensity groups, & prep levels in Daily View Table', () => {
     cy.visit(HFI_CALC_ROUTE)
     cy.wait(['@getFireCentres', '@getDaily'])
-    cy.getByTestId('zone-4-mean-intensity').contains(2)
     cy.getByTestId('239-hfi').contains(2655.5)
     cy.getByTestId('280-ros').contains(1.7)
     cy.getByTestId('239-1-hr-size').contains(0.5)
@@ -38,6 +36,15 @@ describe('HFI Calculator Page', () => {
     cy.getByTestId('zone-0-mean-intensity').should($td => {
       const className = $td[0].className
       expect(className).to.match(/makeStyles-intensityGroupSolid2-/)
+    })
+    cy.getByTestId('daily-prep-level-0').contains(1)
+    cy.getByTestId('daily-prep-level-0').should($td => {
+      const className = $td[0].className
+      expect(className).to.match(/makeStyles-prepLevel1-/)
+    })
+    cy.getByTestId('daily-prep-level-2').contains(3)
+    cy.getByTestId('daily-prep-level-2').should($td => {
+      expect($td[0].className).to.match(/makeStyles-prepLevel3-/)
     })
   })
 })
