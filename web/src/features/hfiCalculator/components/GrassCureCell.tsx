@@ -29,21 +29,19 @@ const toolTipElement = (
 )
 
 const GrassCureProps = (props: GrassCureCellProps) => {
-  return (
+  return isNull(props.value) && props.isGrassFuelType ? (
     <TableCell>
-      {isNull(props.value) && props.isGrassFuelType ? (
-        <ThemeProvider theme={errorIconTheme}>
-          <Tooltip
-            title={toolTipElement}
-            aria-label={`${toolTipFirstLine} \n ${toolTipSecondLine}`}
-          >
-            <ErrorOutlineIcon></ErrorOutlineIcon>
-          </Tooltip>
-        </ThemeProvider>
-      ) : (
-        props.value
-      )}
+      <ThemeProvider theme={errorIconTheme}>
+        <Tooltip
+          title={toolTipElement}
+          aria-label={`${toolTipFirstLine} \n ${toolTipSecondLine}`}
+        >
+          <ErrorOutlineIcon data-testid={`grass-cure-error`}></ErrorOutlineIcon>
+        </Tooltip>
+      </ThemeProvider>
     </TableCell>
+  ) : (
+    <TableCell data-testid={`grass-cure`}>props.value</TableCell>
   )
 }
 
