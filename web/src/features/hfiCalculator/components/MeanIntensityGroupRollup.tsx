@@ -42,10 +42,14 @@ const useStyles = makeStyles({
     fontWeight: 'bold',
     color: 'white',
     textAlign: 'center'
+  },
+  alignErrorIcon: {
+    marginTop: '6px',
+    textAlign: 'center'
   }
 })
 
-const adjustedTheme = createMuiTheme({
+const errorIconTheme = createMuiTheme({
   overrides: {
     MuiSvgIcon: {
       root: {
@@ -97,25 +101,23 @@ const MeanIntensityGroupRollup = (props: MeanIntensityGroupRollupProps) => {
     }
   }
 
-  return (
-    <TableCell>
-      {error ? (
-        <ThemeProvider theme={adjustedTheme}>
-          <Tooltip
-            title={toolTipElement}
-            aria-label={`${toolTipFirstLine} \n ${toolTipSecondLine}`}
-          >
-            <ErrorOutlineIcon></ErrorOutlineIcon>
-          </Tooltip>
-        </ThemeProvider>
-      ) : (
-        <TableCell
-          className={formatAreaMeanIntensityGroupByValue()}
-          data-testid={`zone-${props.area.name}-mean-intensity`}
-        >
-          {meanIntensityGroup}
-        </TableCell>
-      )}
+  return error ? (
+    <ThemeProvider theme={errorIconTheme}>
+      <Tooltip
+        title={toolTipElement}
+        aria-label={`${toolTipFirstLine} \n ${toolTipSecondLine}`}
+      >
+        <div className={classes.alignErrorIcon}>
+          <ErrorOutlineIcon></ErrorOutlineIcon>
+        </div>
+      </Tooltip>
+    </ThemeProvider>
+  ) : (
+    <TableCell
+      className={formatAreaMeanIntensityGroupByValue()}
+      data-testid={`zone-${props.area.name}-mean-intensity`}
+    >
+      {meanIntensityGroup}
     </TableCell>
   )
 }

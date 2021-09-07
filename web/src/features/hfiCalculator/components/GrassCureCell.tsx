@@ -9,7 +9,7 @@ export interface GrassCureCellProps {
   isGrassFuelType: boolean
 }
 
-const adjustedTheme = createMuiTheme({
+const errorIconTheme = createMuiTheme({
   overrides: {
     MuiSvgIcon: {
       root: {
@@ -32,7 +32,7 @@ const GrassCureProps = (props: GrassCureCellProps) => {
   return (
     <TableCell>
       {isNull(props.value) && props.isGrassFuelType ? (
-        <ThemeProvider theme={adjustedTheme}>
+        <ThemeProvider theme={errorIconTheme}>
           <Tooltip
             title={toolTipElement}
             aria-label={`${toolTipFirstLine} \n ${toolTipSecondLine}`}
