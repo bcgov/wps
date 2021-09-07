@@ -1,5 +1,5 @@
 import { TableContainer, Table, TableRow, TableBody } from '@material-ui/core'
-import { render, screen } from '@testing-library/react'
+import { render } from '@testing-library/react'
 import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
 import React from 'react'
 describe('HFI - GrassCureCell', () => {

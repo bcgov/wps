@@ -114,7 +114,7 @@ const MeanIntensityGroupRollup = (props: MeanIntensityGroupRollupProps) => {
       >
         <div className={classes.alignErrorIcon}>
           <ErrorOutlineIcon
-            data-testid={`zone-${props.area.name}-mig-error`}
+            data-testid={`zone-${props.area.id}-mig-error`}
           ></ErrorOutlineIcon>
         </div>
       </Tooltip>
@@ -122,9 +122,7 @@ const MeanIntensityGroupRollup = (props: MeanIntensityGroupRollupProps) => {
   ) : (
     <TableCell
       className={formatAreaMeanIntensityGroupByValue()}
-      data-testid={`zone-${stationsWithDaily
-        .map(stationsWithDaily => stationsWithDaily.station.code)
-        .join('')}-mean-intensity`}
+      data-testid={`zone-${props.area.id}-mean-intensity`}
     >
       {meanIntensityGroup}
     </TableCell>
