@@ -199,13 +199,13 @@ objects:
                   memory: ${MEMORY_LIMIT}
               terminationMessagePath: /dev/termination-log
               terminationMessagePolicy: File
-              readinessProbe:
-                initialDelaySeconds: 5
-                timeoutSeconds: 5
-                failureThreshold: 4
-                exec:
-                  command:
-                    - /usr/share/scripts/patroni/health_check.sh
+              # readinessProbe:
+              #   initialDelaySeconds: 5
+              #   timeoutSeconds: 5
+              #   failureThreshold: 4
+              #   exec:
+              #     command:
+              #       - /usr/share/scripts/patroni/health_check.sh
               volumeMounts:
                 - mountPath: /home/postgres/pgdata
                   name: postgresql
