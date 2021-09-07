@@ -59,10 +59,10 @@ export const windColorScale = [
   '#089E83'
 ]
 
-const smallRadius = 4
-const mediumRadius = 5
-const largeRadius = 6
-const xlargeRadius = 7
+export const smallRadius = 4
+export const mediumRadius = 5
+export const largeRadius = 6
+export const xlargeRadius = 7
 
 export const tempGradientStepInDegrees = 2
 export const rhGradientStepInPercentagePoints = 3

@@ -11,15 +11,18 @@ import {
   computeRHAccuracyColor,
   computeRHAccuracySize,
   computeRHScaleIndex,
-  computeStroke,
-  determineMarkerRadius,
   darkOrangeColor,
   darkGreenColor,
   lightGreenColor,
   middleOrangeColor,
   darkRedColor,
   darkBlueColor,
-  pinkColor
+  pinkColor,
+  mediumBlueColor,
+  smallRadius,
+  xlargeRadius,
+  mediumRadius,
+  largeRadius
 } from 'features/fireWeather/components/maps/stationAccuracy'
 
 describe('Station map color accuracy', () => {
@@ -227,6 +230,31 @@ describe('Station map color accuracy', () => {
       expect(computeTempAccuracyColor(overForecastedTemp)).toEqual(darkBlueColor)
     })
 
+    it('should return neutral color code when observed temp is within 2 degrees of forecasted temp', () => {
+      let goodForecast: StationMetrics = {
+        forecasts: {
+          temperature: 18, 
+          relative_humidity: 0
+        },
+        observations: {
+          temperature: 20,
+          relative_humidity: 0
+        }
+      }
+      expect(computeTempAccuracyColor(goodForecast)).toEqual(neutralColor)
+      goodForecast = {
+        forecasts: {
+          temperature: 21,
+          relative_humidity: 0
+        },
+        observations: {
+          temperature: 20,
+          relative_humidity: 0
+        }
+      }
+      expect(computeTempAccuracyColor(goodForecast)).toEqual(neutralColor)
+    })
+
     it('should return pale pink color code when observed temp is 3 degrees warmer than forecasted temp', () => {
       const forecastTooLow: StationMetrics = {
         forecasts: {
@@ -240,11 +268,243 @@ describe('Station map color accuracy', () => {
       }
       expect(computeTempAccuracyColor(forecastTooLow)).toEqual(pinkColor)
     })
+
+    it('should return medium blue color code when observed temp is 6 degrees colder than forecasted temp', () => {
+      const forecastTooHigh: StationMetrics = {
+        forecasts: {
+          temperature: 30,
+          relative_humidity: 0
+        },
+        observations: {
+          temperature: 24,
+          relative_humidity: 0
+        }
+      }
+      expect(computeTempAccuracyColor(forecastTooHigh)).toEqual(mediumBlueColor)
+    })
   })
 
+  describe('computeRHAccuracySize', () => {
+    it('should return the smallest marker size if forecasted RH is equal to observed RH', () => {
+      expect(computeRHAccuracySize(perfectForecast)).toEqual(smallRadius)
+    })
 
+    it('should return the smallest marker size if forecasted RH is null', () => {
+      expect(computeRHAccuracySize(nullForecast)).toEqual(smallRadius)
+    })
 
+    it('should return the smallest marker size if observed RH is null', () => {
+      expect(computeRHAccuracySize(nullObs)).toEqual(smallRadius)
+    })
 
+    it('should return the largest marker size if forecasted RH is much larger than observed RH', () => {
+      const forecastTooHigh: StationMetrics = {
+        forecasts: {
+          relative_humidity: 100,
+          temperature: 0
+        },
+        observations: {
+          relative_humidity: 50,
+          temperature: 0
+        }
+      }
+      expect(computeRHAccuracySize(forecastTooHigh)).toEqual(xlargeRadius)
+    })
 
+    it('should return the largest marker size if forecasted RH is much smaller than observed RH', () => {
+      const forecastTooLow: StationMetrics = {
+        forecasts: {
+          relative_humidity: 20,
+          temperature: 0
+        },
+        observations: {
+          relative_humidity: 100,
+          temperature: 0
+        }
+      }
+      expect(computeRHAccuracySize(forecastTooLow)).toEqual(xlargeRadius)
+    })
+
+    it('should return the next-smallest marker size if forecasted RH is 4 percentage points lower or higher than observed RH', () => {
+      let offBy4Points: StationMetrics = {
+        forecasts: {
+          relative_humidity: 50,
+          temperature: 0
+        },
+        observations: {
+          relative_humidity: 54,
+          temperature: 0
+        }
+      }
+      expect(computeRHAccuracySize(offBy4Points)).toEqual(mediumRadius)
+      offBy4Points = {
+        forecasts: {
+          relative_humidity: 58,
+          temperature: 0
+        },
+        observations: {
+          relative_humidity: 54,
+          temperature: 0
+        }
+      }
+      expect(computeRHAccuracySize(offBy4Points)).toEqual(mediumRadius)
+    })
+
+    it('should return the next-largest marker size if forecasted RH is 7 percentage points lower or higher than observed RH', () => {
+      let offBy7Points: StationMetrics = {
+        forecasts: {
+          relative_humidity: 50,
+          temperature: 0
+        },
+        observations: {
+          relative_humidity: 57,
+          temperature: 0
+        }
+      }
+      expect(computeRHAccuracySize(offBy7Points)).toEqual(largeRadius)
+      offBy7Points = {
+        forecasts: {
+          relative_humidity: 64,
+          temperature: 0
+        },
+        observations: {
+          relative_humidity: 57,
+          temperature: 0
+        }
+      }
+      expect(computeRHAccuracySize(offBy7Points)).toEqual(largeRadius)
+    })
+
+    it('should return the smallest marker size if forecasted RH is 3 percentage points higher or lower than observed RH', () => {
+      let almostRight: StationMetrics = {
+        forecasts: {
+          relative_humidity: 15,
+          temperature: 0
+        },
+        observations: {
+          relative_humidity: 18,
+          temperature: 0
+        }
+      }
+      expect(computeRHAccuracySize(almostRight)).toEqual(smallRadius)
+      almostRight = {
+        forecasts: {
+          relative_humidity: 15,
+          temperature: 0
+        },
+        observations: {
+          relative_humidity: 12,
+          temperature: 0
+        }
+      }
+      expect(computeRHAccuracySize(almostRight)).toEqual(smallRadius)
+    })
+  })
+
+  describe('computeTempAccuracySize', () => {
+    it('should return the smallest marker size if forecast temp is equal to observed temp', () => {
+      expect(computeTempAccuracySize(perfectForecast)).toEqual(smallRadius)
+    })
+
+    it('should return the smallest marker size if observed temp is null', () => {
+      expect(computeTempAccuracySize(nullObs)).toEqual(smallRadius)
+    })
+
+    it('should return the smallest marker size if forecast temp is null', () => {
+      expect(computeTempAccuracySize(nullForecast)).toEqual(smallRadius)
+    })
+
+    it('should return the largest marker size if observed temp is much higher than forecast temp', () => {
+      const forecastTooLow: StationMetrics = {
+        forecasts: {
+          temperature: 10,
+          relative_humidity: 0
+        },
+        observations: {
+          temperature: 30,
+          relative_humidity: 0
+        }
+      }
+      expect(computeTempAccuracySize(forecastTooLow)).toEqual(xlargeRadius)
+    })
+
+    it('should return the largest marker size if observed temp is much lower than forecast temp', () => {
+      const forecastTooHigh: StationMetrics = {
+        forecasts: {
+          temperature: 30,
+          relative_humidity: 0
+        },
+        observations: {
+          temperature: 10,
+          relative_humidity: 0
+        }
+      }
+      expect(computeTempAccuracySize(forecastTooHigh)).toEqual(xlargeRadius)
+    })
+
+    it('should return the smallest marker size if forecast temp is within 2 degrees of observed temp', () => {
+      const goodForecast: StationMetrics = {
+        forecasts: {
+          temperature: 20,
+          relative_humidity: 20
+        },
+        observations: {
+          temperature: 18,
+          relative_humidity: 75
+        }
+      }
+      expect(computeTempAccuracySize(goodForecast)).toEqual(smallRadius)
+    })
+
+    it('should return the next-smallest marker size if forecast temp is 3 degrees higher or lower than observed temp', () => {
+      let almostRight: StationMetrics = {
+        forecasts: {
+          temperature: 20,
+          relative_humidity: 0
+        },
+        observations: {
+          temperature: 17,
+          relative_humidity: 0
+        }
+      }
+      expect(computeTempAccuracySize(almostRight)).toEqual(mediumRadius)
+      almostRight = {
+        forecasts: {
+          temperature: 20,
+          relative_humidity: 0
+        },
+        observations: {
+          temperature: 23,
+          relative_humidity: 0
+        }
+      }
+      expect(computeTempAccuracySize(almostRight)).toEqual(mediumRadius)
+    })
+
+    it('should return the next-largest marker size if forecast temp is 5 degrees higher or lower than observed temp', () => {
+      let notVeryGood: StationMetrics = {
+        forecasts: {
+          temperature: 20,
+          relative_humidity: 0
+        },
+        observations: {
+          temperature: 25,
+          relative_humidity: 0
+        }
+      }
+      expect(computeTempAccuracySize(notVeryGood)).toEqual(largeRadius)
+      notVeryGood = {
+        forecasts: {
+          temperature: 20,
+          relative_humidity: 0
+        },
+        observations: {
+          temperature: 15,
+          relative_humidity: 0
+        }
+      }
+      expect(computeTempAccuracySize(notVeryGood)).toEqual(largeRadius)
+    })
+  })
   
 })
