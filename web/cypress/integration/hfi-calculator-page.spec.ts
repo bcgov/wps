@@ -23,7 +23,7 @@ describe('HFI Calculator Page', () => {
       .should('have.length.at.least', 15)
   })
 
-  xit('should display weather results, intensity groups, & prep levels in Daily View Table', () => {
+  it('should display weather results, intensity groups, & prep levels in Daily View Table', () => {
     cy.visit(HFI_CALC_ROUTE)
     cy.wait(['@getFireCentres', '@getDaily'])
     cy.getByTestId('239-hfi').contains(2655.5)
@@ -32,8 +32,8 @@ describe('HFI Calculator Page', () => {
     cy.getByTestId('239-fire-type').contains('S')
     cy.getByTestId('280-fire-type').contains('IC')
     cy.getByTestId('280-intensity-group').contains(3)
-    cy.getByTestId('zone-0-mean-intensity').contains(2.4)
-    cy.getByTestId('zone-0-mean-intensity').should($td => {
+    cy.getByTestId('zone-10293063092801055-mean-intensity').contains(2.4)
+    cy.getByTestId('zone-10293063092801055-mean-intensity').should($td => {
       const className = $td[0].className
       expect(className).to.match(/makeStyles-intensityGroupSolid2-/)
     })

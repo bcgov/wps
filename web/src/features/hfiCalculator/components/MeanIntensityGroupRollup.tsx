@@ -113,14 +113,18 @@ const MeanIntensityGroupRollup = (props: MeanIntensityGroupRollupProps) => {
         aria-label={`${toolTipFirstLine} \n ${toolTipSecondLine}`}
       >
         <div className={classes.alignErrorIcon}>
-          <ErrorOutlineIcon></ErrorOutlineIcon>
+          <ErrorOutlineIcon
+            data-testid={`zone-${props.area.name}-mig-error`}
+          ></ErrorOutlineIcon>
         </div>
       </Tooltip>
     </ThemeProvider>
   ) : (
     <TableCell
       className={formatAreaMeanIntensityGroupByValue()}
-      data-testid={`zone-${props.area.name}-mean-intensity`}
+      data-testid={`zone-${stationsWithDaily
+        .map(stationsWithDaily => stationsWithDaily.station.code)
+        .join('')}-mean-intensity`}
     >
       {meanIntensityGroup}
     </TableCell>
