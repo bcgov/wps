@@ -1,5 +1,5 @@
 import { isNull } from 'lodash'
-import { Stroke } from 'ol/style'
+import Stroke from 'ol/style/Stroke'
 
 export interface StationMetrics {
   observations: {
@@ -20,6 +20,14 @@ export const neutralColor = '#DFDEDB'
 export const yellowColor = '#FFC464'
 export const middleOrangeColor = '#FF9334'
 export const darkOrangeColor = '#C66400'
+
+export const darkRedColor = '#720505'
+export const mediumRedColor = '#D05050'
+export const pinkColor = '#F79191'
+export const lightBlueColor = '#60D3F8'
+export const mediumBlueColor = '#38B0F8'
+export const darkBlueColor = '#2F80EE'
+
 export const neutralIndex = 3
 
 export const rhColorScale = [
@@ -32,13 +40,13 @@ export const rhColorScale = [
   darkOrangeColor
 ]
 export const tempColorScale = [
-  '#720505',
-  '#D05050',
-  '#F79191',
+  darkRedColor,
+  mediumRedColor,
+  pinkColor,
   neutralColor,
-  '#60D3F8',
-  '#38B0F8',
-  '#2F80EE'
+  lightBlueColor,
+  mediumBlueColor,
+  darkBlueColor
 ]
 
 export const windColorScale = [
@@ -112,7 +120,7 @@ export const computeStroke = (markerColor: string): Stroke | undefined => {
   return undefined
 }
 
-const determineMarkerRadius = (scaleIndex: number): number => {
+export const determineMarkerRadius = (scaleIndex: number): number => {
   switch (scaleIndex) {
     case 0:
     case 6:
