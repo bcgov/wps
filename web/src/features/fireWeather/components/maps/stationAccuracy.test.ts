@@ -81,12 +81,12 @@ describe('Station map color accuracy', () => {
       expect(computeTempScaleIndex(40, 0)).toEqual(tempColorScale.length - 1)
     })
 
-    it ('should return a scale index of 0 when observed temp is much greater than forecasted temp', () => {
+    it('should return a scale index of 0 when observed temp is much greater than forecasted temp', () => {
       expect(computeTempScaleIndex(30, 0)).toEqual(0)
     })
 
     it('should return a scale index of neutralIndex+1 when observed temp is 3 degrees lower than forecasted temp', () => {
-      expect(computeTempScaleIndex(20, 17)).toEqual(neutralIndex+1)
+      expect(computeTempScaleIndex(20, 17)).toEqual(neutralIndex + 1)
     })
 
     it('should return a scale index of neutralIndex-2 when observed temp is 5 degrees higher than forecasted temp', () => {
@@ -233,7 +233,7 @@ describe('Station map color accuracy', () => {
     it('should return neutral color code when observed temp is within 2 degrees of forecasted temp', () => {
       let goodForecast: StationMetrics = {
         forecasts: {
-          temperature: 18, 
+          temperature: 18,
           relative_humidity: 0
         },
         observations: {
@@ -506,5 +506,4 @@ describe('Station map color accuracy', () => {
       expect(computeTempAccuracySize(notVeryGood)).toEqual(largeRadius)
     })
   })
-  
 })

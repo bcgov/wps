@@ -14,7 +14,7 @@ const useStyles = makeStyles({
     marginLeft: '20px'
   },
   select: {
-    color: 'white',
+    color: 'white'
   },
   '& .MuiFormLabel-root.Mui-focused': {
     color: 'white'
