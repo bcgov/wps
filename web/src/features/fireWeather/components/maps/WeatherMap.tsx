@@ -40,6 +40,7 @@ const source = new olSource.XYZ({
 
 const zoom = 6
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const rhPointStyleFunction = (feature: any) => {
   const rhPointColor = computeRHAccuracyColor(feature.values_)
   return new Style({
@@ -51,6 +52,7 @@ const rhPointStyleFunction = (feature: any) => {
   })
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const tempPointStyleFunction = (feature: any) => {
   const tempPointColor = computeTempAccuracyColor(feature.values_)
   return new Style({
