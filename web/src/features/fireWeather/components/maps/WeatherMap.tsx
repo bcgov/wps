@@ -5,7 +5,7 @@ import { Button } from '@material-ui/core'
 import { fromLonLat, get } from 'ol/proj'
 import * as olSource from 'ol/source'
 import GeoJSON from 'ol/format/GeoJSON'
-import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style'
+import { Circle as CircleStyle, Fill, Style } from 'ol/style'
 import { FeatureLike } from 'ol/Feature'
 import { fetchWxStations, selectStation } from 'features/stations/slices/stationsSlice'
 
@@ -16,18 +16,14 @@ import { useDispatch, useSelector } from 'react-redux'
 
 import { selectFireWeatherStations } from 'app/rootReducer'
 import { getDetailedStations, StationSource } from 'api/stationAPI'
-import { computeAccuracyColors } from 'features/fireWeather/components/maps/stationAccuracy'
-
-const pointStyleFunction = (feature: any) => {
-  const colorResult = computeAccuracyColors(feature.values_)
-  return new Style({
-    image: new CircleStyle({
-      radius: 4,
-      fill: new Fill({ color: colorResult.relative_humidity }),
-      stroke: new Stroke({ color: 'black', width: 1 })
-    })
-  })
-}
+import {
+  computeRHAccuracyColor,
+  computeRHAccuracySize,
+  computeStroke,
+  computeTempAccuracyColor,
+  computeTempAccuracySize
+} from 'features/fireWeather/components/maps/stationAccuracy'
+import { AccuracyWeatherVariableEnum } from 'features/fireWeather/components/AccuracyVariablePicker'
 
 const BC_ROAD_BASE_MAP_SERVER_URL =
   'https://maps.gov.bc.ca/arcgis/rest/services/province/roads_wm/MapServer'
@@ -44,12 +40,36 @@ const source = new olSource.XYZ({
 
 const zoom = 6
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const rhPointStyleFunction = (feature: any) => {
+  const rhPointColor = computeRHAccuracyColor(feature.values_)
+  return new Style({
+    image: new CircleStyle({
+      radius: computeRHAccuracySize(feature.values_),
+      fill: new Fill({ color: rhPointColor }),
+      stroke: computeStroke(rhPointColor)
+    })
+  })
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const tempPointStyleFunction = (feature: any) => {
+  const tempPointColor = computeTempAccuracyColor(feature.values_)
+  return new Style({
+    image: new CircleStyle({
+      radius: computeTempAccuracySize(feature.values_),
+      fill: new Fill({ color: tempPointColor }),
+      stroke: computeStroke(tempPointColor)
+    })
+  })
+}
 interface Props {
   redrawFlag?: RedrawCommand
   center: number[]
   isCollapsed: boolean
   toiFromQuery: string
   setMapCenter: (newCenter: number[]) => void
+  selectedWxVariable: AccuracyWeatherVariableEnum
 }
 
 const WeatherMap = ({
@@ -57,11 +77,16 @@ const WeatherMap = ({
   center,
   isCollapsed,
   toiFromQuery,
-  setMapCenter
+  setMapCenter,
+  selectedWxVariable
 }: Props) => {
   const dispatch = useDispatch()
 
   const { stations } = useSelector(selectFireWeatherStations)
+  const styleFunction =
+    selectedWxVariable === AccuracyWeatherVariableEnum['Relative Humidity']
+      ? rhPointStyleFunction
+      : tempPointStyleFunction
 
   useEffect(() => {
     dispatch(
@@ -93,7 +118,6 @@ const WeatherMap = ({
     },
     [dispatch]
   )
-
   return (
     <Map
       center={fromLonLat(center)}
@@ -115,7 +139,7 @@ const WeatherMap = ({
             )
           })
         }
-        style={pointStyleFunction}
+        style={styleFunction}
         zIndex={1}
       />
     </Map>

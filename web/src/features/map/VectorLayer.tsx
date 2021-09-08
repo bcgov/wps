@@ -44,6 +44,12 @@ const VectorLayer = ({ source, style, opacity, zIndex = 0 }: Props) => {
     layer.setSource(source)
   }, [source]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    if (!layer) return
+
+    layer.setStyle(style)
+  }, [style]) // eslint-disable-line react-hooks/exhaustive-deps
+
   return null
 }
 

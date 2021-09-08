@@ -37,7 +37,6 @@ async def get_detailed_stations(response: Response,
         else:
             toi = get_hour_20(toi)
         weather_stations = await fetch_detailed_stations_as_geojson(toi, source)
-
         return DetailedWeatherStationsResponse(features=weather_stations)
 
     except Exception as exception:
