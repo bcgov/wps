@@ -116,7 +116,6 @@ const WeatherMap = ({
     },
     [dispatch]
   )
-  console.log(stations)
   return (
     <Map
       center={fromLonLat(center)}
