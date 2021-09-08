@@ -226,18 +226,14 @@ def calculate_fire_behaviour_advisory(station: FBACalculatorWeatherStation) -> F
     fire_type = get_fire_type(fuel_type=station.fuel_type, crown_fraction_burned=cfb)
     flame_length = get_approx_flame_length(hfi)
 
-    wind_azimuth = cffdrs.correct_wind_azimuth(station.wind_direction)
-    slope_azimuth = None  # a.k.a. SAZ
-    ground_slope = 0  # right now we're not taking slope into account
-    wsv = cffdrs.calculate_net_effective_windspeed(fuel_type=station.fuel_type, ffmc=station.ffmc,
-                                                   bui=station.bui, ws=station.wind_speed, waz=wind_azimuth,
-                                                   gs=ground_slope,
-                                                   saz=slope_azimuth, fmc=fmc, sfc=sfc,
-                                                   pc=station.percentage_conifer,
-                                                   cc=station.grass_cure,
-                                                   pdf=station.percentage_dead_balsam_fir,
-                                                   cbh=station.crown_base_height,
-                                                   isi=station.isi)
+    wsv = cffdrs.calculate_wind_speed(fuel_type=station.fuel_type, ffmc=station.ffmc,
+                                      bui=station.bui, ws=station.wind_speed,
+                                      fmc=fmc, sfc=sfc,
+                                      pc=station.percentage_conifer,
+                                      cc=station.grass_cure,
+                                      pdf=station.percentage_dead_balsam_fir,
+                                      cbh=station.crown_base_height,
+                                      isi=station.isi)
 
     bros = cffdrs.back_rate_of_spread(fuel_type=station.fuel_type, ffmc=station.ffmc, bui=station.bui,
                                       wsv=wsv,
