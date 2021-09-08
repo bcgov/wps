@@ -73,7 +73,7 @@ describe('HFI Calculator Page', () => {
         fixture: 'hfi-calc/fire-centres-minimal.json'
       }).as('getFireCentres')
     })
-    it('should highest intensity values for mean intensity group in Daily View Table', () => {
+    it('should show highest intensity values for mean intensity group in Daily View Table', () => {
       cy.visit(HFI_CALC_ROUTE)
       cy.wait(['@getFireCentres', '@getDaily'])
       cy.getByTestId('306-intensity-group').contains(5)
