@@ -82,7 +82,7 @@ describe('Station map color accuracy', () => {
     })
 
     it('should return a scale index of 0 when observed temp is much greater than forecasted temp', () => {
-      expect(computeTempScaleIndex(30, 0)).toEqual(0)
+      expect(computeTempScaleIndex(0, 30)).toEqual(0)
     })
 
     it('should return a scale index of neutralIndex+1 when observed temp is 3 degrees lower than forecasted temp', () => {

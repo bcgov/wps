@@ -142,9 +142,12 @@ export const computeRHScaleIndex = (
   metricObservation: number
 ): number => {
   const percentagePointDifference = metricForecast - metricObservation
-  let scaledDifference = Math.round(
-    percentagePointDifference / rhGradientStepInPercentagePoints
-  )
+  let scaledDifference = percentagePointDifference / rhGradientStepInPercentagePoints
+  if (scaledDifference > 0) {
+    scaledDifference = Math.ceil(scaledDifference)
+  } else if (scaledDifference < 0) {
+    scaledDifference = Math.floor(scaledDifference)
+  }
   // adjust from 1-indexing of scaledDifference to 0-indexing for rhColorScale
   if (scaledDifference > 0) {
     scaledDifference -= 1
@@ -163,8 +166,13 @@ export const computeTempScaleIndex = (
   metricForecast: number,
   metricObservation: number
 ): number => {
-  const tempDifference = metricObservation - metricForecast
-  let scaledDifference = Math.round(tempDifference / tempGradientStepInDegrees)
+  const tempDifference = metricForecast - metricObservation
+  let scaledDifference = tempDifference / tempGradientStepInDegrees
+  if (scaledDifference > 0) {
+    scaledDifference = Math.ceil(scaledDifference)
+  } else if (scaledDifference < 0) {
+    scaledDifference = Math.floor(scaledDifference)
+  }
   // adjust from 1-indexing of scaledDifference to 0-indexing for tempColorScale
   if (scaledDifference > 0) {
     scaledDifference -= 1
