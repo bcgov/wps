@@ -23,7 +23,7 @@ const useStyles = makeStyles({
 
 interface Props {
   selectedWxVariable: AccuracyWeatherVariableEnum
-  changeHandler: () => void
+  changeHandler: any //eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
 const AccuracyVariablePicker = (props: Props) => {
