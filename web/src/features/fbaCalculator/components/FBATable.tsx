@@ -22,7 +22,6 @@ import WeatherStationCell from 'features/fbaCalculator/components/WeatherStation
 import FuelTypeCell from 'features/fbaCalculator/components/FuelTypeCell'
 import GrassCureCell from 'features/fbaCalculator/components/GrassCureCell'
 import WindSpeedCell from 'features/fbaCalculator/components/WindSpeedCell'
-import SelectionCheckbox from 'features/fbaCalculator/components/SelectionCheckbox'
 import { Order } from 'utils/table'
 import { FBATableRow, RowManager, SortByColumn } from 'features/fbaCalculator/RowManager'
 import { GeoJsonStation, getStations, StationSource } from 'api/stationAPI'
@@ -47,6 +46,8 @@ import CrownFractionBurnedCell from 'features/fbaCalculator/components/CrownFrac
 import CriticalHoursCell from 'features/fbaCalculator/components/CriticalHoursCell'
 import StatusCell from 'features/fbaCalculator/components/StatusCell'
 import ErrorAlert from 'features/fbaCalculator/components/ErrorAlert'
+import SelectionCell from 'features/fbaCalculator/components/SelectionCell'
+import StickyHeaderCell from 'features/fbaCalculator/components/StickyHeaderCell'
 
 export interface FBAInputGridProps {
   testId?: string
@@ -120,6 +121,10 @@ const useStyles = makeStyles(theme => ({
   },
   tableHeaderRow: {
     padding: '8px'
+  },
+  fixedHeaderCell: {
+    position: 'sticky',
+    zIndex: theme.zIndex.appBar + 2
   }
 }))
 
@@ -404,7 +409,7 @@ const FBATable = (props: FBAInputGridProps) => {
               <Table size="small" stickyHeader aria-label="Fire Behaviour Analysis table">
                 <TableHead>
                   <TableRow>
-                    <TableCell>
+                    <StickyHeaderCell left={0}>
                       <Checkbox
                         data-testid="select-all"
                         color="primary"
@@ -422,7 +427,7 @@ const FBATable = (props: FBAInputGridProps) => {
                           }
                         }}
                       />
-                    </TableCell>
+                    </StickyHeaderCell>
                     <TableCell key="header-zone" sortDirection={order}>
                       <TableSortLabel
                         className={classes.tableHeaderRow}
@@ -434,7 +439,7 @@ const FBATable = (props: FBAInputGridProps) => {
                         Zone
                       </TableSortLabel>
                     </TableCell>
-                    <TableCell key="header-location" sortDirection={order}>
+                    <StickyHeaderCell left={50}>
                       <TableSortLabel
                         direction={order}
                         onClick={() => {
@@ -443,7 +448,7 @@ const FBATable = (props: FBAInputGridProps) => {
                       >
                         Weather Station
                       </TableSortLabel>
-                    </TableCell>
+                    </StickyHeaderCell>
                     <TableCell key="header-elevation" sortDirection={order}>
                       <TableSortLabel
                         direction={order}
@@ -456,14 +461,14 @@ const FBATable = (props: FBAInputGridProps) => {
                         (m)
                       </TableSortLabel>
                     </TableCell>
-                    <TableCell key="header-fuel-type" sortDirection={order}>
+                    <StickyHeaderCell left={280}>
                       <TableSortLabel
                         direction={order}
                         onClick={() => toggleSorting(SortByColumn.FuelType)}
                       >
                         FBP Fuel Type
                       </TableSortLabel>
-                    </TableCell>
+                    </StickyHeaderCell>
                     <TableCell sortDirection={order}>
                       <TableSortLabel
                         direction={order}
@@ -718,48 +723,36 @@ const FBATable = (props: FBAInputGridProps) => {
                     return (
                       !isUndefined(row) && (
                         <TableRow key={row.id}>
-                          <TableCell className={classes.dataRow}>
-                            <SelectionCheckbox
-                              selected={selected}
-                              updateSelected={(newSelected: number[]) =>
-                                setSelected(newSelected)
-                              }
-                              disabled={
-                                rowIdsToUpdate.has(row.id) && !rowShouldUpdate(row)
-                              }
-                              rowId={row.id}
-                            />
-                          </TableCell>
+                          <SelectionCell
+                            selected={selected}
+                            updateSelected={(newSelected: number[]) =>
+                              setSelected(newSelected)
+                            }
+                            disabled={rowIdsToUpdate.has(row.id) && !rowShouldUpdate(row)}
+                            rowId={row.id}
+                          />
                           <TableCell className={classes.dataRow}>
                             {row.zone_code}
                           </TableCell>
-                          <TableCell className={classes.dataRow}>
-                            <WeatherStationCell
-                              stationOptions={stationMenuOptions}
-                              inputRows={rows}
-                              updateRow={updateRow}
-                              classNameMap={classes}
-                              value={row.weatherStation}
-                              disabled={
-                                rowIdsToUpdate.has(row.id) && !rowShouldUpdate(row)
-                              }
-                              rowId={row.id}
-                            />
-                          </TableCell>
+                          <WeatherStationCell
+                            stationOptions={stationMenuOptions}
+                            inputRows={rows}
+                            updateRow={updateRow}
+                            classNameMap={classes}
+                            value={row.weatherStation}
+                            disabled={rowIdsToUpdate.has(row.id) && !rowShouldUpdate(row)}
+                            rowId={row.id}
+                          />
                           <TextDisplayCell value={row.elevation}></TextDisplayCell>
-                          <TableCell className={classes.dataRow}>
-                            <FuelTypeCell
-                              fuelTypeOptions={fuelTypeMenuOptions}
-                              inputRows={rows}
-                              updateRow={updateRow}
-                              classNameMap={classes}
-                              value={row.fuelType}
-                              disabled={
-                                rowIdsToUpdate.has(row.id) && !rowShouldUpdate(row)
-                              }
-                              rowId={row.id}
-                            />
-                          </TableCell>
+                          <FuelTypeCell
+                            fuelTypeOptions={fuelTypeMenuOptions}
+                            inputRows={rows}
+                            updateRow={updateRow}
+                            classNameMap={classes}
+                            value={row.fuelType}
+                            disabled={rowIdsToUpdate.has(row.id) && !rowShouldUpdate(row)}
+                            rowId={row.id}
+                          />
                           <TableCell className={classes.dataRow}>
                             <GrassCureCell
                               inputRows={rows}
