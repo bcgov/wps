@@ -8,7 +8,13 @@ import {
   neutralColor,
   yellowColor,
   middleOrangeColor,
-  darkOrangeColor
+  darkOrangeColor,
+  darkRedColor,
+  mediumRedColor,
+  pinkColor,
+  lightBlueColor,
+  mediumBlueColor,
+  darkBlueColor
 } from 'features/fireWeather/components/maps/stationAccuracy'
 
 const useStyles = makeStyles({
@@ -64,99 +70,99 @@ const useStyles = makeStyles({
   },
   darkGreen: {
     backgroundColor: darkGreenColor,
-    borderTop: '2px solid #FFFFFF',
-    borderLeft: '2px solid #FFFFFF',
-    borderBottom: '2px solid #FFFFFF',
+    borderTop: '2px solid white',
+    borderLeft: '2px solid white',
+    borderBottom: '2px solid white',
     borderRadius: '2px 0px 0px 2px',
     height: 27,
     width: 32
   },
   middleGreen: {
     backgroundColor: middleGreenColor,
-    borderTop: '2px solid #FFFFFF',
-    borderBottom: '2px solid #FFFFFF',
+    borderTop: '2px solid white',
+    borderBottom: '2px solid white',
     height: 27,
     width: 32
   },
   lightGreen: {
     backgroundColor: lightGreenColor,
-    borderTop: '2px solid #FFFFFF',
-    borderBottom: '2px solid #FFFFFF',
+    borderTop: '2px solid white',
+    borderBottom: '2px solid white',
     height: 27,
     width: 32
   },
   neutral: {
     backgroundColor: neutralColor,
-    borderTop: '2px solid #FFFFFF',
-    borderBottom: '2px solid #FFFFFF',
+    borderTop: '2px solid white',
+    borderBottom: '2px solid white',
     height: 27,
     width: 64
   },
   lightestOrange: {
     backgroundColor: yellowColor,
-    borderTop: '2px solid #FFFFFF',
-    borderBottom: '2px solid #FFFFFF',
+    borderTop: '2px solid white',
+    borderBottom: '2px solid white',
     height: 27,
     width: 32
   },
   middleOrange: {
     backgroundColor: middleOrangeColor,
-    borderTop: '2px solid #FFFFFF',
-    borderBottom: '2px solid #FFFFFF',
+    borderTop: '2px solid white',
+    borderBottom: '2px solid white',
     height: 27,
     width: 32
   },
   darkOrange: {
     backgroundColor: darkOrangeColor,
-    borderTop: '2px solid #FFFFFF',
-    borderRight: '2px solid #FFFFFF',
-    borderBottom: '2px solid #FFFFFF',
+    borderTop: '2px solid white',
+    borderRight: '2px solid white',
+    borderBottom: '2px solid white',
     borderRadius: '0px 2px 2px 0px',
     height: 27,
     width: 32
   },
   darkestRed: {
-    backgroundColor: '#720505',
-    borderTop: '2px solid #FFFFFF',
-    borderLeft: '2px solid #FFFFFF',
-    borderBottom: '2px solid #FFFFFF',
+    backgroundColor: darkRedColor,
+    borderTop: '2px solid white',
+    borderLeft: '2px solid white',
+    borderBottom: '2px solid white',
     borderRadius: '2px 0px 0px 2px',
     height: 27,
     width: 32
   },
   mediumRed: {
-    backgroundColor: '#D05050',
-    borderTop: '2px solid #FFFFFF',
-    borderBottom: '2px solid #FFFFFF',
+    backgroundColor: mediumRedColor,
+    borderTop: '2px solid white',
+    borderBottom: '2px solid white',
     height: 27,
     width: 32
   },
   lightRed: {
-    backgroundColor: '#F79191',
-    borderTop: '2px solid #FFFFFF',
-    borderBottom: '2px solid #FFFFFF',
+    backgroundColor: pinkColor,
+    borderTop: '2px solid white',
+    borderBottom: '2px solid white',
     height: 27,
     width: 32
   },
   lightBlue: {
-    backgroundColor: '#60D3F8',
-    borderTop: '2px solid #FFFFFF',
-    borderBottom: '2px solid #FFFFFF',
+    backgroundColor: lightBlueColor,
+    borderTop: '2px solid white',
+    borderBottom: '2px solid white',
     height: 27,
     width: 32
   },
   mediumBlue: {
-    backgroundColor: '#38B0F8',
-    borderTop: '2px solid #FFFFFF',
-    borderBottom: '2px solid #FFFFFF',
+    backgroundColor: mediumBlueColor,
+    borderTop: '2px solid white',
+    borderBottom: '2px solid white',
     height: 27,
     width: 32
   },
   darkBlue: {
-    backgroundColor: '#2F80EE',
-    borderTop: '2px solid #FFFFFF',
-    borderRight: '2px solid #FFFFFF',
-    borderBottom: '2px solid #FFFFFF',
+    backgroundColor: darkBlueColor,
+    borderTop: '2px solid white',
+    borderRight: '2px solid white',
+    borderBottom: '2px solid white',
     borderRadius: '0px 2px 2px 0px',
     height: 27,
     width: 32
