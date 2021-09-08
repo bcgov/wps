@@ -27,7 +27,8 @@ class StationDaily(BaseModel):
     rate_of_spread: Optional[float] = None
     hfi: Optional[float] = None
     intensity_group: Optional[int] = None
-    fire_type: Optional[str]
+    sixty_minute_fire_size: Optional[float] = None
+    fire_type: Optional[str] = None
 
 
 class StationDailyResponse(BaseModel):
