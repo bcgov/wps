@@ -25,7 +25,10 @@ import ExpandableContainer from 'features/fireWeather/components/ExpandableConta
 import { getDetailedStations, StationSource } from 'api/stationAPI'
 import { PARTIAL_WIDTH, FULL_WIDTH, CENTER_OF_BC } from 'utils/constants'
 import { RedrawCommand } from 'features/map/Map'
-import StationAccuracyForDate from '../components/StationAccuracyForDate'
+import StationAccuracyForDate from 'features/fireWeather/components/StationAccuracyForDate'
+import AccuracyVariablePicker, {
+  AccuracyWeatherVariableEnum
+} from 'features/fireWeather/components/AccuracyVariablePicker'
 
 const useStyles = makeStyles(theme => ({
   main: {
@@ -79,6 +82,14 @@ const MoreCastPage = () => {
   const [sidePanelWidth, setSidePanelWidth] = useState(
     calculateSidePanelWidth(codesFromQuery)
   )
+  const [selectedAccuracyWxVariable, setSelectedAccuracyWxVariable] = useState(
+    AccuracyWeatherVariableEnum['Relative Humidity']
+  )
+  const accuracyWxVariableChangeHandler = (
+    event: React.ChangeEvent<{ value: AccuracyWeatherVariableEnum }>
+  ) => {
+    setSelectedAccuracyWxVariable(event.target.value)
+  }
 
   const [mapCenter, setMapCenter] = useState(CENTER_OF_BC)
   const expandSidePanel = () => setSidePanelWidth(FULL_WIDTH)
@@ -166,6 +177,7 @@ const MoreCastPage = () => {
             toiFromQuery={toiFromQuery}
             center={mapCenter}
             setMapCenter={setNewMapCenter}
+            selectedWxVariable={selectedAccuracyWxVariable}
           />
         </div>
         <ExpandableContainer
@@ -192,7 +204,11 @@ const MoreCastPage = () => {
       </div>
       {(sidePanelWidth <= PARTIAL_WIDTH || showSidePanel === false) && (
         <div className={classes.legend} data-testid="legend">
-          <AccuracyColorLegend />
+          <AccuracyVariablePicker
+            selectedWxVariable={selectedAccuracyWxVariable}
+            changeHandler={accuracyWxVariableChangeHandler}
+          />
+          <AccuracyColorLegend selectedWxVariable={selectedAccuracyWxVariable} />
           <StationAccuracyForDate toiFromQuery={toiFromQuery} />
         </div>
       )}

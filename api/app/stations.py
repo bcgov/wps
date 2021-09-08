@@ -19,6 +19,7 @@ from app.schemas.stations import (WeatherStation,
                                   WeatherStationGeometry)
 import app.db.database
 from app.db.crud.stations import get_noon_forecast_observation_union
+from app.wildfire_one import wfwx_api
 from app.wildfire_one.wfwx_api import (get_auth_header,
                                        get_detailed_stations,
                                        get_stations,
@@ -116,7 +117,7 @@ async def get_stations_by_codes(station_codes: List[int]) -> List[WeatherStation
     """ Get a list of stations by code, from WFWX Fireweather API. """
     if use_wfwx():
         logger.info('Fetching stations from WFWX')
-        return await get_stations_by_codes(station_codes)
+        return await wfwx_api.get_stations_by_codes(station_codes)
     return _get_stations_by_codes_local(station_codes)
 
 

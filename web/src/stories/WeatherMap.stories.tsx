@@ -5,6 +5,7 @@ import WeatherMap from 'features/fireWeather/components/maps/WeatherMap'
 import { Provider } from 'react-redux'
 import store from 'app/store'
 import { CENTER_OF_BC } from 'utils/constants'
+import { AccuracyWeatherVariableEnum } from 'features/fireWeather/components/AccuracyVariablePicker'
 
 export default {
   title: 'morecast/WeatherMap',
@@ -24,6 +25,7 @@ const Template: Story<PropTypes> = () => (
           setMapCenter={function noop() {
             // No-op
           }}
+          selectedWxVariable={AccuracyWeatherVariableEnum['Relative Humidity']}
         />
       }
     </Provider>
