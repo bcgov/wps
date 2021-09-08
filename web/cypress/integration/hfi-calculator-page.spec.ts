@@ -66,4 +66,22 @@ describe('HFI Calculator Page', () => {
       cy.getByTestId('zone-1-mig-error').should('be.visible')
     })
   })
+  describe('high intensity', () => {
+    beforeEach(() => {
+      cy.intercept('GET', 'api/hfi-calc/daily*', { fixture: 'hfi-calc/dailies-high-intensity.json' }).as('getDaily')
+      cy.intercept('GET', 'api/hfi-calc/fire-centres', {
+        fixture: 'hfi-calc/fire-centres-minimal.json'
+      }).as('getFireCentres')
+    })
+    it('should highest intensity values for mean intensity group in Daily View Table', () => {
+      cy.visit(HFI_CALC_ROUTE)
+      cy.wait(['@getFireCentres', '@getDaily'])
+      cy.getByTestId('306-intensity-group').contains(5)
+      cy.getByTestId('zone-1-mean-intensity').contains(5)
+      cy.getByTestId('zone-1-mean-intensity').should($td => {
+        const className = $td[0].className
+        expect(className).to.match(/makeStyles-intensityGroupSolid5-/)
+      })
+    })
+  })
 })
