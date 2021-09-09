@@ -47,6 +47,7 @@ import CrownFractionBurnedCell from 'features/fbaCalculator/components/CrownFrac
 import CriticalHoursCell from 'features/fbaCalculator/components/CriticalHoursCell'
 import StatusCell from 'features/fbaCalculator/components/StatusCell'
 import ErrorAlert from 'features/fbaCalculator/components/ErrorAlert'
+import LoadingIndicatorCell from 'features/fbaCalculator/components/LoadingIndicatorCell'
 
 export interface FBAInputGridProps {
   testId?: string
@@ -730,9 +731,11 @@ const FBATable = (props: FBAInputGridProps) => {
                               rowId={row.id}
                             />
                           </TableCell>
-                          <TableCell className={classes.dataRow}>
-                            {row.zone_code}
-                          </TableCell>
+                          <LoadingIndicatorCell loading={loading}>
+                            <TableCell className={classes.dataRow}>
+                              {row.zone_code}
+                            </TableCell>
+                          </LoadingIndicatorCell>
                           <TableCell className={classes.dataRow}>
                             <WeatherStationCell
                               stationOptions={stationMenuOptions}
@@ -746,7 +749,9 @@ const FBATable = (props: FBAInputGridProps) => {
                               rowId={row.id}
                             />
                           </TableCell>
-                          <TextDisplayCell value={row.elevation}></TextDisplayCell>
+                          <LoadingIndicatorCell loading={loading}>
+                            <TextDisplayCell value={row.elevation}></TextDisplayCell>
+                          </LoadingIndicatorCell>
                           <TableCell className={classes.dataRow}>
                             <FuelTypeCell
                               fuelTypeOptions={fuelTypeMenuOptions}
@@ -772,10 +777,18 @@ const FBATable = (props: FBAInputGridProps) => {
                               rowId={row.id}
                             />
                           </TableCell>
-                          <StatusCell value={row.status}></StatusCell>
-                          <TextDisplayCell value={row.temp}></TextDisplayCell>
-                          <TextDisplayCell value={row.rh}></TextDisplayCell>
-                          <TextDisplayCell value={row.wind_direction}></TextDisplayCell>
+                          <LoadingIndicatorCell loading={loading}>
+                            <StatusCell value={row.status}></StatusCell>
+                          </LoadingIndicatorCell>
+                          <LoadingIndicatorCell loading={loading}>
+                            <TextDisplayCell value={row.temp}></TextDisplayCell>
+                          </LoadingIndicatorCell>
+                          <LoadingIndicatorCell loading={loading}>
+                            <TextDisplayCell value={row.rh}></TextDisplayCell>
+                          </LoadingIndicatorCell>
+                          <LoadingIndicatorCell loading={loading}>
+                            <TextDisplayCell value={row.wind_direction}></TextDisplayCell>
+                          </LoadingIndicatorCell>
                           <TableCell className={classes.dataRow}>
                             <WindSpeedCell
                               inputRows={rows}
@@ -790,50 +803,82 @@ const FBATable = (props: FBAInputGridProps) => {
                               rowId={row.id}
                             />
                           </TableCell>
-                          <TextDisplayCell value={row.precipitation}></TextDisplayCell>
-                          <FixedDecimalNumberCell
-                            value={row.fine_fuel_moisture_code}
-                          ></FixedDecimalNumberCell>
-                          <FixedDecimalNumberCell
-                            value={row.duff_moisture_code}
-                          ></FixedDecimalNumberCell>
-                          <FixedDecimalNumberCell
-                            value={row.drought_code}
-                          ></FixedDecimalNumberCell>
-                          <FixedDecimalNumberCell
-                            value={row.initial_spread_index}
-                          ></FixedDecimalNumberCell>
-                          <FixedDecimalNumberCell
-                            value={row.build_up_index}
-                          ></FixedDecimalNumberCell>
-                          <FixedDecimalNumberCell
-                            value={row.fire_weather_index}
-                          ></FixedDecimalNumberCell>
-                          <FixedDecimalNumberCell
-                            value={row.head_fire_intensity}
-                          ></FixedDecimalNumberCell>
-                          <CriticalHoursCell
-                            value={row.critical_hours_hfi_4000}
-                          ></CriticalHoursCell>
-                          <CriticalHoursCell
-                            value={row.critical_hours_hfi_10000}
-                          ></CriticalHoursCell>
-                          <FixedDecimalNumberCell
-                            value={row.rate_of_spread}
-                          ></FixedDecimalNumberCell>
-                          <TextDisplayCell value={row?.fire_type}></TextDisplayCell>
-                          <CrownFractionBurnedCell
-                            value={row.percentage_crown_fraction_burned}
-                          ></CrownFractionBurnedCell>
-                          <FixedDecimalNumberCell
-                            value={row.flame_length}
-                          ></FixedDecimalNumberCell>
-                          <FixedDecimalNumberCell
-                            value={row.thirty_minute_fire_size}
-                          ></FixedDecimalNumberCell>
-                          <FixedDecimalNumberCell
-                            value={row.sixty_minute_fire_size}
-                          ></FixedDecimalNumberCell>
+                          <LoadingIndicatorCell loading={loading}>
+                            <TextDisplayCell value={row.precipitation}></TextDisplayCell>
+                          </LoadingIndicatorCell>
+                          <LoadingIndicatorCell loading={loading}>
+                            <FixedDecimalNumberCell
+                              value={row.fine_fuel_moisture_code}
+                            ></FixedDecimalNumberCell>
+                          </LoadingIndicatorCell>
+                          <LoadingIndicatorCell loading={loading}>
+                            <FixedDecimalNumberCell
+                              value={row.duff_moisture_code}
+                            ></FixedDecimalNumberCell>
+                          </LoadingIndicatorCell>
+                          <LoadingIndicatorCell loading={loading}>
+                            <FixedDecimalNumberCell
+                              value={row.drought_code}
+                            ></FixedDecimalNumberCell>
+                          </LoadingIndicatorCell>
+                          <LoadingIndicatorCell loading={loading}>
+                            <FixedDecimalNumberCell
+                              value={row.initial_spread_index}
+                            ></FixedDecimalNumberCell>
+                          </LoadingIndicatorCell>
+                          <LoadingIndicatorCell loading={loading}>
+                            <FixedDecimalNumberCell
+                              value={row.build_up_index}
+                            ></FixedDecimalNumberCell>
+                          </LoadingIndicatorCell>
+                          <LoadingIndicatorCell loading={loading}>
+                            <FixedDecimalNumberCell
+                              value={row.fire_weather_index}
+                            ></FixedDecimalNumberCell>
+                          </LoadingIndicatorCell>
+                          <LoadingIndicatorCell loading={loading}>
+                            <FixedDecimalNumberCell
+                              value={row.head_fire_intensity}
+                            ></FixedDecimalNumberCell>
+                          </LoadingIndicatorCell>
+                          <LoadingIndicatorCell loading={loading}>
+                            <CriticalHoursCell
+                              value={row.critical_hours_hfi_4000}
+                            ></CriticalHoursCell>
+                          </LoadingIndicatorCell>
+                          <LoadingIndicatorCell loading={loading}>
+                            <CriticalHoursCell
+                              value={row.critical_hours_hfi_10000}
+                            ></CriticalHoursCell>
+                          </LoadingIndicatorCell>
+                          <LoadingIndicatorCell loading={loading}>
+                            <FixedDecimalNumberCell
+                              value={row.rate_of_spread}
+                            ></FixedDecimalNumberCell>
+                          </LoadingIndicatorCell>
+                          <LoadingIndicatorCell loading={loading}>
+                            <TextDisplayCell value={row?.fire_type}></TextDisplayCell>
+                          </LoadingIndicatorCell>
+                          <LoadingIndicatorCell loading={loading}>
+                            <CrownFractionBurnedCell
+                              value={row.percentage_crown_fraction_burned}
+                            ></CrownFractionBurnedCell>
+                          </LoadingIndicatorCell>
+                          <LoadingIndicatorCell loading={loading}>
+                            <FixedDecimalNumberCell
+                              value={row.flame_length}
+                            ></FixedDecimalNumberCell>
+                          </LoadingIndicatorCell>
+                          <LoadingIndicatorCell loading={loading}>
+                            <FixedDecimalNumberCell
+                              value={row.thirty_minute_fire_size}
+                            ></FixedDecimalNumberCell>
+                          </LoadingIndicatorCell>
+                          <LoadingIndicatorCell loading={loading}>
+                            <FixedDecimalNumberCell
+                              value={row.sixty_minute_fire_size}
+                            ></FixedDecimalNumberCell>
+                          </LoadingIndicatorCell>
                         </TableRow>
                       )
                     )
