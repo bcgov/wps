@@ -10,6 +10,7 @@ import { MapOptions } from 'ol/PluggableMap'
 import { defaults as defaultControls } from 'ol/control'
 
 import { ErrorBoundary } from 'components'
+import { ObjectEvent } from 'ol/Object'
 
 export const MapContext = React.createContext<ol.Map | null>(null)
 
@@ -125,8 +126,8 @@ const Map = ({
     }
 
     // Center change listener to update our current center
-    mapObject.getView().on('change:center', blah => {
-      setCurrentCenter(blah.target.values_.center)
+    mapObject.getView().on('change:center', (event: ObjectEvent) => {
+      setCurrentCenter((event.target as any).values_.center)
     })
 
     return () => {

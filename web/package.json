@@ -14,11 +14,9 @@
   ],
   "dependencies": {
     "@material-ui/core": "^4.11.4",
-    "@material-ui/data-grid": "^4.0.0-alpha.33",
     "@material-ui/icons": "^4.9.1",
     "@material-ui/lab": "^4.0.0-alpha.58",
     "@reduxjs/toolkit": "^1.5.1",
-    "@storybook/react": "^6.1.17",
     "@types/esri-leaflet": "^2.1.6",
     "@types/leaflet": "^1.7.0",
     "@types/lodash": "^4.14.168",
@@ -48,13 +46,8 @@
     "react-plotly.js": "^2.5.1",
     "react-redux": "^7.2.4",
     "react-router-dom": "^5.1.2",
-    "react-scripts": "^3.4.3",
-    "react-table": "^7.7.0",
+    "react-scripts": "^4.0.3",
     "typescript": "^4.4"
-  },
-  "resolutions": {
-    "@storybook/react/babel-loader": "8.1.0",
-    "webpack": "4.42.0"
   },
   "scripts": {
     "start": "CI=true react-scripts start",
@@ -91,11 +84,6 @@
   "devDependencies": {
     "@cypress/code-coverage": "^3.9.5",
     "@cypress/instrument-cra": "^1.3.2",
-    "@storybook/addon-actions": "^6.1.11",
-    "@storybook/addon-essentials": "^6.1.11",
-    "@storybook/addon-links": "^6.2.8",
-    "@storybook/node-logger": "^6.1.11",
-    "@storybook/preset-create-react-app": "^3.1.7",
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^12.0.0",
     "@types/jest": "^26.0.23",
