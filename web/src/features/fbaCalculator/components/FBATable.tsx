@@ -122,10 +122,6 @@ const useStyles = makeStyles(theme => ({
   },
   tableHeaderRow: {
     padding: '8px'
-  },
-  fixedHeaderCell: {
-    position: 'sticky',
-    zIndex: theme.zIndex.appBar + 2
   }
 }))
 
