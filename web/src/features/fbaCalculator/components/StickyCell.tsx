@@ -4,7 +4,7 @@ import React from 'react'
 interface StickyCellProps {
   left: number
   zIndexOffset: number
-  children: React.ReactNode
+  children?: React.ReactNode
   backgroundColor?: string
 }
 
@@ -19,7 +19,11 @@ const StickyCell = (props: StickyCellProps) => {
   }))
   const classes = useStyles()
 
-  return <TableCell className={classes.head}>{props.children}</TableCell>
+  return (
+    <TableCell data-testid={`stickyCell-fba`} className={classes.head}>
+      {props.children}
+    </TableCell>
+  )
 }
 
 export default React.memo(StickyCell)
