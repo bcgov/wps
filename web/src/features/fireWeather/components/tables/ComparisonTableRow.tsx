@@ -28,6 +28,7 @@ export type WeatherVariable =
   | 'Dew point'
 
 interface CellFormattingInfo {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   formatFn: (source: any, valueClassName: string[]) => ReactElement | void
   data:
     | NoonForecastValue

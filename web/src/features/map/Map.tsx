@@ -127,6 +127,7 @@ const Map = ({
 
     // Center change listener to update our current center
     mapObject.getView().on('change:center', (event: ObjectEvent) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setCurrentCenter((event.target as any).values_.center)
     })
 
