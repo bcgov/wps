@@ -4,19 +4,24 @@ import React from 'react'
 
 interface LoadingIndicatorCellProps {
   loading: boolean
+  rowUpdating: boolean
+  initialLoad: boolean
   children?: React.ReactNode
 }
 
-const LoadingIndicatorCell = (props: LoadingIndicatorCellProps) => (
-  <React.Fragment>
-    {props.loading ? (
-      <TableCell>
-        <Skeleton />
-      </TableCell>
-    ) : (
-      props.children
-    )}
-  </React.Fragment>
-)
+const LoadingIndicatorCell = (props: LoadingIndicatorCellProps) => {
+  const showLoadingIndicator = (props.loading && props.rowUpdating) || props.initialLoad
+  return (
+    <React.Fragment>
+      {showLoadingIndicator ? (
+        <TableCell>
+          <Skeleton />
+        </TableCell>
+      ) : (
+        props.children
+      )}
+    </React.Fragment>
+  )
+}
 
 export default React.memo(LoadingIndicatorCell)

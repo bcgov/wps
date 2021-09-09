@@ -423,6 +423,7 @@ const FBATable = (props: FBAInputGridProps) => {
                           }
                         }}
                       />
+                      {loading && <LinearProgress />}
                     </TableCell>
                     <TableCell key="header-zone" sortDirection={order}>
                       <TableSortLabel
@@ -731,7 +732,12 @@ const FBATable = (props: FBAInputGridProps) => {
                               rowId={row.id}
                             />
                           </TableCell>
-                          <LoadingIndicatorCell loading={loading}>
+
+                          <LoadingIndicatorCell
+                            loading={loading}
+                            rowUpdating={rowIdsToUpdate.has(row.id)}
+                            initialLoad={initialLoad}
+                          >
                             <TableCell className={classes.dataRow}>
                               {row.zone_code}
                             </TableCell>
@@ -749,7 +755,11 @@ const FBATable = (props: FBAInputGridProps) => {
                               rowId={row.id}
                             />
                           </TableCell>
-                          <LoadingIndicatorCell loading={loading}>
+                          <LoadingIndicatorCell
+                            loading={loading}
+                            rowUpdating={rowIdsToUpdate.has(row.id)}
+                            initialLoad={initialLoad}
+                          >
                             <TextDisplayCell value={row.elevation}></TextDisplayCell>
                           </LoadingIndicatorCell>
                           <TableCell className={classes.dataRow}>
@@ -777,16 +787,32 @@ const FBATable = (props: FBAInputGridProps) => {
                               rowId={row.id}
                             />
                           </TableCell>
-                          <LoadingIndicatorCell loading={loading}>
+                          <LoadingIndicatorCell
+                            loading={loading}
+                            rowUpdating={rowIdsToUpdate.has(row.id)}
+                            initialLoad={initialLoad}
+                          >
                             <StatusCell value={row.status}></StatusCell>
                           </LoadingIndicatorCell>
-                          <LoadingIndicatorCell loading={loading}>
+                          <LoadingIndicatorCell
+                            loading={loading}
+                            rowUpdating={rowIdsToUpdate.has(row.id)}
+                            initialLoad={initialLoad}
+                          >
                             <TextDisplayCell value={row.temp}></TextDisplayCell>
                           </LoadingIndicatorCell>
-                          <LoadingIndicatorCell loading={loading}>
+                          <LoadingIndicatorCell
+                            loading={loading}
+                            rowUpdating={rowIdsToUpdate.has(row.id)}
+                            initialLoad={initialLoad}
+                          >
                             <TextDisplayCell value={row.rh}></TextDisplayCell>
                           </LoadingIndicatorCell>
-                          <LoadingIndicatorCell loading={loading}>
+                          <LoadingIndicatorCell
+                            loading={loading}
+                            rowUpdating={rowIdsToUpdate.has(row.id)}
+                            initialLoad={initialLoad}
+                          >
                             <TextDisplayCell value={row.wind_direction}></TextDisplayCell>
                           </LoadingIndicatorCell>
                           <TableCell className={classes.dataRow}>
@@ -803,78 +829,142 @@ const FBATable = (props: FBAInputGridProps) => {
                               rowId={row.id}
                             />
                           </TableCell>
-                          <LoadingIndicatorCell loading={loading}>
+                          <LoadingIndicatorCell
+                            loading={loading}
+                            rowUpdating={rowIdsToUpdate.has(row.id)}
+                            initialLoad={initialLoad}
+                          >
                             <TextDisplayCell value={row.precipitation}></TextDisplayCell>
                           </LoadingIndicatorCell>
-                          <LoadingIndicatorCell loading={loading}>
+                          <LoadingIndicatorCell
+                            loading={loading}
+                            rowUpdating={rowIdsToUpdate.has(row.id)}
+                            initialLoad={initialLoad}
+                          >
                             <FixedDecimalNumberCell
                               value={row.fine_fuel_moisture_code}
                             ></FixedDecimalNumberCell>
                           </LoadingIndicatorCell>
-                          <LoadingIndicatorCell loading={loading}>
+                          <LoadingIndicatorCell
+                            loading={loading}
+                            rowUpdating={rowIdsToUpdate.has(row.id)}
+                            initialLoad={initialLoad}
+                          >
                             <FixedDecimalNumberCell
                               value={row.duff_moisture_code}
                             ></FixedDecimalNumberCell>
                           </LoadingIndicatorCell>
-                          <LoadingIndicatorCell loading={loading}>
+                          <LoadingIndicatorCell
+                            loading={loading}
+                            rowUpdating={rowIdsToUpdate.has(row.id)}
+                            initialLoad={initialLoad}
+                          >
                             <FixedDecimalNumberCell
                               value={row.drought_code}
                             ></FixedDecimalNumberCell>
                           </LoadingIndicatorCell>
-                          <LoadingIndicatorCell loading={loading}>
+                          <LoadingIndicatorCell
+                            loading={loading}
+                            rowUpdating={rowIdsToUpdate.has(row.id)}
+                            initialLoad={initialLoad}
+                          >
                             <FixedDecimalNumberCell
                               value={row.initial_spread_index}
                             ></FixedDecimalNumberCell>
                           </LoadingIndicatorCell>
-                          <LoadingIndicatorCell loading={loading}>
+                          <LoadingIndicatorCell
+                            loading={loading}
+                            rowUpdating={rowIdsToUpdate.has(row.id)}
+                            initialLoad={initialLoad}
+                          >
                             <FixedDecimalNumberCell
                               value={row.build_up_index}
                             ></FixedDecimalNumberCell>
                           </LoadingIndicatorCell>
-                          <LoadingIndicatorCell loading={loading}>
+                          <LoadingIndicatorCell
+                            loading={loading}
+                            rowUpdating={rowIdsToUpdate.has(row.id)}
+                            initialLoad={initialLoad}
+                          >
                             <FixedDecimalNumberCell
                               value={row.fire_weather_index}
                             ></FixedDecimalNumberCell>
                           </LoadingIndicatorCell>
-                          <LoadingIndicatorCell loading={loading}>
+                          <LoadingIndicatorCell
+                            loading={loading}
+                            rowUpdating={rowIdsToUpdate.has(row.id)}
+                            initialLoad={initialLoad}
+                          >
                             <FixedDecimalNumberCell
                               value={row.head_fire_intensity}
                             ></FixedDecimalNumberCell>
                           </LoadingIndicatorCell>
-                          <LoadingIndicatorCell loading={loading}>
+                          <LoadingIndicatorCell
+                            loading={loading}
+                            rowUpdating={rowIdsToUpdate.has(row.id)}
+                            initialLoad={initialLoad}
+                          >
                             <CriticalHoursCell
                               value={row.critical_hours_hfi_4000}
                             ></CriticalHoursCell>
                           </LoadingIndicatorCell>
-                          <LoadingIndicatorCell loading={loading}>
+                          <LoadingIndicatorCell
+                            loading={loading}
+                            rowUpdating={rowIdsToUpdate.has(row.id)}
+                            initialLoad={initialLoad}
+                          >
                             <CriticalHoursCell
                               value={row.critical_hours_hfi_10000}
                             ></CriticalHoursCell>
                           </LoadingIndicatorCell>
-                          <LoadingIndicatorCell loading={loading}>
+                          <LoadingIndicatorCell
+                            loading={loading}
+                            rowUpdating={rowIdsToUpdate.has(row.id)}
+                            initialLoad={initialLoad}
+                          >
                             <FixedDecimalNumberCell
                               value={row.rate_of_spread}
                             ></FixedDecimalNumberCell>
                           </LoadingIndicatorCell>
-                          <LoadingIndicatorCell loading={loading}>
+                          <LoadingIndicatorCell
+                            loading={loading}
+                            rowUpdating={rowIdsToUpdate.has(row.id)}
+                            initialLoad={initialLoad}
+                          >
                             <TextDisplayCell value={row?.fire_type}></TextDisplayCell>
                           </LoadingIndicatorCell>
-                          <LoadingIndicatorCell loading={loading}>
+                          <LoadingIndicatorCell
+                            loading={loading}
+                            rowUpdating={rowIdsToUpdate.has(row.id)}
+                            initialLoad={initialLoad}
+                          >
                             <CrownFractionBurnedCell
                               value={row.percentage_crown_fraction_burned}
                             ></CrownFractionBurnedCell>
                           </LoadingIndicatorCell>
-                          <LoadingIndicatorCell loading={loading}>
+                          <LoadingIndicatorCell
+                            loading={loading}
+                            rowUpdating={rowIdsToUpdate.has(row.id)}
+                            initialLoad={initialLoad}
+                          >
                             <FixedDecimalNumberCell
                               value={row.flame_length}
                             ></FixedDecimalNumberCell>
                           </LoadingIndicatorCell>
-                          <LoadingIndicatorCell loading={loading}>
+                          <LoadingIndicatorCell
+                            loading={loading}
+                            rowUpdating={rowIdsToUpdate.has(row.id)}
+                            initialLoad={initialLoad}
+                          >
                             <FixedDecimalNumberCell
                               value={row.thirty_minute_fire_size}
                             ></FixedDecimalNumberCell>
                           </LoadingIndicatorCell>
-                          <LoadingIndicatorCell loading={loading}>
+                          <LoadingIndicatorCell
+                            loading={loading}
+                            rowUpdating={rowIdsToUpdate.has(row.id)}
+                            initialLoad={initialLoad}
+                          >
                             <FixedDecimalNumberCell
                               value={row.sixty_minute_fire_size}
                             ></FixedDecimalNumberCell>
