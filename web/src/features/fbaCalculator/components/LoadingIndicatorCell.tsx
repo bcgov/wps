@@ -14,7 +14,7 @@ const LoadingIndicatorCell = (props: LoadingIndicatorCellProps) => {
   return (
     <React.Fragment>
       {showLoadingIndicator ? (
-        <TableCell>
+        <TableCell data-testid="loading-indicator-fba">
           <Skeleton />
         </TableCell>
       ) : (
