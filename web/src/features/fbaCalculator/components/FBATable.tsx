@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react'
 import { difference, filter, findIndex, isEmpty, isUndefined } from 'lodash'
 import {
   FormControl,
-  LinearProgress,
   makeStyles,
   Paper,
   Table,
@@ -399,7 +398,6 @@ const FBATable = (props: FBAInputGridProps) => {
         <div className={classes.display} data-testid={props.testId}>
           <Paper className={classes.paper} elevation={1}>
             <TableContainer className={classes.tableContainer}>
-              {loading && <LinearProgress className={classes.stickyProgress} />}
               <Table size="small" stickyHeader aria-label="Fire Behaviour Analysis table">
                 <FBATableHead
                   toggleSorting={toggleSorting}
@@ -408,6 +406,7 @@ const FBATable = (props: FBAInputGridProps) => {
                   headerSelected={headerSelected}
                   setHeaderSelect={setHeaderSelect}
                   setSelected={setSelected}
+                  loading={loading}
                 />
                 <TableBody data-testid="fba-table-body">
                   {rows.map(row => {

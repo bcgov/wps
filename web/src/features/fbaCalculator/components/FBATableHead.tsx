@@ -6,6 +6,7 @@ import {
   TableRow,
   TableSortLabel
 } from '@material-ui/core'
+import FBAProgressRow from 'features/fbaCalculator/components/FBAProgressRow'
 import StickyCell from 'features/fbaCalculator/components/StickyCell'
 import { FBATableRow, SortByColumn } from 'features/fbaCalculator/RowManager'
 import { isUndefined } from 'lodash'
@@ -19,6 +20,7 @@ interface FBATableHeadProps {
   headerSelected: boolean
   setHeaderSelect: (value: React.SetStateAction<boolean>) => void
   setSelected: (value: React.SetStateAction<number[]>) => void
+  loading: boolean
 }
 
 const useStyles = makeStyles({
@@ -27,6 +29,9 @@ const useStyles = makeStyles({
   },
   windSpeed: {
     width: 80
+  },
+  progressBar: {
+    minWidth: 1900
   }
 })
 
@@ -36,7 +41,8 @@ const FBATableHead = ({
   rows,
   headerSelected,
   setHeaderSelect,
-  setSelected
+  setSelected,
+  loading
 }: FBATableHeadProps) => {
   const classes = useStyles()
 
@@ -349,6 +355,7 @@ const FBATableHead = ({
           </TableSortLabel>
         </TableCell>
       </TableRow>
+      <FBAProgressRow loading={loading} />
     </TableHead>
   )
 }
