@@ -62,7 +62,7 @@ export const fetchHighResModelSummaries = (
     const summaries = await getModelSummaries(stationCodes, 'HRDPS', timeOfInterest)
     dispatch(getHighResModelSummariesSuccess(summaries))
   } catch (err) {
-    dispatch(getHighResModelSummariesFailed(err.toString()))
+    dispatch(getHighResModelSummariesFailed((err as Error).toString()))
     logError(err)
   }
 }

@@ -54,7 +54,7 @@ export const fetchHFIDailies = (
     const dailies = await getDailies(startTime, endTime)
     dispatch(getDailiesSuccess(dailies))
   } catch (err) {
-    dispatch(getDailiesFailed(err.toString()))
+    dispatch(getDailiesFailed((err as Error).toString()))
     logError(err)
   }
 }
