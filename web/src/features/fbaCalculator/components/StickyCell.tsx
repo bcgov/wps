@@ -10,7 +10,7 @@ interface StickyCellProps {
 
 const StickyCell = (props: StickyCellProps) => {
   const useStyles = makeStyles(theme => ({
-    head: {
+    sticky: {
       left: props.left,
       position: 'sticky',
       zIndex: theme.zIndex.appBar + props.zIndexOffset,
@@ -20,7 +20,7 @@ const StickyCell = (props: StickyCellProps) => {
   const classes = useStyles()
 
   return (
-    <TableCell data-testid={`stickyCell-fba`} className={classes.head}>
+    <TableCell data-testid={`stickyCell-fba`} className={classes.sticky}>
       {props.children}
     </TableCell>
   )
