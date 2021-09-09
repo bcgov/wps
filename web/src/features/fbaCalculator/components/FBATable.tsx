@@ -22,7 +22,6 @@ import WeatherStationCell from 'features/fbaCalculator/components/WeatherStation
 import FuelTypeCell from 'features/fbaCalculator/components/FuelTypeCell'
 import GrassCureCell from 'features/fbaCalculator/components/GrassCureCell'
 import WindSpeedCell from 'features/fbaCalculator/components/WindSpeedCell'
-import SelectionCheckbox from 'features/fbaCalculator/components/SelectionCheckbox'
 import { Order } from 'utils/table'
 import { FBATableRow, RowManager, SortByColumn } from 'features/fbaCalculator/RowManager'
 import { GeoJsonStation, getStations, StationSource } from 'api/stationAPI'
@@ -48,6 +47,8 @@ import CriticalHoursCell from 'features/fbaCalculator/components/CriticalHoursCe
 import StatusCell from 'features/fbaCalculator/components/StatusCell'
 import ErrorAlert from 'features/fbaCalculator/components/ErrorAlert'
 import LoadingIndicatorCell from 'features/fbaCalculator/components/LoadingIndicatorCell'
+import SelectionCell from 'features/fbaCalculator/components/SelectionCell'
+import StickyCell from 'features/fbaCalculator/components/StickyCell'
 
 export interface FBAInputGridProps {
   testId?: string
@@ -121,6 +122,10 @@ const useStyles = makeStyles(theme => ({
   },
   tableHeaderRow: {
     padding: '8px'
+  },
+  fixedHeaderCell: {
+    position: 'sticky',
+    zIndex: theme.zIndex.appBar + 2
   }
 }))
 
@@ -405,7 +410,7 @@ const FBATable = (props: FBAInputGridProps) => {
               <Table size="small" stickyHeader aria-label="Fire Behaviour Analysis table">
                 <TableHead>
                   <TableRow>
-                    <TableCell>
+                    <StickyCell left={0} zIndexOffset={2}>
                       <Checkbox
                         data-testid="select-all"
                         color="primary"
@@ -423,8 +428,7 @@ const FBATable = (props: FBAInputGridProps) => {
                           }
                         }}
                       />
-                      {loading && <LinearProgress />}
-                    </TableCell>
+                    </StickyCell>
                     <TableCell key="header-zone" sortDirection={order}>
                       <TableSortLabel
                         className={classes.tableHeaderRow}
@@ -436,7 +440,7 @@ const FBATable = (props: FBAInputGridProps) => {
                         Zone
                       </TableSortLabel>
                     </TableCell>
-                    <TableCell key="header-location" sortDirection={order}>
+                    <StickyCell left={50} zIndexOffset={2}>
                       <TableSortLabel
                         direction={order}
                         onClick={() => {
@@ -445,7 +449,7 @@ const FBATable = (props: FBAInputGridProps) => {
                       >
                         Weather Station
                       </TableSortLabel>
-                    </TableCell>
+                    </StickyCell>
                     <TableCell key="header-elevation" sortDirection={order}>
                       <TableSortLabel
                         direction={order}
@@ -458,14 +462,14 @@ const FBATable = (props: FBAInputGridProps) => {
                         (m)
                       </TableSortLabel>
                     </TableCell>
-                    <TableCell key="header-fuel-type" sortDirection={order}>
+                    <StickyCell left={280} zIndexOffset={2}>
                       <TableSortLabel
                         direction={order}
                         onClick={() => toggleSorting(SortByColumn.FuelType)}
                       >
                         FBP Fuel Type
                       </TableSortLabel>
-                    </TableCell>
+                    </StickyCell>
                     <TableCell sortDirection={order}>
                       <TableSortLabel
                         direction={order}
@@ -720,8 +724,8 @@ const FBATable = (props: FBAInputGridProps) => {
                     return (
                       !isUndefined(row) && (
                         <TableRow key={row.id}>
-                          <TableCell className={classes.dataRow}>
-                            <SelectionCheckbox
+                          <StickyCell left={0} zIndexOffset={1} backgroundColor="#FFFFFF">
+                            <SelectionCell
                               selected={selected}
                               updateSelected={(newSelected: number[]) =>
                                 setSelected(newSelected)
@@ -731,8 +735,7 @@ const FBATable = (props: FBAInputGridProps) => {
                               }
                               rowId={row.id}
                             />
-                          </TableCell>
-
+                          </StickyCell>
                           <LoadingIndicatorCell
                             loading={loading}
                             rowUpdating={rowIdsToUpdate.has(row.id)}
@@ -742,7 +745,11 @@ const FBATable = (props: FBAInputGridProps) => {
                               {row.zone_code}
                             </TableCell>
                           </LoadingIndicatorCell>
-                          <TableCell className={classes.dataRow}>
+                          <StickyCell
+                            left={50}
+                            zIndexOffset={1}
+                            backgroundColor="#FFFFFF"
+                          >
                             <WeatherStationCell
                               stationOptions={stationMenuOptions}
                               inputRows={rows}
@@ -754,7 +761,7 @@ const FBATable = (props: FBAInputGridProps) => {
                               }
                               rowId={row.id}
                             />
-                          </TableCell>
+                          </StickyCell>
                           <LoadingIndicatorCell
                             loading={loading}
                             rowUpdating={rowIdsToUpdate.has(row.id)}
@@ -762,7 +769,11 @@ const FBATable = (props: FBAInputGridProps) => {
                           >
                             <TextDisplayCell value={row.elevation}></TextDisplayCell>
                           </LoadingIndicatorCell>
-                          <TableCell className={classes.dataRow}>
+                          <StickyCell
+                            left={280}
+                            zIndexOffset={1}
+                            backgroundColor="#FFFFFF"
+                          >
                             <FuelTypeCell
                               fuelTypeOptions={fuelTypeMenuOptions}
                               inputRows={rows}
@@ -774,7 +785,7 @@ const FBATable = (props: FBAInputGridProps) => {
                               }
                               rowId={row.id}
                             />
-                          </TableCell>
+                          </StickyCell>
                           <TableCell className={classes.dataRow}>
                             <GrassCureCell
                               inputRows={rows}
