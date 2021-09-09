@@ -47,7 +47,7 @@ import CriticalHoursCell from 'features/fbaCalculator/components/CriticalHoursCe
 import StatusCell from 'features/fbaCalculator/components/StatusCell'
 import ErrorAlert from 'features/fbaCalculator/components/ErrorAlert'
 import SelectionCell from 'features/fbaCalculator/components/SelectionCell'
-import StickyHeaderCell from 'features/fbaCalculator/components/StickyHeaderCell'
+import StickyCell from 'features/fbaCalculator/components/StickyCell'
 
 export interface FBAInputGridProps {
   testId?: string
@@ -409,7 +409,7 @@ const FBATable = (props: FBAInputGridProps) => {
               <Table size="small" stickyHeader aria-label="Fire Behaviour Analysis table">
                 <TableHead>
                   <TableRow>
-                    <StickyHeaderCell left={0}>
+                    <StickyCell left={0} zIndexOffset={2}>
                       <Checkbox
                         data-testid="select-all"
                         color="primary"
@@ -427,7 +427,7 @@ const FBATable = (props: FBAInputGridProps) => {
                           }
                         }}
                       />
-                    </StickyHeaderCell>
+                    </StickyCell>
                     <TableCell key="header-zone" sortDirection={order}>
                       <TableSortLabel
                         className={classes.tableHeaderRow}
@@ -439,7 +439,7 @@ const FBATable = (props: FBAInputGridProps) => {
                         Zone
                       </TableSortLabel>
                     </TableCell>
-                    <StickyHeaderCell left={50}>
+                    <StickyCell left={50} zIndexOffset={2}>
                       <TableSortLabel
                         direction={order}
                         onClick={() => {
@@ -448,7 +448,7 @@ const FBATable = (props: FBAInputGridProps) => {
                       >
                         Weather Station
                       </TableSortLabel>
-                    </StickyHeaderCell>
+                    </StickyCell>
                     <TableCell key="header-elevation" sortDirection={order}>
                       <TableSortLabel
                         direction={order}
@@ -461,14 +461,14 @@ const FBATable = (props: FBAInputGridProps) => {
                         (m)
                       </TableSortLabel>
                     </TableCell>
-                    <StickyHeaderCell left={280}>
+                    <StickyCell left={280} zIndexOffset={2}>
                       <TableSortLabel
                         direction={order}
                         onClick={() => toggleSorting(SortByColumn.FuelType)}
                       >
                         FBP Fuel Type
                       </TableSortLabel>
-                    </StickyHeaderCell>
+                    </StickyCell>
                     <TableCell sortDirection={order}>
                       <TableSortLabel
                         direction={order}
@@ -723,36 +723,56 @@ const FBATable = (props: FBAInputGridProps) => {
                     return (
                       !isUndefined(row) && (
                         <TableRow key={row.id}>
-                          <SelectionCell
-                            selected={selected}
-                            updateSelected={(newSelected: number[]) =>
-                              setSelected(newSelected)
-                            }
-                            disabled={rowIdsToUpdate.has(row.id) && !rowShouldUpdate(row)}
-                            rowId={row.id}
-                          />
+                          <StickyCell left={0} zIndexOffset={1} backgroundColor="#FFFFFF">
+                            <SelectionCell
+                              selected={selected}
+                              updateSelected={(newSelected: number[]) =>
+                                setSelected(newSelected)
+                              }
+                              disabled={
+                                rowIdsToUpdate.has(row.id) && !rowShouldUpdate(row)
+                              }
+                              rowId={row.id}
+                            />
+                          </StickyCell>
                           <TableCell className={classes.dataRow}>
                             {row.zone_code}
                           </TableCell>
-                          <WeatherStationCell
-                            stationOptions={stationMenuOptions}
-                            inputRows={rows}
-                            updateRow={updateRow}
-                            classNameMap={classes}
-                            value={row.weatherStation}
-                            disabled={rowIdsToUpdate.has(row.id) && !rowShouldUpdate(row)}
-                            rowId={row.id}
-                          />
+                          <StickyCell
+                            left={50}
+                            zIndexOffset={1}
+                            backgroundColor="#FFFFFF"
+                          >
+                            <WeatherStationCell
+                              stationOptions={stationMenuOptions}
+                              inputRows={rows}
+                              updateRow={updateRow}
+                              classNameMap={classes}
+                              value={row.weatherStation}
+                              disabled={
+                                rowIdsToUpdate.has(row.id) && !rowShouldUpdate(row)
+                              }
+                              rowId={row.id}
+                            />
+                          </StickyCell>
                           <TextDisplayCell value={row.elevation}></TextDisplayCell>
-                          <FuelTypeCell
-                            fuelTypeOptions={fuelTypeMenuOptions}
-                            inputRows={rows}
-                            updateRow={updateRow}
-                            classNameMap={classes}
-                            value={row.fuelType}
-                            disabled={rowIdsToUpdate.has(row.id) && !rowShouldUpdate(row)}
-                            rowId={row.id}
-                          />
+                          <StickyCell
+                            left={280}
+                            zIndexOffset={1}
+                            backgroundColor="#FFFFFF"
+                          >
+                            <FuelTypeCell
+                              fuelTypeOptions={fuelTypeMenuOptions}
+                              inputRows={rows}
+                              updateRow={updateRow}
+                              classNameMap={classes}
+                              value={row.fuelType}
+                              disabled={
+                                rowIdsToUpdate.has(row.id) && !rowShouldUpdate(row)
+                              }
+                              rowId={row.id}
+                            />
+                          </StickyCell>
                           <TableCell className={classes.dataRow}>
                             <GrassCureCell
                               inputRows={rows}

@@ -1,4 +1,4 @@
-import { makeStyles, TableCell, TextField } from '@material-ui/core'
+import { TextField } from '@material-ui/core'
 import { ClassNameMap } from '@material-ui/core/styles/withStyles'
 import { Autocomplete } from '@material-ui/lab'
 import { GridMenuOption } from 'features/fbaCalculator/components/FBATable'
@@ -18,19 +18,8 @@ interface FuelTypeCellProps {
   rowId: number
 }
 
-const useStyles = makeStyles(theme => ({
-  dataRow: {
-    left: 280,
-    position: 'sticky',
-    zIndex: theme.zIndex.appBar + 1,
-    backgroundColor: '#FFFFFF'
-  }
-}))
-
 const emptyLabel = 'Select a fuel type'
 const FuelTypeCell = (props: FuelTypeCellProps) => {
-  const classes = useStyles()
-
   const [selectedFuelType, setSelectedFuelType] = useState(props.value)
   useEffect(() => setSelectedFuelType(props.value), [props])
 
@@ -56,26 +45,24 @@ const FuelTypeCell = (props: FuelTypeCellProps) => {
     }
   }
   return (
-    <TableCell className={classes.dataRow}>
-      <Autocomplete
-        data-testid={`fuel-type-dropdown-fba-${props.rowId}`}
-        options={props.fuelTypeOptions}
-        className={props.classNameMap.fuelType}
-        getOptionSelected={(option, value) => isEqual(option, value)}
-        getOptionLabel={option => option?.label}
-        renderInput={params => (
-          <TextField
-            {...params}
-            label={props.value ? '' : emptyLabel}
-            variant="outlined"
-            size="small"
-          />
-        )}
-        onChange={changeHandler}
-        disabled={props.disabled}
-        value={selectedFuelType}
-      />
-    </TableCell>
+    <Autocomplete
+      data-testid={`fuel-type-dropdown-fba-${props.rowId}`}
+      options={props.fuelTypeOptions}
+      className={props.classNameMap.fuelType}
+      getOptionSelected={(option, value) => isEqual(option, value)}
+      getOptionLabel={option => option?.label}
+      renderInput={params => (
+        <TextField
+          {...params}
+          label={props.value ? '' : emptyLabel}
+          variant="outlined"
+          size="small"
+        />
+      )}
+      onChange={changeHandler}
+      disabled={props.disabled}
+      value={selectedFuelType}
+    />
   )
 }
 

@@ -1,4 +1,4 @@
-import { makeStyles, TableCell, TextField } from '@material-ui/core'
+import { TextField } from '@material-ui/core'
 import { ClassNameMap } from '@material-ui/core/styles/withStyles'
 import { Autocomplete } from '@material-ui/lab'
 import { isEqual } from 'lodash'
@@ -17,20 +17,9 @@ interface WeatherStationCellProps {
   rowId: number
 }
 
-const useStyles = makeStyles(theme => ({
-  dataRow: {
-    left: 50,
-    position: 'sticky',
-    zIndex: theme.zIndex.appBar + 1,
-    backgroundColor: '#FFFFFF'
-  }
-}))
-
 const emptyLabel = 'Select a station'
 
 const WeatherStationCell = (props: WeatherStationCellProps) => {
-  const classes = useStyles()
-
   const [selectedStation, setSelectedStation] = useState(props.value)
   useEffect(() => setSelectedStation(props.value), [props])
   // eslint-disable-next-line
@@ -49,26 +38,24 @@ const WeatherStationCell = (props: WeatherStationCellProps) => {
   }
 
   return (
-    <TableCell className={classes.dataRow}>
-      <Autocomplete
-        data-testid={`weather-station-dropdown-fba-${props.rowId}`}
-        options={props.stationOptions}
-        className={props.classNameMap.weatherStation}
-        getOptionSelected={(option, value) => isEqual(option, value)}
-        getOptionLabel={option => option?.label}
-        renderInput={params => (
-          <TextField
-            {...params}
-            label={props.value ? '' : emptyLabel}
-            variant="outlined"
-            size="small"
-          />
-        )}
-        onChange={changeHandler}
-        disabled={props.disabled}
-        value={selectedStation}
-      />
-    </TableCell>
+    <Autocomplete
+      data-testid={`weather-station-dropdown-fba-${props.rowId}`}
+      options={props.stationOptions}
+      className={props.classNameMap.weatherStation}
+      getOptionSelected={(option, value) => isEqual(option, value)}
+      getOptionLabel={option => option?.label}
+      renderInput={params => (
+        <TextField
+          {...params}
+          label={props.value ? '' : emptyLabel}
+          variant="outlined"
+          size="small"
+        />
+      )}
+      onChange={changeHandler}
+      disabled={props.disabled}
+      value={selectedStation}
+    />
   )
 }
 

@@ -1,17 +1,20 @@
 import { makeStyles, TableCell } from '@material-ui/core'
 import React from 'react'
 
-interface StickyHeaderCellProps {
+interface StickyCellProps {
   left: number
+  zIndexOffset: number
   children: React.ReactNode
+  backgroundColor?: string
 }
 
-const StickyHeaderCell = (props: StickyHeaderCellProps) => {
+const StickyCell = (props: StickyCellProps) => {
   const useStyles = makeStyles(theme => ({
     head: {
       left: props.left,
       position: 'sticky',
-      zIndex: theme.zIndex.appBar + 2
+      zIndex: theme.zIndex.appBar + props.zIndexOffset,
+      backgroundColor: props.backgroundColor ? props.backgroundColor : undefined
     }
   }))
   const classes = useStyles()
@@ -19,4 +22,4 @@ const StickyHeaderCell = (props: StickyHeaderCellProps) => {
   return <TableCell className={classes.head}>{props.children}</TableCell>
 }
 
-export default React.memo(StickyHeaderCell)
+export default React.memo(StickyCell)
