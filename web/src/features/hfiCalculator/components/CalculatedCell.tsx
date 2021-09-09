@@ -5,11 +5,12 @@ export interface CalculatedCellProps {
   testid: string | undefined
   value: string | undefined
   error: boolean
+  className: string | undefined
 }
 
 const CalculatedCell = (props: CalculatedCellProps) => {
   return (
-    <TableCell data-testid={props.testid}>{props.error ? '' : props.value}</TableCell>
+    <TableCell data-testid={props.testid} className={props.className}>{props.error ? '' : props.value}</TableCell>
   )
 }
 

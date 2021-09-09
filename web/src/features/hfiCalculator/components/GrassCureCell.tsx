@@ -7,6 +7,7 @@ import { isNull } from 'lodash'
 export interface GrassCureCellProps {
   value: number | null | undefined
   isGrassFuelType: boolean
+  className: string | undefined
 }
 
 const errorIconTheme = createMuiTheme({
@@ -30,7 +31,7 @@ const toolTipElement = (
 
 const GrassCureProps = (props: GrassCureCellProps) => {
   return isNull(props.value) && props.isGrassFuelType ? (
-    <TableCell>
+    <TableCell className={props.className}>
       <ThemeProvider theme={errorIconTheme}>
         <Tooltip
           title={toolTipElement}

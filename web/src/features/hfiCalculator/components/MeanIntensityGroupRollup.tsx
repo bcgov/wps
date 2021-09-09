@@ -14,6 +14,7 @@ import {
 export interface MeanIntensityGroupRollupProps {
   area: PlanningArea
   dailiesMap: Map<number, StationDaily>
+  selectedStations: number[]
 }
 
 const useStyles = makeStyles({
@@ -85,7 +86,7 @@ const MeanIntensityGroupRollup = (props: MeanIntensityGroupRollupProps) => {
     )
   }, false)
 
-  const meanIntensityGroup = calculateMeanIntensityGroup(props.area, props.dailiesMap)
+  const meanIntensityGroup = calculateMeanIntensityGroup(props.area, props.dailiesMap, props.selectedStations)
   const formatAreaMeanIntensityGroupByValue = () => {
     if (meanIntensityGroup === undefined) {
       return undefined

@@ -3,7 +3,8 @@ import { StationDaily } from 'api/hfiCalculatorAPI'
 
 export const calculateMeanIntensityGroup = (
   area: PlanningArea,
-  dailiesMap: Map<number, StationDaily>
+  dailiesMap: Map<number, StationDaily>,
+  selected: number[]
 ): number | undefined => {
   const stationCodesInPlanningArea: number[] = []
   Object.entries(area.stations).forEach(([, station]) => {
@@ -11,9 +12,11 @@ export const calculateMeanIntensityGroup = (
   })
   const stationIntensityGroups: number[] = []
   for (const code of stationCodesInPlanningArea) {
-    const stationDaily = dailiesMap.get(code)
-    if (stationDaily?.intensity_group !== undefined) {
-      stationIntensityGroups.push(stationDaily?.intensity_group)
+    if (selected.includes(code)) {
+      const stationDaily = dailiesMap.get(code)
+      if (stationDaily?.intensity_group !== undefined) {
+        stationIntensityGroups.push(stationDaily?.intensity_group)
+      }
     }
   }
   return stationIntensityGroups.length === 0
