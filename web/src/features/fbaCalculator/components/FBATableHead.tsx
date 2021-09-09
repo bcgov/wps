@@ -35,6 +35,8 @@ const useStyles = makeStyles({
   }
 })
 
+const Z_INDEX_OFFSET = 2
+
 const FBATableHead = ({
   toggleSorting,
   order,
@@ -49,7 +51,7 @@ const FBATableHead = ({
   return (
     <TableHead>
       <TableRow>
-        <StickyCell left={0} zIndexOffset={2}>
+        <StickyCell left={0} zIndexOffset={Z_INDEX_OFFSET}>
           <Checkbox
             data-testid="select-all"
             color="primary"
@@ -77,7 +79,7 @@ const FBATableHead = ({
             Zone
           </TableSortLabel>
         </TableCell>
-        <StickyCell left={50} zIndexOffset={2}>
+        <StickyCell left={50} zIndexOffset={Z_INDEX_OFFSET}>
           <TableSortLabel
             direction={order}
             onClick={() => {
@@ -99,7 +101,7 @@ const FBATableHead = ({
             (m)
           </TableSortLabel>
         </TableCell>
-        <StickyCell left={280} zIndexOffset={2}>
+        <StickyCell left={280} zIndexOffset={Z_INDEX_OFFSET}>
           <TableSortLabel
             direction={order}
             onClick={() => toggleSorting(SortByColumn.FuelType)}
@@ -355,7 +357,7 @@ const FBATableHead = ({
           </TableSortLabel>
         </TableCell>
       </TableRow>
-      <FBAProgressRow loading={loading} />
+      <FBAProgressRow loading={loading} zIndexOffset={Z_INDEX_OFFSET} />
     </TableHead>
   )
 }
