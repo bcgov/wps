@@ -32,6 +32,8 @@
     "@types/webpack-env": "^1.15.1",
     "@typescript-eslint/eslint-plugin": "^4.31.0",
     "@typescript-eslint/parser": "^4.31.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^4.0.0",
     "axios": "^0.21.1",
     "clsx": "^1.1.0",
     "esri-leaflet": "3.0.1",
@@ -87,8 +89,6 @@
     "@types/jest": "^26.0.23",
     "cypress": "^7.6.0",
     "eslint": "^7.32.0",
-    "eslint-config-prettier": "^8.3.0",
-    "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-react-hooks": "^4.2.0",
     "prettier": "^1.19.1",
     "start-server-and-test": "^1.11.4"
