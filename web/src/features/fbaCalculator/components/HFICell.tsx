@@ -40,9 +40,9 @@ const HFICell = (props: HFICellProps) => {
     if (value !== undefined) {
       if (value >= 3000 && value <= 3999) {
         return classes.orangeBorder
-      } else if (value >= 4000 && value <= 9999) {
+      } else if (value > 3999 && value <= 9999) {
         return classes.orangeFill
-      } else if (value >= 10000) {
+      } else if (value > 9999) {
         return classes.redFill
       }
     }
