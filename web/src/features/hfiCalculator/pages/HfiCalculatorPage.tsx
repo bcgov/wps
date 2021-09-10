@@ -9,7 +9,7 @@ import { DateTime } from 'luxon'
 import {
   selectHFIDailies,
   selectHFIStations,
-  selectHFIStationsLoading,
+  selectHFIStationsLoading
 } from 'app/rootReducer'
 import { CircularProgress, Grid } from '@material-ui/core'
 import { StationDaily } from 'api/hfiCalculatorAPI'
@@ -39,7 +39,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   const dailiesMap = new Map<number, StationDaily>()
   if (dailies !== undefined) {
-    dailies.forEach((daily) => {
+    dailies.forEach(daily => {
       dailiesMap.set(daily.code, daily)
     })
   }
