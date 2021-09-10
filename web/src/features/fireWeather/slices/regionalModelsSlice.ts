@@ -68,7 +68,7 @@ export const fetchRegionalModels = (
     const modelsForStations = await getModelsWithBiasAdj(codes, 'RDPS', timeOfInterest)
     dispatch(getRegionalModelsSuccess(modelsForStations))
   } catch (err) {
-    dispatch(getRegionalModelsFailed(err.toString()))
+    dispatch(getRegionalModelsFailed((err as Error).toString()))
     logError(err)
   }
 }

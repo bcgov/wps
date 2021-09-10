@@ -1,6 +1,6 @@
 import { TableCell, Tooltip } from '@material-ui/core'
 import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline'
-import { createMuiTheme, makeStyles, ThemeProvider } from '@material-ui/core/styles'
+import { createTheme, makeStyles, ThemeProvider } from '@material-ui/core/styles'
 import React from 'react'
 import { isUndefined } from 'lodash'
 import { PlanningArea } from 'api/hfiCalcAPI'
@@ -49,7 +49,7 @@ const useStyles = makeStyles({
   }
 })
 
-const errorIconTheme = createMuiTheme({
+const errorIconTheme = createTheme({
   overrides: {
     MuiSvgIcon: {
       root: {

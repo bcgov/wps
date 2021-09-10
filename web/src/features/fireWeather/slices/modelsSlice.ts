@@ -69,7 +69,7 @@ export const fetchGlobalModelsWithBiasAdj = (
     const modelsForStations = await getModelsWithBiasAdj(codes, 'GDPS', timeOfInterest)
     dispatch(getModelsSuccess(modelsForStations))
   } catch (err) {
-    dispatch(getModelsFailed(err.toString()))
+    dispatch(getModelsFailed((err as Error).toString()))
     logError(err)
   }
 }
