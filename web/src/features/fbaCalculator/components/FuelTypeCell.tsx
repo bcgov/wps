@@ -17,6 +17,7 @@ interface FuelTypeCellProps {
   disabled: boolean
   rowId: number
 }
+
 const emptyLabel = 'Select a fuel type'
 const FuelTypeCell = (props: FuelTypeCellProps) => {
   const [selectedFuelType, setSelectedFuelType] = useState(props.value)

@@ -175,6 +175,7 @@ def prepare_fetch_dailies_for_all_stations_query(time_of_interest: datetime, pag
               'size': config.get('WFWX_MAX_PAGE_SIZE', 1000)}
     endpoint = ('/v1/dailies/rsql')
     url = f'{base_url}{endpoint}'
+    logger.info('%s         %s', url, params)
     return url, params
 
 

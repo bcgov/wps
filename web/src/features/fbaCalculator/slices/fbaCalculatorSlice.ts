@@ -87,7 +87,7 @@ export const fetchFireBehaviourStations = (
       dispatch(getFireBehaviourStationsSuccess(fireBehaviourStations))
     }
   } catch (err) {
-    dispatch(getFireBehaviourStationsFailed(err.toString()))
+    dispatch(getFireBehaviourStationsFailed((err as Error).toString()))
     logError(err)
   }
 }

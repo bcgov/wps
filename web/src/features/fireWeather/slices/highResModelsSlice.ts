@@ -69,7 +69,7 @@ export const fetchHighResModels = (
     const modelsForStations = await getModelsWithBiasAdj(codes, 'HRDPS', timeOfInterest)
     dispatch(getHighResModelsSuccess(modelsForStations))
   } catch (err) {
-    dispatch(getHighResModelsFailed(err.toString()))
+    dispatch(getHighResModelsFailed((err as Error).toString()))
     logError(err)
   }
 }

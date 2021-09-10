@@ -141,7 +141,7 @@ export const fetchModelRuns = (
     const modelsRuns = await getModelRuns(model_run_timestamp)
     dispatch(getModelRunsSuccess(modelsRuns))
   } catch (err) {
-    dispatch(getModelRunsFailed(err.toString()))
+    dispatch(getModelRunsFailed((err as Error).toString()))
     logError(err)
   }
 }
@@ -183,7 +183,7 @@ export const fetchCHainesGeoJSON = (
     }
     dispatch(getPredictionSuccess(result))
   } catch (err) {
-    dispatch(getPredictionFailed(err.toString()))
+    dispatch(getPredictionFailed((err as Error).toString()))
     logError(err)
   }
 }
