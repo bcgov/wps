@@ -1,6 +1,6 @@
 import { makeStyles} from '@material-ui/core'
 import React from 'react'
-import FixedDecimalNumberCell from './FixedDecimalNumberCell'
+import FixedDecimalNumberCell from 'features/fbaCalculator/components/FixedDecimalNumberCell'
 
 interface HFICellProps {
   value: number | undefined
