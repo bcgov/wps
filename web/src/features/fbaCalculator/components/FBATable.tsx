@@ -596,9 +596,7 @@ const FBATable = (props: FBAInputGridProps) => {
                             rowUpdating={rowIdsToUpdate.has(row.id)}
                             initialLoad={initialLoad}
                           >
-                          <HFICell
-                            value={row.head_fire_intensity}
-                          ></HFICell>
+                            <HFICell value={row.head_fire_intensity}></HFICell>
                           </LoadingIndicatorCell>
                           <LoadingIndicatorCell
                             loading={loading}

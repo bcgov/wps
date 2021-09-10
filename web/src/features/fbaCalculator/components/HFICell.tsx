@@ -1,4 +1,4 @@
-import { makeStyles} from '@material-ui/core'
+import { makeStyles } from '@material-ui/core'
 import React from 'react'
 import FixedDecimalNumberCell from 'features/fbaCalculator/components/FixedDecimalNumberCell'
 
@@ -30,34 +30,28 @@ const useStyles = makeStyles({
     height: '40px',
     paddingLeft: '8px',
     paddingRight: '8px'
-  },
+  }
 })
 
 const HFICell = (props: HFICellProps) => {
   const classes = useStyles()
 
-  const getHFIStyle = (value:number | undefined): string => {
-    if(value !== undefined){
-        if(value >= 3000 && value <= 3999){
-            return classes.orangeBorder;
-        }
-        else if(value >= 4000 && value <= 9999){
-            return classes.orangeFill;
-        }
-        else if(value >= 10000){
-            return classes.redFill;
-        }
+  const getHFIStyle = (value: number | undefined): string => {
+    if (value !== undefined) {
+      if (value >= 3000 && value <= 3999) {
+        return classes.orangeBorder
+      } else if (value >= 4000 && value <= 9999) {
+        return classes.orangeFill
+      } else if (value >= 10000) {
+        return classes.redFill
+      }
     }
-    return classes.dataRow;
-    
+    return classes.dataRow
   }
 
-  const HFIStyle = getHFIStyle(props.value);
+  const HFIStyle = getHFIStyle(props.value)
 
-  return(
-      <FixedDecimalNumberCell className={HFIStyle} value = {props.value}/>
-  )
-  
+  return <FixedDecimalNumberCell className={HFIStyle} value={props.value} />
 }
 
 export default React.memo(HFICell)
