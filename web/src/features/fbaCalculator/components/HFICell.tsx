@@ -1,5 +1,7 @@
 import { makeStyles, TableCell } from '@material-ui/core'
-import React from 'react'
+import { AnyRecord } from 'dns'
+import React, { CSSProperties } from 'react'
+import FixedDecimalNumberCell from './FixedDecimalNumberCell'
 
 interface HFICellProps {
   value: number | undefined
@@ -11,44 +13,55 @@ const useStyles = makeStyles({
     height: '40px',
     paddingLeft: '8px',
     paddingRight: '8px'
-  }
+  },
+  orangeBorder: {
+    border: 'solid 3px #FFC464',
+    height: '40px',
+    paddingLeft: '8px',
+    paddingRight: '8px'
+  },
+  orangeFill: {
+    backgroundColor: '#FFC464',
+    height: '40px',
+    paddingLeft: '8px',
+    paddingRight: '8px'
+  },
+  redFill: {
+    backgroundColor: '#FF6259',
+    height: '40px',
+    paddingLeft: '8px',
+    paddingRight: '8px'
+  },
 })
+
+
 
 const DECIMAL_PLACES = 1
 
 const HFICell = (props: HFICellProps) => {
   const classes = useStyles()
 
-  if (props.value !== undefined) {
-    if (props.value >= 3000 && props.value <= 3999) {
-        return (
-            <TableCell style={{border: 'solid 1px #FFC464'}} className={props.className ? props.className : classes.dataRow}>
-              {props.value?.toFixed(DECIMAL_PLACES)}
-            </TableCell>
-          )
+  const HFIStyle = getHFIStyle(props.value);
+
+  function getHFIStyle(value:number | undefined): string  {
+    if(value !== undefined){
+        if(value >= 3000 && value <= 3999){
+            return classes.orangeBorder;
+        }
+        else if(value >= 4000 && value <= 9999){
+            return classes.orangeFill;
+        }
+        else if(value >= 10000){
+            return classes.redFill;
+        }
     }
-    else if(props.value >= 4000){
-        return (
-            <TableCell style={{backgroundColor: '#FFC464'}} className={props.className ? props.className : classes.dataRow}>
-              {props.value?.toFixed(DECIMAL_PLACES)}
-            </TableCell>
-          )
-    }
-    else if(props.value >= 10000){
-        return (
-            <TableCell style={{backgroundColor: '#FF6259'}} className={props.className ? props.className : classes.dataRow}>
-              {props.value?.toFixed(DECIMAL_PLACES)}
-            </TableCell>
-          )
-    }
+    return classes.dataRow;
+    
   }
 
-  return (
-    <TableCell className={props.className ? props.className : classes.dataRow}>
-      {props.value}
-    </TableCell>
+  return(
+      <FixedDecimalNumberCell className={HFIStyle} value = {props.value}/>
   )
-
   
 }
 
