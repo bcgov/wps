@@ -43,6 +43,7 @@ import assert from 'assert'
 import { rowShouldUpdate, isWindSpeedInvalid } from 'features/fbaCalculator/validation'
 import TextDisplayCell from 'features/fbaCalculator/components/TextDisplayCell'
 import FixedDecimalNumberCell from 'features/fbaCalculator/components/FixedDecimalNumberCell'
+import HFICell from 'features/fbaCalculator/components/HFICell'
 import CrownFractionBurnedCell from 'features/fbaCalculator/components/CrownFractionBurnedCell'
 import CriticalHoursCell from 'features/fbaCalculator/components/CriticalHoursCell'
 import StatusCell from 'features/fbaCalculator/components/StatusCell'
@@ -809,9 +810,9 @@ const FBATable = (props: FBAInputGridProps) => {
                           <FixedDecimalNumberCell
                             value={row.fire_weather_index}
                           ></FixedDecimalNumberCell>
-                          <FixedDecimalNumberCell
+                          <HFICell
                             value={row.head_fire_intensity}
-                          ></FixedDecimalNumberCell>
+                          ></HFICell>
                           <CriticalHoursCell
                             value={row.critical_hours_hfi_4000}
                           ></CriticalHoursCell>
