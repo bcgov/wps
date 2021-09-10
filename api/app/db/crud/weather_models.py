@@ -128,6 +128,11 @@ def get_model_run_predictions_for_grid(session: Session,
                prediction_run.id)
 
 
+def delete_model_run_grid_subset_predictions(session: Session, older_than: datetime):
+    logger.info('')
+    session.delete().where(ModelRunGridSubsetPrediction.prediction_model_run_timestamp < older_than)
+
+
 def get_model_run_predictions(
         session: Session,
         prediction_run: PredictionModelRunTimestamp,

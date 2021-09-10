@@ -723,10 +723,23 @@ def process_models():
     return env_canada.files_processed
 
 
+def apply_data_retention_policy():
+    """
+    We can't keep data forever, we just don't have the space.
+    """
+    with app.db.database.get_write_session_scope() as session:
+        # The easiest target, is the 4 points surrounding a weather station, once it's interpolated
+        # and used for machine learning - it's no longer of use.
+        # It would be great to keep it forever. we could go back and use historic data to improve
+        # macine learning, but unfortunately takes a lot of space.
+        pass
+
+
 def main():
     """ main script - process and download models, then do exception handling """
     try:
         process_models()
+        apply_data_retention_policy()
     except CompletedWithSomeExceptions:
         logger.warning('completed processing with some exceptions')
         sys.exit(os.EX_SOFTWARE)
