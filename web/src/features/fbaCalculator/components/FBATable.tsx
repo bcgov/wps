@@ -136,9 +136,11 @@ const FBATable = (props: FBAInputGridProps) => {
   const [order, setOrder] = useState<Order>('desc')
   const [rows, setRows] = useState<FBATableRow[]>([])
   const { stations, error: stationsError } = useSelector(selectFireWeatherStations)
-  const { fireBehaviourResultStations, loading, error: fbaResultsError } = useSelector(
-    selectFireBehaviourCalcResult
-  )
+  const {
+    fireBehaviourResultStations,
+    loading,
+    error: fbaResultsError
+  } = useSelector(selectFireBehaviourCalcResult)
   const [calculatedResults, setCalculatedResults] = useState<FBAStation[]>(
     fireBehaviourResultStations
   )
