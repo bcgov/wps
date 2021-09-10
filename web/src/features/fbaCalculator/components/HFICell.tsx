@@ -33,16 +33,10 @@ const useStyles = makeStyles({
   },
 })
 
-
-
-const DECIMAL_PLACES = 1
-
 const HFICell = (props: HFICellProps) => {
   const classes = useStyles()
 
-  const HFIStyle = getHFIStyle(props.value);
-
-  function getHFIStyle(value:number | undefined): string  {
+  const getHFIStyle = (value:number | undefined): string => {
     if(value !== undefined){
         if(value >= 3000 && value <= 3999){
             return classes.orangeBorder;
@@ -57,6 +51,8 @@ const HFICell = (props: HFICellProps) => {
     return classes.dataRow;
     
   }
+
+  const HFIStyle = getHFIStyle(props.value);
 
   return(
       <FixedDecimalNumberCell className={HFIStyle} value = {props.value}/>
