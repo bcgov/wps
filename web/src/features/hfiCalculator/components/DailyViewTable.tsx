@@ -56,9 +56,6 @@ const useStyles = makeStyles({
       padding: '8px'
     }
   },
-  paper: {
-    width: '100%'
-  },
   tableContainer: {
     maxHeight: 1080,
     maxWidth: 1900,
@@ -209,8 +206,8 @@ export const DailyViewTable = (props: Props): JSX.Element => {
           Next
         </Button>
       </div>
-      <Paper className={classes.paper} elevation={1}>
-        <TableContainer className={classes.tableContainer}>
+      <Paper elevation={1}>
+        <TableContainer>
           <Table stickyHeader aria-label="daily table view of HFI by planning area">
             <TableHead>
               <TableRow>

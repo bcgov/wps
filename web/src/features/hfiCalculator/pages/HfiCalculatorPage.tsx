@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 
-import { Container, PageHeader, PageTitle } from 'components'
+import { PageHeader, PageTitle } from 'components'
 import DailyViewTable from 'features/hfiCalculator/components/DailyViewTable'
 import { fetchHFIStations } from '../slices/stationsSlice'
 import { fetchHFIDailies } from '../slices/hfiCalculatorSlice'
@@ -9,20 +9,12 @@ import { DateTime } from 'luxon'
 import {
   selectHFIDailies,
   selectHFIStations,
-  selectHFIStationsLoading
+  selectHFIStationsLoading,
 } from 'app/rootReducer'
-import { makeStyles, CircularProgress } from '@material-ui/core'
+import { CircularProgress, Grid } from '@material-ui/core'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 
 const HfiCalculatorPage: React.FunctionComponent = () => {
-  const useStyles = makeStyles({
-    container: {
-      display: 'flex',
-      justifyContent: 'center'
-    }
-  })
-  const classes = useStyles()
-
   const dispatch = useDispatch()
   const { dailies, loading } = useSelector(selectHFIDailies)
   const { fireCentres } = useSelector(selectHFIStations)
@@ -30,14 +22,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const [currentDay, setCurrentDay] = useState(DateTime.now())
 
   useEffect(() => {
-    const startTime = currentDay
-      .startOf('day')
-      .toUTC()
-      .valueOf()
-    const endTime = currentDay
-      .endOf('day')
-      .toUTC()
-      .valueOf()
+    const startTime = currentDay.startOf('day').toUTC().valueOf()
+    const endTime = currentDay.endOf('day').toUTC().valueOf()
     dispatch(fetchHFIDailies(startTime, endTime))
     dispatch(fetchHFIStations())
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -53,7 +39,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   const dailiesMap = new Map<number, StationDaily>()
   if (dailies !== undefined) {
-    dailies.forEach(daily => {
+    dailies.forEach((daily) => {
       dailiesMap.set(daily.code, daily)
     })
   }
@@ -62,7 +48,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     <main data-testid="hfi-calculator-page">
       <PageHeader title="Predictive Services Unit" productName="HFI Calculator" />
       <PageTitle title="HFI Calculator" />
-      <Container className={classes.container}>
+      <Grid>
         {loading || stationDataLoading ? (
           <CircularProgress />
         ) : (
@@ -76,7 +62,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
             nextDay={nextDay}
           />
         )}
-      </Container>
+      </Grid>
     </main>
   )
 }
