@@ -70,7 +70,7 @@ export const fetchWxStations = (
     const stations = await stationGetter(source, toi)
     dispatch(getStationsSuccess(stations))
   } catch (err) {
-    dispatch(getStationsFailed(err.toString()))
+    dispatch(getStationsFailed((err as Error).toString()))
     logError(err)
   }
 }

@@ -69,7 +69,7 @@ export const fetchCHainesGeoJSON = (
     }
     dispatch(getPredictionSuccess(result))
   } catch (err) {
-    dispatch(getPredictionFailed(err.toString()))
+    dispatch(getPredictionFailed((err as Error).toString()))
     logError(err)
   }
 }

@@ -62,7 +62,7 @@ export const fetchGlobalModelSummaries = (
     const modelSummaries = await getModelSummaries(stationCodes, 'GDPS', timeOfInterest)
     dispatch(getModelSummariesSuccess(modelSummaries))
   } catch (err) {
-    dispatch(getModelSummariesFailed(err.toString()))
+    dispatch(getModelSummariesFailed((err as Error).toString()))
     logError(err)
   }
 }

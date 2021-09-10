@@ -60,7 +60,7 @@ export const fetchPercentiles = (
     const result = await getPercentiles(stationCodes, percentile, yearRange)
     dispatch(getPercentilesSuccess(result))
   } catch (err) {
-    dispatch(getPercentilesFailed(err.toString()))
+    dispatch(getPercentilesFailed((err as Error).toString()))
     logError(err)
   }
 }

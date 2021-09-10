@@ -54,7 +54,7 @@ export const fetchHFIStations = (): AppThunk => async dispatch => {
     const hfiStations = await getHFIStations()
     dispatch(getHFIStationsSuccess(hfiStations))
   } catch (err) {
-    dispatch(getHFIStationsFailed(err.toString()))
+    dispatch(getHFIStationsFailed((err as Error).toString()))
     logError(err)
   }
 }

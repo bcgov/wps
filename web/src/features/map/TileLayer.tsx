@@ -13,7 +13,7 @@ interface Props {
 const TileLayer = ({ source, opacity = 1, zIndex = 0 }: Props) => {
   const map = useContext(MapContext)
 
-  const [layer, setLayer] = useState<OLTileLayer | null>(null)
+  const [layer, setLayer] = useState<OLTileLayer<TileSource> | null>(null)
 
   useEffect(() => {
     if (!map) return
