@@ -21,7 +21,8 @@ from app.db.crud.weather_models import (get_processed_file_record,
                                         get_prediction_model_run_timestamp_records,
                                         get_model_run_predictions_for_grid,
                                         get_grids_for_coordinate,
-                                        get_weather_station_model_prediction)
+                                        get_weather_station_model_prediction,
+                                        delete_model_run_grid_subset_predictions)
 from app.weather_models.machine_learning import StationMachineLearning
 from app.weather_models import ModelEnum, ProjectionEnum, construct_interpolated_noon_prediction
 from app.schemas.stations import WeatherStation
@@ -732,7 +733,10 @@ def apply_data_retention_policy():
         # and used for machine learning - it's no longer of use.
         # It would be great to keep it forever. we could go back and use historic data to improve
         # macine learning, but unfortunately takes a lot of space.
-        pass
+        # Currently we're using 19 days of data for machine learning, so
+        # keeping 21 days (3 weeks) of historic data is sufficient.
+        oldest_to_keep = time_utils.get_utc_now() - datetime.timedelta(days=21)
+        delete_model_run_grid_subset_predictions(session, oldest_to_keep)
 
 
 def main():
