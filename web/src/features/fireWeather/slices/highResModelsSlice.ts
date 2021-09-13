@@ -52,24 +52,20 @@ const highResModelsSlice = createSlice({
   }
 })
 
-export const {
-  getHighResModelsStart,
-  getHighResModelsFailed,
-  getHighResModelsSuccess
-} = highResModelsSlice.actions
+export const { getHighResModelsStart, getHighResModelsFailed, getHighResModelsSuccess } =
+  highResModelsSlice.actions
 
 export default highResModelsSlice.reducer
 
-export const fetchHighResModels = (
-  codes: number[],
-  timeOfInterest: string
-): AppThunk => async dispatch => {
-  try {
-    dispatch(getHighResModelsStart())
-    const modelsForStations = await getModelsWithBiasAdj(codes, 'HRDPS', timeOfInterest)
-    dispatch(getHighResModelsSuccess(modelsForStations))
-  } catch (err) {
-    dispatch(getHighResModelsFailed((err as Error).toString()))
-    logError(err)
+export const fetchHighResModels =
+  (codes: number[], timeOfInterest: string): AppThunk =>
+  async dispatch => {
+    try {
+      dispatch(getHighResModelsStart())
+      const modelsForStations = await getModelsWithBiasAdj(codes, 'HRDPS', timeOfInterest)
+      dispatch(getHighResModelsSuccess(modelsForStations))
+    } catch (err) {
+      dispatch(getHighResModelsFailed((err as Error).toString()))
+      logError(err)
+    }
   }
-}
