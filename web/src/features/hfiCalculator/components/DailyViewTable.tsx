@@ -16,10 +16,7 @@ import { StationDaily } from 'api/hfiCalculatorAPI'
 import { Button } from 'components'
 import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
 import { isGrassFuelType, isValidGrassCure } from 'features/hfiCalculator/validation'
-import {
-  calculateMeanIntensityGroup,
-  intensityGroupColours
-} from 'features/hfiCalculator/components/meanIntensity'
+import { calculateMeanIntensityGroup } from 'features/hfiCalculator/components/meanIntensity'
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
 import { isUndefined } from 'lodash'
 import CalculatedCell from 'features/hfiCalculator/components/CalculatedCell'
@@ -56,12 +53,6 @@ const useStyles = makeStyles({
       padding: '8px'
     }
   },
-  tableContainer: {
-    maxHeight: 1080,
-    maxWidth: 1900,
-    minWidth: 1600,
-    '& .MuiTableCell-head': { fontWeight: 'bold', padding: '1px' }
-  },
   fireCentre: {
     fontSize: 16,
     fontWeight: 'bold',
@@ -83,39 +74,10 @@ const useStyles = makeStyles({
       paddingLeft: '20px'
     }
   },
-  borderless: {
-    border: 'none'
-  },
   controls: {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'baseline'
-  },
-  intensityGroupSolid1: {
-    background: intensityGroupColours.lightGreen,
-    fontWeight: 'bold',
-    textAlign: 'center'
-  },
-  intensityGroupSolid2: {
-    background: intensityGroupColours.cyan,
-    fontWeight: 'bold',
-    textAlign: 'center'
-  },
-  intensityGroupSolid3: {
-    background: intensityGroupColours.yellow,
-    fontWeight: 'bold',
-    textAlign: 'center'
-  },
-  intensityGroupSolid4: {
-    background: intensityGroupColours.orange,
-    fontWeight: 'bold',
-    textAlign: 'center'
-  },
-  intensityGroupSolid5: {
-    background: intensityGroupColours.red,
-    fontWeight: 'bold',
-    color: 'white',
-    textAlign: 'center'
   },
   prepLevel1: {
     background: prepLevelColours.green,
