@@ -11,7 +11,7 @@ import {
   selectHFIStations,
   selectHFIStationsLoading
 } from 'app/rootReducer'
-import { CircularProgress, Grid } from '@material-ui/core'
+import { CircularProgress } from '@material-ui/core'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 
 const HfiCalculatorPage: React.FunctionComponent = () => {
@@ -48,21 +48,19 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     <main data-testid="hfi-calculator-page">
       <PageHeader title="Predictive Services Unit" productName="HFI Calculator" />
       <PageTitle title="HFI Calculator" />
-      <Grid container direction="column" alignItems="center" justify="center">
-        {loading || stationDataLoading ? (
-          <CircularProgress />
-        ) : (
-          <DailyViewTable
-            title="HFI Calculator Daily View"
-            testId="hfi-calc-daily-table"
-            fireCentres={fireCentres}
-            dailiesMap={dailiesMap}
-            currentDay={currentDay.toLocaleString()}
-            previousDay={previousDay}
-            nextDay={nextDay}
-          />
-        )}
-      </Grid>
+      {loading || stationDataLoading ? (
+        <CircularProgress />
+      ) : (
+        <DailyViewTable
+          title="HFI Calculator Daily View"
+          testId="hfi-calc-daily-table"
+          fireCentres={fireCentres}
+          dailiesMap={dailiesMap}
+          currentDay={currentDay.toLocaleString()}
+          previousDay={previousDay}
+          nextDay={nextDay}
+        />
+      )}
     </main>
   )
 }
