@@ -10,7 +10,7 @@ const useStyles = makeStyles({
 const FBATableInstructions = () => {
   const classes = useStyles()
   return (
-    <div className={classes.content}>
+    <div data-testid={'fba-instructions'} className={classes.content}>
       <p>Add a row to get started</p>
       <p>
         Build custom lists of weather stations by fire center, zone or fuel type. Bookmark
