@@ -26,6 +26,7 @@ export const FireBehaviourAdvisoryCalculator: React.FunctionComponent = () => {
         </h1>
 
         <FBATable />
+
         <Paper className={classes.disclaimer}>
           <div>
             <h4>Disclaimers:</h4>

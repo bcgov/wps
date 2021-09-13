@@ -119,6 +119,12 @@ const useStyles = makeStyles(theme => ({
     left: 0,
     position: 'sticky',
     zIndex: theme.zIndex.appBar + 2
+  },
+  show: {
+    textAlign: 'center'
+  },
+  hide: {
+    display: 'none'
   }
 }))
 
@@ -159,6 +165,8 @@ const FBATable = (props: FBAInputGridProps) => {
       label: value.friendlyName
     })
   )
+
+  let instructionClass = classes.show
 
   useEffect(() => {
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
@@ -348,6 +356,16 @@ const FBATable = (props: FBAInputGridProps) => {
     }
   }
 
+  const checkTable = () => {
+    if (rows.length > 0) {
+      instructionClass = classes.hide
+    } else {
+      instructionClass = classes.show
+    }
+  }
+
+  checkTable()
+
   return (
     <React.Fragment>
       {stationsError ||
@@ -368,7 +386,10 @@ const FBATable = (props: FBAInputGridProps) => {
             variant="contained"
             color="primary"
             spinnercolor="white"
-            onClick={addStation}
+            onClick={() => {
+              addStation()
+              checkTable()
+            }}
           >
             Add Row
           </Button>
@@ -380,7 +401,10 @@ const FBATable = (props: FBAInputGridProps) => {
             variant="contained"
             color="primary"
             spinnercolor="white"
-            onClick={deleteSelectedStations}
+            onClick={() => {
+              deleteSelectedStations()
+              checkTable()
+            }}
           >
             Remove Row(s)
           </Button>
@@ -676,6 +700,13 @@ const FBATable = (props: FBAInputGridProps) => {
               </Table>
             </TableContainer>
           </Paper>
+        </div>
+        <div className={instructionClass}>
+          <p>Add a row to get started</p>
+          <p>
+            Build custom lists of weather stations by fire center, zone or fuel type.
+            Bookmark the URL to save your custom list.
+          </p>
         </div>
       </ErrorBoundary>
     </React.Fragment>
