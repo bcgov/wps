@@ -34,15 +34,16 @@ export interface RowIdsOfMinMaxValues {
 }
 
 // More generic approach https://material-ui.com/components/tables/#EnhancedTable.tsx
-export const getDatetimeComparator =
-  (order: Order) =>
-  <T extends { datetime: string }>(a: T, b: T): number => {
-    const aDate = new Date(a.datetime)
-    const bDate = new Date(b.datetime)
-    const diff = aDate.valueOf() - bDate.valueOf()
+export const getDatetimeComparator = (order: Order) => <T extends { datetime: string }>(
+  a: T,
+  b: T
+): number => {
+  const aDate = new Date(a.datetime)
+  const bDate = new Date(b.datetime)
+  const diff = aDate.valueOf() - bDate.valueOf()
 
-    return order === 'asc' ? diff : -diff
-  }
+  return order === 'asc' ? diff : -diff
+}
 
 const calculateMaxPrecip = (rows: WeatherValue[]): number | null => {
   // calculates the maximum precip value from a set of table rows (assuming that

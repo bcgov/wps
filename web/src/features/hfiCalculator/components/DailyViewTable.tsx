@@ -403,6 +403,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                                       checked={stationCodeInSelected(station.code)}
                                       onClick={() => toggleSelectedStation(station.code)}
                                       data-testid={`select-station-${station.code}`}
+                                      color="primary"
                                     ></Checkbox>
                                     <TableCell
                                       key={`station-${station.code}-name`}
