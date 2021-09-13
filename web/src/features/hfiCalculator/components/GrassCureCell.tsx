@@ -1,6 +1,6 @@
 import { TableCell, Tooltip } from '@material-ui/core'
 import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline'
-import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles'
+import { createTheme, ThemeProvider } from '@material-ui/core/styles'
 import React from 'react'
 import { isNull } from 'lodash'
 
@@ -10,7 +10,7 @@ export interface GrassCureCellProps {
   className: string | undefined
 }
 
-const errorIconTheme = createMuiTheme({
+const errorIconTheme = createTheme({
   overrides: {
     MuiSvgIcon: {
       root: {

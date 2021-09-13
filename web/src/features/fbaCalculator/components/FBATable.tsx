@@ -1,18 +1,14 @@
 import React, { useEffect, useState } from 'react'
 import { difference, filter, findIndex, isEmpty, isUndefined } from 'lodash'
 import {
-  Checkbox,
   FormControl,
-  LinearProgress,
   makeStyles,
   Paper,
   Table,
   TableBody,
   TableCell,
   TableContainer,
-  TableHead,
-  TableRow,
-  TableSortLabel
+  TableRow
 } from '@material-ui/core'
 import GetAppIcon from '@material-ui/icons/GetApp'
 import { CsvBuilder } from 'filefy'
@@ -42,12 +38,15 @@ import assert from 'assert'
 import { rowShouldUpdate, isWindSpeedInvalid } from 'features/fbaCalculator/validation'
 import TextDisplayCell from 'features/fbaCalculator/components/TextDisplayCell'
 import FixedDecimalNumberCell from 'features/fbaCalculator/components/FixedDecimalNumberCell'
+import HFICell from 'features/fbaCalculator/components/HFICell'
 import CrownFractionBurnedCell from 'features/fbaCalculator/components/CrownFractionBurnedCell'
 import CriticalHoursCell from 'features/fbaCalculator/components/CriticalHoursCell'
 import StatusCell from 'features/fbaCalculator/components/StatusCell'
 import ErrorAlert from 'features/fbaCalculator/components/ErrorAlert'
+import LoadingIndicatorCell from 'features/fbaCalculator/components/LoadingIndicatorCell'
 import SelectionCell from 'features/fbaCalculator/components/SelectionCell'
 import StickyCell from 'features/fbaCalculator/components/StickyCell'
+import FBATableHead from 'features/fbaCalculator/components/FBATableHead'
 
 export interface FBAInputGridProps {
   testId?: string
@@ -100,9 +99,6 @@ const useStyles = makeStyles(theme => ({
   grassCure: {
     width: 80
   },
-  windSpeed: {
-    width: 80
-  },
   paper: {
     width: '100%'
   },
@@ -119,10 +115,8 @@ const useStyles = makeStyles(theme => ({
     paddingLeft: '8px',
     paddingRight: '8px'
   },
-  tableHeaderRow: {
-    padding: '8px'
-  },
-  fixedHeaderCell: {
+  stickyProgress: {
+    left: 0,
     position: 'sticky',
     zIndex: theme.zIndex.appBar + 2
   }
@@ -405,319 +399,16 @@ const FBATable = (props: FBAInputGridProps) => {
         <div className={classes.display} data-testid={props.testId}>
           <Paper className={classes.paper} elevation={1}>
             <TableContainer className={classes.tableContainer}>
-              {loading && <LinearProgress />}
               <Table size="small" stickyHeader aria-label="Fire Behaviour Analysis table">
-                <TableHead>
-                  <TableRow>
-                    <StickyCell left={0} zIndexOffset={2}>
-                      <Checkbox
-                        data-testid="select-all"
-                        color="primary"
-                        checked={headerSelected}
-                        onClick={() => {
-                          if (headerSelected) {
-                            // Toggle off
-                            setSelected([])
-                            setHeaderSelect(false)
-                          } else {
-                            setSelected(
-                              rows.filter(row => !isUndefined(row)).map(row => row.id)
-                            )
-                            setHeaderSelect(true)
-                          }
-                        }}
-                      />
-                    </StickyCell>
-                    <TableCell key="header-zone" sortDirection={order}>
-                      <TableSortLabel
-                        className={classes.tableHeaderRow}
-                        direction={order}
-                        onClick={() => {
-                          toggleSorting(SortByColumn.Zone)
-                        }}
-                      >
-                        Zone
-                      </TableSortLabel>
-                    </TableCell>
-                    <StickyCell left={50} zIndexOffset={2}>
-                      <TableSortLabel
-                        direction={order}
-                        onClick={() => {
-                          toggleSorting(SortByColumn.Station)
-                        }}
-                      >
-                        Weather Station
-                      </TableSortLabel>
-                    </StickyCell>
-                    <TableCell key="header-elevation" sortDirection={order}>
-                      <TableSortLabel
-                        direction={order}
-                        onClick={() => {
-                          toggleSorting(SortByColumn.Elevation)
-                        }}
-                      >
-                        Elev.
-                        <br />
-                        (m)
-                      </TableSortLabel>
-                    </TableCell>
-                    <StickyCell left={280} zIndexOffset={2}>
-                      <TableSortLabel
-                        direction={order}
-                        onClick={() => toggleSorting(SortByColumn.FuelType)}
-                      >
-                        FBP Fuel Type
-                      </TableSortLabel>
-                    </StickyCell>
-                    <TableCell sortDirection={order}>
-                      <TableSortLabel
-                        direction={order}
-                        onClick={() => toggleSorting(SortByColumn.GrassCure)}
-                      >
-                        Grass
-                        <br />
-                        Cure
-                        <br />
-                        (%)
-                      </TableSortLabel>
-                    </TableCell>
-                    <TableCell sortDirection={order}>
-                      <TableSortLabel
-                        direction={order}
-                        onClick={() => {
-                          toggleSorting(SortByColumn.Status)
-                        }}
-                      >
-                        Status
-                      </TableSortLabel>
-                    </TableCell>
-                    <TableCell sortDirection={order}>
-                      <TableSortLabel
-                        direction={order}
-                        onClick={() => {
-                          toggleSorting(SortByColumn.Temperature)
-                        }}
-                      >
-                        Temp
-                        <br />
-                        (&deg;C)
-                      </TableSortLabel>
-                    </TableCell>
-                    <TableCell sortDirection={order}>
-                      <TableSortLabel
-                        direction={order}
-                        onClick={() => {
-                          toggleSorting(SortByColumn.RelativeHumidity)
-                        }}
-                      >
-                        RH
-                        <br />
-                        (%)
-                      </TableSortLabel>
-                    </TableCell>
-                    <TableCell sortDirection={order}>
-                      <TableSortLabel
-                        direction={order}
-                        onClick={() => {
-                          toggleSorting(SortByColumn.WindDirection)
-                        }}
-                      >
-                        Wind
-                        <br />
-                        Dir
-                        <br />
-                        (&deg;)
-                      </TableSortLabel>
-                    </TableCell>
-                    <TableCell className={classes.windSpeed} sortDirection={order}>
-                      <TableSortLabel
-                        direction={order}
-                        onClick={() => {
-                          toggleSorting(SortByColumn.WindSpeed)
-                        }}
-                      >
-                        Wind Speed (km/h)
-                      </TableSortLabel>
-                    </TableCell>
-                    <TableCell sortDirection={order}>
-                      <TableSortLabel
-                        direction={order}
-                        onClick={() => {
-                          toggleSorting(SortByColumn.Precipitation)
-                        }}
-                      >
-                        Precip
-                        <br />
-                        (mm)
-                      </TableSortLabel>
-                    </TableCell>
-                    <TableCell sortDirection={order}>
-                      <TableSortLabel
-                        direction={order}
-                        onClick={() => {
-                          toggleSorting(SortByColumn.FFMC)
-                        }}
-                      >
-                        FFMC
-                      </TableSortLabel>
-                    </TableCell>
-                    <TableCell sortDirection={order}>
-                      <TableSortLabel
-                        direction={order}
-                        onClick={() => {
-                          toggleSorting(SortByColumn.DMC)
-                        }}
-                      >
-                        DMC
-                      </TableSortLabel>
-                    </TableCell>
-                    <TableCell sortDirection={order}>
-                      <TableSortLabel
-                        direction={order}
-                        onClick={() => {
-                          toggleSorting(SortByColumn.DMC)
-                        }}
-                      >
-                        DC
-                      </TableSortLabel>
-                    </TableCell>
-                    <TableCell sortDirection={order}>
-                      <TableSortLabel
-                        direction={order}
-                        onClick={() => {
-                          toggleSorting(SortByColumn.ISI)
-                        }}
-                      >
-                        ISI
-                      </TableSortLabel>
-                    </TableCell>
-                    <TableCell sortDirection={order}>
-                      <TableSortLabel
-                        direction={order}
-                        onClick={() => {
-                          toggleSorting(SortByColumn.BUI)
-                        }}
-                      >
-                        BUI
-                      </TableSortLabel>
-                    </TableCell>
-                    <TableCell sortDirection={order}>
-                      <TableSortLabel
-                        direction={order}
-                        onClick={() => {
-                          toggleSorting(SortByColumn.BUI)
-                        }}
-                      >
-                        FWI
-                      </TableSortLabel>
-                    </TableCell>
-                    <TableCell sortDirection={order}>
-                      <TableSortLabel
-                        direction={order}
-                        onClick={() => {
-                          toggleSorting(SortByColumn.HFI)
-                        }}
-                      >
-                        HFI
-                      </TableSortLabel>
-                    </TableCell>
-                    <TableCell sortDirection={order}>
-                      <TableSortLabel
-                        direction={order}
-                        onClick={() => {
-                          toggleSorting(SortByColumn.CriticalHours4000)
-                        }}
-                      >
-                        Critical
-                        <br />
-                        Hours
-                        <br />
-                        (4000 kW/m)
-                      </TableSortLabel>
-                    </TableCell>
-                    <TableCell sortDirection={order}>
-                      <TableSortLabel
-                        direction={order}
-                        onClick={() => {
-                          toggleSorting(SortByColumn.CriticalHours10000)
-                        }}
-                      >
-                        Critical
-                        <br />
-                        Hours
-                        <br />
-                        (10000 kW/m)
-                      </TableSortLabel>
-                    </TableCell>
-                    <TableCell sortDirection={order}>
-                      <TableSortLabel
-                        direction={order}
-                        onClick={() => {
-                          toggleSorting(SortByColumn.ROS)
-                        }}
-                      >
-                        ROS
-                        <br />
-                        (m/min)
-                      </TableSortLabel>
-                    </TableCell>
-                    <TableCell sortDirection={order}>
-                      <TableSortLabel
-                        direction={order}
-                        onClick={() => {
-                          toggleSorting(SortByColumn.FireType)
-                        }}
-                      >
-                        Fire Type
-                      </TableSortLabel>
-                    </TableCell>
-                    <TableCell sortDirection={order}>
-                      <TableSortLabel
-                        direction={order}
-                        onClick={() => {
-                          toggleSorting(SortByColumn.CFB)
-                        }}
-                      >
-                        CFB (%)
-                      </TableSortLabel>
-                    </TableCell>
-                    <TableCell sortDirection={order}>
-                      <TableSortLabel
-                        direction={order}
-                        onClick={() => {
-                          toggleSorting(SortByColumn.FlameLength)
-                        }}
-                      >
-                        Flame <br />
-                        Length <br /> (m)
-                      </TableSortLabel>
-                    </TableCell>
-                    <TableCell sortDirection={order}>
-                      <TableSortLabel
-                        direction={order}
-                        onClick={() => {
-                          toggleSorting(SortByColumn.ThirtyMinFireSize)
-                        }}
-                      >
-                        30 min <br />
-                        fire size <br />
-                        (hectares)
-                      </TableSortLabel>
-                    </TableCell>
-                    <TableCell sortDirection={order}>
-                      <TableSortLabel
-                        direction={order}
-                        onClick={() => {
-                          toggleSorting(SortByColumn.SixtyMinFireSize)
-                        }}
-                      >
-                        60 min <br />
-                        fire size <br />
-                        (hectares)
-                      </TableSortLabel>
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
+                <FBATableHead
+                  toggleSorting={toggleSorting}
+                  order={order}
+                  rows={rows}
+                  headerSelected={headerSelected}
+                  setHeaderSelect={setHeaderSelect}
+                  setSelected={setSelected}
+                  loading={loading}
+                />
                 <TableBody data-testid="fba-table-body">
                   {rows.map(row => {
                     return (
@@ -735,9 +426,15 @@ const FBATable = (props: FBAInputGridProps) => {
                               rowId={row.id}
                             />
                           </StickyCell>
-                          <TableCell className={classes.dataRow}>
-                            {row.zone_code}
-                          </TableCell>
+                          <LoadingIndicatorCell
+                            loading={loading}
+                            rowUpdating={rowIdsToUpdate.has(row.id)}
+                            initialLoad={initialLoad}
+                          >
+                            <TableCell className={classes.dataRow}>
+                              {row.zone_code}
+                            </TableCell>
+                          </LoadingIndicatorCell>
                           <StickyCell
                             left={50}
                             zIndexOffset={1}
@@ -755,7 +452,13 @@ const FBATable = (props: FBAInputGridProps) => {
                               rowId={row.id}
                             />
                           </StickyCell>
-                          <TextDisplayCell value={row.elevation}></TextDisplayCell>
+                          <LoadingIndicatorCell
+                            loading={loading}
+                            rowUpdating={rowIdsToUpdate.has(row.id)}
+                            initialLoad={initialLoad}
+                          >
+                            <TextDisplayCell value={row.elevation}></TextDisplayCell>
+                          </LoadingIndicatorCell>
                           <StickyCell
                             left={280}
                             zIndexOffset={1}
@@ -785,10 +488,34 @@ const FBATable = (props: FBAInputGridProps) => {
                               rowId={row.id}
                             />
                           </TableCell>
-                          <StatusCell value={row.status}></StatusCell>
-                          <TextDisplayCell value={row.temp}></TextDisplayCell>
-                          <TextDisplayCell value={row.rh}></TextDisplayCell>
-                          <TextDisplayCell value={row.wind_direction}></TextDisplayCell>
+                          <LoadingIndicatorCell
+                            loading={loading}
+                            rowUpdating={rowIdsToUpdate.has(row.id)}
+                            initialLoad={initialLoad}
+                          >
+                            <StatusCell value={row.status}></StatusCell>
+                          </LoadingIndicatorCell>
+                          <LoadingIndicatorCell
+                            loading={loading}
+                            rowUpdating={rowIdsToUpdate.has(row.id)}
+                            initialLoad={initialLoad}
+                          >
+                            <TextDisplayCell value={row.temp}></TextDisplayCell>
+                          </LoadingIndicatorCell>
+                          <LoadingIndicatorCell
+                            loading={loading}
+                            rowUpdating={rowIdsToUpdate.has(row.id)}
+                            initialLoad={initialLoad}
+                          >
+                            <TextDisplayCell value={row.rh}></TextDisplayCell>
+                          </LoadingIndicatorCell>
+                          <LoadingIndicatorCell
+                            loading={loading}
+                            rowUpdating={rowIdsToUpdate.has(row.id)}
+                            initialLoad={initialLoad}
+                          >
+                            <TextDisplayCell value={row.wind_direction}></TextDisplayCell>
+                          </LoadingIndicatorCell>
                           <TableCell className={classes.dataRow}>
                             <WindSpeedCell
                               inputRows={rows}
@@ -803,50 +530,144 @@ const FBATable = (props: FBAInputGridProps) => {
                               rowId={row.id}
                             />
                           </TableCell>
-                          <TextDisplayCell value={row.precipitation}></TextDisplayCell>
-                          <FixedDecimalNumberCell
-                            value={row.fine_fuel_moisture_code}
-                          ></FixedDecimalNumberCell>
-                          <FixedDecimalNumberCell
-                            value={row.duff_moisture_code}
-                          ></FixedDecimalNumberCell>
-                          <FixedDecimalNumberCell
-                            value={row.drought_code}
-                          ></FixedDecimalNumberCell>
-                          <FixedDecimalNumberCell
-                            value={row.initial_spread_index}
-                          ></FixedDecimalNumberCell>
-                          <FixedDecimalNumberCell
-                            value={row.build_up_index}
-                          ></FixedDecimalNumberCell>
-                          <FixedDecimalNumberCell
-                            value={row.fire_weather_index}
-                          ></FixedDecimalNumberCell>
-                          <FixedDecimalNumberCell
-                            value={row.head_fire_intensity}
-                          ></FixedDecimalNumberCell>
-                          <CriticalHoursCell
-                            value={row.critical_hours_hfi_4000}
-                          ></CriticalHoursCell>
-                          <CriticalHoursCell
-                            value={row.critical_hours_hfi_10000}
-                          ></CriticalHoursCell>
-                          <FixedDecimalNumberCell
-                            value={row.rate_of_spread}
-                          ></FixedDecimalNumberCell>
-                          <TextDisplayCell value={row?.fire_type}></TextDisplayCell>
-                          <CrownFractionBurnedCell
-                            value={row.percentage_crown_fraction_burned}
-                          ></CrownFractionBurnedCell>
-                          <FixedDecimalNumberCell
-                            value={row.flame_length}
-                          ></FixedDecimalNumberCell>
-                          <FixedDecimalNumberCell
-                            value={row.thirty_minute_fire_size}
-                          ></FixedDecimalNumberCell>
-                          <FixedDecimalNumberCell
-                            value={row.sixty_minute_fire_size}
-                          ></FixedDecimalNumberCell>
+                          <LoadingIndicatorCell
+                            loading={loading}
+                            rowUpdating={rowIdsToUpdate.has(row.id)}
+                            initialLoad={initialLoad}
+                          >
+                            <TextDisplayCell value={row.precipitation}></TextDisplayCell>
+                          </LoadingIndicatorCell>
+                          <LoadingIndicatorCell
+                            loading={loading}
+                            rowUpdating={rowIdsToUpdate.has(row.id)}
+                            initialLoad={initialLoad}
+                          >
+                            <FixedDecimalNumberCell
+                              value={row.fine_fuel_moisture_code}
+                            ></FixedDecimalNumberCell>
+                          </LoadingIndicatorCell>
+                          <LoadingIndicatorCell
+                            loading={loading}
+                            rowUpdating={rowIdsToUpdate.has(row.id)}
+                            initialLoad={initialLoad}
+                          >
+                            <FixedDecimalNumberCell
+                              value={row.duff_moisture_code}
+                            ></FixedDecimalNumberCell>
+                          </LoadingIndicatorCell>
+                          <LoadingIndicatorCell
+                            loading={loading}
+                            rowUpdating={rowIdsToUpdate.has(row.id)}
+                            initialLoad={initialLoad}
+                          >
+                            <FixedDecimalNumberCell
+                              value={row.drought_code}
+                            ></FixedDecimalNumberCell>
+                          </LoadingIndicatorCell>
+                          <LoadingIndicatorCell
+                            loading={loading}
+                            rowUpdating={rowIdsToUpdate.has(row.id)}
+                            initialLoad={initialLoad}
+                          >
+                            <FixedDecimalNumberCell
+                              value={row.initial_spread_index}
+                            ></FixedDecimalNumberCell>
+                          </LoadingIndicatorCell>
+                          <LoadingIndicatorCell
+                            loading={loading}
+                            rowUpdating={rowIdsToUpdate.has(row.id)}
+                            initialLoad={initialLoad}
+                          >
+                            <FixedDecimalNumberCell
+                              value={row.build_up_index}
+                            ></FixedDecimalNumberCell>
+                          </LoadingIndicatorCell>
+                          <LoadingIndicatorCell
+                            loading={loading}
+                            rowUpdating={rowIdsToUpdate.has(row.id)}
+                            initialLoad={initialLoad}
+                          >
+                            <FixedDecimalNumberCell
+                              value={row.fire_weather_index}
+                            ></FixedDecimalNumberCell>
+                          </LoadingIndicatorCell>
+                          <LoadingIndicatorCell
+                            loading={loading}
+                            rowUpdating={rowIdsToUpdate.has(row.id)}
+                            initialLoad={initialLoad}
+                          >
+                            <HFICell value={row.head_fire_intensity}></HFICell>
+                          </LoadingIndicatorCell>
+                          <LoadingIndicatorCell
+                            loading={loading}
+                            rowUpdating={rowIdsToUpdate.has(row.id)}
+                            initialLoad={initialLoad}
+                          >
+                            <CriticalHoursCell
+                              value={row.critical_hours_hfi_4000}
+                            ></CriticalHoursCell>
+                          </LoadingIndicatorCell>
+                          <LoadingIndicatorCell
+                            loading={loading}
+                            rowUpdating={rowIdsToUpdate.has(row.id)}
+                            initialLoad={initialLoad}
+                          >
+                            <CriticalHoursCell
+                              value={row.critical_hours_hfi_10000}
+                            ></CriticalHoursCell>
+                          </LoadingIndicatorCell>
+                          <LoadingIndicatorCell
+                            loading={loading}
+                            rowUpdating={rowIdsToUpdate.has(row.id)}
+                            initialLoad={initialLoad}
+                          >
+                            <FixedDecimalNumberCell
+                              value={row.rate_of_spread}
+                            ></FixedDecimalNumberCell>
+                          </LoadingIndicatorCell>
+                          <LoadingIndicatorCell
+                            loading={loading}
+                            rowUpdating={rowIdsToUpdate.has(row.id)}
+                            initialLoad={initialLoad}
+                          >
+                            <TextDisplayCell value={row?.fire_type}></TextDisplayCell>
+                          </LoadingIndicatorCell>
+                          <LoadingIndicatorCell
+                            loading={loading}
+                            rowUpdating={rowIdsToUpdate.has(row.id)}
+                            initialLoad={initialLoad}
+                          >
+                            <CrownFractionBurnedCell
+                              value={row.percentage_crown_fraction_burned}
+                            ></CrownFractionBurnedCell>
+                          </LoadingIndicatorCell>
+                          <LoadingIndicatorCell
+                            loading={loading}
+                            rowUpdating={rowIdsToUpdate.has(row.id)}
+                            initialLoad={initialLoad}
+                          >
+                            <FixedDecimalNumberCell
+                              value={row.flame_length}
+                            ></FixedDecimalNumberCell>
+                          </LoadingIndicatorCell>
+                          <LoadingIndicatorCell
+                            loading={loading}
+                            rowUpdating={rowIdsToUpdate.has(row.id)}
+                            initialLoad={initialLoad}
+                          >
+                            <FixedDecimalNumberCell
+                              value={row.thirty_minute_fire_size}
+                            ></FixedDecimalNumberCell>
+                          </LoadingIndicatorCell>
+                          <LoadingIndicatorCell
+                            loading={loading}
+                            rowUpdating={rowIdsToUpdate.has(row.id)}
+                            initialLoad={initialLoad}
+                          >
+                            <FixedDecimalNumberCell
+                              value={row.sixty_minute_fire_size}
+                            ></FixedDecimalNumberCell>
+                          </LoadingIndicatorCell>
                         </TableRow>
                       )
                     )

@@ -14,11 +14,9 @@
   ],
   "dependencies": {
     "@material-ui/core": "^4.11.4",
-    "@material-ui/data-grid": "^4.0.0-alpha.33",
     "@material-ui/icons": "^4.9.1",
     "@material-ui/lab": "^4.0.0-alpha.58",
     "@reduxjs/toolkit": "^1.5.1",
-    "@storybook/react": "^6.1.17",
     "@types/esri-leaflet": "^2.1.6",
     "@types/leaflet": "^1.7.0",
     "@types/lodash": "^4.14.168",
@@ -32,8 +30,11 @@
     "@types/react-router-dom": "^5.1.3",
     "@types/react-table": "^7.7.2",
     "@types/webpack-env": "^1.15.1",
-    "@typescript-eslint/eslint-plugin": "^3.10.1",
-    "@typescript-eslint/parser": "^3.10.1",
+    "@typescript-eslint/eslint-plugin": "^4.31.0",
+    "@typescript-eslint/parser": "^4.31.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "prettier": "^1.19.1",
     "axios": "^0.21.1",
     "clsx": "^1.1.0",
     "esri-leaflet": "3.0.1",
@@ -48,13 +49,8 @@
     "react-plotly.js": "^2.5.1",
     "react-redux": "^7.2.4",
     "react-router-dom": "^5.1.2",
-    "react-scripts": "^3.4.3",
-    "react-table": "^7.7.0",
-    "typescript": "^3.9.7"
-  },
-  "resolutions": {
-    "@storybook/react/babel-loader": "8.1.0",
-    "webpack": "4.42.0"
+    "react-scripts": "^4.0.3",
+    "typescript": "^4.4"
   },
   "scripts": {
     "start": "CI=true react-scripts start",
@@ -72,8 +68,6 @@
     "lint": "eslint './src/**/*.{ts,tsx}'",
     "lint:fix": "eslint --fix './src/**/*.{ts,tsx}'",
     "format": "prettier --write \"**/*.+(js|jsx|json|yml|yaml|css|md)\"",
-    "storybook": "start-storybook -p 6006 -s public",
-    "build-storybook": "build-storybook -s public",
     "finalizeCoverage": "node mergeCoverage.js"
   },
   "browserslist": {
@@ -91,26 +85,17 @@
   "devDependencies": {
     "@cypress/code-coverage": "^3.9.5",
     "@cypress/instrument-cra": "^1.3.2",
-    "@storybook/addon-actions": "^6.1.11",
-    "@storybook/addon-essentials": "^6.1.11",
-    "@storybook/addon-links": "^6.2.8",
-    "@storybook/node-logger": "^6.1.11",
-    "@storybook/preset-create-react-app": "^3.1.7",
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^12.0.0",
     "@types/jest": "^26.0.23",
     "cypress": "^7.6.0",
-    "eslint-config-prettier": "^6.10.0",
-    "eslint-config-react": "^1.1.7",
-    "eslint-plugin-prettier": "^3.1.2",
+    "eslint": "^7.32.0",
     "eslint-plugin-react-hooks": "^4.2.0",
-    "prettier": "^1.19.1",
     "start-server-and-test": "^1.11.4"
   },
   "jest": {
     "collectCoverageFrom": [
       "src/**/*.{ts,tsx}",
-      "!src/**/*.stories.tsx",
       "!src/**/*.d.ts",
       "!src/index.tsx",
       "!src/serviceWorker.ts",

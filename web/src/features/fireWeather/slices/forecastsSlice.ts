@@ -91,7 +91,7 @@ export const fetchForecasts = (
     const forecasts = await getNoonForecasts(stationCodes, timeOfInterest)
     dispatch(getForecastsSuccess(forecasts))
   } catch (err) {
-    dispatch(getForecastsFailed(err.toString()))
+    dispatch(getForecastsFailed((err as Error).toString()))
     logError(err)
   }
 }

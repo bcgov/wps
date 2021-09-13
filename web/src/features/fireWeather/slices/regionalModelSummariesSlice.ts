@@ -62,7 +62,7 @@ export const fetchRegionalModelSummaries = (
     const summaries = await getModelSummaries(stationCodes, 'RDPS', timeOfInterest)
     dispatch(getRegionalModelSummariesSuccess(summaries))
   } catch (err) {
-    dispatch(getRegionalModelSummariesFailed(err.toString()))
+    dispatch(getRegionalModelSummariesFailed((err as Error).toString()))
     logError(err)
   }
 }

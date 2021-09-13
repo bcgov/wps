@@ -62,7 +62,7 @@ export const fetchObservations = (
     const observations = await getObservations(stationCodes, timeOfInterest)
     dispatch(getObservationsSuccess(observations))
   } catch (err) {
-    dispatch(getObservationsFailed(err.toString()))
+    dispatch(getObservationsFailed((err as Error).toString()))
     logError(err)
   }
 }
