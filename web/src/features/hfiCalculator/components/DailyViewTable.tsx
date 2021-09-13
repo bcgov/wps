@@ -390,8 +390,8 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                                   daily,
                                   station.station_props
                                 )
-                                const rowIsSelected = stationCodeInSelected(station.code)
-                                const classNameForRow = rowIsSelected
+                                const isRowSelected = stationCodeInSelected(station.code)
+                                const classNameForRow = isRowSelected
                                   ? classes.station
                                   : classes.unselectedStation
                                 return (
@@ -446,6 +446,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                                         station.station_props
                                       )}
                                       className={classNameForRow}
+                                      selected={isRowSelected}
                                     ></GrassCureCell>
                                     <TableCell className={classNameForRow}>
                                       {daily?.ffmc?.toFixed(DECIMAL_PLACES)}
@@ -500,7 +501,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                                       testid={`${daily?.code}-intensity-group`}
                                       value={daily?.intensity_group}
                                       error={grassCureError}
-                                      selected={rowIsSelected}
+                                      selected={isRowSelected}
                                     ></IntensityGroupCell>
                                     <TableCell colSpan={2}>
                                       {/* empty cell for spacing (Fire Starts & Prev Level columns) */}

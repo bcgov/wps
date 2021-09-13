@@ -69,7 +69,6 @@ const IntensityGroupCell = (props: IntensityGroupCellProps) => {
 
   return (
     <TableCell
-      // className={formatStationIntensityGroupByValue()}
       className={`${
         !props.selected ? classes.unselectedStation : undefined
       } ${formatStationIntensityGroupByValue()}`}
