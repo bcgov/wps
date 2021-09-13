@@ -16,7 +16,11 @@ describe('Mean Intensity Group Rollup', () => {
         <Table>
           <TableBody>
             <TableRow>
-              <MeanIntensityGroupRollup area={planningArea} dailiesMap={new Map()} selectedStations={[]} />
+              <MeanIntensityGroupRollup
+                area={planningArea}
+                dailiesMap={new Map()}
+                selectedStations={[]}
+              />
             </TableRow>
           </TableBody>
         </Table>

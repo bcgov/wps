@@ -115,12 +115,17 @@ describe('IntensityGroupCell', () => {
         <Table>
           <TableBody>
             <TableRow>
-              <IntensityGroupCell testid={'not-selected'} value={1} error={false} selected={false} />
+              <IntensityGroupCell
+                testid={'not-selected'}
+                value={1}
+                error={false}
+                selected={false}
+              />
             </TableRow>
           </TableBody>
         </Table>
       </TableContainer>
     )
-    expect(getByTestId('not-selected')).toHaveStyle({color: 'rgba(0,0,0,0.87)'})
+    expect(getByTestId('not-selected')).toHaveStyle({ color: 'rgba(0,0,0,0.87)' })
   })
 })
