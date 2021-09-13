@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 
-import { PageHeader, PageTitle } from 'components'
+import { PageHeader, PageTitle, Container } from 'components'
 import DailyViewTable from 'features/hfiCalculator/components/DailyViewTable'
 import { fetchHFIStations } from '../slices/stationsSlice'
 import { fetchHFIDailies } from '../slices/hfiCalculatorSlice'
@@ -48,19 +48,21 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     <main data-testid="hfi-calculator-page">
       <PageHeader title="Predictive Services Unit" productName="HFI Calculator" />
       <PageTitle title="HFI Calculator" />
-      {loading || stationDataLoading ? (
-        <CircularProgress />
-      ) : (
-        <DailyViewTable
-          title="HFI Calculator Daily View"
-          testId="hfi-calc-daily-table"
-          fireCentres={fireCentres}
-          dailiesMap={dailiesMap}
-          currentDay={currentDay.toLocaleString()}
-          previousDay={previousDay}
-          nextDay={nextDay}
-        />
-      )}
+      <Container maxWidth={'xl'}>
+        {loading || stationDataLoading ? (
+          <CircularProgress />
+        ) : (
+          <DailyViewTable
+            title="HFI Calculator Daily View"
+            testId="hfi-calc-daily-table"
+            fireCentres={fireCentres}
+            dailiesMap={dailiesMap}
+            currentDay={currentDay.toLocaleString()}
+            previousDay={previousDay}
+            nextDay={nextDay}
+          />
+        )}
+      </Container>
     </main>
   )
 }
