@@ -133,57 +133,59 @@ const {
 
 export default cHainesModelRunsSlice.reducer
 
-export const fetchModelRuns = (
-  model_run_timestamp: string | null
-): AppThunk => async dispatch => {
-  try {
-    dispatch(getModelRunsStart())
-    const modelsRuns = await getModelRuns(model_run_timestamp)
-    dispatch(getModelRunsSuccess(modelsRuns))
-  } catch (err) {
-    dispatch(getModelRunsFailed((err as Error).toString()))
-    logError(err)
-  }
-}
-
-export const updateSelectedModel = (
-  selected_model: string
-): AppThunk => async dispatch => {
-  dispatch(setSelectedModel(selected_model))
-}
-export const updateSelectedModelRun = (
-  selected_model_run_timestamp: string
-): AppThunk => async dispatch => {
-  dispatch(setSelectedModelRun(selected_model_run_timestamp))
-}
-
-export const updateSelectedPrediction = (
-  selected_prediction_timestamp: string
-): AppThunk => async dispatch => {
-  dispatch(setSelectedPrediction(selected_prediction_timestamp))
-}
-
-export const fetchCHainesGeoJSON = (
-  model_abbreviation: string,
-  model_run_timestamp: string,
-  prediction_timestamp: string
-): AppThunk => async dispatch => {
-  try {
-    dispatch(getPredictionStart())
-    const geoJSON = await getCHainesGeoJSON(
-      model_abbreviation,
-      model_run_timestamp,
-      prediction_timestamp
-    )
-    const result = {
-      model: model_abbreviation,
-      model_run_timestamp: model_run_timestamp,
-      prediction_timestamp: prediction_timestamp,
-      result: geoJSON
+export const fetchModelRuns =
+  (model_run_timestamp: string | null): AppThunk =>
+  async dispatch => {
+    try {
+      dispatch(getModelRunsStart())
+      const modelsRuns = await getModelRuns(model_run_timestamp)
+      dispatch(getModelRunsSuccess(modelsRuns))
+    } catch (err) {
+      dispatch(getModelRunsFailed((err as Error).toString()))
+      logError(err)
     }
-    dispatch(getPredictionSuccess(result))
-  } catch (err) {
-    dispatch(getPredictionFailed((err as Error).toString()))
-    logError(err)
   }
-}
+
+export const updateSelectedModel =
+  (selected_model: string): AppThunk =>
+  async dispatch => {
+    dispatch(setSelectedModel(selected_model))
+  }
+export const updateSelectedModelRun =
+  (selected_model_run_timestamp: string): AppThunk =>
+  async dispatch => {
+    dispatch(setSelectedModelRun(selected_model_run_timestamp))
+  }
+
+export const updateSelectedPrediction =
+  (selected_prediction_timestamp: string): AppThunk =>
+  async dispatch => {
+    dispatch(setSelectedPrediction(selected_prediction_timestamp))
+  }
+
+export const fetchCHainesGeoJSON =
+  (
+    model_abbreviation: string,
+    model_run_timestamp: string,
+    prediction_timestamp: string
+  ): AppThunk =>
+  async dispatch => {
+    try {
+      dispatch(getPredictionStart())
+      const geoJSON = await getCHainesGeoJSON(
+        model_abbreviation,
+        model_run_timestamp,
+        prediction_timestamp
+      )
+      const result = {
+        model: model_abbreviation,
+        model_run_timestamp: model_run_timestamp,
+        prediction_timestamp: prediction_timestamp,
+        result: geoJSON
+      }
+      dispatch(getPredictionSuccess(result))
+    } catch (err) {
+      dispatch(getPredictionFailed((err as Error).toString()))
+      logError(err)
+    }
+  }
