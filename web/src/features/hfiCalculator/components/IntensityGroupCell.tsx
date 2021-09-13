@@ -6,6 +6,7 @@ export interface IntensityGroupCellProps {
   testid: string | undefined
   value: number | undefined
   error: boolean
+  selected: boolean
 }
 
 const useStyles = makeStyles({
@@ -38,6 +39,9 @@ const useStyles = makeStyles({
     borderColor: intensityGroupColours.red,
     borderRadius: '4px',
     textAlign: 'center'
+  },
+  unselectedStation: {
+    color: 'rgba(0,0,0,0.54)'
   }
 })
 
@@ -65,7 +69,10 @@ const IntensityGroupCell = (props: IntensityGroupCellProps) => {
 
   return (
     <TableCell
-      className={formatStationIntensityGroupByValue()}
+      // className={formatStationIntensityGroupByValue()}
+      className={`${
+        !props.selected ? classes.unselectedStation : undefined
+      } ${formatStationIntensityGroupByValue()}`}
       data-testid={props.testid}
     >
       {props.error ? '' : props.value}

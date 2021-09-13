@@ -61,7 +61,7 @@ const errorIconTheme = createTheme({
 })
 
 const toolTipFirstLine = 'Grass Cure % not defined in WFWX for one or more stations.'
-const toolTipSecondLine = 'Cannot calculate Mean FIG.'
+const toolTipSecondLine = ' Cannot calculate Mean FIG.'
 const toolTipElement = (
   <div>
     {toolTipFirstLine}
@@ -72,11 +72,13 @@ const toolTipElement = (
 const MeanIntensityGroupRollup = (props: MeanIntensityGroupRollupProps) => {
   const classes = useStyles()
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const stationsWithDaily = Object.entries(props.area.stations).map(([_, station]) => ({
-    station,
-    daily: props.dailiesMap.get(station.code)
-  }))
+  const stationsWithDaily = Object.entries(props.area.stations)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    .map(([_, station]) => ({
+      station,
+      daily: props.dailiesMap.get(station.code)
+    }))
+    .filter(record => props.selectedStations.includes(record.station.code))
   const noDailyData = stationsWithDaily.every(stationDaily =>
     isUndefined(stationDaily.daily)
   )
@@ -86,7 +88,11 @@ const MeanIntensityGroupRollup = (props: MeanIntensityGroupRollupProps) => {
     )
   }, false)
 
-  const meanIntensityGroup = calculateMeanIntensityGroup(props.area, props.dailiesMap, props.selectedStations)
+  const meanIntensityGroup = calculateMeanIntensityGroup(
+    props.area,
+    props.dailiesMap,
+    props.selectedStations
+  )
   const formatAreaMeanIntensityGroupByValue = () => {
     if (meanIntensityGroup === undefined) {
       return undefined

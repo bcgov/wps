@@ -178,8 +178,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
     if (stationCodeInSelected(code)) {
       // remove station from selected
       selectedSet.delete(code)
-    }
-    else {
+    } else {
       // add station to selected
       selectedSet.add(code)
     }
@@ -241,6 +240,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
           <Table stickyHeader aria-label="daily table view of HFI by planning area">
             <TableHead>
               <TableRow>
+                <TableCell></TableCell>
                 <TableCell key="header-location">Location</TableCell>
                 <TableCell key="header-elevation">
                   Elev.
@@ -360,7 +360,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                               key={`zone-${areaName}`}
                               data-testid={`zone-${areaName}`}
                             >
-                              <TableCell className={classes.planningArea} colSpan={21}>
+                              <TableCell className={classes.planningArea} colSpan={22}>
                                 {area.name}
                               </TableCell>
                               <MeanIntensityGroupRollup
@@ -390,7 +390,10 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                                   daily,
                                   station.station_props
                                 )
-                                const classNameForRow = stationCodeInSelected(station.code) ? classes.station : classes.unselectedStation
+                                const rowIsSelected = stationCodeInSelected(station.code)
+                                const classNameForRow = rowIsSelected
+                                  ? classes.station
+                                  : classes.unselectedStation
                                 return (
                                   <TableRow
                                     className={classNameForRow}
@@ -401,24 +404,42 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                                       onClick={() => toggleSelectedStation(station.code)}
                                       data-testid={`select-station-${station.code}`}
                                     ></Checkbox>
-                                    <TableCell key={`station-${station.code}-name`}
-                                    className={classNameForRow}>
+                                    <TableCell
+                                      key={`station-${station.code}-name`}
+                                      className={classNameForRow}
+                                    >
                                       {station.station_props.name} ({station.code})
                                     </TableCell>
-                                    <TableCell key={`station-${station.code}-elevation`} className={classNameForRow}>
+                                    <TableCell
+                                      key={`station-${station.code}-elevation`}
+                                      className={classNameForRow}
+                                    >
                                       {station.station_props.elevation}
                                     </TableCell>
-                                    <TableCell key={`station-${station.code}-fuel-type`} className={classNameForRow}>
+                                    <TableCell
+                                      key={`station-${station.code}-fuel-type`}
+                                      className={classNameForRow}
+                                    >
                                       {station.station_props.fuel_type.abbrev}
                                     </TableCell>
-                                    <TableCell className={classNameForRow}>{daily?.status}</TableCell>
-                                    <TableCell className={classNameForRow}>{daily?.temperature}</TableCell>
-                                    <TableCell className={classNameForRow}>{daily?.relative_humidity}</TableCell>
+                                    <TableCell className={classNameForRow}>
+                                      {daily?.status}
+                                    </TableCell>
+                                    <TableCell className={classNameForRow}>
+                                      {daily?.temperature}
+                                    </TableCell>
+                                    <TableCell className={classNameForRow}>
+                                      {daily?.relative_humidity}
+                                    </TableCell>
                                     <TableCell className={classNameForRow}>
                                       {daily?.wind_direction?.toFixed(0).padStart(3, '0')}
                                     </TableCell>
-                                    <TableCell className={classNameForRow}>{daily?.wind_speed}</TableCell>
-                                    <TableCell className={classNameForRow}>{daily?.precipitation}</TableCell>
+                                    <TableCell className={classNameForRow}>
+                                      {daily?.wind_speed}
+                                    </TableCell>
+                                    <TableCell className={classNameForRow}>
+                                      {daily?.precipitation}
+                                    </TableCell>
                                     <GrassCureCell
                                       value={daily?.grass_cure_percentage}
                                       isGrassFuelType={isGrassFuelType(
@@ -444,7 +465,9 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                                     <TableCell className={classNameForRow}>
                                       {daily?.ffmc?.toFixed(DECIMAL_PLACES)}
                                     </TableCell>
-                                    <TableCell className={classNameForRow}>{daily?.danger_class}</TableCell>
+                                    <TableCell className={classNameForRow}>
+                                      {daily?.danger_class}
+                                    </TableCell>
                                     <CalculatedCell
                                       testid={`${daily?.code}-ros`}
                                       value={daily?.rate_of_spread?.toFixed(
@@ -477,6 +500,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                                       testid={`${daily?.code}-intensity-group`}
                                       value={daily?.intensity_group}
                                       error={grassCureError}
+                                      selected={rowIsSelected}
                                     ></IntensityGroupCell>
                                     <TableCell colSpan={2}>
                                       {/* empty cell for spacing (Fire Starts & Prev Level columns) */}
