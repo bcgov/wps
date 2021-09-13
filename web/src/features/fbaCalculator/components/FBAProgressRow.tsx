@@ -1,5 +1,5 @@
 import {
-  createMuiTheme,
+  createTheme,
   LinearProgress,
   TableCell,
   TableRow,
@@ -15,7 +15,7 @@ interface FBAProgressRowProps {
 }
 
 const FBAProgressRow = (props: FBAProgressRowProps) => {
-  const adjustedTheme = createMuiTheme({
+  const adjustedTheme = createTheme({
     overrides: {
       MuiTableRow: {
         root: {

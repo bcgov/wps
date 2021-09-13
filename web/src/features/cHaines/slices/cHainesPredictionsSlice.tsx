@@ -41,35 +41,34 @@ const cHainesPredictionsSlice = createSlice({
   }
 })
 
-const {
-  getPredictionStart,
-  getPredictionSuccess,
-  getPredictionFailed
-} = cHainesPredictionsSlice.actions
+const { getPredictionStart, getPredictionSuccess, getPredictionFailed } =
+  cHainesPredictionsSlice.actions
 
 export default cHainesPredictionsSlice.reducer
 
-export const fetchCHainesGeoJSON = (
-  model_abbreviation: string,
-  model_run_timestamp: string,
-  prediction_timestamp: string
-): AppThunk => async dispatch => {
-  try {
-    dispatch(getPredictionStart())
-    const geoJSON = await getCHainesGeoJSON(
-      model_abbreviation,
-      model_run_timestamp,
-      prediction_timestamp
-    )
-    const result = {
-      model: model_abbreviation,
-      model_run_timestamp: model_run_timestamp,
-      prediction_timestamp: prediction_timestamp,
-      result: geoJSON
+export const fetchCHainesGeoJSON =
+  (
+    model_abbreviation: string,
+    model_run_timestamp: string,
+    prediction_timestamp: string
+  ): AppThunk =>
+  async dispatch => {
+    try {
+      dispatch(getPredictionStart())
+      const geoJSON = await getCHainesGeoJSON(
+        model_abbreviation,
+        model_run_timestamp,
+        prediction_timestamp
+      )
+      const result = {
+        model: model_abbreviation,
+        model_run_timestamp: model_run_timestamp,
+        prediction_timestamp: prediction_timestamp,
+        result: geoJSON
+      }
+      dispatch(getPredictionSuccess(result))
+    } catch (err) {
+      dispatch(getPredictionFailed((err as Error).toString()))
+      logError(err)
     }
-    dispatch(getPredictionSuccess(result))
-  } catch (err) {
-    dispatch(getPredictionFailed((err as Error).toString()))
-    logError(err)
   }
-}
