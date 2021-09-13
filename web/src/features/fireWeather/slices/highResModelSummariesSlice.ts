@@ -53,16 +53,15 @@ export const {
 
 export default highResModelSummariesSlice.reducer
 
-export const fetchHighResModelSummaries = (
-  stationCodes: number[],
-  timeOfInterest: string
-): AppThunk => async dispatch => {
-  try {
-    dispatch(getHighResModelSummariesStart())
-    const summaries = await getModelSummaries(stationCodes, 'HRDPS', timeOfInterest)
-    dispatch(getHighResModelSummariesSuccess(summaries))
-  } catch (err) {
-    dispatch(getHighResModelSummariesFailed((err as Error).toString()))
-    logError(err)
+export const fetchHighResModelSummaries =
+  (stationCodes: number[], timeOfInterest: string): AppThunk =>
+  async dispatch => {
+    try {
+      dispatch(getHighResModelSummariesStart())
+      const summaries = await getModelSummaries(stationCodes, 'HRDPS', timeOfInterest)
+      dispatch(getHighResModelSummariesSuccess(summaries))
+    } catch (err) {
+      dispatch(getHighResModelSummariesFailed((err as Error).toString()))
+      logError(err)
+    }
   }
-}

@@ -236,7 +236,7 @@ const CHainesPage = () => {
 
     // Create and add the legend.
     const customControl = L.Control.extend({
-      onAdd: function() {
+      onAdd: function () {
         const html = (
           <div>
             <div className={classes.legend}>
@@ -259,7 +259,7 @@ const CHainesPage = () => {
         return div
       },
 
-      onRemove: function() {
+      onRemove: function () {
         //
       }
     })
@@ -287,7 +287,7 @@ const CHainesPage = () => {
         )
       ) {
         const customControl = L.Control.extend({
-          onAdd: function() {
+          onAdd: function () {
             const html = (
               <div className={classes.label}>
                 <div>
@@ -306,7 +306,7 @@ const CHainesPage = () => {
             return div
           },
 
-          onRemove: function() {
+          onRemove: function () {
             //
           }
         })
@@ -325,7 +325,7 @@ const CHainesPage = () => {
         }
       } else {
         const customControl = L.Control.extend({
-          onAdd: function() {
+          onAdd: function () {
             const html = (
               <div className={classes.loading}>
                 <div>LOADING: {selected_prediction_timestamp} (UTC)</div>
@@ -337,7 +337,7 @@ const CHainesPage = () => {
             return div
           },
 
-          onRemove: function() {
+          onRemove: function () {
             //
           }
         })
