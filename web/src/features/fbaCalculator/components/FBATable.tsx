@@ -38,6 +38,7 @@ import assert from 'assert'
 import { rowShouldUpdate, isWindSpeedInvalid } from 'features/fbaCalculator/validation'
 import TextDisplayCell from 'features/fbaCalculator/components/TextDisplayCell'
 import FixedDecimalNumberCell from 'features/fbaCalculator/components/FixedDecimalNumberCell'
+import HFICell from 'features/fbaCalculator/components/HFICell'
 import CrownFractionBurnedCell from 'features/fbaCalculator/components/CrownFractionBurnedCell'
 import CriticalHoursCell from 'features/fbaCalculator/components/CriticalHoursCell'
 import StatusCell from 'features/fbaCalculator/components/StatusCell'
@@ -136,9 +137,11 @@ const FBATable = (props: FBAInputGridProps) => {
   const [order, setOrder] = useState<Order>('desc')
   const [rows, setRows] = useState<FBATableRow[]>([])
   const { stations, error: stationsError } = useSelector(selectFireWeatherStations)
-  const { fireBehaviourResultStations, loading, error: fbaResultsError } = useSelector(
-    selectFireBehaviourCalcResult
-  )
+  const {
+    fireBehaviourResultStations,
+    loading,
+    error: fbaResultsError
+  } = useSelector(selectFireBehaviourCalcResult)
   const [calculatedResults, setCalculatedResults] = useState<FBAStation[]>(
     fireBehaviourResultStations
   )
@@ -595,9 +598,7 @@ const FBATable = (props: FBAInputGridProps) => {
                             rowUpdating={rowIdsToUpdate.has(row.id)}
                             initialLoad={initialLoad}
                           >
-                            <FixedDecimalNumberCell
-                              value={row.head_fire_intensity}
-                            ></FixedDecimalNumberCell>
+                            <HFICell value={row.head_fire_intensity}></HFICell>
                           </LoadingIndicatorCell>
                           <LoadingIndicatorCell
                             loading={loading}
