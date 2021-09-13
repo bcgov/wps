@@ -240,7 +240,9 @@ export const DailyViewTable = (props: Props): JSX.Element => {
           <Table stickyHeader aria-label="daily table view of HFI by planning area">
             <TableHead>
               <TableRow>
-                <TableCell></TableCell>
+                <TableCell>
+                  {/* empty cell inserted for spacing purposes (aligns with checkboxes column) */}
+                </TableCell>
                 <TableCell key="header-location">Location</TableCell>
                 <TableCell key="header-elevation">
                   Elev.

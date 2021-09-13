@@ -1,6 +1,5 @@
 import { makeStyles, TableCell } from '@material-ui/core'
 import { intensityGroupColours } from 'features/hfiCalculator/components/meanIntensity'
-import { isUndefined } from 'lodash'
 import React from 'react'
 
 export interface IntensityGroupCellProps {
@@ -75,7 +74,7 @@ const IntensityGroupCell = (props: IntensityGroupCellProps) => {
   return (
     <TableCell
       className={`${
-        !props.selected && !isUndefined(props.value)
+        !props.selected && !props.error
           ? classes.unselectedStation
           : formatStationIntensityGroupByValue()
       }`}

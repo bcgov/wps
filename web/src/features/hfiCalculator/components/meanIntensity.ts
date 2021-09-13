@@ -6,10 +6,9 @@ export const calculateMeanIntensityGroup = (
   dailiesMap: Map<number, StationDaily>,
   selected: number[]
 ): number | undefined => {
-  const stationCodesInPlanningArea: number[] = []
-  Object.entries(area.stations).forEach(([, station]) => {
-    stationCodesInPlanningArea.push(station.code)
-  })
+  const stationCodesInPlanningArea: number[] = Object.entries(area.stations).map(
+    ([, station]) => station.code
+  )
   const stationIntensityGroups: number[] = []
   for (const code of stationCodesInPlanningArea) {
     if (selected.includes(code)) {
