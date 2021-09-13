@@ -60,16 +60,15 @@ export const { getModelsStart, getModelsFailed, getModelsSuccess } = modelsSlice
 
 export default modelsSlice.reducer
 
-export const fetchGlobalModelsWithBiasAdj = (
-  codes: number[],
-  timeOfInterest: string
-): AppThunk => async dispatch => {
-  try {
-    dispatch(getModelsStart())
-    const modelsForStations = await getModelsWithBiasAdj(codes, 'GDPS', timeOfInterest)
-    dispatch(getModelsSuccess(modelsForStations))
-  } catch (err) {
-    dispatch(getModelsFailed((err as Error).toString()))
-    logError(err)
+export const fetchGlobalModelsWithBiasAdj =
+  (codes: number[], timeOfInterest: string): AppThunk =>
+  async dispatch => {
+    try {
+      dispatch(getModelsStart())
+      const modelsForStations = await getModelsWithBiasAdj(codes, 'GDPS', timeOfInterest)
+      dispatch(getModelsSuccess(modelsForStations))
+    } catch (err) {
+      dispatch(getModelsFailed((err as Error).toString()))
+      logError(err)
+    }
   }
-}

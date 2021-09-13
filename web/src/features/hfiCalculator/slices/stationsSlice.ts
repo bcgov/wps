@@ -40,11 +40,8 @@ const stationsSlice = createSlice({
   }
 })
 
-export const {
-  getHFIStationsStart,
-  getHFIStationsFailed,
-  getHFIStationsSuccess
-} = stationsSlice.actions
+export const { getHFIStationsStart, getHFIStationsFailed, getHFIStationsSuccess } =
+  stationsSlice.actions
 
 export default stationsSlice.reducer
 
