@@ -114,11 +114,6 @@ const useStyles = makeStyles(theme => ({
     height: '40px',
     paddingLeft: '8px',
     paddingRight: '8px'
-  },
-  stickyProgress: {
-    left: 0,
-    position: 'sticky',
-    zIndex: theme.zIndex.appBar + 2
   }
 }))
 
