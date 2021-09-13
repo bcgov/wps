@@ -149,7 +149,10 @@ export const DailyViewTable = (props: Props): JSX.Element => {
           Next
         </Button>
       </div>
-      <FireTable ariaLabel="daily table view of HFI by planning area">
+      <FireTable
+        ariaLabel="daily table view of HFI by planning area"
+        testId="hfi-calc-daily-table"
+      >
         <TableHead>
           <TableRow>
             <TableCell key="header-location">Location</TableCell>
