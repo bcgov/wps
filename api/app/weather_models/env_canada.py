@@ -732,7 +732,7 @@ def apply_data_retention_policy():
         # The easiest target, is the 4 points surrounding a weather station, once it's interpolated
         # and used for machine learning - it's no longer of use.
         # It would be great to keep it forever. we could go back and use historic data to improve
-        # macine learning, but unfortunately takes a lot of space.
+        # machine learning, but unfortunately takes a lot of space.
         # Currently we're using 19 days of data for machine learning, so
         # keeping 21 days (3 weeks) of historic data is sufficient.
         oldest_to_keep = time_utils.get_utc_now() - datetime.timedelta(days=21)
