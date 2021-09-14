@@ -45,24 +45,20 @@ const observationsSlice = createSlice({
   }
 })
 
-export const {
-  getObservationsStart,
-  getObservationsFailed,
-  getObservationsSuccess
-} = observationsSlice.actions
+export const { getObservationsStart, getObservationsFailed, getObservationsSuccess } =
+  observationsSlice.actions
 
 export default observationsSlice.reducer
 
-export const fetchObservations = (
-  stationCodes: number[],
-  timeOfInterest: string
-): AppThunk => async dispatch => {
-  try {
-    dispatch(getObservationsStart())
-    const observations = await getObservations(stationCodes, timeOfInterest)
-    dispatch(getObservationsSuccess(observations))
-  } catch (err) {
-    dispatch(getObservationsFailed(err.toString()))
-    logError(err)
+export const fetchObservations =
+  (stationCodes: number[], timeOfInterest: string): AppThunk =>
+  async dispatch => {
+    try {
+      dispatch(getObservationsStart())
+      const observations = await getObservations(stationCodes, timeOfInterest)
+      dispatch(getObservationsSuccess(observations))
+    } catch (err) {
+      dispatch(getObservationsFailed((err as Error).toString()))
+      logError(err)
+    }
   }
-}

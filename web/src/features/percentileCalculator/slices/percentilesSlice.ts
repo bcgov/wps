@@ -50,17 +50,15 @@ export const {
 
 export default percentiles.reducer
 
-export const fetchPercentiles = (
-  stationCodes: number[],
-  percentile: number,
-  yearRange: YearRange
-): AppThunk => async dispatch => {
-  try {
-    dispatch(getPercentilesStart())
-    const result = await getPercentiles(stationCodes, percentile, yearRange)
-    dispatch(getPercentilesSuccess(result))
-  } catch (err) {
-    dispatch(getPercentilesFailed(err.toString()))
-    logError(err)
+export const fetchPercentiles =
+  (stationCodes: number[], percentile: number, yearRange: YearRange): AppThunk =>
+  async dispatch => {
+    try {
+      dispatch(getPercentilesStart())
+      const result = await getPercentiles(stationCodes, percentile, yearRange)
+      dispatch(getPercentilesSuccess(result))
+    } catch (err) {
+      dispatch(getPercentilesFailed((err as Error).toString()))
+      logError(err)
+    }
   }
-}

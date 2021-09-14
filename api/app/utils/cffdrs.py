@@ -2,6 +2,7 @@
 """
 import logging
 import math
+from typing import Optional
 import rpy2.robjects as robjs
 from rpy2.robjects import DataFrame
 import rpy2.robjects.conversion as cv
@@ -54,13 +55,47 @@ def correct_wind_azimuth(wind_direction: float):
     return waz
 
 
+def calculate_wind_speed(fuel_type: FuelTypeEnum,  # pylint: disable=too-many-arguments, disable=invalid-name
+                         ffmc: float,
+                         bui: float,
+                         ws: float,
+                         fmc: float,
+                         sfc: float,
+                         pc: float,
+                         cc: float,
+                         pdf: float,
+                         cbh: float,
+                         isi: float):
+    """
+     Wind azimuth, slope azimuth, ground slope, net effective windspeed
+    """
+    wind_azimuth = correct_wind_azimuth(ws)
+    slope_azimuth = None  # a.k.a. SAZ
+    ground_slope = 0  # right now we're not taking slope into account
+    wsv = calculate_net_effective_windspeed(fuel_type=fuel_type,
+                                            ffmc=ffmc,
+                                            bui=bui,
+                                            ws=ws,
+                                            waz=wind_azimuth,
+                                            gs=ground_slope,
+                                            saz=slope_azimuth,
+                                            fmc=fmc,
+                                            sfc=sfc,
+                                            pc=pc,
+                                            cc=cc,
+                                            pdf=pdf,
+                                            cbh=cbh,
+                                            isi=isi)
+    return wsv
+
+
 def calculate_net_effective_windspeed(fuel_type: FuelTypeEnum,  # pylint: disable=too-many-arguments, disable=invalid-name
                                       ffmc: float,
                                       bui: float,
                                       ws: float,
                                       waz: float,
                                       gs: float,
-                                      saz: float,
+                                      saz: Optional[float],
                                       fmc: float,
                                       sfc: float,
                                       pc: float,

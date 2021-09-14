@@ -4,6 +4,7 @@
             "name": "Kamloops Fire Centre",
             "planning_areas": [
                 {
+                    "id": 1,
                     "name": "Lillooet (K7)",
                     "stations": [
                         {
@@ -69,6 +70,7 @@
                     ]
                 },
                 {
+                    "id": 2, 
                     "name": "Merritt (K6)",
                     "stations": [
                         {
@@ -98,6 +100,7 @@
                     ]
                 },
                 {
+                    "id": 3,
                     "name": "Penticton (K5)",
                     "stations": [
                         {
@@ -127,6 +130,7 @@
                     ]
                 },
                 {
+                    "id": 4,
                     "name": "Vernon (K4)",
                     "stations": [
                         {
@@ -192,6 +196,7 @@
                     ]
                 },
                 {
+                    "id": 5,
                     "name": "Kamloops (K2)",
                     "stations": [
                         {

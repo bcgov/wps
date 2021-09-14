@@ -1,5 +1,21 @@
 import React from 'react'
 import { makeStyles } from '@material-ui/core/styles'
+import { AccuracyWeatherVariableEnum } from 'features/fireWeather/components/AccuracyVariablePicker'
+import {
+  darkGreenColor,
+  middleGreenColor,
+  lightGreenColor,
+  neutralColor,
+  yellowColor,
+  middleOrangeColor,
+  darkOrangeColor,
+  darkRedColor,
+  mediumRedColor,
+  pinkColor,
+  lightBlueColor,
+  mediumBlueColor,
+  darkBlueColor
+} from 'features/fireWeather/components/maps/stationAccuracy'
 
 const useStyles = makeStyles({
   root: {
@@ -10,31 +26,30 @@ const useStyles = makeStyles({
   },
   title: {
     height: '20px',
-    width: '150px',
+    width: '260px',
     color: 'white',
-    textAlign: 'center',
-    marginLeft: '40px'
+    textAlign: 'center'
   },
   leftLabel: {
     height: '15px',
     width: '80px',
     fontSize: '10px',
     color: 'white',
-    marginLeft: '4px'
+    justifyContent: 'flex-start'
   },
   label: {
     height: '15px',
     width: '105px',
     fontSize: '10px',
     color: 'white',
-    marginLeft: '4px'
+    justifyContent: 'center'
   },
   rightLabel: {
     height: '15px',
     width: '20px',
     fontSize: '10px',
     color: 'white',
-    marginLeft: '4px'
+    justifyContent: 'flex-end'
   },
   rowContainer: {
     display: 'flex',
@@ -44,82 +59,164 @@ const useStyles = makeStyles({
       marginRight: 0
     }
   },
-  green: {
-    backgroundColor: '#07A059',
-    borderTop: '2px solid #FFFFFF',
-    borderLeft: '2px solid #FFFFFF',
-    borderBottom: '2px solid #FFFFFF',
+  labelContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    width: '260px',
+    'div:nth-child(3n)': {
+      marginRight: 0
+    },
+    justifyContent: 'space-evenly'
+  },
+  darkGreen: {
+    backgroundColor: darkGreenColor,
+    borderTop: '2px solid white',
+    borderLeft: '2px solid white',
+    borderBottom: '2px solid white',
     borderRadius: '2px 0px 0px 2px',
     height: 27,
     width: 32
   },
-  lightGreen: {
-    backgroundColor: '#3BAC48',
-    borderTop: '2px solid #FFFFFF',
-    borderBottom: '2px solid #FFFFFF',
+  middleGreen: {
+    backgroundColor: middleGreenColor,
+    borderTop: '2px solid white',
+    borderBottom: '2px solid white',
     height: 27,
     width: 32
   },
-  lightestGreen: {
-    backgroundColor: '#82C064',
-    borderTop: '2px solid #FFFFFF',
-    borderBottom: '2px solid #FFFFFF',
+  lightGreen: {
+    backgroundColor: lightGreenColor,
+    borderTop: '2px solid white',
+    borderBottom: '2px solid white',
     height: 27,
     width: 32
   },
   neutral: {
-    backgroundColor: '#DFDEDB',
-    borderTop: '2px solid #FFFFFF',
-    borderBottom: '2px solid #FFFFFF',
+    backgroundColor: neutralColor,
+    borderTop: '2px solid white',
+    borderBottom: '2px solid white',
     height: 27,
-    width: 32
+    width: 64
   },
   lightestOrange: {
-    backgroundColor: '#FCCE89',
-    borderTop: '2px solid #FFFFFF',
-    borderBottom: '2px solid #FFFFFF',
+    backgroundColor: yellowColor,
+    borderTop: '2px solid white',
+    borderBottom: '2px solid white',
     height: 27,
     width: 32
   },
-  lightOrange: {
-    backgroundColor: '#F4A036',
-    borderTop: '2px solid #FFFFFF',
-    borderBottom: '2px solid #FFFFFF',
+  middleOrange: {
+    backgroundColor: middleOrangeColor,
+    borderTop: '2px solid white',
+    borderBottom: '2px solid white',
     height: 27,
     width: 32
   },
-  orange: {
-    backgroundColor: '#ED8001',
-    borderTop: '2px solid #FFFFFF',
-    borderRight: '2px solid #FFFFFF',
-    borderBottom: '2px solid #FFFFFF',
+  darkOrange: {
+    backgroundColor: darkOrangeColor,
+    borderTop: '2px solid white',
+    borderRight: '2px solid white',
+    borderBottom: '2px solid white',
+    borderRadius: '0px 2px 2px 0px',
+    height: 27,
+    width: 32
+  },
+  darkestRed: {
+    backgroundColor: darkRedColor,
+    borderTop: '2px solid white',
+    borderLeft: '2px solid white',
+    borderBottom: '2px solid white',
+    borderRadius: '2px 0px 0px 2px',
+    height: 27,
+    width: 32
+  },
+  mediumRed: {
+    backgroundColor: mediumRedColor,
+    borderTop: '2px solid white',
+    borderBottom: '2px solid white',
+    height: 27,
+    width: 32
+  },
+  lightRed: {
+    backgroundColor: pinkColor,
+    borderTop: '2px solid white',
+    borderBottom: '2px solid white',
+    height: 27,
+    width: 32
+  },
+  lightBlue: {
+    backgroundColor: lightBlueColor,
+    borderTop: '2px solid white',
+    borderBottom: '2px solid white',
+    height: 27,
+    width: 32
+  },
+  mediumBlue: {
+    backgroundColor: mediumBlueColor,
+    borderTop: '2px solid white',
+    borderBottom: '2px solid white',
+    height: 27,
+    width: 32
+  },
+  darkBlue: {
+    backgroundColor: darkBlueColor,
+    borderTop: '2px solid white',
+    borderRight: '2px solid white',
+    borderBottom: '2px solid white',
     borderRadius: '0px 2px 2px 0px',
     height: 27,
     width: 32
   }
 })
 
-const AccuracyColorLegend = () => {
+interface Props {
+  selectedWxVariable: AccuracyWeatherVariableEnum
+}
+
+const AccuracyColorLegend = (props: Props) => {
   const classes = useStyles()
-  return (
-    <div className={classes.root}>
-      <div className={classes.title}>Observed RH</div>
-      <div className={classes.rowContainer}>
-        <div className={classes.green}></div>
-        <div className={classes.lightGreen}></div>
-        <div className={classes.lightestGreen}></div>
-        <div className={classes.neutral}></div>
-        <div className={classes.lightestOrange}></div>
-        <div className={classes.lightOrange}></div>
-        <div className={classes.orange}></div>
+  if (props.selectedWxVariable === AccuracyWeatherVariableEnum['Relative Humidity']) {
+    return (
+      <div className={classes.root}>
+        <div className={classes.title}>Observed RH</div>
+        <div className={classes.rowContainer}>
+          <div className={classes.darkGreen}></div>
+          <div className={classes.middleGreen}></div>
+          <div className={classes.lightGreen}></div>
+          <div className={classes.neutral}></div>
+          <div className={classes.lightestOrange}></div>
+          <div className={classes.middleOrange}></div>
+          <div className={classes.darkOrange}></div>
+        </div>
+        <div className={classes.labelContainer}>
+          <div className={classes.leftLabel}>+12%</div>
+          <div className={classes.label}>+/-3%</div>
+          <div className={classes.rightLabel}>-12%</div>
+        </div>
       </div>
-      <div className={classes.rowContainer}>
-        <div className={classes.leftLabel}>Higher</div>
-        <div className={classes.label}>Forecasted</div>
-        <div className={classes.rightLabel}>Drier</div>
+    )
+  } else {
+    // assume Temperature has been selected
+    return (
+      <div className={classes.root}>
+        <div className={classes.title}>Observed Temperature</div>
+        <div className={classes.rowContainer}>
+          <div className={classes.darkestRed}></div>
+          <div className={classes.mediumRed}></div>
+          <div className={classes.lightRed}></div>
+          <div className={classes.neutral}></div>
+          <div className={classes.lightBlue}></div>
+          <div className={classes.mediumBlue}></div>
+          <div className={classes.darkBlue}></div>
+        </div>
+        <div className={classes.labelContainer}>
+          <div className={classes.leftLabel}>+8&deg;C</div>
+          <div className={classes.label}>+/-2&deg;C</div>
+          <div className={classes.rightLabel}>-8&deg;C</div>
+        </div>
       </div>
-    </div>
-  )
+    )
+  }
 }
 
 export default React.memo(AccuracyColorLegend)
