@@ -98,6 +98,9 @@ const useStyles = makeStyles({
     flexDirection: 'row',
     alignItems: 'baseline'
   },
+  intensityGroup: {
+    width: '45px'
+  },
   intensityGroupSolid1: {
     background: intensityGroupColours.lightGreen,
     fontWeight: 'bold',
@@ -320,7 +323,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                   <br />
                   Type
                 </TableCell>
-                <TableCell>
+                <TableCell className={classes.intensityGroup}>
                   M /
                   <br />
                   FIG

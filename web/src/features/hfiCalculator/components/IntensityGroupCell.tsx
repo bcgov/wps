@@ -74,7 +74,7 @@ const IntensityGroupCell = (props: IntensityGroupCellProps) => {
   return (
     <TableCell
       className={`${
-        !props.selected && !props.error
+        !props.selected && !props.error && props.value
           ? classes.unselectedStation
           : formatStationIntensityGroupByValue()
       }`}
