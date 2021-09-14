@@ -412,9 +412,15 @@ const FBATable = (props: FBAInputGridProps) => {
                   setSelected={setSelected}
                   loading={loading}
                 />
-                {rows.length === 0 ? null : (
-                  <TableBody data-testid="fba-table-body">
-                    {rows.map(row => {
+                <TableBody data-testid="fba-table-body">
+                  {rows.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={30}>
+                        <FBATableInstructions />
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    rows.map(row => {
                       return (
                         !isUndefined(row) && (
                           <TableRow key={row.id}>
@@ -683,11 +689,10 @@ const FBATable = (props: FBAInputGridProps) => {
                           </TableRow>
                         )
                       )
-                    })}
-                  </TableBody>
-                )}
+                    })
+                  )}
+                </TableBody>
               </Table>
-              {rows.length === 0 ? <FBATableInstructions /> : null}
             </TableContainer>
           </Paper>
         </div>
