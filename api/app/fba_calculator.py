@@ -262,6 +262,8 @@ def get_fire_size(fuel_type: FuelTypeEnum, ros: float, bros: float, ellapsed_min
     Fire size based on Eq. 8 (Alexander, M.E. 1985. Estimating the length-to-breadth ratio of elliptical
     forest fire patterns.).
     """
+    if fuel_type is None or ros is None or bros is None or lb_ratio is None:
+        raise cffdrs.CFFDRSException()
     # Using acceleration:
     fire_spread_distance = cffdrs.fire_distance(fuel_type, ros+bros, ellapsed_minutes, cfb)
     length_to_breadth_at_time = cffdrs.length_to_breadth_ratio_t(fuel_type, lb_ratio, ellapsed_minutes, cfb)

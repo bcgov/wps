@@ -3,6 +3,7 @@
 import math
 import logging
 from datetime import datetime, timezone
+from os import stat
 from typing import Generator, List, Optional
 from app.db.models.observations import HourlyActual
 from app.schemas.fba_calc import FuelTypeEnum
@@ -164,16 +165,24 @@ def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
     ffmc = raw_daily.get('fineFuelMoistureCode', None)
     fmc = cffdrs.foliar_moisture_content(
         station.lat, station.long, station.elevation, get_julian_date_now())
-    sfc = cffdrs.surface_fuel_consumption(
-        FuelTypeEnum[fuel_type], bui, ffmc, pc)
+    try:
+        sfc = cffdrs.surface_fuel_consumption(
+            FuelTypeEnum[fuel_type], bui, ffmc, pc)
+    except cffdrs.CFFDRSException:
+        sfc = None
+        logger.error('Encountered error when calculating surface_fuel_consumption for station %s', station.code)
 
     cc = raw_daily.get('grasslandCuring')
     if cc is None:
         cc = FUEL_TYPE_DEFAULTS[fuel_type]["CC"]
-    ros = cffdrs.rate_of_spread(FuelTypeEnum[fuel_type], isi, bui, fmc, sfc, pc=pc,
-                                cc=cc,
-                                pdf=pdf,
-                                cbh=cbh)
+    try:
+        ros = cffdrs.rate_of_spread(FuelTypeEnum[fuel_type], isi, bui, fmc, sfc, pc=pc,
+                                    cc=cc,
+                                    pdf=pdf,
+                                    cbh=cbh)
+    except cffdrs.CFFDRSException:
+        ros = None
+        logger.error('Encountered error when calculating rate_of_spread for station %s', station.code)
 
     cfb = None
     try:
@@ -192,7 +201,11 @@ def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
     except cffdrs.CFFDRSException as exception:
         logger.error(exception, exc_info=True)
 
-    lb_ratio = cffdrs.length_to_breadth_ratio(FuelTypeEnum[fuel_type], raw_daily.get('windSpeed', None))
+    try:
+        lb_ratio = cffdrs.length_to_breadth_ratio(FuelTypeEnum[fuel_type], raw_daily.get('windSpeed', None))
+    except cffdrs.CFFDRSException:
+        logger.error('Encountered error calculating lb_ratio for station %s', station.code)
+        lb_ratio = None
     wsv = cffdrs.calculate_wind_speed(FuelTypeEnum[fuel_type],
                                       ffmc=ffmc,
                                       bui=bui,
@@ -204,17 +217,34 @@ def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
                                       pdf=pdf,
                                       cbh=cbh,
                                       isi=isi)
-    bros = cffdrs.back_rate_of_spread(FuelTypeEnum[fuel_type],
-                                      ffmc=ffmc,
-                                      bui=bui,
-                                      wsv=wsv,
-                                      fmc=fmc, sfc=sfc,
-                                      pc=pc,
-                                      cc=raw_daily.get('grasslandCuring', None),
-                                      pdf=pdf,
-                                      cbh=cbh)
-    sixty_minute_fire_size = get_fire_size(FuelTypeEnum[fuel_type], ros, bros, 60, cfb, lb_ratio)
-    fire_type = get_fire_type(FuelTypeEnum[fuel_type], crown_fraction_burned=cfb)
+    try:
+        bros = cffdrs.back_rate_of_spread(FuelTypeEnum[fuel_type],
+                                          ffmc=ffmc,
+                                          bui=bui,
+                                          wsv=wsv,
+                                          fmc=fmc, sfc=sfc,
+                                          pc=pc,
+                                          cc=raw_daily.get('grasslandCuring', None),
+                                          pdf=pdf,
+                                          cbh=cbh)
+    except cffdrs.CFFDRSException:
+        logger.error('Encountered error calculating back_rate_of_spread for station %s', station.code)
+        bros = None
+    try:
+        sixty_minute_fire_size = get_fire_size(FuelTypeEnum[fuel_type], ros, bros, 60, cfb, lb_ratio)
+    except cffdrs.CFFDRSException:
+        logger.error('Encountered error calculating sixty_minute_fire_size for station %s', station.code)
+        sixty_minute_fire_size = None
+    try:
+        fire_type = get_fire_type(FuelTypeEnum[fuel_type], crown_fraction_burned=cfb)
+    except Exception:
+        logger.error('Encountered error calculating fire_type for station %s', station.code)
+        fire_type = None
+
+    if hfi is None:
+        intensity_group = None
+    else:
+        intensity_group = calculate_intensity_group(hfi)
 
     return StationDaily(
         code=station.code,
@@ -237,7 +267,7 @@ def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
         observation_valid=raw_daily.get('observationValidInd', None),
         observation_valid_comment=raw_daily.get(
             'observationValidComment', None),
-        intensity_group=calculate_intensity_group(hfi),
+        intensity_group=intensity_group,
         sixty_minute_fire_size=sixty_minute_fire_size,
         fire_type=fire_type
     )

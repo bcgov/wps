@@ -161,9 +161,10 @@ const useStyles = makeStyles({
 export const DailyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()
 
-  const stationCodesList: number[] = Object.entries(props.dailiesMap).map(
-    ([, daily]) => daily.code
-  )
+  const stationCodesList: number[] = []
+  props.dailiesMap.forEach(daily => {
+    stationCodesList.push(daily.code)
+  })
 
   const [selected, setSelected] = useState<number[]>(stationCodesList)
 
