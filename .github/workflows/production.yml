@@ -1,0 +1,14 @@
+name: Prodution
+
+on:
+  deployment:
+
+jobs:
+  something:
+    name: Do something
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Thing thing
+        shell: bash
+        run: |
+          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
