@@ -76,9 +76,9 @@ jobs:
             } else {
               core.setOutput('tested', 'True')
             }
-            # if (isPrApproved === true && isPrDeployed === true && isPrTested === true) {
-            #   core.setOutput('something', 'good')
-            # }
+            // if (isPrApproved === true && isPrDeployed === true && isPrTested === true) {
+            //   core.setOutput('something', 'good')
+            // }
       # - name: Run a one-line script
       #   run: |
       #     echo Next step
