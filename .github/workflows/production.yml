@@ -56,7 +56,7 @@ jobs:
           PROJ_TARGET=e1e498-prod CERTBOT_STAGING=false DRYRUN=false bash openshift/scripts/oc_provision_certbot_cronjob.sh prod apply
   set_deployment_status_success:
     name: Production deployment
-    needs: [deploy-prod]
+    needs: [deploy_to_production]
     runs-on: ubuntu-20.04
     steps:
       - name: Set status to deployed
