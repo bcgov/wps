@@ -183,7 +183,7 @@ describe('FireBAT Calculator Page', () => {
 
       cy.getByTestId('remove-rows').click()
 
-      cy.getByTestId('fba-instructions')
+      cy.getByTestId('fba-instructions').should('be.visible')
 
       cy.url().should('not.contain', `s=${stationCode}`)
     })
@@ -204,7 +204,7 @@ describe('FireBAT Calculator Page', () => {
 
       cy.getByTestId('remove-rows').click()
 
-      cy.getByTestId('fba-instructions')
+      cy.getByTestId('fba-instructions').should('be.visible')
 
       cy.url().should('not.contain', `s=${stationCode}`)
     })
