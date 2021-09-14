@@ -6561,10 +6561,10 @@ esrecurse@^4.1.0, esrecurse@^4.3.0:
   dependencies:
     estraverse "^5.2.0"
 
-esri-leaflet@3.0.1:
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/esri-leaflet/-/esri-leaflet-3.0.1.tgz#000dfc9f78e27f02c59daaa3fd87654ac94b4e94"
-  integrity sha512-pY/zI9VbZUfX5Do3ujD0LDDtWsn8dG2+tWRc9bKTvnou1p5XpHisvwxYM5w1xbKHANGkzYaCSrD1zxcWWocmhQ==
+esri-leaflet@3.0.2:
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/esri-leaflet/-/esri-leaflet-3.0.2.tgz#368ff662aeb8de21d70d59b362a821b0dcabf6b5"
+  integrity sha512-Dr5Ie52yH+gojfnGXdzHGkrgn9U3kp9QKB7xqXZX/mPIE9gKyqC5Er8jRifJx+DTgeM67F+P7F09ZJsIvWbheQ==
   dependencies:
     "@terraformer/arcgis" "^2.0.7"
     tiny-binary-search "^1.0.3"
@@ -10181,10 +10181,10 @@ lru-cache@^6.0.0:
   dependencies:
     yallist "^4.0.0"
 
-luxon@^1.26.0:
-  version "1.28.0"
-  resolved "https://registry.yarnpkg.com/luxon/-/luxon-1.28.0.tgz#e7f96daad3938c06a62de0fb027115d251251fbf"
-  integrity sha512-TfTiyvZhwBYM/7QdAVDh+7dBTBA29v4ik0Ce9zda3Mnf8on1S5KJI8P2jKFZ8+5C0jhmr0KwJEO/Wdpm0VeWJQ==
+luxon@^2.0.2:
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/luxon/-/luxon-2.0.2.tgz#11f2cd4a11655fdf92e076b5782d7ede5bcdd133"
+  integrity sha512-ZRioYLCgRHrtTORaZX1mx+jtxKtKuI5ZDvHNAmqpUzGqSrR+tL4FVLn/CUGMA3h0+AKD1MAxGI5GnCqR5txNqg==
 
 lz-string@^1.4.4:
   version "1.4.4"
