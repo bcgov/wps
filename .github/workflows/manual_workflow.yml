@@ -1,0 +1,12 @@
+on:
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: "Pull request #"
+        required: true
+jobs:
+  do_something:
+    runs-on: ubuntu-20.04
+    steps:
+      - run: |
+          echo "PR ${{ github.event.inputs.pr }}"
