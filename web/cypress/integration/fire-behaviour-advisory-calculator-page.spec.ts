@@ -115,9 +115,7 @@ describe('FireBAT Calculator Page', () => {
       cy.selectFBAStationInDropdown(stationCode, 1)
 
       cy.selectFBAFuelTypeInDropdown(FuelTypes.get()['o1a'].friendlyName, 1)
-      cy.getByTestId(`fuel-type-dropdown-fba-1`)
-        .find('input')
-        .clear()
+      cy.getByTestId(`fuel-type-dropdown-fba-1`).find('input').clear()
       cy.selectFBAFuelTypeInDropdown(FuelTypes.get()['o1b'].friendlyName, 1)
     })
   })
@@ -126,10 +124,7 @@ describe('FireBAT Calculator Page', () => {
     it('Sets the date correctly', () => {
       cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as('getStations')
 
-      const yesterday = DateTime.now()
-        .minus({ days: 1 })
-        .toISODate()
-        .slice(0, 10) // 'YYYY-MM-DD'
+      const yesterday = DateTime.now().minus({ days: 1 }).toISODate().slice(0, 10) // 'YYYY-MM-DD'
 
       cy.intercept('POST', 'api/fba-calc/stations', req => {
         expect(req.body).to.deep.include({
@@ -188,7 +183,8 @@ describe('FireBAT Calculator Page', () => {
 
       cy.getByTestId('remove-rows').click()
 
-      cy.rowCountShouldBe(0)
+      cy.getByTestId('fba-instructions').should('be.visible')
+
       cy.url().should('not.contain', `s=${stationCode}`)
     })
     it('Specific rows can be removed', () => {
@@ -208,7 +204,8 @@ describe('FireBAT Calculator Page', () => {
 
       cy.getByTestId('remove-rows').click()
 
-      cy.rowCountShouldBe(0)
+      cy.getByTestId('fba-instructions').should('be.visible')
+
       cy.url().should('not.contain', `s=${stationCode}`)
     })
   })
