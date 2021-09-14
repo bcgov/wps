@@ -128,6 +128,15 @@ def get_model_run_predictions_for_grid(session: Session,
                prediction_run.id)
 
 
+def delete_model_run_grid_subset_predictions(session: Session, older_than: datetime):
+    """ Delete any grid subset prediction older than a certain date.
+    """
+    logger.info('Deleting grid subset data older than %s...', older_than)
+    session.query(ModelRunGridSubsetPrediction)\
+        .filter(ModelRunGridSubsetPrediction.prediction_timestamp < older_than)\
+        .delete()
+
+
 def get_model_run_predictions(
         session: Session,
         prediction_run: PredictionModelRunTimestamp,
