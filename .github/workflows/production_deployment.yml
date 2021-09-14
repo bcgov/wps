@@ -91,9 +91,9 @@ jobs:
       #   run: |
       #     echo Something was good
     outputs:
-      prApproved: ${{ steps.check_status.approved }}
-      prDeployed: ${{ steps.check_status.deployed }}
-      prTested: ${{ steps.check_status.tested }}
+      prApproved: ${{ steps.check_status.outputs.approved }}
+      prDeployed: ${{ steps.check_status.outputs.deployed }}
+      prTested: ${{ steps.check_status.outputs.tested }}
 
   deploy-prod:
     # If PR has been deployed in dev and test environment, and has been approved - we deploy to production.
