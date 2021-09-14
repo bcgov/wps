@@ -56,19 +56,19 @@ jobs:
             if (isPrApproved === false) {
               # core.setFailed('Pull Request not approved for deployment. Add a "pr/approved" label to the PR when ready to deploy to production.')
               core.setOutput('something', 'bad')
-              echo "::warning Pull Request not approved for deployment. Add a 'pr/approved' label to the PR when ready to deploy to production."
+              # echo "::warning Pull Request not approved for deployment. Add a 'pr/approved' label to the PR when ready to deploy to production."
             }
             const isPrDeployed = labels.find( ({name}) => name === 'pr/workflow/deployment') !== undefined
             if (isPrDeployed === false) {
               # core.setFailed('Pull Request has not yet been deployed to dev & test environments.')
               core.setOutput('something', 'bad')
-              echo "::warning Pull Request has not yet been deployed to dev & test environments."
+              # echo "::warning Pull Request has not yet been deployed to dev & test environments."
             }
             const isPrTested = labels.find( ({name}) => name === 'pr/workflow/integration') !== undefined
             if (isPrTested === false) {
               # core.setFailed('Pull Request has not yet been tested.')
               core.setOutput('something', 'bad')
-              echo "::warning Pull Request has not yet been tested."
+              # echo "::warning Pull Request has not yet been tested."
             }
             if (isPrApproved === true && isPrDeployed === true && isPrTested === true) {
               core.setOutput('something', 'good')
