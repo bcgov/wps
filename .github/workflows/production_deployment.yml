@@ -109,7 +109,7 @@ jobs:
       - uses: actions/checkout@v2
       # Provision to production
       - name: Run a one-line script
-        if: needs.approve.outputs.prApproved == 'True' && needs.approve.outputs.deployed == 'True' && needs.approve.outputs.deployed
+        if: needs.approve.outputs.prApproved == 'True' && needs.approve.outputs.prDeployed == 'True' && needs.approve.outputs.prTested == 'True'
         run: |
           echo Login
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_PROD_TOKEN }}"
