@@ -3,7 +3,8 @@ import React from 'react'
 
 const useStyles = makeStyles({
   content: {
-    textAlign: 'center'
+    marginLeft: '2em',
+    textAlign: 'left'
   }
 })
 
