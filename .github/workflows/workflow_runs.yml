@@ -1,0 +1,14 @@
+name: Does this work?
+on:
+  workflow_run:
+    workflows: ["Integration"]
+    types:
+      - completed
+
+jobs:
+  thing:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Moo
+        run: |
+          echo hello
