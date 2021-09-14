@@ -2497,10 +2497,10 @@
     "@types/history" "*"
     "@types/react" "*"
 
-"@types/react-table@^7.7.2":
-  version "7.7.2"
-  resolved "https://registry.yarnpkg.com/@types/react-table/-/react-table-7.7.2.tgz#434f8230eb011c7eed8f3550fdf25befafebcfac"
-  integrity sha512-NwB78t3YV5pZ1NK3m2vylb/d0DKVyWH4y4GMCtlE4tg2n5ENM4ejzKnT46YKuqG2cPjWc+PIxuRVMd5OYX1z4A==
+"@types/react-table@^7.7.3":
+  version "7.7.3"
+  resolved "https://registry.yarnpkg.com/@types/react-table/-/react-table-7.7.3.tgz#0e5f952ec8562db1f6c950c766b53f27294a7e89"
+  integrity sha512-IL9DsA+V9AXUSPT6L+fFjo6YfEV40Fb+WmbrVxn+TjsPYUjkMZ0EZP1q0lTiosdrbrq3TeQI35Naxqc0ZTWEQg==
   dependencies:
     "@types/react" "*"
 
@@ -5435,10 +5435,10 @@ cyclist@^1.0.1:
   resolved "https://registry.yarnpkg.com/cyclist/-/cyclist-1.0.1.tgz#596e9698fd0c80e12038c2b82d6eb1b35b6224d9"
   integrity sha1-WW6WmP0MgOEgOMK4LW6xs1tiJNk=
 
-cypress@^8.3.1:
-  version "8.3.1"
-  resolved "https://registry.yarnpkg.com/cypress/-/cypress-8.3.1.tgz#c6760dbb907df2570b0e1ac235fa31c30f9260a6"
-  integrity sha512-1v6pfx+/5cXhaT5T6QKOvnkawmEHWHLiVzm3MYMoQN1fkX2Ma1C32STd3jBStE9qT5qPSTILjGzypVRxCBi40g==
+cypress@^8.4.0:
+  version "8.4.0"
+  resolved "https://registry.yarnpkg.com/cypress/-/cypress-8.4.0.tgz#09ec06a73f1cb10121c103cba15076e659e24876"
+  integrity sha512-RtVgGFR06ikyMaq/VqapeqOjGaIA42PpK7F0qe1MCiFArfUuJECsLmeYaOA+1TlmNUgJNMSF5fWKkZIJr5Uc7w==
   dependencies:
     "@cypress/request" "^2.88.6"
     "@cypress/xvfb" "^1.2.4"
