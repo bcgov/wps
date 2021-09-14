@@ -28,7 +28,6 @@
     "@types/react-plotly.js": "^2.2.4",
     "@types/react-redux": "^7.1.16",
     "@types/react-router-dom": "^5.1.9",
-    "@types/react-table": "^7.7.2",
     "@types/webpack-env": "^1.15.1",
     "@typescript-eslint/eslint-plugin": "^4.31.1",
     "@typescript-eslint/parser": "^4.31.0",
