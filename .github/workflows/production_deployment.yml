@@ -57,19 +57,19 @@ jobs:
             const isPrDeployed = labels.find( ({name}) => name === 'pr/workflow/deployment') !== undefined
             const isPrTested = labels.find( ({name}) => name === 'pr/workflow/integration') !== undefined
 
-            # console.log(`PR > isPrApproved: ${isPrApproved}`)
-            # console.log(`PR > isPrDeployed: ${isPrDeployed}`)
-            # console.log(`PR > isPrTested: ${isPrTested}`)
+            //console.log(`PR > isPrApproved: ${isPrApproved}`)
+            //console.log(`PR > isPrDeployed: ${isPrDeployed}`)
+            //console.log(`PR > isPrTested: ${isPrTested}`)
 
-            # if (isPrApproved === false) {
-            #   core.setFailed('Pull Request not approved for deployment. Add a 'pr/approved' label to the PR when ready to deploy to production.')
-            # }
-            # if (isPrDeployed === false) {
-            #   core.setFailed('Pull Request has not yet been deployed to dev & test environments.')
-            # }
-            # if (isPrTested === false) {
-            #   core.setFailed('Pull Request has not yet been tested.')
-            # }
+            //if (isPrApproved === false) {
+            //  core.setFailed('Pull Request not approved for deployment. Add a 'pr/approved' label to the PR when ready to deploy to production.')
+            //}
+            //if (isPrDeployed === false) {
+            //  core.setFailed('Pull Request has not yet been deployed to dev & test environments.')
+            //}
+            //if (isPrTested === false) {
+            //  core.setFailed('Pull Request has not yet been tested.')
+            //}
 
   deploy-prod:
     # If PR has been deployed in dev and test environment, and has been approved - we deploy to production.
