@@ -1,4 +1,5 @@
 name: Manual
+
 on:
   workflow_dispatch:
     inputs:
@@ -9,5 +10,6 @@ jobs:
   do_something:
     runs-on: ubuntu-20.04
     steps:
+      - name: Some step
       - run: |
           echo "PR ${{ github.event.inputs.pr }}"
