@@ -1,4 +1,4 @@
-declare module Cypress {
+declare namespace Cypress {
   interface Chainable {
     /**
      * Custom command to select a weather station and check its value.
@@ -44,23 +44,26 @@ declare module Cypress {
   }
 }
 
-Cypress.Commands.add('selectFBAStationInDropdown', (code: number | string, rowId: number) => {
-  if (typeof code === 'number') {
+Cypress.Commands.add(
+  'selectFBAStationInDropdown',
+  (code: number | string, rowId: number) => {
+    if (typeof code === 'number') {
+      return cy
+        .getByTestId(`weather-station-dropdown-fba-${rowId}`)
+        .click()
+        .get('li')
+        .contains(code)
+        .click()
+    }
+
     return cy
       .getByTestId(`weather-station-dropdown-fba-${rowId}`)
-      .click()
-      .get('li')
-      .contains(code)
-      .click()
+      .find('input')
+      .type(code)
+      .type('{downarrow}')
+      .type('{enter}')
   }
-
-  return cy
-    .getByTestId(`weather-station-dropdown-fba-${rowId}`)
-    .find('input')
-    .type(code)
-    .type('{downarrow}')
-    .type('{enter}')
-})
+)
 
 Cypress.Commands.add('selectFBAFuelTypeInDropdown', (fuelType: string, rowId: number) => {
   return cy
@@ -80,17 +83,11 @@ Cypress.Commands.add('setFBAGrassCurePercentage', (grassCure: string, rowId: num
 })
 
 Cypress.Commands.add('setFBAWindSpeed', (windSpeed: string, rowId: number) => {
-  return cy
-    .getByTestId(`windSpeedInput-fba-${rowId}`)
-    .find('input')
-    .type(windSpeed)
+  return cy.getByTestId(`windSpeedInput-fba-${rowId}`).find('input').type(windSpeed)
 })
 
 Cypress.Commands.add('setDate', (date: string) => {
-  return cy
-    .getByTestId('date-of-interest-picker')
-    .find('input')
-    .type(date)
+  return cy.getByTestId('date-of-interest-picker').find('input').type(date)
 })
 
 Cypress.Commands.add('setSelectedRow', () => {
@@ -98,8 +95,5 @@ Cypress.Commands.add('setSelectedRow', () => {
 })
 
 Cypress.Commands.add('rowCountShouldBe', (rowCount: number) => {
-  return cy
-    .getByTestId('fba-table-body')
-    .find('tr')
-    .should('have.length', rowCount)
+  return cy.getByTestId('fba-table-body').find('tr').should('have.length', rowCount)
 })
