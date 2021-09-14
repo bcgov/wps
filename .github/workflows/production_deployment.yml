@@ -54,9 +54,8 @@ jobs:
             const isPrApproved = labels.find( ({ name }) => name === 'pr/approved' ) !== undefined
             console.log(`PR > isPrApproved: ${isPrApproved}`)
             if (isPrApproved === false) {
-              // core.setFailed('Pull Request not approved for deployment. Add a "pr/approved" label to the PR when ready to deploy to production.')
               core.setOutput('approved', 'False')
-              // echo "::warning Pull Request not approved for deployment. Add a 'pr/approved' label to the PR when ready to deploy to production."
+              core.warning("::warning Pull Request not approved for deployment. Add a 'pr/approved' label to the PR when ready to deploy to production."
             } else {
               core.setOutput('approved', 'True')
             }
@@ -76,9 +75,9 @@ jobs:
             } else {
               core.setOutput('tested', 'True')
             }
-            // if (isPrApproved === true && isPrDeployed === true && isPrTested === true) {
-            //   core.setOutput('something', 'good')
-            // }
+            if (isPrApproved === true && isPrDeployed === false && isPrTested === false) {
+              core.setFailed('Pull Request has been approved, but has not completed dev deployment or testing')
+            }
       # - name: Run a one-line script
       #   run: |
       #     echo Next step
@@ -103,21 +102,14 @@ jobs:
     needs: [approve]
     runs-on: ubuntu-20.04
     steps:
-      - name: Now what?
-        if: needs.approve.outputs.prApproved == 'True'
-        run: |
-          echo 'needs.approve.outputs.prApproved was totally True!'
-      - name: Really??
-        if: needs.approve.outputs.prApproved == 'False'
-        run: |
-          echo 'needs.approve.outputs.prApproved was totally False!'
       - name: Set Variables
         shell: bash
         run: |
           echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
       - uses: actions/checkout@v2
-      # Runs a single command using the runners shell
-  #     - name: Run a one-line script
+      # Provision to production
+      - name: Run a one-line script
+        if: needs.approve.outputs.prApproved == 'True' && needs.approve.outputs.deployed == 'True' && needs.approve.outputs.deployed
   #       run: |
   #         echo Login
   #         oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_PROD_TOKEN }}"
