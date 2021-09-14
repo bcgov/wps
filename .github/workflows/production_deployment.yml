@@ -110,9 +110,9 @@ jobs:
       # Provision to production
       - name: Run a one-line script
         if: needs.approve.outputs.prApproved == 'True' && needs.approve.outputs.deployed == 'True' && needs.approve.outputs.deployed
-  #       run: |
-  #         echo Login
-  #         oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_PROD_TOKEN }}"
+        run: |
+          echo Login
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_PROD_TOKEN }}"
   #         echo Promote
   #         bash openshift/scripts/oc_promote.sh ${SUFFIX} apply
   #         bash openshift/scripts/oc_promote_ubuntu.sh ${SUFFIX} apply
