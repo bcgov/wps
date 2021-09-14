@@ -1,6 +1,6 @@
 name: Production
 
-# trigger this deployment running:
+# trigger this deployment by running:
 # gh api repos/bcgov/wps/deployments -f ref="[your branch]"
 on:
   # reference used to figure this part out:
