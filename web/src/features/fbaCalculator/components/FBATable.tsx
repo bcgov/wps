@@ -399,26 +399,20 @@ const FBATable = (props: FBAInputGridProps) => {
             Export Selection
           </Button>
         </FormControl>
-        {rows.length === 0 ? (
-          <FBATableInstructions />
-        ) : (
-          <div className={classes.display} data-testid={props.testId}>
-            <Paper className={classes.paper} elevation={1}>
-              <TableContainer className={classes.tableContainer}>
-                <Table
-                  size="small"
-                  stickyHeader
-                  aria-label="Fire Behaviour Analysis table"
-                >
-                  <FBATableHead
-                    toggleSorting={toggleSorting}
-                    order={order}
-                    rows={rows}
-                    headerSelected={headerSelected}
-                    setHeaderSelect={setHeaderSelect}
-                    setSelected={setSelected}
-                    loading={loading}
-                  />
+        <div className={classes.display} data-testid={props.testId}>
+          <Paper className={classes.paper} elevation={1}>
+            <TableContainer className={classes.tableContainer}>
+              <Table size="small" stickyHeader aria-label="Fire Behaviour Analysis table">
+                <FBATableHead
+                  toggleSorting={toggleSorting}
+                  order={order}
+                  rows={rows}
+                  headerSelected={headerSelected}
+                  setHeaderSelect={setHeaderSelect}
+                  setSelected={setSelected}
+                  loading={loading}
+                />
+                {rows.length === 0 ? null : (
                   <TableBody data-testid="fba-table-body">
                     {rows.map(row => {
                       return (
@@ -691,11 +685,12 @@ const FBATable = (props: FBAInputGridProps) => {
                       )
                     })}
                   </TableBody>
-                </Table>
-              </TableContainer>
-            </Paper>
-          </div>
-        )}
+                )}
+              </Table>
+              {rows.length === 0 ? <FBATableInstructions /> : null}
+            </TableContainer>
+          </Paper>
+        </div>
       </ErrorBoundary>
     </React.Fragment>
   )
