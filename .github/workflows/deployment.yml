@@ -166,8 +166,6 @@ jobs:
     steps:
       # f.y.i.: ZAP Scan must be able to log an issue or it will fail.
       - name: ZAP Scan
-        shell: bash
-        run: echo "hello"
         uses: zaproxy/action-baseline@v0.4.0
         with:
           target: "https://wps-pr-${{ github.event.number }}.apps.silver.devops.gov.bc.ca"
