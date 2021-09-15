@@ -11,6 +11,7 @@ const useStyles = makeStyles(() => ({
 
     '& .MuiTableCell-sizeSmall': {
       padding: '6px 6px 6px 6px',
+      paddingLeft: '7px',
       height: '40px'
     },
 
