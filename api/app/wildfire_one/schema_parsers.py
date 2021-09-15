@@ -245,7 +245,9 @@ def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
             'observationValidComment', None),
         intensity_group=intensity_group,
         sixty_minute_fire_size=sixty_minute_fire_size,
-        fire_type=fire_type
+        fire_type=fire_type,
+        error=raw_daily.get('observationValidInd', None),
+        error_message=raw_daily.get('observationValidComment', None)
     )
 
 

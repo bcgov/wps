@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { ReactFragment, useState } from 'react'
 
 import {
   Checkbox,
@@ -9,9 +9,11 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Tooltip,
   Typography
 } from '@material-ui/core'
-import { makeStyles } from '@material-ui/core/styles'
+import { createTheme, makeStyles, ThemeProvider } from '@material-ui/core/styles'
+import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline'
 import { FireCentre } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import { Button } from 'components'
@@ -224,6 +226,25 @@ export const DailyViewTable = (props: Props): JSX.Element => {
     return 4
   }
 
+  const errorIconTheme = createTheme({
+    overrides: {
+      MuiSvgIcon: {
+        root: {
+          fill: '#D8292F'
+        }
+      }
+    }
+  })
+  const toolTipSecondLine = 'Please check WFWX or contact the forecaster.'
+  const createToolTipElement = (toolTipFirstLine: string): ReactFragment => {
+    return (
+      <div>
+        {toolTipFirstLine} <br />
+        {toolTipSecondLine}
+      </div>
+    )
+  }
+
   return (
     <div className={classes.display} data-testid={props.testId}>
       <div className={classes.controls}>
@@ -428,9 +449,25 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                                     >
                                       {station.station_props.fuel_type.abbrev}
                                     </TableCell>
-                                    <TableCell className={classNameForRow}>
-                                      {daily?.status}
-                                    </TableCell>
+                                    {daily?.observation_valid === false ? (
+                                      <TableCell className={classNameForRow}>
+                                        <ThemeProvider theme={errorIconTheme}>
+                                          <Tooltip
+                                            title={createToolTipElement(
+                                              daily?.observation_valid_comment
+                                            )}
+                                          >
+                                            <ErrorOutlineIcon
+                                              data-testid={`status-error`}
+                                            ></ErrorOutlineIcon>
+                                          </Tooltip>
+                                        </ThemeProvider>
+                                      </TableCell>
+                                    ) : (
+                                      <TableCell className={classNameForRow}>
+                                        {daily?.status}
+                                      </TableCell>
+                                    )}
                                     <TableCell className={classNameForRow}>
                                       {daily?.temperature}
                                     </TableCell>
