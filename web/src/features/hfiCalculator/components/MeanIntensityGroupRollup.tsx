@@ -60,11 +60,22 @@ const errorIconTheme = createTheme({
   }
 })
 
-const toolTipFirstLine = 'Grass Cure % not defined in WFWX for one or more stations.'
+const grassCureToolTipFirstLine =
+  'Grass Cure % not defined in WFWX for one or more stations.'
+const genericErrorToolTipFirstLine =
+  'Incomplete weather data in WFWX for one or more stations.'
 const toolTipSecondLine = ' Cannot calculate Mean FIG.'
-const toolTipElement = (
+
+const grassCureErrorToolTipElement = (
   <div>
-    {toolTipFirstLine}
+    {grassCureToolTipFirstLine}
+    {toolTipSecondLine}
+  </div>
+)
+
+const genericErrorToolTipElement = (
+  <div>
+    {genericErrorToolTipFirstLine}
     {toolTipSecondLine}
   </div>
 )
@@ -82,10 +93,14 @@ const MeanIntensityGroupRollup = (props: MeanIntensityGroupRollupProps) => {
   const noDailyData = stationsWithDaily.every(stationDaily =>
     isUndefined(stationDaily.daily)
   )
-  const error = stationsWithDaily.reduce((prev, stationDaily) => {
+  const grassCureError = stationsWithDaily.reduce((prev, stationDaily) => {
     return (
       prev || !isValidGrassCure(stationDaily.daily, stationDaily.station.station_props)
     )
+  }, false)
+
+  const genericError = stationsWithDaily.reduce((prev, stationDaily) => {
+    return prev || stationDaily.daily?.observation_valid === false
   }, false)
 
   const meanIntensityGroup = calculateMeanIntensityGroup(
@@ -113,27 +128,47 @@ const MeanIntensityGroupRollup = (props: MeanIntensityGroupRollupProps) => {
     }
   }
 
-  return error && !noDailyData ? (
-    <ThemeProvider theme={errorIconTheme}>
-      <Tooltip
-        title={toolTipElement}
-        aria-label={`${toolTipFirstLine} \n ${toolTipSecondLine}`}
+  if (grassCureError && !noDailyData) {
+    return (
+      <ThemeProvider theme={errorIconTheme}>
+        <Tooltip
+          title={grassCureErrorToolTipElement}
+          aria-label={`${grassCureToolTipFirstLine} \n ${toolTipSecondLine}`}
+        >
+          <div className={classes.alignErrorIcon}>
+            <ErrorOutlineIcon
+              data-testid={`zone-${props.area.id}-mig-error`}
+            ></ErrorOutlineIcon>
+          </div>
+        </Tooltip>
+      </ThemeProvider>
+    )
+  }
+  if (genericError && !noDailyData) {
+    return (
+      <ThemeProvider theme={errorIconTheme}>
+        <Tooltip
+          title={genericErrorToolTipElement}
+          aria-label={`${genericErrorToolTipFirstLine} ${toolTipSecondLine}`}
+        >
+          <div className={classes.alignErrorIcon}>
+            <ErrorOutlineIcon
+              data-testid={`zone-${props.area.id}-mig-error`}
+            ></ErrorOutlineIcon>
+          </div>
+        </Tooltip>
+      </ThemeProvider>
+    )
+  } else {
+    return (
+      <TableCell
+        className={formatAreaMeanIntensityGroupByValue()}
+        data-testid={`zone-${props.area.id}-mean-intensity`}
       >
-        <div className={classes.alignErrorIcon}>
-          <ErrorOutlineIcon
-            data-testid={`zone-${props.area.id}-mig-error`}
-          ></ErrorOutlineIcon>
-        </div>
-      </Tooltip>
-    </ThemeProvider>
-  ) : (
-    <TableCell
-      className={formatAreaMeanIntensityGroupByValue()}
-      data-testid={`zone-${props.area.id}-mean-intensity`}
-    >
-      {meanIntensityGroup}
-    </TableCell>
-  )
+        {meanIntensityGroup}
+      </TableCell>
+    )
+  }
 }
 
 export default React.memo(MeanIntensityGroupRollup)

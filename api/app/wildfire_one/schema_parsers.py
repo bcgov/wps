@@ -3,7 +3,6 @@
 import math
 import logging
 from datetime import datetime, timezone
-from os import stat
 from typing import Generator, List, Optional
 from app.db.models.observations import HourlyActual
 from app.schemas.fba_calc import FuelTypeEnum
@@ -163,7 +162,7 @@ def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
     isi = raw_daily.get('initialSpreadIndex', None)
     bui = raw_daily.get('buildUpIndex', None)
     ffmc = raw_daily.get('fineFuelMoistureCode', None)
-    cc = raw_daily.get('grasslandCuring')
+    cc = raw_daily.get('grasslandCuring', None)
 
     # set default values in case the calculation fails (likely due to missing data)
     fmc, sfc, ros, cfb, hfi, lb_ratio, bros, sixty_minute_fire_size, fire_type, intensity_group = None, None, None, None, None, None, None, None, None, None
@@ -214,9 +213,7 @@ def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
 
         fire_type = get_fire_type(FuelTypeEnum[fuel_type], crown_fraction_burned=cfb)
 
-        if hfi is None:
-            intensity_group = None
-        else:
+        if hfi is not None:
             intensity_group = calculate_intensity_group(hfi)
     except Exception as exc:
         logger.error('Encountered error while generating StationDaily for station %s', station.code)
