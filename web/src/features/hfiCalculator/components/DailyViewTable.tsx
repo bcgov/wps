@@ -13,6 +13,7 @@ import { isUndefined } from 'lodash'
 import CalculatedCell from 'features/hfiCalculator/components/CalculatedCell'
 import IntensityGroupCell from 'features/hfiCalculator/components/IntensityGroupCell'
 import FireTable from 'components/FireTable'
+import FireContainer from 'components/FireDisplayContainer'
 
 export interface Props {
   title: string
@@ -136,7 +137,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
   }
 
   return (
-    <React.Fragment>
+    <FireContainer testId={props.testId}>
       <div className={classes.controls}>
         <Typography component="div" variant="subtitle2">
           {props.title}
@@ -389,7 +390,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
           })}
         </TableBody>
       </FireTable>
-    </React.Fragment>
+    </FireContainer>
   )
 }
 
