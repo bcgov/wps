@@ -19,12 +19,9 @@ jobs:
           # https://octokit.github.io/rest.js/v18#pulls
           # https://github.com/actions/github-script
           script: |
-            // get pull requests relating to this commit hash
-            const pulls = (await github.repos.listPullRequestsAssociatedWithCommit({owner: context.repo.owner, repo: context.repo.repo, commit_sha: context.sha }))
-            console.log(pulls)
-            // find an open PR (potentially problematic if you have multiple PR's open!)
-            const pr = pulls.data.find( ({state}) => state === 'open')
-            core.exportVariable('SUFFIX', `pr-${pr.number}`);
+            const ev = JSON.parse((0,external_fs_namespaceObject.readFileSync)(process.env.GITHUB_EVENT_PATH, "utf8"));
+            const prNum = ev.pull_request.number;
+            core.exportVariable('SUFFIX', `pr-${prNum}`);
       - uses: actions/checkout@v2
       - name: Provision to production
         run: |
