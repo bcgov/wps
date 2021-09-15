@@ -2,10 +2,9 @@ name: Production
 
 # trigger this deployment by running:
 # gh api repos/bcgov/wps/deployments -f ref="[your branch]"
-on:
-  # reference used to figure this part out:
-  # https://docs.github.com/en/actions/reference/events-that-trigger-workflows#deployment
-  deployment:
+# reference used to figure this part out:
+# https://docs.github.com/en/actions/reference/events-that-trigger-workflows#deployment
+on: deployment
 
 jobs:
   deploy_to_production:
