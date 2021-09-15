@@ -41,20 +41,11 @@ const useStyles = makeStyles({
     backgroundColor: '#dbd9d9'
   },
   planningArea: {
-    backgroundColor: 'rgba(40, 53, 147, 0.05)',
-
-    '& .MuiTableCell-sizeSmall': {
-      paddingLeft: '12px'
-    }
+    backgroundColor: 'rgba(40, 53, 147, 0.05)'
   },
   fireStarts: {
     fontWeight: 'bold',
     textAlign: 'center'
-  },
-  station: {
-    '& .MuiTableCell-sizeSmall': {
-      paddingLeft: '20px'
-    }
   },
   controls: {
     display: 'flex',
@@ -305,10 +296,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                             )
 
                             return (
-                              <TableRow
-                                className={classes.station}
-                                key={`station-${stationCode}`}
-                              >
+                              <TableRow key={`station-${stationCode}`}>
                                 <TableCell key={`station-${station.code}-name`}>
                                   {station.station_props.name} ({station.code})
                                 </TableCell>
