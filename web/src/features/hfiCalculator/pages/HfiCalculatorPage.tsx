@@ -11,10 +11,19 @@ import {
   selectHFIStations,
   selectHFIStationsLoading
 } from 'app/rootReducer'
-import { CircularProgress } from '@material-ui/core'
+import { CircularProgress, makeStyles } from '@material-ui/core'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 
+const useStyles = makeStyles({
+  container: {
+    display: 'flex',
+    justifyContent: 'center'
+  }
+})
+
 const HfiCalculatorPage: React.FunctionComponent = () => {
+  const classes = useStyles()
+
   const dispatch = useDispatch()
   const { dailies, loading } = useSelector(selectHFIDailies)
   const { fireCentres } = useSelector(selectHFIStations)
@@ -48,10 +57,12 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     <main data-testid="hfi-calculator-page">
       <PageHeader title="Predictive Services Unit" productName="HFI Calculator" />
       <PageTitle title="HFI Calculator" />
-      <Container maxWidth={'xl'}>
-        {loading || stationDataLoading ? (
+      {loading || stationDataLoading ? (
+        <Container className={classes.container}>
           <CircularProgress />
-        ) : (
+        </Container>
+      ) : (
+        <Container maxWidth={'xl'}>
           <DailyViewTable
             title="HFI Calculator Daily View"
             testId="hfi-calc-daily-table"
@@ -61,8 +72,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
             previousDay={previousDay}
             nextDay={nextDay}
           />
-        )}
-      </Container>
+        </Container>
+      )}
     </main>
   )
 }
