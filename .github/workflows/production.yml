@@ -18,7 +18,8 @@ jobs:
           # reference used to figure out this part:
           # https://github.com/actions/github-script
           script: |
-            const ev = JSON.parse(readFileSync(process.env.GITHUB_EVENT_PATH, "utf8"))
+            const fs = require("fs")
+            const ev = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, "utf8"))
             const prNum = ev.pull_request.number;
             core.exportVariable('SUFFIX', `pr-${prNum}`);
       - uses: actions/checkout@v2
