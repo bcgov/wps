@@ -44,7 +44,7 @@ jobs:
           echo C-Haines
           PROJ_TARGET=e1e498-prod bash openshift/scripts/oc_provision_c_haines_cronjob.sh prod apply
           echo BC FireWeather cronjobs
-          echo Run forecast at 8h30 PDT and 16h30 PDT (so before and after noon)
+          echo "Run forecast at 8h30 PDT and 16h30 PDT (so before and after noon)"
           PROJ_TARGET=e1e498-prod SCHEDULE="30 15,23 * * *" bash openshift/scripts/oc_provision_bcfw_p1_forecasts_cronjob.sh prod apply
           PROJ_TARGET=e1e498-prod SCHEDULE="15 * * * *" bash openshift/scripts/oc_provision_bcfw_p1_hourly_actuals_cronjob.sh prod apply
           echo Configure backups
