@@ -9,6 +9,7 @@ on:
 
 jobs:
   deploy_to_production:
+    name: Deploy to production
     runs-on: ubuntu-20.04
     steps:
       - name: Find PR number
@@ -50,7 +51,7 @@ jobs:
           echo Configure
           PROJ_TARGET=e1e498-prod CERTBOT_STAGING=false DRYRUN=false bash openshift/scripts/oc_provision_certbot_cronjob.sh prod apply
   set_deployment_status_success:
-    name: Production deployment
+    name: Set production deployment successful
     needs: [deploy_to_production]
     runs-on: ubuntu-20.04
     steps:
