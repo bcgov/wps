@@ -165,7 +165,8 @@ def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
     cc = raw_daily.get('grasslandCuring', None)
 
     # set default values in case the calculation fails (likely due to missing data)
-    fmc, sfc, ros, cfb, hfi, lb_ratio, bros, sixty_minute_fire_size, fire_type, intensity_group = None, None, None, None, None, None, None, None, None, None
+    fmc, sfc, ros, cfb, hfi, lb_ratio, bros, sixty_minute_fire_size,\
+        fire_type, intensity_group = None, None, None, None, None, None, None, None, None, None
     try:
         fmc = cffdrs.foliar_moisture_content(
             station.lat, station.long, station.elevation, get_julian_date_now())
@@ -215,6 +216,7 @@ def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
 
         if hfi is not None:
             intensity_group = calculate_intensity_group(hfi)
+    # pylint: disable=broad-except
     except Exception as exc:
         logger.error('Encountered error while generating StationDaily for station %s', station.code)
         logger.error(exc, exc_info=True)
