@@ -1,16 +1,59 @@
 import 'ol/ol.css'
 
-import React, { useRef, useState, useEffect } from 'react'
+import React, { useRef, useState, useEffect, useCallback } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import * as ol from 'ol'
-import { toLonLat } from 'ol/proj'
+import { get, toLonLat } from 'ol/proj'
 import { FeatureLike } from 'ol/Feature'
 import OLOverlay from 'ol/Overlay'
 import { MapOptions } from 'ol/PluggableMap'
 import { defaults as defaultControls } from 'ol/control'
 
-import { ErrorBoundary } from 'components'
+import { Button, ErrorBoundary } from 'components'
 import { ObjectEvent } from 'ol/Object'
+import VectorLayer from 'features/map/VectorLayer'
+import GeoJSON from 'ol/format/GeoJSON'
+import * as olSource from 'ol/source'
+import { selectFireWeatherStations } from 'app/rootReducer'
+import { useDispatch, useSelector } from 'react-redux'
+import { AccuracyWeatherVariableEnum } from 'features/fireWeather/components/AccuracyVariablePicker'
+import { fetchWxStations, selectStation } from 'features/stations/slices/stationsSlice'
+import {
+  computeRHAccuracyColor,
+  computeRHAccuracySize,
+  computeStroke,
+  computeTempAccuracyColor,
+  computeTempAccuracySize
+} from 'features/fireWeather/components/maps/stationAccuracy'
+import { Style, Fill } from 'ol/style'
+import CircleStyle from 'ol/style/Circle'
+import { getDetailedStations, StationSource } from 'api/stationAPI'
+
+const zoom = 6
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const rhPointStyleFunction = (feature: any) => {
+  const rhPointColor = computeRHAccuracyColor(feature.values_)
+  return new Style({
+    image: new CircleStyle({
+      radius: computeRHAccuracySize(feature.values_),
+      fill: new Fill({ color: rhPointColor }),
+      stroke: computeStroke(rhPointColor)
+    })
+  })
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const tempPointStyleFunction = (feature: any) => {
+  const tempPointColor = computeTempAccuracyColor(feature.values_)
+  return new Style({
+    image: new CircleStyle({
+      radius: computeTempAccuracySize(feature.values_),
+      fill: new Fill({ color: tempPointColor }),
+      stroke: computeStroke(tempPointColor)
+    })
+  })
+}
 
 export const MapContext = React.createContext<ol.Map | null>(null)
 
@@ -50,22 +93,22 @@ const useStyles = makeStyles({
 
 interface Props {
   children: React.ReactNode
-  zoom: number
   center: number[]
   isCollapsed: boolean
+  selectedWxVariable: AccuracyWeatherVariableEnum
+  toiFromQuery: string
   setMapCenter: (newCenter: number[]) => void
   redrawFlag?: RedrawCommand
-  renderTooltip?: (feature: FeatureLike | null) => React.ReactNode
 }
 
 const Map = ({
   children,
-  zoom,
   center,
   redrawFlag,
   isCollapsed,
-  setMapCenter,
-  renderTooltip
+  selectedWxVariable,
+  toiFromQuery,
+  setMapCenter
 }: Props) => {
   const classes = useStyles()
   const overlayRef = useRef<HTMLDivElement | null>(null)
@@ -73,6 +116,19 @@ const Map = ({
   const [map, setMap] = useState<ol.Map | null>(null)
   const [feature, setFeature] = useState<FeatureLike | null>(null)
   const [currentCenter, setCurrentCenter] = useState(center)
+
+  const { stations } = useSelector(selectFireWeatherStations)
+
+  useEffect(() => {
+    dispatch(
+      fetchWxStations(getDetailedStations, StationSource.unspecified, toiFromQuery)
+    )
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const styleFunction =
+    selectedWxVariable === AccuracyWeatherVariableEnum['Relative Humidity']
+      ? rhPointStyleFunction
+      : tempPointStyleFunction
 
   // on component mount
   useEffect(() => {
@@ -167,11 +223,51 @@ const Map = ({
     }, 100)
   }, [redrawFlag]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  const dispatch = useDispatch()
+  const renderTooltip = useCallback(
+    (feature: FeatureLike | null) => {
+      if (!feature) return null
+
+      return (
+        <div data-testid={`station-${feature.get('code')}-tooltip`}>
+          <p>
+            {feature.get('name')} ({feature.get('code')})
+          </p>
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => {
+              dispatch(selectStation(feature.get('code')))
+            }}
+            data-testid={`select-wx-station-${feature.get('code')}-button`}
+          >
+            Select
+          </Button>
+        </div>
+      )
+    },
+    [dispatch]
+  )
+
   return (
     <ErrorBoundary>
       <MapContext.Provider value={map}>
         <div ref={mapRef} className={classes.map} data-testid="map">
           {children}
+          <VectorLayer
+            source={
+              new olSource.Vector({
+                features: new GeoJSON().readFeatures(
+                  { type: 'FeatureCollection', features: stations },
+                  {
+                    featureProjection: get('EPSG:3857')
+                  }
+                )
+              })
+            }
+            style={styleFunction}
+            zIndex={1}
+          />
         </div>
         {renderTooltip && (
           <div ref={overlayRef} className="ol-popup">
