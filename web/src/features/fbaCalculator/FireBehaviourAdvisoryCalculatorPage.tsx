@@ -1,5 +1,5 @@
 import { makeStyles, Paper } from '@material-ui/core'
-import { Container, PageHeader } from 'components'
+import { Container, GeneralHeader } from 'components'
 import React from 'react'
 import FBATable from 'features/fbaCalculator/components/FBATable'
 
@@ -15,7 +15,8 @@ export const FireBehaviourAdvisoryCalculator: React.FunctionComponent = () => {
   const classes = useStyles()
   return (
     <main>
-      <PageHeader
+      <GeneralHeader
+        spacing={1}
         title="Predictive Services Unit"
         productName="Predictive Services Unit"
       />

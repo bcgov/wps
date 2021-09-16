@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { useLocation, useHistory } from 'react-router-dom'
 
-import { PageHeader, PageTitle, Container, ErrorBoundary } from 'components'
+import { PercentileHeader, PageTitle, Container, ErrorBoundary } from 'components'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import WxStationDropdown from 'features/percentileCalculator/components/WxStationDropdown'
 import { PercentileTextfield } from 'features/percentileCalculator/components/PercentileTextfield'
@@ -77,7 +77,10 @@ const PercentileCalculatorPage = () => {
 
   return (
     <main data-testid="percentile-calculator-page">
-      <PageHeader title="Predictive Services Unit" productName="Percentile Calculator" />
+      <PercentileHeader
+        title="Predictive Services Unit"
+        productName="Percentile Calculator"
+      />
       <PageTitle title="Percentile Calculator" />
       <Container>
         <WxStationDropdown stationCodes={stationCodes} onChange={setStationCodes} />
