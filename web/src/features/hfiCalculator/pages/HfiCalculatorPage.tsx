@@ -62,7 +62,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         title="Predictive Services Unit"
         productName="HFI Calculator"
       />
-      <PageTitle title="HFI Calculator" />
+      <PageTitle maxWidth={false} padding="1rem" title="HFI Calculator" />
       {loading || stationDataLoading ? (
         <Container className={classes.container}>
           <CircularProgress />

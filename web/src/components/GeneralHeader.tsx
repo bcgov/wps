@@ -13,10 +13,11 @@ const useStyles = makeStyles(theme => ({
     borderBottomStyle: 'solid',
     borderBottomColor: theme.palette.secondary.main
   },
-  container: () => ({
+  container: (props: Props) => ({
     display: 'flex',
     alignItems: 'center',
-    maxWidth: '100%'
+    maxWidth: '100%',
+    paddingLeft: props.padding
   }),
   title: {
     color: theme.palette.primary.contrastText,
@@ -36,12 +37,12 @@ interface Props {
 }
 
 export const GeneralHeader: React.FunctionComponent<Props> = (props: Props) => {
-  const { title, productName, spacing, padding } = props
+  const { title, productName, spacing } = props
   const classes = useStyles(props)
 
   return (
     <nav className={classes.root}>
-      <OptionalContainer style={{ paddingLeft: padding }} className={classes.container}>
+      <OptionalContainer className={classes.container}>
         <div className={classes.titleWrapper}>
           <HeaderImage />
           <div className={classes.title}>{title}</div>
