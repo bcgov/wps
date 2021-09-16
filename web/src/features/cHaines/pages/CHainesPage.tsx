@@ -14,7 +14,7 @@ import {
   updateSelectedPrediction,
   fetchCHainesGeoJSON
 } from 'features/cHaines/slices/cHainesModelRunsSlice'
-import { Container, PageHeader, PageTitle } from 'components'
+import { Container, GeneralHeader, PageTitle } from 'components'
 import { formatDateInPST } from 'utils/date'
 import { logError } from 'utils/error'
 import {
@@ -590,8 +590,12 @@ const CHainesPage = () => {
 
   return (
     <main>
-      <PageHeader title="Predictive Services Unit" productName="C-Haines" />
-      <PageTitle title="C-Haines - Alpha (Experimental)" />
+      <GeneralHeader
+        spacing={1}
+        title="Predictive Services Unit"
+        productName="C-Haines"
+      />
+      <PageTitle maxWidth={false} title="C-Haines - Alpha (Experimental)" />
       <Container maxWidth="xl">
         <div id="map-with-selectable-wx-stations" className={classes.map} />
         <div className={classes.controls}>
