@@ -474,6 +474,8 @@ def length_to_breadth_ratio(fuel_type: FuelTypeEnum, wind_speed: float):
     # Returns:
     #   LB: Length to Breadth ratio
     """
+    if wind_speed is None or fuel_type is None:
+        return CFFDRSException()
     # pylint: disable=protected-access, no-member
     result = CFFDRS.instance().cffdrs._LBcalc(FUELTYPE=fuel_type.value, WSV=wind_speed)
     return result[0]

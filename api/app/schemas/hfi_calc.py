@@ -29,6 +29,8 @@ class StationDaily(BaseModel):
     intensity_group: Optional[int] = None
     sixty_minute_fire_size: Optional[float] = None
     fire_type: Optional[str] = None
+    error: Optional[bool] = False
+    error_message: Optional[str] = None
 
 
 class StationDailyResponse(BaseModel):
