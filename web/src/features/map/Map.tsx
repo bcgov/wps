@@ -225,21 +225,21 @@ const Map = ({
 
   const dispatch = useDispatch()
   const renderTooltip = useCallback(
-    (feature: FeatureLike | null) => {
-      if (!feature) return null
+    (featureToRender: FeatureLike | null) => {
+      if (!featureToRender) return null
 
       return (
-        <div data-testid={`station-${feature.get('code')}-tooltip`}>
+        <div data-testid={`station-${featureToRender.get('code')}-tooltip`}>
           <p>
-            {feature.get('name')} ({feature.get('code')})
+            {featureToRender.get('name')} ({featureToRender.get('code')})
           </p>
           <Button
             variant="outlined"
             size="small"
             onClick={() => {
-              dispatch(selectStation(feature.get('code')))
+              dispatch(selectStation(featureToRender.get('code')))
             }}
-            data-testid={`select-wx-station-${feature.get('code')}-button`}
+            data-testid={`select-wx-station-${featureToRender.get('code')}-button`}
           >
             Select
           </Button>
