@@ -3,7 +3,9 @@ import { HFI_CALC_ROUTE } from '../../src/utils/constants'
 describe('HFI Calculator Page', () => {
   describe('all data exists', () => {
     beforeEach(() => {
-      cy.intercept('GET', 'api/hfi-calc/daily*', { fixture: 'hfi-calc/dailies.json' }).as('getDaily')
+      cy.intercept('GET', 'api/hfi-calc/daily*', { fixture: 'hfi-calc/dailies.json' }).as(
+        'getDaily'
+      )
       cy.intercept('GET', 'api/hfi-calc/fire-centres', {
         fixture: 'hfi-calc/fire_centres.json'
       }).as('getFireCentres')
@@ -19,9 +21,7 @@ describe('HFI Calculator Page', () => {
 
     it('should have at least 15 rows in Daily Table View', () => {
       cy.visit(HFI_CALC_ROUTE)
-      cy.getByTestId('hfi-calc-daily-table')
-        .find('tr')
-        .should('have.length.at.least', 15)
+      cy.getByTestId('hfi-calc-daily-table').find('tr').should('have.length.at.least', 15)
     })
 
     it('should display weather results, intensity groups, & prep levels in Daily View Table', () => {
@@ -51,7 +51,9 @@ describe('HFI Calculator Page', () => {
   })
   describe('dailies data are missing', () => {
     beforeEach(() => {
-      cy.intercept('GET', 'api/hfi-calc/daily*', { fixture: 'hfi-calc/dailies-missing.json' }).as('getDaily')
+      cy.intercept('GET', 'api/hfi-calc/daily*', {
+        fixture: 'hfi-calc/dailies-missing.json'
+      }).as('getDaily')
       cy.intercept('GET', 'api/hfi-calc/fire-centres', {
         fixture: 'hfi-calc/fire-centres-grass.json'
       }).as('getFireCentres')
@@ -63,12 +65,14 @@ describe('HFI Calculator Page', () => {
       cy.getByTestId('306-hfi').should('have.value', '')
       cy.getByTestId('306-1-hr-size').should('have.value', '')
       cy.getByTestId('306-intensity-group').should('have.value', '')
-      cy.getByTestId('zone-1-mig-error').should('be.visible')
+      cy.getByTestId('zone-1-mig-error').scrollIntoView().should('be.visible')
     })
   })
   describe('high intensity', () => {
     beforeEach(() => {
-      cy.intercept('GET', 'api/hfi-calc/daily*', { fixture: 'hfi-calc/dailies-high-intensity.json' }).as('getDaily')
+      cy.intercept('GET', 'api/hfi-calc/daily*', {
+        fixture: 'hfi-calc/dailies-high-intensity.json'
+      }).as('getDaily')
       cy.intercept('GET', 'api/hfi-calc/fire-centres', {
         fixture: 'hfi-calc/fire-centres-minimal.json'
       }).as('getFireCentres')
