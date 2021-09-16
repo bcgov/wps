@@ -1,10 +1,10 @@
-import { Container, MorecastHeader } from 'components'
+import { Container, GeneralHeader } from 'components'
 import React from 'react'
 
 export const NoMatchPage: React.FunctionComponent = () => {
   return (
     <main>
-      <MorecastHeader
+      <GeneralHeader
         title="Predictive Services Unit"
         productName="Predictive Services Unit"
       />

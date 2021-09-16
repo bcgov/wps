@@ -37,7 +37,7 @@ interface Props {
   padding?: number
 }
 
-export const CHainesHeader: React.FunctionComponent<Props> = (props: Props) => {
+export const GeneralHeader: React.FunctionComponent<Props> = (props: Props) => {
   const { title, productName } = props
   const classes = useStyles(props)
 

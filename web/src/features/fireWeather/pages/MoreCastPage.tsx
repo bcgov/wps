@@ -3,7 +3,7 @@ import { useDispatch } from 'react-redux'
 import { useLocation } from 'react-router-dom'
 import { makeStyles } from '@material-ui/core/styles'
 
-import { MorecastHeader } from 'components'
+import { GeneralHeader } from 'components'
 import { getStationCodesFromUrl, getTimeOfInterestFromUrl } from 'utils/url'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { fetchGlobalModelsWithBiasAdj } from 'features/fireWeather/slices/modelsSlice'
@@ -161,7 +161,7 @@ const MoreCastPage = () => {
 
   return (
     <main className={classes.main}>
-      <MorecastHeader title="MoreCast" productName="MoreCast" padding={25} />
+      <GeneralHeader title="MoreCast" productName="MoreCast" padding={25} />
       <div className={classes.nav}>
         <WxDataForm
           stationCodesQuery={codesFromQuery}
