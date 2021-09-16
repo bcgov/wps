@@ -142,6 +142,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
         </Button>
       </div>
       <FireTable
+        maxHeight={1080}
         ariaLabel="daily table view of HFI by planning area"
         testId="hfi-calc-daily-table"
       >

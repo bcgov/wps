@@ -3,17 +3,18 @@ import React from 'react'
 
 interface FireTableProps {
   ariaLabel: string
+  maxHeight: number
   children?: React.ReactNode
   testId?: string
 }
-const useStyles = makeStyles(() => ({
-  tableContainer: {
-    maxHeight: 600,
-    maxWidth: 1900
-  }
-}))
 
 const FireTable = (props: FireTableProps) => {
+  const useStyles = makeStyles(() => ({
+    tableContainer: {
+      maxHeight: props.maxHeight,
+      maxWidth: 1900
+    }
+  }))
   const classes = useStyles()
 
   return (

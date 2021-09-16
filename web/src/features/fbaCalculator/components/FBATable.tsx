@@ -366,7 +366,7 @@ const FBATable = (props: FBATableProps) => {
         </FormControl>
 
         <FireDisplayContainer testId={props.testId}>
-          <FireTable ariaLabel="Fire Behaviour Analysis table">
+          <FireTable ariaLabel="Fire Behaviour Analysis table" maxHeight={600}>
             <FBATableHead
               toggleSorting={toggleSorting}
               order={order}
