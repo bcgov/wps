@@ -58,22 +58,24 @@ const stationsSlice = createSlice({
   }
 })
 
-export const fetchWxStations = (
-  stationGetter:
-    | ((source: StationSource, toi?: string) => Promise<GeoJsonStation[]>)
-    | ((source: StationSource, toi?: string) => Promise<DetailedGeoJsonStation[]>),
-  source: StationSource = StationSource.unspecified,
-  toi?: string
-): AppThunk => async dispatch => {
-  try {
-    dispatch(getStationsStart())
-    const stations = await stationGetter(source, toi)
-    dispatch(getStationsSuccess(stations))
-  } catch (err) {
-    dispatch(getStationsFailed(err.toString()))
-    logError(err)
+export const fetchWxStations =
+  (
+    stationGetter:
+      | ((source: StationSource, toi?: string) => Promise<GeoJsonStation[]>)
+      | ((source: StationSource, toi?: string) => Promise<DetailedGeoJsonStation[]>),
+    source: StationSource = StationSource.unspecified,
+    toi?: string
+  ): AppThunk =>
+  async dispatch => {
+    try {
+      dispatch(getStationsStart())
+      const stations = await stationGetter(source, toi)
+      dispatch(getStationsSuccess(stations))
+    } catch (err) {
+      dispatch(getStationsFailed((err as Error).toString()))
+      logError(err)
+    }
   }
-}
 
 export const {
   getStationsStart,

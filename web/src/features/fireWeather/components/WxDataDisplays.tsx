@@ -251,36 +251,37 @@ interface WxDataDisplaysWrapperProps {
   stationCodes: number[]
 }
 
-const WxDataDisplaysWrapper: React.FunctionComponent<WxDataDisplaysWrapperProps> = props => {
-  const { stationsByCode } = useSelector(selectFireWeatherStations)
-  const { observationsByStation } = useSelector(selectObservations)
-  const { allModelsByStation, noonModelsByStation } = useSelector(selectModels)
-  const { modelSummariesByStation } = useSelector(selectModelSummaries)
-  const { allNoonForecastsByStation } = useSelector(selectForecasts)
-  const { forecastSummariesByStation } = useSelector(selectForecastSummaries)
-  const { allHighResModelsByStation } = useSelector(selectHighResModels)
-  const { highResModelSummariesByStation } = useSelector(selectHighResModelSummaries)
-  const { allRegionalModelsByStation } = useSelector(selectRegionalModels)
-  const { regionalModelSummariesByStation } = useSelector(selectRegionalModelSummaries)
-  const wxDataLoading = useSelector(selectWxDataLoading)
+const WxDataDisplaysWrapper: React.FunctionComponent<WxDataDisplaysWrapperProps> =
+  props => {
+    const { stationsByCode } = useSelector(selectFireWeatherStations)
+    const { observationsByStation } = useSelector(selectObservations)
+    const { allModelsByStation, noonModelsByStation } = useSelector(selectModels)
+    const { modelSummariesByStation } = useSelector(selectModelSummaries)
+    const { allNoonForecastsByStation } = useSelector(selectForecasts)
+    const { forecastSummariesByStation } = useSelector(selectForecastSummaries)
+    const { allHighResModelsByStation } = useSelector(selectHighResModels)
+    const { highResModelSummariesByStation } = useSelector(selectHighResModelSummaries)
+    const { allRegionalModelsByStation } = useSelector(selectRegionalModels)
+    const { regionalModelSummariesByStation } = useSelector(selectRegionalModelSummaries)
+    const wxDataLoading = useSelector(selectWxDataLoading)
 
-  return (
-    <WxDataDisplays
-      {...props}
-      wxDataLoading={wxDataLoading}
-      stationsByCode={stationsByCode}
-      observationsByStation={observationsByStation}
-      allModelsByStation={allModelsByStation}
-      noonModelsByStation={noonModelsByStation}
-      modelSummariesByStation={modelSummariesByStation}
-      allNoonForecastsByStation={allNoonForecastsByStation}
-      forecastSummariesByStation={forecastSummariesByStation}
-      allHighResModelsByStation={allHighResModelsByStation}
-      highResModelSummariesByStation={highResModelSummariesByStation}
-      allRegionalModelsByStation={allRegionalModelsByStation}
-      regionalModelSummariesByStation={regionalModelSummariesByStation}
-    />
-  )
-}
+    return (
+      <WxDataDisplays
+        {...props}
+        wxDataLoading={wxDataLoading}
+        stationsByCode={stationsByCode}
+        observationsByStation={observationsByStation}
+        allModelsByStation={allModelsByStation}
+        noonModelsByStation={noonModelsByStation}
+        modelSummariesByStation={modelSummariesByStation}
+        allNoonForecastsByStation={allNoonForecastsByStation}
+        forecastSummariesByStation={forecastSummariesByStation}
+        allHighResModelsByStation={allHighResModelsByStation}
+        highResModelSummariesByStation={highResModelSummariesByStation}
+        allRegionalModelsByStation={allRegionalModelsByStation}
+        regionalModelSummariesByStation={regionalModelSummariesByStation}
+      />
+    )
+  }
 
 export default WxDataDisplaysWrapper

@@ -119,9 +119,8 @@ function SortableTableByDatetime<R extends WeatherValue>(props: Props<R>) {
     setOrder(order === 'asc' ? 'desc' : 'asc')
   }
 
-  const minMaxValuesToHighlight: MinMaxValues = getMinMaxValueCalculator(
-    rowsSortedByDatetime
-  )
+  const minMaxValuesToHighlight: MinMaxValues =
+    getMinMaxValueCalculator(rowsSortedByDatetime)
   const rowIds: RowIdsOfMinMaxValues = getMinMaxValuesRowIds(
     rowsSortedByDatetime,
     minMaxValuesToHighlight

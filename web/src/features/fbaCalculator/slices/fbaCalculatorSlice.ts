@@ -55,39 +55,38 @@ export const {
 
 export default fireBehaviourStationsSlice.reducer
 
-export const fetchFireBehaviourStations = (
-  date: string,
-  fbcInputRows: FBATableRow[]
-): AppThunk => async dispatch => {
-  const fetchableFireStations = fbcInputRows.flatMap(row => {
-    const fuelTypeDetails = FuelTypes.lookup(row.fuelType?.value)
-    if (
-      isNull(fuelTypeDetails) ||
-      isUndefined(fuelTypeDetails) ||
-      isUndefined(row.weatherStation) ||
-      isEqual(row.weatherStation, 'undefined')
-    ) {
-      return []
+export const fetchFireBehaviourStations =
+  (date: string, fbcInputRows: FBATableRow[]): AppThunk =>
+  async dispatch => {
+    const fetchableFireStations = fbcInputRows.flatMap(row => {
+      const fuelTypeDetails = FuelTypes.lookup(row.fuelType?.value)
+      if (
+        isNull(fuelTypeDetails) ||
+        isUndefined(fuelTypeDetails) ||
+        isUndefined(row.weatherStation) ||
+        isEqual(row.weatherStation, 'undefined')
+      ) {
+        return []
+      }
+      return {
+        id: row.id,
+        stationCode: parseInt(row.weatherStation ? row.weatherStation.value : ''),
+        fuelType: fuelTypeDetails.name,
+        percentageConifer: fuelTypeDetails.percentage_conifer,
+        grassCurePercentage: row.grassCure,
+        percentageDeadBalsamFir: fuelTypeDetails.percentage_dead_balsam_fir,
+        crownBaseHeight: fuelTypeDetails.crown_base_height,
+        windSpeed: row.windSpeed
+      }
+    })
+    try {
+      if (!isEmpty(fetchableFireStations)) {
+        dispatch(getFireBehaviourStationsStart())
+        const fireBehaviourStations = await postFBAStations(date, fetchableFireStations)
+        dispatch(getFireBehaviourStationsSuccess(fireBehaviourStations))
+      }
+    } catch (err) {
+      dispatch(getFireBehaviourStationsFailed((err as Error).toString()))
+      logError(err)
     }
-    return {
-      id: row.id,
-      stationCode: parseInt(row.weatherStation ? row.weatherStation.value : ''),
-      fuelType: fuelTypeDetails.name,
-      percentageConifer: fuelTypeDetails.percentage_conifer,
-      grassCurePercentage: row.grassCure,
-      percentageDeadBalsamFir: fuelTypeDetails.percentage_dead_balsam_fir,
-      crownBaseHeight: fuelTypeDetails.crown_base_height,
-      windSpeed: row.windSpeed
-    }
-  })
-  try {
-    if (!isEmpty(fetchableFireStations)) {
-      dispatch(getFireBehaviourStationsStart())
-      const fireBehaviourStations = await postFBAStations(date, fetchableFireStations)
-      dispatch(getFireBehaviourStationsSuccess(fireBehaviourStations))
-    }
-  } catch (err) {
-    dispatch(getFireBehaviourStationsFailed(err.toString()))
-    logError(err)
   }
-}

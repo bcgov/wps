@@ -37,24 +37,20 @@ const dailiesSlice = createSlice({
   }
 })
 
-export const {
-  getDailiesStart,
-  getDailiesFailed,
-  getDailiesSuccess
-} = dailiesSlice.actions
+export const { getDailiesStart, getDailiesFailed, getDailiesSuccess } =
+  dailiesSlice.actions
 
 export default dailiesSlice.reducer
 
-export const fetchHFIDailies = (
-  startTime: number,
-  endTime: number
-): AppThunk => async dispatch => {
-  try {
-    dispatch(getDailiesStart())
-    const dailies = await getDailies(startTime, endTime)
-    dispatch(getDailiesSuccess(dailies))
-  } catch (err) {
-    dispatch(getDailiesFailed(err.toString()))
-    logError(err)
+export const fetchHFIDailies =
+  (startTime: number, endTime: number): AppThunk =>
+  async dispatch => {
+    try {
+      dispatch(getDailiesStart())
+      const dailies = await getDailies(startTime, endTime)
+      dispatch(getDailiesSuccess(dailies))
+    } catch (err) {
+      dispatch(getDailiesFailed((err as Error).toString()))
+      logError(err)
+    }
   }
-}

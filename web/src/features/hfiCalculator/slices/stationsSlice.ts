@@ -40,11 +40,8 @@ const stationsSlice = createSlice({
   }
 })
 
-export const {
-  getHFIStationsStart,
-  getHFIStationsFailed,
-  getHFIStationsSuccess
-} = stationsSlice.actions
+export const { getHFIStationsStart, getHFIStationsFailed, getHFIStationsSuccess } =
+  stationsSlice.actions
 
 export default stationsSlice.reducer
 
@@ -54,7 +51,7 @@ export const fetchHFIStations = (): AppThunk => async dispatch => {
     const hfiStations = await getHFIStations()
     dispatch(getHFIStationsSuccess(hfiStations))
   } catch (err) {
-    dispatch(getHFIStationsFailed(err.toString()))
+    dispatch(getHFIStationsFailed((err as Error).toString()))
     logError(err)
   }
 }

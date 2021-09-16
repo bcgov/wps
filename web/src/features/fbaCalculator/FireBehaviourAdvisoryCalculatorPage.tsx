@@ -22,10 +22,11 @@ export const FireBehaviourAdvisoryCalculator: React.FunctionComponent = () => {
       <Container maxWidth={'xl'}>
         <h1>
           {/* (🔥🦇) */}
-          Fire Behaviour Advisory Tool <b style={{ color: 'Red' }}>Prototype</b>
+          Fire Behaviour Advisory Tool
         </h1>
 
         <FBATable />
+
         <Paper className={classes.disclaimer}>
           <div>
             <h4>Disclaimers:</h4>

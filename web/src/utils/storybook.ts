@@ -256,12 +256,8 @@ const getFutureValues = () => {
   }
 }
 
-export const {
-  forecastValues,
-  modelValues,
-  highResModelValues,
-  regionalModelValues
-} = getFutureValues()
+export const { forecastValues, modelValues, highResModelValues, regionalModelValues } =
+  getFutureValues()
 
 export const {
   observedValues,
