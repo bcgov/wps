@@ -4,27 +4,35 @@ import { makeStyles } from '@material-ui/core/styles'
 import { Container } from 'components/Container'
 
 const useStyles = makeStyles(theme => ({
-  root: {
+  root: (props: Props) => ({
     maxHeight: 60,
     marginBottom: '1rem',
     paddingBottom: '1rem',
     paddingTop: '1rem',
+    paddingLeft: props.padding,
     fontSize: '1.3rem',
     background: theme.palette.primary.light,
     color: theme.palette.primary.contrastText
-  }
+  })
 }))
 
 interface Props {
   title: string
+  padding?: string
+  maxWidth?: false | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | undefined
 }
 
-export const PageTitle: React.FunctionComponent<Props> = ({ title }: Props) => {
-  const classes = useStyles()
+export const PageTitle: React.FunctionComponent<Props> = (props: Props) => {
+  const classes = useStyles(props)
+  const { title, maxWidth } = props
 
   return (
     <div className={classes.root}>
-      <Container>{title}</Container>
+      {maxWidth !== undefined ? (
+        <Container maxWidth={maxWidth}>{title}</Container>
+      ) : (
+        <Container>{title}</Container>
+      )}
     </div>
   )
 }
