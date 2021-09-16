@@ -24,9 +24,6 @@ interface FBATableHeadProps {
 }
 
 const useStyles = makeStyles({
-  tableHeaderRow: {
-    padding: '8px'
-  },
   windSpeed: {
     width: 80
   },
@@ -70,7 +67,6 @@ const FBATableHead = ({
         </StickyCell>
         <TableCell key="header-zone" sortDirection={order}>
           <TableSortLabel
-            className={classes.tableHeaderRow}
             direction={order}
             onClick={() => {
               toggleSorting(SortByColumn.Zone)
