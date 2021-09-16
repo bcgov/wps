@@ -162,59 +162,64 @@ def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
     isi = raw_daily.get('initialSpreadIndex', None)
     bui = raw_daily.get('buildUpIndex', None)
     ffmc = raw_daily.get('fineFuelMoistureCode', None)
-    fmc = cffdrs.foliar_moisture_content(
-        station.lat, station.long, station.elevation, get_julian_date_now())
-    sfc = cffdrs.surface_fuel_consumption(
-        FuelTypeEnum[fuel_type], bui, ffmc, pc)
+    cc = raw_daily.get('grasslandCuring', None)
 
-    cc = raw_daily.get('grasslandCuring')
-    if cc is None:
-        cc = FUEL_TYPE_DEFAULTS[fuel_type]["CC"]
-    ros = cffdrs.rate_of_spread(FuelTypeEnum[fuel_type], isi, bui, fmc, sfc, pc=pc,
-                                cc=cc,
-                                pdf=pdf,
-                                cbh=cbh)
-
-    cfb = None
+    # set default values in case the calculation fails (likely due to missing data)
+    fmc, sfc, ros, cfb, hfi, lb_ratio, bros, sixty_minute_fire_size,\
+        fire_type, intensity_group = None, None, None, None, None, None, None, None, None, None
     try:
+        fmc = cffdrs.foliar_moisture_content(
+            station.lat, station.long, station.elevation, get_julian_date_now())
+        sfc = cffdrs.surface_fuel_consumption(
+            FuelTypeEnum[fuel_type], bui, ffmc, pc)
+        if cc is None:
+            cc = FUEL_TYPE_DEFAULTS[fuel_type]["CC"]
+        ros = cffdrs.rate_of_spread(FuelTypeEnum[fuel_type], isi, bui, fmc, sfc, pc=pc,
+                                    cc=cc,
+                                    pdf=pdf,
+                                    cbh=cbh)
         if sfc is not None:
             cfb = calculate_cfb(FuelTypeEnum[fuel_type], fmc, sfc, ros, cbh)
-    except cffdrs.CFFDRSException as exception:
-        logger.error(exception, exc_info=True)
 
-    hfi = None
-    try:
         if ros is not None and cfb is not None and cfl is not None:
             hfi = cffdrs.head_fire_intensity(fuel_type=FuelTypeEnum[fuel_type],
                                              percentage_conifer=pc,
                                              percentage_dead_balsam_fir=pdf,
                                              ros=ros, cfb=cfb, cfl=cfl, sfc=sfc)
-    except cffdrs.CFFDRSException as exception:
-        logger.error(exception, exc_info=True)
 
-    lb_ratio = cffdrs.length_to_breadth_ratio(FuelTypeEnum[fuel_type], raw_daily.get('windSpeed', None))
-    wsv = cffdrs.calculate_wind_speed(FuelTypeEnum[fuel_type],
-                                      ffmc=ffmc,
-                                      bui=bui,
-                                      ws=raw_daily.get('windSpeed', None),
-                                      fmc=fmc,
-                                      sfc=sfc,
-                                      pc=pc,
-                                      cc=raw_daily.get('grasslandCuring', None),
-                                      pdf=pdf,
-                                      cbh=cbh,
-                                      isi=isi)
-    bros = cffdrs.back_rate_of_spread(FuelTypeEnum[fuel_type],
-                                      ffmc=ffmc,
-                                      bui=bui,
-                                      wsv=wsv,
-                                      fmc=fmc, sfc=sfc,
-                                      pc=pc,
-                                      cc=raw_daily.get('grasslandCuring', None),
-                                      pdf=pdf,
-                                      cbh=cbh)
-    sixty_minute_fire_size = get_fire_size(FuelTypeEnum[fuel_type], ros, bros, 60, cfb, lb_ratio)
-    fire_type = get_fire_type(FuelTypeEnum[fuel_type], crown_fraction_burned=cfb)
+        lb_ratio = cffdrs.length_to_breadth_ratio(FuelTypeEnum[fuel_type], raw_daily.get('windSpeed', None))
+        wsv = cffdrs.calculate_wind_speed(FuelTypeEnum[fuel_type],
+                                          ffmc=ffmc,
+                                          bui=bui,
+                                          ws=raw_daily.get('windSpeed', None),
+                                          fmc=fmc,
+                                          sfc=sfc,
+                                          pc=pc,
+                                          cc=raw_daily.get('grasslandCuring', None),
+                                          pdf=pdf,
+                                          cbh=cbh,
+                                          isi=isi)
+
+        bros = cffdrs.back_rate_of_spread(FuelTypeEnum[fuel_type],
+                                          ffmc=ffmc,
+                                          bui=bui,
+                                          wsv=wsv,
+                                          fmc=fmc, sfc=sfc,
+                                          pc=pc,
+                                          cc=raw_daily.get('grasslandCuring', None),
+                                          pdf=pdf,
+                                          cbh=cbh)
+
+        sixty_minute_fire_size = get_fire_size(FuelTypeEnum[fuel_type], ros, bros, 60, cfb, lb_ratio)
+
+        fire_type = get_fire_type(FuelTypeEnum[fuel_type], crown_fraction_burned=cfb)
+
+        if hfi is not None:
+            intensity_group = calculate_intensity_group(hfi)
+    # pylint: disable=broad-except
+    except Exception as exc:
+        logger.error('Encountered error while generating StationDaily for station %s', station.code)
+        logger.error(exc, exc_info=True)
 
     return StationDaily(
         code=station.code,
@@ -237,9 +242,11 @@ def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
         observation_valid=raw_daily.get('observationValidInd', None),
         observation_valid_comment=raw_daily.get(
             'observationValidComment', None),
-        intensity_group=calculate_intensity_group(hfi),
+        intensity_group=intensity_group,
         sixty_minute_fire_size=sixty_minute_fire_size,
-        fire_type=fire_type
+        fire_type=fire_type,
+        error=raw_daily.get('observationValidInd', None),
+        error_message=raw_daily.get('observationValidComment', None)
     )
 
 

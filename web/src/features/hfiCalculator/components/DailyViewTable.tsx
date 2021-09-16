@@ -1,7 +1,16 @@
-import React from 'react'
+import React, { ReactFragment, useState } from 'react'
 
-import { TableBody, TableCell, TableHead, TableRow, Typography } from '@material-ui/core'
-import { makeStyles } from '@material-ui/core/styles'
+import {
+  Checkbox,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  Tooltip,
+  Typography
+} from '@material-ui/core'
+import { createTheme, makeStyles, ThemeProvider } from '@material-ui/core/styles'
+import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline'
 import { FireCentre } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import { Button } from 'components'
@@ -47,6 +56,9 @@ const useStyles = makeStyles({
     fontWeight: 'bold',
     textAlign: 'center'
   },
+  unselectedStation: {
+    color: 'rgba(0,0,0,0.54)'
+  },
   controls: {
     display: 'flex',
     flexDirection: 'row',
@@ -89,7 +101,29 @@ const useStyles = makeStyles({
 export const DailyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()
 
+  const stationCodesList: number[] = []
+  props.dailiesMap.forEach(daily => {
+    stationCodesList.push(daily.code)
+  })
+
+  const [selected, setSelected] = useState<number[]>(stationCodesList)
+
   const DECIMAL_PLACES = 1
+
+  const stationCodeInSelected = (code: number) => {
+    return selected.includes(code)
+  }
+  const toggleSelectedStation = (code: number) => {
+    const selectedSet = new Set(selected)
+    if (stationCodeInSelected(code)) {
+      // remove station from selected
+      selectedSet.delete(code)
+    } else {
+      // add station to selected
+      selectedSet.add(code)
+    }
+    setSelected(Array.from(selectedSet))
+  }
 
   const formatPrepLevelByValue = (prepLevel: number | undefined) => {
     switch (prepLevel) {
@@ -127,6 +161,25 @@ export const DailyViewTable = (props: Props): JSX.Element => {
     return 4
   }
 
+  const errorIconTheme = createTheme({
+    overrides: {
+      MuiSvgIcon: {
+        root: {
+          fill: '#D8292F'
+        }
+      }
+    }
+  })
+  const toolTipSecondLine = 'Please check WFWX or contact the forecaster.'
+  const createToolTipElement = (toolTipFirstLine: string): ReactFragment => {
+    return (
+      <div>
+        {toolTipFirstLine} <br />
+        {toolTipSecondLine}
+      </div>
+    )
+  }
+
   return (
     <FireContainer testId={props.testId}>
       <div className={classes.controls}>
@@ -142,12 +195,15 @@ export const DailyViewTable = (props: Props): JSX.Element => {
         </Button>
       </div>
       <FireTable
-        maxHeight={1080}
+        maxHeight={700}
         ariaLabel="daily table view of HFI by planning area"
         testId="hfi-calc-daily-table"
       >
         <TableHead>
           <TableRow>
+            <TableCell>
+              {/* empty cell inserted for spacing purposes (aligns with checkboxes column) */}
+            </TableCell>
             <TableCell key="header-location">Location</TableCell>
             <TableCell key="header-elevation">
               Elev.
@@ -256,7 +312,8 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                   .map(([areaName, area]) => {
                     const meanIntensityGroup = calculateMeanIntensityGroup(
                       area,
-                      props.dailiesMap
+                      props.dailiesMap,
+                      selected
                     )
                     const prepLevel = calculatePrepLevel(meanIntensityGroup)
                     return (
@@ -266,12 +323,13 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                           key={`zone-${areaName}`}
                           data-testid={`zone-${areaName}`}
                         >
-                          <TableCell className={classes.planningArea} colSpan={21}>
+                          <TableCell className={classes.planningArea} colSpan={22}>
                             {area.name}
                           </TableCell>
                           <MeanIntensityGroupRollup
                             area={area}
                             dailiesMap={props.dailiesMap}
+                            selectedStations={selected}
                           ></MeanIntensityGroupRollup>
                           <TableCell
                             className={classes.fireStarts}
@@ -295,58 +353,111 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                               daily,
                               station.station_props
                             )
-
+                            const isRowSelected = stationCodeInSelected(station.code)
+                            const classNameForRow = !isRowSelected
+                              ? classes.unselectedStation
+                              : undefined
                             return (
-                              <TableRow key={`station-${stationCode}`}>
-                                <TableCell key={`station-${station.code}-name`}>
+                              <TableRow
+                                className={classNameForRow}
+                                key={`station-${stationCode}`}
+                              >
+                                <Checkbox
+                                  checked={stationCodeInSelected(station.code)}
+                                  onClick={() => toggleSelectedStation(station.code)}
+                                  data-testid={`select-station-${station.code}`}
+                                  color="primary"
+                                ></Checkbox>
+                                <TableCell
+                                  key={`station-${station.code}-name`}
+                                  className={classNameForRow}
+                                >
                                   {station.station_props.name} ({station.code})
                                 </TableCell>
-                                <TableCell key={`station-${station.code}-elevation`}>
+                                <TableCell
+                                  key={`station-${station.code}-elevation`}
+                                  className={classNameForRow}
+                                >
                                   {station.station_props.elevation}
                                 </TableCell>
-                                <TableCell key={`station-${station.code}-fuel-type`}>
+                                <TableCell
+                                  key={`station-${station.code}-fuel-type`}
+                                  className={classNameForRow}
+                                >
                                   {station.station_props.fuel_type.abbrev}
                                 </TableCell>
-                                <TableCell>{daily?.status}</TableCell>
-                                <TableCell>{daily?.temperature}</TableCell>
-                                <TableCell>{daily?.relative_humidity}</TableCell>
-                                <TableCell>
+                                {daily?.observation_valid === false ? (
+                                  <TableCell className={classNameForRow}>
+                                    <ThemeProvider theme={errorIconTheme}>
+                                      <Tooltip
+                                        title={createToolTipElement(
+                                          daily?.observation_valid_comment
+                                        )}
+                                      >
+                                        <ErrorOutlineIcon
+                                          data-testid={`status-error`}
+                                        ></ErrorOutlineIcon>
+                                      </Tooltip>
+                                    </ThemeProvider>
+                                  </TableCell>
+                                ) : (
+                                  <TableCell className={classNameForRow}>
+                                    {daily?.status}
+                                  </TableCell>
+                                )}
+                                <TableCell className={classNameForRow}>
+                                  {daily?.temperature}
+                                </TableCell>
+                                <TableCell className={classNameForRow}>
+                                  {daily?.relative_humidity}
+                                </TableCell>
+                                <TableCell className={classNameForRow}>
                                   {daily?.wind_direction?.toFixed(0).padStart(3, '0')}
                                 </TableCell>
-                                <TableCell>{daily?.wind_speed}</TableCell>
-                                <TableCell>{daily?.precipitation}</TableCell>
+                                <TableCell className={classNameForRow}>
+                                  {daily?.wind_speed}
+                                </TableCell>
+                                <TableCell className={classNameForRow}>
+                                  {daily?.precipitation}
+                                </TableCell>
                                 <GrassCureCell
                                   value={daily?.grass_cure_percentage}
                                   isGrassFuelType={isGrassFuelType(station.station_props)}
+                                  className={classNameForRow}
+                                  selected={isRowSelected}
                                 ></GrassCureCell>
-                                <TableCell>
+                                <TableCell className={classNameForRow}>
                                   {daily?.ffmc?.toFixed(DECIMAL_PLACES)}
                                 </TableCell>
-                                <TableCell>
+                                <TableCell className={classNameForRow}>
                                   {daily?.dmc?.toFixed(DECIMAL_PLACES)}
                                 </TableCell>
-                                <TableCell>
+                                <TableCell className={classNameForRow}>
                                   {daily?.dc?.toFixed(DECIMAL_PLACES)}
                                 </TableCell>
-                                <TableCell>
+                                <TableCell className={classNameForRow}>
                                   {daily?.isi?.toFixed(DECIMAL_PLACES)}
                                 </TableCell>
-                                <TableCell>
+                                <TableCell className={classNameForRow}>
                                   {daily?.bui?.toFixed(DECIMAL_PLACES)}
                                 </TableCell>
-                                <TableCell>
+                                <TableCell className={classNameForRow}>
                                   {daily?.ffmc?.toFixed(DECIMAL_PLACES)}
                                 </TableCell>
-                                <TableCell>{daily?.danger_class}</TableCell>
+                                <TableCell className={classNameForRow}>
+                                  {daily?.danger_class}
+                                </TableCell>
                                 <CalculatedCell
                                   testid={`${daily?.code}-ros`}
                                   value={daily?.rate_of_spread?.toFixed(DECIMAL_PLACES)}
                                   error={grassCureError}
+                                  className={classNameForRow}
                                 ></CalculatedCell>
                                 <CalculatedCell
                                   testid={`${daily?.code}-hfi`}
                                   value={daily?.hfi?.toFixed(DECIMAL_PLACES)}
                                   error={grassCureError}
+                                  className={classNameForRow}
                                 ></CalculatedCell>
                                 <CalculatedCell
                                   testid={`${daily?.code}-1-hr-size`}
@@ -354,16 +465,19 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                                     DECIMAL_PLACES
                                   )}
                                   error={grassCureError}
+                                  className={classNameForRow}
                                 ></CalculatedCell>
                                 <CalculatedCell
                                   testid={`${daily?.code}-fire-type`}
                                   value={daily?.fire_type}
                                   error={grassCureError}
+                                  className={classNameForRow}
                                 ></CalculatedCell>
                                 <IntensityGroupCell
                                   testid={`${daily?.code}-intensity-group`}
                                   value={daily?.intensity_group}
                                   error={grassCureError}
+                                  selected={isRowSelected}
                                 ></IntensityGroupCell>
                                 <TableCell colSpan={2}>
                                   {/* empty cell for spacing (Fire Starts & Prev Level columns) */}

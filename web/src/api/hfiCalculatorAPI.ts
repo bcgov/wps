@@ -18,7 +18,7 @@ export interface StationDaily {
   danger_class: number
   rate_of_spread: number
   hfi: number
-  observation_valid: number
+  observation_valid: boolean
   observation_valid_comment: string
   intensity_group: number
   sixty_minute_fire_size: number
