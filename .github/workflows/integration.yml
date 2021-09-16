@@ -159,7 +159,8 @@ jobs:
         run: yarn run finalizeCoverage
 
       - name: Upload test coverage to Codecov
-        uses: codecov/codecov-action@v2.1.0
+        uses: codecov/codecov-action@v2
         with:
           token: ${{secrets.CODECOV_TOKEN}}
-          # fail_ci_if_error: false
+          # we want to ensure code coverage is good, so we fail on error. (default is false)
+          fail_ci_if_error: true
