@@ -13,15 +13,15 @@ describe('IntensityGroupCell', () => {
                 testid={'value1-color1'}
                 value={1}
                 error={false}
+                selected={true}
               ></IntensityGroupCell>
             </TableRow>
           </TableBody>
         </Table>
       </TableContainer>
     )
-    expect(getByTestId('value1-color1')).toHaveClass(
-      'makeStyles-intensityGroupOutline1-1'
-    )
+    const cell = getByTestId('value1-color1')
+    expect(cell.className).toMatch(/makeStyles-intensityGroupOutline1-/)
     expect(getByText('1')).toBeDefined
   })
   it('should return cell with value 2 and color code 2', () => {
@@ -34,15 +34,15 @@ describe('IntensityGroupCell', () => {
                 testid={'value2-color2'}
                 value={2}
                 error={false}
+                selected={true}
               ></IntensityGroupCell>
             </TableRow>
           </TableBody>
         </Table>
       </TableContainer>
     )
-    expect(getByTestId('value2-color2')).toHaveClass(
-      'makeStyles-intensityGroupOutline2-7'
-    )
+    const cell = getByTestId('value2-color2')
+    expect(cell.className).toMatch(/makeStyles-intensityGroupOutline2-/)
     expect(getByText('2')).toBeDefined
   })
   it('should return cell with value 3 and color code 3', () => {
@@ -55,15 +55,15 @@ describe('IntensityGroupCell', () => {
                 testid={'value3-color3'}
                 value={3}
                 error={false}
+                selected={true}
               ></IntensityGroupCell>
             </TableRow>
           </TableBody>
         </Table>
       </TableContainer>
     )
-    expect(getByTestId('value3-color3')).toHaveClass(
-      'makeStyles-intensityGroupOutline3-13'
-    )
+    const cell = getByTestId('value3-color3')
+    expect(cell.className).toMatch(/makeStyles-intensityGroupOutline3-/)
     expect(getByText('3')).toBeDefined
   })
   it('should return cell with value 4 and color code 4', () => {
@@ -76,15 +76,15 @@ describe('IntensityGroupCell', () => {
                 testid={'value4-color4'}
                 value={4}
                 error={false}
+                selected={true}
               ></IntensityGroupCell>
             </TableRow>
           </TableBody>
         </Table>
       </TableContainer>
     )
-    expect(getByTestId('value4-color4')).toHaveClass(
-      'makeStyles-intensityGroupOutline4-19'
-    )
+    const cell = getByTestId('value4-color4')
+    expect(cell.className).toMatch(/makeStyles-intensityGroupOutline4-/)
     expect(getByText('4')).toBeDefined
   })
   it('should return cell with no value and no color coding', () => {
@@ -97,6 +97,7 @@ describe('IntensityGroupCell', () => {
                 testid={'no-value'}
                 value={undefined}
                 error={false}
+                selected={true}
               ></IntensityGroupCell>
             </TableRow>
           </TableBody>
@@ -106,5 +107,25 @@ describe('IntensityGroupCell', () => {
     expect(getByTestId('no-value')).toHaveStyle({
       border: ''
     })
+  })
+
+  it('should return cell with decreased opacity when row is deselected', () => {
+    const { getByTestId } = render(
+      <TableContainer>
+        <Table>
+          <TableBody>
+            <TableRow>
+              <IntensityGroupCell
+                testid={'not-selected'}
+                value={1}
+                error={false}
+                selected={false}
+              />
+            </TableRow>
+          </TableBody>
+        </Table>
+      </TableContainer>
+    )
+    expect(getByTestId('not-selected')).toHaveStyle({ color: 'rgba(0,0,0,0.87)' })
   })
 })

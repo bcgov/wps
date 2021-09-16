@@ -1,12 +1,14 @@
 import { TableCell, Tooltip } from '@material-ui/core'
 import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline'
-import { createTheme, ThemeProvider } from '@material-ui/core/styles'
+import { createTheme, makeStyles, ThemeProvider } from '@material-ui/core/styles'
 import React from 'react'
 import { isNull } from 'lodash'
 
 export interface GrassCureCellProps {
   value: number | null | undefined
   isGrassFuelType: boolean
+  className: string | undefined
+  selected: boolean
 }
 
 const errorIconTheme = createTheme({
@@ -16,6 +18,12 @@ const errorIconTheme = createTheme({
         fill: '#D8292F'
       }
     }
+  }
+})
+
+const useStyles = makeStyles({
+  unselectedStation: {
+    color: 'rgba(0,0,0,0.54)'
   }
 })
 
@@ -29,8 +37,9 @@ const toolTipElement = (
 )
 
 const GrassCureProps = (props: GrassCureCellProps) => {
+  const classes = useStyles()
   return isNull(props.value) && props.isGrassFuelType ? (
-    <TableCell>
+    <TableCell className={props.className}>
       <ThemeProvider theme={errorIconTheme}>
         <Tooltip
           title={toolTipElement}
@@ -41,7 +50,14 @@ const GrassCureProps = (props: GrassCureCellProps) => {
       </ThemeProvider>
     </TableCell>
   ) : (
-    <TableCell data-testid={`grass-cure`}>{props.value}</TableCell>
+    <TableCell
+      className={`${!props.selected ? classes.unselectedStation : undefined} ${
+        props.className
+      } `}
+      data-testid={`grass-cure`}
+    >
+      {props.value}
+    </TableCell>
   )
 }
 
