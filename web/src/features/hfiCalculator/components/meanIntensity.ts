@@ -20,10 +20,12 @@ export const calculateMeanIntensityGroup = (
   }
   return stationIntensityGroups.length === 0
     ? undefined
-    : Math.round(
-        (10 * stationIntensityGroups.reduce((a, b) => a + b, 0)) /
-          stationIntensityGroups.length
-      ) / 10
+    : Math.ceil(
+        Math.round(
+          (10 * stationIntensityGroups.reduce((a, b) => a + b, 0)) /
+            stationIntensityGroups.length
+        ) / 10
+      )
 }
 export const intensityGroupColours: { [description: string]: string } = {
   lightGreen: '#D6FCA4',
