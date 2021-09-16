@@ -130,7 +130,9 @@
             "observation_valid_comment": null,
             "rate_of_spread": 2.9870629014080787,
             "hfi": 2655.4892697198648,
-            "intensity_group": 4
+            "sixty_minute_fire_size": 0.5,
+            "intensity_group": 4,
+            "fire_type": "S"
         },
         {
             "code": 280,
@@ -152,7 +154,8 @@
             "observation_valid_comment": null,
             "rate_of_spread": 1.7329754357243414,
             "hfi": 1393.2603780739787,
-            "intensity_group": 3
+            "intensity_group": 3,
+            "fire_type": "IC"
         },
         {
             "code": 836,
@@ -293,7 +296,7 @@
             "relative_humidity": 35.0,
             "wind_speed": 14.0,
             "wind_direction": 230.0,
-            "grass_cure_percentage": null,
+            "grass_cure_percentage": 1,
             "precipitation": 0.0,
             "ffmc": 90.217,
             "dmc": 81.507,

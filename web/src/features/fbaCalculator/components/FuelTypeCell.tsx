@@ -17,6 +17,7 @@ interface FuelTypeCellProps {
   disabled: boolean
   rowId: number
 }
+
 const emptyLabel = 'Select a fuel type'
 const FuelTypeCell = (props: FuelTypeCellProps) => {
   const [selectedFuelType, setSelectedFuelType] = useState(props.value)
@@ -45,7 +46,7 @@ const FuelTypeCell = (props: FuelTypeCellProps) => {
   }
   return (
     <Autocomplete
-      data-testid={`fuel-type-dropdown-fba`}
+      data-testid={`fuel-type-dropdown-fba-${props.rowId}`}
       options={props.fuelTypeOptions}
       className={props.classNameMap.fuelType}
       getOptionSelected={(option, value) => isEqual(option, value)}

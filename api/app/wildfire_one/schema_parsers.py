@@ -13,7 +13,7 @@ from app.data.ecodivision_seasons import EcodivisionSeasons
 from app.schemas.observations import WeatherReading
 from app.schemas.hfi_calc import StationDaily
 from app.utils.fuel_types import FUEL_TYPE_DEFAULTS
-from app.fba_calculator import calculate_cfb
+from app.fba_calculator import calculate_cfb, get_fire_size, get_fire_type
 from app.utils.time import get_julian_date_now
 from app.wildfire_one.util import is_station_valid, get_zone_code_prefix
 
@@ -147,7 +147,9 @@ def calculate_intensity_group(hfi: float) -> int:
     return 5
 
 
-def generate_station_daily(raw_daily, station: WFWXWeatherStation, fuel_type: str) -> StationDaily:
+def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
+                           station: WFWXWeatherStation,
+                           fuel_type: str) -> StationDaily:
     """ Transform from the raw daily json object returned by wf1, to our daily object.
     """
     # pylint: disable=invalid-name
@@ -190,6 +192,30 @@ def generate_station_daily(raw_daily, station: WFWXWeatherStation, fuel_type: st
     except cffdrs.CFFDRSException as exception:
         logger.error(exception, exc_info=True)
 
+    lb_ratio = cffdrs.length_to_breadth_ratio(FuelTypeEnum[fuel_type], raw_daily.get('windSpeed', None))
+    wsv = cffdrs.calculate_wind_speed(FuelTypeEnum[fuel_type],
+                                      ffmc=ffmc,
+                                      bui=bui,
+                                      ws=raw_daily.get('windSpeed', None),
+                                      fmc=fmc,
+                                      sfc=sfc,
+                                      pc=pc,
+                                      cc=raw_daily.get('grasslandCuring', None),
+                                      pdf=pdf,
+                                      cbh=cbh,
+                                      isi=isi)
+    bros = cffdrs.back_rate_of_spread(FuelTypeEnum[fuel_type],
+                                      ffmc=ffmc,
+                                      bui=bui,
+                                      wsv=wsv,
+                                      fmc=fmc, sfc=sfc,
+                                      pc=pc,
+                                      cc=raw_daily.get('grasslandCuring', None),
+                                      pdf=pdf,
+                                      cbh=cbh)
+    sixty_minute_fire_size = get_fire_size(FuelTypeEnum[fuel_type], ros, bros, 60, cfb, lb_ratio)
+    fire_type = get_fire_type(FuelTypeEnum[fuel_type], crown_fraction_burned=cfb)
+
     return StationDaily(
         code=station.code,
         status=raw_daily.get('recordType', '').get('id', None),
@@ -211,7 +237,9 @@ def generate_station_daily(raw_daily, station: WFWXWeatherStation, fuel_type: st
         observation_valid=raw_daily.get('observationValidInd', None),
         observation_valid_comment=raw_daily.get(
             'observationValidComment', None),
-        intensity_group=calculate_intensity_group(hfi)
+        intensity_group=calculate_intensity_group(hfi),
+        sixty_minute_fire_size=sixty_minute_fire_size,
+        fire_type=fire_type
     )
 
 

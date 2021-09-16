@@ -1,14 +1,14 @@
 import { Checkbox } from '@material-ui/core'
 import React from 'react'
 
-interface SelectionCheckboxProps {
+interface SelectionCellProps {
   selected: number[]
   updateSelected: (newSelected: number[]) => void
   disabled: boolean
   rowId: number
 }
 
-const SelectionCheckbox = (props: SelectionCheckboxProps) => {
+const SelectionCell = (props: SelectionCellProps) => {
   const selectedSet = new Set(props.selected)
   return (
     <Checkbox
@@ -30,4 +30,4 @@ const SelectionCheckbox = (props: SelectionCheckboxProps) => {
   )
 }
 
-export default React.memo(SelectionCheckbox)
+export default React.memo(SelectionCell)

@@ -4,9 +4,10 @@ import VectorSource from 'ol/source/Vector'
 import { StyleLike } from 'ol/style/Style'
 
 import { MapContext } from 'features/map/Map'
+import Geometry from 'ol/geom/Geometry'
 
 interface Props {
-  source: VectorSource
+  source: VectorSource<Geometry>
   style: StyleLike
   opacity?: number
   zIndex?: number
@@ -15,7 +16,7 @@ interface Props {
 const VectorLayer = ({ source, style, opacity, zIndex = 0 }: Props) => {
   const map = useContext(MapContext)
 
-  const [layer, setLayer] = useState<OLVectorLayer | null>(null)
+  const [layer, setLayer] = useState<OLVectorLayer<VectorSource<Geometry>> | null>(null)
 
   useEffect(() => {
     if (!map) return
@@ -43,6 +44,12 @@ const VectorLayer = ({ source, style, opacity, zIndex = 0 }: Props) => {
 
     layer.setSource(source)
   }, [source]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!layer) return
+
+    layer.setStyle(style)
+  }, [style]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return null
 }

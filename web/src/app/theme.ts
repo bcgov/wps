@@ -1,9 +1,8 @@
-import { createMuiTheme } from '@material-ui/core/styles'
-
+import { createTheme } from '@material-ui/core/styles'
 // Theme documentation: https://material-ui.com/customization/palette/
 // Theme demo: https://material.io/resources/color/#!/?view.left=1&view.right=1&primary.color=003365&secondary.color=FBC02D
 // Do not export this directly for styling! theme should be accessed within makeStyles & withStyles. Use ErrorMessage.tsx as a reference
-export const theme = createMuiTheme({
+export const theme = createTheme({
   palette: {
     primary: {
       light: '#3E5C93',

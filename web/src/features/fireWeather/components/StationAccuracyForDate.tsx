@@ -25,7 +25,8 @@ const useStyles = makeStyles(theme => ({
   rowContainer: {
     display: 'flex',
     flexDirection: 'row',
-    width: '300px'
+    width: '300px',
+    justifyContent: 'flex-start'
   },
   spinner: {
     color: theme.palette.primary.light

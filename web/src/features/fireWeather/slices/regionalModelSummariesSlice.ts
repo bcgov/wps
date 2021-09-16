@@ -53,16 +53,15 @@ export const {
 
 export default regionalModelSummariesSlice.reducer
 
-export const fetchRegionalModelSummaries = (
-  stationCodes: number[],
-  timeOfInterest: string
-): AppThunk => async dispatch => {
-  try {
-    dispatch(getRegionalModelSummariesStart())
-    const summaries = await getModelSummaries(stationCodes, 'RDPS', timeOfInterest)
-    dispatch(getRegionalModelSummariesSuccess(summaries))
-  } catch (err) {
-    dispatch(getRegionalModelSummariesFailed(err.toString()))
-    logError(err)
+export const fetchRegionalModelSummaries =
+  (stationCodes: number[], timeOfInterest: string): AppThunk =>
+  async dispatch => {
+    try {
+      dispatch(getRegionalModelSummariesStart())
+      const summaries = await getModelSummaries(stationCodes, 'RDPS', timeOfInterest)
+      dispatch(getRegionalModelSummariesSuccess(summaries))
+    } catch (err) {
+      dispatch(getRegionalModelSummariesFailed((err as Error).toString()))
+      logError(err)
+    }
   }
-}

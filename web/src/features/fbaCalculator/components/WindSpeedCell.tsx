@@ -1,5 +1,5 @@
 import { TextField, Tooltip, makeStyles } from '@material-ui/core'
-import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles'
+import { createTheme, ThemeProvider } from '@material-ui/core/styles'
 import { FBATableRow } from 'features/fbaCalculator/RowManager'
 import { updateFBARow, buildUpdatedNumberRow } from 'features/fbaCalculator/tableState'
 import { isWindSpeedInvalid } from 'features/fbaCalculator/validation'
@@ -21,7 +21,7 @@ const useStyles = makeStyles({
   }
 })
 
-const adjustedTheme = createMuiTheme({
+const adjustedTheme = createTheme({
   overrides: {
     MuiInputBase: {
       root: {
@@ -76,7 +76,7 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
   const buildTextField = () => (
     <Tooltip title="Cannot exceed 120" aria-label="cannot-exceed-120">
       <TextField
-        data-testid={`windSpeedInput-fba`}
+        data-testid={`windSpeedInput-fba-${props.rowId}`}
         type="number"
         inputMode="numeric"
         className={classes.windSpeed}
