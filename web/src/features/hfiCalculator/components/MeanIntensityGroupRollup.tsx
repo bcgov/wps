@@ -14,6 +14,7 @@ import {
 export interface MeanIntensityGroupRollupProps {
   area: PlanningArea
   dailiesMap: Map<number, StationDaily>
+  selectedStations: number[]
 }
 
 const useStyles = makeStyles({
@@ -59,11 +60,22 @@ const errorIconTheme = createTheme({
   }
 })
 
-const toolTipFirstLine = 'Grass Cure % not defined in WFWX for one or more stations.'
-const toolTipSecondLine = 'Cannot calculate Mean FIG.'
-const toolTipElement = (
+const grassCureToolTipFirstLine =
+  'Grass Cure % not defined in WFWX for one or more stations.'
+const genericErrorToolTipFirstLine =
+  'Incomplete weather data in WFWX for one or more stations.'
+const toolTipSecondLine = ' Cannot calculate Mean FIG.'
+
+const grassCureErrorToolTipElement = (
   <div>
-    {toolTipFirstLine}
+    {grassCureToolTipFirstLine}
+    {toolTipSecondLine}
+  </div>
+)
+
+const genericErrorToolTipElement = (
+  <div>
+    {genericErrorToolTipFirstLine}
     {toolTipSecondLine}
   </div>
 )
@@ -71,21 +83,31 @@ const toolTipElement = (
 const MeanIntensityGroupRollup = (props: MeanIntensityGroupRollupProps) => {
   const classes = useStyles()
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const stationsWithDaily = Object.entries(props.area.stations).map(([_, station]) => ({
-    station,
-    daily: props.dailiesMap.get(station.code)
-  }))
+  const stationsWithDaily = Object.entries(props.area.stations)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    .map(([_, station]) => ({
+      station,
+      daily: props.dailiesMap.get(station.code)
+    }))
+    .filter(record => props.selectedStations.includes(record.station.code))
   const noDailyData = stationsWithDaily.every(stationDaily =>
     isUndefined(stationDaily.daily)
   )
-  const error = stationsWithDaily.reduce((prev, stationDaily) => {
+  const grassCureError = stationsWithDaily.reduce((prev, stationDaily) => {
     return (
       prev || !isValidGrassCure(stationDaily.daily, stationDaily.station.station_props)
     )
   }, false)
 
-  const meanIntensityGroup = calculateMeanIntensityGroup(props.area, props.dailiesMap)
+  const genericError = stationsWithDaily.reduce((prev, stationDaily) => {
+    return prev || stationDaily.daily?.observation_valid === false
+  }, false)
+
+  const meanIntensityGroup = calculateMeanIntensityGroup(
+    props.area,
+    props.dailiesMap,
+    props.selectedStations
+  )
   const formatAreaMeanIntensityGroupByValue = () => {
     if (meanIntensityGroup === undefined) {
       return undefined
@@ -106,27 +128,47 @@ const MeanIntensityGroupRollup = (props: MeanIntensityGroupRollupProps) => {
     }
   }
 
-  return error && !noDailyData ? (
-    <ThemeProvider theme={errorIconTheme}>
-      <Tooltip
-        title={toolTipElement}
-        aria-label={`${toolTipFirstLine} \n ${toolTipSecondLine}`}
+  if (grassCureError && !noDailyData) {
+    return (
+      <ThemeProvider theme={errorIconTheme}>
+        <Tooltip
+          title={grassCureErrorToolTipElement}
+          aria-label={`${grassCureToolTipFirstLine} \n ${toolTipSecondLine}`}
+        >
+          <div className={classes.alignErrorIcon}>
+            <ErrorOutlineIcon
+              data-testid={`zone-${props.area.id}-mig-error`}
+            ></ErrorOutlineIcon>
+          </div>
+        </Tooltip>
+      </ThemeProvider>
+    )
+  }
+  if (genericError && !noDailyData) {
+    return (
+      <ThemeProvider theme={errorIconTheme}>
+        <Tooltip
+          title={genericErrorToolTipElement}
+          aria-label={`${genericErrorToolTipFirstLine} ${toolTipSecondLine}`}
+        >
+          <div className={classes.alignErrorIcon}>
+            <ErrorOutlineIcon
+              data-testid={`zone-${props.area.id}-mig-error`}
+            ></ErrorOutlineIcon>
+          </div>
+        </Tooltip>
+      </ThemeProvider>
+    )
+  } else {
+    return (
+      <TableCell
+        className={formatAreaMeanIntensityGroupByValue()}
+        data-testid={`zone-${props.area.id}-mean-intensity`}
       >
-        <div className={classes.alignErrorIcon}>
-          <ErrorOutlineIcon
-            data-testid={`zone-${props.area.id}-mig-error`}
-          ></ErrorOutlineIcon>
-        </div>
-      </Tooltip>
-    </ThemeProvider>
-  ) : (
-    <TableCell
-      className={formatAreaMeanIntensityGroupByValue()}
-      data-testid={`zone-${props.area.id}-mean-intensity`}
-    >
-      {meanIntensityGroup}
-    </TableCell>
-  )
+        {meanIntensityGroup}
+      </TableCell>
+    )
+  }
 }
 
 export default React.memo(MeanIntensityGroupRollup)
