@@ -590,7 +590,11 @@ const CHainesPage = () => {
 
   return (
     <main>
-      <GeneralHeader title="Predictive Services Unit" productName="C-Haines" />
+      <GeneralHeader
+        spacing={1}
+        title="Predictive Services Unit"
+        productName="C-Haines"
+      />
       <PageTitle title="C-Haines - Alpha (Experimental)" />
       <Container maxWidth="xl">
         <div id="map-with-selectable-wx-stations" className={classes.map} />

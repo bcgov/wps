@@ -161,7 +161,7 @@ const MoreCastPage = () => {
 
   return (
     <main className={classes.main}>
-      <GeneralHeader title="MoreCast" productName="MoreCast" padding={25} />
+      <GeneralHeader spacing={1} title="MoreCast" productName="MoreCast" />
       <div className={classes.nav}>
         <WxDataForm
           stationCodesQuery={codesFromQuery}

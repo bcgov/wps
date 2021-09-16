@@ -16,6 +16,7 @@ export const FireBehaviourAdvisoryCalculator: React.FunctionComponent = () => {
   return (
     <main>
       <GeneralHeader
+        spacing={1}
         title="Predictive Services Unit"
         productName="Predictive Services Unit"
       />

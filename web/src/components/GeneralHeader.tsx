@@ -25,30 +25,28 @@ const useStyles = makeStyles(theme => ({
   titleWrapper: {
     display: 'flex',
     alignItems: 'center'
-  },
-  spacer: {
-    flexGrow: 1
   }
 }))
 
 interface Props {
   title: string
   productName: string
-  padding?: number
+  padding?: string
+  spacing: number
 }
 
 export const GeneralHeader: React.FunctionComponent<Props> = (props: Props) => {
-  const { title, productName } = props
+  const { title, productName, spacing, padding } = props
   const classes = useStyles(props)
 
   return (
     <nav className={classes.root}>
-      <OptionalContainer className={classes.container}>
+      <OptionalContainer style={{ paddingLeft: padding }} className={classes.container}>
         <div className={classes.titleWrapper}>
           <HeaderImage />
           <div className={classes.title}>{title}</div>
         </div>
-        <div className={classes.spacer}></div>
+        <div style={{ flexGrow: spacing }}></div>
         <Contact productName={productName}></Contact>
       </OptionalContainer>
     </nav>

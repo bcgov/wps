@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 
-
-import { Container, HFIHeader, PageTitle } from 'components'
+import { Container, GeneralHeader, PageTitle } from 'components'
 
 import DailyViewTable from 'features/hfiCalculator/components/DailyViewTable'
 import { fetchHFIStations } from '../slices/stationsSlice'
@@ -57,7 +56,12 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   return (
     <main data-testid="hfi-calculator-page">
-      <HFIHeader title="Predictive Services Unit" productName="HFI Calculator" />
+      <GeneralHeader
+        padding="3em"
+        spacing={0.985}
+        title="Predictive Services Unit"
+        productName="HFI Calculator"
+      />
       <PageTitle title="HFI Calculator" />
       {loading || stationDataLoading ? (
         <Container className={classes.container}>
