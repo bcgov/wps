@@ -31,7 +31,13 @@ The page will reload if you make edits. You will also see any lint errors in the
 
 #### `yarn test`
 
-Launches the test runner in the interactive watch mode.
+Launches the jest test runner in the interactive watch mode.
+Includes logic only unit tests and [react-testing-library](https://testing-library.com/docs/react-testing-library/intro/) component tests.
+
+#### `yarn cypress`
+
+Launches the cypress test runner in the interactive watch mode.
+Includes end-to-end / integration tests for frontend common path interactions.
 
 #### `yarn run build`
 
@@ -54,6 +60,8 @@ In `openshift/templates/global.config.yaml` there is a template for a global Con
 
 This project is licensed under the [Apache License, Version 2.0](https://github.com/bcgov/wps/blob/main/LICENSE).
 
+## Contributing
+Frontend changes should follow [MaterialUI](https://material.io) design as closely as possible, leveraging the [Material-UI React implementation library](https://mui.com), unless [decided otherwise](https://github.com/bcgov/wps/wiki/Frontend-Design-Decisions).
 ## Acknowledgments
 
 Inspiration, code snippets, etc.
