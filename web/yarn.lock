@@ -2,9 +2,8 @@
 # yarn lockfile v1
 
 
-"3d-view@^2.0.0", "3d-view@github:plotly/3d-view#v2.1.0":
+"3d-view@^2.0.0":
   version "2.1.0"
-  uid "88323cd9380e6e885ad4ec8170f065943a60f1a2"
   resolved "https://codeload.github.com/plotly/3d-view/tar.gz/88323cd9380e6e885ad4ec8170f065943a60f1a2"
   dependencies:
     matrix-camera-controller "^2.1.1"
@@ -2383,10 +2382,10 @@
   dependencies:
     "@types/geojson" "*"
 
-"@types/lodash@^4.14.168":
-  version "4.14.172"
-  resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.172.tgz#aad774c28e7bfd7a67de25408e03ee5a8c3d028a"
-  integrity sha512-/BHF5HAx3em7/KkzVKm3LrsD6HZAXuXO1AJZQ3cRRBZj4oHZDviWPYu0aEplAqDFNHZPW6d3G7KN+ONcCCC7pw==
+"@types/lodash@^4.14.173":
+  version "4.14.173"
+  resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.173.tgz#9d3b674c67a26cf673756f6aca7b429f237f91ed"
+  integrity sha512-vv0CAYoaEjCw/mLy96GBTnRoZrSxkGE0BKzKimdR8P3OzrNYNvBgtW7p055A+E8C31vXNUhWKoFCbhq7gbyhFg==
 
 "@types/luxon@^2.0.4":
   version "2.0.4"
@@ -2504,10 +2503,19 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react@*", "@types/react@^17.0.4":
+"@types/react@*":
   version "17.0.20"
   resolved "https://registry.yarnpkg.com/@types/react/-/react-17.0.20.tgz#a4284b184d47975c71658cd69e759b6bd37c3b8c"
   integrity sha512-wWZrPlihslrPpcKyCSlmIlruakxr57/buQN1RjlIeaaTWDLtJkTtRW429MoQJergvVKc4IWBpRhWw7YNh/7GVA==
+  dependencies:
+    "@types/prop-types" "*"
+    "@types/scheduler" "*"
+    csstype "^3.0.2"
+
+"@types/react@^17.0.21":
+  version "17.0.21"
+  resolved "https://registry.yarnpkg.com/@types/react/-/react-17.0.21.tgz#069c43177cd419afaab5ce26bb4e9056549f7ea6"
+  integrity sha512-GzzXCpOthOjXvrAUFQwU/svyxu658cwu00Q9ugujS4qc1zXgLFaO0kS2SLOaMWLt2Jik781yuHCWB7UcYdGAeQ==
   dependencies:
     "@types/prop-types" "*"
     "@types/scheduler" "*"
@@ -2659,7 +2667,17 @@
     eslint-scope "^5.0.0"
     eslint-utils "^2.0.0"
 
-"@typescript-eslint/parser@^4.31.0", "@typescript-eslint/parser@^4.5.0":
+"@typescript-eslint/parser@^4.31.1":
+  version "4.31.1"
+  resolved "https://registry.yarnpkg.com/@typescript-eslint/parser/-/parser-4.31.1.tgz#8f9a2672033e6f6d33b1c0260eebdc0ddf539064"
+  integrity sha512-dnVZDB6FhpIby6yVbHkwTKkn2ypjVIfAR9nh+kYsA/ZL0JlTsd22BiDjouotisY3Irmd3OW1qlk9EI5R8GrvRQ==
+  dependencies:
+    "@typescript-eslint/scope-manager" "4.31.1"
+    "@typescript-eslint/types" "4.31.1"
+    "@typescript-eslint/typescript-estree" "4.31.1"
+    debug "^4.3.1"
+
+"@typescript-eslint/parser@^4.5.0":
   version "4.31.0"
   resolved "https://registry.yarnpkg.com/@typescript-eslint/parser/-/parser-4.31.0.tgz#87b7cd16b24b9170c77595d8b1363f8047121e05"
   integrity sha512-oWbzvPh5amMuTmKaf1wp0ySxPt2ZXHnFQBN2Szu1O//7LmOvgaKTCIDNLK2NvzpmVd5A2M/1j/rujBqO37hj3w==
@@ -3831,7 +3849,6 @@ boundary-cells@^2.0.0:
 
 box-intersect@^1.0.1, "box-intersect@github:plotly/box-intersect#v1.1.0":
   version "1.1.0"
-  uid "1c21ef897c37eb69e5c1efeca7087726dd8d6a23"
   resolved "https://codeload.github.com/plotly/box-intersect/tar.gz/1c21ef897c37eb69e5c1efeca7087726dd8d6a23"
   dependencies:
     bit-twiddle "^1.0.2"
@@ -5414,9 +5431,9 @@ csstype@^2.5.2:
   integrity sha512-u1wmTI1jJGzCJzWndZo8mk4wnPTZd1eOIYTYvuEyOQGfmDl3TrabCCfKnOC86FZwW/9djqTl933UF/cS425i9A==
 
 csstype@^3.0.2:
-  version "3.0.8"
-  resolved "https://registry.yarnpkg.com/csstype/-/csstype-3.0.8.tgz#d2266a792729fb227cd216fb572f43728e1ad340"
-  integrity sha512-jXKhWqXPmlUeoQnF/EhTtTl4C9SnrxSH/jZUih3jmO6lBKr99rP3/+FmrMj4EFpOXzMtXHAZkd3x0E6h6Fgflw==
+  version "3.0.9"
+  resolved "https://registry.yarnpkg.com/csstype/-/csstype-3.0.9.tgz#6410af31b26bd0520933d02cbc64fce9ce3fbf0b"
+  integrity sha512-rpw6JPxK6Rfg1zLOYCSwle2GFOOsnjmDYDaBwEcwoOg4qlsIVCN789VkBZDJAGi4T07gI4YSutR43t9Zz4Lzuw==
 
 cubic-hermite@^1.0.0:
   version "1.0.0"
@@ -7666,10 +7683,10 @@ gl-surface3d@^1.6.0:
     surface-nets "^1.0.2"
     typedarray-pool "^1.1.0"
 
-gl-text@^1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/gl-text/-/gl-text-1.2.0.tgz#ccc91b9fb4aa862c61aab944420dafbbf01c902e"
-  integrity sha512-1X5yL8wKjyVMPenPKe7UvDAgyAOstuQ9gRfDBI3OK7ZHqHEnatTT5NaHWoY+II2ZHE35DvePxnOuayukowF0Ow==
+gl-text@^1.3.1:
+  version "1.3.1"
+  resolved "https://registry.yarnpkg.com/gl-text/-/gl-text-1.3.1.tgz#f36594464101b5b053178d6d219c3d08fb9144c8"
+  integrity sha512-/f5gcEMiZd+UTBJLTl3D+CkCB/0UFGTx3nflH8ZmyWcLkZhsZ1+Xx5YYkw2rgWAzgPeE35xCqBuHSoMKQVsR+w==
   dependencies:
     bit-twiddle "^1.0.2"
     color-normalize "^1.5.0"
@@ -8483,7 +8500,6 @@ imurmurhash@^0.1.4:
 
 incremental-convex-hull@^1.0.1, "incremental-convex-hull@github:plotly/incremental-convex-hull#v1.1.0":
   version "1.1.0"
-  uid "352d9e73861913695fd4e1a4c6ad79898c0c8268"
   resolved "https://codeload.github.com/plotly/incremental-convex-hull/tar.gz/352d9e73861913695fd4e1a4c6ad79898c0c8268"
   dependencies:
     robust-orientation "^1.1.2"
@@ -10718,14 +10734,12 @@ natural-compare@^1.4.0:
 
 ndarray-extract-contour@^1.0.0, "ndarray-extract-contour@github:plotly/ndarray-extract-contour#v1.1.0":
   version "1.1.0"
-  uid "0d8ed3a2fee873f08868c35894d608794e8e9d83"
   resolved "https://codeload.github.com/plotly/ndarray-extract-contour/tar.gz/0d8ed3a2fee873f08868c35894d608794e8e9d83"
   dependencies:
     typedarray-pool "^1.0.0"
 
 ndarray-gradient@^1.0.0, "ndarray-gradient@github:plotly/ndarray-gradient#v1.1.0":
   version "1.1.0"
-  uid c43b0856d77084cfac7c9d96c6ddc73aeddc0bd8
   resolved "https://codeload.github.com/plotly/ndarray-gradient/tar.gz/c43b0856d77084cfac7c9d96c6ddc73aeddc0bd8"
   dependencies:
     dup "^1.0.0"
@@ -10737,12 +10751,10 @@ ndarray-linear-interpolate@^1.0.0:
 
 ndarray-ops@^1.1.0, ndarray-ops@^1.2.1, ndarray-ops@^1.2.2, "ndarray-ops@github:plotly/ndarray-ops#v1.3.0":
   version "1.3.0"
-  uid afac881492696196c9966f77507558737f60c716
   resolved "https://codeload.github.com/plotly/ndarray-ops/tar.gz/afac881492696196c9966f77507558737f60c716"
 
 ndarray-pack@^1.2.1, "ndarray-pack@github:plotly/ndarray-pack#v1.3.0":
   version "1.3.0"
-  uid b0cd1f835c2b623f860a3dbb0c5709c98b30aea0
   resolved "https://codeload.github.com/plotly/ndarray-pack/tar.gz/b0cd1f835c2b623f860a3dbb0c5709c98b30aea0"
   dependencies:
     ndarray "^1.0.13"
@@ -10758,14 +10770,12 @@ ndarray-scratch@^1.2.0:
 
 ndarray-sort@^1.0.0, "ndarray-sort@github:plotly/ndarray-sort#v1.1.0":
   version "1.1.0"
-  uid "8b3c03c0c58906640a0551505601544c9775a87a"
   resolved "https://codeload.github.com/plotly/ndarray-sort/tar.gz/8b3c03c0c58906640a0551505601544c9775a87a"
   dependencies:
     typedarray-pool "^1.0.0"
 
 ndarray@^1.0.11, ndarray@^1.0.13, ndarray@^1.0.14, ndarray@^1.0.15, ndarray@^1.0.18, ndarray@^1.0.19, "ndarray@github:plotly/ndarray#v1.1.0":
   version "1.1.0"
-  uid "70ec67233be65de444307a6916aba2655e28bd84"
   resolved "https://codeload.github.com/plotly/ndarray/tar.gz/70ec67233be65de444307a6916aba2655e28bd84"
   dependencies:
     is-buffer "^1.0.2"
@@ -11688,12 +11698,11 @@ planar-graph-to-polyline@^1.0.6:
     two-product "^1.0.0"
     uniq "^1.0.0"
 
-plotly.js@^2.5.0:
-  version "2.5.0"
-  resolved "https://registry.yarnpkg.com/plotly.js/-/plotly.js-2.5.0.tgz#6998d9c4b811bc935fbbde480cc3a05edbaeaaae"
-  integrity sha512-ODaW9N7cQkFdYbXCL4B5vm7dJsvy3HlTs4ZsNqnRdbjnEjXjhpoI4zwmYnnJ37AlfuxQimWmnB9InwtNYaQ2OA==
+plotly.js@^2.5.1:
+  version "2.5.1"
+  resolved "https://registry.yarnpkg.com/plotly.js/-/plotly.js-2.5.1.tgz#9cdb05fcb3860adfc130dc6778f757ff92c04f96"
+  integrity sha512-nAQKUwO3jwh9aBq/TSTdw5le1QZvU8EgFQSgpVzq/xEnyNiNvYdcWMKM+8Ku6sji7N5FLb/mbsktrQON/n59+A==
   dependencies:
-    "3d-view" "github:plotly/3d-view#v2.1.0"
     "@plotly/d3" "3.8.0"
     "@plotly/d3-sankey" "0.7.2"
     "@plotly/d3-sankey-circular" "0.33.1"
@@ -11735,7 +11744,7 @@ plotly.js@^2.5.0:
     gl-spikes2d "^1.0.2"
     gl-streamtube3d "^1.4.1"
     gl-surface3d "^1.6.0"
-    gl-text "^1.2.0"
+    gl-text "^1.3.1"
     glslify "^7.1.1"
     has-hover "^1.0.1"
     has-passive-events "^1.0.0"
@@ -11759,18 +11768,18 @@ plotly.js@^2.5.0:
     probe-image-size "^7.2.1"
     regl "^2.1.0"
     regl-error2d "^2.0.12"
-    regl-line2d "^3.1.1"
-    regl-scatter2d "^3.2.6"
+    regl-line2d "^3.1.2"
+    regl-scatter2d "^3.2.8"
     regl-splom "^1.0.14"
     right-now "^1.0.0"
-    robust-determinant "github:plotly/robust-determinant#v1.2.0"
+    robust-determinant "github:plotly/robust-determinant#v1.2.1"
     robust-in-sphere "1.2.1"
-    robust-linear-solve "github:plotly/robust-linear-solve#v1.1.0"
+    robust-linear-solve "github:plotly/robust-linear-solve#v1.1.1"
     robust-orientation "1.2.1"
     simplicial-complex-contour "github:plotly/simplicial-complex-contour#v1.1.0"
     strongly-connected-components "^1.0.1"
     superscript-text "^1.0.0"
-    surface-nets "github:plotly/surface-nets#v1.1.0"
+    surface-nets "github:plotly/surface-nets#v1.1.1"
     svg-path-sdf "^1.1.3"
     tinycolor2 "^1.4.2"
     to-px "1.0.1"
@@ -12513,10 +12522,10 @@ prettier-linter-helpers@^1.0.0:
   dependencies:
     fast-diff "^1.1.2"
 
-prettier@^2.4.0:
-  version "2.4.0"
-  resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.4.0.tgz#85bdfe0f70c3e777cf13a4ffff39713ca6f64cba"
-  integrity sha512-DsEPLY1dE5HF3BxCRBmD4uYZ+5DCbvatnolqTqcxEgKVZnL2kUfyu7b8pPQ5+hTBkdhU9SLUmK0/pHb07RE4WQ==
+prettier@^2.4.1:
+  version "2.4.1"
+  resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.4.1.tgz#671e11c89c14a4cfc876ce564106c4a6726c9f5c"
+  integrity sha512-9fbDAXSBcc6Bs1mZrDYb3XKzDLm4EXXL9sC1LqKP5rZkT6KRr/rf9amVUcODVXgguK/isJz0d0hP72WeaKWsvA==
 
 pretty-bytes@^5.3.0, pretty-bytes@^5.6.0:
   version "5.6.0"
@@ -13266,7 +13275,7 @@ regl-error2d@^2.0.12:
     to-float32 "^1.1.0"
     update-diff "^1.1.0"
 
-regl-line2d@^3.1.1:
+regl-line2d@^3.1.2:
   version "3.1.2"
   resolved "https://registry.yarnpkg.com/regl-line2d/-/regl-line2d-3.1.2.tgz#2bedef7f44c1f7fae75c90f9918258723ca84c1c"
   integrity sha512-nmT7WWS/WxmXAQMkgaMKWXaVmwJ65KCrjbqHGOUjjqQi6shfT96YbBOvelXwO9hG7/hjvbzjtQ2UO0L3e7YaXQ==
@@ -13284,10 +13293,10 @@ regl-line2d@^3.1.1:
     pick-by-alias "^1.2.0"
     to-float32 "^1.1.0"
 
-regl-scatter2d@^3.2.3, regl-scatter2d@^3.2.6:
-  version "3.2.7"
-  resolved "https://registry.yarnpkg.com/regl-scatter2d/-/regl-scatter2d-3.2.7.tgz#03adeadd322b7ad390e2e49078f2746137ccea4d"
-  integrity sha512-0vFWVVQnl72nNuj8IC+E5fOHovSTWuW/hKDIo8WILyHQeuy2gCLefbC1HKcaSYXo25TxF77VlIRsO0DWdpO+xQ==
+regl-scatter2d@^3.2.3, regl-scatter2d@^3.2.8:
+  version "3.2.8"
+  resolved "https://registry.yarnpkg.com/regl-scatter2d/-/regl-scatter2d-3.2.8.tgz#a1360e803e3fdf628ca09a72a435a0b7d4cf5675"
+  integrity sha512-bqrqJyeHkGBa9mEfuBnRd7FUtdtZ1l+gsM2C5Ugr1U3vJG5K3mdWdVWtOAllZ5FHHyWJV/vgjVvftgFUg6CDig==
   dependencies:
     "@plotly/point-cluster" "^3.1.9"
     array-range "^1.0.1"
@@ -13569,10 +13578,10 @@ robust-compress@^1.0.0:
   resolved "https://registry.yarnpkg.com/robust-compress/-/robust-compress-1.0.0.tgz#4cf62c4b318d8308516012bb8c11752f39329b1b"
   integrity sha1-TPYsSzGNgwhRYBK7jBF1Lzkymxs=
 
-robust-determinant@^1.1.0, "robust-determinant@github:plotly/robust-determinant#v1.2.0":
-  version "1.2.0"
-  uid "9c631c6e96472e76ed9a7347041d7f4cb2bf6761"
-  resolved "https://codeload.github.com/plotly/robust-determinant/tar.gz/9c631c6e96472e76ed9a7347041d7f4cb2bf6761"
+robust-determinant@^1.1.0, "robust-determinant@github:plotly/robust-determinant#v1.2.1":
+  version "1.2.1"
+  uid "7cb499bb02411de80ae1a90e54893e46af82ca5e"
+  resolved "https://codeload.github.com/plotly/robust-determinant/tar.gz/7cb499bb02411de80ae1a90e54893e46af82ca5e"
   dependencies:
     robust-compress "^1.0.0"
     robust-scale "^1.0.0"
@@ -13597,10 +13606,10 @@ robust-in-sphere@1.2.1, robust-in-sphere@^1.1.3:
     robust-sum "^1.0.0"
     two-product "^1.0.0"
 
-robust-linear-solve@^1.0.0, "robust-linear-solve@github:plotly/robust-linear-solve#v1.1.0":
-  version "1.1.0"
-  uid "467e63853031691dfe0f0dff87d06a4322dd95c5"
-  resolved "https://codeload.github.com/plotly/robust-linear-solve/tar.gz/467e63853031691dfe0f0dff87d06a4322dd95c5"
+robust-linear-solve@^1.0.0, "robust-linear-solve@github:plotly/robust-linear-solve#v1.1.1":
+  version "1.1.1"
+  uid "90ad6de2ce011a1e0b53d9e9f6bf8d117053c492"
+  resolved "https://codeload.github.com/plotly/robust-linear-solve/tar.gz/90ad6de2ce011a1e0b53d9e9f6bf8d117053c492"
   dependencies:
     robust-determinant "^1.1.0"
 
@@ -14053,7 +14062,6 @@ simplicial-complex-boundary@^1.0.0:
 
 simplicial-complex-contour@^1.0.2, "simplicial-complex-contour@github:plotly/simplicial-complex-contour#v1.1.0":
   version "1.1.0"
-  uid "3c09d0c163385b874fedc0a366b29b6e713bfd99"
   resolved "https://codeload.github.com/plotly/simplicial-complex-contour/tar.gz/3c09d0c163385b874fedc0a366b29b6e713bfd99"
   dependencies:
     ndarray "^1.0.15"
@@ -14754,10 +14762,10 @@ supports-hyperlinks@^2.0.0:
     has-flag "^4.0.0"
     supports-color "^7.0.0"
 
-surface-nets@^1.0.0, surface-nets@^1.0.2, "surface-nets@github:plotly/surface-nets#v1.1.0":
-  version "1.1.0"
-  uid "3f66a813cb54b31ea8de47ab242549e22370a51e"
-  resolved "https://codeload.github.com/plotly/surface-nets/tar.gz/3f66a813cb54b31ea8de47ab242549e22370a51e"
+surface-nets@^1.0.0, surface-nets@^1.0.2, "surface-nets@github:plotly/surface-nets#v1.1.1":
+  version "1.1.1"
+  uid d80900ed4c39a1b07f9d8577180960945236d996
+  resolved "https://codeload.github.com/plotly/surface-nets/tar.gz/d80900ed4c39a1b07f9d8577180960945236d996"
   dependencies:
     ndarray-extract-contour "^1.0.0"
     zero-crossings "^1.0.0"
@@ -16420,5 +16428,4 @@ yocto-queue@^0.1.0:
 
 zero-crossings@^1.0.0, "zero-crossings@github:plotly/zero-crossings#v1.1.0":
   version "1.1.0"
-  uid "4746771f490344e21c84d1f631cb661d8c5ff508"
   resolved "https://codeload.github.com/plotly/zero-crossings/tar.gz/4746771f490344e21c84d1f631cb661d8c5ff508"

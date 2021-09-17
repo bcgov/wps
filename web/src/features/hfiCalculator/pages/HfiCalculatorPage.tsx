@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 
-import { Container, PageHeader, PageTitle } from 'components'
+import { Container, GeneralHeader, PageTitle } from 'components'
+
 import DailyViewTable from 'features/hfiCalculator/components/DailyViewTable'
 import { fetchHFIStations } from '../slices/stationsSlice'
 import { fetchHFIDailies } from '../slices/hfiCalculatorSlice'
@@ -11,16 +12,17 @@ import {
   selectHFIStations,
   selectHFIStationsLoading
 } from 'app/rootReducer'
-import { makeStyles, CircularProgress } from '@material-ui/core'
+import { CircularProgress, makeStyles } from '@material-ui/core'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 
+const useStyles = makeStyles({
+  container: {
+    display: 'flex',
+    justifyContent: 'center'
+  }
+})
+
 const HfiCalculatorPage: React.FunctionComponent = () => {
-  const useStyles = makeStyles({
-    container: {
-      display: 'flex',
-      justifyContent: 'center'
-    }
-  })
   const classes = useStyles()
 
   const dispatch = useDispatch()
@@ -54,12 +56,19 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   return (
     <main data-testid="hfi-calculator-page">
-      <PageHeader title="Predictive Services Unit" productName="HFI Calculator" />
-      <PageTitle title="HFI Calculator" />
-      <Container className={classes.container}>
-        {loading || stationDataLoading ? (
+      <GeneralHeader
+        padding="3em"
+        spacing={0.985}
+        title="Predictive Services Unit"
+        productName="HFI Calculator"
+      />
+      <PageTitle maxWidth={false} padding="1rem" title="HFI Calculator" />
+      {loading || stationDataLoading ? (
+        <Container className={classes.container}>
           <CircularProgress />
-        ) : (
+        </Container>
+      ) : (
+        <Container maxWidth={'xl'}>
           <DailyViewTable
             title="HFI Calculator Daily View"
             testId="hfi-calc-daily-table"
@@ -69,8 +78,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
             previousDay={previousDay}
             nextDay={nextDay}
           />
-        )}
-      </Container>
+        </Container>
+      )}
     </main>
   )
 }
