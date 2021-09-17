@@ -55,8 +55,8 @@ export const FireBehaviourAdvisoryCalculator: React.FunctionComponent = () => {
               Canada Fire Danger Group, Information Report ST-X-3, 1992.
             </p>
             <p>
-              If you have any questions or curiosities, send us an{' '}
-              <a href="mailto: bcws.predictiveservices@gov.bc.ca">email.</a>
+              If you have any questions about how values are calculated, please{' '}
+              <a href="mailto: bcws.predictiveservices@gov.bc.ca">contact us.</a>
             </p>
           </div>
         </Paper>
