@@ -3,8 +3,9 @@ import React, { useEffect, useState } from 'react'
 import { Container, GeneralHeader, PageTitle } from 'components'
 
 import DailyViewTable from 'features/hfiCalculator/components/DailyViewTable'
-import { fetchHFIStations } from '../slices/stationsSlice'
-import { fetchHFIDailies } from '../slices/hfiCalculatorSlice'
+import DatePicker from 'components/DatePicker'
+import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
+import { fetchHFIDailies } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { useDispatch, useSelector } from 'react-redux'
 import { DateTime } from 'luxon'
 import {
@@ -12,7 +13,7 @@ import {
   selectHFIStations,
   selectHFIStationsLoading
 } from 'app/rootReducer'
-import { CircularProgress, makeStyles } from '@material-ui/core'
+import { CircularProgress, FormControl, makeStyles } from '@material-ui/core'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 
 const useStyles = makeStyles({
@@ -47,6 +48,18 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     setCurrentDay(currentDay.plus({ days: 1 }))
   }
 
+  const updateDate = () => {
+    dispatch(
+      fetchHFIDailies(
+        currentDay.startOf('day').toUTC().valueOf(),
+        currentDay.endOf('day').toUTC().valueOf()
+      )
+    )
+  }
+  const onDateChange = (value: string) => {
+    setCurrentDay(DateTime.fromISO(value))
+  }
+
   const dailiesMap = new Map<number, StationDaily>()
   if (dailies !== undefined) {
     dailies.forEach(daily => {
@@ -69,12 +82,18 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         </Container>
       ) : (
         <Container maxWidth={'xl'}>
+          <FormControl>
+            <DatePicker
+              date={currentDay.toString()}
+              onChange={onDateChange}
+              updateDate={updateDate}
+            />
+          </FormControl>
           <DailyViewTable
-            title="HFI Calculator Daily View"
             testId="hfi-calc-daily-table"
             fireCentres={fireCentres}
             dailiesMap={dailiesMap}
-            currentDay={currentDay.toLocaleString()}
+            currentDay={currentDay.toString()}
             previousDay={previousDay}
             nextDay={nextDay}
           />
