@@ -2,7 +2,7 @@ import { TableCell } from '@material-ui/core'
 import { Skeleton } from '@material-ui/lab'
 import React from 'react'
 
-interface LoadingIndicatorCellProps {
+export interface LoadingIndicatorCellProps {
   loading: boolean
   rowUpdating: boolean
   initialLoad: boolean
