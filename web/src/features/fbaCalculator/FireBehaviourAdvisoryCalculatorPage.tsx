@@ -54,6 +54,12 @@ export const FireBehaviourAdvisoryCalculator: React.FunctionComponent = () => {
               of the Canadian Forest Fire Behaviour Prediction System&quot; from Forestry
               Canada Fire Danger Group, Information Report ST-X-3, 1992.
             </p>
+            <p>
+              If you have any questions about how values are calculated, please{' '}
+              <a href="mailto: bcws.predictiveservices@gov.bc.ca? subject= Predictive Services Unit - Fire Behaviour Advisory Calculator">
+                contact us.
+              </a>
+            </p>
           </div>
         </Paper>
       </Container>
