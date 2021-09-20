@@ -28,8 +28,6 @@ export interface Props {
   fireCentres: Record<string, FireCentre>
   dailiesMap: Map<number, StationDaily>
   currentDay: string
-  previousDay: () => void
-  nextDay: () => void
   testId?: string
 }
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 
 import { Container, GeneralHeader, PageTitle } from 'components'
 
@@ -30,34 +30,16 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const { dailies, loading } = useSelector(selectHFIDailies)
   const { fireCentres } = useSelector(selectHFIStations)
   const stationDataLoading = useSelector(selectHFIStationsLoading)
-  const [currentDay, setCurrentDay] = useState(DateTime.now())
-
-  useEffect(() => {
-    const startTime = currentDay.startOf('day').toUTC().valueOf()
-    const endTime = currentDay.endOf('day').toUTC().valueOf()
-    dispatch(fetchHFIDailies(startTime, endTime))
-    dispatch(fetchHFIStations())
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentDay])
-
-  const previousDay = () => {
-    setCurrentDay(currentDay.minus({ days: 1 }))
-  }
-
-  const nextDay = () => {
-    setCurrentDay(currentDay.plus({ days: 1 }))
-  }
+  const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().toISODate())
 
   const updateDate = () => {
     dispatch(
       fetchHFIDailies(
-        currentDay.startOf('day').toUTC().valueOf(),
-        currentDay.endOf('day').toUTC().valueOf()
+        DateTime.fromISO(dateOfInterest).startOf('day').toUTC().valueOf(),
+        DateTime.fromISO(dateOfInterest).endOf('day').toUTC().valueOf()
       )
     )
-  }
-  const onDateChange = (value: string) => {
-    setCurrentDay(DateTime.fromISO(value))
+    dispatch(fetchHFIStations())
   }
 
   const dailiesMap = new Map<number, StationDaily>()
@@ -84,8 +66,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         <Container maxWidth={'xl'}>
           <FormControl>
             <DatePicker
-              date={currentDay.toString()}
-              onChange={onDateChange}
+              date={dateOfInterest}
+              onChange={setDateOfInterest}
               updateDate={updateDate}
             />
           </FormControl>
@@ -93,9 +75,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
             testId="hfi-calc-daily-table"
             fireCentres={fireCentres}
             dailiesMap={dailiesMap}
-            currentDay={currentDay.toString()}
-            previousDay={previousDay}
-            nextDay={nextDay}
+            currentDay={dateOfInterest}
           />
         </Container>
       )}
