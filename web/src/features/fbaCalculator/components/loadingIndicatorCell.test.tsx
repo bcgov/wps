@@ -10,11 +10,7 @@ describe('LoadingIndicatorCell', () => {
         <Table>
           <TableBody>
             <TableRow>
-              <LoadingIndicatorCell
-                loading={false}
-                rowUpdating={false}
-                initialLoad={true}
-              >
+              <LoadingIndicatorCell loading={true} rowUpdating={false} initialLoad={true}>
                 <TableCell data-testid="child"></TableCell>
               </LoadingIndicatorCell>
             </TableRow>
@@ -73,6 +69,27 @@ describe('LoadingIndicatorCell', () => {
                 loading={false}
                 rowUpdating={false}
                 initialLoad={false}
+              >
+                <TableCell data-testid="child"></TableCell>
+              </LoadingIndicatorCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </TableContainer>
+    )
+    expect(queryAllByTestId('loading-indicator-fba').length === 0)
+    expect(getByTestId('child')).toBeVisible()
+  })
+  it('should not be loading on when nothing is loading, but initialLoad is true', () => {
+    const { getByTestId, queryAllByTestId } = render(
+      <TableContainer>
+        <Table>
+          <TableBody>
+            <TableRow>
+              <LoadingIndicatorCell
+                loading={false}
+                rowUpdating={false}
+                initialLoad={true}
               >
                 <TableCell data-testid="child"></TableCell>
               </LoadingIndicatorCell>

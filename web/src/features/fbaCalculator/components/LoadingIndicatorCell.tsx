@@ -10,7 +10,8 @@ interface LoadingIndicatorCellProps {
 }
 
 const LoadingIndicatorCell = (props: LoadingIndicatorCellProps) => {
-  const showLoadingIndicator = (props.loading && props.rowUpdating) || props.initialLoad
+  const showLoadingIndicator =
+    (props.loading && props.rowUpdating) || (props.initialLoad && props.loading)
   return (
     <React.Fragment>
       {showLoadingIndicator ? (
