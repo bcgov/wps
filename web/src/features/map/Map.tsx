@@ -1,6 +1,6 @@
 import 'ol/ol.css'
 
-import React, { useRef, useState, useEffect } from 'react'
+import React, { useRef, useState, useEffect, useCallback } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import * as ol from 'ol'
 import { toLonLat } from 'ol/proj'
@@ -9,11 +9,16 @@ import OLOverlay from 'ol/Overlay'
 import { MapOptions } from 'ol/PluggableMap'
 import { defaults as defaultControls } from 'ol/control'
 
-import { ErrorBoundary } from 'components'
+import { Button, ErrorBoundary } from 'components'
 import { ObjectEvent } from 'ol/Object'
+import { useDispatch } from 'react-redux'
+import { AccuracyWeatherVariableEnum } from 'features/fireWeather/components/AccuracyVariablePicker'
+import { selectStation } from 'features/stations/slices/stationsSlice'
+import FireIndicesVectorLayer from 'features/fireWeather/components/maps/FireIndicesVectorLayer'
+
+const zoom = 6
 
 export const MapContext = React.createContext<ol.Map | null>(null)
-
 export interface RedrawCommand {
   redraw: boolean
 }
@@ -50,22 +55,22 @@ const useStyles = makeStyles({
 
 interface Props {
   children: React.ReactNode
-  zoom: number
   center: number[]
   isCollapsed: boolean
+  selectedWxVariable: AccuracyWeatherVariableEnum
+  toiFromQuery: string
   setMapCenter: (newCenter: number[]) => void
   redrawFlag?: RedrawCommand
-  renderTooltip?: (feature: FeatureLike | null) => React.ReactNode
 }
 
 const Map = ({
   children,
-  zoom,
   center,
   redrawFlag,
   isCollapsed,
-  setMapCenter,
-  renderTooltip
+  selectedWxVariable,
+  toiFromQuery,
+  setMapCenter
 }: Props) => {
   const classes = useStyles()
   const overlayRef = useRef<HTMLDivElement | null>(null)
@@ -167,11 +172,41 @@ const Map = ({
     }, 100)
   }, [redrawFlag]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  const dispatch = useDispatch()
+  const renderTooltip = useCallback(
+    (featureToRender: FeatureLike | null) => {
+      if (!featureToRender) return null
+
+      return (
+        <div data-testid={`station-${featureToRender.get('code')}-tooltip`}>
+          <p>
+            {featureToRender.get('name')} ({featureToRender.get('code')})
+          </p>
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => {
+              dispatch(selectStation(featureToRender.get('code')))
+            }}
+            data-testid={`select-wx-station-${featureToRender.get('code')}-button`}
+          >
+            Select
+          </Button>
+        </div>
+      )
+    },
+    [dispatch]
+  )
+
   return (
     <ErrorBoundary>
       <MapContext.Provider value={map}>
         <div ref={mapRef} className={classes.map} data-testid="map">
           {children}
+          <FireIndicesVectorLayer
+            toiFromQuery={toiFromQuery}
+            selectedWxVariable={selectedWxVariable}
+          />
         </div>
         {renderTooltip && (
           <div ref={overlayRef} className="ol-popup">
