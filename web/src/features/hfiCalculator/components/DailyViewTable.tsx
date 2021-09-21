@@ -202,12 +202,12 @@ export const DailyViewTable = (props: Props): JSX.Element => {
       >
         <TableHead>
           <TableRow>
-            <StickyCell left={0} zIndexOffset={1}>
+            <StickyCell left={0} zIndexOffset={2}>
               <TableCell>
                 {/* empty cell inserted for spacing purposes (aligns with checkboxes column) */}
               </TableCell>
             </StickyCell>
-            <StickyCell left={50} zIndexOffset={1}>
+            <StickyCell left={50} zIndexOffset={2}>
               <TableCell key="header-location">Location</TableCell>
             </StickyCell>
             <TableCell key="header-elevation">
