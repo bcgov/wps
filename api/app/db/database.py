@@ -10,19 +10,19 @@ from .. import config
 
 logger = logging.getLogger(__name__)
 
-DB_WRITE_STRING = 'postgresql://{}:{}@{}:{}/{}'.format(
-    config.get('POSTGRES_WRITE_USER', 'wps'),
-    config.get('POSTGRES_PASSWORD', 'wps'),
-    config.get('POSTGRES_WRITE_HOST', 'localhost'),
-    config.get('POSTGRES_PORT', '5432'),
-    config.get('POSTGRES_DATABASE', 'wps'))
+DB_WRITE_STRING = f"postgresql://\
+    {config.get('POSTGRES_WRITE_USER', 'wps')}:\
+    {config.get('POSTGRES_PASSWORD', 'wps')}@\
+    {config.get('POSTGRES_WRITE_HOST', 'localhost')}:\
+    {config.get('POSTGRES_PORT', '5432')}/\
+    {config.get('POSTGRES_DATABASE', 'wps')}"
 
-DB_READ_STRING = 'postgresql://{}:{}@{}:{}/{}'.format(
-    config.get('POSTGRES_READ_USER', 'wpsread'),
-    config.get('POSTGRES_PASSWORD', 'wps'),
-    config.get('POSTGRES_READ_HOST', 'localhost'),
-    config.get('POSTGRES_PORT', '5432'),
-    config.get('POSTGRES_DATABASE', 'wps'))
+DB_READ_STRING = f"postgresql://\
+    {config.get('POSTGRES_READ_USER', 'wpsread')}:\
+    {config.get('POSTGRES_PASSWORD', 'wps')}@\
+    {config.get('POSTGRES_READ_HOST', 'localhost')}:\
+    {config.get('POSTGRES_PORT', '5432')}/\
+    {config.get('POSTGRES_DATABASE', 'wps')}"
 
 # connect to database - defaulting to always use utc timezone
 _write_engine = create_engine(DB_WRITE_STRING, connect_args={

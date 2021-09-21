@@ -84,11 +84,11 @@ def open_placemark(model: ModelEnum, severity: SeverityEnum, timestamp: datetime
     else:
         end = timestamp + timedelta(hours=1)
     kml.append('<TimeSpan>')
-    kml.append('<begin>{}</begin>'.format(timestamp.isoformat()))
-    kml.append('<end>{}</end>'.format(end.isoformat()))
+    kml.append(f"<begin>{timestamp.isoformat()}</begin>")
+    kml.append(f"<end>{end.isoformat()}</end>")
     kml.append('</TimeSpan>')
-    kml.append('<styleUrl>#{}</styleUrl>'.format(get_severity_style(severity)))
-    kml.append('<name>{}</name>'.format(severity_text_map[severity]))
+    kml.append(f"<styleUrl>#{get_severity_style(severity)}</styleUrl>")
+    kml.append(f"<name>{severity_text_map[severity]}</name>")
     kml.append('<MultiGeometry>')
     return "\n".join(kml)
 
@@ -103,13 +103,13 @@ def close_placemark() -> str:
 
 def add_style(kml, style_id, color):
     """ Add kml <Style> tag """
-    kml.append('<Style id="{}">'.format(style_id))
+    kml.append(f'<Style id="{style_id}">')
     kml.append('<LineStyle>')
     kml.append('<width>1.5</width>')
-    kml.append('<color>{}</color>'.format(color))
+    kml.append(f'<color>{color}</color>')
     kml.append('</LineStyle>')
     kml.append('<PolyStyle>')
-    kml.append('<color>{}</color>'.format(color))
+    kml.append('<color>{color}</color>')
     kml.append('</PolyStyle>')
     kml.append('</Style>')
 
@@ -217,9 +217,9 @@ def generate_kml_prediction(result: Iterator[list], model: ModelEnum, model_run_
     """
     yield get_kml_header()
     kml = []
-    kml.append('<name>{} {} {}</name>'.format(model.value, model_run_timestamp, prediction_timestamp))
+    kml.append(f'<name>{model.value} {model_run_timestamp} {prediction_timestamp}</name>')
     kml.append(f'{FOLDER_OPEN}')
-    kml.append('<name>{} {} {}</name>'.format(model.value, model_run_timestamp, prediction_timestamp))
+    kml.append(f'<name>{model.value} {model_run_timestamp} {prediction_timestamp}</name>')
     yield "\n".join(kml)
     kml = []
     prev_severity = None

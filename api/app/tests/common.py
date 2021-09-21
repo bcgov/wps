@@ -89,7 +89,7 @@ class MockAsyncResponse:
 
 class DefaultMockAioSession:
     """ Mock aiobotocore.session.AioSession """
-    # pylint: disable=unused-argument
+    # pylint: disable=unused-argument, no-self-use
 
     @asynccontextmanager
     async def create_client(self, *args, **kwargs):
@@ -112,7 +112,7 @@ class DefaultMockAioBaseClient:
         """ mock list objects """
         if kwargs.get('Prefix') in self.mock_list_objects_v2_lookup:
             return self.mock_list_objects_v2_lookup[kwargs.get('Prefix')]
-        raise NotImplementedError('no lookup for {}'.format(kwargs.get('Prefix')))
+        raise NotImplementedError(f"no lookup for {kwargs.get('Prefix')}")
 
     async def put_object(self, *args, **kwargs) -> dict:
         """ mock put object """
