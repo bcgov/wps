@@ -10,8 +10,7 @@ export interface LoadingIndicatorCellProps {
 }
 
 const LoadingIndicatorCell = (props: LoadingIndicatorCellProps) => {
-  const showLoadingIndicator =
-    (props.loading && props.rowUpdating) || (props.initialLoad && props.loading)
+  const showLoadingIndicator = props.loading && (props.rowUpdating || props.initialLoad)
   return (
     <React.Fragment>
       {showLoadingIndicator ? (
