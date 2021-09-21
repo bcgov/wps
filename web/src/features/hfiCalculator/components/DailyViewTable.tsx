@@ -27,7 +27,6 @@ export interface Props {
   title?: string
   fireCentres: Record<string, FireCentre>
   dailiesMap: Map<number, StationDaily>
-  currentDay: string
   testId?: string
 }
 

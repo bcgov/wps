@@ -85,7 +85,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
             testId="hfi-calc-daily-table"
             fireCentres={fireCentres}
             dailiesMap={dailiesMap}
-            currentDay={dateOfInterest}
           />
         </Container>
       )}
