@@ -15,6 +15,7 @@ import {
 } from 'app/rootReducer'
 import { CircularProgress, FormControl, makeStyles } from '@material-ui/core'
 import { StationDaily } from 'api/hfiCalculatorAPI'
+import { useEffect } from 'react'
 
 const useStyles = makeStyles({
   container: {
@@ -48,6 +49,16 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       dailiesMap.set(daily.code, daily)
     })
   }
+
+  useEffect(() => {
+    dispatch(fetchHFIStations())
+    dispatch(
+      fetchHFIDailies(
+        DateTime.fromISO(dateOfInterest).startOf('day').toUTC().valueOf(),
+        DateTime.fromISO(dateOfInterest).endOf('day').toUTC().valueOf()
+      )
+    )
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <main data-testid="hfi-calculator-page">
