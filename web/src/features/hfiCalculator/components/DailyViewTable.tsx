@@ -23,6 +23,7 @@ import CalculatedCell from 'features/hfiCalculator/components/CalculatedCell'
 import IntensityGroupCell from 'features/hfiCalculator/components/IntensityGroupCell'
 import FireTable from 'components/FireTable'
 import FireContainer from 'components/FireDisplayContainer'
+import StickyCell from 'features/fbaCalculator/components/StickyCell'
 
 export interface Props {
   title: string
@@ -201,10 +202,14 @@ export const DailyViewTable = (props: Props): JSX.Element => {
       >
         <TableHead>
           <TableRow>
-            <TableCell>
-              {/* empty cell inserted for spacing purposes (aligns with checkboxes column) */}
-            </TableCell>
-            <TableCell key="header-location">Location</TableCell>
+            <StickyCell left={0} zIndexOffset={1}>
+              <TableCell>
+                {/* empty cell inserted for spacing purposes (aligns with checkboxes column) */}
+              </TableCell>
+            </StickyCell>
+            <StickyCell left={50} zIndexOffset={1}>
+              <TableCell key="header-location">Location</TableCell>
+            </StickyCell>
             <TableCell key="header-elevation">
               Elev.
               <br />
@@ -362,18 +367,30 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                                 className={classNameForRow}
                                 key={`station-${stationCode}`}
                               >
-                                <Checkbox
-                                  checked={stationCodeInSelected(station.code)}
-                                  onClick={() => toggleSelectedStation(station.code)}
-                                  data-testid={`select-station-${station.code}`}
-                                  color="primary"
-                                ></Checkbox>
-                                <TableCell
-                                  key={`station-${station.code}-name`}
-                                  className={classNameForRow}
+                                <StickyCell
+                                  left={0}
+                                  zIndexOffset={1}
+                                  backgroundColor="#FFFFFF"
                                 >
-                                  {station.station_props.name} ({station.code})
-                                </TableCell>
+                                  <Checkbox
+                                    checked={stationCodeInSelected(station.code)}
+                                    onClick={() => toggleSelectedStation(station.code)}
+                                    data-testid={`select-station-${station.code}`}
+                                    color="primary"
+                                  ></Checkbox>
+                                </StickyCell>
+                                <StickyCell
+                                  left={50}
+                                  zIndexOffset={1}
+                                  backgroundColor="#FFFFFF"
+                                >
+                                  <TableCell
+                                    key={`station-${station.code}-name`}
+                                    className={classNameForRow}
+                                  >
+                                    {station.station_props.name} ({station.code})
+                                  </TableCell>
+                                </StickyCell>
                                 <TableCell
                                   key={`station-${station.code}-elevation`}
                                   className={classNameForRow}
