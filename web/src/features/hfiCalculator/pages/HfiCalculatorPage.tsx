@@ -16,12 +16,16 @@ import {
 import { CircularProgress, FormControl, makeStyles } from '@material-ui/core'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(theme => ({
   container: {
     display: 'flex',
     justifyContent: 'center'
+  },
+  formControl: {
+    margin: theme.spacing(1),
+    minWidth: 210
   }
-})
+}))
 
 const HfiCalculatorPage: React.FunctionComponent = () => {
   const classes = useStyles()
@@ -31,15 +35,20 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const { fireCentres } = useSelector(selectHFIStations)
   const stationDataLoading = useSelector(selectHFIStationsLoading)
   const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().toISODate())
+  const [previouslySelectedDateOfInterest, setPreviouslySelectedDateOfInterest] =
+    useState(DateTime.now().toISODate())
 
   const updateDate = () => {
-    dispatch(
-      fetchHFIDailies(
-        DateTime.fromISO(dateOfInterest).startOf('day').toUTC().valueOf(),
-        DateTime.fromISO(dateOfInterest).endOf('day').toUTC().valueOf()
+    if (previouslySelectedDateOfInterest !== dateOfInterest) {
+      dispatch(
+        fetchHFIDailies(
+          DateTime.fromISO(dateOfInterest).startOf('day').toUTC().valueOf(),
+          DateTime.fromISO(dateOfInterest).endOf('day').toUTC().valueOf()
+        )
       )
-    )
-    dispatch(fetchHFIStations())
+      dispatch(fetchHFIStations())
+      setPreviouslySelectedDateOfInterest(dateOfInterest)
+    }
   }
 
   const dailiesMap = new Map<number, StationDaily>()
@@ -74,7 +83,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         </Container>
       ) : (
         <Container maxWidth={'xl'}>
-          <FormControl>
+          <FormControl className={classes.formControl}>
             <DatePicker
               date={dateOfInterest}
               onChange={setDateOfInterest}
