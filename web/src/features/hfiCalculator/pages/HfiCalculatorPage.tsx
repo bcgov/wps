@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
 import { Container, GeneralHeader, PageTitle } from 'components'
 
@@ -15,7 +15,6 @@ import {
 } from 'app/rootReducer'
 import { CircularProgress, FormControl, makeStyles } from '@material-ui/core'
 import { StationDaily } from 'api/hfiCalculatorAPI'
-import { useEffect } from 'react'
 
 const useStyles = makeStyles({
   container: {
