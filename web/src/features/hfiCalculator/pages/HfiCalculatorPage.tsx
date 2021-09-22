@@ -34,6 +34,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const { dailies, loading } = useSelector(selectHFIDailies)
   const { fireCentres } = useSelector(selectHFIStations)
   const stationDataLoading = useSelector(selectHFIStationsLoading)
+  // the DatePicker component requires dateOfInterest to be in string format
   const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().toISODate())
   const [previouslySelectedDateOfInterest, setPreviouslySelectedDateOfInterest] =
     useState(DateTime.now().toISODate())
@@ -41,6 +42,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const updateDate = () => {
     if (previouslySelectedDateOfInterest !== dateOfInterest) {
       dispatch(
+        // need to convert dateOfInterest from string to a timestamp to be able to send query to API
         fetchHFIDailies(
           DateTime.fromISO(dateOfInterest).startOf('day').toUTC().valueOf(),
           DateTime.fromISO(dateOfInterest).endOf('day').toUTC().valueOf()
