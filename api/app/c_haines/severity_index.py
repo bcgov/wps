@@ -101,8 +101,8 @@ def make_model_run_base_url(model: ModelEnum, model_run_start: str, forecast_hou
     """ Return the base url for the grib file.
     The location of the files differs slightly for each model. """
     if model == ModelEnum.GDPS:
-        return f'https://dd.weather.gc.ca/model_gem_global/15km/grib2/lat_lon/\
-            {model_run_start}/{forecast_hour}/'
+        return "https://dd.weather.gc.ca/model_gem_global/15km/grib2/lat_lon/"\
+               f"{model_run_start}/{forecast_hour}/"
     if model == ModelEnum.RDPS:
         return f'https://dd.weather.gc.ca/model_gem_regional/10km/grib2/{model_run_start}/{forecast_hour}/'
     if model == ModelEnum.HRDPS:
