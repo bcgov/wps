@@ -10,19 +10,19 @@ from .. import config
 
 logger = logging.getLogger(__name__)
 
-DB_WRITE_STRING = f"postgresql://\
-    {config.get('POSTGRES_WRITE_USER', 'wps')}:\
-    {config.get('POSTGRES_PASSWORD', 'wps')}@\
-    {config.get('POSTGRES_WRITE_HOST', 'localhost')}:\
-    {config.get('POSTGRES_PORT', '5432')}/\
-    {config.get('POSTGRES_DATABASE', 'wps')}"
+write_user = config.get('POSTGRES_WRITE_USER', 'wps')
+read_user = config.get('POSTGRES_READ_USER', 'wpsread')
+postgres_password = config.get('POSTGRES_PASSWORD', 'wps')
+postgres_write_host = config.get('POSTGRES_WRITE_HOST', 'localhost')
+postgres_read_host = config.get('POSTGRES_READ_HOST', 'localhost')
+postgres_port = config.get('POSTGRES_PORT', '5432')
+postgres_database = config.get('POSTGRES_DATABASE', 'wps')
 
-DB_READ_STRING = f"postgresql://\
-    {config.get('POSTGRES_READ_USER', 'wpsread')}:\
-    {config.get('POSTGRES_PASSWORD', 'wps')}@\
-    {config.get('POSTGRES_READ_HOST', 'localhost')}:\
-    {config.get('POSTGRES_PORT', '5432')}/\
-    {config.get('POSTGRES_DATABASE', 'wps')}"
+# pylint: disable=line-too-long
+DB_WRITE_STRING = f'postgresql://{write_user}:{postgres_password}@{postgres_write_host}:{postgres_port}/{postgres_database}'
+
+# pylint: disable=line-too-long
+DB_READ_STRING = f'postgresql://{read_user}:{postgres_password}@{postgres_read_host}:{postgres_port}/{postgres_database}'
 
 # connect to database - defaulting to always use utc timezone
 _write_engine = create_engine(DB_WRITE_STRING, connect_args={
