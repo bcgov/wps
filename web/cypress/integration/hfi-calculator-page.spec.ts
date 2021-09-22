@@ -15,7 +15,6 @@ describe('HFI Calculator Page', () => {
       cy.visit(HFI_CALC_ROUTE)
       cy.wait('@getFireCentres')
       cy.wait('@getDaily')
-      cy.contains('HFI Calculator Daily View')
       cy.getByTestId('hfi-calc-daily-table')
     })
 
@@ -47,6 +46,14 @@ describe('HFI Calculator Page', () => {
       cy.getByTestId('daily-prep-level-2').should($td => {
         expect($td[0].className).to.match(/makeStyles-prepLevel3-/)
       })
+    })
+
+    it('should allow date of interest to be changed with DatePicker component', () => {
+      cy.visit(HFI_CALC_ROUTE)
+      cy.wait(['@getFireCentres', '@getDaily'])
+      cy.getByTestId('date-of-interest-picker').type('2021-07-22')
+      cy.getByTestId('hfi-calc-daily-table').click({force: true})
+      cy.wait(['@getFireCentres', '@getDaily'])
     })
   })
   describe('dailies data are missing', () => {

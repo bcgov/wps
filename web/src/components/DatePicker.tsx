@@ -24,6 +24,7 @@ const DatePicker = (props: DatePickerProps) => {
         }
       }}
       onBlur={props.updateDate}
+      onSelect={props.updateDate}
       onKeyDown={event => {
         if (event.key === 'Enter') {
           event.preventDefault()
