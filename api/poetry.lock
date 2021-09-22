@@ -1980,14 +1980,14 @@ requests = ">=2.0.0"
 
 [[package]]
 name = "rope"
-version = "0.19.0"
+version = "0.20.1"
 description = "a python refactoring library..."
 category = "dev"
 optional = false
 python-versions = "*"
 
 [package.extras]
-dev = ["pytest"]
+dev = ["pytest", "pytest-timeout"]
 
 [[package]]
 name = "rpy2"
@@ -3828,7 +3828,7 @@ requests-ntlm = [
     {file = "requests_ntlm-1.1.0.tar.gz", hash = "sha256:9189c92e8c61ae91402a64b972c4802b2457ce6a799d658256ebf084d5c7eb71"},
 ]
 rope = [
-    {file = "rope-0.19.0.tar.gz", hash = "sha256:64e6d747532e1f5c8009ec5aae3e5523a5bcedf516f39a750d57d8ed749d90da"},
+    {file = "rope-0.20.1.tar.gz", hash = "sha256:505a2f6b4ac7b18e0429be179f4d8712243a194da5c866b0731f9d91ce7590bb"},
 ]
 rpy2 = [
     {file = "rpy2-3.4.5-cp36-cp36m-macosx_10_14_x86_64.whl", hash = "sha256:0dfc1838954e6b3c4778499f83f6f14e444c97669a21a84728af006b5c4077cc"},
