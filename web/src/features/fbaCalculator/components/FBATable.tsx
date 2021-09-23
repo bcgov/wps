@@ -8,6 +8,7 @@ import {
   TableRow
 } from '@material-ui/core'
 import GetAppIcon from '@material-ui/icons/GetApp'
+import ViewWeekOutlinedIcon from '@material-ui/icons/ViewWeekOutlined'
 import { CsvBuilder } from 'filefy'
 import { Button, ErrorBoundary } from 'components'
 import { FBAStation } from 'api/fbaCalcAPI'
@@ -127,6 +128,35 @@ const FBATable = (props: FBATableProps) => {
       label: value.friendlyName
     })
   )
+
+  const tableColumnLabels: string[] = [
+    'Zone',
+    'Weather Station',
+    'Elevation',
+    'FBP Fuel Type',
+    'Grass Cure',
+    'Status',
+    'Temp',
+    'RH',
+    'Wind Dir',
+    'Wind Speed (km/h)',
+    'Precip (mm)',
+    'FFMC',
+    'DMC',
+    'DC',
+    'ISI',
+    'BUI',
+    'FWI',
+    'HFI',
+    'Critical Hours (4000 kW/m)',
+    'Critical Hours (10000 kW/m)',
+    'ROS (m/min)',
+    'Fire Type',
+    'CFB (%)',
+    'Flame Length (m)',
+    '30 min fire size (ha)',
+    '60 min fire size (ha)'
+  ]
 
   useEffect(() => {
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
@@ -249,34 +279,7 @@ const FBATable = (props: FBATableProps) => {
     const selectedRows = rows.filter(row => selectedSet.has(row.id))
     const selectedRowsAsStrings = RowManager.exportRowsAsStrings(selectedRows)
     const csvBuilder = new CsvBuilder(`FireBAT_${dateOfInterest}.csv`)
-      .setColumns([
-        'Zone',
-        'Weather Station',
-        'Elevation',
-        'FBP Fuel Type',
-        'Grass Cure',
-        'Status',
-        'Temp',
-        'RH',
-        'Wind Dir',
-        'Wind Speed (km/h)',
-        'Precip (mm)',
-        'FFMC',
-        'DMC',
-        'DC',
-        'ISI',
-        'BUI',
-        'FWI',
-        'HFI',
-        'Critical Hours (4000 kW/m)',
-        'Critical Hours (10000 kW/m)',
-        'ROS (m/min)',
-        'Fire Type',
-        'CFB (%)',
-        'Flame Length (m)',
-        '30 min fire size (ha)',
-        '60 min fire size (ha)'
-      ])
+      .setColumns(tableColumnLabels)
       .addRows(selectedRowsAsStrings)
     csvBuilder.exportFile()
   }
@@ -362,6 +365,17 @@ const FBATable = (props: FBATableProps) => {
           >
             <GetAppIcon />
             Export Selection
+          </Button>
+        </FormControl>
+        <FormControl className={classes.formControl}>
+          <Button
+            data-testid="filter-columns-btn"
+            color="default"
+            disabled={rows.length === 0}
+          // onClick={() => { }}
+          >
+            <ViewWeekOutlinedIcon />
+            Columns
           </Button>
         </FormControl>
 
