@@ -1,28 +1,11 @@
-import React, { useCallback, useEffect } from 'react'
+import React from 'react'
 
-import { Button } from '@material-ui/core'
-
-import { fromLonLat, get } from 'ol/proj'
+import { fromLonLat } from 'ol/proj'
 import * as olSource from 'ol/source'
-import GeoJSON from 'ol/format/GeoJSON'
-import { Circle as CircleStyle, Fill, Style } from 'ol/style'
-import { FeatureLike } from 'ol/Feature'
-import { fetchWxStations, selectStation } from 'features/stations/slices/stationsSlice'
 
 import Map, { RedrawCommand } from 'features/map/Map'
 import TileLayer from 'features/map/TileLayer'
-import VectorLayer from 'features/map/VectorLayer'
-import { useDispatch, useSelector } from 'react-redux'
 
-import { selectFireWeatherStations } from 'app/rootReducer'
-import { getDetailedStations, StationSource } from 'api/stationAPI'
-import {
-  computeRHAccuracyColor,
-  computeRHAccuracySize,
-  computeStroke,
-  computeTempAccuracyColor,
-  computeTempAccuracySize
-} from 'features/fireWeather/components/maps/stationAccuracy'
 import { AccuracyWeatherVariableEnum } from 'features/fireWeather/components/AccuracyVariablePicker'
 
 const BC_ROAD_BASE_MAP_SERVER_URL =
@@ -38,31 +21,6 @@ const source = new olSource.XYZ({
   attributions: 'Government of British Columbia, DataBC, GeoBC'
 })
 
-const zoom = 6
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const rhPointStyleFunction = (feature: any) => {
-  const rhPointColor = computeRHAccuracyColor(feature.values_)
-  return new Style({
-    image: new CircleStyle({
-      radius: computeRHAccuracySize(feature.values_),
-      fill: new Fill({ color: rhPointColor }),
-      stroke: computeStroke(rhPointColor)
-    })
-  })
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const tempPointStyleFunction = (feature: any) => {
-  const tempPointColor = computeTempAccuracyColor(feature.values_)
-  return new Style({
-    image: new CircleStyle({
-      radius: computeTempAccuracySize(feature.values_),
-      fill: new Fill({ color: tempPointColor }),
-      stroke: computeStroke(tempPointColor)
-    })
-  })
-}
 interface Props {
   redrawFlag?: RedrawCommand
   center: number[]
@@ -80,68 +38,16 @@ const WeatherMap = ({
   setMapCenter,
   selectedWxVariable
 }: Props) => {
-  const dispatch = useDispatch()
-
-  const { stations } = useSelector(selectFireWeatherStations)
-  const styleFunction =
-    selectedWxVariable === AccuracyWeatherVariableEnum['Relative Humidity']
-      ? rhPointStyleFunction
-      : tempPointStyleFunction
-
-  useEffect(() => {
-    dispatch(
-      fetchWxStations(getDetailedStations, StationSource.unspecified, toiFromQuery)
-    )
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const renderTooltip = useCallback(
-    (feature: FeatureLike | null) => {
-      if (!feature) return null
-
-      return (
-        <div data-testid={`station-${feature.get('code')}-tooltip`}>
-          <p>
-            {feature.get('name')} ({feature.get('code')})
-          </p>
-          <Button
-            variant="outlined"
-            size="small"
-            onClick={() => {
-              dispatch(selectStation(feature.get('code')))
-            }}
-            data-testid={`select-wx-station-${feature.get('code')}-button`}
-          >
-            Select
-          </Button>
-        </div>
-      )
-    },
-    [dispatch]
-  )
   return (
     <Map
       center={fromLonLat(center)}
       isCollapsed={isCollapsed}
       setMapCenter={setMapCenter}
-      zoom={zoom}
       redrawFlag={redrawFlag}
-      renderTooltip={renderTooltip}
+      selectedWxVariable={selectedWxVariable}
+      toiFromQuery={toiFromQuery}
     >
       <TileLayer source={source} />
-      <VectorLayer
-        source={
-          new olSource.Vector({
-            features: new GeoJSON().readFeatures(
-              { type: 'FeatureCollection', features: stations },
-              {
-                featureProjection: get('EPSG:3857')
-              }
-            )
-          })
-        }
-        style={styleFunction}
-        zIndex={1}
-      />
     </Map>
   )
 }

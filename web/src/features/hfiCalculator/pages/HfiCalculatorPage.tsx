@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
 import { Container, GeneralHeader, PageTitle } from 'components'
 
 import DailyViewTable from 'features/hfiCalculator/components/DailyViewTable'
-import { fetchHFIStations } from '../slices/stationsSlice'
-import { fetchHFIDailies } from '../slices/hfiCalculatorSlice'
+import DatePicker from 'components/DatePicker'
+import WeeklyViewTable from 'features/hfiCalculator/components/WeeklyViewTable'
+import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
+import { fetchHFIDailies } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { useDispatch, useSelector } from 'react-redux'
 import { DateTime } from 'luxon'
 import {
@@ -12,15 +14,21 @@ import {
   selectHFIStations,
   selectHFIStationsLoading
 } from 'app/rootReducer'
-import { CircularProgress, makeStyles } from '@material-ui/core'
+import { CircularProgress, FormControl, makeStyles } from '@material-ui/core'
 import { StationDaily } from 'api/hfiCalculatorAPI'
+import { groupBy, List } from 'lodash'
+import { loadFeaturesXhr } from 'ol/featureloader'
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(theme => ({
   container: {
     display: 'flex',
     justifyContent: 'center'
+  },
+  formControl: {
+    margin: theme.spacing(1),
+    minWidth: 210
   }
-})
+}))
 
 const HfiCalculatorPage: React.FunctionComponent = () => {
   const classes = useStyles()
@@ -29,23 +37,77 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const { dailies, loading } = useSelector(selectHFIDailies)
   const { fireCentres } = useSelector(selectHFIStations)
   const stationDataLoading = useSelector(selectHFIStationsLoading)
-  const [currentDay, setCurrentDay] = useState(DateTime.now())
+  const [tableView, setTableView] = useState('weekly')
+
+  // the DatePicker component requires dateOfInterest to be in string format
+  const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().toISODate())
+  const [previouslySelectedDateOfInterest, setPreviouslySelectedDateOfInterest] =
+    useState(DateTime.now().toISODate())
+
+  const updateDate = () => {
+    if (previouslySelectedDateOfInterest !== dateOfInterest) {
+      dispatch(
+        // need to convert dateOfInterest from string to a timestamp to be able to send query to API
+        fetchHFIDailies(
+          DateTime.fromISO(dateOfInterest).startOf('day').toUTC().valueOf(),
+          DateTime.fromISO(dateOfInterest).endOf('day').toUTC().valueOf()
+        )
+      )
+      dispatch(fetchHFIStations())
+      setPreviouslySelectedDateOfInterest(dateOfInterest)
+    }
+  }
+
+  const getDayName = (dateStr: string, locale: string) => {
+    const date = new Date(dateStr)
+    return date.toLocaleDateString(locale, { weekday: 'long' })
+  }
+  const day = getDayName(dateOfInterest, 'en-CA')
 
   useEffect(() => {
-    const startTime = currentDay.startOf('day').toUTC().valueOf()
-    const endTime = currentDay.endOf('day').toUTC().valueOf()
-    dispatch(fetchHFIDailies(startTime, endTime))
-    dispatch(fetchHFIStations())
+    if (tableView === 'daily') {
+      const dailyStartTime = DateTime.fromISO(dateOfInterest)
+        .startOf('day')
+        .toUTC()
+        .valueOf()
+      const dailyEndTime = DateTime.fromISO(dateOfInterest).toUTC().valueOf()
+      dispatch(fetchHFIDailies(dailyStartTime, dailyEndTime))
+      dispatch(fetchHFIStations())
+    } else {
+      let dayOffset = 0
+      switch (day) {
+        case 'Tuesday':
+          dayOffset = 1
+          break
+        case 'Wednesday':
+          dayOffset = 2
+          break
+        case 'Friday':
+          dayOffset = 1
+          break
+        case 'Saturday':
+          dayOffset = 2
+          break
+        case 'Sunday':
+          dayOffset = 3
+      }
+      const weeklyStartTime = DateTime.fromISO(dateOfInterest)
+        .minus({ days: dayOffset })
+        .startOf('day')
+        .toUTC()
+        .valueOf()
+      const weeklyEndTime = DateTime.fromISO(dateOfInterest)
+        .minus({ days: dayOffset })
+        .endOf('day')
+        .plus({ weeks: 1 })
+        .toUTC()
+        .valueOf()
+      dispatch(fetchHFIDailies(weeklyStartTime, weeklyEndTime))
+      dispatch(fetchHFIStations())
+    }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentDay])
-
-  const previousDay = () => {
-    setCurrentDay(currentDay.minus({ days: 1 }))
-  }
-
-  const nextDay = () => {
-    setCurrentDay(currentDay.plus({ days: 1 }))
-  }
+  }, [])
 
   const dailiesMap = new Map<number, StationDaily>()
   if (dailies !== undefined) {
@@ -53,6 +115,25 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       dailiesMap.set(daily.code, daily)
     })
   }
+
+  const weekliesMap = new Map<number, StationDaily[]>()
+  if (dailies !== undefined) {
+    const weeklies = groupBy(dailies, 'code')
+    for (let i = 0; i < Object.keys(weeklies).length; i++) {
+      weekliesMap.set(Number(Object.keys(weeklies)[i]), Object.values(weeklies)[i])
+    }
+  }
+
+  console.log(weekliesMap)
+  useEffect(() => {
+    dispatch(fetchHFIStations())
+    dispatch(
+      fetchHFIDailies(
+        DateTime.fromISO(dateOfInterest).startOf('day').toUTC().valueOf(),
+        DateTime.fromISO(dateOfInterest).endOf('day').toUTC().valueOf()
+      )
+    )
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <main data-testid="hfi-calculator-page">
@@ -69,14 +150,20 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         </Container>
       ) : (
         <Container maxWidth={'xl'}>
-          <DailyViewTable
-            title="HFI Calculator Daily View"
-            testId="hfi-calc-daily-table"
+          <FormControl className={classes.formControl}>
+            <DatePicker
+              date={dateOfInterest}
+              onChange={setDateOfInterest}
+              updateDate={updateDate}
+            />
+          </FormControl>
+          <WeeklyViewTable
+            title="HFI Calculator Weekly View"
+            testId="hfi-calc-weekly-table"
             fireCentres={fireCentres}
             dailiesMap={dailiesMap}
-            currentDay={currentDay.toLocaleString()}
-            previousDay={previousDay}
-            nextDay={nextDay}
+            weekliesMap={weekliesMap}
+            currentDay={dateOfInterest}
           />
         </Container>
       )}

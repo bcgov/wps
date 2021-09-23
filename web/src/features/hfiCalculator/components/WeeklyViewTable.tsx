@@ -13,20 +13,23 @@ import { createTheme, makeStyles, ThemeProvider } from '@material-ui/core/styles
 import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline'
 import { FireCentre } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
+import { Button } from 'components'
 import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
 import { isGrassFuelType, isValidGrassCure } from 'features/hfiCalculator/validation'
 import { calculateMeanIntensityGroup } from 'features/hfiCalculator/components/meanIntensity'
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
-import { isUndefined } from 'lodash'
+import { forEach, isUndefined } from 'lodash'
 import CalculatedCell from 'features/hfiCalculator/components/CalculatedCell'
 import IntensityGroupCell from 'features/hfiCalculator/components/IntensityGroupCell'
 import FireTable from 'components/FireTable'
 import FireContainer from 'components/FireDisplayContainer'
 
 export interface Props {
-  title?: string
+  title: string
   fireCentres: Record<string, FireCentre>
   dailiesMap: Map<number, StationDaily>
+  weekliesMap: Map<number, StationDaily[]>
+  currentDay: string
   testId?: string
 }
 
@@ -39,6 +42,16 @@ const prepLevelColours: { [description: string]: string } = {
   bloodRed: '#B02318'
 }
 
+// const dates = [
+//   ...new Set(
+//     props.weekliesMap.map(station => {
+//       station.map(daily => {
+//         daily.date
+//       })
+//     })
+//   )
+// ]
+
 const useStyles = makeStyles({
   fireCentre: {
     fontSize: 16,
@@ -46,7 +59,8 @@ const useStyles = makeStyles({
     backgroundColor: '#dbd9d9'
   },
   planningArea: {
-    backgroundColor: 'rgba(40, 53, 147, 0.05)'
+    backgroundColor: 'rgba(40, 53, 147, 0.05)',
+    width: '100%'
   },
   fireStarts: {
     fontWeight: 'bold',
@@ -91,6 +105,10 @@ const useStyles = makeStyles({
     fontWeight: 'bold',
     textAlign: 'center',
     color: 'white'
+  },
+  dayHeader: {
+    borderLeft: '2px solid grey',
+    textAlign: 'center'
   }
 })
 
@@ -98,9 +116,10 @@ export const DailyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()
 
   const stationCodesList: number[] = []
-  props.dailiesMap.forEach(daily => {
-    stationCodesList.push(daily.code)
-  })
+
+  for (let i = 0; i < Object.keys(props.weekliesMap).length; i++) {
+    stationCodesList.push(Number(Object.keys(props.weekliesMap)[i]))
+  }
 
   const [selected, setSelected] = useState<number[]>(stationCodesList)
 
@@ -176,6 +195,104 @@ export const DailyViewTable = (props: Props): JSX.Element => {
     )
   }
 
+  const getDayName = (dateStr: string, locale: string) => {
+    const date = new Date(dateStr)
+    return date.toLocaleDateString(locale, { weekday: 'long' })
+  }
+  const day = getDayName(props.currentDay, 'en-CA')
+
+  const dayHeaders = []
+  if (day === 'Monday' || day === 'Tuesday' || day === 'Wednesday') {
+    dayHeaders.push(
+      <TableCell colSpan={5} className={classes.dayHeader}>
+        Monday
+      </TableCell>
+    )
+    dayHeaders.push(
+      <TableCell colSpan={5} className={classes.dayHeader}>
+        Tuesday
+      </TableCell>
+    )
+    dayHeaders.push(
+      <TableCell colSpan={5} className={classes.dayHeader}>
+        Wednesday
+      </TableCell>
+    )
+    dayHeaders.push(
+      <TableCell colSpan={5} className={classes.dayHeader}>
+        Thursday
+      </TableCell>
+    )
+    dayHeaders.push(
+      <TableCell colSpan={5} className={classes.dayHeader}>
+        Friday
+      </TableCell>
+    )
+  } else {
+    dayHeaders.push(
+      <TableCell colSpan={5} className={classes.dayHeader}>
+        Thursday
+      </TableCell>
+    )
+    dayHeaders.push(
+      <TableCell colSpan={5} className={classes.dayHeader}>
+        Friday
+      </TableCell>
+    )
+    dayHeaders.push(
+      <TableCell colSpan={5} className={classes.dayHeader}>
+        Saturday
+      </TableCell>
+    )
+    dayHeaders.push(
+      <TableCell colSpan={5} className={classes.dayHeader}>
+        Sunday
+      </TableCell>
+    )
+    dayHeaders.push(
+      <TableCell colSpan={5} className={classes.dayHeader}>
+        Monday
+      </TableCell>
+    )
+  }
+  const cellHeaders = []
+
+  for (let i = 0; i < 5; i++) {
+    cellHeaders.push(
+      <TableCell style={{ borderLeft: 'solid 2px grey' }}>
+        ROS
+        <br />
+        (m/min)
+      </TableCell>
+    )
+    cellHeaders.push(<TableCell>HFI</TableCell>)
+    cellHeaders.push(
+      <TableCell>
+        M /
+        <br />
+        FIG
+      </TableCell>
+    )
+    cellHeaders.push(
+      <TableCell>
+        Fire
+        <br />
+        Starts
+      </TableCell>
+    )
+    cellHeaders.push(
+      <TableCell>
+        Prep
+        <br />
+        Level
+      </TableCell>
+    )
+  }
+
+  for (let i = 0; i < Object.keys(props.weekliesMap).length; i++) {
+    Object.values(props.weekliesMap)[i].forEach(daily => {})
+  }
+
   return (
     <FireContainer testId={props.testId}>
       <div className={classes.controls}>
@@ -185,10 +302,20 @@ export const DailyViewTable = (props: Props): JSX.Element => {
       </div>
       <FireTable
         maxHeight={700}
-        ariaLabel="daily table view of HFI by planning area"
-        testId="hfi-calc-daily-table"
+        ariaLabel="weekly table view of HFI by planning area"
+        testId="hfi-calc-weekly-table"
       >
         <TableHead>
+          <TableRow>
+            <TableCell colSpan={5}></TableCell>
+            {dayHeaders[0]}
+            {dayHeaders[1]}
+            {dayHeaders[2]}
+            {dayHeaders[3]}
+            {dayHeaders[4]}
+            <TableCell></TableCell>
+            <TableCell></TableCell>
+          </TableRow>
           <TableRow>
             <TableCell>
               {/* empty cell inserted for spacing purposes (aligns with checkboxes column) */}
@@ -206,36 +333,6 @@ export const DailyViewTable = (props: Props): JSX.Element => {
               <br />
               Type
             </TableCell>
-            <TableCell>Status</TableCell>
-            <TableCell>
-              Temp
-              <br />
-              (&deg;C)
-            </TableCell>
-            <TableCell>
-              RH
-              <br />
-              (%)
-            </TableCell>
-            <TableCell>
-              Wind
-              <br />
-              Dir
-              <br />
-              (&deg;)
-            </TableCell>
-            <TableCell>
-              Wind
-              <br />
-              Speed
-              <br />
-              (km/h)
-            </TableCell>
-            <TableCell>
-              Precip
-              <br />
-              (mm)
-            </TableCell>
             <TableCell>
               Grass
               <br />
@@ -243,48 +340,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
               <br />
               (%)
             </TableCell>
-            <TableCell>FFMC</TableCell>
-            <TableCell>DMC</TableCell>
-            <TableCell>DC</TableCell>
-            <TableCell>ISI</TableCell>
-            <TableCell>BUI</TableCell>
-            <TableCell>FWI</TableCell>
-            <TableCell>
-              DGR
-              <br />
-              CL
-            </TableCell>
-            <TableCell>
-              ROS
-              <br />
-              (m/min)
-            </TableCell>
-            <TableCell>HFI</TableCell>
-            <TableCell>
-              60 min <br />
-              fire size <br />
-              (hectares)
-            </TableCell>
-            <TableCell>
-              Fire
-              <br />
-              Type
-            </TableCell>
-            <TableCell>
-              M /
-              <br />
-              FIG
-            </TableCell>
-            <TableCell>
-              Fire
-              <br />
-              Starts
-            </TableCell>
-            <TableCell>
-              Prep
-              <br />
-              Level
-            </TableCell>
+            {cellHeaders}
           </TableRow>
         </TableHead>
         <TableBody>
@@ -322,14 +378,14 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                           ></MeanIntensityGroupRollup>
                           <TableCell
                             className={classes.fireStarts}
-                            data-testid={`daily-fire-starts-${areaName}`}
+                            data-testid={`weekly-fire-starts-${areaName}`}
                           >
                             {/* using a fixed value of 0-1 Fire Starts for now */}
                             0-1
                           </TableCell>
                           <TableCell
                             className={formatPrepLevelByValue(prepLevel)}
-                            data-testid={`daily-prep-level-${areaName}`}
+                            data-testid={`weekly-prep-level-${areaName}`}
                           >
                             {prepLevel}
                           </TableCell>
@@ -337,11 +393,12 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                         {Object.entries(area.stations)
                           .sort((a, b) => (a[1].code < b[1].code ? -1 : 1))
                           .map(([stationCode, station]) => {
-                            const daily = props.dailiesMap.get(station.code)
-                            const grassCureError = !isValidGrassCure(
-                              daily,
-                              station.station_props
-                            )
+                            const dailies = props.weekliesMap.get(station.code)
+                            dailies?.forEach(daily => {})
+                            // const grassCureError = !isValidGrassCure(
+                            //   daily,
+                            //   station.station_props
+                            //)
                             const isRowSelected = stationCodeInSelected(station.code)
                             const classNameForRow = !isRowSelected
                               ? classes.unselectedStation
@@ -375,68 +432,15 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                                 >
                                   {station.station_props.fuel_type.abbrev}
                                 </TableCell>
-                                {daily?.observation_valid === false ? (
-                                  <TableCell className={classNameForRow}>
-                                    <ThemeProvider theme={errorIconTheme}>
-                                      <Tooltip
-                                        title={createToolTipElement(
-                                          daily?.observation_valid_comment
-                                        )}
-                                      >
-                                        <ErrorOutlineIcon
-                                          data-testid={`status-error`}
-                                        ></ErrorOutlineIcon>
-                                      </Tooltip>
-                                    </ThemeProvider>
-                                  </TableCell>
-                                ) : (
-                                  <TableCell className={classNameForRow}>
-                                    {daily?.status}
-                                  </TableCell>
-                                )}
-                                <TableCell className={classNameForRow}>
-                                  {daily?.temperature}
-                                </TableCell>
-                                <TableCell className={classNameForRow}>
-                                  {daily?.relative_humidity}
-                                </TableCell>
-                                <TableCell className={classNameForRow}>
-                                  {daily?.wind_direction?.toFixed(0).padStart(3, '0')}
-                                </TableCell>
-                                <TableCell className={classNameForRow}>
-                                  {daily?.wind_speed}
-                                </TableCell>
-                                <TableCell className={classNameForRow}>
-                                  {daily?.precipitation}
-                                </TableCell>
                                 <GrassCureCell
                                   value={daily?.grass_cure_percentage}
                                   isGrassFuelType={isGrassFuelType(station.station_props)}
                                   className={classNameForRow}
                                   selected={isRowSelected}
                                 ></GrassCureCell>
-                                <TableCell className={classNameForRow}>
-                                  {daily?.ffmc?.toFixed(DECIMAL_PLACES)}
-                                </TableCell>
-                                <TableCell className={classNameForRow}>
-                                  {daily?.dmc?.toFixed(DECIMAL_PLACES)}
-                                </TableCell>
-                                <TableCell className={classNameForRow}>
-                                  {daily?.dc?.toFixed(DECIMAL_PLACES)}
-                                </TableCell>
-                                <TableCell className={classNameForRow}>
-                                  {daily?.isi?.toFixed(DECIMAL_PLACES)}
-                                </TableCell>
-                                <TableCell className={classNameForRow}>
-                                  {daily?.bui?.toFixed(DECIMAL_PLACES)}
-                                </TableCell>
-                                <TableCell className={classNameForRow}>
-                                  {daily?.ffmc?.toFixed(DECIMAL_PLACES)}
-                                </TableCell>
-                                <TableCell className={classNameForRow}>
-                                  {daily?.danger_class}
-                                </TableCell>
+
                                 <CalculatedCell
+                                  border={'solid 2px grey'}
                                   testid={`${daily?.code}-ros`}
                                   value={daily?.rate_of_spread?.toFixed(DECIMAL_PLACES)}
                                   error={grassCureError}
@@ -445,20 +449,6 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                                 <CalculatedCell
                                   testid={`${daily?.code}-hfi`}
                                   value={daily?.hfi?.toFixed(DECIMAL_PLACES)}
-                                  error={grassCureError}
-                                  className={classNameForRow}
-                                ></CalculatedCell>
-                                <CalculatedCell
-                                  testid={`${daily?.code}-1-hr-size`}
-                                  value={daily?.sixty_minute_fire_size?.toFixed(
-                                    DECIMAL_PLACES
-                                  )}
-                                  error={grassCureError}
-                                  className={classNameForRow}
-                                ></CalculatedCell>
-                                <CalculatedCell
-                                  testid={`${daily?.code}-fire-type`}
-                                  value={daily?.fire_type}
                                   error={grassCureError}
                                   className={classNameForRow}
                                 ></CalculatedCell>
