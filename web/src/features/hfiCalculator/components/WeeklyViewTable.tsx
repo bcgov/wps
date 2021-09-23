@@ -117,9 +117,18 @@ export const DailyViewTable = (props: Props): JSX.Element => {
 
   const stationCodesList: number[] = []
 
-  for (let i = 0; i < Object.keys(props.weekliesMap).length; i++) {
-    stationCodesList.push(Number(Object.keys(props.weekliesMap)[i]))
-  }
+  const datesList: string[] = []
+  Object.entries(props.weekliesMap).forEach(station => {
+    station.forEach(daily => {
+      datesList.push(daily.date)
+    })
+  })
+  const dates = new Set(datesList)
+  console.log(dates)
+
+  // for (let i = 0; i < Object.keys(props.weekliesMap).length; i++) {
+  //   stationCodesList.push(Number(Object.keys(props.weekliesMap)[i]))
+  // }
 
   const [selected, setSelected] = useState<number[]>(stationCodesList)
 
@@ -289,9 +298,9 @@ export const DailyViewTable = (props: Props): JSX.Element => {
     )
   }
 
-  for (let i = 0; i < Object.keys(props.weekliesMap).length; i++) {
-    Object.values(props.weekliesMap)[i].forEach(daily => {})
-  }
+  // for (let i = 0; i < Object.keys(props.weekliesMap).length; i++) {
+  //   Object.values(props.weekliesMap)[i].forEach(daily => {})
+  // }
 
   return (
     <FireContainer testId={props.testId}>
@@ -313,8 +322,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
             {dayHeaders[2]}
             {dayHeaders[3]}
             {dayHeaders[4]}
-            <TableCell></TableCell>
-            <TableCell></TableCell>
+            <TableCell colSpan={2}></TableCell>
           </TableRow>
           <TableRow>
             <TableCell>
@@ -348,7 +356,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
             return (
               <React.Fragment key={`fire-centre-${centreName}`}>
                 <TableRow key={`fire-centre-${centreName}`}>
-                  <TableCell className={classes.fireCentre} colSpan={26}>
+                  <TableCell className={classes.fireCentre} colSpan={30}>
                     {centre.name}
                   </TableCell>
                 </TableRow>
@@ -368,7 +376,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                           key={`zone-${areaName}`}
                           data-testid={`zone-${areaName}`}
                         >
-                          <TableCell className={classes.planningArea} colSpan={22}>
+                          <TableCell className={classes.planningArea} colSpan={27}>
                             {area.name}
                           </TableCell>
                           <MeanIntensityGroupRollup
@@ -394,11 +402,6 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                           .sort((a, b) => (a[1].code < b[1].code ? -1 : 1))
                           .map(([stationCode, station]) => {
                             const dailies = props.weekliesMap.get(station.code)
-                            dailies?.forEach(daily => {})
-                            // const grassCureError = !isValidGrassCure(
-                            //   daily,
-                            //   station.station_props
-                            //)
                             const isRowSelected = stationCodeInSelected(station.code)
                             const classNameForRow = !isRowSelected
                               ? classes.unselectedStation
@@ -432,35 +435,48 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                                 >
                                   {station.station_props.fuel_type.abbrev}
                                 </TableCell>
-                                <GrassCureCell
-                                  value={daily?.grass_cure_percentage}
-                                  isGrassFuelType={isGrassFuelType(station.station_props)}
-                                  className={classNameForRow}
-                                  selected={isRowSelected}
-                                ></GrassCureCell>
 
-                                <CalculatedCell
-                                  border={'solid 2px grey'}
-                                  testid={`${daily?.code}-ros`}
-                                  value={daily?.rate_of_spread?.toFixed(DECIMAL_PLACES)}
-                                  error={grassCureError}
-                                  className={classNameForRow}
-                                ></CalculatedCell>
-                                <CalculatedCell
-                                  testid={`${daily?.code}-hfi`}
-                                  value={daily?.hfi?.toFixed(DECIMAL_PLACES)}
-                                  error={grassCureError}
-                                  className={classNameForRow}
-                                ></CalculatedCell>
-                                <IntensityGroupCell
-                                  testid={`${daily?.code}-intensity-group`}
-                                  value={daily?.intensity_group}
-                                  error={grassCureError}
-                                  selected={isRowSelected}
-                                ></IntensityGroupCell>
-                                <TableCell colSpan={2}>
-                                  {/* empty cell for spacing (Fire Starts & Prev Level columns) */}
-                                </TableCell>
+                                {dailies?.forEach(daily => {
+                                  const grassCureError = !isValidGrassCure(
+                                    daily,
+                                    station.station_props
+                                  )
+                                  return (
+                                    <div>
+                                      <GrassCureCell
+                                        value={daily?.grass_cure_percentage}
+                                        isGrassFuelType={isGrassFuelType(
+                                          station.station_props
+                                        )}
+                                        className={classNameForRow}
+                                        selected={isRowSelected}
+                                      ></GrassCureCell>
+                                      <CalculatedCell
+                                        testid={`${daily?.code}-ros`}
+                                        value={daily?.rate_of_spread?.toFixed(
+                                          DECIMAL_PLACES
+                                        )}
+                                        error={grassCureError}
+                                        className={classNameForRow}
+                                      ></CalculatedCell>
+                                      <CalculatedCell
+                                        testid={`${daily?.code}-hfi`}
+                                        value={daily?.hfi?.toFixed(DECIMAL_PLACES)}
+                                        error={grassCureError}
+                                        className={classNameForRow}
+                                      ></CalculatedCell>
+                                      <IntensityGroupCell
+                                        testid={`${daily?.code}-intensity-group`}
+                                        value={daily?.intensity_group}
+                                        error={grassCureError}
+                                        selected={isRowSelected}
+                                      ></IntensityGroupCell>
+                                      <TableCell colSpan={2}>
+                                        {/* empty cell for spacing (Fire Starts & Prev Level columns) */}
+                                      </TableCell>
+                                    </div>
+                                  )
+                                })}
                               </TableRow>
                             )
                           })}
