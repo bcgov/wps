@@ -16,8 +16,7 @@ import {
 } from 'app/rootReducer'
 import { CircularProgress, FormControl, makeStyles } from '@material-ui/core'
 import { StationDaily } from 'api/hfiCalculatorAPI'
-import { groupBy, List } from 'lodash'
-import { loadFeaturesXhr } from 'ol/featureloader'
+import { groupBy } from 'lodash'
 
 const useStyles = makeStyles(theme => ({
   container: {
