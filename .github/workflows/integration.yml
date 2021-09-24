@@ -5,13 +5,12 @@ on:
     branches:
       - main
 jobs:
-  lint-and-test:
-    name: Lint, Test, Coverage with CodeCov
+  lint-and-test-api:
+    name: Python - Lint, Test, Coverage with CodeCov
     runs-on: ubuntu-20.04
     strategy:
       matrix:
         python-version: [3.8]
-        node-version: [14.x]
         R: ["3.5.2"]
     steps:
       - name: Checkout repo
@@ -43,20 +42,10 @@ jobs:
           renv::consent(TRUE)
           renv::restore()
         shell: Rscript {0}
-
-      - name: Setup kernel for react, increase watchers
-        run: echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
-
       - name: Setup Python ${{ matrix.python-version }} (api)
         uses: actions/setup-python@v1
         with:
           python-version: ${{ matrix.python-version }}
-
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
-        with:
-          node-version: ${{ matrix.node-version }}
-
       - name: Cache poetry installer
         uses: actions/cache@v2
         id: cache-poetry-installer
@@ -126,6 +115,34 @@ jobs:
           source ~/.poetry/env
           poetry run coverage report
           poetry run coverage xml -o coverage-reports/coverage-report.xml
+      # https://docs.codecov.com/docs/commit-status#splitting-up-projects-example
+      - name: Upload test coverage to Codecov
+        uses: codecov/codecov-action@v2
+        with:
+          token: ${{secrets.CODECOV_TOKEN}}
+          # we want to ensure code coverage is good, so we fail on error. (default is false)
+          fail_ci_if_error: true
+          name: codecov-api
+  lint-and-test-web:
+    name: Lint, Test, Coverage with CodeCov
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        node-version: [14.x]
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+        with:
+          # For sonar-scanner to work properly we can't use a shallow fetch.
+          fetch-depth: 0
+
+      - name: Setup kernel for react, increase watchers
+        run: echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
 
       - uses: actions/cache@v2
         with:
@@ -164,3 +181,4 @@ jobs:
           token: ${{secrets.CODECOV_TOKEN}}
           # we want to ensure code coverage is good, so we fail on error. (default is false)
           fail_ci_if_error: true
+          name: codecov-web

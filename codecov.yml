@@ -1,10 +1,18 @@
 coverage:
   status:
-    patch:
-      default:
-        target: 80%
-        threshold: 0%
-        # basic
-        # target: auto
-        # we're ok with a tiny drop
-        # threshold: 1%
+    project:
+      # https://docs.codecov.com/docs/commit-status#splitting-up-projects-example
+      api:
+        paths:
+          - api
+      web:
+        path:
+          - web
+      # https://docs.codecov.com/docs/commit-status#project-status
+      # default:
+      # target: 80%
+      # threshold: 0%
+      # basic
+      # target: auto
+      # we're ok with a tiny drop
+      # threshold: 1%
