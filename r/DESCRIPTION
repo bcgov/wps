@@ -3,7 +3,7 @@ Title: WPS R requirements
 Version: 0.0.0.9000
 Authors@R: 
     person(given = "Sybrand",
-           family = "Strayss",
+           family = "Strauss",
            role = c("aut", "cre"),
            email = "sybrand.strauss@gov.bc.ca",
            comment = c(ORCID = "YOUR-ORCID-ID"))

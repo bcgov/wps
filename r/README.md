@@ -15,4 +15,5 @@ Install renv:
 
 ```R
 install.packages("renv")
+renv::snapshot()
 ```

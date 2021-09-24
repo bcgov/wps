@@ -19,3 +19,4 @@ coverage:
       web:
         paths:
           - web/src
+        target: 73%
