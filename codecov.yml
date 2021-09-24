@@ -1,2 +1,10 @@
-comment: false
-threshold: 5%
+coverage:
+  status:
+    patch:
+      default:
+        target: 80%
+        threshold: 0%
+        # basic
+        # target: auto
+        # we're ok with a tiny drop
+        # threshold: 1%
