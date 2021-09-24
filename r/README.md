@@ -3,15 +3,18 @@
 The CFFDRS R package is used by wps.
 renv is used to speed installing cffdrs for running github tests.
 
+## Installing from lockfile
+
+```R
+install.packages("renv")
+renv::restore()
+```
+
 ## Updating the lockfile
 
 Updating the lockfile can be somewhat estoric for people (like myself) not familiar with R.
 
 Start R:
-
-```bash
-R
-```
 
 ```R
 # usethis will be used to update the DESCRIPTION file
