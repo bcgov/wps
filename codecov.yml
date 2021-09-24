@@ -1,6 +1,6 @@
 coverage:
-  precision: 1
-  round: nearest
+  # precision: 1
+  # round: nearest
   # https://docs.codecov.com/docs/commit-status
   status:
     project:
