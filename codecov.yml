@@ -1,3 +1,5 @@
+# feeling sad? remember to validate this file!
+# curl --data-binary @codecov.yml https://codecov.io/validate
 coverage:
   # precision: 1
   # round: nearest
@@ -15,5 +17,5 @@ coverage:
         paths:
           - api/app
       web:
-        path:
+        paths:
           - web/src
