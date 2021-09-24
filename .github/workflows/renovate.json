@@ -12,6 +12,12 @@
         "groupSlug": "all-minor-patch"
       }
     ],
+    "docker": {
+      "enabled": false
+    },
+    "docker-compose": {
+      "enabled": false
+    },
     "autodiscover": true,
     "autodiscoverFilter": "bcgov/wps"
   }
