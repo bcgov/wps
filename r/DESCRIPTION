@@ -1,0 +1,17 @@
+Package: rwps
+Title: WPS R requirements
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Sybrand",
+           family = "Strayss",
+           role = c("aut", "cre"),
+           email = "sybrand.strauss@gov.bc.ca",
+           comment = c(ORCID = "YOUR-ORCID-ID"))
+Description: This package is used to generate a renv.lock to ensure consistency in environments.
+License: use_apache_license(version = 2, include_future = TRUE)
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.0.0
+Imports: 
+    cffdrs
