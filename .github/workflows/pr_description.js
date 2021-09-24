@@ -1,4 +1,5 @@
 module.exports = async ({ github, context }) => {
+  console.log("here we are!");
   const prNum = context.payload.pull_request.number;
   const pr = await github.pulls.get({
     owner: context.repo.owner,
@@ -6,7 +7,9 @@ module.exports = async ({ github, context }) => {
     pull_number: prNum,
   });
   const prBaseUrl = `https://wps-pr-${prNum}.apps.silver.devops.gov.bc.ca`;
+  console.log("the base url is: " + prBaseUrl);
   if (pr.data.body === null || pr.data.body.includes(prBaseUrl)) {
+    console.log("it is null - or not there");
     // If the body doesn't already contain some test links, we create a few.
     let body = pr.data.body === null ? "" : pr.data.body;
     body += "# Test Links:\n";
@@ -22,5 +25,7 @@ module.exports = async ({ github, context }) => {
       pull_number: prNum,
       body: body,
     });
+  } else {
+    console.log("already there - nothing to do ");
   }
 };
