@@ -1,4 +1,4 @@
-module.exports = ({ github, context }) => {
+module.exports = async ({ github, context }) => {
   const prNum = context.payload.pull_request.number;
   const pr = await github.pulls.get({
     owner: context.repo.owner,

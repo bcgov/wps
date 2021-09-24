@@ -20,4 +20,4 @@ jobs:
           # https://github.com/actions/github-script
           script: |
             const script = require('./.github/workflows/pr_description.js')
-            script({github, context})
+            await script({github, context})
