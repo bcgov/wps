@@ -12,6 +12,8 @@ jobs:
       matrix:
         python-version: [3.8]
         R: ["3.5.2"]
+    env:
+      RENV_PATHS_ROOT: ~/.local/share/renv
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
@@ -31,17 +33,23 @@ jobs:
       - name: Cache renv (api)
         uses: actions/cache@v2
         with:
-          path: ~/.local/share/renv
+          path: ${{ env.RENV_PATHS_ROOT }}
           key: ${{ runner.os }}-renv-${{ hashFiles('**/renv.lock') }}
           restore-keys: |
             ${{ runner.os }}-renv-
-      - name: Install renv (api)
-        run: |
-          install.packages("renv")
-          renv::install("cffdrs", dependencies = TRUE)
-          renv::consent(TRUE)
-          renv::restore()
+      - name: Restore R packages
         shell: Rscript {0}
+        run: |
+          if (!requireNamespace("renv", quietly = TRUE)) install.packages("renv")
+          renv::restore()
+          renv::install("cffdrs", dependencies = TRUE)
+      # - name: Install renv (api)
+      #   run: |
+      #     install.packages("renv")
+      #     renv::install("cffdrs", dependencies = TRUE)
+      #     renv::consent(TRUE)
+      #     renv::restore()
+      #   shell: Rscript {0}
       - name: Setup Python ${{ matrix.python-version }} (api)
         uses: actions/setup-python@v1
         with:

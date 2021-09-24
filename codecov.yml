@@ -1,13 +1,14 @@
 coverage:
+  precision: 1
   status:
     project:
       # https://docs.codecov.com/docs/commit-status#splitting-up-projects-example
       api:
         paths:
-          - api
+          - app
       web:
         path:
-          - web
+          - src
       # https://docs.codecov.com/docs/commit-status#project-status
       default:
         target: 80%
