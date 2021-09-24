@@ -6,7 +6,7 @@ on:
       - main
 jobs:
   lint-and-test-api:
-    name: Python - Lint, Test, Coverage with CodeCov
+    name: Python - Lint, Test with coverage
     runs-on: ubuntu-20.04
     strategy:
       matrix:
@@ -115,16 +115,21 @@ jobs:
           source ~/.poetry/env
           poetry run coverage report
           poetry run coverage xml -o coverage-reports/coverage-report.xml
-      # https://docs.codecov.com/docs/commit-status#splitting-up-projects-example
-      - name: Upload test coverage to Codecov
-        uses: codecov/codecov-action@v2
+      - name: Archive coverage report
+        uses: actions/upload-artifact@v2
         with:
-          token: ${{secrets.CODECOV_TOKEN}}
-          # we want to ensure code coverage is good, so we fail on error. (default is false)
-          fail_ci_if_error: true
-          name: codecov-api
+          name: api-coverage-report
+          path: coverage-reports/coverage-report.xml
+      # https://docs.codecov.com/docs/commit-status#splitting-up-projects-example
+      # - name: Upload test coverage to Codecov
+      #   uses: codecov/codecov-action@v2
+      #   with:
+      #     token: ${{secrets.CODECOV_TOKEN}}
+      #     # we want to ensure code coverage is good, so we fail on error. (default is false)
+      #     fail_ci_if_error: true
+      #     name: codecov-api
   lint-and-test-web:
-    name: Lint, Test, Coverage with CodeCov
+    name: Web - Lint, Test with coverage
     runs-on: ubuntu-20.04
     strategy:
       matrix:
@@ -175,10 +180,32 @@ jobs:
         working-directory: ./web
         run: yarn run finalizeCoverage
 
+      - name: Archive coverage report
+        uses: actions/upload-artifact@v2
+        with:
+          name: web-coverage-report
+          path: finalCoverage
+
+      # - name: Upload test coverage to Codecov
+      #   uses: codecov/codecov-action@v2
+      #   with:
+      #     token: ${{secrets.CODECOV_TOKEN}}
+      #     # we want to ensure code coverage is good, so we fail on error. (default is false)
+      #     fail_ci_if_error: true
+      #     name: codecov-web
+  upload-code-coverage:
+    name: Coverage with CodeCov
+    runs-on: ubuntu-20.04
+    needs: [lint-and-test-web, lint-and-test-api]
+    steps:
+      # we need to checkout, so that we have codecov.yml
+      - name: Checkout repo
+        uses: actions/checkout@v2
+      - name: Download all workflow run artifacts
+        uses: actions/download-artifact@v2
       - name: Upload test coverage to Codecov
         uses: codecov/codecov-action@v2
         with:
           token: ${{secrets.CODECOV_TOKEN}}
           # we want to ensure code coverage is good, so we fail on error. (default is false)
           fail_ci_if_error: true
-          name: codecov-web
