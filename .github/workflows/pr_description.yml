@@ -19,5 +19,5 @@ jobs:
           # https://octokit.github.io/rest.js/v18#pulls
           # https://github.com/actions/github-script
           script: |
-            const script = require('./pr_description.js')
+            const script = require('./.github/workflows/pr_description.js')
             script({github, context})
