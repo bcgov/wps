@@ -14,7 +14,7 @@ from app.schemas.observations import WeatherReading
 from app.schemas.hfi_calc import StationDaily
 from app.utils.fuel_types import FUEL_TYPE_DEFAULTS
 from app.fba_calculator import calculate_cfb, get_fire_size, get_fire_type
-from app.utils.time import get_julian_date_now
+from app.utils.time import datetime_from_timestamp, get_julian_date_now
 from app.wildfire_one.util import is_station_valid, get_zone_code_prefix
 
 logger = logging.getLogger(__name__)
@@ -158,7 +158,7 @@ def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
     pdf = FUEL_TYPE_DEFAULTS[fuel_type]["PDF"]
     cbh = FUEL_TYPE_DEFAULTS[fuel_type]["CBH"]
     cfl = FUEL_TYPE_DEFAULTS[fuel_type]["CFL"]
-
+    date = raw_daily.get('weatherTimestamp', None)
     isi = raw_daily.get('initialSpreadIndex', None)
     bui = raw_daily.get('buildUpIndex', None)
     ffmc = raw_daily.get('fineFuelMoistureCode', None)
@@ -223,6 +223,7 @@ def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
 
     return StationDaily(
         code=station.code,
+        date=datetime_from_timestamp(date),
         status=raw_daily.get('recordType', '').get('id', None),
         temperature=raw_daily.get('temperature', None),
         relative_humidity=raw_daily.get('relativeHumidity', None),

@@ -3,6 +3,7 @@
 from typing import List, Optional
 from pydantic import BaseModel
 from app.schemas.shared import FuelType
+from datetime import datetime
 
 
 class StationDaily(BaseModel):
@@ -31,6 +32,7 @@ class StationDaily(BaseModel):
     fire_type: Optional[str] = None
     error: Optional[bool] = False
     error_message: Optional[str] = None
+    date: Optional[datetime] = None
 
 
 class StationDailyResponse(BaseModel):

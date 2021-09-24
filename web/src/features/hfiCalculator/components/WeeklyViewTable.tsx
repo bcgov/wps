@@ -289,9 +289,9 @@ export const DailyViewTable = (props: Props): JSX.Element => {
     )
   }
 
-  for (let i = 0; i < Object.keys(props.weekliesMap).length; i++) {
-    Object.values(props.weekliesMap)[i].forEach(daily => {})
-  }
+  // for (let i = 0; i < Object.keys(props.weekliesMap).length; i++) {
+  //   Object.values(props.weekliesMap)[i].forEach(daily => {})
+  // }
 
   return (
     <FireContainer testId={props.testId}>
@@ -394,7 +394,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                           .sort((a, b) => (a[1].code < b[1].code ? -1 : 1))
                           .map(([stationCode, station]) => {
                             const dailies = props.weekliesMap.get(station.code)
-                            dailies?.forEach(daily => {})
+                            // dailies?.forEach(daily => {})
                             // const grassCureError = !isValidGrassCure(
                             //   daily,
                             //   station.station_props

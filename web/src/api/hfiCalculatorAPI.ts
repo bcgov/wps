@@ -1,4 +1,5 @@
 import axios from 'api/axios'
+import { DateTime } from 'luxon'
 
 export interface StationDaily {
   code: number
@@ -23,6 +24,7 @@ export interface StationDaily {
   intensity_group: number
   sixty_minute_fire_size: number
   fire_type: string
+  date: DateTime
 }
 
 export interface StationDailyResponse {
