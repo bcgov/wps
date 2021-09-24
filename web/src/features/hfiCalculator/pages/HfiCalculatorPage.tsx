@@ -17,6 +17,7 @@ import {
 import { CircularProgress, FormControl, makeStyles } from '@material-ui/core'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import { groupBy } from 'lodash'
+import { getPrepStartAndEnd } from 'utils/date'
 
 const useStyles = makeStyles(theme => ({
   container: {
@@ -73,35 +74,13 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       dispatch(fetchHFIDailies(dailyStartTime, dailyEndTime))
       dispatch(fetchHFIStations())
     } else {
-      let dayOffset = 0
-      switch (day) {
-        case 'Tuesday':
-          dayOffset = 1
-          break
-        case 'Wednesday':
-          dayOffset = 2
-          break
-        case 'Friday':
-          dayOffset = 1
-          break
-        case 'Saturday':
-          dayOffset = 2
-          break
-        case 'Sunday':
-          dayOffset = 3
-      }
-      const weeklyStartTime = DateTime.fromISO(dateOfInterest)
-        .minus({ days: dayOffset })
-        .startOf('day')
-        .toUTC()
-        .valueOf()
-      const weeklyEndTime = DateTime.fromISO(dateOfInterest)
-        .minus({ days: dayOffset })
-        .endOf('day')
-        .plus({ weeks: 1 })
-        .toUTC()
-        .valueOf()
-      dispatch(fetchHFIDailies(weeklyStartTime, weeklyEndTime))
+      const startAndEnd = getPrepStartAndEnd(dateOfInterest)
+      dispatch(
+        fetchHFIDailies(
+          startAndEnd.start.toUTC().valueOf(),
+          startAndEnd.end.toUTC().valueOf()
+        )
+      )
       dispatch(fetchHFIStations())
     }
 

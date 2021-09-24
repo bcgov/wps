@@ -48,3 +48,40 @@ export const formatDateInUTC00Suffix = (dtISO: string): string => {
   const isoNoon = toISO(DateTime.fromJSDate(dtJS).setZone('UTC'))
   return isoNoon.substring(0, isoNoon.length - 1) + '+00:00'
 }
+
+export const getPrepStartAndEnd = (dateOfInterest: string) => {
+  const getDayName = (dateStr: string, locale: string) => {
+    console.log('monkey', dateStr)
+    const date = new Date(dateStr)
+    // DateTime.fromISO(dateStr).setZone(`UTC${PST_UTC_OFFSET}`)
+    return date.toLocaleDateString(locale, { weekday: 'long' })
+  }
+  const day = getDayName(dateOfInterest, 'en-CA')
+  let dayOffset = 0
+  console.log('the day', day)
+  switch (day) {
+    case 'Tuesday':
+      dayOffset = 1
+      break
+    case 'Wednesday':
+      dayOffset = 2
+      break
+    case 'Friday':
+      dayOffset = 1
+      break
+    case 'Saturday':
+      dayOffset = 2
+      break
+    case 'Sunday':
+      dayOffset = 3
+  }
+  console.log('dayOffset', dayOffset)
+  const weeklyStartTime = DateTime.fromISO(dateOfInterest)
+    .minus({ days: dayOffset })
+    .startOf('day')
+  const weeklyEndTime = DateTime.fromISO(dateOfInterest)
+    .minus({ days: dayOffset })
+    .endOf('day')
+    .plus({ weeks: 1 })
+  return { start: weeklyStartTime, end: weeklyEndTime }
+}

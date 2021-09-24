@@ -24,6 +24,7 @@ import IntensityGroupCell from 'features/hfiCalculator/components/IntensityGroup
 import FireTable from 'components/FireTable'
 import FireContainer from 'components/FireDisplayContainer'
 import { DateTime } from 'luxon/src/datetime'
+import { getPrepStartAndEnd } from 'utils/date'
 
 export interface Props {
   title: string
@@ -207,59 +208,20 @@ export const DailyViewTable = (props: Props): JSX.Element => {
   }
   const day = getDayName(props.currentDay, 'en-CA')
 
+  // TODO: horrible hack! do this the right way!!!!
+  const startAndEnd = getPrepStartAndEnd(props.currentDay + 'T00:00:00-07:00')
+  const startDate = startAndEnd.start
+  console.log('startDate', startDate)
   const dayHeaders = []
-  if (day === 'Monday' || day === 'Tuesday' || day === 'Wednesday') {
+  const days: Array<DateTime> = []
+  for (let i = 0; i <= 5; ++i) {
+    const date = startDate.plus({ days: i })
     dayHeaders.push(
-      <TableCell colSpan={5} className={classes.dayHeader}>
-        Monday
+      <TableCell colSpan={5} className={classes.dayHeader} key={i}>
+        {date.toJSDate().toLocaleDateString('en-CA', { weekday: 'long' })}
       </TableCell>
     )
-    dayHeaders.push(
-      <TableCell colSpan={5} className={classes.dayHeader}>
-        Tuesday
-      </TableCell>
-    )
-    dayHeaders.push(
-      <TableCell colSpan={5} className={classes.dayHeader}>
-        Wednesday
-      </TableCell>
-    )
-    dayHeaders.push(
-      <TableCell colSpan={5} className={classes.dayHeader}>
-        Thursday
-      </TableCell>
-    )
-    dayHeaders.push(
-      <TableCell colSpan={5} className={classes.dayHeader}>
-        Friday
-      </TableCell>
-    )
-  } else {
-    dayHeaders.push(
-      <TableCell colSpan={5} className={classes.dayHeader}>
-        Thursday
-      </TableCell>
-    )
-    dayHeaders.push(
-      <TableCell colSpan={5} className={classes.dayHeader}>
-        Friday
-      </TableCell>
-    )
-    dayHeaders.push(
-      <TableCell colSpan={5} className={classes.dayHeader}>
-        Saturday
-      </TableCell>
-    )
-    dayHeaders.push(
-      <TableCell colSpan={5} className={classes.dayHeader}>
-        Sunday
-      </TableCell>
-    )
-    dayHeaders.push(
-      <TableCell colSpan={5} className={classes.dayHeader}>
-        Monday
-      </TableCell>
-    )
+    days.push(date)
   }
   const cellHeaders = []
 
@@ -310,11 +272,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
         <TableHead>
           <TableRow>
             <TableCell colSpan={5}></TableCell>
-            {dayHeaders[0]}
-            {dayHeaders[1]}
-            {dayHeaders[2]}
-            {dayHeaders[3]}
-            {dayHeaders[4]}
+            {dayHeaders.map(cell => cell)}
             <TableCell colSpan={2}></TableCell>
           </TableRow>
           <TableRow>
@@ -449,6 +407,24 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                                           console.log(value)
                                         }
                                       )}
+                                      {days.map(day => {
+                                        // the surrounding loop is wrong!
+                                        return (
+                                          <TableCell key={day.toMillis()} colSpan={5}>
+                                            Happy stuff
+                                          </TableCell>
+                                        )
+                                        // const aRecord = getMeMyDay(day, myListOfDatesForThisStation)
+                                        // if (aRecord === null) {
+                                        //   return (<TableCell key={day.toMillis()} colSpan={5}>Empy</TableCell>)
+                                        // } else {
+                                        //   return (
+                                        //     <TableCell key={day.toMillis()} colSpan={5}>
+                                        //       Happy stuff
+                                        //     </TableCell>
+                                        //   )
+                                        // }
+                                      })}
                                       {/*{props.weekliesMap.forEach((value, key) => {
                                         console.log(key + ' ' + value)
                                         for (let i = 0; i < value.length; i++) {
