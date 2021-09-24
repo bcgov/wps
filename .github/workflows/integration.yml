@@ -86,11 +86,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-renv-
       - name: Restore R packages
+        working-directory: ./r
         shell: Rscript {0}
         run: |
           if (!requireNamespace("renv", quietly = TRUE)) install.packages("renv")
           renv::restore()
-          renv::install("cffdrs", dependencies = TRUE)
       # - name: Install renv (api)
       #   run: |
       #     install.packages("renv")
