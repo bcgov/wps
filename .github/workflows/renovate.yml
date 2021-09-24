@@ -1,8 +1,10 @@
 name: Renovate
 on:
+  # Scheduled workflows run on the latest commit on the default or base branch.
   schedule:
-    # Scheduled workflows run on the latest commit on the default or base branch.
+    # Every day at 02:00
     - cron: "0 2 * * *"
+
 jobs:
   renovate:
     runs-on: ubuntu-latest

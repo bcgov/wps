@@ -1,12 +1,13 @@
-name: Every Sunday at 02:00
+name: Zap Scan
 on:
+  # Scheduled workflows run on the latest commit on the default or base branch.
   schedule:
-    # Scheduled workflows run on the latest commit on the default or base branch.
+    # Every Sunday at 02:00
     - cron: "0 2 * * 0"
 
 jobs:
   zap_scan_ocp4:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     name: Scan the web application in OCP4
     steps:
       - name: Checkout

@@ -8,7 +8,7 @@ on:
 jobs:
   set-description:
     name: Set pull request description
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Set description
         uses: actions/github-script@v4
