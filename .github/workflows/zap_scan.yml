@@ -2,7 +2,7 @@ name: Every Sunday at 02:00
 on:
   schedule:
     # Scheduled workflows run on the latest commit on the default or base branch.
-    - cron: "0 2 * * *"
+    - cron: "0 2 * * 0"
 
 jobs:
   zap_scan_ocp4:
