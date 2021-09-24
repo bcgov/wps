@@ -13,7 +13,7 @@ module.exports = async ({ github, context }) => {
     console.log(pr.data.body);
     // If the body doesn't already contain some test links, we create a few.
     let body = pr.data.body === null ? "" : pr.data.body;
-    body += "# Test Links:\n";
+    body += "\n# Test Links:\n";
     body += `Percentile Calculator: ${prBaseUrl}/\n`;
     body += `MoreCast: ${prBaseUrl}/morecast\n`;
     body += `C-Haines: ${prBaseUrl}/c-haines\n`;
