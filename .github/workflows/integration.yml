@@ -75,6 +75,10 @@ jobs:
         with:
           r-version: ${{ matrix.R }}
       - name: Cache renv (api)
+        # You have to create the renv.lock file on your local machine
+        # install.packages("renv")
+        # renv::install("cffdrs", dependencies = TRUE)
+        # renv::snapshot()
         uses: actions/cache@v2
         with:
           path: ${{ env.RENV_PATHS_ROOT }}
