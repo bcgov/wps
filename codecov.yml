@@ -11,7 +11,7 @@ coverage:
         # target: minimum coverage ratio that the commit must meet
         target: 80%
         # threshold: Allow the coverage to drop by X%, and posting a success status.
-        threshold: 5%
+        threshold: 1%
       # https://docs.codecov.com/docs/commit-status#splitting-up-projects-example
       api:
         paths:
@@ -19,4 +19,5 @@ coverage:
       web:
         paths:
           - web/src
+        # web isn't quite amazing yet - would be nice to push it up to 80&
         target: 73%
