@@ -23,6 +23,7 @@ import CalculatedCell from 'features/hfiCalculator/components/CalculatedCell'
 import IntensityGroupCell from 'features/hfiCalculator/components/IntensityGroupCell'
 import FireTable from 'components/FireTable'
 import FireContainer from 'components/FireDisplayContainer'
+import { DateTime } from 'luxon/src/datetime'
 
 export interface Props {
   title: string
@@ -107,14 +108,22 @@ export const DailyViewTable = (props: Props): JSX.Element => {
 
   const stationCodesList: number[] = []
 
-  const datesList: string[] = []
-  Object.entries(props.weekliesMap).forEach(station => {
-    console.log('Station: ' + station)
-    station.forEach(daily => {
-      console.log('Daily: ' + daily)
-      datesList.push(daily.date)
-    })
+  const datesList: DateTime[] = []
+  // Object.entries(props.weekliesMap).forEach(station => {
+  //   console.log('Station: ' + station)
+  //   station.forEach(daily => {
+  //     console.log('Daily: ' + daily)
+  //     datesList.push(daily.date)
+  //   })
+  // })
+  props.weekliesMap.forEach(value => {
+    for (let i = 0; i < value.length; i++) {
+      if (!datesList.includes(value[i].date)) {
+        datesList.push(value[i].date)
+      }
+    }
   })
+
   const dates = new Set(datesList)
   console.log(datesList)
 
@@ -420,13 +429,13 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                                   {station.station_props.fuel_type.abbrev}
                                 </TableCell>
 
-                                {dailies?.forEach(daily => {
+                                {dailies?.map(daily => {
                                   const grassCureError = !isValidGrassCure(
                                     daily,
                                     station.station_props
                                   )
                                   return (
-                                    <div>
+                                    <div key={daily.code}>
                                       <GrassCureCell
                                         value={daily?.grass_cure_percentage}
                                         isGrassFuelType={isGrassFuelType(
@@ -435,29 +444,43 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                                         className={classNameForRow}
                                         selected={isRowSelected}
                                       ></GrassCureCell>
-                                      <CalculatedCell
-                                        testid={`${daily?.code}-ros`}
-                                        value={daily?.rate_of_spread?.toFixed(
-                                          DECIMAL_PLACES
-                                        )}
-                                        error={grassCureError}
-                                        className={classNameForRow}
-                                      ></CalculatedCell>
-                                      <CalculatedCell
-                                        testid={`${daily?.code}-hfi`}
-                                        value={daily?.hfi?.toFixed(DECIMAL_PLACES)}
-                                        error={grassCureError}
-                                        className={classNameForRow}
-                                      ></CalculatedCell>
-                                      <IntensityGroupCell
-                                        testid={`${daily?.code}-intensity-group`}
-                                        value={daily?.intensity_group}
-                                        error={grassCureError}
-                                        selected={isRowSelected}
-                                      ></IntensityGroupCell>
-                                      <TableCell colSpan={2}>
-                                        {/* empty cell for spacing (Fire Starts & Prev Level columns) */}
-                                      </TableCell>
+                                      {Array.from(props.weekliesMap.values()).map(
+                                        value => {
+                                          console.log(value)
+                                        }
+                                      )}
+                                      {/*{props.weekliesMap.forEach((value, key) => {
+                                        console.log(key + ' ' + value)
+                                        for (let i = 0; i < value.length; i++) {
+                                          ;<div>
+                                            <CalculatedCell
+                                              testid={`${value[i].code}-ros`}
+                                              value={value[i].rate_of_spread?.toFixed(
+                                                DECIMAL_PLACES
+                                              )}
+                                              error={grassCureError}
+                                              className={classNameForRow}
+                                            ></CalculatedCell>
+                                            <CalculatedCell
+                                              testid={`${value[i].code}-hfi`}
+                                              value={value[i].hfi?.toFixed(
+                                                DECIMAL_PLACES
+                                              )}
+                                              error={grassCureError}
+                                              className={classNameForRow}
+                                            ></CalculatedCell>
+                                            <IntensityGroupCell
+                                              testid={`${value[i].code}-intensity-group`}
+                                              value={value[i].intensity_group}
+                                              error={grassCureError}
+                                              selected={isRowSelected}
+                                            ></IntensityGroupCell>
+                                            <TableCell colSpan={2}>
+                                              
+                                            </TableCell>
+                                          </div>
+                                        }
+                                      })} */}
                                     </div>
                                   )
                                 })}
