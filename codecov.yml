@@ -1,19 +1,24 @@
 coverage:
   precision: 1
+  round: nearest
+  # https://docs.codecov.com/docs/commit-status
   status:
     project:
-      # https://docs.codecov.com/docs/commit-status#splitting-up-projects-example
-      api:
-        paths:
-          - app
-      web:
-        path:
-          - src
       # https://docs.codecov.com/docs/commit-status#project-status
-      default:
-        target: 80%
-        threshold: 5%
+      # default:
+      #   # target: minimum coverage ratio that the commit must meet
+      #   target: 80%
+      #   # threshold: Allow the coverage to drop by X%, and posting a success status.
+      #   threshold: 5%
       # basic
       # target: auto
       # we're ok with a tiny drop
       # threshold: 1%
+      # https://docs.codecov.com/docs/commit-status#splitting-up-projects-example
+      api:
+        paths:
+          - api/app*
+          - "!api/app/tests/"
+      web:
+        path:
+          - web/src*
