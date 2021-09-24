@@ -119,7 +119,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: api-coverage-report
-          path: coverage-reports/coverage-report.xml
+          path: ./api/coverage-reports/coverage-report.xml
       # https://docs.codecov.com/docs/commit-status#splitting-up-projects-example
       # - name: Upload test coverage to Codecov
       #   uses: codecov/codecov-action@v2
@@ -184,7 +184,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: web-coverage-report
-          path: finalCoverage
+          path: ./web/finalCoverage
 
       # - name: Upload test coverage to Codecov
       #   uses: codecov/codecov-action@v2
