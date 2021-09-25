@@ -91,13 +91,6 @@ jobs:
         run: |
           if (!requireNamespace("renv", quietly = TRUE)) install.packages("renv")
           renv::restore()
-      # - name: Install renv (api)
-      #   run: |
-      #     install.packages("renv")
-      #     renv::install("cffdrs", dependencies = TRUE)
-      #     renv::consent(TRUE)
-      #     renv::restore()
-      #   shell: Rscript {0}
       - name: Install gdal python (api)
         # We don't have much control over what version of gdal we're getting, it's pretty much whatever is
         # available to us. As such, gdal is not installed by poetry, since the version will differ between
@@ -129,14 +122,6 @@ jobs:
         with:
           name: api-coverage-report
           path: ./api/coverage-reports/coverage-report.xml
-      # https://docs.codecov.com/docs/commit-status#splitting-up-projects-example
-      # - name: Upload test coverage to Codecov
-      #   uses: codecov/codecov-action@v2
-      #   with:
-      #     token: ${{secrets.CODECOV_TOKEN}}
-      #     # we want to ensure code coverage is good, so we fail on error. (default is false)
-      #     fail_ci_if_error: true
-      #     name: codecov-api
   lint-and-test-web:
     name: Web - Lint, Test with coverage
     runs-on: ubuntu-20.04
@@ -149,42 +134,34 @@ jobs:
         with:
           # For sonar-scanner to work properly we can't use a shallow fetch.
           fetch-depth: 0
-
       - name: Setup kernel for react, increase watchers
         run: echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
-
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-
       - uses: actions/cache@v2
         with:
           path: |
             **/node_modules
             ~/.cache/Cypress
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
-
       - name: Install node dependencies (web)
         working-directory: ./web
         if: steps.yarn-cache.outputs.cache-hit != 'true'
         run: yarn install
-
       - name: Lint (web)
         working-directory: ./web
         run: yarn run lint
-
       # "Error: ENOSPC: System limit for number of file watchers reached" can be addressed
       # with this: https://github.com/guard/listen/wiki/Increasing-the-amount-of-inotify-watchers#the-technical-details
       # It seems unnecessary at the moment because tests pass anyway
       - name: Cypress tests with coverage (web)
         working-directory: ./web
         run: yarn run cypress:ci
-
       - name: Unit tests (web)
         working-directory: ./web
         run: yarn run coverage:ci
-
       - name: Merge and finalize test coverage (web)
         working-directory: ./web
         run: yarn run finalizeCoverage
@@ -194,14 +171,6 @@ jobs:
         with:
           name: web-coverage-report
           path: ./web/finalCoverage
-
-      # - name: Upload test coverage to Codecov
-      #   uses: codecov/codecov-action@v2
-      #   with:
-      #     token: ${{secrets.CODECOV_TOKEN}}
-      #     # we want to ensure code coverage is good, so we fail on error. (default is false)
-      #     fail_ci_if_error: true
-      #     name: codecov-web
   upload-code-coverage:
     name: Coverage with CodeCov
     runs-on: ubuntu-20.04
