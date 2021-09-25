@@ -5,8 +5,7 @@ Authors@R:
     person(given = "Sybrand",
            family = "Strauss",
            role = c("aut", "cre"),
-           email = "sybrand.strauss@gov.bc.ca",
-           comment = c(ORCID = "YOUR-ORCID-ID"))
+           email = "sybrand.strauss@gov.bc.ca")
 Description: This package is used to generate a renv.lock to ensure consistency in environments.
 License: use_apache_license(version = 2, include_future = TRUE)
 Encoding: UTF-8
