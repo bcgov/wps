@@ -8,7 +8,7 @@ import {
   TableRow
 } from '@material-ui/core'
 import GetAppIcon from '@material-ui/icons/GetApp'
-import ViewWeekOutlinedIcon from '@material-ui/icons/ViewWeekOutlined'
+import ViewColumnOutlinedIcon from '@material-ui/icons/ViewColumnOutlined'
 import { CsvBuilder } from 'filefy'
 import { Button, ErrorBoundary } from 'components'
 import { FBAStation } from 'api/fbaCalcAPI'
@@ -374,7 +374,7 @@ const FBATable = (props: FBATableProps) => {
             disabled={rows.length === 0}
           // onClick={() => { }}
           >
-            <ViewWeekOutlinedIcon />
+            <ViewColumnOutlinedIcon />
             Columns
           </Button>
         </FormControl>
