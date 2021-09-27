@@ -46,15 +46,25 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   const updateDate = () => {
     if (previouslySelectedDateOfInterest !== dateOfInterest) {
-      dispatch(
-        // need to convert dateOfInterest from string to a timestamp to be able to send query to API
-        fetchHFIDailies(
-          DateTime.fromISO(dateOfInterest).startOf('day').toUTC().valueOf(),
-          DateTime.fromISO(dateOfInterest).endOf('day').toUTC().valueOf()
+      if (tableView === 'daily') {
+        const dailyStartTime = DateTime.fromISO(dateOfInterest)
+          .startOf('day')
+          .toUTC()
+          .valueOf()
+        const dailyEndTime = DateTime.fromISO(dateOfInterest).toUTC().valueOf()
+        dispatch(fetchHFIDailies(dailyStartTime, dailyEndTime))
+        dispatch(fetchHFIStations())
+      } else {
+        const startAndEnd = getPrepStartAndEnd(dateOfInterest)
+        console.log('toutc', startAndEnd.start.toUTC().valueOf())
+        dispatch(
+          fetchHFIDailies(
+            startAndEnd.start.toUTC().valueOf(),
+            startAndEnd.end.toUTC().valueOf()
+          )
         )
-      )
-      dispatch(fetchHFIStations())
-      setPreviouslySelectedDateOfInterest(dateOfInterest)
+        dispatch(fetchHFIStations())
+      }
     }
   }
 

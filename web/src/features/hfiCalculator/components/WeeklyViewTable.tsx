@@ -11,7 +11,7 @@ import {
 } from '@material-ui/core'
 import { createTheme, makeStyles, ThemeProvider } from '@material-ui/core/styles'
 import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline'
-import { FireCentre } from 'api/hfiCalcAPI'
+import { FireCentre, WeatherStation } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import { Button } from 'components'
 import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
@@ -208,7 +208,61 @@ export const DailyViewTable = (props: Props): JSX.Element => {
   }
   const day = getDayName(props.currentDay, 'en-CA')
 
-  console.log('map', props.weekliesMap)
+  const createCells = (
+    dailies: StationDaily[] | undefined,
+    dates: DateTime[],
+    station: WeatherStation,
+    classNameForRow: string | undefined,
+    isRowSelected: boolean
+  ) => {
+    const cellInfo = []
+    for (let i = 0; i < Array.from(dates).length; i++) {
+      if (!isUndefined(dailies)) {
+        if (dailies[i] !== null) {
+          const daily = dailies[i]
+          const grassCureError = !isValidGrassCure(daily, station.station_props)
+          cellInfo.push(
+            <div key={daily.code}>
+              <GrassCureCell
+                value={daily?.grass_cure_percentage}
+                isGrassFuelType={isGrassFuelType(station.station_props)}
+                className={classNameForRow}
+                selected={isRowSelected}
+              ></GrassCureCell>
+
+              <CalculatedCell
+                testid={`${daily.code}-ros`}
+                value={daily.rate_of_spread?.toFixed(DECIMAL_PLACES)}
+                error={grassCureError}
+                className={classNameForRow}
+              ></CalculatedCell>
+              <CalculatedCell
+                testid={`${daily.code}-hfi`}
+                value={daily.hfi?.toFixed(DECIMAL_PLACES)}
+                error={grassCureError}
+                className={classNameForRow}
+              ></CalculatedCell>
+              <IntensityGroupCell
+                testid={`${daily.code}-intensity-group`}
+                value={daily.intensity_group}
+                error={grassCureError}
+                selected={isRowSelected}
+              ></IntensityGroupCell>
+              <TableCell colSpan={2}></TableCell>
+            </div>
+          )
+        } else {
+          cellInfo.push(
+            <div>
+              <TableCell colSpan={4}></TableCell>
+            </div>
+          )
+        }
+      }
+
+      return cellInfo
+    }
+  }
 
   // TODO: horrible hack! do this the right way!!!!
   const startAndEnd = getPrepStartAndEnd(props.currentDay + 'T00:00:00-07:00')
@@ -357,11 +411,18 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                           .sort((a, b) => (a[1].code < b[1].code ? -1 : 1))
                           .map(([stationCode, station]) => {
                             const dailies = props.weekliesMap.get(station.code)
-                            console.log('dailies', dailies)
                             const isRowSelected = stationCodeInSelected(station.code)
                             const classNameForRow = !isRowSelected
                               ? classes.unselectedStation
                               : undefined
+
+                            const cells = createCells(
+                              dailies,
+                              datesList,
+                              station,
+                              classNameForRow,
+                              isRowSelected
+                            )
                             return (
                               <TableRow
                                 className={classNameForRow}
@@ -393,46 +454,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                                 </TableCell>
                                 <TableCell></TableCell>
 
-                                {dailies?.map(daily => {
-                                  const grassCureError = !isValidGrassCure(
-                                    daily,
-                                    station.station_props
-                                  )
-                                  return (
-                                    <div key={daily.code}>
-                                      <GrassCureCell
-                                        value={daily?.grass_cure_percentage}
-                                        isGrassFuelType={isGrassFuelType(
-                                          station.station_props
-                                        )}
-                                        className={classNameForRow}
-                                        selected={isRowSelected}
-                                      ></GrassCureCell>
-
-                                      <CalculatedCell
-                                        testid={`${daily.code}-ros`}
-                                        value={daily.rate_of_spread?.toFixed(
-                                          DECIMAL_PLACES
-                                        )}
-                                        error={grassCureError}
-                                        className={classNameForRow}
-                                      ></CalculatedCell>
-                                      <CalculatedCell
-                                        testid={`${daily.code}-hfi`}
-                                        value={daily.hfi?.toFixed(DECIMAL_PLACES)}
-                                        error={grassCureError}
-                                        className={classNameForRow}
-                                      ></CalculatedCell>
-                                      <IntensityGroupCell
-                                        testid={`${daily.code}-intensity-group`}
-                                        value={daily.intensity_group}
-                                        error={grassCureError}
-                                        selected={isRowSelected}
-                                      ></IntensityGroupCell>
-                                      <TableCell colSpan={2}></TableCell>
-                                    </div>
-                                  )
-                                })}
+                                {{ cells }}
                               </TableRow>
                             )
                           })}
