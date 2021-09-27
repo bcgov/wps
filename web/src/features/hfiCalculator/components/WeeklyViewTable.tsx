@@ -218,7 +218,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
     console.log('dates', datesList)
     console.log('dailies', dailies)
 
-    dailies?.map(daily => {
+    return dailies?.map(daily => {
       return (
         <React.Fragment key={`${station.code}-${daily.date}`}>
           <GrassCureCell
