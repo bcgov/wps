@@ -50,13 +50,11 @@ export const formatDateInUTC00Suffix = (dtISO: string): string => {
 }
 
 export const getPrepStartAndEnd = (dateOfInterest: string) => {
-  const getDayName = (dateStr: string, locale: string) => {
+  const getDayName = (dateStr: string) => {
     console.log('monkey', dateStr)
-    const date = new Date(dateStr)
-    // DateTime.fromISO(dateStr).setZone(`UTC${PST_UTC_OFFSET}`)
-    return date.toLocaleDateString(locale, { weekday: 'long' })
+    return DateTime.fromISO(dateOfInterest).weekdayLong
   }
-  const day = getDayName(dateOfInterest, 'en-CA')
+  const day = getDayName(dateOfInterest)
   let dayOffset = 0
   console.log('the day', day)
   switch (day) {
