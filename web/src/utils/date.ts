@@ -82,6 +82,7 @@ export const getPrepStartAndEnd = (dateOfInterest: string) => {
   const weeklyEndTime = DateTime.fromISO(dateOfInterest)
     .minus({ days: dayOffset })
     .endOf('day')
-    .plus({ weeks: 1 })
+    .plus({ days: 5 })
+  console.log('starttime', weeklyStartTime, weeklyEndTime)
   return { start: weeklyStartTime, end: weeklyEndTime }
 }

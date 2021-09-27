@@ -75,6 +75,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       dispatch(fetchHFIStations())
     } else {
       const startAndEnd = getPrepStartAndEnd(dateOfInterest)
+      console.log('toutc', startAndEnd.start.toUTC().valueOf())
       dispatch(
         fetchHFIDailies(
           startAndEnd.start.toUTC().valueOf(),

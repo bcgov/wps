@@ -208,16 +208,18 @@ export const DailyViewTable = (props: Props): JSX.Element => {
   }
   const day = getDayName(props.currentDay, 'en-CA')
 
+  console.log('map', props.weekliesMap)
+
   // TODO: horrible hack! do this the right way!!!!
   const startAndEnd = getPrepStartAndEnd(props.currentDay + 'T00:00:00-07:00')
   const startDate = startAndEnd.start
   console.log('startDate', startDate)
   const dayHeaders = []
   const days: Array<DateTime> = []
-  for (let i = 0; i <= 5; ++i) {
+  for (let i = 0; i < 5; ++i) {
     const date = startDate.plus({ days: i })
     dayHeaders.push(
-      <TableCell colSpan={5} className={classes.dayHeader} key={i}>
+      <TableCell colSpan={6} className={classes.dayHeader} key={i}>
         {date.toJSDate().toLocaleDateString('en-CA', { weekday: 'long' })}
       </TableCell>
     )
@@ -228,6 +230,16 @@ export const DailyViewTable = (props: Props): JSX.Element => {
   for (let i = 0; i < 5; i++) {
     cellHeaders.push(
       <TableCell style={{ borderLeft: 'solid 2px grey' }}>
+        Grass
+        <br />
+        Cure
+        <br />
+        (%)
+      </TableCell>
+    )
+
+    cellHeaders.push(
+      <TableCell>
         ROS
         <br />
         (m/min)
@@ -273,7 +285,6 @@ export const DailyViewTable = (props: Props): JSX.Element => {
           <TableRow>
             <TableCell colSpan={5}></TableCell>
             {dayHeaders.map(cell => cell)}
-            <TableCell colSpan={2}></TableCell>
           </TableRow>
           <TableRow>
             <TableCell>
@@ -291,13 +302,6 @@ export const DailyViewTable = (props: Props): JSX.Element => {
               Fuel
               <br />
               Type
-            </TableCell>
-            <TableCell>
-              Grass
-              <br />
-              Cure
-              <br />
-              (%)
             </TableCell>
             {cellHeaders}
           </TableRow>
@@ -386,10 +390,12 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                                 >
                                   {station.station_props.fuel_type.abbrev}
                                 </TableCell>
+                                <TableCell></TableCell>
 
-                                {dailies?.map(daily => {
+                                {Array.from(props.weekliesMap.values()).map(daily => {
+                                  console.log('daily', daily)
                                   const grassCureError = !isValidGrassCure(
-                                    daily,
+                                    daily[0],
                                     station.station_props
                                   )
                                   return (
@@ -404,14 +410,14 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                                       ></GrassCureCell>
                                       {Array.from(props.weekliesMap.values()).map(
                                         value => {
-                                          console.log(value)
+                                          console.log()
                                         }
                                       )}
                                       {days.map(day => {
                                         // the surrounding loop is wrong!
                                         return (
-                                          <TableCell key={day.toMillis()} colSpan={5}>
-                                            Happy stuff
+                                          <TableCell key={day.toMillis()}>
+                                            Stuff
                                           </TableCell>
                                         )
                                         // const aRecord = getMeMyDay(day, myListOfDatesForThisStation)
