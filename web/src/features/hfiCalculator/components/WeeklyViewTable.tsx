@@ -224,7 +224,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
           const daily = dailies[i]
           const grassCureError = !isValidGrassCure(daily, station.station_props)
           cellInfo.push(
-            <div key={daily.code}>
+            <div key={`${station.code}-${daily.date}`}>
               <GrassCureCell
                 value={daily?.grass_cure_percentage}
                 isGrassFuelType={isGrassFuelType(station.station_props)}
