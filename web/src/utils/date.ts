@@ -81,5 +81,6 @@ export const getPrepStartAndEnd = (dateOfInterest: string) => {
     .minus({ days: dayOffset })
     .endOf('day')
     .plus({ days: 4 })
+  console.log('start ', weeklyStartTime, ' - end ', weeklyEndTime)
   return { start: weeklyStartTime, end: weeklyEndTime }
 }

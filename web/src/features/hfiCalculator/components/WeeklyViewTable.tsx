@@ -210,15 +210,17 @@ export const DailyViewTable = (props: Props): JSX.Element => {
 
   const createCells = (
     dailies: StationDaily[] | undefined,
-    dates: DateTime[],
     station: WeatherStation,
     classNameForRow: string | undefined,
     isRowSelected: boolean
   ) => {
-    const cellInfo = []
-    for (let i = 0; i < Array.from(dates).length; i++) {
+    const cellInfo: ReactFragment[] = []
+    console.log('dates', datesList)
+    console.log('dailies', dailies)
+
+    for (let i = 0; i < datesList.length; i++) {
       if (!isUndefined(dailies)) {
-        if (dailies[i] !== null) {
+        if (!isUndefined(dailies[i]) && dailies[i].date == datesList[i]) {
           const daily = dailies[i]
           const grassCureError = !isValidGrassCure(daily, station.station_props)
           cellInfo.push(
@@ -251,6 +253,13 @@ export const DailyViewTable = (props: Props): JSX.Element => {
               <TableCell colSpan={2}></TableCell>
             </div>
           )
+          console.log('pushed to cellInfo for ', station)
+          console.log(
+            'as of ',
+            dailies[i].date,
+            ' length of cellInfo is ',
+            cellInfo.length
+          )
         } else {
           cellInfo.push(
             <div>
@@ -259,9 +268,9 @@ export const DailyViewTable = (props: Props): JSX.Element => {
           )
         }
       }
-
-      return cellInfo
     }
+    console.log('cellInfo Length', cellInfo.length)
+    return cellInfo
   }
 
   // TODO: horrible hack! do this the right way!!!!
@@ -418,7 +427,6 @@ export const DailyViewTable = (props: Props): JSX.Element => {
 
                             const cells = createCells(
                               dailies,
-                              datesList,
                               station,
                               classNameForRow,
                               isRowSelected
@@ -454,7 +462,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                                 </TableCell>
                                 <TableCell></TableCell>
 
-                                {{ cells }}
+                                {cells}
                               </TableRow>
                             )
                           })}

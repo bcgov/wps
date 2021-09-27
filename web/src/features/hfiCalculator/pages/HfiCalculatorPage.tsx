@@ -47,6 +47,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const updateDate = () => {
     if (previouslySelectedDateOfInterest !== dateOfInterest) {
       if (tableView === 'daily') {
+        console.log('tableView is DAILY')
         const dailyStartTime = DateTime.fromISO(dateOfInterest)
           .startOf('day')
           .toUTC()
@@ -55,8 +56,9 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         dispatch(fetchHFIDailies(dailyStartTime, dailyEndTime))
         dispatch(fetchHFIStations())
       } else {
+        console.log('tableView is WEEKLY')
         const startAndEnd = getPrepStartAndEnd(dateOfInterest)
-        console.log('toutc', startAndEnd.start.toUTC().valueOf())
+        console.log(startAndEnd)
         dispatch(
           fetchHFIDailies(
             startAndEnd.start.toUTC().valueOf(),
@@ -65,6 +67,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         )
         dispatch(fetchHFIStations())
       }
+      setPreviouslySelectedDateOfInterest(dateOfInterest)
     }
   }
 
