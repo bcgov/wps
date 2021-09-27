@@ -357,6 +357,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                           .sort((a, b) => (a[1].code < b[1].code ? -1 : 1))
                           .map(([stationCode, station]) => {
                             const dailies = props.weekliesMap.get(station.code)
+                            console.log('dailies', dailies)
                             const isRowSelected = stationCodeInSelected(station.code)
                             const classNameForRow = !isRowSelected
                               ? classes.unselectedStation
@@ -392,10 +393,9 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                                 </TableCell>
                                 <TableCell></TableCell>
 
-                                {Array.from(props.weekliesMap.values()).map(daily => {
-                                  console.log('daily', daily)
+                                {dailies?.map(daily => {
                                   const grassCureError = !isValidGrassCure(
-                                    daily[0],
+                                    daily,
                                     station.station_props
                                   )
                                   return (
@@ -408,61 +408,28 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                                         className={classNameForRow}
                                         selected={isRowSelected}
                                       ></GrassCureCell>
-                                      {Array.from(props.weekliesMap.values()).map(
-                                        value => {
-                                          console.log()
-                                        }
-                                      )}
-                                      {days.map(day => {
-                                        // the surrounding loop is wrong!
-                                        return (
-                                          <TableCell key={day.toMillis()}>
-                                            Stuff
-                                          </TableCell>
-                                        )
-                                        // const aRecord = getMeMyDay(day, myListOfDatesForThisStation)
-                                        // if (aRecord === null) {
-                                        //   return (<TableCell key={day.toMillis()} colSpan={5}>Empy</TableCell>)
-                                        // } else {
-                                        //   return (
-                                        //     <TableCell key={day.toMillis()} colSpan={5}>
-                                        //       Happy stuff
-                                        //     </TableCell>
-                                        //   )
-                                        // }
-                                      })}
-                                      {/*{props.weekliesMap.forEach((value, key) => {
-                                        console.log(key + ' ' + value)
-                                        for (let i = 0; i < value.length; i++) {
-                                          ;<div>
-                                            <CalculatedCell
-                                              testid={`${value[i].code}-ros`}
-                                              value={value[i].rate_of_spread?.toFixed(
-                                                DECIMAL_PLACES
-                                              )}
-                                              error={grassCureError}
-                                              className={classNameForRow}
-                                            ></CalculatedCell>
-                                            <CalculatedCell
-                                              testid={`${value[i].code}-hfi`}
-                                              value={value[i].hfi?.toFixed(
-                                                DECIMAL_PLACES
-                                              )}
-                                              error={grassCureError}
-                                              className={classNameForRow}
-                                            ></CalculatedCell>
-                                            <IntensityGroupCell
-                                              testid={`${value[i].code}-intensity-group`}
-                                              value={value[i].intensity_group}
-                                              error={grassCureError}
-                                              selected={isRowSelected}
-                                            ></IntensityGroupCell>
-                                            <TableCell colSpan={2}>
-                                              
-                                            </TableCell>
-                                          </div>
-                                        }
-                                      })} */}
+
+                                      <CalculatedCell
+                                        testid={`${daily.code}-ros`}
+                                        value={daily.rate_of_spread?.toFixed(
+                                          DECIMAL_PLACES
+                                        )}
+                                        error={grassCureError}
+                                        className={classNameForRow}
+                                      ></CalculatedCell>
+                                      <CalculatedCell
+                                        testid={`${daily.code}-hfi`}
+                                        value={daily.hfi?.toFixed(DECIMAL_PLACES)}
+                                        error={grassCureError}
+                                        className={classNameForRow}
+                                      ></CalculatedCell>
+                                      <IntensityGroupCell
+                                        testid={`${daily.code}-intensity-group`}
+                                        value={daily.intensity_group}
+                                        error={grassCureError}
+                                        selected={isRowSelected}
+                                      ></IntensityGroupCell>
+                                      <TableCell colSpan={2}></TableCell>
                                     </div>
                                   )
                                 })}
