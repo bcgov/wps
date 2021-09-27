@@ -218,6 +218,39 @@ export const DailyViewTable = (props: Props): JSX.Element => {
     console.log('dates', datesList)
     console.log('dailies', dailies)
 
+    dailies?.map(daily => {
+      return (
+        <React.Fragment key={`${station.code}-${daily.date}`}>
+          <GrassCureCell
+            value={daily?.grass_cure_percentage}
+            isGrassFuelType={isGrassFuelType(station.station_props)}
+            className={classNameForRow}
+            selected={isRowSelected}
+          ></GrassCureCell>
+
+          <CalculatedCell
+            testid={`${daily.code}-ros`}
+            value={daily.rate_of_spread?.toFixed(DECIMAL_PLACES)}
+            error={false}
+            className={classNameForRow}
+          ></CalculatedCell>
+          <CalculatedCell
+            testid={`${daily.code}-hfi`}
+            value={daily.hfi?.toFixed(DECIMAL_PLACES)}
+            error={false}
+            className={classNameForRow}
+          ></CalculatedCell>
+          <IntensityGroupCell
+            testid={`${daily.code}-intensity-group`}
+            value={daily.intensity_group}
+            error={false}
+            selected={isRowSelected}
+          ></IntensityGroupCell>
+          <TableCell colSpan={2}></TableCell>
+        </React.Fragment>
+      )
+    })
+
     for (let i = 0; i < datesList.length; i++) {
       if (!isUndefined(dailies)) {
         if (!isUndefined(dailies[i]) && dailies[i].date == datesList[i]) {
@@ -253,13 +286,6 @@ export const DailyViewTable = (props: Props): JSX.Element => {
               <TableCell colSpan={2}></TableCell>
             </div>
           )
-          console.log('pushed to cellInfo for ', station)
-          console.log(
-            'as of ',
-            dailies[i].date,
-            ' length of cellInfo is ',
-            cellInfo.length
-          )
         } else {
           cellInfo.push(
             <div>
@@ -269,7 +295,6 @@ export const DailyViewTable = (props: Props): JSX.Element => {
         }
       }
     }
-    console.log('cellInfo Length', cellInfo.length)
     return cellInfo
   }
 
@@ -346,7 +371,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
       >
         <TableHead>
           <TableRow>
-            <TableCell colSpan={5}></TableCell>
+            <TableCell colSpan={4}></TableCell>
             {dayHeaders.map(cell => cell)}
           </TableRow>
           <TableRow>
