@@ -6,3 +6,7 @@ RUN yum -y --enablerepo=extras install epel-release &&\
     yum -y --enablerepo=epel install s3cmd
 
 USER 26
+
+COPY test.sh .
+
+CMD sh test.sh
