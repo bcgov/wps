@@ -13,7 +13,6 @@ import { createTheme, makeStyles, ThemeProvider } from '@material-ui/core/styles
 import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline'
 import { FireCentre } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
-import { Button } from 'components'
 import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
 import { isGrassFuelType, isValidGrassCure } from 'features/hfiCalculator/validation'
 import { calculateMeanIntensityGroup } from 'features/hfiCalculator/components/meanIntensity'
@@ -25,12 +24,9 @@ import FireTable from 'components/FireTable'
 import FireContainer from 'components/FireDisplayContainer'
 
 export interface Props {
-  title: string
+  title?: string
   fireCentres: Record<string, FireCentre>
   dailiesMap: Map<number, StationDaily>
-  currentDay: string
-  previousDay: () => void
-  nextDay: () => void
   testId?: string
 }
 
@@ -186,13 +182,6 @@ export const DailyViewTable = (props: Props): JSX.Element => {
         <Typography component="div" variant="subtitle2">
           {props.title}
         </Typography>
-        <Button color="primary" onClick={props.previousDay}>
-          Previous
-        </Button>
-        {props.currentDay}
-        <Button color="primary" onClick={props.nextDay}>
-          Next
-        </Button>
       </div>
       <FireTable
         maxHeight={700}
