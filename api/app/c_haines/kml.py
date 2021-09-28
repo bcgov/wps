@@ -109,7 +109,7 @@ def add_style(kml, style_id, color):
     kml.append(f'<color>{color}</color>')
     kml.append('</LineStyle>')
     kml.append('<PolyStyle>')
-    kml.append('<color>{color}</color>')
+    kml.append(f'<color>{color}</color>')
     kml.append('</PolyStyle>')
     kml.append('</Style>')
 
