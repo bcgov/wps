@@ -62,7 +62,7 @@ jobs:
           poetry install
       - name: Lint (api)
         # We run lint before unit tests, and before installing some of the
-        # longer running dependancy installs because it runs faster, so we'll reach a fail condition sooner.
+        # longer running dependency installs because it runs faster, so we'll reach a fail condition sooner.
         working-directory: ./api
         run: |
           source ~/.poetry/env
