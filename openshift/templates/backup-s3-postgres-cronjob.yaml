@@ -12,11 +12,6 @@ parameters:
     description: "Name of the Scheduled Job to Create."
     value: "backup-postgres"
     required: true
-  - name: "JOB_PERSISTENT_STORAGE_NAME"
-    displayName: "Backup Persistent Storage Name"
-    description: "Pre-Created PVC to use for backup target"
-    value: "backup"
-    required: true
   - name: "SCHEDULE"
     displayName: "Cron Schedule"
     description: "Cron Schedule to Execute the Job (using local cluster system TZ)"
