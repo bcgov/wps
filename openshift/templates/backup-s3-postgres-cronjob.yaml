@@ -1,0 +1,148 @@
+---
+kind: "Template"
+apiVersion: "template.openshift.io/v1"
+metadata:
+  name: "${JOB_NAME}-cronjob-template"
+  annotations:
+    description: "Scheduled Task to perform a Database Backup to S3 object store."
+    tags: "cronjob,backup"
+parameters:
+  - name: "JOB_NAME"
+    displayName: "Job Name"
+    description: "Name of the Scheduled Job to Create."
+    value: "backup-postgres"
+    required: true
+  - name: "JOB_PERSISTENT_STORAGE_NAME"
+    displayName: "Backup Persistent Storage Name"
+    description: "Pre-Created PVC to use for backup target"
+    value: "backup"
+    required: true
+  - name: "SCHEDULE"
+    displayName: "Cron Schedule"
+    description: "Cron Schedule to Execute the Job (using local cluster system TZ)"
+    value: "0 3,9,14,20 * * *"
+    required: true
+  - name: "SOURCE_IMAGE_NAME"
+    displayName: "Source Image Name"
+    description: "The name of the image to use for this resource."
+    required: true
+    value: "s3backup"
+  - name: "IMAGE_NAMESPACE"
+    displayName: "Image Namespace"
+    description: "The namespace of the OpenShift project containing the imagestream for the application."
+    required: true
+    value: "e1e498-tools"
+  - name: "TAG_NAME"
+    displayName: "Environment TAG name"
+    description: "The TAG name for this environment, e.g., dev, test, prod"
+    required: true
+    value: "dev"
+  - name: "DATABASE_SERVICE_NAME"
+    displayName: "Database Service Name"
+    description: "The name of the database service."
+    required: true
+  - name: DATABASE_USER
+    value: wps
+    required: true
+  - name: "DATABASE_DEPLOYMENT_NAME"
+    displayName: "Database Deployment Name"
+    description: "The name associated to the database deployment resources.  In particular, this is used to wire up the credentials associated to the database."
+    required: true
+  - name: DATABASE_PASSWORD_KEY_NAME
+    displayName: Database Password Key Name
+    description:
+      The database password key name stored in database deployment resources
+      specified by DATABASE_DEPLOYMENT_NAME.
+    required: true
+    value: app-db-password
+  - name: "BACKUP_STRATEGY"
+    displayName: "Backup Strategy"
+    description: "The strategy to use for backups; for example daily, or rolling."
+    required: true
+    value: "rolling"
+  - name: "BUCKET"
+    displayName: "The root backup directory"
+    description: "The name of the root backup directory"
+    required: true
+    value: "/backups/"
+  - name: "APP_LABEL"
+    required: true
+  - name: CPU_REQUEST
+    value: "0.5"
+  - name: CPU_LIMIT
+    value: "1"
+objects:
+  - kind: "CronJob"
+    apiVersion: "batch/v1beta1"
+    metadata:
+      name: "${JOB_NAME}"
+      labels:
+        app: ${APP_LABEL}
+        template: "${JOB_NAME}-cronjob"
+        cronjob: "${JOB_NAME}"
+    spec:
+      schedule: "${SCHEDULE}"
+      concurrencyPolicy: "Forbid"
+      successfulJobsHistoryLimit: "${{SUCCESS_JOBS_HISTORY_LIMIT}}"
+      failedJobsHistoryLimit: "${{FAILED_JOBS_HISTORY_LIMIT}}"
+      jobTemplate:
+        metadata:
+          labels:
+            template: "${JOB_NAME}-job"
+            cronjob: "${JOB_NAME}"
+        spec:
+          backoffLimit: ${{JOB_BACKOFF_LIMIT}}
+          template:
+            spec:
+              containers:
+                - name: "${JOB_NAME}-cronjob"
+                  resources:
+                    limits:
+                      cpu: ${CPU_LIMIT}
+                      memory: 4Gi
+                    requests:
+                      cpu: ${CPU_REQUEST}
+                      memory: 2Gi
+                  image: "image-registry.openshift-image-registry.svc:5000/${IMAGE_NAMESPACE}/${SOURCE_IMAGE_NAME}:${TAG_NAME}"
+                  # image: backup
+                  command:
+                    - "/bin/bash"
+                    - "-c"
+                    - "/backup.sh -1"
+                  env:
+                    - name: BUCKET
+                      value: "${BUCKET}"
+                    - name: BACKUP_STRATEGY
+                      valueFrom:
+                        configMapKeyRef:
+                          name: "${JOB_NAME}-config"
+                          key: BACKUP_STRATEGY
+                    - name: DATABASE_SERVICE_NAME
+                      valueFrom:
+                        configMapKeyRef:
+                          name: "${JOB_NAME}-config"
+                          key: DATABASE_SERVICE_NAME
+                    - name: DEFAULT_PORT
+                      valueFrom:
+                        configMapKeyRef:
+                          name: "${JOB_NAME}-config"
+                          key: DEFAULT_PORT
+                          optional: true
+                    - name: POSTGRESQL_DATABASE
+                      valueFrom:
+                        configMapKeyRef:
+                          name: "${JOB_NAME}-config"
+                          key: POSTGRESQL_DATABASE
+                    - name: DATABASE_USER
+                      value: ${DATABASE_USER}
+                    - name: DATABASE_PASSWORD
+                      valueFrom:
+                        secretKeyRef:
+                          name: "${DATABASE_DEPLOYMENT_NAME}"
+                          key: "${DATABASE_PASSWORD_KEY_NAME}"
+              restartPolicy: "Never"
+              terminationGracePeriodSeconds: 30
+              activeDeadlineSeconds: 1600
+              dnsPolicy: "ClusterFirst"
+              serviceAccountName: "${JOB_SERVICE_ACCOUNT}"
+              serviceAccount: "${JOB_SERVICE_ACCOUNT}"
