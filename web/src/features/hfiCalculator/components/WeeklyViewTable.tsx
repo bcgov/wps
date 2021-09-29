@@ -11,26 +11,27 @@ import {
 } from '@material-ui/core'
 import { createTheme, makeStyles, ThemeProvider } from '@material-ui/core/styles'
 import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline'
-import { FireCentre, WeatherStation } from 'api/hfiCalcAPI'
+import { FireCentre, PlanningArea, WeatherStation } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
-import { Button } from 'components'
 import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
 import { isGrassFuelType, isValidGrassCure } from 'features/hfiCalculator/validation'
 import { calculateMeanIntensityGroup } from 'features/hfiCalculator/components/meanIntensity'
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
-import { forEach, isUndefined } from 'lodash'
+import { isUndefined } from 'lodash'
 import CalculatedCell from 'features/hfiCalculator/components/CalculatedCell'
 import IntensityGroupCell from 'features/hfiCalculator/components/IntensityGroupCell'
 import FireTable from 'components/FireTable'
 import FireContainer from 'components/FireDisplayContainer'
 import { DateTime } from 'luxon/src/datetime'
 import { getPrepStartAndEnd } from 'utils/date'
+import { calculateMultipleMeanIntensityGroups } from './multipleMeanIntensity'
 
 export interface Props {
   title: string
   fireCentres: Record<string, FireCentre>
   dailiesMap: Map<number, StationDaily>
   weekliesMap: Map<number, StationDaily[]>
+  weekliesMapDates: Map<Date, StationDaily[]>
   currentDay: string
   testId?: string
 }
@@ -110,13 +111,6 @@ export const DailyViewTable = (props: Props): JSX.Element => {
   const stationCodesList: number[] = []
 
   const datesList: DateTime[] = []
-  // Object.entries(props.weekliesMap).forEach(station => {
-  //   console.log('Station: ' + station)
-  //   station.forEach(daily => {
-  //     console.log('Daily: ' + daily)
-  //     datesList.push(daily.date)
-  //   })
-  // })
   props.weekliesMap.forEach(value => {
     for (let i = 0; i < value.length; i++) {
       if (!datesList.includes(value[i].date)) {
@@ -126,7 +120,6 @@ export const DailyViewTable = (props: Props): JSX.Element => {
   })
 
   const dates = new Set(datesList)
-  console.log(datesList)
 
   const [selected, setSelected] = useState<number[]>(stationCodesList)
 
@@ -206,7 +199,41 @@ export const DailyViewTable = (props: Props): JSX.Element => {
     const date = new Date(dateStr)
     return date.toLocaleDateString(locale, { weekday: 'long' })
   }
-  const day = getDayName(props.currentDay, 'en-CA')
+
+  const createCalculatedCells = (
+    area: PlanningArea,
+    areaName: string,
+    prepLevel: 1 | 2 | 3 | 4 | undefined
+  ) => {
+    for (let i = 0; i < dates.size; i++) {
+      const dailies = props.weekliesMapDates.get(new Date(String(Array.from(dates)[i])))
+      return dailies?.map(daily => {
+        return (
+          <React.Fragment key={`${daily.date}-${daily.code}`}>
+            <TableCell colSpan={3}></TableCell>
+            <MeanIntensityGroupRollup
+              area={area}
+              dailiesMap={props.dailiesMap}
+              selectedStations={selected}
+            ></MeanIntensityGroupRollup>
+            <TableCell
+              className={classes.fireStarts}
+              data-testid={`weekly-fire-starts-${areaName}`}
+            >
+              {/* using a fixed value of 0-1 Fire Starts for now */}
+              0-1
+            </TableCell>
+            <TableCell
+              className={formatPrepLevelByValue(prepLevel)}
+              data-testid={`weekly-prep-level-${areaName}`}
+            >
+              {prepLevel}
+            </TableCell>
+          </React.Fragment>
+        )
+      })
+    }
+  }
 
   const createCells = (
     dailies: StationDaily[] | undefined,
@@ -214,10 +241,6 @@ export const DailyViewTable = (props: Props): JSX.Element => {
     classNameForRow: string | undefined,
     isRowSelected: boolean
   ) => {
-    const cellInfo: ReactFragment[] = []
-    console.log('dates', datesList)
-    console.log('dailies', dailies)
-
     return dailies?.map(daily => {
       return (
         <React.Fragment key={`${station.code}-${daily.date}`}>
@@ -250,52 +273,6 @@ export const DailyViewTable = (props: Props): JSX.Element => {
         </React.Fragment>
       )
     })
-
-    for (let i = 0; i < datesList.length; i++) {
-      if (!isUndefined(dailies)) {
-        if (!isUndefined(dailies[i]) && dailies[i].date == datesList[i]) {
-          const daily = dailies[i]
-          const grassCureError = !isValidGrassCure(daily, station.station_props)
-          cellInfo.push(
-            <div key={`${station.code}-${daily.date}`}>
-              <GrassCureCell
-                value={daily?.grass_cure_percentage}
-                isGrassFuelType={isGrassFuelType(station.station_props)}
-                className={classNameForRow}
-                selected={isRowSelected}
-              ></GrassCureCell>
-
-              <CalculatedCell
-                testid={`${daily.code}-ros`}
-                value={daily.rate_of_spread?.toFixed(DECIMAL_PLACES)}
-                error={grassCureError}
-                className={classNameForRow}
-              ></CalculatedCell>
-              <CalculatedCell
-                testid={`${daily.code}-hfi`}
-                value={daily.hfi?.toFixed(DECIMAL_PLACES)}
-                error={grassCureError}
-                className={classNameForRow}
-              ></CalculatedCell>
-              <IntensityGroupCell
-                testid={`${daily.code}-intensity-group`}
-                value={daily.intensity_group}
-                error={grassCureError}
-                selected={isRowSelected}
-              ></IntensityGroupCell>
-              <TableCell colSpan={2}></TableCell>
-            </div>
-          )
-        } else {
-          cellInfo.push(
-            <div>
-              <TableCell colSpan={4}></TableCell>
-            </div>
-          )
-        }
-      }
-    }
-    return cellInfo
   }
 
   // TODO: horrible hack! do this the right way!!!!
@@ -399,19 +376,26 @@ export const DailyViewTable = (props: Props): JSX.Element => {
             return (
               <React.Fragment key={`fire-centre-${centreName}`}>
                 <TableRow key={`fire-centre-${centreName}`}>
-                  <TableCell className={classes.fireCentre} colSpan={30}>
+                  <TableCell className={classes.fireCentre} colSpan={34}>
                     {centre.name}
                   </TableCell>
                 </TableRow>
                 {Object.entries(centre.planning_areas)
                   .sort((a, b) => (a[1].name < b[1].name ? -1 : 1))
                   .map(([areaName, area]) => {
-                    const meanIntensityGroup = calculateMeanIntensityGroup(
+                    const meanIntensityGroup = calculateMultipleMeanIntensityGroups(
                       area,
-                      props.dailiesMap,
+                      props.weekliesMap,
                       selected
                     )
                     const prepLevel = calculatePrepLevel(meanIntensityGroup)
+
+                    const calculatedCells = createCalculatedCells(
+                      area,
+                      areaName,
+                      prepLevel
+                    )
+
                     return (
                       <React.Fragment key={`zone-${areaName}`}>
                         <TableRow
@@ -419,27 +403,10 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                           key={`zone-${areaName}`}
                           data-testid={`zone-${areaName}`}
                         >
-                          <TableCell className={classes.planningArea} colSpan={27}>
+                          <TableCell className={classes.planningArea} colSpan={4}>
                             {area.name}
                           </TableCell>
-                          <MeanIntensityGroupRollup
-                            area={area}
-                            dailiesMap={props.dailiesMap}
-                            selectedStations={selected}
-                          ></MeanIntensityGroupRollup>
-                          <TableCell
-                            className={classes.fireStarts}
-                            data-testid={`weekly-fire-starts-${areaName}`}
-                          >
-                            {/* using a fixed value of 0-1 Fire Starts for now */}
-                            0-1
-                          </TableCell>
-                          <TableCell
-                            className={formatPrepLevelByValue(prepLevel)}
-                            data-testid={`weekly-prep-level-${areaName}`}
-                          >
-                            {prepLevel}
-                          </TableCell>
+                          {calculatedCells}
                         </TableRow>
                         {Object.entries(area.stations)
                           .sort((a, b) => (a[1].code < b[1].code ? -1 : 1))
@@ -485,7 +452,6 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                                 >
                                   {station.station_props.fuel_type.abbrev}
                                 </TableCell>
-                                <TableCell></TableCell>
 
                                 {cells}
                               </TableRow>

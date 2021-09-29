@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 
-import { Container, GeneralHeader, PageTitle } from 'components'
+import { Button, Container, GeneralHeader, PageTitle } from 'components'
 
 import DailyViewTable from 'features/hfiCalculator/components/DailyViewTable'
 import DatePicker from 'components/DatePicker'
@@ -18,6 +18,7 @@ import { CircularProgress, FormControl, makeStyles } from '@material-ui/core'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import { groupBy } from 'lodash'
 import { getPrepStartAndEnd } from 'utils/date'
+import { theme } from 'app/theme'
 
 const useStyles = makeStyles(theme => ({
   container: {
@@ -27,6 +28,20 @@ const useStyles = makeStyles(theme => ({
   formControl: {
     margin: theme.spacing(1),
     minWidth: 210
+  },
+  buttonUnselected: {
+    height: '56px',
+    width: '210px',
+    margin: '8px',
+    border: '3px solid ' + theme.palette.primary.main
+  },
+  buttonSelected: {
+    height: '56px',
+    width: '210px',
+    margin: '8px',
+    border: '3px solid ' + theme.palette.primary.main,
+    backgroundColor: theme.palette.primary.main,
+    color: '#FFFFFF'
   }
 }))
 
@@ -68,6 +83,18 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         dispatch(fetchHFIStations())
       }
       setPreviouslySelectedDateOfInterest(dateOfInterest)
+    }
+  }
+
+  const handleClickWeekly = () => {
+    if (tableView === 'daily') {
+      setTableView('weekly')
+    }
+  }
+
+  const handleClickDaily = () => {
+    if (tableView === 'weekly') {
+      setTableView('daily')
     }
   }
 
@@ -116,7 +143,15 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     }
   }
 
-  console.log(weekliesMap)
+  const weekliesMapDates = new Map<Date, StationDaily[]>()
+  if (dailies !== undefined) {
+    const weeklies = groupBy(dailies, 'date')
+    for (let i = 0; i < Object.keys(weeklies).length; i++) {
+      weekliesMapDates.set(new Date(Object.keys(weeklies)[i]), Object.values(weeklies[i]))
+      console.log(weekliesMapDates)
+    }
+  }
+
   useEffect(() => {
     dispatch(fetchHFIStations())
     dispatch(
@@ -149,14 +184,40 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
               updateDate={updateDate}
             />
           </FormControl>
-          <WeeklyViewTable
-            title="HFI Calculator Weekly View"
-            testId="hfi-calc-weekly-table"
-            fireCentres={fireCentres}
-            dailiesMap={dailiesMap}
-            weekliesMap={weekliesMap}
-            currentDay={dateOfInterest}
-          />
+          <Button
+            className={
+              tableView === 'daily' ? classes.buttonSelected : classes.buttonUnselected
+            }
+            onClick={handleClickDaily}
+          >
+            Daily Table
+          </Button>
+          <Button
+            className={
+              tableView === 'weekly' ? classes.buttonSelected : classes.buttonUnselected
+            }
+            onClick={handleClickWeekly}
+          >
+            Weekly Table
+          </Button>
+          {tableView === 'daily' ? (
+            <DailyViewTable
+              title="HFI Calculator Daily View"
+              testId="hfi-calc-daily-table"
+              fireCentres={fireCentres}
+              dailiesMap={dailiesMap}
+            ></DailyViewTable>
+          ) : (
+            <WeeklyViewTable
+              title="HFI Calculator Weekly View"
+              testId="hfi-calc-weekly-table"
+              fireCentres={fireCentres}
+              dailiesMap={dailiesMap}
+              weekliesMap={weekliesMap}
+              weekliesMapDates={weekliesMapDates}
+              currentDay={dateOfInterest}
+            />
+          )}
         </Container>
       )}
     </main>
