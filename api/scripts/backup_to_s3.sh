@@ -3,6 +3,70 @@
 # usage example:
 # PG_PASSWORD=wps PG_HOSTNAME=localhost PG_PORT=5432 PG_USER=wps PG_DATABASE=wps AWS_HOSTNAME=[your aws hostname] AWS_ACCESS_KEY=[your access key] AWS_SECRET_KEY=[your secret key] AWS_BUCKET=[your aws bucket] ./backup_to_s3.sh
 
+# variable checks
+if [ -z ${PG_PASSWORD+0} ]
+then
+    echo "PG_PASSWORD not specified"
+    echo "Specify a postgress password"
+    exit 1
+fi
+
+if [ -z ${PG_HOSTNAME+0} ]
+then
+    echo "PG_HOSTNAME not specified"
+    echo "Specify a postgress hostname"
+    exit 1
+fi
+
+if [ -z ${PG_PORT+0} ]
+then
+    echo "PG_PORT not specified"
+    echo "Specify a postgress port"
+    exit 1
+fi
+
+if [ -z ${PG_USER+0} ]
+then
+    echo "PG_USER not specified"
+    echo "Specify a postgress user"
+    exit 1
+fi
+
+if [ -z ${PG_DATABASE+0} ]
+then
+    echo "PG_DATABASE not specified"
+    echo "Specify a postgress database"
+    exit 1
+fi
+
+if [ -z ${AWS_HOSTNAME+0} ]
+then
+    echo "AWS_HOSTNAME not specified"
+    echo "Specify an AWS hostname"
+    exit 1
+fi
+
+if [ -z ${AWS_ACCESS_KEY+0} ]
+then
+    echo "AWS_ACCESS_KEY not specified"
+    echo "Specify an AWS access key"
+    exit 1
+fi
+
+if [ -z ${AWS_SECRET_KEY+0} ]
+then
+    echo "AWS_SECRET_KEY not specified"
+    echo "Specify an AWS secret key"
+    exit 1
+fi
+
+if [ -z ${AWS_BUCKET+0} ]
+then
+    echo "AWS_BUCKET not specified"
+    echo "Specify an AWS bucket"
+    exit 1
+fi
+
 # borrowing a lot from https://github.com/BCDevOps/backup-container
 _timestamp=`date +\%Y-\%m-\%d_%H-%M-%S`
 _datestamp=`date +\%Y/\%m`
