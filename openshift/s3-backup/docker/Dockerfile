@@ -7,6 +7,6 @@ RUN yum -y --enablerepo=extras install epel-release &&\
 
 USER 26
 
-COPY ./scripts/backup_to_s3.sh .
+COPY backup_to_s3.sh .
 
 CMD sh backup_to_s3.sh
