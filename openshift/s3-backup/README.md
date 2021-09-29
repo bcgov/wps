@@ -9,11 +9,11 @@ Copys and runs driver script
 ### Apply template to build the base image on Openshift
 
 ```bash
-oc -n e1e498-tools process -f build.yaml | oc -n e1e498-tools apply -f -
+oc -n e1e498-tools -p VERSION=some-date process -f build.yaml | oc -n e1e498-tools apply -f -
 ```
 
 ### Apply template using a specified branch
 
 ```bash
-oc -n e1e498-tools -p GIT_BRANCH=my-branch process -f build.yaml | oc -n e1e498-tools apply -f -
+oc -n e1e498-tools -p VERSION=some-date -p GIT_BRANCH=my-branch process -f build.yaml | oc -n e1e498-tools apply -f -
 ```
