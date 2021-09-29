@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: Template
+metadata:
+  creationTimestamp: null
+  name: s3-backup
+labels:
+  app: s3-backup
+  phase: build
+  app.kubernetes.io/name: s3-backup
+  app.kubernetes.io/managed-by: template
+parameters:
+  - name: NAME
+    value: s3-backup
+  - name: SUFFIX
+  - name: VERSION
+    description: Output version
+    value: "latest"
+  - name: GIT_URL
+    value: https://github.com/bcgov/wps.git
+  - name: GIT_BRANCH
+    value: story/s3-backup/780
+objects:
+  #ImageStream is create if it doesn't already exist
+  - apiVersion: v1
+    kind: ImageStream
+    metadata:
+      annotations:
+        openshift.io/generated-by: OpenShiftNewBuild
+      labels:
+        app: s3-backup
+        common: "true"
+      name: s3-backup
+    spec:
+      lookupPolicy:
+        local: false
+  - apiVersion: v1
+    kind: BuildConfig
+    metadata:
+      annotations:
+        openshift.io/generated-by: OpenShiftNewBuild
+      labels:
+        app: s3-backup
+      name: s3-backup
+    spec:
+      completionDeadlineSeconds: 2400 # 40 minutes (this build can take a lot of time!)
+      output:
+        to:
+          kind: ImageStreamTag
+          name: s3-backup:${VERSION}
+      source:
+        type: Git
+        git:
+          uri: ${GIT_URL}
+          ref: origin/${GIT_BRANCH}
+        contextDir: openshift/s3-backup/docker
+      strategy:
+        type: Docker
