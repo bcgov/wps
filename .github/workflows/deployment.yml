@@ -47,7 +47,7 @@ jobs:
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          EPHEMERAL_STORAGE=True bash openshift/scripts/oc_provision_backup_postgres_cronjob.sh ${SUFFIX} apply
+          bash openshift/scripts/oc_provision_s3_backup_postgres_cronjob.sh ${SUFFIX} apply
 
       - name: Prepare MariaDB Backup Deployment Config
         shell: bash

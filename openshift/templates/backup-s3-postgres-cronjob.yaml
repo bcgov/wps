@@ -100,41 +100,50 @@ objects:
                       memory: 2Gi
                   image: "image-registry.openshift-image-registry.svc:5000/${IMAGE_NAMESPACE}/${SOURCE_IMAGE_NAME}:${TAG_NAME}"
                   # image: backup
-                  command:
-                    - "/bin/bash"
-                    - "-c"
-                    - "/backup.sh -1"
                   env:
-                    - name: BUCKET
-                      value: "${BUCKET}"
-                    - name: BACKUP_STRATEGY
-                      valueFrom:
-                        configMapKeyRef:
-                          name: "${JOB_NAME}-config"
-                          key: BACKUP_STRATEGY
-                    - name: DATABASE_SERVICE_NAME
+                    - name: PG_HOSTNAME
                       valueFrom:
                         configMapKeyRef:
                           name: "${JOB_NAME}-config"
                           key: DATABASE_SERVICE_NAME
-                    - name: DEFAULT_PORT
+                    - name: PG_PORT
                       valueFrom:
                         configMapKeyRef:
                           name: "${JOB_NAME}-config"
                           key: DEFAULT_PORT
                           optional: true
-                    - name: POSTGRESQL_DATABASE
+                    - name: PG_DATABASE
                       valueFrom:
                         configMapKeyRef:
                           name: "${JOB_NAME}-config"
                           key: POSTGRESQL_DATABASE
-                    - name: DATABASE_USER
+                    - name: PG_USER
                       value: ${DATABASE_USER}
-                    - name: DATABASE_PASSWORD
+                    - name: PG_PASSWORD
                       valueFrom:
                         secretKeyRef:
                           name: "${DATABASE_DEPLOYMENT_NAME}"
                           key: "${DATABASE_PASSWORD_KEY_NAME}"
+                    - name: AWS_HOSTNAME
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}-global
+                          key: object-store-server
+                    - name: AWS_ACCESS_KEY
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}-global
+                          key: object-store-user-id
+                    - name: AWS_SECRET_KEY
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}-global
+                          key: object-store-secret
+                    - name: AWS_BUCKET
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}-global
+                          key: object-store-bucket
               restartPolicy: "Never"
               terminationGracePeriodSeconds: 30
               activeDeadlineSeconds: 1600
