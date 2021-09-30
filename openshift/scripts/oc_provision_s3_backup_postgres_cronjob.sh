@@ -34,7 +34,6 @@ OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/backup-s3-postgres-
     -p DATABASE_SERVICE_NAME=patroni-${NAME_APP}-${SUFFIX}-leader \
     -p DATABASE_DEPLOYMENT_NAME=wps-global \
     -p JOB_NAME=${JOB_NAME} \
-    -p JOB_PERSISTENT_STORAGE_NAME=${JOB_NAME} \
     -p IMAGE_NAMESPACE=${IMAGE_NAMESPACE} \
     -p APP_LABEL=${NAME_APP}-${SUFFIX} \
     ${CPU_LIMIT:+ " -p CPU_LIMIT=${CPU_LIMIT}"} \
