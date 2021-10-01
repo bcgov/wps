@@ -19,22 +19,25 @@ export interface ColumnSelectionState {
 
 export interface ModalProps {
   testId?: string
-  columns: ColumnSelectionState[]
+  columns: string[]
   modalOpen: boolean
   setModalOpen: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 const useStyles = makeStyles(() => ({
   modalWindow: {
-    maxHeight: '500px',
-    maxWidth: '400px'
+    maxHeight: '800px',
+    maxWidth: '600px'
   }
 }))
 
 export const FilterColumnsModal = (props: ModalProps) => {
   const classes = useStyles()
 
-  const [selected, setSelected] = useState<number[]>([])
+  // set all columns as selected by default
+  const [selected, setSelected] = useState<number[]>(
+    Array.from(Array(props.columns.length).keys())
+  )
 
   const handleOpen = () => {
     props.setModalOpen(true)
@@ -56,15 +59,16 @@ export const FilterColumnsModal = (props: ModalProps) => {
           </IconButton>
         </div>
         <DialogContent>
-          {props.columns.map(column => {
+          {props.columns.map((column, index) => {
             return (
-              <div key={column.label}>
+              <div key={column}>
                 <SelectionCell
-                  selected={column.selected}
+                  selected={selected}
                   updateSelected={(newSelected: number[]) => setSelected(newSelected)}
-                  rowId={column.label}
+                  disabled={false}
+                  rowId={index}
                 />
-                <p>{column.label}</p>
+                <p>{column}</p>
               </div>
             )
           })}

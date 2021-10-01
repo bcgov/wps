@@ -325,11 +325,6 @@ const FBATable = (props: FBATableProps) => {
     setModalOpen(true)
   }
 
-  const columnSelections: ColumnSelectionState[] = []
-  tableColumnLabels.forEach(label => {
-    columnSelections.push({ label: label, selected: true })
-  })
-
   return (
     <React.Fragment>
       {stationsError ||
@@ -392,7 +387,7 @@ const FBATable = (props: FBATableProps) => {
 
         <FilterColumnsModal
           modalOpen={modalOpen}
-          columns={columnSelections}
+          columns={tableColumnLabels}
           setModalOpen={setModalOpen}
         />
 
