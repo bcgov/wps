@@ -48,6 +48,7 @@ import FBATableHead from 'features/fbaCalculator/components/FBATableHead'
 import FireTable from 'components/FireTable'
 import FireDisplayContainer from 'components/FireDisplayContainer'
 import FBATableInstructions from 'features/fbaCalculator/components/FBATableInstructions'
+import FilterColumnsModal, { ColumnSelectionState } from 'components/FilterColumnsModal'
 export interface FBATableProps {
   testId?: string
 }
@@ -103,6 +104,7 @@ const FBATable = (props: FBATableProps) => {
   const [selected, setSelected] = useState<number[]>([])
   const [order, setOrder] = useState<Order>('desc')
   const [rows, setRows] = useState<FBATableRow[]>([])
+  const [modalOpen, setModalOpen] = useState<boolean>(false)
   const { stations, error: stationsError } = useSelector(selectFireWeatherStations)
   const {
     fireBehaviourResultStations,
@@ -319,6 +321,15 @@ const FBATable = (props: FBATableProps) => {
     }
   }
 
+  const openColumnsModal = () => {
+    setModalOpen(true)
+  }
+
+  const columnSelections: ColumnSelectionState[] = []
+  tableColumnLabels.forEach(label => {
+    columnSelections.push({ label: label, selected: true })
+  })
+
   return (
     <React.Fragment>
       {stationsError ||
@@ -372,12 +383,18 @@ const FBATable = (props: FBATableProps) => {
             data-testid="filter-columns-btn"
             color="default"
             disabled={rows.length === 0}
-          // onClick={() => { }}
+            onClick={openColumnsModal}
           >
             <ViewColumnOutlinedIcon />
             Columns
           </Button>
         </FormControl>
+
+        <FilterColumnsModal
+          modalOpen={modalOpen}
+          columns={columnSelections}
+          setModalOpen={setModalOpen}
+        />
 
         <FireDisplayContainer testId={props.testId}>
           <FireTable ariaLabel="Fire Behaviour Analysis table" maxHeight={600}>
