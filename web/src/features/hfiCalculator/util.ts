@@ -31,10 +31,15 @@ export const buildWeekliesByDate = (dailies: StationDaily[]) => {
   if (dailies !== undefined) {
     const weeklies = groupBy(dailies, 'date')
     for (let i = 0; i < Object.keys(weeklies).length; i++) {
-      weekliesMapDates.set(new Date(Object.keys(weeklies)[i]), Object.values(weeklies[i]))
-      console.log(weekliesMapDates)
+      if (weeklies) {
+        console.log(weeklies)
+        const nextDate = new Date(Object.keys(weeklies)[i])
+        const nextValues = Object.values(weeklies)[i]
+        weekliesMapDates.set(nextDate, nextValues)
+      }
     }
   }
+  return weekliesMapDates
 }
 
 export const buildWeeklyDates = (weekliesMap: Map<number, StationDaily[]>) => {

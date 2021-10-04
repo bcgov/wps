@@ -19,6 +19,7 @@ import { StationDaily } from 'api/hfiCalculatorAPI'
 import { groupBy } from 'lodash'
 import { getPrepStartAndEnd } from 'utils/date'
 import { theme } from 'app/theme'
+import { buildDailyMap, buildWeekliesByCode, buildWeekliesByDate } from '../util'
 
 const useStyles = makeStyles(theme => ({
   container: {
@@ -128,29 +129,11 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const dailiesMap = new Map<number, StationDaily>()
-  if (dailies !== undefined) {
-    dailies.forEach(daily => {
-      dailiesMap.set(daily.code, daily)
-    })
-  }
+  const dailiesMap = buildDailyMap(dailies)
 
-  const weekliesMap = new Map<number, StationDaily[]>()
-  if (dailies !== undefined) {
-    const weeklies = groupBy(dailies, 'code')
-    for (let i = 0; i < Object.keys(weeklies).length; i++) {
-      weekliesMap.set(Number(Object.keys(weeklies)[i]), Object.values(weeklies)[i])
-    }
-  }
+  const weekliesMap = buildWeekliesByCode(dailies)
 
-  const weekliesMapDates = new Map<Date, StationDaily[]>()
-  if (dailies !== undefined) {
-    const weeklies = groupBy(dailies, 'date')
-    for (let i = 0; i < Object.keys(weeklies).length; i++) {
-      weekliesMapDates.set(new Date(Object.keys(weeklies)[i]), Object.values(weeklies[i]))
-      console.log(weekliesMapDates)
-    }
-  }
+  const weekliesMapDates = buildWeekliesByDate(dailies)
 
   useEffect(() => {
     dispatch(fetchHFIStations())

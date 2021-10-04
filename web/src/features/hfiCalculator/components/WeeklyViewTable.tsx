@@ -25,6 +25,7 @@ import FireContainer from 'components/FireDisplayContainer'
 import { DateTime } from 'luxon/src/datetime'
 import { getPrepStartAndEnd } from 'utils/date'
 import { calculateMultipleMeanIntensityGroups } from './multipleMeanIntensity'
+import { buildWeeklyDates } from '../util'
 
 export interface Props {
   title: string
@@ -110,16 +111,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
 
   const stationCodesList: number[] = []
 
-  const datesList: DateTime[] = []
-  props.weekliesMap.forEach(value => {
-    for (let i = 0; i < value.length; i++) {
-      if (!datesList.includes(value[i].date)) {
-        datesList.push(value[i].date)
-      }
-    }
-  })
-
-  const dates = new Set(datesList)
+  const dates = buildWeeklyDates(props.weekliesMap)
 
   const [selected, setSelected] = useState<number[]>(stationCodesList)
 
