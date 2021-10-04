@@ -111,16 +111,13 @@ class FBACalculatorWeatherStation():  # pylint: disable=too-many-instance-attrib
         self.last_observed_morning_rh_values = last_observed_morning_rh_values
 
     def __str__(self) -> str:
-        return 'lat {}, long {}, elevation {}, fuel_type {}, time_of_interest {}, percentage_conifer {},\
-            percentage_dead_balsam_fir {}, grass_cure {}, crown_base_height {}, crown_fuel_load {}, bui {},\
-            ffmc {}, isi {}, prev_day_daily_ffmc {}, wind_speed {}, temperature {}, relative_humidity {}, \
-            precipitation {}, status {}'\
-                .format(self.lat, self.long,
-                        self.elevation, self.fuel_type, self.time_of_interest, self.percentage_conifer,
-                        self.percentage_dead_balsam_fir, self.grass_cure, self.crown_base_height,
-                        self.crown_fuel_load,
-                        self.bui, self.ffmc, self.isi, self.prev_day_daily_ffmc, self.wind_speed,
-                        self.temperature, self.relative_humidity, self.precipitation, self.status)
+        return f"lat {self.lat}, long {self.long}, elevation {self.elevation}, fuel_type {self.fuel_type}, \
+            time_of_interest {self.time_of_interest}, percentage_conifer {self.percentage_conifer},\
+            percentage_dead_balsam_fir {self.percentage_dead_balsam_fir}, grass_cure {self.grass_cure},\
+            crown_base_height {self.crown_base_height}, crown_fuel_load {self.crown_fuel_load}, bui {self.bui},\
+            ffmc {self.ffmc}, isi {self.isi}, prev_day_daily_ffmc {self.prev_day_daily_ffmc}, wind_speed {self.wind_speed},\
+            temperature {self.temperature}, relative_humidity {self.relative_humidity}, \
+            precipitation {self.precipitation}, status {self.status}"
 
 
 class FireBehaviourAdvisory():  # pylint: disable=too-many-instance-attributes

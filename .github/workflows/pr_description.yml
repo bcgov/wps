@@ -10,6 +10,7 @@ jobs:
     name: Set pull request description
     runs-on: ubuntu-20.04
     steps:
+      - uses: actions/checkout@v2
       - name: Set description
         uses: actions/github-script@v4
         with:
@@ -18,9 +19,5 @@ jobs:
           # https://octokit.github.io/rest.js/v18#pulls
           # https://github.com/actions/github-script
           script: |
-            const prNum = context.payload.pull_request.number;
-            const pr = (await github.pulls.get({owner: context.repo.owner, repo: context.repo.repo, pull_number: prNum}))
-            if (pr.data.body === null) {
-              const body = `https://wps-pr-${prNum}.apps.silver.devops.gov.bc.ca/`
-              github.pulls.update({owner: context.repo.owner, repo: context.repo.repo, pull_number: prNum, body: body})
-            }
+            const script = require('./.github/workflows/pr_description.js')
+            await script({github, context})
