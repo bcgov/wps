@@ -16,7 +16,7 @@ import FireContainer from 'components/FireDisplayContainer'
 import { createCells } from 'features/hfiCalculator/cells'
 import DayHeaders from 'features/hfiCalculator/components/DayHeaders'
 import CellHeaders from 'features/hfiCalculator/components/CellHeaders'
-import CalculatedCells from 'features/hfiCalculator/components/CalculatedCells'
+import CalculatedPlanningAreaCells from 'features/hfiCalculator/components/CalculatedPlanningAreaCells'
 
 export interface Props {
   title: string
@@ -130,7 +130,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                           <TableCell className={classes.planningArea} colSpan={4}>
                             {area.name}
                           </TableCell>
-                          <CalculatedCells
+                          <CalculatedPlanningAreaCells
                             area={area}
                             areaName={areaName}
                             selected={selected}

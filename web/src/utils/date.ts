@@ -52,10 +52,7 @@ export const formatDateInUTC00Suffix = (dtISO: string): string => {
 export const getPrepStartAndEnd = (
   dateOfInterest: string
 ): { start: DateTime; end: DateTime } => {
-  const getDayName = (dateStr: string) => {
-    return DateTime.fromISO(dateOfInterest).weekdayLong
-  }
-  const day = getDayName(dateOfInterest)
+  const day = DateTime.fromISO(dateOfInterest).weekdayLong
   let dayOffset = 0
   switch (day) {
     case 'Tuesday':
