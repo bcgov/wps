@@ -1,8 +1,10 @@
+import { DateTime } from 'luxon'
 import {
   isNoonInPST,
   formatDateInPST,
   formatMonthAndDay,
-  formatDateInUTC00Suffix
+  formatDateInUTC00Suffix,
+  getPrepStartAndEnd
 } from 'utils/date'
 
 describe('Date util functions', () => {
@@ -58,6 +60,27 @@ describe('Date util functions', () => {
       expect(formatDateInUTC00Suffix('2021-04-26T23:37:00-08:00')).toEqual(
         '2021-04-26T20:00:00+00:00'
       )
+    })
+  })
+
+  describe('getPrepStartAndEnd', () => {
+    it('should return the start and end dates for the current prep cycle as datetimes', () => {
+      expect(getPrepStartAndEnd('2021-10-04T00:00:00-07:00')).toEqual({
+        start: DateTime.fromISO('2021-10-04T00:00:00-07:00'),
+        end: DateTime.fromISO('2021-10-08T23:59:59.999-07:00')
+      })
+      expect(getPrepStartAndEnd('2021-10-06T00:00:00-07:00')).toEqual({
+        start: DateTime.fromISO('2021-10-04T00:00:00-07:00'),
+        end: DateTime.fromISO('2021-10-08T23:59:59.999-07:00')
+      })
+      expect(getPrepStartAndEnd('2021-10-07T00:00:00-07:00')).toEqual({
+        start: DateTime.fromISO('2021-10-07T00:00:00-07:00'),
+        end: DateTime.fromISO('2021-10-11T23:59:59.999-07:00')
+      })
+      expect(getPrepStartAndEnd('2021-10-09T00:00:00-07:00')).toEqual({
+        start: DateTime.fromISO('2021-10-07T00:00:00-07:00'),
+        end: DateTime.fromISO('2021-10-11T23:59:59.999-07:00')
+      })
     })
   })
 })

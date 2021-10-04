@@ -53,12 +53,10 @@ export const getPrepStartAndEnd = (
   dateOfInterest: string
 ): { start: DateTime; end: DateTime } => {
   const getDayName = (dateStr: string) => {
-    console.log('monkey', dateStr)
     return DateTime.fromISO(dateOfInterest).weekdayLong
   }
   const day = getDayName(dateOfInterest)
   let dayOffset = 0
-  console.log('the day', day)
   switch (day) {
     case 'Tuesday':
       dayOffset = 1
@@ -75,7 +73,6 @@ export const getPrepStartAndEnd = (
     case 'Sunday':
       dayOffset = 3
   }
-  console.log('dayOffset', dayOffset)
   const weeklyStartTime = DateTime.fromISO(dateOfInterest)
     .minus({ days: dayOffset })
     .startOf('day')
@@ -83,6 +80,5 @@ export const getPrepStartAndEnd = (
     .minus({ days: dayOffset })
     .endOf('day')
     .plus({ days: 4 })
-  console.log('start ', weeklyStartTime, ' - end ', weeklyEndTime)
   return { start: weeklyStartTime, end: weeklyEndTime }
 }
