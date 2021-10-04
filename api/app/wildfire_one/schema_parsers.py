@@ -223,7 +223,7 @@ def generate_station_daily(raw_daily,  # pylint: disable=too-many-locals
 
     return StationDaily(
         code=station.code,
-        date=datetime_from_timestamp(date),
+        date=date,
         status=raw_daily.get('recordType', '').get('id', None),
         temperature=raw_daily.get('temperature', None),
         relative_humidity=raw_daily.get('relativeHumidity', None),
