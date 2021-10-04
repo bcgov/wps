@@ -84,26 +84,11 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   }
 
   useEffect(() => {
-    dispatch(fetchHFIStations())
-
-    if (tableView === 'daily') {
-      const dailyStartTime = DateTime.fromISO(dateOfInterest)
-        .startOf('day')
-        .toUTC()
-        .valueOf()
-      const dailyEndTime = DateTime.fromISO(dateOfInterest).toUTC().valueOf()
-      dispatch(fetchHFIDailies(dailyStartTime, dailyEndTime))
-      dispatch(fetchHFIStations())
-    } else {
-      const startAndEnd = getPrepWeeklyDateRange(dateOfInterest)
-      console.log('toutc', startAndEnd.start.toUTC().valueOf())
-      dispatch(
-        fetchHFIDailies(
-          startAndEnd.start.toUTC().valueOf(),
-          startAndEnd.end.toUTC().valueOf()
-        )
-      )
-    }
+    const { start, end } =
+      tableView === 'daily'
+        ? getPrepDailyDateRange(dateOfInterest)
+        : getPrepWeeklyDateRange(dateOfInterest)
+    dispatch(fetchHFIDailies(start.toUTC().valueOf(), end.toUTC().valueOf()))
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
