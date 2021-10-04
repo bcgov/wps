@@ -228,8 +228,7 @@ def back_rate_of_spread(fuel_type: FuelTypeEnum,  # pylint: disable=too-many-arg
 
     if fuel_type is None or ffmc is None or bui is None or fmc is None or sfc is None:
         message = PARAMS_ERROR_MESSAGE + \
-            "_BROScalc ; fuel_type: {fuel_type}, ffmc: {ffmc}, bui: {bui}, fmc: {fmc}, sfc: {sfc}".format(
-                fuel_type=fuel_type.value, ffmc=ffmc, bui=bui, fmc=fmc, sfc=sfc)
+            f"_BROScalc ; fuel_type: {fuel_type.value}, ffmc: {ffmc}, bui: {bui}, fmc: {fmc}, sfc: {sfc}"
         raise CFFDRSException(message)
 
     if pc is None:
@@ -350,8 +349,7 @@ def rate_of_spread(fuel_type: FuelTypeEnum,  # pylint: disable=too-many-argument
     """
     if fuel_type is None or isi is None or bui is None or sfc is None:
         message = PARAMS_ERROR_MESSAGE + \
-            "_ROScalc ; fuel_type: {fuel_type}, isi: {isi}, bui: {bui}, fmc: {fmc}, sfc: {sfc}".format(
-                fuel_type=fuel_type.value, isi=isi, bui=bui, fmc=fmc, sfc=sfc)
+            f"_ROScalc ; fuel_type: {fuel_type.value}, isi: {isi}, bui: {bui}, fmc: {fmc}, sfc: {sfc}"
         raise CFFDRSException(message)
 
     # For some reason, the registered converter can't turn a None to a NULL, but we need to
@@ -398,8 +396,7 @@ def surface_fuel_consumption(  # pylint: disable=invalid-name
     """
     if fuel_type is None or bui is None or ffmc is None:
         message = PARAMS_ERROR_MESSAGE + \
-            "_SFCcalc; fuel_type: {fuel_type}, bui: {bui}, ffmc: {ffmc}".format(
-                fuel_type=fuel_type.value, bui=bui, ffmc=ffmc)
+            f"_SFCcalc; fuel_type: {fuel_type.value}, bui: {bui}, ffmc: {ffmc}"
         raise CFFDRSException(message)
     if pc is None:
         pc = NULL
@@ -578,8 +575,7 @@ def crown_fraction_burned(fuel_type: FuelTypeEnum, fmc: float, sfc: float,
         cbh = NULL
     if cbh is None or fmc is None:
         message = PARAMS_ERROR_MESSAGE + \
-            "_CFBcalc; fuel_type: {fuel_type}, cbh: {cbh}, fmc: {fmc}".format(
-                fuel_type=fuel_type.value, cbh=cbh, fmc=fmc)
+            f"_CFBcalc; fuel_type: {fuel_type.value}, cbh: {cbh}, fmc: {fmc}"
         raise CFFDRSException(message)
     result = CFFDRS.instance().cffdrs._CFBcalc(FUELTYPE=fuel_type.value, FMC=fmc, SFC=sfc,
                                                ROS=ros, CBH=cbh)
@@ -606,8 +602,7 @@ def total_fuel_consumption(  # pylint: disable=invalid-name
     """
     if cfb is None or cfl is None:
         message = PARAMS_ERROR_MESSAGE + \
-            "_TFCcalc; fuel_type: {fuel_type}, cfb: {cfb}, cfl: {cfl}".format(
-                fuel_type=fuel_type.value, cfb=cfb, cfl=cfl)
+            f"_TFCcalc; fuel_type: {fuel_type.value}, cfb: {cfb}, cfl: {cfl}"
         raise CFFDRSException(message)
     # According to fbp.Rd in cffdrs R package, Crown Fuel Load (CFL) can use default value of 1.0
     # without causing major impacts on final output.
