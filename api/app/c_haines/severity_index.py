@@ -101,15 +101,12 @@ def make_model_run_base_url(model: ModelEnum, model_run_start: str, forecast_hou
     """ Return the base url for the grib file.
     The location of the files differs slightly for each model. """
     if model == ModelEnum.GDPS:
-        return 'https://dd.weather.gc.ca/model_gem_global/15km/grib2/lat_lon/{HH}/{hhh}/'.format(
-            HH=model_run_start, hhh=forecast_hour)
+        return "https://dd.weather.gc.ca/model_gem_global/15km/grib2/lat_lon/"\
+               f"{model_run_start}/{forecast_hour}/"
     if model == ModelEnum.RDPS:
-        return 'https://dd.weather.gc.ca/model_gem_regional/10km/grib2/{HH}/{hhh}/'.format(
-            HH=model_run_start, hhh=forecast_hour
-        )
+        return f'https://dd.weather.gc.ca/model_gem_regional/10km/grib2/{model_run_start}/{forecast_hour}/'
     if model == ModelEnum.HRDPS:
-        return 'https://dd.weather.gc.ca/model_hrdps/continental/grib2/{HH}/{hhh}/'.format(
-            HH=model_run_start, hhh=forecast_hour)
+        return f'https://dd.weather.gc.ca/model_hrdps/continental/grib2/{model_run_start}/{forecast_hour}/'
     raise UnhandledPredictionModelType()
 
 
@@ -118,14 +115,11 @@ def make_model_run_filename(
     """ Return the filename of the grib file.
     The filename for each model differs slightly. """
     if model == ModelEnum.GDPS:
-        return 'CMC_glb_{}_latlon.15x.15_{}{HH}_P{hhh}.grib2'.format(
-            level, date, HH=model_run_start, hhh=forecast_hour)
+        return f'CMC_glb_{level}_latlon.15x.15_{date}{model_run_start}_P{forecast_hour}.grib2'
     if model == ModelEnum.RDPS:
-        return 'CMC_reg_{}_ps10km_{}{HH}_P{hhh}.grib2'.format(
-            level, date, HH=model_run_start, hhh=forecast_hour)
+        return f'CMC_reg_{level}_ps10km_{date}{model_run_start}_P{forecast_hour}.grib2'
     if model == ModelEnum.HRDPS:
-        return 'CMC_hrdps_continental_{level}_ps2.5km_{date}{HH}_P{hhh}-00.grib2'.format(
-            level=level, date=date, HH=model_run_start, hhh=forecast_hour)
+        return f'CMC_hrdps_continental_{level}_ps2.5km_{date}{model_run_start}_P{forecast_hour}-00.grib2'
     raise UnhandledPredictionModelType()
 
 
@@ -150,7 +144,7 @@ def make_model_run_download_urls(model: ModelEnum,
     # hhh: prediction hour [000, 003, 006, ..., 240]
     levels: Final = make_model_levels(model)
     # pylint: disable=invalid-name
-    hh = '{:02d}'.format(model_run_hour)
+    hh = f'{model_run_hour:02d}'
     # For the global model, we have prediction at 3 hour intervals up to 240 hours.
     hhh = format(prediction_hour, '03d')
 
@@ -271,9 +265,7 @@ class EnvCanadaPayload():
 def _save_data_as_geotiff(payload: EnvCanadaPayload, ch_data: numpy.ndarray, source_info: SourceInfo):
     """ This method exists for debug purposes only. It can be real useful to output raw GeoTIFF files.
     """
-    filename = './geotiff/{}_{}_{}.tiff'.format(payload.model,
-                                                payload.model_run_timestamp,
-                                                payload.prediction_timestamp)
+    filename = f'./geotiff/{payload.model}_{payload.model_run_timestamp}_{payload.prediction_timestamp}.tiff'
     logger.info('creating %s', filename)
     target_ds = gdal.GetDriverByName('GTiff')
     out_raster = target_ds.Create(filename, source_info.cols, source_info.rows, 1, gdal.GDT_Byte)
@@ -399,6 +391,7 @@ class CHainesSeverityGenerator():
             return payload
         return None
 
+    # pylint: disable=no-self-use
     async def _assets_exist(self, model: ModelEnum,
                             model_run_timestamp: datetime,
                             prediction_timestamp: datetime) -> bool:
@@ -475,6 +468,7 @@ class CHainesSeverityGenerator():
 
         return c_haines_data, source_info
 
+    # pylint: disable=no-self-use
     async def _persist_severity_data(self,
                                      payload: EnvCanadaPayload,
                                      c_haines_severity_data: numpy.ndarray,

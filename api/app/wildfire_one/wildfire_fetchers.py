@@ -156,9 +156,7 @@ def prepare_fetch_hourlies_query(raw_station: dict, start_timestamp: datetime, e
               'endTimestamp': query_end_timestamp, 'stationId': station_id}
     endpoint = ('/v1/hourlies/search/'
                 'findHourliesByWeatherTimestampBetweenAndStationIdEqualsOrderByWeatherTimestampAsc')
-    url = '{base_url}{endpoint}'.format(
-        base_url=base_url,
-        endpoint=endpoint)
+    url = f'{base_url}{endpoint}'
 
     return url, params
 
