@@ -48,7 +48,7 @@ async def get_auth_header(session: ClientSession) -> dict:
     # Fetch access token
     token = await fetch_access_token(session)
     # Construct the header.
-    header = {'Authorization': 'Bearer {}'.format(token['access_token'])}
+    header = {'Authorization': f"Bearer {token['access_token']}"}
     return header
 
 

@@ -23,7 +23,7 @@ def get_precalculated_percentiles(request: app.schemas.percentiles.PercentileReq
             status_code=status.HTTP_400_BAD_REQUEST, detail='Weather station is not found.')
 
     foldername = os.path.join(
-        os.path.dirname(__file__), 'data/{}-{}'.format(year_range_start, year_range_end))
+        os.path.dirname(__file__), f"data/{year_range_start}-{year_range_end}")
     logger.info(foldername)
 
     if not os.path.exists(foldername):
@@ -40,7 +40,7 @@ def get_precalculated_percentiles(request: app.schemas.percentiles.PercentileReq
     isi = []
     ffmc = []
     for code in request.stations:
-        filename = os.path.join(foldername, '{}.json'.format(code))
+        filename = os.path.join(foldername, f"{code}.json")
         summary = app.schemas.percentiles.StationSummary.parse_file(filename)
 
         if summary.bui and summary.isi and summary.ffmc:

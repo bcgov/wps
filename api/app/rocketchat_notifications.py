@@ -21,16 +21,9 @@ def send_rocketchat_notification(text: str, exc_info: Exception) -> dict:
     If you want to know if this method worked or not, you'll have to inspect
     the response.
     """
-    full_message = '{timestamp}\n{text}\n{hostname}: {exc_info}\n{trace}'.\
-        format(timestamp=datetime.now(tz=timezone.utc).isoformat(),
-               text=text,
-               hostname=config.get(
-                   'HOSTNAME'),
-               exc_info=exc_info,
-               trace=traceback.format_exception(
-                   etype=type(exc_info),
-                   value=exc_info,
-                   tb=exc_info.__traceback__))
+    full_message = f"{datetime.now(tz=timezone.utc).isoformat()}\n{text}\n\
+        {config.get('HOSTNAME')}: {exc_info}\n\
+        {traceback.format_exception(etype=type(exc_info),value=exc_info,tb=exc_info.__traceback__)}"
     result = None
     try:
         response = requests.post(

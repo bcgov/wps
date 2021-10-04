@@ -83,8 +83,7 @@ async def get_c_haines_model_run(
         # most recent model not found
         raise HTTPException(status_code=404)
     filename = f'{model}-{model_run_timestamp}.kml'
-    headers["Content-Disposition"] = "inline;filename={}".format(
-        filename)
+    headers["Content-Disposition"] = f"inline;filename={filename}"
     response = StreamingResponse(
         fetch_model_run_kml_streamer(model, model_run_timestamp),
         headers=headers,
