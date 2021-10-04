@@ -30,7 +30,7 @@ async def fetch_model_run_kml_streamer(model: ModelEnum, model_run_timestamp: da
     # Serve up the "look_at" which tells google earth when and where to take you.
     yield get_look_at(model, model_run_timestamp)
     # Serve up model folder and model run folder.
-    yield '<name>{} {}</name>\n'.format(model, model_run_timestamp)
+    yield f"<name>{model} {model_run_timestamp}</name>\n"
     yield '<Folder>'  # Open model run folder.
     yield f'<name>{model} {model_run_timestamp} model run</name>\n'
 
@@ -143,9 +143,7 @@ async def fetch_model_runs(model_run_timestamp: datetime):
             # We're interested in all the model runs.
             for model in ['GDPS', 'RDPS', 'HRDPS']:
                 # Construct a prefix to search for in S3 (basically path matching).
-                prefix = 'c-haines-polygons/json/{model}/{year}/{month}/{day}/'.format(
-                    model=model,
-                    year=date.year, month=date.month, day=date.day)
+                prefix = f'c-haines-polygons/json/{model}/{date.year}/{date.month}/{date.day}/'
                 logger.info(prefix)
                 # Create the task to go and fetch the listing from S3.
                 tasks.append(asyncio.create_task(client.list_objects_v2(

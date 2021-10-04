@@ -1,0 +1,23 @@
+{
+    "packageRules": [
+      {
+        "matchPackagePatterns": [
+          "*"
+        ],
+        "matchUpdateTypes": [
+          "minor",
+          "patch"
+        ],
+        "groupName": "all non-major dependencies",
+        "groupSlug": "all-minor-patch"
+      }
+    ],
+    "docker": {
+      "enabled": false
+    },
+    "docker-compose": {
+      "enabled": false
+    },
+    "autodiscover": true,
+    "autodiscoverFilter": "bcgov/wps"
+  }

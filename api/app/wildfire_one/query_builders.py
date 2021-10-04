@@ -26,7 +26,7 @@ class BuildQueryAllActiveStations(BuildQuery):
         # NOTE: Currently the filter on stationStatus.id doesn't work.
         params = {'size': self.max_page_size, 'sort': 'displayLabel',
                   'page': page, 'query': 'stationStatus.id=="ACTIVE"'}
-        url = '{base_url}/v1/stations'.format(base_url=self.base_url)
+        url = f'{self.base_url}/v1/stations'
         return url, params
 
 
@@ -40,13 +40,13 @@ class BuildQueryByStationCode(BuildQuery):
         for code in station_codes:
             if len(self.querystring) > 0:
                 self.querystring += ' or '
-            self.querystring += 'stationCode=={}'.format(code)
+            self.querystring += f'stationCode=={code}'
 
     def query(self, page) -> Tuple[str, dict]:
         """ Return query url and params for a list of stations """
         params = {'size': self.max_page_size,
                   'sort': 'displayLabel', 'page': page, 'query': self.querystring}
-        url = '{base_url}/v1/stations/rsql'.format(base_url=self.base_url)
+        url = f'{self.base_url}/v1/stations/rsql'
         return url, params
 
 
@@ -62,8 +62,7 @@ class BuildQueryAllHourliesByRange(BuildQuery):
     def query(self, page) -> Tuple[str, dict]:
         """ Return query url for hourlies between start_timestamp, end_timestamp"""
         params = {'size': self.max_page_size, 'page': page, 'query': self.querystring}
-        url = '{base_url}/v1/hourlies/rsql'.format(
-            base_url=self.base_url)
+        url = f'{self.base_url}/v1/hourlies/rsql'
         return url, params
 
 
@@ -84,7 +83,6 @@ class BuildQueryDailesByStationCode(BuildQuery):
                   'startingTimestamp': self.start_timestamp,
                   'endingTimestamp': self.end_timestamp,
                   'stationIds': self.station_ids}
-        url = ('{base_url}/v1/dailies/search/findDailiesByStationIdIsInAndWeather' +
-               'TimestampBetweenOrderByStationIdAscWeatherTimestampAsc').format(
-                   base_url=self.base_url)
+        url = (f'{self.base_url}/v1/dailies/search/findDailiesByStationIdIsInAndWeather' +
+               'TimestampBetweenOrderByStationIdAscWeatherTimestampAsc')
         return url, params
