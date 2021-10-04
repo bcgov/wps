@@ -16,14 +16,12 @@ export const buildDailyMap = (dailies: StationDaily[]): Map<number, StationDaily
 export const buildWeekliesByCode = (
   dailies: StationDaily[]
 ): Map<number, StationDaily[]> => {
+  const stationCodeDict = groupBy(dailies, 'code')
   const weekliesMap = new Map<number, StationDaily[]>()
 
-  if (dailies !== undefined) {
-    const weeklies = groupBy(dailies, 'code')
-    for (let i = 0; i < Object.keys(weeklies).length; i++) {
-      weekliesMap.set(Number(Object.keys(weeklies)[i]), Object.values(weeklies)[i])
-    }
-  }
+  Object.keys(stationCodeDict).forEach(key => {
+    weekliesMap.set(Number(key), stationCodeDict[key])
+  })
 
   return weekliesMap
 }
@@ -31,19 +29,20 @@ export const buildWeekliesByCode = (
 export const buildWeekliesByDate = (
   dailies: StationDaily[]
 ): Map<Date, StationDaily[]> => {
-  const weekliesMapDates = new Map<Date, StationDaily[]>()
+  const weekliesByDate = new Map<Date, StationDaily[]>()
+  const weeklies = groupBy(dailies, (daily: StationDaily) => daily.date)
+
   if (dailies !== undefined) {
-    const weeklies = groupBy(dailies, 'date')
     for (let i = 0; i < Object.keys(weeklies).length; i++) {
       if (weeklies) {
         console.log(weeklies)
         const nextDate = new Date(Object.keys(weeklies)[i])
         const nextValues = Object.values(weeklies)[i]
-        weekliesMapDates.set(nextDate, nextValues)
+        weekliesByDate.set(nextDate, nextValues)
       }
     }
   }
-  return weekliesMapDates
+  return weekliesByDate
 }
 
 /**

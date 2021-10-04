@@ -15,10 +15,7 @@ import {
   selectHFIStationsLoading
 } from 'app/rootReducer'
 import { CircularProgress, FormControl, makeStyles } from '@material-ui/core'
-import { StationDaily } from 'api/hfiCalculatorAPI'
-import { groupBy } from 'lodash'
 import { getPrepStartAndEnd } from 'utils/date'
-import { theme } from 'app/theme'
 import { buildDailyMap, buildWeekliesByCode, buildWeekliesByDate } from '../util'
 
 const useStyles = makeStyles(theme => ({
@@ -99,13 +96,9 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     }
   }
 
-  const getDayName = (dateStr: string, locale: string) => {
-    const date = new Date(dateStr)
-    return date.toLocaleDateString(locale, { weekday: 'long' })
-  }
-  const day = getDayName(dateOfInterest, 'en-CA')
-
   useEffect(() => {
+    dispatch(fetchHFIStations())
+
     if (tableView === 'daily') {
       const dailyStartTime = DateTime.fromISO(dateOfInterest)
         .startOf('day')
@@ -123,7 +116,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           startAndEnd.end.toUTC().valueOf()
         )
       )
-      dispatch(fetchHFIStations())
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -134,16 +126,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const weekliesMap = buildWeekliesByCode(dailies)
 
   const weekliesMapDates = buildWeekliesByDate(dailies)
-
-  useEffect(() => {
-    dispatch(fetchHFIStations())
-    dispatch(
-      fetchHFIDailies(
-        DateTime.fromISO(dateOfInterest).startOf('day').toUTC().valueOf(),
-        DateTime.fromISO(dateOfInterest).endOf('day').toUTC().valueOf()
-      )
-    )
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <main data-testid="hfi-calculator-page">

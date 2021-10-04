@@ -1,4 +1,4 @@
-import React, { ReactFragment, useState } from 'react'
+import React, { useState } from 'react'
 
 import {
   Checkbox,
@@ -6,26 +6,20 @@ import {
   TableCell,
   TableHead,
   TableRow,
-  Tooltip,
   Typography
 } from '@material-ui/core'
-import { createTheme, makeStyles, ThemeProvider } from '@material-ui/core/styles'
-import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline'
-import { FireCentre, PlanningArea, WeatherStation } from 'api/hfiCalcAPI'
+import { makeStyles } from '@material-ui/core/styles'
+import { FireCentre, PlanningArea } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
-import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
-import { isGrassFuelType, isValidGrassCure } from 'features/hfiCalculator/validation'
-import { calculateMeanIntensityGroup } from 'features/hfiCalculator/components/meanIntensity'
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
-import { isUndefined } from 'lodash'
-import CalculatedCell from 'features/hfiCalculator/components/CalculatedCell'
-import IntensityGroupCell from 'features/hfiCalculator/components/IntensityGroupCell'
 import FireTable from 'components/FireTable'
 import FireContainer from 'components/FireDisplayContainer'
-import { DateTime } from 'luxon/src/datetime'
-import { getPrepStartAndEnd } from 'utils/date'
-import { calculateMultipleMeanIntensityGroups } from './multipleMeanIntensity'
+import { calculateMultipleMeanIntensityGroups } from '../multipleMeanIntensity'
 import { buildWeeklyDates } from '../util'
+import { calculatePrepLevel, PrepLevel } from 'features/hfiCalculator/prepLevel'
+import { createCells } from 'features/hfiCalculator/cells'
+import DayHeaders from 'features/hfiCalculator/components/DayHeaders'
+import CellHeaders from 'features/hfiCalculator/components/CellHeaders'
 
 export interface Props {
   title: string
@@ -109,13 +103,11 @@ const useStyles = makeStyles({
 export const DailyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()
 
-  const stationCodesList: number[] = []
+  const stationCodesList: number[] = Array.from(props.dailiesMap.keys())
 
   const dates = buildWeeklyDates(props.weekliesMap)
 
   const [selected, setSelected] = useState<number[]>(stationCodesList)
-
-  const DECIMAL_PLACES = 1
 
   const stationCodeInSelected = (code: number) => {
     return selected.includes(code)
@@ -150,52 +142,10 @@ export const DailyViewTable = (props: Props): JSX.Element => {
         return
     }
   }
-
-  const calculatePrepLevel = (meanIntensityGroup: number | undefined) => {
-    // for now, prep level calculation assumed a fixed Fire Starts value of 0-1
-    if (isUndefined(meanIntensityGroup)) {
-      return undefined
-    }
-    if (meanIntensityGroup < 3) {
-      return 1
-    }
-    if (meanIntensityGroup < 4) {
-      return 2
-    }
-    if (meanIntensityGroup < 5) {
-      return 3
-    }
-    return 4
-  }
-
-  const errorIconTheme = createTheme({
-    overrides: {
-      MuiSvgIcon: {
-        root: {
-          fill: '#D8292F'
-        }
-      }
-    }
-  })
-  const toolTipSecondLine = 'Please check WFWX or contact the forecaster.'
-  const createToolTipElement = (toolTipFirstLine: string): ReactFragment => {
-    return (
-      <div>
-        {toolTipFirstLine} <br />
-        {toolTipSecondLine}
-      </div>
-    )
-  }
-
-  const getDayName = (dateStr: string, locale: string) => {
-    const date = new Date(dateStr)
-    return date.toLocaleDateString(locale, { weekday: 'long' })
-  }
-
   const createCalculatedCells = (
     area: PlanningArea,
     areaName: string,
-    prepLevel: 1 | 2 | 3 | 4 | undefined
+    prepLevel: PrepLevel
   ) => {
     for (let i = 0; i < dates.size; i++) {
       const dailies = props.weekliesMapDates.get(new Date(String(Array.from(dates)[i])))
@@ -227,105 +177,6 @@ export const DailyViewTable = (props: Props): JSX.Element => {
     }
   }
 
-  const createCells = (
-    dailies: StationDaily[] | undefined,
-    station: WeatherStation,
-    classNameForRow: string | undefined,
-    isRowSelected: boolean
-  ) => {
-    return dailies?.map(daily => {
-      return (
-        <React.Fragment key={`${station.code}-${daily.date}`}>
-          <GrassCureCell
-            value={daily?.grass_cure_percentage}
-            isGrassFuelType={isGrassFuelType(station.station_props)}
-            className={classNameForRow}
-            selected={isRowSelected}
-          ></GrassCureCell>
-
-          <CalculatedCell
-            testid={`${daily.code}-ros`}
-            value={daily.rate_of_spread?.toFixed(DECIMAL_PLACES)}
-            error={false}
-            className={classNameForRow}
-          ></CalculatedCell>
-          <CalculatedCell
-            testid={`${daily.code}-hfi`}
-            value={daily.hfi?.toFixed(DECIMAL_PLACES)}
-            error={false}
-            className={classNameForRow}
-          ></CalculatedCell>
-          <IntensityGroupCell
-            testid={`${daily.code}-intensity-group`}
-            value={daily.intensity_group}
-            error={false}
-            selected={isRowSelected}
-          ></IntensityGroupCell>
-          <TableCell colSpan={2}></TableCell>
-        </React.Fragment>
-      )
-    })
-  }
-
-  // TODO: horrible hack! do this the right way!!!!
-  const startAndEnd = getPrepStartAndEnd(props.currentDay + 'T00:00:00-07:00')
-  const startDate = startAndEnd.start
-  console.log('startDate', startDate)
-  const dayHeaders = []
-  const days: Array<DateTime> = []
-  for (let i = 0; i < 5; ++i) {
-    const date = startDate.plus({ days: i })
-    dayHeaders.push(
-      <TableCell colSpan={6} className={classes.dayHeader} key={i}>
-        {date.toJSDate().toLocaleDateString('en-CA', { weekday: 'long' })}
-      </TableCell>
-    )
-    days.push(date)
-  }
-  const cellHeaders = []
-
-  for (let i = 0; i < 5; i++) {
-    cellHeaders.push(
-      <TableCell style={{ borderLeft: 'solid 2px grey' }}>
-        Grass
-        <br />
-        Cure
-        <br />
-        (%)
-      </TableCell>
-    )
-
-    cellHeaders.push(
-      <TableCell>
-        ROS
-        <br />
-        (m/min)
-      </TableCell>
-    )
-    cellHeaders.push(<TableCell>HFI</TableCell>)
-    cellHeaders.push(
-      <TableCell>
-        M /
-        <br />
-        FIG
-      </TableCell>
-    )
-    cellHeaders.push(
-      <TableCell>
-        Fire
-        <br />
-        Starts
-      </TableCell>
-    )
-    cellHeaders.push(
-      <TableCell>
-        Prep
-        <br />
-        Level
-      </TableCell>
-    )
-  }
-
   return (
     <FireContainer testId={props.testId}>
       <div className={classes.controls}>
@@ -340,8 +191,9 @@ export const DailyViewTable = (props: Props): JSX.Element => {
       >
         <TableHead>
           <TableRow>
+            {/* Non-day specific headers */}
             <TableCell colSpan={4}></TableCell>
-            {dayHeaders.map(cell => cell)}
+            <DayHeaders isoDate={props.currentDay} />
           </TableRow>
           <TableRow>
             <TableCell>
@@ -360,7 +212,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
               <br />
               Type
             </TableCell>
-            {cellHeaders}
+            <CellHeaders />
           </TableRow>
         </TableHead>
         <TableBody>

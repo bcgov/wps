@@ -49,7 +49,9 @@ export const formatDateInUTC00Suffix = (dtISO: string): string => {
   return isoNoon.substring(0, isoNoon.length - 1) + '+00:00'
 }
 
-export const getPrepStartAndEnd = (dateOfInterest: string) => {
+export const getPrepStartAndEnd = (
+  dateOfInterest: string
+): { start: DateTime; end: DateTime } => {
   const getDayName = (dateStr: string) => {
     console.log('monkey', dateStr)
     return DateTime.fromISO(dateOfInterest).weekdayLong
