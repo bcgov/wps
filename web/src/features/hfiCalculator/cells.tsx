@@ -1,4 +1,3 @@
-import { TableCell } from '@material-ui/core'
 import { WeatherStation } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import { isGrassFuelType } from 'features/fbaCalculator/utils'
