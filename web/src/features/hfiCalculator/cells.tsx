@@ -55,7 +55,6 @@ export const createCells = (
           error={false}
           selected={isRowSelected}
         ></IntensityGroupCell>
-        <TableCell colSpan={2}></TableCell>
       </React.Fragment>
     )
   })
