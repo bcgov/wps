@@ -15,8 +15,8 @@ import {
   selectHFIStationsLoading
 } from 'app/rootReducer'
 import { CircularProgress, FormControl, makeStyles } from '@material-ui/core'
-import { getPrepStartAndEnd } from 'utils/date'
 import { buildDailyMap, buildWeekliesByCode, buildWeekliesByUTC } from '../util'
+import { getPrepDailyDateRange, getPrepWeeklyDateRange } from 'utils/date'
 
 const useStyles = makeStyles(theme => ({
   container: {
@@ -59,27 +59,14 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   const updateDate = () => {
     if (previouslySelectedDateOfInterest !== dateOfInterest) {
-      if (tableView === 'daily') {
-        console.log('tableView is DAILY')
-        const dailyStartTime = DateTime.fromISO(dateOfInterest)
-          .startOf('day')
-          .toUTC()
-          .valueOf()
-        const dailyEndTime = DateTime.fromISO(dateOfInterest).toUTC().valueOf()
-        dispatch(fetchHFIDailies(dailyStartTime, dailyEndTime))
-        dispatch(fetchHFIStations())
-      } else {
-        console.log('tableView is WEEKLY')
-        const startAndEnd = getPrepStartAndEnd(dateOfInterest)
-        console.log(startAndEnd)
-        dispatch(
-          fetchHFIDailies(
-            startAndEnd.start.toUTC().valueOf(),
-            startAndEnd.end.toUTC().valueOf()
-          )
-        )
-        dispatch(fetchHFIStations())
-      }
+      const { start, end } =
+        tableView === 'daily'
+          ? getPrepDailyDateRange(dateOfInterest)
+          : getPrepWeeklyDateRange(dateOfInterest)
+
+      dispatch(fetchHFIDailies(start.toUTC().valueOf(), end.toUTC().valueOf()))
+      dispatch(fetchHFIStations())
+
       setPreviouslySelectedDateOfInterest(dateOfInterest)
     }
   }
@@ -108,7 +95,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       dispatch(fetchHFIDailies(dailyStartTime, dailyEndTime))
       dispatch(fetchHFIStations())
     } else {
-      const startAndEnd = getPrepStartAndEnd(dateOfInterest)
+      const startAndEnd = getPrepWeeklyDateRange(dateOfInterest)
       console.log('toutc', startAndEnd.start.toUTC().valueOf())
       dispatch(
         fetchHFIDailies(
