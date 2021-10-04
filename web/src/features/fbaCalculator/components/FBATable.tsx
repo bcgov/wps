@@ -90,6 +90,35 @@ const useStyles = makeStyles(theme => ({
   }
 }))
 
+const tableColumnLabels: string[] = [
+  'Zone',
+  'Weather Station',
+  'Elevation',
+  'FBP Fuel Type',
+  'Grass Cure',
+  'Status',
+  'Temp',
+  'RH',
+  'Wind Dir',
+  'Wind Speed (km/h)',
+  'Precip (mm)',
+  'FFMC',
+  'DMC',
+  'DC',
+  'ISI',
+  'BUI',
+  'FWI',
+  'HFI',
+  'Critical Hours (4000 kW/m)',
+  'Critical Hours (10000 kW/m)',
+  'ROS (m/min)',
+  'Fire Type',
+  'CFB (%)',
+  'Flame Length (m)',
+  '30 min fire size (ha)',
+  '60 min fire size (ha)'
+]
+
 const FBATable = (props: FBATableProps) => {
   const classes = useStyles()
   const history = useHistory()
@@ -114,6 +143,7 @@ const FBATable = (props: FBATableProps) => {
   const [calculatedResults, setCalculatedResults] = useState<FBAStation[]>(
     fireBehaviourResultStations
   )
+  const [visibleColumns, setVisibleColumns] = useState<string[]>(tableColumnLabels)
 
   const rowsFromQuery = getRowsFromUrlParams(location.search)
 
@@ -130,35 +160,6 @@ const FBATable = (props: FBATableProps) => {
       label: value.friendlyName
     })
   )
-
-  const tableColumnLabels: string[] = [
-    'Zone',
-    'Weather Station',
-    'Elevation',
-    'FBP Fuel Type',
-    'Grass Cure',
-    'Status',
-    'Temp',
-    'RH',
-    'Wind Dir',
-    'Wind Speed (km/h)',
-    'Precip (mm)',
-    'FFMC',
-    'DMC',
-    'DC',
-    'ISI',
-    'BUI',
-    'FWI',
-    'HFI',
-    'Critical Hours (4000 kW/m)',
-    'Critical Hours (10000 kW/m)',
-    'ROS (m/min)',
-    'Fire Type',
-    'CFB (%)',
-    'Flame Length (m)',
-    '30 min fire size (ha)',
-    '60 min fire size (ha)'
-  ]
 
   useEffect(() => {
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
@@ -252,6 +253,12 @@ const FBATable = (props: FBATableProps) => {
     setRows(sortedRows)
   }, [order]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    console.log('Visible columns updated')
+    console.log(visibleColumns)
+    // re-render table
+  }, [visibleColumns]) // eslint-disable-line react-hooks/exhaustive-deps
+
   const addStation = () => {
     const newRowId = getNextRowIdFromRows(rows.filter(row => !isUndefined(row)))
     const newRow = {
@@ -325,6 +332,10 @@ const FBATable = (props: FBATableProps) => {
     setModalOpen(true)
   }
 
+  const filterColumnsCallback = (filterByColumns: string[]) => {
+    setVisibleColumns(filterByColumns)
+  }
+
   return (
     <React.Fragment>
       {stationsError ||
@@ -389,6 +400,7 @@ const FBATable = (props: FBATableProps) => {
           modalOpen={modalOpen}
           columns={tableColumnLabels}
           setModalOpen={setModalOpen}
+          parentCallback={filterColumnsCallback}
         />
 
         <FireDisplayContainer testId={props.testId}>
@@ -401,6 +413,7 @@ const FBATable = (props: FBATableProps) => {
               setHeaderSelect={setHeaderSelect}
               setSelected={setSelected}
               loading={loading}
+              visibleColumns={visibleColumns}
             />
             <TableBody data-testid="fba-table-body">
               {rows.length === 0 ? (

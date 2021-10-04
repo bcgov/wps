@@ -22,12 +22,14 @@ export interface ModalProps {
   columns: string[]
   modalOpen: boolean
   setModalOpen: React.Dispatch<React.SetStateAction<boolean>>
+  parentCallback: (selectedColumnsLabels: string[]) => void
 }
 
 const useStyles = makeStyles(() => ({
   modalWindow: {
     maxHeight: '800px',
-    maxWidth: '600px'
+    maxWidth: '600px',
+    width: '350px'
   }
 }))
 
@@ -39,11 +41,21 @@ export const FilterColumnsModal = (props: ModalProps) => {
     Array.from(Array(props.columns.length).keys())
   )
 
-  const handleOpen = () => {
-    props.setModalOpen(true)
+  const translateSelectedFromNumbersToStrings = (): string[] => {
+    const selectedColumnsAsStrings: string[] = []
+    for (const index of selected) {
+      selectedColumnsAsStrings.push(props.columns[index])
+    }
+    return selectedColumnsAsStrings
   }
 
   const handleClose = () => {
+    props.setModalOpen(false)
+  }
+
+  const handleSaveAndClose = () => {
+    const selectedColumnLabels = translateSelectedFromNumbersToStrings()
+    props.parentCallback(selectedColumnLabels)
     props.setModalOpen(false)
   }
 
@@ -74,7 +86,7 @@ export const FilterColumnsModal = (props: ModalProps) => {
           })}
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose} color="primary" variant="contained">
+          <Button onClick={handleSaveAndClose} color="primary" variant="contained">
             Save changes
           </Button>
           <Button onClick={handleClose} color="primary">
