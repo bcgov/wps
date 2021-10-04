@@ -1,9 +1,9 @@
 """ This module contains pydandict schemas the HFI Calculator.
 """
 from typing import List, Optional
+from datetime import datetime
 from pydantic import BaseModel
 from app.schemas.shared import FuelType
-from datetime import datetime
 
 
 class StationDaily(BaseModel):
