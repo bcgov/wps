@@ -52,7 +52,7 @@ const useStyles = makeStyles({
   }
 })
 
-export type PrepLevel = 1 | 2 | 3 | 4 | undefined
+export type PrepLevel = 1 | 2 | 3 | 4 | 5 | 6 | undefined
 
 export const calculatePrepLevel = (meanIntensityGroup: number | undefined): PrepLevel => {
   // for now, prep level calculation assumed a fixed Fire Starts value of 0-1
@@ -72,7 +72,10 @@ export const calculatePrepLevel = (meanIntensityGroup: number | undefined): Prep
 }
 const PrepLevelCell = (props: PrepLevelCellProps) => {
   const classes = useStyles()
-  const formatPrepLevelByValue = (prepLevel: number | undefined) => {
+
+  const prepLevel = calculatePrepLevel(props.meanIntensityGroup)
+
+  const formatPrepLevelByValue = () => {
     switch (prepLevel) {
       case 1:
         return classes.prepLevel1
@@ -91,10 +94,9 @@ const PrepLevelCell = (props: PrepLevelCellProps) => {
     }
   }
 
-  const prepLevel = calculatePrepLevel(props.meanIntensityGroup)
   return (
     <TableCell
-      className={formatPrepLevelByValue(prepLevel)}
+      className={formatPrepLevelByValue()}
       data-testid={`weekly-prep-level-${props.areaName}`}
     >
       {prepLevel}

@@ -5,7 +5,7 @@ import React from 'react'
 import { getPrepStartAndEnd } from 'utils/date'
 
 export interface DayHeadersProps {
-  testid?: string | undefined
+  testId?: string
   isoDate: string
 }
 
