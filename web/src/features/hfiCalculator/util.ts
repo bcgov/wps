@@ -1,7 +1,7 @@
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import { groupBy } from 'lodash'
 
-export const buildDailyMap = (dailies: StationDaily[]) => {
+export const buildDailyMap = (dailies: StationDaily[]): Map<number, StationDaily> => {
   const dailiesMap = new Map<number, StationDaily>()
 
   if (dailies !== undefined) {
@@ -13,7 +13,9 @@ export const buildDailyMap = (dailies: StationDaily[]) => {
   return dailiesMap
 }
 
-export const buildWeekliesByCode = (dailies: StationDaily[]) => {
+export const buildWeekliesByCode = (
+  dailies: StationDaily[]
+): Map<number, StationDaily[]> => {
   const weekliesMap = new Map<number, StationDaily[]>()
 
   if (dailies !== undefined) {
@@ -26,7 +28,9 @@ export const buildWeekliesByCode = (dailies: StationDaily[]) => {
   return weekliesMap
 }
 
-export const buildWeekliesByDate = (dailies: StationDaily[]) => {
+export const buildWeekliesByDate = (
+  dailies: StationDaily[]
+): Map<Date, StationDaily[]> => {
   const weekliesMapDates = new Map<Date, StationDaily[]>()
   if (dailies !== undefined) {
     const weeklies = groupBy(dailies, 'date')
@@ -42,7 +46,14 @@ export const buildWeekliesByDate = (dailies: StationDaily[]) => {
   return weekliesMapDates
 }
 
-export const buildWeeklyDates = (weekliesMap: Map<number, StationDaily[]>) => {
+/**
+ * Return a set of unique dates based on UTC timestamps
+ * @param weekliesMap Map of station code -> list of dailies
+ * @returns
+ */
+export const buildWeeklyDates = (
+  weekliesMap: Map<number, StationDaily[]>
+): Set<number> => {
   const datesList: number[] = []
 
   weekliesMap.forEach(value => {
