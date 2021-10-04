@@ -16,7 +16,7 @@ import {
 } from 'app/rootReducer'
 import { CircularProgress, FormControl, makeStyles } from '@material-ui/core'
 import { getPrepStartAndEnd } from 'utils/date'
-import { buildDailyMap, buildWeekliesByCode, buildWeekliesByDate } from '../util'
+import { buildDailyMap, buildWeekliesByCode, buildWeekliesByUTC } from '../util'
 
 const useStyles = makeStyles(theme => ({
   container: {
@@ -125,7 +125,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   const weekliesMap = buildWeekliesByCode(dailies)
 
-  const weekliesMapDates = buildWeekliesByDate(dailies)
+  const weekliesByUTC = buildWeekliesByUTC(dailies)
 
   return (
     <main data-testid="hfi-calculator-page">
@@ -178,8 +178,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
               testId="hfi-calc-weekly-table"
               fireCentres={fireCentres}
               dailiesMap={dailiesMap}
-              weekliesMap={weekliesMap}
-              weekliesMapDates={weekliesMapDates}
+              weekliesByStationCode={weekliesMap}
+              weekliesByUTC={weekliesByUTC}
               currentDay={dateOfInterest}
             />
           )}

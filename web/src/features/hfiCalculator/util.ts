@@ -26,43 +26,15 @@ export const buildWeekliesByCode = (
   return weekliesMap
 }
 
-export const buildWeekliesByDate = (
+export const buildWeekliesByUTC = (
   dailies: StationDaily[]
-): Map<Date, StationDaily[]> => {
-  const weekliesByDate = new Map<Date, StationDaily[]>()
-  const weeklies = groupBy(dailies, (daily: StationDaily) => daily.date)
+): Map<number, StationDaily[]> => {
+  const weekliesByUTC = new Map<number, StationDaily[]>()
+  const utcDict = groupBy(dailies, (daily: StationDaily) => daily.date.toUTC().toMillis())
 
-  if (dailies !== undefined) {
-    for (let i = 0; i < Object.keys(weeklies).length; i++) {
-      if (weeklies) {
-        console.log(weeklies)
-        const nextDate = new Date(Object.keys(weeklies)[i])
-        const nextValues = Object.values(weeklies)[i]
-        weekliesByDate.set(nextDate, nextValues)
-      }
-    }
-  }
-  return weekliesByDate
-}
-
-/**
- * Return a set of unique dates based on UTC timestamps
- * @param weekliesMap Map of station code -> list of dailies
- * @returns
- */
-export const buildWeeklyDates = (
-  weekliesMap: Map<number, StationDaily[]>
-): Set<number> => {
-  const datesList: number[] = []
-
-  weekliesMap.forEach(value => {
-    for (let i = 0; i < value.length; i++) {
-      if (!datesList.includes(value[i].date.toUTC().toMillis())) {
-        datesList.push(value[i].date.toUTC().toMillis())
-      }
-    }
+  Object.keys(utcDict).forEach(key => {
+    weekliesByUTC.set(Number(key), utcDict[key])
   })
 
-  const dates = new Set(datesList)
-  return dates
+  return weekliesByUTC
 }

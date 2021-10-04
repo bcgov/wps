@@ -9,35 +9,23 @@ import {
   Typography
 } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
-import { FireCentre, PlanningArea } from 'api/hfiCalcAPI'
+import { FireCentre } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
-import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
 import FireTable from 'components/FireTable'
 import FireContainer from 'components/FireDisplayContainer'
-import { calculateMultipleMeanIntensityGroups } from '../multipleMeanIntensity'
-import { buildWeeklyDates } from '../util'
-import { calculatePrepLevel, PrepLevel } from 'features/hfiCalculator/prepLevel'
 import { createCells } from 'features/hfiCalculator/cells'
 import DayHeaders from 'features/hfiCalculator/components/DayHeaders'
 import CellHeaders from 'features/hfiCalculator/components/CellHeaders'
+import CalculatedCells from 'features/hfiCalculator/components/CalculatedCells'
 
 export interface Props {
   title: string
   fireCentres: Record<string, FireCentre>
   dailiesMap: Map<number, StationDaily>
-  weekliesMap: Map<number, StationDaily[]>
-  weekliesMapDates: Map<Date, StationDaily[]>
+  weekliesByStationCode: Map<number, StationDaily[]>
+  weekliesByUTC: Map<number, StationDaily[]>
   currentDay: string
   testId?: string
-}
-
-const prepLevelColours: { [description: string]: string } = {
-  green: '#A0CD63',
-  blue: '#4CAFEA',
-  yellow: '#FFFD54',
-  orange: '#F6C142',
-  brightRed: '#EA3223',
-  bloodRed: '#B02318'
 }
 
 const useStyles = makeStyles({
@@ -50,10 +38,6 @@ const useStyles = makeStyles({
     backgroundColor: 'rgba(40, 53, 147, 0.05)',
     width: '100%'
   },
-  fireStarts: {
-    fontWeight: 'bold',
-    textAlign: 'center'
-  },
   unselectedStation: {
     color: 'rgba(0,0,0,0.54)'
   },
@@ -61,51 +45,13 @@ const useStyles = makeStyles({
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'baseline'
-  },
-  prepLevel1: {
-    background: prepLevelColours.green,
-    fontWeight: 'bold',
-    textAlign: 'center'
-  },
-  prepLevel2: {
-    background: prepLevelColours.blue,
-    fontWeight: 'bold',
-    textAlign: 'center'
-  },
-  prepLevel3: {
-    background: prepLevelColours.yellow,
-    fontWeight: 'bold',
-    textAlign: 'center'
-  },
-  prepLevel4: {
-    background: prepLevelColours.orange,
-    fontWeight: 'bold',
-    textAlign: 'center'
-  },
-  prepLevel5: {
-    background: prepLevelColours.brightRed,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    color: 'white'
-  },
-  prepLevel6: {
-    background: prepLevelColours.bloodRed,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    color: 'white'
-  },
-  dayHeader: {
-    borderLeft: '2px solid grey',
-    textAlign: 'center'
   }
 })
 
-export const DailyViewTable = (props: Props): JSX.Element => {
+export const WeeklyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()
 
   const stationCodesList: number[] = Array.from(props.dailiesMap.keys())
-
-  const dates = buildWeeklyDates(props.weekliesMap)
 
   const [selected, setSelected] = useState<number[]>(stationCodesList)
 
@@ -122,59 +68,6 @@ export const DailyViewTable = (props: Props): JSX.Element => {
       selectedSet.add(code)
     }
     setSelected(Array.from(selectedSet))
-  }
-
-  const formatPrepLevelByValue = (prepLevel: number | undefined) => {
-    switch (prepLevel) {
-      case 1:
-        return classes.prepLevel1
-      case 2:
-        return classes.prepLevel2
-      case 3:
-        return classes.prepLevel3
-      case 4:
-        return classes.prepLevel4
-      case 5:
-        return classes.prepLevel5
-      case 6:
-        return classes.prepLevel6
-      default:
-        return
-    }
-  }
-  const createCalculatedCells = (
-    area: PlanningArea,
-    areaName: string,
-    prepLevel: PrepLevel
-  ) => {
-    for (let i = 0; i < dates.size; i++) {
-      const dailies = props.weekliesMapDates.get(new Date(String(Array.from(dates)[i])))
-      return dailies?.map(daily => {
-        return (
-          <React.Fragment key={`${daily.date}-${daily.code}`}>
-            <TableCell colSpan={3}></TableCell>
-            <MeanIntensityGroupRollup
-              area={area}
-              dailiesMap={props.dailiesMap}
-              selectedStations={selected}
-            ></MeanIntensityGroupRollup>
-            <TableCell
-              className={classes.fireStarts}
-              data-testid={`weekly-fire-starts-${areaName}`}
-            >
-              {/* using a fixed value of 0-1 Fire Starts for now */}
-              0-1
-            </TableCell>
-            <TableCell
-              className={formatPrepLevelByValue(prepLevel)}
-              data-testid={`weekly-prep-level-${areaName}`}
-            >
-              {prepLevel}
-            </TableCell>
-          </React.Fragment>
-        )
-      })
-    }
   }
 
   return (
@@ -227,19 +120,6 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                 {Object.entries(centre.planning_areas)
                   .sort((a, b) => (a[1].name < b[1].name ? -1 : 1))
                   .map(([areaName, area]) => {
-                    const meanIntensityGroup = calculateMultipleMeanIntensityGroups(
-                      area,
-                      props.weekliesMap,
-                      selected
-                    )
-                    const prepLevel = calculatePrepLevel(meanIntensityGroup)
-
-                    const calculatedCells = createCalculatedCells(
-                      area,
-                      areaName,
-                      prepLevel
-                    )
-
                     return (
                       <React.Fragment key={`zone-${areaName}`}>
                         <TableRow
@@ -250,12 +130,19 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                           <TableCell className={classes.planningArea} colSpan={4}>
                             {area.name}
                           </TableCell>
-                          {calculatedCells}
+                          <CalculatedCells
+                            area={area}
+                            areaName={areaName}
+                            selected={selected}
+                            weekliesByStationCode={props.weekliesByStationCode}
+                            weekliesByUTC={props.weekliesByUTC}
+                            dailiesMap={props.dailiesMap}
+                          />
                         </TableRow>
                         {Object.entries(area.stations)
                           .sort((a, b) => (a[1].code < b[1].code ? -1 : 1))
                           .map(([stationCode, station]) => {
-                            const dailies = props.weekliesMap.get(station.code)
+                            const dailies = props.weekliesByStationCode.get(station.code)
                             const isRowSelected = stationCodeInSelected(station.code)
                             const classNameForRow = !isRowSelected
                               ? classes.unselectedStation
@@ -313,4 +200,4 @@ export const DailyViewTable = (props: Props): JSX.Element => {
   )
 }
 
-export default React.memo(DailyViewTable)
+export default React.memo(WeeklyViewTable)
