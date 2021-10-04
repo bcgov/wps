@@ -40,13 +40,10 @@ def patroni_cluster_health_check():
         # e.g. Leader is down, replicas are up.
         # For now, we assume that if there's more than one pod, that all is well.
         healthy = True
-        message = 'Healthy ({} out of {} pods are ready)'.format(
-            ready_count,
-            replica_count)
+        message = f"Healthy ({ready_count} out of {replica_count} pods are ready)"
     else:
         healthy = False
-        message = 'Only {} out of {} pods are healthy'.format(
-            ready_count, replica_count)
+        message = f"Only {ready_count} out of {replica_count} pods are healthy"
     if ready_count < replica_count:
         logger.error(message)
     else:
