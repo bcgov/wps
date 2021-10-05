@@ -86,6 +86,9 @@ parameters:
     description: "Name of the Service Account To Exeucte the Job As."
     value: "default"
     required: true
+  - name: GLOBAL_NAME
+    description: Name of global Module
+    value: wps
 objects:
   - kind: "CronJob"
     apiVersion: "batch/v1beta1"
