@@ -66,6 +66,21 @@ parameters:
     value: "0.5"
   - name: CPU_LIMIT
     value: "1"
+  - name: "JOB_BACKOFF_LIMIT"
+    displayName: "Job Backoff Limit"
+    description: "The number of attempts to try for a successful job outcome"
+    value: "0"
+    required: false
+  - name: "FAILED_JOBS_HISTORY_LIMIT"
+    displayName: "Failed Job History Limit"
+    description: "The number of failed jobs that will be retained"
+    value: "2"
+    required: true
+  - name: "JOB_SERVICE_ACCOUNT"
+    displayName: "Service Account Name"
+    description: "Name of the Service Account To Exeucte the Job As."
+    value: "default"
+    required: true
 objects:
   - kind: "CronJob"
     apiVersion: "batch/v1beta1"
