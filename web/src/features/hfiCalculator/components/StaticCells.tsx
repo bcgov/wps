@@ -40,26 +40,26 @@ export const StaticCells = ({
         error={false}
         className={classNameForRow}
       />
-      {/* Fire Starts */}
-      <CalculatedCell
-        testid={`${daily.code}-fire-starts`}
-        value={'0'}
-        error={false}
-        className={classNameForRow}
-      />
-      {/* MIG */}
-      <CalculatedCell
-        testid={`${daily.code}-mig`}
-        value={'0'}
-        error={false}
-        className={classNameForRow}
-      />
       <IntensityGroupCell
         testid={`${daily.code}-intensity-group`}
         value={daily.intensity_group}
         error={false}
         selected={isRowSelected}
       ></IntensityGroupCell>
+      {/* Fire Starts */}
+      <CalculatedCell
+        testid={`${daily.code}-fire-starts`}
+        error={false}
+        className={classNameForRow}
+        value={undefined}
+      />
+      {/* Prep Level */}
+      <CalculatedCell
+        testid={`${daily.code}-prep-level`}
+        error={false}
+        className={classNameForRow}
+        value={undefined}
+      />
     </React.Fragment>
   ))
   return <React.Fragment>{staticCells}</React.Fragment>

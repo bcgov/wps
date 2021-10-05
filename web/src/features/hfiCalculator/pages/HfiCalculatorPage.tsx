@@ -15,8 +15,8 @@ import {
 import { CircularProgress, FormControl, makeStyles } from '@material-ui/core'
 import { buildDailyMap, buildWeekliesByCode, buildWeekliesByUTC } from '../util'
 import { getDateRange } from 'utils/date'
-import ViewSwitcher from 'features/hfiCalculator/pages/ViewSwitcher'
-import ViewSwitcherToggles from 'features/hfiCalculator/pages/ViewSwitcherToggles'
+import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
+import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'
 
 const useStyles = makeStyles(theme => ({
   container: {
@@ -24,22 +24,10 @@ const useStyles = makeStyles(theme => ({
     justifyContent: 'center'
   },
   formControl: {
+    display: 'flex',
+    flexDirection: 'row',
     margin: theme.spacing(1),
     minWidth: 210
-  },
-  buttonUnselected: {
-    height: '56px',
-    width: '210px',
-    margin: '8px',
-    border: '3px solid ' + theme.palette.primary.main
-  },
-  buttonSelected: {
-    height: '56px',
-    width: '210px',
-    margin: '8px',
-    border: '3px solid ' + theme.palette.primary.main,
-    backgroundColor: theme.palette.primary.main,
-    color: '#FFFFFF'
   }
 }))
 
@@ -102,11 +90,12 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
               onChange={setDateOfInterest}
               updateDate={updateDate}
             />
+            <ViewSwitcherToggles
+              isWeeklyView={isWeeklyView}
+              toggleTableView={toggleTableView}
+            />
           </FormControl>
-          <ViewSwitcherToggles
-            isWeeklyView={isWeeklyView}
-            toggleTableView={toggleTableView}
-          />
+
           <ViewSwitcher
             isWeeklyView={isWeeklyView}
             fireCentres={fireCentres}

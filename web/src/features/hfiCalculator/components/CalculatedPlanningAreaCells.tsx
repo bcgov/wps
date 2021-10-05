@@ -4,8 +4,9 @@ import { StationDaily } from 'api/hfiCalculatorAPI'
 import FireStartsCell from 'features/hfiCalculator/components/FireStartsCell'
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
 import PrepLevelCell from 'features/hfiCalculator/components/PrepLevelCell'
+import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
 import { calculateMultipleMeanIntensityGroups } from 'features/hfiCalculator/multipleMeanIntensity'
-import { isUndefined } from 'lodash'
+import { range } from 'lodash'
 import React from 'react'
 
 export interface CalculatedCellsProps {
@@ -25,30 +26,18 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
     props.selected
   )
 
-  const cells = Array.from(props.weekliesByUTC.keys()).flatMap((utcTimestamp: number) => {
-    const dailiesForDay = props.weekliesByUTC.get(utcTimestamp)
-
-    if (isUndefined(dailiesForDay)) {
-      return []
-    } else {
-      return dailiesForDay.map(daily => (
-        <React.Fragment key={`${daily.date}-${daily.code}`}>
-          <TableCell colSpan={3}></TableCell>
-          <MeanIntensityGroupRollup
-            area={props.area}
-            dailiesMap={props.dailiesMap}
-            selectedStations={props.selected}
-          ></MeanIntensityGroupRollup>
-          <FireStartsCell areaName={props.areaName} />
-          <PrepLevelCell
-            meanIntensityGroup={meanIntensityGroup}
-            areaName={props.areaName}
-            testid={undefined}
-          />
-        </React.Fragment>
-      ))
-    }
-  })
+  const cells = range(NUM_WEEK_DAYS).map(i => (
+    <React.Fragment key={`calc-cells-${i}`}>
+      <TableCell colSpan={3}></TableCell>
+      <MeanIntensityGroupRollup
+        area={props.area}
+        dailiesMap={props.dailiesMap}
+        selectedStations={props.selected}
+      ></MeanIntensityGroupRollup>
+      <FireStartsCell areaName={props.areaName} />
+      <PrepLevelCell meanIntensityGroup={meanIntensityGroup} areaName={props.areaName} />
+    </React.Fragment>
+  ))
 
   return <React.Fragment>{cells}</React.Fragment>
 }

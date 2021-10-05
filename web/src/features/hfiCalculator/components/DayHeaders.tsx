@@ -1,5 +1,6 @@
 import { TableCell } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
+import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
 import { range } from 'lodash'
 import React from 'react'
 import { getPrepWeeklyDateRange } from 'utils/date'
@@ -21,12 +22,11 @@ const DayHeaders = (props: DayHeadersProps) => {
   const classes = useStyles()
   return (
     <React.Fragment>
-      {range(5).map(i => (
+      {range(NUM_WEEK_DAYS).map(i => (
         <TableCell colSpan={6} className={classes.dayHeader} key={i}>
           {start
             .plus({ days: i })
-            .toJSDate()
-            .toLocaleDateString('en-CA', { weekday: 'long' })}
+            .toLocaleString({ weekday: 'short', month: 'short', day: '2-digit' })}
         </TableCell>
       ))}
     </React.Fragment>
