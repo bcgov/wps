@@ -17,12 +17,11 @@ const defaultProps: WeatherStationProperties = {
 }
 
 const buildStation = (code: number): WeatherStation => {
-  const station = { code: code, station_props: defaultProps }
-  return station
+  return { code: code, station_props: defaultProps }
 }
 
 const buildStationDaily = (code: number, intensity_group: number): StationDaily => {
-  const stationDaily = {
+  return {
     code: code,
     status: 'good',
     temperature: 15,
@@ -47,16 +46,13 @@ const buildStationDaily = (code: number, intensity_group: number): StationDaily 
     fire_type: 'fire',
     date: DateTime.now()
   }
-
-  return stationDaily
 }
 
 const buildStationWithDaily = (
-  buildStation: WeatherStation,
-  buildStationDaily: StationDaily
+  station: WeatherStation,
+  stationDaily: StationDaily
 ): StationWithDaily => {
-  const stationWithDaily = { station: buildStation, daily: buildStationDaily }
-  return stationWithDaily
+  return { station: station, daily: stationDaily }
 }
 
 describe('calculateMeanIntensityGroup', () => {
