@@ -27,9 +27,14 @@ export interface ModalProps {
 
 const useStyles = makeStyles(() => ({
   modalWindow: {
-    maxHeight: '800px',
-    maxWidth: '600px',
-    width: '350px'
+    maxWidth: 'md'
+  },
+  closeIcon: {
+    position: 'absolute',
+    right: '0px'
+  },
+  modalTitle: {
+    textAlign: 'center'
   }
 }))
 
@@ -60,15 +65,20 @@ export const FilterColumnsModal = (props: ModalProps) => {
   }
 
   return (
-    <Dialog className={classes.modalWindow} open={props.modalOpen} onClose={handleClose}>
+    <Dialog
+      fullWidth
+      className={classes.modalWindow}
+      open={props.modalOpen}
+      onClose={handleClose}
+    >
       <Paper>
         <div>
-          <Typography variant="h5" component="h5">
+          <Typography variant="h5" component="h5" className={classes.modalTitle}>
             Filter Table by Columns
+            <IconButton className={classes.closeIcon} onClick={handleClose}>
+              <Clear />
+            </IconButton>
           </Typography>
-          <IconButton onClick={handleClose}>
-            <Clear />
-          </IconButton>
         </div>
         <DialogContent>
           {props.columns.map((column, index) => {
@@ -80,17 +90,17 @@ export const FilterColumnsModal = (props: ModalProps) => {
                   disabled={false}
                   rowId={index}
                 />
-                <p>{column}</p>
+                <a>{column}</a>
               </div>
             )
           })}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleSaveAndClose} color="primary" variant="contained">
-            Save changes
+            Apply
           </Button>
           <Button onClick={handleClose} color="primary">
-            Close
+            Cancel
           </Button>
         </DialogActions>
       </Paper>

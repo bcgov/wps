@@ -803,7 +803,7 @@ const FBATable = (props: FBATableProps) => {
           <Button
             data-testid="filter-columns-btn"
             color="default"
-            disabled={rows.length === 0}
+            disabled={fireBehaviourResultStations.length === 0}
             onClick={openColumnsModal}
           >
             <ViewColumnOutlinedIcon />
