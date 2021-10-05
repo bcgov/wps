@@ -3,7 +3,7 @@ import { isUndefined } from 'lodash'
 import React from 'react'
 
 export interface PrepLevelCellProps {
-  testid: string | undefined
+  testid?: string
   meanIntensityGroup: number | undefined
   areaName: string
 }
