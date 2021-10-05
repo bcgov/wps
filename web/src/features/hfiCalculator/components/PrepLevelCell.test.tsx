@@ -9,7 +9,11 @@ describe('PrepLevelCell', () => {
         <Table>
           <TableBody>
             <TableRow>
-              <PrepLevelCell areaName={'afton'} meanIntensityGroup={1}></PrepLevelCell>
+              <PrepLevelCell
+                testid={'weekly-prep-level-afton'}
+                areaName={'afton'}
+                meanIntensityGroup={1}
+              ></PrepLevelCell>
             </TableRow>
           </TableBody>
         </Table>
@@ -25,7 +29,11 @@ describe('PrepLevelCell', () => {
         <Table>
           <TableBody>
             <TableRow>
-              <PrepLevelCell areaName={'afton'} meanIntensityGroup={3}></PrepLevelCell>
+              <PrepLevelCell
+                testid={'weekly-prep-level-afton'}
+                areaName={'afton'}
+                meanIntensityGroup={3}
+              ></PrepLevelCell>
             </TableRow>
           </TableBody>
         </Table>
@@ -41,7 +49,11 @@ describe('PrepLevelCell', () => {
         <Table>
           <TableBody>
             <TableRow>
-              <PrepLevelCell areaName={'afton'} meanIntensityGroup={4}></PrepLevelCell>
+              <PrepLevelCell
+                testid={'weekly-prep-level-afton'}
+                areaName={'afton'}
+                meanIntensityGroup={4}
+              ></PrepLevelCell>
             </TableRow>
           </TableBody>
         </Table>
@@ -57,7 +69,11 @@ describe('PrepLevelCell', () => {
         <Table>
           <TableBody>
             <TableRow>
-              <PrepLevelCell areaName={'afton'} meanIntensityGroup={5}></PrepLevelCell>
+              <PrepLevelCell
+                testid={'weekly-prep-level-afton'}
+                areaName={'afton'}
+                meanIntensityGroup={5}
+              ></PrepLevelCell>
             </TableRow>
           </TableBody>
         </Table>
