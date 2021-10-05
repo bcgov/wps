@@ -71,6 +71,11 @@ parameters:
     description: "The number of attempts to try for a successful job outcome"
     value: "0"
     required: false
+  - name: "SUCCESS_JOBS_HISTORY_LIMIT"
+    displayName: "Successful Job History Limit"
+    description: "The number of successful jobs that will be retained"
+    value: "5"
+    required: true
   - name: "FAILED_JOBS_HISTORY_LIMIT"
     displayName: "Failed Job History Limit"
     description: "The number of failed jobs that will be retained"
