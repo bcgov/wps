@@ -152,8 +152,7 @@ def get_file_date_part(now, model_run_hour) -> str:
     """ Construct the part of the filename that contains the model run date
     """
     adjusted = adjust_model_day(now, model_run_hour)
-    date = '{year}{month:02d}{day:02d}'.format(
-        year=adjusted.year, month=adjusted.month, day=adjusted.day)
+    date = f"{adjusted.year}{adjusted.month:02d}{adjusted.day:02d}"
     return date
 
 
@@ -185,7 +184,7 @@ def get_global_model_run_download_urls(now: datetime.datetime,
     # hh: model run start, in UTC [00, 12]
     # hhh: prediction hour [000, 003, 006, ..., 240]
     # pylint: disable=invalid-name
-    hh = '{:02d}'.format(model_run_hour)
+    hh = f"{model_run_hour:02d}"
     # For the global model, we have prediction at 3 hour intervals up to 240 hours.
     for h in range(0, 241, 3):
         hhh = format(h, '03d')
@@ -193,11 +192,9 @@ def get_global_model_run_download_urls(now: datetime.datetime,
             # Accumulated precipitation does not exist for 000 hour, so the url for this doesn't exist
             if (hhh == '000' and level == 'APCP_SFC_0'):
                 continue
-            base_url = 'https://dd.weather.gc.ca/model_gem_global/15km/grib2/lat_lon/{}/{}/'.format(
-                hh, hhh)
+            base_url = f'https://dd.weather.gc.ca/model_gem_global/15km/grib2/lat_lon/{hh}/{hhh}/'
             date = get_file_date_part(now, model_run_hour)
-            filename = 'CMC_glb_{}_latlon.15x.15_{}{}_P{}.grib2'.format(
-                level, date, hh, hhh)
+            filename = f'CMC_glb_{level}_latlon.15x.15_{date}{hh}_P{hhh}.grib2'
             url = base_url + filename
             yield url
 
@@ -205,7 +202,7 @@ def get_global_model_run_download_urls(now: datetime.datetime,
 def get_high_res_model_run_download_urls(now: datetime.datetime, hour: int) -> Generator[str, None, None]:
     """ Yield urls to download HRDPS (high-res) model runs """
     # pylint: disable=invalid-name
-    hh = '{:02d}'.format(hour)
+    hh = f"{hour:02d}"
     # For the high-res model, predictions are at 1 hour intervals up to 48 hours.
     for h in range(0, 49):
         hhh = format(h, '03d')
@@ -213,11 +210,9 @@ def get_high_res_model_run_download_urls(now: datetime.datetime, hour: int) -> G
             # Accumulated precipitation does not exist for 000 hour, so the url for this doesn't exist
             if (hhh == '000' and level == 'APCP_SFC_0'):
                 continue
-            base_url = 'https://dd.weather.gc.ca/model_hrdps/continental/grib2/{}/{}/'.format(
-                hh, hhh)
+            base_url = f'https://dd.weather.gc.ca/model_hrdps/continental/grib2/{hh}/{hhh}/'
             date = get_file_date_part(now, hour)
-            filename = 'CMC_hrdps_continental_{}_ps2.5km_{}{}_P{}-00.grib2'.format(
-                level, date, hh, hhh)
+            filename = f'CMC_hrdps_continental_{level}_ps2.5km_{date}{hh}_P{hhh}-00.grib2'
             url = base_url + filename
             yield url
 
@@ -225,7 +220,7 @@ def get_high_res_model_run_download_urls(now: datetime.datetime, hour: int) -> G
 def get_regional_model_run_download_urls(now: datetime.datetime, hour: int) -> Generator[str, None, None]:
     """ Yield urls to download RDPS model runs """
     # pylint: disable=invalid-name
-    hh = '{:02d}'.format(hour)
+    hh = f"{hour:02d}"
     # For the RDPS model, predictions are at 1 hour intervals up to 84 hours.
     for h in range(0, 85):
         hhh = format(h, '03d')
@@ -233,12 +228,9 @@ def get_regional_model_run_download_urls(now: datetime.datetime, hour: int) -> G
             # Accumulated precipitation does not exist for 000 hour, so the url for this doesn't exist
             if (hhh == '000' and level == 'APCP_SFC_0'):
                 continue
-            base_url = 'https://dd.weather.gc.ca/model_gem_regional/10km/grib2/{}/{}/'.format(
-                hh, hhh
-            )
+            base_url = f'https://dd.weather.gc.ca/model_gem_regional/10km/grib2/{hh}/{hhh}/'
             date = get_file_date_part(now, hour)
-            filename = 'CMC_reg_{}_ps10km_{}{}_P{}.grib2'.format(
-                level, date, hh, hhh)
+            filename = f'CMC_reg_{level}_ps10km_{date}{hh}_P{hhh}.grib2'
             url = base_url + filename
             yield url
 
@@ -396,7 +388,7 @@ class EnvCanada():
         elif self.model_type == ModelEnum.RDPS:
             self.projection = ProjectionEnum.REGIONAL_PS
         else:
-            raise UnhandledPredictionModelType('Unknown model type: {}'.format(self.model_type))
+            raise UnhandledPredictionModelType(f'Unknown model type: {self.model_type}')
 
     def process_model_run_urls(self, urls):
         """ Process the urls for a model run.
@@ -440,6 +432,7 @@ class EnvCanada():
 
     def process_model_run(self, model_run_hour):
         """ Process a particular model run """
+        # pylint: disable=consider-using-f-string
         logger.info('Processing {} model run {:02d}'.format(
             self.model_type, model_run_hour))
 
@@ -452,6 +445,7 @@ class EnvCanada():
         # Having completed processing, check if we're all done.
         with app.db.database.get_write_session_scope() as session:
             if check_if_model_run_complete(session, urls):
+                # pylint: disable=consider-using-f-string
                 logger.info(
                     '{} model run {:02d}:00 completed with SUCCESS'.format(self.model_type, model_run_hour))
 
@@ -750,8 +744,7 @@ def main():
     except Exception as exception:  # pylint: disable=broad-except
         # We catch and log any exceptions we may have missed.
         logger.error('unexpected exception processing', exc_info=exception)
-        rc_message = ':poop: Encountered error retrieving {} model data from Env Canada'.format(
-            sys.argv[1])
+        rc_message = f':poop: Encountered error retrieving {sys.argv[1]} model data from Env Canada'
         send_rocketchat_notification(rc_message, exception)
         # Exit with a failure code.
         sys.exit(os.EX_SOFTWARE)
