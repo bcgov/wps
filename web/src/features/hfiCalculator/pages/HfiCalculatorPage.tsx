@@ -50,7 +50,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const { dailies, loading } = useSelector(selectHFIDailies)
   const { fireCentres } = useSelector(selectHFIStations)
   const stationDataLoading = useSelector(selectHFIStationsLoading)
-  const [tableView, setTableView] = useState('weekly')
+  const [isWeeklyView, setTableView] = useState(true)
 
   // the DatePicker component requires dateOfInterest to be in string format
   const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().toISODate())
@@ -58,36 +58,28 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     useState(DateTime.now().toISODate())
 
   const getDateRange = () => {
-    return tableView === 'daily'
-      ? getPrepDailyDateRange(dateOfInterest)
-      : getPrepWeeklyDateRange(dateOfInterest)
+    return isWeeklyView
+      ? getPrepWeeklyDateRange(dateOfInterest)
+      : getPrepDailyDateRange(dateOfInterest)
   }
 
   const updateDate = () => {
     if (previouslySelectedDateOfInterest !== dateOfInterest) {
       const { start, end } = getDateRange()
-
-      dispatch(fetchHFIDailies(start.toUTC().valueOf(), end.toUTC().valueOf()))
       dispatch(fetchHFIStations())
+      dispatch(fetchHFIDailies(start.toUTC().valueOf(), end.toUTC().valueOf()))
 
       setPreviouslySelectedDateOfInterest(dateOfInterest)
     }
   }
 
-  const handleClickWeekly = () => {
-    if (tableView === 'daily') {
-      setTableView('weekly')
-    }
-  }
-
-  const handleClickDaily = () => {
-    if (tableView === 'weekly') {
-      setTableView('daily')
-    }
+  const toggleView = () => {
+    setTableView(!isWeeklyView)
   }
 
   useEffect(() => {
     const { start, end } = getDateRange()
+    dispatch(fetchHFIStations())
     dispatch(fetchHFIDailies(start.toUTC().valueOf(), end.toUTC().valueOf()))
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -122,29 +114,18 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
             />
           </FormControl>
           <Button
-            className={
-              tableView === 'daily' ? classes.buttonSelected : classes.buttonUnselected
-            }
-            onClick={handleClickDaily}
+            className={isWeeklyView ? classes.buttonUnselected : classes.buttonSelected}
+            onClick={toggleView}
           >
             Daily Table
           </Button>
           <Button
-            className={
-              tableView === 'weekly' ? classes.buttonSelected : classes.buttonUnselected
-            }
-            onClick={handleClickWeekly}
+            className={isWeeklyView ? classes.buttonSelected : classes.buttonUnselected}
+            onClick={toggleView}
           >
             Weekly Table
           </Button>
-          {tableView === 'daily' ? (
-            <DailyViewTable
-              title="HFI Calculator Daily View"
-              testId="hfi-calc-daily-table"
-              fireCentres={fireCentres}
-              dailiesMap={dailiesMap}
-            ></DailyViewTable>
-          ) : (
+          {isWeeklyView ? (
             <WeeklyViewTable
               title="HFI Calculator Weekly View"
               testId="hfi-calc-weekly-table"
@@ -154,6 +135,13 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
               weekliesByUTC={weekliesByUTC}
               currentDay={dateOfInterest}
             />
+          ) : (
+            <DailyViewTable
+              title="HFI Calculator Daily View"
+              testId="hfi-calc-daily-table"
+              fireCentres={fireCentres}
+              dailiesMap={dailiesMap}
+            ></DailyViewTable>
           )}
         </Container>
       )}
