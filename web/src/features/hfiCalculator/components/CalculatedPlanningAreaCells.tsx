@@ -18,7 +18,7 @@ export interface CalculatedCellsProps {
   dailiesMap: Map<number, StationDaily>
 }
 
-const CalculatedCells = (props: CalculatedCellsProps) => {
+const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
   const meanIntensityGroup = calculateMultipleMeanIntensityGroups(
     props.area,
     props.weekliesByStationCode,
@@ -53,4 +53,4 @@ const CalculatedCells = (props: CalculatedCellsProps) => {
   return <React.Fragment>{cells}</React.Fragment>
 }
 
-export default React.memo(CalculatedCells)
+export default React.memo(CalculatedPlanningAreaCells)

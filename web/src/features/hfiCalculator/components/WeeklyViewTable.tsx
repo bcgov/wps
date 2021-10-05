@@ -13,10 +13,10 @@ import { FireCentre } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import FireTable from 'components/FireTable'
 import FireContainer from 'components/FireDisplayContainer'
-import { createCells } from 'features/hfiCalculator/cells'
 import DayHeaders from 'features/hfiCalculator/components/DayHeaders'
 import CellHeaders from 'features/hfiCalculator/components/CellHeaders'
-import CalculatedCells from 'features/hfiCalculator/components/CalculatedCells'
+import CalculatedPlanningAreaCells from 'features/hfiCalculator/components/CalculatedPlanningAreaCells'
+import { StaticCells } from 'features/hfiCalculator/components/StaticCells'
 
 export interface Props {
   title: string
@@ -130,7 +130,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                           <TableCell className={classes.planningArea} colSpan={4}>
                             {area.name}
                           </TableCell>
-                          <CalculatedCells
+                          <CalculatedPlanningAreaCells
                             area={area}
                             areaName={areaName}
                             selected={selected}
@@ -148,12 +148,6 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                               ? classes.unselectedStation
                               : undefined
 
-                            const cells = createCells(
-                              dailies,
-                              station,
-                              classNameForRow,
-                              isRowSelected
-                            )
                             return (
                               <TableRow
                                 className={classNameForRow}
@@ -184,7 +178,12 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                                   {station.station_props.fuel_type.abbrev}
                                 </TableCell>
 
-                                {cells}
+                                <StaticCells
+                                  dailies={dailies}
+                                  station={station}
+                                  classNameForRow={classNameForRow}
+                                  isRowSelected={isRowSelected}
+                                />
                               </TableRow>
                             )
                           })}

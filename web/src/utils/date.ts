@@ -49,13 +49,10 @@ export const formatDateInUTC00Suffix = (dtISO: string): string => {
   return isoNoon.substring(0, isoNoon.length - 1) + '+00:00'
 }
 
-export const getPrepStartAndEnd = (
+export const getPrepWeeklyDateRange = (
   dateOfInterest: string
 ): { start: DateTime; end: DateTime } => {
-  const getDayName = (dateStr: string) => {
-    return DateTime.fromISO(dateOfInterest).weekdayLong
-  }
-  const day = getDayName(dateOfInterest)
+  const day = DateTime.fromISO(dateOfInterest).weekdayLong
   let dayOffset = 0
   switch (day) {
     case 'Tuesday':
@@ -73,12 +70,28 @@ export const getPrepStartAndEnd = (
     case 'Sunday':
       dayOffset = 3
   }
-  const weeklyStartTime = DateTime.fromISO(dateOfInterest)
-    .minus({ days: dayOffset })
-    .startOf('day')
-  const weeklyEndTime = DateTime.fromISO(dateOfInterest)
+  const start = DateTime.fromISO(dateOfInterest).minus({ days: dayOffset }).startOf('day')
+  const end = DateTime.fromISO(dateOfInterest)
     .minus({ days: dayOffset })
     .endOf('day')
     .plus({ days: 4 })
-  return { start: weeklyStartTime, end: weeklyEndTime }
+  return { start, end }
+}
+
+export const getPrepDailyDateRange = (
+  dateOfInterest: string
+): { start: DateTime; end: DateTime } => {
+  const start = DateTime.fromISO(dateOfInterest).startOf('day')
+  const end = DateTime.fromISO(dateOfInterest).endOf('day')
+
+  return { start, end }
+}
+
+export const getDateRange = (
+  isWeeklyView: boolean,
+  dateOfInterest: string
+): { start: DateTime; end: DateTime } => {
+  return isWeeklyView
+    ? getPrepWeeklyDateRange(dateOfInterest)
+    : getPrepDailyDateRange(dateOfInterest)
 }

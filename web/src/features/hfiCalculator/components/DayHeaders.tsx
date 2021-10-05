@@ -2,10 +2,10 @@ import { TableCell } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 import { range } from 'lodash'
 import React from 'react'
-import { getPrepStartAndEnd } from 'utils/date'
+import { getPrepWeeklyDateRange } from 'utils/date'
 
 export interface DayHeadersProps {
-  testid?: string | undefined
+  testId?: string
   isoDate: string
 }
 
@@ -16,7 +16,7 @@ const useStyles = makeStyles({
   }
 })
 const DayHeaders = (props: DayHeadersProps) => {
-  const { start } = getPrepStartAndEnd(props.isoDate + 'T00:00:00-07:00')
+  const { start } = getPrepWeeklyDateRange(props.isoDate + 'T00:00:00-07:00')
 
   const classes = useStyles()
   return (
