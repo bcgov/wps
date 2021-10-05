@@ -14,7 +14,7 @@ from app.schemas.observations import WeatherReading
 from app.schemas.hfi_calc import StationDaily
 from app.utils.fuel_types import FUEL_TYPE_DEFAULTS
 from app.fba_calculator import calculate_cfb, get_fire_size, get_fire_type
-from app.utils.time import datetime_from_timestamp, get_julian_date_now
+from app.utils.time import get_julian_date_now
 from app.wildfire_one.util import is_station_valid, get_zone_code_prefix
 
 logger = logging.getLogger(__name__)

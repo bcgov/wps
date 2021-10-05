@@ -38,7 +38,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const { dailies, loading } = useSelector(selectHFIDailies)
   const { fireCentres } = useSelector(selectHFIStations)
   const stationDataLoading = useSelector(selectHFIStationsLoading)
-  const [isWeeklyView, toggleTableView] = useState(true)
+  const [isWeeklyView, toggleTableView] = useState(false)
 
   // the DatePicker component requires dateOfInterest to be in string format
   const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().toISODate())

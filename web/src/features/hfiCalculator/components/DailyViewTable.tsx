@@ -1,7 +1,6 @@
 import React, { ReactFragment, useState } from 'react'
 
 import {
-  Checkbox,
   TableBody,
   TableCell,
   TableHead,
@@ -20,26 +19,18 @@ import {
   getDailiesByDay
 } from 'features/hfiCalculator/components/meanIntensity'
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
-import { isUndefined } from 'lodash'
 import CalculatedCell from 'features/hfiCalculator/components/CalculatedCell'
 import IntensityGroupCell from 'features/hfiCalculator/components/IntensityGroupCell'
 import FireTable from 'components/FireTable'
 import FireContainer from 'components/FireDisplayContainer'
+import PrepLevelCell from 'features/hfiCalculator/components/PrepLevelCell'
+import BaseStationAttributeCells from 'features/hfiCalculator/components/BaseStationAttributeCells'
 
 export interface Props {
   title?: string
   fireCentres: Record<string, FireCentre>
   dailiesMap: Map<number, StationDaily>
   testId?: string
-}
-
-const prepLevelColours: { [description: string]: string } = {
-  green: '#A0CD63',
-  blue: '#4CAFEA',
-  yellow: '#FFFD54',
-  orange: '#F6C142',
-  brightRed: '#EA3223',
-  bloodRed: '#B02318'
 }
 
 const useStyles = makeStyles({
@@ -62,38 +53,6 @@ const useStyles = makeStyles({
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'baseline'
-  },
-  prepLevel1: {
-    background: prepLevelColours.green,
-    fontWeight: 'bold',
-    textAlign: 'center'
-  },
-  prepLevel2: {
-    background: prepLevelColours.blue,
-    fontWeight: 'bold',
-    textAlign: 'center'
-  },
-  prepLevel3: {
-    background: prepLevelColours.yellow,
-    fontWeight: 'bold',
-    textAlign: 'center'
-  },
-  prepLevel4: {
-    background: prepLevelColours.orange,
-    fontWeight: 'bold',
-    textAlign: 'center'
-  },
-  prepLevel5: {
-    background: prepLevelColours.brightRed,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    color: 'white'
-  },
-  prepLevel6: {
-    background: prepLevelColours.bloodRed,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    color: 'white'
   }
 })
 
@@ -122,42 +81,6 @@ export const DailyViewTable = (props: Props): JSX.Element => {
       selectedSet.add(code)
     }
     setSelected(Array.from(selectedSet))
-  }
-
-  const formatPrepLevelByValue = (prepLevel: number | undefined) => {
-    switch (prepLevel) {
-      case 1:
-        return classes.prepLevel1
-      case 2:
-        return classes.prepLevel2
-      case 3:
-        return classes.prepLevel3
-      case 4:
-        return classes.prepLevel4
-      case 5:
-        return classes.prepLevel5
-      case 6:
-        return classes.prepLevel6
-      default:
-        return
-    }
-  }
-
-  const calculatePrepLevel = (meanIntensityGroup: number | undefined) => {
-    // for now, prep level calculation assumed a fixed Fire Starts value of 0-1
-    if (isUndefined(meanIntensityGroup)) {
-      return undefined
-    }
-    if (meanIntensityGroup < 3) {
-      return 1
-    }
-    if (meanIntensityGroup < 4) {
-      return 2
-    }
-    if (meanIntensityGroup < 5) {
-      return 3
-    }
-    return 4
   }
 
   const errorIconTheme = createTheme({
@@ -312,7 +235,6 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                       stationsWithDaily,
                       selected
                     )
-                    const prepLevel = calculatePrepLevel(meanIntensityGroup)
                     return (
                       <React.Fragment key={`zone-${areaName}`}>
                         <TableRow
@@ -335,12 +257,11 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                             {/* using a fixed value of 0-1 Fire Starts for now */}
                             0-1
                           </TableCell>
-                          <TableCell
-                            className={formatPrepLevelByValue(prepLevel)}
-                            data-testid={`daily-prep-level-${areaName}`}
-                          >
-                            {prepLevel}
-                          </TableCell>
+                          <PrepLevelCell
+                            testid={`daily-prep-level-${areaName}`}
+                            meanIntensityGroup={meanIntensityGroup}
+                            areaName={areaName}
+                          />
                         </TableRow>
                         {Object.entries(area.stations)
                           .sort((a, b) => (a[1].code < b[1].code ? -1 : 1))
@@ -359,30 +280,12 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                                 className={classNameForRow}
                                 key={`station-${stationCode}`}
                               >
-                                <Checkbox
-                                  checked={stationCodeInSelected(station.code)}
-                                  onClick={() => toggleSelectedStation(station.code)}
-                                  data-testid={`select-station-${station.code}`}
-                                  color="primary"
-                                ></Checkbox>
-                                <TableCell
-                                  key={`station-${station.code}-name`}
+                                <BaseStationAttributeCells
+                                  station={station}
                                   className={classNameForRow}
-                                >
-                                  {station.station_props.name} ({station.code})
-                                </TableCell>
-                                <TableCell
-                                  key={`station-${station.code}-elevation`}
-                                  className={classNameForRow}
-                                >
-                                  {station.station_props.elevation}
-                                </TableCell>
-                                <TableCell
-                                  key={`station-${station.code}-fuel-type`}
-                                  className={classNameForRow}
-                                >
-                                  {station.station_props.fuel_type.abbrev}
-                                </TableCell>
+                                  stationCodeInSelected={stationCodeInSelected}
+                                  toggleSelectedStation={toggleSelectedStation}
+                                />
                                 {daily?.observation_valid === false ? (
                                   <TableCell className={classNameForRow}>
                                     <ThemeProvider theme={errorIconTheme}>

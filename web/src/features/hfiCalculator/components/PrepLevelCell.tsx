@@ -95,10 +95,7 @@ const PrepLevelCell = (props: PrepLevelCellProps) => {
   }
 
   return (
-    <TableCell
-      className={formatPrepLevelByValue()}
-      data-testid={`weekly-prep-level-${props.areaName}`}
-    >
+    <TableCell className={formatPrepLevelByValue()} data-testid={props.testid}>
       {prepLevel}
     </TableCell>
   )

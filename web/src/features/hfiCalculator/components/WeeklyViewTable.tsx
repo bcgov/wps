@@ -1,13 +1,6 @@
 import React, { useState } from 'react'
 
-import {
-  Checkbox,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  Typography
-} from '@material-ui/core'
+import { TableBody, TableCell, TableHead, TableRow, Typography } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 import { FireCentre } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
@@ -17,6 +10,7 @@ import DayHeaders from 'features/hfiCalculator/components/DayHeaders'
 import CellHeaders from 'features/hfiCalculator/components/CellHeaders'
 import CalculatedPlanningAreaCells from 'features/hfiCalculator/components/CalculatedPlanningAreaCells'
 import { StaticCells } from 'features/hfiCalculator/components/StaticCells'
+import BaseStationAttributeCells from 'features/hfiCalculator/components/BaseStationAttributeCells'
 
 export interface Props {
   title: string
@@ -153,30 +147,12 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                                 className={classNameForRow}
                                 key={`station-${stationCode}`}
                               >
-                                <Checkbox
-                                  checked={stationCodeInSelected(station.code)}
-                                  onClick={() => toggleSelectedStation(station.code)}
-                                  data-testid={`select-station-${station.code}`}
-                                  color="primary"
-                                ></Checkbox>
-                                <TableCell
-                                  key={`station-${station.code}-name`}
+                                <BaseStationAttributeCells
+                                  station={station}
                                   className={classNameForRow}
-                                >
-                                  {station.station_props.name} ({station.code})
-                                </TableCell>
-                                <TableCell
-                                  key={`station-${station.code}-elevation`}
-                                  className={classNameForRow}
-                                >
-                                  {station.station_props.elevation}
-                                </TableCell>
-                                <TableCell
-                                  key={`station-${station.code}-fuel-type`}
-                                  className={classNameForRow}
-                                >
-                                  {station.station_props.fuel_type.abbrev}
-                                </TableCell>
+                                  stationCodeInSelected={stationCodeInSelected}
+                                  toggleSelectedStation={toggleSelectedStation}
+                                />
 
                                 <StaticCells
                                   dailies={dailies}
