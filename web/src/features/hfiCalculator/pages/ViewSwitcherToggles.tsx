@@ -1,5 +1,5 @@
 import { makeStyles } from '@material-ui/core'
-import { Button } from 'components'
+import { ToggleButtonGroup, ToggleButton } from '@material-ui/lab'
 import React from 'react'
 
 export interface ViewSwitcherTogglesProps {
@@ -8,44 +8,37 @@ export interface ViewSwitcherTogglesProps {
   toggleTableView: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-const useStyles = makeStyles(theme => ({
-  buttonUnselected: {
-    height: '56px',
-    width: '210px',
-    margin: '8px',
-    border: '3px solid ' + theme.palette.primary.main
-  },
-  buttonSelected: {
-    height: '56px',
-    width: '210px',
-    margin: '8px',
-    border: '3px solid ' + theme.palette.primary.main,
-    backgroundColor: theme.palette.primary.main,
-    color: '#FFFFFF'
+const useStyles = makeStyles(() => ({
+  toggleGroup: {
+    paddingLeft: 25
   }
 }))
 
 const ViewSwitcherToggles = (props: ViewSwitcherTogglesProps) => {
   const classes = useStyles()
 
-  const toggleView = () => {
-    props.toggleTableView(!props.isWeeklyView)
+  const handleToggle = (
+    _: React.MouseEvent<HTMLElement, MouseEvent>,
+    changeToWeekly: boolean
+  ) => {
+    props.toggleTableView(changeToWeekly)
   }
-
   return (
     <React.Fragment>
-      <Button
-        className={props.isWeeklyView ? classes.buttonUnselected : classes.buttonSelected}
-        onClick={toggleView}
+      <ToggleButtonGroup
+        exclusive
+        onChange={handleToggle}
+        aria-label="view toggles"
+        value={props.isWeeklyView}
+        className={classes.toggleGroup}
       >
-        Daily Table
-      </Button>
-      <Button
-        className={props.isWeeklyView ? classes.buttonSelected : classes.buttonUnselected}
-        onClick={toggleView}
-      >
-        Weekly Table
-      </Button>
+        <ToggleButton value={false} aria-label="daily">
+          Daily Table
+        </ToggleButton>
+        <ToggleButton value={true} aria-label="weekly toggle">
+          Weekly Table
+        </ToggleButton>
+      </ToggleButtonGroup>
     </React.Fragment>
   )
 }
