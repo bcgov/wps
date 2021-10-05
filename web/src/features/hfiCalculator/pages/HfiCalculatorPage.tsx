@@ -2,9 +2,7 @@ import React, { useState, useEffect } from 'react'
 
 import { Button, Container, GeneralHeader, PageTitle } from 'components'
 
-import DailyViewTable from 'features/hfiCalculator/components/DailyViewTable'
 import DatePicker from 'components/DatePicker'
-import WeeklyViewTable from 'features/hfiCalculator/components/WeeklyViewTable'
 import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
 import { fetchHFIDailies } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { useDispatch, useSelector } from 'react-redux'
@@ -17,6 +15,7 @@ import {
 import { CircularProgress, FormControl, makeStyles } from '@material-ui/core'
 import { buildDailyMap, buildWeekliesByCode, buildWeekliesByUTC } from '../util'
 import { getPrepDailyDateRange, getPrepWeeklyDateRange } from 'utils/date'
+import ViewSwitcher from 'features/hfiCalculator/pages/ViewSwitcher'
 
 const useStyles = makeStyles(theme => ({
   container: {
@@ -125,24 +124,14 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           >
             Weekly Table
           </Button>
-          {isWeeklyView ? (
-            <WeeklyViewTable
-              title="HFI Calculator Weekly View"
-              testId="hfi-calc-weekly-table"
-              fireCentres={fireCentres}
-              dailiesMap={dailiesMap}
-              weekliesByStationCode={weekliesMap}
-              weekliesByUTC={weekliesByUTC}
-              currentDay={dateOfInterest}
-            />
-          ) : (
-            <DailyViewTable
-              title="HFI Calculator Daily View"
-              testId="hfi-calc-daily-table"
-              fireCentres={fireCentres}
-              dailiesMap={dailiesMap}
-            ></DailyViewTable>
-          )}
+          <ViewSwitcher
+            isWeeklyView={isWeeklyView}
+            fireCentres={fireCentres}
+            dailiesMap={dailiesMap}
+            weekliesMap={weekliesMap}
+            weekliesByUTC={weekliesByUTC}
+            dateOfInterest={dateOfInterest}
+          />
         </Container>
       )}
     </main>
