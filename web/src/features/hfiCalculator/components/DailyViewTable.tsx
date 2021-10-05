@@ -1,7 +1,6 @@
 import React, { ReactFragment, useState } from 'react'
 
 import {
-  Checkbox,
   TableBody,
   TableCell,
   TableHead,
@@ -25,6 +24,7 @@ import IntensityGroupCell from 'features/hfiCalculator/components/IntensityGroup
 import FireTable from 'components/FireTable'
 import FireContainer from 'components/FireDisplayContainer'
 import PrepLevelCell from 'features/hfiCalculator/components/PrepLevelCell'
+import BaseStationAttributeCells from 'features/hfiCalculator/components/BaseStationAttributeCells'
 
 export interface Props {
   title?: string
@@ -280,30 +280,12 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                                 className={classNameForRow}
                                 key={`station-${stationCode}`}
                               >
-                                <Checkbox
-                                  checked={stationCodeInSelected(station.code)}
-                                  onClick={() => toggleSelectedStation(station.code)}
-                                  data-testid={`select-station-${station.code}`}
-                                  color="primary"
-                                ></Checkbox>
-                                <TableCell
-                                  key={`station-${station.code}-name`}
+                                <BaseStationAttributeCells
+                                  station={station}
                                   className={classNameForRow}
-                                >
-                                  {station.station_props.name} ({station.code})
-                                </TableCell>
-                                <TableCell
-                                  key={`station-${station.code}-elevation`}
-                                  className={classNameForRow}
-                                >
-                                  {station.station_props.elevation}
-                                </TableCell>
-                                <TableCell
-                                  key={`station-${station.code}-fuel-type`}
-                                  className={classNameForRow}
-                                >
-                                  {station.station_props.fuel_type.abbrev}
-                                </TableCell>
+                                  stationCodeInSelected={stationCodeInSelected}
+                                  toggleSelectedStation={toggleSelectedStation}
+                                />
                                 {daily?.observation_valid === false ? (
                                   <TableCell className={classNameForRow}>
                                     <ThemeProvider theme={errorIconTheme}>
