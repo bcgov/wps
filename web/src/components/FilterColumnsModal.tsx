@@ -6,9 +6,9 @@ import {
   DialogContent,
   IconButton,
   Paper,
-  Typography
+  Typography,
+  makeStyles
 } from '@material-ui/core'
-import { makeStyles } from '@material-ui/core'
 import { Clear } from '@material-ui/icons'
 import SelectionCell from 'features/fbaCalculator/components/SelectionCell'
 
@@ -58,7 +58,7 @@ export const FilterColumnsModal = (props: ModalProps) => {
     props.setModalOpen(false)
   }
 
-  const handleSaveAndClose = () => {
+  const handleApplyAndClose = () => {
     const selectedColumnLabels = translateSelectedFromNumbersToStrings()
     props.parentCallback(selectedColumnLabels)
     props.setModalOpen(false)
@@ -96,7 +96,7 @@ export const FilterColumnsModal = (props: ModalProps) => {
           })}
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleSaveAndClose} color="primary" variant="contained">
+          <Button onClick={handleApplyAndClose} color="primary" variant="contained">
             Apply
           </Button>
           <Button onClick={handleClose} color="primary">
