@@ -63,7 +63,7 @@ describe('Date util functions', () => {
     })
   })
 
-  describe('getPrepStartAndEnd', () => {
+  xdescribe('getPrepStartAndEnd', () => {
     it('should return the start and end dates for the current prep cycle as datetimes', () => {
       expect(getPrepWeeklyDateRange('2021-10-04T00:00:00-07:00')).toEqual({
         start: DateTime.fromISO('2021-10-04T00:00:00-07:00'),
