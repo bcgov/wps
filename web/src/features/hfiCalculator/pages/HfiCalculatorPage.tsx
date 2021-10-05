@@ -57,12 +57,15 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const [previouslySelectedDateOfInterest, setPreviouslySelectedDateOfInterest] =
     useState(DateTime.now().toISODate())
 
+  const getDateRange = () => {
+    return tableView === 'daily'
+      ? getPrepDailyDateRange(dateOfInterest)
+      : getPrepWeeklyDateRange(dateOfInterest)
+  }
+
   const updateDate = () => {
     if (previouslySelectedDateOfInterest !== dateOfInterest) {
-      const { start, end } =
-        tableView === 'daily'
-          ? getPrepDailyDateRange(dateOfInterest)
-          : getPrepWeeklyDateRange(dateOfInterest)
+      const { start, end } = getDateRange()
 
       dispatch(fetchHFIDailies(start.toUTC().valueOf(), end.toUTC().valueOf()))
       dispatch(fetchHFIStations())
@@ -84,10 +87,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   }
 
   useEffect(() => {
-    const { start, end } =
-      tableView === 'daily'
-        ? getPrepDailyDateRange(dateOfInterest)
-        : getPrepWeeklyDateRange(dateOfInterest)
+    const { start, end } = getDateRange()
     dispatch(fetchHFIDailies(start.toUTC().valueOf(), end.toUTC().valueOf()))
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
