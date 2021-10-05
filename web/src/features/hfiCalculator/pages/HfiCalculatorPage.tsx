@@ -15,8 +15,8 @@ import {
 import { CircularProgress, FormControl, makeStyles } from '@material-ui/core'
 import { buildDailyMap, buildWeekliesByCode, buildWeekliesByUTC } from '../util'
 import { getDateRange } from 'utils/date'
-import ViewSwitcher from 'features/hfiCalculator/pages/ViewSwitcher'
-import ViewSwitcherToggles from 'features/hfiCalculator/pages/ViewSwitcherToggles'
+import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
+import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'
 
 const useStyles = makeStyles(theme => ({
   container: {
