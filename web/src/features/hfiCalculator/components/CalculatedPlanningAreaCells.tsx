@@ -23,7 +23,9 @@ export interface CalculatedCellsProps {
 }
 
 const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
-  const orderedDayTimestamps = Array.from(props.weekliesByUTC.keys()).sort()
+  const orderedDayTimestamps = Array.from(props.weekliesByUTC.keys()).sort(
+    (a, b) => a - b
+  )
 
   const cells = range(NUM_WEEK_DAYS).map(i => {
     const stationsWithDaily = getDailiesByWeekDay(
