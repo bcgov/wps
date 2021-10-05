@@ -14,7 +14,7 @@ import {
 } from 'app/rootReducer'
 import { CircularProgress, FormControl, makeStyles } from '@material-ui/core'
 import { buildDailyMap, buildWeekliesByCode, buildWeekliesByUTC } from '../util'
-import { getPrepDailyDateRange, getPrepWeeklyDateRange } from 'utils/date'
+import { getDateRange } from 'utils/date'
 import ViewSwitcher from 'features/hfiCalculator/pages/ViewSwitcher'
 
 const useStyles = makeStyles(theme => ({
@@ -49,22 +49,16 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const { dailies, loading } = useSelector(selectHFIDailies)
   const { fireCentres } = useSelector(selectHFIStations)
   const stationDataLoading = useSelector(selectHFIStationsLoading)
-  const [isWeeklyView, setTableView] = useState(true)
+  const [isWeeklyView, toggleTableView] = useState(true)
 
   // the DatePicker component requires dateOfInterest to be in string format
   const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().toISODate())
   const [previouslySelectedDateOfInterest, setPreviouslySelectedDateOfInterest] =
     useState(DateTime.now().toISODate())
 
-  const getDateRange = () => {
-    return isWeeklyView
-      ? getPrepWeeklyDateRange(dateOfInterest)
-      : getPrepDailyDateRange(dateOfInterest)
-  }
-
   const updateDate = () => {
     if (previouslySelectedDateOfInterest !== dateOfInterest) {
-      const { start, end } = getDateRange()
+      const { start, end } = getDateRange(isWeeklyView, dateOfInterest)
       dispatch(fetchHFIStations())
       dispatch(fetchHFIDailies(start.toUTC().valueOf(), end.toUTC().valueOf()))
 
@@ -73,11 +67,11 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   }
 
   const toggleView = () => {
-    setTableView(!isWeeklyView)
+    toggleTableView(!isWeeklyView)
   }
 
   useEffect(() => {
-    const { start, end } = getDateRange()
+    const { start, end } = getDateRange(isWeeklyView, dateOfInterest)
     dispatch(fetchHFIStations())
     dispatch(fetchHFIDailies(start.toUTC().valueOf(), end.toUTC().valueOf()))
 

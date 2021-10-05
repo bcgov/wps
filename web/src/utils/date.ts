@@ -86,3 +86,12 @@ export const getPrepDailyDateRange = (
 
   return { start, end }
 }
+
+export const getDateRange = (
+  isWeeklyView: boolean,
+  dateOfInterest: string
+): { start: DateTime; end: DateTime } => {
+  return isWeeklyView
+    ? getPrepWeeklyDateRange(dateOfInterest)
+    : getPrepDailyDateRange(dateOfInterest)
+}

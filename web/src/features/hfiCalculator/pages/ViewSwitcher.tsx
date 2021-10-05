@@ -4,7 +4,7 @@ import DailyViewTable from 'features/hfiCalculator/components/DailyViewTable'
 import WeeklyViewTable from 'features/hfiCalculator/components/WeeklyViewTable'
 import React from 'react'
 
-export interface ViewSwitcher {
+export interface ViewSwitcherProps {
   testId?: string
   isWeeklyView: boolean
   fireCentres: Record<string, FireCentre>
@@ -14,7 +14,7 @@ export interface ViewSwitcher {
   dateOfInterest: string
 }
 
-const ViewSwitcher = (props: ViewSwitcher) => {
+const ViewSwitcher = (props: ViewSwitcherProps) => {
   return (
     <React.Fragment>
       {props.isWeeklyView ? (
