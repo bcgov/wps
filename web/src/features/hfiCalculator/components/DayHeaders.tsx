@@ -23,7 +23,7 @@ const DayHeaders = (props: DayHeadersProps) => {
   return (
     <React.Fragment>
       {range(NUM_WEEK_DAYS).map(i => (
-        <TableCell colSpan={6} className={classes.dayHeader} key={i}>
+        <TableCell data-testid={i} colSpan={6} className={classes.dayHeader} key={i}>
           {start
             .plus({ days: i })
             .toLocaleString({ weekday: 'short', month: 'short', day: '2-digit' })}

@@ -4,25 +4,39 @@ import React from 'react'
 import DayHeaders from 'features/hfiCalculator/components/DayHeaders'
 describe('DayHeaders', () => {
   it('should return table row with the headers for Monday - Friday given the ISO Date', () => {
-    const { getByTestId, getByText } = render(
+    const prepCycle = [
+      'Mon., Oct. 04',
+      'Tue., Oct. 05',
+      'Wed., Oct.06',
+      'Thu., Oct. 07',
+      'Fri., Oct. 08'
+    ]
+    const { getByTestId } = render(
       <TableContainer>
         <Table>
           <TableBody>
             <TableRow>
-              <DayHeaders testId={'monday-test'} isoDate={'2021-10-05'}></DayHeaders>
+              <DayHeaders isoDate={'2021-10-05'}></DayHeaders>
             </TableRow>
           </TableBody>
         </Table>
       </TableContainer>
     )
-    expect(getByText('Monday')).toBeDefined
-    expect(getByText('Tuesday')).toBeDefined
-    expect(getByText('Wednesday')).toBeDefined
-    expect(getByText('Thursday')).toBeDefined
-    expect(getByText('Friday')).toBeDefined
+    for (let i = 0; i < 5; i++) {
+      const cell = getByTestId(i)
+      expect(cell.className).toMatch(/makeStyles-dayHeader-/)
+      expect(cell.innerHTML.match(prepCycle[i]))
+    }
   })
   it('should return table row with the headers for Thursday - Monday given the ISO Date', () => {
-    const { getByTestId, getByText } = render(
+    const prepCycle = [
+      'Thu.,  Oct. 07',
+      'Fri., Oct. 08',
+      'Sat., Oct. 09',
+      'Sun., Oct. 10',
+      'Mon., Oct. 11'
+    ]
+    const { getByTestId } = render(
       <TableContainer>
         <Table>
           <TableBody>
@@ -33,10 +47,10 @@ describe('DayHeaders', () => {
         </Table>
       </TableContainer>
     )
-    expect(getByText('Monday')).toBeDefined
-    expect(getByText('Saturday')).toBeDefined
-    expect(getByText('Sunday')).toBeDefined
-    expect(getByText('Thursday')).toBeDefined
-    expect(getByText('Friday')).toBeDefined
+    for (let i = 0; i < 5; i++) {
+      const cell = getByTestId(i)
+      expect(cell.className).toMatch(/makeStyles-dayHeader-/)
+      expect(cell.innerHTML.match(prepCycle[i]))
+    }
   })
 })
