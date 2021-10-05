@@ -15,7 +15,10 @@ import { FireCentre } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
 import { isGrassFuelType, isValidGrassCure } from 'features/hfiCalculator/validation'
-import { calculateMeanIntensityGroup } from 'features/hfiCalculator/components/meanIntensity'
+import {
+  calculateMeanIntensityGroup,
+  getDailiesByDay
+} from 'features/hfiCalculator/components/meanIntensity'
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
 import { isUndefined } from 'lodash'
 import CalculatedCell from 'features/hfiCalculator/components/CalculatedCell'
@@ -299,9 +302,14 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                 {Object.entries(centre.planning_areas)
                   .sort((a, b) => (a[1].name < b[1].name ? -1 : 1))
                   .map(([areaName, area]) => {
-                    const meanIntensityGroup = calculateMeanIntensityGroup(
+                    const stationsWithDaily = getDailiesByDay(
                       area,
                       props.dailiesMap,
+                      selected
+                    )
+
+                    const meanIntensityGroup = calculateMeanIntensityGroup(
+                      stationsWithDaily,
                       selected
                     )
                     const prepLevel = calculatePrepLevel(meanIntensityGroup)
@@ -317,7 +325,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                           </TableCell>
                           <MeanIntensityGroupRollup
                             area={area}
-                            dailiesMap={props.dailiesMap}
+                            stationsWithDaily={stationsWithDaily}
                             selectedStations={selected}
                           ></MeanIntensityGroupRollup>
                           <TableCell

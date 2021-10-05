@@ -5,15 +5,15 @@ import React from 'react'
 import { isUndefined } from 'lodash'
 import { PlanningArea } from 'api/hfiCalcAPI'
 import { isValidGrassCure } from 'features/hfiCalculator/validation'
-import { StationDaily } from 'api/hfiCalculatorAPI'
 import {
   calculateMeanIntensityGroup,
-  intensityGroupColours
+  intensityGroupColours,
+  StationWithDaily
 } from 'features/hfiCalculator/components/meanIntensity'
 
 export interface MeanIntensityGroupRollupProps {
   area: PlanningArea
-  dailiesMap: Map<number, StationDaily>
+  stationsWithDaily: StationWithDaily[]
   selectedStations: number[]
 }
 
@@ -83,29 +83,21 @@ const genericErrorToolTipElement = (
 const MeanIntensityGroupRollup = (props: MeanIntensityGroupRollupProps) => {
   const classes = useStyles()
 
-  const stationsWithDaily = Object.entries(props.area.stations)
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    .map(([_, station]) => ({
-      station,
-      daily: props.dailiesMap.get(station.code)
-    }))
-    .filter(record => props.selectedStations.includes(record.station.code))
-  const noDailyData = stationsWithDaily.every(stationDaily =>
+  const noDailyData = props.stationsWithDaily.every(stationDaily =>
     isUndefined(stationDaily.daily)
   )
-  const grassCureError = stationsWithDaily.reduce((prev, stationDaily) => {
+  const grassCureError = props.stationsWithDaily.reduce((prev, stationDaily) => {
     return (
       prev || !isValidGrassCure(stationDaily.daily, stationDaily.station.station_props)
     )
   }, false)
 
-  const genericError = stationsWithDaily.reduce((prev, stationDaily) => {
+  const genericError = props.stationsWithDaily.reduce((prev, stationDaily) => {
     return prev || stationDaily.daily?.observation_valid === false
   }, false)
 
   const meanIntensityGroup = calculateMeanIntensityGroup(
-    props.area,
-    props.dailiesMap,
+    props.stationsWithDaily,
     props.selectedStations
   )
   const formatAreaMeanIntensityGroupByValue = () => {

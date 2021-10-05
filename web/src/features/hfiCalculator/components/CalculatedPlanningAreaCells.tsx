@@ -2,10 +2,13 @@ import { TableCell } from '@material-ui/core'
 import { PlanningArea } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import FireStartsCell from 'features/hfiCalculator/components/FireStartsCell'
+import {
+  calculateMeanIntensityGroup,
+  getDailiesByWeekDay
+} from 'features/hfiCalculator/components/meanIntensity'
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
 import PrepLevelCell from 'features/hfiCalculator/components/PrepLevelCell'
 import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
-import { calculateMultipleMeanIntensityGroups } from 'features/hfiCalculator/multipleMeanIntensity'
 import { range } from 'lodash'
 import React from 'react'
 
@@ -20,24 +23,35 @@ export interface CalculatedCellsProps {
 }
 
 const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
-  const meanIntensityGroup = calculateMultipleMeanIntensityGroups(
-    props.area,
-    props.weekliesByStationCode,
-    props.selected
-  )
+  const orderedDayTimestamps = Array.from(props.weekliesByUTC.keys()).sort()
 
-  const cells = range(NUM_WEEK_DAYS).map(i => (
-    <React.Fragment key={`calc-cells-${i}`}>
-      <TableCell colSpan={3}></TableCell>
-      <MeanIntensityGroupRollup
-        area={props.area}
-        dailiesMap={props.dailiesMap}
-        selectedStations={props.selected}
-      ></MeanIntensityGroupRollup>
-      <FireStartsCell areaName={props.areaName} />
-      <PrepLevelCell meanIntensityGroup={meanIntensityGroup} areaName={props.areaName} />
-    </React.Fragment>
-  ))
+  const cells = range(NUM_WEEK_DAYS).map(i => {
+    const stationsWithDaily = getDailiesByWeekDay(
+      props.area,
+      orderedDayTimestamps[i],
+      props.weekliesByUTC,
+      props.selected
+    )
+    const meanIntensityGroup = calculateMeanIntensityGroup(
+      stationsWithDaily,
+      props.selected
+    )
+    return (
+      <React.Fragment key={`calc-cells-${i}`}>
+        <TableCell colSpan={3}></TableCell>
+        <MeanIntensityGroupRollup
+          area={props.area}
+          stationsWithDaily={stationsWithDaily}
+          selectedStations={props.selected}
+        ></MeanIntensityGroupRollup>
+        <FireStartsCell areaName={props.areaName} />
+        <PrepLevelCell
+          meanIntensityGroup={meanIntensityGroup}
+          areaName={props.areaName}
+        />
+      </React.Fragment>
+    )
+  })
 
   return <React.Fragment>{cells}</React.Fragment>
 }
