@@ -25,8 +25,7 @@ const DayHeaders = (props: DayHeadersProps) => {
         <TableCell colSpan={6} className={classes.dayHeader} key={i}>
           {start
             .plus({ days: i })
-            .toJSDate()
-            .toLocaleDateString('en-CA', { weekday: 'long' })}
+            .toLocaleString({ weekday: 'short', month: 'short', day: '2-digit' })}
         </TableCell>
       ))}
     </React.Fragment>
