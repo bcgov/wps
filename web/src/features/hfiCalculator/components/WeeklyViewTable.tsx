@@ -11,7 +11,8 @@ import CellHeaders from 'features/hfiCalculator/components/CellHeaders'
 import CalculatedPlanningAreaCells from 'features/hfiCalculator/components/CalculatedPlanningAreaCells'
 import { StaticCells } from 'features/hfiCalculator/components/StaticCells'
 import BaseStationAttributeCells from 'features/hfiCalculator/components/BaseStationAttributeCells'
-import WeeklyGrassCureCell from 'features/hfiCalculator/components/WeeklyGrassCureCell'
+import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
+import { isGrassFuelType } from 'features/hfiCalculator/validation'
 
 export interface Props {
   fireCentres: Record<string, FireCentre>
@@ -152,10 +153,15 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                                   stationCodeInSelected={stationCodeInSelected}
                                   toggleSelectedStation={toggleSelectedStation}
                                 />
-                                <WeeklyGrassCureCell
-                                  daily={dailies ? dailies[0] : undefined}
-                                  station={station}
-                                  isRowSelected={isRowSelected}
+                                <GrassCureCell
+                                  value={
+                                    dailies ? dailies[0].grass_cure_percentage : undefined
+                                  }
+                                  isGrassFuelType={isGrassFuelType(station.station_props)}
+                                  className={
+                                    isRowSelected ? undefined : classes.unselectedStation
+                                  }
+                                  selected={isRowSelected}
                                 />
 
                                 <StaticCells
