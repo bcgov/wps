@@ -2,8 +2,9 @@ FROM centos/postgresql-12-centos7
 
 USER root
 
-RUN yum -y --enablerepo=extras install epel-release &&\
-    yum -y --enablerepo=epel install s3cmd
+ADD "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" /tmp/awscliv2.zip
+RUN unzip /tmp/awscliv2.zip -d /tmp/ &&\
+    /tmp/aws/install
 
 USER 26
 
