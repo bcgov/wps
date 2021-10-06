@@ -50,7 +50,7 @@ describe('DayHeaders', () => {
       .setZone('UTC-7')
       .set({ day: 8, month: 10, year: 2021 })
       .startOf('day')
-      .toISO()
+      .toUTC()
     const prepCycle = []
 
     for (let i = 0; i < 5; i++) {
