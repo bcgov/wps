@@ -4,7 +4,7 @@ import React from 'react'
 import DayHeaders from 'features/hfiCalculator/components/DayHeaders'
 import { DateTime } from 'luxon'
 
-const prepCycleIteration = (prepCycle: string[], isoDate: string) => {
+const prepCycleIteration = (prepCycle: string[], isoDate: DateTime) => {
   const { getByTestId } = render(
     <TableContainer>
       <Table>
@@ -28,14 +28,20 @@ describe('DayHeaders', () => {
     const isoDate = DateTime.now()
       .setZone('UTC-7')
       .set({ day: 5, month: 10, year: 2021 })
-      .toISO()
-    const prepCycle = [
-      'Mon., Oct. 04',
-      'Tue., Oct. 05',
-      'Wed., Oct. 06',
-      'Thu., Oct. 07',
-      'Fri., Oct. 08'
-    ]
+      .startOf('day')
+      .toUTC()
+    const prepCycle = []
+
+    for (let i = 0; i < 5; i++) {
+      prepCycle.push(
+        DateTime.now()
+          .setZone('UTC-7')
+          .set({ day: 4, month: 10, year: 2021 })
+          .startOf('day')
+          .plus({ days: i })
+          .toLocaleString({ weekday: 'short', month: 'short', day: '2-digit' })
+      )
+    }
 
     prepCycleIteration(prepCycle, isoDate)
   })
@@ -43,14 +49,20 @@ describe('DayHeaders', () => {
     const isoDate = DateTime.now()
       .setZone('UTC-7')
       .set({ day: 8, month: 10, year: 2021 })
+      .startOf('day')
       .toISO()
-    const prepCycle = [
-      'Thu., Oct. 07',
-      'Fri., Oct. 08',
-      'Sat., Oct. 09',
-      'Sun., Oct. 10',
-      'Mon., Oct. 11'
-    ]
+    const prepCycle = []
+
+    for (let i = 0; i < 5; i++) {
+      prepCycle.push(
+        DateTime.now()
+          .setZone('UTC-7')
+          .set({ day: 7, month: 10, year: 2021 })
+          .startOf('day')
+          .plus({ days: i })
+          .toLocaleString({ weekday: 'short', month: 'short', day: '2-digit' })
+      )
+    }
     prepCycleIteration(prepCycle, isoDate)
   })
 })
