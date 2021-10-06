@@ -64,6 +64,3 @@ def get_julian_date(time_of_interest: datetime):
     return time_of_interest.timetuple().tm_yday
 
 
-def datetime_from_timestamp(timestamp: int):
-    """Returns a datetime from a timestamp int"""
-    return datetime.fromtimestamp(timestamp/1000)

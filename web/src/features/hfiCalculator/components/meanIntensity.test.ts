@@ -1,11 +1,9 @@
 import {
   calculateMeanIntensityGroup,
   getDailiesByDay,
-  getDailiesByWeekDay,
   StationWithDaily
 } from 'features/hfiCalculator/components/meanIntensity'
 import { WeatherStationProperties, WeatherStation, PlanningArea } from 'api/hfiCalcAPI'
-import React from 'react'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import { DateTime } from 'luxon'
 
