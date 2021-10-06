@@ -19,7 +19,6 @@ const ViewSwitcher = (props: ViewSwitcherProps) => {
     <React.Fragment>
       {props.isWeeklyView ? (
         <WeeklyViewTable
-          title="HFI Calculator Weekly View"
           testId="hfi-calc-weekly-table"
           fireCentres={props.fireCentres}
           dailiesMap={props.dailiesMap}
@@ -29,7 +28,6 @@ const ViewSwitcher = (props: ViewSwitcherProps) => {
         />
       ) : (
         <DailyViewTable
-          title="HFI Calculator Daily View"
           testId="hfi-calc-daily-table"
           fireCentres={props.fireCentres}
           dailiesMap={props.dailiesMap}

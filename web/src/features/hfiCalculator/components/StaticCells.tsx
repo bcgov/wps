@@ -2,7 +2,7 @@ import { WeatherStation } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import CalculatedCell from 'features/hfiCalculator/components/CalculatedCell'
 import IntensityGroupCell from 'features/hfiCalculator/components/IntensityGroupCell'
-import WeeklyGrassCureCell from 'features/hfiCalculator/components/WeeklyGrassCureCell'
+import WeeklyROSCell from 'features/hfiCalculator/components/WeeklyROSCell'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
 import React, { ReactElement } from 'react'
 
@@ -21,19 +21,7 @@ export const StaticCells = ({
 }: StaticCellsProps): ReactElement => {
   const staticCells = dailies?.map(daily => (
     <React.Fragment key={`${station.code}-${daily.date}`}>
-      <WeeklyGrassCureCell
-        testId={`${daily.code}-grass-cure`}
-        daily={daily}
-        station={station}
-        isRowSelected={isRowSelected}
-      />
-
-      <CalculatedCell
-        testid={`${daily.code}-ros`}
-        value={daily.rate_of_spread?.toFixed(DECIMAL_PLACES)}
-        error={false}
-        className={classNameForRow}
-      />
+      <WeeklyROSCell daily={daily} station={station} isRowSelected={isRowSelected} />
       <CalculatedCell
         testid={`${daily.code}-hfi`}
         value={daily.hfi?.toFixed(DECIMAL_PLACES)}

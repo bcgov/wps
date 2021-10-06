@@ -41,7 +41,7 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
     )
     return (
       <React.Fragment key={`calc-cells-${i}`}>
-        <TableCell colSpan={3} className={props.planningAreaClass}></TableCell>
+        <TableCell colSpan={2} className={props.planningAreaClass}></TableCell>
         <MeanIntensityGroupRollup
           area={props.area}
           stationsWithDaily={stationsWithDaily}

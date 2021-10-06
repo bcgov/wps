@@ -5,7 +5,7 @@ import { range } from 'lodash'
 import React from 'react'
 
 const useStyles = makeStyles({
-  grassCureBorder: {
+  rosBorder: {
     borderLeft: '1px solid #C4C4C4'
   }
 })
@@ -15,14 +15,7 @@ const CellHeaders = () => {
     <React.Fragment>
       {range(NUM_WEEK_DAYS).map(i => (
         <React.Fragment key={i}>
-          <TableCell className={classes.grassCureBorder}>
-            Grass
-            <br />
-            Cure
-            <br />
-            (%)
-          </TableCell>
-          <TableCell>
+          <TableCell className={classes.rosBorder}>
             ROS
             <br />
             (m/min)

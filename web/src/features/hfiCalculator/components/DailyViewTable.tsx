@@ -20,7 +20,6 @@ import PrepLevelCell from 'features/hfiCalculator/components/PrepLevelCell'
 import BaseStationAttributeCells from 'features/hfiCalculator/components/BaseStationAttributeCells'
 
 export interface Props {
-  title?: string
   fireCentres: Record<string, FireCentre>
   dailiesMap: Map<number, StationDaily>
   testId?: string

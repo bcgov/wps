@@ -7,8 +7,7 @@ import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
 import React from 'react'
 
 export interface WeeklyGrassCureCellProps {
-  testId?: string
-  daily: StationDaily
+  daily?: StationDaily
   station: WeatherStation
   isRowSelected: boolean
 }
@@ -18,8 +17,7 @@ const useStyles = makeStyles({
     borderLeft: '1px solid #C4C4C4'
   },
   unselectedStation: {
-    color: 'rgba(0,0,0,0.54)',
-    borderLeft: '1px solid #C4C4C4'
+    color: 'rgba(0,0,0,0.54)'
   }
 })
 const WeeklyGrassCureCell = ({
@@ -30,10 +28,10 @@ const WeeklyGrassCureCell = ({
   const classes = useStyles()
   return (
     <CalculatedCell
-      testid={`${daily.code}-grass-cure`}
+      testid={`${station.code}-grass-cure`}
       value={daily?.grass_cure_percentage?.toFixed(DECIMAL_PLACES)}
       error={isGrassFuelType(station.station_props.fuel_type.abbrev)}
-      className={isRowSelected ? classes.grassCureBorder : classes.unselectedStation}
+      className={isRowSelected ? undefined : classes.unselectedStation}
     />
   )
 }

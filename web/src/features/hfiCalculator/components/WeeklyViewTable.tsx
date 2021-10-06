@@ -11,9 +11,9 @@ import CellHeaders from 'features/hfiCalculator/components/CellHeaders'
 import CalculatedPlanningAreaCells from 'features/hfiCalculator/components/CalculatedPlanningAreaCells'
 import { StaticCells } from 'features/hfiCalculator/components/StaticCells'
 import BaseStationAttributeCells from 'features/hfiCalculator/components/BaseStationAttributeCells'
+import WeeklyGrassCureCell from 'features/hfiCalculator/components/WeeklyGrassCureCell'
 
 export interface Props {
-  title: string
   fireCentres: Record<string, FireCentre>
   dailiesMap: Map<number, StationDaily>
   weekliesByStationCode: Map<number, StationDaily[]>
@@ -91,6 +91,13 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
               <br />
               Type
             </TableCell>
+            <TableCell>
+              Grass
+              <br />
+              Cure
+              <br />
+              (%)
+            </TableCell>
             <CellHeaders />
           </TableRow>
         </TableHead>
@@ -99,7 +106,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
             return (
               <React.Fragment key={`fire-centre-${centreName}`}>
                 <TableRow key={`fire-centre-${centreName}`}>
-                  <TableCell className={classes.fireCentre} colSpan={34}>
+                  <TableCell className={classes.fireCentre} colSpan={30}>
                     {centre.name}
                   </TableCell>
                 </TableRow>
@@ -113,7 +120,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                           key={`zone-${areaName}`}
                           data-testid={`zone-${areaName}`}
                         >
-                          <TableCell className={classes.planningArea} colSpan={4}>
+                          <TableCell className={classes.planningArea} colSpan={5}>
                             {area.name}
                           </TableCell>
                           <CalculatedPlanningAreaCells
@@ -145,6 +152,11 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                                   className={classNameForRow}
                                   stationCodeInSelected={stationCodeInSelected}
                                   toggleSelectedStation={toggleSelectedStation}
+                                />
+                                <WeeklyGrassCureCell
+                                  daily={dailies ? dailies[0] : undefined}
+                                  station={station}
+                                  isRowSelected={isRowSelected}
                                 />
 
                                 <StaticCells
