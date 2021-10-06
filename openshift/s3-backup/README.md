@@ -20,7 +20,7 @@ oc -n e1e498-tools -p VERSION=some-date -p GIT_BRANCH=my-branch process -f build
 
 ### Re-tag for production
 
-Assuming you'be build an image tagged for dev, you may now want to tag it for production. Remember to retain
+Assuming you've built an image tagged for dev, you may now want to tag it for production. Remember to retain
 the current prod image in case you want to revert!
 
 You may also want to delete any old tags that are no longer relevant.
