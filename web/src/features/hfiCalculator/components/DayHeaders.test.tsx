@@ -29,7 +29,7 @@ describe('DayHeaders', () => {
     prepCycle.forEach((value, i) => {
       const cell = getByTestId(i)
       expect(cell.className).toMatch(/makeStyles-dayHeader-/)
-      expect(cell.innerHTML.match(prepCycle[i]))
+      expect(cell.innerHTML).toEqual(prepCycle[i])
     })
   })
   it('should return table row with the headers for Thursday - Monday given the ISO Date', () => {
@@ -57,7 +57,7 @@ describe('DayHeaders', () => {
     prepCycle.forEach((value, i) => {
       const cell = getByTestId(i)
       expect(cell.className).toMatch(/makeStyles-dayHeader-/)
-      expect(cell.innerHTML.match(prepCycle[i]))
+      expect(cell.innerHTML).toEqual(prepCycle[i])
     })
   })
 })
