@@ -18,12 +18,14 @@ const BaseStationAttributeCells = ({
 }: BaseStationAttributeCellsProps) => {
   return (
     <React.Fragment>
-      <Checkbox
-        checked={stationCodeInSelected(station.code)}
-        onClick={() => toggleSelectedStation(station.code)}
-        data-testid={`select-station-${station.code}`}
-        color="primary"
-      ></Checkbox>
+      <TableCell>
+        <Checkbox
+          checked={stationCodeInSelected(station.code)}
+          onClick={() => toggleSelectedStation(station.code)}
+          data-testid={`select-station-${station.code}`}
+          color="primary"
+        ></Checkbox>
+      </TableCell>
       <TableCell key={`station-${station.code}-name`} className={className}>
         {station.station_props.name} ({station.code})
       </TableCell>

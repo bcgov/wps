@@ -1,5 +1,6 @@
 import { TableCell } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
+import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
 import { range } from 'lodash'
 import React from 'react'
 
@@ -12,7 +13,7 @@ const CellHeaders = () => {
   const classes = useStyles()
   return (
     <React.Fragment>
-      {range(5).map(i => (
+      {range(NUM_WEEK_DAYS).map(i => (
         <React.Fragment key={i}>
           <TableCell className={classes.grassCureBorder}>
             Grass
