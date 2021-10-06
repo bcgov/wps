@@ -52,22 +52,22 @@ export const formatDateInUTC00Suffix = (dtISO: string): string => {
 export const getPrepWeeklyDateRange = (
   dateOfInterest: string
 ): { start: DateTime; end: DateTime } => {
-  const day = DateTime.fromISO(dateOfInterest).weekdayLong
+  const day = DateTime.fromISO(dateOfInterest).weekday
   let dayOffset = 0
   switch (day) {
-    case 'Tuesday':
+    case 2: // Tuesday
       dayOffset = 1
       break
-    case 'Wednesday':
+    case 3: // Wednesday
       dayOffset = 2
       break
-    case 'Friday':
+    case 5: // Friday
       dayOffset = 1
       break
-    case 'Saturday':
+    case 6: // Saturday
       dayOffset = 2
       break
-    case 'Sunday':
+    case 7: // Sunday
       dayOffset = 3
   }
   const start = DateTime.fromISO(dateOfInterest).minus({ days: dayOffset }).startOf('day')

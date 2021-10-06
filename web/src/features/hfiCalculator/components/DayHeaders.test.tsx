@@ -25,7 +25,8 @@ const prepCycleIteration = (prepCycle: string[], isoDate: string) => {
 
 describe('DayHeaders', () => {
   it('should return table row with the headers for Monday - Friday given the ISO Date', () => {
-    const isoDate = DateTime.fromObject({ zone: 'UTC-7' })
+    const isoDate = DateTime.now()
+      .setZone('UTC-7')
       .set({ day: 5, month: 10, year: 2021 })
       .toISO()
     const prepCycle = [
@@ -39,7 +40,8 @@ describe('DayHeaders', () => {
     prepCycleIteration(prepCycle, isoDate)
   })
   it('should return table row with the headers for Thursday - Monday given the ISO Date', () => {
-    const isoDate = DateTime.fromObject({ zone: 'UTC-7' })
+    const isoDate = DateTime.now()
+      .setZone('UTC-7')
       .set({ day: 8, month: 10, year: 2021 })
       .toISO()
     const prepCycle = [
