@@ -41,9 +41,11 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const [isWeeklyView, toggleTableView] = useState(false)
 
   // the DatePicker component requires dateOfInterest to be in string format
-  const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().toISODate())
+  const [dateOfInterest, setDateOfInterest] = useState(
+    DateTime.fromObject({ zone: 'UTC-7' }).toISO()
+  )
   const [previouslySelectedDateOfInterest, setPreviouslySelectedDateOfInterest] =
-    useState(DateTime.now().toISODate())
+    useState(DateTime.fromObject({ zone: 'UTC-7' }).toISO())
 
   const updateDate = () => {
     if (previouslySelectedDateOfInterest !== dateOfInterest) {

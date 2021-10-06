@@ -23,7 +23,7 @@ const useStyles = makeStyles({
   }
 })
 const DayHeaders = (props: DayHeadersProps) => {
-  const { start } = getPrepWeeklyDateRange(props.isoDate + 'T00:00:00-07:00')
+  const { start } = getPrepWeeklyDateRange(props.isoDate)
 
   const classes = useStyles()
   return (
