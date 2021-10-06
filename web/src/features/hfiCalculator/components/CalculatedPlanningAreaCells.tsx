@@ -17,7 +17,6 @@ export interface CalculatedCellsProps {
   area: PlanningArea
   areaName: string
   selected: number[]
-  weekliesByStationCode: Map<number, StationDaily[]>
   weekliesByUTC: Map<number, StationDaily[]>
   dailiesMap: Map<number, StationDaily>
   planningAreaClass: string

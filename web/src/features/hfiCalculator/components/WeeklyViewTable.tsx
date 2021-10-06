@@ -127,7 +127,6 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                             area={area}
                             areaName={areaName}
                             selected={selected}
-                            weekliesByStationCode={props.weekliesByStationCode}
                             weekliesByUTC={props.weekliesByUTC}
                             dailiesMap={props.dailiesMap}
                             planningAreaClass={classes.planningArea}
