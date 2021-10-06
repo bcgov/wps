@@ -4,7 +4,7 @@ import {
   getDailiesByWeekDay,
   StationWithDaily
 } from 'features/hfiCalculator/components/meanIntensity'
-import { WeatherStationProperties, WeatherStation } from 'api/hfiCalcAPI'
+import { WeatherStationProperties, WeatherStation, PlanningArea } from 'api/hfiCalcAPI'
 import React from 'react'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import { DateTime } from 'luxon'
@@ -44,7 +44,7 @@ const buildStationDaily = (code: number, intensity_group: number): StationDaily 
     intensity_group: intensity_group,
     sixty_minute_fire_size: 1,
     fire_type: 'fire',
-    date: DateTime.now()
+    date: DateTime.fromISO('2021-10-05T17:00:00.000-07:00')
   }
 }
 
@@ -69,5 +69,27 @@ describe('calculateMeanIntensityGroup', () => {
       buildStationWithDaily(buildStation(2), buildStationDaily(2, 4))
     ]
     expect(calculateMeanIntensityGroup(stationWithDailies, [0])).toEqual(undefined)
+  })
+})
+
+describe('getDailiesByDay', () => {
+  it('should return a map of dailies on the given day sorted by station code', () => {
+    const stations: Record<number, WeatherStation> = {
+      1: buildStation(1),
+      2: buildStation(2),
+      3: buildStation(3)
+    }
+    const area: PlanningArea = { id: 1, name: 'afton', stations: stations }
+    const dailiesMap: Map<number, StationDaily> = new Map()
+    dailiesMap.set(2, buildStationDaily(2, 2))
+    dailiesMap.set(1, buildStationDaily(1, 1))
+    dailiesMap.set(3, buildStationDaily(3, 3))
+
+    const expectedResponse = [
+      buildStationWithDaily(buildStation(1), buildStationDaily(1, 1)),
+      buildStationWithDaily(buildStation(2), buildStationDaily(2, 2)),
+      buildStationWithDaily(buildStation(3), buildStationDaily(3, 3))
+    ]
+    expect(getDailiesByDay(area, dailiesMap, [1, 2, 3])).toEqual(expectedResponse)
   })
 })
