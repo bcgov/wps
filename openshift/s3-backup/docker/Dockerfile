@@ -1,8 +1,10 @@
 FROM centos/postgresql-12-centos7
 
-USER root
-
+# Download the installer
 ADD "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" /tmp/awscliv2.zip
+
+# Switch to root user for package installs
+USER root
 RUN unzip /tmp/awscliv2.zip -d /tmp/ &&\
     /tmp/aws/install
 
@@ -11,7 +13,8 @@ RUN unzip /tmp/awscliv2.zip -d /tmp/ &&\
 # RUN yum -y --enablerepo=extras install epel-release &&\
 # yum -y --enablerepo=epel install s3cmd
 
-USER 26
+# Switch back to default user
+USER 1001
 
 COPY backup_to_s3.sh .
 
