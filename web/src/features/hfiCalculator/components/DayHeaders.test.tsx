@@ -11,7 +11,7 @@ describe('DayHeaders', () => {
     const prepCycle = [
       'Mon., Oct. 04',
       'Tue., Oct. 05',
-      'Wed., Oct.06',
+      'Wed., Oct. 06',
       'Thu., Oct. 07',
       'Fri., Oct. 08'
     ]
