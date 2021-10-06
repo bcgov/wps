@@ -3,23 +3,30 @@ import { render } from '@testing-library/react'
 import React from 'react'
 import DayHeaders from 'features/hfiCalculator/components/DayHeaders'
 import { DateTime } from 'luxon'
+import { range } from 'lodash'
+import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
 
-const prepCycleIteration = (prepCycle: string[], isoDate: DateTime) => {
+const prepCycleIteration = (prepDay: DateTime, isoDate: DateTime) => {
   const { getByTestId } = render(
     <TableContainer>
       <Table>
         <TableBody>
           <TableRow>
-            <DayHeaders isoDate={isoDate}></DayHeaders>
+            <DayHeaders isoDate={isoDate.toISO()}></DayHeaders>
           </TableRow>
         </TableBody>
       </Table>
     </TableContainer>
   )
-  prepCycle.forEach((value, i) => {
-    const cell = getByTestId(i)
+
+  range(NUM_WEEK_DAYS).forEach(i => {
+    const cell = getByTestId(`day-${i}`)
     expect(cell.className).toMatch(/makeStyles-dayHeader-/)
-    expect(cell.innerHTML).toEqual(prepCycle[i])
+    expect(cell.innerHTML).toEqual(
+      prepDay
+        .plus({ days: i })
+        .toLocaleString({ weekday: 'short', month: 'short', day: '2-digit' })
+    )
   })
 }
 
@@ -30,20 +37,13 @@ describe('DayHeaders', () => {
       .set({ day: 5, month: 10, year: 2021 })
       .startOf('day')
       .toUTC()
-    const prepCycle = []
 
-    for (let i = 0; i < 5; i++) {
-      prepCycle.push(
-        DateTime.now()
-          .setZone('UTC-7')
-          .set({ day: 4, month: 10, year: 2021 })
-          .startOf('day')
-          .plus({ days: i })
-          .toLocaleString({ weekday: 'short', month: 'short', day: '2-digit' })
-      )
-    }
+    const prepDay = DateTime.now()
+      .setZone('UTC-7')
+      .set({ day: 4, month: 10, year: 2021 })
+      .startOf('day')
 
-    prepCycleIteration(prepCycle, isoDate)
+    prepCycleIteration(prepDay, isoDate)
   })
   it('should return table row with the headers for Thursday - Monday given the ISO Date', () => {
     const isoDate = DateTime.now()
@@ -51,18 +51,12 @@ describe('DayHeaders', () => {
       .set({ day: 8, month: 10, year: 2021 })
       .startOf('day')
       .toUTC()
-    const prepCycle = []
 
-    for (let i = 0; i < 5; i++) {
-      prepCycle.push(
-        DateTime.now()
-          .setZone('UTC-7')
-          .set({ day: 7, month: 10, year: 2021 })
-          .startOf('day')
-          .plus({ days: i })
-          .toLocaleString({ weekday: 'short', month: 'short', day: '2-digit' })
-      )
-    }
-    prepCycleIteration(prepCycle, isoDate)
+    const prepDay = DateTime.now()
+      .setZone('UTC-7')
+      .set({ day: 7, month: 10, year: 2021 })
+      .startOf('day')
+
+    prepCycleIteration(prepDay, isoDate)
   })
 })
