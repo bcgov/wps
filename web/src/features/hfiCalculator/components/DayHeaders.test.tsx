@@ -3,6 +3,26 @@ import { render } from '@testing-library/react'
 import React from 'react'
 import DayHeaders from 'features/hfiCalculator/components/DayHeaders'
 import { DateTime } from 'luxon'
+
+const prepCycleIteration = (prepCycle: string[], isoDate: string) => {
+  const { getByTestId } = render(
+    <TableContainer>
+      <Table>
+        <TableBody>
+          <TableRow>
+            <DayHeaders isoDate={isoDate}></DayHeaders>
+          </TableRow>
+        </TableBody>
+      </Table>
+    </TableContainer>
+  )
+  prepCycle.forEach((value, i) => {
+    const cell = getByTestId(i)
+    expect(cell.className).toMatch(/makeStyles-dayHeader-/)
+    expect(cell.innerHTML).toEqual(prepCycle[i])
+  })
+}
+
 describe('DayHeaders', () => {
   it('should return table row with the headers for Monday - Friday given the ISO Date', () => {
     const isoDate = DateTime.fromObject({ zone: 'UTC-7' })
@@ -15,22 +35,8 @@ describe('DayHeaders', () => {
       'Thu., Oct. 07',
       'Fri., Oct. 08'
     ]
-    const { getByTestId } = render(
-      <TableContainer>
-        <Table>
-          <TableBody>
-            <TableRow>
-              <DayHeaders isoDate={isoDate}></DayHeaders>
-            </TableRow>
-          </TableBody>
-        </Table>
-      </TableContainer>
-    )
-    prepCycle.forEach((value, i) => {
-      const cell = getByTestId(i)
-      expect(cell.className).toMatch(/makeStyles-dayHeader-/)
-      expect(cell.innerHTML).toEqual(prepCycle[i])
-    })
+
+    prepCycleIteration(prepCycle, isoDate)
   })
   it('should return table row with the headers for Thursday - Monday given the ISO Date', () => {
     const isoDate = DateTime.fromObject({ zone: 'UTC-7' })
@@ -43,21 +49,6 @@ describe('DayHeaders', () => {
       'Sun., Oct. 10',
       'Mon., Oct. 11'
     ]
-    const { getByTestId } = render(
-      <TableContainer>
-        <Table>
-          <TableBody>
-            <TableRow>
-              <DayHeaders isoDate={isoDate}></DayHeaders>
-            </TableRow>
-          </TableBody>
-        </Table>
-      </TableContainer>
-    )
-    prepCycle.forEach((value, i) => {
-      const cell = getByTestId(i)
-      expect(cell.className).toMatch(/makeStyles-dayHeader-/)
-      expect(cell.innerHTML).toEqual(prepCycle[i])
-    })
+    prepCycleIteration(prepCycle, isoDate)
   })
 })
