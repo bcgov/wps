@@ -1,13 +1,6 @@
 import React, { ReactFragment, useState } from 'react'
 
-import {
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  Tooltip,
-  Typography
-} from '@material-ui/core'
+import { TableBody, TableCell, TableHead, TableRow, Tooltip } from '@material-ui/core'
 import { createTheme, makeStyles, ThemeProvider } from '@material-ui/core/styles'
 import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline'
 import { FireCentre } from 'api/hfiCalcAPI'
@@ -104,11 +97,6 @@ export const DailyViewTable = (props: Props): JSX.Element => {
 
   return (
     <FireContainer testId={props.testId}>
-      <div className={classes.controls}>
-        <Typography component="div" variant="subtitle2">
-          {props.title}
-        </Typography>
-      </div>
       <FireTable
         maxHeight={700}
         ariaLabel="daily table view of HFI by planning area"

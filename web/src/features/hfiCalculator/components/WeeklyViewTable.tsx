@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 
-import { TableBody, TableCell, TableHead, TableRow, Typography } from '@material-ui/core'
+import { TableBody, TableCell, TableHead, TableRow } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 import { FireCentre } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
@@ -29,8 +29,7 @@ const useStyles = makeStyles({
     backgroundColor: '#dbd9d9'
   },
   planningArea: {
-    backgroundColor: 'rgba(40, 53, 147, 0.05)',
-    width: '100%'
+    backgroundColor: 'rgba(40, 53, 147, 0.05)'
   },
   unselectedStation: {
     color: 'rgba(0,0,0,0.54)'
@@ -66,11 +65,6 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
 
   return (
     <FireContainer testId={props.testId}>
-      <div className={classes.controls}>
-        <Typography component="div" variant="subtitle2">
-          {props.title}
-        </Typography>
-      </div>
       <FireTable
         maxHeight={700}
         ariaLabel="weekly table view of HFI by planning area"
@@ -78,8 +72,6 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
       >
         <TableHead>
           <TableRow>
-            {/* Non-day specific headers */}
-            <TableCell colSpan={4}></TableCell>
             <DayHeaders isoDate={props.currentDay} />
           </TableRow>
           <TableRow>
@@ -131,6 +123,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                             weekliesByStationCode={props.weekliesByStationCode}
                             weekliesByUTC={props.weekliesByUTC}
                             dailiesMap={props.dailiesMap}
+                            planningAreaClass={classes.planningArea}
                           />
                         </TableRow>
                         {Object.entries(area.stations)

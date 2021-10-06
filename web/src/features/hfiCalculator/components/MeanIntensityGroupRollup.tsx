@@ -47,6 +47,9 @@ const useStyles = makeStyles({
   alignErrorIcon: {
     marginTop: '6px',
     textAlign: 'center'
+  },
+  default: {
+    background: 'rgba(40, 53, 147, 0.05)'
   }
 })
 
@@ -102,7 +105,7 @@ const MeanIntensityGroupRollup = (props: MeanIntensityGroupRollupProps) => {
   )
   const formatAreaMeanIntensityGroupByValue = () => {
     if (meanIntensityGroup === undefined) {
-      return undefined
+      return classes.default
     }
     if (meanIntensityGroup < 2) {
       return classes.intensityGroupSolid1

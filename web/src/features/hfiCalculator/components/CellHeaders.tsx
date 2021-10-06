@@ -5,7 +5,7 @@ import React from 'react'
 
 const useStyles = makeStyles({
   grassCureBorder: {
-    borderLeft: '2px solid grey'
+    borderLeft: '1px solid #C4C4C4'
   }
 })
 const CellHeaders = () => {

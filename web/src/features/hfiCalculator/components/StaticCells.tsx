@@ -1,8 +1,8 @@
 import { WeatherStation } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
-import { isGrassFuelType } from 'features/fbaCalculator/utils'
 import CalculatedCell from 'features/hfiCalculator/components/CalculatedCell'
 import IntensityGroupCell from 'features/hfiCalculator/components/IntensityGroupCell'
+import WeeklyGrassCureCell from 'features/hfiCalculator/components/WeeklyGrassCureCell'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
 import React, { ReactElement } from 'react'
 
@@ -21,11 +21,11 @@ export const StaticCells = ({
 }: StaticCellsProps): ReactElement => {
   const staticCells = dailies?.map(daily => (
     <React.Fragment key={`${station.code}-${daily.date}`}>
-      <CalculatedCell
-        testid={`${daily.code}-grass-cure`}
-        value={daily?.grass_cure_percentage?.toFixed(DECIMAL_PLACES)}
-        error={isGrassFuelType(station.station_props.fuel_type.abbrev)}
-        className={classNameForRow}
+      <WeeklyGrassCureCell
+        testId={`${daily.code}-grass-cure`}
+        daily={daily}
+        station={station}
+        isRowSelected={isRowSelected}
       />
 
       <CalculatedCell

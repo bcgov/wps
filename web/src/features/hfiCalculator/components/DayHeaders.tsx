@@ -12,8 +12,14 @@ export interface DayHeadersProps {
 
 const useStyles = makeStyles({
   dayHeader: {
-    borderLeft: '2px solid grey',
+    position: 'sticky',
+    zIndex: 2,
+    borderLeft: '1px solid #C4C4C4',
+    borderBottom: 'none',
     textAlign: 'center'
+  },
+  spaceHeader: {
+    border: 'none'
   }
 })
 const DayHeaders = (props: DayHeadersProps) => {
@@ -22,6 +28,8 @@ const DayHeaders = (props: DayHeadersProps) => {
   const classes = useStyles()
   return (
     <React.Fragment>
+      {/* Non-day specific headers */}
+      <TableCell colSpan={4} className={classes.spaceHeader}></TableCell>
       {range(NUM_WEEK_DAYS).map(i => (
         <TableCell data-testid={i} colSpan={6} className={classes.dayHeader} key={i}>
           {start

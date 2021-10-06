@@ -49,6 +49,9 @@ const useStyles = makeStyles({
     fontWeight: 'bold',
     textAlign: 'center',
     color: 'white'
+  },
+  default: {
+    backgroundColor: 'rgba(40, 53, 147, 0.05)'
   }
 })
 
@@ -90,7 +93,7 @@ const PrepLevelCell = (props: PrepLevelCellProps) => {
       case 6:
         return classes.prepLevel6
       default:
-        return
+        return classes.default
     }
   }
 

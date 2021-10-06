@@ -9,7 +9,8 @@ export interface FireStartsCellProps {
 const useStyles = makeStyles({
   fireStarts: {
     fontWeight: 'bold',
-    textAlign: 'center'
+    textAlign: 'center',
+    backgroundColor: 'rgba(40, 53, 147, 0.05)'
   }
 })
 

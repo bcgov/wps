@@ -20,6 +20,7 @@ export interface CalculatedCellsProps {
   weekliesByStationCode: Map<number, StationDaily[]>
   weekliesByUTC: Map<number, StationDaily[]>
   dailiesMap: Map<number, StationDaily>
+  planningAreaClass: string
 }
 
 const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
@@ -40,7 +41,7 @@ const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
     )
     return (
       <React.Fragment key={`calc-cells-${i}`}>
-        <TableCell colSpan={3}></TableCell>
+        <TableCell colSpan={3} className={props.planningAreaClass}></TableCell>
         <MeanIntensityGroupRollup
           area={props.area}
           stationsWithDaily={stationsWithDaily}
