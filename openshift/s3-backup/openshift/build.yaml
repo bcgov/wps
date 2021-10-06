@@ -15,11 +15,10 @@ parameters:
   - name: VERSION
     description: Output version
     required: true
-    value: "new"
+    value: "latest"
   - name: GIT_URL
     value: https://github.com/bcgov/wps.git
   - name: GIT_BRANCH
-    # value: story/s3-backup/780
     value: main
 objects:
   #ImageStream is create if it doesn't already exist
