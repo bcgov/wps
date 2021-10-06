@@ -21,7 +21,7 @@ parameters:
     displayName: "Source Image Name"
     description: "The name of the image to use for this resource."
     required: true
-    value: "s3backup"
+    value: "s3-backup"
   - name: "IMAGE_NAMESPACE"
     displayName: "Image Namespace"
     description: "The namespace of the OpenShift project containing the imagestream for the application."
