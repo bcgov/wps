@@ -24,10 +24,10 @@ const useStyles = makeStyles(theme => ({
     justifyContent: 'center'
   },
   formControl: {
-    display: 'flex',
-    flexDirection: 'row',
     margin: theme.spacing(1),
-    minWidth: 210
+    minWidth: 210,
+    display: 'flex',
+    flexDirection: 'row'
   }
 }))
 
