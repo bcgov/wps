@@ -42,10 +42,10 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   // the DatePicker component requires dateOfInterest to be in string format
   const [dateOfInterest, setDateOfInterest] = useState(
-    DateTime.fromObject({ zone: 'UTC-7' }).toISO()
+    DateTime.now().setZone('UTC-7').toISO()
   )
   const [previouslySelectedDateOfInterest, setPreviouslySelectedDateOfInterest] =
-    useState(DateTime.fromObject({ zone: 'UTC-7' }).toISO())
+    useState(DateTime.now().setZone('UTC-7').toISO())
 
   const updateDate = () => {
     if (previouslySelectedDateOfInterest !== dateOfInterest) {
