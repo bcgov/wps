@@ -70,9 +70,6 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isWeeklyView])
 
-  const dailiesMap = buildDailyMap(dailies)
-  const weekliesMap = buildWeekliesByCode(dailies)
-
   return (
     <main data-testid="hfi-calculator-page">
       <GeneralHeader
@@ -103,8 +100,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           <ViewSwitcher
             isWeeklyView={isWeeklyView}
             fireCentres={fireCentres}
-            dailiesMap={dailiesMap}
-            weekliesMap={weekliesMap}
+            dailiesMap={buildDailyMap(dailies)}
+            weekliesMap={buildWeekliesByCode(dailies)}
             dateOfInterest={dateOfInterest}
           />
         </Container>
