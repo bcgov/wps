@@ -1,9 +1,10 @@
+import { TableCell } from '@material-ui/core'
 import { WeatherStation } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
-import CalculatedCell from 'features/hfiCalculator/components/CalculatedCell'
 import IntensityGroupCell from 'features/hfiCalculator/components/IntensityGroupCell'
 import WeeklyROSCell from 'features/hfiCalculator/components/WeeklyROSCell'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
+import { isValidGrassCure } from 'features/hfiCalculator/validation'
 import React, { ReactElement } from 'react'
 
 export interface StaticCellsProps {
@@ -22,32 +23,25 @@ export const StaticCells = ({
   const staticCells = dailies?.map(daily => (
     <React.Fragment key={`${station.code}-${daily.date}`}>
       <WeeklyROSCell daily={daily} station={station} isRowSelected={isRowSelected} />
-      <CalculatedCell
-        testid={`${daily.code}-hfi`}
-        value={daily.hfi?.toFixed(DECIMAL_PLACES)}
-        error={false}
-        className={classNameForRow}
-      />
+      <TableCell data-testid={`${daily.code}-hfi`} className={classNameForRow}>
+        {daily.hfi?.toFixed(DECIMAL_PLACES)}
+      </TableCell>
       <IntensityGroupCell
         testid={`${daily.code}-intensity-group`}
         value={daily.intensity_group}
-        error={false}
+        error={!isValidGrassCure(daily, station.station_props)}
         selected={isRowSelected}
       ></IntensityGroupCell>
       {/* Fire Starts */}
-      <CalculatedCell
-        testid={`${daily.code}-fire-starts`}
-        error={false}
+      <TableCell
+        data-testid={`${daily.code}-fire-starts`}
         className={classNameForRow}
-        value={undefined}
-      />
+      ></TableCell>
       {/* Prep Level */}
-      <CalculatedCell
-        testid={`${daily.code}-prep-level`}
-        error={false}
+      <TableCell
+        data-testid={`${daily.code}-prep-level`}
         className={classNameForRow}
-        value={undefined}
-      />
+      ></TableCell>
     </React.Fragment>
   ))
   return <React.Fragment>{staticCells}</React.Fragment>
