@@ -50,6 +50,14 @@ parameters:
       specified by DATABASE_DEPLOYMENT_NAME.
     required: true
     value: app-db-password
+  - name: "PG_PORT"
+    displayName: "Postgres port"
+    required: true
+    value: "5432"
+  - name: "PG_DATABASE"
+    displayName: "Database name"
+    required: true
+    value: "wps"
   - name: "BACKUP_STRATEGY"
     displayName: "Backup Strategy"
     description: "The strategy to use for backups; for example daily, or rolling."
@@ -89,6 +97,11 @@ parameters:
   - name: GLOBAL_NAME
     description: Name of global Module
     value: wps
+  - name: CLUSTER_NAME
+    description: |
+      The name of the patroni cluster to connect to.
+    displayName: Server Name
+    required: true
 objects:
   - kind: "CronJob"
     apiVersion: "batch/v1beta1"
@@ -125,17 +138,11 @@ objects:
                   # image: backup
                   env:
                     - name: PG_HOSTNAME
-                      valueFrom:
-                        configMapKeyRef:
-                          name: "${JOB_NAME}-config"
-                          key: DATABASE_SERVICE_NAME
+                      value: ${CLUSTER_NAME}-leader
                     - name: PG_PORT
-                      valueFrom:
-                        configMapKeyRef:
-                          name: "${JOB_NAME}-config"
-                          key: DEFAULT_PORT
-                          optional: true
+                      value: ${PG_PORT}
                     - name: PG_DATABASE
+                      value: ${PG_DATABASE}
                       valueFrom:
                         configMapKeyRef:
                           name: "${JOB_NAME}-config"
