@@ -1,4 +1,5 @@
 import { makeStyles, TableCell } from '@material-ui/core'
+import { fireTableStyles } from 'app/theme'
 import { isUndefined } from 'lodash'
 import React from 'react'
 
@@ -18,6 +19,7 @@ const prepLevelColours: { [description: string]: string } = {
 }
 
 const useStyles = makeStyles({
+  ...fireTableStyles,
   prepLevel1: {
     background: prepLevelColours.green,
     fontWeight: 'bold',
@@ -49,9 +51,6 @@ const useStyles = makeStyles({
     fontWeight: 'bold',
     textAlign: 'center',
     color: 'white'
-  },
-  default: {
-    backgroundColor: 'rgba(40, 53, 147, 0.05)'
   }
 })
 
@@ -93,7 +92,7 @@ const PrepLevelCell = (props: PrepLevelCellProps) => {
       case 6:
         return classes.prepLevel6
       default:
-        return classes.default
+        return classes.defaultBackground
     }
   }
 

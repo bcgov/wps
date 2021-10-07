@@ -36,11 +36,11 @@ export const theme = createTheme({
   }
 })
 
+const BACKGROUND_COLOR = { backgroundColor: 'rgba(40, 53, 147, 0.05)' }
 export const fireTableStyles = createStyles({
+  defaultBackground: BACKGROUND_COLOR,
   unselectedStation: { color: 'rgba(0,0,0,0.54)' },
-  planningArea: {
-    backgroundColor: 'rgba(40, 53, 147, 0.05)'
-  },
+  planningArea: BACKGROUND_COLOR,
   controls: {
     display: 'flex',
     flexDirection: 'row',
