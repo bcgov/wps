@@ -47,20 +47,17 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const [previouslySelectedDateOfInterest, setPreviouslySelectedDateOfInterest] =
     useState(DateTime.now().setZone('UTC-7').toISO())
 
-  const updateDate = () => {
-    if (previouslySelectedDateOfInterest !== dateOfInterest) {
-      const { start, end } = getDateRange(isWeeklyView, dateOfInterest)
-      dispatch(fetchHFIStations())
-      dispatch(fetchHFIDailies(start.toUTC().valueOf(), end.toUTC().valueOf()))
-
-      setPreviouslySelectedDateOfInterest(dateOfInterest)
-    }
-  }
-
   const refreshView = () => {
     const { start, end } = getDateRange(isWeeklyView, dateOfInterest)
     dispatch(fetchHFIStations())
     dispatch(fetchHFIDailies(start.toUTC().valueOf(), end.toUTC().valueOf()))
+  }
+
+  const updateDate = () => {
+    if (previouslySelectedDateOfInterest !== dateOfInterest) {
+      refreshView()
+      setPreviouslySelectedDateOfInterest(dateOfInterest)
+    }
   }
 
   useEffect(() => {
