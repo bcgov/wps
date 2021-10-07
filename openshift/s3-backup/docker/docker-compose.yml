@@ -1,0 +1,7 @@
+
+services:
+  backup:
+    build:
+      context: .
+    env_file:
+      - .env.docker

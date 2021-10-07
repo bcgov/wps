@@ -8,6 +8,9 @@ USER root
 RUN unzip /tmp/awscliv2.zip -d /tmp/ &&\
     /tmp/aws/install
 
+
+RUN pip install somes3library
+
 # we're trying out the official aws s3 tool right now, but should there be any issues, we could
 # try s3cmd:
 # RUN yum -y --enablerepo=extras install epel-release &&\
@@ -18,4 +21,4 @@ USER 26
 
 COPY backup_to_s3.sh .
 
-CMD sh backup_to_s3.sh
+# CMD sh backup_to_s3.sh
