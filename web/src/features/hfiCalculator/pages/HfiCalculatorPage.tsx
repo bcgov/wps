@@ -61,9 +61,15 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     const { start, end } = getDateRange(isWeeklyView, dateOfInterest)
     dispatch(fetchHFIStations())
     dispatch(fetchHFIDailies(start.toUTC().valueOf(), end.toUTC().valueOf()))
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  useEffect(() => {
+    const { start, end } = getDateRange(isWeeklyView, dateOfInterest)
+    dispatch(fetchHFIStations())
+    dispatch(fetchHFIDailies(start.toUTC().valueOf(), end.toUTC().valueOf()))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isWeeklyView])
 
   const dailiesMap = buildDailyMap(dailies)
 
