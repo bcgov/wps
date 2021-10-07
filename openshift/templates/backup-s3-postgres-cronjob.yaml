@@ -143,10 +143,6 @@ objects:
                       value: ${PG_PORT}
                     - name: PG_DATABASE
                       value: ${PG_DATABASE}
-                      valueFrom:
-                        configMapKeyRef:
-                          name: "${JOB_NAME}-config"
-                          key: POSTGRESQL_DATABASE
                     - name: PG_USER
                       value: ${DATABASE_USER}
                     - name: PG_PASSWORD
