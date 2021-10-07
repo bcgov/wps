@@ -30,10 +30,9 @@ const ViewSwitcherToggles = (props: ViewSwitcherTogglesProps) => {
     _: React.MouseEvent<HTMLElement, MouseEvent>,
     changeToWeekly: boolean
   ) => {
-    if (isNull(changeToWeekly)) {
-      return
+    if (!isNull(changeToWeekly)) {
+      props.toggleTableView(changeToWeekly)
     }
-    props.toggleTableView(changeToWeekly)
   }
   return (
     <React.Fragment>
