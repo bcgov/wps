@@ -14,7 +14,7 @@ RUN unzip /tmp/awscliv2.zip -d /tmp/ &&\
 # yum -y --enablerepo=epel install s3cmd
 
 # Switch back to default user
-USER 1001
+USER 26
 
 COPY backup_to_s3.sh .
 
