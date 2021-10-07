@@ -17,9 +17,8 @@ import { fireTableStyles } from 'app/theme'
 
 export interface Props {
   fireCentres: Record<string, FireCentre>
-  dailiesMap: Map<number, StationDaily>
+  stationCodes: number[]
   weekliesByStationCode: Map<number, StationDaily[]>
-  weekliesByUTC: Map<number, StationDaily[]>
   currentDay: string
   testId?: string
 }
@@ -31,9 +30,7 @@ const useStyles = makeStyles({
 export const WeeklyViewTable = (props: Props): JSX.Element => {
   const classes = useStyles()
 
-  const stationCodesList: number[] = Array.from(props.dailiesMap.keys())
-
-  const [selected, setSelected] = useState<number[]>(stationCodesList)
+  const [selected, setSelected] = useState<number[]>(props.stationCodes)
 
   const stationCodeInSelected = (code: number) => {
     return selected.includes(code)
@@ -114,8 +111,6 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                             area={area}
                             areaName={areaName}
                             selected={selected}
-                            weekliesByUTC={props.weekliesByUTC}
-                            dailiesMap={props.dailiesMap}
                             planningAreaClass={classes.planningArea}
                           />
                         </TableRow>

@@ -1,6 +1,6 @@
 import { TableCell } from '@material-ui/core'
 import { PlanningArea } from 'api/hfiCalcAPI'
-import { StationDaily } from 'api/hfiCalculatorAPI'
+import { selectHFIDailies } from 'app/rootReducer'
 import FireStartsCell from 'features/hfiCalculator/components/FireStartsCell'
 import {
   calculateMeanIntensityGroup,
@@ -9,29 +9,30 @@ import {
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
 import PrepLevelCell from 'features/hfiCalculator/components/PrepLevelCell'
 import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
+import { buildWeekliesByUTC } from 'features/hfiCalculator/util'
 import { range } from 'lodash'
 import React from 'react'
+import { useSelector } from 'react-redux'
 
 export interface CalculatedCellsProps {
   testId?: string
   area: PlanningArea
   areaName: string
   selected: number[]
-  weekliesByUTC: Map<number, StationDaily[]>
-  dailiesMap: Map<number, StationDaily>
   planningAreaClass: string
 }
 
 const CalculatedPlanningAreaCells = (props: CalculatedCellsProps) => {
-  const orderedDayTimestamps = Array.from(props.weekliesByUTC.keys()).sort(
-    (a, b) => a - b
-  )
+  const { dailies } = useSelector(selectHFIDailies)
+
+  const weekliesByUTC = buildWeekliesByUTC(dailies)
+  const orderedDayTimestamps = Array.from(weekliesByUTC.keys()).sort((a, b) => a - b)
 
   const cells = range(NUM_WEEK_DAYS).map(i => {
     const stationsWithDaily = getDailiesByWeekDay(
       props.area,
       orderedDayTimestamps[i],
-      props.weekliesByUTC,
+      weekliesByUTC,
       props.selected
     )
     const meanIntensityGroup = calculateMeanIntensityGroup(

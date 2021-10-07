@@ -10,7 +10,6 @@ export interface ViewSwitcherProps {
   fireCentres: Record<string, FireCentre>
   dailiesMap: Map<number, StationDaily>
   weekliesMap: Map<number, StationDaily[]>
-  weekliesByUTC: Map<number, StationDaily[]>
   dateOfInterest: string
 }
 
@@ -21,9 +20,8 @@ const ViewSwitcher = (props: ViewSwitcherProps) => {
         <WeeklyViewTable
           testId="hfi-calc-weekly-table"
           fireCentres={props.fireCentres}
-          dailiesMap={props.dailiesMap}
+          stationCodes={Array.from(props.dailiesMap.values()).map(daily => daily.code)}
           weekliesByStationCode={props.weekliesMap}
-          weekliesByUTC={props.weekliesByUTC}
           currentDay={props.dateOfInterest}
         />
       ) : (
