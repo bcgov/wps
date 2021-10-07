@@ -1,6 +1,7 @@
 import { makeStyles } from '@material-ui/core'
 import { ToggleButtonGroup, ToggleButton } from '@material-ui/lab'
 import { theme } from 'app/theme'
+import { isNull } from 'lodash'
 import React from 'react'
 
 export interface ViewSwitcherTogglesProps {
@@ -29,6 +30,9 @@ const ViewSwitcherToggles = (props: ViewSwitcherTogglesProps) => {
     _: React.MouseEvent<HTMLElement, MouseEvent>,
     changeToWeekly: boolean
   ) => {
+    if (isNull(changeToWeekly)) {
+      return
+    }
     props.toggleTableView(changeToWeekly)
   }
   return (

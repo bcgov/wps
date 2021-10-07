@@ -13,6 +13,7 @@ import { StaticCells } from 'features/hfiCalculator/components/StaticCells'
 import BaseStationAttributeCells from 'features/hfiCalculator/components/BaseStationAttributeCells'
 import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
 import { isGrassFuelType } from 'features/hfiCalculator/validation'
+import { fireTableStyles } from 'app/theme'
 
 export interface Props {
   fireCentres: Record<string, FireCentre>
@@ -24,22 +25,7 @@ export interface Props {
 }
 
 const useStyles = makeStyles({
-  fireCentre: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    backgroundColor: '#dbd9d9'
-  },
-  planningArea: {
-    backgroundColor: 'rgba(40, 53, 147, 0.05)'
-  },
-  unselectedStation: {
-    color: 'rgba(0,0,0,0.54)'
-  },
-  controls: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'baseline'
-  }
+  ...fireTableStyles
 })
 
 export const WeeklyViewTable = (props: Props): JSX.Element => {

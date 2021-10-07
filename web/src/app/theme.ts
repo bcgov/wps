@@ -1,4 +1,4 @@
-import { createTheme } from '@material-ui/core/styles'
+import { createStyles, createTheme } from '@material-ui/core/styles'
 // Theme documentation: https://material-ui.com/customization/palette/
 // Theme demo: https://material.io/resources/color/#!/?view.left=1&view.right=1&primary.color=003365&secondary.color=FBC02D
 // Do not export this directly for styling! theme should be accessed within makeStyles & withStyles. Use ErrorMessage.tsx as a reference
@@ -33,5 +33,25 @@ export const theme = createTheme({
       lg: 1280,
       xl: 1920
     }
+  }
+})
+
+const BACKGROUND_COLOR = { backgroundColor: 'rgba(40, 53, 147, 0.05)' }
+export const fireTableStyles = createStyles({
+  defaultBackground: BACKGROUND_COLOR,
+  unselectedStation: { color: 'rgba(0,0,0,0.54)' },
+  planningArea: BACKGROUND_COLOR,
+  controls: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'baseline'
+  },
+  fireCentre: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    backgroundColor: '#dbd9d9'
+  },
+  sectionSeperatorBorder: {
+    borderLeft: '1px solid #C4C4C4'
   }
 })

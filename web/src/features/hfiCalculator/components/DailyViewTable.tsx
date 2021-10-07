@@ -18,6 +18,7 @@ import FireTable from 'components/FireTable'
 import FireContainer from 'components/FireDisplayContainer'
 import PrepLevelCell from 'features/hfiCalculator/components/PrepLevelCell'
 import BaseStationAttributeCells from 'features/hfiCalculator/components/BaseStationAttributeCells'
+import { fireTableStyles } from 'app/theme'
 
 export interface Props {
   fireCentres: Record<string, FireCentre>
@@ -26,25 +27,10 @@ export interface Props {
 }
 
 const useStyles = makeStyles({
-  fireCentre: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    backgroundColor: '#dbd9d9'
-  },
-  planningArea: {
-    backgroundColor: 'rgba(40, 53, 147, 0.05)'
-  },
+  ...fireTableStyles,
   fireStarts: {
     fontWeight: 'bold',
     textAlign: 'center'
-  },
-  unselectedStation: {
-    color: 'rgba(0,0,0,0.54)'
-  },
-  controls: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'baseline'
   }
 })
 

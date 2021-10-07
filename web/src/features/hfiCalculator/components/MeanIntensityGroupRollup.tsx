@@ -10,6 +10,7 @@ import {
   intensityGroupColours,
   StationWithDaily
 } from 'features/hfiCalculator/components/meanIntensity'
+import { fireTableStyles } from 'app/theme'
 
 export interface MeanIntensityGroupRollupProps {
   area: PlanningArea
@@ -18,6 +19,7 @@ export interface MeanIntensityGroupRollupProps {
 }
 
 const useStyles = makeStyles({
+  ...fireTableStyles,
   intensityGroupSolid1: {
     background: intensityGroupColours.lightGreen,
     fontWeight: 'bold',
@@ -47,9 +49,6 @@ const useStyles = makeStyles({
   alignErrorIcon: {
     marginTop: '6px',
     textAlign: 'center'
-  },
-  default: {
-    background: 'rgba(40, 53, 147, 0.05)'
   }
 })
 
@@ -105,7 +104,7 @@ const MeanIntensityGroupRollup = (props: MeanIntensityGroupRollupProps) => {
   )
   const formatAreaMeanIntensityGroupByValue = () => {
     if (meanIntensityGroup === undefined) {
-      return classes.default
+      return classes.defaultBackground
     }
     if (meanIntensityGroup < 2) {
       return classes.intensityGroupSolid1
