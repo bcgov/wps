@@ -57,17 +57,19 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     }
   }
 
-  useEffect(() => {
+  const refreshView = () => {
     const { start, end } = getDateRange(isWeeklyView, dateOfInterest)
     dispatch(fetchHFIStations())
     dispatch(fetchHFIDailies(start.toUTC().valueOf(), end.toUTC().valueOf()))
+  }
+
+  useEffect(() => {
+    refreshView()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
-    const { start, end } = getDateRange(isWeeklyView, dateOfInterest)
-    dispatch(fetchHFIStations())
-    dispatch(fetchHFIDailies(start.toUTC().valueOf(), end.toUTC().valueOf()))
+    refreshView()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isWeeklyView])
 
