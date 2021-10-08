@@ -45,6 +45,8 @@ export const fireTableTheme = createTheme({
       },
       head: {
         fontWeight: 'bold',
+        maxWidth: 20,
+        width: 20,
         padding: 1,
         paddingLeft: 7
       },
