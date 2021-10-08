@@ -1,0 +1,92 @@
+# kind: "Template"
+# apiVersion: "template.openshift.io/v1"
+# parameters:
+#   - name: "JOB_NAME"
+#     displayName: "Job Name"
+#     description: "Name of the Job to Create."
+#     value: "cleanup-s3"
+#     required: true
+#   - name: GLOBAL_NAME
+#     description: Name of global Module
+#     value: wps
+#   - name: "IMAGE_NAMESPACE"
+#     displayName: "Image Namespace"
+#     description: "The namespace of the OpenShift project containing the imagestream for the application."
+#     required: true
+#     value: "e1e498-tools"
+#   - name: "TAG_NAME"
+#     displayName: "Environment TAG name"
+#     description: "The TAG name for this environment, e.g., dev, test, prod"
+#     required: true
+#     value: "dev"
+#   - name: "SOURCE_IMAGE_NAME"
+#     displayName: "Source Image Name"
+#     description: "The name of the image to use for this resource."
+#     required: true
+#     value: "s3-backup"
+# objects:
+# kind: Job
+# apiVersion: batch/v1
+# metadata:
+#   name: ${JOB_NAME}
+# spec:
+#   parallelism: 1
+#   completions: 1
+#   activeDeadlineSeconds: 1800
+#   backoffLimit: 6
+#   template:
+#     metadata:
+#       name: ${JOB_NAME}
+#     spec:
+#       containers:
+#         - name: ${JOB_NAME}
+#           image: "image-registry.openshift-image-registry.svc:5000/${IMAGE_NAMESPACE}/${SOURCE_IMAGE_NAME}:${TAG_NAME}"
+#           env:
+#             - name: AWS_HOSTNAME
+#               valueFrom:
+#                 secretKeyRef:
+#                   name: ${GLOBAL_NAME}-global
+#                   key: object-store-server
+#             - name: AWS_ACCESS_KEY
+#               valueFrom:
+#                 secretKeyRef:
+#                   name: ${GLOBAL_NAME}-global
+#                   key: object-store-user-id
+#             - name: AWS_SECRET_KEY
+#               valueFrom:
+#                 secretKeyRef:
+#                   name: ${GLOBAL_NAME}-global
+#                   key: object-store-secret
+#             - name: AWS_BUCKET
+#               valueFrom:
+#                 secretKeyRef:
+#                   name: ${GLOBAL_NAME}-global
+#                   key: object-store-bucket
+#           command: ["ls", "-l"]
+#       restartPolicy: OnFailure
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cleanup-s3
+spec:
+  parallelism: 1
+  completions: 1
+  activeDeadlineSeconds: 1800
+  backoffLimit: 6
+  template:
+    metadata:
+      name: cleanup-s3
+    spec:
+      containers:
+        - name: cleanup-s3
+          image: "image-registry.openshift-image-registry.svc:5000/e1e498-tools/s3-backup:dev"
+          env:
+            - name: AWS_HOSTNAME
+              value: "moo"
+          #               valueFrom:
+          #                 secretKeyRef:
+          #                   name: ${GLOBAL_NAME}-global
+          #                   key: object-store-server
+          command: ["cleanup_bucket.sh"]
+      restartPolicy: OnFailure
+
