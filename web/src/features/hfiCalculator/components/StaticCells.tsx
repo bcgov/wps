@@ -20,30 +20,38 @@ export const StaticCells = ({
   classNameForRow,
   isRowSelected
 }: StaticCellsProps): ReactElement => {
-  const staticCells = dailies?.map(daily => (
-    <React.Fragment key={`${station.code}-${daily.date}`}>
-      <WeeklyROSCell daily={daily} station={station} isRowSelected={isRowSelected} />
-      <TableCell data-testid={`${daily.code}-hfi`} className={classNameForRow}>
-        {daily.hfi?.toFixed(DECIMAL_PLACES)}
-      </TableCell>
-      <IntensityGroupCell
-        testid={`${daily.code}-intensity-group`}
-        value={daily.intensity_group}
-        error={!isValidGrassCure(daily, station.station_props)}
-        selected={isRowSelected}
-      ></IntensityGroupCell>
-      {/* Fire Starts */}
-      <TableCell
-        data-testid={`${daily.code}-fire-starts`}
-        className={classNameForRow}
-      ></TableCell>
-      {/* Prep Level */}
-      <TableCell
-        data-testid={`${daily.code}-prep-level`}
-        className={classNameForRow}
-      ></TableCell>
-    </React.Fragment>
-  ))
+  const staticCells = dailies?.map(daily => {
+    const error = !isValidGrassCure(daily, station.station_props)
+    return (
+      <React.Fragment key={`${station.code}-${daily.date}`}>
+        <WeeklyROSCell
+          daily={daily}
+          station={station}
+          error={error}
+          isRowSelected={isRowSelected}
+        />
+        <TableCell data-testid={`${daily.code}-hfi`} className={classNameForRow}>
+          {error ? undefined : daily.hfi?.toFixed(DECIMAL_PLACES)}
+        </TableCell>
+        <IntensityGroupCell
+          testid={`${daily.code}-intensity-group`}
+          value={daily.intensity_group}
+          error={error}
+          selected={isRowSelected}
+        ></IntensityGroupCell>
+        {/* Fire Starts */}
+        <TableCell
+          data-testid={`${daily.code}-fire-starts`}
+          className={classNameForRow}
+        ></TableCell>
+        {/* Prep Level */}
+        <TableCell
+          data-testid={`${daily.code}-prep-level`}
+          className={classNameForRow}
+        ></TableCell>
+      </React.Fragment>
+    )
+  })
   return <React.Fragment>{staticCells}</React.Fragment>
 }
 

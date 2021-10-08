@@ -9,6 +9,7 @@ import React from 'react'
 export interface WeeklyROSCellProps {
   daily: StationDaily
   station: WeatherStation
+  error: boolean
   isRowSelected: boolean
 }
 
@@ -19,7 +20,7 @@ const useStyles = makeStyles({
     color: UNSELECTED_STATION_COLOR
   }
 })
-const WeeklyROSCell = ({ daily, station, isRowSelected }: WeeklyROSCellProps) => {
+const WeeklyROSCell = ({ daily, station, isRowSelected, error }: WeeklyROSCellProps) => {
   const classes = useStyles()
   return (
     <TableCell
@@ -28,7 +29,7 @@ const WeeklyROSCell = ({ daily, station, isRowSelected }: WeeklyROSCellProps) =>
         isRowSelected ? classes.sectionSeperatorBorder : classes.unselectedStation
       }
     >
-      {daily?.rate_of_spread?.toFixed(DECIMAL_PLACES)}
+      {error ? '' : daily?.rate_of_spread?.toFixed(DECIMAL_PLACES)}
     </TableCell>
   )
 }
