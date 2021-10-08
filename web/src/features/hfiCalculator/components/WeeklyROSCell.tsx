@@ -2,7 +2,7 @@ import { TableCell } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 import { WeatherStation } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
-import { fireTableStyles } from 'app/theme'
+import { fireTableStyles, UNSELECTED_STATION_COLOR } from 'app/theme'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
 import React from 'react'
 
@@ -13,7 +13,11 @@ export interface WeeklyROSCellProps {
 }
 
 const useStyles = makeStyles({
-  ...fireTableStyles
+  ...fireTableStyles,
+  unselectedStation: {
+    ...fireTableStyles.sectionSeperatorBorder,
+    color: UNSELECTED_STATION_COLOR
+  }
 })
 const WeeklyROSCell = ({ daily, station, isRowSelected }: WeeklyROSCellProps) => {
   const classes = useStyles()
