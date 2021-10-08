@@ -36,6 +36,35 @@ export const theme = createTheme({
   }
 })
 
+export const fireTableTheme = createTheme({
+  ...theme,
+  overrides: {
+    MuiTableCell: {
+      root: {
+        padding: 2
+      },
+      head: {
+        fontWeight: 'bold',
+        padding: 1,
+        paddingLeft: 7
+      },
+      stickyHeader: {
+        padding: 8
+      }
+    },
+    MuiInputBase: {
+      root: {
+        fontSize: '1em'
+      }
+    },
+    MuiOutlinedInput: {
+      root: {
+        padding: 0
+      }
+    }
+  }
+})
+
 const BACKGROUND_COLOR = { backgroundColor: 'rgba(40, 53, 147, 0.05)' }
 export const fireTableStyles = createStyles({
   defaultBackground: BACKGROUND_COLOR,
