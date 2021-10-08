@@ -11,6 +11,7 @@ import {
 } from '@material-ui/core'
 import { createTheme, makeStyles, ThemeProvider } from '@material-ui/core/styles'
 import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline'
+import InfoOutlinedIcon from '@material-ui/icons/InfoOutlined'
 import { FireCentre } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
@@ -20,6 +21,7 @@ import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanInte
 import { isUndefined } from 'lodash'
 import CalculatedCell from 'features/hfiCalculator/components/CalculatedCell'
 import IntensityGroupCell from 'features/hfiCalculator/components/IntensityGroupCell'
+import FireTypeCell from 'features/hfiCalculator/components/FireTypeCell'
 import FireTable from 'components/FireTable'
 import FireContainer from 'components/FireDisplayContainer'
 
@@ -176,6 +178,17 @@ export const DailyViewTable = (props: Props): JSX.Element => {
     )
   }
 
+  const typeToolTipFirstLine = 'SUR = Surface Type'
+  const typeToolTipSecondLine = 'IC = Intermittent Crown Type'
+  const typeToolTipThirdLine = 'CC = Continuous Crown Type'
+  const typeToolTipElement = (
+    <div>
+      {typeToolTipFirstLine} <br />
+      {typeToolTipSecondLine} <br />
+      {typeToolTipThirdLine}
+    </div>
+  )
+
   return (
     <FireContainer testId={props.testId}>
       <div className={classes.controls}>
@@ -269,6 +282,12 @@ export const DailyViewTable = (props: Props): JSX.Element => {
               Fire
               <br />
               Type
+              <Tooltip
+                title={typeToolTipElement}
+                aria-label={`${typeToolTipFirstLine} \n ${typeToolTipSecondLine} \n ${typeToolTipThirdLine}`}
+              >
+                <InfoOutlinedIcon></InfoOutlinedIcon>
+              </Tooltip>
             </TableCell>
             <TableCell>
               M /
@@ -456,12 +475,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                                   error={grassCureError}
                                   className={classNameForRow}
                                 ></CalculatedCell>
-                                <CalculatedCell
-                                  testid={`${daily?.code}-fire-type`}
-                                  value={daily?.fire_type}
-                                  error={grassCureError}
-                                  className={classNameForRow}
-                                ></CalculatedCell>
+                                <TableCell>{daily?.fire_type}</TableCell>
                                 <IntensityGroupCell
                                   testid={`${daily?.code}-intensity-group`}
                                   value={daily?.intensity_group}
