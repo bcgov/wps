@@ -48,8 +48,7 @@ jobs:
           PROJ_TARGET=e1e498-prod SCHEDULE="30 15,23 * * *" bash openshift/scripts/oc_provision_bcfw_p1_forecasts_cronjob.sh prod apply
           PROJ_TARGET=e1e498-prod SCHEDULE="15 * * * *" bash openshift/scripts/oc_provision_bcfw_p1_hourly_actuals_cronjob.sh prod apply
           echo Configure backups
-          PROJ_TARGET=e1e498-prod BACKUP_VOLUME_SIZE=50Gi CPU_REQUEST=1000m CPU_LIMIT=2000m bash openshift/scripts/oc_provision_backup_postgres.sh prod apply
-          PROJ_TARGET=e1e498-prod CPU_REQUEST=1000m CPU_LIMIT=2000m bash openshift/scripts/oc_provision_backup_postgres_cronjob.sh prod apply
+          PROJ_TARGET=e1e498-prod CPU_REQUEST=1000m CPU_LIMIT=2000m bash openshift/scripts/oc_provision_backup_s3_postgres_cronjob.sh prod apply
           PROJ_TARGET=e1e498-prod CPU_REQUEST=50m CPU_LIMIT=500m BACKUP_VOLUME_SIZE=3Gi bash openshift/scripts/oc_provision_backup_mariadb.sh prod apply
           PROJ_TARGET=e1e498-prod CPU_REQUEST=50m CPU_LIMIT=500m bash openshift/scripts/oc_provision_backup_mariadb_cronjob.sh prod apply
           echo Configure
