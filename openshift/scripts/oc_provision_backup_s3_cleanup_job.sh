@@ -27,17 +27,13 @@ source "$(dirname ${0})/common/common"
 PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 
 # Prepare variables for backups
-JOB_NAME="backup-postgres-${NAME_APP}-${SUFFIX}"
+JOB_NAME="cleanup-s3-backup-${NAME_APP}-${SUFFIX}"
 IMAGE_NAMESPACE=${PROJ_TOOLS}
 CLUSTER_NAME="patroni-${NAME_APP}-${SUFFIX}"
 
 OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/backup-s3-cleanup-job.yaml \
-    -p DATABASE_SERVICE_NAME=patroni-${NAME_APP}-${SUFFIX}-leader \
-    -p DATABASE_DEPLOYMENT_NAME=wps-global \
     -p JOB_NAME=${JOB_NAME} \
     -p IMAGE_NAMESPACE=${IMAGE_NAMESPACE} \
-    -p APP_LABEL=${NAME_APP}-${SUFFIX} \
-    -p CLUSTER_NAME=${CLUSTER_NAME} \
     ${CPU_LIMIT:+ " -p CPU_LIMIT=${CPU_LIMIT}"} \
     ${CPU_REQUEST:+ " -p CPU_REQUEST=${CPU_REQUEST}"} \
     ${SCHEDULE:+ " -p SCHEDULE=\"${SCHEDULE}\""} \
