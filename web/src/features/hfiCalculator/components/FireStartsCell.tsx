@@ -1,4 +1,5 @@
 import { makeStyles, TableCell } from '@material-ui/core'
+import { fireTableStyles } from 'app/theme'
 import React from 'react'
 
 export interface FireStartsCellProps {
@@ -7,9 +8,9 @@ export interface FireStartsCellProps {
 }
 
 const useStyles = makeStyles({
+  ...fireTableStyles,
   fireStarts: {
-    fontWeight: 'bold',
-    textAlign: 'center',
+    ...fireTableStyles.calculatedPlanningCell,
     backgroundColor: 'rgba(40, 53, 147, 0.05)'
   }
 })

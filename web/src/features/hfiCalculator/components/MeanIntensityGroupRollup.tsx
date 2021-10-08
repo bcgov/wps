@@ -21,33 +21,28 @@ export interface MeanIntensityGroupRollupProps {
 const useStyles = makeStyles({
   ...fireTableStyles,
   intensityGroupSolid1: {
-    background: intensityGroupColours.lightGreen,
-    fontWeight: 'bold',
-    textAlign: 'center'
+    ...fireTableStyles.calculatedPlanningCell,
+    background: intensityGroupColours.lightGreen
   },
   intensityGroupSolid2: {
-    background: intensityGroupColours.cyan,
-    fontWeight: 'bold',
-    textAlign: 'center'
+    ...fireTableStyles.calculatedPlanningCell,
+    background: intensityGroupColours.cyan
   },
   intensityGroupSolid3: {
-    background: intensityGroupColours.yellow,
-    fontWeight: 'bold',
-    textAlign: 'center'
+    ...fireTableStyles.calculatedPlanningCell,
+    background: intensityGroupColours.yellow
   },
   intensityGroupSolid4: {
-    background: intensityGroupColours.orange,
-    fontWeight: 'bold',
-    textAlign: 'center'
+    ...fireTableStyles.calculatedPlanningCell,
+    background: intensityGroupColours.orange
   },
   intensityGroupSolid5: {
+    ...fireTableStyles.calculatedPlanningCell,
     background: intensityGroupColours.red,
-    fontWeight: 'bold',
-    color: 'white',
-    textAlign: 'center'
+    color: 'white'
   },
   alignErrorIcon: {
-    marginTop: '6px',
+    marginTop: '10px',
     textAlign: 'center'
   }
 })

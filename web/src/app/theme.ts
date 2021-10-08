@@ -69,7 +69,7 @@ const BACKGROUND_COLOR = { backgroundColor: 'rgba(40, 53, 147, 0.05)' }
 export const UNSELECTED_STATION_COLOR = 'rgba(0,0,0,0.54)'
 export const fireTableStyles = createStyles({
   defaultBackground: BACKGROUND_COLOR,
-  planningArea: BACKGROUND_COLOR,
+  planningArea: { ...BACKGROUND_COLOR, width: 45, height: 45 },
   unselectedStation: { color: UNSELECTED_STATION_COLOR },
   controls: {
     display: 'flex',
@@ -83,5 +83,10 @@ export const fireTableStyles = createStyles({
   },
   sectionSeperatorBorder: {
     borderLeft: '1px solid #C4C4C4'
+  },
+  calculatedPlanningCell: {
+    fontWeight: 'bold',
+    textAlign: 'center',
+    width: 30
   }
 })

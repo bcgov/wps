@@ -21,35 +21,29 @@ const prepLevelColours: { [description: string]: string } = {
 const useStyles = makeStyles({
   ...fireTableStyles,
   prepLevel1: {
-    background: prepLevelColours.green,
-    fontWeight: 'bold',
-    textAlign: 'center'
+    ...fireTableStyles.calculatedPlanningCell,
+    background: prepLevelColours.green
   },
   prepLevel2: {
-    background: prepLevelColours.blue,
-    fontWeight: 'bold',
-    textAlign: 'center'
+    ...fireTableStyles.calculatedPlanningCell,
+    background: prepLevelColours.blue
   },
   prepLevel3: {
-    background: prepLevelColours.yellow,
-    fontWeight: 'bold',
-    textAlign: 'center'
+    ...fireTableStyles.calculatedPlanningCell,
+    background: prepLevelColours.yellow
   },
   prepLevel4: {
-    background: prepLevelColours.orange,
-    fontWeight: 'bold',
-    textAlign: 'center'
+    ...fireTableStyles.calculatedPlanningCell,
+    background: prepLevelColours.orange
   },
   prepLevel5: {
+    ...fireTableStyles.calculatedPlanningCell,
     background: prepLevelColours.brightRed,
-    fontWeight: 'bold',
-    textAlign: 'center',
     color: 'white'
   },
   prepLevel6: {
+    ...fireTableStyles.calculatedPlanningCell,
     background: prepLevelColours.bloodRed,
-    fontWeight: 'bold',
-    textAlign: 'center',
     color: 'white'
   }
 })
