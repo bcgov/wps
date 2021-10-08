@@ -78,6 +78,8 @@ export const fireTableStyles = createStyles({
     alignItems: 'baseline'
   },
   fireCentre: {
+    width: 45,
+    height: 45,
     fontSize: 16,
     fontWeight: 'bold',
     backgroundColor: '#dbd9d9'
