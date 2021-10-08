@@ -1,4 +1,12 @@
-import { makeStyles, Paper, Table, TableContainer } from '@material-ui/core'
+import {
+  createTheme,
+  makeStyles,
+  Paper,
+  Table,
+  TableContainer,
+  ThemeProvider
+} from '@material-ui/core'
+import { theme } from 'app/theme'
 import React from 'react'
 
 interface FireTableProps {
@@ -8,6 +16,35 @@ interface FireTableProps {
   testId?: string
 }
 
+const cellTheme = createTheme({
+  ...theme,
+  overrides: {
+    MuiTableCell: {
+      root: {
+        padding: 2
+      },
+      head: {
+        fontWeight: 'bold',
+        padding: '1px',
+        paddingLeft: '7px'
+      },
+      stickyHeader: {
+        padding: 8
+      }
+    },
+    MuiInputBase: {
+      root: {
+        fontSize: '1em'
+      }
+    },
+    MuiOutlinedInput: {
+      root: {
+        padding: 0
+      }
+    }
+  }
+})
+
 const FireTable = (props: FireTableProps) => {
   const useStyles = makeStyles(() => ({
     tableContainer: {
@@ -15,15 +52,13 @@ const FireTable = (props: FireTableProps) => {
       maxWidth: 1900
     }
   }))
-  const classes = useStyles()
-
   return (
     <Paper elevation={1}>
-      <TableContainer className={classes.tableContainer}>
-        <Table size="small" stickyHeader aria-label={props.ariaLabel}>
-          {props.children}
-        </Table>
-      </TableContainer>
+      <ThemeProvider theme={cellTheme}>
+        <TableContainer className={useStyles().tableContainer}>
+          <Table stickyHeader>{props.children}</Table>
+        </TableContainer>
+      </ThemeProvider>
     </Paper>
   )
 }
