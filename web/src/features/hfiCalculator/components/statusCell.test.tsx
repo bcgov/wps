@@ -9,7 +9,7 @@ describe('StatusCell', () => {
         <Table>
           <TableBody>
             <TableRow>
-              <StatusCell value={status} className={''} />d
+              <StatusCell value={status} className={''} />
             </TableRow>
           </TableBody>
         </Table>
