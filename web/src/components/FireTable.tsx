@@ -26,7 +26,9 @@ const FireTable = (props: FireTableProps) => {
     <Paper elevation={1}>
       <ThemeProvider theme={fireTableTheme}>
         <TableContainer className={useStyles().tableContainer}>
-          <Table stickyHeader>{props.children}</Table>
+          <Table data-testid={props.testId} stickyHeader>
+            {props.children}
+          </Table>
         </TableContainer>
       </ThemeProvider>
     </Paper>
