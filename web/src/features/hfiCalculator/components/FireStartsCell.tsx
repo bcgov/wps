@@ -1,5 +1,5 @@
 import { makeStyles, TableCell } from '@material-ui/core'
-import { fireTableStyles } from 'app/theme'
+import { fireTableStyles, BACKGROUND_COLOR } from 'app/theme'
 import React from 'react'
 
 export interface FireStartsCellProps {
@@ -11,7 +11,7 @@ const useStyles = makeStyles({
   ...fireTableStyles,
   fireStarts: {
     ...fireTableStyles.calculatedPlanningCell,
-    backgroundColor: 'rgba(40, 53, 147, 0.05)'
+    ...BACKGROUND_COLOR
   }
 })
 

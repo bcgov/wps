@@ -66,7 +66,7 @@ export const fireTableTheme = createTheme({
   }
 })
 
-const BACKGROUND_COLOR = { backgroundColor: 'rgba(40, 53, 147, 0.05)' }
+export const BACKGROUND_COLOR = { backgroundColor: 'rgba(40, 53, 147, 0.05)' }
 export const UNSELECTED_STATION_COLOR = 'rgba(0,0,0,0.54)'
 export const fireTableStyles = createStyles({
   defaultBackground: BACKGROUND_COLOR,

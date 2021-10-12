@@ -42,7 +42,8 @@ const useStyles = makeStyles({
     color: 'white'
   },
   alignErrorIcon: {
-    marginTop: '10px',
+    ...fireTableStyles.planningArea,
+    paddingTop: '10px',
     textAlign: 'center'
   }
 })
