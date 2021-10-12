@@ -14,10 +14,10 @@ const useStyles = makeStyles(() => ({
   toggleGroup: {
     paddingLeft: 25,
     '& .MuiToggleButton-root': {
-      color: theme.palette.primary.light
+      color: theme.palette.primary.main
     },
     '& .MuiToggleButton-root.Mui-selected': {
-      backgroundColor: theme.palette.primary.light,
+      backgroundColor: theme.palette.primary.main,
       color: 'white'
     }
   }
