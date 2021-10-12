@@ -47,20 +47,15 @@ export const FilterColumnsModal = (props: ModalProps) => {
     Array.from(Array(props.columns.length).keys())
   )
 
-  const translateSelectedFromNumbersToStrings = (): string[] => {
-    const selectedColumnsAsStrings: string[] = []
-    for (const index of selected) {
-      selectedColumnsAsStrings.push(props.columns[index])
-    }
-    return selectedColumnsAsStrings
-  }
-
   const handleClose = () => {
     props.setModalOpen(false)
   }
 
   const handleApplyAndClose = () => {
-    const selectedColumnLabels = translateSelectedFromNumbersToStrings()
+    console.log(selected)
+    const selectedColumnLabels = selected.map(index => {
+      return props.columns[index]
+    })
     props.parentCallback(selectedColumnLabels)
     props.setModalOpen(false)
   }
@@ -87,7 +82,9 @@ export const FilterColumnsModal = (props: ModalProps) => {
               <div key={column}>
                 <SelectionCell
                   selected={selected}
-                  updateSelected={(newSelected: number[]) => setSelected(newSelected)}
+                  updateSelected={(newSelected: number[]) =>
+                    setSelected(newSelected.sort((a, b) => a - b))
+                  }
                   disabled={false}
                   rowId={index}
                   testId={`filter-${column.replaceAll(' ', '-')}`}
