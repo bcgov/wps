@@ -93,3 +93,10 @@ export const fireTableStyles = createStyles({
     width: 30
   }
 })
+
+export const formControlStyles = createStyles({
+  formControl: {
+    margin: theme.spacing(1),
+    minWidth: 210
+  }
+})

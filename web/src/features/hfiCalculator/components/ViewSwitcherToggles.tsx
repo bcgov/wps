@@ -12,7 +12,6 @@ export interface ViewSwitcherTogglesProps {
 
 const useStyles = makeStyles(() => ({
   toggleGroup: {
-    paddingLeft: 25,
     '& .MuiToggleButton-root': {
       color: theme.palette.primary.main
     },

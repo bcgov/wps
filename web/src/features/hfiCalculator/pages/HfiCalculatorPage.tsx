@@ -17,17 +17,13 @@ import { buildDailyMap, buildWeekliesByCode } from '../util'
 import { getDateRange } from 'utils/date'
 import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
 import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'
+import { formControlStyles } from 'app/theme'
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(() => ({
+  ...formControlStyles,
   container: {
     display: 'flex',
     justifyContent: 'center'
-  },
-  formControl: {
-    margin: theme.spacing(1),
-    minWidth: 210,
-    display: 'flex',
-    flexDirection: 'row'
   }
 }))
 
@@ -91,6 +87,9 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
               onChange={setDateOfInterest}
               updateDate={updateDate}
             />
+          </FormControl>
+
+          <FormControl className={classes.formControl}>
             <ViewSwitcherToggles
               isWeeklyView={isWeeklyView}
               toggleTableView={toggleTableView}

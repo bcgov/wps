@@ -46,6 +46,7 @@ import StickyCell from 'features/fbaCalculator/components/StickyCell'
 import FBATableHead from 'features/fbaCalculator/components/FBATableHead'
 import FireTable from 'components/FireTable'
 import FBATableInstructions from 'features/fbaCalculator/components/FBATableInstructions'
+import { formControlStyles } from 'app/theme'
 export interface FBATableProps {
   testId?: string
 }
@@ -62,11 +63,8 @@ export interface FBAInputRow {
   windSpeed: number | undefined
 }
 
-const useStyles = makeStyles(theme => ({
-  formControl: {
-    margin: theme.spacing(1),
-    minWidth: 210
-  },
+const useStyles = makeStyles(() => ({
+  ...formControlStyles,
   weatherStation: {
     minWidth: 220
   },
