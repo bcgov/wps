@@ -7,9 +7,10 @@ import {
   IconButton,
   Paper,
   Typography,
-  makeStyles
+  makeStyles,
+  Fab
 } from '@material-ui/core'
-import { Clear } from '@material-ui/icons'
+import { CheckOutlined, Clear } from '@material-ui/icons'
 import SelectionCell from 'features/fbaCalculator/components/SelectionCell'
 
 export interface ColumnSelectionState {
@@ -74,7 +75,7 @@ export const FilterColumnsModal = (props: ModalProps) => {
       <Paper>
         <div>
           <Typography variant="h5" component="h5" className={classes.modalTitle}>
-            Filter Table by Columns
+            Show Columns
             <IconButton className={classes.closeIcon} onClick={handleClose}>
               <Clear />
             </IconButton>
@@ -89,20 +90,30 @@ export const FilterColumnsModal = (props: ModalProps) => {
                   updateSelected={(newSelected: number[]) => setSelected(newSelected)}
                   disabled={false}
                   rowId={index}
+                  testId={`filter-${column.replaceAll(' ', '-')}`}
                 />
                 <a>{column}</a>
               </div>
             )
           })}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleApplyAndClose} color="primary" variant="contained">
+          <Fab
+            color="primary"
+            aria-label="apply"
+            onClick={handleApplyAndClose}
+            variant="extended"
+            data-testId="apply-btn"
+          >
             Apply
-          </Button>
-          <Button onClick={handleClose} color="primary">
+          </Fab>
+          <Fab
+            color="secondary"
+            aria-label="cancel"
+            onClick={handleClose}
+            variant="extended"
+          >
             Cancel
-          </Button>
-        </DialogActions>
+          </Fab>
+        </DialogContent>
       </Paper>
     </Dialog>
   )
