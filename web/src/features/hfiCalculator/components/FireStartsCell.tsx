@@ -20,7 +20,7 @@ const FireStartsCell = (props: FireStartsCellProps) => {
   return (
     <TableCell
       className={classes.fireStarts}
-      data-testid={`weekly-fire-starts-${props.areaName}`}
+      data-testid={`fire-starts-${props.areaName}`}
     >
       {/* using a fixed value of 0-1 Fire Starts for now */}
       0-1

@@ -16,6 +16,7 @@ import CalculatedCell from 'features/hfiCalculator/components/CalculatedCell'
 import IntensityGroupCell from 'features/hfiCalculator/components/IntensityGroupCell'
 import FireTable from 'components/FireTable'
 import PrepLevelCell from 'features/hfiCalculator/components/PrepLevelCell'
+import FireStartsCell from 'features/hfiCalculator/components/FireStartsCell'
 import BaseStationAttributeCells from 'features/hfiCalculator/components/BaseStationAttributeCells'
 import { fireTableStyles } from 'app/theme'
 
@@ -26,11 +27,7 @@ export interface Props {
 }
 
 const useStyles = makeStyles({
-  ...fireTableStyles,
-  fireStarts: {
-    fontWeight: 'bold',
-    textAlign: 'center'
-  }
+  ...fireTableStyles
 })
 
 export const DailyViewTable = (props: Props): JSX.Element => {
@@ -218,13 +215,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                           stationsWithDaily={stationsWithDaily}
                           selectedStations={selected}
                         ></MeanIntensityGroupRollup>
-                        <TableCell
-                          className={classes.fireStarts}
-                          data-testid={`daily-fire-starts-${areaName}`}
-                        >
-                          {/* using a fixed value of 0-1 Fire Starts for now */}
-                          0-1
-                        </TableCell>
+                        <FireStartsCell areaName={areaName} />
                         <PrepLevelCell
                           testid={`daily-prep-level-${areaName}`}
                           meanIntensityGroup={meanIntensityGroup}
