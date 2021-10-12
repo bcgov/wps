@@ -21,7 +21,7 @@ const renderPrepLevel = (MIG: number | undefined) => {
   )
 }
 
-describe.only('PrepLevelCell', () => {
+describe('PrepLevelCell', () => {
   it('should return a cell with a classname of prepLevel1 and a text prep level of 1', () => {
     const { getByTestId } = renderPrepLevel(1)
     const cell = getByTestId('weekly-prep-level-afton')
