@@ -52,7 +52,6 @@ export const FilterColumnsModal = (props: ModalProps) => {
   }
 
   const handleApplyAndClose = () => {
-    console.log(selected)
     const selectedColumnLabels = selected.map(index => {
       return props.columns[index]
     })
