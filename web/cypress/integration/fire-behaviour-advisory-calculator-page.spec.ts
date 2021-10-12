@@ -285,7 +285,7 @@ describe('FireBAT Calculator Page', () => {
       cy.getByTestId('filter-columns-btn').should('be.enabled')
     })
 
-    it.only('Removes columns from FBA Table if the columns have been deselected from the dialog', () => {
+    it('Removes columns from FBA Table if the columns have been deselected from the dialog', () => {
       cy.intercept('GET', 'api/stations/*', { fixture: 'weather-stations.json' }).as(
         'getStations'
       )
