@@ -6,7 +6,7 @@ import { FireCentre } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import FireTable from 'components/FireTable'
 import DayHeaders from 'features/hfiCalculator/components/DayHeaders'
-import CellHeaders from 'features/hfiCalculator/components/CellHeaders'
+import DayIndexHeaders from 'features/hfiCalculator/components/DayIndexHeaders'
 import CalculatedPlanningAreaCells from 'features/hfiCalculator/components/CalculatedPlanningAreaCells'
 import { StaticCells } from 'features/hfiCalculator/components/StaticCells'
 import BaseStationAttributeCells from 'features/hfiCalculator/components/BaseStationAttributeCells'
@@ -80,7 +80,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
             <br />
             (%)
           </TableCell>
-          <CellHeaders />
+          <DayIndexHeaders />
         </TableRow>
       </TableHead>
       <TableBody>

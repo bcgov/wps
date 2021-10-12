@@ -8,29 +8,32 @@ import React from 'react'
 const useStyles = makeStyles({
   ...fireTableStyles
 })
-const CellHeaders = () => {
+const DayIndexHeaders = () => {
   const classes = useStyles()
   return (
     <React.Fragment>
       {range(NUM_WEEK_DAYS).map(i => (
         <React.Fragment key={i}>
-          <TableCell className={classes.sectionSeperatorBorder}>
+          <TableCell
+            data-testid={`ros-header-${i}`}
+            className={classes.sectionSeperatorBorder}
+          >
             ROS
             <br />
             (m/min)
           </TableCell>
-          <TableCell>HFI</TableCell>
-          <TableCell>
+          <TableCell data-testid={`hfi-header-${i}`}>HFI</TableCell>
+          <TableCell data-testid={`fig-header-${i}`}>
             M /
             <br />
             FIG
           </TableCell>
-          <TableCell>
+          <TableCell data-testid={`fire-starts-header-${i}`}>
             Fire
             <br />
             Starts
           </TableCell>
-          <TableCell>
+          <TableCell data-testid={`prep-level-header-${i}`}>
             Prep
             <br />
             Level
@@ -41,4 +44,4 @@ const CellHeaders = () => {
   )
 }
 
-export default React.memo(CellHeaders)
+export default React.memo(DayIndexHeaders)

@@ -9,7 +9,7 @@ import {
 } from 'features/hfiCalculator/components/testHelpers'
 import React from 'react'
 
-const weeklyRosTest = (
+const renderWeeklyRos = (
   daily: StationDaily,
   station: WeatherStation,
   error: boolean,
@@ -33,12 +33,12 @@ const weeklyRosTest = (
   )
 }
 
-describe.only('WeeklyROSCell', () => {
+describe('WeeklyROSCell', () => {
   const stationCode = 1
-  const expectedSeperatorClassRegExp = /makeStyles-sectionSeperatorBorder-/
-  const expectedUnselectedClassRegExp = /makeStyles-unselectedStation/
+  const seperatorClassRegExp = /makeStyles-sectionSeperatorBorder-/
+  const unselectedClassRegExp = /makeStyles-unselectedStation/
   it('should return a WeeklyROSCell with left border seperator class and formatted value of 1.0', () => {
-    const { getByTestId } = weeklyRosTest(
+    const { getByTestId } = renderWeeklyRos(
       buildStationDaily(stationCode),
       buildStation(stationCode),
       false,
@@ -46,11 +46,11 @@ describe.only('WeeklyROSCell', () => {
     )
 
     const cell = getByTestId(`${stationCode}-ros`)
-    expect(cell.className).toMatch(expectedSeperatorClassRegExp)
+    expect(cell.className).toMatch(seperatorClassRegExp)
     expect(cell.innerHTML).toBe('1.0')
   })
   it('should return a WeeklyROSCell with empty value when there is an error and it is selected', () => {
-    const { getByTestId } = weeklyRosTest(
+    const { getByTestId } = renderWeeklyRos(
       buildStationDaily(stationCode),
       buildStation(stationCode),
       true,
@@ -58,11 +58,11 @@ describe.only('WeeklyROSCell', () => {
     )
 
     const cell = getByTestId(`${stationCode}-ros`)
-    expect(cell.className).toMatch(expectedSeperatorClassRegExp)
+    expect(cell.className).toMatch(seperatorClassRegExp)
     expect(cell.innerHTML).toBe('')
   })
   it('should return a WeeklyROSCell with empty value when there is an error and it is not selected', () => {
-    const { getByTestId } = weeklyRosTest(
+    const { getByTestId } = renderWeeklyRos(
       buildStationDaily(stationCode),
       buildStation(stationCode),
       true,
@@ -70,11 +70,11 @@ describe.only('WeeklyROSCell', () => {
     )
 
     const cell = getByTestId(`${stationCode}-ros`)
-    expect(cell.className).toMatch(expectedUnselectedClassRegExp)
+    expect(cell.className).toMatch(unselectedClassRegExp)
     expect(cell.innerHTML).toBe('')
   })
   it('should return a WeeklyROSCell with formatted value when there is and it is not selected', () => {
-    const { getByTestId } = weeklyRosTest(
+    const { getByTestId } = renderWeeklyRos(
       buildStationDaily(stationCode),
       buildStation(stationCode),
       false,
@@ -82,7 +82,7 @@ describe.only('WeeklyROSCell', () => {
     )
 
     const cell = getByTestId(`${stationCode}-ros`)
-    expect(cell.className).toMatch(expectedUnselectedClassRegExp)
+    expect(cell.className).toMatch(unselectedClassRegExp)
     expect(cell.innerHTML).toBe('1.0')
   })
 })
