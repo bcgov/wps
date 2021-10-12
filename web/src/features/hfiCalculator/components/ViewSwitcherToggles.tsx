@@ -18,7 +18,8 @@ const useStyles = makeStyles(() => ({
     },
     '& .MuiToggleButton-root.Mui-selected': {
       backgroundColor: theme.palette.primary.main,
-      color: 'white'
+      color: 'white',
+      fontWeight: 'bold'
     }
   }
 }))
