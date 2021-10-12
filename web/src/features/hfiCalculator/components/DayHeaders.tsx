@@ -13,7 +13,8 @@ export interface DayHeadersProps {
 const useStyles = makeStyles({
   dayHeader: {
     position: 'sticky',
-    zIndex: 2,
+    zIndex: 3,
+    padding: 0,
     borderLeft: '1px solid #C4C4C4',
     borderBottom: 'none',
     textAlign: 'center'
