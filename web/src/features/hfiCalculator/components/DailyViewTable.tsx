@@ -18,6 +18,7 @@ import FireTable from 'components/FireTable'
 import PrepLevelCell from 'features/hfiCalculator/components/PrepLevelCell'
 import FireStartsCell from 'features/hfiCalculator/components/FireStartsCell'
 import BaseStationAttributeCells from 'features/hfiCalculator/components/BaseStationAttributeCells'
+import StatusCell from 'features/hfiCalculator/components/StatusCell'
 import { fireTableStyles } from 'app/theme'
 
 export interface Props {
@@ -260,9 +261,10 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                                   </ThemeProvider>
                                 </TableCell>
                               ) : (
-                                <TableCell className={classNameForRow}>
-                                  {daily?.status}
-                                </TableCell>
+                                <StatusCell
+                                  className={classNameForRow}
+                                  value={daily?.status}
+                                />
                               )}
                               <TableCell className={classNameForRow}>
                                 {daily?.temperature}
