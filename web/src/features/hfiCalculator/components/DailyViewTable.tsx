@@ -20,6 +20,7 @@ import FireStartsCell from 'features/hfiCalculator/components/FireStartsCell'
 import BaseStationAttributeCells from 'features/hfiCalculator/components/BaseStationAttributeCells'
 import StatusCell from 'features/hfiCalculator/components/StatusCell'
 import { fireTableStyles } from 'app/theme'
+import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
 
 export interface Props {
   fireCentres: Record<string, FireCentre>
@@ -37,8 +38,6 @@ export const DailyViewTable = (props: Props): JSX.Element => {
   const [selected, setSelected] = useState<number[]>(
     Array.from(props.dailiesMap.values()).map(daily => daily.code)
   )
-
-  const DECIMAL_PLACES = 1
 
   const stationCodeInSelected = (code: number) => {
     return selected.includes(code)
