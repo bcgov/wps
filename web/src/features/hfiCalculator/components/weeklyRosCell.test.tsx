@@ -35,7 +35,7 @@ const renderWeeklyRos = (
 
 describe('WeeklyROSCell', () => {
   const stationCode = 1
-  const separatorClassRegExp = /makeStyles-sectionSeperatorBorder-/
+  const separatorClassRegExp = /makeStyles-sectionSeparatorBorder-/
   const unselectedClassRegExp = /makeStyles-unselectedStation/
   it('should return a WeeklyROSCell with left border seperator class and formatted value of 1.0', () => {
     const { getByTestId } = renderWeeklyRos(
