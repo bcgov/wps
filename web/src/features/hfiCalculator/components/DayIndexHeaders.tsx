@@ -16,7 +16,7 @@ const DayIndexHeaders = () => {
         <React.Fragment key={i}>
           <TableCell
             data-testid={`ros-header-${i}`}
-            className={classes.sectionSeperatorBorder}
+            className={classes.sectionSeparatorBorder}
           >
             ROS
             <br />

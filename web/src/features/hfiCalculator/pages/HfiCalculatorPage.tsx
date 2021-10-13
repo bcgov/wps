@@ -13,7 +13,7 @@ import {
   selectHFIStationsLoading
 } from 'app/rootReducer'
 import { CircularProgress, FormControl, makeStyles } from '@material-ui/core'
-import { buildDailyMap, buildWeekliesByCode } from '../util'
+import { buildDailyMap, buildWeekliesByCode } from 'features/hfiCalculator/util'
 import { getDateRange } from 'utils/date'
 import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
 import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'

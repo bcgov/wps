@@ -89,7 +89,7 @@ export const fireTableStyles = createStyles({
     fontWeight: 'bold',
     backgroundColor: '#dbd9d9'
   },
-  sectionSeperatorBorder: {
+  sectionSeparatorBorder: {
     borderLeft: '1px solid #C4C4C4'
   },
   calculatedPlanningCell: {
