@@ -6,12 +6,12 @@ import { calculatePrepLevel } from 'features/hfiCalculator/components/prepLevel'
 import { StationWithDaily } from 'features/hfiCalculator/util'
 import React from 'react'
 
-export interface DailyPrepLevelCellProps {
+export interface StationWeeklyPrepLevelCellProps {
   station: WeatherStation
   dailies: StationDaily[] | undefined
 }
 
-const DailyPrepLevelCell = (props: DailyPrepLevelCellProps) => {
+const StationWeeklyPrepLevelCell = (props: StationWeeklyPrepLevelCellProps) => {
   const stationWithDailies: StationWithDaily[] = props.dailies
     ? props.dailies?.map(daily => ({
         station: props.station,
@@ -29,4 +29,4 @@ const DailyPrepLevelCell = (props: DailyPrepLevelCellProps) => {
   )
 }
 
-export default React.memo(DailyPrepLevelCell)
+export default React.memo(StationWeeklyPrepLevelCell)

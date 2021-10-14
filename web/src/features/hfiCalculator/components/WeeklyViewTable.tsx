@@ -14,7 +14,7 @@ import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
 import { isGrassFuelType } from 'features/hfiCalculator/validation'
 import { fireTableStyles } from 'app/theme'
 import HighestDailyIntensityGroupCell from 'features/hfiCalculator/components/HighestDailyIntensityGroupCell'
-import DailyPrepLevelCell from 'features/hfiCalculator/components/DailyPrepLevelCell'
+import StationWeeklyPrepLevelCell from 'features/hfiCalculator/components/StationWeeklyPrepLevelCell'
 
 export interface Props {
   fireCentres: Record<string, FireCentre>
@@ -168,7 +168,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                               <HighestDailyIntensityGroupCell
                                 dailies={dailiesForStation}
                               />
-                              <DailyPrepLevelCell
+                              <StationWeeklyPrepLevelCell
                                 station={station}
                                 dailies={dailiesForStation}
                               />
