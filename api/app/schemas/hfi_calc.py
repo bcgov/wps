@@ -1,6 +1,7 @@
 """ This module contains pydandict schemas the HFI Calculator.
 """
 from typing import List, Optional
+from datetime import datetime
 from pydantic import BaseModel
 from app.schemas.shared import FuelType
 
@@ -31,6 +32,7 @@ class StationDaily(BaseModel):
     fire_type: Optional[str] = None
     error: Optional[bool] = False
     error_message: Optional[str] = None
+    date: Optional[datetime] = None
 
 
 class StationDailyResponse(BaseModel):

@@ -75,7 +75,7 @@ const FBATableHead = ({
             Zone
           </TableSortLabel>
         </TableCell>
-        <StickyCell left={50} zIndexOffset={Z_INDEX_OFFSET}>
+        <StickyCell left={57} zIndexOffset={Z_INDEX_OFFSET}>
           <TableSortLabel
             direction={order}
             onClick={() => {
