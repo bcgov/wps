@@ -52,7 +52,7 @@ describe('HFI Calculator Page', () => {
       cy.visit(HFI_CALC_ROUTE)
       cy.wait(['@getFireCentres', '@getDaily'])
       cy.getByTestId('date-of-interest-picker').type('2021-07-22')
-      cy.getByTestId('hfi-calc-daily-table').click({force: true})
+      cy.getByTestId('hfi-calc-daily-table').click({ force: true })
       cy.wait(['@getFireCentres', '@getDaily'])
     })
   })

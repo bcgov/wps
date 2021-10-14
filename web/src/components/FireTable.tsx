@@ -1,4 +1,11 @@
-import { makeStyles, Paper, Table, TableContainer } from '@material-ui/core'
+import {
+  makeStyles,
+  Paper,
+  Table,
+  TableContainer,
+  ThemeProvider
+} from '@material-ui/core'
+import { fireTableTheme } from 'app/theme'
 import React from 'react'
 
 interface FireTableProps {
@@ -15,15 +22,15 @@ const FireTable = (props: FireTableProps) => {
       maxWidth: 1900
     }
   }))
-  const classes = useStyles()
-
   return (
     <Paper elevation={1}>
-      <TableContainer className={classes.tableContainer}>
-        <Table size="small" stickyHeader aria-label={props.ariaLabel}>
-          {props.children}
-        </Table>
-      </TableContainer>
+      <ThemeProvider theme={fireTableTheme}>
+        <TableContainer className={useStyles().tableContainer}>
+          <Table data-testid={props.testId} stickyHeader>
+            {props.children}
+          </Table>
+        </TableContainer>
+      </ThemeProvider>
     </Paper>
   )
 }

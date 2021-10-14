@@ -1,4 +1,5 @@
 import { makeStyles, TableCell } from '@material-ui/core'
+import { fireTableStyles } from 'app/theme'
 import { intensityGroupColours } from 'features/hfiCalculator/components/meanIntensity'
 import React from 'react'
 
@@ -13,35 +14,41 @@ const useStyles = makeStyles({
   intensityGroupOutline1: {
     border: '2px solid',
     borderColor: intensityGroupColours.lightGreen,
+    width: 30,
     borderRadius: '4px',
     textAlign: 'center'
   },
   intensityGroupOutline2: {
     border: '2px solid',
     borderColor: intensityGroupColours.cyan,
+    width: 30,
     borderRadius: '4px',
     textAlign: 'center'
   },
   intensityGroupOutline3: {
     border: '2px solid',
     borderColor: intensityGroupColours.yellow,
+    width: 30,
     borderRadius: '4px',
     textAlign: 'center'
   },
   intensityGroupOutline4: {
     border: '2px solid',
     borderColor: intensityGroupColours.orange,
+    width: 30,
     borderRadius: '4px',
     textAlign: 'center'
   },
   intensityGroupOutline5: {
     border: '2px solid',
     borderColor: intensityGroupColours.red,
+    width: 30,
     borderRadius: '4px',
     textAlign: 'center'
   },
   unselectedStation: {
-    color: 'rgba(0,0,0,0.54)',
+    ...fireTableStyles.unselectedStation,
+    width: 30,
     border: '2px solid',
     borderColor: 'rgba(0,0,0,0.34)',
     borderRadius: '4px',
