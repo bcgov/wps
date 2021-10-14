@@ -8,7 +8,8 @@ import {
   Paper,
   makeStyles,
   Fab,
-  Checkbox
+  Checkbox,
+  Button
 } from '@material-ui/core'
 import { Clear } from '@material-ui/icons'
 
@@ -120,14 +121,9 @@ export const FilterColumnsModal = (props: ModalProps): JSX.Element => {
             >
               Apply
             </Fab>
-            <Fab
-              color="secondary"
-              aria-label="cancel"
-              onClick={handleClose}
-              variant="extended"
-            >
+            <Button aria-label="cancel" onClick={handleClose}>
               Cancel
-            </Fab>
+            </Button>
           </DialogActions>
         </Paper>
       </Dialog>
