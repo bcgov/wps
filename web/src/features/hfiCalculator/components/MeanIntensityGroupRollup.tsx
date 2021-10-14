@@ -5,47 +5,45 @@ import React from 'react'
 import { isUndefined } from 'lodash'
 import { PlanningArea } from 'api/hfiCalcAPI'
 import { isValidGrassCure } from 'features/hfiCalculator/validation'
-import { StationDaily } from 'api/hfiCalculatorAPI'
 import {
   calculateMeanIntensityGroup,
-  intensityGroupColours
+  intensityGroupColours,
+  StationWithDaily
 } from 'features/hfiCalculator/components/meanIntensity'
+import { fireTableStyles } from 'app/theme'
 
 export interface MeanIntensityGroupRollupProps {
   area: PlanningArea
-  dailiesMap: Map<number, StationDaily>
+  stationsWithDaily: StationWithDaily[]
   selectedStations: number[]
 }
 
 const useStyles = makeStyles({
+  ...fireTableStyles,
   intensityGroupSolid1: {
-    background: intensityGroupColours.lightGreen,
-    fontWeight: 'bold',
-    textAlign: 'center'
+    ...fireTableStyles.calculatedPlanningCell,
+    background: intensityGroupColours.lightGreen
   },
   intensityGroupSolid2: {
-    background: intensityGroupColours.cyan,
-    fontWeight: 'bold',
-    textAlign: 'center'
+    ...fireTableStyles.calculatedPlanningCell,
+    background: intensityGroupColours.cyan
   },
   intensityGroupSolid3: {
-    background: intensityGroupColours.yellow,
-    fontWeight: 'bold',
-    textAlign: 'center'
+    ...fireTableStyles.calculatedPlanningCell,
+    background: intensityGroupColours.yellow
   },
   intensityGroupSolid4: {
-    background: intensityGroupColours.orange,
-    fontWeight: 'bold',
-    textAlign: 'center'
+    ...fireTableStyles.calculatedPlanningCell,
+    background: intensityGroupColours.orange
   },
   intensityGroupSolid5: {
+    ...fireTableStyles.calculatedPlanningCell,
     background: intensityGroupColours.red,
-    fontWeight: 'bold',
-    color: 'white',
-    textAlign: 'center'
+    color: 'white'
   },
   alignErrorIcon: {
-    marginTop: '6px',
+    ...fireTableStyles.planningArea,
+    paddingTop: '10px',
     textAlign: 'center'
   }
 })
@@ -83,34 +81,26 @@ const genericErrorToolTipElement = (
 const MeanIntensityGroupRollup = (props: MeanIntensityGroupRollupProps) => {
   const classes = useStyles()
 
-  const stationsWithDaily = Object.entries(props.area.stations)
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    .map(([_, station]) => ({
-      station,
-      daily: props.dailiesMap.get(station.code)
-    }))
-    .filter(record => props.selectedStations.includes(record.station.code))
-  const noDailyData = stationsWithDaily.every(stationDaily =>
+  const noDailyData = props.stationsWithDaily.every(stationDaily =>
     isUndefined(stationDaily.daily)
   )
-  const grassCureError = stationsWithDaily.reduce((prev, stationDaily) => {
+  const grassCureError = props.stationsWithDaily.reduce((prev, stationDaily) => {
     return (
       prev || !isValidGrassCure(stationDaily.daily, stationDaily.station.station_props)
     )
   }, false)
 
-  const genericError = stationsWithDaily.reduce((prev, stationDaily) => {
+  const genericError = props.stationsWithDaily.reduce((prev, stationDaily) => {
     return prev || stationDaily.daily?.observation_valid === false
   }, false)
 
   const meanIntensityGroup = calculateMeanIntensityGroup(
-    props.area,
-    props.dailiesMap,
+    props.stationsWithDaily,
     props.selectedStations
   )
   const formatAreaMeanIntensityGroupByValue = () => {
     if (meanIntensityGroup === undefined) {
-      return undefined
+      return classes.defaultBackground
     }
     if (meanIntensityGroup < 2) {
       return classes.intensityGroupSolid1
