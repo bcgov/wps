@@ -2,14 +2,11 @@ import { TableCell } from '@material-ui/core'
 import { PlanningArea } from 'api/hfiCalcAPI'
 import { selectHFIDailies } from 'app/rootReducer'
 import FireStartsCell from 'features/hfiCalculator/components/FireStartsCell'
-import {
-  calculateMeanIntensityGroup,
-  getDailiesByWeekDay
-} from 'features/hfiCalculator/components/meanIntensity'
+import { calculateMeanIntensityGroup } from 'features/hfiCalculator/components/meanIntensity'
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
 import PrepLevelCell from 'features/hfiCalculator/components/PrepLevelCell'
 import { NUM_WEEK_DAYS } from 'features/hfiCalculator/constants'
-import { buildWeekliesByUTC } from 'features/hfiCalculator/util'
+import { buildWeekliesByUTC, getDailiesByWeekDay } from 'features/hfiCalculator/util'
 import { range } from 'lodash'
 import React from 'react'
 import { useSelector } from 'react-redux'

@@ -1,5 +1,6 @@
+import { WeatherStation, PlanningArea } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
-import { groupBy } from 'lodash'
+import { groupBy, isUndefined } from 'lodash'
 
 export const buildDailyMap = (dailies: StationDaily[]): Map<number, StationDaily> => {
   const dailiesMap = new Map<number, StationDaily>()
@@ -37,4 +38,36 @@ export const buildWeekliesByUTC = (
   })
 
   return weekliesByUTC
+}
+
+export interface StationWithDaily {
+  station: WeatherStation
+  daily: StationDaily | undefined
+}
+
+export const getDailiesByDay = (
+  area: PlanningArea,
+  dailiesMap: Map<number, StationDaily>,
+  selectedStations: number[]
+): StationWithDaily[] => {
+  return Object.entries(area.stations)
+    .map(([, station]) => ({
+      station,
+      daily: dailiesMap.get(station.code)
+    }))
+    .filter(record => selectedStations.includes(record.station.code))
+}
+
+export const getDailiesByWeekDay = (
+  area: PlanningArea,
+  dayTimestamp: number,
+  weekliesByUTC: Map<number, StationDaily[]>,
+  selectedStations: number[]
+): StationWithDaily[] => {
+  const dailiesForDay = weekliesByUTC.get(dayTimestamp)
+  if (isUndefined(dailiesForDay)) {
+    return []
+  }
+  const dailiesByCode = new Map(dailiesForDay.map(daily => [daily.code, daily]))
+  return getDailiesByDay(area, dailiesByCode, selectedStations)
 }

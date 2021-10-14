@@ -1,11 +1,9 @@
 import { TableCell } from '@material-ui/core'
 import { WeatherStation } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
-import {
-  calculateMeanIntensityGroup,
-  StationWithDaily
-} from 'features/hfiCalculator/components/meanIntensity'
+import { calculateMeanIntensityGroup } from 'features/hfiCalculator/components/meanIntensity'
 import { calculatePrepLevel } from 'features/hfiCalculator/components/prepLevel'
+import { StationWithDaily } from 'features/hfiCalculator/util'
 import React from 'react'
 
 export interface DailyPrepLevelCellProps {

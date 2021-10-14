@@ -7,10 +7,10 @@ import { PlanningArea } from 'api/hfiCalcAPI'
 import { isValidGrassCure } from 'features/hfiCalculator/validation'
 import {
   calculateMeanIntensityGroup,
-  intensityGroupColours,
-  StationWithDaily
+  intensityGroupColours
 } from 'features/hfiCalculator/components/meanIntensity'
 import { fireTableStyles } from 'app/theme'
+import { StationWithDaily } from 'features/hfiCalculator/util'
 
 export interface MeanIntensityGroupRollupProps {
   area: PlanningArea

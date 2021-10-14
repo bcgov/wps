@@ -1,5 +1,4 @@
-import { PlanningArea, WeatherStation } from 'api/hfiCalcAPI'
-import { StationDaily } from 'api/hfiCalculatorAPI'
+import { StationWithDaily } from 'features/hfiCalculator/util'
 import { isUndefined } from 'lodash'
 
 export const intensityGroupColours: { [description: string]: string } = {
@@ -26,35 +25,4 @@ export const calculateMeanIntensityGroup = (
         (10 * stationIntensityGroups.reduce((a, b) => a + b, 0)) /
           stationIntensityGroups.length
       ) / 10
-}
-export interface StationWithDaily {
-  station: WeatherStation
-  daily: StationDaily | undefined
-}
-
-export const getDailiesByDay = (
-  area: PlanningArea,
-  dailiesMap: Map<number, StationDaily>,
-  selectedStations: number[]
-): StationWithDaily[] => {
-  return Object.entries(area.stations)
-    .map(([, station]) => ({
-      station,
-      daily: dailiesMap.get(station.code)
-    }))
-    .filter(record => selectedStations.includes(record.station.code))
-}
-
-export const getDailiesByWeekDay = (
-  area: PlanningArea,
-  dayTimestamp: number,
-  weekliesByUTC: Map<number, StationDaily[]>,
-  selectedStations: number[]
-): StationWithDaily[] => {
-  const dailiesForDay = weekliesByUTC.get(dayTimestamp)
-  if (isUndefined(dailiesForDay)) {
-    return []
-  }
-  const dailiesByCode = new Map(dailiesForDay.map(daily => [daily.code, daily]))
-  return getDailiesByDay(area, dailiesByCode, selectedStations)
 }
