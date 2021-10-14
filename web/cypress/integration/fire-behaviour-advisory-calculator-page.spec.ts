@@ -317,17 +317,15 @@ describe('FireBAT Calculator Page', () => {
       cy.getByTestId('apply-btn').click()
 
       // check that hidden columns are actually hidden
-      cy.get('.MuiTable-root').find('thead > tr').should('not.contain', 'Wind Dir')
-      cy.get('.MuiTable-root').find('thead > tr').should('not.contain', 'Fire Type')
-      cy.get('.MuiTable-root').find('thead > tr').should('not.contain', 'CFB (%)')
-      cy.get('.MuiTable-root')
-        .find('thead > tr')
-        .should('not.contain', 'Flame Length (m)')
+      cy.get('table').find('thead > tr').should('not.contain', 'Wind Dir')
+      cy.get('table').find('thead > tr').should('not.contain', 'Fire Type')
+      cy.get('table').find('thead > tr').should('not.contain', 'CFB (%)')
+      cy.get('table').find('thead > tr').should('not.contain', 'Flame Length (m)')
 
       // check that some of the other columns are still visible
-      cy.get('.MuiTable-root').find('thead > tr').should('contain', 'Weather Station')
-      cy.get('.MuiTable-root').find('thead > tr').should('contain', 'FBP Fuel Type')
-      cy.get('.MuiTable-root').find('thead > tr').should('contain', 'HFI')
+      cy.get('table').find('thead > tr').should('contain', 'Weather Station')
+      cy.get('table').find('thead > tr').should('contain', 'FBP Fuel Type')
+      cy.get('table').find('thead > tr').should('contain', 'HFI')
     })
   })
 })

@@ -39,7 +39,7 @@ const useStyles = makeStyles(() => ({
   }
 }))
 
-export const FilterColumnsModal = (props: ModalProps) => {
+export const FilterColumnsModal = (props: ModalProps): JSX.Element => {
   const classes = useStyles()
 
   // set all columns as selected by default
@@ -75,61 +75,63 @@ export const FilterColumnsModal = (props: ModalProps) => {
   }
 
   return (
-    <Dialog
-      fullWidth
-      className={classes.modalWindow}
-      open={props.modalOpen}
-      onClose={handleClose}
-    >
-      <Paper>
-        <DialogTitle>
-          Show Columns
-          <IconButton className={classes.closeIcon} onClick={handleClose}>
-            <Clear />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent>
-          {props.columns.map((column, index) => {
-            return (
-              <div key={column}>
-                <Checkbox
-                  checked={selectedSet.has(index)}
-                  color="primary"
-                  onClick={() => {
-                    toggleSelectedIndex(index)
-                  }}
-                  size="small"
-                  data-testid={`filter-${column.replaceAll(' ', '-')}`}
-                  // below is some jiggery-pokery to get checkboxes to squish closer together vertically
-                  // https://stackoverflow.com/questions/64261614/how-to-decrease-vetical-distance-between-two-checkboxes-with-label
-                  classes={{ root: classes.selectionBox }}
-                />
-                <a>{column}</a>
-              </div>
-            )
-          })}
-        </DialogContent>
-        <DialogActions>
-          <Fab
-            color="primary"
-            aria-label="apply"
-            onClick={handleApplyAndClose}
-            variant="extended"
-            data-testId="apply-btn"
-          >
-            Apply
-          </Fab>
-          <Fab
-            color="secondary"
-            aria-label="cancel"
-            onClick={handleClose}
-            variant="extended"
-          >
-            Cancel
-          </Fab>
-        </DialogActions>
-      </Paper>
-    </Dialog>
+    <React.Fragment>
+      <Dialog
+        fullWidth
+        className={classes.modalWindow}
+        open={props.modalOpen}
+        onClose={handleClose}
+      >
+        <Paper>
+          <DialogTitle>
+            Show Columns
+            <IconButton className={classes.closeIcon} onClick={handleClose}>
+              <Clear />
+            </IconButton>
+          </DialogTitle>
+          <DialogContent>
+            {props.columns.map((column, index) => {
+              return (
+                <div key={column}>
+                  <Checkbox
+                    checked={selectedSet.has(index)}
+                    color="primary"
+                    onClick={() => {
+                      toggleSelectedIndex(index)
+                    }}
+                    size="small"
+                    data-testid={`filter-${column.replaceAll(' ', '-')}`}
+                    // below is some jiggery-pokery to get checkboxes to squish closer together vertically
+                    // https://stackoverflow.com/questions/64261614/how-to-decrease-vetical-distance-between-two-checkboxes-with-label
+                    classes={{ root: classes.selectionBox }}
+                  />
+                  <a>{column}</a>
+                </div>
+              )
+            })}
+          </DialogContent>
+          <DialogActions>
+            <Fab
+              color="primary"
+              aria-label="apply"
+              onClick={handleApplyAndClose}
+              variant="extended"
+              data-testId="apply-btn"
+            >
+              Apply
+            </Fab>
+            <Fab
+              color="secondary"
+              aria-label="cancel"
+              onClick={handleClose}
+              variant="extended"
+            >
+              Cancel
+            </Fab>
+          </DialogActions>
+        </Paper>
+      </Dialog>
+    </React.Fragment>
   )
 }
 

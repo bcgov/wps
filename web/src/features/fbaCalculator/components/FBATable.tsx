@@ -815,7 +815,11 @@ const FBATable = (props: FBATableProps) => {
           parentCallback={filterColumnsCallback}
         />
 
-        <FireTable ariaLabel="Fire Behaviour Analysis table" maxHeight={600}>
+        <FireTable
+          ariaLabel="Fire Behaviour Analysis table"
+          maxHeight={600}
+          data-testId={props.testId}
+        >
           <FBATableHead
             toggleSorting={toggleSorting}
             order={order}
