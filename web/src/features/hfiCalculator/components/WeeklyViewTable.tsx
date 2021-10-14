@@ -13,6 +13,8 @@ import BaseStationAttributeCells from 'features/hfiCalculator/components/BaseSta
 import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
 import { isGrassFuelType } from 'features/hfiCalculator/validation'
 import { fireTableStyles } from 'app/theme'
+import HighestDailyIntensityGroupCell from 'features/hfiCalculator/components/HighestDailyIntensityGroupCell'
+import DailyPrepLevelCell from 'features/hfiCalculator/components/DailyPrepLevelCell'
 
 export interface Props {
   fireCentres: Record<string, FireCentre>
@@ -55,6 +57,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
       <TableHead>
         <TableRow>
           <DayHeaders isoDate={props.currentDay} />
+          <TableCell colSpan={2} className={classes.spaceHeader}></TableCell>
         </TableRow>
         <TableRow>
           <TableCell>
@@ -81,6 +84,12 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
             (%)
           </TableCell>
           <DayIndexHeaders />
+          <TableCell className={classes.sectionSeparatorBorder}>
+            Max
+            <br /> Daily
+            <br /> FIG
+          </TableCell>
+          <TableCell>Prep</TableCell>
         </TableRow>
       </TableHead>
       <TableBody>
@@ -88,7 +97,7 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
           return (
             <React.Fragment key={`fire-centre-${centreName}`}>
               <TableRow key={`fire-centre-${centreName}`}>
-                <TableCell className={classes.fireCentre} colSpan={30}>
+                <TableCell className={classes.fireCentre} colSpan={32}>
                   {centre.name}
                 </TableCell>
               </TableRow>
@@ -111,11 +120,14 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                           selected={selected}
                           planningAreaClass={classes.planningArea}
                         />
+                        <TableCell className={classes.planningArea} colSpan={2} />
                       </TableRow>
                       {Object.entries(area.stations)
                         .sort((a, b) => (a[1].code < b[1].code ? -1 : 1))
                         .map(([stationCode, station]) => {
-                          const dailies = props.weekliesByStationCode.get(station.code)
+                          const dailiesForStation = props.weekliesByStationCode.get(
+                            station.code
+                          )
                           const isRowSelected = stationCodeInSelected(station.code)
                           const classNameForRow = !isRowSelected
                             ? classes.unselectedStation
@@ -134,7 +146,9 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                               />
                               <GrassCureCell
                                 value={
-                                  dailies ? dailies[0].grass_cure_percentage : undefined
+                                  dailiesForStation
+                                    ? dailiesForStation[0].grass_cure_percentage
+                                    : undefined
                                 }
                                 isGrassFuelType={isGrassFuelType(station.station_props)}
                                 className={
@@ -144,10 +158,17 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
                               />
 
                               <StaticCells
-                                dailies={dailies}
+                                dailies={dailiesForStation}
                                 station={station}
                                 classNameForRow={classNameForRow}
                                 isRowSelected={isRowSelected}
+                              />
+                              <HighestDailyIntensityGroupCell
+                                dailies={dailiesForStation}
+                              />
+                              <DailyPrepLevelCell
+                                station={station}
+                                dailies={dailiesForStation}
                               />
                             </TableRow>
                           )
