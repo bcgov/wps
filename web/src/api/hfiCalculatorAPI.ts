@@ -1,4 +1,5 @@
 import axios from 'api/axios'
+import { DateTime } from 'luxon'
 
 export interface StationDaily {
   code: number
@@ -23,10 +24,20 @@ export interface StationDaily {
   intensity_group: number
   sixty_minute_fire_size: number
   fire_type: string
+  date: DateTime
+}
+
+/**
+ * Axios does't marshal complex objects like DateTime.
+ * RawDaily is the daily representation over the wire (a string date)
+ * that we then marshall into a StationDaily (with a DateTime)
+ */
+interface RawDaily extends Omit<StationDaily, 'date'> {
+  date: string
 }
 
 export interface StationDailyResponse {
-  dailies: StationDaily[]
+  dailies: RawDaily[]
 }
 
 const url = '/hfi-calc/daily'
@@ -42,5 +53,5 @@ export async function getDailies(
     }
   })
 
-  return data.dailies
+  return data.dailies.map(daily => ({ ...daily, date: DateTime.fromISO(daily.date) }))
 }

@@ -46,9 +46,9 @@ import SelectionCell from 'features/fbaCalculator/components/SelectionCell'
 import StickyCell from 'features/fbaCalculator/components/StickyCell'
 import FBATableHead from 'features/fbaCalculator/components/FBATableHead'
 import FireTable from 'components/FireTable'
-import FireDisplayContainer from 'components/FireDisplayContainer'
 import FBATableInstructions from 'features/fbaCalculator/components/FBATableInstructions'
 import FilterColumnsModal from 'components/FilterColumnsModal'
+import { formControlStyles } from 'app/theme'
 export interface FBATableProps {
   testId?: string
 }
@@ -65,11 +65,8 @@ export interface FBAInputRow {
   windSpeed: number | undefined
 }
 
-const useStyles = makeStyles(theme => ({
-  formControl: {
-    margin: theme.spacing(1),
-    minWidth: 210
-  },
+const useStyles = makeStyles(() => ({
+  ...formControlStyles,
   weatherStation: {
     minWidth: 220
   },
@@ -818,51 +815,49 @@ const FBATable = (props: FBATableProps) => {
           parentCallback={filterColumnsCallback}
         />
 
-        <FireDisplayContainer testId={props.testId}>
-          <FireTable ariaLabel="Fire Behaviour Analysis table" maxHeight={600}>
-            <FBATableHead
-              toggleSorting={toggleSorting}
-              order={order}
-              rows={rows}
-              headerSelected={headerSelected}
-              setHeaderSelect={setHeaderSelect}
-              setSelected={setSelected}
-              loading={loading}
-              visibleColumns={visibleColumns}
-            />
-            <TableBody data-testid="fba-table-body">
-              {rows.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={30}>
-                    <FBATableInstructions />
-                  </TableCell>
-                </TableRow>
-              ) : (
-                rows.map(row => {
-                  return (
-                    !isUndefined(row) && (
-                      <TableRow key={row.id}>
-                        <StickyCell left={0} zIndexOffset={1} backgroundColor="#FFFFFF">
-                          <SelectionCell
-                            selected={selected}
-                            updateSelected={(newSelected: number[]) =>
-                              setSelected(newSelected)
-                            }
-                            disabled={rowIdsToUpdate.has(row.id) && !rowShouldUpdate(row)}
-                            rowId={row.id}
-                          />
-                        </StickyCell>
-                        {visibleColumns.map(colName => {
-                          return columnCellComponents(row, colName)
-                        })}
-                      </TableRow>
-                    )
+        <FireTable ariaLabel="Fire Behaviour Analysis table" maxHeight={600}>
+          <FBATableHead
+            toggleSorting={toggleSorting}
+            order={order}
+            rows={rows}
+            headerSelected={headerSelected}
+            setHeaderSelect={setHeaderSelect}
+            setSelected={setSelected}
+            loading={loading}
+            visibleColumns={visibleColumns}
+          />
+          <TableBody data-testid="fba-table-body">
+            {rows.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={30}>
+                  <FBATableInstructions />
+                </TableCell>
+              </TableRow>
+            ) : (
+              rows.map(row => {
+                return (
+                  !isUndefined(row) && (
+                    <TableRow key={row.id}>
+                      <StickyCell left={0} zIndexOffset={1} backgroundColor="#FFFFFF">
+                        <SelectionCell
+                          selected={selected}
+                          updateSelected={(newSelected: number[]) =>
+                            setSelected(newSelected)
+                          }
+                          disabled={rowIdsToUpdate.has(row.id) && !rowShouldUpdate(row)}
+                          rowId={row.id}
+                        />
+                      </StickyCell>
+                      {visibleColumns.map(colName => {
+                        return columnCellComponents(row, colName)
+                      })}
+                    </TableRow>
                   )
-                })
-              )}
-            </TableBody>
-          </FireTable>
-        </FireDisplayContainer>
+                )
+              })
+            )}
+          </TableBody>
+        </FireTable>
       </ErrorBoundary>
     </React.Fragment>
   )
