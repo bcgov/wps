@@ -33,17 +33,9 @@ const useStyles = makeStyles(() => ({
     position: 'absolute',
     right: '0px'
   },
-  floatingActionButton: {
-    bottom: 40,
-    left: 25,
-    top: 'auto',
-    right: 'auto',
-    position: 'relative',
-    margin: 0
-  },
   selectionBox: {
-    marginBottom: '3px',
-    marginTop: '3px'
+    height: '20px',
+    boxSizing: 'border-box'
   }
 }))
 
@@ -102,11 +94,15 @@ export const FilterColumnsModal = (props: ModalProps) => {
               <div key={column}>
                 <Checkbox
                   checked={selectedSet.has(index)}
+                  color="primary"
                   onClick={() => {
                     toggleSelectedIndex(index)
                   }}
+                  size="small"
                   data-testid={`filter-${column.replaceAll(' ', '-')}`}
-                  className={classes.selectionBox}
+                  // below is some jiggery-pokery to get checkboxes to squish closer together vertically
+                  // https://stackoverflow.com/questions/64261614/how-to-decrease-vetical-distance-between-two-checkboxes-with-label
+                  classes={{ root: classes.selectionBox }}
                 />
                 <a>{column}</a>
               </div>
@@ -120,7 +116,6 @@ export const FilterColumnsModal = (props: ModalProps) => {
             onClick={handleApplyAndClose}
             variant="extended"
             data-testId="apply-btn"
-            className={classes.floatingActionButton}
           >
             Apply
           </Fab>
@@ -129,7 +124,6 @@ export const FilterColumnsModal = (props: ModalProps) => {
             aria-label="cancel"
             onClick={handleClose}
             variant="extended"
-            className={classes.floatingActionButton}
           >
             Cancel
           </Fab>
