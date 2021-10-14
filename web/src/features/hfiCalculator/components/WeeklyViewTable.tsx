@@ -86,8 +86,10 @@ export const WeeklyViewTable = (props: Props): JSX.Element => {
           <DayIndexHeaders />
           <TableCell className={classes.sectionSeparatorBorder}>
             Max
-            <br /> Daily
-            <br /> FIG
+            <br />
+            Daily
+            <br />
+            FIG
           </TableCell>
           <TableCell>Prep</TableCell>
         </TableRow>
