@@ -43,35 +43,33 @@ export const FilterColumnsModal = (props: ModalProps) => {
   const classes = useStyles()
 
   // set all columns as selected by default
-  const [selected, setSelected] = useState<number[]>(
-    Array.from(Array(props.columns.length).keys())
+  const [selected, setSelected] = useState(
+    new Set(Array.from(Array(props.columns.length).keys()))
   )
-  // having a set for selected as well as an array might seem like overkill, but because of the
-  // inherent delays associated with useState for selected, this duplication is the only way to have the
-  // checkboxes updated immediately once they're clicked
-  const selectedSet = new Set(selected)
 
   const handleClose = () => {
     props.setModalOpen(false)
   }
 
   const handleApplyAndClose = () => {
-    const selectedColumnLabels = selected.map(index => {
-      return props.columns[index]
-    })
+    const selectedColumnLabels = Array.from(selected)
+      .sort((a, b) => a - b)
+      .map(index => {
+        return props.columns[index]
+      })
     props.parentCallback(selectedColumnLabels)
     props.setModalOpen(false)
   }
 
   const toggleSelectedIndex = (index: number) => {
-    if (!selectedSet.has(index)) {
+    if (!selected.has(index)) {
       // toggle index ON
-      selectedSet.add(index)
-    } else if (selectedSet.has(index)) {
+      selected.add(index)
+    } else if (selected.has(index)) {
       // toggle index OFF
-      selectedSet.delete(index)
+      selected.delete(index)
     }
-    setSelected(Array.from(selectedSet).sort((a, b) => a - b))
+    setSelected(new Set(selected))
   }
 
   return (
@@ -93,7 +91,7 @@ export const FilterColumnsModal = (props: ModalProps) => {
             return (
               <div key={column}>
                 <Checkbox
-                  checked={selectedSet.has(index)}
+                  checked={selected.has(index)}
                   color="primary"
                   onClick={() => {
                     toggleSelectedIndex(index)
