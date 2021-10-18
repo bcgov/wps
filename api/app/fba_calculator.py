@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 class FireTypeEnum(str, Enum):
     """ Enumerator for the three different fire types. """
-    SURFACE = 'S'
+    SURFACE = 'SUR'
     INTERMITTENT_CROWN = 'IC'
     CONTINUOUS_CROWN = 'CC'
 
@@ -282,7 +282,7 @@ def get_fire_type(fuel_type: FuelTypeEnum, crown_fraction_burned: float) -> Fire
     Abbreviations for fire types have been taken from the red book (p.9).
 
     CROWN FRACTION BURNED           TYPE OF FIRE                ABBREV.
-    < 10%                           Surface fire                S
+    < 10%                           Surface fire                SUR
     10-89%                          Intermittent crown fire     IC
     > 90%                           Continuous crown fire       CC
     """
