@@ -32,6 +32,11 @@ const useStyles = makeStyles({
   },
   progressBar: {
     minWidth: 1900
+  },
+  infoIcon: {
+    style: {
+      fill: '#1A5A96'
+    }
   }
 })
 
@@ -349,7 +354,7 @@ const FBATableHead = ({
           title={typeToolTipElement}
           aria-label={`${typeToolTipFirstLine} \n ${typeToolTipSecondLine} \n ${typeToolTipThirdLine}`}
         >
-          <InfoOutlinedIcon style={{ fill: '#1A5A96' }}></InfoOutlinedIcon>
+          <InfoOutlinedIcon className={classes.infoIcon}></InfoOutlinedIcon>
         </Tooltip>
       </TableCell>
     ),
