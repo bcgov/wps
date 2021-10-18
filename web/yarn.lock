@@ -5005,13 +5005,6 @@ copy-descriptor@^0.1.0:
   resolved "https://registry.yarnpkg.com/copy-descriptor/-/copy-descriptor-0.1.1.tgz#676f6eb3c39997c2ee1ac3a924fd6124748f578d"
   integrity sha1-Z29us8OZl8LuGsOpJP1hJHSPV40=
 
-copy-to-clipboard@^3:
-  version "3.3.1"
-  resolved "https://registry.yarnpkg.com/copy-to-clipboard/-/copy-to-clipboard-3.3.1.tgz#115aa1a9998ffab6196f93076ad6da3b913662ae"
-  integrity sha512-i13qo6kIHTTpCm8/Wup+0b1mVWETvu2kIMzKoK8FpkLkFxlt0znUAHcMzox+T8sPlqtZXq3CulEjQHsYiGFJUw==
-  dependencies:
-    toggle-selection "^1.0.6"
-
 core-js-compat@^3.1.1, core-js-compat@^3.14.0, core-js-compat@^3.16.0, core-js-compat@^3.6.2:
   version "3.17.3"
   resolved "https://registry.yarnpkg.com/core-js-compat/-/core-js-compat-3.17.3.tgz#b39c8e4dec71ecdc735c653ce5233466e561324e"
@@ -11740,7 +11733,7 @@ plotly.js@^2.5.1:
     "@turf/bbox" "^6.4.0"
     "@turf/centroid" "^6.0.2"
     alpha-shape "^1.0.0"
-    box-intersect plotly/box-intersect#v1.1.0
+    box-intersect "github:plotly/box-intersect#v1.1.0"
     canvas-fit "^1.5.0"
     color-alpha "1.0.4"
     color-normalize "1.5.0"
@@ -11777,7 +11770,7 @@ plotly.js@^2.5.1:
     glslify "^7.1.1"
     has-hover "^1.0.1"
     has-passive-events "^1.0.0"
-    incremental-convex-hull plotly/incremental-convex-hull#v1.1.0
+    incremental-convex-hull "github:plotly/incremental-convex-hull#v1.1.0"
     is-mobile "^2.2.2"
     mapbox-gl "1.10.1"
     matrix-camera-controller "^2.1.4"
@@ -11785,13 +11778,13 @@ plotly.js@^2.5.1:
     mouse-event-offset "^3.0.2"
     mouse-wheel "^1.2.0"
     native-promise-only "^0.8.1"
-    ndarray plotly/ndarray#v1.1.0
-    ndarray-extract-contour plotly/ndarray-extract-contour#v1.1.0
-    ndarray-gradient plotly/ndarray-gradient#v1.1.0
+    ndarray "github:plotly/ndarray#v1.1.0"
+    ndarray-extract-contour "github:plotly/ndarray-extract-contour#v1.1.0"
+    ndarray-gradient "github:plotly/ndarray-gradient#v1.1.0"
     ndarray-linear-interpolate "^1.0.0"
-    ndarray-ops plotly/ndarray-ops#v1.3.0
-    ndarray-pack plotly/ndarray-pack#v1.3.0
-    ndarray-sort plotly/ndarray-sort#v1.1.0
+    ndarray-ops "github:plotly/ndarray-ops#v1.3.0"
+    ndarray-pack "github:plotly/ndarray-pack#v1.3.0"
+    ndarray-sort "github:plotly/ndarray-sort#v1.1.0"
     parse-svg-path "^0.1.2"
     polybooljs "^1.2.0"
     probe-image-size "^7.2.1"
@@ -11801,14 +11794,14 @@ plotly.js@^2.5.1:
     regl-scatter2d "^3.2.8"
     regl-splom "^1.0.14"
     right-now "^1.0.0"
-    robust-determinant plotly/robust-determinant#v1.2.1
+    robust-determinant "github:plotly/robust-determinant#v1.2.1"
     robust-in-sphere "1.2.1"
-    robust-linear-solve plotly/robust-linear-solve#v1.1.1
+    robust-linear-solve "github:plotly/robust-linear-solve#v1.1.1"
     robust-orientation "1.2.1"
-    simplicial-complex-contour plotly/simplicial-complex-contour#v1.1.0
+    simplicial-complex-contour "github:plotly/simplicial-complex-contour#v1.1.0"
     strongly-connected-components "^1.0.1"
     superscript-text "^1.0.0"
-    surface-nets plotly/surface-nets#v1.1.1
+    surface-nets "github:plotly/surface-nets#v1.1.1"
     svg-path-sdf "^1.1.3"
     tinycolor2 "^1.4.2"
     to-px "1.0.1"
@@ -11816,7 +11809,7 @@ plotly.js@^2.5.1:
     vectorize-text "3.2.2"
     webgl-context "^2.2.0"
     world-calendars "^1.0.3"
-    zero-crossings plotly/zero-crossings#v1.1.0
+    zero-crossings "github:plotly/zero-crossings#v1.1.0"
 
 pnp-webpack-plugin@1.6.4:
   version "1.6.4"
@@ -12648,7 +12641,7 @@ prompts@^2.0.1:
     kleur "^3.0.3"
     sisteransi "^1.0.5"
 
-prop-types@^15.5.8, prop-types@^15.6.2, prop-types@^15.7.2:
+prop-types@^15.6.2, prop-types@^15.7.2:
   version "15.7.2"
   resolved "https://registry.yarnpkg.com/prop-types/-/prop-types-15.7.2.tgz#52c41e75b8c87e72b9d9360e0206b99dcbffa6c5"
   integrity sha512-8QQikdH7//R2vurIJSutZ1smHYTcLpRWEOlHnzcWHmBYrOGUysKwSsrC89BCiFj3CbrfJ/nXFdJepOVrY1GCHQ==
@@ -12883,14 +12876,6 @@ react-app-polyfill@^2.0.0:
     raf "^3.4.1"
     regenerator-runtime "^0.13.7"
     whatwg-fetch "^3.4.1"
-
-react-copy-to-clipboard@^5.0.4:
-  version "5.0.4"
-  resolved "https://registry.yarnpkg.com/react-copy-to-clipboard/-/react-copy-to-clipboard-5.0.4.tgz#42ec519b03eb9413b118af92d1780c403a5f19bf"
-  integrity sha512-IeVAiNVKjSPeGax/Gmkqfa/+PuMTBhutEvFUaMQLwE2tS0EXrAdgOpWDX26bWTXF3HrioorR7lr08NqeYUWQCQ==
-  dependencies:
-    copy-to-clipboard "^3"
-    prop-types "^15.5.8"
 
 react-dev-utils@^11.0.3:
   version "11.0.4"
@@ -13617,6 +13602,7 @@ robust-compress@^1.0.0:
 
 robust-determinant@^1.1.0, "robust-determinant@github:plotly/robust-determinant#v1.2.1":
   version "1.2.1"
+  uid "7cb499bb02411de80ae1a90e54893e46af82ca5e"
   resolved "https://codeload.github.com/plotly/robust-determinant/tar.gz/7cb499bb02411de80ae1a90e54893e46af82ca5e"
   dependencies:
     robust-compress "^1.0.0"
@@ -13644,6 +13630,7 @@ robust-in-sphere@1.2.1, robust-in-sphere@^1.1.3:
 
 robust-linear-solve@^1.0.0, "robust-linear-solve@github:plotly/robust-linear-solve#v1.1.1":
   version "1.1.1"
+  uid "90ad6de2ce011a1e0b53d9e9f6bf8d117053c492"
   resolved "https://codeload.github.com/plotly/robust-linear-solve/tar.gz/90ad6de2ce011a1e0b53d9e9f6bf8d117053c492"
   dependencies:
     robust-determinant "^1.1.0"
@@ -14799,6 +14786,7 @@ supports-hyperlinks@^2.0.0:
 
 surface-nets@^1.0.0, surface-nets@^1.0.2, "surface-nets@github:plotly/surface-nets#v1.1.1":
   version "1.1.1"
+  uid d80900ed4c39a1b07f9d8577180960945236d996
   resolved "https://codeload.github.com/plotly/surface-nets/tar.gz/d80900ed4c39a1b07f9d8577180960945236d996"
   dependencies:
     ndarray-extract-contour "^1.0.0"
@@ -15185,11 +15173,6 @@ to-uint8@^1.4.1:
     is-base64 "^0.1.0"
     is-float-array "^1.0.0"
     to-array-buffer "^3.0.0"
-
-toggle-selection@^1.0.6:
-  version "1.0.6"
-  resolved "https://registry.yarnpkg.com/toggle-selection/-/toggle-selection-1.0.6.tgz#6e45b1263f2017fa0acc7d89d78b15b8bf77da32"
-  integrity sha1-bkWxJj8gF/oKzH2J14sVuL932jI=
 
 toidentifier@1.0.0:
   version "1.0.0"
