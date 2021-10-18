@@ -3,6 +3,7 @@ import React, { ReactFragment, useState } from 'react'
 import { TableBody, TableCell, TableHead, TableRow, Tooltip } from '@material-ui/core'
 import { createTheme, makeStyles, ThemeProvider } from '@material-ui/core/styles'
 import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline'
+import InfoOutlinedIcon from '@material-ui/icons/InfoOutlined'
 import { FireCentre } from 'api/hfiCalcAPI'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
@@ -72,6 +73,17 @@ export const DailyViewTable = (props: Props): JSX.Element => {
       </div>
     )
   }
+
+  const typeToolTipFirstLine = 'SUR = Surface Type'
+  const typeToolTipSecondLine = 'IC = Intermittent Crown Type'
+  const typeToolTipThirdLine = 'CC = Continuous Crown Type'
+  const typeToolTipElement = (
+    <div>
+      {typeToolTipFirstLine} <br />
+      {typeToolTipSecondLine} <br />
+      {typeToolTipThirdLine}
+    </div>
+  )
 
   return (
     <FireTable
@@ -160,6 +172,12 @@ export const DailyViewTable = (props: Props): JSX.Element => {
             Fire
             <br />
             Type
+            <Tooltip
+              title={typeToolTipElement}
+              aria-label={`${typeToolTipFirstLine} \n ${typeToolTipSecondLine} \n ${typeToolTipThirdLine}`}
+            >
+              <InfoOutlinedIcon style={{ fill: '#1A5A96' }}></InfoOutlinedIcon>
+            </Tooltip>
           </TableCell>
           <TableCell>
             M /
