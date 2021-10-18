@@ -12,9 +12,11 @@ import {
   selectHFIStations,
   selectHFIStationsLoading
 } from 'app/rootReducer'
-import { CircularProgress, FormControl, makeStyles } from '@material-ui/core'
+import { Button, CircularProgress, FormControl, makeStyles } from '@material-ui/core'
+import { FileCopyOutlined } from '@material-ui/icons'
 import { buildDailyMap, buildWeekliesByCode } from 'features/hfiCalculator/util'
 import { getDateRange } from 'utils/date'
+import { CopyToClipboard } from 'react-copy-to-clipboard'
 import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
 import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'
 import { formControlStyles } from 'app/theme'
@@ -35,6 +37,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const { fireCentres } = useSelector(selectHFIStations)
   const stationDataLoading = useSelector(selectHFIStationsLoading)
   const [isWeeklyView, toggleTableView] = useState(false)
+  const [isCopied, setIsCopied] = useState(false)
 
   // the DatePicker component requires dateOfInterest to be in string format
   const [dateOfInterest, setDateOfInterest] = useState(
@@ -95,6 +98,20 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
               toggleTableView={toggleTableView}
             />
           </FormControl>
+
+          <FormControl className={classes.formControl}>
+            <Button>
+              <FileCopyOutlined />
+              Copy to Clipboard
+            </Button>
+          </FormControl>
+
+          <CopyToClipboard
+            text={buildWeekliesByCode(dailies)}
+            onCopy={() => setIsCopied(true)}
+          >
+            <Button>Copy with CopyToClipboard</Button>
+          </CopyToClipboard>
 
           <ViewSwitcher
             isWeeklyView={isWeeklyView}
