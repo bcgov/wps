@@ -21,7 +21,6 @@ import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanInte
 import { isUndefined } from 'lodash'
 import CalculatedCell from 'features/hfiCalculator/components/CalculatedCell'
 import IntensityGroupCell from 'features/hfiCalculator/components/IntensityGroupCell'
-import FireTypeCell from 'features/hfiCalculator/components/FireTypeCell'
 import FireTable from 'components/FireTable'
 import FireContainer from 'components/FireDisplayContainer'
 
@@ -286,7 +285,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                 title={typeToolTipElement}
                 aria-label={`${typeToolTipFirstLine} \n ${typeToolTipSecondLine} \n ${typeToolTipThirdLine}`}
               >
-                <InfoOutlinedIcon></InfoOutlinedIcon>
+                <InfoOutlinedIcon style={{ fill: '#1A5A96' }}></InfoOutlinedIcon>
               </Tooltip>
             </TableCell>
             <TableCell>
@@ -475,7 +474,10 @@ export const DailyViewTable = (props: Props): JSX.Element => {
                                   error={grassCureError}
                                   className={classNameForRow}
                                 ></CalculatedCell>
-                                <TableCell>{daily?.fire_type}</TableCell>
+                                <TableCell data-testid={`${daily?.code}-fire-type`}>
+                                  {daily?.fire_type}
+                                </TableCell>
+                                {console.log(daily?.code + '-fire-type')}
                                 <IntensityGroupCell
                                   testid={`${daily?.code}-intensity-group`}
                                   value={daily?.intensity_group}

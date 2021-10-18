@@ -323,7 +323,7 @@ const FBATableHead = ({
             title={typeToolTipElement}
             aria-label={`${typeToolTipFirstLine} \n ${typeToolTipSecondLine} \n ${typeToolTipThirdLine}`}
           >
-            <InfoOutlinedIcon></InfoOutlinedIcon>
+            <InfoOutlinedIcon style={{ fill: '#1A5A96' }}></InfoOutlinedIcon>
           </Tooltip>
         </TableCell>
         <TableCell sortDirection={order}>
