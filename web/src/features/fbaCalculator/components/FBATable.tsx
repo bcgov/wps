@@ -327,14 +327,53 @@ const FBATable = (props: FBATableProps) => {
     setVisibleColumns(filterByColumns)
   }
 
-  const getZoneCell = (row: FBATableRow) => {
+  type TextDisplayCellType = keyof Pick<
+    FBATableRow,
+    | 'zone_code'
+    | 'elevation'
+    | 'temp'
+    | 'rh'
+    | 'wind_direction'
+    | 'precipitation'
+    | 'fire_type'
+  >
+  type FixedDecimalNumberCellType = keyof Pick<
+    FBATableRow,
+    | 'fine_fuel_moisture_code'
+    | 'duff_moisture_code'
+    | 'drought_code'
+    | 'initial_spread_index'
+    | 'build_up_index'
+    | 'fire_weather_index'
+    | 'rate_of_spread'
+    | 'flame_length'
+    | 'thirty_minute_fire_size'
+    | 'sixty_minute_fire_size'
+  >
+
+  const getTextDisplayCell = (row: FBATableRow, rowProperty: TextDisplayCellType) => {
     return (
       <LoadingIndicatorCell
         loading={loading}
         rowUpdating={rowIdsToUpdate.has(row.id)}
         initialLoad={initialLoad}
       >
-        <TableCell className={classes.dataRow}>{row.zone_code}</TableCell>
+        <TextDisplayCell value={row[rowProperty]}></TextDisplayCell>
+      </LoadingIndicatorCell>
+    )
+  }
+
+  const getFixedDecimalNumberCell = (
+    row: FBATableRow,
+    rowProperty: FixedDecimalNumberCellType
+  ) => {
+    return (
+      <LoadingIndicatorCell
+        loading={loading}
+        rowUpdating={rowIdsToUpdate.has(row.id)}
+        initialLoad={initialLoad}
+      >
+        <FixedDecimalNumberCell value={row[rowProperty]}></FixedDecimalNumberCell>
       </LoadingIndicatorCell>
     )
   }
@@ -352,18 +391,6 @@ const FBATable = (props: FBATableProps) => {
           rowId={row.id}
         />
       </StickyCell>
-    )
-  }
-
-  const getElevationCell = (row: FBATableRow) => {
-    return (
-      <LoadingIndicatorCell
-        loading={loading}
-        rowUpdating={rowIdsToUpdate.has(row.id)}
-        initialLoad={initialLoad}
-      >
-        <TextDisplayCell value={row.elevation}></TextDisplayCell>
-      </LoadingIndicatorCell>
     )
   }
 
@@ -410,42 +437,6 @@ const FBATable = (props: FBATableProps) => {
     )
   }
 
-  const getTempCell = (row: FBATableRow) => {
-    return (
-      <LoadingIndicatorCell
-        loading={loading}
-        rowUpdating={rowIdsToUpdate.has(row.id)}
-        initialLoad={initialLoad}
-      >
-        <TextDisplayCell value={row.temp}></TextDisplayCell>
-      </LoadingIndicatorCell>
-    )
-  }
-
-  const getRHCell = (row: FBATableRow) => {
-    return (
-      <LoadingIndicatorCell
-        loading={loading}
-        rowUpdating={rowIdsToUpdate.has(row.id)}
-        initialLoad={initialLoad}
-      >
-        <TextDisplayCell value={row.rh}></TextDisplayCell>
-      </LoadingIndicatorCell>
-    )
-  }
-
-  const getWindDirCell = (row: FBATableRow) => {
-    return (
-      <LoadingIndicatorCell
-        loading={loading}
-        rowUpdating={rowIdsToUpdate.has(row.id)}
-        initialLoad={initialLoad}
-      >
-        <TextDisplayCell value={row.wind_direction}></TextDisplayCell>
-      </LoadingIndicatorCell>
-    )
-  }
-
   const getWindSpeedCell = (row: FBATableRow) => {
     return (
       <TableCell className={classes.dataRow}>
@@ -462,92 +453,6 @@ const FBATable = (props: FBATableProps) => {
           rowId={row.id}
         />
       </TableCell>
-    )
-  }
-
-  const getPrecipCell = (row: FBATableRow) => {
-    return (
-      <LoadingIndicatorCell
-        loading={loading}
-        rowUpdating={rowIdsToUpdate.has(row.id)}
-        initialLoad={initialLoad}
-      >
-        <TextDisplayCell value={row.precipitation}></TextDisplayCell>
-      </LoadingIndicatorCell>
-    )
-  }
-
-  const getFFMCCell = (row: FBATableRow) => {
-    return (
-      <LoadingIndicatorCell
-        loading={loading}
-        rowUpdating={rowIdsToUpdate.has(row.id)}
-        initialLoad={initialLoad}
-      >
-        <FixedDecimalNumberCell
-          value={row.fine_fuel_moisture_code}
-        ></FixedDecimalNumberCell>
-      </LoadingIndicatorCell>
-    )
-  }
-
-  const getDMCCell = (row: FBATableRow) => {
-    return (
-      <LoadingIndicatorCell
-        loading={loading}
-        rowUpdating={rowIdsToUpdate.has(row.id)}
-        initialLoad={initialLoad}
-      >
-        <FixedDecimalNumberCell value={row.duff_moisture_code}></FixedDecimalNumberCell>
-      </LoadingIndicatorCell>
-    )
-  }
-
-  const getDCCell = (row: FBATableRow) => {
-    return (
-      <LoadingIndicatorCell
-        loading={loading}
-        rowUpdating={rowIdsToUpdate.has(row.id)}
-        initialLoad={initialLoad}
-      >
-        <FixedDecimalNumberCell value={row.drought_code}></FixedDecimalNumberCell>
-      </LoadingIndicatorCell>
-    )
-  }
-
-  const getISICell = (row: FBATableRow) => {
-    return (
-      <LoadingIndicatorCell
-        loading={loading}
-        rowUpdating={rowIdsToUpdate.has(row.id)}
-        initialLoad={initialLoad}
-      >
-        <FixedDecimalNumberCell value={row.initial_spread_index}></FixedDecimalNumberCell>
-      </LoadingIndicatorCell>
-    )
-  }
-
-  const getBUICell = (row: FBATableRow) => {
-    return (
-      <LoadingIndicatorCell
-        loading={loading}
-        rowUpdating={rowIdsToUpdate.has(row.id)}
-        initialLoad={initialLoad}
-      >
-        <FixedDecimalNumberCell value={row.build_up_index}></FixedDecimalNumberCell>
-      </LoadingIndicatorCell>
-    )
-  }
-
-  const getFWICell = (row: FBATableRow) => {
-    return (
-      <LoadingIndicatorCell
-        loading={loading}
-        rowUpdating={rowIdsToUpdate.has(row.id)}
-        initialLoad={initialLoad}
-      >
-        <FixedDecimalNumberCell value={row.fire_weather_index}></FixedDecimalNumberCell>
-      </LoadingIndicatorCell>
     )
   }
 
@@ -587,30 +492,6 @@ const FBATable = (props: FBATableProps) => {
     )
   }
 
-  const getROSCell = (row: FBATableRow) => {
-    return (
-      <LoadingIndicatorCell
-        loading={loading}
-        rowUpdating={rowIdsToUpdate.has(row.id)}
-        initialLoad={initialLoad}
-      >
-        <FixedDecimalNumberCell value={row.rate_of_spread}></FixedDecimalNumberCell>
-      </LoadingIndicatorCell>
-    )
-  }
-
-  const getFireTypeCell = (row: FBATableRow) => {
-    return (
-      <LoadingIndicatorCell
-        loading={loading}
-        rowUpdating={rowIdsToUpdate.has(row.id)}
-        initialLoad={initialLoad}
-      >
-        <TextDisplayCell value={row?.fire_type}></TextDisplayCell>
-      </LoadingIndicatorCell>
-    )
-  }
-
   const getCFBCell = (row: FBATableRow) => {
     return (
       <LoadingIndicatorCell
@@ -625,56 +506,28 @@ const FBATable = (props: FBATableProps) => {
     )
   }
 
-  const getFlameLengthCell = (row: FBATableRow) => {
-    return (
-      <LoadingIndicatorCell
-        loading={loading}
-        rowUpdating={rowIdsToUpdate.has(row.id)}
-        initialLoad={initialLoad}
-      >
-        <FixedDecimalNumberCell value={row.flame_length}></FixedDecimalNumberCell>
-      </LoadingIndicatorCell>
-    )
-  }
-
-  const get30MinFireSizeCell = (row: FBATableRow) => {
-    return (
-      <LoadingIndicatorCell
-        loading={loading}
-        rowUpdating={rowIdsToUpdate.has(row.id)}
-        initialLoad={initialLoad}
-      >
-        <FixedDecimalNumberCell
-          value={row.thirty_minute_fire_size}
-        ></FixedDecimalNumberCell>
-      </LoadingIndicatorCell>
-    )
-  }
-
-  const get60MinFireSizeCell = (row: FBATableRow) => {
-    return (
-      <LoadingIndicatorCell
-        loading={loading}
-        rowUpdating={rowIdsToUpdate.has(row.id)}
-        initialLoad={initialLoad}
-      >
-        <FixedDecimalNumberCell
-          value={row.sixty_minute_fire_size}
-        ></FixedDecimalNumberCell>
-      </LoadingIndicatorCell>
-    )
-  }
-
   const columnCellComponents = (row: FBATableRow, colName: string) => {
     switch (colName) {
       case 'Zone': {
-        return getZoneCell(row)
+        return getTextDisplayCell(row, 'zone_code')
+      }
+      case 'Elevation': {
+        return getTextDisplayCell(row, 'elevation')
+      }
+      case 'Temp': {
+        return getTextDisplayCell(row, 'temp')
+      }
+      case 'RH': {
+        return getTextDisplayCell(row, 'rh')
+      }
+      case 'Wind Dir': {
+        return getTextDisplayCell(row, 'wind_direction')
+      }
+      case 'Precip (mm)': {
+        return getTextDisplayCell(row, 'precipitation')
       }
       case 'Weather Station': {
         return getWeatherStationCell(row)
-      }
-      case 'Elevation': {
-        return getElevationCell(row)
       }
       case 'FBP Fuel Type': {
         return getFuelTypeCell(row)
@@ -685,38 +538,26 @@ const FBATable = (props: FBATableProps) => {
       case 'Status': {
         return getStatusCell(row)
       }
-      case 'Temp': {
-        return getTempCell(row)
-      }
-      case 'RH': {
-        return getRHCell(row)
-      }
-      case 'Wind Dir': {
-        return getWindDirCell(row)
-      }
       case 'Wind Speed (km/h)': {
         return getWindSpeedCell(row)
       }
-      case 'Precip (mm)': {
-        return getPrecipCell(row)
-      }
       case 'FFMC': {
-        return getFFMCCell(row)
+        return getFixedDecimalNumberCell(row, 'fine_fuel_moisture_code')
       }
       case 'DMC': {
-        return getDMCCell(row)
+        return getFixedDecimalNumberCell(row, 'duff_moisture_code')
       }
       case 'DC': {
-        return getDCCell(row)
+        return getFixedDecimalNumberCell(row, 'drought_code')
       }
       case 'ISI': {
-        return getISICell(row)
+        return getFixedDecimalNumberCell(row, 'initial_spread_index')
       }
       case 'BUI': {
-        return getBUICell(row)
+        return getFixedDecimalNumberCell(row, 'build_up_index')
       }
       case 'FWI': {
-        return getFWICell(row)
+        return getFixedDecimalNumberCell(row, 'fire_weather_index')
       }
       case 'HFI': {
         return getHFICell(row)
@@ -728,22 +569,22 @@ const FBATable = (props: FBATableProps) => {
         return getCriticalHours10000Cell(row)
       }
       case 'ROS (m/min)': {
-        return getROSCell(row)
+        return getFixedDecimalNumberCell(row, 'rate_of_spread')
       }
       case 'Fire Type': {
-        return getFireTypeCell(row)
+        return getTextDisplayCell(row, 'fire_type')
       }
       case 'CFB (%)': {
         return getCFBCell(row)
       }
       case 'Flame Length (m)': {
-        return getFlameLengthCell(row)
+        return getFixedDecimalNumberCell(row, 'flame_length')
       }
       case '30 min fire size (ha)': {
-        return get30MinFireSizeCell(row)
+        return getFixedDecimalNumberCell(row, 'thirty_minute_fire_size')
       }
       case '60 min fire size (ha)': {
-        return get60MinFireSizeCell(row)
+        return getFixedDecimalNumberCell(row, 'sixty_minute_fire_size')
       }
     }
   }

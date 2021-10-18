@@ -4,8 +4,10 @@ import {
   TableCell,
   TableHead,
   TableRow,
-  TableSortLabel
+  TableSortLabel,
+  Tooltip
 } from '@material-ui/core'
+import InfoOutlinedIcon from '@material-ui/icons/InfoOutlined'
 import FBAProgressRow from 'features/fbaCalculator/components/FBAProgressRow'
 import StickyCell from 'features/fbaCalculator/components/StickyCell'
 import { FBATableRow, SortByColumn } from 'features/fbaCalculator/RowManager'
@@ -46,6 +48,17 @@ const FBATableHead = ({
   visibleColumns
 }: FBATableHeadProps) => {
   const classes = useStyles()
+
+  const typeToolTipFirstLine = 'SUR = Surface Type'
+  const typeToolTipSecondLine = 'IC = Intermittent Crown Type'
+  const typeToolTipThirdLine = 'CC = Continuous Crown Type'
+  const typeToolTipElement = (
+    <div>
+      {typeToolTipFirstLine} <br />
+      {typeToolTipSecondLine} <br />
+      {typeToolTipThirdLine}
+    </div>
+  )
 
   const columnHeaderComponentsDict: { [key: string]: React.ReactFragment } = {
     Zone: (
@@ -332,6 +345,12 @@ const FBATableHead = ({
         >
           Fire Type
         </TableSortLabel>
+        <Tooltip
+          title={typeToolTipElement}
+          aria-label={`${typeToolTipFirstLine} \n ${typeToolTipSecondLine} \n ${typeToolTipThirdLine}`}
+        >
+          <InfoOutlinedIcon style={{ fill: '#1A5A96' }}></InfoOutlinedIcon>
+        </Tooltip>
       </TableCell>
     ),
     'CFB (%)': (
